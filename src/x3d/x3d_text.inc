@@ -691,10 +691,15 @@ end;
 
 function TTextNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
+{ Using TQuadSetNode may be a little more efficient, as it can be rendered
+  using QUADS, and there's no need for dumb FdCoordIndex either.
+  But it cannot be used on OpenGLES that doesn't support rendering QUADS,
+  and right now simply fails rendering TQuadSetNode. }
+{$ifndef OpenGLES} {$define TEXT_PROXY_QUAD_SET} {$endif}
 var
   Size, Spacing: Single;
   Justify: TX3DFontJustify;
-  QuadSet: TQuadSetNode;
+  FaceSet: {$ifdef TEXT_PROXY_QUAD_SET} TQuadSetNode {$else} TIndexedFaceSetNode {$endif};
   CoordNode: TCoordinateNode;
   MultiTexCoordNode: TMultiTextureCoordinateNode;
   TexCoordNode, ExtraTexCoordNode: TTextureCoordinateNode;
@@ -713,15 +718,16 @@ begin
     Justify := FontStyle.Justify;
   end;
 
-  QuadSet := TQuadSetNode.Create(NodeName, BaseUrl);
+  FaceSet := {$ifdef TEXT_PROXY_QUAD_SET} TQuadSetNode {$else} TIndexedFaceSetNode {$endif}
+    .Create(NodeName, BaseUrl);
   try
-    QuadSet.Solid := Solid;
+    FaceSet.Solid := Solid;
 
     CoordNode := TCoordinateNode.Create('', BaseUrl);
-    QuadSet.FdCoord.Value := CoordNode;
+    FaceSet.FdCoord.Value := CoordNode;
 
     MultiTexCoordNode := TMultiTextureCoordinateNode.Create('', BaseUrl);
-    QuadSet.FdTexCoord.Value := MultiTexCoordNode;
+    FaceSet.FdTexCoord.Value := MultiTexCoordNode;
 
     TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
     MultiTexCoordNode.FdTexCoord.Add(TexCoordNode);
@@ -761,8 +767,19 @@ begin
       Solid, EventLineBounds, EventOrigin, EventTextBounds,
       CoordNode.FdPoint, TexCoordNode.FdPoint, ExtraTexCoordField);
 
-    Result := QuadSet;
-  except FreeAndNil(QuadSet); raise end;
+    {$ifndef TEXT_PROXY_QUAD_SET}
+    { calculate FaceSet.FdCoordIndex, just include all quads from CoordNode }
+    FaceSet.FdCoordIndex.Items.Clear;
+    for I := 0 to CoordNode.FdPoint.Count - 1 do
+    begin
+      FaceSet.FdCoordIndex.Items.Add(I);
+      if (I + 1) mod 4 = 0 then
+        FaceSet.FdCoordIndex.Items.Add(-1);
+    end;
+   {$endif}
+
+    Result := FaceSet;
+  except FreeAndNil(FaceSet); raise end;
 end;
 
 function TTextNode.ProxyUsesOverTriangulate: boolean;

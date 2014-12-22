@@ -917,9 +917,11 @@ begin
     State := TX3DGraphTraverseState.CreateCopy(State);
 
     CoordNode := TCoordinate3Node_1.Create('', BaseUrl);
+    CoordNode.FdPoint.Items.Clear;
     State.SetLastNodes(vsCoordinate3, CoordNode, true);
 
     TexCoordNode := TTextureCoordinate2Node_1.Create('', BaseUrl);
+    TexCoordNode.FdPoint.Items.Clear;
     State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
 
     TextProxy(Self,
@@ -933,7 +935,7 @@ begin
     for I := 0 to CoordNode.FdPoint.Count - 1 do
     begin
       FaceSet.FdCoordIndex.Items.Add(I);
-      if I mod 4 = 0 then
+      if (I + 1) mod 4 = 0 then
         FaceSet.FdCoordIndex.Items.Add(-1);
     end;
 

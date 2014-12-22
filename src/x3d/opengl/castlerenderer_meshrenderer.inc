@@ -379,6 +379,10 @@ begin
       if (Arrays.Attribs.Count <> 0) and (CurrentProgram <> nil) then
         EnableVertexAttrib(CurrentProgram);
 
+      {$ifdef OpenGLES}
+      if Arrays.Primitive = gpQuads then
+        OnWarning(wtMajor, 'Renderer', 'We cannot render QUADS on OpenGL ES. TODO: in the future this should be automatically hidden internally, for now do not use ths geometry');
+      {$endif}
       Mode := ToMode[Arrays.Primitive];
       First := 0;
       if Arrays.HasIndexes then
