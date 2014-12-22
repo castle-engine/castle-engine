@@ -5,20 +5,27 @@ TEXTUREFONT2PASCAL='texturefont2pascal'
 # Some texturefont2pascal options are useful for debugging what's going on.
 #TEXTUREFONT2PASCAL='texturefont2pascal --debug-log --debug-font-image'
 
-# Used by X3DNodes.
-# The regular sans version is also used by CastleControls.UIFont.
-$TEXTUREFONT2PASCAL --size 20 data/DejaVuSans-BoldOblique.ttf      --unit-name CastleTextureFont_DjvSansBO_20
-$TEXTUREFONT2PASCAL --size 20 data/DejaVuSans-Bold.ttf             --unit-name CastleTextureFont_DjvSansB_20
-$TEXTUREFONT2PASCAL --size 20 data/DejaVuSans-Oblique.ttf          --unit-name CastleTextureFont_DjvSansO_20
-$TEXTUREFONT2PASCAL --size 20 data/DejaVuSans.ttf                  --unit-name CastleTextureFont_DjvSans_20
-$TEXTUREFONT2PASCAL --size 20 data/DejaVuSansMono-BoldOblique.ttf  --unit-name CastleTextureFont_DjvMonoBO_20
-$TEXTUREFONT2PASCAL --size 20 data/DejaVuSansMono-Bold.ttf         --unit-name CastleTextureFont_DjvMonoB_20
-$TEXTUREFONT2PASCAL --size 20 data/DejaVuSansMono-Oblique.ttf      --unit-name CastleTextureFont_DjvMonoO_20
-$TEXTUREFONT2PASCAL --size 20 data/DejaVuSansMono.ttf              --unit-name CastleTextureFont_DjvMono_20
-$TEXTUREFONT2PASCAL --size 20 data/DejaVuSerif-BoldItalic.ttf      --unit-name CastleTextureFont_DjvSerifBI_20
-$TEXTUREFONT2PASCAL --size 20 data/DejaVuSerif-Bold.ttf            --unit-name CastleTextureFont_DjvSerifB_20
-$TEXTUREFONT2PASCAL --size 20 data/DejaVuSerif-Italic.ttf          --unit-name CastleTextureFont_DjvSerifI_20
-$TEXTUREFONT2PASCAL --size 20 data/DejaVuSerif.ttf                 --unit-name CastleTextureFont_DjvSerif_20
+# Used by Text node in X3DNodes. This font is drawn in 3D,
+# always automatically stretched to desired size, so you can freely
+# adjust TEXT_NODE_FONT_SIZE to balance the font texture size vs nice font look.
+# The default value is the maximum value where we still fit on 256x256 texture.
+TEXT_NODE_FONT_SIZE=20
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSans-BoldOblique.ttf      --unit-name CastleTextureFont_DjvSansBO_"${TEXT_NODE_FONT_SIZE}"
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSans-Bold.ttf             --unit-name CastleTextureFont_DjvSansB_"${TEXT_NODE_FONT_SIZE}"
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSans-Oblique.ttf          --unit-name CastleTextureFont_DjvSansO_"${TEXT_NODE_FONT_SIZE}"
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSans.ttf                  --unit-name CastleTextureFont_DjvSans_"${TEXT_NODE_FONT_SIZE}"
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSansMono-BoldOblique.ttf  --unit-name CastleTextureFont_DjvMonoBO_"${TEXT_NODE_FONT_SIZE}"
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSansMono-Bold.ttf         --unit-name CastleTextureFont_DjvMonoB_"${TEXT_NODE_FONT_SIZE}"
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSansMono-Oblique.ttf      --unit-name CastleTextureFont_DjvMonoO_"${TEXT_NODE_FONT_SIZE}"
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSansMono.ttf              --unit-name CastleTextureFont_DjvMono_"${TEXT_NODE_FONT_SIZE}"
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSerif-BoldItalic.ttf      --unit-name CastleTextureFont_DjvSerifBI_"${TEXT_NODE_FONT_SIZE}"
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSerif-Bold.ttf            --unit-name CastleTextureFont_DjvSerifB_"${TEXT_NODE_FONT_SIZE}"
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSerif-Italic.ttf          --unit-name CastleTextureFont_DjvSerifI_"${TEXT_NODE_FONT_SIZE}"
+$TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSerif.ttf                 --unit-name CastleTextureFont_DjvSerif_"${TEXT_NODE_FONT_SIZE}"
+
+# Used by CastleControls.UIFont.
+# (already created above, as TEXT_NODE_FONT_SIZE matches our desired size for this)
+# $TEXTUREFONT2PASCAL --size 20 data/DejaVuSans.ttf
 
 # Used by CastleControls.UIFontSmall
 $TEXTUREFONT2PASCAL --size 10 data/DejaVuSans.ttf
