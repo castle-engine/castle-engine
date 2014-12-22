@@ -592,18 +592,21 @@ var
       begin
         if (G.Width <> 0) and (G.Height <> 0) then
         begin
-          { Assumes 1 pixel transparent border around every glyph
-            (as it happens, TTextureFontData.Create creates such).
-            Makes the letter shape more smooth,
-            visibly better in the case of blending.
+          { Use a small margin around every glyph to allow bilinear
+            filtering to smoothly go from opaque to fully transparent
+            at glyph border. This prevents glyph border from ending suddenly,
+            it looks much better in the case of blending.
 
-            TODO: needs 1 pixel border to the left / right too. }
-          { $define EXTRA_GLYPH_SPACE}
+            This cooperates with TTextureFontData.Create (used by
+            texturefont2pascal) that makes sure that each letter is
+            surrounded with a padding that allows such border,
+            see GlyphPadding in castletexturefontdata.pas. }
+          {$define EXTRA_GLYPH_SPACE}
 
-          CoordX0 := X - G.X {$ifdef EXTRA_GLYPH_SPACE} - 1 {$endif};
-          CoordY0 := Y - G.Y {$ifdef EXTRA_GLYPH_SPACE} - 1 {$endif};
-          CoordX1 := CoordX0 + G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 2 {$endif};
-          CoordY1 := CoordY0 + G.Height {$ifdef EXTRA_GLYPH_SPACE} + 2 {$endif};
+          CoordX0 := X - G.X {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
+          CoordY0 := Y - G.Y {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif};
+          CoordX1 := CoordX0 + G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
+          CoordY1 := CoordY0 + G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
 
           CoordX0 *= XScale;
           CoordX1 *= XScale;
@@ -615,10 +618,10 @@ var
           OutCoord.Items.Add(Vector3Single(CoordX1, CoordY1, 0));
           OutCoord.Items.Add(Vector3Single(CoordX0, CoordY1, 0));
 
-          TexX0 := (G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 1 {$endif}) / Font.Image.Width;
-          TexY0 := (G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 1 {$endif}) / Font.Image.Height;
-          TexX1 := (G.ImageX + G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 2 {$endif}) / Font.Image.Width;
-          TexY1 := (G.ImageY + G.Height {$ifdef EXTRA_GLYPH_SPACE} + 2 {$endif}) / Font.Image.Height;
+          TexX0 := (G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif}) / Font.Image.Width;
+          TexY0 := (G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif}) / Font.Image.Height;
+          TexX1 := (G.ImageX + G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) / Font.Image.Width;
+          TexY1 := (G.ImageY + G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) / Font.Image.Height;
 
           OutTexCoord.Items.Add(Vector2Single(TexX0, TexY0));
           OutTexCoord.Items.Add(Vector2Single(TexX1, TexY0));
@@ -823,8 +826,15 @@ function CreateFontTextureNode(const Font: TTextureFontData): TPixelTextureNode;
 begin
   Result := TPixelTextureNode.Create('', '');
   FreeAndNil(Result.FdImage.Value);
-  Result.FdRepeatS.Value := false;
-  Result.FdRepeatT.Value := false;
+  { although repeat=TRUE seems counter-intuitive, in fact:
+    - We *can* use it, since CastleTextureFontData surrounds each glyph from
+      the right and top with GlyphPadding, so we will not accidentally pick
+      other glyph by slightly going outside the texture area.
+    - We *want* to use it actually, for EXTRA_GLYPH_SPACE. This way glyphs
+      on the very left and bottom border of the font texture will also
+      have a transparent pixel row to the left / bottom. }
+  Result.FdRepeatS.Value := true;
+  Result.FdRepeatT.Value := true;
   { convert grayscale image with TreatAsAlpha to TGrayscaleAlphaImage }
   Result.FdImage.Value := Font.Image.ToGrayscaleAlphaImage;
   { TODO: allow configuring this on Text node, whether we use blendinf or not. }

@@ -262,6 +262,12 @@ var
     finally FreeAndNil(Bitmaps) end;
   end;
 
+const
+  { Separate the glyphs for safety, to avoid pulling in colors
+    from neighboring letters when drawing (floating point errors could in theory
+    make small errors moving us outside of the desired pixel). }
+  GlyphPadding = 2;
+
 var
   FileName: string;
   GlyphInfo: TGlyph;
@@ -315,11 +321,8 @@ begin
 
     if GlyphsCount <> 0 then
     begin
-      { Increase the glyph by 1 pixel for safety, to avoid pulling in colors
-        from neighboring letters when drawing (floating point errors could in theory
-        make small errors moving us outside of the desired pixel). }
-      Inc(MaxWidth);
-      Inc(MaxHeight);
+      MaxWidth += GlyphPadding;
+      MaxHeight += GlyphPadding;
 
       ImageSize := 8;
       while (ImageSize div MaxHeight) * (ImageSize div MaxWidth) < GlyphsCount do
