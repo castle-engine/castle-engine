@@ -328,8 +328,8 @@ begin
       while (ImageSize div MaxHeight) * (ImageSize div MaxWidth) < GlyphsCount do
         ImageSize *= 2;
 
-      WritelnLog('Font', 'Creating image %dx%d to store glyphs of font "%s" (%d glyphs, max glyph size (with 1 pixel margin) %dx%d)',
-        [ImageSize, ImageSize, URL, GlyphsCount, MaxWidth, MaxHeight]);
+      WritelnLog('Font', 'Creating image %dx%d to store glyphs of font "%s" (%d glyphs, max glyph size (including %d pixel padding) is %dx%d)',
+        [ImageSize, ImageSize, URL, GlyphsCount, GlyphPadding, MaxWidth, MaxHeight]);
 
       FImage := TGrayscaleImage.Create(ImageSize, ImageSize);
       Image.Clear(0);
