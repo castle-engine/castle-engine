@@ -31,10 +31,21 @@
   TX3DFontJustify = (fjBegin, fjMiddle, fjEnd);
 
   TFontStyleNode = class(TAbstractFontStyleNode)
-  private
+  strict private
     JustifyWarningUppercaseDone, JustifyWarningObsoleteDone,
       JustifyWarningNotSupportedDone: boolean;
+    function GetBlending: boolean;
+    procedure SetBlending(const Value: boolean);
   public
+    const
+      DefaultSize = 1.0;
+      DefaultSpacing = 1.0;
+      DefaultFamily = ffSerif;
+      DefaultBold = false;
+      DefaultItalic = false;
+      DefaultJustify = fjBegin;
+      DefaultBlending = true;
+
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
@@ -66,6 +77,10 @@
     private FFdTopToBottom: TSFBool;
     public property FdTopToBottom: TSFBool read FFdTopToBottom;
 
+    private FFdBlending: TSFBool;
+    public property FdBlending: TSFBool read FFdBlending;
+    property Blending: boolean read GetBlending write SetBlending;
+
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
@@ -73,13 +88,6 @@
     function Bold: boolean;
     function Italic: boolean;
     function Justify: TX3DFontJustify;
-
-    class function DefaultSize: Single;
-    class function DefaultSpacing: Single;
-    class function DefaultFamily: TX3DFontFamily;
-    class function DefaultBold: boolean;
-    class function DefaultItalic: boolean;
-    class function DefaultJustify: TX3DFontJustify;
   end;
   TFontStyleNode_2 = TFontStyleNode;
 
@@ -201,6 +209,11 @@ begin
    FdTopToBottom.Exposed := false;
    FdTopToBottom.ChangesAlways := [chFontStyle];
   Fields.Add(FFdTopToBottom);
+
+  FFdBlending := TSFBool.Create(Self, 'blending', DefaultBlending);
+   FdStyle.Exposed := false;
+   FdStyle.ChangesAlways := [chFontStyle];
+  Fields.Add(FFdBlending);
 end;
 
 class function TFontStyleNode.ClassNodeTypeName: string;
@@ -350,34 +363,14 @@ begin
   end;
 end;
 
-class function TFontStyleNode.DefaultSize: Single;
+function TFontStyleNode.GetBlending: boolean;
 begin
-  Result := 1;
+  Result := FdBlending.Value;
 end;
 
-class function TFontStyleNode.DefaultSpacing: Single;
+procedure TFontStyleNode.SetBlending(const Value: boolean);
 begin
-  Result := 1;
-end;
-
-class function TFontStyleNode.DefaultFamily: TX3DFontFamily;
-begin
-  Result := ffSerif;
-end;
-
-class function TFontStyleNode.DefaultBold: boolean;
-begin
-  Result := false;
-end;
-
-class function TFontStyleNode.DefaultItalic: boolean;
-begin
-  Result := false;
-end;
-
-class function TFontStyleNode.DefaultJustify: TX3DFontJustify;
-begin
-  Result := fjBegin;
+  FdBlending.Send(Value);
 end;
 
 procedure TTextNode.CreateNode;
@@ -822,7 +815,8 @@ begin
       TFontStyleNode.DefaultItalic);
 end;
 
-function CreateFontTextureNode(const Font: TTextureFontData): TPixelTextureNode;
+function CreateFontTextureNode(const Font: TTextureFontData;
+  const Blending: boolean): TPixelTextureNode;
 begin
   Result := TPixelTextureNode.Create('', '');
   FreeAndNil(Result.FdImage.Value);
@@ -837,11 +831,14 @@ begin
   Result.FdRepeatT.Value := true;
   { convert grayscale image with TreatAsAlpha to TGrayscaleAlphaImage }
   Result.FdImage.Value := Font.Image.ToGrayscaleAlphaImage;
-  { TODO: allow configuring this on Text node, whether we use blendinf or not. }
-  //Result.FdAlphaChannel.Value := 'SIMPLE_YES_NO';
+  if Blending then
+    Result.FdAlphaChannel.Value := 'FULL_RANGE' else
+    Result.FdAlphaChannel.Value := 'SIMPLE_YES_NO';
 end;
 
 function TTextNode.FontTextureNode: TAbstractTexture2DNode;
+var
+  Blending: boolean;
 begin
   { For now, we assume that font value never changes,
     and so FFontTextureNode is neved changed once it's initially
@@ -852,7 +849,12 @@ begin
     then chFontStyle should provoke recreating proxy (just like
     chGeometry does now) and it should provoke recreating FontTextureNode. }
   if FFontTextureNode = nil then
-    FFontTextureNode := CreateFontTextureNode(Font);
+  begin
+    if FontStyle <> nil then
+      Blending := FontStyle.Blending else
+      Blending := TFontStyleNode.DefaultBlending;
+    FFontTextureNode := CreateFontTextureNode(Font, Blending);
+  end;
   Result := FFontTextureNode;
 end;
 

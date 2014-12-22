@@ -265,6 +265,9 @@
   end;
 
   TFontStyleNode_1 = class(TAbstractChildNode)
+  strict private
+    function GetBlending: boolean;
+    procedure SetBlending(const Value: boolean);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -277,6 +280,10 @@
 
     private FFdStyle: TSFBitMask;
     public property FdStyle: TSFBitMask read FFdStyle;
+
+    private FFdBlending: TSFBool;
+    public property FdBlending: TSFBool read FFdBlending;
+    property Blending: boolean read GetBlending write SetBlending;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -938,7 +945,9 @@ begin
   except FreeAndNil(FaceSet); raise end;
 
   if FFontTextureNode = nil then
-    FFontTextureNode := CreateFontTextureNode(State.LastNodes.FontStyle.Font);
+    FFontTextureNode := CreateFontTextureNode(
+      State.LastNodes.FontStyle.Font,
+      State.LastNodes.FontStyle.Blending);
 end;
 
 function TAsciiTextNode_1.ProxyUsesOverTriangulate: boolean;
@@ -1257,6 +1266,11 @@ begin
   FFdStyle := TSFBitMask.Create(Self, 'style', ['BOLD', 'ITALIC'], 'NONE', '', [false, false]);
    FdStyle.ChangesAlways := [chGeometryVRML1State];
   Fields.Add(FFdStyle);
+
+  FFdBlending := TSFBool.Create(Self, 'blending', true);
+   FdStyle.Exposed := false;
+   FdStyle.ChangesAlways := [chFontStyle];
+  Fields.Add(FFdBlending);
 end;
 
 class function TFontStyleNode_1.ClassNodeTypeName: string;
@@ -1323,6 +1337,16 @@ begin
     Family,
     Bold,
     Italic);
+end;
+
+function TFontStyleNode_1.GetBlending: boolean;
+begin
+  Result := FdBlending.Value;
+end;
+
+procedure TFontStyleNode_1.SetBlending(const Value: boolean);
+begin
+  FdBlending.Send(Value);
 end;
 
 procedure TInfoNode_1.CreateNode;
