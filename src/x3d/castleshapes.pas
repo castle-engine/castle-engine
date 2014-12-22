@@ -1134,6 +1134,9 @@ var
         Result := 1;
     end else
       Result := 0;
+
+    if OriginalGeometry.FontTextureNode <> nil then
+      Inc(Result);
   end;
 
   function ArrayForBox(Box: TBox3D): TGeometryArrays;
@@ -1788,6 +1791,8 @@ begin
       if App.FdEffects[I] is TEffectNode then
         HandleShaderFields(TEffectNode(App.FdEffects[I]).InterfaceDeclarations);
   end;
+
+  HandleTextureNode(OriginalGeometry.FontTextureNode);
 end;
 
 type

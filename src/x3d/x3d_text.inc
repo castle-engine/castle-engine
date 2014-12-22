@@ -732,8 +732,19 @@ begin
 
     if (FdTexCoord.Value <> nil) and FdTexCoord.CurrentChildAllowed then
     begin
+      { If you specify explicit Text.texCoord value, we assume you want
+        to use it for Appearance.texture, instead of automatic texture
+        coordinates that would be placed inside ExtraTexCoordNode.
+        So we don't use ExtraTexCoordNode then.
+
+        Note: don't worry about X3DShadowMaps processing here.
+        X3DShadowMaps processing happens on the resulting geometry node,
+        it *does not* modify source FdTexCoord field. So shadow maps
+        will work on both textured and untextured text,
+        because X3DShadowMaps processing will actually cut off ExtraTexCoordNode
+        in case they are unused (because text is not textured),
+        before adding ProjectedTextureCoordinate. }
       ExtraTexCoordNode := nil;
-      { No need for ExtraTexCoordNode, instead insert specified tex coords. }
       if FdTexCoord.Value is TMultiTextureCoordinateNode then
       begin
         for I := 0 to TMultiTextureCoordinateNode(FdTexCoord.Value).FdTexCoord.Count - 1 do

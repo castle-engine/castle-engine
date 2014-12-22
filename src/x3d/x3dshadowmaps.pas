@@ -229,7 +229,9 @@ procedure TLightList.ShapeAdd(Shape: TShape);
     preserving old texture.
 
     Returns the count of textures in TexturesCount, not counting the last
-    ShadowMap texture. }
+    ShadowMap texture. But it *does* count the texture in
+    OriginalGeometry.FontTextureNode. IOW, TexturesCount is
+    "how many texCoords are actually used, not counting new stuff for shadow maps". }
   procedure HandleShadowMap(var Texture: TAbstractTextureNode;
     const ShadowMap: TGeneratedShadowMapNode; out TexturesCount: Cardinal);
   var
@@ -256,6 +258,8 @@ procedure TLightList.ShapeAdd(Shape: TShape);
     Assert(Texture = MTexture);
 
     TexturesCount := MTexture.FdTexture.Count;
+    if Shape.OriginalGeometry.FontTextureNode <> nil then
+      Inc(TexturesCount);
 
     { If the texture that we want to add is already present, abort.
       This may happen, as HandleLight may iterate many times over
@@ -394,7 +398,9 @@ procedure TLightList.ShapeAdd(Shape: TShape);
     Shape.Geometry.TexCoordField.Value := TexCoord;
 
     if (Shape.Geometry <> Shape.OriginalGeometry) and
-       (Shape.OriginalGeometry.TexCoordField <> nil) then
+       (Shape.OriginalGeometry.TexCoordField <> nil) and
+       (not (Shape.OriginalGeometry is TTextNode)) and
+       (not (Shape.OriginalGeometry is TAsciiTextNode_1)) then
     begin
       { If this shape uses proxy, the proxy may be freed and regenerated
         on some VRML/X3D graph changes. We want this regeneration to
@@ -402,15 +408,28 @@ procedure TLightList.ShapeAdd(Shape: TShape);
         still work. So set here original geometry texCoord too,
         if possible.
 
-        We actually overuse here the fact that within nodes Sphere, Teapot
-        etc. we allow MultiTexture node with explicit TextureCoordinate
-        inside.
+        This is dirty for a couple of reasons:
 
-        TODO: this is very far from perfect, makes some assumptions that
-        are not necessarily true. That's because in case of proxy geometry,
-        we add back to the original geometry a texCoord designed for proxy.
-        So e.g. if the vertexes of original shape changed (although they can't,
-        for now), then generating proxy will use the old texCoord. }
+        - We use here the internal knowledge that within nodes like Sphere,
+          we allow MultiTexture node with explicit TextureCoordinate
+          children inside (even though our specification says that we only allow
+          generated texture coordinate nodes (like TextureCoordinateGenerator)
+          on Sphere.texCoord).
+
+        - We use here the internal knowledge that Sphere.Proxy method,
+          when OriginalGeometry.FdTexCoord.Value <> nil,
+          just uses OriginalGeometry.FdTexCoord.Value for returned
+          Proxy geometry FdTexCoord, without any processing.
+
+          TODO: This idea fails e.g. for Text node, where TextProxy does something
+          more involved with FdTexCoord field, and this scheme would just fail.
+
+        - Since we add explicit texture coords for Sphere and such
+          nodes here, we assume that Sphere.Proxy will always generate
+          the same coordinates for this node. This is true now,
+          but it will stop being true if triangulation detail will be dynamic
+          (e.g. based on distance to camera, or when something like
+          KambiTriangulation node will get exposed fields). }
       Shape.OriginalGeometry.TexCoordField.Value := TexCoord;
     end;
 

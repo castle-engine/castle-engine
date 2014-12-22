@@ -2317,39 +2317,42 @@ var
   Lights: TLightInstancesList;
   Texture: TAbstractTextureNode;
   FontTexture: TAbstractTexture2DNode;
+  State: TX3DGraphTraverseState;
 begin
-  GLTextureNodes.Prepare(Shape.State, Shape.State.Texture, Self);
+  State := Shape.State;
+
+  GLTextureNodes.Prepare(State, State.Texture, Self);
 
   FontTexture := Shape.OriginalGeometry.FontTextureNode;
   if FontTexture <> nil then
-    GLTextureNodes.Prepare(Shape.State, FontTexture, Self);
+    GLTextureNodes.Prepare(State, FontTexture, Self);
 
-  BumpMappingRenderers.Prepare(Shape.State, Self);
+  BumpMappingRenderers.Prepare(State, Self);
 
-  if (Shape.State.ShapeNode <> nil) and
-     (Shape.State.ShapeNode.Appearance <> nil) then
+  if (State.ShapeNode <> nil) and
+     (State.ShapeNode.Appearance <> nil) then
   begin
-    PrepareIDecls(Shape.State.ShapeNode.Appearance.FdEffects, Shape.State);
-    PrepareIDecls(Shape.State.ShapeNode.Appearance.FdShaders, Shape.State);
+    PrepareIDecls(State.ShapeNode.Appearance.FdEffects, State);
+    PrepareIDecls(State.ShapeNode.Appearance.FdShaders, State);
   end;
 
-  if Shape.State.Effects <> nil then
-    PrepareIDecls(Shape.State.Effects, Shape.State);
+  if State.Effects <> nil then
+    PrepareIDecls(State.Effects, State);
 
-  Lights := Shape.State.Lights;
+  Lights := State.Lights;
   if Lights <> nil then
     for I := 0 to Lights.Count - 1 do
-      PrepareIDecls(Lights.L[I].Node.FdEffects, Shape.State);
+      PrepareIDecls(Lights.L[I].Node.FdEffects, State);
 
-  Texture := Shape.State.Texture;
+  Texture := State.Texture;
   if Texture <> nil then
   begin
-    PrepareIDecls(Texture.FdEffects, Shape.State);
+    PrepareIDecls(Texture.FdEffects, State);
     if Texture is TMultiTextureNode then
       for I := 0 to TMultiTextureNode(Texture).FdTexture.Count - 1 do
         if TMultiTextureNode(Texture).FdTexture[I] is TAbstractTextureNode then
           PrepareIDecls(TAbstractTextureNode(TMultiTextureNode(Texture).
-            FdTexture[I]).FdEffects, Shape.State);
+            FdTexture[I]).FdEffects, State);
   end;
 end;
 
@@ -3218,6 +3221,9 @@ var
             Result += TextureUnits(TMFNode(UniformField)[J]);
       end;
     end;
+
+    if Shape.OriginalGeometry.FontTextureNode <> nil then
+      Inc(Result);
   end;
 
 var
