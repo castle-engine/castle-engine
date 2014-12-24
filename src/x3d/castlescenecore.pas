@@ -6024,6 +6024,7 @@ begin
       begin
         (BillboardInstancesList[I] as TBillboardNode).CameraChanged(
           FCameraPosition, FCameraDirection, FCameraUp);
+        { TODO: use OptimizeExtensiveTransformations? }
         TransformationChanged(BillboardInstancesList[I],
           BillboardInstancesList[I].ShapeTrees as TShapeTreeList,
           [chTransform]);
