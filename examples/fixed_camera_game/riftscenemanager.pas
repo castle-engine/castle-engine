@@ -6,15 +6,29 @@ uses X3DNodes, CastleSceneManager;
 
 type
   TRiftSceneManager = class(TCastleSceneManager)
-    function Headlight(out CustomHeadlight: TAbstractLightNode): boolean; override;
+  private
+    DefaultHeadlightNode: TDirectionalLightNode;
+  protected
+    function Headlight: TAbstractLightNode; override;
+  public
+    destructor Destroy; override;
   end;
 
 implementation
 
-function TRiftSceneManager.Headlight(out CustomHeadlight: TAbstractLightNode): boolean;
+uses SysUtils;
+
+function TRiftSceneManager.Headlight: TAbstractLightNode;
 begin
-  Result := true;
-  CustomHeadlight := nil;
+  if DefaultHeadlightNode = nil then
+    DefaultHeadlightNode := TDirectionalLightNode.Create('', '');;
+  Result := DefaultHeadlightNode;
+end;
+
+destructor TRiftSceneManager.Destroy;
+begin
+  FreeAndNil(DefaultHeadlightNode);
+  inherited;
 end;
 
 end.

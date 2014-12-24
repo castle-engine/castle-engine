@@ -120,8 +120,13 @@ end;
 
 type
   TMySceneManager = class(TCastleSceneManager)
+  private
+    DefaultHeadlightNode: TDirectionalLightNode;
+  protected
     procedure RenderFromViewEverything; override;
-    function Headlight(out CustomHeadlight: TAbstractLightNode): boolean; override;
+    function Headlight: TAbstractLightNode; override;
+  public
+    destructor Destroy; override;
   end;
 
 procedure TMySceneManager.RenderFromViewEverything;
@@ -231,10 +236,17 @@ begin
   DrawSFExplorerMaps;
 end;
 
-function TMySceneManager.Headlight(out CustomHeadlight: TAbstractLightNode): boolean;
+function TMySceneManager.Headlight: TAbstractLightNode;
 begin
-  Result := true;
-  CustomHeadlight := nil;
+  if DefaultHeadlightNode = nil then
+    DefaultHeadlightNode := TDirectionalLightNode.Create('', '');;
+  Result := DefaultHeadlightNode;
+end;
+
+destructor TMySceneManager.Destroy;
+begin
+  FreeAndNil(DefaultHeadlightNode);
+  inherited;
 end;
 
 procedure Motion(Container: TUIContainer; const Event: TInputMotion);

@@ -78,7 +78,6 @@ type
     FOnRender3D: TRender3DEvent;
     FHeadlightFromViewport: boolean;
     FUseGlobalLights: boolean;
-    DefaultHeadlightNode: TDirectionalLightNode;
 
     { If a texture for screen effects is ready, then
       ScreenEffectTextureDest/Src/Depth/Target are non-zero and
@@ -193,22 +192,24 @@ type
       KambiNavigationInfo.headlightNode properties. }
     procedure InitializeLights(const Lights: TLightInstancesList); virtual;
 
-    { Headlight used to light the scene. Returns if headlight is present,
-      and if it has some custom light node. When it returns @true,
-      and CustomHeadlight is set to @nil,
-      we simply use default directional light for a headlight.
+    { Headlight used to light the scene. Returns non-nil headlight node,
+      if headlight is present, or @nil when no headlight.
 
-      Default implementation of this method in TCastleAbstractViewport
+      Default implementation of this method in TCastleSceneManager
       looks at the MainScene headlight. We return if MainScene is assigned
       and TCastleSceneCore.HeadlightOn is @true.
       (HeadlightOn in turn looks
       at information in VRML/X3D file (NavigationInfo.headlight)
       and you can also always set HeadlightOn explicitly by code.)
       The custom light node
-      is obtained from TCastleSceneCore.CustomHeadlight.
+      is obtained from TCastleSceneCore.CustomHeadlight,
+      eventually using a default directional light node for a simple headlight.
+
+      Default implementation of this method in TCastleViewport looks at
+      SceneManager.Headlight.
 
       You can override this method to determine the headlight in any other way. }
-    function Headlight(out CustomHeadlight: TAbstractLightNode): boolean; virtual;
+    function Headlight: TAbstractLightNode; virtual; abstract;
 
     { Render the 3D part of scene. Called by RenderFromViewEverything at the end,
       when everything (clearing, background, headlight, loading camera
@@ -569,9 +570,12 @@ type
       This may allow you to light your view better (if you only use
       headlight to "just make the view brighter"), but it's not entirely
       correct (in particular, mirror reflections of the headlight are
-      undefined then). }
+      undefined then).
+
+      @deprecated This is deprecated, since HeadlightFromViewport = @true
+      is not really nicely defined, and it's not practically that useful either. }
     property HeadlightFromViewport: boolean
-      read FHeadlightFromViewport write FHeadlightFromViewport default false;
+      read FHeadlightFromViewport write FHeadlightFromViewport default false; deprecated;
 
     { Let MainScene.GlobalLights shine on every 3D object, not only
       MainScene. This is an easy way to lit your whole world with lights
@@ -708,6 +712,7 @@ type
     FWater: TBox3D;
     FOnMoveAllowed: TWorldMoveAllowedEvent;
     LastSoundRefresh: TMilisecTime;
+    DefaultHeadlightNode: TDirectionalLightNode;
 
     { Call at the beginning of Render (from both scene manager and custom viewport),
       to make sure UpdateGeneratedTextures was done before actual drawing.
@@ -783,6 +788,7 @@ type
 
     procedure BoundNavigationInfoChanged; virtual;
     procedure BoundViewpointChanged; virtual;
+    function Headlight: TAbstractLightNode; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1110,6 +1116,7 @@ type
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
+    function Headlight: TAbstractLightNode; override;
   public
     destructor Destroy; override;
 
@@ -1234,7 +1241,6 @@ begin
   Camera := nil;
 
   FreeAndNil(FRenderParams);
-  FreeAndNil(DefaultHeadlightNode);
 
   inherited;
 end;
@@ -1738,35 +1744,15 @@ begin
   GetItems.RenderShadowVolume(GetShadowVolumeRenderer, true, IdentityMatrix4Single);
 end;
 
-function TCastleAbstractViewport.Headlight(out CustomHeadlight: TAbstractLightNode): boolean;
-begin
-  Result := (GetMainScene <> nil) and GetMainScene.HeadlightOn;
-  if Result then
-    CustomHeadlight := GetMainScene.CustomHeadlight else
-    CustomHeadlight := nil;
-end;
-
 function TCastleAbstractViewport.HeadlightInstance(out Instance: TLightInstance): boolean;
 var
-  CustomHeadlight: TAbstractLightNode;
+  Node: TAbstractLightNode;
   HC: TCamera;
 
   procedure PrepareInstance;
   var
-    Node: TAbstractLightNode;
     Position, Direction, Up: TVector3Single;
   begin
-    { calculate Node, for Instance.Node }
-    Node := CustomHeadlight;
-
-    if Node = nil then
-    begin
-      if DefaultHeadlightNode = nil then
-        { Nothing more needed, all DirectionalLight default properties
-          are suitable for default headlight. }
-        DefaultHeadlightNode := TDirectionalLightNode.Create('', '');;
-      Node := DefaultHeadlightNode;
-    end;
 
     Assert(Node <> nil);
 
@@ -1795,11 +1781,14 @@ var
 
 begin
   Result := false;
-  if Headlight(CustomHeadlight) then
+  Node := Headlight;
+  if Node <> nil then
   begin
+    {$warnings off}
     if HeadlightFromViewport then
       HC := Camera else
       HC := GetHeadlightCamera;
+    {$warnings on}
 
     { GetHeadlightCamera (SceneManager.Camera) may be nil here, when
       rendering is done by a custom viewport and HeadlightFromViewport = false.
@@ -2623,6 +2612,7 @@ begin
 
   FreeAndNil(FSectors);
   FreeAndNil(Waypoints);
+  FreeAndNil(DefaultHeadlightNode);
 
   inherited;
 end;
@@ -3290,6 +3280,24 @@ begin
     OnMoveAllowed(Self, Result, OldPosition, NewPosition, BecauseOfGravity);
 end;
 
+function TCastleSceneManager.Headlight: TAbstractLightNode;
+begin
+  if (MainScene <> nil) and MainScene.HeadlightOn then
+  begin
+    Result := MainScene.CustomHeadlight;
+    if Result = nil then
+    begin
+      if DefaultHeadlightNode = nil then
+        { Nothing more needed, all DirectionalLight default properties
+          are suitable for default headlight. }
+        DefaultHeadlightNode := TDirectionalLightNode.Create('', '');;
+      Result := DefaultHeadlightNode;
+    end;
+    Assert(Result <> nil);
+  end else
+    Result := nil;
+end;
+
 { TCastleViewport --------------------------------------------------------------- }
 
 destructor TCastleViewport.Destroy;
@@ -3410,6 +3418,16 @@ begin
     if SceneManager <> nil then
       SceneManager.Viewports.Add(Self);
   end;
+end;
+
+function TCastleViewport.Headlight: TAbstractLightNode;
+begin
+  { Using the SceneManager.Headlight allows to share a DefaultHeadlightNode
+    with all viewports sharing the same SceneManager.
+    This is useful for tricks like view3dscene scene manager,
+    that like to have a headlight node common for the 3D world,
+    regardless if it's coming from MainScene or from DefaultHeadlightNode. }
+  Result := SceneManager.Headlight;
 end;
 
 initialization
