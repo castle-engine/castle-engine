@@ -559,7 +559,7 @@ end;
 
 procedure TBillboardNode.ApplyTransform(State: TX3DGraphTraverseState);
 var
-  NewX, NewZ, BillboardToViewer, P1, P2, LocalDirection, LocalUp: TVector3Single;
+  NewX, NewY, NewZ, BillboardToViewer, P1, P2, LocalDirection, LocalUp: TVector3Single;
   Angle: Single;
   M, IM: TMatrix4Single;
   PlaneAxis: TVector4Single;
@@ -571,17 +571,21 @@ begin
     begin
       LocalDirection := MatrixMultDirection(State.InvertedTransform, FCameraDirection);
       LocalUp        := MatrixMultDirection(State.InvertedTransform, FCameraUp);
+      { although FCameraDirection/Up are for sure normalized and orthogonal,
+        but State.InvertedTransform may contain scaling,
+        so be sure to normalize again the result.
+        For safety, also call MakeVectorsOrthoOnTheirPlane. }
+      NormalizeTo1st(LocalDirection);
+      NormalizeTo1st(LocalUp);
+      MakeVectorsOrthoOnTheirPlane(LocalDirection, LocalUp);
 
       NewX := VectorProduct(LocalDirection, LocalUp);
-      {$define NewY := LocalUp}
+      NewY := LocalUp;
       NewZ := -LocalDirection;
 
-      State.Transform := MatrixMult(State.Transform,
-        TransformToCoordsMatrix(ZeroVector3Single, NewX, NewY, NewZ));
-      State.InvertedTransform := MatrixMult(
-        TransformFromCoordsMatrix(ZeroVector3Single, NewX, NewY, NewZ),
-        State.InvertedTransform);
-      {$undef NewY}
+      TransformCoordsMatrices(NewX, NewY, NewZ, M, IM);
+      State.Transform := MatrixMult(State.Transform, M);
+      State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
     end else
     begin
       { vector from node origin to CameraPosition, in local coords }

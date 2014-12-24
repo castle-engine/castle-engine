@@ -1978,7 +1978,31 @@ begin
     result[3, i] := NewOrigin[i];
   end;
   { bottom row }
-  result[0, 3] := 0; result[1, 3] := 0; result[2, 3] := 0; result[3, 3] := 1;
+  result[0, 3] := 0;
+  result[1, 3] := 0;
+  result[2, 3] := 0;
+  result[3, 3] := 1;
+end;
+
+function TransformToCoordsMatrix(const NewX, NewY, NewZ: TVector3): TMatrix4Single;
+var
+  i: integer;
+begin
+  for i := 0 to 2 do
+  begin
+    result[0, i] := NewX[i];
+    result[1, i] := NewY[i];
+    result[2, i] := NewZ[i];
+  end;
+  { right column }
+  result[3, 0] := 0;
+  result[3, 1] := 0;
+  result[3, 2] := 0;
+  { bottom row }
+  result[0, 3] := 0;
+  result[1, 3] := 0;
+  result[2, 3] := 0;
+  result[3, 3] := 1;
 end;
 
 function TransformToCoordsNoScaleMatrix(const NewOrigin,
@@ -2012,7 +2036,35 @@ begin
   result[3, 2] := -VectorDotProduct(OldOrigin, OldZ);
 
   { bottom row }
-  result[0, 3] := 0; result[1, 3] := 0; result[2, 3] := 0; result[3, 3] := 1;
+  result[0, 3] := 0;
+  result[1, 3] := 0;
+  result[2, 3] := 0;
+  result[3, 3] := 1;
+end;
+
+function TransformFromCoordsMatrix(const OldX, OldY, OldZ: TVector3): TMatrix4Single;
+var
+  i: integer;
+begin
+  for i := 0 to 2 do
+  begin
+    { Difference between TrasformToCoords and TransformFromCoords:
+      up-left 3x3 matrix is applied in a transposed manner,
+      compared with TrasformToCoords. }
+    result[i, 0] := OldX[i];
+    result[i, 1] := OldY[i];
+    result[i, 2] := OldZ[i];
+  end;
+
+  { right column }
+  result[3, 0] := 0;
+  result[3, 1] := 0;
+  result[3, 2] := 0;
+  { bottom row }
+  result[0, 3] := 0;
+  result[1, 3] := 0;
+  result[2, 3] := 0;
+  result[3, 3] := 1;
 end;
 
 function TransformFromCoordsNoScaleMatrix(const OldOrigin,
@@ -2020,6 +2072,13 @@ function TransformFromCoordsNoScaleMatrix(const OldOrigin,
 begin
   result := TransformFromCoordsMatrix(OldOrigin,
     Normalized(OldX), Normalized(OldY), Normalized(OldZ));
+end;
+
+procedure TransformCoordsMatrices(const NewX, NewY, NewZ: TVector3;
+  out ToCoords, FromCoords: TMatrix4Single);
+begin
+  ToCoords := TransformToCoordsMatrix(NewX, NewY, NewZ);
+  FromCoords := TransformFromCoordsMatrix(NewX, NewY, NewZ);
 end;
 
 function LookAtMatrix(const Eye, Center, Up: TVector3): TMatrix4Single;

@@ -1847,7 +1847,15 @@ function MatrixDet2x2(const a, b, c, d: Single): Single;
   normalized, thus you waste a little time (on normalizing) but you
   avoid the scaling.
 
+  Overloaded versions without OldOrigin / NewOrigin parameters
+  work like the old/new origin is zero. IOW, the origin of the coordinate
+  system doesn't change in this case.
+
   @groupBegin }
+function TransformToCoordsMatrix(const
+  NewX, NewY, NewZ: TVector3Single): TMatrix4Single; overload;
+function TransformToCoordsMatrix(const
+  NewX, NewY, NewZ: TVector3Double): TMatrix4Single; overload;
 function TransformToCoordsMatrix(const NewOrigin,
   NewX, NewY, NewZ: TVector3Single): TMatrix4Single; overload;
 function TransformToCoordsMatrix(const NewOrigin,
@@ -1857,6 +1865,10 @@ function TransformToCoordsNoScaleMatrix(const NewOrigin,
 function TransformToCoordsNoScaleMatrix(const NewOrigin,
   NewX, NewY, NewZ: TVector3Double): TMatrix4Single; overload;
 
+function TransformFromCoordsMatrix(const
+  OldX, OldY, OldZ: TVector3Single): TMatrix4Single; overload;
+function TransformFromCoordsMatrix(const
+  OldX, OldY, OldZ: TVector3Double): TMatrix4Single; overload;
 function TransformFromCoordsMatrix(const OldOrigin,
   OldX, OldY, OldZ: TVector3Single): TMatrix4Single; overload;
 function TransformFromCoordsMatrix(const OldOrigin,
@@ -1865,6 +1877,17 @@ function TransformFromCoordsNoScaleMatrix(const OldOrigin,
   OldX, OldY, OldZ: TVector3Single): TMatrix4Single; overload;
 function TransformFromCoordsNoScaleMatrix(const OldOrigin,
   OldX, OldY, OldZ: TVector3Double): TMatrix4Single; overload;
+{ @groupEnd }
+
+{ Calculate matrix to convert to given coordinate system
+  (like TransformToCoordsMatrix) and it's inverse
+  (like TransformFromCoordsMatrix).
+
+  @groupBegin }
+procedure TransformCoordsMatrices(const NewX, NewY, NewZ: TVector3Single;
+  out ToCoords, FromCoords: TMatrix4Single); overload;
+procedure TransformCoordsMatrices(const NewX, NewY, NewZ: TVector3Double;
+  out ToCoords, FromCoords: TMatrix4Single); overload;
 { @groupEnd }
 
 { Transform vector into new coordinate space.
