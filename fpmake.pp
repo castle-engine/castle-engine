@@ -175,29 +175,26 @@ begin
     P.Targets.AddUnit('castlefreetype.pas');
     P.Targets.AddUnit('castleftfont.pas');
     P.Targets.AddUnit('castletexturefont_dejavusans_10.pas');
-    P.Targets.AddUnit('castletexturefont_dejavusans_20.pas');
     P.Targets.AddUnit('castletexturefont_dejavusansmono_18.pas');
     P.Targets.AddUnit('castletexturefont_dejavusansmonobold_15.pas');
+    P.Targets.AddUnit('castletexturefont_djvmono_20.pas');
+    P.Targets.AddUnit('castletexturefont_djvmonob_20.pas');
+    P.Targets.AddUnit('castletexturefont_djvmonobo_20.pas');
+    P.Targets.AddUnit('castletexturefont_djvmonoo_20.pas');
+    P.Targets.AddUnit('castletexturefont_djvsans_20.pas');
+    P.Targets.AddUnit('castletexturefont_djvsansb_20.pas');
+    P.Targets.AddUnit('castletexturefont_djvsansbo_20.pas');
+    P.Targets.AddUnit('castletexturefont_djvsanso_20.pas');
+    P.Targets.AddUnit('castletexturefont_djvserif_20.pas');
+    P.Targets.AddUnit('castletexturefont_djvserifb_20.pas');
+    P.Targets.AddUnit('castletexturefont_djvserifbi_20.pas');
+    P.Targets.AddUnit('castletexturefont_djvserifi_20.pas');
     P.Targets.AddUnit('castletexturefontdata.pas');
     P.Targets.AddUnit('castlefont2pascal.pas');
-    P.Targets.AddUnit('castleoutlinefontdata.pas');
-    P.Targets.AddUnit('castleoutlinefont_bvsans_bold_italic.pas');
-    P.Targets.AddUnit('castleoutlinefont_bvsans_bold.pas');
-    P.Targets.AddUnit('castleoutlinefont_bvsans_italic.pas');
-    P.Targets.AddUnit('castleoutlinefont_bvsans.pas');
-    P.Targets.AddUnit('castleoutlinefont_bvsansmono_bold_italic.pas');
-    P.Targets.AddUnit('castleoutlinefont_bvsansmono_bold.pas');
-    P.Targets.AddUnit('castleoutlinefont_bvsansmono_italic.pas');
-    P.Targets.AddUnit('castleoutlinefont_bvsansmono.pas');
-    P.Targets.AddUnit('castleoutlinefont_bvserif_bold_italic.pas');
-    P.Targets.AddUnit('castleoutlinefont_bvserif_bold.pas');
-    P.Targets.AddUnit('castleoutlinefont_bvserif_italic.pas');
-    P.Targets.AddUnit('castleoutlinefont_bvserif.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'fonts' + PathDelim + 'windows');
       P.Targets.AddUnit('castlewindowsfonts.pas');
-      P.Targets.AddUnit('castlewinfontconvert.pas');
     end;
 
     P.SourcePath.Add('src' + PathDelim + 'game');
@@ -225,7 +222,6 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlefonts.pas');
     P.Targets.AddUnit('castlegles20.pas');
-    P.Targets.AddUnit('castlegloutlinefonts.pas');
     P.Targets.AddUnit('castleglutils.pas');
     P.Targets.AddUnit('castlecurves.pas');
     P.Targets.AddUnit('castleglcubemaps.pas');

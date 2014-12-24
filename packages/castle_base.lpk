@@ -35,8 +35,8 @@
     <Description Value="Castle Game Engine - base package. Componets and units not dependent on CastleWindow or Lazarus LCL. You can install this package in Lazarus, it's required by all other programs and packages that are part of Castle Game Engine."/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
-    <Version Major="5" Minor="0"/>
-    <Files Count="179">
+    <Version Major="5"/>
+    <Files Count="174">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -323,445 +323,424 @@
         <UnitName Value="CastleFtFont"/>
       </Item71>
       <Item72>
-        <Filename Value="../src/fonts/castleoutlinefont_bvsans.pas"/>
-        <UnitName Value="CastleOutlineFont_BVSans"/>
-      </Item72>
-      <Item73>
-        <Filename Value="../src/fonts/castleoutlinefont_bvsans_bold.pas"/>
-        <UnitName Value="CastleOutlineFont_BVSans_Bold"/>
-      </Item73>
-      <Item74>
-        <Filename Value="../src/fonts/castleoutlinefont_bvsans_bold_italic.pas"/>
-        <UnitName Value="CastleOutlineFont_BVSans_Bold_Italic"/>
-      </Item74>
-      <Item75>
-        <Filename Value="../src/fonts/castleoutlinefont_bvsans_italic.pas"/>
-        <UnitName Value="CastleOutlineFont_BVSans_Italic"/>
-      </Item75>
-      <Item76>
-        <Filename Value="../src/fonts/castleoutlinefont_bvsansmono.pas"/>
-        <UnitName Value="CastleOutlineFont_BVSansMono"/>
-      </Item76>
-      <Item77>
-        <Filename Value="../src/fonts/castleoutlinefont_bvsansmono_bold.pas"/>
-        <UnitName Value="CastleOutlineFont_BVSansMono_Bold"/>
-      </Item77>
-      <Item78>
-        <Filename Value="../src/fonts/castleoutlinefont_bvsansmono_bold_italic.pas"/>
-        <UnitName Value="CastleOutlineFont_BVSansMono_Bold_Italic"/>
-      </Item78>
-      <Item79>
-        <Filename Value="../src/fonts/castleoutlinefont_bvsansmono_italic.pas"/>
-        <UnitName Value="CastleOutlineFont_BVSansMono_Italic"/>
-      </Item79>
-      <Item80>
-        <Filename Value="../src/fonts/castleoutlinefont_bvserif.pas"/>
-        <UnitName Value="CastleOutlineFont_BVSerif"/>
-      </Item80>
-      <Item81>
-        <Filename Value="../src/fonts/castleoutlinefont_bvserif_bold.pas"/>
-        <UnitName Value="CastleOutlineFont_BVSerif_Bold"/>
-      </Item81>
-      <Item82>
-        <Filename Value="../src/fonts/castleoutlinefont_bvserif_bold_italic.pas"/>
-        <UnitName Value="CastleOutlineFont_BVSerif_Bold_Italic"/>
-      </Item82>
-      <Item83>
-        <Filename Value="../src/fonts/castleoutlinefont_bvserif_italic.pas"/>
-        <UnitName Value="CastleOutlineFont_BVSerif_Italic"/>
-      </Item83>
-      <Item84>
-        <Filename Value="../src/fonts/castleoutlinefontdata.pas"/>
-        <UnitName Value="CastleOutlineFontData"/>
-      </Item84>
-      <Item85>
         <Filename Value="../src/fonts/castletexturefont_dejavusans_10.pas"/>
         <UnitName Value="CastleTextureFont_DejaVuSans_10"/>
-      </Item85>
-      <Item86>
-        <Filename Value="../src/fonts/castletexturefont_dejavusans_20.pas"/>
-        <UnitName Value="CastleTextureFont_DejaVuSans_20"/>
-      </Item86>
-      <Item87>
+      </Item72>
+      <Item73>
         <Filename Value="../src/fonts/castletexturefont_dejavusansmono_18.pas"/>
         <UnitName Value="CastleTextureFont_DejaVuSansMono_18"/>
-      </Item87>
-      <Item88>
+      </Item73>
+      <Item74>
         <Filename Value="../src/fonts/castletexturefont_dejavusansmonobold_15.pas"/>
         <UnitName Value="CastleTextureFont_DejaVuSansMonoBold_15"/>
-      </Item88>
-      <Item89>
+      </Item74>
+      <Item75>
+        <Filename Value="../src/fonts/castletexturefont_djvmono_20.pas"/>
+        <UnitName Value="CastleTextureFont_DjvMono_20"/>
+      </Item75>
+      <Item76>
+        <Filename Value="../src/fonts/castletexturefont_djvmonob_20.pas"/>
+        <UnitName Value="CastleTextureFont_DjvMonoB_20"/>
+      </Item76>
+      <Item77>
+        <Filename Value="../src/fonts/castletexturefont_djvmonobo_20.pas"/>
+        <UnitName Value="CastleTextureFont_DjvMonoBO_20"/>
+      </Item77>
+      <Item78>
+        <Filename Value="../src/fonts/castletexturefont_djvmonoo_20.pas"/>
+        <UnitName Value="CastleTextureFont_DjvMonoO_20"/>
+      </Item78>
+      <Item79>
+        <Filename Value="../src/fonts/castletexturefont_djvsans_20.pas"/>
+        <UnitName Value="CastleTextureFont_DjvSans_20"/>
+      </Item79>
+      <Item80>
+        <Filename Value="../src/fonts/castletexturefont_djvsansb_20.pas"/>
+        <UnitName Value="CastleTextureFont_DjvSansB_20"/>
+      </Item80>
+      <Item81>
+        <Filename Value="../src/fonts/castletexturefont_djvsansbo_20.pas"/>
+        <UnitName Value="CastleTextureFont_DjvSansBO_20"/>
+      </Item81>
+      <Item82>
+        <Filename Value="../src/fonts/castletexturefont_djvsanso_20.pas"/>
+        <UnitName Value="CastleTextureFont_DjvSansO_20"/>
+      </Item82>
+      <Item83>
+        <Filename Value="../src/fonts/castletexturefont_djvserif_20.pas"/>
+        <UnitName Value="CastleTextureFont_DjvSerif_20"/>
+      </Item83>
+      <Item84>
+        <Filename Value="../src/fonts/castletexturefont_djvserifb_20.pas"/>
+        <UnitName Value="CastleTextureFont_DjvSerifB_20"/>
+      </Item84>
+      <Item85>
+        <Filename Value="../src/fonts/castletexturefont_djvserifbi_20.pas"/>
+        <UnitName Value="CastleTextureFont_DjvSerifBI_20"/>
+      </Item85>
+      <Item86>
+        <Filename Value="../src/fonts/castletexturefont_djvserifi_20.pas"/>
+        <UnitName Value="CastleTextureFont_DjvSerifI_20"/>
+      </Item86>
+      <Item87>
         <Filename Value="../src/fonts/castletexturefontdata.pas"/>
         <UnitName Value="CastleTextureFontData"/>
-      </Item89>
-      <Item90>
+      </Item87>
+      <Item88>
         <Filename Value="../src/fonts/windows/castlewindowsfonts.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleWindowsFonts"/>
-      </Item90>
-      <Item91>
-        <Filename Value="../src/fonts/windows/castlewinfontconvert.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleWinFontConvert"/>
-      </Item91>
-      <Item92>
+      </Item88>
+      <Item89>
+        <Filename Value="../src/game/castle2dscenemanager.pas"/>
+        <UnitName Value="Castle2DSceneManager"/>
+      </Item89>
+      <Item90>
         <Filename Value="../src/game/castlecreatures.pas"/>
         <UnitName Value="CastleCreatures"/>
-      </Item92>
-      <Item93>
+      </Item90>
+      <Item91>
         <Filename Value="../src/game/castlegamenotifications.pas"/>
         <UnitName Value="CastleGameNotifications"/>
-      </Item93>
-      <Item94>
+      </Item91>
+      <Item92>
         <Filename Value="../src/game/castleitems.pas"/>
         <UnitName Value="CastleItems"/>
-      </Item94>
-      <Item95>
+      </Item92>
+      <Item93>
         <Filename Value="../src/game/castlelevels.pas"/>
         <UnitName Value="CastleLevels"/>
-      </Item95>
-      <Item96>
+      </Item93>
+      <Item94>
         <Filename Value="../src/game/castlematerialproperties.pas"/>
         <UnitName Value="CastleMaterialProperties"/>
-      </Item96>
-      <Item97>
+      </Item94>
+      <Item95>
         <Filename Value="../src/game/castleplayer.pas"/>
         <UnitName Value="CastlePlayer"/>
-      </Item97>
-      <Item98>
+      </Item95>
+      <Item96>
         <Filename Value="../src/game/castleresources.pas"/>
         <UnitName Value="CastleResources"/>
-      </Item98>
-      <Item99>
+      </Item96>
+      <Item97>
         <Filename Value="../src/images/castledds.pas"/>
         <UnitName Value="CastleDDS"/>
-      </Item99>
-      <Item100>
+      </Item97>
+      <Item98>
         <Filename Value="../src/images/castleimages.pas"/>
         <UnitName Value="CastleImages"/>
-      </Item100>
-      <Item101>
+      </Item98>
+      <Item99>
         <Filename Value="../src/images/castlepng.pas"/>
         <UnitName Value="CastlePng"/>
-      </Item101>
-      <Item102>
+      </Item99>
+      <Item100>
         <Filename Value="../src/images/castletextureimages.pas"/>
         <UnitName Value="CastleTextureImages"/>
-      </Item102>
-      <Item103>
+      </Item100>
+      <Item101>
         <Filename Value="../src/images/castlevideos.pas"/>
         <UnitName Value="CastleVideos"/>
-      </Item103>
-      <Item104>
+      </Item101>
+      <Item102>
         <Filename Value="../src/net/castledatauri.pas"/>
         <UnitName Value="CastleDataURI"/>
-      </Item104>
-      <Item105>
+      </Item102>
+      <Item103>
         <Filename Value="../src/net/castledownload.pas"/>
         <UnitName Value="CastleDownload"/>
-      </Item105>
-      <Item106>
+      </Item103>
+      <Item104>
         <Filename Value="../src/net/castleuriutils.pas"/>
         <UnitName Value="CastleURIUtils"/>
-      </Item106>
-      <Item107>
+      </Item104>
+      <Item105>
         <Filename Value="../src/opengl/castlecurves.pas"/>
         <UnitName Value="CastleCurves"/>
-      </Item107>
-      <Item108>
+      </Item105>
+      <Item106>
         <Filename Value="../src/opengl/castlefonts.pas"/>
         <UnitName Value="CastleFonts"/>
-      </Item108>
-      <Item109>
+      </Item106>
+      <Item107>
         <Filename Value="../src/opengl/castleglcubemaps.pas"/>
         <UnitName Value="CastleGLCubeMaps"/>
-      </Item109>
-      <Item110>
+      </Item107>
+      <Item108>
         <Filename Value="../src/opengl/castlegles20.pas"/>
         <UnitName Value="CastleGLES20"/>
-      </Item110>
-      <Item111>
+      </Item108>
+      <Item109>
         <Filename Value="../src/opengl/castleglimages.pas"/>
         <UnitName Value="CastleGLImages"/>
-      </Item111>
-      <Item112>
-        <Filename Value="../src/opengl/castlegloutlinefonts.pas"/>
-        <UnitName Value="CastleGLOutlineFonts"/>
-      </Item112>
-      <Item113>
+      </Item109>
+      <Item110>
         <Filename Value="../src/opengl/castleglshaders.pas"/>
         <UnitName Value="CastleGLShaders"/>
-      </Item113>
-      <Item114>
+      </Item110>
+      <Item111>
         <Filename Value="../src/opengl/castleglshadowvolumes.pas"/>
         <UnitName Value="CastleGLShadowVolumes"/>
-      </Item114>
-      <Item115>
+      </Item111>
+      <Item112>
         <Filename Value="../src/opengl/castleglutils.pas"/>
         <UnitName Value="CastleGLUtils"/>
-      </Item115>
-      <Item116>
+      </Item112>
+      <Item113>
         <Filename Value="../src/opengl/castleglversion.pas"/>
         <UnitName Value="CastleGLVersion"/>
-      </Item116>
-      <Item117>
+      </Item113>
+      <Item114>
         <Filename Value="../src/opengl/castlescreeneffects.pas"/>
         <UnitName Value="CastleScreenEffects"/>
-      </Item117>
-      <Item118>
+      </Item114>
+      <Item115>
         <Filename Value="../src/ui/castlecameras.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleCameras"/>
-      </Item118>
-      <Item119>
+      </Item115>
+      <Item116>
         <Filename Value="../src/ui/castleinputs.pas"/>
         <UnitName Value="CastleInputs"/>
-      </Item119>
-      <Item120>
+      </Item116>
+      <Item117>
         <Filename Value="../src/ui/castlekeysmouse.pas"/>
         <UnitName Value="CastleKeysMouse"/>
-      </Item120>
-      <Item121>
+      </Item117>
+      <Item118>
         <Filename Value="../src/ui/castleuicontrols.pas"/>
         <UnitName Value="CastleUIControls"/>
-      </Item121>
-      <Item122>
+      </Item118>
+      <Item119>
         <Filename Value="../src/ui/opengl/castlecontrols.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleControls"/>
-      </Item122>
-      <Item123>
+      </Item119>
+      <Item120>
         <Filename Value="../src/ui/opengl/castlecontrolsimages.pas"/>
         <UnitName Value="CastleControlsImages"/>
-      </Item123>
-      <Item124>
+      </Item120>
+      <Item121>
         <Filename Value="../src/ui/opengl/castleglcontainer.pas"/>
         <UnitName Value="CastleGLContainer"/>
-      </Item124>
-      <Item125>
+      </Item121>
+      <Item122>
         <Filename Value="../src/ui/opengl/castlenotifications.pas"/>
         <UnitName Value="CastleNotifications"/>
-      </Item125>
-      <Item126>
+      </Item122>
+      <Item123>
         <Filename Value="../src/ui/opengl/castleonscreenmenu.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleOnScreenMenu"/>
-      </Item126>
-      <Item127>
+      </Item123>
+      <Item124>
         <Filename Value="../src/ui/pk3dconnexion.pas"/>
         <UnitName Value="pk3DConnexion"/>
-      </Item127>
-      <Item128>
+      </Item124>
+      <Item125>
         <Filename Value="../src/x3d/arraysgenerator_x3d_geometry3d.inc"/>
         <Type Value="Include"/>
-      </Item128>
-      <Item129>
+      </Item125>
+      <Item126>
         <Filename Value="../src/x3d/arraysgenerator_x3d_rendering.inc"/>
         <Type Value="Include"/>
-      </Item129>
-      <Item130>
+      </Item126>
+      <Item127>
         <Filename Value="../src/x3d/castlearraysgenerator.pas"/>
         <UnitName Value="CastleArraysGenerator"/>
-      </Item130>
-      <Item131>
+      </Item127>
+      <Item128>
         <Filename Value="../src/x3d/castlenormals.pas"/>
         <UnitName Value="CastleNormals"/>
-      </Item131>
-      <Item132>
+      </Item128>
+      <Item129>
         <Filename Value="../src/x3d/castleprecalculatedanimationcore.pas"/>
         <UnitName Value="CastlePrecalculatedAnimationCore"/>
-      </Item132>
-      <Item133>
+      </Item129>
+      <Item130>
         <Filename Value="../src/x3d/castleraytracer.pas"/>
         <UnitName Value="CastleRayTracer"/>
-      </Item133>
-      <Item134>
+      </Item130>
+      <Item131>
         <Filename Value="../src/x3d/castlerenderingcamera.pas"/>
         <UnitName Value="CastleRenderingCamera"/>
-      </Item134>
-      <Item135>
+      </Item131>
+      <Item132>
         <Filename Value="../src/x3d/castlescenecore.pas"/>
         <UnitName Value="CastleSceneCore"/>
-      </Item135>
-      <Item136>
+      </Item132>
+      <Item133>
         <Filename Value="../src/x3d/castleshapeoctree.pas"/>
         <UnitName Value="CastleShapeOctree"/>
-      </Item136>
-      <Item137>
+      </Item133>
+      <Item134>
         <Filename Value="../src/x3d/castleshapes.pas"/>
         <UnitName Value="CastleShapes"/>
-      </Item137>
-      <Item138>
+      </Item134>
+      <Item135>
         <Filename Value="../src/x3d/castletriangleoctree.pas"/>
         <UnitName Value="CastleTriangleOctree"/>
-      </Item138>
-      <Item139>
+      </Item135>
+      <Item136>
         <Filename Value="../src/x3d/opengl/castlebackground.pas"/>
         <UnitName Value="CastleBackground"/>
-      </Item139>
-      <Item140>
+      </Item136>
+      <Item137>
         <Filename Value="../src/x3d/opengl/castleprecalculatedanimation.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastlePrecalculatedAnimation"/>
-      </Item140>
-      <Item141>
+      </Item137>
+      <Item138>
         <Filename Value="../src/x3d/opengl/castlerenderer.pas"/>
         <UnitName Value="CastleRenderer"/>
+      </Item138>
+      <Item139>
+        <Filename Value="../src/x3d/opengl/castlerenderer_bumpmapping.inc"/>
+        <Type Value="Include"/>
+      </Item139>
+      <Item140>
+        <Filename Value="../src/x3d/opengl/castlerenderer_materials.inc"/>
+        <Type Value="Include"/>
+      </Item140>
+      <Item141>
+        <Filename Value="../src/x3d/opengl/castlerenderer_meshrenderer.inc"/>
+        <Type Value="Include"/>
       </Item141>
       <Item142>
-        <Filename Value="../src/x3d/opengl/castlerenderer_bumpmapping.inc"/>
+        <Filename Value="../src/x3d/opengl/castlerenderer_resource.inc"/>
         <Type Value="Include"/>
       </Item142>
       <Item143>
-        <Filename Value="../src/x3d/opengl/castlerenderer_materials.inc"/>
+        <Filename Value="../src/x3d/opengl/castlerenderer_texture.inc"/>
         <Type Value="Include"/>
       </Item143>
       <Item144>
-        <Filename Value="../src/x3d/opengl/castlerenderer_meshrenderer.inc"/>
-        <Type Value="Include"/>
-      </Item144>
-      <Item145>
-        <Filename Value="../src/x3d/opengl/castlerenderer_resource.inc"/>
-        <Type Value="Include"/>
-      </Item145>
-      <Item146>
-        <Filename Value="../src/x3d/opengl/castlerenderer_textrenderer.inc"/>
-        <Type Value="Include"/>
-      </Item146>
-      <Item147>
-        <Filename Value="../src/x3d/opengl/castlerenderer_texture.inc"/>
-        <Type Value="Include"/>
-      </Item147>
-      <Item148>
         <Filename Value="../src/x3d/opengl/castlerendererinternallights.pas"/>
         <UnitName Value="CastleRendererInternalLights"/>
-      </Item148>
-      <Item149>
+      </Item144>
+      <Item145>
         <Filename Value="../src/x3d/opengl/castlerendererinternalshader.pas"/>
         <UnitName Value="CastleRendererInternalShader"/>
-      </Item149>
-      <Item150>
+      </Item145>
+      <Item146>
         <Filename Value="../src/x3d/opengl/castlerendererinternaltextureenv.pas"/>
         <UnitName Value="CastleRendererInternalTextureEnv"/>
-      </Item150>
-      <Item151>
+      </Item146>
+      <Item147>
         <Filename Value="../src/x3d/opengl/castlescene.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleScene"/>
-      </Item151>
-      <Item152>
+      </Item147>
+      <Item148>
         <Filename Value="../src/x3d/opengl/castlesceneinternalblending.pas"/>
         <UnitName Value="CastleSceneInternalBlending"/>
-      </Item152>
-      <Item153>
+      </Item148>
+      <Item149>
         <Filename Value="../src/x3d/opengl/castlesceneinternalocclusion.pas"/>
         <UnitName Value="CastleSceneInternalOcclusion"/>
-      </Item153>
-      <Item154>
+      </Item149>
+      <Item150>
         <Filename Value="../src/x3d/opengl/castlesceneinternalshape.pas"/>
         <UnitName Value="CastleSceneInternalShape"/>
-      </Item154>
-      <Item155>
+      </Item150>
+      <Item151>
         <Filename Value="../src/x3d/opengl/castlescenemanager.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleSceneManager"/>
+      </Item151>
+      <Item152>
+        <Filename Value="../src/x3d/opengl/glsl/screen_effect_library.glsl.inc"/>
+        <Type Value="Include"/>
+      </Item152>
+      <Item153>
+        <Filename Value="../src/x3d/opengl/glsl/shadow_map_common.fs.inc"/>
+        <Type Value="Include"/>
+      </Item153>
+      <Item154>
+        <Filename Value="../src/x3d/opengl/glsl/ssao.glsl.inc"/>
+        <Type Value="Include"/>
+      </Item154>
+      <Item155>
+        <Filename Value="../src/x3d/opengl/glsl/template.fs.inc"/>
+        <Type Value="Include"/>
       </Item155>
       <Item156>
-        <Filename Value="../src/x3d/opengl/glsl/screen_effect_library.glsl.inc"/>
+        <Filename Value="../src/x3d/opengl/glsl/template.vs.inc"/>
         <Type Value="Include"/>
       </Item156>
       <Item157>
-        <Filename Value="../src/x3d/opengl/glsl/shadow_map_common.fs.inc"/>
+        <Filename Value="../src/x3d/opengl/glsl/template_add_light.glsl.inc"/>
         <Type Value="Include"/>
       </Item157>
       <Item158>
-        <Filename Value="../src/x3d/opengl/glsl/ssao.glsl.inc"/>
+        <Filename Value="../src/x3d/opengl/glsl/variance_shadow_map_common.fs.inc"/>
         <Type Value="Include"/>
       </Item158>
       <Item159>
-        <Filename Value="../src/x3d/opengl/glsl/template.fs.inc"/>
+        <Filename Value="../src/x3d/opengl/glsl/variance_shadow_map_generate.fs.inc"/>
         <Type Value="Include"/>
       </Item159>
       <Item160>
-        <Filename Value="../src/x3d/opengl/glsl/template.vs.inc"/>
-        <Type Value="Include"/>
-      </Item160>
-      <Item161>
-        <Filename Value="../src/x3d/opengl/glsl/template_add_light.glsl.inc"/>
-        <Type Value="Include"/>
-      </Item161>
-      <Item162>
-        <Filename Value="../src/x3d/opengl/glsl/variance_shadow_map_common.fs.inc"/>
-        <Type Value="Include"/>
-      </Item162>
-      <Item163>
-        <Filename Value="../src/x3d/opengl/glsl/variance_shadow_map_generate.fs.inc"/>
-        <Type Value="Include"/>
-      </Item163>
-      <Item164>
         <Filename Value="../src/x3d/x3dcamerautils.pas"/>
         <UnitName Value="X3DCameraUtils"/>
-      </Item164>
-      <Item165>
+      </Item160>
+      <Item161>
         <Filename Value="../src/x3d/x3dfields.pas"/>
         <UnitName Value="X3DFields"/>
-      </Item165>
-      <Item166>
+      </Item161>
+      <Item162>
         <Filename Value="../src/x3d/x3dlexer.pas"/>
         <UnitName Value="X3DLexer"/>
-      </Item166>
-      <Item167>
+      </Item162>
+      <Item163>
         <Filename Value="../src/x3d/x3dload.pas"/>
         <UnitName Value="X3DLoad"/>
-      </Item167>
-      <Item168>
+      </Item163>
+      <Item164>
         <Filename Value="../src/x3d/x3dloadinternal3ds.pas"/>
         <UnitName Value="X3DLoadInternal3DS"/>
-      </Item168>
-      <Item169>
+      </Item164>
+      <Item165>
         <Filename Value="../src/x3d/x3dloadinternalcollada.pas"/>
         <UnitName Value="X3DLoadInternalCollada"/>
-      </Item169>
-      <Item170>
+      </Item165>
+      <Item166>
         <Filename Value="../src/x3d/x3dloadinternalgeo.pas"/>
         <UnitName Value="X3DLoadInternalGEO"/>
-      </Item170>
-      <Item171>
+      </Item166>
+      <Item167>
         <Filename Value="../src/x3d/x3dloadinternalmd3.pas"/>
         <UnitName Value="X3DLoadInternalMD3"/>
-      </Item171>
-      <Item172>
+      </Item167>
+      <Item168>
         <Filename Value="../src/x3d/x3dloadinternalobj.pas"/>
         <UnitName Value="X3DLoadInternalOBJ"/>
-      </Item172>
-      <Item173>
+      </Item168>
+      <Item169>
         <Filename Value="../src/x3d/x3dloadinternalutils.pas"/>
         <UnitName Value="X3DLoadInternalUtils"/>
-      </Item173>
-      <Item174>
+      </Item169>
+      <Item170>
         <Filename Value="../src/x3d/x3dnodes.pas"/>
         <UnitName Value="X3DNodes"/>
-      </Item174>
-      <Item175>
+      </Item170>
+      <Item171>
         <Filename Value="../src/x3d/x3dnodesdetailoptions.pas"/>
         <UnitName Value="X3DNodesDetailOptions"/>
-      </Item175>
-      <Item176>
+      </Item171>
+      <Item172>
         <Filename Value="../src/x3d/x3dshadowmaps.pas"/>
         <UnitName Value="X3DShadowMaps"/>
-      </Item176>
-      <Item177>
+      </Item172>
+      <Item173>
         <Filename Value="../src/x3d/x3dtime.pas"/>
         <UnitName Value="X3DTime"/>
-      </Item177>
-      <Item178>
+      </Item173>
+      <Item174>
         <Filename Value="../src/x3d/x3dtriangles.pas"/>
         <UnitName Value="X3DTriangles"/>
-      </Item178>
-      <Item179>
-        <Filename Value="../src/game/castle2dscenemanager.pas"/>
-        <UnitName Value="Castle2DSceneManager"/>
-      </Item179>      
+      </Item174>
     </Files>
     <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">
