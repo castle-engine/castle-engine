@@ -1270,8 +1270,7 @@ begin
   Fields.Add(FFdStyle);
 
   FFdBlending := TSFBool.Create(Self, 'blending', true);
-   FdStyle.Exposed := false;
-   FdStyle.ChangesAlways := [chFontStyle];
+   FdBlending.ChangesAlways := [chGeometryVRML1State];
   Fields.Add(FFdBlending);
 end;
 

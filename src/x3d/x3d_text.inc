@@ -211,8 +211,8 @@ begin
   Fields.Add(FFdTopToBottom);
 
   FFdBlending := TSFBool.Create(Self, 'blending', DefaultBlending);
-   FdStyle.Exposed := false;
-   FdStyle.ChangesAlways := [chFontStyle];
+   FdBlending.Exposed := false;
+   FdBlending.ChangesAlways := [chFontStyle];
   Fields.Add(FFdBlending);
 end;
 
