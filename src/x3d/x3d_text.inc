@@ -20,15 +20,11 @@
     procedure CreateNode; override;
   end;
 
-  { Font family that can be specified by FontStyle node in family
-    field. First three fields are equal (after casting by Ord) to
-    three values of FSFAMILY_* constants. }
+  { Font family that can be specified by a TFontStyleNode. }
   TX3DFontFamily = (ffSerif, ffSans, ffTypeWriter);
 
-  { Font justification that can be specified by FontStyle in
-    justify/justification field. First three fields are equal
-    (after casting by Ord) to JUSTIFICATION_* constants. }
-  TX3DFontJustify = (fjBegin, fjMiddle, fjEnd);
+  { Font justification that can be specified by a TFontStyleNode. }
+  TX3DFontJustify = (fjFirst, fjBegin, fjMiddle, fjEnd);
 
   TFontStyleNode = class(TAbstractFontStyleNode)
   strict private
@@ -36,6 +32,8 @@
       JustifyWarningNotSupportedDone: boolean;
     function GetBlending: boolean;
     procedure SetBlending(const Value: boolean);
+    function JustifyToString(const S: string;
+      const DefaultValue: TX3DFontJustify): TX3DFontJustify;
   public
     const
       DefaultSize = 1.0;
@@ -44,6 +42,7 @@
       DefaultBold = false;
       DefaultItalic = false;
       DefaultJustify = fjBegin;
+      DefaultJustifyMinor = fjFirst;
       DefaultBlending = true;
 
     procedure CreateNode; override;
@@ -88,6 +87,7 @@
     function Bold: boolean;
     function Italic: boolean;
     function Justify: TX3DFontJustify;
+    function JustifyMinor: TX3DFontJustify;
   end;
   TFontStyleNode_2 = TFontStyleNode;
 
@@ -296,71 +296,79 @@ begin
   end;
 end;
 
-function TFontStyleNode.Justify: TX3DFontJustify;
+function TFontStyleNode.JustifyToString(const S: string;
+  const DefaultValue: TX3DFontJustify): TX3DFontJustify;
 const
   SJustifyObsolete = 'Font justify "%s" should not be used in VRML >= 2.0, use "%s" instead';
 var
   J: string;
 begin
-  if FdJustify.Items.Count = 0 then
-    Result := fjBegin else
+  { Some X3D models use lowercase names, like [http://instant-reality.com/]
+    test models. }
+  J := UpperCase(S);
+  if (J <> S) and not JustifyWarningUppercaseDone then
   begin
-    { Some X3D models use lowercase names, like [http://instant-reality.com/]
-      test models. }
-    J := UpperCase(FdJustify.Items[0]);
-    if (J <> FdJustify.Items[0]) and not JustifyWarningUppercaseDone then
+    OnWarning(wtMajor, 'VRML/X3D', Format('Font justify value "%s" should be specified in uppercase',
+      [S]));
+    JustifyWarningUppercaseDone := true;
+  end;
+
+  if J = 'BEGIN'  then Result := fjBegin else
+  if J = 'FIRST'  then Result := fjFirst else
+  if J = 'MIDDLE' then Result := fjMiddle else
+  if J = 'END'    then Result := fjEnd else
+
+  { Some X3D models use old justify names, like cic.nist.gov X3D demos. }
+  if J = 'LEFT' then
+  begin
+    if not JustifyWarningObsoleteDone then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', Format('Font justify value "%s" should be specified in uppercase',
-        [ FdJustify.Items[0] ]));
-      JustifyWarningUppercaseDone := true;
+      OnWarning(wtMajor, 'VRML/X3D', Format(SJustifyObsolete, ['LEFT', 'BEGIN']));
+      JustifyWarningObsoleteDone := true;
     end;
+    Result := fjBegin;
+  end else
+  if J = 'CENTER' then
+  begin
+    if not JustifyWarningObsoleteDone then
+    begin
+      OnWarning(wtMajor, 'VRML/X3D', Format(SJustifyObsolete, ['CENTER', 'MIDDLE']));
+      JustifyWarningObsoleteDone := true;
+    end;
+    Result := fjMiddle;
+  end else
+  if J = 'RIGHT' then
+  begin
+    if not JustifyWarningObsoleteDone then
+    begin
+      OnWarning(wtMajor, 'VRML/X3D', Format(SJustifyObsolete, ['RIGHT', 'END']));
+      JustifyWarningObsoleteDone := true;
+    end;
+    Result := fjEnd;
+  end else
 
-    if (J = 'BEGIN') or
-       (J = 'FIRST') then
-      Result := fjBegin else
-    if J = 'MIDDLE' then
-      Result := fjMiddle else
-    if J = 'END' then
-      Result := fjEnd else
-
-    { Some X3D models use old justify names, like cic.nist.gov X3D demos. }
-    if J = 'LEFT' then
+  begin
+    Result := DefaultValue;
+    if not JustifyWarningNotSupportedDone then
     begin
-      if not JustifyWarningObsoleteDone then
-      begin
-        OnWarning(wtMajor, 'VRML/X3D', Format(SJustifyObsolete, ['LEFT', 'BEGIN']));
-        JustifyWarningObsoleteDone := true;
-      end;
-      Result := fjBegin;
-    end else
-    if J = 'CENTER' then
-    begin
-      if not JustifyWarningObsoleteDone then
-      begin
-        OnWarning(wtMajor, 'VRML/X3D', Format(SJustifyObsolete, ['CENTER', 'MIDDLE']));
-        JustifyWarningObsoleteDone := true;
-      end;
-      Result := fjMiddle;
-    end else
-    if J = 'RIGHT' then
-    begin
-      if not JustifyWarningObsoleteDone then
-      begin
-        OnWarning(wtMajor, 'VRML/X3D', Format(SJustifyObsolete, ['RIGHT', 'END']));
-        JustifyWarningObsoleteDone := true;
-      end;
-      Result := fjEnd;
-    end else
-
-    begin
-      Result := fjBegin;
-      if not JustifyWarningNotSupportedDone then
-      begin
-        OnWarning(wtMajor, 'VRML/X3D', 'Font justify "' + FdJustify.Items[0] + '" not supported');
-        JustifyWarningNotSupportedDone := true;
-      end;
+      OnWarning(wtMajor, 'VRML/X3D', 'Font justify "' + S + '" not supported');
+      JustifyWarningNotSupportedDone := true;
     end;
   end;
+end;
+
+function TFontStyleNode.Justify: TX3DFontJustify;
+begin
+  if FdJustify.Items.Count > 0 then
+    Result := JustifyToString(FdJustify.Items[0], DefaultJustify) else
+    Result := DefaultJustify;
+end;
+
+function TFontStyleNode.JustifyMinor: TX3DFontJustify;
+begin
+  if FdJustify.Items.Count > 1 then
+    Result := JustifyToString(FdJustify.Items[1], DefaultJustifyMinor) else
+    Result := DefaultJustifyMinor;
 end;
 
 function TFontStyleNode.GetBlending: boolean;
@@ -458,7 +466,7 @@ end;
   as well as VRML 1.0 AsciiText node. }
 procedure TextProxy(const OriginalNode: TX3DNode;
   const Size, Spacing: Single;
-  const Justify: TX3DFontJustify;
+  const Justify, JustifyMinor: TX3DFontJustify;
   const Strings: TCastleStringList;
   const Font: TTextureFontData;
   const Solid: boolean;
@@ -470,20 +478,29 @@ var
   TextWidths: TSingleList;
 
   { StringPos* calculate position to start the given line of text.
-    They ignore Size parameter, just assume that Font has right size. }
+    They ignore the Size parameter. }
+
   function StringPosX(I: Integer): Single;
   begin
     case Justify of
-      fjBegin : Result := 0;
+      fjBegin, fjFirst :
+                Result := 0;
       fjMiddle: Result := - TextWidths.Items[I] / 2;
       fjEnd   : Result := - TextWidths.Items[I];
-      else raise EInternalError.Create('Invalid font justify value');
+      else raise EInternalError.Create('StringPosX: Invalid font Justify value');
     end;
   end;
 
   function StringPosY(I: Integer): Single;
   begin
-    Result := - I * Font.RowHeight * Spacing;
+    case JustifyMinor of
+      fjFirst : Result := - I;
+      fjBegin : Result := - (I + 1);
+      fjMiddle: Result := Strings.Count / 2 - (I + 1);
+      fjEnd   : Result := Strings.Count     - (I + 1);
+      else raise EInternalError.Create('StringPosY: Invalid font JustifyMinor value');
+    end;
+    Result *= Font.RowHeight * Spacing;
   end;
 
 var
@@ -492,6 +509,7 @@ var
 
   procedure SendEvents;
   var
+    Origin: TVector3Single;
     LineBounds: TMFVec2f;
     Time: TX3DTime;
     FinalRowHeight: Single;
@@ -514,12 +532,23 @@ var
 
       FinalRowHeight := Font.RowHeight * Spacing * YScale;
 
+      { calculate and send Origin }
+      Origin := ZeroVector3Single;
       case Justify of
-        fjBegin : EventOrigin.Send(Vector3Single(0                         , -FinalRowHeight, 0), Time);
-        fjMiddle: EventOrigin.Send(Vector3Single(-MaxTextWidth * XScale / 2, -FinalRowHeight, 0), Time);
-        fjEnd   : EventOrigin.Send(Vector3Single(-MaxTextWidth * XScale    , -FinalRowHeight, 0), Time);
-        else raise EInternalError.Create('Invalid font justify value');
+        fjBegin, fjFirst :
+                  Origin[0] := 0;
+        fjMiddle: Origin[0] := -MaxTextWidth * XScale / 2;
+        fjEnd   : Origin[0] := -MaxTextWidth * XScale    ;
+        else raise EInternalError.Create('SendEvents: Invalid font justify value');
       end;
+      case JustifyMinor of
+        fjFirst : Origin[1] := -FinalRowHeight;
+        fjBegin : Origin[1] := 0;
+        fjMiddle: Origin[1] := -FinalRowHeight * Strings.Count / 2;
+        fjEnd   : Origin[1] := -FinalRowHeight * Strings.Count;
+        else raise EInternalError.Create('SendEvents: Invalid font justify value');
+      end;
+      EventOrigin.Send(Origin, Time);
 
       if EventLineBounds.SendNeeded then
       begin
@@ -528,7 +557,7 @@ var
           LineBounds.Items.Count := TextWidths.Count;
 
           case Justify of
-            fjBegin :
+            fjBegin, fjFirst:
               for I := 0 to TextWidths.Count - 1 do
                 LineBounds.Items.L[I] := Vector2Single(
                   TextWidths[I] * XScale, FinalRowHeight);
@@ -655,8 +684,7 @@ var
   I: Integer;
 begin
   YScale := Size / Font.RowHeight;
-  { TODO: Use maxEntent, length for VRML 2.0.
-    Use width for VRML 1.0. }
+  { TODO: Use maxEntent, length for VRML 2.0. Use width for VRML 1.0. }
   XScale := YScale;
 
   TextWidths := TSingleList.Create;
@@ -673,12 +701,7 @@ begin
     begin
       ExtraTexOrigin := Vector2Single(StringPosX(0) * XScale, StringPosY(0) * YScale);
       for I := 0 to Strings.Count - 1 do
-      begin
-        { TODO: when using Justify <> fjBegin I should also
-          change texOriginX here, at least for VRML 1.0 --- check
-          for VRML 2.0. }
         Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale);
-      end;
     end;
 
     { These events should be generated only when
@@ -698,7 +721,7 @@ function TTextNode.Proxy(var State: TX3DGraphTraverseState;
 {$ifndef OpenGLES} {$define TEXT_PROXY_QUAD_SET} {$endif}
 var
   Size, Spacing: Single;
-  Justify: TX3DFontJustify;
+  Justify, JustifyMinor: TX3DFontJustify;
   FaceSet: {$ifdef TEXT_PROXY_QUAD_SET} TQuadSetNode {$else} TIndexedFaceSetNode {$endif};
   CoordNode: TCoordinateNode;
   MultiTexCoordNode: TMultiTextureCoordinateNode;
@@ -711,11 +734,13 @@ begin
     Size := TFontStyleNode.DefaultSize;
     Spacing := TFontStyleNode.DefaultSpacing;
     Justify := TFontStyleNode.DefaultJustify;
+    JustifyMinor := TFontStyleNode.DefaultJustifyMinor;
   end else
   begin
     Size := FontStyle.FdSize.Value;
     Spacing := FontStyle.FdSpacing.Value;
     Justify := FontStyle.Justify;
+    JustifyMinor := FontStyle.JustifyMinor;
   end;
 
   FaceSet := {$ifdef TEXT_PROXY_QUAD_SET} TQuadSetNode {$else} TIndexedFaceSetNode {$endif}
@@ -763,7 +788,7 @@ begin
       ExtraTexCoordField := ExtraTexCoordNode.FdPoint else
       ExtraTexCoordField := nil;
 
-    TextProxy(Self, Size, Spacing, Justify, FdString.Items, Font,
+    TextProxy(Self, Size, Spacing, Justify, JustifyMinor, FdString.Items, Font,
       Solid, EventLineBounds, EventOrigin, EventTextBounds,
       CoordNode.FdPoint, TexCoordNode.FdPoint, ExtraTexCoordField);
 

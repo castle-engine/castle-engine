@@ -925,7 +925,7 @@ begin
     State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
 
     TextProxy(Self,
-      State.LastNodes.FontStyle.FdSize.Value, FdSpacing.Value, Justify,
+      State.LastNodes.FontStyle.FdSize.Value, FdSpacing.Value, Justify, fjFirst,
       FdString.Items, State.LastNodes.FontStyle.Font,
       false, nil, nil, nil,
       CoordNode.FdPoint, TexCoordNode.FdPoint, nil);

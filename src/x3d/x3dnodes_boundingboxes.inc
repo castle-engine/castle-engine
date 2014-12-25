@@ -191,40 +191,44 @@ end;
 
 function Text_LocalBoundingBox(State: TX3DGraphTraverseState;
   const Size, Spacing: Single;
-  const Justify: TX3DFontJustify;
+  const Justify, JustifyMinor: TX3DFontJustify;
   const Font: TTextureFontData;
-  const Strings: TCastleStringList;
-  const Depth: Single): TBox3D;
+  const Strings: TCastleStringList): TBox3D;
 var
-  DescendScaled, yscale, XScale, maxRowWidth, minx, miny, maxx, maxy: Single;
+  YScale, XScale, MaxRowWidth, MinX, MinY, MaxX, MaxY: Single;
   I: integer;
 begin
   YScale := Size / Font.RowHeight;
-  { TODO: Use maxEntent, length for VRML 2.0.
-    Use width for VRML 1.0. }
+  { TODO: Use maxEntent, length for VRML 2.0. Use width for VRML 1.0. }
   XScale := YScale;
-  DescendScaled := Font.Descend * YScale;
 
   MaxRowWidth := 0;
   for I := 0 to Strings.Count - 1 do
-    MaxTo1st(MaxRowWidth,
-      Font.TextWidth(Strings[i]) * XScale);
+    MaxTo1st(MaxRowWidth, Font.TextWidth(Strings[I]) * XScale);
 
-  maxy := Size - DescendScaled;
-  miny := -(Strings.Count - 1) * Size * Spacing - DescendScaled;
   case Justify of
-    fjBegin : begin minx := 0;              maxx := maxRowWidth end;
-    fjMiddle: begin minx := -maxRowWidth/2; maxx := maxRowWidth/2 end;
-    fjEnd   : begin minx := -maxRowWidth;   maxx := 0 end;
-    else raise EInternalError.Create('Invalid FontStyle Justify value');
+    fjBegin, fjFirst :
+              begin MinX := 0;               MaxX := MaxRowWidth end;
+    fjMiddle: begin MinX := -MaxRowWidth/ 2; MaxX := MaxRowWidth / 2 end;
+    fjEnd   : begin MinX := -MaxRowWidth;    MaxX := 0 end;
+    else raise EInternalError.Create('Text_LocalBoundingBox: Invalid FontStyle Justify value');
   end;
+  case JustifyMinor of
+    fjFirst : begin MaxY := 1;                   MinY := - (Strings.Count - 1); end;
+    fjBegin : begin MaxY := 0;                   MinY := - Strings.Count; end;
+    fjMiddle: begin MaxY := - Strings.Count / 2; MinY := -MaxY; end;
+    fjEnd   : begin MaxY :=   Strings.Count / 2; MinY := 0; end;
+    else raise EInternalError.Create('Text_LocalBoundingBox: Invalid FontStyle JustifyMinor value');
+  end;
+  MinY *= Size * Spacing;
+  MaxY *= Size * Spacing;
 
   Result.Data[0][0] := MinX;
   Result.Data[0][1] := MinY;
   Result.Data[0][2] := 0;
   Result.Data[1][0] := MaxX;
   Result.Data[1][1] := MaxY;
-  Result.Data[1][2] := -Depth;
+  Result.Data[1][2] := 0;
 end;
 
 function TAsciiTextNode_1.LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -233,32 +237,33 @@ begin
   Result := Text_LocalBoundingBox(State,
     State.LastNodes.FontStyle.FdSize.Value,
     FdSpacing.Value,
-    Justify,
+    Justify, fjFirst,
     State.LastNodes.FontStyle.Font,
-    FdString.Items,
-    0);
+    FdString.Items);
 end;
 
 function TTextNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 var
   Size, Spacing: Single;
-  Justify: TX3DFontJustify;
+  Justify, JustifyMinor: TX3DFontJustify;
 begin
   if FontStyle = nil then
   begin
     Size := TFontStyleNode.DefaultSize;
     Spacing := TFontStyleNode.DefaultSpacing;
     Justify := TFontStyleNode.DefaultJustify;
+    JustifyMinor := TFontStyleNode.DefaultJustifyMinor;
   end else
   begin
     Size := FontStyle.FdSize.Value;
     Spacing := FontStyle.FdSpacing.Value;
     Justify := FontStyle.Justify;
+    JustifyMinor := FontStyle.JustifyMinor;
   end;
 
   Result := Text_LocalBoundingBox(State,
-    Size, Spacing, Justify, Font, FdString.Items, 0);
+    Size, Spacing, Justify, JustifyMinor, Font, FdString.Items);
 end;
 
 function Cone_BoundingBox(State: TX3DGraphTraverseState;
