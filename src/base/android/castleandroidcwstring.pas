@@ -31,7 +31,7 @@ procedure InitializeAndroidCWString;
 
 implementation
 
-uses dynlibs;
+uses dynlibs, CastleAndroidLog;
 
 type
   UErrorCode = SizeInt;
@@ -502,6 +502,7 @@ begin
   hlibICUi18n:=LoadLibrary('libicui18n.so');
   if (hlibICU = 0) or (hlibICUi18n = 0) then begin
     UnloadICU;
+    AndroidLog(alWarn, 'Cannot load libicuuc.so or libicui18n.so. WideString conversion will fail for special UTF-8 characters');
     exit;
   end;
   // Finding ICU version using known versions table
@@ -509,6 +510,7 @@ begin
     s:='_' + ICUver[i];
     if GetProcedureAddress(hlibICU, TestProcName + s) <> nil then begin
       LibVer:=s;
+      AndroidLog(alInfo, 'Found libicuuc.so version ' + ICUver[i]);
       break;
     end;
   end;
@@ -517,11 +519,15 @@ begin
     // Finding unknown ICU version
     Val(ICUver[High(ICUver)], i);
     repeat
-      Inc(i, 2);
+      { Michalis note: original code used Inc(i,2),
+        but Nexus 5 with Android 5.0.1 has _53.
+        TODO: submit to FPC to correct in original CWString for Android. }
+      Inc(i);
       Str(i, s);
       s:='_'  + s;
       if GetProcedureAddress(hlibICU, TestProcName + s) <> nil then begin
         LibVer:=s;
+        AndroidLog(alInfo, 'Found libicuuc.so version (by looping) ' + IntToStr(I));
         break;
       end;
     until i >= 100;
@@ -532,6 +538,7 @@ begin
     if GetProcedureAddress(hlibICU, TestProcName) = nil then begin
       // Unable to get ICU version
       UnloadICU;
+      AndroidLog(alWarn, 'Cannot use libicuuc.so --- no versioned ucnv_open found, and unversioned ucnv_open not available. . WideString conversion will fail for special UTF-8 characters');
       exit;
     end;
   end;
