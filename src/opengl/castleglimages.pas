@@ -2992,6 +2992,7 @@ begin
 
     Success := false;
     try
+      CheckGLErrors('Check errors before checking FBO status');
       case GLFeatures.Framebuffer of
         {$ifndef OpenGLES}
         gsExtension: Status := glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);

@@ -2083,7 +2083,21 @@ function TCastleAbstractViewport.RenderWithScreenEffects: boolean;
         glTexImage2DMultisample(ScreenEffectTextureTarget,
           GLFeatures.CurrentMultiSampling, InternalFormat,
           ScreenEffectTextureWidth,
-          ScreenEffectTextureHeight, GL_FALSE { TODO: false or true here? }) else
+          ScreenEffectTextureHeight,
+          { fixedsamplelocations = TRUE are necessary in case we use
+            this with cbColor mode, where FBO will also have renderbuffer
+            for depth (and maybe stencil). In this case,
+            https://www.opengl.org/registry/specs/ARB/texture_multisample.txt
+            says that
+
+              if the attached images are a mix of
+              renderbuffers and textures, the value of
+              TEXTURE_FIXED_SAMPLE_LOCATIONS must be TRUE for all attached
+              textures.
+
+            which implies that this parameter must be true.
+            See https://sourceforge.net/p/castle-engine/tickets/22/ . }
+          GL_TRUE) else
       {$endif}
         glTexImage2D(ScreenEffectTextureTarget, 0, InternalFormat,
           ScreenEffectTextureWidth,
@@ -2151,7 +2165,7 @@ begin
     { We need a temporary texture, for screen effect. }
     if (ScreenEffectTextureDest = 0) or
        (ScreenEffectTextureSrc = 0) or
-       (CurrentScreenEffectsNeedDepth and (ScreenEffectTextureDepth = 0)) or
+       (CurrentScreenEffectsNeedDepth <> (ScreenEffectTextureDepth <> 0)) or
        (ScreenEffectRTT = nil) or
        (ScreenEffectTextureWidth  <> Rect.Width ) or
        (ScreenEffectTextureHeight <> Rect.Height) then
