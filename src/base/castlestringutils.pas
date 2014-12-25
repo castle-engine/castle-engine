@@ -1171,14 +1171,15 @@ begin result:=(index <= Length(s)) and (s[index] = c) end;
 function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boolean;
 begin result:=(index <= Length(s)) and (s[index] in chars) end;
 
-function SReadableForm(const s: string): string;
-var i: integer;
+function SReadableForm(const S: string): string;
+var 
+  I: Integer;
 begin
- result := '';
- for i := 1 to Length(s) do
-  if ( Ord(s[i]) < Ord(' ') ) then
-   result := result+'#'+IntToStr(Ord(s[i])) else
-   result := result+s[i];
+  Result := '';
+  for I := 1 to Length(S) do
+    if (Ord(S[I]) < Ord(' ')) or (Ord(S[I]) >= 128) then
+      Result += '#'+IntToStr(Ord(S[I])) else
+      Result += S[I];
 end;
 
 function CopyPos(const s: string; StartPosition, EndPosition: integer): string;
@@ -1670,14 +1671,14 @@ function SCharsCount(const S: string; C: char): Cardinal;
 var i: Integer;
 begin
  Result := 0;
- for I := 1 to Length(s) do if S[i] = C then Inc(Result);
+ for I := 1 to Length(s) do if S[I] = C then Inc(Result);
 end;
 
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal;
 var i: Integer;
 begin
  Result := 0;
- for I := 1 to Length(s) do if S[i] in Chars then Inc(Result);
+ for I := 1 to Length(s) do if S[I] in Chars then Inc(Result);
 end;
 
 function STruncateHash(const s: string): string;
@@ -2048,11 +2049,11 @@ var ScanStart: integer;
    result := 0;
    for i := ScanStart to Length(s) do
    begin
-    case s[i] of
-     '0'..'9':digit := Ord(s[i])-Ord('0');
-     'a'..'f':digit := Ord(s[i])-Ord('a')+10;
-     'A'..'F':digit := Ord(s[i])-Ord('A')+10;
-     else raise EConvertError.Create('Character "'+s[i]+
+    case S[I] of
+     '0'..'9':digit := Ord(S[I])-Ord('0');
+     'a'..'f':digit := Ord(S[I])-Ord('a')+10;
+     'A'..'F':digit := Ord(S[I])-Ord('A')+10;
+     else raise EConvertError.Create('Character "'+S[I]+
        '" is not a hexadecimal digit');
     end;
     result := result*16 + digit;
