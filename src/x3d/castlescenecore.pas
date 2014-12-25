@@ -3200,18 +3200,6 @@ begin
 end;
 
 type
-  BreakTransformChangeFailed = class(TCodeBreaker)
-    Reason: string;
-    constructor Create(const AReason: string);
-  end;
-  BreakTransformChangeSuccess = class(TCodeBreaker);
-
-constructor BreakTransformChangeFailed.Create(const AReason: string);
-begin
-  Reason := AReason;
-end;
-
-type
   { When Transform changes, we have to traverse Shapes tree simultaneously
     with traversing VRML graph. So we have to know at each point
     the TShapeTree we're on. To record this, we'll manage a linked list
@@ -3555,86 +3543,67 @@ begin
     a list of TShapeTreeTransform corresponding to this transform node,
     so we know we can traverse from this point.
 
-    In more difficult cases, children of this Transform node may
+    In some cases, children of this Transform node may
     be affected in other ways by transformation. For example,
     Fog and Background nodes are affected by their parents transform.
-    Currently, we cannot account for this, and just raise
-    BreakTransformChangeFailed in this case --- we have to do ChangedAll
-    in such cases.
   }
 
   if Log and LogChanges then
     WritelnLog('X3D changes', Format('Transform node %s change: %d instances',
       [TransformNode.NodeTypeName, Instances.Count]));
 
+  DoVisibleChanged := false;
+
+  TraverseStack := nil;
+  TransformChangeHelper := nil;
   try
-    DoVisibleChanged := false;
+    TraverseStack := TX3DGraphTraverseStateStack.Create;
 
-    TraverseStack := nil;
-    TransformChangeHelper := nil;
-    try
-      TraverseStack := TX3DGraphTraverseStateStack.Create;
+    { initialize TransformChangeHelper, set before the loop properties
+      that cannot change }
+    TransformChangeHelper := TTransformChangeHelper.Create;
+    TransformChangeHelper.ParentScene := Self;
+    TransformChangeHelper.ChangingNode := TransformNode;
+    TransformChangeHelper.Changes := Changes;
 
-      { initialize TransformChangeHelper, set before the loop properties
-        that cannot change }
-      TransformChangeHelper := TTransformChangeHelper.Create;
-      TransformChangeHelper.ParentScene := Self;
-      TransformChangeHelper.ChangingNode := TransformNode;
-      TransformChangeHelper.Changes := Changes;
-
-      for I := 0 to Instances.Count - 1 do
-      begin
-        TransformShapeTree := Instances[I] as TShapeTreeTransform;
-        TraverseStack.Clear;
-        TraverseStack.Push(TransformShapeTree.TransformState);
-
-        TransformShapesParentInfo.Group := TransformShapeTree;
-        TransformShapesParentInfo.Index := 0;
-
-        { initialize TransformChangeHelper properties that may be changed
-          during Node.Traverse later }
-        TransformChangeHelper.Shapes := @TransformShapesParentInfo;
-        TransformChangeHelper.AnythingChanged := false;
-        TransformChangeHelper.Inside := false;
-        TransformChangeHelper.Inactive := 0;
-
-        try
-          TransformNode.TraverseInternal(TraverseStack, TX3DNode,
-            @TransformChangeHelper.TransformChangeTraverse, nil);
-        except
-          on BreakTransformChangeSuccess do
-            { BreakTransformChangeSuccess is equivalent with normal finish
-              of Traverse. So do nothing, just silence exception. }
-        end;
-
-        if TransformChangeHelper.AnythingChanged then
-          DoVisibleChanged := true;
-
-        { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
-          animated. Secure from Humanoid = nil (may happen if Joint
-          is outside Humanoid node, see VRML 97 test
-          ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
-        if (TransformNode is THAnimJointNode) and
-           (TransformShapeTree.TransformState.Humanoid <> nil) then
-          ScheduledHumanoidAnimateSkin.AddIfNotExists(
-            TransformShapeTree.TransformState.Humanoid);
-      end;
-    finally
-      FreeAndNil(TraverseStack);
-      FreeAndNil(TransformChangeHelper);
-    end;
-
-    if DoVisibleChanged then
-      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-  except
-    on B: BreakTransformChangeFailed do
+    for I := 0 to Instances.Count - 1 do
     begin
-      if Log and LogChanges then
-        WritelnLog('X3D changes', 'Transform change (because of child: ' + B.Reason + ') causes ChangedAll (no optimized action)');
-      ScheduleChangedAll;
-      Exit;
+      TransformShapeTree := Instances[I] as TShapeTreeTransform;
+      TraverseStack.Clear;
+      TraverseStack.Push(TransformShapeTree.TransformState);
+
+      TransformShapesParentInfo.Group := TransformShapeTree;
+      TransformShapesParentInfo.Index := 0;
+
+      { initialize TransformChangeHelper properties that may be changed
+        during Node.Traverse later }
+      TransformChangeHelper.Shapes := @TransformShapesParentInfo;
+      TransformChangeHelper.AnythingChanged := false;
+      TransformChangeHelper.Inside := false;
+      TransformChangeHelper.Inactive := 0;
+
+      TransformNode.TraverseInternal(TraverseStack, TX3DNode,
+        @TransformChangeHelper.TransformChangeTraverse, nil);
+
+      if TransformChangeHelper.AnythingChanged then
+        DoVisibleChanged := true;
+
+      { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
+        animated. Secure from Humanoid = nil (may happen if Joint
+        is outside Humanoid node, see VRML 97 test
+        ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
+      if (TransformNode is THAnimJointNode) and
+         (TransformShapeTree.TransformState.Humanoid <> nil) then
+        ScheduledHumanoidAnimateSkin.AddIfNotExists(
+          TransformShapeTree.TransformState.Humanoid);
     end;
+  finally
+    FreeAndNil(TraverseStack);
+    FreeAndNil(TransformChangeHelper);
   end;
+
+  if DoVisibleChanged then
+    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 end;
 
 procedure TCastleSceneCore.RootTransformationChanged(const Changes: TX3DChanges);
@@ -3654,68 +3623,52 @@ begin
     Exit;
   end;
 
+  DoVisibleChanged := false;
+
+  TraverseStack := nil;
+  TransformChangeHelper := nil;
   try
-    DoVisibleChanged := false;
+    TraverseStack := TX3DGraphTraverseStateStack.Create;
 
-    TraverseStack := nil;
-    TransformChangeHelper := nil;
-    try
-      TraverseStack := TX3DGraphTraverseStateStack.Create;
+    { initialize TransformChangeHelper, set before the loop properties
+      that cannot change }
+    TransformChangeHelper := TTransformChangeHelper.Create;
+    TransformChangeHelper.ParentScene := Self;
+    TransformChangeHelper.ChangingNode := RootNode;
+    TransformChangeHelper.Changes := Changes;
 
-      { initialize TransformChangeHelper, set before the loop properties
-        that cannot change }
-      TransformChangeHelper := TTransformChangeHelper.Create;
-      TransformChangeHelper.ParentScene := Self;
-      TransformChangeHelper.ChangingNode := RootNode;
-      TransformChangeHelper.Changes := Changes;
+    TransformShapesParentInfo.Group := Shapes as TShapeTreeGroup;
+    TransformShapesParentInfo.Index := 0;
 
-      TransformShapesParentInfo.Group := Shapes as TShapeTreeGroup;
-      TransformShapesParentInfo.Index := 0;
+    { initialize TransformChangeHelper properties that may be changed
+      during Node.Traverse later }
+    TransformChangeHelper.Shapes := @TransformShapesParentInfo;
+    TransformChangeHelper.AnythingChanged := false;
+    TransformChangeHelper.Inside := false;
+    TransformChangeHelper.Inactive := 0;
 
-      { initialize TransformChangeHelper properties that may be changed
-        during Node.Traverse later }
-      TransformChangeHelper.Shapes := @TransformShapesParentInfo;
-      TransformChangeHelper.AnythingChanged := false;
-      TransformChangeHelper.Inside := false;
-      TransformChangeHelper.Inactive := 0;
+    RootNode.Traverse(TX3DNode, @TransformChangeHelper.TransformChangeTraverse);
 
-      try
-        RootNode.Traverse(TX3DNode, @TransformChangeHelper.TransformChangeTraverse);
-      except
-        on BreakTransformChangeSuccess do
-          { BreakTransformChangeSuccess is equivalent with normal finish
-            of Traverse. So do nothing, just silence exception. }
-      end;
+    if TransformChangeHelper.AnythingChanged then
+      DoVisibleChanged := true;
 
-      if TransformChangeHelper.AnythingChanged then
-        DoVisibleChanged := true;
-
-      { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
-        animated. Secure from Humanoid = nil (may happen if Joint
-        is outside Humanoid node, see VRML 97 test
-        ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
-      { TODO:
-      if (RootNode is THAnimJointNode) and
-         (TransformShapeTree.TransformState.Humanoid <> nil) then
-        ScheduledHumanoidAnimateSkin.AddIfNotExists(
-          TransformShapeTree.TransformState.Humanoid);
-      }
-    finally
-      FreeAndNil(TraverseStack);
-      FreeAndNil(TransformChangeHelper);
-    end;
-
-    if DoVisibleChanged then
-      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-  except
-    on B: BreakTransformChangeFailed do
-    begin
-      if Log and LogChanges then
-        WritelnLog('X3D changes', 'Transform change (because of child: ' + B.Reason + ') causes ChangedAll (no optimized action)');
-      ScheduleChangedAll;
-      Exit;
-    end;
+    { take care of calling THAnimHumanoidNode.AnimateSkin when joint is
+      animated. Secure from Humanoid = nil (may happen if Joint
+      is outside Humanoid node, see VRML 97 test
+      ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl)  }
+    { TODO:
+    if (RootNode is THAnimJointNode) and
+       (TransformShapeTree.TransformState.Humanoid <> nil) then
+      ScheduledHumanoidAnimateSkin.AddIfNotExists(
+        TransformShapeTree.TransformState.Humanoid);
+    }
+  finally
+    FreeAndNil(TraverseStack);
+    FreeAndNil(TransformChangeHelper);
   end;
+
+  if DoVisibleChanged then
+    VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 end;
 
 procedure TCastleSceneCore.ChangedField(Field: TX3DField);
