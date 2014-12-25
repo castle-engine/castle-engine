@@ -220,9 +220,6 @@ implementation
 
 uses SysUtils, CastleStringUtils, CastleUtils, CastleWarnings;
 
-type
-  EInvalidGLVersionString = class(Exception);
-
 { Skip whitespace. Moves I to next index after whitespace. }
 procedure ParseWhiteSpaces(const S: string; var I: Integer);
 begin
@@ -245,17 +242,21 @@ begin
     Result := '';
 end;
 
-function ParseNumber(const S: string; var I: Integer): Integer;
+{ Parse next number in the string.
+  Moves I to next character.
+  Sets out Number on success, returns false on failure (no number,
+  or invalid int format). }
+function ParseNumber(const S: string; var I: Integer; out Number: Integer): boolean;
 const
   Digits = ['0'..'9'];
 var
   Start: Integer;
 begin
   if not SCharIs(S, I, Digits) then
-    raise EInvalidGLVersionString.Create('Next number not found');
+    Exit(false);
   Start := I;
   while SCharIs(S, I, Digits) do Inc(I);
-  Result := StrToInt(CopyPos(S, Start, I - 1));
+  Result := TryStrToInt(CopyPos(S, Start, I - 1), Number);
 end;
 
 { TGenericGLVersion ---------------------------------------------------------- }
@@ -285,31 +286,29 @@ begin
     ParseWhiteSpaces(VersionString, I);
     {$endif}
 
-    Major := ParseNumber(VersionString, I);
+    if not ParseNumber(VersionString, I, Major) then Exit;
     ParseWhiteSpaces(VersionString, I);
 
     { Dot }
     if not SCharIs(VersionString, I, '.') then
-      raise EInvalidGLVersionString.Create(
-        'The dot "." separator major and minor version number not found');
+      Exit; // The dot "." separator major and minor version number not found
     Inc(I);
     ParseWhiteSpaces(VersionString, I);
 
-    Minor := ParseNumber(VersionString, I);
+    if not ParseNumber(VersionString, I, Minor) then Exit;
 
     { Release number }
     ReleaseExists := SCharIs(VersionString, I, '.');
     if ReleaseExists then
     begin
       Inc(I);
-      Release := ParseNumber(VersionString, I);
+      if not ParseNumber(VersionString, I, Release) then Exit;
     end;
     ParseWhiteSpaces(VersionString, I);
 
     VendorInfo := SEnding(VersionString, I);
   except
     { In case of any error here: silence it.
-      So actually EInvalidGLVersionString is not useful.
       We want our program to work even with broken GL_VERSION or GLU_VERSION
       strings.
 
@@ -334,17 +333,16 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
   begin
     ParseWhiteSpaces(S, I);
 
-    FVendorMajor := ParseNumber(S, I);
+    if not ParseNumber(S, I, FVendorMajor) then Exit;
     ParseWhiteSpaces(S, I);
 
     { Dot }
     if not SCharIs(S, I, '.') then
-      raise EInvalidGLVersionString.Create(
-        'The dot "." separator between Vendor major and minor version number not found');
+      Exit; //The dot "." separator between Vendor major and minor version number not found
     Inc(I);
     ParseWhiteSpaces(S, I);
 
-    FVendorMinor := ParseNumber(S, I);
+    if not ParseNumber(S, I, FVendorMinor) then Exit;
     ParseWhiteSpaces(S, I);
 
     { Vendor release number }
@@ -352,7 +350,7 @@ constructor TGLVersion.Create(const VersionString, AVendor, ARenderer: string);
     begin
       Inc(I);
       ParseWhiteSpaces(S, I);
-      FVendorRelease := ParseNumber(S, I);
+      if not ParseNumber(S, I, FVendorRelease) then Exit;
     end else
     begin
       { Some older Mesa versions (like 5.1) and newer (7.2) really
