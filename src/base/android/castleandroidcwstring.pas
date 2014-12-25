@@ -510,7 +510,7 @@ begin
     s:='_' + ICUver[i];
     if GetProcedureAddress(hlibICU, TestProcName + s) <> nil then begin
       LibVer:=s;
-      AndroidLog(alInfo, 'Found libicuuc.so version ' + ICUver[i]);
+      AndroidLog(alInfo, 'Found libicuuc.so version ' + LibVer);
       break;
     end;
   end;
@@ -527,7 +527,7 @@ begin
       s:='_'  + s;
       if GetProcedureAddress(hlibICU, TestProcName + s) <> nil then begin
         LibVer:=s;
-        AndroidLog(alInfo, 'Found libicuuc.so version (by looping) ' + IntToStr(I));
+        AndroidLog(alInfo, 'Found libicuuc.so version (by looping) ' + LibVer);
         break;
       end;
     until i >= 100;
