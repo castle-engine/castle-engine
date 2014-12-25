@@ -23,10 +23,10 @@
   1. Copy castlelib_dynloader.pas into your project folder.
 
   2. Make the shared library accessible to your project.
-  
-     Windows: Copy castleengine.dll to your project folder, 
+
+     Windows: Copy castleengine.dll to your project folder,
      where executable file is generated. Or to any directory listed on $PATH.
-     
+
      Linux: Make sure libcastleengine.so is available in a directory
      listed on $LD_LIBRARY_PATH (or in one of the predefined directories,
      like /usr/lib; see "man dlopen" for details). For local testing,
@@ -57,11 +57,11 @@ const
   ecgeuiTouch   = 1;
 
   // touch interface modes
-  ecgetciNone              = 0;
-  ecgetciCtlWalkCtlRotate  = 1;
-  ecgetciCtlWalkDragRotate = 2;
-  etciCtlFlyCtlWalkDragRotate = 3;
-  etciCtlPanXYDragRotate   = 4;
+  tiNone              = 0;
+  tiCtlWalkCtlRotate  = 1;
+  tiCtlWalkDragRotate = 2;
+  tiCtlFlyCtlWalkDragRotate = 3;
+  tiCtlPanXYDragRotate   = 4;
 
   // library callback codes
   ecgelibNeedsDisplay     = 0;

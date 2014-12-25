@@ -90,8 +90,8 @@ end;
 
 procedure TDummy.TouchUIClick(Sender: TObject);
 begin
-  if Window.TouchInterface = High(TTouchCtlInterface) then
-    Window.TouchInterface := Low(TTouchCtlInterface) else
+  if Window.TouchInterface = High(TTouchInterface) then
+    Window.TouchInterface := Low(TTouchInterface) else
     Window.TouchInterface := Succ(Window.TouchInterface);
 end;
 
@@ -249,7 +249,7 @@ begin
     TScreenEffectNode, 'MyScreenEffect', false) as TScreenEffectNode;
   ToggleScreenEffectButton.Pressed := (MyScreenEffect <> nil) and MyScreenEffect.Enabled;
 
-  Window.TouchInterface := etciCtlWalkDragRotate;
+  Window.TouchInterface := tiCtlWalkDragRotate;
 
   { Test that FindFiles works also on Android asset filesystem. }
   FindFiles(ApplicationData(''), '*', true, @FindFilesCallback, nil, [ffRecursive]);

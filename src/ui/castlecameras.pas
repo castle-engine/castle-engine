@@ -616,11 +616,15 @@ type
 
   TWalkCamera = class;
 
-  { How mouse dragging should be performed in Walk camera. It is useful for
-    touch interfaces. DragToWalk moves avatar continously in the direction of
-    mouse drag (default). DragToRotate rotates the head when mouse is moved,
-    and None ignores the dragging at all. }
-  TWalkDragMode = (cwdmDragToWalk, cwdmDragToRotate, cwdmNone);
+  { What mouse dragging does in TWalkCamera. }
+  TMouseDragMode = (
+    { Moves avatar continously in the direction of mouse drag
+      (default for TWalkCamera.MouseDragMode). }
+    mdWalk,
+    { Rotates the head when mouse is moved. }
+    mdRotate,
+    { Ignores the dragging. }
+    mdNone);
 
   { See @link(TWalkCamera.DoMoveAllowed) and
     @link(TWalkCamera.OnMoveAllowed) }
@@ -653,7 +657,7 @@ type
     FAboveHeight: Single;
     FAboveGround: P3DTriangle;
     FMouseLook: boolean;
-    FMouseDragMode: TWalkDragMode;
+    FMouseDragMode: TMouseDragMode;
 
     procedure SetPosition(const Value: TVector3Single);
     procedure SetDirection(const Value: TVector3Single);
@@ -1102,10 +1106,9 @@ type
       read FInvertVerticalMouseLook write FInvertVerticalMouseLook
       default false;
 
-    { How mouse dragging should be performed in Walk camera. For touch interfaces. }
-    property MouseDragMode: TWalkDragMode
-      read FMouseDragMode write FMouseDragMode
-      default cwdmDragToWalk;
+    { What mouse dragging does. Used only when ciMouseDragging in @link(Input). }
+    property MouseDragMode: TMouseDragMode
+      read FMouseDragMode write FMouseDragMode default mdWalk;
 
     function Motion(const Event: TInputMotion): boolean; override;
 
@@ -1553,8 +1556,7 @@ type
     { @groupEnd }
 
     { Speed (degrees per pixel delta) of rotations by mouse dragging.
-      Relevant only if ciMouseDragging in @link(Input),
-      and MouseDragMode is cwdmDragToRotate.
+      Relevant only if ciMouseDragging in @link(Input), and MouseDragMode is mdRotate.
       Separate for horizontal and vertical, this way you can e.g. limit
       (or disable) vertical rotations, useful for games where you mostly
       look horizontally and accidentally looking up/down is more confusing
@@ -3954,7 +3956,7 @@ begin
            This allows application to handle e.g. ctrl + dragging
            in some custom ways (like view3dscene selecting a triangle). }
          (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
-         (not MouseLook) and (MouseDragMode = cwdmDragToWalk) then
+         (not MouseLook) and (MouseDragMode = mdWalk) then
       begin
         HandleInput := not ExclusiveEvents;
         MoveViaMouseDragging(Container.MousePosition - MouseDraggingStart);
@@ -4017,7 +4019,7 @@ begin
 
   if (Event.EventType = itMouseButton) and
      (ciMouseDragging in Input) and
-     (MouseDragMode = cwdmNone) then
+     (MouseDragMode = mdNone) then
   begin
     MouseDraggingStarted := -1;
     Result := false;
@@ -4026,7 +4028,7 @@ begin
 
   if (Event.EventType = itMouseWheel) and
      (ciMouseDragging in Input) and
-     EnableDragging and (not MouseLook) and (MouseDragMode <> cwdmDragToRotate) and
+     EnableDragging and (not MouseLook) and (MouseDragMode <> mdRotate) and
      Event.MouseWheelVertical then
   begin
     RotateVertical(-Event.MouseWheelScroll * 3);
@@ -4292,7 +4294,7 @@ begin
   end;
 
   if (MouseDraggingStarted <> -1) and
-    (MouseDragMode = cwdmDragToRotate) and
+    (MouseDragMode = mdRotate) and
     (not Animation) and
     (not MouseLook) then
   begin

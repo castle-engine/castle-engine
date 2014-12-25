@@ -21,19 +21,21 @@ interface
 uses Classes, CastleWindow, CastleControls, CastleCameras;
 
 type
-  TTouchCtlInterface = (etciNone, etciCtlWalkCtlRotate, etciCtlWalkDragRotate,
-                        etciCtlFlyCtlWalkDragRotate, etciCtlPanXYDragRotate);
+  TTouchInterface = (
+    tiNone,
+    tiCtlWalkCtlRotate,
+    tiCtlWalkDragRotate,
+    tiCtlFlyCtlWalkDragRotate,
+    tiCtlPanXYDragRotate);
   TCastleWindowTouch = class(TCastleWindow)
   private
     FAutomaticTouchInterface: boolean;
-    LeftTouchCtl, RightTouchCtl: TCastleTouchControl;
-    FTouchInterface: TTouchCtlInterface;
-    FAutomaticWalkTouchCtl: TTouchCtlInterface;
-    procedure UpdateTouchController(const LeftSide, CtlVisible: boolean;
-      const Mode: TCastleTouchCtlMode = ctcmWalking);
-    procedure SetTouchInterface(const Value: TTouchCtlInterface);
+    FControl: array [boolean { right side? }] of TCastleTouchControl;
+    FTouchInterface: TTouchInterface;
+    FAutomaticWalkTouchCtl: TTouchInterface;
+    procedure SetTouchInterface(const Value: TTouchInterface);
     procedure SetAutomaticTouchInterface(const Value: boolean);
-    procedure SetAutomaticWalkTouchCtl(const Value: TTouchCtlInterface);
+    procedure SetAutomaticWalkTouchCtl(const Value: TTouchInterface);
     { Sets touch controls depending on the current navigation mode.
       Should be called each time after navigation mode changed. }
     procedure UpdateAutomaticTouchInterface;
@@ -43,6 +45,9 @@ type
     procedure NavigationInfoChanged; override;
     procedure DoUpdate; override;
   public
+    const
+      DefaultAutomaticWalkTouchCtl = tiCtlWalkDragRotate;
+
     { Configure touch controls to be displayed on the window.
       This automatically manages under the hood 0, 1 or 2
       TCastleTouchControl instances, placing them at suitable positions
@@ -50,7 +55,7 @@ type
 
       Note that you can set AutomaticTouchInterface = @true to have this property
       automatically adjusted. (In which case you should not set this directly.) }
-    property TouchInterface: TTouchCtlInterface
+    property TouchInterface: TTouchInterface
       read FTouchInterface write SetTouchInterface;
   published
     { Automatically adjust TouchInterface (showing / hiding proper
@@ -60,12 +65,21 @@ type
     property AutomaticTouchInterface: boolean
       read FAutomaticTouchInterface write SetAutomaticTouchInterface
       default false;
-    { Which touch interface should be used when walking. Select between
-      etciCtlWalkCtlRotate or etciCtlWalkDragRotate (default).}
-    property AutomaticWalkTouchCtl: TTouchCtlInterface
+    { When using AutomaticTouchInterface = @true,
+      which touch interface should be used when walking
+      (since there are multiple sensible choices).
+      Select between tiCtlWalkCtlRotate or tiCtlWalkDragRotate (default).}
+    property AutomaticWalkTouchCtl: TTouchInterface
       read FAutomaticWalkTouchCtl write SetAutomaticWalkTouchCtl
-      default etciCtlWalkDragRotate;
+      default DefaultAutomaticWalkTouchCtl;
   end;
+
+const
+  etciNone = tiNone deprecated;
+  etciCtlWalkCtlRotate = tiCtlWalkCtlRotate deprecated;
+  etciCtlWalkDragRotate = tiCtlWalkDragRotate deprecated;
+  etciCtlFlyCtlWalkDragRotate =  tiCtlFlyCtlWalkDragRotate deprecated;
+  etciCtlPanXYDragRotate = tiCtlPanXYDragRotate deprecated;
 
 implementation
 
@@ -74,7 +88,7 @@ uses SysUtils, CastleUIControls, CastleUtils;
 constructor TCastleWindowTouch.Create(AOwner: TComponent);
 begin
   inherited;
-  FAutomaticWalkTouchCtl := etciCtlWalkDragRotate;
+  FAutomaticWalkTouchCtl := DefaultAutomaticWalkTouchCtl;
 end;
 
 procedure TCastleWindowTouch.DoUpdate;
@@ -82,25 +96,21 @@ var
   I: Integer;
   C: TUIControl;
   Tx, Ty, Tz, TLength, Rx, Ry, Rz, RAngle: Double;
+  RightSide: boolean;
 begin
   inherited;
 
-  if (LeftTouchCtl<>nil) or (RightTouchCtl<>nil) then
+  if (FControl[false] <> nil) or (FControl[true] <> nil) then
   begin
     Tx := 0; Ty := 0; Tz := 0; TLength := 0;
     Rx := 0; Ry := 0; Rz := 0; RAngle := 0;
 
-    if LeftTouchCtl <> nil then
-    begin
-      LeftTouchCtl.GetSensorTranslation(Tx, Ty, Tz, TLength);
-      LeftTouchCtl.GetSensorRotation(Rx, Ry, Rz, RAngle);
-    end;
-
-    if RightTouchCtl <> nil then
-    begin
-      RightTouchCtl.GetSensorTranslation(Tx, Ty, Tz, TLength);
-      RightTouchCtl.GetSensorRotation(Rx, Ry, Rz, RAngle);
-    end;
+    for RightSide in boolean do
+      if FControl[RightSide] <> nil then
+      begin
+        FControl[RightSide].GetSensorTranslation(Tx, Ty, Tz, TLength);
+        FControl[RightSide].GetSensorRotation(Rx, Ry, Rz, RAngle);
+      end;
 
     { send to all 2D controls, including viewports }
     for I := 0 to Controls.Count - 1 do
@@ -115,45 +125,46 @@ begin
   end;
 end;
 
-procedure TCastleWindowTouch.UpdateTouchController(
-  const LeftSide, CtlVisible: boolean; const Mode: TCastleTouchCtlMode);
-var
-  aNewCtl: TCastleTouchControl;
-begin
-  // left controller
-  if LeftSide and (LeftTouchCtl<>nil) then
+procedure TCastleWindowTouch.SetTouchInterface(const Value: TTouchInterface);
+
+  procedure UpdateTouchController(
+    const RightSide, CtlVisible: boolean; const Mode: TCastleTouchCtlMode);
+  var
+    NewControl: TCastleTouchControl;
   begin
+    if FControl[RightSide] <> nil then
+    begin
+      if CtlVisible then
+        FControl[RightSide].TouchMode := Mode else
+        FreeAndNil(FControl[RightSide]); // this automatically removes FControl[RightSide] from Controls list
+    end else
     if CtlVisible then
-      LeftTouchCtl.TouchMode := Mode else
-      FreeAndNil(LeftTouchCtl); // this automatically removes LeftTouchCtl from Controls list
-    Exit;
+    begin
+      NewControl := TCastleTouchControl.Create(self);
+      NewControl.TouchMode := Mode;
+      if not RightSide then
+        NewControl.Position := tpLeft else
+        NewControl.Position := tpRight;
+      Controls.InsertFront(NewControl);
+      FControl[RightSide] := NewControl;
+    end;
   end;
 
-  // right controller
-  if (not LeftSide) and (RightTouchCtl<>nil) then
-  begin
-    if CtlVisible then
-      RightTouchCtl.TouchMode := Mode else
-      FreeAndNil(RightTouchCtl); // this automatically removes RightTouchCtl from Controls list
-    Exit;
-  end;
-
-  if not CtlVisible then Exit;
-
-  aNewCtl := TCastleTouchControl.Create(self);
-  aNewCtl.TouchMode := Mode;
-  if LeftSide then
-    aNewCtl.Position := tpLeft else
-    aNewCtl.Position := tpRight;
-  Controls.InsertFront(aNewCtl);
-  if LeftSide then
-    LeftTouchCtl := aNewCtl else
-    RightTouchCtl := aNewCtl;
-end;
-
-procedure TCastleWindowTouch.SetTouchInterface(const Value: TTouchCtlInterface);
 var
   WalkCamera: TWalkCamera;
+
+  procedure UpdateTouchControllers(
+    const MouseDragMode: TMouseDragMode;
+    const LeftVisible, RightVisible: boolean;
+    const LeftMode: TCastleTouchCtlMode = ctcmWalking;
+    const RightMode: TCastleTouchCtlMode = ctcmWalking);
+  begin
+    UpdateTouchController(false, LeftVisible , LeftMode);
+    UpdateTouchController(true , RightVisible, RightMode);
+    if WalkCamera <> nil then
+      WalkCamera.MouseDragMode := MouseDragMode;
+  end;
+
 begin
   if FTouchInterface <> Value then
   begin
@@ -168,39 +179,18 @@ begin
         WalkCamera := SceneManager.Camera as TWalkCamera;
     end;
 
-    if Value = etciCtlWalkCtlRotate then
-    begin
-      UpdateTouchController(true, true, ctcmWalking);
-      UpdateTouchController(false, true, ctcmHeadRotation);
-      if WalkCamera<>nil then
-        WalkCamera.MouseDragMode := cwdmNone;
-    end else
-    if Value = etciCtlWalkDragRotate then
-    begin
-      UpdateTouchController(true, false);
-      UpdateTouchController(false, true, ctcmWalking);
-      if WalkCamera<>nil then
-        WalkCamera.MouseDragMode := cwdmDragToRotate;
-    end else
-    if Value = etciCtlFlyCtlWalkDragRotate then
-    begin
-      UpdateTouchController(true, true, ctcmFlyUpdown);
-      UpdateTouchController(false, true, ctcmWalking);
-      if WalkCamera<>nil then
-        WalkCamera.MouseDragMode := cwdmDragToRotate;
-    end else
-    if Value = etciCtlPanXYDragRotate then
-    begin
-      UpdateTouchController(true, false);
-      UpdateTouchController(false, true, ctcmPanXY);
-      if WalkCamera<>nil then
-        WalkCamera.MouseDragMode := cwdmDragToRotate;
-    end else
-    begin
-      UpdateTouchController(true, false);
-      UpdateTouchController(false, false);
-      if WalkCamera <> nil then
-        WalkCamera.MouseDragMode := cwdmDragToWalk;
+    case Value of
+      tiNone:
+        UpdateTouchControllers(mdWalk, false, false);
+      tiCtlWalkCtlRotate:
+        UpdateTouchControllers(mdNone, true, true, ctcmWalking, ctcmHeadRotation);
+      tiCtlWalkDragRotate:
+        UpdateTouchControllers(mdRotate, false, true, ctcmWalking, ctcmWalking);
+      tiCtlFlyCtlWalkDragRotate:
+        UpdateTouchControllers(mdRotate, true, true, ctcmFlyUpdown, ctcmWalking);
+      tiCtlPanXYDragRotate:
+        UpdateTouchControllers(mdRotate, false, true, ctcmPanXY, ctcmPanXY);
+      else raise EInternalError.Create('Value unhandled in SetTouchInterface');
     end;
   end;
 end;
@@ -210,11 +200,11 @@ begin
   if AutomaticTouchInterface then
   begin
     case NavigationType of
-      ntNone:      TouchInterface := etciNone;
+      ntNone:      TouchInterface := tiNone;
       ntWalk:      TouchInterface := FAutomaticWalkTouchCtl;
-      ntFly:       TouchInterface := etciCtlFlyCtlWalkDragRotate;
-      ntExamine:   TouchInterface := etciCtlPanXYDragRotate;
-      ntTurntable: TouchInterface := etciCtlPanXYDragRotate;
+      ntFly:       TouchInterface := tiCtlFlyCtlWalkDragRotate;
+      ntExamine:   TouchInterface := tiCtlPanXYDragRotate;
+      ntTurntable: TouchInterface := tiCtlPanXYDragRotate;
       else raise EInternalError.Create('TCastleWindowTouch.UpdateAutomaticTouchInterface not implemented for this NavigationType value');
     end;
   end;
@@ -231,7 +221,7 @@ begin
   end;
 end;
 
-procedure TCastleWindowTouch.SetAutomaticWalkTouchCtl(const Value: TTouchCtlInterface);
+procedure TCastleWindowTouch.SetAutomaticWalkTouchCtl(const Value: TTouchInterface);
 begin
   if FAutomaticWalkTouchCtl <> Value then
   begin

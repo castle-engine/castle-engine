@@ -398,26 +398,26 @@ begin
   end;
 end;
 
-function cgehelper_TouchInterfaceFromConst(eMode: cInt32): TTouchCtlInterface;
+function cgehelper_TouchInterfaceFromConst(eMode: cInt32): TTouchInterface;
 begin
   case eMode of
-    0: Result := etciNone;
-    1: Result := etciCtlWalkCtlRotate;
-    2: Result := etciCtlWalkDragRotate;
-    3: Result := etciCtlFlyCtlWalkDragRotate;
-    4: Result := etciCtlPanXYDragRotate;
+    0: Result := tiNone;
+    1: Result := tiCtlWalkCtlRotate;
+    2: Result := tiCtlWalkDragRotate;
+    3: Result := tiCtlFlyCtlWalkDragRotate;
+    4: Result := tiCtlPanXYDragRotate;
     else raise EInternalError.CreateFmt('cgehelper_TouchInterfaceFromConst: Invalid touch interface mode %d', [eMode]);
   end;
 end;
 
-function cgehelper_ConstFromTouchInterface(eMode: TTouchCtlInterface): cInt32;
+function cgehelper_ConstFromTouchInterface(eMode: TTouchInterface): cInt32;
 begin
   Result := 0;
   case eMode of
-    etciCtlWalkCtlRotate: Result := 1;
-    etciCtlWalkDragRotate: Result := 2;
-    etciCtlFlyCtlWalkDragRotate: Result := 3;
-    etciCtlPanXYDragRotate: Result := 4;
+    tiCtlWalkCtlRotate: Result := 1;
+    tiCtlWalkDragRotate: Result := 2;
+    tiCtlFlyCtlWalkDragRotate: Result := 3;
+    tiCtlPanXYDragRotate: Result := 4;
   end;
 end;
 
