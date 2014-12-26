@@ -129,6 +129,7 @@ begin
     P.Targets.AddUnit('castlerectangles.pas');
     P.Targets.AddUnit('castlestringutils.pas');
     P.Targets.AddUnit('castletimeutils.pas');
+    P.Targets.AddUnit('castleunicode.pas');
     P.Targets.AddUnit('castleutils.pas');
     P.Targets.AddUnit('castlevectors.pas');
     P.Targets.AddUnit('castlewarnings.pas');
@@ -283,6 +284,7 @@ begin
     P.Targets.AddUnit('x3dloadinternalmd3.pas');
     P.Targets.AddUnit('x3dloadinternalobj.pas');
     P.Targets.AddUnit('x3dloadinternal3ds.pas');
+    P.Targets.AddUnit('x3dloadinternalspine.pas');
     P.Targets.AddUnit('x3dloadinternalutils.pas');
     P.Targets.AddUnit('x3dnodes.pas');
     P.Targets.AddUnit('x3dnodesdetailoptions.pas');

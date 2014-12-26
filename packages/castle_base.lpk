@@ -2,12 +2,13 @@
 <CONFIG>
   <Package Version="4">
     <Name Value="castle_base"/>
+    <Type Value="RunAndDesignTime"/>
     <AddToProjectUsesSection Value="True"/>
     <Author Value="Michalis Kamburelis"/>
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/opengl;../src/audio;../src/opengl/glsl;../src/castlescript;../src/3d;../src/x3d/opengl/glsl;../src/x3d/opengl"/>
+        <IncludeFiles Value="../src/base;../src/base/unix;../src/base/windows;../src/opengl;../src/audio;../src/opengl/glsl;../src/castlescript;../src/3d;../src/x3d/opengl/glsl;../src/x3d/opengl;../src/x3d"/>
         <OtherUnitFiles Value="../src/base;../src/3d;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/opengl;../src/audio;../src/net;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/game"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
@@ -29,14 +30,13 @@
           <ShowHints Value="False"/>
         </Verbosity>
         <CustomOptions Value="-dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
-        <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
     <Description Value="Castle Game Engine - base package. Componets and units not dependent on CastleWindow or Lazarus LCL. You can install this package in Lazarus, it's required by all other programs and packages that are part of Castle Game Engine."/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="5"/>
-    <Files Count="174">
+    <Files Count="206">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -741,8 +741,135 @@
         <Filename Value="../src/x3d/x3dtriangles.pas"/>
         <UnitName Value="X3DTriangles"/>
       </Item174>
+      <Item175>
+        <Filename Value="../src/base/castleunicode.pas"/>
+        <UnitName Value="CastleUnicode"/>
+      </Item175>
+      <Item176>
+        <Filename Value="../src/base/castleutils_basic_algorithms.inc"/>
+        <Type Value="Include"/>
+      </Item176>
+      <Item177>
+        <Filename Value="../src/base/castleutils_filenames.inc"/>
+        <Type Value="Include"/>
+      </Item177>
+      <Item178>
+        <Filename Value="../src/base/castleutils_implement_sort.inc"/>
+        <Type Value="Include"/>
+      </Item178>
+      <Item179>
+        <Filename Value="../src/base/castleutils_math.inc"/>
+        <Type Value="Include"/>
+      </Item179>
+      <Item180>
+        <Filename Value="../src/base/castleutils_miscella.inc"/>
+        <Type Value="Include"/>
+      </Item180>
+      <Item181>
+        <Filename Value="../src/base/castleutils_pointers.inc"/>
+        <Type Value="Include"/>
+      </Item181>
+      <Item182>
+        <Filename Value="../src/base/castleutils_primitive_lists.inc"/>
+        <Type Value="Include"/>
+      </Item182>
+      <Item183>
+        <Filename Value="../src/base/castleutils_program_exit.inc"/>
+        <Type Value="Include"/>
+      </Item183>
+      <Item184>
+        <Filename Value="../src/base/castleutils_read_write.inc"/>
+        <Type Value="Include"/>
+      </Item184>
+      <Item185>
+        <Filename Value="../src/base/castlevectors_dualimplementation.inc"/>
+        <Type Value="Include"/>
+      </Item185>
+      <Item186>
+        <Filename Value="../src/base/castlevectors_operators.inc"/>
+        <Type Value="Include"/>
+      </Item186>
+      <Item187>
+        <Filename Value="../src/base/castlevectors_operators_matrix_implementation.inc"/>
+        <Type Value="Include"/>
+      </Item187>
+      <Item188>
+        <Filename Value="../src/base/castlevectors_operators_vector_implementation.inc"/>
+        <Type Value="Include"/>
+      </Item188>
+      <Item189>
+        <Filename Value="../src/base/castlevectors_trysimpleplanexxxintersection.inc"/>
+        <Type Value="Include"/>
+      </Item189>
+      <Item190>
+        <Filename Value="../src/base/castlevectors_vector3fromstr.inc"/>
+        <Type Value="Include"/>
+      </Item190>
+      <Item191>
+        <Filename Value="../src/base/norqcheckbegin.inc"/>
+        <Type Value="Include"/>
+      </Item191>
+      <Item192>
+        <Filename Value="../src/base/norqcheckend.inc"/>
+        <Type Value="Include"/>
+      </Item192>
+      <Item193>
+        <Filename Value="../src/x3d/x3dloadinternalspine_animations.inc"/>
+        <Type Value="Include"/>
+      </Item193>
+      <Item194>
+        <Filename Value="../src/x3d/x3dloadinternalspine_atlas.inc"/>
+        <Type Value="Include"/>
+      </Item194>
+      <Item195>
+        <Filename Value="../src/x3d/x3dloadinternalspine_attachments.inc"/>
+        <Type Value="Include"/>
+      </Item195>
+      <Item196>
+        <Filename Value="../src/x3d/x3dloadinternalspine_bones.inc"/>
+        <Type Value="Include"/>
+      </Item196>
+      <Item197>
+        <Filename Value="../src/x3d/x3dloadinternalspine_bonetimelines.inc"/>
+        <Type Value="Include"/>
+      </Item197>
+      <Item198>
+        <Filename Value="../src/x3d/x3dloadinternalspine_drawordertimelines.inc"/>
+        <Type Value="Include"/>
+      </Item198>
+      <Item199>
+        <Filename Value="../src/x3d/x3dloadinternalspine_json.inc"/>
+        <Type Value="Include"/>
+      </Item199>
+      <Item200>
+        <Filename Value="../src/x3d/x3dloadinternalspine.pas"/>
+        <UnitName Value="X3DLoadInternalSpine"/>
+      </Item200>
+      <Item201>
+        <Filename Value="../src/x3d/x3dloadinternalspine_simpletextureloader.inc"/>
+        <Type Value="Include"/>
+      </Item201>
+      <Item202>
+        <Filename Value="../src/x3d/x3dloadinternalspine_skeleton.inc"/>
+        <Type Value="Include"/>
+      </Item202>
+      <Item203>
+        <Filename Value="../src/x3d/x3dloadinternalspine_skins.inc"/>
+        <Type Value="Include"/>
+      </Item203>
+      <Item204>
+        <Filename Value="../src/x3d/x3dloadinternalspine_slots.inc"/>
+        <Type Value="Include"/>
+      </Item204>
+      <Item205>
+        <Filename Value="../src/x3d/x3dloadinternalspine_slottimelines.inc"/>
+        <Type Value="Include"/>
+      </Item205>
+      <Item206>
+        <Filename Value="../src/x3d/x3dloadinternalspine_textureloader.inc"/>
+        <Type Value="Include"/>
+      </Item206>
     </Files>
-    <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="1">
       <Item1>
         <PackageName Value="FCL"/>
