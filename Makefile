@@ -189,7 +189,7 @@ clean: cleanexamples
 # lazarus produces lib/ subdirectories during compilation
 	find examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
 # clean every project with CastleEngineManifest.xml
-	find -iname CastleEngineManifest.xml -execdir castle-engine clean ';'
+	find . -iname CastleEngineManifest.xml -execdir castle-engine clean ';'
 
 cleanmore: clean
 	find . -type f '(' -iname '*~' -or \
