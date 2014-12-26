@@ -2,6 +2,7 @@
 <CONFIG>
   <Package Version="4">
     <Name Value="castle_components"/>
+    <Type Value="RunAndDesignTime"/>
     <AddToProjectUsesSection Value="True"/>
     <Author Value="Michalis Kamburelis"/>
     <CompilerOptions>
@@ -30,14 +31,13 @@
         </Verbosity>
         <CustomOptions Value="-Sh
 -dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
-        <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
     <Description Value="Castle Game Engine - Lazarus components.
 "/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
-    <Version Major="5" Minor="0"/>
+    <Version Major="5" Minor="1"/>
     <Files Count="6">
       <Item1>
         <Filename Value="../src/components/castlecontrol.pas"/>
@@ -68,7 +68,6 @@
         <Type Value="LRS"/>
       </Item6>
     </Files>
-    <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="4">
       <Item1>
         <PackageName Value="IDEIntf"/>

@@ -30,14 +30,13 @@
           <ShowHints Value="False"/>
         </Verbosity>
         <CustomOptions Value="-dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
-        <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
     <Description Value="Castle Game Engine - CastleWindow and units using it.
 This package cannot be installed under Lazarus, it's only for being used in other programs. CastleWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources."/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
-    <Version Major="5" Minor="0"/>
+    <Version Major="5" Minor="1"/>
     <Files Count="15">
       <Item1>
         <Filename Value="../src/base/castleconf.inc"/>

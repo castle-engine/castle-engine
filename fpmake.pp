@@ -80,7 +80,7 @@ begin
     {$endif} := 'http://castle-engine.sourceforge.net/';
     P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
     { When updating this version, remember to also update tools/castle-engine.lpr version. }
-    P.Version := '5.0.0';
+    P.Version := '5.1.0';
 
     P.SourcePath.Add('src' + PathDelim + '3d');
     P.Targets.AddUnit('castle3d.pas');

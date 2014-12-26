@@ -2,6 +2,7 @@
 <CONFIG>
   <Package Version="4">
     <Name Value="castle_android_utilities"/>
+    <Type Value="RunAndDesignTime"/>
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
@@ -17,20 +18,15 @@
         <Verbosity>
           <ShowHints Value="False"/>
         </Verbosity>
-        <CompilerMessages>
-          <MsgFileName Value=""/>
-        </CompilerMessages>
-        <CompilerPath Value="$(CompPath)"/>
       </Other>
     </CompilerOptions>
-    <Version Major="5" Minor="0"/>
+    <Version Major="5" Minor="1"/>
     <Files Count="1">
       <Item1>
         <Filename Value="../src/base/android/castleandroidlog.pas"/>
         <UnitName Value="CastleAndroidLog"/>
       </Item1>
     </Files>
-    <Type Value="RunAndDesignTime"/>
     <RequiredPkgs Count="2">
       <Item1>
         <PackageName Value="castle_base"/>
