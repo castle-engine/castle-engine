@@ -215,7 +215,7 @@ begin
   if FAutomaticTouchInterface <> Value then
   begin
     FAutomaticTouchInterface := Value;
-    { change NavigationType immediately, in case we just set
+    { change TouchInterface immediately, in case we just set
       AutomaticTouchInterface := true }
     UpdateAutomaticTouchInterface;
   end;

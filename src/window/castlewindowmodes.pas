@@ -31,7 +31,7 @@ unit CastleWindowModes;
 
 interface
 
-uses SysUtils, CastleWindow, CastleGLUtils, CastleImages,
+uses SysUtils, Classes, CastleWindow, CastleGLUtils, CastleImages,
   CastleUIControls, CastleKeysMouse, CastleGLImages, CastleControls;
 
 type
@@ -43,7 +43,7 @@ type
     FFakeMouseDown: boolean;
   strict protected
     type
-      TWindowState = class
+      TWindowState = class(TComponent)
       strict private
         Window: TCastleWindowCustom;
         OldMotion: TInputMotionEvent;
@@ -69,6 +69,8 @@ type
         OldControls: TUIControlList;
         procedure WindowOpen(Container: TUIContainer);
         procedure WindowClose(Container: TUIContainer);
+      protected
+        procedure Notification(AComponent: TComponent; Operation: TOperation); override;
       public
         { When adding new attributes to TCastleWindowCustom that should be saved/restored,
           you must remember to
@@ -103,7 +105,7 @@ type
               change MainMenu.Enabled, that is saved specially for this.)
           )
         }
-        constructor Create(AWindow: TCastleWindowCustom);
+        constructor Create(AWindow: TCastleWindowCustom); reintroduce;
         destructor Destroy; override;
       end;
     var
@@ -250,8 +252,10 @@ uses CastleUtils;
 { TGLMode.TWindowState -------------------------------------------------------------- }
 
 constructor TGLMode.TWindowState.Create(AWindow: TCastleWindowCustom);
+var
+  I: Integer;
 begin
-  inherited Create;
+  inherited Create(nil);
   Window := AWindow;
 
   OldOpenObject := Window.OnOpenObject;
@@ -283,10 +287,14 @@ begin
 
   OldControls := TUIControlList.Create(false);
   OldControls.Assign(Window.Controls);
+  for I := 0 to OldControls.Count - 1 do
+    OldControls[I].FreeNotification(Self);
   OldControls.BeginDisableContextOpenClose;
 end;
 
 destructor TGLMode.TWindowState.Destroy;
+var
+  I: Integer;
 begin
   Window.OnOpenObject := OldOpenObject;
   Window.OnCloseObject := OldCloseObject;
@@ -317,6 +325,8 @@ begin
   begin
     Window.Controls.Assign(OldControls);
     OldControls.EndDisableContextOpenClose;
+    for I := 0 to OldControls.Count - 1 do
+      OldControls[I].RemoveFreeNotification(Self);
     FreeAndNil(OldControls);
   end;
 
@@ -332,7 +342,8 @@ begin
     OldOpenObject(Container);
   { Make sure to call GLContextOpen on OldControls,
     otherwise they would not initialize OpenGL resources even though OpenGL
-    context was open. }
+    context was open. This goes around the C.DisableContextOpenClose value,
+    so BeginDisableContextOpenClose / EndDisableContextOpenClose also don't matter. }
   for I := 0 to OldControls.Count - 1 do
   begin
     C := OldControls[I];
@@ -349,7 +360,8 @@ begin
     OldCloseObject(Container);
   { Make sure to call GLContextClose on OldControls,
     otherwise they would not release OpenGL resources even though OpenGL
-    context was closed. }
+    context was closed. This goes around the C.DisableContextOpenClose value,
+    so BeginDisableContextOpenClose / EndDisableContextOpenClose also don't matter. }
   for I := 0 to OldControls.Count - 1 do
   begin
     C := OldControls[I];
@@ -387,6 +399,12 @@ begin
   Window.Close_charkey := #0;
   Window.FpsShowOnCaption := false;
   Window.Controls.Clear;
+end;
+
+procedure TGLMode.TWindowState.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  if (Operation = opRemove) and (AComponent is TUIControl) and (OldControls <> nil) then
+    OldControls.DeleteAll(AComponent);
 end;
 
 { TGLMode -------------------------------------------------------------------- }
