@@ -19,7 +19,7 @@ in this directory, castle_game_engine) may be used on the terms of:
    - You *have* to modify src/base/castleconf.inc
      to make symbol CASTLE_ENGINE_LGPL defined. This will avoid pulling
      any GPL-only (strict) dependencies into the engine --- currently
-     this concerns NURBS implementatiopn.
+     this concerns NURBS implementation.
 
    - Also, we add the so-called "static linking exception" to LGPL.
      The idea is that you can statically link closed-source code
