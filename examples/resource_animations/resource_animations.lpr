@@ -17,7 +17,7 @@
 
 uses SysUtils, FGL, CastleFilesUtils, CastleWindow, CastleResources, CastleScene,
   CastleProgress, CastleWindowProgress, CastleControls, CastleUIControls,
-  CastleUtils, Castle3D, CastleSoundEngine;
+  CastleUtils, Castle3D, CastleSoundEngine, CastleCreatures;
 
 var
   BaseScene: TCastleScene;
@@ -240,6 +240,21 @@ begin
   end;
 end;
 
+{ TestAddingResourceByCode --------------------------------------------------- }
+
+{ An example of creating a resource (TStillCreatureResource in this case)
+  without resource.xml file. You just create an instance of TXxxResource by hand,
+  fill the properties you need, and add it to global Resources list. }
+procedure TestAddingResourceByCode;
+var
+  Res: TStillCreatureResource;
+begin
+  Res := TStillCreatureResource.Create('StillKnight');
+  Res.Animations.FindName('idle').URL := ApplicationData('knight_kanim/idle.kanim');
+  Res.Animations.FindName('die').URL := ApplicationData('knight_kanim/die.kanim');
+  Resources.Add(Res);
+end;
+
 { Main program --------------------------------------------------------------- }
 
 begin
@@ -252,6 +267,8 @@ begin
   IgnoreAllMissingSounds := true;
 
   Resources.LoadFromFiles;
+
+  TestAddingResourceByCode;
 
   { load basic 3D scene where creature is shown. This isn't necessary,
     but it's an easy way to add a camera with headlight,

@@ -31,13 +31,13 @@ type
     FName: string;
     FRequired: boolean;
     FOwner: T3DResource;
-    URL: string;
-    TimeSensor: string;
     { At most one of Animation or TimeSensorScene is defined }
     Animation: TCastlePrecalculatedAnimation;
     TimeSensorScene: TCastleScene;
     TimeSensorNode: TTimeSensorNode;
     FDuration: Single;
+    FURL: string;
+    FTimeSensor: string;
     procedure Prepare(const BaseLights: TAbstractLightInstancesList;
       const DoProgress: boolean);
     procedure Release;
@@ -79,6 +79,20 @@ type
       the scene with state reflecting given time --- in other words, we'll
       send proper events to TimeSensor to make this Time current. }
     function Scene(const Time: Single; const Loop: boolean): TCastleScene;
+
+    { Animation URL, only when each animation is inside a separate 3D file.
+      See [http://castle-engine.sourceforge.net/creating_data_resources.php]
+      for documentation how you can define creature animations. }
+    property URL: string read FURL write FURL;
+
+    { Time sensor name, when animations are started by X3D TimeSensor node.
+      This refers to an X3D TimeSensor node inside
+      animation model (from @link(URL)) or, when not defined,
+      inside whole resource model (from @link(T3DResource.ModelURL)).
+
+      See [http://castle-engine.sourceforge.net/creating_data_resources.php]
+      for documentation how you can define creature animations. }
+    property TimeSensor: string read FTimeSensor write FTimeSensor;
 
     property Name: string read FName;
     property Required: boolean read FRequired;
