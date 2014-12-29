@@ -257,7 +257,7 @@ begin
     '-a', 'android.intent.action.MAIN',
     '-n', QualifiedName + '/android.app.NativeActivity']);
 
-  Writeln('Install and run successfull. Run "adb logcat | grep ' + Name + '" (assuming that your OnGetApplicationName returns ''' + Name + ''') to see log output from your application.');
+  Writeln('Install and run successfull. Run "adb logcat | grep ' + Name + '" (assuming that your ApplicationName is ''' + Name + ''') to see log output from your application.');
 end;
 
 end.
