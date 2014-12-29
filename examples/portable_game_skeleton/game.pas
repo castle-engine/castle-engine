@@ -60,7 +60,9 @@ begin
 end;
 
 initialization
-  { This should be done as early as possible to mark our log lines correctly. }
+  { This sets SysUtils.ApplicationName.
+    It is useful to make sure it is correct (as early as possible)
+    as our log routines use it. }
   OnGetApplicationName := @MyGetApplicationName;
 
   { initialize Application callbacks }
