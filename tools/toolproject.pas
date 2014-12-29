@@ -693,18 +693,9 @@ procedure TCastleProject.DoClean;
 begin
   if StandaloneSource <> '' then
   begin
-    TryDeleteFile(ChangeFileExt(StandaloneSource, ''));
-    TryDeleteFile(ChangeFileExt(StandaloneSource, '.exe'));
-    { Make sure to also remove executable in main directory, in case
-      source is in code/ subdirectory. It is paranoid to remove it from both
-      places, but this way we know we're clean before packaging etc. }
-    if ExtractFileName(StandaloneSource) <> StandaloneSource then
-    begin
-      TryDeleteFile(ChangeFileExt(ExtractFileName(StandaloneSource), ''));
-      TryDeleteFile(ChangeFileExt(ExtractFileName(StandaloneSource), '.exe'));
-    end;
+    TryDeleteFile(ChangeFileExt(ExecutableName, ''));
+    TryDeleteFile(ChangeFileExt(ExecutableName, '.exe'));
   end;
-
   if AndroidSource <> '' then
     TryDeleteFile(AndroidLibraryFile(true));
 
