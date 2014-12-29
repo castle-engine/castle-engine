@@ -21,6 +21,5 @@
 program AndroidDemo_Standalone;
 uses CastleWindow, Game;
 begin
-  Application.Initialize;
   Window.OpenAndRun;
 end.

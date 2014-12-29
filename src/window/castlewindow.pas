@@ -36,15 +36,21 @@
       @link(TCastleWindowCustom.Caption Caption).)
 
     @item(To initialize your game, you usually want to use
-      @link(TCastleApplication.OnInitialize Application.OnInitialize). If you only care about
-      standalone programs (for normal OSes like Linux,Windows,MacOSX,
+      @link(TCastleApplication.OnInitialize Application.OnInitialize).
+
+      If you only care about
+      standalone programs (for normal OSes like Linux, Windows, MacOSX,
       but not Android) you may also just initialize your game in the main
-      program block.)
+      program block, although using
+      @link(TCastleApplication.OnInitialize Application.OnInitialize)
+      is still often comfortable.)
 
     @item(Call @link(TCastleWindowCustom.Open Window.Open),
       this will actually show the window and it's
       associated OpenGL context.
 
+      The first window open calls
+      @link(TCastleApplication.OnInitialize Application.OnInitialize).
       It also calls
       @link(TCastleWindowCustom.OnOpen OnOpen) and
       @link(TCastleWindowCustom.OnResize OnResize) callbacks.)
@@ -1252,7 +1258,30 @@ type
     property ResizeAllowed: TResizeAllowed
       read FResizeAllowed write FResizeAllowed default raAllowed;
 
-    { Event called when OpenGL context is initialized.
+    { OpenGL context is created, initialize things that require OpenGL
+      context. Often you do not need to use this callback (engine components will
+      automatically create/release OpenGL resource when necessary),
+      but sometimes it may be handy (e.g. TGLImage required OpenGL context).
+      You usually will also want to implement Window.OnClose callback that
+      releases stuff created here.
+
+      Instead of using this callback, even when you really need to initialize
+      some OpenGL resource, it's usually better to derive new classes from
+      TUIControl class or it\'s descendants,
+      and override their GLContextOpen / GLContextClose methods to react to
+      context being open/closed. Using such TUIControl classes
+      is usually easier, as you add/remove them from controls whenever
+      you want (e.g. you add them in ApplicationInitialize),
+      and underneath they create/release/create again the OpenGL resources
+      when necessary.
+
+      WindowOpen is always *after* ApplicationInitialize.
+      In normal circumstances, for a standalone game, the WindowOpen will
+      happen only once. But for other targets, it may be necessary to close/reopen
+      the OpenGL context many times, e.g. on mobile platforms it\'s normal
+      that application may "loose" the OpenGL context and it may need
+      to recreate OpenGL resources when it wakes up.
+      Event called when OpenGL context is initialized.
 
       It's guaranteed that every newly opened window will get
       EventOpen (OnOpen) first, and then EventResize (OnResize),
@@ -1272,8 +1301,9 @@ type
       as user can switch from/to your application at any time.
       You should use
       @link(TCastleApplication.OnInitialize Application.OnInitialize)
-      to start your game,
-      and use this callback only to create OpenGL resources
+      for a one-time initialization (it is executed right before
+      the very first OnOpen would be executed).
+      Use this callback only to create OpenGL resources
       (destroyed in OnClose). }
     property OnOpen: TContainerEvent read GetOnOpen write SetOnOpen;
     property OnOpenObject: TContainerObjectEvent read GetOnOpenObject write SetOnOpenObject;
@@ -2342,6 +2372,7 @@ end;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindowCustom;
+    procedure Initialize;
 
     { Add new item to OpenWindows.
       Windows must not be already on OpenWindows list. }
@@ -2473,25 +2504,20 @@ end;
     { @groupEnd }
 
     { The backend is initialized. Called only once, at the very beginning
-      of the game.
-
-      For standalone games, this is not called automatically.
-      You can call it from the main program file, to work consistently with
-      "library" targets (see below). Or you can ignore this,
-      if you're not interested in Android and similar targets.
-      For standalone games, you may as well just put
-      your initialization code into the main program code.
+      of the game, when we're ready to load everything
+      and the first OpenGL context is initialized (right before
+      calling TCastleWindowCustom.OnOpen).
 
       For targets like Android or iOS or browser plugin,
-      where the engine has to run as a library, this callback is useful.
-      In such case, we really should not do anything (even reading files)
-      before an external process tells us "Ok, you're ready".
+      you should not do anything (even reading files) before this callback occurs.
+      Only when this occurs, we know that external process told us
+      "Ok, you're ready".
       So you should put all the game initialization in an Application.OnInitialize
       callback. It will be automatically called by CastleWindow backend
-      when suitable. }
+      when we're really ready (actually, a little later ---
+      when OpenGL context is active, to allow you to display progress
+      bars etc. when loading). }
     property OnInitialize: TProcedure read FOnInitialize write FOnInitialize;
-
-    procedure Initialize;
 
     { Continously occuring event.
       @seealso TCastleWindowCustom.OnUpdate. }
@@ -2925,6 +2951,8 @@ begin
        GLFeatures.NV_multisample_filter_hint then
       glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
     {$endif}
+
+    Application.Initialize;
 
     { call first EventOpen and EventResize. Zwroc uwage ze te DoResize i DoOpen
       MUSZA byc wykonane na samym koncu procedury Open - jak juz wszystko inne

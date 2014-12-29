@@ -21,6 +21,5 @@
 program drawing_toy_standalone;
 uses CastleWindow, Game;
 begin
-  Application.Initialize;
   Window.OpenAndRun;
 end.

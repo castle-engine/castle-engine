@@ -579,6 +579,10 @@ begin
     available on Android anyway, but we keep the list below for completeness
     (engine gracefully handles lack of most libraries, only OpenGLES
     is really required). }
+  { Note that this may be called many times, because AndroidMainImplementation
+    may be called many times, because ANativeActivity_onCreate may be called
+    multple times. So things below must be implemented in a secure way,
+    to work Ok when executed multiple times. }
   GLES20Initialization;
   OpenALInitialization;
   VorbisFileInitialization;
@@ -592,12 +596,6 @@ begin
   {$ifndef CASTLE_ZLIB_USING_PASZLIB}
   ZLibInitialization;
   {$endif}
-
-  { Note that this may be called many times, because AndroidMainImplementation
-    may be called many times, because ANativeActivity_onCreate may be called
-    multple times. So it is useful that Initialize has
-    mechanism to not call OnInitialize more than once. }
-  Initialize;
 
   while ProcessMessage(true, true) do ;
 

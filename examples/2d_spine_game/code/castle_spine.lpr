@@ -48,6 +48,5 @@ begin
   Window.ParseParameters;
   Parameters.Parse(Options, @OptionProc, nil);
 
-  Application.Initialize;
   Window.OpenAndRun;
 end.
