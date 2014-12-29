@@ -33,7 +33,6 @@ uses
   TestCastleFrustum,
   TestCastle3D,
   TestParsingParameters,
-  TestFNMatch,
   TestCameras,
   TestX3DNodes,
   TestX3DNodesOptimizedProxy,
