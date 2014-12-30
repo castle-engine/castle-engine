@@ -910,7 +910,7 @@ begin
       (Fdscale.Value[2] < 0)) and not WarningNegativeScaleDone then
   begin
     WarningNegativeScaleDone := true;
-    OnWarning(wtMajor, 'VRML/X3D', 'Transform.scale has negative component. While it allows some tricks, it makes lighting act weird in some cases, and is discouraged.');
+    WritelnLog('VRML/X3D', 'Note: Transform.scale has negative component. It allows some tricks (especially sensible for unlit 2D stuff), but it makes lighting act weird. Make sure you use it only for unlit objects.');
   end;
 end;
 
