@@ -505,11 +505,14 @@ begin
   Application.OpenWindowsAdd(Self);
 end;
 
+const
+  BorderNone = Controls.bsNone;
+
 procedure TCastleWindowCustom.UpdateFullScreen;
 begin
   if FullScreen then
   begin
-    Form.BorderStyle := Forms.bsNone;
+    Form.BorderStyle := BorderNone;
     Form.WindowState := wsFullScreen;
   end else
   begin
