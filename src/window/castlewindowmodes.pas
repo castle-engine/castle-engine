@@ -403,6 +403,7 @@ end;
 
 procedure TGLMode.TWindowState.Notification(AComponent: TComponent; Operation: TOperation);
 begin
+  inherited;
   if (Operation = opRemove) and (AComponent is TUIControl) and (OldControls <> nil) then
     OldControls.DeleteAll(AComponent);
 end;

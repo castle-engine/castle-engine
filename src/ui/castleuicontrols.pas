@@ -1150,6 +1150,8 @@ end;
 
 procedure TUIContainer.Notification(AComponent: TComponent; Operation: TOperation);
 begin
+  inherited;
+
   { We have to remove a reference to the object from Controls list.
     This is crucial: TControlledUIControlList.Notify,
     and some Controls.MakeSingle calls, assume that all objects on
