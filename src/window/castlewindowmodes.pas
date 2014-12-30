@@ -67,6 +67,7 @@ type
         OldClose_charkey: char;
         OldFpsShowOnCaption: boolean;
         OldControls: TUIControlList;
+        OldAutomaticTouchControl: boolean;
         procedure WindowOpen(Container: TUIContainer);
         procedure WindowClose(Container: TUIContainer);
       protected
@@ -247,7 +248,7 @@ procedure NoClose(Container: TUIContainer);
 
 implementation
 
-uses CastleUtils;
+uses CastleUtils, CastleWindowTouch;
 
 { TGLMode.TWindowState -------------------------------------------------------------- }
 
@@ -290,6 +291,15 @@ begin
   for I := 0 to OldControls.Count - 1 do
     OldControls[I].FreeNotification(Self);
   OldControls.BeginDisableContextOpenClose;
+
+  { save AutomaticTouchInterface,
+    as it has to be reset in SetStandardState,
+    as adding to Controls during a mode doesn't work (Controls contain
+    only a temporary list of controls e.g. for progress bar UI),
+    so TouchInterface (e.g. when camera changes to nil,
+    then to non-nil, during SceneManager.LoadLevel) should remain unchanged. }
+  if Window is TCastleWindowTouch then
+    OldAutomaticTouchControl := TCastleWindowTouch(Window).AutomaticTouchInterface;
 end;
 
 destructor TGLMode.TWindowState.Destroy;
@@ -329,6 +339,12 @@ begin
       OldControls[I].RemoveFreeNotification(Self);
     FreeAndNil(OldControls);
   end;
+
+  { restore AutomaticTouchInterface after Controls are restored,
+    as it may add/remove touch controls, if navigation type changed
+    during the mode. }
+  if Window is TCastleWindowTouch then
+    TCastleWindowTouch(Window).AutomaticTouchInterface := OldAutomaticTouchControl;
 
   inherited;
 end;
@@ -398,6 +414,8 @@ begin
   Window.SwapFullScreen_Key := K_None;
   Window.Close_charkey := #0;
   Window.FpsShowOnCaption := false;
+  if Window is TCastleWindowTouch then
+    TCastleWindowTouch(Window).AutomaticTouchInterface := false;
   Window.Controls.Clear;
 end;
 
