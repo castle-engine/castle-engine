@@ -223,7 +223,7 @@ type
 
     constructor Create(const ATBegin, ATEnd: Float); override;
     destructor Destroy; override;
-  end;
+  end deprecated 'Rendering of this is not portable to OpenGLES, and this is not really a useful curve for most practical game uses. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
 
   { Natural cubic spline (1D).
     May be periodic or not. }
@@ -282,7 +282,7 @@ type
     function Closed: boolean; override;
   public
     class function NiceClassName: string; override;
-  end;
+  end deprecated 'Rendering of this is not portable to OpenGLES, and this is not really a useful curve for most practical game uses. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
 
   { 3D curve defined by three 1D natural cubic splines, always treated as closed. }
   TNaturalCubicSplineCurveAlwaysClosed = class(TNaturalCubicSplineCurve_Abstract)
@@ -290,7 +290,7 @@ type
     function Closed: boolean; override;
   public
     class function NiceClassName: string; override;
-  end;
+  end deprecated 'Rendering of this is not portable to OpenGLES, and this is not really a useful curve for most practical game uses. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
 
   { 3D curve defined by three 1D natural cubic splines, never treated as closed. }
   TNaturalCubicSplineCurveNeverClosed = class(TNaturalCubicSplineCurve_Abstract)
@@ -298,7 +298,7 @@ type
     function Closed: boolean; override;
   public
     class function NiceClassName: string; override;
-  end;
+  end deprecated 'Rendering of this is not portable to OpenGLES, and this is not really a useful curve for most practical game uses. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
 
   { Rational Bezier curve (Bezier curve with weights).
     Note: for Bezier Curve ControlPoints.Count MAY be 1.
@@ -330,9 +330,11 @@ type
 
     constructor Create(const ATBegin, ATEnd: Float); override;
     destructor Destroy; override;
-  end;
+  end deprecated 'Rendering of TRationalBezierCurve is not portable to OpenGLES (that is: Android and iOS) and not very efficient. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
 
+  {$warnings off} { Consciously using deprecated stuff. }
   TRationalBezierCurveList = specialize TFPGObjectList<TRationalBezierCurve>;
+  {$warnings on}
 
   { Smooth interpolated curve, each segment (ControlPoints[i]..ControlPoints[i+1])
     is converted to a rational Bezier curve (with 4 control points)
@@ -342,7 +344,7 @@ type
     ToRationalBezierCurves.
 
     Here too ControlPoints.Count MAY be 1.
-    (For TControlPointsCurve it must be >= 2) }
+    (For TControlPointsCurve it must be >= 2). }
   TSmoothInterpolatedCurve = class(TInterpolatedCurve)
   private
     BezierCurves: TRationalBezierCurveList;
@@ -373,7 +375,7 @@ type
 
     constructor Create(const ATBegin, ATEnd: Float); override;
     destructor Destroy; override;
-  end;
+  end deprecated 'Rendering of TSmoothInterpolatedCurve is not portable to OpenGLES (that is: Android and iOS) and not very efficient. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
 
 implementation
 
@@ -978,8 +980,10 @@ var TMiddle, u: Float;
 DE_CASTELJAU_DECLARE
 begin
   TMiddle := TBegin + Proportion * (TEnd - TBegin);
+  {$warnings off} { Consciously using deprecated stuff. }
   B1 := TRationalBezierCurve.Create(TBegin, TMiddle);
   B2 := TRationalBezierCurve.Create(TMiddle, TEnd);
+  {$warnings on}
   B1.ControlPoints.Count := ControlPoints.Count;
   B2.ControlPoints.Count := ControlPoints.Count;
   B1.Weights.Count := Weights.Count;
@@ -1085,7 +1089,9 @@ var
 var
   C: TVector3SingleList;
   i: Integer;
+  {$warnings off} { Consciously using deprecated stuff. }
   NewCurve: TRationalBezierCurve;
+  {$warnings on}
 begin
   Result := TRationalBezierCurveList.Create(ResultOwnsCurves);
   try
@@ -1101,7 +1107,9 @@ begin
         So I can't calculate S[0] and S[1] using given equations when
         ControlPoints.Count = 2. So I must implement a special case for
         ControlPoints.Count = 2. }
+      {$warnings off} { Consciously using deprecated stuff. }
       NewCurve := TRationalBezierCurve.Create(ControlPointT(0), ControlPointT(1));
+      {$warnings on}
       NewCurve.ControlPoints.Add(ControlPoints.L[0]);
       NewCurve.ControlPoints.Add(Lerp(1/3, ControlPoints.L[0], ControlPoints.L[1]));
       NewCurve.ControlPoints.Add(Lerp(2/3, ControlPoints.L[0], ControlPoints.L[1]));
@@ -1139,7 +1147,9 @@ begin
 
       for i := 1 to ControlPoints.Count-1 do
       begin
+        {$warnings off} { Consciously using deprecated stuff. }
         NewCurve := TRationalBezierCurve.Create(ControlPointT(i-1), ControlPointT(i));
+        {$warnings on}
         NewCurve.ControlPoints.Add(ControlPoints.L[i-1]);
         NewCurve.ControlPoints.Add(MiddlePoint(i-1, +1));
         NewCurve.ControlPoints.Add(MiddlePoint(i  , -1));
