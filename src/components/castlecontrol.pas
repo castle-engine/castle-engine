@@ -853,6 +853,7 @@ begin
     Fps._RenderBegin;
     try
       Container.EventRender;
+      DoOnPaint; // call OnPaint, like it would be a top-most TUIControl
       if GLVersion.BuggySwapNonStandardViewport then
         glViewport(Rect);
       SwapBuffers;
