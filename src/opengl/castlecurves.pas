@@ -20,8 +20,8 @@ unit CastleCurves;
 
 interface
 
-uses CastleVectors, CastleBoxes, CastleUtils, CastleScript,
-  CastleClassUtils, Classes, Castle3D, CastleFrustum, FGL;
+uses Classes, FGL, CastleVectors, CastleBoxes, CastleUtils, CastleScript,
+  CastleClassUtils, Castle3D, CastleFrustum, CastleColors;
 
 type
   { 3D curve, a set of points defined by a continous function @link(Point)
@@ -33,6 +33,8 @@ type
     that it's a proper bounding box, maybe too large but never too small.) }
   TCurve = class(T3D)
   private
+    FColor: TCastleColor;
+    FLineWidth: Single;
     FTBegin, FTEnd: Float;
     FDefaultSegments: Cardinal;
   public
@@ -57,15 +59,14 @@ type
       You should just give some large number for Segments to have something
       that will be really smooth.
 
-      OpenGL commands:
-      @orderedList(
-        @item(This method calls glBegin(GL_LINE_STRIP);)
-        @item(Then it calls glVertexv(PointOfSegment(i, Segments))
-          for i in [0; Segments]
-          (yes, this means that it calls glVertex Segments+1 times).)
-        @item(Then this method calls glEnd.)
-      ) }
-    procedure Render(Segments: Cardinal);
+      This does direct OpenGL rendering right now, setting GL color
+      and then rendering a line strip. }
+    procedure Render(Segments: Cardinal); deprecated 'Do not render curve directly by this method, instead add the curve to SceneManager.Items to have it rendered automatically.';
+
+    { Curve rendering color. White by default. }
+    property Color: TCastleColor read FColor write FColor;
+
+    property LineWidth: Single read FLineWidth write FLineWidth default 1;
 
     { Default number of segments, used when rendering by T3D interface
       (that is, @code(Render(Frustum, TransparentGroup...)) method.) }
@@ -123,6 +124,8 @@ type
   TControlPointsCurve = class(TCurve)
   private
     FBoundingBox: TBox3D;
+    FControlPointsColor: TCastleColor;
+    FConvexHullColor: TCastleColor;
   protected
     { Using these function you can control how Convex Hull (for RenderConvexHull)
       is calculated: CreateConvexHullPoints should return points that must be
@@ -142,7 +145,9 @@ type
   public
     ControlPoints: TVector3SingleList;
 
-    { glBegin(GL_POINTS) + glVertex fo each ControlPoints[i] + glEnd. }
+    property ControlPointsColor: TCastleColor read FControlPointsColor write FControlPointsColor;
+
+    { Render control points, using ControlPointsColor. }
     procedure RenderControlPoints;
 
     { This class provides implementation for BoundingBox: it is simply
@@ -163,9 +168,10 @@ type
       ClassName is always uppercased. }
     class function NiceClassName: string; virtual; abstract;
 
-    { do glBegin(GL_POLYGON), glVertex(v)..., glEnd,
-      where glVertex are points of Convex Hull of ControlPoints
-      (ignoring Z-coord of ControlPoints). }
+    property ConvexHullColor: TCastleColor read FConvexHullColor write FConvexHullColor;
+
+    { Render convex hull polygon, using ConvexHullColor.
+      Ignores Z-coord of ControlPoints. }
     procedure RenderConvexHull;
 
     { Constructor.
@@ -392,6 +398,8 @@ procedure TCurve.Render(Segments: Cardinal);
 var i: Integer;
 begin
   {$ifndef OpenGLES} //TODO-es
+  glColorv(Color);
+  glLineWidth(LineWidth);
   glBegin(GL_LINE_STRIP);
   for i := 0 to Segments do glVertexv(PointOfSegment(i, Segments));
   glEnd;
@@ -422,10 +430,12 @@ end;
 
 constructor TCurve.Create(const ATBegin, ATEnd: Float);
 begin
- inherited Create(nil);
- FTBegin := ATBegin;
- FTEnd := ATEnd;
- FDefaultSegments := 10;
+  inherited Create(nil);
+  FTBegin := ATBegin;
+  FTEnd := ATEnd;
+  FDefaultSegments := 10;
+  FLineWidth := 1;
+  FColor := White;
 end;
 
 { TCasScriptCurve ------------------------------------------------------------ }
@@ -488,6 +498,7 @@ procedure TControlPointsCurve.RenderControlPoints;
 var i: Integer;
 begin
   {$ifndef OpenGLES} //TODO-es
+  glColorv(ControlPointsColor);
   glBegin(GL_POINTS);
   for i := 0 to ControlPoints.Count-1 do glVertexv(ControlPoints.L[i]);
   glEnd;
@@ -524,6 +535,7 @@ begin
   CH := ConvexHull(CHPoints);
   try
    {$ifndef OpenGLES} //TODO-es
+   glColorv(ConvexHullColor);
    glBegin(GL_POLYGON);
    try
     for i := 0 to CH.Count-1 do
@@ -541,6 +553,8 @@ begin
  { DON'T call UpdateControlPoints from here - UpdateControlPoints is virtual !
    So we set FBoundingBox by hand. }
  FBoundingBox := EmptyBox3D;
+ FControlPointsColor := White;
+ FConvexHullColor := White;
 end;
 
 constructor TControlPointsCurve.CreateDivideCasScriptCurve(
