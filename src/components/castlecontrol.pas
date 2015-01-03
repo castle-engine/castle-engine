@@ -192,6 +192,13 @@ type
     property Container: TContainer read FContainer;
   end;
 
+  { Same as TGameSceneManager, redefined only to work as a sub-component
+    of TCastleControl, otherwise Lazarus fails to update the uses clause
+    correctly and you cannot edit the events of CastleControl1.SceneManager
+    subcomponent. }
+  TControlGameSceneManager = class(TGameSceneManager)
+  end;
+
   { Lazarus component with an OpenGL context, most comfortable to render 3D worlds
     with 2D controls above. Add your 3D stuff to the scene manager
     available in @link(SceneManager) property. Add your 2D stuff
@@ -203,7 +210,7 @@ type
     to your world. }
   TCastleControl = class(TCastleControlCustom)
   private
-    FSceneManager: TGameSceneManager;
+    FSceneManager: TControlGameSceneManager;
 
     function GetShadowVolumes: boolean;
     function GetShadowVolumesRender: boolean;
@@ -227,7 +234,7 @@ type
     function MainScene: TCastleScene;
     function Camera: TCamera;
   published
-    property SceneManager: TGameSceneManager read FSceneManager;
+    property SceneManager: TControlGameSceneManager read FSceneManager;
 
     property OnCameraChanged: TNotifyEvent
       read GetOnCameraChanged write SetOnCameraChanged;
@@ -276,11 +283,15 @@ uses LCLType, CastleGL, CastleGLUtils, CastleStringUtils, X3DLoad, Math,
 procedure Register;
 begin
   RegisterComponents('Castle', [
-    { For engine 3.0.0, TCastleControlCustom is not registered on palette,
-      as the suggested usage for everyone is to take TCastleControl with
+    { TCastleControlCustom is not registered on a palette anymore,
+      as the simplest approach is to use TCastleControl with
       scene manager instance already created.
-      In engine 2.x, I was getting questions about which one to use,
-      and it seems  that noone grokked the difference between the two.
+      This avoids questions about "which one to use" (common at engine
+      versions 2.x).
+
+      Developers familiar with our architecture that want
+      to use TCastleControlCustom (but not TCastleControl)
+      will have to use it from code.
       Final decision about it (should it be visible on palette for advanced uses,
       and risk confusing novice users?) is still unsure (report on forum
       if you have any opinion). }
@@ -978,7 +989,7 @@ constructor TCastleControl.Create(AOwner :TComponent);
 begin
   inherited;
 
-  FSceneManager := TGameSceneManager.Create(Self);
+  FSceneManager := TControlGameSceneManager.Create(Self);
   { SetSubComponent and Name setting (must be unique only within TCastleControl,
     so no troubles) are necessary to store it in LFM and display in object inspector
     nicely. }
