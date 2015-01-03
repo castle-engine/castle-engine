@@ -113,7 +113,9 @@ procedure TSurface.Render(const XSegments, YSegments: Cardinal);
   var
     I: Cardinal;
   begin
-    Result := TRationalBezierCurve.Create(YBegin, YEnd);
+    Result := TRationalBezierCurve.Create(nil);
+    Result.TBegin := YBegin;
+    Result.TEnd := YEnd;
     for I := 0 to Curves.Count - 1 do
     begin
       TRationalBezierCurve(Result).ControlPoints.Add(

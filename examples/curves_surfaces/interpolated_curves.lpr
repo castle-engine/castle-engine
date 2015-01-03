@@ -137,8 +137,13 @@ procedure SetPreciseCurve(
   const NewTBegin, NewTEnd: Float);
 begin
   FreeAndNil(PreciseCurve);
-  PreciseCurve := TCasScriptCurve.Create(NewTBegin, NewTEnd,
-    NewXFunction, NewYFunction, NewZFunction, TVariable);
+  PreciseCurve := TCasScriptCurve.Create(nil);
+  PreciseCurve.TBegin := NewTBegin;
+  PreciseCurve.TEnd := NewTEnd;
+  PreciseCurve.XFunction := NewXFunction;
+  PreciseCurve.YFunction := NewYFunction;
+  PreciseCurve.ZFunction := NewZFunction;
+  PreciseCurve.TVariable := TVariable;
   SceneManager.Items.Add(PreciseCurve);
 
   SetApproxCurve;

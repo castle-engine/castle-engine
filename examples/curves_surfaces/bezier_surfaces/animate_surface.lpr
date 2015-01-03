@@ -58,7 +58,9 @@ var
   begin
     for I := 0 to N - 1 do
     begin
-      MyCurve := TRationalBezierCurve.Create(Surface.XBegin, Surface.XEnd);
+      MyCurve := TRationalBezierCurve.Create(nil);
+      MyCurve.TBegin := Surface.XBegin;
+      MyCurve.TEnd := Surface.XEnd;
       for J := 0 to N - 1 do
       begin
         V := F.ReadVector3Single;
@@ -124,7 +126,9 @@ begin
     begin
       C1 := Surface1.Curves.Items[I] as TRationalBezierCurve;
       C2 := Surface2.Curves.Items[I] as TRationalBezierCurve;
-      MyCurve := TRationalBezierCurve.Create(C1.TBegin, C1.TEnd);
+      MyCurve := TRationalBezierCurve.Create(nil);
+      MyCurve.TBegin := C1.TBegin;
+      MyCurve.TEnd := C1.TEnd;
       for J := 0 to C1.ControlPoints.Count - 1 do
       begin
         MyCurve.ControlPoints.Add(

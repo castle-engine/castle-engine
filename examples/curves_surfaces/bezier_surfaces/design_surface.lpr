@@ -87,7 +87,9 @@ begin
 
   for I := 0 to CurvesCount - 1 do
   begin
-    MyCurve := TRationalBezierCurve.Create(Surface.XBegin, Surface.XEnd);
+    MyCurve := TRationalBezierCurve.Create(nil);
+    MyCurve.TBegin := Surface.XBegin;
+    MyCurve.TEnd := Surface.XEnd;
     for J := 0 to CurveControlPointsCount - 1 do
     begin
       MyCurve.ControlPoints.Add(Vector3Single(
@@ -121,7 +123,9 @@ begin
       F.Readln;
       for I := 0 to CurvesCount - 1 do
       begin
-        MyCurve := TRationalBezierCurve.Create(NewSurface.XBegin, NewSurface.XEnd);
+        MyCurve := TRationalBezierCurve.Create(nil);
+        MyCurve.TBegin := NewSurface.XBegin;
+        MyCurve.TEnd := NewSurface.XEnd;
         for J := 0 to CurveControlPointsCount - 1 do
         begin
           V := F.ReadVector3Single;
