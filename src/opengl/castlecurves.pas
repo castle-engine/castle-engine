@@ -35,13 +35,13 @@ type
   private
     FColor: TCastleColor;
     FLineWidth: Single;
-    FTBegin, FTEnd: Float;
+    FTBegin, FTEnd: Single;
     FDefaultSegments: Cardinal;
   public
     { The valid range of curve function argument. Must be TBegin <= TEnd.
       @groupBegin }
-    property TBegin: Float read FTBegin;
-    property TEnd: Float read FTEnd;
+    property TBegin: Single read FTBegin write FTBegin default 0;
+    property TEnd: Single read FTEnd write FTEnd default 1;
     { @groupEnd }
 
     { Curve function, for each parameter value determine the 3D point.
@@ -76,7 +76,7 @@ type
     procedure Render(const Frustum: TFrustum;
       const Params: TRenderParams); override;
 
-    constructor Create(const ATBegin, ATEnd: Float); reintroduce;
+    constructor Create(AOwner: TComponent); override;
   end;
 
   TCurveList = specialize TFPGObjectList<TCurve>;
@@ -84,23 +84,36 @@ type
   { Curve defined by explicitly giving functions for
     Point(t) = x(t), y(t), z(t) as CastleScript expressions. }
   TCasScriptCurve = class(TCurve)
+  private
+    FSegmentsForBoundingBox: Cardinal;
+    procedure SetSegmentsForBoundingBox(AValue: Cardinal);
+    procedure SetTVariable(AValue: TCasScriptFloat);
   protected
     FTVariable: TCasScriptFloat;
-    FXFunction, FYFunction, FZFunction: TCasScriptExpression;
+    FFunction: array [0..2] of TCasScriptExpression;
     FBoundingBox: TBox3D;
+    function GetFunction(const Index: Integer): TCasScriptExpression;
+    procedure SetFunction(const Index: Integer; const Value: TCasScriptExpression);
+    procedure UpdateBoundingBox;
   public
     function Point(const t: Float): TVector3Single; override;
 
     { XFunction, YFunction, ZFunction are functions based on variable 't'.
+      Once set, these instances become owned by this class, do not free
+      them yourself!
       @groupBegin }
-    property XFunction: TCasScriptExpression read FXFunction;
-    property YFunction: TCasScriptExpression read FYFunction;
-    property ZFunction: TCasScriptExpression read FZFunction;
+    property XFunction: TCasScriptExpression index 0 read GetFunction write SetFunction;
+    property YFunction: TCasScriptExpression index 1 read GetFunction write SetFunction;
+    property ZFunction: TCasScriptExpression index 2 read GetFunction write SetFunction;
     { @groupEnd }
 
     { This is the variable controlling 't' value, embedded also in
-      XFunction, YFunction, ZFunction. }
-    property TVariable: TCasScriptFloat read FTVariable;
+      XFunction, YFunction, ZFunction. This is NOT owned by this class,
+      make sure to free it yourself! }
+    property TVariable: TCasScriptFloat read FTVariable write SetTVariable;
+
+    property SegmentsForBoundingBox: Cardinal
+      read FSegmentsForBoundingBox write SetSegmentsForBoundingBox default 100;
 
     { Simple bounding box. It is simply
       a BoundingBox of Point(i, SegmentsForBoundingBox)
@@ -108,12 +121,7 @@ type
       Subclasses may override this to calculate something more accurate. }
     function BoundingBox: TBox3D; override;
 
-    { XFunction, YFunction, ZFunction references are copied here,
-      and will be freed in destructor (so don't Free them yourself). }
-    constructor Create(const ATBegin, ATEnd: Float;
-      AXFunction, AYFunction, AZFunction: TCasScriptExpression;
-      ATVariable: TCasScriptFloat;
-      ASegmentsForBoundingBox: Cardinal = 100);
+    constructor Create(AOwner: TComponent); override;
 
     destructor Destroy; override;
   end;
@@ -155,7 +163,7 @@ type
       override this to calculate better (more accurate) BoundingBox. }
     function BoundingBox: TBox3D; override;
 
-    { Always after changing ControlPoints and before calling Point,
+    { Always after changing ControlPoints or TBegin or TEnd and before calling Point,
       BoundingBox (and anything that calls them, e.g. Render calls Point)
       call this method. It recalculates necessary things.
       ControlPoints.Count must be >= 2.
@@ -175,9 +183,8 @@ type
     procedure RenderConvexHull;
 
     { Constructor.
-      This is virtual because it's called by CreateDivideCasScriptCurve.
-      It's also useful in many places in curves.lpr. }
-    constructor Create(const ATBegin, ATEnd: Float); virtual;
+      It has to be virtual because it's called by CreateDivideCasScriptCurve. }
+    constructor Create(AOwner: TComponent); override;
 
     { Calculates ControlPoints taking Point(i, ControlPointsCount-1)
       for i in [0 .. ControlPointsCount-1] from CasScriptCurve.
@@ -227,7 +234,7 @@ type
 
     class function NiceClassName: string; override;
 
-    constructor Create(const ATBegin, ATEnd: Float); override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end deprecated 'Rendering of this is not portable to OpenGLES, and this is not really a useful curve for most practical game uses. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
 
@@ -276,7 +283,7 @@ type
     procedure UpdateControlPoints; override;
     function Point(const t: Float): TVector3Single; override;
 
-    constructor Create(const ATBegin, ATEnd: Float); override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
 
@@ -334,7 +341,7 @@ type
 
     procedure UpdateControlPoints; override;
 
-    constructor Create(const ATBegin, ATEnd: Float); override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end deprecated 'Rendering of TRationalBezierCurve is not portable to OpenGLES (that is: Android and iOS) and not very efficient. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
 
@@ -379,7 +386,7 @@ type
 
     class function NiceClassName: string; override;
 
-    constructor Create(const ATBegin, ATEnd: Float); override;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end deprecated 'Rendering of TSmoothInterpolatedCurve is not portable to OpenGLES (that is: Android and iOS) and not very efficient. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
 
@@ -428,11 +435,11 @@ begin
   end;
 end;
 
-constructor TCurve.Create(const ATBegin, ATEnd: Float);
+constructor TCurve.Create(AOwner: TComponent);
 begin
-  inherited Create(nil);
-  FTBegin := ATBegin;
-  FTEnd := ATEnd;
+  inherited;
+  FTBegin := 0;
+  FTEnd := 1;
   FDefaultSegments := 10;
   FLineWidth := 1;
   FColor := White;
@@ -440,12 +447,71 @@ end;
 
 { TCasScriptCurve ------------------------------------------------------------ }
 
-function TCasScriptCurve.Point(const t: Float): TVector3Single;
+procedure TCasScriptCurve.SetTVariable(AValue: TCasScriptFloat);
 begin
-  TVariable.Value := t;
-  Result[0] := (XFunction.Execute as TCasScriptFloat).Value;
-  Result[1] := (YFunction.Execute as TCasScriptFloat).Value;
-  Result[2] := (ZFunction.Execute as TCasScriptFloat).Value;
+  if FTVariable = AValue then Exit;
+  FTVariable := AValue;
+  UpdateBoundingBox;
+end;
+
+procedure TCasScriptCurve.SetSegmentsForBoundingBox(AValue: Cardinal);
+begin
+  if FSegmentsForBoundingBox = AValue then Exit;
+  FSegmentsForBoundingBox := AValue;
+  UpdateBoundingBox;
+end;
+
+function TCasScriptCurve.GetFunction(const Index: Integer): TCasScriptExpression;
+begin
+  Result := FFunction[Index];
+end;
+
+procedure TCasScriptCurve.SetFunction(const Index: Integer;
+  const Value: TCasScriptExpression);
+begin
+  if FFunction[Index] = Value then Exit;
+
+  if FFunction[Index] <> nil then
+    FFunction[Index].FreeByParentExpression;
+
+  FFunction[Index] := Value;
+  UpdateBoundingBox;
+end;
+
+procedure TCasScriptCurve.UpdateBoundingBox;
+var
+  i, k: Integer;
+  P: TVector3Single;
+begin
+  if (XFunction = nil) or
+     (YFunction = nil) or
+     (ZFunction = nil) or
+     (TVariable = nil) then
+    FBoundingBox := EmptyBox3D else
+  begin
+    { calculate FBoundingBox }
+    P := PointOfSegment(0, SegmentsForBoundingBox); { = Point(TBegin) }
+    FBoundingBox.Data[0] := P;
+    FBoundingBox.Data[1] := P;
+    for i := 1 to SegmentsForBoundingBox do
+    begin
+      P := PointOfSegment(i, SegmentsForBoundingBox);
+      for k := 0 to 2 do
+      begin
+        FBoundingBox.Data[0, k] := Min(FBoundingBox.Data[0, k], P[k]);
+        FBoundingBox.Data[1, k] := Max(FBoundingBox.Data[1, k], P[k]);
+      end;
+    end;
+  end;
+end;
+
+function TCasScriptCurve.Point(const t: Float): TVector3Single;
+var
+  I: Integer;
+begin
+  TVariable.Value := T;
+  for I := 0 to 2 do
+    Result[I] := (FFunction[I].Execute as TCasScriptFloat).Value;
 
   {test: Writeln('Point at t = ',FloatToNiceStr(Single(t)), ' is (',
     VectorToNiceStr(Result), ')');}
@@ -456,40 +522,22 @@ begin
   Result := FBoundingBox;
 end;
 
-constructor TCasScriptCurve.Create(const ATBegin, ATEnd: Float;
-  AXFunction, AYFunction, AZFunction: TCasScriptExpression;
-  ATVariable: TCasScriptFloat;
-  ASegmentsForBoundingBox: Cardinal);
-var
-  i, k: Integer;
-  P: TVector3Single;
+constructor TCasScriptCurve.Create(AOwner: TComponent);
 begin
-  inherited Create(ATBegin, ATEnd);
-  FXFunction := AXFunction;
-  FYFunction := AYFunction;
-  FZFunction := AZFunction;
-  FTVariable := ATVariable;
-
-  { calculate FBoundingBox }
-  P := PointOfSegment(0, ASegmentsForBoundingBox); { = Point(TBegin) }
-  FBoundingBox.Data[0] := P;
-  FBoundingBox.Data[1] := P;
-  for i := 1 to ASegmentsForBoundingBox do
-  begin
-    P := PointOfSegment(i, ASegmentsForBoundingBox);
-    for k := 0 to 2 do
-    begin
-      FBoundingBox.Data[0, k] := Min(FBoundingBox.Data[0, k], P[k]);
-      FBoundingBox.Data[1, k] := Max(FBoundingBox.Data[1, k], P[k]);
-    end;
-  end;
+  inherited;
+  FSegmentsForBoundingBox := 100;
 end;
 
 destructor TCasScriptCurve.Destroy;
+var
+  I: Integer;
 begin
-  FXFunction.FreeByParentExpression;
-  FYFunction.FreeByParentExpression;
-  FZFunction.FreeByParentExpression;
+  for I := 0 to 2 do
+    if FFunction[I] <> nil then
+    begin
+      FFunction[I].FreeByParentExpression;
+      FFunction[I] := nil;
+    end;
   inherited;
 end;
 
@@ -549,9 +597,9 @@ begin
   finally DestroyConvexHullPoints(CHPoints) end;
 end;
 
-constructor TControlPointsCurve.Create(const ATBegin, ATEnd: Float);
+constructor TControlPointsCurve.Create(AOwner: TComponent);
 begin
-  inherited Create(ATBegin, ATEnd);
+  inherited;
   ControlPoints := TVector3SingleList.Create;
   { DON'T call UpdateControlPoints from here - UpdateControlPoints is virtual !
     So we set FBoundingBox by hand. }
@@ -565,7 +613,9 @@ constructor TControlPointsCurve.CreateDivideCasScriptCurve(
 var
   i: Integer;
 begin
-  Create(CasScriptCurve.TBegin, CasScriptCurve.TEnd);
+  Create(nil);
+  TBegin := CasScriptCurve.TBegin;
+  TEnd := CasScriptCurve.TEnd;
   ControlPoints.Count := ControlPointsCount;
   for i := 0 to ControlPointsCount-1 do
     ControlPoints.L[i] := CasScriptCurve.PointOfSegment(i, ControlPointsCount-1);
@@ -635,11 +685,11 @@ begin
   Result := 'Lagrange interpolated curve';
 end;
 
-constructor TLagrangeInterpolatedCurve.Create(const ATBegin, ATEnd: Float);
+constructor TLagrangeInterpolatedCurve.Create(AOwner: TComponent);
 var
   i: Integer;
 begin
-  inherited Create(ATBegin, ATEnd);
+  inherited;
   for i := 0 to 2 do Newton[i] := TFloatList.Create;
 end;
 
@@ -905,9 +955,9 @@ begin
   for i := 0 to 2 do Result[i] := Spline[i].Evaluate(t);
 end;
 
-constructor TNaturalCubicSplineCurve_Abstract.Create(const ATBegin, ATEnd: Float);
+constructor TNaturalCubicSplineCurve_Abstract.Create(AOwner: TComponent);
 begin
-  inherited Create(ATBegin, ATEnd);
+  inherited;
 end;
 
 destructor TNaturalCubicSplineCurve_Abstract.Destroy;
@@ -1009,9 +1059,13 @@ DE_CASTELJAU_DECLARE
 begin
   TMiddle := TBegin + Proportion * (TEnd - TBegin);
   {$warnings off} { Consciously using deprecated stuff. }
-  B1 := TRationalBezierCurve.Create(TBegin, TMiddle);
-  B2 := TRationalBezierCurve.Create(TMiddle, TEnd);
+  B1 := TRationalBezierCurve.Create(nil);
+  B2 := TRationalBezierCurve.Create(nil);
   {$warnings on}
+  B1.TBegin := TBegin;
+  B1.TEnd := TMiddle;
+  B2.TBegin := TMiddle;
+  B2.TEnd := TEnd;
   B1.ControlPoints.Count := ControlPoints.Count;
   B2.ControlPoints.Count := ControlPoints.Count;
   B1.Weights.Count := Weights.Count;
@@ -1066,7 +1120,7 @@ begin
   Assert(Weights.Count = ControlPoints.Count);
 end;
 
-constructor TRationalBezierCurve.Create(const ATBegin, ATEnd: Float);
+constructor TRationalBezierCurve.Create(AOwner: TComponent);
 begin
   inherited;
   Weights := TFloatList.Create;
@@ -1136,8 +1190,10 @@ begin
         ControlPoints.Count = 2. So I must implement a special case for
         ControlPoints.Count = 2. }
       {$warnings off} { Consciously using deprecated stuff. }
-      NewCurve := TRationalBezierCurve.Create(ControlPointT(0), ControlPointT(1));
+      NewCurve := TRationalBezierCurve.Create(nil);
       {$warnings on}
+      NewCurve.TBegin := ControlPointT(0);
+      NewCurve.TEnd := ControlPointT(1);
       NewCurve.ControlPoints.Add(ControlPoints.L[0]);
       NewCurve.ControlPoints.Add(Lerp(1/3, ControlPoints.L[0], ControlPoints.L[1]));
       NewCurve.ControlPoints.Add(Lerp(2/3, ControlPoints.L[0], ControlPoints.L[1]));
@@ -1176,8 +1232,10 @@ begin
       for i := 1 to ControlPoints.Count-1 do
       begin
         {$warnings off} { Consciously using deprecated stuff. }
-        NewCurve := TRationalBezierCurve.Create(ControlPointT(i-1), ControlPointT(i));
+        NewCurve := TRationalBezierCurve.Create(nil);
         {$warnings on}
+        NewCurve.TBegin := ControlPointT(i-1);
+        NewCurve.TEnd := ControlPointT(i);
         NewCurve.ControlPoints.Add(ControlPoints.L[i-1]);
         NewCurve.ControlPoints.Add(MiddlePoint(i-1, +1));
         NewCurve.ControlPoints.Add(MiddlePoint(i  , -1));
@@ -1216,7 +1274,7 @@ begin
   end;
 end;
 
-constructor TSmoothInterpolatedCurve.Create(const ATBegin, ATEnd: Float);
+constructor TSmoothInterpolatedCurve.Create(AOwner: TComponent);
 begin
   inherited;
   ConvexHullPoints := TVector3SingleList.Create;
