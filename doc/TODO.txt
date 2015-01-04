@@ -171,20 +171,6 @@ Scene manager / controls / better Lazarus integration:
   TWalkCamera: CameraInitialPos/Dir/Up (how are settable from IDE?)
   TExamineCamera: ModelBox (how are settable from IDE?)
   Gravity, CameraRadius, CameraPreferredHeight, OnMoveAllowed, OnGetCameraHeight?
-
-- make icons for our components.
-  Same style cameras (black with dotted lines):
-    Walking man icon for TWalkCamera,
-    Rotated box for TExamineCamera.
-  Same style areas:
-    TCastleControlCustom
-    TCastleControl (maybe use the same image, with just a text "OpenGL" or "GL"
-      on one, "VRML" on other)
-  Needed ideas for TCastleOnScreenMenu.
-  For TCastleConfig use some slightly modified icon of TXMLConfig, since this is almost the same?
-  For TLazRecentFiles use some slightly modified icon of TMainMenu or TPopupMenu.
-
-* TCastleSceneCore (no GL) on a Lazarus palette? Confusing with TCastleScene, but is also useful.
 ------------------------------------------------------------------------------
 - Improve EditableTransform proto:
 
@@ -192,14 +178,6 @@ Scene manager / controls / better Lazarus integration:
 
   Rot sensor - on teapot, even initial very small drag rotates it too much,
   see demo_models/x3d/cubemap_generated_recursive.x3dv
-------------------------------------------------------------------------------
-view3dscene 4.0:
-- JavaScript (http://besen.sourceforge.net/
-  or http://code.google.com/p/fpcjs/ (SpiderMonkey?))
-
-- Maybe Python or Lua scripting too?
-
-- view3dscene for Android
 
 ------------------------------------------------------------------------------
 Shadow maps todos:
@@ -276,26 +254,6 @@ Various ideas:
   force tesselating quads into 2 tris by intelligently choosing a dividing
   edge (to make it shortest). This would force correct look of all
   IndexedQuadSet, including NurbsPatchSurface.
-
-- Only on x86_64: GLU tesselatator is ultra-slow.
-
-  So loading anything with a 3D Font takes some time (around 4-5 seconds per font; while it's instanteneous on 32bit). 3D Font is right now used only by VRML Text node, no program initializes TGLOutlineFont directly.
-
-  The slowness can be seen e.g. in castle when loading ("credits" model has 3D fonts). Or in view3dscene when opening any file using font, like x3d/cubemap_generated_in_dynamic_world.x3dv. Extreme case is demo_models/vrml_2/text.wrl: all 9 fonts used, loading time is 37 seconds.
-
-  This is also a blocker for making "welcome scene" in view3dscene using Text font.
-
-  The slowness is in Cache.Fonts_IncReference.
-  Not reproducible on 32 bit (fpc 2.2.4 kocury/linux/32), so it must be some 64-bit problem.
-  The slowness is inside gluTessVertex in TGLOutlineFont.Create. Which means I cannot do anything about it? It's the GLU tesselators that are much slower on x86_64, it seems.
-
-  One solution could be to cache the tesselated result. I could even compile the cached result into the program, this way user doesn't have to do it at all.
-  Trouble: is it really helpful in the long run? I would like some time to load fonts from TTF files and then runtime tesselation is a must. And then caching helps, but not for the 1st tesselation run...
-
-  Idea: not tesselating all letters would be useful?
-  This would be a valid optimization (needed in the long run anyway, for Unicode fonts I wouldn't want to tesselate all characters at loading anyway).
-  For now, possibly I would just need basic ASCII support, so not all 256 characters need to be defined?
-  Done: we use only a subset: SimpleAsciiCharacters. 4-5 and 37 seconds measures are with this already enabled... so it's working, but it's still slow.
 
 - view3dscene: rest of nurbs:
   finish X3D nurbs component up to level 2, update vrml_impl_status about it.
@@ -378,9 +336,6 @@ TGLTextureStorage
 
 - sk±d kreski na water w water_reflections_normalmap (both nvidia and radeon show this). Any relation to steep parallax mapping aliasing?
 
-- ImageGLInternalFormat should use symbolic names, not numbers!
-  (Check, since which OpenGL version?)
-
 - Dynamically changing camera radius may be implemented (along with decreasing camerapreferredheight, decrease cam radius?)
 
 - OpenEXR notes:
@@ -449,23 +404,10 @@ octree todos moved for after view3dscene 3.2:
 - Make TGLApplication TCustomApplication one day?
 ------------------------------------------------------------------------------
 large TODOs:
-- First of all, I planned to make a new game at the beginning of next year, with draft title "human programming"
 
 - Plane mirror support in OpenGL for Material.mirror field (porting to
 general renderer the code from
 castle_game_engine/examples/plane_mirror_and_shadow)
-
-- Scripting in JavaScript (using spidermonkey after fixing
-http://delphi.mozdev.org/ for recent fpc)
-
-- And then physics engine and X3D rigid body component
-  http://www.xj3d.org/extensions/rigid_physics_examples.html
-  file:///home/michalis/doc/web3d.org/X3DPublicSpecifications/ISO-IEC-FDIS-19775-1.2-x3d_spec_edition_2/Part01/components/rigid_physics.html
-
-- Particle engine.
-  Following X3D spec.
-  Would be great to be able to export Blender particle engine to it.
-  Use ARB_point_sprite.
 ------------------------------------------------------------------------------
 Shadow volumes finish:
   - allow multiple lights. This requires
@@ -497,11 +439,6 @@ Shadow volumes finish:
   make this easily usable by VRML authors, that is make it's rendering more integrated and available also from e.g. view3dscene
 
 ------------------------------------------------------------------------------
-after view3dscene 3.0:
-
-- fix extensions to all be gracefully declared by EXTERNPROTO,
-  post to Joerg from white_dune
-
 Using StringSensor Make it possible then to load new image file in castle_script_edit_texture.x3dv
 
 ------------------------------------------------------------------------------
@@ -541,9 +478,8 @@ Things for much later:
 
   Postponed / half resigned.
 
-- When some day we will modernize font_to_pascal, it would be nice
-  to also generate font data into .font_data, similar to .image_data,
-  to not confuse ohloh statistics.
+- generate font data into .font_data, similar to .image_data,
+  to not confuse ohloh statistics?
 ------------------------------------------------------------------------------
 
 macosx glViewImage -dRELEASE fpc 2.4.0:
