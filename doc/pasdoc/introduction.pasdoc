@@ -78,6 +78,11 @@ To use the engine in your own programs, there are a couple of options:
     you may as well just compile @code(fpmake.pp) and run it yourself.)
 
   @item(
+    You can also recompile the engine along with your own programs
+    if you use our build tool,
+    see [https://sourceforge.net/p/castle-engine/wiki/Build%20tool/].)
+
+  @item(
     If you need more control over compilation process then
     you can also directly use castle-fpc.cfg file. This is my configuration
     file for FPC. It's used by and by all @code(xxx_compile.sh)
