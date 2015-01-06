@@ -153,11 +153,11 @@ type
     Integer: Int64; //< for vtInteger
   end;
   TX3DTokenInfoList = class(specialize TFPGObjectList<TX3DTokenInfo>)
-    procedure AssertEqual(SecondValue: TX3DTokenInfoList);
+    procedure AssertEqual(const TestCase: TTestCase; SecondValue: TX3DTokenInfoList);
     procedure ReadFromFile(const FileName: string);
   end;
 
-procedure TX3DTokenInfoList.AssertEqual(
+procedure TX3DTokenInfoList.AssertEqual(const TestCase: TTestCase;
   SecondValue: TX3DTokenInfoList);
 
   procedure AssertEqualTokens(const T1, T2: TX3DTokenInfo);
@@ -180,7 +180,7 @@ procedure TX3DTokenInfoList.AssertEqual(
     end;
 
   begin
-    Assert(
+    if not
       (T1.Token = T2.Token) and
       ( (T1.Token <> vtKeyword) or (T1.Keyword = T2.Keyword) ) and
       ( (T1.Token <> vtName) or
@@ -194,17 +194,15 @@ procedure TX3DTokenInfoList.AssertEqual(
       ( (T1.Token <> vtFloat) or (T1.Float = T2.Float) ) and
       ( (T1.Token <> vtInteger) or ( (T1.Float = T2.Float) and
                                         (T1.Integer = T2.Integer) ) ) and
-      ( (T1.Token <> vtString) or (T1.AString = T2.AString) ),
-      Format('VRML tokens different: %s and %s',
+      ( (T1.Token <> vtString) or (T1.AString = T2.AString) ) then
+      TestCase.Fail(Format('VRML tokens different: %s and %s',
         [DescribeTokenInfo(T1), DescribeTokenInfo(T2)]));
   end;
 
 var
   I: Integer;
 begin
-  Assert(Count = SecondValue.Count, Format(
-    'TX3DTokenInfoList.Equal: different counts %d and %d',
-    [Count, SecondValue.Count]));
+  TestCase.AssertEquals(Count, SecondValue.Count);
   for I := 0 to Count - 1 do
     AssertEqualTokens(Items[I], SecondValue[I]);
 end;
@@ -272,7 +270,7 @@ procedure TTestX3DNodes.TestParseSaveToFile;
       Second := TX3DTokenInfoList.Create;
       Second.ReadFromFile(NewFile);
 
-      First.AssertEqual(Second);
+      First.AssertEqual(Self, Second);
     finally
       FreeAndNil(First);
       FreeAndNil(Second);
@@ -304,12 +302,12 @@ var
 begin
   { When our interfaces have appropriate GUIDs, "Supports" works Ok. }
 
-  Assert(Supports(TGroupNode_2, IAbstractChildNode));
-  Assert(Supports(TSwitchNode_2, IAbstractChildNode));
-  Assert(not Supports(TConeNode_2, IAbstractChildNode));
-  Assert(not Supports(TAppearanceNode, IAbstractChildNode));
-  Assert(not Supports(TX3DNode, IAbstractChildNode));
-  Assert(not Supports(TObject, IAbstractChildNode));
+  AssertTrue(Supports(TGroupNode_2, IAbstractChildNode));
+  AssertTrue(Supports(TSwitchNode_2, IAbstractChildNode));
+  AssertTrue(not Supports(TConeNode_2, IAbstractChildNode));
+  AssertTrue(not Supports(TAppearanceNode, IAbstractChildNode));
+  AssertTrue(not Supports(TX3DNode, IAbstractChildNode));
+  AssertTrue(not Supports(TObject, IAbstractChildNode));
 
   L := TX3DNodeClassesList.Create;
   try
@@ -318,11 +316,11 @@ begin
       So we test IndexOfAnyAncestor and AddRegisteredImplementing,
       AddRegisteredImplementing also uses "Supports" under the hood
       and results should be the same. }
-    Assert(IndexOfAnyAncestorByClass(TGroupNode_2));
-    Assert(IndexOfAnyAncestorByClass(TSwitchNode_2));
-    Assert(not IndexOfAnyAncestorByClass(TConeNode_2));
-    Assert(not IndexOfAnyAncestorByClass(TAppearanceNode));
-    Assert(not IndexOfAnyAncestorByClass(TX3DNode));
+    AssertTrue(IndexOfAnyAncestorByClass(TGroupNode_2));
+    AssertTrue(IndexOfAnyAncestorByClass(TSwitchNode_2));
+    AssertTrue(not IndexOfAnyAncestorByClass(TConeNode_2));
+    AssertTrue(not IndexOfAnyAncestorByClass(TAppearanceNode));
+    AssertTrue(not IndexOfAnyAncestorByClass(TX3DNode));
   finally FreeAndNil(L) end;
 end;
 
@@ -351,18 +349,18 @@ begin
       begin
         CurrentName := N.Fields[J].Name;
         for K := 0 to N.Fields.Count - 1 do
-          Assert((K = J) or (not N.Fields[K].IsName(CurrentName)));
+          AssertTrue((K = J) or (not N.Fields[K].IsName(CurrentName)));
         for K := 0 to N.Events.Count - 1 do
-          Assert(not N.Events[K].IsName(CurrentName));
+          AssertTrue(not N.Events[K].IsName(CurrentName));
       end;
 
       for J := 0 to N.Events.Count - 1 do
       begin
         CurrentName := N.Events[J].Name;
         for K := 0 to N.Fields.Count - 1 do
-          Assert(not N.Fields[K].IsName(CurrentName));
+          AssertTrue(not N.Fields[K].IsName(CurrentName));
         for K := 0 to N.Events.Count - 1 do
-          Assert((K = J) or (not N.Events[K].IsName(CurrentName)));
+          AssertTrue((K = J) or (not N.Events[K].IsName(CurrentName)));
       end;
     finally FreeAndNil(N) end;
   end;
@@ -566,13 +564,13 @@ begin
   try
     for I := 0 to AllowedChildrenNodes.Count - 1 do
     try
-      Assert(Supports(AllowedChildrenNodes[I], IAbstractChildNode));
+      AssertTrue(Supports(AllowedChildrenNodes[I], IAbstractChildNode));
 
       { Just to make sure, check also the created class
         (I don't trust FPC interfaces for now...) }
       N := AllowedChildrenNodes[I].Create('', '');
       try
-        Assert(Supports(N, IAbstractChildNode));
+        AssertTrue(Supports(N, IAbstractChildNode));
       finally FreeAndNil(N) end;
     except
       on E: Exception do
@@ -584,7 +582,7 @@ begin
 
     for I := 0 to AllowedGeometryNodes.Count - 1 do
     try
-      Assert(AllowedGeometryNodes[I].InheritsFrom(TAbstractX3DGeometryNode));
+      AssertTrue(AllowedGeometryNodes[I].InheritsFrom(TAbstractX3DGeometryNode));
     except
       on E: Exception do
       begin
@@ -841,9 +839,9 @@ begin
     ContainerFieldList.Text := ContainerFieldStr;
 
     { First check that TStringList.IndexOfName works as expected }
-    Assert(ContainerFieldList.IndexOfName('WorldInfo') <> -1);
-    Assert(ContainerFieldList.IndexOfName('Anchor') <> -1);
-    Assert(ContainerFieldList.IndexOfName('NotExisting') = -1);
+    AssertTrue(ContainerFieldList.IndexOfName('WorldInfo') <> -1);
+    AssertTrue(ContainerFieldList.IndexOfName('Anchor') <> -1);
+    AssertTrue(ContainerFieldList.IndexOfName('NotExisting') = -1);
 
     for I := 0 to NodesManager.RegisteredCount - 1 do
     begin
@@ -854,7 +852,7 @@ begin
            (not (N is TFontStyleNode_1)) and
            (not (N is TMaterialNode_1)) then
         try
-          Assert(ContainerFieldList.ValueFromIndex[Index] = N.DefaultContainerField);
+          AssertTrue(ContainerFieldList.ValueFromIndex[Index] = N.DefaultContainerField);
         except
           on E: Exception do
           begin
@@ -885,7 +883,7 @@ begin
            so it doesn't specify containerField. }
          (not (N is TContour2DNode_2)) then
       try
-        Assert(N.DefaultContainerField = 'geometry');
+        AssertTrue(N.DefaultContainerField = 'geometry');
       except
         on E: Exception do
         begin
@@ -919,13 +917,13 @@ begin
     A.Add(@M1.Foo);
     A.Add(@M2.Foo);
     A.Add(@M3.Foo);
-    Assert(A.IndexOf(@M1.Foo) = 0);
-    Assert(A.IndexOf(@M2.Foo) = 1);
-    Assert(A.IndexOf(@M3.Foo) = 2);
+    AssertTrue(A.IndexOf(@M1.Foo) = 0);
+    AssertTrue(A.IndexOf(@M2.Foo) = 1);
+    AssertTrue(A.IndexOf(@M3.Foo) = 2);
     A.Remove(@M2.Foo);
-    Assert(A.IndexOf(@M1.Foo) = 0);
-    Assert(A.IndexOf(@M2.Foo) = -1);
-    Assert(A.IndexOf(@M3.Foo) = 1);
+    AssertTrue(A.IndexOf(@M1.Foo) = 0);
+    AssertTrue(A.IndexOf(@M2.Foo) = -1);
+    AssertTrue(A.IndexOf(@M3.Foo) = 1);
   finally
     FreeAndNil(A);
     FreeAndNil(M1);
@@ -992,7 +990,7 @@ begin
         for J := 0 to N.Fields.Count - 1 do
           if N.Fields[J].Name <> 'metadata' then
           try
-            Assert(N.Fields[J].ExecuteChanges = [chGeometry]);
+            AssertTrue(N.Fields[J].ExecuteChanges = [chGeometry]);
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
             raise;
@@ -1001,7 +999,7 @@ begin
       begin
         for J := 0 to N.Fields.Count - 1 do
         try
-          Assert(not (chGeometry in N.Fields[J].ExecuteChanges));
+          AssertTrue(not (chGeometry in N.Fields[J].ExecuteChanges));
         except
           Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
           raise;
@@ -1029,7 +1027,7 @@ begin
           if (N.Fields[J].Name <> 'metadata') and
              (N.Fields[J].Name <> 'effects') then
           try
-            Assert((chVisibleVRML1State in N.Fields[J].ExecuteChanges) or
+            AssertTrue((chVisibleVRML1State in N.Fields[J].ExecuteChanges) or
                    (chGeometryVRML1State in N.Fields[J].ExecuteChanges));
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
@@ -1041,8 +1039,8 @@ begin
           { alphaChannel field is allowed exception }
           if N.Fields[J].Name <> 'alphaChannel' then
           try
-            Assert(not (chVisibleVRML1State in N.Fields[J].ExecuteChanges));
-            Assert(not (chGeometryVRML1State in N.Fields[J].ExecuteChanges));
+            AssertTrue(not (chVisibleVRML1State in N.Fields[J].ExecuteChanges));
+            AssertTrue(not (chGeometryVRML1State in N.Fields[J].ExecuteChanges));
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
             raise;
@@ -1067,7 +1065,7 @@ begin
         for J := 0 to N.Fields.Count - 1 do
           if N.Fields[J].Name <> 'metadata' then
           try
-            Assert(N.Fields[J].ExecuteChanges = [chColorNode]);
+            AssertTrue(N.Fields[J].ExecuteChanges = [chColorNode]);
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
             raise;
@@ -1076,7 +1074,7 @@ begin
       begin
         for J := 0 to N.Fields.Count - 1 do
         try
-          Assert(not (chColorNode in N.Fields[J].ExecuteChanges));
+          AssertTrue(not (chColorNode in N.Fields[J].ExecuteChanges));
         except
           Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
           raise;
@@ -1101,7 +1099,7 @@ begin
         for J := 0 to N.Fields.Count - 1 do
           if N.Fields[J].Name <> 'metadata' then
           try
-            Assert(N.Fields[J].ExecuteChanges = [chTextureCoordinate]);
+            AssertTrue(N.Fields[J].ExecuteChanges = [chTextureCoordinate]);
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
             raise;
@@ -1110,7 +1108,7 @@ begin
       begin
         for J := 0 to N.Fields.Count - 1 do
         try
-          Assert(not (chTextureCoordinate in N.Fields[J].ExecuteChanges));
+          AssertTrue(not (chTextureCoordinate in N.Fields[J].ExecuteChanges));
         except
           Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
           raise;
@@ -1299,7 +1297,7 @@ begin
       for J := 0 to N.Fields.Count - 1 do
       try
         Changes := N.Fields[J].ExecuteChanges;
-        Assert((Changes <> []) or ConfirmedEmptyChanges(N.Fields[J]));
+        AssertTrue((Changes <> []) or ConfirmedEmptyChanges(N.Fields[J]));
       except
         Writeln('Empty TX3DField.Changes unconfirmed on ', N.ClassName, '.', N.Fields[J].Name);
         raise;
@@ -1327,7 +1325,7 @@ procedure TTestX3DNodes.TestTimeDependentNodeHandlerAvailable;
     if (N is TMovieTextureNode) or
        (N is TAudioClipNode) or
        (N is TTimeSensorNode) then
-      Assert(false, 'Node ' + N.ClassName + ' should support IAbstractTimeDependentNode');
+      Fail('Node ' + N.ClassName + ' should support IAbstractTimeDependentNode');
   end;
 
 var
@@ -1370,11 +1368,11 @@ begin
       { if a node has field with chTransform, it must support ITransformNode.
         TCastleSceneCore.HandleChangeTransform assumes this. }
       if ContainsCHTransformField(N) then
-        Assert(Supports(N, ITransformNode));
+        AssertTrue(Supports(N, ITransformNode));
 
       { if, and only if, a node supports ITransformNode, it must have
         TransformationChange = ntcTransform }
-      Assert(
+      AssertTrue(
         Supports(N, ITransformNode) =
         (N.TransformationChange = ntcTransform));
     except
@@ -1422,12 +1420,12 @@ begin
     List.Add(I4);
     List.Add(I5);
     List.SortPositionInParent;
-    Assert(List[0] = I4);
-    Assert(List[1] = I0);
-    Assert(List[2] = I1);
-    Assert(List[3] = I2);
-    Assert(List[4] = I3);
-    Assert(List[5] = I5);
+    AssertTrue(List[0] = I4);
+    AssertTrue(List[1] = I0);
+    AssertTrue(List[2] = I1);
+    AssertTrue(List[3] = I2);
+    AssertTrue(List[4] = I3);
+    AssertTrue(List[5] = I5);
 
     List.Clear;
 
@@ -1438,12 +1436,12 @@ begin
     List.Add(I4);
     List.Add(I5);
     List.SortPositionInParent;
-    Assert(List[0] = I4);
-    Assert(List[1] = I2);
-    Assert(List[2] = I0);
-    Assert(List[3] = I3);
-    Assert(List[4] = I1);
-    Assert(List[5] = I5);
+    AssertTrue(List[0] = I4);
+    AssertTrue(List[1] = I2);
+    AssertTrue(List[2] = I0);
+    AssertTrue(List[3] = I3);
+    AssertTrue(List[4] = I1);
+    AssertTrue(List[5] = I5);
   finally
     FreeAndNil(I0);
     FreeAndNil(I1);
@@ -1486,16 +1484,16 @@ begin
       'META "generator" "testgenerator and & weird '' chars \" test"', '');
 
     { make sure loaded from string Ok }
-    Assert(Node.HasForceVersion);
-    Assert(Node.ForceVersion.Major = 3);
-    Assert(Node.ForceVersion.Minor = 1);
-    Assert(Node.Profile = 'Immersive');
-    Assert(Node.Components.Count = 2);
-    Assert(Node.Components['NURBS'] = 2);
-    Assert(Node.Components['Shaders'] = 1);
-    Assert(Node.Meta.Count = 2);
-    Assert(Node.Meta['test''''key'] = 'test"value');
-    Assert(Node.Meta['generator'] = 'testgenerator and & weird '' chars " test');
+    AssertTrue(Node.HasForceVersion);
+    AssertTrue(Node.ForceVersion.Major = 3);
+    AssertTrue(Node.ForceVersion.Minor = 1);
+    AssertTrue(Node.Profile = 'Immersive');
+    AssertTrue(Node.Components.Count = 2);
+    AssertTrue(Node.Components['NURBS'] = 2);
+    AssertTrue(Node.Components['Shaders'] = 1);
+    AssertTrue(Node.Meta.Count = 2);
+    AssertTrue(Node.Meta['test''''key'] = 'test"value');
+    AssertTrue(Node.Meta['generator'] = 'testgenerator and & weird '' chars " test');
 
     { save and load again }
     Save3D(Node, TempStream, '', '', xeClassic, false);
@@ -1504,16 +1502,16 @@ begin
     Node := LoadX3DClassicStream(TempStream);
 
     { make sure saved and loaded back Ok }
-    Assert(Node.HasForceVersion);
-    Assert(Node.ForceVersion.Major = 3);
-    Assert(Node.ForceVersion.Minor = 1);
-    Assert(Node.Profile = 'Immersive');
-    Assert(Node.Components.Count = 2);
-    Assert(Node.Components['NURBS'] = 2);
-    Assert(Node.Components['Shaders'] = 1);
-    Assert(Node.Meta.Count = 2);
-    Assert(Node.Meta['test''''key'] = 'test"value');
-    Assert(Node.Meta['generator'] = 'testgenerator and & weird '' chars " test');
+    AssertTrue(Node.HasForceVersion);
+    AssertTrue(Node.ForceVersion.Major = 3);
+    AssertTrue(Node.ForceVersion.Minor = 1);
+    AssertTrue(Node.Profile = 'Immersive');
+    AssertTrue(Node.Components.Count = 2);
+    AssertTrue(Node.Components['NURBS'] = 2);
+    AssertTrue(Node.Components['Shaders'] = 1);
+    AssertTrue(Node.Meta.Count = 2);
+    AssertTrue(Node.Meta['test''''key'] = 'test"value');
+    AssertTrue(Node.Meta['generator'] = 'testgenerator and & weird '' chars " test');
 
     { tweak some Meta }
     Node.Meta['test''''key'] := 'newvalue';
@@ -1537,20 +1535,20 @@ begin
     Node := LoadX3DClassicStream(TempStream);
 
     { make sure saved and loaded back Ok }
-    Assert(Node.HasForceVersion);
-    Assert(Node.ForceVersion.Major = 3);
-    Assert(Node.ForceVersion.Minor = 1);
-    Assert(Node.Profile = 'Immersive');
-    Assert(Node.Components.Count = 2);
-    Assert(Node.Components['NURBS'] = 2);
-    Assert(Node.Components['Shaders'] = 1);
-    Assert(Node.Meta.Count = 6);
-    Assert(Node.Meta['test''''key'] = 'newvalue');
-    Assert(Node.Meta['testkey2'] = 'evennewervalue2');
-    Assert(Node.Meta['testkey3'] = 'newvalue3');
-    Assert(Node.Meta['generator'] = 'newgenerator');
-    Assert(Node.Meta['generator-previous'] = 'testgenerator and & weird '' chars " test');
-    Assert(Node.Meta['source'] = 'newsource');
+    AssertTrue(Node.HasForceVersion);
+    AssertTrue(Node.ForceVersion.Major = 3);
+    AssertTrue(Node.ForceVersion.Minor = 1);
+    AssertTrue(Node.Profile = 'Immersive');
+    AssertTrue(Node.Components.Count = 2);
+    AssertTrue(Node.Components['NURBS'] = 2);
+    AssertTrue(Node.Components['Shaders'] = 1);
+    AssertTrue(Node.Meta.Count = 6);
+    AssertTrue(Node.Meta['test''''key'] = 'newvalue');
+    AssertTrue(Node.Meta['testkey2'] = 'evennewervalue2');
+    AssertTrue(Node.Meta['testkey3'] = 'newvalue3');
+    AssertTrue(Node.Meta['generator'] = 'newgenerator');
+    AssertTrue(Node.Meta['generator-previous'] = 'testgenerator and & weird '' chars " test');
+    AssertTrue(Node.Meta['source'] = 'newsource');
 
     { save and load again, this time going through XML }
     TempStream.Position := 0;
@@ -1560,20 +1558,20 @@ begin
     Node := LoadX3DXml(TempStream, '');
 
     { make sure saved and loaded back Ok }
-    Assert(Node.HasForceVersion);
-    Assert(Node.ForceVersion.Major = 3);
-    Assert(Node.ForceVersion.Minor = 1);
-    Assert(Node.Profile = 'Immersive');
-    Assert(Node.Components.Count = 2);
-    Assert(Node.Components['NURBS'] = 2);
-    Assert(Node.Components['Shaders'] = 1);
-    Assert(Node.Meta.Count = 6);
-    Assert(Node.Meta['test''''key'] = 'newvalue');
-    Assert(Node.Meta['testkey2'] = 'evennewervalue2');
-    Assert(Node.Meta['testkey3'] = 'newvalue3');
-    Assert(Node.Meta['generator'] = 'newgenerator');
-    Assert(Node.Meta['generator-previous'] = 'testgenerator and & weird '' chars " test');
-    Assert(Node.Meta['source'] = 'newsource');
+    AssertTrue(Node.HasForceVersion);
+    AssertTrue(Node.ForceVersion.Major = 3);
+    AssertTrue(Node.ForceVersion.Minor = 1);
+    AssertTrue(Node.Profile = 'Immersive');
+    AssertTrue(Node.Components.Count = 2);
+    AssertTrue(Node.Components['NURBS'] = 2);
+    AssertTrue(Node.Components['Shaders'] = 1);
+    AssertTrue(Node.Meta.Count = 6);
+    AssertTrue(Node.Meta['test''''key'] = 'newvalue');
+    AssertTrue(Node.Meta['testkey2'] = 'evennewervalue2');
+    AssertTrue(Node.Meta['testkey3'] = 'newvalue3');
+    AssertTrue(Node.Meta['generator'] = 'newgenerator');
+    AssertTrue(Node.Meta['generator-previous'] = 'testgenerator and & weird '' chars " test');
+    AssertTrue(Node.Meta['source'] = 'newsource');
 
   finally
     FreeAndNil(Node);
@@ -1595,9 +1593,9 @@ begin
     { load X3D 3.1 }
     Node := LoadX3DClassicFromString('#X3D V3.1 utf8' +NL+
       'PROFILE Immersive', '');
-    Assert(Node.HasForceVersion = true);
-    Assert(Node.ForceVersion.Major = 3);
-    Assert(Node.ForceVersion.Minor = 1);
+    AssertTrue(Node.HasForceVersion = true);
+    AssertTrue(Node.ForceVersion.Major = 3);
+    AssertTrue(Node.ForceVersion.Minor = 1);
 
     { save to XML }
     TempStream.Position := 0;
@@ -1608,9 +1606,9 @@ begin
     { check that loading it back results in 3.1 }
     TempStream.Position := 0;
     Node := LoadX3DXml(TempStream, '');
-    Assert(Node.HasForceVersion = true);
-    Assert(Node.ForceVersion.Major = 3);
-    Assert(Node.ForceVersion.Minor = 1);
+    AssertTrue(Node.HasForceVersion = true);
+    AssertTrue(Node.ForceVersion.Major = 3);
+    AssertTrue(Node.ForceVersion.Minor = 1);
 
     { save to clasic }
     TempStream.Position := 0;
@@ -1621,16 +1619,16 @@ begin
     { check that loading it back results in 3.1 }
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
-    Assert(Node.HasForceVersion = true);
-    Assert(Node.ForceVersion.Major = 3);
-    Assert(Node.ForceVersion.Minor = 1);
+    AssertTrue(Node.HasForceVersion = true);
+    AssertTrue(Node.ForceVersion.Major = 3);
+    AssertTrue(Node.ForceVersion.Minor = 1);
     FreeAndNil(Node);
 
     { load VRML 2.0 }
     Node := LoadX3DClassicFromString('#VRML V2.0 utf8' + NL, '');
-    Assert(Node.HasForceVersion = true);
-    Assert(Node.ForceVersion.Major = 2);
-    Assert(Node.ForceVersion.Minor = 0);
+    AssertTrue(Node.HasForceVersion = true);
+    AssertTrue(Node.ForceVersion.Major = 2);
+    AssertTrue(Node.ForceVersion.Minor = 0);
 
     { save to XML }
     TempStream.Position := 0;
@@ -1642,16 +1640,16 @@ begin
       (convertion was done, since this is XML) }
     TempStream.Position := 0;
     Node := LoadX3DXml(TempStream, '');
-    Assert(Node.HasForceVersion = true);
-    Assert(Node.ForceVersion.Major = 3);
-    Assert(Node.ForceVersion.Minor = 0);
+    AssertTrue(Node.HasForceVersion = true);
+    AssertTrue(Node.ForceVersion.Major = 3);
+    AssertTrue(Node.ForceVersion.Minor = 0);
     FreeAndNil(Node);
 
     { load VRML 2.0 }
     Node := LoadX3DClassicFromString('#VRML V2.0 utf8' + NL, '');
-    Assert(Node.HasForceVersion = true);
-    Assert(Node.ForceVersion.Major = 2);
-    Assert(Node.ForceVersion.Minor = 0);
+    AssertTrue(Node.HasForceVersion = true);
+    AssertTrue(Node.ForceVersion.Major = 2);
+    AssertTrue(Node.ForceVersion.Minor = 0);
 
     { save to classic }
     TempStream.Position := 0;
@@ -1663,16 +1661,16 @@ begin
       (convertion not done, since this is classic and convertion not forced) }
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
-    Assert(Node.HasForceVersion = true);
-    Assert(Node.ForceVersion.Major = 2);
-    Assert(Node.ForceVersion.Minor = 0);
+    AssertTrue(Node.HasForceVersion = true);
+    AssertTrue(Node.ForceVersion.Major = 2);
+    AssertTrue(Node.ForceVersion.Minor = 0);
     FreeAndNil(Node);
 
     { load VRML 2.0 }
     Node := LoadX3DClassicFromString('#VRML V2.0 utf8' + NL, '');
-    Assert(Node.HasForceVersion = true);
-    Assert(Node.ForceVersion.Major = 2);
-    Assert(Node.ForceVersion.Minor = 0);
+    AssertTrue(Node.HasForceVersion = true);
+    AssertTrue(Node.ForceVersion.Major = 2);
+    AssertTrue(Node.ForceVersion.Minor = 0);
 
     { save to classic }
     TempStream.Position := 0;
@@ -1684,9 +1682,9 @@ begin
       (convertion done, since forced = true) }
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
-    Assert(Node.HasForceVersion = true);
-    Assert(Node.ForceVersion.Major = 3);
-    Assert(Node.ForceVersion.Minor = 0);
+    AssertTrue(Node.HasForceVersion = true);
+    AssertTrue(Node.ForceVersion.Major = 3);
+    AssertTrue(Node.ForceVersion.Minor = 0);
     FreeAndNil(Node);
   finally
     FreeAndNil(Node);
@@ -1725,10 +1723,10 @@ const
     StringField: TMFString;
   begin
     StringField := ((Node.FdChildren[0] as TShapeNode).FdGeometry.Value as TTextNode).FdString;
-    Assert(StringField.Count = 2);
-    Assert(StringField.Items[0] = ValidString);
-    Assert(StringField.Items[1] = ValidString2);
-    Assert((Node.FdChildren[1] as TTouchSensorNode).FdDescription.Value = ValidString);
+    AssertTrue(StringField.Count = 2);
+    AssertTrue(StringField.Items[0] = ValidString);
+    AssertTrue(StringField.Items[1] = ValidString2);
+    AssertTrue((Node.FdChildren[1] as TTouchSensorNode).FdDescription.Value = ValidString);
   end;
 
 var
@@ -1774,27 +1772,27 @@ var
 begin
   IFS := TIndexedFaceSetNode.Create('', '');
   try
-    Assert(IFS.FdSolid.Value);
-    Assert(IFS.SolidField.Value);
-    Assert(IFS.Solid);
+    AssertTrue(IFS.FdSolid.Value);
+    AssertTrue(IFS.SolidField.Value);
+    AssertTrue(IFS.Solid);
 
     IFS.Solid := false;
-    Assert(not IFS.FdSolid.Value);
-    Assert(not IFS.SolidField.Value);
-    Assert(not IFS.Solid);
+    AssertTrue(not IFS.FdSolid.Value);
+    AssertTrue(not IFS.SolidField.Value);
+    AssertTrue(not IFS.Solid);
   finally FreeAndNil(IFS) end;
 
   // LineSet doesn't have FdSolid field, but still Solid property should exist
   LineSet := TLineSetNode.Create('', '');
   try
-    //Assert(LineSet.FdSolid.Value);
-    Assert(LineSet.SolidField = nil);
-    Assert(LineSet.Solid);
+    //AssertTrue(LineSet.FdSolid.Value);
+    AssertTrue(LineSet.SolidField = nil);
+    AssertTrue(LineSet.Solid);
 
     LineSet.Solid := false;
-    //Assert(not LineSet.FdSolid.Value);
-    Assert(LineSet.SolidField = nil);
-    Assert(not LineSet.Solid);
+    //AssertTrue(not LineSet.FdSolid.Value);
+    AssertTrue(LineSet.SolidField = nil);
+    AssertTrue(not LineSet.Solid);
   finally FreeAndNil(LineSet) end;
 end;
 
@@ -1805,33 +1803,33 @@ var
 begin
   IFS := TIndexedFaceSetNode.Create('', '');
   try
-    Assert(IFS.FdConvex.Value);
-    Assert(IFS.ConvexField.Value);
-    Assert(IFS.Convex);
+    AssertTrue(IFS.FdConvex.Value);
+    AssertTrue(IFS.ConvexField.Value);
+    AssertTrue(IFS.Convex);
 
     IFS.Convex := false;
-    Assert(not IFS.FdConvex.Value);
-    Assert(not IFS.ConvexField.Value);
-    Assert(not IFS.Convex);
+    AssertTrue(not IFS.FdConvex.Value);
+    AssertTrue(not IFS.ConvexField.Value);
+    AssertTrue(not IFS.Convex);
   finally FreeAndNil(IFS) end;
 
   // LineSet doesn't have FdConvex field, but still Convex property should exist
   LineSet := TLineSetNode.Create('', '');
   try
-    //Assert(LineSet.FdConvex.Value);
-    Assert(LineSet.ConvexField = nil);
-    Assert(LineSet.Convex);
+    //AssertTrue(LineSet.FdConvex.Value);
+    AssertTrue(LineSet.ConvexField = nil);
+    AssertTrue(LineSet.Convex);
 
     LineSet.Convex := false;
-    //Assert(not LineSet.FdConvex.Value);
-    Assert(LineSet.ConvexField = nil);
-    Assert(not LineSet.Convex);
+    //AssertTrue(not LineSet.FdConvex.Value);
+    AssertTrue(LineSet.ConvexField = nil);
+    AssertTrue(not LineSet.Convex);
   finally FreeAndNil(LineSet) end;
 end;
 
 procedure TTestX3DNodes.TestX3DXmlString;
 begin
-  Assert(StringToX3DXml(
+  AssertTrue(StringToX3DXml(
     'castlescript:' + #10 +
     'function initialize(time)' + #10 +
     '  { set up first thunder in the future }' + #10 +

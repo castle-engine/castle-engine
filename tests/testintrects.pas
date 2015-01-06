@@ -39,36 +39,36 @@ const
 var
   R: TIntRect;
 begin
- Assert(RectsEqual(R1, R1));
- Assert(RectsEqual(R1, EqualToR1));
- Assert(not RectsEqual(R1, R2));
+ AssertTrue(RectsEqual(R1, R1));
+ AssertTrue(RectsEqual(R1, EqualToR1));
+ AssertTrue(not RectsEqual(R1, R2));
  
- Assert(RectsEqual(IntRect(2, 4, 3, 5), R1));
+ AssertTrue(RectsEqual(IntRect(2, 4, 3, 5), R1));
  
- Assert(IntRectToNiceStr(R1) = '(2,4)-(3,5)');
+ AssertTrue(IntRectToNiceStr(R1) = '(2,4)-(3,5)');
  
- Assert(RectWidth(R1) = 1);
- Assert(RectHeight(R1) = 1);
- Assert(RectWidth(R2) = 8);
- Assert(RectHeight(R2) = 1);
+ AssertTrue(RectWidth(R1) = 1);
+ AssertTrue(RectHeight(R1) = 1);
+ AssertTrue(RectWidth(R2) = 8);
+ AssertTrue(RectHeight(R2) = 1);
  
- Assert(RectsEqual(IntRect(0, 2, 5, 7), GrowRect(R1, 2)));
- Assert(RectsEqual(IntRect(3, 5, 9, 49), GrowRect(R3, -1)));
+ AssertTrue(RectsEqual(IntRect(0, 2, 5, 7), GrowRect(R1, 2)));
+ AssertTrue(RectsEqual(IntRect(3, 5, 9, 49), GrowRect(R3, -1)));
  
  R := CenteredRect(R4, 4, 10);
- Assert(RectWidth(R) = 4);
- Assert(RectHeight(R) = 10);
- Assert(RectsEqual(IntRect(4, 0, 8, 10), R));
+ AssertTrue(RectWidth(R) = 4);
+ AssertTrue(RectHeight(R) = 10);
+ AssertTrue(RectsEqual(IntRect(4, 0, 8, 10), R));
  
- Assert(PointInRect(Vector2Integer(4, 4), R4));
- Assert(PointInRect(Vector2Integer(2, 4), R4));
- Assert(not PointInRect(Vector2Integer(2, 6), R4));
- Assert(not PointInRect(Vector2Integer(2, 10), R4));
+ AssertTrue(PointInRect(Vector2Integer(4, 4), R4));
+ AssertTrue(PointInRect(Vector2Integer(2, 4), R4));
+ AssertTrue(not PointInRect(Vector2Integer(2, 6), R4));
+ AssertTrue(not PointInRect(Vector2Integer(2, 10), R4));
  
- Assert(PointInRect(4, 4, R4));
- Assert(PointInRect(2, 4, R4));
- Assert(not PointInRect(2, 6, R4));
- Assert(not PointInRect(2, 10, R4));
+ AssertTrue(PointInRect(4, 4, R4));
+ AssertTrue(PointInRect(2, 4, R4));
+ AssertTrue(not PointInRect(2, 6, R4));
+ AssertTrue(not PointInRect(2, 10, R4));
 end;
 
 initialization

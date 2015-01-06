@@ -89,19 +89,19 @@ procedure TTestCastleFrustum.AssertFrustumSphereCollisionPossible(const Frustum:
   const SphereCenter: TVector3Single; const SphereRadiusSqt: Single;
   const GoodResult: TFrustumCollisionPossible);
 begin
- Assert( Frustum.SphereCollisionPossible(SphereCenter,
+ AssertTrue( Frustum.SphereCollisionPossible(SphereCenter,
    SphereRadiusSqt) = GoodResult);
 
- Assert( Frustum.SphereCollisionPossibleSimple(SphereCenter,
+ AssertTrue( Frustum.SphereCollisionPossibleSimple(SphereCenter,
      SphereRadiusSqt) = (GoodResult <> fcNoCollision) );
 end;
 
 procedure TTestCastleFrustum.AssertFrustumBox3DCollisionPossible(const Frustum: TFrustum;
   const Box3D: TBox3D; const GoodResult: TFrustumCollisionPossible);
 begin
- Assert( Frustum.Box3DCollisionPossible(Box3D) = GoodResult);
+ AssertTrue( Frustum.Box3DCollisionPossible(Box3D) = GoodResult);
 
- Assert( Frustum.Box3DCollisionPossibleSimple(Box3D) =
+ AssertTrue( Frustum.Box3DCollisionPossibleSimple(Box3D) =
    (GoodResult <> fcNoCollision) );
 end;
 
@@ -116,7 +116,7 @@ begin
      Vector3Single(10, 10, 10) { eye position },
      Vector3Single(1, 0, 0) { look direction },
      vector3Single(0, 0, 1) { up vector } ));
- Assert(not Frustum.ZFarInfinity);
+ AssertTrue(not Frustum.ZFarInfinity);
 
  AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(0, 0, 0), 81,
    fcNoCollision);
@@ -155,10 +155,10 @@ begin
       Vector3Single(1, 0, 0) { look direction },
       vector3Single(0, 0, 1) { up vector } ));
 
-  Assert(Frustum.Planes[fpFar][0] = 0);
-  Assert(Frustum.Planes[fpFar][1] = 0);
-  Assert(Frustum.Planes[fpFar][2] = 0);
-  Assert(Frustum.ZFarInfinity);
+  AssertTrue(Frustum.Planes[fpFar][0] = 0);
+  AssertTrue(Frustum.Planes[fpFar][1] = 0);
+  AssertTrue(Frustum.Planes[fpFar][2] = 0);
+  AssertTrue(Frustum.ZFarInfinity);
 
   AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(0, 0, 0), 81,
     fcNoCollision);
@@ -212,7 +212,7 @@ procedure TTestCastleFrustum.TestCompareWithUnoptimizedPlaneCollision;
       InsidePlanesCount := 0;
 
       LastPlane := High(FP);
-      Assert(LastPlane = fpFar);
+      AssertTrue(LastPlane = fpFar);
 
       { If the frustum has far plane in infinity, then ignore this plane.
         Inc InsidePlanesCount, since the box is inside this infinite plane. }
@@ -311,7 +311,7 @@ procedure TTestCastleFrustum.TestCompareWithUnoptimizedPlaneCollision;
     with Frustum do
     begin
       LastPlane := High(FP);
-      Assert(LastPlane = fpFar);
+      AssertTrue(LastPlane = fpFar);
 
       { If the frustum has far plane in infinity, then ignore this plane. }
       if ZFarInfinity then
@@ -377,7 +377,7 @@ begin
   for I := 0 to Tests - 1 do
     with TestCases[I] do
     begin
-      Assert(Result1 = Frustum.Box3DCollisionPossible(Box));
+      AssertTrue(Result1 = Frustum.Box3DCollisionPossible(Box));
     end;
   {$ifdef WRITELN_TESTS}
   Writeln('New TFrustum.Box3DCollisionPossible: ', ProcessTimerEnd);
@@ -397,7 +397,7 @@ begin
   for I := 0 to Tests - 1 do
     with TestCases[I] do
     begin
-      Assert(Result2 = Frustum.Box3DCollisionPossibleSimple(Box));
+      AssertTrue(Result2 = Frustum.Box3DCollisionPossibleSimple(Box));
     end;
   {$ifdef WRITELN_TESTS}
   Writeln('New TFrustum.Box3DCollisionPossibleSimple: ', ProcessTimerEnd);

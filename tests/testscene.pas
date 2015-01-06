@@ -39,20 +39,20 @@ procedure TTestScene.TestScene;
     CamProjection: TProjectionType;
     CamPos, CamDir, CamUp, GravityUp: TVector3Single;
   begin
-   Assert(EmptyScene.VerticesCount(false) = 0);
-   Assert(EmptyScene.VerticesCount(true) = 0);
-   Assert(EmptyScene.TrianglesCount(false) = 0);
-   Assert(EmptyScene.TrianglesCount(true) = 0);
+   AssertTrue(EmptyScene.VerticesCount(false) = 0);
+   AssertTrue(EmptyScene.VerticesCount(true) = 0);
+   AssertTrue(EmptyScene.TrianglesCount(false) = 0);
+   AssertTrue(EmptyScene.TrianglesCount(true) = 0);
 
-   Assert(EmptyScene.BoundingBox.IsEmpty);
+   AssertTrue(EmptyScene.BoundingBox.IsEmpty);
 
-   Assert(EmptyScene.ShapesActiveCount = 0);
+   AssertTrue(EmptyScene.ShapesActiveCount = 0);
 
-   Assert(EmptyScene.GetViewpoint(CamProjection, CamPos, CamDir, CamUp, GravityUp) = nil);
+   AssertTrue(EmptyScene.GetViewpoint(CamProjection, CamPos, CamDir, CamUp, GravityUp) = nil);
 
-   Assert(EmptyScene.FogStack.Top = nil);
+   AssertTrue(EmptyScene.FogStack.Top = nil);
 
-   Assert(EmptyScene.Background = nil);
+   AssertTrue(EmptyScene.Background = nil);
   end;
 
 var EmptyScene: TCastleScene;

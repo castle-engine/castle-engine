@@ -61,8 +61,8 @@ begin
     Write('Recreating scene... ');
 
     FreeAndNil(Scene);
-    Assert(SceneManager.MainScene = nil);
-    Assert(SceneManager.Items.Count = 0);
+    AssertTrue(SceneManager.MainScene = nil);
+    AssertTrue(SceneManager.Items.Count = 0);
 
     Scene := TCastleScene.Create(Window);
     Scene.Spatial := [ssRendering, ssDynamicCollisions];

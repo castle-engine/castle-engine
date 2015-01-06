@@ -37,15 +37,15 @@ begin
   Video := TVideo.Create;
   try
     Video.LoadFromFile(ApplicationData('videos/video1_@counter(4).png'));
-    Assert(Video.Count = 3);
+    AssertTrue(Video.Count = 3);
     Video.LoadFromFile(ApplicationData('videos/video2_@counter(4).png'));
-    Assert(Video.Count = 3);
+    AssertTrue(Video.Count = 3);
     Video.LoadFromFile(ApplicationData('videos/video_single.png'));
-    Assert(Video.Count = 1);
+    AssertTrue(Video.Count = 1);
 
     try
       Video.LoadFromFile(ApplicationData('videos/video_not_existing.png'));
-      Assert(false, 'Should fail');
+      Fail('Should fail');
     except
       on E: Exception do
       begin
@@ -55,12 +55,12 @@ begin
 
     try
       Video.LoadFromFile(ApplicationData('videos/video_not_existing@counter(1).png'));
-      Assert(false, 'Should fail');
+      Fail('Should fail');
     except
       on E: Exception do
       begin
 //        Writeln(E.Message);
-        Assert(Pos('cannot be loaded', E.Message) <> 0);
+        AssertTrue(Pos('cannot be loaded', E.Message) <> 0);
       end;
     end;
   finally FreeAndNil(Video) end;

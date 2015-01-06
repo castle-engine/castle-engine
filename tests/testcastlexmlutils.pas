@@ -48,8 +48,8 @@ begin
     Doc := TXMLDocument(Pointer(123));
     try
       URLReadXML(Doc, ApplicationData('not-existing-test.xml'));
-      Assert(false, 'Should not reach here, non-existing-test.xml should not exist');
-    finally Assert(Doc = nil); end;
+      Fail('Should not reach here, non-existing-test.xml should not exist');
+    finally AssertTrue(Doc = nil); end;
   except on EFOpenError do begin { this is Ok } end; end;
 end;
 
@@ -62,41 +62,41 @@ begin
   try
     URLReadXML(Doc, ApplicationData('test.xml'));
 
-    Assert(Doc.DocumentElement.AttributeStringDef('some_string', 'blah') = 'some_string_value');
-    //Assert(Doc.DocumentElement.AttributeCardinalDef('some_int', 666) = 123);
-    Assert(Doc.DocumentElement.AttributeSingleDef('some_int', 666.0) = 123.0);
-    Assert(Doc.DocumentElement.AttributeFloatDef('some_int', 666.0) = 123.0);
+    AssertTrue(Doc.DocumentElement.AttributeStringDef('some_string', 'blah') = 'some_string_value');
+    //AssertTrue(Doc.DocumentElement.AttributeCardinalDef('some_int', 666) = 123);
+    AssertTrue(Doc.DocumentElement.AttributeSingleDef('some_int', 666.0) = 123.0);
+    AssertTrue(Doc.DocumentElement.AttributeFloatDef('some_int', 666.0) = 123.0);
 
-    Assert(Doc.DocumentElement.AttributeStringDef('some_string_not_existing', 'blah') = 'blah');
-    //Assert(Doc.DocumentElement.AttributeCardinalDef('some_int_not_existing', 666) = 666);
-    Assert(Doc.DocumentElement.AttributeSingleDef('some_int_not_existing', 666.0) = 666.0);
-    Assert(Doc.DocumentElement.AttributeFloatDef('some_int_not_existing', 666.0) = 666.0);
+    AssertTrue(Doc.DocumentElement.AttributeStringDef('some_string_not_existing', 'blah') = 'blah');
+    //AssertTrue(Doc.DocumentElement.AttributeCardinalDef('some_int_not_existing', 666) = 666);
+    AssertTrue(Doc.DocumentElement.AttributeSingleDef('some_int_not_existing', 666.0) = 666.0);
+    AssertTrue(Doc.DocumentElement.AttributeFloatDef('some_int_not_existing', 666.0) = 666.0);
 
-    Assert(Doc.DocumentElement.AttributeString('some_string') = 'some_string_value');
-    Assert(Doc.DocumentElement.AttributeCardinal('some_int') = 123);
-    Assert(Doc.DocumentElement.AttributeSingle('some_int') = 123.0);
-    Assert(Doc.DocumentElement.AttributeFloat('some_int') = 123.0);
+    AssertTrue(Doc.DocumentElement.AttributeString('some_string') = 'some_string_value');
+    AssertTrue(Doc.DocumentElement.AttributeCardinal('some_int') = 123);
+    AssertTrue(Doc.DocumentElement.AttributeSingle('some_int') = 123.0);
+    AssertTrue(Doc.DocumentElement.AttributeFloat('some_int') = 123.0);
 
-    try Doc.DocumentElement.AttributeString  ('some_string_not_existing'); Assert(false); except on EDOMAttributeMissing do begin { good } end; end;
-    try Doc.DocumentElement.AttributeCardinal('some_int_not_existing'   ); Assert(false); except on EDOMAttributeMissing do begin { good } end; end;
-    try Doc.DocumentElement.AttributeSingle  ('some_int_not_existing'   ); Assert(false); except on EDOMAttributeMissing do begin { good } end; end;
-    try Doc.DocumentElement.AttributeFloat   ('some_int_not_existing'   ); Assert(false); except on EDOMAttributeMissing do begin { good } end; end;
+    try Doc.DocumentElement.AttributeString  ('some_string_not_existing'); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
+    try Doc.DocumentElement.AttributeCardinal('some_int_not_existing'   ); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
+    try Doc.DocumentElement.AttributeSingle  ('some_int_not_existing'   ); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
+    try Doc.DocumentElement.AttributeFloat   ('some_int_not_existing'   ); AssertTrue(false); except on EDOMAttributeMissing do begin { good } end; end;
 
     S := 'blah';
-    Assert(Doc.DocumentElement.AttributeString('some_string', S));
-    Assert(S = 'some_string_value');
+    AssertTrue(Doc.DocumentElement.AttributeString('some_string', S));
+    AssertTrue(S = 'some_string_value');
 
     I := 456;
-    Assert(Doc.DocumentElement.AttributeInteger('some_int', I));
-    Assert(I = 123);
+    AssertTrue(Doc.DocumentElement.AttributeInteger('some_int', I));
+    AssertTrue(I = 123);
 
     S := 'good';
-    Assert(not Doc.DocumentElement.AttributeString('some_string_not_existing', S));
-    Assert(S = 'good');
+    AssertTrue(not Doc.DocumentElement.AttributeString('some_string_not_existing', S));
+    AssertTrue(S = 'good');
 
     I := 456;
-    Assert(not Doc.DocumentElement.AttributeInteger('some_int_not_existing', I));
-    Assert(I = 456);
+    AssertTrue(not Doc.DocumentElement.AttributeInteger('some_int_not_existing', I));
+    AssertTrue(I = 456);
   finally FreeAndNil(Doc); end;
 end;
 

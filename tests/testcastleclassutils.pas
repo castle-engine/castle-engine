@@ -83,36 +83,36 @@ begin
   SStream.Position := 0;
   ReaderStream := StreamFromStreamFunc(SStream);
   try
-   Assert(ReaderStream.Size = 12);
-   Assert(ReaderStream.PeekChar = 1);
-   Assert(ReaderStream.PeekChar = 1);
-   Assert(ReaderStream.PeekChar = 1);
-   Assert(ReaderStream.ReadChar = 1);
+   AssertTrue(ReaderStream.Size = 12);
+   AssertTrue(ReaderStream.PeekChar = 1);
+   AssertTrue(ReaderStream.PeekChar = 1);
+   AssertTrue(ReaderStream.PeekChar = 1);
+   AssertTrue(ReaderStream.ReadChar = 1);
 
-   Assert(ReaderStream.PeekChar = 2);
-   Assert(ReaderStream.ReadChar = 2);
+   AssertTrue(ReaderStream.PeekChar = 2);
+   AssertTrue(ReaderStream.ReadChar = 2);
 
-   Assert(ReaderStream.ReadChar = 3);
+   AssertTrue(ReaderStream.ReadChar = 3);
 
-   Assert(ReaderStream.ReadChar = 4);
+   AssertTrue(ReaderStream.ReadChar = 4);
 
-   Assert(ReaderStream.ReadUpto([#8, #9, #10]) = #5#6#7);
+   AssertTrue(ReaderStream.ReadUpto([#8, #9, #10]) = #5#6#7);
 
-   Assert(ReaderStream.Position = 7);
-   Assert(ReaderStream.ReadChar = 8);
-   Assert(ReaderStream.Position = 8);
+   AssertTrue(ReaderStream.Position = 7);
+   AssertTrue(ReaderStream.ReadChar = 8);
+   AssertTrue(ReaderStream.Position = 8);
 
    ReaderStream.ReadBuffer(Buf, 3);
-   Assert(Buf[0] =  9);
-   Assert(Buf[1] = 10);
-   Assert(Buf[2] = 11);
+   AssertTrue(Buf[0] =  9);
+   AssertTrue(Buf[1] = 10);
+   AssertTrue(Buf[2] = 11);
 
-   Assert(ReaderStream.PeekChar = 12);
-   Assert(ReaderStream.ReadChar = 12);
+   AssertTrue(ReaderStream.PeekChar = 12);
+   AssertTrue(ReaderStream.ReadChar = 12);
 
-   Assert(ReaderStream.Read(Buf, 1) = 0);
-   Assert(ReaderStream.PeekChar = -1);
-   Assert(ReaderStream.Read(Buf, 1) = 0);
+   AssertTrue(ReaderStream.Read(Buf, 1) = 0);
+   AssertTrue(ReaderStream.PeekChar = -1);
+   AssertTrue(ReaderStream.Read(Buf, 1) = 0);
   finally ReaderStream.Free end;
  finally SStream.Free end;
 end;
@@ -154,10 +154,10 @@ begin
     L.Add(TFoo.Create(-5, 'ZZZ'));
     L.Add(TFoo.Create(65, 'zuzanna'));
     L.SortFoo;
-    Assert(L.Count = 3);
-    Assert(L[0].I = -5);
-    Assert(L[1].I = 65);
-    Assert(L[2].I = 123);
+    AssertTrue(L.Count = 3);
+    AssertTrue(L[0].I = -5);
+    AssertTrue(L[1].I = 65);
+    AssertTrue(L[2].I = 123);
   finally FreeAndNil(L) end;
 end;
 
@@ -185,24 +185,24 @@ begin
     O1 := TObj.Create;
     O2 := TObj.Create;
     O3 := TObj.Create;
-    Assert(A.IndexOf(@O1.Dummy) = -1);
-    Assert(A.IndexOf(@O2.Dummy) = -1);
-    Assert(A.IndexOf(@O3.Dummy) = -1);
+    AssertTrue(A.IndexOf(@O1.Dummy) = -1);
+    AssertTrue(A.IndexOf(@O2.Dummy) = -1);
+    AssertTrue(A.IndexOf(@O3.Dummy) = -1);
 
     A.Add(@O1.Dummy);
-    Assert(A.IndexOf(@O1.Dummy) = 0);
-    Assert(A.IndexOf(@O2.Dummy) = -1);
-    Assert(A.IndexOf(@O3.Dummy) = -1);
+    AssertTrue(A.IndexOf(@O1.Dummy) = 0);
+    AssertTrue(A.IndexOf(@O2.Dummy) = -1);
+    AssertTrue(A.IndexOf(@O3.Dummy) = -1);
 
     A.Add(@O2.Dummy);
-    Assert(A.IndexOf(@O1.Dummy) = 0);
-    Assert(A.IndexOf(@O2.Dummy) = 1);
-    Assert(A.IndexOf(@O3.Dummy) = -1);
+    AssertTrue(A.IndexOf(@O1.Dummy) = 0);
+    AssertTrue(A.IndexOf(@O2.Dummy) = 1);
+    AssertTrue(A.IndexOf(@O3.Dummy) = -1);
 
     A.Remove(@O1.Dummy);
-    Assert(A.IndexOf(@O1.Dummy) = -1);
-    Assert(A.IndexOf(@O2.Dummy) = 0);
-    Assert(A.IndexOf(@O3.Dummy) = -1);
+    AssertTrue(A.IndexOf(@O1.Dummy) = -1);
+    AssertTrue(A.IndexOf(@O2.Dummy) = 0);
+    AssertTrue(A.IndexOf(@O3.Dummy) = -1);
 
     FreeAndNil(O1);
     FreeAndNil(O2);

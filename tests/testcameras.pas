@@ -89,7 +89,7 @@ begin
   end;
  end;
 
- Assert(not oohFailed);
+ AssertTrue(not oohFailed);
 end;
 
 procedure TTestCameras.TestOrientationFromBasicAxes;
@@ -129,13 +129,13 @@ const
   var
     Orientation: TQuaternion;
   begin
-    Assert(Zero(VectorDotProduct(Dir, Up), 0.001),
-      TestName + ': Given test dir/up not orthogonal, CamDirUp2OrientQuat assumes it');
+    if not Zero(VectorDotProduct(Dir, Up), 0.001) then
+      Fail(TestName + ': Given test dir/up not orthogonal, CamDirUp2OrientQuat assumes it');
 
     Orientation := CamDirUp2OrientQuat(Dir, Up).Conjugate;
     try
-      Assert(VectorsEqual(Orientation.Rotate(Normalized(Dir)), DefaultX3DCameraDirection, 0.01));
-      Assert(VectorsEqual(Orientation.Rotate(Normalized(Up )), DefaultX3DCameraUp       , 0.01));
+      AssertTrue(VectorsEqual(Orientation.Rotate(Normalized(Dir)), DefaultX3DCameraDirection, 0.01));
+      AssertTrue(VectorsEqual(Orientation.Rotate(Normalized(Up )), DefaultX3DCameraUp       , 0.01));
     except
       Writeln('Failed on ', TestName, '. Resulting dir is ',
         VectorToNiceStr(Orientation.Rotate(Normalized(Dir))),
@@ -161,13 +161,13 @@ procedure TTestCameras.TestInput;
   procedure AssertCamera(const C: TCamera; const Input: TCameraInputs;
     const IgnoreAllInputs, MouseNavigation: boolean);
   begin
-    Assert(C.Input = Input);
+    AssertTrue(C.Input = Input);
     {$warnings off}
     { Consciously using here deprecated IgnoreAllInputs
       and MouseNavigation (to test it's still Ok) }
-    Assert(C.IgnoreAllInputs = IgnoreAllInputs);
+    AssertTrue(C.IgnoreAllInputs = IgnoreAllInputs);
     if C is TExamineCamera then
-      Assert(TExamineCamera(C).MouseNavigation = MouseNavigation);
+      AssertTrue(TExamineCamera(C).MouseNavigation = MouseNavigation);
     {$warnings on}
     { for TUniversalCamera, child examine/walk must always have synchronized
       properties }

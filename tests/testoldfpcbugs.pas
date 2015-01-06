@@ -78,7 +78,8 @@ begin
  if s<>'' then s:='popoty ' + s ;
 
  {check value of a}
- Assert(a=42);
+ if a <> 42 then
+   raise Exception.Create('a <> 42');
 end;
 
 procedure TTestOldFPCBugs.TestInherited;
@@ -112,14 +113,15 @@ type
     procedure Proc(mm:TProcOfObj);
     var m2:TMethod absolute mm;
     begin
-     Assert(m2.Code <> nil);
+     AssertTrue(m2.Code <> nil);
     end;
   but it would require TEST_ABSOLUTE_PROCEDURE to pass (and we want to
   test these two things _separately_.)
 }
 procedure Proc(mm:TProcOfObj);
 begin
- Assert(PMethod(@mm)^.Code <> nil);
+  if PMethod(@mm)^.Code = nil then
+   raise Exception.Create('PMethod(@mm)^.Code = nil');
 end;
 
 type
@@ -164,12 +166,12 @@ begin
    should be ignored. But, since there is a bug, they will not be ignored
    so we have to provide valid pointers for p1 and p2 or we will get
    AccessViolation. }
- Assert(CompareMem(@b1, @b2, 0));
+ AssertTrue(CompareMem(@b1, @b2, 0));
 end;
 
 procedure TTestOldFPCBugs.TestFormatIncompatibility;
 begin
- Assert(Format('%d %d %0:d %d', [0, 1, 2, 3]) = '0 1 0 1');
+ AssertTrue(Format('%d %d %0:d %d', [0, 1, 2, 3]) = '0 1 0 1');
 end;
 
 { TestSizeOfObject ----------------------------------------------------------- }
@@ -180,7 +182,7 @@ end;
 const D = SizeOf(TObject);
 procedure TTestOldFPCBugs.TestSizeOfObject;
 begin
-  Assert(D = SizeOf(Pointer));
+  AssertTrue(D = SizeOf(Pointer));
 end;
 
 { TestOthers ----------------------------------------------------------------- }
@@ -195,23 +197,23 @@ function TestProc             :boolean; overload; begin result:=false end;
 procedure TTestOldFPCBugs.TestOthers;
 var b1,b2:array[0..1000]of byte;
 begin
- Assert(not TestProc);
- Assert(TestProc(2));
+ AssertTrue(not TestProc);
+ AssertTrue(TestProc(2));
 
- Assert(SizeOf(AnsiString) = SizeOf(Pointer));
- Assert(SizeOf(String) = SizeOf(Pointer));
+ AssertTrue(SizeOf(AnsiString) = SizeOf(Pointer));
+ AssertTrue(SizeOf(String) = SizeOf(Pointer));
 
  { some set operations }
- Assert([0,1] = [0,1]);
- Assert([0] <= [0]);
- Assert([0] <= [0,1,2,3,4]);
- Assert(not ([0] <= []));
- Assert([0] >= []);
+ AssertTrue([0,1] = [0,1]);
+ AssertTrue([0] <= [0]);
+ AssertTrue([0] <= [0,1,2,3,4]);
+ AssertTrue(not ([0] <= []));
+ AssertTrue([0] >= []);
 
  { test is CompareMem(..., ..., 0) bug fixed }
- Assert(CompareMem(@b1, @b2, 0));
+ AssertTrue(CompareMem(@b1, @b2, 0));
  { test is "Format incompatible with Delphi" bug fixed }
- Assert(Format('%d %d %0:d %d', [0, 1, 2, 3]) = '0 1 0 1');
+ AssertTrue(Format('%d %d %0:d %d', [0, 1, 2, 3]) = '0 1 0 1');
 end;
 
 procedure TTestOldFPCBugs.TestSwapEndian;
@@ -221,8 +223,8 @@ var
   A2: QWord;
 begin
   A2 := QWord($EFCDAB8967452301);
-  Assert(SwapEndian(A1) = A2);
-  Assert(SwapEndian(A2) = A1);
+  AssertTrue(SwapEndian(A1) = A2);
+  AssertTrue(SwapEndian(A2) = A1);
 end;
 
 initialization

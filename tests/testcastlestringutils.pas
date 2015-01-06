@@ -53,9 +53,9 @@ begin
   l := Random(High(Integer)){ - High(Integer) div 2};
   s1 := IntToStr16(l);
   s2 := Format('%x', [l]);
-  Assert(s1 = s2);
+  AssertTrue(s1 = s2);
  end;
- Assert(IntToStr16(-17) = '-11');
+ AssertTrue(IntToStr16(-17) = '-11');
 end;
 
 procedure TTestCastleStringUtils.TestDeFormat;
@@ -66,15 +66,15 @@ var
 begin
   DeFormat('123FOO98.2e1 '#9'123ioioio-x    /'+nl, '%dfoo%f %s /',
     [@i, @f, @s], true);
-  Assert(i = 123);
-  Assert(f = 98.2e1);
-  Assert(s = '123ioioio-x');
+  AssertTrue(i = 123);
+  AssertTrue(f = 98.2e1);
+  AssertTrue(s = '123ioioio-x');
 
   { %% test }
   DeFormat('%d%%456foobar %', '%%d%%%%%d%s %%',
     [@i, @s], true);
-  Assert(i = 456);
-  Assert(s = 'foobar');
+  AssertTrue(i = 456);
+  AssertTrue(s = 'foobar');
 
   { Test RelatedWhitespaceChecking }
   try
@@ -84,20 +84,20 @@ begin
     on EDeformatError do ;
   end;
   DeFormat('123  foo', '%d %s %s', [@i, @S, @S2], true, false);
-  Assert(I = 123);
-  Assert(S = '');
-  Assert(S2 = 'foo');
+  AssertTrue(I = 123);
+  AssertTrue(S = '');
+  AssertTrue(S2 = 'foo');
 
   { Test %s at the end of data can be '' }
   DeFormat('123 ', '%d %s', [@i, @s], true, true);
-  Assert(I = 123);
-  Assert(S = '');
+  AssertTrue(I = 123);
+  AssertTrue(S = '');
 
   { Similar as above, but last 2 args different.
     Result should be the same. }
   DeFormat('123 ', '%d %s', [@i, @s], false, false);
-  Assert(I = 123);
-  Assert(S = '');
+  AssertTrue(I = 123);
+  AssertTrue(S = '');
 end;
 
 procedure TTestCastleStringUtils.TestSReplacePercent;
@@ -105,58 +105,58 @@ const
   Replaces: array[0..1]of TPercentReplace =
   ((c:'k'; s:'kot'), (c:'p'; s:'pies'));
 begin
- Assert( SPercentReplace('bla%kkk%jk%pies', Replaces, false, '%', false)
+ AssertTrue( SPercentReplace('bla%kkk%jk%pies', Replaces, false, '%', false)
    = 'blakotkk%jkpiesies');
  try
   SPercentReplace('bla%kkk%jk%pies', Replaces, true, '%', false);
   raise Exception.Create('Last SPercentReplace SHOULD raise exception');
- except on E: EUnknownPercentFormat do Assert(e.Message = 'Unknown format pattern in format "bla%kkk%jk%pies", wrong sequence is : "%j"'); end;
+ except on E: EUnknownPercentFormat do AssertTrue(e.Message = 'Unknown format pattern in format "bla%kkk%jk%pies", wrong sequence is : "%j"'); end;
 
  AssertEquals('blakotkkkotkpiesies', SPercentReplace('bla%kkk%Kk%pies', Replaces, true, '%', true));
  try
   SPercentReplace('bla%kkk%Kk%pies', Replaces, true, '%', false);
   raise Exception.Create('Last SPercentReplace SHOULD raise exception');
- except on E: EUnknownPercentFormat do Assert(e.Message = 'Unknown format pattern in format "bla%kkk%Kk%pies", wrong sequence is : "%K"'); end;
+ except on E: EUnknownPercentFormat do AssertTrue(e.Message = 'Unknown format pattern in format "bla%kkk%Kk%pies", wrong sequence is : "%K"'); end;
 
- Assert( SPercentReplace('bla%k%%', Replaces, false, '%', false) = 'blakot%');
- Assert( SPercentReplace('bla%k%%', Replaces, true, '%', false) = 'blakot%');
+ AssertTrue( SPercentReplace('bla%k%%', Replaces, false, '%', false) = 'blakot%');
+ AssertTrue( SPercentReplace('bla%k%%', Replaces, true, '%', false) = 'blakot%');
 
- Assert( SPercentReplace('foo%', Replaces, false, '%', false) = 'foo%');
+ AssertTrue( SPercentReplace('foo%', Replaces, false, '%', false) = 'foo%');
  try
-  Assert( SPercentReplace('foo%', Replaces, true, '%', false) = 'foo%');
+  AssertTrue( SPercentReplace('foo%', Replaces, true, '%', false) = 'foo%');
   raise Exception.Create('Last SPercentReplace SHOULD raise exception');
- except on E: EUnknownPercentFormat do Assert(e.Message = 'Unknown format pattern in format "foo%", wrong sequence is : % at the end of the format string'); end;
+ except on E: EUnknownPercentFormat do AssertTrue(e.Message = 'Unknown format pattern in format "foo%", wrong sequence is : % at the end of the format string'); end;
 end;
 
 procedure TTestCastleStringUtils.TestIntToStr2;
 var i, Value, MinLength: Integer;
 begin
- Assert(IntToStr2(2) = '10');
- Assert(IntToStr2(0) = '0');
- Assert(IntToStr2(2, 4) = '0010');
- Assert(IntToStr2(-2, 4) = '-0010');
- Assert(IntToStr2(0, 4) = '0000');
+ AssertTrue(IntToStr2(2) = '10');
+ AssertTrue(IntToStr2(0) = '0');
+ AssertTrue(IntToStr2(2, 4) = '0010');
+ AssertTrue(IntToStr2(-2, 4) = '-0010');
+ AssertTrue(IntToStr2(0, 4) = '0000');
 
- Assert(IntToStr2(2, 4, '_', 'M', '+') = '__M_');
- Assert(IntToStr2(-2, 4, '_', 'M', '+') = '+__M_');
- Assert(IntToStr2(0, 4, '_', 'M', '+') = '____');
+ AssertTrue(IntToStr2(2, 4, '_', 'M', '+') = '__M_');
+ AssertTrue(IntToStr2(-2, 4, '_', 'M', '+') = '+__M_');
+ AssertTrue(IntToStr2(0, 4, '_', 'M', '+') = '____');
 
  for i := 1 to 100 do
  begin
   Value := Integer(Random(10000)) - 10000 div 2;
   MinLength := Random(5);
-  Assert(IntToStrBase(Value, 2, MinLength) = IntToStr2(Value, MinLength));
+  AssertTrue(IntToStrBase(Value, 2, MinLength) = IntToStr2(Value, MinLength));
  end;
 end;
 
 procedure TTestCastleStringUtils.TestCompressWhiteSpace;
 begin
-  Assert(SCompressWhiteSpace('') = '');
-  Assert(SCompressWhiteSpace('a') = 'a');
-  Assert(SCompressWhiteSpace(' ') = ' ');
-  Assert(SCompressWhiteSpace('     ') = ' ');
-  Assert(SCompressWhiteSpace(' blah blah ') = ' blah blah ');
-  Assert(SCompressWhiteSpace('   blah  ' + CharTab + 'blah ' + NL) = ' blah blah ');
+  AssertTrue(SCompressWhiteSpace('') = '');
+  AssertTrue(SCompressWhiteSpace('a') = 'a');
+  AssertTrue(SCompressWhiteSpace(' ') = ' ');
+  AssertTrue(SCompressWhiteSpace('     ') = ' ');
+  AssertTrue(SCompressWhiteSpace(' blah blah ') = ' blah blah ');
+  AssertTrue(SCompressWhiteSpace('   blah  ' + CharTab + 'blah ' + NL) = ' blah blah ');
 end;
 
 procedure TTestCastleStringUtils.TestFormatNameCounter;
@@ -164,32 +164,32 @@ var
   ReplacementsDone: Cardinal;
   AllowOldPercentSyntax: boolean;
 begin
-  Assert(FormatNameCounter('', 0, true, ReplacementsDone) = '');
-  Assert(FormatNameCounter('a', 0, true, ReplacementsDone) = 'a');
-  Assert(FormatNameCounter('a%', 0, true, ReplacementsDone) = 'a%');
-  Assert(FormatNameCounter('%a%', 66, true, ReplacementsDone) = '%a%');
-  Assert(FormatNameCounter('%d%', 66, true, ReplacementsDone) = '66%');
-  Assert(FormatNameCounter('%%%', 66, true, ReplacementsDone) = '%%');
-  Assert(FormatNameCounter('%%number%d%d.again%d', 66, true, ReplacementsDone) = '%number6666.again66');
-  Assert(FormatNameCounter('%%number%0d%2d.again%4d', 66, true, ReplacementsDone) = '%number6666.again0066');
+  AssertTrue(FormatNameCounter('', 0, true, ReplacementsDone) = '');
+  AssertTrue(FormatNameCounter('a', 0, true, ReplacementsDone) = 'a');
+  AssertTrue(FormatNameCounter('a%', 0, true, ReplacementsDone) = 'a%');
+  AssertTrue(FormatNameCounter('%a%', 66, true, ReplacementsDone) = '%a%');
+  AssertTrue(FormatNameCounter('%d%', 66, true, ReplacementsDone) = '66%');
+  AssertTrue(FormatNameCounter('%%%', 66, true, ReplacementsDone) = '%%');
+  AssertTrue(FormatNameCounter('%%number%d%d.again%d', 66, true, ReplacementsDone) = '%number6666.again66');
+  AssertTrue(FormatNameCounter('%%number%0d%2d.again%4d', 66, true, ReplacementsDone) = '%number6666.again0066');
 
-  Assert(FormatNameCounter('', 0, false, ReplacementsDone) = '');
-  Assert(FormatNameCounter('a', 0, false, ReplacementsDone) = 'a');
-  Assert(FormatNameCounter('a%', 0, false, ReplacementsDone) = 'a%');
-  Assert(FormatNameCounter('%a%', 66, false, ReplacementsDone) = '%a%');
-  Assert(FormatNameCounter('%d%', 66, false, ReplacementsDone) = '%d%');
-  Assert(FormatNameCounter('%%%', 66, false, ReplacementsDone) = '%%%');
-  Assert(FormatNameCounter('%%number%d%d.again%d', 66, false, ReplacementsDone) = '%%number%d%d.again%d');
-  Assert(FormatNameCounter('%%number%0d%2d.again%4d', 66, false, ReplacementsDone) = '%%number%0d%2d.again%4d');
+  AssertTrue(FormatNameCounter('', 0, false, ReplacementsDone) = '');
+  AssertTrue(FormatNameCounter('a', 0, false, ReplacementsDone) = 'a');
+  AssertTrue(FormatNameCounter('a%', 0, false, ReplacementsDone) = 'a%');
+  AssertTrue(FormatNameCounter('%a%', 66, false, ReplacementsDone) = '%a%');
+  AssertTrue(FormatNameCounter('%d%', 66, false, ReplacementsDone) = '%d%');
+  AssertTrue(FormatNameCounter('%%%', 66, false, ReplacementsDone) = '%%%');
+  AssertTrue(FormatNameCounter('%%number%d%d.again%d', 66, false, ReplacementsDone) = '%%number%d%d.again%d');
+  AssertTrue(FormatNameCounter('%%number%0d%2d.again%4d', 66, false, ReplacementsDone) = '%%number%0d%2d.again%4d');
 
   { assertions below should work for both AllowOldPercentSyntax values }
   for AllowOldPercentSyntax := false to true do
   begin
-    Assert(FormatNameCounter('', 0, AllowOldPercentSyntax, ReplacementsDone) = '');
-    Assert(FormatNameCounter('a', 0, AllowOldPercentSyntax, ReplacementsDone) = 'a');
-    Assert(FormatNameCounter('%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone) = '%again66');
-    Assert(FormatNameCounter('%%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone) = '%%again66');
-    Assert(FormatNameCounter('%%again@counter(4)', 66, AllowOldPercentSyntax, ReplacementsDone) = '%%again0066');
+    AssertTrue(FormatNameCounter('', 0, AllowOldPercentSyntax, ReplacementsDone) = '');
+    AssertTrue(FormatNameCounter('a', 0, AllowOldPercentSyntax, ReplacementsDone) = 'a');
+    AssertTrue(FormatNameCounter('%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone) = '%again66');
+    AssertTrue(FormatNameCounter('%%again@counter(1)', 66, AllowOldPercentSyntax, ReplacementsDone) = '%%again66');
+    AssertTrue(FormatNameCounter('%%again@counter(4)', 66, AllowOldPercentSyntax, ReplacementsDone) = '%%again0066');
   end;
 end;
 
@@ -202,17 +202,17 @@ const
 var
   A5, A6: QWord;
 begin
-  Assert(IntToStr16(A1) = 'ABCDEF123');
-  Assert(IntToStr16(A2) = 'ABCDEF123');
-  Assert(IntToStr16(A3) = '-ABCDEF123');
+  AssertTrue(IntToStr16(A1) = 'ABCDEF123');
+  AssertTrue(IntToStr16(A2) = 'ABCDEF123');
+  AssertTrue(IntToStr16(A3) = '-ABCDEF123');
 
-  Assert(IntToStr16(A4) = '123456789ABCDEF');
+  AssertTrue(IntToStr16(A4) = '123456789ABCDEF');
 
   A5 := QWord($EFCDAB8967452301);
-  Assert(IntToStr16(A5) = 'EFCDAB8967452301');
+  AssertTrue(IntToStr16(A5) = 'EFCDAB8967452301');
 
   A6 := QWord($FFEE000000000000);
-  Assert(IntToStr16(A6) = 'FFEE000000000000');
+  AssertTrue(IntToStr16(A6) = 'FFEE000000000000');
 end;
 
 procedure TTestCastleStringUtils.TestCastleStringList;
@@ -237,39 +237,39 @@ begin
   sarr := TCastleStringList.Create;
   try
    sarr.Count := 4;
-   Assert(sarr.Count = 4);
+   AssertTrue(sarr.Count = 4);
    sarr[0] := 'FOO';
    sarr[1] := 'foo bar xyz';
    sarr.Delete(0);
    sarr.AddArray(twoStrings);
    sarr.Add('trzy?');
 
-   Assert(not sarr.Equal(['foo bar xyz', '', '']));
-   Assert(sarr.Equal(['foo bar xyz', '', '', 'raz', 'dwa', 'trzy?']));
+   AssertTrue(not sarr.Equal(['foo bar xyz', '', '']));
+   AssertTrue(sarr.Equal(['foo bar xyz', '', '', 'raz', 'dwa', 'trzy?']));
 
    sarr.Reverse;
-   Assert(sarr.Equal(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
+   AssertTrue(sarr.Equal(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
 
    sarr2 := TCastleStringList.Create;
    try
     sarr2.Add('blah');
-    Assert(sarr2.Equal(['blah']));
+    AssertTrue(sarr2.Equal(['blah']));
     sarr2.Assign(sarr);
-    Assert(sarr2.Equal(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
+    AssertTrue(sarr2.Equal(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
 
     {sortuj ustalone 6 stringow}
     sarr.Sort;
-    Assert(sarr.Equal(['', '', 'dwa', 'foo bar xyz', 'raz', 'trzy?']));
+    AssertTrue(sarr.Equal(['', '', 'dwa', 'foo bar xyz', 'raz', 'trzy?']));
 
     { sprawdz ze kolejnosc na sarr2 pozostala niezmieniona }
-    Assert(sarr2.Equal(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
+    AssertTrue(sarr2.Equal(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
    finally sarr2.Free end;
 
    {dodaj losowe stringi, sortuj, sprawdz}
    for j := 0 to 20 do
     sarr.Add( Chr(Random(256)) + Chr(Random(256)) + Chr(Random(256)) );
    sarr.Sort;
-   for j := 0 to sarr.Count-2 do Assert(
+   for j := 0 to sarr.Count-2 do AssertTrue(
      { sarr[j] <= sarr[j+1] }
      { Sort may use AnsiCompareStr that takes into account locale }
      AnsiCompareStr(sarr[j], sarr[j+1]) <= 0);
@@ -280,9 +280,9 @@ begin
  sarr := TCastleStringList.Create;
  try
   { na tablicy o 0 liczbie elementow tez wszystko powinno isc ok }
-  Assert(sarr.Count = 0);
+  AssertTrue(sarr.Count = 0);
   sarr.Reverse;
-  Assert(sarr.Count = 0);
+  AssertTrue(sarr.Count = 0);
  finally sarr.Free end;
 end;
 
@@ -296,21 +296,21 @@ begin
     SL.Add(NL + 'foo' + NL + 'bar' + NL);
     SL.Add('');
     SL.Add('');
-    Assert(SL.Count = 4);
-    Assert(SL.IndexOf('') = 0);
+    AssertTrue(SL.Count = 4);
+    AssertTrue(SL.IndexOf('') = 0);
 
     SL.Delete(0);
-    Assert(SL.Count = 3);
-    Assert(SL[0] = NL + 'foo' + NL + 'bar' + NL);
-    Assert(SL[1] = '');
-    Assert(SL[2] = '');
-    Assert(SL.IndexOf('') = 1);
+    AssertTrue(SL.Count = 3);
+    AssertTrue(SL[0] = NL + 'foo' + NL + 'bar' + NL);
+    AssertTrue(SL[1] = '');
+    AssertTrue(SL[2] = '');
+    AssertTrue(SL.IndexOf('') = 1);
 
     SL.Delete(1);
     SL.Delete(1);
-    Assert(SL.Count = 1);
-    Assert(SL[0] = NL + 'foo' + NL + 'bar' + NL);
-    Assert(SL.IndexOf(NL + 'foo' + NL + 'bar' + NL) = 0);
+    AssertTrue(SL.Count = 1);
+    AssertTrue(SL[0] = NL + 'foo' + NL + 'bar' + NL);
+    AssertTrue(SL.IndexOf(NL + 'foo' + NL + 'bar' + NL) = 0);
   finally FreeAndNil(SL) end;
 end;
 

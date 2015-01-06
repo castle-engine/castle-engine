@@ -66,7 +66,7 @@ var
 begin
   { URIToFilename fails for Windows absolute filenames,
     but our URIToFilenameSafe works. }
-  Assert(not URIToFilename('c:\foo.txt', Temp));
+  AssertTrue(not URIToFilename('c:\foo.txt', Temp));
   AssertEquals('c:\foo.txt', URIToFilenameSafe('c:\foo.txt'));
 end;
 

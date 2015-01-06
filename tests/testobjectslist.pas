@@ -121,15 +121,15 @@ begin
    ol.AddList(ol2);
   finally ol2.Free end;
 
-  Assert(ol.Count = 5);
-  Assert(ol[0].Str = 'first item');
-  Assert(ol[1].Str = 'one');
-  Assert(ol[2].Str = 'two');
-  Assert(ol[3].Str = 'one');
-  Assert(ol[4].Str = 'two');
+  AssertTrue(ol.Count = 5);
+  AssertTrue(ol[0].Str = 'first item');
+  AssertTrue(ol[1].Str = 'one');
+  AssertTrue(ol[2].Str = 'two');
+  AssertTrue(ol[3].Str = 'one');
+  AssertTrue(ol[4].Str = 'two');
 
-  Assert(ol[1] = ol[3]); { (1 i 3) i (2 i 4) to te same obiekty. }
-  Assert(ol[2] = ol[4]);
+  AssertTrue(ol[1] = ol[3]); { (1 i 3) i (2 i 4) to te same obiekty. }
+  AssertTrue(ol[2] = ol[4]);
 
   { delete dups, preventing Clear from Freeing two times the same reference }
   ol.DeleteDuplicates;

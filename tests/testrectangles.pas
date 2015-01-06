@@ -33,30 +33,30 @@ var
   R: TRectangle;
 begin
   R := Rectangle(-100, -200, 20, 30);
-  Assert(R.Contains(-100, -200));
-  Assert(R.Contains(-100 + 19, -200 + 29));
-  Assert(not R.Contains(-100 + 20, -200 + 30));
+  AssertTrue(R.Contains(-100, -200));
+  AssertTrue(R.Contains(-100 + 19, -200 + 29));
+  AssertTrue(not R.Contains(-100 + 20, -200 + 30));
 
   R.Grow(5);
-  Assert(R.Width = 20);
+  AssertEquals(20, R.Width);
   R := R.Grow(5);
-  Assert(R.Width = 30);
-  Assert(R.Height = 40);
-  Assert(R.Left = -105);
-  Assert(R.Bottom = -205);
+  AssertEquals(  30, R.Width );
+  AssertEquals(  40, R.Height);
+  AssertEquals(-105, R.Left  );
+  AssertEquals(-205, R.Bottom);
   R := R.Grow(-5);
-  Assert(R.Width = 20);
-  Assert(R.Height = 30);
-  Assert(R.Left = -100);
-  Assert(R.Bottom = -200);
+  AssertEquals(  20, R.Width );
+  AssertEquals(  30, R.Height);
+  AssertEquals(-100, R.Left  );
+  AssertEquals(-200, R.Bottom);
   R := R.Grow(-10);
-  Assert(R.Width = 0);
-  Assert(R.Height = 10);
-  Assert(R.Left = -90);
-  Assert(R.Bottom = -190);
-  Assert(not R.Contains(-100, -200));
-  Assert(not R.Contains(-100 + 19, -200 + 29));
-  Assert(not R.Contains(-100 + 20, -200 + 30));
+  AssertEquals(   0, R.Width );
+  AssertEquals(  10, R.Height);
+  AssertEquals( -90, R.Left  );
+  AssertEquals(-190, R.Bottom);
+  AssertFalse(R.Contains(-100, -200));
+  AssertFalse(R.Contains(-100 + 19, -200 + 29));
+  AssertFalse(R.Contains(-100 + 20, -200 + 30));
 end;
 
 initialization

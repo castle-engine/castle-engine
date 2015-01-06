@@ -74,7 +74,7 @@ begin
       TCasScriptFloat.Create(false, 1)
     ]);
   try
-    Assert((Expr.Execute as TCasScriptFloat).Value = sin(3) + 10 + 1);
+    AssertTrue((Expr.Execute as TCasScriptFloat).Value = sin(3) + 10 + 1);
   finally FreeAndNil(Expr) end;
 
   MyVariable := TCasScriptFloat.Create(false, 3);
@@ -84,22 +84,22 @@ begin
       TCasScriptFloat.Create(false, 1)
     ]);
   try
-    Assert((Expr.Execute as TCasScriptFloat).Value = sin(3) + 10 + 1);
+    AssertTrue((Expr.Execute as TCasScriptFloat).Value = sin(3) + 10 + 1);
 
     MyVariable.Value := 4;
-    Assert((Expr.Execute as TCasScriptFloat).Value = sin(4) + 10 + 1);
+    AssertTrue((Expr.Execute as TCasScriptFloat).Value = sin(4) + 10 + 1);
 
     MyVariable.Value := 5;
-    Assert((Expr.Execute as TCasScriptFloat).Value = sin(5) + 10 + 1);
+    AssertTrue((Expr.Execute as TCasScriptFloat).Value = sin(5) + 10 + 1);
   finally FreeAndNil(Expr) end;
 end;
 
 procedure TTestCastleScript.TestInheritsFrom;
 begin
-  Assert(TCasScriptFloat.InheritsFrom(TCasScriptFloat));
-  Assert(TCasScriptValue.InheritsFrom(TCasScriptValue));
-  Assert(TCasScriptFloat.InheritsFrom(TCasScriptValue));
-  Assert(not TCasScriptValue.InheritsFrom(TCasScriptFloat));
+  AssertTrue(TCasScriptFloat.InheritsFrom(TCasScriptFloat));
+  AssertTrue(TCasScriptValue.InheritsFrom(TCasScriptValue));
+  AssertTrue(TCasScriptFloat.InheritsFrom(TCasScriptValue));
+  AssertTrue(not TCasScriptValue.InheritsFrom(TCasScriptFloat));
 end;
 
 procedure TTestCastleScript.TestFloatPrograms;
@@ -121,10 +121,10 @@ begin
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
 
-    Assert(Vars[0].Value = 0);
-    Assert(Vars[1].Value = 3);
-    Assert(Vars[2].Value = 100 + 100 + 2 * 3);
-    Assert(Vars[3].Value = 666);
+    AssertTrue(Vars[0].Value = 0);
+    AssertTrue(Vars[1].Value = 3);
+    AssertTrue(Vars[2].Value = 100 + 100 + 2 * 3);
+    AssertTrue(Vars[3].Value = 666);
   finally
     for I := 0 to High(Vars) do FreeAndNil(Vars[I]);
   end;
@@ -141,7 +141,7 @@ var
   begin
     try
       Prog.ExecuteFunction('main', []);
-      Assert(false, 'should not get here');
+      Fail('should not get here');
     except
       on ECasScriptError do ;
     end;
@@ -167,19 +167,19 @@ begin
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
 
-    Assert((Vars[0] as TCasScriptInteger).Value = 23);
-    Assert((Vars[1] as TCasScriptFloat).Value = 3.14);
-    Assert((Vars[2] as TCasScriptBoolean).Value = false);
-    Assert((Vars[3] as TCasScriptString).Value = 'foo');
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 23);
+    AssertTrue((Vars[1] as TCasScriptFloat).Value = 3.14);
+    AssertTrue((Vars[2] as TCasScriptBoolean).Value = false);
+    AssertTrue((Vars[3] as TCasScriptString).Value = 'foo');
 
     Prog := ParseProgram(FileToString('data/test_script2.kscript'), Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
 
-    Assert((Vars[0] as TCasScriptInteger).Value = 23 + 12);
-    Assert((Vars[1] as TCasScriptFloat).Value = Sqrt(3.14 + 2.0));
-    Assert((Vars[2] as TCasScriptBoolean).Value = true);
-    Assert((Vars[3] as TCasScriptString).Value = 'barfooxyz');
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 23 + 12);
+    AssertTrue((Vars[1] as TCasScriptFloat).Value = Sqrt(3.14 + 2.0));
+    AssertTrue((Vars[2] as TCasScriptBoolean).Value = true);
+    AssertTrue((Vars[3] as TCasScriptString).Value = 'barfooxyz');
 
     { should raise ECasScriptError }
 
@@ -196,23 +196,23 @@ begin
     Prog := ParseProgram('function main() my_int := int(3.14)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[0] as TCasScriptInteger).Value = 3);
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 3);
 
     Prog := ParseProgram('function main() my_int := int(-3.14)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[0] as TCasScriptInteger).Value = -3);
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = -3);
 
     Prog := ParseProgram('function main() my_int := int(666)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[0] as TCasScriptInteger).Value = 666);
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 666);
 
     Prog := ParseProgram('function main() my_int := int(''44'')', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
 
-    Assert((Vars[0] as TCasScriptInteger).Value = 44);
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 44);
     Prog := ParseProgram('function main() my_int := int(''blah'')', Vars);
     ExecuteExpectError;
     FreeAndNil(Prog);
@@ -220,17 +220,17 @@ begin
     Prog := ParseProgram('function main() my_int := int(false)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[0] as TCasScriptInteger).Value = 0);
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 0);
 
     Prog := ParseProgram('function main() my_int := int(true)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[0] as TCasScriptInteger).Value = 1);
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 1);
 
     Prog := ParseProgram('function main() my_int := int(5 < 6)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[0] as TCasScriptInteger).Value = 1);
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 1);
 
     { test float() }
 
@@ -279,17 +279,17 @@ begin
     Prog := ParseProgram('function main() my_bool := bool(3.14)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TCasScriptBoolean).Value = true);
+    AssertTrue((Vars[2] as TCasScriptBoolean).Value = true);
 
     Prog := ParseProgram('function main() my_bool := bool(0.0)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TCasScriptBoolean).Value = false);
+    AssertTrue((Vars[2] as TCasScriptBoolean).Value = false);
 
     Prog := ParseProgram('function main() my_bool := bool(0)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TCasScriptBoolean).Value = false);
+    AssertTrue((Vars[2] as TCasScriptBoolean).Value = false);
 
     Prog := ParseProgram('function main() my_bool := bool(''44.456'')', Vars);
     ExecuteExpectError;
@@ -298,88 +298,88 @@ begin
     Prog := ParseProgram('function main() my_bool := bool(''faLSE'')', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TCasScriptBoolean).Value = false);
+    AssertTrue((Vars[2] as TCasScriptBoolean).Value = false);
 
     Prog := ParseProgram('function main() my_bool := bool(''true'')', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TCasScriptBoolean).Value = true);
+    AssertTrue((Vars[2] as TCasScriptBoolean).Value = true);
 
     Prog := ParseProgram('function main() my_bool := bool(false)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TCasScriptBoolean).Value = false);
+    AssertTrue((Vars[2] as TCasScriptBoolean).Value = false);
 
     Prog := ParseProgram('function main() my_bool := bool(true)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TCasScriptBoolean).Value = true);
+    AssertTrue((Vars[2] as TCasScriptBoolean).Value = true);
 
     Prog := ParseProgram('function main() my_bool := bool(0 <> 0)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[2] as TCasScriptBoolean).Value = false);
+    AssertTrue((Vars[2] as TCasScriptBoolean).Value = false);
 
     { test string() }
 
     Prog := ParseProgram('function main() my_string := string(3.14)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[3] as TCasScriptString).Value = '3.14');
+    AssertTrue((Vars[3] as TCasScriptString).Value = '3.14');
 
     Prog := ParseProgram('function main() my_string := string(0.0)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[3] as TCasScriptString).Value = '0');
+    AssertTrue((Vars[3] as TCasScriptString).Value = '0');
 
     Prog := ParseProgram('function main() my_string := string(0)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[3] as TCasScriptString).Value = '0');
+    AssertTrue((Vars[3] as TCasScriptString).Value = '0');
 
     Prog := ParseProgram('function main() my_string := string(''44.456hoho'')', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[3] as TCasScriptString).Value = '44.456hoho');
+    AssertTrue((Vars[3] as TCasScriptString).Value = '44.456hoho');
 
     Prog := ParseProgram('function main() my_string := string(true)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[3] as TCasScriptString).Value = 'true');
+    AssertTrue((Vars[3] as TCasScriptString).Value = 'true');
 
     Prog := ParseProgram('function main() my_string := string(false)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[3] as TCasScriptString).Value = 'false');
+    AssertTrue((Vars[3] as TCasScriptString).Value = 'false');
 
     Prog := ParseProgram('function main() my_string := string(0 <> 0)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    Assert((Vars[3] as TCasScriptString).Value = 'false');
+    AssertTrue((Vars[3] as TCasScriptString).Value = 'false');
 
     { test if() }
 
     Prog := ParseProgram(FileToString('data/test_script3.kscript'), Vars);
     Prog.ExecuteFunction('main', []);
-    Assert((Vars[0] as TCasScriptInteger).Value = 12);
-    Assert((Vars[1] as TCasScriptFloat).Value = 0);
-    Assert((Vars[2] as TCasScriptBoolean).Value = true);
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 12);
+    AssertTrue((Vars[1] as TCasScriptFloat).Value = 0);
+    AssertTrue((Vars[2] as TCasScriptBoolean).Value = true);
 
     Prog.ExecuteFunction('main_alt', []);
-    Assert((Vars[0] as TCasScriptInteger).Value = 44);
-    Assert((Vars[1] as TCasScriptFloat).Value = 13);
-    Assert((Vars[2] as TCasScriptBoolean).Value = false);
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 44);
+    AssertTrue((Vars[1] as TCasScriptFloat).Value = 13);
+    AssertTrue((Vars[2] as TCasScriptBoolean).Value = false);
 
     { test while() }
 
     Prog.ExecuteFunction('main_alt_while', []);
-    Assert((Vars[0] as TCasScriptInteger).Value = 13);
-    Assert((Vars[3] as TCasScriptString).Value = 'foo 1 2 3 4 5 6 7 8 9 10 11 12');
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 13);
+    AssertTrue((Vars[3] as TCasScriptString).Value = 'foo 1 2 3 4 5 6 7 8 9 10 11 12');
 
     { test for() }
 
     Prog.ExecuteFunction('main_alt_for', []);
-    Assert((Vars[3] as TCasScriptString).Value = 'xxxxxxxxxxxfooxxxxxxxxxxx');
+    AssertTrue((Vars[3] as TCasScriptString).Value = 'xxxxxxxxxxxfooxxxxxxxxxxx');
 
     FreeAndNil(Prog);
 
@@ -387,7 +387,7 @@ begin
     Vars[0].Writeable := false;
     try
       Prog := ParseProgram('function main() my_int := 123', Vars);
-      Assert(false, 'should not get here');
+      Fail('should not get here');
     except
       on ECasScriptError do ;
     end;
@@ -410,7 +410,7 @@ var
   begin
     try
       Prog.ExecuteFunction(FuncName, []);
-      Assert(false, 'should not get here');
+      Fail('should not get here');
     except
       on ECasScriptError do ;
     end;
@@ -436,10 +436,10 @@ begin
     Prog := ParseProgram(FileToString('data/test_script_array.kscript'), Vars);
 
     Prog.ExecuteFunction('main', []);
-    Assert(TCasScriptInteger(Vars[0]).Value = 1 + 4 + 9 + 1 + 1 + 1);
+    AssertTrue(TCasScriptInteger(Vars[0]).Value = 1 + 4 + 9 + 1 + 1 + 1);
 
     Prog.ExecuteFunction('main_array_d_test', []);
-    Assert(TCasScriptFloat(Vars[1]).Value = 3.0);
+    AssertTrue(TCasScriptFloat(Vars[1]).Value = 3.0);
 
     ExecuteExpectError('main_test_invalid_index_get');
     ExecuteExpectError('main_test_invalid_index_get_2');
@@ -449,7 +449,7 @@ begin
 
     Prog := ParseProgram(FileToString('data/test_script_string_as_array.kscript'), Vars);
     Prog.ExecuteFunction('main', []);
-    Assert(TCasScriptString(Vars[3]).Value = 'bbbbbbbbbbbb' + #123 + '13');
+    AssertTrue(TCasScriptString(Vars[3]).Value = 'bbbbbbbbbbbb' + #123 + '13');
 
     ExecuteExpectError('error1');
     ExecuteExpectError('error2');
@@ -463,26 +463,26 @@ end;
 
 procedure TTestCastleScript.TestBools;
 begin
-  Assert(ParseConstantFloatExpression('or(false, false, false)') = 0);
-  Assert(ParseConstantFloatExpression('or(false, false, true)') = 1);
-  Assert(ParseConstantFloatExpression('or(false, true, false)') = 1);
-  Assert(ParseConstantFloatExpression('or(true, false, false)') = 1);
-  Assert(ParseConstantFloatExpression('or(true, true, false)') = 1);
-  Assert(ParseConstantFloatExpression('or(false)') = 0);
-  Assert(ParseConstantFloatExpression('or(false, false)') = 0);
+  AssertTrue(ParseConstantFloatExpression('or(false, false, false)') = 0);
+  AssertTrue(ParseConstantFloatExpression('or(false, false, true)') = 1);
+  AssertTrue(ParseConstantFloatExpression('or(false, true, false)') = 1);
+  AssertTrue(ParseConstantFloatExpression('or(true, false, false)') = 1);
+  AssertTrue(ParseConstantFloatExpression('or(true, true, false)') = 1);
+  AssertTrue(ParseConstantFloatExpression('or(false)') = 0);
+  AssertTrue(ParseConstantFloatExpression('or(false, false)') = 0);
 
-  Assert(ParseConstantFloatExpression('and(false, false, false)') = 0);
-  Assert(ParseConstantFloatExpression('and(false, false, true)') = 0);
-  Assert(ParseConstantFloatExpression('and(false, true, false)') = 0);
-  Assert(ParseConstantFloatExpression('and(true, false, false)') = 0);
-  Assert(ParseConstantFloatExpression('and(true, true, false)') = 0);
-  Assert(ParseConstantFloatExpression('and(false)') = 0);
-  Assert(ParseConstantFloatExpression('and(false, false)') = 0);
-  Assert(ParseConstantFloatExpression('and(true)') = 1);
-  Assert(ParseConstantFloatExpression('and(true, true)') = 1);
+  AssertTrue(ParseConstantFloatExpression('and(false, false, false)') = 0);
+  AssertTrue(ParseConstantFloatExpression('and(false, false, true)') = 0);
+  AssertTrue(ParseConstantFloatExpression('and(false, true, false)') = 0);
+  AssertTrue(ParseConstantFloatExpression('and(true, false, false)') = 0);
+  AssertTrue(ParseConstantFloatExpression('and(true, true, false)') = 0);
+  AssertTrue(ParseConstantFloatExpression('and(false)') = 0);
+  AssertTrue(ParseConstantFloatExpression('and(false, false)') = 0);
+  AssertTrue(ParseConstantFloatExpression('and(true)') = 1);
+  AssertTrue(ParseConstantFloatExpression('and(true, true)') = 1);
 
-  Assert(ParseConstantFloatExpression('not(false)') = 1);
-  Assert(ParseConstantFloatExpression('not(true)') = 0);
+  AssertTrue(ParseConstantFloatExpression('not(false)') = 1);
+  AssertTrue(ParseConstantFloatExpression('not(true)') = 0);
 end;
 
 procedure TTestCastleScript.TestInvalidOps;
@@ -496,7 +496,7 @@ procedure TTestCastleScript.TestInvalidOps;
     try
       try
         Ex.Execute;
-        Assert(false, Expr + ' should raise ECasScriptAnyMathError, but didn''t raise anything');
+        Fail(Expr + ' should raise ECasScriptAnyMathError, but didn''t raise anything');
       except
         on ECasScriptAnyMathError do ;
       end;
@@ -513,11 +513,11 @@ procedure TTestCastleScript.TestInvalidOps;
     try
       try
         Ex.Execute;
-        Assert(false, Expr + ' should raise ECasScriptError, but didn''t raise anything');
+        Fail(Expr + ' should raise ECasScriptError, but didn''t raise anything');
       except
         on E: ECasScriptError do
         begin
-          Assert(not (E is ECasScriptAnyMathError));
+          AssertTrue(not (E is ECasScriptAnyMathError));
         end;
       end;
     finally FreeAndNil(Ex) end;
@@ -545,7 +545,7 @@ procedure TTestCastleScript.TestTryExecuteMath;
   begin
     Ex := ParseFloatExpression(Expr, []);
     try
-      Assert(Ex.TryExecuteMath = nil);
+      AssertTrue(Ex.TryExecuteMath = nil);
     finally FreeAndNil(Ex) end;
   end;
 
@@ -559,11 +559,11 @@ procedure TTestCastleScript.TestTryExecuteMath;
     try
       try
         Ex.TryExecuteMath;
-        Assert(false, Expr + ' should raise ECasScriptError, but didn''t raise anything');
+        Fail(Expr + ' should raise ECasScriptError, but didn''t raise anything');
       except
         on E: ECasScriptError do
         begin
-          Assert(not (E is ECasScriptAnyMathError));
+          AssertTrue(not (E is ECasScriptAnyMathError));
         end;
       end;
     finally FreeAndNil(Ex) end;

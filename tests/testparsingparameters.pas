@@ -18,16 +18,8 @@ unit TestParsingParameters;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
-
-type
-  TTestParsingParameters = class(TTestCase)
-    procedure TestParsingParameters;
-  end;
-
-implementation
-
-uses CastleParameters, CastleUtils, CastleStringUtils, CastleGenericLists;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleParameters,
+  CastleGenericLists;
 
 type
   TParsedOption = record
@@ -37,13 +29,26 @@ type
     SeparateArgs: TSeparateArgs;
   end;
   PParsedOption = ^TParsedOption;
-
   TParsedOptionList = specialize TGenericStructList<TParsedOption>;
+
+  TTestParsingParameters = class(TTestCase)
+  private
+    procedure AssertParsEqual(const ParsValues: array of string);
+    procedure AssertParsedParsEqual(const ParsedPars1: TParsedOptionList;
+      const ParsedPars2: array of TParsedOption);
+  published
+    procedure TestParsingParameters;
+  end;
+
+implementation
+
+uses CastleUtils, CastleStringUtils;
 
 procedure ParseNextParam(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-var ParsedArray: TParsedOptionList absolute Data;
-    LastItem: PParsedOption;
+var
+  ParsedArray: TParsedOptionList absolute Data;
+  LastItem: PParsedOption;
 begin
  LastItem := ParsedArray.Add;
  LastItem^.OptionNum := OptionNum;
@@ -76,52 +81,51 @@ function ParseParameters(
 begin
  result := ParseParameters(@Options, High(Options)+1, ParseOnlyKnownLongOptions);
 end;
-{ @groupEnd }
 
-procedure AssertParsEqual(const ParsValues: array of string);
+procedure TTestParsingParameters.AssertParsEqual(const ParsValues: array of string);
 var i: Integer;
 begin
- Assert(Parameters.High = High(ParsValues));
- for i := 0 to Parameters.High do Assert(Parameters[i] = ParsValues[i]);
+ AssertTrue(Parameters.High = High(ParsValues));
+ for i := 0 to Parameters.High do AssertTrue(Parameters[i] = ParsValues[i]);
 end;
 
-procedure AssertParsedParsEqual(const ParsedPars1: TParsedOptionList;
+procedure TTestParsingParameters.AssertParsedParsEqual(const ParsedPars1: TParsedOptionList;
   const ParsedPars2: array of TParsedOption);
 var i, j: Integer;
 begin
- Assert(ParsedPars1.Count - 1 = High(ParsedPars2));
+ AssertTrue(ParsedPars1.Count - 1 = High(ParsedPars2));
  for i := 0 to ParsedPars1.Count - 1 do
  begin
-  Assert(ParsedPars1.L[i].OptionNum   = ParsedPars2[i].OptionNum);
-  Assert(ParsedPars1.L[i].HasArgument = ParsedPars2[i].HasArgument);
-  Assert(ParsedPars1.L[i].Argument    = ParsedPars2[i].Argument);
+  AssertTrue(ParsedPars1.L[i].OptionNum   = ParsedPars2[i].OptionNum);
+  AssertTrue(ParsedPars1.L[i].HasArgument = ParsedPars2[i].HasArgument);
+  AssertTrue(ParsedPars1.L[i].Argument    = ParsedPars2[i].Argument);
   for j := Low(TSeparateArgs) to High(TSeparateArgs) do
-   Assert(ParsedPars1.L[i].SeparateArgs[j] = ParsedPars2[i].SeparateArgs[j]);
+   AssertTrue(ParsedPars1.L[i].SeparateArgs[j] = ParsedPars2[i].SeparateArgs[j]);
  end;
 end;
 
-function DynParsedOptionArrayToStr(const name: string;
-  v: TParsedOptionList): string;
-var i: Integer;
-begin
- result := name + nl;
- for i := 0 to v.Count - 1 do
-  result += Format('  [%d] OptionNum %d, HasArg %s, Argument "%s"',
-    [ i,
-      v.L[i].OptionNum,
-      BoolToStr[v.L[i].HasArgument],
-      v.L[i].Argument]) + nl;
-end;
-
-function ParsToStr: string;
-var i: Integer;
-begin
- result := 'Params now = ' + nl;
- for i := 0 to Parameters.High do
-  result += Format('  ParStr(%d) = "%s"', [i, Parameters[i]]) + nl;
-end;
-
 procedure TTestParsingParameters.TestParsingParameters;
+
+  function DynParsedOptionArrayToStr(const name: string;
+    v: TParsedOptionList): string;
+  var i: Integer;
+  begin
+   result := name + nl;
+   for i := 0 to v.Count - 1 do
+    result += Format('  [%d] OptionNum %d, HasArg %s, Argument "%s"',
+      [ i,
+        v.L[i].OptionNum,
+        BoolToStr[v.L[i].HasArgument],
+        v.L[i].Argument]) + nl;
+  end;
+
+  function ParsToStr: string;
+  var i: Integer;
+  begin
+   result := 'Params now = ' + nl;
+   for i := 0 to Parameters.High do
+    result += Format('  ParStr(%d) = "%s"', [i, Parameters[i]]) + nl;
+  end;
 
   procedure CheckPars(TestName: string; const StartPars: array of string;
     const Options: array of TOption;

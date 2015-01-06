@@ -63,26 +63,26 @@ var
 begin
   SoundEngine.RepositoryURL := 'data/game/sounds.xml';
 
-  Assert(SoundEngine.Sounds[stNone].Name = '');
-  Assert(SoundEngine.Sounds[stNone].URL = '');
+  AssertTrue(SoundEngine.Sounds[stNone].Name = '');
+  AssertTrue(SoundEngine.Sounds[stNone].URL = '');
   SoundType := SoundEngine.SoundFromName('player_sudden_pain');
-  Assert(SoundEngine.Sounds[SoundType].Name = 'player_sudden_pain');
+  AssertTrue(SoundEngine.Sounds[SoundType].Name = 'player_sudden_pain');
   AssertURL(SoundEngine.Sounds[SoundType].URL, 'test_name.wav');
-  Assert(SoundEngine.Sounds[SoundType].DefaultImportance = PlayerSoundImportance);
+  AssertTrue(SoundEngine.Sounds[SoundType].DefaultImportance = PlayerSoundImportance);
   AssertFloat(SoundEngine.Sounds[SoundType].Gain, 1);
   AssertFloat(SoundEngine.Sounds[SoundType].MinGain, 0.8);
   AssertFloat(SoundEngine.Sounds[SoundType].MaxGain, 1);
 
   Resources.LoadFromFiles('data/game/');
 
-  Assert(Resources.Count = 1);
-  Assert(Resources[0].Name = 'TestCreature');
-  Assert(Resources[0].ClassType = TWalkAttackCreatureResource);
+  AssertTrue(Resources.Count = 1);
+  AssertTrue(Resources[0].Name = 'TestCreature');
+  AssertTrue(Resources[0].ClassType = TWalkAttackCreatureResource);
   C := Resources[0] as TWalkAttackCreatureResource;
   AssertFloat(C.KnockBackSpeed, 1.2);
   AssertFloat(C.KnockBackDistance, 3.4);
-  Assert(C.Flying = true);
-  Assert(C.SoundDieTiedToCreature = true);
+  AssertTrue(C.Flying = true);
+  AssertTrue(C.SoundDieTiedToCreature = true);
   AssertFloat(C.DefaultMaxLife, 5.6);
   AssertFloat(C.Radius, 7.8);
   AssertFloat(C.MiddleHeight, 6.7);
@@ -93,28 +93,28 @@ begin
   AssertFloat(C.ChanceToHurt, 0.56);
   AssertFloat(C.MaxHeightAcceptableToFall, 5.6);
   AssertFloat(C.RandomWalkDistance, 7.8);
-  Assert(C.RemoveDead = true);
+  AssertTrue(C.RemoveDead = true);
   AssertFloat(C.PreferredDistance, 9.1);
-  Assert(C.AlwaysPrepared = true);
+  AssertTrue(C.AlwaysPrepared = true);
   { change AlwaysPrepared to false,
     to avoid crashing tests that actually do LoadLevel,
     since 3D models referenced by this resource do not exist. }
   C.ConfigAlwaysPrepared := false;
   AssertFloat(C.FallSpeed, 1.2);
   AssertFloat(C.GrowSpeed, 3.4);
-  Assert(C.ReceiveShadowVolumes = false);
-  Assert(C.CastShadowVolumes = false);
+  AssertTrue(C.ReceiveShadowVolumes = false);
+  AssertTrue(C.CastShadowVolumes = false);
   AssertURL(C.ModelURL, 'main.x3d');
-  Assert(C.IdleAnimation.Defined);
+  AssertTrue(C.IdleAnimation.Defined);
 //  AssertURL(C.IdleAnimation.URL, 'idle.x3d')); // private
-//  Assert(C.IdleAnimation.TimeSensor = 'TimeSensorIdle'); // private
-  Assert(C.IdleToWalkAnimation.Defined);
-  Assert(C.WalkAnimation.Defined);
-  Assert(C.FireMissileAnimation.Defined);
-  Assert(C.AttackAnimation.Defined);
-  Assert(C.DieAnimation.Defined);
-  Assert(C.DieBackAnimation.Defined);
-  Assert(C.HurtAnimation.Defined);
+//  AssertTrue(C.IdleAnimation.TimeSensor = 'TimeSensorIdle'); // private
+  AssertTrue(C.IdleToWalkAnimation.Defined);
+  AssertTrue(C.WalkAnimation.Defined);
+  AssertTrue(C.FireMissileAnimation.Defined);
+  AssertTrue(C.AttackAnimation.Defined);
+  AssertTrue(C.DieAnimation.Defined);
+  AssertTrue(C.DieBackAnimation.Defined);
+  AssertTrue(C.HurtAnimation.Defined);
   AssertFloat(C.AttackKnockbackDistance, 4.5);
   AssertFloat(C.AttackTime, 7.8);
   AssertFloat(C.AttackMaxDistance, 9.1);
@@ -129,7 +129,7 @@ begin
   AssertFloat(C.FireMissileMaxAngle, 5.6);
   AssertFloat(C.FireMissileMinDelay, 7.8);
   AssertSound(C.FireMissileSound, 'test_sound_8');
-  Assert(C.FireMissileName = 'TestMissileCreature');
+  AssertTrue(C.FireMissileName = 'TestMissileCreature');
   AssertFloat(C.FireMissileHeight, 0.12);
   AssertFloat(C.FallMinHeightToSound, 7.8);
   AssertSound(C.FallSound, 'test_sound_5');
@@ -142,37 +142,37 @@ begin
 
   Levels.LoadFromFiles('data/game/');
 
-  Assert(Levels[0].Name = 'my_level');
-  Assert(Levels[0].LogicClass = TLevelLogic);
+  AssertTrue(Levels[0].Name = 'my_level');
+  AssertTrue(Levels[0].LogicClass = TLevelLogic);
   AssertURL(Levels[0].SceneURL, 'scene.x3d');
-  Assert(Levels[0].Title = 'My Level');
-  Assert(Levels[0].Number = 123);
-  Assert(Levels[0].Demo = true);
-  Assert(Levels[0].TitleHint = 'Title Hint');
-  Assert(Levels[0].DefaultPlayed = true);
-  Assert(Levels[0].PlaceholderName = PlaceholderNames['blender']);
-  Assert(not Levels[0].LoadingImage.IsEmpty);
-  Assert(Levels[0].LoadingImage.Width = 16);
-  Assert(Levels[0].LoadingImage.Height = 16);
+  AssertTrue(Levels[0].Title = 'My Level');
+  AssertTrue(Levels[0].Number = 123);
+  AssertTrue(Levels[0].Demo = true);
+  AssertTrue(Levels[0].TitleHint = 'Title Hint');
+  AssertTrue(Levels[0].DefaultPlayed = true);
+  AssertTrue(Levels[0].PlaceholderName = PlaceholderNames['blender']);
+  AssertTrue(not Levels[0].LoadingImage.IsEmpty);
+  AssertTrue(Levels[0].LoadingImage.Width = 16);
+  AssertTrue(Levels[0].LoadingImage.Height = 16);
   AssertFloat(Levels[0].LoadingBarYPosition, 1.2);
   AssertVector(Levels[0].PlaceholderReferenceDirection, 1, 2, 3);
   AssertSound(Levels[0].MusicSound, 'test_sound_2');
 
   MaterialProperties.URL := 'data/game/material_properties.xml';
 
-  Assert(MaterialProperties.Count = 2);
+  AssertTrue(MaterialProperties.Count = 2);
 
-  Assert(MaterialProperties[0].TextureBaseName = 'test_texture');
+  AssertTrue(MaterialProperties[0].TextureBaseName = 'test_texture');
   AssertSound(MaterialProperties[0].FootstepsSound, 'test_sound_4');
-  Assert(MaterialProperties[0].Toxic = true);
+  AssertTrue(MaterialProperties[0].Toxic = true);
   AssertFloat(MaterialProperties[0].ToxicDamageConst, 1.2);
   AssertFloat(MaterialProperties[0].ToxicDamageRandom, 3.4);
   AssertFloat(MaterialProperties[0].ToxicDamageTime, 5.6);
   AssertURL(MaterialProperties[0].NormalMap, '');
 
-  Assert(MaterialProperties[1].TextureBaseName = 'test_texture_2');
-  Assert(MaterialProperties[1].FootstepsSound = stNone);
-  Assert(MaterialProperties[1].Toxic = false);
+  AssertTrue(MaterialProperties[1].TextureBaseName = 'test_texture_2');
+  AssertTrue(MaterialProperties[1].FootstepsSound = stNone);
+  AssertTrue(MaterialProperties[1].Toxic = false);
   AssertFloat(MaterialProperties[1].ToxicDamageConst, 0.0);
   AssertFloat(MaterialProperties[1].ToxicDamageRandom, 0.0);
   AssertFloat(MaterialProperties[1].ToxicDamageTime, 0.0);

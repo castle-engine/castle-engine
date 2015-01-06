@@ -44,8 +44,8 @@ begin
     begin
       Dir := CubeMapDirection(Side, Pixel);
       DirectionToCubeMap(Dir, NewSide, NewPixel);
-      Assert(NewSide = Side);
-      Assert(NewPixel = Pixel);
+      AssertTrue(NewSide = Side);
+      AssertTrue(NewPixel = Pixel);
     end;
 end;
 

@@ -46,20 +46,20 @@ begin
     O1 := TObject.Create;
     O2 := TObject.Create;
 
-    Assert(Map.IndexOf(O1) = -1);
-    Assert(Map.IndexOf(O2) = -1);
+    AssertTrue(Map.IndexOf(O1) = -1);
+    AssertTrue(Map.IndexOf(O2) = -1);
 
     Map.Add(O1, 'blah 1');
-    Assert(Map.IndexOf(O1) = 0);
-    Assert(Map.IndexOf(O2) = -1);
-    Assert(Map[O1] = 'blah 1');
+    AssertTrue(Map.IndexOf(O1) = 0);
+    AssertTrue(Map.IndexOf(O2) = -1);
+    AssertTrue(Map[O1] = 'blah 1');
 
     Map[O2] := 'blah 2';
     Map[O1] := 'new blah 1';
-    Assert(Map.IndexOf(O1) <> -1);
-    Assert(Map.IndexOf(O2) <> -1);
-    Assert(Map[O1] = 'new blah 1');
-    Assert(Map[O2] = 'blah 2');
+    AssertTrue(Map.IndexOf(O1) <> -1);
+    AssertTrue(Map.IndexOf(O2) <> -1);
+    AssertTrue(Map[O1] = 'new blah 1');
+    AssertTrue(Map[O2] = 'blah 2');
   finally
     FreeAndNil(Map);
     FreeAndNil(O1);

@@ -42,20 +42,20 @@ uses CastleVectors, CastleUtils, CastleBoxes, CastleStringUtils, CastleTimeUtils
 procedure TTestCastleBoxes.TestIsCenteredBox3DPlaneCollision;
 begin
   { box 10, 1, 1 with a plane that crosses 0,0,0 point always collides }
-  Assert(IsCenteredBox3DPlaneCollision(
+  AssertTrue(IsCenteredBox3DPlaneCollision(
     Vector3Single(10, 1, 1), Vector4Single(0, 0, 1, 0)));
-  Assert(IsCenteredBox3DPlaneCollision(
+  AssertTrue(IsCenteredBox3DPlaneCollision(
     Vector3Single(10, 1, 1), Vector4Single(0, 1, 0, 0)));
-  Assert(IsCenteredBox3DPlaneCollision(
+  AssertTrue(IsCenteredBox3DPlaneCollision(
     Vector3Single(10, 1, 1), Vector4Single(1, 0, 0, 0)));
-  Assert(IsCenteredBox3DPlaneCollision(
+  AssertTrue(IsCenteredBox3DPlaneCollision(
     Vector3Single(10, 1, 1), Vector4Single(123, 456, 789, 0)));
 
-  Assert(not IsCenteredBox3DPlaneCollision(
+  AssertTrue(not IsCenteredBox3DPlaneCollision(
     Vector3Single(10, 1, 1), Vector4Single(0, 0, -1, 5)));
-  Assert(not IsCenteredBox3DPlaneCollision(
+  AssertTrue(not IsCenteredBox3DPlaneCollision(
     Vector3Single(10, 1, 1), Vector4Single(0, -1, 0, 5)));
-  Assert(IsCenteredBox3DPlaneCollision(
+  AssertTrue(IsCenteredBox3DPlaneCollision(
     Vector3Single(10, 1, 1), Vector4Single(-1, 0, 0, 5)));
 end;
 
@@ -64,10 +64,10 @@ procedure TTestCastleBoxes.TestBox3DPlaneCollision;
   procedure AssertBox3DPlaneCollision(const Box: TBox3D;
     const Plane: TVector4Single; CollisionResult: TPlaneCollision);
   begin
-    Assert(Box.PlaneCollision(Plane) = CollisionResult);
+    AssertTrue(Box.PlaneCollision(Plane) = CollisionResult);
     { Check by the way Box3DPlaneCollisionInside, Box3DPlaneCollisionOutside }
-    Assert(Box.PlaneCollisionInside(Plane) = (CollisionResult = pcInside));
-    Assert(Box.PlaneCollisionOutside(Plane) = (CollisionResult = pcOutside));
+    AssertTrue(Box.PlaneCollisionInside(Plane) = (CollisionResult = pcInside));
+    AssertTrue(Box.PlaneCollisionOutside(Plane) = (CollisionResult = pcOutside));
   end;
 
 var
@@ -150,7 +150,7 @@ procedure TTestCastleBoxes.TestIsBox3DTriangleCollision;
         Triangle[1] := Vector3Single(12 + Random(8) * XRandomness, 12 + Random(8) * YRandomness, 12 + Random(8) * ZRandomness);
         Triangle[2] := Vector3Single(12 + Random(8) * XRandomness, 12 + Random(8) * YRandomness, 12 + Random(8) * ZRandomness);
       until IsValidTriangle(Triangle);
-      Assert(Box.IsTriangleCollision(Triangle));
+      AssertTrue(Box.IsTriangleCollision(Triangle));
     end;
 
     { random triangle completely outside the box (but chosen to collide) }
@@ -167,12 +167,12 @@ procedure TTestCastleBoxes.TestIsBox3DTriangleCollision;
         Triangle[2] := VectorAdd(Vector3Single(15, 15, 15), V2);
       until IsValidTriangle(Triangle);
 
-      Assert(Box.IsTriangleCollision(Triangle));
+      AssertTrue(Box.IsTriangleCollision(Triangle));
 
       VectorAddTo1st(Triangle[0], Vector3Single(100, 100, 100));
       VectorAddTo1st(Triangle[1], Vector3Single(100, 100, 100));
       VectorAddTo1st(Triangle[2], Vector3Single(100, 100, 100));
-      Assert(not Box.IsTriangleCollision(Triangle));
+      AssertTrue(not Box.IsTriangleCollision(Triangle));
     end;
 
     { random triangle with 1 point inside the box, other 2 outside }
@@ -188,12 +188,12 @@ procedure TTestCastleBoxes.TestIsBox3DTriangleCollision;
         Triangle[2] := Vector3Single(15, 15, 15);
       until IsValidTriangle(Triangle);
 
-      Assert(Box.IsTriangleCollision(Triangle));
+      AssertTrue(Box.IsTriangleCollision(Triangle));
 
       VectorAddTo1st(Triangle[0], Vector3Single(100, 100, 100));
       VectorAddTo1st(Triangle[1], Vector3Single(100, 100, 100));
       VectorAddTo1st(Triangle[2], Vector3Single(100, 100, 100));
-      Assert(not Box.IsTriangleCollision(Triangle));
+      AssertTrue(not Box.IsTriangleCollision(Triangle));
     end;
   end;
 
@@ -207,13 +207,13 @@ begin
   Box.Data[0] := Vector3Single(-10, -1, -1);
   Box.Data[1] := Vector3Single( 10,  1,  1);
 
-  Assert(Box.IsTriangleCollision(Triangle));
+  AssertTrue(Box.IsTriangleCollision(Triangle));
 
   Box := Box.Translate(Vector3Single(0, 0, 0.5));
-  Assert(Box.IsTriangleCollision(Triangle));
+  AssertTrue(Box.IsTriangleCollision(Triangle));
 
   Box := Box.Translate(Vector3Single(0, 0, 1.0));
-  Assert(not Box.IsTriangleCollision(Triangle));
+  AssertTrue(not Box.IsTriangleCollision(Triangle));
 
   RandomTrianglesTest(1, 1, 1);
 
@@ -484,7 +484,7 @@ var
     Write(CorrectResult, ' ');
     Write(Box.IsTriangleCollision(Triangle), ' ');
     Writeln;}
-    Assert(Box.IsTriangleCollision(Triangle) = CorrectResult);
+    AssertTrue(Box.IsTriangleCollision(Triangle) = CorrectResult);
   end;
 
 const
@@ -709,23 +709,20 @@ begin
     on E: EBox3DEmpty do { Ok };
   end;
 
-  Assert(VectorsEqual(Box3D(
+  AssertVectorsEqual(Vector4Single(-1, 0, 0, 2), Box3D(
     Vector3Single(2, 3, 4),
-    Vector3Single(50, 60, 70)).MaximumPlane(Vector3Single(-1, 0, 0)),
-    Vector4Single(-1, 0, 0, 2)));
+    Vector3Single(50, 60, 70)).MaximumPlane(Vector3Single(-1, 0, 0)));
 
-  Assert(VectorsEqual(Box3D(
+  AssertVectorsEqual(Vector4Single(0, 0, -1, 4), Box3D(
     Vector3Single(2, 3, 4),
-    Vector3Single(50, 60, 70)).MaximumPlane(Vector3Single(0, 0, -1)),
-    Vector4Single(0, 0, -1, 4)));
+    Vector3Single(50, 60, 70)).MaximumPlane(Vector3Single(0, 0, -1)));
 
-  Assert(VectorsEqual(Box3D(
-    Vector3Single(2, 3, 4),
-    Vector3Single(50, 60, 70)).MaximumPlane(Vector3Single(1, 1, 1)),
-    Vector4Single(1, 1, 1,
+  AssertVectorsEqual(Vector4Single(1, 1, 1,
       { 50 + 60 + 70 + Result.Data[3] = 0 }
       - 50 - 60 - 70
-    )));
+    ), Box3D(
+    Vector3Single(2, 3, 4),
+    Vector3Single(50, 60, 70)).MaximumPlane(Vector3Single(1, 1, 1)));
 end;
 
 procedure TTestCastleBoxes.TestBox3DMinimumPlane;
@@ -736,23 +733,20 @@ begin
     on E: EBox3DEmpty do { Ok };
   end;
 
-  Assert(VectorsEqual(Box3D(
+  AssertVectorsEqual(Vector4Single(1, 0, 0, -2), Box3D(
     Vector3Single(2, 3, 4),
-    Vector3Single(50, 60, 70)).MinimumPlane(Vector3Single(1, 0, 0)),
-    Vector4Single(1, 0, 0, -2)));
+    Vector3Single(50, 60, 70)).MinimumPlane(Vector3Single(1, 0, 0)));
 
-  Assert(VectorsEqual(Box3D(
+  AssertVectorsEqual(Vector4Single(0, 0, 1, -4), Box3D(
     Vector3Single(2, 3, 4),
-    Vector3Single(50, 60, 70)).MinimumPlane(Vector3Single(0, 0, 1)),
-    Vector4Single(0, 0, 1, -4)));
+    Vector3Single(50, 60, 70)).MinimumPlane(Vector3Single(0, 0, 1)));
 
-  Assert(VectorsEqual(Box3D(
-    Vector3Single(2, 3, 4),
-    Vector3Single(50, 60, 70)).MinimumPlane(Vector3Single(1, 1, 1)),
-    Vector4Single(1, 1, 1,
+  AssertVectorsEqual(Vector4Single(1, 1, 1,
       { 2 + 3 + 4 + Result.Data[3] = 0 }
       - 2 - 3 - 4
-    )));
+    ), Box3D(
+    Vector3Single(2, 3, 4),
+    Vector3Single(50, 60, 70)).MinimumPlane(Vector3Single(1, 1, 1)));
 end;
 
 procedure TTestCastleBoxes.TestBox3DPointDistance;
@@ -787,12 +781,12 @@ const
   Box: TBox3D = (Data: ((1, 2, 3), (4, 5, 6)) );
   Box2: TBox3D = (Data: ((1, 2, 3), (2, 5, 13)) );
 begin
-  Assert(Box.PointInside2D(Vector3Single(2, 3, 10), 2));
-  Assert(not Box.PointInside2D(Vector3Single(2, 3, 10), 0));
-  Assert(not Box.PointInside2D(Vector3Single(2, 3, 10), 1));
+  AssertTrue(Box.PointInside2D(Vector3Single(2, 3, 10), 2));
+  AssertTrue(not Box.PointInside2D(Vector3Single(2, 3, 10), 0));
+  AssertTrue(not Box.PointInside2D(Vector3Single(2, 3, 10), 1));
   try
     Box.PointInside2D(Vector3Single(2, 3, 10), 3);
-    Assert(false, 'PointInside2D with IgnoreIndex = 3 should raise exception');
+    Fail('Above PointInside2D with IgnoreIndex = 3 should raise exception');
   except end;
 
   AssertFloatsEqual(Sqrt(Sqr(5) + Sqr(6)), Box.Radius2D(0), 0.01);
@@ -800,7 +794,7 @@ begin
   AssertFloatsEqual(Sqrt(Sqr(4) + Sqr(5)), Box.Radius2D(2), 0.01);
   try
     Box.Radius2D(3);
-    Assert(false, 'Radius2D with IgnoreIndex = 3 should raise exception');
+    Fail('Above Radius2D with IgnoreIndex = 3 should raise exception');
   except end;
 
   AssertFloatsEqual(Sqrt(Sqr(4) + Sqr(5) + Sqr(6)), Box.Radius, 0.01);

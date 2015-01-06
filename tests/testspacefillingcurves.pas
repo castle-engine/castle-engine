@@ -57,17 +57,17 @@ procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
      while not Curve.EndOfPixels do
      begin
       pixCoords := Curve.NextPixel;
-      Assert(Between(pixCoords[0], 0, Width-1));
-      Assert(Between(pixCoords[1], 0, Height-1));
+      AssertTrue(Between(pixCoords[0], 0, Width-1));
+      AssertTrue(Between(pixCoords[1], 0, Height-1));
       pix := PVector3Byte(Img.PixelPtr(pixCoords[0], pixCoords[1]));
       { kazdy pix moze byc podany tylko raz, czyli teraz pix powinien
 	byc zielony. }
-      Assert(CompareMem(pix, @Green3Byte, SizeOf(TVector3Byte)));
+      AssertTrue(CompareMem(pix, @Green3Byte, SizeOf(TVector3Byte)));
       pix^ := Red3Byte;
      end;
 
      { na koncu caly obrazek powinien byc czerwony }
-     Assert(Img.IsClear(Vector4Byte(Red3Byte, 255)));
+     AssertTrue(Img.IsClear(Vector4Byte(Red3Byte, 255)));
     except
      OutFileName := GetTempDir + '/test_space_filling_curves.ppm';
      SaveImage(Img, OutFileName);

@@ -34,21 +34,21 @@ procedure TTestURLUtils.TestURIProtocol;
 var
   Colon: Integer;
 begin
-  Assert(URIProtocol('data:blah:foo') = 'data');
-  Assert(URIProtocolIs('data:blah:foo', 'data', Colon));
-  Assert(not URIProtocolIs('data:blah:foo', 'data1', Colon));
-  Assert(not URIProtocolIs('data:blah:foo', 'dat', Colon));
-  Assert(not URIProtocolIs('data', 'data', Colon));
-  Assert(not URIProtocolIs('', 'data', Colon));
+  AssertTrue(URIProtocol('data:blah:foo') = 'data');
+  AssertTrue(URIProtocolIs('data:blah:foo', 'data', Colon));
+  AssertTrue(not URIProtocolIs('data:blah:foo', 'data1', Colon));
+  AssertTrue(not URIProtocolIs('data:blah:foo', 'dat', Colon));
+  AssertTrue(not URIProtocolIs('data', 'data', Colon));
+  AssertTrue(not URIProtocolIs('', 'data', Colon));
 
-  Assert(URIProtocol('ecmascript:xyz') = 'ecmascript');
-  Assert(URIDeleteProtocol('ecmascript:xyz') = 'xyz');
+  AssertTrue(URIProtocol('ecmascript:xyz') = 'ecmascript');
+  AssertTrue(URIDeleteProtocol('ecmascript:xyz') = 'xyz');
 
-  Assert(URIProtocol('     ' + NL + '    ecmascript:xyz') = 'ecmascript');
-  Assert(URIDeleteProtocol('     ' + NL + '    ecmascript:xyz') = 'xyz');
+  AssertTrue(URIProtocol('     ' + NL + '    ecmascript:xyz') = 'ecmascript');
+  AssertTrue(URIDeleteProtocol('     ' + NL + '    ecmascript:xyz') = 'xyz');
 
-  Assert(URIProtocol('void main()' + NL + 'ecmascript:xyz') = '');
-  Assert(URIDeleteProtocol('void main()' + NL + 'ecmascript:xyz') = 'void main()' + NL + 'ecmascript:xyz');
+  AssertTrue(URIProtocol('void main()' + NL + 'ecmascript:xyz') = '');
+  AssertTrue(URIDeleteProtocol('void main()' + NL + 'ecmascript:xyz') = 'void main()' + NL + 'ecmascript:xyz');
 end;
 
 initialization

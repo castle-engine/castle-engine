@@ -119,9 +119,9 @@ procedure TTestOSSpecific.TestHomePath;
 begin
 {  Writeln('HomePath is ', HomePath);
   Writeln('  ~/expanded is ', ExpandHomePath('~/expanded')); }
-  Assert(ExpandHomePath('/bin/') = '/bin/');
-  Assert(ExpandHomePath('~') = ExclPathDelim(HomePath));
-  Assert(ExpandHomePath('~/') = InclPathDelim(HomePath));
+  AssertTrue(ExpandHomePath('/bin/') = '/bin/');
+  AssertTrue(ExpandHomePath('~') = ExclPathDelim(HomePath));
+  AssertTrue(ExpandHomePath('~/') = InclPathDelim(HomePath));
 end;
 {$endif}
 

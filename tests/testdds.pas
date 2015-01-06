@@ -35,14 +35,14 @@ procedure TTestDDS.TestLoadSaveDDS;
 
   procedure AssertImagesEqual(I1, I2: TEncodedImage);
   begin
-    Assert(I1.ClassType = I2.ClassType);
-    Assert(I1.Width     = I2.Width);
-    Assert(I1.Height    = I2.Height);
-    Assert(I1.Depth     = I2.Depth);
+    AssertTrue(I1.ClassType = I2.ClassType);
+    AssertTrue(I1.Width     = I2.Width);
+    AssertTrue(I1.Height    = I2.Height);
+    AssertTrue(I1.Depth     = I2.Depth);
     if I1 is TCastleImage then
     begin
-      Assert(TCastleImage(I1).PixelSize = TCastleImage(I2).PixelSize);
-      Assert(CompareMem(I1.RawPixels, I2.RawPixels,
+      AssertTrue(TCastleImage(I1).PixelSize = TCastleImage(I2).PixelSize);
+      AssertTrue(CompareMem(I1.RawPixels, I2.RawPixels,
         I1.Width * I1.Height * I1.Depth * TCastleImage(I1).PixelSize));
     end;
   end;
@@ -51,7 +51,7 @@ procedure TTestDDS.TestLoadSaveDDS;
   var
     I: Integer;
   begin
-    Assert(DDS.Images.Count = DDS2.Images.Count);
+    AssertTrue(DDS.Images.Count = DDS2.Images.Count);
     for I := 0 to DDS.Images.Count - 1 do
       AssertImagesEqual(DDS.Images[I], DDS2.Images[I]);
   end;
@@ -77,8 +77,8 @@ procedure TTestDDS.TestLoadSaveDDS;
       OldImagesCount := DDS.Images.Count;
       DDS.Flatten3d;
       if Is3d then
-        Assert(OldImagesCount < Cardinal(DDS.Images.Count)) else
-        Assert(OldImagesCount = Cardinal(DDS.Images.Count));
+        AssertTrue(OldImagesCount < Cardinal(DDS.Images.Count)) else
+        AssertTrue(OldImagesCount = Cardinal(DDS.Images.Count));
 
       { save to stream with flattening }
       DDS.SaveToStream(StreamFlatten);
@@ -92,8 +92,8 @@ procedure TTestDDS.TestLoadSaveDDS;
       StreamNoFlatten.SaveToFile('/tmp/StreamNoFlatten.dds');
       StreamFlatten.SaveToFile('/tmp/StreamFlatten.dds'); }
 
-      Assert(StreamNoFlatten.Size = StreamFlatten.Size);
-      Assert(CompareMem(StreamNoFlatten.Memory, StreamFlatten.Memory,
+      AssertTrue(StreamNoFlatten.Size = StreamFlatten.Size);
+      AssertTrue(CompareMem(StreamNoFlatten.Memory, StreamFlatten.Memory,
         StreamNoFlatten.Size));
 
       { read back (to get back to non-flattened version) }
@@ -137,7 +137,7 @@ procedure TTestDDS.TestLoadSaveS3TC;
     try
       { load file into DDS }
       DDS.LoadFromFile(FileName);
-      Assert(DDS.Images[0] is TS3TCImage);
+      AssertTrue(DDS.Images[0] is TS3TCImage);
 
       { save DDS into Stream1 }
       DDS.SaveToStream(Stream1);
@@ -145,7 +145,7 @@ procedure TTestDDS.TestLoadSaveS3TC;
       { load Stream1 into DDS }
       Stream1.Position := 0;
       DDS.LoadFromStream(Stream1);
-      Assert(DDS.Images[0] is TS3TCImage);
+      AssertTrue(DDS.Images[0] is TS3TCImage);
 
       { save DDS into Stream2 }
       DDS.SaveToStream(Stream2);
@@ -159,8 +159,8 @@ procedure TTestDDS.TestLoadSaveS3TC;
         when saving we always add PitchOrLinearSize, while on load it may
         not be present). }
 
-      Assert(Stream1.Size = Stream2.Size);
-      Assert(CompareMem(Stream1.Memory, Stream2.Memory, Stream1.Size));
+      AssertTrue(Stream1.Size = Stream2.Size);
+      AssertTrue(CompareMem(Stream1.Memory, Stream2.Memory, Stream1.Size));
     finally
       FreeAndNil(DDS);
       FreeAndNil(Stream1);

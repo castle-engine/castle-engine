@@ -46,7 +46,7 @@ const ImagesPath = 'data/images/';
   begin
    Img := LoadImage(ImagesPath+ fname, AllowedImageClasses);
    try
-    Assert(Img is DestClass);
+    AssertTrue(Img is DestClass);
    finally FreeAndNil(Img) end;
   end;
 
@@ -98,14 +98,14 @@ end;
 
 procedure TTestImages.TestImageClassBestForSavingToFormat;
 begin
- Assert(ImageClassBestForSavingToFormat('ala.rgbe') = TRGBFloatImage);
- Assert(ImageClassBestForSavingToFormat('blah.rgbe') = TRGBFloatImage);
- Assert(ImageClassBestForSavingToFormat('ala.foo') = TRGBImage);
- Assert(ImageClassBestForSavingToFormat('blah.png') = TRGBImage);
- Assert(ImageClassBestForSavingToFormat('ala.bmp') = TRGBImage);
+ AssertTrue(ImageClassBestForSavingToFormat('ala.rgbe') = TRGBFloatImage);
+ AssertTrue(ImageClassBestForSavingToFormat('blah.rgbe') = TRGBFloatImage);
+ AssertTrue(ImageClassBestForSavingToFormat('ala.foo') = TRGBImage);
+ AssertTrue(ImageClassBestForSavingToFormat('blah.png') = TRGBImage);
+ AssertTrue(ImageClassBestForSavingToFormat('ala.bmp') = TRGBImage);
 
- Assert(ImageClassBestForSavingToFormat(ifRGBE) = TRGBFloatImage);
- Assert(ImageClassBestForSavingToFormat(ifPNG) = TRGBImage);
+ AssertTrue(ImageClassBestForSavingToFormat(ifRGBE) = TRGBFloatImage);
+ AssertTrue(ImageClassBestForSavingToFormat(ifPNG) = TRGBImage);
 end;
 
 procedure TTestImages.TestClear;
@@ -117,21 +117,21 @@ begin
  try
   { 55 and 66 (4th component) should be ignored for TRGBImage }
   ImgR.Clear(Vector4Byte(22, 33, 44, 55));
-  Assert(ImgR.IsClear(Vector4Byte(22, 33, 44, 66)));
+  AssertTrue(ImgR.IsClear(Vector4Byte(22, 33, 44, 66)));
 
   ImgR.SetColorRGB(0, 0, Vector3Single(0.5, 0.6, 0.7));
-  Assert(not ImgR.IsClear(Vector4Byte(22, 33, 44, 66)));
+  AssertTrue(not ImgR.IsClear(Vector4Byte(22, 33, 44, 66)));
  finally FreeAndNil(ImgR) end;
 
  ImgA := TRGBAlphaImage.Create(100, 100);
  try
   ImgA.Clear(Vector4Byte(22, 33, 44, 55));
   { 55 and 66 (4th component) should NOT be ignored for TRGBAlphaImage }
-  Assert(not ImgA.IsClear(Vector4Byte(22, 33, 44, 66)));
-  Assert(ImgA.IsClear(Vector4Byte(22, 33, 44, 55)));
+  AssertTrue(not ImgA.IsClear(Vector4Byte(22, 33, 44, 66)));
+  AssertTrue(ImgA.IsClear(Vector4Byte(22, 33, 44, 55)));
 
   ImgA.SetColorRGB(0, 0, Vector3Single(0.5, 0.6, 0.7));
-  Assert(not ImgA.IsClear(Vector4Byte(22, 33, 44, 55)));
+  AssertTrue(not ImgA.IsClear(Vector4Byte(22, 33, 44, 55)));
  finally FreeAndNil(ImgA) end;
 end;
 
@@ -140,7 +140,7 @@ const RightRGBE: TVector4Byte=(154, 10, 51, 127);
 var NewRGBE: TVector4Byte;
 begin
  NewRGBE := Vector3ToRGBE(Vector3Single(0.3, 0.02, 0.1));
- Assert(CompareMem(@NewRGBE, @RightRGBE, SizeOf(TVector4Byte)));
+ AssertTrue(CompareMem(@NewRGBE, @RightRGBE, SizeOf(TVector4Byte)));
 end;
 
 procedure TTestImages.TestRGBEToRGBTranslating;
@@ -182,11 +182,11 @@ var
       no modifications }
 
     OrigResized := Orig.MakeResized(Orig.Width, Orig.Height, Interpolation);
-    Assert(Orig.IsEqual(OrigResized));
+    AssertTrue(Orig.IsEqual(OrigResized));
 
     OrigResized2 := Orig.MakeCopy;
     OrigResized2.Resize(Orig.Width, Orig.Height, Interpolation);
-    Assert(Orig.IsEqual(OrigResized2));
+    AssertTrue(Orig.IsEqual(OrigResized2));
 
     FreeAndNil(OrigResized);
     FreeAndNil(OrigResized2);
@@ -194,13 +194,13 @@ var
     { check that MakeResized and Resize have the same algorithm }
 
     OrigResized := Orig.MakeResized(1000, 100, Interpolation);
-    Assert(not Orig.IsEqual(OrigResized));
+    AssertTrue(not Orig.IsEqual(OrigResized));
 
     OrigResized2 := Orig.MakeCopy;
     OrigResized2.Resize(1000, 100, Interpolation);
-    Assert(not Orig.IsEqual(OrigResized2));
+    AssertTrue(not Orig.IsEqual(OrigResized2));
 
-    Assert(OrigResized.IsEqual(OrigResized2));
+    AssertTrue(OrigResized.IsEqual(OrigResized2));
 
     FreeAndNil(OrigResized);
     FreeAndNil(OrigResized2);
@@ -217,7 +217,7 @@ begin
 
   OrigResized  := Orig.MakeResized(1000, 100, riNearest);
   OrigResized2 := Orig.MakeResized(1000, 100, riBilinear);
-  Assert(not OrigResized.IsEqual(OrigResized2));
+  AssertTrue(not OrigResized.IsEqual(OrigResized2));
 
   FreeAndNil(OrigResized);
   FreeAndNil(OrigResized2);
@@ -234,7 +234,7 @@ begin
   begin
     for M := Low(M) to ImageFormatInfos[I].MimeTypesCount do
     begin
-      Assert('' <> ImageFormatInfos[I].MimeTypes[M]);
+      AssertTrue('' <> ImageFormatInfos[I].MimeTypes[M]);
       { This doesn't have to be true in the long run?
         I'm not sure whether mime types have to be lowercase,
         right now our engine treats them as case sensitive. }
@@ -246,7 +246,7 @@ begin
 
     for E := Low(E) to ImageFormatInfos[I].ExtsCount do
     begin
-      Assert('' <> ImageFormatInfos[I].Exts[E]);
+      AssertTrue('' <> ImageFormatInfos[I].Exts[E]);
       AssertEquals(LowerCase(ImageFormatInfos[I].Exts[E]), ImageFormatInfos[I].Exts[E]);
     end;
     if ImageFormatInfos[I].ExtsCount < High(E) then

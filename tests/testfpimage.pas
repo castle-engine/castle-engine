@@ -53,8 +53,8 @@ procedure TTestFPImage.TestJPEG;
       Image.UsePalette := false;
       Image.LoadFromStream(Stream, Reader);
       { test size, to test image was actually read }
-      Assert(GoodWidth = Image.Width);
-      Assert(GoodHeight = Image.Height);
+      AssertTrue(GoodWidth = Image.Width);
+      AssertTrue(GoodHeight = Image.Height);
     finally
       Image.Free;
       Reader.Free;

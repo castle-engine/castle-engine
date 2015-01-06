@@ -49,17 +49,17 @@ var
 begin
   iarr := TIntegerList.Create;
   try
-    Assert(iarr.Count = 0);
+    AssertTrue(iarr.Count = 0);
 
     { growing count works, and sets Items to non-nil }
     iarr.Count := 3;
-    Assert(iarr.Count = 3);
-    Assert(iarr.List <> nil);
+    AssertTrue(iarr.Count = 3);
+    AssertTrue(iarr.List <> nil);
 
     { growing count doesn't change previous values }
     iarr[2] := 123;
     iarr.Count := 1000000;
-    Assert(iarr[2] = 123);
+    AssertTrue(iarr[2] = 123);
   finally FreeAndNil(iarr) end;
 end;
 
@@ -109,32 +109,32 @@ begin
    sarr.AddArray(twoStrings);
    sarr.Add('trzy?');
 
-   Assert(not Equal(sarr, ['foo bar xyz', '', '']));
-   Assert(Equal(sarr, ['foo bar xyz', '', '', 'raz', 'dwa', 'trzy?']));
+   AssertTrue(not Equal(sarr, ['foo bar xyz', '', '']));
+   AssertTrue(Equal(sarr, ['foo bar xyz', '', '', 'raz', 'dwa', 'trzy?']));
 
    Reverse(sarr);
-   Assert(Equal(sarr, ['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
+   AssertTrue(Equal(sarr, ['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
 
    sarr2 := TGenericStringList.Create;
    try
     sarr2.Add('blah');
-    Assert(Equal(sarr2, ['blah']));
+    AssertTrue(Equal(sarr2, ['blah']));
     sarr2.Assign(sarr);
-    Assert(Equal(sarr2, ['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
+    AssertTrue(Equal(sarr2, ['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
 
     {sortuj ustalone 6 stringow}
     sarr.Sort(@IsSmallerString);
-    Assert(Equal(sarr, ['', '', 'dwa', 'foo bar xyz', 'raz', 'trzy?']));
+    AssertTrue(Equal(sarr, ['', '', 'dwa', 'foo bar xyz', 'raz', 'trzy?']));
 
     { sprawdz ze kolejnosc na sarr2 pozostala niezmieniona }
-    Assert(Equal(sarr2, ['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
+    AssertTrue(Equal(sarr2, ['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
    finally sarr2.Free end;
 
    {dodaj losowe stringi, sortuj, sprawdz}
    for j := 0 to 20 do
     sarr.Add( Chr(Random(256)) + Chr(Random(256)) + Chr(Random(256)) );
    sarr.Sort(@IsSmallerString);
-   for j := 0 to sarr.Count-2 do Assert(sarr[j] <= sarr[j+1]);
+   for j := 0 to sarr.Count-2 do AssertTrue(sarr[j] <= sarr[j+1]);
 
   finally sarr.Free end;
  end;
@@ -142,9 +142,9 @@ begin
  sarr := TGenericStringList.Create;
  try
   { na tablicy o 0 liczbie elementow tez wszystko powinno isc ok }
-  Assert(sarr.Count = 0);
+  AssertTrue(sarr.Count = 0);
   Reverse(sarr);
-  Assert(sarr.Count = 0);
+  AssertTrue(sarr.Count = 0);
  finally sarr.Free end;
 end;
 *)
@@ -187,23 +187,23 @@ begin
  try
   iarr := TIntegerList.Create;
   iarr2 := TIntegerList.Create;
-  Assert(Equal(iarr, iarr2));
-  Assert(iarr.Sum = 0);
-  Assert(iarr2.Sum = 0);
+  AssertTrue(Equal(iarr, iarr2));
+  AssertTrue(iarr.Sum = 0);
+  AssertTrue(iarr2.Sum = 0);
 
   iarr.AddArray([1, 3, 6, 8]);
-  Assert(not Equal(iarr, iarr2));
-  Assert(iarr.Sum = 1 + 3 + 6 + 8);
+  AssertTrue(not Equal(iarr, iarr2));
+  AssertTrue(iarr.Sum = 1 + 3 + 6 + 8);
   iarr2.AddArray([1, 3, 6, 8]);
-  Assert(Equal(iarr, iarr2));
+  AssertTrue(Equal(iarr, iarr2));
   iarr2.Insert(0, 99);
-  Assert(not Equal(iarr, iarr2));
-  Assert(iarr2.Sum = iarr.Sum + 99);
-  Assert(Equal(iarr2, [99, 1, 3, 6, 8]));
+  AssertTrue(not Equal(iarr, iarr2));
+  AssertTrue(iarr2.Sum = iarr.Sum + 99);
+  AssertTrue(Equal(iarr2, [99, 1, 3, 6, 8]));
 
   iarr.Assign(iarr2);
-  Assert(Equal(iarr, iarr2));
-  Assert(Equal(iarr, [99, 1, 3, 6, 8]));
+  AssertTrue(Equal(iarr, iarr2));
+  AssertTrue(Equal(iarr, [99, 1, 3, 6, 8]));
 
   { simple DeleteDuplicates tests }
 
@@ -229,13 +229,13 @@ end;
 }
 
 {  IArr.DeleteDuplicates;
-  Assert(iarr.Equal([99, 1, 3, 6, 8]));
+  AssertTrue(iarr.Equal([99, 1, 3, 6, 8]));
   IArr.Insert(0, 3);
   IArr.DeleteDuplicates;
-  Assert(iarr.Equal([3, 99, 1, 6, 8]));
+  AssertTrue(iarr.Equal([3, 99, 1, 6, 8]));
   IArr.Count := 0;
   IArr.DeleteDuplicates;
-  Assert(iarr.Equal([]));}
+  AssertTrue(iarr.Equal([]));}
  finally
   iarr.Free;
   iarr2.Free;
@@ -251,9 +251,9 @@ begin
     vecs.Add(Vector3Single(1.0, 2.0, 3.0));
     vecs.Add(Vector3Single(4.0, 5.0, 6.0));
     vecs.Add(Vector3Single(1.0, 2.0, 3.0));
-    Assert(    VectorsPerfectlyEqual(vecs.L[0], vecs.L[2]));
-    Assert(not VectorsPerfectlyEqual(vecs.L[0], vecs.L[1]));
-    Assert(not VectorsPerfectlyEqual(vecs.L[2], vecs.L[1]));
+    AssertTrue(    VectorsPerfectlyEqual(vecs.L[0], vecs.L[2]));
+    AssertTrue(not VectorsPerfectlyEqual(vecs.L[0], vecs.L[1]));
+    AssertTrue(not VectorsPerfectlyEqual(vecs.L[2], vecs.L[1]));
   finally FreeAndNil(vecs) end;
 end;
 
@@ -272,13 +272,13 @@ begin
     V2.AddList(V1);
     V2.Add(Vector3Single(6.0, 6.0, 6.0));
 
-    Assert(VectorsPerfectlyEqual(V1.L[0], V2.L[1]));
-    Assert(VectorsPerfectlyEqual(V1.L[1], V2.L[2]));
-    Assert(VectorsPerfectlyEqual(V1.L[2], V2.L[3]));
+    AssertTrue(VectorsPerfectlyEqual(V1.L[0], V2.L[1]));
+    AssertTrue(VectorsPerfectlyEqual(V1.L[1], V2.L[2]));
+    AssertTrue(VectorsPerfectlyEqual(V1.L[2], V2.L[3]));
 
     V2.AddListRange(V1, 1, 1);
-    Assert(V2.Count = 6);
-    Assert(VectorsPerfectlyEqual(V1.L[1], V2.L[5]));
+    AssertTrue(V2.Count = 6);
+    AssertTrue(VectorsPerfectlyEqual(V1.L[1], V2.L[5]));
   finally
     FreeAndNil(V1);
     FreeAndNil(V2);
@@ -301,12 +301,12 @@ begin
     V2.Add(Vector3Single(17.0, 18.0, 19.0));
 
     V3.AssignLerp(0.2, V1, V2, 0, 1, 2);
-    Assert(V3.Count = 2);
+    AssertTrue(V3.Count = 2);
 
-    Assert(VectorsPerfectlyEqual(V3.L[0], Lerp(0.2,
+    AssertTrue(VectorsPerfectlyEqual(V3.L[0], Lerp(0.2,
       Vector3Single(1.0, 2.0, 3.0),
       Vector3Single(11.0, 12.0, 13.0))));
-    Assert(VectorsPerfectlyEqual(V3.L[1], Lerp(0.2,
+    AssertTrue(VectorsPerfectlyEqual(V3.L[1], Lerp(0.2,
       Vector3Single(4.0, 5.0, 6.0),
       Vector3Single(17.0, 18.0, 19.0))));
   finally
@@ -329,19 +329,19 @@ begin
   B := TBooleanList.Create;
   B.Count := 10;
   for I := 0 to B.Count - 1 do
-    Assert(not B[I]);
+    AssertTrue(not B[I]);
   FreeAndNil(B);
 
   O := TIntegerList.Create;
   O.Count := 10;
   for I := 0 to O.Count - 1 do
-    Assert(O[I] = 0);
+    AssertTrue(O[I] = 0);
   FreeAndNil(O);
 
   F := TSingleList.Create;
   F.Count := 10;
   for I := 0 to F.Count - 1 do
-    Assert(F[I] = 0);
+    AssertTrue(F[I] = 0);
   FreeAndNil(F);
 end;
 

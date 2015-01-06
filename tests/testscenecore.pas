@@ -31,7 +31,7 @@ begin
   Scene := TCastleSceneCore.Create(nil);
   try
     Scene.Load('data/model_manifold.wrl');
-    Assert(Scene.BorderEdges.Count = 0);
+    AssertTrue(Scene.BorderEdges.Count = 0);
   finally FreeAndNil(Scene) end;
 end;
 
@@ -152,17 +152,17 @@ begin
   try
     try
       Scene.Node('Left');
-      Assert(false, 'Should fail with EX3DNotFound');
+      Fail('Should fail with EX3DNotFound');
     except on EX3DNotFound do ; end;
 
     try
       Scene.Field('Left', 'translation');
-      Assert(false, 'Should fail with EX3DNotFound');
+      Fail('Should fail with EX3DNotFound');
     except on EX3DNotFound do ; end;
 
     try
       Scene.Event('Left', 'addChildren');
-      Assert(false, 'Should fail with EX3DNotFound');
+      Fail('Should fail with EX3DNotFound');
     except on EX3DNotFound do ; end;
 
     Scene.URL := 'data/switches_and_transforms_2.x3dv';
@@ -172,27 +172,27 @@ begin
 
     try
       Scene.Node('Blah');
-      Assert(false, 'Should fail with EX3DNotFound');
+      Fail('Should fail with EX3DNotFound');
     except on EX3DNotFound do ; end;
 
     try
       Scene.Field('Blah', 'translation');
-      Assert(false, 'Should fail with EX3DNotFound');
+      Fail('Should fail with EX3DNotFound');
     except on EX3DNotFound do ; end;
 
     try
       Scene.Event('Blah', 'addChildren');
-      Assert(false, 'Should fail with EX3DNotFound');
+      Fail('Should fail with EX3DNotFound');
     except on EX3DNotFound do ; end;
 
     try
       Scene.Field('Left', 'blah');
-      Assert(false, 'Should fail with EX3DNotFound');
+      Fail('Should fail with EX3DNotFound');
     except on EX3DNotFound do ; end;
 
     try
       Scene.Event('Left', 'blah');
-      Assert(false, 'Should fail with EX3DNotFound');
+      Fail('Should fail with EX3DNotFound');
     except on EX3DNotFound do ; end;
   finally FreeAndNil(Scene) end;
 end;

@@ -43,7 +43,7 @@ var
   begin
     try
       Prog.ExecuteFunction('main', []);
-      Assert(false, 'should not get here');
+      Fail('should not get here');
     except
       on ECasScriptError do ;
     end;
@@ -71,23 +71,23 @@ begin
     Prog := ParseProgram(FileToString('data/test_script_vectors.kscript'), Vars);
     Prog.ExecuteFunction('test_2', []);
 
-    Assert((Vars[0] as TCasScriptInteger).Value = 0);
-    Assert((Vars[1] as TCasScriptFloat).Value =
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 0);
+    AssertTrue((Vars[1] as TCasScriptFloat).Value =
       Single(44.0) * Single(666.0) +
       Single(10.0) * Single(777.0));
-    Assert(VectorsEqual(
+    AssertTrue(VectorsEqual(
       (Vars[2] as TCasScriptVec2f).Value,
       Vector2Single(456 + 44, VectorLen(Vector2Single(456 + 44, 10 + 13)))));
 
     { test 3 }
 
     Prog.ExecuteFunction('test_3', []);
-    Assert((Vars[0] as TCasScriptInteger).Value = 0);
-    Assert((Vars[1] as TCasScriptFloat).Value =
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 0);
+    AssertTrue((Vars[1] as TCasScriptFloat).Value =
       Single(44.0) * Single(666.0) +
       Single(10.0) * Single(777.0) +
       Single(33.0) * Single(91.0));
-    Assert(VectorsEqual(
+    AssertTrue(VectorsEqual(
       (Vars[3] as TCasScriptVec3f).Value,
       Vector3Single(456 + 44, 10 + 13,
         VectorLen(Vector3Single(456 + 44, 10 + 13, 33)))));
@@ -95,19 +95,19 @@ begin
     { test 3 cross }
 
     Prog.ExecuteFunction('test_cross', []);
-    Assert(VectorsEqual(
+    AssertTrue(VectorsEqual(
       (Vars[3] as TCasScriptVec3f).Value, Vector3Single(0, 0, 1)));
 
     { test 4 }
 
     Prog.ExecuteFunction('test_4', []);
-    Assert((Vars[0] as TCasScriptInteger).Value = 0);
-    Assert((Vars[1] as TCasScriptFloat).Value =
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 0);
+    AssertTrue((Vars[1] as TCasScriptFloat).Value =
       Single(44.0) * Single(666.0) +
       Single(10.0) * Single(777.0) +
       Single(33.0) * Single(91.0) +
       Single(123.0) * Single(890.0));
-    Assert(VectorsEqual(
+    AssertTrue(VectorsEqual(
       (Vars[4] as TCasScriptVec4f).Value,
       Vector4Single(456 + 44, 10 + 13, 33,
         VectorLen(Vector4Single(456 + 44, 10 + 13, 33, 123)))));
@@ -144,7 +144,7 @@ var
   begin
     try
       Prog.ExecuteFunction('main', []);
-      Assert(false, 'should not get here');
+      Fail('should not get here');
     except
       on ECasScriptError do ;
     end;
@@ -172,23 +172,23 @@ begin
     Prog := ParseProgram(FileToString('data/test_script_vectors_double.kscript'), Vars);
     Prog.ExecuteFunction('test_2', []);
 
-    Assert((Vars[0] as TCasScriptInteger).Value = 0);
-    Assert((Vars[1] as TCasScriptFloat).Value =
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 0);
+    AssertTrue((Vars[1] as TCasScriptFloat).Value =
       Double(44.0) * Double(666.0) +
       Double(10.0) * Double(777.0));
-    Assert(VectorsEqual(
+    AssertTrue(VectorsEqual(
       (Vars[2] as TCasScriptVec2d).Value,
       Vector2Double(456 + 44, VectorLen(Vector2Double(456 + 44, 10 + 13)))));
 
     { test 3 }
 
     Prog.ExecuteFunction('test_3', []);
-    Assert((Vars[0] as TCasScriptInteger).Value = 0);
-    Assert((Vars[1] as TCasScriptFloat).Value =
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 0);
+    AssertTrue((Vars[1] as TCasScriptFloat).Value =
       Double(44.0) * Double(666.0) +
       Double(10.0) * Double(777.0) +
       Double(33.0) * Double(91.0));
-    Assert(VectorsEqual(
+    AssertTrue(VectorsEqual(
       (Vars[3] as TCasScriptVec3d).Value,
       Vector3Double(456 + 44, 10 + 13,
         VectorLen(Vector3Double(456 + 44, 10 + 13, 33)))));
@@ -196,19 +196,19 @@ begin
     { test 3 cross }
 
     Prog.ExecuteFunction('test_cross', []);
-    Assert(VectorsEqual(
+    AssertTrue(VectorsEqual(
       (Vars[3] as TCasScriptVec3d).Value, Vector3Double(0, 0, 1)));
 
     { test 4 }
 
     Prog.ExecuteFunction('test_4', []);
-    Assert((Vars[0] as TCasScriptInteger).Value = 0);
-    Assert((Vars[1] as TCasScriptFloat).Value =
+    AssertTrue((Vars[0] as TCasScriptInteger).Value = 0);
+    AssertTrue((Vars[1] as TCasScriptFloat).Value =
       Double(44.0) * Double(666.0) +
       Double(10.0) * Double(777.0) +
       Double(33.0) * Double(91.0) +
       Double(123.0) * Double(890.0));
-    Assert(VectorsEqual(
+    AssertTrue(VectorsEqual(
       (Vars[4] as TCasScriptVec4d).Value,
       Vector4Double(456 + 44, 10 + 13, 33,
         VectorLen(Vector4Double(456 + 44, 10 + 13, 33, 123)))));
@@ -260,9 +260,9 @@ begin
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
 
-    Assert(VectorsEqual((Vars[1] as TCasScriptVec3f).Value,
+    AssertTrue(VectorsEqual((Vars[1] as TCasScriptVec3f).Value,
       Vector3Single(11 * 5 * 2, 22 * 3 * 2, 33 * 1 * 2)));
-    Assert(VectorsEqual((Vars[2] as TCasScriptVec4f).Value,
+    AssertTrue(VectorsEqual((Vars[2] as TCasScriptVec4f).Value,
       Vector4Single(11 * 5 * 2, 22 * 3 * 2, 33 * 1 * 2, 44 * 666)));
   finally
     FreeAndNil(Vars);

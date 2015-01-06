@@ -52,8 +52,8 @@ var
     SList.Append('<font color="#aabbcc">blah</font>');
     W2 := F.MaxTextWidth(SList, true);
 
-    Assert(W1 > 0);
-    Assert(W1 = W2);
+    AssertTrue(W1 > 0);
+    AssertTrue(W1 = W2);
     FreeAndNil(SList);
     FreeAndNil(F);
   end;

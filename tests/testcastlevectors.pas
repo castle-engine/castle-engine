@@ -78,13 +78,13 @@ begin
  T := VectorDotProduct(Vector3Single(0, 0, 1), Vector3Single(0, 0, 6));
  AssertFloatsEqual(6, T);
 
- Assert(TryPlaneLineIntersection(T,
+ AssertTrue(TryPlaneLineIntersection(T,
    Vector4Single(0, 0, 1, 1),
    Vector3Single(2, 2, -3),
    Vector3Single(0, 0, 6) ));
  AssertFloatsEqual(1/3, T, 0.0000001);
 
- Assert(TryPlaneSegmentDirIntersection(Intersection, T,
+ AssertTrue(TryPlaneSegmentDirIntersection(Intersection, T,
    Vector4Single(0, 0, 1, 1),
    Vector3Single(2, 2, -3),
    Vector3Single(0, 0, 6) ));
@@ -109,10 +109,10 @@ var Intersection, Intersection2: TVector3Single;
 begin
  { czy dziala TryTriangleSegmentCollision na tym naszym skonstruowanym
    przykladzie ? }
- Assert( TryTriangleSegmentCollision(Intersection, TriConst, TriPlaneConst,
+ AssertTrue( TryTriangleSegmentCollision(Intersection, TriConst, TriPlaneConst,
    Pos1Const, Pos2Const) and VectorsEqual(Intersection, Coll));
  { czy dziala tak samo gdy sam musi sobie wyliczyc TriPlane (test TrianglePlane) ? }
- Assert( TryTriangleSegmentCollision(Intersection2, TriConst, TrianglePlane(TriConst),
+ AssertTrue( TryTriangleSegmentCollision(Intersection2, TriConst, TrianglePlane(TriConst),
    Pos1Const, Pos2Const) and VectorsEqual(Intersection2, Coll));
 end;
 
@@ -122,12 +122,12 @@ const
   CCWPoly: array[0..4]of TVector2Single = ((5, 4), (2, 3), (4, 3), (2, 1), (6, 2));
   CWPoly: array[0..4]of TVector2Single = ((6, 2), (2, 1), (4, 3), (2, 3), (5, 4));
 begin
- Assert(TriangleArea(Tri) = 10*25/2);
+ AssertTrue(TriangleArea(Tri) = 10*25/2);
 
- Assert(Polygon2dArea(CCWPoly) = 5.5);
- Assert(Polygon2dArea(CWPoly) = 5.5);
- Assert(IsPolygon2dCCW(CCWPoly) > 0);
- Assert(IsPolygon2dCCW(CWPoly) < 0);
+ AssertTrue(Polygon2dArea(CCWPoly) = 5.5);
+ AssertTrue(Polygon2dArea(CWPoly) = 5.5);
+ AssertTrue(IsPolygon2dCCW(CCWPoly) > 0);
+ AssertTrue(IsPolygon2dCCW(CWPoly) < 0);
 end;
 
 procedure TTestCastleVectors.TestPerpParallel;
@@ -137,30 +137,30 @@ begin
  for i := 1 to 10 do
  try
   v := RandomVector;
-  Assert( VectorsPerp(AnyOrthogonalVector(v), v) );
+  AssertTrue( VectorsPerp(AnyOrthogonalVector(v), v) );
   { I has to comment it out -- it fails too often due to floating point
     inaccuracy. }
-  { Assert( VectorsParallel(VectorScale(v, Random*10), v) ); }
-  Assert( VectorsPerp(ZeroVector3Single, v) );
-  Assert( VectorsParallel(ZeroVector3Single, v) );
+  { AssertTrue( VectorsParallel(VectorScale(v, Random*10), v) ); }
+  AssertTrue( VectorsPerp(ZeroVector3Single, v) );
+  AssertTrue( VectorsParallel(ZeroVector3Single, v) );
  except
   Writeln('and failed : v = ',VectorToNiceStr(v),
     ' anyPerp = ',VectorToNiceStr(AnyOrthogonalVector(v)));
   raise;
  end;
 
- Assert( VectorsPerp(ZeroVector3Single, ZeroVector3Single) );
- Assert( VectorsParallel(ZeroVector3Single, ZeroVector3Single) );
+ AssertTrue( VectorsPerp(ZeroVector3Single, ZeroVector3Single) );
+ AssertTrue( VectorsParallel(ZeroVector3Single, ZeroVector3Single) );
 
- Assert( VectorsPerp(UnitVector3Single[0], UnitVector3Single[1]) );
- Assert( VectorsPerp(UnitVector3Single[0], UnitVector3Single[2]) );
- Assert( VectorsPerp(UnitVector3Single[1], UnitVector3Single[2]) );
- Assert( not VectorsPerp(UnitVector3Single[0], UnitVector3Single[0]) );
+ AssertTrue( VectorsPerp(UnitVector3Single[0], UnitVector3Single[1]) );
+ AssertTrue( VectorsPerp(UnitVector3Single[0], UnitVector3Single[2]) );
+ AssertTrue( VectorsPerp(UnitVector3Single[1], UnitVector3Single[2]) );
+ AssertTrue( not VectorsPerp(UnitVector3Single[0], UnitVector3Single[0]) );
 
- Assert( not VectorsParallel(UnitVector3Single[0], UnitVector3Single[1]) );
- Assert( not VectorsParallel(UnitVector3Single[0], UnitVector3Single[2]) );
- Assert( not VectorsParallel(UnitVector3Single[1], UnitVector3Single[2]) );
- Assert( VectorsParallel(UnitVector3Single[0], UnitVector3Single[0]) );
+ AssertTrue( not VectorsParallel(UnitVector3Single[0], UnitVector3Single[1]) );
+ AssertTrue( not VectorsParallel(UnitVector3Single[0], UnitVector3Single[2]) );
+ AssertTrue( not VectorsParallel(UnitVector3Single[1], UnitVector3Single[2]) );
+ AssertTrue( VectorsParallel(UnitVector3Single[0], UnitVector3Single[0]) );
 end;
 
 procedure TTestCastleVectors.TestPlanesIntersection;
@@ -223,7 +223,7 @@ begin
    begin
     b1 := TrySimplePlaneRayIntersection(I1, PlaneConstCoord, PlaneConstVal, RayOrigin, RayDirection);
     b2 := TryPlaneRayIntersection(I2, Plane, RayOrigin, RayDirection);
-    Assert( b1 = b2 , 'b1 <> b2');
+    AssertEquals(b1, b2);
     if b1 then
     begin
 {     if not VectorsEqual(I1, I2) or
@@ -547,7 +547,7 @@ begin
   M2[2] := Vector3Single(3, 6, 9);
 
   MatrixTransposeTo1st(M1);
-  Assert(MatricesPerfectlyEqual(M1, M2));
+  AssertTrue(MatricesPerfectlyEqual(M1, M2));
 end;
 
 procedure TTestCastleVectors.TestVector3FromStr;
@@ -556,22 +556,22 @@ var
 begin
   try
     V := Vector3SingleFromStr('1 2 abc');
-    Assert(false, 'Should fail with EConvertError');
+    Fail('Above should fail with EConvertError');
   except on EConvertError do ; end;
 
   try
     V := Vector3SingleFromStr('1 2 3 4');
-    Assert(false, 'Should fail with EConvertError');
+    Fail('Above should fail with EConvertError');
   except on EConvertError do ; end;
 
   try
     V := Vector3SingleFromStr('1 2');
-    Assert(false, 'Should fail with EConvertError');
+    Fail('Above should fail with EConvertError');
   except on EConvertError do ; end;
 
   try
     V := Vector3SingleFromStr('');
-    Assert(false, 'Should fail with EConvertError');
+    Fail('Above should fail with EConvertError');
   except on EConvertError do ; end;
 
   V := Vector3SingleFromStr('  11       22 ' + NL + ' 33    ');
@@ -586,22 +586,22 @@ var
 begin
   try
     V := Vector4SingleFromStr('1 2 3 abc');
-    Assert(false, 'Should fail with EConvertError');
+    Fail('Above should fail with EConvertError');
   except on EConvertError do ; end;
 
   try
     V := Vector4SingleFromStr('1 2 3 4 5');
-    Assert(false, 'Should fail with EConvertError');
+    Fail('Above should fail with EConvertError');
   except on EConvertError do ; end;
 
   try
     V := Vector4SingleFromStr('1 2 3');
-    Assert(false, 'Should fail with EConvertError');
+    Fail('Above should fail with EConvertError');
   except on EConvertError do ; end;
 
   try
     V := Vector4SingleFromStr('');
-    Assert(false, 'Should fail with EConvertError');
+    Fail('Above should fail with EConvertError');
   except on EConvertError do ; end;
 
   V := Vector4SingleFromStr('  11       22 ' + NL + ' 33    44');
@@ -632,9 +632,9 @@ procedure TTestCastleVectors.TestPlaneTransform;
     NewPlane := PlaneTransform(Plane, Matrix);
     // Writeln('New plane ', VectorToNiceStr(NewPlane));
     for I := 0 to High(PointsYes) do
-      Assert(PointLiesOnPlane(PointsYes[I], NewPlane));
+      AssertTrue(PointLiesOnPlane(PointsYes[I], NewPlane));
     for I := 0 to High(PointsNo) do
-      Assert(not PointLiesOnPlane(PointsNo[I], NewPlane));
+      AssertTrue(not PointLiesOnPlane(PointsNo[I], NewPlane));
   end;
 
 begin
@@ -731,7 +731,7 @@ begin
   AssertFloatsEqual(Sqr(1) + Sqr(3), PointsDistance2DSqr(P1, P2, 2), 0.01);
   try
     PointsDistance2DSqr(P1, P2, 3);
-    Assert(false, 'PointsDistance2DSqr with IgnoreIndex = 3 should raise exception');
+    Fail('Above PointsDistance2DSqr with IgnoreIndex = 3 should raise exception');
   except end;
 end;
 

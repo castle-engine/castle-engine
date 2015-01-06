@@ -60,7 +60,7 @@ begin
  {Writeln(MilisecTimesSubtract(t2, t1));}
  { 22 - bo jak dodam 10 do t1 to bede na High, +1 bede na 0, +11 bede na 11;
    Razem 11+1+10 = 22; }
- Assert(MilisecTimesSubtract(t2, t1) = 22);
+ AssertTrue(MilisecTimesSubtract(t2, t1) = 22);
 end;
 
 procedure TTestCastleUtils.TestIndexMinMax_RestOf3dCoords;
@@ -73,11 +73,11 @@ begin
 
   cm := IndexMin(a[0], a[1], a[2]);
   RestOf3dCoords(cm, c1, c2);
-  Assert( (a[cm] <= a[c1]) and (a[cm] <= a[c2]) );
+  AssertTrue( (a[cm] <= a[c1]) and (a[cm] <= a[c2]) );
 
   cm := IndexMax(a[0], a[1], a[2]);
   RestOf3dCoords(cm, c1, c2);
-  Assert( (a[cm] >= a[c1]) and (a[cm] >= a[c2]) );
+  AssertTrue( (a[cm] >= a[c1]) and (a[cm] >= a[c2]) );
  end;
 end;
 
@@ -138,38 +138,38 @@ begin
   FillChar(a, SizeOfA, 'x');
   if Random(2) = 0 then
   begin
-   Assert(CheckIsMemCharFilled(a, SizeOfA, 'x') = -1);
-   Assert(IsMemCharFilled(a, SizeOfA, 'x'));
+   AssertTrue(CheckIsMemCharFilled(a, SizeOfA, 'x') = -1);
+   AssertTrue(IsMemCharFilled(a, SizeOfA, 'x'));
    if not (CheckIsMemCharFilled(a, SizeOfA, 'y') = 0) then
    begin
     WritelnMem(a, SizeOfA);
     raise Exception.Create('failed');
    end;
-   Assert(not IsMemCharFilled(a, SizeOfA, 'y'));
+   AssertTrue(not IsMemCharFilled(a, SizeOfA, 'y'));
   end else
   begin
    YPos := Random(SizeOfA);
    a[YPos] := 'y';
-   Assert(CheckIsMemCharFilled(a, SizeOfA, 'x') = YPos);
-   Assert(not IsMemCharFilled(a, SizeOfA, 'x'));
+   AssertTrue(CheckIsMemCharFilled(a, SizeOfA, 'x') = YPos);
+   AssertTrue(not IsMemCharFilled(a, SizeOfA, 'x'));
    if YPos = 0 then
-    Assert(CheckIsMemCharFilled(a, SizeOfA, 'y') = 1) else
-    Assert(CheckIsMemCharFilled(a, SizeOfA, 'y') = 0);
-   Assert(not IsMemCharFilled(a, SizeOfA, 'y'));
+    AssertTrue(CheckIsMemCharFilled(a, SizeOfA, 'y') = 1) else
+    AssertTrue(CheckIsMemCharFilled(a, SizeOfA, 'y') = 0);
+   AssertTrue(not IsMemCharFilled(a, SizeOfA, 'y'));
   end;
  end;
 
  { sprawdz dla SizeOfA = 1 }
  a[0] := 'k';
- Assert(CheckIsMemCharFilled(a, 1, 'k') = -1);
- Assert(IsMemCharFilled(a, 1, 'k'));
- Assert(CheckIsMemCharFilled(a, 1, 'g') = 0);
- Assert(not IsMemCharFilled(a, 1, 'g'));
+ AssertTrue(CheckIsMemCharFilled(a, 1, 'k') = -1);
+ AssertTrue(IsMemCharFilled(a, 1, 'k'));
+ AssertTrue(CheckIsMemCharFilled(a, 1, 'g') = 0);
+ AssertTrue(not IsMemCharFilled(a, 1, 'g'));
 
  { sprawdz dla SizeOfA = 0 (zawsze odpowiedz bedzie brzmiala -1 / true,
    tak jak kwantyfikator ForAll jest zawsze true dla pustego zbioru...) }
- Assert(CheckIsMemCharFilled(a, 0, 'd') = -1);
- Assert(IsMemCharFilled(a, 0, 'd'));
+ AssertTrue(CheckIsMemCharFilled(a, 0, 'd') = -1);
+ AssertTrue(IsMemCharFilled(a, 0, 'd'));
 
  {$ifdef CASTLEUTILS_SPEED_TESTS}
  TimeTestIsMemCharFilled(100);
@@ -181,41 +181,41 @@ end;
 procedure TTestCastleUtils.TestSmallest2Exp;
 var i: Cardinal;
 begin
- Assert(Smallest2Exponent(0) = -1);
- Assert(Smallest2Power(0) = 0);
- Assert(Smallest2Exponent(1) = 0);
- Assert(Smallest2Power(1) = 1);
- Assert(Smallest2Exponent(2) = 1);
- Assert(Smallest2Power(2) = 2);
+ AssertTrue(Smallest2Exponent(0) = -1);
+ AssertTrue(Smallest2Power(0) = 0);
+ AssertTrue(Smallest2Exponent(1) = 0);
+ AssertTrue(Smallest2Power(1) = 1);
+ AssertTrue(Smallest2Exponent(2) = 1);
+ AssertTrue(Smallest2Power(2) = 2);
  for i := 3 to 4 do
  begin
-  Assert(Smallest2Exponent(i) = 2);
-  Assert(Smallest2Power(i) = 4);
+  AssertTrue(Smallest2Exponent(i) = 2);
+  AssertTrue(Smallest2Power(i) = 4);
  end;
  for i := 5 to 8 do
  begin
-  Assert(Smallest2Exponent(i) = 3);
-  Assert(Smallest2Power(i) = 8);
+  AssertTrue(Smallest2Exponent(i) = 3);
+  AssertTrue(Smallest2Power(i) = 8);
  end;
 end;
 
 procedure TTestCastleUtils.TestPathDelim;
 {$ifdef UNIX}
 begin
- Assert(InclPathDelim('/c/blah/') = '/c/blah/');
- Assert(InclPathDelim('/c/blah' ) = '/c/blah/');
- Assert(ExclPathDelim('/c/blah/') = '/c/blah' );
- Assert(ExclPathDelim('/c/blah' ) = '/c/blah' );
+ AssertTrue(InclPathDelim('/c/blah/') = '/c/blah/');
+ AssertTrue(InclPathDelim('/c/blah' ) = '/c/blah/');
+ AssertTrue(ExclPathDelim('/c/blah/') = '/c/blah' );
+ AssertTrue(ExclPathDelim('/c/blah' ) = '/c/blah' );
 {$endif}
 {$ifdef MSWINDOWS}
 begin
- Assert(InclPathDelim('c:\blah\') = 'c:\blah\');
- Assert(InclPathDelim('c:\blah' ) = 'c:\blah\');
- Assert(ExclPathDelim('c:\blah\') = 'c:\blah' );
- Assert(ExclPathDelim('c:\blah' ) = 'c:\blah' );
+ AssertTrue(InclPathDelim('c:\blah\') = 'c:\blah\');
+ AssertTrue(InclPathDelim('c:\blah' ) = 'c:\blah\');
+ AssertTrue(ExclPathDelim('c:\blah\') = 'c:\blah' );
+ AssertTrue(ExclPathDelim('c:\blah' ) = 'c:\blah' );
 
- Assert(InclPathDelim('c:\blah/') = 'c:\blah/');
- Assert(ExclPathDelim('c:\blah/') = 'c:\blah' );
+ AssertTrue(InclPathDelim('c:\blah/') = 'c:\blah/');
+ AssertTrue(ExclPathDelim('c:\blah/') = 'c:\blah' );
 {$endif}
 end;
 
@@ -238,24 +238,24 @@ begin
  { only on systems with locale properly de/encoding ISO-8859-2 ! }
 
  { does not pass !! But should !! FPC rtl not ready yet !! }
- { Assert(AnsiSameText('bêcwa³', 'BÊCWA£')); }
+ { AssertTrue(AnsiSameText('bêcwa³', 'BÊCWA£')); }
 
- { Assert(not AnsiSameStr('bêcwa³', 'BÊCWA£')); }
+ { AssertTrue(not AnsiSameStr('bêcwa³', 'BÊCWA£')); }
  {$endif}
- Assert(SameText('becwal', 'BECWAL'));
- Assert(not SameText('becwal', 'becwal '));
+ AssertTrue(SameText('becwal', 'BECWAL'));
+ AssertTrue(not SameText('becwal', 'becwal '));
 end;
 
 procedure TTestCastleUtils.TestOthers;
 begin
- Assert(StringOfChar('x', 0) = '');
- Assert(StringOfChar('x', 1) = 'x');
- Assert(StringOfChar('s', 3) = 'sss');
+ AssertTrue(StringOfChar('x', 0) = '');
+ AssertTrue(StringOfChar('x', 1) = 'x');
+ AssertTrue(StringOfChar('s', 3) = 'sss');
  { We require Math.Power to work even with base <= 0 (but integer).
    We even used to have our own GeneralPower implemented for this purpose,
    but it's not needed since FPC 1.9.5 (bug 3005 is fixed). }
- Assert(Power( 2.0, 2.0) = 4.0);
- Assert(Power(-2.0, 2.0) = 4.0);
+ AssertTrue(Power( 2.0, 2.0) = 4.0);
+ AssertTrue(Power(-2.0, 2.0) = 4.0);
 end;
 
 procedure TTestCastleUtils.TestIntSqrt;
@@ -265,8 +265,8 @@ procedure TTestCastleUtils.TestIntSqrt;
     S: Cardinal;
   begin
     S := IntSqrt(Value);
-    Assert(Sqr(S) <= Value);
-    Assert(Sqr(S+1) > Value);
+    AssertTrue(Sqr(S) <= Value);
+    AssertTrue(Sqr(S+1) > Value);
   end;
 
 var
@@ -288,13 +288,13 @@ procedure TTestCastleUtils.TestDivMod;
     ModResult: SmallInt;
   begin
     CastleDivMod(Divident, Divisor, DivResult, ModResult);
-    Assert(DivResult = CorrectDivResult);
-    Assert(ModResult = CorrectModResult);
+    AssertTrue(DivResult = CorrectDivResult);
+    AssertTrue(ModResult = CorrectModResult);
 
     DivResult := Divident div Divisor;
     ModResult := Divident mod Divisor;
-    Assert(DivResult = CorrectDivResult);
-    Assert(ModResult = CorrectModResult);
+    AssertTrue(DivResult = CorrectDivResult);
+    AssertTrue(ModResult = CorrectModResult);
   end;
 
 begin
@@ -308,15 +308,15 @@ var
 begin
   A := 123;
   Clamp(A, 100, 200);
-  Assert(A = 123);
+  AssertTrue(A = 123);
   Clamp(A, 50, 100);
-  Assert(A = 100);
+  AssertTrue(A = 100);
   Clamp(A, 200, 300);
-  Assert(A = 200);
+  AssertTrue(A = 200);
 
-  Assert(Clamped(123, 100, 200) = 123);
-  Assert(Clamped(123, 50, 100) = 100);
-  Assert(Clamped(123, 200, 300) = 200);
+  AssertTrue(Clamped(123, 100, 200) = 123);
+  AssertTrue(Clamped(123, 50, 100) = 100);
+  AssertTrue(Clamped(123, 200, 300) = 200);
 end;
 
 procedure TTestCastleUtils.TestSimpleMath;
@@ -326,19 +326,19 @@ begin
   A := 123;
   B := 456;
   SwapValues(A, B);
-  Assert(A = 456);
-  Assert(B = 123);
+  AssertTrue(A = 456);
+  AssertTrue(B = 123);
 
   OrderUp(A, B);
-  Assert(A = 123);
-  Assert(B = 456);
+  AssertTrue(A = 123);
+  AssertTrue(B = 456);
 
   OrderUp(789, 1024, A, B);
-  Assert(A = 789);
-  Assert(B = 1024);
+  AssertTrue(A = 789);
+  AssertTrue(B = 1024);
 
-  Assert(Between(3, -100, 100));
-  Assert(not Between(-300, -100, 100));
+  AssertTrue(Between(3, -100, 100));
+  AssertTrue(not Between(-300, -100, 100));
 
   AssertFloatsEqual( 0.5, MapRange(2  , 1  , 3  , 0  , 1  ), 0.01);
   AssertFloatsEqual( 0.5, MapRange(2.0, 1.0, 3.0, 0.0, 1.0), 0.01);
@@ -349,16 +349,16 @@ begin
   AssertFloatsEqual(0.25, MapRange(1.5, 1  , 3  , 0  , 1  ), 0.01);
   AssertFloatsEqual(0.25, MapRange(1.5, 1.0, 3.0, 0.0, 1.0), 0.01);
 
-  Assert(DivRoundUp(40, 4) = 10);
-  Assert(DivRoundUp(42, 4) = 11);
+  AssertTrue(DivRoundUp(40, 4) = 10);
+  AssertTrue(DivRoundUp(42, 4) = 11);
 end;
 
 procedure TTestCastleUtils.TestMinMax;
 begin
-  Assert(Min(345, 789) = 345);
-  Assert(Max(345, 789) = 789);
-  Assert(Min(345, 123, 789) = 123);
-  Assert(Max(345, 123, 789) = 789);
+  AssertTrue(Min(345, 789) = 345);
+  AssertTrue(Max(345, 789) = 789);
+  AssertTrue(Min(345, 123, 789) = 123);
+  AssertTrue(Max(345, 123, 789) = 789);
 end;
 
 type
@@ -390,12 +390,12 @@ begin
 
   Sort(Pointer(Recs), SizeOf(TRec), @IsSmallerRec, nil, 0, Length(Recs) - 1);
 
-  Assert(Recs[0].SortKey = -10);
-  Assert(Recs[1].SortKey = -1);
-  Assert(Recs[2].SortKey = -1);
-  Assert(Recs[3].SortKey = -1);
-  Assert(Recs[4].SortKey = -1);
-  Assert(Recs[5].SortKey = 10);
+  AssertTrue(Recs[0].SortKey = -10);
+  AssertTrue(Recs[1].SortKey = -1);
+  AssertTrue(Recs[2].SortKey = -1);
+  AssertTrue(Recs[3].SortKey = -1);
+  AssertTrue(Recs[4].SortKey = -1);
+  AssertTrue(Recs[5].SortKey = 10);
 end;
 
 {
@@ -419,18 +419,18 @@ begin
 
   StableSort(Pointer(Recs), SizeOf(TRec), @IsSmallerRec, nil, 0, Length(Recs) - 1);
 
-  Assert(Recs[0].Id = 4);
-  Assert(Recs[0].SortKey = -10);
-  Assert(Recs[1].Id = 0);
-  Assert(Recs[1].SortKey = -1);
-  Assert(Recs[2].Id = 1);
-  Assert(Recs[2].SortKey = -1);
-  Assert(Recs[3].Id = 2);
-  Assert(Recs[3].SortKey = -1);
-  Assert(Recs[4].Id = 3);
-  Assert(Recs[4].SortKey = -1);
-  Assert(Recs[5].Id = 5);
-  Assert(Recs[5].SortKey = 10);
+  AssertTrue(Recs[0].Id = 4);
+  AssertTrue(Recs[0].SortKey = -10);
+  AssertTrue(Recs[1].Id = 0);
+  AssertTrue(Recs[1].SortKey = -1);
+  AssertTrue(Recs[2].Id = 1);
+  AssertTrue(Recs[2].SortKey = -1);
+  AssertTrue(Recs[3].Id = 2);
+  AssertTrue(Recs[3].SortKey = -1);
+  AssertTrue(Recs[4].Id = 3);
+  AssertTrue(Recs[4].SortKey = -1);
+  AssertTrue(Recs[5].Id = 5);
+  AssertTrue(Recs[5].SortKey = 10);
 end;
 }
 

@@ -53,18 +53,18 @@ const
   );
   Indexes: array [0..3] of LongInt = (0, 1, 2, 3);
 begin
-  Assert(VectorsEqual(
+  AssertTrue(VectorsEqual(
     IndexedPolygonNormal(@Indexes, High(Indexes) + 1,
       @Verts, High(Verts) + 1, ZeroVector3Single, false),
     Vector3Single(0, 0, -1)));
 
   { This is an example polygon that cannot be handled
     by IndexedConvexPolygonNormal }
-  Assert(not VectorsEqual(
+  AssertTrue(not VectorsEqual(
     IndexedConvexPolygonNormal(@Indexes, High(Indexes) + 1,
       @Verts, High(Verts) + 1, ZeroVector3Single),
     Vector3Single(0, 0, -1)));
-  Assert(not VectorsEqual(
+  AssertTrue(not VectorsEqual(
     IndexedPolygonNormal(@Indexes, High(Indexes) + 1,
       @Verts, High(Verts) + 1, ZeroVector3Single, true),
     Vector3Single(0, 0, -1)));
@@ -80,7 +80,7 @@ begin
   V1 := Vertexes[Tri[1]];
   V2 := Vertexes[Tri[2]];
   EarNormal := TriangleDir(V0, V1, V2);
-  Assert(not ZeroVector(EarNormal));
+  AssertTrue(not ZeroVector(EarNormal));
 end;
 
 procedure TTestCastleTriangulate.TestTriangulateFace;

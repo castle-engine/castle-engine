@@ -37,18 +37,18 @@ var
 begin
   FileFiltersToDialog('All files (*)|*|*All images (*.png;*.jpg)|*.png;*.jpg|PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg',
     LCLFilter, LCLFilterIndex);
-  Assert(LCLFilter = 'All files (*)|*|All images (*.png;*.jpg)|*.png;*.jpg|PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg|');
-  Assert(LCLFilterIndex = 2);
+  AssertTrue(LCLFilter = 'All files (*)|*|All images (*.png;*.jpg)|*.png;*.jpg|PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg|');
+  AssertTrue(LCLFilterIndex = 2);
 
   FileFiltersToDialog('All files (*)|*|*All images (*.png;*.jpg)|*.png;*.jpg|PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg',
     LCLFilter, LCLFilterIndex, false);
-  Assert(LCLFilter = 'PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg|');
-  Assert(LCLFilterIndex = 1);
+  AssertTrue(LCLFilter = 'PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg|');
+  AssertTrue(LCLFilterIndex = 1);
 
   FileFiltersToDialog('All files (*)|*|All images (*.png;*.jpg)|*.png;*.jpg|PNG images (*.png)|*.png|*JPEG images (*.jpg)|*.jpg',
     LCLFilter, LCLFilterIndex, false);
-  Assert(LCLFilter = 'PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg|');
-  Assert(LCLFilterIndex = 2);
+  AssertTrue(LCLFilter = 'PNG images (*.png)|*.png|JPEG images (*.jpg)|*.jpg|');
+  AssertTrue(LCLFilterIndex = 2);
 end;
 
 initialization
