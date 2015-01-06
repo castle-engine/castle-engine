@@ -20,10 +20,10 @@ unit TestCubeMaps;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
 
 type
-  TTestCubeMap = class(TTestCase)
+  TTestCubeMap = class(TCastleBaseTestCase)
   published
     procedure TestReverse;
     procedure TestCubeMapSolidAngle;
@@ -51,13 +51,13 @@ end;
 
 type
   generic TTester<T> = class
-    procedure DoTest;
+    procedure DoTest(const TestCase: TCastleBaseTestCase);
   end;
   TTesterSingle = specialize TTester<Single>;
   TTesterDouble = specialize TTester<Double>;
   TTesterExtended = specialize TTester<Extended>;
 
-procedure TTester.DoTest;
+procedure TTester.DoTest(const TestCase: TCastleBaseTestCase);
 var
   Side: TCubeMapSide;
   Pixel: Cardinal;
@@ -107,7 +107,7 @@ begin
 
   { CubeMapSolidAngle is a gross approximation now, so we allow quite large
     error. }
-  Assert(FloatsEqual(SphereArea, 4 * Pi, 0.02));
+  TestCase.AssertFloatsEqual(4 * Pi, SphereArea, 0.02);
 end;
 
 procedure TTestCubeMap.TestCubeMapSolidAngle;
@@ -117,15 +117,15 @@ var
   TE: TTesterExtended;
 begin
   TS := TTesterSingle.Create;
-  TS.DoTest;
+  TS.DoTest(Self);
   TS.Free;
 
   TD := TTesterDouble.Create;
-  TD.DoTest;
+  TD.DoTest(Self);
   TD.Free;
 
   TE := TTesterExtended.Create;
-  TE.DoTest;
+  TE.DoTest(Self);
   TE.Free;
 end;
 

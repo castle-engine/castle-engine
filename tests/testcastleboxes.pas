@@ -18,10 +18,10 @@ unit TestCastleBoxes;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
 
 type
-  TTestCastleBoxes = class(TTestCase)
+  TTestCastleBoxes = class(TCastleBaseTestCase)
   published
     procedure TestIsCenteredBox3DPlaneCollision;
     procedure TestBox3DPlaneCollision;
@@ -652,23 +652,6 @@ procedure TTestCastleBoxes.TestBox3DTransform;
     end;
   end;
 
-  procedure AssertBoxesEqual(const Box1, Box2: TBox3D);
-  var
-    I: Integer;
-  begin
-    try
-      for I := 0 to 2 do
-      begin
-        Assert(FloatsEqual(Box1.Data[0][I], Box2.Data[0][I], 0.01));
-        Assert(FloatsEqual(Box1.Data[1][I], Box2.Data[1][I], 0.01));
-      end;
-    except
-      writeln('AssertBoxesEqual failed: ',
-        Box1.ToNiceStr, ' ', Box2.ToNiceStr);
-      raise;
-    end;
-  end;
-
 var
   Box: TBox3D;
   I: Integer;
@@ -678,14 +661,14 @@ begin
   begin
     Box := RandomBox;
     Matrix := RandomMatrix;
-    AssertBoxesEqual(Slower(Box, Matrix), Box.Transform(Matrix));
+    AssertBoxesEqual(Slower(Box, Matrix), Box.Transform(Matrix), 0.01);
   end;
 
   for I := 0 to 1000 do
   begin
     Box := RandomBox;
     Matrix := RandomNonProjectionMatrix;
-    AssertBoxesEqual(Slower(Box, Matrix), Box.Transform(Matrix));
+    AssertBoxesEqual(Slower(Box, Matrix), Box.Transform(Matrix), 0.01);
   end;
 
   { $define BOX3D_TRANSFORM_SPEED_TEST}
@@ -778,21 +761,25 @@ const
   Epsilon = 0.0001;
 begin
   { check point inside box case }
-  Assert(Box.PointDistance(Vector3Single(1, 2, 3)) = 0);
-  Assert(Box.PointDistance(Vector3Single(3, 4, 5)) = 0);
+  AssertFloatsEqual(0, Box.PointDistance(Vector3Single(1, 2, 3)), 0);
+  AssertFloatsEqual(0, Box.PointDistance(Vector3Single(3, 4, 5)), 0);
   { check point <-> box side case }
-  Assert(FloatsEqual(Box.PointDistance(Vector3Single(3, 4, 10)), 4));
-  Assert(FloatsEqual(Box.PointDistance(Vector3Single(3, 4, 0)), 3));
+  AssertFloatsEqual(4, Box.PointDistance(Vector3Single(3, 4, 10)));
+  AssertFloatsEqual(3, Box.PointDistance(Vector3Single(3, 4, 0)));
   { check point <-> box edge case }
-  Assert(FloatsEqual(Box.PointDistance(Vector3Single(3, 10, 10)),
-    Sqrt( Sqr(10-6) + Sqr(10-5) ), Epsilon));
-  Assert(FloatsEqual(Box.PointDistance(Vector3Single(3, 0, 0)),
-    Sqrt( Sqr(0-2)  + Sqr(0-3)  ), Epsilon));
+  AssertFloatsEqual(Sqrt( Sqr(10-6) + Sqr(10-5) ),
+    Box.PointDistance(Vector3Single(3, 10, 10)),
+    Epsilon);
+  AssertFloatsEqual(Sqrt( Sqr(0-2)  + Sqr(0-3)  ),
+    Box.PointDistance(Vector3Single(3, 0, 0)),
+    Epsilon);
   { check point <-> box corner case }
-  Assert(FloatsEqual(Box.PointDistance(Vector3Single(10, 10, 10)),
-    Sqrt( Sqr(10-6) + Sqr(10-5) + Sqr(10-4) ), Epsilon));
-  Assert(FloatsEqual(Box.PointDistance(Vector3Single(0, 0, 0)),
-    Sqrt( Sqr(0-2)  + Sqr(0-3)  + Sqr(0-1)  ), Epsilon));
+  AssertFloatsEqual(Sqrt( Sqr(10-6) + Sqr(10-5) + Sqr(10-4) ),
+    Box.PointDistance(Vector3Single(10, 10, 10)),
+    Epsilon);
+  AssertFloatsEqual(Sqrt( Sqr(0-2)  + Sqr(0-3)  + Sqr(0-1)  ),
+    Box.PointDistance(Vector3Single(0, 0, 0)),
+    Epsilon);
 end;
 
 procedure TTestCastleBoxes.Test2D;
@@ -808,18 +795,18 @@ begin
     Assert(false, 'PointInside2D with IgnoreIndex = 3 should raise exception');
   except end;
 
-  Assert(FloatsEqual(Box.Radius2D(0), Sqrt(Sqr(5) + Sqr(6)), 0.01));
-  Assert(FloatsEqual(Box.Radius2D(1), Sqrt(Sqr(4) + Sqr(6)), 0.01));
-  Assert(FloatsEqual(Box.Radius2D(2), Sqrt(Sqr(4) + Sqr(5)), 0.01));
+  AssertFloatsEqual(Sqrt(Sqr(5) + Sqr(6)), Box.Radius2D(0), 0.01);
+  AssertFloatsEqual(Sqrt(Sqr(4) + Sqr(6)), Box.Radius2D(1), 0.01);
+  AssertFloatsEqual(Sqrt(Sqr(4) + Sqr(5)), Box.Radius2D(2), 0.01);
   try
     Box.Radius2D(3);
     Assert(false, 'Radius2D with IgnoreIndex = 3 should raise exception');
   except end;
 
-  Assert(FloatsEqual(Box.Radius, Sqrt(Sqr(4) + Sqr(5) + Sqr(6)), 0.01));
+  AssertFloatsEqual(Sqrt(Sqr(4) + Sqr(5) + Sqr(6)), Box.Radius, 0.01);
 
-  Assert(FloatsEqual(Box.Diagonal, Sqrt(Sqr(3) + Sqr(3) + Sqr(3)), 0.01));
-  Assert(FloatsEqual(Box2.Diagonal, Sqrt(Sqr(1) + Sqr(10) + Sqr(3)), 0.01));
+  AssertFloatsEqual(Sqrt(Sqr(3) + Sqr(3) + Sqr(3)), Box.Diagonal, 0.01);
+  AssertFloatsEqual(Sqrt(Sqr(1) + Sqr(10) + Sqr(3)), Box2.Diagonal, 0.01);
 end;
 
 initialization

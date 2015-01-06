@@ -20,10 +20,10 @@ unit TestCastleScript;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
 
 type
-  TTestCastleScript = class(TTestCase)
+  TTestCastleScript = class(TCastleBaseTestCase)
   published
     procedure Test1;
     procedure TestCodeCreatedExprs;
@@ -60,7 +60,7 @@ begin
 { Interactive test:
   WritelnLexer('-10 * Pi');
 }
-  Assert(FloatsEqual(ParseConstantFloatExpression('-10 * Pi'), -10 * Pi));
+  AssertFloatsEqual(-10 * Pi, ParseConstantFloatExpression('-10 * Pi'));
 end;
 
 procedure TTestCastleScript.TestCodeCreatedExprs;
@@ -131,11 +131,8 @@ begin
 end;
 
 procedure TTestCastleScript.TestVariousTypesPrograms;
-
-  procedure AssertFloat(const A, B: Single);
-  begin
-    Assert(FloatsEqual(A, B, 0.01));
-  end;
+const
+  Epsilon = 0.01;
 
 var
   Prog: TCasScriptProgram;
@@ -240,42 +237,42 @@ begin
     Prog := ParseProgram('function main() my_float := float(3.14)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    AssertFloat((Vars[1] as TCasScriptFloat).Value, 3.14);
+    AssertFloatsEqual((Vars[1] as TCasScriptFloat).Value, 3.14, Epsilon);
 
     Prog := ParseProgram('function main() my_float := float(-3.14)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    AssertFloat((Vars[1] as TCasScriptFloat).Value, -3.14);
+    AssertFloatsEqual((Vars[1] as TCasScriptFloat).Value, -3.14, Epsilon);
 
     Prog := ParseProgram('function main() my_float := float(666)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    AssertFloat((Vars[1] as TCasScriptFloat).Value, 666);
+    AssertFloatsEqual((Vars[1] as TCasScriptFloat).Value, 666, Epsilon);
 
     Prog := ParseProgram('function main() my_float := 123', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    AssertFloat((Vars[1] as TCasScriptFloat).Value, 123);
+    AssertFloatsEqual((Vars[1] as TCasScriptFloat).Value, 123, Epsilon);
 
     Prog := ParseProgram('function main() my_float := float(''44.456'')', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    AssertFloat((Vars[1] as TCasScriptFloat).Value, 44.456);
+    AssertFloatsEqual((Vars[1] as TCasScriptFloat).Value, 44.456, Epsilon);
 
     Prog := ParseProgram('function main() my_float := float(false)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    AssertFloat((Vars[1] as TCasScriptFloat).Value, 0);
+    AssertFloatsEqual((Vars[1] as TCasScriptFloat).Value, 0, Epsilon);
 
     Prog := ParseProgram('function main() my_float := float(true)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    AssertFloat((Vars[1] as TCasScriptFloat).Value, 1);
+    AssertFloatsEqual((Vars[1] as TCasScriptFloat).Value, 1, Epsilon);
 
     Prog := ParseProgram('function main() my_float := float(0 <> 0)', Vars);
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
-    AssertFloat((Vars[1] as TCasScriptFloat).Value, 0);
+    AssertFloatsEqual((Vars[1] as TCasScriptFloat).Value, 0, Epsilon);
 
     { test bool() }
 

@@ -20,10 +20,11 @@ unit TestCastleVectors;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors,
+  CastleBaseTestCase;
 
 type
-  TTestCastleVectors = class(TTestCase)
+  TTestCastleVectors = class(TCastleBaseTestCase)
   published
     procedure TestPlaneOdcCollision;
     procedure TestCollisions;
@@ -75,22 +76,20 @@ var Intersection: TVector3Single;
     T: Single;
 begin
  T := VectorDotProduct(Vector3Single(0, 0, 1), Vector3Single(0, 0, 6));
- if not FloatsEqual(T, 6) then
-  raise Exception.CreateFmt('failed 1 : T = %g',[T]);
+ AssertFloatsEqual(6, T);
 
  Assert(TryPlaneLineIntersection(T,
    Vector4Single(0, 0, 1, 1),
    Vector3Single(2, 2, -3),
    Vector3Single(0, 0, 6) ));
- if not FloatsEqual(T, 1/3, 0.0000001) then
-  raise Exception.CreateFmt('failed 2 : T = %g',[T]);
+ AssertFloatsEqual(1/3, T, 0.0000001);
 
  Assert(TryPlaneSegmentDirIntersection(Intersection, T,
    Vector4Single(0, 0, 1, 1),
    Vector3Single(2, 2, -3),
    Vector3Single(0, 0, 6) ));
- Assert(VectorsEqual(Intersection, Vector3Single(2, 2, -1)));
- Assert(FloatsEqual(T, 1/3, 0.0000001));
+ AssertVectorsEqual(Vector3Single(2, 2, -1), Intersection);
+ AssertFloatsEqual(1/3, T, 0.0000001);
 end;
 
 procedure WritelnSpeedTest(const s: string);
@@ -244,9 +243,9 @@ begin
 	VectorToNiceStr(VectorAdd(RayOrigin, VectorScale(RayDirection, t2)))
       );
      end; }
-     Assert( FloatsEqual(I1[PlaneConstCoord], PlaneConstVal), 'I1 not ok');
-     Assert( FloatsEqual(I2[PlaneConstCoord], PlaneConstVal), 'I2 not ok');
-     Assert( VectorsEqual(I1, I2) ,'I1 <> I2');
+     AssertFloatsEqual(PlaneConstVal, I1[PlaneConstCoord]);
+     AssertFloatsEqual(PlaneConstVal, I2[PlaneConstCoord]);
+     AssertVectorsEqual(I1, I2);
     end;
    end;
   end;
@@ -321,7 +320,7 @@ procedure TTestCastleVectors.TestVectorStr;
    v := RandomVector;
    s := VectorToRawStr(v);
    v2 := Vector3SingleFromStr(s);
-   Assert(VectorsEqual(v2, v));
+   AssertVectorsEqual(v2, v);
   end;
 
   procedure OneTestByDeformat;
@@ -331,7 +330,7 @@ procedure TTestCastleVectors.TestVectorStr;
    v := RandomVector;
    s := VectorToRawStr(v);
    DeFormat(s, '%.single. %.single. %.single.', [@v2[0], @v2[1], @v2[2]]);
-   Assert(VectorsEqual(v2, v));
+   AssertVectorsEqual(v2, v);
   end;
 
 const CYCLES = SPEED_TEST_3_CYCLES;
@@ -371,14 +370,16 @@ begin
   Writeln(MatrixToNiceStr(MatrixInverse(M, MatrixDeterminant(M)), '  '));
 }
 
-  Assert(MatricesEqual(
+  AssertMatricesEqual(
+    ScalingMatrix(Vector3Single(0.5, 0.5, 0.5)),
     MatrixInverse(M, MatrixDeterminant(M)),
-    ScalingMatrix(Vector3Single(0.5, 0.5, 0.5)), 0.01));
+    0.01);
 
   M := TranslationMatrix(Vector3Single(2, 2, 2));
-  Assert(MatricesEqual(
+  AssertMatricesEqual(
+    TranslationMatrix(Vector3Single(-2, -2, -2)),
     MatrixInverse(M, MatrixDeterminant(M)),
-    TranslationMatrix(Vector3Single(-2, -2, -2)), 0.01));
+    0.01);
 end;
 
 procedure TTestCastleVectors.TestMultMatrixTranslation;
@@ -393,7 +394,7 @@ begin
     V := RandomVector;
     NewM := MatrixMult(M, TranslationMatrix(V));
     MultMatrixTranslation(M, V);
-    Assert(MatricesEqual(M, NewM, 0.001));
+    AssertMatricesEqual(M, NewM, 0.001);
   end;
 end;
 
@@ -413,8 +414,8 @@ begin
     NewM := MatrixMult(M, TranslationMatrix(V));
     NewMInverse := MatrixMult(TranslationMatrix(VectorNegate(V)), MInverse);
     MultMatricesTranslation(M, MInverse, V);
-    Assert(MatricesEqual(M, NewM, 0.001));
-    Assert(MatricesEqual(MInverse, NewMInverse, 0.001));
+    AssertMatricesEqual(M, NewM, 0.001);
+    AssertMatricesEqual(MInverse, NewMInverse, 0.001);
   end;
 end;
 
@@ -424,23 +425,23 @@ const
   CCWPolyIndex: array [0..6] of LongInt = (0, 1, 5, 2, 3, 4, 999);
   CWPolyIndex: array [0..6] of LongInt = (666, 4, 105, 3, 2, 1, 0);
 begin
-  Assert(VectorsEqual(
+  AssertVectorsEqual(
+    Vector3Single(0, 0, 1),
     IndexedConvexPolygonNormal(@CCWPolyIndex, High(CCWPolyIndex) + 1,
-      @Poly, High(Poly) + 1, ZeroVector3Single),
-    Vector3Single(0, 0, 1)));
+      @Poly, High(Poly) + 1, ZeroVector3Single));
 
-  Assert(VectorsEqual(
+  AssertVectorsEqual(
+    Vector3Single(0, 0, -1),
     IndexedConvexPolygonNormal(@CWPolyIndex, High(CWPolyIndex) + 1,
-      @Poly, High(Poly) + 1, ZeroVector3Single),
-    Vector3Single(0, 0, -1)));
+      @Poly, High(Poly) + 1, ZeroVector3Single));
 
-  Assert(FloatsEqual(
+  AssertFloatsEqual(8,
     IndexedConvexPolygonArea(@CCWPolyIndex, High(CCWPolyIndex) + 1,
-      @Poly, High(Poly) + 1), 8));
+      @Poly, High(Poly) + 1));
 
-  Assert(FloatsEqual(
+  AssertFloatsEqual(8,
     IndexedConvexPolygonArea(@CWPolyIndex , High(CWPolyIndex) + 1,
-      @Poly, High(Poly) + 1), 8));
+      @Poly, High(Poly) + 1));
 end;
 
 procedure TTestCastleVectors.TestSphereRayIntersection;
@@ -450,22 +451,22 @@ var
 begin
   Res := TrySphereRayIntersection(I, Vector3Single(3, 0, 0), 10,
     Vector3Single(0, 0, 0), Vector3Single(1, 0, 0));
-  Assert(Res);
-  Assert(VectorsEqual(I, Vector3Single(13, 0, 0)));
+  AssertTrue(Res);
+  AssertVectorsEqual(Vector3Single(13, 0, 0), I);
 
   Res := TrySphereRayIntersection(I, Vector3Single(3, 0, 0), 10,
     Vector3Single(0, 0, 0), Vector3Single(-1, 0, 0));
-  Assert(Res);
-  Assert(VectorsEqual(I, Vector3Single(-7, 0, 0)));
+  AssertTrue(Res);
+  AssertVectorsEqual(Vector3Single(-7, 0, 0), I);
 
   Res := TrySphereRayIntersection(I, Vector3Single(3, 0, 0), 10,
     Vector3Single(20, 0, 0), Vector3Single(1, 0, 0));
-  Assert(not Res);
+  AssertFalse(Res);
 
   Res := TrySphereRayIntersection(I, Vector3Single(3, 0, 0), 10,
     Vector3Single(20, 0, 0), Vector3Single(-1, 0, 0));
-  Assert(Res);
-  Assert(VectorsEqual(I, Vector3Single(13, 0, 0)));
+  AssertTrue(Res);
+  AssertVectorsEqual(Vector3Single(13, 0, 0), I);
 end;
 
 { global utils --------------------------------------------------------------- }
@@ -521,16 +522,16 @@ begin
 
   Result1 := M1 * M2;
   Result2 := MatrixMult(M1, M2);
-  Assert(MatricesEqual(Result1, Result2, 0.1));
+  AssertMatricesEqual(Result1, Result2, 0.1);
 
   Result2 := MatrixMult(MatrixMult(M1, M2), M3);
 
   Result1 := M1 * M2;
   Result1 := Result1 * M3;
-  Assert(MatricesEqual(Result1, Result2, 0.1));
+  AssertMatricesEqual(Result1, Result2, 0.1);
 
   Result1 := M1 * M2 * M3;
-  Assert(MatricesEqual(Result1, Result2, 0.1));
+  AssertMatricesEqual(Result1, Result2, 0.1);
 end;
 
 procedure TTestCastleVectors.TestMatrixTranspose;
@@ -574,9 +575,9 @@ begin
   except on EConvertError do ; end;
 
   V := Vector3SingleFromStr('  11       22 ' + NL + ' 33    ');
-  Assert(FloatsEqual(V[0], 11));
-  Assert(FloatsEqual(V[1], 22));
-  Assert(FloatsEqual(V[2], 33));
+  AssertFloatsEqual(11, V[0]);
+  AssertFloatsEqual(22, V[1]);
+  AssertFloatsEqual(33, V[2]);
 end;
 
 procedure TTestCastleVectors.TestVector4FromStr;
@@ -604,10 +605,10 @@ begin
   except on EConvertError do ; end;
 
   V := Vector4SingleFromStr('  11       22 ' + NL + ' 33    44');
-  Assert(FloatsEqual(V[0], 11));
-  Assert(FloatsEqual(V[1], 22));
-  Assert(FloatsEqual(V[2], 33));
-  Assert(FloatsEqual(V[3], 44));
+  AssertFloatsEqual(11, V[0]);
+  AssertFloatsEqual(22, V[1]);
+  AssertFloatsEqual(33, V[2]);
+  AssertFloatsEqual(44, V[3]);
 end;
 
 procedure TTestCastleVectors.TestPlaneTransform;
@@ -710,8 +711,8 @@ begin
   MInverse := TransformFromCoordsMatrix(NewOrigin, NewX, NewY, NewZ);
 
   try
-    Assert(MatricesEqual(M * MInverse, IdentityMatrix4Single, 0.01));
-    Assert(MatricesEqual(MInverse * M, IdentityMatrix4Single, 0.01));
+    AssertMatricesEqual(IdentityMatrix4Single, M * MInverse, 0.01);
+    AssertMatricesEqual(IdentityMatrix4Single, MInverse * M, 0.01);
   except
     Writeln('Failed for origin=', VectorToRawStr(NewOrigin),
       ' newX=', VectorToRawStr(NewX));
@@ -724,10 +725,10 @@ const
   P1: TVector3Single = (1, 2, 3);
   P2: TVector3Single = (2, 5, 13);
 begin
-  Assert(FloatsEqual(PointsDistanceSqr(P1, P2), Sqr(1) + Sqr(3) + Sqr(10), 0.01));
-  Assert(FloatsEqual(PointsDistance2DSqr(P1, P2, 0), Sqr(3) + Sqr(10), 0.01));
-  Assert(FloatsEqual(PointsDistance2DSqr(P1, P2, 1), Sqr(1) + Sqr(10), 0.01));
-  Assert(FloatsEqual(PointsDistance2DSqr(P1, P2, 2), Sqr(1) + Sqr(3), 0.01));
+  AssertFloatsEqual(Sqr(1) + Sqr(3) + Sqr(10), PointsDistanceSqr(P1, P2), 0.01);
+  AssertFloatsEqual(Sqr(3) + Sqr(10), PointsDistance2DSqr(P1, P2, 0), 0.01);
+  AssertFloatsEqual(Sqr(1) + Sqr(10), PointsDistance2DSqr(P1, P2, 1), 0.01);
+  AssertFloatsEqual(Sqr(1) + Sqr(3), PointsDistance2DSqr(P1, P2, 2), 0.01);
   try
     PointsDistance2DSqr(P1, P2, 3);
     Assert(false, 'PointsDistance2DSqr with IgnoreIndex = 3 should raise exception');

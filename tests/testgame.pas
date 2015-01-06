@@ -18,10 +18,10 @@ unit TestGame;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
 
 type
-  TTestGame = class(TTestCase)
+  TTestGame = class(TCastleBaseTestCase)
     procedure TestGameData;
   end;
 
@@ -35,24 +35,24 @@ procedure TTestGame.TestGameData;
 
   procedure AssertFloat(const A, B: Single);
   begin
-    Assert(FloatsEqual(A, B, 0.01));
+    AssertFloatsEqual(A, B, 0.01);
   end;
 
   procedure AssertURL(const A, B: string);
   begin
     { When reading XML files, we make URLs absolute. For comparison,
       strip directory part. }
-    Assert(ExtractURIName(A) = B);
+    AssertEquals(ExtractURIName(A), B);
   end;
 
   procedure AssertSound(const A: TSoundType; const B: string);
   begin
-    Assert(A = SoundEngine.SoundFromName(B));
+    AssertEquals(A, SoundEngine.SoundFromName(B));
   end;
 
   procedure AssertVector(const A: TVector3Single; const BX, BY, BZ: Single);
   begin
-    Assert(VectorsEqual(A, Vector3Single(BX, BY, BZ), 0.01));
+    AssertVectorsEqual(A, Vector3Single(BX, BY, BZ), 0.01);
   end;
 
 var

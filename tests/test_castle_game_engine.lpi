@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -43,12 +43,16 @@
         <PackageName Value="FCL"/>
       </Item5>
     </RequiredPackages>
-    <Units Count="1">
+    <Units Count="2">
       <Unit0>
         <Filename Value="test_castle_game_engine.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="test_castle_game_engine"/>
       </Unit0>
+      <Unit1>
+        <Filename Value="castlebasetestcase.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="CastleBaseTestCase"/>
+      </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -75,11 +79,10 @@
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
-      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="27">
+    <Exceptions Count="30">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
@@ -161,6 +164,15 @@
       <Item27>
         <Name Value="ECasScriptAssignError"/>
       </Item27>
+      <Item28>
+        <Name Value="Exception"/>
+      </Item28>
+      <Item29>
+        <Name Value="RunError(200)"/>
+      </Item29>
+      <Item30>
+        <Name Value="EDOMAttributeMissing"/>
+      </Item30>
     </Exceptions>
   </Debugging>
 </CONFIG>

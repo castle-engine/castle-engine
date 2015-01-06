@@ -906,7 +906,7 @@ function TBox3D.ToRawStr: string;
 begin
  if IsEmpty then
   result := 'EMPTY' else
-  result := VectorToRawStr(Data[0])+' - '+VectorToRawStr(Data[1]);
+  result := '(' + VectorToRawStr(Data[0]) + ') - (' + VectorToRawStr(Data[1]) + ')';
 end;
 
 {$define CLAMP_IMPLEMENTATION:=

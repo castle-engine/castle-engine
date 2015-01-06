@@ -18,10 +18,10 @@ unit TestCastle3D;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
 
 type
-  TTestCastle3D = class(TTestCase)
+  TTestCastle3D = class(TCastleBaseTestCase)
   published
     procedure TestMy3D;
     procedure TestMy3DNotExists;
@@ -101,7 +101,7 @@ begin
     IsAbove := M.HeightCollision(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
       nil, AboveHeight, AboveGround);
     Assert(IsAbove);
-    Assert(FloatsEqual(AboveHeight, 1));
+    AssertFloatsEqual(1, AboveHeight);
 
     IsAbove := M.HeightCollision(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
       nil, AboveHeight, AboveGround);
@@ -149,7 +149,7 @@ begin
     Collision := M.RayCollision(
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
-    Assert(FloatsEqual(Collision.Distance, 9));
+    AssertFloatsEqual(9, Collision.Distance);
     Assert(VectorsEqual(Collision.Last.Point, Vector3Single(1, 0, 0)));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
@@ -288,7 +288,7 @@ begin
     Collision := M.RayCollision(
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
-    Assert(FloatsEqual(Collision.Distance, 9));
+    AssertFloatsEqual(9, Collision.Distance);
     Assert(VectorsEqual(Collision.Last.Point, Vector3Single(1, 0, 0)));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
@@ -319,7 +319,7 @@ begin
     IsAbove := M.HeightCollision(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
       nil, AboveHeight, AboveGround);
     Assert(IsAbove);
-    Assert(FloatsEqual(AboveHeight, 1));
+    AssertFloatsEqual(1, AboveHeight);
 
     IsAbove := M.HeightCollision(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
       nil, AboveHeight, AboveGround);
@@ -367,7 +367,7 @@ begin
     Collision := M.RayCollision(
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
-    Assert(FloatsEqual(Collision.Distance, 9));
+    AssertFloatsEqual(9, Collision.Distance);
     Assert(VectorsEqual(Collision.Last.Point, Vector3Single(1, 0, 0)));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
@@ -510,7 +510,7 @@ begin
     Collision := M.RayCollision(
       Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
-    Assert(FloatsEqual(Collision.Distance, 9));
+    AssertFloatsEqual(9, Collision.Distance);
     Assert(VectorsEqual(Collision.Last.Point, Vector3Single(1, 0, 0)));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
@@ -542,7 +542,7 @@ procedure TTestCastle3D.Test3DTransformReal;
     IsAbove := M.HeightCollision(Vector3Single(20.5, 0.5, 2), Vector3Single(0, 0, 1),
       nil, AboveHeight, AboveGround);
     Assert(IsAbove);
-    Assert(FloatsEqual(AboveHeight, 1));
+    AssertFloatsEqual(1, AboveHeight);
 
     { wall-sliding with sphere }
     Assert(not M.MoveCollision(Vector3Single(18, -2, 0), Vector3Single(22, 2, 0), NewPos,
@@ -589,7 +589,7 @@ procedure TTestCastle3D.Test3DTransformReal;
     Collision := M.RayCollision(
       Vector3Single(30, 0, 0), Vector3Single(-1, 0, 0), nil);
     Assert(Collision <> nil);
-    Assert(FloatsEqual(Collision.Distance, 9));
+    AssertFloatsEqual(9, Collision.Distance);
     Assert(VectorsEqual(Collision.Last.Point, Vector3Single(21, 0, 0), 0.001));
     FreeAndNil(Collision);
   end;
@@ -739,12 +739,6 @@ begin
   end;
 end;
 
-procedure AssertVectorsEqual(const V1, V2: TVector3Single);
-begin
-  Assert(VectorsEqual(V1, V2, 0.1),
-    'Vectors different: ' + VectorToNiceStr(V1) + ' ' + VectorToNiceStr(V2));
-end;
-
 procedure TTestCastle3D.TestViewVectorsOrthogonal1;
 { Test forcing Direction/Up orthogonal by various T3DOrient routines
   (that actually implement it by TWalkCamera routines).
@@ -756,40 +750,40 @@ begin
 
   { no need to change direction/up angle, only normalize them }
   O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
-  AssertVectorsEqual(O.Direction, Vector3Single(1, 0, 0));
-  AssertVectorsEqual(O.Up, Vector3Single(0, 0, 1));
+  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Direction, 0.1);
+  AssertVectorsEqual(Vector3Single(0, 0, 1), O.Up, 0.1);
 
   O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(0, 0, 10));
-  AssertVectorsEqual(O.Direction, Vector3Single(1, 0, 0));
-  AssertVectorsEqual(O.Up, Vector3Single(0, 0, 1));
+  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Direction, 0.1);
+  AssertVectorsEqual(Vector3Single(0, 0, 1), O.Up, 0.1);
 
   { SetView corrects up vector angle }
   O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(10, 0, 10));
-  AssertVectorsEqual(O.Direction, Vector3Single(1, 0, 0));
-  AssertVectorsEqual(O.Up, Vector3Single(0, 0, 1));
+  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Direction, 0.1);
+  AssertVectorsEqual(Vector3Single(0, 0, 1), O.Up, 0.1);
 
   { SetView with AdjustUp = false corrects direction vector angle }
   O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(10, 0, 10), false);
-  AssertVectorsEqual(O.Direction, Normalized(Vector3Single(Sqrt(2), 0, -Sqrt(2))));
-  AssertVectorsEqual(O.Up, Normalized(Vector3Single(Sqrt(2), 0, Sqrt(2))));
+  AssertVectorsEqual(Normalized(Vector3Single(Sqrt(2), 0, -Sqrt(2))), O.Direction, 0.1);
+  AssertVectorsEqual(Normalized(Vector3Single(Sqrt(2), 0, Sqrt(2))), O.Up, 0.1);
 
   { Setting direction corrects up vector }
   O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
   O.Direction := Vector3Single(10, 0, 10);
-  AssertVectorsEqual(O.Direction, Normalized(Vector3Single(Sqrt(2), 0, Sqrt(2))));
-  AssertVectorsEqual(O.Up, Normalized(Vector3Single(-Sqrt(2), 0, Sqrt(2))));
+  AssertVectorsEqual(Normalized(Vector3Single(Sqrt(2), 0, Sqrt(2))), O.Direction, 0.1);
+  AssertVectorsEqual(Normalized(Vector3Single(-Sqrt(2), 0, Sqrt(2))), O.Up, 0.1);
 
   { Setting up corrects direction vector }
   O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
   O.Up := Vector3Single(10, 0, 10);
-  AssertVectorsEqual(O.Direction, Normalized(Vector3Single(Sqrt(2), 0, -Sqrt(2))));
-  AssertVectorsEqual(O.Up, Normalized(Vector3Single(Sqrt(2), 0, Sqrt(2))));
+  AssertVectorsEqual(Normalized(Vector3Single(Sqrt(2), 0, -Sqrt(2))), O.Direction, 0.1);
+  AssertVectorsEqual(Normalized(Vector3Single(Sqrt(2), 0, Sqrt(2))), O.Up, 0.1);
 
   { UpPrefer corrects up vector }
   O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
   O.UpPrefer(Vector3Single(10, 0, 10));
-  AssertVectorsEqual(O.Direction, Vector3Single(1, 0, 0));
-  AssertVectorsEqual(O.Up, Vector3Single(0, 0, 1));
+  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Direction, 0.1);
+  AssertVectorsEqual(Vector3Single(0, 0, 1), O.Up, 0.1);
 
   FreeAndNil(O);
 end;
@@ -805,31 +799,31 @@ begin
 
   { SetView corrects up vector angle }
   O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(10, 0, 0));
-  AssertVectorsEqual(O.Direction, Vector3Single(1, 0, 0));
-  AssertVectorsEqual(O.Up, AnyOrthogonalVector(Vector3Single(1, 0, 0)));
+  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Direction, 0.1);
+  AssertVectorsEqual(AnyOrthogonalVector(Vector3Single(1, 0, 0)), O.Up, 0.1);
 
   { SetView with AdjustUp = false corrects direction vector angle }
   O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(10, 0, 0), false);
-  AssertVectorsEqual(O.Direction, AnyOrthogonalVector(Vector3Single(1, 0, 0)));
-  AssertVectorsEqual(O.Up, Vector3Single(1, 0, 0));
+  AssertVectorsEqual(AnyOrthogonalVector(Vector3Single(1, 0, 0)), O.Direction, 0.1);
+  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Up, 0.1);
 
   { Setting direction corrects up vector }
   O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
   O.Direction := Vector3Single(0, 0, 10);
-  AssertVectorsEqual(O.Direction, Vector3Single(0, 0, 1));
-  AssertVectorsEqual(O.Up, AnyOrthogonalVector(Vector3Single(0, 0, 1)));
+  AssertVectorsEqual(Vector3Single(0, 0, 1), O.Direction, 0.1);
+  AssertVectorsEqual(AnyOrthogonalVector(Vector3Single(0, 0, 1)), O.Up, 0.1);
 
   { Setting up corrects direction vector }
   O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
   O.Up := Vector3Single(10, 0, 0);
-  AssertVectorsEqual(O.Direction, AnyOrthogonalVector(Vector3Single(1, 0, 0)));
-  AssertVectorsEqual(O.Up, Vector3Single(1, 0, 0));
+  AssertVectorsEqual(AnyOrthogonalVector(Vector3Single(1, 0, 0)), O.Direction, 0.1);
+  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Up, 0.1);
 
   { UpPrefer corrects up vector }
   O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
   O.UpPrefer(Vector3Single(10, 0, 0));
-  AssertVectorsEqual(O.Direction, Vector3Single(1, 0, 0));
-  AssertVectorsEqual(O.Up, AnyOrthogonalVector(Vector3Single(1, 0, 0)));
+  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Direction, 0.1);
+  AssertVectorsEqual(AnyOrthogonalVector(Vector3Single(1, 0, 0)), O.Up, 0.1);
 
   FreeAndNil(O);
 end;

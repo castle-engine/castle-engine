@@ -20,10 +20,10 @@ unit TestCastleUtils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
 
 type
-  TTestCastleUtils = class(TTestCase)
+  TTestCastleUtils = class(TCastleBaseTestCase)
   published
     procedure TestMilisecTime;
     procedure TestIndexMinMax_RestOf3dCoords;
@@ -340,14 +340,14 @@ begin
   Assert(Between(3, -100, 100));
   Assert(not Between(-300, -100, 100));
 
-  Assert(FloatsEqual(MapRange(2  , 1  , 3  , 0  , 1  ), 0.5, 0.01));
-  Assert(FloatsEqual(MapRange(2.0, 1.0, 3.0, 0.0, 1.0), 0.5, 0.01));
+  AssertFloatsEqual( 0.5, MapRange(2  , 1  , 3  , 0  , 1  ), 0.01);
+  AssertFloatsEqual( 0.5, MapRange(2.0, 1.0, 3.0, 0.0, 1.0), 0.01);
 
-  Assert(FloatsEqual(MapRange(1.5, 3  , 1  , 0  , 1  ), 0.75, 0.01));
-  Assert(FloatsEqual(MapRange(1.5, 3.0, 1.0, 0.0, 1.0), 0.75, 0.01));
+  AssertFloatsEqual(0.75, MapRange(1.5, 3  , 1  , 0  , 1  ), 0.01);
+  AssertFloatsEqual(0.75, MapRange(1.5, 3.0, 1.0, 0.0, 1.0), 0.01);
 
-  Assert(FloatsEqual(MapRange(1.5, 1  , 3  , 0  , 1  ), 0.25, 0.01));
-  Assert(FloatsEqual(MapRange(1.5, 1.0, 3.0, 0.0, 1.0), 0.25, 0.01));
+  AssertFloatsEqual(0.25, MapRange(1.5, 1  , 3  , 0  , 1  ), 0.01);
+  AssertFloatsEqual(0.25, MapRange(1.5, 1.0, 3.0, 0.0, 1.0), 0.01);
 
   Assert(DivRoundUp(40, 4) = 10);
   Assert(DivRoundUp(42, 4) = 11);
@@ -446,12 +446,12 @@ end;
 
 procedure TTestCastleUtils.TestFloatModulo;
 begin
-  Assert(FloatsEqual(FloatModulo(0.5, 2), 0.5));
-  Assert(FloatsEqual(FloatModulo(2.5, 2), 0.5));
-  Assert(FloatsEqual(FloatModulo(3.5, 2), 1.5));
-  Assert(FloatsEqual(FloatModulo(-0.5, 2), 1.5));
-  Assert(FloatsEqual(FloatModulo(-2.5, 2), 1.5));
-  Assert(FloatsEqual(FloatModulo(-3.5, 2), 0.5));
+  AssertFloatsEqual(0.5, FloatModulo( 0.5, 2));
+  AssertFloatsEqual(0.5, FloatModulo( 2.5, 2));
+  AssertFloatsEqual(1.5, FloatModulo( 3.5, 2));
+  AssertFloatsEqual(1.5, FloatModulo(-0.5, 2));
+  AssertFloatsEqual(1.5, FloatModulo(-2.5, 2));
+  AssertFloatsEqual(0.5, FloatModulo(-3.5, 2));
 end;
 
 initialization

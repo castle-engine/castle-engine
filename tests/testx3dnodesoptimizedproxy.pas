@@ -19,10 +19,11 @@ unit TestX3DNodesOptimizedProxy;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors, X3DNodes;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors, X3DNodes,
+  CastleBaseTestCase;
 
 type
-  TTestX3DNodesOptimizedProxy = class(TTestCase)
+  TTestX3DNodesOptimizedProxy = class(TCastleBaseTestCase)
   published
     { Some of the geometry nodes, even though they have Proxy,
       have also optimized versions for some operations (like calculating
@@ -245,27 +246,17 @@ var
       ProxyShapeNO := nil;
   end;
 
-  procedure AssertBoxEqual(const B1, B2: TBox3D);
-  begin
-    Assert(FloatsEqual(B1.Data[0][0], B2.Data[0][0], 0.1));
-    Assert(FloatsEqual(B1.Data[0][1], B2.Data[0][1], 0.1));
-    Assert(FloatsEqual(B1.Data[0][2], B2.Data[0][2], 0.1));
-    Assert(FloatsEqual(B1.Data[1][0], B2.Data[1][0], 0.1));
-    Assert(FloatsEqual(B1.Data[1][1], B2.Data[1][1], 0.1));
-    Assert(FloatsEqual(B1.Data[1][2], B2.Data[1][2], 0.1));
-  end;
-
   { Check node has optimized (not using proxy) versions of
     BoundingBox, LocalBoundingBox, TrianglesCount.
     And check their results match results of the proxy. }
   procedure CheckNodeBBoxAndTrisCount;
   begin
-    AssertBoxEqual(NastyShape.BoundingBox, ProxyShapeO.BoundingBox);
-    AssertBoxEqual(NastyShape.BoundingBox, ProxyShapeNO.BoundingBox);
-    AssertBoxEqual(NastyShape.LocalBoundingBox, ProxyShapeO.LocalBoundingBox);
-    AssertBoxEqual(NastyShape.LocalBoundingBox, ProxyShapeNO.LocalBoundingBox);
-    Assert(NastyShape.TrianglesCount(false) = ProxyShapeNO.TrianglesCount(false));
-    Assert(NastyShape.TrianglesCount(true ) = ProxyShapeO .TrianglesCount(true ));
+    AssertBoxesEqual(NastyShape.BoundingBox, ProxyShapeO.BoundingBox, 0.01);
+    AssertBoxesEqual(NastyShape.BoundingBox, ProxyShapeNO.BoundingBox, 0.01);
+    AssertBoxesEqual(NastyShape.LocalBoundingBox, ProxyShapeO.LocalBoundingBox, 0.01);
+    AssertBoxesEqual(NastyShape.LocalBoundingBox, ProxyShapeNO.LocalBoundingBox, 0.01);
+    AssertEquals(NastyShape.TrianglesCount(false), ProxyShapeNO.TrianglesCount(false));
+    AssertEquals(NastyShape.TrianglesCount(true ), ProxyShapeO .TrianglesCount(true ));
   end;
 
 begin
