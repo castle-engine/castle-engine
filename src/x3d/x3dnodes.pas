@@ -2156,6 +2156,7 @@ implementation
 uses
   { Fonts for Text, FontStyle, AsciiText nodes }
   CastleTextureFont_DjvSans_20,
+  {$ifdef CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
   CastleTextureFont_DjvSansB_20,
   CastleTextureFont_DjvSansO_20,
   CastleTextureFont_DjvSansBO_20,
@@ -2169,6 +2170,7 @@ uses
   CastleTextureFont_DjvSerifB_20,
   CastleTextureFont_DjvSerifI_20,
   CastleTextureFont_DjvSerifBI_20,
+  {$endif CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
 
   Math, X3DLoad, CastleZStream, X3DCameraUtils, CastleWarnings, CastleColors,
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode,

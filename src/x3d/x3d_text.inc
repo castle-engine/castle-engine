@@ -812,39 +812,43 @@ begin
   Result := false;
 end;
 
-function TTextNode.Font: TTextureFontData;
-
-  function GetFont(const Family: TX3DFontFamily; const Bold, Italic: boolean): TTextureFontData;
-  begin
-    case Family of
-      ffSerif:
-        if Bold and Italic then
-          Result := TextureFont_DejaVuSerifBoldItalic_20 else
-        if Bold then
-          Result := TextureFont_DejaVuSerifBold_20 else
-        if Italic then
-          Result := TextureFont_DejaVuSerifItalic_20 else
-          Result := TextureFont_DejaVuSerif_20;
-      ffSans:
-        if Bold and Italic then
-          Result := TextureFont_DejaVuSansBoldOblique_20 else
-        if Bold then
-          Result := TextureFont_DejaVuSansBold_20 else
-        if Italic then
-          Result := TextureFont_DejaVuSansOblique_20 else
-          Result := TextureFont_DejaVuSans_20;
-      ffTypeWriter:
-        if Bold and Italic then
-          Result := TextureFont_DejaVuSansMonoBoldOblique_20 else
-        if Bold then
-          Result := TextureFont_DejaVuSansMonoBold_20 else
-        if Italic then
-          Result := TextureFont_DejaVuSansMonoOblique_20 else
-          Result := TextureFont_DejaVuSansMono_20;
-      else raise EInternalError.Create('GetFont:Family?');
-    end;
+function GetFont(const Family: TX3DFontFamily; const Bold, Italic: boolean): TTextureFontData;
+{$ifdef CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
+begin
+  case Family of
+    ffSerif:
+      if Bold and Italic then
+        Result := TextureFont_DejaVuSerifBoldItalic_20 else
+      if Bold then
+        Result := TextureFont_DejaVuSerifBold_20 else
+      if Italic then
+        Result := TextureFont_DejaVuSerifItalic_20 else
+        Result := TextureFont_DejaVuSerif_20;
+    ffSans:
+      if Bold and Italic then
+        Result := TextureFont_DejaVuSansBoldOblique_20 else
+      if Bold then
+        Result := TextureFont_DejaVuSansBold_20 else
+      if Italic then
+        Result := TextureFont_DejaVuSansOblique_20 else
+        Result := TextureFont_DejaVuSans_20;
+    ffTypeWriter:
+      if Bold and Italic then
+        Result := TextureFont_DejaVuSansMonoBoldOblique_20 else
+      if Bold then
+        Result := TextureFont_DejaVuSansMonoBold_20 else
+      if Italic then
+        Result := TextureFont_DejaVuSansMonoOblique_20 else
+        Result := TextureFont_DejaVuSansMono_20;
+    else raise EInternalError.Create('GetFont:Family?');
   end;
+{$else}
+begin
+  Result := TextureFont_DejaVuSans_20;
+{$endif}
+end;
 
+function TTextNode.Font: TTextureFontData;
 begin
   if FontStyle <> nil then
     Result := GetFont(
