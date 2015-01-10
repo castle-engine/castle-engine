@@ -508,7 +508,7 @@ begin
   M1[0] := Vector4Single(1, 0, 0, 0);
   M1[1] := Vector4Single(0, 1, 0, 0);
   M1[2] := Vector4Single(0, 0, 1, 0);
-  M1[2] := Vector4Single(-0.31, 1.26, -0.03, 1);
+  M1[3] := Vector4Single(-0.31, 1.26, -0.03, 1);
 
   M2[0] := Vector4Single( 0.58,  0.75, 0.31, 0.00);
   M2[1] := Vector4Single(-0.81,  0.52, 0.26, 0.00);
