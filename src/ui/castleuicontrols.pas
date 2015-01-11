@@ -196,16 +196,16 @@ type
       like TCastleWindow or TCastleControl. But it is also allowed to call them
       manually to fake given event.
       @groupBegin }
-    procedure EventOpen(const OpenWindowsCount: Cardinal);
-    procedure EventClose(const OpenWindowsCount: Cardinal);
-    function EventPress(const Event: TInputPressRelease): boolean;
-    function EventRelease(const Event: TInputPressRelease): boolean;
-    procedure EventUpdate;
-    procedure EventMotion(const Event: TInputMotion);
+    procedure EventOpen(const OpenWindowsCount: Cardinal); virtual;
+    procedure EventClose(const OpenWindowsCount: Cardinal); virtual;
+    function EventPress(const Event: TInputPressRelease): boolean; virtual;
+    function EventRelease(const Event: TInputPressRelease): boolean; virtual;
+    procedure EventUpdate; virtual;
+    procedure EventMotion(const Event: TInputMotion); virtual;
     function AllowSuspendForInput: boolean;
-    procedure EventBeforeRender;
+    procedure EventBeforeRender; virtual;
     procedure EventRender; virtual; abstract;
-    procedure EventResize;
+    procedure EventResize; virtual;
     { @groupEnd }
 
     { Controls listening for events (user input, resize, and such) of this container.

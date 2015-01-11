@@ -33,6 +33,9 @@ const
   DefaultLimitFPS = 100.0;
 
 type
+  TControlInputPressReleaseEvent = procedure (Sender: TObject; const Event: TInputPressRelease) of object;
+  TControlInputMotionEvent = procedure (Sender: TObject; const Event: TInputMotion) of object;
+
   { OpenGL control, with extensions for "Castle Game Engine", including
     @link(Controls) list for TUIControl instances.
     Use a descendant TCastleControl to have a ready
@@ -59,7 +62,7 @@ type
       @item(Tracks pressed keys @link(Pressed) and mouse buttons @link(MousePressed)
         and mouse position @link(MousePosition).)
     ) }
-  TCastleControlCustom = class(TOpenGLControl)
+  TCastleControlCustom = class(TCustomOpenGLControl)
   private
     type
       { Non-abstact implementation of TUIContainer that cooperates with
@@ -85,6 +88,16 @@ type
         procedure SetCursor(const Value: TMouseCursor); override;
         function GetTouches(const Index: Integer): TTouch; override;
         function TouchesCount: Integer; override;
+
+        procedure EventOpen(const OpenWindowsCount: Cardinal); override;
+        procedure EventClose(const OpenWindowsCount: Cardinal); override;
+        function EventPress(const Event: TInputPressRelease): boolean; override;
+        function EventRelease(const Event: TInputPressRelease): boolean; override;
+        procedure EventUpdate; override;
+        procedure EventMotion(const Event: TInputMotion); override;
+        procedure EventBeforeRender; override;
+        procedure EventRender; override;
+        procedure EventResize; override;
       end;
     var
     FContainer: TContainer;
@@ -98,6 +111,16 @@ type
 
     FFps: TFramesPerSecond;
 
+    FOnOpen: TNotifyEvent;
+    FOnBeforeRender: TNotifyEvent;
+    FOnRender: TNotifyEvent;
+    FOnResize: TNotifyEvent;
+    FOnClose: TNotifyEvent;
+    FOnPress: TControlInputPressReleaseEvent;
+    FOnRelease: TControlInputPressReleaseEvent;
+    FOnMotion: TControlInputMotionEvent;
+    FOnUpdate: TNotifyEvent;
+
     { Sometimes, releasing shift / alt / ctrl keys will not be reported
       properly to KeyDown / KeyUp. Example: opening a menu
       through Alt+F for "_File" will make keydown for Alt,
@@ -108,24 +131,6 @@ type
       to update Pressed when needed. }
     procedure UpdateShiftState(const Shift: TShiftState);
 
-    function GetOnOpen: TContainerEvent;
-    procedure SetOnOpen(const Value: TContainerEvent);
-    function GetOnBeforeRender: TContainerEvent;
-    procedure SetOnBeforeRender(const Value: TContainerEvent);
-    function GetOnRender: TContainerEvent;
-    procedure SetOnRender(const Value: TContainerEvent);
-    function GetOnResize: TContainerEvent;
-    procedure SetOnResize(const Value: TContainerEvent);
-    function GetOnClose: TContainerEvent;
-    procedure SetOnClose(const Value: TContainerEvent);
-    function GetOnUpdate: TContainerEvent;
-    procedure SetOnUpdate(const Value: TContainerEvent);
-    function GetOnPress: TInputPressReleaseEvent;
-    procedure SetOnPress(const Value: TInputPressReleaseEvent);
-    function GetOnRelease: TInputPressReleaseEvent;
-    procedure SetOnRelease(const Value: TInputPressReleaseEvent);
-    function GetOnMotion: TInputMotionEvent;
-    procedure SetOnMotion(const Value: TInputMotionEvent);
     procedure SetMousePosition(const Value: TVector2Single);
   protected
     procedure DestroyHandle; override;
@@ -176,17 +181,65 @@ type
       Always (Left,Bottom) are zero, and (Width,Height) correspond to container
       sizes. }
     function Rect: TRectangle;
-
-    property OnOpen: TContainerEvent read GetOnOpen write SetOnOpen;
-    property OnBeforeRender: TContainerEvent read GetOnBeforeRender write SetOnBeforeRender;
-    property OnRender: TContainerEvent read GetOnRender write SetOnRender;
-    property OnResize: TContainerEvent read GetOnResize write SetOnResize;
-    property OnClose: TContainerEvent read GetOnClose write SetOnClose;
-    property OnPress: TInputPressReleaseEvent read GetOnPress write SetOnPress;
-    property OnRelease: TInputPressReleaseEvent read GetOnRelease write SetOnRelease;
-    property OnMotion: TInputMotionEvent read GetOnMotion write SetOnMotion;
-    property OnUpdate: TContainerEvent read GetOnUpdate write SetOnUpdate;
   published
+    { Publish most, but not all, stuff from inherited TCustomOpenGLControl. } { }
+    property Align;
+    property Anchors;
+    property AutoResizeViewport; deprecated; //< Don't use, engine handles this completely.
+    property BorderSpacing;
+    property Enabled;
+    { Don't publish, as not every widgetset has them.
+    property RedBits;
+    property GreenBits;
+    property BlueBits; } { }
+    property OpenGLMajorVersion;
+    property OpenGLMinorVersion;
+    property MultiSampling;
+    property AlphaBits;
+    property DepthBits;
+    property StencilBits;
+    property AUXBuffers;
+    property OnChangeBounds;
+    property OnConstrainedResize;
+    property OnDblClick;
+    property OnDragDrop;
+    property OnDragOver;
+    property OnEnter;
+    property OnExit;
+    property OnMakeCurrent; deprecated; //< Don't use, engine handles this completely.
+    property OnClick; deprecated; //< Use OnPress instead.
+    property OnKeyDown; deprecated; //< Use OnPress instead.
+    property OnKeyPress; deprecated; //< Use OnPress instead.
+    property OnKeyUp; deprecated; //< Use OnRelease instead.
+    property OnMouseDown; deprecated; //< Use OnPress instead.
+    property OnMouseMove; deprecated; //< Use OnMotion instead.
+    property OnMouseUp; deprecated; //< Use OnRelease instead.
+    property OnMouseWheel; deprecated; //< Use OnPress instead.
+    property OnMouseWheelDown; deprecated; //< Use OnPress instead.
+    property OnMouseWheelUp; deprecated; //< Use OnPress instead.
+    { Don't publish, as we have our own event for this.
+    property OnResize;
+    } { }
+    property OnMouseEnter;
+    property OnMouseLeave;
+    property OnPaint; deprecated; //< Use OnRender instead.
+    property OnShowHint;
+    property PopupMenu;
+    property ShowHint;
+    property Visible;
+    { End of TCustomOpenGLControl properties } { }
+
+    { Events from UI container. } { }
+    property OnOpen: TNotifyEvent                      read FOnOpen         write FOnOpen        ;
+    property OnClose: TNotifyEvent                     read FOnClose        write FOnClose       ;
+    property OnBeforeRender: TNotifyEvent              read FOnBeforeRender write FOnBeforeRender;
+    property OnRender: TNotifyEvent                    read FOnRender       write FOnRender      ;
+    property OnResize: TNotifyEvent                    read FOnResize       write FOnResize      ;
+    property OnPress: TControlInputPressReleaseEvent   read FOnPress        write FOnPress       ;
+    property OnRelease: TControlInputPressReleaseEvent read FOnRelease      write FOnRelease     ;
+    property OnMotion: TControlInputMotionEvent        read FOnMotion       write FOnMotion      ;
+    property OnUpdate: TNotifyEvent                    read FOnUpdate       write FOnUpdate      ;
+
     property TabOrder;
     property TabStop default true;
     property Container: TContainer read FContainer;
@@ -493,6 +546,75 @@ end;
 function TCastleControlCustom.TContainer.TouchesCount: Integer;
 begin
   Result := 1;
+end;
+
+procedure TCastleControlCustom.TContainer.EventOpen(const OpenWindowsCount: Cardinal);
+begin
+  inherited;
+  if Assigned(Parent.FOnOpen) then
+    Parent.FOnOpen(Parent);
+end;
+
+procedure TCastleControlCustom.TContainer.EventClose(const OpenWindowsCount: Cardinal);
+begin
+  if Assigned(Parent.FOnClose) then
+    Parent.FOnClose(Parent);
+  inherited;
+end;
+
+function TCastleControlCustom.TContainer.EventPress(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  if (not Result) and Assigned(Parent.FOnPress) then
+  begin
+    Parent.FOnPress(Parent, Event);
+    Result := true;
+  end;
+end;
+
+function TCastleControlCustom.TContainer.EventRelease(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  if (not Result) and Assigned(Parent.FOnRelease) then
+  begin
+    Parent.FOnRelease(Parent, Event);
+    Result := true;
+  end;
+end;
+
+procedure TCastleControlCustom.TContainer.EventUpdate;
+begin
+  inherited;
+  if Assigned(Parent.FOnUpdate) then
+    Parent.FOnUpdate(Parent);
+end;
+
+procedure TCastleControlCustom.TContainer.EventMotion(const Event: TInputMotion);
+begin
+  inherited;
+  if Assigned(Parent.FOnMotion) then
+    Parent.FOnMotion(Parent, Event);
+end;
+
+procedure TCastleControlCustom.TContainer.EventBeforeRender;
+begin
+  inherited;
+  if Assigned(Parent.FOnBeforeRender) then
+    Parent.FOnBeforeRender(Parent);
+end;
+
+procedure TCastleControlCustom.TContainer.EventRender;
+begin
+  inherited;
+  if Assigned(Parent.FOnRender) then
+    Parent.FOnRender(Parent);
+end;
+
+procedure TCastleControlCustom.TContainer.EventResize;
+begin
+  inherited;
+  if Assigned(Parent.FOnResize) then
+    Parent.FOnResize(Parent);
 end;
 
 { TCastleControlCustom -------------------------------------------------- }
@@ -892,96 +1014,6 @@ end;
 function TCastleControlCustom.Controls: TUIControlList;
 begin
   Result := Container.Controls;
-end;
-
-function TCastleControlCustom.GetOnOpen: TContainerEvent;
-begin
-  Result := Container.OnOpen;
-end;
-
-procedure TCastleControlCustom.SetOnOpen(const Value: TContainerEvent);
-begin
-  Container.OnOpen := Value;
-end;
-
-function TCastleControlCustom.GetOnBeforeRender: TContainerEvent;
-begin
-  Result := Container.OnBeforeRender;
-end;
-
-procedure TCastleControlCustom.SetOnBeforeRender(const Value: TContainerEvent);
-begin
-  Container.OnBeforeRender := Value;
-end;
-
-function TCastleControlCustom.GetOnRender: TContainerEvent;
-begin
-  Result := Container.OnRender;
-end;
-
-procedure TCastleControlCustom.SetOnRender(const Value: TContainerEvent);
-begin
-  Container.OnRender := Value;
-end;
-
-function TCastleControlCustom.GetOnResize: TContainerEvent;
-begin
-  Result := Container.OnResize;
-end;
-
-procedure TCastleControlCustom.SetOnResize(const Value: TContainerEvent);
-begin
-  Container.OnResize := Value;
-end;
-
-function TCastleControlCustom.GetOnClose: TContainerEvent;
-begin
-  Result := Container.OnClose;
-end;
-
-procedure TCastleControlCustom.SetOnClose(const Value: TContainerEvent);
-begin
-  Container.OnClose := Value;
-end;
-
-function TCastleControlCustom.GetOnUpdate: TContainerEvent;
-begin
-  Result := Container.OnUpdate;
-end;
-
-procedure TCastleControlCustom.SetOnUpdate(const Value: TContainerEvent);
-begin
-  Container.OnUpdate := Value;
-end;
-
-function TCastleControlCustom.GetOnPress: TInputPressReleaseEvent;
-begin
-  Result := Container.OnPress;
-end;
-
-procedure TCastleControlCustom.SetOnPress(const Value: TInputPressReleaseEvent);
-begin
-  Container.OnPress := Value;
-end;
-
-function TCastleControlCustom.GetOnRelease: TInputPressReleaseEvent;
-begin
-  Result := Container.OnRelease;
-end;
-
-procedure TCastleControlCustom.SetOnRelease(const Value: TInputPressReleaseEvent);
-begin
-  Container.OnRelease := Value;
-end;
-
-function TCastleControlCustom.GetOnMotion: TInputMotionEvent;
-begin
-  Result := Container.OnMotion;
-end;
-
-procedure TCastleControlCustom.SetOnMotion(const Value: TInputMotionEvent);
-begin
-  Container.OnMotion := Value;
 end;
 
 { TCastleControl ----------------------------------------------------------- }
