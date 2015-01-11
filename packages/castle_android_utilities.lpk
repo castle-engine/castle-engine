@@ -20,7 +20,7 @@
         </Verbosity>
       </Other>
     </CompilerOptions>
-    <Version Major="5" Minor="1" Release="1"/>
+    <Version Major="5" Minor="1" Release="2"/>
     <Files Count="1">
       <Item1>
         <Filename Value="../src/base/android/castleandroidlog.pas"/>

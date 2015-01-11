@@ -32,7 +32,7 @@ var
   AssumeCompiled: boolean = false;
 
 const
-  Version = '5.1.1'; //< When updating this, remember to also update version in ../fpmake.pp
+  Version = '5.1.2'; //< When updating this, remember to also update version in ../fpmake.pp
   Options: array [0..7] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
