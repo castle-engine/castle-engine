@@ -1267,7 +1267,7 @@ type
 
       Instead of using this callback, even when you really need to initialize
       some OpenGL resource, it's usually better to derive new classes from
-      TUIControl class or it\'s descendants,
+      TUIControl class or it's descendants,
       and override their GLContextOpen / GLContextClose methods to react to
       context being open/closed. Using such TUIControl classes
       is usually easier, as you add/remove them from controls whenever
@@ -1278,7 +1278,7 @@ type
       WindowOpen is always *after* ApplicationInitialize.
       In normal circumstances, for a standalone game, the WindowOpen will
       happen only once. But for other targets, it may be necessary to close/reopen
-      the OpenGL context many times, e.g. on mobile platforms it\'s normal
+      the OpenGL context many times, e.g. on mobile platforms it's normal
       that application may "loose" the OpenGL context and it may need
       to recreate OpenGL resources when it wakes up.
       Event called when OpenGL context is initialized.
@@ -1577,9 +1577,9 @@ end;
       This is a good place to set OpenGL viewport and projection matrix.
 
       See also ResizeAllowed.
-
-      Simple 2D OpenGL programs may want to register here simple
-      @link(Resize2D). }
+      
+      In the usual case, the SceneManager takes care of setting appropriate
+      OpenGL projection, so you don't need to do anything here. }
     property OnResize: TContainerEvent read GetOnResize write SetOnResize;
 
     { Called when the window is closed, right before the OpenGL context
@@ -1594,15 +1594,10 @@ end;
 
     { Called when user releases a pressed key or mouse button.
 
-      Details about key up events:
-      It's called right after
-      Pressed[Key] changed from true to false.
+      It's called right after @code(Pressed[Key]) changed from true to false.
 
-      Key is never K_None.
-
-      C may be #0 is no representable character is released.
-      When C is <> #0, we detected that some character is released.
-      This is connected with setting Characters[C] from @true to @false.
+      The TInputPressRelease structure, passed as a parameter to this event,
+      contains the exact information what was released.
 
       Note that reporting characters for "key release" messages is not
       perfect, as various key combinations (sometimes more than one?) may lead

@@ -230,14 +230,108 @@ type
     { End of TCustomOpenGLControl properties } { }
 
     { Events from UI container. } { }
+    { OpenGL context is created, you can initialize things that require OpenGL
+      context. Often you do not need to use this callback (engine components will
+      automatically create/release OpenGL resource when necessary),
+      but sometimes it may be handy (e.g. TGLImage required OpenGL context).
+      You usually will also want to implement OnClose callback that
+      releases stuff created here.
+
+      Instead of using this callback, even when you really need to initialize
+      some OpenGL resource, it's usually better to derive new classes from
+      TUIControl class or it's descendants,
+      and override their GLContextOpen / GLContextClose methods to react to
+      context being open/closed. Using such TUIControl classes
+      is usually easier, as you add/remove them from controls whenever
+      you want (e.g. you add them in ApplicationInitialize),
+      and underneath they create/release/create again the OpenGL resources
+      when necessary. }
     property OnOpen: TNotifyEvent                      read FOnOpen         write FOnOpen        ;
+
+    { Called when the context is closed, right before the OpenGL context
+      is destroyed. This is your last chance to release OpenGL resources,
+      like textures, shaders, display lists etc. This is a counterpart
+      to OnOpen event. }
     property OnClose: TNotifyEvent                     read FOnClose        write FOnClose       ;
+
+    { Always called right before OnRender.
+      These two events, OnBeforeRender and OnRender,
+      will be always called sequentially as a pair.
+
+      The only difference between these two events is that
+      time spent in OnBeforeRender
+      is NOT counted as "frame time"
+      by Fps.FrameTime. This is useful when you have something that needs
+      to be done from time to time right before OnRender and that is very
+      time-consuming. It such cases it is not desirable to put such time-consuming
+      task inside OnRender because this would cause a sudden big change in
+      Fps.FrameTime value. So you can avoid this by putting
+      this in OnBeforeRender. }
     property OnBeforeRender: TNotifyEvent              read FOnBeforeRender write FOnBeforeRender;
+
+    { Render window contents here.
+
+      Called when window contents must be redrawn,
+      e.g. after creating a window, after resizing a window, after uncovering
+      the window etc. You can also request yourself a redraw of the window
+      by the Invalidate method, which will cause this event to be called
+      at nearest good time.
+
+      Note that calling Invalidate while in OnRender is not ignored.
+      It means that in a short time next OnRender will be called. }
     property OnRender: TNotifyEvent                    read FOnRender       write FOnRender      ;
+
+    { Called when the control size (@code(Width), @code(Height)) changes.
+      It's also guaranteed to be called
+      right after the OnOpen event.
+
+      Our OpenGL context is already "current" when this event is called
+      (MakeCurrent is done right before), like for other events.
+      This is a good place to set OpenGL viewport and projection matrix.
+
+      In the usual case, the SceneManager takes care of setting appropriate
+      OpenGL projection, so you don't need to do anything here. }
     property OnResize: TNotifyEvent                    read FOnResize       write FOnResize      ;
+
+    { Called when user presses a key or mouse button or moves mouse wheel. }
     property OnPress: TControlInputPressReleaseEvent   read FOnPress        write FOnPress       ;
+
+    { Called when user releases a pressed key or mouse button.
+
+      It's called right after @code(Pressed[Key]) changed from true to false.
+
+      The TInputPressRelease structure, passed as a parameter to this event,
+      contains the exact information what was released.
+
+      Note that reporting characters for "key release" messages is not
+      perfect, as various key combinations (sometimes more than one?) may lead
+      to generating given character. We have some intelligent algorithm
+      for this, used to make Characters table and to detect
+      this C for OnRelease callback. The idea is that a character is released
+      when the key that initially caused the press of this character is
+      also released.
+
+      This solves in a determined way problems like
+      "what happens if I press Shift, then X,
+      then release Shift, then release X". (will "X" be correctly
+      released as pressed and then released? yes.
+      will small "x" be reported as released at the end? no, as it was never
+      pressed.) }
     property OnRelease: TControlInputPressReleaseEvent read FOnRelease      write FOnRelease     ;
+
+    { Mouse or a finger on touch device moved.
+
+      For a mouse, remember you always have the currently
+      pressed mouse buttons in MousePressed. When this is called,
+      the MousePosition property records the @italic(previous)
+      mouse position, while callback parameter NewMousePosition gives
+      the @italic(new) mouse position. }
     property OnMotion: TControlInputMotionEvent        read FOnMotion       write FOnMotion      ;
+
+    { Continously occuring event.
+      This event is called at least as regularly as redraw,
+      so it is continously called even when your game
+      is overwhelmed by messages (like mouse moves) and redraws. }
     property OnUpdate: TNotifyEvent                    read FOnUpdate       write FOnUpdate      ;
 
     property TabOrder;
