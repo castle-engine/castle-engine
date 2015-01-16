@@ -29,6 +29,9 @@
     procedure Assign(const Source: TSlotsAnimated);
   end;
 
+  TColorInterpolatorNodeList = specialize TFPGObjectList<TColorInterpolatorNode>;
+  TScalarInterpolatorNodeList = specialize TFPGObjectList<TScalarInterpolatorNode>;
+
   TSlot = class
   public
   const
@@ -53,8 +56,8 @@
     SwitchNode: TSwitchNode;
     NodeUsedAsChild: boolean;
     ResetAttachment: TIntegerSequencerNode;
-    ResetColor1: TColorInterpolatorNode;
-    ResetColor2: TScalarInterpolatorNode;
+    ResetColor1: TColorInterpolatorNodeList;
+    ResetColor2: TScalarInterpolatorNodeList;
     ResetDrawOrder: TPositionInterpolatorNode;
     Materials: TMaterialNodeList;
     constructor Create;
@@ -112,6 +115,8 @@ begin
   inherited;
   AttachmentNames := TStringList.Create;
   Materials := TMaterialNodeList.Create(false);
+  ResetColor1 := TColorInterpolatorNodeList.Create(false);
+  ResetColor2 := TScalarInterpolatorNodeList.Create(false);
 end;
 
 destructor TSlot.Destroy;
@@ -121,6 +126,8 @@ begin
     FreeIfUnusedAndNil(Node);
   FreeAndNil(AttachmentNames);
   FreeAndNil(Materials);
+  FreeAndNil(ResetColor1);
+  FreeAndNil(ResetColor2);
   inherited;
 end;
 
@@ -162,28 +169,32 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
   var
     Route: TX3DRoute;
     I: Integer;
+    ColInterp: TColorInterpolatorNode;
+    ScalarInterp: TScalarInterpolatorNode;
   begin
     if SlotsAnimated.Color.IndexOf(Self) = -1 then Exit;
 
     for I := 0 to Materials.Count - 1 do
     begin
-      ResetColor1 := TColorInterpolatorNode.Create('SlotReset_color_' + ToX3DName(Name));
-      ResetColor1.FdKey.Items.Add(0);
-      ResetColor1.FdKeyValue.Items.Add(Vector3SingleCut(Color));
-      ContainerForResetNode.FdChildren.Add(ResetColor1);
+      ColInterp := TColorInterpolatorNode.Create('SlotReset_color_' + ToX3DName(Name));
+      ColInterp.FdKey.Items.Add(0);
+      ColInterp.FdKeyValue.Items.Add(Vector3SingleCut(Color));
+      ContainerForResetNode.FdChildren.Add(ColInterp);
+      ResetColor1.Add(ColInterp);
 
       Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(ResetColor1.EventValue_changed);
+      Route.SetSourceDirectly(ColInterp.EventValue_changed);
       Route.SetDestinationDirectly(Materials[I].FdEmissiveColor);
       ContainerForResetNode.Routes.Add(Route);
 
-      ResetColor2 := TScalarInterpolatorNode.Create('SlotReset_alpha_' + ToX3DName(Name));
-      ResetColor2.FdKey.Items.Add(0);
-      ResetColor2.FdKeyValue.Items.Add(1 - Color[3]);
-      ContainerForResetNode.FdChildren.Add(ResetColor2);
+      ScalarInterp := TScalarInterpolatorNode.Create('SlotReset_alpha_' + ToX3DName(Name));
+      ScalarInterp.FdKey.Items.Add(0);
+      ScalarInterp.FdKeyValue.Items.Add(1 - Color[3]);
+      ContainerForResetNode.FdChildren.Add(ScalarInterp);
+      ResetColor2.Add(ScalarInterp);
 
       Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(ResetColor2.EventValue_changed);
+      Route.SetSourceDirectly(ScalarInterp.EventValue_changed);
       Route.SetDestinationDirectly(Materials[I].FdTransparency);
       ContainerForResetNode.Routes.Add(Route);
     end;

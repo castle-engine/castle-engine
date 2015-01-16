@@ -203,7 +203,7 @@ procedure TAnimation.BuildNodes(const BaseUrl: string;
   const BonesAnimated: TBonesAnimated; const SlotsAnimated: TSlotsAnimated);
 var
   MaxTime: Single;
-  I: Integer;
+  I, J: Integer;
   Route: TX3DRoute;
   BonesToReset: TBonesAnimated;
   SlotsToReset: TSlotsAnimated;
@@ -314,15 +314,21 @@ begin
 
     for I := 0 to SlotsToReset.Color.Count - 1 do
     begin
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(Node.EventFraction_changed);
-      Route.SetDestinationDirectly(SlotsToReset.Color[I].ResetColor1.EventSet_fraction);
-      Container.Routes.Add(Route);
+      for J := 0 to SlotsToReset.Color[I].ResetColor1.Count - 1 do
+      begin
+        Route := TX3DRoute.Create;
+        Route.SetSourceDirectly(Node.EventFraction_changed);
+        Route.SetDestinationDirectly(SlotsToReset.Color[I].ResetColor1[J].EventSet_fraction);
+        Container.Routes.Add(Route);
+      end;
 
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(Node.EventFraction_changed);
-      Route.SetDestinationDirectly(SlotsToReset.Color[I].ResetColor2.EventSet_fraction);
-      Container.Routes.Add(Route);
+      for J := 0 to SlotsToReset.Color[I].ResetColor2.Count - 1 do
+      begin
+        Route := TX3DRoute.Create;
+        Route.SetSourceDirectly(Node.EventFraction_changed);
+        Route.SetDestinationDirectly(SlotsToReset.Color[I].ResetColor2[J].EventSet_fraction);
+        Container.Routes.Add(Route);
+      end;
     end;
 
     for I := 0 to SlotsToReset.DrawOrder.Count - 1 do
