@@ -186,9 +186,9 @@ begin
 
   Status := TCastleLabel.Create(Window);
   Status.Padding := 5;
-  Status.Text.Append('FPS: ...');
   Status.Color := Red;
   Status.Left := 10;
+  Status.Text.Text := 'FPS: ...'; // set initial text, to make 1st WindowResize set proper position
   // Status.Bottom := ...; // vertical Status position will be adjusted in WindowResize
   Status.Frame := false;
   Window.Controls.InsertFront(Status);
@@ -255,7 +255,7 @@ var
   T: TVector3Single;
   Pos, Dir, Up: TVector3Single;
 begin
-  Status.Text[Status.Text.Count - 1] := Format('FPS: %f (real : %f)',
+  Status.Text.Text := Format('FPS: %f (real : %f)',
     [Window.Fps.FrameTime, Window.Fps.RealTime]);
 
   if { check SceneManager.Camera existence, because in this game
