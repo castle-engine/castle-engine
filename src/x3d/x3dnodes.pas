@@ -2112,7 +2112,10 @@ const
     example EXTERNPROTO. }
   URNBitManagementNodes = 'urn:inet:bitmanagement.de:node:';
 
-const
+  { Standard prefix name for a time sensor to be recognized as a "named animation"
+    for TCastleSceneCore.PlayAnimation and friends. }
+  AnimationPrefix = 'Animation_';
+
   AllAccessTypes = [atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput];
   RestrictedAccessTypes = [atInputOnly, atOutputOnly, atInitializeOnly];
 

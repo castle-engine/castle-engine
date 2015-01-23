@@ -1972,7 +1972,7 @@ var
 implementation
 
 uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils, CastleWarnings,
-  X3DLoad, CastleURIUtils, X3DLoadInternalUtils;
+  X3DLoad, CastleURIUtils;
 
 { TX3DBindableStack ----------------------------------------------------- }
 
