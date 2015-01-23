@@ -236,9 +236,9 @@ type
       ScenesPerTime: Cardinal;
       const EqualityEpsilon: Single);
 
-    { Load precalculated animation by playing a single VRML file with
+    { Load precalculated animation by playing a single VRML/X3D file with
       events (interpolators, TimeSensor and such working).
-      Conceptually, this "records" interactive animation stored in VRML file
+      Conceptually, this "records" interactive animation stored in VRML/X3D file
       into TCastlePrecalculatedAnimation precalculated animation.
 
       ATimeBegin, ATimeEnd tell what time slice should be recorded.
