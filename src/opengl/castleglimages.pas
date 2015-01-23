@@ -625,6 +625,10 @@ type
     property TimeBackwards: boolean
       read FTimeBackwards write FTimeBackwards;
 
+    { Duration of the movie, in seconds.
+      This is just the number of frames @link(Count) divided by FramesPerSecond. }
+    function Duration: Single;
+
     property Width: Cardinal read FWidth;
     property Height: Cardinal read FHeight;
   end;
@@ -2098,6 +2102,11 @@ function TGLVideo.IndexFromTime(const Time: Single): Integer;
 begin
   Result := TVideo.FrameIndexFromTime(Time, Count, FramesPerSecond,
     TimeLoop, TimeBackwards);
+end;
+
+function TGLVideo.Duration: Single;
+begin
+  Result := Count / FramesPerSecond;
 end;
 
 { TGLVideo3D ----------------------------------------------------------------- }
