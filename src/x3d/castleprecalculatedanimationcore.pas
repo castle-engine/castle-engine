@@ -28,6 +28,10 @@ type
     in OpenGL, see TCastlePrecalculatedAnimation. }
   TCastlePrecalculatedAnimationCore = class(T3D)
   public
+    const
+      DefaultScenesPerTime = 30;
+      DefaultEqualityEpsilon = 0.001;
+
     { Load animation data from a given URL to a set of variables.
 
       See [http://castle-engine.sourceforge.net/kanim_format.php]
@@ -102,12 +106,6 @@ begin
   finally FreeAndNil(Document); end;
 end;
 
-const
-  DefaultKAnimScenesPerTime = 30;
-  DefaultKAnimEqualityEpsilon = 0.001;
-  DefaultKAnimLoop = false;
-  DefaultKAnimBackwards = false;
-
 class procedure TCastlePrecalculatedAnimationCore.LoadFromDOMElementToVars(
   Element: TDOMElement;
   const BaseUrl: string;
@@ -116,6 +114,9 @@ class procedure TCastlePrecalculatedAnimationCore.LoadFromDOMElementToVars(
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
   out ATimeLoop, ATimeBackwards: boolean);
+const
+  DefaultKAnimLoop = false;
+  DefaultKAnimBackwards = false;
 var
   AbsoluteBaseUrl: string;
   FrameElement: TDOMElement;
@@ -134,8 +135,8 @@ begin
     'Root node of an animation XML file must be <animation>');
 
   { Assign default values for optional attributes }
-  ScenesPerTime := DefaultKAnimScenesPerTime;
-  EqualityEpsilon := DefaultKAnimEqualityEpsilon;
+  ScenesPerTime := DefaultScenesPerTime;
+  EqualityEpsilon := DefaultEqualityEpsilon;
   ATimeLoop := DefaultKAnimLoop;
   ATimeBackwards := DefaultKAnimBackwards;
 
