@@ -4030,7 +4030,7 @@ var
 
       Note that we don't reset time here (ResetTime = false), otherwise
       we would mistakenly interpret resuming (from paused state) just like
-      activation (from stopped state), testcase time_sensor_3.x3dv.  }
+      activation (from stopped state), testcase time_sensor_3.x3dv. }
 
     Handler.SetTime(Time, Time, 0, false);
 
@@ -5819,18 +5819,28 @@ begin
   inherited;
   if not GetExists then Exit;
 
+  { Ignore Update calls when SecondsPassed is precisely zero
+    (this may happen, and is correct, see TFramesPerSecond.ZeroNextSecondsPassed).
+    In this case, time increase will be zero so the whole code
+    will not do anything anyway.
+
+    (Well, time dependent nodes like TimeSensor could "realize" that startTime
+    happened *now*, and send initial events to start animation.
+    But actually we take care of it in HandleChangeTimeStopStart.) }
+
+  if TimePlaying and (SecondsPassed <> 0) then
+    IncreaseTime(TimePlayingSpeed * SecondsPassed);
+
+  Inc(FTime.PlusTicks);
+
+  { process TransformationDirty after IncreaseTime, to apply scheduled
+    TransformationDirty in the same Update, as soon as possible
+    (useful e.g. for mana shot animation in dragon_squash). }
   if TransformationDirty <> [] then
   begin
     RootTransformationChanged(TransformationDirty);
     TransformationDirty := [];
   end;
-
-  { Ignore Update calls when SecondsPassed is precisely zero
-    (this may happen, and is correct, see TFramesPerSecond.ZeroNextSecondsPassed).
-    In this case, time increase will be zero so the whole code
-    will not do anything anyway. }
-  if TimePlaying and (SecondsPassed <> 0) then
-    IncreaseTime(TimePlayingSpeed * SecondsPassed);
 end;
 
 { changes schedule ----------------------------------------------------------- }
