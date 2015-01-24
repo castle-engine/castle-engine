@@ -1828,6 +1828,11 @@ type
       Returns whether animation (corresponding TimeSensor node) was found. }
     function PlayAnimation(const AnimationName: string;
       const Looping: TPlayAnimationLooping): boolean;
+
+    { Duration, in seconds, of the named animation
+      (named animations are detected by @link(Animations) method).
+      0 if not found. }
+    function AnimationDuration(const AnimationName: string): TFloatTime;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Update) will take care of increasing @link(Time).
@@ -6931,6 +6936,19 @@ begin
     TimeNode.FdStartTime.Send(Time.Seconds);
     PlayingAnimationNode := TimeNode;
   end;
+end;
+
+function TCastleSceneCore.AnimationDuration(const AnimationName: string): TFloatTime;
+var
+  TimeNode: TTimeSensorNode;
+begin
+  if RootNode <> nil then
+    TimeNode := RootNode.TryFindNodeByName(TTimeSensorNode,
+      AnimationPrefix + AnimationName, true) as TTimeSensorNode else
+    TimeNode := nil;
+  if TimeNode <> nil then
+    Result := TimeNode.CycleInterval else
+    Result := 0;
 end;
 
 end.
