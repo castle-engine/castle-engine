@@ -555,6 +555,7 @@ type
     { For internal use by tooltip rendering. In normal circumstances,
       leave this at tiLabel. }
     ImageType: TThemeImage;
+    FAlignment: TPositionRelative;
     { Calculate surrounding rectangle, like for @link(Rect),
       also calculating TextBroken (in case MaxWidth <> 0) along they way. }
     function RectCore(out TextBroken: TStrings): TRectangle;
@@ -591,6 +592,10 @@ type
       The text will be broken in the middle of lines, to make it fit
       (together with @link(Padding)) inside MaxWidth. }
     property MaxWidth: Integer read FMaxWidth write FMaxWidth;
+
+    { Horizontal alignment of the text. }
+    property Alignment: TPositionRelative
+      read FAlignment write FAlignment default prLeft;
   end;
 
   TCastleCrosshairShape = (csCross, csCrossRect);
@@ -2272,6 +2277,7 @@ procedure TCastleLabel.Render;
 var
   R: TRectangle;
   TextBroken, TextToRender: TStrings;
+  TextX: Integer;
 begin
   inherited;
   if Text.Count = 0 then Exit;
@@ -2284,8 +2290,15 @@ begin
       TextToRender := TextBroken;
     if Frame then
       Theme.Draw(R, ImageType);
-    Font.PrintStrings(R.Left + Padding,
-      R.Bottom + Padding + Font.Descend, Color, TextToRender, Tags, LineSpacing);
+    case Alignment of
+      prLeft  : TextX := R.Left + Padding;
+      prMiddle: TextX := (R.Left + R.Right) div 2;
+      prRight : TextX := R.Right - Padding;
+      else raise EInternalError.Create('TCastleLabel.Render: Alignment?');
+    end;
+    Font.PrintStrings(TextX,
+      R.Bottom + Padding + Font.Descend, Color, TextToRender, Tags, LineSpacing,
+      Alignment);
   finally FreeAndNil(TextBroken) end;
 end;
 

@@ -172,18 +172,20 @@ type
 
     { Print all strings from the list.
 
-      X0, Y0 is the bottom-left position of the whole text block
-      (that is, it is the bottom-left position of the last string).
-      Distance between each line is (RowHeight + LineSpacing) pixels.
+      @param(X0 The X position of the whole text block.
+        It's exact interpretation depends on TextHorizontalAlignment value.)
 
-      Note that LineSpacing can be < 0 (as well as > 0),
-      this may be sometimes useful if you really want to squeeze
-      more text into the available space. Still, make sure that
-      (RowHeight + LineSpacing) is > 0.
+      @param(Y0 The bottom position of the whole text block.
+        Rhat is, this is the bottom position of the last string.)
 
-      May require 1 free slot on the attributes stack.
-      May only be called when current matrix is modelview.
-      Doesn't modify any OpenGL state or matrix, except it moves raster position.
+      @param(LineSpacing Extra space between lines.
+        Distance between each line is determined by RowHeight + LineSpacing
+        pixels.
+
+        Note that LineSpacing can be < 0 (as well as > 0),
+        this may be sometimes useful if you really want to squeeze
+        more text into the available space. Still, make sure that
+        (RowHeight + LineSpacing) is > 0.)
 
       @param(Tags Enable some HTML-like tags to mark font changes inside the text.
         For now, these can only be used to surround whole lines
@@ -201,13 +203,17 @@ type
         Not necessarily replicating some (old version of) HTML standard.
       )
 
-      Overloaded and deprecated versions without
-      explicit Color parameter use CurrentColor.
+      @param(Color The color of the text. Alpha value of the color is honored,
+        value < 1 renders partially-transparent text.
+
+        Overloaded and deprecated versions without
+        explicit Color parameter use CurrentColor.)
 
       @groupBegin }
     procedure PrintStrings(const X0, Y0: Integer; const Color: TCastleColor;
       const Strs: TStrings; const Tags: boolean;
-      const LineSpacing: Integer); overload;
+      const LineSpacing: Integer;
+      const TextHorizontalAlignment: TPositionRelative = prLeft); overload;
     procedure PrintStrings(const Strs: TStrings;
       const Tags: boolean; const LineSpacing: Integer;
       const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated;
@@ -589,11 +595,20 @@ end;
 
 procedure TCastleFont.PrintStrings(const X0, Y0: Integer;
   const Color: TCastleColor; const Strs: TStrings;
-  const Tags: boolean; const LineSpacing: Integer);
-var
-  Line: Integer;
+  const Tags: boolean; const LineSpacing: Integer;
+  const TextHorizontalAlignment: TPositionRelative);
 
-  function YPos: Integer;
+  function XPos(const Line: Integer; const S: string): Integer;
+  begin
+    case TextHorizontalAlignment of
+      prLeft  : Result := X0;
+      prMiddle: Result := X0 - TextWidth(S) div 2;
+      prRight : Result := X0 - TextWidth(S);
+      else EInternalError.Create('TCastleFont.PrintStrings: TextHorizontalAlignment unknown');
+    end;
+  end;
+
+  function YPos(const Line: Integer): Integer;
   begin
     Result := (Strs.Count - 1 - Line) * (RowHeight + LineSpacing) + Y0;
   end;
@@ -602,6 +617,7 @@ var
   S: string;
   ColorChange: boolean;
   ColorChanged: TCastleColor;
+  Line: Integer;
 begin
   for Line := 0 to Strs.Count - 1 do
   begin
@@ -610,10 +626,10 @@ begin
     begin
       S := HandleTags(S, ColorChange, ColorChanged);
       if ColorChange then
-        Print(X0, YPos, ColorChanged, S) else
-        Print(X0, YPos, Color, S);
+        Print(XPos(Line, S), YPos(Line), ColorChanged, S) else
+        Print(XPos(Line, S), YPos(Line), Color, S);
     end else
-      Print(X0, YPos, Color, S);
+      Print(XPos(Line, S), YPos(Line), Color, S);
   end;
 end;
 
