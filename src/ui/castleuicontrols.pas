@@ -694,8 +694,8 @@ end;
 
     { Initialize your OpenGL resources.
 
-      This is called when OpenGL context of the container is created.
-      Also called when the control is added to the already existing context.
+      This is called when OpenGL context of the container is created,
+      or when the control is added to the already existing context.
       In other words, this is the moment when you can initialize
       OpenGL resources, like display lists, VBOs, OpenGL texture names, etc.
 
@@ -1478,7 +1478,11 @@ begin
   for I := 0 to Controls.Count - 1 do
   begin
     C := Controls[I];
-    C.GLContextOpen;
+    { Check here C.GLInitialized to not call C.GLContextOpen twice.
+      Control may have GL resources already initialized if it was added
+      e.g. from Application.OnInitialize before EventOpen. }
+    if not C.GLInitialized then
+      C.GLContextOpen;
   end;
 
   if Assigned(OnOpen) then OnOpen(Self);
@@ -1503,7 +1507,8 @@ begin
     for I := 0 to Controls.Count - 1 do
     begin
       C := Controls[I];
-      C.GLContextClose;
+      if C.GLInitialized then
+        C.GLContextClose;
     end;
   end;
 
