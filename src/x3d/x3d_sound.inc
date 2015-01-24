@@ -63,7 +63,6 @@
       if it's successfully loaded. }
     property BufferLoaded: boolean read FBufferLoaded write SetBufferLoaded;
   protected
-    function CycleInterval: TFloatTime; override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
@@ -71,6 +70,7 @@
     destructor Destroy; override;
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
+    function CycleInterval: TFloatTime; override;
 
     private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;

@@ -116,8 +116,6 @@
     FTimeDependentNodeHandler: TTimeDependentNodeHandler;
     { To satify IAbstractTimeDependentNode }
     function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
-  protected
-    function CycleInterval: TFloatTime; virtual; abstract;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -149,6 +147,7 @@
     private FEventIsPaused: TSFBoolEvent;
     public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
 
+    function CycleInterval: TFloatTime; virtual; abstract;
     property TimeDependentNodeHandler: TTimeDependentNodeHandler
       read FTimeDependentNodeHandler;
   end;
@@ -157,8 +156,6 @@
   private
     procedure EventElapsedTimeReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-  protected
-    function CycleInterval: TFloatTime; override;
   public
     procedure CreateNode; override;
 
@@ -182,6 +179,8 @@
 
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
+
+    function CycleInterval: TFloatTime; override;
 
     { Send TimeSensor output events, without actually activating the TimeSensor.
 
