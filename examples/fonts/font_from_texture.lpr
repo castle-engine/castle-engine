@@ -76,6 +76,7 @@ begin
 
   UIFont := TSimpleTextureFont.Create(
     LoadImage(ApplicationData('sonic_asalga_0.png')), 8, 12, 2, 2);
+//  UIFont.Scale := 4; // test font Scale
 
   Label1 := TCastleLabel.Create(Window);
   Label1.Text.Append('A simple test of a font from an image.');
@@ -148,6 +149,7 @@ begin
     'and larger size.';
   LabelStylishLarge.Padding := 5;
   LabelStylishLarge.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), 30, true);
+//  LabelStylishLarge.CustomFont.Scale := 4; // test font Scale
   LabelStylishLarge.OwnsCustomFont := true;
   Window.Controls.InsertFront(LabelStylishLarge);
 

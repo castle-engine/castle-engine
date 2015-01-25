@@ -129,8 +129,11 @@ type
     FAlpha: TAlphaChannel;
     FIgnoreTooLargeCorners: boolean;
     FColor: TCastleColor;
+    FScalingPossible: boolean;
     procedure AlphaBegin;
     procedure AlphaEnd;
+    procedure UpdateScalingPossible(const NeedToBind: boolean);
+    procedure SetScalingPossible(const Value: boolean);
     { Prepare static stuff for rendering. }
     class procedure PrepareStatic;
   public
@@ -303,6 +306,20 @@ type
       Updates the @link(Width), @link(Height), @link(Alpha) to correspond
       to new image. }
     procedure Load(const Image: TCastleImage);
+
+    { Is the image filtering mode ready for scaling. "Scaling" here means drawing
+      such that one image pixel does not perfectly cover one screen pixel.
+      For example, using @link(Draw) to draw the whole image,
+      but with the size of the image on screen different than image size.
+      If you want to do such drawing, set ScalingPossible to @true.
+
+      On the other hand, if you will not ever do scaling, then leave
+      ScalingPossible to @false. It may cause minimally faster drawing,
+      and avoids any possible artifacts from bilinear filtering.
+
+      Note that switching this property after this object is constructed
+      is possible, but costly. }
+    property ScalingPossible: boolean read FScalingPossible write SetScalingPossible;
   end;
 
 { Draw the image on 2D screen. Note that if you want to use this
@@ -1090,8 +1107,6 @@ end;
 
 constructor TGLImage.Create(const Image: TCastleImage;
   const AScalingPossible: boolean);
-var
-  Filter: TTextureFilter;
 begin
   inherited Create;
 
@@ -1101,17 +1116,9 @@ begin
   FColor := White;
 
   glGenTextures(1, @Texture);
-  Load(Image); // Load will start with proper glBindTexture
-  if AScalingPossible then
-  begin
-    Filter.Minification := minLinear;
-    Filter.Magnification := magLinear;
-  end else
-  begin
-    Filter.Minification := minNearest;
-    Filter.Magnification := magNearest;
-  end;
-  SetTextureFilter(GL_TEXTURE_2D, Filter);
+  Load(Image); // Load will already call proper glBindTexture
+  FScalingPossible := AScalingPossible;
+  UpdateScalingPossible(false);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
 
@@ -1516,6 +1523,34 @@ begin
   Draw3x3(ScreenRectangle.Left, ScreenRectangle.Bottom,
     ScreenRectangle.Width, ScreenRectangle.Height,
     Corner[0], Corner[1], Corner[2], Corner[3]);
+end;
+
+procedure TGLImage.UpdateScalingPossible(const NeedToBind: boolean);
+var
+  Filter: TTextureFilter;
+begin
+  if NeedToBind then
+    glBindTexture(GL_TEXTURE_2D, Texture);
+
+  if ScalingPossible then
+  begin
+    Filter.Minification := minLinear;
+    Filter.Magnification := magLinear;
+  end else
+  begin
+    Filter.Minification := minNearest;
+    Filter.Magnification := magNearest;
+  end;
+  SetTextureFilter(GL_TEXTURE_2D, Filter);
+end;
+
+procedure TGLImage.SetScalingPossible(const Value: boolean);
+begin
+  if FScalingPossible <> Value then
+  begin
+    FScalingPossible := Value;
+    UpdateScalingPossible(true);
+  end;
 end;
 
 { Drawing images on 2D screen ------------------------------------------------ }

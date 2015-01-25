@@ -27,15 +27,18 @@ uses Classes, CastleGLImages, CastleStringUtils, CastleColors,
 type
   { Abstract class for 2D font. }
   TCastleFont = class abstract
-  private
+  strict private
     MeasureDone: boolean;
     FRowHeight, FRowHeightBase, FDescend: Integer;
-  protected
+    FScale: Single;
+  strict protected
     { Calculate properties based on measuring the font.
       The default implementation in TCastleFont looks at TextHeight of sample texts
       to determine the parameter values. }
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer); virtual;
+    procedure SetScale(const Value: Single); virtual;
   public
+    constructor Create;
     destructor Destroy; override;
 
     { Draw text at the current WindowPos, and move
@@ -268,6 +271,8 @@ type
       const PositionsFirst: boolean;
       const LineSpacing: Integer): Integer; deprecated;
     { @groupEnd }
+
+    property Scale: Single read FScale write SetScale;
   end;
 
   { @deprecated Deprecated name for TCastleFont. }
@@ -280,10 +285,12 @@ type
     since our texturefont2pascal can convert a font ttf to a unit that defines
     ready TTextureFontData instance. }
   TTextureFont = class(TCastleFont)
-  private
+  strict private
     FFont: TTextureFontData;
     FOwnsFont: boolean;
     GLImage: TGLImage;
+  strict protected
+    procedure SetScale(const Value: Single); override;
   public
     {$ifdef HAS_FREE_TYPE}
     { Create by reading a FreeType font file, like ttf.
@@ -340,11 +347,16 @@ type
     e.g. http://opengameart.org/content/sonic-font and
     http://opengameart.org/content/null-terminator. }
   TSimpleTextureFont = class(TCastleFont)
-  private
+  strict private
     GLImage: TGLImage;
     Image: TCastleImage;
     ImageCols, ImageRows,
       CharMargin, CharDisplayMargin, CharWidth, CharHeight: Integer;
+    function ScaledCharWidth: Integer;
+    function ScaledCharHeight: Integer;
+    function ScaledCharDisplayMargin: Integer;
+  strict protected
+    procedure SetScale(const Value: Single); override;
   public
     { Load font from given image.
       @param AImage Image data, becomes owned by this class.
@@ -443,6 +455,12 @@ begin
 end;
 
 { TCastleFont ------------------------------------------------------}
+
+constructor TCastleFont.Create;
+begin
+  inherited;
+  FScale := 1;
+end;
 
 destructor TCastleFont.Destroy;
 begin
@@ -765,6 +783,11 @@ begin
   Result := FDescend;
 end;
 
+procedure TCastleFont.SetScale(const Value: Single);
+begin
+  FScale := Value;
+end;
+
 { TTextureFont --------------------------------------------------------------- }
 
 {$ifdef HAS_FREE_TYPE}
@@ -810,7 +833,7 @@ procedure TTextureFont.GLContextOpen;
 begin
   inherited;
   if GLImage = nil then
-    GLImage := TGLImage.Create(FFont.Image, false);
+    GLImage := TGLImage.Create(FFont.Image, Scale <> 1);
 end;
 
 procedure TTextureFont.GLContextClose;
@@ -844,10 +867,12 @@ begin
     if G <> nil then
     begin
       if (G.Width <> 0) and (G.Height <> 0) then
-        GLImage.Draw(ScreenX - G.X, ScreenY - G.Y, G.Width, G.Height,
+        GLImage.Draw(ScreenX - G.X, ScreenY - G.Y,
+          Round(G.Width  * Scale),
+          Round(G.Height * Scale),
           G.ImageX, G.ImageY, G.Width, G.Height);
-      ScreenX += G.AdvanceX;
-      ScreenY += G.AdvanceY;
+      ScreenX += Round(G.AdvanceX * Scale);
+      ScreenY += Round(G.AdvanceY * Scale);
     end;
 
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
@@ -856,22 +881,31 @@ end;
 
 function TTextureFont.TextWidth(const S: string): Integer;
 begin
-  Result := FFont.TextWidth(S);
+  Result := Round(FFont.TextWidth(S) * Scale);
 end;
 
 function TTextureFont.TextHeight(const S: string): Integer;
 begin
-  Result := FFont.TextHeight(S);
+  Result := Round(FFont.TextHeight(S) * Scale);
 end;
 
 function TTextureFont.TextHeightBase(const S: string): Integer;
 begin
-  Result := FFont.TextHeightBase(S);
+  Result := Round(FFont.TextHeightBase(S) * Scale);
 end;
 
 function TTextureFont.TextMove(const S: string): TVector2Integer;
 begin
   Result := FFont.TextMove(S);
+  Result[0] := Round(Result[0] * Scale);
+  Result[1] := Round(Result[1] * Scale);
+end;
+
+procedure TTextureFont.SetScale(const Value: Single);
+begin
+  inherited;
+  if GLImage <> nil then
+    GLImage.ScalingPossible := Scale <> 1;
 end;
 
 { TSimpleTextureFont --------------------------------------------------------- }
@@ -896,11 +930,26 @@ begin
   inherited;
 end;
 
+function TSimpleTextureFont.ScaledCharWidth: Integer;
+begin
+  Result := Round(CharWidth * Scale);
+end;
+
+function TSimpleTextureFont.ScaledCharHeight: Integer;
+begin
+  Result := Round(CharHeight * Scale);
+end;
+
+function TSimpleTextureFont.ScaledCharDisplayMargin: Integer;
+begin
+  Result := Round(CharDisplayMargin * Scale);
+end;
+
 procedure TSimpleTextureFont.GLContextOpen;
 begin
   inherited;
   if GLImage = nil then
-    GLImage := TGLImage.Create(Image, false);
+    GLImage := TGLImage.Create(Image, Scale <> 1);
 end;
 
 procedure TSimpleTextureFont.GLContextClose;
@@ -927,9 +976,9 @@ begin
     begin
       ImageX := ImageX * (CharWidth + CharMargin);
       ImageY := GLImage.Height - (ImageY + 1) * (CharHeight + CharMargin);
-      ScreenX := CharDisplayMargin div 2 + X + (I - 1) * (CharWidth + CharDisplayMargin);
-      ScreenY := CharDisplayMargin div 2 + Y;
-      GLImage.Draw(ScreenX, ScreenY, CharWidth, CharHeight,
+      ScreenX := ScaledCharDisplayMargin div 2 + X + (I - 1) * (ScaledCharWidth + ScaledCharDisplayMargin);
+      ScreenY := ScaledCharDisplayMargin div 2 + Y;
+      GLImage.Draw(ScreenX, ScreenY, ScaledCharWidth, ScaledCharHeight,
         ImageX, ImageY, CharWidth, CharHeight);
     end;
   end;
@@ -937,22 +986,29 @@ end;
 
 function TSimpleTextureFont.TextWidth(const S: string): Integer;
 begin
-  Result := Length(S) * (CharWidth + CharDisplayMargin);
+  Result := Length(S) * (ScaledCharWidth + ScaledCharDisplayMargin);
 end;
 
 function TSimpleTextureFont.TextHeight(const S: string): Integer;
 begin
-  Result := CharHeight + CharDisplayMargin;
+  Result := ScaledCharHeight + ScaledCharDisplayMargin;
 end;
 
 function TSimpleTextureFont.TextHeightBase(const S: string): Integer;
 begin
-  Result := CharHeight + CharDisplayMargin;
+  Result := ScaledCharHeight + ScaledCharDisplayMargin;
 end;
 
 function TSimpleTextureFont.TextMove(const S: string): TVector2Integer;
 begin
   Result := Vector2Integer(TextWidth(S), TextHeight(S));
+end;
+
+procedure TSimpleTextureFont.SetScale(const Value: Single);
+begin
+  inherited;
+  if GLImage <> nil then
+    GLImage.ScalingPossible := Scale <> 1;
 end;
 
 end.
