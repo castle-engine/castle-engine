@@ -108,6 +108,7 @@ type
       (for example letter "y" has the tail below the baseline in most fonts). }
     function TextHeightBase(const S: string): Integer; virtual; abstract;
     function TextMove(const S: string): TVector2Integer; virtual; abstract;
+    function TextSize(const S: string): TVector2Integer;
 
     { Height of a row of text in this font.
       This may be calculated as simply @code(TextHeight('Wy')) for most
@@ -455,6 +456,11 @@ end;
 
 procedure TCastleFont.GLContextClose;
 begin
+end;
+
+function TCastleFont.TextSize(const S: string): TVector2Integer;
+begin
+  Result := Vector2Integer(TextWidth(S), TextHeight(S));
 end;
 
 procedure TCastleFont.Print(const Pos: TVector2Integer;
