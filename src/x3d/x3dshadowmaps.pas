@@ -545,10 +545,20 @@ begin
       if ProjectionFar <= 0 then
         ProjectionFar := 1;
 
+      { Make ProjectionFar larger and ProjectionNear smaller, since
+        1. At the beginning of the projection range
+           the depth texture has the best precision.
+        2. The range should be slightly larger than ShadowCastersBox anyway,
+           to be sure to capture shadow casters exactly at the begin/end
+           of projection range (like a box side exactly at the beginning
+           of ShadowCastersBox range in demo_models/shadow_spot_simple.wrl). }
+      ProjectionFar *= 10.0;
+      ProjectionNear /= 10.0;
+
       { final correction of auto-calculated projectionNear: must be > 0,
         and preferably > some epsilon of projectionFar (to avoid depth
         precision problems). }
-      MaxTo1st(ProjectionNear, ProjectionFar / 1000);
+      MaxTo1st(ProjectionNear, ProjectionFar * 0.001);
     end;
   end;
 
