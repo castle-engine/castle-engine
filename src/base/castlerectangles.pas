@@ -101,6 +101,7 @@ type
     { @groupEnd }
 
     property LeftBottom: TVector2Integer read GetLeftBottom write SetLeftBottom;
+    function Middle: TVector2Integer;
 
     { Clamp value to be within allowed horizontal range.
       That is, clamp to @code([Left, Right - 1]). }
@@ -334,6 +335,11 @@ end;
 function TRectangle.ToString: string;
 begin
   Result := Format('TRectangle: %dx%d %dx%d', [Left, Bottom, Width, Height]);
+end;
+
+function TRectangle.Middle: TVector2Integer;
+begin
+  Result := Vector2Integer(Left + Width div 2, Bottom + Height div 2);
 end;
 
 { TRectangleList -------------------------------------------------------------- }
