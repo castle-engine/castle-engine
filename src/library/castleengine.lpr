@@ -73,6 +73,15 @@ begin
   end;
 end;
 
+function cge_verifyInit() : boolean;
+begin
+  Result := (Window <> nil) and (Window.SceneManager <> nil) and (Window.MainScene <> nil);
+  if not Result then
+  begin
+    cge_OnWarning(wtMajor, 'LibWnd', 'Not initialized');
+  end;
+end;
+
 procedure CGE_Open(flags: cUInt32); cdecl;
 begin
   try
@@ -98,6 +107,8 @@ end;
 procedure CGE_Close; cdecl;
 begin
   try
+    if not cge_verifyInit then exit;
+
     Window.MainScene.OnPointingDeviceSensorsChange := nil;
     FreeAndNil(Crosshair);
     Window.Close;
@@ -122,6 +133,8 @@ end;
 procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 begin
   try
+    if not cge_verifyInit then exit;
+
     Window.LibraryResize(uiViewWidth, uiViewHeight);
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
@@ -131,6 +144,8 @@ end;
 procedure CGE_Render; cdecl;
 begin
   try
+    if not cge_verifyInit then exit;
+
     Window.LibraryRender;
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
@@ -145,6 +160,8 @@ var
   C: TUIControl;
 begin
   try
+    if not cge_verifyInit then exit;
+
     Restore2D := TUIControlList.Create(false);
     try
       // hide touch controls
@@ -176,6 +193,7 @@ end;
 
 procedure CGE_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl;
 begin
+  if Window = nil then exit;
   try
     Window.LibraryCallbackProc := aProc;
   except
@@ -186,6 +204,8 @@ end;
 procedure CGE_Update; cdecl;
 begin
   try
+    if not cge_verifyInit then exit;
+
     Application.LibraryUpdate;
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
@@ -197,6 +217,8 @@ var
   MyButton: TMouseButton;
 begin
   try
+    if not cge_verifyInit then exit;
+
     if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
     Window.LibraryMouseDown(Vector2Single(X, Y), MyButton, FingerIndex);
   except
@@ -207,6 +229,8 @@ end;
 procedure CGE_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
 begin
   try
+    if not cge_verifyInit then exit;
+
     Window.LibraryMotion(Vector2Single(X, Y), FingerIndex);
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
@@ -218,6 +242,8 @@ var
   MyButton: TMouseButton;
 begin
   try
+    if not cge_verifyInit then exit;
+
     if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
     Window.LibraryMouseUp(Vector2Single(X, Y), MyButton, FingerIndex);
   except
@@ -228,6 +254,8 @@ end;
 procedure CGE_MouseWheel(zDelta: cFloat; bVertical: cBool); cdecl;
 begin
   try
+    if not cge_verifyInit then exit;
+
     Window.LibraryMouseWheel(zDelta/120, bVertical);
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
@@ -237,6 +265,8 @@ end;
 procedure CGE_KeyDown(eKey: CInt32); cdecl;
 begin
   try
+    if not cge_verifyInit then exit;
+
     if TKey(eKey)<>K_None then
       Window.LibraryKeyDown(TKey(eKey), #0);
   except
@@ -247,6 +277,8 @@ end;
 procedure CGE_KeyUp(eKey: CInt32); cdecl;
 begin
   try
+    if not cge_verifyInit then exit;
+
     if TKey(eKey)<>K_None then
       Window.LibraryKeyUp(TKey(eKey));
   except
@@ -256,6 +288,7 @@ end;
 
 procedure CGE_LoadSceneFromFile(szFile: pcchar); cdecl;
 begin
+  if Window = nil then exit;
   try
     Window.Load(StrPas(PChar(szFile)));
     Window.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
@@ -268,6 +301,12 @@ end;
 function CGE_GetViewpointsCount(): cInt32; cdecl;
 begin
   try
+    if not cge_verifyInit then
+    begin
+      Result := 0;
+      exit;
+    end;
+
     Result := Window.MainScene.ViewpointsCount;
   except
     on E: TObject do
@@ -283,6 +322,8 @@ var
   sName: string;
 begin
   try
+    if not cge_verifyInit then exit;
+
     sName := Window.MainScene.GetViewpointName(iViewpointIdx);
     StrPLCopy(szName, sName, nBufSize-1);
   except
@@ -293,6 +334,8 @@ end;
 procedure CGE_MoveToViewpoint(iViewpointIdx: cInt32; bAnimated: cBool); cdecl;
 begin
   try
+    if not cge_verifyInit then exit;
+
     Window.MainScene.MoveToViewpoint(iViewpointIdx, bAnimated);
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));
@@ -302,6 +345,8 @@ end;
 procedure CGE_AddViewpointFromCurrentView(szName: pcchar); cdecl;
 begin
   try
+    if not cge_verifyInit then exit;
+
     Window.MainScene.AddViewpointFromCamera(
       Window.SceneManager.Camera, StrPas(PChar(szName)));
   except
@@ -314,6 +359,8 @@ var
   BBox: TBox3D;
 begin
   try
+    if not cge_verifyInit then exit;
+
     BBox := Window.MainScene.BoundingBox;
     pfXMin^ := BBox.Data[0, 0]; pfXMax^ := BBox.Data[1, 0];
     pfYMin^ := BBox.Data[0, 1]; pfYMax^ := BBox.Data[1, 1];
@@ -329,6 +376,8 @@ var
   Pos, Dir, Up, GravityUp: TVector3Single;
 begin
   try
+    if not cge_verifyInit then exit;
+
     Window.SceneManager.Camera.GetView(Pos, Dir, Up, GravityUp);
     pfPosX^ := Pos[0]; pfPosY^ := Pos[1]; pfPosZ^ := Pos[2];
     pfDirX^ := Dir[0]; pfDirY^ := Dir[1]; pfDirZ^ := Dir[2];
@@ -346,6 +395,8 @@ var
   Pos, Dir, Up, GravityUp: TVector3Single;
 begin
   try
+    if not cge_verifyInit then exit;
+
     Pos[0] := fPosX; Pos[1] := fPosY; Pos[2] := fPosZ;
     Dir[0] := fDirX; Dir[1] := fDirY; Dir[2] := fDirZ;
     Up[0] := fUpX; Up[1] := fUpY; Up[2] := fUpZ;
@@ -362,6 +413,8 @@ end;
 function CGE_GetNavigationType(): cInt32; cdecl;
 begin
   try
+    if not cge_verifyInit then exit;
+
     case Window.NavigationType of
       ntWalk     : Result := 0;
       ntFly      : Result := 1;
@@ -384,6 +437,8 @@ var
   aNavType: TNavigationType;
 begin
   try
+    if not cge_verifyInit then exit;
+
     case NewType of
       0: aNavType := ntWalk;
       1: aNavType := ntFly;
@@ -469,6 +524,7 @@ procedure CGE_SetVariableInt(eVar: cInt32; nValue: cInt32); cdecl;
 var
   WalkCamera: TWalkCamera;
 begin
+  if Window = nil then exit;
   try
     case eVar of
       0: begin    // ecgevarWalkHeadBobbing
@@ -521,6 +577,8 @@ function CGE_GetVariableInt(eVar: cInt32): cInt32; cdecl;
 var
   WalkCamera: TWalkCamera;
 begin
+  Result := -1;
+  if Window = nil then exit;
   try
     case eVar of
       0: begin    // ecgevarWalkHeadBobbing
