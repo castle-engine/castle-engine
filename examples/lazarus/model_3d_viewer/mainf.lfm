@@ -285,6 +285,7 @@ object Main: TMain
       }
       OnClick = ButtonScreenshotClick
       TabOrder = 1
+      TabStop = False
     end
     object GroupNavigationType: TGroupBox
       AnchorSideTop.Control = GroupBoxCamera
