@@ -36,7 +36,7 @@ library castleengine;
 
 uses CTypes, Math, SysUtils, CastleWindow, CastleWindowTouch, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
-  CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, CastleLog,
+  CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, X3DFields, CastleLog,
   CastleBoxes, CastleControls, CastleWarnings;
 
 type
@@ -630,6 +630,48 @@ begin
   end;
 end;
 
+procedure CGE_SetNodeFieldValue(szNodeName, szFieldName: pcchar;
+                                fVal1, fVal2, fVal3, fVal4: cFloat); cdecl;
+var
+  aX3DNode: TX3DNode;
+  aField, aNewVal: TX3DField;
+begin
+  try
+    if not cge_verifyInit then exit;
+    if Window.MainScene.RootNode = nil then exit;
+
+    // find node
+    aX3DNode := Window.MainScene.RootNode.TryFindNodeByName(TX3DNode, StrPas(PChar(szNodeName)), true);
+    if aX3DNode = nil then exit;
+
+    // find its field
+    aField := aX3DNode.FieldOrEvent(StrPas(PChar(szFieldName))) as TX3DField;
+    if (aField = nil) or not (aField is TX3DField) then exit;
+
+    // create new value according to field type
+    aNewVal := nil;
+
+    if aField is TSFVec3f then
+      aNewVal := TSFVec3f.Create(nil, '', Vector3Single(fVal1, fVal2, fVal3))
+    else if aField is TSFVec4f then
+      aNewVal := TSFVec4f.Create(nil, '', Vector4Single(fVal1, fVal2, fVal3, fVal4))
+    else if aField is TSFVec3d then
+      aNewVal := TSFVec3d.Create(nil, '', Vector3Double(fVal1, fVal2, fVal3))
+    else if aField is TSFVec4d then
+      aNewVal := TSFVec4d.Create(nil, '', Vector4Double(fVal1, fVal2, fVal3, fVal4));
+
+    // set new value
+    if aNewVal <> nil then
+    begin
+      aField.Send(aNewVal);
+      FreeAndNil(aNewVal);
+    end;
+
+  except
+    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+  end;
+end;
+
 constructor TCrosshairManager.Create;
 begin
   inherited;
@@ -682,7 +724,7 @@ exports
   CGE_GetViewpointsCount, CGE_GetViewpointName, CGE_MoveToViewpoint, CGE_AddViewpointFromCurrentView,
   CGE_GetBoundingBox, CGE_GetViewCoords, CGE_MoveViewToCoords, CGE_SaveScreenshotToFile,
   CGE_SetTouchInterface, CGE_SetUserInterface, CGE_IncreaseSceneTime,
-  CGE_SetVariableInt, CGE_GetVariableInt;
+  CGE_SetVariableInt, CGE_GetVariableInt, CGE_SetNodeFieldValue;
 
 begin
   {Do not remove the exception masking lines}

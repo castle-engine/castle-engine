@@ -113,6 +113,9 @@ procedure CGE_SetUserInterface(AutomaticTouchInterface: cBool; nDpi: cInt32); cd
 procedure CGE_SetVariableInt(eVar: cInt32; nValue: cInt32); cdecl; external 'castleengine';
 function CGE_GetVariableInt(eVar: cInt32): cInt32; cdecl; external 'castleengine';
 
+procedure CGE_SetNodeFieldValue(szNodeName, szFieldName: pcchar;
+                                fVal1, fVal2, fVal3, fVal4: cFloat); cdecl; external 'castleengine';
+                                
 procedure CGE_IncreaseSceneTime(fTimeS: cFloat); cdecl; external 'castleengine';
 
 implementation

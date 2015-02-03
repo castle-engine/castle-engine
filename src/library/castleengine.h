@@ -244,6 +244,9 @@ extern void CGE_SetTouchInterface(int /*ECgeTouchCtlInterface*/ eMode);
 extern void CGE_SetVariableInt(int /*ECgeVariable*/ eVar, int nValue);
 extern int CGE_GetVariableInt(int /*ECgeVariable*/ eVar);
 
+extern void CGE_SetNodeFieldValue(const char *szNodeName, const char *szFieldName,
+                                  float fVal1, float fVal2, float fVal3, float fVal4);
+
 extern void CGE_IncreaseSceneTime(float fTimeS);    // set time in the scene, useful when sceneManager paused
 
 #ifdef __cplusplus

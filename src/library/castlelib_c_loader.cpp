@@ -74,6 +74,8 @@ typedef void (__cdecl *PFNRD_CGE_SetUserInterface)(bool bAutomaticTouchInterface
 
 typedef void (__cdecl *PFNRD_CGE_SetVariableInt)(int eVar, int nValue);
 typedef int (__cdecl *PFNRD_CGE_GetVariableInt)(int eVar);
+typedef void (__cdecl *PFNRD_CGE_SetNodeFieldValue)(const char *szNodeName, const char *szFieldName,
+                                                    float fVal1, float fVal2, float fVal3, float fVal4);
 
 typedef void (__cdecl *PFNRD_CGE_IncreaseSceneTime)(float fTimeS);
 
@@ -106,6 +108,7 @@ PFNRD_CGE_SetTouchInterface pfrd_CGE_SetTouchInterface = NULL;
 PFNRD_CGE_SetUserInterface pfrd_CGE_SetUserInterface = NULL;
 PFNRD_CGE_SetVariableInt pfrd_CGE_SetVariableInt = NULL;
 PFNRD_CGE_GetVariableInt pfrd_CGE_GetVariableInt = NULL;
+PFNRD_CGE_SetNodeFieldValue pfrd_CGE_SetNodeFieldValue = NULL;
 PFNRD_CGE_IncreaseSceneTime pfrd_CGE_IncreaseSceneTime = NULL;
 
 #ifdef QT_BUILD
@@ -163,6 +166,7 @@ void CGE_LoadLibrary()
     pfrd_CGE_SetUserInterface = (PFNRD_CGE_SetUserInterface)cge_GetProc(hCgeDll, "CGE_SetUserInterface");
     pfrd_CGE_SetVariableInt = (PFNRD_CGE_SetVariableInt)cge_GetProc(hCgeDll, "CGE_SetVariableInt");
     pfrd_CGE_GetVariableInt = (PFNRD_CGE_GetVariableInt)cge_GetProc(hCgeDll, "CGE_GetVariableInt");
+    pfrd_CGE_SetNodeFieldValue = (PFNRD_CGE_SetNodeFieldValue)cge_GetProc(hCgeDll, "CGE_SetNodeFieldValue");
     pfrd_CGE_IncreaseSceneTime = (PFNRD_CGE_IncreaseSceneTime)cge_GetProc(hCgeDll, "CGE_IncreaseSceneTime");
 }
 
@@ -327,8 +331,8 @@ void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, fl
 //-----------------------------------------------------------------------------
 int CGE_GetNavigationType()
 {
-	if (pfrd_CGE_GetNavigationType!=NULL)
-		return (*pfrd_CGE_GetNavigationType)();
+    if (pfrd_CGE_GetNavigationType!=NULL)
+            return (*pfrd_CGE_GetNavigationType)();
     else
         return 0;
 }
@@ -336,21 +340,21 @@ int CGE_GetNavigationType()
 //-----------------------------------------------------------------------------
 void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType)
 {
-	if (pfrd_CGE_SetNavigationType!=NULL)
+    if (pfrd_CGE_SetNavigationType!=NULL)
         (*pfrd_CGE_SetNavigationType)(eNewType);
 }
 
 //-----------------------------------------------------------------------------
 void CGE_SetTouchInterface(int /*ECgeTouchCtlInterface*/ eMode)
 {
-	if (pfrd_CGE_SetTouchInterface!=NULL)
+    if (pfrd_CGE_SetTouchInterface!=NULL)
         (*pfrd_CGE_SetTouchInterface)(eMode);
 }
 
 //-----------------------------------------------------------------------------
 void CGE_SetUserInterface(bool bAutomaticTouchInterface, int nDpi)
 {
-	if (pfrd_CGE_SetUserInterface!=NULL)
+    if (pfrd_CGE_SetUserInterface!=NULL)
         (*pfrd_CGE_SetUserInterface)(bAutomaticTouchInterface, nDpi);
 }
 
@@ -368,6 +372,14 @@ int CGE_GetVariableInt(int /*ECgeVariable*/ eVar)
         return (*pfrd_CGE_GetVariableInt)(eVar);
     else
         return -1;
+}
+
+//-----------------------------------------------------------------------------
+void CGE_SetNodeFieldValue(const char *szNodeName, const char *szFieldName,
+                           float fVal1, float fVal2, float fVal3, float fVal4)
+{
+    if (pfrd_CGE_SetNodeFieldValue!=NULL)
+        (*pfrd_CGE_SetNodeFieldValue)(szNodeName, szFieldName, fVal1, fVal2, fVal3, fVal4);
 }
 
 //-----------------------------------------------------------------------------
