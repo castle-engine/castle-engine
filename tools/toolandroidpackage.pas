@@ -26,7 +26,8 @@ procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
   const ReplaceMacros: TReplaceMacros;
   const Icons: TIconFileNames; const DataPath: string;
   const Files: TCastleStringList;
-  const AndroidLibrarySubdir, AndroidLibrary, PackagePath: string);
+  const AndroidLibrarySubdir, AndroidLibrary, PackagePath: string;
+  AndroidProjectPath: string);
 
 procedure InstallAndroidPackage(const Name, QualifiedName: string);
 
@@ -44,9 +45,42 @@ procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
   const ReplaceMacros: TReplaceMacros;
   const Icons: TIconFileNames; const DataPath: string;
   const Files: TCastleStringList;
-  const AndroidLibrarySubdir, AndroidLibrary, PackagePath: string);
-var
-  AndroidProjectPath: string;
+  const AndroidLibrarySubdir, AndroidLibrary, PackagePath: string;
+  AndroidProjectPath: string);
+
+  { Some utility procedures PackageXxx work just like Xxx,
+    but target filename should not contain prefix AndroidProjectPath,
+    and they avoid overwriting stuff already existing (in case CastleEngineManifest.xml
+    contained explicit android_project path). }
+
+  procedure PackageStringToFile(const FileName, Contents: string);
+  begin
+    if not FileExists(AndroidProjectPath + FileName) then
+      StringToFile(AndroidProjectPath + FileName, Contents) else
+    if Verbose then
+      Writeln('Not overwriting custom ' + FileName);
+  end;
+
+  procedure PackageCheckForceDirectories(const Dirs: string);
+  begin
+    CheckForceDirectories(AndroidProjectPath + Dirs);
+  end;
+
+  procedure PackageSaveImage(const Image: TCastleImage; const FileName: string);
+  begin
+    if not FileExists(AndroidProjectPath + FileName) then
+      SaveImage(Image, FilenameToURISafe(AndroidProjectPath + FileName)) else
+    if Verbose then
+      Writeln('Not overwriting custom ' + FileName);
+  end;
+
+  procedure PackageSmartCopyFile(const FileFrom, FileTo: string);
+  begin
+    if not FileExists(AndroidProjectPath + FileTo) then
+      SmartCopyFile(FileFrom, AndroidProjectPath + FileTo) else
+    if Verbose then
+      Writeln('Not overwriting custom ' + FileTo);
+  end;
 
   { Generate simple text stuff for Android project from templates. }
   procedure GenerateFromTemplates;
@@ -55,16 +89,15 @@ var
     StringsTemplate = {$I templates/android/res/values/strings.xml.inc};
     AndroidMkTemplate = {$I templates/android/jni/Android.mk.inc};
   begin
-    StringToFile(AndroidProjectPath + 'AndroidManifest.xml',
+    PackageStringToFile('AndroidManifest.xml',
       ReplaceMacros(AndroidManifestTemplate));
 
-    CheckForceDirectories(AndroidProjectPath + 'res' + PathDelim + 'values');
-    StringToFile(AndroidProjectPath +
-      'res' + PathDelim + 'values' + PathDelim + 'strings.xml',
+    PackageCheckForceDirectories('res' + PathDelim + 'values');
+    PackageStringToFile('res' + PathDelim + 'values' + PathDelim + 'strings.xml',
       ReplaceMacros(StringsTemplate));
 
-    CheckForceDirectories(AndroidProjectPath + 'jni');
-    StringToFile(AndroidProjectPath + 'jni' + PathDelim + 'Android.mk',
+    PackageCheckForceDirectories('jni');
+    PackageStringToFile('jni' + PathDelim + 'Android.mk',
       ReplaceMacros(AndroidMkTemplate));
   end;
 
@@ -79,9 +112,9 @@ var
     begin
       R := Icon.MakeResized(Size, Size, rniLanczos);
       try
-        Dir := AndroidProjectPath + 'res' + PathDelim + 'drawable-' + S + 'dpi';
-        CheckForceDirectories(Dir);
-        SaveImage(R, FilenameToURISafe(Dir + PathDelim + 'ic_launcher.png'));
+        Dir := 'res' + PathDelim + 'drawable-' + S + 'dpi';
+        PackageCheckForceDirectories(Dir);
+        PackageSaveImage(R, Dir + PathDelim + 'ic_launcher.png');
       finally FreeAndNil(R) end;
     end;
 
@@ -110,12 +143,12 @@ var
     I: Integer;
     FileFrom, FileTo: string;
   begin
-    CheckForceDirectories(AndroidProjectPath + 'assets');
+    PackageCheckForceDirectories('assets');
     for I := 0 to Files.Count - 1 do
     begin
       FileFrom := DataPath + Files[I];
-      FileTo := AndroidProjectPath + 'assets' + PathDelim + Files[I];
-      SmartCopyFile(FileFrom, FileTo);
+      FileTo := 'assets' + PathDelim + Files[I];
+      PackageSmartCopyFile(FileFrom, FileTo);
       if Verbose then
         Writeln('Package file: ' + Files[I]);
     end;
@@ -123,8 +156,8 @@ var
 
   procedure GenerateLibrary;
   begin
-    SmartCopyFile(AndroidLibrarySubdir,
-      AndroidProjectPath + 'jni' + PathDelim + AndroidLibrary);
+    PackageSmartCopyFile(AndroidLibrarySubdir,
+      'jni' + PathDelim + AndroidLibrary);
   end;
 
   procedure GenerateAntProperties(var PackageMode: TCompilationMode);
@@ -151,7 +184,7 @@ var
         end;
       finally FreeAndNil(S) end;
 
-      SmartCopyFile(PackagePath + SourceAntProperties, AndroidProjectPath + 'ant.properties');
+      PackageSmartCopyFile(PackagePath + SourceAntProperties, 'ant.properties');
     end else
     begin
       if PackageMode <> cmDebug then
@@ -206,8 +239,11 @@ var
 var
   ApkName: string;
   PackageMode: TCompilationMode;
+  TemporaryAndroidProjectPath: boolean;
 begin
-  AndroidProjectPath := InclPathDelim(CreateTemporaryDir);
+  TemporaryAndroidProjectPath := AndroidProjectPath = '';
+  if TemporaryAndroidProjectPath then
+    AndroidProjectPath := InclPathDelim(CreateTemporaryDir);
   PackageMode := SuggestedPackageMode;
 
   GenerateFromTemplates;
@@ -226,7 +262,7 @@ begin
 
   Writeln('Build ' + ApkName);
 
-  if not LeaveTemp then
+  if TemporaryAndroidProjectPath and not LeaveTemp then
     RemoveNonEmptyDir(AndroidProjectPath);
 end;
 

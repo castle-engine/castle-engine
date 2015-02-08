@@ -38,7 +38,7 @@ type
     IncludePaths, ExcludePaths: TCastleStringList;
     Icons: TIconFileNames;
     IncludePathsRecursive: TBooleanList;
-    FStandaloneSource, FAndroidSource: string;
+    FStandaloneSource, FAndroidSource, FAndroidProject: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
     FVersion: string;
     FVersionCode: Cardinal;
@@ -76,6 +76,7 @@ type
     property ExecutableName: string read FExecutableName;
     property StandaloneSource: string read FStandaloneSource;
     property AndroidSource: string read FAndroidSource;
+    property AndroidProject: string read FAndroidProject;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
   public
     constructor Create;
@@ -178,6 +179,7 @@ constructor TCastleProject.Create(const Path: string);
         FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
         FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
         FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
+        FAndroidProject := Doc.DocumentElement.AttributeStringDef('android_project', '');
         FAuthor := Doc.DocumentElement.AttributeStringDef('author', '');
         FScreenOrientation := StringToScreenOrientation(
           Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
@@ -470,7 +472,7 @@ var
 var
   Files: TCastleStringList;
   I: Integer;
-  PackageFileName, ExecutableNameExt: string;
+  PackageFileName, ExecutableNameExt, AndroidProjectPath: string;
   UnixPermissionsMatter: boolean;
 begin
   Writeln(Format('Packaging project "%s" for OS "%s" and CPU "%s".',
@@ -484,9 +486,15 @@ begin
     Files := TCastleStringList.Create;
     try
       PackageFiles(Files, true);
+      { use the AndroidProject value (just make it safer) for AndroidProjectPath,
+        if set }
+      if AndroidProject <> '' then
+        AndroidProjectPath := InclPathDelim(
+          StringReplace(AndroidProject, '\', PathDelim, [rfReplaceAll])) else
+        AndroidProjectPath := '';
       CreateAndroidPackage(Mode, Name, @ReplaceMacros, Icons, DataPath, Files,
         ProjectPath + AndroidLibraryFile(true),
-        AndroidLibraryFile(false), ProjectPath);
+        AndroidLibraryFile(false), ProjectPath, AndroidProjectPath);
     finally FreeAndNil(Files) end;
     Exit;
   end;
