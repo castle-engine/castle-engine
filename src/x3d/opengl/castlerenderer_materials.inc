@@ -23,8 +23,8 @@ procedure RenderMaterialsBegin;
     Assumes MaterialAndShapeLit is already calculated.
     This sets full glMaterial and glColor. }
   procedure RenderMaterial(
-    const AmbientColor, DiffuseColor, SpecularColor, EmissiveColor: TVector3Single;
-    const UnLitColor: TVector3Single;
+    const AmbientColor, DiffuseColor, SpecularColor, EmissiveColor: TCastleColorRGB;
+    const UnLitColor: TCastleColorRGB;
     const ShininessExp, ShapeOpacity: Single);
   begin
     if Attributes.Mode <> rmFull then Exit;
@@ -118,7 +118,7 @@ procedure RenderMaterialsBegin;
         Material.FdDiffuseColor.Value,
         Material.FdSpecularColor.Value,
         Material.FdEmissiveColor.Value,
-        White3Single,
+        WhiteRGB,
         Material.ShininessExp,
         Material.Opacity);
     end else
@@ -127,7 +127,7 @@ procedure RenderMaterialsBegin;
       { in this case we know that Material.OnlyEmissiveMaterial = true,
         so this can be rendered like unlit material with color = emissiveColor. }
       RenderMaterial(
-        White3Single, White3Single, White3Single, White3Single,
+        WhiteRGB, WhiteRGB, WhiteRGB, WhiteRGB,
         Material.FdEmissiveColor.Value,
         Material.ShininessExp,
         Material.Opacity);
@@ -135,10 +135,10 @@ procedure RenderMaterialsBegin;
     begin
       RenderMaterial(
         { Colors for lighting don't matter here }
-        White3Single, White3Single, White3Single, White3Single,
+        WhiteRGB, WhiteRGB, WhiteRGB, WhiteRGB,
         { From VRML 2.0 spec about Appearance node: when no Material is
           specified, object is unlit and unlit object color is (1, 1, 1). }
-        White3Single,
+        WhiteRGB,
         { shininess } 0, { opacity } 1);
     end;
   end;

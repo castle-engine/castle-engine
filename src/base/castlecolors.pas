@@ -22,6 +22,7 @@ uses Math, CastleVectors;
 
 type
   TCastleColor = TVector4Single;
+  TCastleColorRGB = TVector3Single;
 
 const
   { Common color constants, for comfort.
@@ -51,20 +52,31 @@ const
   LightGreen: TCastleColor = ( 0.33, 1.0 , 0.33, 1.0);
   LightBlue : TCastleColor = ( 0.33, 0.33, 1.0 , 1.0);
 
-  White3Single  : TVector3Single = ( 1.0 , 1.0 , 1.0);
-  Black3Single  : TVector3Single = ( 0.0 , 0.0 , 0.0);
-  Red3Single    : TVector3Single = ( 1.0 , 0.0 , 0.0);
-  Green3Single  : TVector3Single = ( 0.0 , 0.5 , 0.0);
-  Blue3Single   : TVector3Single = ( 0.0 , 0.0 , 1.0);
+  WhiteRGB  : TCastleColorRGB = ( 1.0 , 1.0 , 1.0);
+  BlackRGB  : TCastleColorRGB = ( 0.0 , 0.0 , 0.0);
+  RedRGB    : TCastleColorRGB = ( 1.0 , 0.0 , 0.0);
+  GreenRGB  : TCastleColorRGB = ( 0.0 , 0.5 , 0.0);
+  BlueRGB   : TCastleColorRGB = ( 0.0 , 0.0 , 1.0);
+
+  { Deprecated, use WhiteRGB. @deprecated }
+  White3Single  : TCastleColorRGB = ( 1.0 , 1.0 , 1.0) deprecated;
+  { Deprecated, use BlackRGB. @deprecated }
+  Black3Single  : TCastleColorRGB = ( 0.0 , 0.0 , 0.0) deprecated;
+  { Deprecated, use RedRGB. @deprecated }
+  Red3Single    : TCastleColorRGB = ( 1.0 , 0.0 , 0.0) deprecated;
+  { Deprecated, use GreenRGB. @deprecated }
+  Green3Single  : TCastleColorRGB = ( 0.0 , 0.5 , 0.0) deprecated;
+  { Deprecated, use BlueRGB. @deprecated }
+  Blue3Single   : TCastleColorRGB = ( 0.0 , 0.0 , 1.0) deprecated;
 
 { Calculate color intensity, for converting color to grayscale.
   @groupBegin }
-function GrayscaleValue(const v: TVector3Single): Single; overload;
+function GrayscaleValue(const v: TCastleColorRGB): Single; overload;
 function GrayscaleValue(const v: TVector3Byte): Byte; overload;
 function GrayscaleValue(const v: TCastleColor): Single; overload;
 { @groupEnd }
 
-function Grayscale(const v: TVector3Single): TVector3Single; overload;
+function Grayscale(const v: TCastleColorRGB): TCastleColorRGB; overload;
 function Grayscale(const v: TVector3Byte): TVector3Byte; overload;
 function Grayscale(const v: TCastleColor): TCastleColor; overload;
 
@@ -166,7 +178,7 @@ begin
              GrayscaleValuesFloat[2]*v[2]);
 end;
 
-function GrayscaleValue(const v: TVector3Single): Single;
+function GrayscaleValue(const v: TCastleColorRGB): Single;
 begin
   result := GrayscaleValuesFloat[0]*v[0]+
             GrayscaleValuesFloat[1]*v[1]+
@@ -190,7 +202,7 @@ begin
   Result[3] := V[3];
 end;
 
-function Grayscale(const v: TVector3Single): TVector3Single;
+function Grayscale(const v: TCastleColorRGB): TCastleColorRGB;
 begin
   Result[0] := GrayscaleValue(V);
   Result[1] := Result[0];

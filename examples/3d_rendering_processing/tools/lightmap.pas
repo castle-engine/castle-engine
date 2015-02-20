@@ -97,7 +97,7 @@ begin
   if Octree.LightNotBlocked(Lights.L[i], Point, PointPlaneNormal,
     RenderDir, nil, true) then
    VectorAddTo1st(result, Lights.L[i].ContributionCameraIndependent(
-     Point, PointPlaneNormal, White3Single));
+     Point, PointPlaneNormal, WhiteRGB));
 end;
 
 procedure TriangleLightMapTo1st(const Image: TCastleImage;

@@ -637,13 +637,13 @@ var
     If we have <texture>, return white color (and the appropriate texture
     and coord names; if texture name was empty, you want to treat it like not
     existing anyway). }
-  function ReadColorOrTexture(Element: TDOMElement; out TextureName, TexCoordName: string): TVector3Single;
+  function ReadColorOrTexture(Element: TDOMElement; out TextureName, TexCoordName: string): TCastleColorRGB;
   var
     Child: TDOMElement;
   begin
     TextureName := '';
     TexCoordName := '';
-    Result := White3Single;
+    Result := WhiteRGB;
     Child := DOMGetChildElement(Element, 'color', false);
     if Child <> nil then
     begin

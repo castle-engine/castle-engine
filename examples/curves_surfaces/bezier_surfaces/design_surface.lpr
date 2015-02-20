@@ -222,7 +222,7 @@ begin
       shNone: ;
       shWire:
         begin
-          glColorv(White3Single);
+          glColorv(WhiteRGB);
           glPushAttrib(GL_POLYGON_BIT or GL_LIGHTING_BIT);
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
             glDisable(GL_LIGHTING); { saved by GL_LIGHTING_BIT }
@@ -233,7 +233,7 @@ begin
         begin
           glPushAttrib(GL_LIGHTING_BIT);
             glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
-            glColorv(White3Single);
+            glColorv(WhiteRGB);
             Surface.Render(SurfaceXSegments, SurfaceYSegments);
           glPopAttrib;
         end;

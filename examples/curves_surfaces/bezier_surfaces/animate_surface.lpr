@@ -116,7 +116,7 @@ var
 begin
   if Params.Transparent or (not Params.ShadowVolumesReceivers) then Exit;
 
-  glColorv(White3Single);
+  glColorv(WhiteRGB);
 
   Surface := TSurface.Create(
     Surface1.XBegin, Surface1.XEnd,

@@ -1640,7 +1640,7 @@ end;
 
 procedure TAbstractColorGenerator.GenerateVertex(IndexNum: integer);
 var
-  VertexColor: TVector3Single;
+  VertexColor: TCastleColorRGB;
   VertexIndex: Cardinal;
 begin
   inherited;
@@ -1666,7 +1666,7 @@ begin
     begin
       VertexColor := State.ShapeNode.Material.FdDiffuseColor.Value;
     end else
-      VertexColor := White3Single; { default fallback }
+      VertexColor := WhiteRGB; { default fallback }
 
     OnVertexColor(VertexColor, Shape, GetVertex(IndexNum), VertexIndex);
     Arrays.Color(ArrayIndexNum)^ := Vector4Single(VertexColor, MaterialOpacity);

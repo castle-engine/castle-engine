@@ -90,7 +90,7 @@ var
 begin
   for I := 1 to 10 do
   begin
-    C := LerpRgbInHsv(I / 10, Black3Single, PureBlue);
+    C := LerpRgbInHsv(I / 10, BlackRGB, PureBlue);
     { interpolating from pure black to blue,
       all colors along the way should keep hue = blue }
     H := RgbToHsv(C)[0];
@@ -120,8 +120,8 @@ begin
   AssertTrue(VectorsEqual(LerpRgbInHsv(1, PureBlue, PureRed), PureRed));
   AssertTrue(VectorsEqual(LerpRgbInHsv(0, PureRed, PureBlue), PureRed));
   AssertTrue(VectorsEqual(LerpRgbInHsv(1, PureRed, PureBlue), PureBlue));
-  AssertTrue(VectorsEqual(LerpRgbInHsv(0, Black3Single, PureRed), Black3Single));
-  AssertTrue(VectorsEqual(LerpRgbInHsv(1, Black3Single, PureRed), PureRed));
+  AssertTrue(VectorsEqual(LerpRgbInHsv(0, BlackRGB, PureRed), BlackRGB));
+  AssertTrue(VectorsEqual(LerpRgbInHsv(1, BlackRGB, PureRed), PureRed));
 end;
 
 initialization

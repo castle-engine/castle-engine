@@ -1446,7 +1446,7 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
       FontSize := H / 8;
       glScalef(FontSize / Font3d.RowHeight, FontSize / Font3d.RowHeight, 1);
 
-      glColorv(White3Single);
+      glColorv(WhiteRGB);
       S := DebugCaption;
       try
         for I := S.Count - 1 downto 0 do

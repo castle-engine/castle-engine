@@ -18,8 +18,9 @@ unit CastleXMLConfig;
 
 interface
 
-uses CastleUtils, CastleXMLCfgInternal, DOM,
-  CastleVectors, CastleKeysMouse, CastleGenericLists, SysUtils, Classes;
+uses SysUtils, Classes, DOM,
+  CastleUtils, CastleXMLCfgInternal, CastleVectors, CastleKeysMouse,
+  CastleGenericLists, CastleColors;
 
 type
   EMissingAttribute = class(Exception);
@@ -72,6 +73,17 @@ type
     procedure SetDeleteFloat(const APath: string;
       const AValue, ADefaultValue: Float);
 
+    { 2D, 3D, 4D vectors reading/writing to config file.
+
+      They should be expressed in XML like
+
+      @preformatted(<myVector x="1" y="2" z="3" w="4" />)
+
+      You can read such vector by
+
+      @longCode(# GetValue('example/path/to/myVector', Vector4Single(0, 0, 0, 0)); #)
+
+      @groupBegin }
     function GetValue(const APath: string;
       const ADefaultValue: TVector2Single): TVector2Single; overload;
     procedure SetValue(const APath: string;
@@ -92,13 +104,61 @@ type
       const AValue: TVector4Single); overload;
     procedure SetDeleteValue(const APath: string;
       const AValue, ADefaultValue: TVector4Single); overload;
+    { @groupEnd }
 
+    { Reading/writing key values to config file.
+      Key names are expected to follow StrToKey and KeyToStr functions in CastleKeysMouse.
+
+      @groupBegin }
     function GetValue(const APath: string;
       const ADefaultValue: TKey): TKey; overload;
     procedure SetValue(const APath: string;
       const AValue: TKey); overload;
     procedure SetDeleteValue(const APath: string;
       const AValue, ADefaultValue: TKey); overload;
+    { @groupEnd }
+
+    { Colors reading/writing to config file.
+
+      This is very similar to 3D / 4D vector reading/writing to config file,
+      however
+
+      @orderedList(
+        @itemSpacing Compact
+        @item(attribute names are better for colors
+          (@italic(red, green, blue, alpha) instead of @italic(x, y, z, w)),)
+        @item(and we limit component values to 0..1 range.)
+      )
+
+      They should be expressed in XML like
+
+@preformatted(
+<myColor red="1" green="2" blue="3" alpha="4" />
+<myColorRGB red="1" green="2" blue="3" />
+)
+
+      You can read such colors by
+
+@longCode(#
+Color := GetColor('example/path/to/myColor', Black);
+ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
+#)
+
+      @groupBegin }
+    function GetColor(const APath: string;
+      const ADefaultColor: TCastleColorRGB): TCastleColorRGB; overload;
+    procedure SetColor(const APath: string;
+      const AColor: TCastleColorRGB); overload;
+    procedure SetDeleteColor(const APath: string;
+      const AColor, ADefaultColor: TCastleColorRGB); overload;
+
+    function GetColor(const APath: string;
+      const ADefaultColor: TCastleColor): TCastleColor; overload;
+    procedure SetColor(const APath: string;
+      const AColor: TCastleColor); overload;
+    procedure SetDeleteColor(const APath: string;
+      const AColor, ADefaultColor: TCastleColor); overload;
+    { @groupEnd }
 
     { For a given path, return corresponding DOM element of XML tree.
       This is useful if you want to mix XMLConfig style operations
@@ -383,6 +443,64 @@ procedure TCastleConfig.SetDeleteValue(const APath: string;
   const AValue, ADefaultValue: TKey);
 begin
   SetDeleteValue(APath, KeyToStr(AValue), KeyToStr(ADefaultValue));
+end;
+
+const
+  ColorComponentPaths: array [0..3] of string =
+  ('/red', '/green', '/blue', '/alpha');
+
+function TCastleConfig.GetColor(const APath: string;
+  const ADefaultColor: TCastleColorRGB): TCastleColorRGB;
+var
+  I: Integer;
+begin
+  for I := 0 to High(ADefaultColor) do
+    Result[I] := GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]);
+end;
+
+procedure TCastleConfig.SetColor(const APath: string;
+  const AColor: TCastleColorRGB);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AColor) do
+    SetFloat(APath + ColorComponentPaths[I], AColor[I]);
+end;
+
+procedure TCastleConfig.SetDeleteColor(const APath: string;
+  const AColor, ADefaultColor: TCastleColorRGB);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AColor) do
+    SetDeleteFloat(APath + ColorComponentPaths[I], AColor[I], ADefaultColor[I]);
+end;
+
+function TCastleConfig.GetColor(const APath: string;
+  const ADefaultColor: TCastleColor): TCastleColor;
+var
+  I: Integer;
+begin
+  for I := 0 to High(ADefaultColor) do
+    Result[I] := GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]);
+end;
+
+procedure TCastleConfig.SetColor(const APath: string;
+  const AColor: TCastleColor);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AColor) do
+    SetFloat(APath + ColorComponentPaths[I], AColor[I]);
+end;
+
+procedure TCastleConfig.SetDeleteColor(const APath: string;
+  const AColor, ADefaultColor: TCastleColor);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AColor) do
+    SetDeleteFloat(APath + ColorComponentPaths[I], AColor[I], ADefaultColor[I]);
 end;
 
 function TCastleConfig.PathElement(const APath: string;

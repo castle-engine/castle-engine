@@ -188,7 +188,7 @@ begin
   { PointSet color may come from various places:
     1. Color or ColorRGBA node, for each point, if it's not NULL
     2. Material.emissiveColor, for every point
-    3. If no material, we use default White3Single, for every point
+    3. If no material, we use default WhiteRGB, for every point
        (following general spec remark at Material node that
        Material = NULL makes unlit white color) }
 
@@ -235,13 +235,13 @@ begin
     if State.ShapeNode = nil then
     begin
       OnWarning(wtMajor, 'VRML/X3D', 'PointSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
-      Arrays.DefaultColor := Vector4Single(White3Single, MaterialOpacity);
+      Arrays.DefaultColor := Vector4Single(WhiteRGB, MaterialOpacity);
     end else
     begin
       Material := State.ShapeNode.Material;
       if Material <> nil then
         Arrays.DefaultColor := Vector4Single(Material.FdEmissiveColor.Value, MaterialOpacity) else
-        Arrays.DefaultColor := Vector4Single(White3Single, MaterialOpacity);
+        Arrays.DefaultColor := Vector4Single(WhiteRGB, MaterialOpacity);
     end;
   end;
 end;
@@ -1038,7 +1038,7 @@ begin
     IndexedLineSet color may come from various places:
     1. Color node, for each vertex or polyline, if it's not NULL
     2. Material.emissiveColor, for whole line
-    3. If no material, we use default White3Single, for whole line
+    3. If no material, we use default WhiteRGB, for whole line
        (following general spec remark at Material node that
        Material = NULL makes unlit white color) }
   if Color = nil then
@@ -1047,13 +1047,13 @@ begin
     if State.ShapeNode = nil then
     begin
       OnWarning(wtMajor, 'VRML/X3D', 'LineSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
-      Arrays.DefaultColor := Vector4Single(White3Single, MaterialOpacity)
+      Arrays.DefaultColor := Vector4Single(WhiteRGB, MaterialOpacity)
     end else
     begin
       Material := State.ShapeNode.Material;
       if Material <> nil then
         Arrays.DefaultColor := Vector4Single(Material.FdEmissiveColor.Value, MaterialOpacity) else
-        Arrays.DefaultColor := Vector4Single(White3Single, MaterialOpacity)
+        Arrays.DefaultColor := Vector4Single(WhiteRGB, MaterialOpacity)
     end;
   end;
 end;
