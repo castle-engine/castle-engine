@@ -455,7 +455,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(ADefaultColor) do
-    Result[I] := GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]);
+    Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
 end;
 
 procedure TCastleConfig.SetColor(const APath: string;
@@ -482,7 +482,7 @@ var
   I: Integer;
 begin
   for I := 0 to High(ADefaultColor) do
-    Result[I] := GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]);
+    Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
 end;
 
 procedure TCastleConfig.SetColor(const APath: string;
