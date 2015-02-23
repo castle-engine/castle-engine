@@ -1454,8 +1454,8 @@ const
       MimeTypesCount: 1;
       MimeTypes: ('image/png', '', '', '', '', '');
       ExtsCount: 1; Exts: ('png', '', '');
-      Load: @LoadPNG; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: @SavePNG; SavedClasses: scG_GA_RGB_RGBA; ),
+      Load: @LoadPNG; LoadedClasses: {$ifdef CASTLE_PNG_USING_FCL_IMAGE} lcRGB_RGBA {$else} lcG_GA_RGB_RGBA {$endif};
+      Save: @SavePNG; SavedClasses: {$ifdef CASTLE_PNG_USING_FCL_IMAGE} scRGB { actually scRGB_RGBA } {$else} scG_GA_RGB_RGBA {$endif}; ),
     ( FormatName: 'Windows BMP image';
       MimeTypesCount: 1;
       MimeTypes: ('image/bmp', '', '', '', '', '');
@@ -3855,6 +3855,15 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
     Image := NewResult;
   end;
 
+  procedure ImageRGBToGrayscaleTo1st(var Image: TCastleImage);
+  var
+    NewResult: TCastleImage;
+  begin
+    NewResult := (Image as TRGBImage).ToGrayscale;
+    Image.Free;
+    Image := NewResult;
+  end;
+
 var
   Load: TImageLoadFunc;
 begin
@@ -3883,8 +3892,13 @@ begin
             if ClassAllowed(TRGBImage) or
                ClassAllowed(TRGBAlphaImage) then
               Result := Load(Stream, AllowedImageClasses) else
-{TODO:            if ClassAllowed(TGrayscaleImage) or
-               ClassAllowed(TGrayscaleAlphaImage) }
+            if ClassAllowed(TGrayscaleImage) then
+            begin
+              Result := Load(Stream, [TRGBImage]);
+              ImageRGBToGrayscaleTo1st(result);
+            end else
+{ TODO:     if ClassAllowed(TGrayscaleAlphaImage) then
+              ... }
             if ClassAllowed(TRGBFloatImage) then
             begin
               Result := Load(Stream, [TRGBImage]);
