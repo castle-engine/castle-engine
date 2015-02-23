@@ -446,6 +446,8 @@ type
     procedure AddArray(const A: array of TMatrix4Double);
   end;
 
+  TVector2SmallIntList = specialize TGenericStructList<TVector2SmallInt>;
+
   EVectorInvalidOp = class(Exception);
 
   TGetVertexFromIndexFunc = function (Index: integer): TVector3Single of object;
