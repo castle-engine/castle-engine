@@ -163,7 +163,7 @@ function FindFirstFile(const Mask: string;
 
 implementation
 
-uses CastleURIUtils, CastleLog
+uses CastleURIUtils, CastleLog, StrUtils
   {$ifdef ANDROID}, CastleAndroidAssetManager, CastleAndroidAssetStream {$endif};
 
 { Note that some limitations of FindFirst/FindNext underneath are reflected in our
