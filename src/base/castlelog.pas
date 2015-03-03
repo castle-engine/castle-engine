@@ -71,7 +71,7 @@ procedure WritelnLogMultiline(const Title: string; const LogMessage: string);
 implementation
 
 uses CastleUtils, CastleClassUtils, CastleTimeUtils,
-  SysUtils, CastleFilesUtils {$ifdef ANDROID}, CastleAndroidLog {$endif};
+  SysUtils {$ifdef ANDROID}, CastleAndroidLog {$endif};
 
 { Dump backtrace (always to StdErr for now, regardless of LogStream)
   of each log.

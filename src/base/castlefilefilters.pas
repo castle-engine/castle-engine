@@ -18,7 +18,7 @@ unit CastleFileFilters;
 
 interface
 
-uses SysUtils, Classes, CastleUtils, CastleClassUtils, FGL;
+uses SysUtils, Classes, FGL;
 
 type
   TFileFilter = class

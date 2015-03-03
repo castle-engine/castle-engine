@@ -37,7 +37,7 @@ type
   end;
 
   TRGBQuad = packed record blue, green, red, reserved : byte end;
-  PRGBQuad = ^TRGBQuad;
+  //PRGBQuad = ^TRGBQuad;
   TArray_RGBQuad = packed array[0..MaxInt div SizeOf(TRGBQuad)-1]of TRGBQuad;
   PArray_RGBQuad = ^TArray_RGBQuad;
 
@@ -48,9 +48,9 @@ type
 
 const
   BI_RGB = 0;
-  BI_RLE8 = 1;
-  BI_RLE4 = 2;
-  BI_BITFIELDS = 3;
+  //BI_RLE8 = 1;
+  //BI_RLE4 = 2;
+  //BI_BITFIELDS = 3;
 
 function LoadBMP(Stream: TStream;
   const AllowedImageClasses: array of TCastleImageClass): TCastleImage;

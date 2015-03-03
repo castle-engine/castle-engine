@@ -281,7 +281,7 @@ function MessageInputQueryVector4Single(
 implementation
 
 uses CastleImages, CastleClassUtils, SysUtils, CastleWindowModes, CastleLog,
-  CastleUIControls, CastleRectangles;
+  CastleUIControls;
 
 const
   MinButtonWidth = 100; //< OK button looks too small without this

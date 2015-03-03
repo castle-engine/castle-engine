@@ -35,7 +35,7 @@ unit CastleRayTracer;
 interface
 
 uses CastleVectors, CastleImages, CastleRays, CastleUtils, Classes,
-  X3DTriangles, CastleTriangleOctree, X3DNodes, CastleSpaceFillingCurves, CastleTriangles;
+  X3DTriangles, X3DNodes, CastleSpaceFillingCurves, CastleTriangles;
 
 type
   { }

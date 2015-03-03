@@ -107,8 +107,8 @@ function URLSaveStream(const URL: string; const Options: TStreamOptions = []): T
 implementation
 
 uses URIParser, CastleURIUtils, CastleUtils, CastleLog, CastleZStream,
-  CastleClassUtils, CastleFilesUtils, CastleDataURI, CastleProgress,
-  CastleStringUtils {$ifdef ANDROID}, CastleAndroidAssetStream {$endif};
+  CastleClassUtils, CastleDataURI, CastleProgress
+  {$ifdef ANDROID}, CastleAndroidAssetStream {$endif};
 
 { TProgressMemoryStream ------------------------------------------------------ }
 

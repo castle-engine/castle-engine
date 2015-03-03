@@ -657,7 +657,7 @@ procedure FPGObjectList_NilItem(List: TFPSList; I: Integer);
 implementation
 
 uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
-  StrUtils, CastleFilesUtils, CastleDownload, CastleURIUtils;
+  StrUtils, CastleDownload, CastleURIUtils;
 
 { TTextReaderWriter ---------------------------------------------------------- }
 

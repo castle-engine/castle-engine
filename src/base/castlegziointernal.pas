@@ -87,7 +87,7 @@ const
 
   { gzip flag byte }
 
-  ASCII_FLAG  = $01; { bit 0 set: file probably ascii text }
+  //ASCII_FLAG  = $01; { bit 0 set: file probably ascii text }
   HEAD_CRC    = $02; { bit 1 set: header CRC present }
   EXTRA_FIELD = $04; { bit 2 set: extra field present }
   ORIG_NAME   = $08; { bit 3 set: original file name present }

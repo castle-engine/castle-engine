@@ -927,7 +927,7 @@ procedure PngInitialization;
 
 implementation
 
-uses SysUtils, CastleUtils, CastleDynLib, CastleFilesUtils;
+uses SysUtils, CastleDynLib;
 
 var
   PngLibrary: TDynLib;

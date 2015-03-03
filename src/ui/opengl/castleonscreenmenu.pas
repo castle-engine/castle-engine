@@ -22,7 +22,7 @@ interface
 
 uses Classes, CastleVectors, CastleFonts, CastleControls,
   CastleGLUtils, CastleUIControls, CastleKeysMouse, CastleColors,
-  CastleGenericLists, CastleRectangles;
+  CastleRectangles;
 
 type
   TCastleOnScreenMenu = class;

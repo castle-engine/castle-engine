@@ -1308,7 +1308,15 @@ begin
     begin
       { get values from sensor }
       Mouse3dPollSpeed := -Mouse3dPollTimer + Mouse3dPollDelay;
+      Tx := 0; { make sure they are initialized }
+      Ty := 0;
+      Tz := 0;
+      TLength := 0;
       Mouse3D.GetSensorTranslation(Tx, Ty, Tz, TLength);
+      Rx := 0; { make sure they are initialized }
+      Ry := 0;
+      Rz := 0;
+      RAngle := 0;
       Mouse3D.GetSensorRotation(Rx, Ry, Rz, RAngle);
 
       { send to all 2D controls, including viewports }

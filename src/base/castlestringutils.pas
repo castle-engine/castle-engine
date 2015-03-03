@@ -827,7 +827,7 @@ const
 
 implementation
 
-uses CastleFilesUtils, CastleClassUtils, CastleDownload, CastleURIUtils, Regexpr;
+uses CastleFilesUtils, CastleClassUtils, CastleDownload, Regexpr;
 
 { TCastleStringList ------------------------------------------------------------- }
 

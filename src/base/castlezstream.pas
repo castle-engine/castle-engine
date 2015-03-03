@@ -44,11 +44,9 @@ type
 implementation
 
 Const
-  SCouldntOpenFile = 'Couldn''t open file : %s';
   SReadOnlyStream = 'Decompression streams are read-only';
   SWriteOnlyStream = 'Compression streams are write-only';
   SSeekError = 'Compression stream seek error';
-  SInvalidSeek = 'Invalid Compression seek operation';
 
 // TGZFileStream
 

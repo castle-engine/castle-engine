@@ -192,7 +192,7 @@ procedure ZLibInitialization;
 
 implementation
 
-uses SysUtils, CastleUtils, CastleDynLib;
+uses SysUtils, CastleDynLib;
 
 function zlibversion : string;
   begin

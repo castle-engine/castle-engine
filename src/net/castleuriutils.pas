@@ -239,7 +239,7 @@ function URICurrentPath: string;
 
 implementation
 
-uses SysUtils, CastleStringUtils, CastleWarnings, CastleFilesUtils,
+uses SysUtils, CastleStringUtils, CastleWarnings,
   URIParser, CastleUtils, CastleDataURI, CastleImages;
 
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
