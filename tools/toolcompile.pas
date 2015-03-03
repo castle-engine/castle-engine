@@ -138,6 +138,7 @@ begin
     FpcOptions.Add('-Si');
     FpcOptions.Add('-Sh');
     FpcOptions.Add('-vm2045'); // do not show Warning: (2045) APPTYPE is not supported by the target OS
+    FpcOptions.Add('-vm5024'); // do not show Hint: (5024) Parameter "..." not used
     FpcOptions.Add('-T' + OSToString(OS));
     FpcOptions.Add('-P' + CPUToString(CPU));
 
