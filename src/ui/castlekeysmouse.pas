@@ -544,7 +544,9 @@ type
     function IsMouseButton(const AMouseButton: TMouseButton): boolean;
 
     { Textual description of this event. }
-    function Description: string;
+    function ToString: string;
+    { @deprecated Deprecated name for ToString. }
+    function Description: string; deprecated;
   end;
 
   { Motion (movement) of mouse or a finger on a touch device. }
@@ -963,7 +965,7 @@ begin
   Result := (EventType = itMouseButton) and (MouseButton = AMouseButton);
 end;
 
-function TInputPressRelease.Description: string;
+function TInputPressRelease.ToString: string;
 begin
   case EventType of
     itKey: Result := Format('key %s, character %s (code %d)',
@@ -975,6 +977,11 @@ begin
         CastleStringUtils.BoolToStr[MouseWheelVertical] ]);
     else raise EInternalError.Create('TInputPressRelease.Description: EventType?');
   end;
+end;
+
+function TInputPressRelease.Description: string;
+begin
+  Result := ToString;
 end;
 
 function InputKey(const Position: TVector2Single;
