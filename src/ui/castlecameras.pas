@@ -530,7 +530,7 @@ type
       Usually you want to just leave this for user to control. --------------- }
 
     { Sets RotationsAnim to zero, stopping the rotation of the model. }
-    procedure StopRotating;
+    function StopRotating: boolean;
 
     procedure Scale(const ScaleBy: Single);
     procedure Move(coord: integer; const MoveDistance: Single);
@@ -2175,7 +2175,6 @@ begin
 
   if HandleInput and (ciNormal in Input) then
   begin
-    HandleInput := not ExclusiveEvents;
     if ModelBox.IsEmptyOrZero then
       MoveChange := SecondsPassed else
       MoveChange := ModelBox.AverageSize * SecondsPassed;
@@ -2190,9 +2189,15 @@ begin
       for i := 0 to 2 do
       begin
         if Inputs_Move[i, true ].IsPressed(Container) then
+        begin
           Move(i, +MoveChange);
+          HandleInput := not ExclusiveEvents;
+        end;
         if Inputs_Move[i, false].IsPressed(Container) then
+        begin
           Move(i, -MoveChange);
+          HandleInput := not ExclusiveEvents;
+        end;
       end;
     end else
     if ModsDown = [] then
@@ -2200,16 +2205,28 @@ begin
       for i := 0 to 2 do
       begin
         if Inputs_Rotate[i, true ].IsPressed(Container) then
+        begin
           RotateSpeedOrAngle(i, +1);
+          HandleInput := not ExclusiveEvents;
+        end;
         if Inputs_Rotate[i, false].IsPressed(Container) then
+        begin
           RotateSpeedOrAngle(i, -1);
+          HandleInput := not ExclusiveEvents;
+        end;
       end;
     end;
 
     if Input_ScaleLarger.IsPressed(Container) then
+    begin
       Scale(Power(ScaleChange, SecondsPassed));
+      HandleInput := not ExclusiveEvents;
+    end;
     if Input_ScaleSmaller.IsPressed(Container) then
+    begin
       Scale(Power(1 / ScaleChange, SecondsPassed));
+      HandleInput := not ExclusiveEvents;
+    end;
   end;
 end;
 
@@ -2227,10 +2244,14 @@ begin
   end;
 end;
 
-procedure TExamineCamera.StopRotating;
+function TExamineCamera.StopRotating: boolean;
 begin
-  FRotationsAnim := ZeroVector3Single;
-  ScheduleVisibleChange;
+  Result := not PerfectlyZeroVector(FRotationsAnim);
+  if Result then
+  begin
+    FRotationsAnim := ZeroVector3Single;
+    ScheduleVisibleChange;
+  end;
 end;
 
 procedure TExamineCamera.Scale(const ScaleBy: Single);
@@ -2370,8 +2391,12 @@ begin
   begin
     if Input_StopRotating.IsEvent(Event) then
     begin
-      StopRotating;
-      Result := ExclusiveEvents;
+      { If StopRotating was useless, do not mark the event as "handled".
+        This is nice, otherwise on an empty TCastleControl/Window mouse clicks
+        are "mysteriously" intercepted, since the default scene manager creates
+        examine camera, and it captures left mouse click as Input_StopRotating. }
+      if StopRotating then
+        Result := ExclusiveEvents;
     end else
     if Input_Home.IsEvent(Event) then
     begin
