@@ -181,17 +181,29 @@ type
       Always (Left,Bottom) are zero, and (Width,Height) correspond to container
       sizes. }
     function Rect: TRectangle;
+
+    { Be cafeful about comments in the published section.
+      They are picked up and shown automatically by Lazarus Object Inspector,
+      and it has it's own logic, much much dumber than what PasDoc sees.
+      There seems no way to hide comment there.
+
+      We publish most, but not all, stuff from inherited TCustomOpenGLControl.
+
+      Exceptions:
+      - Don't publish, as not every widgetset has them.
+        property RedBits;
+        property GreenBits;
+        property BlueBits;
+      - Don't publish, as we have our own event for this.
+        property OnResize;
+    }
   published
-    { Publish most, but not all, stuff from inherited TCustomOpenGLControl. } { }
     property Align;
     property Anchors;
-    property AutoResizeViewport; deprecated; //< Don't use, engine handles this completely.
+    { Don't use, engine handles this completely. }
+    property AutoResizeViewport; deprecated;
     property BorderSpacing;
     property Enabled;
-    { Don't publish, as not every widgetset has them.
-    property RedBits;
-    property GreenBits;
-    property BlueBits; } { }
     property OpenGLMajorVersion;
     property OpenGLMinorVersion;
     property MultiSampling;
@@ -206,39 +218,48 @@ type
     property OnDragOver;
     property OnEnter;
     property OnExit;
-    property OnMakeCurrent; deprecated; //< Don't use, engine handles this completely.
-    property OnClick; deprecated; //< Use OnPress instead.
-    property OnKeyDown; deprecated; //< Use OnPress instead.
-    property OnKeyPress; deprecated; //< Use OnPress instead.
-    property OnKeyUp; deprecated; //< Use OnRelease instead.
-    property OnMouseDown; deprecated; //< Use OnPress instead.
-    property OnMouseMove; deprecated; //< Use OnMotion instead.
-    property OnMouseUp; deprecated; //< Use OnRelease instead.
-    property OnMouseWheel; deprecated; //< Use OnPress instead.
-    property OnMouseWheelDown; deprecated; //< Use OnPress instead.
-    property OnMouseWheelUp; deprecated; //< Use OnPress instead.
-    { Don't publish, as we have our own event for this.
-    property OnResize;
-    } { }
+    { Don't use, engine handles this completely. }
+    property OnMakeCurrent; deprecated;
+    { Deprecated, use OnPress instead. }
+    property OnClick; deprecated;
+    { Deprecated, use OnPress instead. }
+    property OnKeyDown; deprecated;
+    { Deprecated, use OnPress instead. }
+    property OnKeyPress; deprecated;
+    { Deprecated, use OnRelease instead. }
+    property OnKeyUp; deprecated;
+    { Deprecated, use OnPress instead. }
+    property OnMouseDown; deprecated;
+    { Deprecated, use OnMotion instead. }
+    property OnMouseMove; deprecated;
+    { Deprecated, use OnRelease instead. }
+    property OnMouseUp; deprecated;
+    { Deprecated, use OnPress instead. }
+    property OnMouseWheel; deprecated;
+    { Deprecated, use OnPress instead. }
+    property OnMouseWheelDown; deprecated;
+    { Deprecated, use OnPress instead. }
+    property OnMouseWheelUp; deprecated;
     property OnMouseEnter;
     property OnMouseLeave;
-    property OnPaint; deprecated; //< Use OnRender instead.
+    { Deprecated, use OnRender instead. }
+    property OnPaint; deprecated;
     property OnShowHint;
     property PopupMenu;
     property ShowHint;
     property Visible;
-    { End of TCustomOpenGLControl properties } { }
 
-    { Events from UI container. } { }
-    { OpenGL context is created, you can initialize things that require OpenGL
-      context. Often you do not need to use this callback (engine components will
+    { Event called when the OpenGL context is created,
+      you can initialize things that require OpenGL context now.
+      Often you do not need to use this callback (engine components will
       automatically create/release OpenGL resource when necessary),
-      but sometimes it may be handy (e.g. TGLImage required OpenGL context).
+      but sometimes it may be handy (e.g. TGLImage requires OpenGL context).
       You usually will also want to implement OnClose callback that
       releases stuff created here.
 
-      Instead of using this callback, even when you really need to initialize
-      some OpenGL resource, it's usually better to derive new classes from
+      Even when you really need to initialize
+      some OpenGL resource (like TGLImage), instead of using this callback
+      it's usually better to derive new classes from
       TUIControl class or it's descendants,
       and override their GLContextOpen / GLContextClose methods to react to
       context being open/closed. Using such TUIControl classes
@@ -248,13 +269,13 @@ type
       when necessary. }
     property OnOpen: TNotifyEvent                      read FOnOpen         write FOnOpen        ;
 
-    { Called when the context is closed, right before the OpenGL context
+    { Event called when the context is closed, right before the OpenGL context
       is destroyed. This is your last chance to release OpenGL resources,
       like textures, shaders, display lists etc. This is a counterpart
       to OnOpen event. }
     property OnClose: TNotifyEvent                     read FOnClose        write FOnClose       ;
 
-    { Always called right before OnRender.
+    { Event always called right before OnRender.
       These two events, OnBeforeRender and OnRender,
       will be always called sequentially as a pair.
 
