@@ -829,18 +829,27 @@ end;
 
 function CharToNiceStr(const C: char; const Modifiers: TModifierKeys;
   const BackSpaceTabEnterString, CtrlIsCommand: boolean): string;
+var
+  CharactersImplicatingCtrlModifier: TSetOfChars;
 begin
   { early exit, character #0 means "no key", Modifiers are ignored }
   if C = #0 then Exit('#0');
 
   Result := '';
 
+  CharactersImplicatingCtrlModifier := [CtrlA .. CtrlZ];
+  if BackSpaceTabEnterString then
+    { do not show Tab and similar chars as Ctrl+Tab }
+    CharactersImplicatingCtrlModifier -=
+      [CharBackSpace, CharTab, CharEnter];
+
   { add modifiers description }
   if (mkShift in Modifiers) or (C in ['A'..'Z']) then
     Result += 'Shift+';
   if mkAlt in Modifiers then
     Result += 'Alt+';
-  if (mkCtrl in Modifiers) or (C in [CtrlA .. CtrlZ]) then
+  if (mkCtrl in Modifiers) or
+     (C in CharactersImplicatingCtrlModifier) then
   begin
     if CtrlIsCommand then
       Result += 'Command+' else
