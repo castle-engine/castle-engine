@@ -31,7 +31,7 @@ type
 
     Expressed as UI control, that will be placed under
     state-specific UI controls (that should be added in overridden @link(Start)
-    method by @code(Container.Controls.InsertFront)).
+    method by @code(StateContainer.Controls.InsertFront)).
     This way it
 
     @unorderedList(
@@ -51,6 +51,7 @@ type
     TDataImageList = specialize TFPGObjectList<TDataImage>;
   var
     FDataImages: TDataImageList;
+    FStartContainer: TUIContainer;
     class var FCurrent: TUIState;
     class function GetCurrent: TUIState; static;
     class procedure SetCurrent(const Value: TUIState); static;
@@ -65,8 +66,10 @@ type
     function AddDataImage(const Path: string): Integer;
     function DataImage(const Index: Integer): TCastleImage;
     function DataGLImage(const Index: Integer): TGLImage;
-    { Container on which we work. By default, this is Application.MainWindow. }
-    function Container: TUIContainer; virtual;
+    { Container on which state works. By default, this is Application.MainWindow.
+      When the state is current, then @link(Container) property (from
+      ancestor, see TUIControl.Container) is equal to this. }
+    function StateContainer: TUIContainer; virtual;
   public
     class property Current: TUIState read GetCurrent write SetCurrent;
 
@@ -110,13 +113,13 @@ begin
   begin
     if FCurrent <> nil then
     begin
-      FCurrent.Container.Controls.Remove(FCurrent);
+      FCurrent.StateContainer.Controls.Remove(FCurrent);
       FCurrent.Finish;
     end;
     FCurrent := Value;
     if FCurrent <> nil then
     begin
-      NewControls := FCurrent.Container.Controls;
+      NewControls := FCurrent.StateContainer.Controls;
       ControlsCount := NewControls.Count;
       FCurrent.Start;
       { actually insert FCurrent, this will also call GLContextOpen
@@ -138,9 +141,14 @@ begin
   end;
 end;
 
-function TUIState.Container: TUIContainer;
+function TUIState.StateContainer: TUIContainer;
 begin
-  Result := Application.MainWindow.Container;
+  if FStartContainer <> nil then
+    { between Start and Finish, be sure to return the same thing
+      from StateContainer method. Also makes it working when Application
+      is nil when destroying state from CastleWindow finalization. }
+    Result := FStartContainer else
+    Result := Application.MainWindow.Container;
 end;
 
 constructor TUIState.Create(AOwner: TComponent);
@@ -151,16 +159,21 @@ end;
 
 destructor TUIState.Destroy;
 begin
+  { finish yourself, if current }
+  if Current = Self then
+    Current := nil;
   FreeAndNil(FDataImages);
   inherited;
 end;
 
 procedure TUIState.Start;
 begin
+  FStartContainer := StateContainer;
 end;
 
 procedure TUIState.Finish;
 begin
+  FStartContainer := nil;
 end;
 
 function TUIState.AddDataImage(const Path: string): Integer;
