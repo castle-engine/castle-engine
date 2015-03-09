@@ -535,7 +535,7 @@ end;
 
     { Container of this control. When adding control to container's Controls
       list (like TCastleWindowCustom.Controls) container will automatically
-      set itself here, an when removing from container this will be changed
+      set itself here, and when removing from container this will be changed
       back to @nil.
 
       May be @nil if this control is not yet inserted into any container. }
