@@ -29,7 +29,7 @@ type
     (along with other state-specific controls, that should be added/removed
     to the controls list in @link(Start) / @link(Finish) methods.)
 
-    Expressed as UI control, that will be placed under
+    State is expressed as UI control, that will be placed under
     state-specific UI controls (that should be added in overridden @link(Start)
     method by @code(StateContainer.Controls.InsertFront)).
     This way it
@@ -39,7 +39,10 @@ type
         state-specific control handled them,)
       @item(catches update, GL context open/close and other useful events,)
       @item(can have it's own draw function, to directly draw UI.)
-    ) }
+    )
+
+    See the TUIControl class for a lot of useful methods that you can
+    override in your state descendants to capture various events. }
   TUIState = class(TUIControl)
   private
   type
@@ -75,7 +78,22 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    { State becomes current.
+      This is called right before adding the state to the
+      @code(StateContainer.Controls) list, so the state methods
+      GLContextOpen and ContainerResize will be called next (as for all
+      normal TUIControl). }
     procedure Start; virtual;
+
+    { State is no longer current.
+      This is called after removing the state from the
+      @code(StateContainer.Controls) list.
+
+      This is always called to finalize the started state.
+      When the current state is destroyed, it's @link(Finish) is called
+      too. So you can use this method to reliably finalize whatever
+      you initialized in @link(Start). }
     procedure Finish; virtual;
 
     function PositionInside(const Position: TVector2Single): boolean; override;
