@@ -37,6 +37,8 @@ type
       to determine the parameter values. }
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer); virtual;
     procedure SetScale(const Value: Single); virtual;
+    function GetSize: Single; virtual; abstract;
+    procedure SetSize(const Value: Single); virtual; abstract;
   public
     constructor Create;
     destructor Destroy; override;
@@ -76,6 +78,14 @@ type
       const S: string); overload;
     procedure Print(const X, Y: Integer; const S: string); overload; deprecated;
     procedure Print(const s: string); overload; deprecated;
+
+    { Print text, aligninig within given rectangle.
+      Hint: Use TRectangle.Grow(-10) or similar to align within a rectangle
+      with padding. }
+    procedure PrintRect(const Rect: TRectangle; const Color: TCastleColor;
+      const S: string;
+      const HorizontalAlignment: THorizontalPosition;
+      const VerticalAlignment: TVerticalPosition);
 
     { The font may require some OpenGL resources for drawing.
       You can explicitly create them using GLContextOpen (although it is never
@@ -274,6 +284,10 @@ type
     { @groupEnd }
 
     property Scale: Single read FScale write SetScale;
+
+    { Adjust font size by scaling. Underneath, it scales the font using
+      @link(Scale) property, to adjust it to requested size. }
+    property Size: Single read GetSize write SetSize;
   end;
 
   { @deprecated Deprecated name for TCastleFont. }
@@ -292,6 +306,8 @@ type
     GLImage: TGLImage;
   strict protected
     procedure SetScale(const Value: Single); override;
+    function GetSize: Single; override;
+    procedure SetSize(const Value: Single); override;
   public
     {$ifdef HAS_FREE_TYPE}
     { Create by reading a FreeType font file, like ttf.
@@ -358,6 +374,8 @@ type
     function ScaledCharDisplayMargin: Integer;
   strict protected
     procedure SetScale(const Value: Single); override;
+    function GetSize: Single; override;
+    procedure SetSize(const Value: Single); override;
   public
     { Load font from given image.
       @param AImage Image data, becomes owned by this class.
@@ -505,6 +523,20 @@ end;
 procedure TCastleFont.Print(const X, Y: Integer; const S: string);
 begin
   Print(X, Y, CurrentColor, S);
+end;
+
+procedure TCastleFont.PrintRect(const Rect: TRectangle; const Color: TCastleColor;
+  const S: string;
+  const HorizontalAlignment: THorizontalPosition;
+  const VerticalAlignment: TVerticalPosition);
+var
+  ThisRect: TRectangle;
+begin
+  ThisRect :=
+    Rectangle(0, 0, TextWidth(S), TextHeight(S)).
+    Align(HorizontalAlignment, Rect, HorizontalAlignment).
+    Align(VerticalAlignment, Rect, VerticalAlignment);
+  Print(ThisRect.Left, ThisRect.Bottom, Color, S);
 end;
 
 procedure TCastleFont.BreakLines(const unbroken: string;
@@ -910,6 +942,16 @@ begin
     GLImage.ScalingPossible := Scale <> 1;
 end;
 
+function TTextureFont.GetSize: Single;
+begin
+  Result := FFont.Size * Scale;
+end;
+
+procedure TTextureFont.SetSize(const Value: Single);
+begin
+  Scale := Value / FFont.Size;
+end;
+
 { TSimpleTextureFont --------------------------------------------------------- }
 
 constructor TSimpleTextureFont.Create(AImage: TCastleImage;
@@ -1011,6 +1053,16 @@ begin
   inherited;
   if GLImage <> nil then
     GLImage.ScalingPossible := Scale <> 1;
+end;
+
+function TSimpleTextureFont.GetSize: Single;
+begin
+  Result := CharHeight * Scale;
+end;
+
+procedure TSimpleTextureFont.SetSize(const Value: Single);
+begin
+  Scale := Value / CharHeight;
 end;
 
 end.
