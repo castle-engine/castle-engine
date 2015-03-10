@@ -1081,7 +1081,10 @@ begin
     getting remove notification for all items (as FreeAndNil first sets
     object to nil). Testcase: lets_take_a_walk exit. }
   if Container.FControls <> nil then
+  begin
     Container.UpdateFocusAndMouseCursor;
+    Container.Invalidate;
+  end;
 end;
 
 { TUIContainer --------------------------------------------------------------- }
