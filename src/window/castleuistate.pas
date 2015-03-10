@@ -24,21 +24,33 @@ uses Classes, FGL,
 
 type
   { UI state, a useful singleton to manage the state of your game UI.
-    Only one such state is @italic(current) at a given time.
-    The current state is present on the list of container controls
-    (along with other state-specific controls, that should be added/removed
-    to the controls list in @link(Start) / @link(Finish) methods.)
 
-    State is expressed as UI control, that will be placed under
-    state-specific UI controls (that should be added in overridden @link(Start)
-    method by @code(StateContainer.Controls.InsertFront)).
-    This way it
+    Only one state is @italic(current) at a given time, it can
+    be get or set using the TUIState.Current property.
+
+    Each state has comfortable @link(Start) and @link(Finish)
+    methods that you can override to perform work when state becomes
+    current, or stops being current. Most importantly, you can
+    add/remove additional state-specific UI controls in @link(Start) and @link(Finish)
+    methods. Add them in @link(Start) method like
+    @code(StateContainer.Controls.InsertFront(...)), remove them by
+    @code(StateContainer.Controls.Remove(...)).
+
+    Current state is also placed on the list of container controls.
+    (Always @italic(under) state-specific UI controls you added
+    to container in @link(Start) method.) This way state is notified
+    about UI events, and can react to them. In case of events that
+    can be "handled" (like TUIControl.Press, TUIControl.Release events)
+    the state is notified about them only if no other state-specific
+    UI control handled them.
+
+    This way state can
 
     @unorderedList(
-      @item(catches press/release and similar events, when no other
+      @item(catch press/release and similar events, when no other
         state-specific control handled them,)
-      @item(catches update, GL context open/close and other useful events,)
-      @item(can have it's own draw function, to directly draw UI.)
+      @item(catch update, GL context open/close and other useful events,)
+      @item(can have it's own render function, to directly draw UI.)
     )
 
     See the TUIControl class for a lot of useful methods that you can
