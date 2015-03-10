@@ -239,10 +239,10 @@ type
     FOnAccessoryValueChanged: TNotifyEvent;
     FItems: TStringList;
     FCurrentItem: Integer;
-    FPositionRelativeMenuX: TPositionRelative;
-    FPositionRelativeMenuY: TPositionRelative;
-    FPositionRelativeScreenX: TPositionRelative;
-    FPositionRelativeScreenY: TPositionRelative;
+    FPositionRelativeMenuX: THorizontalPosition;
+    FPositionRelativeMenuY: TVerticalPosition;
+    FPositionRelativeScreenX: THorizontalPosition;
+    FPositionRelativeScreenY: TVerticalPosition;
     FRectangles: TRectangleList;
     FAccessoryRectangles: TRectangleList;
     FAllItemsRectangle: TRectangle;
@@ -310,7 +310,7 @@ type
     { PositionAbsolute expresses the position of the menu rectangle
       independently from all PositionRelative* properties.
       You can think of it as "What value would Position have
-      if all PositionRelative* were equal prLow".
+      if all PositionRelative* were equal hpLeft / hpBottom".
 
       An easy exercise for the reader is to check implementation that when
       all PositionRelative* are prLow, PositionAbsolute is indeed
@@ -532,21 +532,21 @@ type
     { See TPositionRelative documentation for meaning of these four
       PositionRelativeXxx properties.
       @groupBegin }
-    property PositionRelativeMenuX: TPositionRelative
+    property PositionRelativeMenuX: THorizontalPosition
       read FPositionRelativeMenuX write FPositionRelativeMenuX
-      default prMiddle;
+      default hpMiddle;
 
-    property PositionRelativeMenuY: TPositionRelative
+    property PositionRelativeMenuY: TVerticalPosition
       read FPositionRelativeMenuY write FPositionRelativeMenuY
-      default prMiddle;
+      default vpMiddle;
 
-    property PositionRelativeScreenX: TPositionRelative
+    property PositionRelativeScreenX: THorizontalPosition
       read FPositionRelativeScreenX write FPositionRelativeScreenX
-      default prMiddle;
+      default hpMiddle;
 
-    property PositionRelativeScreenY: TPositionRelative
+    property PositionRelativeScreenY: TVerticalPosition
       read FPositionRelativeScreenY write FPositionRelativeScreenY
-      default prMiddle;
+      default vpMiddle;
     { @groupEnd }
 
     property DrawBackgroundRectangle: boolean
@@ -925,10 +925,10 @@ begin
   BackgroundOpacityNotFocused := DefaultBackgroundOpacityNotFocused;
   BackgroundOpacityFocused    := DefaultBackgroundOpacityFocused;
 
-  FPositionRelativeMenuX := prMiddle;
-  FPositionRelativeMenuY := prMiddle;
-  FPositionRelativeScreenX := prMiddle;
-  FPositionRelativeScreenY := prMiddle;
+  FPositionRelativeMenuX := hpMiddle;
+  FPositionRelativeMenuY := vpMiddle;
+  FPositionRelativeScreenX := hpMiddle;
+  FPositionRelativeScreenY := vpMiddle;
 
   KeyNextItem := DefaultMenuKeyNextItem;
   KeyPreviousItem := DefaultMenuKeyPreviousItem;
@@ -1109,30 +1109,30 @@ begin
     PositionRelative* meaning. }
 
   case PositionRelativeScreenX of
-    prLow   : PositionScreenRelativeMove[0] := 0;
-    prMiddle: PositionScreenRelativeMove[0] := ContainerWidth div 2;
-    prHigh  : PositionScreenRelativeMove[0] := ContainerWidth;
+    hpLeft  : PositionScreenRelativeMove[0] := 0;
+    hpMiddle: PositionScreenRelativeMove[0] := ContainerWidth div 2;
+    hpRight : PositionScreenRelativeMove[0] := ContainerWidth;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
   case PositionRelativeScreenY of
-    prLow   : PositionScreenRelativeMove[1] := 0;
-    prMiddle: PositionScreenRelativeMove[1] := ContainerHeight div 2;
-    prHigh  : PositionScreenRelativeMove[1] := ContainerHeight;
+    vpBottom: PositionScreenRelativeMove[1] := 0;
+    vpMiddle: PositionScreenRelativeMove[1] := ContainerHeight div 2;
+    vpTop   : PositionScreenRelativeMove[1] := ContainerHeight;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
   case PositionRelativeMenuX of
-    prLow   : PositionMenuRelativeMove[0] := 0;
-    prMiddle: PositionMenuRelativeMove[0] := FAllItemsRectangle.Width div 2;
-    prHigh  : PositionMenuRelativeMove[0] := FAllItemsRectangle.Width;
+    hpLeft  : PositionMenuRelativeMove[0] := 0;
+    hpMiddle: PositionMenuRelativeMove[0] := FAllItemsRectangle.Width div 2;
+    hpRight : PositionMenuRelativeMove[0] := FAllItemsRectangle.Width;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
   case PositionRelativeMenuY of
-    prLow   : PositionMenuRelativeMove[1] := 0;
-    prMiddle: PositionMenuRelativeMove[1] := FAllItemsRectangle.Height div 2;
-    prHigh  : PositionMenuRelativeMove[1] := FAllItemsRectangle.Height;
+    vpBottom: PositionMenuRelativeMove[1] := 0;
+    vpMiddle: PositionMenuRelativeMove[1] := FAllItemsRectangle.Height div 2;
+    vpTop   : PositionMenuRelativeMove[1] := FAllItemsRectangle.Height;
     else raise EInternalError.Create('PositionRelative* = ?');
   end;
 
@@ -1250,7 +1250,9 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
       end;
     end;
 
-    procedure IncPositionRelative(var P: TPositionRelative);
+    procedure IncPositionRelative(
+      var H: THorizontalPosition; var V: TVerticalPosition;
+      const NextH, NextV: boolean);
     var
       OldChange, NewChange: TVector2Integer;
     begin
@@ -1276,9 +1278,10 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
           NewPosition := Position + (OldChange - NewChange); }
       OldChange := PositionScreenRelativeMove - PositionMenuRelativeMove;
 
-      if P = High(P) then
-        P := Low(P) else
-        P := Succ(P);
+      if NextH then
+        if H = High(H) then H := Low(H) else H := Succ(H);
+      if NextV then
+        if V = High(V) then V := Low(V) else V := Succ(V);
 
       { Call FixItemsRectangles only to set new
         PositionScreenRelativeMove - PositionMenuRelativeMove. }
@@ -1292,10 +1295,14 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
     end;
 
   const
-    PositionRelativeName: array [TPositionRelative] of string =
-    ( 'prLow',
-      'prMiddle',
-      'prHigh' );
+    HorizontalPositionName: array [THorizontalPosition] of string =
+    ( 'hpLeft',
+      'hpMiddle',
+      'hpRight' );
+    VerticalPositionName: array [TVerticalPosition] of string =
+    ( 'vpBottom',
+      'vpMiddle',
+      'vpTop' );
     BooleanToStr: array [boolean] of string=('false','true');
 
   begin
@@ -1327,10 +1334,10 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
             DrawBackgroundRectangle := not DrawBackgroundRectangle;
             Result := ExclusiveEvents;
           end;
-        'x': begin IncPositionRelative(FPositionRelativeScreenX); Result := ExclusiveEvents; end;
-        'y': begin IncPositionRelative(FPositionRelativeScreenY); Result := ExclusiveEvents; end;
-        CtrlX: begin IncPositionRelative(FPositionRelativeMenuX); Result := ExclusiveEvents; end;
-        CtrlY: begin IncPositionRelative(FPositionRelativeMenuY); Result := ExclusiveEvents; end;
+        'x': begin IncPositionRelative(FPositionRelativeScreenX, FPositionRelativeScreenY, true, false); Result := ExclusiveEvents; end;
+        'y': begin IncPositionRelative(FPositionRelativeScreenX, FPositionRelativeScreenY, false, true); Result := ExclusiveEvents; end;
+        CtrlX: begin IncPositionRelative(FPositionRelativeMenuX, FPositionRelativeMenuY, true, false); Result := ExclusiveEvents; end;
+        CtrlY: begin IncPositionRelative(FPositionRelativeMenuX, FPositionRelativeMenuY, false, true); Result := ExclusiveEvents; end;
         CtrlD:
           begin
             InfoWrite(Format(
@@ -1342,10 +1349,10 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
               'DrawBackgroundRectangle := %s;',
               [ Position[0],
                 Position[1],
-                PositionRelativeName[PositionRelativeScreenX],
-                PositionRelativeName[PositionRelativeScreenY],
-                PositionRelativeName[PositionRelativeMenuX],
-                PositionRelativeName[PositionRelativeMenuY],
+                HorizontalPositionName[PositionRelativeScreenX],
+                VerticalPositionName[PositionRelativeScreenY],
+                HorizontalPositionName[PositionRelativeMenuX],
+                VerticalPositionName[PositionRelativeMenuY],
                 BooleanToStr[DrawBackgroundRectangle] ]));
             Result := ExclusiveEvents;
           end;

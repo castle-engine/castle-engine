@@ -429,9 +429,6 @@ type
     property Color: TCastleColor read FColor write FColor;
   end;
 
-  { Text alignment for TCastleDialog. }
-  TTextAlign = (taLeft, taMiddle, taRight);
-
   { Dialog box that can display a long text, with automatic vertical scrollbar.
     You can also add buttons at the bottom.
     You can also have an input text area.
@@ -481,7 +478,7 @@ type
       When assigned, stretched to cover whole screen. }
     GLBackground: TGLImage;
     Background: TCastleImage;
-    Align: TTextAlign;
+    Align: THorizontalPosition;
     { Should we display InputText }
     DrawInputText: boolean;
     Buttons: array of TCastleButton;
@@ -519,7 +516,7 @@ type
     { Assign display stuff. Call this before adding control to Controls list.
       ABackground instance becomes owned by this component. }
     procedure Initialize(
-      const TextList: TStringList; const ATextAlign: TTextAlign;
+      const TextList: TStringList; const ATextAlign: THorizontalPosition;
       const AButtons: array of TCastleButton;
       const ADrawInputText: boolean; const AInputText: string;
       const ABackground: TCastleImage);
@@ -555,7 +552,7 @@ type
     { For internal use by tooltip rendering. In normal circumstances,
       leave this at tiLabel. }
     ImageType: TThemeImage;
-    FAlignment: TPositionRelative;
+    FAlignment: THorizontalPosition;
     { Calculate surrounding rectangle, like for @link(Rect),
       also calculating TextBroken (in case MaxWidth <> 0) along they way. }
     function RectCore(out TextBroken: TStrings): TRectangle;
@@ -594,8 +591,8 @@ type
     property MaxWidth: Integer read FMaxWidth write FMaxWidth;
 
     { Horizontal alignment of the text. }
-    property Alignment: TPositionRelative
-      read FAlignment write FAlignment default prLeft;
+    property Alignment: THorizontalPosition
+      read FAlignment write FAlignment default hpLeft;
   end;
 
   TCastleCrosshairShape = (csCross, csCrossRect);
@@ -1819,7 +1816,7 @@ begin
 end;
 
 procedure TCastleDialog.Initialize(const TextList: TStringList;
-  const ATextAlign: TTextAlign; const AButtons: array of TCastleButton;
+  const ATextAlign: THorizontalPosition; const AButtons: array of TCastleButton;
   const ADrawInputText: boolean; const AInputText: string;
   const ABackground: TCastleImage);
 var
@@ -2103,12 +2100,12 @@ procedure TCastleDialog.Render;
 
   { Render a Text line, and move Y up to the line above. }
   procedure DrawString(X: Integer; var Y: Integer; const Color: TCastleColor;
-    const text: string; TextAlign: TTextAlign);
+    const text: string; const TextAlign: THorizontalPosition);
   begin
     { change X only locally, to take TextAlign into account }
     case TextAlign of
-      taMiddle: X += (MaxLineWidth - font.TextWidth(text)) div 2;
-      taRight : X +=  MaxLineWidth - font.TextWidth(text);
+      hpMiddle: X += (MaxLineWidth - font.TextWidth(text)) div 2;
+      hpRight : X +=  MaxLineWidth - font.TextWidth(text);
     end;
     Font.Print(X, Y, Color, text);
     { change Y for caller, to print next line higher }
@@ -2117,7 +2114,7 @@ procedure TCastleDialog.Render;
 
   { Render all lines in S, and move Y up to the line above. }
   procedure DrawStrings(const X: Integer; var Y: Integer;
-    const Color: TCastleColor; const s: TStrings; TextAlign: TTextAlign);
+    const Color: TCastleColor; const s: TStrings; TextAlign: THorizontalPosition);
   var
     i: integer;
   begin
@@ -2291,9 +2288,9 @@ begin
     if Frame then
       Theme.Draw(R, ImageType);
     case Alignment of
-      prLeft  : TextX := R.Left + Padding;
-      prMiddle: TextX := (R.Left + R.Right) div 2;
-      prRight : TextX := R.Right - Padding;
+      hpLeft  : TextX := R.Left + Padding;
+      hpMiddle: TextX := (R.Left + R.Right) div 2;
+      hpRight : TextX := R.Right - Padding;
       else raise EInternalError.Create('TCastleLabel.Render: Alignment?');
     end;
     Font.PrintStrings(TextX,

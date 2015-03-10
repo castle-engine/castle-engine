@@ -21,6 +21,67 @@ interface
 uses CastleGenericLists, CastleVectors;
 
 type
+  { Horizontal position of one control/rectangle
+    with respect to another.
+
+    This is used by TUIRectangularControl.Align and TRectangle.Align
+    to specify the alignment of one control/rectangle with respect to another.
+    In case of TUIRectangularControl.Align, this specifies
+    the align of control with respect to the container
+    (TCastleWindow or TCastleControl).
+
+    This is used to talk about position of the control and the container.
+
+    @orderedList(
+      @item(
+        When we talk about the position of the control
+        (for example ControlPosition for TUIRectangularControl.Align),
+        it determines which border of the control to align.)
+      @item(
+        When we talk about the position of the container
+        (for example ContainerPosition for TUIRectangularControl.Align),
+        this specifies the container border.)
+    )
+
+    In most cases you use equal both control and container borders.
+    For example, both ControlPosition and ContainerPosition are usually equal for
+    TUIControlPos.Align call. This allows to align left control edge to
+    left container edge, or right control edge to right container edge,
+    or to center control within the container --- which is the most common usage.
+
+    @unorderedList(
+      @item(If both are prLow, then X/Y specify position
+        of left/bottom control border relative to left/bottom container border.
+        X/Y should be >= 0 if you want to see the control completely
+        within the container.)
+
+      @item(If both are prMiddle, then X/Y (most often just 0/0)
+        specify the shift between container middle to
+        control middle. If X/Y are zero, then control is just in the
+        middle of the container.)
+
+      @item(If both are prHigh, then X/Y specify position
+        of right/top control border relative to right/top container border.
+        X/Y should be <= 0 if you want to see the control completely
+        within the container.)
+    )
+
+    @seealso TVerticalPosition
+  }
+  THorizontalPosition = (
+    hpLeft,
+    hpMiddle,
+    hpRight
+  );
+
+  { Vertical position of one control/rectangle with respect to another.
+    @seealso THorizontalPosition }
+  TVerticalPosition = (
+    vpBottom,
+    vpMiddle,
+    vpTop
+  );
+
   { 2D rectangle with integer coordinates.
     Useful for various 2D GUI operations.
 
@@ -110,6 +171,35 @@ type
     { Clamp value to be within allowed vertical range.
       That is, clamp to @code([Bottom, Top - 1]). }
     function ClampY(const Y: Integer): Integer;
+
+    function ScaleToWidth(const NewWidth: Cardinal): TRectangle;
+    function ScaleToHeight(const NewHeight: Cardinal): TRectangle;
+
+    { Align this rectangle within other rectangle by calculating new value
+      for @link(Left). }
+    function AlignCore(
+      const ThisPosition: THorizontalPosition;
+      const OtherRect: TRectangle;
+      const OtherPosition: THorizontalPosition;
+      const X: Integer = 0): Integer;
+    function Align(
+      const ThisPosition: THorizontalPosition;
+      const OtherRect: TRectangle;
+      const OtherPosition: THorizontalPosition;
+      const X: Integer = 0): TRectangle;
+
+    { Align this rectangle within other rectangle by calculating new value
+      for @link(Bottom). }
+    function AlignCore(
+      const ThisPosition: TVerticalPosition;
+      const OtherRect: TRectangle;
+      const OtherPosition: TVerticalPosition;
+      const Y: Integer = 0): Integer;
+    function Align(
+      const ThisPosition: TVerticalPosition;
+      const OtherRect: TRectangle;
+      const OtherPosition: TVerticalPosition;
+      const Y: Integer = 0): TRectangle;
 
     function ToString: string;
   end;
@@ -340,6 +430,84 @@ end;
 function TRectangle.Middle: TVector2Integer;
 begin
   Result := Vector2Integer(Left + Width div 2, Bottom + Height div 2);
+end;
+
+function TRectangle.ScaleToWidth(const NewWidth: Cardinal): TRectangle;
+begin
+  Result.Left := Left;
+  Result.Bottom := Bottom;
+  Result.Width := NewWidth;
+  Result.Height := Height * NewWidth div Width;
+end;
+
+function TRectangle.ScaleToHeight(const NewHeight: Cardinal): TRectangle;
+begin
+  Result.Left := Left;
+  Result.Bottom := Bottom;
+  Result.Width := Width * NewHeight div Height;
+  Result.Height := NewHeight;
+end;
+
+function TRectangle.AlignCore(
+  const ThisPosition: THorizontalPosition;
+  const OtherRect: TRectangle;
+  const OtherPosition: THorizontalPosition;
+  const X: Integer = 0): Integer;
+begin
+  Result := OtherRect.Left + X;
+  case ThisPosition of
+    hpLeft  : ;
+    hpMiddle: Result -= Width div 2;
+    hpRight : Result -= Width;
+  end;
+  case OtherPosition of
+    hpLeft  : ;
+    hpMiddle: Result += OtherRect.Width div 2;
+    hpRight : Result += OtherRect.Width;
+  end;
+end;
+
+function TRectangle.AlignCore(
+  const ThisPosition: TVerticalPosition;
+  const OtherRect: TRectangle;
+  const OtherPosition: TVerticalPosition;
+  const Y: Integer = 0): Integer;
+begin
+  Result := OtherRect.Bottom + Y;
+  case ThisPosition of
+    vpBottom: ;
+    vpMiddle: Result -= Height div 2;
+    vpTop   : Result -= Height;
+  end;
+  case OtherPosition of
+    vpBottom: ;
+    vpMiddle: Result += OtherRect.Height div 2;
+    vpTop   : Result += OtherRect.Height;
+  end;
+end;
+
+function TRectangle.Align(
+  const ThisPosition: THorizontalPosition;
+  const OtherRect: TRectangle;
+  const OtherPosition: THorizontalPosition;
+  const X: Integer = 0): TRectangle;
+begin
+  Result.Left := AlignCore(ThisPosition, OtherRect, OtherPosition, X);
+  Result.Bottom := Bottom;
+  Result.Width := Width;
+  Result.Height := Height;
+end;
+
+function TRectangle.Align(
+  const ThisPosition: TVerticalPosition;
+  const OtherRect: TRectangle;
+  const OtherPosition: TVerticalPosition;
+  const Y: Integer = 0): TRectangle;
+begin
+  Result.Left := Left;
+  Result.Bottom := AlignCore(ThisPosition, OtherRect, OtherPosition, Y);
+  Result.Width := Width;
+  Result.Height := Height;
 end;
 
 { TRectangleList -------------------------------------------------------------- }

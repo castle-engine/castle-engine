@@ -766,62 +766,14 @@ end;
   end;
 
   { Position for relative layout of one control in respect to another.
-
-    This is for now used by TCastleOnScreenMenu.Position
-    and TUIControlPos.AlignHorizontal, TUIControlPos.AlignVertical, to specify
-    the alignment of TUIControl in respect to the container (TCastleWindow
-    or TCastleControl). In the future, it will probably be used more.
-
-    This is used to talk both about position of the control and the container.
-    @orderedList(
-      @item(
-        When we talk about the position of the control
-        (for example for TCastleOnScreenMenu.PositionRelativeMenu,
-        or OurBorder for TUIControlPos.AlignHorizontal),
-        it determines which border of the control to align.)
-      @item(
-        When we talk about the position of the container
-        (for example for TCastleOnScreenMenu.PositionRelativeScreen
-        or ContainerBorder for TUIControlPos.AlignHorizontal),
-        this specifies the container border.)
-    )
-
-    Meaning of the values:
-    @unorderedList(
-      @itemSpacing Compact
-      @item(prLow refers to the left (or bottom) border,)
-      @item(prMiddle refers to the middle,)
-      @item(prHigh refers to the right (or top) border.)
-    )
-
-    You can use constants prLeft, prRight, prTop, prBottom instead
-    of prLow and prHight to cleanly indicate the meaning.
-
-    In most cases you use equal both control and container borders.
-    For example, both OurBorder and ContainerBorder are equal for
-    TUIControlPos.AlignHorizontal call.
-
-    @unorderedList(
-      @item(If both are prLow, then X/Y specify position
-        of left/bottom control border relative to left/bottom container border.
-        X/Y should be >= 0 if you want to see the control completely
-        within the container.)
-
-      @item(If both are prMiddle, then X/Y (most often just 0/0)
-        specify the shift between container middle to
-        control middle. If X/Y are zero, then control is just in the
-        middle of the container.)
-
-      @item(If both are prHigh, then X/Y specify position
-        of right/top control border relative to right/top container border.
-        X/Y should be <= 0 if you want to see the control completely
-        within the container.)
-    )
+    @deprecated Deprecated, rather use cleaner
+    THorizontalPosition and TVerticalPosition.
   }
   TPositionRelative = (
     prLow,
     prMiddle,
-    prHigh);
+    prHigh
+  ) deprecated;
 
   { TUIControl that has a position and takes some rectangular space
     on the container.
@@ -865,16 +817,30 @@ end;
       assumes that control does exist. }
     function Rect: TRectangle; virtual; abstract;
     { Position the control with respect to the container
-      by adjusting @link(Left). }
+      by adjusting @link(Left).
+      Deprecated, use @link(Align) with THorizontalPosition. }
     procedure AlignHorizontal(
       const ControlPosition: TPositionRelative = prMiddle;
       const ContainerPosition: TPositionRelative = prMiddle;
+      const X: Integer = 0); deprecated;
+    { Position the control with respect to the container
+      by adjusting @link(Left). }
+    procedure Align(
+      const ControlPosition: THorizontalPosition;
+      const ContainerPosition: THorizontalPosition;
       const X: Integer = 0);
     { Position the control with respect to the container
-      by adjusting @link(Bottom). }
+      by adjusting @link(Bottom).
+      Deprecated, use @link(Align) with TVerticalPosition. }
     procedure AlignVertical(
       const ControlPosition: TPositionRelative = prMiddle;
       const ContainerPosition: TPositionRelative = prMiddle;
+      const Y: Integer = 0); deprecated;
+    { Position the control with respect to the container
+      by adjusting @link(Bottom). }
+    procedure Align(
+      const ControlPosition: TVerticalPosition;
+      const ContainerPosition: TVerticalPosition;
       const Y: Integer = 0);
     { Center the control within the container both horizontally and vertically. }
     procedure Center;
@@ -978,10 +944,10 @@ const
   { Deprecated name for rs3D. }
   ds3D = rs3D deprecated;
 
-  prLeft = prLow;
-  prRight = prHigh;
-  prBottom = prLow;
-  prTop = prHigh;
+  prLeft = prLow deprecated;
+  prRight = prHigh deprecated;
+  prBottom = prLow deprecated;
+  prTop = prHigh deprecated;
 
 implementation
 
@@ -1350,7 +1316,8 @@ begin
   if UseForceCaptureInput then
     ForceCaptureInput.Update(Fps.UpdateSecondsPassed, HandleInput);
 
-  for I := 0 to Controls.Count - 1 do
+  I := 0; // while loop, in case some Update method changes the Controls list
+  while I < Controls.Count do
   begin
     C := Controls[I];
     if C.GetExists and (C <> ForceCaptureInput) then
@@ -1364,6 +1331,7 @@ begin
         C.Update(Fps.UpdateSecondsPassed, Dummy);
       end;
     end;
+    Inc(I);
   end;
 
   if Assigned(OnUpdate) then OnUpdate(Self);
@@ -1954,52 +1922,46 @@ begin
   end;
 end;
 
-procedure TUIRectangularControl.AlignHorizontal(
-  const ControlPosition: TPositionRelative = prMiddle;
-  const ContainerPosition: TPositionRelative = prMiddle;
+procedure TUIRectangularControl.Align(
+  const ControlPosition: THorizontalPosition;
+  const ContainerPosition: THorizontalPosition;
   const X: Integer = 0);
-var
-  Val: Integer;
 begin
-  Val := X;
-  case ControlPosition of
-    prLow   : ;
-    prMiddle: Val -= Rect.Width div 2;
-    prHigh  : Val -= Rect.Width;
-  end;
-  case ContainerPosition of
-    prLow   : ;
-    prMiddle: Val += ContainerWidth div 2;
-    prHigh  : Val += ContainerWidth;
-  end;
-  Left := Val;
+  Left := Rect.AlignCore(ControlPosition, Container.Rect, ContainerPosition, X);
+end;
+
+procedure TUIRectangularControl.Align(
+  const ControlPosition: TVerticalPosition;
+  const ContainerPosition: TVerticalPosition;
+  const Y: Integer = 0);
+begin
+  Bottom := Rect.AlignCore(ControlPosition, Container.Rect, ContainerPosition, Y);
+end;
+
+procedure TUIRectangularControl.AlignHorizontal(
+  const ControlPosition: TPositionRelative;
+  const ContainerPosition: TPositionRelative;
+  const X: Integer);
+begin
+  Align(
+    THorizontalPosition(ControlPosition),
+    THorizontalPosition(ContainerPosition), X);
 end;
 
 procedure TUIRectangularControl.AlignVertical(
-  const ControlPosition: TPositionRelative = prMiddle;
-  const ContainerPosition: TPositionRelative = prMiddle;
-  const Y: Integer = 0);
-var
-  Val: Integer;
+  const ControlPosition: TPositionRelative;
+  const ContainerPosition: TPositionRelative;
+  const Y: Integer);
 begin
-  Val := Y;
-  case ControlPosition of
-    prLow   : ;
-    prMiddle: Val -= Rect.Height div 2;
-    prHigh  : Val -= Rect.Height;
-  end;
-  case ContainerPosition of
-    prLow   : ;
-    prMiddle: Val += ContainerHeight div 2;
-    prHigh  : Val += ContainerHeight;
-  end;
-  Bottom := Val;
+  Align(
+    TVerticalPosition(ControlPosition),
+    TVerticalPosition(ContainerPosition), Y);
 end;
 
 procedure TUIRectangularControl.Center;
 begin
-  AlignHorizontal;
-  AlignVertical;
+  Align(hpMiddle, hpMiddle);
+  Align(vpMiddle, vpMiddle);
 end;
 
 { TUIControlList ------------------------------------------------------------- }

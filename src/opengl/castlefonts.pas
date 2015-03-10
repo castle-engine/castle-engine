@@ -217,7 +217,7 @@ type
     procedure PrintStrings(const X0, Y0: Integer; const Color: TCastleColor;
       const Strs: TStrings; const Tags: boolean;
       const LineSpacing: Integer;
-      const TextHorizontalAlignment: TPositionRelative = prLeft); overload;
+      const TextHorizontalAlignment: THorizontalPosition = hpLeft); overload;
     procedure PrintStrings(const Strs: TStrings;
       const Tags: boolean; const LineSpacing: Integer;
       const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated;
@@ -261,7 +261,8 @@ type
     function PrintBrokenString(const Rect: TRectangle; const Color: TCastleColor;
       const S: string;
       const LineSpacing: Integer;
-      const AlignHorizontal, AlignVertical: TPositionRelative): Integer;
+      const AlignHorizontal: THorizontalPosition;
+      const AlignVertical: TVerticalPosition): Integer;
     function PrintBrokenString(X0, Y0: Integer; const Color: TCastleColor;
       const S: string; const MaxLineWidth: Integer;
       const PositionsFirst: boolean;
@@ -620,14 +621,14 @@ end;
 procedure TCastleFont.PrintStrings(const X0, Y0: Integer;
   const Color: TCastleColor; const Strs: TStrings;
   const Tags: boolean; const LineSpacing: Integer;
-  const TextHorizontalAlignment: TPositionRelative);
+  const TextHorizontalAlignment: THorizontalPosition);
 
   function XPos(const Line: Integer; const S: string): Integer;
   begin
     case TextHorizontalAlignment of
-      prLeft  : Result := X0;
-      prMiddle: Result := X0 - TextWidth(S) div 2;
-      prRight : Result := X0 - TextWidth(S);
+      hpLeft  : Result := X0;
+      hpMiddle: Result := X0 - TextWidth(S) div 2;
+      hpRight : Result := X0 - TextWidth(S);
       else EInternalError.Create('TCastleFont.PrintStrings: TextHorizontalAlignment unknown');
     end;
   end;
@@ -698,7 +699,8 @@ end;
 function TCastleFont.PrintBrokenString(const Rect: TRectangle;
   const Color: TCastleColor; const S: string;
   const LineSpacing: Integer;
-  const AlignHorizontal, AlignVertical: TPositionRelative): Integer;
+  const AlignHorizontal: THorizontalPosition;
+  const AlignVertical: TVerticalPosition): Integer;
 const
   Tags = false; // fow now always false, because BreakLines cannot handle tags
 var
@@ -719,17 +721,17 @@ begin
     BreakLines(S, Broken, Rect.Width);
     { calculate X0 based on Rect and BrokenWidth }
     case AlignHorizontal of
-      prLow   : X0 := Rect.Left;
-      prMiddle: X0 := Rect.Left + (Rect.Width - BrokenWidth) div 2;
-      prHigh  : X0 := Rect.Right - BrokenWidth;
+      hpLeft  : X0 := Rect.Left;
+      hpMiddle: X0 := Rect.Left + (Rect.Width - BrokenWidth) div 2;
+      hpRight : X0 := Rect.Right - BrokenWidth;
       else raise EInternalError.Create('PrintBrokenString.AlignHorizontal?');
     end;
     { calculate Y0 based on Rect and BrokenHeight }
     BrokenHeight := Broken.Count * (LineSpacing + RowHeight);
     case AlignVertical of
-      prLow   : Y0 := Rect.Bottom;
-      prMiddle: Y0 := Rect.Bottom + (Rect.Height - BrokenHeight) div 2;
-      prHigh  : Y0 := Rect.Top - BrokenHeight;
+      vpBottom: Y0 := Rect.Bottom;
+      vpMiddle: Y0 := Rect.Bottom + (Rect.Height - BrokenHeight) div 2;
+      vpTop   : Y0 := Rect.Top - BrokenHeight;
       else raise EInternalError.Create('PrintBrokenString.AlignVertical?');
     end;
     PrintStrings(X0, Y0, Color, Broken, Tags, LineSpacing);
