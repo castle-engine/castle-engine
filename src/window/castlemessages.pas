@@ -107,6 +107,7 @@ type
 const
   DefaultAlign = hpLeft;
   taRight = hpRight deprecated;
+  taMiddle = hpMiddle deprecated;
   taLeft = hpLeft deprecated;
 
 { Ask user for simple confirmation. This is the simplest "OK" dialog box.
