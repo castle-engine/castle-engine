@@ -20,7 +20,7 @@ interface
 
 uses Classes, FGL,
   CastleConfig, CastleKeysMouse, CastleImages, CastleUIControls,
-  CastleGLImages, CastleVectors;
+  CastleGLImages, CastleVectors, CastleRectangles;
 
 type
   { UI state, a useful singleton to manage the state of your game UI.
@@ -88,6 +88,8 @@ type
     function AddDataImage(const Path: string): Integer;
     function DataImage(const Index: Integer): TCastleImage;
     function DataGLImage(const Index: Integer): TGLImage;
+    function DataImageRect(const Index: Integer; const Scale: Single): TRectangle;
+
     { Container on which state works. By default, this is Application.MainWindow.
       When the state is current, then @link(Container) property (from
       ancestor, see TUIControl.Container) is equal to this. }
@@ -104,6 +106,7 @@ type
       When it is nil, then pushing new state sets the @link(Current) state.
       Otherwise @link(Current) state is left as-it-is, new state is added on top. }
     class procedure Push(const NewState: TUIState);
+    class procedure Pop;
 
     class function StateStackCount: Integer;
     class property StateStack [const Index: Integer]: TUIState read GetStateStack;
@@ -158,8 +161,6 @@ begin
 end;
 
 class procedure TUIState.SetCurrent(const Value: TUIState);
-var
-  TopState: TUIState;
 begin
   { exit early if there's nothing to do }
   if (StateStackCount = 0) and (Value = nil) then
@@ -171,13 +172,7 @@ begin
     The loop is written to work even when some state Finish method
     changes states. }
   while StateStackCount <> 0 do
-  begin
-    TopState := FStateStack.Last;
-    TopState.InternalFinish;
-    if TopState = FStateStack.Last then
-      FStateStack.Delete(FStateStack.Count - 1) else
-      OnWarning(wtMinor, 'State', 'Topmost state is no longer topmost after its Finish method. Do not change state stack from state Finish methods.');
-  end;
+    Pop;
   { deallocate empty FStateStack }
   if Value = nil then
     FreeAndNil(FStateStack);
@@ -195,6 +190,17 @@ begin
     FStateStack.Add(NewState);
     NewState.InternalStart;
   end;
+end;
+
+class procedure TUIState.Pop;
+var
+  TopState: TUIState;
+begin
+  TopState := FStateStack.Last;
+  TopState.InternalFinish;
+  if TopState = FStateStack.Last then
+    FStateStack.Delete(FStateStack.Count - 1) else
+    OnWarning(wtMinor, 'State', 'Topmost state is no longer topmost after its Finish method. Do not change state stack from state Finish methods.');
 end;
 
 class function TUIState.StateStackCount: Integer;
@@ -307,6 +313,13 @@ end;
 function TUIState.DataGLImage(const Index: Integer): TGLImage;
 begin
   Result := FDataImages[Index].GLImage;
+end;
+
+function TUIState.DataImageRect(const Index: Integer; const Scale: Single): TRectangle;
+begin
+  Result := DataImage(Index).Rect;
+  Result.Width := Round(Result.Width * Scale);
+  Result.Height := Round(Result.Height * Scale);
 end;
 
 function TUIState.PositionInside(const Position: TVector2Single): boolean;
