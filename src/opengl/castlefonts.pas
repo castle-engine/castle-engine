@@ -781,10 +781,15 @@ begin
 end;
 
 procedure TCastleFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
+var
+  OldScale: Single;
 begin
+  OldScale := Scale;
+  Scale := 1;
   ARowHeight := TextHeight('Wy');
   ARowHeightBase := TextHeightBase('W');
   ADescend := TextHeight('y') - TextHeight('a');
+  Scale := OldScale;
 end;
 
 function TCastleFont.RowHeight: Integer;
@@ -794,7 +799,7 @@ begin
     Measure(FRowHeight, FRowHeightBase, FDescend);
     MeasureDone := true;
   end;
-  Result := FRowHeight;
+  Result := Round(FRowHeight * Scale);
 end;
 
 function TCastleFont.RowHeightBase: Integer;
@@ -804,7 +809,7 @@ begin
     Measure(FRowHeight, FRowHeightBase, FDescend);
     MeasureDone := true;
   end;
-  Result := FRowHeightBase;
+  Result := Round(FRowHeightBase * Scale);
 end;
 
 function TCastleFont.Descend: Integer;
@@ -814,7 +819,7 @@ begin
     Measure(FRowHeight, FRowHeightBase, FDescend);
     MeasureDone := true;
   end;
-  Result := FDescend;
+  Result := Round(FDescend * Scale);
 end;
 
 procedure TCastleFont.SetScale(const Value: Single);
