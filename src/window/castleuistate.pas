@@ -23,6 +23,8 @@ uses Classes, FGL,
   CastleGLImages, CastleVectors, CastleRectangles;
 
 type
+  TUIStateList = class;
+
   { UI state, a useful singleton to manage the state of your game UI.
 
     Only one state is @italic(current) at a given time, it can
@@ -66,7 +68,6 @@ type
       destructor Destroy; override;
     end;
     TDataImageList = specialize TFPGObjectList<TDataImage>;
-    TUIStateList = specialize TFPGObjectList<TUIState>;
   var
     FDataImages: TDataImageList;
     FStartContainer: TUIContainer;
@@ -135,6 +136,8 @@ type
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
   end;
+
+  TUIStateList = class(specialize TFPGObjectList<TUIState>);
 
 implementation
 
