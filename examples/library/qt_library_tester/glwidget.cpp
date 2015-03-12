@@ -112,7 +112,7 @@ int __cdecl GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2,
 void GLWidget::initializeGL()
 {
     CGE_Open(ecgeofLog);
-    CGE_SetUserInterface(false, 96);
+    CGE_SetUserInterface(false, logicalDpiY());
     CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
     m_bAfterInit = true;
     if (!m_sSceneToOpen.isEmpty())
