@@ -21,7 +21,7 @@ unit CastleUIState;
 { When defined, the non-OpenGL image data is kept loaded in memory.
   This uses more RAM, but allows faster GLContextOpen/Close on the state,
   as images do not need to be loaded from disk again. }
-{$define KEEP_LOADED_DATA_IMAGES}
+{ $define KEEP_LOADED_DATA_IMAGES}
 {$ifdef ANDROID} {$undef KEEP_LOADED_DATA_IMAGES} {$endif}
 {$ifdef iOS} {$undef KEEP_LOADED_DATA_IMAGES} {$endif}
 
