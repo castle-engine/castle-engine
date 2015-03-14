@@ -64,10 +64,16 @@ var
   TouchCtlOuter: TRGBAlphaImage;
 
 var
+  TouchCtlFlyInner: TRGBAlphaImage;
+
+var
   TouchCtlFlyOuter: TRGBAlphaImage;
 
 var
-  TouchCtlFlyInner: TRGBAlphaImage;
+  Crosshair1: TRGBAlphaImage;
+
+var
+  Crosshair2: TRGBAlphaImage;
 
 var
   PanelSeparator: TRGBImage;
@@ -87,12 +93,6 @@ var
 var
   SliderPosition: TRGBImage;
 
-var
-  Crosshair1: TRGBAlphaImage;
-
-var
-  Crosshair2: TRGBAlphaImage;
-
 implementation
 
 uses SysUtils;
@@ -103,62 +103,90 @@ uses SysUtils;
 {$I castlecontrolsimages.image_data}
 
 initialization
-  Panel := TRGBAlphaImage.Create(PanelWidth, PanelHeight);
+  Panel := TRGBAlphaImage.Create(PanelWidth, PanelHeight, PanelDepth);
   Move(PanelPixels, Panel.RawPixels^, SizeOf(PanelPixels));
-  WindowDarkTransparent := TRGBAlphaImage.Create(WindowDarkTransparentWidth, WindowDarkTransparentHeight);
+  Panel.URL := 'embedded-image://Panel';
+  WindowDarkTransparent := TRGBAlphaImage.Create(WindowDarkTransparentWidth, WindowDarkTransparentHeight, WindowDarkTransparentDepth);
   Move(WindowDarkTransparentPixels, WindowDarkTransparent.RawPixels^, SizeOf(WindowDarkTransparentPixels));
-  Slider := TRGBAlphaImage.Create(SliderWidth, SliderHeight);
+  WindowDarkTransparent.URL := 'embedded-image://WindowDarkTransparent';
+  Slider := TRGBAlphaImage.Create(SliderWidth, SliderHeight, SliderDepth);
   Move(SliderPixels, Slider.RawPixels^, SizeOf(SliderPixels));
-  Tooltip := TRGBImage.Create(TooltipWidth, TooltipHeight);
+  Slider.URL := 'embedded-image://Slider';
+  Tooltip := TRGBImage.Create(TooltipWidth, TooltipHeight, TooltipDepth);
   Move(TooltipPixels, Tooltip.RawPixels^, SizeOf(TooltipPixels));
-  TooltipRounded := TRGBAlphaImage.Create(TooltipRoundedWidth, TooltipRoundedHeight);
+  Tooltip.URL := 'embedded-image://Tooltip';
+  TooltipRounded := TRGBAlphaImage.Create(TooltipRoundedWidth, TooltipRoundedHeight, TooltipRoundedDepth);
   Move(TooltipRoundedPixels, TooltipRounded.RawPixels^, SizeOf(TooltipRoundedPixels));
-  ButtonPressed := TRGBAlphaImage.Create(ButtonPressedWidth, ButtonPressedHeight);
+  TooltipRounded.URL := 'embedded-image://TooltipRounded';
+  ButtonPressed := TRGBAlphaImage.Create(ButtonPressedWidth, ButtonPressedHeight, ButtonPressedDepth);
   Move(ButtonPressedPixels, ButtonPressed.RawPixels^, SizeOf(ButtonPressedPixels));
-  ButtonFocused := TRGBAlphaImage.Create(ButtonFocusedWidth, ButtonFocusedHeight);
+  ButtonPressed.URL := 'embedded-image://ButtonPressed';
+  ButtonFocused := TRGBAlphaImage.Create(ButtonFocusedWidth, ButtonFocusedHeight, ButtonFocusedDepth);
   Move(ButtonFocusedPixels, ButtonFocused.RawPixels^, SizeOf(ButtonFocusedPixels));
-  ButtonNormal := TRGBAlphaImage.Create(ButtonNormalWidth, ButtonNormalHeight);
+  ButtonFocused.URL := 'embedded-image://ButtonFocused';
+  ButtonNormal := TRGBAlphaImage.Create(ButtonNormalWidth, ButtonNormalHeight, ButtonNormalDepth);
   Move(ButtonNormalPixels, ButtonNormal.RawPixels^, SizeOf(ButtonNormalPixels));
-  FrameWhite := TRGBAlphaImage.Create(FrameWhiteWidth, FrameWhiteHeight);
+  ButtonNormal.URL := 'embedded-image://ButtonNormal';
+  FrameWhite := TRGBAlphaImage.Create(FrameWhiteWidth, FrameWhiteHeight, FrameWhiteDepth);
   Move(FrameWhitePixels, FrameWhite.RawPixels^, SizeOf(FrameWhitePixels));
-  FrameWhiteBlack := TRGBAlphaImage.Create(FrameWhiteBlackWidth, FrameWhiteBlackHeight);
+  FrameWhite.URL := 'embedded-image://FrameWhite';
+  FrameWhiteBlack := TRGBAlphaImage.Create(FrameWhiteBlackWidth, FrameWhiteBlackHeight, FrameWhiteBlackDepth);
   Move(FrameWhiteBlackPixels, FrameWhiteBlack.RawPixels^, SizeOf(FrameWhiteBlackPixels));
-  FrameYellow := TRGBAlphaImage.Create(FrameYellowWidth, FrameYellowHeight);
+  FrameWhiteBlack.URL := 'embedded-image://FrameWhiteBlack';
+  FrameYellow := TRGBAlphaImage.Create(FrameYellowWidth, FrameYellowHeight, FrameYellowDepth);
   Move(FrameYellowPixels, FrameYellow.RawPixels^, SizeOf(FrameYellowPixels));
-  FrameYellowBlack := TRGBAlphaImage.Create(FrameYellowBlackWidth, FrameYellowBlackHeight);
+  FrameYellow.URL := 'embedded-image://FrameYellow';
+  FrameYellowBlack := TRGBAlphaImage.Create(FrameYellowBlackWidth, FrameYellowBlackHeight, FrameYellowBlackDepth);
   Move(FrameYellowBlackPixels, FrameYellowBlack.RawPixels^, SizeOf(FrameYellowBlackPixels));
-  FrameThickWhite := TRGBAlphaImage.Create(FrameThickWhiteWidth, FrameThickWhiteHeight);
+  FrameYellowBlack.URL := 'embedded-image://FrameYellowBlack';
+  FrameThickWhite := TRGBAlphaImage.Create(FrameThickWhiteWidth, FrameThickWhiteHeight, FrameThickWhiteDepth);
   Move(FrameThickWhitePixels, FrameThickWhite.RawPixels^, SizeOf(FrameThickWhitePixels));
-  FrameThickYellow := TRGBAlphaImage.Create(FrameThickYellowWidth, FrameThickYellowHeight);
+  FrameThickWhite.URL := 'embedded-image://FrameThickWhite';
+  FrameThickYellow := TRGBAlphaImage.Create(FrameThickYellowWidth, FrameThickYellowHeight, FrameThickYellowDepth);
   Move(FrameThickYellowPixels, FrameThickYellow.RawPixels^, SizeOf(FrameThickYellowPixels));
-  ProgressBar := TRGBAlphaImage.Create(ProgressBarWidth, ProgressBarHeight);
+  FrameThickYellow.URL := 'embedded-image://FrameThickYellow';
+  ProgressBar := TRGBAlphaImage.Create(ProgressBarWidth, ProgressBarHeight, ProgressBarDepth);
   Move(ProgressBarPixels, ProgressBar.RawPixels^, SizeOf(ProgressBarPixels));
-  ProgressFill := TRGBAlphaImage.Create(ProgressFillWidth, ProgressFillHeight);
+  ProgressBar.URL := 'embedded-image://ProgressBar';
+  ProgressFill := TRGBAlphaImage.Create(ProgressFillWidth, ProgressFillHeight, ProgressFillDepth);
   Move(ProgressFillPixels, ProgressFill.RawPixels^, SizeOf(ProgressFillPixels));
-  TouchCtlInner := TRGBAlphaImage.Create(TouchCtlInnerWidth, TouchCtlInnerHeight);
+  ProgressFill.URL := 'embedded-image://ProgressFill';
+  TouchCtlInner := TRGBAlphaImage.Create(TouchCtlInnerWidth, TouchCtlInnerHeight, TouchCtlInnerDepth);
   Move(TouchCtlInnerPixels, TouchCtlInner.RawPixels^, SizeOf(TouchCtlInnerPixels));
-  TouchCtlOuter := TRGBAlphaImage.Create(TouchCtlOuterWidth, TouchCtlOuterHeight);
+  TouchCtlInner.URL := 'embedded-image://TouchCtlInner';
+  TouchCtlOuter := TRGBAlphaImage.Create(TouchCtlOuterWidth, TouchCtlOuterHeight, TouchCtlOuterDepth);
   Move(TouchCtlOuterPixels, TouchCtlOuter.RawPixels^, SizeOf(TouchCtlOuterPixels));
-  TouchCtlFlyOuter := TRGBAlphaImage.Create(TouchCtlFlyOuterWidth, TouchCtlFlyOuterHeight);
-  Move(TouchCtlFlyOuterPixels, TouchCtlFlyOuter.RawPixels^, SizeOf(TouchCtlFlyOuterPixels));
-  TouchCtlFlyInner := TRGBAlphaImage.Create(TouchCtlFlyInnerWidth, TouchCtlFlyInnerHeight);
+  TouchCtlOuter.URL := 'embedded-image://TouchCtlOuter';
+  TouchCtlFlyInner := TRGBAlphaImage.Create(TouchCtlFlyInnerWidth, TouchCtlFlyInnerHeight, TouchCtlFlyInnerDepth);
   Move(TouchCtlFlyInnerPixels, TouchCtlFlyInner.RawPixels^, SizeOf(TouchCtlFlyInnerPixels));
-  PanelSeparator := TRGBImage.Create(PanelSeparatorWidth, PanelSeparatorHeight);
-  Move(PanelSeparatorPixels, PanelSeparator.RawPixels^, SizeOf(PanelSeparatorPixels));
-  WindowDark := TRGBImage.Create(WindowDarkWidth, WindowDarkHeight);
-  Move(WindowDarkPixels, WindowDark.RawPixels^, SizeOf(WindowDarkPixels));
-  WindowGray := TRGBImage.Create(WindowGrayWidth, WindowGrayHeight);
-  Move(WindowGrayPixels, WindowGray.RawPixels^, SizeOf(WindowGrayPixels));
-  ScrollbarFrame := TRGBImage.Create(ScrollbarFrameWidth, ScrollbarFrameHeight);
-  Move(ScrollbarFramePixels, ScrollbarFrame.RawPixels^, SizeOf(ScrollbarFramePixels));
-  ScrollbarSlider := TRGBImage.Create(ScrollbarSliderWidth, ScrollbarSliderHeight);
-  Move(ScrollbarSliderPixels, ScrollbarSlider.RawPixels^, SizeOf(ScrollbarSliderPixels));
-  SliderPosition := TRGBImage.Create(SliderPositionWidth, SliderPositionHeight);
-  Move(SliderPositionPixels, SliderPosition.RawPixels^, SizeOf(SliderPositionPixels));
-  Crosshair1 := TRGBAlphaImage.Create(Crosshair1Width, Crosshair1Height);
+  TouchCtlFlyInner.URL := 'embedded-image://TouchCtlFlyInner';
+  TouchCtlFlyOuter := TRGBAlphaImage.Create(TouchCtlFlyOuterWidth, TouchCtlFlyOuterHeight, TouchCtlFlyOuterDepth);
+  Move(TouchCtlFlyOuterPixels, TouchCtlFlyOuter.RawPixels^, SizeOf(TouchCtlFlyOuterPixels));
+  TouchCtlFlyOuter.URL := 'embedded-image://TouchCtlFlyOuter';
+  Crosshair1 := TRGBAlphaImage.Create(Crosshair1Width, Crosshair1Height, Crosshair1Depth);
   Move(Crosshair1Pixels, Crosshair1.RawPixels^, SizeOf(Crosshair1Pixels));
-  Crosshair2 := TRGBAlphaImage.Create(Crosshair2Width, Crosshair2Height);
+  Crosshair1.URL := 'embedded-image://Crosshair1';
+  Crosshair2 := TRGBAlphaImage.Create(Crosshair2Width, Crosshair2Height, Crosshair2Depth);
   Move(Crosshair2Pixels, Crosshair2.RawPixels^, SizeOf(Crosshair2Pixels));
+  Crosshair2.URL := 'embedded-image://Crosshair2';
+  PanelSeparator := TRGBImage.Create(PanelSeparatorWidth, PanelSeparatorHeight, PanelSeparatorDepth);
+  Move(PanelSeparatorPixels, PanelSeparator.RawPixels^, SizeOf(PanelSeparatorPixels));
+  PanelSeparator.URL := 'embedded-image://PanelSeparator';
+  WindowDark := TRGBImage.Create(WindowDarkWidth, WindowDarkHeight, WindowDarkDepth);
+  Move(WindowDarkPixels, WindowDark.RawPixels^, SizeOf(WindowDarkPixels));
+  WindowDark.URL := 'embedded-image://WindowDark';
+  WindowGray := TRGBImage.Create(WindowGrayWidth, WindowGrayHeight, WindowGrayDepth);
+  Move(WindowGrayPixels, WindowGray.RawPixels^, SizeOf(WindowGrayPixels));
+  WindowGray.URL := 'embedded-image://WindowGray';
+  ScrollbarFrame := TRGBImage.Create(ScrollbarFrameWidth, ScrollbarFrameHeight, ScrollbarFrameDepth);
+  Move(ScrollbarFramePixels, ScrollbarFrame.RawPixels^, SizeOf(ScrollbarFramePixels));
+  ScrollbarFrame.URL := 'embedded-image://ScrollbarFrame';
+  ScrollbarSlider := TRGBImage.Create(ScrollbarSliderWidth, ScrollbarSliderHeight, ScrollbarSliderDepth);
+  Move(ScrollbarSliderPixels, ScrollbarSlider.RawPixels^, SizeOf(ScrollbarSliderPixels));
+  ScrollbarSlider.URL := 'embedded-image://ScrollbarSlider';
+  SliderPosition := TRGBImage.Create(SliderPositionWidth, SliderPositionHeight, SliderPositionDepth);
+  Move(SliderPositionPixels, SliderPosition.RawPixels^, SizeOf(SliderPositionPixels));
+  SliderPosition.URL := 'embedded-image://SliderPosition';
 finalization
   FreeAndNil(Panel);
   FreeAndNil(WindowDarkTransparent);
@@ -178,14 +206,14 @@ finalization
   FreeAndNil(ProgressFill);
   FreeAndNil(TouchCtlInner);
   FreeAndNil(TouchCtlOuter);
-  FreeAndNil(TouchCtlFlyOuter);
   FreeAndNil(TouchCtlFlyInner);
+  FreeAndNil(TouchCtlFlyOuter);
+  FreeAndNil(Crosshair1);
+  FreeAndNil(Crosshair2);
   FreeAndNil(PanelSeparator);
   FreeAndNil(WindowDark);
   FreeAndNil(WindowGray);
   FreeAndNil(ScrollbarFrame);
   FreeAndNil(ScrollbarSlider);
   FreeAndNil(SliderPosition);
-  FreeAndNil(Crosshair1);
-  FreeAndNil(Crosshair2);
 end.
