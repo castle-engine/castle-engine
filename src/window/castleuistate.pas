@@ -16,6 +16,15 @@
 { UI state (TUIState). }
 unit CastleUIState;
 
+{$I castleconf.inc}
+
+{ When defined, the non-OpenGL image data is kept loaded in memory.
+  This uses more RAM, but allows faster GLContextOpen/Close on the state,
+  as images do not need to be loaded from disk again. }
+{$define KEEP_LOADED_DATA_IMAGES}
+{$ifdef ANDROID} {$undef KEEP_LOADED_DATA_IMAGES} {$endif}
+{$ifdef iOS} {$undef KEEP_LOADED_DATA_IMAGES} {$endif}
+
 interface
 
 uses Classes, FGL,
@@ -63,6 +72,7 @@ type
   private
   type
     TDataImage = class
+      URL: string;
       Image: TCastleImage;
       GLImage: TGLImage;
       destructor Destroy; override;
@@ -81,13 +91,10 @@ type
   protected
     { Adds image to the list of automatically loaded images for this state.
       Path is automatically wrapped in ApplicationData(Path) to get URL.
-      The basic image (TCastleImage) is loaded immediately,
-      and always available, under DataImage(Index).
       The OpenGL image resource (TGLImage) is loaded when GL context
       is active, available under DataGLImage(Index).
       Where Index is the return value of this method. }
     function AddDataImage(const Path: string): Integer;
-    function DataImage(const Index: Integer): TCastleImage;
     function DataGLImage(const Index: Integer): TGLImage;
     function DataImageRect(const Index: Integer; const Scale: Single): TRectangle;
 
@@ -302,16 +309,31 @@ var
   DI: TDataImage;
 begin
   DI := TDataImage.Create;
-  DI.Image := LoadImage(ApplicationData(Path), []);
+  DI.URL := ApplicationData(Path);
+  {$ifdef KEEP_LOADED_DATA_IMAGES}
+  DI.Image := LoadImage(DI.URL, []);
+  {$endif}
   if GLInitialized then
+  begin
+    {$ifndef KEEP_LOADED_DATA_IMAGES}
+    DI.Image := LoadImage(DI.URL, []);
+    {$endif}
     DI.GLImage := TGLImage.Create(DI.Image, true);
+    {$ifndef KEEP_LOADED_DATA_IMAGES}
+    FreeAndNil(DI.Image);
+    {$endif}
+  end;
+
   Result := FDataImages.Add(DI);
 end;
 
+{ Do not make this public, to make outside code work
+  regardless of KEEP_LOADED_DATA_IMAGES defined.
 function TUIState.DataImage(const Index: Integer): TCastleImage;
 begin
   Result := FDataImages[Index].Image;
 end;
+}
 
 function TUIState.DataGLImage(const Index: Integer): TGLImage;
 begin
@@ -320,7 +342,7 @@ end;
 
 function TUIState.DataImageRect(const Index: Integer; const Scale: Single): TRectangle;
 begin
-  Result := DataImage(Index).Rect;
+  Result := FDataImages[Index].GLImage.Rect;
   Result.Width := Round(Result.Width * Scale);
   Result.Height := Round(Result.Height * Scale);
 end;
@@ -340,7 +362,15 @@ begin
   begin
     DI := FDataImages[I];
     if DI.GLImage = nil then
+    begin
+      {$ifndef KEEP_LOADED_DATA_IMAGES}
+      DI.Image := LoadImage(DI.URL, []);
+      {$endif}
       DI.GLImage := TGLImage.Create(DI.Image, true);
+      {$ifndef KEEP_LOADED_DATA_IMAGES}
+      FreeAndNil(DI.Image);
+      {$endif}
+    end;
   end;
 end;
 
