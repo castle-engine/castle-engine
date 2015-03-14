@@ -635,14 +635,6 @@ procedure glFreeDisplayList(var list: TGLuint);
 
 {$endif}
 
-{ If Tex <> 0 then it does glDeleteTextures on Tex and sets Tex to 0.
-  In other words, this is a simple wrapper over glDeleteTextures that
-  @orderedList(
-    @item checks if Tex really should be deleted
-    @item sets Tex to 0 to not free it once again
-  ) }
-procedure glFreeTexture(var Tex: TGLuint);
-
 { If Buffer <> 0 then it does glDeleteBuffers and sets Buffer to 0. }
 procedure glFreeBuffer(var Buffer: TGLuint);
 
@@ -1880,15 +1872,6 @@ begin
 end;
 
 {$endif}
-
-procedure glFreeTexture(var Tex: TGLuint);
-begin
-  if Tex <> 0 then
-  begin
-    glDeleteTextures(1, @Tex);
-    Tex := 0;
-  end;
-end;
 
 procedure glFreeBuffer(var Buffer: TGLuint);
 begin

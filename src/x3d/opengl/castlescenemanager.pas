@@ -2137,6 +2137,9 @@ function TCastleAbstractViewport.RenderWithScreenEffects: boolean;
     end else
       TexImage2D({$ifdef OpenGLES} GL_RGB {$else} GL_RGB8 {$endif},
         GL_RGB, GL_UNSIGNED_BYTE);
+
+    TextureMemoryProfiler.Allocate(Result, 'screen-contents', '', { TODO } 0, false,
+      ScreenEffectTextureWidth, ScreenEffectTextureHeight, 1);
   end;
 
 begin

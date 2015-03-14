@@ -1444,7 +1444,7 @@ begin
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
 
-  glTextureCubeMap(
+  glTextureCubeMap(Result,
     PositiveX, NegativeX,
     PositiveY, NegativeY,
     PositiveZ, NegativeZ,
@@ -1519,7 +1519,7 @@ begin
   {$ifndef OpenGLES} // TODO-OpenGLES3 (3D textures are only available in OpenGLES3)
   glBindTexture(GL_TEXTURE_3D, Result);
 
-  glTextureImage3d(Image, Filter, DDS);
+  glTextureImage3d(Result, Image, Filter, DDS);
 
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
@@ -1575,6 +1575,9 @@ var
   I: Integer;
   TextureCached: TTextureDepthOrFloatCache;
   Filter: TTextureFilter;
+  ImageType: TGLenum;
+  ImageFormat: string;
+  ImageSize: Int64;
 begin
   for I := 0 to TextureDepthOrFloatCaches.Count - 1 do
   begin
@@ -1599,14 +1602,20 @@ begin
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
 
+  { OpenGLES: OES_depth_texture allows only GL_UNSIGNED_SHORT
+    or GL_UNSIGNED_INT for depth textures. }
+  ImageType := {$ifdef OpenGLES} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_BYTE {$endif};
+  ImageFormat := {$ifdef OpenGLES} 'depth-short' {$else} 'depth-byte' {$endif};
+  ImageSize := {$ifdef OpenGLES} SizeOf(TGLushort) {$else} SizeOf(TGLbyte) {$endif}
+    * Width * Height;
+
   { Do not init any texture image. Just initialize texture sizes
     and both internal and external formats to GL_DEPTH_COMPONENT_ARB
     (will match depth buffer precision). }
   glTexImage2d(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-    Width, Height, 0, GL_DEPTH_COMPONENT,
-    { OpenGLES: OES_depth_texture allows only GL_UNSIGNED_SHORT
-      or GL_UNSIGNED_INT for depth textures. }
-    {$ifdef OpenGLES} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_BYTE {$endif}, nil);
+    Width, Height, 0, GL_DEPTH_COMPONENT, ImageType, nil);
+  TextureMemoryProfiler.Allocate(Result, '', ImageFormat, ImageSize, false,
+    Width, Height, 1);
 
   {$ifndef OpenGLES} // TODO-es
 
@@ -1720,6 +1729,8 @@ begin
   { Do not init any texture image. Just initialize texture sizes and formats. }
   glTexImage2d(GL_TEXTURE_2D, 0, InternalFormat,
     Width, Height, 0, GL_RGB, GL_FLOAT, nil);
+  TextureMemoryProfiler.Allocate(Result, '', 'rgb-float',
+    3 * SizeOf(TGLfloat) * Width * Height, false, Width, Height, 1);
 
   TextureCached := TTextureDepthOrFloatCache.Create;
   TextureDepthOrFloatCaches.Add(TextureCached);

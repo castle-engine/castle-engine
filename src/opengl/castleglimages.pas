@@ -62,7 +62,8 @@ unit CastleGLImages;
 
 interface
 
-uses CastleGL, SysUtils, CastleImages, CastleVectors, CastleGLUtils,
+uses SysUtils, FGL, CastleGL,
+  CastleImages, CastleVectors, CastleGLUtils,
   CastleVideos, CastleDDS, CastleRectangles, CastleGLShaders, CastleColors;
 
 const
@@ -92,6 +93,8 @@ function ImageGLType(const Img: TCastleImage): TGLenum;
 { Loading images ------------------------------------------------------------- }
 
 type
+  TGLTextureId = TGLuint;
+
   { Image ready to be drawn on 2D screen. }
   TGLImage = class
   private
@@ -123,7 +126,7 @@ type
     GLSLProgram: array [boolean { alpha test? }, TColorTreatment] of TGLSLProgram; static;
     {$endif}
 
-    Texture: TGLuint;
+    Texture: TGLTextureId;
     FWidth: Cardinal;
     FHeight: Cardinal;
     FAlpha: TAlphaChannel;
@@ -579,21 +582,21 @@ function LoadGLTexture(const image: TEncodedImage;
   const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
   const DDSForMipmaps: TDDSImage = nil;
-  const GUITexture: boolean = false): TGLuint; overload;
+  const GUITexture: boolean = false): TGLTextureId; overload;
 
 function LoadGLTexture(const URL: string;
   const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
   const DDSForMipmaps: TDDSImage = nil;
-  const GUITexture: boolean = false): TGLuint; overload;
+  const GUITexture: boolean = false): TGLTextureId; overload;
 { @groupEnd }
 
 { Load OpenGL texture into already reserved texture number.
-  It uses existing OpenGL texture number (texnum). Everything else
+  It uses existing OpenGL texture number (TextureId). Everything else
   works exactly the same as LoadGLTexture.
 
   You can also use this to set "default unnamed OpenGL texture" parameters
-  by passing TexNum = 0.
+  by passing TextureId = 0.
 
   @raises(ETextureLoadError Raised in the same situations as LoadGLTexture.)
 
@@ -601,12 +604,20 @@ function LoadGLTexture(const URL: string;
     by OpenGL.)
 
   @groupBegin }
-procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
+procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId; const image: TEncodedImage;
   Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
   const DDSForMipmaps: TDDSImage = nil;
   const GUITexture: boolean = false); overload;
 { @groupEnd }
+
+{ If Tex <> 0 then it does glDeleteTextures on Tex and sets Tex to 0.
+  In other words, this is a simple wrapper over glDeleteTextures that
+  @orderedList(
+    @item checks if Tex really should be deleted
+    @item sets Tex to 0 to not free it once again
+  ) }
+procedure glFreeTexture(var Tex: TGLTextureId);
 
 type
   { Video as a sequence of OpenGL textures that can be easily played.
@@ -660,7 +671,7 @@ type
   { Video expressed as a series of textures, to play as texture on any 3D object. }
   TGLVideo3D = class(TGLVideo)
   private
-    FItems: array of TGLuint;
+    FItems: array of TGLTextureId;
   public
     constructor Create(Video: TVideo;
       const Filter: TTextureFilter;
@@ -669,7 +680,7 @@ type
       const GUITexture:  boolean);
     destructor Destroy; override;
 
-    function GLTextureFromTime(const Time: Single): TGLuint;
+    function GLTextureFromTime(const Time: Single): TGLTextureId;
   end;
 
   { Video expressed as a series of TGLImage, to play as 2D GUI control. }
@@ -705,6 +716,9 @@ type
 
   It takes care about OpenGL unpack parameters. Just don't worry about it.
 
+  Pass TextureIdForProfiler only for profiling purposes (for TextureMemoryProfiler).
+  This procedure assumes that the texture is already bound.
+
   If mipmaps are requested:
 
   @orderedList(
@@ -730,7 +744,7 @@ type
   @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
     by OpenGL.)
 }
-procedure glTextureCubeMap(
+procedure glTextureCubeMap(const TextureIdForProfiler: TGLTextureId;
   PositiveX, NegativeX,
   PositiveY, NegativeY,
   PositiveZ, NegativeZ: TEncodedImage;
@@ -763,6 +777,9 @@ procedure glTextureCubeMap(
       So usually you just don't have to worry about this.)
   )
 
+  Pass TextureIdForProfiler only for profiling purposes (for TextureMemoryProfiler).
+  This procedure assumes that the texture is already bound.
+
   @raises(ETextureLoadError If texture cannot be loaded for whatever reason,
     for example it's size is not correct for OpenGL 3D texture (we cannot
     automatically resize 3D textures, at least for now).
@@ -772,7 +789,8 @@ procedure glTextureCubeMap(
   @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
     by OpenGL.)
 }
-procedure glTextureImage3D(const Image: TEncodedImage;
+procedure glTextureImage3D(const TextureIdForProfiler: TGLTextureId;
+  const Image: TEncodedImage;
   Filter: TTextureFilter; DDSForMipmaps: TDDSImage);
 
 type
@@ -824,13 +842,13 @@ type
     FWidth: Cardinal;
     FHeight: Cardinal;
 
-    FTexture: TGLuint;
+    FTexture: TGLTextureId;
     FTextureTarget: TGLenum;
     FCompleteTextureTarget: TGLenum;
     FDepthTextureTarget: TGLenum;
     FBuffer: TGLRenderToTextureBuffer;
     FStencil: boolean;
-    FDepthTexture: TGLuint;
+    FDepthTexture: TGLTextureId;
 
     FGLInitialized: boolean;
     Framebuffer, RenderbufferColor, RenderbufferDepth, RenderbufferStencil: TGLuint;
@@ -869,7 +887,7 @@ type
       to repeat it (e.g. at each RenderBegin).
 
       Changed by SetTexture. }
-    property Texture: TGLuint read FTexture default 0;
+    property Texture: TGLTextureId read FTexture default 0;
 
     { Target of texture associated with rendered buffer.
       This is GL_TEXTURE2D for normal 2D textures, but may also be
@@ -891,7 +909,7 @@ type
       SetTexture call outside of RenderBegin / RenderEnd causes two
       costly BindFramebuffer calls, that may be avoided when you're
       already between RenderBegin / RenderEnd. }
-    procedure SetTexture(const ATexture: TGLuint;
+    procedure SetTexture(const ATexture: TGLTextureId;
       const ATextureTarget: TGLenum);
 
     { Bind target of texture associated with rendered color buffer.
@@ -905,7 +923,7 @@ type
       (the @link(Texture) and TextureTarget are used then).
       This must be set before GLContextOpen, and not modified later
       until GLContextClose. }
-    property DepthTexture: TGLuint read FDepthTexture write FDepthTexture;
+    property DepthTexture: TGLTextureId read FDepthTexture write FDepthTexture;
     property DepthTextureTarget: TGLenum read FDepthTextureTarget write FDepthTextureTarget
       default GL_TEXTURE_2D;
 
@@ -1045,10 +1063,64 @@ type
       read FMultiSampling write FMultiSampling default 1;
   end;
 
+  TTextureMemoryProfiler = class
+  private
+  type
+    TAllocatedTexture = class
+      TextureId: TGLTextureId;
+      URL: string;
+      Width, Height, Depth: Integer;
+      Mipmaps: boolean;
+      Size: Int64;
+      ImageFormat: string;
+    end;
+    { using TFPGObjectList, not map, because we can sort the list
+      looking at data sizes (not possible through TFPGMap API that
+      allows only to assign OnKeyCompare to sort,
+      which is used too early to look at data values...). }
+    TAllocatedTextures = specialize TFPGObjectList<TAllocatedTexture>;
+  var
+    AllocatedTextures: TAllocatedTextures;
+    FEnabled: boolean;
+    function FindTextureId(const TextureId: Integer): Integer;
+    procedure CheckLeaks;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    property Enabled: boolean read FEnabled write FEnabled;
+
+    { Notify about texture memory allocation.
+      This should be used only by code doing direct OpenGL operations. }
+    procedure Allocate(const TextureId: TGLTextureId;
+      const URL, ImageFormat: string; const Size: Int64; const Mipmaps: boolean;
+      const Width, Height, Depth: Integer);
+
+    { Notify about texture memory deallocation.
+      This should be used only by code doing direct OpenGL operations. }
+    procedure Deallocate(const TextureId: TGLTextureId);
+
+    function Summary: string;
+
+    { Helper function to calculate memory needed by all mipmaps of given Image.
+      Assumes that all mipmaps are generated, as by GenerateMipmap call. }
+    class function MipmapsSize(const Image: TEncodedImage): Int64;
+  end;
+
+{ OpenGL texture memory profiler, to detect which textures use up
+  the GPU texture memory. Especially useful on mobile devices,
+  where texture memory is limited and your application must really optimize
+  texture usage. Also useful to detect texture memory leaks.
+
+  Simply enable it (@code(TextureMemoryProfiler.Enabled := true)),
+  load your game, then query texture usage by @link(TTextureMemoryProfiler.UsageOverview),
+  e.g. show it by @code(WritelnLog('Textures', TextureMemoryProfiler.UsageOverview)).
+}
+function TextureMemoryProfiler: TTextureMemoryProfiler;
+
 implementation
 
 uses CastleUtils, CastleLog, CastleGLVersion, CastleWarnings, CastleTextureImages,
-  CastleUIControls;
+  CastleUIControls, CastleStringUtils;
 
 function ImageGLFormat(const Img: TCastleImage): TGLenum;
 begin
@@ -1184,6 +1256,8 @@ procedure TGLImage.Load(const Image: TCastleImage);
       glTexImage2D(GL_TEXTURE_2D, 0, ImageGLInternalFormat(Image),
         Image.Width, Image.Height, 0, ImageGLFormat(Image), ImageGLType(Image),
         Image.RawPixels);
+      TextureMemoryProfiler.Allocate(Texture, Image.URL, Image.ClassName,
+        Image.Size, false, Image.Width, Image.Height, 1);
     finally AfterUnpackImage(UnpackData, image) end;
   end;
 
@@ -1899,7 +1973,7 @@ end;
 
 function LoadGLTexture(const image: TEncodedImage;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
-  const DDSForMipmaps: TDDSImage; const GUITexture: boolean): TGLuint;
+  const DDSForMipmaps: TDDSImage; const GUITexture: boolean): TGLTextureId;
 begin
   glGenTextures(1, @result);
   LoadGLGeneratedTexture(result, image, Filter, Wrap, DDSForMipmaps, GUITexture);
@@ -1907,7 +1981,7 @@ end;
 
 function LoadGLTexture(const URL: string;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
-  const DDSForMipmaps: TDDSImage; const GUITexture: boolean): TGLuint;
+  const DDSForMipmaps: TDDSImage; const GUITexture: boolean): TGLTextureId;
 var
   Image: TEncodedImage;
 begin
@@ -1915,6 +1989,16 @@ begin
   try
     Result := LoadGLTexture(Image, Filter, Wrap, DDSForMipmaps, GUITexture);
   finally Image.Free end;
+end;
+
+procedure glFreeTexture(var Tex: TGLTextureId);
+begin
+  if Tex <> 0 then
+  begin
+    TextureMemoryProfiler.Deallocate(Tex);
+    glDeleteTextures(1, @Tex);
+    Tex := 0;
+  end;
 end;
 
 {$ifndef OpenGLES}
@@ -1928,7 +2012,8 @@ end;
 
   @raises(ECannotLoadS3TCTexture If texture size is bad or OpenGL S3TC
     extensions are missing.) }
-procedure glCompressedTextureImage2D(Image: TS3TCImage; Level: TGLint);
+procedure glCompressedTextureImage2D(Image: TS3TCImage; Level: TGLint;
+  var LoadedSize: Int64);
 begin
   if not GLFeatures.TextureCompressionS3TC then
     raise ECannotLoadS3TCTexture.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
@@ -1943,69 +2028,71 @@ begin
   glCompressedTexImage2DARB(GL_TEXTURE_2D, Level, ImageGLInternalFormat(Image),
     Image.Width, Image.Height, 0, Image.Size,
     Image.RawPixels);
+  LoadedSize += Image.Size;
 end;
 {$endif}
 
-procedure LoadGLGeneratedTexture(texnum: TGLuint; const image: TEncodedImage;
-  Filter: TTextureFilter; const Wrap: TTextureWrap2D;
+procedure CalculateImageRightSize(
+  const Image: TCastleImage; const GUITexture: boolean;
+  out ImageRightSize: TCastleImage; out ImageRightSizeFree: boolean);
+var
+  Sizing: TTextureSizing;
+begin
+  if GUITexture then
+    Sizing := tsAny else
+    Sizing := tsScalablePowerOf2;
+  if IsTextureSized(Image, Sizing) then
+  begin
+    ImageRightSize := Image;
+    ImageRightSizeFree := false;
+  end else
+  begin
+    ImageRightSize := ResizeToTextureSize(Image, Sizing);
+    ImageRightSizeFree := true;
+  end;
+end;
+
+procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId;
+  const Image: TEncodedImage; Filter: TTextureFilter; const Wrap: TTextureWrap2D;
   const DDSForMipmaps: TDDSImage; const GUITexture: boolean);
 var
   ImageInternalFormat: TGLuint;
   ImageFormat: TGLuint;
+  LoadedSize: Int64;
 
   { Calls glTexImage2D for given image.
     Takes care of OpenGL unpacking (alignment etc.).
-    Takes care of Image size --- makes sure that image has the right size
+    Assumes that image already has the right size
     (power of 2, within OpenGL required sizes).
     Level = 0 for base (not a mipmap sublevel) image. }
   procedure glTexImage2DImage(Image: TCastleImage; Level: TGLint);
-
-    { This is like glTexImage2DImage, but it doesn't take care
-      of Image size. }
-    procedure Core(Image: TCastleImage);
-    var
-      UnpackData: TUnpackNotAlignedData;
-    begin
-      { Nawet jesli ladujemy obrazek o ktorym wiemy ze ma wymiary dobre
-        dla glTexImage2d, musimy zadbac o jego aligment : bo co by bylo
-        jesli tekstura ma szerokosc 1 lub 2  ?
-        Poza tym, planuje dodac tutaj robienie borderow dla tekstury, a wtedy
-        wymiar dobry dla glTexImage2d to rownie dobrze 2^n+2 (a wiec prawie zawsze
-        niepodzielne na 4). }
-      BeforeUnpackImage(UnpackData, Image);
-      try
-        {$ifndef OpenGLES}
-        { Workaround Mesa 7.9-devel bug (at least with Intel DRI,
-          on Ubuntu 10.10, observed on domek): glTexImage2D accidentaly
-          enables GL_TEXTURE_2D. }
-        if GLVersion.Mesa then glPushAttrib(GL_ENABLE_BIT);
-        {$endif}
-
-        glTexImage2D(GL_TEXTURE_2D, Level, ImageInternalFormat,
-          Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
-          Image.RawPixels);
-
-        {$ifndef OpenGLES}
-        if GLVersion.Mesa then glPopAttrib;
-        {$endif}
-      finally AfterUnpackImage(UnpackData, Image) end;
-    end;
-
   var
-    ImgGood: TCastleImage;
-    Sizing: TTextureSizing;
+    UnpackData: TUnpackNotAlignedData;
   begin
-    if GUITexture then
-      Sizing := tsAny else
-      Sizing := tsScalablePowerOf2;
-    if IsTextureSized(Image, Sizing) then
-      Core(Image) else
-    begin
-      ImgGood := ResizeToTextureSize(Image, Sizing);
-      try
-        Core(ImgGood);
-      finally ImgGood.Free end;
-    end;
+    { Nawet jesli ladujemy obrazek o ktorym wiemy ze ma wymiary dobre
+      dla glTexImage2d, musimy zadbac o jego aligment : bo co by bylo
+      jesli tekstura ma szerokosc 1 lub 2  ?
+      Poza tym, planuje dodac tutaj robienie borderow dla tekstury, a wtedy
+      wymiar dobry dla glTexImage2d to rownie dobrze 2^n+2 (a wiec prawie zawsze
+      niepodzielne na 4). }
+    BeforeUnpackImage(UnpackData, Image);
+    try
+      {$ifndef OpenGLES}
+      { Workaround Mesa 7.9-devel bug (at least with Intel DRI,
+        on Ubuntu 10.10, observed on domek): glTexImage2D accidentaly
+        enables GL_TEXTURE_2D. }
+      if GLVersion.Mesa then glPushAttrib(GL_ENABLE_BIT);
+      {$endif}
+
+      glTexImage2D(GL_TEXTURE_2D, Level, ImageInternalFormat,
+        Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
+        Image.RawPixels);
+      LoadedSize += Image.Size;
+
+      {$ifndef OpenGLES}
+      if GLVersion.Mesa then glPopAttrib;
+      {$endif}
+    finally AfterUnpackImage(UnpackData, Image) end;
   end;
 
   procedure LoadNormal(const image: TCastleImage);
@@ -2032,6 +2119,8 @@ var
   function LoadMipmapsFromDDS(DDS: TDDSImage; LoadBase: boolean): boolean;
   var
     I, FromLevel: Integer;
+    ImageRightSize: TCastleImage;
+    ImageRightSizeFree: boolean;
   begin
     Result := (DDS <> nil) and DDS.Mipmaps;
     if Result and (DDS.DDSType <> dtTexture) then
@@ -2054,9 +2143,19 @@ var
         FromLevel := 1;
       for I := FromLevel to DDS.MipmapsCount - 1 do
         if DDS.Images[I] is TCastleImage then
-          glTexImage2DImage(TCastleImage(DDS.Images[I]), I) else
+        begin
+          CalculateImageRightSize(TCastleImage(DDS.Images[I]), GUITexture,
+            ImageRightSize, ImageRightSizeFree);
+          try
+            glTexImage2DImage(ImageRightSize, I);
+          finally
+            if ImageRightSizeFree then
+              FreeAndNil(ImageRightSize) else
+              ImageRightSize := nil;
+          end;
+        end else
         if DDS.Images[I] is TS3TCImage then
-          glCompressedTextureImage2D(TS3TCImage(DDS.Images[I]), I) else
+          glCompressedTextureImage2D(TS3TCImage(DDS.Images[I]), I, LoadedSize) else
           raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
     end;
   end;
@@ -2074,6 +2173,7 @@ var
       gluBuild2DMipmaps(GL_TEXTURE_2D, ImageInternalFormat,
         Image.Width, Image.Height, ImageFormat, ImageGLType(Image),
         Image.RawPixels);
+      LoadedSize += TTextureMemoryProfiler.MipmapsSize(Image);
     finally AfterUnpackImage(UnpackData, Image) end;
   end;
   {$endif}
@@ -2088,18 +2188,24 @@ var
       glTexImage2DImage(Image, 0);
       { hardware-accelerated mipmap generation }
       GenerateMipmap(GL_TEXTURE_2D);
+      LoadedSize += TTextureMemoryProfiler.MipmapsSize(Image);
     {$ifndef OpenGLES}
     end else
       gluBuild2DMipmapsImage(Image);
     {$endif}
   end;
 
+var
+  ImageRightSize: TCastleImage;
+  ImageRightSizeFree: boolean;
 begin
   if GUITexture then
     Filter.DisableMipmaps;
 
+  LoadedSize := 0;
+
   { bind the texture, set min, mag filters and wrap parameters }
-  glBindTexture(GL_TEXTURE_2D, texnum);
+  glBindTexture(GL_TEXTURE_2D, TextureId);
   SetTextureFilter(GL_TEXTURE_2D, Filter);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Wrap[0]);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap[1]);
@@ -2110,22 +2216,34 @@ begin
     ImageInternalFormat := ImageGLInternalFormat(Image);
     ImageFormat := ImageGLFormat(TCastleImage(Image));
 
-    { Load uncompressed }
-    if Filter.NeedsMipmaps then
-      LoadMipmapped(TCastleImage(Image)) else
-      LoadNormal(TCastleImage(Image));
+    CalculateImageRightSize(TCastleImage(Image), GUITexture,
+      ImageRightSize, ImageRightSizeFree);
+    try
+      { Load uncompressed }
+      if Filter.NeedsMipmaps then
+        LoadMipmapped(ImageRightSize) else
+        LoadNormal(ImageRightSize);
+
+      TextureMemoryProfiler.Allocate(TextureId, Image.URL, Image.ClassName, LoadedSize,
+        Filter.NeedsMipmaps, ImageRightSize.Width, ImageRightSize.Height, 1);
+    finally
+      if ImageRightSizeFree then
+        FreeAndNil(ImageRightSize) else
+        ImageRightSize := nil;
+    end;
   end else
   {$ifndef OpenGLES}
   if Image is TS3TCImage then
   begin
     { Load compressed }
-    glCompressedTextureImage2D(TS3TCImage(Image), 0);
+    glCompressedTextureImage2D(TS3TCImage(Image), 0, LoadedSize);
 
     if Filter.NeedsMipmaps then
     begin
       if not LoadMipmapsFromDDS(DDSForMipmaps, false) then
       try
         GenerateMipmap(GL_TEXTURE_2D);
+        LoadedSize += TTextureMemoryProfiler.MipmapsSize(Image);
       except
         on E: EGenerateMipmapNotAvailable do
         begin
@@ -2135,6 +2253,9 @@ begin
         end;
       end;
     end;
+
+    TextureMemoryProfiler.Allocate(TextureId, Image.URL, Image.ClassName, LoadedSize,
+      Filter.NeedsMipmaps, Image.Width, Image.Height, 1);
   end else
   {$endif}
     raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
@@ -2184,13 +2305,15 @@ begin
 end;
 
 destructor TGLVideo3D.Destroy;
+var
+  I: Integer;
 begin
-  if Count <> 0 then
-    glDeleteTextures(Count, @FItems[0]);
+  for I := 0 to High(FItems) do
+    glFreeTexture(FItems[0]);
   inherited;
 end;
 
-function TGLVideo3D.GLTextureFromTime(const Time: Single): TGLuint;
+function TGLVideo3D.GLTextureFromTime(const Time: Single): TGLTextureId;
 begin
   Result := FItems[IndexFromTime(Time)];
 end;
@@ -2280,7 +2403,8 @@ end;
     This includes EInvalidImageForOpenGLTexture if Image class is invalid
     for an OpenGL texture.) }
 procedure glTextureCubeMapSide(
-  Target: TGLenum; const Image: TEncodedImage; Level: TGLuint; Mipmaps: boolean);
+  Target: TGLenum; const Image: TEncodedImage; Level: TGLuint; Mipmaps: boolean;
+  var LoadedSize: Int64);
 var
   ImageInternalFormat: TGLuint;
 
@@ -2310,6 +2434,7 @@ var
     glCompressedTexImage2DARB(Target, Level, ImageInternalFormat,
       Image.Width, Image.Height, 0, Image.Size,
       Image.RawPixels);
+    LoadedSize += Image.Size;
   end;
 
 var
@@ -2338,6 +2463,7 @@ var
         glTexImage2D(Target, Level, ImageInternalFormat,
           Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
           Image.RawPixels);
+        LoadedSize += Image.Size;
       finally AfterUnpackImage(UnpackData, Image) end;
     end;
 
@@ -2407,12 +2533,14 @@ begin
     raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
 end;
 
-procedure glTextureCubeMap(
+procedure glTextureCubeMap(const TextureIdForProfiler: TGLTextureId;
   PositiveX, NegativeX,
   PositiveY, NegativeY,
   PositiveZ, NegativeZ: TEncodedImage;
   DDSForMipmaps: TDDSImage;
   Mipmaps: boolean);
+var
+  LoadedSize: Int64;
 
   { Check should we load mipmaps from DDS. }
   function HasMipmapsFromDDS(DDS: TDDSImage): boolean;
@@ -2446,7 +2574,7 @@ procedure glTextureCubeMap(
       I: Integer;
     begin
       for I := 1 to DDS.MipmapsCount - 1 do
-        glTextureCubeMapSide(GLSide, DDS.CubeMapImage(DDSSide, I), I, false);
+        glTextureCubeMapSide(GLSide, DDS.CubeMapImage(DDSSide, I), I, false, LoadedSize);
     end;
 
   begin
@@ -2467,43 +2595,59 @@ procedure glTextureCubeMap(
   end;
 
 begin
+  LoadedSize := 0;
+
   if Mipmaps and (HasMipmapsFromDDS(DDSForMipmaps) or HasGenerateMipmap) then
   begin
     { Load six cube faces without mipmaps, then generate them all
       in one go with GenerateMipmap. }
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, PositiveX, 0, false);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, NegativeX, 0, false);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, PositiveY, 0, false);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, NegativeY, 0, false);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, PositiveZ, 0, false);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, NegativeZ, 0, false);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, PositiveX, 0, false, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, NegativeX, 0, false, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, PositiveY, 0, false, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, NegativeY, 0, false, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, PositiveZ, 0, false, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, NegativeZ, 0, false, LoadedSize);
     if HasMipmapsFromDDS(DDSForMipmaps) then
       LoadMipmapsFromDDS(DDSForMipmaps) else
     begin
       GenerateMipmap(GL_TEXTURE_CUBE_MAP);
+      { TODO: this is cubemap mipmaps size assuming that provided
+        cubemap images were already power of 2, and within good dimensions. }
+      LoadedSize += TTextureMemoryProfiler.MipmapsSize(PositiveX);
+      LoadedSize += TTextureMemoryProfiler.MipmapsSize(NegativeX);
+      LoadedSize += TTextureMemoryProfiler.MipmapsSize(PositiveY);
+      LoadedSize += TTextureMemoryProfiler.MipmapsSize(NegativeY);
+      LoadedSize += TTextureMemoryProfiler.MipmapsSize(PositiveZ);
+      LoadedSize += TTextureMemoryProfiler.MipmapsSize(NegativeZ);
       if Log then
         WritelnLog('Mipmaps', 'Generating mipmaps for cube map by GenerateMipmap (GOOD)');
     end;
   end else
   begin
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, PositiveX, 0, Mipmaps);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, NegativeX, 0, Mipmaps);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, PositiveY, 0, Mipmaps);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, NegativeY, 0, Mipmaps);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, PositiveZ, 0, Mipmaps);
-    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, NegativeZ, 0, Mipmaps);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, PositiveX, 0, Mipmaps, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, NegativeX, 0, Mipmaps, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, PositiveY, 0, Mipmaps, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, NegativeY, 0, Mipmaps, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, PositiveZ, 0, Mipmaps, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, NegativeZ, 0, Mipmaps, LoadedSize);
   end;
+
+  TextureMemoryProfiler.Allocate(TextureIdForProfiler, PositiveX.URL,
+    'cubemap-' + PositiveX.ClassName, LoadedSize, Mipmaps,
+    PositiveX.Width, PositiveX.Height, 1);
 end;
 
 { 3D texture loading --------------------------------------------------------- }
 
-procedure glTextureImage3D(const Image: TEncodedImage;
+procedure glTextureImage3D(const TextureIdForProfiler: TGLTextureId;
+  const Image: TEncodedImage;
   Filter: TTextureFilter; DDSForMipmaps: TDDSImage);
 
 {$ifndef OpenGLES}
 var
   ImageInternalFormat: TGLuint;
   ImageFormat: TGLuint;
+  LoadedSize: Int64;
 
   { Calls glTexImage3D for given image.
     Takes care of OpenGL unpacking (alignment etc.).
@@ -2529,6 +2673,7 @@ var
               Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),
               Image.RawPixels);
         end;
+        LoadedSize += Image.Size;
       finally AfterUnpackImage(UnpackData, Image) end;
     end;
 
@@ -2576,6 +2721,7 @@ begin
 
   ImageInternalFormat := ImageGLInternalFormat(Image);
   ImageFormat := ImageGLFormat(TCastleImage(Image));
+  LoadedSize := 0;
 
   glTexImage3DImage(TCastleImage(Image), 0);
 
@@ -2584,6 +2730,7 @@ begin
     if not LoadMipmapsFromDDS(DDSForMipmaps) then
     try
       GenerateMipmap(GL_TEXTURE_3D);
+      LoadedSize += TTextureMemoryProfiler.MipmapsSize(Image);
     except
       on E: EGenerateMipmapNotAvailable do
       begin
@@ -2592,6 +2739,9 @@ begin
       end;
     end;
   end;
+
+  TextureMemoryProfiler.Allocate(TextureIdForProfiler, Image.URL, Image.ClassName,
+    LoadedSize, Filter.NeedsMipmaps, Image.Width, Image.Height, Image.Depth);
 
   SetTextureFilter(GL_TEXTURE_3D, Filter);
 end;
@@ -2661,8 +2811,9 @@ function GLDecompressS3TC(Image: TS3TCImage): TCastleImage;
 
 {$ifndef OpenGLES}
 var
-  Tex: TGLuint;
+  Tex: TGLTextureId;
   PackData: TPackNotAlignedData;
+  LoadedSize: Int64;
 begin
   glGenTextures(1, @Tex);
   glBindTexture(GL_TEXTURE_2D, Tex);
@@ -2678,7 +2829,10 @@ begin
       [Image.Width, Image.Height]);
 
   try
-    glCompressedTextureImage2D(Image, 0);
+    LoadedSize := 0;
+    glCompressedTextureImage2D(Image, 0, LoadedSize);
+    TextureMemoryProfiler.Allocate(Tex, Image.URL, Image.ClassName,
+      LoadedSize, false, Image.Width, Image.Height, 1);
   except
     { catch ECannotLoadS3TCTexture and change it to ECannotDecompressS3TC }
     on E: ECannotLoadS3TCTexture do
@@ -2816,7 +2970,7 @@ end;
 { Wrapper around glFramebufferTexture2D }
 procedure FramebufferTexture2D(const Target: TGLenum;
   const AttachmentDepthAndStencil: boolean;
-  Attachment, TexTarget: TGLenum; const Texture: TGLuint; const Level: TGLint);
+  Attachment, TexTarget: TGLenum; const Texture: TGLTextureId; const Level: TGLint);
 begin
   Assert(Texture <> 0, 'Texture 0 assigned to framebuffer, FBO will be incomplete');
   case GLFeatures.Framebuffer of
@@ -2862,7 +3016,7 @@ begin
 end;
 
 procedure TGLRenderToTexture.SetTexture(
-  const ATexture: TGLuint;
+  const ATexture: TGLTextureId;
   const ATextureTarget: TGLenum);
 begin
   if (ATexture <> FTexture) or (ATextureTarget <> FTextureTarget) then
@@ -3244,6 +3398,7 @@ procedure TGLRenderToTexture.GenerateMipmap;
 begin
   glBindTexture(CompleteTextureTarget, Texture);
   CastleGLImages.GenerateMipmap(CompleteTextureTarget);
+  { TODO: size of these mipmaps is not accounted for in texture memory profiler }
 end;
 
 function TGLRenderToTexture.ColorBuffer: TColorBuffer;
@@ -3253,6 +3408,166 @@ begin
     Result := cbBack;
 end;
 
+{ TTextureMemoryProfiler ----------------------------------------------------- }
+
+constructor TTextureMemoryProfiler.Create;
+begin
+  inherited;
+  AllocatedTextures := TAllocatedTextures.Create(true);
+end;
+
+destructor TTextureMemoryProfiler.Destroy;
+begin
+  FreeAndNil(AllocatedTextures);
+  inherited;
+end;
+
+procedure TTextureMemoryProfiler.Allocate(const TextureId: TGLTextureId;
+  const URL, ImageFormat: string;
+  const Size: Int64; const Mipmaps: boolean;
+  const Width, Height, Depth: Integer);
+var
+  AllocatedTex: TAllocatedTexture;
+  I: Integer;
+begin
+  if FEnabled then
+  begin
+    AllocatedTex := TAllocatedTexture.Create;
+    AllocatedTex.URL := URL;
+    AllocatedTex.Width := Width;
+    AllocatedTex.Height := Height;
+    AllocatedTex.Depth := Depth;
+    AllocatedTex.Mipmaps := Mipmaps;
+    AllocatedTex.Size := Size;
+    AllocatedTex.ImageFormat := ImageFormat;
+    AllocatedTex.TextureId := TextureId;
+    I := FindTextureId(TextureId);
+    if I <> -1 then
+      AllocatedTextures[I] := AllocatedTex else
+      AllocatedTextures.Add(AllocatedTex);
+  end;
+end;
+
+procedure TTextureMemoryProfiler.Deallocate(const TextureId: TGLTextureId);
+var
+  I: Integer;
+begin
+  if FEnabled then
+  begin
+    I := FindTextureId(TextureId);
+    if I = -1 then
+      OnWarning(wtMinor, 'Textures', Format('Texture id %d is released, but was not reported as allocated to TextureMemoryProfiler. Probably TextureMemoryProfiler was not enabled when the texture was created, which may mean TextureMemoryProfiler was enabled too late to accurately capture everything.',
+        [TextureId])) else
+      AllocatedTextures.Delete(I);
+  end;
+end;
+
+procedure TTextureMemoryProfiler.CheckLeaks;
+begin
+  if (AllocatedTextures.Count <> 0) and
+     ((AllocatedTextures.Count <> 1) or
+      { texture id 0 may be allocated, but never released }
+      (AllocatedTextures[0].TextureId = 0)) then
+  begin
+    OnWarning(wtMinor, 'Textures', Format('TextureMemoryProfiler contains some textures when closing GL context. Possibly we have texture memory leak (textures will be freed anyway when closing GL context, but possibly we could free them earlier). Or TextureMemoryProfiler was only enabled for part of program''s code. We have %d textures, 1st one is "%s"',
+      [AllocatedTextures.Count,
+       AllocatedTextures[0].URL]));
+  end;
+end;
+
+function TTextureMemoryProfiler.FindTextureId(const TextureId: Integer): Integer;
+var
+  I: Integer;
+begin
+  for I := 0 to AllocatedTextures.Count - 1 do
+    if AllocatedTextures[I].TextureId = TextureId then
+      Exit(I);
+  Result := -1;
+end;
+
+class function TTextureMemoryProfiler.MipmapsSize(const Image: TEncodedImage): Int64;
+var
+  W, H, D: Cardinal;
+  Size: Int64;
+begin
+  W := Image.Width;
+  H := Image.Height;
+  D := Image.Depth;
+  Size := Image.Size;
+
+  Result := 0;
+
+  if (W = 0) or (H = 0) or (D = 0) then Exit; // empty image data
+
+  while (W > 1) or (H > 1) or (D > 1) do
+  begin
+    if W > 1 then begin W := W div 2; Size := Size div 2; end;
+    if H > 1 then begin H := H div 2; Size := Size div 2; end;
+    if D > 1 then begin D := D div 2; Size := Size div 2; end;
+    Result += Size;
+  end;
+
+{  WritelnLog('Mipmaps', Format('Mipmap sizes is %d for original image size %d (%f)',
+    [Result, Image.Size, Result / Image.Size]));}
+end;
+
+function AllocatedTexturesSort(const Value1, Value2: TTextureMemoryProfiler.TAllocatedTexture): Integer;
+begin
+  Result := Value2.Size - Value1.Size;
+end;
+
+function TTextureMemoryProfiler.Summary: string;
+
+  function FormatSize(const Size: Int64): string;
+  begin
+    if Size >= 1024 * 1024 * 1024 then
+      Result := Format('%f GB', [Size / (1024 * 1024 * 1024)]) else
+    if Size >= 1024 * 1024 then
+      Result := Format('%f MB', [Size / (1024 * 1024)]) else
+    if Size >= 1024 then
+      Result := Format('%f KB', [Size / 1024]) else
+      Result := IntToStr(Size) + ' B';
+  end;
+
+var
+  S: string;
+  I: Integer;
+  Used: Int64;
+  AllocatedTex: TAllocatedTexture;
+begin
+  S := '';
+
+  Used := 0;
+  for I := 0 to AllocatedTextures.Count - 1 do
+    Used += AllocatedTextures[I].Size;
+  S := Format('Texture memory used: %s (%d bytes in %d textures)',
+    [FormatSize(Used), Used, AllocatedTextures.Count]) + NL;
+
+  AllocatedTextures.Sort(@AllocatedTexturesSort);
+  for I := 0 to AllocatedTextures.Count - 1 do
+  begin
+    AllocatedTex := AllocatedTextures[I];
+    S += Format('  %f - %s (size %d : format %s, original dimensions %d x %d x %d, mipmaps: %s)',
+      [AllocatedTex.Size / Used, AllocatedTex.URL,
+       AllocatedTex.Size, AllocatedTex.ImageFormat,
+       AllocatedTex.Width, AllocatedTex.Height, AllocatedTex.Depth,
+       BoolToStr[AllocatedTex.Mipmaps]]) + NL;
+  end;
+  Result := S;
+end;
+
+var
+  FTextureMemoryProfiler: TTextureMemoryProfiler;
+
+function TextureMemoryProfiler: TTextureMemoryProfiler;
+begin
+  if FTextureMemoryProfiler = nil then
+    FTextureMemoryProfiler := TTextureMemoryProfiler.Create;
+  Result := FTextureMemoryProfiler;
+end;
+
+{ initialization / finalization ---------------------------------------------- }
+
 procedure ContextClose;
 {$ifdef GLImageUseShaders}
 var
@@ -3260,6 +3575,8 @@ var
   ColorTreatment: TGLImage.TColorTreatment;
 {$endif}
 begin
+  TextureMemoryProfiler.CheckLeaks;
+
   glFreeBuffer(TGLImage.PointVbo);
   {$ifdef GLImageUseShaders}
   for AlphaTestShader in boolean do
@@ -3272,4 +3589,5 @@ initialization
   OnGLContextClose.Add(@ContextClose);
 finalization
   FreeAndNil(BoundFboStack);
+  FreeAndNil(FTextureMemoryProfiler);
 end.

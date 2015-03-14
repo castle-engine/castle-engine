@@ -437,6 +437,9 @@ begin
     { Format and type don't matter, as far as I understand, since pixels
       pointer is nil. }
     GL_LUMINANCE, GL_UNSIGNED_BYTE, nil);
+  TextureMemoryProfiler.Allocate(GLElementsIntensityTex, '', 'luminance',
+    ElementsTexSize * ElementsTexSize,
+    false, ElementsTexSize, ElementsTexSize, 1);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -876,17 +879,24 @@ begin
   Window.Invalidate;
 end;
 
+var
+  ModelFileName: string =
+    //'models' + PathDelim + 'chinchilla_awakens.x3dv';
+    'models' + PathDelim + 'peach.wrl.gz';
 begin
   Window := TCastleWindowCustom.Create(Application);
 
   Elements := TAOElementList.Create;
 
-  Parameters.CheckHigh(1);
+  Parameters.CheckHighAtMost(1);
+  if Parameters.High = 1 then
+    ModelFileName := Parameters[1];
+
   try
     OnWarning := @OnWarningWrite;
 
     Scene := TCastleScene.Create(Window);
-    Scene.Load(Parameters[1]);
+    Scene.Load(ModelFileName);
     UpdateSceneAttribs;
 
     CalculateElements;
