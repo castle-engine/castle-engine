@@ -804,7 +804,7 @@ type
       loading. This is especially useful for long precalculated animations
       (TCastlePrecalculatedAnimation with a lot of ScenesCount), they show nice
       linearly increasing progress bar. }
-    procedure PrepareResources(const DisplayProgressTitle: string = '');
+    procedure PrepareResources(const DisplayProgressTitle: string = ''); virtual;
 
     procedure BeforeRender; override;
     procedure Render; override;
