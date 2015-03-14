@@ -146,6 +146,8 @@ type
         by OpenGL.) }
     constructor Create(const Image: TCastleImage;
       const AScalingPossible: boolean = false);
+    constructor Create(const URL: string;
+      const AScalingPossible: boolean = false);
 
     { Load image from disk, and prepare for drawing.
 
@@ -1183,6 +1185,17 @@ begin
 end;
 
 { TGLImage ------------------------------------------------------------------- }
+
+constructor TGLImage.Create(const URL: string;
+  const AScalingPossible: boolean);
+var
+  Image: TCastleImage;
+begin
+  Image := LoadImage(URL, []);
+  try
+    Create(Image, AScalingPossible);
+  finally FreeAndNil(Image) end;
+end;
 
 constructor TGLImage.Create(const Image: TCastleImage;
   const AScalingPossible: boolean);
