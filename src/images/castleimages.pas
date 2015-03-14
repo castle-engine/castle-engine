@@ -2637,7 +2637,7 @@ begin
   CodeInitialization +=
     '  ' +ImageName+ ' := ' +ClassName+ '.Create(' +NameWidth+', ' +NameHeight+ ', ' +NameDepth+ ');' +nl+
     '  Move(' +NamePixels+ ', ' +ImageName+ '.RawPixels^, SizeOf(' +NamePixels+ '));' +nl+
-    '  ' +ImageName+ '.URL := ''embedded-image://' +ImageName+ ''';' + nl;
+    '  ' +ImageName+ '.URL := ''embedded-image:/' +ImageName+ ''';' + nl;
 
   CodeFinalization +=
     '  FreeAndNil(' +ImageName+ ');' +nl;

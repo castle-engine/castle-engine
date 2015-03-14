@@ -1243,7 +1243,7 @@ begin
   begin
     InitialImage := TRGBImage.Create(Width, Height);
     try
-      InitialImage.URL := 'generated://' + TextureNode.NiceName;
+      InitialImage.URL := 'generated:/' + TextureNode.NiceName;
       SetTextureRGBFromImage(InitialImage);
 
       { Fill with deliberately stupid (but constant) color,
@@ -1731,7 +1731,7 @@ begin
 
   InitialImage := TRGBImage.Create(Size, Size);
   try
-    InitialImage.URL := 'generated://' + TextureNode.NiceName;
+    InitialImage.URL := 'generated:/' + TextureNode.NiceName;
 
     { Fill with deliberately stupid (but constant) color,
       to recognize easily GeneratedCubeMapTexture which don't have textures

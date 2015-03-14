@@ -102,7 +102,7 @@ begin
     'begin' +NL+
     ImageInitialization +
     '  FontImage.TreatAsAlpha := true;' +NL+
-    '  FontImage.URL := ''embedded-font://' + UnitName + ''';' +NL+
+    '  FontImage.URL := ''embedded-font:/' + UnitName + ''';' +NL+
     NL+
     '  Glyphs := TTextureFontData.TGlyphDictionary.Create;' +NL+
     NL);
