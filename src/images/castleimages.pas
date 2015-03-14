@@ -991,8 +991,14 @@ type
     class procedure MixColors(const OutputColor: Pointer;
        const Weights: TVector4Single; const Colors: TVector4Pointer); override;
 
-    { Remove alpha channel, creating new TRGBImage. }
+    { Remove alpha channel. }
     function ToRGBImage: TRGBImage;
+
+    { Flatten to grayscale. }
+    function ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
+
+    { Flatten to grayscale and remove alpha channel. }
+    function ToGrayscaleImage: TGrayscaleImage;
 
     { Premultiply the RGB channel with alpha, to make it faster
       to use this image as source for TCastleImage.DrawTo and
@@ -1056,6 +1062,7 @@ type
   private
     FTreatAsAlpha: boolean;
     function GetGrayscalePixels: PByte;
+    class function FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleImage;
   public
     { This is the same pointer as RawPixels, only typecasted to PByte }
     property GrayscalePixels: PByte read GetGrayscalePixels;
@@ -1099,6 +1106,8 @@ type
 
     function AlphaChannel(
       const AlphaTolerance: Byte): TAlphaChannel; override;
+
+    procedure Assign(const Source: TCastleImage); override;
   end;
 
   { Grayscale image with an alpha channel.
@@ -1106,6 +1115,7 @@ type
   TGrayscaleAlphaImage = class(TCastleImage)
   private
     function GetGrayscaleAlphaPixels: PVector2Byte;
+    class function FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleAlphaImage;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector2Byte }
     property GrayscaleAlphaPixels: PVector2Byte read GetGrayscaleAlphaPixels;
@@ -1127,6 +1137,8 @@ type
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
        const Weights: TVector4Single; const Colors: TVector4Pointer); override;
+
+    procedure Assign(const Source: TCastleImage); override;
   end;
 
   { @deprecated Deprecated name for TCastleImage. }
@@ -3269,6 +3281,18 @@ begin
   Result.Assign(Self);
 end;
 
+function TRGBAlphaImage.ToGrayscaleImage: TGrayscaleImage;
+begin
+  Result := TGrayscaleImage.Create(0, 0);
+  Result.Assign(Self);
+end;
+
+function TRGBAlphaImage.ToGrayscaleAlphaImage: TGrayscaleAlphaImage;
+begin
+  Result := TGrayscaleAlphaImage.Create(0, 0);
+  Result.Assign(Self);
+end;
+
 procedure TRGBAlphaImage.PremultiplyAlpha;
 var
   P: PVector4Byte;
@@ -3544,6 +3568,30 @@ begin
   Result := acSimpleYesNo;
 end;
 
+procedure TGrayscaleImage.Assign(const Source: TCastleImage);
+var
+  RgbaPtr: PVector4Byte;
+  RgbPtr: PVector3Byte absolute RgbaPtr;
+  SelfPtr: PByte;
+  I: Cardinal;
+begin
+  if Source is TRGBAlphaImage then
+  begin
+    SetSize(Source);
+    SelfPtr := GrayscalePixels;
+    RgbaPtr := TRGBAlphaImage(Source).AlphaPixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      SelfPtr^ := GrayscaleValue(RgbPtr^);
+      Inc(SelfPtr);
+      Inc(RgbaPtr);
+    end;
+    URL := Source.URL;
+  end else
+
+    inherited;
+end;
+
 { TGrayscaleAlphaImage ------------------------------------------------------------ }
 
 function TGrayscaleAlphaImage.GetGrayscaleAlphaPixels: PVector2Byte;
@@ -3654,6 +3702,31 @@ begin
   OutputCol^[0] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
   OutputCol^[1] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[1] + Weights[1] * Cols[1]^[1] + Weights[2] * Cols[2]^[1] + Weights[3] * Cols[3]^[1]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
   {$I norqcheckend.inc}
+end;
+
+procedure TGrayscaleAlphaImage.Assign(const Source: TCastleImage);
+var
+  RgbaPtr: PVector4Byte;
+  RgbPtr: PVector3Byte absolute RgbaPtr;
+  SelfPtr: PVector2Byte;
+  I: Cardinal;
+begin
+  if Source is TRGBAlphaImage then
+  begin
+    SetSize(Source);
+    SelfPtr := GrayscaleAlphaPixels;
+    RgbaPtr := TRGBAlphaImage(Source).AlphaPixels;
+    for I := 1 to Width * Height * Depth do
+    begin
+      SelfPtr^[0] := GrayscaleValue(RgbPtr^);
+      SelfPtr^[1] := RgbaPtr^[3];
+      Inc(SelfPtr);
+      Inc(RgbaPtr);
+    end;
+    URL := Source.URL;
+  end else
+
+    inherited;
 end;
 
 { RGBE <-> 3 Single color convertion --------------------------------- }

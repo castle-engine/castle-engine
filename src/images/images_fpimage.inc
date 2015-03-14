@@ -72,26 +72,126 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
+class function TGrayscaleImage.FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleImage;
+var
+  X, Y: Integer;
+  ResultPixels: PByte;
+  Color: TFPColor;
+begin
+  Result := TGrayscaleImage.Create(FPImage.Width, FPImage.Height);
+  try
+    ResultPixels := Result.GrayscalePixels;
+    for Y := FPImage.Height - 1 downto 0 do
+      for X := 0 to FPImage.Width - 1 do
+      begin
+        Color := FPImage.Colors[X, Y];
+        ResultPixels^ := GrayscaleValue(Vector3Byte(
+          Color.Red shr 8,
+          Color.Green shr 8,
+          Color.Blue shr 8));
+        Inc(ResultPixels);
+      end;
+  except FreeAndNil(Result); raise end;
+end;
+
+class function TGrayscaleAlphaImage.FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleAlphaImage;
+var
+  X, Y: Integer;
+  ResultPixels: PVector2Byte;
+  Color: TFPColor;
+begin
+  Result := TGrayscaleAlphaImage.Create(FPImage.Width, FPImage.Height);
+  try
+    ResultPixels := Result.GrayscaleAlphaPixels;
+    for Y := FPImage.Height - 1 downto 0 do
+      for X := 0 to FPImage.Width - 1 do
+      begin
+        Color := FPImage.Colors[X, Y];
+        ResultPixels^[0] := GrayscaleValue(Vector3Byte(
+          Color.Red shr 8,
+          Color.Green shr 8,
+          Color.Blue shr 8));
+        ResultPixels^[1] := Color.Alpha shr 8;
+        Inc(ResultPixels);
+      end;
+  except FreeAndNil(Result); raise end;
+end;
+
 function FromFpImage(const FPImage: TFPMemoryImage;
   const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
 
   { FPImage doesn't provide us any information does the image contain useful
-    alpha channel. So just iterate over pixels, and check it ourselves. }
-  function DetectAlpha: boolean;
+    alpha channel, and is it grayscale.
+    So just iterate over pixels, and check it ourselves. }
+  procedure Detect(out Alpha, Grayscale: boolean);
   var
     X, Y: Integer;
+    Col: TFPColor;
   begin
+    Alpha := false;
+    Grayscale := true;
     for Y := FPImage.Height - 1 downto 0 do
       for X := 0 to FPImage.Width - 1 do
-        if (FPImage.Colors[X, Y].Alpha shr 8) <> $FF then
-          Exit(true);
-    Result := false;
+      begin
+        Col := FPImage.Colors[X, Y];
+        if (Col.Alpha shr 8) <> $FF then
+        begin
+          Alpha := true;
+          if not Grayscale then Exit; // early exit for RGBA images
+        end;
+        if ((Col.Red shr 8) <> (Col.Green shr 8)) or
+           ((Col.Red shr 8) <> (Col.Blue shr 8)) then
+        begin
+          Grayscale := false;
+          if Alpha then Exit; // early exit for RGBA images
+        end;
+      end;
   end;
 
+var
+  Alpha, Grayscale: boolean;
+  RGBA: TRGBAlphaImage;
 begin
-  if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) and DetectAlpha then
-    Result := TRGBAlphaImage.FromFpImage(FPImage) else
-    Result := TRGBImage.FromFpImage(FPImage);
+  Detect(Alpha, Grayscale);
+
+  { first try to return the best class for given Alpha/Grayscale combination }
+
+  if not Grayscale then
+  begin
+    if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) and Alpha then
+      Exit(TRGBAlphaImage.FromFpImage(FPImage)) else
+    if ClassAllowed(TRGBImage, AllowedImageClasses) and not Alpha then
+      Exit(TRGBImage.FromFpImage(FPImage));
+  end else
+  begin
+    if ClassAllowed(TGrayscaleAlphaImage, AllowedImageClasses) and Alpha then
+      Exit(TGrayscaleAlphaImage.FromFpImage(FPImage)) else
+    if ClassAllowed(TGrayscaleImage, AllowedImageClasses) and not Alpha then
+      Exit(TGrayscaleImage.FromFpImage(FPImage));
+  end;
+
+  { otherwise, load RGBA and eventually strip some information to satisfy
+    ClassAllowed conditions }
+
+  RGBA := TRGBAlphaImage.FromFpImage(FPImage);
+  if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) then
+    Result := RGBA else
+  if ClassAllowed(TRGBImage, AllowedImageClasses) then
+  begin
+    Result := RGBA.ToRGBImage;
+    FreeAndNil(RGBA);
+  end else
+  if ClassAllowed(TGrayscaleImage, AllowedImageClasses) then
+  begin
+    Result := RGBA.ToGrayscaleImage;
+    FreeAndNil(RGBA);
+  end else
+  if ClassAllowed(TGrayscaleAlphaImage, AllowedImageClasses) then
+  begin
+    Result := RGBA.ToGrayscaleAlphaImage;
+    FreeAndNil(RGBA);
+  end else
+    raise Exception.Create('Cannot convert FPImage to any of formats allowed by LoadImage AllowedImageClasses');
 end;
 
 function LoadFpImage(Stream: TStream;
