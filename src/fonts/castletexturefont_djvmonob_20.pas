@@ -5508,6 +5508,7 @@ begin
   FontImage := TGrayscaleImage.Create(FontImageWidth, FontImageHeight, FontImageDepth);
   Move(FontImagePixels, FontImage.RawPixels^, SizeOf(FontImagePixels));
   FontImage.TreatAsAlpha := true;
+  FontImage.URL := 'embedded-font://CastleTextureFont_DjvMonoB_20';
 
   Glyphs := TTextureFontData.TGlyphDictionary.Create;
 

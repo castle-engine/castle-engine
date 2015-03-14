@@ -109,11 +109,15 @@ type
   TEncodedImage = class
   private
     FWidth, FHeight, FDepth: Cardinal;
+    FURL: string;
   protected
     { Operate on this by Get/Realloc/FreeMem.
       It's always freed and nil'ed in destructor. }
     FRawPixels: Pointer;
   public
+    { URL from which this image was loaded, if any. }
+    property URL: string read FURL write FURL;
+
     destructor Destroy; override;
 
     property Width: Cardinal read FWidth;
@@ -121,6 +125,9 @@ type
     property Depth: Cardinal read FDepth;
 
     property RawPixels: Pointer read FRawPixels;
+
+    { Size of image contents in bytes. }
+    function Size: Cardinal; virtual; abstract;
 
     { Is an image empty.
 
@@ -312,7 +319,10 @@ type
     class function PixelSize: Cardinal; virtual; abstract;
 
     { Size of image contents in bytes. }
-    function ImageSize: Cardinal;
+    function Size: Cardinal; override;
+
+    { Deprecated name for ImageSize. }
+    function ImageSize: Cardinal; deprecated;
 
     { Number of color components in TPixel.
 
@@ -729,7 +739,7 @@ type
     property Compression: TS3TCCompression read FCompression;
 
     { Size of the whole image data inside RawPixels, in bytes. }
-    property Size: Cardinal read FSize;
+    function Size: Cardinal; override;
 
     function HasAlpha: boolean; override;
     function AlphaChannel(
@@ -1931,15 +1941,21 @@ begin
   NotImplemented('SetColorRGB');
 end;
 
-function TCastleImage.ImageSize: Cardinal;
+function TCastleImage.Size: Cardinal;
 begin
   Result := Width * Height * Depth * PixelSize;
+end;
+
+function TCastleImage.ImageSize: Cardinal;
+begin
+  Result := Size;
 end;
 
 function TCastleImage.MakeCopy: TCastleImage;
 begin
   Result := TCastleImageClass(Self.ClassType).Create(Width, Height, Depth);
-  Move(RawPixels^, Result.RawPixels^, ImageSize);
+  Move(RawPixels^, Result.RawPixels^, Size);
+  Result.FURL := URL;
 end;
 
 type
@@ -2091,6 +2107,7 @@ begin
 
   Result := TCastleImageClass(ClassType).Create(ResizeWidth, ResizeHeight);
   try
+    Result.FURL := URL;
     if not IsEmpty then
       InternalResize(PixelSize,
                RawPixels,        Rect,        Width,        Height,
@@ -2383,7 +2400,7 @@ begin
     (Image.Width = Width) and
     (Image.Height = Height) and
     (Image.Depth = Depth) and
-    (CompareMem(Image.RawPixels, RawPixels, ImageSize));
+    (CompareMem(Image.RawPixels, RawPixels, Size));
 end;
 
 function TCastleImage.ArePartsEqual(
@@ -2545,7 +2562,10 @@ begin
   if Source.ClassType = ClassType then
   begin
     SetSize(Source);
-    Move(Source.RawPixels^, RawPixels^, ImageSize);
+    // if Source.RawPixels = nil, then we're already freed by SetSize above
+    if Source.RawPixels <> nil then
+      Move(Source.RawPixels^, RawPixels^, Size);
+    URL := Source.URL;
   end else
     raise EImageAssignmentError.CreateFmt('Cannot copy image contents from %s to %s',
       [Source.ClassName, ClassName]);
@@ -2582,12 +2602,12 @@ begin
     '    ';
 
   if ShowProgress then
-    Progress.Init((ImageSize - 1) div 12,
+    Progress.Init((Size - 1) div 12,
       Format('Generating %s (%s, alpha: %s)',
         [ImageName, ClassName, AlphaToString[AlphaChannel]]));
 
   pb := PByte(RawPixels);
-  for I := 1 to ImageSize - 1 do
+  for I := 1 to Size - 1 do
   begin
     CodeImplementation += Format('%4d,', [pb^]);
     if (i mod 12) = 0 then
@@ -2604,7 +2624,8 @@ begin
 
   CodeInitialization +=
     '  ' +ImageName+ ' := ' +ClassName+ '.Create(' +NameWidth+', ' +NameHeight+ ', ' +NameDepth+ ');' +nl+
-    '  Move(' +NamePixels+ ', ' +ImageName+ '.RawPixels^, SizeOf(' +NamePixels+ '));' +nl;
+    '  Move(' +NamePixels+ ', ' +ImageName+ '.RawPixels^, SizeOf(' +NamePixels+ '));' +nl+
+    '  ' +ImageName+ '.URL := ''embedded-image://' +ImageName+ ''';' + nl;
 
   CodeFinalization +=
     '  FreeAndNil(' +ImageName+ ');' +nl;
@@ -2643,6 +2664,11 @@ begin
   end;
 
   FRawPixels := GetMem(FSize);
+end;
+
+function TS3TCImage.Size: Cardinal;
+begin
+  Result := FSize;
 end;
 
 function TS3TCImage.HasAlpha: boolean;
@@ -3027,11 +3053,10 @@ var
   SelfPtr: PVector3Byte;
   I: Cardinal;
 begin
-  SelfPtr := RGBPixels;
-
   if Source is TRGBAlphaImage then
   begin
     SetSize(Source);
+    SelfPtr := RGBPixels;
     RgbaPtr := TRGBAlphaImage(Source).AlphaPixels;
     for I := 1 to Width * Height * Depth do
     begin
@@ -3039,11 +3064,13 @@ begin
       Inc(SelfPtr);
       Inc(RgbaPtr);
     end;
+    URL := Source.URL;
   end else
 
   if Source is TRGBFloatImage then
   begin
     SetSize(Source);
+    SelfPtr := RGBPixels;
     FloatPtr := TRGBFloatImage(Source).RGBFloatPixels;
     for I := 1 to Width * Height * Depth do
     begin
@@ -3051,6 +3078,7 @@ begin
       Inc(SelfPtr);
       Inc(FloatPtr);
     end;
+    URL := Source.URL;
   end else
 
     inherited;
@@ -3413,12 +3441,12 @@ end;
 
 procedure TGrayscaleImage.Clear(const Pixel: Byte);
 begin
-  FillChar(RawPixels^, ImageSize, Pixel);
+  FillChar(RawPixels^, Size, Pixel);
 end;
 
 function TGrayscaleImage.IsClear(const Pixel: Byte): boolean;
 begin
-  Result := IsMemCharFilled(RawPixels^, ImageSize, Char(Pixel));
+  Result := IsMemCharFilled(RawPixels^, Size, Char(Pixel));
 end;
 
 procedure TGrayscaleImage.HalfColors;
@@ -3982,19 +4010,20 @@ function LoadImage(const URL: string;
 const
   SLoadError = 'Error loading image from URL "%s": %s';
 var
-  f: TStream;
+  F: TStream;
   MimeType: string;
 begin
   try
     try
-      f := Download(URL, [soForceMemoryStream], MimeType);
+      F := Download(URL, [soForceMemoryStream], MimeType);
     except
       on E: EReadError do raise EImageLoadError.Create(E.Message);
     end;
 
     try
-      result := LoadImage(f, MimeType, AllowedImageClasses);
-    finally f.Free end;
+      Result := LoadImage(F, MimeType, AllowedImageClasses);
+      Result.FURL := URL;
+    finally F.Free end;
   except
     { capture some exceptions to add URL to exception message }
     on E: EImageLoadError do

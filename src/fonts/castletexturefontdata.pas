@@ -334,6 +334,7 @@ begin
       FImage := TGrayscaleImage.Create(ImageSize, ImageSize);
       Image.Clear(0);
       Image.TreatAsAlpha := true;
+      Image.URL := URL;
 
       ImageX := 0;
       ImageY := 0;
