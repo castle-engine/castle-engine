@@ -34,6 +34,8 @@ uses Classes, FGL,
 type
   TUIStateList = class;
 
+  TDataImageId = Integer;
+
   { UI state, a useful singleton to manage the state of your game UI.
 
     Only one state is @italic(current) at a given time, it can
@@ -92,11 +94,11 @@ type
     { Adds image to the list of automatically loaded images for this state.
       Path is automatically wrapped in ApplicationData(Path) to get URL.
       The OpenGL image resource (TGLImage) is loaded when GL context
-      is active, available under DataGLImage(Index).
-      Where Index is the return value of this method. }
-    function AddDataImage(const Path: string): Integer;
-    function DataGLImage(const Index: Integer): TGLImage;
-    function DataImageRect(const Index: Integer; const Scale: Single): TRectangle;
+      is active, available under DataGLImage(Id).
+      Where Id is the return value of this method. }
+    function AddDataImage(const Path: string): TDataImageId;
+    function DataGLImage(const Id: TDataImageId): TGLImage;
+    function DataImageRect(const Id: TDataImageId; const Scale: Single): TRectangle;
 
     { Container on which state works. By default, this is Application.MainWindow.
       When the state is current, then @link(Container) property (from
@@ -304,7 +306,13 @@ begin
   FStartContainer := nil;
 end;
 
-function TUIState.AddDataImage(const Path: string): Integer;
+const
+  { Shift data image id from 0, to avoid accidentally using uninitialized zero
+    value to get the information for 1st image. This way passing 0 to DataGLImage
+    or DataImageRect will always fail. }
+  ShiftDataImageId = 10;
+
+function TUIState.AddDataImage(const Path: string): TDataImageId;
 var
   DI: TDataImage;
 begin
@@ -324,25 +332,25 @@ begin
     {$endif}
   end;
 
-  Result := FDataImages.Add(DI);
+  Result := FDataImages.Add(DI) + ShiftDataImageId;
 end;
 
 { Do not make this public, to make outside code work
   regardless of KEEP_LOADED_DATA_IMAGES defined.
-function TUIState.DataImage(const Index: Integer): TCastleImage;
+function TUIState.DataImage(const Index: TDataImageId): TCastleImage;
 begin
-  Result := FDataImages[Index].Image;
+  Result := FDataImages[Index - ShiftDataImageId].Image;
 end;
 }
 
-function TUIState.DataGLImage(const Index: Integer): TGLImage;
+function TUIState.DataGLImage(const Id: TDataImageId): TGLImage;
 begin
-  Result := FDataImages[Index].GLImage;
+  Result := FDataImages[Id - ShiftDataImageId].GLImage;
 end;
 
-function TUIState.DataImageRect(const Index: Integer; const Scale: Single): TRectangle;
+function TUIState.DataImageRect(const Id: TDataImageId; const Scale: Single): TRectangle;
 begin
-  Result := FDataImages[Index].GLImage.Rect;
+  Result := FDataImages[Id - ShiftDataImageId].GLImage.Rect;
   Result.Width := Round(Result.Width * Scale);
   Result.Height := Round(Result.Height * Scale);
 end;
