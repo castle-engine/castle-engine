@@ -1,0 +1,237 @@
+{
+  Copyright 2001-2014 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Part of CastleGLImages unit: texture memory profiler (TextureMemoryProfiler). }
+
+{$ifdef read_interface}
+
+type
+  TTextureMemoryProfiler = class
+  private
+  type
+    TAllocatedTexture = class
+      TextureId: TGLTextureId;
+      URL: string;
+      Width, Height, Depth: Integer;
+      Mipmaps: boolean;
+      Size: Int64;
+      ImageFormat: string;
+    end;
+    { using TFPGObjectList, not map, because we can sort the list
+      looking at data sizes (not possible through TFPGMap API that
+      allows only to assign OnKeyCompare to sort,
+      which is used too early to look at data values...). }
+    TAllocatedTextures = specialize TFPGObjectList<TAllocatedTexture>;
+  var
+    AllocatedTextures: TAllocatedTextures;
+    FEnabled: boolean;
+    function FindTextureId(const TextureId: Integer): Integer;
+    procedure CheckLeaks;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    property Enabled: boolean read FEnabled write FEnabled;
+
+    { Notify about texture memory allocation.
+      This should be used only by code doing direct OpenGL operations. }
+    procedure Allocate(const TextureId: TGLTextureId;
+      const URL, ImageFormat: string; const Size: Int64; const Mipmaps: boolean;
+      const Width, Height, Depth: Integer);
+
+    { Notify about texture memory deallocation.
+      This should be used only by code doing direct OpenGL operations. }
+    procedure Deallocate(const TextureId: TGLTextureId);
+
+    function Summary: string;
+
+    { Helper function to calculate memory needed by all mipmaps of given Image.
+      Assumes that all mipmaps are generated, as by GenerateMipmap call. }
+    class function MipmapsSize(const Image: TEncodedImage): Int64;
+  end;
+
+{ OpenGL texture memory profiler, to detect which textures use up
+  the GPU texture memory. Especially useful on mobile devices,
+  where texture memory is limited and your application must really optimize
+  texture usage. Also useful to detect texture memory leaks.
+
+  Simply enable it (@code(TextureMemoryProfiler.Enabled := true)),
+  load your game, then query texture usage by @link(TTextureMemoryProfiler.UsageOverview),
+  e.g. show it by @code(WritelnLog('Textures', TextureMemoryProfiler.UsageOverview)).
+}
+function TextureMemoryProfiler: TTextureMemoryProfiler;
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
+
+{ TTextureMemoryProfiler ----------------------------------------------------- }
+
+constructor TTextureMemoryProfiler.Create;
+begin
+  inherited;
+  AllocatedTextures := TAllocatedTextures.Create(true);
+end;
+
+destructor TTextureMemoryProfiler.Destroy;
+begin
+  FreeAndNil(AllocatedTextures);
+  inherited;
+end;
+
+procedure TTextureMemoryProfiler.Allocate(const TextureId: TGLTextureId;
+  const URL, ImageFormat: string;
+  const Size: Int64; const Mipmaps: boolean;
+  const Width, Height, Depth: Integer);
+var
+  AllocatedTex: TAllocatedTexture;
+  I: Integer;
+begin
+  if FEnabled then
+  begin
+    AllocatedTex := TAllocatedTexture.Create;
+    AllocatedTex.URL := URL;
+    AllocatedTex.Width := Width;
+    AllocatedTex.Height := Height;
+    AllocatedTex.Depth := Depth;
+    AllocatedTex.Mipmaps := Mipmaps;
+    AllocatedTex.Size := Size;
+    AllocatedTex.ImageFormat := ImageFormat;
+    AllocatedTex.TextureId := TextureId;
+    I := FindTextureId(TextureId);
+    if I <> -1 then
+      AllocatedTextures[I] := AllocatedTex else
+      AllocatedTextures.Add(AllocatedTex);
+  end;
+end;
+
+procedure TTextureMemoryProfiler.Deallocate(const TextureId: TGLTextureId);
+var
+  I: Integer;
+begin
+  if FEnabled then
+  begin
+    I := FindTextureId(TextureId);
+    if I = -1 then
+      OnWarning(wtMinor, 'Textures', Format('Texture id %d is released, but was not reported as allocated to TextureMemoryProfiler. Probably TextureMemoryProfiler was not enabled when the texture was created, which may mean TextureMemoryProfiler was enabled too late to accurately capture everything.',
+        [TextureId])) else
+      AllocatedTextures.Delete(I);
+  end;
+end;
+
+procedure TTextureMemoryProfiler.CheckLeaks;
+begin
+  if (AllocatedTextures.Count <> 0) and
+     ((AllocatedTextures.Count <> 1) or
+      { texture id 0 may be allocated, but never released }
+      (AllocatedTextures[0].TextureId = 0)) then
+  begin
+    OnWarning(wtMinor, 'Textures', Format('TextureMemoryProfiler contains some textures when closing GL context. Possibly we have texture memory leak (textures will be freed anyway when closing GL context, but possibly we could free them earlier). Or TextureMemoryProfiler was only enabled for part of program''s code. We have %d textures, 1st one is "%s"',
+      [AllocatedTextures.Count,
+       AllocatedTextures[0].URL]));
+  end;
+end;
+
+function TTextureMemoryProfiler.FindTextureId(const TextureId: Integer): Integer;
+var
+  I: Integer;
+begin
+  for I := 0 to AllocatedTextures.Count - 1 do
+    if AllocatedTextures[I].TextureId = TextureId then
+      Exit(I);
+  Result := -1;
+end;
+
+class function TTextureMemoryProfiler.MipmapsSize(const Image: TEncodedImage): Int64;
+var
+  W, H, D: Cardinal;
+  Size: Int64;
+begin
+  W := Image.Width;
+  H := Image.Height;
+  D := Image.Depth;
+  Size := Image.Size;
+
+  Result := 0;
+
+  if (W = 0) or (H = 0) or (D = 0) then Exit; // empty image data
+
+  while (W > 1) or (H > 1) or (D > 1) do
+  begin
+    if W > 1 then begin W := W div 2; Size := Size div 2; end;
+    if H > 1 then begin H := H div 2; Size := Size div 2; end;
+    if D > 1 then begin D := D div 2; Size := Size div 2; end;
+    Result += Size;
+  end;
+
+{  WritelnLog('Mipmaps', Format('Mipmap sizes is %d for original image size %d (%f)',
+    [Result, Image.Size, Result / Image.Size]));}
+end;
+
+function AllocatedTexturesSort(const Value1, Value2: TTextureMemoryProfiler.TAllocatedTexture): Integer;
+begin
+  Result := Value2.Size - Value1.Size;
+end;
+
+function TTextureMemoryProfiler.Summary: string;
+
+  function FormatSize(const Size: Int64): string;
+  begin
+    if Size >= 1024 * 1024 * 1024 then
+      Result := Format('%f GB', [Size / (1024 * 1024 * 1024)]) else
+    if Size >= 1024 * 1024 then
+      Result := Format('%f MB', [Size / (1024 * 1024)]) else
+    if Size >= 1024 then
+      Result := Format('%f KB', [Size / 1024]) else
+      Result := IntToStr(Size) + ' B';
+  end;
+
+var
+  S: string;
+  I: Integer;
+  Used: Int64;
+  AllocatedTex: TAllocatedTexture;
+begin
+  S := '';
+
+  Used := 0;
+  for I := 0 to AllocatedTextures.Count - 1 do
+    Used += AllocatedTextures[I].Size;
+  S := Format('Texture memory used: %s (%d bytes in %d textures)',
+    [FormatSize(Used), Used, AllocatedTextures.Count]) + NL;
+
+  AllocatedTextures.Sort(@AllocatedTexturesSort);
+  for I := 0 to AllocatedTextures.Count - 1 do
+  begin
+    AllocatedTex := AllocatedTextures[I];
+    S += Format('  %f - %s (size %d : format %s, original dimensions %d x %d x %d, mipmaps: %s)',
+      [AllocatedTex.Size / Used, AllocatedTex.URL,
+       AllocatedTex.Size, AllocatedTex.ImageFormat,
+       AllocatedTex.Width, AllocatedTex.Height, AllocatedTex.Depth,
+       BoolToStr[AllocatedTex.Mipmaps]]) + NL;
+  end;
+  Result := S;
+end;
+
+var
+  FTextureMemoryProfiler: TTextureMemoryProfiler;
+
+function TextureMemoryProfiler: TTextureMemoryProfiler;
+begin
+  if FTextureMemoryProfiler = nil then
+    FTextureMemoryProfiler := TTextureMemoryProfiler.Create;
+  Result := FTextureMemoryProfiler;
+end;
+
+{$endif read_implementation}

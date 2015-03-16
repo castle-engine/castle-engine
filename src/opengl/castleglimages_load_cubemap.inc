@@ -1,0 +1,414 @@
+{
+  Copyright 2001-2014 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Part of CastleGLImages unit: cubemaps sizing and loading. }
+
+{$ifdef read_interface}
+
+function IsCubeMapTextureSized(const Size: Cardinal): boolean;
+function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
+
+{ Comfortably load all six cube map texture images.
+  Think about this as doing glTexImage2D(Side, ...) for each cube side.
+  It takes care of (almost?) everything you need to prepare OpenGL cube map
+  texture.
+
+  It automatically takes care to adjust the texture size to
+  appropriate size, honoring the "power of two" requirement and
+  the GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB limit of OpenGL. So texture image
+  may be resized (preferably up) internally before loading.
+  Although, if texture is S3TC compressed, we cannot resize it
+  --- so ECannotLoadS3TCTexture will be raised if texture is not appropriate
+  size.
+
+  It takes care about OpenGL unpack parameters. Just don't worry about it.
+
+  Pass TextureIdForProfiler only for profiling purposes (for TextureMemoryProfiler).
+  This procedure assumes that the texture is already bound.
+
+  If mipmaps are requested:
+
+  @orderedList(
+    @item(First of all, if DDSForMipmaps is non-nil and has mipmaps defined,
+      we will load them from this DDS image.
+      DDSForMipmaps must have DDSType = dtCubeMap.)
+
+    @item(Otherwise, we'll try to generate images using OpenGL GenerateMipmap.)
+
+    @item(As a last resort, if GenerateMipmap is not available,
+      we will fallback to generating mipmaps on CPU by good old
+      gluBuild2DMipmaps call.)
+  )
+
+  @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
+    This includes ECannotLoadS3TCTexture if the S3TC texture cannot be
+    loaded for whatever reason (not availble S3TC extensions,
+    not correct texture size, mipmaps requested and
+    DDSForMipmaps/glGenerateMipmap not available).
+    This includes EInvalidImageForOpenGLTexture if Image class is invalid
+    for an OpenGL texture.)
+
+  @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
+    by OpenGL.)
+}
+procedure glTextureCubeMap(const TextureIdForProfiler: TGLTextureId;
+  PositiveX, NegativeX,
+  PositiveY, NegativeY,
+  PositiveZ, NegativeZ: TEncodedImage;
+  DDSForMipmaps: TDDSImage;
+  Mipmaps: boolean);
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
+
+{ ----------------------------------------------------------------------------
+  Adjusting image size for cube map texture. }
+
+function IsCubeMapTextureSized(const Size: Cardinal): boolean;
+begin
+  Result :=
+    (GLFeatures.TextureCubeMap = gsNone) or
+    (
+      IsPowerOf2(Size) and
+      (Size > 0) and
+      (Size <= GLFeatures.MaxCubeMapTextureSize)
+    );
+end;
+
+function IsCubeMapTextureSized(const R: TEncodedImage): boolean;
+begin
+  Result :=
+    (GLFeatures.TextureCubeMap = gsNone) or
+    (
+      (r.Width = r.Height) { must be square } and
+      IsPowerOf2(r.Width) and
+      (r.Width > 0) and
+      (r.Width <= GLFeatures.MaxCubeMapTextureSize)
+    );
+end;
+
+function ResizeToCubeMapTextureSize(const r: TCastleImage): TCastleImage; forward;
+
+procedure ResizeForCubeMapTextureSize(var r: TCastleImage);
+var
+  newR: TCastleImage;
+begin
+  if not IsCubeMapTextureSized(r) then
+  begin
+    newR := ResizeToCubeMapTextureSize(r);
+    FreeAndNil(r);
+    r := newR;
+  end;
+end;
+
+function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
+begin
+  Result := Size;
+  if GLFeatures.TextureCubeMap <> gsNone then
+  begin
+    if Size <= 0 then
+      Result := 1 else
+    if Size > GLFeatures.MaxCubeMapTextureSize then
+      Result := GLFeatures.MaxCubeMapTextureSize else
+    if IsPowerOf2(Size) then
+      Result := Size else
+      { Result jakie otrzymamy below jest na pewno < MaxTexSize bo
+        skoro Size <= MaxTexSize i not IsPowerOf2(Size) to Size < MaxTexSize
+        a MaxTexSize samo jest potega dwojki. }
+      Result := 1 shl (Biggest2Exponent(Size) + 1);
+  end;
+end;
+
+function ResizeToCubeMapTextureSize(const r: TCastleImage): TCastleImage;
+var
+  Size: Cardinal;
+begin
+  if GLFeatures.TextureCubeMap <> gsNone then
+  begin
+    Size := Max(r.Width, r.Height);
+    Size := ResizeToCubeMapTextureSize(Size);
+
+    if Log then
+      WritelnLog('Texture loading', Format('Resizing image for cube map texture from (%d, %d) to (%d, %d)',
+        [R.Width, R.Height, Size, Size]));
+
+    result := r.MakeResized(Size, Size, riBilinear);
+  end else
+    result := r.MakeCopy;
+end;
+
+{ Cube map texture loading --------------------------------------------------- }
+
+{ Comfortably load a single image for one cube map texture side.
+
+  This is pretty much like glTexImages2DForCubeMap,
+  except it operates only on one side of the cube.
+  Target should be one of the six cube map texture targets:
+  GL_TEXTURE_CUBE_MAP_POSITIVE/NEGATIVE_X/Y/Z_ARB.
+
+  Also, this cannot load mipmaps from DDS or use GenerateMipmap
+  (GenerateMipmap call must be done for whole cube map texture target).
+  So this can create mipmaps only by gluBuild2DMipmaps. It will also
+  fail with ECannotLoadS3TCTexture if mipmaps will be requested --- we cannot
+  generate mipmaps for S3TC compressed. If you want to use
+  more modern GenerateMipmap, you should use higher-level
+  glTexImages2DForCubeMap (takes all six images), or pass Mipmaps = @false
+  and do it yourself.
+
+  Level must be 0 is you require mipmaps.
+
+  @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
+    This includes ECannotLoadS3TCTexture if the S3TC texture cannot be
+    loaded for whatever reason (not availble S3TC extensions,
+    not correct texture size, mipmaps requested).
+    This includes EInvalidImageForOpenGLTexture if Image class is invalid
+    for an OpenGL texture.) }
+procedure glTextureCubeMapSide(
+  Target: TGLenum; const Image: TEncodedImage; Level: TGLuint; Mipmaps: boolean;
+  var LoadedSize: Int64);
+var
+  ImageInternalFormat: TGLuint;
+
+  { Load Image through glCompressedTexImage2DARB.
+    This checks existence of OpenGL extensions for S3TC,
+    and checks Image sizes.
+    It also takes care of pixel packing, although actually nothing needs
+    be done about it when using compressed textures.
+
+    @raises(ECannotLoadS3TCTexture If texture size is bad or OpenGL S3TC
+      extensions are missing or mipmaps were required.) }
+  procedure LoadCompressed(const Image: TS3TCImage);
+  begin
+    if not GLFeatures.TextureCompressionS3TC then
+      raise ECannotLoadS3TCTexture.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
+
+    if not IsCubeMapTextureSized(Image) then
+      raise ECannotLoadS3TCTexture.CreateFmt('Cannot load S3TC compressed textures: texture size is %d x %d, it''s not correct for OpenGL, and we cannot resize on CPU compressed textures',
+        [Image.Width, Image.Height]);
+
+    if Mipmaps then
+      raise ECannotLoadS3TCTexture.Create('Cannot create mipmaps on CPU for S3TC compressed images');
+
+    { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
+      doesn't affect loading compressed textures, as far as I understand.
+      So no need to call it. }
+    {$ifdef OpenGLES} glCompressedTexImage2D {$else} glCompressedTexImage2DARB {$endif}
+      (Target, Level, ImageInternalFormat, Image.Width, Image.Height,
+        0, Image.Size, Image.RawPixels);
+    LoadedSize += Image.Size;
+  end;
+
+var
+  ImageFormat: TGLuint;
+
+  { Calls glTexImage2D for given image.
+    Takes care of OpenGL unpacking (alignment etc.).
+    Takes care of Image size --- makes sure that image has the right size
+    (power of 2, within OpenGL required sizes). }
+  procedure glTexImage2DImage(Image: TCastleImage);
+
+    { This is like glTexImage2DImage, but it doesn't take care
+      of Image size. }
+    procedure Core(Image: TCastleImage);
+    var
+      UnpackData: TUnpackNotAlignedData;
+    begin
+      { Nawet jesli ladujemy obrazek o ktorym wiemy ze ma wymiary dobre
+        dla glTexImage2d, musimy zadbac o jego aligment : bo co by bylo
+        jesli tekstura ma szerokosc 1 lub 2  ?
+        Poza tym, planuje dodac tutaj robienie borderow dla tekstury, a wtedy
+        wymiar dobry dla glTexImage2d to rownie dobrze 2^n+2 (a wiec prawie zawsze
+        niepodzielne na 4). }
+      BeforeUnpackImage(UnpackData, Image);
+      try
+        glTexImage2D(Target, Level, ImageInternalFormat,
+          Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
+          Image.RawPixels);
+        LoadedSize += Image.Size;
+      finally AfterUnpackImage(UnpackData, Image) end;
+    end;
+
+  var
+    ImgGood: TCastleImage;
+  begin
+    if IsCubeMapTextureSized(Image) then
+      Core(Image) else
+    begin
+      ImgGood := ResizeToCubeMapTextureSize(Image);
+      try
+        Core(ImgGood);
+      finally ImgGood.Free end;
+    end;
+  end;
+
+  {$ifndef OpenGLES}
+  { Calls gluBuild2DMipmaps for given image.
+    Takes care of OpenGL unpacking (alignment etc.).
+    gluBuild2DMipmaps doesn't require size to be a power of 2, so no problems
+    here. }
+  procedure gluBuild2DMipmapsImage(Image: TCastleImage);
+  var
+    UnpackData: TUnpackNotAlignedData;
+  begin
+    BeforeUnpackImage(UnpackData, Image);
+    try
+      gluBuild2DMipmaps(Target, ImageInternalFormat,
+        Image.Width, Image.Height, ImageFormat, ImageGLType(Image),
+        Image.RawPixels);
+    finally AfterUnpackImage(UnpackData, Image) end;
+  end;
+  {$endif}
+
+  procedure LoadMipmapped(const image: TCastleImage);
+  begin
+    { This should only be called by glTextureCubeMap when mipmaps are needed
+      but GenerateMipmap was not available.
+      We have no choice but to use old gluBuild2DMipmapsImage.
+
+      Note: SGIS_generate_mipmap doesn't work on cube map texture,
+      testing on ATI Mobility Radeon X1600 (fglrx, Linux, on Mac Book Pro). }
+
+    {$ifdef OpenGLES}
+    raise ETextureLoadError.Create('Cannot load texture on OpenGLES using gluBuild2DMipmapsImage. On OpenGLES, GenerateMipmap should always be available, so this should not happen.');
+    {$else}
+    gluBuild2DMipmapsImage(Image);
+    {$endif}
+  end;
+
+  procedure LoadNormal(const image: TCastleImage);
+  begin
+    glTexImage2DImage(Image);
+  end;
+
+begin
+  ImageInternalFormat := ImageGLInternalFormat(Image);
+  if Image is TS3TCImage then
+    LoadCompressed(TS3TCImage(Image)) else
+  if Image Is TCastleImage then
+  begin
+    ImageFormat := ImageGLFormat(TCastleImage(Image));
+    if Mipmaps then
+      LoadMipmapped(TCastleImage(Image)) else
+      LoadNormal(TCastleImage(Image));
+  end else
+    raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
+end;
+
+procedure glTextureCubeMap(const TextureIdForProfiler: TGLTextureId;
+  PositiveX, NegativeX,
+  PositiveY, NegativeY,
+  PositiveZ, NegativeZ: TEncodedImage;
+  DDSForMipmaps: TDDSImage;
+  Mipmaps: boolean);
+var
+  LoadedSize: Int64;
+
+  { Check should we load mipmaps from DDS. }
+  function HasMipmapsFromDDS(DDS: TDDSImage): boolean;
+  begin
+    Result := (DDS <> nil) and DDS.Mipmaps;
+    if not Result then Exit;
+
+    if DDS.DDSType <> dtCubeMap then
+    begin
+      OnWarning(wtMinor, 'Texture', 'DDS image contains mipmaps, but not for CubeMap texture');
+      Exit(false);
+    end;
+
+    {$ifdef OpenGLES}
+    OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
+    Exit(false);
+    {$else}
+    if not GLFeatures.Version_1_2 then
+    begin
+      OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      Exit(false);
+    end;
+    {$endif}
+  end;
+
+  { Load mipmaps from DDS. Assume HasMipmapsFromDDS was true. }
+  procedure LoadMipmapsFromDDS(DDS: TDDSImage);
+
+    procedure LoadMipmapsFromDDSSide(GLSide: TGLenum; DDSSide: TDDSCubeMapSide);
+    var
+      I: Integer;
+    begin
+      for I := 1 to DDS.MipmapsCount - 1 do
+        glTextureCubeMapSide(GLSide, DDS.CubeMapImage(DDSSide, I), I, false, LoadedSize);
+    end;
+
+  begin
+    {$ifdef OpenGLES}
+    raise EInternalError.Create('HasMipmapsFromDDS should always return false on OpenGLES');
+    {$else}
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, dcsPositiveX);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, dcsNegativeX);
+    { Note Positive/Negative are swapped for Y.
+      DDS cube map sides are in left-handed coordinate system, like Direct X.
+      See TDDSCubeMapSide comments. }
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, dcsNegativeY);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, dcsPositiveY);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, dcsPositiveZ);
+    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, dcsNegativeZ);
+    {$endif}
+  end;
+
+begin
+  LoadedSize := 0;
+
+  if Mipmaps and (HasMipmapsFromDDS(DDSForMipmaps) or HasGenerateMipmap) then
+  begin
+    { Load six cube faces without mipmaps, then generate them all
+      in one go with GenerateMipmap. }
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, PositiveX, 0, false, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, NegativeX, 0, false, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, PositiveY, 0, false, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, NegativeY, 0, false, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, PositiveZ, 0, false, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, NegativeZ, 0, false, LoadedSize);
+    if HasMipmapsFromDDS(DDSForMipmaps) then
+      LoadMipmapsFromDDS(DDSForMipmaps) else
+    begin
+      GenerateMipmap(GL_TEXTURE_CUBE_MAP);
+      { TODO: this is cubemap mipmaps size assuming that provided
+        cubemap images were already power of 2, and within good dimensions. }
+      LoadedSize += TTextureMemoryProfiler.MipmapsSize(PositiveX);
+      LoadedSize += TTextureMemoryProfiler.MipmapsSize(NegativeX);
+      LoadedSize += TTextureMemoryProfiler.MipmapsSize(PositiveY);
+      LoadedSize += TTextureMemoryProfiler.MipmapsSize(NegativeY);
+      LoadedSize += TTextureMemoryProfiler.MipmapsSize(PositiveZ);
+      LoadedSize += TTextureMemoryProfiler.MipmapsSize(NegativeZ);
+      if Log then
+        WritelnLog('Mipmaps', 'Generating mipmaps for cube map by GenerateMipmap (GOOD)');
+    end;
+  end else
+  begin
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, PositiveX, 0, Mipmaps, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, NegativeX, 0, Mipmaps, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, PositiveY, 0, Mipmaps, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, NegativeY, 0, Mipmaps, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, PositiveZ, 0, Mipmaps, LoadedSize);
+    glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, NegativeZ, 0, Mipmaps, LoadedSize);
+  end;
+
+  TextureMemoryProfiler.Allocate(TextureIdForProfiler, PositiveX.URL,
+    'cubemap-' + PositiveX.ClassName, LoadedSize, Mipmaps,
+    PositiveX.Width, PositiveX.Height, 1);
+end;
+
+{$endif read_implementation}
