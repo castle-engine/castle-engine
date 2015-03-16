@@ -1476,7 +1476,7 @@ const
       MimeTypesCount: 1;
       MimeTypes: ('image/png', '', '', '', '', '');
       ExtsCount: 1; Exts: ('png', '', '');
-      Load: @LoadPNG; LoadedClasses: {$ifdef CASTLE_PNG_USING_FCL_IMAGE} lcRGB_RGBA {$else} lcG_GA_RGB_RGBA {$endif};
+      Load: @LoadPNG; LoadedClasses: {$ifdef CASTLE_PNG_USING_FCL_IMAGE} lcG_GA_RGB_RGBA {$else} lcG_GA_RGB_RGBA {$endif};
       Save: @SavePNG; SavedClasses: {$ifdef CASTLE_PNG_USING_FCL_IMAGE} scRGB { actually scRGB_RGBA } {$else} scG_GA_RGB_RGBA {$endif}; ),
     ( FormatName: 'Windows BMP image';
       MimeTypesCount: 1;

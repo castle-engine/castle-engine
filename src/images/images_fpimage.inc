@@ -191,7 +191,10 @@ begin
     Result := RGBA.ToGrayscaleAlphaImage;
     FreeAndNil(RGBA);
   end else
+  begin
+    FreeAndNil(RGBA);
     raise Exception.Create('Cannot convert FPImage to any of formats allowed by LoadImage AllowedImageClasses');
+  end;
 end;
 
 function LoadFpImage(Stream: TStream;
@@ -199,7 +202,6 @@ function LoadFpImage(Stream: TStream;
   Reader: TFPCustomImageReader): TCastleImage;
 var
   FPImage: TFPMemoryImage;
-
 begin
   FPImage := TFPMemoryImage.Create(0, 0);
   try
