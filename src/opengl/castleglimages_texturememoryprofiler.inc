@@ -215,7 +215,7 @@ begin
   for I := 0 to AllocatedTextures.Count - 1 do
   begin
     AllocatedTex := AllocatedTextures[I];
-    S += Format('  %f - %s (size %d : format %s, original dimensions %d x %d x %d, mipmaps: %s)',
+    S += Format('  %f - %s (size %d : format %s, dimensions %d x %d x %d, mipmaps: %s)',
       [AllocatedTex.Size / Used, AllocatedTex.URL,
        AllocatedTex.Size, AllocatedTex.ImageFormat,
        AllocatedTex.Width, AllocatedTex.Height, AllocatedTex.Depth,
