@@ -59,7 +59,8 @@ uses SysUtils, Classes, CastleBoxes, CastleKeysMouse, CastleColors,
   CastleCameras, CastleVectors, CastleFilesUtils, CastleTerrain, CastleMessages,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
   RenderTerrains, CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
-  Castle3D, CastleFrustum, CastleSceneManager, CastleURIUtils;
+  Castle3D, CastleFrustum, CastleSceneManager, CastleURIUtils,
+  CastleRectangles;
 
 type
   TTerrainType = (ttNoise, ttCasScript, ttImage, ttGrid);
@@ -333,10 +334,10 @@ begin
   Items.AddObject('Size of the most detailed layer (and export)', BaseSizeSlider);
   Items.AddObject('Layers Count (render farther)', LayersCountSlider);
   Items.AddObject('Image scale (load image first)', ImageHeightScaleSlider);
-  PositionRelativeScreenX := prLow;
-  PositionRelativeScreenY := prLow;
-  PositionRelativeMenuX := prLow;
-  PositionRelativeMenuY := prLow;
+  PositionRelativeScreenX := hpLeft;
+  PositionRelativeScreenY := vpBottom;
+  PositionRelativeMenuX := hpLeft;
+  PositionRelativeMenuY := vpBottom;
   Position := Vector2Integer(10, 10);
 end;
 
@@ -373,10 +374,10 @@ begin
   Items.AddObject('Size of the most detailed layer (and export)', BaseSizeSlider);
   Items.AddObject('Layers Count (render farther)', LayersCountSlider);
   Items.AddObject('Image scale (load image first)', ImageHeightScaleSlider);
-  PositionRelativeScreenX := prLow;
-  PositionRelativeScreenY := prLow;
-  PositionRelativeMenuX := prLow;
-  PositionRelativeMenuY := prLow;
+  PositionRelativeScreenX := hpLeft;
+  PositionRelativeScreenY := vpBottom;
+  PositionRelativeMenuX := hpLeft;
+  PositionRelativeMenuY := vpBottom;
   Position := Vector2Integer(10, 10);
 end;
 
@@ -399,10 +400,10 @@ begin
   Items.AddObject('Subdivision (render details)', SubdivisionSlider);
   Items.AddObject('Size of the most detailed layer (and export)', BaseSizeSlider);
   Items.AddObject('Layers Count (render farther)', LayersCountSlider);
-  PositionRelativeScreenX := prLow;
-  PositionRelativeScreenY := prLow;
-  PositionRelativeMenuX := prLow;
-  PositionRelativeMenuY := prLow;
+  PositionRelativeScreenX := hpLeft;
+  PositionRelativeScreenY := vpBottom;
+  PositionRelativeMenuX := hpLeft;
+  PositionRelativeMenuY := vpBottom;
   Position := Vector2Integer(10, 10);
 end;
 
