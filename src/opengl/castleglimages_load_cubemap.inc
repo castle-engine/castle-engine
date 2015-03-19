@@ -29,8 +29,8 @@ function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
   appropriate size, honoring the "power of two" requirement and
   the GL_MAX_CUBE_MAP_TEXTURE_SIZE_ARB limit of OpenGL. So texture image
   may be resized (preferably up) internally before loading.
-  Although, if texture is S3TC compressed, we cannot resize it
-  --- so ECannotLoadS3TCTexture will be raised if texture is not appropriate
+  Although, if texture is compressed, we cannot resize it
+  --- so @link(ECannotLoadCompressedTexture) will be raised if texture is not appropriate
   size.
 
   It takes care about OpenGL unpack parameters. Just don't worry about it.
@@ -53,8 +53,9 @@ function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
   )
 
   @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
-    This includes ECannotLoadS3TCTexture if the S3TC texture cannot be
-    loaded for whatever reason (not availble S3TC extensions,
+    This includes @link(ECannotLoadCompressedTexture) if the compressed
+    texture cannot be
+    loaded for whatever reason (not availble appropriate extension,
     not correct texture size, mipmaps requested and
     DDSForMipmaps/glGenerateMipmap not available).
     This includes EInvalidImageForOpenGLTexture if Image class is invalid
@@ -162,8 +163,8 @@ end;
   Also, this cannot load mipmaps from DDS or use GenerateMipmap
   (GenerateMipmap call must be done for whole cube map texture target).
   So this can create mipmaps only by gluBuild2DMipmaps. It will also
-  fail with ECannotLoadS3TCTexture if mipmaps will be requested --- we cannot
-  generate mipmaps for S3TC compressed. If you want to use
+  fail with @link(ECannotLoadCompressedTexture) if mipmaps will be requested ---
+  we cannot generate mipmaps for compressed textures here. If you want to use
   more modern GenerateMipmap, you should use higher-level
   glTexImages2DForCubeMap (takes all six images), or pass Mipmaps = @false
   and do it yourself.
@@ -171,8 +172,8 @@ end;
   Level must be 0 is you require mipmaps.
 
   @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
-    This includes ECannotLoadS3TCTexture if the S3TC texture cannot be
-    loaded for whatever reason (not availble S3TC extensions,
+    This includes @link(ECannotLoadCompressedTexture) if the compressed texture cannot be
+    loaded for whatever reason (not availble appropriate extension,
     not correct texture size, mipmaps requested).
     This includes EInvalidImageForOpenGLTexture if Image class is invalid
     for an OpenGL texture.) }
@@ -182,25 +183,26 @@ procedure glTextureCubeMapSide(
 var
   ImageInternalFormat: TGLuint;
 
-  { Load Image through glCompressedTexImage2DARB.
-    This checks existence of OpenGL extensions for S3TC,
+  { Load Image through glCompressedTexImage2D[ARB].
+    This checks existence of OpenGL extensions for compressed texture,
     and checks Image sizes.
     It also takes care of pixel packing, although actually nothing needs
     be done about it when using compressed textures.
 
-    @raises(ECannotLoadS3TCTexture If texture size is bad or OpenGL S3TC
+    @raises(ECannotLoadCompressedTexture If texture size is bad or OpenGL
       extensions are missing or mipmaps were required.) }
-  procedure LoadCompressed(const Image: TS3TCImage);
+  procedure LoadCompressed(const Image: TGPUCompressedImage);
   begin
-    if not GLFeatures.TextureCompressionS3TC then
-      raise ECannotLoadS3TCTexture.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
+  if not (Image.Compression in GLFeatures.TextureCompression) then
+    raise ECannotLoadCompressedTexture.CreateFmt('Cannot load textures compressed using %s, your OpenGL/OpenGLES does not support the necessary extensions',
+      [GPUCompressionInfo[Image.Compression].Name]);
 
     if not IsCubeMapTextureSized(Image) then
-      raise ECannotLoadS3TCTexture.CreateFmt('Cannot load S3TC compressed textures: texture size is %d x %d, it''s not correct for OpenGL, and we cannot resize on CPU compressed textures',
+      raise ECannotLoadCompressedTexture.CreateFmt('Cannot load compressed textures: texture size is %d x %d, it''s not correct for a cube map, and we cannot resize compressed textures',
         [Image.Width, Image.Height]);
 
     if Mipmaps then
-      raise ECannotLoadS3TCTexture.Create('Cannot create mipmaps on CPU for S3TC compressed images');
+      raise ECannotLoadCompressedTexture.Create('Cannot create mipmaps on CPU for compressed images');
 
     { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
       doesn't affect loading compressed textures, as far as I understand.
@@ -295,8 +297,8 @@ var
 
 begin
   ImageInternalFormat := ImageGLInternalFormat(Image);
-  if Image is TS3TCImage then
-    LoadCompressed(TS3TCImage(Image)) else
+  if Image is TGPUCompressedImage then
+    LoadCompressed(TGPUCompressedImage(Image)) else
   if Image Is TCastleImage then
   begin
     ImageFormat := ImageGLFormat(TCastleImage(Image));

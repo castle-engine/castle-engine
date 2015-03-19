@@ -78,8 +78,8 @@ const
   that is not a descendant of one of TextureImageClassesAll
   or PixelsImageClasses, they will raise EImageClassNotSupportedForOpenGL.
 
-  ImageGLInternalFormat works with TS3TCImage classes also, returning
-  appropriate GL_COMPRESSED_*_S3TC_*_EXT, suitable for glCompressedTexImage2D.
+  ImageGLInternalFormat works with TGPUCompressedImage classes also, returning
+  appropriate enum, suitable for glCompressedTexImage2D.
 
   @raises(EImageClassNotSupportedForOpenGL When Img class is not supported
     by OpenGL.)
@@ -95,7 +95,7 @@ type
 
   ETextureLoadError = class(Exception);
   EImageClassNotSupportedForOpenGL = class(ETextureLoadError);
-  ECannotLoadS3TCTexture = class(ETextureLoadError);
+  ECannotLoadCompressedTexture = class(ETextureLoadError);
   EInvalidImageForOpenGLTexture = class(ETextureLoadError);
 
 { If Tex <> 0 then it does glDeleteTextures on Tex and sets Tex to 0.
@@ -153,6 +153,35 @@ begin
 end;
 
 function ImageGLInternalFormat(const Img: TEncodedImage): TGLenum;
+const
+  { From https://www.khronos.org/registry/gles/extensions/IMG/IMG_texture_compression_pvrtc.txt }
+  GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG  = $8C00;
+  GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG  = $8C01;
+  GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = $8C02;
+  GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG = $8C03;
+
+  { https://www.khronos.org/registry/gles/extensions/IMG/IMG_texture_compression_pvrtc2.txt }
+  GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG = $9138;
+  GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG = $9137;
+
+  { https://www.khronos.org/registry/gles/extensions/AMD/AMD_compressed_ATC_texture.txt }
+  GL_ATC_RGB_AMD                     = $8C92;
+  GL_ATC_RGBA_EXPLICIT_ALPHA_AMD     = $8C93;
+  GL_ATC_RGBA_INTERPOLATED_ALPHA_AMD = $87EE;
+
+  { https://www.khronos.org/registry/gles/extensions/OES/OES_compressed_ETC1_RGB8_texture.txt }
+  GL_ETC1_RGB8_OES = $8D64;
+
+  {$ifdef OpenGLES}
+  { Copied from desktop OpenGL.
+    Matching
+    https://www.khronos.org/registry/gles/extensions/NV/NV_texture_compression_s3tc.txt }
+  GL_COMPRESSED_RGB_S3TC_DXT1_EXT = $83F0;
+  GL_COMPRESSED_RGBA_S3TC_DXT1_EXT = $83F1;
+  GL_COMPRESSED_RGBA_S3TC_DXT3_EXT = $83F2;
+  GL_COMPRESSED_RGBA_S3TC_DXT5_EXT = $83F3;
+  {$endif}
+
 begin
   if Img is TCastleImage then
   begin
@@ -162,19 +191,27 @@ begin
                 {$else} TCastleImage(Img).ColorComponentsCount
                 {$endif};
   end else
-  if Img is TS3TCImage then
+  if Img is TGPUCompressedImage then
   begin
-    {$ifdef OpenGLES}
-    raise EImageClassNotSupportedForOpenGL.Create('S3TC compression not supported by OpenGL ES');
-    {$else}
-    case TS3TCImage(Img).Compression of
-      s3tcDxt1_RGB : Result := GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-      s3tcDxt1_RGBA: Result := GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-      s3tcDxt3     : Result := GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-      s3tcDxt5     : Result := GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-      else raise EImageClassNotSupportedForOpenGL.Create('TS3TCImage.Compression not supported by OpenGL');
+    case TGPUCompressedImage(Img).Compression of
+      tcDxt1_RGB        : Result := GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+      tcDxt1_RGBA       : Result := GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+      tcDxt3            : Result := GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+      tcDxt5            : Result := GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+
+      tcPvrtc1_4bpp_RGB : Result := GL_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
+      tcPvrtc1_2bpp_RGB : Result := GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
+      tcPvrtc1_4bpp_RGBA: Result := GL_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
+      tcPvrtc1_2bpp_RGBA: Result := GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
+      tcPvrtc2_4bpp     : Result := GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG;
+      tcPvrtc2_2bpp     : Result := GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG;
+
+      tcATITC_RGB       : Result := GL_ATC_RGB_AMD;
+      tcATITC_RGBA      : Result := GL_ATC_RGBA_EXPLICIT_ALPHA_AMD;
+
+      tcETC1            : Result := GL_ETC1_RGB8_OES;
+      else raise EImageClassNotSupportedForOpenGL.Create('TGPUCompressedImage.Compression not supported by OpenGL');
     end;
-    {$endif}
   end else
     raise EImageClassNotSupportedForOpenGL.CreateFmt('Image class %s cannot be loaded to OpenGL',
       [Img.ClassName]);

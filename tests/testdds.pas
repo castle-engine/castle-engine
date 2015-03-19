@@ -137,7 +137,7 @@ procedure TTestDDS.TestLoadSaveS3TC;
     try
       { load file into DDS }
       DDS.LoadFromFile(FileName);
-      AssertTrue(DDS.Images[0] is TS3TCImage);
+      AssertTrue(DDS.Images[0] is TGPUCompressedImage);
 
       { save DDS into Stream1 }
       DDS.SaveToStream(Stream1);
@@ -145,7 +145,7 @@ procedure TTestDDS.TestLoadSaveS3TC;
       { load Stream1 into DDS }
       Stream1.Position := 0;
       DDS.LoadFromStream(Stream1);
-      AssertTrue(DDS.Images[0] is TS3TCImage);
+      AssertTrue(DDS.Images[0] is TGPUCompressedImage);
 
       { save DDS into Stream2 }
       DDS.SaveToStream(Stream2);

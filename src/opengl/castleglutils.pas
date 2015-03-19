@@ -207,9 +207,8 @@ type
       and gsStandard in practice doesn't exist. }
     TextureCubeMap: TGLSupport;
 
-    { Texture S3TC compression support. This means you can load textures by
-      glCompressedTexImage2DARB and use GL_COMPRESSED_*_S3TC_*_EXT enums. }
-    TextureCompressionS3TC: boolean;
+    { Which texture compression formats are supported. }
+    TextureCompression: TGPUCompressions;
 
     { VBO support (in OpenGL (ES) core). }
     VertexBufferObject: boolean;
@@ -789,10 +788,8 @@ end;
 {$endif}
 
 constructor TGLFeatures.Create;
-{$ifdef OpenGLES}
 var
-  GLESExtensions: string;
-{$endif}
+  SupportedExtensions: string;
 begin
   inherited;
 
@@ -952,12 +949,10 @@ begin
   end else
     CurrentMultiSampling := 1;
 
-  {$ifdef OpenGLES}
-  GLESExtensions := Pchar(glGetString(GL_EXTENSIONS));
-  {$endif}
+  SupportedExtensions := Pchar(glGetString(GL_EXTENSIONS));
 
   PackedDepthStencil :=
-    {$ifdef OpenGLES} glext_ExtensionSupported('GL_OES_packed_depth_stencil', GLESExtensions)
+    {$ifdef OpenGLES} glext_ExtensionSupported('GL_OES_packed_depth_stencil', SupportedExtensions)
     {$else} Load_GL_EXT_packed_depth_stencil
     {$endif};
 
@@ -966,8 +961,49 @@ begin
   TextureNonPowerOfTwo := {$ifdef OpenGLES} true {$else}
     Load_GL_ARB_texture_non_power_of_two or Version_2_0 {$endif};
 
-  TextureCompressionS3TC := {$ifdef OpenGLES} false {$else}
-    Load_GL_ARB_texture_compression and Load_GL_EXT_texture_compression_s3tc {$endif};
+  TextureCompression := [];
+
+  {$ifndef OpenGLES}
+  { on non-OpenGLES, we require ARB_texture_compression for *any* compression
+    format, to have the necessary glCompressedTexImage2DARB call available }
+  if Load_GL_ARB_texture_compression then
+  {$endif}
+  begin
+    { See http://stackoverflow.com/questions/9148795/android-opengl-texture-compression
+      and http://developer.android.com/guide/topics/graphics/opengl.html
+      for possible GPU extensions for compression formats. }
+
+    if glext_ExtensionSupported('GL_OES_texture_compression_S3TC', SupportedExtensions) or
+       glext_ExtensionSupported('GL_EXT_texture_compression_s3tc', SupportedExtensions) or
+       glext_ExtensionSupported('GL_NV_texture_compression_s3tc', SupportedExtensions) then
+      TextureCompression += [tcDxt1_RGB, tcDxt1_RGBA, tcDxt3, tcDxt5];
+
+    if glext_ExtensionSupported('GL_EXT_texture_compression_dxt1', SupportedExtensions) then
+      TextureCompression += [tcDxt1_RGB, tcDxt1_RGBA];
+    if glext_ExtensionSupported('GL_EXT_texture_compression_dxt3', SupportedExtensions) then
+      TextureCompression += [tcDxt3];
+    if glext_ExtensionSupported('GL_EXT_texture_compression_dxt5', SupportedExtensions) then
+      TextureCompression += [tcDxt5];
+
+    if glext_ExtensionSupported('GL_IMG_texture_compression_pvrtc', SupportedExtensions) then
+      TextureCompression += [
+        tcPvrtc1_4bpp_RGB,
+        tcPvrtc1_2bpp_RGB,
+        tcPvrtc1_4bpp_RGBA,
+        tcPvrtc1_2bpp_RGBA];
+
+    if glext_ExtensionSupported('GL_IMG_texture_compression_pvrtc2', SupportedExtensions) then
+      TextureCompression += [
+        tcPvrtc2_4bpp,
+        tcPvrtc2_2bpp];
+
+    if glext_ExtensionSupported('GL_AMD_compressed_ATC_texture', SupportedExtensions) or
+       glext_ExtensionSupported('GL_ATI_texture_compression_atitc', SupportedExtensions) then
+      TextureCompression += [tcATITC_RGB, tcATITC_RGBA];
+
+    if glext_ExtensionSupported('GL_OES_compressed_ETC1_RGB8_texture', SupportedExtensions) then
+      TextureCompression += [tcETC1];
+  end;
 
   VertexBufferObject := {$ifdef OpenGLES} true {$else}
     Version_1_5 and not GLVersion.BuggyVBO {$endif};
@@ -983,7 +1019,7 @@ begin
     {$endif};
 
   TextureDepth :=
-    {$ifdef OpenGLES} glext_ExtensionSupported('GL_OES_depth_texture', GLESExtensions)
+    {$ifdef OpenGLES} glext_ExtensionSupported('GL_OES_depth_texture', SupportedExtensions)
     {$else} Load_GL_ARB_depth_texture
     {$endif};
 end;
@@ -1734,6 +1770,20 @@ const
       Result := 'Framebuffer not available';
   end;
 
+  function GPUCompressionsToString(const Compressions: TGPUCompressions): string;
+  var
+    C: TGPUCompression;
+  begin
+    Result := '';
+    for C := Low(C) to High(C) do
+      if C in Compressions then
+      begin
+        if Result <> '' then Result += ', ';
+        Result += GPUCompressionInfo[C].Name;
+      end;
+    Result := '[' + Result + ']';
+  end;
+
 begin
   Result:=
     'OpenGL information (detected by ' + ApplicationName +'):' +nl+
@@ -1774,7 +1824,7 @@ begin
     '  Vertex Buffer Object: ' + BoolToStr[GLFeatures.VertexBufferObject] +nl+
     '  GenerateMipmap available (and reliable): ' + BoolToStr[HasGenerateMipmap] +nl+
     '  Cube map textures: ' + GLSupportNames[GLFeatures.TextureCubeMap] +nl+
-    '  S3TC compressed textures: ' + BoolToStr[GLFeatures.TextureCompressionS3TC] +nl+
+    '  Compressed textures supported: ' + GPUCompressionsToString(GLFeatures.TextureCompression) +nl+
     '  3D textures: ' + GLSupportNames[GLFeatures.Texture3D] +nl+
     '  Textures non-power-of-2: ' + BoolToStr[GLFeatures.TextureNonPowerOfTwo] +nl+
     '  Blend constant parameter: ' + BoolToStr[GLFeatures.BlendConstant] +nl+

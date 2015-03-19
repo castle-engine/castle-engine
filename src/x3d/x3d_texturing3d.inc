@@ -269,7 +269,7 @@ procedure TComposedTexture3DNode.LoadTextureData;
 
     if not (Tex.TextureImage is TCastleImage) then
     begin
-      OnWarning(wtMinor, 'VRML/X3D', Format('ComposedTexture3D slice %d is an S3TC compressed texture, not allowed (we need to be able to glue 2D textures for 3D texture)',
+      OnWarning(wtMinor, 'VRML/X3D', Format('ComposedTexture3D slice %d is a GPU-compressed texture, not allowed (we need to be able to glue 2D textures for 3D texture)',
         [Index]));
       Exit(nil);
     end;

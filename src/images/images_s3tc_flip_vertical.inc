@@ -197,7 +197,7 @@ begin
   DXT1_Flip4Block(Block);
 end;
 
-procedure TS3TCImage.FlipVertical;
+procedure TGPUCompressedImage.FlipVertical;
 var
   WidthInBlocks: PtrUInt;
 
@@ -216,27 +216,29 @@ var
   FlipBlock: array [2..4] of TS3TCFlipBlockProcedure;
 begin
   case Compression of
-    s3tcDxt1_RGB, s3tcDxt1_RGBA:
+    tcDxt1_RGB, tcDxt1_RGBA:
       begin
         BlockSize := 8;
         FlipBlock[2] := @DXT1_Flip2Block;
         FlipBlock[3] := @DXT1_Flip3Block;
         FlipBlock[4] := @DXT1_Flip4Block;
       end;
-    s3tcDxt3:
+    tcDxt3:
       begin
         BlockSize := 16;
         FlipBlock[2] := @DXT23_Flip2Block;
         FlipBlock[3] := @DXT23_Flip3Block;
         FlipBlock[4] := @DXT23_Flip4Block;
       end;
-    s3tcDxt5:
+    tcDxt5:
       begin
         BlockSize := 16;
         FlipBlock[2] := @DXT45_Flip2Block;
         FlipBlock[3] := @DXT45_Flip3Block;
         FlipBlock[4] := @DXT45_Flip4Block;
       end;
+    else ECannotFlipCompressedImage.CreateFmt('Cannot flip image compressed with GPU compression %s',
+      [GPUCompressionInfo[Compression].Name]);
   end;
 
   WidthInBlocks := DivRoundUp(Width, 4);
@@ -277,6 +279,6 @@ begin
   begin
     { Nothing to do }
   end else
-    raise ECannotFlipS3TCImage.CreateFmt('Cannot flip image compressed with S3TC when image height is not a multiple of 4 (or 1, 2, 3). Image height is %d',
+    raise ECannotFlipCompressedImage.CreateFmt('Cannot flip image compressed with S3TC when image height is not a multiple of 4 (or 1, 2, 3). Image height is %d',
       [Height]);
 end;

@@ -105,7 +105,7 @@ type
 
   { Abstract class for an image with unspecified, possibly compressed,
     memory format. The idea is that both uncompressed images (TCastleImage)
-    and compressed images (TS3TCImage) are derived from this class. }
+    and images compressed for GPU (TGPUCompressedImage) are derived from this class. }
   TEncodedImage = class
   private
     FWidth, FHeight, FDepth: Cardinal;
@@ -705,10 +705,15 @@ type
 
   TEncodedImageList = specialize TFPGObjectList<TEncodedImage>;
 
-  TS3TCCompression = (
-    { s3tcDxt1_RGB and s3tcDxt1_RGBA are the same compression method,
-      except in s3tcDxt1_RGB the alpha information is ignored,
-      while in s3tcDxt1_RGBA we have simple yes/no alpha.
+  { Possible compression of textures for GPU. }
+  TGPUCompression = (
+    { S3TC DXT1 compression, for RGB images with no alpha or simple yes/no alpha.
+      This compression format is often supported by desktop OpenGL implementations.
+      See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC.
+
+      tcDxt1_RGB and tcDxt1_RGBA are the same compression method,
+      except in tcDxt1_RGB the alpha information is ignored while rendering,
+      while in tcDxt1_RGBA the rendering assumes we have simple yes/no alpha.
 
       The difference is equivalent to OpenGL differences in treating
       @unorderedList(
@@ -717,26 +722,65 @@ type
         @item GL_COMPRESSED_RGBA_S3TC_DXT1_EXT.
       )
     }
-    s3tcDxt1_RGB,
-    s3tcDxt1_RGBA,
+    tcDxt1_RGB,
 
-    { DXT3 and DXT5 are always treated like they had full-range alpha channel. }
-    s3tcDxt3,
-    s3tcDxt5);
+    { S3TC DXT1 compression, @bold(for RGB images with no alpha or simple yes/no alpha).
+      See above tcDxt1_RGB description for details. }
+    tcDxt1_RGBA,
 
-  ECannotFlipS3TCImage = class(Exception);
+    { S3TC DXT3 compression, @bold(for RGBA images with full alpha channel),
+      best for images with sharp alpha transitions.
+      This compression format is often supported by desktop OpenGL implementations.
+      See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC. }
+    tcDxt3,
 
-  { Image encoded with S3TC compression. }
-  TS3TCImage = class(TEncodedImage)
+    { S3TC DXT3 compression, @bold(for RGBA images with full alpha channel),
+      best for images with smooth alpha transitions.
+      This compression format is often supported by desktop OpenGL implementations.
+      See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC. }
+    tcDxt5,
+
+    { PVRTC texture compression format.
+      Supported by some Android and iOS devices.
+      See http://en.wikipedia.org/wiki/PVRTC .
+
+      TODO: Add tcPvrtc2_4bpp to mark that alpha should be ignored?
+      Compression format is the same, but rendering differs?
+      Or not --- TextureProperties in VRML/X3D can override alpha
+      channel detection, likewise TGLImage.Alpha can be overridden. }
+    tcPvrtc1_4bpp_RGB,
+    tcPvrtc1_2bpp_RGB,
+    tcPvrtc1_4bpp_RGBA,
+    tcPvrtc1_2bpp_RGBA,
+    tcPvrtc2_4bpp,
+    tcPvrtc2_2bpp,
+
+    { ATI texture compression format, @bold(without alpha).
+      Supported by some Android devices (Adreno GPU from Qualcomm). }
+    tcATITC_RGB,
+
+    { ATI texture compression format, @bold(with alpha).
+      Supported by some Android devices (Adreno GPU from Qualcomm). }
+    tcATITC_RGBA,
+
+    { ETC texture compression, @bold(without alpha).
+      See http://en.wikipedia.org/wiki/Ericsson_Texture_Compression . }
+    tcETC1
+  );
+  TGPUCompressions = set of TGPUCompression;
+
+  ECannotFlipCompressedImage = class(Exception);
+
+  { Image compressed using one of the GPU texture compression algorithms. }
+  TGPUCompressedImage = class(TEncodedImage)
   private
-    FCompression: TS3TCCompression;
+    FCompression: TGPUCompression;
     FSize: Cardinal;
   public
-    constructor Create(const AWidth, AHeight: Cardinal;
-      const ADepth: Cardinal;
-      const ACompression: TS3TCCompression);
+    constructor Create(const AWidth, AHeight, ADepth, ADataSize: Cardinal;
+      const ACompression: TGPUCompression);
 
-    property Compression: TS3TCCompression read FCompression;
+    property Compression: TGPUCompression read FCompression;
 
     { Size of the whole image data inside RawPixels, in bytes. }
     function Size: Cardinal; override;
@@ -747,43 +791,46 @@ type
 
     { Flip compressed image vertically, losslessly.
 
-      This usese the knowledge of how S3TC compression works,
-      how the data is coded for each 4x4 block,
+      This works only for (some) S3TC images.
+      It uses the knowledge of how S3TC compression works
       to losslessly flip the image, without re-compressing it.
       The idea is described here
       [http://users.telenet.be/tfautre/softdev/ddsload/explanation.htm].
 
-      @raises(ECannotFlipS3TCImage
-        Raises ECannotFlipS3TCImage when image Height is not 1, 2, 3
+      @raises(ECannotFlipCompressedImage
+        Raised when image Height is not 1, 2, 3
         or a multiple of 4 (since the trick doesn't work in these cases,
         pixels would move between 4x4 blocks). Note that if Height
         is a power of two (as common for OpenGL textures) then it's
         always possible to make a flip.) }
     procedure FlipVertical;
 
-    { Decompress S3TC image.
+    { Decompress the image.
 
-      This uses DecompressS3TC variable, so you have to initialialize it
-      first (for example to GLImage.GLDecompressS3TC) before using this.
+      This uses DecompressTexture variable, so you have to initialialize it
+      first (for example to CastleGLImages.GLDecompressTexture) before using this.
 
-      @raises(ECannotDecompressS3TC If cannot decompress S3TC,
-        because decompressor is not set and there was some other error
+      @raises(ECannotDecompressTexture If we cannot decompress the texture,
+        because decompressor is not set or there was some other error
         within decompressor.) }
     function Decompress: TCastleImage;
 
-    function MakeCopy: TS3TCImage;
+    function MakeCopy: TGPUCompressedImage;
   end;
 
-  ECannotDecompressS3TC = class(Exception);
+  { Deprecated alias for TGPUCompressedImage }
+  TS3TCImage = TGPUCompressedImage deprecated;
 
-  TDecompressS3TCFunction = function (Image: TS3TCImage): TCastleImage;
+  ECannotDecompressTexture = class(Exception);
+
+  TDecompressTextureFunction = function (Image: TGPUCompressedImage): TCastleImage;
 
 var
-  { Assign here S3TC decompression function that is available.
+  { Assign here texture decompression function that is available.
     This way the "decompressor" is pluggable, which means that
-    you can even use OpenGL to decompress S3TC textures, if you're going
+    you can even use OpenGL to decompress textures, if you're going
     to load images while some OpenGL context is active. }
-  DecompressS3TC: TDecompressS3TCFunction;
+  DecompressTexture: TDecompressTextureFunction;
 
 { TCastleImageClass and arrays of TCastleImageClasses ----------------------------- }
 
@@ -1789,6 +1836,33 @@ const
   AlphaToString: array [TAutoAlphaChannel] of string =
   ('AUTO', 'NONE', 'SIMPLE_YES_NO', 'FULL_RANGE');
 
+type
+  TGPUCompressionInfo = object
+    Name: string;
+    RequiresPowerOf2: boolean;
+    AlphaChannel: TAlphaChannel;
+  end;
+
+const
+  GPUCompressionInfo: array [TGPUCompression] of TGPUCompressionInfo =
+  ( (Name: 'DXT1 (ignore alpha)'; RequiresPowerOf2: true ; AlphaChannel: acNone),
+    (Name: 'DXT1'               ; RequiresPowerOf2: true ; AlphaChannel: acSimpleYesNo),
+    (Name: 'DXT3'               ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
+    (Name: 'DXT5'               ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
+    { See http://community.imgtec.com/files/pvrtc-texture-compression-user-guide/
+      "PVRTC2 vs PVRTC1" section --- PVRTC1 require power-of-two. } { }
+    (Name: 'PVRTC1_4bpp_RGB'    ; RequiresPowerOf2: true ; AlphaChannel: acNone),
+    (Name: 'PVRTC1_2bpp_RGB'    ; RequiresPowerOf2: true ; AlphaChannel: acNone),
+    (Name: 'PVRTC1_4bpp_RGBA'   ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
+    (Name: 'PVRTC1_2bpp_RGBA'   ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
+    (Name: 'PVRTC2_4bpp'        ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
+    (Name: 'PVRTC2_2bpp'        ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
+    { TODO: unconfirmed RequiresPowerOf2 values below, using safest for now. } { }
+    (Name: 'ATITC_RGB'          ; RequiresPowerOf2: true ; AlphaChannel: acNone),
+    (Name: 'ATITC_RGBA'         ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
+    (Name: 'ETC1'               ; RequiresPowerOf2: true ; AlphaChannel: acNone)
+  );
+
 {$undef read_interface}
 
 implementation
@@ -2643,77 +2717,53 @@ begin
     '  FreeAndNil(' +ImageName+ ');' +nl;
 end;
 
-{ TS3TCImage ----------------------------------------------------------------- }
+{ TGPUCompressedImage ----------------------------------------------------------------- }
 
-constructor TS3TCImage.Create(const AWidth, AHeight: Cardinal;
-  const ADepth: Cardinal;
-  const ACompression: TS3TCCompression);
+constructor TGPUCompressedImage.Create(
+  const AWidth, AHeight, ADepth, ADataSize: Cardinal;
+  const ACompression: TGPUCompression);
 begin
   inherited Create;
   FWidth := AWidth;
   FHeight := AHeight;
   FDepth := ADepth;
   FCompression := ACompression;
-
-  { All DXT* compression methods compress 4x4 pixels into some constant size.
-    When Width / Height is not divisible by 4, we have to round up.
-
-    This matches what MSDN docs say about DDS with mipmaps:
-    http://msdn.microsoft.com/en-us/library/bb205578(VS.85).aspx
-    When mipmaps are used, DDS Width/Height must be power-of-two,
-    so the base level is usually divisible by 4. But on the following mipmap
-    levels the size decreases, eventually to 1x1, so this still matters.
-    And MSDN says then explicitly that with DXT1, you have always
-    minimum 8 bytes, and with DXT2-5 minimum 16 bytes.
-  }
-
-  case Compression of
-    s3tcDxt1_RGB,
-    s3tcDxt1_RGBA: FSize := Depth * DivRoundUp(Width, 4) * DivRoundUp(Height, 4) * 8 { 8 bytes for each 16 pixels };
-    s3tcDxt3,
-    s3tcDxt5: FSize := Depth * DivRoundUp(Width, 4) * DivRoundUp(Height, 4) * 16 { 16 bytes for each 16 pixels };
-    else EInternalError.Create('TS3TCImage.Create-Compression?');
-  end;
-
+  FSize := ADataSize;
   FRawPixels := GetMem(FSize);
 end;
 
-function TS3TCImage.Size: Cardinal;
+function TGPUCompressedImage.Size: Cardinal;
 begin
   Result := FSize;
 end;
 
-function TS3TCImage.HasAlpha: boolean;
+function TGPUCompressedImage.HasAlpha: boolean;
 begin
-  Result := Compression in [s3tcDxt1_RGBA, s3tcDxt3, s3tcDxt5];
+  Result := GPUCompressionInfo[Compression].AlphaChannel <> acNone;
 end;
 
-function TS3TCImage.AlphaChannel(
+function TGPUCompressedImage.AlphaChannel(
   const AlphaTolerance: Byte): TAlphaChannel;
 begin
-  { S3TCImage doesn't analyze for alpha channel, instead simply assumes
-    image is always full-range alpha it if has alpha channel. }
-  case Compression of
-    s3tcDxt1_RGB : Result := acNone;
-    s3tcDxt1_RGBA: Result := acSimpleYesNo;
-    s3tcDxt3, s3tcDxt5: Result := acFullRange;
-  end;
+  { Compressed data doesn't analyze alpha channel, instead
+    we determine alpha channel from the compression type. }
+  Result := GPUCompressionInfo[Compression].AlphaChannel;
 end;
 
 {$I images_s3tc_flip_vertical.inc}
 
-function TS3TCImage.Decompress: TCastleImage;
+function TGPUCompressedImage.Decompress: TCastleImage;
 begin
-  if Assigned(DecompressS3TC) then
-    Result := DecompressS3TC(Self) else
-    raise ECannotDecompressS3TC.Create('Cannot decompress S3TC image: no decompressor initialized');
+  if Assigned(DecompressTexture) then
+    Result := DecompressTexture(Self) else
+    raise ECannotDecompressTexture.Create('Cannot decompress GPU-compressed texture: no decompressor initialized');
 end;
 
-function TS3TCImage.MakeCopy: TS3TCImage;
+function TGPUCompressedImage.MakeCopy: TGPUCompressedImage;
 begin
-  Result := TS3TCImage.Create(Width, Height, Depth, Compression);
-  Assert(Result.Size = Size);
+  Result := TGPUCompressedImage.Create(Width, Height, Depth, Size, Compression);
   Move(RawPixels^, Result.RawPixels^, Size);
+  Result.URL := URL;
 end;
 
 { TCastleImageClass and arrays of TCastleImageClasses ----------------------------- }

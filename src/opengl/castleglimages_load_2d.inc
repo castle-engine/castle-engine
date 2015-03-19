@@ -123,7 +123,7 @@ var
     Filter value, since mipmaps cannot work without power-of-two.)
 
   @raises(ETextureLoadError If texture cannot be loaded for whatever reason.
-    This includes ECannotLoadS3TCTexture if the S3TC texture cannot be
+    This includes ECannotLoadCompressedTexture if the compressed texture cannot be
     loaded for whatever reason.
     This includes EInvalidImageForOpenGLTexture if Image class is invalid
     for an OpenGL texture.)
@@ -165,13 +165,13 @@ procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId; const image: TEn
   const GUITexture: boolean = false); overload;
 { @groupEnd }
 
-{ Decompress S3TC image by loading it to temporary OpenGL texture and
+{ Decompress texture image by loading it to temporary OpenGL texture and
   reading back. So this internally uses current OpenGL context.
 
-  @raises(ECannotLoadS3TCTexture If cannot decompress S3TC, for example
-    because we cannot load to OpenGL this S3TC texture (because OpenGL S3TC
-    extensions are not available, or such).) }
-function GLDecompressS3TC(Image: TS3TCImage): TCastleImage;
+  @raises(ECannotLoadCompressedTexture If cannot decompress S3TC, for example
+    because we cannot load to OpenGL this compressed texture (for example
+    because appropriate OpenGL extensions are not available, or such).) }
+function GLDecompressTexture(Image: TGPUCompressedImage): TCastleImage;
 
 {$endif read_interface}
 
@@ -260,36 +260,36 @@ begin
   finally Image.Free end;
 end;
 
-{$ifndef OpenGLES}
-{ Load Image through glCompressedTexImage2DARB.
-  This checks existence of OpenGL extensions for S3TC,
+{ Load Image through glCompressedTexImage2D[ARB].
+  This checks existence of OpenGL extensions for Image compression format,
   and checks Image sizes.
   It also takes care of pixel packing, although actually nothing needs
   be done about it when using compressed textures.
 
   Level = 0 for base (not a mipmap sublevel) image.
 
-  @raises(ECannotLoadS3TCTexture If texture size is bad or OpenGL S3TC
-    extensions are missing.) }
-procedure glCompressedTextureImage2D(Image: TS3TCImage; Level: TGLint;
+  @raises(ECannotLoadCompressedTexture If texture size is bad or necessary
+    OpenGL extensions (for the image compression type) are missing.) }
+procedure glCompressedTextureImage2D(Image: TGPUCompressedImage; Level: TGLint;
   var LoadedSize: Int64);
 begin
-  if not GLFeatures.TextureCompressionS3TC then
-    raise ECannotLoadS3TCTexture.Create('Cannot load S3TC compressed textures: OpenGL doesn''t support one (or both) of ARB_texture_compression and EXT_texture_compression_s3tc extensions');
+  if not (Image.Compression in GLFeatures.TextureCompression) then
+    raise ECannotLoadCompressedTexture.CreateFmt('Cannot load textures compressed using %s, your OpenGL/OpenGLES does not support the necessary extensions',
+      [GPUCompressionInfo[Image.Compression].Name]);
 
-  if not IsTextureSized(Image, tsRequiredPowerOf2) then
-    raise ECannotLoadS3TCTexture.CreateFmt('Cannot load S3TC compressed textures: texture size is %d x %d, it''s not correct for OpenGL, and we cannot resize on CPU compressed textures',
-      [Image.Width, Image.Height]);
+  if GPUCompressionInfo[Image.Compression].RequiresPowerOf2 and
+     not IsTextureSized(Image, tsRequiredPowerOf2) then
+    raise ECannotLoadCompressedTexture.CreateFmt('Cannot load compressed textures: texture size is %d x %d, it''s not a power-of-2. Textures compressed with %s must be provided with power-of-2 sizes.',
+      [Image.Width, Image.Height, GPUCompressionInfo[Image.Compression].Name]);
 
   { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
     doesn't affect loading compressed textures, as far as I understand.
     So no need to call it. }
-  glCompressedTexImage2DARB(GL_TEXTURE_2D, Level, ImageGLInternalFormat(Image),
-    Image.Width, Image.Height, 0, Image.Size,
-    Image.RawPixels);
+  {$ifdef OpenGLES} glCompressedTexImage2D {$else} glCompressedTexImage2DARB {$endif}
+    (GL_TEXTURE_2D, Level, ImageGLInternalFormat(Image),
+      Image.Width, Image.Height, 0, Image.Size, Image.RawPixels);
   LoadedSize += Image.Size;
 end;
-{$endif}
 
 procedure CalculateImageRightSize(
   const Image: TCastleImage; const GUITexture: boolean;
@@ -359,7 +359,6 @@ var
     glTexImage2DImage(Image, 0);
   end;
 
-  {$ifndef OpenGLES}
   { Check should we load mipmaps from DDS. Load them, if yes.
 
     If LoadBase this also loads the base image (mipmap level 0).
@@ -376,10 +375,12 @@ var
     gets used.
     Using LoadBase automatically workarounds this. }
   function LoadMipmapsFromDDS(DDS: TDDSImage; LoadBase: boolean): boolean;
+  {$ifndef OpenGLES}
   var
     I, FromLevel: Integer;
     ImageRightSize: TCastleImage;
     ImageRightSizeFree: boolean;
+  {$endif}
   begin
     Result := (DDS <> nil) and DDS.Mipmaps;
     if Result and (DDS.DDSType <> dtTexture) then
@@ -388,6 +389,10 @@ var
       Result := false;
     end;
 
+    {$ifdef OpenGLES}
+    OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
+    Exit(false);
+    {$else}
     if Result and (not GLFeatures.Version_1_2) then
     begin
       OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
@@ -413,12 +418,14 @@ var
               ImageRightSize := nil;
           end;
         end else
-        if DDS.Images[I] is TS3TCImage then
-          glCompressedTextureImage2D(TS3TCImage(DDS.Images[I]), I, LoadedSize) else
+        if DDS.Images[I] is TGPUCompressedImage then
+          glCompressedTextureImage2D(TGPUCompressedImage(DDS.Images[I]), I, LoadedSize) else
           raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
     end;
+    {$endif}
   end;
 
+  {$ifndef OpenGLES}
   { Calls gluBuild2DMipmaps for given image.
     Takes care of OpenGL unpacking (alignment etc.).
     gluBuild2DMipmaps doesn't require size to be a power of 2, so no problems
@@ -439,18 +446,18 @@ var
 
   procedure LoadMipmapped(const image: TCastleImage);
   begin
-    {$ifndef OpenGLES}
     if not LoadMipmapsFromDDS(DDSForMipmaps, true) then
     if HasGenerateMipmap then
     begin
-    {$endif}
       glTexImage2DImage(Image, 0);
       { hardware-accelerated mipmap generation }
       GenerateMipmap(GL_TEXTURE_2D);
       LoadedSize += TTextureMemoryProfiler.MipmapsSize(Image);
-    {$ifndef OpenGLES}
     end else
+    {$ifndef OpenGLES}
       gluBuild2DMipmapsImage(Image);
+    {$else}
+      raise ETextureLoadError.Create('Cannot load texture on OpenGLES using gluBuild2DMipmapsImage. On OpenGLES, GenerateMipmap should always be available, so this should not happen.');
     {$endif}
   end;
 
@@ -491,11 +498,10 @@ begin
         ImageRightSize := nil;
     end;
   end else
-  {$ifndef OpenGLES}
-  if Image is TS3TCImage then
+  if Image is TGPUCompressedImage then
   begin
     { Load compressed }
-    glCompressedTextureImage2D(TS3TCImage(Image), 0, LoadedSize);
+    glCompressedTextureImage2D(TGPUCompressedImage(Image), 0, LoadedSize);
 
     if Filter.NeedsMipmaps then
     begin
@@ -508,7 +514,7 @@ begin
         begin
           { Update GL_TEXTURE_MIN_FILTER, since we already initialized it earlier. }
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-          OnWarning(wtMinor, 'Texture', 'Creating mipmaps for S3TC compressed textures requires GenerateMipmap functionality, will fallback to GL_LINEAR minification: ' + E.Message);
+          OnWarning(wtMinor, 'Texture', 'Creating mipmaps for compressed textures requires GenerateMipmap functionality, but it is not available. We will fallback to GL_LINEAR minification: ' + E.Message);
         end;
       end;
     end;
@@ -516,13 +522,12 @@ begin
     TextureMemoryProfiler.Allocate(TextureId, Image.URL, Image.ClassName, LoadedSize,
       Filter.NeedsMipmaps, Image.Width, Image.Height, 1);
   end else
-  {$endif}
     raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
 end;
 
-{ GLDecompressS3TC ------------------------------------------------------------- }
+{ GLDecompressTexture ------------------------------------------------------------- }
 
-function GLDecompressS3TC(Image: TS3TCImage): TCastleImage;
+function GLDecompressTexture(Image: TGPUCompressedImage): TCastleImage;
 
 {$ifndef OpenGLES}
 var
@@ -540,7 +545,7 @@ begin
     and no problem on Mac OS X with the same GPU (also chantal, 32bit, fpc 2.2.4).
     So I'm assuming it's fglrx-specific bug. }
   if GLVersion.Fglrx and ( (Image.Width < 4) or (Image.Height < 4) ) then
-    raise ECannotDecompressS3TC.CreateFmt('Cannot decompress S3TC texture: fglrx (proprietary Radeon drivers on Linux) may awfully crash when one of texture sizes is smaller than 4, and your texture size is %d x %d',
+    raise ECannotDecompressTexture.CreateFmt('Cannot decompress texture: fglrx (proprietary Radeon drivers on Linux) may awfully crash when one of texture sizes is smaller than 4, and your texture size is %d x %d',
       [Image.Width, Image.Height]);
 
   try
@@ -549,18 +554,14 @@ begin
     TextureMemoryProfiler.Allocate(Tex, Image.URL, Image.ClassName,
       LoadedSize, false, Image.Width, Image.Height, 1);
   except
-    { catch ECannotLoadS3TCTexture and change it to ECannotDecompressS3TC }
-    on E: ECannotLoadS3TCTexture do
-      raise ECannotDecompressS3TC.Create('Cannot decompress S3TC texture: ' + E.Message);
+    { catch ECannotLoadCompressedTexture and change it to ECannotDecompressTexture }
+    on E: ECannotLoadCompressedTexture do
+      raise ECannotDecompressTexture.Create('Cannot decompress texture: ' + E.Message);
   end;
 
-  case Image.Compression of
-    s3tcDxt1_RGB: Result := TRGBImage.Create(Image.Width, Image.Height, Image.Depth);
-    s3tcDxt1_RGBA,
-    s3tcDxt3,
-    s3tcDxt5: Result := TRGBAlphaImage.Create(Image.Width, Image.Height, Image.Depth);
-    else raise EInternalError.Create('GLDecompressS3TC-Compression?');
-  end;
+  if Image.HasAlpha then
+    Result := TRGBImage.Create(Image.Width, Image.Height, Image.Depth) else
+    Result := TRGBAlphaImage.Create(Image.Width, Image.Height, Image.Depth);
 
   BeforePackImage(PackData, Result);
   try
@@ -573,7 +574,11 @@ end;
 
 {$else}
 begin
-  raise ECannotDecompressS3TC.Create('Cannot decompress S3TC texture on OpenGL ES');
+  { glGetTexImage is not available on OpenGLES, so the above trick
+    will not work on OpenGLES. TODO: We need more elaborate way to do this
+    (namely, we need to simply draw the texture to an uncompressed texture,
+    e.g. using TGLRenderToTexture. }
+  raise ECannotDecompressTexture.Create('Cannot decompress texture on OpenGL ES');
   Result := nil; // get rid of warning
 end;
 {$endif}

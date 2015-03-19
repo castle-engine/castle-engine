@@ -19,7 +19,7 @@
 
   Texture is any TEncodedImage instance. This includes not only
   a traditional 2D/3D matrix of pixels represented as TCastleImage,
-  but also a compressed texture, TS3TCImage. Moreover, a texture
+  but also a texture compressed for GPU (TGPUCompressedImage). Moreover, a texture
   may have mipmaps defined --- they are stored inside TDDSImage
   instance (that contains a list of TEncodedImage).
 
@@ -44,20 +44,21 @@ const
 
   { All image classes that may be handled by OpenGL.
     Some of them may require specific OpenGL extensions or versions
-    (like S3TC or float textures). }
+    (like GPU-compressed or float textures). }
   TextureImageClassesAll: array [0..5] of TEncodedImageClass = (
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,
     TGrayscaleAlphaImage,
-    TS3TCImage,
+    TGPUCompressedImage,
     TRGBFloatImage);
 
 { Load image suitable for a texture.
   This will load image to memory formats supported by common
   3D libraries (like OpenGL), for example it will never return TRGBFloatImage
   (although OpenGL may support it, but we cannot be sure at this point).
-  It may return S3TC encoded image.
+  It may return texture compressed using one of the GPU compression algorithms
+  (see TGPUCompression).
 
   If the image comes from a DDS file, it will also return it
   (if not, DDS returned will be @nil). This allows you to e.g. use

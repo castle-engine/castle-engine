@@ -62,7 +62,7 @@ begin
     if SaveDecomposed then
     begin
       if not (DImg.Images[0] is TCastleImage) then
-        raise Exception.CreateFmt('Cannot save S3TC compressed images (image class is %s)',
+        raise Exception.CreateFmt('Cannot save GPU compressed images (image class is %s)',
           [DImg.Images[0].ClassName]);
 
       OutputBaseName := ExtractURIPath(Parameters[1]) +

@@ -727,7 +727,7 @@ end;
 procedure TGLSingleTextureNode.SetTextureRGBFromImage(Image: TEncodedImage);
 begin
   TextureRGB :=
-    (Image is TS3TCImage) or
+    (Image is TGPUCompressedImage) or
     (Image is TRGBImage) or
     (Image is TRGBAlphaImage) or
     (Image is TRGBFloatImage);

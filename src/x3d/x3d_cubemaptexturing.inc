@@ -54,8 +54,10 @@
     { Make sure all 6 sides are loaded.
       Make sure that all 6 fields for each cube map side are assigned,
       are TAbstractTexture2DNode instance (X3D spec requires it),
-      load them, and check are they TCastleImage (not just TEncodedImage;
-      loading S3TC cube map sides to OpenGL is not available).
+      load them, and check are they TCastleImage (we cannot suport
+      TGPUCompressedImage when loading cubemaps this way,
+      as we have to rotate images from ComposedCubeMapTextureNode
+      when passing them to GPU, which is only possible for TCastleImage).
 
       Also calculate AlphaChannel for the whole cube map.
       Our AlphaChannel method will reflect the state from
@@ -203,7 +205,7 @@ function TComposedCubeMapTextureNode.LoadSides: boolean;
 
       if Result and not (SideTex.TextureImage is TCastleImage) then
       begin
-        OnWarning(wtMinor, 'VRML/X3D', 'ComposedCubeMapTexture cannot contain S3TC images, as we have to rotate images within, and we cannot do this (fast) with compressed textures');
+        OnWarning(wtMinor, 'VRML/X3D', 'ComposedCubeMapTexture cannot contain images compressed GPU-compression algorithms, as we have to rotate images within, and we cannot do this (fast) with compressed textures');
         Result := false;
       end;
     end;

@@ -169,17 +169,20 @@ type
       it may or may not replace it with new images). }
     procedure Flatten3d;
 
-    { Decompress S3TC images (if any) on the @link(Images) list,
+    { Decompress texture images (if any) on the @link(Images) list,
       replacing them with uncompressed equivalents.
+      This can be used to decompress textures compressed using
+      GPU compression algorithms, see @link(TGPUCompression).
+      See TGPUCompressedImage.Decompress.
 
-      Just like Flatten3d:
+      Just like @link(Flatten3d):
       Note that this may free all Images (possibly even whole Images object),
       disregarding OwnsFirstImage (as it would be difficult, since
       it may or may not replace it with new images).
 
-      @raises(ECannotDecompressS3TC If some S3TC image cannot be decompressed
-        for whatever reason.) }
-    procedure DecompressS3TC;
+      @raises(ECannotDecompressTexture If some image cannot be decompressed
+        for any reason.) }
+    procedure DecompressTexture;
 
     { Does this URL look like it contains DDS contents. Guesses looking
       at filename extension. }
@@ -538,6 +541,19 @@ procedure TDDSImage.LoadFromStream(Stream: TStream);
   begin
     if not Check then
       OnWarning(wtMajor, 'DDS image', Message);
+  end;
+
+  function CalculateMipmapSize(W, H, D: Cardinal; const BaseSize, MipmapLevel: Cardinal): Int64;
+  var
+    I: Integer;
+  begin
+    Result := BaseSize;
+    for I := 1 to MipmapLevel do
+    begin
+      if W > 1 then begin W := W div 2; Result := Result div 2; end;
+      if H > 1 then begin H := H div 2; Result := Result div 2; end;
+      if D > 1 then begin D := D div 2; Result := Result div 2; end;
+    end;
   end;
 
 var
@@ -962,41 +978,80 @@ var
         end;
       end { ReadUncompressed };
 
-      procedure ReadCompressed(Compression: TS3TCCompression);
+      procedure ReadCompressed(Compression: TGPUCompression);
       var
-        { Within ReadUncompressed, Result is always of TS3TCImage class }
-        Res: TS3TCImage absolute Result;
+        { Within ReadUncompressed, Result is always of TGPUCompressedImage class }
+        Res: TGPUCompressedImage absolute Result;
+        ExplicitSize, CorrectSize: Int64;
+        HasExplicitSize: boolean;
       begin
-        Result := TS3TCImage.Create(Width, Height, Depth, Compression);
+        { calculate ExplicitSize, HasExplicitSize from file }
+        ExplicitSize := Header.PitchOrLinearSize;
+        HasExplicitSize :=
+          (Header.Flags and DDSD_LINEARSIZE <> 0) and
+          { It seems there are textures with DDSD_LINEARSIZE set but
+            PitchOrLinearSize 0, and we should ignore
+            PitchOrLinearSize then (e.g. ~/images/dds_tests/greek_imperial_swordsman.tga.dds
+            on chantal). Same for PitchOrLinearSize = -1
+            (e.g. UberPack-1/Torque3D/levels/lonerock_island/
+            inside UberPack-1 on opengameart.org). }
+          (ExplicitSize <> 0) and
+          (ExplicitSize <> High(LongWord));
 
-        if (Header.Flags and DDSD_LINEARSIZE <> 0) and
-           { It seems there are textures with DDSD_LINEARSIZE set but
-             PitchOrLinearSize 0, and we should ignore
-             PitchOrLinearSize then (e.g. ~/images/dds_tests/greek_imperial_swordsman.tga.dds
-             on chantal). Same for PitchOrLinearSize = -1
-             (e.g. UberPack-1/Torque3D/levels/lonerock_island/
-             inside UberPack-1 on opengameart.org). }
-           (Header.PitchOrLinearSize <> 0) and
-           (Header.PitchOrLinearSize <> High(LongWord)) and
-           { Checl this only for level 0 of mipmap level }
-           (MipmapLevel = 0) and
-           (Header.PitchOrLinearSize <> Res.Size) then
-          OnWarning(wtMajor, 'DDS', Format('DDS header indicates different S3TC compressed image size (%d) than our image unit (%d)',
-             { convert to Int64, as passing LongWord directly to
-               "array of const" will cause range check error
-               in case of values > High(LongInt) }
-            [Int64(Header.PitchOrLinearSize),
-             Int64(Res.Size)]));
+        { check ExplicitSize, HasExplicitSize,
+          and update CorrectSize to always be Ok }
+        case Compression of
+          tcDxt1_RGB,
+          tcDxt1_RGBA:
+            begin
+              { All DXT* compression methods compress 4x4 pixels into some constant size.
+                When Width / Height is not divisible by 4, we have to round up.
+
+                This matches what MSDN docs say about DDS with mipmaps:
+                http://msdn.microsoft.com/en-us/library/bb205578(VS.85).aspx
+                When mipmaps are used, DDS Width/Height must be power-of-two,
+                so the base level is usually divisible by 4. But on the following mipmap
+                levels the size decreases, eventually to 1x1, so this still matters.
+                And MSDN says then explicitly that with DXT1, you have always
+                minimum 8 bytes, and with DXT2-5 minimum 16 bytes.
+              }
+
+              CorrectSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 8 { 8 bytes for each 16 pixels };
+              if HasExplicitSize and (CorrectSize <> ExplicitSize) then
+                raise EInvalidDDS.Create('Incorrect size for DXT1 compressed texture');
+            end;
+          tcDxt3,
+          tcDxt5:
+            begin
+              CorrectSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 16 { 16 bytes for each 16 pixels };
+              if HasExplicitSize and (CorrectSize <> ExplicitSize) then
+                raise EInvalidDDS.Create('Incorrect size for DXT3/5 compressed texture');
+            end;
+          else
+            begin
+              if not HasExplicitSize then
+                raise EInvalidDDS.CreateFmt('DDS must explicitly specify size (DDSD_LINEARSIZE) for compression %s',
+                  [GPUCompressionInfo[Compression].Name]);
+              CorrectSize := ExplicitSize;
+            end;
+        end;
+
+        { modify CorrectSize for MipmapLevel <> 0 }
+        CorrectSize := CalculateMipmapSize(FWidth, FHeight, FDepth,
+          CorrectSize, MipmapLevel);
+
+        Result := TGPUCompressedImage.Create(Width, Height, Depth,
+          CorrectSize, Compression);
 
         Stream.ReadBuffer(Res.RawPixels^, Res.Size);
 
         try
           Res.FlipVertical;
         except
-          { Change ECannotFlipS3TCImage into OnWarning,
+          { Change ECannotFlipCompressedImage into OnWarning,
             image will be inverted but otherwise Ok. }
-          on E: ECannotFlipS3TCImage do
-            OnWarning(wtMinor, 'S3TC', E.Message);
+          on E: ECannotFlipCompressedImage do
+            OnWarning(wtMinor, 'GPUCompressedTexture', E.Message);
         end;
       end;
 
@@ -1037,12 +1092,17 @@ var
               or not some transparent pixels. (DDPF_ALPHAPIXELS is never
               specified for compressed formats.)
               Theoreticall, every DXT1 image may have some transparent pixels,
-              so use s3tcDxt1_RGBA. }
-            ReadCompressed(s3tcDxt1_RGBA) else
+              so use tcDxt1_RGBA. }
+            ReadCompressed(tcDxt1_RGBA) else
           if Header.PixelFormat.FourCC = 'DXT3' then
-            ReadCompressed(s3tcDxt3) else
+            ReadCompressed(tcDxt3) else
           if Header.PixelFormat.FourCC = 'DXT5' then
-            ReadCompressed(s3tcDxt5) else
+            ReadCompressed(tcDxt5) else
+          if Header.PixelFormat.FourCC = 'ATCI' then
+            ReadCompressed(tcATITC_RGB) else
+          if Header.PixelFormat.FourCC = 'ACTA' then
+            ReadCompressed(tcATITC_RGBA) else
+          { TODO: ETC1 formats? PVRTC formats? }
           if (Header.PixelFormat.FourCCLW = D3DFMT_R16F) or
              (Header.PixelFormat.FourCCLW = D3DFMT_G16R16F) or
              (Header.PixelFormat.FourCCLW = D3DFMT_A16B16G16R16F) or
@@ -1256,10 +1316,10 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
       Header.PitchOrLinearSize := Width * TCastleImage(Images[0]).PixelSize;
       Header.Flags := Header.Flags or DDSD_PITCH;
     end else
-    if Images[0] is TS3TCImage then
+    if Images[0] is TGPUCompressedImage then
     begin
       { For compressed image, PitchOrLinearSize is image length }
-      Header.PitchOrLinearSize := TS3TCImage(Images[0]).Size;
+      Header.PitchOrLinearSize := TGPUCompressedImage(Images[0]).Size;
       Header.Flags := Header.Flags or DDSD_LINEARSIZE;
     end else
       raise Exception.CreateFmt('Cannot save image class %s to DDS file', [Images[0].ClassName]);
@@ -1303,15 +1363,18 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
       Header.PixelFormat.BBitMask := $00ff0000;
       Header.PixelFormat.ABitMask := $ff000000;
     end else
-    if Images[0] is TS3TCImage then
+    if Images[0] is TGPUCompressedImage then
     begin
       Header.PixelFormat.Flags := DDPF_FOURCC;
-      case TS3TCImage(Images[0]).Compression of
-        s3tcDxt1_RGB,
-        s3tcDxt1_RGBA: Header.PixelFormat.FourCC := 'DXT1';
-        s3tcDxt3:      Header.PixelFormat.FourCC := 'DXT3';
-        s3tcDxt5:      Header.PixelFormat.FourCC := 'DXT5';
-        else EInternalError.Create('saving DDS S3TC-Compression?');
+      case TGPUCompressedImage(Images[0]).Compression of
+        tcDxt1_RGB,
+        tcDxt1_RGBA : Header.PixelFormat.FourCC := 'DXT1';
+        tcDxt3:       Header.PixelFormat.FourCC := 'DXT3';
+        tcDxt5:       Header.PixelFormat.FourCC := 'DXT5';
+        tcATITC_RGB : Header.PixelFormat.FourCC := 'ATCI';
+        tcATITC_RGBA: Header.PixelFormat.FourCC := 'ACTA';
+        { TODO: ETC1 formats? PVRTC formats? }
+        else EInternalError.Create('When saving DDS: Compression unrecognized?');
       end;
     end else
       raise Exception.CreateFmt('Unable to save image class %s to DDS image',
@@ -1332,9 +1395,9 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
           Stream.WriteBuffer(Image.RowPtr(Y, Z)^, Image.Width * Image.PixelSize);
     end;
 
-    procedure WriteCompressedImage(Image: TS3TCImage);
+    procedure WriteCompressedImage(Image: TGPUCompressedImage);
     var
-      Temp: TS3TCImage;
+      Temp: TGPUCompressedImage;
     begin
       Temp := Image.MakeCopy;
       try
@@ -1351,8 +1414,8 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
       if Images[I] is TCastleImage then
         WriteUncompressedImage(TCastleImage(Images[I])) else
       begin
-        Assert(Images[I] is TS3TCImage);
-        WriteCompressedImage(TS3TCImage(Images[I]));
+        Assert(Images[I] is TGPUCompressedImage);
+        WriteCompressedImage(TGPUCompressedImage(Images[I]));
       end;
   end;
 
@@ -1415,15 +1478,15 @@ begin
   end;
 end;
 
-procedure TDDSImage.DecompressS3TC;
+procedure TDDSImage.DecompressTexture;
 var
-  OldImage: TS3TCImage;
+  OldImage: TGPUCompressedImage;
   I: Integer;
 begin
   for I := 0 to Images.Count - 1 do
-  if Images[I] is TS3TCImage then
+  if Images[I] is TGPUCompressedImage then
   begin
-    OldImage := TS3TCImage(Images[I]);
+    OldImage := TGPUCompressedImage(Images[I]);
     Images[I] := OldImage.Decompress;
     FreeAndNil(OldImage);
   end;
