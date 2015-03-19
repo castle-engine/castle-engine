@@ -313,7 +313,7 @@ type
       if all PositionRelative* were equal hpLeft / hpBottom".
 
       An easy exercise for the reader is to check implementation that when
-      all PositionRelative* are prLow, PositionAbsolute is indeed
+      all PositionRelative* are hpLeft/vpBottom, PositionAbsolute is indeed
       always equal to Position :)
 
       This is read-only, is calculated by FixItemsRectangles.

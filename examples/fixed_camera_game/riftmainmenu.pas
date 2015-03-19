@@ -39,7 +39,7 @@ uses SysUtils, CastleWindow, CastleFilesUtils,
   CastleVectors, CastleSoundMenu, Classes, CastleStringUtils, CastleControls,
   CastleGLImages, CastleUIControls, CastleColors, CastleSoundEngine,
   RiftData, RiftSound, RiftVideoOptions, RiftInspectCreatures, RiftPlay,
-  RiftLocations, RiftGame, CastleKeysMouse;
+  RiftLocations, RiftGame, CastleKeysMouse, CastleRectangles;
 
 { menu classes and variables  ------------------------------------------------ }
 
@@ -166,10 +166,10 @@ begin
   CurrentItemBorderColor2 := Vector4Single(186/255, 134/255,  88/255, 1.0);
   CurrentItemColor        := Vector4Single(252/255, 253/255, 200/255, 1.0);
   NonCurrentItemColor     := CurrentItemBorderColor2;
-  PositionRelativeScreenX := prHigh;
-  PositionRelativeScreenY := prHigh;
-  PositionRelativeMenuX := prHigh;
-  PositionRelativeMenuY := prHigh;
+  PositionRelativeScreenX := hpRight;
+  PositionRelativeScreenY := vpTop;
+  PositionRelativeMenuX := hpRight;
+  PositionRelativeMenuY := vpTop;
   Position := Vector2Integer(-91, -62);
   DrawBackgroundRectangle := false;
   ExclusiveEvents := false;
@@ -219,10 +219,10 @@ constructor TRiftSubMenu.Create(AOwner: TComponent);
 begin
   inherited;
   Position := Vector2Integer(54, -273);
-  PositionRelativeScreenX := prLow;
-  PositionRelativeScreenY := prHigh;
-  PositionRelativeMenuX := prLow;
-  PositionRelativeMenuY := prHigh;
+  PositionRelativeScreenX := hpLeft;
+  PositionRelativeScreenY := vpTop;
+  PositionRelativeMenuX := hpLeft;
+  PositionRelativeMenuY := vpTop;
   DrawBackgroundRectangle := true;
 end;
 

@@ -1,4 +1,3 @@
-{ -*- compile-command: "sh compile.sh" -*- }
 {
   Copyright 2013-2014 Michalis Kamburelis.
 
@@ -273,43 +272,43 @@ const
 var
   Bottom: Integer;
 begin
-  Image.AlignHorizontal(prLow, prLow, Margin);
-  Image.AlignVertical(prHigh, prHigh, -Margin);
+  Image.Align(hpLeft, hpLeft, Margin);
+  Image.Align(vpTop, vpTop, -Margin);
 
   Bottom := Window.Height;
 
   Bottom -= ToggleShaderButton.Height + Margin;
-  ToggleShaderButton.AlignHorizontal(prMiddle, prMiddle);
+  ToggleShaderButton.Align(hpMiddle, hpMiddle);
   ToggleShaderButton.Bottom := Bottom;
 
   Bottom -= ToggleScreenEffectButton.Height + Margin;
-  ToggleScreenEffectButton.AlignHorizontal(prMiddle, prMiddle);
+  ToggleScreenEffectButton.Align(hpMiddle, hpMiddle);
   ToggleScreenEffectButton.Bottom := Bottom;
 
   Bottom -= ToggleSSAOButton.Height + Margin;
-  ToggleSSAOButton.AlignHorizontal(prMiddle, prMiddle);
+  ToggleSSAOButton.Align(hpMiddle, hpMiddle);
   ToggleSSAOButton.Bottom := Bottom;
 
   Bottom := Window.Height;
 
   Bottom -= TouchUIButton.Height + Margin;
-  TouchUIButton.AlignHorizontal(prHigh, prHigh, -Margin);
+  TouchUIButton.Align(hpRight, hpRight, -Margin);
   TouchUIButton.Bottom := Bottom;
 
   Bottom -= MessageButton.Height + Margin;
-  MessageButton.AlignHorizontal(prHigh, prHigh, -Margin);
+  MessageButton.Align(hpRight, hpRight, -Margin);
   MessageButton.Bottom := Bottom;
 
   Bottom -= ProgressButton.Height + Margin;
-  ProgressButton.AlignHorizontal(prHigh, prHigh, -Margin);
+  ProgressButton.Align(hpRight, hpRight, -Margin);
   ProgressButton.Bottom := Bottom;
 
   Bottom -= ReopenContextButton.Height + Margin;
-  ReopenContextButton.AlignHorizontal(prHigh, prHigh, -Margin);
+  ReopenContextButton.Align(hpRight, hpRight, -Margin);
   ReopenContextButton.Bottom := Bottom;
 
   Bottom -= ToggleTextureUpdatesButton.Height + Margin;
-  ToggleTextureUpdatesButton.AlignHorizontal(prHigh, prHigh, -Margin);
+  ToggleTextureUpdatesButton.Align(hpRight, hpRight, -Margin);
   ToggleTextureUpdatesButton.Bottom := Bottom;
 end;
 
