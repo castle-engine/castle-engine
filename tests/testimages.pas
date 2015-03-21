@@ -40,7 +40,7 @@ procedure TTestImages.TestLoadImage;
 const ImagesPath = 'data/images/';
 
   procedure DoTest(const fname: string;
-    const AllowedImageClasses: array of TCastleImageClass;
+    const AllowedImageClasses: array of TEncodedImageClass;
     DestClass: TCastleImageClass);
   var Img: TCastleImage;
   begin
@@ -52,7 +52,7 @@ const ImagesPath = 'data/images/';
 
 { Unused:
   procedure DoFailTest(const fname: string;
-    const AllowedImageClasses: array of TCastleImageClass);
+    const AllowedImageClasses: array of TEncodedImageClass);
   var Img: TCastleImage;
   begin
    try

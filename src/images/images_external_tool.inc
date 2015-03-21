@@ -4,8 +4,8 @@
 
 function LoadImageExternalTool(
   Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ImageMagickName: string): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass;
+  const ImageMagickName: string): TEncodedImage;
 {$ifdef HAS_EXECUTE_PROCESS}
 var
   ImageFileName: string;
@@ -124,25 +124,25 @@ end;
 {$endif}
 
 function LoadSGI(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadImageExternalTool(Stream, AllowedImageClasses, 'sgi');
 end;
 
 function LoadTIFF(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadImageExternalTool(Stream, AllowedImageClasses, 'tiff');
 end;
 
 function LoadJP2(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadImageExternalTool(Stream, AllowedImageClasses, 'jp2');
 end;
 
 function LoadEXR(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadImageExternalTool(Stream, AllowedImageClasses, 'exr');
 end;

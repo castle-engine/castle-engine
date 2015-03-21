@@ -62,12 +62,13 @@ type
     procedure SetScalingPossible(const Value: boolean);
     { Prepare static stuff for rendering. }
     class procedure PrepareStatic;
+    function CurrentFilter: TTextureFilter;
   public
     { Prepare image for drawing.
 
       @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
         by OpenGL.) }
-    constructor Create(const Image: TCastleImage;
+    constructor Create(const Image: TEncodedImage;
       const AScalingPossible: boolean = false);
     constructor Create(const URL: string;
       const AScalingPossible: boolean = false);
@@ -100,12 +101,12 @@ type
     }
     constructor Create(const URL: string);
     constructor Create(const URL: string;
-      const LoadAsClass: array of TCastleImageClass;
+      const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
       const Interpolation: TResizeInterpolation = riNearest);
     constructor Create(const URL: string;
-      const LoadAsClass: array of TCastleImageClass;
+      const LoadAsClass: array of TEncodedImageClass;
       const AScalingPossible: boolean);
 
     destructor Destroy; override;
@@ -240,7 +241,7 @@ type
       Use this to efficiently replace the TGLImage contents on GPU.
       Updates the @link(Width), @link(Height), @link(Alpha) to correspond
       to new image. }
-    procedure Load(const Image: TCastleImage);
+    procedure Load(const Image: TEncodedImage);
 
     { Is the image filtering mode ready for scaling. "Scaling" here means drawing
       such that one image pixel does not perfectly cover one screen pixel.
@@ -273,15 +274,15 @@ procedure ImageDraw(const Image: TCastleImage); deprecated;
 constructor TGLImage.Create(const URL: string;
   const AScalingPossible: boolean);
 var
-  Image: TCastleImage;
+  Image: TEncodedImage;
 begin
-  Image := LoadImage(URL, []);
+  Image := LoadEncodedImage(URL, []);
   try
     Create(Image, AScalingPossible);
   finally FreeAndNil(Image) end;
 end;
 
-constructor TGLImage.Create(const Image: TCastleImage;
+constructor TGLImage.Create(const Image: TEncodedImage;
   const AScalingPossible: boolean);
 begin
   inherited Create;
@@ -302,7 +303,7 @@ begin
 end;
 
 constructor TGLImage.Create(const URL: string;
-  const LoadAsClass: array of TCastleImageClass;
+  const LoadAsClass: array of TEncodedImageClass;
   const ResizeToX, ResizeToY: Cardinal;
   const Interpolation: TResizeInterpolation);
 var
@@ -322,14 +323,14 @@ begin
 end;
 
 constructor TGLImage.Create(const URL: string;
-  const LoadAsClass: array of TCastleImageClass;
+  const LoadAsClass: array of TEncodedImageClass;
   const AScalingPossible: boolean);
 var
-  Image: TCastleImage;
+  Image: TEncodedImage;
 begin
   if High(LoadAsClass) = -1 then
-    Image := LoadImage(URL, PixelsImageClasses) else
-    Image := LoadImage(URL, LoadAsClass);
+    Image := LoadEncodedImage(URL, PixelsImageClasses) else
+    Image := LoadEncodedImage(URL, LoadAsClass);
   try
     Create(Image, AScalingPossible);
   finally FreeAndNil(Image) end;
@@ -341,36 +342,10 @@ begin
   inherited;
 end;
 
-procedure TGLImage.Load(const Image: TCastleImage);
-
-  { Load an image to Texture, knowing that Image has already good sizes for OpenGL. }
-  procedure LoadImage(const Image: TCastleImage);
-  var
-    UnpackData: TUnpackNotAlignedData;
-  begin
-    BeforeUnpackImage(UnpackData, Image);
-    try
-      glTexImage2D(GL_TEXTURE_2D, 0, ImageGLInternalFormat(Image),
-        Image.Width, Image.Height, 0, ImageGLFormat(Image), ImageGLType(Image),
-        Image.RawPixels);
-      TextureMemoryProfiler.Allocate(Texture, Image.URL, Image.ClassName,
-        Image.Size, false, Image.Width, Image.Height, 1);
-    finally AfterUnpackImage(UnpackData, image) end;
-  end;
-
-var
-  NewImage: TCastleImage;
+procedure TGLImage.Load(const Image: TEncodedImage);
 begin
-  glBindTexture(GL_TEXTURE_2D, Texture);
-
-  if not IsTextureSized(Image, tsAny) then
-  begin
-    NewImage := ResizeToTextureSize(Image, tsAny);
-    try
-      LoadImage(NewImage);
-    finally FreeAndNil(NewImage) end;
-  end else
-    LoadImage(Image);
+  LoadGLGeneratedTexture(Texture, Image, CurrentFilter, Texture2DClampToEdge,
+    nil, true);
 
   FWidth := Image.Width;
   FHeight := Image.Height;
@@ -712,23 +687,24 @@ begin
     Corner[0], Corner[1], Corner[2], Corner[3]);
 end;
 
+function TGLImage.CurrentFilter: TTextureFilter;
+begin
+  if ScalingPossible then
+  begin
+    Result.Minification := minLinear;
+    Result.Magnification := magLinear;
+  end else
+  begin
+    Result.Minification := minNearest;
+    Result.Magnification := magNearest;
+  end;
+end;
+
 procedure TGLImage.UpdateScalingPossible(const NeedToBind: boolean);
-var
-  Filter: TTextureFilter;
 begin
   if NeedToBind then
     glBindTexture(GL_TEXTURE_2D, Texture);
-
-  if ScalingPossible then
-  begin
-    Filter.Minification := minLinear;
-    Filter.Magnification := magLinear;
-  end else
-  begin
-    Filter.Minification := minNearest;
-    Filter.Magnification := magNearest;
-  end;
-  SetTextureFilter(GL_TEXTURE_2D, Filter);
+  SetTextureFilter(GL_TEXTURE_2D, CurrentFilter);
 end;
 
 procedure TGLImage.SetScalingPossible(const Value: boolean);

@@ -61,17 +61,13 @@ begin
 
     if SaveDecomposed then
     begin
-      if not (DImg.Images[0] is TCastleImage) then
-        raise Exception.CreateFmt('Cannot save GPU compressed images (image class is %s)',
-          [DImg.Images[0].ClassName]);
-
       OutputBaseName := ExtractURIPath(Parameters[1]) +
         DeleteURIExt(ExtractURIName(Parameters[1])) + '_';
       for I := 0 to DImg.Images.Count - 1 do
       begin
         OutputName := OutputBaseName + IntToStrZPad(I, 2) + '.png';
         Writeln('Writing ', OutputName);
-        SaveImage(DImg.Images[I] as TCastleImage, OutputName);
+        SaveImage(DImg.Images[I], OutputName);
       end;
     end;
 

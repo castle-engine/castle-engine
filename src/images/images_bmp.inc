@@ -53,7 +53,7 @@ const
   //BI_BITFIELDS = 3;
 
 function LoadBMP(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
     paletteSize: integer;    { rozmiar palety (0 jesli brak) }
@@ -136,7 +136,7 @@ var fhead: TBitmapFileHeader;
   end;
 
   { ClassAllowed is only shortcut to global utility. }
-  function ClassAllowed(ImageClass: TCastleImageClass): boolean;
+  function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
   begin
     Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
@@ -144,7 +144,7 @@ var fhead: TBitmapFileHeader;
 var i: integer;
     rowsGoingUp: boolean;
     rowdata: PByteArray;
-    NewResult: TCastleImage;
+    NewResult: TEncodedImage;
 begin
  try
   { read and check headers }
@@ -234,13 +234,13 @@ begin
        if ClassAllowed(TRGBAlphaImage) or
           ClassAllowed(TRGBImage) then
          Result := TRGBAlphaImage.Create(biWidth, biHeight) else
-         raise EUnableToLoadImage.CreateFmt('Cannot load BMP file (with alpha channel) to %s', [LoadImageParams(AllowedImageClasses)]);
+         raise EUnableToLoadImage.CreateFmt('Cannot load BMP file (with alpha channel) to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
      end else
      begin
        if ClassAllowed(TRGBImage) or
           ClassAllowed(TRGBAlphaImage) then
          Result := TRGBImage.Create(biWidth, biHeight) else
-         raise EUnableToLoadImage.CreateFmt('Cannot load BMP file (without alpha channel) to %s', [LoadImageParams(AllowedImageClasses)]);
+         raise EUnableToLoadImage.CreateFmt('Cannot load BMP file (without alpha channel) to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
      end;
 
      for i := 0 to biHeight - 1 do
@@ -249,7 +249,7 @@ begin
       { skip row 32bit padding }
       with Stream do Position := Position + DivRoundUp(rowLength, 4)*4 - rowLength;
       if rowsGoingUp then rownum := i else rownum := biHeight-i-1;
-      WriteRow(Result.RowPtr(rownum), rowData);
+      WriteRow(TCastleImage(Result).RowPtr(rownum), rowData);
      end;
 
      { Convert now to satisfy AllowedImageClasses }
@@ -284,7 +284,7 @@ begin
  end;
 end;
 
-procedure SaveBMP(Img: TCastleImage; Stream: TStream);
+procedure SaveBMP(Img: TEncodedImage; Stream: TStream);
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
     i, j, rowPaddedLength, PadSize: cardinal;
@@ -326,7 +326,7 @@ begin
  try
   for j := 0 to img.Height-1 do
   begin
-   p := PVector3Byte(Img.PixelPtr(0, j));
+   p := PVector3Byte(TCastleImage(Img).PixelPtr(0, j));
    row := rowdata;
    for i := 0 to img.Width - 1 do
    begin

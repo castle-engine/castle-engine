@@ -67,7 +67,7 @@ uses SysUtils, FGL, CastleGL,
   CastleVideos, CastleDDS, CastleRectangles, CastleGLShaders, CastleColors;
 
 const
-  PixelsImageClasses: array [0..3] of TCastleImageClass = (
+  PixelsImageClasses: array [0..3] of TEncodedImageClass = (
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,

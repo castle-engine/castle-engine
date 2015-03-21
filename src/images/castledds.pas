@@ -205,6 +205,19 @@ implementation
 uses SysUtils, CastleUtils, CastleClassUtils, CastleWarnings, CastleStringUtils,
   CastleVectors, CastleDownload, CastleURIUtils;
 
+{ Image.FlipVertical, warn if not possible. }
+procedure FlipVerticalWarning(const Image: TGPUCompressedImage);
+begin
+  try
+    Image.FlipVertical;
+  except
+    { Change ECannotFlipCompressedImage into OnWarning,
+      image will be inverted but otherwise Ok. }
+    on E: ECannotFlipCompressedImage do
+      OnWarning(wtMinor, 'GPUCompressedTexture', E.Message);
+  end;
+end;
+
 { ----------------------------------------------------------------------------
   Constants and types for DDS file handling.
 
@@ -1149,15 +1162,7 @@ var
 
           Stream.ReadBuffer(Res.RawPixels^, Res.Size);
 
-          try
-            Res.FlipVertical;
-          except
-            { Change ECannotFlipCompressedImage into OnWarning,
-              image will be inverted but otherwise Ok. }
-            on E: ECannotFlipCompressedImage do
-              OnWarning(wtMinor, 'GPUCompressedTexture', E.Message);
-          end;
-
+          FlipVerticalWarning(Res);
         { on unhandled error, make sure to free result }
         except FreeAndNil(Result); raise; end;
       end;
@@ -1493,8 +1498,13 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
         tcDxt1_RGBA : Header.PixelFormat.FourCC := 'DXT1';
         tcDxt3:       Header.PixelFormat.FourCC := 'DXT3';
         tcDxt5:       Header.PixelFormat.FourCC := 'DXT5';
+        tcPvrtc1_2bpp_RGB,
+        tcPvrtc1_2bpp_RGBA: Header.PixelFormat.FourCC := 'PTC2';
+        tcPvrtc1_4bpp_RGB,
+        tcPvrtc1_4bpp_RGBA: Header.PixelFormat.FourCC := 'PTC4';
         tcATITC_RGB : Header.PixelFormat.FourCC := 'ATCI';
-        else EInternalError.Create('When saving DDS: Compression unrecognized?');
+        else raise EImageSaveError.CreateFmt('When saving DDS: Cannot save to DDS with compression %s',
+          [GPUCompressionInfo[TGPUCompressedImage(Images[0]).Compression].Name]);
       end;
     end else
       raise Exception.CreateFmt('Unable to save image class %s to DDS image',
@@ -1522,7 +1532,7 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
       Temp := Image.MakeCopy;
       try
         { invert rows when saving to DDS }
-        Temp.FlipVertical;
+        FlipVerticalWarning(Temp);
         Stream.WriteBuffer(Temp.RawPixels^, Temp.Size);
       finally FreeAndNil(Temp) end;
     end;

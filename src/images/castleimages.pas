@@ -13,10 +13,14 @@
   ----------------------------------------------------------------------------
 }
 
-(*Loading, saving, and processing of 2D (and 3D) images (TCastleImage and descendants).
+(*Loading, saving, and processing of images (TCastleImage and friends).
   Storing images in the memory, loading and saving them from/to files in various
   formats, resizing, converting to grayscale, copying and merging,
   many other image operations --- it's all here.
+  We include here special image types useful with modern GPUs:
+  image data compressed for GPU (@link(TGPUCompressedImage))
+  and 3D image data (every image has @code(Depth) in addition to
+  @code(Width) and @code(Height)).
 
   The most important class here is @link(TCastleImage).
   It represents an image as a simple uncompressed array of pixels.
@@ -26,8 +30,10 @@
   @link(TGrayscaleAlphaImage) and @link(TGrayscaleImage)).
   We also have an image with floating-point precision and range:
   @link(TRGBFloatImage).
-  You are free to create more descendants of TCastleImage in your own units
-  if you want to encode the pixel differently.
+
+  There is also a more abstract image class @link(TEncodedImage),
+  representing either uncompressed image (@link(TCastleImage))
+  or an image with data compressed for GPU (@link(TGPUCompressedImage)).
 
   When reading and writing image files, we understand various image
   formats. See TImageFormat documentation for a current list of supported
@@ -47,17 +53,12 @@
   end;
 #)
 
-  This unit is of course not dependent on OpenGL or any other rendering
-  library. See CastleGLImages for OpenGL image operations (for textures and others).
+  This unit is not dependent on OpenGL or any other rendering
+  library. See @link(CastleGLImages) for OpenGL image operations
+  (for textures and others).
 *)
 
 unit CastleImages;
-
-{
-  TODO:
-  - implement more impressive resizing filters, at least simple
-    linear like gluScaleImage
-}
 
 {$include castleconf.inc}
 {$modeswitch nestedprocvars}{$H+}
@@ -110,6 +111,7 @@ type
   private
     FWidth, FHeight, FDepth: Cardinal;
     FURL: string;
+    function ToFpImage: TFPMemoryImage; virtual;
   protected
     { Operate on this by Get/Realloc/FreeMem.
       It's always freed and nil'ed in destructor. }
@@ -272,7 +274,6 @@ type
   TCastleImage = class(TEncodedImage)
   private
     procedure NotImplemented(const AMethodName: string);
-    function ToFpImage: TFPMemoryImage; virtual;
   protected
     { Check that both images have the same sizes and Second image class
       descends from First image class. If not, raise appropriate ELerpXxx
@@ -842,21 +843,20 @@ type
   { }
   TCastleImageClass = class of TCastleImage;
   TEncodedImageClass = class of TEncodedImage;
-  TDynArrayImageClasses = array of TCastleImageClass;
 
   { @deprecated Deprecated name for TCastleImageClass. }
   TImageClass = TCastleImageClass deprecated;
 
 { Check is ImageClass one of the items in the ImageClasses array,
   or a descendant of one of them. }
-function InImageClasses(ImageClass: TCastleImageClass;
-  const ImageClasses: array of TCastleImageClass): boolean; overload;
+function InImageClasses(ImageClass: TEncodedImageClass;
+  const ImageClasses: array of TEncodedImageClass): boolean; overload;
 
 { Check is Image class one of the items in the ImageClasses array,
   or a descendant of one of them.
   This is a shortcut for InImageClasses(Image.ClassType, ImageClasses). }
-function InImageClasses(Image: TCastleImage;
-  const ImageClasses: array of TCastleImageClass): boolean; overload;
+function InImageClasses(Image: TEncodedImage;
+  const ImageClasses: array of TEncodedImageClass): boolean; overload;
 
 (*Check if both arrays contain exactly the same classes in the same order.
 
@@ -884,10 +884,7 @@ function InImageClasses(Image: TCastleImage;
     @item @true if for sure both arrays contain the same classes and
     @item @false if @italic(possibly) they don't contain the same classes.
   ) *)
-function ImageClassesEqual(const Ar1, Ar2: array of TCastleImageClass): boolean;
-
-procedure ImageClassesAssign(var Variable: TDynArrayImageClasses;
-  const NewValue: array of TCastleImageClass);
+function ImageClassesEqual(const Ar1, Ar2: array of TEncodedImageClass): boolean;
 
 { TCastleImage basic descendants --------------------------------------------- }
 
@@ -1214,9 +1211,9 @@ function VectorRGBETo3Single(const v: TVector4Byte): TVector3Single;
   Load image from Stream.
 
   They must honour AllowedImageClasses, just like
-  LoadImage does. Except they don't have to care about returning all TCastleImage
+  LoadImage and LoadEncodedImage do. Except they don't have to care about returning all TEncodedImage
   descendants: see @link(TImageFormatInfo.LoadedClasses). So higher-level
-  LoadImage will use them and eventually convert their result.
+  LoadImage and LoadEncodedImage will use them and eventually convert their result.
 
   An appropriate descendant of EImageLoadError will be raised
   in case of error when reading from Stream or when Stream will not
@@ -1236,66 +1233,66 @@ type
   EUnableToLoadImage = class(EImageLoadError);
 
 function LoadPNG(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 function LoadBMP(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 function LoadGIF(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 function LoadTGA(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 function LoadSGI(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 function LoadTIFF(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 function LoadJP2(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 function LoadEXR(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 function LoadJPEG(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 function LoadXPM(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 function LoadPSD(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 function LoadPCX(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 { Load PPM image.
   Loads only the first image in .ppm file. }
 function LoadPPM(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 { Load PNM image (PNM, PGM, PBM, PPM) through FpImage.
   Note that for PPM, for now it's more advised to use our LoadPPM. }
 function LoadPNM(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 function LoadIPL(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 { Load RGBE image.
   This low-level function can load to TRGBFloatImage (preserving image data)
   or to TRGBImage (loosing floating point precision of RGBE format). }
 function LoadRGBE(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 { Load DDS image file into a single 2D image. This simply returns the first
   image found in DDS file, which should be the main image.
   If you want to investigate other images in DDS, you have to use TDDSImage
   class. }
 function LoadDDS(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
 { saving image (format-specific) --------------------------------------------
 
@@ -1303,7 +1300,7 @@ function LoadDDS(Stream: TStream;
   you to give some parameters special for given format.
 
   Each format must also have procedure with two parameters
-  (Img: TCastleImage; Stream: TStream), this will be used with
+  (Img: TEncodedImage; Stream: TStream), this will be used with
   ImageFormatsInfo[].
   This means that below we must use overloading instead of
   default parameters, since pointers to given procedures must be
@@ -1317,17 +1314,17 @@ function LoadDDS(Stream: TStream;
 }
 
 { }
-procedure SaveBMP(Img: TCastleImage; Stream: TStream);
-procedure SavePNG(Img: TCastleImage; Stream: TStream);
+procedure SaveBMP(Img: TEncodedImage; Stream: TStream);
+procedure SavePNG(Img: TEncodedImage; Stream: TStream);
 { }
-procedure SaveJPEG(Img: TCastleImage; Stream: TStream);
+procedure SaveJPEG(Img: TEncodedImage; Stream: TStream);
 { }
-procedure SavePPM(Img: TCastleImage; Stream: TStream; binary: boolean); overload;
-procedure SavePPM(Img: TCastleImage; Stream: TStream); { binary = true } overload;
+procedure SavePPM(Img: TEncodedImage; Stream: TStream; binary: boolean); overload;
+procedure SavePPM(Img: TEncodedImage; Stream: TStream); { binary = true } overload;
 { }
-procedure SaveRGBE(Img: TCastleImage; Stream: TStream);
+procedure SaveRGBE(Img: TEncodedImage; Stream: TStream);
 
-procedure SaveDDS(Img: TCastleImage; Stream: TStream);
+procedure SaveDDS(Img: TEncodedImage; Stream: TStream);
 
 { File formats managing ----------------------------------------------------- }
 
@@ -1342,7 +1339,7 @@ type
       (partial transparency) alpha channel.
 
       Trying to read / write PNG file when libpng is not installed
-      (through LoadImage, SaveImage, LoadPNG, SavePNG and others)
+      (through LoadImage, LoadEncodedImage, SaveImage, LoadPNG, SavePNG and others)
       will raise exception ELibPngNotAvailable. Note that the check
       for availability of libpng is done only once you try to load/save PNG file.
       You can perfectly compile and even run your programs without
@@ -1401,17 +1398,17 @@ type
   TImageFormats = set of TImageFormat;
 
   TImageLoadFunc = function (Stream: TStream;
-    const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
-  TImageSaveFunc = procedure (Img: TCastleImage; Stream: TStream);
+    const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+  TImageSaveFunc = procedure (Img: TEncodedImage; Stream: TStream);
 
-  { Possible TCastleImage classes that can be returned by Load method
+  { Possible TEncodedImage classes that can be returned by Load method
     of this file format. It's assumed that appropriate Load can return
     only these classes, and any of these classes,
     and can convert between them.
 
-    If the LoadImage will be called allowing some TCastleImage descendants
+    If the LoadImage or LoadEncodedImage will be called allowing some TEncodedImage descendants
     that can be returned by Load of this format,
-    then LoadImage will pretty much just pass the call to Load
+    then LoadImage or LoadEncodedImage will pretty much just pass the call to Load
     for appropriate file format.
     The above is expected to be the most common and most efficient case.
     This way necessary conversion (e.g. adding alpha channel) can be
@@ -1420,8 +1417,8 @@ type
     in case of PNG format.
 
     Only when it's not possible (if, and only if, none of the AllowedImageClasses
-    specified in LoadImage call can be returned by Load of this format)
-    then LoadImage will try more elaborate approach. This means that
+    specified in LoadImage or LoadEncodedImage call can be returned by Load of this format)
+    then LoadImage and LoadEncodedImage will try more elaborate approach. This means that
     it will try using Load of this image format, followed by
     some convertions of the image afterwards. This is generally less
     efficient, as it means that temporary image will be created during
@@ -1431,13 +1428,15 @@ type
     lcRGB,
     lcRGB_RGBA,
     lcG_GA_RGB_RGBA,
+    lcG_GA_RGB_RGBA_GPUCompressed,
     lcRGB_RGBFloat
   );
 
-  { Possible TCastleImage classes supported by Save method of this file format. }
+  { Possible TEncodedImage classes supported by Save method of this file format. }
   TImageSaveHandledClasses = (
     scRGB,
     scG_GA_RGB_RGBA,
+    scG_GA_RGB_RGBA_GPUCompressed,
     scRGB_RGBFloat
   );
 
@@ -1503,9 +1502,9 @@ type
       @nil if cannot be loaded. }
     Load: TImageLoadFunc;
 
-    { If Load is assigned, this describes what TCastleImage descendants
-      can be returned by this Load. LoadImage will need this information,
-      to make necessary convertions to other TCastleImage classes,
+    { If Load is assigned, this describes what TEncodedImage descendants
+      can be returned by this Load. LoadImage and LoadEncodedImage need this information,
+      to make necessary convertions to other TEncodedImage classes,
       when possible. }
     LoadedClasses: TImageLoadHandledClasses;
 
@@ -1592,8 +1591,8 @@ const
       MimeTypesCount: 1;
       MimeTypes: ('image/x-dds', '', '', '', '', '');
       ExtsCount: 1; Exts: ('dds', '', '');
-      Load: @LoadDDS; LoadedClasses: lcG_GA_RGB_RGBA;
-      Save: @SaveDDS; SavedClasses: scG_GA_RGB_RGBA; ),
+      Load: @LoadDDS; LoadedClasses: lcG_GA_RGB_RGBA_GPUCompressed;
+      Save: @SaveDDS; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed; ),
 
     { Image formats not well known. }
 
@@ -1743,22 +1742,46 @@ type
     MIME type, derived from file extension in case of local files)
     or if this image format cannot be loaded at all.)
 
+  @seealso LoadEncodedImage
+
   @groupBegin *)
 function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
-  const AllowedImageClasses: array of TCastleImageClass)
+  const AllowedImageClasses: array of TEncodedImageClass)
   :TCastleImage; overload;
 function LoadImage(Stream: TStream; const MimeType: string;
-  const AllowedImageClasses: array of TCastleImageClass)
+  const AllowedImageClasses: array of TEncodedImageClass)
   :TCastleImage; overload;
 
 function LoadImage(const URL: string): TCastleImage; overload;
 function LoadImage(const URL: string;
-  const AllowedImageClasses: array of TCastleImageClass)
+  const AllowedImageClasses: array of TEncodedImageClass)
   :TCastleImage; overload;
 function LoadImage(const URL: string;
-  const AllowedImageClasses: array of TCastleImageClass;
+  const AllowedImageClasses: array of TEncodedImageClass;
   const ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation = riNearest): TCastleImage; overload;
+{ @groupEnd }
+
+{ Load image to TEncodedImage format.
+  This allows loading image compressed with GPU, which is good for optimally
+  loading it to GPU. However, the operations on GPU-compressed image are very
+  limited, we generally cannot do much with GPU-compressed date except
+  rendering it.
+
+  @seealso LoadImage
+
+  @groupBegin }
+function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
+  const AllowedImageClasses: array of TEncodedImageClass)
+  :TEncodedImage; overload;
+function LoadEncodedImage(Stream: TStream; const MimeType: string;
+  const AllowedImageClasses: array of TEncodedImageClass)
+  :TEncodedImage; overload;
+
+function LoadEncodedImage(const URL: string): TEncodedImage; overload;
+function LoadEncodedImage(const URL: string;
+  const AllowedImageClasses: array of TEncodedImageClass)
+  :TEncodedImage; overload;
 { @groupEnd }
 
 { saving image --------------------------------------------------------------- }
@@ -1798,9 +1821,9 @@ type
     because of Img class (memory format) and/or image file format.)
 
   @groupBegin }
-procedure SaveImage(const img: TCastleImage; const Format: TImageFormat; Stream: TStream); overload;
-procedure SaveImage(const img: TCastleImage; const MimeType: string; Stream: TStream); overload;
-procedure SaveImage(const Img: TCastleImage; const URL: string); overload;
+procedure SaveImage(const img: TEncodedImage; const Format: TImageFormat; Stream: TStream); overload;
+procedure SaveImage(const img: TEncodedImage; const MimeType: string; Stream: TStream); overload;
+procedure SaveImage(const Img: TEncodedImage; const URL: string); overload;
 { @groupEnd }
 
 { Other TCastleImage processing ---------------------------------------------------- }
@@ -1813,8 +1836,8 @@ procedure SaveImage(const Img: TCastleImage; const URL: string); overload;
   by guessing based on file extension.
 
   @groupBegin }
-function ImageClassBestForSavingToFormat(const Format: TImageFormat): TCastleImageClass; overload;
-function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass; overload;
+function ImageClassBestForSavingToFormat(const Format: TImageFormat): TEncodedImageClass; overload;
+function ImageClassBestForSavingToFormat(const URL: string): TEncodedImageClass; overload;
 { @groupEnd }
 
 var
@@ -1878,19 +1901,19 @@ uses ExtInterpolation, FPCanvas, FPImgCanv,
 
 { image loading utilities --------------------------------------------------- }
 
-{ Helper methods for implemented LoadImage. }
+{ Helper methods for implemented LoadEncodedImage. }
 
-function ClassAllowed(ImageClass: TCastleImageClass;
-  const AllowedImageClasses: array of TCastleImageClass): boolean;
+function ClassAllowed(ImageClass: TEncodedImageClass;
+  const AllowedImageClasses: array of TEncodedImageClass): boolean;
 begin
   Result := (High(AllowedImageClasses) = -1) or
     InImageClasses(ImageClass, AllowedImageClasses);
 end;
 
-function LoadImageParams(
-  const AllowedImageClasses: array of TCastleImageClass): string;
+function LoadEncodedImageParams(
+  const AllowedImageClasses: array of TEncodedImageClass): string;
 
-  function ImageClassesToStr(const AllowedImageClasses: array of TCastleImageClass): string;
+  function ImageClassesToStr(const AllowedImageClasses: array of TEncodedImageClass): string;
   var
     I: Integer;
   begin
@@ -2830,8 +2853,8 @@ end;
 
 { TCastleImageClass and arrays of TCastleImageClasses ----------------------------- }
 
-function InImageClasses(ImageClass: TCastleImageClass;
-  const ImageClasses: array of TCastleImageClass): boolean;
+function InImageClasses(ImageClass: TEncodedImageClass;
+  const ImageClasses: array of TEncodedImageClass): boolean;
 var
   i: Integer;
 begin
@@ -2844,13 +2867,13 @@ begin
   Result := false;
 end;
 
-function InImageClasses(Image: TCastleImage;
-  const ImageClasses: array of TCastleImageClass): boolean;
+function InImageClasses(Image: TEncodedImage;
+  const ImageClasses: array of TEncodedImageClass): boolean;
 begin
-  Result := InImageClasses(TCastleImageClass(Image.ClassType), ImageClasses);
+  Result := InImageClasses(TEncodedImageClass(Image.ClassType), ImageClasses);
 end;
 
-function ImageClassesEqual(const Ar1, Ar2: array of TCastleImageClass): boolean;
+function ImageClassesEqual(const Ar1, Ar2: array of TEncodedImageClass): boolean;
 var
   i: Integer;
 begin
@@ -2868,16 +2891,6 @@ begin
     end;
 
   Result := true;
-end;
-
-procedure ImageClassesAssign(var Variable: TDynArrayImageClasses;
-  const NewValue: array of TCastleImageClass);
-var
-  i: Integer;
-begin
-  SetLength(Variable, High(NewValue) + 1);
-  for i := 0 to High(NewValue) do
-    Variable[i] := NewValue[i];
 end;
 
 { TRGBImage ------------------------------------------------------------ }
@@ -4006,7 +4019,69 @@ begin
     end;
 end;
 
-{ LoadImage --------------------------------------------------------------- }
+{ LoadImage ------------------------------------------------------------------ }
+
+function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
+  const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
+var
+  E: TEncodedImage;
+begin
+  E := LoadEncodedImage(Stream, StreamFormat, AllowedImageClasses);
+  if not (E is TCastleImage) then
+    raise EImageLoadError.Create('Image is compressed for GPU, cannot load it to uncompressed format. You can only render such image.');
+  Result := TCastleImage(E);
+end;
+
+function LoadImage(Stream: TStream; const MimeType: string;
+  const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
+var
+  E: TEncodedImage;
+begin
+  E := LoadEncodedImage(Stream, MimeType, AllowedImageClasses);
+  if not (E is TCastleImage) then
+    raise EImageLoadError.Create('Image is compressed for GPU, cannot load it to uncompressed format. You can only render such image.');
+  Result := TCastleImage(E);
+end;
+
+function LoadImage(const URL: string;
+  const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
+var
+  E: TEncodedImage;
+begin
+  E := LoadEncodedImage(URL, AllowedImageClasses);
+  if not (E is TCastleImage) then
+    raise EImageLoadError.CreateFmt('Image "%s" is compressed for GPU, cannot load it to uncompressed format. You can only render such image.',
+      [URIDisplay(URL)]);
+  Result := TCastleImage(E);
+end;
+
+function LoadImage(const URL: string): TCastleImage;
+var
+  E: TEncodedImage;
+begin
+  E := LoadEncodedImage(URL);
+  if not (E is TCastleImage) then
+    raise EImageLoadError.CreateFmt('Image "%s" is compressed for GPU, cannot load it to uncompressed format. You can only render such image.',
+      [URIDisplay(URL)]);
+  Result := TCastleImage(E);
+end;
+
+function LoadImage(const URL: string;
+  const AllowedImageClasses: array of TEncodedImageClass;
+  const ResizeWidth, ResizeHeight: Cardinal;
+  const Interpolation: TResizeInterpolation): TCastleImage;
+var
+  E: TEncodedImage;
+begin
+  E := LoadEncodedImage(URL, AllowedImageClasses);
+  if not (E is TCastleImage) then
+    raise EImageLoadError.CreateFmt('Image "%s" is compressed for GPU, cannot load it to uncompressed format. You can only render such image.',
+      [URIDisplay(URL)]);
+  Result := TCastleImage(E);
+  Result.Resize(ResizeWidth, ResizeHeight, Interpolation);
+end;
+
+{ LoadEncodedImage ----------------------------------------------------------- }
 
 { Make sure the image has an alpha channel.
   If image doesn't have an alpha channel (it is TRGBImage or TGrayscaleImage),
@@ -4016,7 +4091,7 @@ end;
   (where the contents will be copied to alpha, and intensity set to white).
 
   If the image already had an alpha channel, then just return it. }
-procedure ImageAddAlphaTo1st(var Img: TCastleImage);
+procedure ImageAddAlphaTo1st(var Img: TEncodedImage);
 var
   NewImg: TCastleImage;
 begin
@@ -4033,24 +4108,23 @@ begin
     Img := NewImg;
   end;
 
-  if not ((Img is TRGBAlphaImage) or
-          (Img is TGrayscaleAlphaImage)) then
+  if not Img.HasAlpha then
     raise EInternalError.Create(
-      'ImageAddAlphaTo1st not possible for this TCastleImage descendant: ' + Img.ClassName);
+      'ImageAddAlphaTo1st not possible for this image class: ' + Img.ClassName);
 end;
 
-function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
-  const AllowedImageClasses: array of TCastleImageClass)
-  :TCastleImage;
+function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
+  const AllowedImageClasses: array of TEncodedImageClass)
+  :TEncodedImage;
 
   { ClassAllowed is only a shortcut to global utility. }
-  function ClassAllowed(ImageClass: TCastleImageClass): boolean;
+  function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
   begin
     Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
 
   { On input, Image must be TRGBImage and on output it will be TGrayscaleImage. }
-  procedure ImageGrayscaleTo1st(var Image: TCastleImage);
+  procedure ImageGrayscaleTo1st(var Image: TEncodedImage);
   var
     NewImage: TGrayscaleImage;
   begin
@@ -4059,18 +4133,18 @@ function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
     Image := NewImage;
   end;
 
-  procedure ImageRGBToFloatTo1st(var Image: TCastleImage);
+  procedure ImageRGBToFloatTo1st(var Image: TEncodedImage);
   var
-    NewResult: TCastleImage;
+    NewResult: TEncodedImage;
   begin
     NewResult := (Image as TRGBImage).ToRGBFloat;
     Image.Free;
     Image := NewResult;
   end;
 
-  procedure ImageRGBToGrayscaleTo1st(var Image: TCastleImage);
+  procedure ImageRGBToGrayscaleTo1st(var Image: TEncodedImage);
   var
-    NewResult: TCastleImage;
+    NewResult: TEncodedImage;
   begin
     NewResult := (Image as TRGBImage).ToGrayscale;
     Image.Free;
@@ -4086,19 +4160,21 @@ begin
     begin
       Load := ImageFormatInfos[StreamFormat].Load;
       case ImageFormatInfos[StreamFormat].LoadedClasses of
-        lcG_GA_RGB_RGBA:
+        lcG_GA_RGB_RGBA, lcG_GA_RGB_RGBA_GPUCompressed:
           begin
             if ClassAllowed(TRGBImage) or
                ClassAllowed(TRGBAlphaImage) or
                ClassAllowed(TGrayscaleImage) or
-               ClassAllowed(TGrayscaleAlphaImage) then
+               ClassAllowed(TGrayscaleAlphaImage) or
+               ( ClassAllowed(TGPUCompressedImage) and
+                 (ImageFormatInfos[StreamFormat].LoadedClasses = lcG_GA_RGB_RGBA_GPUCompressed) ) then
               Result := Load(Stream, AllowedImageClasses) else
             if ClassAllowed(TRGBFloatImage) then
             begin
               Result := Load(Stream, [TRGBImage]);
               ImageRGBToFloatTo1st(result);
             end else
-              raise EUnableToLoadImage.CreateFmt('LoadImage cannot load this image file format to %s', [LoadImageParams(AllowedImageClasses)]);
+              raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot load this image file format to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
           end;
         lcRGB_RGBA:
           begin
@@ -4117,7 +4193,7 @@ begin
               Result := Load(Stream, [TRGBImage]);
               ImageRGBToFloatTo1st(result);
             end else
-              raise EUnableToLoadImage.CreateFmt('LoadImage cannot load this image file format to %s', [LoadImageParams(AllowedImageClasses)]);
+              raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot load this image file format to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
           end;
         lcRGB:
           begin
@@ -4144,7 +4220,7 @@ begin
               begin
                 ImageRGBToFloatTo1st(result);
               end else
-                raise EUnableToLoadImage.CreateFmt('LoadImage cannot load this image file format to %s', [LoadImageParams(AllowedImageClasses)]);
+                raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot load this image file format to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
             end;
           end;
         lcRGB_RGBFloat:
@@ -4167,10 +4243,10 @@ begin
                 ImageGrayscaleTo1st(Result);
                 ImageAddAlphaTo1st(Result);
               end else
-                raise EUnableToLoadImage.CreateFmt('LoadImage: RGBE format cannot be loaded to %s', [LoadImageParams(AllowedImageClasses)]);
+                raise EUnableToLoadImage.CreateFmt('LoadEncodedImage: RGBE format cannot be loaded to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
             end;
           end;
-        else raise EInternalError.Create('LoadImage: LoadedClasses?');
+        else raise EInternalError.Create('LoadEncodedImage: LoadedClasses?');
       end;
     end else
     raise EImageFormatNotSupported.Create('Can''t load image format "'+
@@ -4179,19 +4255,19 @@ begin
   except Result.Free; raise end;
 end;
 
-function LoadImage(Stream: TStream; const MimeType: string;
-  const AllowedImageClasses: array of TCastleImageClass)
-  :TCastleImage;
+function LoadEncodedImage(Stream: TStream; const MimeType: string;
+  const AllowedImageClasses: array of TEncodedImageClass)
+  :TEncodedImage;
 var
   iff: TImageFormat;
 begin
   if MimeTypeToImageFormat(MimeType, true, false, iff) then
-    result := LoadImage(Stream, iff, AllowedImageClasses) else
+    result := LoadEncodedImage(Stream, iff, AllowedImageClasses) else
     raise EImageFormatNotSupported.Create('Unrecognized image MIME type: "'+MimeType+'"');
 end;
 
-function LoadImage(const URL: string;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+function LoadEncodedImage(const URL: string;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 const
   SLoadError = 'Error loading image from URL "%s": %s';
 var
@@ -4206,7 +4282,7 @@ begin
     end;
 
     try
-      Result := LoadImage(F, MimeType, AllowedImageClasses);
+      Result := LoadEncodedImage(F, MimeType, AllowedImageClasses);
       Result.FURL := URL;
     finally F.Free end;
   except
@@ -4224,23 +4300,14 @@ begin
   end;
 end;
 
-function LoadImage(const URL: string): TCastleImage;
+function LoadEncodedImage(const URL: string): TEncodedImage;
 begin
-  Result := LoadImage(URL, []);
+  Result := LoadEncodedImage(URL, []);
 end;
 
-function LoadImage(const URL: string;
-  const AllowedImageClasses: array of TCastleImageClass;
-  const ResizeWidth, ResizeHeight: Cardinal;
-  const Interpolation: TResizeInterpolation): TCastleImage;
-begin
-  Result := LoadImage(URL, AllowedImageClasses);
-  Result.Resize(ResizeWidth, ResizeHeight, Interpolation);
-end;
+{ SaveImage on TEncodedImage ---------------------------------------------------- }
 
-{ SaveImage na TCastleImage ---------------------------------------------------- }
-
-procedure SaveImage(const Img: TCastleImage; const Format: TImageFormat; Stream: TStream);
+procedure SaveImage(const Img: TEncodedImage; const Format: TImageFormat; Stream: TStream);
 var
   ImgRGB: TRGBImage;
   Save: TImageSaveFunc;
@@ -4262,12 +4329,14 @@ begin
           end else
             raise EImageSaveError.CreateFmt('Saving image not possible: Cannot save image class %s to this format', [Img.ClassName]);
         end;
-      scG_GA_RGB_RGBA:
+      scG_GA_RGB_RGBA, scG_GA_RGB_RGBA_GPUCompressed:
         begin
           if (Img is TRGBImage) or
              (Img is TRGBAlphaImage) or
              (Img is TGrayscaleImage) or
-             (Img is TGrayscaleAlphaImage) then
+             (Img is TGrayscaleAlphaImage) or
+             ( (Img is TGPUCompressedImage) and
+               (ImageFormatInfos[Format].SavedClasses = scG_GA_RGB_RGBA_GPUCompressed) ) then
             Save(Img, Stream) else
           if Img is TRGBFloatImage then
           begin
@@ -4291,7 +4360,7 @@ begin
     raise EImageSaveError.CreateFmt('Saving image class %s not implemented', [Img.ClassName]);
 end;
 
-procedure SaveImage(const img: TCastleImage; const MimeType: string; Stream: TStream);
+procedure SaveImage(const img: TEncodedImage; const MimeType: string; Stream: TStream);
 var
   Format: TImageFormat;
 begin
@@ -4301,7 +4370,7 @@ begin
   SaveImage(Img, Format, Stream);
 end;
 
-procedure SaveImage(const Img: TCastleImage; const URL: string);
+procedure SaveImage(const Img: TEncodedImage; const URL: string);
 var
   Stream: TStream;
   Format: TImageFormat;
@@ -4322,7 +4391,7 @@ end;
 
 { other image processing ------------------------------------------- }
 
-function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass;
+function ImageClassBestForSavingToFormat(const URL: string): TEncodedImageClass;
 var
   Format: TImageFormat;
 begin
@@ -4331,7 +4400,7 @@ begin
   Result := ImageClassBestForSavingToFormat(Format);
 end;
 
-function ImageClassBestForSavingToFormat(const Format: TImageFormat): TCastleImageClass;
+function ImageClassBestForSavingToFormat(const Format: TImageFormat): TEncodedImageClass;
 begin
   if Format = ifRGBE then
     Result := TRGBFloatImage else

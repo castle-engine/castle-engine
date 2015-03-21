@@ -27,7 +27,7 @@
   /usr/share/pixmaps/flamerobin.xpm
 }
 
-{ TFPMemoryImage -> TCastleImage --------------------------------------------- }
+{ TFPMemoryImage -> TEncodedImage --------------------------------------------- }
 
 class function TRGBImage.FromFpImage(const FPImage: TFPMemoryImage): TRGBImage;
 var
@@ -118,7 +118,7 @@ begin
 end;
 
 function FromFpImage(const FPImage: TFPMemoryImage;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
 
   { FPImage doesn't provide us any information does the image contain useful
     alpha channel, and is it grayscale.
@@ -198,8 +198,8 @@ begin
 end;
 
 function LoadFpImage(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass;
-  Reader: TFPCustomImageReader): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass;
+  Reader: TFPCustomImageReader): TEncodedImage;
 var
   FPImage: TFPMemoryImage;
 begin
@@ -219,9 +219,9 @@ begin
   end;
 end;
 
-{ TCastleImage -> TFPMemoryImage --------------------------------------------- }
+{ TEncodedImage -> TFPMemoryImage --------------------------------------------- }
 
-function TCastleImage.ToFpImage: TFPMemoryImage;
+function TEncodedImage.ToFpImage: TFPMemoryImage;
 begin
   raise EImageCannotConvertFpImage.Create('Cannot convert to FPImage, and cannot use resize with TResizeNiceInterpolation mode, on images of class ' + ClassName);
   Result := nil; // avoid warning
@@ -279,7 +279,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-procedure SaveFpImage(Img: TCastleImage; Stream: TStream;
+procedure SaveFpImage(Img: TEncodedImage; Stream: TStream;
   Writer: TFPCustomImageWriter);
 var
   FPImage: TFPMemoryImage;
@@ -303,7 +303,7 @@ begin
 end;
 
 function LoadGIF(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   {$ifndef VER2_2}
   Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderGIF.Create);
@@ -313,7 +313,7 @@ begin
 end;
 
 function LoadTGA(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTarga.Create);
 end;
@@ -323,20 +323,20 @@ TIFF reader from FPReadTiff fails on ~/images/test_images/lena.tif
 with "missing RowsPerStrip.."
 
 function LoadTIFF(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderTIFF.Create);
 end;
 }
 
 function LoadXPM(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderXPM.Create);
 end;
 
 function LoadPSD(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   {$ifndef VER2_2}
   Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPSD.Create);
@@ -346,38 +346,38 @@ begin
 end;
 
 function LoadPCX(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPCX.Create);
 end;
 
 function LoadJPEG(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderJPEG.Create);
 end;
 
 {$ifdef CASTLE_PNG_USING_FCL_IMAGE}
 function LoadPNG(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNG.Create);
 end;
 {$endif}
 
 function LoadPNM(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
   Result := LoadFpImage(Stream, AllowedImageClasses, TFPReaderPNM.Create);
 end;
 
-procedure SaveJPEG(Img: TCastleImage; Stream: TStream);
+procedure SaveJPEG(Img: TEncodedImage; Stream: TStream);
 begin
   SaveFpImage(Img, Stream, TFPWriterJPEG.Create);
 end;
 
 {$ifdef CASTLE_PNG_USING_FCL_IMAGE}
-procedure SavePNG(Img: TCastleImage; Stream: TStream);
+procedure SavePNG(Img: TEncodedImage; Stream: TStream);
 begin
   SaveFpImage(Img, Stream, TFPWriterPNG.Create);
 end;

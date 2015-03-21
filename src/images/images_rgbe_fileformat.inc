@@ -35,7 +35,7 @@
 }
 
 function LoadRGBE(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 var LoadResult: TCastleImage absolute result;
 
   procedure ReadRGBERow(RGBERow: PArray_Vector4Byte);
@@ -130,7 +130,7 @@ var LoadResult: TCastleImage absolute result;
    end;
   end;
 
-  function ClassAllowed(ImageClass: TCastleImageClass): boolean;
+  function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
   begin
     Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
@@ -170,7 +170,7 @@ begin
         for y := result.Height-1 downto 0 do
         begin
           ReadRGBERow(RGBERow);
-          FloatRow := Result.RowPtr(y);
+          FloatRow := TCastleImage(Result).RowPtr(y);
           for x := 0 to result.Width - 1 do
             FloatRow^[x] := VectorRGBETo3Single(RGBERow^[x]);
         end;
@@ -181,17 +181,17 @@ begin
         for y := result.Height-1 downto 0 do
         begin
           ReadRGBERow(RGBERow);
-          ByteRow := Result.RowPtr(y);
+          ByteRow := TCastleImage(Result).RowPtr(y);
           for x := 0 to result.Width - 1 do
             ByteRow^[x] := Vector3Byte( VectorRGBETo3Single(RGBERow^[x]) );
         end;
       end else
-        raise EUnableToLoadImage.CreateFmt('Cannot load RGBE file to %s', [LoadImageParams(AllowedImageClasses)]);
+        raise EUnableToLoadImage.CreateFmt('Cannot load RGBE file to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
     finally FreeMemNiling(Pointer(RGBERow)) end;
   except Result.Free; raise end;
 end;
 
-procedure SaveRGBE(Img: TCastleImage; Stream: TStream);
+procedure SaveRGBE(Img: TEncodedImage; Stream: TStream);
 var
   PByte: PVector3Byte;
   PFloat: PVector3Single;
@@ -208,7 +208,7 @@ begin
                   '-Y '+IntToStr(Img.Height)+' +X '+IntToStr(Img.Width)+#10);
 
   { Theoretically, I could use above '+Y' instead of '-Y'.
-    '+Y' is more natural ordering for me, consistent with OpenGL and my TCastleImage.
+    '+Y' is more natural ordering for me, consistent with OpenGL and my TEncodedImage.
 
     However, it turns out that many (all?) programs cannot handle orientation
     other than (-Y, +X). This applies even for ximage from Radiance,
@@ -220,7 +220,7 @@ begin
   begin
     for y := Img.Height - 1 downto 0 do
     begin
-      PByte := Img.RowPtr(y);
+      PByte := TCastleImage(Img).RowPtr(y);
       for x := 0 to Img.Width - 1 do
       begin
         RGBE := Vector3ToRGBE( Vector3Single(PByte^) );
@@ -232,7 +232,7 @@ begin
   begin
     for y := Img.Height - 1 downto 0 do
     begin
-      PFloat := Img.RowPtr(y);
+      PFloat := TCastleImage(Img).RowPtr(y);
       for x := 0 to Img.Width - 1 do
       begin
         RGBE := Vector3ToRGBE(PFloat^);

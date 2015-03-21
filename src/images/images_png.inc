@@ -608,9 +608,9 @@ end;
 { LoadPNG ------------------------------------------------------------------- }
 
 function LoadPNG(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 
-  function ClassAllowed(ImageClass: TCastleImageClass): boolean;
+  function ClassAllowed(ImageClass: TEncodedImageClass): boolean;
   begin
     Result := CastleImages.ClassAllowed(ImageClass, AllowedImageClasses);
   end;
@@ -672,8 +672,7 @@ begin
    IsAlpha := png_is_alpha(png_ptr, info_ptr);
    IsGrayscale := png_is_grayscale(png_ptr, info_ptr);
 
-   { First, check to what TCastleImage descendant (we can make four,
-     with 1, 2, 3, 4 number of components) our image file most matches.
+   { First, check to what TEncodedImage descendant our image file most matches.
 
      If it's not on the list of allowed classes, try to transform
      it to the most matching class. When doing this, we try to perform
@@ -754,7 +753,7 @@ end;
 
 { SavePNG --------------------------------------------------------------------- }
 
-procedure SavePNG(Img: TCastleImage; Stream: TStream; Interlaced: boolean);
+procedure SavePNG(Img: TEncodedImage; Stream: TStream; Interlaced: boolean);
 var png_ptr: png_structp;
     info_ptr: png_infop;
     InterlaceType: LongWord;
@@ -800,7 +799,7 @@ begin
   { zapisalismy header i jestesmy bardzo happy bo nie musimy teraz robic tego
     co bylo nasza bieda w LoadPNG : nakladanie odpowiednich transformacji.
     Zawsze zapisujemy obrazek w takim formacie w jakim go przechowujemy w
-    TCastleImage - a wiec bitdepth = 8 , type = RGB[A] i juz. }
+    TCastleImage - a wiec bitdepth = 8. }
 
   { wiec ready row_pointers and go }
   row_pointers := TFPList.Create;
@@ -824,7 +823,7 @@ begin
  end;
 end;
 
-procedure SavePNG(Img: TCastleImage; Stream: TStream); { interlaced = false }
+procedure SavePNG(Img: TEncodedImage; Stream: TStream); { interlaced = false }
 begin
   SavePNG(Img, Stream, false)
 end;

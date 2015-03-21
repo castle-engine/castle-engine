@@ -62,7 +62,7 @@ begin
 end;
 
 function LoadPPM(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 var magic: array[0..1]of char;
     IsBinary: boolean;
     MaxColVal: integer;
@@ -90,14 +90,14 @@ begin
    if IsBinary then
    begin
     if MaxColVal < 256 then ColSize := 1 else ColSize := 2;
-    LineSize := ColSize * Result.PixelSize * Result.Width;
+    LineSize := ColSize * TCastleImage(Result).PixelSize * Result.Width;
 
     {osobny kod dla ColSize =1 i =2 (dla szybkosci).}
     if ColSize = 1 then
     begin
      for y := result.Height-1 downto 0 do
      begin
-      line := Result.RowPtr(y);
+      line := TCastleImage(Result).RowPtr(y);
       Stream.ReadBuffer(line^, LineSize);
       if MaxColVal <> 255 then
       begin
@@ -111,7 +111,7 @@ begin
      try
       for y := result.Height-1 downto 0 do
       begin
-       line := Result.RowPtr(y);
+       line := TCastleImage(Result).RowPtr(y);
        Stream.ReadBuffer(ppmline[0], LineSize);
        for x := 0 to result.Width-1 do
        begin
@@ -128,7 +128,7 @@ begin
    begin
     for y := result.Height-1 downto 0 do
     begin
-     line := Result.RowPtr(y);
+     line := TCastleImage(Result).RowPtr(y);
      for x := 0 to result.Width-1 do
      begin
       line^[x, 0] := StrToInt(ReadPPMToken(Stream))*255 div MaxColVal;
@@ -145,7 +145,7 @@ begin
  end;
 end;
 
-procedure SavePPM(Img: TCastleImage; Stream: TStream; Binary: boolean);
+procedure SavePPM(Img: TEncodedImage; Stream: TStream; Binary: boolean);
 var line: PArray_Vector3Byte;
     x, y: cardinal;
 begin
@@ -160,7 +160,7 @@ begin
  WriteStr(Stream, Format(#10'%d %d'#10'%d'#10, [img.Width, img.Height, 255]));
  for y := img.Height-1 downto 0 do
  begin
-  line := Img.RowPtr(y);
+  line := TCastleImage(Img).RowPtr(y);
   if binary then
    Stream.WriteBuffer(line^, img.Width*SizeOf(TVector3Byte)) else
   begin
@@ -177,5 +177,5 @@ begin
  end;
 end;
 
-procedure SavePPM(Img: TCastleImage; Stream: TStream); { binary = true }
+procedure SavePPM(Img: TEncodedImage; Stream: TStream); { binary = true }
 begin SavePPM(img, Stream, true) end;

@@ -36,7 +36,7 @@ uses CastleImages, CastleDDS, CastleUtils, FGL, CastleVideos;
 
 const
   { Image classes that are handled by absolutely all OpenGL versions. }
-  TextureImageClasses: array [0..3] of TCastleImageClass = (
+  TextureImageClasses: array [0..3] of TEncodedImageClass = (
     TRGBImage,
     TRGBAlphaImage,
     TGrayscaleImage,

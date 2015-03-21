@@ -14,7 +14,7 @@
 }
 
 function LoadIPL(Stream: TStream;
-  const AllowedImageClasses: array of TCastleImageClass): TCastleImage;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 { Implemented looking at iplab_read.m from
   http://www.graphics.cornell.edu/online/box/data.html . }
 
@@ -60,7 +60,7 @@ begin
     for j := IPLHeight-1 downto 0 do
       for i := 0 to IPLWidth-1 do
       begin
-        imgPixel := Result.PixelPtr(i, j);
+        imgPixel := TCastleImage(Result).PixelPtr(i, j);
         Stream.ReadBuffer(IPLPixel, SizeOf(IPLPixel));
         {imgPixel[0] := FiveBitsToByte((IPLPixel and $7C00) shr 10);
         imgPixel[1] := FiveBitsToByte((IPLPixel and $03E0) shr 5);
