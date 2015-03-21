@@ -999,7 +999,8 @@ begin
 
     if glext_ExtensionSupported('GL_AMD_compressed_ATC_texture', SupportedExtensions) or
        glext_ExtensionSupported('GL_ATI_texture_compression_atitc', SupportedExtensions) then
-      TextureCompression += [tcATITC_RGB, tcATITC_RGBA];
+      TextureCompression += [tcATITC_RGB,
+        tcATITC_RGBA_ExplicitAlpha, tcATITC_RGBA_InterpolatedAlpha];
 
     if glext_ExtensionSupported('GL_OES_compressed_ETC1_RGB8_texture', SupportedExtensions) then
       TextureCompression += [tcETC1];

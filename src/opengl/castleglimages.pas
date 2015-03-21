@@ -206,8 +206,9 @@ begin
       tcPvrtc2_4bpp     : Result := GL_COMPRESSED_RGBA_PVRTC_4BPPV2_IMG;
       tcPvrtc2_2bpp     : Result := GL_COMPRESSED_RGBA_PVRTC_2BPPV2_IMG;
 
-      tcATITC_RGB       : Result := GL_ATC_RGB_AMD;
-      tcATITC_RGBA      : Result := GL_ATC_RGBA_EXPLICIT_ALPHA_AMD;
+      tcATITC_RGB                   : Result := GL_ATC_RGB_AMD;
+      tcATITC_RGBA_InterpolatedAlpha: Result := GL_ATC_RGBA_INTERPOLATED_ALPHA_AMD;
+      tcATITC_RGBA_ExplicitAlpha    : Result := GL_ATC_RGBA_EXPLICIT_ALPHA_AMD;
 
       tcETC1            : Result := GL_ETC1_RGB8_OES;
       else raise EImageClassNotSupportedForOpenGL.Create('TGPUCompressedImage.Compression not supported by OpenGL');

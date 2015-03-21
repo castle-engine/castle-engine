@@ -759,9 +759,13 @@ type
       Supported by some Android devices (Adreno GPU from Qualcomm). }
     tcATITC_RGB,
 
-    { ATI texture compression format, @bold(with alpha).
+    { ATI texture compression format, @bold(with sharp alpha).
       Supported by some Android devices (Adreno GPU from Qualcomm). }
-    tcATITC_RGBA,
+    tcATITC_RGBA_ExplicitAlpha,
+
+    { ATI texture compression format, @bold(with smooth alpha).
+      Supported by some Android devices (Adreno GPU from Qualcomm). }
+    tcATITC_RGBA_InterpolatedAlpha,
 
     { ETC texture compression, @bold(without alpha).
       See http://en.wikipedia.org/wiki/Ericsson_Texture_Compression . }
@@ -1859,7 +1863,8 @@ const
     (Name: 'PVRTC2_2bpp'        ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
     { TODO: unconfirmed RequiresPowerOf2 values below, using safest for now. } { }
     (Name: 'ATITC_RGB'          ; RequiresPowerOf2: true ; AlphaChannel: acNone),
-    (Name: 'ATITC_RGBA'         ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
+    (Name: 'ATITC_RGBA_ExplicitAlpha'    ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
+    (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
     (Name: 'ETC1'               ; RequiresPowerOf2: true ; AlphaChannel: acNone)
   );
 
@@ -2729,27 +2734,58 @@ begin
   FDepth := ADepth;
   FCompression := ACompression;
 
-  { All DXT* compression methods compress 4x4 pixels into some constant size.
-    When Width / Height is not divisible by 4, we have to round up.
-
-    This matches what MSDN docs say about DDS with mipmaps:
-    http://msdn.microsoft.com/en-us/library/bb205578(VS.85).aspx
-    When mipmaps are used, DDS Width/Height must be power-of-two,
-    so the base level is usually divisible by 4. But on the following mipmap
-    levels the size decreases, eventually to 1x1, so this still matters.
-    And MSDN says then explicitly that with DXT1, you have always
-    minimum 8 bytes, and with DXT2-5 minimum 16 bytes.
-
-    This also means that we cannot simply calculate size of mipmap in a DDS
-    by looking at size of base image, and dividing by 2/4/8 as mipmap size
-    decreases. We have to calculate size always rounding up to 4x4 block of pixels.
-  }
-
   case Compression of
+    { Size formula for S3TC textures:
+      All DXT* compression methods compress 4x4 pixels into some constant size.
+      When Width / Height is not divisible by 4, we have to round up.
+
+      This matches what MSDN docs say about DDS with mipmaps:
+      http://msdn.microsoft.com/en-us/library/bb205578(VS.85).aspx
+      When mipmaps are used, DDS Width/Height must be power-of-two,
+      so the base level is usually divisible by 4. But on the following mipmap
+      levels the size decreases, eventually to 1x1, so this still matters.
+      And MSDN says then explicitly that with DXT1, you have always
+      minimum 8 bytes, and with DXT2-5 minimum 16 bytes.
+
+      This also means that we cannot simply calculate size of mipmap in a DDS
+      by looking at size of base image, and dividing by 2/4/8 as mipmap size
+      decreases. We have to calculate size always rounding up to 4x4 block of pixels.
+    }
     tcDxt1_RGB, tcDxt1_RGBA:
       FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 8 { 8 bytes for each 16 pixels };
     tcDxt3, tcDxt5:
       FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 16 { 16 bytes for each 16 pixels };
+
+    { see https://www.khronos.org/registry/gles/extensions/IMG/IMG_texture_compression_pvrtc2.txt
+      for size formula size.
+      Note that minimum size is 32 bytes,
+      see https://developer.apple.com/library/ios/qa/qa1611/_index.html }
+    tcPvrtc1_2bpp_RGB, tcPvrtc1_2bpp_RGBA:
+      FSize := Max(32, (FDepth * Max(FWidth, 16) * Max(FHeight, 8) * 2 + 7) div 8);
+    tcPvrtc1_4bpp_RGB, tcPvrtc1_4bpp_RGBA:
+      FSize := Max(32, (FDepth * Max(FWidth,  8) * Max(FHeight, 8) * 4 + 7) div 8);
+
+    { see https://www.khronos.org/registry/gles/extensions/IMG/IMG_texture_compression_pvrtc2.txt
+      for size formula source }
+    tcPvrtc2_2bpp:
+      FSize := FDepth * DivRoundUp(FWidth, 8) * DivRoundUp(FHeight, 4) * 8;
+    tcPvrtc2_4bpp:
+      FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 8;
+
+    { see https://www.khronos.org/registry/gles/extensions/AMD/AMD_compressed_ATC_texture.txt
+      for size formula source }
+    tcATITC_RGB:
+      FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 8;
+    tcATITC_RGBA_ExplicitAlpha,
+    tcATITC_RGBA_InterpolatedAlpha:
+      FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 16;
+
+    { size formula from
+      http://en.wikipedia.org/wiki/Ericsson_Texture_Compression
+      "ETC1 takes 4x4 groups of pixel data and compresses each into a single 64-bit word" }
+    tcETC1:
+      FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 8;
+
     else raise EInvalidDDS.CreateFmt('Cannot calculate size for texture compressed with %s',
       [GPUCompressionInfo[Compression].Name]);
   end;

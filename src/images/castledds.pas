@@ -1045,9 +1045,7 @@ var
             ReadCompressed(tcDxt5) else
           if Header.PixelFormat.FourCC = 'ATCI' then
             ReadCompressed(tcATITC_RGB) else
-          if Header.PixelFormat.FourCC = 'ACTA' then
-            ReadCompressed(tcATITC_RGBA) else
-          { TODO: ETC1 formats? PVRTC formats? }
+          { TODO: ATITC_RGBA formats? ETC1 formats? PVRTC formats? }
           if (Header.PixelFormat.FourCCLW = D3DFMT_R16F) or
              (Header.PixelFormat.FourCCLW = D3DFMT_G16R16F) or
              (Header.PixelFormat.FourCCLW = D3DFMT_A16B16G16R16F) or
@@ -1317,8 +1315,7 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
         tcDxt3:       Header.PixelFormat.FourCC := 'DXT3';
         tcDxt5:       Header.PixelFormat.FourCC := 'DXT5';
         tcATITC_RGB : Header.PixelFormat.FourCC := 'ATCI';
-        tcATITC_RGBA: Header.PixelFormat.FourCC := 'ACTA';
-        { TODO: ETC1 formats? PVRTC formats? }
+        { TODO: ATITC_RGBA formats? ETC1 formats? PVRTC formats? }
         else EInternalError.Create('When saving DDS: Compression unrecognized?');
       end;
     end else
