@@ -543,19 +543,6 @@ procedure TDDSImage.LoadFromStream(Stream: TStream);
       OnWarning(wtMajor, 'DDS image', Message);
   end;
 
-  function CalculateMipmapSize(W, H, D: Cardinal; const BaseSize, MipmapLevel: Cardinal): Int64;
-  var
-    I: Integer;
-  begin
-    Result := BaseSize;
-    for I := 1 to MipmapLevel do
-    begin
-      if W > 1 then begin W := W div 2; Result := Result div 2; end;
-      if H > 1 then begin H := H div 2; Result := Result div 2; end;
-      if D > 1 then begin D := D div 2; Result := Result div 2; end;
-    end;
-  end;
-
 var
   Header: TDDSHeader;
 
@@ -982,66 +969,24 @@ var
       var
         { Within ReadUncompressed, Result is always of TGPUCompressedImage class }
         Res: TGPUCompressedImage absolute Result;
-        ExplicitSize, CorrectSize: Int64;
-        HasExplicitSize: boolean;
       begin
-        { calculate ExplicitSize, HasExplicitSize from file }
-        ExplicitSize := Header.PitchOrLinearSize;
-        HasExplicitSize :=
-          (Header.Flags and DDSD_LINEARSIZE <> 0) and
+        Result := TGPUCompressedImage.Create(Width, Height, Depth,
+          Compression);
+
+        { check Header.PitchOrLinearSize vs Result.Size }
+        if (Header.Flags and DDSD_LINEARSIZE <> 0) and
           { It seems there are textures with DDSD_LINEARSIZE set but
             PitchOrLinearSize 0, and we should ignore
             PitchOrLinearSize then (e.g. ~/images/dds_tests/greek_imperial_swordsman.tga.dds
             on chantal). Same for PitchOrLinearSize = -1
             (e.g. UberPack-1/Torque3D/levels/lonerock_island/
             inside UberPack-1 on opengameart.org). }
-          (ExplicitSize <> 0) and
-          (ExplicitSize <> High(LongWord));
-
-        { check ExplicitSize, HasExplicitSize,
-          and update CorrectSize to always be Ok }
-        case Compression of
-          tcDxt1_RGB,
-          tcDxt1_RGBA:
-            begin
-              { All DXT* compression methods compress 4x4 pixels into some constant size.
-                When Width / Height is not divisible by 4, we have to round up.
-
-                This matches what MSDN docs say about DDS with mipmaps:
-                http://msdn.microsoft.com/en-us/library/bb205578(VS.85).aspx
-                When mipmaps are used, DDS Width/Height must be power-of-two,
-                so the base level is usually divisible by 4. But on the following mipmap
-                levels the size decreases, eventually to 1x1, so this still matters.
-                And MSDN says then explicitly that with DXT1, you have always
-                minimum 8 bytes, and with DXT2-5 minimum 16 bytes.
-              }
-
-              CorrectSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 8 { 8 bytes for each 16 pixels };
-              if HasExplicitSize and (CorrectSize <> ExplicitSize) then
-                raise EInvalidDDS.Create('Incorrect size for DXT1 compressed texture');
-            end;
-          tcDxt3,
-          tcDxt5:
-            begin
-              CorrectSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 16 { 16 bytes for each 16 pixels };
-              if HasExplicitSize and (CorrectSize <> ExplicitSize) then
-                raise EInvalidDDS.Create('Incorrect size for DXT3/5 compressed texture');
-            end;
-          else
-            begin
-              if not HasExplicitSize then
-                raise EInvalidDDS.CreateFmt('DDS must explicitly specify size (DDSD_LINEARSIZE) for compression %s',
-                  [GPUCompressionInfo[Compression].Name]);
-              CorrectSize := ExplicitSize;
-            end;
-        end;
-
-        { modify CorrectSize for MipmapLevel <> 0 }
-        CorrectSize := CalculateMipmapSize(FWidth, FHeight, FDepth,
-          CorrectSize, MipmapLevel);
-
-        Result := TGPUCompressedImage.Create(Width, Height, Depth,
-          CorrectSize, Compression);
+          (Header.PitchOrLinearSize <> 0) and
+          (Header.PitchOrLinearSize <> High(LongWord)) and
+          { check this only on base level }
+          (MipmapLevel = 0) and
+          (Header.PitchOrLinearSize <> Result.Size) then
+          raise EInvalidDDS.Create('Incorrect size for GPU compressed texture');
 
         Stream.ReadBuffer(Res.RawPixels^, Res.Size);
 
@@ -1484,12 +1429,12 @@ var
   I: Integer;
 begin
   for I := 0 to Images.Count - 1 do
-  if Images[I] is TGPUCompressedImage then
-  begin
-    OldImage := TGPUCompressedImage(Images[I]);
-    Images[I] := OldImage.Decompress;
-    FreeAndNil(OldImage);
-  end;
+    if Images[I] is TGPUCompressedImage then
+    begin
+      OldImage := TGPUCompressedImage(Images[I]);
+      Images[I] := OldImage.Decompress;
+      FreeAndNil(OldImage);
+    end;
 end;
 
 end.

@@ -777,7 +777,7 @@ type
     FCompression: TGPUCompression;
     FSize: Cardinal;
   public
-    constructor Create(const AWidth, AHeight, ADepth, ADataSize: Cardinal;
+    constructor Create(const AWidth, AHeight, ADepth: Cardinal;
       const ACompression: TGPUCompression);
 
     property Compression: TGPUCompression read FCompression;
@@ -2720,7 +2720,7 @@ end;
 { TGPUCompressedImage ----------------------------------------------------------------- }
 
 constructor TGPUCompressedImage.Create(
-  const AWidth, AHeight, ADepth, ADataSize: Cardinal;
+  const AWidth, AHeight, ADepth: Cardinal;
   const ACompression: TGPUCompression);
 begin
   inherited Create;
@@ -2728,7 +2728,32 @@ begin
   FHeight := AHeight;
   FDepth := ADepth;
   FCompression := ACompression;
-  FSize := ADataSize;
+
+  { All DXT* compression methods compress 4x4 pixels into some constant size.
+    When Width / Height is not divisible by 4, we have to round up.
+
+    This matches what MSDN docs say about DDS with mipmaps:
+    http://msdn.microsoft.com/en-us/library/bb205578(VS.85).aspx
+    When mipmaps are used, DDS Width/Height must be power-of-two,
+    so the base level is usually divisible by 4. But on the following mipmap
+    levels the size decreases, eventually to 1x1, so this still matters.
+    And MSDN says then explicitly that with DXT1, you have always
+    minimum 8 bytes, and with DXT2-5 minimum 16 bytes.
+
+    This also means that we cannot simply calculate size of mipmap in a DDS
+    by looking at size of base image, and dividing by 2/4/8 as mipmap size
+    decreases. We have to calculate size always rounding up to 4x4 block of pixels.
+  }
+
+  case Compression of
+    tcDxt1_RGB, tcDxt1_RGBA:
+      FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 8 { 8 bytes for each 16 pixels };
+    tcDxt3, tcDxt5:
+      FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 16 { 16 bytes for each 16 pixels };
+    else raise EInvalidDDS.CreateFmt('Cannot calculate size for texture compressed with %s',
+      [GPUCompressionInfo[Compression].Name]);
+  end;
+
   FRawPixels := GetMem(FSize);
 end;
 
@@ -2761,7 +2786,8 @@ end;
 
 function TGPUCompressedImage.MakeCopy: TGPUCompressedImage;
 begin
-  Result := TGPUCompressedImage.Create(Width, Height, Depth, Size, Compression);
+  Result := TGPUCompressedImage.Create(Width, Height, Depth, Compression);
+  Assert(Result.Size = Size);
   Move(RawPixels^, Result.RawPixels^, Size);
   Result.URL := URL;
 end;
