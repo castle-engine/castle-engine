@@ -237,7 +237,7 @@ begin
         FlipBlock[3] := @DXT45_Flip3Block;
         FlipBlock[4] := @DXT45_Flip4Block;
       end;
-    else ECannotFlipCompressedImage.CreateFmt('Cannot flip image compressed with GPU compression %s',
+    else raise ECannotFlipCompressedImage.CreateFmt('Cannot flip image compressed with GPU compression %s',
       [GPUCompressionInfo[Compression].Name]);
   end;
 
