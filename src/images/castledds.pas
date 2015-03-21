@@ -82,6 +82,11 @@ type
 
     FOwnsFirstImage: boolean;
   public
+    { Some DDS files specify unknown GPU texture compression.
+      To read them, set this to true and set AutomaticCompressionType. }
+    class var AutomaticCompression: boolean;
+    class var AutomaticCompressionType: TGPUCompression;
+
     constructor Create;
     destructor Destroy; override;
 
@@ -1214,10 +1219,11 @@ var
           end else
           if Header.PixelFormat.FourCC = 'DX10' then
           begin
-            raise EInvalidDDS.CreateFmt('Unsupported texture formar in DDS: FourCC is DX10 and DxgiFormat is %d',
-              [HeaderDxt10.DxgiFormat]);
+            if AutomaticCompression then
+              ReadCompressed(AutomaticCompressionType) else
+              raise EInvalidDDS.CreateFmt('Unsupported texture formar in DDS: FourCC is DX10 and DxgiFormat is %d. Assign TDDSImage.AutomaticCompression and TDDSImage.AutomaticCompressionType in the engine to override this.',
+                [HeaderDxt10.DxgiFormat]);
           end else
-          { TODO: ATITC_RGBA formats? ETC1 formats? PVRTC formats? }
           if (Header.PixelFormat.FourCCLW = D3DFMT_R16F) or
              (Header.PixelFormat.FourCCLW = D3DFMT_G16R16F) or
              (Header.PixelFormat.FourCCLW = D3DFMT_A16B16G16R16F) or
@@ -1488,7 +1494,6 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
         tcDxt3:       Header.PixelFormat.FourCC := 'DXT3';
         tcDxt5:       Header.PixelFormat.FourCC := 'DXT5';
         tcATITC_RGB : Header.PixelFormat.FourCC := 'ATCI';
-        { TODO: ATITC_RGBA formats? ETC1 formats? PVRTC formats? }
         else EInternalError.Create('When saving DDS: Compression unrecognized?');
       end;
     end else
