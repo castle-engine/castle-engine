@@ -202,7 +202,10 @@ function FindFiles_NonRecursive(const Path, Mask: string;
     if FindDirectories then
       Attr := Attr or faDirectory;
 
-    LocalPath := InclPathDelim(URIToFilenameSafe(Path));
+    if Path <> '' then
+      LocalPath := URIToFilenameSafe(Path) else
+      LocalPath := GetCurrentDir;
+    LocalPath := InclPathDelim(LocalPath);
     SearchError := FindFirst(LocalPath + Mask, Attr, FileRec);
     try
       while SearchError = 0 do
