@@ -1204,15 +1204,13 @@ var
             ReadCompressed(tcATITC_RGB) else
           if Header.PixelFormat.FourCC = 'PTC2' then
           begin
-            if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0 then
-              ReadCompressed(tcPvrtc1_2bpp_RGBA) else
-              ReadCompressed(tcPvrtc1_2bpp_RGB);
+            { No way to detect tcPvrtc1_2bpp_RGB? }
+            ReadCompressed(tcPvrtc1_2bpp_RGBA);
           end else
           if Header.PixelFormat.FourCC = 'PTC4' then
           begin
-            if Header.PixelFormat.Flags and DDPF_ALPHAPIXELS <> 0 then
-              ReadCompressed(tcPvrtc1_4bpp_RGBA) else
-              ReadCompressed(tcPvrtc1_4bpp_RGB);
+            { No way to detect tcPvrtc1_4bpp_RGB? }
+            ReadCompressed(tcPvrtc1_4bpp_RGBA);
           end else
           if Header.PixelFormat.FourCC = 'DX10' then
           begin
