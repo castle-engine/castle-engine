@@ -1210,8 +1210,12 @@ var
             ReadCompressed(tcDxt3) else
           if Header.PixelFormat.FourCC = 'DXT5' then
             ReadCompressed(tcDxt5) else
-          if Header.PixelFormat.FourCC = 'ATCI' then
+          if Header.PixelFormat.FourCC = 'ATC ' then
             ReadCompressed(tcATITC_RGB) else
+          if Header.PixelFormat.FourCC = 'ATCA' then
+            ReadCompressed(tcATITC_RGBA_ExplicitAlpha) else
+          if Header.PixelFormat.FourCC = 'ATCI' then
+            ReadCompressed(tcATITC_RGBA_InterpolatedAlpha) else
           if Header.PixelFormat.FourCC = 'PTC2' then
           begin
             { No way to detect tcPvrtc1_2bpp_RGB? }
@@ -1224,9 +1228,12 @@ var
           end else
           if Header.PixelFormat.FourCC = 'DX10' then
           begin
+            { Right now, this is only used by PvrTexTool when you compress
+              to PVRTC2_* formats. Unfortunately HeaderDxt10.DxgiFormat is useless
+              in this case, it's still zero. }
             if AutomaticCompression then
               ReadCompressed(AutomaticCompressionType) else
-              raise EInvalidDDS.CreateFmt('Unsupported texture formar in DDS: FourCC is DX10 and DxgiFormat is %d. Assign TDDSImage.AutomaticCompression and TDDSImage.AutomaticCompressionType in the engine to override this.',
+              raise EInvalidDDS.CreateFmt('Unknown texture format in DDS: FourCC is DX10 and DxgiFormat is %d. Assign TDDSImage.AutomaticCompression and TDDSImage.AutomaticCompressionType in the engine to override this.',
                 [HeaderDxt10.DxgiFormat]);
           end else
           if (Header.PixelFormat.FourCCLW = D3DFMT_R16F) or
@@ -1502,7 +1509,9 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
         tcPvrtc1_2bpp_RGBA: Header.PixelFormat.FourCC := 'PTC2';
         tcPvrtc1_4bpp_RGB,
         tcPvrtc1_4bpp_RGBA: Header.PixelFormat.FourCC := 'PTC4';
-        tcATITC_RGB : Header.PixelFormat.FourCC := 'ATCI';
+        tcATITC_RGB                   : Header.PixelFormat.FourCC := 'ATC ';
+        tcATITC_RGBA_ExplicitAlpha    : Header.PixelFormat.FourCC := 'ATCA';
+        tcATITC_RGBA_InterpolatedAlpha: Header.PixelFormat.FourCC := 'ATCI';
         else raise EImageSaveError.CreateFmt('When saving DDS: Cannot save to DDS with compression %s',
           [GPUCompressionInfo[TGPUCompressedImage(Images[0]).Compression].Name]);
       end;

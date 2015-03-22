@@ -1872,23 +1872,24 @@ type
 
 const
   GPUCompressionInfo: array [TGPUCompression] of TGPUCompressionInfo =
-  ( (Name: 'DXT1 (ignore alpha)'; RequiresPowerOf2: true ; AlphaChannel: acNone),
-    (Name: 'DXT1'               ; RequiresPowerOf2: true ; AlphaChannel: acSimpleYesNo),
-    (Name: 'DXT3'               ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
-    (Name: 'DXT5'               ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
+  ( (Name: 'DXT1 (no alpha)'             ; RequiresPowerOf2: true ; AlphaChannel: acNone),
+    (Name: 'DXT1'                        ; RequiresPowerOf2: true ; AlphaChannel: acSimpleYesNo),
+    (Name: 'DXT3'                        ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
+    (Name: 'DXT5'                        ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
     { See http://community.imgtec.com/files/pvrtc-texture-compression-user-guide/
       "PVRTC2 vs PVRTC1" section --- PVRTC1 require power-of-two. } { }
-    (Name: 'PVRTC1_4bpp_RGB'    ; RequiresPowerOf2: true ; AlphaChannel: acNone),
-    (Name: 'PVRTC1_2bpp_RGB'    ; RequiresPowerOf2: true ; AlphaChannel: acNone),
-    (Name: 'PVRTC1_4bpp_RGBA'   ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
-    (Name: 'PVRTC1_2bpp_RGBA'   ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
-    (Name: 'PVRTC2_4bpp'        ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
-    (Name: 'PVRTC2_2bpp'        ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
-    { TODO: unconfirmed RequiresPowerOf2 values below, using safest for now. } { }
-    (Name: 'ATITC_RGB'          ; RequiresPowerOf2: true ; AlphaChannel: acNone),
-    (Name: 'ATITC_RGBA_ExplicitAlpha'    ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
-    (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
-    (Name: 'ETC1'               ; RequiresPowerOf2: true ; AlphaChannel: acNone)
+    (Name: 'PVRTC1_4bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone),
+    (Name: 'PVRTC1_2bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone),
+    (Name: 'PVRTC1_4bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
+    (Name: 'PVRTC1_2bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
+    (Name: 'PVRTC2_4bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
+    (Name: 'PVRTC2_2bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
+    { Tests show that ATITC does not need power-of-two sizes. }
+    (Name: 'ATITC_RGB'                   ; RequiresPowerOf2: false; AlphaChannel: acNone),
+    (Name: 'ATITC_RGBA_ExplicitAlpha'    ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
+    (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: false; AlphaChannel: acFullRange),
+    { TODO: unconfirmed RequiresPowerOf2 for ETC1. } { }
+    (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone)
   );
 
 type
