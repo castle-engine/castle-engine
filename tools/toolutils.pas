@@ -303,14 +303,12 @@ function TIconFileNames.FindReadable: TCastleImage;
 var
   I: Integer;
   MimeType, URL: string;
-  ImageFormat: TImageFormat;
 begin
   for I := 0 to Count - 1 do
   begin
     URL := CombineURI(BaseUrl, Strings[I]);
     MimeType := URIMimeType(URL);
-    if (MimeType <> '') and
-       MimeTypeToImageFormat(MimeType, true, false, ImageFormat) then
+    if (MimeType <> '') and IsImageMimeType(MimeType, true, false) then
       Exit(LoadImage(URL, [TRGBImage, TRGBAlphaImage]));
   end;
   Result := nil;

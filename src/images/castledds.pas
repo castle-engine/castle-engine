@@ -1579,13 +1579,8 @@ begin
 end;
 
 class function TDDSImage.MatchesURL(const URL: string): boolean;
-var
-  ImageFormat: TImageFormat;
-  MimeType: string;
 begin
-  MimeType := URIMimeType(URL);
-  Result := MimeTypeToImageFormat(MimeType, false, false, ImageFormat) and
-    (ImageFormat = ifDDS);
+  Result := URIMimeType(URL) = 'image/x-dds';
 end;
 
 procedure TDDSImage.Flatten3d;

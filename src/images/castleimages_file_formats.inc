@@ -1,3 +1,74 @@
+{ Possible image formats ----------------------------------------------------- }
+
+type
+  { }
+  TImageFormat = (
+    { We handle PNG file format fully, both reading and writing,
+      through the libpng library.
+
+      This format supports a full alpha channel.
+      Besides PSD, this is the only format that allows full-range
+      (partial transparency) alpha channel.
+
+      Trying to read / write PNG file when libpng is not installed
+      (through LoadImage, LoadEncodedImage, SaveImage, LoadPNG, SavePNG and others)
+      will raise exception ELibPngNotAvailable. Note that the check
+      for availability of libpng is done only once you try to load/save PNG file.
+      You can perfectly compile and even run your programs without
+      PNG installed, until you try to load/save PNG format. }
+    ifPNG,
+
+    { We handle uncompressed BMP images. }
+    ifBMP,
+
+    ifPPM,
+
+    { Image formats below are supported by FPImage. }
+    ifJPEG, ifGIF, ifTGA, ifXPM, ifPSD, ifPCX, ifPNM,
+
+    { We handle fully DDS (DirectDraw Surface) image format.
+      See also TDDSImage class in DDS unit,
+      this exposes even more features of the DDS image format. }
+    ifDDS,
+
+    { High-dynamic range image format, originally used by Radiance.
+      See e.g. the pfilt and ximage programs from the Radiance package
+      for processing such images.
+
+      The float color values are encoded smartly as 4 bytes:
+      3 mantisas for RGB and 1 byte for an Exponent.
+      This is the Greg Ward's RGBE color encoding described in the
+      "Graphic Gems" (gem II.5). This allows high floating-point-like precision,
+      and possibility to encode any value >= 0 (not necessarily <= 1),
+      keeping the pixel only 4 bytes long.
+
+      Encoding a color values with float precision is very useful.
+      Otherwise, when synthesized / photographed images are
+      very dark / very bright, simply encoding them in traditional fixed-point
+      pixel format looses color precision. So potentially important but small
+      differences are lost in fixed-point formats.
+      And color values are clamped to [0..1] range.
+      On the other hand, keeping colors as floats preserves
+      everything, and allows to process images later.
+
+      It's most useful and natural to load/save these files as TRGBFloatImage,
+      this way you keep the floating-point precision inside memory.
+      However, you can also load/convert such image format
+      to normal 8-bits image formats (like TRGBImage),
+      if you're Ok with losing some of the precision. }
+    ifRGBE,
+
+    ifIPL,
+
+    { Image formats below are supported
+      by converting them  "under the hood" with ImageMagick.
+      This is available only if this unit is compiled with FPC
+      (i.e. not with Delphi) on platforms where ExecuteProcess is
+      implemented. And ImageMagick must be installed and available on $PATH. }
+    ifTIFF, ifSGI, ifJP2, ifEXR
+  );
+  TImageFormats = set of TImageFormat;
+
 { Loading image (format-specific) ---------------------------------------
 
   Load image from Stream.
@@ -408,22 +479,6 @@ begin
   Result := '';
 end;
 
-function ImageClassBestForSavingToFormat(const URL: string): TEncodedImageClass;
-var
-  Format: TImageFormat;
-begin
-  if not MimeTypeToImageFormat(URIMimeType(URL), false, true, Format) then
-    Exit(TRGBImage);
-  Result := ImageClassBestForSavingToFormat(Format);
-end;
-
-function ImageClassBestForSavingToFormat(const Format: TImageFormat): TEncodedImageClass;
-begin
-  if Format = ifRGBE then
-    Result := TRGBFloatImage else
-    Result := TRGBImage;
-end;
-
 function MimeTypeToImageFormat(const MimeType: string;
   const OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
 var
@@ -442,6 +497,30 @@ begin
       end;
   end;
   Result := false;
+end;
+
+function ImageClassBestForSavingToFormat(const Format: TImageFormat): TEncodedImageClass;
+begin
+  if Format = ifRGBE then
+    Result := TRGBFloatImage else
+    Result := TRGBImage;
+end;
+
+function ImageClassBestForSavingToFormat(const URL: string): TEncodedImageClass;
+var
+  Format: TImageFormat;
+begin
+  if not MimeTypeToImageFormat(URIMimeType(URL), false, true, Format) then
+    Exit(TRGBImage);
+  Result := ImageClassBestForSavingToFormat(Format);
+end;
+
+function IsImageMimeType(const MimeType: string;
+  const OnlyLoadable, OnlySaveable: boolean): boolean;
+var
+  ImgFormat: TImageFormat;
+begin
+  Result := MimeTypeToImageFormat(MimeType, OnlyLoadable, OnlySaveable, ImgFormat);
 end;
 
 function ListImageExtsLong(OnlyLoadable, OnlySaveable: boolean; const LinePrefix: string): string;

@@ -36,8 +36,9 @@
   or an image with data compressed for GPU (@link(TGPUCompressedImage)).
 
   When reading and writing image files, we understand various image
-  formats. See TImageFormat documentation for a current list of supported
-  formats, with comments specific to particular formats.
+  formats. (See TImageFormat in castleimages_file_formats.inc documentation
+  for a current list of supported formats,
+  with comments specific to particular formats.)
   The basic loading and saving procedures and LoadImage and SaveImage.
 
   Example usage of this unit:
@@ -1208,79 +1209,9 @@ function VectorRGBETo3Single(const v: TVector4Byte): TVector3Single;
 
 { File formats managing ----------------------------------------------------- }
 
-type
-  { }
-  TImageFormat = (
-    { We handle PNG file format fully, both reading and writing,
-      through the libpng library.
-
-      This format supports a full alpha channel.
-      Besides PSD, this is the only format that allows full-range
-      (partial transparency) alpha channel.
-
-      Trying to read / write PNG file when libpng is not installed
-      (through LoadImage, LoadEncodedImage, SaveImage, LoadPNG, SavePNG and others)
-      will raise exception ELibPngNotAvailable. Note that the check
-      for availability of libpng is done only once you try to load/save PNG file.
-      You can perfectly compile and even run your programs without
-      PNG installed, until you try to load/save PNG format. }
-    ifPNG,
-
-    { We handle uncompressed BMP images. }
-    ifBMP,
-
-    ifPPM,
-
-    { Image formats below are supported by FPImage. }
-    ifJPEG, ifGIF, ifTGA, ifXPM, ifPSD, ifPCX, ifPNM,
-
-    { We handle fully DDS (DirectDraw Surface) image format.
-      See also TDDSImage class in DDS unit,
-      this exposes even more features of the DDS image format. }
-    ifDDS,
-
-    { High-dynamic range image format, originally used by Radiance.
-      See e.g. the pfilt and ximage programs from the Radiance package
-      for processing such images.
-
-      The float color values are encoded smartly as 4 bytes:
-      3 mantisas for RGB and 1 byte for an Exponent.
-      This is the Greg Ward's RGBE color encoding described in the
-      "Graphic Gems" (gem II.5). This allows high floating-point-like precision,
-      and possibility to encode any value >= 0 (not necessarily <= 1),
-      keeping the pixel only 4 bytes long.
-
-      Encoding a color values with float precision is very useful.
-      Otherwise, when synthesized / photographed images are
-      very dark / very bright, simply encoding them in traditional fixed-point
-      pixel format looses color precision. So potentially important but small
-      differences are lost in fixed-point formats.
-      And color values are clamped to [0..1] range.
-      On the other hand, keeping colors as floats preserves
-      everything, and allows to process images later.
-
-      It's most useful and natural to load/save these files as TRGBFloatImage,
-      this way you keep the floating-point precision inside memory.
-      However, you can also load/convert such image format
-      to normal 8-bits image formats (like TRGBImage),
-      if you're Ok with losing some of the precision. }
-    ifRGBE,
-
-    ifIPL,
-
-    { Image formats below are supported
-      by converting them  "under the hood" with ImageMagick.
-      This is available only if this unit is compiled with FPC
-      (i.e. not with Delphi) on platforms where ExecuteProcess is
-      implemented. And ImageMagick must be installed and available on $PATH. }
-    ifTIFF, ifSGI, ifJP2, ifEXR
-  );
-  TImageFormats = set of TImageFormat;
-
-{ Find image file format with given MIME type.
-  Returns @false if no format matching given MIME type. }
-function MimeTypeToImageFormat(const MimeType: string;
-  const OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
+{ Does this MIME type correspond to image. }
+function IsImageMimeType(const MimeType: string;
+  const OnlyLoadable, OnlySaveable: boolean): boolean;
 
 { List available image file formats.
 
@@ -1388,9 +1319,6 @@ type
   @seealso LoadEncodedImage
 
   @groupBegin *)
-function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
-  const AllowedImageClasses: array of TEncodedImageClass)
-  :TCastleImage; overload;
 function LoadImage(Stream: TStream; const MimeType: string;
   const AllowedImageClasses: array of TEncodedImageClass)
   :TCastleImage; overload;
@@ -1414,9 +1342,6 @@ function LoadImage(const URL: string;
   @seealso LoadImage
 
   @groupBegin }
-function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
-  const AllowedImageClasses: array of TEncodedImageClass)
-  :TEncodedImage; overload;
 function LoadEncodedImage(Stream: TStream; const MimeType: string;
   const AllowedImageClasses: array of TEncodedImageClass)
   :TEncodedImage; overload;
@@ -1464,7 +1389,6 @@ type
     because of Img class (memory format) and/or image file format.)
 
   @groupBegin }
-procedure SaveImage(const img: TEncodedImage; const Format: TImageFormat; Stream: TStream); overload;
 procedure SaveImage(const img: TEncodedImage; const MimeType: string; Stream: TStream); overload;
 procedure SaveImage(const Img: TEncodedImage; const URL: string); overload;
 { @groupEnd }
@@ -1479,7 +1403,6 @@ procedure SaveImage(const Img: TEncodedImage; const URL: string); overload;
   by guessing based on file extension.
 
   @groupBegin }
-function ImageClassBestForSavingToFormat(const Format: TImageFormat): TEncodedImageClass; overload;
 function ImageClassBestForSavingToFormat(const URL: string): TEncodedImageClass; overload;
 { @groupEnd }
 
@@ -3573,68 +3496,6 @@ begin
   result[2] := v[2]*Multiplier;
 end;
 
-{ LoadImage ------------------------------------------------------------------ }
-
-function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
-  const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
-var
-  E: TEncodedImage;
-begin
-  E := LoadEncodedImage(Stream, StreamFormat, AllowedImageClasses);
-  if not (E is TCastleImage) then
-    raise EImageLoadError.Create('Image is compressed for GPU, cannot load it to uncompressed format. You can only render such image.');
-  Result := TCastleImage(E);
-end;
-
-function LoadImage(Stream: TStream; const MimeType: string;
-  const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
-var
-  E: TEncodedImage;
-begin
-  E := LoadEncodedImage(Stream, MimeType, AllowedImageClasses);
-  if not (E is TCastleImage) then
-    raise EImageLoadError.Create('Image is compressed for GPU, cannot load it to uncompressed format. You can only render such image.');
-  Result := TCastleImage(E);
-end;
-
-function LoadImage(const URL: string;
-  const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
-var
-  E: TEncodedImage;
-begin
-  E := LoadEncodedImage(URL, AllowedImageClasses);
-  if not (E is TCastleImage) then
-    raise EImageLoadError.CreateFmt('Image "%s" is compressed for GPU, cannot load it to uncompressed format. You can only render such image.',
-      [URIDisplay(URL)]);
-  Result := TCastleImage(E);
-end;
-
-function LoadImage(const URL: string): TCastleImage;
-var
-  E: TEncodedImage;
-begin
-  E := LoadEncodedImage(URL);
-  if not (E is TCastleImage) then
-    raise EImageLoadError.CreateFmt('Image "%s" is compressed for GPU, cannot load it to uncompressed format. You can only render such image.',
-      [URIDisplay(URL)]);
-  Result := TCastleImage(E);
-end;
-
-function LoadImage(const URL: string;
-  const AllowedImageClasses: array of TEncodedImageClass;
-  const ResizeWidth, ResizeHeight: Cardinal;
-  const Interpolation: TResizeInterpolation): TCastleImage;
-var
-  E: TEncodedImage;
-begin
-  E := LoadEncodedImage(URL, AllowedImageClasses);
-  if not (E is TCastleImage) then
-    raise EImageLoadError.CreateFmt('Image "%s" is compressed for GPU, cannot load it to uncompressed format. You can only render such image.',
-      [URIDisplay(URL)]);
-  Result := TCastleImage(E);
-  Result.Resize(ResizeWidth, ResizeHeight, Interpolation);
-end;
-
 { LoadEncodedImage ----------------------------------------------------------- }
 
 { Make sure the image has an alpha channel.
@@ -3859,6 +3720,68 @@ end;
 function LoadEncodedImage(const URL: string): TEncodedImage;
 begin
   Result := LoadEncodedImage(URL, []);
+end;
+
+{ LoadImage ------------------------------------------------------------------ }
+
+function LoadImage(Stream: TStream; const StreamFormat: TImageFormat;
+  const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
+var
+  E: TEncodedImage;
+begin
+  E := LoadEncodedImage(Stream, StreamFormat, AllowedImageClasses);
+  if not (E is TCastleImage) then
+    raise EImageLoadError.Create('Image is compressed for GPU, cannot load it to uncompressed format. You can only render such image.');
+  Result := TCastleImage(E);
+end;
+
+function LoadImage(Stream: TStream; const MimeType: string;
+  const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
+var
+  E: TEncodedImage;
+begin
+  E := LoadEncodedImage(Stream, MimeType, AllowedImageClasses);
+  if not (E is TCastleImage) then
+    raise EImageLoadError.Create('Image is compressed for GPU, cannot load it to uncompressed format. You can only render such image.');
+  Result := TCastleImage(E);
+end;
+
+function LoadImage(const URL: string;
+  const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
+var
+  E: TEncodedImage;
+begin
+  E := LoadEncodedImage(URL, AllowedImageClasses);
+  if not (E is TCastleImage) then
+    raise EImageLoadError.CreateFmt('Image "%s" is compressed for GPU, cannot load it to uncompressed format. You can only render such image.',
+      [URIDisplay(URL)]);
+  Result := TCastleImage(E);
+end;
+
+function LoadImage(const URL: string): TCastleImage;
+var
+  E: TEncodedImage;
+begin
+  E := LoadEncodedImage(URL);
+  if not (E is TCastleImage) then
+    raise EImageLoadError.CreateFmt('Image "%s" is compressed for GPU, cannot load it to uncompressed format. You can only render such image.',
+      [URIDisplay(URL)]);
+  Result := TCastleImage(E);
+end;
+
+function LoadImage(const URL: string;
+  const AllowedImageClasses: array of TEncodedImageClass;
+  const ResizeWidth, ResizeHeight: Cardinal;
+  const Interpolation: TResizeInterpolation): TCastleImage;
+var
+  E: TEncodedImage;
+begin
+  E := LoadEncodedImage(URL, AllowedImageClasses);
+  if not (E is TCastleImage) then
+    raise EImageLoadError.CreateFmt('Image "%s" is compressed for GPU, cannot load it to uncompressed format. You can only render such image.',
+      [URIDisplay(URL)]);
+  Result := TCastleImage(E);
+  Result.Resize(ResizeWidth, ResizeHeight, Interpolation);
 end;
 
 { SaveImage on TEncodedImage ---------------------------------------------------- }
