@@ -725,6 +725,10 @@ var
       Check(Header.Caps1 and DDSCAPS_COMPLEX <> 0, 'Missing DDSCAPS_COMPLEX, but caps indicate that this DDS image has mipmaps');
       FMipmapsCount := Header.MipMapCount;
       Check(MipmapsCount > 0, 'Specified mipmaps, but mipmap count is zero');
+      { ATI Compresonator always sets this flag, even though it does not create mipmaps,
+        and source image has not power-of-two sizes. So turn off FMipmaps flag. }
+      if FMipmapsCount = 1 then
+        FMipmaps := false;
     end else
       FMipmapsCount := 1;
 
