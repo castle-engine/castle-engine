@@ -562,19 +562,6 @@ end;
 function URIMimeType(const URI: string; out Gzipped: boolean): string;
 
   function ExtToMimeType(Ext, ExtExt: string): string;
-
-    function ImageExtToMimeType(const Ext: string): string;
-    var
-      I: TImageFormat;
-      E: TImageFormatInfoExtsCount;
-    begin
-      for I := Low(I) to High(I) do
-        for E := Low(E) to ImageFormatInfos[I].ExtsCount do
-          if Ext = '.' + ImageFormatInfos[I].Exts[E] then
-            Exit(ImageFormatInfos[I].MimeTypes[1]);
-      Result := '';
-    end;
-
   begin
     Ext := LowerCase(Ext);
     ExtExt := LowerCase(ExtExt);
@@ -625,7 +612,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     // Images.
     { Only images that we cannot handle in CastleImages unit are listed below.
       For handled images, their extensions are mime types are recorded
-      in ImageFormatInfos inside CastleImages unit. }
+      in CastleImages.ImageExtToMimeType unit. }
     if Ext = '.svg' then Result := 'image/svg+xml' else
     if Ext = '.ico' then Result := 'image/x-icon' else
     if Ext = '.icns' then Result := 'image/icns' else
@@ -691,7 +678,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.castlescript' then Result := 'text/x-castlescript' else
     if Ext = '.kscript'      then Result := 'text/x-castlescript' else
     if Ext = '.js' then Result := 'application/javascript' else
-      { as a last resort, check ImageFormatInfos extensions }
+      { as a last resort, check CastleImages.ImageExtToMimeType extensions }
       Result := ImageExtToMimeType(Ext);
   end;
 
