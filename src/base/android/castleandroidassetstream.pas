@@ -21,7 +21,7 @@ interface
 uses SysUtils, Classes, CastleAndroidAssetManager;
 
 type
-  EAssetReadError = class(Exception);
+  EAssetReadError = class(EReadError);
   EAssetNotFound = class(EAssetReadError);
 
   TReadAssetStream = class(TStream)
