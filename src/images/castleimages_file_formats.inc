@@ -499,14 +499,14 @@ begin
   Result := false;
 end;
 
-function ImageClassBestForSavingToFormat(const Format: TImageFormat): TEncodedImageClass;
+function ImageClassBestForSavingToFormat(const Format: TImageFormat): TCastleImageClass;
 begin
   if Format = ifRGBE then
     Result := TRGBFloatImage else
     Result := TRGBImage;
 end;
 
-function ImageClassBestForSavingToFormat(const URL: string): TEncodedImageClass;
+function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass;
 var
   Format: TImageFormat;
 begin
