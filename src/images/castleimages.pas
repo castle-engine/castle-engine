@@ -1779,7 +1779,7 @@ function LoadEncodedImage(Stream: TStream; const MimeType: string;
   :TEncodedImage; overload;
 
 function LoadEncodedImage(const URL: string): TEncodedImage; overload;
-function LoadEncodedImage(const URL: string;
+function LoadEncodedImage(URL: string;
   const AllowedImageClasses: array of TEncodedImageClass)
   :TEncodedImage; overload;
 { @groupEnd }
@@ -1890,6 +1890,14 @@ const
     (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
     (Name: 'ETC1'               ; RequiresPowerOf2: true ; AlphaChannel: acNone)
   );
+
+type
+  TLoadImagePreprocessEvent = procedure (var ImageUrl: string);
+var
+  { If assigned, all URLs loaded by LoadImage and LoadEncodedImage are processed
+    by this event. This allows to globally modify / observe your images paths,
+    e.g. to use GPU compressed alternative versions. }
+  LoadImagePreprocess: TLoadImagePreprocessEvent;
 
 {$undef read_interface}
 
@@ -4266,7 +4274,7 @@ begin
     raise EImageFormatNotSupported.Create('Unrecognized image MIME type: "'+MimeType+'"');
 end;
 
-function LoadEncodedImage(const URL: string;
+function LoadEncodedImage(URL: string;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 const
   SLoadError = 'Error loading image from URL "%s": %s';
@@ -4276,6 +4284,8 @@ var
 begin
   try
     try
+      if Assigned(LoadImagePreprocess) then
+        LoadImagePreprocess(URL);
       F := Download(URL, [soForceMemoryStream], MimeType);
     except
       on E: EReadError do raise EImageLoadError.Create(E.Message);

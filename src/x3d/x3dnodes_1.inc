@@ -1740,8 +1740,8 @@ begin
         [E.ClassName, 'texture', URIDisplay(FullUrl), E.Message]));
   end;
 
-  { Still not loaded (so FdFilename.Value is '' or LoadImage raised exception) ?
-    So try to use inlined texture. }
+  { Still not loaded (maybe FdFilename.Value is ''
+    or loading image raised exception)? So try to use inlined texture. }
   if not FdImage.Value.IsEmpty then
     FTextureImage := FdImage.Value.MakeCopy;
 end;

@@ -48,7 +48,7 @@ type
     FBaseAnimation: T3DResourceAnimation;
     FCaption: string;
     FImageURL: string;
-    FImage: TCastleImage;
+    FImage: TEncodedImage;
     FGLImage: TGLImage;
     FBoundingBoxRotated: TBox3D;
   protected
@@ -84,7 +84,7 @@ type
       It is usually a good idea to also remember the camera used for such
       screenshot with "Console -> Print Current Camera (Viewpoint)..."
       menu option. }
-    function Image: TCastleImage;
+    function Image: TEncodedImage;
 
     property ImageURL: string read FImageURL;
 
@@ -614,10 +614,10 @@ begin
     raise Exception.CreateFmt('Empty caption attribute for item "%s"', [Name]);
 end;
 
-function TItemResource.Image: TCastleImage;
+function TItemResource.Image: TEncodedImage;
 begin
   if FImage = nil then
-    FImage := LoadImage(ImageURL);
+    FImage := LoadEncodedImage(ImageURL);
   Result := FImage;
 end;
 

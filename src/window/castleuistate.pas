@@ -75,7 +75,7 @@ type
   type
     TDataImage = class
       URL: string;
-      Image: TCastleImage;
+      Image: TEncodedImage;
       GLImage: TGLImage;
       destructor Destroy; override;
     end;
@@ -319,12 +319,12 @@ begin
   DI := TDataImage.Create;
   DI.URL := ApplicationData(Path);
   {$ifdef KEEP_LOADED_DATA_IMAGES}
-  DI.Image := LoadImage(DI.URL, []);
+  DI.Image := LoadEncodedImage(DI.URL, []);
   {$endif}
   if GLInitialized then
   begin
     {$ifndef KEEP_LOADED_DATA_IMAGES}
-    DI.Image := LoadImage(DI.URL, []);
+    DI.Image := LoadEncodedImage(DI.URL, []);
     {$endif}
     DI.GLImage := TGLImage.Create(DI.Image, true);
     {$ifndef KEEP_LOADED_DATA_IMAGES}
@@ -372,7 +372,7 @@ begin
     if DI.GLImage = nil then
     begin
       {$ifndef KEEP_LOADED_DATA_IMAGES}
-      DI.Image := LoadImage(DI.URL, []);
+      DI.Image := LoadEncodedImage(DI.URL, []);
       {$endif}
       DI.GLImage := TGLImage.Create(DI.Image, true);
       {$ifndef KEEP_LOADED_DATA_IMAGES}

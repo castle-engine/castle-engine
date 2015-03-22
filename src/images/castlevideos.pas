@@ -31,8 +31,8 @@ type
     many others. ffmpeg really handles probably everything you will
     ever want.
 
-    Video is stored simply as a sequence of loaded images in memory.
-    This is not good for a real movies, so don't even try to open
+    Video is stored simply as a sequence of uncompressed images in memory.
+    This is not good for real movies, so don't even try to open
     any real, 2 hour, full dvd resolution movie --- loading will
     take hours and you will clog your memory. This class is @italic(not)
     supposed to be used in a real movie player.

@@ -15,7 +15,7 @@
 
 { Handling of images for textures.
   This unit is not OpenGL-specific, it should be suitable for all 3D libraries.
-  See GLImage for OpenGL-specific handling of textures and other images.
+  See CastleGLImage for OpenGL-specific handling of textures and other images.
 
   Texture is any TEncodedImage instance. This includes not only
   a traditional 2D/3D matrix of pixels represented as TCastleImage,
@@ -26,7 +26,7 @@
   Since not everything can really deal with such flexible definition
   of a texture, we decided to separate some routines specifically
   for textures. For example, you have LoadTextureImage to load full texture
-  information --- contrast this with LoadImage routine in Images unit,
+  information --- contrast this with LoadImage routine in CastleImages unit,
   that only returns TCastleImage (a "normal" way to deal with image data). }
 unit CastleTextureImages;
 
@@ -154,7 +154,7 @@ function LoadTextureImage(const URL: string; out DDS: TDDSImage): TEncodedImage;
 begin
   if not TDDSImage.MatchesURL(URL) then
   begin
-    Result := LoadImage(URL, TextureImageClasses);
+    Result := LoadEncodedImage(URL, TextureImageClasses);
     DDS := nil;
   end else
   begin

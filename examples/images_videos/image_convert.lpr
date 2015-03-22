@@ -115,7 +115,7 @@ begin
   InputImageName := Parameters[1];
   OutputImageName := Parameters[2];
 
-  { do. }
+  { do work }
   Img := LoadImage(InputImageName, [], ResizeX, ResizeY);
   try
     if FloatScale <> 1.0 then

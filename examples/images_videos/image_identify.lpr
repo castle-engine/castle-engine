@@ -24,7 +24,7 @@ uses SysUtils, CastleUtils, CastleImages, CastleParameters;
 
 var
   I: Integer;
-  Img: TCastleImage;
+  Img: TEncodedImage;
   AlphaChannel: string;
 begin
   if Parameters.High = 0 then
@@ -32,7 +32,7 @@ begin
   for I := 1 to Parameters.High do
   begin
     try
-      Img := LoadImage(Parameters[I]);
+      Img := LoadEncodedImage(Parameters[I]);
     except
       on E: EImageLoadError do
       begin
