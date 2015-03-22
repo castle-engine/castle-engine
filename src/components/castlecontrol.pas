@@ -219,31 +219,31 @@ type
     property OnEnter;
     property OnExit;
     { Don't use, engine handles this completely. }
-    property OnMakeCurrent; deprecated;
+    property OnMakeCurrent; {$ifndef PASDOC} deprecated; {$endif}
     { Deprecated, use OnPress instead. }
-    property OnClick; deprecated;
+    property OnClick; {$ifndef PASDOC} deprecated; {$endif}
     { Deprecated, use OnPress instead. }
-    property OnKeyDown; deprecated;
+    property OnKeyDown; {$ifndef PASDOC} deprecated; {$endif}
     { Deprecated, use OnPress instead. }
-    property OnKeyPress; deprecated;
+    property OnKeyPress; {$ifndef PASDOC} deprecated; {$endif}
     { Deprecated, use OnRelease instead. }
-    property OnKeyUp; deprecated;
+    property OnKeyUp; {$ifndef PASDOC} deprecated; {$endif}
     { Deprecated, use OnPress instead. }
-    property OnMouseDown; deprecated;
+    property OnMouseDown; {$ifndef PASDOC} deprecated; {$endif}
     { Deprecated, use OnMotion instead. }
-    property OnMouseMove; deprecated;
+    property OnMouseMove; {$ifndef PASDOC} deprecated; {$endif}
     { Deprecated, use OnRelease instead. }
-    property OnMouseUp; deprecated;
+    property OnMouseUp; {$ifndef PASDOC} deprecated; {$endif}
     { Deprecated, use OnPress instead. }
-    property OnMouseWheel; deprecated;
+    property OnMouseWheel; {$ifndef PASDOC} deprecated; {$endif}
     { Deprecated, use OnPress instead. }
-    property OnMouseWheelDown; deprecated;
+    property OnMouseWheelDown; {$ifndef PASDOC} deprecated; {$endif}
     { Deprecated, use OnPress instead. }
-    property OnMouseWheelUp; deprecated;
+    property OnMouseWheelUp; {$ifndef PASDOC} deprecated; {$endif}
     property OnMouseEnter;
     property OnMouseLeave;
     { Deprecated, use OnRender instead. }
-    property OnPaint; deprecated;
+    property OnPaint; {$ifndef PASDOC} deprecated; {$endif}
     property OnShowHint;
     property PopupMenu;
     property ShowHint;
