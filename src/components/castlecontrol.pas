@@ -201,7 +201,7 @@ type
     property Align;
     property Anchors;
     { Don't use, engine handles this completely. }
-    property AutoResizeViewport; deprecated;
+    property AutoResizeViewport; {$ifndef PASDOC} deprecated; {$endif}
     property BorderSpacing;
     property Enabled;
     property OpenGLMajorVersion;
