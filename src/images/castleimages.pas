@@ -712,6 +712,7 @@ type
     { S3TC DXT1 compression, for RGB images with no alpha or simple yes/no alpha.
       This compression format is often supported by desktop OpenGL implementations.
       See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC.
+      It is also supported by a small number of Android devices.
 
       tcDxt1_RGB and tcDxt1_RGBA are the same compression method,
       except in tcDxt1_RGB the alpha information is ignored while rendering,
@@ -781,7 +782,12 @@ type
     tcATITC_RGBA_InterpolatedAlpha,
 
     { ETC texture compression, @bold(without alpha).
-      See http://en.wikipedia.org/wiki/Ericsson_Texture_Compression . }
+      See http://en.wikipedia.org/wiki/Ericsson_Texture_Compression .
+      Available on almost all Android OpenGLES 2.0 devices,
+      unfortunately it doesn't support alpha channel.
+
+      It can be generated using various tools --- dedicated etcpack,
+      also PVRTexTool and ATI compressonator. }
     tcETC1
   );
   TGPUCompressions = set of TGPUCompression;
