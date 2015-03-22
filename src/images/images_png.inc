@@ -690,14 +690,14 @@ begin
        if not TransformPng(TRGBAlphaImage) then
        if not TransformPng(TGrayscaleImage) then
        if not TransformPng(TRGBImage) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadImageParams(AllowedImageClasses)]);
+         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
      end else
      begin
        if not TransformPng(TGrayscaleImage) then
        if not TransformPng(TGrayscaleAlphaImage) then
        if not TransformPng(TRGBImage) then
        if not TransformPng(TRGBAlphaImage) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadImageParams(AllowedImageClasses)]);
+         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
      end;
    end else
    begin
@@ -707,31 +707,31 @@ begin
        if not TransformPng(TRGBImage) then
        if not TransformPng(TGrayscaleAlphaImage) then
        if not TransformPng(TGrayscaleImage) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadImageParams(AllowedImageClasses)]);
+         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
      end else
      begin
        if not TransformPng(TRGBImage) then
        if not TransformPng(TRGBAlphaImage) then
        if not TransformPng(TGrayscaleImage) then
        if not TransformPng(TGrayscaleAlphaImage) then
-         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadImageParams(AllowedImageClasses)]);
+         raise EUnableToLoadImage.CreateFmt('Cannot load PNG image to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
      end;
    end;
 
    png_read_update_info(png_ptr, info_ptr);
-   Assert(png_get_rowbytes(png_ptr, info_ptr) = Result.PixelSize * Result.Width,
+   Assert(png_get_rowbytes(png_ptr, info_ptr) = PngResult.PixelSize * PngResult.Width,
      SysUtils.Format('internal error : applied wrong png transformations, width '+
        '%d with %d bytes per pixel gave row byte length %d instead of %d',
-       [ Result.Width, Result.PixelSize,
+       [ PngResult.Width, PngResult.PixelSize,
          png_get_rowbytes(png_ptr, info_ptr),
-         Result.PixelSize * Result.Width]));
+         PngResult.PixelSize * PngResult.Width]));
 
    { now ready row_pointers as ScanLines }
    row_pointers := TFPList.Create;
    try
     row_pointers.Count := result.Height;
     for i := 0 to result.Height-1 do
-     row_pointers[i] := Result.RowPtr(Result.Height -i -1);
+     row_pointers[i] := PngResult.RowPtr(PngResult.Height -i -1);
     { and go : uncompress image to result.data, therefore loading png image }
     png_read_image(png_ptr, PPPng_Byte(row_pointers.List));
    finally
@@ -761,6 +761,9 @@ var png_ptr: png_structp;
     i: Cardinal;
     ColorType: LongInt;
 begin
+  if not (Img is TCastleImage) then
+    raise EImageSaveError.CreateFmt('Saving to PNG image class %s not possible', [Img.ClassName]);
+
  png_ptr := nil;
  try
   png_ptr := png_create_write_struct(SO_PNG_LIBPNG_VER_STRING,
@@ -806,7 +809,7 @@ begin
   try
    row_pointers.Count := Img.Height;
    for i := 0 to Img.Height-1 do
-    row_pointers[i] := Img.RowPtr(Img.Height-i-1);
+    row_pointers[i] := TCastleImage(Img).RowPtr(Img.Height-i-1);
    png_write_image(png_ptr, PPPng_Byte(row_pointers.List));
   finally
    row_pointers.Free;
