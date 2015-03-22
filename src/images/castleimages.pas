@@ -742,14 +742,13 @@ type
       See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC. }
     tcDxt5,
 
-    { PVRTC texture compression format.
-      Supported by some Android and iOS devices.
+    { PowerVR texture compression (PVRTC) format.
+      Supported by some Android and iOS devices,
+      using PowerVR GPU by Imagination Technologies.
       See http://en.wikipedia.org/wiki/PVRTC .
 
-      TODO: Add tcPvrtc2_4bpp to mark that alpha should be ignored?
-      Compression format is the same, but rendering differs?
-      Or not --- TextureProperties in VRML/X3D can override alpha
-      channel detection, likewise TGLImage.Alpha can be overridden. }
+      To generate such textures, PowerVR provides a nice tool PVRTexTool,
+      see http://community.imgtec.com/developers/powervr/tools/pvrtextool/ . }
     tcPvrtc1_4bpp_RGB,
     tcPvrtc1_2bpp_RGB,
     tcPvrtc1_4bpp_RGBA,
@@ -758,7 +757,19 @@ type
     tcPvrtc2_2bpp,
 
     { ATI texture compression format, @bold(without alpha).
-      Supported by some Android devices (Adreno GPU from Qualcomm). }
+      Supported by some Android devices (Adreno GPU from Qualcomm).
+
+      There is no perfect program to generate such texture, unfortunately.
+      The only sensible choice is to use ATI compressonator from
+      http://developer.amd.com/tools-and-sdks/archive/legacy-cpu-gpu-tools/the-compressonator/ .
+      Unfortunately, it's installation may fail on some Windows versions
+      and wine (Linux). We've had most success installing it on 32-bit Windows,
+      and them copying to wine.
+      ATI deprecated this program.
+
+      Adreno SDK contains library to compress to ATITC formats,
+      but no useful program to actually convert files to this format
+      (wrapped in ktx or dds). }
     tcATITC_RGB,
 
     { ATI texture compression format, @bold(with sharp alpha).
