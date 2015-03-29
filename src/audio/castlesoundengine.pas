@@ -217,7 +217,7 @@ type
       const ReferenceDistance: Single;
       const MaxDistance: Single): TSound;
 
-    { Parse parameters in @link(Parameters) and interprets and removes
+    { Parse parameters in @link(Parameters) and interpret and remove
       recognized options. Internally it uses Parameters.Parse with
       ParseOnlyKnownLongOptions = @true. Recognized options:
 
