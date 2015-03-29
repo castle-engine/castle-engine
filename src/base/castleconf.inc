@@ -116,22 +116,27 @@
 { PNG ------------------------------------------------------------------------ }
 
 { There are 3 ways to read/write the PNG format:
-  - By default, we use libpng from a dynamic library (.so or .dll).
-    On Linux and other desktop Unixes, this is pretty much standard.
-    On Windows, see
-    http://svn.code.sf.net/p/castle-engine/code/trunk/external_libraries/ .
-
   - If CASTLE_PNG_USING_FCL_IMAGE is defined, then we use
     PNG implementation inside fcl-image, that does not depend on libpng API.
     This is the simplest option if you don't want the hassle of linking
     to libpng library (and distributing it, in case of dynamic linking).
+    This is the default for now, as it makes distributions easiest,
+    on all platforms (standalone, mobile...).
+
+  - Using libpng from a dynamic library (.so or .dll).
+    On Linux and other desktop Unixes, this is pretty much standard.
+    On Windows, see
+    http://svn.code.sf.net/p/castle-engine/code/trunk/external_libraries/ .
+    This is used when neither CASTLE_PNG_USING_FCL_IMAGE
+    nor CASTLE_PNG_STATIC are defined.
 
   - If CASTLE_PNG_STATIC is defined, we use a different version of CastlePng
     unit that allows static linking to png, see castlepng_static.inc.
 }
 
-{$ifdef iOS} {$define CASTLE_PNG_USING_FCL_IMAGE} {$endif}
-{$ifdef ANDROID} {$define CASTLE_PNG_USING_FCL_IMAGE} {$endif}
+{$define CASTLE_PNG_USING_FCL_IMAGE}
+// {$ifdef iOS} {$define CASTLE_PNG_USING_FCL_IMAGE} {$endif}
+// {$ifdef ANDROID} {$define CASTLE_PNG_USING_FCL_IMAGE} {$endif}
 
 { Below is relevant only if we use dynamic PNG library (castlepng_dynamic.inc).
   Determines calling convention of libpng functions and callbacks:
