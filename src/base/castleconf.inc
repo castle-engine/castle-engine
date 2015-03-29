@@ -120,8 +120,14 @@
     PNG implementation inside fcl-image, that does not depend on libpng API.
     This is the simplest option if you don't want the hassle of linking
     to libpng library (and distributing it, in case of dynamic linking).
-    This is the default for now, as it makes distributions easiest,
+    This is the default for now, as it makes distribution easiest,
     on all platforms (standalone, mobile...).
+    Also, aggressive detection of when texture is grayscale/RGB
+    and when it has alpha channel (or is opaque) right now only happens
+    in this case, which helps reduce GPU usage.
+    Also, libpng under Windows can raise some dumb antivirus (ZoneAlarm)
+    warnings, see
+    https://sourceforge.net/p/castle-engine/discussion/general/thread/2fd412b1/ .
 
   - Using libpng from a dynamic library (.so or .dll).
     On Linux and other desktop Unixes, this is pretty much standard.
