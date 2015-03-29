@@ -86,7 +86,7 @@ procedure Check_SO_VER;
   chcemy robic sprawdzanie wersji mniej restrykcyjne.}
 begin
  if not CastlePngInited then
-  raise ELibPngNotAvailable.Create('LibPng is not available');
+  raise ELibPngNotAvailable.Create('LibPng (or it''s dependency, ZLib) is not available. Make sure that the dynamic libraries for LibPng and ZLib are installed (or placed alongside the exe file on Windows).');
 
  if fSO_VER_MAJOR <> 1 then
   raise ELibPngNotAvailable.CreateFmt('LibPng major version is %d, ' +
