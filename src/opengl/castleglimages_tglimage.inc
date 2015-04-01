@@ -70,8 +70,6 @@ type
         by OpenGL.) }
     constructor Create(const Image: TEncodedImage;
       const AScalingPossible: boolean = false);
-    constructor Create(const URL: string;
-      const AScalingPossible: boolean = false);
 
     { Load image from disk, and prepare for drawing.
 
@@ -99,7 +97,8 @@ type
       @raises(EImageClassNotSupportedForOpenGL When image class is not supported
         by OpenGL.)
     }
-    constructor Create(const URL: string);
+    constructor Create(const URL: string;
+      const AScalingPossible: boolean = false);
     constructor Create(const URL: string;
       const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
@@ -271,17 +270,6 @@ procedure ImageDraw(const Image: TCastleImage); deprecated;
 
 {$ifdef read_implementation}
 
-constructor TGLImage.Create(const URL: string;
-  const AScalingPossible: boolean);
-var
-  Image: TEncodedImage;
-begin
-  Image := LoadEncodedImage(URL, []);
-  try
-    Create(Image, AScalingPossible);
-  finally FreeAndNil(Image) end;
-end;
-
 constructor TGLImage.Create(const Image: TEncodedImage;
   const AScalingPossible: boolean);
 begin
@@ -303,6 +291,12 @@ begin
 end;
 
 constructor TGLImage.Create(const URL: string;
+  const AScalingPossible: boolean);
+begin
+  Create(URL, [], AScalingPossible);
+end;
+
+constructor TGLImage.Create(const URL: string;
   const LoadAsClass: array of TEncodedImageClass;
   const ResizeToX, ResizeToY: Cardinal;
   const Interpolation: TResizeInterpolation);
@@ -315,11 +309,6 @@ begin
   try
     Create(Image);
   finally FreeAndNil(Image) end;
-end;
-
-constructor TGLImage.Create(const URL: string);
-begin
-  Create(URL, []);
 end;
 
 constructor TGLImage.Create(const URL: string;
