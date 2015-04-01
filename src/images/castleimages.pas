@@ -862,9 +862,6 @@ type
   TCastleImageClass = class of TCastleImage;
   TEncodedImageClass = class of TEncodedImage;
 
-  { @deprecated Deprecated name for TCastleImageClass. }
-  TImageClass = TCastleImageClass deprecated;
-
 { Check is ImageClass one of the items in the ImageClasses array,
   or a descendant of one of them. }
 function InImageClasses(ImageClass: TEncodedImageClass;
@@ -1206,9 +1203,6 @@ type
 
     procedure Assign(const Source: TCastleImage); override;
   end;
-
-  { @deprecated Deprecated name for TCastleImage. }
-  TImage = TCastleImage deprecated;
 
 { RGBE <-> 3 Single color convertion --------------------------------- }
 
