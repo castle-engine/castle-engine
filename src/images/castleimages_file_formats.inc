@@ -315,8 +315,10 @@ const
       MimeTypesCount: 1;
       MimeTypes: ('image/png', '', '', '', '', '');
       ExtsCount: 1; Exts: ('png', '', '');
-      Load: @LoadPNG; LoadedClasses: {$ifdef CASTLE_PNG_USING_FCL_IMAGE} lcG_GA_RGB_RGBA {$else} lcG_GA_RGB_RGBA {$endif};
-      Save: @SavePNG; SavedClasses: {$ifdef CASTLE_PNG_USING_FCL_IMAGE} scRGB { actually scRGB_RGBA } {$else} scG_GA_RGB_RGBA {$endif}; ),
+      { Regardless of CASTLE_PNG_USING_FCL_IMAGE, png load/save can handle
+        all possibilities. }
+      Load: @LoadPNG; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: @SavePNG; SavedClasses: scG_GA_RGB_RGBA; ),
     ( FormatName: 'Windows BMP image';
       MimeTypesCount: 1;
       MimeTypes: ('image/bmp', '', '', '', '', '');
@@ -335,8 +337,8 @@ const
       MimeTypesCount: 2;
       MimeTypes: ('image/jpeg', 'image/jpg', '', '', '', '');
       ExtsCount: 3; Exts: ('jpg', 'jpeg', 'jpe');
-      Load: @LoadJPEG; LoadedClasses: lcRGB_RGBA;
-      Save: @SaveJPEG; SavedClasses: scRGB { actually scRGB_RGBA }),
+      Load: @LoadJPEG; LoadedClasses: lcG_GA_RGB_RGBA;
+      Save: @SaveJPEG; SavedClasses: scG_GA_RGB_RGBA; ),
     { Graphics Interchange Format } { }
     ( FormatName: 'GIF image';
       MimeTypesCount: 1;

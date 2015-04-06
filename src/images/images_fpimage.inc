@@ -223,8 +223,54 @@ end;
 
 function TEncodedImage.ToFpImage: TFPMemoryImage;
 begin
-  raise EImageCannotConvertFpImage.Create('Cannot convert to FPImage, and cannot use resize with TResizeNiceInterpolation mode, on images of class ' + ClassName);
+  raise EImageSaveError.Create('Cannot convert to FPImage, and cannot use resize with TResizeNiceInterpolation mode, on images of class ' + ClassName);
   Result := nil; // avoid warning
+end;
+
+function TGrayscaleImage.ToFpImage: TFPMemoryImage;
+var
+  X, Y: Integer;
+  P: PByte;
+  Color: TFPColor;
+begin
+  Result := TFPMemoryImage.Create(Width, Height);
+  try
+    Result.UsePalette := false;
+    P := GrayscalePixels;
+    for Y := Result.Height - 1 downto 0 do
+      for X := 0 to Result.Width - 1 do
+      begin
+        Color.Red   := Word(P^) shl 8;
+        Color.Green := Color.Red;
+        Color.Blue  := Color.Red;
+        Color.Alpha := $FFFF;
+        Result.Colors[X, Y] := Color;
+        Inc(P);
+      end;
+  except FreeAndNil(Result); raise end;
+end;
+
+function TGrayscaleAlphaImage.ToFpImage: TFPMemoryImage;
+var
+  X, Y: Integer;
+  P: PVector2Byte;
+  Color: TFPColor;
+begin
+  Result := TFPMemoryImage.Create(Width, Height);
+  try
+    Result.UsePalette := false;
+    P := GrayscaleAlphaPixels;
+    for Y := Result.Height - 1 downto 0 do
+      for X := 0 to Result.Width - 1 do
+      begin
+        Color.Red   := Word(P^[0]) shl 8;
+        Color.Green := Color.Red;
+        Color.Blue  := Color.Red;
+        Color.Alpha := Word(P^[1]) shl 8;
+        Result.Colors[X, Y] := Color;
+        Inc(P);
+      end;
+  except FreeAndNil(Result); raise end;
 end;
 
 function TRGBImage.ToFpImage: TFPMemoryImage;
@@ -286,11 +332,7 @@ var
 begin
   FPImage := nil;
   try
-    if Img is TRGBAlphaImage then
-      FPImage := TRGBAlphaImage(Img).ToFpImage else
-    if Img is TRGBImage then
-      FPImage := TRGBImage(Img).ToFpImage else
-      raise EImageSaveError.Create('Cannot save non-RGB image');
+    FPImage := Img.ToFpImage;
     try
       FPImage.SaveToStream(Stream, Writer);
       { FPImage.SaveToStream may raise any kind of Exception.

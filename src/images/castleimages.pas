@@ -1126,6 +1126,7 @@ type
     FTreatAsAlpha: boolean;
     function GetGrayscalePixels: PByte;
     class function FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleImage;
+    function ToFpImage: TFPMemoryImage; override;
   public
     { This is the same pointer as RawPixels, only typecasted to PByte }
     property GrayscalePixels: PByte read GetGrayscalePixels;
@@ -1179,6 +1180,7 @@ type
   private
     function GetGrayscaleAlphaPixels: PVector2Byte;
     class function FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleAlphaImage;
+    function ToFpImage: TFPMemoryImage; override;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector2Byte }
     property GrayscaleAlphaPixels: PVector2Byte read GetGrayscaleAlphaPixels;
