@@ -949,6 +949,13 @@ const
   prBottom = prLow deprecated;
   prTop = prHigh deprecated;
 
+  hpLeft   = CastleRectangles.hpLeft  ;
+  hpMiddle = CastleRectangles.hpMiddle;
+  hpRight  = CastleRectangles.hpRight ;
+  vpBottom = CastleRectangles.vpBottom;
+  vpMiddle = CastleRectangles.vpMiddle;
+  vpTop    = CastleRectangles.vpTop   ;
+
 implementation
 
 uses CastleLog;
