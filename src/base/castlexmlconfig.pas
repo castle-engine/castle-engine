@@ -229,6 +229,11 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
     function GetURL(const APath: string;
       const EmptyIfNoAttribute: boolean = false): string;
 
+    { Read string from a text content of given element.
+      The text may be multiline, line endings are guaranteed to be converted
+      to current OS newlines. }
+    function GetMultilineText(const APath: string; const DefaultValue: string): string;
+
     { Get a value, as a string. Value must exist and cannot be empty in XML file.
 
       @raises(EMissingAttribute If value doesn't exist or is empty in XML file.) }
@@ -551,6 +556,22 @@ begin
       raise EMissingAttribute.CreateFmt('Missing attribute "%s" in XML file', [APath]);
   end else
     Result := CombineURI(URL, Result);
+end;
+
+function TCastleConfig.GetMultilineText(const APath: string;
+  const DefaultValue: string): string;
+var
+  E: TDOMElement;
+begin
+  E := PathElement(APath, false);
+  if E = nil then
+    Result := DefaultValue else
+    Result := E.TextContent;
+  { convert all to Unix-line endings }
+  StringReplaceAllTo1st(Result, #13, '', false);
+  { in case we're not on Unix, convert to current line endings }
+  if #10 <> NL then
+    StringReplaceAllTo1st(Result, #10, NL, false);
 end;
 
 function TCastleConfig.GetNonEmptyValue(const APath: string): string;
