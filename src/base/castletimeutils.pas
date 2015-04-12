@@ -248,6 +248,7 @@ type
     FramesRendered: Int64;
     { how much time passed inside frame rendering }
     FrameTimePassed: TTimerResult;
+    FMaxSensibleSecondsPassed: Single;
   public
     constructor Create;
 
@@ -291,6 +292,13 @@ type
 
       You can sanely use this only within EventUpdate (OnUpdate). }
     property UpdateSecondsPassed: Single read FUpdateSecondsPassed;
+
+    { Limit the UpdateSecondsPassed variable, to avoid increasing time in game
+      a lot when a game was hanging or otherwise waiting for some exceptional
+      event from OS.
+      Used only when non-zero. }
+    property MaxSensibleSecondsPassed: Single
+      read FMaxSensibleSecondsPassed write FMaxSensibleSecondsPassed;
 
     { Forces UpdateSecondsPassed for the next Update call (using _UpdateBegin)
       to be zero.
@@ -560,7 +568,11 @@ begin
     FUpdateSecondsPassed := 0.0;
     DoZeroNextSecondsPassed := false;
   end else
+  begin
     FUpdateSecondsPassed := ((NewUpdateStartTime - FUpdateStartTime) / TimerFrequency);
+    if MaxSensibleSecondsPassed > 0 then
+      FUpdateSecondsPassed := Min(FUpdateSecondsPassed, MaxSensibleSecondsPassed);
+  end;
 
   FUpdateStartTime := NewUpdateStartTime;
 end;
