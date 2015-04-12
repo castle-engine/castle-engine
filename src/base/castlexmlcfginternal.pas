@@ -1,5 +1,6 @@
 { Copied from FPC XmlCfg unit.
   Adjusted to be able to read / write from / to URLs using our routines.
+  It can also encrypt / decrypt using BlowFish.
 
   Also, removed the "deprecated" tag ---
   In new FPC versions, XMLConf unit is advised and XMLCfg is deprecated.
@@ -10,7 +11,7 @@
     This binary has no unicodestrings support compiled in.
     Recompile the application with a unicodestrings-manager in the program uses clause.
 
-  So we keep using XMLCfg for now.
+  So we keep using this unit for now.
 }
 
 {
@@ -67,6 +68,7 @@ type
     FStartEmpty: Boolean;
     FUseEscaping: Boolean;
     FRootName: DOMString;
+    FBlowFishKeyPhrase: string;
     procedure SetURLForce(const AURL: String; ForceReload: Boolean);
     procedure SetURL(const AURL: String);
     procedure SetStartEmpty(AValue: Boolean);
@@ -106,18 +108,22 @@ type
     { @groupEnd }
   published
     property URL: String read FURL write SetURL;
+    { If non-empty, we will encrypt / decrypt the XML data when
+      writing / reading using BlowFish.
+      Note: only first @code(High(TBlowFishKey)+1) characters matter. }
+    property BlowFishKeyPhrase: string read FBlowFishKeyPhrase write FBlowFishKeyPhrase;
     property StartEmpty: Boolean read FStartEmpty write SetStartEmpty;
     property UseEscaping: Boolean read FUseEscaping write FUseEscaping
       default True;
     property RootName: DOMString read FRootName write SetRootName;
-  end deprecated;
+  end;
 
 
 // ===================================================================
 
 implementation
 
-uses CastleDownload, CastleXMLUtils, CastleURIUtils;
+uses CastleXMLUtils, CastleURIUtils;
 
 constructor TXMLConfig.Create(AOwner: TComponent);
 begin
@@ -147,7 +153,9 @@ procedure TXMLConfig.Flush;
 begin
  if (URL<>EmptyStr) and Modified then
   begin
-    URLWriteXML(Doc, URL);
+    if BlowFishKeyPhrase <> '' then
+      URLWriteXML(Doc, URL, BlowFishKeyPhrase) else
+      URLWriteXML(Doc, URL);
     FModified := False;
   end;
 end;
@@ -411,7 +419,9 @@ begin
     exit;
 
   if URIFileExists(AURL) and (not FStartEmpty) then
-    URLReadXML(Doc, AURL);
+    if BlowFishKeyPhrase <> '' then
+      URLReadXML(Doc, AURL, BlowFishKeyPhrase) else
+      URLReadXML(Doc, AURL);
 
   if not Assigned(Doc) then
     Doc := TXMLDocument.Create;

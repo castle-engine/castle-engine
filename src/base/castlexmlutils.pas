@@ -361,15 +361,18 @@ end;
 procedure FreeChildNodes(const ChildNodes: TDOMNodeList);
 
 { Replacements for standard ReadXMLFile and WriteXMLFile that operate on URLs.
+  Optionally they can encrypt / decrypt content using BlowFish.
   @groupBegin }
 procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
+procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String);
+procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
 { @groupEnd }
 
 implementation
 
-uses Classes, XMLRead, XMLWrite,
-  CastleDownload, CastleURIUtils;
+uses Classes, XMLRead, XMLWrite, BlowFish,
+  CastleDownload, CastleURIUtils, CastleClassUtils;
 
 { TDOMElementHelper ---------------------------------------------------------- }
 
@@ -754,6 +757,34 @@ begin
   {$ifdef VER2_2} ChildNodes.Release; {$endif}
 end;
 
+procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
+var
+  Stream: TStream;
+  DecryptStream: TBlowFishDecryptStream;
+  DecryptedCorrectStream: TStringStream;
+  L: Integer;
+  DecryptedContent: string;
+begin
+  Doc := nil; // clean "out" param at start, just like ReadXMLFile
+  Stream := Download(URL, []);
+  try
+    DecryptStream := TBlowFishDecryptStream.Create(BlowFishKeyPhrase, Stream);
+    try
+      { TBlowFishDecryptStream (or maybe encryption?) adds zeros at the end.
+        Cut them off. }
+      DecryptedContent := ReadGrowingStreamToString(DecryptStream);
+      L := Length(DecryptedContent);
+      while (L > 0) and (DecryptedContent[L] = #0) do
+        Dec(L);
+      SetLength(DecryptedContent, L);
+      DecryptedCorrectStream := TStringStream.Create(DecryptedContent);
+      try
+        ReadXMLFile(Doc, DecryptedCorrectStream);
+      finally FreeAndNil(DecryptedCorrectStream) end;
+    finally FreeAndNil(DecryptStream) end;
+  finally FreeAndNil(Stream) end;
+end;
+
 procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
 var
   Stream: TStream;
@@ -762,7 +793,21 @@ begin
   Stream := Download(URL, []);
   try
     ReadXMLFile(Doc, Stream);
-  finally FreeAndNil(Stream); end;
+  finally FreeAndNil(Stream) end;
+end;
+
+procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
+var
+  Stream: TStream;
+  EncryptStream: TBlowFishEncryptStream;
+begin
+  Stream := URLSaveStream(URL);
+  try
+    EncryptStream := TBlowFishEncryptStream.Create(BlowFishKeyPhrase, Stream);
+    try
+      WriteXMLFile(Doc, EncryptStream);
+    finally FreeAndNil(EncryptStream) end;
+  finally FreeAndNil(Stream) end;
 end;
 
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String);
@@ -772,7 +817,7 @@ begin
   Stream := URLSaveStream(URL);
   try
     WriteXMLFile(Doc, Stream);
-  finally FreeAndNil(Stream); end;
+  finally FreeAndNil(Stream) end;
 end;
 
 end.
