@@ -426,7 +426,9 @@ begin
     end;
     {$endif}
 
+    {$warnings off}
     Render(DefaultSegments);
+    {$warnings on}
 
     {$ifndef OpenGLES}
     if not Params.RenderTransformIdentity then

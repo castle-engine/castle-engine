@@ -570,8 +570,10 @@ begin
   { convert all to Unix-line endings }
   StringReplaceAllTo1st(Result, #13, '', false);
   { in case we're not on Unix, convert to current line endings }
+  {$warnings off} { don't warn about dead code on OSes where NL = #10 }
   if #10 <> NL then
     StringReplaceAllTo1st(Result, #10, NL, false);
+  {$warnings on}
 end;
 
 function TCastleConfig.GetNonEmptyValue(const APath: string): string;
