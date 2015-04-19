@@ -211,11 +211,23 @@ type
     procedure Draw3x3(const ScreenRectangle: TRectangle;
       const Corner: TVector4Integer);
 
-    { Ignore (do not log to CastleLog) situations when Draw3x3 cannot work
+    { Draw the image on the screen, divided into 3x1 parts:
+      unscaled left and right sides, and scaled inside.
+
+      Similar to @link(Draw3x3), but image is divided into 3 parts, not 9. }
+    procedure Draw3x1(const X, Y, DrawWidth, DrawHeight: Integer;
+      const SideRight, SideLeft: Integer);
+    procedure Draw3x1(const X, Y, DrawWidth, DrawHeight: Integer;
+      const Side: TVector2Integer);
+    procedure Draw3x1(const ScreenRectangle: TRectangle;
+      const Side: TVector2Integer);
+
+    { Ignore (do not log to CastleLog) situations when Draw3x3 or Draw3x1
+      cannot work
       because corners are larger than draw area size.
       Set this to @true when it's perfectly possible (you do not want to even
-      see it in log) for Draw3x3 calls to fail because corners are larger than
-      draw area size. }
+      see it in log) for Draw3x3 and Draw3x1 calls to fail because corners
+      are larger than draw area size. }
     property IgnoreTooLargeCorners: boolean
       read FIgnoreTooLargeCorners write FIgnoreTooLargeCorners default false;
 
@@ -674,6 +686,93 @@ begin
   Draw3x3(ScreenRectangle.Left, ScreenRectangle.Bottom,
     ScreenRectangle.Width, ScreenRectangle.Height,
     Corner[0], Corner[1], Corner[2], Corner[3]);
+end;
+
+procedure TGLImage.Draw3x1(const X, Y, DrawWidth, DrawHeight: Integer;
+  const SideRight, SideLeft: Integer);
+var
+  XScreenLeft, XScreenRight,
+    HorizontalScreenSize: Integer;
+  XImageLeft, XImageRight,
+    HorizontalImageSize: Single;
+  OldAlpha: TAlphaChannel;
+  {$ifdef GLImageUseShaders}
+  OptimizeAlpha: boolean;
+  {$endif}
+  EpsilonR, EpsilonL: Single;
+const
+  { We tweak texture coordinates a little, to avoid bilinear filtering
+    that would cause border colors to "bleed" over the texture inside.
+    Something minimally > 0.5 is necessary. }
+  Epsilon = 0.51;
+begin
+  if not ( (SideLeft + SideRight < Width) and
+           (SideLeft + SideRight < DrawWidth) ) then
+  begin
+    if Log and not IgnoreTooLargeCorners then
+      WritelnLog('Draw3x1', 'Image sides are too large to draw it: sides are %d %d, image width is %d, draw area width is %d',
+        [SideRight, SideLeft,
+         Width,
+         DrawWidth]);
+    Exit;
+  end;
+
+  XScreenLeft := X;
+  XImageLeft := 0;
+  XScreenRight := X + DrawWidth - SideRight;
+  XImageRight := Width - SideRight;
+
+  { For speed, we only apply AlphaBegin/End once.
+    In case of GLImageUseShaders, this optimization is only useful
+    for acFullRange, and it would actually break the acSimpleYesNo case. }
+  {$ifdef GLImageUseShaders}
+  OptimizeAlpha := Alpha = acFullRange;
+  if OptimizeAlpha then
+  {$endif}
+  begin
+    AlphaBegin;
+    OldAlpha := Alpha;
+    Alpha := acNone;
+  end;
+
+  { 2 sides }
+  HorizontalScreenSize := DrawWidth - SideLeft - SideRight;
+  HorizontalImageSize  :=     Width - SideLeft - SideRight;
+
+  Draw(XScreenLeft, Y, SideLeft, DrawHeight,
+        XImageLeft, 0, SideLeft, Height);
+  Draw(XScreenRight, Y, SideRight, DrawHeight,
+        XImageRight, 0, SideRight, Height);
+
+  { inside }
+  if SideLeft > 0   then EpsilonL := Epsilon else EpsilonL := 0;
+  if SideRight > 0  then EpsilonR := Epsilon else EpsilonR := 0;
+
+  Draw(X + SideLeft           , Y, HorizontalScreenSize, DrawHeight,
+           SideLeft + EpsilonL, 0, HorizontalImageSize - (EpsilonL+EpsilonR), Height);
+
+  {$ifdef GLImageUseShaders}
+  if OptimizeAlpha then
+  {$endif}
+  begin
+    Alpha := OldAlpha;
+    AlphaEnd;
+  end;
+end;
+
+procedure TGLImage.Draw3x1(const X, Y, DrawWidth, DrawHeight: Integer;
+  const Side: TVector2Integer);
+begin
+  Draw3x1(X, Y, DrawWidth, DrawHeight,
+    Side[0], Side[1]);
+end;
+
+procedure TGLImage.Draw3x1(const ScreenRectangle: TRectangle;
+  const Side: TVector2Integer);
+begin
+  Draw3x1(ScreenRectangle.Left, ScreenRectangle.Bottom,
+    ScreenRectangle.Width, ScreenRectangle.Height,
+    Side[0], Side[1]);
 end;
 
 function TGLImage.CurrentFilter: TTextureFilter;
