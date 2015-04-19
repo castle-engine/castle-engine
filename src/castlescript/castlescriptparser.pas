@@ -36,7 +36,8 @@ type
 
 { Creates and returns instance of TCasScriptExpression,
   that represents parsed tree of expression in S,
-  casted to float.
+  casted to float. The easiest way to evaluate such expression
+  is to call @link(TCasScriptExpression.AsFloat) method.
 
   This parses a subset of CastleScript language, that allows you
   to define only one expression without any assignments.
@@ -75,7 +76,7 @@ function ParseExpression(const S: string;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 
 { Parse constant float expression.
-  This can be used as a great replacement for StrToFloat.
+  This can be used as a drop-in replacement for StrToFloat.
   Takes a string with any constant mathematical expression,
   according to CastleScript syntax, parses it and calculates.
 

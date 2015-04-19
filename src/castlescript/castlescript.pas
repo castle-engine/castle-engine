@@ -166,6 +166,11 @@ type
       errors (like invalid argument type for function). }
     function TryExecuteMath: TCasScriptValue;
 
+    { Execute expression, return the result as a simple float value.
+      It assumes that the expression is written to always return float.
+      To easily create such expression, use @link(ParseFloatExpression). }
+    function AsFloat(const ADefaultValue: Float = 0): Float;
+
     { Call Free, but only if this is not TCasScriptValue with
       OwnedByParentExpression = false. (This cannot be implemented
       cleanly, as virtual procedure, since it must work when Self is @nil,
@@ -974,6 +979,29 @@ begin
   except
     on ECasScriptAnyMathError do
       Result := nil;
+  end;
+end;
+
+function TCasScriptExpression.AsFloat(const ADefaultValue: Float): Float;
+var
+  Res: TCasScriptValue;
+begin
+  try
+    Res := Execute;
+  except
+    on E: ECasScriptError do
+    begin
+      OnWarning(wtMajor, 'CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
+      Result := ADefaultValue;
+      Exit;
+    end;
+  end;
+
+  if Res is TCasScriptFloat then
+    Result := TCasScriptFloat(Res).Value else
+  begin
+    OnWarning(wtMajor, 'CastleScript', 'CastleScript expression result is not float');
+    Result := ADefaultValue;
   end;
 end;
 
