@@ -6,7 +6,7 @@
   android_source="code/castle_spine_android.lpr"
   author="Michalis Kamburelis and Paweł Wojciechowicz"
   screen_orientation="landscape">
-  <version value="0.7" code="7" />
+  <version value="0.8" code="8" />
   <icons>
     <icon path="promo-graphics/icon.png" />
   </icons>
