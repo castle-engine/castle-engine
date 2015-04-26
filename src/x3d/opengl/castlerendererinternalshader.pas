@@ -382,7 +382,8 @@ type
 
     { Add fragment and vertex shader code, link.
       @raises EGLSLError In case of troubles with linking. }
-    procedure LinkProgram(AProgram: TX3DShaderProgram);
+    procedure LinkProgram(AProgram: TX3DShaderProgram;
+      const ShapeNiceName: string);
 
     { Add a fallback vertex + fragment shader code and link.
       Use this when normal LinkProgram failed, but you want to have
@@ -467,7 +468,7 @@ implementation
 
 uses SysUtils, CastleGL, CastleGLUtils, CastleWarnings,
   CastleLog, StrUtils, Castle3D, CastleGLVersion, CastleRenderingCamera,
-  CastleScreenEffects;
+  CastleScreenEffects, X3DLexer;
 
 { TODO: a way to turn off using fixed-function pipeline completely
   will be needed some day. Currently, some functions here call
@@ -1834,7 +1835,8 @@ begin
       EnableEffect(TEffectNode(Effects[I]));
 end;
 
-procedure TShader.LinkProgram(AProgram: TX3DShaderProgram);
+procedure TShader.LinkProgram(AProgram: TX3DShaderProgram;
+  const ShapeNiceName: string);
 var
   TextureApply, TextureColorDeclare, TextureCoordInitialize, TextureCoordMatrix,
     TextureAttributeDeclare, TextureVaryingDeclare, TextureUniformsDeclare,
@@ -1918,9 +1920,12 @@ var
     end;
 
     { Don't add to empty Source[stFragment], in case ComposedShader
-      doesn't want any fragment shader }
+      doesn't want any fragment shader.
+      Only add if we're not using shaders from custom ComposedShader
+      (SelectedNode not set). }
     {$ifndef OpenGLES}
-    if Source[stFragment].Count <> 0 then
+    if (Source[stFragment].Count <> 0) and
+       (SelectedNode = nil) then
       Source[stFragment].Add(ShadowMapsFunctions[ShadowSampling]);
     {$endif}
   end;
@@ -1944,9 +1949,12 @@ var
       Source.Append later also has some safeguard against this,
       but we need to check it earlier (to avoid plugging LightShaderBack),
       and check them both (as vertex and fragment code cooperates,
-      so we need both or none). }
+      so we need both or none).
+
+      Also don't add anything in case we're rendering a custom ComposedShader node. }
     if (Source[stFragment].Count = 0) or
-       (Source[stVertex].Count = 0) then
+       (Source[stVertex].Count = 0) or
+       (SelectedNode <> nil) then
       Exit;
 
     if Lighting then
@@ -2357,7 +2365,7 @@ var
 var
   ShaderType: TShaderType;
   I: Integer;
-  GeometryInputSize: string;
+  GeometryInputSize, LogStr, LogStrPart: string;
 begin
   EnableTextures;
   EnableInternalEffects;
@@ -2392,10 +2400,25 @@ begin
 
   if Log and LogShaders then
   begin
+    LogStr :=
+      '# Generated shader code for shape ' + ShapeNiceName + ' by ' + ApplicationName + '.' + NL +
+      '# To try this out, paste this inside Appearance node in VRML/X3D classic encoding.' + NL +
+      'shaders ComposedShader {' + NL +
+      '  language "GLSL"' + NL +
+      '  parts [' + NL;
     for ShaderType := Low(ShaderType) to High(ShaderType) do
       for I := 0 to Source[ShaderType].Count - 1 do
-        WritelnLogMultiline(Format('Generated GLSL %s shader[%d]',
-          [ShaderTypeName[ShaderType], I]), Source[ShaderType][I]);
+      begin
+        LogStrPart := Source[ShaderType][I];
+        LogStrPart := StringReplace(LogStrPart, '/* PLUG:', '/* ALREADY-PROCESSED-PLUG:', [rfReplaceAll]);
+        LogStrPart := StringReplace(LogStrPart, '/* PLUG-DECLARATIONS */', '/* ALREADY-PROCESSED-PLUG-DECLARATIONS */', [rfReplaceAll]);
+        LogStr += '    ShaderPart { type "' + ShaderTypeNameX3D[ShaderType] +
+          '" url "data:text/plain,' +
+          StringToX3DClassic(LogStrPart, false) + '"' + NL +
+          '    }';
+      end;
+    LogStr += '  ]' + NL + '}';
+    WritelnLogMultiline('Generated Shader', LogStr);
   end;
 
   try

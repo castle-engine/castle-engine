@@ -361,10 +361,11 @@ const
   For example:
 
 @longCode(#
-  StringToVRMLStringToken('foo') = '"foo"'
-  StringToVRMLStringToken('say "yes"') = '"say \"yes\""'
+  StringToX3DClassic('foo') = '"foo"'
+  StringToX3DClassic('say "yes"') = '"say \"yes\""'
 #) }
-function StringToX3DClassic(const s: string): string;
+function StringToX3DClassic(const s: string;
+  const SurroundWithQuotes: boolean = true): string;
 
 { String encoded for X3D XML, surrounded by double quotes.
   You can use this when generating VRML/X3D content by hand.
@@ -1116,13 +1117,16 @@ end;
 
 { global funcs  ------------------------------------------------------------------ }
 
-function StringToX3DClassic(const s: string): string;
+function StringToX3DClassic(const s: string;
+  const SurroundWithQuotes: boolean): string;
 const
   Patterns: array [0..1] of string = ('\', '"');
   PatValues: array [0..1] of string = ('\\', '\"');
 begin
   { use soMatchCase for speed }
-  Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"';
+  if SurroundWithQuotes then
+    Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"' else
+    Result :=       SReplacePatterns(s, Patterns, PatValues, [soMatchCase]);
 end;
 
 function StringToX3DXml(const s: string): string;

@@ -2082,6 +2082,8 @@ end;
 function TShape.NiceName: string;
 begin
   Result := OriginalGeometry.NiceName;
+  if (Node <> nil) and (Node.NodeName <> '') then
+    Result := Node.NodeName + ':' + Result;
 end;
 
 function TShape.Node: TAbstractShapeNode;

@@ -1906,7 +1906,7 @@ begin
 
   try
     Result.ShaderProgram := TX3DGLSLProgram.Create(ARenderer);
-    Shader.LinkProgram(Result.ShaderProgram);
+    Shader.LinkProgram(Result.ShaderProgram, ShapeNiceName);
   except on E: EGLSLError do
     begin
       FreeAndNil(Result.ShaderProgram);
@@ -2390,7 +2390,7 @@ begin
         try
           ShaderProgram := TX3DGLSLProgram.Create(Self);
           Shader.AddScreenEffectCode(Node.FdNeedsDepth.Value);
-          Shader.LinkProgram(ShaderProgram);
+          Shader.LinkProgram(ShaderProgram, Node.NiceName);
 
           { We have to ignore invalid uniforms, as it's normal that when
             rendering screen effect we will pass some screen_* variables
