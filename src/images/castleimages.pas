@@ -1416,7 +1416,7 @@ procedure SaveImage(const Img: TEncodedImage; const URL: string); overload;
   by guessing based on file extension.
 
   @groupBegin }
-function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass; overload;
+function ImageClassBestForSavingToFormat(const URL: string): TCastleImageClass;
 { @groupEnd }
 
 var

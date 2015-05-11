@@ -104,8 +104,8 @@ begin
  AssertTrue(ImageClassBestForSavingToFormat('blah.png') = TRGBImage);
  AssertTrue(ImageClassBestForSavingToFormat('ala.bmp') = TRGBImage);
 
- AssertTrue(ImageClassBestForSavingToFormat(ifRGBE) = TRGBFloatImage);
- AssertTrue(ImageClassBestForSavingToFormat(ifPNG) = TRGBImage);
+ // AssertTrue(ImageClassBestForSavingToFormat(ifRGBE) = TRGBFloatImage);
+ // AssertTrue(ImageClassBestForSavingToFormat(ifPNG) = TRGBImage);
 end;
 
 procedure TTestImages.TestClear;
