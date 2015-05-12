@@ -32,7 +32,15 @@ type
         automatic way to move camera in the world is possible,
         you want to program your own movement for 2D.)
 
-      @item(Sets 2D projection (regardless of viewpoints defined in MainScene).)
+      @item(Sets 2D projection. By default (see CalculateProjection)
+        our visible X range is [0..window width in pixels],
+        visible Y is [0..window height in pixels].
+
+        Such projection is set regardless of the viewpoints defined in MainScene
+        (this is unlike ancestor TCastleSceneManager,
+        that sets projection using a flexible
+        algorithm that takes into account VRML/X3D viewpoints in MainScene).
+      )
 
       @item(Sets RenderStyle = rs2D by default, which makes it possible
         to place the scene manager rendering in the middle of other 2D controls
