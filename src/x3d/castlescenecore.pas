@@ -517,6 +517,7 @@ type
     ScheduledHumanoidAnimateSkin: TX3DNodeList;
 
     PlayingAnimationNode: TTimeSensorNode;
+    FAnimationPrefix: string;
 
     { When this is non-empty, then the transformation change happened,
       and should be processed (for the whole X3D graph inside RootNode).
@@ -1815,7 +1816,7 @@ type
 
     { List the names of available animations in this file.
       Detected in VRML/X3D models as simply TimeSensor nodes with node name
-      starting with "Animation_Xxx".
+      starting with "Animation_Xxx" (see @link(AnimationPrefix) property).
       Caller is responsible for freeing resulting TStringList instance.
 
       Note that the list of animations may change it you rebuild the underlying
@@ -1833,6 +1834,15 @@ type
       (named animations are detected by @link(Animations) method).
       0 if not found. }
     function AnimationDuration(const AnimationName: string): TFloatTime;
+
+    { The required prefix of a TimeSensor node to be considered a "named animation"
+      by our methods like @link(Animations), @link(PlayAnimation),
+      and @link(AnimationDuration).
+      By default this is DefaultAnimationPrefix.
+      You can set this to an empty string to consider all TimeSensor nodes
+      a possible "named animation". }
+    property AnimationPrefix: string
+      read FAnimationPrefix write FAnimationPrefix;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Update) will take care of increasing @link(Time).
@@ -2393,6 +2403,7 @@ begin
 
   FShadowMaps := true;
   FShadowMapsDefaultSize := DefaultShadowMapsDefaultSize;
+  FAnimationPrefix := DefaultAnimationPrefix;
 
   { We could call here ScheduleChangedAll (or directly ChangedAll),
     but there should be no need. FRootNode remains nil,
@@ -6871,6 +6882,7 @@ end;
 
 type
   TAnimationsEnumerator = class
+    AnimationPrefix: string;
     List: TStringList;
     procedure Enumerate(Node: TX3DNode);
   end;
@@ -6908,6 +6920,7 @@ begin
     Enum := TAnimationsEnumerator.Create;
     try
       Enum.List := Result;
+      Enum.AnimationPrefix := AnimationPrefix;
       RootNode.EnumerateNodes(TTimeSensorNode, @Enum.Enumerate, true);
     finally FreeAndNil(Enum) end;
   end;
