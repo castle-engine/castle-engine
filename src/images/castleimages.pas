@@ -70,7 +70,7 @@ uses SysUtils, Classes, Math, CastleUtils, CastleVectors, CastleRectangles,
   CastlePng, CastleFileFilters, CastleClassUtils, CastleColors,
   FGL, FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
   FPReadJPEG, FPWriteJPEG, FPReadPNM
-  {$ifdef CASTLE_PNG_USING_FCL_IMAGE} , FPReadPNG, FPWritePNG {$endif};
+  {$ifdef CASTLE_PNG_USING_FCL_IMAGE} , FPReadPNG, CastleFPWritePNG {$endif};
 
 type
   TAutoAlphaChannel = (acAuto, acNone, acSimpleYesNo, acFullRange);

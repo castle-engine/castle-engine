@@ -420,8 +420,14 @@ end;
 
 {$ifdef CASTLE_PNG_USING_FCL_IMAGE}
 procedure SavePNG(Img: TEncodedImage; Stream: TStream);
+var
+  Writer: TFPWriterPNG;
 begin
-  SaveFpImage(Img, Stream, TFPWriterPNG.Create);
+  Writer := TFPWriterPNG.Create;
+  { without this, Writer.UseAlpha is always false and TFPWriterPNG never
+    stores alpha channel of png image. }
+  Writer.UseAlpha := Img.HasAlpha;
+  SaveFpImage(Img, Stream, Writer);
 end;
 {$endif}
 
