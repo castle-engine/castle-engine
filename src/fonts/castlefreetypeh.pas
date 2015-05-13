@@ -417,7 +417,7 @@ begin
     {$define ft_found_platform}
     FreeTypeLibrary := TDynLib.Load('libfreetype.so', false);
     if FreeTypeLibrary = nil then
-      FreeTypeLibrary := TDynLib.Load('libfreetype.6.so', false);
+      FreeTypeLibrary := TDynLib.Load('libfreetype.so.6', false);
   {$endif}
 
   if FreeTypeLibrary <> nil then
