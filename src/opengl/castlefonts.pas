@@ -31,12 +31,15 @@ type
     MeasureDone: boolean;
     FRowHeight, FRowHeightBase, FDescend: Integer;
     FScale: Single;
+    FBevel: Cardinal;
+    FBevelColor: TCastleColor;
   strict protected
     { Calculate properties based on measuring the font.
       The default implementation in TCastleFont looks at TextHeight of sample texts
       to determine the parameter values. }
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer); virtual;
     procedure SetScale(const Value: Single); virtual;
+    procedure SetBevel(const Value: Cardinal); virtual;
     function GetSize: Single; virtual; abstract;
     procedure SetSize(const Value: Single); virtual; abstract;
   public
@@ -288,6 +291,12 @@ type
     { Adjust font size by scaling. Underneath, it scales the font using
       @link(Scale) property, to adjust it to requested size. }
     property Size: Single read GetSize write SetSize;
+
+    { Bevel size around the normal text. }
+    property Bevel: Cardinal read FBevel write SetBevel;
+
+    { Bevel color, used only if Bevel <> 0. Default is white. }
+    property BevelColor: TCastleColor read FBevelColor write FBevelColor;
   end;
 
   { @deprecated Deprecated name for TCastleFont. }
@@ -304,8 +313,10 @@ type
     FFont: TTextureFontData;
     FOwnsFont: boolean;
     GLImage: TGLImage;
+    function GetScalingPossible: boolean;
   strict protected
     procedure SetScale(const Value: Single); override;
+    procedure SetBevel(const Value: Cardinal); override;
     function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
   public
@@ -372,8 +383,10 @@ type
     function ScaledCharWidth: Integer;
     function ScaledCharHeight: Integer;
     function ScaledCharDisplayMargin: Integer;
+    function GetScalingPossible: boolean;
   strict protected
     procedure SetScale(const Value: Single); override;
+    procedure SetBevel(const Value: Cardinal); override;
     function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
   public
@@ -479,6 +492,7 @@ constructor TCastleFont.Create;
 begin
   inherited;
   FScale := 1;
+  FBevelColor := White;
 end;
 
 destructor TCastleFont.Destroy;
@@ -827,6 +841,11 @@ begin
   FScale := Value;
 end;
 
+procedure TCastleFont.SetBevel(const Value: Cardinal);
+begin
+  FBevel := Value;
+end;
+
 { TTextureFont --------------------------------------------------------------- }
 
 {$ifdef HAS_FREE_TYPE}
@@ -868,11 +887,19 @@ begin
   inherited;
 end;
 
+function TTextureFont.GetScalingPossible: boolean;
+begin
+  { When Bevel <> 0, we would switch scale at printing each time.
+    So a simple condition "Result := (Scale <> 1)" would work,
+    but would cause constant switching of GLImage.ScalingPossible. }
+  Result := (Scale <> 1) or (Bevel <> 0);
+end;
+
 procedure TTextureFont.GLContextOpen;
 begin
   inherited;
   if GLImage = nil then
-    GLImage := TGLImage.Create(FFont.Image, Scale <> 1);
+    GLImage := TGLImage.Create(FFont.Image, GetScalingPossible);
 end;
 
 procedure TTextureFont.GLContextClose;
@@ -889,6 +916,18 @@ var
   CharLen: Integer;
   ScreenX, ScreenY: Integer;
   G: TTextureFontData.TGlyph;
+  GlyphWidth, GlyphHeight: Integer;
+
+  procedure BevelDraw(const MoveX, MoveY: Integer);
+  begin
+    GLImage.Draw(
+      ScreenX - G.X + MoveX * Bevel,
+      ScreenY - G.Y + MoveY * Bevel,
+      GlyphWidth,
+      GlyphHeight,
+      G.ImageX, G.ImageY, G.Width, G.Height);
+  end;
+
 begin
   GLContextOpen;
 
@@ -906,11 +945,35 @@ begin
     if G <> nil then
     begin
       if (G.Width <> 0) and (G.Height <> 0) then
-        GLImage.Draw(ScreenX - G.X, ScreenY - G.Y,
-          Round(G.Width  * Scale),
-          Round(G.Height * Scale),
-          G.ImageX, G.ImageY, G.Width, G.Height);
-      ScreenX += Round(G.AdvanceX * Scale);
+      begin
+        GlyphWidth := Round(G.Width  * Scale);
+        GlyphHeight := Round(G.Height * Scale);
+        if Bevel <> 0 then
+        begin
+          GLImage.Color := BevelColor;
+
+          BevelDraw(0, 0);
+          BevelDraw(0, 2);
+          BevelDraw(2, 2);
+          BevelDraw(2, 0);
+
+          BevelDraw(1, 0);
+          BevelDraw(1, 2);
+
+          BevelDraw(0, 1);
+          BevelDraw(2, 1);
+
+          GLImage.Color := Color;
+          BevelDraw(1, 1);
+        end else
+        begin
+          GLImage.Draw(ScreenX - G.X, ScreenY - G.Y,
+            GlyphWidth,
+            GlyphHeight,
+            G.ImageX, G.ImageY, G.Width, G.Height);
+        end;
+      end;
+      ScreenX += Round(G.AdvanceX * Scale) + Bevel * 2;
       ScreenY += Round(G.AdvanceY * Scale);
     end;
 
@@ -921,22 +984,26 @@ end;
 function TTextureFont.TextWidth(const S: string): Integer;
 begin
   Result := Round(FFont.TextWidth(S) * Scale);
+  if Bevel <> 0 then
+    Result += Bevel * 2 * UTF8Length(S);
 end;
 
 function TTextureFont.TextHeight(const S: string): Integer;
 begin
-  Result := Round(FFont.TextHeight(S) * Scale);
+  Result := Round(FFont.TextHeight(S) * Scale) + Bevel * 2;
 end;
 
 function TTextureFont.TextHeightBase(const S: string): Integer;
 begin
-  Result := Round(FFont.TextHeightBase(S) * Scale);
+  Result := Round(FFont.TextHeightBase(S) * Scale) + Bevel * 2;
 end;
 
 function TTextureFont.TextMove(const S: string): TVector2Integer;
 begin
   Result := FFont.TextMove(S);
   Result[0] := Round(Result[0] * Scale);
+  if Bevel <> 0 then
+    Result[0] += Bevel * 2 * UTF8Length(S);
   Result[1] := Round(Result[1] * Scale);
 end;
 
@@ -944,7 +1011,14 @@ procedure TTextureFont.SetScale(const Value: Single);
 begin
   inherited;
   if GLImage <> nil then
-    GLImage.ScalingPossible := Scale <> 1;
+    GLImage.ScalingPossible := GetScalingPossible;
+end;
+
+procedure TTextureFont.SetBevel(const Value: Cardinal);
+begin
+  inherited;
+  if GLImage <> nil then
+    GLImage.ScalingPossible := GetScalingPossible;
 end;
 
 function TTextureFont.GetSize: Single;
@@ -981,12 +1055,12 @@ end;
 
 function TSimpleTextureFont.ScaledCharWidth: Integer;
 begin
-  Result := Round(CharWidth * Scale);
+  Result := Round(CharWidth * Scale) + Bevel * 2;
 end;
 
 function TSimpleTextureFont.ScaledCharHeight: Integer;
 begin
-  Result := Round(CharHeight * Scale);
+  Result := Round(CharHeight * Scale) + Bevel * 2;
 end;
 
 function TSimpleTextureFont.ScaledCharDisplayMargin: Integer;
@@ -994,11 +1068,19 @@ begin
   Result := Round(CharDisplayMargin * Scale);
 end;
 
+function TSimpleTextureFont.GetScalingPossible: boolean;
+begin
+  { When Bevel <> 0, we would switch scale at printing each time.
+    So a simple condition "Result := (Scale <> 1)" would work,
+    but would cause constant switching of GLImage.ScalingPossible. }
+  Result := (Scale <> 1) or (Bevel <> 0);
+end;
+
 procedure TSimpleTextureFont.GLContextOpen;
 begin
   inherited;
   if GLImage = nil then
-    GLImage := TGLImage.Create(Image, Scale <> 1);
+    GLImage := TGLImage.Create(Image, GetScalingPossible);
 end;
 
 procedure TSimpleTextureFont.GLContextClose;
@@ -1027,6 +1109,7 @@ begin
       ImageY := GLImage.Height - (ImageY + 1) * (CharHeight + CharMargin);
       ScreenX := ScaledCharDisplayMargin div 2 + X + (I - 1) * (ScaledCharWidth + ScaledCharDisplayMargin);
       ScreenY := ScaledCharDisplayMargin div 2 + Y;
+      { TODO: render with Bevel }
       GLImage.Draw(ScreenX, ScreenY, ScaledCharWidth, ScaledCharHeight,
         ImageX, ImageY, CharWidth, CharHeight);
     end;
@@ -1057,7 +1140,14 @@ procedure TSimpleTextureFont.SetScale(const Value: Single);
 begin
   inherited;
   if GLImage <> nil then
-    GLImage.ScalingPossible := Scale <> 1;
+    GLImage.ScalingPossible := GetScalingPossible;
+end;
+
+procedure TSimpleTextureFont.SetBevel(const Value: Cardinal);
+begin
+  inherited;
+  if GLImage <> nil then
+    GLImage.ScalingPossible := GetScalingPossible;
 end;
 
 function TSimpleTextureFont.GetSize: Single;
