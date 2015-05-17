@@ -29,12 +29,13 @@
 program font_from_texture;
 
 uses SysUtils, CastleWindow, CastleControls, CastleFonts, CastleImages,
-  CastleColors, CastleVectors, CastleFilesUtils, CastleLog;
+  CastleColors, CastleVectors, CastleFilesUtils, CastleLog,
+  CastleUIControls;
 
 var
   Window: TCastleWindow;
   Label1, Label2,
-    LabelDeja, LabelDejaBW, LabelDejaLarge,
+    LabelDeja, LabelDejaBW, LabelDejaLarge, LabelDejaLargeOutline,
     LabelStylish, LabelStylishBW, LabelStylishLarge: TCastleLabel;
 
 procedure Resize(Container: TUIContainer);
@@ -58,6 +59,7 @@ begin
   PositionLabel(LabelDeja);
   PositionLabel(LabelDejaBw);
   PositionLabel(LabelDejaLarge);
+  PositionLabel(LabelDejaLargeOutline);
   PositionLabel(LabelStylish);
   PositionLabel(LabelStylishBw);
   PositionLabel(LabelStylishLarge);
@@ -89,8 +91,7 @@ begin
 
   Label2 := TCastleLabel.Create(Window);
   Label2.Text.Append('Yet another label.');
-  Label2.Text.Append('With different font.');
-  Label2.Text.Append('Just because we can :)');
+  Label2.Text.Append('With different font. Just because we can :)');
   Label2.Padding := 5;
   Label2.CustomFont := TSimpleTextureFont.Create(
     LoadImage(ApplicationData('null_terminator_0.png')), 8, 12, 1, 1);
@@ -115,14 +116,25 @@ begin
   Window.Controls.InsertFront(LabelDejaBW);
 
   LabelDejaLarge := TCastleLabel.Create(Window);
-  LabelDejaLarge.Text.Append('DejaVuSans font');
-  LabelDejaLarge.Text.Append('with anti-aliasing');
+  LabelDejaLarge.Text.Append('DejaVuSans font with anti-aliasing');
   LabelDejaLarge.Text.Append('and larger size.');
-  LabelDejaLarge.Color := Blue;
+  LabelDejaLarge.Color := Vector4Single(0.5, 0.5, 1, 1); // light blue
   LabelDejaLarge.Padding := 5;
   LabelDejaLarge.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), 30, true);
   LabelDejaLarge.OwnsCustomFont := true;
   Window.Controls.InsertFront(LabelDejaLarge);
+
+  LabelDejaLargeOutline := TCastleLabel.Create(Window);
+  LabelDejaLargeOutline.Text.Append('DejaVuSans font with anti-aliasing');
+  LabelDejaLargeOutline.Text.Append('and larger size and outline.');
+  LabelDejaLargeOutline.Frame := false;
+  LabelDejaLargeOutline.Color := White;
+  LabelDejaLargeOutline.Padding := 5;
+  LabelDejaLargeOutline.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), 30, true);
+  LabelDejaLargeOutline.CustomFont.Outline := 2;
+  LabelDejaLargeOutline.CustomFont.OutlineColor := Red;
+  LabelDejaLargeOutline.OwnsCustomFont := true;
+  Window.Controls.InsertFront(LabelDejaLargeOutline);
 
   LabelStylish := TCastleLabel.Create(Window);
   LabelStylish.Text.Text :=
