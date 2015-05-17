@@ -239,9 +239,15 @@ function DivRoundUp(Value, Divider: Integer): Integer; overload;
       of the ranges increase (range end is larger than range begin).)
   )
 
+  MapRangeClamped additionally at the end clamps the result to be within
+  [destBegin, destEnd] range (or [destEnd, destBegin] range,
+  in case destEnd < destBegin).
+
   @groupBegin }
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float; overload;
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
+function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float; overload;
+function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
 { @groupEnd }
 
 { Random float value in the given range.
@@ -640,6 +646,22 @@ begin
   Result := (sourceVal - sourceBegin) / (sourceEnd - sourceBegin);
   { Map range 0..1 to DestBegin .. DestEnd }
   Result := Result * (destEnd - destBegin) + destBegin;
+end;
+
+function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float;
+begin
+  Result := MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd);
+  if destEnd < destBegin then
+    SwapValues(destBegin, destEnd);
+  Result := Clamped(Result, destBegin, destEnd);
+end;
+
+function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float;
+begin
+  Result := MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd);
+  if destEnd < destBegin then
+    SwapValues(destBegin, destEnd);
+  Result := Clamped(Result, destBegin, destEnd);
 end;
 
 function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float;
