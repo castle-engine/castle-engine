@@ -151,7 +151,8 @@ type
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleWarnings, CastleFilesUtils, CastleUtils;
+  CastleWindow, CastleWarnings, CastleFilesUtils, CastleUtils,
+  CastleTimeUtils, CastleLog;
 
 { TUIState.TDataImage ---------------------------------------------------------- }
 
@@ -364,21 +365,29 @@ procedure TUIState.GLContextOpen;
 var
   I: Integer;
   DI: TDataImage;
+  StartTime: TProcessTimerResult;
 begin
   inherited;
-  for I := 0 to FDataImages.Count - 1 do
+  if FDataImages.Count <> 0 then
   begin
-    DI := FDataImages[I];
-    if DI.GLImage = nil then
+    StartTime := ProcessTimerNow;
+    for I := 0 to FDataImages.Count - 1 do
     begin
-      {$ifndef KEEP_LOADED_DATA_IMAGES}
-      DI.Image := LoadEncodedImage(DI.URL, []);
-      {$endif}
-      DI.GLImage := TGLImage.Create(DI.Image, true);
-      {$ifndef KEEP_LOADED_DATA_IMAGES}
-      FreeAndNil(DI.Image);
-      {$endif}
+      DI := FDataImages[I];
+      if DI.GLImage = nil then
+      begin
+        {$ifndef KEEP_LOADED_DATA_IMAGES}
+        DI.Image := LoadEncodedImage(DI.URL, []);
+        {$endif}
+        DI.GLImage := TGLImage.Create(DI.Image, true);
+        {$ifndef KEEP_LOADED_DATA_IMAGES}
+        FreeAndNil(DI.Image);
+        {$endif}
+      end;
     end;
+    WritelnLog('Loading', Format('Loading time of %d data images for state %s: %f',
+      [FDataImages.Count, ClassName,
+       ProcessTimerSeconds(ProcessTimerNow, StartTime)]));
   end;
 end;
 
