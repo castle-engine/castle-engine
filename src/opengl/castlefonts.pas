@@ -215,7 +215,7 @@ type
         It's exact interpretation depends on TextHorizontalAlignment value.)
 
       @param(Y0 The bottom position of the whole text block.
-        Rhat is, this is the bottom position of the last string.)
+        That is, this is the bottom position of the last string.)
 
       @param(LineSpacing Extra space between lines.
         Distance between each line is determined by RowHeight + LineSpacing
