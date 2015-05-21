@@ -20,7 +20,7 @@ unit CastleFonts;
 
 interface
 
-uses Classes, CastleGLImages, CastleStringUtils, CastleColors,
+uses Classes, FGL, CastleGLImages, CastleStringUtils, CastleColors,
   CastleVectors, CastleTextureFontData, CastleImages, CastleUnicode,
   CastleRectangles, CastleUIControls;
 
@@ -28,18 +28,26 @@ type
   { Abstract class for 2D font. }
   TCastleFont = class abstract
   strict private
+  type
+    TSavedProperties = class
+      Scale: Single;
+      Outline: Cardinal;
+      OutlineColor: TCastleColor;
+    end;
+    TSavedPropertiesList = specialize TFPGObjectList<TSavedProperties>;
+  var
     MeasureDone: boolean;
     FRowHeight, FRowHeightBase, FDescend: Integer;
     FScale: Single;
     FOutline: Cardinal;
     FOutlineColor: TCastleColor;
+    FPropertiesStack: TSavedPropertiesList;
   strict protected
     { Calculate properties based on measuring the font.
       The default implementation in TCastleFont looks at TextHeight of sample texts
       to determine the parameter values. }
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer); virtual;
     procedure SetScale(const Value: Single); virtual;
-    procedure SetOutline(const Value: Cardinal); virtual;
     function GetSize: Single; virtual; abstract;
     procedure SetSize(const Value: Single); virtual; abstract;
   public
@@ -82,13 +90,27 @@ type
     procedure Print(const X, Y: Integer; const S: string); overload; deprecated;
     procedure Print(const s: string); overload; deprecated;
 
-    { Print text, aligninig within given rectangle.
+    { Print text, aligning within given rectangle.
+
       Hint: Use TRectangle.Grow(-10) or similar to align within a rectangle
       with padding. }
     procedure PrintRect(const Rect: TRectangle; const Color: TCastleColor;
       const S: string;
       const HorizontalAlignment: THorizontalPosition;
       const VerticalAlignment: TVerticalPosition);
+
+    { Print text, aligning within given rectangle.
+      Newlines within the text will be automatically honored,
+      the text will be rendered as multiple lines.
+      See @link(PrintStrings) for description of parameters Tags,
+      LineSpacing, TextHorizontalAlignment. }
+    procedure PrintRectMultiline(const Rect: TRectangle; const Color: TCastleColor;
+      const S: string;
+      const HorizontalAlignment: THorizontalPosition;
+      const VerticalAlignment: TVerticalPosition;
+      const Tags: boolean;
+      const LineSpacing: Integer;
+      const TextHorizontalAlignment: THorizontalPosition = hpLeft);
 
     { The font may require some OpenGL resources for drawing.
       You can explicitly create them using GLContextOpen (although it is never
@@ -295,10 +317,16 @@ type
     { Outline size around the normal text.
       Note that the current implementation is very simple, it will only
       look sensible for small outline values (like 1 or 2). }
-    property Outline: Cardinal read FOutline write SetOutline;
+    property Outline: Cardinal read FOutline write FOutline;
 
     { Outline color, used only if Outline <> 0. Default is black. }
     property OutlineColor: TCastleColor read FOutlineColor write FOutlineColor;
+
+    { Save draw properties to a stack. Saves:
+      @link(Scale) (synchronized with @link(Size)),
+      @link(Outline), @link(OutlineColor). }
+    procedure PushProperties;
+    procedure PopProperties;
   end;
 
   { @deprecated Deprecated name for TCastleFont. }
@@ -498,6 +526,7 @@ end;
 destructor TCastleFont.Destroy;
 begin
   GLContextClose;
+  FreeAndNil(FPropertiesStack);
   inherited;
 end;
 
@@ -537,6 +566,40 @@ end;
 procedure TCastleFont.Print(const X, Y: Integer; const S: string);
 begin
   Print(X, Y, CurrentColor, S);
+end;
+
+procedure TCastleFont.PrintRectMultiline(const Rect: TRectangle; const Color: TCastleColor;
+  const S: string;
+  const HorizontalAlignment: THorizontalPosition;
+  const VerticalAlignment: TVerticalPosition;
+  const Tags: boolean;
+  const LineSpacing: Integer;
+  const TextHorizontalAlignment: THorizontalPosition);
+var
+  Strings: TStringList;
+  ThisRect: TRectangle;
+  X: Integer;
+begin
+  Strings := TStringList.Create;
+  try
+    Strings.Text := S;
+    if Strings.Count <> 0 then
+    begin
+      ThisRect := Rectangle(0, 0, MaxTextWidth(Strings, Tags),
+        Strings.Count * (LineSpacing + RowHeight) - LineSpacing);
+      ThisRect := ThisRect.
+        Align(HorizontalAlignment, Rect, HorizontalAlignment).
+        Align(VerticalAlignment, Rect, VerticalAlignment);
+      case TextHorizontalAlignment of
+        hpLeft   : X := ThisRect.Left;
+        hpMiddle : X := ThisRect.Middle[0];
+        hpRight  : X := ThisRect.Right;
+        else raise EInternalError.Create('TextHorizontalAlignment? in TCastleFont.PrintRectMultiline');
+      end;
+      PrintStrings(X, ThisRect.Bottom, Color, Strings,
+        Tags, LineSpacing, TextHorizontalAlignment);
+    end;
+  finally FreeAndNil(Strings) end;
 end;
 
 procedure TCastleFont.PrintRect(const Rect: TRectangle; const Color: TCastleColor;
@@ -841,9 +904,32 @@ begin
   FScale := Value;
 end;
 
-procedure TCastleFont.SetOutline(const Value: Cardinal);
+procedure TCastleFont.PushProperties;
+var
+  SavedProperites: TSavedProperties;
 begin
-  FOutline := Value;
+  if FPropertiesStack = nil then
+    FPropertiesStack := TSavedPropertiesList.Create;
+
+  SavedProperites := TSavedProperties.Create;
+  SavedProperites.Scale := Scale;
+  SavedProperites.Outline := Outline;
+  SavedProperites.OutlineColor := OutlineColor;
+  FPropertiesStack.Add(SavedProperites);
+end;
+
+procedure TCastleFont.PopProperties;
+var
+  SavedProperites: TSavedProperties;
+begin
+  if (FPropertiesStack = nil) or (FPropertiesStack.Count = 0) then
+    raise Exception.Create('Cannot do TCastleFont.PopProperties, stack empty. Every PopProperties should match previous PushProperties');
+
+  SavedProperites := FPropertiesStack.Last;
+  Scale        := SavedProperites.Scale;
+  Outline      := SavedProperites.Outline;
+  OutlineColor := SavedProperites.OutlineColor;
+  FPropertiesStack.Delete(FPropertiesStack.Count - 1);
 end;
 
 { TTextureFont --------------------------------------------------------------- }
