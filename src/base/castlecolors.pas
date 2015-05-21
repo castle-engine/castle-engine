@@ -126,15 +126,28 @@ function HsvToRgbByte(const Value: TVector3Single): TVector3Byte;
 function LerpRgbInHsv(const A: Single; const V1, V2: TVector3Single): TVector3Single;
 
 { Change color into a hexadecimal notation of it (like in HTML).
-  Note that version it takes 4-component vector and adds the alpha too
-  at the end. }
+  This color includes an alpha channel (as 4th component),
+  and so the output contains the alpha value at the end (so it's 8 hex digits),
+  unless alpha is opaque in which case it's not written (and result is 6
+  hex digits). }
 function ColorToHex(const V: TCastleColor): string;
+
+{ Change color into a hexadecimal notation of it (like in HTML).
+  This color has no alpha channel,
+  so it's always 6 hex digits. }
+function ColorRGBToHex(const V: TCastleColorRGB): string;
 
 { Convert hexadecimal color notation (like in HTML) into an RGBA color.
   Handles 8 or 6 digit color (RGB or RGBA with 2 letters per component;
   for 6 digits, alpha is assumed to be 1.0 (opaque)).
   @raises EConvertError In case of invalid color as string. }
 function HexToColor(const S: string): TCastleColor;
+
+{ Convert hexadecimal color notation (like in HTML) into an RGB color.
+  Handles 8 or 6 digit color (RGB or RGBA with 2 letters per component;
+  for 8 digits, alpha is ignored).
+  @raises EConvertError In case of invalid color as string. }
+function HexToColorRGB(const S: string): TCastleColorRGB;
 
 implementation
 
@@ -386,11 +399,22 @@ begin
 end;
 
 function ColorToHex(const V: TCastleColor): string;
+var
+  A: Byte;
 begin
   Result := IntToHex(RoundClamp255(V[0] * 255), 2) +
             IntToHex(RoundClamp255(V[1] * 255), 2) +
-            IntToHex(RoundClamp255(V[2] * 255), 2) +
-            IntToHex(RoundClamp255(V[3] * 255), 2);
+            IntToHex(RoundClamp255(V[2] * 255), 2);
+  A := RoundClamp255(V[3] * 255);
+  if A <> 255 then
+    Result += IntToHex(A, 2);
+end;
+
+function ColorRGBToHex(const V: TCastleColorRGB): string;
+begin
+  Result := IntToHex(RoundClamp255(V[0] * 255), 2) +
+            IntToHex(RoundClamp255(V[1] * 255), 2) +
+            IntToHex(RoundClamp255(V[2] * 255), 2);
 end;
 
 function HexToColor(const S: string): TCastleColor;
@@ -407,6 +431,17 @@ begin
       StrHexToInt(Copy(S, 3, 2)) / 255,
       StrHexToInt(Copy(S, 5, 2)) / 255,
       1.0) else
+    raise EConvertError.CreateFmt('Invalid color hex string: "%s"', [S]);
+end;
+
+function HexToColorRGB(const S: string): TCastleColorRGB;
+begin
+  if (Length(S) = 8) or
+     (Length(S) = 6) then
+    Result := Vector3Single(
+      StrHexToInt(Copy(S, 1, 2)) / 255,
+      StrHexToInt(Copy(S, 3, 2)) / 255,
+      StrHexToInt(Copy(S, 5, 2)) / 255) else
     raise EConvertError.CreateFmt('Invalid color hex string: "%s"', [S]);
 end;
 

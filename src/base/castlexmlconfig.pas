@@ -127,14 +127,22 @@ type
         @itemSpacing Compact
         @item(attribute names are better for colors
           (@italic(red, green, blue, alpha) instead of @italic(x, y, z, w)),)
+        @item(we allow alternative color specification as hex.)
         @item(and we limit component values to 0..1 range.)
       )
 
       They should be expressed in XML like
 
 @preformatted(
-<myColor red="1" green="2" blue="3" alpha="4" />
-<myColorRGB red="1" green="2" blue="3" />
+<myColor red="1" green="0.5" blue="0.25" alpha="1" />
+<myColorRGB red="1" green="0.5" blue="0.25" />
+)
+
+      or as hex colors (see @link(HexToColor)) like
+
+@preformatted(
+<myColor hex="ff804011" />
+<myColorRGB hex="ff8040" />
 )
 
       You can read such colors by
@@ -453,14 +461,21 @@ end;
 const
   ColorComponentPaths: array [0..3] of string =
   ('/red', '/green', '/blue', '/alpha');
+  HexPath = '/hex';
 
 function TCastleConfig.GetColor(const APath: string;
   const ADefaultColor: TCastleColorRGB): TCastleColorRGB;
 var
   I: Integer;
+  Hex: string;
 begin
-  for I := 0 to High(ADefaultColor) do
-    Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
+  Hex := GetValue(APath + HexPath, '');
+  if Hex <> '' then
+    Result := HexToColorRGB(Hex) else
+  begin
+    for I := 0 to High(ADefaultColor) do
+      Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
+  end;
 end;
 
 procedure TCastleConfig.SetColor(const APath: string;
@@ -468,8 +483,9 @@ procedure TCastleConfig.SetColor(const APath: string;
 var
   I: Integer;
 begin
+  SetValue(APath + HexPath, ColorRGBToHex(AColor));
   for I := 0 to High(AColor) do
-    SetFloat(APath + ColorComponentPaths[I], AColor[I]);
+    DeleteValue(APath + ColorComponentPaths[I]);
 end;
 
 procedure TCastleConfig.SetDeleteColor(const APath: string;
@@ -477,17 +493,24 @@ procedure TCastleConfig.SetDeleteColor(const APath: string;
 var
   I: Integer;
 begin
+  SetDeleteValue(APath + HexPath, ColorRGBToHex(AColor), ColorRGBToHex(ADefaultColor));
   for I := 0 to High(AColor) do
-    SetDeleteFloat(APath + ColorComponentPaths[I], AColor[I], ADefaultColor[I]);
+    DeleteValue(APath + ColorComponentPaths[I]);
 end;
 
 function TCastleConfig.GetColor(const APath: string;
   const ADefaultColor: TCastleColor): TCastleColor;
 var
   I: Integer;
+  Hex: string;
 begin
-  for I := 0 to High(ADefaultColor) do
-    Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
+  Hex := GetValue(APath + HexPath, '');
+  if Hex <> '' then
+    Result := HexToColor(Hex) else
+  begin
+    for I := 0 to High(ADefaultColor) do
+      Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
+  end;
 end;
 
 procedure TCastleConfig.SetColor(const APath: string;
@@ -495,8 +518,9 @@ procedure TCastleConfig.SetColor(const APath: string;
 var
   I: Integer;
 begin
+  SetValue(APath + HexPath, ColorToHex(AColor));
   for I := 0 to High(AColor) do
-    SetFloat(APath + ColorComponentPaths[I], AColor[I]);
+    DeleteValue(APath + ColorComponentPaths[I]);
 end;
 
 procedure TCastleConfig.SetDeleteColor(const APath: string;
@@ -504,8 +528,9 @@ procedure TCastleConfig.SetDeleteColor(const APath: string;
 var
   I: Integer;
 begin
+  SetDeleteValue(APath + HexPath, ColorToHex(AColor), ColorToHex(ADefaultColor));
   for I := 0 to High(AColor) do
-    SetDeleteFloat(APath + ColorComponentPaths[I], AColor[I], ADefaultColor[I]);
+    DeleteValue(APath + ColorComponentPaths[I]);
 end;
 
 function TCastleConfig.PathElement(const APath: string;
