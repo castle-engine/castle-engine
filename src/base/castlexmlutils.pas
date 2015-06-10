@@ -125,7 +125,7 @@ type
 
     { Retrieves from Element given attribute as an absolute URL,
       raises EDOMAttributeMissing if missing.
-      Returns URL is always absolute. The value in file may be a relative URL,
+      Returned URL is always absolute. The value in file may be a relative URL,
       it is resolved with respect to BaseUrl, that must be absolute.
       @raises EDOMAttributeMissing }
     function AttributeURL(const AttrName: string; const BaseUrl: string): string;
