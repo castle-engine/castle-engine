@@ -209,6 +209,7 @@ begin
     P.Targets.AddUnit('castlematerialproperties.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'images');
+    P.Targets.AddUnit('castlefpwritepng.pas');
     P.Targets.AddUnit('castleimages.pas');
     P.Targets.AddUnit('castlepng.pas');
     P.Targets.AddUnit('castledds.pas');
