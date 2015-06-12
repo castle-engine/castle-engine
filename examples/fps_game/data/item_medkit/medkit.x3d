@@ -3,10 +3,10 @@
 <X3D version="3.0" profile="Immersive" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-3.0.xsd">
 	<head>
 		<meta name="filename" content="medkit.x3d" />
-		<meta name="generator" content="Blender 2.64 (sub 0)" />
+		<meta name="generator" content="Blender 2.73 (sub 0)" />
 	</head>
 	<Scene>
-		<NavigationInfo headlight="false"
+		<NavigationInfo headlight="true"
 		                visibilityLimit="0.0"
 		                type='"EXAMINE", "ANY"'
 		                avatarSize="0.25, 1.75, 0.75"
@@ -63,7 +63,8 @@
 					<Shape>
 						<Appearance>
 							<ImageTexture DEF="IM_medkit_texture_png"
-							              url='"medkit_texture.png" "/home/michal/sources/castle-engine/trunk/castle_game_engine/examples/fps_game/data/item_medkit/medkit_texture.png"' 							              />
+							              url='"medkit_texture.png" "/home/michalis/sources/castle-engine/trunk/castle_game_engine/examples/fps_game/data/item_medkit/medkit_texture.png"'
+							              />
 							<Material DEF="MA_Material"
 							          diffuseColor="0.800 0.800 0.800"
 							          specularColor="0.059 0.059 0.059"
