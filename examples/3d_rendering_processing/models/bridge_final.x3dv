@@ -33,23 +33,17 @@ Viewpoint {
 #   shadows TRUE
 # }
 
-Transform {
-  # Rotate bridge.wrl to have up vector in +Y (Blender models typically
-  # have in +Z). This makes it matching some other models with +Y up,
-  # comfortable for scene_manager_demos.
-  rotation 1 0 0 -1.57
-  children KambiInline {
-    url "bridge.wrl"
+KambiInline {
+  url "bridge.x3d"
 
-    # This texture is often visible at steep angles, anisotropic filtering helps
-    replaceNames "_023bois_jpg"
-    replaceNodes ImageTexture {
-      url "textures/023bois.jpg"
-      textureProperties TextureProperties {
-        anisotropicDegree 16
-        minificationFilter "NICEST"
-        magnificationFilter "NICEST"
-      }
+  # This texture is often visible at steep angles, anisotropic filtering helps
+  replaceNames "_023bois_jpg"
+  replaceNodes ImageTexture {
+    url "textures/023bois.jpg"
+    textureProperties TextureProperties {
+      anisotropicDegree 16
+      minificationFilter "NICEST"
+      magnificationFilter "NICEST"
     }
   }
 }
