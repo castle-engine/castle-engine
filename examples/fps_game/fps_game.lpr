@@ -515,8 +515,7 @@ begin
 
   { Create player. It's not strictly necessary to use Player, but it makes
     some stuff working better/simpler: Player automatically configures
-    camera (to use game-like AWSD shortcuts from CastleInputs,
-    to use gravity), it adds footsteps etc.
+    camera, it adds footsteps etc.
     It's best to assign SceneManager.Player before SceneManager.LoadLevel,
     then Player.Camera is automatically configured as SceneManager.Camera
     and it follows level's properties like PreferredHeight (from level's
