@@ -513,9 +513,12 @@ begin
   Resources.LoadFromFiles;
   Levels.LoadFromFiles;
 
-  { Create player. It's not strictly necessary to use Player, but it makes
-    some stuff working better/simpler: Player automatically configures
-    camera, it adds footsteps etc.
+  { Create player. This is necessary to represent the player as anything
+    more than a camera. Player adds inventory, with automatic picking of items
+    by default, health (can be hurt by enemies), equipping weapon (a special
+    item can be equipped and used to hurt enemies), footsteps and some other
+    nice stuff.
+
     It's best to assign SceneManager.Player before SceneManager.LoadLevel,
     then Player.Camera is automatically configured as SceneManager.Camera
     and it follows level's properties like PreferredHeight (from level's
