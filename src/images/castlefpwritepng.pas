@@ -763,5 +763,5 @@ begin
 end;
 
 initialization
-  ImageHandlers.RegisterImageWriter ('Portable Network Graphics', 'png', TFPWriterPNG);
+  ImageHandlers.RegisterImageWriter ('Portable Network Graphics (CGE Handler)', 'png', TFPWriterPNG);
 end.
