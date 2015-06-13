@@ -82,7 +82,7 @@ var
   F: TTextReader;
   PosComment: Integer;
   Tokens: TCastleStringList;
-  Line, LineWithComment, X3DNodeType, X3DAncestorType1, X3DAncestorType2, PascalNodeType,
+  Line, LineWithComment, X3DNodeType, PascalNodeType,
     X3DFieldName, PascalFieldName, X3DFieldType, PascalFieldType,
     PascalFieldNameOriginal: string;
 begin
@@ -101,35 +101,17 @@ begin
       begin
         Tokens := CreateTokens(Line);
         try
-          if (Tokens.Count = 2) and
-             (Tokens[1] = '{') then
+          { node start }
+          if (Tokens.Count >= 2) and
+             (Tokens[Tokens.Count - 1] = '{') and
+             ((Tokens.Count = 2) or (Tokens[1] = ':')) then
           begin
             X3DNodeType := Tokens[0];
             PascalNodeType := NodeTypeX3DToPascal(X3DNodeType);
-            X3DAncestorType1 := '';
-            X3DAncestorType2 := '';
-            // Writeln('// Node begin: ', PascalNodeType, ' ', X3DAncestorType1);
+            // from 2 to Tokens.Count - 2 are ancestor names, just strip comma
+            // X3DAncestorType... := SuffixRemove(',', Tokens[...]);
           end else
-          if (Tokens.Count = 4) and
-             (Tokens[1] = ':') and
-             (Tokens[3] = '{') then
-          begin
-            X3DNodeType := Tokens[0];
-            PascalNodeType := NodeTypeX3DToPascal(X3DNodeType);
-            X3DAncestorType1 := Tokens[2];
-            X3DAncestorType2 := '';
-            // Writeln('// Node begin: ', PascalNodeType, ' ', X3DAncestorType1);
-          end else
-          if (Tokens.Count = 5) and
-             (Tokens[1] = ':') and
-             (Tokens[4] = '{') then
-          begin
-            X3DNodeType := Tokens[0];
-            PascalNodeType := NodeTypeX3DToPascal(X3DNodeType);
-            X3DAncestorType1 := Tokens[2]; // TODO: remove comma
-            X3DAncestorType2 := Tokens[3];
-            // Writeln('// Node begin: ', PascalNodeType, ' ', X3DAncestorType1, ' ', X3DAncestorType2);
-          end else
+          { node end }
           if (Tokens.Count = 1) and
              (Tokens[0] = '}') then
            begin
@@ -152,12 +134,11 @@ begin
              end;
 
              X3DNodeType := '';
-             X3DAncestorType1 := '';
-             X3DAncestorType2 := '';
              NodePrivateInterface := '';
              NodePublicInterface := '';
              NodeImplementation := '';
            end else
+           { field/event inside node }
            if (Tokens.Count >= 3) and
               (FieldTypeX3DToPascal(Tokens[0]) <> '') then
            begin
@@ -167,7 +148,10 @@ begin
              if (X3DFieldName = 'ccw') or
                 (X3DFieldName = 'solid') or
                 (X3DFieldName = 'repeatS') or
-                (X3DFieldName = 'repeatT') then
+                (X3DFieldName = 'repeatT')
+                // TODO: bboxCenter and bboxSize should also be removed from here someday,
+                // we should convert them manually to BBox: TBox3D to support our TBox3D type.
+                then
              begin
                Writeln(ErrOutput, 'NOTE: Not processing, this field has special implementation: ' + X3DFieldName);
                Continue;
@@ -275,4 +259,3 @@ begin
     '{$endif read_implementation}' + NL
   );
 end.
-

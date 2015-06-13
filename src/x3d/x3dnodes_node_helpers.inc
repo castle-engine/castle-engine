@@ -1466,6 +1466,20 @@ type
     property Description: string read GetDescription write SetDescription;
   end;
 
+  TInlineNodeHelper = class helper for TInlineNode
+  private
+    function GetLoad: boolean;
+    procedure SetLoad(const Value: boolean);
+    function GetBboxCenter: TVector3Single;
+    procedure SetBboxCenter(const Value: TVector3Single);
+    function GetBboxSize: TVector3Single;
+    procedure SetBboxSize(const Value: TVector3Single);
+  public
+    property Load: boolean read GetLoad write SetLoad;
+    property BboxCenter: TVector3Single read GetBboxCenter write SetBboxCenter;
+    property BboxSize: TVector3Single read GetBboxSize write SetBboxSize;
+  end;
+
   TLoadSensorNodeHelper = class helper for TLoadSensorNode
   private
     function GetTimeOut: TFloatTime;
@@ -2442,6 +2456,32 @@ type
     property Rotation: TVector4Single read GetRotation write SetRotation;
     property Scale: TVector3Single read GetScale write SetScale;
     property Translation: TVector3Single read GetTranslation write SetTranslation;
+  end;
+
+  TMovieTextureNodeHelper = class helper for TMovieTextureNode
+  private
+    function GetDescription: string;
+    procedure SetDescription(const Value: string);
+    function GetLoop: boolean;
+    procedure SetLoop(const Value: boolean);
+    function GetPauseTime: TFloatTime;
+    procedure SetPauseTime(const Value: TFloatTime);
+    function GetResumeTime: TFloatTime;
+    procedure SetResumeTime(const Value: TFloatTime);
+    function GetSpeed: Single;
+    procedure SetSpeed(const Value: Single);
+    function GetStartTime: TFloatTime;
+    procedure SetStartTime(const Value: TFloatTime);
+    function GetStopTime: TFloatTime;
+    procedure SetStopTime(const Value: TFloatTime);
+  public
+    property Description: string read GetDescription write SetDescription;
+    property Loop: boolean read GetLoop write SetLoop;
+    property PauseTime: TFloatTime read GetPauseTime write SetPauseTime;
+    property ResumeTime: TFloatTime read GetResumeTime write SetResumeTime;
+    property Speed: Single read GetSpeed write SetSpeed;
+    property StartTime: TFloatTime read GetStartTime write SetStartTime;
+    property StopTime: TFloatTime read GetStopTime write SetStopTime;
   end;
 
   TMultiTextureNodeHelper = class helper for TMultiTextureNode
@@ -6317,6 +6357,38 @@ begin
   FdDescription.Send(Value);
 end;
 
+{ TInlineNode ----------------------------------------------- }
+
+function TInlineNodeHelper.GetLoad: boolean;
+begin
+  Result := FdLoad.Value;
+end;
+
+procedure TInlineNodeHelper.SetLoad(const Value: boolean);
+begin
+  FdLoad.Send(Value);
+end;
+
+function TInlineNodeHelper.GetBboxCenter: TVector3Single;
+begin
+  Result := FdBboxCenter.Value;
+end;
+
+procedure TInlineNodeHelper.SetBboxCenter(const Value: TVector3Single);
+begin
+  FdBboxCenter.Send(Value);
+end;
+
+function TInlineNodeHelper.GetBboxSize: TVector3Single;
+begin
+  Result := FdBboxSize.Value;
+end;
+
+procedure TInlineNodeHelper.SetBboxSize(const Value: TVector3Single);
+begin
+  FdBboxSize.Send(Value);
+end;
+
 { TLoadSensorNode ----------------------------------------------- }
 
 function TLoadSensorNodeHelper.GetTimeOut: TFloatTime;
@@ -8783,6 +8855,78 @@ end;
 procedure TTextureTransform3DNodeHelper.SetTranslation(const Value: TVector3Single);
 begin
   FdTranslation.Send(Value);
+end;
+
+{ TMovieTextureNode ----------------------------------------------- }
+
+function TMovieTextureNodeHelper.GetDescription: string;
+begin
+  Result := FdDescription.Value;
+end;
+
+procedure TMovieTextureNodeHelper.SetDescription(const Value: string);
+begin
+  FdDescription.Send(Value);
+end;
+
+function TMovieTextureNodeHelper.GetLoop: boolean;
+begin
+  Result := FdLoop.Value;
+end;
+
+procedure TMovieTextureNodeHelper.SetLoop(const Value: boolean);
+begin
+  FdLoop.Send(Value);
+end;
+
+function TMovieTextureNodeHelper.GetPauseTime: TFloatTime;
+begin
+  Result := FdPauseTime.Value;
+end;
+
+procedure TMovieTextureNodeHelper.SetPauseTime(const Value: TFloatTime);
+begin
+  FdPauseTime.Send(Value);
+end;
+
+function TMovieTextureNodeHelper.GetResumeTime: TFloatTime;
+begin
+  Result := FdResumeTime.Value;
+end;
+
+procedure TMovieTextureNodeHelper.SetResumeTime(const Value: TFloatTime);
+begin
+  FdResumeTime.Send(Value);
+end;
+
+function TMovieTextureNodeHelper.GetSpeed: Single;
+begin
+  Result := FdSpeed.Value;
+end;
+
+procedure TMovieTextureNodeHelper.SetSpeed(const Value: Single);
+begin
+  FdSpeed.Send(Value);
+end;
+
+function TMovieTextureNodeHelper.GetStartTime: TFloatTime;
+begin
+  Result := FdStartTime.Value;
+end;
+
+procedure TMovieTextureNodeHelper.SetStartTime(const Value: TFloatTime);
+begin
+  FdStartTime.Send(Value);
+end;
+
+function TMovieTextureNodeHelper.GetStopTime: TFloatTime;
+begin
+  Result := FdStopTime.Value;
+end;
+
+procedure TMovieTextureNodeHelper.SetStopTime(const Value: TFloatTime);
+begin
+  FdStopTime.Send(Value);
 end;
 
 { TMultiTextureNode ----------------------------------------------- }
