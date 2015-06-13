@@ -1,4 +1,4 @@
-X3DAppearanceChildNode : X3DNode { 
+X3DAppearanceChildNode : X3DNode {
 }
 
 X3DAppearanceNode : X3DNode {
@@ -14,7 +14,7 @@ X3DShapeNode : X3DChildNode, X3DBoundedObject {
   SFVec3f []       bboxSize   -1 -1 -1 [0,Inf) or -1 -1 -1
 }
 
-Appearance : X3DAppearanceNode { 
+Appearance : X3DAppearanceNode {
   SFNode [in,out] fillProperties   NULL [FillProperties]
   SFNode [in,out] lineProperties   NULL [LineProperties]
   SFNode [in,out] material         NULL [X3DMaterialNode]
@@ -23,26 +23,35 @@ Appearance : X3DAppearanceNode {
   SFNode [in,out] textureTransform NULL [X3DTextureTransformNode]
 }
 
-FillProperties : X3DAppearanceChildNode { 
+FillProperties : X3DAppearanceChildNode {
   SFBool  [in,out] filled     TRUE
   SFColor [in,out] hatchColor 1 1 1 [0,1]
   SFBool  [in,out] hatched    TRUE
   SFInt32 [in,out] hatchStyle 1     [0,Inf)
 }
 
-LineProperties : X3DAppearanceChildNode { 
+LineProperties : X3DAppearanceChildNode {
   SFBool  [in,out] applied              TRUE
   SFInt32 [in,out] linetype             1    [1,Inf)
   SFFloat [in,out] linewidthScaleFactor 0    (-Inf,Inf)
 }
 
-Material : X3DMaterialNode { 
+Material : X3DMaterialNode {
   SFFloat [in,out] ambientIntensity 0.2         [0,1]
   SFColor [in,out] diffuseColor     0.8 0.8 0.8 [0,1]
   SFColor [in,out] emissiveColor    0 0 0       [0,1]
   SFFloat [in,out] shininess        0.2         [0,1]
   SFColor [in,out] specularColor    0 0 0       [0,1]
   SFFloat [in,out] transparency     0           [0,1]
+
+  # Castle Game Engine extensions
+  SFFloat    [in,out]      mirror      0.0         # [0.0; 1.0]
+  MFColor    [in,out]      reflSpecular          []          # specular reflectance
+  MFColor    [in,out]      reflDiffuse           []          # diffuse reflectance
+  MFColor    [in,out]      transSpecular         []          # specular transmittance
+  MFColor    [in,out]      transDiffuse          []          # diffuse transmittance
+  SFFloat    [in,out]      reflSpecularExp       1000000     # specular reflectance exponent
+  SFFloat    [in,out]      transSpecularExp      1000000     # specular transmittance exponent
 }
 
 Shape : X3DShapeNode {
@@ -63,4 +72,3 @@ TwoSidedMaterial : X3DMaterialNode {
   SFColor [in,out] specularColor        0 0 0       [0,1]
   SFFloat [in,out] transparency         0           [0,1]
 }
-

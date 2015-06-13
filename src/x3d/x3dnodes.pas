@@ -174,7 +174,7 @@ interface
 
 uses SysUtils, FGL, Classes, XMLRead, DOM,
   CastleVectors, X3DLexer, CastleUtils, CastleClassUtils,
-  X3DFields, CastleBoxes, CastleImages,
+  X3DFields, CastleBoxes, CastleImages, CastleColors,
   CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleOctree, CastleDDS, CastleTextureImages,
   CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
@@ -1926,6 +1926,7 @@ var
 {$I x3dnodes_encoding_classic.inc}
 {$I x3dnodes_encoding_xml.inc}
 {$I x3dnodes_save.inc}
+{$I x3dnodes_node_helpers.inc}
 
 { Create and assign all State.Nodes. }
 procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
@@ -2175,7 +2176,7 @@ uses
   CastleTextureFont_DjvSerifBI_20,
   {$endif CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
 
-  Math, X3DLoad, CastleZStream, X3DCameraUtils, CastleWarnings, CastleColors,
+  Math, X3DLoad, CastleZStream, X3DCameraUtils, CastleWarnings,
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode,
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument;
@@ -2225,6 +2226,7 @@ resourcestring
 {$I x3dnodes_encoding_classic.inc}
 {$I x3dnodes_encoding_xml.inc}
 {$I x3dnodes_generatedtextures.inc}
+{$I x3dnodes_node_helpers.inc}
 
 {$I x3d_core.inc}
 {$I x3d_time.inc}

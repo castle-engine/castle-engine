@@ -761,8 +761,8 @@
     function ProjectionMatrix: TMatrix4Single; override;
     function ModelviewMatrix: TMatrix4Single; override;
     function ModelviewRotationMatrix: TMatrix4Single; override;
-    function LocationLocal: TVector3Single; override;
-    function DirectionLocal: TVector3Single; override;
+    function ProjectionLocationLocal: TVector3Single; override;
+    function ProjectionDirectionLocal: TVector3Single; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
     function HasRadius: boolean; override;
@@ -2332,12 +2332,12 @@ begin
   Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
 end;
 
-function TSpotLightNode_1.LocationLocal: TVector3Single;
+function TSpotLightNode_1.ProjectionLocationLocal: TVector3Single;
 begin
   Result := FdLocation.Value;
 end;
 
-function TSpotLightNode_1.DirectionLocal: TVector3Single;
+function TSpotLightNode_1.ProjectionDirectionLocal: TVector3Single;
 begin
   Result := FdDirection.Value;
 end;
@@ -2352,7 +2352,7 @@ procedure TSpotLightNode_1.Box3DDistances(const Box: TBox3D;
 begin
   { TODO: MaxDistance should be a little larger, as spot light rays
     are not parallel. }
-  Box.DirectionDistances(Location, Direction, MinDistance, MaxDistance);
+  Box.DirectionDistances(ProjectionLocation, ProjectionDirection, MinDistance, MaxDistance);
 end;
 
 function TSpotLightNode_1.Scope: TLightScope;

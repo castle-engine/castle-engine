@@ -71,7 +71,7 @@ var
 
 var
   IFS: TIndexedFaceSetNode absolute Result;
-  XDimension, ZDimension: Integer; {< shortcuts for appropriate fields values }
+  XDim, ZDim: Integer; {< shortcuts for appropriate fields values }
   TexCoordProvided: boolean;
   I, J, NextIndex: Integer;
   CoordNode: TCoordinateNode;
@@ -79,8 +79,8 @@ var
 begin
   IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
   try
-    XDimension := FdXDimension.Value;
-    ZDimension := FdZDimension.Value;
+    XDim := FdXDimension.Value;
+    ZDim := FdZDimension.Value;
 
     if IsNotEmpty then
     begin
@@ -93,7 +93,7 @@ begin
         (FdTexCoord.Value <> nil) and
         (FdTexCoord.Value is TTextureCoordinateNode) and
         (TTextureCoordinateNode(FdTexCoord.Value).FdPoint.Count >=
-          XDimension * ZDimension);
+          XDim * ZDim);
       if TexCoordProvided then
         IFS.FdTexCoord.Value := FdTexCoord.Value else
       begin
@@ -102,37 +102,37 @@ begin
       end;
 
       { generate coords (and other per-vertex stuff: tex coords) }
-      Coords.Count := XDimension * ZDimension;
+      Coords.Count := XDim * ZDim;
       if not TexCoordProvided then
-        TexCoords.Count := XDimension * ZDimension;
-      for J := 0 to ZDimension - 1 do
-        for I := 0 to XDimension - 1 do
+        TexCoords.Count := XDim * ZDim;
+      for J := 0 to ZDim - 1 do
+        for I := 0 to XDim - 1 do
         begin
-          Coords.L[I + J * XDimension] := Vector3Single(
+          Coords.L[I + J * XDim] := Vector3Single(
             FdXSpacing.Value * I,
-            FdHeight.Items.L[I + J * XDimension],
+            FdHeight.Items.L[I + J * XDim],
             FdZSpacing.Value * J);
 
           if not TexCoordProvided then
-            TexCoords.L[I + J * XDimension] := Vector2Single(
-              I / (XDimension - 1),
-              J / (ZDimension - 1));
+            TexCoords.L[I + J * XDim] := Vector2Single(
+              I / (XDim - 1),
+              J / (ZDim - 1));
         end;
 
       { generate quads indexes }
       CoordIndexes := IFS.CoordIndex.Items;
-      CoordIndexes.Count := (XDimension - 1) * (ZDimension - 1) * 8;
+      CoordIndexes.Count := (XDim - 1) * (ZDim - 1) * 8;
       NextIndex := 0;
-      for J := 1 to ZDimension - 1 do
-        for I := 1 to XDimension - 1 do
+      for J := 1 to ZDim - 1 do
+        for I := 1 to XDim - 1 do
         begin
           { Vertices are ordered such that face is CCW from up
             (i.e. looking from positive Y axis). }
           Quad(NextIndex,
-               I     + (J - 1) * XDimension,
-               I - 1 + (J - 1) * XDimension,
-               I - 1 +  J      * XDimension,
-               I     +  J      * XDimension);
+               I     + (J - 1) * XDim,
+               I - 1 + (J - 1) * XDim,
+               I - 1 +  J      * XDim,
+               I     +  J      * XDim);
           NextIndex += 8;
         end;
       Assert(NextIndex = CoordIndexes.Count);

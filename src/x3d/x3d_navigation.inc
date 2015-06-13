@@ -515,9 +515,9 @@ end;
 
 function TAbstractX3DViewpointNode.ModelviewMatrix: TMatrix4Single;
 var
-  CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+  CamPos, CamDir, CamUp, CamGravityUp: TVector3Single;
 begin
-  GetView(CamPos, CamDir, CamUp, GravityUp);
+  GetView(CamPos, CamDir, CamUp, CamGravityUp);
   Result := LookDirMatrix(CamPos, CamDir, CamUp);
 end;
 
