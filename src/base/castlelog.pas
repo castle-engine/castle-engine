@@ -100,7 +100,6 @@ var
 begin
   if Log then Exit; { ignore 2nd call to InitializeLog }
 
-  LogFileName := '';
   LogStreamOwned := false;
 
   if ALogStream = nil then
@@ -115,27 +114,23 @@ begin
         "xxx.exe --debug-log > xxx.log". But do not depend on it.
         Simply writing to xxx.log is more what people expect. }
       LogFileName := ExpandFileName(ApplicationName + '.log');
-      LogStream := TFileStream.Create(LogFileName, fmCreate);
+      try
+        LogStream := TFileStream.Create(LogFileName, fmCreate);
+      except
+        on E: EFCreateError do
+          { special exception message when LogFileName non-empty
+            (usual case on Windows). }
+          raise EWithHiddenClassName.Create('Cannot create log file "' + LogFileName + '". To dump log of GUI application on Windows, you have to run the application in a directory where you have write access, for example your user or Desktop directory.') else
+      end;
       LogStreamOwned := true;
     end else
       LogStream := StdOutStream;
   end else
     LogStream := ALogStream;
 
-  try
-    WritelnStr(LogStream, 'Log for "' + ApplicationName +
-      '", version ' + ProgramVersion +
-      '. Started on ' + DateTimeToAtStr(Now) + '.');
-  except
-    on E: EWriteError do
-    begin
-      if LogFileName <> '' then
-        { special exception message when LogFileName non-empty
-          (usual case on Windows). }
-        raise EWithHiddenClassName.Create('Cannot write to log file "' + LogFileName + '". To dump log of GUI application on Windows, you have to run the application in a directory where you have write access, for example your user or Desktop directory.') else
-        raise EWithHiddenClassName.Create('Cannot write to log file');
-    end;
-  end;
+  WritelnStr(LogStream, 'Log for "' + ApplicationName +
+    '", version ' + ProgramVersion +
+    '. Started on ' + DateTimeToAtStr(Now) + '.');
 
   { Set Log to true only once we succeded.
 
