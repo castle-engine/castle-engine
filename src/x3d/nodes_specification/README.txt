@@ -1,13 +1,17 @@
-(Almost-auto)-generating of X3D nodes declarations in Pascal:
+X3D nodes declarations in simple text format. Used to automatically generate
+parts of X3DNodes unit interface and implementation.
 
-- The subdir "1" contains all X3D node's specification, simply pasted from
-  X3D specification. I decided it's easier to just paste it and
-  then process with simple Pascal program than to dive into
-  processing X3D Schema with XSLT. (I pasted all in 30 minutes,
-  and that's it...)
+Nowadays, it's only used by generate_x3d_nodes_helpers.
 
-  Subdir 1 contains content directly pasted from X3D spec.
-  Only the local trivial modifications were done to process it easier:
+------------------------------------------------------------------------------
+Historical notes how this was used for x3d_nodes_spec_to_pascal follow below:
+
+- Originally, this was created by hand, simply pasting from X3D specification.
+
+  (It was much easier to just paste it and then process with simple Pascal program
+  than to dive into processing X3D Schema with XSLT.)
+
+  Some modifications were done to process it easier:
   Unicode symbols replaced with "Inf", "Pi" and "-".
   Every field on a single line.
   "# And any number of" minimized to a single line.
@@ -42,8 +46,7 @@
   ancestors for various nodes. Only time will tell which one is more
   suitable as ancestor to implement...
 
-- Subdir 2 is more processed version of 1:
-  Everything that can be obtained through inheritance
+- In the next step, everything that can be obtained through inheritance
   (from normal classes, not interfaces) is removed.
   Also various small errors in X3D spec fixed (non-existing X3DColorObject
   replaced with X3DColorNode, also some missing fields (available

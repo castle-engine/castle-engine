@@ -108,6 +108,8 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/view_3d_model_basic \
   examples/3d_rendering_processing/build_3d_object_by_code \
   src/x3d/teapot/teapot_3d_to_pascal \
+  src/x3d/nodes_specification/x3d_nodes_spec_to_pascal/x3d_nodes_spec_to_pascal \
+  src/x3d/nodes_specification/generate_x3d_nodes_helpers/generate_x3d_nodes_to_pascal \
   examples/fixed_camera_game/rift \
   examples/isometric_game/sandbox \
   examples/images_videos/gaussian_write \

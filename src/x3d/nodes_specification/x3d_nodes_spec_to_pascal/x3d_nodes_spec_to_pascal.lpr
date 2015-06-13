@@ -15,15 +15,16 @@
 
 { Reads nodes definition from text file on stdin,
   in a format like X3D specification
-  (see ../doc/x3d_nodes/2/*.txt files) and outputs on stdout Pascal include
-  file that for each VRML node defines appropriate Pascal class
+  (see castle_game_engine/src/x3d/nodes_specification/components/*.txt files)
+  and outputs on stdout Pascal include
+  file that for each X3D node defines appropriate Pascal class
   (with appropriate fields, events, field default values, etc.).
 
   Param $1 is the X3D component name (for now used only to name the
   RegisterXxxNodes procedure, that you should paste call at
   initialization).
 
-  Generated VRML class can be directly used inside unit like X3DNodes
+  Generated Pascal class can be directly used inside unit like X3DNodes
   to allow our engine to recognize and parse all fields of given node. }
 program x3d_nodes_spec_to_pascal;
 
