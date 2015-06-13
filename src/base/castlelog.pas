@@ -86,6 +86,7 @@ uses CastleUtils, CastleClassUtils, CastleTimeUtils,
 var
   FLog: boolean = false;
   LogStream: TStream;
+  LogStreamOwned: boolean;
 
 function Log: boolean;
 begin
@@ -94,31 +95,30 @@ end;
 
 procedure InitializeLog(const ProgramVersion: string;
   const ALogStream: TStream);
-
-  procedure RaiseStdOutNotAvail;
-  begin
-    raise EWithHiddenClassName.Create(
-      'Cannot write to log output stream. ' +
-      'This usually means that you initialized log for a Windows GUI program, but stdout (standard output) ' +
-      'is not available. Under Windows you should explicitly ' +
-      'redirect program''s stdout to make it available, e.g. ' +
-      'run "' + ApplicationName + ' --debug-log > ' + ApplicationName + '.log".');
-  end;
-
+var
+  LogFileName: string;
 begin
   if Log then Exit; { ignore 2nd call to InitializeLog }
 
+  LogFileName := '';
+  LogStreamOwned := false;
+
   if ALogStream = nil then
   begin
-    { Under Windows GUI program, StdOutStream may be nil.
-      Ideally, check for "StdOutStream = nil" should be all that is needed.
-      But... see StdOutStream comments: you cannot
-      depend on the fact that "StdOutStream <> nil means that stdout
-      is actually available (because user redirected stdout etc.).
-      That is why the 1st WritelnStr below is wrapped inside try...except. }
-    if StdOutStream = nil then
-      RaiseStdOutNotAvail;
-    LogStream := StdOutStream;
+    if not IsConsole then
+    begin
+      { Under Windows GUI program, by default write to file .log
+        in the current directory.
+
+        Do not try to use StdOutStream anymore. In some cases, GUI program
+        may have an stdout, when it is explicitly run like
+        "xxx.exe --debug-log > xxx.log". But do not depend on it.
+        Simply writing to xxx.log is more what people expect. }
+      LogFileName := ExpandFileName(ApplicationName + '.log');
+      LogStream := TFileStream.Create(LogFileName, fmCreate);
+      LogStreamOwned := true;
+    end else
+      LogStream := StdOutStream;
   end else
     LogStream := ALogStream;
 
@@ -127,16 +127,22 @@ begin
       '", version ' + ProgramVersion +
       '. Started on ' + DateTimeToAtStr(Now) + '.');
   except
-    on E: EWriteError do RaiseStdOutNotAvail;
+    on E: EWriteError do
+    begin
+      if LogFileName <> '' then
+        { special exception message when LogFileName non-empty
+          (usual case on Windows). }
+        raise EWithHiddenClassName.Create('Cannot write to log file "' + LogFileName + '". To dump log of GUI application on Windows, you have to run the application in a directory where you have write access, for example your user or Desktop directory.') else
+        raise EWithHiddenClassName.Create('Cannot write to log file');
+    end;
   end;
 
   { Set Log to true only once we succeded.
 
     Otherwise (when FLog := true would be done at the beginning of
     InitializeLog), if something is done in finally..end clauses surrounding
-    InitializeLog, and it does "if Log then WritelnLog..." then it would
-    try to write something to log --- even though we just jumped using
-    RaiseStdOutNotAvail. }
+    InitializeLog, and it does "WritelnLog..." then it would
+    try to write something to uninitialized log. }
 
   FLog := true;
 end;
@@ -145,7 +151,7 @@ procedure WriteLogRaw(const S: string); inline;
 begin
   if Log then
   begin
-    WriteStr(LogStream, S);
+    WriteStr(LogStream, S); // we know that LogStream <> nil when FLog = true
     {$ifdef BACKTRACE_ON_LOG}
     Dump_Stack(StdErr, Get_Frame);
     {$endif}
@@ -186,4 +192,11 @@ begin
   WriteLogMultiline(Title, LogMessage + NL);
 end;
 
+finalization
+  if LogStreamOwned then
+  begin
+    FreeAndNil(LogStream);
+    FLog := false;
+  end;
 end.
+

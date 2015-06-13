@@ -30,7 +30,7 @@ var
   Stream: TStream;
 begin
   EnableNetwork := true;
-  InitializeLog('1.0.0', StdErrStream);
+  InitializeLog;
   Progress.UserInterface := ProgressConsoleInterface;
   Parameters.CheckHigh(1);
   Stream := Download(Parameters[1]);
