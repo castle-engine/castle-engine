@@ -86,6 +86,8 @@ type
       read FProjectionSpan write FProjectionSpan default DefaultProjectionSpan;
     constructor Create(AOwner: TComponent); override;
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
+  published
+    property Transparent default true;
   end;
 
   { Scene best suited for 2D models. Sets BlendingSort := bs2D,
