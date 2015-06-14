@@ -24,6 +24,10 @@
   RegisterXxxNodes procedure, that you should paste call at
   initialization).
 
+  Example call is:
+
+    ./x3d_nodes_spec_to_pascal Lighting <  ../components/Lighting.txt
+
   Generated Pascal class can be directly used inside unit like X3DNodes
   to allow our engine to recognize and parse all fields of given node. }
 program x3d_nodes_spec_to_pascal;
@@ -124,7 +128,7 @@ const
   BoolToStrLowerCase: array[boolean] of string=('false','true');
 var
   FieldType, FieldName, AccessTypeName, EventInOrOut: string;
-  AccessType: TVRMLAccessType;
+  AccessType: TX3DAccessType;
   SeekPos, I: Integer;
   NodeField: boolean;
   NodeFieldAllowedChildren, FieldDefaultValue, FieldComment, FieldExposedLine: string;
@@ -160,7 +164,7 @@ begin
 
   { Parsing field's default value if the most tricky and ad-hoc implementation
     here. That's because we don't want to just parse the field using
-    parsing routines in TVRMLField unit --- this would loose some things
+    parsing routines in TX3DField unit --- this would loose some things
     like "Pi/2" expressions. So instead we employ text tricks that often
     work good enough.
 
@@ -263,17 +267,17 @@ begin
     if IsInterface then
       WritelnStr(InterfaceLines,
         '    { Event: ' + FieldType + ', ' + EventInOrOut + ' } { }' + NL +
-        '    property Event' + FieldName + ': TVRMLEvent { read GetEvent' + FieldName + ' };') else
+        '    property Event' + FieldName + ': TX3DEvent { read GetEvent' + FieldName + ' };') else
     begin
       WritelnStr(InterfaceLines,
         NL +
         '    { Event: ' + FieldType + ', ' + EventInOrOut + ' } { }' + NL +
-        '    private FEvent' + FieldName + ': TVRMLEvent;' + NL +
-        '    public property Event' + FieldName + ': TVRMLEvent read FEvent' + FieldName + ';');
+        '    private FEvent' + FieldName + ': TX3DEvent;' + NL +
+        '    public property Event' + FieldName + ': TX3DEvent read FEvent' + FieldName + ';');
 
       WritelnStr(ImplementationLines,
         NL +
-        '  FEvent' + FieldName + ' := TVRMLEvent.Create(''' + FieldName + ''', T' + FieldType + ', ' + BoolToStrLowerCase[AccessType = atInputOnly] + ');' + NL +
+        '  FEvent' + FieldName + ' := TX3DEvent.Create(''' + FieldName + ''', T' + FieldType + ', ' + BoolToStrLowerCase[AccessType = atInputOnly] + ');' + NL +
         '  Events.Add(FEvent' + FieldName + ');');
     end;
   end else
