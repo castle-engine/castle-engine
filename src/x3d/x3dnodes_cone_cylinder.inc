@@ -201,7 +201,7 @@ var
   QuadricSlices: Cardinal;
 
   { For given angle, calculate side face normal vector.
-    Where Angle is in [0...QuadricSlices] range,
+    Where Angle is in [0...CalculateQuadricSlices] range,
     we will automatically adjust it for correct angle in radians. }
   function SideNormal(const Angle: Single): TVector3Single;
   var
@@ -244,8 +244,8 @@ begin
   if TexCoord <> nil then TexCoord.Count := 0;
   if MaterialIndex <> nil then MaterialIndex.Count := 0;
 
-  QuadricSlices := KambiTriangulation.QuadricSlices;
-  QuadricStacks := KambiTriangulation.QuadricStacks;
+  QuadricSlices := KambiTriangulation.CalculateQuadricSlices;
+  QuadricStacks := KambiTriangulation.CalculateQuadricStacks;
 
   if Bottom then
   begin

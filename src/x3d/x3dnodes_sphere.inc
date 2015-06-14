@@ -60,8 +60,8 @@ begin
   Normal.Count := 0;
   if TexCoord <> nil then TexCoord.Count := 0;
 
-  QuadricSlices := KambiTriangulation.QuadricSlices;
-  QuadricStacks := KambiTriangulation.QuadricStacks;
+  QuadricSlices := KambiTriangulation.CalculateQuadricSlices;
+  QuadricStacks := KambiTriangulation.CalculateQuadricStacks;
 
   { We generate QuadricSlices + 1 points, not just QuadricSlices for each stack.
     Reason: texture coordinates must be different at the last point

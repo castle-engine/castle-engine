@@ -37,9 +37,9 @@
       (from Detail_Xxx variables). In case of incorrect field value,
       they also take care of calling OnWarning and correcting this value.
       @groupBegin }
-    function QuadricStacks: Cardinal;
-    function QuadricSlices: Cardinal;
-    function RectDivisions: Cardinal;
+    function CalculateQuadricStacks: Cardinal;
+    function CalculateQuadricSlices: Cardinal;
+    function CalculateRectDivisions: Cardinal;
     { @groupEnd }
 
     class function URNMatching(const URN: string): boolean; override;
@@ -412,17 +412,17 @@ begin
     Result := Field.Value;
 end;
 
-function TKambiTriangulationNode.QuadricSlices: Cardinal;
+function TKambiTriangulationNode.CalculateQuadricSlices: Cardinal;
 begin
   Result := GetDetailValue(FdQuadricSlices, Detail_QuadricSlices, MinQuadricSlices);
 end;
 
-function TKambiTriangulationNode.QuadricStacks: Cardinal;
+function TKambiTriangulationNode.CalculateQuadricStacks: Cardinal;
 begin
   Result := GetDetailValue(FdQuadricStacks, Detail_QuadricStacks, MinQuadricStacks);
 end;
 
-function TKambiTriangulationNode.RectDivisions: Cardinal;
+function TKambiTriangulationNode.CalculateRectDivisions: Cardinal;
 begin
   Result := GetDetailValue(FdRectDivisions, Detail_RectDivisions, MinRectDivisions);
 end;

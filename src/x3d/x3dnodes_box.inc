@@ -128,7 +128,7 @@ begin
     Although the code is written to support different Detail* values,
     just in case in the future it will be useful. }
   if OverTriangulate then
-    Detail[0] := KambiTriangulation.RectDivisions else
+    Detail[0] := KambiTriangulation.CalculateRectDivisions else
     Detail[0] := 0;
   Detail[1] := Detail[0];
   Detail[2] := Detail[0];

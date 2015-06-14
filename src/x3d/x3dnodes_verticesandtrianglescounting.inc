@@ -59,9 +59,9 @@ begin
 end;
 
 { just a shortcuts for names often used in this file }
-{$define QUADRIC_SLICES:=(State.LastNodes.KambiTriangulation.QuadricSlices)}
-{$define QUADRIC_STACKS:=(State.LastNodes.KambiTriangulation.QuadricStacks)}
-{$define RECT_DIVISIONS:=(State.LastNodes.KambiTriangulation.RectDivisions)}
+{$define QUADRIC_SLICES:=(State.LastNodes.KambiTriangulation.CalculateQuadricSlices)}
+{$define QUADRIC_STACKS:=(State.LastNodes.KambiTriangulation.CalculateQuadricStacks)}
+{$define RECT_DIVISIONS:=(State.LastNodes.KambiTriangulation.CalculateRectDivisions)}
 
 function Cone_TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   const Sides, Bottom: boolean): Cardinal;

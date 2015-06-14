@@ -312,7 +312,7 @@ var
 begin
   LineSet := TLineSetNode.Create(NodeName, BaseUrl);
   try
-    Slices := State.LastNodes.KambiTriangulation.QuadricSlices;
+    Slices := State.LastNodes.KambiTriangulation.CalculateQuadricSlices;
 
     C := TCoordinateNode.Create('', BaseUrl);
     C.FdPoint.Items.Count := Slices + 1;
