@@ -47,7 +47,6 @@
       <Unit0>
         <Filename Value="model_3d_with_2d_controls.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="model_3d_with_2d_controls"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -79,7 +78,6 @@
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
-      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>

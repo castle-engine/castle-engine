@@ -9,7 +9,7 @@ object Form1: TForm1
   ClientWidth = 1043
   OnCreate = FormCreate
   Position = poDesktopCenter
-  LCLVersion = '1.1'
+  LCLVersion = '1.3'
   object Browser: TCastleControl
     Left = 0
     Height = 624
@@ -132,10 +132,6 @@ object Form1: TForm1
     TUIControlPos_Design_Top = 272
   end
   object OnScreenMenu1: TCastleOnScreenMenu
-    PositionRelativeMenuX = prLow
-    PositionRelativeMenuY = prLow
-    PositionRelativeScreenX = prLow
-    PositionRelativeScreenY = prLow
     Items.Strings = (
       'one'
       'two'

@@ -9,9 +9,6 @@ uses
   CastleControl, CastleControls, CastleOnScreenMenu;
 
 type
-
-  { TForm1 }
-
   TForm1 = class(TForm)
     Browser: TCastleControl;
     OnScreenMenu1: TCastleOnScreenMenu;
