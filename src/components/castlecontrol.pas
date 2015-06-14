@@ -1077,14 +1077,21 @@ procedure TCastleControlCustom.MouseMove(Shift: TShiftState; NewX, NewY: Integer
   end;
 
 begin
-  Container.EventMotion(InputMotion(MousePosition,
-    Vector2Single(NewX, Height - 1 - NewY), MousePressed, 0));
+  { check GLInitialized, because it seems it can be called before GL context
+    is created (on Windows) or after it's destroyed (sometimes on Linux).
+    We don't want to pass anything to Container in such case. }
 
-  // change FMousePosition *after* EventMotion, callbacks may depend on it
-  FMousePosition := Vector2Single(NewX, Height - 1 - NewY);
+  if GLInitialized then
+  begin
+    Container.EventMotion(InputMotion(MousePosition,
+      Vector2Single(NewX, Height - 1 - NewY), MousePressed, 0));
 
-  UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
-  AggressiveUpdate;
+    // change FMousePosition *after* EventMotion, callbacks may depend on it
+    FMousePosition := Vector2Single(NewX, Height - 1 - NewY);
+
+    UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
+    AggressiveUpdate;
+  end;
 
   inherited MouseMove(Shift, NewX, NewY);
 end;
