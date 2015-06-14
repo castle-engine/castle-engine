@@ -27,7 +27,7 @@ uses
   CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils, StdCtrls,
   CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
   CastleImages, CastleGLVersion, pk3DConnexion, CastleSceneManager,
-  CastleGLImages, CastleGLContainer;
+  CastleGLImages, CastleGLContainer, Castle2DSceneManager;
 
 const
   DefaultLimitFPS = 100.0;
@@ -367,10 +367,11 @@ type
   TControlGameSceneManager = class(TGameSceneManager)
   end;
 
-  { Lazarus component with an OpenGL context, most comfortable to render 3D worlds
-    with 2D controls above. Add your 3D stuff to the scene manager
-    available in @link(SceneManager) property. Add your 2D stuff
-    to the @link(TCastleControlCustom.Controls) property (from ancestor TCastleControlCustom).
+  { Render 3D world and GUI controls.
+    Add your game stuff (3D descending from @link(T3D), like @link(TCastleScene))
+    to the scene manager available in @link(SceneManager) property.
+    Add your GUI stuff to the @link(TCastleControlCustom.Controls) property
+    (from ancestor TCastleControlCustom).
 
     You can directly access the SceneManager and configure it however you like.
 
@@ -387,7 +388,7 @@ type
     procedure SetShadowVolumesRender(const Value: boolean);
     procedure SetOnCameraChanged(const Value: TNotifyEvent);
   public
-    constructor Create(AOwner :TComponent); override;
+    constructor Create(AOwner: TComponent); override;
 
     { Load a single 3D model to your world
       (removing other models, and resetting the camera).
@@ -415,6 +416,35 @@ type
     { See TCastleAbstractViewport.ShadowVolumesRender. }
     property ShadowVolumesRender: boolean
       read GetShadowVolumesRender write SetShadowVolumesRender default false;
+  end;
+
+  { Same as T2DSceneManager, redefined only to work as a sub-component
+    of TCastleControl, otherwise Lazarus fails to update the uses clause
+    correctly and you cannot edit the events of CastleControl1.SceneManager
+    subcomponent. }
+  TControl2DSceneManager = class(T2DSceneManager)
+  end;
+
+  { Render 2D game world and GUI.
+    Add your game stuff, like @link(T2DScene), to the scene manager available
+    in @link(SceneManager) property. Add your GUI stuff
+    to the @link(TCastleControlCustom.Controls) property (from ancestor
+    TCastleControlCustom).
+
+    You can directly access the SceneManager and configure it however you like.
+
+    The difference between this and @link(TCastleControl) is that this provides
+    a scene manager descending from @link(T2DSceneManager), which is a little more
+    comfortable for typical 2D games. See @link(T2DSceneManager) description
+    for details. In principle, you can use any of these control classes
+    to develop any mix of 3D or 2D game. }
+  TCastle2DControl = class(TCastleControlCustom)
+  private
+    FSceneManager: TControl2DSceneManager;
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    property SceneManager: TControl2DSceneManager read FSceneManager;
   end;
 
 procedure Register;
@@ -464,7 +494,8 @@ begin
       and risk confusing novice users?) is still unsure (report on forum
       if you have any opinion). }
     { TCastleControlCustom, }
-    TCastleControl]);
+    TCastleControl,
+    TCastle2DControl]);
 end;
 
 var
@@ -1133,7 +1164,7 @@ end;
 
 { TCastleControl ----------------------------------------------------------- }
 
-constructor TCastleControl.Create(AOwner :TComponent);
+constructor TCastleControl.Create(AOwner: TComponent);
 begin
   inherited;
 
@@ -1211,6 +1242,21 @@ end;
 procedure TCastleControl.SetOnCameraChanged(const Value: TNotifyEvent);
 begin
   SceneManager.OnCameraChanged := Value;
+end;
+
+{ TCastle2DControl ----------------------------------------------------------- }
+
+constructor TCastle2DControl.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  FSceneManager := TControl2DSceneManager.Create(Self);
+  { SetSubComponent and Name setting (must be unique only within TCastleControl,
+    so no troubles) are necessary to store it in LFM and display in object inspector
+    nicely. }
+  FSceneManager.SetSubComponent(true);
+  FSceneManager.Name := 'SceneManager';
+  Controls.Add(SceneManager);
 end;
 
 initialization
