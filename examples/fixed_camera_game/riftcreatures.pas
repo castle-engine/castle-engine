@@ -546,7 +546,7 @@ constructor TPlayer.Create(AKind: TCreatureKind);
 
     Shape := TShapeNode.Create('', '');
     Shape.Material := TMaterialNode.Create('', '');
-    Shape.Material.FdDiffuseColor.Value := Red3Single;
+    Shape.Material.DiffuseColor := RedRGB;
     Shape.FdGeometry.Value := Sphere;
 
     Root := TX3DRootNode.Create('', '');
