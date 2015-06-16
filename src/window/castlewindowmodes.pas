@@ -209,8 +209,7 @@ type
         @item(TCastleWindowDemo.Close_charkey will be reset to #0.)
         @item(TCastleWindowDemo.FpsShowOnCaption will be reset to false.)
 
-        @item(Existing TCastleWindowCustom.Controls are set to non-existing.
-          That is, their TUIControl.Exists is adjusted.)
+        @item(All TCastleWindowCustom.Controls are temporarily removed.)
       )
 
       If you're looking for a suitable callback to pass as NewCloseQuery
