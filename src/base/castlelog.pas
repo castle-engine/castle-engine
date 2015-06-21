@@ -27,18 +27,44 @@ function Log: boolean;
 
 { Initialize logging.
 
-  If you leave ALogStream as @nil (default),
-  then we will prints log messages to StdOut, not to some external file.
-  This is most useful and common behavior on Unixes, where most programs
-  log to StdOut, and StdOut is always available.
-  It also removes any problems with users asking "where can I find
-  the log file?".
-  The downside is that Windows users
-  have to explicitly redirect StdOut of the GUI program to get the log,
-  i.e. run your program from command-line like "program.exe > log.txt".
-  Otherwise, GUI programs (with apptype GUI) do not have StdOut available
-  under Windows. }
-procedure InitializeLog(const ProgramVersion: string = 'Unknown';
+  @param(ProgramVersion The version of your application, as a string.
+    This is just an arbitrary string, that will be shown as "program version"
+    in the log output.
+
+    Leave empty if you don't want to use this.)
+
+  @param(ALogStream Where to generate the log.
+
+    If you leave ALogStream as @nil (default), the default log output
+    is determined as follows:
+
+    @unorderedList(
+      @item(On Unix and on console Windows applications,
+        the output goes to the standard output, StdOut.
+        This is most useful and common behavior on Unix, where most programs
+        log to StdOut, and StdOut is always available.
+
+        This approach avoids any questions from users asking "where can I find
+        the log file?". And it avoids technical questions like "should
+        we create a new log file with new number when old log file exists,
+        or just overwrite old file, or append to it?" or "which directory
+        is user-writeable". Since the user must explicitly redirect the output
+        to the file, (s)he knows where the log file is.
+
+        Note that on Android, we also automatically log to Android-specific
+        log facility (that you can browse using "adb logcat".)
+      )
+
+      @item(On Windows GUI applications, we create a file xxx.log
+        in the current directory. Where xxx is from @code(ApplicatioName).
+
+        GUI programs (with apptype GUI) do not have StdOut available
+        under Windows (at least not always).
+      )
+    )
+  )
+}
+procedure InitializeLog(const ProgramVersion: string = '';
   const ALogStream: TStream = nil);
 
 { Log message. Ignored when log is not initialized (@link(Log) is @false).
@@ -96,7 +122,7 @@ end;
 procedure InitializeLog(const ProgramVersion: string;
   const ALogStream: TStream);
 var
-  LogFileName: string;
+  FirstLine, LogFileName: string;
 begin
   if Log then Exit; { ignore 2nd call to InitializeLog }
 
@@ -128,9 +154,11 @@ begin
   end else
     LogStream := ALogStream;
 
-  WritelnStr(LogStream, 'Log for "' + ApplicationName +
-    '", version ' + ProgramVersion +
-    '. Started on ' + DateTimeToAtStr(Now) + '.');
+  FirstLine := 'Log for "' + ApplicationName + '".';
+  if ProgramVersion <> '' then
+    FirstLine += ' Version: ' + ProgramVersion + '.';
+  FirstLine += ' Started on ' + DateTimeToAtStr(Now) + '.';
+  WritelnStr(LogStream, FirstLine);
 
   { Set Log to true only once we succeded.
 
@@ -194,4 +222,3 @@ finalization
     FLog := false;
   end;
 end.
-
