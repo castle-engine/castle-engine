@@ -67,8 +67,8 @@ type
   texture usage. Also useful to detect texture memory leaks.
 
   Simply enable it (@code(TextureMemoryProfiler.Enabled := true)),
-  load your game, then query texture usage by @link(TTextureMemoryProfiler.UsageOverview),
-  e.g. show it by @code(WritelnLog('Textures', TextureMemoryProfiler.UsageOverview)).
+  load your game, then query texture usage by @link(TTextureMemoryProfiler.Summary),
+  e.g. show it by @code(WritelnLog('Textures', TextureMemoryProfiler.Summary)).
 }
 function TextureMemoryProfiler: TTextureMemoryProfiler;
 
