@@ -27,6 +27,19 @@ type
     tiCtlWalkDragRotate,
     tiCtlFlyCtlWalkDragRotate,
     tiCtlPanXYDragRotate);
+
+  { Full-featured window for rendering (see @link(TCastleWindow))
+    with optional touch controls, to provide a 3D navigation comfortable
+    on touch devices (phones, tablets and such).
+
+    In addition to all the goodies of the @link(TCastleWindow) functionality,
+    this class can additionally manage one or two TCastleTouchControl instances.
+    They will be automatically positioned in the bottom-left
+    and bottom-right corners of the screen,
+    and will allow the user to navigate using the default SceneManager.Camera.
+    In the simplest case, just set @link(AutomaticTouchInterface) to @true,
+    and the touch controls will automatically adjust to the current
+    navigation type of the camera (examine, walk, fly...). }
   TCastleWindowTouch = class(TCastleWindow)
   private
     FAutomaticTouchInterface: boolean;

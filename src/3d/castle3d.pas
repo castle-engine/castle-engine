@@ -1345,6 +1345,10 @@ type
       that is collisions with spheres (including camera radius) are not perfect
       in this case. For perfect results, keep your scale uniform.
 
+      Rotation is expressed as a 4D vector, in which the first 3 components
+      specify the rotation axis (does not need to be normalized, but must be non-zero),
+      and the last component is the rotation angle @italic(in radians).
+
       @groupBegin }
     property Center: TVector3Single read FCenter write SetCenter;
     property Rotation: TVector4Single read FRotation write SetRotation;
@@ -1850,7 +1854,13 @@ const
   and multiplies given Transform, TransformInverse appropriately.
   The precise meaning of Center, Translation and such parameters
   follows exactly the X3D Transform node definition (see
-  http://www.web3d.org/files/specifications/19775-1/V3.2/Part01/components/group.html#Transform ). }
+  http://www.web3d.org/files/specifications/19775-1/V3.2/Part01/components/group.html#Transform ).
+
+  @param(Rotation Rotation is expressed as a 4D vector,
+    in which the first 3 components
+    specify the rotation axis (does not need to be normalized, but must be non-zero),
+    and the last component is the rotation angle @italic(in radians).)
+}
 procedure TransformMatricesMult(var Transform, TransformInverse: TMatrix4Single;
   const Center: TVector3Single;
   const Rotation: TVector4Single;
