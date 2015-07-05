@@ -50,17 +50,17 @@ type
     or to center control within the container --- which is the most common usage.
 
     @unorderedList(
-      @item(If both are prLeft, then X specifies position
+      @item(If both are hpLeft, then X specifies position
         of left control border relative to left container border.
         X should be >= 0 if you want to see the control completely
         within the container.)
 
-      @item(If both are prMiddle, then X (most often just 0)
+      @item(If both are hpMiddle, then X (most often just 0)
         specifies the shift between container middle to
         control middle. If X is zero, then control is just in the
         middle of the container.)
 
-      @item(If both are prRight, then X specifies position
+      @item(If both are hpRight, then X specifies position
         of right control border relative to right container border.
         X should be <= 0 if you want to see the control completely
         within the container.)

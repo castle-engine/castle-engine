@@ -18,6 +18,8 @@
 {$ifdef read_interface}
 
 type
+  { OpenGL texture memory profiler. See @link(TextureMemoryProfiler)
+    for usage documentation. }
   TTextureMemoryProfiler = class
   private
   type
@@ -66,9 +68,46 @@ type
   where texture memory is limited and your application must really optimize
   texture usage. Also useful to detect texture memory leaks.
 
-  Simply enable it (@code(TextureMemoryProfiler.Enabled := true)),
-  load your game, then query texture usage by @link(TTextureMemoryProfiler.Summary),
-  e.g. show it by @code(WritelnLog('Textures', TextureMemoryProfiler.Summary)).
+  Enable it at the very beginning of the application
+  (for example in the main unit initialization clause), like this:
+
+  @longCode(#
+TextureMemoryProfiler.Enabled := true
+#)
+
+  Then at any point during the game you can query texture usage by
+  @link(TTextureMemoryProfiler.Summary) method.
+  For example dump it to the log like this:
+
+@longCode(#
+WritelnLog('Textures', TextureMemoryProfiler.Summary);
+#)
+
+  The resulting output lists the currently allocated textures,
+  in descending order of their size.
+  This tells you which textures are worth optimizing.
+  Maybe scale these textures down, maybe compress them,
+  maybe remove alpha channel or convert them to grayscale...
+
+  The profiler counts the @italic(real texture size on GPU),
+  knowing that some textures are resized to power of 2,
+  that textures may be compressed on GPU, that some textures have mipmaps
+  and so on. All kinds of textures (2D, 3D, cubemaps, float, depth etc.)
+  are covered. Every type is reported --- loaded from files,
+  generated (like by GeneratedCubeMapTexture), embedded in code
+  (by embedding images or fonts in code)... The textures loaded from disk
+  are described by URL, for other textures we invent special URLs like:
+
+  @unorderedList(
+    @itemSpacing compact
+    @item(@code(embedded-font:/CastleTextureFont_CanterBold_120))
+    @item(@code(embedded-image:/PanelSeparator))
+    @item(@code(generated:/GeneratedCubeMapTexture(GenTex2)))
+  )
+
+  You can also use the profiler from view3dscene, run it with
+  "--debug-texture-memory" command-line option, load your 3D model
+  and then use menu option "Console -> Print Texture Memory Usage".
 }
 function TextureMemoryProfiler: TTextureMemoryProfiler;
 
