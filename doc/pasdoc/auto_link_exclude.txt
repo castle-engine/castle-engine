@@ -59,6 +59,7 @@ convex
 coordinates
 count
 create
+current
 cursor
 curve
 customcursor
@@ -115,6 +116,7 @@ fields
 filename
 filenames
 fini
+finish
 first
 flags
 float
@@ -213,6 +215,7 @@ nurbs
 objects
 octrees
 offset
+outline
 opacity
 open
 openal
@@ -302,6 +305,7 @@ sound
 sounds
 spatial
 sphere
+start
 state
 static
 statistics
