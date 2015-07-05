@@ -1474,9 +1474,41 @@ const
 type
   TLoadImagePreprocessEvent = procedure (var ImageUrl: string);
 var
+
   { If assigned, all URLs loaded by LoadImage and LoadEncodedImage are processed
     by this event. This allows to globally modify / observe your images paths,
-    e.g. to use GPU compressed alternative versions. }
+    e.g. to use GPU compressed alternative versions.
+
+    @italic(An example:) To work on any GPU, you want to have various
+    versions of your textures (uncompressed, and also compressed with
+    various GPU algorithms) in your data.
+    Use this procedure to redirect all image loading to use your
+    compressed versions, when they are supported by the GPU:
+
+    @longCode(#
+uses ..., CastleURIUtils, CastleGLUtils, CastleLog, CastleStringUtils,
+  CastleFilesUtils, CastleWarnings;
+
+procedure GPUTextureAlternative(var ImageUrl: string);
+begin
+  if IsPrefix(ApplicationData('animation/dragon/'), ImageUrl) then
+  begin
+    if GLFeatures = nil then
+      OnWarning(wtMinor, 'GPUCompression', 'Cannot determine whether to use GPU compressed version for ' + ImageUrl + ' because the image is loaded before GPU capabilities are known') else
+    if tcPvrtc1_4bpp_RGBA in GLFeatures.TextureCompression then
+    begin
+      ImageUrl := ExtractURIPath(ImageUrl) + 'compressed/pvrtc1_4bpp_rgba/' +
+        ExtractURIName(ImageUrl) + '.dds';
+      WritelnLog('GPUCompression', 'Using compressed alternative ' + ImageUrl);
+    end;
+  end;
+end;
+
+initialization
+  LoadImagePreprocess := @GPUTextureAlternative;
+end.
+#)
+  }
   LoadImagePreprocess: TLoadImagePreprocessEvent;
 
 {$undef read_interface}
