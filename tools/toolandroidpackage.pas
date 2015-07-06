@@ -203,8 +203,8 @@ procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
     ProcessStatus: Integer;
   begin
     { try to find "android" tool in $ANDROID_HOME }
-    AndroidExe := InclPathDelim(GetEnvironmentVariable('ANDROID_HOME')) +
-      'tools' + PathDelim + 'android'  + ExeExtension;
+    AndroidExe := AddExeExtension(InclPathDelim(GetEnvironmentVariable('ANDROID_HOME')) +
+      'tools' + PathDelim + 'android');
     { try to find "android" tool on $PATH }
     if not FileExists(AndroidExe) then
       AndroidExe := FindExe('android');

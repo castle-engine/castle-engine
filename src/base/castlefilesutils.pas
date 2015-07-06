@@ -347,10 +347,18 @@ function CombinePaths(BasePath, RelPath: string): string; deprecated;
 Function PathFileSearch(Const Name : String; ImplicitCurrentDir : Boolean = True) : String;
 
 { Find program on $PATH. Automatically adds ExeExtension, so don't add it yourself.
+  On Windows, may also add alternative executable extensions (.com, .bat, .cmd).
   Searches in $PATH (and, if OS does this, in current directory --- this is standard
   on Windows but not on Unix).
   Returns '' (if not found) or absolute filename. }
 function FindExe(const ExeName: string): string;
+
+{ Add an exe file extension, searching for an existing file starting with ExePath.
+  On non-Windows, this is just equal to ExePath + ExeExtension,
+  which in practice is just equal to ExePath (since ExeExtension is empty on Unix).
+  But on Windows, this tries to append other extensions (.com, .bat, .cmd,
+  just like @link(FindExe)), depending on what file exists. }
+function AddExeExtension(const ExePath: string): string;
 
 { Get temporary filename, suitable for ApplicationName, checking that
   it doesn't exist. }
@@ -749,7 +757,37 @@ end;
 
 function FindExe(const ExeName: string): string;
 begin
-  Result := PathFileSearch(ExeName + ExeExtension, {$ifdef MSWINDOWS} true {$else} false {$endif});
+  {$ifdef MSWINDOWS}
+  { The default order of extensions is .com, .exe, .bat, .cmd,
+    see http://stackoverflow.com/questions/605101/order-in-which-command-prompt-executes-files-with-the-same-name-a-bat-vs-a-cmd }
+  Result := PathFileSearch(ExeName + '.com', true);
+  if Result = '' then
+    Result := PathFileSearch(ExeName + '.exe' { ExeExtension }, true);
+  if Result = '' then
+    Result := PathFileSearch(ExeName + '.bat', true);
+  if Result = '' then
+    Result := PathFileSearch(ExeName + '.cmd', true);
+  {$else}
+  Result := PathFileSearch(ExeName + ExeExtension, false);
+  {$endif}
+end;
+
+function AddExeExtension(const ExePath: string): string;
+begin
+  {$ifdef MSWINDOWS}
+  { The default order of extensions is .com, .exe, .bat, .cmd,
+    see http://stackoverflow.com/questions/605101/order-in-which-command-prompt-executes-files-with-the-same-name-a-bat-vs-a-cmd }
+  if FileExists(ExePath + '.com') then
+    Result := ExePath + '.com' else
+  if FileExists(ExePath + '.exe' { ExeExtension }) then
+    Result := ExePath + '.exe' { ExeExtension } else
+  if FileExists(ExePath + '.bat') then
+    Result := ExePath + '.bat' else
+  if FileExists(ExePath + '.cmd') then
+    Result := ExePath + '.cmd' else
+  {$else}
+    Result := ExePath + ExeExtension;
+  {$endif}
 end;
 
 procedure DoInitialization;
