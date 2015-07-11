@@ -20,8 +20,16 @@
     Implementation of TXMLConfig class
     Copyright (c) 1999 - 2005 by Sebastian Guenther, sg@freepascal.org
 
-    See the file COPYING.FPC, included in this distribution,
-    for details about the copyright.
+    This file is adapted from the FPC RTL source code, as such
+    the license and copyright information of FPC RTL applies here.
+    That said, the license of FPC RTL happens to be *exactly*
+    the same as used by the "Castle Game Engine": LGPL (version 2.1)
+    with "static linking exception" (with exactly the same wording
+    of the "static linking exception").
+    See the file COPYING.txt, included in this distribution, for details about
+    the copyright of "Castle Game Engine".
+    See http://www.freepascal.org/faq.var#general-license about the copyright
+    of FPC RTL.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
