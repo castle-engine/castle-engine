@@ -111,7 +111,7 @@ begin
   Brush := Brushes[BrushIndex];
   X := Round(Position[0]) - Brush.Width div 2;
   Y := Round(Position[1]) - Brush.Height div 2;
-  Brush.DrawTo(ImageControl.Image, X, Y);
+  Brush.DrawTo(ImageControl.Image, X, Y, dmAdd);
   ImageControl.ImageChanged;
 end;
 
