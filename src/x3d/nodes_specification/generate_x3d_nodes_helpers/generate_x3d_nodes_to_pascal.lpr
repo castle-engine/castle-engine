@@ -145,8 +145,7 @@ begin
              if FieldLooksLikeEnum(LineWithComment, Tokens) then
                Continue;
              X3DFieldName := Tokens[2];
-             if (X3DFieldName = 'ccw') or
-                (X3DFieldName = 'solid') or
+             if (X3DFieldName = 'solid') or
                 (X3DFieldName = 'repeatS') or
                 (X3DFieldName = 'repeatT')
                 // TODO: bboxCenter and bboxSize should also be removed from here someday,

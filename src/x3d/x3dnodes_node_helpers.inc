@@ -868,6 +868,8 @@ type
 
   TElevationGridNodeHelper = class helper for TElevationGridNode
   private
+    function GetCcw: boolean;
+    procedure SetCcw(const Value: boolean);
     function GetColorPerVertex: boolean;
     procedure SetColorPerVertex(const Value: boolean);
     function GetCreaseAngle: Single;
@@ -883,6 +885,7 @@ type
     function GetZSpacing: Single;
     procedure SetZSpacing(const Value: Single);
   public
+    property Ccw: boolean read GetCcw write SetCcw;
     property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
     property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
@@ -896,6 +899,8 @@ type
   private
     function GetBeginCap: boolean;
     procedure SetBeginCap(const Value: boolean);
+    function GetCcw: boolean;
+    procedure SetCcw(const Value: boolean);
     function GetConvex: boolean;
     procedure SetConvex(const Value: boolean);
     function GetCreaseAngle: Single;
@@ -904,6 +909,7 @@ type
     procedure SetEndCap(const Value: boolean);
   public
     property BeginCap: boolean read GetBeginCap write SetBeginCap;
+    property Ccw: boolean read GetCcw write SetCcw;
     property Convex: boolean read GetConvex write SetConvex;
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
     property EndCap: boolean read GetEndCap write SetEndCap;
@@ -932,6 +938,8 @@ type
   private
     function GetYScale: Single;
     procedure SetYScale(const Value: Single);
+    function GetCcw: boolean;
+    procedure SetCcw(const Value: boolean);
     function GetColorPerVertex: boolean;
     procedure SetColorPerVertex(const Value: boolean);
     function GetCreaseAngle: Double;
@@ -950,6 +958,7 @@ type
     procedure SetZSpacing(const Value: Double);
   public
     property YScale: Single read GetYScale write SetYScale;
+    property Ccw: boolean read GetCcw write SetCcw;
     property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
     property CreaseAngle: Double read GetCreaseAngle write SetCreaseAngle;
     property GeoGridOrigin: TVector3Double read GetGeoGridOrigin write SetGeoGridOrigin;
@@ -1349,6 +1358,143 @@ type
     property ProjectionAngle: Single read GetProjectionAngle write SetProjectionAngle;
   end;
 
+  TAbstractNurbsSurfaceGeometryNodeHelper = class helper for TAbstractNurbsSurfaceGeometryNode
+  private
+    function GetUTessellation: Integer;
+    procedure SetUTessellation(const Value: Integer);
+    function GetVTessellation: Integer;
+    procedure SetVTessellation(const Value: Integer);
+    function GetUClosed: boolean;
+    procedure SetUClosed(const Value: boolean);
+    function GetUDimension: Integer;
+    procedure SetUDimension(const Value: Integer);
+    function GetUOrder: Integer;
+    procedure SetUOrder(const Value: Integer);
+    function GetVClosed: boolean;
+    procedure SetVClosed(const Value: boolean);
+    function GetVDimension: Integer;
+    procedure SetVDimension(const Value: Integer);
+    function GetVOrder: Integer;
+    procedure SetVOrder(const Value: Integer);
+  public
+    property UTessellation: Integer read GetUTessellation write SetUTessellation;
+    property VTessellation: Integer read GetVTessellation write SetVTessellation;
+    property UClosed: boolean read GetUClosed write SetUClosed;
+    property UDimension: Integer read GetUDimension write SetUDimension;
+    property UOrder: Integer read GetUOrder write SetUOrder;
+    property VClosed: boolean read GetVClosed write SetVClosed;
+    property VDimension: Integer read GetVDimension write SetVDimension;
+    property VOrder: Integer read GetVOrder write SetVOrder;
+  end;
+
+  TNurbsCurveNodeHelper = class helper for TNurbsCurveNode
+  private
+    function GetTessellation: Integer;
+    procedure SetTessellation(const Value: Integer);
+    function GetClosed: boolean;
+    procedure SetClosed(const Value: boolean);
+    function GetOrder: Integer;
+    procedure SetOrder(const Value: Integer);
+  public
+    property Tessellation: Integer read GetTessellation write SetTessellation;
+    property Closed: boolean read GetClosed write SetClosed;
+    property Order: Integer read GetOrder write SetOrder;
+  end;
+
+  TNurbsCurve2DNodeHelper = class helper for TNurbsCurve2DNode
+  private
+    function GetTessellation: Integer;
+    procedure SetTessellation(const Value: Integer);
+    function GetClosed: boolean;
+    procedure SetClosed(const Value: boolean);
+    function GetOrder: Integer;
+    procedure SetOrder(const Value: Integer);
+  public
+    property Tessellation: Integer read GetTessellation write SetTessellation;
+    property Closed: boolean read GetClosed write SetClosed;
+    property Order: Integer read GetOrder write SetOrder;
+  end;
+
+  TNurbsOrientationInterpolatorNodeHelper = class helper for TNurbsOrientationInterpolatorNode
+  private
+    function GetOrder: Integer;
+    procedure SetOrder(const Value: Integer);
+  public
+    property Order: Integer read GetOrder write SetOrder;
+  end;
+
+  TNurbsPositionInterpolatorNodeHelper = class helper for TNurbsPositionInterpolatorNode
+  private
+    function GetOrder: Integer;
+    procedure SetOrder(const Value: Integer);
+  public
+    property Order: Integer read GetOrder write SetOrder;
+  end;
+
+  TNurbsSetNodeHelper = class helper for TNurbsSetNode
+  private
+    function GetTessellationScale: Single;
+    procedure SetTessellationScale(const Value: Single);
+    function GetBboxCenter: TVector3Single;
+    procedure SetBboxCenter(const Value: TVector3Single);
+    function GetBboxSize: TVector3Single;
+    procedure SetBboxSize(const Value: TVector3Single);
+  public
+    property TessellationScale: Single read GetTessellationScale write SetTessellationScale;
+    property BboxCenter: TVector3Single read GetBboxCenter write SetBboxCenter;
+    property BboxSize: TVector3Single read GetBboxSize write SetBboxSize;
+  end;
+
+  TNurbsSurfaceInterpolatorNodeHelper = class helper for TNurbsSurfaceInterpolatorNode
+  private
+    function GetUDimension: Integer;
+    procedure SetUDimension(const Value: Integer);
+    function GetUOrder: Integer;
+    procedure SetUOrder(const Value: Integer);
+    function GetVDimension: Integer;
+    procedure SetVDimension(const Value: Integer);
+    function GetVOrder: Integer;
+    procedure SetVOrder(const Value: Integer);
+  public
+    property UDimension: Integer read GetUDimension write SetUDimension;
+    property UOrder: Integer read GetUOrder write SetUOrder;
+    property VDimension: Integer read GetVDimension write SetVDimension;
+    property VOrder: Integer read GetVOrder write SetVOrder;
+  end;
+
+  TNurbsSweptSurfaceNodeHelper = class helper for TNurbsSweptSurfaceNode
+  private
+    function GetCcw: boolean;
+    procedure SetCcw(const Value: boolean);
+  public
+    property Ccw: boolean read GetCcw write SetCcw;
+  end;
+
+  TNurbsSwungSurfaceNodeHelper = class helper for TNurbsSwungSurfaceNode
+  private
+    function GetCcw: boolean;
+    procedure SetCcw(const Value: boolean);
+  public
+    property Ccw: boolean read GetCcw write SetCcw;
+  end;
+
+  TNurbsTextureCoordinateNodeHelper = class helper for TNurbsTextureCoordinateNode
+  private
+    function GetUDimension: Integer;
+    procedure SetUDimension(const Value: Integer);
+    function GetUOrder: Integer;
+    procedure SetUOrder(const Value: Integer);
+    function GetVDimension: Integer;
+    procedure SetVDimension(const Value: Integer);
+    function GetVOrder: Integer;
+    procedure SetVOrder(const Value: Integer);
+  public
+    property UDimension: Integer read GetUDimension write SetUDimension;
+    property UOrder: Integer read GetUOrder write SetUOrder;
+    property VDimension: Integer read GetVDimension write SetVDimension;
+    property VOrder: Integer read GetVOrder write SetVOrder;
+  end;
+
   TAbstractX3DViewpointNodeHelper = class helper for TAbstractX3DViewpointNode
   private
     function GetCenterOfRotation: TVector3Single;
@@ -1486,127 +1632,6 @@ type
     procedure SetTimeOut(const Value: TFloatTime);
   public
     property TimeOut: TFloatTime read GetTimeOut write SetTimeOut;
-  end;
-
-  TAbstractNurbsSurfaceGeometryNodeHelper = class helper for TAbstractNurbsSurfaceGeometryNode
-  private
-    function GetUTessellation: Integer;
-    procedure SetUTessellation(const Value: Integer);
-    function GetVTessellation: Integer;
-    procedure SetVTessellation(const Value: Integer);
-    function GetUClosed: boolean;
-    procedure SetUClosed(const Value: boolean);
-    function GetUDimension: Integer;
-    procedure SetUDimension(const Value: Integer);
-    function GetUOrder: Integer;
-    procedure SetUOrder(const Value: Integer);
-    function GetVClosed: boolean;
-    procedure SetVClosed(const Value: boolean);
-    function GetVDimension: Integer;
-    procedure SetVDimension(const Value: Integer);
-    function GetVOrder: Integer;
-    procedure SetVOrder(const Value: Integer);
-  public
-    property UTessellation: Integer read GetUTessellation write SetUTessellation;
-    property VTessellation: Integer read GetVTessellation write SetVTessellation;
-    property UClosed: boolean read GetUClosed write SetUClosed;
-    property UDimension: Integer read GetUDimension write SetUDimension;
-    property UOrder: Integer read GetUOrder write SetUOrder;
-    property VClosed: boolean read GetVClosed write SetVClosed;
-    property VDimension: Integer read GetVDimension write SetVDimension;
-    property VOrder: Integer read GetVOrder write SetVOrder;
-  end;
-
-  TNurbsCurveNodeHelper = class helper for TNurbsCurveNode
-  private
-    function GetTessellation: Integer;
-    procedure SetTessellation(const Value: Integer);
-    function GetClosed: boolean;
-    procedure SetClosed(const Value: boolean);
-    function GetOrder: Integer;
-    procedure SetOrder(const Value: Integer);
-  public
-    property Tessellation: Integer read GetTessellation write SetTessellation;
-    property Closed: boolean read GetClosed write SetClosed;
-    property Order: Integer read GetOrder write SetOrder;
-  end;
-
-  TNurbsCurve2DNodeHelper = class helper for TNurbsCurve2DNode
-  private
-    function GetTessellation: Integer;
-    procedure SetTessellation(const Value: Integer);
-    function GetClosed: boolean;
-    procedure SetClosed(const Value: boolean);
-    function GetOrder: Integer;
-    procedure SetOrder(const Value: Integer);
-  public
-    property Tessellation: Integer read GetTessellation write SetTessellation;
-    property Closed: boolean read GetClosed write SetClosed;
-    property Order: Integer read GetOrder write SetOrder;
-  end;
-
-  TNurbsOrientationInterpolatorNodeHelper = class helper for TNurbsOrientationInterpolatorNode
-  private
-    function GetOrder: Integer;
-    procedure SetOrder(const Value: Integer);
-  public
-    property Order: Integer read GetOrder write SetOrder;
-  end;
-
-  TNurbsPositionInterpolatorNodeHelper = class helper for TNurbsPositionInterpolatorNode
-  private
-    function GetOrder: Integer;
-    procedure SetOrder(const Value: Integer);
-  public
-    property Order: Integer read GetOrder write SetOrder;
-  end;
-
-  TNurbsSetNodeHelper = class helper for TNurbsSetNode
-  private
-    function GetTessellationScale: Single;
-    procedure SetTessellationScale(const Value: Single);
-    function GetBboxCenter: TVector3Single;
-    procedure SetBboxCenter(const Value: TVector3Single);
-    function GetBboxSize: TVector3Single;
-    procedure SetBboxSize(const Value: TVector3Single);
-  public
-    property TessellationScale: Single read GetTessellationScale write SetTessellationScale;
-    property BboxCenter: TVector3Single read GetBboxCenter write SetBboxCenter;
-    property BboxSize: TVector3Single read GetBboxSize write SetBboxSize;
-  end;
-
-  TNurbsSurfaceInterpolatorNodeHelper = class helper for TNurbsSurfaceInterpolatorNode
-  private
-    function GetUDimension: Integer;
-    procedure SetUDimension(const Value: Integer);
-    function GetUOrder: Integer;
-    procedure SetUOrder(const Value: Integer);
-    function GetVDimension: Integer;
-    procedure SetVDimension(const Value: Integer);
-    function GetVOrder: Integer;
-    procedure SetVOrder(const Value: Integer);
-  public
-    property UDimension: Integer read GetUDimension write SetUDimension;
-    property UOrder: Integer read GetUOrder write SetUOrder;
-    property VDimension: Integer read GetVDimension write SetVDimension;
-    property VOrder: Integer read GetVOrder write SetVOrder;
-  end;
-
-  TNurbsTextureCoordinateNodeHelper = class helper for TNurbsTextureCoordinateNode
-  private
-    function GetUDimension: Integer;
-    procedure SetUDimension(const Value: Integer);
-    function GetUOrder: Integer;
-    procedure SetUOrder(const Value: Integer);
-    function GetVDimension: Integer;
-    procedure SetVDimension(const Value: Integer);
-    function GetVOrder: Integer;
-    procedure SetVOrder(const Value: Integer);
-  public
-    property UDimension: Integer read GetUDimension write SetUDimension;
-    property UOrder: Integer read GetUOrder write SetUOrder;
-    property VDimension: Integer read GetVDimension write SetVDimension;
-    property VOrder: Integer read GetVOrder write SetVOrder;
   end;
 
   TAbstractParticleEmitterNodeHelper = class helper for TAbstractParticleEmitterNode
@@ -1797,11 +1822,14 @@ type
 
   TAbstractComposedGeometryNodeHelper = class helper for TAbstractComposedGeometryNode
   private
+    function GetCcw: boolean;
+    procedure SetCcw(const Value: boolean);
     function GetColorPerVertex: boolean;
     procedure SetColorPerVertex(const Value: boolean);
     function GetNormalPerVertex: boolean;
     procedure SetNormalPerVertex(const Value: boolean);
   public
+    property Ccw: boolean read GetCcw write SetCcw;
     property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
     property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
   end;
@@ -2433,31 +2461,6 @@ type
     property MaxExtent: Single read GetMaxExtent write SetMaxExtent;
   end;
 
-  TAbstractTexture3DNodeHelper = class helper for TAbstractTexture3DNode
-  private
-    function GetRepeatR: boolean;
-    procedure SetRepeatR(const Value: boolean);
-  public
-    property RepeatR: boolean read GetRepeatR write SetRepeatR;
-  end;
-
-  TTextureTransform3DNodeHelper = class helper for TTextureTransform3DNode
-  private
-    function GetCenter: TVector3Single;
-    procedure SetCenter(const Value: TVector3Single);
-    function GetRotation: TVector4Single;
-    procedure SetRotation(const Value: TVector4Single);
-    function GetScale: TVector3Single;
-    procedure SetScale(const Value: TVector3Single);
-    function GetTranslation: TVector3Single;
-    procedure SetTranslation(const Value: TVector3Single);
-  public
-    property Center: TVector3Single read GetCenter write SetCenter;
-    property Rotation: TVector4Single read GetRotation write SetRotation;
-    property Scale: TVector3Single read GetScale write SetScale;
-    property Translation: TVector3Single read GetTranslation write SetTranslation;
-  end;
-
   TMovieTextureNodeHelper = class helper for TMovieTextureNode
   private
     function GetDescription: string;
@@ -2556,6 +2559,31 @@ type
     property Rotation: Single read GetRotation write SetRotation;
     property Scale: TVector2Single read GetScale write SetScale;
     property Translation: TVector2Single read GetTranslation write SetTranslation;
+  end;
+
+  TAbstractTexture3DNodeHelper = class helper for TAbstractTexture3DNode
+  private
+    function GetRepeatR: boolean;
+    procedure SetRepeatR(const Value: boolean);
+  public
+    property RepeatR: boolean read GetRepeatR write SetRepeatR;
+  end;
+
+  TTextureTransform3DNodeHelper = class helper for TTextureTransform3DNode
+  private
+    function GetCenter: TVector3Single;
+    procedure SetCenter(const Value: TVector3Single);
+    function GetRotation: TVector4Single;
+    procedure SetRotation(const Value: TVector4Single);
+    function GetScale: TVector3Single;
+    procedure SetScale(const Value: TVector3Single);
+    function GetTranslation: TVector3Single;
+    procedure SetTranslation(const Value: TVector3Single);
+  public
+    property Center: TVector3Single read GetCenter write SetCenter;
+    property Rotation: TVector4Single read GetRotation write SetRotation;
+    property Scale: TVector3Single read GetScale write SetScale;
+    property Translation: TVector3Single read GetTranslation write SetTranslation;
   end;
 
   TAbstractTimeDependentNodeHelper = class helper for TAbstractTimeDependentNode
@@ -4931,6 +4959,16 @@ end;
 
 { TElevationGridNode ----------------------------------------------- }
 
+function TElevationGridNodeHelper.GetCcw: boolean;
+begin
+  Result := FdCcw.Value;
+end;
+
+procedure TElevationGridNodeHelper.SetCcw(const Value: boolean);
+begin
+  FdCcw.Send(Value);
+end;
+
 function TElevationGridNodeHelper.GetColorPerVertex: boolean;
 begin
   Result := FdColorPerVertex.Value;
@@ -5013,6 +5051,16 @@ begin
   FdBeginCap.Send(Value);
 end;
 
+function TExtrusionNodeHelper.GetCcw: boolean;
+begin
+  Result := FdCcw.Value;
+end;
+
+procedure TExtrusionNodeHelper.SetCcw(const Value: boolean);
+begin
+  FdCcw.Send(Value);
+end;
+
 function TExtrusionNodeHelper.GetConvex: boolean;
 begin
   Result := FdConvex.Value;
@@ -5087,6 +5135,16 @@ end;
 procedure TGeoElevationGridNodeHelper.SetYScale(const Value: Single);
 begin
   FdYScale.Send(Value);
+end;
+
+function TGeoElevationGridNodeHelper.GetCcw: boolean;
+begin
+  Result := FdCcw.Value;
+end;
+
+procedure TGeoElevationGridNodeHelper.SetCcw(const Value: boolean);
+begin
+  FdCcw.Send(Value);
 end;
 
 function TGeoElevationGridNodeHelper.GetColorPerVertex: boolean;
@@ -6099,6 +6157,316 @@ begin
   FdProjectionAngle.Send(Value);
 end;
 
+{ TAbstractNurbsSurfaceGeometryNode ----------------------------------------------- }
+
+function TAbstractNurbsSurfaceGeometryNodeHelper.GetUTessellation: Integer;
+begin
+  Result := FdUTessellation.Value;
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetUTessellation(const Value: Integer);
+begin
+  FdUTessellation.Send(Value);
+end;
+
+function TAbstractNurbsSurfaceGeometryNodeHelper.GetVTessellation: Integer;
+begin
+  Result := FdVTessellation.Value;
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetVTessellation(const Value: Integer);
+begin
+  FdVTessellation.Send(Value);
+end;
+
+function TAbstractNurbsSurfaceGeometryNodeHelper.GetUClosed: boolean;
+begin
+  Result := FdUClosed.Value;
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetUClosed(const Value: boolean);
+begin
+  FdUClosed.Send(Value);
+end;
+
+function TAbstractNurbsSurfaceGeometryNodeHelper.GetUDimension: Integer;
+begin
+  Result := FdUDimension.Value;
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetUDimension(const Value: Integer);
+begin
+  FdUDimension.Send(Value);
+end;
+
+function TAbstractNurbsSurfaceGeometryNodeHelper.GetUOrder: Integer;
+begin
+  Result := FdUOrder.Value;
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetUOrder(const Value: Integer);
+begin
+  FdUOrder.Send(Value);
+end;
+
+function TAbstractNurbsSurfaceGeometryNodeHelper.GetVClosed: boolean;
+begin
+  Result := FdVClosed.Value;
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetVClosed(const Value: boolean);
+begin
+  FdVClosed.Send(Value);
+end;
+
+function TAbstractNurbsSurfaceGeometryNodeHelper.GetVDimension: Integer;
+begin
+  Result := FdVDimension.Value;
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetVDimension(const Value: Integer);
+begin
+  FdVDimension.Send(Value);
+end;
+
+function TAbstractNurbsSurfaceGeometryNodeHelper.GetVOrder: Integer;
+begin
+  Result := FdVOrder.Value;
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetVOrder(const Value: Integer);
+begin
+  FdVOrder.Send(Value);
+end;
+
+{ TNurbsCurveNode ----------------------------------------------- }
+
+function TNurbsCurveNodeHelper.GetTessellation: Integer;
+begin
+  Result := FdTessellation.Value;
+end;
+
+procedure TNurbsCurveNodeHelper.SetTessellation(const Value: Integer);
+begin
+  FdTessellation.Send(Value);
+end;
+
+function TNurbsCurveNodeHelper.GetClosed: boolean;
+begin
+  Result := FdClosed.Value;
+end;
+
+procedure TNurbsCurveNodeHelper.SetClosed(const Value: boolean);
+begin
+  FdClosed.Send(Value);
+end;
+
+function TNurbsCurveNodeHelper.GetOrder: Integer;
+begin
+  Result := FdOrder.Value;
+end;
+
+procedure TNurbsCurveNodeHelper.SetOrder(const Value: Integer);
+begin
+  FdOrder.Send(Value);
+end;
+
+{ TNurbsCurve2DNode ----------------------------------------------- }
+
+function TNurbsCurve2DNodeHelper.GetTessellation: Integer;
+begin
+  Result := FdTessellation.Value;
+end;
+
+procedure TNurbsCurve2DNodeHelper.SetTessellation(const Value: Integer);
+begin
+  FdTessellation.Send(Value);
+end;
+
+function TNurbsCurve2DNodeHelper.GetClosed: boolean;
+begin
+  Result := FdClosed.Value;
+end;
+
+procedure TNurbsCurve2DNodeHelper.SetClosed(const Value: boolean);
+begin
+  FdClosed.Send(Value);
+end;
+
+function TNurbsCurve2DNodeHelper.GetOrder: Integer;
+begin
+  Result := FdOrder.Value;
+end;
+
+procedure TNurbsCurve2DNodeHelper.SetOrder(const Value: Integer);
+begin
+  FdOrder.Send(Value);
+end;
+
+{ TNurbsOrientationInterpolatorNode ----------------------------------------------- }
+
+function TNurbsOrientationInterpolatorNodeHelper.GetOrder: Integer;
+begin
+  Result := FdOrder.Value;
+end;
+
+procedure TNurbsOrientationInterpolatorNodeHelper.SetOrder(const Value: Integer);
+begin
+  FdOrder.Send(Value);
+end;
+
+{ TNurbsPositionInterpolatorNode ----------------------------------------------- }
+
+function TNurbsPositionInterpolatorNodeHelper.GetOrder: Integer;
+begin
+  Result := FdOrder.Value;
+end;
+
+procedure TNurbsPositionInterpolatorNodeHelper.SetOrder(const Value: Integer);
+begin
+  FdOrder.Send(Value);
+end;
+
+{ TNurbsSetNode ----------------------------------------------- }
+
+function TNurbsSetNodeHelper.GetTessellationScale: Single;
+begin
+  Result := FdTessellationScale.Value;
+end;
+
+procedure TNurbsSetNodeHelper.SetTessellationScale(const Value: Single);
+begin
+  FdTessellationScale.Send(Value);
+end;
+
+function TNurbsSetNodeHelper.GetBboxCenter: TVector3Single;
+begin
+  Result := FdBboxCenter.Value;
+end;
+
+procedure TNurbsSetNodeHelper.SetBboxCenter(const Value: TVector3Single);
+begin
+  FdBboxCenter.Send(Value);
+end;
+
+function TNurbsSetNodeHelper.GetBboxSize: TVector3Single;
+begin
+  Result := FdBboxSize.Value;
+end;
+
+procedure TNurbsSetNodeHelper.SetBboxSize(const Value: TVector3Single);
+begin
+  FdBboxSize.Send(Value);
+end;
+
+{ TNurbsSurfaceInterpolatorNode ----------------------------------------------- }
+
+function TNurbsSurfaceInterpolatorNodeHelper.GetUDimension: Integer;
+begin
+  Result := FdUDimension.Value;
+end;
+
+procedure TNurbsSurfaceInterpolatorNodeHelper.SetUDimension(const Value: Integer);
+begin
+  FdUDimension.Send(Value);
+end;
+
+function TNurbsSurfaceInterpolatorNodeHelper.GetUOrder: Integer;
+begin
+  Result := FdUOrder.Value;
+end;
+
+procedure TNurbsSurfaceInterpolatorNodeHelper.SetUOrder(const Value: Integer);
+begin
+  FdUOrder.Send(Value);
+end;
+
+function TNurbsSurfaceInterpolatorNodeHelper.GetVDimension: Integer;
+begin
+  Result := FdVDimension.Value;
+end;
+
+procedure TNurbsSurfaceInterpolatorNodeHelper.SetVDimension(const Value: Integer);
+begin
+  FdVDimension.Send(Value);
+end;
+
+function TNurbsSurfaceInterpolatorNodeHelper.GetVOrder: Integer;
+begin
+  Result := FdVOrder.Value;
+end;
+
+procedure TNurbsSurfaceInterpolatorNodeHelper.SetVOrder(const Value: Integer);
+begin
+  FdVOrder.Send(Value);
+end;
+
+{ TNurbsSweptSurfaceNode ----------------------------------------------- }
+
+function TNurbsSweptSurfaceNodeHelper.GetCcw: boolean;
+begin
+  Result := FdCcw.Value;
+end;
+
+procedure TNurbsSweptSurfaceNodeHelper.SetCcw(const Value: boolean);
+begin
+  FdCcw.Send(Value);
+end;
+
+{ TNurbsSwungSurfaceNode ----------------------------------------------- }
+
+function TNurbsSwungSurfaceNodeHelper.GetCcw: boolean;
+begin
+  Result := FdCcw.Value;
+end;
+
+procedure TNurbsSwungSurfaceNodeHelper.SetCcw(const Value: boolean);
+begin
+  FdCcw.Send(Value);
+end;
+
+{ TNurbsTextureCoordinateNode ----------------------------------------------- }
+
+function TNurbsTextureCoordinateNodeHelper.GetUDimension: Integer;
+begin
+  Result := FdUDimension.Value;
+end;
+
+procedure TNurbsTextureCoordinateNodeHelper.SetUDimension(const Value: Integer);
+begin
+  FdUDimension.Send(Value);
+end;
+
+function TNurbsTextureCoordinateNodeHelper.GetUOrder: Integer;
+begin
+  Result := FdUOrder.Value;
+end;
+
+procedure TNurbsTextureCoordinateNodeHelper.SetUOrder(const Value: Integer);
+begin
+  FdUOrder.Send(Value);
+end;
+
+function TNurbsTextureCoordinateNodeHelper.GetVDimension: Integer;
+begin
+  Result := FdVDimension.Value;
+end;
+
+procedure TNurbsTextureCoordinateNodeHelper.SetVDimension(const Value: Integer);
+begin
+  FdVDimension.Send(Value);
+end;
+
+function TNurbsTextureCoordinateNodeHelper.GetVOrder: Integer;
+begin
+  Result := FdVOrder.Value;
+end;
+
+procedure TNurbsTextureCoordinateNodeHelper.SetVOrder(const Value: Integer);
+begin
+  FdVOrder.Send(Value);
+end;
+
 { TAbstractX3DViewpointNode ----------------------------------------------- }
 
 function TAbstractX3DViewpointNodeHelper.GetCenterOfRotation: TVector3Single;
@@ -6399,292 +6767,6 @@ end;
 procedure TLoadSensorNodeHelper.SetTimeOut(const Value: TFloatTime);
 begin
   FdTimeOut.Send(Value);
-end;
-
-{ TAbstractNurbsSurfaceGeometryNode ----------------------------------------------- }
-
-function TAbstractNurbsSurfaceGeometryNodeHelper.GetUTessellation: Integer;
-begin
-  Result := FdUTessellation.Value;
-end;
-
-procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetUTessellation(const Value: Integer);
-begin
-  FdUTessellation.Send(Value);
-end;
-
-function TAbstractNurbsSurfaceGeometryNodeHelper.GetVTessellation: Integer;
-begin
-  Result := FdVTessellation.Value;
-end;
-
-procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetVTessellation(const Value: Integer);
-begin
-  FdVTessellation.Send(Value);
-end;
-
-function TAbstractNurbsSurfaceGeometryNodeHelper.GetUClosed: boolean;
-begin
-  Result := FdUClosed.Value;
-end;
-
-procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetUClosed(const Value: boolean);
-begin
-  FdUClosed.Send(Value);
-end;
-
-function TAbstractNurbsSurfaceGeometryNodeHelper.GetUDimension: Integer;
-begin
-  Result := FdUDimension.Value;
-end;
-
-procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetUDimension(const Value: Integer);
-begin
-  FdUDimension.Send(Value);
-end;
-
-function TAbstractNurbsSurfaceGeometryNodeHelper.GetUOrder: Integer;
-begin
-  Result := FdUOrder.Value;
-end;
-
-procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetUOrder(const Value: Integer);
-begin
-  FdUOrder.Send(Value);
-end;
-
-function TAbstractNurbsSurfaceGeometryNodeHelper.GetVClosed: boolean;
-begin
-  Result := FdVClosed.Value;
-end;
-
-procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetVClosed(const Value: boolean);
-begin
-  FdVClosed.Send(Value);
-end;
-
-function TAbstractNurbsSurfaceGeometryNodeHelper.GetVDimension: Integer;
-begin
-  Result := FdVDimension.Value;
-end;
-
-procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetVDimension(const Value: Integer);
-begin
-  FdVDimension.Send(Value);
-end;
-
-function TAbstractNurbsSurfaceGeometryNodeHelper.GetVOrder: Integer;
-begin
-  Result := FdVOrder.Value;
-end;
-
-procedure TAbstractNurbsSurfaceGeometryNodeHelper.SetVOrder(const Value: Integer);
-begin
-  FdVOrder.Send(Value);
-end;
-
-{ TNurbsCurveNode ----------------------------------------------- }
-
-function TNurbsCurveNodeHelper.GetTessellation: Integer;
-begin
-  Result := FdTessellation.Value;
-end;
-
-procedure TNurbsCurveNodeHelper.SetTessellation(const Value: Integer);
-begin
-  FdTessellation.Send(Value);
-end;
-
-function TNurbsCurveNodeHelper.GetClosed: boolean;
-begin
-  Result := FdClosed.Value;
-end;
-
-procedure TNurbsCurveNodeHelper.SetClosed(const Value: boolean);
-begin
-  FdClosed.Send(Value);
-end;
-
-function TNurbsCurveNodeHelper.GetOrder: Integer;
-begin
-  Result := FdOrder.Value;
-end;
-
-procedure TNurbsCurveNodeHelper.SetOrder(const Value: Integer);
-begin
-  FdOrder.Send(Value);
-end;
-
-{ TNurbsCurve2DNode ----------------------------------------------- }
-
-function TNurbsCurve2DNodeHelper.GetTessellation: Integer;
-begin
-  Result := FdTessellation.Value;
-end;
-
-procedure TNurbsCurve2DNodeHelper.SetTessellation(const Value: Integer);
-begin
-  FdTessellation.Send(Value);
-end;
-
-function TNurbsCurve2DNodeHelper.GetClosed: boolean;
-begin
-  Result := FdClosed.Value;
-end;
-
-procedure TNurbsCurve2DNodeHelper.SetClosed(const Value: boolean);
-begin
-  FdClosed.Send(Value);
-end;
-
-function TNurbsCurve2DNodeHelper.GetOrder: Integer;
-begin
-  Result := FdOrder.Value;
-end;
-
-procedure TNurbsCurve2DNodeHelper.SetOrder(const Value: Integer);
-begin
-  FdOrder.Send(Value);
-end;
-
-{ TNurbsOrientationInterpolatorNode ----------------------------------------------- }
-
-function TNurbsOrientationInterpolatorNodeHelper.GetOrder: Integer;
-begin
-  Result := FdOrder.Value;
-end;
-
-procedure TNurbsOrientationInterpolatorNodeHelper.SetOrder(const Value: Integer);
-begin
-  FdOrder.Send(Value);
-end;
-
-{ TNurbsPositionInterpolatorNode ----------------------------------------------- }
-
-function TNurbsPositionInterpolatorNodeHelper.GetOrder: Integer;
-begin
-  Result := FdOrder.Value;
-end;
-
-procedure TNurbsPositionInterpolatorNodeHelper.SetOrder(const Value: Integer);
-begin
-  FdOrder.Send(Value);
-end;
-
-{ TNurbsSetNode ----------------------------------------------- }
-
-function TNurbsSetNodeHelper.GetTessellationScale: Single;
-begin
-  Result := FdTessellationScale.Value;
-end;
-
-procedure TNurbsSetNodeHelper.SetTessellationScale(const Value: Single);
-begin
-  FdTessellationScale.Send(Value);
-end;
-
-function TNurbsSetNodeHelper.GetBboxCenter: TVector3Single;
-begin
-  Result := FdBboxCenter.Value;
-end;
-
-procedure TNurbsSetNodeHelper.SetBboxCenter(const Value: TVector3Single);
-begin
-  FdBboxCenter.Send(Value);
-end;
-
-function TNurbsSetNodeHelper.GetBboxSize: TVector3Single;
-begin
-  Result := FdBboxSize.Value;
-end;
-
-procedure TNurbsSetNodeHelper.SetBboxSize(const Value: TVector3Single);
-begin
-  FdBboxSize.Send(Value);
-end;
-
-{ TNurbsSurfaceInterpolatorNode ----------------------------------------------- }
-
-function TNurbsSurfaceInterpolatorNodeHelper.GetUDimension: Integer;
-begin
-  Result := FdUDimension.Value;
-end;
-
-procedure TNurbsSurfaceInterpolatorNodeHelper.SetUDimension(const Value: Integer);
-begin
-  FdUDimension.Send(Value);
-end;
-
-function TNurbsSurfaceInterpolatorNodeHelper.GetUOrder: Integer;
-begin
-  Result := FdUOrder.Value;
-end;
-
-procedure TNurbsSurfaceInterpolatorNodeHelper.SetUOrder(const Value: Integer);
-begin
-  FdUOrder.Send(Value);
-end;
-
-function TNurbsSurfaceInterpolatorNodeHelper.GetVDimension: Integer;
-begin
-  Result := FdVDimension.Value;
-end;
-
-procedure TNurbsSurfaceInterpolatorNodeHelper.SetVDimension(const Value: Integer);
-begin
-  FdVDimension.Send(Value);
-end;
-
-function TNurbsSurfaceInterpolatorNodeHelper.GetVOrder: Integer;
-begin
-  Result := FdVOrder.Value;
-end;
-
-procedure TNurbsSurfaceInterpolatorNodeHelper.SetVOrder(const Value: Integer);
-begin
-  FdVOrder.Send(Value);
-end;
-
-{ TNurbsTextureCoordinateNode ----------------------------------------------- }
-
-function TNurbsTextureCoordinateNodeHelper.GetUDimension: Integer;
-begin
-  Result := FdUDimension.Value;
-end;
-
-procedure TNurbsTextureCoordinateNodeHelper.SetUDimension(const Value: Integer);
-begin
-  FdUDimension.Send(Value);
-end;
-
-function TNurbsTextureCoordinateNodeHelper.GetUOrder: Integer;
-begin
-  Result := FdUOrder.Value;
-end;
-
-procedure TNurbsTextureCoordinateNodeHelper.SetUOrder(const Value: Integer);
-begin
-  FdUOrder.Send(Value);
-end;
-
-function TNurbsTextureCoordinateNodeHelper.GetVDimension: Integer;
-begin
-  Result := FdVDimension.Value;
-end;
-
-procedure TNurbsTextureCoordinateNodeHelper.SetVDimension(const Value: Integer);
-begin
-  FdVDimension.Send(Value);
-end;
-
-function TNurbsTextureCoordinateNodeHelper.GetVOrder: Integer;
-begin
-  Result := FdVOrder.Value;
-end;
-
-procedure TNurbsTextureCoordinateNodeHelper.SetVOrder(const Value: Integer);
-begin
-  FdVOrder.Send(Value);
 end;
 
 { TAbstractParticleEmitterNode ----------------------------------------------- }
@@ -7088,6 +7170,16 @@ begin
 end;
 
 { TAbstractComposedGeometryNode ----------------------------------------------- }
+
+function TAbstractComposedGeometryNodeHelper.GetCcw: boolean;
+begin
+  Result := FdCcw.Value;
+end;
+
+procedure TAbstractComposedGeometryNodeHelper.SetCcw(const Value: boolean);
+begin
+  FdCcw.Send(Value);
+end;
 
 function TAbstractComposedGeometryNodeHelper.GetColorPerVertex: boolean;
 begin
@@ -8803,60 +8895,6 @@ begin
   FdMaxExtent.Send(Value);
 end;
 
-{ TAbstractTexture3DNode ----------------------------------------------- }
-
-function TAbstractTexture3DNodeHelper.GetRepeatR: boolean;
-begin
-  Result := FdRepeatR.Value;
-end;
-
-procedure TAbstractTexture3DNodeHelper.SetRepeatR(const Value: boolean);
-begin
-  FdRepeatR.Send(Value);
-end;
-
-{ TTextureTransform3DNode ----------------------------------------------- }
-
-function TTextureTransform3DNodeHelper.GetCenter: TVector3Single;
-begin
-  Result := FdCenter.Value;
-end;
-
-procedure TTextureTransform3DNodeHelper.SetCenter(const Value: TVector3Single);
-begin
-  FdCenter.Send(Value);
-end;
-
-function TTextureTransform3DNodeHelper.GetRotation: TVector4Single;
-begin
-  Result := FdRotation.Value;
-end;
-
-procedure TTextureTransform3DNodeHelper.SetRotation(const Value: TVector4Single);
-begin
-  FdRotation.Send(Value);
-end;
-
-function TTextureTransform3DNodeHelper.GetScale: TVector3Single;
-begin
-  Result := FdScale.Value;
-end;
-
-procedure TTextureTransform3DNodeHelper.SetScale(const Value: TVector3Single);
-begin
-  FdScale.Send(Value);
-end;
-
-function TTextureTransform3DNodeHelper.GetTranslation: TVector3Single;
-begin
-  Result := FdTranslation.Value;
-end;
-
-procedure TTextureTransform3DNodeHelper.SetTranslation(const Value: TVector3Single);
-begin
-  FdTranslation.Send(Value);
-end;
-
 { TMovieTextureNode ----------------------------------------------- }
 
 function TMovieTextureNodeHelper.GetDescription: string;
@@ -9113,6 +9151,60 @@ begin
 end;
 
 procedure TTextureTransformNodeHelper.SetTranslation(const Value: TVector2Single);
+begin
+  FdTranslation.Send(Value);
+end;
+
+{ TAbstractTexture3DNode ----------------------------------------------- }
+
+function TAbstractTexture3DNodeHelper.GetRepeatR: boolean;
+begin
+  Result := FdRepeatR.Value;
+end;
+
+procedure TAbstractTexture3DNodeHelper.SetRepeatR(const Value: boolean);
+begin
+  FdRepeatR.Send(Value);
+end;
+
+{ TTextureTransform3DNode ----------------------------------------------- }
+
+function TTextureTransform3DNodeHelper.GetCenter: TVector3Single;
+begin
+  Result := FdCenter.Value;
+end;
+
+procedure TTextureTransform3DNodeHelper.SetCenter(const Value: TVector3Single);
+begin
+  FdCenter.Send(Value);
+end;
+
+function TTextureTransform3DNodeHelper.GetRotation: TVector4Single;
+begin
+  Result := FdRotation.Value;
+end;
+
+procedure TTextureTransform3DNodeHelper.SetRotation(const Value: TVector4Single);
+begin
+  FdRotation.Send(Value);
+end;
+
+function TTextureTransform3DNodeHelper.GetScale: TVector3Single;
+begin
+  Result := FdScale.Value;
+end;
+
+procedure TTextureTransform3DNodeHelper.SetScale(const Value: TVector3Single);
+begin
+  FdScale.Send(Value);
+end;
+
+function TTextureTransform3DNodeHelper.GetTranslation: TVector3Single;
+begin
+  Result := FdTranslation.Value;
+end;
+
+procedure TTextureTransform3DNodeHelper.SetTranslation(const Value: TVector3Single);
 begin
   FdTranslation.Send(Value);
 end;
