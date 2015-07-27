@@ -3,6 +3,7 @@
 # [https://pasdoc.svn.sourceforge.net/svnroot/pasdoc/trunk/source/tools/file_to_pascal_string.dpr]
 
 ALL_TARGETS := \
+  windows/plugin-automatic-windows-resources.rc.inc \
   windows/automatic-windows-resources.rc.inc \
   windows/automatic-windows.manifest.inc \
   android/AndroidManifest.xml.inc \

@@ -99,11 +99,6 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
   {$ifdef CASTLE_WINDOW_XLIB}    var event: TXEvent;  {$endif}
 
   procedure HandleEvent;
-  {$ifdef CASTLE_WINDOW_XLIB}
-  var
-    Window: TCastleWindowCustom;
-    evtype: longint;
-  {$endif}
   begin
     WasAnyMessage := true;
 
@@ -117,34 +112,7 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
     {$endif}
 
     {$ifdef CASTLE_WINDOW_XLIB}
-    evtype := event._type;
-    case evtype of
-      MappingNotify: XRefreshKeyboardMapping(@event);
-      else
-      begin
-        { Events for a particular window.
-          We check is the window present on Application.OpenWindows,
-          finding window instance based on windowXID }
-        Window := Application.FindWindowXID(event.xany.window);
-        if Window <> nil then
-          case evtype of
-            Expose: { XExposeEvent }
-               if event.xexpose.count = 0 then Window.Invalidate;
-            (*MapNotify: needRedisplay := true; { XMapEvent } <- unused *)
-            KeyPress: Window.X_KeyPress(event.xkey);  { XKeyEvent }
-            KeyRelease: Window.X_KeyRelease(event.xkey);
-            ButtonPress: Window.X_ButtonPress(event.xbutton); { XButtonPressEvent }
-            ButtonRelease: Window.X_ButtonRelease(event.xbutton); { XButtonReleaseEvent }
-            MotionNotify: Window.X_MotionNotify(event.xmotion); { XPointerMovedEvent }
-            ConfigureNotify: Window.X_ConfigureNotify(event.xconfigure); { XConfigureEvent }
-            ClientMessage : { XClientMessageEvent - no corresponding XXxxEvent mask }
-              if (event.xclient.data.l[0] = Integer(wmDeleteWindow)) then
-               Window.DoCloseQuery;
-            ReparentNotify : Window.parentwinXID := event.xreparent.parent;
-            FocusOut: Window.X_FocusOut(event.xfocus);
-          end;
-      end;
-    end;
+    HandleXEvent(event);
     {$endif}
   end;
 

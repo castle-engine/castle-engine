@@ -356,10 +356,14 @@ unit CastleWindow;
              { $define CASTLE_WINDOW_LIBRARY}
              { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
            {$else}
-             {$ifndef OpenGLES}
-               {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional) on Unix (except Mac OS X)
+             {$ifdef CASTLE_ENGINE_PLUGIN}
+               {$define CASTLE_WINDOW_XLIB} // on Unix plugin, use Xlib, no need for GTK
              {$else}
-               {$define CASTLE_WINDOW_XLIB}
+               {$ifndef OpenGLES}
+                 {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional) on Unix (except Mac OS X)
+               {$else}
+                 {$define CASTLE_WINDOW_XLIB}
+               {$endif}
              {$endif}
              { $define CASTLE_WINDOW_XLIB}
              { $define CASTLE_WINDOW_LCL}
@@ -570,6 +574,33 @@ type
 
   EGLContextNotPossible = class(Exception);
 
+  TCaptionPart = (cpPublic, cpFps);
+
+  { Non-abstact implementation of TGLContainer that cooperates with
+    TCastleWindowCustom. }
+  TWindowContainer = class(TGLContainer)
+  private
+    Parent: TCastleWindowCustom;
+  public
+    constructor Create(AParent: TCastleWindowCustom); reintroduce;
+
+    procedure Invalidate; override;
+    function GLInitialized: boolean; override;
+    function Width: Integer; override;
+    function Height: Integer; override;
+    function Rect: TRectangle; override;
+    function GetMousePosition: TVector2Single; override;
+    procedure SetMousePosition(const Value: TVector2Single); override;
+    function Dpi: Integer; override;
+    function MousePressed: TMouseButtons; override;
+    function Focused: boolean; override;
+    function Pressed: TKeysPressed; override;
+    function Fps: TFramesPerSecond; override;
+    procedure SetCursor(const Value: TMouseCursor); override;
+    function GetTouches(const Index: Integer): TTouch; override;
+    function TouchesCount: Integer; override;
+  end;
+
   {$define read_interface_types}
   {$I castlewindow_backend.inc}
   {$undef read_interface_types}
@@ -588,34 +619,12 @@ type
   {$I castlewindow_backend.inc}
   {$undef read_window_interface}
 
+  protected
+    { Create a container class for this window.
+      Override this to use a custom container class, e.g. to override
+      some container methods. }
+    function CreateContainer: TWindowContainer; virtual;
   private
-    type
-      TCaptionPart = (cpPublic, cpFps);
-
-      { Non-abstact implementation of TUIContainer that cooperates with
-        TCastleWindowCustom. }
-      TContainer = class(TGLContainer)
-      private
-        Parent: TCastleWindowCustom;
-      public
-        constructor Create(AParent: TCastleWindowCustom); reintroduce;
-
-        procedure Invalidate; override;
-        function GLInitialized: boolean; override;
-        function Width: Integer; override;
-        function Height: Integer; override;
-        function Rect: TRectangle; override;
-        function GetMousePosition: TVector2Single; override;
-        procedure SetMousePosition(const Value: TVector2Single); override;
-        function Dpi: Integer; override;
-        function MousePressed: TMouseButtons; override;
-        function Focused: boolean; override;
-        function Pressed: TKeysPressed; override;
-        function Fps: TFramesPerSecond; override;
-        procedure SetCursor(const Value: TMouseCursor); override;
-        function GetTouches(const Index: Integer): TTouch; override;
-        function TouchesCount: Integer; override;
-      end;
     var
     FWidth, FHeight, FLeft, FTop: Integer;
     FOnCloseQuery: TContainerEvent;
@@ -666,10 +675,11 @@ type
     FMaxWidth: Integer;
     FMaxHeight: Integer;
     FDpi: Integer;
-    FContainer: TContainer;
+    FContainer: TWindowContainer;
     FCursor: TMouseCursor;
     FCustomCursor: TRGBAlphaImage;
     FTouches: TTouchList;
+    FNamedParameters: TCastleStringList;
     function GetColorBits: Cardinal;
     procedure SetColorBits(const Value: Cardinal);
     procedure SetAntiAliasing(const Value: TAntiAliasing);
@@ -901,6 +911,7 @@ type
       - checking MainMenu.Enabled
     }
 
+  public
     { DoResize with FirstResizeAfterOpen = true is called only once
       (and exactly once) from TCastleWindowCustom.Open implementation.
       So all CastleWindow-backend code should always
@@ -930,12 +941,14 @@ type
       it's not needed, i.e. WinAPI, Xlib, and GTK all take care of this
       automatically). }
     procedure DoResize(AWidth, AHeight: integer; FirstResizeAfterOpen: boolean);
+  private
     { Wywoluj kiedy user kliknie na przycisku "Zamknij" itp.
       Wywola OnCloseQuery i ew. Close (and Close will execute OnClose,
       CloseBackend etc.). Note that there is no DoClose method and there
       should not be such method : always use DoCloseQuery. }
     procedure DoCloseQuery;
 
+  public
     { Do MakeCurrent,
          EventBeforeRender,
          EventRender (inside Fps._RenderBegin/End)
@@ -948,6 +961,7 @@ type
         So specific CastleWindow backends need not to worry about
         AutoRedisplay. They only have to call this when Invalidated = @true. }
     procedure DoRender;
+  private
 
     { DoKeyDown/Up: pass here key that is pressed down or released up.
 
@@ -1041,7 +1055,7 @@ type
   protected
     procedure DoUpdate; virtual;
   public
-    property Container: TContainer read FContainer;
+    property Container: TWindowContainer read FContainer;
 
     { Is it allowed to suspend (for an indefinite amount of time) waiting
       for user input.
@@ -1531,7 +1545,7 @@ begin
   finally FreeAndNil(ScreenshotRender) end;
 end;
 #)
-       *)
+    *)
     property Visible: boolean read FVisible write FVisible default true;
 
     { Caption of the window. By default it's initialized to ApplicationName.
@@ -1577,7 +1591,7 @@ end;
       This is a good place to set OpenGL viewport and projection matrix.
 
       See also ResizeAllowed.
-      
+
       In the usual case, the SceneManager takes care of setting appropriate
       OpenGL projection, so you don't need to do anything here. }
     property OnResize: TContainerEvent read GetOnResize write SetOnResize;
@@ -2194,6 +2208,9 @@ end;
     function MessageYesNo(const S: string;
       const MessageType: TWindowMessageType = mtQuestion): boolean;
 
+    { Named parameters used to initialize this window.
+      Right now only meaningful when using NPAPI plugin. }
+    property NamedParameters: TCastleStringList read FNamedParameters;
   private
     LastFpsOutputTick: DWORD;
     FFpsShowOnCaption: boolean;
@@ -2330,6 +2347,8 @@ end;
     procedure Invalidate;
   end;
 
+  TCastleWindowCustomClass = class of TCastleWindowCustom;
+
   { Application, managing all open TCastleWindowCustom (OpenGL windows).
     This tracks all open instances of TCastleWindowCustom
     and implements message loop. It also handles some global tasks
@@ -2364,6 +2383,8 @@ end;
     LastLimitFPSTime: TTimerResult;
     FLimitFPS: Single;
     FMainWindow: TCastleWindowCustom;
+    FUserAgent: string;
+    FDefaultWindowClass: TCastleWindowCustomClass;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindowCustom;
@@ -2537,6 +2558,31 @@ end;
       (like Android), set this to the reference of that window.
       It is also used by TWindowProgressInterface to display progress bar. }
     property MainWindow: TCastleWindowCustom read FMainWindow write SetMainWindow;
+
+    { User agent string, when running inside a browser, right now only meaningful when using NPAPI plugin. }
+    // TODO: should not be writeable from outside
+    property UserAgent: string read FUserAgent write FUserAgent;
+
+    { Default window class to create when environment requires it,
+      right now: when a new instance of browser plugin is requested.
+      In this case, we first try to use MainWindow (if assigned and not open),
+      otherwise we create new window instance of this class.
+
+      For single-window apps (for example, a game that can only
+      be played in one window at a time), you want to set MainWindow
+      to your @italic(real) window where game goes on,
+      and set DefaultWindowClass to some simple window informing user
+      to switch to the primary window.
+
+      For multi-window apps (games that can be played simultaneously
+      in multiple windows, or things like 3D model browsers that
+      can display different models in different windows) you can
+      leave MainWindow at @nil and just focus on creating a special
+      window class with your functionality.
+
+      By default, this is simple TCastleWindow class. }
+    property DefaultWindowClass: TCastleWindowCustomClass
+      read FDefaultWindowClass write FDefaultWindowClass;
 
     { Process messages from the window system.
       You have to call this repeatedly to process key presses,
@@ -2737,85 +2783,85 @@ uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils, CastleWarning
 {$I castlewindowmenu.inc}
 {$I castlewindow_backend.inc}
 
-{ TCastleWindowCustom.TContainer ----------------------------------------------------- }
+{ TWindowContainer ----------------------------------------------------------- }
 
-constructor TCastleWindowCustom.TContainer.Create(AParent: TCastleWindowCustom);
+constructor TWindowContainer.Create(AParent: TCastleWindowCustom);
 begin
   inherited Create(nil);
   Parent := AParent;
 end;
 
-procedure TCastleWindowCustom.TContainer.Invalidate;
+procedure TWindowContainer.Invalidate;
 begin
   Parent.Invalidate;
 end;
 
-function TCastleWindowCustom.TContainer.GLInitialized: boolean;
+function TWindowContainer.GLInitialized: boolean;
 begin
   Result := Parent.GLInitialized;
 end;
 
-function TCastleWindowCustom.TContainer.Width: Integer;
+function TWindowContainer.Width: Integer;
 begin
   Result := Parent.Width;
 end;
 
-function TCastleWindowCustom.TContainer.Height: Integer;
+function TWindowContainer.Height: Integer;
 begin
   Result := Parent.Height;
 end;
 
-function TCastleWindowCustom.TContainer.Rect: TRectangle;
+function TWindowContainer.Rect: TRectangle;
 begin
   Result := Parent.Rect;
 end;
 
-function TCastleWindowCustom.TContainer.GetMousePosition: TVector2Single;
+function TWindowContainer.GetMousePosition: TVector2Single;
 begin
   Result := Parent.MousePosition;
 end;
 
-procedure TCastleWindowCustom.TContainer.SetMousePosition(const Value: TVector2Single);
+procedure TWindowContainer.SetMousePosition(const Value: TVector2Single);
 begin
   Parent.MousePosition := Value;
 end;
 
-function TCastleWindowCustom.TContainer.Dpi: Integer;
+function TWindowContainer.Dpi: Integer;
 begin
   Result := Parent.Dpi;
 end;
 
-function TCastleWindowCustom.TContainer.MousePressed: TMouseButtons;
+function TWindowContainer.MousePressed: TMouseButtons;
 begin
   Result := Parent.MousePressed;
 end;
 
-function TCastleWindowCustom.TContainer.Focused: boolean;
+function TWindowContainer.Focused: boolean;
 begin
   Result := Parent.Focused;
 end;
 
-function TCastleWindowCustom.TContainer.Pressed: TKeysPressed;
+function TWindowContainer.Pressed: TKeysPressed;
 begin
   Result := Parent.Pressed;
 end;
 
-function TCastleWindowCustom.TContainer.Fps: TFramesPerSecond;
+function TWindowContainer.Fps: TFramesPerSecond;
 begin
   Result := Parent.Fps;
 end;
 
-procedure TCastleWindowCustom.TContainer.SetCursor(const Value: TMouseCursor);
+procedure TWindowContainer.SetCursor(const Value: TMouseCursor);
 begin
   Parent.Cursor := Value;
 end;
 
-function TCastleWindowCustom.TContainer.GetTouches(const Index: Integer): TTouch;
+function TWindowContainer.GetTouches(const Index: Integer): TTouch;
 begin
   Result := Parent.Touches[Index];
 end;
 
-function TCastleWindowCustom.TContainer.TouchesCount: Integer;
+function TWindowContainer.TouchesCount: Integer;
 begin
   Result := Parent.TouchesCount;
 end;
@@ -2844,13 +2890,14 @@ begin
   FPressed := TKeysPressed.Create;
   FFps := TFramesPerSecond.Create;
   FMainMenuVisible := true;
-  FContainer := TContainer.Create(Self);
+  FContainer := CreateContainer;
   Close_CharKey := #0;
   SwapFullScreen_Key := K_None;
   FpsShowOnCaption := false;
   FFpsCaptionUpdateInterval := DefaultFpsCaptionUpdateInterval;
   FTouches := TTouchList.Create;
   FFocused := true;
+  FNamedParameters := TCastleStringList.Create;
 
   CreateBackend;
 end;
@@ -2871,7 +2918,13 @@ begin
   FreeAndNil(FPressed);
   FreeAndNil(FContainer);
   FreeAndNil(FTouches);
+  FreeAndNil(FNamedParameters);
   inherited;
+end;
+
+function TCastleWindowCustom.CreateContainer: TWindowContainer;
+begin
+  Result := TWindowContainer.Create(Self);
 end;
 
 procedure TCastleWindowCustom.OpenCore;
@@ -3707,17 +3760,22 @@ var
 begin
   Include(ProcData^.SpecifiedOptions, poDisplay);
   case OptionNum of
-    0: {$ifdef CASTLE_WINDOW_XLIB}
-       if Application.FOpenWindows.Count <> 0 then
-         WarningWrite(ApplicationName + ': some windows are already open ' +
-           'so --display option is ignored.') else
-         Application.XDisplayName := Argument;
+    0: {$ifdef CASTLE_ENGINE_PLUGIN}
+       WarningWrite(ApplicationName + ': warning: --display option is ignored ' +
+         'when we are inside the plugin');
        {$else}
-         {$ifdef CASTLE_WINDOW_GTK_2}
-         Application.XDisplayName := Argument;
+         {$ifdef CASTLE_WINDOW_XLIB}
+         if Application.FOpenWindows.Count <> 0 then
+           WarningWrite(ApplicationName + ': some windows are already open ' +
+             'so --display option is ignored.') else
+           Application.XDisplayName := Argument;
          {$else}
-         WarningWrite(ApplicationName + ': warning: --display option is ignored ' +
-           'when we don''t use directly Xlib');
+           {$ifdef CASTLE_WINDOW_GTK_2}
+           Application.XDisplayName := Argument;
+           {$else}
+           WarningWrite(ApplicationName + ': warning: --display option is ignored ' +
+             'when we don''t use directly Xlib');
+           {$endif}
          {$endif}
        {$endif}
   end;
@@ -4306,6 +4364,7 @@ begin
   FOpenWindows := TWindowList.Create(false);
   FTimerMilisec := 1000;
   FLimitFPS := DefaultLimitFPS;
+  FDefaultWindowClass := TCastleWindowCustom;
 
   CreateBackend;
 end;

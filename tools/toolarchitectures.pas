@@ -164,6 +164,8 @@ function CPUOptionHelp: string;
 
 function ExeExtensionOS(const OS: TOS): string;
 
+function LibraryExtensionOS(const OS: TOS): string;
+
 implementation
 
 uses TypInfo, SysUtils,
@@ -230,6 +232,15 @@ begin
   if OS in AllWindowsOSes then
     Result :=  '.exe' else
     Result := '';
+end;
+
+function LibraryExtensionOS(const OS: TOS): string;
+begin
+  if OS in AllWindowsOSes then
+    Result :=  '.dll' else
+  if OS in [Darwin,iphonesim] then
+    Result := '.dylib' else
+    Result := '.so';
 end;
 
 end.

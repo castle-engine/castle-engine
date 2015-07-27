@@ -26,27 +26,29 @@
 
 {$ifdef read_interface_uses}
 Xlib, CastleXlib, XUtil, X, KeySym, CursorFont,
+  {$ifdef CASTLE_ENGINE_PLUGIN} CastleNPAPI, {$endif}
 {$endif}
 
 {$ifdef read_window_interface}
 private
   windowXID: TWindow;
   parentwinXID: TWindow; { refreshed on ReparentNotify, needed for X_Configureevent }
-  procedure X_KeyPress(const event: TXKeyEvent);
-  procedure X_KeyRelease(const event: TXKeyEvent);
-  procedure X_ConfigureNotify(const event: TXConfigureEvent);
-  procedure X_ButtonPress(const event: TXButtonPressedEvent);
-  procedure X_ButtonRelease(const event: TXButtonReleasedEvent);
-  procedure X_MotionNotify(const event: TXMotionEvent);
-  procedure X_FocusOut(const event: TXFocusOutEvent);
 
+  function HandleXEvent(const Event: TXEvent): boolean;
   procedure UpdateCursor;
+public
+  {$ifdef CASTLE_ENGINE_PLUGIN}
+  // TODO: should be private, only accessed by application
+  PluginWindow: TNPWindow;
+  PluginStruct: TNPSetWindowCallbackStruct;
+  {$endif}
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
 private
+  {$ifndef CASTLE_ENGINE_PLUGIN}
   FXDisplayName: string;
-  FXDisplay: PDisplay;
+  {$endif}
   FXScreen: Integer;
   InitializeXDisplayDone: boolean;
   XCursors: array [TMouseCursor] of TCursor;
@@ -64,10 +66,12 @@ private
   { Seek on OpenWindows window with WindowXID = seekWindowXID.
     Returns nil if not found. }
   function FindWindowXID(seekWindowXID: TWindow): TCastleWindowCustom;
+  {$ifndef CASTLE_ENGINE_PLUGIN}
   procedure SetXDisplayName(const Value: string);
+  {$endif}
 
   { Check XDisplay. Call this once you're sure that XDisplay is set to
-    value desired by used now.
+    value desired by user now.
 
     And since we know now that XDisplay is OK, we initialize some
     things: XScreen, check for glX extension, get WM_DELETE_WINDOW
@@ -78,21 +82,22 @@ private
     So you should call this when you know that last SetXDisplayName was
     called --- good choice is before initializing your window. }
   procedure InitializeXDisplay;
+
 public
-  { XDisplayName uzywane przez wszystkie nastepne wywolania Window.Open.
-    Application nie jest przygotowany na zarzadzanie oknami na wielu displayach i
-    implementacja TCastleWindowCustom zaklada ze po zrobieniu Open Application.XDisplay bedzie
-    caly czas takie samo - wiec NIE ZMIENIAJ XDisplayName po zrobieniu jakiegos Open !
-    XDisplayName bezposrednio po przypisaniu moze ulec zmianie - bo
-    SetXDisplayName powoduje cos jak FXDisplayName := XDisplayName(FDiaplayName),
-    a wiec X serwer moze cos od razu powiedziec o tym jak on rozumie ta
-    XDisplayName.
+  // TODO: should be private, only accessed by application
+  FXDisplay: PDisplay;
 
-    Default = '', zinterpretowane przez X serwer. }
+  function HandleXEvent(Event: TXEvent): boolean;
+
+  {$ifndef CASTLE_ENGINE_PLUGIN}
+  { XDisplayName used by all Window.Open calls.
+    We assume that once we open some window, this will stay constant,
+    so don't change it later!
+    When this set, it's immediately processed by XDisplayName, so it may change by itself.
+    By default this is XDisplayName(''). }
   property XDisplayName: string read FXDisplayName write SetXDisplayName;
-
+  {$endif}
   property XDisplay: PDisplay read FXDisplay;
-
   property XScreen: Integer read FXScreen;
 {$endif read_application_interface}
 
@@ -108,19 +113,30 @@ const
 
 procedure TCastleWindowCustom.OpenBackend;
 var
-  sizeHints: TXSizeHints;
   AttrValueMask: Cardinal;
   Attr: TXSetWindowAttributes;
+  {$ifndef CASTLE_ENGINE_PLUGIN}
+  CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight: Integer;
+  sizeHints: TXSizeHints;
   WindTitleProp: TXTextProperty;
   ClassHint: TXClassHint;
   WMHints: TXWMHints;
   PWindTitle: PChar;
-var
-  CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight: Integer;
+  {$endif}
 const
   AllPointerEventsMask = ButtonPressMask or ButtonReleaseMask or
     EnterWindowMask or LeaveWindowMask or PointerMotionMask;
 begin
+  {$ifdef CASTLE_ENGINE_PLUGIN}
+  Application.FXDisplay := PluginStruct.Display;
+
+  Left := PluginWindow.X;
+  Top := PluginWindow.Y;
+  Width := PluginWindow.Width;
+  Height := PluginWindow.Height;
+  Fullscreen := false;
+  {$endif}
+
   Application.InitializeXDisplay;
 
   Attr.event_mask := AcceptedEventsMask;
@@ -135,18 +151,27 @@ begin
   begin
     Attr.override_redirect := XBool_true;
     AttrValueMask := AttrValueMask or CWOverrideRedirect;
+    {$ifndef CASTLE_ENGINE_PLUGIN}
     CorrectLeft := 0;
     CorrectTop := 0;
     CorrectWidth := Application.ScreenWidth;
     CorrectHeight := Application.ScreenHeight;
+    {$endif}
   end else
   begin
+    {$ifndef CASTLE_ENGINE_PLUGIN}
     CorrectLeft := Left;
     CorrectTop := Top;
     CorrectWidth := Width;
     CorrectHeight := Height;
+    {$endif}
   end;
 
+  {$ifdef CASTLE_ENGINE_PLUGIN}
+  windowXID := TWindow(PluginWindow.Window);
+  { below is crucial, otherwise we'll not listed to events on windowXID }
+  XChangeWindowAttributes(Application.XDisplay, windowXID, CWEventMask, @Attr);
+  {$else}
   windowXID := XCreateWindow(Application.XDisplay, parentwinXID,
     CorrectLeft, CorrectTop, CorrectWidth, CorrectHeight, 0,
     {$ifndef OpenGLES} XVisual^.depth {$else} CopyFromParent {$endif},
@@ -229,6 +254,7 @@ begin
     if Visible then
       XMapWindow(Application.XDisplay, windowXID);
   end;
+  {$endif}
 
   ContextCreateEnd(windowXID);
 
@@ -271,7 +297,13 @@ begin
   while XBool(XCheckWindowEvent(
     Application.XDisplay, windowXID, Longint($FFFFFFFF), @dummy_event)) <> XBool_False do ;
 
-  if windowXID <> None then begin XDestroyWindow(Application.XDisplay, windowXID); windowXID := None end;
+  if windowXID <> None then
+  begin
+    {$ifndef CASTLE_ENGINE_PLUGIN}
+    XDestroyWindow(Application.XDisplay, windowXID);
+    {$endif}
+    windowXID := None
+  end;
 
   {$ifndef OpenGLES}
   if colormap  <> None then begin XFreeColormap(Application.XDisplay, colormap);   colormap := None  end;
@@ -421,135 +453,159 @@ begin
   { does nothing }
 end;
 
-procedure TCastleWindowCustom.X_KeyPress(const event: TXKeyEvent);
-var
-  k: TKeySym;
-  CharKey: char;
-  Key: TKey;
-begin
-  { calculate k, CharKey }
-  if XLookupString(@event, @CharKey, 1, @k, nil) = 0 then
-    CharKey := #0;
+function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
 
-  { maybe do DoKeyDown }
-  case k of
-    XK_Shift_L:   SetPrivateModifiersDown(mkShift, false, true);
-    XK_Shift_R:   SetPrivateModifiersDown(mkShift, true,  true);
-    XK_Control_L: SetPrivateModifiersDown(mkCtrl,  false, true);
-    XK_Control_R: SetPrivateModifiersDown(mkCtrl,  true,  true);
-    XK_Alt_L:     SetPrivateModifiersDown(mkAlt,   false, true);
-    XK_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  true);
-    else begin
-      Key := Application.KeySymToKey(k);
-      if (Key <> K_None) or (CharKey <> #0) then DoKeyDown(Key, CharKey);
+  procedure X_KeyPress(const event: TXKeyEvent);
+  var
+    k: TKeySym;
+    CharKey: char;
+    Key: TKey;
+  begin
+    { calculate k, CharKey }
+    if XLookupString(@event, @CharKey, 1, @k, nil) = 0 then
+      CharKey := #0;
+
+    { maybe do DoKeyDown }
+    case k of
+      XK_Shift_L:   SetPrivateModifiersDown(mkShift, false, true);
+      XK_Shift_R:   SetPrivateModifiersDown(mkShift, true,  true);
+      XK_Control_L: SetPrivateModifiersDown(mkCtrl,  false, true);
+      XK_Control_R: SetPrivateModifiersDown(mkCtrl,  true,  true);
+      XK_Alt_L:     SetPrivateModifiersDown(mkAlt,   false, true);
+      XK_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  true);
+      else begin
+        Key := Application.KeySymToKey(k);
+        if (Key <> K_None) or (CharKey <> #0) then DoKeyDown(Key, CharKey);
+      end;
     end;
   end;
-end;
 
-procedure TCastleWindowCustom.X_KeyRelease(const event: TXKeyEvent);
-var
-  k: TKeySym;
-  CharKey: char;
-  Key: TKey;
-begin
-  { Note: "XLib Progr Manual" warns that KeyRelease is not guaranteed on
-    "some very old systems". I didn't ever see such system...
-    Anyway, in such case we can't make DoKeyUp, OnKeyUp, all Keys will remain
-    pressed forever until window unfocused... }
+  procedure X_KeyRelease(const event: TXKeyEvent);
+  var
+    k: TKeySym;
+    CharKey: char;
+    Key: TKey;
+  begin
+    { Note: "XLib Progr Manual" warns that KeyRelease is not guaranteed on
+      "some very old systems". I didn't ever see such system...
+      Anyway, in such case we can't make DoKeyUp, OnKeyUp, all Keys will remain
+      pressed forever until window unfocused... }
 
-  { calculate k, CharKey }
-  XLookupString(@event, @CharKey, 1, @k, nil);
+    { calculate k, CharKey }
+    XLookupString(@event, @CharKey, 1, @k, nil);
 
-  { maybe do DoKeyUp }
-  case k of
-    XK_Shift_L:   SetPrivateModifiersDown(mkShift, false, false);
-    XK_Shift_R:   SetPrivateModifiersDown(mkShift, true,  false);
-    XK_Control_L: SetPrivateModifiersDown(mkCtrl,  false, false);
-    XK_Control_R: SetPrivateModifiersDown(mkCtrl,  true,  false);
-    XK_Alt_L:     SetPrivateModifiersDown(mkAlt,   false, false);
-    XK_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  false);
-    else begin
-      Key := Application.KeySymToKey(k);
-      if Key <> K_None then DoKeyUp(Key);
+    { maybe do DoKeyUp }
+    case k of
+      XK_Shift_L:   SetPrivateModifiersDown(mkShift, false, false);
+      XK_Shift_R:   SetPrivateModifiersDown(mkShift, true,  false);
+      XK_Control_L: SetPrivateModifiersDown(mkCtrl,  false, false);
+      XK_Control_R: SetPrivateModifiersDown(mkCtrl,  true,  false);
+      XK_Alt_L:     SetPrivateModifiersDown(mkAlt,   false, false);
+      XK_Alt_R:     SetPrivateModifiersDown(mkAlt,   true,  false);
+      else begin
+        Key := Application.KeySymToKey(k);
+        if Key <> K_None then DoKeyUp(Key);
+      end;
     end;
   end;
-end;
 
-procedure TCastleWindowCustom.X_ConfigureNotify(const event: TXConfigureEvent);
-var
-  dummy_win: TWindow;
-begin
-  { event.x , event.y are relative to our parent.
-    We always create our window giving XRootWindow(Application.XDisplay, Application.XScreen)
-    as parent and we want our fLeft, fTop to be relitive to that
-    window. BUT window managers may redirect our window and put
-    it in some thick border, for example. Than this border is our parent
-    and our position is given relative to that border. But we want it
-    to be relative to XRootWindow(...) to be useful for future window
-    creation !! So we translate coords from our parentwinXID to
-    XRootWindow(...) }
-  XTranslateCoordinates(Application.XDisplay,
-    parentwinXID, XRootWindow(Application.XDisplay, Application.XScreen),
-    {event.x, event.y,}0, 0, @fLeft, @fTop, @dummy_win);
+  procedure X_ConfigureNotify(const event: TXConfigureEvent);
+  var
+    dummy_win: TWindow;
+  begin
+    { event.x , event.y are relative to our parent.
+      We always create our window giving XRootWindow(Application.XDisplay, Application.XScreen)
+      as parent and we want our fLeft, fTop to be relitive to that
+      window. BUT window managers may redirect our window and put
+      it in some thick border, for example. Than this border is our parent
+      and our position is given relative to that border. But we want it
+      to be relative to XRootWindow(...) to be useful for future window
+      creation !! So we translate coords from our parentwinXID to
+      XRootWindow(...) }
+    XTranslateCoordinates(Application.XDisplay,
+      parentwinXID, XRootWindow(Application.XDisplay, Application.XScreen),
+      {event.x, event.y,}0, 0, @fLeft, @fTop, @dummy_win);
 
-  { TODO: for now, Left and Top indicate corner of the window *with frame*
-    (while they should indicate corner of GL area only, according to interface). }
-  DoResize(event.width, event.height, false);
-end;
-
-function xbtnToMouseButton(button: Cardinal; var mbtn: TMouseButton): boolean;
-begin
-  result := true;
-  case button of
-    Button1 : mbtn := mbLeft;
-    Button2 : mbtn := mbMiddle;
-    Button3 : mbtn := mbRight;
-    else result := false;
+    { TODO: for now, Left and Top indicate corner of the window *with frame*
+      (while they should indicate corner of GL area only, according to interface). }
+    DoResize(event.width, event.height, false);
   end;
-end;
 
-procedure TCastleWindowCustom.X_ButtonPress(const event: TXButtonPressedEvent);
-var
-  btn: TMouseButton;
-begin
-  if xbtnToMouseButton(event.button, btn) then
-    DoMouseDown(Vector2Single(Event.x, Height - 1 - Event.y), btn, 0) else
-  case Event.Button of
-    Button4: DoMouseWheel( 1, true);
-    Button5: DoMouseWheel(-1, true);
-    6: DoMouseWheel( 1, false); { not sure if this is possible }
-    7: DoMouseWheel(-1, false); { not sure if this is possible }
+  function xbtnToMouseButton(button: Cardinal; var mbtn: TMouseButton): boolean;
+  begin
+    result := true;
+    case button of
+      Button1 : mbtn := mbLeft;
+      Button2 : mbtn := mbMiddle;
+      Button3 : mbtn := mbRight;
+      else result := false;
+    end;
   end;
-end;
 
-procedure TCastleWindowCustom.X_ButtonRelease(const event: TXButtonReleasedEvent);
-var
-  btn: TMouseButton;
-begin
-  if xbtnToMouseButton(event.button, btn) then
-    DoMouseUp(Vector2Single(Event.x, Height - 1 - Event.y), btn, 0)
-end;
+  procedure X_ButtonPress(const event: TXButtonPressedEvent);
+  var
+    btn: TMouseButton;
+  begin
+    if xbtnToMouseButton(event.button, btn) then
+      DoMouseDown(Vector2Single(Event.x, Height - 1 - Event.y), btn, 0) else
+    case Event.Button of
+      Button4: DoMouseWheel( 1, true);
+      Button5: DoMouseWheel(-1, true);
+      6: DoMouseWheel( 1, false); { not sure if this is possible }
+      7: DoMouseWheel(-1, false); { not sure if this is possible }
+    end;
+  end;
 
-procedure TCastleWindowCustom.X_MotionNotify(const event: TXMotionEvent);
-begin
-  { We could refresh MousePressed now. But no need for now?
-  mousePressed:=[];
-  if (Button1Mask and event.state) <> 0 then Include(mousePressed, mbLeft);
-  if (Button2Mask and event.state) <> 0 then Include(mousePressed, mbMiddle);
-  if (Button3Mask and event.state) <> 0 then Include(mousePressed, mbRight);
-  }
-  DoMotion(InputMotion(MousePosition,
-    Vector2Single(Event.x, Height - 1 - Event.y),
-    MousePressed, 0));
-end;
+  procedure X_ButtonRelease(const event: TXButtonReleasedEvent);
+  var
+    btn: TMouseButton;
+  begin
+    if xbtnToMouseButton(event.button, btn) then
+      DoMouseUp(Vector2Single(Event.x, Height - 1 - Event.y), btn, 0)
+  end;
 
-procedure TCastleWindowCustom.X_FocusOut(const event: TXFocusOutEvent);
+  procedure X_MotionNotify(const event: TXMotionEvent);
+  begin
+    { We could refresh MousePressed now. But no need for now?
+    mousePressed:=[];
+    if (Button1Mask and event.state) <> 0 then Include(mousePressed, mbLeft);
+    if (Button2Mask and event.state) <> 0 then Include(mousePressed, mbMiddle);
+    if (Button3Mask and event.state) <> 0 then Include(mousePressed, mbRight);
+    }
+    DoMotion(InputMotion(MousePosition,
+      Vector2Single(Event.x, Height - 1 - Event.y),
+      MousePressed, 0));
+  end;
+
+  procedure X_FocusOut(const event: TXFocusOutEvent);
+  begin
+    { Clear KeysDown and MousePressed information.
+      Otherwise, we could miss the keyup or mouseup event, if user pressed
+      the key/mouse with our window in focus, then (holding the key/mouse)
+      switched to other window. }
+    ReleaseAllKeysAndMouse;
+  end;
+
 begin
-  { Clear KeysDown and MousePressed information.
-    Otherwise, we could miss the keyup or mouseup event, if user pressed
-    the key/mouse with our window in focus, then (holding the key/mouse)
-    switched to other window. }
-  ReleaseAllKeysAndMouse;
+  Result := true;
+  WritelnLog('Plugin', Format('Woo, Xlib window got some message: %d', [event._type]));
+  case event._type of
+    Expose: { XExposeEvent }
+       if event.xexpose.count = 0 then Invalidate;
+    (*MapNotify: needRedisplay := true; { XMapEvent } <- unused *)
+    KeyPress: X_KeyPress(event.xkey);  { XKeyEvent }
+    KeyRelease: X_KeyRelease(event.xkey);
+    ButtonPress: X_ButtonPress(event.xbutton); { XButtonPressEvent }
+    ButtonRelease: X_ButtonRelease(event.xbutton); { XButtonReleaseEvent }
+    MotionNotify: X_MotionNotify(event.xmotion); { XPointerMovedEvent }
+    ConfigureNotify: X_ConfigureNotify(event.xconfigure); { XConfigureEvent }
+    ClientMessage : { XClientMessageEvent - no corresponding XXxxEvent mask }
+      if (event.xclient.data.l[0] = Integer(Application.wmDeleteWindow)) then
+       DoCloseQuery;
+    ReparentNotify : parentwinXID := event.xreparent.parent;
+    FocusOut: X_FocusOut(event.xfocus);
+    else Result := false;
+  end;
 end;
 
 procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);
@@ -569,6 +625,7 @@ begin
   result := nil;
 end;
 
+{$ifndef CASTLE_ENGINE_PLUGIN}
 procedure TCastleApplication.SetXDisplayName(const Value: string);
 begin
   if XDisplay <> nil then XCloseDisplay(XDisplay);
@@ -589,6 +646,7 @@ begin
 
     So the check for XDisplay = nil will be done at window initialization. }
 end;
+{$endif}
 
 function TCastleApplication.KeySymToKey(KSym: TKeySym): TKey;
 begin
@@ -609,18 +667,22 @@ const
 begin
   if XDisplay = nil then
   begin
-    {$ifdef DARWIN}
-    Writeln(ErrOutput, Format('Opening the default X display "%s" failed, retrying with "%s" to try to attach to running X server on Mac OS X.',
-      [XDisplayName, AltXDisplayName]));
-    XDisplayName := AltXDisplayName;
-    if XDisplay = nil then
+    {$ifdef CASTLE_ENGINE_PLUGIN}
+    raise Exception.Create('Plugin caller did not set X display');
+    {$else}
+      {$ifdef DARWIN}
+      Writeln(ErrOutput, Format('Opening the default X display "%s" failed, retrying with "%s" to try to attach to running X server on Mac OS X.',
+        [XDisplayName, AltXDisplayName]));
+      XDisplayName := AltXDisplayName;
+      if XDisplay = nil then
+      {$endif}
+        raise Exception.CreateFmt('XOpenDisplay could not open display "%s"', [XDisplayName]);
     {$endif}
-
-    raise Exception.CreateFmt('XOpenDisplay could not open display "%s"', [XDisplayName]);
   end;
 
   if not InitializeXDisplayDone then
   begin
+    // TODO: ok for plugin to just get XDefaultScreen?
     FXScreen := XDefaultScreen(XDisplay);
     ContextApplicationCheck;
     wmDeleteWindow := XInternAtom(XDisplay, 'WM_DELETE_WINDOW', XBool_True);
@@ -639,7 +701,10 @@ const
 var
   b: byte;
 begin
+  { for a plugin, this is unknown until NPP_New }
+  {$ifndef CASTLE_ENGINE_PLUGIN}
   SetXDisplayName(''); { zainicjuj XDisplayName }
+  {$endif}
 
   { See ~/sources/fpc/trunk/packages/x11/src/keysym.pp }
 
@@ -734,6 +799,26 @@ end;
 function TCastleApplication.BackendName: string;
 begin
   Result := 'Xlib+' + {$ifndef OpenGLES} 'glX' {$else} 'EGL' {$endif};
+end;
+
+function TCastleApplication.HandleXEvent(Event: TXEvent): boolean;
+var
+  Window: TCastleWindowCustom;
+begin
+  Result := false;
+  if event._type = MappingNotify then
+  begin
+    XRefreshKeyboardMapping(@event);
+    Result := true;
+  end else
+  begin
+    { Events for a particular window.
+      We check is the window present on Application.OpenWindows,
+      finding window instance based on windowXID }
+    Window := Application.FindWindowXID(event.xany.window);
+    if Window <> nil then
+      Result := Window.HandleXEvent(event);
+  end;
 end;
 
 { TCastleClipboard ----------------------------------------------------------- }

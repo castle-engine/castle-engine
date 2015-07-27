@@ -32,6 +32,7 @@
 
 {$ifdef read_interface_uses}
 Windows, CommDlg,
+  {$ifdef CASTLE_ENGINE_PLUGIN} CastleNPAPI, {$endif}
 {$endif}
 
 {$ifdef read_implementation_uses}
@@ -66,6 +67,11 @@ private
   { convert virtual key code (VK_xxx) to TKey. Returns K_None if no conversion
     available. }
   function VirtualKeyToKey(VirtualKey: Byte): TKey;
+public
+  {$ifdef CASTLE_ENGINE_PLUGIN}
+  // TODO: should be private, only accessed by application
+  PluginWindow: TNPWindow;
+  {$endif}
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -699,10 +705,22 @@ end;
 
 procedure TCastleWindowCustom.OpenBackend;
 var
+  {$ifndef CASTLE_ENGINE_PLUGIN}
   dwExStyle, dwStyle: dword;
-  WindowRect, ClientRect: TRect;
+  WindowRect: TRect;
   H_Menu: HMenu;
+  {$endif}
+  ClientRect: TRect;
 begin
+  {$ifdef CASTLE_ENGINE_PLUGIN}
+  Left := PluginWindow.X;
+  Top := PluginWindow.Y;
+  Width := PluginWindow.Width;
+  Height := PluginWindow.Height;
+  Fullscreen := false;
+
+  H_wnd := HWND(PluginWindow.Window);
+  {$else}
   { optionally hide mouse in FullScreem,
     set dwStyle and dwExStyle for our window }
   if FFullScreen then
@@ -780,7 +798,9 @@ begin
     windowRect.right-windowRect.left, windowRect.Bottom-windowRect.top,
     0 { no parent window }, H_Menu, hInstance,
     nil { don't pass anything to WM_CREATE } );
-  Check( h_Wnd <> 0, 'CreateWindowEx failed');
+  {$endif}
+
+  Check(h_Wnd <> 0, 'Creating window (H_wnd) failed');
 
   { calculate correct Left and Top, required e.g. by SetCursorPos }
   if FullScreen then
@@ -811,12 +831,14 @@ begin
     ze "dziala kiedy wywolamy Invalidate". }
   Application.OpenWindowsAdd(Self);
 
+  {$ifndef CASTLE_ENGINE_PLUGIN}
   if Visible then
   begin
     ShowWindow(h_Wnd, SW_SHOW);
     SetForegroundWindow(h_Wnd);
     SetFocus(h_Wnd);
   end;
+  {$endif}
 
   { Windows does not send us WM_SIZE messages when FullScreen (that's probably
     caused by our special dwStyle and dwStyleEx for FullScreen, probably
@@ -875,8 +897,10 @@ begin
     if (h_Dc <> 0) and (ReleaseDC(h_Wnd, h_Dc) = 0) then
       CloseError('Releasing device context (ReleaseDC) failed.');
     h_Dc := 0;
+    {$ifndef CASTLE_ENGINE_PLUGIN}
     if (h_Wnd <> 0) and (not DestroyWindow(h_Wnd))then
       CloseError('Destroying window (DestroyWindow) failed.');
+    {$endif}
     h_Wnd := 0;
   finally InCloseBackend := false; end;
 end;

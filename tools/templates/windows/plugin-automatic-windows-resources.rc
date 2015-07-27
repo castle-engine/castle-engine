@@ -1,0 +1,46 @@
+1 VERSIONINFO
+FILEVERSION ${VERSION_MAJOR},${VERSION_MINOR},${VERSION_RELEASE},${VERSION_BUILD}
+PRODUCTVERSION ${VERSION_MAJOR},${VERSION_MINOR},${VERSION_RELEASE},${VERSION_BUILD}
+// possibly necessary for NPAPI plugins to be detected
+FILEFLAGSMASK 0x3fL
+// possibly necessary for NPAPI plugins to be detected
+FILEFLAGS 0x2L
+FILEOS 0x10001L
+// VOS_NT
+// possibly necessary for NPAPI plugins to be detected
+FILETYPE 0x2L
+// possibly necessary for NPAPI plugins to be detected
+FILESUBTYPE 0x0L
+// VFT_APP
+{
+  BLOCK "StringFileInfo"
+  {
+    // necessary for NPAPI plugins to be detected
+    BLOCK "040904e4"
+    {
+      VALUE "Comments", "\0"
+      VALUE "CompanyName", "Really New ${AUTHOR}\000"
+      VALUE "FileDescription", "np${NAME}\000"
+      VALUE "FileExtents", "cge\0"
+      VALUE "FileOpenName", "CGE (*.cge)\0"
+      VALUE "FileVersion", "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_RELEASE}.${VERSION_BUILD}\000"
+      // possibly np prefix necessary for NPAPI plugins to be detected?
+      VALUE "InternalName", "np${NAME}\000"
+      VALUE "LegalCopyright", "Really New Copyright ${AUTHOR}\000"
+      VALUE "OriginalFilename", "np${EXECUTABLE_NAME}.win32-i386.dll\000"
+      VALUE "ProductName", "np${NAME}\000"
+      VALUE "ProductVersion", "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_RELEASE}.${VERSION_BUILD}\000"
+      // possibly necessary for NPAPI plugins to be detected
+      VALUE "MIMEType", "application/x-${NAME}\0"
+      VALUE "SpecialBuild", "\0"
+    }
+  }
+  BLOCK "VarFileInfo"
+  {
+    // 0x0409 is US English, 1200 is Unicode
+    VALUE "Translation", 0x0409,1200
+  }
+}
+
+1 MANIFEST "automatic-windows.manifest"
+

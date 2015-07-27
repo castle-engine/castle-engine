@@ -24,8 +24,8 @@ type
   TCompilationMode = (cmRelease, cmDebug);
 
 { Compile with FPC and proper command-line option given file. }
-procedure Compile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode;
-  const WorkingDirectory, CompileFile: string);
+procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string);
 
 function ModeToString(const M: TCompilationMode): string;
 function StringToMode(const S: string): TCompilationMode;
@@ -36,8 +36,8 @@ uses SysUtils, Process,
   CastleUtils, CastleStringUtils, CastleWarnings, CastleFilesUtils,
   ToolUtils;
 
-procedure Compile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode;
-  const WorkingDirectory, CompileFile: string);
+procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string);
 var
   CastleEnginePath, CastleEngineSrc: string;
   FpcOptions: TCastleStringList;
@@ -167,6 +167,9 @@ begin
         { See https://sourceforge.net/p/castle-engine/wiki/Android%20development/#notes-about-compiling-with-hard-floats-cfvfpv3 }
         FpcOptions.Add('-CfVFPV3');
     end;
+
+    if Plugin then
+      FpcOptions.Add('-dCASTLE_ENGINE_PLUGIN');
 
     FpcOptions.Add(CompileFile);
 

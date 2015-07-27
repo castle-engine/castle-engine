@@ -38,11 +38,12 @@ type
     IncludePaths, ExcludePaths: TCastleStringList;
     Icons: TIconFileNames;
     IncludePathsRecursive: TBooleanList;
-    FStandaloneSource, FAndroidSource, FAndroidProject: string;
+    FStandaloneSource, FAndroidSource, FPluginSource, FAndroidProject: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
     FVersion: string;
     FVersionCode: Cardinal;
     FScreenOrientation: TScreenOrientation;
+    function PluginCompiledFile(const OS: TOS; const CPU: TCPU): string;
     procedure GatherFile(const FileInfo: TFileInfo);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
     procedure FoundTtf(const FileInfo: TFileInfo);
@@ -76,6 +77,7 @@ type
     property ExecutableName: string read FExecutableName;
     property StandaloneSource: string read FStandaloneSource;
     property AndroidSource: string read FAndroidSource;
+    property PluginSource: string read FPluginSource;
     property AndroidProject: string read FAndroidProject;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
   public
@@ -84,9 +86,9 @@ type
     destructor Destroy; override;
 
     procedure DoCreateManifest;
-    procedure DoCompile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
-    procedure DoPackage(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
-    procedure DoInstall(const OS: TOS; const CPU: TCPU);
+    procedure DoCompile(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
+    procedure DoPackage(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
+    procedure DoInstall(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
     procedure DoPackageSource;
     procedure DoClean;
   end;
@@ -179,6 +181,7 @@ constructor TCastleProject.Create(const Path: string);
         FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
         FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
         FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
+        FPluginSource := Doc.DocumentElement.AttributeStringDef('plugin_source', '');
         FAndroidProject := Doc.DocumentElement.AttributeStringDef('android_project', '');
         FAuthor := Doc.DocumentElement.AttributeStringDef('author', '');
         FScreenOrientation := StringToScreenOrientation(
@@ -357,33 +360,52 @@ begin
   Writeln('Created manifest ' + ManifestFile);
 end;
 
-procedure TCastleProject.DoCompile(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
+procedure TCastleProject.DoCompile(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
 var
-  SourceExe, DestExe: string;
+  SourceExe, DestExe, MainSource: string;
 begin
-  Writeln(Format('Compiling project "%s" for OS "%s" and CPU "%s" in mode "%s".',
-    [Name, OSToString(OS), CPUToString(CPU), ModeToString(Mode)]));
+  Writeln(Format('Compiling project "%s" for OS / CPU "%s / %s" in mode "%s"%s.',
+    [Name, OSToString(OS), CPUToString(CPU), ModeToString(Mode),
+     Iff(Plugin, ' (as a plugin)', '')]));
 
   case OS of
     Android:
       begin
         if AndroidSource = '' then
           raise Exception.Create('android_source property for project not defined, cannot compile Android version');
-        Compile(OS, CPU, Mode, ProjectPath, AndroidSource);
+        Compile(OS, CPU, Plugin, Mode, ProjectPath, AndroidSource);
         Writeln('Compiled library for Android in ', AndroidLibraryFile(true));
       end;
     else
       begin
-        if StandaloneSource = '' then
-          raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
+        if Plugin then
+        begin
+          MainSource := PluginSource;
+          if MainSource = '' then
+            raise Exception.Create('plugin_source property for project not defined, cannot compile plugin version');
+        end else
+        begin
+          MainSource := StandaloneSource;
+          if MainSource = '' then
+            raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
+        end;
 
         if OS in AllWindowsOSes then
-          GenerateWindowsResources(@ReplaceMacros, ProjectPath, Icons, CPU);
+          GenerateWindowsResources(@ReplaceMacros, ProjectPath, Icons, CPU, Plugin);
 
-        Compile(OS, CPU, Mode, ProjectPath, StandaloneSource);
+        Compile(OS, CPU, Plugin, Mode, ProjectPath, MainSource);
 
-        SourceExe := ChangeFileExt(StandaloneSource, ExeExtensionOS(OS));
-        DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+        if Plugin then
+        begin
+          SourceExe := {$ifdef UNIX} 'lib' + {$endif}
+            ChangeFileExt(PluginSource, LibraryExtensionOS(OS));
+          { "np" prefix is safest for plugin library files. }
+          DestExe := PluginCompiledFile(OS, CPU);
+        end else
+        begin
+          SourceExe := ChangeFileExt(StandaloneSource, ExeExtensionOS(OS));
+          DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+        end;
         if not AnsiSameText(SourceExe, DestExe) then
         begin
           { move exe to top-level (in case StandaloneSource is in subdirectory
@@ -393,6 +415,12 @@ begin
         end;
       end;
   end;
+end;
+
+function TCastleProject.PluginCompiledFile(const OS: TOS; const CPU: TCPU): string;
+begin
+  Result := 'np' + DeleteFileExt(PluginSource) + '.' +
+    OSToString(OS) + '-' + CPUToString(CPU) + LibraryExtensionOS(OS);
 end;
 
 procedure TCastleProject.PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
@@ -450,7 +478,8 @@ begin
     Exclude(ExcludePaths[I], Files);
 end;
 
-procedure TCastleProject.DoPackage(const OS: TOS; const CPU: TCPU; const Mode: TCompilationMode);
+procedure TCastleProject.DoPackage(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+  const Mode: TCompilationMode);
 var
   Pack: TPackageDirectory;
 
@@ -475,8 +504,12 @@ var
   PackageFileName, ExecutableNameExt, AndroidProjectPath: string;
   UnixPermissionsMatter: boolean;
 begin
-  Writeln(Format('Packaging project "%s" for OS "%s" and CPU "%s".',
-    [Name, OSToString(OS), CPUToString(CPU)]));
+  Writeln(Format('Packaging project "%s" for OS / CPU "%s / %s"%s.',
+    [Name, OSToString(OS), CPUToString(CPU),
+     Iff(Plugin, ' (as a plugin)', '')]));
+
+  if Plugin then
+    raise Exception.Create('The "package" command is not useful to package plugins for now');
 
   { for Android, the packaging process is special }
   if OS = Android then
@@ -584,10 +617,11 @@ begin
   finally FreeAndNil(Pack) end;
 end;
 
-procedure TCastleProject.DoInstall(const OS: TOS; const CPU: TCPU);
+procedure TCastleProject.DoInstall(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
 begin
-  Writeln(Format('Installing project "%s" for OS "%s" and CPU "%s".',
-    [Name, OSToString(OS), CPUToString(CPU)]));
+  Writeln(Format('Installing project "%s" for OS / CPU "%s / %s"%s.',
+    [Name, OSToString(OS), CPUToString(CPU),
+     Iff(Plugin, ' (as a plugin)', '')]));
 
   if OS = Android then
     InstallAndroidPackage(Name, QualifiedName) else
@@ -698,6 +732,9 @@ procedure TCastleProject.DoClean;
     FindFiles(ProjectPath, Mask, false, @DeleteFoundFile, [ffRecursive]);
   end;
 
+var
+  OS: TOS;
+  CPU: TCPU;
 begin
   if StandaloneSource <> '' then
   begin
@@ -715,6 +752,13 @@ begin
         TryDeleteFile(PackageName(OS, CPU));
   }
 
+  { possible plugin outputs }
+  if PluginSource <> '' then
+    for OS in TOS do
+      for CPU in TCPU do
+        if OSCPUSupported[OS, CPU] then
+          TryDeleteFile(PluginCompiledFile(OS, CPU));
+
   { compilation and editor backups }
   DeleteFilesRecursive('*~'); // editor backup, e.g. Emacs
   DeleteFilesRecursive('*.ppu'); // compilation
@@ -726,6 +770,7 @@ begin
 
   { our own trash. Note that we do not remove .res file, it can be committed,
     otherwise compilation without using castle-engine tool will not be easily possible. }
+  TryDeleteFile('plugin-automatic-windows-resources.rc');
   TryDeleteFile('automatic-windows-resources.rc');
   TryDeleteFile('automatic-windows.manifest');
 

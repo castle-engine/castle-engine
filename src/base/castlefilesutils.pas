@@ -252,6 +252,9 @@ function ApplicationConfig(const Path: string): string;
 ) }
 function ApplicationData(const Path: string): string;
 
+var
+  ApplicationDataOverride: string;
+
 {$ifdef UNIX}
 { User's home directory, with trailing PathDelim.
 
@@ -457,66 +460,72 @@ var
   ApplicationDataCache: string;
 
 function ApplicationData(const Path: string): string;
-{$ifdef ANDROID}
-begin
-  Result := 'assets:/' + Path;
-{$else}
 
   function GetApplicationDataPath: string;
-  {$ifdef MSWINDOWS}
-  var
-    ExePath: string;
+  {$ifdef ANDROID}
   begin
-    ExePath := ExtractFilePath(ExeName);
-
-    Result := ExePath + 'data' + PathDelim;
-    if DirectoryExists(Result) then Exit;
-
-    Result := ExePath;
-  {$endif}
-  {$ifdef UNIX}
-  var
-    CurPath: string;
-  begin
-    {$ifdef DARWIN}
-    if BundlePath <> '' then
+    Result := 'assets:/';
+  {$else}
+    {$ifdef MSWINDOWS}
+    var
+      ExePath: string;
     begin
-      {$ifdef IOS}
-      Result := BundlePath + 'data/';
-      {$else}
-      Result := BundlePath + 'Contents/Resources/data/';
-      {$endif}
+      ExePath := ExtractFilePath(ExeName);
+
+      Result := ExePath + 'data' + PathDelim;
       if DirectoryExists(Result) then Exit;
-    end;
+
+      Result := ExePath;
     {$endif}
+    {$ifdef UNIX}
+    var
+      CurPath: string;
+    begin
+      {$ifdef DARWIN}
+      if BundlePath <> '' then
+      begin
+        {$ifdef IOS}
+        Result := BundlePath + 'data/';
+        {$else}
+        Result := BundlePath + 'Contents/Resources/data/';
+        {$endif}
+        if DirectoryExists(Result) then Exit;
+      end;
+      {$endif}
 
-    Result := HomePath + '.local/share/' + ApplicationName + '/';
-    if DirectoryExists(Result) then Exit;
+      Result := HomePath + '.local/share/' + ApplicationName + '/';
+      if DirectoryExists(Result) then Exit;
 
-    Result := HomePath + '.' + ApplicationName + '.data/';
-    if DirectoryExists(Result) then Exit;
+      Result := HomePath + '.' + ApplicationName + '.data/';
+      if DirectoryExists(Result) then Exit;
 
-    Result := '/usr/local/share/' + ApplicationName + '/';
-    if DirectoryExists(Result) then Exit;
+      Result := '/usr/local/share/' + ApplicationName + '/';
+      if DirectoryExists(Result) then Exit;
 
-    Result := '/usr/share/' + ApplicationName + '/';
-    if DirectoryExists(Result) then Exit;
+      Result := '/usr/share/' + ApplicationName + '/';
+      if DirectoryExists(Result) then Exit;
 
-    CurPath := InclPathDelim(GetCurrentDir);
+      CurPath := InclPathDelim(GetCurrentDir);
 
-    Result := CurPath + 'data/';
-    if DirectoryExists(Result) then Exit;
+      Result := CurPath + 'data/';
+      if DirectoryExists(Result) then Exit;
 
-    Result := CurPath;
+      Result := CurPath;
+    {$endif}
   {$endif}
   end;
 
 begin
+  if ApplicationDataOverride <> '' then
+    Exit(ApplicationDataOverride + Path);
+
   { Cache directory of ApplicationData. This has two reasons:
-    1. On Unix this makes three DirectoryExists calls, so it's not too fast.
+    1. On Unix GetApplicationDataPath makes three DirectoryExists calls,
+       so it's not too fast, avoid calling it often.
     2. It would be strange if ApplicationData results
        suddenly changed in the middle of the program (e.g. because user just
-       made appropriate symlink or such). }
+       made appropriate symlink or such).
+       The only case where we allow it is by ApplicationDataOverride. }
 
   if not ApplicationDataIsCache then
   begin
@@ -527,7 +536,6 @@ begin
   end;
 
   Result := ApplicationDataCache + Path;
-{$endif}
 end;
 
 { other file utilities ---------------------------------------------------- }
