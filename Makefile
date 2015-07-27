@@ -173,6 +173,7 @@ clean: cleanexamples
 			   -iname '*.or'  -or \
 			   -iname '*.rsj' -or \
 			   -iname '*.compiled' -or \
+			   -iname '*.lps' -or \
 			   -iname '*.libimp*.a' -or \
 			   -iname '*.apk' -or \
 	                   -iname '*.dcu' -or -iname '*.dpu' -or \
@@ -185,7 +186,10 @@ clean: cleanexamples
 	  packages/castle_components.pas \
 	  packages/castle_android_utilities.pas \
 	  packages/alternative_castle_window_based_on_lcl.pas \
-	  tests/test_castle_game_engine tests/test_castle_game_engine.exe
+	  tests/test_castle_game_engine \
+	  tests/test_castle_game_engine.exe \
+	  examples/portable_game_skeleton/my_fantastic_game_standalone \
+	  examples/portable_game_skeleton/my_fantastic_game_standalone.exe
 # fpmake binary, and units/ produced by fpmake compilation
 	rm -Rf fpmake fpmake.exe units/
 # lazarus produces lib/ subdirectories during compilation
