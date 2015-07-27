@@ -3843,6 +3843,9 @@ var
   end;
 
   procedure HandleChangeLightLocationDirection;
+  var
+    L: PLightInstance;
+    I: Integer;
   begin
     { If we had calculated MainLightForShadows, and this ANode is the
       main light for shadows, then update FMainLightForShadows.
@@ -3856,6 +3859,19 @@ var
     begin
       CalculateMainLightForShadowsPosition;
       VisibleChangeHere([vcVisibleNonGeometry]);
+    end;
+
+    { Change light instance on GlobalLights list, if any.
+      This way other 3D scenes, using our lights by
+      TCastleAbstractViewport.UseGlobalLights feature,
+      also have updated light location/direction.
+      See https://sourceforge.net/p/castle-engine/discussion/general/thread/0bbaaf38/
+      for a testcase. }
+    for I := 0 to GlobalLights.Count - 1 do
+    begin
+      L := Addr(GlobalLights.L[I]);
+      if L^.Node = ANode then
+        L^.Node.UpdateLightInstance(L^);
     end;
   end;
 
