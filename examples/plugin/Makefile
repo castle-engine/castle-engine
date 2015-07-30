@@ -1,13 +1,17 @@
 # This Makefile uses castle-engine build tool for most operations.
 # See https://sourceforge.net/p/castle-engine/wiki/Build%20tool/ .
 
-.PHONY: standalone
-standalone:
+.PHONY: plugin
+plugin:
 # 64-bit plugin dll seems rather useless,
 # at least on Windows browsers don't use it anyway.
 #	castle-engine compile --os=win64 --cpu=x86_64 --plugin $(CASTLE_ENGINE_TOOL_OPTIONS)
 	castle-engine compile --plugin --mode=debug $(CASTLE_ENGINE_TOOL_OPTIONS)
 #	./unix_install.sh
+
+.PHONY: standalone
+standalone:
+	castle-engine compile --mode=debug $(CASTLE_ENGINE_TOOL_OPTIONS)
 
 .PHONY: clean
 clean:
