@@ -46,13 +46,13 @@ var
   begin
     Path := CastleEngineSrc + Path;
     if not DirectoryExists(Path) then
-      OnWarning(wtMajor, 'Path', Format('Path "%s" does not exist. Make sure that $CASTLE_ENGINE_PATH points to the directory containing Castle Game Engine sources (in castle_game_engine subdirectory)', [Path]));
+      OnWarning(wtMajor, 'Path', Format('Path "%s" does not exist. Make sure that $CASTLE_ENGINE_PATH points to the directory containing Castle Game Engine sources (in castle_game_engine/ or castle-engine/ subdirectory)', [Path]));
     FpcOptions.Add('-Fu' + Path);
     FpcOptions.Add('-Fi' + Path);
   end;
 
 var
-  FpcOutput: string;
+  FpcOutput, CastleEngineSrc1, CastleEngineSrc2: string;
   FpcExitStatus: Integer;
 begin
   FpcOptions := TCastleStringList.Create;
@@ -63,8 +63,8 @@ begin
       Writeln('CASTLE_ENGINE_PATH environment variable not defined, so we assume that engine unit paths are already specified within fpc.cfg file.');
     end else
     begin
-      { Use  $CASTLE_ENGINE_PATH environment variable as the directory
-        containing castle_game_engine as subdirectory.
+      { Use $CASTLE_ENGINE_PATH environment variable as the directory
+        containing castle_game_engine/ or castle-engine/ as subdirectory.
         Then this script outputs all -Fu and -Fi options for FPC to include
         Castle Game Engine sources.
 
@@ -77,13 +77,22 @@ begin
         set $CASTLE_ENGINE_PATH environment variable before calling
         (or make sure that units paths are in fpc.cfg). }
 
-      CastleEngineSrc := InclPathDelim(CastleEnginePath) +
+      { calculate CastleEngineSrc }
+      CastleEngineSrc1 := InclPathDelim(CastleEnginePath) +
         'castle_game_engine' + PathDelim + 'src' + PathDelim;
-
-      if not DirectoryExists(CastleEngineSrc) then
+      CastleEngineSrc2 := InclPathDelim(CastleEnginePath) +
+        'castle-engine' + PathDelim + 'src' + PathDelim;
+      if DirectoryExists(CastleEngineSrc1) then
+        CastleEngineSrc := CastleEngineSrc1 else
+      if DirectoryExists(CastleEngineSrc2) then
+        CastleEngineSrc := CastleEngineSrc2 else
       begin
-        Writeln('CASTLE_ENGINE_PATH environment variable defined, but we cannot find Castle Game Engine sources inside (looking in "' + CastleEngineSrc + '"). So we compile assuming that engine unit paths are already specified within fpc.cfg file.');
-      end else
+        CastleEngineSrc := '';
+        Writeln('CASTLE_ENGINE_PATH environment variable defined, but we cannot find Castle Game Engine sources inside (looking in "' + CastleEngineSrc1 + ' and ' + CastleEngineSrc2 + '").');
+        Writeln('  We continue compilation, assuming that engine unit paths are already specified within fpc.cfg file.');
+      end;
+
+      if CastleEngineSrc <> '' then
       begin
         { Note that we add OS-specific paths (windows, android, unix)
           regardless of the target OS. There is no point in filtering them
@@ -119,7 +128,7 @@ begin
           Instead, rely on code below duplicating castle-fpc.cfg logic.
           This way, it's tested.
         FpcOptions.Add('-dCASTLE_ENGINE_PATHS_ALREADY_DEFINED');
-        FpcOptions.Add('@' + InclPathDelim(CastleEnginePath) + 'castle_game_engine/castle-fpc.cfg');
+        FpcOptions.Add('@' + InclPathDelim(CastleEnginePath) + 'castle_game_engine(or castle-engine)/castle-fpc.cfg');
         }
       end;
     end;
