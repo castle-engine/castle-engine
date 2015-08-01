@@ -461,59 +461,56 @@ var
 
 function ApplicationData(const Path: string): string;
 
+  {$ifndef ANDROID}
   function GetApplicationDataPath: string;
-  {$ifdef ANDROID}
+  {$ifdef MSWINDOWS}
+  var
+    ExePath: string;
   begin
-    Result := 'assets:/';
-  {$else}
-    {$ifdef MSWINDOWS}
-    var
-      ExePath: string;
-    begin
-      ExePath := ExtractFilePath(ExeName);
+    ExePath := ExtractFilePath(ExeName);
 
-      Result := ExePath + 'data' + PathDelim;
-      if DirectoryExists(Result) then Exit;
+    Result := ExePath + 'data' + PathDelim;
+    if DirectoryExists(Result) then Exit;
 
-      Result := ExePath;
-    {$endif}
-    {$ifdef UNIX}
-    var
-      CurPath: string;
+    Result := ExePath;
+  {$endif MSWINDOWS}
+  {$ifdef UNIX}
+  var
+    CurPath: string;
+  begin
+    {$ifdef DARWIN}
+    if BundlePath <> '' then
     begin
-      {$ifdef DARWIN}
-      if BundlePath <> '' then
-      begin
-        {$ifdef IOS}
-        Result := BundlePath + 'data/';
-        {$else}
-        Result := BundlePath + 'Contents/Resources/data/';
-        {$endif}
-        if DirectoryExists(Result) then Exit;
-      end;
+      {$ifdef IOS}
+      Result := BundlePath + 'data/';
+      {$else}
+      Result := BundlePath + 'Contents/Resources/data/';
       {$endif}
-
-      Result := HomePath + '.local/share/' + ApplicationName + '/';
       if DirectoryExists(Result) then Exit;
+    end;
+    {$endif DARWIN}
 
-      Result := HomePath + '.' + ApplicationName + '.data/';
-      if DirectoryExists(Result) then Exit;
+    Result := HomePath + '.local/share/' + ApplicationName + '/';
+    if DirectoryExists(Result) then Exit;
 
-      Result := '/usr/local/share/' + ApplicationName + '/';
-      if DirectoryExists(Result) then Exit;
+    Result := HomePath + '.' + ApplicationName + '.data/';
+    if DirectoryExists(Result) then Exit;
 
-      Result := '/usr/share/' + ApplicationName + '/';
-      if DirectoryExists(Result) then Exit;
+    Result := '/usr/local/share/' + ApplicationName + '/';
+    if DirectoryExists(Result) then Exit;
 
-      CurPath := InclPathDelim(GetCurrentDir);
+    Result := '/usr/share/' + ApplicationName + '/';
+    if DirectoryExists(Result) then Exit;
 
-      Result := CurPath + 'data/';
-      if DirectoryExists(Result) then Exit;
+    CurPath := InclPathDelim(GetCurrentDir);
 
-      Result := CurPath;
-    {$endif}
-  {$endif}
+    Result := CurPath + 'data/';
+    if DirectoryExists(Result) then Exit;
+
+    Result := CurPath;
+  {$endif UNIX}
   end;
+  {$endif not ANDROID}
 
 begin
   if ApplicationDataOverride <> '' then
@@ -529,7 +526,13 @@ begin
 
   if not ApplicationDataIsCache then
   begin
-    ApplicationDataCache := FilenameToURISafe(GetApplicationDataPath);
+    ApplicationDataCache :=
+      {$ifdef ANDROID}
+        'assets:/'
+      {$else}
+        FilenameToURISafe(GetApplicationDataPath)
+      {$endif}
+    ;
     if Log then
       WritelnLog('Path', Format('Program data path detected as "%s"', [ApplicationDataCache]));
     ApplicationDataIsCache := true;
