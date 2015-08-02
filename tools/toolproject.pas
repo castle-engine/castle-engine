@@ -485,13 +485,22 @@ var
 
   procedure AddExternalLibrary(const LibraryName: string);
   var
-    CastleEnginePath, LibraryPath: string;
+    CastleEnginePath, LibraryPath,
+      ExternalLibrariesPath1, ExternalLibrariesPath2, ExternalLibrariesPath: string;
   begin
     CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
     if CastleEnginePath = '' then
       raise Exception.Create('CASTLE_ENGINE_PATH environment variable not defined, we cannot find required library ' + LibraryName);
-    LibraryPath := InclPathDelim(CastleEnginePath) +
-      'external_libraries' + PathDelim +
+
+    ExternalLibrariesPath1 := InclPathDelim(CastleEnginePath) + 'external_libraries';
+    ExternalLibrariesPath2 := InclPathDelim(CastleEnginePath) + 'external-libraries';
+    if DirectoryExists(ExternalLibrariesPath1) then
+      ExternalLibrariesPath := ExternalLibrariesPath1 else
+    if DirectoryExists(ExternalLibrariesPath2) then
+      ExternalLibrariesPath := ExternalLibrariesPath2 else
+      raise Exception.Create('CASTLE_ENGINE_PATH environment variable defined, but we cannot find "external libraries" directory inside, searched in: "' + ExternalLibrariesPath1 + '" and "' + ExternalLibrariesPath2 + '"');
+
+    LibraryPath := ExternalLibrariesPath + PathDelim +
       CPUToString(CPU) + '-' + OSToString(OS) + PathDelim + LibraryName;
     if not FileExists(LibraryPath) then
       raise Exception.Create('Dependency library not found in ' + LibraryPath);
