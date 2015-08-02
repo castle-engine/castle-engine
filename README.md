@@ -15,7 +15,7 @@ for a list of features and documentation for developers.
   at simple FPS game example in castle_game_engine/examples/fps_game/ .
 
 - API documentation:
-  Online on http://castle-engine.sourceforge.net/reference.php .
+  Online on http://castle-engine.sourceforge.net/apidoc/html/index.html .
   Offline in doc/pasdoc/html/ subdirectory of this archive
   (just open doc/pasdoc/html/index.html in your WWW browser).
 
