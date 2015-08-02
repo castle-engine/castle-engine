@@ -96,7 +96,7 @@ end;
 
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 begin
-  Notifications.Show('Press message : ' + Event.Description);
+  Notifications.Show('Press message : ' + Event.ToString);
 
   { Cursor tests: }
   case Event.KeyCharacter of
@@ -117,7 +117,7 @@ end;
 
 procedure Release(Container: TUIContainer; const Event: TInputPressRelease);
 begin
-  Notifications.Show('Release message : ' + Event.Description);
+  Notifications.Show('Release message : ' + Event.ToString);
 end;
 
 procedure Motion(Container: TUIContainer; const Event: TInputMotion);
