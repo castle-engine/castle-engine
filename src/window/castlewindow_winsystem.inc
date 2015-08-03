@@ -108,6 +108,15 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
     begin
       TranslateMessage(msg);
       DispatchMessage(msg);
+      {$ifdef CASTLE_ENGINE_PLUGIN}
+      { In case of plugin, we have to take care of calling TryHandlingMessage
+        (which calls TCastleWindowCustom.WindowProc) ourselves.
+        In other cases, it's called by WndProc which is automatically called
+        by DispatchMessage because our window is connected with our window class.
+        See DispatchMessage docs on:
+        https://msdn.microsoft.com/en-us/library/windows/desktop/ms644934%28v=vs.85%29.aspx }
+      TryHandlingMessage(msg.hWnd, msg.message, msg.wParam, msg.lParam);
+      {$endif}
     end;
     {$endif}
 

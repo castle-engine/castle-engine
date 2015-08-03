@@ -217,12 +217,24 @@ begin
     So you will never get KeyDown/Up with K_PrintScreen. }
 end;
 
+function TryHandlingMessage(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM): boolean;
+var
+  Window: TCastleWindowCustom;
+begin
+  Window := TCastleWindowCustom(GetWindowLongPtr(hWnd, GWL_USERDATA));
+  Result := Application.FindWindow(Window) >= 0;
+  if Result then
+    Window.WindowProc(uMsg, wParm, lParm);
+end;
+
 function WndProc(hWnd: HWND; uMsg: UINT; wParm: WPARAM; lParm: LPARAM) :LRESULT; stdcall;
 var
   Window: TCastleWindowCustom;
 begin
   Window := TCastleWindowCustom(GetWindowLongPtr(hWnd, GWL_USERDATA));
-  { wszystkie hwnd jakie tu beda wpadac to beda nasze okna. Ale zanim
+  { Wszystkie hwnd jakie tu beda wpadac to beda nasze okna
+    (it's only different for a plugin, but right now the plugin uses only TryHandlingMessage,
+    not this). Ale zanim
     ustawimy oknu SetWindowLongPtr (GetWindowLongPtr bedzie do tego czasu zwracac 0)
     ono juz dostaje jakies messagy - WM_CREATE i inne.
     Mozemy je spokojnie zignorowac.

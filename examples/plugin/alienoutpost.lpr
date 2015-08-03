@@ -75,7 +75,7 @@ begin
   end;
 end;
 
-function NP_GetPluginVersion: PChar; extdecl;
+function NP_GetPluginVersion: PChar; extdecl_osdecl;
 begin
   try
     InitializeStaticResults;
@@ -89,7 +89,7 @@ begin
   end;
 end;
 
-function NP_GetMIMEDescription: PChar; extdecl;
+function NP_GetMIMEDescription: PChar; extdecl_osdecl;
 begin
   try
     InitializeStaticResults;
@@ -103,7 +103,7 @@ begin
   end;
 end;
 
-function NP_GetValue(Future: Pointer; aVariable: TNPPVariable; aValue: Pointer): TNPError; extdecl;
+function NP_GetValue(Future: Pointer; aVariable: TNPPVariable; aValue: Pointer): TNPError; extdecl_osdecl;
 begin
   try
     InitializeStaticResults;
@@ -125,7 +125,7 @@ begin
   end;
 end;
 
-function NP_Shutdown: TNPError; extdecl;
+function NP_Shutdown: TNPError; extdecl_osdecl;
 begin
   try
     WritelnLog('Plugin', Format('NP_Shutdown', []));
@@ -569,7 +569,7 @@ begin
 end;
 
 { Called only on Windows, it seems. We call it manually on Unix. }
-function NP_GetEntryPoints(pFuncs: PNPPluginFuncs): TNPError; extdecl;
+function NP_GetEntryPoints(pFuncs: PNPPluginFuncs): TNPError; extdecl_osdecl;
 var
   MinSize: Integer;
 begin
@@ -633,7 +633,7 @@ begin
     OnWarning(wtMajor, 'Plugin', 'NOT prepared for multi-threading, including external threads');
 end;
 
-function NP_Initialize(bFuncs: PNPNetscapeFuncs {$ifdef UNIX}; pFuncs: PNPPluginFuncs{$endif}): TNPError; extdecl;
+function NP_Initialize(bFuncs: PNPNetscapeFuncs {$ifdef UNIX}; pFuncs: PNPPluginFuncs{$endif}): TNPError; extdecl_osdecl;
 var
   MinSize: Integer;
 begin
@@ -644,6 +644,9 @@ begin
       {$ifdef WIN32} + ' (win32 plugin)' {$endif}
       {$ifdef WIN64} + ' (win64 plugin)' {$endif});
 
+    // TODO: make a copy of contents, not pointer
+    // TODO: check version (see FireBreath) to make sure appropriate entry points are set, do not depend that this struct has enough
+    // size. Test on ancient Firefoxes.
     sBrowserFuncs := bFuncs;
 
     // Check the size of the provided structure based on the offset of the
