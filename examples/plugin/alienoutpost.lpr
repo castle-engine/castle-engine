@@ -171,13 +171,13 @@ function InstanceDataCheck(instance: PNPP): PInstanceData;
 begin
   if Instance  = nil then
   begin
-    OnWarning(wtMajor, 'Plugin', 'Instance not assigned in EventCheckTimer');
+    OnWarning(wtMajor, 'Plugin', 'NPAPI plugin instance not assigned');
     Exit(nil);
   end;
 
   Result := PInstanceData(instance^.pdata);
   if Result  = nil then
-    OnWarning(wtMajor, 'Plugin', 'InstanceData not assigned in EventCheckTimer');
+    OnWarning(wtMajor, 'Plugin', 'NPAPI plugin instance data not assigned');
 end;
 
 {$ifndef PLUGIN_WINDOWLESS}
@@ -670,7 +670,7 @@ begin
 end;
 
 {$ifdef MSWINDOWS}
-  {$R automatic-windows-resources.res}
+  {$R plugin-automatic-windows-resources.res}
 {$endif MSWINDOWS}
 
 exports
