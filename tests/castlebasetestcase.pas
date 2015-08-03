@@ -27,6 +27,9 @@ type
   public
     procedure AssertMatricesEqual(const Expected, Actual: TMatrix4Single;
       const EqualityEpsilon: Single);
+    procedure AssertVectorsEqual(const Expected, Actual: TVector2Byte);
+    procedure AssertVectorsEqual(const Expected, Actual: TVector3Byte);
+    procedure AssertVectorsEqual(const Expected, Actual: TVector4Byte);
     procedure AssertVectorsEqual(const Expected, Actual: TVector3Single);
     procedure AssertVectorsEqual(const Expected, Actual: TVector3Double);
     procedure AssertVectorsEqual(const Expected, Actual: TVector4Single);
@@ -53,6 +56,30 @@ begin
       MatrixToRawStr(Expected, '    ') + LineEnding +
       '  Actual:' + LineEnding +
       MatrixToRawStr(Actual, '    '));
+end;
+
+procedure TCastleBaseTestCase.AssertVectorsEqual(
+  const Expected, Actual: TVector2Byte);
+begin
+  if not VectorsPerfectlyEqual(Expected, Actual) then
+    Fail(Format('Vectors (TVector2Byte) are not equal: expected: %s, actual: %s',
+      [VectorToRawStr(Expected), VectorToRawStr(Actual)]));
+end;
+
+procedure TCastleBaseTestCase.AssertVectorsEqual(
+  const Expected, Actual: TVector3Byte);
+begin
+  if not VectorsPerfectlyEqual(Expected, Actual) then
+    Fail(Format('Vectors (TVector3Byte) are not equal: expected: %s, actual: %s',
+      [VectorToRawStr(Expected), VectorToRawStr(Actual)]));
+end;
+
+procedure TCastleBaseTestCase.AssertVectorsEqual(
+  const Expected, Actual: TVector4Byte);
+begin
+  if not VectorsPerfectlyEqual(Expected, Actual) then
+    Fail(Format('Vectors (TVector4Byte) are not equal: expected: %s, actual: %s',
+      [VectorToRawStr(Expected), VectorToRawStr(Actual)]));
 end;
 
 procedure TCastleBaseTestCase.AssertVectorsEqual(

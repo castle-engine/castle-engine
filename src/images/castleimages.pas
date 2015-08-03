@@ -2279,8 +2279,8 @@ begin
     SourceY := 0;
   end;
 
-  SourceWidth  := Min(SourceWidth , Width  - 1 - X, Source.Width );
-  SourceHeight := Min(SourceHeight, Height - 1 - Y, Source.Height);
+  SourceWidth  := Min(SourceWidth , Width  - X, Source.Width );
+  SourceHeight := Min(SourceHeight, Height - Y, Source.Height);
 
   if (SourceWidth > 0) and
      (SourceHeight > 0) and
@@ -2662,48 +2662,45 @@ procedure TRGBImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
 type PPixel = PVector3Byte;
 {$I images_modulatergb_implement.inc}
 
-  function BlendBytes(const Dest, Source, Opacity: Byte): Byte; inline;
-  var
-    W: Word;
-  begin
-    W :=
-      Word(Dest  ) * (255 - Opacity) div 255 +
-      Word(Source) * Opacity         div 255;
-    if W > 255 then W := 255;
-    Result := W;
-  end;
+function BlendBytes(const Dest, Source, Opacity: Byte): Byte; inline;
+var
+  W: Word;
+begin
+  W :=
+    Word(Dest  ) * (255 - Opacity) div 255 +
+    Word(Source) * Opacity         div 255;
+  if W > 255 then W := 255;
+  Result := W;
+end;
 
-  function AddBytes(const Dest, Source, Opacity: Byte): Byte; inline;
-  var
-    W: Word;
-  begin
-    W := Dest + Word(Source) * Opacity div 255;
-    if W > 255 then W := 255;
-    Result := W;
-  end;
+function AddBytes(const Dest, Source, Opacity: Byte): Byte; inline;
+var
+  W: Word;
+begin
+  W := Dest + Word(Source) * Opacity div 255;
+  if W > 255 then W := 255;
+  Result := W;
+end;
 
-  function AddBytesPremultiplied(const Dest, Source: Byte): Byte; inline;
-  var
-    W: Word;
-  begin
-    W := Dest + Source;
-    if W > 255 then W := 255;
-    Result := W;
-  end;
+function AddBytesPremultiplied(const Dest, Source: Byte): Byte; inline;
+var
+  W: Word;
+begin
+  W := Dest + Source;
+  if W > 255 then W := 255;
+  Result := W;
+end;
 
 procedure TRGBImage.DrawCore(Source: TCastleImage;
   X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
   const Mode: TDrawMode);
-var
-  PSource: PVector4Byte;
-  PDest: PVector3Byte;
-  DestX, DestY: Integer;
-  SourceAlpha: TRGBAlphaImage;
-begin
-  if Source is TRGBAlphaImage then
-  begin
-    SourceAlpha := TRGBAlphaImage(Source);
 
+  procedure SourceRGBAlpha(Source: TRGBAlphaImage);
+  var
+    PSource: PVector4Byte;
+    PDest: PVector3Byte;
+    DestX, DestY: Integer;
+  begin
     case Mode of
       dmBlend:
         for DestY := Y to Y + SourceHeight - 1 do
@@ -2720,7 +2717,7 @@ begin
           end;
         end;
       dmAdd:
-        if SourceAlpha.PremultipliedAlpha then
+        if Source.PremultipliedAlpha then
         begin
           for DestY := Y to Y + SourceHeight - 1 do
           begin
@@ -2753,8 +2750,111 @@ begin
         end;
       else raise EInternalError.Create('Blend mode not implemented (TRGBImage.DrawCore)');
     end;
+  end;
 
-  end else
+  procedure SourceGrayscaleAlpha(Source: TGrayscaleAlphaImage);
+  var
+    PSource: PVector2Byte;
+    PDest: PVector3Byte;
+    DestX, DestY: Integer;
+  begin
+    case Mode of
+      dmBlend:
+        for DestY := Y to Y + SourceHeight - 1 do
+        begin
+          PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+          PDest := PixelPtr(X, DestY);
+          for DestX := X to X + SourceWidth - 1 do
+          begin
+            PDest^[0] := BlendBytes(PDest^[0], PSource^[0], PSource^[1]);
+            PDest^[1] := BlendBytes(PDest^[1], PSource^[0], PSource^[1]);
+            PDest^[2] := BlendBytes(PDest^[2], PSource^[0], PSource^[1]);
+            Inc(PSource);
+            Inc(PDest);
+          end;
+        end;
+      dmAdd:
+        {if Source.PremultipliedAlpha then
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := AddBytesPremultiplied(PDest^[0], PSource^[0]);
+              PDest^[1] := AddBytesPremultiplied(PDest^[1], PSource^[0]);
+              PDest^[2] := AddBytesPremultiplied(PDest^[2], PSource^[0]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end else}
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := AddBytes(PDest^[0], PSource^[0], PSource^[1]);
+              PDest^[1] := AddBytes(PDest^[1], PSource^[0], PSource^[1]);
+              PDest^[2] := AddBytes(PDest^[2], PSource^[0], PSource^[1]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
+      else raise EInternalError.Create('Blend mode not implemented (TRGBImage.DrawCore)');
+    end;
+  end;
+
+  procedure SourceGrayscale(Source: TGrayscaleImage);
+  var
+    PSource: PByte;
+    PDest: PVector3Byte;
+    DestX, DestY: Integer;
+  begin
+    case Mode of
+      dmBlend:
+        for DestY := Y to Y + SourceHeight - 1 do
+        begin
+          PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+          PDest := PixelPtr(X, DestY);
+          for DestX := X to X + SourceWidth - 1 do
+          begin
+            PDest^[0] := PSource^;
+            PDest^[1] := PSource^;
+            PDest^[2] := PSource^;
+            Inc(PSource);
+            Inc(PDest);
+          end;
+        end;
+      dmAdd:
+        for DestY := Y to Y + SourceHeight - 1 do
+        begin
+          PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+          PDest := PixelPtr(X, DestY);
+          for DestX := X to X + SourceWidth - 1 do
+          begin
+            PDest^[0] := AddBytesPremultiplied(PDest^[0], PSource^);
+            PDest^[1] := AddBytesPremultiplied(PDest^[1], PSource^);
+            PDest^[2] := AddBytesPremultiplied(PDest^[2], PSource^);
+            Inc(PSource);
+            Inc(PDest);
+          end;
+        end;
+      else raise EInternalError.Create('Blend mode not implemented (TRGBImage.DrawCore)');
+    end;
+  end;
+
+begin
+  if Source is TRGBAlphaImage then
+    SourceRGBAlpha(TRGBAlphaImage(Source)) else
+  if Source is TGrayscaleAlphaImage then
+    SourceGrayscaleAlpha(TGrayscaleAlphaImage(Source)) else
+  if Source is TGrayscaleImage then
+    SourceGrayscale(TGrayscaleImage(Source)) else
     inherited;
 end;
 

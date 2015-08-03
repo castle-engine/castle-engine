@@ -586,6 +586,8 @@ function Vector4Single(const v: TVector4Double): TVector4Single; overload;
 function Vector4Double(const x, y, z ,w: Double): TVector4Double; overload;
 function Vector4Double(const v: TVector4Single): TVector4Double; overload;
 
+function Vector2Byte(x, y: Byte): TVector2Byte; overload;
+
 function Vector3Byte(x, y, z: Byte): TVector3Byte; overload;
 
 { Convert float vectors into byte vectors.
@@ -1175,7 +1177,9 @@ function VectorsPerfectlyEqual(const V1, V2: TVector3Single): boolean; overload;
 function VectorsPerfectlyEqual(const V1, V2: TVector3Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function VectorsPerfectlyEqual(const V1, V2: TVector4Single): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function VectorsPerfectlyEqual(const V1, V2: TVector4Double): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const V1, V2: TVector2Byte  ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function VectorsPerfectlyEqual(const V1, V2: TVector3Byte  ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const V1, V2: TVector4Byte  ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 { @groupEnd }
 
 function MatricesEqual(const M1, M2: TMatrix3Single; const EqualityEpsilon: Single): boolean; overload;
@@ -1531,6 +1535,8 @@ function MatrixToNiceStr(const v: TMatrix4Double; const LineIndent: string): str
 
 function FloatToRawStr(f: Single): string; overload;
 function FloatToRawStr(f: Double): string; overload;
+function VectorToRawStr(const v: array of Byte): string; overload;
+function VectorToRawStr(const v: array of Integer): string; overload;
 function VectorToRawStr(const v: array of Single): string; overload;
 function VectorToRawStr(const v: array of Double): string; overload;
 function MatrixToRawStr(const v: TMatrix4Single; const LineIndent: string): string; overload;
@@ -2733,6 +2739,11 @@ begin
   result[0] := v[0]; result[1] := v[1]; result[2] := v[2];
 end;
 
+function Vector2Byte(x, y: Byte): TVector2Byte;
+begin
+  result[0] := x; result[1] := y;
+end;
+
 function Vector3Byte(x, y, z: Byte): TVector3Byte;
 begin
   result[0] := x; result[1] := y; result[2] := z;
@@ -2924,11 +2935,25 @@ end;
 
 { some math on vectors ------------------------------------------------------- }
 
+function VectorsPerfectlyEqual(const V1, V2: TVector2Byte): boolean;
+begin
+  Result := (V1[0] = V2[0]) and
+            (V1[1] = V2[1]);
+end;
+
 function VectorsPerfectlyEqual(const V1, V2: TVector3Byte): boolean;
 begin
   Result := (V1[0] = V2[0]) and
             (V1[1] = V2[1]) and
             (V1[2] = V2[2]);
+end;
+
+function VectorsPerfectlyEqual(const V1, V2: TVector4Byte): boolean;
+begin
+  Result := (V1[0] = V2[0]) and
+            (V1[1] = V2[1]) and
+            (V1[2] = V2[2]) and
+            (V1[3] = V2[3]);
 end;
 
 function Lerp(const a: Single; const V1, V2: TVector2Byte): TVector2Byte;
@@ -3089,6 +3114,22 @@ begin
   result := '(';
   for i := 0 to High(v)-1 do result := result +IntToStr(v[i]) +', ';
   if High(v) >= 0 then result := result +IntToStr(v[High(v)]) +')';
+end;
+
+function VectorToRawStr(const v: array of Byte): string;
+var i: integer;
+begin
+  result := '';
+  for i := 0 to High(v)-1 do result += IntToStr(v[i]) +' ';
+  if High(v) >= 0 then result += IntToStr(v[High(v)]);
+end;
+
+function VectorToRawStr(const v: array of Integer): string;
+var i: integer;
+begin
+  result := '';
+  for i := 0 to High(v)-1 do result += IntToStr(v[i]) +' ';
+  if High(v) >= 0 then result += IntToStr(v[High(v)]);
 end;
 
 { math with matrices ---------------------------------------------------------- }
