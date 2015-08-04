@@ -234,6 +234,7 @@ function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boo
   Useful for printing strings with some unprintable chars for
   debugging purposes. }
 function SReadableForm(const s: string): string;
+function SReadableForm(const C: char): string;
 
 { Return S[StartPosition..EndPosition].
   This is similar to standard Copy procedure,
@@ -778,6 +779,8 @@ function StrToFloatDef(const s: string; DefValue: Extended): Extended;
   can't depend on how compiler stores sets.) }
 function SetToStr(const SetVariable; NumStart, NumEnd: byte): string;
 
+function CharSetToStr(const SetVariable: TSetOfChars): string;
+
 { PCharOrNil simply returns a Pointer(S), you can think of it as a NO-OP.
   If string is empty, this returns @nil, otherwise it works just like
   PChar(S): returns a Pointer(S) with appropriate type cast. }
@@ -1172,14 +1175,19 @@ function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boo
 begin result:=(index <= Length(s)) and (s[index] in chars) end;
 
 function SReadableForm(const S: string): string;
-var 
+var
   I: Integer;
 begin
   Result := '';
   for I := 1 to Length(S) do
-    if (Ord(S[I]) < Ord(' ')) or (Ord(S[I]) >= 128) then
-      Result += '#'+IntToStr(Ord(S[I])) else
-      Result += S[I];
+    Result += SReadableForm(S[I]);
+end;
+
+function SReadableForm(const C: char): string;
+begin
+  if (Ord(C) < Ord(' ')) or (Ord(C) >= 128) then
+    Result := '#'+IntToStr(Ord(C)) else
+    Result := C;
 end;
 
 function CopyPos(const s: string; StartPosition, EndPosition: integer): string;
@@ -2081,16 +2089,30 @@ begin
 end;
 
 function SetToStr(const SetVariable; NumStart, NumEnd: byte): string;
-var BSet: set of byte absolute SetVariable;
-    i: byte;
+var
+  BSet: set of byte absolute SetVariable;
+  i: byte;
 begin
- result := '[';
- for i := 0 to NumEnd-NumStart do
-  if i in BSet then
-   if result = '[' then
-    result := '['+IntToStr(i+NumStart) else
-    result := result+','+IntToStr(i+NumStart);
- result := result+']';
+  Result := '[';
+  for i := 0 to NumEnd-NumStart do
+    if i in BSet then
+      if Result = '[' then
+        Result := '[' + IntToStr(i + NumStart) else
+        Result := Result + ',' + IntToStr(i + NumStart);
+  Result := Result + ']';
+end;
+
+function CharSetToStr(const SetVariable: TSetOfChars): string;
+var
+  C: char;
+begin
+  Result := '[';
+  for C := Low(C) to High(C) do
+    if C in SetVariable then
+      if Result = '[' then
+        Result := '[' + SReadableForm(C) else
+        Result := Result + ',' + SReadableForm(C);
+  Result := Result + ']';
 end;
 
 function StrToFloatDef(const s: string; DefValue: Extended): Extended;

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2014 Michalis Kamburelis and FPC team.
+  Copyright 2014-2014 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -155,6 +155,44 @@ constructor TCastleProject.Create(const Path: string);
       Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
     end;
 
+    procedure CheckManifestCorrect;
+
+      procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
+      var
+        I: Integer;
+      begin
+        for I := 1 to Length(Value) do
+          if not (Value[I] in AllowedChars) then
+            raise Exception.CreateFmt('Project %s contains invalid characters: "%s", allowed are only these characters: %s',
+              [Name, Value, CharSetToStr(AllowedChars)]);
+      end;
+
+      procedure CheckMatchesExcept(const Name, Value: string; const DisAllowedChars: TSetOfChars);
+      var
+        I: Integer;
+      begin
+        for I := 1 to Length(Value) do
+          if Value[I] in DisAllowedChars then
+            raise Exception.CreateFmt('Project %s contains invalid characters: "%s", this character is not allowed: %s',
+              [Name, Value, SReadableForm(Value[I])]);
+      end;
+
+    const
+      ControlChars = [#0..Chr(Ord(' ')-1)];
+      AlphaNum = ['a'..'z','A'..'Z','0'..'9'];
+    begin
+      CheckMatches('name', Name                     , AlphaNum + ['_','-']);
+      CheckMatches('executable_name', ExecutableName, AlphaNum + ['_','-']);
+
+      { non-filename stuff: allow also dots }
+      CheckMatches('version', Version             , AlphaNum + ['_','-','.']);
+      CheckMatches('qualified_name', QualifiedName, AlphaNum + ['_','-','.']);
+
+      { more user-visible stuff, where we allow spaces, local characters and so on }
+      CheckMatchesExcept('caption', Caption, ControlChars);
+      CheckMatchesExcept('author', Author, ControlChars);
+    end;
+
   var
     Doc: TXMLDocument;
     ManifestURL: string;
@@ -238,6 +276,8 @@ constructor TCastleProject.Create(const Path: string);
         end;
       finally FreeAndNil(Doc) end;
     end;
+
+    CheckManifestCorrect;
   end;
 
   procedure GuessDependencies;
