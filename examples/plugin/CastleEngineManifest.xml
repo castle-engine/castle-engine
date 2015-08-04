@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="alienoutpost"
   caption="Alien Outpost"
+  qualified_name="net.sourceforge.castle-engine.plugin"
   plugin_source="alienoutpost.lpr"
   standalone_source="alienoutpost_standalone.lpr"
   author="Michalis Kamburelis">

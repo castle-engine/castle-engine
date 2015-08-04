@@ -103,7 +103,7 @@ implementation
 
 uses StrUtils, DOM, Process, Classes,
   CastleURIUtils, CastleXMLUtils, CastleWarnings, CastleFilesUtils,
-  ToolPackage, ToolWindowsResources, ToolAndroidPackage;
+  ToolPackage, ToolWindowsResources, ToolAndroidPackage, ToolWindowsRegistry;
 
 { TCastleProject ------------------------------------------------------------- }
 
@@ -664,7 +664,10 @@ begin
 
   if OS = Android then
     InstallAndroidPackage(Name, QualifiedName) else
-    raise Exception.Create('The "install" command is useful only with --os=android right now.');
+  if (OS = Win32) and Plugin then
+    InstallWindowsPluginRegistry(Name, QualifiedName, ProjectPath,
+      PluginCompiledFile(OS, CPU), Version, Author) else
+    raise Exception.Create('The "install" command is not useful for this OS / CPU right now. Install and run the application manually.');
 end;
 
 procedure TCastleProject.DoPackageSource;

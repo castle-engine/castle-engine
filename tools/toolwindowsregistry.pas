@@ -22,13 +22,15 @@ interface
 
 uses CastleUtils, CastleStringUtils;
 
-procedure InstallWindowsPluginRegistry(const ProjectName, ProjectCaption: string);
+procedure InstallWindowsPluginRegistry(const ProjectName, QualifiedName, ProjectPath,
+  PluginCompiledFile, Version, Author: string);
 
 implementation
 
 uses SysUtils, Registry;
 
-procedure InstallWindowsPluginRegistry(const ProjectName, ProjectCaption: string);
+procedure InstallWindowsPluginRegistry(const ProjectName, QualifiedName, ProjectPath,
+  PluginCompiledFile, Version, Author: string);
 var
   Registry: TRegistry;
 
@@ -38,32 +40,38 @@ var
       raise Exception.Create('Cannot open or create Windows registry key: ' + KeyPath);
   end;
 
+var
+  BaseKeyPath: string;
 begin
   Registry := TRegistry.Create;
   try
+    // TODO: check installing win64 plugin
+
     // TODO: do we need to bother with 32/64 registry versions?
     // see http://wiki.freepascal.org/fcl-registry
     // https://msdn.microsoft.com/en-us/library/windows/desktop/aa384129%28v=vs.85%29.aspx
-    Registry.RootKey := HKEY_LOCAL_MACHINE;
+    Registry.RootKey := HKEY_CURRENT_USER;
+    { For system-wide install we would use HKEY_LOCAL_MACHINE.
+      Also, 'SOFTWARE' is written all in caps, although this probably doesn't matter. }
 
-    OpenCreateKey('\SOFTWARE\MozillaPlugins\@' + QualifiedName '/' + ProjectName + ',version=' + ProjectVersion);
-    Registry.WritelnString('Description', 'Plugin created with Castle Game Engine to run ' + ProjectName);
-    Registry.WritelnString('Path', ProjectPath);
-    Registry.WritelnString('ProductName', ProjectName);
-    Registry.WritelnString('Vendor', Author);
-    Registry.WritelnString('Version', Version);
-    Registry.WritelnString('GeckoVersion', '1.9');
+    BaseKeyPath := '\Software\MozillaPlugins\@' + QualifiedName + '/' + ProjectName + ',version=' + Version;
 
-    OpenCreateKey('\SOFTWARE\MozillaPlugins\@' + QualifiedName '/' + ProjectName + ',version=' + ProjectVersion + '\MimeTypes');
+    OpenCreateKey(BaseKeyPath);
+    Registry.WriteString('Description', 'Plugin created with Castle Game Engine to run ' + ProjectName);
+    Registry.WriteString('Path', InclPathDelim(ProjectPath) + PluginCompiledFile);
+    Registry.WriteString('ProductName', ProjectName);
+    Registry.WriteString('Vendor', Author);
+    Registry.WriteString('Version', Version);
+    Registry.WriteString('GeckoVersion', '1.9');
 
-    OpenCreateKey('\SOFTWARE\MozillaPlugins\@' + QualifiedName '/' + ProjectName + ',version=' + ProjectVersion + '\MimeTypes\x-' + ProjectName);
-    Registry.WritelnString('Description', 'Game Data for ' + ProjectName + ' (Castle Game Engine)');
+    OpenCreateKey(BaseKeyPath + '\MimeTypes');
 
-    //  Registry.RootKey := HKEY_CURRENT_USER;
-    // TODO: is this needed? Do the same, underneath
-    // HKEY_CURRENT_USER\Software\MozillaPlugins\...
-  finally
-    Registry.Free;
-  end;
+    OpenCreateKey(BaseKeyPath + '\MimeTypes\x-' + ProjectName);
+    Registry.WriteString('Description', 'Game Data for ' + ProjectName + ' (Castle Game Engine)');
+
+    Writeln('Installed Windows registry entries under HKEY_CURRENT_USER' + BaseKeyPath);
+    Writeln('  The plugin should be visible now in Firefox and other browsers that support NPAPI plugins.');
+  finally FreeAndNil(Registry) end;
 end;
+
 end.
