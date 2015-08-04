@@ -128,7 +128,8 @@ var
   function InitializeLogFile(const LogFileName: string): boolean;
   begin
     try
-      LogStream := TFileStream.Create(LogFileName, fmCreate);
+      { without fmShareDenyNone, you cannot open the file while plugin runs }
+      LogStream := TFileStream.Create(LogFileName, fmCreate or fmShareDenyNone);
     except
       on E: EFCreateError do
       begin

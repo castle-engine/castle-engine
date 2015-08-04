@@ -21,7 +21,7 @@ library alienoutpost;
 { Do not use windowless for now, I can't seem to be able to get good X11 window XID. }
 { $define PLUGIN_WINDOWLESS}
 
-uses CMem, //< TODO, cmem is a desperate try. TODO: is this needed? not sure.
+uses
   {$ifdef DEBUG_PLUGIN_THREAD_ID}
     {$ifdef LINUX} Libc, {$endif}
     {$ifdef MSWINDOWS} Windows, {$endif}
@@ -690,21 +690,6 @@ exports
   NP_GetValue,
   NP_Initialize,
   NP_Shutdown,
-  NP_GetEntryPoints,
-
-  { TODO: probably exporting these is not necessary, NP_Initialize passes them? }
-  NPP_New,
-  NPP_Destroy,
-  NPP_SetWindow,
-  NPP_NewStream,
-  NPP_DestroyStream,
-  NPP_WriteReady,
-  NPP_Write,
-  NPP_HandleEvent,
-  NPP_GetValue,
-  NPP_SetValue,
-  NPP_StreamAsFile,
-  NPP_Print,
-  NPP_URLNotify;
+  NP_GetEntryPoints;
 
 end.
