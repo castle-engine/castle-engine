@@ -653,7 +653,6 @@ type
 
     { EventOpenCalled = has OnOpen been called from Open? }
     EventOpenCalled: boolean;
-    CloseErrors: string; { Used by CloseBackend. }
 
     MenuUpdateInside: Cardinal;
     MenuUpdateNeedsInitialize: boolean;
@@ -747,7 +746,7 @@ type
 
       No need to call OpenWindowsRemove here, it's done by universal Close already.
       It's advised (although not totally required) that all errors during
-      CloseBackend should be caught and cause only CloseError.
+      CloseBackend should be caught and cause only OnWarning.
       Reasoning: Close should, regardless of trouble, try to finalize as much
       as possible. }
     procedure CloseBackend;
@@ -755,8 +754,6 @@ type
     { Make the OpenGL context of this window current (active for following
       OpenGL commands). }
     procedure BackendMakeCurrent;
-
-    procedure CloseError(const error: string);
 
     { Swap OpenGL buffers.
       Call this method only when DoubleBuffered and if you already did
@@ -3068,13 +3065,6 @@ begin
   Open(@DefaultRetryOpen);
 end;
 
-procedure TCastleWindowCustom.CloseError(const error: string);
-begin
-  if CloseErrors <> '' then
-    CloseErrors := CloseErrors + nl + Error else
-    CloseErrors := Error
-end;
-
 procedure TCastleWindowCustom.Close(QuitWhenLastWindowClosed: boolean);
 begin
   if FClosed then Exit;
@@ -3086,7 +3076,6 @@ begin
       Container.EventClose(Application.OpenWindowsCount);
     end;
   finally
-    CloseErrors := '';
     CloseBackend;
 
     FClosed := true;
@@ -3102,11 +3091,6 @@ begin
       is called, but Self is not on OpenWindows list. And this fact should not be
       reported as an error -- error is EGLContextNotPossible ! }
     Application.OpenWindowsRemove(Self, QuitWhenLastWindowClosed);
-
-    { Only raise at the end. This way we always go fully through CloseBackend,
-      regardless of errors.}
-    if CloseErrors <> '' then
-      raise Exception.Create('Error while trying to close window ' + CloseErrors);
   end;
 end;
 

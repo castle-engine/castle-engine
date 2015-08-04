@@ -345,9 +345,9 @@ begin
   if h_GLRc <> 0 then
   begin
     if (not wglMakeCurrent(h_Dc, 0)) then
-      CloseError('Deactivating current OpenGL rendering context (wglMakeCurrent(..., NULL)) failed.');
+      OnWarning(wtMajor, 'WinAPI', 'Deactivating current OpenGL rendering context (wglMakeCurrent(..., NULL)) failed.');
     if (not wglDeleteContext(h_GLRc)) then
-      CloseError('Releasing current OpenGL rendering context (wglDeleteContext) failed.');
+      OnWarning(wtMajor, 'WinAPI', 'Releasing current OpenGL rendering context (wglDeleteContext) failed.');
     h_GLRc := 0;
   end;
 end;

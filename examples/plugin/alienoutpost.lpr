@@ -22,22 +22,24 @@ library alienoutpost;
 { $define PLUGIN_WINDOWLESS}
 
 uses CMem, //< TODO, cmem is a desperate try. TODO: is this needed? not sure.
-  // {$ifdef LINUX} Libc, {$endif} // TODO, only to debug pthread
-  // {$ifdef MSWINDOWS} Windows, {$endif} // TODO, only to debug thread if
+  {$ifdef DEBUG_PLUGIN_THREAD_ID}
+    {$ifdef LINUX} Libc, {$endif}
+    {$ifdef MSWINDOWS} Windows, {$endif}
+  {$endif}
   SysUtils, Classes, CTypes, {$ifdef MOZ_X11} Xlib, X, {$endif}
   CastleNPAPI, CastleLog, CastleWarnings, CastleUtils, CastleWindow,
   CastleFilesUtils, CastleStringUtils,
   Game;
 
 var
-  sBrowserFuncs: PNPNetscapeFuncs;
+  sBrowserFuncs: TNPNetscapeFuncs;
 
 type
   TInstanceData = record
     Npp: PNPP;
     Window: TNPWindow;
     CastleWindow: TCastleWindowCustom;
-    //TODO444 FreeCastleWindow: boolean;
+    FreeCastleWindow: boolean;
     NamedParameters: TCastleStringList;
     {$ifndef PLUGIN_WINDOWLESS}
     HasEventCheckTimer: boolean;
@@ -146,7 +148,7 @@ var
   SupportsXEmbed: TNPBool;
   //Toolkit: TNPNToolkitType;
 begin
-  Err := sBrowserFuncs^.getvalue(instance, NPNVSupportsXEmbedBool, @supportsXEmbed);
+  Err := sBrowserFuncs.getvalue(instance, NPNVSupportsXEmbedBool, @supportsXEmbed);
   if (err <> NPERR_NO_ERROR) or (supportsXEmbed = 0) then
   begin
     OnWarning(wtMajor, 'Plugin', 'Browser does not support XEmbed');
@@ -155,7 +157,7 @@ begin
   WritelnLog('Plugin', 'XEmbed supported');
 
   // Asking for toolkit ends with error when using XEmbed?
-  // Err := sBrowserFuncs^.getvalue(instance, NPNVToolkit, @toolkit);
+  // Err := sBrowserFuncs.getvalue(instance, NPNVToolkit, @toolkit);
   // if (err <> NPERR_NO_ERROR) or (toolkit <> NPNVGtk2) then
   // begin
   //   OnWarning(wtMajor, 'Plugin', Format('Browser toolkit is not GTK2 (%d) or error when getting toolkit (%d)',
@@ -184,7 +186,7 @@ end;
 var
   InsideTimer: boolean;
 
-procedure EventCheckTimerCallback(UserData: Pointer); extdecl;
+procedure EventCheckTimer(instance: PNPP; timerID: CUInt32); extdecl;
 const
   { This is brutal, but it seems the only way to get smooth mouse movement
     after mouse click on Firefox. Otherwise (with = 1) we get hangs,
@@ -196,13 +198,19 @@ var
   InstanceData: PInstanceData;
   I, J: Integer;
 begin
-  // {$ifdef LINUX} Writeln('Thread id in EventCheckTimerCallback: ', pthread_self); {$endif}
-  // {$ifdef MSWINDOWS} Writeln('Thread id in EventCheckTimerCallback: ', GetCurrentThreadId); {$endif}
+  // We could try calling the processing here like this:
+  //sBrowserFuncs.pluginthreadasynccall(instance, @EventCheckTimerCallback, instance);
+  // but it's not necessary anywhere.
+
+  {$ifdef DEBUG_PLUGIN_THREAD_ID} // weird FPC 2.6.4 bug prevents uncommenting this
+  {$ifdef LINUX} Writeln('Thread id in EventCheckTimerCallback: ', pthread_self); {$endif}
+  {$ifdef MSWINDOWS} WritelnLog('Plugin', Format('Thread id in EventCheckTimerCallback: %d', [PtrUint(GetCurrentThreadId)])); {$endif}
+  {$endif}
 
   InsideTimer := true;
   try
     try
-      InstanceData := InstanceDataCheck(PNPP(UserData));
+      InstanceData := InstanceDataCheck(Instance);
       if InstanceData = nil then Exit; // warning already done by InstanceDataCheck
 
       // TODO: avoid multiple timers for multiple window, we want only one.
@@ -226,18 +234,6 @@ begin
     end;
   finally InsideTimer := false end;
 end;
-
-procedure EventCheckTimer(instance: PNPP; timerID: CUInt32); extdecl;
-begin
-  // {$ifdef LINUX} Writeln('Thread id in EventCheckTimer: ', pthread_self); {$endif}
-  // {$ifdef MSWINDOWS} Writeln('Thread id in EventCheckTimer: ', GetCurrentThreadId); {$endif}
-
-  // TODO: EventCheckTimerCallback not necessary it seems on Unix.
-  // Remains to be check on windows.
-  //sBrowserFuncs^.pluginthreadasynccall(instance, @EventCheckTimerCallback, instance);
-
-  EventCheckTimerCallback(instance);
-end;
 {$endif}
 
 function NPP_New(pluginType: TNPMIMEType; instance: PNPP; mode: CUInt16; argc: CInt16; argn: PPChar; argv: PPChar; saved: PNPSavedData): TNPError; extdecl;
@@ -254,14 +250,14 @@ begin
     {$ifdef PLUGIN_WINDOWLESS}
     // Make sure we can render this plugin
     browserSupportsWindowless := 0;
-    sBrowserFuncs^.getvalue(instance, NPNVSupportsWindowless, @browserSupportsWindowless);
+    sBrowserFuncs.getvalue(instance, NPNVSupportsWindowless, @browserSupportsWindowless);
     if browserSupportsWindowless = 0 then
     begin
       OnWarning(wtMajor, 'Plugin', 'Windowless mode not supported by the browser');
       Exit(NPERR_GENERIC_ERROR);
     end;
 
-    sBrowserFuncs^.setvalue(instance, NPPVpluginWindowBool, nil);
+    sBrowserFuncs.setvalue(instance, NPPVpluginWindowBool, nil);
     {$endif}
 
     // set up our our instance data
@@ -287,17 +283,19 @@ begin
       WritelnLog('Plugin', Format('Params %s=%s', [argn[I], argv[I]]));
     end;
 
-    Application.UserAgent := sBrowserFuncs^.uagent(instance);
+    Application.UserAgent := sBrowserFuncs.uagent(instance);
 
     {$ifndef PLUGIN_WINDOWLESS}
-    InstanceData^.EventCheckTimerId := sBrowserFuncs^.scheduletimer(instance, 0, 1, @EventCheckTimer);
+    InstanceData^.EventCheckTimerId := sBrowserFuncs.scheduletimer(instance, 0, 1, @EventCheckTimer);
     InstanceData^.HasEventCheckTimer := true;
     {$endif}
 
-    WritelnLog('Plugin', Format('Finish NPP_New, user agent is %s', [Application.UserAgent]));
-    // {$ifdef LINUX} Writeln('Thread id of current thread: ', pthread_self); {$endif}
-    // {$ifdef MSWINDOWS} Writeln('Thread id of current thread: ', GetCurrentThreadId); {$endif}
+    {$ifdef DEBUG_PLUGIN_THREAD_ID}
+    {$ifdef LINUX} Writeln('Thread id of current thread: ', pthread_self); {$endif}
+    {$ifdef MSWINDOWS} WritelnLog('Plugin', Format('Thread id of current thread in NPP_New: %d', [PtrUint(GetCurrentThreadId)])); {$endif}
+    {$endif}
 
+    WritelnLog('Plugin', Format('Finish NPP_New, user agent is %s', [Application.UserAgent]));
     Result := NPERR_NO_ERROR;
   except
     on E: TObject do
@@ -321,7 +319,7 @@ begin
     {$ifndef PLUGIN_WINDOWLESS}
     if InstanceData^.HasEventCheckTimer then
     begin
-      sBrowserFuncs^.unscheduletimer(instance, InstanceData^.EventCheckTimerId);
+      sBrowserFuncs.unscheduletimer(instance, InstanceData^.EventCheckTimerId);
       InstanceData^.HasEventCheckTimer := false;
     end;
 
@@ -332,7 +330,9 @@ begin
     Instance^.pdata := nil;
 
     InstanceData^.CastleWindow.Close(false);
-    InstanceData^.CastleWindow := nil;
+    if InstanceData^.FreeCastleWindow then
+      FreeAndNil(InstanceData^.CastleWindow) else
+      InstanceData^.CastleWindow := nil;
 
     FreeAndNil(InstanceData^.NamedParameters);
 
@@ -372,15 +372,23 @@ begin
       Exit(NPERR_GENERIC_ERROR);
     end;
 
-    WindowInitialize := InstanceData^.window.window <> window^.window;
+    { the 2nd comparison is necessary to detect buggy Google Chrome on Windows
+      that passes window=nil later }
+    WindowInitialize := (InstanceData^.window.window <> window^.window) and (window^.window <> nil);
     InstanceData^.window := window^;
 
     if WindowInitialize then
     begin
       if (Application.MainWindow <> nil) and
          Application.MainWindow.Closed then
-        InstanceData^.CastleWindow := Application.MainWindow else
+      begin
+        InstanceData^.CastleWindow := Application.MainWindow;
+        InstanceData^.FreeCastleWindow := false;
+      end else
+      begin
         InstanceData^.CastleWindow := Application.DefaultWindowClass.Create(Application);
+        InstanceData^.FreeCastleWindow := true;
+      end;
       InstanceData^.CastleWindow.NamedParameters.Assign(InstanceData^.NamedParameters);
       FreeAndNil(InstanceData^.NamedParameters); // will not be useful anymore
     end;
@@ -576,8 +584,9 @@ begin
   try
     WritelnLog('Plugin', 'NP_GetEntryPoints called');
 
-    // not necessary, even bad (mistakenly nils the size)
+    // note: do NOT clear the pFuncs^, like
     //FillChar(pFuncs^, SizeOf(TNPPluginFuncs), 0);
+    // as this would clear also pFuncs^.size.
 
     // Check the size of the provided structure based on the offset of the
     // last member we need.
@@ -618,8 +627,9 @@ type
    begin
    end;
 
-{ See http://wiki.freepascal.org/Multithreaded_Application_Tutorial#External_threads }
-// TODO: is this needed? not sure.
+{ Prepare in case current process will use various threads when calling our code.
+  See http://wiki.freepascal.org/Multithreaded_Application_Tutorial#External_threads .
+  Not necessary in practice --- tested on various browsers and OSes, we're always in a single thread. }
 procedure PrepareForExternalThreads;
 begin
   { initialise threading system }
@@ -629,8 +639,8 @@ begin
     free;
   end;
   if IsMultiThread then
-    WritelnLog('Plugin', 'Ok, prepared for multi-threading, even external threads') else
-    OnWarning(wtMajor, 'Plugin', 'NOT prepared for multi-threading, including external threads');
+    WritelnLog('Plugin', 'OK: prepared for multi-threading') else
+    OnWarning(wtMajor, 'Plugin', 'NOT prepared for multi-threading');
 end;
 
 function NP_Initialize(bFuncs: PNPNetscapeFuncs {$ifdef UNIX}; pFuncs: PNPPluginFuncs{$endif}): TNPError; extdecl_osdecl;
@@ -644,11 +654,6 @@ begin
       {$ifdef WIN32} + ' (win32 plugin)' {$endif}
       {$ifdef WIN64} + ' (win64 plugin)' {$endif});
 
-    // TODO: make a copy of contents, not pointer
-    // TODO: check version (see FireBreath) to make sure appropriate entry points are set, do not depend that this struct has enough
-    // size. Test on ancient Firefoxes.
-    sBrowserFuncs := bFuncs;
-
     // Check the size of the provided structure based on the offset of the
     // last member we need.
     MinSize := PtrUInt(@(bFuncs^.unscheduletimer)) - PtrUInt(bFuncs) + SizeOf(Pointer);
@@ -658,6 +663,9 @@ begin
       OnWarning(wtMajor, 'Plugin', Format('Too old implementation of NPAPI in your browser (because PNPNetscapeFuncs struct is too small: %d). Upgrade your browser.', [bFuncs^.size]));
       Exit(NPERR_INVALID_FUNCTABLE_ERROR);
     end;
+
+    FillChar(sBrowserFuncs, SizeOf(sBrowserFuncs), 0);
+    Move(bFuncs^, sBrowserFuncs, MinSize); // copy only MinSize, not more --- this is safe
 
     {$ifdef UNIX}
     { Trick to reuse NP_GetEntryPoints implementation for Unix. }

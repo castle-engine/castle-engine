@@ -96,7 +96,8 @@ procedure WritelnLogMultiline(const Title: string; const LogMessage: string);
 
 implementation
 
-uses CastleUtils, CastleClassUtils, CastleTimeUtils,
+uses CastleUtils, CastleClassUtils, CastleTimeUtils, CastleWarnings,
+  CastleFilesUtils, CastleURIUtils,
   SysUtils {$ifdef ANDROID}, CastleAndroidLog {$endif};
 
 { Dump backtrace (always to StdErr for now, regardless of LogStream)
@@ -122,7 +123,26 @@ end;
 procedure InitializeLog(const ProgramVersion: string;
   const ALogStream: TStream);
 var
-  FirstLine, LogFileName: string;
+  FirstLine: string;
+
+  function InitializeLogFile(const LogFileName: string): boolean;
+  begin
+    try
+      LogStream := TFileStream.Create(LogFileName, fmCreate);
+    except
+      on E: EFCreateError do
+      begin
+        { Special message when LogFileName non-empty (usual case on Windows).
+          Merely warn when creating log file not possible.
+          Normal in many "production" cases when the directory of exe/plugin may not be writeable. }
+        OnWarning(wtMajor, 'Log', 'Cannot create log file "' + LogFileName + '". To dump log of GUI application on Windows, you have to run the application in a directory where you have write access, for example your user or Desktop directory.');
+        Exit(false);
+      end;
+    end;
+    LogStreamOwned := true;
+    Result := true;
+  end;
+
 begin
   if Log then Exit; { ignore 2nd call to InitializeLog }
 
@@ -130,25 +150,28 @@ begin
 
   if ALogStream = nil then
   begin
+    {$ifdef MSWINDOWS}
+    { In Windows DLL, which may also be NPAPI plugin, be even more cautious:
+      create .log file in user's directory. }
+    if IsLibrary then
+    begin
+      if not InitializeLogFile(
+        URIToFilenameSafe(ApplicationConfig(ApplicationName + '.log'))) then
+        Exit;
+    end else
+    {$endif}
     if not IsConsole then
     begin
       { Under Windows GUI program, by default write to file .log
-        in the current directory.
+	in the current directory.
 
-        Do not try to use StdOutStream anymore. In some cases, GUI program
-        may have an stdout, when it is explicitly run like
-        "xxx.exe --debug-log > xxx.log". But do not depend on it.
-        Simply writing to xxx.log is more what people expect. }
-      LogFileName := ExpandFileName(ApplicationName + '.log');
-      try
-        LogStream := TFileStream.Create(LogFileName, fmCreate);
-      except
-        on E: EFCreateError do
-          { special exception message when LogFileName non-empty
-            (usual case on Windows). }
-          raise EWithHiddenClassName.Create('Cannot create log file "' + LogFileName + '". To dump log of GUI application on Windows, you have to run the application in a directory where you have write access, for example your user or Desktop directory.') else
-      end;
-      LogStreamOwned := true;
+	Do not try to use StdOutStream anymore. In some cases, GUI program
+	may have an stdout, when it is explicitly run like
+	"xxx.exe --debug-log > xxx.log". But do not depend on it.
+	Simply writing to xxx.log is more what people expect. }
+      if not InitializeLogFile(
+        ExpandFileName(ApplicationName + '.log')) then
+	Exit;
     end else
       LogStream := StdOutStream;
   end else
