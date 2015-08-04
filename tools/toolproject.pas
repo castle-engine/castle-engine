@@ -163,17 +163,7 @@ constructor TCastleProject.Create(const Path: string);
       begin
         for I := 1 to Length(Value) do
           if not (Value[I] in AllowedChars) then
-            raise Exception.CreateFmt('Project %s contains invalid characters: "%s", allowed are only these characters: %s',
-              [Name, Value, CharSetToStr(AllowedChars)]);
-      end;
-
-      procedure CheckMatchesExcept(const Name, Value: string; const DisAllowedChars: TSetOfChars);
-      var
-        I: Integer;
-      begin
-        for I := 1 to Length(Value) do
-          if Value[I] in DisAllowedChars then
-            raise Exception.CreateFmt('Project %s contains invalid characters: "%s", this character is not allowed: %s',
+            raise Exception.CreateFmt('Project %s contains invalid characters: "%s", this character is not allowed: "%s"',
               [Name, Value, SReadableForm(Value[I])]);
       end;
 
@@ -189,8 +179,8 @@ constructor TCastleProject.Create(const Path: string);
       CheckMatches('qualified_name', QualifiedName, AlphaNum + ['_','-','.']);
 
       { more user-visible stuff, where we allow spaces, local characters and so on }
-      CheckMatchesExcept('caption', Caption, ControlChars);
-      CheckMatchesExcept('author', Author, ControlChars);
+      CheckMatches('caption', Caption, AllChars - ControlChars);
+      CheckMatches('author', Author  , AllChars - ControlChars);
     end;
 
   var
