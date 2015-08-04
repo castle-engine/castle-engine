@@ -19,18 +19,18 @@ FILESUBTYPE 0x0L
     BLOCK "040904e4"
     {
       VALUE "Comments", "\0"
-      VALUE "CompanyName", "Really New ${AUTHOR}\000"
-      VALUE "FileDescription", "np${NAME}\000"
+      VALUE "CompanyName", "${AUTHOR}\000"
+      VALUE "FileDescription", "Plugin created with Castle Game Engine to run ${NAME}\000"
+      // NPAPI plugins on Windows read supported file info from this
       VALUE "FileExtents", "cge\0"
-      VALUE "FileOpenName", "CGE (*.cge)\0"
+      // NPAPI plugins on Windows read supported file info from this
+      VALUE "FileOpenName", "Game Data for ${NAME} (Castle Game Engine) (*.cge)\0"
       VALUE "FileVersion", "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_RELEASE}.${VERSION_BUILD}\000"
-      // possibly np prefix necessary for NPAPI plugins to be detected?
-      VALUE "InternalName", "np${NAME}\000"
-      VALUE "LegalCopyright", "Really New Copyright ${AUTHOR}\000"
-      VALUE "OriginalFilename", "np${EXECUTABLE_NAME}.win32-i386.dll\000"
-      VALUE "ProductName", "np${NAME}\000"
+      VALUE "InternalName", "${NAME}\000"
+      VALUE "LegalCopyright", "Copyright ${AUTHOR}\000"
+      VALUE "ProductName", "${NAME}\000"
       VALUE "ProductVersion", "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_RELEASE}.${VERSION_BUILD}\000"
-      // possibly necessary for NPAPI plugins to be detected
+      // NPAPI plugins on Windows read supported file info from this
       VALUE "MIMEType", "application/x-${NAME}\0"
       VALUE "SpecialBuild", "\0"
     }
@@ -43,4 +43,3 @@ FILESUBTYPE 0x0L
 }
 
 1 MANIFEST "automatic-windows.manifest"
-

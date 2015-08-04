@@ -21,18 +21,18 @@
 '    BLOCK "040904e4"' + LineEnding +
 '    {' + LineEnding +
 '      VALUE "Comments", "\0"' + LineEnding +
-'      VALUE "CompanyName", "Really New ${AUTHOR}\000"' + LineEnding +
-'      VALUE "FileDescription", "np${NAME}\000"' + LineEnding +
+'      VALUE "CompanyName", "${AUTHOR}\000"' + LineEnding +
+'      VALUE "FileDescription", "Plugin created with Castle Game Engine to run ${NAME}\000"' + LineEnding +
+'      // NPAPI plugins on Windows read supported file info from this' + LineEnding +
 '      VALUE "FileExtents", "cge\0"' + LineEnding +
-'      VALUE "FileOpenName", "CGE (*.cge)\0"' + LineEnding +
+'      // NPAPI plugins on Windows read supported file info from this' + LineEnding +
+'      VALUE "FileOpenName", "Game Data for ${NAME} (Castle Game Engine) (*.cge)\0"' + LineEnding +
 '      VALUE "FileVersion", "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_RELEASE}.${VERSION_BUILD}\000"' + LineEnding +
-'      // possibly np prefix necessary for NPAPI plugins to be detected?' + LineEnding +
-'      VALUE "InternalName", "np${NAME}\000"' + LineEnding +
-'      VALUE "LegalCopyright", "Really New Copyright ${AUTHOR}\000"' + LineEnding +
-'      VALUE "OriginalFilename", "np${EXECUTABLE_NAME}.win32-i386.dll\000"' + LineEnding +
-'      VALUE "ProductName", "np${NAME}\000"' + LineEnding +
+'      VALUE "InternalName", "${NAME}\000"' + LineEnding +
+'      VALUE "LegalCopyright", "Copyright ${AUTHOR}\000"' + LineEnding +
+'      VALUE "ProductName", "${NAME}\000"' + LineEnding +
 '      VALUE "ProductVersion", "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_RELEASE}.${VERSION_BUILD}\000"' + LineEnding +
-'      // possibly necessary for NPAPI plugins to be detected' + LineEnding +
+'      // NPAPI plugins on Windows read supported file info from this' + LineEnding +
 '      VALUE "MIMEType", "application/x-${NAME}\0"' + LineEnding +
 '      VALUE "SpecialBuild", "\0"' + LineEnding +
 '    }' + LineEnding +
@@ -45,5 +45,4 @@
 '}' + LineEnding +
 '' + LineEnding +
 '1 MANIFEST "automatic-windows.manifest"' + LineEnding +
-'' + LineEnding +
 ''
