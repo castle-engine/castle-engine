@@ -1,21 +1,14 @@
 1 VERSIONINFO
 FILEVERSION ${VERSION_MAJOR},${VERSION_MINOR},${VERSION_RELEASE},${VERSION_BUILD}
 PRODUCTVERSION ${VERSION_MAJOR},${VERSION_MINOR},${VERSION_RELEASE},${VERSION_BUILD}
-// possibly necessary for NPAPI plugins to be detected
-FILEFLAGSMASK 0x3fL
-// possibly necessary for NPAPI plugins to be detected
-FILEFLAGS 0x2L
-FILEOS 0x10001L
+FILEOS 0x40004L
 // VOS_NT
-// possibly necessary for NPAPI plugins to be detected
 FILETYPE 0x2L
-// possibly necessary for NPAPI plugins to be detected
-FILESUBTYPE 0x0L
-// VFT_APP
+// VFT_DLL
 {
   BLOCK "StringFileInfo"
   {
-    // necessary for NPAPI plugins to be detected
+    // this block id is necessary for NPAPI plugins to be detected
     BLOCK "040904e4"
     {
       VALUE "Comments", "\0"

@@ -3,21 +3,14 @@
 '1 VERSIONINFO' + LineEnding +
 'FILEVERSION ${VERSION_MAJOR},${VERSION_MINOR},${VERSION_RELEASE},${VERSION_BUILD}' + LineEnding +
 'PRODUCTVERSION ${VERSION_MAJOR},${VERSION_MINOR},${VERSION_RELEASE},${VERSION_BUILD}' + LineEnding +
-'// possibly necessary for NPAPI plugins to be detected' + LineEnding +
-'FILEFLAGSMASK 0x3fL' + LineEnding +
-'// possibly necessary for NPAPI plugins to be detected' + LineEnding +
-'FILEFLAGS 0x2L' + LineEnding +
-'FILEOS 0x10001L' + LineEnding +
+'FILEOS 0x40004L' + LineEnding +
 '// VOS_NT' + LineEnding +
-'// possibly necessary for NPAPI plugins to be detected' + LineEnding +
 'FILETYPE 0x2L' + LineEnding +
-'// possibly necessary for NPAPI plugins to be detected' + LineEnding +
-'FILESUBTYPE 0x0L' + LineEnding +
-'// VFT_APP' + LineEnding +
+'// VFT_DLL' + LineEnding +
 '{' + LineEnding +
 '  BLOCK "StringFileInfo"' + LineEnding +
 '  {' + LineEnding +
-'    // necessary for NPAPI plugins to be detected' + LineEnding +
+'    // this block id is necessary for NPAPI plugins to be detected' + LineEnding +
 '    BLOCK "040904e4"' + LineEnding +
 '    {' + LineEnding +
 '      VALUE "Comments", "\0"' + LineEnding +
