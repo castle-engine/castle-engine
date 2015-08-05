@@ -657,6 +657,21 @@ begin
 end;
 
 procedure TCastleProject.DoInstall(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
+
+  procedure InstallUnixPlugin;
+  const
+    TargetPath = '/usr/lib/mozilla/plugins/';
+  var
+    PluginFile: string;
+  begin
+    PluginFile := PluginCompiledFile(OS, CPU);
+    Writeln('Installing by copying to "' + TargetPath + PluginFile + '".');
+    Writeln('  This requires root permissions, so run this command with "sudo ...". Alternatively (very dangerous, do this only temporarily!) hack your permissions like "sudo chmod a+rwX /usr/lib/mozilla/plugins/", then you can install as normal user.');
+    SmartCopyFile(InclPathDelim(ProjectPath) + PluginFile,
+      TargetPath + PluginFile);
+    Writeln('  Installed OK.');
+  end;
+
 begin
   Writeln(Format('Installing project "%s" for OS / CPU "%s / %s"%s.',
     [Name, OSToString(OS), CPUToString(CPU),
@@ -664,9 +679,11 @@ begin
 
   if OS = Android then
     InstallAndroidPackage(Name, QualifiedName) else
-  if (OS = Win32) and Plugin then
+  if Plugin and (OS in AllWindowsOSes) then
     InstallWindowsPluginRegistry(Name, QualifiedName, ProjectPath,
       PluginCompiledFile(OS, CPU), Version, Author) else
+  if Plugin and (OS in AllUnixOSes) then
+    InstallUnixPlugin else
     raise Exception.Create('The "install" command is not useful for this OS / CPU right now. Install and run the application manually.');
 end;
 

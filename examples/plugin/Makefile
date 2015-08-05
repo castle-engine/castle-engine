@@ -8,7 +8,6 @@ plugin:
 #	castle-engine compile --os=win64 --cpu=x86_64 --plugin $(CASTLE_ENGINE_TOOL_OPTIONS)
 	castle-engine compile --plugin --mode=debug $(CASTLE_ENGINE_TOOL_OPTIONS)
 	castle-engine install --plugin
-#	./unix_install.sh
 
 .PHONY: standalone
 standalone:
