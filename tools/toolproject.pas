@@ -391,6 +391,14 @@ begin
 end;
 
 procedure TCastleProject.DoCompile(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
+
+  function InsertLibPrefix(const S: string): string;
+  begin
+    Result := {$ifdef UNIX} ExtractFilePath(S) + 'lib' + ExtractFileName(S)
+              {$else} S
+              {$endif};
+  end;
+
 var
   SourceExe, DestExe, MainSource: string;
 begin
@@ -427,8 +435,7 @@ begin
 
         if Plugin then
         begin
-          SourceExe := {$ifdef UNIX} 'lib' + {$endif}
-            ChangeFileExt(PluginSource, LibraryExtensionOS(OS));
+          SourceExe := InsertLibPrefix(ChangeFileExt(PluginSource, LibraryExtensionOS(OS)));
           { "np" prefix is safest for plugin library files. }
           DestExe := PluginCompiledFile(OS, CPU);
         end else
@@ -449,7 +456,7 @@ end;
 
 function TCastleProject.PluginCompiledFile(const OS: TOS; const CPU: TCPU): string;
 begin
-  Result := 'np' + DeleteFileExt(PluginSource) + '.' +
+  Result := 'np' + DeleteFileExt(ExecutableName) + '.' +
     OSToString(OS) + '-' + CPUToString(CPU) + LibraryExtensionOS(OS);
 end;
 
