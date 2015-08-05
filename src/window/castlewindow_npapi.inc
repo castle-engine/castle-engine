@@ -388,13 +388,11 @@ begin
     InstanceData := InstanceDataCheck(instance);
     if InstanceData = nil then Exit(NPERR_GENERIC_ERROR); // warning already done by InstanceDataCheck
 
-    {$ifdef MOZ_X11}
-    if (window = nil) or (window^.ws_info = nil) then
+    if (window = nil) {$ifdef MOZ_X11} or (window^.ws_info = nil) {$endif} then
     begin
       OnWarning(wtMajor, 'Plugin', 'window or window^.ws_info is NULL, ignoring NPP_SetWindow');
       Exit(NPERR_GENERIC_ERROR);
     end;
-    {$endif}
 
     if Window^.aType <> {$ifdef DEBUG_WINDOWLESS} NPWindowTypeDrawable {$else} NPWindowTypeWindow {$endif} then
     begin
