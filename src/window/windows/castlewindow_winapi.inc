@@ -32,7 +32,6 @@
 
 {$ifdef read_interface_uses}
 Windows, CommDlg,
-  {$ifdef CASTLE_ENGINE_PLUGIN} CastleNPAPI, {$endif}
 {$endif}
 
 {$ifdef read_implementation_uses}
@@ -67,9 +66,8 @@ private
   { convert virtual key code (VK_xxx) to TKey. Returns K_None if no conversion
     available. }
   function VirtualKeyToKey(VirtualKey: Byte): TKey;
-public
+
   {$ifdef CASTLE_ENGINE_PLUGIN}
-  // TODO: should be private, only accessed by application
   PluginWindow: TNPWindow;
   {$endif}
 {$endif read_window_interface}

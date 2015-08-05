@@ -26,7 +26,6 @@
 
 {$ifdef read_interface_uses}
 Xlib, CastleXlib, XUtil, X, KeySym, CursorFont,
-  {$ifdef CASTLE_ENGINE_PLUGIN} CastleNPAPI, {$endif}
 {$endif}
 
 {$ifdef read_window_interface}
@@ -34,14 +33,13 @@ private
   windowXID: TWindow;
   parentwinXID: TWindow; { refreshed on ReparentNotify, needed for X_Configureevent }
 
-  function HandleXEvent(const Event: TXEvent): boolean;
-  procedure UpdateCursor;
-public
   {$ifdef CASTLE_ENGINE_PLUGIN}
-  // TODO: should be private, only accessed by application
   PluginWindow: TNPWindow;
   PluginStruct: TNPSetWindowCallbackStruct;
   {$endif}
+
+  function HandleXEvent(const Event: TXEvent): boolean;
+  procedure UpdateCursor;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
@@ -52,6 +50,7 @@ private
   FXScreen: Integer;
   InitializeXDisplayDone: boolean;
   XCursors: array [TMouseCursor] of TCursor;
+  FXDisplay: PDisplay;
 
   { uzywamy tego aby wylapac quit message. Inicjowane w SetXDisplayName }
   WMDeleteWindow: TAtom;
@@ -84,9 +83,6 @@ private
   procedure InitializeXDisplay;
 
 public
-  // TODO: should be private, only accessed by application
-  FXDisplay: PDisplay;
-
   function HandleXEvent(Event: TXEvent): boolean;
 
   {$ifndef CASTLE_ENGINE_PLUGIN}
@@ -588,7 +584,6 @@ function TCastleWindowCustom.HandleXEvent(const Event: TXEvent): boolean;
 
 begin
   Result := true;
-  WritelnLog('Plugin', Format('Woo, Xlib window got some message: %d', [event._type]));
   case event._type of
     Expose: { XExposeEvent }
        if event.xexpose.count = 0 then Invalidate;

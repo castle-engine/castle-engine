@@ -4,6 +4,10 @@
   with various libraries, so pointer checks will make false errors. }
 {$checkpointer off}
 
+{$ifdef CASTLE_ENGINE_PLUGIN}
+  {$I castlewindow_npapi.inc}
+{$endif}
+
 {$ifdef CASTLE_WINDOW_WINAPI}
   {$I castlewindow_winapi.inc}
   {$I castlewindow_winsystem.inc}

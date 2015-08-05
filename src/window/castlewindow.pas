@@ -357,7 +357,7 @@ unit CastleWindow;
              { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
            {$else}
              {$ifdef CASTLE_ENGINE_PLUGIN}
-               {$define CASTLE_WINDOW_XLIB} // on Unix plugin, use Xlib, no need for GTK
+               {$define CASTLE_WINDOW_XLIB} // on Unix plugin, you have to use Xlib
              {$else}
                {$ifndef OpenGLES}
                  {$define CASTLE_WINDOW_GTK_2} // best (looks native and most functional) on Unix (except Mac OS X)
@@ -2558,7 +2558,7 @@ end;
 
     { User agent string, when running inside a browser, right now only meaningful when using NPAPI plugin. }
     // TODO: should not be writeable from outside
-    property UserAgent: string read FUserAgent write FUserAgent;
+    property UserAgent: string read FUserAgent;
 
     { Default window class to create when environment requires it,
       right now: when a new instance of browser plugin is requested.
@@ -2762,6 +2762,10 @@ function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModif
   out S: string): boolean;
 
 {$undef read_interface}
+
+{$define read_global_interface}
+{$I castlewindow_backend.inc}
+{$undef read_global_interface}
 
 {$define read_interface_2}
 {$i castlewindowmenu.inc}
