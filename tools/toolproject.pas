@@ -668,16 +668,25 @@ procedure TCastleProject.DoInstall(const OS: TOS; const CPU: TCPU; const Plugin:
 
   procedure InstallUnixPlugin;
   const
-    TargetPath = '/usr/lib/mozilla/plugins/';
+    TargetPathSystemWide = '/usr/lib/mozilla/plugins/';
   var
-    PluginFile: string;
+    PluginFile, Source, Target: string;
   begin
     PluginFile := PluginCompiledFile(OS, CPU);
-    Writeln('Installing by copying to "' + TargetPath + PluginFile + '".');
-    Writeln('  This requires root permissions, so run this command with "sudo ...". Alternatively (very dangerous, do this only temporarily!) hack your permissions like "sudo chmod a+rwX /usr/lib/mozilla/plugins/", then you can install as normal user.');
-    SmartCopyFile(InclPathDelim(ProjectPath) + PluginFile,
-      TargetPath + PluginFile);
-    Writeln('  Installed OK.');
+    Source := InclPathDelim(ProjectPath) + PluginFile;
+    Target := TargetPathSystemWide + PluginFile;
+    try
+      SmartCopyFile(Source, Target);
+      Writeln('Installed system-wide by copying the plugin to "' + Target + '".');
+    except
+      on E: Exception do
+      begin
+        Writeln('Failed to install system-wide (' + E.ClassName + ': ' + E.Message + ').');
+        Target := HomePath + '.mozilla/plugins/' + PluginFile;
+        SmartCopyFile(Source, Target);
+        Writeln('Installed to "' + Target + '".');
+      end;
+    end;
   end;
 
 begin

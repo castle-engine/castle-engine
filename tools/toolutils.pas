@@ -107,8 +107,8 @@ begin
     DestFile := TFileStream.Create(Dest, fmCreate);
     try
       DestFile.CopyFrom(SourceFile, SourceFile.Size);
-    finally FreeAndNil(SourceFile) end;
-  finally FreeAndNil(DestFile) end;
+    finally FreeAndNil(DestFile) end;
+  finally FreeAndNil(SourceFile) end;
 
 {  if not CopyFile(Source, Dest) then
     raise Exception.CreateFmt('Cannot copy file from "%s" to "%s"', [Source, Dest]);}
