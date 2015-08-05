@@ -456,7 +456,8 @@ end;
 
 function TCastleProject.PluginCompiledFile(const OS: TOS; const CPU: TCPU): string;
 begin
-  Result := 'np' + DeleteFileExt(ExecutableName) + '.' +
+  Result := ExtractFilePath(ExecutableName) + 'np' +
+    DeleteFileExt(ExtractFileName(ExecutableName)) + '.' +
     OSToString(OS) + '-' + CPUToString(CPU) + LibraryExtensionOS(OS);
 end;
 

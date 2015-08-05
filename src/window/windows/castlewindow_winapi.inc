@@ -61,15 +61,15 @@ private
   VK_BackQuote,
   VK_BackSlash: Byte;
 
+  {$ifdef CASTLE_ENGINE_PLUGIN}
+  PluginWindow: TNPWindow;
+  {$endif}
+
   function WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM): LRESULT;
 
   { convert virtual key code (VK_xxx) to TKey. Returns K_None if no conversion
     available. }
   function VirtualKeyToKey(VirtualKey: Byte): TKey;
-
-  {$ifdef CASTLE_ENGINE_PLUGIN}
-  PluginWindow: TNPWindow;
-  {$endif}
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
