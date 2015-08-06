@@ -21,7 +21,7 @@ FILETYPE 0x2L
       VALUE "FileVersion", "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_RELEASE}.${VERSION_BUILD}\000"
       VALUE "InternalName", "${NAME}\000"
       VALUE "LegalCopyright", "Copyright ${AUTHOR}\000"
-      VALUE "ProductName", "${NAME}\000"
+      VALUE "ProductName", "${CAPTION}\000"
       VALUE "ProductVersion", "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_RELEASE}.${VERSION_BUILD}\000"
       // NPAPI plugins on Windows read supported file info from this
       VALUE "MIMEType", "application/x-${NAME}\0"

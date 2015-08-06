@@ -142,13 +142,25 @@ constructor TCastleProject.Create(const Path: string);
     { Google Play requires version code to be >= 1 }
     DefautVersionCode = 1;
 
+    { character sets }
+    ControlChars = [#0..Chr(Ord(' ')-1)];
+    AlphaNum = ['a'..'z','A'..'Z','0'..'9'];
+    { qualified_name is also a Java package name for Android, so it
+      cannot contain dash character. }
+    QualifiedNameAllowedChars = AlphaNum + ['_','.'];
+
+    function DefaultQualifiedName: string;
+    begin
+      Result := 'unknown.' + SDeleteChars(FName, AllChars - QualifiedNameAllowedChars);
+    end;
+
     procedure AutoGuessManifest;
     begin
       Writeln('Manifest file not found: ' + ManifestFile);
       Writeln('Guessing project values. Use create-manifest command to write these guesses into new CastleEngineManifest.xml');
       FName := ExtractFileName(ExtractFileDir(ManifestFile));
       FCaption := FName;
-      FQualifiedName := 'unknown.' + FName;
+      FQualifiedName := DefaultQualifiedName;
       FExecutableName := FName;
       FStandaloneSource := FName + '.lpr';
       FVersionCode := DefautVersionCode;
@@ -167,16 +179,17 @@ constructor TCastleProject.Create(const Path: string);
               [Name, Value, SReadableForm(Value[I])]);
       end;
 
-    const
-      ControlChars = [#0..Chr(Ord(' ')-1)];
-      AlphaNum = ['a'..'z','A'..'Z','0'..'9'];
     begin
       CheckMatches('name', Name                     , AlphaNum + ['_','-']);
       CheckMatches('executable_name', ExecutableName, AlphaNum + ['_','-']);
 
       { non-filename stuff: allow also dots }
       CheckMatches('version', Version             , AlphaNum + ['_','-','.']);
-      CheckMatches('qualified_name', QualifiedName, AlphaNum + ['_','-','.']);
+      CheckMatches('qualified_name', QualifiedName, QualifiedNameAllowedChars);
+      if (QualifiedName <> '') and
+         ((QualifiedName[1] = '.') or
+          (QualifiedName[Length(QualifiedName)] = '.')) then
+        raise Exception.CreateFmt('Project qualified_name cannot start or end with a dot: "%s"', [QualifiedName]);
 
       { more user-visible stuff, where we allow spaces, local characters and so on }
       CheckMatches('caption', Caption, AllChars - ControlChars);
@@ -205,7 +218,7 @@ constructor TCastleProject.Create(const Path: string);
           'Root node of CastleEngineManifest.xml must be <project>');
         FName := Doc.DocumentElement.AttributeString('name');
         FCaption := Doc.DocumentElement.AttributeStringDef('caption', FName);
-        FQualifiedName := Doc.DocumentElement.AttributeStringDef('qualified_name', 'unknown.' + FName);
+        FQualifiedName := Doc.DocumentElement.AttributeStringDef('qualified_name', DefaultQualifiedName);
         FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
         FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
         FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');

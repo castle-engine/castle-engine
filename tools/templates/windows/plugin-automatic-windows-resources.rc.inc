@@ -23,7 +23,7 @@
 '      VALUE "FileVersion", "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_RELEASE}.${VERSION_BUILD}\000"' + LineEnding +
 '      VALUE "InternalName", "${NAME}\000"' + LineEnding +
 '      VALUE "LegalCopyright", "Copyright ${AUTHOR}\000"' + LineEnding +
-'      VALUE "ProductName", "${NAME}\000"' + LineEnding +
+'      VALUE "ProductName", "${CAPTION}\000"' + LineEnding +
 '      VALUE "ProductVersion", "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_RELEASE}.${VERSION_BUILD}\000"' + LineEnding +
 '      // NPAPI plugins on Windows read supported file info from this' + LineEnding +
 '      VALUE "MIMEType", "application/x-${NAME}\0"' + LineEnding +
