@@ -338,6 +338,10 @@ begin
   { create gl context and make it current }
   h_GLRc := wglCreateContext(h_Dc);
   OSCheck(h_GLRc <> 0, 'wglCreateContext');
+
+  { All OpenGL contexts should be shared }
+  if Application.OpenWindowsCount <> 0 then
+    OSCheck(wglShareLists(Application.OpenWindows[0].h_GLRc, h_GLRc), 'wglShareLists');
 end;
 
 procedure TCastleWindowCustom.ContextDestroy;

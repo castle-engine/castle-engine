@@ -294,7 +294,3 @@ units are allowed to be used by units in specific group.
 If you use more than one OpenGL context (TCastleWindow or TCastleControl)
 in a single program, they will share OpenGL resources (like textures).
 This happens automatically for TCastleControl and TCastleWindow.
-
-TODO: sharing contexts is not implemented yet for WinAPI backend of
-CastleWindow (it is implemented OK for backends GLX, EGL, GTK).
-Please report on forum if you need it.
