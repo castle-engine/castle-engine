@@ -1,6 +1,6 @@
 {$mode objfpc}{$H+}
 {$apptype GUI}
-program alienoutpost_standalone;
+program cge_3d_viewer_standalone;
 {$ifdef MSWINDOWS}
   {$R automatic-windows-resources.res}
 {$endif MSWINDOWS}

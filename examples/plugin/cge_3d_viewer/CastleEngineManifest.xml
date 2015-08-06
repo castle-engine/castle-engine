@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="cge_3d_viewer"
+  caption="Castle Game Engine 3D Viewer"
+  qualified_name="net.sourceforge.castleengine.cge3dplugin"
+  plugin_source="cge_3d_viewer_plugin.lpr"
+  standalone_source="cge_3d_viewer_standalone.lpr"
+  author="Michalis Kamburelis">
+  <version value="1.0.1" />
+</project>

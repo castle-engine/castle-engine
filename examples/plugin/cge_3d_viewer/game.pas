@@ -1,12 +1,12 @@
 {
   Copyright 2015-2015 Michalis Kamburelis.
 
-  This file is part of "Alien Outpost".
+  This file is part of "Castle Game Engine".
 
-  "Alien Outpost" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.txt,
   included in this distribution, for details about the copyright.
 
-  "Alien Outpost" is distributed in the hope that it will be useful,
+  "Castle Game Engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
@@ -23,7 +23,8 @@ implementation
 uses SysUtils, CastleWindow, CastleScene, CastleControls,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleWindowTouch,
   CastleLog, CastleGLUtils, CastleColors, CastleWindowProgress,
-  CastleUIControls, X3DLoad, CastleUtils, CastleProgress, CastleURIUtils;
+  CastleUIControls, X3DLoad, CastleUtils, CastleProgress, CastleURIUtils,
+  CastleDownload;
 
 { routines ------------------------------------------------------------------- }
 
@@ -120,9 +121,14 @@ end;
 
 { global --------------------------------------------------------------------- }
 
+procedure ApplicationInitialize;
+begin
+  EnableNetwork := true;
+end;
+
 function MyGetApplicationName: string;
 begin
-  Result := 'alienoutpost';
+  Result := 'cge_3d_viewer';
 end;
 
 initialization
@@ -133,6 +139,7 @@ initialization
   // Is it always Ok also for Windows, where we can't write to browser dir?
 
   { initialize Application }
+  Application.OnInitialize := @ApplicationInitialize;
   Application.DefaultWindowClass := TPluginWindow;
 
   // TODO: do not use WindowProgressInterface, it makes it's own loop

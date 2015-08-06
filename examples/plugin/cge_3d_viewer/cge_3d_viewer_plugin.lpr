@@ -1,20 +1,20 @@
 {
   Copyright 2015-2015 Michalis Kamburelis.
 
-  This file is part of "Alien Outpost".
+  This file is part of "Castle Game Engine".
 
-  "Alien Outpost" is free software; see the file COPYING.txt,
+  "Castle Game Engine" is free software; see the file COPYING.txt,
   included in this distribution, for details about the copyright.
 
-  "Alien Outpost" is distributed in the hope that it will be useful,
+  "Castle Game Engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
   ----------------------------------------------------------------------------
 }
 
-{ Library to run the game as NPAPI plugin. }
-library alienoutpost;
+{ Library to run the viewer as NPAPI plugin. }
+library cge_3d_viewer_plugin;
 uses CastleWindow, Game;
 {$ifdef MSWINDOWS}
   {$R plugin-automatic-windows-resources.res}
