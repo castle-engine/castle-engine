@@ -313,6 +313,7 @@ begin
     JustifyWarningUppercaseDone := true;
   end;
 
+  if J = ''       then Result := DefaultValue else
   if J = 'BEGIN'  then Result := fjBegin else
   if J = 'FIRST'  then Result := fjFirst else
   if J = 'MIDDLE' then Result := fjMiddle else
