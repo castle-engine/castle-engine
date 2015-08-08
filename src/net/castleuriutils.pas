@@ -442,13 +442,24 @@ end;
 
 function CombineURI(const Base, Relative: string): string;
 begin
-  if not ResolveRelativeURI(AbsoluteURI(Base), Relative, Result) then
-  begin
-    { The only case when ResolveRelativeURI may fail is when neither argument
-      contains a protocol. But we just used AbsoluteURI, which makes sure
-      that AbsoluteURI(Base) has some protocol. }
-    raise EInternalError.CreateFmt('Failed to resolve relative URI "%s" with base "%s"',
-      [Relative, Base]);
+  try
+    if not ResolveRelativeURI(AbsoluteURI(Base), Relative, Result) then
+    begin
+      { The only case when ResolveRelativeURI may fail is when neither argument
+        contains a protocol. But we just used AbsoluteURI, which makes sure
+        that AbsoluteURI(Base) has some protocol. }
+      raise EInternalError.CreateFmt('Failed to resolve relative URI "%s" with base "%s"',
+        [Relative, Base]);
+    end;
+  except
+    { workaround http://bugs.freepascal.org/view.php?id=28496 , see also
+      https://sourceforge.net/p/castle-engine/tickets/35/ }
+    on E: EConvertError do
+    begin
+      OnWarning(wtMinor, 'URL', Format('Error when parsing URL. This usually indicates an incorrect Windows "file:" URL (it should have *three* slashes, like "file:///c:/blah..."): "%s"',
+        [Relative]));
+      Result := Relative;
+    end;
   end;
 end;
 
@@ -476,7 +487,18 @@ begin
     Result := URI else
   if P = 'file' then
   begin
-    if not URIToFilename(URI, Result) then Result := '';
+    try
+      if not URIToFilename(URI, Result) then Result := '';
+    except
+      { workaround http://bugs.freepascal.org/view.php?id=28496 , see also
+        https://sourceforge.net/p/castle-engine/tickets/35/ }
+      on E: EConvertError do
+      begin
+        OnWarning(wtMinor, 'URL', Format('Error when parsing URL. This usually indicates an incorrect Windows "file:" URL (it should have *three* slashes, like "file:///c:/blah..."): "%s"',
+          [URI]));
+        Result := '';
+      end;
+    end;
   end else
     Result := '';
 end;
@@ -758,7 +780,17 @@ begin
     if Short then
     begin
       { try to extract last path component }
-      Parsed := ParseURI(URI);
+      try
+        Parsed := ParseURI(URI);
+      except
+        on E: EConvertError do
+        begin
+          OnWarning(wtMinor, 'URL', Format('Error when parsing URI. This usually indicates an incorrect Windows "file:" URL (it should have *three* slashes, like "file:///c:/blah..."): "%s"',
+            [URI]));
+          Parsed.Document := ExtractURIName(URI);
+        end;
+      end;
+
       Parsed.Document := Trim(Parsed.Document);
       if Parsed.Document <> '' then
         Result := Parsed.Document;
