@@ -2732,7 +2732,9 @@ begin
       FMainScene.NavigationInfoStack.OnBoundChanged := @SceneBoundNavigationInfoChanged;
 
       { Call initial CameraChanged (this allows ProximitySensors to work
-        as soon as ProcessEvents becomes true). }
+        as soon as ProcessEvents becomes true).
+        TODO: actually, we shoul call CameraChanged on all newly added
+        T3D to Items. }
       if Camera <> nil then
       begin
         MainScene.CameraChanged(Camera);
@@ -2804,11 +2806,8 @@ begin
     begin
       { Call initial CameraChanged (this allows ProximitySensors to work
         as soon as ProcessEvents becomes true). }
-      if MainScene <> nil then
-      begin
-        MainScene.CameraChanged(Camera);
-        ItemsVisibleChange(CameraToChanges);
-      end;
+      Items.CameraChanged(Camera);
+      ItemsVisibleChange(CameraToChanges);
     end;
 
     { Changing camera changes also the view rapidly. }
@@ -3144,9 +3143,12 @@ var
 begin
   (ACamera as TCamera).GetView(Pos, Dir, Up);
 
-  if (MainScene <> nil) and (ACamera = Camera) then
+  if ACamera = Camera then
   begin
-    MainScene.CameraChanged(Camera);
+    { Call CameraChanged for all Items, not just MainScene.
+      This allows ProximitySensor and Billboard and such nodes
+      to work in all 3D scenes, not just in MainScene. }
+    Items.CameraChanged(Camera);
     { ItemsVisibleChange will also cause our own VisibleChange. }
     ItemsVisibleChange(CameraToChanges);
   end else
