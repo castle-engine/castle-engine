@@ -320,6 +320,24 @@ type
 
     { Time of last Update call. }
     property UpdateStartTime: TTimerResult read FUpdateStartTime;
+
+    { Current frame identifier.
+
+      Changed when each container "update" event occurs,
+      so this is equal during all @link(TUIControl.Update),
+      @link(TUIControl.Render), @link(T3D.Update),
+      @link(T3D.Render) occuring within the same frame.
+      You can use this to avoid performing the same job many times
+      in a single frame.
+
+      Never zero.
+
+      It's a class function, so you can access it like
+      @code(TFramesPerSecond.FrameId),
+      no need to have a TFramesPerSecond instance (which is usually
+      accessed from TUIContainer, like @link(TUIContainer.Fps),
+      @link(TCastleWindow.Fps), @link(TCastleControl.Fps). }
+    class function FrameId: Int64;
   end;
 
 implementation
@@ -499,6 +517,9 @@ end;
 
 { TFramesPerSecond ----------------------------------------------------------- }
 
+var
+  FFrameId: Int64 = 1;
+
 constructor TFramesPerSecond.Create;
 const
   DefaultFps = 30.0;
@@ -575,11 +596,18 @@ begin
   end;
 
   FUpdateStartTime := NewUpdateStartTime;
+
+  Inc(FFrameId);
 end;
 
 procedure TFramesPerSecond.ZeroNextSecondsPassed;
 begin
   DoZeroNextSecondsPassed := true;
+end;
+
+class function TFramesPerSecond.FrameId: Int64;
+begin
+  Result := FFrameId;
 end;
 
 end.

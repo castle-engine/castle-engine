@@ -499,6 +499,7 @@ type
     FShadowMaps: boolean;
     FShadowMapsDefaultSize: Cardinal;
     ScheduleHeadlightOnFromNavigationInfoInChangedAll: boolean;
+    LastUpdateFrameId: Int64;
     { All CameraFromViewpoint calls will disable smooth (animated)
       transitions when this is true.
       This is set to true by @link(Load),
@@ -1977,7 +1978,7 @@ var
 implementation
 
 uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils, CastleWarnings,
-  X3DLoad, CastleURIUtils;
+  X3DLoad, CastleURIUtils, CastleTimeUtils;
 
 { TX3DBindableStack ----------------------------------------------------- }
 
@@ -5832,6 +5833,11 @@ procedure TCastleSceneCore.Update(const SecondsPassed: Single; var RemoveMe: TRe
 begin
   inherited;
   if not GetExists then Exit;
+
+  { in case the same scene is present many times on SceneManager.Items list,
+    do not process it's Update() many times (would cause time to move too fast). }
+  if LastUpdateFrameId = TFramesPerSecond.FrameId then Exit;
+  LastUpdateFrameId := TFramesPerSecond.FrameId;
 
   { Ignore Update calls when SecondsPassed is precisely zero
     (this may happen, and is correct, see TFramesPerSecond.ZeroNextSecondsPassed).
