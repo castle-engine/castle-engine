@@ -21,11 +21,12 @@ unit CastleScene;
 
 interface
 
-uses SysUtils, Classes, CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils,
+uses SysUtils, Classes, FGL,
+  CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleSceneCore, CastleRenderer, CastleGL, CastleBackground,
   CastleGLUtils, CastleShapeOctree, CastleGLShadowVolumes, X3DFields, CastleTriangles,
-  CastleShapes, CastleFrustum, Castle3D, CastleGLShaders, FGL,
-  CastleGenericLists, CastleRectangles,
+  CastleShapes, CastleFrustum, Castle3D, CastleGLShaders,
+  CastleGenericLists, CastleRectangles, CastleCameras,
   CastleSceneInternalShape, CastleSceneInternalOcclusion, CastleSceneInternalBlending;
 
 {$define read_interface}
@@ -766,6 +767,7 @@ type
     procedure ViewChangedSuddenly; override;
 
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
+    procedure CameraChanged(ACamera: TCamera); override;
 
     { Screen effects information, used by TCastleAbstractViewport.ScreenEffects.
       ScreenEffectsCount may actually prepare screen effects.
@@ -2560,9 +2562,6 @@ var
 begin
   inherited;
 
-  { set UpdateNeeded := true before calling inherited (with VisibleChange
-    and OnVisibleChange callback), because inside OnVisibleChange callback
-    we'll actually initialize regenerating the textures. }
   if Changes <> [] then
   begin
     for I := 0 to GeneratedTextures.Count - 1 do
@@ -2577,14 +2576,26 @@ begin
         if vcVisibleGeometry in Changes then
           GeneratedTextures.L[I].Handler.UpdateNeeded := true;
       end else
-        { Even mere vcCamera causes regenerate of RenderedTexture,
-          as RenderedTexture with viewpoint = NULL uses current camera.
-          So any Changes <> [] causes regeneration of RenderedTexture.
-          Also, for other than RenderedTexture nodes, default is to regenerate
-          (safer).  }
+        { For TRenderedTextureNode (and any other future generated textures),
+          any visible change indicates to regenerate it. }
         GeneratedTextures.L[I].Handler.UpdateNeeded := true;
     end;
   end;
+end;
+
+procedure TCastleScene.CameraChanged(ACamera: TCamera);
+var
+  I: Integer;
+begin
+  inherited;
+
+  for I := 0 to GeneratedTextures.Count - 1 do
+    if GeneratedTextures.L[I].TextureNode is TRenderedTextureNode then
+      { Camera change causes regenerate of RenderedTexture,
+        as RenderedTexture with viewpoint = NULL uses current camera.
+        See demo_models/rendered_texture/rendered_texture_no_headlight.x3dv
+        testcase. }
+      GeneratedTextures.L[I].Handler.UpdateNeeded := true;
 end;
 
 function TCastleScene.ScreenEffectsCount: Integer;

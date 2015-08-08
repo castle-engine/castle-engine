@@ -118,18 +118,12 @@ type
       be called. }
     chVisibleNonGeometry,
 
-    { Camera changed.
-      See vcCamera.
-      This means that VisibleChangeHere with vcCamera included should
-      be called. }
-    chCamera,
-
     { Call VisibleChangeHere to redisplay the scene.
 
-      If you include one of the chVisibleGeometry, chVisibleNonGeometry,
-      chCamera then this flag (chRedisplay) makes no effect.
+      If you include one of the chVisibleGeometry or chVisibleNonGeometry
+      then this flag (chRedisplay) makes no effect.
       Otherwise, this flag should be used if your change requires
-      redisplay of the 3D view for some other reasons. }
+      redisplay of the 3D view for some other reason. }
     chRedisplay,
 
     { Transformation of children of this node changed.
@@ -2720,7 +2714,6 @@ const
   X3DChangeToStr: array [TX3DChange] of string =
   ( 'Visible Geometry',
     'Visible Non-Geometry',
-    'Camera',
     'Redisplay',
     'Transform',
     'Coordinate',

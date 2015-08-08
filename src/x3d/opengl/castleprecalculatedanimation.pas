@@ -18,10 +18,11 @@ unit CastlePrecalculatedAnimation;
 
 interface
 
-uses SysUtils, Classes, X3DNodes, CastleRenderer, CastleSceneCore, CastleScene,
+uses SysUtils, Classes, FGL, 
+  X3DNodes, CastleRenderer, CastleSceneCore, CastleScene,
   CastleUtils, CastleBoxes, CastleClassUtils, CastlePrecalculatedAnimationCore,
   CastleKeysMouse, CastleTimeUtils, CastleFrustum, CastleVectors, Castle3D, X3DTriangles,
-  FGL, CastleTriangles, CastleRectangles;
+  CastleTriangles, CastleRectangles, CastleCameras;
 
 type
   TGetRootNodeWithTime = procedure (const Index: Cardinal;
@@ -560,6 +561,7 @@ type
       const ProjectionNear, ProjectionFar: Single;
       const OriginalViewport: TRectangle); override;
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
+    procedure CameraChanged(ACamera: TCamera); override;
     function Dragging: boolean; override;
 
     property Cache: TGLRendererContextCache read FCache;
@@ -2012,6 +2014,13 @@ begin
   inherited;
   if Loaded then
     CurrentScene.VisibleChangeNotification(Changes);
+end;
+
+procedure TCastlePrecalculatedAnimation.CameraChanged(ACamera: TCamera);
+begin
+  inherited;
+  if Loaded then
+    CurrentScene.CameraChanged(ACamera);
 end;
 
 function TCastlePrecalculatedAnimation.Dragging: boolean;

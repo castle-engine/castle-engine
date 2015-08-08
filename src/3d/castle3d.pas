@@ -32,24 +32,19 @@ type
 
   TRenderFromViewFunction = procedure of object;
 
-  { Describe what visible thing changed
-    for T3D.VisibleChangeHere. }
+  { Describe what visible thing changed for T3D.VisibleChangeHere. }
   TVisibleChange = (
-    { Something visible in the geometry changed.
-      "Geometry" means that this is applicable only to actual 3D shape
-      changes. (Think about "does depth buffer from some point in space
-      changes" --- this is actually why we have separate vcVisibleGeometry
-      and vcVisibleNonGeometry for now, as GeneratedShadowMap
-      does need to be updated only on geometry changes.) So it's not applicable
-      when only light conditions, materials, textures and such change. }
+    { Visible geometry (actual 3D shape) changed.
+      It's not used when only light conditions, materials, textures
+      and such changed.
+
+      In practice, this means that the depth buffer from some point in space
+      changed. Which means that shadow maps should be regenerated. }
     vcVisibleGeometry,
 
-    { Something visible changed, but not geometry.
-      For example, material or texture on visible surface changed. }
-    vcVisibleNonGeometry,
-
-    { Camera view (the settings passed to TCastleSceneCore.CameraChanged) changed. }
-    vcCamera);
+    { Something visible, but not the geometry shape, changes.
+      For example, material or texture on a visible surface changed. }
+    vcVisibleNonGeometry);
   TVisibleChanges = set of TVisibleChange;
 
   TVisibleChangeEvent = procedure (Sender: T3D; Changes: TVisibleChanges) of object;
@@ -618,10 +613,13 @@ type
       to notify others that it changed.
 
       Changes is a set describing what changes occurred.
-      It can be [], meaning "something else", we'll
-      still broadcast VisibleChangeNotification then. See TVisibleChange
-      docs for possible values. It must specify all things that possibly
-      changed.
+      See TVisibleChange docs for more information.
+      It must specify all things that possibly changed.
+
+      Changes can be [], meaning "something tells us to redraw, but no visible change
+      happened yet, maybe something will happen during a redraw"
+      (this is used when e.g. possibly LOD level changed).
+      We still broadcast VisibleChangeNotification, even when Changes=[].
 
       The information about visibility changed is passed upward,
       to the Parent, and eventually to the TCastleSceneManager,
@@ -651,6 +649,11 @@ type
       If you want to @italic(react) to visibility
       changes, you should override this. }
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); virtual;
+
+    { Main camera observing this 3D object changed.
+      This is usually called by our container (like TCastleSceneManager)
+      to notify that camera changed. }
+    procedure CameraChanged(ACamera: TCamera); virtual;
 
     { Mouse cursor over this object. }
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
@@ -1013,6 +1016,7 @@ type
       const ProjectionNear, ProjectionFar: Single;
       const OriginalViewport: TRectangle); override;
     procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
+    procedure CameraChanged(ACamera: TCamera); override;
     function Dragging: boolean; override;
   published
     { 3D objects inside.
@@ -1986,6 +1990,10 @@ procedure T3D.VisibleChangeNotification(const Changes: TVisibleChanges);
 begin
 end;
 
+procedure T3D.CameraChanged(ACamera: TCamera);
+begin
+end;
+
 procedure T3D.SetCursor(const Value: TMouseCursor);
 begin
   if FCursor <> Value then
@@ -2953,6 +2961,17 @@ begin
     GetChild.VisibleChangeNotification(Changes);
   for I := 0 to List.Count - 1 do
     List[I].VisibleChangeNotification(Changes);
+end;
+
+procedure T3DList.CameraChanged(ACamera: TCamera);
+var
+  I: Integer;
+begin
+  inherited;
+  if GetChild <> nil then
+    GetChild.CameraChanged(ACamera);
+  for I := 0 to List.Count - 1 do
+    List[I].CameraChanged(ACamera);
 end;
 
 function T3DList.Dragging: boolean;

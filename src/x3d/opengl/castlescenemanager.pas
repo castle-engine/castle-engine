@@ -2734,7 +2734,10 @@ begin
       { Call initial CameraChanged (this allows ProximitySensors to work
         as soon as ProcessEvents becomes true). }
       if Camera <> nil then
-        MainScene.CameraChanged(Camera, CameraToChanges);
+      begin
+        MainScene.CameraChanged(Camera);
+        ItemsVisibleChange(CameraToChanges);
+      end;
     end;
   end;
 end;
@@ -2802,7 +2805,10 @@ begin
       { Call initial CameraChanged (this allows ProximitySensors to work
         as soon as ProcessEvents becomes true). }
       if MainScene <> nil then
-        MainScene.CameraChanged(Camera, CameraToChanges);
+      begin
+        MainScene.CameraChanged(Camera);
+        ItemsVisibleChange(CameraToChanges);
+      end;
     end;
 
     { Changing camera changes also the view rapidly. }
@@ -3139,11 +3145,11 @@ begin
   (ACamera as TCamera).GetView(Pos, Dir, Up);
 
   if (MainScene <> nil) and (ACamera = Camera) then
-    { MainScene.CameraChanged will cause MainScene.VisibleChangeHere,
-      that (assuming here that MainScene is also on Items) will cause
-      ItemsVisibleChange that will cause our own VisibleChange.
-      So this way MainScene.CameraChanged will also cause our VisibleChange. }
-    MainScene.CameraChanged(Camera, CameraToChanges) else
+  begin
+    MainScene.CameraChanged(Camera);
+    { ItemsVisibleChange will also cause our own VisibleChange. }
+    ItemsVisibleChange(CameraToChanges);
+  end else
     VisibleChange;
 
   SoundEngine.UpdateListener(Pos, Dir, Up);

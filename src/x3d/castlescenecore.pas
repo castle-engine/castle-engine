@@ -1578,18 +1578,8 @@ type
 
     { Call when camera position/dir/up changed, to update things depending
       on camera settings. This includes sensors like ProximitySensor,
-      LOD nodes, camera settings for next RenderedTexture update and more.
-      It automatically does proper VisibleChangeHere (OnVisibleChangeHere).
-
-      @param(Changes describes changes to the scene caused by camera change.
-        This is needed if some geometry / light follows the player.
-
-        We'll automatically add here vcCamera, so not need to specify it.
-
-        You should add here vcVisibleNonGeometry if player has a headlight.
-        You should add here vcVisibleGeometry if player has a rendered
-        avatar.) }
-    procedure CameraChanged(ACamera: TCamera; const Changes: TVisibleChanges);
+      LOD nodes, camera settings for next RenderedTexture update and more. }
+    procedure CameraChanged(ACamera: TCamera); override;
 
     { List of handlers for VRML/X3D Script node with "compiled:" protocol.
       This is read-only, change this only by RegisterCompiledScript. }
@@ -4158,8 +4148,7 @@ var
     ScheduleChangedAll;
   end;
 
-  { Handle all four flags chVisibleGeometry, chVisibleNonGeometry,
-    chCamera, chRedisplay. }
+  { Handle flags chVisibleGeometry, chVisibleNonGeometry, chRedisplay. }
   procedure HandleVisibleChange;
   var
     VisibleChanges: TVisibleChanges;
@@ -4167,7 +4156,6 @@ var
     VisibleChanges := [];
     if chVisibleGeometry    in Changes then Include(VisibleChanges, vcVisibleGeometry);
     if chVisibleNonGeometry in Changes then Include(VisibleChanges, vcVisibleNonGeometry);
-    if chCamera             in Changes then Include(VisibleChanges, vcCamera);
     VisibleChangeHere(VisibleChanges);
   end;
 
@@ -4288,8 +4276,7 @@ begin
     if chEverything in Changes then HandleChangeEverything;
     if chShadowMaps in Changes then HandleChangeShadowMaps;
 
-    if Changes * [chVisibleGeometry, chVisibleNonGeometry,
-      chCamera, chRedisplay] <> [] then
+    if Changes * [chVisibleGeometry, chVisibleNonGeometry, chRedisplay] <> [] then
       HandleVisibleChange;
   finally EndChangesSchedule end;
 end;
@@ -5986,11 +5973,12 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.CameraChanged(ACamera: TCamera;
-  const Changes: TVisibleChanges);
+procedure TCastleSceneCore.CameraChanged(ACamera: TCamera);
 var
   I: Integer;
 begin
+  inherited;
+
   ACamera.GetView(FCameraPosition, FCameraDirection, FCameraUp);
   FCameraViewKnown := true;
 
@@ -6034,8 +6022,6 @@ begin
       end;
     end;
   finally EndChangesSchedule end;
-
-  VisibleChangeHere(Changes + [vcCamera]);
 end;
 
 { compiled scripts ----------------------------------------------------------- }
