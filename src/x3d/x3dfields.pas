@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML fields (TX3DField and many descendants). }
+{ X3D fields (TX3DField and many descendants). }
 unit X3DFields;
 
 interface
@@ -898,7 +898,7 @@ type
       @unorderedList(
         @item(First of all, AssignLerp is defined only for fields where
           CanAssignLerp returns @true, so always check CanAssignLerp first.
-          All float-based VRML fields should have this implemented.)
+          All float-based fields should have this implemented.)
 
         @item(Use this only if Value1 and Value2
           are equal or descendant of target (Self) class.)
@@ -908,7 +908,7 @@ type
       )
 
       @raises(EX3DMultFieldDifferentCount When field is multiple-value
-        VRML field and Value1.Count <> Value2.Count.)
+        field and Value1.Count <> Value2.Count.)
     }
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); virtual;
 
@@ -1159,7 +1159,7 @@ type
   end;
 
 { ---------------------------------------------------------------------------- }
-{ @section(Single value (SF) VRML fields) }
+{ @section(Single value fields) }
 
   { SFBitMask VRML 1.0 field.
 
@@ -1946,7 +1946,7 @@ type
   end;
 
 { ---------------------------------------------------------------------------- }
-{ @section(Multiple value (MF) VRML fields)
+{ @section(Multiple value (MF) fields)
 
   General implementation comments for MF fields:
 
@@ -3716,9 +3716,9 @@ const
 begin
   Inc(InvalidIndexWarnings);
   if InvalidIndexWarnings < MaxInvalidIndexWarnings then
-    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid index for VRML field %s (%s): index is %d, but we have only %d items', [NiceName, TypeName, Index, ACount])) else
+    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid index for field %s (%s): index is %d, but we have only %d items', [NiceName, TypeName, Index, ACount])) else
   if InvalidIndexWarnings = MaxInvalidIndexWarnings then
-    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid index for VRML field %s (%s) reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
+    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid index for field %s (%s) reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
       [NiceName, TypeName, InvalidIndexWarnings]));
 end;
 
