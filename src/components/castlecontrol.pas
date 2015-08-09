@@ -190,18 +190,32 @@ type
       We publish most, but not all, stuff from inherited TCustomOpenGLControl.
 
       Exceptions:
-      - Don't publish, as not every widgetset has them.
+      - Don't publish these, as not every widgetset has them:
         property RedBits;
         property GreenBits;
         property BlueBits;
-      - Don't publish, as we have our own event for this.
+
+      - Don't publish these, as we have our own events for this:
         property OnResize;
+        property OnClick;
+        property OnKeyDown;
+        property OnKeyPress;
+        property OnKeyUp;
+        property OnMouseDown;
+        property OnMouseMove;
+        property OnMouseUp;
+        property OnMouseWheel;
+        property OnMouseWheelDown;
+        property OnMouseWheelUp;
+        property OnPaint;
+
+      - Don't use, engine handles this completely:
+        property OnMakeCurrent;
+        property AutoResizeViewport;
     }
   published
     property Align;
     property Anchors;
-    { Don't use, engine handles this completely. }
-    property AutoResizeViewport; {$ifndef PASDOC} deprecated; {$endif}
     property BorderSpacing;
     property Enabled;
     property OpenGLMajorVersion;
@@ -218,36 +232,17 @@ type
     property OnDragOver;
     property OnEnter;
     property OnExit;
-    { Don't use, engine handles this completely. }
-    property OnMakeCurrent; {$ifndef PASDOC} deprecated; {$endif}
-    { Deprecated, use OnPress instead. }
-    property OnClick; {$ifndef PASDOC} deprecated; {$endif}
-    { Deprecated, use OnPress instead. }
-    property OnKeyDown; {$ifndef PASDOC} deprecated; {$endif}
-    { Deprecated, use OnPress instead. }
-    property OnKeyPress; {$ifndef PASDOC} deprecated; {$endif}
-    { Deprecated, use OnRelease instead. }
-    property OnKeyUp; {$ifndef PASDOC} deprecated; {$endif}
-    { Deprecated, use OnPress instead. }
-    property OnMouseDown; {$ifndef PASDOC} deprecated; {$endif}
-    { Deprecated, use OnMotion instead. }
-    property OnMouseMove; {$ifndef PASDOC} deprecated; {$endif}
-    { Deprecated, use OnRelease instead. }
-    property OnMouseUp; {$ifndef PASDOC} deprecated; {$endif}
-    { Deprecated, use OnPress instead. }
-    property OnMouseWheel; {$ifndef PASDOC} deprecated; {$endif}
-    { Deprecated, use OnPress instead. }
-    property OnMouseWheelDown; {$ifndef PASDOC} deprecated; {$endif}
-    { Deprecated, use OnPress instead. }
-    property OnMouseWheelUp; {$ifndef PASDOC} deprecated; {$endif}
+
     property OnMouseEnter;
     property OnMouseLeave;
-    { Deprecated, use OnRender instead. }
-    property OnPaint; {$ifndef PASDOC} deprecated; {$endif}
     property OnShowHint;
     property PopupMenu;
     property ShowHint;
     property Visible;
+    property TabOrder;
+    property TabStop default true;
+
+    property Container: TContainer read FContainer;
 
     { Event called when the OpenGL context is created,
       you can initialize things that require OpenGL context now.
@@ -267,13 +262,13 @@ type
       you want (e.g. you add them in ApplicationInitialize),
       and underneath they create/release/create again the OpenGL resources
       when necessary. }
-    property OnOpen: TNotifyEvent                      read FOnOpen         write FOnOpen        ;
+    property OnOpen: TNotifyEvent read FOnOpen write FOnOpen;
 
     { Event called when the context is closed, right before the OpenGL context
       is destroyed. This is your last chance to release OpenGL resources,
       like textures, shaders, display lists etc. This is a counterpart
       to OnOpen event. }
-    property OnClose: TNotifyEvent                     read FOnClose        write FOnClose       ;
+    property OnClose: TNotifyEvent read FOnClose write FOnClose;
 
     { Event always called right before OnRender.
       These two events, OnBeforeRender and OnRender,
@@ -288,7 +283,7 @@ type
       task inside OnRender because this would cause a sudden big change in
       Fps.FrameTime value. So you can avoid this by putting
       this in OnBeforeRender. }
-    property OnBeforeRender: TNotifyEvent              read FOnBeforeRender write FOnBeforeRender;
+    property OnBeforeRender: TNotifyEvent read FOnBeforeRender write FOnBeforeRender;
 
     { Render window contents here.
 
@@ -300,7 +295,7 @@ type
 
       Note that calling Invalidate while in OnRender is not ignored.
       It means that in a short time next OnRender will be called. }
-    property OnRender: TNotifyEvent                    read FOnRender       write FOnRender      ;
+    property OnRender: TNotifyEvent read FOnRender write FOnRender;
 
     { Called when the control size (@code(Width), @code(Height)) changes.
       It's also guaranteed to be called
@@ -312,10 +307,10 @@ type
 
       In the usual case, the SceneManager takes care of setting appropriate
       OpenGL projection, so you don't need to do anything here. }
-    property OnResize: TNotifyEvent                    read FOnResize       write FOnResize      ;
+    property OnResize: TNotifyEvent read FOnResize write FOnResize;
 
     { Called when user presses a key or mouse button or moves mouse wheel. }
-    property OnPress: TControlInputPressReleaseEvent   read FOnPress        write FOnPress       ;
+    property OnPress: TControlInputPressReleaseEvent read FOnPress write FOnPress;
 
     { Called when user releases a pressed key or mouse button.
 
@@ -338,7 +333,7 @@ type
       released as pressed and then released? yes.
       will small "x" be reported as released at the end? no, as it was never
       pressed.) }
-    property OnRelease: TControlInputPressReleaseEvent read FOnRelease      write FOnRelease     ;
+    property OnRelease: TControlInputPressReleaseEvent read FOnRelease write FOnRelease;
 
     { Mouse or a finger on touch device moved.
 
@@ -347,17 +342,13 @@ type
       the MousePosition property records the @italic(previous)
       mouse position, while callback parameter NewMousePosition gives
       the @italic(new) mouse position. }
-    property OnMotion: TControlInputMotionEvent        read FOnMotion       write FOnMotion      ;
+    property OnMotion: TControlInputMotionEvent read FOnMotion write FOnMotion;
 
     { Continously occuring event.
       This event is called at least as regularly as redraw,
       so it is continously called even when your game
       is overwhelmed by messages (like mouse moves) and redraws. }
-    property OnUpdate: TNotifyEvent                    read FOnUpdate       write FOnUpdate      ;
-
-    property TabOrder;
-    property TabStop default true;
-    property Container: TContainer read FContainer;
+    property OnUpdate: TNotifyEvent read FOnUpdate write FOnUpdate;
   end;
 
   { Same as TGameSceneManager, redefined only to work as a sub-component
