@@ -773,7 +773,7 @@ end;
     prLow,
     prMiddle,
     prHigh
-  ) {$ifndef PASDOC} deprecated {$endif};
+  ) deprecated;
 
   { TUIControl that has a position and takes some rectangular space
     on the container.

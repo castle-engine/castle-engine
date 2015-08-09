@@ -324,7 +324,7 @@ type
     { Current frame identifier.
 
       Changed when each container "update" event occurs,
-      so this is equal during all @link(TUIControl.Update),
+      so this is equal during all @link(TInputListener.Update),
       @link(TUIControl.Render), @link(T3D.Update),
       @link(T3D.Render) occuring within the same frame.
       You can use this to avoid performing the same job many times
@@ -336,7 +336,7 @@ type
       @code(TFramesPerSecond.FrameId),
       no need to have a TFramesPerSecond instance (which is usually
       accessed from TUIContainer, like @link(TUIContainer.Fps),
-      @link(TCastleWindow.Fps), @link(TCastleControl.Fps). }
+      @link(TCastleWindowCustom.Fps), @link(TCastleControlCustom.Fps). }
     class function FrameId: Int64;
   end;
 

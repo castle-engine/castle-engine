@@ -17,6 +17,8 @@
 
   Parts based on npapi.h from NPAPI SDK, license:
   Version: MPL 1.1/GPL 2.0/LGPL 2.1.
+
+  @exclude Not ready for PasDoc. Also, internal for the engine.
 }
 unit CastleNPAPI;
 
@@ -83,7 +85,8 @@ const
 /*----------------------------------------------------------------------*}
 
 type
-  TNPBool = Byte; //< bFalse = 0, bTrue = 1
+  { NPAPI boolean. Allowed values: bFalse = 0, bTrue = 1. }
+  TNPBool = Byte;
   PNPBool = ^TNPBool;
 
   { PRBool from XulRunner.
@@ -418,11 +421,14 @@ type
 
   TNPWindow = record
     window: Pointer;  {< Platform specific window handle }
-    { OS/2: x - Position of bottom left corner }
-    { OS/2: y - relative to visible netscape window }
-    x: CInt32;      //< Position of top left corner relative to a netscape page.
+    { Position of top left corner relative to a netscape page.
+      OS/2:  Position of bottom left corner relative to visible netscape window.
+      @groupBegin }
+    x: CInt32;
     y: CInt32;
-    width: CUInt32;  //< Maximum window size
+    { @groupEnd }
+    { Maximum window size }
+    width: CUInt32;
     height: CUInt32;
     clipRect: TNPRect; //< Clipping rectangle in port coordinates
     {$ifdef UNIX}
@@ -813,7 +819,8 @@ type
 // typedef char**       (* NP_LOADDS NPP_GetSitesWithDataPtr)(void);
 // typedef void         (* NP_LOADDS NPP_DidCompositePtr)(NPP instance);
 
-  TNPP_GotFocusPtr = Pointer; //< TODO
+  { TODO }
+  TNPP_GotFocusPtr = Pointer;
   TNPP_LostFocusPtr = Pointer; //< TODO
   TNPP_URLRedirectNotifyPtr = Pointer; //< TODO
   TNPP_ClearSiteDataPtr = Pointer; //< TODO
