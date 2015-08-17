@@ -36,6 +36,8 @@
 
   TAbstractShapeNode = class(TAbstractChildNode, IAbstractBoundedObject)
   private
+    function GetGeometry: TAbstractX3DGeometryNode;
+    procedure SetGeometry(const Value: TAbstractX3DGeometryNode);
     function GetAppearance: TAppearanceNode;
     procedure SetAppearance(const Value: TAppearanceNode);
     function GetMaterial: TMaterialNode;
@@ -72,6 +74,9 @@
 
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+
+    { Geometry of this shape. }
+    property Geometry: TAbstractX3DGeometryNode read GetGeometry write SetGeometry;
 
     { Apperance of this shape.
 
@@ -498,6 +503,19 @@ procedure TAbstractShapeNode.AfterTraverse(StateStack: TX3DGraphTraverseStateSta
 begin
   StateStack.Top.ShapeNode := nil;
   inherited;
+end;
+
+function TAbstractShapeNode.GetGeometry: TAbstractX3DGeometryNode;
+begin
+  if (FdGeometry.Value <> nil) and
+     (FdGeometry.Value is TAbstractX3DGeometryNode) then
+    Result := TAbstractX3DGeometryNode(FdGeometry.Value) else
+    Result := nil;
+end;
+
+procedure TAbstractShapeNode.SetGeometry(const Value: TAbstractX3DGeometryNode);
+begin
+  FdGeometry.Value := Value;
 end;
 
 function TAbstractShapeNode.GetAppearance: TAppearanceNode;

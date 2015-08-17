@@ -42,8 +42,8 @@ begin
   Sphere.FdRadius.Value := 2;
 
   SphereShape := TShapeNode.Create('', '');
-  SphereShape.FdAppearance.Value := Appearance;
-  SphereShape.FdGeometry.Value := Sphere;
+  SphereShape.Appearance := Appearance;
+  SphereShape.Geometry := Sphere;
 
   IndexedFaceSetCoordinate := TCoordinateNode.Create('', '');
   IndexedFaceSetCoordinate.FdPoint.Items.AddArray(
