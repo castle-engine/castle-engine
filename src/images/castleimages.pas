@@ -13,13 +13,18 @@
   ----------------------------------------------------------------------------
 }
 
-(*Loading, saving, and processing of images (TCastleImage and friends).
-  Storing images in the memory, loading and saving them from/to files in various
-  formats, resizing, converting to grayscale, copying and merging,
-  many other image operations --- it's all here.
-  We include here special image types useful with modern GPUs:
-  image data compressed for GPU (@link(TGPUCompressedImage))
-  and 3D image data (every image has @code(Depth) in addition to
+(*Loading, saving, and processing of images (TEncodedImage,
+  TCastleImage and other classes).
+  This unit deals with images, stored in normal memory (not on GPU).
+  Images can be loaded and saved from/to various formats
+  and processed in a lot of ways.
+  For example you can resize images, you can draw one image on another,
+  convert to grayscale and so on.
+
+  The "image" concept here includes various interesting image features
+  useful with modern GPUs: image data may be compressed for GPU
+  (@link(TGPUCompressedImage)), image data may be 3D
+  (every image has @code(Depth), in addition to
   @code(Width) and @code(Height)).
 
   The most important class here is @link(TCastleImage).
@@ -36,22 +41,24 @@
   or an image with data compressed for GPU (@link(TGPUCompressedImage)).
 
   When reading and writing image files, we understand various image
-  formats. (See TImageFormat in castleimages_file_formats.inc documentation
+  formats. (See TImageFormat in castleimages_file_formats.inc
   for a current list of supported formats,
-  with comments specific to particular formats.)
-  The basic loading and saving procedures and LoadImage and SaveImage.
+  with comments specific to particular formats.
+  Nicely formatted list of supported formats is part of
+  glviewimage docs: http://castle-engine.sourceforge.net/glviewimage.php .)
 
-  Example usage of this unit:
+  The basic loading and saving procedures are LoadImage and SaveImage.
+  Example usage:
 
 @longCode(#
-  var
-    Image: TCastleImage;
-  begin
-    Image := LoadImage('image.png');
-    { scale the image to be 2x smaller }
-    Image.Resize(Image.Width div 2, Image.Height div 2);
-    SaveImage(Image, 'newimage.png');
-  end;
+var
+  Image: TCastleImage;
+begin
+  Image := LoadImage('image.png');
+  { scale the image to be 2x smaller }
+  Image.Resize(Image.Width div 2, Image.Height div 2);
+  SaveImage(Image, 'newimage.png');
+end;
 #)
 
   This unit is not dependent on OpenGL or any other rendering
