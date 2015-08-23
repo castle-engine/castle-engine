@@ -512,6 +512,10 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       glMultMatrix(RenderingCamera.InverseMatrix);
       glMatrixMode(GL_MODELVIEW);
 
+      (*
+      Later: remove this log, it spams a lot on some scenes,
+      and possibly is incorrect on newer Mesa versions.
+      
       if GLVersion.Mesa and Log then
         { Mesa 7.0.4 makes textures strange (like each cube face was
           1-pixel wide?, although I checked --- they are loaded with
@@ -520,6 +524,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           Nothing more intelligent now than warning about this is done. }
         WritelnLog('TexCoord', Format('Warning: Transforming tex coords to WORLDSPACE* under Mesa3D may mess up static cube maps (ImageCubeMapTexture and ComposedCubeMapTexture, but not GeneratedCubeMapTexure)',
           [SuccessName, FailName]));
+      *)
     end;
     {$endif}
 
