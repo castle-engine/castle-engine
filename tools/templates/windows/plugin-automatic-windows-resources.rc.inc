@@ -13,6 +13,7 @@
 '    // this block id is necessary for NPAPI plugins to be detected' + LineEnding +
 '    BLOCK "040904e4"' + LineEnding +
 '    {' + LineEnding +
+'      // TODO: Possibly these Comments field is useless?' + LineEnding +
 '      VALUE "Comments", "\0"' + LineEnding +
 '      VALUE "CompanyName", "${AUTHOR}\000"' + LineEnding +
 '      VALUE "FileDescription", "Plugin created with Castle Game Engine to run ${NAME}\000"' + LineEnding +
