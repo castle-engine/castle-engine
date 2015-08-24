@@ -4064,7 +4064,8 @@ end;
 {$ifndef CASTLE_WINDOW_LCL}
 procedure TCastleWindowCustom.Invalidate;
 begin
-  if not Closed then Invalidated := true;
+  if not Closed then 
+    Invalidated := true;
 end;
 {$endif}
 {$endif}

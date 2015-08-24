@@ -59,11 +59,20 @@ private
 function TCastleApplication.ProcessAllMessages: boolean;
 var
   WasAnyMessage: boolean;
+  {$ifdef CASTLE_ENGINE_PLUGIN}
+  I: Integer;
+  {$endif}
 begin
   repeat
     Result := ProcessMessage2(false, false, WasAnyMessage);
     if (not Result) or (not WasAnyMessage) then break;
   until false;
+
+  {$ifdef CASTLE_ENGINE_PLUGIN}
+  // TODO: why is this needed?
+  for I := 0 to OpenWindowsCount - 1 do
+    OpenWindows[I].Invalidate;
+  {$endif CASTLE_ENGINE_PLUGIN}
 end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;

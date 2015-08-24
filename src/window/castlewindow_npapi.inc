@@ -248,19 +248,7 @@ begin
       // TODO: avoid multiple timers for multiple window, we want only one.
 
       for J := 1 to ProcessCount do
-      begin
-        // TODO: all too slow
-        //Application.ProcessMessage(false, true);
-        //Application.ProcessMessage(false, false);
         Application.ProcessAllMessages;
-
-        // TODO: this should not be necessary
-        // TODO: even if, only for InstanceData^.CastleWindow should be enough!
-        // if InstanceData^.CastleWindow <> nil then
-        //   InstanceData^.CastleWindow.Invalidate
-        for I := 0 to Application.OpenWindowsCount - 1 do
-          Application.OpenWindows[I].Invalidate;
-      end;
     except
       on E: TObject do OnWarning(wtMajor, 'Plugin', 'Exception in EventCheckTimer: ' + ExceptMessage(E));
     end;

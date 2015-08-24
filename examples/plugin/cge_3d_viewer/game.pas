@@ -24,7 +24,7 @@ uses SysUtils, CastleWindow, CastleScene, CastleControls,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleWindowTouch,
   CastleLog, CastleGLUtils, CastleColors, CastleWindowProgress,
   CastleUIControls, X3DLoad, CastleUtils, CastleProgress, CastleURIUtils,
-  CastleDownload;
+  CastleDownload, CastleMessages;
 
 { routines ------------------------------------------------------------------- }
 
@@ -35,10 +35,15 @@ type
   end;
 
   TPluginWindowContainer = class(TWindowContainer)
+  private
+    procedure MessageClick(Sender: TObject);
+    procedure ProgressClick(Sender: TObject);
   public
     Parent: TPluginWindow;
     Scene: TCastleScene;
     Status: TCastleLabel;
+    MessageButton: TCastleButton;
+    ProgressButton: TCastleButton;
     URL, ErrorMessage: string;
     constructor Create(AParent: TPluginWindow); reintroduce;
     procedure LoadScene(const AURL: string);
@@ -98,8 +103,22 @@ begin
 
   Application.MainWindow := nil;
 
-  Status := TCastleLabel.Create(Application);
+  Status := TCastleLabel.Create(Self);
   Parent.Controls.InsertFront(Status);
+
+  MessageButton := TCastleButton.Create(Self);
+  MessageButton.Caption := 'Test Modal Message';
+  MessageButton.OnClick := @MessageClick;
+  MessageButton.Bottom := 10;
+  MessageButton.Left := 10;
+  Parent.Controls.InsertFront(MessageButton);
+
+  ProgressButton := TCastleButton.Create(Self);
+  ProgressButton.Caption := 'Test Progress Bar';
+  ProgressButton.OnClick := @ProgressClick;
+  ProgressButton.Bottom := 100;
+  ProgressButton.Left := 10;
+  Parent.Controls.InsertFront(ProgressButton);
 end;
 
 procedure TPluginWindowContainer.EventUpdate;
@@ -117,6 +136,35 @@ begin
   inherited;
   Status.Align(hpLeft, hpLeft, 10);
   Status.Align(vpBottom, vpBottom, 10);
+end;
+
+procedure TPluginWindowContainer.MessageClick(Sender: TObject);
+begin
+  if MessageYesNo(Parent, 'Test of a yes/no message. Click one of the buttons!') then
+    MessageOK(Parent, 'You clicked "Yes".') else
+    MessageOK(Parent, 'You clicked "No".');
+end;
+
+procedure TPluginWindowContainer.ProgressClick(Sender: TObject);
+const
+  TestProgressSteps = 100;
+var
+  I: Integer;
+begin
+  { used for progress bar }
+  Application.MainWindow := Parent;
+
+  Progress.Init(TestProgressSteps, 'Please wait...');
+  try
+    for I := 1 to TestProgressSteps do
+    begin
+      Sleep(10);
+      Progress.Step;
+      WritelnLog('Progress', 'Step %d', [I]);
+    end;
+  finally Progress.Fini end;
+
+  Application.MainWindow := nil;
 end;
 
 { global --------------------------------------------------------------------- }
@@ -140,7 +188,5 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
   Application.DefaultWindowClass := TPluginWindow;
 
-  // TODO: do not use WindowProgressInterface, it makes it's own loop
-  // that could hang browser (or at least plugin container).
-  //Progress.UserInterface := WindowProgressInterface;
+  Progress.UserInterface := WindowProgressInterface;
 end.
