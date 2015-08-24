@@ -228,6 +228,8 @@ var
   InstanceData: PInstanceData;
   I, J: Integer;
 begin
+  if InsideTimer then Exit;
+
   // We could try calling the processing here like this:
   //sBrowserFuncs.pluginthreadasynccall(instance, @EventCheckTimerCallback, instance);
   // but it's not necessary anywhere.
@@ -267,9 +269,14 @@ end;
 {$endif}
 
 function NPP_New(pluginType: TNPMIMEType; instance: PNPP; mode: CUInt16; argc: CInt16; argn: PPChar; argv: PPChar; saved: PNPSavedData): TNPError; extdecl;
+const
+  { Minimum timer interval to not drain browser resources. }
+  MinTimerInterval = 10;
 var
   {$ifdef DEBUG_WINDOWLESS}
   browserSupportsWindowless: TNPBool;
+  {$else}
+  TimerInterval: CUInt32;
   {$endif}
   InstanceData: PInstanceData;
   I: Integer;
@@ -316,7 +323,11 @@ begin
     Application.FUserAgent := sBrowserFuncs.uagent(instance);
 
     {$ifndef DEBUG_WINDOWLESS}
-    InstanceData^.EventCheckTimerId := sBrowserFuncs.scheduletimer(instance, 0, 1, @EventCheckTimer);
+    if Round(Application.LimitFPS) <= 0 then
+      TimerInterval := MinTimerInterval else
+      TimerInterval := Max(MinTimerInterval, 1000 div Round(Application.LimitFPS));
+    WritelnLog('Plugin', Format('Timer to watch events interval: %d', [TimerInterval]));
+    InstanceData^.EventCheckTimerId := sBrowserFuncs.scheduletimer(instance, TimerInterval, 1, @EventCheckTimer);
     InstanceData^.HasEventCheckTimer := true;
     {$endif}
 

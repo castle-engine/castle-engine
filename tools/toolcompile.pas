@@ -178,7 +178,34 @@ begin
     end;
 
     if Plugin then
+    begin
       FpcOptions.Add('-dCASTLE_ENGINE_PLUGIN');
+      { We need to add -fPIC otherwise compiling a shared library fails with
+
+        /usr/bin/ld: .../castlewindow.o: relocation R_X86_64_32S against
+          `U_CASTLEWINDOW_MENUITEMS' can not be used when making
+          a shared object; recompile with -fPIC
+
+        That is because FPC RTL is compiled with -fPIC for this platform,
+        it seems. See
+        http://lists.freepascal.org/pipermail/fpc-pascal/2014-November/043155.html
+        http://lists.freepascal.org/pipermail/fpc-pascal/2014-November/043159.html
+
+        """
+        fpcmake automatically adds -Cg/-fPIC for x86-64 platforms,
+        exactly because of this issue.
+        """
+
+        And http://wiki.freepascal.org/PIC_information explains about PIC:
+        """
+        fpcmake automatically adds -Cg/-fPIC for x86-64 platforms:
+        * for freebsd, openbsd, netbsd, linux, solaris
+        * for darwin -Cg is enabled by the compiler (see below)
+        """
+      }
+      if (CPU = X86_64) and (OS in [Linux,FreeBSD,NetBSD,OpenBSD,Solaris]) then
+        FpcOptions.Add('-fPIC');
+    end;
 
     FpcOptions.Add(CompileFile);
 

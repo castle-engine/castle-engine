@@ -151,7 +151,8 @@ begin
 
   if ALogStream = nil then
   begin
-    {$ifdef MSWINDOWS}
+    {$ifdef MSWINDOWS} {$define LOG_TO_USER_DIR} {$endif}
+    {$ifdef LOG_TO_USER_DIR}
     { In Windows DLL, which may also be NPAPI plugin, be even more cautious:
       create .log file in user's directory. }
     if IsLibrary then

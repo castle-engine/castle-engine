@@ -134,9 +134,7 @@ end;
 initialization
   OnGetApplicationName := @MyGetApplicationName;
 
-  InitializeLog; // for a plugin, we can start logging here
-  // TODO: only for a plugin this is Ok?
-  // Is it always Ok also for Windows, where we can't write to browser dir?
+  InitializeLog; // start logging early, to test plugin startup
 
   { initialize Application }
   Application.OnInitialize := @ApplicationInitialize;
