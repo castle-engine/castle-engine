@@ -109,14 +109,14 @@ begin
   MessageButton := TCastleButton.Create(Self);
   MessageButton.Caption := 'Test Modal Message';
   MessageButton.OnClick := @MessageClick;
-  MessageButton.Bottom := 10;
+  MessageButton.Bottom := 100;
   MessageButton.Left := 10;
   Parent.Controls.InsertFront(MessageButton);
 
   ProgressButton := TCastleButton.Create(Self);
   ProgressButton.Caption := 'Test Progress Bar';
   ProgressButton.OnClick := @ProgressClick;
-  ProgressButton.Bottom := 100;
+  ProgressButton.Bottom := 150;
   ProgressButton.Left := 10;
   Parent.Controls.InsertFront(ProgressButton);
 end;
