@@ -148,6 +148,7 @@ type
     FDrownDamageRandom: Single;
     FSwimSoundPause: Single;
     FEnableCameraDragging: boolean;
+    FFallingEffect: boolean;
 
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
@@ -391,8 +392,19 @@ type
       This should be something that is not easily synchronized
       with SwimDrownPause. }
     property SwimSoundPause: Single read FSwimSoundPause write FSwimSoundPause default DefaultSwimSoundPause;
+
+    { Enable camera falling down effect due to gravity.
+      This indirectly controls @link(TWalkCamera.FallingEffect)
+      underneath.
+
+      Note: do not set @code(Camera.FallingEffect), as it will
+      be overridden in our update. Use only this property to turn on/off
+      the effect. }
+    property FallingEffect: boolean
+      read FFallingEffect write FFallingEffect default true;
   published
     property KnockBackSpeed default DefaultPlayerKnockBackSpeed;
+
     { Enable camera navigation by dragging. This results in including
       ciMouseDragging in TCamera.Input (when player is not
       @link(Dead) or @link(Blocked)). }
@@ -504,6 +516,7 @@ begin
   FDrownDamageConst := DefaultDrownDamageConst;
   FDrownDamageRandom := DefaultDrownDamageRandom;
   FSwimSoundPause := DefaultSwimSoundPause;
+  FFallingEffect := true;
 
   Add(TPlayerBox.Create(Self));
 
@@ -682,7 +695,7 @@ begin
   Camera.Gravity := (not Blocked) and (not Flying);
   { Note that when not Camera.Gravity then FallingEffect will not
     work anyway. }
-  Camera.FallingEffect := Swimming = psNo;
+  Camera.FallingEffect := FallingEffect and (Swimming = psNo);
 
   if Blocked then
   begin
