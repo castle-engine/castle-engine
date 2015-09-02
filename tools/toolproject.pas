@@ -679,6 +679,7 @@ end;
 
 procedure TCastleProject.DoInstall(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
 
+  {$ifdef UNIX}
   procedure InstallUnixPlugin;
   const
     TargetPathSystemWide = '/usr/lib/mozilla/plugins/';
@@ -701,6 +702,7 @@ procedure TCastleProject.DoInstall(const OS: TOS; const CPU: TCPU; const Plugin:
       end;
     end;
   end;
+  {$endif}
 
 begin
   Writeln(Format('Installing project "%s" for OS / CPU "%s / %s"%s.',
@@ -712,8 +714,10 @@ begin
   if Plugin and (OS in AllWindowsOSes) then
     InstallWindowsPluginRegistry(Name, QualifiedName, ProjectPath,
       PluginCompiledFile(OS, CPU), Version, Author) else
+  {$ifdef UNIX}
   if Plugin and (OS in AllUnixOSes) then
     InstallUnixPlugin else
+  {$endif}
     raise Exception.Create('The "install" command is not useful for this OS / CPU right now. Install and run the application manually.');
 end;
 
