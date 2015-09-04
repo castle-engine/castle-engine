@@ -1414,7 +1414,7 @@ function LoadImage(const URL: string;
 { Load image to TEncodedImage format.
   This allows loading image compressed with GPU, which is good for optimally
   loading it to GPU. However, the operations on GPU-compressed image are very
-  limited, we generally cannot do much with GPU-compressed date except
+  limited, we generally cannot do much with GPU-compressed data except
   rendering it.
 
   @seealso LoadImage
