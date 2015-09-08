@@ -938,6 +938,8 @@ function OnGLContextOpen: TGLContextEventList;
 function OnGLContextClose: TGLContextEventList;
 { @groupEnd }
 
+function IsGLContextOpen: boolean;
+
 const
   { Deprecated name for rs2D. }
   ds2D = rs2D deprecated;
@@ -2055,10 +2057,19 @@ end;
 
 { TGLContextEventList -------------------------------------------------------- }
 
+var
+  FIsGLContextOpen: boolean;
+
+function IsGLContextOpen: boolean;
+begin
+  Result := FIsGLContextOpen;
+end;
+
 procedure TGLContextEventList.ExecuteForward;
 var
   I: Integer;
 begin
+  FIsGLContextOpen := true;
   for I := 0 to Count - 1 do
     Items[I]();
 end;
@@ -2069,6 +2080,7 @@ var
 begin
   for I := Count - 1 downto 0 do
     Items[I]();
+  FIsGLContextOpen := false;
 end;
 
 var

@@ -2,18 +2,17 @@ unit SandBoxGame;
 
 interface
 
-uses SandBoxMap;
+uses CastleWindow, SandBoxMap;
 
 const
   BaseWidth = 70;
   BaseHeight = 36;
 
 var
+  Window: TCastleWindowCustom;
+
   { Game time, in seconds. Updated in Update. }
   GameTime: Single;
-
-  ScreenWidth: Cardinal;
-  ScreenHeight: Cardinal;
 
   Map: TMap;
 
@@ -29,8 +28,8 @@ procedure ViewMoveToCenterPosition(const MapX, MapY: Integer;
   var MoveX, MoveY: Integer);
 begin
   { Set MoveX/Y such that point (0, 0) is in the middle. }
-  MoveX := (ScreenWidth div 2) - BaseWidth div 2;
-  MoveY := (ScreenHeight div 2) - BaseHeight div 2;
+  MoveX := (Window.Width div 2) - BaseWidth div 2;
+  MoveY := (Window.Height div 2) - BaseHeight div 2;
   { Now translate such that MapX, MapY is in the middle. }
   MoveX -= MapX * BaseWidth;
   MoveY -= MapY * (BaseHeight div 2);
