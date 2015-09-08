@@ -166,6 +166,10 @@ begin
     VectorToRawStr(Up),
     VectorToRawStr(GravityUp) ]);
 
+  {$ifdef VER3_1_1}
+  {$warning Workarounding FPC 3.1.1 internal error 200211262 in x3dcamerautils.pas, MakeCameraStr is not correct}
+  {$else}
+
   RotationVectorForGravity := VectorProduct(DefaultX3DGravityUp, GravityUp);
   if ZeroVector(RotationVectorForGravity) then
   begin
@@ -202,6 +206,8 @@ begin
             RotatePointAroundAxisRad(-AngleForGravity, Up       , RotationVectorForGravity)
             )) ]);
   end;
+
+  {$endif}
 end;
 
 function MakeCameraNode(const Version: TX3DCameraVersion;
