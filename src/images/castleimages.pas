@@ -232,36 +232,30 @@ type
       the opacity (alpha) of the source image. That is,
 
       @preformatted(
-result := destination image * (1 - source alpha) + source image * (source alpha)
+destination.rgb := destination.rgb * (1 - source.alpha) + source.rgb * source.alpha;
+destination.alpha := destination.alpha; // never changed by this drawing mode
 )
 
-      So when drawing @italic(an image with alpha over an image without alpha),
-      their colors will be blended according to the above equation.
-      When drawing @italic(an image without alpha over anything),
-      source contents will always replace the destination image underneath
-      (as an image without alpha is treated like fully opaque).
-
-      TODO: Right now, when drawing @italic(an image with alpha over another
-      image with alpha), source will also simply replace the contents of destination,
-      which is not necessarily correct and subject to change!
-      (Since the above equation doesn't specify what happens with resulting
-      alpha channel, it's hard to say what's the expected behavior here...). }
+      An image type without alpha (like TRGBImage or TGrayscaleImage)
+      is always treated like it has alpha = 1.0 (fully opaque) everywhere.
+      In particular, this means that when drawing @italic(an image
+      without alpha over any other image), source RGB contents will
+      simply replace the destination RGB contents. }
     dmBlend,
 
     { Additive drawing mode, where the image contents of source image
       are added to the existing destination image. That is,
 
       @preformatted(
-result := destination image + source image * (source alpha)
+destination.rgb := destination.rgb + source.rgb * source.alpha;
+destination.alpha := destination.alpha; // never changed by this drawing mode
 )
 
       So when drawing @italic(an image with alpha over an image without alpha),
       the colors will be added according to the above equation, only source
       is multiplied by alpha. To speed this operation, one can use
       @link(TRGBAlphaImage.PremultiplyAlpha) on the source image first,
-      very useful if you plan to draw the same source image many times.
-
-      TODO: for other cases, this is not implemented correctly now. }
+      very useful if you plan to draw the same source image many times. }
     dmAdd
   );
 
@@ -339,7 +333,7 @@ result := destination image + source image * (source alpha)
       Override this to add copying using some more sophisticated method
       than just memory copying (so also for handling mode other than
       dmBlend). }
-    procedure DrawCore(Source: TCastleImage;
+    procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); virtual;
   public
@@ -688,9 +682,9 @@ result := destination image + source image * (source alpha)
       and you want to apply it over a destination image with blending
       (adding scaled source to a destination color),
       and not suitable when Mode is <> dmBlend.
-      Descendants with alpha channel should override @link(DrawCore)
+      Descendants with alpha channel should override @link(DrawFromCore)
       to handle drawing with blending (for dmBlend),
-      all descendants should override @link(DrawCore)
+      all descendants should override @link(DrawFromCore)
       to handle drawing with Mode <> dmBlend.
 
       @raises(EImageDrawError When drawing cannot be performed,
@@ -980,7 +974,7 @@ type
     class function FromFpImage(const FPImage: TFPMemoryImage): TRGBImage;
     function ToFpImage: TFPMemoryImage; override;
   protected
-    procedure DrawCore(Source: TCastleImage;
+    procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); override;
   public
@@ -1074,6 +1068,10 @@ type
     function GetAlphaPixels: PVector4Byte;
     class function FromFpImage(const FPImage: TFPMemoryImage): TRGBAlphaImage;
     function ToFpImage: TFPMemoryImage; override;
+  protected
+    procedure DrawFromCore(Source: TCastleImage;
+      X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
+      const Mode: TDrawMode); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector4Byte }
     property AlphaPixels: PVector4Byte read GetAlphaPixels;
@@ -1192,6 +1190,10 @@ type
     function GetGrayscalePixels: PByte;
     class function FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleImage;
     function ToFpImage: TFPMemoryImage; override;
+  protected
+    procedure DrawFromCore(Source: TCastleImage;
+      X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
+      const Mode: TDrawMode); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PByte }
     property GrayscalePixels: PByte read GetGrayscalePixels;
@@ -1246,6 +1248,10 @@ type
     function GetGrayscaleAlphaPixels: PVector2Byte;
     class function FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleAlphaImage;
     function ToFpImage: TFPMemoryImage; override;
+  protected
+    procedure DrawFromCore(Source: TCastleImage;
+      X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
+      const Mode: TDrawMode); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector2Byte }
     property GrayscaleAlphaPixels: PVector2Byte read GetGrayscaleAlphaPixels;
@@ -1587,6 +1593,7 @@ uses ExtInterpolation, FPCanvas, FPImgCanv,
 { parts ---------------------------------------------------------------------- }
 
 {$I castleimages_file_formats.inc}
+{$I castleimages_draw.inc}
 {$I images_bmp.inc}
 {$ifndef CASTLE_PNG_USING_FCL_IMAGE}
   {$I images_png.inc}
@@ -2223,91 +2230,6 @@ begin
     0, 0, Image.Width, Image.Height);
 end;
 
-procedure TCastleImage.DrawCore(Source: TCastleImage;
-  X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
-  const Mode: TDrawMode);
-var
-  Line: Integer;
-  Ptr, SourcePtr: Pointer;
-  RowWidth, SourceRowWidth, SourceCopyRowWidth: Cardinal;
-begin
-  if Source.ClassType <> ClassType then
-    raise EImageDrawError.CreateFmt('Cannot draw pixels from image class %s to %s',
-      [Source.ClassName, ClassName]);
-
-  if Mode <> dmBlend then
-    raise EImageDrawError.CreateFmt('Base TCastleImage.DrawCore cannot draw pixels with Mode <> dmBlend, override DrawCore to implement this correctly, from image class %s to %s',
-      [Source.ClassName, ClassName]);
-
-  Ptr := PixelPtr(X, Y);
-  RowWidth := Width * PixelSize;
-
-  SourcePtr := Source.PixelPtr(SourceX, SourceY);
-  SourceRowWidth := Source.Width * Source.PixelSize;
-  SourceCopyRowWidth := SourceWidth * Source.PixelSize;
-
-  for Line := 0 to Integer(SourceHeight) - 1 do
-  begin
-    Move(SourcePtr^, Ptr^, SourceCopyRowWidth);
-    PtrUInt(Ptr) := PtrUInt(Ptr) + RowWidth;
-    PtrUInt(SourcePtr) := PtrUInt(SourcePtr) + SourceRowWidth;
-  end;
-end;
-
-procedure TCastleImage.DrawFrom(Source: TCastleImage;
-  X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
-  const Mode: TDrawMode);
-begin
-  if X < 0 then
-  begin
-    SourceX += -X;
-    SourceWidth -= -X;
-    X := 0;
-  end;
-
-  if Y < 0 then
-  begin
-    SourceY += -Y;
-    SourceHeight -= -Y;
-    Y := 0;
-  end;
-
-  if SourceX < 0 then
-  begin
-    X += -SourceX;
-    SourceWidth -= -SourceX;
-    SourceX := 0;
-  end;
-
-  if SourceY < 0 then
-  begin
-    Y += -SourceY;
-    SourceHeight -= -SourceY;
-    SourceY := 0;
-  end;
-
-  SourceWidth  := Min(SourceWidth , Width  - X, Source.Width );
-  SourceHeight := Min(SourceHeight, Height - Y, Source.Height);
-
-  if (SourceWidth > 0) and
-     (SourceHeight > 0) and
-     (SourceX < Source.Width) and
-     (SourceY < Source.Height) then
-    DrawCore(Source, X, Y, SourceX, SourceY, SourceWidth, SourceHeight, Mode);
-end;
-
-procedure TCastleImage.DrawFrom(Source: TCastleImage; const X, Y: Integer;
-  const Mode: TDrawMode);
-begin
-  DrawFrom(Source, X, Y, 0, 0, Source.Width, Source.Height, Mode);
-end;
-
-procedure TCastleImage.DrawTo(Destination: TCastleImage; const X, Y: Integer;
-  const Mode: TDrawMode);
-begin
-  Destination.DrawFrom(Self, X, Y, Mode);
-end;
-
 procedure TCastleImage.LerpSimpleCheckConditions(SecondImage: TCastleImage);
 begin
   if (Width <> SecondImage.Width) or
@@ -2668,202 +2590,6 @@ type PPixel = PVector3Byte;
 procedure TRGBImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
 type PPixel = PVector3Byte;
 {$I images_modulatergb_implement.inc}
-
-function BlendBytes(const Dest, Source, Opacity: Byte): Byte; inline;
-var
-  W: Word;
-begin
-  W :=
-    Word(Dest  ) * (255 - Opacity) div 255 +
-    Word(Source) * Opacity         div 255;
-  if W > 255 then W := 255;
-  Result := W;
-end;
-
-function AddBytes(const Dest, Source, Opacity: Byte): Byte; inline;
-var
-  W: Word;
-begin
-  W := Dest + Word(Source) * Opacity div 255;
-  if W > 255 then W := 255;
-  Result := W;
-end;
-
-function AddBytesPremultiplied(const Dest, Source: Byte): Byte; inline;
-var
-  W: Word;
-begin
-  W := Dest + Source;
-  if W > 255 then W := 255;
-  Result := W;
-end;
-
-procedure TRGBImage.DrawCore(Source: TCastleImage;
-  X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
-  const Mode: TDrawMode);
-
-  procedure SourceRGBAlpha(Source: TRGBAlphaImage);
-  var
-    PSource: PVector4Byte;
-    PDest: PVector3Byte;
-    DestX, DestY: Integer;
-  begin
-    case Mode of
-      dmBlend:
-        for DestY := Y to Y + SourceHeight - 1 do
-        begin
-          PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-          PDest := PixelPtr(X, DestY);
-          for DestX := X to X + SourceWidth - 1 do
-          begin
-            PDest^[0] := BlendBytes(PDest^[0], PSource^[0], PSource^[3]);
-            PDest^[1] := BlendBytes(PDest^[1], PSource^[1], PSource^[3]);
-            PDest^[2] := BlendBytes(PDest^[2], PSource^[2], PSource^[3]);
-            Inc(PSource);
-            Inc(PDest);
-          end;
-        end;
-      dmAdd:
-        if Source.PremultipliedAlpha then
-        begin
-          for DestY := Y to Y + SourceHeight - 1 do
-          begin
-            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-            PDest := PixelPtr(X, DestY);
-            for DestX := X to X + SourceWidth - 1 do
-            begin
-              PDest^[0] := AddBytesPremultiplied(PDest^[0], PSource^[0]);
-              PDest^[1] := AddBytesPremultiplied(PDest^[1], PSource^[1]);
-              PDest^[2] := AddBytesPremultiplied(PDest^[2], PSource^[2]);
-              Inc(PSource);
-              Inc(PDest);
-            end;
-          end;
-        end else
-        begin
-          for DestY := Y to Y + SourceHeight - 1 do
-          begin
-            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-            PDest := PixelPtr(X, DestY);
-            for DestX := X to X + SourceWidth - 1 do
-            begin
-              PDest^[0] := AddBytes(PDest^[0], PSource^[0], PSource^[3]);
-              PDest^[1] := AddBytes(PDest^[1], PSource^[1], PSource^[3]);
-              PDest^[2] := AddBytes(PDest^[2], PSource^[2], PSource^[3]);
-              Inc(PSource);
-              Inc(PDest);
-            end;
-          end;
-        end;
-      else raise EInternalError.Create('Blend mode not implemented (TRGBImage.DrawCore)');
-    end;
-  end;
-
-  procedure SourceGrayscaleAlpha(Source: TGrayscaleAlphaImage);
-  var
-    PSource: PVector2Byte;
-    PDest: PVector3Byte;
-    DestX, DestY: Integer;
-  begin
-    case Mode of
-      dmBlend:
-        for DestY := Y to Y + SourceHeight - 1 do
-        begin
-          PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-          PDest := PixelPtr(X, DestY);
-          for DestX := X to X + SourceWidth - 1 do
-          begin
-            PDest^[0] := BlendBytes(PDest^[0], PSource^[0], PSource^[1]);
-            PDest^[1] := BlendBytes(PDest^[1], PSource^[0], PSource^[1]);
-            PDest^[2] := BlendBytes(PDest^[2], PSource^[0], PSource^[1]);
-            Inc(PSource);
-            Inc(PDest);
-          end;
-        end;
-      dmAdd:
-        {if Source.PremultipliedAlpha then
-        begin
-          for DestY := Y to Y + SourceHeight - 1 do
-          begin
-            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-            PDest := PixelPtr(X, DestY);
-            for DestX := X to X + SourceWidth - 1 do
-            begin
-              PDest^[0] := AddBytesPremultiplied(PDest^[0], PSource^[0]);
-              PDest^[1] := AddBytesPremultiplied(PDest^[1], PSource^[0]);
-              PDest^[2] := AddBytesPremultiplied(PDest^[2], PSource^[0]);
-              Inc(PSource);
-              Inc(PDest);
-            end;
-          end;
-        end else}
-        begin
-          for DestY := Y to Y + SourceHeight - 1 do
-          begin
-            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-            PDest := PixelPtr(X, DestY);
-            for DestX := X to X + SourceWidth - 1 do
-            begin
-              PDest^[0] := AddBytes(PDest^[0], PSource^[0], PSource^[1]);
-              PDest^[1] := AddBytes(PDest^[1], PSource^[0], PSource^[1]);
-              PDest^[2] := AddBytes(PDest^[2], PSource^[0], PSource^[1]);
-              Inc(PSource);
-              Inc(PDest);
-            end;
-          end;
-        end;
-      else raise EInternalError.Create('Blend mode not implemented (TRGBImage.DrawCore)');
-    end;
-  end;
-
-  procedure SourceGrayscale(Source: TGrayscaleImage);
-  var
-    PSource: PByte;
-    PDest: PVector3Byte;
-    DestX, DestY: Integer;
-  begin
-    case Mode of
-      dmBlend:
-        for DestY := Y to Y + SourceHeight - 1 do
-        begin
-          PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-          PDest := PixelPtr(X, DestY);
-          for DestX := X to X + SourceWidth - 1 do
-          begin
-            PDest^[0] := PSource^;
-            PDest^[1] := PSource^;
-            PDest^[2] := PSource^;
-            Inc(PSource);
-            Inc(PDest);
-          end;
-        end;
-      dmAdd:
-        for DestY := Y to Y + SourceHeight - 1 do
-        begin
-          PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-          PDest := PixelPtr(X, DestY);
-          for DestX := X to X + SourceWidth - 1 do
-          begin
-            PDest^[0] := AddBytesPremultiplied(PDest^[0], PSource^);
-            PDest^[1] := AddBytesPremultiplied(PDest^[1], PSource^);
-            PDest^[2] := AddBytesPremultiplied(PDest^[2], PSource^);
-            Inc(PSource);
-            Inc(PDest);
-          end;
-        end;
-      else raise EInternalError.Create('Blend mode not implemented (TRGBImage.DrawCore)');
-    end;
-  end;
-
-begin
-  if Source is TRGBAlphaImage then
-    SourceRGBAlpha(TRGBAlphaImage(Source)) else
-  if Source is TGrayscaleAlphaImage then
-    SourceGrayscaleAlpha(TGrayscaleAlphaImage(Source)) else
-  if Source is TGrayscaleImage then
-    SourceGrayscale(TGrayscaleImage(Source)) else
-    inherited;
-end;
 
 function TRGBImage.ToRGBAlphaImage: TRGBAlphaImage;
 var

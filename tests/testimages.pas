@@ -31,7 +31,6 @@ type
     procedure TestRGBEToRGBTranslating;
     procedure TestResize;
     //procedure TestMimeTypesAndExtsCount;
-    procedure TestDraw;
   end;
 
 implementation
@@ -258,124 +257,6 @@ begin
   end;
 end;
 *)
-
-procedure TTestImages.TestDraw;
-var
-  Rgb: TRGBImage;
-  RgbAlpha: TRGBAlphaImage;
-  Gray: TGrayscaleImage;
-  GrayAlpha: TGrayscaleAlphaImage;
-
-  function BlendBytes(const Dest, Source, Opacity: Byte): Byte; inline;
-  var
-    W: Word;
-  begin
-    W :=
-      Word(Dest  ) * (255 - Opacity) div 255 +
-      Word(Source) * Opacity         div 255;
-    if W > 255 then W := 255;
-    Result := W;
-  end;
-
-  function AddBytes(const Dest, Source, Opacity: Byte): Byte; inline;
-  var
-    W: Word;
-  begin
-    W := Dest + Word(Source) * Opacity div 255;
-    if W > 255 then W := 255;
-    Result := W;
-  end;
-
-  procedure FreeImages;
-  begin
-    FreeAndNil(Rgb);
-    FreeAndNil(RgbAlpha);
-    FreeAndNil(Gray);
-    FreeAndNil(GrayAlpha);
-  end;
-
-  procedure ResetImages;
-  begin
-    FreeImages;
-
-    Rgb := TRGBImage.Create(2, 2);
-    Rgb.PixelPtr(0, 0)^ := Vector3Byte(1, 2, 3);
-    Rgb.PixelPtr(0, 1)^ := Vector3Byte(4, 5, 6);
-    Rgb.PixelPtr(1, 0)^ := Vector3Byte(11, 22, 33);
-    Rgb.PixelPtr(1, 1)^ := Vector3Byte(44, 55, 66);
-
-    RgbAlpha := TRGBAlphaImage.Create(2, 2);
-    RgbAlpha.PixelPtr(0, 0)^ := Vector4Byte(7, 8, 9, 128);
-    RgbAlpha.PixelPtr(0, 1)^ := Vector4Byte(3, 2, 1, 128);
-    RgbAlpha.PixelPtr(1, 0)^ := Vector4Byte(77, 88, 99, 128);
-    RgbAlpha.PixelPtr(1, 1)^ := Vector4Byte(33, 22, 11, 128);
-
-    Gray := TGrayscaleImage.Create(2, 2);
-    Gray.PixelPtr(0, 0)^ := 100;
-    Gray.PixelPtr(0, 1)^ := 101;
-    Gray.PixelPtr(1, 0)^ := 102;
-    Gray.PixelPtr(1, 1)^ := 103;
-
-    GrayAlpha := TGrayscaleAlphaImage.Create(2, 2);
-    GrayAlpha.PixelPtr(0, 0)^ := Vector2Byte(200, 128);
-    GrayAlpha.PixelPtr(0, 1)^ := Vector2Byte(201, 128);
-    GrayAlpha.PixelPtr(1, 0)^ := Vector2Byte(202, 128);
-    GrayAlpha.PixelPtr(1, 1)^ := Vector2Byte(203, 128);
-  end;
-
-begin
-  Rgb := nil;
-  RgbAlpha := nil;
-  Gray := nil;
-  GrayAlpha := nil;
-  try
-    { draw rgba over rgb }
-    ResetImages;
-    RgbAlpha.DrawTo(Rgb, 0, 1, dmBlend);
-    AssertVectorsEqual(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
-    AssertVectorsEqual(Vector3Byte(BlendBytes(4, 7, 128), BlendBytes(5, 8, 128), BlendBytes(6, 9, 128)), Rgb.PixelPtr(0, 1)^);
-    AssertVectorsEqual(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
-    AssertVectorsEqual(Vector3Byte(BlendBytes(44, 77, 128), BlendBytes(55, 88, 128), BlendBytes(66, 99, 128)), Rgb.PixelPtr(1, 1)^);
-
-    ResetImages;
-    RgbAlpha.DrawTo(Rgb, 0, 1, dmAdd);
-    AssertVectorsEqual(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
-    AssertVectorsEqual(Vector3Byte(4 + 7 div 2, 5 + 8 div 2, 6 + 9 div 2), Rgb.PixelPtr(0, 1)^);
-    AssertVectorsEqual(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
-    AssertVectorsEqual(Vector3Byte(44 + 77 div 2, 55 + 88 div 2, 66 + 99 div 2), Rgb.PixelPtr(1, 1)^);
-
-    { draw grayscale over rgb }
-    ResetImages;
-    Gray.DrawTo(Rgb, 0, 1, dmBlend);
-    AssertVectorsEqual(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
-    AssertVectorsEqual(Vector3Byte(100, 100, 100), Rgb.PixelPtr(0, 1)^);
-    AssertVectorsEqual(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
-    AssertVectorsEqual(Vector3Byte(102, 102, 102), Rgb.PixelPtr(1, 1)^);
-
-    ResetImages;
-    Gray.DrawTo(Rgb, 0, 1, dmAdd);
-    AssertVectorsEqual(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
-    AssertVectorsEqual(Vector3Byte(4 + 100, 5 + 100, 6 + 100), Rgb.PixelPtr(0, 1)^);
-    AssertVectorsEqual(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
-    AssertVectorsEqual(Vector3Byte(44 + 102, 55 + 102, 66 + 102), Rgb.PixelPtr(1, 1)^);
-
-    { draw grayscale + alpha over rgb }
-    ResetImages;
-    GrayAlpha.DrawTo(Rgb, 0, 1, dmBlend);
-    AssertVectorsEqual(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
-    AssertVectorsEqual(Vector3Byte(BlendBytes(4, 200, 128), BlendBytes(5, 200, 128), BlendBytes(6, 200, 128)), Rgb.PixelPtr(0, 1)^);
-    AssertVectorsEqual(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
-    AssertVectorsEqual(Vector3Byte(BlendBytes(44, 202, 128), BlendBytes(55, 202, 128), BlendBytes(66, 202, 128)), Rgb.PixelPtr(1, 1)^);
-
-    ResetImages;
-    GrayAlpha.DrawTo(Rgb, 0, 1, dmAdd);
-    AssertVectorsEqual(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
-    AssertVectorsEqual(Vector3Byte(4 + 200 div 2, 5 + 200 div 2, 6 + 200 div 2), Rgb.PixelPtr(0, 1)^);
-    AssertVectorsEqual(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
-    AssertVectorsEqual(Vector3Byte(44 + 202 div 2, 55 + 202 div 2, 66 + 202 div 2), Rgb.PixelPtr(1, 1)^);
-
-  finally FreeImages end;
-end;
 
 initialization
  RegisterTest(TTestImages);

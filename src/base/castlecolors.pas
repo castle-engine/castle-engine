@@ -71,14 +71,15 @@ const
 
 { Calculate color intensity, for converting color to grayscale.
   @groupBegin }
-function GrayscaleValue(const v: TCastleColorRGB): Single; overload;
-function GrayscaleValue(const v: TVector3Byte): Byte; overload;
-function GrayscaleValue(const v: TCastleColor): Single; overload;
+function GrayscaleValue(const v: TCastleColorRGB): Single; inline; overload;
+function GrayscaleValue(const v: TCastleColor): Single; inline; overload;
+function GrayscaleValue(const v: TVector3Byte): Byte; inline; overload;
+function GrayscaleValue(const v: TVector4Byte): Byte; inline; overload;
 { @groupEnd }
 
-function Grayscale(const v: TCastleColorRGB): TCastleColorRGB; overload;
-function Grayscale(const v: TVector3Byte): TVector3Byte; overload;
-function Grayscale(const v: TCastleColor): TCastleColor; overload;
+function Grayscale(const v: TCastleColorRGB): TCastleColorRGB; inline; overload;
+function Grayscale(const v: TVector3Byte): TVector3Byte; inline; overload;
+function Grayscale(const v: TCastleColor): TCastleColor; inline; overload;
 
 type
   { Function that processes RGB colors, used by TCastleImage.ModulateRGB. }
@@ -199,6 +200,13 @@ begin
 end;
 
 function GrayscaleValue(const v: TVector3Byte): Byte;
+begin
+  result := (GrayscaleValuesByte[0]*v[0]+
+             GrayscaleValuesByte[1]*v[1]+
+             GrayscaleValuesByte[2]*v[2]) div 256;
+end;
+
+function GrayscaleValue(const v: TVector4Byte): Byte;
 begin
   result := (GrayscaleValuesByte[0]*v[0]+
              GrayscaleValuesByte[1]*v[1]+

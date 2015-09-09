@@ -28,6 +28,7 @@ uses
   TestKeysMouse,
   TestFPImage,
   TestImages,
+  TestImagesDraw,
   TestOldFPCBugs,
   TestCastleBoxes,
   TestCastleFrustum,
