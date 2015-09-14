@@ -33,6 +33,7 @@ type
       Scale: Single;
       Outline: Cardinal;
       OutlineColor: TCastleColor;
+      OutlineHighQuality: boolean;
     end;
     TSavedPropertiesList = specialize TFPGObjectList<TSavedProperties>;
   var
@@ -41,6 +42,7 @@ type
     FScale: Single;
     FOutline: Cardinal;
     FOutlineColor: TCastleColor;
+    FOutlineHighQuality: boolean;
     FPropertiesStack: TSavedPropertiesList;
   strict protected
     { Calculate properties based on measuring the font.
@@ -316,8 +318,15 @@ type
 
     { Outline size around the normal text.
       Note that the current implementation is very simple, it will only
-      look sensible for small outline values (like 1 or 2). }
-    property Outline: Cardinal read FOutline write FOutline;
+      look sensible for small outline values (like 1 or 2).
+      @seealso OutlineHighQuality }
+    property Outline: Cardinal read FOutline write FOutline default 0;
+
+    { Optionally force better outline quality.
+      High quality outline looks better, but is almost 2x more expensive to draw.
+      @seealso Outline. }
+    property OutlineHighQuality: boolean
+      read FOutlineHighQuality write FOutlineHighQuality default false;
 
     { Outline color, used only if Outline <> 0. Default is black. }
     property OutlineColor: TCastleColor read FOutlineColor write FOutlineColor;
@@ -915,6 +924,7 @@ begin
   SavedProperites.Scale := Scale;
   SavedProperites.Outline := Outline;
   SavedProperites.OutlineColor := OutlineColor;
+  SavedProperites.OutlineHighQuality := OutlineHighQuality;
   FPropertiesStack.Add(SavedProperites);
 end;
 
@@ -929,6 +939,7 @@ begin
   Scale        := SavedProperites.Scale;
   Outline      := SavedProperites.Outline;
   OutlineColor := SavedProperites.OutlineColor;
+  OutlineHighQuality := SavedProperites.OutlineHighQuality;
   FPropertiesStack.Delete(FPropertiesStack.Count - 1);
 end;
 
@@ -1040,11 +1051,14 @@ begin
           OutlineDraw(2, 2);
           OutlineDraw(2, 0);
 
-          OutlineDraw(1, 0);
-          OutlineDraw(1, 2);
+          if OutlineHighQuality then
+          begin
+            OutlineDraw(1, 0);
+            OutlineDraw(1, 2);
 
-          OutlineDraw(0, 1);
-          OutlineDraw(2, 1);
+            OutlineDraw(0, 1);
+            OutlineDraw(2, 1);
+          end;
 
           GLImage.Color := Color;
           OutlineDraw(1, 1);
