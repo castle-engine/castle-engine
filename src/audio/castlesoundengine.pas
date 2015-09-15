@@ -1572,10 +1572,11 @@ end;
 function TRepoSoundEngine.Sound(SoundType: TSoundType;
   const Looping: boolean): TSound;
 begin
-  { If there is no actual sound, exit early without initializing OpenAL }
-  if Sounds[SoundType].Buffer = 0 then Exit(nil);
-
   if not ALInitialized then ALContextOpen;
+
+  { If there is no actual sound, exit early without initializing OpenAL.
+    Do it *after* ALContextOpen, otherwise Buffer is always zero. }
+  if Sounds[SoundType].Buffer = 0 then Exit(nil);
 
   Result := PlaySound(
     Sounds[SoundType].Buffer, false, Looping,
@@ -1590,10 +1591,11 @@ function TRepoSoundEngine.Sound3D(SoundType: TSoundType;
   const Position: TVector3Single;
   const Looping: boolean): TSound;
 begin
-  { If there is no actual sound, exit early without initializing OpenAL }
-  if Sounds[SoundType].Buffer = 0 then Exit(nil);
-
   if not ALInitialized then ALContextOpen;
+
+  { If there is no actual sound, exit early without initializing OpenAL.
+    Do it *after* ALContextOpen, otherwise Buffer is always zero. }
+  if Sounds[SoundType].Buffer = 0 then Exit(nil);
 
   Result := PlaySound(
     Sounds[SoundType].Buffer, true, Looping,
