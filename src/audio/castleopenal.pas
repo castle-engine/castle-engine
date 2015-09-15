@@ -102,21 +102,6 @@ type
   (for example, continue normal game, just with sound turned off). }
 function ALInited: boolean;
 
-const
-  OpenALDLL =
-    {$ifdef UNIX}
-      {$ifdef DARWIN}
-        '/System/Library/Frameworks/OpenAL.framework/OpenAL'
-      {$else}
-        { I'm linking dynamically using dlopen/dlsym, so library name
-          below can't be just 'libopenal.so', this is only avail
-          in -dev package of openal. }
-        'libopenal.so.0'
-      {$endif}
-    {$endif}
-    {$ifdef MSWINDOWS} 'OpenAL32.dll' {$endif};
-  OpenALDLLAlt = {$ifdef UNIX} 'libopenal.so.1' {$else} '' {$endif};
-
 { Reset OpenAL library.
 
   In this unit's initialization, we link to OpenAL library, load all symbols,
@@ -195,9 +180,27 @@ begin
   { Be sure to start with a "clean" state. }
   OpenALFinalization;
 
-  ALLibrary := TDynLib.Load(OpenALDLL, false);
-  if (ALLibrary = nil) and (OpenALDLLAlt <> '') then
-    ALLibrary := TDynLib.Load(OpenALDLLAlt, false);
+  ALLibrary := TDynLib.Load(
+    {$ifdef UNIX}
+      {$ifdef DARWIN}
+        '/System/Library/Frameworks/OpenAL.framework/OpenAL'
+      {$else}
+        { We are linking dynamically using dlopen/dlsym.
+          Library name should not be just 'libopenal.so',
+          as that is only available in -dev package of openal. }
+        'libopenal.so.0'
+      {$endif}
+    {$endif}
+    {$ifdef MSWINDOWS} 'OpenAL32.dll' {$endif}
+    , false);
+
+  {$ifdef UNIX}
+  if ALLibrary = nil then
+    ALLibrary := TDynLib.Load('libopenal.so.1', false);
+  { esp. good for Android with our version in ../../../external_libraries/arm-android/ }
+  if ALLibrary = nil then
+    ALLibrary := TDynLib.Load('libopenal.so', false);
+  {$endif}
 
   if ALLibrary <> nil then
   begin

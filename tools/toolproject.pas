@@ -23,9 +23,6 @@ uses SysUtils,
   ToolArchitectures, ToolCompile, ToolUtils;
 
 type
-  TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
-  TDependencies = set of TDependency;
-
   TScreenOrientation = (soAny, soLandscape, soPortrait);
 
   TCastleProject = class
@@ -67,6 +64,7 @@ type
       Otherwise, takes more files,
       and assumes that Files are (and will be) URLs relative to ProjectPath. }
     procedure PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
+    function ExternalLibrariesPath(const OS: TOS; const CPU: TCPU): string;
 
     property Version: string read FVersion;
     property QualifiedName: string read FQualifiedName;
@@ -529,6 +527,25 @@ begin
     Exclude(ExcludePaths[I], Files);
 end;
 
+function TCastleProject.ExternalLibrariesPath(const OS: TOS; const CPU: TCPU): string;
+var
+  CastleEnginePath, ExternalLibrariesPath1, ExternalLibrariesPath2: string;
+begin
+  CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
+  if CastleEnginePath = '' then
+    raise Exception.Create('CASTLE_ENGINE_PATH environment variable not defined, we cannot find external libraries to use for packaging.');
+
+  ExternalLibrariesPath1 := InclPathDelim(CastleEnginePath) + 'external_libraries';
+  ExternalLibrariesPath2 := InclPathDelim(CastleEnginePath) + 'external-libraries';
+  if DirectoryExists(ExternalLibrariesPath1) then
+    Result := ExternalLibrariesPath1 else
+  if DirectoryExists(ExternalLibrariesPath2) then
+    Result := ExternalLibrariesPath2 else
+    raise Exception.Create('CASTLE_ENGINE_PATH environment variable defined, but we cannot find "external libraries" directory inside, searched in: "' + ExternalLibrariesPath1 + '" and "' + ExternalLibrariesPath2 + '"');
+
+  Result := Result + PathDelim + CPUToString(CPU) + '-' + OSToString(OS) + PathDelim;
+end;
+
 procedure TCastleProject.DoPackage(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode);
 var
@@ -536,23 +553,9 @@ var
 
   procedure AddExternalLibrary(const LibraryName: string);
   var
-    CastleEnginePath, LibraryPath,
-      ExternalLibrariesPath1, ExternalLibrariesPath2, ExternalLibrariesPath: string;
+    LibraryPath: string;
   begin
-    CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
-    if CastleEnginePath = '' then
-      raise Exception.Create('CASTLE_ENGINE_PATH environment variable not defined, we cannot find required library ' + LibraryName);
-
-    ExternalLibrariesPath1 := InclPathDelim(CastleEnginePath) + 'external_libraries';
-    ExternalLibrariesPath2 := InclPathDelim(CastleEnginePath) + 'external-libraries';
-    if DirectoryExists(ExternalLibrariesPath1) then
-      ExternalLibrariesPath := ExternalLibrariesPath1 else
-    if DirectoryExists(ExternalLibrariesPath2) then
-      ExternalLibrariesPath := ExternalLibrariesPath2 else
-      raise Exception.Create('CASTLE_ENGINE_PATH environment variable defined, but we cannot find "external libraries" directory inside, searched in: "' + ExternalLibrariesPath1 + '" and "' + ExternalLibrariesPath2 + '"');
-
-    LibraryPath := ExternalLibrariesPath + PathDelim +
-      CPUToString(CPU) + '-' + OSToString(OS) + PathDelim + LibraryName;
+    LibraryPath := ExternalLibrariesPath(OS, CPU) + LibraryName;
     if not FileExists(LibraryPath) then
       raise Exception.Create('Dependency library not found in ' + LibraryPath);
     Pack.Add(LibraryPath, LibraryName);
@@ -587,7 +590,8 @@ begin
         AndroidProjectPath := '';
       CreateAndroidPackage(Mode, Name, @ReplaceMacros, Icons, DataPath, Files,
         ProjectPath + AndroidLibraryFile(true),
-        AndroidLibraryFile(false), ProjectPath, AndroidProjectPath);
+        AndroidLibraryFile(false), ProjectPath, AndroidProjectPath,
+        Dependencies, ExternalLibrariesPath(OS, CPU));
     finally FreeAndNil(Files) end;
     Exit;
   end;

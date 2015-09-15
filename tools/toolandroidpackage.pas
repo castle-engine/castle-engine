@@ -27,7 +27,8 @@ procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
   const Icons: TIconFileNames; const DataPath: string;
   const Files: TCastleStringList;
   const AndroidLibrarySubdir, AndroidLibrary, PackagePath: string;
-  AndroidProjectPath: string);
+  AndroidProjectPath: string; const Dependencies: TDependencies;
+  const ExternalLibrariesPath: string);
 
 procedure InstallAndroidPackage(const Name, QualifiedName: string);
 
@@ -46,7 +47,8 @@ procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
   const Icons: TIconFileNames; const DataPath: string;
   const Files: TCastleStringList;
   const AndroidLibrarySubdir, AndroidLibrary, PackagePath: string;
-  AndroidProjectPath: string);
+  AndroidProjectPath: string; const Dependencies: TDependencies;
+  const ExternalLibrariesPath: string);
 
   { Some utility procedures PackageXxx work just like Xxx,
     but target filename should not contain prefix AndroidProjectPath,
@@ -236,6 +238,27 @@ procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
     RunCommandSimple(AndroidProjectPath, 'ant', [PackageModeToName[PackageMode], '-noinput', '-quiet']);
   end;
 
+  { Add a library from external_libraries. Adds smart, without overwriting
+    custom files (like PackageSmartCopyFile). }
+  procedure AddExternalLibrary(const LibraryName: string);
+  var
+    FileFrom, FileTo: string;
+  begin
+    FileTo := AndroidProjectPath + 'libs' + PathDelim + 'armeabi' + PathDelim + LibraryName;
+    if not FileExists(FileTo) then
+    begin
+      FileFrom := ExternalLibrariesPath + LibraryName;
+      { Note that this is not checked if FileExists(FileTo) exists.
+        So if you have a custom library already present, we don't require to have
+        a standard version on ExternalLibrariesPath. }
+      if not FileExists(FileFrom) then
+        raise Exception.Create('Dependency library not found in ' + FileFrom);
+      SmartCopyFile(FileFrom, FileTo);
+    end else
+    if Verbose then
+      Writeln('Not overwriting custom ' + FileTo);
+  end;
+
 var
   ApkName: string;
   PackageMode: TCompilationMode;
@@ -254,6 +277,10 @@ begin
 
   RunAndroidUpdateProject;
   RunNdkBuild(PackageMode);
+
+  if depSound in Dependencies then
+    AddExternalLibrary('libopenal.so');
+
   RunAnt(PackageMode);
 
   ApkName := ProjectName + '-' + PackageModeToName[PackageMode] + '.apk';

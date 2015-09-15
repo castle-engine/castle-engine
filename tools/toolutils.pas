@@ -91,6 +91,9 @@ type
     function FindReadable: TCastleImage;
   end;
 
+  TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
+  TDependencies = set of TDependency;
+
 implementation
 
 uses Classes, Process, SysUtils,
