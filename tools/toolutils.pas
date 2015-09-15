@@ -97,21 +97,9 @@ uses Classes, Process, SysUtils,
   CastleFilesUtils, CastleUtils, CastleURIUtils;
 
 procedure SmartCopyFile(const Source, Dest: string);
-var
-  SourceFile, DestFile: TFileStream;
 begin
   CheckForceDirectories(ExtractFileDir(Dest));
-
-  SourceFile := TFileStream.Create(Source, fmOpenRead);
-  try
-    DestFile := TFileStream.Create(Dest, fmCreate);
-    try
-      DestFile.CopyFrom(SourceFile, SourceFile.Size);
-    finally FreeAndNil(DestFile) end;
-  finally FreeAndNil(SourceFile) end;
-
-{  if not CopyFile(Source, Dest) then
-    raise Exception.CreateFmt('Cannot copy file from "%s" to "%s"', [Source, Dest]);}
+  CheckCopyFile(Source, Dest);
 end;
 
 function FileSize(const FileName: string): Int64;

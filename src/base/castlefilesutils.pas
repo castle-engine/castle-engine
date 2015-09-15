@@ -283,6 +283,8 @@ procedure CheckRemoveDir(const DirFileName: string);
 { Make sure directory exists, eventually creating it, recursively, checking result. }
 procedure CheckForceDirectories(const Dir: string);
 
+procedure CheckCopyFile(const Source, Dest: string);
+
 procedure CheckRenameFile(const Source, Dest: string);
 
 { Remove the directory DirName, @italic(recursively, unconditionally,
@@ -379,7 +381,7 @@ function BundlePath: string;
 
 implementation
 
-uses {$ifdef DARWIN} MacOSAll, {$endif} CastleStringUtils,
+uses {$ifdef DARWIN} MacOSAll, {$endif} Classes, CastleStringUtils,
   {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog, CastleWarnings,
   CastleURIUtils, CastleFindFiles;
 
@@ -622,6 +624,19 @@ begin
     raise Exception.CreateFmt('Cannot create directory "%s"', [Dir]);
 end;
 
+procedure CheckCopyFile(const Source, Dest: string);
+var
+  SourceFile, DestFile: TFileStream;
+begin
+  SourceFile := TFileStream.Create(Source, fmOpenRead);
+  try
+    DestFile := TFileStream.Create(Dest, fmCreate);
+    try
+      DestFile.CopyFrom(SourceFile, SourceFile.Size);
+    finally FreeAndNil(DestFile) end;
+  finally FreeAndNil(SourceFile) end;
+end;
+
 procedure CheckRenameFile(const Source, Dest: string);
 begin
   {$ifdef MSWINDOWS}
@@ -630,7 +645,15 @@ begin
   SysUtils.DeleteFile(Dest);
   {$endif}
   if not RenameFile(Source, Dest) then
+  begin
+    {$ifdef UNIX}
+    WritelnLog('File', Format('Cannot rename/move from "%s" to "%s", assuming it''s because they are on different disks, trying slower copy+delete approach', [Source, Dest]));
+    CheckCopyFile(Source, Dest);
+    CheckDeleteFile(Source, false);
+    {$else}
     raise Exception.CreateFmt('Cannot rename/move from "%s" to "%s"', [Source, Dest]);
+    {$endif}
+  end;
 end;
 
 procedure RemoveNonEmptyDir_Internal(const FileInfo: TFileInfo; Data: Pointer);
