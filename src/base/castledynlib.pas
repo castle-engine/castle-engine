@@ -109,16 +109,19 @@ type
     { Link to a dynamic library specified by Name. Returns created
       TDynLib instance.
 
-      If the library is not found and CheckResult is @false, @nil will
-      be returned. If CheckResult is @true then EDynLibError will be raised
-      in case library is not found. So if CheckResult is @true, @nil is
+      If the library is not found and RaiseExceptionOnError is @false,
+      @nil will be returned.
+      If RaiseExceptionOnError is @true then EDynLibError will be raised
+      in case library is not found.
+      So if RaiseExceptionOnError is @true, @nil is
       never returned.
 
       Note that the default situation prevents from unintentionally ignoring
       an error and @italic(that's good).
 
-      @raises(EDynLibError If library not found and CheckResult is @true.) }
-    class function Load(const AName: string; CheckResult: boolean = true): TDynLib;
+      @raises(EDynLibError If library not found and RaiseExceptionOnError
+        is @true.) }
+    class function Load(const AName: string; RaiseExceptionOnError: boolean = true): TDynLib;
 
     { What happens when @link(Symbol) fails. }
     property SymbolErrorBehaviour: TDynLibSymbolErrorBehaviour
@@ -174,7 +177,7 @@ begin
  inherited;
 end;
 
-class function TDynLib.Load(const AName: string; CheckResult: boolean): TDynLib;
+class function TDynLib.Load(const AName: string; RaiseExceptionOnError: boolean): TDynLib;
 
   function LoadLibraryGlobally(AName: PChar): TDynLibHandle;
   { TODO: under UNIX (Linux, more specifically, since I don't use this code
@@ -193,7 +196,7 @@ begin
  Handle := LoadLibraryGlobally(PChar(AName));
  if Handle = InvalidDynLibHandle then
  begin
-  if CheckResult then
+  if RaiseExceptionOnError then
    raise EDynLibError.Create('Can''t load library "' +AName+ '"'
      {$ifdef UNIX} + ': ' + dlerror {$endif}) else
    result := nil;
