@@ -78,10 +78,23 @@ var
 
   { Generate simple text stuff for Android project from templates. }
   procedure GenerateFromTemplates;
+
+    function AddExternalLibraryMk(const LibraryName: string): string;
+    begin
+      Result := LineEnding +
+        'include $(CLEAR_VARS)' + LineEnding +
+        'LOCAL_MODULE := lib' + LibraryName + LineEnding +
+        'LOCAL_SRC_FILES := lib' + LibraryName + '.so' + LineEnding +
+        'include $(PREBUILT_SHARED_LIBRARY)' + LineEnding +
+        '';
+    end;
+
   const
     AndroidManifestTemplate = {$I templates/android/AndroidManifest.xml.inc};
     StringsTemplate = {$I templates/android/res/values/strings.xml.inc};
     AndroidMkTemplate = {$I templates/android/jni/Android.mk.inc};
+  var
+    AndroidMkContents: string;
   begin
     PackageStringToFile('AndroidManifest.xml',
       Project.ReplaceMacros(AndroidManifestTemplate));
@@ -91,8 +104,11 @@ var
       Project.ReplaceMacros(StringsTemplate));
 
     PackageCheckForceDirectories('jni');
+    AndroidMkContents := Project.ReplaceMacros(AndroidMkTemplate);
+    if depSound in Project.Dependencies then
+      AndroidMkContents += AddExternalLibraryMk('openal');
     PackageStringToFile('jni' + PathDelim + 'Android.mk',
-      Project.ReplaceMacros(AndroidMkTemplate));
+      AndroidMkContents);
   end;
 
   procedure GenerateIcons;

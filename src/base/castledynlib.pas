@@ -187,7 +187,11 @@ class function TDynLib.Load(const AName: string; RaiseExceptionOnError: boolean)
   begin
    result:=
      {$ifdef UNIX} TDynLibHandle( dlopen(AName,
-       { RTLD_NOW necessary to successfully open libopenal.so on Android }
+       { RTLD_GLOBAL cannot be used if you want to successfully open
+         libopenal.so on Android (tested necessity on Nexus 5).
+         It seems that RTLD_NOW or RTLD_LAZY don't matter.
+         Found thanks to mentions in
+         http://grokbase.com/t/gg/android-ndk/133mh6mk8b/unable-to-dlopen-libtest-so-cannot-load-library-link-image-1995-failed-to-link-libtest-so }
        {$ifdef ANDROID} RTLD_NOW {$else} RTLD_LAZY or RTLD_GLOBAL {$endif}) );
      {$else} LoadLibrary(AName);
      {$endif}
