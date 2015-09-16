@@ -8,4 +8,4 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f texturefont2pascal.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/fonts/texturefont2pascal.lpr
+fpc -dRELEASE @castle-fpc.cfg tools/texturefont2pascal/texturefont2pascal.lpr

@@ -101,3 +101,5 @@ src/x3d/teapot/teapot_3d_to_pascal
 src/x3d/teapot/teapot_3d_to_pascal.res
 tests/test_castle_game_engine
 tools/castle-engine
+tools/build-tool/castle-engine
+tools/texturefont2pascal/texturefont2pascal
