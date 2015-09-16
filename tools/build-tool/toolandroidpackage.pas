@@ -236,7 +236,7 @@ var
   var
     FileFrom, FileTo: string;
   begin
-    FileTo := AndroidProjectPath + 'libs' + PathDelim + 'armeabi' + PathDelim + LibraryName;
+    FileTo := AndroidProjectPath + 'jni' + PathDelim + LibraryName;
     if not FileExists(FileTo) then
     begin
       FileFrom := Project.ExternalLibraryPath(OS, CPU, LibraryName);
@@ -274,11 +274,11 @@ begin
   GenerateLibrary;
   GenerateAntProperties(PackageMode);
 
-  RunAndroidUpdateProject;
-  RunNdkBuild(PackageMode);
-
   if depSound in Project.Dependencies then
     AddExternalLibrary('libopenal.so');
+
+  RunAndroidUpdateProject;
+  RunNdkBuild(PackageMode);
 
   RunAnt(PackageMode);
 
