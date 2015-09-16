@@ -122,6 +122,7 @@ begin
     P.Targets.AddUnit('castlefilesutils.pas');
     P.Targets.AddUnit('castlegziointernal.pas');
     P.Targets.AddUnit('castleinterfaces.pas');
+    P.Targets.AddUnit('castlejavamessaging.pas');
     P.Targets.AddUnit('castlelog.pas');
     P.Targets.AddUnit('castleopendocument.pas');
     P.Targets.AddUnit('castleparameters.pas');
