@@ -19,16 +19,11 @@ unit ToolAndroidPackage;
 interface
 
 uses CastleUtils, CastleStringUtils,
-  ToolUtils, ToolArchitectures, ToolCompile;
+  ToolUtils, ToolArchitectures, ToolCompile, ToolProject;
 
-procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
-  const ProjectName: string;
-  const ReplaceMacros: TReplaceMacros;
-  const Icons: TIconFileNames; const DataPath: string;
-  const Files: TCastleStringList;
-  const AndroidLibrarySubdir, AndroidLibrary, PackagePath: string;
-  AndroidProjectPath: string; const Dependencies: TDependencies;
-  const ExternalLibrariesPath: string);
+procedure CreateAndroidPackage(const Project: TCastleProject;
+  const OS: TOS; const CPU: TCPU; const SuggestedPackageMode: TCompilationMode;
+  const Files: TCastleStringList);
 
 procedure InstallAndroidPackage(const Name, QualifiedName: string);
 
@@ -41,14 +36,11 @@ uses SysUtils, Classes,
 const
   PackageModeToName: array [TCompilationMode] of string = ('release', 'debug');
 
-procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
-  const ProjectName: string;
-  const ReplaceMacros: TReplaceMacros;
-  const Icons: TIconFileNames; const DataPath: string;
-  const Files: TCastleStringList;
-  const AndroidLibrarySubdir, AndroidLibrary, PackagePath: string;
-  AndroidProjectPath: string; const Dependencies: TDependencies;
-  const ExternalLibrariesPath: string);
+procedure CreateAndroidPackage(const Project: TCastleProject;
+  const OS: TOS; const CPU: TCPU; const SuggestedPackageMode: TCompilationMode;
+  const Files: TCastleStringList);
+var
+  AndroidProjectPath: string;
 
   { Some utility procedures PackageXxx work just like Xxx,
     but target filename should not contain prefix AndroidProjectPath,
@@ -92,15 +84,15 @@ procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
     AndroidMkTemplate = {$I templates/android/jni/Android.mk.inc};
   begin
     PackageStringToFile('AndroidManifest.xml',
-      ReplaceMacros(AndroidManifestTemplate));
+      Project.ReplaceMacros(AndroidManifestTemplate));
 
     PackageCheckForceDirectories('res' + PathDelim + 'values');
     PackageStringToFile('res' + PathDelim + 'values' + PathDelim + 'strings.xml',
-      ReplaceMacros(StringsTemplate));
+      Project.ReplaceMacros(StringsTemplate));
 
     PackageCheckForceDirectories('jni');
     PackageStringToFile('jni' + PathDelim + 'Android.mk',
-      ReplaceMacros(AndroidMkTemplate));
+      Project.ReplaceMacros(AndroidMkTemplate));
   end;
 
   procedure GenerateIcons;
@@ -121,7 +113,7 @@ procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
     end;
 
   begin
-    Icon := Icons.FindReadable;
+    Icon := Project.Icons.FindReadable;
     if Icon = nil then
     begin
       OnWarning(wtMinor, 'Icon', 'No icon in a format readable by our engine (for example, png or jpg) is specified in CastleEngineManifest.xml. Using default icon.');
@@ -148,7 +140,7 @@ procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
     PackageCheckForceDirectories('assets');
     for I := 0 to Files.Count - 1 do
     begin
-      FileFrom := DataPath + Files[I];
+      FileFrom := Project.DataPath + Files[I];
       FileTo := 'assets' + PathDelim + Files[I];
       PackageSmartCopyFile(FileFrom, FileTo);
       if Verbose then
@@ -158,8 +150,8 @@ procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
 
   procedure GenerateLibrary;
   begin
-    PackageSmartCopyFile(AndroidLibrarySubdir,
-      'jni' + PathDelim + AndroidLibrary);
+    PackageSmartCopyFile(Project.Path + Project.AndroidLibraryFile(true),
+      'jni' + PathDelim + Project.AndroidLibraryFile(false));
   end;
 
   procedure GenerateAntProperties(var PackageMode: TCompilationMode);
@@ -169,11 +161,11 @@ procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
   var
     S: TStringList;
   begin
-    if FileExists(PackagePath + SourceAntProperties) then
+    if FileExists(Project.Path + SourceAntProperties) then
     begin
       S := TStringList.Create;
       try
-        S.LoadFromFile(PackagePath + SourceAntProperties);
+        S.LoadFromFile(Project.Path + SourceAntProperties);
         if (PackageMode <> cmDebug) and (
             (S.IndexOfName('key.store') = -1) or
             (S.IndexOfName('key.alias') = -1) or
@@ -186,7 +178,7 @@ procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
         end;
       finally FreeAndNil(S) end;
 
-      PackageSmartCopyFile(PackagePath + SourceAntProperties, 'ant.properties');
+      PackageSmartCopyFile(Project.Path + SourceAntProperties, 'ant.properties');
     end else
     begin
       if PackageMode <> cmDebug then
@@ -213,7 +205,7 @@ procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
     if AndroidExe = '' then
       raise Exception.Create('Cannot find "android" executable on $PATH, or within $ANDROID_HOME. Install Android SDK and make sure that "android" executable is on $PATH, or that $ANDROID_HOME environment variable is set correctly.');
     RunCommandIndirPassthrough(AndroidProjectPath, AndroidExe,
-      ['update', 'project', '--name', ProjectName, '--path', '.', '--target', AndroidTarget],
+      ['update', 'project', '--name', Project.Name, '--path', '.', '--target', AndroidTarget],
       ProcessOutput, ProcessStatus);
     if ProcessStatus <> 0 then
       raise Exception.Create('"android" call failed, cannot create Android apk. Inspect above error messages, and make sure Android SDK is installed correctly. Make sure that target "' + AndroidTarget + '" is installed.');
@@ -247,7 +239,7 @@ procedure CreateAndroidPackage(const SuggestedPackageMode: TCompilationMode;
     FileTo := AndroidProjectPath + 'libs' + PathDelim + 'armeabi' + PathDelim + LibraryName;
     if not FileExists(FileTo) then
     begin
-      FileFrom := ExternalLibrariesPath + LibraryName;
+      FileFrom := Project.ExternalLibraryPath(OS, CPU, LibraryName);
       { Note that this is not checked if FileExists(FileTo) exists.
         So if you have a custom library already present, we don't require to have
         a standard version on ExternalLibrariesPath. }
@@ -264,6 +256,13 @@ var
   PackageMode: TCompilationMode;
   TemporaryAndroidProjectPath: boolean;
 begin
+  { use the AndroidProject value (just make it safer) for AndroidProjectPath,
+    if set }
+  if Project.AndroidProject <> '' then
+    AndroidProjectPath := InclPathDelim(
+      StringReplace(Project.AndroidProject, '\', PathDelim, [rfReplaceAll])) else
+    AndroidProjectPath := '';
+
   TemporaryAndroidProjectPath := AndroidProjectPath = '';
   if TemporaryAndroidProjectPath then
     AndroidProjectPath := InclPathDelim(CreateTemporaryDir);
@@ -278,14 +277,14 @@ begin
   RunAndroidUpdateProject;
   RunNdkBuild(PackageMode);
 
-  if depSound in Dependencies then
+  if depSound in Project.Dependencies then
     AddExternalLibrary('libopenal.so');
 
   RunAnt(PackageMode);
 
-  ApkName := ProjectName + '-' + PackageModeToName[PackageMode] + '.apk';
+  ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
   CheckRenameFile(AndroidProjectPath + 'bin' + PathDelim + ApkName,
-    PackagePath + ApkName);
+    Project.Path + ApkName);
 
   Writeln('Build ' + ApkName);
 

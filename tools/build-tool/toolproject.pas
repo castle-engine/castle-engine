@@ -23,6 +23,9 @@ uses SysUtils,
   ToolArchitectures, ToolCompile, ToolUtils;
 
 type
+  TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
+  TDependencies = set of TDependency;
+
   TScreenOrientation = (soAny, soLandscape, soPortrait);
 
   TCastleProject = class
@@ -31,9 +34,9 @@ type
     FName, FExecutableName, FQualifiedName, FAuthor, FCaption: string;
     GatheringFilesVsData: boolean; //< only for GatherFile
     GatheringFiles: TCastleStringList; //< only for GatherFile
-    ManifestFile, ProjectPath, DataPath: string;
+    ManifestFile, FPath, FDataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
-    Icons: TIconFileNames;
+    FIcons: TIconFileNames;
     IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource, FPluginSource, FAndroidProject: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
@@ -51,25 +54,39 @@ type
     procedure DeleteFoundFile(const FileInfo: TFileInfo);
     function PackageName(const OS: TOS; const CPU: TCPU): string;
     function SourcePackageName: string;
-    { Output Android library resulting from compilation.
-      Use only if AndroidSource <> ''.
-      Relative to ProjectPath if Subdir = true, otherwise this is only
-      a name without any directory part. }
-    function AndroidLibraryFile(const Subdir: boolean): string;
-    function ReplaceMacros(const Source: string): string;
     { Add platform-independent files that should be included in package,
       remove files that should be excluded.
       If OnlyData, then only takes stuff inside DataPath,
       and assumes that Files are (and will be) URLs relative to DataPath.
       Otherwise, takes more files,
-      and assumes that Files are (and will be) URLs relative to ProjectPath. }
+      and assumes that Files are (and will be) URLs relative to @link(Path). }
     procedure PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
-    function ExternalLibrariesPath(const OS: TOS; const CPU: TCPU): string;
+  public
+    constructor Create;
+    constructor Create(const APath: string);
+    destructor Destroy; override;
+
+    { Commands on a project, used by the main program code. }
+    { }
+
+    procedure DoCreateManifest;
+    procedure DoCompile(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
+    procedure DoPackage(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
+    procedure DoInstall(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
+    procedure DoPackageSource;
+    procedure DoClean;
+
+    { Detailed information about the project, read-only and useful for
+      various project operations. }
+    { }
 
     property Version: string read FVersion;
     property QualifiedName: string read FQualifiedName;
     property Dependencies: TDependencies read FDependencies;
     property Name: string read FName;
+    property Icons: TIconFileNames read FIcons;
+    property Path: string read FPath;
+    property DataPath: string read FDataPath;
     property Caption: string read FCaption;
     property Author: string read FAuthor;
     property ExecutableName: string read FExecutableName;
@@ -78,17 +95,18 @@ type
     property PluginSource: string read FPluginSource;
     property AndroidProject: string read FAndroidProject;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
-  public
-    constructor Create;
-    constructor Create(const Path: string);
-    destructor Destroy; override;
 
-    procedure DoCreateManifest;
-    procedure DoCompile(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
-    procedure DoPackage(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
-    procedure DoInstall(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
-    procedure DoPackageSource;
-    procedure DoClean;
+    { Path to external library. This checks existence of appropriate environment
+      variables and files along the way, and raises exception in case of trouble. }
+    function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
+
+    function ReplaceMacros(const Source: string): string;
+
+    { Output Android library resulting from compilation.
+      Use only if AndroidSource <> ''.
+      Relative to @link(Path) if Subdir = true, otherwise this is only
+      a name without any directory part. }
+    function AndroidLibraryFile(const Subdir: boolean): string;
   end;
 
 function DependencyToString(const D: TDependency): string;
@@ -133,7 +151,7 @@ end;
 const
   DataName = 'data';
 
-constructor TCastleProject.Create(const Path: string);
+constructor TCastleProject.Create(const APath: string);
 
   procedure ReadManifest;
   const
@@ -201,7 +219,7 @@ constructor TCastleProject.Create(const Path: string);
     Element, ChildElement: TDOMElement;
     I: Integer;
   begin
-    ManifestFile := ProjectPath + ManifestName;
+    ManifestFile := Path + ManifestName;
     if not FileExists(ManifestFile) then
       AutoGuessManifest else
     begin
@@ -323,10 +341,10 @@ begin
   IncludePathsRecursive := TBooleanList.Create;
   ExcludePaths := TCastleStringList.Create;
   FDependencies := [];
-  Icons := TIconFileNames.Create;
+  FIcons := TIconFileNames.Create;
 
-  ProjectPath := InclPathDelim(Path);
-  DataPath := InclPathDelim(ProjectPath + DataName);
+  FPath := InclPathDelim(APath);
+  FDataPath := InclPathDelim(Path + DataName);
 
   ReadManifest;
   GuessDependencies;
@@ -338,7 +356,7 @@ begin
   FreeAndNil(IncludePaths);
   FreeAndNil(IncludePathsRecursive);
   FreeAndNil(ExcludePaths);
-  FreeAndNil(Icons);
+  FreeAndNil(FIcons);
   inherited;
 end;
 
@@ -383,7 +401,7 @@ var
 begin
   if GatheringFilesVsData then
     RelativeVs := DataPath else
-    RelativeVs := ProjectPath;
+    RelativeVs := Path;
   GatheringFiles.Add(ExtractRelativePath(RelativeVs, FileInfo.AbsoluteName));
 end;
 
@@ -422,7 +440,7 @@ begin
       begin
         if AndroidSource = '' then
           raise Exception.Create('android_source property for project not defined, cannot compile Android version');
-        Compile(OS, CPU, Plugin, Mode, ProjectPath, AndroidSource);
+        Compile(OS, CPU, Plugin, Mode, Path, AndroidSource);
         Writeln('Compiled library for Android in ', AndroidLibraryFile(true));
       end;
     else
@@ -440,9 +458,9 @@ begin
         end;
 
         if OS in AllWindowsOSes then
-          GenerateWindowsResources(@ReplaceMacros, ProjectPath, Icons, CPU, Plugin);
+          GenerateWindowsResources(@ReplaceMacros, Path, Icons, CPU, Plugin);
 
-        Compile(OS, CPU, Plugin, Mode, ProjectPath, MainSource);
+        Compile(OS, CPU, Plugin, Mode, Path, MainSource);
 
         if Plugin then
         begin
@@ -459,7 +477,7 @@ begin
           { move exe to top-level (in case StandaloneSource is in subdirectory
             like code/) and eventually rename to follow ExecutableName }
           Writeln('Moving ', SourceExe, ' to ', DestExe);
-          CheckRenameFile(ProjectPath + SourceExe, ProjectPath + DestExe);
+          CheckRenameFile(Path + SourceExe, Path + DestExe);
         end;
       end;
   end;
@@ -516,7 +534,7 @@ begin
           or <include path="docs/README.txt" />
           should not include *all* README.txt files inside. }
         FindOptions := [];
-      FindFiles(ProjectPath + IncludePaths[I], false, @GatherFile, FindOptions);
+      FindFiles(Path + IncludePaths[I], false, @GatherFile, FindOptions);
     end;
   GatheringFiles := nil;
 
@@ -527,7 +545,7 @@ begin
     Exclude(ExcludePaths[I], Files);
 end;
 
-function TCastleProject.ExternalLibrariesPath(const OS: TOS; const CPU: TCPU): string;
+function TCastleProject.ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
 var
   CastleEnginePath, ExternalLibrariesPath1, ExternalLibrariesPath2: string;
 begin
@@ -543,7 +561,10 @@ begin
     Result := ExternalLibrariesPath2 else
     raise Exception.Create('CASTLE_ENGINE_PATH environment variable defined, but we cannot find "external libraries" directory inside, searched in: "' + ExternalLibrariesPath1 + '" and "' + ExternalLibrariesPath2 + '"');
 
-  Result := Result + PathDelim + CPUToString(CPU) + '-' + OSToString(OS) + PathDelim;
+  Result := Result + PathDelim + CPUToString(CPU) + '-' + OSToString(OS) +
+    PathDelim + LibraryName;
+  if not FileExists(Result) then
+    raise Exception.Create('Dependency library not found in ' + Result);
 end;
 
 procedure TCastleProject.DoPackage(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
@@ -552,19 +573,14 @@ var
   Pack: TPackageDirectory;
 
   procedure AddExternalLibrary(const LibraryName: string);
-  var
-    LibraryPath: string;
   begin
-    LibraryPath := ExternalLibrariesPath(OS, CPU) + LibraryName;
-    if not FileExists(LibraryPath) then
-      raise Exception.Create('Dependency library not found in ' + LibraryPath);
-    Pack.Add(LibraryPath, LibraryName);
+    Pack.Add(ExternalLibraryPath(OS, CPU, LibraryName), LibraryName);
   end;
 
 var
   Files: TCastleStringList;
   I: Integer;
-  PackageFileName, ExecutableNameExt, AndroidProjectPath: string;
+  PackageFileName, ExecutableNameExt: string;
   UnixPermissionsMatter: boolean;
 begin
   Writeln(Format('Packaging project "%s" for OS / CPU "%s / %s"%s.',
@@ -582,16 +598,7 @@ begin
     Files := TCastleStringList.Create;
     try
       PackageFiles(Files, true);
-      { use the AndroidProject value (just make it safer) for AndroidProjectPath,
-        if set }
-      if AndroidProject <> '' then
-        AndroidProjectPath := InclPathDelim(
-          StringReplace(AndroidProject, '\', PathDelim, [rfReplaceAll])) else
-        AndroidProjectPath := '';
-      CreateAndroidPackage(Mode, Name, @ReplaceMacros, Icons, DataPath, Files,
-        ProjectPath + AndroidLibraryFile(true),
-        AndroidLibraryFile(false), ProjectPath, AndroidProjectPath,
-        Dependencies, ExternalLibrariesPath(OS, CPU));
+      CreateAndroidPackage(Self, OS, CPU, Mode, Files);
     finally FreeAndNil(Files) end;
     Exit;
   end;
@@ -620,7 +627,7 @@ begin
       PackageFiles(Files, false);
 
       for I := 0 to Files.Count - 1 do
-        Pack.Add(ProjectPath + Files[I], Files[I]);
+        Pack.Add(Path + Files[I], Files[I]);
     finally FreeAndNil(Files) end;
 
     { For OSes where chmod matters, make sure to set it before packing }
@@ -676,8 +683,8 @@ begin
     PackageFileName := PackageName(OS, CPU);
 
     if OS in AllWindowsOSes then
-      Pack.Make(ProjectPath, PackageFileName, ptZip) else
-      Pack.Make(ProjectPath, PackageFileName, ptTarGz);
+      Pack.Make(Path, PackageFileName, ptZip) else
+      Pack.Make(Path, PackageFileName, ptTarGz);
   finally FreeAndNil(Pack) end;
 end;
 
@@ -691,7 +698,7 @@ procedure TCastleProject.DoInstall(const OS: TOS; const CPU: TCPU; const Plugin:
     PluginFile, Source, Target: string;
   begin
     PluginFile := PluginCompiledFile(OS, CPU);
-    Source := InclPathDelim(ProjectPath) + PluginFile;
+    Source := InclPathDelim(Path) + PluginFile;
     Target := TargetPathSystemWide + PluginFile;
     try
       SmartCopyFile(Source, Target);
@@ -716,7 +723,7 @@ begin
   if OS = Android then
     InstallAndroidPackage(Name, QualifiedName) else
   if Plugin and (OS in AllWindowsOSes) then
-    InstallWindowsPluginRegistry(Name, QualifiedName, ProjectPath,
+    InstallWindowsPluginRegistry(Name, QualifiedName, Path,
       PluginCompiledFile(OS, CPU), Version, Author) else
   {$ifdef UNIX}
   if Plugin and (OS in AllUnixOSes) then
@@ -742,7 +749,7 @@ begin
     Files := TCastleStringList.Create;
     try
       GatheringFiles := Files;
-      FindFiles(ProjectPath, '*', false, @GatherFile, [ffRecursive]);
+      FindFiles(Path, '*', false, @GatherFile, [ffRecursive]);
       GatheringFiles := nil;
       for I := 0 to Files.Count - 1 do
       begin
@@ -764,12 +771,12 @@ begin
         if (not IsPackageName) and
            { do not pack AndroidAntProperties.txt with private stuff }
            (Files[I] <> 'AndroidAntProperties.txt') then
-          Pack.Add(ProjectPath + Files[I], Files[I]);
+          Pack.Add(Path + Files[I], Files[I]);
       end;
     finally FreeAndNil(Files) end;
 
     PackageFileName := SourcePackageName;
-    Pack.Make(ProjectPath, PackageFileName, ptTarGz);
+    Pack.Make(Path, PackageFileName, ptTarGz);
   finally FreeAndNil(Pack) end;
 end;
 
@@ -814,7 +821,7 @@ procedure TCastleProject.DoClean;
 
   procedure TryDeleteFile(FileName: string);
   begin
-    FileName := ProjectPath + FileName;
+    FileName := Path + FileName;
     if FileExists(FileName) then
     begin
       if Verbose then
@@ -826,7 +833,7 @@ procedure TCastleProject.DoClean;
 
   procedure DeleteFilesRecursive(const Mask: string);
   begin
-    FindFiles(ProjectPath, Mask, false, @DeleteFoundFile, [ffRecursive]);
+    FindFiles(Path, Mask, false, @DeleteFoundFile, [ffRecursive]);
   end;
 
 var
