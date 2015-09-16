@@ -186,7 +186,9 @@ class function TDynLib.Load(const AName: string; RaiseExceptionOnError: boolean)
     I really don't know. TO BE FIXED.) }
   begin
    result:=
-     {$ifdef UNIX} TDynLibHandle( dlopen(AName, RTLD_LAZY or RTLD_GLOBAL) );
+     {$ifdef UNIX} TDynLibHandle( dlopen(AName,
+       { RTLD_NOW necessary to successfully open libopenal.so on Android }
+       {$ifdef ANDROID} RTLD_NOW {$else} RTLD_LAZY or RTLD_GLOBAL {$endif}) );
      {$else} LoadLibrary(AName);
      {$endif}
   end;
