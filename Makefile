@@ -76,7 +76,6 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/simple_video_editor \
   examples/fonts/test_font_break \
   examples/fonts/font_from_texture \
-  examples/fonts/texturefont2pascal \
   examples/window/window_events \
   examples/window/window_menu \
   examples/window/window_gtk_mix \
@@ -120,7 +119,8 @@ EXAMPLES_BASE_NAMES := \
   examples/fps_game/fps_game \
   examples/2d/controls_demo \
   examples/android/android_demo/androiddemo_standalone \
-  tools/castle-engine
+  tools/build-tool/castle-engine \
+  tools/texturefont2pascal/texturefont2pascal
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
