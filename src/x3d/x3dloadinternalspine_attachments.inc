@@ -42,6 +42,7 @@
     Scale: TVector2Single;
     Rotation: Single;
     Width, Height: Integer;
+    Path: string;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
     function BuildGeometry(const BaseUrl: string;
@@ -180,6 +181,7 @@ begin
   Rotation := Json.Get('rotation', 0.0);
   Width := Json.Get('width', 0);
   Height := Json.Get('height', 0);
+  Path := Json.Get('path', '');
 end;
 
 procedure TRegionAttachment.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
@@ -187,6 +189,7 @@ var
   TexRect: TQuadTexRect;
   TexCoord: TQuadTexCoord;
   Shape: TShapeNode;
+  AtlasRegionName: string;
 begin
   Node := TTransformNode.Create('Attachment_' + ToX3DName(Name), BaseUrl);
   Node.FdTranslation.Value := Vector3Single(XY[0], XY[1], 0);
@@ -197,7 +200,10 @@ begin
   Node.FdChildren.Add(Shape);
 
   Shape.Appearance := TAppearanceNode.Create('', BaseUrl);
-  Shape.Appearance.FdTexture.Value := TextureLoader.UseNode(Name, TexCoord, TexRect);
+  AtlasRegionName := Name;
+  if Path <> '' then
+    AtlasRegionName := Path;
+  Shape.Appearance.FdTexture.Value := TextureLoader.UseNode(AtlasRegionName, TexCoord, TexRect);
   Shape.FdGeometry.Value := BuildGeometry(BaseUrl, TexCoord, TexRect);
 
   Shape.Material := TMaterialNode.Create('Material_' + ToX3DName(Name), BaseUrl);
