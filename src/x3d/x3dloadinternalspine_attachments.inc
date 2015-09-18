@@ -203,8 +203,9 @@ begin
   AtlasRegionName := Name;
   if Path <> '' then
     AtlasRegionName := Path;
-  Shape.Appearance.FdTexture.Value := TextureLoader.UseNode(AtlasRegionName, TexCoord, TexRect);
-  Shape.FdGeometry.Value := BuildGeometry(BaseUrl, TexCoord, TexRect);
+  Shape.Appearance.Texture := TextureLoader.UseNode(AtlasRegionName, TexCoord, TexRect);
+  if Shape.Appearance.Texture <> nil then
+    Shape.FdGeometry.Value := BuildGeometry(BaseUrl, TexCoord, TexRect);
 
   Shape.Material := TMaterialNode.Create('Material_' + ToX3DName(Name), BaseUrl);
   Shape.Material.FdDiffuseColor.Value := ZeroVector3Single;

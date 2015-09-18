@@ -59,10 +59,11 @@ type
     procedure Parse(const URL: string);
     procedure BuildNodes(const BaseUrl: string);
     { Find atlas page and region corresponding to given region name.
-      @raises ESpineReadError If bone does not exist. }
-    procedure Find(const RegionName: string; out Page: TAtlasPage; out Region: TAtlasRegion);
-
-    function UseNode(const AttachmentName: string;
+      Returns @false if it does not exist (the out vars are undefined in
+      this case). }
+    function Find(const RegionName: string;
+      out Page: TAtlasPage; out Region: TAtlasRegion): boolean;
+    function UseNode(const RegionName: string;
       out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TImageTextureNode; override;
   end;
 
@@ -348,8 +349,8 @@ begin
     Pages[I].BuildNodes(BaseUrl);
 end;
 
-procedure TAtlas.Find(const RegionName: string;
-  out Page: TAtlasPage; out Region: TAtlasRegion);
+function TAtlas.Find(const RegionName: string;
+  out Page: TAtlasPage; out Region: TAtlasRegion): boolean;
 var
   I, J: Integer;
 begin
@@ -360,19 +361,21 @@ begin
     begin
       Region := Page.Regions[J];
       if Region.Name = RegionName then
-        Exit;
+        Exit(true);
     end;
   end;
-  raise ESpineReadError.CreateFmt('Region name "%s" not found in atlas', [RegionName]);
+
+  OnWarning(wtMinor, 'Spine', Format('Region name "%s" not found in atlas', [RegionName]));
+  Result := false;
 end;
 
-function TAtlas.UseNode(const AttachmentName: string;
+function TAtlas.UseNode(const RegionName: string;
   out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TImageTextureNode;
 var
   AtlasPage: TAtlasPage;
   AtlasRegion: TAtlasRegion;
 begin
-  Find(AttachmentName, AtlasPage, AtlasRegion);
+  if not Find(RegionName, AtlasPage, AtlasRegion) then Exit(nil);
   Result := AtlasPage.Node;
   AtlasPage.NodeUsedAsChild := true;
   TexRect := AtlasRegion.TexRect;
