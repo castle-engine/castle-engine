@@ -129,6 +129,10 @@ type
     procedure SetEnableDragging(const Value: boolean); virtual;
     function GetIgnoreAllInputs: boolean;
     procedure SetIgnoreAllInputs(const Value: boolean);
+    { Setter of the @link(ProjectionMatrix) property.
+      TCamera descendants may override this.
+      In normal circumstances, you should not call it anywhere (it's automatically
+      called by the scene manager). }
     procedure SetProjectionMatrix(const Value: TMatrix4Single); virtual;
     procedure SetRadius(const Value: Single); virtual;
   public
@@ -180,14 +184,13 @@ type
       Be sure to set @link(ProjectionMatrix) before using this. }
     property Frustum: TFrustum read FFrustum;
 
-    { Projection matrix that you should pass here to have Frustum
-      calculated for you.
+    { Projection matrix of the camera.
+      Camera needs to know this to calculate @link(Frustum),
+      which in turn allows rendering code to use frustum culling.
 
-      This is initially IdentityMatrix4Single.
-      This is not modified anywhere from this class.
-      *You* should modify it, you should set it to projection matrix
-      that you use, if you want to use Frustum value.
-      This is used whenever Frustum is recalculated. }
+      In normal circumstances, if you use our @italic(scene manager)
+      and viewport (@link(TCastleAbstractViewport)) for rendering,
+      this is automatically correctly set for you. }
     property ProjectionMatrix: TMatrix4Single
       read FProjectionMatrix write SetProjectionMatrix;
 
