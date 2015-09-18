@@ -1,3 +1,4 @@
+{ -*- compile-command: "./dircleaner_compile.sh" -*- }
 {
   Copyright 2001-2014 Michalis Kamburelis.
 
