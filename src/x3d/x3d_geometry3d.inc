@@ -46,7 +46,7 @@
 
   TConeNode = class(TAbstractX3DGeometryNode)
   protected
-    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -90,7 +90,7 @@
 
   TCylinderNode = class(TAbstractX3DGeometryNode)
   protected
-    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -219,7 +219,7 @@
 
   TExtrusionNode = class(TAbstractX3DGeometryNode)
   protected
-    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   private
     procedure Eventset_crossSectionReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
@@ -514,10 +514,13 @@ begin
   Result := Version.Major >= 2;
 end;
 
-procedure TConeNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TConeNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  inherited;
-  FdtexCoord.EnumerateValid(Func);
+  Result := inherited;
+  if Result <> nil then Exit;
+
+  Result := FdtexCoord.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 function TConeNode.TexCoordField: TSFNode;
@@ -595,10 +598,13 @@ begin
   Result := Version.Major >= 2;
 end;
 
-procedure TCylinderNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TCylinderNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  inherited;
-  FdtexCoord.EnumerateValid(Func);
+  Result := inherited;
+  if Result <> nil then Exit;
+
+  Result := FdtexCoord.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 function TCylinderNode.TexCoordField: TSFNode;
@@ -1151,10 +1157,13 @@ begin
   Result := false;
 end;
 
-procedure TExtrusionNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TExtrusionNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  inherited;
-  FdtexCoord.EnumerateValid(Func);
+  Result := inherited;
+  if Result <> nil then Exit;
+
+  Result := FdtexCoord.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 function TExtrusionNode.TexCoordField: TSFNode;

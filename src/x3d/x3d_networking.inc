@@ -29,8 +29,7 @@
 
   TAnchorNode = class(TAbstractX3DGroupingNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -276,12 +275,16 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TAnchorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TAnchorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 var
   I: Integer;
 begin
+  Result := nil;
   for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren[I]);
+  begin
+    Result := Func(Self, FdChildren[I]);
+    if Result <> nil then Exit;
+  end;
 end;
 
 function TAnchorNode.LoadAnchor(

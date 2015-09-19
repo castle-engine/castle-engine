@@ -50,8 +50,7 @@
   private
     VertexJoints: TVertexJointsList;
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
@@ -148,8 +147,7 @@
         always valid. }
     function AnimateSkinPoint(const Point: TVector3Single): TVector3Single;
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
@@ -200,8 +198,7 @@
 
   THAnimSegmentNode = class(TAbstractX3DGroupingNode, ITransformNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
@@ -245,8 +242,7 @@
 
   THAnimSiteNode = class(TAbstractX3DGroupingNode, ITransformNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
@@ -425,21 +421,24 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure THAnimHumanoidNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function THAnimHumanoidNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   { Between HAnim 1.0 and 200x hierarchy changed, in 1.0 there's no "skeleton"
     field but root Joint is just simply placed directly in VRML file.
     This means that I should simply render Joint node like a Transform,
     both inside "skeleton" field and outside, and both versions will be happy. }
-  FdSkeleton.EnumerateValid(Func);
+  Result := FdSkeleton.SearchValid(Func);
+  if Result <> nil then Exit;
 
   { To support skinned body, pass skin as an active node too
     (if not nil, then it will be rendered.)
     Note that SkinCoord and SkinNormal are not passed as active
     (they should be referenced inside Skin object). }
-  FdSkin.EnumerateValid(Func);
+  Result := FdSkin.SearchValid(Func);
+  if Result <> nil then Exit;
 
-  FdViewpoints.EnumerateValid(Func);
+  Result := FdViewpoints.SearchValid(Func);
+  if Result <> nil then Exit;
 
   { Note that joints, segments and sites is not passed to Func --- they
     should already be part of Joint hierarchy (in skeleton for HAnim 200x
@@ -645,9 +644,10 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure THAnimJointNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function THAnimJointNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FdChildren.EnumerateValid(Func);
+  Result := FdChildren.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 function THAnimJointNode.AnimateSkinPoint(const Point: TVector3Single): TVector3Single;
@@ -789,9 +789,10 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure THAnimSegmentNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function THAnimSegmentNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FdChildren.EnumerateValid(Func);
+  Result := FdChildren.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure THAnimSegmentNode.ApplyTransform(State: TX3DGraphTraverseState);
@@ -852,9 +853,10 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure THAnimSiteNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function THAnimSiteNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FdChildren.EnumerateValid(Func);
+  Result := FdChildren.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure THAnimSiteNode.ApplyTransform(State: TX3DGraphTraverseState);

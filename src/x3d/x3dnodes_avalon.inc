@@ -22,8 +22,7 @@
     see [http://instant-reality.com/documentation/nodetype/MatrixTransform/]. }
   TMatrixTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
@@ -40,8 +39,7 @@
 
   TTeapotNode = class(TAbstractX3DGeometryNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -303,12 +301,16 @@ begin
   Result := Version.Major >= 2;
 end;
 
-procedure TMatrixTransformNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TMatrixTransformNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 var
   I: Integer;
 begin
+  Result := nil;
   for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren[I]);
+  begin
+    Result := Func(Self, FdChildren[I]);
+    if Result <> nil then Exit;
+  end;
 end;
 
 procedure TMatrixTransformNode.ApplyTransform(State: TX3DGraphTraverseState);
@@ -429,11 +431,13 @@ begin
   Result := false;
 end;
 
-procedure TTeapotNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TTeapotNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  inherited;
-  FdtexCoord.EnumerateValid(Func);
+  Result := inherited;
+  if Result <> nil then Exit;
+
+  Result := FdtexCoord.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 function TTeapotNode.TexCoordField: TSFNode;

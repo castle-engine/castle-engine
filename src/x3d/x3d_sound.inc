@@ -85,7 +85,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
-    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -422,12 +422,15 @@ begin
   FTransformScale := 1;
 end;
 
-procedure TSoundNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TSoundNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  inherited;
+  Result := inherited;
+  if Result <> nil then Exit;
+
   { Necessary in order to call TAudioClipNode.BeforeTraverse,
     testcase: thunder.x3dv. }
-  FdSource.EnumerateValid(Func);
+  Result := FdSource.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure TSoundNode.UpdateSourcePosition;

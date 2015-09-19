@@ -228,7 +228,8 @@ type
 
   TX3DNodeClass = class of TX3DNode;
 
-  TX3DNodeProc = procedure (node: TX3DNode) of object;
+  TX3DNodeProc = procedure (Node: TX3DNode) of object;
+  TX3DNodeSearchProc = function (Node: TX3DNode): Pointer of object;
 
   TVRML1StateNode =
   (
@@ -689,17 +690,17 @@ type
   end;
 
   { Used as a callback by TX3DNode.Traverse. }
-  TTraversingFunc = procedure (Node: TX3DNode;
+  TTraversingFunc = function (Node: TX3DNode;
     StateStack: TX3DGraphTraverseStateStack;
     ParentInfo: PTraversingInfo;
-    var TraverseIntoChildren: boolean) of object;
+    var TraverseIntoChildren: boolean): Pointer of object;
 
   TTraversingAfterFunc = procedure (Node: TX3DNode;
     StateStack: TX3DGraphTraverseStateStack;
     ParentInfo: PTraversingInfo) of object;
 
   TEnumerateChildrenFunction =
-    procedure (Node, Child: TX3DNode) of object;
+    function (Node, Child: TX3DNode): Pointer of object;
 
   TEnumerateReplaceNodesFunction =
     procedure (ParentNode: TX3DNode; var Node: TX3DNode) of object;
@@ -934,7 +935,7 @@ type
 
       The main use for this is to simplify implementation of
       TX3DNode.DirectEnumerateActive overrides in TX3DNode descendants. }
-    procedure EnumerateValid(Func: TEnumerateChildrenFunction);
+    function SearchValid(Func: TEnumerateChildrenFunction): Pointer;
   end;
 
   { VRML/X3D field holding a list of nodes.
@@ -1083,11 +1084,11 @@ type
       read FDefaultValueExists write FDefaultValueExists default false;
 
     { Calls Func for all current children that are valid
-      (allowed by ChildAllowed).
+      (allowed by ChildAllowed). Stops if Func returns something non-nil.
 
       The main use for this is to simplify implementation of
       TX3DNode.DirectEnumerateActive overrides in TX3DNode descendants. }
-    procedure EnumerateValid(Func: TEnumerateChildrenFunction);
+    function SearchValid(Func: TEnumerateChildrenFunction): Pointer;
   end;
 
 { Specific VRML/X3D nodes ---------------------------------------------------- }
@@ -1330,7 +1331,7 @@ type
   private
     FPrototype: TX3DPrototypeBase;
 
-    procedure PrepareInstantiateIsClause(Node, Child: TX3DNode);
+    function PrepareInstantiateIsClause(Node, Child: TX3DNode): Pointer;
 
     (*This searches Node for fields/events with "IS" clauses, and handles them:
       for fields, this means copying field value from Self to Child
@@ -1367,7 +1368,7 @@ type
       "IS againstring". Which means that when expanding PressedText,
       we have to process everything again, to eventually fill "againstring"
       value. *)
-    procedure InstantiateIsClauses(Node, Child: TX3DNode);
+    function InstantiateIsClauses(Node, Child: TX3DNode): Pointer;
 
     { Handle "IS" clause on Destination field/event, by copying it's value
       from Source.
@@ -3214,10 +3215,11 @@ begin
   Result := 'SFNode';
 end;
 
-procedure TSFNode.EnumerateValid(Func: TEnumerateChildrenFunction);
+function TSFNode.SearchValid(Func: TEnumerateChildrenFunction): Pointer;
 begin
   if (Value <> nil) and CurrentChildAllowed then
-    Func(ParentNode, Value);
+    Result := Func(ParentNode, Value) else
+    Result := nil;
 end;
 
 class function TSFNode.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
@@ -3594,13 +3596,17 @@ begin
   Result := 'MFNode';
 end;
 
-procedure TMFNode.EnumerateValid(Func: TEnumerateChildrenFunction);
+function TMFNode.SearchValid(Func: TEnumerateChildrenFunction): Pointer;
 var
   I: Integer;
 begin
+  Result := nil;
   for I := 0 to Count - 1 do
     if ChildAllowed(Items[I]) then
-      Func(ParentNode, Items[I]);
+    begin
+      Result := Func(ParentNode, Items[I]);
+      if Result <> nil then Exit;
+    end;
 end;
 
 function TMFNode.GetItems(const Index: Integer): TX3DNode;
@@ -4276,8 +4282,7 @@ begin
   end;
 end;
 
-procedure TX3DPrototypeNode.InstantiateIsClauses(
-  Node, Child: TX3DNode);
+function TX3DPrototypeNode.InstantiateIsClauses(Node, Child: TX3DNode): Pointer;
 
   { In terminology of VRML/X3D specs,
     InstanceField/Event is the one in "prototype definition"
@@ -4434,6 +4439,8 @@ procedure TX3DPrototypeNode.InstantiateIsClauses(
 var
   I: Integer;
 begin
+  Result := nil;
+
   { The NeedsInstantiateIsClause flag is needed for InstantiateIsClauses.
      By checking this flag (and setting back to @false after handling):
 
@@ -4462,16 +4469,17 @@ begin
   for I := 0 to Child.Events.Count - 1 do
     ExpandEvent(Child.Events[I]);
 
-  Child.DirectEnumerateAll(@InstantiateIsClauses);
+  Child.DirectEnumerateAll(@Self.InstantiateIsClauses);
 end;
 
-procedure TX3DPrototypeNode.PrepareInstantiateIsClause(
-  Node, Child: TX3DNode);
+function TX3DPrototypeNode.PrepareInstantiateIsClause(
+  Node, Child: TX3DNode): Pointer;
 begin
+  Result := nil;
   if not Child.NeedsInstantiateIsClause then
   begin
     Child.NeedsInstantiateIsClause := true;
-    Child.DirectEnumerateAll(@PrepareInstantiateIsClause);
+    Child.DirectEnumerateAll(@Self.PrepareInstantiateIsClause);
   end;
 end;
 

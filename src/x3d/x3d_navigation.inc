@@ -123,8 +123,7 @@
     FCameraPosition, FCameraDirection, FCameraUp: TVector3Single;
     FCameraViewKnown: boolean;
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
@@ -145,11 +144,10 @@
 
   TCollisionNode = class(TAbstractX3DGroupingNode, IAbstractSensorNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
-    procedure DirectEnumerateActiveForTraverse(
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
+    function DirectEnumerateActiveForTraverse(
       Func: TEnumerateChildrenFunction;
-      StateStack: TX3DGraphTraverseStateStack); override;
+      StateStack: TX3DGraphTraverseStateStack): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -195,8 +193,7 @@
   }
   TAbstractLODNode = class(TAbstractX3DGroupingNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -347,8 +344,7 @@
 
   TViewpointGroupNode = class(TAbstractChildNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -549,12 +545,10 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TBillboardNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
-var
-  I: Integer;
+function TBillboardNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren[I]);
+  Result := FdChildren.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure TBillboardNode.ApplyTransform(State: TX3DGraphTraverseState);
@@ -673,35 +667,28 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TCollisionNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
-var
-  I: Integer;
+function TCollisionNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FdProxy.EnumerateValid(Func);
-  for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren[I]);
+  Result := FdProxy.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := FdChildren.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
-procedure TCollisionNode.DirectEnumerateActiveForTraverse(
+function TCollisionNode.DirectEnumerateActiveForTraverse(
   Func: TEnumerateChildrenFunction;
-  StateStack: TX3DGraphTraverseStateStack);
-
-  procedure EnumChildren;
-  var
-    I: Integer;
-  begin
-    for I := 0 to FdChildren.Count - 1 do
-      Func(Self, FdChildren[I]);
-  end;
-
+  StateStack: TX3DGraphTraverseStateStack): Pointer;
 begin
+  Result := nil;
   if FdEnabled.Value then
   begin
     if FdProxy.Value = nil then
     begin
       { Collision node doesn't do anything in this trivial case,
         children are treated just like by Group. }
-      EnumChildren;
+      Result := FdChildren.SearchValid(Func);
+      if Result <> nil then Exit;
     end else
     begin
       { This is the interesting case:
@@ -710,12 +697,14 @@ begin
 
       Inc(StateStack.Top.InsideInvisible);
       try
-        FdProxy.EnumerateValid(Func);
+        Result := FdProxy.SearchValid(Func);
+        if Result <> nil then Exit;
       finally Dec(StateStack.Top.InsideInvisible) end;
 
       Inc(StateStack.Top.InsideIgnoreCollision);
       try
-        EnumChildren;
+        Result := FdChildren.SearchValid(Func);
+        if Result <> nil then Exit;
       finally Dec(StateStack.Top.InsideIgnoreCollision) end;
     end;
   end else
@@ -723,7 +712,8 @@ begin
     { Nothing is collidable in this case. So proxy is just ignored. }
     Inc(StateStack.Top.InsideIgnoreCollision);
     try
-      EnumChildren;
+      Result := FdChildren.SearchValid(Func);
+      if Result <> nil then Exit;
     finally Dec(StateStack.Top.InsideIgnoreCollision) end;
   end;
 end;
@@ -760,12 +750,16 @@ begin
   Result := 'LOD';
 end;
 
-procedure TAbstractLODNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TAbstractLODNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
+  Result := nil;
   { For now we simply always use the best LOD version,
     avoiding whole issue of choosing proper LOD child. }
   if FdChildren.Items.Count >= 1 then
-    Func(Self, FdChildren[0]);
+  begin
+    Result := Func(Self, FdChildren[0]);
+    if Result <> nil then Exit;
+  end;
 end;
 
 function TAbstractLODNode.TransformationChange: TNodeTransformationChange;
@@ -1125,10 +1119,13 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TViewpointGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TViewpointGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  inherited;
-  FdChildren.EnumerateValid(Func);
+  Result := inherited;
+  if Result <> nil then Exit;
+
+  Result := FdChildren.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 function TViewpointGroupNode.Description: string;

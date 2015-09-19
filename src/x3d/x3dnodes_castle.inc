@@ -255,8 +255,7 @@
     function GetEnabled: boolean;
     procedure SetEnabled(const Value: boolean);
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -853,11 +852,13 @@ begin
     (URN = URNKambiNodes2 + ClassNodeTypeName);
 end;
 
-procedure TScreenEffectNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TScreenEffectNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  inherited;
-  FFdShaders.EnumerateValid(Func);
+  Result := inherited;
+  if Result <> nil then Exit;
+
+  Result := FFdShaders.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 function TScreenEffectNode.GetEnabled: boolean;

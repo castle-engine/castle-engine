@@ -82,12 +82,17 @@
     function GetParentFieldsNodeItem(Index: Integer): TX3DNode;
     procedure RemoveParentField(Field: TX3DField);
     procedure AddParentField(Field: TX3DField);
-    procedure TryFindNode_Found(Node: TX3DNode);
     procedure SetHasInterfaceDeclarations(const Value: TX3DAccessTypes);
     { Internal save to stream utility.
       When CurrentContainerField is not empty, it means we know our containing field
       (and should adjust containerField= for XML encoding output). }
     procedure NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerField: string = '');
+    function TryFindNodeStateTraverse(
+      ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+    function TryFindNodeTransformTraverse(
+      ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
   protected
 
     { Does actual DeepCopy work. You can override this to copy some
@@ -147,14 +152,17 @@
       This can enumerate both @link(VRML1Children) nodes
       nodes within TSFNode and TMFNode fields.
 
-      Default implementation in this class returns all Children
+      Default implementation in this class enumerates all Children
       nodes of VRML 1.0. If you need to remove some children
       for VRML 1.0 (e.g. for Switch or LOD nodes)
       or add some children for VRML 2.0 you
-      have to override this. You're not required to call
-      inherited when overriding this. }
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); virtual;
+      have to override this. @bold(You do not need to call inherited
+      when overriding this --- in fact, you should not, if you
+      want to omit some nodes.)
+
+      Stops and returns immediately if Func returns non-nil for some child. }
+    function DirectEnumerateActive(
+      Func: TEnumerateChildrenFunction): Pointer; virtual;
 
     { Enumerate all active child nodes of given node,
       and may additionally modify StateStack. It's used by Traverse.
@@ -163,25 +171,27 @@
       DirectEnumerateActive, ignoring StateStack, and this is suitable
       for 99% of nodes. However, for some special nodes (only Collision
       node for now), they have to modify state during traversing into
-      various children, and then they can override this. }
-    procedure DirectEnumerateActiveForTraverse(
+      various children, and then they can override this.
+
+      Stops and returns immediately in Func returns non-nil for some child. }
+    function DirectEnumerateActiveForTraverse(
       Func: TEnumerateChildrenFunction;
-      StateStack: TX3DGraphTraverseStateStack); virtual;
+      StateStack: TX3DGraphTraverseStateStack): Pointer; virtual;
 
     { Simply enumerate all direct descendant nodes.
       That is, all children in VRML 1.0 style and
       all nodes in SFNode and MFNode fields.
       This includes prototype stuff, if this node is expanded
       from prototype: PrototypeInstanceSourceNode and PrototypeInstanceHelpers. }
-    procedure DirectEnumerateAll(
-      Func: TEnumerateChildrenFunction);
+    function DirectEnumerateAll(
+      Func: TEnumerateChildrenFunction): Pointer;
 
     { This enumerates direct descendant nodes of this node.
       This is equivalent to DirectEnumerateActive or
       DirectEnumerateAll, depending on value of OnlyActive param. }
-    procedure DirectEnumerate(
+    function DirectEnumerate(
       Func: TEnumerateChildrenFunction;
-      OnlyActive: boolean);
+      OnlyActive: boolean): Pointer;
 
     { Override these methods to determine what happens when
       given node is traversed during Traverse call.
@@ -511,7 +521,9 @@
       but only by changing other nodes).
 
       For all nodes of NodeClass TraversingFunc
-      will be called.
+      will be called. If if returns non-nil for some node, the processing
+      of following nodes (children and siblings) will be aborted and result
+      will be returned.
 
       Traverse not only enumerates these
       nodes, it also collects all state (transformation, etc ---
@@ -563,27 +575,27 @@
 
       During traversing, you can only modify the children (direct or not)
       nodes of the current node. }
-    procedure Traverse(
+    function Traverse(
       NodeClass: TX3DNodeClass;
-      TraversingFunc: TTraversingFunc);
+      TraversingFunc: TTraversingFunc): Pointer;
 
     { Like @link(Traverse), but it takes explicit starting state stack
       and starting ParentInfo. Not generally useful, use only for special
       purposes. }
-    procedure TraverseInternal(StateStack: TX3DGraphTraverseStateStack;
+    function TraverseInternal(StateStack: TX3DGraphTraverseStateStack;
       NodeClass: TX3DNodeClass;
       TraversingFunc: TTraversingFunc;
-      ParentInfo: PTraversingInfo);
+      ParentInfo: PTraversingInfo): Pointer;
 
     { Like @link(Traverse), but only enters children.
       This does the job of Traverse normally omitted if your @link(Traverse)
       callback returns TraverseIntoChildren = @false.
       Using this method, you can traverse into children explicitly
       from your callback. }
-    procedure TraverseIntoChildren(StateStack: TX3DGraphTraverseStateStack;
+    function TraverseIntoChildren(StateStack: TX3DGraphTraverseStateStack;
       NodeClass: TX3DNodeClass;
       TraversingFunc: TTraversingFunc;
-      ParentInfo: PTraversingInfo);
+      ParentInfo: PTraversingInfo): Pointer;
 
     { Enumerate all our children of some class. Recursively.
       Enumerates also this instance (Self), if it satisfies the
@@ -619,6 +631,17 @@
       const SeekNodeName: string;
       proc: TX3DNodeProc; OnlyActive: boolean); overload;
     { @groupEnd }
+
+    { Search nodes, like enumerating nodes but allows early exit during
+      the enumeration.
+      We search for a node for which Proc(Node) returns something non-nil.
+
+      For every node, the given Proc callback is run.
+      If the Proc callback returns something non-nil,
+      the enumeration of the following nodes stops,
+      and we return the callback result. }
+    function SearchNodes(const Proc: TX3DNodeSearchProc;
+      const OnlyActive: boolean): Pointer;
 
     { TryFindNodeByName and TryFindNode seek for a node with
       given class (and node name, in case of TryFindNodeByName).
@@ -1303,31 +1326,40 @@ begin
   Result := FParentFields.Count;
 end;
 
-procedure TX3DNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TX3DNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 var
   I: Integer;
 begin
+  Result := nil;
   for I := 0 to VRML1ChildrenCount - 1 do
-    Func(Self, VRML1Children[I]);
+  begin
+    Result := Func(Self, VRML1Children[I]);
+    if Result <> nil then Exit;
+  end;
 end;
 
-procedure TX3DNode.DirectEnumerateActiveForTraverse(
+function TX3DNode.DirectEnumerateActiveForTraverse(
   Func: TEnumerateChildrenFunction;
-  StateStack: TX3DGraphTraverseStateStack);
+  StateStack: TX3DGraphTraverseStateStack): Pointer;
 begin
-  DirectEnumerateActive(Func);
+  Result := DirectEnumerateActive(Func);
 end;
 
-procedure TX3DNode.DirectEnumerateAll(
-  Func: TEnumerateChildrenFunction);
+function TX3DNode.DirectEnumerateAll(
+  Func: TEnumerateChildrenFunction): Pointer;
 var
   I, J: Integer;
   F: TX3DField;
   SF: TSFNode;
   MF: TMFNode;
 begin
+  Result := nil;
+
   for I := 0 to VRML1ChildrenCount - 1 do
-    Func(Self, VRML1Children[I]);
+  begin
+    Result := Func(Self, VRML1Children[I]);
+    if Result <> nil then Exit;
+  end;
 
   for I := 0 to Fields.Count - 1 do
   begin
@@ -1336,33 +1368,43 @@ begin
     begin
       SF := TSFNode(F);
       if SF.Value <> nil then
-        Func(Self, SF.Value);
+      begin
+        Result := Func(Self, SF.Value);
+        if Result <> nil then Exit;
+      end;
     end else
     if F is TMFNode then
     begin
       MF := TMFNode(F);
       for J := 0 to MF.Items.Count - 1 do
-        Func(Self, MF.Items[J]);
+      begin
+        Result := Func(Self, MF.Items[J]);
+        if Result <> nil then Exit;
+      end;
     end;
   end;
 
   if PrototypeInstance then
   begin
     Assert(PrototypeInstanceSourceNode <> nil);
-    Func(Self, PrototypeInstanceSourceNode);
+    Result := Func(Self, PrototypeInstanceSourceNode);
+    if Result <> nil then Exit;
 
     if PrototypeInstanceHelpers <> nil then
-      Func(Self, PrototypeInstanceHelpers);
+    begin
+      Result := Func(Self, PrototypeInstanceHelpers);
+      if Result <> nil then Exit;
+    end;
   end;
 end;
 
-procedure TX3DNode.DirectEnumerate(
+function TX3DNode.DirectEnumerate(
   Func: TEnumerateChildrenFunction;
-  OnlyActive: boolean);
+  OnlyActive: boolean): Pointer;
 begin
   if OnlyActive then
-    DirectEnumerateActive(Func) else
-    DirectEnumerateAll(Func);
+    Result := DirectEnumerateActive(Func) else
+    Result := DirectEnumerateAll(Func);
 end;
 
 procedure TX3DNode.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
@@ -1387,11 +1429,11 @@ type
     NodeClass: TX3DNodeClass;
     TraversingFunc: TTraversingFunc;
     ParentInfo: PTraversingInfo;
-    procedure DoTraverseIntoChildren(Child: TX3DNode);
-    procedure EnumerateChildrenFunction(Node, Child: TX3DNode);
+    function DoTraverseIntoChildren(Child: TX3DNode): Pointer;
+    function EnumerateChildrenFunction(Node, Child: TX3DNode): Pointer;
   end;
 
-  procedure TTraverseEnumerator.DoTraverseIntoChildren(Child: TX3DNode);
+  function TTraverseEnumerator.DoTraverseIntoChildren(Child: TX3DNode): Pointer;
   var
     ParentInfoForChildren: TTraversingInfo;
   begin
@@ -1399,38 +1441,47 @@ type
     ParentInfoForChildren.ParentInfo := ParentInfo;
     ParentInfo := @ParentInfoForChildren;
     try
-      Child.DirectEnumerateActiveForTraverse(@EnumerateChildrenFunction, StateStack);
+      Result := Child.DirectEnumerateActiveForTraverse(
+        @EnumerateChildrenFunction, StateStack);
     finally
       ParentInfo := ParentInfoForChildren.ParentInfo;
     end;
   end;
 
-  procedure TTraverseEnumerator.EnumerateChildrenFunction(
-    Node, Child: TX3DNode);
+  function TTraverseEnumerator.EnumerateChildrenFunction(
+    Node, Child: TX3DNode): Pointer;
   var
     StateNode: TVRML1StateNode;
     IsTraverseIntoChildren: boolean;
   begin
+    Result := nil;
+
     Child.BeforeTraverse(StateStack);
     try
       IsTraverseIntoChildren := true;
       if Child is NodeClass then
-        TraversingFunc(Child, StateStack, ParentInfo, IsTraverseIntoChildren);
+      begin
+        Result := TraversingFunc(Child, StateStack, ParentInfo, IsTraverseIntoChildren);
+        if Result <> nil then Exit;
+      end;
 
       Child.MiddleTraverse(StateStack);
 
       if IsTraverseIntoChildren then
-        DoTraverseIntoChildren(Child);
+      begin
+        Result := DoTraverseIntoChildren(Child);
+        if Result <> nil then Exit;
+      end;
     finally Child.AfterTraverse(StateStack) end;
 
     if Child.VRML1StateNode(StateNode) then
       StateStack.Top.SetLastNodes(StateNode, Child, false);
   end;
 
-procedure TX3DNode.TraverseInternal(StateStack: TX3DGraphTraverseStateStack;
+function TX3DNode.TraverseInternal(StateStack: TX3DGraphTraverseStateStack;
   NodeClass: TX3DNodeClass;
   TraversingFunc: TTraversingFunc;
-  ParentInfo: PTraversingInfo);
+  ParentInfo: PTraversingInfo): Pointer;
 var
   Enumerator: TTraverseEnumerator;
 begin
@@ -1440,7 +1491,7 @@ begin
     Enumerator.NodeClass := NodeClass;
     Enumerator.TraversingFunc := TraversingFunc;
     Enumerator.ParentInfo := ParentInfo;
-    Enumerator.EnumerateChildrenFunction(nil, Self);
+    Result := Enumerator.EnumerateChildrenFunction(nil, Self);
 
     { Check that, if all went without exception, Enumerator.ParentInfo
       returned to original state. }
@@ -1448,10 +1499,10 @@ begin
   finally FreeAndNil(Enumerator) end;
 end;
 
-procedure TX3DNode.TraverseIntoChildren(StateStack: TX3DGraphTraverseStateStack;
+function TX3DNode.TraverseIntoChildren(StateStack: TX3DGraphTraverseStateStack;
   NodeClass: TX3DNodeClass;
   TraversingFunc: TTraversingFunc;
-  ParentInfo: PTraversingInfo);
+  ParentInfo: PTraversingInfo): Pointer;
 var
   Enumerator: TTraverseEnumerator;
 begin
@@ -1461,7 +1512,7 @@ begin
     Enumerator.NodeClass := NodeClass;
     Enumerator.TraversingFunc := TraversingFunc;
     Enumerator.ParentInfo := ParentInfo;
-    Enumerator.DoTraverseIntoChildren(Self);
+    Result := Enumerator.DoTraverseIntoChildren(Self);
 
     { Check that, if all went without exception, Enumerator.ParentInfo
       returned to original state. }
@@ -1472,12 +1523,12 @@ end;
 var
   TraverseSingleStack: TX3DGraphTraverseStateStack;
 
-procedure TX3DNode.Traverse(NodeClass: TX3DNodeClass;
-  TraversingFunc: TTraversingFunc);
+function TX3DNode.Traverse(NodeClass: TX3DNodeClass;
+  TraversingFunc: TTraversingFunc): Pointer;
 begin
   TraverseSingleStack.PushClear;
   try
-    TraverseInternal(TraverseSingleStack, NodeClass, TraversingFunc, nil);
+    Result := TraverseInternal(TraverseSingleStack, NodeClass, TraversingFunc, nil);
   finally TraverseSingleStack.Pop end;
 end;
 
@@ -1980,15 +2031,15 @@ type
   TEnumerateNodes0Enumerator = class
     Proc: TX3DNodeProc;
     OnlyActive: boolean;
-    procedure EnumerateChildrenFunction(Node, Child: TX3DNode);
+    function EnumerateChildrenFunction(Node, Child: TX3DNode): Pointer;
   end;
 
-  procedure TEnumerateNodes0Enumerator.EnumerateChildrenFunction(
-    Node, Child: TX3DNode);
+  function TEnumerateNodes0Enumerator.EnumerateChildrenFunction(
+    Node, Child: TX3DNode): Pointer;
   begin
+    Result := nil;
     Proc(Child);
-
-    Child.DirectEnumerate(@EnumerateChildrenFunction, OnlyActive);
+    Child.DirectEnumerate(@Self.EnumerateChildrenFunction, OnlyActive);
   end;
 
 procedure TX3DNode.EnumerateNodes(
@@ -2009,15 +2060,15 @@ type
     NodeClass: TX3DNodeClass;
     Proc: TX3DNodeProc;
     OnlyActive: boolean;
-    procedure EnumerateChildrenFunction(Node, Child: TX3DNode);
+    function EnumerateChildrenFunction(Node, Child: TX3DNode): Pointer;
   end;
 
-  procedure TEnumerateNodes1Enumerator.EnumerateChildrenFunction(
-    Node, Child: TX3DNode);
+  function TEnumerateNodes1Enumerator.EnumerateChildrenFunction(
+    Node, Child: TX3DNode): Pointer;
   begin
+    Result := nil;
     if Child is NodeClass then Proc(Child);
-
-    Child.DirectEnumerate(@EnumerateChildrenFunction, OnlyActive);
+    Child.DirectEnumerate(@Self.EnumerateChildrenFunction, OnlyActive);
   end;
 
 procedure TX3DNode.EnumerateNodes(nodeClass: TX3DNodeClass;
@@ -2040,17 +2091,17 @@ type
     SeekNodeName: string;
     Proc: TX3DNodeProc;
     OnlyActive: boolean;
-    procedure EnumerateChildrenFunction(Node, Child: TX3DNode);
+    function EnumerateChildrenFunction(Node, Child: TX3DNode): Pointer;
   end;
 
-  procedure TEnumerateNodes2Enumerator.EnumerateChildrenFunction(
-    Node, Child: TX3DNode);
+  function TEnumerateNodes2Enumerator.EnumerateChildrenFunction(
+    Node, Child: TX3DNode): Pointer;
   begin
+    Result := nil;
     if (Child is NodeClass) and
        (Child.NodeName = SeekNodeName) then
       Proc(Child);
-
-    Child.DirectEnumerate(@EnumerateChildrenFunction, OnlyActive);
+    Child.DirectEnumerate(@Self.EnumerateChildrenFunction, OnlyActive);
   end;
 
 procedure TX3DNode.EnumerateNodes(NodeClass: TX3DNodeClass;
@@ -2070,33 +2121,56 @@ begin
 end;
 
 type
-  BreakTryFindNode = class(TCodeBreaker)
-  public
-    FoundNode: TX3DNode;
-    constructor Create(AFoundNode: TX3DNode);
+  TSearchNodes0Helper = class
+    Proc: TX3DNodeSearchProc;
+    OnlyActive: boolean;
+    function Callback(Node, Child: TX3DNode): Pointer;
   end;
 
-  constructor BreakTryFindNode.Create(AFoundNode: TX3DNode);
+  function TSearchNodes0Helper.Callback(
+    Node, Child: TX3DNode): Pointer;
   begin
-    inherited Create;
-    FoundNode := AFoundNode;
+    Result := Proc(Child);
+    if Result <> nil then Exit;
+
+    Result := Child.DirectEnumerate(@Self.Callback, OnlyActive);
   end;
 
-procedure TX3DNode.TryFindNode_Found(Node: TX3DNode);
+function TX3DNode.SearchNodes(
+  const Proc: TX3DNodeSearchProc; const OnlyActive: boolean): Pointer;
+var
+  Helper: TSearchNodes0Helper;
 begin
-  raise BreakTryFindNode.Create(Node);
+  Helper := TSearchNodes0Helper.Create;
+  try
+    Helper.Proc := Proc;
+    Helper.OnlyActive := OnlyActive;
+    Result := Helper.Callback(nil, Self);
+  finally FreeAndNil(Helper) end;
 end;
 
-function TX3DNode.TryFindNode(FindClass: TX3DNodeClass;
-  OnlyActive: boolean): TX3DNode;
-begin
-  try
-    EnumerateNodes(FindClass, {$ifdef FPC_OBJFPC} @ {$endif}
-      TryFindNode_Found, OnlyActive);
-    Result := nil;
-  except
-    on B: BreakTryFindNode do Result := B.FoundNode;
+type
+  TFindNodeHelper = class
+    NodeClass: TX3DNodeClass;
+    function Callback(Node: TX3DNode): Pointer;
   end;
+
+  function TFindNodeHelper.Callback(Node: TX3DNode): Pointer;
+  begin
+    if Node is NodeClass then
+      Result := Node else
+      Result := nil;
+  end;
+
+function TX3DNode.TryFindNode(FindClass: TX3DNodeClass; OnlyActive: boolean): TX3DNode;
+var
+  Helper: TFindNodeHelper;
+begin
+  Helper := TFindNodeHelper.Create;
+  try
+    Helper.NodeClass := FindClass;
+    Result := TX3DNode(SearchNodes(@Helper.Callback, OnlyActive));
+  finally FreeAndNil(Helper) end;
 end;
 
 function TX3DNode.FindNode(FindClass: TX3DNodeClass; OnlyActive: boolean): TX3DNode;
@@ -2106,17 +2180,31 @@ begin
     raise EX3DNotFound.CreateFmt('Node class "%s" not found', [FindClass.ClassName]);
 end;
 
-function TX3DNode.TryFindNodeByName(
-  FindClass: TX3DNodeClass; const FindName: string;
-  OnlyActive: boolean): TX3DNode;
-begin
-  try
-    EnumerateNodes(FindClass, FindName, {$ifdef FPC_OBJFPC} @ {$endif}
-      TryFindNode_Found, OnlyActive);
-    Result := nil;
-  except
-    on B: BreakTryFindNode do Result := B.FoundNode;
+type
+  TFindNodeByNameHelper = class
+    NodeClass: TX3DNodeClass;
+    NodeName: string;
+    function Callback(Node: TX3DNode): Pointer;
   end;
+
+  function TFindNodeByNameHelper.Callback(Node: TX3DNode): Pointer;
+  begin
+    if (Node is NodeClass) and (Node.NodeName = NodeName) then
+      Result := Node else
+      Result := nil;
+  end;
+
+function TX3DNode.TryFindNodeByName(
+  FindClass: TX3DNodeClass; const FindName: string; OnlyActive: boolean): TX3DNode;
+var
+  Helper: TFindNodeByNameHelper;
+begin
+  Helper := TFindNodeByNameHelper.Create;
+  try
+    Helper.NodeClass := FindClass;
+    Helper.NodeName := FindName;
+    Result := TX3DNode(SearchNodes(@Helper.Callback, OnlyActive));
+  finally FreeAndNil(Helper) end;
 end;
 
 function TX3DNode.FindNodeByName(
@@ -2130,68 +2218,58 @@ end;
 
 { TX3DNode.TryFindNodeState/Transform ----------------------------------------- }
 
-  type
-    PVRMLNode = ^TX3DNode;
-    PVRMLGraphTraverseState = ^TX3DGraphTraverseState;
-    BreakTryFindNodeState = class(TCodeBreaker);
-    TTryFindNodeStateObj = class
-      PNode: PVRMLNode;
-      PState: PVRMLGraphTraverseState;
-      procedure TraverseFunc(
-        ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-        ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
-    end;
-
-  procedure TTryFindNodeStateObj.TraverseFunc(
-    ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-    ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
-  begin
-    PNode^ := ANode;
-    PState^ := TX3DGraphTraverseState.CreateCopy(StateStack.Top);
-    raise BreakTryFindNodeState.Create;
+type
+  TTryFindNodeStateResult = class
+    Node: TX3DNode;
+    State: TX3DGraphTraverseState;
   end;
+
+function TX3DNode.TryFindNodeStateTraverse(
+  ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+var
+  Res: TTryFindNodeStateResult;
+begin
+  Res := TTryFindNodeStateResult.Create;
+  Res.Node := ANode;
+  Res.State := TX3DGraphTraverseState.CreateCopy(StateStack.Top);
+  Result := Res;
+end;
 
 function TX3DNode.TryFindNodeState(
   NodeClass: TX3DNodeClass;
   out Node: TX3DNode; out State: TX3DGraphTraverseState): boolean;
 var
-  Obj: TTryFindNodeStateObj;
+  Res: TTryFindNodeStateResult;
 begin
-  Obj := TTryFindNodeStateObj.Create;
-  try
-    try
-      Obj.PNode := @Node;
-      Obj.PState := @State;
-      Traverse(NodeClass, @Obj.TraverseFunc);
-      result := false;
-    except
-      on BreakTryFindNodeState do result := true;
-    end;
-  finally Obj.Free end;
+  Res := TTryFindNodeStateResult(Traverse(NodeClass, @TryFindNodeStateTraverse));
+  Result := Res <> nil;
+  if Result then
+  begin
+    Node := Res.Node;
+    State := Res.State;
+  end;
 end;
 
-  type
-    TTryFindNodeTransformObj = class
-      PNode: PVRMLNode;
-      PTransform: PMatrix4Single;
-      PTransformScale: PSingle;
-      procedure TraverseFunc(
-        ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-        ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
-    end;
-
-  procedure TTryFindNodeTransformObj.TraverseFunc(
-    ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-    ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
-  begin
-    PNode^ := ANode;
-    { to dlatego TryFindNodeTransform jest szybsze od TryFindNodeState :
-      w TryFindNodeState trzeba tutaj kopiowac cale state,
-      w TryFindNodeTransform wystarczy skopiowac transformacje. }
-    PTransform^ := StateStack.Top.Transform;
-    PTransformScale^ := StateStack.Top.TransformScale;
-    raise BreakTryFindNodeState.Create;
+type
+  TTryFindNodeTransformResult = class
+    Node: TX3DNode;
+    Transform: TMatrix4Single;
+    TransformScale: Single;
   end;
+
+function TX3DNode.TryFindNodeTransformTraverse(
+  ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+var
+  Res: TTryFindNodeTransformResult;
+begin
+  Res := TTryFindNodeTransformResult.Create;
+  Res.Node := ANode;
+  Res.Transform := StateStack.Top.Transform;
+  Res.TransformScale := StateStack.Top.TransformScale;
+  Result := Res;
+end;
 
 function TX3DNode.TryFindNodeTransform(
   NodeClass: TX3DNodeClass;
@@ -2199,20 +2277,16 @@ function TX3DNode.TryFindNodeTransform(
   out Transform: TMatrix4Single;
   out TransformScale: Single): boolean;
 var
-  Obj: TTryFindNodeTransformObj;
+  Res: TTryFindNodeTransformResult;
 begin
-  Obj := TTryFindNodeTransformObj.Create;
-  try
-    try
-      Obj.PNode := @Node;
-      Obj.PTransform := @Transform;
-      Obj.PTransformScale := @TransformScale;
-      Traverse(NodeClass, @Obj.TraverseFunc);
-      Result := false;
-    except
-      on BreakTryFindNodeState do Result := true;
-    end;
-  finally Obj.Free end;
+  Res := TTryFindNodeTransformResult(Traverse(NodeClass, @TryFindNodeTransformTraverse));
+  Result := Res <> nil;
+  if Result then
+  begin
+    Node := Res.Node;
+    Transform := Res.Transform;
+    TransformScale := Res.TransformScale;
+  end;
 end;
 
 function TX3DNode.TryFindParentByName(const FindName: string): TX3DNode;
@@ -2282,54 +2356,46 @@ begin
 end;
 
 type
-  TIsNodePresentSeeker = class
+  TIsNodePresentHelper = class
     SeekNode: TX3DNode;
-    procedure Seek(Node: TX3DNode);
+    function Callback(Node: TX3DNode): Pointer;
   end;
 
-  BreakIsNodePresent = class(TCodeBreaker);
-
-  procedure TIsNodePresentSeeker.Seek(Node: TX3DNode);
+  function TIsNodePresentHelper.Callback(Node: TX3DNode): Pointer;
   begin
     if Node = SeekNode then
-      raise BreakIsNodePresent.Create;
+      Result := Node { doesn't matter what, anything non-nil } else
+      Result := nil;
   end;
 
-function TX3DNode.IsNodePresent(Node: TX3DNode;
-  OnlyActive: boolean): boolean;
+function TX3DNode.IsNodePresent(Node: TX3DNode; OnlyActive: boolean): boolean;
 var
-  Seeker: TIsNodePresentSeeker;
+  Helper: TIsNodePresentHelper;
 begin
-  Seeker := TIsNodePresentSeeker.Create;
+  Helper := TIsNodePresentHelper.Create;
   try
-    Seeker.SeekNode := Node;
-    try
-      EnumerateNodes({$ifdef FPC_OBJFPC} @ {$endif} Seeker.Seek, OnlyActive);
-      Result := false;
-    except
-      on BreakIsNodePresent do Result := true;
-    end;
-  finally FreeAndNil(Seeker) end;
+    Helper.SeekNode := Node;
+    Result := SearchNodes(@Helper.Callback, OnlyActive) <> nil;
+  finally FreeAndNil(Helper) end;
 end;
 
 type
-  TNodeCounter = class
+  TNodesCountHelper = class
     Counter: integer;
     procedure CountNode(node: TX3DNode);
   end;
 
-  procedure TNodeCounter.CountNode(node: TX3DNode);
+  procedure TNodesCountHelper.CountNode(node: TX3DNode);
   begin Inc(Counter) end;
 
 function TX3DNode.NodesCount(NodeClass: TX3DNodeClass;
   CountOnlyActiveNodes: boolean): integer;
 var
-  C: TNodeCounter;
+  C: TNodesCountHelper;
 begin
-  C := TNodeCounter.Create;
+  C := TNodesCountHelper.Create;
   try
-    EnumerateNodes(NodeClass,
-      {$ifdef FPC_OBJFPC} @ {$endif} C.CountNode, CountOnlyActiveNodes);
+    EnumerateNodes(NodeClass, @C.CountNode, CountOnlyActiveNodes);
     result := C.Counter;
   finally C.Free end;
 end;

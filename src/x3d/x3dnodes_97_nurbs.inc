@@ -290,8 +290,7 @@
 
   TContour2DNode_2 = class(TAbstractX3DGeometryNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -871,10 +870,10 @@ begin
   Result := Version.Major = 2;
 end;
 
-procedure TContour2DNode_2.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TContour2DNode_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Fdchildren.EnumerateValid(Func);
+  Result := Fdchildren.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 {$define TGeometryNotImplemented := TContour2DNode_2}

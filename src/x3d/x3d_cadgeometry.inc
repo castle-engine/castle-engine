@@ -31,7 +31,7 @@
 
   TCADAssemblyNode = class(TAbstractX3DGroupingNode, IAbstractX3DProductStructureChildNode)
   protected
-    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -43,7 +43,7 @@
 
   TCADFaceNode = class(TAbstractProductStructureChildNode, IAbstractBoundedObject)
   protected
-    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -61,7 +61,7 @@
 
   TCADLayerNode = class(TAbstractX3DGroupingNode)
   protected
-    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -76,7 +76,7 @@
 
   TCADPartNode = class(TAbstractX3DGroupingNode, IAbstractX3DProductStructureChildNode, ITransformNode)
   protected
-    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
@@ -174,9 +174,10 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TCADAssemblyNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TCADAssemblyNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FdChildren.EnumerateValid(Func);
+  Result := FdChildren.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure TCADFaceNode.CreateNode;
@@ -210,9 +211,10 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TCADFaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TCADFaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FdShape.EnumerateValid(Func);
+  Result := FdShape.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure TCADLayerNode.CreateNode;
@@ -239,14 +241,19 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TCADLayerNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TCADLayerNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 var
   I: Integer;
 begin
-  inherited;
+  Result := inherited;
+  if Result <> nil then Exit;
+
   for I := 0 to FdChildren.Count - 1 do
     if (I >= FdVisible.Count) or FdVisible.Items[I] then
-      Func(Self, FdChildren[I]);
+    begin
+      Result := Func(Self, FdChildren[I]);
+      if Result <> nil then Exit;
+    end;
 end;
 
 procedure TCADPartNode.CreateNode;
@@ -295,9 +302,10 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TCADPartNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TCADPartNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FdChildren.EnumerateValid(Func);
+  Result := FdChildren.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 function TCADPartNode.TransformationChange: TNodeTransformationChange;

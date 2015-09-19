@@ -22,7 +22,7 @@
     procedure EventSet_BindReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   protected
-    procedure DirectEnumerateActive(Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     function TransformationChange: TNodeTransformationChange; override;
@@ -306,11 +306,13 @@ begin
   Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
 end;
 
-procedure TAbstractBackgroundNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TAbstractBackgroundNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  inherited;
-  FFdShaders.EnumerateValid(Func);
+  Result := inherited;
+  if Result <> nil then Exit;
+
+  Result := FFdShaders.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure TAbstractBackgroundNode.EventSet_BindReceive(

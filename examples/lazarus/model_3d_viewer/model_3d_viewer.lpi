@@ -49,7 +49,6 @@
       <Unit0>
         <Filename Value="model_3d_viewer.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="model_3d_viewer"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -57,7 +56,6 @@
         <ComponentName Value="Main"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="mainf"/>
       </Unit1>
     </Units>
   </ProjectOptions>
@@ -91,11 +89,10 @@
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
-      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="8">
+    <Exceptions Count="5">
       <Item1>
         <Name Value="ECodetoolError"/>
       </Item1>
@@ -103,23 +100,14 @@
         <Name Value="EFOpenError"/>
       </Item2>
       <Item3>
-        <Name Value="BreakFirstViewpointFound"/>
+        <Name Value="EDynLibError"/>
       </Item3>
       <Item4>
-        <Name Value="EDynLibError"/>
+        <Name Value="BreakUsesTexture"/>
       </Item4>
       <Item5>
-        <Name Value="BreakTransformChangeSuccess"/>
-      </Item5>
-      <Item6>
-        <Name Value="BreakMainLightForShadows"/>
-      </Item6>
-      <Item7>
-        <Name Value="BreakUsesTexture"/>
-      </Item7>
-      <Item8>
         <Name Value="EInvalidGLVersionString"/>
-      </Item8>
+      </Item5>
     </Exceptions>
   </Debugging>
 </CONFIG>
