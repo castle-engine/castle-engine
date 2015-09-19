@@ -171,20 +171,20 @@ begin
 
   inherited;
 
-  { When there's only 1 keyframe, Spine does something weird: instead of smooth
-    interpolation, animation suddenly jumps from setup pose to given keyframe pose
-    at given key time (unless animation is looping and it's the last frame,
-    then it's visibly ignored). We just ignore (do not route) such weird animations for now. }
-  if Time.Count > 1 then
-  begin
-    Route := TX3DRoute.Create;
-    Route.SetSourceDirectly(EventValueChanged);
-    Route.SetDestinationDirectly(Slot.SwitchNode.FdWhichChoice.EventIn);
-    Container.Routes.Add(Route);
+  Route := TX3DRoute.Create;
+  Route.SetSourceDirectly(EventValueChanged);
+  Route.SetDestinationDirectly(Slot.SwitchNode.FdWhichChoice.EventIn);
+  Container.Routes.Add(Route);
 
-    if SlotsToReset.Attachment.Remove(Slot) = -1 then
-      OnWarning(wtMajor, 'Spine', 'Multiple slot timelines affect slot attachment: slot ' + Slot.Name);
-  end;
+  if SlotsToReset.Attachment.Remove(Slot) = -1 then
+    OnWarning(wtMajor, 'Spine', 'Multiple slot timelines affect slot attachment: slot ' + Slot.Name);
+
+  { When there's only 1 keyframe, Spine does something weird: instead of smooth
+    interpolation, animation suddenly jumps from setup pose to given keyframe
+    pose at given key time (unless animation is looping and it's the last frame,
+    then it's visibly ignored). }
+  if Time.Count = 1 then
+    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name]));
 end;
 
 { TSlotTimelineColor --------------------------------------------------------- }
@@ -284,28 +284,28 @@ begin
 
   inherited;
 
-  { When there's only 1 keyframe, Spine does something weird: instead of smooth
-    interpolation, animation suddenly jumps from setup pose to given keyframe pose
-    at given key time (unless animation is looping and it's the last frame,
-    then it's visibly ignored). We just ignore (do not route) such weird animations for now. }
-  if Time.Count > 1 then
+  for I := 0 to Slot.Materials.Count - 1 do
   begin
-    for I := 0 to Slot.Materials.Count - 1 do
-    begin
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(EventValueChanged1);
-      Route.SetDestinationDirectly(Slot.Materials[I].FdEmissiveColor);
-      Container.Routes.Add(Route);
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(EventValueChanged1);
+    Route.SetDestinationDirectly(Slot.Materials[I].FdEmissiveColor);
+    Container.Routes.Add(Route);
 
-      Route := TX3DRoute.Create;
-      Route.SetSourceDirectly(EventValueChanged2);
-      Route.SetDestinationDirectly(Slot.Materials[I].FdTransparency);
-      Container.Routes.Add(Route);
-    end;
-
-    if SlotsToReset.Color.Remove(Slot) = -1 then
-      OnWarning(wtMajor, 'Spine', 'Multiple slot timelines affect slot color: slot ' + Slot.Name);
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(EventValueChanged2);
+    Route.SetDestinationDirectly(Slot.Materials[I].FdTransparency);
+    Container.Routes.Add(Route);
   end;
+
+  if SlotsToReset.Color.Remove(Slot) = -1 then
+    OnWarning(wtMajor, 'Spine', 'Multiple slot timelines affect slot color: slot ' + Slot.Name);
+
+  { When there's only 1 keyframe, Spine does something weird: instead of smooth
+    interpolation, animation suddenly jumps from setup pose to given keyframe
+    pose at given key time (unless animation is looping and it's the last frame,
+    then it's visibly ignored). }
+  if Time.Count = 1 then
+    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name]));
 end;
 
 {$endif}
