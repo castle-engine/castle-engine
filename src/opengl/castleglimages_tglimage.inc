@@ -187,6 +187,9 @@ type
       const ImageRect: TRectangle);
     { @groupEnd }
 
+    procedure DrawFlipped(const ScreenRectangle: TRectangle;
+      const FlipHorizontal, FlipVertical: boolean);
+
     { Draw the image on the screen, divided into 3x3 parts for corners,
       sides, and inside.
 
@@ -564,6 +567,34 @@ begin
   Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
     ScreenRectangle.Width, ScreenRectangle.Height,
     ImageX, ImageY, ImageWidth, ImageHeight);
+end;
+
+procedure TGLImage.DrawFlipped(const ScreenRectangle: TRectangle;
+  const FlipHorizontal, FlipVertical: boolean);
+var
+  ImageX, ImageY, ImageWidth, ImageHeight: Single;
+begin
+  if FlipHorizontal then
+  begin
+    ImageX := Width;
+    ImageWidth := -Width;
+  end else
+  begin
+    ImageX := 0;
+    ImageWidth := Width;
+  end;
+
+  if FlipVertical then
+  begin
+    ImageY := Height;
+    ImageHeight := -Height;
+  end else
+  begin
+    ImageY := 0;
+    ImageHeight := Height;
+  end;
+
+  Draw(ScreenRectangle, ImageX, ImageY, ImageWidth, ImageHeight);
 end;
 
 procedure TGLImage.Draw(const ScreenRectangle: TRectangle;
