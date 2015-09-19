@@ -3023,24 +3023,29 @@ begin
       glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
     {$endif}
 
-    Application.CastleEngineInitialize;
+    try
+      Application.CastleEngineInitialize;
 
-    { call first EventOpen and EventResize. Zwroc uwage ze te DoResize i DoOpen
-      MUSZA byc wykonane na samym koncu procedury Open - jak juz wszystko inne
-      zostalo wykonane. Wszystko po to ze juz w pierwszym OnOpen lub OnResize
-      moze zostac wywolane Application.ProcessMessages np. w wyniku wywolania w OnOpen
-      CastleMessages.MessageOk. }
-    EventOpenCalled := true;
-    Container.EventOpen(Application.OpenWindowsCount);
+      { call first EventOpen and EventResize. Zwroc uwage ze te DoResize i DoOpen
+        MUSZA byc wykonane na samym koncu procedury Open - jak juz wszystko inne
+        zostalo wykonane. Wszystko po to ze juz w pierwszym OnOpen lub OnResize
+        moze zostac wywolane Application.ProcessMessages np. w wyniku wywolania w OnOpen
+        CastleMessages.MessageOk. }
+      EventOpenCalled := true;
+      Container.EventOpen(Application.OpenWindowsCount);
 
-    { Check Closed here, in case OnOpen closed the window
-      (by calling Application.Quit (that calls Close on all windows) or direct Close
-      on this window). Note that Close calls
-      CloseBackend and generally has *immediate* effect --- that's why
-      doing anything more with window now (like MakeCurrent) would be wrong. }
-    if Closed then Exit;
+      { Check Closed here, in case OnOpen closed the window
+        (by calling Application.Quit (that calls Close on all windows) or direct Close
+        on this window). Note that Close calls
+        CloseBackend and generally has *immediate* effect --- that's why
+        doing anything more with window now (like MakeCurrent) would be wrong. }
+      if Closed then Exit;
 
-    DoResize(FWidth, FHeight, true);
+      DoResize(FWidth, FHeight, true);
+    except
+      { capture exceptions from Application.OnInitialize, Window.OnOpen, Window.OnResize }
+      Application.HandleException(Self);
+    end;
 
     { Check Closed here, in case OnResize closed the window. }
     if Closed then Exit;
