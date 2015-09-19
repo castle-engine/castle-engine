@@ -2471,6 +2471,10 @@ end;
       finish the @link(Run) method (if working), and thus finish the
       application work. }
     procedure CloseAllOpenWindows;
+  protected
+    { Override TCustomApplication to pass TCustomApplication.Log
+      to CastleLog logger. }
+    procedure DoLog(EventType : TEventType; const Msg : String); override;
   public
     { If VideoResize, then next VideoChange call will
       try to resize the screen to given VideoResizeWidth /
@@ -4658,6 +4662,11 @@ begin
 
   if StopOnException then
     Terminate;
+end;
+
+procedure TCastleApplication.DoLog(EventType : TEventType; const Msg : String);
+begin
+  WritelnLog('CastleWindow', Msg);
 end;
 
 { global --------------------------------------------------------------------- }
