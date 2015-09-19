@@ -230,7 +230,7 @@ const
            Writeln(nl+
              nl+
              SCastleEngineProgramHelpSuffix('dircleaner', '1.0.0', true));
-           ProgramBreak;
+           Halt;
          end;
       1: FilesToClean.Add(Argument);
       2: DirsToClean.Add(Argument);

@@ -66,7 +66,7 @@ begin
            '  --debug-font-image    Write to disk font images as png.' +NL+
            NL+
            SCastleEngineProgramHelpSuffix('texturefont2pascal', '1.0.0', true));
-         ProgramBreak;
+         Halt;
        end;
     1: Size := StrToInt(Argument);
     2: AntiAliasing := false;

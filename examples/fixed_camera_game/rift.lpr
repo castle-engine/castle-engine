@@ -104,11 +104,11 @@ begin
            '  --debug-log           Print log on StdOut. Be sure to redirect' +nl+
            '                        if running on Windows.'
            );
-         ProgramBreak;
+         Halt;
        end;
     1: begin
          WritelnStr(Version);
-         ProgramBreak;
+         Halt;
        end;
     2: WasParam_NoScreenChange := true;
     3: begin

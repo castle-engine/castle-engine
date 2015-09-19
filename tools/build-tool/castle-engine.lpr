@@ -105,11 +105,11 @@ begin
           CPUOptionHelp +
           NL+
           SCastleEngineProgramHelpSuffix(ApplicationName, Version, true));
-          ProgramBreak;
+        Halt;
       end;
     1:begin
         Writeln(Version);
-        ProgramBreak;
+        Halt;
       end;
     2:OS := StringToOS(Argument);
     3:CPU := StringToCPU(Argument);

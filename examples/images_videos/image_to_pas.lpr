@@ -81,7 +81,7 @@ begin
           '                        images (the default). As a result,' +nl+
           '                        alpha channel will be stored in source files.'
          );
-        ProgramBreak;
+        Halt;
        end;
     1: ShowProgress := false;
     2: OutputDirectory := Argument + '/';

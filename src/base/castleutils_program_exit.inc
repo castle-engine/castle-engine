@@ -30,14 +30,7 @@ type
   with -dDEBUG), and BonusErrorMesssg. }
 function ExceptMessage(E: TObject; ExceptAddr: Pointer = nil): string; overload;
 
-type
-  { Exception to end the program. }
-  BreakProgram = class(TCodeBreaker)
-  end;
-
-{ Raise BreakProgram, causing the program to stop nicely
-  (finalizes all exceptions try..finally and such). }
-procedure ProgramBreak; overload;
+procedure ProgramBreak; deprecated 'Use Halt';
 
 {$endif read_interface}
 
@@ -87,7 +80,7 @@ end;
 
 procedure ProgramBreak;
 begin
-  raise BreakProgram.Create;
+  Halt;
 end;
 
 {$endif read_implementation}

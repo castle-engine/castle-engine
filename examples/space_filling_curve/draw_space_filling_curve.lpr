@@ -110,7 +110,7 @@ begin
       pressing Escape. In this case we want to break the curve generation
       and end the program. }
     if Window.Closed then
-      ProgramBreak;
+      Halt;
   end;
 end;
 

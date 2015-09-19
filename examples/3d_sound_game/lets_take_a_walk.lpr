@@ -274,11 +274,11 @@ begin
           TCastleWindowCustom.ParseParametersHelp(StandardParseOptions, true) +nl+
           nl+
           SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, true));
-        ProgramBreak;
+        Halt;
       end;
     1:begin
         Writeln(Version);
-        ProgramBreak;
+        Halt;
       end;
   end;
 end;

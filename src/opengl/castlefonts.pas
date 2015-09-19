@@ -874,7 +874,7 @@ begin
   Scale := 1;
   ARowHeight := TextHeight('Wy');
   ARowHeightBase := TextHeightBase('W');
-  ADescend := TextHeight('y') - TextHeight('a');
+  ADescend := Max(0, TextHeight('y') - TextHeight('a'));
   Scale := OldScale;
 end;
 
