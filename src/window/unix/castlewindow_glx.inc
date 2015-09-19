@@ -195,7 +195,7 @@ var
 begin
   if not GLX_version_1_0(XDisplay) then
     raise Exception.Create('glX extension (version at least 1.0) not found (necessary for OpenGL-based programs)') else
-  if Log then
+  if CastleLog.Log then
   begin
     GlxExtensions := glXQueryExtensionsString(XDisplay, FXScreen);
     WritelnLogMultiline('GLX', 'GLX extension at least 1.0 found.' +NL+

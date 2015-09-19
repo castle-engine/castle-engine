@@ -145,7 +145,7 @@ var CommandNum: Integer;
     ResultStr: string;
     ResultBool: boolean;
 begin
- BonusErrorMessg := 'Run with parameter "help" for, well, help about using program.';
+ //BonusErrorMessg := 'Run with parameter "help" for, well, help about using program.';
 
  Parameters.CheckHighAtLeast(1);
  if AnsiLowerCase(Parameters[1]) = 'help' then

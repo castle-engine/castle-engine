@@ -235,15 +235,9 @@ begin
   NewURL := URL;
   if Window.FileDialog('Open 3D file', NewURL, true, Load3D_FileFilters) then
   begin
-    try
-      Scene.Load(NewURL);
-    except
-      on E: Exception do
-      begin
-        Window.MessageOk('Cannot open file "' + NewURL + '": ' + E.Message, mtError);
-        Exit;
-      end;
-    end;
+    Scene.Load(NewURL);
+    // In case of trouble when loading, this will raise an exception.
+    // Let the default Application exception handler show it.
     URL := NewURL;
     CameraReinitialize;
   end;
@@ -251,7 +245,7 @@ end;
 
 procedure TDummy.QuitButtonClick(Sender: TObject);
 begin
-  Application.Quit;
+  Application.Terminate;
 end;
 
 var

@@ -145,8 +145,6 @@ private
   { used in ProcessUpdates }
   LastDoTimerTime: TMilisecTime;
 
-  QuitPosted: boolean;
-
   { Find in OpenWindows window with WindowGtk = given seekWindowGtk.
     Return nil if no such window is found. }
   function TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowCustom;
@@ -201,6 +199,8 @@ public
     Note that this is exposed by GTK even for non-XWindows platforms,
     but I don't know what it does there. }
   property XDisplayName: string read FXDisplayName write FXDisplayName;
+protected
+  procedure DoRun; override;
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -1592,11 +1592,15 @@ begin
    'No open window with such GLAreaGtk found');
 end;
 
+procedure TCastleApplication.DoRun;
+begin
+  ProcessMessage(true, true);
+end;
+
 procedure TCastleApplication.Run;
 begin
   if OpenWindowsCount = 0 then Exit;
-
-  while ProcessMessage(true, true) do ;
+  inherited Run; // calls DoRun, surrounded by HandleException, in a loop
 
   { Do not replace this with gtk_main().
     We need to use our ProcessMessage to call our ProcessUpdates. }
@@ -1612,7 +1616,7 @@ begin
 
     Summing it up, just call ProcessMessage(true) while gtk_events_pending. }
 
-  Result := not QuitPosted;
+  Result := not Terminated;
 
   while Result and (gtk_events_pending() <> 0) do
   begin
@@ -1630,7 +1634,7 @@ begin
       since we call ProcessMessage only when gtk_events_pending() <> 0,
       which then avoids ProcessUpdates.) }
     ProcessUpdates;
-    Result := not QuitPosted;
+    Result := not Terminated;
   end;
 end;
 
@@ -1660,11 +1664,11 @@ begin
      So a program that doesn't call gtk_main at all has
      main_loops = nil always.
 
-     This means that I should trace the QuitPosted value myself,
+     This means that I should trace the Terminated value myself,
      just like I do for X11 or WinAPI CastleWindow implementations.
      And the result of gtk_main_iteration_do call should be ignored. *)
 
-  if QuitPosted then Exit(false);
+  if Terminated then Exit(false);
 
   { Only allow yourself a ProcessUpdates call when no events are pending.
     This is done regardless of WaitForMessage mechanism.
@@ -1676,11 +1680,11 @@ begin
   if gtk_events_pending() = 0 then
   begin
     ProcessUpdates;
-    if QuitPosted then Exit(false);
+    if Terminated then Exit(false);
   end;
 
-  { Once we had below condition "and (not QuitPosted)",
-    but it's pointless, we know QuitPosted is false now. }
+  { Once we had below condition "and (not Terminated)",
+    but it's pointless, we know Terminated is false now. }
   WaitForMessage := WaitForMessage and Application.AllowSuspendForInput;
 
   { we could probably not call gtk_main_iteration_do when WasAnyMessage = false,
@@ -1689,10 +1693,10 @@ begin
   WasAnyMessage := (gtk_events_pending() <> 0) or WaitForMessage;
 
   gtk_main_iteration_do(WaitForMessage);
-  Result := not QuitPosted;
+  Result := not Terminated;
 
   if (not WasAnyMessage) and
-     (not QuitPosted) and
+     (not Terminated) and
      (not WaitForMessage) and
      WaitToLimitFPS then
     DoLimitFPS;
@@ -1702,7 +1706,7 @@ procedure TCastleApplication.QuitWhenNoOpenWindows;
 begin
  if gtk_main_level() > 0 then gtk_main_quit();
 
- { QuitPosted is needed, gtk_main_quit is not enough --- see
+ { Tracking "Terminated" is needed, gtk_main_quit is not enough --- see
    comments in ProcessMessage implementation.
 
    Actually, we call gtk_main_quit
@@ -1711,7 +1715,7 @@ begin
    which is entirely possible), then calling gtk_main_quit
    would not be needed at all. }
 
- QuitPosted := true;
+ Terminate; // set Terminated := true
 end;
 
 procedure TCastleApplication.CreateBackend;
@@ -1747,7 +1751,7 @@ begin
 
   gtk_gl_init(@argc, @argv);
 
-  QuitPosted := false;
+  inherited Initialize; // set Terminated := false
 end;
 
 procedure TCastleApplication.DestroyBackend;

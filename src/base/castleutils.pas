@@ -143,7 +143,6 @@ uses CastleStringUtils, CastleFilesUtils;
 {$undef read_implementation}
 
 initialization
- InitializationProgramExit;
  InitializationOSSpecific;
 
  Randomize; { required by e.g. GetTempFname }
@@ -164,5 +163,4 @@ initialization
  {$endif}
 finalization
  FinalizationOSSpecific;
- FinalizationProgramExit;
 end.
