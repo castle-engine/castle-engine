@@ -313,7 +313,7 @@ type
   public
     function IndexOfTextureNode(TextureNode: TX3DNode): Integer;
     function FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
-    procedure AddShapeTexture(Shape: TShape; Tex: TAbstractTextureNode);
+    function AddShapeTexture(Shape: TShape; Tex: TAbstractTextureNode): Pointer;
     procedure UpdateShadowMaps(LightNode: TAbstractLightNode);
   end;
 
@@ -2232,11 +2232,13 @@ begin
     Result := nil;
 end;
 
-procedure TGeneratedTextureList.AddShapeTexture(Shape: TShape;
-  Tex: TAbstractTextureNode);
+function TGeneratedTextureList.AddShapeTexture(Shape: TShape;
+  Tex: TAbstractTextureNode): Pointer;
 var
   GenTex: PGeneratedTexture;
 begin
+  Result := nil;
+
   if (Tex is TGeneratedCubeMapTextureNode) or
      (Tex is TGeneratedShadowMapNode) or
      (Tex is TRenderedTextureNode) then
