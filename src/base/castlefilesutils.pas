@@ -656,9 +656,9 @@ begin
   end;
 end;
 
-procedure RemoveNonEmptyDir_Internal(const FileInfo: TFileInfo; Data: Pointer);
+procedure RemoveNonEmptyDir_Internal(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
 begin
-  if SpecialDirName(FileInfo.Name) then exit;
+  if SpecialDirName(FileInfo.Name) then Exit;
 
   if FileInfo.Directory then
     CheckRemoveDir(FileInfo.AbsoluteName) else
@@ -883,7 +883,7 @@ begin
     IntToStr(System.Random(MaxInt)) + '_';
 
   { Check is it really Ok. }
-  if FindFirstFile(Result + '*', FileInfo) then
+  if FindFirstFile(Result, '*', true, [], FileInfo) then
     raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
       [Result, FileInfo.AbsoluteName]);
 end;

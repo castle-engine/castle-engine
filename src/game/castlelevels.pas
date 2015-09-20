@@ -251,7 +251,7 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     { How many TGameSceneManager have references to our children by
       TGameSceneManager.Info? }
     References: Cardinal;
-    procedure AddFromInfo(const Info: TFileInfo);
+    procedure AddFromInfo(const Info: TFileInfo; var StopSearch: boolean);
     { Save Played properties of every level. }
     procedure SaveToConfig(const Config: TCastleConfig);
   public
@@ -1297,7 +1297,7 @@ begin
       Items[I].DefaultPlayed);
 end;
 
-procedure TLevelInfoList.AddFromInfo(const Info: TFileInfo);
+procedure TLevelInfoList.AddFromInfo(const Info: TFileInfo; var StopSearch: boolean);
 begin
   AddFromFile(Info.URL);
 end;

@@ -76,7 +76,7 @@ var
   FilesSize: Cardinal = 0;
 
 procedure CleanFiles_FileProc(const FileInfo: TFileInfo;
-  Data: Pointer);
+  Data: Pointer; var StopSearch: boolean);
 begin
   Inc(FilesCount);
   FilesSize += FileInfo.Size;
@@ -109,7 +109,7 @@ end;
 
 var DirsCount: Cardinal = 0;
 
-procedure CleanDirs_FileProc(const FileInfo: TFileInfo; Data: Pointer);
+procedure CleanDirs_FileProc(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
 begin
   if not FileInfo.Directory then Exit;
 

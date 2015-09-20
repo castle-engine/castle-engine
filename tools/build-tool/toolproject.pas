@@ -44,14 +44,9 @@ type
     FVersionCode: Cardinal;
     FScreenOrientation: TScreenOrientation;
     function PluginCompiledFile(const OS: TOS; const CPU: TCPU): string;
-    procedure GatherFile(const FileInfo: TFileInfo);
+    procedure GatherFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
-    procedure FoundTtf(const FileInfo: TFileInfo);
-    procedure FoundGz(const FileInfo: TFileInfo);
-    procedure FoundPng(const FileInfo: TFileInfo);
-    procedure FoundWav(const FileInfo: TFileInfo);
-    procedure FoundOgg(const FileInfo: TFileInfo);
-    procedure DeleteFoundFile(const FileInfo: TFileInfo);
+    procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     function PackageName(const OS: TOS; const CPU: TCPU): string;
     function SourcePackageName: string;
     { Add platform-independent files that should be included in package,
@@ -300,16 +295,23 @@ constructor TCastleProject.Create(const APath: string);
   end;
 
   procedure GuessDependencies;
+  var
+    FileInfo: TFileInfo;
   begin
     if DirectoryExists(DataPath) then
     begin
       if Verbose then
         Writeln('Found data in "' + DataPath + '"');
-      FindFiles(DataPath, '*.ttf', false, @FoundTtf, [ffRecursive]);
-      FindFiles(DataPath, '*.gz' , false, @FoundGz , [ffRecursive]);
-      FindFiles(DataPath, '*.png', false, @FoundPng, [ffRecursive]);
-      FindFiles(DataPath, '*.wav', false, @FoundWav, [ffRecursive]);
-      FindFiles(DataPath, '*.ogg', false, @FoundOgg, [ffRecursive]);
+      if FindFirstFile(DataPath, '*.ttf', false, [ffRecursive], FileInfo) then
+        AddDependency(depFreetype, FileInfo);
+      if FindFirstFile(DataPath, '*.gz' , false, [ffRecursive], FileInfo) then
+        AddDependency(depZlib, FileInfo);
+      if FindFirstFile(DataPath, '*.png', false, [ffRecursive], FileInfo) then
+        AddDependency(depPng, FileInfo);
+      if FindFirstFile(DataPath, '*.wav', false, [ffRecursive], FileInfo) then
+        AddDependency(depSound, FileInfo);
+      if FindFirstFile(DataPath, '*.ogg', false, [ffRecursive], FileInfo) then
+        AddDependency(depOggVorbis, FileInfo);
     end else
       Writeln('Data directory not found (tried "' + DataPath + '")');
   end;
@@ -370,32 +372,7 @@ begin
   end;
 end;
 
-procedure TCastleProject.FoundTtf(const FileInfo: TFileInfo);
-begin
-  AddDependency(depFreetype, FileInfo);
-end;
-
-procedure TCastleProject.FoundGz(const FileInfo: TFileInfo);
-begin
-  AddDependency(depZlib, FileInfo);
-end;
-
-procedure TCastleProject.FoundPng(const FileInfo: TFileInfo);
-begin
-  AddDependency(depPng, FileInfo);
-end;
-
-procedure TCastleProject.FoundWav(const FileInfo: TFileInfo);
-begin
-  AddDependency(depSound, FileInfo);
-end;
-
-procedure TCastleProject.FoundOgg(const FileInfo: TFileInfo);
-begin
-  AddDependency(depOggVorbis, FileInfo);
-end;
-
-procedure TCastleProject.GatherFile(const FileInfo: TFileInfo);
+procedure TCastleProject.GatherFile(const FileInfo: TFileInfo; var StopSearch: boolean);
 var
   RelativeVs: string;
 begin
@@ -801,7 +778,7 @@ begin
   Result += '.tar.gz';
 end;
 
-procedure TCastleProject.DeleteFoundFile(const FileInfo: TFileInfo);
+procedure TCastleProject.DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
 begin
   if Verbose then
     Writeln('Deleting ' + FileInfo.AbsoluteName);

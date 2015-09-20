@@ -34,7 +34,7 @@ type
 
     { FileName empty means to load empty scene. }
     procedure TestScene(const FileName: string);
-    procedure TestSceneFromEnum(const FileInfo: TFileInfo);
+    procedure TestSceneFromEnum(const FileInfo: TFileInfo; var StopSearch: boolean);
     { If RecreateSceneEachTime, Scene will be destroyed and then created
       again before each load.
 
@@ -93,7 +93,7 @@ begin
   CheckGLErrors;
 end;
 
-procedure TTestOpeningAndRendering3D.TestSceneFromEnum(const FileInfo: TFileInfo);
+procedure TTestOpeningAndRendering3D.TestSceneFromEnum(const FileInfo: TFileInfo; var StopSearch: boolean);
 var
   ParentDirName: string;
 begin
