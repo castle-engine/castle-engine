@@ -70,8 +70,6 @@ begin
     Vector3Single(0, 0, -1)));
 end;
 
-
-
 procedure TTestCastleTriangulate.Face(const Tri: TVector3Longint);
 var
   V0, V1, V2, EarNormal: TVector3Single;

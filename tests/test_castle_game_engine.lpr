@@ -17,6 +17,7 @@ uses
   CastleWarnings,
 
   { Test units (their order determines default tests order) }
+  TestSysUtils,
   TestCastleUtils,
   TestRectangles,
   TestGenericLists,

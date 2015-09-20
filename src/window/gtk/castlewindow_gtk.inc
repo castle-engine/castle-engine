@@ -1316,7 +1316,6 @@ var
   OkButtonText: PChar;
   Dialog: PGtkFileChooserDialog;
   CFileName: PChar;
-  FoundFile: TFileInfo;
   ExpandedFileName, Dir: string;
 begin
   if OpenDialog then
@@ -1375,9 +1374,9 @@ begin
     ExpandedFileName := ExpandFileName(FileName);
 
     { Test in one go whether file exists, and is a regular file or dir. }
-    if FindFirstFile(ExpandedFileName, FoundFile) then
+    if FileExists(ExpandedFileName) then
     begin
-      if FoundFile.Directory then
+      if DirectoryExists(ExpandedFileName) then
         gtk_file_chooser_set_current_folder(Dialog, PChar(ExpandedFileName)) else
       begin
         if HasDefaultFilter and not GtkVersionAtLeast(2, 24, 4) then
