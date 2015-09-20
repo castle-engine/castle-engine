@@ -495,6 +495,7 @@ type
   procedure TFindFirstFileHelper.Callback(const FileInfo: TFileInfo; var StopSearch: boolean);
   begin
     FoundFile := FileInfo;
+    IsFound := true;
     StopSearch := true;
   end;
 
