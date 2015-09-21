@@ -511,6 +511,44 @@ begin
 end;
 {$endif}
 
+procedure ClampVar(var a: Int64;    const vBegin, vEnd: Int64);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure ClampVar(var a: integer;  const vBegin, vEnd: integer);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure ClampVar(var a: cardinal; const vBegin, vEnd: cardinal);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure ClampVar(var a: Single;   const vBegin, vEnd: Single);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure ClampVar(var a: Double;   const vBegin, vEnd: Double);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+{$ifndef EXTENDED_EQUALS_DOUBLE}
+procedure ClampVar(var a: Extended; const vBegin, vEnd: Extended);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+{$endif}
+
 procedure Clamp(var a: Int64;    const vBegin, vEnd: Int64);
 begin
   if a < vBegin then a := vBegin else
