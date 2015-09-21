@@ -224,7 +224,7 @@ var
 
     { When Result[1] is zero (straight cylinder), it's already normalized }
     if Result[1] <> 0 then
-      NormalizeTo1st(Result);
+      NormalizeVar(Result);
   end;
 
 var

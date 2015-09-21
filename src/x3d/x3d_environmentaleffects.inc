@@ -601,7 +601,7 @@ begin
 
       { When Distance < 0 our intention is to have no fog.
         So Distance < 0 should be equivalent to Distance = 0. }
-      MaxTo1st(Distance, 0);
+      MaxVar(Distance, 0);
 
       if Distance >= FogVisibilityRangeScaled - SingleEqualityEpsilon then
         Color := FdColor.Value else

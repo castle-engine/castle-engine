@@ -1728,7 +1728,7 @@ begin
         '#define HAS_TEXTURE_COORD_SHIFT', false);
 
     ProcedureName := 'plugged_' + IntToStr(PlugIdentifiers);
-    StringReplaceAllTo1st(PlugValue, 'PLUG_' + PlugName, ProcedureName, false);
+    StringReplaceAllVar(PlugValue, 'PLUG_' + PlugName, ProcedureName, false);
     Inc(PlugIdentifiers);
 
     PlugForwardDeclaration := 'void ' + ProcedureName + PlugDeclaredParameters + ';' + NL;

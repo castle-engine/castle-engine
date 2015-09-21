@@ -1733,7 +1733,7 @@ var
   begin
     CalculateDirectionToEnemy(
       DirectionFromEnemy, AngleRadBetweenDirectionFromEnemy);
-    VectorNegateTo1st(DirectionFromEnemy);
+    VectorNegateVar(DirectionFromEnemy);
     AngleRadBetweenDirectionFromEnemy :=
       Pi - AngleRadBetweenDirectionFromEnemy;
   end;
@@ -1755,7 +1755,7 @@ var
 
       { calculate AngleRadChange }
       AngleRadChange := AngleRadChangeSpeed * SecondsPassed;
-      MinTo1st(AngleRadChange, AngleRadBetweenDirectionToTarget);
+      MinVar(AngleRadChange, AngleRadBetweenDirectionToTarget);
 
       NewDirection := RotatePointAroundAxisRad(AngleRadChange, Direction,
         VectorProduct(Direction, DirectionToTarget));

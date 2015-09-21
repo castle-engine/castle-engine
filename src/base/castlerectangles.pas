@@ -309,7 +309,7 @@ end;
 function TRectangle.RemoveLeft(W: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(W, Width);
+  MinVar(W, Width);
   Result.Left += W;
   Result.Width -= W;
 end;
@@ -317,7 +317,7 @@ end;
 function TRectangle.RemoveBottom(H: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(H, Height);
+  MinVar(H, Height);
   Result.Bottom += H;
   Result.Height -= H;
 end;
@@ -325,14 +325,14 @@ end;
 function TRectangle.RemoveRight(W: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(W, Width);
+  MinVar(W, Width);
   Result.Width -= W;
 end;
 
 function TRectangle.RemoveTop(H: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(H, Height);
+  MinVar(H, Height);
   Result.Height -= H;
 end;
 
@@ -365,21 +365,21 @@ end;
 function TRectangle.LeftPart(W: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(W, Width);
+  MinVar(W, Width);
   Result.Width := W;
 end;
 
 function TRectangle.BottomPart(H: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(H, Height);
+  MinVar(H, Height);
   Result.Height := H;
 end;
 
 function TRectangle.RightPart(W: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(W, Width);
+  MinVar(W, Width);
   Result.Left += Width - W;
   Result.Width := W;
 end;
@@ -387,7 +387,7 @@ end;
 function TRectangle.TopPart(H: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(H, Height);
+  MinVar(H, Height);
   Result.Bottom += Height - H;
   Result.Height := H;
 end;

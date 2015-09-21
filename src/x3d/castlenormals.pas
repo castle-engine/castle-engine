@@ -218,8 +218,8 @@ var
       Normal := Faces.L[ThisVertexFaces[I]].Normal;
       for J := 0 to ThisVertexFaces.Count - 1 do
         if (I <> J) and FaceCanBeSmoothedWith(I, J) then
-          VectorAddTo1st(Normal, Faces.L[ThisVertexFaces[J]].Normal);
-      NormalizeTo1st(Normal);
+          VectorAddVar(Normal, Faces.L[ThisVertexFaces[J]].Normal);
+      NormalizeVar(Normal);
       SetNormal(VertexNum, Faces.L[ThisVertexFaces[I]], Normal);
     end;
   end;
@@ -337,7 +337,7 @@ begin
       to a non-existing vertex index. VRML/X3D code will warn about it
       elsewhere, here just make sure we don't crash. }
     if Index < Normals.Count then
-      VectorAddTo1st(Normals.L[Index], FaceNormal);
+      VectorAddVar(Normals.L[Index], FaceNormal);
   end;
 end;
 

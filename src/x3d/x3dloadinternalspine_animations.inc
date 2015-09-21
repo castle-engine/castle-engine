@@ -212,10 +212,10 @@ begin
 
   MaxTime := 0;
   for I := 0 to BoneTimelines.Count - 1 do
-    MaxTo1st(MaxTime, BoneTimelines[I].MaxTime);
+    MaxVar(MaxTime, BoneTimelines[I].MaxTime);
   for I := 0 to SlotTimelines.Count - 1 do
-    MaxTo1st(MaxTime, SlotTimelines[I].MaxTime);
-  MaxTo1st(MaxTime, DrawOrderTimelines.MaxTime);
+    MaxVar(MaxTime, SlotTimelines[I].MaxTime);
+  MaxVar(MaxTime, DrawOrderTimelines.MaxTime);
   Node.FdCycleInterval.Value := MaxTime;
 
   NodeUsedAsChild := true;

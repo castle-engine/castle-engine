@@ -1931,15 +1931,15 @@ var
   OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
   Pos, Dir, Up: TVector3Single;
 begin
-  NormalizeTo1st(AInitialDirection);
-  NormalizeTo1st(AInitialUp);
+  NormalizeVar(AInitialDirection);
+  NormalizeVar(AInitialUp);
   MakeVectorsOrthoOnTheirPlane(AInitialUp, AInitialDirection);
 
   if TransformCurrentCamera then
   begin
     GetView(Pos, Dir, Up);
 
-    VectorAddTo1st(Pos, VectorSubtract(AInitialPosition, FInitialPosition));
+    VectorAddVar(Pos, VectorSubtract(AInitialPosition, FInitialPosition));
 
     if not (VectorsPerfectlyEqual(FInitialDirection, AInitialDirection) and
             VectorsPerfectlyEqual(FInitialUp       , AInitialUp ) ) then
@@ -2650,8 +2650,8 @@ begin
     are not normalized. Fix them now, GetView guarantees normalized vectors. }
   if ScaleFactor <> 1 then
   begin
-    NormalizeTo1st(FDirection);
-    NormalizeTo1st(FUp);
+    NormalizeVar(FDirection);
+    NormalizeVar(FUp);
   end;
 
   inherited;
@@ -3370,7 +3370,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
         FallingVectorLength is no longer than
         (AboveHeight - RealPreferredHeight).
         Initially I wanted to do here
-          MinTo1st(FallingVectorLength, AboveHeight);
+          MinVar(FallingVectorLength, AboveHeight);
         i.e. to allow camera to fall below RealPreferredHeight.
 
         But this didn't work like it should. Why ?
@@ -3392,7 +3392,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
         below RealPreferredHeight. And that's what I'm doing. }
       FallingVectorLength :=
         MoveSpeed * MoveVerticalSpeed * FFallSpeed * SecondsPassed;
-      MinTo1st(FallingVectorLength, AboveHeight - RealPreferredHeight);
+      MinVar(FallingVectorLength, AboveHeight - RealPreferredHeight);
 
       if Move(VectorScale(GravityUp, - FallingVectorLength), true, false) and
         (not VectorsPerfectlyEqual(Position, PositionBefore)) then
@@ -3574,7 +3574,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
       end;
 
       AngleRotate := SecondsPassed * 5;
-      MinTo1st(AngleRotate, Abs(Angle - HalfPi));
+      MinVar(AngleRotate, Abs(Angle - HalfPi));
       if not FFallingOnTheGroundAngleIncrease then
         AngleRotate := -AngleRotate;
 
@@ -3742,7 +3742,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
         if FloatsEqual(AngleRadBetweenTargetAndGravity, HalfPi) then
           TargetUp := GravityUp else
         if AngleRadBetweenTargetAndGravity > HalfPi then
-          VectorNegateTo1st(TargetUp);
+          VectorNegateVar(TargetUp);
 
         AngleRadBetweenTarget := AngleRadBetweenVectors(TargetUp, FUp);
         AngleRadBetweenTargetChange := 0.5 * SecondsPassed;
@@ -4826,8 +4826,8 @@ var
   Rot1Quat, Rot2Quat: TQuaternion;
   Rot1CosAngle, Rot2CosAngle: Single;
 begin
-  NormalizeTo1st(CamDir);
-  NormalizeTo1st(CamUp);
+  NormalizeVar(CamDir);
+  NormalizeVar(CamUp);
 
   { calculate Rot1Quat }
   Rot1Axis := VectorProduct(DefaultCameraDirection, CamDir);
@@ -4841,7 +4841,7 @@ begin
     { Normalize *after* checking ZeroVector, otherwise normalization
       could change some almost-zero vector into a (practically random)
       vector of length 1. }
-    NormalizeTo1st(Rot1Axis);
+    NormalizeVar(Rot1Axis);
   Rot1CosAngle := VectorDotProduct(DefaultCameraDirection, CamDir);
   Rot1Quat := QuatFromAxisAngleCos(Rot1Axis, Rot1CosAngle);
 
@@ -4852,7 +4852,7 @@ begin
     Calculating Rot2Axis below is a solution. }
   Rot2Axis := VectorProduct(StdCamUpAfterRot1, CamUp);
 
-  (*We could now do NormalizeTo1st(Rot2Axis),
+  (*We could now do NormalizeVar(Rot2Axis),
     after making sure it's not zero. Like
 
     { we need larger epsilon for ZeroVector below, in case
@@ -4863,7 +4863,7 @@ begin
       { Normalize *after* checking ZeroVector, otherwise normalization
         could change some almost-zero vector into a (practically random)
         vector of length 1. }
-      NormalizeTo1st(Rot2Axis);
+      NormalizeVar(Rot2Axis);
 
     And later do
 
@@ -4914,10 +4914,10 @@ var
   Offset: Single;
 begin
   Direction := UnitVector3Single[WantedDirection];
-  if not WantedDirectionPositive then VectorNegateTo1st(Direction);
+  if not WantedDirectionPositive then VectorNegateVar(Direction);
 
   Up := UnitVector3Single[WantedUp];
-  if not WantedUpPositive then VectorNegateTo1st(Up);
+  if not WantedUpPositive then VectorNegateVar(Up);
 
   if Box.IsEmpty then
   begin

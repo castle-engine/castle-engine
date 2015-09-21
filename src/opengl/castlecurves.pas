@@ -888,7 +888,7 @@ var
   k, KMin, KMax, KMiddle: Cardinal;
   hk: Float;
 begin
-  Clamp(x, MinX, MaxX);
+  ClampVar(x, MinX, MaxX);
 
   { calculate k: W ktorym przedziale x[k-1]..x[k] jest argument ?
     TODO: nalezoloby pomyslec o wykorzystaniu faktu
@@ -1166,7 +1166,7 @@ var
   function MiddlePoint(i, Sign: Integer): TVector3Single;
   begin
     Result := ControlPoints.L[i];
-    VectorAddTo1st(Result,
+    VectorAddVar(Result,
       VectorScale(S.L[i], Sign * (ControlPointT(i) - ControlPointT(i-1)) / 3));
   end;
 
@@ -1217,7 +1217,7 @@ begin
       for i := 0 to C.Count-1 do
       begin
         C.L[i] := VectorSubtract(ControlPoints.L[i+1], ControlPoints.L[i]);
-        VectorScaleTo1st(C.L[i],
+        VectorScaleVar(C.L[i],
           1/(ControlPointT(i+1) - ControlPointT(i)));
       end;
 

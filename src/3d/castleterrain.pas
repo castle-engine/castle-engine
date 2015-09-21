@@ -396,8 +396,8 @@ begin
       if PY < 0 then PY += FImage.Height;
     end else
     begin
-      Clamp(PX, 0, FImage.Width  - 1);
-      Clamp(PY, 0, FImage.Height - 1);
+      ClampVar(PX, 0, FImage.Width  - 1);
+      ClampVar(PY, 0, FImage.Height - 1);
     end;
 
     Result := (FImage.PixelPtr(PX, PY)^ / High(Byte)) * ImageHeightScale;
@@ -519,7 +519,7 @@ var
       We know our NoiseMethod is always positive, and we require
       Amplitude, Heterogeneous and such to also be always positive.
       So we already know NoiseAccumulator is always >= 0. }
-    MinTo1st(NoiseAccumulator, 1);
+    MinVar(NoiseAccumulator, 1);
 
     NoiseAccumulator *= NoiseMethod(X * F, Y * F, OctaveNumber + Seed);
 

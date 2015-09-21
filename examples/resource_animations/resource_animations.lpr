@@ -209,7 +209,7 @@ var
 begin
   MaxWidth := 0;
   for I := 0 to ResButtons.Count - 1 do
-    MaxTo1st(MaxWidth, ResButtons[I].Width);
+    MaxVar(MaxWidth, ResButtons[I].Width);
 
   Bottom := Window.Height;
   for I := 0 to ResButtons.Count - 1 do
@@ -227,7 +227,7 @@ begin
 
   MaxWidth := 0;
   for I := 0 to AnimButtons.Count - 1 do
-    MaxTo1st(MaxWidth, AnimButtons[I].Width);
+    MaxVar(MaxWidth, AnimButtons[I].Width);
 
   Bottom := Window.Height;
   for I := 0 to AnimButtons.Count - 1 do

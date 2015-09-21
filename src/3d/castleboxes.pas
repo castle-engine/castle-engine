@@ -189,8 +189,8 @@ type
     function ToNiceStr: string;
     function ToRawStr: string;
 
-    procedure Clamp(var point: TVector3Single); overload;
-    procedure Clamp(var point: TVector3Double); overload;
+    procedure ClampVar(var point: TVector3Single); overload;
+    procedure ClampVar(var point: TVector3Double); overload;
 
     { TryBoxRayClosestIntersection calculates intersection between the
       ray (returns closest intersection to RayOrigin) and the box.
@@ -723,12 +723,12 @@ begin
   if IsEmpty then
     Data := Box2.Data else
   begin
-    MinTo1st(Data[0, 0], box2.Data[0, 0]);
-    MaxTo1st(Data[1, 0], box2.Data[1, 0]);
-    MinTo1st(Data[0, 1], box2.Data[0, 1]);
-    MaxTo1st(Data[1, 1], box2.Data[1, 1]);
-    MinTo1st(Data[0, 2], box2.Data[0, 2]);
-    MaxTo1st(Data[1, 2], box2.Data[1, 2]);
+    MinVar(Data[0, 0], box2.Data[0, 0]);
+    MaxVar(Data[1, 0], box2.Data[1, 0]);
+    MinVar(Data[0, 1], box2.Data[0, 1]);
+    MaxVar(Data[1, 1], box2.Data[1, 1]);
+    MinVar(Data[0, 2], box2.Data[0, 2]);
+    MaxVar(Data[1, 2], box2.Data[1, 2]);
   end;
 end;
 
@@ -740,12 +740,12 @@ begin
     Data[1] := Point;
   end else
   begin
-    MinTo1st(Data[0, 0], Point[0]);
-    MaxTo1st(Data[1, 0], Point[0]);
-    MinTo1st(Data[0, 1], Point[1]);
-    MaxTo1st(Data[1, 1], Point[1]);
-    MinTo1st(Data[0, 2], Point[2]);
-    MaxTo1st(Data[1, 2], Point[2]);
+    MinVar(Data[0, 0], Point[0]);
+    MaxVar(Data[1, 0], Point[0]);
+    MinVar(Data[0, 1], Point[1]);
+    MaxVar(Data[1, 1], Point[1]);
+    MinVar(Data[0, 2], Point[2]);
+    MaxVar(Data[1, 2], Point[2]);
   end;
 end;
 
@@ -919,8 +919,8 @@ end;
    end;
   end;}
 
-procedure TBox3D.Clamp(var point: TVector3Single); CLAMP_IMPLEMENTATION
-procedure TBox3D.Clamp(var point: TVector3Double); CLAMP_IMPLEMENTATION
+procedure TBox3D.ClampVar(var point: TVector3Single); CLAMP_IMPLEMENTATION
+procedure TBox3D.ClampVar(var point: TVector3Double); CLAMP_IMPLEMENTATION
 
 function TBox3D.TryRayClosestIntersection(
   out Intersection: TVector3Single;
@@ -1737,13 +1737,13 @@ begin
     for I := 1 to VertsCount - 1 do
     begin
       V := GetVertex(I);
-      MinTo1st(Result.Data[0][0], V[0]);
-      MinTo1st(Result.Data[0][1], V[1]);
-      MinTo1st(Result.Data[0][2], V[2]);
+      MinVar(Result.Data[0][0], V[0]);
+      MinVar(Result.Data[0][1], V[1]);
+      MinVar(Result.Data[0][2], V[2]);
 
-      MaxTo1st(Result.Data[1][0], V[0]);
-      MaxTo1st(Result.Data[1][1], V[1]);
-      MaxTo1st(Result.Data[1][2], V[2]);
+      MaxVar(Result.Data[1][0], V[0]);
+      MaxVar(Result.Data[1][1], V[1]);
+      MaxVar(Result.Data[1][2], V[2]);
     end;
   end;
 end;

@@ -979,7 +979,7 @@ begin
 
   if Items.Count <> 0 then
   begin
-    Clamp(Result, 0, Items.Count - 1);
+    ClampVar(Result, 0, Items.Count - 1);
   end else
     Result := -1;
 end;
@@ -1061,14 +1061,14 @@ begin
   MaxAccessoryWidth := 0;
   for I := 0 to Items.Count - 1 do
   begin
-    MaxTo1st(MaxItemWidth, UIFont.TextWidth(Items[I]));
+    MaxVar(MaxItemWidth, UIFont.TextWidth(Items[I]));
 
     if Items.Objects[I] <> nil then
       FAccessoryRectangles.L[I].Width :=
         TMenuAccessory(Items.Objects[I]).GetWidth else
       FAccessoryRectangles.L[I].Width := 0;
 
-    MaxTo1st(MaxAccessoryWidth, FAccessoryRectangles.L[I].Width);
+    MaxVar(MaxAccessoryWidth, FAccessoryRectangles.L[I].Width);
   end;
 
   { calculate FAllItemsRectangle Width and Height }

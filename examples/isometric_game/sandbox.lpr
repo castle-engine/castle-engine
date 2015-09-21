@@ -89,10 +89,10 @@ begin
   Y1 -= Ceil(2 * RealViewMoveY / BaseHeight);
   Y2 -= Floor(2 * RealViewMoveY / BaseHeight);
   { Eventually correct to be inside 0..Map.Width/Height - 1 range }
-  Clamp(X1, 0, Map.Width - 1);
-  Clamp(X2, 0, Map.Width - 1);
-  Clamp(Y1, 0, Map.Height - 1);
-  Clamp(Y2, 0, Map.Height - 1);
+  ClampVar(X1, 0, Map.Width - 1);
+  ClampVar(X2, 0, Map.Width - 1);
+  ClampVar(Y1, 0, Map.Height - 1);
+  ClampVar(Y2, 0, Map.Height - 1);
 
   for X := X1 to X2 do
     for Y := Y1 to Y2 do

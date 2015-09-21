@@ -290,10 +290,10 @@ begin
  for i := 1 to SPEED_TEST_2_CYCLES do
  begin
   V := VConst;
-  VectorScaleTo1st(V, Pi);
+  VectorScaleVar(V, Pi);
  end;
  Time1 := ProcessTimerEnd;
- WritelnSpeedTest(Format('Using assignment + VectorScaleTo1st = %f',[Time1]));
+ WritelnSpeedTest(Format('Using assignment + VectorScaleVar = %f',[Time1]));
 
  ProcessTimerBegin;
  for i := 1 to SPEED_TEST_2_CYCLES do
@@ -307,7 +307,7 @@ begin
  { nie uzywam tutaj WritelnSpeedTest. Jesli VECTOR_MATH_SPEED_TESTS
    not defined to stale SPEED_TEST_x_CYCLES sa tak male ze nie moge
    wykonac dzielenia przez Time1-Time0 bo Time1-Time0 = 0. }
- Writeln(Format('Assignment+To1st is faster by %f', [(Time2-Time0)/(Time1-Time0)]));
+ Writeln(Format('Assignment+Var is faster by %f', [(Time2-Time0)/(Time1-Time0)]));
  {$endif}
 end;
 
@@ -546,7 +546,7 @@ begin
   M2[1] := Vector3Single(2, 5, 8);
   M2[2] := Vector3Single(3, 6, 9);
 
-  MatrixTransposeTo1st(M1);
+  MatrixTransposeVar(M1);
   AssertTrue(MatricesPerfectlyEqual(M1, M2));
 end;
 

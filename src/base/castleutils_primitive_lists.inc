@@ -409,7 +409,7 @@ var
 begin
   Result := Low(LongInt);
   for I := 0 to Count - 1 do
-    MaxTo1st(Result, Items[I]);
+    MaxVar(Result, Items[I]);
 end;
 
 function TLongIntList.Sum: LongInt;
@@ -428,7 +428,7 @@ begin
   { Make sure Index and DelCount are sensible first }
   if Index >= Count then
     Exit;
-  MinTo1st(DelCount, Count - Index);
+  MinVar(DelCount, Count - Index);
 
   for I := Index to Count - 1 - DelCount do
     Items[I] := Items[I + DelCount];

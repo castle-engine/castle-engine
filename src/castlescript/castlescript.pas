@@ -2074,7 +2074,7 @@ var
 begin
   GreedyArguments := Args.Count;
   if GreedyArgumentsCalculation <> -1 then
-    MinTo1st(GreedyArguments, GreedyArgumentsCalculation);
+    MinVar(GreedyArguments, GreedyArgumentsCalculation);
 
   { We have to calculate arguments first, to know their type,
     to decide which handler is suitable.

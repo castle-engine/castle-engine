@@ -870,7 +870,7 @@ const
           DirectColor *= MaterialInfo.DiffuseColor;
 
           { calculate LightDirNorm (znormalizowane), NegatedLightDirNorm }
-          NormalizeTo1st(LightDirNorm);
+          NormalizeVar(LightDirNorm);
           NegatedLightDirNorm := -LightDirNorm;
 
           { Wymnoz DirectColor
@@ -1131,7 +1131,7 @@ begin
     kompilujemy sie w wersji RELEASE) }
   Check(PrimarySamplesCount > 0, 'PrimarySamplesCount for PathTracer must be greater than 0');
   Check(NonPrimarySamplesCount > 0, 'NonPrimarySamplesCount for PathTracer must be greater than 0');
-  Clamp(RRoulContinue, Single(0.0), Single(1.0));
+  ClampVar(RRoulContinue, Single(0.0), Single(1.0));
 
   { zainicjuj na nil'e, zeby moc napisac proste try..finally }
   LightItems := nil;

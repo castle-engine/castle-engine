@@ -2966,8 +2966,8 @@ begin
       it will be slightly smaller (menu bar takes some space). }
     if Width  = WindowDefaultSize then FWidth  := Application.ScreenWidth  * 4 div 5;
     if Height = WindowDefaultSize then FHeight := Application.ScreenHeight * 4 div 5;
-    Clamp(FWidth , MinWidth , MaxWidth);
-    Clamp(FHeight, MinHeight, MaxHeight);
+    ClampVar(FWidth , MinWidth , MaxWidth);
+    ClampVar(FHeight, MinHeight, MaxHeight);
     if Left = WindowPositionCenter then FLeft := (Application.ScreenWidth  - Width ) div 2;
     if Top  = WindowPositionCenter then FTop  := (Application.ScreenHeight - Height) div 2;
 

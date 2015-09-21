@@ -167,10 +167,10 @@ begin
   NewXLen := VectorLen(NewX);
   NewYLen := NewXLen * SphereRadius;
 
-  VectorScaleTo1st(NewX, SphereRadius/NewXLen);
-  VectorScaleTo1st(NewY, SphereRadius/NewYLen);
+  VectorScaleVar(NewX, SphereRadius/NewXLen);
+  VectorScaleVar(NewY, SphereRadius/NewYLen);
 
-  { TODO: create MatrixMultPointTo1st to speed this a little bit? }
+  { TODO: create MatrixMultPointVar to speed this a little bit? }
   result := MatrixMultPoint(TransformToCoordsMatrix(ZeroVector3Single,
     NewX,
     NewY,

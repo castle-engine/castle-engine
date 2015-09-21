@@ -563,7 +563,7 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
           is a simple conversion to grayscale (actually incorrect, even if often
           visually acceptable; actually instead of 0.33 one has to use
           GrayscaleFloat/ByteValues, this is already implemented
-          in ImageTransformColorsTo1st function)
+          in ImageTransformColorsVar function)
 
       Note: it's often more optimal to hard-code necessary color transformations
       as TColorModulatorFunc and use ModulateRGB.
@@ -1505,7 +1505,7 @@ var
 { Maximum alpha channel type. Chooses "full range" if anything is "full range",
   otherwise choose "simple yes/no" if anything is "simple yes/no",
   otherwise returns "no alpha channel". }
-procedure AlphaMaxTo1st(var A: TAlphaChannel; const B: TAlphaChannel);
+procedure AlphaMaxVar(var A: TAlphaChannel; const B: TAlphaChannel);
 
 function StringToAlpha(S: string; var WarningDone: boolean): TAutoAlphaChannel;
 
@@ -3496,7 +3496,7 @@ end;
   (where the contents will be copied to alpha, and intensity set to white).
 
   If the image already had an alpha channel, then just return it. }
-procedure ImageAddAlphaTo1st(var Img: TEncodedImage);
+procedure ImageAddAlphaVar(var Img: TEncodedImage);
 var
   NewImg: TCastleImage;
 begin
@@ -3515,7 +3515,7 @@ begin
 
   if not Img.HasAlpha then
     raise EInternalError.Create(
-      'ImageAddAlphaTo1st not possible for this image class: ' + Img.ClassName);
+      'ImageAddAlphaVar not possible for this image class: ' + Img.ClassName);
 end;
 
 function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
@@ -3529,7 +3529,7 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
   end;
 
   { On input, Image must be TRGBImage and on output it will be TGrayscaleImage. }
-  procedure ImageGrayscaleTo1st(var Image: TEncodedImage);
+  procedure ImageGrayscaleVar(var Image: TEncodedImage);
   var
     NewImage: TGrayscaleImage;
   begin
@@ -3538,7 +3538,7 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
     Image := NewImage;
   end;
 
-  procedure ImageRGBToFloatTo1st(var Image: TEncodedImage);
+  procedure ImageRGBToFloatVar(var Image: TEncodedImage);
   var
     NewResult: TEncodedImage;
   begin
@@ -3547,7 +3547,7 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
     Image := NewResult;
   end;
 
-  procedure ImageRGBToGrayscaleTo1st(var Image: TEncodedImage);
+  procedure ImageRGBToGrayscaleVar(var Image: TEncodedImage);
   var
     NewResult: TEncodedImage;
   begin
@@ -3577,7 +3577,7 @@ begin
             if ClassAllowed(TRGBFloatImage) then
             begin
               Result := Load(Stream, [TRGBImage]);
-              ImageRGBToFloatTo1st(result);
+              ImageRGBToFloatVar(result);
             end else
               raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot load this image file format to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
           end;
@@ -3589,14 +3589,14 @@ begin
             if ClassAllowed(TGrayscaleImage) then
             begin
               Result := Load(Stream, [TRGBImage]);
-              ImageRGBToGrayscaleTo1st(result);
+              ImageRGBToGrayscaleVar(result);
             end else
 { TODO:     if ClassAllowed(TGrayscaleAlphaImage) then
               ... }
             if ClassAllowed(TRGBFloatImage) then
             begin
               Result := Load(Stream, [TRGBImage]);
-              ImageRGBToFloatTo1st(result);
+              ImageRGBToFloatVar(result);
             end else
               raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot load this image file format to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
           end;
@@ -3609,21 +3609,21 @@ begin
             begin
               if ClassAllowed(TRGBAlphaImage) then
               begin
-                ImageAddAlphaTo1st(Result);
+                ImageAddAlphaVar(Result);
               end else
               if ClassAllowed(TGrayscaleImage) then
               begin
-                ImageGrayscaleTo1st(Result);
+                ImageGrayscaleVar(Result);
               end else
               { TODO:
               if ClassAllowed(TGrayscaleAlphaImage) then
               begin
-                ImageAddAlphaTo1st(Result);
-                ImageGrayscaleAlphaTo1st(Result);
+                ImageAddAlphaVar(Result);
+                ImageGrayscaleAlphaVar(Result);
               end else }
               if ClassAllowed(TRGBFloatImage) then
               begin
-                ImageRGBToFloatTo1st(result);
+                ImageRGBToFloatVar(result);
               end else
                 raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot load this image file format to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
             end;
@@ -3637,16 +3637,16 @@ begin
               Result := LoadRGBE(Stream, [TRGBImage]);
               if ClassAllowed(TRGBAlphaImage) then
               begin
-                ImageAddAlphaTo1st(result);
+                ImageAddAlphaVar(result);
               end else
               if ClassAllowed(TGrayscaleImage) then
               begin
-                ImageGrayscaleTo1st(Result);
+                ImageGrayscaleVar(Result);
               end else
               if ClassAllowed(TGrayscaleAlphaImage) then
               begin
-                ImageGrayscaleTo1st(Result);
-                ImageAddAlphaTo1st(Result);
+                ImageGrayscaleVar(Result);
+                ImageAddAlphaVar(Result);
               end else
                 raise EUnableToLoadImage.CreateFmt('LoadEncodedImage: RGBE format cannot be loaded to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
             end;
@@ -3860,7 +3860,7 @@ end;
 
 { unit initialization / finalization ----------------------------------------- }
 
-procedure AlphaMaxTo1st(var A: TAlphaChannel; const B: TAlphaChannel);
+procedure AlphaMaxVar(var A: TAlphaChannel; const B: TAlphaChannel);
 begin
   if B > A then A := B;
 end;

@@ -169,9 +169,9 @@ procedure TTestCastleBoxes.TestIsBox3DTriangleCollision;
 
       AssertTrue(Box.IsTriangleCollision(Triangle));
 
-      VectorAddTo1st(Triangle[0], Vector3Single(100, 100, 100));
-      VectorAddTo1st(Triangle[1], Vector3Single(100, 100, 100));
-      VectorAddTo1st(Triangle[2], Vector3Single(100, 100, 100));
+      VectorAddVar(Triangle[0], Vector3Single(100, 100, 100));
+      VectorAddVar(Triangle[1], Vector3Single(100, 100, 100));
+      VectorAddVar(Triangle[2], Vector3Single(100, 100, 100));
       AssertTrue(not Box.IsTriangleCollision(Triangle));
     end;
 
@@ -190,9 +190,9 @@ procedure TTestCastleBoxes.TestIsBox3DTriangleCollision;
 
       AssertTrue(Box.IsTriangleCollision(Triangle));
 
-      VectorAddTo1st(Triangle[0], Vector3Single(100, 100, 100));
-      VectorAddTo1st(Triangle[1], Vector3Single(100, 100, 100));
-      VectorAddTo1st(Triangle[2], Vector3Single(100, 100, 100));
+      VectorAddVar(Triangle[0], Vector3Single(100, 100, 100));
+      VectorAddVar(Triangle[1], Vector3Single(100, 100, 100));
+      VectorAddVar(Triangle[2], Vector3Single(100, 100, 100));
       AssertTrue(not Box.IsTriangleCollision(Triangle));
     end;
   end;
@@ -235,7 +235,7 @@ var
     const Plane: TVector4Single): boolean;
   { Implementation of this is based on
     [http://jgt.akpeters.com/papers/AkenineMoller01/tribox.html]
-    planeBoxOverlap routine, by Tomas Akenine-Möller,
+    planeBoxOverlap routine, by Tomas Akenine-Moller,
     mentioned in his paper [http://jgt.akpeters.com/papers/AkenineMoller01/]
     about "Fast 3D Triangle-Box Overlap Testing", downloadable from
     [http://www.cs.lth.se/home/Tomas_Akenine_Moller/pubs/tribox.pdf].
@@ -282,7 +282,7 @@ var
 
   { Implementation of this is based on
     [http://jgt.akpeters.com/papers/AkenineMoller01/tribox.html],
-    by Tomas Akenine-Möller, described
+    by Tomas Akenine-Moller, described
     in his paper [http://jgt.akpeters.com/papers/AkenineMoller01/]
     "Fast 3D Triangle-Box Overlap Testing", downloadable from
     [http://www.cs.lth.se/home/Tomas_Akenine_Moller/pubs/tribox.pdf].

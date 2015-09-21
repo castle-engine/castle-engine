@@ -513,7 +513,7 @@ begin
   Tri[2] := Verts_Indices_I;
 
   if IsValidTriangle(Tri) then
-    VectorAddTo1st(result, TriangleNormal(Tri) );
+    VectorAddVar(result, TriangleNormal(Tri) );
 
   repeat
     { find next valid point, which makes another triangle of polygon }
@@ -525,7 +525,7 @@ begin
     Tri[2] := Verts_Indices_I;
 
     if IsValidTriangle(Tri) then
-      VectorAddTo1st(result, TriangleNormal(Tri) );
+      VectorAddVar(result, TriangleNormal(Tri) );
   until false;
 
   { All triangle normals are summed up now. (Each triangle normal was also
@@ -533,7 +533,7 @@ begin
     Normalize Result now, if we had any valid triangle. }
   if ZeroVector(Result) then
     Result := ResultForIncorrectPoly else
-    NormalizeTo1st(Result);
+    NormalizeVar(Result);
 end;
 
 function IndexedConvexPolygonArea(
@@ -666,8 +666,8 @@ begin
   r1Sqrt := Sqrt(Random);
   r2 := Random;
   result := VectorScale(Tri[0], 1-r1Sqrt);
-  VectorAddTo1st(result, VectorScale(Tri[1], (1-r2)*r1Sqrt));
-  VectorAddTo1st(result, VectorScale(Tri[2], r2*r1Sqrt));
+  VectorAddVar(result, VectorScale(Tri[1], (1-r2)*r1Sqrt));
+  VectorAddVar(result, VectorScale(Tri[2], r2*r1Sqrt));
 end;
 
 function Barycentric(const Triangle: TTriangle3Single;

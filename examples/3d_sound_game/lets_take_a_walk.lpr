@@ -114,7 +114,7 @@ begin
   if T[2] > 0 then
   begin
     T[2] -= 5 * SecondsPassed;
-    MaxTo1st(T[2], 0);
+    MaxVar(T[2], 0);
     Translation := T;
   end;
 

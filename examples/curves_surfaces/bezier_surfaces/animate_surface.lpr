@@ -85,7 +85,7 @@ begin
     { The lengths of our direction vectors express speed in old terms
       (1/50 of the second), rescale them here. }
     SurfaceMoveSpeed := VectorLen(SurfaceDir) * 50;
-    NormalizeTo1st(SurfaceDir);
+    NormalizeVar(SurfaceDir);
     N := F.ReadInteger;
     Load(Surface1);
     Load(Surface2);

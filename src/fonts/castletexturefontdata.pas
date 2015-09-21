@@ -314,8 +314,8 @@ begin
       if GlyphInfo <> nil then
       begin
         Inc(GlyphsCount);
-        MaxTo1st(MaxWidth , GlyphInfo.Width);
-        MaxTo1st(MaxHeight, GlyphInfo.Height);
+        MaxVar(MaxWidth , GlyphInfo.Width);
+        MaxVar(MaxHeight, GlyphInfo.Height);
       end;
     end;
 
@@ -475,8 +475,8 @@ begin
     if G <> nil then
     begin
       YOrigin := G.Y;
-      MinTo1st(MinY, -YOrigin);
-      MaxTo1st(MaxY, G.Height - YOrigin);
+      MinVar(MinY, -YOrigin);
+      MaxVar(MaxY, G.Height - YOrigin);
     end;
 
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
@@ -529,7 +529,7 @@ begin
 
     G := Glyph(C);
     if G <> nil then
-      MaxTo1st(Result, G.Height - G.Y);
+      MaxVar(Result, G.Height - G.Y);
 
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;

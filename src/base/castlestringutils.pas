@@ -93,11 +93,11 @@ function RandomString: string;
 { Replace all occurrences of FromPattern string to ToPattern string,
   within another string S.
 
-  @code(StringReplaceAllTo1st(s, from, to)) is actually equivalent to
+  @code(StringReplaceAllVar(s, from, to)) is actually equivalent to
   simply @code(s := StringReplace(s, from, to, [rfReplaceAll, rfIgnoreCase])).
-  So StringReplaceAllTo1st is just a wrapper for very common use case of
+  So StringReplaceAllVar is just a wrapper for very common use case of
   StringReplace. }
-procedure StringReplaceAllTo1st(var S: string;
+procedure StringReplaceAllVar(var S: string;
   const FromPattern, ToPattern: string;
   IgnoreCase: boolean = true); overload;
 
@@ -937,7 +937,7 @@ begin
  for i := 1 to 3 do result := result+char(byte('0')+Random(10));
 end;
 
-procedure StringReplaceAllTo1st(var S: string;
+procedure StringReplaceAllVar(var S: string;
   const FromPattern, ToPattern: string;
   IgnoreCase: boolean);
 (*

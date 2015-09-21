@@ -846,10 +846,10 @@ begin
   Y := Round(Container.TooltipPosition[1]);
 
   { now try to fix X, Y to make tooltip fit inside a window }
-  MinTo1st(X, ContainerWidth - TooltipRect.Width);
-  MinTo1st(Y, ContainerHeight - TooltipRect.Height);
-  MaxTo1st(X, 0);
-  MaxTo1st(Y, 0);
+  MinVar(X, ContainerWidth - TooltipRect.Width);
+  MinVar(Y, ContainerHeight - TooltipRect.Height);
+  MaxVar(X, 0);
+  MaxVar(Y, 0);
 
   TooltipLabel.Left := X;
   TooltipLabel.Bottom := Y;
@@ -1140,9 +1140,9 @@ begin
 
     { at the end apply MinXxx properties }
     if AutoSizeWidth then
-      MaxTo1st(FWidth, MinWidth);
+      MaxVar(FWidth, MinWidth);
     if AutoSizeHeight then
-      MaxTo1st(FHeight, MinHeight);
+      MaxVar(FHeight, MinHeight);
 
     if (AutoSizeWidth or AutoSizeHeight) and (Container <> nil) then
       Container.UpdateFocusAndMouseCursor;
@@ -1857,7 +1857,7 @@ end;
 
 procedure TCastleDialog.SetScroll(Value: Single);
 begin
-  Clamp(Value, ScrollMin, ScrollMax);
+  ClampVar(Value, ScrollMin, ScrollMax);
   if Value <> Scroll then
   begin
     FScroll := Value;
@@ -1894,7 +1894,7 @@ var
 begin
   Result := 0;
   for Button in Buttons do
-    MaxTo1st(Result, Button.Height + 2 * BoxMargin);
+    MaxVar(Result, Button.Height + 2 * BoxMargin);
 end;
 
 procedure TCastleDialog.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
@@ -1949,7 +1949,7 @@ begin
     ButtonsWidth += Button.Width + ButtonHorizontalMargin;
   if ButtonsWidth > 0 then
     ButtonsWidth -= ButtonHorizontalMargin; // extract margin from last button
-  MaxTo1st(MaxLineWidth, ButtonsWidth);
+  MaxVar(MaxLineWidth, ButtonsWidth);
 
   if DrawInputText then
   begin

@@ -2318,7 +2318,7 @@ begin
         Following X3D spec "Specifying too few levels will result in
         the last level being used repeatedly for the lowest levels of detail",
         so just clamp to last children. }
-      MinTo1st(Result, Children.Count - 1);
+      MinVar(Result, Children.Count - 1);
     except
       on E: ETransformedResultInvalid do
       begin

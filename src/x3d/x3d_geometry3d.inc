@@ -1013,7 +1013,7 @@ begin
 
       for I := 0 to E.High do
       begin
-        E.SpineTransformTo1st(I, LastY, LastZ, Transform);
+        E.SpineTransformVar(I, LastY, LastZ, Transform);
         for J := 0 to FdCrossSection.Count - 1 do
         begin
           CoordNode.FdPoint.Items.L[I * FdCrossSection.Count + J] :=

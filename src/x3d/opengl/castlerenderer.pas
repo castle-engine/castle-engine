@@ -3266,7 +3266,7 @@ begin
       if Log and (TCD > UsedGLSLTexCoordsNeeded) then
         WritelnLog('TexCoord', Format('Texture coords defined in VRML/X3D for %d texture units, using them all, even though we bound only %d texture units. Reason: GLSL shaders may use them',
           [TCD, UsedGLSLTexCoordsNeeded]));
-      MaxTo1st(UsedGLSLTexCoordsNeeded, TCD);
+      MaxVar(UsedGLSLTexCoordsNeeded, TCD);
     end;
   end;
 
@@ -3331,9 +3331,9 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
         since it has smartly calculated AlphaChannel based on children. }
       TexturesAlphaChannel := acNone;
       if TextureNode <> nil then
-        AlphaMaxTo1st(TexturesAlphaChannel, TextureNode.AlphaChannel);
+        AlphaMaxVar(TexturesAlphaChannel, TextureNode.AlphaChannel);
       if FontTextureNode <> nil then
-        AlphaMaxTo1st(TexturesAlphaChannel, FontTextureNode.AlphaChannel);
+        AlphaMaxVar(TexturesAlphaChannel, FontTextureNode.AlphaChannel);
       AlphaTest := TexturesAlphaChannel = acSimpleYesNo;
 
       if GLFontTextureNode <> nil then

@@ -102,7 +102,7 @@ function ColorBlueConvertByte(const Color: TVector3Byte): TVector3Byte;
 
 { Set color values for two other channels to 0.
   Note that it's something entirely different than
-  ImageConvertToChannelTo1st: here we preserve original channel values,
+  ImageConvertToChannelVar: here we preserve original channel values,
   and remove values on two other channels.
 
   @groupBegin }

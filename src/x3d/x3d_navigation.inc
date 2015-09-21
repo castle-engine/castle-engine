@@ -569,8 +569,8 @@ begin
         but State.InvertedTransform may contain scaling,
         so be sure to normalize again the result.
         For safety, also call MakeVectorsOrthoOnTheirPlane. }
-      NormalizeTo1st(LocalDirection);
-      NormalizeTo1st(LocalUp);
+      NormalizeVar(LocalDirection);
+      NormalizeVar(LocalUp);
       MakeVectorsOrthoOnTheirPlane(LocalDirection, LocalUp);
 
       NewX := VectorProduct(LocalDirection, LocalUp);
@@ -1051,7 +1051,7 @@ class function TViewpointNode.ViewpointAngleOfView(
 var
   OtherAngle: Single;
 begin
-  Clamp(FieldOfView, 0.01, Pi - 0.01);
+  ClampVar(FieldOfView, 0.01, Pi - 0.01);
 
   if ThisToOtherSizeRatio < 1 then
   begin

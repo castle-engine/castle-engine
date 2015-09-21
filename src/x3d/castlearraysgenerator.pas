@@ -2303,7 +2303,7 @@ procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
       Tangent := VectorSubtract(DIn3D, Triangle3D[0]) else
       Tangent := VectorSubtract(Triangle3D[0], DIn3D);
 
-    NormalizeTo1st(Tangent);
+    NormalizeVar(Tangent);
 
     Result := true;
   end;
