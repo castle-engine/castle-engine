@@ -1332,12 +1332,12 @@ initialization
   FLevels := TLevelInfoList.Create(true);
   Inc(FLevels.References);
 
-  Config.OnSave.Add(@FLevels.SaveToConfig);
+  Config.AddSaveListener(@FLevels.SaveToConfig);
 finalization
   FreeAndNil(FLevelLogicClasses);
 
   if (FLevels <> nil) and (Config <> nil) then
-    Config.OnSave.Remove(@FLevels.SaveToConfig);
+    Config.RemoveSaveListener(@FLevels.SaveToConfig);
 
   { there may still exist TGameSceneManager instances that refer to our
     TLevelInfo instances. So we don't always free Levels below. }

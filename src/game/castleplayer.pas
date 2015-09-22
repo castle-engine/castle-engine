@@ -1395,6 +1395,6 @@ initialization
   PlayerInput_Crouch := TInputShortcut.Create(nil, 'Crouch (or fly/swim down)', 'move_down', igBasic);
   PlayerInput_Crouch.Assign(K_C);
 
-  Config.OnLoad.Add(@TConfigOptions(nil).LoadFromConfig);
-  Config.OnSave.Add(@TConfigOptions(nil).SaveToConfig);
+  Config.AddLoadListener(@TConfigOptions(nil).LoadFromConfig);
+  Config.AddSaveListener(@TConfigOptions(nil).SaveToConfig);
 end.

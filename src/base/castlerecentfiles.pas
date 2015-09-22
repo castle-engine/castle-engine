@@ -82,18 +82,16 @@ begin
   FURLs := TStringList.Create;
   FMaxCount := DefaultMaxCount;
 
-  { one day, make this optional, to also enable many TRecentFiles instances
-    in a program not overwriting each others' state. }
-  Config.OnLoad.Add(@LoadFromConfig);
-  Config.OnSave.Add(@SaveToConfig);
+  Config.AddLoadListener(@LoadFromConfig);
+  Config.AddSaveListener(@SaveToConfig);
 end;
 
 destructor TRecentFiles.Destroy;
 begin
   if Config <> nil then
   begin
-    Config.OnLoad.Remove(@LoadFromConfig);
-    Config.OnSave.Remove(@SaveToConfig);
+    Config.RemoveLoadListener(@LoadFromConfig);
+    Config.RemoveSaveListener(@SaveToConfig);
   end;
 
   FreeAndNil(FURLs);

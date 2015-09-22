@@ -36,11 +36,17 @@ type
   end;
 
   { Store configuration in XML format.
+    Adds various Castle Game Engine extensions to the ancestor TXMLConfig
+    class:
 
-    This is a descendant of TXMLConfig that adds various small extensions:
-    float types (GetFloat, SetFloat, SetDeleteFloat),
-    vector types, key (TKey) types,
-    PathElement utility. }
+    @unorderedList(
+      @item(load/save more types (floats, vectors, colors, URLs, TKeys,
+        multiline text...),)
+      @item(load/save from an URL (not just a filename),)
+      @item(PathElement utility, to use powerful DOM functions for a subset
+        of config file reading/writing,)
+      @item(
+       }
   TCastleConfig = class(TXMLConfig)
   private
     FOnLoad, FOnSave: TCastleConfigEventList;
@@ -249,11 +255,21 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
 
     procedure NotModified;
 
-    { Called at @link(Load). }
-    property OnLoad: TCastleConfigEventList read FOnLoad;
+    { Listeners, automatically called at the @link(Load) or @link(Save)
+      calls.
 
-    { Called at @link(Save). }
-    property OnSave: TCastleConfigEventList read FOnSave;
+      @bold(If the config file is already loaded when you call
+      AddLoadListener, then the Listener is called immediately.)
+      This is useful to make sure that Listener is always called,
+      regardless of the order. (Regardless if you call Config.Load
+      or Config.AddLoadListener first.)
+
+      @groupBegin }
+    procedure AddLoadListener(const Listener: TCastleConfigEvent);
+    procedure AddSaveListener(const Listener: TCastleConfigEvent);
+    procedure RemoveLoadListener(const Listener: TCastleConfigEvent);
+    procedure RemoveSaveListener(const Listener: TCastleConfigEvent);
+    { @groupEnd }
 
     { Load the current configuration of the engine components.
       Sets @code(TXMLConfig.URL), loading the appropriate file to our properties,
@@ -616,7 +632,7 @@ end;
 procedure TCastleConfig.Load(const AURL: string);
 begin
   URL := AURL;
-  OnLoad.ExecuteAll(Self);
+  FOnLoad.ExecuteAll(Self);
 
   { This is used for various files (not just user preferences,
     also resource.xml files), and logging this gets too talkative for now.
@@ -631,7 +647,7 @@ end;
 
 procedure TCastleConfig.Save;
 begin
-  OnSave.ExecuteAll(Self);
+  FOnSave.ExecuteAll(Self);
   Flush;
 
   if Log and (URL <> '') then
@@ -642,14 +658,36 @@ procedure TCastleConfig.Load(const Stream: TStream);
 begin
   WritelnLog('Config', 'Loading configuration from stream');
   LoadFromStream(Stream);
-  OnLoad.ExecuteAll(Self);
+  FOnLoad.ExecuteAll(Self);
 end;
 
 procedure TCastleConfig.Save(const Stream: TStream);
 begin
-  OnSave.ExecuteAll(Self);
+  FOnSave.ExecuteAll(Self);
   SaveToStream(Stream);
   WritelnLog('Config', 'Saving configuration to stream');
+end;
+
+procedure TCastleConfig.AddLoadListener(const Listener: TCastleConfigEvent);
+begin
+  if URL <> '' then
+    Listener(Self);
+  FOnLoad.Add(Listener);
+end;
+
+procedure TCastleConfig.AddSaveListener(const Listener: TCastleConfigEvent);
+begin
+  FOnSave.Add(Listener);
+end;
+
+procedure TCastleConfig.RemoveLoadListener(const Listener: TCastleConfigEvent);
+begin
+  FOnLoad.Remove(Listener);
+end;
+
+procedure TCastleConfig.RemoveSaveListener(const Listener: TCastleConfigEvent);
+begin
+  FOnSave.Remove(Listener);
 end;
 
 end.

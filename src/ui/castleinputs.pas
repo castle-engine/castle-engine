@@ -821,8 +821,8 @@ begin
   for G := Low(InputsGroup) to High(InputsGroup) do
     InputsGroup[G] := TInputShortcutList.Create(false);
 
-  Config.OnLoad.Add(@InputsAll.LoadFromConfig);
-  Config.OnSave.Add(@InputsAll.SaveToConfig);
+  Config.AddLoadListener(@InputsAll.LoadFromConfig);
+  Config.AddSaveListener(@InputsAll.SaveToConfig);
 
   FunctionHandlers.RegisterHandler(@TCasScriptShortcut(nil).Handle, TCasScriptShortcut, [TCasScriptString], false);
 end;
@@ -833,8 +833,8 @@ var
 begin
   if (InputsAll <> nil) and (Config <> nil) then
   begin
-    Config.OnLoad.Remove(@InputsAll.LoadFromConfig);
-    Config.OnSave.Remove(@InputsAll.SaveToConfig);
+    Config.RemoveLoadListener(@InputsAll.LoadFromConfig);
+    Config.RemoveSaveListener(@InputsAll.SaveToConfig);
   end;
 
   for G := Low(InputsGroup) to High(InputsGroup) do

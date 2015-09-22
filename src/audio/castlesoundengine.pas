@@ -100,9 +100,8 @@ type
     procedure UpdateDistanceModel;
     procedure SetDevice(const Value: string);
     procedure SetEnable(const Value: boolean);
-  protected
-    procedure LoadFromConfig(const Config: TCastleConfig); override;
-    procedure SaveToConfig(const Config: TCastleConfig); override;
+    procedure LoadFromConfig(const Config: TCastleConfig);
+    procedure SaveToConfig(const Config: TCastleConfig);
   public
     const
       DefaultVolume = 1.0;
@@ -110,6 +109,8 @@ type
       DefaultDefaultReferenceDistance = 1.0;
       DefaultDefaultMaxDistance = MaxSingle;
       DefaultDistanceModel = dmLinearDistanceClamped;
+      DefaultDevice = '';
+      DefaultEnable = true;
 
     constructor Create;
     destructor Destroy; override;
@@ -285,7 +286,7 @@ type
       If the OpenAL context is already initialized when setting this,
       we will eventually close it. (More precisely, we will
       do ALContextClose and then ALContextOpen again. This behaves correctly.) }
-    property Enable: boolean read FEnable write SetEnable default true;
+    property Enable: boolean read FEnable write SetEnable default DefaultEnable;
 
     { How the sound is attenuated with the distance.
       These are used only for spatialized sounds created with PlaySound.
@@ -469,9 +470,8 @@ type
       and does something only if we have OpenAL context and some sounds,
       so it's actually safe to call it always). }
     procedure LoadSoundsBuffers;
-  protected
-    procedure LoadFromConfig(const Config: TCastleConfig); override;
-    procedure SaveToConfig(const Config: TCastleConfig); override;
+    procedure LoadFromConfig(const Config: TCastleConfig);
+    procedure SaveToConfig(const Config: TCastleConfig);
   public
     constructor Create;
     destructor Destroy; override;
@@ -733,27 +733,28 @@ begin
   FDefaultReferenceDistance := DefaultDefaultReferenceDistance;
   FDefaultMaxDistance := DefaultDefaultMaxDistance;
   FDistanceModel := DefaultDistanceModel;
-  FEnable := true;
+  FEnable := DefaultEnable;
+  FDevice := DefaultDevice;
   FEnableSaveToConfig := true;
   DeviceSaveToConfig := true;
   BuffersCache := TSoundBuffersCacheList.Create;
   FOnOpenClose := TNotifyEventList.Create;
 
-  Config.OnLoad.Add(@LoadFromConfig);
-  Config.OnSave.Add(@SaveToConfig);
-
   { Default OpenAL listener attributes }
   ListenerPosition := ZeroVector3Single;
   ListenerOrientation[0] := Vector3Single(0, 0, -1);
   ListenerOrientation[1] := Vector3Single(0, 1, 0);
+
+  Config.AddLoadListener(@LoadFromConfig);
+  Config.AddSaveListener(@SaveToConfig);
 end;
 
 destructor TSoundEngine.Destroy;
 begin
   if Config <> nil then
   begin
-    Config.OnLoad.Remove(@LoadFromConfig);
-    Config.OnSave.Remove(@SaveToConfig);
+    Config.RemoveLoadListener(@LoadFromConfig);
+    Config.RemoveSaveListener(@SaveToConfig);
   end;
 
   ALContextClose;
@@ -1461,24 +1462,18 @@ begin
   Result := 'Some OpenAL device'; // some default
 end;
 
-const
-  DefaultAudioDevice = '';
-  DefaultAudioEnable = true;
-
 procedure TSoundEngine.LoadFromConfig(const Config: TCastleConfig);
 begin
-  inherited;
-  Device := Config.GetValue('sound/device', DefaultAudioDevice);
-  Enable := Config.GetValue('sound/enable', DefaultAudioEnable);
+  Device := Config.GetValue('sound/device', DefaultDevice);
+  Enable := Config.GetValue('sound/enable', DefaultEnable);
 end;
 
 procedure TSoundEngine.SaveToConfig(const Config: TCastleConfig);
 begin
-  inherited;
   if DeviceSaveToConfig then
-    Config.SetDeleteValue('sound/device', Device, DefaultAudioDevice);
+    Config.SetDeleteValue('sound/device', Device, DefaultDevice);
   if EnableSaveToConfig then
-    Config.SetDeleteValue('sound/enable', Enable, DefaultAudioEnable);
+    Config.SetDeleteValue('sound/enable', Enable, DefaultEnable);
 end;
 
 { TRepoSoundEngine ----------------------------------------------------------- }
@@ -1503,10 +1498,19 @@ begin
   Sounds.Add(TSoundInfo.Create);
 
   FMusicPlayer := TMusicPlayer.Create(Self);
+
+  Config.AddLoadListener(@LoadFromConfig);
+  Config.AddSaveListener(@SaveToConfig);
 end;
 
 destructor TRepoSoundEngine.Destroy;
 begin
+  if Config <> nil then
+  begin
+    Config.RemoveLoadListener(@LoadFromConfig);
+    Config.RemoveSaveListener(@SaveToConfig);
+  end;
+
   FreeAndNil(FSoundImportanceNames);
   FreeAndNil(FSounds);
   FreeAndNil(FMusicPlayer);
@@ -1749,7 +1753,6 @@ end;
 
 procedure TRepoSoundEngine.LoadFromConfig(const Config: TCastleConfig);
 begin
-  inherited;
   Volume := Config.GetFloat('sound/volume', DefaultVolume);
   MusicPlayer.MusicVolume := Config.GetFloat('sound/music/volume',
     TMusicPlayer.DefaultMusicVolume);
@@ -1757,7 +1760,6 @@ end;
 
 procedure TRepoSoundEngine.SaveToConfig(const Config: TCastleConfig);
 begin
-  inherited;
   Config.SetDeleteFloat('sound/volume', Volume, DefaultVolume);
   { This may be called from destructors and the like, so better check
     that MusicPlayer is not nil. }

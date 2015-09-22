@@ -333,7 +333,7 @@ type
 
     { Save draw properties to a stack. Saves:
       @link(Scale) (synchronized with @link(Size)),
-      @link(Outline), @link(OutlineColor). }
+      @link(Outline), @link(OutlineColor), @link(OutlineHighQuality). }
     procedure PushProperties;
     procedure PopProperties;
   end;

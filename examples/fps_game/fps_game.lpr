@@ -422,6 +422,16 @@ begin
   Window := TCastleWindow.Create(Application);
   SceneManager := Window.SceneManager;
 
+  { Load configuration file. This loads configuration for various parts of the
+    engine, you can also use it for your own user persistent data
+    (preferences or savegames), see
+    http://castle-engine.sourceforge.net/tutorial_user_prefs.php .
+
+    Note that you should call this before SoundEngine.ParseParameters,
+    otherwise command-line parameter --no-sound (handled by
+    SoundEngine.ParseParameters) would always be overridden by config file value. }
+  Config.Load;
+
   { Parse command-line parameters.
     Options parsed by Window.ParseParameters are documented on
     http://castle-engine.sourceforge.net/opengl_options.php .
@@ -445,13 +455,6 @@ begin
   Theme.Images[tiActiveFrame] := LoadImage(ApplicationData('box.png'));
   Theme.OwnsImages[tiActiveFrame] := true;
   Theme.Corners[tiActiveFrame] := Vector4Integer(38, 38, 38, 38);
-
-  { Load configuration file. This loads configuration for various parts of the
-    engine that add their callbacks to Config.OnLoad, Config.OnSave.
-    Of course you can also use this for your game specific purposes,
-    as Config is just standard FPC TXMLConfig class (with some extensions,
-    see CastleXMLConfig unit). }
-  Config.Load;
 
   { Create extra viewport to observe the 3D world.
 

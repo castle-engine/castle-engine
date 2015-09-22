@@ -27,8 +27,8 @@ var
   { An instance of TCastleConfig to manage user preferences.
     All units that want to load or save some configuration should
     add their callbacks to the
-    @link(TCastleConfig.OnLoad Config.OnLoad),
-    @link(TCastleConfig.OnSave Config.OnSave) list.
+    @link(TCastleConfig.AddLoadListener Config.AddLoadListener),
+    @link(TCastleConfig.AddSaveListener Config.AddSaveListener) list.
     This way final application may (but doesn't have to) preserve
     the user configuration of all engine components,
     by calling Config.Load, Config.Save. }

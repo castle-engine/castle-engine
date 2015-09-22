@@ -202,7 +202,6 @@ type
     FMaxAllocatedSources: Cardinal;
     procedure SetMinAllocatedSources(const Value: Cardinal);
     procedure SetMaxAllocatedSources(const Value: Cardinal);
-  protected
     { Load and save into XML config file some sound engine properties.
       Everything is loaded / saved under the path "sound/" inside Config.
 
@@ -211,9 +210,16 @@ type
       (unless Enable was set by @--no-sound command-line option).
       Descendant TRepoSoundEngine additionally saves sound and music volume.
 
+      Note: right now, these are private, and descendants
+      call Config.AddLoadListener / AddSaveListener themselves.
+      This is better, it make sure to call LoadFromConfig only
+      when constructor is finished (otherwise
+      e.g. TRepoSoundEngine.LoadFromConfig could be called before
+      TRepoSoundEngine constructor finished).
+
       @groupBegin }
-    procedure LoadFromConfig(const Config: TCastleConfig); virtual;
-    procedure SaveToConfig(const Config: TCastleConfig); virtual;
+    procedure LoadFromConfig(const Config: TCastleConfig);
+    procedure SaveToConfig(const Config: TCastleConfig);
     { @groupEnd }
   public
     const
@@ -221,6 +227,7 @@ type
       DefaultMaxAllocatedSources = 16;
 
     constructor Create;
+    destructor Destroy; override;
     procedure ALContextOpen; virtual;
     procedure ALContextClose; virtual;
 
@@ -299,7 +306,7 @@ type
 
 implementation
 
-uses CastleALUtils;
+uses CastleALUtils, CastleConfig;
 
 { TSound ---------------------------------------------------------- }
 
@@ -468,6 +475,18 @@ begin
   inherited;
   FMinAllocatedSources := DefaultMinAllocatedSources;
   FMaxAllocatedSources := DefaultMaxAllocatedSources;
+  Config.AddLoadListener(@LoadFromConfig);
+  Config.AddSaveListener(@SaveToConfig);
+end;
+
+destructor TSoundAllocator.Destroy;
+begin
+  if Config <> nil then
+  begin
+    Config.RemoveLoadListener(@LoadFromConfig);
+    Config.RemoveSaveListener(@SaveToConfig);
+  end;
+  inherited;
 end;
 
 procedure TSoundAllocator.ALContextOpen;
