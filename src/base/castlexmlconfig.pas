@@ -687,6 +687,9 @@ begin
     OTOH, usecase is weak (every usage has to be prepared
     for Java message at undefined later time anyway),
     so maybe there's no point in generalizing this? }
+
+  { TODO: we could just use special JNI methods to do it synchronously?
+    This and Save() method too? }
   MessageToJava('config-load');
   {$else}
   Load(ApplicationConfig(ApplicationName + '.conf'));
