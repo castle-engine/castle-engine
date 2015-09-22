@@ -77,18 +77,28 @@ end;
 procedure TPackageDirectory.Make(const ProjectPath: string;
   const PackageFileName: string; const PackageType: TPackageType);
 var
-  FullPackageFileName, ProcessOutput: string;
+  FullPackageFileName, ProcessOutput, CommandExe: string;
   ProcessExitStatus: Integer;
 begin
   case PackageType of
     ptZip:
-      MyRunCommandIndir(TemporaryDir, FindExe('zip'),
-        ['-q', '-r', PackageFileName, TopDirectoryName],
-        ProcessOutput, ProcessExitStatus);
+      begin
+        CommandExe := FindExe('zip');
+        if CommandExe = '' then
+          raise Exception.Create('Cannot find "zip" program on $PATH. Make sure it is installed, and available on $PATH');
+        MyRunCommandIndir(TemporaryDir, CommandExe,
+          ['-q', '-r', PackageFileName, TopDirectoryName],
+          ProcessOutput, ProcessExitStatus);
+      end;
     ptTarGz:
-      MyRunCommandIndir(TemporaryDir, FindExe('tar'),
-        ['czf', PackageFileName, TopDirectoryName],
-        ProcessOutput, ProcessExitStatus);
+      begin
+        CommandExe := FindExe('tar');
+        if CommandExe = '' then
+          raise Exception.Create('Cannot find "tar" program on $PATH. Make sure it is installed, and available on $PATH');
+        MyRunCommandIndir(TemporaryDir, CommandExe,
+          ['czf', PackageFileName, TopDirectoryName],
+          ProcessOutput, ProcessExitStatus);
+      end;
     else raise EInternalError.Create('TPackageDirectory.Make PackageType?');
   end;
 

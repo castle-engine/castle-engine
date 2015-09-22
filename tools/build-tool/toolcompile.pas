@@ -52,7 +52,7 @@ var
   end;
 
 var
-  FpcOutput, CastleEngineSrc1, CastleEngineSrc2: string;
+  FpcOutput, CastleEngineSrc1, CastleEngineSrc2, FpcExe: string;
   FpcExitStatus: Integer;
 begin
   FpcOptions := TCastleStringList.Create;
@@ -210,7 +210,10 @@ begin
     FpcOptions.Add(CompileFile);
 
     Writeln('FPC executing...');
-    RunCommandIndirPassthrough(WorkingDirectory, FindExe('fpc'), FpcOptions.ToArray, FpcOutput, FpcExitStatus);
+    FpcExe := FindExe('fpc');
+    if FpcExe = '' then
+      raise Exception.Create('Cannot find "fpc" program on $PATH. Make sure it is installed, and available on $PATH');
+    RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus);
     if FpcExitStatus <> 0 then
       raise Exception.Create('Failed to compile');
   finally FreeAndNil(FpcOptions) end;
