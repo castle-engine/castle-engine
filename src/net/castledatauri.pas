@@ -95,7 +95,8 @@ type
 
 implementation
 
-uses CastleURIUtils, CastleWarnings, CastleStringUtils, Base64, CastleClassUtils;
+uses Base64,
+  CastleURIUtils, CastleWarnings, CastleStringUtils, CastleClassUtils;
 
 { TODO: We treat non-base64 data verbatim, not interpreting %xx hex encoding
   inside. }
