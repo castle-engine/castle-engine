@@ -50,6 +50,7 @@ type
   TCastleConfig = class(TXMLConfig)
   private
     FOnLoad, FOnSave: TCastleConfigEventList;
+    FLoaded: boolean;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -271,45 +272,77 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
     procedure RemoveSaveListener(const Listener: TCastleConfigEvent);
     { @groupEnd }
 
-    { Load the current configuration of the engine components.
-      Sets @code(TXMLConfig.URL), loading the appropriate file to our properties,
-      and then calls the OnLoad callbacks to allow all engine components
-      read their settings.
+    { Load the current persistent data (user preferences, savegames etc.).
+      All the versions load the appropriate file,
+      and call all the listeners (from AddLoadListener)
+      to allow the engine (and your own) components to read our settings.
 
-      Accepts URL as parameter, converting it to a local filename
-      under the hood.
+      @unorderedList(
+        @item(The overloaded parameter-less version chooses
+          a default filename for storing application user preferences.
 
-      The overloaded parameter-less version chooses
-      a suitable filename for storing per-program user preferences.
-      It uses ApplicationName to pick a filename that is unique
-      to your application (usually you want to assign OnGetApplicationName
-      callback to set your name, unless you're fine with default determination
-      that looks at stuff like ParamStr(0)).
-      See FPC OnGetApplicationName docs.
-      It uses @link(ApplicationConfig) to determine location of this file.
+          On the standalone platforms,
+          it uses ApplicationName to pick a filename that is unique
+          to your application (usually you want to assign OnGetApplicationName
+          callback to set your name, unless you're fine with default determination
+          that looks at stuff like ParamStr(0)).
+          See FPC OnGetApplicationName docs.
+          It uses @link(ApplicationConfig) to determine location of this file.
 
-      The overloaded version with TStream parameter loads from a stream.
-      URL is set to empty.
+          On Android, it merely asks the Java bridge to read the
+          default config file contents (using CastleJavaMessaging).
+          You have to handle the Java side
+          (soon to be integrated with Castle Game Engine),
+          and then interpret the message 'config-loaded' back from Java
+          (using @link(LoadFromString))
+          to actually get the config contents.
+          It also means that the load listeners are actually run
+          with an unknown delay.)
+
+        @item(The overloaded version with URL parameter
+          sets @code(TXMLConfig.URL), loading the file from given URL.
+          As always, URL may be just a simple filename,
+          or an URL with 'file://' protocol, to just load a file from
+          the local filesystem.)
+
+        @item(The overloaded version with TStream parameter loads from a stream.
+          URL is set to empty.)
+      )
 
       @groupBegin }
     procedure Load(const AURL: string);
     procedure Load;
     procedure Load(const Stream: TStream);
+    procedure LoadFromString(const Data: string);
+    //procedure LoadFromBase64(const Base64Contents: string);
     { @groupEnd }
+
+    property Loaded: boolean read FLoaded;
 
     { Save the configuration of all engine components.
       Calls the OnSave callbacks to allow all engine components
-      to store their settings in our properties, and then flushes
-      them to disk (using @code(TXMLConfig.URL) property)
-      by inherited Flush method.
+      to store their settings in our properties.
 
-      The overloaded version with TStream parameter saves to a stream.
-      If does not use inherited Flush method, instead it always unconditionally
-      dumps contents to stream.
+      @unorderedList(
+        @item(The overloaded parameter-less version flushes
+          the changes to disk, thus saving them back to the file from which
+          they were read (in @code(TXMLConfig.URL) property).
+
+          On Android, it merely asks the Java bridge to save the
+          default config file contents (using CastleJavaMessaging).
+          You have to handle the Java side
+          (soon to be integrated with Castle Game Engine).)
+
+        @item(The overloaded version with TStream parameter saves to a stream.
+          If does not use inherited Flush method, instead it always
+          unconditionally dumps contents to stream.)
+      )
 
       @groupBegin }
     procedure Save;
     procedure Save(const Stream: TStream);
+    function SaveToString: string;
+    //function SaveToBase64: string;
     { @groupEnd }
   end;
 
@@ -317,7 +350,9 @@ procedure Register;
 
 implementation
 
-uses CastleStringUtils, CastleFilesUtils, CastleLog, CastleURIUtils;
+uses //Base64,
+  CastleStringUtils, CastleFilesUtils, CastleLog, CastleURIUtils,
+  CastleJavaMessaging;
 
 procedure Register;
 begin
@@ -633,6 +668,7 @@ procedure TCastleConfig.Load(const AURL: string);
 begin
   URL := AURL;
   FOnLoad.ExecuteAll(Self);
+  FLoaded := true;
 
   { This is used for various files (not just user preferences,
     also resource.xml files), and logging this gets too talkative for now.
@@ -642,16 +678,32 @@ end;
 
 procedure TCastleConfig.Load;
 begin
+  {$ifdef ANDROID}
+  { TODO: maybe invert URL scheme like preferences:// ,
+    returned by ApplicationConfig (at least for Android).
+    Then ApplicationConfig would hide some platform differences from us here.
+    SaveToURL would hide them when saving.
+
+    OTOH, usecase is weak (every usage has to be prepared
+    for Java message at undefined later time anyway),
+    so maybe there's no point in generalizing this? }
+  MessageToJava('config-load');
+  {$else}
   Load(ApplicationConfig(ApplicationName + '.conf'));
+  {$endif}
 end;
 
 procedure TCastleConfig.Save;
 begin
   FOnSave.ExecuteAll(Self);
-  Flush;
 
+  {$ifdef ANDROID}
+  MessageToJava('config-save=' + SaveToString);
+  {$else}
+  Flush;
   if Log and (URL <> '') then
     WritelnLog('Config', 'Saving configuration to "%s"', [URL]);
+  {$endif}
 end;
 
 procedure TCastleConfig.Load(const Stream: TStream);
@@ -659,6 +711,7 @@ begin
   WritelnLog('Config', 'Loading configuration from stream');
   LoadFromStream(Stream);
   FOnLoad.ExecuteAll(Self);
+  FLoaded := true;
 end;
 
 procedure TCastleConfig.Save(const Stream: TStream);
@@ -670,7 +723,7 @@ end;
 
 procedure TCastleConfig.AddLoadListener(const Listener: TCastleConfigEvent);
 begin
-  if URL <> '' then
+  if Loaded then
     Listener(Self);
   FOnLoad.Add(Listener);
 end;
@@ -688,6 +741,60 @@ end;
 procedure TCastleConfig.RemoveSaveListener(const Listener: TCastleConfigEvent);
 begin
   FOnSave.Remove(Listener);
+end;
+
+{ // Should work, but was never tested
+procedure TCastleConfig.LoadFromBase64(const Base64Contents: string);
+var
+  Base64Decode: TBase64DecodingStream;
+  InputStream: TStringStream;
+begin
+  InputStream := TStringStream.Create(Base64Contents);
+  try
+    Base64Decode := TBase64DecodingStream.Create(InputStream, bdmMIME);
+    try
+      Load(Base64Decode);
+    finally FreeAndNil(Base64Decode) end;
+  finally FreeAndNil(InputStream) end;
+end;
+}
+
+procedure TCastleConfig.LoadFromString(const Data: string);
+var
+  InputStream: TStringStream;
+begin
+  InputStream := TStringStream.Create(Data);
+  try
+    Load(InputStream);
+  finally FreeAndNil(InputStream) end;
+end;
+
+{ // Should work, but was never tested
+function TCastleConfig.SaveToBase64: string;
+var
+  Base64Encode: TBase64EncodingStream;
+  ResultStream: TStringStream;
+begin
+  ResultStream := TStringStream.Create('');
+  try
+    Base64Encode := TBase64EncodingStream.Create(ResultStream);
+    try
+      Save(Base64Encode);
+      Result := ResultStream.DataString;
+    finally FreeAndNil(Base64Encode) end;
+  finally FreeAndNil(ResultStream) end;
+end;
+}
+
+function TCastleConfig.SaveToString: string;
+var
+  ResultStream: TStringStream;
+begin
+  ResultStream := TStringStream.Create('');
+  try
+    Save(ResultStream);
+    Result := ResultStream.DataString;
+  finally FreeAndNil(ResultStream) end;
 end;
 
 end.

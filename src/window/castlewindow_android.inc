@@ -19,6 +19,16 @@
 {$I castlewindow_egl.inc}
 {$I castlewindow_dialogs_by_messages.inc}
 
+{ Load / save Config when activity is sleeping / woken up.
+
+  This does not provide a real persistence, so it's of limited use,
+  and actually would cause problems if you use real persistence
+  (like http://developer.android.com/guide/topics/data/data-storage.html)
+  since you would not know which to trust --- the persistent file,
+  or stuff provided by application load state?
+  So for now, it's not used. }
+{ $define CASTLE_PERSISTENT_ANDROID_STATE}
+
 {$ifdef read_interface_uses}
 CastleAndroidNativeWindow, CastleAndroidInput,
 CastleAndroidNativeAppGlue, CastleGenericLists,
@@ -26,7 +36,8 @@ CastleAndroidNativeAppGlue, CastleGenericLists,
 
 {$ifdef read_implementation_uses}
 CastleAndroidCWString, CastleAndroidLooper,
-CastleAndroidLog, CastleAndroidAssetStream, CastleConfig,
+CastleAndroidLog, CastleAndroidAssetStream,
+{$ifdef CASTLE_PERSISTENT_ANDROID_STATE} CastleConfig, {$endif}
 CastleOpenAL, CastleVorbisFile, CastleFreeTypeH, CastleZLib,
 {$endif}
 
@@ -127,7 +138,9 @@ end;
 procedure TCastleApplication.HandleCommand(App: PAndroid_app; Command: Integer);
 var
   QEvent: TQueuedEvent;
+  {$ifdef CASTLE_PERSISTENT_ANDROID_STATE}
   ConfigState: TStringStream;
+  {$endif}
 begin
   case Command of
     APP_CMD_INIT_WINDOW:
@@ -147,6 +160,7 @@ begin
         QEvents.Clear;
         CloseContext;
       end;
+    {$ifdef CASTLE_PERSISTENT_ANDROID_STATE}
     APP_CMD_SAVE_STATE:
       begin
         { We cannot delay processing this, onSaveInstanceState waits for us
@@ -164,6 +178,7 @@ begin
           WritelnLogMultiline('Config', 'Saved state:' + NL + ConfigState.DataString);
         finally FreeAndNil(ConfigState) end;
       end;
+    {$endif CASTLE_PERSISTENT_ANDROID_STATE}
   end;
 end;
 
@@ -286,11 +301,14 @@ begin
 end;
 
 procedure AndroidMainImplementation(App: PAndroid_App);
+{$ifdef CASTLE_PERSISTENT_ANDROID_STATE}
 var
   ConfigState: TStringStream;
+{$endif CASTLE_PERSISTENT_ANDROID_STATE}
 begin
   Application.AndroidApp := App;
 
+  {$ifdef CASTLE_PERSISTENT_ANDROID_STATE}
   { Use SavedState as XML contents that should be loaded to global Config.
     Note that we directly use AndroidLog below, not WritelnLog or OnWarning,
     because user code had no chance to call InitializeLog yet. }
@@ -313,6 +331,7 @@ begin
     finally FreeAndNil(ConfigState) end;
   end else
     AndroidLog(alInfo, 'Config: no saved state');
+  {$endif CASTLE_PERSISTENT_ANDROID_STATE}
 
   Application.Run;
 end;
