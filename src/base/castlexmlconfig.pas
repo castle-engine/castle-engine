@@ -317,6 +317,14 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
     //procedure LoadFromBase64(const Base64Contents: string);
     { @groupEnd }
 
+    { Load empty config. This loads a clear content, without any saved
+      settings, but it takes care to set @link(Loaded) to @true,
+      run OnLoad listeners and so on. Useful if your default config
+      is broken for some reason (e.g. file corruption),
+      but you want to override it and just get into a state
+      where config is considered loaded.  }
+    procedure LoadEmpty;
+
     property Loaded: boolean read FLoaded;
 
     { Save the configuration of all engine components.
@@ -770,6 +778,15 @@ begin
   try
     Load(InputStream);
   finally FreeAndNil(InputStream) end;
+end;
+
+procedure TCastleConfig.LoadEmpty;
+const
+  EmptyConfig = '<?xml version="1.0" encoding="utf-8"?>' + LineEnding +
+    '<CONFIG>' + LineEnding +
+    '</CONFIG>';
+begin
+  LoadFromString(EmptyConfig);
 end;
 
 { // Should work, but was never tested
