@@ -80,7 +80,7 @@
 {$ifdef VER2_4_0} {$undef TOBJECT_HAS_EQUALS} {$endif}
 
 {$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
-  {$if defined(iPHONESIM) or (defined(DARWIN) and defined(CPUARM))}
+  {$if defined(iPHONESIM) or (defined(DARWIN) and (defined(CPUARM) or defined(CPUARM64)))}
     {$define iOS}
   {$endif}
 {$endif}
