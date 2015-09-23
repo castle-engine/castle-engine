@@ -81,7 +81,8 @@
 {$ifdef read_implementation}
 
 const
-  SSpine1KeyFrameWarning = 'Timeline on %s "%s" has only 1 keyframe. We support it in a consistent way (1 keyframe means that the state is constant), but Spine shows such timeline inconsistently. To avoid confusion, set at least 2 keyframes on every timeline.';
+  SSpine1KeyFrameWarning = 'Timeline on %s "%s" (animation of %s) has only 1 keyframe. We support it in a consistent way (1 keyframe means that the state is constant), but Spine shows such timeline inconsistently. To avoid confusion, set at least 2 keyframes on every timeline.';
+  SSpineMultipleTimelinesWarning = 'Multiple timelines affect %s "%s" animation of %s';
 
 { TBoneTimeline -------------------------------------------------------------- }
 
@@ -236,14 +237,14 @@ begin
   Container.Routes.Add(Route);
 
   if BonesToReset.Translation.Remove(Bone) = -1 then
-    OnWarning(wtMajor, 'Spine', 'Multiple bone timelines affect bone translation: bone ' + Bone.Name);
+    OnWarning(wtMajor, 'Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'translation']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
     then it's visibly ignored). }
   if Time.Count = 1 then
-    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['bone', Bone.Name]));
+    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['bone', Bone.Name, 'translation']));
 end;
 
 function TBoneTimelineTranslate.DoingSomething: boolean;
@@ -308,14 +309,14 @@ begin
   Container.Routes.Add(Route);
 
   if BonesToReset.Scale.Remove(Bone) = -1 then
-    OnWarning(wtMajor, 'Spine', 'Multiple bone timelines affect bone scale: bone ' + Bone.Name);
+    OnWarning(wtMajor, 'Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'scale']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
     then it's visibly ignored). }
   if Time.Count = 1 then
-    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['bone', Bone.Name]));
+    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['bone', Bone.Name, 'scale']));
 end;
 
 function TBoneTimelineScale.DoingSomething: boolean;
@@ -392,14 +393,14 @@ begin
   Container.Routes.Add(Route);
 
   if BonesToReset.Rotation.Remove(Bone) = -1 then
-    OnWarning(wtMajor, 'Spine', 'Multiple bone timelines affect bone rotation: bone ' + Bone.Name);
+    OnWarning(wtMajor, 'Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'rotation']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
     then it's visibly ignored). }
   if Time.Count = 1 then
-    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['bone', Bone.Name]));
+    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['bone', Bone.Name, 'rotation']));
 end;
 
 function TBoneTimelineRotate.DoingSomething: boolean;

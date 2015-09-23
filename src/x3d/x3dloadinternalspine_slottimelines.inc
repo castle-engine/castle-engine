@@ -177,14 +177,14 @@ begin
   Container.Routes.Add(Route);
 
   if SlotsToReset.Attachment.Remove(Slot) = -1 then
-    OnWarning(wtMajor, 'Spine', 'Multiple slot timelines affect slot attachment: slot ' + Slot.Name);
+    OnWarning(wtMajor, 'Spine', Format(SSpineMultipleTimelinesWarning, ['slot', Slot.Name, 'attachment']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
     then it's visibly ignored). }
   if Time.Count = 1 then
-    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name]));
+    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name, 'attachment']));
 end;
 
 { TSlotTimelineColor --------------------------------------------------------- }
@@ -298,14 +298,14 @@ begin
   end;
 
   if SlotsToReset.Color.Remove(Slot) = -1 then
-    OnWarning(wtMajor, 'Spine', 'Multiple slot timelines affect slot color: slot ' + Slot.Name);
+    OnWarning(wtMajor, 'Spine', Format(SSpineMultipleTimelinesWarning, ['slot', Slot.Name, 'color']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
     then it's visibly ignored). }
   if Time.Count = 1 then
-    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name]));
+    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name, 'color']));
 end;
 
 {$endif}
