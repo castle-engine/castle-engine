@@ -73,7 +73,7 @@ type
     FVolume: Single;
     ALDevice: PALCdevice;
     ALContext: PALCcontext;
-    FEnable: boolean;
+    FEnabled: boolean;
     FALInitialized: boolean;
     FDefaultRolloffFactor: Single;
     FDefaultReferenceDistance: Single;
@@ -99,7 +99,7 @@ type
       Use only when ALActive. }
     procedure UpdateDistanceModel;
     procedure SetDevice(const Value: string);
-    procedure SetEnable(const Value: boolean);
+    procedure SetEnabled(const Value: boolean);
     procedure LoadFromConfig(const Config: TCastleConfig);
     procedure SaveToConfig(const Config: TCastleConfig);
   public
@@ -110,7 +110,7 @@ type
       DefaultDefaultMaxDistance = MaxSingle;
       DefaultDistanceModel = dmLinearDistanceClamped;
       DefaultDevice = '';
-      DefaultEnable = true;
+      DefaultEnabled = true;
 
     constructor Create;
     destructor Destroy; override;
@@ -286,7 +286,9 @@ type
       If the OpenAL context is already initialized when setting this,
       we will eventually close it. (More precisely, we will
       do ALContextClose and then ALContextOpen again. This behaves correctly.) }
-    property Enable: boolean read FEnable write SetEnable default DefaultEnable;
+    property Enabled: boolean read FEnabled write SetEnabled default DefaultEnabled;
+
+    property Enable : boolean read FEnabled write SetEnabled default DefaultEnabled; deprecated 'Use Enabled';
 
     { How the sound is attenuated with the distance.
       These are used only for spatialized sounds created with PlaySound.
@@ -733,7 +735,7 @@ begin
   FDefaultReferenceDistance := DefaultDefaultReferenceDistance;
   FDefaultMaxDistance := DefaultDefaultMaxDistance;
   FDistanceModel := DefaultDistanceModel;
-  FEnable := DefaultEnable;
+  FEnabled := DefaultEnabled;
   FDevice := DefaultDevice;
   FEnableSaveToConfig := true;
   DeviceSaveToConfig := true;
@@ -1007,7 +1009,7 @@ begin
   Assert(not ALActive, 'OpenAL context is already active');
   Assert(not ALInitialized, 'OpenAL context initialization was already attempted');
 
-  if not Enable then
+  if not Enabled then
     FSoundInitializationReport :=
       'OpenAL initialization aborted: sound is disabled (by --no-sound command-line option, or menu item or such)' else
   begin
@@ -1357,17 +1359,17 @@ begin
   end;
 end;
 
-procedure TSoundEngine.SetEnable(const Value: boolean);
+procedure TSoundEngine.SetEnabled(const Value: boolean);
 begin
-  if Value <> FEnable then
+  if Value <> FEnabled then
   begin
     if ALInitialized then
     begin
       ALContextClose;
-      FEnable := Value;
+      FEnabled := Value;
       ALContextOpen;
     end else
-      FEnable := Value;
+      FEnabled := Value;
     FEnableSaveToConfig := true; // caller will eventually change it to false
   end;
 end;
@@ -1384,7 +1386,7 @@ begin
          Engine.DeviceSaveToConfig := false;
        end;
     1: begin
-         Engine.Enable := false;
+         Engine.Enabled := false;
          Engine.EnableSaveToConfig := false;
        end;
     else raise EInternalError.Create('OpenALOptionProc');
@@ -1465,7 +1467,7 @@ end;
 procedure TSoundEngine.LoadFromConfig(const Config: TCastleConfig);
 begin
   Device := Config.GetValue('sound/device', DefaultDevice);
-  Enable := Config.GetValue('sound/enable', DefaultEnable);
+  Enabled := Config.GetValue('sound/enable', DefaultEnabled);
 end;
 
 procedure TSoundEngine.SaveToConfig(const Config: TCastleConfig);
@@ -1473,7 +1475,7 @@ begin
   if DeviceSaveToConfig then
     Config.SetDeleteValue('sound/device', Device, DefaultDevice);
   if EnableSaveToConfig then
-    Config.SetDeleteValue('sound/enable', Enable, DefaultEnable);
+    Config.SetDeleteValue('sound/enable', Enabled, DefaultEnabled);
 end;
 
 { TRepoSoundEngine ----------------------------------------------------------- }
