@@ -4641,10 +4641,31 @@ end;
 procedure TCastleApplication.HandleException(Sender: TObject);
 
   procedure DefaultShowException(ExceptObject: TObject; ExceptAddr: Pointer);
+  var
+    OriginalObj: TObject;
+    OriginalAddr: Pointer;
+    OriginalFrameCount: Longint;
+    OriginalFrame: Pointer;
   begin
     if (GuessedMainWindow <> nil) and
        (not GuessedMainWindow.Closed) then
-      GuessedMainWindow.MessageOK(ExceptMessage(ExceptObject, ExceptAddr), mtError) else
+    begin
+      try
+        OriginalObj := ExceptObject;
+        OriginalAddr := ExceptAddr;
+        OriginalFrameCount := ExceptFrameCount;
+        OriginalFrame := ExceptFrames;
+        WritelnLog('Exception', ExceptMessage(ExceptObject, ExceptAddr));
+        GuessedMainWindow.MessageOK(ExceptMessage(ExceptObject, ExceptAddr), mtError);
+      except
+        on E: TObject do
+        begin
+          OnWarning(wtMajor, 'Exception', 'Exception ' + E.ClassName + ' occured in the error handler itself. This means we cannot report the exception by a nice dialog box. The *original* exception report follows.');
+          ExceptProc(OriginalObj, OriginalAddr, OriginalFrameCount, OriginalFrame);
+          Halt(1);
+        end;
+      end;
+    end else
     begin
       { reraise, causing the app to exit with default FPC messsage and stacktrace }
       { not nice, as the stacktrace becomes overridden by this line in CastleWindow.pas:
