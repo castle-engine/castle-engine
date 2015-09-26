@@ -364,6 +364,7 @@ begin
 end;
 
 { callbacks for gtk -----------------------------------------------------
+
   All gtk callback names are named signal_xxx where xxx is the gtk signal name.
   So all events have names like signal_yyy_event.
 
@@ -371,19 +372,59 @@ end;
   have 1st parameter AGLAreaGtk: PGtkAreaGtk.
   Similarly, callbackas that expect as 1st parameter WindowGtk of some
   OpenWindows window have 1st parameter AWindowGtk: PGtkWindow.
+
+  Note that we capture and handle exceptions here, we don't depend on
+  Application.DoRun to catch exceptions from our ProcessMessage.
+  This avoids problems with GTK: we *cannot* let any exception go out
+  from the GTK callback, it causes further SEGFAULTs,
+  probably because GTK is simply not prepared for a callback to raise exception.
+  A simple test is to remove these try..except clauses, and instead do
+
+    try
+      gtk_main_iteration_do(WaitForMessage);
+    except
+      on E: TObject do
+        HandleException(E);
+    end;
+
+  instead of direct
+
+    gtk_main_iteration_do(WaitForMessage);
+
+  in ProcessMessage. The result? At the end of HandleException, you get
+  SEGFAULT at the end of TCastleWindowCustom.MessageOK...
+  (debugger doesn't show sensible stuff, it's like GtkDialogRun is Ok,
+  and then any instruction just crashes.)
+  I found no other explanation other than GTK memory got corrupted.
+  Catching exception inside the callback, and handling it here, works OK.
 }
+
+{$define SIGNAL_GENERAL_BEGIN:=
+try}
+{$define SIGNAL_GENERAL_END:=
+except
+  on E: TObject do Application.HandleException(E);
+end}
 
 {$define SIGNAL_GLAREA_BEGIN:=
 begin
- with Application.FindGLAreaGtk(AGLAreaGtk) do begin}
+  with Application.FindGLAreaGtk(AGLAreaGtk) do
+  begin
+    SIGNAL_GENERAL_BEGIN}
 {$define SIGNAL_GLAREA_END:=
- end; end}
+    SIGNAL_GENERAL_END;
+  end;
+end}
 
 {$define SIGNAL_WINDOW_BEGIN:=
 begin
- with Application.FindWindowGtk(AWindowGtk) do begin}
+  with Application.FindWindowGtk(AWindowGtk) do
+  begin
+    SIGNAL_GENERAL_BEGIN}
 {$define SIGNAL_WINDOW_END:=
- end; end}
+    SIGNAL_GENERAL_END;
+  end;
+end}
 
 function signal_expose_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventExpose;
   data: gpointer): gboolean; cdecl;
@@ -590,54 +631,57 @@ SIGNAL_GLAREA_END;
 
 procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
   data: gpointer); cdecl;
-var MenuItem: TMenuItem;
-    Window: TCastleWindowCustom;
+var
+  MenuItem: TMenuItem;
+  Window: TCastleWindowCustom;
 begin
- MenuItem := MenuItemFromSmallId( PtrInt(Data) );
- Window := TCastleWindowCustom( gtk_object_get_user_data(GTK_OBJECT(AMenuItemGtk)) );
+  SIGNAL_GENERAL_BEGIN
+    MenuItem := MenuItemFromSmallId( PtrInt(Data) );
+    Window := TCastleWindowCustom( gtk_object_get_user_data(GTK_OBJECT(AMenuItemGtk)) );
 
- if MenuItem is TMenuItemChecked then
- begin
-  { GTK checked menu items do always something like our AutoCheckedToggle.
-    This assert confirms that: }
+    if MenuItem is TMenuItemChecked then
+    begin
+      { GTK checked menu items do always something like our AutoCheckedToggle.
+        This assert confirms that: }
 
-  if not (MenuItem is TMenuItemRadio) then
-    Assert( gtk_check_menu_item_get_active(PGtkCheckMenuItem(AMenuItemGtk)) <>
+      if not (MenuItem is TMenuItemRadio) then
+        Assert( gtk_check_menu_item_get_active(PGtkCheckMenuItem(AMenuItemGtk)) <>
+                TMenuItemChecked(MenuItem).Checked);
+
+      { I don't want this (because, first of all, not always my
+        TMenuItemChecked will have AutoCheckedToggle = true.
+        Second, when not MenuActive, I do not want such behaviour, even for
+        AutoCheckedToggle = true.)
+
+        So below I'm simply returning such GTK menu item to it's previous state.
+
+        Note that we CAN'T do here simple
+        1. gtk_check_menu_item_set_active(PGtkCheckMenuItem(AMenuItemGtk),
+            not (gtk_check_menu_item_get_active(AMenuItemGtk)));
+        or (equivalent)
+        2. gtk_check_menu_item_set_active(PGtkCheckMenuItem(AMenuItemGtk),
             TMenuItemChecked(MenuItem).Checked);
+        because gtk_check_menu_item_set_active
+        would call THIS SIGNAL ONCE AGAIN when we change active state !
+        This means that inside gtk_check_menu_item_set_active this
+        procedure would be called once again (if we were using 1.,
+        this would already be a bug, because this would lead to recursive
+        call. If we were using 2., the bug will be
+        because we would call Window.DoMenuClick(MenuItem) TWICE.
 
-  { I don't want this (because, first of all, not always my
-    TMenuItemChecked will have AutoCheckedToggle = true.
-    Second, when not MenuActive, I do not want such behaviour, even for
-    AutoCheckedToggle = true.)
+        So I must temporary block this signal before doing
+        gtk_check_menu_item_set_active. }
+      MenuItemBlock(AMenuItemGtk, MenuItem);
+      try
+        gtk_check_menu_item_set_active(PGtkCheckMenuItem(AMenuItemGtk),
+          TMenuItemChecked(MenuItem).Checked);
+      finally
+        MenuItemUnblock(AMenuItemGtk, MenuItem);
+      end;
+    end;
 
-    So below I'm simply returning such GTK menu item to it's previous state.
-
-    Note that we CAN'T do here simple
-    1. gtk_check_menu_item_set_active(PGtkCheckMenuItem(AMenuItemGtk),
-        not (gtk_check_menu_item_get_active(AMenuItemGtk)));
-    or (equivalent)
-    2. gtk_check_menu_item_set_active(PGtkCheckMenuItem(AMenuItemGtk),
-        TMenuItemChecked(MenuItem).Checked);
-    because gtk_check_menu_item_set_active
-    would call THIS SIGNAL ONCE AGAIN when we change active state !
-    This means that inside gtk_check_menu_item_set_active this
-    procedure would be called once again (if we were using 1.,
-    this would already be a bug, because this would lead to recursive
-    call. If we were using 2., the bug will be
-    because we would call Window.DoMenuClick(MenuItem) TWICE.
-
-    So I must temporary block this signal before doing
-    gtk_check_menu_item_set_active. }
-  MenuItemBlock(AMenuItemGtk, MenuItem);
-  try
-   gtk_check_menu_item_set_active(PGtkCheckMenuItem(AMenuItemGtk),
-     TMenuItemChecked(MenuItem).Checked);
-  finally
-   MenuItemUnblock(AMenuItemGtk, MenuItem);
-  end;
- end;
-
- Window.DoMenuClick(MenuItem);
+    Window.DoMenuClick(MenuItem);
+  SIGNAL_GENERAL_END;
 end;
 
 function signal_window_focus_out_event(AWindowGtk: PGtkWindow;
