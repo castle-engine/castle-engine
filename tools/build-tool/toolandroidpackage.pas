@@ -27,6 +27,8 @@ procedure CreateAndroidPackage(const Project: TCastleProject;
 
 procedure InstallAndroidPackage(const Name, QualifiedName: string);
 
+procedure RunAndroidPackage(const Name, QualifiedName: string);
+
 implementation
 
 uses SysUtils, Classes,
@@ -328,14 +330,26 @@ begin
     to avoid failures because apk signed with different keys (debug vs release). }
 
   Writeln('Uninstalling, then installing again and running application identified as "' + QualifiedName + '"');
-
   RunCommandSimple('adb', ['uninstall', QualifiedName]);
   RunCommandSimple('adb', ['install', ApkName]);
+  Writeln('Install successfull.');
+end;
+
+procedure RunAndroidPackage(const Name, QualifiedName: string);
+begin
   RunCommandSimple('adb', ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
     '-n', QualifiedName + '/android.app.NativeActivity']);
-
-  Writeln('Install and run successfull. Run "adb logcat | grep ' + Name + '" (assuming that your ApplicationName is ''' + Name + ''') to see log output from your application.');
+  Writeln('Run successfull.');
+  if (FindExe('bash') <> '') and
+     (FindExe('grep') <> '') then
+  begin
+    Writeln('Running "adb logcat | grep ' + Name + '" (we are assuming that your ApplicationName is ''' + Name + ''') to see log output from your application. Just break this process with Ctrl+C to stop.');
+    { run through ExecuteProcess, because we don't want to capture output,
+      we want to immediately pass it to user }
+    ExecuteProcess(FindExe('bash'), ['-c', 'adb logcat | grep "' + Name + '"']);
+  end else
+    Writeln('Run "adb logcat | grep ' + Name + '" (we are assuming that your ApplicationName is ''' + Name + ''') to see log output from your application. Install "bash" and "grep" on $PATH (on Windows, you may want to install MinGW or Cygwin) to run it automatically here.');
 end;
 
 end.

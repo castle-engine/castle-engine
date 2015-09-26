@@ -74,10 +74,20 @@ begin
           NL+
           '- "install" :' +NL+
           '  Install the application created by previous "package" call.' +NL+
-          '  Right now this is only useful when OS is "android", it installs' +NL+
-          '  and runs the apk package created by previous "package" call' +NL+
+          '  Useful when OS is "android", it installs' +NL+
+          '  the apk package created by previous "package" call' +NL+
           '  for Android. Useful for quick testing of your app on a device' +NL+
           '  connected through USB.' +NL+
+          '  Useful also for installing compiled web browser plugin.' +NL+
+          NL+
+          '- "run" :' +NL+
+          '  Run the application. ' +NL+
+          '  On some platforms, it requires installing the application first' +NL+
+          '  (e.g. on Android, where we install and run on a device' +NL+
+          '  connected through USB). So run the "install" command before.' +NL+
+          '  On other platforms (e.g. standalone Windows, Linux, Mac OS X...),' +NL+
+          '  it simply runs the last compiled application.' +NL+
+          '  So just "compile" the application first.' +NL+
           NL+
           '- "package-source" :' +NL+
           '  Package the source code of the application.' +NL+
@@ -164,6 +174,8 @@ begin
     end else
     if Command = 'install' then
       Project.DoInstall(OS, CPU, Plugin) else
+    if Command = 'run' then
+      Project.DoRun(OS, CPU, Plugin) else
     if Command = 'package-source' then
     begin
       Project.DoClean;

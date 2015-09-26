@@ -68,6 +68,7 @@ type
     procedure DoCompile(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
     procedure DoPackage(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
     procedure DoInstall(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
+    procedure DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
     procedure DoPackageSource;
     procedure DoClean;
 
@@ -80,7 +81,9 @@ type
     property Dependencies: TDependencies read FDependencies;
     property Name: string read FName;
     property Icons: TIconFileNames read FIcons;
+    { Project path. Always ends with path delimiter, like a slash or backslash. }
     property Path: string read FPath;
+    { Project data path. Always ends with path delimiter, like a slash or backslash. }
     property DataPath: string read FDataPath;
     property Caption: string read FCaption;
     property Author: string read FAuthor;
@@ -706,7 +709,32 @@ begin
   if Plugin and (OS in AllUnixOSes) then
     InstallUnixPlugin else
   {$endif}
-    raise Exception.Create('The "install" command is not useful for this OS / CPU right now. Install and run the application manually.');
+    raise Exception.Create('The "install" command is not useful for this OS / CPU right now. Install the application manually.');
+end;
+
+procedure TCastleProject.DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
+var
+  ExeName: string;
+begin
+  Writeln(Format('Running project "%s" for OS / CPU "%s / %s"%s.',
+    [Name, OSToString(OS), CPUToString(CPU),
+     Iff(Plugin, ' (as a plugin)', '')]));
+
+  if OS = Android then
+    RunAndroidPackage(Name, QualifiedName) else
+  begin
+    if Plugin then
+      raise Exception.Create('The "run" command cannot be used for runninig "plugin" type application right now.');
+    ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+    Writeln('Running ' + ExeName);
+
+    { run through ExecuteProcess, because we don't want to capture output,
+      we want to immediately pass it to user }
+    SetCurrentDir(Path);
+    ExecuteProcess(ExeName, []);
+  end;
+  //else
+  // raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
 end;
 
 procedure TCastleProject.DoPackageSource;
