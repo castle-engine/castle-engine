@@ -96,6 +96,15 @@ begin
           '  Clean leftover files from compilation and packaging.' +NL+
           '  Does not remove final packaging output.' +NL+
           NL+
+          '- "simple-compile" :' +NL+
+          '  Compile the Object Pascal file (unit/program/library) given' +NL+
+          '  as a parameter. This does not handle the Castle Game Engine projects' +NL+
+          '  defined by CastleEngineManifest.xml files.' +NL+
+          '  It merely calls "fpc" with proper command-line options for' +NL+
+          '  units/programs/libraries using our engine.' +NL+
+          '  Use this instead of "compile" only if there''s some good reason' +NL+
+          '  you don''t want to use CastleEngineManifest.xml to your project.' +NL+
+          NL+
           'Available options are:' +NL+
           HelpOptionHelp +NL+
           VersionOptionHelp +NL+
@@ -133,7 +142,7 @@ begin
 end;
 
 var
-  Command, S: string;
+  Command, S, FileName: string;
   Project: TCastleProject;
 begin
   OnWarning := @OnWarningWrite;
@@ -143,8 +152,8 @@ begin
 
   { parse parameters }
   Parameters.Parse(Options, @OptionProc, nil);
-  if Parameters.High <> 1 then
-    raise EInvalidParams.Create('Invalid command-line parameters, expected exactly one COMMAND to perform. Use --help to get usage information') else
+  if Parameters.High < 1 then
+    raise EInvalidParams.Create('Not enough command-line parameters, expected a COMMAND to perform. Use --help to get usage information') else
   Command := Parameters[1];
 
   { check OS, CPU }
@@ -157,32 +166,41 @@ begin
     raise EInvalidParams.Create(S);
   end;
 
-  Project := TCastleProject.Create;
-  try
-    if Command = 'create-manifest' then
-      Project.DoCreateManifest else
-    if Command = 'compile' then
-      Project.DoCompile(OS, CPU, Plugin, Mode) else
-    if Command = 'package' then
-    begin
-      if not AssumeCompiled then
+  if Command = 'simple-compile' then
+  begin
+    Parameters.CheckHigh(2);
+    FileName := Parameters[2];
+    Compile(OS, CPU, Plugin, Mode, ExtractFilePath(FileName), FileName);
+  end else
+  begin
+    Parameters.CheckHigh(1);
+    Project := TCastleProject.Create;
+    try
+      if Command = 'create-manifest' then
+        Project.DoCreateManifest else
+      if Command = 'compile' then
+        Project.DoCompile(OS, CPU, Plugin, Mode) else
+      if Command = 'package' then
+      begin
+        if not AssumeCompiled then
+        begin
+          Project.DoClean;
+          Project.DoCompile(OS, CPU, Plugin, Mode);
+        end;
+        Project.DoPackage(OS, CPU, Plugin, Mode);
+      end else
+      if Command = 'install' then
+        Project.DoInstall(OS, CPU, Plugin) else
+      if Command = 'run' then
+        Project.DoRun(OS, CPU, Plugin) else
+      if Command = 'package-source' then
       begin
         Project.DoClean;
-        Project.DoCompile(OS, CPU, Plugin, Mode);
-      end;
-      Project.DoPackage(OS, CPU, Plugin, Mode);
-    end else
-    if Command = 'install' then
-      Project.DoInstall(OS, CPU, Plugin) else
-    if Command = 'run' then
-      Project.DoRun(OS, CPU, Plugin) else
-    if Command = 'package-source' then
-    begin
-      Project.DoClean;
-      Project.DoPackageSource;
-    end else
-    if Command = 'clean' then
-      Project.DoClean else
-      raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
-  finally FreeAndNil(Project) end;
+        Project.DoPackageSource;
+      end else
+      if Command = 'clean' then
+        Project.DoClean else
+        raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
+    finally FreeAndNil(Project) end;
+  end;
 end.
