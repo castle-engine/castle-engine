@@ -727,7 +727,6 @@ begin
       raise Exception.Create('The "run" command cannot be used for runninig "plugin" type application right now.');
     ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
     Writeln('Running ' + ExeName);
-
     { run through ExecuteProcess, because we don't want to capture output,
       we want to immediately pass it to user }
     SetCurrentDir(Path);
