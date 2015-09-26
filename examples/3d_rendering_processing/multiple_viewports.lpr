@@ -25,11 +25,12 @@
 
 {$I castleconf.inc}
 
-uses SysUtils, CastleGL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleSceneManager,
+uses SysUtils, CastleGL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene,
   CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
-  CastleControls, CastleWarnings, CastleScreenEffects,
+  CastleControls, CastleWarnings, CastleScreenEffects, CastleSceneManager,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
-  CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages;
+  CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages
+  {$ifdef ADD_GL_ANIMATION} , Castle3D, CastlePrecalculatedAnimation {$endif};
 
 { TMyViewport ---------------------------------------------------------------- }
 
@@ -274,15 +275,15 @@ begin
 
   {$ifdef ADD_GL_ANIMATION}
   { initialize Transform }
-  Transform := T3DTransform.Create(SceneManager);
+  Transform := T3DTransform.Create(Window.SceneManager);
   Transform.Translation := Vector3Single(5, 3, 60);
   Window.SceneManager.Items.Add(Transform);
 
   { initialize Animation }
-  Animation := TCastlePrecalculatedAnimation.Create(SceneManager);
+  Animation := TCastlePrecalculatedAnimation.Create(Window.SceneManager);
   Animation.LoadFromFile('models/raptor.kanim', false, true);
   Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
-  Transform.Child := Animation;
+  Transform.Add(Animation);
   {$endif ADD_GL_ANIMATION}
 
   { one viewport shows only wireframe }
