@@ -93,6 +93,9 @@ var
 var
   SliderPosition: TRGBImage;
 
+var
+  ErrorBackground: TGrayscaleImage;
+
 implementation
 
 uses SysUtils;
@@ -187,6 +190,9 @@ initialization
   SliderPosition := TRGBImage.Create(SliderPositionWidth, SliderPositionHeight, SliderPositionDepth);
   Move(SliderPositionPixels, SliderPosition.RawPixels^, SizeOf(SliderPositionPixels));
   SliderPosition.URL := 'embedded-image:/SliderPosition';
+  ErrorBackground := TGrayscaleImage.Create(ErrorBackgroundWidth, ErrorBackgroundHeight, ErrorBackgroundDepth);
+  Move(ErrorBackgroundPixels, ErrorBackground.RawPixels^, SizeOf(ErrorBackgroundPixels));
+  ErrorBackground.URL := 'embedded-image:/ErrorBackground';
 finalization
   FreeAndNil(Panel);
   FreeAndNil(WindowDarkTransparent);
@@ -216,4 +222,5 @@ finalization
   FreeAndNil(ScrollbarFrame);
   FreeAndNil(ScrollbarSlider);
   FreeAndNil(SliderPosition);
+  FreeAndNil(ErrorBackground);
 end.

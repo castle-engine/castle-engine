@@ -2796,6 +2796,7 @@ function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModif
 implementation
 
 uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils, CastleWarnings,
+  CastleControls,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
@@ -4646,22 +4647,36 @@ procedure TCastleApplication.HandleException(Sender: TObject);
     OriginalAddr: Pointer;
     OriginalFrameCount: Longint;
     OriginalFrame: Pointer;
+    ErrMessage: string;
   begin
+    ErrMessage := ExceptMessage(ExceptObject, ExceptAddr);
+    { in case the following code, trying to handle the exception with nice GUI,
+      will fail and crash horribly -- make sure to log the exception. }
+    WritelnLog('Exception', ErrMessage);
+
     if (GuessedMainWindow <> nil) and
-       (not GuessedMainWindow.Closed) then
+       (not GuessedMainWindow.Closed) and
+       { for some weird reason (even though we try to protect from it in code)
+         handling of GuessedMainWindow.MessageOK causes another exception
+         that resulted in recursive call to HandleException.
+         Prevent the loop with just crash in this case. }
+       (not Theme.MessageErrorBackground) then
     begin
       try
         OriginalObj := ExceptObject;
         OriginalAddr := ExceptAddr;
         OriginalFrameCount := ExceptFrameCount;
         OriginalFrame := ExceptFrames;
-        WritelnLog('Exception', ExceptMessage(ExceptObject, ExceptAddr));
-        GuessedMainWindow.MessageOK(ExceptMessage(ExceptObject, ExceptAddr), mtError);
+        Theme.MessageErrorBackground := true;
+        GuessedMainWindow.MessageOK(ErrMessage, mtError);
+        Theme.MessageErrorBackground := false;
       except
         on E: TObject do
         begin
           OnWarning(wtMajor, 'Exception', 'Exception ' + E.ClassName + ' occured in the error handler itself. This means we cannot report the exception by a nice dialog box. The *original* exception report follows.');
           ExceptProc(OriginalObj, OriginalAddr, OriginalFrameCount, OriginalFrame);
+          OnWarning(wtMajor, 'Exception', 'And below is a report about the exception within exception handler.');
+          ExceptProc(SysUtils.ExceptObject, SysUtils.ExceptAddr, SysUtils.ExceptFrameCount, SysUtils.ExceptFrames);
           Halt(1);
         end;
       end;

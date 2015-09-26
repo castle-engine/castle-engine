@@ -235,7 +235,8 @@ type
     to draw the saved image in a simplest 2D OpenGL projection. }
   TGLModeFrozenScreen = class(TGLMode)
   private
-    Control: TCastleImageControl;
+    SaveScreenControl: TCastleImageControl;
+    ErrorBackground: TErrorBackground;
   public
     constructor Create(AWindow: TCastleWindowCustom);
     destructor Destroy; override;
@@ -511,22 +512,33 @@ constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowCustom);
 begin
   inherited Create(AWindow);
 
-  Control := TCastleImageControl.Create(nil);
-  Control.Stretch := true;
-  Control.FullSize := true;
+  if Theme.MessageErrorBackground then
+  begin
+    ErrorBackground := TErrorBackground.Create(nil);
+  end else
+  begin
+    SaveScreenControl := TCastleImageControl.Create(nil);
+    SaveScreenControl.Stretch := true;
+    SaveScreenControl.FullSize := true;
 
-  { save screen, before changing state. }
-  Control.Image := Window.SaveScreen;
+    { save screen, before changing state. }
+    SaveScreenControl.Image := Window.SaveScreen;
+    SaveScreenControl.Color := Theme.BackgroundTint;
+  end;
 
   OldState.SetStandardState(nil, nil, @NoClose);
-  AWindow.Controls.InsertFront(Control);
+
+  if Theme.MessageErrorBackground then
+    AWindow.Controls.InsertFront(ErrorBackground) else
+    AWindow.Controls.InsertFront(SaveScreenControl)
 end;
 
 destructor TGLModeFrozenScreen.Destroy;
 begin
   inherited;
   { it's a little safer to call this after inherited }
-  FreeAndNil(Control);
+  FreeAndNil(SaveScreenControl);
+  FreeAndNil(ErrorBackground);
 end;
 
 { routines ------------------------------------------------------------------- }

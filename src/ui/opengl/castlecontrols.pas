@@ -277,6 +277,7 @@ type
     FFullSize: boolean;
     FWidth: Cardinal;
     FHeight: Cardinal;
+    FColor: TCastleColor;
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TCastleImage);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
@@ -287,6 +288,7 @@ type
     procedure SetHeight(const Value: Cardinal);
     procedure SetFullSize(const Value: boolean);
     procedure SetProportional(const Value: boolean);
+    procedure SetColor(const Value: TCastleColor);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -309,6 +311,11 @@ type
       The control size will be updated immediately (respecing current
       @link(Stretch) and related properties). }
     property Image: TCastleImage read FImage write SetImage;
+
+    { Color tint of the image. This simply multiplies the image RGBA components,
+      just like @link(TGLImage.Color). By default this is opaque white,
+      which means that image colors are unchanged. }
+    property Color: TCastleColor read FColor write SetColor;
 
     procedure ImageChanged;
   published
@@ -537,7 +544,7 @@ type
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip,
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
-    tiCrosshair1, tiCrosshair2);
+    tiCrosshair1, tiCrosshair2, tiErrorBackground);
 
   { Label with possibly multiline text, in a box. }
   TCastleLabel = class(TUIControlFont)
@@ -659,6 +666,11 @@ type
       default TProgressUserInterface.DefaultBarYPosition;
   end;
 
+  { Error background, for various error handlers. }
+  TErrorBackground = class(TUIControl)
+    procedure Render; override;
+  end;
+
   { Theme for 2D GUI controls.
     Should only be used through the single global instance @link(Theme). }
   TCastleTheme = class
@@ -669,6 +681,7 @@ type
     FOwnsImages: array [TThemeImage] of boolean;
     FMessageFont: TCastleFont;
     FOwnsMessageFont: boolean;
+    FMessageErrorBackground: boolean;
     function GetImages(const ImageType: TThemeImage): TCastleImage;
     procedure SetImages(const ImageType: TThemeImage; const Value: TCastleImage);
     function GetOwnsImages(const ImageType: TThemeImage): boolean;
@@ -693,10 +706,28 @@ type
     BarEmptyColor: TVector3Byte;
     BarFilledColor: TVector3Byte;
 
-    { Tint of background image under TCastleDialog.
+    { Tint of background image under TCastleDialog and TGLModeFrozenScreen.
       Default is (0.25, 0.25, 0.25, 1), which makes background darker,
       which helps dialog to stand out. }
     BackgroundTint: TCastleColor;
+
+    { Undernath various message dialogs show "error background"
+      (@link(tiErrorBackround)) image instead of the default behaviour.
+      @italic(This is automatically used by CastleWindow exception handler,
+      you should not need to modify this property yourself.)
+
+      This affects modal messages made by @link(CastleMessages) unit,
+      and modal messages made by @link(TCastleWindow.MessageOK) and friends,
+      or modal states by @link(TGLModeFrozenScreen).
+
+      The default behaviour of them is to show the TCastleDialog provided background
+      (coming from screenshot usually), in case of
+      @link(CastleMessages) it is mixed with @link(BackgroundTint).
+      But saving the screen is potentially a bad idea when an exception occured
+      (since the application may be already in some dirty state, for which
+      the developer is not necessarily prepared). }
+    property MessageErrorBackground: boolean
+      read FMessageErrorBackground write FMessageErrorBackground default false;
 
     constructor Create;
     destructor Destroy; override;
@@ -1433,7 +1464,10 @@ begin
     begin
       if FGLImage <> nil then
         FGLImage.Load(FImage) else
+      begin
         FGLImage := TGLImage.Create(FImage, true);
+        FGLImage.Color := Color;
+      end;
       if AlphaChannel <> acAuto then
         FGLImage.Alpha := AlphaChannel;
     end else
@@ -1483,6 +1517,17 @@ begin
   if FProportional <> Value then
   begin
     FProportional := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleImageControl.SetColor(const Value: TCastleColor);
+begin
+  if not VectorsPerfectlyEqual(FColor, Value) then
+  begin
+    FColor := Value;
+    if FGLImage <> nil then
+      FGLImage.Color := Value;
     VisibleChange;
   end;
 end;
@@ -2484,6 +2529,14 @@ begin
   inherited;
 end;
 
+{ TErrorBackground ------------------------------------------------------ }
+
+procedure TErrorBackground.Render;
+begin
+  inherited;
+  Theme.Draw(ContainerRect, tiErrorBackground);
+end;
+
 { TCastleTheme --------------------------------------------------------------- }
 
 constructor TCastleTheme.Create;
@@ -2496,6 +2549,7 @@ begin
   BackgroundTint        := Vector4Single(0.25, 0.25, 0.25, 1);
 
   FOwnsMessageFont := true;
+  FMessageErrorBackground := false;
 
   FImages[tiPanel] := Panel;
   FCorners[tiPanel] := Vector4Integer(0, 0, 0, 0);
@@ -2539,6 +2593,8 @@ begin
   FCorners[tiCrosshair1] := Vector4Integer(0, 0, 0, 0);
   FImages[tiCrosshair2] := Crosshair2;
   FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiErrorBackground] := ErrorBackground;
+  FCorners[tiErrorBackground] := Vector4Integer(0, 0, 0, 0);
 end;
 
 destructor TCastleTheme.Destroy;
