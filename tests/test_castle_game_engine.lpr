@@ -1,4 +1,3 @@
-{ -*- compile-command: "./compile_console.sh" -*- }
 program test_castle_game_engine;
 
 { Define this if you use text runner for our tests.
