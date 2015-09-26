@@ -36,8 +36,8 @@
 This package cannot be installed under Lazarus, it's only for being used in other programs. CastleWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources."/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
-    <Version Major="5" Minor="2" Release="0"/>
-    <Files Count="16">
+    <Version Major="5" Minor="2"/>
+    <Files Count="18">
       <Item1>
         <Filename Value="../src/base/castleconf.inc"/>
         <Type Value="Include"/>
@@ -79,32 +79,40 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <UnitName Value="CastleWindowTouch"/>
       </Item10>
       <Item11>
-        <Filename Value="../src/window/unix/castleglx.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleGlx"/>
+        <Filename Value="../src/window/gtk/castlewindow_gtk.inc"/>
+        <Type Value="Include"/>
       </Item11>
       <Item12>
-        <Filename Value="../src/window/unix/castlewindow_xf86vmode.inc"/>
+        <Filename Value="../src/window/gtk/castlewindow_gtk_menu.inc"/>
         <Type Value="Include"/>
       </Item12>
       <Item13>
-        <Filename Value="../src/window/unix/castlewindow_xlib.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../src/window/unix/castleglx.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="CastleGlx"/>
       </Item13>
       <Item14>
+        <Filename Value="../src/window/unix/castlewindow_xf86vmode.inc"/>
+        <Type Value="Include"/>
+      </Item14>
+      <Item15>
+        <Filename Value="../src/window/unix/castlewindow_xlib.inc"/>
+        <Type Value="Include"/>
+      </Item15>
+      <Item16>
         <Filename Value="../src/window/unix/castlexf86vmode.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleXF86VMode"/>
-      </Item14>
-      <Item15>
+      </Item16>
+      <Item17>
         <Filename Value="../src/window/unix/castlexlib.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleXlib"/>
-      </Item15>
-      <Item16>
+      </Item17>
+      <Item18>
         <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
         <Type Value="Include"/>
-      </Item16>
+      </Item18>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>
