@@ -216,6 +216,12 @@ begin
   for I := 0 to SlotTimelines.Count - 1 do
     MaxVar(MaxTime, SlotTimelines[I].MaxTime);
   MaxVar(MaxTime, DrawOrderTimelines.MaxTime);
+  { TimeSensor.cycleInterval should be > 0
+    (see testcase spine/test-animation-zero-time for where it's needed).
+    Also, this is passed as MaxAnimationTime to other BuildNodes methods,
+    that also assume that MaxAnimationTime > 0. }
+  if MaxTime <= 0 then
+    MaxTime := 1;
   Node.FdCycleInterval.Value := MaxTime;
 
   NodeUsedAsChild := true;

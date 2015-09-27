@@ -334,6 +334,8 @@ begin
     Exit;
   end else
   begin
+    Assert(Value is TSFFloat, 'EventSet_FractionReceive (for single-value field) can only process SFFloat input events');
+    Assert(not IsNan((Value as TSFFloat).Value), 'EventSet_FractionReceive (for single-value field) cannot handle fraction = NaN');
     Range := KeyRange((Value as TSFFloat).Value, T);
     if Range = 0 then
       OutputValue := KeyValue(0) else
@@ -406,6 +408,8 @@ begin
     Exit;
   end else
   begin
+    Assert(Value is TSFFloat, 'EventSet_FractionReceive (for multiple-value field) can only process SFFloat input events');
+    Assert(not IsNan((Value as TSFFloat).Value), 'EventSet_FractionReceive (for multiple-value field) cannot handle fraction = NaN');
     Range := KeyRange((Value as TSFFloat).Value, T);
     if Range = 0 then
       OutputValue := KeyValue(0) else
