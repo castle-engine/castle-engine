@@ -571,17 +571,40 @@ type
     bsOneMinusSrcAlpha,
     bsZero,
     bsOne,
-    bsSrcColor, //< Only since GL 1.4, check GLFeatures.Version_1_4
-    bsOneMinusSrcColor //< Only since GL 1.4, check GLFeatures.Version_1_4
-  );
 
+    bsDstColor,
+    bsSrcColor, //< As a source factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
+    bsDstAlpha,
+    bsOneMinusDstColor,
+    bsOneMinusSrcColor, //< As a source factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
+    bsOneMinusDstAlpha,
+
+    bsSrcAlphaSaturate,
+
+    bsConstantColor,
+    bsOneMinusConstantColor,
+    bsConstantAlpha,
+    bsOneMinusConstantAlpha
+  );
   TBlendingDestinationFactor = (
     bdSrcAlpha,
     bdOneMinusSrcAlpha,
     bdZero,
     bdOne,
+
+    bdDstColor, //< As a destination factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
     bdSrcColor,
-    bdOneMinusSrcColor
+    bdDstAlpha,
+    bdOneMinusDstColor, //< As a destination factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
+    bdOneMinusSrcColor,
+    bdOneMinusDstAlpha,
+
+    // not supported by OpenGL for destination factor: bsSrcAlphaSaturate
+    { }
+    bdConstantColor,
+    bdOneMinusConstantColor,
+    bdConstantAlpha,
+    bdOneMinusConstantAlpha
   );
 
 { Draw a rectangle that modulates colors underneath,
@@ -739,6 +762,9 @@ procedure SetGlobalAmbient(const Value: TVector3Single);
   For VRML 2.0 / X3D, lighting equations suggest that it should be zero. }
 property GlobalAmbient: TVector3Single
   read GetGlobalAmbient write SetGlobalAmbient;
+
+procedure GLBlendFunction(const SourceFactor: TBlendingSourceFactor;
+  const DestinationFactor: TBlendingDestinationFactor);
 
 {$undef read_interface}
 
@@ -1595,6 +1621,48 @@ end;
 
 { DrawRectangle ---------------------------------------------------------------- }
 
+const
+  BlendingSourceFactorToGL: array [TBlendingSourceFactor] of TGLEnum = (
+    GL_SRC_ALPHA,
+    GL_ONE_MINUS_SRC_ALPHA,
+    GL_ZERO,
+    GL_ONE,
+
+    GL_DST_COLOR,
+    GL_SRC_COLOR,
+    GL_DST_ALPHA,
+    GL_ONE_MINUS_DST_COLOR,
+    GL_ONE_MINUS_SRC_COLOR,
+    GL_ONE_MINUS_DST_ALPHA,
+
+    GL_SRC_ALPHA_SATURATE,
+
+    GL_CONSTANT_COLOR,
+    GL_ONE_MINUS_CONSTANT_COLOR,
+    GL_CONSTANT_ALPHA,
+    GL_ONE_MINUS_CONSTANT_ALPHA
+  );
+  BlendingDestinationFactorToGL: array [TBlendingDestinationFactor] of TGLEnum = (
+    GL_SRC_ALPHA,
+    GL_ONE_MINUS_SRC_ALPHA,
+    GL_ZERO,
+    GL_ONE,
+
+    GL_DST_COLOR,
+    GL_SRC_COLOR,
+    GL_DST_ALPHA,
+    GL_ONE_MINUS_DST_COLOR,
+    GL_ONE_MINUS_SRC_COLOR,
+    GL_ONE_MINUS_DST_ALPHA,
+
+    // GL_SRC_ALPHA_SATURATE, // not supported as destination factor
+
+    GL_CONSTANT_COLOR,
+    GL_ONE_MINUS_CONSTANT_COLOR,
+    GL_CONSTANT_ALPHA,
+    GL_ONE_MINUS_CONSTANT_ALPHA
+  );
+
 var
   {$ifdef GLImageUseShaders}
   GLRectangleProgram: TGLSLProgram;
@@ -1687,27 +1755,10 @@ procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor;
   const BlendingDestinationFactor: TBlendingDestinationFactor;
   const ForceBlending: boolean);
-const
-  SourceFactorToGL: array [TBlendingSourceFactor] of TGLEnum = (
-    GL_SRC_ALPHA,
-    GL_ONE_MINUS_SRC_ALPHA,
-    GL_ZERO,
-    GL_ONE,
-    GL_SRC_COLOR,
-    GL_ONE_MINUS_SRC_COLOR
-  );
-  DestinationFactorToGL: array [TBlendingDestinationFactor] of TGLEnum = (
-    GL_SRC_ALPHA,
-    GL_ONE_MINUS_SRC_ALPHA,
-    GL_ZERO,
-    GL_ONE,
-    GL_SRC_COLOR,
-    GL_ONE_MINUS_SRC_COLOR
-  );
 begin
   DrawRectangleGL(R, Color,
-    SourceFactorToGL[BlendingSourceFactor],
-    DestinationFactorToGL[BlendingDestinationFactor], ForceBlending);
+    BlendingSourceFactorToGL[BlendingSourceFactor],
+    BlendingDestinationFactorToGL[BlendingDestinationFactor], ForceBlending);
 end;
 
 { GLInformationString -------------------------------------------------------- }
@@ -2138,6 +2189,14 @@ begin
   {$ifndef OpenGLES}
   glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(FGlobalAmbient, 1.0));
   {$endif}
+end;
+
+procedure GLBlendFunction(const SourceFactor: TBlendingSourceFactor;
+  const DestinationFactor: TBlendingDestinationFactor);
+begin
+  glBlendFunc(
+    BlendingSourceFactorToGL[SourceFactor],
+    BlendingDestinationFactorToGL[DestinationFactor]);
 end;
 
 procedure ContextClose;
