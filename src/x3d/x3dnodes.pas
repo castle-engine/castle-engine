@@ -5872,6 +5872,7 @@ var
   A, B: Integer;
 begin
   Assert(Key.Count > 0);
+  Assert(not IsNan(Fraction));
 
   if Fraction <= Key.First then
     Result := 0 else
@@ -5880,7 +5881,8 @@ begin
   begin
     { Then for sure we're between two Key values.
       Note that we know that Key.Count > 1 (otherwise, Key.First = Key.Last
-      so one of <= or >= comparisons above would occur). }
+      so one of <= or >= comparisons above would occur; we check
+      IsNan(Fraction) at the beginning to eliminate Fraction=NaN case). }
     Assert(Key.Count > 1);
 
     { Always A < B.
