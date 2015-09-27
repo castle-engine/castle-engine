@@ -199,8 +199,6 @@ public
     Note that this is exposed by GTK even for non-XWindows platforms,
     but I don't know what it does there. }
   property XDisplayName: string read FXDisplayName write FXDisplayName;
-protected
-  procedure DoRun; override;
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -1635,11 +1633,6 @@ begin
  Result := TryFindGLAreaGtk(seekGLAreaGtk);
  if Result = nil then raise EInternalError.Create(
    'No open window with such GLAreaGtk found');
-end;
-
-procedure TCastleApplication.DoRun;
-begin
-  ProcessMessage(true, true);
 end;
 
 procedure TCastleApplication.Run;

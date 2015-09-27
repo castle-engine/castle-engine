@@ -2475,6 +2475,9 @@ end;
     { Override TCustomApplication to pass TCustomApplication.Log
       to CastleLog logger. }
     procedure DoLog(EventType : TEventType; const Msg : String); override;
+    { Every backend must override this. TCustomApplication will
+      automatically catch exceptions occuring inside DoRun. }
+    procedure DoRun; override;
   public
     { If VideoResize, then next VideoChange call will
       try to resize the screen to given VideoResizeWidth /
@@ -4708,6 +4711,11 @@ end;
 procedure TCastleApplication.DoLog(EventType : TEventType; const Msg : String);
 begin
   WritelnLog('CastleWindow', Msg);
+end;
+
+procedure TCastleApplication.DoRun;
+begin
+  ProcessMessage(true, true);
 end;
 
 { global --------------------------------------------------------------------- }

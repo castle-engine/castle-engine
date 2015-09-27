@@ -616,7 +616,8 @@ begin
   ZLibInitialization;
   {$endif}
 
-  while ProcessMessage(true, true) do ;
+  inherited Initialize; // set Terminated := false
+  inherited Run; // calls DoRun, surrounded by HandleException, in a loop
 
   FreeAndNil(QEvents);
 end;

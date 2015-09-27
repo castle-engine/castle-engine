@@ -31,8 +31,6 @@ private
     (and simply ignoring WasAnyMessage). }
   function ProcessMessage2(WaitForMessage, WaitToLimitFPS: boolean;
     var WasAnyMessage: boolean): boolean;
-protected
-  procedure DoRun; override;
 {$endif read_application_interface}
 
 {$ifdef read_implementation}
@@ -287,11 +285,6 @@ begin
   {$endif}
 
   Result := not Terminated;
-end;
-
-procedure TCastleApplication.DoRun;
-begin
-  ProcessMessage(true, true);
 end;
 
 procedure TCastleApplication.Run;
