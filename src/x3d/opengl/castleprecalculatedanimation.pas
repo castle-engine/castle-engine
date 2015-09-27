@@ -18,7 +18,7 @@ unit CastlePrecalculatedAnimation;
 
 interface
 
-uses SysUtils, Classes, FGL, 
+uses SysUtils, Classes, FGL,
   X3DNodes, CastleRenderer, CastleSceneCore, CastleScene,
   CastleUtils, CastleBoxes, CastleClassUtils, CastlePrecalculatedAnimationCore,
   CastleKeysMouse, CastleTimeUtils, CastleFrustum, CastleVectors, Castle3D, X3DTriangles,
@@ -664,11 +664,10 @@ type
 
 const
   DefaultAnimationSmoothness = 1.0;
+
 var
   { Default Smoothness value for TCastlePrecalculatedAnimation.LoadFromFile.
-    This allows to globally control the precalculated animations quality.
-    Saved as user preference to Config (if your program will call Config.Load
-    and Config.Save, see CastleConfig). }
+    This allows to globally control the precalculated animations quality. }
   AnimationSmoothness: Single = DefaultAnimationSmoothness;
 
 procedure Register;
@@ -2062,26 +2061,4 @@ begin
   end;
 end;
 
-type
-  TConfigOptions = class
-    class procedure LoadFromConfig(const Config: TCastleConfig);
-    class procedure SaveToConfig(const Config: TCastleConfig);
-  end;
-
-class procedure TConfigOptions.LoadFromConfig(const Config: TCastleConfig);
-begin
-  AnimationSmoothness := Config.GetFloat(
-    'video_options/animation_smoothness', DefaultAnimationSmoothness);
-end;
-
-class procedure TConfigOptions.SaveToConfig(const Config: TCastleConfig);
-begin
-  Config.SetDeleteFloat(
-    'video_options/animation_smoothness',
-    AnimationSmoothness, DefaultAnimationSmoothness);
-end;
-
-initialization
-  Config.AddLoadListener(@TConfigOptions(nil).LoadFromConfig);
-  Config.AddSaveListener(@TConfigOptions(nil).SaveToConfig);
 end.

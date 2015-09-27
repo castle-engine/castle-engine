@@ -416,10 +416,10 @@ const
   DefaultAutoOpenInventory = true;
 
 var
-  { Automatically open TCastlePlayer inventory when picking up an item.
-    Saved/loaded to config file in this unit. }
+  { Automatically open TCastlePlayer inventory when picking up an item. }
   AutoOpenInventory: boolean = DefaultAutoOpenInventory;
 
+var
   PlayerInput_Forward: TInputShortcut;
   PlayerInput_Backward: TInputShortcut;
   PlayerInput_LeftRot: TInputShortcut;
@@ -1348,26 +1348,6 @@ begin
   end;
 end;
 
-{ initialization / finalization ---------------------------------------- }
-
-type
-  TConfigOptions = class
-    class procedure LoadFromConfig(const Config: TCastleConfig);
-    class procedure SaveToConfig(const Config: TCastleConfig);
-  end;
-
-class procedure TConfigOptions.LoadFromConfig(const Config: TCastleConfig);
-begin
-  AutoOpenInventory := Config.GetValue(
-    'auto_open_inventory', DefaultAutoOpenInventory);
-end;
-
-class procedure TConfigOptions.SaveToConfig(const Config: TCastleConfig);
-begin
-  Config.SetDeleteValue('auto_open_inventory',
-    AutoOpenInventory, DefaultAutoOpenInventory);
-end;
-
 initialization
   { Order of creation below is significant: it determines the order
     of menu entries in "Configure controls". }
@@ -1394,7 +1374,4 @@ initialization
   PlayerInput_Jump.Assign(K_Space);
   PlayerInput_Crouch := TInputShortcut.Create(nil, 'Crouch (or fly/swim down)', 'move_down', igBasic);
   PlayerInput_Crouch.Assign(K_C);
-
-  Config.AddLoadListener(@TConfigOptions(nil).LoadFromConfig);
-  Config.AddSaveListener(@TConfigOptions(nil).SaveToConfig);
 end.

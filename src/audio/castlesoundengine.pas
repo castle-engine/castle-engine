@@ -100,8 +100,6 @@ type
     procedure UpdateDistanceModel;
     procedure SetDevice(const Value: string);
     procedure SetEnabled(const Value: boolean);
-    procedure LoadFromConfig(const Config: TCastleConfig);
-    procedure SaveToConfig(const Config: TCastleConfig);
   public
     const
       DefaultVolume = 1.0;
@@ -114,6 +112,9 @@ type
 
     constructor Create;
     destructor Destroy; override;
+
+    procedure LoadFromConfig(const Config: TCastleConfig); override;
+    procedure SaveToConfig(const Config: TCastleConfig); override;
 
     { Initialize OpenAL library, and output device and context.
       Sets ALInitialized, ALActive, SoundInitializationReport, EFXSupported,
@@ -472,11 +473,12 @@ type
       and does something only if we have OpenAL context and some sounds,
       so it's actually safe to call it always). }
     procedure LoadSoundsBuffers;
-    procedure LoadFromConfig(const Config: TCastleConfig);
-    procedure SaveToConfig(const Config: TCastleConfig);
   public
     constructor Create;
     destructor Destroy; override;
+
+    procedure LoadFromConfig(const Config: TCastleConfig); override;
+    procedure SaveToConfig(const Config: TCastleConfig); override;
 
     { In addition to initializing OpenAL context, this also loads sound files. }
     procedure ALContextOpen; override;
@@ -747,17 +749,19 @@ begin
   ListenerOrientation[0] := Vector3Single(0, 0, -1);
   ListenerOrientation[1] := Vector3Single(0, 1, 0);
 
-  Config.AddLoadListener(@LoadFromConfig);
-  Config.AddSaveListener(@SaveToConfig);
+  // automatic loading/saving is more troublesome than it's worth
+  // Config.AddLoadListener(@LoadFromConfig);
+  // Config.AddSaveListener(@SaveToConfig);
 end;
 
 destructor TSoundEngine.Destroy;
 begin
-  if Config <> nil then
-  begin
-    Config.RemoveLoadListener(@LoadFromConfig);
-    Config.RemoveSaveListener(@SaveToConfig);
-  end;
+  // automatic loading/saving is more troublesome than it's worth
+  // if Config <> nil then
+  // begin
+  //   Config.RemoveLoadListener(@LoadFromConfig);
+  //   Config.RemoveSaveListener(@SaveToConfig);
+  // end;
 
   ALContextClose;
   FreeAndNil(BuffersCache);
@@ -1466,6 +1470,7 @@ end;
 
 procedure TSoundEngine.LoadFromConfig(const Config: TCastleConfig);
 begin
+  inherited;
   Device := Config.GetValue('sound/device', DefaultDevice);
   Enabled := Config.GetValue('sound/enable', DefaultEnabled);
 end;
@@ -1476,6 +1481,7 @@ begin
     Config.SetDeleteValue('sound/device', Device, DefaultDevice);
   if EnableSaveToConfig then
     Config.SetDeleteValue('sound/enable', Enabled, DefaultEnabled);
+  inherited;
 end;
 
 { TRepoSoundEngine ----------------------------------------------------------- }
@@ -1501,17 +1507,19 @@ begin
 
   FMusicPlayer := TMusicPlayer.Create(Self);
 
-  Config.AddLoadListener(@LoadFromConfig);
-  Config.AddSaveListener(@SaveToConfig);
+  // automatic loading/saving is more troublesome than it's worth
+  // Config.AddLoadListener(@LoadFromConfig);
+  // Config.AddSaveListener(@SaveToConfig);
 end;
 
 destructor TRepoSoundEngine.Destroy;
 begin
-  if Config <> nil then
-  begin
-    Config.RemoveLoadListener(@LoadFromConfig);
-    Config.RemoveSaveListener(@SaveToConfig);
-  end;
+  // automatic loading/saving is more troublesome than it's worth
+  // if Config <> nil then
+  // begin
+  //   Config.RemoveLoadListener(@LoadFromConfig);
+  //   Config.RemoveSaveListener(@SaveToConfig);
+  // end;
 
   FreeAndNil(FSoundImportanceNames);
   FreeAndNil(FSounds);
@@ -1755,6 +1763,7 @@ end;
 
 procedure TRepoSoundEngine.LoadFromConfig(const Config: TCastleConfig);
 begin
+  inherited;
   Volume := Config.GetFloat('sound/volume', DefaultVolume);
   MusicPlayer.MusicVolume := Config.GetFloat('sound/music/volume',
     TMusicPlayer.DefaultMusicVolume);
@@ -1768,6 +1777,7 @@ begin
   if MusicPlayer <> nil then
     Config.SetDeleteFloat('sound/music/volume',
       MusicPlayer.MusicVolume, TMusicPlayer.DefaultMusicVolume);
+  inherited;
 end;
 
 { TMusicPlayer --------------------------------------------------------------- }

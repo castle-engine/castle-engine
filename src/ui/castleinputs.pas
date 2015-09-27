@@ -89,8 +89,9 @@ unit CastleInputs;
 
 interface
 
-uses CastleKeysMouse, CastleUtils, CastleClassUtils, Classes,
-  FGL, CastleConfig, CastleScript, CastleUIControls;
+uses Classes, FGL,
+  CastleKeysMouse, CastleUtils, CastleClassUtils,
+  CastleXMLConfig, CastleScript, CastleUIControls;
 
 type
   TInputGroup = (igLocal, igBasic, igItems, igOther);
@@ -347,8 +348,6 @@ type
 
   TInputShortcutList = class(specialize TFPGObjectList<TInputShortcut>)
   private
-    procedure LoadFromConfig(const Config: TCastleConfig);
-    procedure SaveToConfig(const Config: TCastleConfig);
     function FindName(const Name: string): TInputShortcut;
   public
     { Seeks for a shortcut that has matching key or mouse button or mouse wheel.
@@ -356,6 +355,14 @@ type
     function SeekMatchingShortcut(const Event: TInputPressRelease): TInputShortcut;
     procedure RestoreDefaults;
     function SeekConflict(out ConflictDescription: string): boolean;
+
+    { Load customized input shortcuts from a config file,
+      for example from @link(UserConfig). }
+    procedure LoadFromConfig(const Config: TCastleConfig);
+
+    { Save customized input shortcuts to a config file,
+      for example to a @link(UserConfig). }
+    procedure SaveToConfig(const Config: TCastleConfig);
   end;
 
 var
@@ -821,8 +828,9 @@ begin
   for G := Low(InputsGroup) to High(InputsGroup) do
     InputsGroup[G] := TInputShortcutList.Create(false);
 
-  Config.AddLoadListener(@InputsAll.LoadFromConfig);
-  Config.AddSaveListener(@InputsAll.SaveToConfig);
+  // automatic loading/saving is more troublesome than it's worth
+  // UserConfig.AddLoadListener(@InputsAll.LoadFromConfig);
+  // UserConfig.AddSaveListener(@InputsAll.SaveToConfig);
 
   FunctionHandlers.RegisterHandler(@TCasScriptShortcut(nil).Handle, TCasScriptShortcut, [TCasScriptString], false);
 end;
@@ -831,11 +839,12 @@ procedure DoFinalization;
 var
   G: TInputGroup;
 begin
-  if (InputsAll <> nil) and (Config <> nil) then
-  begin
-    Config.RemoveLoadListener(@InputsAll.LoadFromConfig);
-    Config.RemoveSaveListener(@InputsAll.SaveToConfig);
-  end;
+  // automatic loading/saving is more troublesome than it's worth
+  // if (InputsAll <> nil) and (UserConfig <> nil) then
+  // begin
+  //   Config.RemoveLoadListener(@InputsAll.LoadFromConfig);
+  //   Config.RemoveSaveListener(@InputsAll.SaveToConfig);
+  // end;
 
   for G := Low(InputsGroup) to High(InputsGroup) do
     FreeAndNil(InputsGroup[G]);

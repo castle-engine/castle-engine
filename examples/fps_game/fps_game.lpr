@@ -422,15 +422,18 @@ begin
   Window := TCastleWindow.Create(Application);
   SceneManager := Window.SceneManager;
 
-  { Load configuration file. This loads configuration for various parts of the
-    engine, you can also use it for your own user persistent data
+  { Load user preferences file.
+    You can use it for your own user persistent data
     (preferences or savegames), see
     http://castle-engine.sourceforge.net/tutorial_user_prefs.php .
 
-    Note that you should call this before SoundEngine.ParseParameters,
+    You can also use it to store SoundEngine preferences (these include
+    sound enabled state and volume) by SoundEngine.LoadFromConfig / SaveToConfig
+    methods. Note that this should be used before SoundEngine.ParseParameters,
     otherwise command-line parameter --no-sound (handled by
     SoundEngine.ParseParameters) would always be overridden by config file value. }
-  Config.Load;
+  UserConfig.Load;
+  SoundEngine.LoadFromConfig(UserConfig);
 
   { Parse command-line parameters.
     Options parsed by Window.ParseParameters are documented on
@@ -595,8 +598,9 @@ begin
       and <whatever you want> do <whatever you want>;" }
   Application.Run;
 
-  { Save the configuration file. This is commented out for now,
+  { Save the configuration file. This is commented out here,
     as this example program does not give user any UI to actually change
     any configuration. }
-  //Config.Save;
+  //SoundEngine.SaveToConfig(UserConfig);
+  //UserConfig.Save;
 end.

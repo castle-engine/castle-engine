@@ -142,7 +142,8 @@ begin
   Notifications.MaxMessages := 4;
   Notifications.Color := Vector4Single(0.8, 0.8, 0.8, 1.0);
 
-  Config.Load;
+  UserConfig.Load;
+  SoundEngine.LoadFromConfig(UserConfig);
 
   { parse parameters }
   SoundEngine.ParseParameters;
@@ -210,5 +211,6 @@ begin
   { unload all }
   CreaturesKinds.UnLoad;
 
-  Config.Save;
+  SoundEngine.SaveToConfig(UserConfig);
+  UserConfig.Save;
 end.
