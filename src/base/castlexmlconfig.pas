@@ -287,17 +287,7 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
           callback to set your name, unless you're fine with default determination
           that looks at stuff like ParamStr(0)).
           See FPC OnGetApplicationName docs.
-          It uses @link(ApplicationConfig) to determine location of this file.
-
-          On Android, it merely asks the Java bridge to read the
-          default config file contents (using CastleJavaMessaging).
-          You have to handle the Java side
-          (soon to be integrated with Castle Game Engine),
-          and then interpret the message 'config-loaded' back from Java
-          (using @link(LoadFromString))
-          to actually get the config contents.
-          It also means that the load listeners are actually run
-          with an unknown delay.)
+          It uses @link(ApplicationConfig) to determine location of this file.)
 
         @item(The overloaded version with URL parameter
           sets @code(TXMLConfig.URL), loading the file from given URL.
@@ -334,12 +324,7 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
       @unorderedList(
         @item(The overloaded parameter-less version flushes
           the changes to disk, thus saving them back to the file from which
-          they were read (in @code(TXMLConfig.URL) property).
-
-          On Android, it merely asks the Java bridge to save the
-          default config file contents (using CastleJavaMessaging).
-          You have to handle the Java side
-          (soon to be integrated with Castle Game Engine).)
+          they were read (in @code(TXMLConfig.URL) property).)
 
         @item(The overloaded version with TStream parameter saves to a stream.
           If does not use inherited Flush method, instead it always
@@ -679,42 +664,23 @@ begin
   FLoaded := true;
 
   { This is used for various files (not just user preferences,
-    also resource.xml files), and logging this gets too talkative for now.
-  if Log then
-    WritelnLog('Config', 'Loading configuration from "%s"', [AURL]); }
+    also resource.xml files). Logging this may get talkative, but it's also
+    useful for now... }
+  WritelnLog('Config', 'Loading configuration from "%s"', [AURL]);
 end;
 
 procedure TCastleConfig.Load;
 begin
-  {$ifdef ANDROID}
-  { TODO: maybe invert URL scheme like preferences:// ,
-    returned by ApplicationConfig (at least for Android).
-    Then ApplicationConfig would hide some platform differences from us here.
-    SaveToURL would hide them when saving.
-
-    OTOH, usecase is weak (every usage has to be prepared
-    for Java message at undefined later time anyway),
-    so maybe there's no point in generalizing this? }
-
-  { TODO: we could just use special JNI methods to do it synchronously?
-    This and Save() method too? }
-  MessageToJava('config-load');
-  {$else}
   Load(ApplicationConfig(ApplicationName + '.conf'));
-  {$endif}
 end;
 
 procedure TCastleConfig.Save;
 begin
   FOnSave.ExecuteAll(Self);
 
-  {$ifdef ANDROID}
-  MessageToJava('config-save=' + SaveToString);
-  {$else}
   Flush;
   if Log and (URL <> '') then
     WritelnLog('Config', 'Saving configuration to "%s"', [URL]);
-  {$endif}
 end;
 
 procedure TCastleConfig.Load(const Stream: TStream);

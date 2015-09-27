@@ -35,6 +35,7 @@ CastleAndroidNativeAppGlue, CastleGenericLists,
 {$endif}
 
 {$ifdef read_implementation_uses}
+JNI,
 CastleAndroidCWString, CastleAndroidLooper,
 CastleAndroidLog, CastleAndroidAssetStream,
 {$ifdef CASTLE_PERSISTENT_ANDROID_STATE} CastleConfig, {$endif}
@@ -301,12 +302,68 @@ begin
 end;
 
 procedure AndroidMainImplementation(App: PAndroid_App);
+
+  function GetInternalDataPath: string;
+  var
+    Env: PJNIEnv;
+
+    activityClass: jclass;
+    getFilesDir: jmethodID;
+    fileObject: jobject;
+
+    fileClass: jclass;
+    getAbsolutePath: jmethodID;
+    pathObject: jobject;
+
+    ResultStr: PChar;
+    Dummy: JBoolean;
+  begin
+    if App^.Activity^.InternalDataPath <> nil then
+      Result := App^.Activity^.InternalDataPath else // this is the usual route
+    { On Android 2.3.x, above is unfortunately broken.
+      So get internal data path manually, see
+      http://stackoverflow.com/questions/10683119/android-app-activity-internaldatapath-still-null-in-2-3-8-ndk-r8
+      https://groups.google.com/forum/#!topic/android-ndk/4lD8OS-w4UU }
+    begin
+      Env := nil; // make sure uninitialized
+
+      { you need to get Env this way, not from App^.Activity^.Env,
+        otherwise fileClass := Env^^.GetObjectClass will crash with segfault. }
+      App^.Activity^.VM^^.AttachCurrentThread(App^.Activity^.VM, @Env, nil);
+
+      activityClass := Env^^.GetObjectClass(Env, app^.activity^.clazz);
+      getFilesDir := Env^^.GetMethodID(Env, activityClass, 'getFilesDir', '()Ljava/io/File;');
+      fileObject := Env^^.CallObjectMethod(Env, app^.activity^.clazz, getFilesDir);
+
+      fileClass := Env^^.GetObjectClass(Env, fileObject);
+      getAbsolutePath := Env^^.GetMethodID(Env, fileClass, 'getAbsolutePath', '()Ljava/lang/String;');
+      pathObject := Env^^.CallObjectMethod(Env, fileObject, getAbsolutePath);
+
+      Dummy := 0;
+      ResultStr := Env^^.GetStringUTFChars(Env, jstring(pathObject),
+        {$ifdef VER2} Dummy {$else} @Dummy {$endif});
+
+      Result := AnsiString(ResultStr); // will copy characters
+
+      Env^^.DeleteLocalRef(Env, pathObject);
+      Env^^.DeleteLocalRef(Env, fileClass);
+      Env^^.DeleteLocalRef(Env, fileObject);
+      Env^^.DeleteLocalRef(Env, activityClass);
+
+      Env^^.ReleaseStringUTFChars(Env, jstring(pathObject), ResultStr);
+
+      App^.Activity^.VM^^.DetachCurrentThread(App^.Activity^.VM);
+    end;
+  end;
+
 {$ifdef CASTLE_PERSISTENT_ANDROID_STATE}
 var
   ConfigState: TStringStream;
 {$endif CASTLE_PERSISTENT_ANDROID_STATE}
 begin
   Application.AndroidApp := App;
+
+  ApplicationConfigOverride := FilenameToURISafe(InclPathDelim(GetInternalDataPath));
 
   {$ifdef CASTLE_PERSISTENT_ANDROID_STATE}
   { Use SavedState as XML contents that should be loaded to global Config.

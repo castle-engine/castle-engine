@@ -139,6 +139,9 @@ function UserConfigFile(const Extension: string): string; deprecated;
   @deprecated Deprecated, use ApplicationData instead. }
 function ProgramDataPath: string; deprecated;
 
+var
+  ApplicationConfigOverride: string;
+
 { URL where we should read and write configuration files.
   This always returns a @code(file://...) URL,
   which is comfortable since our engine operates on URLs most of the time.
@@ -443,6 +446,9 @@ function ApplicationConfig(const Path: string): string;
 var
   ConfigDir, Dir: string;
 begin
+  if ApplicationConfigOverride <> '' then
+    Exit(ApplicationConfigOverride + Path);
+
   ConfigDir := InclPathDelim(GetAppConfigDir(false));
   Dir := ConfigDir + ExtractFilePath(Path);
   if not ForceDirectories(Dir) then
