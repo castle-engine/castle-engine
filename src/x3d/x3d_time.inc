@@ -147,7 +147,12 @@
     private FEventIsPaused: TSFBoolEvent;
     public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
 
+    { The "cycle" of a time-dependent node (like TTimeSensorNode) lasts for
+      this long (in seconds).
+      Note that on TTimeSensorNode, you can also get and set this
+      by the class helper. This gets/sets the same X3D "cycleInterval" value. }
     function CycleInterval: TFloatTime; virtual; abstract;
+
     property TimeDependentNodeHandler: TTimeDependentNodeHandler
       read FTimeDependentNodeHandler;
   end;
