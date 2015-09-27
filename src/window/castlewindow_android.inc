@@ -601,7 +601,11 @@ begin
     if AndroidApp^.DestroyRequested = 1 then
     begin
       CloseContext;
-      Exit(false);
+      Terminate; // tell ancestor TCustomApplication to end our loop
+      { The result of ProcessMessage must always be "not Terminated"
+        to work with TCustomApplication correctly.
+        In this case we know it's "false", since we called "Terminate" above. }
+      Exit(not Terminated);
     end;
 
   // loop condition avoids being clogged with motion events
@@ -631,7 +635,9 @@ begin
     we should rather let WaitForMessage mechanism work (when all windows are
     closed, we should usually have WaitForMessage = true). }
 
-  Result := true;
+  { the result of ProcessMessage must always be "not Terminated"
+    to work with TCustomApplication correctly. }
+  Result := not Terminated;
 end;
 
 procedure TCastleApplication.Run;
