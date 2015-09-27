@@ -1359,6 +1359,7 @@ end;
 constructor TCastleImageControl.Create(AOwner: TComponent);
 begin
   inherited;
+  FColor := White;
 end;
 
 destructor TCastleImageControl.Destroy;
