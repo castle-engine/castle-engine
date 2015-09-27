@@ -8,4 +8,4 @@ clean:
 	rm -f $(ALL_UNITS)
 
 ../toolembeddedimages.pas: DefaultIcon.png
-	image_to_pas --output .. ToolEmbeddedImages DefaultIcon.png
+	image2pascal --output .. ToolEmbeddedImages DefaultIcon.png

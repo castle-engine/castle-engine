@@ -71,7 +71,6 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/image_convert \
   examples/images_videos/dds_decompose \
   examples/images_videos/image_identify \
-  examples/images_videos/image_to_pas \
   examples/images_videos/image_compare \
   examples/images_videos/simple_video_editor \
   examples/fonts/test_font_break \
@@ -120,6 +119,7 @@ EXAMPLES_BASE_NAMES := \
   examples/2d/controls_demo \
   examples/android/android_demo/androiddemo_standalone \
   tools/build-tool/castle-engine \
+  tools/image2pascal/image2pascal \
   tools/texturefont2pascal/texturefont2pascal
 
 EXAMPLES_LAZARUS_BASE_NAMES := \

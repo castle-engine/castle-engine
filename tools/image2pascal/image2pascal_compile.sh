@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f image_to_pas.lpr ]; then cd ../../; fi
+if [ -f image2pascal.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/images_videos/image_to_pas.lpr
+fpc -dRELEASE @castle-fpc.cfg tools/image2pascal/image2pascal.lpr

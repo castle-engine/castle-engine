@@ -17,7 +17,7 @@ clean:
   ProgressBar.png ProgressFill.png \
   TouchCtlInner.png TouchCtlOuter.png TouchCtlFlyInner.png TouchCtlFlyOuter.png \
   Crosshair1.png Crosshair2.png ErrorBackground.png
-	image_to_pas --output .. CastleControlsImages \
+	image2pascal --output .. CastleControlsImages \
 	  Panel.png WindowDarkTransparent.png Slider.png \
 	  Tooltip.png TooltipRounded.png \
 	  ButtonPressed.png ButtonFocused.png ButtonNormal.png \
