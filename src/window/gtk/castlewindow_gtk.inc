@@ -403,7 +403,9 @@ end;
 try}
 {$define SIGNAL_GENERAL_END:=
 except
-  on E: TObject do Application.HandleException(E);
+  on E: TObject do
+    // sender is just Application, like TCustomApplication.Run does
+    Application.HandleException(Application);
 end}
 
 {$define SIGNAL_GLAREA_BEGIN:=
