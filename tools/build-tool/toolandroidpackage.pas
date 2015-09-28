@@ -329,9 +329,9 @@ begin
   { Uninstall and then install, instead of calling "install -r",
     to avoid failures because apk signed with different keys (debug vs release). }
 
-  Writeln('Uninstalling, then installing again and running application identified as "' + QualifiedName + '"');
-  RunCommandSimple('adb', ['uninstall', QualifiedName]);
-  RunCommandSimple('adb', ['install', ApkName]);
+  Writeln('Reinstalling application identified as "' + QualifiedName + '".');
+  Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first (note that it will clear your UserConfig data, unless you use -k) by "adb uninstall ' + QualifiedName + '"');
+  RunCommandSimple('adb', ['install', '-r', ApkName]);
   Writeln('Install successfull.');
 end;
 
