@@ -2370,8 +2370,8 @@ end;
   {$undef read_application_interface}
 
   private
-    FOnInitialize: TProcedure;
-    Initialized: boolean;
+    FOnInitialize, FOnInitializeJavaActivity: TProcedure;
+    Initialized, InitializedJavaActivity: boolean;
     FOnUpdate :TUpdateFunc;
     FOnTimer :TProcedure;
     FTimerMilisec :Cardinal;
@@ -2388,7 +2388,8 @@ end;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindowCustom;
-    { Run @link(OnInitialize) callbacks, if not run yet.
+    { Run @link(OnInitialize) and @link(OnInitializeJavaActivity) callbacks,
+      if not run yet.
 
       Called CastleEngineInitialize, not just @code(Initialize),
       because this is something entirely different from inherited
@@ -2541,7 +2542,8 @@ end;
     property OpenWindows[Index: integer]: TCastleWindowCustom read GetOpenWindows;
     { @groupEnd }
 
-    { The backend is initialized. Called only once, at the very beginning
+    { The application and CastleWindow backend is initialized.
+      Called only once, at the very beginning
       of the game, when we're ready to load everything
       and the first OpenGL context is initialized (right before
       calling TCastleWindowCustom.OnOpen).
@@ -2556,6 +2558,27 @@ end;
       when OpenGL context is active, to allow you to display progress
       bars etc. when loading). }
     property OnInitialize: TProcedure read FOnInitialize write FOnInitialize;
+
+    { The Android Java activity started.
+      Called every time a Java activity is created.
+
+      @unorderedList(
+        @item(For the first time, it's called right before @link(OnInitialize).)
+        @item(Later this is called when Java activity
+          died (and is restarting now), but the native code thread survived.
+          So all native code memory is already cool (no need to call OnInitialize),
+          but we need to reinitialize Java part.
+
+          Note that this is different from @link(TCastleWindowCustom.OnOpen).
+          We lose OpenGL context often, actually every time user switches to another
+          app, without having neither Java nor native threads killed.
+        )
+      )
+
+      For non-Android applications, this is simply always called exactly
+      once, exactly before calling @link(OnInitialize). }
+    property OnInitializeJavaActivity: TProcedure
+      read FOnInitializeJavaActivity write FOnInitializeJavaActivity;
 
     { Continously occuring event.
       @seealso TCastleWindowCustom.OnUpdate. }
@@ -4413,6 +4436,16 @@ end;
 
 procedure TCastleApplication.CastleEngineInitialize;
 begin
+  if Initialized and not InitializedJavaActivity then
+    WritelnLog('Android', 'Android Java activity was killed, but native thread survived. Calling only OnInitializeJavaActivity');
+
+  if not InitializedJavaActivity then
+  begin
+    InitializedJavaActivity := true;
+    if Assigned(OnInitializeJavaActivity) then
+      OnInitializeJavaActivity();
+  end;
+
   if not Initialized then
   begin
     Initialized := true;

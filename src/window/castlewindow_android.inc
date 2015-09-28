@@ -679,6 +679,10 @@ begin
   ZLibInitialization;
   {$endif}
 
+  { this is called by Android activity onCreate, so Java activity
+    was recreated }
+  InitializedJavaActivity := false;
+
   inherited Initialize; // set Terminated := false
   inherited Run; // calls DoRun, surrounded by HandleException, in a loop
 
