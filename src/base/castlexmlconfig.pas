@@ -281,13 +281,18 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
         @item(The overloaded parameter-less version chooses
           a default filename for storing application user preferences.
 
-          On the standalone platforms,
-          it uses ApplicationName to pick a filename that is unique
+          It uses ApplicationName to pick a filename that is unique
           to your application (usually you want to assign OnGetApplicationName
           callback to set your name, unless you're fine with default determination
           that looks at stuff like ParamStr(0)).
           See FPC OnGetApplicationName docs.
-          It uses @link(ApplicationConfig) to determine location of this file.)
+          It uses @link(ApplicationConfig) to determine location of this file.
+
+          In case the default config is corrupted, it automatically
+          catches the exception and loads an empty config.
+          It also stores the URL in this case to make sure that following
+          @link(Save) call with overwrite the default config location with a good one.
+          This is useful in case user somehow corrupted the config file on disk.)
 
         @item(The overloaded version with URL parameter
           sets @code(TXMLConfig.URL), loading the file from given URL.
@@ -296,14 +301,15 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
           the local filesystem.)
 
         @item(The overloaded version with TStream parameter loads from a stream.
-          URL is set to empty.)
+          URL is set to PretendURL (just pass empty string if you don't
+          want to be able to save it back).)
       )
 
       @groupBegin }
     procedure Load(const AURL: string);
     procedure Load;
-    procedure Load(const Stream: TStream);
-    procedure LoadFromString(const Data: string);
+    procedure Load(const Stream: TStream; const PretendURL: string);
+    procedure LoadFromString(const Data: string; const PretendURL: string);
     //procedure LoadFromBase64(const Base64Contents: string);
     { @groupEnd }
 
@@ -313,7 +319,7 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
       is broken for some reason (e.g. file corruption),
       but you want to override it and just get into a state
       where config is considered loaded.  }
-    procedure LoadEmpty;
+    procedure LoadEmpty(const PretendURL: string);
 
     property Loaded: boolean read FLoaded;
 
@@ -345,7 +351,7 @@ implementation
 
 uses //Base64,
   CastleStringUtils, CastleFilesUtils, CastleLog, CastleURIUtils,
-  CastleJavaMessaging;
+  CastleJavaMessaging, CastleWarnings;
 
 procedure Register;
 begin
@@ -670,23 +676,33 @@ begin
 end;
 
 procedure TCastleConfig.Load;
+var
+  LoadURL: string;
 begin
-  Load(ApplicationConfig(ApplicationName + '.conf'));
+  LoadURL := ApplicationConfig(ApplicationName + '.conf');
+  try
+    Load(LoadURL);
+  except
+    on E: Exception do
+    begin
+      OnWarning(wtMajor, 'UserConfig', 'User config corrupted (will load defaults): ' + E.Message);
+      LoadEmpty(LoadURL);
+    end;
+  end;
 end;
 
 procedure TCastleConfig.Save;
 begin
   FOnSave.ExecuteAll(Self);
-
   Flush;
   if Log and (URL <> '') then
     WritelnLog('Config', 'Saving configuration to "%s"', [URL]);
 end;
 
-procedure TCastleConfig.Load(const Stream: TStream);
+procedure TCastleConfig.Load(const Stream: TStream; const PretendURL: string);
 begin
   WritelnLog('Config', 'Loading configuration from stream');
-  LoadFromStream(Stream);
+  LoadFromStream(Stream, PretendURL);
   FOnLoad.ExecuteAll(Self);
   FLoaded := true;
 end;
@@ -736,23 +752,23 @@ begin
 end;
 }
 
-procedure TCastleConfig.LoadFromString(const Data: string);
+procedure TCastleConfig.LoadFromString(const Data: string; const PretendURL: string);
 var
   InputStream: TStringStream;
 begin
   InputStream := TStringStream.Create(Data);
   try
-    Load(InputStream);
+    Load(InputStream, PretendURL);
   finally FreeAndNil(InputStream) end;
 end;
 
-procedure TCastleConfig.LoadEmpty;
+procedure TCastleConfig.LoadEmpty(const PretendURL: string);
 const
   EmptyConfig = '<?xml version="1.0" encoding="utf-8"?>' + LineEnding +
     '<CONFIG>' + LineEnding +
     '</CONFIG>';
 begin
-  LoadFromString(EmptyConfig);
+  LoadFromString(EmptyConfig, PretendURL);
 end;
 
 { // Should work, but was never tested
