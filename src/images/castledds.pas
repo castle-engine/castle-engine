@@ -205,19 +205,6 @@ implementation
 uses SysUtils, CastleUtils, CastleClassUtils, CastleWarnings, CastleStringUtils,
   CastleVectors, CastleDownload, CastleURIUtils;
 
-{ Image.FlipVertical, warn if not possible. }
-procedure FlipVerticalWarning(const Image: TGPUCompressedImage);
-begin
-  try
-    Image.FlipVertical;
-  except
-    { Change ECannotFlipCompressedImage into OnWarning,
-      image will be inverted but otherwise Ok. }
-    on E: ECannotFlipCompressedImage do
-      OnWarning(wtMinor, 'GPUCompressedTexture', E.Message);
-  end;
-end;
-
 { ----------------------------------------------------------------------------
   Constants and types for DDS file handling.
 
@@ -1166,7 +1153,7 @@ var
 
           Stream.ReadBuffer(Res.RawPixels^, Res.Size);
 
-          FlipVerticalWarning(Res);
+          Res.FlipVertical;
         { on unhandled error, make sure to free result }
         except FreeAndNil(Result); raise; end;
       end;
@@ -1545,7 +1532,7 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
       Temp := Image.MakeCopy;
       try
         { invert rows when saving to DDS }
-        FlipVerticalWarning(Temp);
+        Temp.FlipVertical;
         Stream.WriteBuffer(Temp.RawPixels^, Temp.Size);
       finally FreeAndNil(Temp) end;
     end;

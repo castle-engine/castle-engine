@@ -850,8 +850,6 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
   );
   TGPUCompressions = set of TGPUCompression;
 
-  ECannotFlipCompressedImage = class(Exception);
-
   { Image compressed using one of the GPU texture compression algorithms. }
   TGPUCompressedImage = class(TEncodedImage)
   private
@@ -872,18 +870,13 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
 
     { Flip compressed image vertically, losslessly.
 
-      This works only for (some) S3TC images.
+      This works only for S3TC images, and only when their height is 1, 2, 3
+      or a multiple of 4. Note that this is always satisfied if image height
+      is a power of two (as common for textures).
       It uses the knowledge of how S3TC compression works
       to losslessly flip the image, without re-compressing it.
       The idea is described here
-      [http://users.telenet.be/tfautre/softdev/ddsload/explanation.htm].
-
-      @raises(ECannotFlipCompressedImage
-        Raised when image Height is not 1, 2, 3
-        or a multiple of 4 (since the trick doesn't work in these cases,
-        pixels would move between 4x4 blocks). Note that if Height
-        is a power of two (as common for OpenGL textures) then it's
-        always possible to make a flip.) }
+      [http://users.telenet.be/tfautre/softdev/ddsload/explanation.htm]. }
     procedure FlipVertical;
 
     { Decompress the image.
