@@ -288,7 +288,7 @@ end;
 begin
   { load config, before SoundEngine.ParseParameters
     (that may change SoundEngine.Enable by --no-sound). }
-  Config.Load;
+  UserConfig.Load;
   SoundEngine.LoadFromConfig(UserConfig);
 
   { init messages }
