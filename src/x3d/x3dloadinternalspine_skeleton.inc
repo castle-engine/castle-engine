@@ -103,11 +103,18 @@ var
     S: string;
     I: Integer;
   begin
-    S := Format('Available skins count: %d', [Skins.Count]) + NL;
-    for I := 0 to Skins.Count - 1 do
-      S += Format('  Available skin %d: %s', [I, Skins[I].Name]) + NL;
-    S += Format('Using skin: %s', [CurrentSkin.Name]);
-    WritelnLogMultiline('Spine', S);
+    if Skins.Count = 1 then
+    begin
+      Assert(CurrentSkin = Skins[0]);
+      WritelnLog('Spine', BaseUrl + ' available skins: 1 (' + CurrentSkin.Name + ').');
+    end else
+    begin
+      S := Format(BaseUrl + ' available skins: %d', [Skins.Count]) + NL;
+      for I := 0 to Skins.Count - 1 do
+        S += Format('  Available skin %d: %s', [I, Skins[I].Name]) + NL;
+      S += Format('Using skin: %s', [CurrentSkin.Name]);
+      WritelnLogMultiline('Spine', S);
+    end;
   end;
 
 var
