@@ -174,6 +174,9 @@ type
 
     function ScaleToWidth(const NewWidth: Cardinal): TRectangle;
     function ScaleToHeight(const NewHeight: Cardinal): TRectangle;
+    function Scale(const Factor: Single;
+      const PivotHorizontal: THorizontalPosition = hpMiddle;
+      const PivotVertical: TVerticalPosition = vpMiddle): TRectangle;
 
     { Align this rectangle within other rectangle by calculating new value
       for @link(Left). }
@@ -446,6 +449,16 @@ begin
   Result.Bottom := Bottom;
   Result.Width := Width * NewHeight div Height;
   Result.Height := NewHeight;
+end;
+
+function TRectangle.Scale(const Factor: Single;
+  const PivotHorizontal: THorizontalPosition;
+  const PivotVertical: TVerticalPosition): TRectangle;
+begin
+  Result.Width := Round(Width * Factor);
+  Result.Height := Round(Height * Factor);
+  Result.Left := Result.AlignCore(PivotHorizontal, Self, PivotHorizontal);
+  Result.Bottom := Result.AlignCore(PivotVertical, Self, PivotVertical);
 end;
 
 function TRectangle.AlignCore(
