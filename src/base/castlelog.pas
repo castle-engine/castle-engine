@@ -94,20 +94,16 @@ procedure WriteLogMultiline(const Title: string; const LogMessage: string);
   a final newline, because we will add final newline ourselves. }
 procedure WritelnLogMultiline(const Title: string; const LogMessage: string);
 
+var
+  { Dump backtrace (call stack) with each log.
+    Displaying line info requires compiling your program with -gl. }
+  BacktraceOnLog: boolean = false;
+
 implementation
 
 uses CastleUtils, CastleClassUtils, CastleTimeUtils, CastleWarnings,
   CastleFilesUtils, CastleURIUtils,
   SysUtils {$ifdef ANDROID}, CastleAndroidLog {$endif};
-
-{ Dump backtrace of each log.
-
-  Displaying line info requires compiling your program with -gl.
-  Unfortunately line info is not 100% reliable (sometimes it only works in gdb;
-  sometimes it does not even work in gdb, but still you can use gdb's "info symbol xxx"
-  to resolve addresses to method names).
-  Depends very much on OS, debug info type, and FPC version. }
-{ $define BACKTRACE_ON_LOG}
 
 var
   FLog: boolean = false;
@@ -199,11 +195,14 @@ begin
   if Log then
   begin
     {$ifdef ANDROID}
-    AndroidLog(alInfo,
-      S {$ifdef BACKTRACE_ON_LOG} + NL + NL + DumpStackToString(Get_Frame) {$endif});
+    if BacktraceOnLog then
+      AndroidLog(alInfo, S + DumpStackToString(Get_Frame) + NL) else
+      AndroidLog(alInfo, S);
     {$else}
-    WriteStr(LogStream, // we know that LogStream <> nil when FLog = true
-      S {$ifdef BACKTRACE_ON_LOG} + NL + NL + DumpStackToString(Get_Frame) {$endif});
+    // we know that LogStream <> nil when FLog = true
+    if BacktraceOnLog then
+      WriteStr(LogStream, S + DumpStackToString(Get_Frame) + NL) else
+      WriteStr(LogStream, S);
     {$endif}
   end;
 end;
