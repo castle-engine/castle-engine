@@ -100,8 +100,7 @@ uses CastleUtils, CastleClassUtils, CastleTimeUtils, CastleWarnings,
   CastleFilesUtils, CastleURIUtils,
   SysUtils {$ifdef ANDROID}, CastleAndroidLog {$endif};
 
-{ Dump backtrace (always to StdErr for now, regardless of LogStream)
-  of each log.
+{ Dump backtrace of each log.
 
   Displaying line info requires compiling your program with -gl.
   Unfortunately line info is not 100% reliable (sometimes it only works in gdb;
@@ -199,12 +198,12 @@ procedure WriteLogRaw(const S: string); inline;
 begin
   if Log then
   begin
-    WriteStr(LogStream, S); // we know that LogStream <> nil when FLog = true
-    {$ifdef BACKTRACE_ON_LOG}
-    Dump_Stack(StdErr, Get_Frame);
-    {$endif}
     {$ifdef ANDROID}
-    AndroidLog(alInfo, S);
+    AndroidLog(alInfo,
+      S {$ifdef BACKTRACE_ON_LOG} + NL + NL + DumpStackToString(Get_Frame) {$endif});
+    {$else}
+    WriteStr(LogStream, // we know that LogStream <> nil when FLog = true
+      S {$ifdef BACKTRACE_ON_LOG} + NL + NL + DumpStackToString(Get_Frame) {$endif});
     {$endif}
   end;
 end;

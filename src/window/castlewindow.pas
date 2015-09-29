@@ -4685,7 +4685,7 @@ procedure TCastleApplication.HandleException(Sender: TObject);
     OriginalFrame: Pointer;
     ErrMessage: string;
   begin
-    ErrMessage := ExceptMessage(ExceptObject, ExceptAddr);
+    ErrMessage := ExceptMessage(ExceptObject, ExceptAddr) + NL + NL + DumpExceptionBackTraceToString;
     { in case the following code, trying to handle the exception with nice GUI,
       will fail and crash horribly -- make sure to log the exception. }
     WritelnLog('Exception', ErrMessage);

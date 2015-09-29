@@ -654,10 +654,13 @@ procedure FPGObjectList_FreeAndNilItem(List: TFPSList; I: Integer);
 { Set to @nil (never freeing) given item on TFPGObjectList. }
 procedure FPGObjectList_NilItem(List: TFPSList; I: Integer);
 
+function DumpStackToString(const BaseFramePointer: Pointer): string;
+function DumpExceptionBackTraceToString: string;
+
 implementation
 
 uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
-  StrUtils, CastleDownload, CastleURIUtils;
+  StrUtils, CastleDownload, CastleURIUtils, StreamIO;
 
 { TTextReaderWriter ---------------------------------------------------------- }
 
@@ -1690,6 +1693,38 @@ begin
     previous Items[I] must contain a valid reference or nil, not something freed.
     And we cannot temporarily change FreeObjects, as it's not in TFPSList). }
   PPointer(List.List)[I] := nil;
+end;
+
+function DumpStackToString(const BaseFramePointer: Pointer): string;
+var
+  TextFile: Text;
+  StringStream: TStringStream;
+begin
+  StringStream := TStringStream.Create('');
+  try
+    AssignStream(TextFile, StringStream);
+    Rewrite(TextFile);
+    try
+      Dump_Stack(TextFile, BaseFramePointer);
+    finally CloseFile(TextFile) end;
+    Result := StringStream.DataString;
+  finally FreeAndNil(StringStream) end;
+end;
+
+function DumpExceptionBackTraceToString: string;
+var
+  TextFile: Text;
+  StringStream: TStringStream;
+begin
+  StringStream := TStringStream.Create('');
+  try
+    AssignStream(TextFile, StringStream);
+    Rewrite(TextFile);
+    try
+      DumpExceptionBackTrace(TextFile);
+    finally CloseFile(TextFile) end;
+    Result := StringStream.DataString;
+  finally FreeAndNil(StringStream) end;
 end;
 
 initialization
