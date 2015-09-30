@@ -21,6 +21,9 @@
   will soon be integrated with Castle Game Engine. }
 unit CastleJavaMessaging;
 
+{ Log each message send/received from/to Java. }
+{ $define CASTLE_DEBUG_JAVA_MESSAGING}
+
 interface
 
 {$ifdef ANDROID} uses JNI; {$endif}
