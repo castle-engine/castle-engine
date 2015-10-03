@@ -452,7 +452,7 @@ begin
           SourceExe := ChangeFileExt(StandaloneSource, ExeExtensionOS(OS));
           DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
         end;
-        if not AnsiSameText(SourceExe, DestExe) then
+        if not SameFileName(SourceExe, DestExe) then
         begin
           { move exe to top-level (in case StandaloneSource is in subdirectory
             like code/) and eventually rename to follow ExecutableName }
