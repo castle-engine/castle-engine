@@ -349,16 +349,21 @@ type
   TRationalBezierCurveList = specialize TFPGObjectList<TRationalBezierCurve>;
   {$warnings on}
 
-  { Smooth interpolated curve, each segment (ControlPoints[i]..ControlPoints[i+1])
-    is converted to a rational Bezier curve (with 4 control points)
-    when rendering.
+  { Piecewise (composite) cubic Bezier curve.
+    Each segment (ControlPoints[i]..ControlPoints[i+1])
+    is a cubic Bezier curve (Bezier with 4 control points,
+    2 points in the middle are auto-calculated for max smoothness).
+
+    It is a cubic B-spline. Which is equivalent to C2 continuous
+    composite Bézier curves. See
+    https://en.wikipedia.org/wiki/Spline_%28mathematics%29 .
 
     You can also explicitly convert it to a list of bezier curves using
     ToRationalBezierCurves.
 
-    Here too ControlPoints.Count MAY be 1.
-    (For TControlPointsCurve it must be >= 2). }
-  TSmoothInterpolatedCurve = class(TInterpolatedCurve)
+    ControlPoints.Count may be 1 (in general,
+    for TControlPointsCurve, it must be >= 2). }
+  TPiecewiseCubicBezier = class(TInterpolatedCurve)
   private
     BezierCurves: TRationalBezierCurveList;
     ConvexHullPoints: TVector3SingleList;
@@ -388,7 +393,32 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-  end deprecated 'Rendering of TSmoothInterpolatedCurve is not portable to OpenGLES (that is: Android and iOS) and not very efficient. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
+  end deprecated 'Rendering of TPiecewiseCubicBezier is not portable to OpenGLES (that is: Android and iOS) and not very efficient. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
+
+  {$warnings off} { Consciously using deprecated stuff. }
+  TSmoothInterpolatedCurve = TPiecewiseCubicBezier;
+  {$warnings on}
+
+(*TODO: buggy now.
+  TFastPiecewiseCubicBezier = class(TInterpolatedCurve)
+  public
+    function Point(const t: Float): TVector3Single; override;
+    class function NiceClassName: string; override;
+  end;
+*)
+
+type
+  TCubicBezier2DPoints = array [0..3] of TVector2Single;
+  TCubicBezier3DPoints = array [0..3] of TVector3Single;
+
+{ Cubic (4 control points) Bezier curve (with all weights equal) in 1D. }
+function CubicBezier1D(T: Single; const Points: TVector4Single): Single;
+
+{ Cubic (4 control points) Bezier curve (with all weights equal) in 2D. }
+function CubicBezier2D(T: Single; const Points: TCubicBezier2DPoints): TVector2Single;
+
+{ Cubic (4 control points) Bezier curve (with all weights equal) in 3D. }
+function CubicBezier3D(T: Single; const Points: TCubicBezier3DPoints): TVector3Single;
 
 implementation
 
@@ -1135,18 +1165,18 @@ begin
   inherited;
 end;
 
-{ TSmoothInterpolatedCurve ------------------------------------------------------------ }
+{ TPiecewiseCubicBezier --------------------------------------------------- }
 
-function TSmoothInterpolatedCurve.CreateConvexHullPoints: TVector3SingleList;
+function TPiecewiseCubicBezier.CreateConvexHullPoints: TVector3SingleList;
 begin
   Result := ConvexHullPoints;
 end;
 
-procedure TSmoothInterpolatedCurve.DestroyConvexHullPoints(Points: TVector3SingleList);
+procedure TPiecewiseCubicBezier.DestroyConvexHullPoints(Points: TVector3SingleList);
 begin
 end;
 
-function TSmoothInterpolatedCurve.Point(const t: Float): TVector3Single;
+function TPiecewiseCubicBezier.Point(const t: Float): TVector3Single;
 var
   i: Integer;
 begin
@@ -1159,7 +1189,7 @@ begin
   Result := BezierCurves[i].Point(t);
 end;
 
-function TSmoothInterpolatedCurve.ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurveList;
+function TPiecewiseCubicBezier.ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurveList;
 var
   S: TVector3SingleList;
 
@@ -1253,12 +1283,12 @@ begin
   except Result.Free; raise end;
 end;
 
-class function TSmoothInterpolatedCurve.NiceClassName: string;
+class function TPiecewiseCubicBezier.NiceClassName: string;
 begin
-  Result := 'Smooth Interpolated curve';
+  Result := 'Cubic B-Spline (piecewise C2-Smooth Cubic Bezier)';
 end;
 
-procedure TSmoothInterpolatedCurve.UpdateControlPoints;
+procedure TPiecewiseCubicBezier.UpdateControlPoints;
 var
   i: Integer;
 begin
@@ -1276,17 +1306,114 @@ begin
   end;
 end;
 
-constructor TSmoothInterpolatedCurve.Create(AOwner: TComponent);
+constructor TPiecewiseCubicBezier.Create(AOwner: TComponent);
 begin
   inherited;
   ConvexHullPoints := TVector3SingleList.Create;
 end;
 
-destructor TSmoothInterpolatedCurve.Destroy;
+destructor TPiecewiseCubicBezier.Destroy;
 begin
   FreeAndNil(BezierCurves);
   FreeAndNil(ConvexHullPoints);
   inherited;
+end;
+
+{ TFastPiecewiseCubicBezier -------------------------------------------------- }
+
+(*
+TODO: buggy now.
+
+class function TFastPiecewiseCubicBezier.NiceClassName: string;
+begin
+  Result := 'Fast Cubic B-Spline (piecewise C2-Smooth Cubic Bezier)';
+end;
+
+function TFastPiecewiseCubicBezier.Point(const T: Float): TVector3Single;
+
+  { This asssumes that I = [0..ControlPoints.Count - 2]. }
+  function C(const I: Integer): TVector3Single;
+  begin
+    Result := ControlPoints.L[I + 1] - ControlPoints.L[I];
+  end;
+
+  { This asssumes that I = [0..ControlPoints.Count - 1],
+    not outside of this range, and that ControlPoints.Count > 2. }
+  function S(const I: Integer): TVector3Single;
+  begin
+    if I = 0 then
+      Exit(C(0) * 2 - S(1)) else
+    if I = ControlPoints.Count - 1 then
+      Exit(C(ControlPoints.Count - 2) * 2 - S(ControlPoints.Count - 2)) else
+      Exit((ControlPoints.L[I - 1] + ControlPoints.L[I]) / 2);
+  end;
+
+var
+  T01: Single;
+  TInsidePiece: Double;
+  IndexBefore: Int64;
+  IndexAfter: Integer;
+  PieceControlPoints: TCubicBezier3DPoints;
+begin
+  Assert(ControlPoints.Count >= 1);
+  if ControlPoints.Count = 1 then
+    Exit(ControlPoints.Items[0]);
+
+  T01 := MapRangeClamped(T, TBegin, TEnd, 0, 1);
+  if ControlPoints.Count = 2 then
+    Exit(Lerp(T01, ControlPoints.Items[0], ControlPoints.Items[1]));
+
+  FloatDivMod(T01, 1 / (ControlPoints.Count - 1), IndexBefore, TInsidePiece);
+  ClampVar(IndexBefore, 0, ControlPoints.Count - 2);
+  IndexAfter := IndexBefore + 1;
+  TInsidePiece *= ControlPoints.Count - 1; // make TInsidePiece in 0..1 range
+
+  PieceControlPoints[0] := ControlPoints[IndexBefore];
+  PieceControlPoints[3] := ControlPoints[IndexAfter];
+
+  PieceControlPoints[1] := PieceControlPoints[0] + S(IndexBefore) / 3;
+  PieceControlPoints[2] := PieceControlPoints[3] - S(IndexAfter) / 3;
+
+  Result := CubicBezier3D(TInsidePiece, PieceControlPoints);
+end;
+*)
+
+{ global routines ------------------------------------------------------------ }
+
+function CubicBezier1D(T: Single; const Points: TVector4Single): Single;
+var
+  T1: Single;
+begin
+  T := Clamped(T, 0, 1);
+  T1 := 1 - T;
+  Result := Points[0] *     Sqr(T1) * T1 +
+            Points[1] * 3 * Sqr(T1) * T +
+            Points[2] * 3 * Sqr(T) * T1 +
+            Points[3] *     Sqr(T) * T;
+end;
+
+function CubicBezier2D(T: Single; const Points: TCubicBezier2DPoints): TVector2Single;
+var
+  T1: Single;
+begin
+  T := Clamped(T, 0, 1);
+  T1 := 1 - T;
+  Result := Points[0] * (    Sqr(T1) * T1) +
+            Points[1] * (3 * Sqr(T1) * T) +
+            Points[2] * (3 * Sqr(T) * T1) +
+            Points[3] * (    Sqr(T) * T);
+end;
+
+function CubicBezier3D(T: Single; const Points: TCubicBezier3DPoints): TVector3Single;
+var
+  T1: Single;
+begin
+  T := Clamped(T, 0, 1);
+  T1 := 1 - T;
+  Result := Points[0] * (    Sqr(T1) * T1) +
+            Points[1] * (3 * Sqr(T1) * T) +
+            Points[2] * (3 * Sqr(T) * T1) +
+            Points[3] * (    Sqr(T) * T);
 end;
 
 end.
