@@ -162,6 +162,11 @@ begin
     end;
     {$endif}
 
+    if Defaults.OS = iOS then
+    begin
+      P.SourcePath.Add('src' + PathDelim + 'base' + PathDelim + 'ios');
+    end;
+
     P.SourcePath.Add('src' + PathDelim + 'castlescript');
     P.Targets.AddUnit('castlescript.pas');
     P.Targets.AddUnit('castlescriptarrays.pas');
