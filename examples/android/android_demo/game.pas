@@ -29,7 +29,7 @@ implementation
 uses SysUtils, CastleWindow, CastleControls, CastleUIControls, CastleRectangles,
   CastleGLUtils, CastleColors, X3DNodes, CastleFilesUtils, CastleLog,
   CastleSceneCore, CastleFindFiles, CastleStringUtils, CastleMessages,
-  CastleProgress, CastleWindowProgress;
+  CastleProgress, CastleWindowProgress, CastleUtils;
 
 var
   {$ifdef SOLID_BACKGROUND}
@@ -101,8 +101,11 @@ begin
     (done inside MessageXxx, they call Application.ProcessMessage in a loop)
     will still work, even though the window is closed.
     When user gets back to our app, she/he will see the message box again. }
-  if MessageYesNo(Window, 'Test of a yes/no message. Click one of the buttons!') then
-    MessageOK(Window, 'You clicked "Yes".') else
+  if MessageYesNo(Window, 'Test of a yes/no message test.' + NL + NL +' Do you want to deliberately cause an exception (to test our CastleWindow.HandleException method)?') then
+  begin
+    MessageOK(Window, 'You clicked "Yes". Raising an exception, get ready!');
+    raise Exception.Create('Test exception');
+  end else
     MessageOK(Window, 'You clicked "No".');
 end;
 
