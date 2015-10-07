@@ -162,7 +162,7 @@ begin
     end;
     {$endif}
 
-    if Defaults.OS = iOS then
+    if IOS then
     begin
       P.SourcePath.Add('src' + PathDelim + 'base' + PathDelim + 'ios');
     end;
