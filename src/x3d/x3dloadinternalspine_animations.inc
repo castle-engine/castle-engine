@@ -377,8 +377,8 @@ begin
           Slots, SlotsAnimated, CurvesRemoved);
       end;
 
-    WritelnLog('Spine', 'Spine animations curves parsed, empty curves removed: %d',
-      [CurvesRemoved]);
+    // WritelnLog('Spine', 'Spine animations curves parsed, empty curves removed: %d',
+    //   [CurvesRemoved]);
   end;
 end;
 

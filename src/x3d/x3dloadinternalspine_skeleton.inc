@@ -89,8 +89,8 @@ begin
   Skins.Parse(O, DefaultSkin, Bones);
   Animations.Parse(O, Bones, BonesAnimated, Slots, SlotsAnimated);
 
-  WritelnLog('Spine', Format('Skeleton read, bones: %d, slots: %d, skins: %d, animations: %d',
-    [Bones.Count, Slots.Count, Skins.Count, Animations.Count]));
+  // WritelnLog('Spine', Format('Skeleton read, bones: %d, slots: %d, skins: %d, animations: %d',
+  //   [Bones.Count, Slots.Count, Skins.Count, Animations.Count]));
 end;
 
 procedure TSkeleton.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader;
