@@ -178,6 +178,11 @@ type
       const PivotHorizontal: THorizontalPosition = hpMiddle;
       const PivotVertical: TVerticalPosition = vpMiddle): TRectangle;
 
+    { Scale and align us to fit inside rectangle R, preserving our aspect ratio. }
+    function FitInside(const R: TRectangle;
+      const AlignHorizontal: THorizontalPosition = hpMiddle;
+      const AlignVertical: TVerticalPosition = vpMiddle): TRectangle;
+
     { Align this rectangle within other rectangle by calculating new value
       for @link(Left). }
     function AlignCore(
@@ -459,6 +464,23 @@ begin
   Result.Height := Round(Height * Factor);
   Result.Left := Result.AlignCore(PivotHorizontal, Self, PivotHorizontal);
   Result.Bottom := Result.AlignCore(PivotVertical, Self, PivotVertical);
+end;
+
+function TRectangle.FitInside(const R: TRectangle;
+  const AlignHorizontal: THorizontalPosition = hpMiddle;
+  const AlignVertical: TVerticalPosition = vpMiddle): TRectangle;
+begin
+  if R.Width / R.Height > Width / Height then
+  begin
+    Result.Height := R.Height;
+    Result.Width := Width * Result.Height div Height;
+  end else
+  begin
+    Result.Width := R.Width;
+    Result.Height := Height * Result.Width div Width;
+  end;
+  Result.Left := AlignCore(AlignHorizontal, R, AlignHorizontal, 0);
+  Result.Bottom := AlignCore(AlignVertical, R, AlignVertical, 0);
 end;
 
 function TRectangle.AlignCore(
