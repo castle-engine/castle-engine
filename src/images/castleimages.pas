@@ -398,15 +398,14 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       preferably something like ^(array of TPixel). }
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): Pointer;
 
-    { This inverts RGB colors (i.e. changes each RGB component's value
-      to High(Byte)-value). Doesn't touch other components,
-      e.g. alpha value in case of TRGBAlphaImage descendant.
+    { Inverts all colors (RGB or grayscale, but doesn't touch alpha channel).
+      "Inverting" means changing color C in range [0..1] to 1-C,
+      so black becomes white, white becomes black etc.
 
-      Note that this may be not overriden in every TCastleImage descendant,
-      then default implementation of this method in this class
-      will raise EInternalError. This also means that you must not
-      call inherited in descendants when overriding this method. }
-    procedure InvertRGBColors; virtual;
+      @italic(For descendants implementors:)
+      Override it if necessary, otherwise the default implementation in this class
+      will raise EInternalError. }
+    procedure InvertColors; virtual;
 
     { Set the RGB color portion of the pixel.
 
@@ -980,7 +979,7 @@ type
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector3Byte;
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector3Byte;
 
-    procedure InvertRGBColors; override;
+    procedure InvertColors; override;
 
     procedure SetColorRGB(const x, y: Integer; const v: TVector3Single); override;
 
@@ -1075,7 +1074,7 @@ type
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector4Byte;
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector4Byte;
 
-    procedure InvertRGBColors; override;
+    procedure InvertColors; override;
 
     procedure SetColorRGB(const x, y: Integer; const v: TVector3Single); override;
 
@@ -1151,6 +1150,7 @@ type
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector3Single;
 
     procedure SetColorRGB(const x, y: Integer; const v: TVector3Single); override;
+    procedure InvertColors; override;
 
     procedure Clear(const Pixel: TVector3Single); reintroduce;
     function IsClear(const Pixel: TVector3Single): boolean; reintroduce;
@@ -1196,6 +1196,8 @@ type
 
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PByte;
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PByteArray;
+
+    procedure InvertColors; override;
 
     procedure Clear(const Pixel: Byte); reintroduce;
     function IsClear(const Pixel: Byte): boolean; reintroduce;
@@ -1254,6 +1256,8 @@ type
 
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector2Byte;
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector2Byte;
+
+    procedure InvertColors; override;
 
     procedure Clear(const Pixel: TVector2Byte); reintroduce;
     function IsClear(const Pixel: TVector2Byte): boolean; reintroduce;
@@ -1697,9 +1701,9 @@ begin
     ' method not implemented for this TCastleImage descendant');
 end;
 
-procedure TCastleImage.InvertRGBColors;
+procedure TCastleImage.InvertColors;
 begin
-  NotImplemented('InvertRGBColors');
+  NotImplemented('InvertColors');
 end;
 
 procedure TCastleImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
@@ -2525,7 +2529,7 @@ begin
   Result := PArray_Vector3Byte(inherited RowPtr(Y, Z));
 end;
 
-procedure TRGBImage.InvertRGBColors;
+procedure TRGBImage.InvertColors;
 var
   i: Cardinal;
   prgb: PVector3byte;
@@ -2773,7 +2777,7 @@ begin
   Result := PArray_Vector4Byte(inherited RowPtr(Y, Z));
 end;
 
-procedure TRGBAlphaImage.InvertRGBColors;
+procedure TRGBAlphaImage.InvertColors;
 var
   i: Cardinal;
   palpha: PVector4byte;
@@ -3086,6 +3090,21 @@ begin
   OutputCol^[2] := Weights[0] * Cols[0]^[2] + Weights[1] * Cols[1]^[2] + Weights[2] * Cols[2]^[2] + Weights[3] * Cols[3]^[2];
 end;
 
+procedure TRGBFloatImage.InvertColors;
+var
+  I: Cardinal;
+  P: PVector3Single;
+begin
+  P := RGBFloatPixels;
+  for I := 1 to Width * Height * Depth do
+  begin
+    P^[0] := Max(1-P^[0], 0.0);
+    P^[1] := Max(1-P^[1], 0.0);
+    P^[2] := Max(1-P^[2], 0.0);
+    Inc(P);
+  end;
+end;
+
 { TGrayscaleImage ------------------------------------------------------------ }
 
 function TGrayscaleImage.GetGrayscalePixels: PByte;
@@ -3242,6 +3261,19 @@ begin
     inherited;
 end;
 
+procedure TGrayscaleImage.InvertColors;
+var
+  I: Cardinal;
+  P: PByte;
+begin
+  P := GrayscalePixels;
+  for I := 1 to Width * Height * Depth do
+  begin
+    P^ := High(Byte)-P^;
+    Inc(P);
+  end;
+end;
+
 { TGrayscaleAlphaImage ------------------------------------------------------------ }
 
 function TGrayscaleAlphaImage.GetGrayscaleAlphaPixels: PVector2Byte;
@@ -3377,6 +3409,19 @@ begin
   end else
 
     inherited;
+end;
+
+procedure TGrayscaleAlphaImage.InvertColors;
+var
+  I: Cardinal;
+  P: PVector2Byte;
+begin
+  P := GrayscaleAlphaPixels;
+  for I := 1 to Width * Height * Depth do
+  begin
+    P^[0] := High(Byte)-P^[0];
+    Inc(P);
+  end;
 end;
 
 { RGBE <-> 3 Single color convertion --------------------------------- }

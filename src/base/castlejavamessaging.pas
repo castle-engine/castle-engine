@@ -21,9 +21,6 @@
   will soon be integrated with Castle Game Engine. }
 unit CastleJavaMessaging;
 
-{ Log each message send/received from/to Java. }
-{ $define CASTLE_DEBUG_JAVA_MESSAGING}
-
 interface
 
 {$ifdef ANDROID} uses JNI; {$endif}
@@ -48,6 +45,13 @@ const
   GravityCenterVertical = $00000010; //< Place object in the vertical center of its container, not changing its size.
   GravityNo = 0; //< Constant indicating that no gravity has been set.
 
+var
+  { Log each message send/received from/to Java.
+    Note that this is sometimes quite verbose, and it also allows cheaters
+    to easier debug what happens in your game (e.g. how to fake getting
+    some achievement), so in general don't leave it "on" in production. }
+  LogJavaMessaging: boolean;
+
 implementation
 
 uses SysUtils, SyncObjs, CastleLog, CastleStringUtils;
@@ -63,9 +67,8 @@ begin
   if JavaCommunicationCS = nil then Exit;
   JavaCommunicationCS.Acquire;
   try
-    {$ifdef CASTLE_DEBUG_JAVA_MESSAGING}
-    WritelnLog('JNI', 'Native code posting message to Java: ' + S);
-    {$endif}
+    if LogJavaMessaging then
+      WritelnLog('JNI', 'Native code posting message to Java: ' + S);
     ToJava.Add(S);
   finally JavaCommunicationCS.Release end;
 end;
@@ -77,9 +80,8 @@ begin
     if FromJava.Count <> 0 then
     begin
       Result := FromJava[0];
-      {$ifdef CASTLE_DEBUG_JAVA_MESSAGING}
-      WritelnLog('JNI', 'Native code received a message from Java: ' + Result);
-      {$endif}
+      if LogJavaMessaging then
+        WritelnLog('JNI', 'Native code received a message from Java: ' + Result);
       FromJava.Delete(0);
     end else
       Result := '';
