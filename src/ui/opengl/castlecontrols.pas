@@ -25,7 +25,8 @@ uses Classes, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontDat
 type
   TCastleLabel = class;
 
-  { Base class for all controls inside an OpenGL context using a font. }
+  { Base class for all controls inside an OpenGL context using a font.
+    Allows to customize font and font size per-control, or use defaults. }
   TUIControlFont = class(TUIRectangularControl)
   private
     FTooltip: string;
@@ -33,15 +34,22 @@ type
     FCustomFont: TCastleFont;
     FOwnsCustomFont: boolean;
     FLastSeenUIFont: TCastleFont; //< remembered only to call FontChanged
+    FFontSize: Single;
+    FCustomizedFont: TCustomizedFont; //< used only when FFontSize <> 0 for now
     procedure SetCustomFont(const Value: TCastleFont);
+    procedure SetFontSize(const Value: Single);
   protected
-    { Font custom to this control. By default this returns UIFont,
-      you can override this to return your font.
+    { Font custom to this control.
+      Depending on @link(CustomFont) and @link(FontSize) settings it may return
+      @link(UIFont), or TCustomizedFont that scales the @link(UIFont),
+      or @link(CustomFont), or TCustomizedFont that scales the @link(CustomFont).
+
       It's OK to return here @nil if font is not ready yet,
       but during Render (when OpenGL context is available) font must be ready. }
-    function Font: TCastleFont; virtual;
-    { Called when Font result changed, either by setting CustomFont or when
-      UIFont assigned changed. }
+    function Font: TCastleFont;
+
+    { Called when Font or it's sizes changed (either by setting CustomFont
+      or FontSize properties or when UIFont assigned changed). }
     procedure FontChanged; virtual;
   public
     destructor Destroy; override;
@@ -72,6 +80,11 @@ type
       read FCustomFont write SetCustomFont;
     property OwnsCustomFont: boolean
       read FOwnsCustomFont write FOwnsCustomFont default false;
+
+    { Use given font size when drawing. Leave at default zero to use
+      the default size of the font. Font itself is taken from
+      @link(CustomFont) or, if not set, from @link(UIFont). }
+    property FontSize: Single read FFontSize write SetFontSize default 0.0;
   end;
 
   TCastleButtonImageLayout = (ilTop, ilBottom, ilLeft, ilRight);
@@ -845,6 +858,7 @@ end;
 destructor TUIControlFont.Destroy;
 begin
   CustomFont := nil; // make sure to free FCustomFont, if necessary
+  FreeAndNil(FCustomizedFont);
   inherited;
 end;
 
@@ -896,18 +910,26 @@ begin
   FreeAndNil(TooltipLabel);
   if CustomFont <> nil then
     CustomFont.GLContextClose;
+  if FCustomizedFont <> nil then
+    FCustomizedFont.GLContextClose;
   inherited;
 end;
 
 function TUIControlFont.Font: TCastleFont;
 begin
-  if GLInitialized then
+  if CustomFont <> nil then
+    Result := CustomFont else
+    Result := UIFont;
+
+  { if FontSize <> 0, wrap Result in TCustomizedFont instance }
+  if FFontSize <> 0 then
   begin
-    if CustomFont <> nil then
-      Result := CustomFont else
-      Result := UIFont;
-  end else
-    Result := nil;
+    if FCustomizedFont = nil then
+      FCustomizedFont := TCustomizedFont.Create(nil, false);
+    FCustomizedFont.Size := FFontSize;
+    FCustomizedFont.SourceFont := Result;
+    Result := FCustomizedFont;
+  end;
 end;
 
 procedure TUIControlFont.SetCustomFont(const Value: TCastleFont);
@@ -918,6 +940,15 @@ begin
       FreeAndNil(FCustomFont) else
       FCustomFont := nil;
     FCustomFont := Value;
+    FontChanged;
+  end;
+end;
+
+procedure TUIControlFont.SetFontSize(const Value: Single);
+begin
+  if FFontSize <> Value then
+  begin
+    FFontSize := Value;
     FontChanged;
   end;
 end;

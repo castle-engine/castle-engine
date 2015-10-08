@@ -44,11 +44,16 @@ type
     FOutlineColor: TCastleColor;
     FOutlineHighQuality: boolean;
     FPropertiesStack: TSavedPropertiesList;
+    procedure MakeMeasure;
   strict protected
     { Calculate properties based on measuring the font.
       The default implementation in TCastleFont looks at TextHeight of sample texts
       to determine the parameter values. }
     procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer); virtual;
+    { Call when data calculated by Measure changed,
+      because TextWidth / TextHeight results changed (but not by Scale,
+      that is taken care of automatically). }
+    procedure InvalidateMeasure;
     procedure SetScale(const Value: Single); virtual;
     function GetSize: Single; virtual; abstract;
     procedure SetSize(const Value: Single); virtual; abstract;
@@ -435,6 +440,41 @@ type
     constructor Create(AImage: TCastleImage;
       const AImageCols, AImageRows, ACharMargin, ACharDisplayMargin: Integer);
     destructor Destroy; override;
+    procedure GLContextOpen; override;
+    procedure GLContextClose; override;
+    procedure Print(const X, Y: Integer; const Color: TCastleColor;
+      const S: string); override;
+    function TextWidth(const S: string): Integer; override;
+    function TextHeight(const S: string): Integer; override;
+    function TextHeightBase(const S: string): Integer; override;
+    function TextMove(const S: string): TVector2Integer; override;
+  end;
+
+  { Font that uses @italic(another) TCastleFont for rendering and sizing,
+    but modifies the underlying font size (by simple scaling).
+    Simply set the @code(Size) property of this instance to non-zero
+    to force the specific size.
+
+    The underlying font properties remain unchanged
+    (so it can be still used for other purposes,
+    directly or by other TCustomizedFont wrappers). }
+  TCustomizedFont = class(TCastleFont)
+  strict private
+    FSourceFont: TCastleFont;
+    FOwnsSourceFont: boolean;
+    // Note that we leave inherited Scale at == 1, always.
+    FSize: Single;
+    procedure SetSourceFont(const Value: TCastleFont);
+  strict protected
+    function GetSize: Single; override;
+    procedure SetSize(const Value: Single); override;
+  public
+    constructor Create(const ASourceFont: TCastleFont; const AOwnsSourceFont: boolean);
+    destructor Destroy; override;
+
+    property SourceFont: TCastleFont read FSourceFont write SetSourceFont;
+    property OwnsSourceFont: boolean read FOwnsSourceFont write FOwnsSourceFont;
+
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
     procedure Print(const X, Y: Integer; const Color: TCastleColor;
@@ -878,33 +918,35 @@ begin
   Scale := OldScale;
 end;
 
-function TCastleFont.RowHeight: Integer;
+procedure TCastleFont.MakeMeasure;
 begin
   if not MeasureDone then
   begin
     Measure(FRowHeight, FRowHeightBase, FDescend);
     MeasureDone := true;
   end;
+end;
+
+procedure TCastleFont.InvalidateMeasure;
+begin
+  MeasureDone := false;
+end;
+
+function TCastleFont.RowHeight: Integer;
+begin
+  MakeMeasure;
   Result := Round(FRowHeight * Scale);
 end;
 
 function TCastleFont.RowHeightBase: Integer;
 begin
-  if not MeasureDone then
-  begin
-    Measure(FRowHeight, FRowHeightBase, FDescend);
-    MeasureDone := true;
-  end;
+  MakeMeasure;
   Result := Round(FRowHeightBase * Scale);
 end;
 
 function TCastleFont.Descend: Integer;
 begin
-  if not MeasureDone then
-  begin
-    Measure(FRowHeight, FRowHeightBase, FDescend);
-    MeasureDone := true;
-  end;
+  MakeMeasure;
   Result := Round(FDescend * Scale);
 end;
 
@@ -1240,6 +1282,117 @@ end;
 procedure TSimpleTextureFont.SetSize(const Value: Single);
 begin
   Scale := Value / CharHeight;
+end;
+
+{ TCustomizedFont ------------------------------------------------------------ }
+
+constructor TCustomizedFont.Create(const ASourceFont: TCastleFont; const AOwnsSourceFont: boolean);
+begin
+  inherited Create;
+  FSourceFont := ASourceFont;
+  FOwnsSourceFont := AOwnsSourceFont;
+end;
+
+destructor TCustomizedFont.Destroy;
+begin
+  SourceFont := nil; // this will free FSourceFont if needed
+  inherited;
+end;
+
+function TCustomizedFont.GetSize: Single;
+begin
+  Result := FSize;
+end;
+
+procedure TCustomizedFont.SetSize(const Value: Single);
+begin
+  if FSize <> Value then
+  begin
+    FSize := Value;
+    InvalidateMeasure;
+  end;
+end;
+
+procedure TCustomizedFont.SetSourceFont(const Value: TCastleFont);
+begin
+  if FSourceFont <> Value then
+  begin
+    if FOwnsSourceFont then
+      FreeAndNil(FSourceFont);
+    FSourceFont := Value;
+  end;
+end;
+
+procedure TCustomizedFont.GLContextOpen;
+begin
+  FSourceFont.GLContextOpen;
+end;
+
+procedure TCustomizedFont.GLContextClose;
+begin
+  if FSourceFont <> nil then
+    FSourceFont.GLContextClose;
+end;
+
+procedure TCustomizedFont.Print(const X, Y: Integer; const Color: TCastleColor;
+  const S: string);
+begin
+  if Size <> 0 then
+  begin
+    FSourceFont.PushProperties;
+    FSourceFont.Size := Size;
+  end;
+  FSourceFont.Print(X, Y, Color, S);
+  if Size <> 0 then
+    FSourceFont.PopProperties;
+end;
+
+function TCustomizedFont.TextWidth(const S: string): Integer;
+begin
+  if Size <> 0 then
+  begin
+    FSourceFont.PushProperties;
+    FSourceFont.Size := Size;
+  end;
+  Result := FSourceFont.TextWidth(S);
+  if Size <> 0 then
+    FSourceFont.PopProperties;
+end;
+
+function TCustomizedFont.TextHeight(const S: string): Integer;
+begin
+  if Size <> 0 then
+  begin
+    FSourceFont.PushProperties;
+    FSourceFont.Size := Size;
+  end;
+  Result := FSourceFont.TextHeight(S);
+  if Size <> 0 then
+    FSourceFont.PopProperties;
+end;
+
+function TCustomizedFont.TextHeightBase(const S: string): Integer;
+begin
+  if Size <> 0 then
+  begin
+    FSourceFont.PushProperties;
+    FSourceFont.Size := Size;
+  end;
+  Result := FSourceFont.TextHeightBase(S);
+  if Size <> 0 then
+    FSourceFont.PopProperties;
+end;
+
+function TCustomizedFont.TextMove(const S: string): TVector2Integer;
+begin
+  if Size <> 0 then
+  begin
+    FSourceFont.PushProperties;
+    FSourceFont.Size := Size;
+  end;
+  Result := FSourceFont.TextMove(S);
+  if Size <> 0 then
+    FSourceFont.PopProperties;
 end;
 
 end.
