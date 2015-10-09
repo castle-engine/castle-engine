@@ -18,7 +18,8 @@ unit CastleSoundMenu;
 
 interface
 
-uses CastleWindow, CastleOnScreenMenu, CastleSoundEngine;
+uses CastleWindow, CastleOnScreenMenu, CastleSoundEngine, CastleUIControls,
+  CastleControls;
 
 type
   { An abstract class for CastleSoundMenu items.
@@ -32,9 +33,8 @@ type
     { Creates and adds this menu item to Menu. }
     constructor Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
     function Title: string; virtual; abstract;
-    function Accessory: TMenuAccessory; virtual;
+    function Accessory: TUIControl; virtual;
     procedure Selected; virtual;
-    procedure AccessoryValueChanged; virtual;
   end;
 
   TSoundMenuItem = class(TOnScreenMenuItem)
@@ -49,8 +49,7 @@ type
   { Float slider suitable for volume setting.
     Range is always [0 .. 1] and when the slider is exactly
     on 0.0 position it shows "Off". }
-  TMenuVolumeSlider = class(TMenuFloatSlider)
-    constructor Create(const AValue: Single);
+  TMenuVolumeSlider = class(TCastleFloatSlider)
     function ValueToStr(const AValue: Single): string; override;
   end;
 
@@ -58,30 +57,30 @@ type
   private
     FSlider: TMenuVolumeSlider;
     property Slider: TMenuVolumeSlider read FSlider;
+    procedure SliderValueChanged(Sender: TObject);
   public
     constructor Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
 
     { Call this if volume changed by something outside of this class. }
-    procedure RefreshAccessory;
+    procedure Refresh;
 
     function Title: string; override;
-    function Accessory: TMenuAccessory; override;
-    procedure AccessoryValueChanged; override;
+    function Accessory: TUIControl; override;
   end;
 
   TMusicVolumeMenuItem = class(TSoundMenuItem)
   private
     FSlider: TMenuVolumeSlider;
     property Slider: TMenuVolumeSlider read FSlider;
+    procedure SliderValueChanged(Sender: TObject);
   public
     constructor Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
 
     { Call this if volume changed by something outside of this class. }
-    procedure RefreshAccessory;
+    procedure Refresh;
 
     function Title: string; override;
-    function Accessory: TMenuAccessory; override;
-    procedure AccessoryValueChanged; override;
+    function Accessory: TUIControl; override;
   end;
 
 implementation
@@ -93,20 +92,16 @@ uses Classes, CastleClassUtils, CastleUtils, CastleMessages;
 constructor TOnScreenMenuItem.Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
 begin
   inherited Create;
-  Menu.Items.AddObject(Title, Accessory);
+  Menu.Add(Title, Accessory);
   FWindow := AWindow;
 end;
 
-function TOnScreenMenuItem.Accessory: TMenuAccessory;
+function TOnScreenMenuItem.Accessory: TUIControl;
 begin
   Result := nil;
 end;
 
 procedure TOnScreenMenuItem.Selected;
-begin
-end;
-
-procedure TOnScreenMenuItem.AccessoryValueChanged;
 begin
 end;
 
@@ -133,11 +128,6 @@ end;
 
 { TMenuVolumeSlider ---------------------------------------------------- }
 
-constructor TMenuVolumeSlider.Create(const AValue: Single);
-begin
-  inherited Create(0, 1, AValue);
-end;
-
 function TMenuVolumeSlider.ValueToStr(const AValue: Single): string;
 begin
   if AValue = 0.0 then
@@ -149,7 +139,9 @@ end;
 
 constructor TSoundVolumeMenuItem.Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
 begin
-  FSlider := TMenuVolumeSlider.Create(SoundEngine.Volume);
+  FSlider := TMenuVolumeSlider.Create(Menu);
+  FSlider.Value := SoundEngine.Volume;
+  FSlider.OnChange := @SliderValueChanged;
   inherited;
 end;
 
@@ -158,17 +150,17 @@ begin
   Result := 'Volume';
 end;
 
-function TSoundVolumeMenuItem.Accessory: TMenuAccessory;
+function TSoundVolumeMenuItem.Accessory: TUIControl;
 begin
   Result := FSlider;
 end;
 
-procedure TSoundVolumeMenuItem.AccessoryValueChanged;
+procedure TSoundVolumeMenuItem.SliderValueChanged(Sender: TObject);
 begin
   SoundEngine.Volume := Slider.Value;
 end;
 
-procedure TSoundVolumeMenuItem.RefreshAccessory;
+procedure TSoundVolumeMenuItem.Refresh;
 begin
   Slider.Value := SoundEngine.Volume;
 end;
@@ -177,7 +169,9 @@ end;
 
 constructor TMusicVolumeMenuItem.Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
 begin
-  FSlider := TMenuVolumeSlider.Create(SoundEngine.MusicPlayer.MusicVolume);
+  FSlider := TMenuVolumeSlider.Create(Menu);
+  FSlider.Value := SoundEngine.MusicPlayer.MusicVolume;
+  FSlider.OnChange := @SliderValueChanged;
   inherited;
 end;
 
@@ -186,17 +180,17 @@ begin
   Result := 'Music volume';
 end;
 
-function TMusicVolumeMenuItem.Accessory: TMenuAccessory;
+function TMusicVolumeMenuItem.Accessory: TUIControl;
 begin
   Result := FSlider;
 end;
 
-procedure TMusicVolumeMenuItem.AccessoryValueChanged;
+procedure TMusicVolumeMenuItem.SliderValueChanged(Sender: TObject);
 begin
   SoundEngine.MusicPlayer.MusicVolume := Slider.Value;
 end;
 
-procedure TMusicVolumeMenuItem.RefreshAccessory;
+procedure TMusicVolumeMenuItem.Refresh;
 begin
   Slider.Value := SoundEngine.MusicPlayer.MusicVolume;
 end;

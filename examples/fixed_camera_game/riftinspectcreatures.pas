@@ -110,7 +110,7 @@ begin
     Window.AutoRedisplay := true;
 
     SceneManager := TRiftSceneManager.Create(nil);
-    Window.Controls.Add(SceneManager);
+    Window.Controls.InsertBack(SceneManager);
 
     SceneManager.Camera := TWalkCamera.Create(SceneManager);
     (SceneManager.Camera as TWalkCamera).Init(

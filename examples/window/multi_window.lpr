@@ -34,16 +34,16 @@ type
   public
     Text: string;
     LightColor, DarkColor: TCastleColor;
-    Parent: TCastleWindowCustom;
+    ParentWindow: TCastleWindowCustom;
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
-    function PositionInside(const Position: TVector2Single): boolean; override;
+    function CapturesEventsAtPosition(const Position: TVector2Single): boolean; override;
   end;
 
 procedure TText.Render;
 begin
   inherited;
-  DrawRectangle(ContainerRect, DarkColor);
+  DrawRectangle(ParentRect, DarkColor);
   UIFont.Print(10, 10, LightColor, Text);
 end;
 
@@ -65,15 +65,15 @@ begin
         URL := '';
         { when file dialog is open, note that the other windows
           are still active as they should. }
-        Parent.FileDialog('Test open file dialog', URL, true);
+        ParentWindow.FileDialog('Test open file dialog', URL, true);
         Result := ExclusiveEvents;
       end;
   end;
 end;
 
-function TText.PositionInside(const Position: TVector2Single): boolean;
+function TText.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
 begin
-  Result := true;
+  Result := true; // always
 end;
 
 var
@@ -89,7 +89,7 @@ begin
     Text.Text := 'Window ' + IntToStr(I);
     Text.LightColor := Vector4Single(Random*1.5, Random*1.5, Random*1.5, 1);
     Text.DarkColor  := Vector4Single(Random*0.7, Random*0.7, Random*0.7, 1);
-    Text.Parent := Windows[I];
+    Text.ParentWindow := Windows[I];
     Windows[I].Controls.InsertFront(Text);
 
     Windows[I].Caption := 'Window ' + IntToStr(I);

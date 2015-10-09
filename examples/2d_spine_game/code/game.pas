@@ -190,7 +190,6 @@ begin
   Status.Left := 10;
   Status.Text.Text := 'FPS: ...'; // set initial text, to make 1st WindowResize set proper position
   // Status.Bottom := ...; // vertical Status position will be adjusted in WindowResize
-  Status.Frame := false;
   Window.Controls.InsertFront(Status);
 end;
 

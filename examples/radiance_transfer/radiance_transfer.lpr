@@ -110,7 +110,7 @@ begin
 
     SHVectorGLCapture(LightSHBasis, Scene.BoundingBox.Middle,
       @DrawLight, 100, 100, LightIntensityScale);
-    glViewport(ContainerRect);
+    glViewport(ScreenRect);
   end;
 
   Scene.Render(RenderingCamera.Frustum, RenderParams);

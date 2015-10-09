@@ -292,8 +292,8 @@ begin
       SceneCamera.Input := [];
       SceneManager.Camera := SceneCamera;
 
-      Window.Controls.Add(Notifications);
-      Window.Controls.Add(SceneManager);
+      Window.Controls.InsertBack(Notifications);
+      Window.Controls.InsertBack(SceneManager);
       InitLocation;
 
       Window.OnPress := @Press;

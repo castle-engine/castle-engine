@@ -73,7 +73,7 @@ type
       must be checked to see actual projection dimensions.
       When this is @true, then CurrentProjectionWidth and CurrentProjectionHeight
       are determined by the scene manager size (which is also available using
-      @link(TUIRectangularControl.Rect) method). When this is @false,
+      @link(TUIControl.Rect) method). When this is @false,
       then CurrentProjectionHeight is equal to ProjectionHeight,
       and CurrentProjectionWidth is adjusted to follow aspect ratio. }
     property ProjectionAutoSize: boolean

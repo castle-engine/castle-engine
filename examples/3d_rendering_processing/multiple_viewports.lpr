@@ -45,24 +45,24 @@ type
 procedure TMyViewport.SetFocused(const Value: boolean);
 begin
   if Value <> Focused then
-    { The TMyViewport2D.Render is based on Focused value. }
+    { The TMyViewportFrame.Render is based on Focused value. }
     VisibleChange;
 
   inherited;
 end;
 
-{ TMyViewport2D -------------------------------------------------------------- }
+{ TMyViewportFrame -------------------------------------------------------------- }
 
 type
   { 2D controls over the viewport. For this we need TUIControl instance
     with RenderStyle 2D. }
-  TMyViewport2D = class(TUIControl)
+  TMyViewportFrame = class(TUIControl)
   public
     Viewport: TMyViewport;
     procedure Render; override;
   end;
 
-procedure TMyViewport2D.Render;
+procedure TMyViewportFrame.Render;
 begin
   if Viewport.Focused then
     Theme.Draw(Viewport.Rect, tiActiveFrame);
@@ -149,7 +149,7 @@ var
   Window: TCastleWindow;
   Scene: TCastleScene;
   Viewports: array [0..3] of TMyViewport;
-  Viewports2D: array [0..3] of TMyViewport2D;
+  ViewportFrames: array [0..3] of TMyViewportFrame;
   ViewportsLabels: array [0..3] of TCastleLabel;
   OpenButton, QuitButton: TCastleButton;
 
@@ -310,17 +310,17 @@ begin
     Viewports[I].FullSize := false;
     Viewports[I].ShadowVolumes := I = 1;
     { The initial Resize event will position viewports correctly }
-    Window.Controls.Add(Viewports[I]);
+    Window.Controls.InsertFront(Viewports[I]);
 
-    Viewports2D[I] := TMyViewport2D.Create(Application);
-    Viewports2D[I].Viewport := Viewports[I];
-    Window.Controls.Add(Viewports2D[I]);
+    ViewportFrames[I] := TMyViewportFrame.Create(Application);
+    ViewportFrames[I].Viewport := Viewports[I];
+    Window.Controls.InsertFront(ViewportFrames[I]);
 
     ViewportsLabels[I] := TCastleLabel.Create(Application);
     ViewportsLabels[I].Text.Text := Viewports[I].Caption;
     ViewportsLabels[I].Color := Yellow;
     ViewportsLabels[I].Padding := 5;
-    Window.Controls.Add(ViewportsLabels[I]);
+    Window.Controls.InsertFront(ViewportsLabels[I]);
   end;
   Assert(Window.SceneManager.Viewports.Count = High(Viewports) + 1);
 

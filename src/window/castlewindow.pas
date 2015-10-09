@@ -4301,7 +4301,7 @@ begin
     we'll make use of it. }
   FSceneManager.SetSubComponent(true);
   FSceneManager.Name := 'SceneManager';
-  Controls.Add(SceneManager);
+  Controls.InsertFront(SceneManager);
 end;
 
 procedure TCastleWindow.Load(const SceneURL: string);

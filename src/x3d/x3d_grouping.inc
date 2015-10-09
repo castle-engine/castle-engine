@@ -554,7 +554,7 @@ begin
     "A children field is not allowed to directly contain
     multiple instances of the same node."
     Thus the question how we should deal with multiple items to remove
-    (use Delete or DeleteAll in implementation below?) doesn't exist.
+    (use Remove or RemoveAll in implementation below?) doesn't exist.
 
     Note that I didn't find such notice in VRML 97 specification.
     This seems to be undefined case in VRML 97? }

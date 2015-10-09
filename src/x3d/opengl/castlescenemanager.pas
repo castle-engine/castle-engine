@@ -56,7 +56,7 @@ type
 
   { Common abstract class for things that may act as a viewport:
     TCastleSceneManager and TCastleViewport. }
-  TCastleAbstractViewport = class(TUIRectangularControl)
+  TCastleAbstractViewport = class(TUIControl)
   private
     type
       TScreenPoint = packed record
@@ -282,7 +282,6 @@ type
     destructor Destroy; override;
 
     procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
-    function PositionInside(const Position: TVector2Single): boolean; override;
     property RenderStyle default rs3D;
 
     function AllowSuspendForInput: boolean; override;
@@ -795,7 +794,6 @@ type
 
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
-    function PositionInside(const Position: TVector2Single): boolean; override;
 
     { Prepare resources, to make various methods (like @link(Render))
       execute fast.
@@ -901,6 +899,8 @@ type
 
       Empty initially. Initialize it however you want. }
     property Water: TBox3D read FWater write FWater;
+
+    function Rect: TRectangle; override;
   published
     { Time scale used when not @link(Paused). }
     property TimeScale: Single read FTimeScale write FTimeScale default 1;
@@ -1529,17 +1529,8 @@ end;
 function TCastleAbstractViewport.Rect: TRectangle;
 begin
   if FullSize then
-    Result := ContainerRect else
+    Result := ParentRect else
     Result := Rectangle(Left, Bottom, Width, Height);
-end;
-
-function TCastleAbstractViewport.PositionInside(const Position: TVector2Single): boolean;
-begin
-  Result := (FullSize or
-    ( (Position[0] >= Left) and
-      (Position[0]  < Left + Width) and
-      (Position[1] >= Bottom) and
-      (Position[1]  < Bottom + Height) ));
 end;
 
 procedure TCastleAbstractViewport.ApplyProjection;
@@ -2844,12 +2835,6 @@ begin
   end;
 end;
 
-function TCastleSceneManager.PositionInside(const Position: TVector2Single): boolean;
-begin
-  { When not DefaultViewport, then scene manager is not visible. }
-  Result := DefaultViewport and (inherited PositionInside(Position));
-end;
-
 procedure TCastleSceneManager.PrepareResources(const DisplayProgressTitle: string);
 var
   Options: TPrepareResourcesOptions;
@@ -3321,6 +3306,13 @@ begin
     Assert(Result <> nil);
   end else
     Result := nil;
+end;
+
+function TCastleSceneManager.Rect: TRectangle;
+begin
+  if DefaultViewport then
+    Result := inherited Rect else
+    Result := TRectangle.Empty;
 end;
 
 { TCastleViewport --------------------------------------------------------------- }

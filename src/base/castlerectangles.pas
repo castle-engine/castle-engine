@@ -24,9 +24,9 @@ type
   { Horizontal position of one control/rectangle
     with respect to another.
 
-    This is used by TUIRectangularControl.Align and TRectangle.Align
+    This is used by TUIControl.Align and TRectangle.Align
     to specify the alignment of one control/rectangle with respect to another.
-    In case of TUIRectangularControl.Align, this specifies
+    In case of TUIControl.Align, this specifies
     the align of control with respect to the container
     (TCastleWindow or TCastleControl).
 
@@ -35,11 +35,11 @@ type
     @orderedList(
       @item(
         When we talk about the position of the control
-        (for example ControlPosition for TUIRectangularControl.Align),
+        (for example ControlPosition for TUIControl.Align),
         it determines which border of the control to align.)
       @item(
         When we talk about the position of the container
-        (for example ContainerPosition for TUIRectangularControl.Align),
+        (for example ContainerPosition for TUIControl.Align),
         this specifies the container border.)
     )
 
@@ -210,6 +210,8 @@ type
       const Y: Integer = 0): TRectangle;
 
     function ToString: string;
+
+    function Translate(const V: TVector2Integer): TRectangle;
   end;
 
   TRectangleList = class(specialize TGenericStructList<TRectangle>)
@@ -541,6 +543,14 @@ function TRectangle.Align(
 begin
   Result.Left := Left;
   Result.Bottom := AlignCore(ThisPosition, OtherRect, OtherPosition, Y);
+  Result.Width := Width;
+  Result.Height := Height;
+end;
+
+function TRectangle.Translate(const V: TVector2Integer): TRectangle;
+begin
+  Result.Left := Left + V[0];
+  Result.Bottom := Bottom + V[1];
   Result.Width := Width;
   Result.Height := Height;
 end;

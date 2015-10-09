@@ -70,8 +70,8 @@ procedure TGLContainer.EventRender;
   begin
     AnythingWants2D := false;
 
-    { draw controls in "downto" order, back to front }
-    for I := Controls.Count - 1 downto 0 do
+    { draw controls in "to" order, back to front }
+    for I := 0 to Controls.Count - 1 do
     begin
       C := Controls[I];
       { We check C.GLInitialized, because it may happen that a control
@@ -88,7 +88,7 @@ procedure TGLContainer.EventRender;
           { Set OpenGL state that may be changed carelessly, and has some
             guanteed value, for TUIControl.Render calls.
             For now, just glLoadIdentity. }
-          rs3D: begin ControlRenderBegin; C.Render; end;
+          rs3D: begin ControlRenderBegin; C.RenderWithChildren; end;
         end;
     end;
 
@@ -109,14 +109,14 @@ procedure TGLContainer.EventRender;
     C: TUIControl;
     I: Integer;
   begin
-    { draw controls in "downto" order, back to front }
-    for I := Controls.Count - 1 downto 0 do
+    { draw controls in "to" order, back to front }
+    for I := 0 to Controls.Count - 1 do
     begin
       C := Controls[I];
       if C.GetExists and C.GLInitialized and (C.RenderStyle = rs2D) then
       begin
         ControlRenderBegin;
-        C.Render;
+        C.RenderWithChildren;
       end;
     end;
 

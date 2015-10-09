@@ -129,7 +129,7 @@ begin
     for I := 0 to Controls.Count - 1 do
     begin
       C := Controls[I];
-      if C.PositionInside(MousePosition) then
+      if C.CapturesEventsAtPosition(MousePosition) then
       begin
         C.SensorTranslation(Tx, Ty, Tz, TLength, Fps.UpdateSecondsPassed);
         C.SensorRotation(Rx, Ry, Rz, RAngle, Fps.UpdateSecondsPassed);

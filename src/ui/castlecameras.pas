@@ -255,7 +255,7 @@ type
       (0, 0) is bottom-left. }
     procedure Ray(const WindowPosition: TVector2Single;
       const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3Single);
+      out RayOrigin, RayDirection: TVector3Single); deprecated 'use CustomRay with proper viewport sizes, or use higher-level utilities like SceneManager.MouseRayHit instead';
 
     { Calculate a ray picked by current mouse position on the window.
       Uses current Container (both to get it's size and to get current
@@ -267,7 +267,7 @@ type
       @seealso CustomRay }
     procedure MouseRay(
       const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3Single);
+      out RayOrigin, RayDirection: TVector3Single); deprecated 'use CustomRay with proper viewport sizes, or use higher-level utilities like SceneManager.MouseRayHit instead';
 
     { Calculate a ray picked by WindowPosition position on the viewport,
       assuming current viewport dimensions are as given.

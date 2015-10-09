@@ -286,7 +286,7 @@ begin
   oldClose_charkey := Window.Close_charkey;
   oldFpsShowOnCaption := Window.FpsShowOnCaption;
 
-  OldControls := TUIControlList.Create(false);
+  OldControls := TUIControlList.Create(nil);
   OldControls.Assign(Window.Controls);
   for I := 0 to OldControls.Count - 1 do
     OldControls[I].FreeNotification(Self);
@@ -423,7 +423,7 @@ procedure TGLMode.TWindowState.Notification(AComponent: TComponent; Operation: T
 begin
   inherited;
   if (Operation = opRemove) and (AComponent is TUIControl) and (OldControls <> nil) then
-    OldControls.DeleteAll(AComponent);
+    OldControls.RemoveAll(TUIControl(AComponent), true);
 end;
 
 { TGLMode -------------------------------------------------------------------- }

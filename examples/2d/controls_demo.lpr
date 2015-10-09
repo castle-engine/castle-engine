@@ -54,13 +54,10 @@ begin
   Window.Controls.InsertFront(Image);
 
   OnScreenMenu := TCastleOnScreenMenu.Create(Window);
-  OnScreenMenu.Items.Add('one');
-  OnScreenMenu.Items.Add('two');
-  OnScreenMenu.Position := Vector2Integer(10, 300);
-  OnScreenMenu.PositionRelativeMenuX := hpLeft;
-  OnScreenMenu.PositionRelativeMenuY := vpBottom;
-  OnScreenMenu.PositionRelativeScreenX := hpLeft;
-  OnScreenMenu.PositionRelativeScreenY := vpBottom;
+  OnScreenMenu.Add('one');
+  OnScreenMenu.Add('two');
+  OnScreenMenu.Left := 10;
+  OnScreenMenu.Bottom := 300;
   Window.Controls.InsertFront(OnScreenMenu);
 
   Touch := TCastleTouchControl.Create(Window);
@@ -72,4 +69,3 @@ begin
   Window.Height := 500;
   Window.OpenAndRun;
 end.
-

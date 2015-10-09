@@ -162,7 +162,7 @@ begin
   try
     if not cge_verifyInit then exit;
 
-    Restore2D := TUIControlList.Create(false);
+    Restore2D := TUIControlList.Create(nil);
     try
       // hide touch controls
       for I := 0 to Window.Controls.Count - 1 do
@@ -171,7 +171,7 @@ begin
         if C.Exists and (C.RenderStyle = rs2D) then
         begin
           C.Exists := false;
-          Restore2D.Add(C);
+          Restore2D.InsertFront(C);
         end;
       end;
       // make screenshot
@@ -620,7 +620,7 @@ begin
           Result := 1 else
           Result := 0;
       end;
-      
+
       5: begin    // ecgevarWalkTouchCtl
         Result := cgehelper_ConstFromTouchInterface(Window.AutomaticWalkTouchCtl);
       end;
@@ -684,7 +684,7 @@ end;
 
 destructor TCrosshairManager.Destroy;
 begin
-  Window.Controls.Remove(CrosshairCtl);
+  Window.Controls.RemoveAll(CrosshairCtl, false);
   FreeAndNil(CrosshairCtl);
   inherited;
 end;
@@ -732,4 +732,3 @@ begin
   {Do not remove the exception masking lines}
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
 end.
-

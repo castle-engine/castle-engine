@@ -86,6 +86,7 @@ begin
   Label1.Text.Append('and sometimes, Do bats eat cats?');
   Label1.Text.Append('1 + 2 + 3 = 6');
   Label1.Padding := 5;
+  Label1.Frame := true;
   // do not assign Label1.CustomFont, so it will use global UIFont
   Window.Controls.InsertFront(Label1);
 
@@ -97,6 +98,7 @@ begin
     LoadImage(ApplicationData('null_terminator_0.png')), 8, 12, 1, 1);
   Label2.OwnsCustomFont := true;
   Label2.Color := Red;
+  Label2.Frame := true;
   Window.Controls.InsertFront(Label2);
 
   LabelDeja := TCastleLabel.Create(Window);
@@ -105,6 +107,7 @@ begin
   LabelDeja.Padding := 5;
   LabelDeja.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), 15, true);
   LabelDeja.OwnsCustomFont := true;
+  LabelDeja.Frame := true;
   Window.Controls.InsertFront(LabelDeja);
 
   LabelDejaBW := TCastleLabel.Create(Window);
@@ -113,6 +116,7 @@ begin
   LabelDejaBW.Padding := 5;
   LabelDejaBW.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), 15, false);
   LabelDejaBW.OwnsCustomFont := true;
+  LabelDejaBW.Frame := true;
   Window.Controls.InsertFront(LabelDejaBW);
 
   LabelDejaLarge := TCastleLabel.Create(Window);
@@ -122,6 +126,7 @@ begin
   LabelDejaLarge.Padding := 5;
   LabelDejaLarge.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), 30, true);
   LabelDejaLarge.OwnsCustomFont := true;
+  LabelDejaLarge.Frame := true;
   Window.Controls.InsertFront(LabelDejaLarge);
 
   LabelDejaLargeOutline := TCastleLabel.Create(Window);
@@ -132,8 +137,10 @@ begin
   LabelDejaLargeOutline.Padding := 5;
   LabelDejaLargeOutline.CustomFont := TTextureFont.Create(ApplicationData('DejaVuSans.ttf'), 30, true);
   LabelDejaLargeOutline.CustomFont.Outline := 2;
+  LabelDejaLargeOutline.CustomFont.OutlineHighQuality := true;
   LabelDejaLargeOutline.CustomFont.OutlineColor := Red;
   LabelDejaLargeOutline.OwnsCustomFont := true;
+  LabelDejaLargeOutline.Frame := true;
   Window.Controls.InsertFront(LabelDejaLargeOutline);
 
   LabelStylish := TCastleLabel.Create(Window);
@@ -143,6 +150,7 @@ begin
   LabelStylish.Padding := 5;
   LabelStylish.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), 15, true);
   LabelStylish.OwnsCustomFont := true;
+  LabelStylish.Frame := true;
   Window.Controls.InsertFront(LabelStylish);
 
   LabelStylishBW := TCastleLabel.Create(Window);
@@ -152,6 +160,7 @@ begin
   LabelStylishBW.Padding := 5;
   LabelStylishBW.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), 15, false);
   LabelStylishBW.OwnsCustomFont := true;
+  LabelStylishBW.Frame := true;
   Window.Controls.InsertFront(LabelStylishBW);
 
   LabelStylishLarge := TCastleLabel.Create(Window);
@@ -163,6 +172,7 @@ begin
   LabelStylishLarge.CustomFont := TTextureFont.Create(ApplicationData('PARPG.ttf'), 30, true);
 //  LabelStylishLarge.CustomFont.Scale := 4; // test font Scale
   LabelStylishLarge.OwnsCustomFont := true;
+  LabelStylishLarge.Frame := true;
   Window.Controls.InsertFront(LabelStylishLarge);
 
   Window.OnResize := @Resize;

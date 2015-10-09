@@ -141,7 +141,7 @@ type
       you initialized in @link(Start). }
     procedure Finish; virtual;
 
-    function PositionInside(const Position: TVector2Single): boolean; override;
+    function CapturesEventsAtPosition(const Position: TVector2Single): boolean; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
   end;
@@ -356,8 +356,9 @@ begin
   Result.Height := Round(Result.Height * Scale);
 end;
 
-function TUIState.PositionInside(const Position: TVector2Single): boolean;
+function TUIState.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
 begin
+  { always capture events on whole container }
   Result := true;
 end;
 

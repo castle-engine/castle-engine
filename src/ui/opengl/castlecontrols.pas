@@ -27,29 +27,29 @@ type
 
   { Base class for all controls inside an OpenGL context using a font.
     Allows to customize font and font size per-control, or use defaults. }
-  TUIControlFont = class(TUIRectangularControl)
+  TUIControlFont = class(TUIControl)
   private
     FTooltip: string;
     TooltipLabel: TCastleLabel;
     FCustomFont: TCastleFont;
     FOwnsCustomFont: boolean;
-    FLastSeenUIFont: TCastleFont; //< remembered only to call FontChanged
+    FLastSeenUIFontXxx: TCastleFont; //< remembered only to call FontChanged
     FFontSize: Single;
     FCustomizedFont: TCustomizedFont; //< used only when FFontSize <> 0 for now
+    FSmallFont: boolean;
     procedure SetCustomFont(const Value: TCastleFont);
     procedure SetFontSize(const Value: Single);
+    procedure SetSmallFont(const Value: boolean);
   protected
-    { Font custom to this control.
-      Depending on @link(CustomFont) and @link(FontSize) settings it may return
-      @link(UIFont), or TCustomizedFont that scales the @link(UIFont),
-      or @link(CustomFont), or TCustomizedFont that scales the @link(CustomFont).
+    { Font that should be used for rendering and measuring this control.
 
-      It's OK to return here @nil if font is not ready yet,
-      but during Render (when OpenGL context is available) font must be ready. }
+      Depending on @(SmallFont) and @link(CustomFont) and @link(FontSize)
+      properties it may return @link(UIFont), @link(UIFontSmall),
+      or @link(CustomFont), or a TCustomizedFont instances that wraps (and scales)
+      one of the above. }
     function Font: TCastleFont;
 
-    { Called when Font or it's sizes changed (either by setting CustomFont
-      or FontSize properties or when UIFont assigned changed). }
+    { Called when Font or it's size changed. }
     procedure FontChanged; virtual;
   public
     destructor Destroy; override;
@@ -61,7 +61,7 @@ type
       and eventually call FontChanged method @italic(now).
 
       You only need to explicitly call this in very specific circumstances,
-      when you just changed UIFont (changing CustomFont automatically
+      when you just changed UIFont or UIFontSmall (changing CustomFont automatically
       immediately calls FontChanged) and you want control size to be updated
       immediately (for example, you need TCastleButton.Height to be immediately
       valid). Without calling this, it could be updated only at next Render call. }
@@ -75,7 +75,8 @@ type
     property Tooltip: string read FTooltip write FTooltip;
 
     { When non-nil, this font will be used to draw this control.
-      Otherwise the default UIFont will be used. }
+      Otherwise the global @link(UIFont) or @link(UIFontSmall)
+      (depending on @link(SmallFont)) will be used. }
     property CustomFont: TCastleFont
       read FCustomFont write SetCustomFont;
     property OwnsCustomFont: boolean
@@ -83,8 +84,12 @@ type
 
     { Use given font size when drawing. Leave at default zero to use
       the default size of the font. Font itself is taken from
-      @link(CustomFont) or, if not set, from @link(UIFont). }
+      @link(CustomFont) or, if not set, from @link(UIFont) or @link(UIFontSmall). }
     property FontSize: Single read FFontSize write SetFontSize default 0.0;
+
+    { Should be use @link(UIFontSmall) instead of @link(UIFont).
+      Ignored if @link(CustomFont) is assigned. }
+    property SmallFont: boolean read FSmallFont write SetSmallFont default false;
   end;
 
   TCastleButtonImageLayout = (ilTop, ilBottom, ilLeft, ilRight);
@@ -145,7 +150,6 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function PositionInside(const Position: TVector2Single): boolean; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -243,7 +247,7 @@ type
     for other controls like buttons and such.
     May be used as a toolbar, together with appropriately placed
     TCastleButton over it. }
-  TCastlePanel = class(TUIRectangularControl)
+  TCastlePanel = class(TUIControl)
   private
     FWidth: Cardinal;
     FHeight: Cardinal;
@@ -254,7 +258,6 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function PositionInside(const Position: TVector2Single): boolean; override;
     function Rect: TRectangle; override;
 
     { Separator lines drawn on panel. Useful if you want to visually separate
@@ -279,7 +282,7 @@ type
     We automatically use alpha test or alpha blending based
     on loaded image alpha channel (see TGLImage.Alpha).
     You can influence this by @link(AlphaChannel) property. }
-  TCastleImageControl = class(TUIRectangularControl)
+  TCastleImageControl = class(TUIControl)
   private
     FURL: string;
     FImage: TCastleImage;
@@ -306,7 +309,6 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function PositionInside(const Position: TVector2Single): boolean; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
     function Rect: TRectangle; override;
@@ -398,7 +400,7 @@ type
 
   { Control for touch interfaces. Shows one "lever", that can be moved
     up/down/left/right, and controls the movement while Walking or Flying. }
-  TCastleTouchControl = class(TUIRectangularControl)
+  TCastleTouchControl = class(TUIControl)
   private
     FTouchMode: TCastleTouchCtlMode;
     FLeverOffset: TVector2Single;
@@ -418,7 +420,6 @@ type
     function Height: Cardinal;
     function Rect: TRectangle; override;
 
-    function PositionInside(const Position: TVector2Single): boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
@@ -498,7 +499,7 @@ type
       When assigned, stretched to cover whole screen. }
     GLBackground: TGLImage;
     Background: TCastleImage;
-    Align: THorizontalPosition;
+    TextAlign: THorizontalPosition;
     { Should we display InputText }
     DrawInputText: boolean;
     Buttons: array of TCastleButton;
@@ -548,7 +549,7 @@ type
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
     procedure Render; override;
-    function PositionInside(const Position: TVector2Single): boolean; override;
+    function Rect: TRectangle; override;
   end;
 
   TThemeImage = (
@@ -559,7 +560,7 @@ type
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
     tiCrosshair1, tiCrosshair2, tiErrorBackground);
 
-  { Label with possibly multiline text, in a box. }
+  { Label with possibly multiline text, in an optional box. }
   TCastleLabel = class(TUIControlFont)
   private
     FText: TStrings;
@@ -603,7 +604,7 @@ type
 
     { Draw frame around the text. Frame uses theme image tiLabel,
       see TCastleTheme.Images if you want to customize it. }
-    property Frame: boolean read FFrame write FFrame default true;
+    property Frame: boolean read FFrame write FFrame default false;
 
     { If non-zero, limit the width of resulting label.
       The text will be broken in the middle of lines, to make it fit
@@ -617,7 +618,7 @@ type
 
   TCastleCrosshairShape = (csCross, csCrossRect);
 
-  TCastleCrosshair = class(TUIRectangularControl)
+  TCastleCrosshair = class(TUIControl)
   private
     FShape: TCastleCrosshairShape;
     procedure SetShape(const Value: TCastleCrosshairShape);
@@ -632,8 +633,6 @@ type
     function Width: Cardinal;
     function Height: Cardinal;
     function Rect: TRectangle; override;
-    function PositionInside(const Position: TVector2Single): boolean; override;
-
   published
     { 0: invisible, 1: cross, 2: cross with rect }
     property Shape: TCastleCrosshairShape read FShape write SetShape default csCross;
@@ -653,7 +652,7 @@ type
     procedure Render; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
-    function Rect: TRectangle;
+    function Rect: TRectangle; override;
 
     { Progress that rules the position and title displayed. }
     property Progress: TProgress read FProgress write FProgress;
@@ -682,6 +681,116 @@ type
   { Error background, for various error handlers. }
   TErrorBackground = class(TUIControl)
     procedure Render; override;
+  end;
+
+  TCastleAbstractSlider = class(TUIControlFont)
+  strict private
+    FDisplayValue: boolean;
+    FWidth: Cardinal;
+    FHeight: Cardinal;
+    FOnChange: TNotifyEvent;
+    procedure SetWidth(const Value: Cardinal);
+    procedure SetHeight(const Value: Cardinal);
+    function IndicatorWidth(const R: TRectangle): Integer;
+  private
+    { Draw a slider at given Position. If Position is outside 0..1, it is clamped
+      to 0..1 (this way we do not show slider at some wild position if it's
+      outside the expected range; but DrawSliderText will still show the true,
+      unclamped, value). }
+    procedure DrawSliderPosition(const R: TRectangle; const Position: Single);
+
+    { Returns a value of Position, always in 0..1 range,
+      that would result in slider being drawn at XCoord screen position
+      by DrawSliderPosition.
+      Takes Rectangle as the rectangle currently occupied by the whole slider. }
+    function XCoordToSliderPosition(const XCoord: Single;
+      const R: TRectangle): Single;
+
+    procedure DrawSliderText(const R: TRectangle; const Text: string);
+  strict protected
+    { React to value change. The default implementation simply calls the OnChange
+      event, if assigned. This is called when value is changed by user actions
+      (key, mouse), not when it's explicitly assigned by code. }
+    procedure DoChange; virtual;
+  public
+    const
+      DefaultWidth = 200;
+      DefaultHeight = 20;
+    constructor Create(AOwner: TComponent); override;
+    procedure Render; override;
+    function Rect: TRectangle; override;
+  published
+    property Width: Cardinal read FWidth write SetWidth default DefaultWidth;
+    property Height: Cardinal read FHeight write SetHeight default DefaultHeight;
+
+    property SmallFont default true;
+
+    { Display the current value as text on the slider.
+      May be useful, if the exact numbers have some meaning for the user.
+      The exact method to display is defined by method
+      @link(TCastleFloatSlider.ValueToStr) or
+      @link(TCastleIntegerSlider.ValueToStr) (depending on descendant),
+      so you can further customize it. }
+    property DisplayValue: boolean
+      read FDisplayValue write FDisplayValue default true;
+
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+  end;
+
+  TCastleFloatSlider = class(TCastleAbstractSlider)
+  private
+    FMin: Single;
+    FMax: Single;
+    FValue: Single;
+    procedure SetMin(const AMin: Single);
+    procedure SetMax(const AMax: Single);
+    procedure SetValue(const AValue: Single);
+  public
+    const
+      DefaultMin = 0.0;
+      DefaultMax = 1.0;
+    constructor Create(AOwner: TComponent); override;
+    procedure Render; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
+    function ValueToStr(const AValue: Single): string; virtual;
+  published
+    property Min: Single read FMin write SetMin default DefaultMin;
+    property Max: Single read FMax write SetMax default DefaultMax;
+
+    { Current value. Usually within @link(Min) and @link(Max) range,
+      although the general code should be ready for handle any value here
+      (to work even during changes to @link(Min) and @link(Max) properties). }
+    property Value: Single read FValue write SetValue default DefaultMin;
+  end;
+
+  TCastleIntegerSlider = class(TCastleAbstractSlider)
+  private
+    FMin: Integer;
+    FMax: Integer;
+    FValue: Integer;
+    function XCoordToValue(
+      const XCoord: Single; const R: TRectangle): Integer;
+    procedure SetMin(const AMin: Integer);
+    procedure SetMax(const AMax: Integer);
+    procedure SetValue(const AValue: Integer);
+  public
+    const
+      DefaultMin = 0;
+      DefaultMax = 10;
+    constructor Create(AOwner: TComponent); override;
+    procedure Render; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
+    function ValueToStr(const AValue: Integer): string; virtual;
+  published
+    property Min: Integer read FMin write SetMin default DefaultMin;
+    property Max: Integer read FMax write SetMax default DefaultMax;
+
+    { Current value. Usually within @link(Min) and @link(Max) range,
+      although the general code should be ready for handle any value here
+      (to work even during changes to @link(Min) and @link(Max) properties). }
+    property Value: Integer read FValue write SetValue default DefaultMin;
   end;
 
   { Theme for 2D GUI controls.
@@ -812,7 +921,8 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
 
 procedure Register;
 begin
-  RegisterComponents('Castle', [TCastleButton, TCastleImageControl]);
+  RegisterComponents('Castle', [TCastleButton, TCastleImageControl,
+    TCastleIntegerSlider, TCastleFloatSlider]);
 end;
 
 { UIFont --------------------------------------------------------------------- }
@@ -876,6 +986,7 @@ begin
   begin
     TooltipLabel := TCastleLabel.Create(nil);
     TooltipLabel.ImageType := tiTooltip;
+    TooltipLabel.Frame := true;
     { we know that GL context now exists, so just directly call GLContextOpen }
     TooltipLabel.GLContextOpen;
   end;
@@ -919,6 +1030,8 @@ function TUIControlFont.Font: TCastleFont;
 begin
   if CustomFont <> nil then
     Result := CustomFont else
+  if SmallFont then
+    Result := UIFontSmall else
     Result := UIFont;
 
   { if FontSize <> 0, wrap Result in TCustomizedFont instance }
@@ -953,6 +1066,15 @@ begin
   end;
 end;
 
+procedure TUIControlFont.SetSmallFont(const Value: boolean);
+begin
+  if FSmallFont <> Value then
+  begin
+    FSmallFont := Value;
+    FontChanged;
+  end;
+end;
+
 procedure TUIControlFont.FontChanged;
 begin
 end;
@@ -964,10 +1086,19 @@ begin
 end;
 
 procedure TUIControlFont.CheckFontChanged;
+var
+  DefaultFont: TCastleFont;
 begin
-  if (CustomFont = nil) and (FLastSeenUIFont <> FUIFont) then
+  { we do not use here UIFont[Small] but FUIFont[Small],
+    to not create font without need. If the corresponding global font is nil now,
+    it can remain nil, no need to initialize it yet. }
+  if SmallFont then
+    DefaultFont := FUIFontSmall else
+    DefaultFont := FUIFont;
+
+  if (CustomFont = nil) and (FLastSeenUIFontXxx <> DefaultFont) then
     FontChanged;
-  FLastSeenUIFont := FUIFont; // do not use UIFont to not create font without need
+  FLastSeenUIFontXxx := DefaultFont;
 end;
 
 { TCastleButton --------------------------------------------------------------- }
@@ -1041,15 +1172,6 @@ begin
     end;
     FGLImage.Draw(ImgLeft, ImgBottom);
   end;
-end;
-
-function TCastleButton.PositionInside(const Position: TVector2Single): boolean;
-begin
-  Result :=
-    (Position[0] >= Left) and
-    (Position[0]  < Left + Width) and
-    (Position[1] >= Bottom) and
-    (Position[1]  < Bottom + Height);
 end;
 
 procedure TCastleButton.GLContextOpen;
@@ -1348,15 +1470,6 @@ begin
       tiPanelSeparator);
 end;
 
-function TCastlePanel.PositionInside(const Position: TVector2Single): boolean;
-begin
-  Result :=
-    (Position[0] >= Left) and
-    (Position[0]  < Left + Width) and
-    (Position[1] >= Bottom) and
-    (Position[1]  < Bottom + Height);
-end;
-
 class function TCastlePanel.SeparatorSize: Cardinal;
 begin
   Result := 2;
@@ -1431,19 +1544,6 @@ begin
     Theme.Draw(Rectangle(Left, Bottom, Width, Height), tiActiveFrame); }
 end;
 
-function TCastleImageControl.PositionInside(const Position: TVector2Single): boolean;
-var
-  R: TRectangle;
-begin
-  R := Rect;
-  Result := FullSize or
-    ( (Position[0] >= R.Left) and
-      (Position[0]  < R.Left + R.Width) and
-      (Position[1] >= R.Bottom) and
-      (Position[1]  < R.Bottom + R.Height)
-    );
-end;
-
 function TCastleImageControl.Rect: TRectangle;
 var
   NewWidth, NewHeight, NewLeft, NewBottom: Integer;
@@ -1456,7 +1556,7 @@ begin
   end else
   begin
     if FullSize then
-      Result := ContainerRect else
+      Result := ParentRect else
     if Proportional and (FImage <> nil) then
     begin
       if Width / Height > FImage.Width / FImage.Height then
@@ -1642,11 +1742,6 @@ begin
   Result := Rectangle(Left, Bottom, Width, Height);
 end;
 
-function TCastleCrosshair.PositionInside(const Position: TVector2Single): boolean;
-begin
-  Result := false; // this control is just passively drawn onto screen
-end;
-
 procedure TCastleCrosshair.Render;
 begin
   inherited;
@@ -1717,11 +1812,6 @@ begin
         VisibleChange;
       end;
   end;
-end;
-
-function TCastleTouchControl.PositionInside(const Position: TVector2Single): boolean;
-begin
-  Result := Rect.Contains(Position);
 end;
 
 function TCastleTouchControl.MaxOffsetDist: Integer;
@@ -1903,7 +1993,7 @@ begin
   Background := ABackground;
   if GLInitialized then
     GLBackground := TGLImage.Create(Background, true);
-  Align := ATextAlign;
+  TextAlign := ATextAlign;
   DrawInputText := ADrawInputText;
   FInputText := AInputText;
   SetLength(Buttons, Length(AButtons));
@@ -2220,7 +2310,7 @@ begin
   if GLBackground <> nil then
   begin
     GLBackground.Color := Theme.BackgroundTint;
-    GLBackground.Draw(ContainerRect);
+    GLBackground.Draw(ParentRect);
   end;
 
   MessageRect := WholeMessageRect;
@@ -2265,15 +2355,15 @@ begin
   { draw Broken_InputText and Broken_Text.
     Order matters, as it's drawn from bottom to top. }
   if DrawInputText then
-    DrawStrings(TextX, TextY, Theme.MessageInputTextColor, Broken_InputText, Align);
-  DrawStrings(TextX, TextY, Theme.MessageTextColor, Broken_Text, Align);
+    DrawStrings(TextX, TextY, Theme.MessageInputTextColor, Broken_InputText, TextAlign);
+  DrawStrings(TextX, TextY, Theme.MessageTextColor, Broken_Text, TextAlign);
 
   ScissorDisable;
 end;
 
-function TCastleDialog.PositionInside(const Position: TVector2Single): boolean;
+function TCastleDialog.Rect: TRectangle;
 begin
-  Result := true;
+  Result := ParentRect;
 end;
 
 function TCastleDialog.RealScrollBarWholeWidth: Integer;
@@ -2304,7 +2394,7 @@ begin
   inherited;
   FText := TStringList.Create;
   FColor := White;
-  FFrame := true;
+  FFrame := false;
   FLineSpacing := DefaultLineSpacing;
   ImageType := tiLabel;
 end;
@@ -2349,7 +2439,7 @@ end;
 
 procedure TCastleLabel.Render;
 var
-  R: TRectangle;
+  LocalR, SR: TRectangle;
   TextBroken, TextToRender: TStrings;
   TextX: Integer;
 begin
@@ -2359,19 +2449,22 @@ begin
   TextToRender := Text;
   TextBroken := nil;
   try
-    R := RectCore(TextBroken);
+    { we avoid calling here Rect or ScreenRect for speed (as it would lead
+      to calling Font.BreakLines multiple times during rendering. }
+    LocalR := RectCore(TextBroken);
+    SR := LocalR.Translate(LocalToScreenTranslation);
     if TextBroken <> nil then
       TextToRender := TextBroken;
     if Frame then
-      Theme.Draw(R, ImageType);
+      Theme.Draw(SR, ImageType);
     case Alignment of
-      hpLeft  : TextX := R.Left + Padding;
-      hpMiddle: TextX := (R.Left + R.Right) div 2;
-      hpRight : TextX := R.Right - Padding;
+      hpLeft  : TextX := SR.Left + Padding;
+      hpMiddle: TextX := (SR.Left + SR.Right) div 2;
+      hpRight : TextX := SR.Right - Padding;
       else raise EInternalError.Create('TCastleLabel.Render: Alignment?');
     end;
     Font.PrintStrings(TextX,
-      R.Bottom + Padding + Font.Descend, Color, TextToRender, Tags, LineSpacing,
+      SR.Bottom + Padding + Font.Descend, Color, TextToRender, Tags, LineSpacing,
       Alignment);
   finally FreeAndNil(TextBroken) end;
 end;
@@ -2469,13 +2562,13 @@ end;
 
 function TCastleProgressBar.Rect: TRectangle;
 var
-  XMargin, Height, YMiddle, Bottom: Integer;
+  XMargin, Height, YMiddle, Bot: Integer;
 begin
   XMargin := ContainerWidth div 8;
   Height := ContainerHeight div 12;
   YMiddle := Round(ContainerHeight * YPosition);
-  Bottom := YMiddle - Height div 2;
-  Result := Rectangle(XMargin, Bottom, ContainerWidth - 2 * XMargin, Height);
+  Bot := YMiddle - Height div 2;
+  Result := Rectangle(XMargin, Bot, ContainerWidth - 2 * XMargin, Height);
 end;
 
 procedure TCastleProgressBar.Render;
@@ -2492,7 +2585,7 @@ begin
   if Progress = nil then Exit;
 
   if FGLBackground <> nil then
-    FGLBackground.Draw(ContainerRect);
+    FGLBackground.Draw(ParentRect);
 
   BarRect := Rect;
   Theme.Draw(BarRect, tiProgressBar);
@@ -2566,7 +2659,295 @@ end;
 procedure TErrorBackground.Render;
 begin
   inherited;
-  Theme.Draw(ContainerRect, tiErrorBackground);
+  Theme.Draw(ParentRect, tiErrorBackground);
+end;
+
+{ TCastleAbstractSlider ------------------------------------------------------ }
+
+constructor TCastleAbstractSlider.Create(AOwner: TComponent);
+begin
+  inherited;
+  FDisplayValue := true;
+  FWidth := DefaultWidth;
+  FHeight := DefaultHeight;
+  SmallFont := true;
+end;
+
+function TCastleAbstractSlider.Rect: TRectangle;
+begin
+  Result := Rectangle(Left, Bottom, Width, Height);
+end;
+
+procedure TCastleAbstractSlider.Render;
+begin
+  inherited;
+  Theme.Draw(ScreenRect, tiSlider);
+end;
+
+function TCastleAbstractSlider.IndicatorWidth(const R: TRectangle): Integer;
+begin
+  Result := R.Width div 10 { guess suitable tiSliderPosition width from height };
+end;
+
+procedure TCastleAbstractSlider.DrawSliderPosition(const R: TRectangle;
+  const Position: Single);
+var
+  IndicatorW: Integer;
+begin
+  IndicatorW := IndicatorWidth(R);
+  Theme.Draw(Rectangle(
+    R.Left +
+      Round(MapRangeClamped(Position, 0, 1, IndicatorW div 2, R.Width - IndicatorW div 2))
+      - IndicatorW div 2,
+    R.Bottom,
+    IndicatorW,
+    R.Height), tiSliderPosition);
+end;
+
+function TCastleAbstractSlider.XCoordToSliderPosition(
+  const XCoord: Single; const R: TRectangle): Single;
+var
+  IndicatorW: Integer;
+begin
+  IndicatorW := IndicatorWidth(R);
+  Result := Clamped(MapRange(XCoord,
+    R.Left + IndicatorW div 2,
+    R.Left + R.Width - IndicatorW div 2, 0, 1), 0, 1);
+end;
+
+procedure TCastleAbstractSlider.DrawSliderText(
+  const R: TRectangle; const Text: string);
+begin
+  Font.Print(
+    R.Left + (R.Width - Font.TextWidth(Text)) div 2,
+    R.Bottom + (R.Height - Font.RowHeight) div 2,
+    Black, Text);
+end;
+
+procedure TCastleAbstractSlider.DoChange;
+begin
+  if Assigned(OnChange) then
+    OnChange(Self);
+end;
+
+procedure TCastleAbstractSlider.SetWidth(const Value: Cardinal);
+begin
+  if FWidth <> Value then
+  begin
+    FWidth := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleAbstractSlider.SetHeight(const Value: Cardinal);
+begin
+  if FHeight <> Value then
+  begin
+    FHeight := Value;
+    VisibleChange;
+  end;
+end;
+
+{ TCastleFloatSlider --------------------------------------------------------- }
+
+constructor TCastleFloatSlider.Create(AOwner: TComponent);
+begin
+  inherited;
+  FMin := DefaultMin;
+  FMax := DefaultMax;
+  FValue := FMin;
+end;
+
+procedure TCastleFloatSlider.Render;
+var
+  R: TRectangle;
+begin
+  inherited;
+  R := ScreenRect;
+  DrawSliderPosition(R, MapRange(Value, Min, Max, 0, 1));
+  if DisplayValue then
+    DrawSliderText(R, ValueToStr(Value));
+end;
+
+function TCastleFloatSlider.Press(const Event: TInputPressRelease): boolean;
+
+  function ValueChange: Single;
+  begin
+    Result := (Max - Min) / 100;
+  end;
+
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Event.IsKey(K_Right) then
+  begin
+    Value := CastleUtils.Min(Max, Value + ValueChange);
+    DoChange;
+    Result := ExclusiveEvents;
+  end else
+  if Event.IsKey(K_Left) then
+  begin
+    Value := CastleUtils.Max(Min, Value - ValueChange);
+    DoChange;
+    Result := ExclusiveEvents;
+  end else
+  if Event.IsMouseButton(mbLeft) then
+  begin
+    Value := MapRange(XCoordToSliderPosition(Event.Position[0], ScreenRect), 0, 1,
+      Min, Max);
+    DoChange;
+    Result := ExclusiveEvents;
+  end;
+end;
+
+function TCastleFloatSlider.Motion(const Event: TInputMotion): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if mbLeft in Event.Pressed then
+  begin
+    Value := MapRange(XCoordToSliderPosition(Event.Position[0], ScreenRect), 0, 1,
+      Min, Max);
+    DoChange;
+    Result := ExclusiveEvents;
+  end;
+end;
+
+function TCastleFloatSlider.ValueToStr(const AValue: Single): string;
+begin
+  Result := Format('%f', [AValue]);
+end;
+
+procedure TCastleFloatSlider.SetMin(const AMin: Single);
+begin
+  if FMin <> AMin then
+  begin
+    FMin := AMin;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleFloatSlider.SetMax(const AMax: Single);
+begin
+  if FMax <> AMax then
+  begin
+    FMax := AMax;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleFloatSlider.SetValue(const AValue: Single);
+begin
+  if FValue <> AValue then
+  begin
+    FValue := AValue;
+    VisibleChange;
+  end;
+end;
+
+{ TCastleIntegerSlider ------------------------------------------------------- }
+
+constructor TCastleIntegerSlider.Create(AOwner: TComponent);
+begin
+  inherited;
+  FMin := DefaultMin;
+  FMax := DefaultMax;
+  FValue := FMin;
+end;
+
+procedure TCastleIntegerSlider.Render;
+var
+  R: TRectangle;
+begin
+  inherited;
+  R := ScreenRect;
+  DrawSliderPosition(R, MapRange(Value, Min, Max, 0, 1));
+  if DisplayValue then
+    DrawSliderText(R, ValueToStr(Value));
+end;
+
+function TCastleIntegerSlider.Press(const Event: TInputPressRelease): boolean;
+const
+  ValueChange = 1;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Event.IsKey(K_Right) then
+  begin
+    Value := CastleUtils.Min(Max, Value + ValueChange);
+    DoChange;
+    Result := ExclusiveEvents;
+  end else
+  if Event.IsKey(K_Left) then
+  begin
+    Value := CastleUtils.Max(Min, Value - ValueChange);
+    DoChange;
+    Result := ExclusiveEvents;
+  end else
+  if Event.IsMouseButton(mbLeft) then
+  begin
+    Value := XCoordToValue(Event.Position[0], ScreenRect);
+    DoChange;
+    Result := ExclusiveEvents;
+  end;
+end;
+
+function TCastleIntegerSlider.XCoordToValue(
+  const XCoord: Single; const R: TRectangle): Integer;
+begin
+  { We do additional Clamped over Round result to avoid any
+    chance of floating-point errors due to lack of precision. }
+  Result := Clamped(Round(
+    MapRange(XCoordToSliderPosition(XCoord, R), 0, 1,
+      Min, Max)), Min, Max);
+end;
+
+function TCastleIntegerSlider.Motion(const Event: TInputMotion): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if mbLeft in Event.Pressed then
+  begin
+    Value := XCoordToValue(Event.Position[0], ScreenRect);
+    DoChange;
+    Result := ExclusiveEvents;
+  end;
+end;
+
+function TCastleIntegerSlider.ValueToStr(const AValue: Integer): string;
+begin
+  Result := IntToStr(AValue);
+end;
+
+procedure TCastleIntegerSlider.SetMin(const AMin: Integer);
+begin
+  if FMin <> AMin then
+  begin
+    FMin := AMin;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleIntegerSlider.SetMax(const AMax: Integer);
+begin
+  if FMax <> AMax then
+  begin
+    FMax := AMax;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleIntegerSlider.SetValue(const AValue: Integer);
+begin
+  if FValue <> AValue then
+  begin
+    FValue := AValue;
+    VisibleChange;
+  end;
 end;
 
 { TCastleTheme --------------------------------------------------------------- }

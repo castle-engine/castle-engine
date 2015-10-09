@@ -282,10 +282,10 @@ begin
     code). Engine example examples/3d_rendering_processing/multiple_viewports.lpr
     shows how to set them up in code. }
   if Player.Swimming = psUnderWater then
-    DrawRectangle(ContainerRect, Vector4Single(0, 0, 0.1, 0.5));
+    DrawRectangle(ParentRect, Vector4Single(0, 0, 0.1, 0.5));
   if Player.Dead then
-    GLFadeRectangle(ContainerRect, Red, 1.0) else
-    GLFadeRectangle(ContainerRect, Player.FadeOutColor, Player.FadeOutIntensity);
+    GLFadeRectangle(ParentRect, Red, 1.0) else
+    GLFadeRectangle(ParentRect, Player.FadeOutColor, Player.FadeOutIntensity);
 end;
 
 var
