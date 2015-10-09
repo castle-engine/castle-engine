@@ -549,7 +549,7 @@ type
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
     procedure Render; override;
-    function Rect: TRectangle; override;
+    function CapturesEventsAtPosition(const Position: TVector2Single): boolean; override;
   end;
 
   TThemeImage = (
@@ -2361,9 +2361,9 @@ begin
   ScissorDisable;
 end;
 
-function TCastleDialog.Rect: TRectangle;
+function TCastleDialog.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
 begin
-  Result := ParentRect;
+  Result := true; // always capture
 end;
 
 function TCastleDialog.RealScrollBarWholeWidth: Integer;
