@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 235
+  Left = 654
   Height = 624
-  Top = 125
+  Top = 318
   Width = 1043
   ActiveControl = Browser
   Caption = 'Form1'
@@ -16,8 +16,8 @@ object Form1: TForm1
     Top = 0
     Width = 1043
     Align = alClient
-    OnResize = BrowserResize
     TabOrder = 0
+    OnResize = BrowserResize
   end
   object SampleButton: TCastleButton
     Bottom = 10
@@ -92,8 +92,8 @@ object Form1: TForm1
   object ButtonImage1: TCastleButton
     Bottom = 420
     Tooltip = 'Sample tooltip over a button'
-    Width = 20
-    Height = 20
+    Width = 122
+    Height = 36
     Caption = 'Image top'
     ImageLayout = ilTop
     TUIControlPos_Design_Left = 696
@@ -102,8 +102,8 @@ object Form1: TForm1
   object ButtonImage2: TCastleButton
     Bottom = 420
     Tooltip = 'Sample tooltip over a button'
-    Width = 20
-    Height = 20
+    Width = 162
+    Height = 36
     Caption = 'Image bottom'
     ImageLayout = ilBottom
     TUIControlPos_RealLeft = 250
@@ -113,8 +113,8 @@ object Form1: TForm1
   object ButtonImage3: TCastleButton
     Bottom = 420
     Tooltip = 'Sample tooltip over a button'
-    Width = 250
-    Height = 100
+    Width = 122
+    Height = 36
     Caption = 'Image left'
     TUIControlPos_RealLeft = 500
     TUIControlPos_Design_Left = 696
@@ -123,8 +123,8 @@ object Form1: TForm1
   object ButtonImage4: TCastleButton
     Bottom = 420
     Tooltip = 'Sample tooltip over a button'
-    Width = 20
-    Height = 20
+    Width = 137
+    Height = 36
     Caption = 'Image right'
     ImageLayout = ilRight
     TUIControlPos_RealLeft = 750
@@ -132,13 +132,10 @@ object Form1: TForm1
     TUIControlPos_Design_Top = 272
   end
   object OnScreenMenu1: TCastleOnScreenMenu
-    Items.Strings = (
-      'one'
-      'two'
-      'three'
-    )
+    Bottom = 140
     OnClick = OnScreenMenu1Click
-    left = 392
-    top = 404
+    TUIControlPos_RealLeft = 400
+    TUIControlPos_Design_Left = 152
+    TUIControlPos_Design_Top = 280
   end
 end
