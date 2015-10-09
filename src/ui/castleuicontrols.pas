@@ -1018,6 +1018,7 @@ end;
     procedure Remove(const Item: TUIControl; const Recursive: boolean = false);
     procedure Clear;
     procedure Add(const Item: TUIControl); deprecated 'use InsertFront or InsertBack';
+    procedure Insert(const Index: Integer; const Item: TUIControl);
 
     { Make sure that NewItem is the only instance of given ReplaceClass
       on the list, replacing old item if necesssary.
@@ -2594,6 +2595,11 @@ end;
 procedure TUIControlList.Add(const Item: TUIControl);
 begin
   InsertFront(Item);
+end;
+
+procedure TUIControlList.Insert(const Index: Integer; const Item: TUIControl);
+begin
+  FList.Insert(Index, Item);
 end;
 
 procedure TUIControlList.InsertBack(const NewItems: TUIControlList);

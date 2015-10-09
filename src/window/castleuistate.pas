@@ -233,11 +233,11 @@ end;
 
 procedure TUIState.InternalStart;
 var
-  ControlsCount, PositionInControls: Integer;
+  SavedControlsCount, PositionInControls: Integer;
   NewControls: TUIControlList;
 begin
   NewControls := StateContainer.Controls;
-  ControlsCount := NewControls.Count;
+  SavedControlsCount := NewControls.Count;
   Start;
 
   { actually insert to NewControls, this will also call GLContextOpen
@@ -247,11 +247,11 @@ begin
     (like the loading state, that changes to play state immediately in start). }
   if FStateStack.IndexOf(Self) <> -1 then
   begin
-    PositionInControls := NewControls.Count - ControlsCount;
-    if PositionInControls < 0 then
+    PositionInControls := SavedControlsCount;
+    if NewControls.Count < PositionInControls then // sanity check
     begin
       OnWarning(wtMinor, 'State', 'TUIState.Start removed some controls from container');
-      PositionInControls := 0;
+      PositionInControls := NewControls.Count;
     end;
     NewControls.Insert(PositionInControls, Self);
   end;
