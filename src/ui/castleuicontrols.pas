@@ -1374,6 +1374,9 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
 var
   NewFocus: TUIControl;
 begin
+  { since this is called at the end of TContainerControls.Notify after
+    some control is removed, we're paranoid here about checking csDestroying. }
+
   if UseForceCaptureInput and
      (not (csDestroying in ForceCaptureInput.ComponentState)) then
     NewFocus := ForceCaptureInput else
@@ -2440,7 +2443,8 @@ var
 begin
   if not ContainerSizeKnown then
     { don't call virtual Rect in this state, Rect implementations
-      typically assume that ParentRect is sensible. }
+      typically assume that ParentRect is sensible.
+      This is crucial, various programs will crash without it. }
     Exit(TRectangle.Empty);
   Result := Rect;
   T := LocalToScreenTranslation;
