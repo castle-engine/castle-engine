@@ -411,8 +411,6 @@ begin
   for I := 0 to FRectangles.Count - 1 do
     if Controls[I].ControlsCount <> 0 then
       Controls[I].Controls[0].Left := MaxItemWidth + MarginBeforeAccessory;
-
-  ApplyAnchors;
 end;
 
 procedure TCastleOnScreenMenu.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);

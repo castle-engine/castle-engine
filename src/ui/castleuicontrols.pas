@@ -669,12 +669,10 @@ end;
     procedure SetHasVerticalAnchor(const Value: boolean);
     procedure SetVerticalAnchor(const Value: TVerticalPosition);
     procedure SetVerticalAnchorDelta(const Value: Integer);
+    function RectWithAnchors: TRectangle;
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure SetContainer(const Value: TUIContainer); override;
-    procedure ApplyAnchors(
-      const Horizontal: boolean = true;
-      const Vertical: boolean = true);
     //procedure DoCursorChange; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -893,7 +891,10 @@ end;
     property Left: Integer read FLeft write SetLeft stored false default 0;
     property Bottom: Integer read FBottom write SetBottom default 0;
 
-    { Automatically adjust @link(Left) to align us to the parent horizontally. }
+    { Automatically adjust horizontal position to align us to
+      the parent horizontally. Note that the value of @link(Left) remains
+      unchanged (it is tjust ignored), using the anchors only modifies the output
+      of the @link(ScreenRect) value that should be used for rendering/physics. }
     property HasHorizontalAnchor: boolean
       read FHasHorizontalAnchor write SetHasHorizontalAnchor default false;
     { Which border to align (both our and parent border),
@@ -905,7 +906,10 @@ end;
     property HorizontalAnchorDelta: Integer
       read FHorizontalAnchorDelta write SetHorizontalAnchorDelta default 0;
 
-    { Automatically adjust @link(Bottom) to align us to the parent vertically. }
+    { Automatically adjust vertical position to align us to
+      the parent vertically. Note that the value of @link(Bottom) remains
+      unchanged (it is tjust ignored), using the anchors only modifies the output
+      of the @link(ScreenRect) value that should be used for rendering/physics. } }
     property HasVerticalAnchor: boolean
       read FHasVerticalAnchor write SetHasVerticalAnchor default false;
     { Which border to align (both our and parent border),
@@ -2182,25 +2186,11 @@ begin
         Exit(false);
 end;
 
-procedure TUIControl.ApplyAnchors(const Horizontal, Vertical: boolean);
-var
-  R: TRectangle;
-begin
-  R := Rect;
-  if Horizontal and HasHorizontalAnchor then
-    Left := R.AlignCore(HorizontalAnchor, ParentRect, HorizontalAnchor, HorizontalAnchorDelta);
-  if Vertical and HasVerticalAnchor then
-    Bottom := R.AlignCore(VerticalAnchor, ParentRect, VerticalAnchor, VerticalAnchorDelta);
-end;
-
 procedure TUIControl.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
 var
   I: Integer;
 begin
   inherited;
-
-  { apply own anchors before calling ContainerResize on children }
-  ApplyAnchors(true, true);
 
   if FControls <> nil then
     for I := FControls.Count - 1 downto 0 do
@@ -2437,28 +2427,77 @@ begin
   Result := Rectangle(Left, Bottom, 0, 0);
 end;
 
+function TUIControl.RectWithAnchors: TRectangle;
+
+  { Faster versions of TRectangle.AlignCore, knowing that ParentRect
+    ("other" rectangle) has Left/Bottom = (0,0) in local coords
+    (so no need to worry about them) and that ThisPosition = OtherPosition. }
+
+  function FastAlignCore(
+    const Position: THorizontalPosition;
+    const ThisWidth, OtherRectWidth: Integer;
+    const X: Integer): Integer;
+  begin
+    case Position of
+      hpLeft  : Result := X;
+      hpMiddle: Result := X - ThisWidth div 2 + OtherRectWidth div 2;
+      hpRight : Result := X - ThisWidth       + OtherRectWidth;
+    end;
+  end;
+
+  function FastAlignCore(
+    const Position: TVerticalPosition;
+    const ThisHeight, OtherRectHeight: Integer;
+    const Y: Integer): Integer;
+  begin
+    case Position of
+      vpBottom: Result := Y;
+      vpMiddle: Result := Y - ThisHeight div 2 + OtherRectHeight div 2;
+      vpTop   : Result := Y - ThisHeight       + OtherRectHeight;
+    end;
+  end;
+
+var
+  PR: TRectangle;
+begin
+  if not ContainerSizeKnown then
+    { Don't call virtual Rect in this state, Rect implementations
+      typically assume that ParentRect is sensible.
+      This is crucial, various programs will crash without it. }
+    Exit(TRectangle.Empty);
+
+  Result := Rect;
+
+  { apply anchors }
+  if HasHorizontalAnchor or HasVerticalAnchor then
+    PR := ParentRect; // only PR.Left / PR.Bottom are unused, so no need to get ParentRectAnchored
+  if HasHorizontalAnchor then
+    Result.Left := FastAlignCore(HorizontalAnchor, Result.Width , PR.Width , HorizontalAnchorDelta);
+  if HasVerticalAnchor then
+    Result.Bottom := FastAlignCore(VerticalAnchor, Result.Height, PR.Height, VerticalAnchorDelta);
+end;
+
 function TUIControl.ScreenRect: TRectangle;
 var
   T: TVector2Integer;
 begin
-  if not ContainerSizeKnown then
-    { don't call virtual Rect in this state, Rect implementations
-      typically assume that ParentRect is sensible.
-      This is crucial, various programs will crash without it. }
-    Exit(TRectangle.Empty);
-  Result := Rect;
+  Result := RectWithAnchors;
+  { transform local to screen space }
   T := LocalToScreenTranslation;
   Result.Left := Result.Left + T[0];
   Result.Bottom := Result.Bottom + T[1];
 end;
 
 function TUIControl.LocalToScreenTranslation: TVector2Integer;
+var
+  RA: TRectangle;
 begin
   if Parent <> nil then
   begin
     Result := Parent.LocalToScreenTranslation;
-    Result[0] += Parent.Left;
-    Result[1] += Parent.Bottom;
+    RA := Parent.RectWithAnchors;
+    Result[0] += RA.Left;
+    Result[1] += RA.Bottom;
   end else
     Result := ZeroVector2Integer;
 end;
@@ -2479,7 +2518,7 @@ begin
   if FHasHorizontalAnchor <> Value then
   begin
     FHasHorizontalAnchor := Value;
-    ApplyAnchors(true, false);
+    VisibleChange;
   end;
 end;
 
@@ -2488,7 +2527,7 @@ begin
   if FHorizontalAnchor <> Value then
   begin
     FHorizontalAnchor := Value;
-    ApplyAnchors(true, false);
+    VisibleChange;
   end;
 end;
 
@@ -2497,7 +2536,7 @@ begin
   if FHorizontalAnchorDelta <> Value then
   begin
     FHorizontalAnchorDelta := Value;
-    ApplyAnchors(true, false);
+    VisibleChange;
   end;
 end;
 
@@ -2506,7 +2545,7 @@ begin
   if FHasVerticalAnchor <> Value then
   begin
     FHasVerticalAnchor := Value;
-    ApplyAnchors(false, true);
+    VisibleChange;
   end;
 end;
 
@@ -2515,7 +2554,7 @@ begin
   if FVerticalAnchor <> Value then
   begin
     FVerticalAnchor := Value;
-    ApplyAnchors(false, true);
+    VisibleChange;
   end;
 end;
 
@@ -2524,7 +2563,7 @@ begin
   if FVerticalAnchorDelta <> Value then
   begin
     FVerticalAnchorDelta := Value;
-    ApplyAnchors(false, true);
+    VisibleChange;
   end;
 end;
 
