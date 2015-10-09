@@ -1350,7 +1350,9 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
     for I := Controls.Count - 1 downto 0 do
     begin
       C := Controls[I];
-      if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
+      if (not (csDestroying in C.ComponentState)) and
+         C.GetExists and
+         C.CapturesEventsAtPosition(MousePosition) then
         Exit(C);
     end;
     Result := nil;
@@ -1372,9 +1374,12 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
 var
   NewFocus: TUIControl;
 begin
-  if UseForceCaptureInput then
+  if UseForceCaptureInput and
+     (not (csDestroying in ForceCaptureInput.ComponentState)) then
     NewFocus := ForceCaptureInput else
-  if FCaptureInput.IndexOf(0) <> -1 then
+  if (FCaptureInput.IndexOf(0) <> -1) and
+     (not (csDestroying in FCaptureInput[0].ComponentState))
+   then
     NewFocus := FCaptureInput[0] else
     NewFocus := CalculateFocus;
 
@@ -1917,7 +1922,9 @@ begin
     See castle_game_engine/tests/testcontainer.pas for cases
     when this is really needed. }
 
-  Result := (Container <> nil) and Container.GLInitialized;
+  Result := (Container <> nil) and
+    (not (csDestroying in Container.ComponentState)) and
+    Container.GLInitialized;
 end;
 
 procedure TInputListener.SetCursor(const Value: TMouseCursor);
@@ -2431,6 +2438,10 @@ function TUIControl.ScreenRect: TRectangle;
 var
   T: TVector2Integer;
 begin
+  if not ContainerSizeKnown then
+    { don't call virtual Rect in this state, Rect implementations
+      typically assume that ParentRect is sensible. }
+    Exit(TRectangle.Empty);
   Result := Rect;
   T := LocalToScreenTranslation;
   Result.Left := Result.Left + T[0];
