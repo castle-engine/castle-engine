@@ -138,6 +138,8 @@ begin
     - ApplicationConfig uses this. }
   OnGetApplicationName := @MyGetApplicationName;
 
+  //InitializeLog;
+
   { configure Notifications }
   Notifications.MaxMessages := 4;
   Notifications.Color := Vector4Single(0.8, 0.8, 0.8, 1.0);
@@ -149,12 +151,6 @@ begin
   SoundEngine.ParseParameters;
   Window.ParseParameters([poDisplay]);
   Parameters.Parse(Options, @OptionProc, nil);
-
-  { This should be called from CastleXMLConfig actually...
-    but at CastleXMLConfig initialization it's too soon to call it
-    (Log is not initialized yet). }
-  if Log then
-    WritelnLog('Config', 'Loading configuration from "%s"', [Config.URL]);
 
   Window.Width := RequestedScreenWidth;
   Window.Height := RequestedScreenHeight;

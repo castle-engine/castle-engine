@@ -1015,8 +1015,9 @@ end;
       Note that the given Item should always exist only once on a list
       (it is not allowed to add it multiple times), but for safety we find
       and remove all occurences. }
-    procedure RemoveAll(const Item: TUIControl; const Recursive: boolean);
+    procedure Remove(const Item: TUIControl; const Recursive: boolean = false);
     procedure Clear;
+    procedure Add(const Item: TUIControl); deprecated 'use InsertFront or InsertBack';
 
     { Make sure that NewItem is the only instance of given ReplaceClass
       on the list, replacing old item if necesssary.
@@ -1312,7 +1313,7 @@ begin
 
   if (Operation = opRemove) and (AComponent is TUIControl) {and (Controls <> nil)} then
   begin
-    Controls.RemoveAll(TUIControl(AComponent), true);
+    Controls.Remove(TUIControl(AComponent), true);
     DetachNotification(TUIControl(AComponent));
   end;
 end;
@@ -2590,6 +2591,11 @@ begin
     FList.Insert(0, NewItem);
 end;
 
+procedure TUIControlList.Add(const Item: TUIControl);
+begin
+  InsertFront(Item);
+end;
+
 procedure TUIControlList.InsertBack(const NewItems: TUIControlList);
 var
   I: Integer;
@@ -2626,7 +2632,7 @@ begin
   FList.Assign(Source.FList);
 end;
 
-procedure TUIControlList.RemoveAll(const Item: TUIControl; const Recursive: boolean);
+procedure TUIControlList.Remove(const Item: TUIControl; const Recursive: boolean);
 var
   I: Integer;
 begin
@@ -2634,7 +2640,7 @@ begin
   if Recursive then
     for I := 0 to FList.Count - 1 do
       if TUIControl(FList[I]).FControls <> nil then
-        TUIControl(FList[I]).FControls.RemoveAll(Item, Recursive);
+        TUIControl(FList[I]).FControls.Remove(Item, Recursive);
 end;
 
 procedure TUIControlList.Clear;

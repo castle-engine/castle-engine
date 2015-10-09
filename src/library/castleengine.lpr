@@ -684,7 +684,7 @@ end;
 
 destructor TCrosshairManager.Destroy;
 begin
-  Window.Controls.RemoveAll(CrosshairCtl, false);
+  Window.Controls.Remove(CrosshairCtl);
   FreeAndNil(CrosshairCtl);
   inherited;
 end;

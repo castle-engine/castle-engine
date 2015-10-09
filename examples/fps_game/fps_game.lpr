@@ -133,7 +133,7 @@ end;
 
 procedure TButtons.ExitButtonClick(Sender: TObject);
 begin
-  Application.Quit;
+  Application.Terminate;
 end;
 
 procedure TButtons.RenderDebug3DButtonClick(Sender: TObject);
