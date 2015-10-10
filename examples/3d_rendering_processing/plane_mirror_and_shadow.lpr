@@ -633,7 +633,7 @@ begin
 
   SceneManager := TMySceneManager.Create(Application);
   SceneManager.DefaultVisibilityLimit := 100;
-  Window.Controls.Add(SceneManager);
+  Window.Controls.InsertFront(SceneManager);
 
   OnWarning := @OnWarningWrite;
 

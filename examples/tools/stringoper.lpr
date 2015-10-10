@@ -197,7 +197,7 @@ begin
  { return Result* in appropriate way }
  case Commands[CommandNum].CommandResult of
   crString: Write(ResultStr);
-  crBoolean: HaltBool(ResultBool);
+  crBoolean: if ResultBool then Halt(0) else Halt(1);
   else raise EInternalError.Create('CommandResult not impl');
  end;
 end.

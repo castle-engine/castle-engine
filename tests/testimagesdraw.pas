@@ -16,6 +16,8 @@
 
 unit TestImagesDraw;
 
+{$include castleconf.inc}
+
 interface
 
 uses
@@ -47,7 +49,7 @@ implementation
 
 uses SysUtils, CastleVectors, CastleColors;
 
-function TTestImagesDraw.BlendBytes(const Dest, Source, Opacity: Byte): Byte; inline;
+function TTestImagesDraw.BlendBytes(const Dest, Source, Opacity: Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 var
   W: Word;
 begin
@@ -58,7 +60,7 @@ begin
   Result := W;
 end;
 
-function TTestImagesDraw.AddBytes(const Dest, Source, Opacity: Byte): Byte; inline;
+function TTestImagesDraw.AddBytes(const Dest, Source, Opacity: Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 var
   W: Word;
 begin
@@ -67,7 +69,7 @@ begin
   Result := W;
 end;
 
-function TTestImagesDraw.AddBytesPremultiplied(const Dest, Source: Byte): Byte; inline;
+function TTestImagesDraw.AddBytesPremultiplied(const Dest, Source: Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 var
   W: Word;
 begin

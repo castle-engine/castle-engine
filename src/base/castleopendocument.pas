@@ -19,7 +19,7 @@
 { Opening files and URLs. }
 unit CastleOpenDocument;
 
-{$i castleconf.inc}
+{$include castleconf.inc}
 
 interface
 
@@ -229,7 +229,7 @@ end;
 
 function FindDefaultBrowser(out ABrowser: String): Boolean;
 
-  function Find(const ShortFilename: String; out ABrowser: String): Boolean; inline;
+  function Find(const ShortFilename: String; out ABrowser: String): Boolean; {$ifdef SUPPORTS_INLINE} inline; {$endif}
   begin
     ABrowser := PathFileSearch(ShortFilename + ExeExtension);
     Result := ABrowser <> '';

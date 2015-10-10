@@ -375,7 +375,7 @@ begin
   Result := CP_UTF8; // Android always uses UTF-8
 end;
 
-procedure SetStdIOCodePage(var T: Text); inline;
+procedure SetStdIOCodePage(var T: Text); {$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
   case TextRec(T).Mode of
     fmInput:TextRec(T).CodePage:=DefaultSystemCodePage;
@@ -383,7 +383,7 @@ begin
   end;
 end;
 
-procedure SetStdIOCodePages; inline;
+procedure SetStdIOCodePages; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
   SetStdIOCodePage(Input);
   SetStdIOCodePage(Output);

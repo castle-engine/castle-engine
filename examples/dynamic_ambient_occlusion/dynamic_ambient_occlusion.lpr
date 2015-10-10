@@ -908,7 +908,7 @@ begin
 
     { init SceneManager, with a Scene inside }
     SceneManager := TMySceneManager.Create(Window);
-    Window.Controls.Add(SceneManager);
+    Window.Controls.InsertFront(SceneManager);
     SceneManager.MainScene := Scene;
     SceneManager.Items.Add(Scene);
 

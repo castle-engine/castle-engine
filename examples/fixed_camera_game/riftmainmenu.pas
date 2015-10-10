@@ -94,7 +94,6 @@ var
 { Actual menu procedures and CastleWindow callbacks ------------------------------ }
 
 var
-  CurrentMenu: TCastleOnScreenMenu;
   GLMenuBg: TGLImage;
   UserQuit: boolean;
 
@@ -102,7 +101,6 @@ var
   (when new value is @nil) from Window.Controls. }
 procedure SetCurrentMenu(const NewValue: TCastleOnScreenMenu);
 begin
-  CurrentMenu := NewValue;
   Window.Controls.MakeSingle(TCastleOnScreenMenu, NewValue);
 end;
 

@@ -16,6 +16,8 @@
 { Color utilities, including HSV <-> RGB convertion. }
 unit CastleColors;
 
+{$include castleconf.inc}
+
 interface
 
 uses Math, CastleVectors;
@@ -71,15 +73,15 @@ const
 
 { Calculate color intensity, for converting color to grayscale.
   @groupBegin }
-function GrayscaleValue(const v: TCastleColorRGB): Single; inline; overload;
-function GrayscaleValue(const v: TCastleColor): Single; inline; overload;
-function GrayscaleValue(const v: TVector3Byte): Byte; inline; overload;
-function GrayscaleValue(const v: TVector4Byte): Byte; inline; overload;
+function GrayscaleValue(const v: TCastleColorRGB): Single; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
+function GrayscaleValue(const v: TCastleColor): Single; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
+function GrayscaleValue(const v: TVector3Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
+function GrayscaleValue(const v: TVector4Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
 { @groupEnd }
 
-function Grayscale(const v: TCastleColorRGB): TCastleColorRGB; inline; overload;
-function Grayscale(const v: TVector3Byte): TVector3Byte; inline; overload;
-function Grayscale(const v: TCastleColor): TCastleColor; inline; overload;
+function Grayscale(const v: TCastleColorRGB): TCastleColorRGB; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
+function Grayscale(const v: TVector3Byte): TVector3Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
+function Grayscale(const v: TCastleColor): TCastleColor; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
 
 type
   { Function that processes RGB colors, used by TCastleImage.ModulateRGB. }

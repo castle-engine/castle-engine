@@ -932,9 +932,9 @@ end;
 function RandomString: string;
 var i: integer;
 begin
- result := '';
- for i := 1 to random(10) do result := result+char(byte('A')+Random(26));
- for i := 1 to 3 do result := result+char(byte('0')+Random(10));
+  result := '';
+  for i := 1 to random(10) do result := result+char(byte('A')+Random(26));
+  for i := 1 to 3 do result := result+char(byte('0')+Random(10));
 end;
 
 procedure StringReplaceAllVar(var S: string;
@@ -956,105 +956,116 @@ begin
  end;
 *)
 begin
- if IgnoreCase then
-  s := StringReplace(s, FromPattern, ToPattern, [rfReplaceAll, rfIgnoreCase]) else
-  s := StringReplace(s, FromPattern, ToPattern, [rfReplaceAll]);
+  if IgnoreCase then
+    s := StringReplace(s, FromPattern, ToPattern, [rfReplaceAll, rfIgnoreCase]) else
+    s := StringReplace(s, FromPattern, ToPattern, [rfReplaceAll]);
 end;
 
 function BreakLine(const s: string; MaxCol: integer; onbreakChars: TSetOfChars): string;
-var done: integer;
-    nowcol, i, brk: integer;
-label brokenSuccess;
-const breakingstr = nl;
+var
+  done: integer;
+  nowcol, i, brk: integer;
+  BrokenSuccess: boolean;
+const
+  breakingstr = nl;
 begin
- Done := 0;
- Result := '';
+  Done := 0;
+  Result := '';
 
- i := 1;
- while i <= Length(s) do
- begin
-  if s[i] in [#10, #13] then
+  i := 1;
+  while i <= Length(s) do
   begin
-   { niech i obejmie cale zakonczenie linii ktore moze byc 2-znakowe #13#10 lub #10#13 }
-   case s[i] of
-    #13 : if SCharIs(s, i+1, #10) then Inc(i);
-    #10 : if SCharIs(s, i+1, #13) then Inc(i);
-   end;
-   Result := Result + CopyPos(s, Done+1, i);
-   Done := i;
-  end else
-  begin
-   NowCol := i - Done;
-   if NowCol > MaxCol then
-   begin
-    { we got line s[done+1..i] that we have to break somewhere. }
-    for brk := i downto Done + 1 do
-     if s[brk] in OnBreakChars then
-     begin
-      Result := Result + CopyPos(s, Done+1, Brk-1) + BreakingStr;
-      Done := brk; { we left the rest : s[brk+1..i] to be done }
-      goto brokenSuccess;
-     end;
-    { ups ! it can't be broken - no onbreakChars found ! so we break after
-      done+maxcol position. }
-    Result := Result + Copy(s, Done+1, MaxCol) + BreakingStr;
-    Done := Done + MaxCol;
-    brokenSuccess:;
-   end;
+    if s[i] in [#10, #13] then
+    begin
+      { niech i obejmie cale zakonczenie linii ktore moze byc 2-znakowe #13#10 lub #10#13 }
+      case s[i] of
+        #13 : if SCharIs(s, i+1, #10) then Inc(i);
+        #10 : if SCharIs(s, i+1, #13) then Inc(i);
+      end;
+      Result := Result + CopyPos(s, Done+1, i);
+      Done := i;
+    end else
+    begin
+      NowCol := i - Done;
+      if NowCol > MaxCol then
+      begin
+        { we got line s[done+1..i] that we have to break somewhere. }
+        BrokenSuccess := false;
+        for brk := i downto Done + 1 do
+          if s[brk] in OnBreakChars then
+          begin
+            Result := Result + CopyPos(s, Done+1, Brk-1) + BreakingStr;
+            Done := brk; { we left the rest : s[brk+1..i] to be done }
+            Break;
+            BrokenSuccess := true;;
+          end;
+        if not BrokenSuccess then
+        begin
+          { ups ! it can't be broken - no onbreakChars found ! so we break after
+            done+maxcol position. }
+          Result := Result + Copy(s, Done+1, MaxCol) + BreakingStr;
+          Done := Done + MaxCol;
+        end;
+      end;
+    end;
+
+    Inc(i);
   end;
 
-  Inc(i);
- end;
-
- if Done < Length(S) then
-  Result := Result + SEnding(S, Done+1);
+  if Done < Length(S) then
+    Result := Result + SEnding(S, Done+1);
 end;
 
 function SDeleteChars(const s: string; const excludedChars: TSetOfChars): string;
-var i, j: integer;
+var
+  i, j: integer;
 begin
- SetLength(result, length(s));
- j := 1;
- for i := 1 to length(s) do
-  if not (s[i] in excludedChars) then
-   begin result[j] := s[i]; Inc(j); end;
- SetLength(result, j-1);
+  SetLength(result, length(s));
+  j := 1;
+  for i := 1 to length(s) do
+    if not (s[i] in excludedChars) then
+      begin result[j] := s[i]; Inc(j); end;
+  SetLength(result, j-1);
 end;
 
 function SReplaceChars(const s, FromChars, ToChars: string): string;
-var i, p: integer;
+var
+  i, p: integer;
 begin
- result := s;
- for i := 1 to Length(result) do
- begin
-  p := CharPos(result[i], FromChars);
-  if p > 0 then result[i] := ToChars[p];
- end;
+  result := s;
+  for i := 1 to Length(result) do
+  begin
+    p := CharPos(result[i], FromChars);
+    if p > 0 then result[i] := ToChars[p];
+  end;
 end;
 
 function SReplaceChars(const s: string; FromChars: TSetOfChars; ToChar: char): string;
-var i: integer;
+var
+  i: integer;
 begin
- result := s;
- for i := 1 to Length(result) do
-  if result[i] in FromChars then result[i] := ToChar;
+  result := s;
+  for i := 1 to Length(result) do
+    if result[i] in FromChars then result[i] := ToChar;
 end;
 
 function SReplaceChars(const s: string; FromChar, ToChar: char): string;
-var i: Integer;
+var
+  i: Integer;
 begin
- Result := S;
- for i := 1 to Length(Result) do
-  if Result[i] = FromChar then Result[i] := ToChar;
+  Result := S;
+  for i := 1 to Length(Result) do
+    if Result[i] = FromChar then Result[i] := ToChar;
 end;
 
 function SPad(const s: string; len: integer; c: char): string;
-var lnow: integer;
+var
+  lnow: integer;
 begin
- lnow := length(s);
- if lnow < len then
-  Result := StringOfChar(c, len-lnow) + s else
-  Result := s;
+  lnow := length(s);
+  if lnow < len then
+    Result := StringOfChar(c, len-lnow) + s else
+    Result := s;
 end;
 
 function SZeroPad(const s: string; len: integer): string;
@@ -1062,39 +1073,40 @@ begin result := SPad(s, len, '0') end;
 
 function LoCase(c: char): char;
 begin
- if c in ['A'..'Z'] then
-  result := chr(ord(c)-ord('A')+ord('a')) else
-  result := c;
+  if c in ['A'..'Z'] then
+    result := chr(ord(c)-ord('A')+ord('a')) else
+    result := c;
 end;
 
 function CharPos(c: char; const s: string; Offset: Integer): integer;
-var i: integer;
+var
+  i: integer;
 begin
- for i := Offset to length(s) do
-  if s[i] = c then begin result := i; exit end;
- result := 0;
+  for i := Offset to length(s) do
+    if s[i] = c then begin result := i; exit end;
+  result := 0;
 end;
 
 function CharsPos(const chars: TSetOfChars; const s: string): integer;
 begin
- for result := 1 to Length(s) do
-  if s[result] in chars then exit;
- result := 0;
+  for result := 1 to Length(s) do
+    if s[result] in chars then exit;
+  result := 0;
 end;
 
 function CharsPosEx(const Chars: TSetOfChars; const S: string;
   Offset: Integer): integer;
 begin
- for Result := Offset to Length(S) do
-   if S[Result] in Chars then Exit;
- Result := 0;
+  for Result := Offset to Length(S) do
+    if S[Result] in Chars then Exit;
+  Result := 0;
 end;
 
 function BackCharsPos(const chars: TSetOfChars; const s: string): integer;
 begin
- for result := Length(s) downto 1 do
-  if s[result] in chars then exit;
- result := 0;
+  for result := Length(s) downto 1 do
+    if s[result] in chars then exit;
+  result := 0;
 end;
 
 function BackPos(const SubString, S: string): integer;

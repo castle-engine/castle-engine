@@ -605,7 +605,7 @@ begin
     LocalLightSRF.LoadFromFile(ChangeURIExt(LocalLightURL, ShadowFieldExt));
 
     SceneManager := TMySceneManager.Create(nil);
-    Window.Controls.Add(SceneManager);
+    Window.Controls.InsertFront(SceneManager);
 
     { initialize navigators }
     BoxSum := SceneCaster.BoundingBox + SceneReceiver.BoundingBox;

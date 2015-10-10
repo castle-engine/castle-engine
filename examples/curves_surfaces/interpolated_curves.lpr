@@ -428,7 +428,7 @@ begin
     Window.MainMenu := CreateMainMenu;
 
     SceneManager := TMySceneManager.Create(Application);
-    Window.Controls.Add(SceneManager);
+    Window.Controls.InsertFront(SceneManager);
 
     { init PreciseCurve }
     SetPreciseCurve(

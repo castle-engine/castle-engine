@@ -104,7 +104,7 @@ end;
 
 { Helper routines ------------------------------------------------------------ }
 
-function BlendBytes(const Dest, Source, Opacity: Byte): Byte; inline;
+function BlendBytes(const Dest, Source, Opacity: Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 var
   W: Word;
 begin
@@ -115,7 +115,7 @@ begin
   Result := W;
 end;
 
-function AddBytes(const Dest, Source, Opacity: Byte): Byte; inline;
+function AddBytes(const Dest, Source, Opacity: Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 var
   W: Word;
 begin
@@ -124,7 +124,7 @@ begin
   Result := W;
 end;
 
-function AddBytesPremultiplied(const Dest, Source: Byte): Byte; inline;
+function AddBytesPremultiplied(const Dest, Source: Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 var
   W: Word;
 begin

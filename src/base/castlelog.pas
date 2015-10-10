@@ -18,6 +18,8 @@
   Various units of the engine print some logging info when @link(Log) is true. }
 unit CastleLog;
 
+{$include castleconf.inc}
+
 interface
 
 uses Classes;
@@ -190,7 +192,7 @@ begin
   FLog := true;
 end;
 
-procedure WriteLogRaw(const S: string); inline;
+procedure WriteLogRaw(const S: string); {$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
   if Log then
   begin
