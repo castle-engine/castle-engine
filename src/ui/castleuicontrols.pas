@@ -909,7 +909,7 @@ end;
     { Automatically adjust vertical position to align us to
       the parent vertically. Note that the value of @link(Bottom) remains
       unchanged (it is tjust ignored), using the anchors only modifies the output
-      of the @link(ScreenRect) value that should be used for rendering/physics. } }
+      of the @link(ScreenRect) value that should be used for rendering/physics. }
     property HasVerticalAnchor: boolean
       read FHasVerticalAnchor write SetHasVerticalAnchor default false;
     { Which border to align (both our and parent border),
