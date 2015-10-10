@@ -122,7 +122,7 @@ type
       Usually this is called automatically when necessary. }
     procedure RecalculateSize;
 
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+    procedure Resize; override;
 
     function Rect: TRectangle; override;
     function CapturesEventsAtPosition(const Position: TVector2Single): boolean; override;
@@ -421,7 +421,7 @@ begin
       Controls[I].Controls[0].Left := MaxItemWidth + MarginBeforeAccessory;
 end;
 
-procedure TCastleOnScreenMenu.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+procedure TCastleOnScreenMenu.Resize;
 begin
   inherited;
   RecalculateSize;

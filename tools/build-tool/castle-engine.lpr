@@ -141,6 +141,7 @@ begin
   end;
 end;
 
+procedure Run;
 var
   Command, S, FileName: string;
   Project: TCastleProject;
@@ -202,5 +203,20 @@ begin
         Project.DoClean else
         raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
     finally FreeAndNil(Project) end;
+  end;
+end;
+
+begin
+  try
+    Run;
+  except
+    on E: TObject do
+    begin
+      { In case of exception, write nice message and exit with non-zero status,
+        without dumping any stack trace (because it's normal for build tool to
+        exit with exception in case of project/environment error, not a bug). }
+      Writeln(ErrOutput, ExceptMessage(E));
+      Halt(1);
+    end;
   end;
 end.

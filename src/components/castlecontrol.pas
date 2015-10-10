@@ -864,7 +864,7 @@ begin
   inherited;
 
   { Call MakeCurrent here, to make sure CastleUIControls always get
-    ContainerResize with good GL context. }
+    Resize with good GL context. }
   if GLInitialized and MakeCurrent then
     Container.EventResize;
 end;

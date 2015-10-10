@@ -413,7 +413,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+    procedure Resize; override;
 
     { Size of this control, ignoring GetExists. }
     function Width: Cardinal;
@@ -541,7 +541,7 @@ type
       const AButtons: array of TCastleButton;
       const ADrawInputText: boolean; const AInputText: string;
       const ABackground: TCastleImage);
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+    procedure Resize; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -627,15 +627,19 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
     { Size of this control, ignoring GetExists. }
     function Width: Cardinal;
     function Height: Cardinal;
     function Rect: TRectangle; override;
   published
-    { 0: invisible, 1: cross, 2: cross with rect }
     property Shape: TCastleCrosshairShape read FShape write SetShape default csCross;
+
+    { By default, crosshair is centered. }
+    property HasHorizontalAnchor default true;
+    property HasVerticalAnchor default true;
+    property HorizontalAnchor default hpMiddle;
+    property VerticalAnchor default vpMiddle;
   end;
 
   TCastleProgressBar = class(TUIControl)
@@ -1699,6 +1703,8 @@ constructor TCastleCrosshair.Create(AOwner: TComponent);
 begin
   inherited;
   FShape := csCross;
+  Anchor(hpMiddle);
+  Anchor(vpMiddle);
 end;
 
 procedure TCastleCrosshair.SetShape(const Value: TCastleCrosshairShape);
@@ -1712,14 +1718,6 @@ begin
   if FShape = csCrossRect then
     Result := tiCrosshair2 else
     Result := tiCrosshair1;
-end;
-
-procedure TCastleCrosshair.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
-begin
-  inherited;
-  Left := (AContainerWidth - Width) div 2;   // keep in the center
-  Bottom := (AContainerHeight - Height) div 2;
-  VisibleChange;
 end;
 
 function TCastleCrosshair.SizeScale: Single;
@@ -1747,7 +1745,7 @@ end;
 procedure TCastleCrosshair.Render;
 begin
   inherited;
-  Theme.Draw(Rect, ImageType);
+  Theme.Draw(ScreenRect, ImageType);
 end;
 
 { TCastleTouchControl ---------------------------------------------------------------- }
@@ -1789,7 +1787,7 @@ begin
   end;
 end;
 
-procedure TCastleTouchControl.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+procedure TCastleTouchControl.Resize;
 begin
   inherited;
   UpdateLeftBottom;
@@ -2066,7 +2064,7 @@ begin
     MaxVar(Result, Button.Height + 2 * BoxMargin);
 end;
 
-procedure TCastleDialog.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+procedure TCastleDialog.Resize;
 var
   MessageRect: TRectangle;
   X, Y, I: Integer;

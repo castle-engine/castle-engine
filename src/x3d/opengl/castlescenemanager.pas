@@ -281,7 +281,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+    procedure Resize; override;
     property RenderStyle default rs3D;
 
     function AllowSuspendForInput: boolean; override;
@@ -1294,7 +1294,7 @@ begin
       FCamera.FreeNotification(Self);
       FCamera.Container := Container;
       if ContainerSizeKnown then
-        FCamera.ContainerResize(ContainerWidth, ContainerHeight);
+        FCamera.Resize;
     end;
   end;
 end;
@@ -1322,12 +1322,12 @@ begin
   end;
 end;
 
-procedure TCastleAbstractViewport.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+procedure TCastleAbstractViewport.Resize;
 begin
   inherited;
 
   if Camera <> nil then
-    Camera.ContainerResize(AContainerWidth, AContainerHeight);
+    Camera.Resize;
 end;
 
 function TCastleAbstractViewport.PlayerNotBlocked: boolean;
@@ -1540,7 +1540,7 @@ begin
   if Camera = nil then
     Camera := CreateDefaultCamera(Self);
   { We need to know container size now. }
-  Assert(ContainerSizeKnown, ClassName + ' did not receive ContainerResize event yet, cannnot apply OpenGL projection');
+  Assert(ContainerSizeKnown, ClassName + ' did not receive Resize event yet, cannnot apply OpenGL projection');
 
   Viewport := Rect;
   glViewport(Viewport);

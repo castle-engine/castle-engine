@@ -1639,7 +1639,7 @@ type
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
     function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
 
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+    procedure Resize; override;
     function GetNavigationType: TNavigationType; override;
 
     procedure SetInitialView(
@@ -4654,11 +4654,11 @@ begin
   FExamine.Container := Value;
 end;
 
-procedure TUniversalCamera.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+procedure TUniversalCamera.Resize;
 begin
   inherited;
-  FWalk.ContainerResize(AContainerWidth, AContainerHeight);
-  FExamine.ContainerResize(AContainerWidth, AContainerHeight);
+  FWalk.Resize;
+  FExamine.Resize;
 end;
 
 procedure TUniversalCamera.SetInitialView(

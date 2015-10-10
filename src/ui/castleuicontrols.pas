@@ -519,23 +519,29 @@ end;
       @seeAlso TCastleWindowCustom.AllowSuspendForInput }
     function AllowSuspendForInput: boolean; virtual;
 
-    { Called always when the container (component or window with OpenGL context)
+    { You can resize/reposition your component here,
+      for example set @link(Left) or @link(Bottom), to react to parent
+      size changes.
+      Called always when the container (component or window with OpenGL context)
       size changes. Called only when the OpenGL context of the container
       is initialized, so you can be sure that this is called only between
       GLContextOpen and GLContextClose.
 
       We also make sure to call this once when inserting into
-      the container controls list
+      the controls list
       (like @link(TCastleWindowCustom.Controls) or
-      @link(TCastleControlCustom.Controls)), if inserting into the container
-      with already initialized OpenGL context. If inserting into the container
+      @link(TCastleControlCustom.Controls) or inside parent TUIControl),
+      if inserting into the container/parent
+      with already initialized OpenGL context. If inserting into the container/parent
       without OpenGL context initialized, it will be called later,
       when OpenGL context will get initialized, right after GLContextOpen.
 
       In other words, this is always called to let the control know
       the size of the container, if and only if the OpenGL context is
       initialized. }
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual;
+    procedure Resize; virtual;
+
+    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual; deprecated 'use Resize';
 
     { Container of this control. When adding control to container's Controls
       list (like TCastleWindowCustom.Controls) container will automatically
@@ -700,11 +706,11 @@ end;
     //procedure VisibleChange; override;
     { }
     function AllowSuspendForInput: boolean; override;
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+    procedure Resize; override;
 
     { Return whether item really exists, see @link(Exists).
       Non-existing item does not receive any of the render or input or update calls.
-      They only receive @link(GLContextOpen), @link(GLContextClose), @link(ContainerResize)
+      They only receive @link(GLContextOpen), @link(GLContextClose), @link(Resize)
       calls.
 
       It TUIControl class, this returns the value of @link(Exists) property.
@@ -1204,11 +1210,11 @@ begin
   begin
     if C.DisableContextOpenClose = 0 then
       C.GLContextOpen;
-    { Call initial ContainerResize for control.
+    { Call initial Resize for control.
       If window OpenGL context is not yet initialized, defer it to
       the Open time, then our initial EventResize will be called
-      that will do ContainerResize on every control. }
-    C.ContainerResize(AContainer.Width, AContainer.Height);
+      that will do Resize on every control. }
+    C.Resize;
   end;
 end;
 
@@ -1793,10 +1799,10 @@ begin
   for I := Controls.Count - 1 downto 0 do
   begin
     C := Controls[I];
-    C.ContainerResize(Width, Height);
+    C.Resize;
   end;
 
-  { This way control's get ContainerResize before our OnResize,
+  { This way control's get Resize before our OnResize,
     useful to process them all reliably in OnResize. }
   if Assigned(OnResize) then OnResize(Self);
 end;
@@ -1893,6 +1899,13 @@ begin
   Result := true;
 end;
 
+procedure TInputListener.Resize;
+begin
+  {$warnings off}
+  ContainerResize(ContainerWidth, ContainerHeight); // call deprecated, to keep it working
+  {$warnings on}
+end;
+
 procedure TInputListener.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
 begin
 end;
@@ -1921,14 +1934,14 @@ end;
 function TInputListener.ContainerSizeKnown: boolean;
 begin
   { Note that ContainerSizeKnown is calculated looking at current Container,
-    without waiting for ContainerResize. This way it works even before
-    we receive ContainerResize method, which may happen to be useful:
+    without waiting for Resize. This way it works even before
+    we receive Resize method, which may happen to be useful:
     if you insert a SceneManager to a window before it's open (like it happens
     with standard scene manager in TCastleWindow and TCastleControl),
     and then you do something inside OnOpen that wants to render
     this viewport (which may happen if you simply initialize a progress bar
     without any predefined loading_image). Scene manager did not receive
-    a ContainerResize in this case yet (it will receive it from OnResize,
+    a Resize in this case yet (it will receive it from OnResize,
     which happens after OnOpen).
 
     See castle_game_engine/tests/testcontainer.pas for cases
@@ -2191,7 +2204,7 @@ begin
         Exit(false);
 end;
 
-procedure TUIControl.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+procedure TUIControl.Resize;
 var
   I: Integer;
 begin
@@ -2199,7 +2212,7 @@ begin
 
   if FControls <> nil then
     for I := FControls.Count - 1 downto 0 do
-      FControls[I].ContainerResize(AContainerWidth, AContainerHeight);
+      FControls[I].Resize;
 end;
 
 function TUIControl.CapturesEventsAtPosition(const Position: TVector2Single): boolean;

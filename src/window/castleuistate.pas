@@ -127,7 +127,7 @@ type
     { State becomes current.
       This is called right before adding the state to the
       @code(StateContainer.Controls) list, so the state methods
-      GLContextOpen and ContainerResize will be called next (as for all
+      GLContextOpen and Resize will be called next (as for all
       normal TUIControl). }
     procedure Start; virtual;
 
@@ -241,7 +241,7 @@ begin
   Start;
 
   { actually insert to NewControls, this will also call GLContextOpen
-    and ContainerResize.
+    and Resize.
     However, check first that we're still the current state,
     to safeguard from the fact that Start changed state
     (like the loading state, that changes to play state immediately in start). }

@@ -507,6 +507,8 @@ begin
     (no key/mouse button correspond to it), because not all games may want
     to allow player to do this. }
   Input_DropItem.Assign(K_R);
+  // allow shooting by clicking or pressing Ctrl key
+  Input_Attack.Assign(K_Ctrl, K_None, #0, true, mbLeft);
 
   { Allow using type="MedKit" inside resource.xml files,
     to define our MedKit item. }
@@ -594,6 +596,11 @@ begin
   { Create and add Game2DControls to visualize player life, inventory and pain. }
   Game2DControls := TGame2DControls.Create(Application);
   Window.Controls.InsertFront(Game2DControls);
+
+  { Insert default crosshair.
+    You can draw your own crosshair easily (using TGLImage.Draw
+    inside TGame2DControls, or using TCastleImageControl). }
+  Window.Controls.InsertFront(TCastleCrosshair.Create(Application));
 
   { Run the game loop.
     In more advanced cases, you can also execute each step of the loop
