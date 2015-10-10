@@ -2656,7 +2656,7 @@ end;
 
       For comfort, returns @code(not Terminated).
       So it returns @true if we should continue, that is
-      if @link(Terminate) method was not called (directly or by closing
+      if @code(Terminate) method was not called (directly or by closing
       the last window). If you want to check it (if you
       allow the user at all to close the application during modal box or such)
       you can do:

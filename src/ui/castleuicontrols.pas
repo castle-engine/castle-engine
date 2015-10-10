@@ -120,17 +120,20 @@ type
 
     Basically, this class manages a @link(Controls) list.
 
-    We pass our inputs (mouse / key events) to these controls.
-    Input goes to the top-most
-    (that is, first on the @link(Controls) list) control under the current mouse position
-    (we use @link(CapturesEventsAtPosition) that by default
-    checks control's @link(TUIControl.ScreenRect) to see what did we hit,
-    so we use customized @link(TUIControl.Rect) implementations).
+    We pass our inputs (mouse / key / touch events) to the controls
+    on this list. Input goes to the front-most
+    (that is, last on the @link(Controls) list) control under
+    the event position (or mouse position, or the appropriate touch position).
+    We use @link(TUIControl.CapturesEventsAtPosition) to decide this
+    (by default it simply checks control's @link(TUIControl.ScreenRect)
+    vs the given position).
     As long as the event is not handled,
-    we look for next controls under the mouse position.
+    we search for the next control that can handle this event and
+    returns @link(TUIControl.CapturesEventsAtPosition) = @true.
 
-    We also call other methods on every control,
-    like TUIControl.Update, TUIControl.Render. }
+    We also call various methods to every control.
+    These include @link(TUIControl.Update), @link(TUIControl.Render),
+    @link(TUIControl.Resize). }
   TUIContainer = class abstract(TComponent)
   private
     type

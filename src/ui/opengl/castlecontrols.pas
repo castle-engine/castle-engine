@@ -838,12 +838,12 @@ type
     BackgroundTint: TCastleColor;
 
     { Undernath various message dialogs show "error background"
-      (@link(tiErrorBackround)) image instead of the default behaviour.
+      (@link(tiErrorBackground)) image instead of the default behaviour.
       @italic(This is automatically used by CastleWindow exception handler,
       you should not need to modify this property yourself.)
 
       This affects modal messages made by @link(CastleMessages) unit,
-      and modal messages made by @link(TCastleWindow.MessageOK) and friends,
+      and modal messages made by @link(TCastleWindowCustom.MessageOK) and friends,
       or modal states by @link(TGLModeFrozenScreen).
 
       The default behaviour of them is to show the TCastleDialog provided background

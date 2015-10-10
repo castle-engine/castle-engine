@@ -36,7 +36,8 @@ function Java_net_sourceforge_castleengine_MainActivity_jniMessage(
 const
   { Gravity constants for some messages, for example to indicate ad placement.
     Equal to constants on
-    http://developer.android.com/reference/android/view/Gravity.html }
+    http://developer.android.com/reference/android/view/Gravity.html .
+    @groupBegin }
   GravityLeft = $00000003; //< Push object to the left of its container, not changing its size.
   GravityRight = $00000005; //< Push object to the right of its container, not changing its size.
   GravityTop = $00000030; //< Push object to the top of its container, not changing its size.
@@ -44,6 +45,7 @@ const
   GravityCenterHorizontal = $00000001; //< Place object in the horizontal center of its container, not changing its size.
   GravityCenterVertical = $00000010; //< Place object in the vertical center of its container, not changing its size.
   GravityNo = 0; //< Constant indicating that no gravity has been set.
+  { @groupEnd }
 
 var
   { Log each message send/received from/to Java.

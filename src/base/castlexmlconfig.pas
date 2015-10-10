@@ -40,13 +40,18 @@ type
     class:
 
     @unorderedList(
+      @item(load/save from an URL or a TStream (not just a filename),)
+      @item(load/save to the default config file location (for user preferences),)
       @item(load/save more types (floats, vectors, colors, URLs, TKeys,
         multiline text...),)
-      @item(load/save from an URL (not just a filename),)
-      @item(PathElement utility, to use powerful DOM functions for a subset
-        of config file reading/writing,)
-      @item(
-       }
+      @item(PathElement utility, to use powerful DOM functions when needed
+        to process something more complex,)
+      @item(encrypt/descrypt contents, just use BlowFishKeyPhrase property
+        (this is actually built-in in our modified TXMLConfig).)
+    )
+
+    See http://castle-engine.sourceforge.net/tutorial_user_prefs.php
+    for more documentation. }
   TCastleConfig = class(TXMLConfig)
   private
     FOnLoad, FOnSave: TCastleConfigEventList;
