@@ -1,4 +1,3 @@
-{ -*- compile-command: "./compile_console.sh" -*- }
 {
   Copyright 2010-2014 Michalis Kamburelis.
 
@@ -153,7 +152,7 @@ begin
     SceneManager.Items.Add(Scene);
     SceneManager.MainScene := Scene;
 
-    Window.Controls.Add(SceneManager);
+    Window.Controls.InsertFront(SceneManager);
     Window.Open;
 
     TestScene('');

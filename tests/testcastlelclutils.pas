@@ -1,4 +1,3 @@
-{ -*- compile-command: "./compile_console.sh" -*- }
 {
   Copyright 2011-2014 Michalis Kamburelis.
 
