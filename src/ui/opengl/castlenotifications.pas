@@ -193,13 +193,19 @@ var
   Broken: TStringList;
 begin
   if Log then
-    WriteLog('Time message', S.Text);
+    WriteLog('Notification', S.Text);
 
-  Broken := TStringList.Create;
-  try
-    Font.BreakLines(S, Broken, ParentRect.Width);
-    AddStrings(Broken);
-  finally Broken.Free end;
+  { before Notifications are part of some Controls list,
+    we don't know about Parent or Container size. }
+  if ContainerSizeKnown then
+  begin
+    Broken := TStringList.Create;
+    try
+      Font.BreakLines(S, Broken, ParentRect.Width);
+      AddStrings(Broken);
+    finally Broken.Free end;
+  end else
+    AddStrings(S);
 
   if CollectHistory then
     History.AddList(S);

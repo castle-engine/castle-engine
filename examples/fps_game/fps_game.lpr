@@ -585,6 +585,10 @@ begin
     Of course this is completely optional, you could instead create your own
     TCastleNotifications instance (to not see the default notifications
     made by some engine units) or just don't use notifications at all. }
+  Notifications.TextAlignment := hpMiddle;
+  Notifications.Anchor(hpMiddle);
+  Notifications.Anchor(vpBottom, 5);
+  Notifications.Color := Yellow;
   Window.Controls.InsertFront(Notifications);
 
   { Create and add Game2DControls to visualize player life, inventory and pain. }
