@@ -2205,8 +2205,16 @@ end;
 function TUIControl.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
 var
   I: Integer;
+  SR: TRectangle;
 begin
-  Result := ScreenRect.Contains(Position);
+  SR := ScreenRect;
+  Result := SR.Contains(Position) or
+    { if the control covers the whole Container, it *always* captures events,
+      even when mouse position is unknown yet, or outside the window. }
+    ((SR.Left <= 0) and
+     (SR.Bottom <= 0) and
+     (SR.Width >= ContainerWidth) and
+     (SR.Height >= ContainerHeight));
   if Result then Exit;
 
   if FControls <> nil then

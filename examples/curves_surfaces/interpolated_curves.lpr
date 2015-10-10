@@ -420,6 +420,7 @@ begin
     StatusText.Padding := 5;
     StatusText.Left := 5;
     StatusText.Bottom := 5;
+    StatusText.Frame := true;
     Window.Controls.InsertFront(StatusText);
 
     { init menu }
