@@ -1127,6 +1127,7 @@ procedure TCastleButton.Render;
 var
   TextLeft, TextBottom, ImgLeft, ImgBottom: Integer;
   Background: TThemeImage;
+  SR: TRectangle;
 begin
   inherited;
 
@@ -1135,15 +1136,16 @@ begin
   if Focused then
     Background := tiButtonFocused else
     Background := tiButtonNormal;
-  Theme.Draw(Rect, Background);
+  SR := ScreenRect;
+  Theme.Draw(SR, Background);
 
-  TextLeft := Left + (Width - TextWidth) div 2;
+  TextLeft := SR.Left + (SR.Width - TextWidth) div 2;
   if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilLeft) then
     TextLeft += (FImage.Width + ImageMargin) div 2 else
   if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilRight) then
     TextLeft -= (FImage.Width + ImageMargin) div 2;
 
-  TextBottom := Bottom + (Height - TextHeight) div 2;
+  TextBottom := SR.Bottom + (SR.Height - TextHeight) div 2;
   if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilBottom) then
     TextBottom += (FImage.Height + ImageMargin) div 2 else
   if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilTop) then
@@ -1163,12 +1165,12 @@ begin
     case ImageLayout of
       ilLeft         : ImgLeft := TextLeft - FImage.Width - ImageMargin;
       ilRight        : ImgLeft := TextLeft + TextWidth + ImageMargin;
-      ilBottom, ilTop: ImgLeft := Left + (Width - FImage.Width) div 2;
+      ilBottom, ilTop: ImgLeft := SR.Left + (SR.Width - FImage.Width) div 2;
     end;
     case ImageLayout of
       ilBottom       : ImgBottom := TextBottom - FImage.Height - ImageMargin;
       ilTop          : ImgBottom := TextBottom + TextHeight + ImageMargin;
-      ilLeft, ilRight: ImgBottom := Bottom + (Height - FImage.Height) div 2;
+      ilLeft, ilRight: ImgBottom := SR.Bottom + (SR.Height - FImage.Height) div 2;
     end;
     FGLImage.Draw(ImgLeft, ImgBottom);
   end;
@@ -1538,7 +1540,7 @@ procedure TCastleImageControl.Render;
 begin
   inherited;
   if FGLImage = nil then Exit;
-  FGLImage.Draw(Rect);
+  FGLImage.Draw(ScreenRect);
   { Useful to debug that Proportional works.
   if Stretch and not FullSize then
     Theme.Draw(Rectangle(Left, Bottom, Width, Height), tiActiveFrame); }

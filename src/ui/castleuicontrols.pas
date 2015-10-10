@@ -880,6 +880,11 @@ end;
       Since this is in local coordinates, the returned rectangle Left and Bottom
       are always zero. }
     function ParentRect: TRectangle;
+
+    procedure Anchor(const AHorizontalAnchor: THorizontalPosition;
+      const AHorizontalAnchorDelta: Integer = 0);
+    procedure Anchor(const AVerticalAnchor: TVerticalPosition;
+      const AVerticalAnchorDelta: Integer = 0);
   published
     { Not existing control is not visible, it doesn't receive input
       and generally doesn't exist from the point of view of user.
@@ -2565,6 +2570,22 @@ begin
     FVerticalAnchorDelta := Value;
     VisibleChange;
   end;
+end;
+
+procedure TUIControl.Anchor(const AHorizontalAnchor: THorizontalPosition;
+  const AHorizontalAnchorDelta: Integer);
+begin
+  HasHorizontalAnchor := true;
+  HorizontalAnchor := AHorizontalAnchor;
+  HorizontalAnchorDelta := AHorizontalAnchorDelta;
+end;
+
+procedure TUIControl.Anchor(const AVerticalAnchor: TVerticalPosition;
+  const AVerticalAnchorDelta: Integer);
+begin
+  HasVerticalAnchor := true;
+  VerticalAnchor := AVerticalAnchor;
+  VerticalAnchorDelta := AVerticalAnchorDelta;
 end;
 
 { TUIControlList ------------------------------------------------------------- }

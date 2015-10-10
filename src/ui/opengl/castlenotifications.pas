@@ -18,59 +18,54 @@ unit CastleNotifications;
 
 interface
 
-uses CastleUIControls, Classes, SysUtils, CastleUtils, CastleGLUtils,
+uses FGL,
+  CastleUIControls, Classes, SysUtils, CastleUtils, CastleControls,
   CastleFonts, CastleTimeUtils, CastleVectors, CastleStringUtils,
-  FGL, CastleColors;
+  CastleColors, CastleRectangles;
 
 type
-  THorizontalPosition = (hpLeft, hpMiddle, hpRight);
-  TVerticalPosition = (vpDown, vpMiddle, vpUp);
-
-  { Internal type. @exclude }
-  TNotification = class
-    Text: string;
-    Time: TMilisecTime; {< appear time }
-  end;
-
-  { Internal type. @exclude }
-  TNotificationList = class(specialize TFPGObjectList<TNotification>)
-    procedure DeleteFirst(DelCount: Integer);
-  end;
-
-  { Notifications displayed in the OpenGL window.
-    The idea is to display messages about something happening
-    at the bottom / top of the screen. These messages disappear by themselves
-    after some short time.
-
-    Similar to older FPS games messages, e.g. DOOM, Quake, Duke Nukem 3D.
-    Suitable for game messages like "Picked up 20 ammo"
-    or "Player Foo joined game".
+  { Notifications displayed on the screen.
+    Each message disappears after a short time.
+    Suitable for game messages like "Picked up 20 ammo".
+    Call @link(Show) to display a message.
 
     This is a TUIControl descendant, so to use it --- just add it
     to TCastleWindowCustom.Controls or TCastleControlCustom.Controls.
-    Call @link(Show) to display a message. }
-  TCastleNotifications = class(TUIControl)
+    Use TUIControl anchors to automatically position it on the screen,
+    for example:
+
+    @longCode(#
+Notifications := TCastleNotifications.Create(Owner);
+Notifications.Anchor(hpMiddle);
+Notifications.Anchor(vpMiddle);
+Notifications.TextAlign := hpMiddle; // looks best, when anchor is also in the middle
+#) }
+  TCastleNotifications = class(TUIControlFont)
   private
+    type
+      TNotification = class
+        Text: string;
+        Time: TMilisecTime; {< appear time }
+        Width: Integer;
+        Color: TCastleColor;
+      end;
+      TNotificationList = class(specialize TFPGObjectList<TNotification>)
+        procedure DeleteFirst(DelCount: Integer);
+      end;
+    var
     { Messages, ordered from oldest (new mesages are added at the end).}
     Messages: TNotificationList;
-    FHorizontalPosition: THorizontalPosition;
-    FVerticalPosition: TVerticalPosition;
     FColor: TCastleColor;
     FMaxMessages: integer;
-    FTimeout: TMilisecTime;
-    FHorizontalMargin, FVerticalMargin: Integer;
+    FTimeout, FFade: Single;
     FHistory: TCastleStringList;
     FCollectHistory: boolean;
-    FPositionX: Integer;
-    FPositionY: Integer;
+    FTextAlignment: THorizontalPosition;
   public
     const
       DefaultMaxMessages = 4;
-      DefaultMessagesTimeout = 5000;
-      DefaultHorizontalPosition = hpMiddle;
-      DefaultVerticalPosition = vpDown;
-      DefaultHorizontalMargin = 10;
-      DefaultVerticalMargin = 1;
+      DefaultTimeout = 5.0;
+      DefaultFade = 1.0;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -91,20 +86,14 @@ type
       var HandleInput: boolean); override;
 
     procedure Render; override;
-    function GetExists: boolean; override;
+    function Rect: TRectangle; override;
 
-    { Color used to draw messages. Default value is yellow. }
+    { Color used to draw subsequent messages. Default value is white. }
     property Color: TCastleColor read FColor write FColor;
 
     { All the messages passed to @link(Show), collected only if CollectHistory.
       May be @nil when not CollectHistory. }
     property History: TCastleStringList read FHistory;
-
-    { Position shift, relative to position set by HorizontalPosition and VerticalPosition.
-      TODO: we should make positioning common for all controls, using Left, Bottom, or some Autoxxx
-      spec. }
-    property PositionX: Integer read FPositionX write FPositionX;
-    property PositionY: Integer read FPositionY write FPositionY;
   published
     { How many message lines should be visible on the screen, at maximum.  }
     property MaxMessages: integer
@@ -113,21 +102,10 @@ type
     { How long a given message should be visible on the screen, in miliseconds.
       Message stops being visible when this timeout passed,
       or when we need more space for new messages (see MaxMessages). }
-    property Timeout: TMilisecTime
-      read FTimeout write FTimeout default DefaultMessagesTimeout;
+    property Timeout: Single
+      read FTimeout write FTimeout default DefaultTimeout;
 
-    property HorizontalPosition: THorizontalPosition read FHorizontalPosition
-      write FHorizontalPosition default DefaultHorizontalPosition;
-    property VerticalPosition: TVerticalPosition read FVerticalPosition
-      write FVerticalPosition default DefaultVerticalPosition;
-
-    { Margins, in pixels, from the border of the container (window or such).
-      @groupBegin }
-    property HorizontalMargin: Integer read FHorizontalMargin write FHorizontalMargin
-      default DefaultHorizontalMargin;
-    property VerticalMargin: Integer read FVerticalMargin write FVerticalMargin
-      default DefaultVerticalMargin;
-    { @groupEnd }
+    property Fade: Single read FFade write FFade default DefaultFade;
 
     { Turn this on to have all the messages you pass to @link(Show) be collected
       inside @link(History) string list. @link(History) is expanded by @link(Show),
@@ -140,20 +118,26 @@ type
       (in case they missed the message in game). }
     property CollectHistory: boolean read FCollectHistory write FCollectHistory
       default false;
+
+    { Alignment of the text inside. }
+    property TextAlignment: THorizontalPosition
+      read FTextAlignment write FTextAlignment default hpLeft;
   end;
 
 procedure Register;
 
 implementation
 
-uses CastleLog, CastleControls;
+uses CastleLog;
 
 procedure Register;
 begin
   RegisterComponents('Castle', [TCastleNotifications]);
 end;
 
-procedure TNotificationList.DeleteFirst(DelCount: Integer);
+{ TNotificationList ---------------------------------------------------------- }
+
+procedure TCastleNotifications.TNotificationList.DeleteFirst(DelCount: Integer);
 var
   I: Integer;
 begin
@@ -172,12 +156,9 @@ begin
   FHistory := TCastleStringList.Create;
 
   MaxMessages := DefaultMaxMessages;
-  Timeout := DefaultMessagesTimeout;
-  FHorizontalPosition := DefaultHorizontalPosition;
-  FVerticalPosition := DefaultVerticalPosition;
-  FHorizontalMargin := DefaultHorizontalMargin;
-  FVerticalMargin := DefaultVerticalMargin;
-  FColor := Yellow;
+  Timeout := DefaultTimeout;
+  Fade := DefaultFade;
+  FColor := White;
 end;
 
 destructor TCastleNotifications.Destroy;
@@ -202,6 +183,8 @@ procedure TCastleNotifications.Show(S: TStringList);
       N := TNotification.Create;
       N.Text := S[i];
       N.Time := GetTickCount;
+      N.Width := Font.TextWidth(N.Text);
+      N.Color := Color;
       Messages.Add(N);
     end;
   end;
@@ -212,19 +195,11 @@ begin
   if Log then
     WriteLog('Time message', S.Text);
 
-  { TODO: It's a bummer that we need UIFont created (which means:
-    OpenGL context must be initialized) to make BreakLines,
-    while BreakLines only really uses font metrics (doesn't need OpenGL
-    font resources). }
-  if ContainerSizeKnown and GLInitialized then
-  begin
-    Broken := TStringList.Create;
-    try
-      UIFont.BreakLines(s, Broken, ContainerWidth - HorizontalMargin * 2);
-      AddStrings(Broken);
-    finally Broken.Free end;
-  end else
-    AddStrings(S);
+  Broken := TStringList.Create;
+  try
+    Font.BreakLines(S, Broken, ParentRect.Width);
+    AddStrings(Broken);
+  finally Broken.Free end;
 
   if CollectHistory then
     History.AddList(S);
@@ -234,13 +209,13 @@ end;
 
 procedure TCastleNotifications.Show(const s: string);
 var
-  strs: TStringList;
+  Strs: TStringList;
 begin
-  strs := TStringList.Create;
+  Strs := TStringList.Create;
   try
-    strs.Text := s;
+    Strs.Text := s;
     Show(strs);
-  finally strs.Free end;
+  finally Strs.Free end;
 end;
 
 procedure TCastleNotifications.Clear;
@@ -251,52 +226,56 @@ begin
   VisibleChange;
 end;
 
-procedure TCastleNotifications.Render;
+function TCastleNotifications.Rect: TRectangle;
 var
-  i: integer;
-  x, y: integer;
+  I: integer;
 begin
-  for i := 0 to Messages.Count-1 do
-  begin
-    { calculate x relative to 0..ContainerWidth, then convert to 0..GLMaxX }
-    case HorizontalPosition of
-      hpLeft  : x := HorizontalMargin;
-      hpRight : x :=  ContainerWidth-UIFont.TextWidth(messages[i].Text) - HorizontalMargin;
-      hpMiddle: x := (ContainerWidth-UIFont.TextWidth(messages[i].Text)) div 2;
-    end;
-
-    { calculate y relative to 0..ContainerHeight, then convert to 0..GLMaxY }
-    case VerticalPosition of
-      vpDown  : y := (Messages.Count-i-1) * UIFont.RowHeight + UIFont.Descend + VerticalMargin;
-      vpMiddle: y := (ContainerHeight - Messages.Count * UIFont.RowHeight) div 2 + i*UIFont.RowHeight;
-      vpUp   :  y :=  ContainerHeight-(i+1)*UIFont.RowHeight - VerticalMargin;
-    end;
-
-    UIFont.Print(PositionX + x, PositionY + y, Color, Messages[i].Text);
-  end;
+  Result := Rectangle(Left, Bottom, 0, Font.RowHeight * Messages.Count);
+  for I := 0 to Messages.Count - 1 do
+    Result.Width := Max(Result.Width, Messages[I].Width);
 end;
 
-function TCastleNotifications.GetExists: boolean;
+procedure TCastleNotifications.Render;
+var
+  I: integer;
+  SR: TRectangle;
 begin
-  { optimization, do not even set 2D projection when no messages }
-  Result := (inherited GetExists) and (Messages.Count <> 0);
+  SR := ScreenRect;
+  for I := 0 to Messages.Count - 1 do
+  begin
+    Font.PrintRect(Rectangle(SR.Left,
+      SR.Bottom + (Messages.Count - 1 - I) * Font.RowHeight,
+      SR.Width, Font.RowHeight), Messages[i].Color, Messages[i].Text,
+      TextAlignment, vpBottom);
+  end;
 end;
 
 procedure TCastleNotifications.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
-{ Check which messages should time out. }
 var
-  gtc: TMilisecTime;
-  i: integer;
+  GTC, TimeoutMilisec, TimeoutToFadeMilisec: TMilisecTime;
+  I: integer;
+  C: TCastleColor;
 begin
   inherited;
-  gtc := GetTickCount;
-  for i := Messages.Count - 1 downto 0 do
-    if TimeTickSecondLater(Messages[i].Time, gtc, Timeout) then
+  GTC := GetTickCount;
+  TimeoutMilisec := Round(Timeout * 1000);
+  TimeoutToFadeMilisec := Round((Timeout - Fade) * 1000);
+  for I := Messages.Count - 1 downto 0 do
+    if TimeTickSecondLater(Messages[I].Time, GTC, TimeoutMilisec) then
     begin { delete messages 0..I }
       Messages.DeleteFirst(I + 1);
       VisibleChange;
       break;
+    end else
+    if TimeTickSecondLater(Messages[I].Time, GTC, TimeoutToFadeMilisec) then
+    begin
+      C := Messages[I].Color;
+      C[3] := MapRange(GTC,
+        Messages[I].Time + TimeoutToFadeMilisec,
+        Messages[I].Time + TimeoutMilisec, 1, 0);
+      Messages[I].Color := C;
+      VisibleChange;
     end;
 end;
 

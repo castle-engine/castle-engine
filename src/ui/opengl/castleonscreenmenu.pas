@@ -343,6 +343,15 @@ const
   MarginBeforeAccessory = 20;
 
 procedure TCastleOnScreenMenu.RecalculateSize;
+
+  function ChildHeight(const Index: Integer): Integer;
+  begin
+    Result := Controls[Index].Rect.Height;
+    { add accessory (slider etc.) height inside the menu item }
+    if Controls[Index].ControlsCount <> 0 then
+      MaxVar(Result, Controls[Index].Controls[0].Rect.Height);
+  end;
+
 const
   Padding = 30;
 var
@@ -371,7 +380,7 @@ begin
   FHeight := 0;
   for I := 0 to ControlsCount - 1 do
   begin
-    FHeight += Controls[I].Rect.Height;
+    FHeight += ChildHeight(I);
     if I > 0 then
       FHeight += Integer(SpaceBetweenItems(I));
   end;
@@ -387,8 +396,7 @@ begin
     if MaxAccessoryWidth <> 0 then
       WholeItemWidth := MaxItemWidth + MarginBeforeAccessory + MaxAccessoryWidth else
       WholeItemWidth := Controls[I].Rect.Width;
-    FRectangles.Add(Rectangle(0, 0, WholeItemWidth,
-      Controls[I].Rect.Height));
+    FRectangles.Add(Rectangle(0, 0, WholeItemWidth, ChildHeight(I)));
   end;
 
   { Calculate positions of all rectangles. }
@@ -405,7 +413,7 @@ begin
     Controls[I].Left := FRectangles.L[I].Left;
     Controls[I].Bottom := FRectangles.L[I].Bottom;
     if I > 0 then
-      ItemsBelowHeight += Cardinal(Controls[I].Rect.Height + Integer(SpaceBetweenItems(I)));
+      ItemsBelowHeight += Cardinal(FRectangles.L[I].Height + Integer(SpaceBetweenItems(I)));
   end;
 
   for I := 0 to FRectangles.Count - 1 do

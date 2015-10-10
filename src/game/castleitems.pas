@@ -1257,8 +1257,8 @@ function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
     Result := World.WorldMoveAllowed(
       ItemBoxMiddle + Camera.Position,
       ItemBoxMiddle + DropPosition, true, ItemBoxRadius,
-      ItemBox + Camera.Position,
-      ItemBox + DropPosition, false);
+      ItemBox.Translate(Camera.Position),
+      ItemBox.Translate(DropPosition), false);
   end;
 
 var

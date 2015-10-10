@@ -103,6 +103,8 @@ type
     const
       Empty: TRectangle = (Left: 0; Bottom: 0; Width: 0; Height: 0);
 
+    function IsEmpty: boolean;
+
     function Contains(const X, Y: Integer): boolean;
     function Contains(const Point: TVector2Single): boolean;
     function Contains(const Point: TVector2Integer): boolean;
@@ -227,6 +229,8 @@ function Rectangle(const Left, Bottom: Integer;
 function Rectangle(const LeftBottom: TVector2Integer;
   const Width, Height: Cardinal): TRectangle;
 
+operator+ (const R1, R2: TRectangle): TRectangle;
+
 implementation
 
 uses SysUtils,
@@ -250,6 +254,11 @@ begin
   Result.Bottom := LeftBottom[1];
   Result.Width := Width;
   Result.Height := Height;
+end;
+
+function TRectangle.IsEmpty: boolean;
+begin
+  Result := (Width = 0) or (Height = 0);
 end;
 
 function TRectangle.Contains(const X, Y: Integer): boolean;
@@ -571,6 +580,26 @@ begin
     if L[Result].Contains(Point) then
       Exit;
   Result := -1;
+end;
+
+{ operators ------------------------------------------------------------------ }
+
+operator+ (const R1, R2: TRectangle): TRectangle;
+var
+  Right, Top: Integer;
+begin
+  if R1.IsEmpty then
+    Result := R2 else
+  if R2.IsEmpty then
+    Result := R1 else
+  begin
+    Result.Left   := Min(R1.Left  , R2.Left);
+    Result.Bottom := Min(R1.Bottom, R2.Bottom);
+    Right := Max(R1.Right   , R2.Right);
+    Top   := Max(R1.Top     , R2.Top);
+    Result.Width  := Right - Result.Left;
+    Result.Height := Top   - Result.Bottom;
+  end;
 end;
 
 end.
