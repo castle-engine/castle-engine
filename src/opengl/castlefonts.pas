@@ -1051,14 +1051,15 @@ var
   TextPtr: PChar;
   CharLen: Integer;
   ScreenX, ScreenY: Single;
+  ScreenXInt, ScreenYInt: Integer;
   G: TTextureFontData.TGlyph;
   GlyphX, GlyphY, GlyphWidth, GlyphHeight: Integer;
 
   procedure OutlineDraw(const MoveX, MoveY: Integer);
   begin
     GLImage.Draw(
-      Round(ScreenX) - GlyphX + MoveX * Outline,
-      Round(ScreenY) - GlyphY + MoveY * Outline,
+      ScreenXInt - GlyphX + MoveX * Outline,
+      ScreenYInt - GlyphY + MoveY * Outline,
       GlyphWidth,
       GlyphHeight,
       G.ImageX, G.ImageY, G.Width, G.Height);
@@ -1080,6 +1081,8 @@ begin
     G := FFont.Glyph(C);
     if G <> nil then
     begin
+      ScreenXInt := Round(ScreenX);
+      ScreenYInt := Round(ScreenY);
       if (G.Width <> 0) and (G.Height <> 0) then
       begin
         GlyphX := Round(G.X * Scale);
@@ -1108,7 +1111,7 @@ begin
           OutlineDraw(1, 1);
         end else
         begin
-          GLImage.Draw(Round(ScreenX) - GlyphX, Round(ScreenY) - GlyphY,
+          GLImage.Draw(ScreenXInt - GlyphX, ScreenYInt - GlyphY,
             GlyphWidth,
             GlyphHeight,
             G.ImageX, G.ImageY, G.Width, G.Height);
