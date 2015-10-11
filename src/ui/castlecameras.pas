@@ -2473,8 +2473,7 @@ var
     end;
 
   var
-    W2, H2: Cardinal;
-    AvgX, AvgY, ZRotAngle, ZRotRatio: Single;
+    W2, H2, AvgX, AvgY, ZRotAngle, ZRotRatio: Single;
   begin
     if (not ContainerSizeKnown) or Turntable then
     begin
@@ -2487,8 +2486,9 @@ var
       { clamp, since mouse positions may be wild }
       AvgX := (Event.Position[0] + Event.OldPosition[0]) / 2;
       AvgY := (Event.Position[1] + Event.OldPosition[1]) / 2;
-      W2 := ContainerWidth  div 2;
-      H2 := ContainerHeight div 2;
+      { let physical size affect scaling speed }
+      W2 := Container.Width  * 96 / (Container.Dpi * 2); // multiply by 96 to keep old constants working
+      H2 := Container.Height * 96 / (Container.Dpi * 2);
       { calculate rotation around Z }
       ZRotAngle :=
         ArcTan2((Event.OldPosition[1] - H2) / H2, (Event.OldPosition[0] - W2) / W2) -
