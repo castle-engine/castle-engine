@@ -43,28 +43,31 @@ type
   protected
     { Font that should be used for rendering and measuring this control.
 
-      Depending on @(SmallFont) and @link(CustomFont) and @link(FontSize)
-      properties it may return @link(UIFont), @link(UIFontSmall),
-      or @link(CustomFont), or a TCustomizedFont instances that wraps (and scales)
-      one of the above. }
+      Depending on various properties
+      (@(SmallFont), @link(CustomFont), @link(FontSize), @link(TUIControl.UIScale))
+      it may return @link(UIFont), @link(UIFontSmall), or @link(CustomFont),
+      or a TCustomizedFont instances that wraps (and scales) one of the above. }
     function Font: TCastleFont;
 
     { Called when Font or it's size changed. }
     procedure FontChanged; virtual;
+    procedure UIScaleChanged; override;
   public
     destructor Destroy; override;
     procedure GLContextClose; override;
     function TooltipExists: boolean; override;
     procedure TooltipRender; override;
     procedure Render; override;
-    { Check does currently used font (see CustomFont) changed,
+    { Check does currently used font (see @link(Font)) changed,
       and eventually call FontChanged method @italic(now).
 
       You only need to explicitly call this in very specific circumstances,
-      when you just changed UIFont or UIFontSmall (changing CustomFont automatically
-      immediately calls FontChanged) and you want control size to be updated
-      immediately (for example, you need TCastleButton.Height to be immediately
-      valid). Without calling this, it could be updated only at next Render call. }
+      when you just changed @link(UIFont) or @link(UIFontSmall) (as changing
+      @link(CustomFont) automatically
+      immediately calls this) and you want control size to be updated
+      immediately (for example, you need @link(TCastleButton.Height)
+      to be immediately valid). Without calling this,
+      it could be updated only at next Render call. }
     procedure CheckFontChanged;
   published
     { Tooltip string, displayed when user hovers the mouse over a control.
@@ -83,11 +86,14 @@ type
       read FOwnsCustomFont write FOwnsCustomFont default false;
 
     { Use given font size when drawing. Leave at default zero to use
-      the default size of the font. Font itself is taken from
+      the default size of the font (may still be scaled by @link(TUIControl.UIScale),
+      but this happens only if @link(TUIContainer.UIScaling) is set to
+      something else than default usNone).
+      Font itself is taken from
       @link(CustomFont) or, if not set, from @link(UIFont) or @link(UIFontSmall). }
     property FontSize: Single read FFontSize write SetFontSize default 0.0;
 
-    { Should be use @link(UIFontSmall) instead of @link(UIFont).
+    { Should we use @link(UIFontSmall) instead of @link(UIFont).
       Ignored if @link(CustomFont) is assigned. }
     property SmallFont: boolean read FSmallFont write SetSmallFont default false;
   end;
@@ -408,16 +414,11 @@ type
     FPosition: TCastleTouchPosition;
     function SizeScale: Single;
     procedure SetPosition(const Value: TCastleTouchPosition);
-    { Update Left and Bottom based on Position and current Container size. }
-    procedure UpdateLeftBottom;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    procedure Resize; override;
 
     { Size of this control, ignoring GetExists. }
-    function Width: Cardinal;
-    function Height: Cardinal;
     function Rect: TRectangle; override;
 
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -431,6 +432,15 @@ type
   published
     property TouchMode: TCastleTouchCtlMode
       read FTouchMode write SetTouchMode default ctcmWalking;
+
+    { Set position of touch control. Right now this simply sets
+      the anchor using @link(TUIControl.HasHorizontalAnchor) and friends.
+      Tip: Use @link(TUIContainer.UIScaling) to have the anchors automatically
+      scale with screen size.
+
+      The size of the control is set to be constant physical size,
+      so it's not affected by @link(TUIContainer.UIScaling), only by
+      @link(TUIContainer.Dpi). }
     property Position: TCastleTouchPosition
       read FPosition write SetPosition default tpManual;
   end;
@@ -518,8 +528,6 @@ type
       Returns 0 if there are no Buttons = ''. }
     function ButtonsHeight: Integer;
     procedure UpdateSizes;
-    { The whole rectangle where we draw dialog box. }
-    function WholeMessageRect: TRectangle;
     { If ScrollBarVisible, ScrollBarWholeWidth. Else 0. }
     function RealScrollBarWholeWidth: Integer;
     function Font: TCastleFont;
@@ -528,6 +536,9 @@ type
       This is not magically handled --- if you implement a modal dialog box,
       you should check in your loop whether something set Answered to @true. }
     Answered: boolean;
+
+    { The whole rectangle where we draw dialog box. }
+    function Rect: TRectangle; override;
 
     { Input text. Displayed only if DrawInputText. }
     property InputText: string read FInputText write SetInputText;
@@ -623,14 +634,11 @@ type
     FShape: TCastleCrosshairShape;
     procedure SetShape(const Value: TCastleCrosshairShape);
     function ImageType: TThemeImage;
-    function SizeScale: Single;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
 
     { Size of this control, ignoring GetExists. }
-    function Width: Cardinal;
-    function Height: Cardinal;
     function Rect: TRectangle; override;
   published
     property Shape: TCastleCrosshairShape read FShape write SetShape default csCross;
@@ -1038,12 +1046,16 @@ begin
     Result := UIFontSmall else
     Result := UIFont;
 
-  { if FontSize <> 0, wrap Result in TCustomizedFont instance }
-  if FFontSize <> 0 then
+  { if FontSize or UIScale are non-trivial,
+    wrap Result in TCustomizedFont instance }
+  if (FFontSize <> 0) or (UIScale <> 1) then
   begin
     if FCustomizedFont = nil then
       FCustomizedFont := TCustomizedFont.Create(nil, false);
-    FCustomizedFont.Size := FFontSize;
+    if FFontSize <> 0 then
+      FCustomizedFont.Size := FFontSize else
+      FCustomizedFont.Size := Result.Size; // to have something to multiply in line below
+    FCustomizedFont.Size := FCustomizedFont.Size * UIScale;
     FCustomizedFont.SourceFont := Result;
     Result := FCustomizedFont;
   end;
@@ -1081,6 +1093,12 @@ end;
 
 procedure TUIControlFont.FontChanged;
 begin
+end;
+
+procedure TUIControlFont.UIScaleChanged;
+begin
+  inherited;
+  FontChanged;
 end;
 
 procedure TUIControlFont.Render;
@@ -1129,11 +1147,15 @@ end;
 
 procedure TCastleButton.Render;
 var
-  TextLeft, TextBottom, ImgLeft, ImgBottom: Integer;
+  TextLeft, TextBottom, ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight: Integer;
   Background: TThemeImage;
   SR: TRectangle;
+  ImageMarginScaled: Cardinal;
+  UseImage: boolean;
 begin
   inherited;
+
+  ImageMarginScaled := Round(ImageMargin * UIScale);
 
   if Pressed then
     Background := tiButtonPressed else
@@ -1143,21 +1165,28 @@ begin
   SR := ScreenRect;
   Theme.Draw(SR, Background);
 
+  UseImage := (FImage <> nil) and (FGLImage <> nil);
+  if UseImage then
+  begin
+    ImgScreenWidth  := Round(UIScale * FImage.Width);
+    ImgScreenHeight := Round(UIScale * FImage.Height);
+  end;
+
   TextLeft := SR.Left + (SR.Width - TextWidth) div 2;
-  if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilLeft) then
-    TextLeft += (FImage.Width + ImageMargin) div 2 else
-  if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilRight) then
-    TextLeft -= (FImage.Width + ImageMargin) div 2;
+  if UseImage and (ImageLayout = ilLeft) then
+    TextLeft += (ImgScreenWidth + ImageMarginScaled) div 2 else
+  if UseImage and (ImageLayout = ilRight) then
+    TextLeft -= (ImgScreenWidth + ImageMarginScaled) div 2;
 
   TextBottom := SR.Bottom + (SR.Height - TextHeight) div 2;
-  if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilBottom) then
-    TextBottom += (FImage.Height + ImageMargin) div 2 else
-  if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilTop) then
-    TextBottom -= (FImage.Height + ImageMargin) div 2;
+  if UseImage and (ImageLayout = ilBottom) then
+    TextBottom += (ImgScreenHeight + ImageMarginScaled) div 2 else
+  if UseImage and (ImageLayout = ilTop) then
+    TextBottom -= (ImgScreenHeight + ImageMarginScaled) div 2;
 
   Font.Print(TextLeft, TextBottom, Theme.TextColor, Caption);
 
-  if (FImage <> nil) and (FGLImage <> nil) then
+  if UseImage then
   begin
     { update FGLImage.Alpha based on ImageAlphaTest }
     if FImage.HasAlpha then
@@ -1167,16 +1196,16 @@ begin
         FGLImage.Alpha := acFullRange;
     end;
     case ImageLayout of
-      ilLeft         : ImgLeft := TextLeft - FImage.Width - ImageMargin;
-      ilRight        : ImgLeft := TextLeft + TextWidth + ImageMargin;
-      ilBottom, ilTop: ImgLeft := SR.Left + (SR.Width - FImage.Width) div 2;
+      ilLeft         : ImgLeft := TextLeft - ImgScreenWidth - ImageMarginScaled;
+      ilRight        : ImgLeft := TextLeft + TextWidth + ImageMarginScaled;
+      ilBottom, ilTop: ImgLeft := SR.Left + (SR.Width - ImgScreenWidth) div 2;
     end;
     case ImageLayout of
-      ilBottom       : ImgBottom := TextBottom - FImage.Height - ImageMargin;
-      ilTop          : ImgBottom := TextBottom + TextHeight + ImageMargin;
-      ilLeft, ilRight: ImgBottom := SR.Bottom + (SR.Height - FImage.Height) div 2;
+      ilBottom       : ImgBottom := TextBottom - ImgScreenHeight - ImageMarginScaled;
+      ilTop          : ImgBottom := TextBottom + TextHeight + ImageMarginScaled;
+      ilLeft, ilRight: ImgBottom := SR.Bottom + (SR.Height - ImgScreenHeight) div 2;
     end;
-    FGLImage.Draw(ImgLeft, ImgBottom);
+    FGLImage.Draw(Rectangle(ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight));
   end;
 end;
 
@@ -1224,12 +1253,16 @@ begin
       mouse down on the button, and then release mouse while still over
       the button.
 
-      (Larger UI toolkits have also the concept of "capturing",
-      that a Focused control with Pressed captures remaining
-      mouse/key events even when mouse goes out. This allows the user
-      to move mouse out from the control, and still go back to make mouse up
-      and make "click". }
-    DoClick;
+      We have to check ScreenRect.Contains, since (because we keep "focus"
+      on this button, if mouse down was on this) we *always* get release event
+      (even if mouse position is no longer over this button).
+
+      This is consistent with behaviours of other toolkits.
+      It means that if the user does mouse down over the button,
+      moves mouse out from the control, then moves it back inside,
+      then does mouse up -> it counts as a "click". }
+    if ScreenRect.Contains(Event.Position) then
+      DoClick;
   end;
 end;
 
@@ -1294,14 +1327,23 @@ end;
 procedure TCastleButton.UpdateSize;
 var
   ImgSize: Cardinal;
+  MinWidthScaled, MinHeightScaled,
+    ImageMarginScaled,
+    PaddingHorizontalScaled, PaddingVerticalScaled: Cardinal;
 begin
   if AutoSize then
   begin
+    PaddingHorizontalScaled := Round(PaddingHorizontal * UIScale);
+    PaddingVerticalScaled   := Round(PaddingVertical   * UIScale);
+    ImageMarginScaled       := Round(ImageMargin       * UIScale);
+    MinWidthScaled          := Round(MinWidth          * UIScale);
+    MinHeightScaled         := Round(MinHeight         * UIScale);
+
     { We modify FWidth, FHeight directly,
       to avoid causing UpdateFocusAndMouseCursor too many times.
       We'll call it at the end explicitly. }
-    if AutoSizeWidth then FWidth := TextWidth + PaddingHorizontal * 2;
-    if AutoSizeHeight then FHeight := TextHeight + PaddingVertical * 2;
+    if AutoSizeWidth then FWidth := TextWidth + PaddingHorizontalScaled * 2;
+    if AutoSizeHeight then FHeight := TextHeight + PaddingVerticalScaled * 2;
     if (FImage <> nil) or
        (MinImageWidth <> 0) or
        (MinImageHeight <> 0) then
@@ -1311,9 +1353,10 @@ begin
         if FImage <> nil then
           ImgSize := Max(FImage.Width, MinImageWidth) else
           ImgSize := MinImageWidth;
+        ImgSize := Round(ImgSize * UIScale);
         case ImageLayout of
-          ilLeft, ilRight: FWidth := Width + ImgSize + ImageMargin;
-          ilTop, ilBottom: FWidth := Max(Width, ImgSize + PaddingHorizontal * 2);
+          ilLeft, ilRight: FWidth := Width + ImgSize + ImageMarginScaled;
+          ilTop, ilBottom: FWidth := Max(Width, ImgSize + PaddingHorizontalScaled * 2);
         end;
       end;
       if AutoSizeHeight then
@@ -1321,18 +1364,19 @@ begin
         if FImage <> nil then
           ImgSize := Max(FImage.Height, MinImageHeight) else
           ImgSize := MinImageHeight;
+        ImgSize := Round(ImgSize * UIScale);
         case ImageLayout of
-          ilLeft, ilRight: FHeight := Max(Height, ImgSize + PaddingVertical * 2);
-          ilTop, ilBottom: FHeight := Height + ImgSize + ImageMargin;
+          ilLeft, ilRight: FHeight := Max(Height, ImgSize + PaddingVerticalScaled * 2);
+          ilTop, ilBottom: FHeight := Height + ImgSize + ImageMarginScaled;
         end;
       end;
     end;
 
     { at the end apply MinXxx properties }
     if AutoSizeWidth then
-      MaxVar(FWidth, MinWidth);
+      MaxVar(FWidth, MinWidthScaled);
     if AutoSizeHeight then
-      MaxVar(FHeight, MinHeight);
+      MaxVar(FHeight, MinHeightScaled);
 
     if (AutoSizeWidth or AutoSizeHeight) and (Container <> nil) then
       Container.UpdateFocusAndMouseCursor;
@@ -1443,7 +1487,7 @@ end;
 
 function TCastleButton.Rect: TRectangle;
 begin
-  Result := Rectangle(Left, Bottom, Width, Height);
+  Result := Rectangle(LeftBottomScaled, Width, Height);
 end;
 
 { TCastlePanel ------------------------------------------------------------------ }
@@ -1501,7 +1545,7 @@ end;
 
 function TCastlePanel.Rect: TRectangle;
 begin
-  Result := Rectangle(Left, Bottom, Width, Height);
+  Result := Rectangle(LeftBottomScaled, Width, Height);
 end;
 
 { TCastleImageControl ---------------------------------------------------------------- }
@@ -1579,6 +1623,9 @@ begin
     end else
       Result := Rectangle(Left, Bottom, Width, Height);
   end;
+
+  // applying UIScale on this is easy...
+  Result := Result.ScaleAround0(UIScale);
 end;
 
 procedure TCastleImageControl.GLContextOpen;
@@ -1720,26 +1767,12 @@ begin
     Result := tiCrosshair1;
 end;
 
-function TCastleCrosshair.SizeScale: Single;
-begin
-  if Container <> nil then
-    Result := Container.Dpi / 96 else
-    Result := 1;
-end;
-
-function TCastleCrosshair.Width: Cardinal;
-begin
-  Result := Round(Theme.Images[ImageType].Width  * SizeScale);
-end;
-
-function TCastleCrosshair.Height: Cardinal;
-begin
-  Result := Round(Theme.Images[ImageType].Height * SizeScale);
-end;
-
 function TCastleCrosshair.Rect: TRectangle;
 begin
-  Result := Rectangle(Left, Bottom, Width, Height);
+  Result := Theme.Images[ImageType].Rect;
+
+  // applying UIScale on this is easy...
+  Result := Result.ScaleAround0(UIScale);
 end;
 
 procedure TCastleCrosshair.Render;
@@ -1758,59 +1791,39 @@ end;
 
 function TCastleTouchControl.SizeScale: Single;
 begin
-  if Container <> nil then
+  if ContainerSizeKnown then
     Result := Container.Dpi / 96 else
     Result := 1;
 end;
 
-function TCastleTouchControl.Width: Cardinal;
-begin
-  Result := Round(Theme.Images[tiTouchCtlOuter].Width  * SizeScale);
-end;
-
-function TCastleTouchControl.Height: Cardinal;
-begin
-  Result := Round(Theme.Images[tiTouchCtlOuter].Height * SizeScale);
-end;
-
 function TCastleTouchControl.Rect: TRectangle;
 begin
-  Result := Rectangle(Left, Bottom, Width, Height);
+  // do not apply UIScale here to Width / Height,
+  // it's already adjusted to physical size
+  Result := Rectangle(LeftBottomScaled,
+    Round(Theme.Images[tiTouchCtlOuter].Width  * SizeScale),
+    Round(Theme.Images[tiTouchCtlOuter].Height * SizeScale));
 end;
 
 procedure TCastleTouchControl.SetPosition(const Value: TCastleTouchPosition);
+const
+  CtlBorder = 24;
 begin
   if FPosition <> Value then
   begin
     FPosition := Value;
-    if GLInitialized then UpdateLeftBottom;
-  end;
-end;
-
-procedure TCastleTouchControl.Resize;
-begin
-  inherited;
-  UpdateLeftBottom;
-end;
-
-procedure TCastleTouchControl.UpdateLeftBottom;
-var
-  CtlBorder: Integer;
-begin
-  CtlBorder := Round(24 * Container.Dpi / 96);
-  case Position of
-    tpLeft:
-      begin
-        Left := CtlBorder;
-        Bottom := CtlBorder;
-        VisibleChange;
-      end;
-    tpRight:
-      begin
-        Left := ContainerWidth - Width - CtlBorder;
-        Bottom := CtlBorder;
-        VisibleChange;
-      end;
+    case Position of
+      tpLeft:
+        begin
+          Anchor(hpLeft, CtlBorder);
+          Anchor(vpBottom, CtlBorder);
+        end;
+      tpRight:
+        begin
+          Anchor(hpRight, -CtlBorder);
+          Anchor(vpBottom, CtlBorder);
+        end;
+    end;
   end;
 end;
 
@@ -1827,8 +1840,11 @@ var
   LeverDist: Double;
   InnerRect: TRectangle;
   ImageInner, ImageOuter: TThemeImage;
+  SR: TRectangle;
 begin
   inherited;
+  SR := ScreenRect;
+
   if FTouchMode = ctcmFlyUpdown then
   begin
     ImageInner := tiTouchCtlFlyInner;
@@ -1838,7 +1854,7 @@ begin
     ImageInner := tiTouchCtlInner;
     ImageOuter := tiTouchCtlOuter;
   end;
-  Theme.Draw(Rect, ImageOuter);
+  Theme.Draw(SR, ImageOuter);
 
   // compute lever offset (must not move outside outer ring)
   LeverDist := VectorLen(FLeverOffset);
@@ -1858,8 +1874,8 @@ begin
   InnerRect := Theme.Images[ImageInner].Rect; // rectangle at (0,0)
   InnerRect.Width  := Round(InnerRect.Width  * SizeScale);
   InnerRect.Height := Round(InnerRect.Height * SizeScale);
-  InnerRect.Left   := Left   + (Width  - InnerRect.Width ) div 2 + LevOffsetTrimmedX;
-  InnerRect.Bottom := Bottom + (Height - InnerRect.Height) div 2 + LevOffsetTrimmedY;
+  InnerRect.Left   := SR.Left   + (SR.Width  - InnerRect.Width ) div 2 + LevOffsetTrimmedX;
+  InnerRect.Bottom := SR.Bottom + (SR.Height - InnerRect.Height) div 2 + LevOffsetTrimmedY;
 
   Theme.Draw(InnerRect, ImageInner);
 end;
@@ -2076,7 +2092,7 @@ begin
   { Reposition Buttons. }
   if Length(Buttons) <> 0 then
   begin
-    MessageRect := WholeMessageRect;
+    MessageRect := Rect;
     X := MessageRect.Right  - BoxMargin;
     Y := MessageRect.Bottom + BoxMargin;
     for I := Length(Buttons) - 1 downto 0 do
@@ -2100,7 +2116,7 @@ begin
     our string lists Broken_Xxx. We must here always subtract
     ScrollBarWholeWidth to be on the safe side, because we don't know
     yet is ScrollBarVisible. }
-  BreakWidth := Max(0, ContainerWidth - BoxMargin * 2
+  BreakWidth := Max(0, ParentRect.Width - BoxMargin * 2
     - WindowMargin * 2 - ScrollBarWholeWidth);
 
   { calculate MaxLineWidth and AllScrolledLinesCount }
@@ -2293,7 +2309,7 @@ procedure TCastleDialog.Render;
 var
   MessageRect: TRectangle;
   { InnerRect to okienko w ktorym mieszcza sie napisy,
-    a wiec WholeMessageRect zmniejszony o BoxMargin we wszystkich kierunkach
+    a wiec Rect zmniejszony o BoxMargin we wszystkich kierunkach
     i z ew. obcieta prawa czescia przeznaczona na ScrollbarFrame. }
   InnerRect: TRectangle;
   ScrollBarLength: integer;
@@ -2313,7 +2329,7 @@ begin
     GLBackground.Draw(ParentRect);
   end;
 
-  MessageRect := WholeMessageRect;
+  MessageRect := Rect;
   Theme.Draw(MessageRect, tiWindow);
 
   MessageRect := MessageRect.RemoveBottom(ButtonsHeight);
@@ -2371,13 +2387,16 @@ begin
   Result := Iff(ScrollBarVisible, ScrollBarWholeWidth, 0);
 end;
 
-function TCastleDialog.WholeMessageRect: TRectangle;
+function TCastleDialog.Rect: TRectangle;
+var
+  PR: TRectangle;
 begin
-  Result := Rectangle(0, 0, ContainerWidth, ContainerHeight).Center(
+  PR := ParentRect;
+  Result := Rectangle(0, 0, PR.Width, PR.Height).Center(
     Min(MaxLineWidth + BoxMargin * 2 + RealScrollBarWholeWidth,
-      ContainerWidth  - WindowMargin * 2),
+      PR.Width  - WindowMargin * 2),
     Min(AllScrolledLinesCount * Font.RowHeight + BoxMargin * 2 + ButtonsHeight,
-      ContainerHeight - WindowMargin * 2));
+      PR.Height - WindowMargin * 2));
 end;
 
 function TCastleDialog.Font: TCastleFont;
@@ -2408,6 +2427,8 @@ end;
 function TCastleLabel.RectCore(out TextBroken: TStrings): TRectangle;
 var
   TextToRender: TStrings;
+  PaddingScaled, LineSpacingScaled: Integer;
+  US: Single;
 begin
   TextBroken := nil;
   if MaxWidth = 0 then
@@ -2422,9 +2443,14 @@ begin
     Font.BreakLines(Text, TextBroken, MaxWidth - 2 * Padding);
   end;
 
-  Result := Rectangle(Left, Bottom,
-    Font.MaxTextWidth(TextToRender, Tags) + 2 * Padding,
-    (Font.RowHeight + LineSpacing) * TextToRender.Count + 2 * Padding + Font.Descend);
+  US := UIScale;
+  PaddingScaled := Round(US * Padding);
+  LineSpacingScaled := Round(US * LineSpacing);
+  Result := Rectangle(
+    LeftBottomScaled,
+    Font.MaxTextWidth(TextToRender, Tags) + 2 * PaddingScaled,
+    (Font.RowHeight + LineSpacingScaled) * TextToRender.Count +
+      2 * PaddingScaled + Font.Descend);
 end;
 
 function TCastleLabel.Rect: TRectangle;
@@ -2441,7 +2467,8 @@ procedure TCastleLabel.Render;
 var
   LocalR, SR: TRectangle;
   TextBroken, TextToRender: TStrings;
-  TextX: Integer;
+  TextX, PaddingScaled, LineSpacingScaled: Integer;
+  US: Single;
 begin
   inherited;
   if Text.Count = 0 then Exit;
@@ -2452,20 +2479,23 @@ begin
     { we avoid calling here Rect or ScreenRect for speed (as it would lead
       to calling Font.BreakLines multiple times during rendering. }
     LocalR := RectCore(TextBroken);
-    SR := LocalR.Translate(LocalToScreenTranslation);
+    SR := LocalR.Translate(LocalToScreenTranslation); // faster calculation of ScreenRect
+    US := UIScale;
+    PaddingScaled := Round(US * Padding);
+    LineSpacingScaled := Round(US * LineSpacing);
     if TextBroken <> nil then
       TextToRender := TextBroken;
     if Frame then
       Theme.Draw(SR, ImageType);
     case Alignment of
-      hpLeft  : TextX := SR.Left + Padding;
+      hpLeft  : TextX := SR.Left + PaddingScaled;
       hpMiddle: TextX := (SR.Left + SR.Right) div 2;
-      hpRight : TextX := SR.Right - Padding;
+      hpRight : TextX := SR.Right - PaddingScaled;
       else raise EInternalError.Create('TCastleLabel.Render: Alignment?');
     end;
     Font.PrintStrings(TextX,
-      SR.Bottom + Padding + Font.Descend, Color, TextToRender, Tags, LineSpacing,
-      Alignment);
+      SR.Bottom + PaddingScaled + Font.Descend, Color, TextToRender,
+      Tags, LineSpacingScaled, Alignment);
   finally FreeAndNil(TextBroken) end;
 end;
 
@@ -2563,12 +2593,14 @@ end;
 function TCastleProgressBar.Rect: TRectangle;
 var
   XMargin, Height, YMiddle, Bot: Integer;
+  PR: TRectangle;
 begin
-  XMargin := ContainerWidth div 8;
-  Height := ContainerHeight div 12;
-  YMiddle := Round(ContainerHeight * YPosition);
+  PR := ParentRect;
+  XMargin := PR.Width div 8;
+  Height := PR.Height div 12;
+  YMiddle := Round(PR.Height * YPosition);
   Bot := YMiddle - Height div 2;
-  Result := Rectangle(XMargin, Bot, ContainerWidth - 2 * XMargin, Height);
+  Result := Rectangle(XMargin, Bot, PR.Width - 2 * XMargin, Height);
 end;
 
 procedure TCastleProgressBar.Render;
@@ -2676,6 +2708,8 @@ end;
 function TCastleAbstractSlider.Rect: TRectangle;
 begin
   Result := Rectangle(Left, Bottom, Width, Height);
+  // applying UIScale on this is easy...
+  Result := Result.ScaleAround0(UIScale);
 end;
 
 procedure TCastleAbstractSlider.Render;
@@ -2686,7 +2720,7 @@ end;
 
 function TCastleAbstractSlider.IndicatorWidth(const R: TRectangle): Integer;
 begin
-  Result := R.Width div 10 { guess suitable tiSliderPosition width from height };
+  Result := R.Height div 2 { guess suitable tiSliderPosition width from height };
 end;
 
 procedure TCastleAbstractSlider.DrawSliderPosition(const R: TRectangle;

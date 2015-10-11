@@ -74,6 +74,8 @@ type
     procedure SetCurrentItem(const Value: Integer);
     procedure SetRegularSpaceBetweenItems(const Value: Cardinal);
     function FindChildIndex(const ScreenPosition: TVector2Single): Integer;
+  protected
+    procedure UIScaleChanged; override;
   public
     const
       DefaultMenuKeyNextItem = K_Down;
@@ -229,7 +231,7 @@ procedure Register;
 implementation
 
 uses SysUtils, CastleUtils, CastleImages, CastleFilesUtils, CastleClassUtils,
-  CastleStringUtils, CastleGLImages, CastleSoundEngine, CastleGL;
+  CastleStringUtils, CastleGLImages, CastleSoundEngine;
 
 procedure Register;
 begin
@@ -358,7 +360,11 @@ var
   I: Integer;
   WholeItemWidth, MaxAccessoryWidth: Integer;
   ItemsBelowHeight: Cardinal;
+  MarginBeforeAccessoryScaled, PaddingScaled: Integer;
 begin
+  MarginBeforeAccessoryScaled := Round(UIScale * MarginBeforeAccessory);
+  PaddingScaled := Round(UIScale * Padding);
+
   { calculate MaxItemWidth, MaxAccessoryWidth }
 
   MaxItemWidth := 0;
@@ -375,18 +381,18 @@ begin
 
   FWidth := MaxItemWidth;
   if MaxAccessoryWidth <> 0 then
-    FWidth += MarginBeforeAccessory + MaxAccessoryWidth;
+    FWidth += MarginBeforeAccessoryScaled + MaxAccessoryWidth;
 
   FHeight := 0;
   for I := 0 to ControlsCount - 1 do
   begin
     FHeight += ChildHeight(I);
     if I > 0 then
-      FHeight += Integer(SpaceBetweenItems(I));
+      FHeight += Round(UIScale * SpaceBetweenItems(I));
   end;
 
-  FWidth += 2 * Padding;
-  FHeight += 2 * Padding;
+  FWidth += 2 * PaddingScaled;
+  FHeight += 2 * PaddingScaled;
 
   { calculate children Widths and Heights }
 
@@ -394,7 +400,7 @@ begin
   for I := 0 to ControlsCount - 1 do
   begin
     if MaxAccessoryWidth <> 0 then
-      WholeItemWidth := MaxItemWidth + MarginBeforeAccessory + MaxAccessoryWidth else
+      WholeItemWidth := MaxItemWidth + MarginBeforeAccessoryScaled + MaxAccessoryWidth else
       WholeItemWidth := Controls[I].Rect.Width;
     FRectangles.Add(Rectangle(0, 0, WholeItemWidth, ChildHeight(I)));
   end;
@@ -408,17 +414,19 @@ begin
 
   for I := FRectangles.Count - 1 downto 0 do
   begin
-    FRectangles.L[I].Left := Padding;
-    FRectangles.L[I].Bottom := Padding + ItemsBelowHeight;
-    Controls[I].Left := FRectangles.L[I].Left;
-    Controls[I].Bottom := FRectangles.L[I].Bottom;
+    FRectangles.L[I].Left := PaddingScaled;
+    FRectangles.L[I].Bottom := PaddingScaled + ItemsBelowHeight;
+    // divide by UIScale, because TCastleLabel Left / Bottom will multiply by it...
+    Controls[I].Left   := Round(FRectangles.L[I].Left / UIScale);
+    Controls[I].Bottom := Round(FRectangles.L[I].Bottom / UIScale);
     if I > 0 then
-      ItemsBelowHeight += Cardinal(FRectangles.L[I].Height + Integer(SpaceBetweenItems(I)));
+      ItemsBelowHeight += Cardinal(FRectangles.L[I].Height + Round(UIScale * SpaceBetweenItems(I)));
   end;
 
   for I := 0 to FRectangles.Count - 1 do
     if Controls[I].ControlsCount <> 0 then
-      Controls[I].Controls[0].Left := MaxItemWidth + MarginBeforeAccessory;
+      // divide by UIScale, because TCastleLabel Left / Bottom will multiply by it...
+      Controls[I].Controls[0].Left := Round((MaxItemWidth + MarginBeforeAccessoryScaled) / UIScale);
 end;
 
 procedure TCastleOnScreenMenu.Resize;
@@ -600,7 +608,7 @@ end;
 
 function TCastleOnScreenMenu.Rect: TRectangle;
 begin
-  Result := Rectangle(Left, Bottom, FWidth, FHeight);
+  Result := Rectangle(LeftBottomScaled, FWidth, FHeight);
 end;
 
 function TCastleOnScreenMenu.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
@@ -635,6 +643,12 @@ begin
     if (Accessory is TCastleLabel) then
       TCastleLabel(Accessory).Color := AccessoryLabelColor;
   end;
+  RecalculateSize;
+end;
+
+procedure TCastleOnScreenMenu.UIScaleChanged;
+begin
+  inherited;
   RecalculateSize;
 end;
 

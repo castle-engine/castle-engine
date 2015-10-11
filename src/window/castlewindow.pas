@@ -1097,8 +1097,7 @@ type
       proceed as if your size requirements are satisfied.
 
       Special WindowDefaultSize value of these properties
-      means: at @link(Open), use some comfortable size slightly
-      smaller than desktop size.
+      means: at @link(Open), calculate and use some comfortable window size.
       @groupBegin }
     property Width: integer read FWidth write FWidth default WindowDefaultSize;
     property Height: integer read FHeight write FHeight default WindowDefaultSize;

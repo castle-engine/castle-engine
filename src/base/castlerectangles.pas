@@ -176,9 +176,8 @@ type
 
     function ScaleToWidth(const NewWidth: Cardinal): TRectangle;
     function ScaleToHeight(const NewHeight: Cardinal): TRectangle;
-    function Scale(const Factor: Single;
-      const PivotHorizontal: THorizontalPosition = hpMiddle;
-      const PivotVertical: TVerticalPosition = vpMiddle): TRectangle;
+    function ScaleAroundMiddle(const Factor: Single): TRectangle;
+    function ScaleAround0(const Factor: Single): TRectangle;
 
     { Scale and align us to fit inside rectangle R, preserving our aspect ratio. }
     function FitInside(const R: TRectangle;
@@ -233,7 +232,7 @@ operator+ (const R1, R2: TRectangle): TRectangle;
 
 implementation
 
-uses SysUtils,
+uses SysUtils, Math,
   CastleUtils;
 
 { TRectangle ----------------------------------------------------------------- }
@@ -467,14 +466,26 @@ begin
   Result.Height := NewHeight;
 end;
 
-function TRectangle.Scale(const Factor: Single;
-  const PivotHorizontal: THorizontalPosition;
-  const PivotVertical: TVerticalPosition): TRectangle;
+function TRectangle.ScaleAroundMiddle(const Factor: Single): TRectangle;
 begin
-  Result.Width := Round(Width * Factor);
+  Result.Width  := Round(Width  * Factor);
   Result.Height := Round(Height * Factor);
-  Result.Left := Result.AlignCore(PivotHorizontal, Self, PivotHorizontal);
-  Result.Bottom := Result.AlignCore(PivotVertical, Self, PivotVertical);
+  Result.Left   := Left   + (Width  - Result.Width ) div 2;
+  Result.Bottom := Bottom + (Height - Result.Height) div 2;
+  // Result.Left := Result.AlignCore(PivotHorizontal, Self, PivotHorizontal);
+  // Result.Bottom := Result.AlignCore(PivotVertical, Self, PivotVertical);
+end;
+
+function TRectangle.ScaleAround0(const Factor: Single): TRectangle;
+var
+  ResultRight, ResultTop: Integer;
+begin
+  Result.Left   := Floor(Left   * Factor);
+  Result.Bottom := Floor(Bottom * Factor);
+  ResultRight := Ceil(Right * Factor);
+  ResultTop   := Ceil(Top   * Factor);
+  Result.Width  := ResultRight - Result.Left;
+  Result.Height := ResultTop   - Result.Bottom;
 end;
 
 function TRectangle.FitInside(const R: TRectangle;

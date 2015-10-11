@@ -236,7 +236,7 @@ function TCastleNotifications.Rect: TRectangle;
 var
   I: integer;
 begin
-  Result := Rectangle(Left, Bottom, 0, Font.RowHeight * Messages.Count);
+  Result := Rectangle(LeftBottomScaled, 0, Font.RowHeight * Messages.Count);
   for I := 0 to Messages.Count - 1 do
     Result.Width := Max(Result.Width, Messages[I].Width);
 end;

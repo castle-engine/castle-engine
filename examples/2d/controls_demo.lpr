@@ -19,23 +19,24 @@ program controls_demo;
 uses SysUtils,
   CastleVectors, CastleWindow, CastleControls, CastleOnScreenMenu,
   CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors,
-  CastleUIControls, CastleNotifications;
+  CastleUIControls, CastleNotifications, CastleLog;
 
 var
   Window: TCastleWindowCustom;
   Notifications: TCastleNotifications;
   Background: TCastleSimpleBackground;
-  Button, ButtonInOnScreenMenu: TCastleButton;
-  Image, Image2, ImageInOnScreenMenu: TCastleImageControl;
+  Button, ButtonDemo: TCastleButton;
+  Image, Image2, ImageDemo: TCastleImageControl;
   OnScreenMenu: TCastleOnScreenMenu;
   Touch: TCastleTouchControl;
-  SliderInOnScreenMenu: TCastleFloatSlider;
+  SliderDemo, SliderUIExplicitScale: TCastleFloatSlider;
 
 type
   TClicksHandler = class
     procedure ButtonClick(Sender: TObject);
-    procedure ButtonInOnScreenMenuClick(Sender: TObject);
+    procedure ButtonDemoClick(Sender: TObject);
     procedure OnScreenMenuItemChoose(Sender: TObject);
+    procedure UIExplicitScaleChange(Sender: TObject);
   end;
 
 procedure TClicksHandler.ButtonClick(Sender: TObject);
@@ -43,7 +44,7 @@ begin
   Notifications.Show('Button clicked');
 end;
 
-procedure TClicksHandler.ButtonInOnScreenMenuClick(Sender: TObject);
+procedure TClicksHandler.ButtonDemoClick(Sender: TObject);
 begin
   Notifications.Show('Button in on-screen menu clicked');
 end;
@@ -52,10 +53,28 @@ procedure TClicksHandler.OnScreenMenuItemChoose(Sender: TObject);
 begin
   Notifications.Show(Format('On-screen menu item chosen: %d',
     [OnScreenMenu.CurrentItem]));
+  case OnScreenMenu.CurrentItem of
+    5: Window.Container.UIScaling := usExplicitScale;
+    7: Window.Container.UIScaling := usEncloseReferenceSize;
+    8: Window.Container.UIScaling := usFitReferenceSize;
+  end;
+end;
+
+procedure TClicksHandler.UIExplicitScaleChange(Sender: TObject);
+begin
+  // to test UIScaling = usExplicitScale
+  Window.Container.UIScaling := usExplicitScale;
+  Window.Container.UIExplicitScale := SliderUIExplicitScale.Value;
 end;
 
 begin
   Window := TCastleWindowCustom.Create(Application);
+
+  InitializeLog;
+
+  // to test UIScaling = usEncloseReferenceSize or usFitReferenceSize
+  Window.Container.UIReferenceWidth := 1024;
+  Window.Container.UIReferenceHeight := 768;
 
   { customize tooltips to use rounded corners.
     Just because we can :) }
@@ -99,24 +118,34 @@ begin
   Image2.Anchor(hpRight, -10);
   Window.Controls.InsertFront(Image2);
 
-  ImageInOnScreenMenu := TCastleImageControl.Create(Window);
-  ImageInOnScreenMenu.URL := ApplicationData('sample_image_with_alpha.png');
-  ImageInOnScreenMenu.Stretch := true;
-  ImageInOnScreenMenu.Width := 100;
-  ImageInOnScreenMenu.Height := 100;
+  ImageDemo := TCastleImageControl.Create(Window);
+  ImageDemo.URL := ApplicationData('sample_image_with_alpha.png');
+  ImageDemo.Stretch := true;
+  ImageDemo.Width := 100;
+  ImageDemo.Height := 100;
 
-  SliderInOnScreenMenu := TCastleFloatSlider.Create(Window);
+  SliderDemo := TCastleFloatSlider.Create(Window);
 
-  ButtonInOnScreenMenu := TCastleButton.Create(Window);
-  ButtonInOnScreenMenu.Caption := 'Button inside an on-screen menu';
-  ButtonInOnScreenMenu.OnClick := @TClicksHandler(nil).ButtonInOnScreenMenuClick;
+  SliderUIExplicitScale := TCastleFloatSlider.Create(Window);
+  SliderUIExplicitScale.Min := 0.33;
+  SliderUIExplicitScale.Max := 3.0;
+  SliderUIExplicitScale.Value := Window.Container.UIExplicitScale;
+  SliderUIExplicitScale.OnChange := @TClicksHandler(nil).UIExplicitScaleChange;
+
+  ButtonDemo := TCastleButton.Create(Window);
+  ButtonDemo.Caption := 'Button inside an on-screen menu';
+  ButtonDemo.OnClick := @TClicksHandler(nil).ButtonDemoClick;
 
   OnScreenMenu := TCastleOnScreenMenu.Create(Window);
-  OnScreenMenu.Add('one');
-  OnScreenMenu.Add('two');
-  OnScreenMenu.Add('item with image', ImageInOnScreenMenu);
-  OnScreenMenu.Add('item with slider', SliderInOnScreenMenu);
-  OnScreenMenu.Add('item with button', ButtonInOnScreenMenu);
+  OnScreenMenu.Add('demo item');
+  OnScreenMenu.Add('another demo item');
+  OnScreenMenu.Add('item with image', ImageDemo);
+  OnScreenMenu.Add('item with slider', SliderDemo);
+  OnScreenMenu.Add('item with button', ButtonDemo);
+  OnScreenMenu.Add('Container.UIScaling := usExplicitScale;');
+  OnScreenMenu.Add('Container.UIExplicitScale', SliderUIExplicitScale);
+  OnScreenMenu.Add('Container.UIScaling := usEncloseReferenceSize;');
+  OnScreenMenu.Add('Container.UIScaling := usFitReferenceSize;');
   OnScreenMenu.Left := 10;
   OnScreenMenu.Anchor(vpTop, -10);
   OnScreenMenu.OnClick := @TClicksHandler(nil).OnScreenMenuItemChoose;

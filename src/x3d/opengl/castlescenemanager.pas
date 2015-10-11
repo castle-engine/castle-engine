@@ -1530,7 +1530,11 @@ function TCastleAbstractViewport.Rect: TRectangle;
 begin
   if FullSize then
     Result := ParentRect else
+  begin
     Result := Rectangle(Left, Bottom, Width, Height);
+    // applying UIScale on this is easy...
+    Result := Result.ScaleAround0(UIScale);
+  end;
 end;
 
 procedure TCastleAbstractViewport.ApplyProjection;

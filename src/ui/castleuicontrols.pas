@@ -112,6 +112,51 @@ type
     procedure RemoveFingerIndex(const FingerIndex: TFingerIndex);
   end;
 
+  { Possible values for TUIContainer.UIScaling. }
+  TUIScaling = (
+    { Do not scale UI. }
+    usNone,
+
+    { Scale to fake that the container sizes enclose
+      @link(TUIContainer.ReferenceWidth) and
+      @link(TUIContainer.ReferenceHeight).
+      So one size will be equal to reference size, and the other will be equal
+      or larger to reference.
+
+      Controls that look at @link(TUIControl.UIScale) will be affected by this.
+      Together with anchors (see @link(TUIControl.HasHorizontalAnchor)
+      and friends), this allows to easily design a scalable UI. }
+    usEncloseReferenceSize,
+
+    { Scale to fake that the container sizes fit inside
+      @link(TUIContainer.ReferenceWidth) and
+      @link(TUIContainer.ReferenceHeight).
+      So one size will be equal to reference size, and the other will be equal
+      or smaller to reference.
+
+      Controls that look at @link(TUIControl.UIScale) will be affected by this.
+      Together with anchors (see @link(TUIControl.HasHorizontalAnchor)
+      and friends), this allows to easily design a scalable UI. }
+    usFitReferenceSize,
+
+    { Scale to fake that the container sizes are smaller/larger
+      by an explicit factor @link(TUIContainer.UIExplicitScale).
+      Controls that look at @link(TUIControl.UIScale) will be affected by this.
+
+      Like usEncloseReferenceSize or usFitReferenceSize,
+      this allows to design a scalable UI.
+      In this case, the scale factor has to be calculated by your code
+      (by default @link(TUIContainer.UIExplicitScale) is 1.0 and the engine will
+      not modify it automatically in any way),
+      which allows customizing the scale to your requirements.
+
+      For example derive the @link(TUIContainer.UIExplicitScale) from
+      the @link(TUIContainer.Dpi) value to keep UI controls at constant
+      @italic(physical) (real-world) size, at least on devices where
+      @link(TUIContainer.Dpi) is a real value (right now: iOS). }
+    usExplicitScale
+  );
+
   { Abstract user interface container. Connects OpenGL context management
     code with Castle Game Engine controls (TUIControl, that is the basis
     for all our 2D and 3D rendering). When you use TCastleWindowCustom
@@ -164,10 +209,20 @@ type
     LastPositionForTooltipTime: TTimerResult;
     Mouse3d: T3DConnexionDevice;
     Mouse3dPollTimer: Single;
+    FUIScaling: TUIScaling;
+    FUIReferenceWidth: Integer;
+    FUIReferenceHeight: Integer;
+    FUIExplicitScale: Single;
+    FCalculatedUIScale: Single; //< set on all children
     procedure ControlsVisibleChange(Sender: TObject);
     { Called when the control C is destroyed or just removed from Controls list. }
     procedure DetachNotification(const C: TUIControl);
     function UseForceCaptureInput: boolean;
+    procedure SetUIScaling(const Value: TUIScaling);
+    procedure SetUIReferenceWidth(const Value: Integer);
+    procedure SetUIReferenceHeight(const Value: Integer);
+    procedure SetUIExplicitScale(const Value: Single);
+    procedure UpdateUIScale;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -346,6 +401,32 @@ type
       default DefaultTooltipDelay;
     property TooltipDistance: Cardinal read FTooltipDistance write FTooltipDistance
       default DefaultTooltipDistance;
+
+    { Enable automatic scaling of the UI.
+      This is great when the container size may vary widly (for example,
+      on mobile devices, although it becomes more and more sensible for desktops
+      too). See @link(TUIScaling) values for precise description how it works. }
+    property UIScaling: TUIScaling
+      read FUIScaling write SetUIScaling default usNone;
+
+    { Reference width and height to which we fit the container size
+      (as seen by TUIControl implementations) when UIScaling is
+      usEncloseReferenceSize or usFitReferenceSize.
+      See @link(usEncloseReferenceSize) and @link(usFitReferenceSize)
+      for precise description how this works.
+      Set both these properties, or set only one (and leave the other as zero).
+      @groupBegin }
+    property UIReferenceWidth: Integer
+      read FUIReferenceWidth write SetUIReferenceWidth default 0;
+    property UIReferenceHeight: Integer
+      read FUIReferenceHeight write SetUIReferenceHeight default 0;
+    { @groupEnd }
+
+    { Scale of the container size (as seen by TUIControl implementations)
+      when UIScaling is usExplicitScale.
+      See @link(usExplicitScale) for precise description how this works. }
+    property UIExplicitScale: Single
+      read FUIExplicitScale write SetUIExplicitScale default 1.0;
   end;
 
   { Base class for things that listen to user input: cameras and 2D controls. }
@@ -682,6 +763,33 @@ end;
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure SetContainer(const Value: TUIContainer); override;
+
+    { UI scale of this control, derived from container
+      (see @link(TUIContainer.UIScaling).
+
+      All the drawing and measuring inside your control must take this into
+      account. The final @link(Rect) result must already take this scaling
+      into account, so that parent controls may depend on it. In the simplest
+      case, your @code(Rect) should return
+
+@longCode(#
+function TMyControl.Rect: TRectangle;
+begin
+  Result := Rectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
+end;
+#)
+
+      This is so simple only when your drawing code 100% adjusts
+      the drawn contents to the passed @link(ScreenRect). It's not always
+      that easy, that's why we don't do it automatically in the engine. }
+    function UIScale: Single;
+
+    { The left-bottom corner scaled by UIScale,
+      useful for implementing overridden @code(Rect) methods. }
+    function LeftBottomScaled: TVector2Integer;
+
+    procedure UIScaleChanged; virtual;
+
     //procedure DoCursorChange; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -890,8 +998,15 @@ end;
       are always zero. }
     function ParentRect: TRectangle;
 
+    { Quick way to enable horizontal anchor, to automatically keep this
+      control aligned to parent. Sets @link(HasHorizontalAnchor),
+      @link(HorizontalAnchor), @link(HorizontalAnchorDelta). }
     procedure Anchor(const AHorizontalAnchor: THorizontalPosition;
       const AHorizontalAnchorDelta: Integer = 0);
+
+    { Quick way to enable vertical anchor, to automatically keep this
+      control aligned to parent. Sets @link(HasVerticalAnchor),
+      @link(VerticalAnchor), @link(VerticalAnchorDelta). }
     procedure Anchor(const AVerticalAnchor: TVerticalPosition;
       const AVerticalAnchorDelta: Integer = 0);
   published
@@ -907,8 +1022,10 @@ end;
 
     { Automatically adjust horizontal position to align us to
       the parent horizontally. Note that the value of @link(Left) remains
-      unchanged (it is tjust ignored), using the anchors only modifies the output
-      of the @link(ScreenRect) value that should be used for rendering/physics. }
+      unchanged (it is just ignored), using the anchors only modifies the output
+      of the @link(ScreenRect) value that should be used for rendering/physics.
+
+      @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
     property HasHorizontalAnchor: boolean
       read FHasHorizontalAnchor write SetHasHorizontalAnchor default false;
     { Which border to align (both our and parent border),
@@ -923,7 +1040,9 @@ end;
     { Automatically adjust vertical position to align us to
       the parent vertically. Note that the value of @link(Bottom) remains
       unchanged (it is tjust ignored), using the anchors only modifies the output
-      of the @link(ScreenRect) value that should be used for rendering/physics. }
+      of the @link(ScreenRect) value that should be used for rendering/physics.
+
+      @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
     property HasVerticalAnchor: boolean
       read FHasVerticalAnchor write SetHasVerticalAnchor default false;
     { Which border to align (both our and parent border),
@@ -1208,6 +1327,7 @@ begin
   C.FreeNotification(AContainer);
 
   C.Container := AContainer;
+  C.UIScaleChanged;
 
   if AContainer.GLInitialized then
   begin
@@ -1296,6 +1416,9 @@ begin
   FTooltipDelay := DefaultTooltipDelay;
   FTooltipDistance := DefaultTooltipDistance;
   FCaptureInput := TFingerIndexCaptureMap.Create;
+  FUIScaling := usNone;
+  FUIExplicitScale := 1.0;
+  FCalculatedUIScale := 1.0;
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
@@ -1799,6 +1922,11 @@ var
   I: Integer;
   C: TUIControl;
 begin
+  if UIScaling in [usEncloseReferenceSize, usFitReferenceSize] then
+    { usXxxReferenceSize adjust current Width/Height to reference,
+      so the FCalculatedUIScale must be adjusted on each resize. }
+    UpdateUIScale;
+
   for I := Controls.Count - 1 downto 0 do
   begin
     C := Controls[I];
@@ -1850,6 +1978,75 @@ begin
       seems simpler, but is risky: we if the backend doesn't support sub-pixel accuracy,
       we will never be able to position mouse exactly at half pixel. }
     MousePosition := Vector2Single(Width div 2, Height div 2);
+end;
+
+procedure TUIContainer.SetUIScaling(const Value: TUIScaling);
+begin
+  if FUIScaling <> Value then
+  begin
+    FUIScaling := Value;
+    UpdateUIScale;
+  end;
+end;
+
+procedure TUIContainer.SetUIReferenceWidth(const Value: Integer);
+begin
+  if FUIReferenceWidth <> Value then
+  begin
+    FUIReferenceWidth := Value;
+    UpdateUIScale;
+  end;
+end;
+
+procedure TUIContainer.SetUIReferenceHeight(const Value: Integer);
+begin
+  if FUIReferenceHeight <> Value then
+  begin
+    FUIReferenceHeight := Value;
+    UpdateUIScale;
+  end;
+end;
+
+procedure TUIContainer.SetUIExplicitScale(const Value: Single);
+begin
+  if FUIExplicitScale <> Value then
+  begin
+    FUIExplicitScale := Value;
+    UpdateUIScale;
+  end;
+end;
+
+procedure TUIContainer.UpdateUIScale;
+var
+  S: Single;
+  I: Integer;
+begin
+  case UIScaling of
+    usNone         : S := 1;
+    usExplicitScale: S := UIExplicitScale;
+    usEncloseReferenceSize, usFitReferenceSize:
+      begin
+        S := 1;
+        if (UIReferenceWidth <> 0) and (Width > 0) then
+        begin
+          S := Width / UIReferenceWidth;
+          if (UIReferenceHeight <> 0) and (Height > 0) then
+            if UIScaling = usEncloseReferenceSize then
+              MinVar(S, Height / UIReferenceHeight) else
+              MaxVar(S, Height / UIReferenceHeight);
+        end else
+        if (UIReferenceHeight <> 0) and (Height > 0) then
+          S := Height / UIReferenceHeight;
+        WritelnLog('Scaling', 'Automatic scaling to reference sizes %dx%d in effect. Calculated scale is %f, which simulates surface of size %dx%d',
+          [UIReferenceWidth, UIReferenceHeight, S, Round(Width / S), Round(Height / S)]);
+      end;
+    else raise EInternalError.Create('UIScaling unknown');
+  end;
+
+  FCalculatedUIScale := S;
+
+  for I := 0 to Controls.Count - 1 do
+    Controls[I].UIScaleChanged;
 end;
 
 { TInputListener ------------------------------------------------------------- }
@@ -2065,6 +2262,29 @@ begin
   end;
 end;
 
+function TUIControl.UIScale: Single;
+begin
+  if ContainerSizeKnown then
+    Result := Container.FCalculatedUIScale else
+    Result := 1.0;
+end;
+
+function TUIControl.LeftBottomScaled: TVector2Integer;
+begin
+  Result := Vector2Integer(
+    Round(UIScale * Left), Round(UIScale * Bottom));
+end;
+
+procedure TUIControl.UIScaleChanged;
+var
+  I: Integer;
+begin
+  inherited;
+  if FControls <> nil then
+    for I := 0 to FControls.Count - 1 do
+      FControls[I].UIScaleChanged;
+end;
+
 { No point in doing anything? We should propagate it to to parent like T3D?
 procedure TUIControl.DoCursorChange;
 begin
@@ -2227,7 +2447,8 @@ begin
   Result := SR.Contains(Position) or
     { if the control covers the whole Container, it *always* captures events,
       even when mouse position is unknown yet, or outside the window. }
-    ((SR.Left <= 0) and
+    (ContainerSizeKnown and
+     (SR.Left <= 0) and
      (SR.Bottom <= 0) and
      (SR.Width >= ContainerWidth) and
      (SR.Height >= ContainerHeight));
@@ -2501,9 +2722,11 @@ begin
   if HasHorizontalAnchor or HasVerticalAnchor then
     PR := ParentRect; // only PR.Left / PR.Bottom are unused, so no need to get ParentRectAnchored
   if HasHorizontalAnchor then
-    Result.Left := FastAlignCore(HorizontalAnchor, Result.Width , PR.Width , HorizontalAnchorDelta);
+    Result.Left := FastAlignCore(HorizontalAnchor, Result.Width , PR.Width ,
+      Round(UIScale * HorizontalAnchorDelta));
   if HasVerticalAnchor then
-    Result.Bottom := FastAlignCore(VerticalAnchor, Result.Height, PR.Height, VerticalAnchorDelta);
+    Result.Bottom := FastAlignCore(VerticalAnchor, Result.Height, PR.Height,
+      Round(UIScale * VerticalAnchorDelta));
 end;
 
 function TUIControl.ScreenRect: TRectangle;
