@@ -1050,15 +1050,15 @@ var
   C: TUnicodeChar;
   TextPtr: PChar;
   CharLen: Integer;
-  ScreenX, ScreenY: Integer;
+  ScreenX, ScreenY: Single;
   G: TTextureFontData.TGlyph;
   GlyphX, GlyphY, GlyphWidth, GlyphHeight: Integer;
 
   procedure OutlineDraw(const MoveX, MoveY: Integer);
   begin
     GLImage.Draw(
-      ScreenX - GlyphX + MoveX * Outline,
-      ScreenY - GlyphY + MoveY * Outline,
+      Round(ScreenX) - GlyphX + MoveX * Outline,
+      Round(ScreenY) - GlyphY + MoveY * Outline,
       GlyphWidth,
       GlyphHeight,
       G.ImageX, G.ImageY, G.Width, G.Height);
@@ -1108,14 +1108,14 @@ begin
           OutlineDraw(1, 1);
         end else
         begin
-          GLImage.Draw(ScreenX - GlyphX, ScreenY - GlyphY,
+          GLImage.Draw(Round(ScreenX) - GlyphX, Round(ScreenY) - GlyphY,
             GlyphWidth,
             GlyphHeight,
             G.ImageX, G.ImageY, G.Width, G.Height);
         end;
       end;
-      ScreenX += Round(G.AdvanceX * Scale) + Outline * 2;
-      ScreenY += Round(G.AdvanceY * Scale);
+      ScreenX += G.AdvanceX * Scale + Outline * 2;
+      ScreenY += G.AdvanceY * Scale;
     end;
 
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
