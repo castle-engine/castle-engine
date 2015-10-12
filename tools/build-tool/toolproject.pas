@@ -325,9 +325,10 @@ constructor TCastleProject.Create(const APath: string);
     begin
       if (Dep in Dependencies) and not (DepRequirement in Dependencies) then
       begin
-        Writeln('Automatically adding "' + DependencyToString(DepRequirement) +
-          '" to dependencies because it is a prerequisite of existing dependency "'
-          + DependencyToString(Dep) + '"');
+        if Verbose then
+          Writeln('Automatically adding "' + DependencyToString(DepRequirement) +
+            '" to dependencies because it is a prerequisite of existing dependency "'
+            + DependencyToString(Dep) + '"');
         Include(FDependencies, DepRequirement);
       end;
     end;
@@ -336,6 +337,19 @@ constructor TCastleProject.Create(const APath: string);
     DependenciesClosure(depPng, depZlib);
     DependenciesClosure(depFreetype, depZlib);
     DependenciesClosure(depOggVorbis, depSound);
+  end;
+
+  function DependenciesToStr(const S: TDependencies): string;
+  var
+    D: TDependency;
+  begin
+    Result := '';
+    for D in S do
+    begin
+      if Result <> '' then Result += ', ';
+      Result += DependencyToString(D);
+    end;
+    Result := '[' + Result + ']';
   end;
 
 begin
@@ -354,6 +368,7 @@ begin
   ReadManifest;
   GuessDependencies;
   CloseDependencies;
+  Writeln('Project "' + Name + '" dependencies: ' + DependenciesToStr(Dependencies));
 end;
 
 destructor TCastleProject.Destroy;
@@ -369,8 +384,9 @@ procedure TCastleProject.AddDependency(const Dependency: TDependency; const File
 begin
   if not (Dependency in Dependencies) then
   begin
-    Writeln('Automatically adding "' + DependencyToString(Dependency) +
-      '" to dependencies because data contains file: ' + FileInfo.URL);
+    if Verbose then
+      Writeln('Automatically adding "' + DependencyToString(Dependency) +
+        '" to dependencies because data contains file: ' + FileInfo.URL);
     Include(FDependencies, Dependency);
   end;
 end;
