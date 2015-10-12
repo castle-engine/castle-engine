@@ -48,7 +48,7 @@ type
     Each menu item can have an "accessory", for example an associated
     slider (from TCastleFloatSlider, any TUIControl is OK).
     This allows to use this menu also for settings. }
-  TCastleOnScreenMenu = class(TUIControl)
+  TCastleOnScreenMenu = class(TUIControlFont)
   private
     FCaptureAllEvents: boolean;
     FOnClick: TNotifyEvent;
@@ -636,12 +636,21 @@ var
 begin
   L := TCastleLabel.Create(Self);
   L.Text.Text := S;
+  { pass our CustomFont / FontSize to children.
+    TODO: this is a poor way, it's not updated later when we change CustomFont/FontSize,
+    it's not recursive.... }
+  L.CustomFont := CustomFont;
+  L.FontSize := FontSize;
   InsertFront(L);
   if Accessory <> nil then
   begin
     L.InsertFront(Accessory);
     if (Accessory is TCastleLabel) then
+    begin
+      TCastleLabel(Accessory).CustomFont := CustomFont;
+      TCastleLabel(Accessory).FontSize := FontSize;
       TCastleLabel(Accessory).Color := AccessoryLabelColor;
+    end;
   end;
   RecalculateSize;
 end;

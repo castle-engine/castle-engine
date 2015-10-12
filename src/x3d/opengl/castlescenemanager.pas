@@ -395,8 +395,11 @@ type
       read FBackgroundColor write FBackgroundColor;
   published
     { Viewport dimensions where the 3D world will be drawn.
+
       When FullSize is @true (the default), the viewport always fills
-      the whole container (like TCastleWindow or TCastleControl),
+      the whole parent (like TCastleWindow or TCastleControl,
+      if you just placed the scene manager on TCastleWindowCustom.Controls
+      or TCastleControlCustom.Controls),
       and the values of Left, Bottom, Width, Height are ignored here.
 
       @seealso Rect
@@ -1431,7 +1434,7 @@ begin
     Result := Camera.Motion(Event);
     if not Result then
     begin
-      Camera.CustomRay(Rect, Event.Position, FProjection, RayOrigin, RayDirection);
+      Camera.CustomRay(ScreenRect, Event.Position, FProjection, RayOrigin, RayDirection);
       { TODO: do Result := PointingDeviceMove below? }
       PointingDeviceMove(RayOrigin, RayDirection);
     end;
@@ -1546,7 +1549,7 @@ begin
   { We need to know container size now. }
   Assert(ContainerSizeKnown, ClassName + ' did not receive Resize event yet, cannnot apply OpenGL projection');
 
-  Viewport := Rect;
+  Viewport := ScreenRect;
   glViewport(Viewport);
 
   FProjection := CalculateProjection;
@@ -1647,7 +1650,7 @@ var
   ProjectionType: TProjectionType;
 begin
   Box := GetItems.BoundingBox;
-  Viewport := Rect;
+  Viewport := ScreenRect;
 
   { calculate ViewpointNode }
   if GetMainScene <> nil then
@@ -2047,7 +2050,7 @@ begin
 
   { Restore glViewport set by ApplyProjection }
   if not FullSize then
-    glViewport(Rect);
+    glViewport(ScreenRect);
 
   { the last effect gets a texture, and renders straight into screen }
   RenderOneEffect(ScreenEffects[CurrentScreenEffectsCount - 1]);
@@ -2137,17 +2140,20 @@ function TCastleAbstractViewport.RenderWithScreenEffects: boolean;
       ScreenEffectTextureWidth, ScreenEffectTextureHeight, 1);
   end;
 
+var
+  SR: TRectangle;
 begin
   { save ScreenEffectsCount/NeedDepth result, to not recalculate it,
     and also to make the following code stable --- this way we know
     CurrentScreenEffects* values are constant, even if overridden
     ScreenEffects* methods do something weird. }
   CurrentScreenEffectsCount := ScreenEffectsCount;
+  SR := ScreenRect;
 
   Result := GLFeatures.VertexBufferObject { for screen quad } and
     { check IsTextureSized, to gracefully work (without screen effects)
       on old desktop OpenGL that does not support NPOT textures. }
-    IsTextureSized(Rect.Width, Rect.Height, tsAny) and
+    IsTextureSized(SR.Width, SR.Height, tsAny) and
     GLFeatures.UseMultiTexturing and
     (CurrentScreenEffectsCount <> 0);
 
@@ -2165,8 +2171,8 @@ begin
        (ScreenEffectTextureSrc = 0) or
        (CurrentScreenEffectsNeedDepth <> (ScreenEffectTextureDepth <> 0)) or
        (ScreenEffectRTT = nil) or
-       (ScreenEffectTextureWidth  <> Rect.Width ) or
-       (ScreenEffectTextureHeight <> Rect.Height) then
+       (ScreenEffectTextureWidth  <> SR.Width ) or
+       (ScreenEffectTextureHeight <> SR.Height) then
     begin
       glFreeTexture(ScreenEffectTextureDest);
       glFreeTexture(ScreenEffectTextureSrc);
@@ -2179,8 +2185,8 @@ begin
       {$endif}
         ScreenEffectTextureTarget := GL_TEXTURE_2D;
 
-      ScreenEffectTextureWidth  := Rect.Width;
-      ScreenEffectTextureHeight := Rect.Height;
+      ScreenEffectTextureWidth  := SR.Width;
+      ScreenEffectTextureHeight := SR.Height;
       { We use two textures: ScreenEffectTextureDest is the destination
         of framebuffer, ScreenEffectTextureSrc is the source to render.
 
@@ -2224,7 +2230,7 @@ begin
       It will be restored from RenderWithScreenEffectsCore right before actually
       rendering to screen. }
     if not FullSize then
-      glViewport(Rectangle(0, 0, Rect.Width, Rect.Height));
+      glViewport(Rectangle(0, 0, SR.Width, SR.Height));
 
     ScreenEffectRTT.RenderBegin;
     ScreenEffectRTT.SetTexture(ScreenEffectTextureDest, ScreenEffectTextureTarget);
@@ -2254,7 +2260,7 @@ begin
       end;
       {$endif}
 
-      OrthoProjection(0, Rect.Width, 0, Rect.Height);
+      OrthoProjection(0, SR.Width, 0, SR.Height);
 
       RenderWithScreenEffectsCore;
 
@@ -2288,7 +2294,7 @@ begin
     { Rendering directly to the screen, when no screen effects are used. }
     if not FullSize then
       { Use Scissor to limit what glClear clears. }
-      ScissorEnable(Rect);
+      ScissorEnable(ScreenRect);
 
     RenderFromViewEverything;
 
@@ -2920,7 +2926,7 @@ begin
     Items.UpdateGeneratedTextures(@RenderFromViewEverything,
       ChosenViewport.FProjection.ProjectionNear,
       ChosenViewport.FProjection.ProjectionFar,
-      ChosenViewport.Rect);
+      ChosenViewport.ScreenRect);
   end;
 end;
 
@@ -2976,7 +2982,7 @@ var
     RayOrigin, RayDirection: TVector3Single;
     RayHit: TRayCollision;
   begin
-    Camera.CustomRay(Rect, MousePosition + Change,
+    Camera.CustomRay(ScreenRect, MousePosition + Change,
       FProjection, RayOrigin, RayDirection);
 
     RayHit := CameraRayCollision(RayOrigin, RayDirection);

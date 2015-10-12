@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ User interface (2D) basic classes. }
+{ User interface (2D) basic classes: @link(TUIControl) and @link(TUIContainer). }
 unit CastleUIControls;
 
 interface
@@ -36,7 +36,7 @@ type
   TRenderStyle = (rs2D, rs3D);
 
   TUIControl = class;
-  TUIControlList = class;
+  TChildrenControls = class;
   TUIContainer = class;
 
   TContainerEvent = procedure (Container: TUIContainer);
@@ -191,7 +191,7 @@ type
     FOnPress, FOnRelease: TInputPressReleaseEvent;
     FOnMotion: TInputMotionEvent;
     FOnUpdate: TContainerEvent;
-    { FControls cannot be declared as TUIControlList to avoid
+    { FControls cannot be declared as TChildrenControls to avoid
       http://bugs.freepascal.org/view.php?id=22495 }
     FControls: TObject;
     FRenderStyle: TRenderStyle;
@@ -280,7 +280,7 @@ type
       That is, controls at the beginning of this list
       are rendered first, and are last to catch some events, since the rest
       of controls covers them. }
-    function Controls: TUIControlList;
+    function Controls: TChildrenControls;
 
     { Returns the control that should receive input events first,
       or @nil if none. More precisely, this is the first on Controls
@@ -673,6 +673,8 @@ end;
     prHigh
   ) deprecated;
 
+  TUIControlList = class;
+
   { Basic 2D control class. All controls derive from this class,
     overriding chosen methods to react to some events.
     Various user interface containers (things that directly receive messages
@@ -723,7 +725,7 @@ end;
     FGLInitialized: boolean;
     FExists: boolean;
     FRenderStyle: TRenderStyle;
-    FControls: TUIControlList;
+    FControls: TChildrenControls;
     FLeft: Integer;
     FBottom: Integer;
     FParent: TUIControl; //< null means that parent is our owner
@@ -733,6 +735,7 @@ end;
     FHasVerticalAnchor: boolean;
     FVerticalAnchor: TVerticalPosition;
     FVerticalAnchorDelta: Integer;
+    FEnableUIScaling: boolean;
     procedure SetExists(const Value: boolean);
     function GetControls(const I: Integer): TUIControl;
     procedure SetControls(const I: Integer; const Item: TUIControl);
@@ -760,6 +763,7 @@ end;
     procedure SetVerticalAnchor(const Value: TVerticalPosition);
     procedure SetVerticalAnchorDelta(const Value: Integer);
     function RectWithAnchors: TRectangle;
+    procedure SetEnableUIScaling(const Value: boolean);
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure SetContainer(const Value: TUIContainer); override;
@@ -883,8 +887,6 @@ end;
       ) }
     procedure Render; virtual;
 
-    procedure RenderWithChildren;
-
     { Determines the rendering order.
       All controls with RenderStyle = rs3D are drawn first.
       Then all the controls with RenderStyle = rs2D are drawn.
@@ -976,8 +978,8 @@ end;
 
     property Parent: TUIControl read FParent;
 
-    { Position and size of this control, assuming it exists, in local coordinates
-      (relative to parent 2D control).
+    { Position and size of this control, assuming it exists,
+      in local coordinates (relative to parent 2D control).
       This must ignore the current value of the @link(GetExists) method
       and @link(Exists) property, that is: the result of this function
       assumes that control does exist.
@@ -1009,6 +1011,49 @@ end;
       @link(VerticalAnchor), @link(VerticalAnchorDelta). }
     procedure Anchor(const AVerticalAnchor: TVerticalPosition;
       const AVerticalAnchorDelta: Integer = 0);
+
+    { Manually position the control with respect to the parent
+      by adjusting @link(Left).
+      Deprecated, use @link(Align) with THorizontalPosition. }
+    procedure AlignHorizontal(
+      const ControlPosition: TPositionRelative = prMiddle;
+      const ContainerPosition: TPositionRelative = prMiddle;
+      const X: Integer = 0); deprecated 'use Align, or use even simpler HasHorizontalAnchor, HorizontalAnchor, HorizontalAnchorDelta';
+
+    { Manually position the control with respect to the parent
+      by adjusting @link(Left).
+
+      Note that in simple cases, you can achieve the same functionality
+      by HasHorizontalAnchor, HorizontalAnchor, HorizontalAnchorDelta. }
+    procedure Align(
+      const ControlPosition: THorizontalPosition;
+      const ContainerPosition: THorizontalPosition;
+      const X: Integer = 0);
+
+    { Manually position the control with respect to the parent
+      by adjusting @link(Bottom).
+      Deprecated, use @link(Align) with TVerticalPosition. }
+    procedure AlignVertical(
+      const ControlPosition: TPositionRelative = prMiddle;
+      const ContainerPosition: TPositionRelative = prMiddle;
+      const Y: Integer = 0); deprecated 'use Align, or use even simpler HasVerticalAnchor, VerticalAnchor, VerticalAnchorDelta';
+
+    { Manually position the control with respect to the parent
+      by adjusting @link(Bottom).
+
+      Note that in simple cases, you can achieve the same functionality
+      by HasVerticalAnchor, VerticalAnchor, VerticalAnchorDelta. }
+    procedure Align(
+      const ControlPosition: TVerticalPosition;
+      const ContainerPosition: TVerticalPosition;
+      const Y: Integer = 0);
+
+    { Manually center the control within the parent,
+      both horizontally and vertically.
+
+      Note that in simple cases, you can achieve the same functionality
+      by HasHorizontalAnchor, HorizontalAnchor, HasVerticalAnchor, VerticalAnchor. }
+    procedure Center;
   published
     { Not existing control is not visible, it doesn't receive input
       and generally doesn't exist from the point of view of user.
@@ -1054,48 +1099,31 @@ end;
     property VerticalAnchorDelta: Integer
       read FVerticalAnchorDelta write SetVerticalAnchorDelta default 0;
 
-    { Manually position the control with respect to the parent
-      by adjusting @link(Left).
-      Deprecated, use @link(Align) with THorizontalPosition. }
-    procedure AlignHorizontal(
-      const ControlPosition: TPositionRelative = prMiddle;
-      const ContainerPosition: TPositionRelative = prMiddle;
-      const X: Integer = 0); deprecated 'use Align, or use even simpler HasHorizontalAnchor, HorizontalAnchor, HorizontalAnchorDelta';
+    { Enable or disable UI scaling for this particular control.
+      See more about UI scaling on @link(TUIContainer.UIScaling) and
+      @link(TUIControl.UIScale). Setting this to @false forces
+      @link(TUIControl.UIScale) to always return 1.0.
 
-    { Manually position the control with respect to the parent
-      by adjusting @link(Left).
+      Note that this does not work recursively, i.e. it does not affect
+      the children of this control. Setting this to @false does not prevent
+      UI scaling on children (you have to turn it off explicitly for children too,
+      if you need to disable UI scaling recursively). }
+    property EnableUIScaling: boolean
+      read FEnableUIScaling write SetEnableUIScaling default true;
+  end;
 
-      Note that in simple cases, you can achieve the same functionality
-      by HasHorizontalAnchor, HorizontalAnchor, HorizontalAnchorDelta. }
-    procedure Align(
-      const ControlPosition: THorizontalPosition;
-      const ContainerPosition: THorizontalPosition;
-      const X: Integer = 0);
+  { Simple list of TUIControl instances. }
+  TUIControlList = class(specialize TFPGObjectList<TUIControl>)
+  public
+    { Add child control, at the front of other children. }
+    procedure InsertFront(const NewItem: TUIControl);
+    procedure InsertFrontIfNotExists(const NewItem: TUIControl);
+    procedure InsertFront(const NewItems: TUIControlList);
 
-    { Manually position the control with respect to the parent
-      by adjusting @link(Bottom).
-      Deprecated, use @link(Align) with TVerticalPosition. }
-    procedure AlignVertical(
-      const ControlPosition: TPositionRelative = prMiddle;
-      const ContainerPosition: TPositionRelative = prMiddle;
-      const Y: Integer = 0); deprecated 'use Align, or use even simpler HasVerticalAnchor, VerticalAnchor, VerticalAnchorDelta';
-
-    { Manually position the control with respect to the parent
-      by adjusting @link(Bottom).
-
-      Note that in simple cases, you can achieve the same functionality
-      by HasVerticalAnchor, VerticalAnchor, VerticalAnchorDelta. }
-    procedure Align(
-      const ControlPosition: TVerticalPosition;
-      const ContainerPosition: TVerticalPosition;
-      const Y: Integer = 0);
-
-    { Manually center the control within the parent,
-      both horizontally and vertically.
-
-      Note that in simple cases, you can achieve the same functionality
-      by HasHorizontalAnchor, HorizontalAnchor, HasVerticalAnchor, VerticalAnchor. }
-    procedure Center;
+    { Add child control, at the back of other children. }
+    procedure InsertBack(const NewItem: TUIControl);
+    procedure InsertBackIfNotExists(const NewItem: TUIControl);
+    procedure InsertBack(const NewItems: TUIControlList);
   end;
 
   TUIControlClass = class of TUIControl;
@@ -1103,14 +1131,22 @@ end;
   TUIControlPos = TUIControl deprecated 'use TUIControl class';
   TUIRectangularControl = TUIControl deprecated 'use TUIControl class';
 
-  { List of UI controls. Sorted from back to front. }
-  TUIControlList = class
+  { List of UI controls, with a parent control and container.
+    Ordered from back to front.
+    Used for @link(TUIContainer.Controls). }
+  TChildrenControls = class
   private
     FParent: TUIControl;
+    FContainer: TUIContainer;
+
+    procedure RegisterContainer(const C: TUIControl; const AContainer: TUIContainer);
+    procedure UnregisterContainer(const C: TUIControl; const AContainer: TUIContainer);
+    procedure SetContainer(const AContainer: TUIContainer);
+    property Container: TUIContainer read FContainer write SetContainer;
 
     type
       TMyObjectList = class(TCastleObjectList)
-        Parent: TUIControlList;
+        Parent: TChildrenControls;
         { Pass notifications to Parent. }
         procedure Notify(Ptr: Pointer; Action: TListNotification); override;
       end;
@@ -1122,11 +1158,11 @@ end;
     type
       TEnumerator = class
       private
-        FList: TUIControlList;
+        FList: TChildrenControls;
         FPosition: Integer;
         function GetCurrent: TUIControl;
       public
-        constructor Create(AList: TUIControlList);
+        constructor Create(AList: TChildrenControls);
         function MoveNext: Boolean;
         property Current: TUIControl read GetCurrent;
       end;
@@ -1134,9 +1170,8 @@ end;
 
     function GetItem(const I: Integer): TUIControl;
     procedure SetItem(const I: Integer; const Item: TUIControl);
-  protected
-    { Teact to add/remove notifications. }
-    procedure Notify(Ptr: Pointer; Action: TListNotification); virtual;
+    { React to add/remove notifications. }
+    procedure Notify(Ptr: Pointer; Action: TListNotification);
   public
     constructor Create(AParent: TUIControl);
     destructor Destroy; override;
@@ -1147,7 +1182,7 @@ end;
 
     property Items[I: Integer]: TUIControl read GetItem write SetItem; default;
     function Count: Integer;
-    procedure Assign(const Source: TUIControlList);
+    procedure Assign(const Source: TChildrenControls);
     { Remove all instances of Item from this list.
       Note that the given Item should always exist only once on a list
       (it is not allowed to add it multiple times), but for safety we find
@@ -1289,136 +1324,20 @@ begin
     Delete(Index);
 end;
 
-{ TContainerControls --------------------------------------------------------- }
-
-type
-  { List of 2D controls with a container parent
-    (like TCastleWindow or TCastleControl). }
-  TContainerControls = class(TUIControlList)
-  strict private
-    FContainer: TUIContainer;
-    procedure RegisterContainer(const C: TUIControl; const AContainer: TUIContainer);
-    procedure UnregisterContainer(const C: TUIControl; const AContainer: TUIContainer);
-    procedure SetContainer(const AContainer: TUIContainer);
-  public
-    { Takes care to react to add/remove notifications,
-      doing appropriate operations with parent Container. }
-    procedure Notify(Ptr: Pointer; Action: TListNotification); override;
-    property Container: TUIContainer read FContainer write SetContainer;
-  end;
-
-procedure TContainerControls.RegisterContainer(
-  const C: TUIControl; const AContainer: TUIContainer);
-begin
-  { Make sure AContainer.ControlsVisibleChange (which in turn calls Invalidate)
-    will be called when a control calls OnVisibleChange.
-
-    We only change OnVisibleChange from @nil to it's own internal callback
-    (when adding a control), and from it's own internal callback to @nil
-    (when removing a control).
-    This means that if user code will assign OnVisibleChange callback to some
-    custom method --- we will not touch it anymore. That's safer.
-    Athough in general user code should not change OnVisibleChange for controls
-    on this list, to keep automatic Invalidate working. }
-  if C.OnVisibleChange = nil then
-    C.OnVisibleChange := @AContainer.ControlsVisibleChange;
-
-  { Register AContainer to be notified of control destruction. }
-  C.FreeNotification(AContainer);
-
-  C.Container := AContainer;
-  C.UIScaleChanged;
-
-  if AContainer.GLInitialized then
-  begin
-    if C.DisableContextOpenClose = 0 then
-      C.GLContextOpen;
-    { Call initial Resize for control.
-      If window OpenGL context is not yet initialized, defer it to
-      the Open time, then our initial EventResize will be called
-      that will do Resize on every control. }
-    C.Resize;
-  end;
-end;
-
-procedure TContainerControls.UnregisterContainer(
-  const C: TUIControl; const AContainer: TUIContainer);
-begin
-  if AContainer.GLInitialized and
-     (C.DisableContextOpenClose = 0) then
-    C.GLContextClose;
-
-  if C.OnVisibleChange = @AContainer.ControlsVisibleChange then
-    C.OnVisibleChange := nil;
-
-  C.RemoveFreeNotification(AContainer);
-  AContainer.DetachNotification(C);
-
-  C.Container := nil;
-end;
-
-procedure TContainerControls.Notify(Ptr: Pointer; Action: TListNotification);
-var
-  C: TUIControl absolute Ptr;
-begin
-  inherited;
-
-  { TODO: while this updating works cool, if the Container is destroyed
-    before children --- the children will keep invalid reference to Container. }
-
-  if FContainer = nil then
-    Exit;
-
-  C := TUIControl(Ptr);
-  case Action of
-    lnAdded:
-      RegisterContainer(C, FContainer);
-    lnExtracted, lnDeleted:
-      UnregisterContainer(C, FContainer);
-    else raise EInternalError.Create('TContainerControls.Notify action?');
-  end;
-
-  { This notification may get called during FreeAndNil(FControls)
-    in TUIContainer.Destroy. Then FControls is already nil, and we're
-    getting remove notification for all items (as FreeAndNil first sets
-    object to nil). Testcase: lets_take_a_walk exit. }
-  if FContainer.FControls <> nil then
-  begin
-    FContainer.UpdateFocusAndMouseCursor;
-    FContainer.Invalidate;
-  end;
-end;
-
-procedure TContainerControls.SetContainer(const AContainer: TUIContainer);
-var
-  I: Integer;
-begin
-  if FContainer <> AContainer then
-  begin
-    if FContainer <> nil then
-      for I := 0 to Count - 1 do
-        UnregisterContainer(Items[I], FContainer);
-    FContainer := AContainer;
-    if FContainer <> nil then
-      for I := 0 to Count - 1 do
-        RegisterContainer(Items[I], FContainer);
-  end;
-end;
-
 { TUIContainer --------------------------------------------------------------- }
 
 constructor TUIContainer.Create(AOwner: TComponent);
 begin
   inherited;
-  FControls := TContainerControls.Create(nil);
-  TContainerControls(FControls).Container := Self;
+  FControls := TChildrenControls.Create(nil);
+  TChildrenControls(FControls).Container := Self;
   FRenderStyle := rs2D;
   FTooltipDelay := DefaultTooltipDelay;
   FTooltipDistance := DefaultTooltipDistance;
   FCaptureInput := TFingerIndexCaptureMap.Create;
   FUIScaling := usNone;
   FUIExplicitScale := 1.0;
-  FCalculatedUIScale := 1.0;
+  FCalculatedUIScale := 1.0; // default safe value, in case some TUIControl will look here
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
@@ -1515,7 +1434,7 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
 var
   NewFocus: TUIControl;
 begin
-  { since this is called at the end of TContainerControls.Notify after
+  { since this is called at the end of TChildrenControls.Notify after
     some control is removed, we're paranoid here about checking csDestroying. }
 
   if UseForceCaptureInput and
@@ -1938,9 +1857,9 @@ begin
   if Assigned(OnResize) then OnResize(Self);
 end;
 
-function TUIContainer.Controls: TUIControlList;
+function TUIContainer.Controls: TChildrenControls;
 begin
-  Result := TUIControlList(FControls);
+  Result := TChildrenControls(FControls);
 end;
 
 function TUIContainer.IsMousePositionForMouseLook: boolean;
@@ -2026,6 +1945,9 @@ begin
     usExplicitScale: S := UIExplicitScale;
     usEncloseReferenceSize, usFitReferenceSize:
       begin
+        { don't do this before our Width/Height are sensible }
+        if not GLInitialized then Exit;
+
         S := 1;
         if (UIReferenceWidth <> 0) and (Width > 0) then
         begin
@@ -2178,6 +2100,7 @@ constructor TUIControl.Create(AOwner: TComponent);
 begin
   inherited;
   FExists := true;
+  FEnableUIScaling := true;
 end;
 
 destructor TUIControl.Destroy;
@@ -2191,8 +2114,8 @@ procedure TUIControl.CreateControls;
 begin
   if FControls = nil then
   begin
-    FControls := TContainerControls.Create(Self);
-    TContainerControls(FControls).Container := Container;
+    FControls := TChildrenControls.Create(Self);
+    TChildrenControls(FControls).Container := Container;
   end;
 end;
 
@@ -2256,15 +2179,24 @@ begin
   inherited;
   if FControls <> nil then
   begin
-    TContainerControls(FControls).Container := Value;
+    TChildrenControls(FControls).Container := Value;
     for I := 0 to FControls.Count - 1 do
       FControls[I].SetContainer(Value);
   end;
 end;
 
+procedure TUIControl.SetEnableUIScaling(const Value: boolean);
+begin
+  if FEnableUIScaling <> Value then
+  begin
+    FEnableUIScaling := Value;
+    UIScaleChanged;
+  end;
+end;
+
 function TUIControl.UIScale: Single;
 begin
-  if ContainerSizeKnown then
+  if ContainerSizeKnown and EnableUIScaling then
     Result := Container.FCalculatedUIScale else
     Result := 1.0;
 end;
@@ -2417,30 +2349,39 @@ end;
 function TUIControl.AllowSuspendForInput: boolean;
 var
   I: Integer;
+  C: TUIControl;
 begin
   Result := inherited;
   if not Result then Exit;
 
   if FControls <> nil then
     for I := FControls.Count - 1 downto 0 do
-      if not FControls[I].AllowSuspendForInput then
+    begin
+      C := FControls[I];
+      if C.GetExists and (not C.AllowSuspendForInput) then
         Exit(false);
+    end;
 end;
 
 procedure TUIControl.Resize;
 var
   I: Integer;
+  C: TUIControl;
 begin
   inherited;
 
   if FControls <> nil then
     for I := FControls.Count - 1 downto 0 do
-      FControls[I].Resize;
+    begin
+      C := FControls[I];
+      C.Resize;
+    end;
 end;
 
 function TUIControl.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
 var
   I: Integer;
+  C: TUIControl;
   SR: TRectangle;
 begin
   SR := ScreenRect;
@@ -2456,43 +2397,45 @@ begin
 
   if FControls <> nil then
     for I := FControls.Count - 1 downto 0 do
-      if FControls[I].CapturesEventsAtPosition(Position) then
+    begin
+      C := FControls[I];
+      if C.GetExists and C.CapturesEventsAtPosition(Position) then
         Exit(true);
+    end;
 end;
 
 function TUIControl.TooltipExists: boolean;
 var
   I: Integer;
+  C: TUIControl;
 begin
   Result := false;
 
   if FControls <> nil then
     for I := FControls.Count - 1 downto 0 do
-      if FControls[I].TooltipExists then
+    begin
+      C := FControls[I];
+      if C.GetExists and C.TooltipExists then
         Exit(true);
+    end;
 end;
 
 procedure TUIControl.BeforeRender;
 var
   I: Integer;
+  C: TUIControl;
 begin
   if FControls <> nil then
     for I := 0 to FControls.Count - 1 do
-      FControls[I].BeforeRender;
+    begin
+      C := FControls[I];
+      if C.GetExists and C.GLInitialized then
+        C.BeforeRender;
+    end;
 end;
 
 procedure TUIControl.Render;
 begin
-end;
-
-procedure TUIControl.RenderWithChildren;
-var
-  I: Integer;
-begin
-  Render;
-  if FControls <> nil then
-    for I := 0 to FControls.Count - 1 do
-      FControls[I].RenderWithChildren;
 end;
 
 function TUIControl.TooltipStyle: TRenderStyle;
@@ -2507,23 +2450,33 @@ end;
 procedure TUIControl.GLContextOpen;
 var
   I: Integer;
+  C: TUIControl;
 begin
   FGLInitialized := true;
 
   if FControls <> nil then
     for I := 0 to FControls.Count - 1 do
-      FControls[I].GLContextOpen;
+    begin
+      C := FControls[I];
+      if not C.GLInitialized then
+        C.GLContextOpen;
+    end;
 end;
 
 procedure TUIControl.GLContextClose;
 var
   I: Integer;
+  C: TUIControl;
 begin
   FGLInitialized := false;
 
   if FControls <> nil then
     for I := 0 to FControls.Count - 1 do
-      FControls[I].GLContextClose;
+    begin
+      C := FControls[I];
+      if C.GLInitialized then
+        C.GLContextClose;
+    end;
 end;
 
 function TUIControl.GetExists: boolean;
@@ -2674,8 +2627,17 @@ end;
 
 function TUIControl.Rect: TRectangle;
 begin
-  Result := Rectangle(Left, Bottom, 0, 0);
+  Result := Rectangle(LeftBottomScaled, 0, 0);
 end;
+
+(*
+function TUIControl.LocalRect: TRectangle;
+begin
+  {$warnings off}
+  Result := Rect; // make deprecated Rect work by calling it here
+  {$warnings off}
+end;
+*)
 
 function TUIControl.RectWithAnchors: TRectangle;
 
@@ -2835,9 +2797,9 @@ begin
   VerticalAnchorDelta := AVerticalAnchorDelta;
 end;
 
-{ TUIControlList ------------------------------------------------------------- }
+{ TChildrenControls ------------------------------------------------------------- }
 
-constructor TUIControlList.Create(AParent: TUIControl);
+constructor TChildrenControls.Create(AParent: TUIControl);
 begin
   inherited Create;
   FParent := AParent;
@@ -2845,28 +2807,28 @@ begin
   FList.Parent := Self;
 end;
 
-destructor TUIControlList.Destroy;
+destructor TChildrenControls.Destroy;
 begin
   FreeAndNil(FList);
   inherited;
 end;
 
-function TUIControlList.GetItem(const I: Integer): TUIControl;
+function TChildrenControls.GetItem(const I: Integer): TUIControl;
 begin
   Result := TUIControl(FList.Items[I]);
 end;
 
-procedure TUIControlList.SetItem(const I: Integer; const Item: TUIControl);
+procedure TChildrenControls.SetItem(const I: Integer; const Item: TUIControl);
 begin
   FList.Items[I] := Item;
 end;
 
-function TUIControlList.Count: Integer;
+function TChildrenControls.Count: Integer;
 begin
   Result := FList.Count;
 end;
 
-procedure TUIControlList.BeginDisableContextOpenClose;
+procedure TChildrenControls.BeginDisableContextOpenClose;
 var
   I: Integer;
 begin
@@ -2875,7 +2837,7 @@ begin
       DisableContextOpenClose := DisableContextOpenClose + 1;
 end;
 
-procedure TUIControlList.EndDisableContextOpenClose;
+procedure TChildrenControls.EndDisableContextOpenClose;
 var
   I: Integer;
 begin
@@ -2884,15 +2846,229 @@ begin
       DisableContextOpenClose := DisableContextOpenClose - 1;
 end;
 
-procedure TUIControlList.InsertFront(const NewItem: TUIControl);
+procedure TChildrenControls.InsertFront(const NewItem: TUIControl);
 begin
   FList.Add(NewItem);
 end;
 
-procedure TUIControlList.InsertFrontIfNotExists(const NewItem: TUIControl);
+procedure TChildrenControls.InsertFrontIfNotExists(const NewItem: TUIControl);
 begin
   if FList.IndexOf(NewItem) = -1 then
     FList.Add(NewItem);
+end;
+
+procedure TChildrenControls.InsertFront(const NewItems: TUIControlList);
+var
+  I: Integer;
+begin
+  for I := 0 to NewItems.Count - 1 do
+    InsertFront(NewItems[I]);
+end;
+
+procedure TChildrenControls.InsertBack(const NewItem: TUIControl);
+begin
+  FList.Insert(0, NewItem);
+end;
+
+procedure TChildrenControls.InsertBackIfNotExists(const NewItem: TUIControl);
+begin
+  if FList.IndexOf(NewItem) = -1 then
+    FList.Insert(0, NewItem);
+end;
+
+procedure TChildrenControls.Add(const Item: TUIControl);
+begin
+  InsertFront(Item);
+end;
+
+procedure TChildrenControls.Insert(const Index: Integer; const Item: TUIControl);
+begin
+  FList.Insert(Index, Item);
+end;
+
+procedure TChildrenControls.InsertBack(const NewItems: TUIControlList);
+var
+  I: Integer;
+begin
+  for I := NewItems.Count - 1 downto 0 do
+    InsertBack(NewItems[I]);
+end;
+
+{$ifndef VER2_6}
+function TChildrenControls.GetEnumerator: TEnumerator;
+begin
+  Result := TEnumerator.Create(Self);
+end;
+{$endif}
+
+procedure TChildrenControls.Notify(Ptr: Pointer; Action: TListNotification);
+var
+  C: TUIControl;
+begin
+  { TODO: while this updating works cool,
+    if the Parent or Container is destroyed
+    before children --- the children will keep invalid reference. }
+
+  C := TUIControl(Ptr);
+  case Action of
+    lnAdded:
+      begin
+        if Container <> nil then RegisterContainer(C, FContainer);
+        C.FParent := FParent;
+      end;
+    lnExtracted, lnDeleted:
+      begin
+        C.FParent := nil;
+        if Container <> nil then UnregisterContainer(C, FContainer);
+      end;
+    else raise EInternalError.Create('TChildrenControls.Notify action?');
+  end;
+
+  { This notification may get called during FreeAndNil(FControls)
+    in TUIContainer.Destroy. Then FControls is already nil, and we're
+    getting remove notification for all items (as FreeAndNil first sets
+    object to nil). Testcase: lets_take_a_walk exit. }
+  if (FContainer <> nil) and
+     (FContainer.FControls <> nil) then
+  begin
+    FContainer.UpdateFocusAndMouseCursor;
+    FContainer.Invalidate;
+  end;
+end;
+
+procedure TChildrenControls.Assign(const Source: TChildrenControls);
+begin
+  FList.Assign(Source.FList);
+end;
+
+procedure TChildrenControls.Remove(const Item: TUIControl; const Recursive: boolean);
+var
+  I: Integer;
+begin
+  FList.RemoveAll(Item);
+  if Recursive then
+    for I := 0 to FList.Count - 1 do
+      if TUIControl(FList[I]).FControls <> nil then
+        TUIControl(FList[I]).FControls.Remove(Item, Recursive);
+end;
+
+procedure TChildrenControls.Clear;
+begin
+  FList.Clear;
+end;
+
+function TChildrenControls.MakeSingle(ReplaceClass: TUIControlClass; NewItem: TUIControl;
+  AddFront: boolean): TUIControl;
+begin
+  Result := FList.MakeSingle(ReplaceClass, NewItem, AddFront) as TUIControl;
+end;
+
+procedure TChildrenControls.RegisterContainer(
+  const C: TUIControl; const AContainer: TUIContainer);
+begin
+  { Make sure AContainer.ControlsVisibleChange (which in turn calls Invalidate)
+    will be called when a control calls OnVisibleChange.
+
+    We only change OnVisibleChange from @nil to it's own internal callback
+    (when adding a control), and from it's own internal callback to @nil
+    (when removing a control).
+    This means that if user code will assign OnVisibleChange callback to some
+    custom method --- we will not touch it anymore. That's safer.
+    Athough in general user code should not change OnVisibleChange for controls
+    on this list, to keep automatic Invalidate working. }
+  if C.OnVisibleChange = nil then
+    C.OnVisibleChange := @AContainer.ControlsVisibleChange;
+
+  { Register AContainer to be notified of control destruction. }
+  C.FreeNotification(AContainer);
+
+  C.Container := AContainer;
+  C.UIScaleChanged;
+
+  if AContainer.GLInitialized then
+  begin
+    if C.DisableContextOpenClose = 0 then
+      C.GLContextOpen;
+    { Call initial Resize for control.
+      If window OpenGL context is not yet initialized, defer it to
+      the Open time, then our initial EventResize will be called
+      that will do Resize on every control. }
+    C.Resize;
+  end;
+end;
+
+procedure TChildrenControls.UnregisterContainer(
+  const C: TUIControl; const AContainer: TUIContainer);
+begin
+  if AContainer.GLInitialized and
+     (C.DisableContextOpenClose = 0) then
+    C.GLContextClose;
+
+  if C.OnVisibleChange = @AContainer.ControlsVisibleChange then
+    C.OnVisibleChange := nil;
+
+  C.RemoveFreeNotification(AContainer);
+  AContainer.DetachNotification(C);
+
+  C.Container := nil;
+end;
+
+procedure TChildrenControls.SetContainer(const AContainer: TUIContainer);
+var
+  I: Integer;
+begin
+  if FContainer <> AContainer then
+  begin
+    if FContainer <> nil then
+      for I := 0 to Count - 1 do
+        UnregisterContainer(Items[I], FContainer);
+    FContainer := AContainer;
+    if FContainer <> nil then
+      for I := 0 to Count - 1 do
+        RegisterContainer(Items[I], FContainer);
+  end;
+end;
+
+{ TChildrenControls.TMyObjectList ----------------------------------------------- }
+
+procedure TChildrenControls.TMyObjectList.Notify(Ptr: Pointer; Action: TListNotification);
+begin
+  Parent.Notify(Ptr, Action);
+end;
+
+{ TChildrenControls.TEnumerator ------------------------------------------------- }
+
+{$ifndef VER2_6}
+function TChildrenControls.TEnumerator.GetCurrent: TUIControl;
+begin
+  Result := FList.Items[FPosition];
+end;
+
+constructor TChildrenControls.TEnumerator.Create(AList: TChildrenControls);
+begin
+  inherited Create;
+  FList := AList;
+  FPosition := -1;
+end;
+
+function TChildrenControls.TEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FList.Count;
+end;
+{$endif}
+
+{ TUIControlList ------------------------------------------------------------- }
+
+procedure TUIControlList.InsertFront(const NewItem: TUIControl);
+begin
+  Add(NewItem);
+end;
+
+procedure TUIControlList.InsertFrontIfNotExists(const NewItem: TUIControl);
+begin
+  if IndexOf(NewItem) = -1 then
+    Add(NewItem);
 end;
 
 procedure TUIControlList.InsertFront(const NewItems: TUIControlList);
@@ -2905,23 +3081,13 @@ end;
 
 procedure TUIControlList.InsertBack(const NewItem: TUIControl);
 begin
-  FList.Insert(0, NewItem);
+  Insert(0, NewItem);
 end;
 
 procedure TUIControlList.InsertBackIfNotExists(const NewItem: TUIControl);
 begin
-  if FList.IndexOf(NewItem) = -1 then
-    FList.Insert(0, NewItem);
-end;
-
-procedure TUIControlList.Add(const Item: TUIControl);
-begin
-  InsertFront(Item);
-end;
-
-procedure TUIControlList.Insert(const Index: Integer; const Item: TUIControl);
-begin
-  FList.Insert(Index, Item);
+  if IndexOf(NewItem) = -1 then
+    Insert(0, NewItem);
 end;
 
 procedure TUIControlList.InsertBack(const NewItems: TUIControlList);
@@ -2931,85 +3097,6 @@ begin
   for I := NewItems.Count - 1 downto 0 do
     InsertBack(NewItems[I]);
 end;
-
-{$ifndef VER2_6}
-function TUIControlList.GetEnumerator: TEnumerator;
-begin
-  Result := TEnumerator.Create(Self);
-end;
-{$endif}
-
-procedure TUIControlList.Notify(Ptr: Pointer; Action: TListNotification);
-var
-  C: TUIControl;
-begin
-  { TODO: while this updating works cool, if the parent is destroyed
-    before children --- the children will keep invalid reference to Parent. }
-
-  C := TUIControl(Ptr);
-  case Action of
-    lnAdded:
-      C.FParent := FParent;
-    lnExtracted, lnDeleted:
-      C.FParent := nil;
-  end;
-end;
-
-procedure TUIControlList.Assign(const Source: TUIControlList);
-begin
-  FList.Assign(Source.FList);
-end;
-
-procedure TUIControlList.Remove(const Item: TUIControl; const Recursive: boolean);
-var
-  I: Integer;
-begin
-  FList.RemoveAll(Item);
-  if Recursive then
-    for I := 0 to FList.Count - 1 do
-      if TUIControl(FList[I]).FControls <> nil then
-        TUIControl(FList[I]).FControls.Remove(Item, Recursive);
-end;
-
-procedure TUIControlList.Clear;
-begin
-  FList.Clear;
-end;
-
-function TUIControlList.MakeSingle(ReplaceClass: TUIControlClass; NewItem: TUIControl;
-  AddFront: boolean): TUIControl;
-begin
-  Result := FList.MakeSingle(ReplaceClass, NewItem, AddFront) as TUIControl;
-end;
-
-{ TUIControlList.TMyObjectList ----------------------------------------------- }
-
-procedure TUIControlList.TMyObjectList.Notify(Ptr: Pointer; Action: TListNotification);
-begin
-  Parent.Notify(Ptr, Action);
-end;
-
-{ TUIControlList.TEnumerator ------------------------------------------------- }
-
-{$ifndef VER2_6}
-function TUIControlList.TEnumerator.GetCurrent: TUIControl;
-begin
-  Result := FList.Items[FPosition];
-end;
-
-constructor TUIControlList.TEnumerator.Create(AList: TUIControlList);
-begin
-  inherited Create;
-  FList := AList;
-  FPosition := -1;
-end;
-
-function TUIControlList.TEnumerator.MoveNext: Boolean;
-begin
-  Inc(FPosition);
-  Result := FPosition < FList.Count;
-end;
-{$endif}
 
 { TGLContextEventList -------------------------------------------------------- }
 

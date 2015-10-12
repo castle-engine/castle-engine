@@ -66,7 +66,7 @@ type
         OldSwapFullScreen_Key: TKey;
         OldClose_charkey: char;
         OldFpsShowOnCaption: boolean;
-        OldControls: TUIControlList;
+        OldControls: TChildrenControls;
         OldAutomaticTouchControl: boolean;
         procedure WindowOpen(Container: TUIContainer);
         procedure WindowClose(Container: TUIContainer);
@@ -286,7 +286,7 @@ begin
   oldClose_charkey := Window.Close_charkey;
   oldFpsShowOnCaption := Window.FpsShowOnCaption;
 
-  OldControls := TUIControlList.Create(nil);
+  OldControls := TChildrenControls.Create(nil);
   OldControls.Assign(Window.Controls);
   for I := 0 to OldControls.Count - 1 do
     OldControls[I].FreeNotification(Self);

@@ -152,7 +152,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    function Controls: TUIControlList;
+    function Controls: TChildrenControls;
 
     function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
     procedure Invalidate; override;
@@ -1155,7 +1155,7 @@ begin
   Result := Rectangle(0, 0, Width, Height);
 end;
 
-function TCastleControlCustom.Controls: TUIControlList;
+function TCastleControlCustom.Controls: TChildrenControls;
 begin
   Result := Container.Controls;
 end;

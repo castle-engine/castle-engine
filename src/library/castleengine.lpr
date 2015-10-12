@@ -162,7 +162,7 @@ begin
   try
     if not cge_verifyInit then exit;
 
-    Restore2D := TUIControlList.Create(nil);
+    Restore2D := TUIControlList.Create(false);
     try
       // hide touch controls
       for I := 0 to Window.Controls.Count - 1 do

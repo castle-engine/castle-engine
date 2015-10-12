@@ -234,7 +234,7 @@ end;
 procedure TUIState.InternalStart;
 var
   SavedControlsCount, PositionInControls: Integer;
-  NewControls: TUIControlList;
+  NewControls: TChildrenControls;
 begin
   NewControls := StateContainer.Controls;
   SavedControlsCount := NewControls.Count;

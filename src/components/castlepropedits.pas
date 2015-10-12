@@ -41,7 +41,7 @@ type
     function GetFilter: String; override;
   end;
 
-  TUIControlListPropertyEditor = class(TListPropertyEditor)
+  TChildrenControlsPropertyEditor = class(TListPropertyEditor)
   end;
 
 function TSceneURLPropertyEditor.GetFilter: String;
@@ -71,8 +71,8 @@ begin
   RegisterPropertyEditor(TypeInfo(AnsiString), TCastleImageControl,
     'URL', TImageURLPropertyEditor);
   { TODO: crashes
-  RegisterPropertyEditor(TypeInfo(TUIControlList), TCastleControlCustom,
-    'Controls', TUIControlListPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TChildrenControls), TCastleControlCustom,
+    'Controls', TChildrenControlsPropertyEditor);
   }
 end;
 

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Controls drawn inside OpenGL context. }
+{ Standard 2D controls: buttons, labels, sliders etc. }
 unit CastleControls;
 
 interface
@@ -52,6 +52,7 @@ type
     { Called when Font or it's size changed. }
     procedure FontChanged; virtual;
     procedure UIScaleChanged; override;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     destructor Destroy; override;
     procedure GLContextClose; override;
@@ -84,6 +85,7 @@ type
       read FCustomFont write SetCustomFont;
     property OwnsCustomFont: boolean
       read FOwnsCustomFont write FOwnsCustomFont default false;
+      deprecated 'use TCastleFont (inherited from TComponent) owner mechanism';
 
     { Use given font size when drawing. Leave at default zero to use
       the default size of the font (may still be scaled by @link(TUIControl.UIScale),
@@ -367,8 +369,8 @@ type
       @unorderedList(
         @item(If Stretch = @true and FullSize = @true then values of Width,
           Height, Left, Bottom do not matter:
-          image always fills the whole container
-          (@link(Rect) corresponds to the container area).)
+          image always fills the whole parent
+          (@link(Rect) corresponds to the parent area).)
 
         @item(Otherwise, if Stretch = @true and Proportional = @true,
           then the image will be proportionally scaled to fit within
@@ -585,9 +587,7 @@ type
       leave this at tiLabel. }
     ImageType: TThemeImage;
     FAlignment: THorizontalPosition;
-    { Calculate surrounding rectangle, like for @link(Rect),
-      also calculating TextBroken (in case MaxWidth <> 0) along they way. }
-    function RectCore(out TextBroken: TStrings): TRectangle;
+    function GetTextToRender(out FreeTextToRender: boolean): TStrings;
   public
     const
       DefaultLineSpacing = 2;
@@ -1051,7 +1051,7 @@ begin
   if (FFontSize <> 0) or (UIScale <> 1) then
   begin
     if FCustomizedFont = nil then
-      FCustomizedFont := TCustomizedFont.Create(nil, false);
+      FCustomizedFont := TCustomizedFont.Create(nil);
     if FFontSize <> 0 then
       FCustomizedFont.Size := FFontSize else
       FCustomizedFont.Size := Result.Size; // to have something to multiply in line below
@@ -1065,11 +1065,37 @@ procedure TUIControlFont.SetCustomFont(const Value: TCastleFont);
 begin
   if FCustomFont <> Value then
   begin
+    if FCustomFont <> nil then
+      FCustomFont.RemoveFreeNotification(Self);
+    {$warnings off}
     if OwnsCustomFont then
       FreeAndNil(FCustomFont) else
       FCustomFont := nil;
+    {$warnings on}
     FCustomFont := Value;
-    FontChanged;
+    if FCustomFont <> nil then
+      FCustomFont.FreeNotification(Self);
+    { don't call virtual function, that may try to measure the text by accessing Font
+      (needlessly using UIFont, possibly even recreating UIFont if "finalization"
+      of this unit already run, possibly even accessing invalid free TextureFontData). }
+    if not (csDestroying in ComponentState) then
+      FontChanged;
+  end;
+end;
+
+procedure TUIControlFont.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+
+  if (Operation = opRemove) and (AComponent = FCustomFont) then
+  begin
+    { set to nil by SetCustomFont to clean nicely }
+    { since it's already being freed, do not apply OwnsCustomFont effect
+      inside SetCustomFont. }
+    {$warnings off}
+    OwnsCustomFont := false;
+    {$warnings on}
+    CustomFont := nil;
   end;
 end;
 
@@ -1597,7 +1623,9 @@ end;
 function TCastleImageControl.Rect: TRectangle;
 var
   NewWidth, NewHeight, NewLeft, NewBottom: Integer;
+  ApplyScaling: boolean;
 begin
+  ApplyScaling := true;
   if not Stretch then
   begin
     if FImage <> nil then
@@ -1606,7 +1634,10 @@ begin
   end else
   begin
     if FullSize then
-      Result := ParentRect else
+    begin
+      Result := ParentRect;
+      ApplyScaling := false;
+    end else
     if Proportional and (FImage <> nil) then
     begin
       if Width / Height > FImage.Width / FImage.Height then
@@ -1624,8 +1655,9 @@ begin
       Result := Rectangle(Left, Bottom, Width, Height);
   end;
 
-  // applying UIScale on this is easy...
-  Result := Result.ScaleAround0(UIScale);
+  if ApplyScaling then
+    // applying UIScale on this is easy...
+    Result := Result.ScaleAround0(UIScale);
 end;
 
 procedure TCastleImageControl.GLContextOpen;
@@ -2424,67 +2456,70 @@ begin
   inherited;
 end;
 
-function TCastleLabel.RectCore(out TextBroken: TStrings): TRectangle;
+function TCastleLabel.GetTextToRender(out FreeTextToRender: boolean): TStrings;
 var
-  TextToRender: TStrings;
-  PaddingScaled, LineSpacingScaled: Integer;
+  PaddingScaled, MaxWidthScaled: Integer;
   US: Single;
 begin
-  TextBroken := nil;
   if MaxWidth = 0 then
-    TextToRender := Text else
   begin
-    TextBroken := TStringList.Create;
-    TextToRender := TextBroken;
+    Result := Text;
+    FreeTextToRender := false;
+  end else
+  begin
+    US := UIScale;
+    PaddingScaled := Round(US * Padding);
+    MaxWidthScaled := Round(US * Padding);
+
+    Result := TStringList.Create;
+    FreeTextToRender := true;
     { TODO: this breaks not taking Tags property into account.
       When Tags=@true and some tags are actually used,
       the text may not be broken optimally (as BreakLines will think
       that invisible tags actually take space). }
-    Font.BreakLines(Text, TextBroken, MaxWidth - 2 * Padding);
+    Font.BreakLines(Text, Result, MaxWidthScaled - 2 * PaddingScaled);
   end;
-
-  US := UIScale;
-  PaddingScaled := Round(US * Padding);
-  LineSpacingScaled := Round(US * LineSpacing);
-  Result := Rectangle(
-    LeftBottomScaled,
-    Font.MaxTextWidth(TextToRender, Tags) + 2 * PaddingScaled,
-    (Font.RowHeight + LineSpacingScaled) * TextToRender.Count +
-      2 * PaddingScaled + Font.Descend);
 end;
 
 function TCastleLabel.Rect: TRectangle;
 var
-  TextBroken: TStrings;
+  TextToRender: TStrings;
+  FreeTextToRender: boolean;
+  PaddingScaled, LineSpacingScaled: Integer;
+  US: Single;
 begin
-  TextBroken := nil;
+  TextToRender := GetTextToRender(FreeTextToRender);
   try
-    Result := RectCore(TextBroken);
-  finally FreeAndNil(TextBroken) end;
+    US := UIScale;
+    PaddingScaled := Round(US * Padding);
+    LineSpacingScaled := Round(US * LineSpacing);
+    Result := Rectangle(
+      LeftBottomScaled,
+      Font.MaxTextWidth(TextToRender, Tags) + 2 * PaddingScaled,
+      (Font.RowHeight + LineSpacingScaled) * TextToRender.Count +
+        2 * PaddingScaled + Font.Descend);
+  finally
+    if FreeTextToRender then FreeAndNil(TextToRender);
+  end;
 end;
 
 procedure TCastleLabel.Render;
 var
-  LocalR, SR: TRectangle;
-  TextBroken, TextToRender: TStrings;
+  SR: TRectangle;
+  TextToRender: TStrings;
+  FreeTextToRender: boolean;
   TextX, PaddingScaled, LineSpacingScaled: Integer;
   US: Single;
 begin
   inherited;
   if Text.Count = 0 then Exit;
 
-  TextToRender := Text;
-  TextBroken := nil;
+  TextToRender := GetTextToRender(FreeTextToRender);
   try
-    { we avoid calling here Rect or ScreenRect for speed (as it would lead
-      to calling Font.BreakLines multiple times during rendering. }
-    LocalR := RectCore(TextBroken);
-    SR := LocalR.Translate(LocalToScreenTranslation); // faster calculation of ScreenRect
+    SR := ScreenRect;
     US := UIScale;
     PaddingScaled := Round(US * Padding);
     LineSpacingScaled := Round(US * LineSpacing);
-    if TextBroken <> nil then
-      TextToRender := TextBroken;
     if Frame then
       Theme.Draw(SR, ImageType);
     case Alignment of
@@ -2496,7 +2531,9 @@ begin
     Font.PrintStrings(TextX,
       SR.Bottom + PaddingScaled + Font.Descend, Color, TextToRender,
       Tags, LineSpacingScaled, Alignment);
-  finally FreeAndNil(TextBroken) end;
+  finally
+    if FreeTextToRender then FreeAndNil(TextToRender);
+  end;
 end;
 
 { TCastleProgressBar --------------------------------------------------------- }

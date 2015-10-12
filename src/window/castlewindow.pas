@@ -1839,7 +1839,7 @@ end;
       write SetCustomCursor;
 
     property RenderStyle: TRenderStyle read GetRenderStyle write SetRenderStyle default rs2D;
-    function Controls: TUIControlList;
+    function Controls: TChildrenControls;
 
     { Is the OpenGL context initialized. This is equivalent to @code(not Closed),
       which means we are between an @link(Open) and @link(Close) calls. }
@@ -4133,7 +4133,7 @@ begin
   Container.RenderStyle := Value;
 end;
 
-function TCastleWindowCustom.Controls: TUIControlList;
+function TCastleWindowCustom.Controls: TChildrenControls;
 begin
   Result := Container.Controls;
 end;
