@@ -63,15 +63,9 @@
 
 { We do *not* define inline functions/methods when compiling from
   Lazarus package. This is to workaround FPC bug
-  http://bugs.freepascal.org/view.php?id=12223 .
-
-  Later: in general, FPC (3.1.1 and 2.6.4...) fails with various
-  internal errors sometimes when modifying the engine and inline is used...
-  Just don't use it, unless in -dRELEASE. }
+  http://bugs.freepascal.org/view.php?id=12223 . }
 {$ifndef CASTLE_ENGINE_LAZARUS_PACKAGE}
-  {$ifdef RELEASE}
-    {$define SUPPORTS_INLINE}
-  {$endif}
+  {$define SUPPORTS_INLINE}
 {$endif}
 
 {$ifdef VER2_0} {$fatal FPC 2.0.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
