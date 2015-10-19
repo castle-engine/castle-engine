@@ -25,6 +25,7 @@ examples/3d_rendering_processing/combine_multiple_x3d_into_one
 examples/3d_sound_game/data/levels/base/devel/process_base_b
 examples/3d_sound_game/data/levels/base/devel/process_base_b.res
 examples/3d_sound_game/lets_take_a_walk
+examples/android/android_demo/androiddemo
 examples/android/android_demo/android/assets/
 examples/android/android_demo/android/bin/
 examples/android/android_demo/android/libs/

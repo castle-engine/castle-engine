@@ -30,34 +30,57 @@ uses SysUtils, CastleWindow, CastleSceneCore, CastleScene, X3DLoad, X3DNodes,
   CastleFilesUtils, CastleVectors;
 
 var
-  MainRoot, Model1, Model2: TX3DRootNode;
-  Transform1, Transform2: TTransformNode;
+  MainRoot, ModelBoxes, ModelRaptor: TX3DRootNode;
+  TransformBoxes: TTransformNode;
+  TransformRaptor: array [0..2] of TTransformNode;
   Window: TCastleWindow;
   Scene: TCastleScene;
+  I: Integer;
 begin
   { Create an X3D graph like this:
+
     MainRoot (TX3DRootNode)
-    * Transform1 (TTransformNode)
-      * Model1 (TX3DRootNode, loaded from models/boxes.x3dv)
-    * Transform2 (TTransformNode)
-      * Model1 (TX3DRootNode, loaded from models/raptor_1.x3d)
+    |- TransformBoxes (TTransformNode)
+       |- ModelBoxes (TX3DRootNode, loaded from models/boxes.x3dv)
+
+    |- TransformRaptor[0] (TTransformNode)
+       |- ModelRaptor (TX3DRootNode, loaded from models/raptor_1.x3d)
+
+    |- TransformRaptor[1] (TTransformNode)
+       |- ModelRaptor (TX3DRootNode, loaded from models/raptor_1.x3d)
+
+    |- TransformRaptor[2] (TTransformNode)
+       |- ModelRaptor (TX3DRootNode, loaded from models/raptor_1.x3d)
+
+    Note that the same TCastleScene instance "ModelRaptor" is added
+    multiple times to the X3D nodes graph (just with different transformations).
+    This is fully supported and valid.
   }
 
-  Model1 := Load3D(ApplicationData('models/boxes.x3dv'));
-
-  Transform1 := TTransformNode.Create('', '');
-  Transform1.Translation := Vector3Single(-5, 0, 0);
-  Transform1.FdChildren.Add(Model1);
-
-  Model2 := Load3D(ApplicationData('models/raptor_1.x3d'));
-
-  Transform2 := TTransformNode.Create('', '');
-  Transform2.Translation := Vector3Single(5, 0, 0);
-  Transform2.FdChildren.Add(Model2);
-
   MainRoot := TX3DRootNode.Create('', '');
-  MainRoot.FdChildren.Add(Transform1);
-  MainRoot.FdChildren.Add(Transform2);
+
+  { add ModelBoxes and TransformBoxes }
+
+  ModelBoxes := Load3D(ApplicationData('models/boxes.x3dv'));
+
+  TransformBoxes := TTransformNode.Create('', '');
+  TransformBoxes.Translation := Vector3Single(-5, 0, 0);
+  TransformBoxes.FdChildren.Add(ModelBoxes);
+
+  MainRoot.FdChildren.Add(TransformBoxes);
+
+  { add ModelRaptor and TransformRaptor[0..2] }
+
+  ModelRaptor := Load3D(ApplicationData('models/raptor_1.x3d'));
+
+  for I := 0 to 2 do
+  begin
+    TransformRaptor[I] := TTransformNode.Create('', '');
+    TransformRaptor[I].Translation := Vector3Single(8, (I -1)  * 5, 0);
+    TransformRaptor[I].FdChildren.Add(ModelRaptor);
+
+    MainRoot.FdChildren.Add(TransformRaptor[I]);
+  end;
 
   { now load and display MainRoot model }
 
