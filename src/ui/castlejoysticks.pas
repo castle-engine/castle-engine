@@ -6,6 +6,9 @@
 
   "Castle Game Engine" is free software; see the file COPYING.txt,
   included in this distribution, for details about the copyright.
+  This file is based on ZenGL, with "zlib" license
+  ( http://www.zengl.org/license.html ) which is fully compatible with
+  Castle Game Engine "LGPL with static linking exception" / GPL licensing.
 
   "Castle Game Engine" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -122,7 +125,7 @@ const
   JOYCAPS_HASPOV  = 16;
   JOYCAPS_POV4DIR = 32;
   JOYCAPS_POVCTS  = 64;
-  
+
   WINMMLIB = 'winmm.dll';
 
   function joyGetNumDevs : LongWord; stdcall; external WINMMLIB name 'joyGetNumDevs';
@@ -204,7 +207,7 @@ type
   public
     constructor Create;
     destructor Destroy;
-    
+
     procedure Poll;
     function  GetInfo( JoyID : Byte ) : PJoyInfo;
     function  AxisPos( JoyID, Axis : Byte ) : Single;
@@ -216,7 +219,7 @@ type
     property OnAxisMove: TOnJoyAxisMove read FOnAxisMove write FOnAxisMove;
     property JoyCount: Integer read FjoyCount;
   end;
-  
+
 implementation
 
 uses
