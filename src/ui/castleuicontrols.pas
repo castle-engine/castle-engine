@@ -1150,8 +1150,15 @@ end;
         { Pass notifications to Parent. }
         procedure Notify(Ptr: Pointer; Action: TListNotification); override;
       end;
+      TCaptureFreeNotifications = class(TComponent)
+      protected
+        Parent: TChildrenControls;
+        { Pass notifications to Parent. }
+        procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+      end;
     var
       FList: TMyObjectList;
+      FCaptureFreeNotifications: TCaptureFreeNotifications;
 
     {$ifndef VER2_6}
     { Using this causes random crashes in -dRELEASE with FPC 2.6.x. }
@@ -1191,6 +1198,7 @@ end;
     procedure Clear;
     procedure Add(const Item: TUIControl); deprecated 'use InsertFront or InsertBack';
     procedure Insert(const Index: Integer; const Item: TUIControl);
+    function IndexOf(const Item: TUIControl): Integer;
 
     { Make sure that NewItem is the only instance of given ReplaceClass
       on the list, replacing old item if necesssary.
@@ -1361,22 +1369,8 @@ end;
 procedure TUIContainer.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
-
-  { We have to remove a reference to the object from Controls list.
-    This is crucial: TControlledUIControlList.Notify,
-    and some Controls.MakeSingle calls, assume that all objects on
-    the Controls list are always valid objects (no invalid references,
-    even for a short time).
-
-    Check "Controls <> nil" is not needed here, it's just in case
-    this code will be moved to TUIControl.Notification some day.
-    See T3D.Notification for explanation. }
-
-  if (Operation = opRemove) and (AComponent is TUIControl) {and (Controls <> nil)} then
-  begin
-    Controls.Remove(TUIControl(AComponent), true);
+  if (Operation = opRemove) and (AComponent is TUIControl) then
     DetachNotification(TUIControl(AComponent));
-  end;
 end;
 
 procedure TUIContainer.DetachNotification(const C: TUIControl);
@@ -2805,11 +2799,14 @@ begin
   FParent := AParent;
   FList := TMyObjectList.Create;
   FList.Parent := Self;
+  FCaptureFreeNotifications := TCaptureFreeNotifications.Create(nil);
+  FCaptureFreeNotifications.Parent := Self;
 end;
 
 destructor TChildrenControls.Destroy;
 begin
   FreeAndNil(FList);
+  FreeAndNil(FCaptureFreeNotifications);
   inherited;
 end;
 
@@ -2886,6 +2883,11 @@ begin
   FList.Insert(Index, Item);
 end;
 
+function TChildrenControls.IndexOf(const Item: TUIControl): Integer;
+begin
+  Result := FList.IndexOf(Item);
+end;
+
 procedure TChildrenControls.InsertBack(const NewItems: TUIControlList);
 var
   I: Integer;
@@ -2913,6 +2915,7 @@ begin
   case Action of
     lnAdded:
       begin
+        C.FreeNotification(FCaptureFreeNotifications);
         if Container <> nil then RegisterContainer(C, FContainer);
         C.FParent := FParent;
       end;
@@ -2920,6 +2923,7 @@ begin
       begin
         C.FParent := nil;
         if Container <> nil then UnregisterContainer(C, FContainer);
+        C.RemoveFreeNotification(FCaptureFreeNotifications);
       end;
     else raise EInternalError.Create('TChildrenControls.Notify action?');
   end;
@@ -2936,6 +2940,19 @@ begin
   end;
 end;
 
+procedure TChildrenControls.TCaptureFreeNotifications.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+
+  { We have to remove a reference to the object from list.
+    This is crucial, various methods assume that all objects on
+    the list are always valid objects (no invalid references,
+    even for a short time). }
+
+  if (Operation = opRemove) and (AComponent is TUIControl) then
+    Parent.FList.RemoveAll(AComponent);
+end;
+
 procedure TChildrenControls.Assign(const Source: TChildrenControls);
 begin
   FList.Assign(Source.FList);
@@ -2946,6 +2963,7 @@ var
   I: Integer;
 begin
   FList.RemoveAll(Item);
+  // TODO: this Recursive is not used anymore?
   if Recursive then
     for I := 0 to FList.Count - 1 do
       if TUIControl(FList[I]).FControls <> nil then
