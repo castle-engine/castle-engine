@@ -1194,7 +1194,7 @@ end;
       Note that the given Item should always exist only once on a list
       (it is not allowed to add it multiple times), but for safety we find
       and remove all occurences. }
-    procedure Remove(const Item: TUIControl; const Recursive: boolean = false);
+    procedure RemoveAll(const Item: TUIControl);
     procedure Clear;
     procedure Add(const Item: TUIControl); deprecated 'use InsertFront or InsertBack';
     procedure Insert(const Index: Integer; const Item: TUIControl);
@@ -2958,16 +2958,9 @@ begin
   FList.Assign(Source.FList);
 end;
 
-procedure TChildrenControls.Remove(const Item: TUIControl; const Recursive: boolean);
-var
-  I: Integer;
+procedure TChildrenControls.RemoveAll(const Item: TUIControl);
 begin
   FList.RemoveAll(Item);
-  // TODO: this Recursive is not used anymore?
-  if Recursive then
-    for I := 0 to FList.Count - 1 do
-      if TUIControl(FList[I]).FControls <> nil then
-        TUIControl(FList[I]).FControls.Remove(Item, Recursive);
 end;
 
 procedure TChildrenControls.Clear;

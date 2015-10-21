@@ -70,8 +70,6 @@ type
         OldAutomaticTouchControl: boolean;
         procedure WindowOpen(Container: TUIContainer);
         procedure WindowClose(Container: TUIContainer);
-      protected
-        procedure Notification(AComponent: TComponent; Operation: TOperation); override;
       public
         { When adding new attributes to TCastleWindowCustom that should be saved/restored,
           you must remember to
@@ -253,8 +251,6 @@ uses CastleUtils, CastleWindowTouch;
 { TGLMode.TWindowState -------------------------------------------------------------- }
 
 constructor TGLMode.TWindowState.Create(AWindow: TCastleWindowCustom);
-var
-  I: Integer;
 begin
   inherited Create(nil);
   Window := AWindow;
@@ -288,8 +284,6 @@ begin
 
   OldControls := TChildrenControls.Create(nil);
   OldControls.Assign(Window.Controls);
-  for I := 0 to OldControls.Count - 1 do
-    OldControls[I].FreeNotification(Self);
   OldControls.BeginDisableContextOpenClose;
 
   { save AutomaticTouchInterface,
@@ -303,8 +297,6 @@ begin
 end;
 
 destructor TGLMode.TWindowState.Destroy;
-var
-  I: Integer;
 begin
   Window.OnOpenObject := OldOpenObject;
   Window.OnCloseObject := OldCloseObject;
@@ -335,8 +327,6 @@ begin
   begin
     Window.Controls.Assign(OldControls);
     OldControls.EndDisableContextOpenClose;
-    for I := 0 to OldControls.Count - 1 do
-      OldControls[I].RemoveFreeNotification(Self);
     FreeAndNil(OldControls);
   end;
 
@@ -417,13 +407,6 @@ begin
   if Window is TCastleWindowTouch then
     TCastleWindowTouch(Window).AutomaticTouchInterface := false;
   Window.Controls.Clear;
-end;
-
-procedure TGLMode.TWindowState.Notification(AComponent: TComponent; Operation: TOperation);
-begin
-  inherited;
-  if (Operation = opRemove) and (AComponent is TUIControl) and (OldControls <> nil) then
-    OldControls.Remove(TUIControl(AComponent), true);
 end;
 
 { TGLMode -------------------------------------------------------------------- }
