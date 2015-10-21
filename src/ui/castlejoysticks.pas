@@ -195,12 +195,16 @@ const
 type
 
   TOnJoyAxisMove = procedure(const Joy: PJoy) of object;
+  TOnJoyButtonEvent = procedure(const Joy: PJoy; const Button: Byte) of object;
 
   { TJoysticks }
 
   TJoysticks = class
   private
     FOnAxisMove: TOnJoyAxisMove;
+    FOnButtonDown: TOnJoyButtonEvent;
+    FOnButtonUp: TOnJoyButtonEvent;
+    FOnButtonPress: TOnJoyButtonEvent;
     FjoyArray : array[ 0..15 ] of TJoy;
     FjoyCount : Integer;
     function  Init : Byte;
@@ -217,6 +221,9 @@ type
     procedure ClearState;
   published
     property OnAxisMove: TOnJoyAxisMove read FOnAxisMove write FOnAxisMove;
+    property OnButtonDown: TOnJoyButtonEvent read FOnButtonDown write FOnButtonDown;
+    property OnButtonUp: TOnJoyButtonEvent read FOnButtonUp write FOnButtonUp;
+    property OnButtonPress: TOnJoyButtonEvent read FOnButtonPress write FOnButtonPress;
     property JoyCount: Integer read FjoyCount;
   end;
 
