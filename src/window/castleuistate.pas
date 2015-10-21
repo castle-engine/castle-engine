@@ -277,7 +277,7 @@ end;
 
 procedure TUIState.InternalFinish;
 begin
-  StateContainer.Controls.Remove(Self);
+  StateContainer.Controls.RemoveAll(Self);
   Finish;
 end;
 
