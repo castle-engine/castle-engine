@@ -155,6 +155,7 @@ type
   end;
 
 type
+  //todo: events for every TJoy
   PJoy = ^TJoy;
   TJoy = record
     {$IFDEF LINUX}
@@ -194,7 +195,7 @@ const
 
 type
 
-  TOnJoyAxisMove = procedure(const Joy: PJoy) of object;
+  TOnJoyAxisMove = procedure(const Joy: PJoy; const Axis: Byte; const Value: Single) of object;
   TOnJoyButtonEvent = procedure(const Joy: PJoy; const Button: Byte) of object;
 
   { TJoysticks }
@@ -478,11 +479,11 @@ end;
 function TJoysticks.AxisPos(JoyID, Axis: Byte): Single;
 begin
   Result := 0;
-  if ( JoyID >= FjoyCount ) or ( Axis > 7 ) then Exit;
+  if ( JoyID >= FjoyCount ) or ( Axis > JOY_POVY ) then Exit;
 
   Result := FjoyArray[ JoyID ].State.Axis[ Axis ];
   if Assigned(FOnAxisMove) then
-    FOnAxisMove(@FjoyArray[ JoyID ]);
+    FOnAxisMove(@FjoyArray[ JoyID ], Axis, Result);
 end;
 
 function TJoysticks.Down(JoyID, Button: Byte): Boolean;
