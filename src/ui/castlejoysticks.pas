@@ -223,7 +223,7 @@ type
 implementation
 
 uses
-  SysUtils;
+  SysUtils, CastleLog;
 
 { TJoysticks }
 
@@ -275,9 +275,8 @@ begin
       // Checking if joystick is a real one, because laptops with accelerometer can be detected as a joystick :)
       if ( FjoyArray[ FjoyCount ].Info.Count.Axes >= 2 ) and ( FjoyArray[ FjoyCount ].Info.Count.Buttons > 0 ) Then
       begin
-        {log_Add( 'Joy: Find "' + FjoyArray[ joyCount ].Info.Name + '" (ID: ' + u_IntToStr( FjoyCount ) +
-                 '; Axes: ' + u_IntToStr( FjoyArray[ FjoyCount ].Info.Count.Axes ) +
-                 '; Buttons: ' + u_IntToStr( FjoyArray[ FjoyCount ].Info.Count.Buttons ) + ')' ); }
+        if Log then
+          WritelnLog('CastleJoysticks Init', 'Find joy: %S (ID: %D); Axes: %D; Buttons: %D', [FjoyArray[ joyCount ].Info.Name, FjoyCount, FjoyArray[ FjoyCount ].Info.Count.Axes, FjoyArray[ FjoyCount ].Info.Count.Buttons]);
 
           Inc( FjoyCount );
         end;
@@ -328,9 +327,9 @@ begin
             Inc( FjoyArray[ i ].Info.Count.Axes, 2 );
           end;
 
-        {log_Add( 'Joy: Find "' + FjoyArray[ i ].Info.Name + '" (ID: ' + u_IntToStr( i ) +
-                 '; Axes: ' + u_IntToStr( FjoyArray[ i ].Info.Count.Axes ) +
-                 '; Buttons: ' + u_IntToStr( FjoyArray[ i ].Info.Count.Buttons ) + ')' );    }
+        if Log then
+          WritelnLog('CastleJoysticks Init', 'Find joy: %S (ID: %D); Axes: %D; Buttons: %D',
+                     [FjoyArray[ i ].Info.Name, i, FjoyArray[ i ].Info.Count.Axes, FjoyArray[ i ].Info.Count.Buttons]);
 
         Inc( FjoyCount );
       end else
@@ -338,8 +337,8 @@ begin
   {$ENDIF}
 
   Result := FjoyCount;
-  {if Result = 0 Then
-    log_Add( 'Joy: Couldn''t find joysticks' );  }
+  if Result = 0 then
+    WritelnLog('CastleJoysticks Init', 'Couldn''t find joysticks' );
 end;
 
 constructor TJoysticks.Create;
