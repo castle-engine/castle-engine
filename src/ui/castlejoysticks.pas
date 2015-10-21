@@ -205,26 +205,28 @@ type
     FOnButtonDown: TOnJoyButtonEvent;
     FOnButtonUp: TOnJoyButtonEvent;
     FOnButtonPress: TOnJoyButtonEvent;
-    FjoyArray : array[ 0..15 ] of TJoy;
-    FjoyCount : Integer;
-    function  Init : Byte;
+    FjoyArray: array[ 0..15 ] of TJoy;
+    FjoyCount: Integer;
+    function  Init: Byte;
   public
     constructor Create;
     destructor Destroy;
 
     procedure Poll;
     function  GetInfo( JoyID : Byte ) : PJoyInfo;
-    function  AxisPos( JoyID, Axis : Byte ) : Single;
-    function  Down( JoyID, Button : Byte ) : Boolean;
-    function  Up( JoyID, Button : Byte ) : Boolean;
-    function  Press( JoyID, Button : Byte ) : Boolean;
+    function  AxisPos( JoyID, Axis : Byte ): Single;
+    function  Down( JoyID, Button : Byte ): Boolean;
+    function  Up( JoyID, Button : Byte ): Boolean;
+    function  Press( JoyID, Button : Byte ): Boolean;
     procedure ClearState;
+    function GetJoy(const JoyID: Byte): PJoy;
   published
     property OnAxisMove: TOnJoyAxisMove read FOnAxisMove write FOnAxisMove;
     property OnButtonDown: TOnJoyButtonEvent read FOnButtonDown write FOnButtonDown;
     property OnButtonUp: TOnJoyButtonEvent read FOnButtonUp write FOnButtonUp;
     property OnButtonPress: TOnJoyButtonEvent read FOnButtonPress write FOnButtonPress;
     property JoyCount: Integer read FjoyCount;
+
   end;
 
 implementation
@@ -381,7 +383,7 @@ var
   vMax  : LongWord;
 {$ENDIF}
 begin
-if FjoyCount = 0 then exit;
+if FjoyCount = 0 then Exit;
 
 {$IFDEF LINUX}
 for i := 0 to FjoyCount - 1 do
@@ -420,7 +422,7 @@ state.dwSize := SizeOf( TJOYINFOEX );
 for i := 0 to FjoyCount - 1 do
   begin
     state.dwFlags := JOY_RETURNALL or JOY_USEDEADZONE;
-    if FjoyArray[ i ].caps.wCaps and JOYCAPS_POVCTS > 0 Then
+    if FjoyArray[ i ].caps.wCaps and JOYCAPS_POVCTS > 0 then
       state.dwFlags := state.dwFlags or JOY_RETURNPOVCTS;
 
     if joyGetPosEx( i, @state ) = 0 then
@@ -468,7 +470,7 @@ end;
 function TJoysticks.GetInfo(JoyID: Byte): PJoyInfo;
 begin
   Result := nil;
-  if JoyID >= FjoyCount then exit;
+  if JoyID >= FjoyCount then Exit;
 
   Result := @FjoyArray[ JoyID ].Info;
 end;
@@ -476,33 +478,41 @@ end;
 function TJoysticks.AxisPos(JoyID, Axis: Byte): Single;
 begin
   Result := 0;
-  if ( JoyID >= FjoyCount ) or ( Axis > 7 ) then exit;
+  if ( JoyID >= FjoyCount ) or ( Axis > 7 ) then Exit;
 
   Result := FjoyArray[ JoyID ].State.Axis[ Axis ];
+  if Assigned(FOnAxisMove) then
+    FOnAxisMove(@FjoyArray[ JoyID ]);
 end;
 
 function TJoysticks.Down(JoyID, Button: Byte): Boolean;
 begin
   Result := False;
-  if ( JoyID >= FjoyCount ) or ( Button >= FjoyArray[ JoyID ].Info.Count.Buttons ) then exit;
+  if ( JoyID >= FjoyCount ) or ( Button >= FjoyArray[ JoyID ].Info.Count.Buttons ) then Exit;
 
   Result := FjoyArray[ JoyID ].State.BtnDown[ Button ];
+  if Assigned(FOnButtonDown) and Result then
+    FOnButtonDown(@FjoyArray[ JoyID ], Button);
 end;
 
 function TJoysticks.Up(JoyID, Button: Byte): Boolean;
 begin
   Result := False;
-  if ( JoyID >= FjoyCount ) or ( Button >= FjoyArray[ JoyID ].Info.Count.Buttons ) then exit;
+  if ( JoyID >= FjoyCount ) or ( Button >= FjoyArray[ JoyID ].Info.Count.Buttons ) then Exit;
 
   Result := FjoyArray[ JoyID ].State.BtnUp[ Button ];
+  if Assigned(FOnButtonUp) and Result then
+    FOnButtonUp(@FjoyArray[ JoyID ], Button);
 end;
 
 function TJoysticks.Press(JoyID, Button: Byte): Boolean;
 begin
   Result := False;
-  if ( JoyID >= FjoyCount ) or ( Button >= FjoyArray[ JoyID ].Info.Count.Buttons ) then exit;
+  if ( JoyID >= FjoyCount ) or ( Button >= FjoyArray[ JoyID ].Info.Count.Buttons ) then Exit;
 
   Result := FjoyArray[ JoyID ].State.BtnPress[ Button ];
+  if Assigned(FOnButtonPress) and Result then
+    FOnButtonPress(@FjoyArray[ JoyID ], Button);
 end;
 
 procedure TJoysticks.ClearState;
@@ -518,6 +528,13 @@ begin
         state^.BtnPress[ j ]    := False;
         state^.BtnCanPress[ j ] := True;
       end;
+end;
+
+function TJoysticks.GetJoy(const JoyID: Byte): PJoy;
+begin
+  Result := nil;
+  if JoyID >= FjoyCount then Exit;
+  Result := @FjoyArray[JoyID];
 end;
 
 end.
