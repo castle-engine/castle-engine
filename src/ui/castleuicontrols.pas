@@ -21,7 +21,7 @@ interface
 uses SysUtils, Classes, FGL,
   CastleKeysMouse, CastleUtils, CastleClassUtils,
   CastleGenericLists, CastleRectangles, CastleTimeUtils, pk3DConnexion,
-  CastleImages, CastleVectors;
+  CastleImages, CastleVectors, CastleJoysticks;
 
 const
   { Default value for container's Dpi, as is usually set on desktops. }
@@ -209,6 +209,7 @@ type
     LastPositionForTooltipTime: TTimerResult;
     Mouse3d: T3DConnexionDevice;
     Mouse3dPollTimer: Single;
+    Joysticks: TJoysticks;
     FUIScaling: TUIScaling;
     FUIReferenceWidth: Integer;
     FUIReferenceHeight: Integer;
@@ -1501,7 +1502,7 @@ procedure TUIContainer.EventUpdate;
   end;
 
 var
-  I: Integer;
+  I, J: Integer;
   C: TUIControl;
   HandleInput: boolean;
   Dummy: boolean;
@@ -1549,6 +1550,25 @@ begin
         (in case something else, like AI or collision detection,
         slows us down *a lot*). }
       repeat Mouse3dPollTimer += Mouse3dPollDelay until Mouse3dPollTimer > 0;
+    end;
+  end;
+
+  { Joysticks }
+  if Assigned(Joysticks) then
+  begin
+    //todo: send to all controls; add procedures to TInputListener
+    for I := 0 to Joysticks.JoyCount - 1 do
+    begin
+      for J := 0 to Joysticks.GetJoy(I)^.Info.Count.Buttons -1 do
+      begin
+        Joysticks.Down(I, J);
+        Joysticks.Up(I, J);
+        Joysticks.Press(I, J);
+      end;
+      for J := 0 to Joysticks.GetJoy(I)^.Info.Count.Axes -1 do
+      begin
+        Joysticks.AxisPos(I, J);
+      end;
     end;
   end;
 
