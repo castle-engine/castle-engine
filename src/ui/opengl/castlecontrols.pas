@@ -118,9 +118,20 @@ type
     FAutoSize, FAutoSizeWidth, FAutoSizeHeight: boolean;
     TextWidth, TextHeight: Cardinal;
     FPressed: boolean;
-    FOwnsImage: boolean;
-    FImage: TCastleImage;
-    FGLImage: TGLImage;
+    FImage,
+      FCustomBackgroundPressed,
+      FCustomBackgroundFocused,
+      FCustomBackgroundNormal: TCastleImage;
+    FGLImage,
+      FGLCustomBackgroundPressed,
+      FGLCustomBackgroundFocused,
+      FGLCustomBackgroundNormal: TGLImage;
+    FOwnsImage,
+      FOwnsCustomBackgroundPressed,
+      FOwnsCustomBackgroundFocused,
+      FOwnsCustomBackgroundNormal: boolean;
+    FCustomBackground: boolean;
+    FCustomBackgroundCorners: TVector4Integer;
     FToggle: boolean;
     ClickStarted: boolean;
     FMinImageWidth: Cardinal;
@@ -130,6 +141,7 @@ type
     FMinWidth, FMinHeight: Cardinal;
     FImageMargin: Cardinal;
     FPaddingHorizontal, FPaddingVertical: Cardinal;
+    FTintPressed, FTintFocused, FTintNormal: TCastleColor;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -140,6 +152,9 @@ type
       This depends on Caption, AutoSize*, Font availability. }
     procedure UpdateSize;
     procedure SetImage(const Value: TCastleImage);
+    procedure SetCustomBackgroundPressed(const Value: TCastleImage);
+    procedure SetCustomBackgroundFocused(const Value: TCastleImage);
+    procedure SetCustomBackgroundNormal(const Value: TCastleImage);
     procedure SetPressed(const Value: boolean);
     procedure SetImageLayout(const Value: TCastleButtonImageLayout);
     procedure SetWidth(const Value: Cardinal);
@@ -181,6 +196,40 @@ type
       to be displayed at the same level, regardless of their images sizes. }
     property MinImageWidth: Cardinal read FMinImageWidth write FMinImageWidth default 0;
     property MinImageHeight: Cardinal read FMinImageHeight write FMinImageHeight default 0;
+
+    { Color tint when button is pressed. Opaque white by default. }
+    property TintPressed: TCastleColor read FTintPressed write FTintPressed;
+    { Color tint when button is focused. Opaque white by default. }
+    property TintFocused: TCastleColor read FTintFocused write FTintFocused;
+    { Color tint when button is neither pressed nor focused. Opaque white by default. }
+    property TintNormal : TCastleColor read FTintNormal  write FTintNormal;
+
+    { Use custom background images. If @true, we use properties
+      @unorderedList(
+        @item @link(CustomBackgroundPressed) (or fallback on @link(CustomBackgroundNormal) if @nil),
+        @item @link(CustomBackgroundFocused) (or fallback on @link(CustomBackgroundNormal) if @nil),
+        @item @link(CustomBackgroundNormal) (or fallback on normal theme image if @nil).
+      ).
+      They are rendered as 3x3 images (see TGLImage.Draw3x3) with corners
+      specified by @link(CustomBackgroundCorners). }
+    property CustomBackground: boolean read FCustomBackground write FCustomBackground default false;
+
+    { Background image on the pressed button. See @link(CustomBackground) for details. }
+    property CustomBackgroundPressed: TCastleImage read FCustomBackgroundPressed write SetCustomBackgroundPressed;
+    { Should we free @link(CustomBackgroundPressed) image when you set another one or at destructor. }
+    property OwnsCustomBackgroundPressed: boolean read FOwnsCustomBackgroundPressed write FOwnsCustomBackgroundPressed default false;
+    { Background image on the focused button. See @link(CustomBackground) for details. }
+    property CustomBackgroundFocused: TCastleImage read FCustomBackgroundFocused write SetCustomBackgroundFocused;
+    { Should we free @link(CustomBackgroundFocused) image when you set another one or at destructor. }
+    property OwnsCustomBackgroundFocused: boolean read FOwnsCustomBackgroundFocused write FOwnsCustomBackgroundFocused default false;
+    { Background image on the normal button. See @link(CustomBackground) for details. }
+    property CustomBackgroundNormal: TCastleImage read FCustomBackgroundNormal write SetCustomBackgroundNormal;
+    { Should we free @link(CustomBackgroundNormal) image when you set another one or at destructor. }
+    property OwnsCustomBackgroundNormal: boolean read FOwnsCustomBackgroundNormal write FOwnsCustomBackgroundNormal default false;
+
+    { Corners used when rendering custom background images.
+      See @link(CustomBackground) for details. Zero by default. }
+    property CustomBackgroundCorners: TVector4Integer read FCustomBackgroundCorners write FCustomBackgroundCorners;
   published
     property Width: Cardinal read FWidth write SetWidth default 0;
     property Height: Cardinal read FHeight write SetHeight default 0;
@@ -1161,13 +1210,24 @@ begin
   FImageMargin := DefaultImageMargin;
   FPaddingHorizontal := DefaultPaddingHorizontal;
   FPaddingVertical := DefaultPaddingVertical;
+  FTintPressed := White;
+  FTintFocused := White;
+  FTintNormal := White;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 end;
 
 destructor TCastleButton.Destroy;
 begin
   if OwnsImage then FreeAndNil(FImage);
+  if OwnsCustomBackgroundPressed then FreeAndNil(FCustomBackgroundPressed);
+  if OwnsCustomBackgroundFocused then FreeAndNil(FCustomBackgroundFocused);
+  if OwnsCustomBackgroundNormal  then FreeAndNil(FCustomBackgroundNormal);
+
   FreeAndNil(FGLImage);
+  FreeAndNil(FGLCustomBackgroundPressed);
+  FreeAndNil(FGLCustomBackgroundFocused);
+  FreeAndNil(FGLCustomBackgroundNormal);
+
   inherited;
 end;
 
@@ -1175,21 +1235,52 @@ procedure TCastleButton.Render;
 var
   TextLeft, TextBottom, ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight: Integer;
   Background: TThemeImage;
+  CustomBackgroundImage: TGLImage;
   SR: TRectangle;
   ImageMarginScaled: Cardinal;
   UseImage: boolean;
+  Tint: TCastleColor;
 begin
   inherited;
 
   ImageMarginScaled := Round(ImageMargin * UIScale);
 
-  if Pressed then
-    Background := tiButtonPressed else
-  if Focused then
-    Background := tiButtonFocused else
-    Background := tiButtonNormal;
   SR := ScreenRect;
-  Theme.Draw(SR, Background);
+
+  { calculate Tint }
+  if Pressed then
+    Tint := TintPressed else
+  if Focused then
+    Tint := TintFocused else
+    Tint := TintNormal;
+
+  { calculate CustomBackgroundImage }
+  CustomBackgroundImage := nil;
+  if CustomBackground then
+  begin
+    if Pressed then
+      CustomBackgroundImage := FGLCustomBackgroundPressed else
+    if Focused then
+      CustomBackgroundImage := FGLCustomBackgroundFocused else
+      CustomBackgroundImage := FGLCustomBackgroundNormal;
+    { instead of CustomBackgroundPressed/Focused, use Normal, if available }
+    if CustomBackgroundImage = nil then
+      CustomBackgroundImage := FGLCustomBackgroundNormal;
+  end;
+
+  if CustomBackgroundImage <> nil then
+  begin
+    CustomBackgroundImage.Color := Tint;
+    CustomBackgroundImage.Draw3x3(SR, CustomBackgroundCorners);
+  end else
+  begin
+    if Pressed then
+      Background := tiButtonPressed else
+    if Focused then
+      Background := tiButtonFocused else
+      Background := tiButtonNormal;
+    Theme.Draw(SR, Background, Tint);
+  end;
 
   UseImage := (FImage <> nil) and (FGLImage <> nil);
   if UseImage then
@@ -1240,12 +1331,23 @@ begin
   inherited;
   if (FGLImage = nil) and (FImage <> nil) then
     FGLImage := TGLImage.Create(FImage);
+  if (FGLCustomBackgroundPressed = nil) and (FCustomBackgroundPressed <> nil) then
+    FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed);
+  if (FGLCustomBackgroundFocused = nil) and (FCustomBackgroundFocused <> nil) then
+    FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused);
+  if (FGLCustomBackgroundFocused = nil) and (FCustomBackgroundFocused <> nil) then
+    FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused);
+  if (FGLCustomBackgroundNormal = nil) and (FCustomBackgroundNormal <> nil) then
+    FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal);
   UpdateTextSize;
 end;
 
 procedure TCastleButton.GLContextClose;
 begin
   FreeAndNil(FGLImage);
+  FreeAndNil(FGLCustomBackgroundPressed);
+  FreeAndNil(FGLCustomBackgroundFocused);
+  FreeAndNil(FGLCustomBackgroundNormal);
   inherited;
 end;
 
@@ -1420,6 +1522,54 @@ begin
 
     if GLInitialized and (FImage <> nil) then
       FGLImage := TGLImage.Create(FImage);
+
+    UpdateSize;
+  end;
+end;
+
+procedure TCastleButton.SetCustomBackgroundPressed(const Value: TCastleImage);
+begin
+  if FCustomBackgroundPressed <> Value then
+  begin
+    if OwnsCustomBackgroundPressed then FreeAndNil(FCustomBackgroundPressed);
+    FreeAndNil(FGLCustomBackgroundPressed);
+
+    FCustomBackgroundPressed := Value;
+
+    if GLInitialized and (FCustomBackgroundPressed <> nil) then
+      FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed);
+
+    UpdateSize;
+  end;
+end;
+
+procedure TCastleButton.SetCustomBackgroundFocused(const Value: TCastleImage);
+begin
+  if FCustomBackgroundFocused <> Value then
+  begin
+    if OwnsCustomBackgroundFocused then FreeAndNil(FCustomBackgroundFocused);
+    FreeAndNil(FGLCustomBackgroundFocused);
+
+    FCustomBackgroundFocused := Value;
+
+    if GLInitialized and (FCustomBackgroundFocused <> nil) then
+      FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused);
+
+    UpdateSize;
+  end;
+end;
+
+procedure TCastleButton.SetCustomBackgroundNormal(const Value: TCastleImage);
+begin
+  if FCustomBackgroundNormal <> Value then
+  begin
+    if OwnsCustomBackgroundNormal then FreeAndNil(FCustomBackgroundNormal);
+    FreeAndNil(FGLCustomBackgroundNormal);
+
+    FCustomBackgroundNormal := Value;
+
+    if GLInitialized and (FCustomBackgroundNormal <> nil) then
+      FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal);
 
     UpdateSize;
   end;
