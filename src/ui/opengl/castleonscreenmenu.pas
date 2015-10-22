@@ -518,7 +518,7 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
       NextItem;
       Result := ExclusiveEvents;
     end else
-    if Key = KeySelectItem then
+    if (Key = KeySelectItem) and (CurrentItem <> -1) then
     begin
       Click;
       Result := ExclusiveEvents;
@@ -593,6 +593,13 @@ procedure TCastleOnScreenMenu.Click;
 begin
   if Assigned(OnClick) then OnClick(Self);
   SoundEngine.Sound(stMenuClick);
+
+  { TODO: dirty special handling for button attached to menu item.
+    Also, this means that button can be activated by simple "mouse down",
+    while usually it should be activated by "mouse down + mouse up". }
+  if (Controls[CurrentItem].ControlsCount <> 0) and
+     (Controls[CurrentItem].Controls[0] is TCastleButton) then
+    TCastleButton(Controls[CurrentItem].Controls[0]).DoClick;
 end;
 
 procedure TCastleOnScreenMenu.CurrentItemChanged;
@@ -637,19 +644,20 @@ begin
   L := TCastleLabel.Create(Self);
   L.Text.Text := S;
   { pass our CustomFont / FontSize to children.
-    TODO: this is a poor way, it's not updated later when we change CustomFont/FontSize,
-    it's not recursive.... }
+    TODO: this is a poor way, it's not updated later when we change
+    CustomFont/FontSize, it's not recursive.... }
   L.CustomFont := CustomFont;
   L.FontSize := FontSize;
   InsertFront(L);
   if Accessory <> nil then
   begin
     L.InsertFront(Accessory);
-    if (Accessory is TCastleLabel) then
-    begin
-      TCastleLabel(Accessory).CustomFont := CustomFont;
-      TCastleLabel(Accessory).FontSize := FontSize;
+    if Accessory is TCastleLabel then
       TCastleLabel(Accessory).Color := AccessoryLabelColor;
+    if Accessory is TUIControlFont then
+    begin
+      TUIControlFont(Accessory).CustomFont := CustomFont;
+      TUIControlFont(Accessory).FontSize := FontSize;
     end;
   end;
   RecalculateSize;

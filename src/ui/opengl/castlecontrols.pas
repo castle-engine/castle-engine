@@ -95,8 +95,10 @@ type
       @link(CustomFont) or, if not set, from @link(UIFont) or @link(UIFontSmall). }
     property FontSize: Single read FFontSize write SetFontSize default 0.0;
 
-    { Should we use @link(UIFontSmall) instead of @link(UIFont).
-      Ignored if @link(CustomFont) is assigned. }
+    { Use smaller font.
+      If no @link(CustomFont) is assigned, this says to use
+      @link(UIFontSmall) instead of @link(UIFont).
+      If @link(CustomFont) is assigned, this says to scale it's size by 2. }
     property SmallFont: boolean read FSmallFont write SetSmallFont default false;
   end;
 
@@ -132,6 +134,8 @@ type
       FOwnsCustomBackgroundNormal: boolean;
     FCustomBackground: boolean;
     FCustomBackgroundCorners: TVector4Integer;
+    FCustomTextColor: TCastleColor;
+    FCustomTextColorUse: boolean;
     FToggle: boolean;
     ClickStarted: boolean;
     FMinImageWidth: Cardinal;
@@ -155,7 +159,6 @@ type
     procedure SetCustomBackgroundPressed(const Value: TCastleImage);
     procedure SetCustomBackgroundFocused(const Value: TCastleImage);
     procedure SetCustomBackgroundNormal(const Value: TCastleImage);
-    procedure SetPressed(const Value: boolean);
     procedure SetImageLayout(const Value: TCastleButtonImageLayout);
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
@@ -164,6 +167,7 @@ type
     procedure SetImageMargin(const Value: Cardinal);
   protected
     procedure FontChanged; override;
+    procedure SetPressed(const Value: boolean); virtual;
   public
     const
       DefaultImageMargin = 10;
@@ -208,7 +212,7 @@ type
       @unorderedList(
         @item @link(CustomBackgroundPressed) (or fallback on @link(CustomBackgroundNormal) if @nil),
         @item @link(CustomBackgroundFocused) (or fallback on @link(CustomBackgroundNormal) if @nil),
-        @item @link(CustomBackgroundNormal) (or fallback on normal theme image if @nil).
+        @item @link(CustomBackgroundNormal) (or fallback on transparent background if @nil).
       ).
       They are rendered as 3x3 images (see TGLImage.Draw3x3) with corners
       specified by @link(CustomBackgroundCorners). }
@@ -230,6 +234,13 @@ type
     { Corners used when rendering custom background images.
       See @link(CustomBackground) for details. Zero by default. }
     property CustomBackgroundCorners: TVector4Integer read FCustomBackgroundCorners write FCustomBackgroundCorners;
+
+    { Should we use custom text color in @link(CustomTextColor)
+      instead of @code(Theme.TextColor). }
+    property CustomTextColorUse: boolean read FCustomTextColorUse write FCustomTextColorUse;
+    { Text color to use if @link(CustomTextColorUse) is @true.
+      Black by default, just like @code(Theme.TextColor). }
+    property CustomTextColor: TCastleColor read FCustomTextColor write FCustomTextColor;
   published
     property Width: Cardinal read FWidth write SetWidth default 0;
     property Height: Cardinal read FHeight write SetHeight default 0;
@@ -1105,6 +1116,8 @@ begin
       FCustomizedFont.Size := FFontSize else
       FCustomizedFont.Size := Result.Size; // to have something to multiply in line below
     FCustomizedFont.Size := FCustomizedFont.Size * UIScale;
+    if SmallFont then
+      FCustomizedFont.Size := FCustomizedFont.Size * 0.5;
     FCustomizedFont.SourceFont := Result;
     Result := FCustomizedFont;
   end;
@@ -1239,7 +1252,7 @@ var
   SR: TRectangle;
   ImageMarginScaled: Cardinal;
   UseImage: boolean;
-  Tint: TCastleColor;
+  Tint, TextColor: TCastleColor;
 begin
   inherited;
 
@@ -1266,12 +1279,12 @@ begin
     { instead of CustomBackgroundPressed/Focused, use Normal, if available }
     if CustomBackgroundImage = nil then
       CustomBackgroundImage := FGLCustomBackgroundNormal;
-  end;
-
-  if CustomBackgroundImage <> nil then
-  begin
-    CustomBackgroundImage.Color := Tint;
-    CustomBackgroundImage.Draw3x3(SR, CustomBackgroundCorners);
+    { render using CustomBackgroundImage, if any }
+    if CustomBackgroundImage <> nil then
+    begin
+      CustomBackgroundImage.Color := Tint;
+      CustomBackgroundImage.Draw3x3(SR, CustomBackgroundCorners);
+    end;
   end else
   begin
     if Pressed then
@@ -1300,8 +1313,12 @@ begin
     TextBottom += (ImgScreenHeight + ImageMarginScaled) div 2 else
   if UseImage and (ImageLayout = ilTop) then
     TextBottom -= (ImgScreenHeight + ImageMarginScaled) div 2;
+  TextBottom += Font.Descend;
 
-  Font.Print(TextLeft, TextBottom, Theme.TextColor, Caption);
+  TextColor := Theme.TextColor;
+  if CustomTextColorUse then
+    TextColor := CustomTextColor;
+  Font.Print(TextLeft, TextBottom, TextColor, Caption);
 
   if UseImage then
   begin
@@ -1447,7 +1464,7 @@ begin
   if Font <> nil then
   begin
     TextWidth := Font.TextWidth(Caption);
-    TextHeight := Font.RowHeightBase;
+    TextHeight := Font.RowHeight;
     UpdateSize;
   end;
 end;
