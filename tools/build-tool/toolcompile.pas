@@ -148,6 +148,17 @@ begin
     FpcOptions.Add('-Sh');
     FpcOptions.Add('-vm2045'); // do not show Warning: (2045) APPTYPE is not supported by the target OS
     FpcOptions.Add('-vm5024'); // do not show Hint: (5024) Parameter "..." not used
+    { do not show
+        Warning: Implicit string type conversion from "AnsiString" to "WideString"
+        Warning: Implicit string type conversion from "AnsiString" to "UnicodeString"
+      As we normally use AnsiString, and we deal with XML units
+      (using WideString / UnicodeString), this is normal situation for us. }
+    FpcOptions.Add('-vm4105');
+    { do not show
+        Warning: Implicit string type conversion with potential data loss from "WideString" to "AnsiString"
+      As we normally use AnsiString, and we deal with XML units
+      (using WideString / UnicodeString), this is normal situation for us. }
+    FpcOptions.Add('-vm4104');
     FpcOptions.Add('-T' + OSToString(OS));
     FpcOptions.Add('-P' + CPUToString(CPU));
 
