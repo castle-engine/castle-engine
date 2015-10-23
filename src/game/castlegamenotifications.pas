@@ -27,13 +27,16 @@ var
 
 implementation
 
-uses SysUtils, CastleScript;
+uses SysUtils, CastleScript, CastleUIControls, CastleColors;
 
 var
   PreviousOnScriptMessage: TCasScriptMessage;
 
 initialization
   Notifications := TCastleNotifications.Create(nil);
+  Notifications.Anchor(hpMiddle);
+  Notifications.Anchor(vpBottom, 10);
+  Notifications.Color := Yellow;
 
   { replace OnScriptMessage to allow using Notifications from CastleScript }
   PreviousOnScriptMessage := OnScriptMessage;
