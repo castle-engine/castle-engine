@@ -812,6 +812,9 @@ end;
     procedure InsertBackIfNotExists(const NewItem: TUIControl);
     procedure InsertBack(const NewItems: TUIControlList);
 
+    { Remove control added by @link(InsertFront) or @link(InsertBack). }
+    procedure RemoveControl(Item: TUIControl);
+
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
@@ -2147,6 +2150,12 @@ procedure TUIControl.InsertBack(const NewItems: TUIControlList);
 begin
   CreateControls;
   FControls.InsertBack(NewItems);
+end;
+
+procedure TUIControl.RemoveControl(Item: TUIControl);
+begin
+  if FControls <> nil then
+    FControls.Remove(Item);
 end;
 
 function TUIControl.GetControls(const I: Integer): TUIControl;
