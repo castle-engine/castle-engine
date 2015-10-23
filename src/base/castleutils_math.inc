@@ -254,8 +254,10 @@ function DivRoundUp(Value, Divider: Integer): Integer; overload;
 
   @groupBegin }
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float; overload;
+function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float; overload;
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
 function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float; overload;
+function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float; overload;
 function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
 { @groupEnd }
 
@@ -687,6 +689,14 @@ begin
   Result := Result * (destEnd - destBegin) + destBegin;
 end;
 
+function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float;
+begin
+  { Map range SourceBegin .. SourceEnd to 0..1, and express SourceVal there. }
+  Result := (sourceVal - sourceBegin) / (sourceEnd - sourceBegin);
+  { Map range 0..1 to DestBegin .. DestEnd }
+  Result := Result * (destEnd - destBegin) + destBegin;
+end;
+
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float;
 begin
   { Map range SourceBegin .. SourceEnd to 0..1, and express SourceVal there. }
@@ -696,6 +706,14 @@ begin
 end;
 
 function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float;
+begin
+  Result := MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd);
+  if destEnd < destBegin then
+    SwapValues(destBegin, destEnd);
+  Result := Clamped(Result, destBegin, destEnd);
+end;
+
+function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float;
 begin
   Result := MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd);
   if destEnd < destBegin then
