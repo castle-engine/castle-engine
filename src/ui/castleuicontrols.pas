@@ -1190,11 +1190,11 @@ end;
     property Items[I: Integer]: TUIControl read GetItem write SetItem; default;
     function Count: Integer;
     procedure Assign(const Source: TChildrenControls);
-    { Remove all instances of Item from this list.
+    { Remove the Item from this list.
       Note that the given Item should always exist only once on a list
-      (it is not allowed to add it multiple times), but for safety we find
-      and remove all occurences. }
-    procedure RemoveAll(const Item: TUIControl);
+      (it is not allowed to add it multiple times), so there's no @code(RemoveAll)
+      method. }
+    procedure Remove(const Item: TUIControl);
     procedure Clear;
     procedure Add(const Item: TUIControl); deprecated 'use InsertFront or InsertBack';
     procedure Insert(const Index: Integer; const Item: TUIControl);
@@ -1285,7 +1285,7 @@ const
 
 implementation
 
-uses CastleLog;
+uses CastleLog, CastleWarnings;
 
 { TTouchList ----------------------------------------------------------------- }
 
@@ -2915,6 +2915,9 @@ begin
   case Action of
     lnAdded:
       begin
+        if ((C.FContainer <> nil) or (C.FParent <> nil)) and
+           ((Container <> nil) or (FParent <> nil)) then
+          OnWarning(wtMajor, 'UI', 'Inserting to the UI list (InsertFront, InsertBack) an item that is already a part of other UI list. The result is undefined, you cannot insert the same TUIControl instance multiple times.');
         C.FreeNotification(FCaptureFreeNotifications);
         if Container <> nil then RegisterContainer(C, FContainer);
         C.FParent := FParent;
@@ -2950,7 +2953,7 @@ begin
     even for a short time). }
 
   if (Operation = opRemove) and (AComponent is TUIControl) then
-    Parent.FList.RemoveAll(AComponent);
+    Parent.FList.Remove(AComponent);
 end;
 
 procedure TChildrenControls.Assign(const Source: TChildrenControls);
@@ -2958,9 +2961,9 @@ begin
   FList.Assign(Source.FList);
 end;
 
-procedure TChildrenControls.RemoveAll(const Item: TUIControl);
+procedure TChildrenControls.Remove(const Item: TUIControl);
 begin
-  FList.RemoveAll(Item);
+  FList.Remove(Item);
 end;
 
 procedure TChildrenControls.Clear;
