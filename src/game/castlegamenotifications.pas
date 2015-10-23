@@ -27,7 +27,7 @@ var
 
 implementation
 
-uses SysUtils, CastleScript, CastleUIControls, CastleColors;
+uses SysUtils, CastleScript;
 
 var
   PreviousOnScriptMessage: TCasScriptMessage;
