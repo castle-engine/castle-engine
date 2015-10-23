@@ -153,12 +153,12 @@ begin
         Warning: Implicit string type conversion from "AnsiString" to "UnicodeString"
       As we normally use AnsiString, and we deal with XML units
       (using WideString / UnicodeString), this is normal situation for us. }
-    FpcOptions.Add('-vm4105');
+    //FpcOptions.Add('-vm4105'); // not available in FPC 2.6.4
     { do not show
         Warning: Implicit string type conversion with potential data loss from "WideString" to "AnsiString"
       As we normally use AnsiString, and we deal with XML units
       (using WideString / UnicodeString), this is normal situation for us. }
-    FpcOptions.Add('-vm4104');
+    //FpcOptions.Add('-vm4104'); // not available in FPC 2.6.4
     FpcOptions.Add('-T' + OSToString(OS));
     FpcOptions.Add('-P' + CPUToString(CPU));
 
