@@ -230,7 +230,7 @@ type
 
     { Called when user will select CurrentItem.
       @seealso Click }
-    property OnClick: TNotifyEvent read FOnClick write FOnClick
+    property OnClick: TNotifyEvent read FOnClick write FOnClick;
       deprecated 'use TCastleMenuButton and it''s OnClick event';
 
     { Should menu intercept all key/mouse input, regardless if mouse position
@@ -552,7 +552,9 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
     end else
     if (Key = KeySelectItem) and (CurrentItem <> -1) then
     begin
+      {$warnings off}
       Click;
+      {$warnings on}
       Result := ExclusiveEvents;
     end;
   end;
@@ -568,7 +570,9 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
       if NewItemIndex <> -1 then
       begin
         CurrentItem := NewItemIndex;
+        {$warnings off}
         Click;
+        {$warnings on}
         Result := ExclusiveEvents;
       end;
     end;
@@ -623,7 +627,9 @@ end;
 
 procedure TCastleOnScreenMenu.Click;
 begin
+  {$warnings off}
   if Assigned(OnClick) then OnClick(Self);
+  {$warnings on}
   SoundEngine.Sound(stMenuClick);
 
   { TODO: dirty special handling for button attached to menu item.
@@ -642,7 +648,9 @@ end;
 
 procedure TCastleOnScreenMenu.CurrentItemSelected;
 begin
-  Click; { call non-deprecated equivalent }
+  {$warnings off}
+  Click;
+  {$warnings on}
 end;
 
 function TCastleOnScreenMenu.Rect: TRectangle;
