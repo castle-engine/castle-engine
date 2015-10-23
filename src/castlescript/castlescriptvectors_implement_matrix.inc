@@ -90,6 +90,15 @@ begin
     1/TCasScriptFloat(Arguments[1]).Value);
 end;
 
+class procedure TCasScriptMatrixXx.HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
+  TCasScriptMatrixXx(AResult).Value := Lerp(
+    TCasScriptFloat(Arguments[0]).Value,
+    TCasScriptMatrixXx(Arguments[1]).Value,
+    TCasScriptMatrixXx(Arguments[2]).Value);
+end;
+
 class procedure TCasScriptMatrixXx.HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
@@ -186,6 +195,7 @@ begin
   FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleMultiply, TCasScriptMultiply, [TCasScriptMatrixXx, TCasScriptVecXx], false);
   FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleMultiply, TCasScriptMultiply, [TCasScriptMatrixXx], true);
   FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleDivide, TCasScriptDivide, [TCasScriptMatrixXx, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleLerp, TCasScriptLerp, [TCasScriptFloat, TCasScriptMatrixXx, TCasScriptMatrixXx], false);
 
   FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleEqual, TCasScriptEqual, [TCasScriptMatrixXx, TCasScriptMatrixXx], false);
   FunctionHandlers.RegisterHandler(@TCasScriptMatrixXx(nil).HandleNotEqual, TCasScriptNotEqual, [TCasScriptMatrixXx, TCasScriptMatrixXx], false);
