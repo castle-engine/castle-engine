@@ -34,9 +34,6 @@ var
 
 initialization
   Notifications := TCastleNotifications.Create(nil);
-  Notifications.Anchor(hpMiddle);
-  Notifications.Anchor(vpBottom, 10);
-  Notifications.Color := Yellow;
 
   { replace OnScriptMessage to allow using Notifications from CastleScript }
   PreviousOnScriptMessage := OnScriptMessage;
