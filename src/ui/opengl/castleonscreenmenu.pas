@@ -27,17 +27,37 @@ uses Classes, CastleVectors, CastleFonts, CastleControls,
 type
   TCastleOnScreenMenu = class;
 
-  { Label that shows the boolean value, as "Yes" or "No".
-    Particularly useful as a control inside TCastleOnScreenMenu,
-    to show a boolean toggle. }
-  TCastleBooleanLabel = class(TCastleLabel)
-  private
-    FValue: boolean;
-    procedure SetValue(const AValue: boolean);
+  { Button that looks nice as an "accessory"
+    attached to the TCastleOnScreenMenu item. }
+  TCastleMenuButton = class(TCastleButton)
   public
     constructor Create(AOwner: TComponent); override;
   published
-    property Value: boolean read FValue write SetValue;
+    property CustomBackground default true;
+    property CustomTextColorUse default true;
+    property PaddingHorizontal default 0;
+    property PaddingVertical default 0;
+  end;
+
+  { Button that looks nice as an "accessory" that can be toggled
+    (shows "yes" / "no" depending on @link(TCastleButton.Pressed)),
+    attached to the TCastleOnScreenMenu item. }
+  TCastleMenuToggle = class(TCastleMenuButton)
+  private
+    FAutoToggle: boolean;
+  protected
+    procedure SetPressed(const Value: boolean); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure DoClick; override;
+  published
+    property Toggle default true;
+    { Automatically negate @link(TCastleButton.Pressed Pressed) on each click.
+      This makes it easy to handle this component, often it means that you
+      don't need to handle it's @link(TCastleButton.OnClick OnClick) event,
+      and you only need to observe it's @link(TCastleButton.Pressed Pressed)
+      value. }
+    property AutoToggle: boolean read FAutoToggle write FAutoToggle default false;
   end;
 
   { On-screen menu, with all menu items displayed on the screen,
@@ -64,7 +84,6 @@ type
     FCurrentItemBorderColor2: TCastleColor;
     FCurrentItemColor: TCastleColor;
     FNonCurrentItemColor: TCastleColor;
-    FAccessoryLabelColor: TCastleColor;
     MaxItemWidth: Integer;
     FRegularSpaceBetweenItems: Cardinal;
     FDrawBackgroundRectangle: boolean;
@@ -86,7 +105,6 @@ type
       DefaultCurrentItemBorderColor2: TCastleColor = (0.5, 0.5, 0.5, 1.0) { Gray   }; { }
       DefaultCurrentItemColor       : TCastleColor = (1.0, 1.0, 0.0, 1.0) { Yellow }; { }
       DefaultNonCurrentItemColor    : TCastleColor = (1.0, 1.0, 1.0, 1.0) { White  }; { }
-      DefaultAccessoryLabelColor    : TCastleColor = (0.33, 1.0 , 0.33, 1.0); { LightGreen } { }
 
       DefaultRegularSpaceBetweenItems = 10;
       DefaultBackgroundOpacityNotFocused = 0.4;
@@ -146,10 +164,10 @@ type
 
     { Called when user will select CurrentItem, either with mouse
       or with keyboard. }
-    procedure Click; virtual;
+    procedure Click; virtual; deprecated 'use TCastleMenuButton and it''s OnClick event';
 
     { @deprecated Deprecated name for Click. }
-    procedure CurrentItemSelected; virtual; deprecated;
+    procedure CurrentItemSelected; virtual; deprecated 'use TCastleMenuButton and it''s OnClick event';
 
     { Called when CurrentItem changed.
       But *not* when CurrentItem changed because of ControlsCount changes.
@@ -169,9 +187,6 @@ type
     { Default value is DefaultNonCurrentItemColor }
     property NonCurrentItemColor: TCastleColor
       read FNonCurrentItemColor write FNonCurrentItemColor;
-    { Default value is DefaultAccessoryLabelColor }
-    property AccessoryLabelColor: TCastleColor
-      read FAccessoryLabelColor write FAccessoryLabelColor;
 
     { Return the space needed before NextItemIndex.
       This will be a space between NextItemIndex - 1 and NextItemIndex
@@ -215,7 +230,8 @@ type
 
     { Called when user will select CurrentItem.
       @seealso Click }
-    property OnClick: TNotifyEvent read FOnClick write FOnClick;
+    property OnClick: TNotifyEvent read FOnClick write FOnClick
+      deprecated 'use TCastleMenuButton and it''s OnClick event';
 
     { Should menu intercept all key/mouse input, regardless if mouse position
       is over our rectangle.
@@ -238,21 +254,38 @@ begin
   RegisterComponents('Castle', [TCastleOnScreenMenu]);
 end;
 
-{ TCastleBooleanLabel ----------------------------------------------------- }
+{ TCastleMenuButton ---------------------------------------------------------- }
 
-constructor TCastleBooleanLabel.Create(AOwner: TComponent);
+constructor TCastleMenuButton.Create(AOwner: TComponent);
 begin
-  inherited Create(AOwner);
-  Text.Text := BoolToStrYesNo[Value];
+  inherited;
+  CustomBackground := true; // leave CustomBackgroundImage for transparent background
+  CustomTextColorUse := true;
+  CustomTextColor := LightGreen;
+  PaddingHorizontal := 0;
+  PaddingVertical := 0;
 end;
 
-procedure TCastleBooleanLabel.SetValue(const AValue: boolean);
+{ TCastleMenuToggle ---------------------------------------------------------- }
+
+constructor TCastleMenuToggle.Create(AOwner: TComponent);
 begin
-  if FValue <> AValue then
-  begin
-    FValue := AValue;
-    Text.Text := BoolToStrYesNo[Value];
-  end;
+  inherited;
+  Toggle := true;
+  Caption := BoolToStrYesNo[Pressed];
+end;
+
+procedure TCastleMenuToggle.SetPressed(const Value: boolean);
+begin
+  inherited;
+  Caption := BoolToStrYesNo[Pressed];
+end;
+
+procedure TCastleMenuToggle.DoClick;
+begin
+  inherited;
+  if AutoToggle then
+    Pressed := not Pressed;
 end;
 
 { TCastleOnScreenMenu -------------------------------------------------------------------- }
@@ -273,7 +306,6 @@ begin
   FCurrentItemBorderColor2 := DefaultCurrentItemBorderColor2;
   FCurrentItemColor := DefaultCurrentItemColor;
   FNonCurrentItemColor := DefaultNonCurrentItemColor;
-  FAccessoryLabelColor := DefaultAccessoryLabelColor;
 
   FRegularSpaceBetweenItems := DefaultRegularSpaceBetweenItems;
   FDrawBackgroundRectangle := true;
@@ -643,17 +675,15 @@ var
 begin
   L := TCastleLabel.Create(Self);
   L.Text.Text := S;
-  { pass our CustomFont / FontSize to children.
-    TODO: this is a poor way, it's not updated later when we change
-    CustomFont/FontSize, it's not recursive.... }
   L.CustomFont := CustomFont;
   L.FontSize := FontSize;
   InsertFront(L);
   if Accessory <> nil then
   begin
     L.InsertFront(Accessory);
-    if Accessory is TCastleLabel then
-      TCastleLabel(Accessory).Color := AccessoryLabelColor;
+    { pass our CustomFont / FontSize to children.
+      TODO: this is a poor way, it's not updated later when we change
+      CustomFont/FontSize, it's not recursive.... }
     if Accessory is TUIControlFont then
     begin
       TUIControlFont(Accessory).CustomFont := CustomFont;
