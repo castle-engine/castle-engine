@@ -20,7 +20,7 @@ interface
 
 uses Classes, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
-  CastleColors, CastleProgress;
+  CastleColors, CastleProgress, CastleTimeUtils;
 
 type
   TCastleLabel = class;
@@ -575,6 +575,7 @@ type
     { Should we display InputText }
     DrawInputText: boolean;
     Buttons: array of TCastleButton;
+    LifeTime: TFloatTime;
 
     procedure SetScroll(Value: Single);
     { How many pixels up should be move the text.
@@ -2189,6 +2190,9 @@ end;
 
 { TCastleDialog -------------------------------------------------------------- }
 
+const
+  CaretChar = '|';
+
 constructor TCastleDialog.Create(AOwner: TComponent);
 begin
   inherited;
@@ -2280,32 +2284,36 @@ begin
 end;
 
 procedure TCastleDialog.Resize;
-var
-  MessageRect: TRectangle;
-  X, Y, I: Integer;
-  Button: TCastleButton;
 begin
   inherited;
   UpdateSizes;
-
-  { Reposition Buttons. }
-  if Length(Buttons) <> 0 then
-  begin
-    MessageRect := Rect;
-    X := MessageRect.Right  - BoxMargin;
-    Y := MessageRect.Bottom + BoxMargin;
-    for I := Length(Buttons) - 1 downto 0 do
-    begin
-      Button := Buttons[I];
-      X -= Button.Width;
-      Button.Left := X;
-      Button.Bottom := Y;
-      X -= ButtonHorizontalMargin;
-    end;
-  end;
 end;
 
 procedure TCastleDialog.UpdateSizes;
+
+  { Reposition Buttons. }
+  procedure UpdateButtons;
+  var
+    MessageRect: TRectangle;
+    X, Y, I: Integer;
+    Button: TCastleButton;
+  begin
+    if Length(Buttons) <> 0 then
+    begin
+      MessageRect := Rect;
+      X := MessageRect.Right  - BoxMargin;
+      Y := MessageRect.Bottom + BoxMargin;
+      for I := Length(Buttons) - 1 downto 0 do
+      begin
+        Button := Buttons[I];
+        X -= Button.Width;
+        Button.Left := X;
+        Button.Bottom := Y;
+        X -= ButtonHorizontalMargin;
+      end;
+    end;
+  end;
+
 var
   BreakWidth, ButtonsWidth: integer;
   WindowScrolledHeight: Integer;
@@ -2343,7 +2351,7 @@ begin
       That's because InputText is the editable text for the user,
       so there should be indication of "empty line". }
     if Broken_InputText.count = 0 then Broken_InputText.Add('');
-    MaxLineWidth := max(MaxLineWidth, font.MaxTextWidth(Broken_InputText));
+    MaxVar(MaxLineWidth, Font.MaxTextWidth(Broken_InputText) + Font.TextWidth(CaretChar));
     AllScrolledLinesCount += Broken_InputText.count;
   end;
 
@@ -2386,6 +2394,8 @@ begin
     Scroll := ScrollMin;
     ScrollInitialized := true;
   end;
+
+  UpdateButtons;
 end;
 
 function TCastleDialog.Press(const Event: TInputPressRelease): boolean;
@@ -2476,33 +2486,61 @@ begin
     if Container.Pressed[K_Down] then Scroll := Scroll + Factor;
     HandleInput := not ExclusiveEvents;
   end;
+
+  LifeTime += SecondsPassed;
+  { when we have input text, we display blinking caret, so keep redrawing }
+  if DrawInputText then
+    VisibleChange;
 end;
 
 procedure TCastleDialog.Render;
+type
+  TCaretMode = (cmNone, cmVisible, cmInvisible);
 
   { Render a Text line, and move Y up to the line above. }
   procedure DrawString(X: Integer; var Y: Integer; const Color: TCastleColor;
-    const text: string; const TextAlign: THorizontalPosition);
+    Text: string; const TextAlign: THorizontalPosition;
+    const Caret: TCaretMode);
+  var
+    CaretWidth: Integer;
   begin
+    if Caret <> cmNone then
+      CaretWidth := Font.TextWidth(CaretChar) else
+      CaretWidth := 0;
     { change X only locally, to take TextAlign into account }
     case TextAlign of
-      hpMiddle: X += (MaxLineWidth - font.TextWidth(text)) div 2;
-      hpRight : X +=  MaxLineWidth - font.TextWidth(text);
+      hpMiddle: X += (MaxLineWidth - (Font.TextWidth(Text) + CaretWidth)) div 2;
+      hpRight : X +=  MaxLineWidth - (Font.TextWidth(Text) + CaretWidth);
     end;
-    Font.Print(X, Y, Color, text);
+    if Caret = cmVisible then
+      Text := Text + CaretChar;
+    Font.Print(X, Y, Color, Text);
     { change Y for caller, to print next line higher }
-    Y += font.RowHeight;
+    Y += Font.RowHeight;
   end;
 
   { Render all lines in S, and move Y up to the line above. }
   procedure DrawStrings(const X: Integer; var Y: Integer;
-    const Color: TCastleColor; const s: TStrings; TextAlign: THorizontalPosition);
+    const Color: TCastleColor; const s: TStrings; TextAlign: THorizontalPosition;
+    const AddCaret: boolean);
+  const
+    CaretSpeed = 1; //< how many blinks per second
   var
-    i: integer;
+    I: Integer;
+    Caret: TCaretMode;
   begin
-    for i := s.count-1 downto 0 do
+    for i := S.Count - 1 downto 0 do
+    begin
+      if AddCaret and (I = S.Count - 1) then
+      begin
+        if FloatModulo(LifeTime * CaretSpeed, 1.0) < 0.5 then
+          Caret := cmVisible else
+          Caret := cmInvisible;
+      end else
+        Caret := cmNone;
       { each DrawString call will move Y up }
-      DrawString(X, Y, Color, s[i], TextAlign);
+      DrawString(X, Y, Color, s[i], TextAlign, Caret);
+    end;
   end;
 
 var
@@ -2570,8 +2608,8 @@ begin
   { draw Broken_InputText and Broken_Text.
     Order matters, as it's drawn from bottom to top. }
   if DrawInputText then
-    DrawStrings(TextX, TextY, Theme.MessageInputTextColor, Broken_InputText, TextAlign);
-  DrawStrings(TextX, TextY, Theme.MessageTextColor, Broken_Text, TextAlign);
+    DrawStrings(TextX, TextY, Theme.MessageInputTextColor, Broken_InputText, TextAlign, true);
+  DrawStrings(TextX, TextY, Theme.MessageTextColor, Broken_Text, TextAlign, false);
 
   ScissorDisable;
 end;
