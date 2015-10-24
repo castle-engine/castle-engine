@@ -54,6 +54,9 @@ type
     class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleCatmullRomSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleHermiteSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleHermiteTenseSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   private
     FValue: TSingleList;
     procedure SetValue(const AValue: TSingleList);
@@ -386,9 +389,24 @@ type
     class function ArgumentMustBeAssignable(const Index: Integer): boolean; override;
   end;
 
+  TCasScriptCatmullRomSpline = class(TCasScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptHermiteSpline = class(TCasScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
+  TCasScriptHermiteTenseSpline = class(TCasScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
 implementation
 
-uses SysUtils, CastleScriptCoreFunctions;
+uses SysUtils, CastleScriptCoreFunctions, CastleCurves;
 
 { CastleScript values --------------------------------------------------------- }
 
@@ -497,6 +515,37 @@ uses SysUtils, CastleScriptCoreFunctions;
 {$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
+class procedure TCasScriptSingleArray.HandleCatmullRomSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
+  TCasScriptFloat(AResult).Value := CatmullRomSpline(
+    TCasScriptFloat(Arguments[0]).Value,
+    TCasScriptBoolean(Arguments[1]).Value,
+    TCasScriptSingleArray(Arguments[2]).Value,
+    TCasScriptSingleArray(Arguments[3]).Value);
+end;
+
+class procedure TCasScriptSingleArray.HandleHermiteSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
+  TCasScriptFloat(AResult).Value := HermiteSpline(
+    TCasScriptFloat(Arguments[0]).Value,
+    TCasScriptBoolean(Arguments[1]).Value,
+    TCasScriptSingleArray(Arguments[2]).Value,
+    TCasScriptSingleArray(Arguments[3]).Value,
+    TCasScriptSingleArray(Arguments[4]).Value);
+end;
+
+class procedure TCasScriptSingleArray.HandleHermiteTenseSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
+  TCasScriptFloat(AResult).Value := HermiteTenseSpline(
+    TCasScriptFloat(Arguments[0]).Value,
+    TCasScriptBoolean(Arguments[1]).Value,
+    TCasScriptSingleArray(Arguments[2]).Value,
+    TCasScriptSingleArray(Arguments[3]).Value);
+end;
+
 { CastleScript functions ------------------------------------------------------ }
 
 class function TCasScriptArrayFun.ShortName: string;
@@ -537,6 +586,21 @@ end;
 class function TCasScriptArraySet.ArgumentMustBeAssignable(const Index: Integer): boolean;
 begin
   Result := Index = 0;
+end;
+
+class function TCasScriptCatmullRomSpline.ShortName: string;
+begin
+  Result := 'catmull_rom_spline';
+end;
+
+class function TCasScriptHermiteSpline.ShortName: string;
+begin
+  Result := 'hermite_spline';
+end;
+
+class function TCasScriptHermiteTenseSpline.ShortName: string;
+begin
+  Result := 'hermite_tense_spline';
 end;
 
 { Handling strings as arrays of characters ----------------------------------- }
@@ -645,6 +709,10 @@ initialization
   RegisterVec2dFunctions;
   RegisterVec3dFunctions;
   RegisterVec4dFunctions;
+
+  FunctionHandlers.RegisterHandler(@TCasScriptSingleArray(nil).HandleCatmullRomSpline, TCasScriptCatmullRomSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptSingleArray(nil).HandleHermiteSpline, TCasScriptHermiteSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray, TCasScriptSingleArray], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptSingleArray(nil).HandleHermiteTenseSpline, TCasScriptHermiteTenseSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray], false);
 
   RegisterMatrix3fFunctions;
   RegisterMatrix4fFunctions;
