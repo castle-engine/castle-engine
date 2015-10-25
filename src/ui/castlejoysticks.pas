@@ -211,7 +211,7 @@ type
     function  Init: Byte;
   public
     constructor Create;
-    destructor Destroy;
+    destructor Destroy; override;
 
     procedure Poll;
     function  GetInfo( JoyID : Byte ) : PJoyInfo;
@@ -244,8 +244,8 @@ var
   axis : Integer;
   caps : PLongWord;
 {$ENDIF}
-{const
-  FILE_ERROR = {$IFNDEF WINDOWS} 0 {$ELSE} Ptr( -1 ) {$ENDIF}; }
+//const
+//  FILE_ERROR = {$IFNDEF WINDOWS} 0 {$ELSE} Ptr( -1 ) {$ENDIF};
 begin
   FjoyCount := 0;
 
@@ -353,6 +353,7 @@ end;
 
 constructor TJoysticks.Create;
 begin
+  inherited;
   Init;
 end;
 
@@ -366,6 +367,7 @@ begin
   for i := 0 to FjoyCount - 1 do
     FpClose( FjoyArray[ i ].device );
 {$ENDIF}
+  inherited;
 end;
 
 procedure TJoysticks.Poll;
