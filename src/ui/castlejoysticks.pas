@@ -233,7 +233,7 @@ type
 implementation
 
 uses
-  SysUtils, CastleLog;
+  SysUtils, CastleLog, Math;
 
 { TJoysticks }
 
@@ -299,7 +299,7 @@ begin
   for i := 0 to j - 1 do
     if joyGetDevCapsW( i, @FjoyArray[ i ].caps, SizeOf( TJOYCAPSW ) ) = 0 then
       begin
-        FjoyArray[ i ].Info.Name          := utf16_GetUTF8String( FjoyArray[ i ].caps.szPname );
+        FjoyArray[ i ].Info.Name          := FjoyArray[ i ].caps.szPname;
         FjoyArray[ i ].Info.Count.Axes    := FjoyArray[ i ].caps.wNumAxes;
         FjoyArray[ i ].Info.Count.Buttons := FjoyArray[ i ].caps.wNumButtons;
 
@@ -448,8 +448,8 @@ for i := 0 to FjoyCount - 1 do
         FillChar( FjoyArray[ i ].State.Axis[ JOY_POVX ], 8, 0 );
         if ( FjoyArray[ i ].Info.Caps and JOY_HAS_POV > 0 ) and ( state.dwPOV and $FFFF <> $FFFF ) then
           begin
-            FjoyArray[ i ].State.Axis[ JOY_POVX ] := Round( m_Sin( state.dwPOV and $FFFF div 100 ) );
-            FjoyArray[ i ].State.Axis[ JOY_POVY ] := -Round( m_Cos( state.dwPOV and $FFFF div 100 ) );
+            FjoyArray[ i ].State.Axis[ JOY_POVX ] := Round( Sin( state.dwPOV and $FFFF div 100 ) );
+            FjoyArray[ i ].State.Axis[ JOY_POVY ] := -Round( Cos( state.dwPOV and $FFFF div 100 ) );
           end;
 
         for j := 0 to FjoyArray[ i ].Info.Count.Buttons - 1 do
