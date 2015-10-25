@@ -190,7 +190,7 @@ end;
   Also NurbsUniformKnotIfNeeded is based on NodeNurbsSurface::linearUknot.
 
   White dune:
-  - http://vrml.cip.ica.uni-stuttgart.de/dune/
+  - http://wdune.ourproject.org/
   - J. "MUFTI" Scheurich, Stephen F. White
   - GPL >= 2, so we're free to copy
   - findSpan and basisFuns were methods in NodeNurbsCurve
