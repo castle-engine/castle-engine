@@ -155,6 +155,7 @@ type
   end;
 
 type
+  //todo: events for every TJoy
   PJoy = ^TJoy;
   TJoy = record
     {$IFDEF LINUX}
@@ -194,36 +195,45 @@ const
 
 type
 
-  TOnJoyAxisMove = procedure(const Joy: PJoy) of object;
+  TOnJoyAxisMove = procedure(const Joy: PJoy; const Axis: Byte; const Value: Single) of object;
+  TOnJoyButtonEvent = procedure(const Joy: PJoy; const Button: Byte) of object;
 
   { TJoysticks }
 
   TJoysticks = class
   private
     FOnAxisMove: TOnJoyAxisMove;
-    FjoyArray : array[ 0..15 ] of TJoy;
-    FjoyCount : Integer;
-    function  Init : Byte;
+    FOnButtonDown: TOnJoyButtonEvent;
+    FOnButtonUp: TOnJoyButtonEvent;
+    FOnButtonPress: TOnJoyButtonEvent;
+    FjoyArray: array[ 0..15 ] of TJoy;
+    FjoyCount: Integer;
+    function  Init: Byte;
   public
     constructor Create;
     destructor Destroy;
 
     procedure Poll;
     function  GetInfo( JoyID : Byte ) : PJoyInfo;
-    function  AxisPos( JoyID, Axis : Byte ) : Single;
-    function  Down( JoyID, Button : Byte ) : Boolean;
-    function  Up( JoyID, Button : Byte ) : Boolean;
-    function  Press( JoyID, Button : Byte ) : Boolean;
+    function  AxisPos( JoyID, Axis : Byte ): Single;
+    function  Down( JoyID, Button : Byte ): Boolean;
+    function  Up( JoyID, Button : Byte ): Boolean;
+    function  Press( JoyID, Button : Byte ): Boolean;
     procedure ClearState;
+    function GetJoy(const JoyID: Byte): PJoy;
   published
     property OnAxisMove: TOnJoyAxisMove read FOnAxisMove write FOnAxisMove;
+    property OnButtonDown: TOnJoyButtonEvent read FOnButtonDown write FOnButtonDown;
+    property OnButtonUp: TOnJoyButtonEvent read FOnButtonUp write FOnButtonUp;
+    property OnButtonPress: TOnJoyButtonEvent read FOnButtonPress write FOnButtonPress;
     property JoyCount: Integer read FjoyCount;
+
   end;
 
 implementation
 
 uses
-  SysUtils;
+  SysUtils, CastleLog;
 
 { TJoysticks }
 
@@ -275,9 +285,8 @@ begin
       // Checking if joystick is a real one, because laptops with accelerometer can be detected as a joystick :)
       if ( FjoyArray[ FjoyCount ].Info.Count.Axes >= 2 ) and ( FjoyArray[ FjoyCount ].Info.Count.Buttons > 0 ) Then
       begin
-        {log_Add( 'Joy: Find "' + FjoyArray[ joyCount ].Info.Name + '" (ID: ' + u_IntToStr( FjoyCount ) +
-                 '; Axes: ' + u_IntToStr( FjoyArray[ FjoyCount ].Info.Count.Axes ) +
-                 '; Buttons: ' + u_IntToStr( FjoyArray[ FjoyCount ].Info.Count.Buttons ) + ')' ); }
+        if Log then
+          WritelnLog('CastleJoysticks Init', 'Find joy: %S (ID: %D); Axes: %D; Buttons: %D', [FjoyArray[ joyCount ].Info.Name, FjoyCount, FjoyArray[ FjoyCount ].Info.Count.Axes, FjoyArray[ FjoyCount ].Info.Count.Buttons]);
 
           Inc( FjoyCount );
         end;
@@ -328,9 +337,9 @@ begin
             Inc( FjoyArray[ i ].Info.Count.Axes, 2 );
           end;
 
-        {log_Add( 'Joy: Find "' + FjoyArray[ i ].Info.Name + '" (ID: ' + u_IntToStr( i ) +
-                 '; Axes: ' + u_IntToStr( FjoyArray[ i ].Info.Count.Axes ) +
-                 '; Buttons: ' + u_IntToStr( FjoyArray[ i ].Info.Count.Buttons ) + ')' );    }
+        if Log then
+          WritelnLog('CastleJoysticks Init', 'Find joy: %S (ID: %D); Axes: %D; Buttons: %D',
+                     [FjoyArray[ i ].Info.Name, i, FjoyArray[ i ].Info.Count.Axes, FjoyArray[ i ].Info.Count.Buttons]);
 
         Inc( FjoyCount );
       end else
@@ -338,8 +347,8 @@ begin
   {$ENDIF}
 
   Result := FjoyCount;
-  {if Result = 0 Then
-    log_Add( 'Joy: Couldn''t find joysticks' );  }
+  if Result = 0 then
+    WritelnLog('CastleJoysticks Init', 'Couldn''t find joysticks' );
 end;
 
 constructor TJoysticks.Create;
@@ -375,7 +384,7 @@ var
   vMax  : LongWord;
 {$ENDIF}
 begin
-if FjoyCount = 0 then exit;
+if FjoyCount = 0 then Exit;
 
 {$IFDEF LINUX}
 for i := 0 to FjoyCount - 1 do
@@ -414,7 +423,7 @@ state.dwSize := SizeOf( TJOYINFOEX );
 for i := 0 to FjoyCount - 1 do
   begin
     state.dwFlags := JOY_RETURNALL or JOY_USEDEADZONE;
-    if FjoyArray[ i ].caps.wCaps and JOYCAPS_POVCTS > 0 Then
+    if FjoyArray[ i ].caps.wCaps and JOYCAPS_POVCTS > 0 then
       state.dwFlags := state.dwFlags or JOY_RETURNPOVCTS;
 
     if joyGetPosEx( i, @state ) = 0 then
@@ -462,7 +471,7 @@ end;
 function TJoysticks.GetInfo(JoyID: Byte): PJoyInfo;
 begin
   Result := nil;
-  if JoyID >= FjoyCount then exit;
+  if JoyID >= FjoyCount then Exit;
 
   Result := @FjoyArray[ JoyID ].Info;
 end;
@@ -470,33 +479,41 @@ end;
 function TJoysticks.AxisPos(JoyID, Axis: Byte): Single;
 begin
   Result := 0;
-  if ( JoyID >= FjoyCount ) or ( Axis > 7 ) then exit;
+  if ( JoyID >= FjoyCount ) or ( Axis > JOY_POVY ) then Exit;
 
   Result := FjoyArray[ JoyID ].State.Axis[ Axis ];
+  if Assigned(FOnAxisMove) then
+    FOnAxisMove(@FjoyArray[ JoyID ], Axis, Result);
 end;
 
 function TJoysticks.Down(JoyID, Button: Byte): Boolean;
 begin
   Result := False;
-  if ( JoyID >= FjoyCount ) or ( Button >= FjoyArray[ JoyID ].Info.Count.Buttons ) then exit;
+  if ( JoyID >= FjoyCount ) or ( Button >= FjoyArray[ JoyID ].Info.Count.Buttons ) then Exit;
 
   Result := FjoyArray[ JoyID ].State.BtnDown[ Button ];
+  if Assigned(FOnButtonDown) and Result then
+    FOnButtonDown(@FjoyArray[ JoyID ], Button);
 end;
 
 function TJoysticks.Up(JoyID, Button: Byte): Boolean;
 begin
   Result := False;
-  if ( JoyID >= FjoyCount ) or ( Button >= FjoyArray[ JoyID ].Info.Count.Buttons ) then exit;
+  if ( JoyID >= FjoyCount ) or ( Button >= FjoyArray[ JoyID ].Info.Count.Buttons ) then Exit;
 
   Result := FjoyArray[ JoyID ].State.BtnUp[ Button ];
+  if Assigned(FOnButtonUp) and Result then
+    FOnButtonUp(@FjoyArray[ JoyID ], Button);
 end;
 
 function TJoysticks.Press(JoyID, Button: Byte): Boolean;
 begin
   Result := False;
-  if ( JoyID >= FjoyCount ) or ( Button >= FjoyArray[ JoyID ].Info.Count.Buttons ) then exit;
+  if ( JoyID >= FjoyCount ) or ( Button >= FjoyArray[ JoyID ].Info.Count.Buttons ) then Exit;
 
   Result := FjoyArray[ JoyID ].State.BtnPress[ Button ];
+  if Assigned(FOnButtonPress) and Result then
+    FOnButtonPress(@FjoyArray[ JoyID ], Button);
 end;
 
 procedure TJoysticks.ClearState;
@@ -512,6 +529,13 @@ begin
         state^.BtnPress[ j ]    := False;
         state^.BtnCanPress[ j ] := True;
       end;
+end;
+
+function TJoysticks.GetJoy(const JoyID: Byte): PJoy;
+begin
+  Result := nil;
+  if JoyID >= FjoyCount then Exit;
+  Result := @FjoyArray[JoyID];
 end;
 
 end.
