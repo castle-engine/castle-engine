@@ -643,6 +643,7 @@ type
     FColor: TCastleColor;
     FTags: boolean;
     FFrame: boolean;
+    FFrameColor: TCastleColor;
     FMaxWidth: Integer;
     { For internal use by tooltip rendering. In normal circumstances,
       leave this at tiLabel. }
@@ -660,6 +661,9 @@ type
 
     { Text color. By default it's white. }
     property Color: TCastleColor read FColor write FColor;
+
+    { Color tint of the background image, see @link(Frame). By default white. }
+    property FrameColor: TCastleColor read FFrameColor write FFrameColor;
   published
     property Text: TStrings read FText;
 
@@ -2651,6 +2655,7 @@ begin
   FText := TStringList.Create;
   FColor := White;
   FFrame := false;
+  FFrameColor := White;
   FLineSpacing := DefaultLineSpacing;
   ImageType := tiLabel;
 end;
@@ -2726,7 +2731,7 @@ begin
     PaddingScaled := Round(US * Padding);
     LineSpacingScaled := Round(US * LineSpacing);
     if Frame then
-      Theme.Draw(SR, ImageType);
+      Theme.Draw(SR, ImageType, FrameColor);
     case Alignment of
       hpLeft  : TextX := SR.Left + PaddingScaled;
       hpMiddle: TextX := (SR.Left + SR.Right) div 2;
