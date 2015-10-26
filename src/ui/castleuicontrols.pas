@@ -118,8 +118,8 @@ type
     usNone,
 
     { Scale to fake that the container sizes enclose
-      @link(TUIContainer.ReferenceWidth) and
-      @link(TUIContainer.ReferenceHeight).
+      @link(TUIContainer.UIReferenceWidth) and
+      @link(TUIContainer.UIReferenceHeight).
       So one size will be equal to reference size, and the other will be equal
       or larger to reference.
 
@@ -129,8 +129,8 @@ type
     usEncloseReferenceSize,
 
     { Scale to fake that the container sizes fit inside
-      @link(TUIContainer.ReferenceWidth) and
-      @link(TUIContainer.ReferenceHeight).
+      @link(TUIContainer.UIReferenceWidth) and
+      @link(TUIContainer.UIReferenceHeight).
       So one size will be equal to reference size, and the other will be equal
       or smaller to reference.
 
@@ -605,7 +605,7 @@ end;
     function AllowSuspendForInput: boolean; virtual;
 
     { You can resize/reposition your component here,
-      for example set @link(Left) or @link(Bottom), to react to parent
+      for example set @link(TUIControl.Left) or @link(TUIControl.Bottom), to react to parent
       size changes.
       Called always when the container (component or window with OpenGL context)
       size changes. Called only when the OpenGL context of the container

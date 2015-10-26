@@ -57,9 +57,6 @@
 
       Initial (probably localized) value of DecimalSeparator
       is saved in LocaleDecimalSeparator variable.)
-
-    @item(Installs my handler for ExceptProc, see comments at
-      @link(HaltCodeOnException).)
   )
 }
 
