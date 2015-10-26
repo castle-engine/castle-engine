@@ -263,7 +263,7 @@ begin
     S := Player.Inventory[I].Resource.Caption;
     if Player.Inventory[I].Quantity <> 1 then
       S += Format(' (%d)', [Player.Inventory[I].Quantity]);
-    UIFontSmall.Print(X, Y - UIFontSmall.RowHeight, Yellow, S);
+    UIFont.Print(X, Y - UIFont.RowHeight, Yellow, S);
   end;
 
   { Simple color effects over the screen:

@@ -138,8 +138,9 @@ type
       about it if you want to destroy TCastleFont instance before closing
       OpenGL context.
       Calling GLContextClose is also automatically taken care of if
-      you use this font as CastleControls.UIFont, CastleControls.UIFontSmall
-      or @link(TUIControlFont.CustomFont) or @link(TCastleTheme.MessageFont).
+      you use this font as @link(CastleControls.UIFont),
+      @link(CastleControls.UIFontSmall),
+      @link(TUIControlFont.CustomFont) or @link(TCastleTheme.MessageFont).
 
       @groupBegin }
     procedure GLContextOpen; virtual;

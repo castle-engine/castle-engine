@@ -981,7 +981,9 @@ function GetUIFont: TCastleFont;
 procedure SetUIFont(const Value: TCastleFont);
 
 function GetUIFontSmall: TCastleFont;
+  deprecated 'use UIFont and temporarily change the size to be smaller, or use TUIControlFont.SmallFont';
 procedure SetUIFontSmall(const Value: TCastleFont);
+  deprecated 'use UIFont and temporarily change the size to be smaller, or use TUIControlFont.SmallFont';
 
 property UIFont: TCastleFont read GetUIFont write SetUIFont;
 property UIFontSmall: TCastleFont read GetUIFontSmall write SetUIFontSmall;
@@ -1107,13 +1109,11 @@ function TUIControlFont.Font: TCastleFont;
 begin
   if CustomFont <> nil then
     Result := CustomFont else
-  if SmallFont then
-    Result := UIFontSmall else
     Result := UIFont;
 
   { if FontSize or UIScale are non-trivial,
     wrap Result in TCustomizedFont instance }
-  if (FFontSize <> 0) or (UIScale <> 1) then
+  if (FFontSize <> 0) or (UIScale <> 1) or SmallFont then
   begin
     if FCustomizedFont = nil then
       FCustomizedFont := TCustomizedFont.Create(nil);
