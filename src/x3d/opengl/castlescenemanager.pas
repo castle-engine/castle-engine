@@ -1454,12 +1454,12 @@ end;
 procedure TCastleAbstractViewport.ItemsAndCameraCursorChange(Sender: TObject);
 begin
   { We have to treat Camera.Cursor specially:
-    - mcNone because of mouse look means result is unconditionally mcNone.
+    - mcForceNone because of mouse look means result is unconditionally mcForceNone.
       Other Items.Cursor, MainScene.Cursor etc. is ignored then.
     - otherwise, Camera.Cursor is ignored, show 3D objects cursor. }
-  if (Camera <> nil) and (Camera.Cursor = mcNone) then
+  if (Camera <> nil) and (Camera.Cursor = mcForceNone) then
   begin
-    Cursor := mcNone;
+    Cursor := mcForceNone;
     Exit;
   end;
 

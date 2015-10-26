@@ -760,7 +760,7 @@ begin
         { don't do anything, Application.Cursors[mcDefault] should be nil,
           gdk_window_set_cursor will understand nil as "use parent"
           and that's exactly what we want for mcDefault. };
-      mcNone: Application.Cursors[Cursor] := CreateNoneCursor;
+      mcNone, mcForceNone: Application.Cursors[Cursor] := CreateNoneCursor;
       mcCustom: { TODO: temporary, behave like mcDefault };
       else
         Application.Cursors[Cursor] := gdk_cursor_new_for_display(

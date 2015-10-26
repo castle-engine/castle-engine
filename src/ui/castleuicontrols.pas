@@ -1417,13 +1417,30 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
   end;
 
   function CalculateMouseCursor: TMouseCursor;
+  var
+    I: Integer;
+    C: TUIControl;
   begin
     if Focus <> nil then
     begin
       Result := Focus.Cursor;
+
+      for I := Controls.Count - 1 downto 0 do
+      begin
+        C := Controls[I];
+        if (not (csDestroying in C.ComponentState)) and
+           C.GetExists and
+           (C.Cursor = mcForceNone) and
+           C.CapturesEventsAtPosition(MousePosition) then
+        begin
+          Result := mcForceNone;
+          Break;
+        end;
+      end;
+
       { do not hide when container is not focused (mouse look doesn't work
         then too, so better to not hide mouse) }
-      if (not Focused) and (Result = mcNone) then
+      if (not Focused) and (Result in [mcNone, mcForceNone]) then
         Result := mcDefault;
     end else
       Result := mcDefault;
@@ -1439,8 +1456,7 @@ begin
      (not (csDestroying in ForceCaptureInput.ComponentState)) then
     NewFocus := ForceCaptureInput else
   if (FCaptureInput.IndexOf(0) <> -1) and
-     (not (csDestroying in FCaptureInput[0].ComponentState))
-   then
+     (not (csDestroying in FCaptureInput[0].ComponentState)) then
     NewFocus := FCaptureInput[0] else
     NewFocus := CalculateFocus;
 

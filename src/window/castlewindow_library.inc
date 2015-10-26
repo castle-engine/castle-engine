@@ -128,7 +128,7 @@ begin
     begin
       // send to client
       case Value of
-        mcNone: CursorCode := ecgecursorNone;
+        mcNone, mcForceNone: CursorCode := ecgecursorNone;
         mcWait: CursorCode := ecgecursorWait;
         mcHand: CursorCode := ecgecursorHand;
         mcText: CursorCode := ecgecursorText;

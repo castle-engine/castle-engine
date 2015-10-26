@@ -4250,7 +4250,7 @@ begin
   begin
     FMouseLook := Value;
     if FMouseLook then
-      Cursor := mcNone else
+      Cursor := mcForceNone else
       Cursor := mcDefault;
   end;
 end;
