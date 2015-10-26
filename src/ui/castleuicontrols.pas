@@ -1422,7 +1422,7 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
     begin
       Result := Focus.Cursor;
       { do not hide when container is not focused (mouse look doesn't work
-        then too, so better to hide mouse) }
+        then too, so better to not hide mouse) }
       if (not Focused) and (Result = mcNone) then
         Result := mcDefault;
     end else

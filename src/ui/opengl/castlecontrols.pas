@@ -713,6 +713,8 @@ type
     property HasVerticalAnchor default true;
     property HorizontalAnchor default hpMiddle;
     property VerticalAnchor default vpMiddle;
+
+    property Cursor default mcNone;
   end;
 
   TCastleProgressBar = class(TUIControl)
@@ -1954,6 +1956,7 @@ constructor TCastleCrosshair.Create(AOwner: TComponent);
 begin
   inherited;
   FShape := csCross;
+  Cursor := mcNone;
   Anchor(hpMiddle);
   Anchor(vpMiddle);
 end;
