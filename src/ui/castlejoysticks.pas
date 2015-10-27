@@ -283,7 +283,7 @@ begin
           end;
 
       // Checking if joystick is a real one, because laptops with accelerometer can be detected as a joystick :)
-      if ( FjoyArray[ FjoyCount ].Info.Count.Axes >= 2 ) and ( FjoyArray[ FjoyCount ].Info.Count.Buttons > 0 ) Then
+      if ( FjoyArray[ FjoyCount ].Info.Count.Axes >= 2 ) and ( FjoyArray[ FjoyCount ].Info.Count.Buttons > 0 ) then
       begin
         if Log then
           WritelnLog('CastleJoysticks Init', 'Find joy: %S (ID: %D); Axes: %D; Buttons: %D', [FjoyArray[ joyCount ].Info.Name, FjoyCount, FjoyArray[ FjoyCount ].Info.Count.Axes, FjoyArray[ FjoyCount ].Info.Count.Buttons]);
@@ -373,6 +373,8 @@ end;
 procedure TJoysticks.Poll;
 var
   i : Integer;
+  axis: Byte;
+  value: Single;
 {$IFDEF LINUX}
   event : js_event;
 {$ENDIF}
@@ -395,24 +397,32 @@ for i := 0 to FjoyCount - 1 do
       case event._type of
         JS_EVENT_AXIS:
           begin
-            FjoyArray[ i ].State.Axis[ JS_AXIS[ FjoyArray[ i ].axesMap[ event.number ] ] ] := Round( ( event.value / 32767 ) * 1000 ) / 1000;
+            axis := JS_AXIS[ FjoyArray[ i ].axesMap[ event.number ] ];
+            value := Round( ( event.value / 32767 ) * 1000 ) / 1000;
+            FjoyArray[ i ].State.Axis[ axis ] := value;
+            if Assigned(FOnAxisMove) then FOnAxisMove(@FjoyArray[ i ], axis, value);
           end;
         JS_EVENT_BUTTON:
           case event.value of
             0:
               begin
                 if FjoyArray[ i ].State.BtnDown[ event.number ] then
+                begin
                   FjoyArray[ i ].State.BtnUp[ event.number ] := True;
+                  if Assigned(FOnButtonUp) then FOnButtonUp(@FjoyArray[ i ] ,event.number);
+                end;
 
                 FjoyArray[ i ].State.BtnDown[ event.number ] := False;
               end;
             1:
               begin
                 FjoyArray[ i ].State.BtnDown[ event.number ] := True;
+                if Assigned(FOnButtonDown) then FOnButtonDown(@FjoyArray[ i ] ,event.number);
                 FjoyArray[ i ].State.BtnUp  [ event.number ] := False;
                 if FjoyArray[ i ].State.BtnCanPress[ event.number ] then
                   begin
                     FjoyArray[ i ].State.BtnPress   [ event.number ] := True;
+                    if Assigned(FOnButtonPress) then FOnButtonPress(@FjoyArray[ i ] ,event.number);
                     FjoyArray[ i ].State.BtnCanPress[ event.number ] := False;
                   end;
               end;
@@ -421,6 +431,7 @@ for i := 0 to FjoyCount - 1 do
   end;
 {$ENDIF}
 {$IFDEF WINDOWS}
+//todo: windows events execution
 state.dwSize := SizeOf( TJOYINFOEX );
 for i := 0 to FjoyCount - 1 do
   begin
