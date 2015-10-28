@@ -155,7 +155,6 @@ type
   end;
 
 type
-  //todo: events for every TJoy
   PJoy = ^TJoy;
   TJoy = record
     {$IFDEF LINUX}
@@ -195,11 +194,12 @@ const
 
 type
 
+  { Joystick axis move event. }
   TOnJoyAxisMove = procedure(const Joy: PJoy; const Axis: Byte; const Value: Single) of object;
+  { Joystick button action event. Used on button press/up/down. }
   TOnJoyButtonEvent = procedure(const Joy: PJoy; const Button: Byte) of object;
 
-  { TJoysticks }
-
+  { TJoysticks is a class for joysticks and gamepads management }
   TJoysticks = class
   private
     FOnAxisMove: TOnJoyAxisMove;
@@ -210,9 +210,12 @@ type
     FjoyCount: Integer;
     function  Init: Byte;
   public
+    { Constructor search for connected devices. If new device will be connected
+      after Create it won't be automatically discovered. In such case
+      TJoysticks have to be destroied and created again. }
     constructor Create;
     destructor Destroy; override;
-
+    { Check state of every connected joystick and run event procedures.  }
     procedure Poll;
     function  GetInfo( JoyID : Byte ) : PJoyInfo;
     function  AxisPos( JoyID, Axis : Byte ): Single;
@@ -227,9 +230,9 @@ type
     property OnButtonUp: TOnJoyButtonEvent read FOnButtonUp write FOnButtonUp;
     property OnButtonPress: TOnJoyButtonEvent read FOnButtonPress write FOnButtonPress;
     property JoyCount: Integer read FjoyCount;
-
   end;
 
+{ Initialize Joysticks global variable. }
 procedure EnableJoysticks;
 
 var
