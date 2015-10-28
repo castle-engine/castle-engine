@@ -209,7 +209,6 @@ type
     LastPositionForTooltipTime: TTimerResult;
     Mouse3d: T3DConnexionDevice;
     Mouse3dPollTimer: Single;
-    Joysticks: TJoysticks;
     FUIScaling: TUIScaling;
     FUIReferenceWidth: Integer;
     FUIReferenceHeight: Integer;
