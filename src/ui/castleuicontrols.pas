@@ -1576,7 +1576,7 @@ begin
   if Assigned(Joysticks) then
   begin
     //todo: send to all controls; add procedures to TInputListener
-    for I := 0 to Joysticks.JoyCount - 1 do
+    {for I := 0 to Joysticks.JoyCount - 1 do
     begin
       for J := 0 to Joysticks.GetJoy(I)^.Info.Count.Buttons -1 do
       begin
@@ -1588,7 +1588,8 @@ begin
       begin
         Joysticks.AxisPos(I, J);
       end;
-    end;
+    end; }
+    Joysticks.Poll;
   end;
 
   { Although we call Update for all the existing controls, we look
