@@ -512,8 +512,6 @@ begin
   if ( JoyID >= FjoyCount ) or ( Axis > JOY_POVY ) then Exit;
 
   Result := FjoyArray[ JoyID ].State.Axis[ Axis ];
-  if Assigned(FOnAxisMove) then
-    FOnAxisMove(@FjoyArray[ JoyID ], Axis, Result);
 end;
 
 function TJoysticks.Down(JoyID, Button: Byte): Boolean;
@@ -522,8 +520,6 @@ begin
   if ( JoyID >= FjoyCount ) or ( Button >= FjoyArray[ JoyID ].Info.Count.Buttons ) then Exit;
 
   Result := FjoyArray[ JoyID ].State.BtnDown[ Button ];
-  if Assigned(FOnButtonDown) and Result then
-    FOnButtonDown(@FjoyArray[ JoyID ], Button);
 end;
 
 function TJoysticks.Up(JoyID, Button: Byte): Boolean;
@@ -532,8 +528,6 @@ begin
   if ( JoyID >= FjoyCount ) or ( Button >= FjoyArray[ JoyID ].Info.Count.Buttons ) then Exit;
 
   Result := FjoyArray[ JoyID ].State.BtnUp[ Button ];
-  if Assigned(FOnButtonUp) and Result then
-    FOnButtonUp(@FjoyArray[ JoyID ], Button);
 end;
 
 function TJoysticks.Press(JoyID, Button: Byte): Boolean;
@@ -542,8 +536,6 @@ begin
   if ( JoyID >= FjoyCount ) or ( Button >= FjoyArray[ JoyID ].Info.Count.Buttons ) then Exit;
 
   Result := FjoyArray[ JoyID ].State.BtnPress[ Button ];
-  if Assigned(FOnButtonPress) and Result then
-    FOnButtonPress(@FjoyArray[ JoyID ], Button);
 end;
 
 procedure TJoysticks.ClearState;
