@@ -75,12 +75,12 @@ type
     This way state is notified
     about UI events, and can react to them. Since state-specific UI
     should always be at the front of us, or our children,
-    so in case of events that
-    can be "handled" (like TUIControl.Press, TUIControl.Release events)
-    the state is notified about them only if no other state-specific
-    UI control handled them.
-
-    TODO: control children don't work like that now.
+    so in case of events that can be "handled"
+    (like TUIControl.Press, TUIControl.Release events)
+    the state-specific UI controls will handle them @italic(before)
+    the state itself (if you override TUIControl.Press or such in state,
+    be sure to call @code(inherited) first, to make sure it really
+    happens).
 
     This way state can
 

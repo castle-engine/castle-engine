@@ -550,7 +550,9 @@ begin
       Vendor: X.Org
       Renderer: Gallium 0.4 on AMD RV710
   }
-  FBuggyGLSLFrontFacing := Mesa and (VendorMajor = 10) and (Major = 3);
+  // TODO: force false temporary for
+  // https://sourceforge.net/p/castle-engine/tickets/36/
+  FBuggyGLSLFrontFacing := false;//Mesa and (VendorMajor = 10) and (Major = 3);
 end;
 
 end.
