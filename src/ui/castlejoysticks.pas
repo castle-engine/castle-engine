@@ -230,10 +230,22 @@ type
 
   end;
 
+procedure EnableJoysticks;
+
+var
+  { Global joystick manager object (singelton). To initialize Joysticks instance
+    run EnableJoysticks procedure }
+  Joysticks: TJoysticks;
+
 implementation
 
 uses
   SysUtils, CastleLog, Math;
+
+procedure EnableJoysticks;
+begin
+  Joysticks := TJoysticks.Create;
+end;
 
 { TJoysticks }
 
@@ -374,7 +386,7 @@ procedure TJoysticks.Poll;
 var
   i : Integer;
   axis: Byte;
-  value: Single;
+  _value: Single;
 {$IFDEF LINUX}
   event : js_event;
 {$ENDIF}
@@ -398,9 +410,9 @@ for i := 0 to FjoyCount - 1 do
         JS_EVENT_AXIS:
           begin
             axis := JS_AXIS[ FjoyArray[ i ].axesMap[ event.number ] ];
-            value := Round( ( event.value / 32767 ) * 1000 ) / 1000;
-            FjoyArray[ i ].State.Axis[ axis ] := value;
-            if Assigned(FOnAxisMove) then FOnAxisMove(@FjoyArray[ i ], axis, value);
+            _value := Round( ( event.value / 32767 ) * 1000 ) / 1000;
+            FjoyArray[ i ].State.Axis[ axis ] := _value;
+            if Assigned(FOnAxisMove) then FOnAxisMove(@FjoyArray[ i ], axis, _value);
           end;
         JS_EVENT_BUTTON:
           case event.value of
@@ -409,7 +421,7 @@ for i := 0 to FjoyCount - 1 do
                 if FjoyArray[ i ].State.BtnDown[ event.number ] then
                 begin
                   FjoyArray[ i ].State.BtnUp[ event.number ] := True;
-                  if Assigned(FOnButtonUp) then FOnButtonUp(@FjoyArray[ i ] ,event.number);
+                  if Assigned(FOnButtonUp) then FOnButtonUp(@FjoyArray[ i ], event.number);
                 end;
 
                 FjoyArray[ i ].State.BtnDown[ event.number ] := False;
@@ -417,12 +429,12 @@ for i := 0 to FjoyCount - 1 do
             1:
               begin
                 FjoyArray[ i ].State.BtnDown[ event.number ] := True;
-                if Assigned(FOnButtonDown) then FOnButtonDown(@FjoyArray[ i ] ,event.number);
+                if Assigned(FOnButtonDown) then FOnButtonDown(@FjoyArray[ i ], event.number);
                 FjoyArray[ i ].State.BtnUp  [ event.number ] := False;
                 if FjoyArray[ i ].State.BtnCanPress[ event.number ] then
                   begin
                     FjoyArray[ i ].State.BtnPress   [ event.number ] := True;
-                    if Assigned(FOnButtonPress) then FOnButtonPress(@FjoyArray[ i ] ,event.number);
+                    if Assigned(FOnButtonPress) then FOnButtonPress(@FjoyArray[ i ], event.number);
                     FjoyArray[ i ].State.BtnCanPress[ event.number ] := False;
                   end;
               end;
@@ -431,7 +443,7 @@ for i := 0 to FjoyCount - 1 do
   end;
 {$ENDIF}
 {$IFDEF WINDOWS}
-//todo: windows events execution
+//todo: windows events execution (axis move - done)
 state.dwSize := SizeOf( TJOYINFOEX );
 for i := 0 to FjoyCount - 1 do
   begin
@@ -453,7 +465,9 @@ for i := 0 to FjoyCount - 1 do
             value := @state;
             Inc( value, 2 + a );
 
-            FjoyArray[ i ].State.Axis[ a ] := Round( ( value^ / ( vMax - vMin ) * 2 - 1 ) * 1000 ) / 1000;
+            _value := Round( ( value^ / ( vMax - vMin ) * 2 - 1 ) * 1000 ) / 1000;
+            FjoyArray[ i ].State.Axis[ a ] := _value;
+            if Assigned(FOnAxisMove) then FOnAxisMove(@FjoyArray[ i ], j, _value);
           end;
 
         FillChar( FjoyArray[ i ].State.Axis[ JOY_POVX ], 8, 0 );
