@@ -430,6 +430,9 @@ type
   end;
 
   { Base class for things that listen to user input: cameras and 2D controls. }
+
+  { TInputListener }
+
   TInputListener = class(TComponent)
   private
     FOnVisibleChange: TNotifyEvent;
@@ -501,6 +504,18 @@ type
         This is necessary because some sensors, e.g. 3Dconnexion,
         may *not* reported as often as normal @link(Update) calls.) }
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
+
+    { Axis movement detected by joystick
+
+      @param JoyID ID of joystick with pressed button
+      @param Axis Number of moved axis }
+    function JoyAxisMove(const JoyID, Axis: Byte): boolean; virtual;
+
+    { Joystick button pressed.
+
+      @param JoyID ID of joystick with pressed button
+      @param Button Number of pressed button }
+    function JoyButtonPress(const JoyID, Button: Byte): boolean; virtual;
 
     { Control may do here anything that must be continously repeated.
       E.g. camera handles here falling down due to gravity,
@@ -1520,7 +1535,7 @@ procedure TUIContainer.EventUpdate;
   end;
 
 var
-  I, J: Integer;
+  I, J, K: Integer;
   C: TUIControl;
   HandleInput: boolean;
   Dummy: boolean;
@@ -1574,21 +1589,37 @@ begin
   { Joysticks }
   if Assigned(Joysticks) then
   begin
-    //todo: send to all controls; add procedures to TInputListener
-    {for I := 0 to Joysticks.JoyCount - 1 do
+    Joysticks.Poll;
+
+    for I := 0 to Joysticks.JoyCount - 1 do
     begin
       for J := 0 to Joysticks.GetJoy(I)^.Info.Count.Buttons -1 do
       begin
-        Joysticks.Down(I, J);
-        Joysticks.Up(I, J);
-        Joysticks.Press(I, J);
+        //Joysticks.Down(I, J);
+        //Joysticks.Up(I, J);
+        if Joysticks.Press(I, J) then
+          for K := Controls.Count - 1 downto 0 do
+          begin
+            C := Controls[K];
+            if C.GetExists {and C.CapturesEventsAtPosition(MousePosition)} then
+            begin
+              C.JoyButtonPress(I, J);
+            end;
+          end;
       end;
       for J := 0 to Joysticks.GetJoy(I)^.Info.Count.Axes -1 do
       begin
-        Joysticks.AxisPos(I, J);
+        if Joysticks.AxisPos(I, J) <> 0 then
+          for K := Controls.Count - 1 downto 0 do
+          begin
+            C := Controls[K];
+            if C.GetExists {and C.CapturesEventsAtPosition(MousePosition)} then
+            begin
+              C.JoyAxisMove(I, J);
+            end;
+          end;
       end;
-    end; }
-    Joysticks.Poll;
+    end;
   end;
 
   { Although we call Update for all the existing controls, we look
@@ -2036,6 +2067,16 @@ end;
 function TInputListener.SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
 begin
   Result := false;
+end;
+
+function TInputListener.JoyAxisMove(const JoyID, Axis: Byte): boolean;
+begin
+  Result := False;
+end;
+
+function TInputListener.JoyButtonPress(const JoyID, Button: Byte): boolean;
+begin
+  Result := False;
 end;
 
 procedure TInputListener.Update(const SecondsPassed: Single;
