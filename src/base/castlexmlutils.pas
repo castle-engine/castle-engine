@@ -18,7 +18,8 @@ unit CastleXMLUtils;
 
 interface
 
-uses SysUtils, DOM, CastleUtils;
+uses SysUtils, DOM,
+  CastleUtils, CastleColors;
 
 { Retrieves from Element attribute Value and returns @true,
   or (of there is no such attribute) returns @false
@@ -118,6 +119,16 @@ type
       modify Value paramater. So behaves just like the attribute didn't exist. }
     function AttributeBoolean(const AttrName: string; var Value: boolean): boolean;
 
+    { Read from Element attribute value as color and returns @true,
+      or (of there is no such attribute) returns @false
+      and does not modify Value. }
+    function AttributeColor(const AttrName: string; var Value: TCastleColor): boolean;
+
+    { Read from Element attribute value as RGB color and returns @true,
+      or (of there is no such attribute) returns @false
+      and does not modify Value. }
+    function AttributeColorRGB(const AttrName: string; var Value: TCastleColorRGB): boolean;
+
     { Retrieves from Element given attribute as a string,
       raises EDOMAttributeMissing if missing.
       @raises EDOMAttributeMissing }
@@ -181,6 +192,12 @@ type
     { Retrieves from Element given attribute as a boolean,
       returns a default value if missing or has invalid value. }
     function AttributeBooleanDef(const AttrName: string; const DefaultValue: boolean): boolean;
+
+    { Retrieves from Element given attribute as a color, or a default value. }
+    function AttributeColorDef(const AttrName: string; const DefaultValue: TCastleColor): TCastleColor;
+
+    { Retrieves from Element given attribute as an RGB color, or a default value. }
+    function AttributeColorRGBDef(const AttrName: string; const DefaultValue: TCastleColorRGB): TCastleColorRGB;
   end;
 
 { This returns the @italic(one and only) child element of this Element.
@@ -454,6 +471,26 @@ begin
   end;
 end;
 
+function TDOMElementHelper.AttributeColor(
+  const AttrName: string; var Value: TCastleColor): boolean;
+var
+  ValueStr: string;
+begin
+  Result := AttributeString(AttrName, ValueStr);
+  if Result then
+    Value := HexToColor(ValueStr);
+end;
+
+function TDOMElementHelper.AttributeColorRGB(
+  const AttrName: string; var Value: TCastleColorRGB): boolean;
+var
+  ValueStr: string;
+begin
+  Result := AttributeString(AttrName, ValueStr);
+  if Result then
+    Value := HexToColorRGB(ValueStr);
+end;
+
 function TDOMElementHelper.AttributeString(const AttrName: string): string;
 begin
   if not AttributeString(AttrName, Result) then
@@ -529,6 +566,18 @@ end;
 function TDOMElementHelper.AttributeBooleanDef(const AttrName: string; const DefaultValue: boolean): boolean;
 begin
   if not AttributeBoolean(AttrName, Result) then
+    Result := DefaultValue;
+end;
+
+function TDOMElementHelper.AttributeColorDef(const AttrName: string; const DefaultValue: TCastleColor): TCastleColor;
+begin
+  if not AttributeColor(AttrName, Result) then
+    Result := DefaultValue;
+end;
+
+function TDOMElementHelper.AttributeColorRGBDef(const AttrName: string; const DefaultValue: TCastleColorRGB): TCastleColorRGB;
+begin
+  if not AttributeColorRGB(AttrName, Result) then
     Result := DefaultValue;
 end;
 
