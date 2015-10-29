@@ -425,6 +425,7 @@ for i := 0 to FjoyCount - 1 do
                 begin
                   FjoyArray[ i ].State.BtnUp[ event.number ] := True;
                   if Assigned(FOnButtonUp) then FOnButtonUp(@FjoyArray[ i ], event.number);
+                  FjoyArray[ i ].State.BtnCanPress[ event.number ] := True;
                 end;
 
                 FjoyArray[ i ].State.BtnDown[ event.number ] := False;
