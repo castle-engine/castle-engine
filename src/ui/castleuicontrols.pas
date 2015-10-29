@@ -1,5 +1,6 @@
 {
-  Copyright 2009-2014 Michalis Kamburelis.
+  Copyright 2009-2014 Michalis Kamburelis,
+            2015 Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
 
@@ -1601,7 +1602,7 @@ begin
           for K := Controls.Count - 1 downto 0 do
           begin
             C := Controls[K];
-            if C.GetExists {and C.CapturesEventsAtPosition(MousePosition)} then
+            if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
             begin
               C.JoyButtonPress(I, J);
             end;
@@ -1613,7 +1614,7 @@ begin
           for K := Controls.Count - 1 downto 0 do
           begin
             C := Controls[K];
-            if C.GetExists {and C.CapturesEventsAtPosition(MousePosition)} then
+            if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
             begin
               C.JoyAxisMove(I, J);
             end;
