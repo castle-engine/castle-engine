@@ -362,6 +362,7 @@ type
     FWidth: Cardinal;
     FHeight: Cardinal;
     FColor: TCastleColor;
+    FCorners: TVector4Integer;
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TCastleImage);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
@@ -380,6 +381,7 @@ type
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
     function Rect: TRectangle; override;
+    procedure ImageChanged;
 
     { Image displayed, or @nil if none.
       This image is owned by this component. If you set this property
@@ -400,7 +402,11 @@ type
       which means that image colors are unchanged. }
     property Color: TCastleColor read FColor write SetColor;
 
-    procedure ImageChanged;
+    { Corners of the image that are not stretched even
+      in case @link(Stretch) is used.
+      See @link(TGLImage.Draw3x3) for the details how drawing image
+      with borders work. }
+    property Corners: TVector4Integer read FCorners write FCorners;
   published
     { URL of the image. Setting this also sets @link(Image).
       Set this to '' to clear the image. }
@@ -957,9 +963,10 @@ type
       If you do not specify a color, white will be used, so image will be displayed
       as-is. Specifying a color means that image will be multiplied by it,
       just like for @link(TGLImage.Color). }
-    procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage);
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
-      const Color: TCastleColor);
+      const UIScale: Single);
+    procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
+      const UIScale: Single; const Color: TCastleColor);
 
     { Font used by dialogs. Leave @nil to use UIFont. }
     property MessageFont: TCastleFont read FMessageFont write SetMessageFont;
@@ -1289,6 +1296,7 @@ begin
     if CustomBackgroundImage <> nil then
     begin
       CustomBackgroundImage.Color := Tint;
+      CustomBackgroundImage.ScaleCorners := UIScale;
       CustomBackgroundImage.Draw3x3(SR, CustomBackgroundCorners);
     end;
   end else
@@ -1298,7 +1306,7 @@ begin
     if Focused then
       Background := tiButtonFocused else
       Background := tiButtonNormal;
-    Theme.Draw(SR, Background, Tint);
+    Theme.Draw(SR, Background, UIScale, Tint);
   end;
 
   UseImage := (FImage <> nil) and (FGLImage <> nil);
@@ -1710,13 +1718,13 @@ var
   I: Integer;
 begin
   inherited;
-  Theme.Draw(Rect, tiPanel);
+  Theme.Draw(Rect, tiPanel, UIScale);
 
   for I := 0 to VerticalSeparators.Count - 1 do
     Theme.Draw(Rectangle(
       Left + VerticalSeparators[I], Bottom + SeparatorMargin,
       Theme.Images[tiPanelSeparator].Width, Height - 2 * SeparatorMargin),
-      tiPanelSeparator);
+      tiPanelSeparator, UIScale);
 end;
 
 class function TCastlePanel.SeparatorSize: Cardinal;
@@ -1784,13 +1792,21 @@ begin
 end;
 
 procedure TCastleImageControl.Render;
+var
+  SR: TRectangle;
 begin
   inherited;
   if FGLImage = nil then Exit;
-  FGLImage.Draw(ScreenRect);
+  SR := ScreenRect;
+  if ZeroVector(FCorners) then
+    FGLImage.Draw(SR) else
+  begin
+    FGLImage.ScaleCorners := UIScale;
+    FGLImage.Draw3x3(SR, FCorners);
+  end;
   { Useful to debug that Proportional works.
   if Stretch and not FullSize then
-    Theme.Draw(Rectangle(Left, Bottom, Width, Height), tiActiveFrame); }
+    Theme.Draw(Rectangle(Left, Bottom, Width, Height), tiActiveFrame, UIScale); }
 end;
 
 function TCastleImageControl.Rect: TRectangle;
@@ -1983,7 +1999,7 @@ end;
 procedure TCastleCrosshair.Render;
 begin
   inherited;
-  Theme.Draw(ScreenRect, ImageType);
+  Theme.Draw(ScreenRect, ImageType, UIScale);
 end;
 
 { TCastleTouchControl ---------------------------------------------------------------- }
@@ -2059,7 +2075,7 @@ begin
     ImageInner := tiTouchCtlInner;
     ImageOuter := tiTouchCtlOuter;
   end;
-  Theme.Draw(SR, ImageOuter);
+  Theme.Draw(SR, ImageOuter, UIScale);
 
   // compute lever offset (must not move outside outer ring)
   LeverDist := VectorLen(FLeverOffset);
@@ -2082,7 +2098,7 @@ begin
   InnerRect.Left   := SR.Left   + (SR.Width  - InnerRect.Width ) div 2 + LevOffsetTrimmedX;
   InnerRect.Bottom := SR.Bottom + (SR.Height - InnerRect.Height) div 2 + LevOffsetTrimmedY;
 
-  Theme.Draw(InnerRect, ImageInner);
+  Theme.Draw(InnerRect, ImageInner, UIScale);
 end;
 
 procedure TCastleTouchControl.SetTouchMode(const Value: TCastleTouchCtlMode);
@@ -2572,7 +2588,7 @@ begin
   end;
 
   MessageRect := Rect;
-  Theme.Draw(MessageRect, tiWindow);
+  Theme.Draw(MessageRect, tiWindow, UIScale);
 
   MessageRect := MessageRect.RemoveBottom(ButtonsHeight);
 
@@ -2586,7 +2602,7 @@ begin
     ScrollbarFrame := MessageRect.RightPart(ScrollBarWholeWidth).
       RemoveRight(Theme.Corners[tiWindow][1]).
       RemoveTop(Theme.Corners[tiWindow][0]);
-    Theme.Draw(ScrollbarFrame, tiScrollbarFrame);
+    Theme.Draw(ScrollbarFrame, tiScrollbarFrame, UIScale);
 
     ScrollBarLength := MessageRect.Height - ScrollBarMargin*2;
     ScrollbarSlider := ScrollbarFrame;
@@ -2594,7 +2610,7 @@ begin
       div AllScrolledLinesCount;
     ScrollbarSlider.Bottom += Round(MapRange(Scroll,
       ScrollMin, ScrollMax, ScrollbarFrame.Height - ScrollbarSlider.Height, 0));
-    Theme.Draw(ScrollbarSlider, tiScrollbarSlider);
+    Theme.Draw(ScrollbarSlider, tiScrollbarSlider, UIScale);
   end else
   begin
     ScrollbarFrame := TRectangle.Empty;
@@ -2732,7 +2748,7 @@ begin
     PaddingScaled := Round(US * Padding);
     LineSpacingScaled := Round(US * LineSpacing);
     if Frame then
-      Theme.Draw(SR, ImageType, FrameColor);
+      Theme.Draw(SR, ImageType, UIScale, FrameColor);
     case Alignment of
       hpLeft  : TextX := SR.Left + PaddingScaled;
       hpMiddle: TextX := (SR.Left + SR.Right) div 2;
@@ -2868,12 +2884,12 @@ begin
     FGLBackground.Draw(ParentRect);
 
   BarRect := Rect;
-  Theme.Draw(BarRect, tiProgressBar);
+  Theme.Draw(BarRect, tiProgressBar, UIScale);
 
   FillRect := BarRect.LeftPart(Round(BarRect.Width * Progress.Position / Progress.Max));
   { it's normal that at the beginning FillRect is too small to be drawn }
   Theme.GLImages[tiProgressFill].IgnoreTooLargeCorners := true;
-  Theme.Draw(FillRect, tiProgressFill);
+  Theme.Draw(FillRect, tiProgressFill, UIScale);
 
   MaxTextWidth := BarRect.Width - Padding;
   Caption := Progress.Title;
@@ -2939,7 +2955,7 @@ end;
 procedure TErrorBackground.Render;
 begin
   inherited;
-  Theme.Draw(ParentRect, tiErrorBackground);
+  Theme.Draw(ParentRect, tiErrorBackground, UIScale);
 end;
 
 { TCastleAbstractSlider ------------------------------------------------------ }
@@ -2963,7 +2979,7 @@ end;
 procedure TCastleAbstractSlider.Render;
 begin
   inherited;
-  Theme.Draw(ScreenRect, tiSlider);
+  Theme.Draw(ScreenRect, tiSlider, UIScale);
 end;
 
 function TCastleAbstractSlider.IndicatorWidth(const R: TRectangle): Integer;
@@ -2983,7 +2999,7 @@ begin
       - IndicatorW div 2,
     R.Bottom,
     IndicatorW,
-    R.Height), tiSliderPosition);
+    R.Height), tiSliderPosition, UIScale);
 end;
 
 function TCastleAbstractSlider.XCoordToSliderPosition(
@@ -3362,15 +3378,17 @@ begin
     FMessageFont.GLContextClose;
 end;
 
-procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage);
+procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
+  const UIScale: Single);
 begin
-  Draw(Rect, ImageType, White);
+  Draw(Rect, ImageType, UIScale, White);
 end;
 
 procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
-  const Color: TCastleColor);
+  const UIScale: Single; const Color: TCastleColor);
 begin
   GLImages[ImageType].Color := Color;
+  GLImages[ImageType].ScaleCorners := UIScale;
   GLImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
 end;
 

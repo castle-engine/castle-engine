@@ -498,7 +498,7 @@ begin
       CurrentItemBorderColor2, CurrentItemBorderColor1);
 
   if Focused and DrawFocusedBorder then
-    Theme.Draw(SR, tiActiveFrame, CurrentItemBorderColor);
+    Theme.Draw(SR, tiActiveFrame, UIScale, CurrentItemBorderColor);
 
   for I := 0 to ControlsCount - 1 do
   begin
@@ -507,7 +507,7 @@ begin
       R := FRectangles.L[I].Grow(ItemBorderMargin, 0);
       R.Left := R.Left + SR.Left;
       R.Bottom := R.Bottom + SR.Bottom;
-      Theme.Draw(R, tiActiveFrame, CurrentItemBorderColor);
+      Theme.Draw(R, tiActiveFrame, UIScale, CurrentItemBorderColor);
       ItemColor := CurrentItemColor;
     end else
       ItemColor := NonCurrentItemColor;

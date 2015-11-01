@@ -732,6 +732,7 @@ function ZeroVector(const v: TVector3Double; const EqualityEpsilon: Double): boo
 function ZeroVector(const v: TVector4Single; const EqualityEpsilon: Single): boolean; overload;
 function ZeroVector(const v: TVector4Double; const EqualityEpsilon: Double): boolean; overload;
 
+function ZeroVector(const v: TVector4Integer): boolean; overload;
 function ZeroVector(const v: TVector4Cardinal): boolean; overload;
 
 function PerfectlyZeroVector(const v: TVector2Single): boolean; overload;
@@ -3084,6 +3085,11 @@ begin
 end;
 
 function ZeroVector(const v: TVector4Cardinal): boolean;
+begin
+  result := IsMemCharFilled(v, SizeOf(v), #0);
+end;
+
+function ZeroVector(const v: TVector4Integer): boolean;
 begin
   result := IsMemCharFilled(v, SizeOf(v), #0);
 end;

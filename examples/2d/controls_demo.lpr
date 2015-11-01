@@ -30,6 +30,7 @@ var
   OnScreenMenu: TCastleOnScreenMenu;
   Touch: TCastleTouchControl;
   SliderDemo, SliderUIExplicitScale: TCastleFloatSlider;
+  ImageWithBorders: TCastleImageControl;
 
 type
   TClicksHandler = class
@@ -80,6 +81,13 @@ begin
     Just because we can :) }
   Theme.Images[tiTooltip] := TooltipRounded;
   Theme.Corners[tiTooltip] := Vector4Integer(9, 9, 9, 9);
+
+  ImageWithBorders := TCastleImageControl.Create(Window);
+  ImageWithBorders.URL := ApplicationData('box_with_borders.png');
+  ImageWithBorders.Corners := Vector4Integer(40, 40, 40, 40);
+  ImageWithBorders.Stretch := true;
+  ImageWithBorders.FullSize := true;
+  Window.Controls.InsertBack(ImageWithBorders);
 
   Notifications := TCastleNotifications.Create(Window);
   Notifications.Anchor(vpBottom, 10);

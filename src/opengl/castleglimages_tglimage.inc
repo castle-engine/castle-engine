@@ -56,6 +56,7 @@ type
     FIgnoreTooLargeCorners: boolean;
     FColor: TCastleColor;
     FScalingPossible: boolean;
+    FScaleCorners: Single;
     procedure AlphaBegin;
     procedure AlphaEnd;
     procedure UpdateScalingPossible(const NeedToBind: boolean);
@@ -190,6 +191,13 @@ type
     procedure DrawFlipped(const ScreenRectangle: TRectangle;
       const FlipHorizontal, FlipVertical: boolean);
 
+    { In case of @link(Draw3x3) or @link(Draw3x1), the corners
+      on screen are scaled by this amount. This is especially useful
+      for UI scaling, see @link(TUIContainer.UIScaling)
+      and @link(TUIControl.UIScale). }
+    property ScaleCorners: Single
+      read FScaleCorners write FScaleCorners default 1;
+
     { Draw the image on the screen, divided into 3x3 parts for corners,
       sides, and inside.
 
@@ -294,6 +302,7 @@ begin
   // no need to create new OpenGL texture for the same image.
 
   FColor := White;
+  FScaleCorners := 1;
 
   glGenTextures(1, @Texture);
   Load(Image); // Load will already call proper glBindTexture
@@ -618,16 +627,22 @@ var
   OptimizeAlpha: boolean;
   {$endif}
   EpsilonT, EpsilonR, EpsilonB, EpsilonL: Single;
+  DrawCornerTop, DrawCornerRight, DrawCornerBottom, DrawCornerLeft: Integer;
 const
   { We tweak texture coordinates a little, to avoid bilinear filtering
     that would cause border colors to "bleed" over the texture inside.
     Something minimally > 0.5 is necessary. }
   Epsilon = 0.51;
 begin
-  if not ( (CornerLeft + CornerRight < Width) and
-           (CornerLeft + CornerRight < DrawWidth) and
-           (CornerBottom + CornerTop < Height) and
-           (CornerBottom + CornerTop < DrawHeight)) then
+  DrawCornerTop    := Round(CornerTop    * ScaleCorners);
+  DrawCornerRight  := Round(CornerRight  * ScaleCorners);
+  DrawCornerBottom := Round(CornerBottom * ScaleCorners);
+  DrawCornerLeft   := Round(CornerLeft   * ScaleCorners);
+
+  if not ( (    CornerLeft +     CornerRight <     Width) and
+           (DrawCornerLeft + DrawCornerRight < DrawWidth) and
+           (    CornerBottom +     CornerTop <     Height) and
+           (DrawCornerBottom + DrawCornerTop < DrawHeight)) then
   begin
     if Log and not IgnoreTooLargeCorners then
       WritelnLog('Draw3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %d %d',
@@ -639,13 +654,13 @@ begin
 
   XScreenLeft := X;
   XImageLeft := 0;
-  XScreenRight := X + DrawWidth - CornerRight;
-  XImageRight := Width - CornerRight;
+  XScreenRight := X + DrawWidth - DrawCornerRight;
+  XImageRight  :=         Width -     CornerRight;
 
   YScreenBottom := Y;
   YImageBottom := 0;
-  YScreenTop := Y + DrawHeight - CornerTop;
-  YImageTop := Height - CornerTop;
+  YScreenTop := Y + DrawHeight - DrawCornerTop;
+  YImageTop  :=         Height -     CornerTop;
 
   { For speed, we only apply AlphaBegin/End once.
     In case of GLImageUseShaders, this optimization is only useful
@@ -661,30 +676,30 @@ begin
   end;
 
   { 4 corners }
-  Draw(XScreenLeft, YScreenBottom, CornerLeft, CornerBottom,
-        XImageLeft,  YImageBottom, CornerLeft, CornerBottom);
-  Draw(XScreenRight, YScreenBottom, CornerRight, CornerBottom,
-        XImageRight,  YImageBottom, CornerRight, CornerBottom);
-  Draw(XScreenRight, YScreenTop, CornerRight, CornerTop,
-        XImageRight,  YImageTop, CornerRight, CornerTop);
-  Draw(XScreenLeft, YScreenTop, CornerLeft, CornerTop,
-        XImageLeft,  YImageTop, CornerLeft, CornerTop);
+  Draw(XScreenLeft, YScreenBottom, DrawCornerLeft, DrawCornerBottom,
+        XImageLeft,  YImageBottom,     CornerLeft,     CornerBottom);
+  Draw(XScreenRight, YScreenBottom, DrawCornerRight, DrawCornerBottom,
+        XImageRight,  YImageBottom,     CornerRight,     CornerBottom);
+  Draw(XScreenRight, YScreenTop, DrawCornerRight, DrawCornerTop,
+        XImageRight,  YImageTop,     CornerRight,     CornerTop);
+  Draw(XScreenLeft, YScreenTop, DrawCornerLeft, DrawCornerTop,
+        XImageLeft,  YImageTop,     CornerLeft,     CornerTop);
 
   { 4 sides }
-  HorizontalScreenSize := DrawWidth - CornerLeft - CornerRight;
-  HorizontalImageSize  :=     Width - CornerLeft - CornerRight;
-  VerticalScreenSize := DrawHeight - CornerTop - CornerBottom;
-  VerticalImageSize  :=     Height - CornerTop - CornerBottom;
+  HorizontalScreenSize := DrawWidth - DrawCornerLeft - DrawCornerRight;
+  HorizontalImageSize  :=     Width -     CornerLeft -     CornerRight;
+  VerticalScreenSize := DrawHeight - DrawCornerTop - DrawCornerBottom;
+  VerticalImageSize  :=     Height -     CornerTop -     CornerBottom;
 
-  Draw(XScreenLeft + CornerLeft, YScreenBottom, HorizontalScreenSize, CornerBottom,
-        XImageLeft + CornerLeft,  YImageBottom,  HorizontalImageSize, CornerBottom);
-  Draw(XScreenLeft + CornerLeft, YScreenTop, HorizontalScreenSize, CornerTop,
-        XImageLeft + CornerLeft,  YImageTop,  HorizontalImageSize, CornerTop);
+  Draw(XScreenLeft + DrawCornerLeft, YScreenBottom, HorizontalScreenSize, DrawCornerBottom,
+        XImageLeft +     CornerLeft,  YImageBottom,  HorizontalImageSize,     CornerBottom);
+  Draw(XScreenLeft + DrawCornerLeft, YScreenTop, HorizontalScreenSize, DrawCornerTop,
+        XImageLeft +     CornerLeft,  YImageTop,  HorizontalImageSize,     CornerTop);
 
-  Draw(XScreenLeft, YScreenBottom + CornerBottom, CornerLeft, VerticalScreenSize,
-        XImageLeft,  YImageBottom + CornerBottom, CornerLeft,  VerticalImageSize);
-  Draw(XScreenRight, YScreenBottom + CornerBottom, CornerRight, VerticalScreenSize,
-        XImageRight,  YImageBottom + CornerBottom, CornerRight,  VerticalImageSize);
+  Draw(XScreenLeft, YScreenBottom + DrawCornerBottom, DrawCornerLeft, VerticalScreenSize,
+        XImageLeft,  YImageBottom +     CornerBottom,     CornerLeft,  VerticalImageSize);
+  Draw(XScreenRight, YScreenBottom + DrawCornerBottom, DrawCornerRight, VerticalScreenSize,
+        XImageRight,  YImageBottom +     CornerBottom,     CornerRight,  VerticalImageSize);
 
   { inside }
   if CornerLeft > 0   then EpsilonL := Epsilon else EpsilonL := 0;
@@ -692,8 +707,8 @@ begin
   if CornerRight > 0  then EpsilonR := Epsilon else EpsilonR := 0;
   if CornerBottom > 0 then EpsilonB := Epsilon else EpsilonB := 0;
 
-  Draw(X + CornerLeft           , Y + CornerBottom           , HorizontalScreenSize, VerticalScreenSize,
-           CornerLeft + EpsilonL,     CornerBottom + EpsilonB, HorizontalImageSize - (EpsilonL+EpsilonR), VerticalImageSize - (EpsilonT+EpsilonB));
+  Draw(X + DrawCornerLeft           , Y + DrawCornerBottom           , HorizontalScreenSize, VerticalScreenSize,
+               CornerLeft + EpsilonL,         CornerBottom + EpsilonB, HorizontalImageSize - (EpsilonL+EpsilonR), VerticalImageSize - (EpsilonT+EpsilonB));
 
   {$ifdef GLImageUseShaders}
   if OptimizeAlpha then
