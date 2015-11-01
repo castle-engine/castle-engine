@@ -143,7 +143,7 @@ begin
 
   if FText.Count <> 0 then
   begin
-    Theme.Draw(SR, tiLabel);
+    Theme.Draw(SR, tiLabel, UIScale);
     Font.PrintStrings(
       SR.Left + PaddingScaled,
       SR.Bottom + PaddingScaled + Font.Descend,
@@ -156,7 +156,7 @@ begin
       C := ControlColor(FControlsUnderMouse[I]);
       DrawRectangle(SR, C);
       C[3] := 1.0;
-      Theme.Draw(SR, tiActiveFrame, C);
+      Theme.Draw(SR, tiActiveFrame, UIScale, C);
       Font.Print(SR.Left + PaddingScaled,
         SR.Top - PaddingScaled - Font.RowHeight, C,
         ControlDescription(FControlsUnderMouse[I]));
