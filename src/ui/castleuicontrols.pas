@@ -2588,6 +2588,7 @@ begin
   if FExists <> Value then
   begin
     FExists := Value;
+    VisibleChange;
     if Container <> nil then Container.UpdateFocusAndMouseCursor;
   end;
 end;

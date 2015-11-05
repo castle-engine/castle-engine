@@ -363,6 +363,7 @@ type
     FHeight: Cardinal;
     FColor: TCastleColor;
     FCorners: TVector4Integer;
+    FOwnsImage: boolean;
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TCastleImage);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
@@ -383,19 +384,27 @@ type
     function Rect: TRectangle; override;
     procedure ImageChanged;
 
-    { Image displayed, or @nil if none.
-      This image is owned by this component. If you set this property
-      to your custom TCastleImage instance you should
+    { Image displayed, or @nil if none. You can set it by setting @link(URL),
+      or you can set this property directly if you loaded/created the image contents
+      yourself.
+
+      Note that by default the TCastleImage instance assigned here is owned
+      by this component (see @link(OwnsImage)).
+      So if you set this property to your custom TCastleImage instance you should
       leave memory management of this instance to this component.
       If necessary, you can always create a copy by TCastleImage.MakeCopy
-      if you want to give here only a copy.
+      if you want to give here only a copy, or you can change @link(OwnsImage) to @false.
 
       It is allowed to modify the contents or even size of this image.
       Just make sure to call ImageChanged after the modifications are done
       to update the actual rendered image.
-      The control size will be updated immediately (respecing current
-      @link(Stretch) and related properties). }
+      The control size will be updated immediately (taking into account current
+      @link(Stretch) and related properties values). }
     property Image: TCastleImage read FImage write SetImage;
+
+    { Whether the memory management of assigned @link(Image) is automatic.
+      See @link(Image) documentation for details. }
+    property OwnsImage: boolean read FOwnsImage write FOwnsImage default true;
 
     { Color tint of the image. This simply multiplies the image RGBA components,
       just like @link(TGLImage.Color). By default this is opaque white,
@@ -1695,6 +1704,11 @@ end;
 function TCastleButton.Rect: TRectangle;
 begin
   Result := Rectangle(LeftBottomScaled, Width, Height);
+  { in case auto-size is off, scale Width/Height here }
+  if not (AutoSize and AutoSizeWidth) then
+    Result.Width := Round(Result.Width * UIScale);
+  if not (AutoSize and AutoSizeHeight) then
+    Result.Height := Round(Result.Height * UIScale);
 end;
 
 { TCastlePanel ------------------------------------------------------------------ }
@@ -1761,11 +1775,14 @@ constructor TCastleImageControl.Create(AOwner: TComponent);
 begin
   inherited;
   FColor := White;
+  FOwnsImage := true;
 end;
 
 destructor TCastleImageControl.Destroy;
 begin
-  FreeAndNil(FImage);
+  if OwnsImage then
+    FreeAndNil(FImage) else
+    FImage := nil;
   FreeAndNil(FGLImage);
   inherited;
 end;
@@ -1785,7 +1802,7 @@ procedure TCastleImageControl.SetImage(const Value: TCastleImage);
 begin
   if FImage <> Value then
   begin
-    FreeAndNil(FImage);
+    if OwnsImage then FreeAndNil(FImage);
     FImage := Value;
     ImageChanged;
   end;

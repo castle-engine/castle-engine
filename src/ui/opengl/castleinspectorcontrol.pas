@@ -241,6 +241,8 @@ begin
         Anchor(hpLeft);
     end;
   end;
+
+  VisibleChange;
 end;
 
 end.
