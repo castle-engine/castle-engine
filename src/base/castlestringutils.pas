@@ -1032,6 +1032,7 @@ function SReplaceChars(const s, FromChars, ToChars: string): string;
 var
   i, p: integer;
 begin
+  Assert(Length(FromChars) = Length(ToChars));
   result := s;
   for i := 1 to Length(result) do
   begin
