@@ -31,8 +31,12 @@ type
     FPadding: Integer;
     FText: TStringList;
     FControlsUnderMouse: TUIControlList;
+    FControlsInitialized: boolean;
+    FRectWhenControlsInitialized: TRectangle;
     function ControlColor(const C: TUIControl): TCastleColor;
     function ControlDescription(const C: TUIControl): string;
+  protected
+    function KeepInFront: boolean; override;
   public
     const
       DefaultPadding = 10;
@@ -43,6 +47,7 @@ type
     procedure BeforeRender; override;
     procedure Render; override;
     function CapturesEventsAtPosition(const Position: TVector2Single): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
 
     { Text color. By default it's white. }
     property Color: TCastleColor read FColor write FColor;
@@ -50,10 +55,10 @@ type
     { Padding between rect borders and text. }
     property Padding: Integer read FPadding write FPadding
       default DefaultPadding;
-    property HasHorizontalAnchor default true;
-    property HasVerticalAnchor default true;
-    property HorizontalAnchor default hpMiddle;
-    property VerticalAnchor default vpMiddle;
+    property HasHorizontalAnchor stored false;
+    property HasVerticalAnchor stored false;
+    property HorizontalAnchor stored false;
+    property VerticalAnchor stored false;
   end;
 
 implementation
@@ -66,10 +71,9 @@ begin
   inherited;
   FColor := White;
   FPadding := DefaultPadding;
-  HasHorizontalAnchor := true;
-  HasVerticalAnchor := true;
-  HorizontalAnchor := hpMiddle;
-  VerticalAnchor := vpMiddle;
+  FRectWhenControlsInitialized := TRectangle.Empty;
+  Anchor(hpLeft);
+  Anchor(vpBottom);
 
   FText := TStringList.Create;
   FControlsUnderMouse := TUIControlList.Create(false);
@@ -87,13 +91,18 @@ var
   US: Single;
   PaddingScaled: Integer;
 begin
-  US := UIScale;
-  PaddingScaled := Round(US * Padding);
-
-  Result := Rectangle(
-    LeftBottomScaled,
-    Font.MaxTextWidth(FText, true) + 2 * PaddingScaled,
-    Font.RowHeight * FText.Count + Font.Descend + 2 * PaddingScaled);
+  if FControlsInitialized then
+  begin
+    US := UIScale;
+    PaddingScaled := Round(US * Padding);
+    FRectWhenControlsInitialized := Rectangle(
+      LeftBottomScaled,
+      Font.MaxTextWidth(FText, true) + 2 * PaddingScaled,
+      Font.RowHeight * FText.Count + Font.Descend + 2 * PaddingScaled);
+  end;
+  { note that when FControlsInitialized = false, this simply returns last value calculated
+    when FControlsInitialized = true. }
+  Result := FRectWhenControlsInitialized;
 end;
 
 function TCastleInspectorControl.ControlColor(const C: TUIControl): TCastleColor;
@@ -116,9 +125,9 @@ begin
   {$I norqcheckend.inc}
 
   Result := Vector4Single(
-    (Hash and $FF) / 255,
-    ((Hash shr 8) and $FF) / 255,
-    ((Hash shr 16) and $FF) / 255,
+    0.5 + (Hash and $FF) / 128,
+    0.5 + ((Hash shr 8) and $FF) / 128,
+    0.5 + ((Hash shr 16) and $FF) / 128,
     Transparency);
 end;
 
@@ -143,7 +152,8 @@ begin
 
   if FText.Count <> 0 then
   begin
-    Theme.Draw(SR, tiLabel, UIScale);
+    DrawRectangle(SR, Black);
+    //Theme.Draw(SR, tiLabel, UIScale);
     Font.PrintStrings(
       SR.Left + PaddingScaled,
       SR.Bottom + PaddingScaled + Font.Descend,
@@ -168,6 +178,7 @@ begin
     be freed. }
   FText.Clear;
   FControlsUnderMouse.Clear;
+  FControlsInitialized := false;
 end;
 
 procedure TCastleInspectorControl.BeforeRender;
@@ -203,11 +214,33 @@ begin
   FControlsUnderMouse.Clear;
   for I := 0 to Container.Controls.Count - 1 do
     CheckControl(Container.Controls[I], 0);
+  FControlsInitialized := true;
 end;
 
 function TCastleInspectorControl.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
 begin
   Result := true;
+end;
+
+function TCastleInspectorControl.KeepInFront: boolean;
+begin
+  Result := true;
+end;
+
+function TCastleInspectorControl.Motion(const Event: TInputMotion): boolean;
+begin
+  Result := inherited;
+
+  { escape to bottom or top, to not be under mouse }
+  if Event.FingerIndex = 0 then
+  begin
+    if ScreenRect.Contains(Event.Position) then
+    begin
+      if HorizontalAnchor = hpLeft then
+        Anchor(hpRight) else
+        Anchor(hpLeft);
+    end;
+  end;
 end;
 
 end.
