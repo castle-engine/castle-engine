@@ -33,6 +33,8 @@ type
     FControlsUnderMouse: TUIControlList;
     function ControlColor(const C: TUIControl): TCastleColor;
     function ControlDescription(const C: TUIControl): string;
+  protected
+    function KeepInFront: boolean; override;
   public
     const
       DefaultPadding = 10;
@@ -206,6 +208,11 @@ begin
 end;
 
 function TCastleInspectorControl.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
+begin
+  Result := true;
+end;
+
+function TCastleInspectorControl.KeepInFront: boolean;
 begin
   Result := true;
 end;

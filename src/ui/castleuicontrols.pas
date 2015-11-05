@@ -796,6 +796,11 @@ end;
     procedure UIScaleChanged; virtual;
 
     //procedure DoCursorChange; override;
+
+    { Keep the control in front of other controls (with KeepInFront=@false)
+      when inserting. TODO: This is more a hack than a nice solution.
+      It also assumes that the result is constant for given instance lifetime. }
+    function KeepInFront: boolean; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1128,6 +1133,9 @@ end;
     procedure InsertBack(const NewItem: TUIControl);
     procedure InsertBackIfNotExists(const NewItem: TUIControl);
     procedure InsertBack(const NewItems: TUIControlList);
+
+    { Insert, honoring @link(TUIControl.KeepInFront). }
+    procedure InsertWithZOrder(Index: Integer; const Item: TUIControl);
   end;
 
   TUIControlClass = class of TUIControl;
@@ -1201,7 +1209,7 @@ end;
     procedure Remove(const Item: TUIControl);
     procedure Clear;
     procedure Add(const Item: TUIControl); deprecated 'use InsertFront or InsertBack';
-    procedure Insert(const Index: Integer; const Item: TUIControl);
+    procedure Insert(Index: Integer; const Item: TUIControl);
     function IndexOf(const Item: TUIControl): Integer;
 
     { Make sure that NewItem is the only instance of given ReplaceClass
@@ -2143,6 +2151,11 @@ begin
   inherited;
 end;
 
+function TUIControl.KeepInFront: boolean;
+begin
+  Result := false;
+end;
+
 procedure TUIControl.CreateControls;
 begin
   if FControls = nil then
@@ -2890,13 +2903,13 @@ end;
 
 procedure TChildrenControls.InsertFront(const NewItem: TUIControl);
 begin
-  FList.Add(NewItem);
+  Insert(Count, NewItem);
 end;
 
 procedure TChildrenControls.InsertFrontIfNotExists(const NewItem: TUIControl);
 begin
   if FList.IndexOf(NewItem) = -1 then
-    FList.Add(NewItem);
+    InsertFront(NewItem);
 end;
 
 procedure TChildrenControls.InsertFront(const NewItems: TUIControlList);
@@ -2915,7 +2928,7 @@ end;
 procedure TChildrenControls.InsertBackIfNotExists(const NewItem: TUIControl);
 begin
   if FList.IndexOf(NewItem) = -1 then
-    FList.Insert(0, NewItem);
+    InsertBack(NewItem);
 end;
 
 procedure TChildrenControls.Add(const Item: TUIControl);
@@ -2923,9 +2936,27 @@ begin
   InsertFront(Item);
 end;
 
-procedure TChildrenControls.Insert(const Index: Integer; const Item: TUIControl);
+procedure TChildrenControls.Insert(Index: Integer; const Item: TUIControl);
+var
+  I: Integer;
 begin
-  FList.Insert(Index, Item);
+  { TODO: code duplicated with TUIControlList.InsertWithZOrder }
+  Index := Clamped(Index, 0, Count);
+  if Item.KeepInFront or
+     (Count = 0) or
+     (Index = 0) or
+     (not Items[Index - 1].KeepInFront) then
+    FList.Insert(Index, Item) else
+  begin
+    for I := Index - 1 downto 0 do
+      if not Items[I].KeepInFront then
+      begin
+        FList.Insert(I + 1, Item);
+        Exit;
+      end;
+    { everything has KeepInFront = true }
+    FList.Insert(0, Item);
+  end;
 end;
 
 function TChildrenControls.IndexOf(const Item: TUIControl): Integer;
@@ -3121,13 +3152,13 @@ end;
 
 procedure TUIControlList.InsertFront(const NewItem: TUIControl);
 begin
-  Add(NewItem);
+  InsertWithZOrder(Count, NewItem);
 end;
 
 procedure TUIControlList.InsertFrontIfNotExists(const NewItem: TUIControl);
 begin
   if IndexOf(NewItem) = -1 then
-    Add(NewItem);
+    InsertFront(NewItem);
 end;
 
 procedure TUIControlList.InsertFront(const NewItems: TUIControlList);
@@ -3140,13 +3171,13 @@ end;
 
 procedure TUIControlList.InsertBack(const NewItem: TUIControl);
 begin
-  Insert(0, NewItem);
+  InsertWithZOrder(0, NewItem);
 end;
 
 procedure TUIControlList.InsertBackIfNotExists(const NewItem: TUIControl);
 begin
   if IndexOf(NewItem) = -1 then
-    Insert(0, NewItem);
+    InsertBack(NewItem);
 end;
 
 procedure TUIControlList.InsertBack(const NewItems: TUIControlList);
@@ -3156,6 +3187,29 @@ begin
   for I := NewItems.Count - 1 downto 0 do
     InsertBack(NewItems[I]);
 end;
+
+procedure TUIControlList.InsertWithZOrder(Index: Integer; const Item: TUIControl);
+var
+  I: Integer;
+begin
+  Index := Clamped(Index, 0, Count);
+  if Item.KeepInFront or
+     (Count = 0) or
+     (Index = 0) or
+     (not Items[Index - 1].KeepInFront) then
+    Insert(Index, Item) else
+  begin
+    for I := Index - 1 downto 0 do
+      if not Items[I].KeepInFront then
+      begin
+        Insert(I + 1, Item);
+        Exit;
+      end;
+    { everything has KeepInFront = true }
+    Insert(0, Item);
+  end;
+end;
+
 
 { TGLContextEventList -------------------------------------------------------- }
 
