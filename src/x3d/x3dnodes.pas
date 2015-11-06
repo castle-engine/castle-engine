@@ -2325,7 +2325,7 @@ var
 begin
   for I := 0 to Count - 1 do
   begin
-    Result := Addr(L[I]);
+    Result := Ptr(I);
     if Result^.Node.NodeName = NodeName then
       Exit;
   end;
@@ -5771,7 +5771,7 @@ begin
   begin
     I := IndexOfName(BindToName);
     if I <> -1 then
-      P := Addr(L[I]) else
+      P := Ptr(I) else
       P := Add;
     P^.Node := Node;
     P^.Name := BindToName;

@@ -113,6 +113,8 @@ type
     procedure RemoveFingerIndex(const FingerIndex: TFingerIndex);
   end;
 
+  TUIControlList = class;
+
   { Possible values for TUIContainer.UIScaling. }
   TUIScaling = (
     { Do not scale UI. }
@@ -196,7 +198,7 @@ type
       http://bugs.freepascal.org/view.php?id=22495 }
     FControls: TObject;
     FRenderStyle: TRenderStyle;
-    FFocus: TUIControl;
+    FFocus, FNewFocus: TUIControlList;
     { Capture controls, for each FingerIndex.
       The values in this map are never nil. }
     FCaptureInput: TFingerIndexCaptureMap;
@@ -224,6 +226,7 @@ type
     procedure SetUIReferenceHeight(const Value: Integer);
     procedure SetUIExplicitScale(const Value: Single);
     procedure UpdateUIScale;
+    procedure SetForceCaptureInput(const Value: TUIControl);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -283,11 +286,10 @@ type
       of controls covers them. }
     function Controls: TChildrenControls;
 
-    { Returns the control that should receive input events first,
-      or @nil if none. More precisely, this is the first on Controls
-      list that is enabled and under the mouse cursor.
-      @nil is returned when there's no enabled control under the mouse cursor. }
-    property Focus: TUIControl read FFocus;
+    { Returns the controls that should receive input events,
+      from back to front. So the front-most control, that should receive events first,
+      is last on this list. }
+    property Focus: TUIControlList read FFocus;
 
     { When the tooltip should be shown (mouse hovers over a control
       with a tooltip) then the TooltipVisible is set to @true,
@@ -342,7 +344,8 @@ type
     function TouchesCount: Integer; virtual; abstract;
 
     { Called by controls within this container when something could
-      change the container focused control (or it's cursor) or Focused or MouseLook.
+      change the container focused control (in @link(TUIContainer.Focus))
+      (or it's cursor) or @link(TUIContainer.Focused) or MouseLook.
       In practice, called when TUIControl.Cursor or
       @link(TUIControl.CapturesEventsAtPosition) (and so also
       @link(TUIControl.ScreenRect)) results change.
@@ -371,14 +374,9 @@ type
       (TCastleAbstractViewport.FullSize is @false, and actual sizes are smaller
       than window, and may not include window center). In this case you want
       to make sure that motion events get passed to this control,
-      and that this control has focus (to keep mouse cursor hidden).
-
-      This is used only if it is also present on our @link(Controls) list,
-      as it doesn't make sense otherwise.
-      We also cannot reliably track it's existence when it's outside our @link(Controls) list
-      (and we don't want to eagerly @nil this property automatically). }
+      and that this control has focus (to keep mouse cursor hidden). }
     property ForceCaptureInput: TUIControl
-      read FForceCaptureInput write FForceCaptureInput;
+      read FForceCaptureInput write SetForceCaptureInput;
   published
     { How OnRender callback fits within various Render methods of our
       @link(Controls).
@@ -689,8 +687,6 @@ end;
     prHigh
   ) deprecated;
 
-  TUIControlList = class;
-
   { Basic 2D control class. All controls derive from this class,
     overriding chosen methods to react to some events.
     Various user interface containers (things that directly receive messages
@@ -836,8 +832,6 @@ end;
     { Remove control added by @link(InsertFront) or @link(InsertBack). }
     procedure RemoveControl(Item: TUIControl);
 
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
     function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
@@ -994,8 +988,10 @@ end;
     property DisableContextOpenClose: Cardinal
       read FDisableContextOpenClose write FDisableContextOpenClose;
 
-   { Called when this control becomes or stops being focused.
-      In this class, they simply update Focused property. }
+   { Called when this control becomes or stops being focused,
+     that is: under the mouse cursor and will receive events.
+     In this class, they simply update Focused property.
+     You can override this to react to mouse enter / mouse exit events. }
     procedure SetFocused(const Value: boolean); virtual;
 
     property Focused: boolean read FFocused write SetFocused;
@@ -1373,6 +1369,8 @@ begin
   FUIScaling := usNone;
   FUIExplicitScale := 1.0;
   FCalculatedUIScale := 1.0; // default safe value, in case some TUIControl will look here
+  FFocus := TUIControlList.Create(false);
+  FNewFocus := TUIControlList.Create(false);
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
@@ -1390,40 +1388,93 @@ begin
   FreeAndNil(FControls);
   FreeAndNil(Mouse3d);
   FreeAndNil(FCaptureInput);
+  FreeAndNil(FFocus);
+  FreeAndNil(FNewFocus);
+  { set to nil by SetForceCaptureInput, to detach free notification }
+  ForceCaptureInput := nil;
   inherited;
 end;
 
 procedure TUIContainer.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
+
+  { Note: do not move niling FForceCaptureInput to DetachNotification,
+    as we don't want to nil the public property too eagerly, the value
+    of ForceCaptureInput should remain stable. }
+  if (Operation = opRemove) and (AComponent = FForceCaptureInput) then
+    { set to nil by SetForceCaptureInput to clean nicely }
+    ForceCaptureInput := nil;
+
   if (Operation = opRemove) and (AComponent is TUIControl) then
     DetachNotification(TUIControl(AComponent));
 end;
 
+procedure TUIContainer.SetForceCaptureInput(const Value: TUIControl);
+begin
+  if FForceCaptureInput <> Value then
+  begin
+    if FForceCaptureInput <> nil then
+      FForceCaptureInput.RemoveFreeNotification(Self);
+    FForceCaptureInput := Value;
+    if FForceCaptureInput <> nil then
+      FForceCaptureInput.FreeNotification(Self);
+  end;
+end;
+
 procedure TUIContainer.DetachNotification(const C: TUIControl);
 var
-  CaptureIndex: Integer;
+  Index: Integer;
 begin
-  if C = FFocus then FFocus := nil;
+  if FFocus <> nil then
+  begin
+    Index := FFocus.IndexOf(C);
+    if Index <> -1 then
+    begin
+      C.Focused := false;
+      FFocus.Delete(Index);
+    end;
+  end;
 
-  CaptureIndex := FCaptureInput.IndexOfData(C);
-  if CaptureIndex <> -1 then
-    FCaptureInput.Delete(CaptureIndex);
+  if FCaptureInput <> nil then
+  begin
+    Index := FCaptureInput.IndexOfData(C);
+    if Index <> -1 then
+      FCaptureInput.Delete(Index);
+  end;
 end;
 
 function TUIContainer.UseForceCaptureInput: boolean;
 begin
   Result :=
     (ForceCaptureInput <> nil) and
-    (Controls.FList.IndexOf(ForceCaptureInput) <> -1) and
-    { note that before we checked "Controls.IndexOf(ForceCaptureInput) <> -1", we cannot
-      even assume that ForceCaptureInput is a valid (not freed yet) reference. }
+    (ForceCaptureInput.Container = Self) { currently added to our Controls tree } and
     ForceCaptureInput.GetExists;
 end;
 
 procedure TUIContainer.UpdateFocusAndMouseCursor;
 
-  function CalculateFocus: TUIControl;
+  procedure CalculateNewFocus;
+
+    procedure CalculateDeeperFocus(ParentC: TUIControl);
+    var
+      I: Integer;
+      C: TUIControl;
+    begin
+      for I := ParentC.ControlsCount - 1 downto 0 do
+      begin
+        C := ParentC.Controls[I];
+        if (not (csDestroying in C.ComponentState)) and
+           C.GetExists and
+           C.CapturesEventsAtPosition(MousePosition) then
+        begin
+          FNewFocus.Add(C);
+          CalculateDeeperFocus(C);
+          Exit;
+        end;
+      end;
+    end;
+
   var
     I: Integer;
     C: TUIControl;
@@ -1434,9 +1485,12 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
       if (not (csDestroying in C.ComponentState)) and
          C.GetExists and
          C.CapturesEventsAtPosition(MousePosition) then
-        Exit(C);
+      begin
+        FNewFocus.Add(C);
+        CalculateDeeperFocus(C);
+        Exit;
+      end;
     end;
-    Result := nil;
   end;
 
   function CalculateMouseCursor: TMouseCursor;
@@ -1444,13 +1498,13 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
     I: Integer;
     C: TUIControl;
   begin
-    if Focus <> nil then
+    if Focus.Count <> 0 then
     begin
-      Result := Focus.Cursor;
+      Result := Focus.Last.Cursor;
 
-      for I := Controls.Count - 1 downto 0 do
+      for I := Focus.Count - 1 downto 0 do
       begin
-        C := Controls[I];
+        C := Focus[I];
         if (not (csDestroying in C.ComponentState)) and
            C.GetExists and
            (C.Cursor = mcForceNone) and
@@ -1469,26 +1523,48 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
       Result := mcDefault;
   end;
 
+  procedure AddInFrontOfNewFocus(const C: TUIControl);
+  begin
+    if (not (csDestroying in C.ComponentState)) and
+       (FNewFocus.IndexOf(C) = -1) then
+      FNewFocus.Add(C);
+  end;
+
 var
-  NewFocus: TUIControl;
+  I: Integer;
+  Tmp: TUIControlList;
 begin
   { since this is called at the end of TChildrenControls.Notify after
     some control is removed, we're paranoid here about checking csDestroying. }
 
-  if UseForceCaptureInput and
-     (not (csDestroying in ForceCaptureInput.ComponentState)) then
-    NewFocus := ForceCaptureInput else
-  if (FCaptureInput.IndexOf(0) <> -1) and
-     (not (csDestroying in FCaptureInput[0].ComponentState)) then
-    NewFocus := FCaptureInput[0] else
-    NewFocus := CalculateFocus;
+  { FNewFocus is only used by this method. It is only managed by TUIControl
+    to avoid constructing/destructing it in every TUIContainer.UpdateFocusAndMouseCursor
+    call. }
+  FNewFocus.Clear;
 
-  if NewFocus <> Focus then
-  begin
-    if Focus <> nil then Focus.Focused := false;
-    FFocus := NewFocus;
-    if Focus <> nil then Focus.Focused := true;
-  end;
+  { calculate new FNewFocus value }
+  CalculateNewFocus;
+  { add controls capturing the input (since they should have Focused = true to
+    show them as receiving input) on top of other controls (so that e.g. TCastleOnScreenMenu
+    underneath pressed-down button is also still focused) }
+  if UseForceCaptureInput then
+    AddInFrontOfNewFocus(ForceCaptureInput) else
+  if (FCaptureInput.IndexOf(0) <> -1) then
+    AddInFrontOfNewFocus(FCaptureInput[0]);
+
+  { update TUIControl.Focused values, based on differences between FFocus and FNewFocus }
+  for I := 0 to FNewFocus.Count - 1 do
+    if FFocus.IndexOf(FNewFocus[I]) = -1 then
+      FNewFocus[I].Focused := true;
+  for I := 0 to FFocus.Count - 1 do
+    if FNewFocus.IndexOf(FFocus[I]) = -1 then
+      FFocus[I].Focused := false;
+
+  { swap FFocus and FNewFocus, so that FFocus changes to new value,
+    and the next UpdateFocusAndMouseCursor has ready FNewFocus value. }
+  Tmp := FFocus;
+  FFocus := FNewFocus;
+  FNewFocus := Tmp;
 
   Cursor := CalculateMouseCursor;
 end;
@@ -1517,8 +1593,8 @@ procedure TUIContainer.EventUpdate;
         { make TooltipVisible only when we're over a control that has
           focus. This avoids unnecessary changing of TooltipVisible
           (and related Invalidate) when there's no tooltip possible. }
-        (Focus <> nil) and
-        Focus.TooltipExists and
+        (Focus.Count <> 0) and
+        Focus.Last.TooltipExists and
         ( (1000 * (T - LastPositionForTooltipTime)) div
           TimerFrequency > TooltipDelay );
 
@@ -1663,23 +1739,21 @@ begin
 end;
 
 function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
-var
-  I: Integer;
-  C: TUIControl;
-begin
-  Result := false;
 
-  { pass to ForceCaptureInput }
-  if UseForceCaptureInput then
+  function RecursivePress(const C: TUIControl): boolean;
+  var
+    I: Integer;
   begin
-    if ForceCaptureInput.Press(Event) then
-      Exit(true);
-  end;
+    Result := false;
 
-  { pass to all Controls }
-  for I := Controls.Count - 1 downto 0 do
-  begin
-    C := Controls[I];
+    { try to pass press to C children }
+    for I := C.ControlsCount - 1 downto 0 do
+    begin
+      Result := RecursivePress(C.Controls[I]);
+      if Result then Exit;
+    end;
+
+    { try C.Press itself }
     if C.GetExists and C.CapturesEventsAtPosition(Event.Position) and (C <> ForceCaptureInput) then
       if C.Press(Event) then
       begin
@@ -1698,6 +1772,25 @@ begin
       end;
   end;
 
+var
+  I: Integer;
+begin
+  Result := false;
+
+  { pass to ForceCaptureInput }
+  if UseForceCaptureInput then
+  begin
+    if ForceCaptureInput.Press(Event) then
+      Exit(true);
+  end;
+
+  { pass to all Controls with TUIControl.Press event }
+  for I := Controls.Count - 1 downto 0 do
+  begin
+    Result := RecursivePress(Controls[I]);
+    if Result then Exit;
+  end;
+
   { pass to container event }
   if Assigned(OnPress) then
   begin
@@ -1707,9 +1800,29 @@ begin
 end;
 
 function TUIContainer.EventRelease(const Event: TInputPressRelease): boolean;
+
+  function RecursiveRelease(const C: TUIControl): boolean;
+  var
+    I: Integer;
+  begin
+    Result := false;
+
+    { try to pass release to C children }
+    for I := C.ControlsCount - 1 downto 0 do
+    begin
+      Result := RecursiveRelease(C.Controls[I]);
+      if Result then Exit;
+    end;
+
+    { try C.Release itself }
+    if C.GetExists and C.CapturesEventsAtPosition(Event.Position) and (C <> ForceCaptureInput) then
+      if C.Release(Event) then
+        Exit(true);
+  end;
+
 var
   I, CaptureIndex: Integer;
-  C, Capture: TUIControl;
+  Capture: TUIControl;
 begin
   Result := false;
 
@@ -1748,13 +1861,11 @@ begin
     Exit;
   end;
 
-  { pass to all Controls }
+  { pass to all Controls with TUIControl.Release event }
   for I := Controls.Count - 1 downto 0 do
   begin
-    C := Controls[I];
-    if C.GetExists and C.CapturesEventsAtPosition(Event.Position) and (C <> ForceCaptureInput) then
-      if C.Release(Event) then
-        Exit(true);
+    Result := RecursiveRelease(Controls[I]);
+    if Result then Exit;
   end;
 
   { pass to container event }
@@ -1826,7 +1937,7 @@ begin
 
   { Do not suspend when you're over a control that may have a tooltip,
     as EventUpdate must track and eventually show tooltip. }
-  if (Focus <> nil) and Focus.TooltipExists then
+  if (Focus.Count <> 0) and Focus.Last.TooltipExists then
     Exit(false);
 
   for I := Controls.Count - 1 downto 0 do
@@ -2320,44 +2431,6 @@ begin
       FControls[I].DoCursorChange;
 end;
 }
-
-function TUIControl.Press(const Event: TInputPressRelease): boolean;
-var
-  I: Integer;
-  C: TUIControl;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if FControls <> nil then
-    for I := FControls.Count - 1 downto 0 do
-    begin
-      C := Controls[I];
-      if C.GetExists and
-         C.CapturesEventsAtPosition(Event.Position) and
-         C.Press(Event) then
-        Exit(true);
-    end;
-end;
-
-function TUIControl.Release(const Event: TInputPressRelease): boolean;
-var
-  I: Integer;
-  C: TUIControl;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if FControls <> nil then
-    for I := FControls.Count - 1 downto 0 do
-    begin
-      C := Controls[I];
-      if C.GetExists and
-         C.CapturesEventsAtPosition(Event.Position) and
-         C.Release(Event) then
-        Exit(true);
-    end;
-end;
 
 function TUIControl.Motion(const Event: TInputMotion): boolean;
 var

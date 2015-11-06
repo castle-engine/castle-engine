@@ -496,7 +496,7 @@ begin
       E.SpineTransformVar(I, LastY, LastZ, Transform);
       for J := 0 to FdCrossSection.Count - 1 do
       begin
-        Point2d := Addr(FdCrossSection.Items.L[J]);
+        Point2d := FdCrossSection.Items.Ptr(J);
         Result.Add(MatrixMultPoint(Transform,
           Vector3Single(Point2d^[0], 0, Point2d^[1])));
       end;
@@ -523,7 +523,7 @@ begin
       E.SpineTransformVar(I, LastY, LastZ, Transform);
       for J := 0 to FdCrossSection.Count - 1 do
       begin
-        Point2d := Addr(FdCrossSection.Items.L[J]);
+        Point2d := FdCrossSection.Items.Ptr(J);
         Result.Add(MatrixMultPoint(State.Transform,
           MatrixMultPoint(Transform,
             Vector3Single(Point2d^[0], 0, Point2d^[1]))));

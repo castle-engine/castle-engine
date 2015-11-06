@@ -251,7 +251,7 @@ var
   begin
     for I := 0 to Lights.Count - 1 do
     begin
-      Light := Addr(Lights.L[I]);
+      Light := Lights.Ptr(I);
 
       LightOn := Light^.Node.FdOn.Value;
       if Assigned(LightRenderEvent) then

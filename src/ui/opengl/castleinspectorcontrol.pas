@@ -33,6 +33,7 @@ type
     FControlsUnderMouse: TUIControlList;
     FControlsInitialized: boolean;
     FRectWhenControlsInitialized: TRectangle;
+    FShowNotExisting: boolean;
     function ControlColor(const C: TUIControl): TCastleColor;
     function ControlDescription(const C: TUIControl): string;
   protected
@@ -191,18 +192,23 @@ procedure TCastleInspectorControl.BeforeRender;
   begin
     Col := ControlColor(C);
     Col[3] := 1.0;
-    if (C <> Self) and C.CapturesEventsAtPosition(Container.MousePosition) then
+    if (C <> Self) and
+        C.CapturesEventsAtPosition(Container.MousePosition) and
+        (C.GetExists or FShowNotExisting) then
     begin
       S := ControlDescription(C) + ' ' + C.ScreenRect.ToString;
       if not C.GetExists then
         S += ' (hidden)';
+      if C.Focused then
+        S += ' (focused)';
       S := StringOfChar(' ', Level) + S;
       S := '<font color="#' + ColorToHex(Col) + '">' + S + '</font>';
       FText.Add(S);
       FControlsUnderMouse.Add(C);
     end;
-    for I := 0 to C.ControlsCount - 1 do
-      CheckControl(C.Controls[I], Level + 1);
+    if C.GetExists or FShowNotExisting then
+      for I := 0 to C.ControlsCount - 1 do
+        CheckControl(C.Controls[I], Level + 1);
   end;
 
 var
@@ -214,6 +220,13 @@ begin
   FControlsUnderMouse.Clear;
   for I := 0 to Container.Controls.Count - 1 do
     CheckControl(Container.Controls[I], 0);
+  if Container.Focus.Count <> 0 then
+  begin
+    FText.Add('');
+    FText.Add('Container.Focus:');
+    for I := 0 to Container.Focus.Count - 1 do
+      FText.Add('  ' + ControlDescription(Container.Focus[I]));
+  end;
   FControlsInitialized := true;
 end;
 

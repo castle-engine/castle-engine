@@ -2228,7 +2228,7 @@ var
 begin
   Index := IndexOfTextureNode(TextureNode);
   if Index <> -1 then
-    Result := Addr(L[Index]) else
+    Result := Ptr(Index) else
     Result := nil;
 end;
 
@@ -3061,7 +3061,7 @@ procedure TCastleSceneCore.ChangedAll;
 
     for I := 0 to GlobalLights.Count - 1 do
     begin
-      L := Addr(GlobalLights.L[I]);
+      L := GlobalLights.Ptr(I);
       LNode := L^.Node;
 
       { TODO: for spot lights, it would be an optimization to also limit
@@ -3819,7 +3819,7 @@ var
         if SI.Current.State.Lights <> nil then
           for J := 0 to SI.Current.State.Lights.Count - 1 do
           begin
-            LightInstance := Addr(SI.Current.State.Lights.L[J]);
+            LightInstance := SI.Current.State.Lights.Ptr(J);
             if LightInstance^.Node = LightNode then
             begin
               LightNode.UpdateLightInstance(LightInstance^);
@@ -3866,7 +3866,7 @@ var
       for a testcase. }
     for I := 0 to GlobalLights.Count - 1 do
     begin
-      L := Addr(GlobalLights.L[I]);
+      L := GlobalLights.Ptr(I);
       if L^.Node = ANode then
         L^.Node.UpdateLightInstance(L^);
     end;

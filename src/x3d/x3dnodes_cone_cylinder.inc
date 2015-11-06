@@ -251,14 +251,14 @@ begin
   begin
     BottomCircleIndex := Coord.Count;
     Coord.Count := Coord.Count + QuadricSlices;
-    GenerateCircle(QuadricSlices, BottomRadius, -Height / 2, Addr(Coord.L[BottomCircleIndex]));
+    GenerateCircle(QuadricSlices, BottomRadius, -Height / 2, Coord.Ptr(BottomCircleIndex));
     Normal.Count := Normal.Count + QuadricSlices;
     for I := 0 to QuadricSlices - 1 do
       Normal.L[BottomCircleIndex + I] := Vector3Single(0, -1, 0);
     if TexCoord <> nil then
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices;
-      GenerateTexCoordCircle(QuadricSlices, Addr(TexCoord.L[BottomCircleIndex]), false);
+      GenerateTexCoordCircle(QuadricSlices, TexCoord.Ptr(BottomCircleIndex), false);
     end;
 
     BottomMiddleIndex := Coord.Count;
@@ -294,14 +294,14 @@ begin
   begin
     TopCircleIndex := Coord.Count;
     Coord.Count := Coord.Count + QuadricSlices;
-    GenerateCircle(QuadricSlices, TopRadius, Height / 2, Addr(Coord.L[TopCircleIndex]));
+    GenerateCircle(QuadricSlices, TopRadius, Height / 2, Coord.Ptr(TopCircleIndex));
     Normal.Count := Normal.Count + QuadricSlices;
     for I := 0 to QuadricSlices - 1 do
       Normal.L[TopCircleIndex + I] := Vector3Single(0, 1, 0);
     if TexCoord <> nil then
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices;
-      GenerateTexCoordCircle(QuadricSlices, Addr(TexCoord.L[TopCircleIndex]), true);
+      GenerateTexCoordCircle(QuadricSlices, TexCoord.Ptr(TopCircleIndex), true);
     end;
 
     TopMiddleIndex := Coord.Count;
@@ -343,7 +343,7 @@ begin
       Otherwise texture seam would not be correctly closed. }
     SideBottomCircleIndex := Coord.Count;
     Coord.Count := Coord.Count + QuadricSlices + 1;
-    GenerateCircle(QuadricSlices, BottomRadius, -Height / 2, Addr(Coord.L[SideBottomCircleIndex]));
+    GenerateCircle(QuadricSlices, BottomRadius, -Height / 2, Coord.Ptr(SideBottomCircleIndex));
     Coord.L[Coord.Count - 1] := Coord.L[SideBottomCircleIndex];
     Normal.Count := Normal.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices - 1 do
@@ -365,7 +365,7 @@ begin
 
         MiddleCircleIndex := Coord.Count;
         Coord.Count := Coord.Count + QuadricSlices + 1;
-        GenerateCircle(QuadricSlices, Lerp(Stack, BottomRadius, TopRadius), -Height / 2 + Stack * Height, Addr(Coord.L[MiddleCircleIndex]));
+        GenerateCircle(QuadricSlices, Lerp(Stack, BottomRadius, TopRadius), -Height / 2 + Stack * Height, Coord.Ptr(MiddleCircleIndex));
         Coord.L[Coord.Count - 1] := Coord.L[MiddleCircleIndex];
         Normal.Count := Normal.Count + QuadricSlices + 1;
         for I := 0 to QuadricSlices - 1 do
@@ -402,7 +402,7 @@ begin
     { Even when TopRadius = 0 (we make a cone), we still generate
       QuadricSlices * top points.
       See comments at the beginning about "How to make smooth normals...". }
-    GenerateCircle(QuadricSlices, TopRadius, Height / 2, Addr(Coord.L[SideTopCircleIndex]));
+    GenerateCircle(QuadricSlices, TopRadius, Height / 2, Coord.Ptr(SideTopCircleIndex));
     Coord.L[Coord.Count - 1] := Coord.L[SideTopCircleIndex];
     Normal.Count := Normal.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices - 1 do
