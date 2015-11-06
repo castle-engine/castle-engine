@@ -2713,7 +2713,7 @@ begin
   begin
     US := UIScale;
     PaddingScaled := Round(US * Padding);
-    MaxWidthScaled := Round(US * Padding);
+    MaxWidthScaled := Round(US * MaxWidth);
 
     Result := TStringList.Create;
     FreeTextToRender := true;
