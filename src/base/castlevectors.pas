@@ -2112,7 +2112,7 @@ begin
       so time saving would be minimal (and small temporary memory cost
       introduced). }
 
-    V2 := Addr(L[I + 1]);
+    V2 := Ptr(I + 1);
     for J := I + 1 to Count - 1 do
     begin
       if PointsDistanceSqr(V1^, V2^) < MergeDistance then

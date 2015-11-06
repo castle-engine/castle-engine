@@ -460,7 +460,7 @@ var
   begin
     Result := TCoordinateNode.Create('', BaseUrl);
     Result.FdPoint.Items.Count := VertexesInFrameCount;
-    V := Addr(Vertexes.L[VertexesInFrameCount * FrameNumber]);
+    V := Vertexes.Ptr(VertexesInFrameCount * FrameNumber);
     for I := 0 to VertexesInFrameCount - 1 do
     begin
       Result.FdPoint.Items.L[I] := Vector3Single(

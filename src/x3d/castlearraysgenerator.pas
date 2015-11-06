@@ -1678,7 +1678,7 @@ begin
       VertexIndex := IndexNum;
 
     VertexColor := OnRadianceTransfer(Geometry,
-      Addr(RadianceTransfer.L[VertexIndex * RadianceTransferVertexSize]),
+      Addr(RadianceTransfer.List^[VertexIndex * RadianceTransferVertexSize]),
       RadianceTransferVertexSize);
 
     Arrays.Color(ArrayIndexNum)^ := Vector4Single(VertexColor, MaterialOpacity);

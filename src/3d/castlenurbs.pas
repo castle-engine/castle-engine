@@ -479,7 +479,7 @@ begin
 
       for I := 1 to Point.Count - 1 do
       begin
-        V := Addr(Point.L[I]);
+        V := Point.Ptr(I);
         W := Weight.L[I];
         if W = 0 then W := 1;
 

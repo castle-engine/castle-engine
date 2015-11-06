@@ -1752,7 +1752,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := Addr(Triangles.L[EdgePtr^.Triangles[0]]);
+    TrianglePtr := Triangles.Ptr(EdgePtr^.Triangles[0]);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
@@ -1784,7 +1784,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := Addr(Triangles.L[EdgePtr^.TriangleIndex]);
+    TrianglePtr := Triangles.Ptr(EdgePtr^.TriangleIndex);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
@@ -2192,7 +2192,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := Addr(Triangles.L[EdgePtr^.Triangles[0]]);
+    TrianglePtr := Triangles.Ptr(EdgePtr^.Triangles[0]);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
@@ -2272,7 +2272,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := Addr(Triangles.L[EdgePtr^.TriangleIndex]);
+    TrianglePtr := Triangles.Ptr(EdgePtr^.TriangleIndex);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + 0) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
 

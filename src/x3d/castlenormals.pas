@@ -158,7 +158,7 @@ var
 
       { calculate ThisFace.Normal }
       ThisFace^.Normal := IndexedPolygonNormal(
-        Addr(CoordIndex.L[ThisFace^.StartIndex]), ThisFace^.IndicesCount,
+        Addr(CoordIndex.List^[ThisFace^.StartIndex]), ThisFace^.IndicesCount,
         PVector3Single(Vertices.List), Vertices.Count,
         Vector3Single(0, 0, 1), Convex);
 
@@ -276,7 +276,7 @@ begin
       StartIndex := I;
       while (I < CoordIndex.Count) and (CoordIndex.L[I] >= 0) do Inc(I);
       Result.L[FaceNumber] := IndexedPolygonNormal(
-        Addr(CoordIndex.L[StartIndex]),
+        Addr(CoordIndex.List^[StartIndex]),
         I - StartIndex,
         PVector3Single(Vertices.List), Vertices.Count,
         Vector3Single(0, 0, 0), Convex);

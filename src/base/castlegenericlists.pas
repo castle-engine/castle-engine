@@ -97,6 +97,9 @@ type
       Comfortable and efficient way to add a new item that you want to immediately
       initialize. }
     function Add: PT;
+
+    { Pointer to ith item. }
+    function Ptr(I: Integer): PT;
   end;
 
   { Generic map of types, with keys compared by CompareByte.
@@ -266,7 +269,12 @@ end;
 function TGenericStructList.Add: PT;
 begin
   Count := Count + 1;
-  Result := Addr(L[Count - 1]);
+  Result := Addr(PTypeList(FList)^[Count - 1]);
+end;
+
+function TGenericStructList.Ptr(I: Integer): PT;
+begin
+  Result := Addr(PTypeList(FList)^[I]);
 end;
 
 { TGenericStructMap ---------------------------------------------------------- }

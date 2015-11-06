@@ -3056,7 +3056,7 @@ var
     if (GLFeatures.MaxClipPlanes > 0) and (ClipPlanes <> nil) then
       for I := 0 to ClipPlanes.Count - 1 do
       begin
-        ClipPlane := Addr(ClipPlanes.L[I]);
+        ClipPlane := ClipPlanes.Ptr(I);
         if ClipPlane^.Node.FdEnabled.Value then
         begin
           Assert(ClipPlanesEnabled < GLFeatures.MaxClipPlanes);
