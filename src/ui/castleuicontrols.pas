@@ -1419,7 +1419,7 @@ begin
     if Index <> -1 then
     begin
       C.Focused := false;
-      FFocus := nil;
+      FFocus.Delete(Index);
     end;
   end;
 
