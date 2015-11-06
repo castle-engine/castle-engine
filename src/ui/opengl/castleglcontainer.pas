@@ -99,14 +99,14 @@ procedure TGLContainer.EventRender;
     for I := 0 to Controls.Count - 1 do
       RenderWithChildren(Controls[I], SomeControlHasRenderStyle2D, FilterRenderStyle);
 
-    if TooltipVisible and (Focus <> nil) then
+    if TooltipVisible and (Focus.Count <> 0) then
     begin
-      if Focus.TooltipStyle = FilterRenderStyle then
+      if Focus.Last.TooltipStyle = FilterRenderStyle then
       begin
         ControlRenderBegin;
-        Focus.TooltipRender;
+        Focus.Last.TooltipRender;
       end;
-      if Focus.TooltipStyle = rs2D then
+      if Focus.Last.TooltipStyle = rs2D then
         SomeControlHasRenderStyle2D := true;
     end;
 
