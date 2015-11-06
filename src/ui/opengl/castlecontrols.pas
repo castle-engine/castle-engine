@@ -973,7 +973,7 @@ type
       as-is. Specifying a color means that image will be multiplied by it,
       just like for @link(TGLImage.Color). }
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
-      const UIScale: Single);
+      const UIScale: Single = 1.0);
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
       const UIScale: Single; const Color: TCastleColor);
 
