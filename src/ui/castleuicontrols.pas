@@ -224,6 +224,7 @@ type
     procedure SetUIReferenceHeight(const Value: Integer);
     procedure SetUIExplicitScale(const Value: Single);
     procedure UpdateUIScale;
+    procedure SetForceCaptureInput(const Value: TUIControl);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -371,14 +372,9 @@ type
       (TCastleAbstractViewport.FullSize is @false, and actual sizes are smaller
       than window, and may not include window center). In this case you want
       to make sure that motion events get passed to this control,
-      and that this control has focus (to keep mouse cursor hidden).
-
-      This is used only if it is also present on our @link(Controls) list,
-      as it doesn't make sense otherwise.
-      We also cannot reliably track it's existence when it's outside our @link(Controls) list
-      (and we don't want to eagerly @nil this property automatically). }
+      and that this control has focus (to keep mouse cursor hidden). }
     property ForceCaptureInput: TUIControl
-      read FForceCaptureInput write FForceCaptureInput;
+      read FForceCaptureInput write SetForceCaptureInput;
   published
     { How OnRender callback fits within various Render methods of our
       @link(Controls).
@@ -1375,21 +1371,44 @@ begin
   FreeAndNil(FControls);
   FreeAndNil(Mouse3d);
   FreeAndNil(FCaptureInput);
+  { set to nil by SetForceCaptureInput, to detach free notification }
+  ForceCaptureInput := nil;
   inherited;
 end;
 
 procedure TUIContainer.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
+
+  { Note: do not move niling FForceCaptureInput to DetachNotification,
+    as we don't want to nil the public property too eagerly, the value
+    of ForceCaptureInput should remain stable. }
+  if (Operation = opRemove) and (AComponent = FForceCaptureInput) then
+    { set to nil by SetForceCaptureInput to clean nicely }
+    ForceCaptureInput := nil;
+
   if (Operation = opRemove) and (AComponent is TUIControl) then
     DetachNotification(TUIControl(AComponent));
+end;
+
+procedure TUIContainer.SetForceCaptureInput(const Value: TUIControl);
+begin
+  if FForceCaptureInput <> Value then
+  begin
+    if FForceCaptureInput <> nil then
+      FForceCaptureInput.RemoveFreeNotification(Self);
+    FForceCaptureInput := Value;
+    if FForceCaptureInput <> nil then
+      FForceCaptureInput.FreeNotification(Self);
+  end;
 end;
 
 procedure TUIContainer.DetachNotification(const C: TUIControl);
 var
   CaptureIndex: Integer;
 begin
-  if C = FFocus then FFocus := nil;
+  if C = FFocus then
+    FFocus := nil;
 
   CaptureIndex := FCaptureInput.IndexOfData(C);
   if CaptureIndex <> -1 then
@@ -1400,9 +1419,7 @@ function TUIContainer.UseForceCaptureInput: boolean;
 begin
   Result :=
     (ForceCaptureInput <> nil) and
-    (Controls.FList.IndexOf(ForceCaptureInput) <> -1) and
-    { note that before we checked "Controls.IndexOf(ForceCaptureInput) <> -1", we cannot
-      even assume that ForceCaptureInput is a valid (not freed yet) reference. }
+    (ForceCaptureInput.Container = Self) { currently added to our Controls tree } and
     ForceCaptureInput.GetExists;
 end;
 
