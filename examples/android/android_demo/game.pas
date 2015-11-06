@@ -155,12 +155,14 @@ end;
 procedure TDummy.ToggleTextureUpdatesCallback(Node: TX3DNode);
 var
   CubeMap: TGeneratedCubeMapTextureNode;
+  LogStr: string;
 begin
   CubeMap := Node as TGeneratedCubeMapTextureNode;
   if CubeMap.Update = upNone then
     CubeMap.Update := upAlways else
     CubeMap.Update := upNone;
-  WritelnLog('CubeMap', 'Toggled updates on ' + CubeMap.NiceName);
+  WriteStr(LogStr, 'Toggled updates on ' + CubeMap.NiceName + ' to ', CubeMap.Update);
+  WritelnLog('CubeMap', LogStr);
 end;
 
 procedure TDummy.ToggleTextureUpdates(Sender: TObject);
