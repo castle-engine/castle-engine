@@ -817,8 +817,6 @@ end;
     { Remove control added by @link(InsertFront) or @link(InsertBack). }
     procedure RemoveControl(Item: TUIControl);
 
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
     function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
@@ -1510,6 +1508,13 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
       Result := mcDefault;
   end;
 
+  procedure AddInFrontOfNewFocus(const C: TUIControl);
+  begin
+    if (not (csDestroying in C.ComponentState)) and
+       (FNewFocus.IndexOf(C) = -1) then
+      FNewFocus.Add(C);
+  end;
+
 var
   I: Integer;
   Tmp: TUIControlList;
@@ -1523,15 +1528,16 @@ begin
   FNewFocus.Clear;
 
   { calculate new FNewFocus value }
-  if UseForceCaptureInput and
-     (not (csDestroying in ForceCaptureInput.ComponentState)) then
-    FNewFocus.Add(ForceCaptureInput) else
-  if (FCaptureInput.IndexOf(0) <> -1) and
-     (not (csDestroying in FCaptureInput[0].ComponentState)) then
-    FNewFocus.Add(FCaptureInput[0]) else
-    CalculateNewFocus;
+  CalculateNewFocus;
+  { add controls capturing the input (since they should have Focused = true to
+    show them as receiving input) on top of other controls (so that e.g. TCastleOnScreenMenu
+    underneath pressed-down button is also still focused) }
+  if UseForceCaptureInput then
+    AddInFrontOfNewFocus(ForceCaptureInput) else
+  if (FCaptureInput.IndexOf(0) <> -1) then
+    AddInFrontOfNewFocus(FCaptureInput[0]);
 
-  { update TUIContro.Focused values, based on differences between FFocus and FNewFocus }
+  { update TUIControl.Focused values, based on differences between FFocus and FNewFocus }
   for I := 0 to FNewFocus.Count - 1 do
     if FFocus.IndexOf(FNewFocus[I]) = -1 then
       FNewFocus[I].Focused := true;
@@ -1701,23 +1707,21 @@ begin
 end;
 
 function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
-var
-  I: Integer;
-  C: TUIControl;
-begin
-  Result := false;
 
-  { pass to ForceCaptureInput }
-  if UseForceCaptureInput then
+  function RecursivePress(const C: TUIControl): boolean;
+  var
+    I: Integer;
   begin
-    if ForceCaptureInput.Press(Event) then
-      Exit(true);
-  end;
+    Result := false;
 
-  { pass to all Controls }
-  for I := Controls.Count - 1 downto 0 do
-  begin
-    C := Controls[I];
+    { try to pass press to C children }
+    for I := C.ControlsCount - 1 downto 0 do
+    begin
+      Result := RecursivePress(C.Controls[I]);
+      if Result then Exit;
+    end;
+
+    { try C.Press itself }
     if C.GetExists and C.CapturesEventsAtPosition(Event.Position) and (C <> ForceCaptureInput) then
       if C.Press(Event) then
       begin
@@ -1736,6 +1740,25 @@ begin
       end;
   end;
 
+var
+  I: Integer;
+begin
+  Result := false;
+
+  { pass to ForceCaptureInput }
+  if UseForceCaptureInput then
+  begin
+    if ForceCaptureInput.Press(Event) then
+      Exit(true);
+  end;
+
+  { pass to all Controls with TUIControl.Press event }
+  for I := Controls.Count - 1 downto 0 do
+  begin
+    Result := RecursivePress(Controls[I]);
+    if Result then Exit;
+  end;
+
   { pass to container event }
   if Assigned(OnPress) then
   begin
@@ -1745,9 +1768,29 @@ begin
 end;
 
 function TUIContainer.EventRelease(const Event: TInputPressRelease): boolean;
+
+  function RecursiveRelease(const C: TUIControl): boolean;
+  var
+    I: Integer;
+  begin
+    Result := false;
+
+    { try to pass release to C children }
+    for I := C.ControlsCount - 1 downto 0 do
+    begin
+      Result := RecursiveRelease(C.Controls[I]);
+      if Result then Exit;
+    end;
+
+    { try C.Release itself }
+    if C.GetExists and C.CapturesEventsAtPosition(Event.Position) and (C <> ForceCaptureInput) then
+      if C.Release(Event) then
+        Exit(true);
+  end;
+
 var
   I, CaptureIndex: Integer;
-  C, Capture: TUIControl;
+  Capture: TUIControl;
 begin
   Result := false;
 
@@ -1786,13 +1829,11 @@ begin
     Exit;
   end;
 
-  { pass to all Controls }
+  { pass to all Controls with TUIControl.Release event }
   for I := Controls.Count - 1 downto 0 do
   begin
-    C := Controls[I];
-    if C.GetExists and C.CapturesEventsAtPosition(Event.Position) and (C <> ForceCaptureInput) then
-      if C.Release(Event) then
-        Exit(true);
+    Result := RecursiveRelease(Controls[I]);
+    if Result then Exit;
   end;
 
   { pass to container event }
@@ -2348,44 +2389,6 @@ begin
       FControls[I].DoCursorChange;
 end;
 }
-
-function TUIControl.Press(const Event: TInputPressRelease): boolean;
-var
-  I: Integer;
-  C: TUIControl;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if FControls <> nil then
-    for I := FControls.Count - 1 downto 0 do
-    begin
-      C := Controls[I];
-      if C.GetExists and
-         C.CapturesEventsAtPosition(Event.Position) and
-         C.Press(Event) then
-        Exit(true);
-    end;
-end;
-
-function TUIControl.Release(const Event: TInputPressRelease): boolean;
-var
-  I: Integer;
-  C: TUIControl;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if FControls <> nil then
-    for I := FControls.Count - 1 downto 0 do
-    begin
-      C := Controls[I];
-      if C.GetExists and
-         C.CapturesEventsAtPosition(Event.Position) and
-         C.Release(Event) then
-        Exit(true);
-    end;
-end;
 
 function TUIControl.Motion(const Event: TInputMotion): boolean;
 var
