@@ -136,8 +136,6 @@ type
     procedure PreviousItem;
     { @groupEnd }
 
-    procedure GLContextClose; override;
-
     { Calculate final positions, sizes of menu items on the screen.
       Usually this is called automatically when necessary. }
     procedure RecalculateSize;
@@ -364,10 +362,6 @@ begin
   end;
 end;
 
-procedure TCastleOnScreenMenu.GLContextClose;
-begin
-end;
-
 function TCastleOnScreenMenu.SpaceBetweenItems(const NextItemIndex: Cardinal): Cardinal;
 begin
   Result := RegularSpaceBetweenItems;
@@ -388,11 +382,14 @@ procedure TCastleOnScreenMenu.RecalculateSize;
 
 const
   Padding = 30;
+  ItemPaddingHorizontal = 5;
 var
   I: Integer;
   WholeItemWidth, MaxAccessoryWidth: Integer;
   ItemsBelowHeight: Cardinal;
   MarginBeforeAccessoryScaled, PaddingScaled: Integer;
+  C: TUIControl;
+  R: TRectangle;
 begin
   MarginBeforeAccessoryScaled := Round(UIScale * MarginBeforeAccessory);
   PaddingScaled := Round(UIScale * Padding);
@@ -403,10 +400,13 @@ begin
   MaxAccessoryWidth := 0;
   for I := 0 to ControlsCount - 1 do
   begin
-    MaxVar(MaxItemWidth, Controls[I].Rect.Width);
+    C := Controls[I];
+    if C is TCastleLabel then
+      TCastleLabel(C).AutoSize := true; // later we'll turn it back to false
+    MaxVar(MaxItemWidth, C.Rect.Width);
     { add accessory (slider etc.) width inside the menu item }
-    if Controls[I].ControlsCount <> 0 then
-      MaxVar(MaxAccessoryWidth, Controls[I].Controls[0].Rect.Width);
+    if C.ControlsCount <> 0 then
+      MaxVar(MaxAccessoryWidth, C.Controls[0].Rect.Width);
   end;
 
   { calculate FWidth and FHeight }
@@ -446,19 +446,28 @@ begin
 
   for I := FRectangles.Count - 1 downto 0 do
   begin
+    C := Controls[I];
     FRectangles.L[I].Left := PaddingScaled;
     FRectangles.L[I].Bottom := PaddingScaled + ItemsBelowHeight;
-    // divide by UIScale, because TCastleLabel Left / Bottom will multiply by it...
-    Controls[I].Left   := Round(FRectangles.L[I].Left / UIScale);
-    Controls[I].Bottom := Round(FRectangles.L[I].Bottom / UIScale);
-    if I > 0 then
-      ItemsBelowHeight += Cardinal(FRectangles.L[I].Height + Round(UIScale * SpaceBetweenItems(I)));
-  end;
+    R := FRectangles.L[I];
 
-  for I := 0 to FRectangles.Count - 1 do
-    if Controls[I].ControlsCount <> 0 then
+    // divide by UIScale, because TCastleLabel.Rect will multiply by it...
+    C.Left   := Round(R.Left / UIScale);
+    C.Bottom := Round(R.Bottom / UIScale);
+    if C is TCastleLabel then
+    begin
+      TCastleLabel(C).AutoSize := false;
+      TCastleLabel(C).PaddingHorizontal := ItemPaddingHorizontal;
+      TCastleLabel(C).Width  := Round(R.Width / UIScale) + ItemPaddingHorizontal * 2;
+      TCastleLabel(C).Height := Round(R.Height / UIScale);
+    end;
+    if I > 0 then
+      ItemsBelowHeight += Cardinal(R.Height + Round(UIScale * SpaceBetweenItems(I)));
+
+    if C.ControlsCount <> 0 then
       // divide by UIScale, because TCastleLabel Left / Bottom will multiply by it...
-      Controls[I].Controls[0].Left := Round((MaxItemWidth + MarginBeforeAccessoryScaled) / UIScale);
+      C.Controls[0].Left := Round((MaxItemWidth + MarginBeforeAccessoryScaled) / UIScale);
+  end;
 end;
 
 procedure TCastleOnScreenMenu.Resize;
@@ -467,14 +476,11 @@ begin
   RecalculateSize;
 end;
 
-const
-  ItemBorderMargin = 5;
-
 procedure TCastleOnScreenMenu.Render;
 var
   I: Integer;
   ItemColor, BgColor, CurrentItemBorderColor: TCastleColor;
-  SR, R: TRectangle;
+  SR: TRectangle;
 begin
   inherited;
 
@@ -504,10 +510,7 @@ begin
   begin
     if I = CurrentItem then
     begin
-      R := FRectangles.L[I].Grow(ItemBorderMargin, 0);
-      R.Left := R.Left + SR.Left;
-      R.Bottom := R.Bottom + SR.Bottom;
-      Theme.Draw(R, tiActiveFrame, UIScale, CurrentItemBorderColor);
+      Theme.Draw(Controls[I].ScreenRect, tiActiveFrame, UIScale, CurrentItemBorderColor);
       ItemColor := CurrentItemColor;
     end else
       ItemColor := NonCurrentItemColor;
@@ -520,17 +523,10 @@ function TCastleOnScreenMenu.FindChildIndex(
   const ScreenPosition: TVector2Single): Integer;
 var
   I: Integer;
-  SR, R: TRectangle;
 begin
-  SR := ScreenRect;
   for I := 0 to ControlsCount - 1 do
-  begin
-    R := FRectangles.L[I].Grow(ItemBorderMargin, 0);
-    R.Left := R.Left + SR.Left;
-    R.Bottom := R.Bottom + SR.Bottom;
-    if R.Contains(ScreenPosition) then Exit(I);
-  end;
-
+    if Controls[I].ScreenRect.Contains(ScreenPosition) then
+      Exit(I);
   Result := -1;
 end;
 
@@ -580,7 +576,8 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
 
 begin
   Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result then Exit;
+
   case Event.EventType of
     itKey        : Result := KeyDown(Event.Key, Event.KeyCharacter);
     itMouseButton: Result := MouseDown(Event.MouseButton);
@@ -592,7 +589,7 @@ var
   NewItemIndex: Integer;
 begin
   Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result then Exit;
 
   NewItemIndex := FindChildIndex(Event.Position);
   if NewItemIndex <> -1 then

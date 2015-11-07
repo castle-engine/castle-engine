@@ -257,9 +257,18 @@ type
     destructor Destroy; override;
 
     { Propagate the event to all the @link(Controls) and to our own OnXxx callbacks.
-      Usually these are called by a container provider,
-      like TCastleWindow or TCastleControl. But it is also allowed to call them
-      manually to fake given event.
+
+      These methods are called automatically when necessary,
+      so usually you don't call them. But in rare cases, it makes sense
+      to "fake" some event by calling these methods.
+
+      Most of these methods are called automatically
+      by the container owner, like TCastleWindow or TCastleControl.
+      Some are called by @link(EventUpdate),
+      which is special in this regard, as @link(EventUpdate) it not only
+      responsible for calling TUIControl.Update, it also calls
+      EventJoyAxisMove, EventJoyButtonPress, EventSensorRotation, EventSensorTranslation.
+
       @groupBegin }
     procedure EventOpen(const OpenWindowsCount: Cardinal); virtual;
     procedure EventClose(const OpenWindowsCount: Cardinal); virtual;
@@ -271,6 +280,10 @@ type
     procedure EventBeforeRender; virtual;
     procedure EventRender; virtual; abstract;
     procedure EventResize; virtual;
+    function EventJoyAxisMove(const JoyID, Axis: Byte): boolean; virtual;
+    function EventJoyButtonPress(const JoyID, Button: Byte): boolean; virtual;
+    function EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; virtual;
+    function EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
     { @groupEnd }
 
     { Controls listening for events (user input, resize, and such) of this container.
@@ -828,15 +841,6 @@ end;
 
     { Remove control added by @link(InsertFront) or @link(InsertBack). }
     procedure RemoveControl(Item: TUIControl);
-
-    function Motion(const Event: TInputMotion): boolean; override;
-    function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
-    function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
-    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
-    //procedure VisibleChange; override;
-    { }
-    function AllowSuspendForInput: boolean; override;
-    procedure Resize; override;
 
     { Return whether item really exists, see @link(Exists).
       Non-existing item does not receive any of the render or input or update calls.
@@ -1453,41 +1457,31 @@ procedure TUIContainer.UpdateFocusAndMouseCursor;
 
   procedure CalculateNewFocus;
 
-    procedure CalculateDeeperFocus(ParentC: TUIControl);
+    function RecursiveCalculateNewFocus(const C: TUIControl): boolean;
     var
       I: Integer;
-      C: TUIControl;
     begin
-      for I := ParentC.ControlsCount - 1 downto 0 do
-      begin
-        C := ParentC.Controls[I];
-        if (not (csDestroying in C.ComponentState)) and
-           C.GetExists and
-           C.CapturesEventsAtPosition(MousePosition) then
-        begin
-          FNewFocus.Add(C);
-          CalculateDeeperFocus(C);
-          Exit;
-        end;
-      end;
-    end;
+      Result := false;
 
-  var
-    I: Integer;
-    C: TUIControl;
-  begin
-    for I := Controls.Count - 1 downto 0 do
-    begin
-      C := Controls[I];
       if (not (csDestroying in C.ComponentState)) and
          C.GetExists and
          C.CapturesEventsAtPosition(MousePosition) then
       begin
         FNewFocus.Add(C);
-        CalculateDeeperFocus(C);
-        Exit;
+        Result := true;
+
+        for I := C.ControlsCount - 1 downto 0 do
+          if RecursiveCalculateNewFocus(C.Controls[I]) then
+            Exit;
       end;
     end;
+
+  var
+    I: Integer;
+  begin
+    for I := Controls.Count - 1 downto 0 do
+      if RecursiveCalculateNewFocus(Controls[I]) then
+        Exit;
   end;
 
   function CalculateMouseCursor: TMouseCursor;
@@ -1566,6 +1560,122 @@ begin
   Cursor := CalculateMouseCursor;
 end;
 
+function TUIContainer.EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
+
+  function RecursiveSensorRotation(const C: TUIControl): boolean;
+  var
+    I: Integer;
+  begin
+    if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
+    begin
+      for I := C.ControlsCount - 1 downto 0 do
+        if RecursiveSensorRotation(C.Controls[I]) then
+          Exit(true);
+
+      if C.SensorRotation(X, Y, Z, Angle, SecondsPassed) then
+        Exit(true);
+    end;
+
+    Result := false;
+  end;
+
+var
+  I: Integer;
+begin
+  { exit as soon as something returns "true", meaning the event is handled }
+  for I := Controls.Count - 1 downto 0 do
+    if RecursiveSensorRotation(Controls[I]) then
+      Exit(true);
+  Result := false;
+end;
+
+function TUIContainer.EventSensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
+
+  function RecursiveSensorTranslation(const C: TUIControl): boolean;
+  var
+    I: Integer;
+  begin
+    if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
+    begin
+      for I := C.ControlsCount - 1 downto 0 do
+        if RecursiveSensorTranslation(C.Controls[I]) then
+          Exit(true);
+
+      if C.SensorTranslation(X, Y, Z, Length, SecondsPassed) then
+        Exit(true);
+    end;
+
+    Result := false;
+  end;
+
+var
+  I: Integer;
+begin
+  { exit as soon as something returns "true", meaning the event is handled }
+  for I := Controls.Count - 1 downto 0 do
+    if RecursiveSensorTranslation(Controls[I]) then
+      Exit(true);
+  Result := false;
+end;
+
+function TUIContainer.EventJoyAxisMove(const JoyID, Axis: Byte): boolean;
+
+  function RecursiveJoyAxisMove(const C: TUIControl): boolean;
+  var
+    I: Integer;
+  begin
+    if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
+    begin
+      for I := C.ControlsCount - 1 downto 0 do
+        if RecursiveJoyAxisMove(C.Controls[I]) then
+          Exit(true);
+
+      if C.JoyAxisMove(JoyID, Axis) then
+        Exit(true);
+    end;
+
+    Result := false;
+  end;
+
+var
+  I: Integer;
+begin
+  { exit as soon as something returns "true", meaning the event is handled }
+  for I := Controls.Count - 1 downto 0 do
+    if RecursiveJoyAxisMove(Controls[I]) then
+      Exit(true);
+  Result := false;
+end;
+
+function TUIContainer.EventJoyButtonPress(const JoyID, Button: Byte): boolean;
+
+  function RecursiveJoyButtonPress(const C: TUIControl): boolean;
+  var
+    I: Integer;
+  begin
+    if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
+    begin
+      for I := C.ControlsCount - 1 downto 0 do
+        if RecursiveJoyButtonPress(C.Controls[I]) then
+          Exit(true);
+
+      if C.JoyButtonPress(JoyID, Button) then
+        Exit(true);
+    end;
+
+    Result := false;
+  end;
+
+var
+  I: Integer;
+begin
+  { exit as soon as something returns "true", meaning the event is handled }
+  for I := Controls.Count - 1 downto 0 do
+    if RecursiveJoyButtonPress(Controls[I]) then
+      Exit(true);
+  Result := false;
+end;
+
 procedure TUIContainer.EventUpdate;
 
   procedure UpdateTooltip;
@@ -1586,6 +1696,12 @@ procedure TUIContainer.EventUpdate;
       LastPositionForTooltipTime := T;
       NewTooltipVisible := false;
     end else
+      { TODO: allow tooltips on other controls on Focus list,
+        if Focus.Last.TooltipExists = false but other control on Focus
+        has tooltips.
+        Set something like TooltipFocusIndex or just TooltipControl
+        to pass correct control to TGLContainer.EventRender then,
+        right now we hardcoded there rendering of Focus.Last tooltip. }
       NewTooltipVisible :=
         { make TooltipVisible only when we're over a control that has
           focus. This avoids unnecessary changing of TooltipVisible
@@ -1616,69 +1732,42 @@ procedure TUIContainer.EventUpdate;
     end;
   end;
 
-  { Call JoyAxisMove on all controls. }
-  procedure HandleJoyAxisMove(const JoyID, Axis: Byte);
-
-    function RecursiveJoyAxisMove(const C: TUIControl): boolean;
-    var
-      I: Integer;
-    begin
-      if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
-      begin
-        for I := C.ControlsCount - 1 downto 0 do
-          if RecursiveJoyAxisMove(C.Controls[I]) then
-            Exit(true);
-
-        if C.JoyAxisMove(JoyID, Axis) then
-          Exit(true);
-      end;
-
-      Result := false;
-    end;
-
+  procedure RecursiveUpdate(const C: TUIControl; var HandleInput: boolean);
   var
     I: Integer;
+    Dummy: boolean;
   begin
-    { exit as soon as something returns "true", meaning the event is handled }
-    for I := Controls.Count - 1 downto 0 do
-      if RecursiveJoyAxisMove(Controls[I]) then
-        Exit;
-  end;
-
-  { Call JoyButtonPress on all controls. }
-  procedure HandleJoyButtonPress(const JoyID, Button: Byte);
-
-    function RecursiveJoyButtonPress(const C: TUIControl): boolean;
-    var
-      I: Integer;
+    if C.GetExists then
     begin
-      if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
+      I := 0; // while loop, in case some Update method changes the Controls list
+      while I < C.ControlsCount do
       begin
-        for I := C.ControlsCount - 1 downto 0 do
-          if RecursiveJoyButtonPress(C.Controls[I]) then
-            Exit(true);
-
-        if C.JoyButtonPress(JoyID, Button) then
-          Exit(true);
+        RecursiveUpdate(C.Controls[I], HandleInput);
+        Inc(I);
       end;
 
-      Result := false;
+      if C <> ForceCaptureInput then
+      begin
+        { Although we call Update for all the existing controls, we look
+          at CapturesEventsAtPosition and track HandleInput values.
+          See TUIControl.Update for explanation. }
+        if C.CapturesEventsAtPosition(MousePosition) then
+        begin
+          C.Update(Fps.UpdateSecondsPassed, HandleInput);
+        end else
+        begin
+          { controls where CapturesEventsAtPosition = false always get
+            HandleInput parameter set to false. }
+          Dummy := false;
+          C.Update(Fps.UpdateSecondsPassed, Dummy);
+        end;
+      end;
     end;
-
-  var
-    I: Integer;
-  begin
-    { exit as soon as something returns "true", meaning the event is handled }
-    for I := Controls.Count - 1 downto 0 do
-      if RecursiveJoyButtonPress(Controls[I]) then
-        Exit;
   end;
 
 var
   I, J: Integer;
-  C: TUIControl;
   HandleInput: boolean;
-  Dummy: boolean;
   Tx, Ty, Tz, TLength, Rx, Ry, Rz, RAngle: Double;
   Mouse3dPollSpeed: Single;
 const
@@ -1706,15 +1795,8 @@ begin
       Mouse3D.GetSensorRotation(Rx, Ry, Rz, RAngle);
 
       { send to all 2D controls, including viewports }
-      for I := Controls.Count - 1 downto 0 do
-      begin
-        C := Controls[I];
-        if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
-        begin
-          C.SensorTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
-          C.SensorRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
-        end;
-      end;
+      EventSensorTranslation(Tx, Ty, Tz, TLength, Mouse3dPollSpeed);
+      EventSensorRotation(Rx, Ry, Rz, RAngle, Mouse3dPollSpeed);
 
       { set timer.
         The "repeat ... until" below should not be necessary under normal
@@ -1738,19 +1820,15 @@ begin
         //Joysticks.Down(I, J);
         //Joysticks.Up(I, J);
         if Joysticks.Press(I, J) then
-          HandleJoyButtonPress(I, J);
+          EventJoyButtonPress(I, J);
       end;
       for J := 0 to Joysticks.GetJoy(I)^.Info.Count.Axes -1 do
       begin
         if Joysticks.AxisPos(I, J) <> 0 then
-          HandleJoyAxisMove(I, J);
+          EventJoyAxisMove(I, J);
       end;
     end;
   end;
-
-  { Although we call Update for all the existing controls, we look
-    at CapturesEventsAtPosition and track HandleInput values.
-    See TUIControl.Update for explanation. }
 
   HandleInput := true;
 
@@ -1761,18 +1839,7 @@ begin
   I := 0; // while loop, in case some Update method changes the Controls list
   while I < Controls.Count do
   begin
-    C := Controls[I];
-    if C.GetExists and (C <> ForceCaptureInput) then
-    begin
-      if C.CapturesEventsAtPosition(MousePosition) then
-      begin
-        C.Update(Fps.UpdateSecondsPassed, HandleInput);
-      end else
-      begin
-        Dummy := false;
-        C.Update(Fps.UpdateSecondsPassed, Dummy);
-      end;
-    end;
+    RecursiveUpdate(Controls[I], HandleInput);
     Inc(I);
   end;
 
@@ -1785,18 +1852,15 @@ function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
   var
     I: Integer;
   begin
-    Result := false;
-
-    { try to pass press to C children }
-    for I := C.ControlsCount - 1 downto 0 do
+    if C.GetExists and C.CapturesEventsAtPosition(Event.Position)  then
     begin
-      Result := RecursivePress(C.Controls[I]);
-      if Result then Exit;
-    end;
+      { try to pass press to C children }
+      for I := C.ControlsCount - 1 downto 0 do
+        if RecursivePress(C.Controls[I]) then
+          Exit(true);
 
-    { try C.Press itself }
-    if C.GetExists and C.CapturesEventsAtPosition(Event.Position) and (C <> ForceCaptureInput) then
-      if C.Press(Event) then
+      { try C.Press itself }
+      if (C <> ForceCaptureInput) and C.Press(Event) then
       begin
         { We have to check whether C.Container = Self. That is because
           the implementation of control's Press method could remove itself
@@ -1811,6 +1875,9 @@ function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
           FCaptureInput[Event.FingerIndex] := C;
         Exit(true);
       end;
+    end;
+
+    Result := false;
   end;
 
 var
@@ -1827,10 +1894,8 @@ begin
 
   { pass to all Controls with TUIControl.Press event }
   for I := Controls.Count - 1 downto 0 do
-  begin
-    Result := RecursivePress(Controls[I]);
-    if Result then Exit;
-  end;
+    if RecursivePress(Controls[I]) then
+      Exit(true);
 
   { pass to container event }
   if Assigned(OnPress) then
@@ -1846,19 +1911,19 @@ function TUIContainer.EventRelease(const Event: TInputPressRelease): boolean;
   var
     I: Integer;
   begin
-    Result := false;
-
-    { try to pass release to C children }
-    for I := C.ControlsCount - 1 downto 0 do
+    if C.GetExists and C.CapturesEventsAtPosition(Event.Position) then
     begin
-      Result := RecursiveRelease(C.Controls[I]);
-      if Result then Exit;
+      { try to pass release to C children }
+      for I := C.ControlsCount - 1 downto 0 do
+        if RecursiveRelease(C.Controls[I]) then
+          Exit(true);
+
+      { try C.Release itself }
+      if (C <> ForceCaptureInput) and C.Release(Event) then
+        Exit(true);
     end;
 
-    { try C.Release itself }
-    if C.GetExists and C.CapturesEventsAtPosition(Event.Position) and (C <> ForceCaptureInput) then
-      if C.Release(Event) then
-        Exit(true);
+    Result := false;
   end;
 
 var
@@ -1904,10 +1969,8 @@ begin
 
   { pass to all Controls with TUIControl.Release event }
   for I := Controls.Count - 1 downto 0 do
-  begin
-    Result := RecursiveRelease(Controls[I]);
-    if Result then Exit;
-  end;
+    if RecursiveRelease(Controls[I]) then
+      Exit(true);
 
   { pass to container event }
   if Assigned(OnRelease) then
@@ -1918,9 +1981,23 @@ begin
 end;
 
 procedure TUIContainer.EventOpen(const OpenWindowsCount: Cardinal);
+
+  procedure RecursiveGLContextOpen(const C: TUIControl);
+  var
+    I: Integer;
+  begin
+    for I := C.ControlsCount - 1 downto 0 do
+      RecursiveGLContextOpen(C.Controls[I]);
+
+    { Check here C.GLInitialized to not call C.GLContextOpen twice.
+      Control may have GL resources already initialized if it was added
+      e.g. from Application.OnInitialize before EventOpen. }
+    if not C.GLInitialized then
+      C.GLContextOpen;
+  end;
+
 var
   I: Integer;
-  C: TUIControl;
 begin
   if OpenWindowsCount = 1 then
     OnGLContextOpen.ExecuteForward;
@@ -1929,23 +2006,27 @@ begin
     this way OnOpen has controls with GLInitialized = true,
     so using SaveScreen etc. makes more sense there. }
   for I := Controls.Count - 1 downto 0 do
-  begin
-    C := Controls[I];
-    { Check here C.GLInitialized to not call C.GLContextOpen twice.
-      Control may have GL resources already initialized if it was added
-      e.g. from Application.OnInitialize before EventOpen. }
-    if not C.GLInitialized then
-      C.GLContextOpen;
-  end;
+    RecursiveGLContextOpen(Controls[I]);
 
   if Assigned(OnOpen) then OnOpen(Self);
   if Assigned(OnOpenObject) then OnOpenObject(Self);
 end;
 
 procedure TUIContainer.EventClose(const OpenWindowsCount: Cardinal);
+
+  procedure RecursiveGLContextClose(const C: TUIControl);
+  var
+    I: Integer;
+  begin
+    for I := C.ControlsCount - 1 downto 0 do
+      RecursiveGLContextClose(C.Controls[I]);
+
+    if C.GLInitialized then
+      C.GLContextClose;
+  end;
+
 var
   I: Integer;
-  C: TUIControl;
 begin
   { Call GLContextClose on controls after OnClose,
     consistent with inverse order in OnOpen. }
@@ -1956,46 +2037,70 @@ begin
     This may be called from Close, which may be called from TCastleWindowCustom destructor,
     so prepare for Controls being possibly nil now. }
   if Controls <> nil then
-  begin
     for I := Controls.Count - 1 downto 0 do
-    begin
-      C := Controls[I];
-      if C.GLInitialized then
-        C.GLContextClose;
-    end;
-  end;
+      RecursiveGLContextClose(Controls[I]);
 
   if OpenWindowsCount = 1 then
     OnGLContextClose.ExecuteBackward;
 end;
 
 function TUIContainer.AllowSuspendForInput: boolean;
+
+  function RecursiveAllowSuspendForInput(const C: TUIControl): boolean;
+  var
+    I: Integer;
+  begin
+    if C.GetExists then
+    begin
+      for I := C.ControlsCount - 1 downto 0 do
+        if not RecursiveAllowSuspendForInput(C.Controls[I]) then
+          Exit(false);
+
+      if not C.AllowSuspendForInput then
+        Exit(false);
+    end;
+
+    Result := true;
+  end;
+
 var
   I: Integer;
-  C: TUIControl;
 begin
-  Result := true;
-
   { Do not suspend when you're over a control that may have a tooltip,
     as EventUpdate must track and eventually show tooltip. }
   if (Focus.Count <> 0) and Focus.Last.TooltipExists then
     Exit(false);
 
   for I := Controls.Count - 1 downto 0 do
-  begin
-    C := Controls[I];
-    if C.GetExists then
-    begin
-      Result := C.AllowSuspendForInput;
-      if not Result then Exit;
-    end;
-  end;
+    if not RecursiveAllowSuspendForInput(Controls[I]) then
+      Exit(false);
+
+  Result := true;
 end;
 
 procedure TUIContainer.EventMotion(const Event: TInputMotion);
+
+  function RecursiveMotion(const C: TUIControl): boolean;
+  var
+    I: Integer;
+  begin
+    if C.GetExists and C.CapturesEventsAtPosition(Event.Position) then
+    begin
+      { try to pass release to C children }
+      for I := C.ControlsCount - 1 downto 0 do
+        if RecursiveMotion(C.Controls[I]) then
+          Exit(true);
+
+      { try C.Motion itself }
+      if (C <> ForceCaptureInput) and C.Motion(Event) then
+        Exit(true);
+    end;
+
+    Result := false;
+  end;
+
 var
   I, CaptureIndex: Integer;
-  C: TUIControl;
 begin
   UpdateFocusAndMouseCursor;
 
@@ -2027,14 +2132,8 @@ begin
 
   { pass to all Controls }
   for I := Controls.Count - 1 downto 0 do
-  begin
-    C := Controls[I];
-    if C.GetExists and C.CapturesEventsAtPosition(Event.Position) and (C <> ForceCaptureInput) then
-    begin
-      if C.Motion(Event) then
-        Exit;
-    end;
-  end;
+    if RecursiveMotion(Controls[I]) then
+      Exit;
 
   { pass to container event }
   if Assigned(OnMotion) then
@@ -2047,24 +2146,43 @@ begin
 end;
 
 procedure TUIContainer.EventBeforeRender;
+
+  procedure RecursiveBeforeRender(const C: TUIControl);
+  var
+    I: Integer;
+  begin
+    if C.GetExists then
+    begin
+      for I := C.ControlsCount - 1 downto 0 do
+        RecursiveBeforeRender(C.Controls[I]);
+
+      if C.GLInitialized then
+        C.BeforeRender;
+    end;
+  end;
+
 var
   I: Integer;
-  C: TUIControl;
 begin
   for I := Controls.Count - 1 downto 0 do
-  begin
-    C := Controls[I];
-    if C.GetExists and C.GLInitialized then
-      C.BeforeRender;
-  end;
+    RecursiveBeforeRender(Controls[I]);
 
   if Assigned(OnBeforeRender) then OnBeforeRender(Self);
 end;
 
 procedure TUIContainer.EventResize;
+
+  procedure RecursiveResize(const C: TUIControl);
+  var
+    I: Integer;
+  begin
+    for I := C.ControlsCount - 1 downto 0 do
+      RecursiveResize(C.Controls[I]);
+    C.Resize;
+  end;
+
 var
   I: Integer;
-  C: TUIControl;
 begin
   if UIScaling in [usEncloseReferenceSize, usFitReferenceSize] then
     { usXxxReferenceSize adjust current Width/Height to reference,
@@ -2072,10 +2190,7 @@ begin
     UpdateUIScale;
 
   for I := Controls.Count - 1 downto 0 do
-  begin
-    C := Controls[I];
-    C.Resize;
-  end;
+    RecursiveResize(Controls[I]);
 
   { This way control's get Resize before our OnResize,
     useful to process them all reliably in OnResize. }
@@ -2161,6 +2276,16 @@ begin
 end;
 
 procedure TUIContainer.UpdateUIScale;
+
+  procedure RecursiveUIScaleChanged(const C: TUIControl);
+  var
+    I: Integer;
+  begin
+    for I := 0 to C.ControlsCount - 1 do
+      RecursiveUIScaleChanged(C.Controls[I]);
+    C.UIScaleChanged;
+  end;
+
 var
   S: Single;
   I: Integer;
@@ -2193,7 +2318,7 @@ begin
   FCalculatedUIScale := S;
 
   for I := 0 to Controls.Count - 1 do
-    Controls[I].UIScaleChanged;
+    RecursiveUIScaleChanged(Controls[I]);
 end;
 
 { TInputListener ------------------------------------------------------------- }
@@ -2454,13 +2579,7 @@ begin
 end;
 
 procedure TUIControl.UIScaleChanged;
-var
-  I: Integer;
 begin
-  inherited;
-  if FControls <> nil then
-    for I := 0 to FControls.Count - 1 do
-      FControls[I].UIScaleChanged;
 end;
 
 { No point in doing anything? We should propagate it to to parent like T3D?
@@ -2473,123 +2592,8 @@ begin
 end;
 }
 
-function TUIControl.Motion(const Event: TInputMotion): boolean;
-var
-  I: Integer;
-  C: TUIControl;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if FControls <> nil then
-    for I := FControls.Count - 1 downto 0 do
-    begin
-      C := Controls[I];
-      if C.GetExists and
-         C.CapturesEventsAtPosition(Event.Position) and
-         C.Motion(Event) then
-        Exit(true);
-    end;
-end;
-
-function TUIControl.SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
-var
-  I: Integer;
-  C: TUIControl;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if FControls <> nil then
-    for I := FControls.Count - 1 downto 0 do
-    begin
-      C := Controls[I];
-      if C.GetExists and
-         C.CapturesEventsAtPosition(Container.MousePosition) and
-         C.SensorRotation(X, Y, Z, Angle, SecondsPassed) then
-        Exit(true);
-    end;
-end;
-
-function TUIControl.SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
-var
-  I: Integer;
-  C: TUIControl;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if FControls <> nil then
-    for I := FControls.Count - 1 downto 0 do
-    begin
-      C := Controls[I];
-      if C.GetExists and
-         C.CapturesEventsAtPosition(Container.MousePosition) and
-         C.SensorTranslation(X, Y, Z, Length, SecondsPassed) then
-        Exit(true);
-    end;
-end;
-
-procedure TUIControl.Update(const SecondsPassed: Single; var HandleInput: boolean);
-var
-  I: Integer;
-  Dummy: boolean;
-  C: TUIControl;
-begin
-  inherited;
-
-  if FControls <> nil then
-    for I := FControls.Count - 1 downto 0 do
-    begin
-      C := Controls[I];
-      if C.GetExists then
-        if C.CapturesEventsAtPosition(Container.MousePosition) then
-        begin
-          C.Update(SecondsPassed, HandleInput);
-        end else
-        begin
-          Dummy := false;
-          C.Update(SecondsPassed, Dummy);
-        end;
-    end;
-end;
-
-function TUIControl.AllowSuspendForInput: boolean;
-var
-  I: Integer;
-  C: TUIControl;
-begin
-  Result := inherited;
-  if not Result then Exit;
-
-  if FControls <> nil then
-    for I := FControls.Count - 1 downto 0 do
-    begin
-      C := FControls[I];
-      if C.GetExists and (not C.AllowSuspendForInput) then
-        Exit(false);
-    end;
-end;
-
-procedure TUIControl.Resize;
-var
-  I: Integer;
-  C: TUIControl;
-begin
-  inherited;
-
-  if FControls <> nil then
-    for I := FControls.Count - 1 downto 0 do
-    begin
-      C := FControls[I];
-      C.Resize;
-    end;
-end;
-
 function TUIControl.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
 var
-  I: Integer;
-  C: TUIControl;
   SR: TRectangle;
 begin
   SR := ScreenRect;
@@ -2601,45 +2605,15 @@ begin
      (SR.Bottom <= 0) and
      (SR.Width >= ContainerWidth) and
      (SR.Height >= ContainerHeight));
-  if Result then Exit;
-
-  if FControls <> nil then
-    for I := FControls.Count - 1 downto 0 do
-    begin
-      C := FControls[I];
-      if C.GetExists and C.CapturesEventsAtPosition(Position) then
-        Exit(true);
-    end;
 end;
 
 function TUIControl.TooltipExists: boolean;
-var
-  I: Integer;
-  C: TUIControl;
 begin
   Result := false;
-
-  if FControls <> nil then
-    for I := FControls.Count - 1 downto 0 do
-    begin
-      C := FControls[I];
-      if C.GetExists and C.TooltipExists then
-        Exit(true);
-    end;
 end;
 
 procedure TUIControl.BeforeRender;
-var
-  I: Integer;
-  C: TUIControl;
 begin
-  if FControls <> nil then
-    for I := 0 to FControls.Count - 1 do
-    begin
-      C := FControls[I];
-      if C.GetExists and C.GLInitialized then
-        C.BeforeRender;
-    end;
 end;
 
 procedure TUIControl.Render;
@@ -2656,35 +2630,13 @@ begin
 end;
 
 procedure TUIControl.GLContextOpen;
-var
-  I: Integer;
-  C: TUIControl;
 begin
   FGLInitialized := true;
-
-  if FControls <> nil then
-    for I := 0 to FControls.Count - 1 do
-    begin
-      C := FControls[I];
-      if not C.GLInitialized then
-        C.GLContextOpen;
-    end;
 end;
 
 procedure TUIControl.GLContextClose;
-var
-  I: Integer;
-  C: TUIControl;
 begin
   FGLInitialized := false;
-
-  if FControls <> nil then
-    for I := 0 to FControls.Count - 1 do
-    begin
-      C := FControls[I];
-      if C.GLInitialized then
-        C.GLContextClose;
-    end;
 end;
 
 function TUIControl.GetExists: boolean;
