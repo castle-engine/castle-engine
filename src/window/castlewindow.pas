@@ -1972,9 +1972,9 @@ end;
     procedure SaveScreen(const URL: string); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
-    function SaveScreenToGL(const ScalingPossible: boolean = false): TGLImage; overload;
+    function SaveScreenToGL(const SmoothScaling: boolean = false): TGLImage; overload;
     function SaveScreenToGL(const SaveRect: TRectangle;
-      const ScalingPossible: boolean = false): TGLImage; overload;
+      const SmoothScaling: boolean = false): TGLImage; overload;
     { @groupEnd }
 
     { Color buffer where we draw, and from which it makes sense to grab pixels.
@@ -3556,18 +3556,18 @@ begin
   Result := SaveScreen_NoFlush(SaveRect, SaveScreenBuffer);
 end;
 
-function TCastleWindowCustom.SaveScreenToGL(const ScalingPossible: boolean): TGLImage;
+function TCastleWindowCustom.SaveScreenToGL(const SmoothScaling: boolean): TGLImage;
 begin
-  Result := SaveScreenToGL(Rect, ScalingPossible);
+  Result := SaveScreenToGL(Rect, SmoothScaling);
 end;
 
 function TCastleWindowCustom.SaveScreenToGL(
   const SaveRect: TRectangle;
-  const ScalingPossible: boolean): TGLImage;
+  const SmoothScaling: boolean): TGLImage;
 begin
   Container.EventBeforeRender;
   Container.EventRender;
-  Result := SaveScreenToGL_NoFlush(SaveRect, SaveScreenBuffer, ScalingPossible);
+  Result := SaveScreenToGL_NoFlush(SaveRect, SaveScreenBuffer, SmoothScaling);
 end;
 
 procedure TCastleWindowCustom.SaveScreenDialog(ProposedURL: string);

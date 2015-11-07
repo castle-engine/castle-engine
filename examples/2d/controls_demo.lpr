@@ -124,11 +124,13 @@ begin
   Image2.Width := 400;
   Image2.Height := 200;
   Image2.Anchor(hpRight, -10);
+  //Image2.SmoothScaling := false;
   Window.Controls.InsertFront(Image2);
 
   ImageDemo := TCastleImageControl.Create(Window);
   ImageDemo.URL := ApplicationData('sample_image_with_alpha.png');
   ImageDemo.Stretch := true;
+  //ImageDemo.SmoothScaling := false;
   ImageDemo.Width := 100;
   ImageDemo.Height := 100;
 

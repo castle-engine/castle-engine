@@ -69,7 +69,7 @@ procedure SaveScreen_NoFlush(const Image: TCastleImage;
 { Captures current screen as a TGLImage instance, ready to be drawn on 2D screen. }
 function SaveScreenToGL_NoFlush(const Rect: TRectangle;
   const ReadBuffer: TColorBuffer;
-  const ScalingPossible: boolean = false): TGLImage;
+  const SmoothScaling: boolean = false): TGLImage;
 
 {$endif read_interface}
 
@@ -140,13 +140,13 @@ end;
 
 function SaveScreenToGL_NoFlush(const Rect: TRectangle;
   const ReadBuffer: TColorBuffer;
-  const ScalingPossible: boolean): TGLImage;
+  const SmoothScaling: boolean): TGLImage;
 var
   ScreenImage: TRGBImage;
 begin
   ScreenImage := SaveScreen_NoFlush(Rect, ReadBuffer);
   try
-    Result := TGLImage.Create(ScreenImage, ScalingPossible);
+    Result := TGLImage.Create(ScreenImage, SmoothScaling);
   finally FreeAndNil(ScreenImage) end;
 end;
 

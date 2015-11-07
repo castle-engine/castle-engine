@@ -358,7 +358,7 @@ type
     FFont: TTextureFontData;
     FOwnsFont: boolean;
     GLImage: TGLImage;
-    function GetScalingPossible: boolean;
+    function GetSmoothScaling: boolean;
   strict protected
     procedure SetScale(const Value: Single); override;
     function GetSize: Single; override;
@@ -438,7 +438,7 @@ type
     function ScaledCharWidth: Integer;
     function ScaledCharHeight: Integer;
     function ScaledCharDisplayMargin: Integer;
-    function GetScalingPossible: boolean;
+    function GetSmoothScaling: boolean;
   strict protected
     procedure SetScale(const Value: Single); override;
     function GetSize: Single; override;
@@ -1057,7 +1057,7 @@ begin
   inherited;
 end;
 
-function TTextureFont.GetScalingPossible: boolean;
+function TTextureFont.GetSmoothScaling: boolean;
 begin
   Result := Scale <> 1;
 end;
@@ -1066,7 +1066,7 @@ procedure TTextureFont.GLContextOpen;
 begin
   inherited;
   if GLImage = nil then
-    GLImage := TGLImage.Create(FFont.Image, GetScalingPossible);
+    GLImage := TGLImage.Create(FFont.Image, GetSmoothScaling);
 end;
 
 procedure TTextureFont.GLContextClose;
@@ -1186,7 +1186,7 @@ procedure TTextureFont.SetScale(const Value: Single);
 begin
   inherited;
   if GLImage <> nil then
-    GLImage.ScalingPossible := GetScalingPossible;
+    GLImage.SmoothScaling := GetSmoothScaling;
 end;
 
 function TTextureFont.GetSize: Single;
@@ -1242,7 +1242,7 @@ begin
   Result := Round(CharDisplayMargin * Scale);
 end;
 
-function TSimpleTextureFont.GetScalingPossible: boolean;
+function TSimpleTextureFont.GetSmoothScaling: boolean;
 begin
   Result := Scale <> 1;
 end;
@@ -1251,7 +1251,7 @@ procedure TSimpleTextureFont.GLContextOpen;
 begin
   inherited;
   if GLImage = nil then
-    GLImage := TGLImage.Create(Image, GetScalingPossible);
+    GLImage := TGLImage.Create(Image, GetSmoothScaling);
 end;
 
 procedure TSimpleTextureFont.GLContextClose;
@@ -1311,7 +1311,7 @@ procedure TSimpleTextureFont.SetScale(const Value: Single);
 begin
   inherited;
   if GLImage <> nil then
-    GLImage.ScalingPossible := GetScalingPossible;
+    GLImage.SmoothScaling := GetSmoothScaling;
 end;
 
 function TSimpleTextureFont.GetSize: Single;

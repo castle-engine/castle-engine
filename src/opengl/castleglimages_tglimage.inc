@@ -55,12 +55,12 @@ type
     FAlpha: TAlphaChannel;
     FIgnoreTooLargeCorners: boolean;
     FColor: TCastleColor;
-    FScalingPossible: boolean;
+    FSmoothScaling: boolean;
     FScaleCorners: Single;
     procedure AlphaBegin;
     procedure AlphaEnd;
-    procedure UpdateScalingPossible(const NeedToBind: boolean);
-    procedure SetScalingPossible(const Value: boolean);
+    procedure UpdateSmoothScaling(const NeedToBind: boolean);
+    procedure SetSmoothScaling(const Value: boolean);
     { Prepare static stuff for rendering. }
     class procedure PrepareStatic;
     function CurrentFilter: TTextureFilter;
@@ -70,7 +70,8 @@ type
       @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
         by OpenGL.) }
     constructor Create(const Image: TEncodedImage;
-      const AScalingPossible: boolean = false);
+      const ASmoothScaling: boolean);
+    constructor Create(const Image: TEncodedImage); deprecated 'use Create(Image, ASmoothScaling) and specify ASmoothScaling explicitly';
 
     { Load image from disk, and prepare for drawing.
 
@@ -99,7 +100,7 @@ type
         by OpenGL.)
     }
     constructor Create(const URL: string;
-      const AScalingPossible: boolean = false);
+      const ASmoothScaling: boolean = false);
     constructor Create(const URL: string;
       const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
@@ -107,7 +108,7 @@ type
       const Interpolation: TResizeInterpolation = riNearest);
     constructor Create(const URL: string;
       const LoadAsClass: array of TEncodedImageClass;
-      const AScalingPossible: boolean);
+      const ASmoothScaling: boolean);
 
     destructor Destroy; override;
 
@@ -161,8 +162,8 @@ type
       DrawWidth and DrawHeight of the rectangle on the screen, and explicitly choose
       the portion of the image to draw. If you want to draw scaled image
       (that is, use ImageWidth different than DrawWidth or ImageHeight
-      different than DrawHeight) be sure to construct an image with
-      ScalingPossible = @true (otherwise runtime scaling may look ugly).
+      different than DrawHeight) consider constructing an image with
+      SmoothScaling = @true (otherwise the scaling will look pixelated).
 
       Note that the image position (ImageX, ImageY) is specified
       like a texture coordinate. So (0, 0) is actually
@@ -170,7 +171,7 @@ type
       and (Width,Height) is the right-top corner of the right-top pixel.
       That is why image position and sizes are floats, it makes sense
       to render partial pixels this way (make sure you have
-      ScalingPossible = @true to get nice scaling of image contents).
+      SmoothScaling = @true to get nice scaling of image contents).
       You can also flip the image horizontally or vertically,
       e.g. use ImageX = Width and ImageWidth = -Width to mirror
       image horizontally.
@@ -265,19 +266,24 @@ type
       to new image. }
     procedure Load(const Image: TEncodedImage);
 
-    { Is the image filtering mode ready for scaling. "Scaling" here means drawing
-      such that one image pixel does not perfectly cover one screen pixel.
-      For example, using @link(Draw) to draw the whole image,
-      but with the size of the image on screen different than image size.
-      If you want to do such drawing, set ScalingPossible to @true.
+    { Is the image scaling mode smooth (bilinear filtering)
+      or not (nearest-pixel filtering).
+      This is important if you draw the image
+      such that one image pixel does not perfectly fit one screen pixel.
 
-      On the other hand, if you will not ever do scaling, then leave
-      ScalingPossible to @false. It may cause minimally faster drawing,
+      If you will not ever do any scaling, then set
+      this to @false. It may cause minimally faster drawing,
       and avoids any possible artifacts from bilinear filtering.
+
+      If you will do scaling, you usually want to set this to @true,
+      unless you deliberately want a pixelated look (for pixelart).
 
       Note that switching this property after this object is constructed
       is possible, but costly. }
-    property ScalingPossible: boolean read FScalingPossible write SetScalingPossible;
+    property SmoothScaling: boolean read FSmoothScaling write SetSmoothScaling;
+
+    property ScalingPossible: boolean read FSmoothScaling write SetSmoothScaling;
+      deprecated 'use SmoothScaling';
   end;
 
 { Draw the image on 2D screen. Note that if you want to use this
@@ -294,7 +300,7 @@ procedure ImageDraw(const Image: TCastleImage); deprecated;
 {$ifdef read_implementation}
 
 constructor TGLImage.Create(const Image: TEncodedImage;
-  const AScalingPossible: boolean);
+  const ASmoothScaling: boolean);
 begin
   inherited Create;
 
@@ -306,18 +312,23 @@ begin
 
   glGenTextures(1, @Texture);
   Load(Image); // Load will already call proper glBindTexture
-  FScalingPossible := AScalingPossible;
-  UpdateScalingPossible(false);
+  FSmoothScaling := ASmoothScaling;
+  UpdateSmoothScaling(false);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
 
   PrepareStatic;
 end;
 
-constructor TGLImage.Create(const URL: string;
-  const AScalingPossible: boolean);
+constructor TGLImage.Create(const Image: TEncodedImage);
 begin
-  Create(URL, [], AScalingPossible);
+  Create(Image, false);
+end;
+
+constructor TGLImage.Create(const URL: string;
+  const ASmoothScaling: boolean);
+begin
+  Create(URL, [], ASmoothScaling);
 end;
 
 constructor TGLImage.Create(const URL: string;
@@ -331,13 +342,13 @@ begin
     Image := LoadImage(URL, PixelsImageClasses, ResizeToX, ResizeToY, Interpolation) else
     Image := LoadImage(URL, LoadAsClass, ResizeToX, ResizeToY, Interpolation);
   try
-    Create(Image);
+    Create(Image, false);
   finally FreeAndNil(Image) end;
 end;
 
 constructor TGLImage.Create(const URL: string;
   const LoadAsClass: array of TEncodedImageClass;
-  const AScalingPossible: boolean);
+  const ASmoothScaling: boolean);
 var
   Image: TEncodedImage;
 begin
@@ -345,7 +356,7 @@ begin
     Image := LoadEncodedImage(URL, PixelsImageClasses) else
     Image := LoadEncodedImage(URL, LoadAsClass);
   try
-    Create(Image, AScalingPossible);
+    Create(Image, ASmoothScaling);
   finally FreeAndNil(Image) end;
 end;
 
@@ -823,7 +834,7 @@ end;
 
 function TGLImage.CurrentFilter: TTextureFilter;
 begin
-  if ScalingPossible then
+  if SmoothScaling then
   begin
     Result.Minification := minLinear;
     Result.Magnification := magLinear;
@@ -834,19 +845,19 @@ begin
   end;
 end;
 
-procedure TGLImage.UpdateScalingPossible(const NeedToBind: boolean);
+procedure TGLImage.UpdateSmoothScaling(const NeedToBind: boolean);
 begin
   if NeedToBind then
     glBindTexture(GL_TEXTURE_2D, Texture);
   SetTextureFilter(GL_TEXTURE_2D, CurrentFilter);
 end;
 
-procedure TGLImage.SetScalingPossible(const Value: boolean);
+procedure TGLImage.SetSmoothScaling(const Value: boolean);
 begin
-  if FScalingPossible <> Value then
+  if FSmoothScaling <> Value then
   begin
-    FScalingPossible := Value;
-    UpdateScalingPossible(true);
+    FSmoothScaling := Value;
+    UpdateSmoothScaling(true);
   end;
 end;
 
@@ -859,7 +870,7 @@ procedure ImageDraw(const Image: TCastleImage);
 var
   GLImage: TGLImage;
 begin
-  GLImage := TGLImage.Create(Image);
+  GLImage := TGLImage.Create(Image, false);
   try
     GLImage.Draw(0, 0);
   finally FreeAndNil(GLImage) end;

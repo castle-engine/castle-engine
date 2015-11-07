@@ -106,14 +106,13 @@ end;
 
 procedure TCastleWindowTouch.DoUpdate;
 var
-  I: Integer;
-  C: TUIControl;
   Tx, Ty, Tz, TLength, Rx, Ry, Rz, RAngle: Double;
   RightSide: boolean;
 begin
   inherited;
 
-  if (FControl[false] <> nil) or (FControl[true] <> nil) then
+  if (FControl[false] <> nil) or
+     (FControl[true] <> nil) then
   begin
     Tx := 0; Ty := 0; Tz := 0; TLength := 0;
     Rx := 0; Ry := 0; Rz := 0; RAngle := 0;
@@ -126,15 +125,8 @@ begin
       end;
 
     { send to all 2D controls, including viewports }
-    for I := 0 to Controls.Count - 1 do
-    begin
-      C := Controls[I];
-      if C.CapturesEventsAtPosition(MousePosition) then
-      begin
-        C.SensorTranslation(Tx, Ty, Tz, TLength, Fps.UpdateSecondsPassed);
-        C.SensorRotation(Rx, Ry, Rz, RAngle, Fps.UpdateSecondsPassed);
-      end;
-    end;
+    Container.EventSensorTranslation(Tx, Ty, Tz, TLength, Fps.UpdateSecondsPassed);
+    Container.EventSensorRotation(Rx, Ry, Rz, RAngle, Fps.UpdateSecondsPassed);
   end;
 end;
 
