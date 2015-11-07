@@ -1625,12 +1625,12 @@ procedure TUIContainer.EventUpdate;
     begin
       if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
       begin
-        if C.JoyAxisMove(JoyID, Axis) then
-          Exit(true);
-
         for I := C.ControlsCount - 1 downto 0 do
           if RecursiveJoyAxisMove(C.Controls[I]) then
             Exit(true);
+
+        if C.JoyAxisMove(JoyID, Axis) then
+          Exit(true);
       end;
 
       Result := false;
@@ -1654,12 +1654,12 @@ procedure TUIContainer.EventUpdate;
     begin
       if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
       begin
-        if C.JoyButtonPress(JoyID, Button) then
-          Exit(true);
-
         for I := C.ControlsCount - 1 downto 0 do
           if RecursiveJoyButtonPress(C.Controls[I]) then
             Exit(true);
+
+        if C.JoyButtonPress(JoyID, Button) then
+          Exit(true);
       end;
 
       Result := false;
