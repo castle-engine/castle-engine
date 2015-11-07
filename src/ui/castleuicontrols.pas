@@ -429,9 +429,6 @@ type
   end;
 
   { Base class for things that listen to user input: cameras and 2D controls. }
-
-  { TInputListener }
-
   TInputListener = class(TComponent)
   private
     FOnVisibleChange: TNotifyEvent;
@@ -1619,8 +1616,66 @@ procedure TUIContainer.EventUpdate;
     end;
   end;
 
+  { Call JoyAxisMove on all controls. }
+  procedure HandleJoyAxisMove(const JoyID, Axis: Byte);
+
+    function RecursiveJoyAxisMove(const C: TUIControl): boolean;
+    var
+      I: Integer;
+    begin
+      if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
+      begin
+        if C.JoyAxisMove(JoyID, Axis) then
+          Exit(true);
+
+        for I := C.ControlsCount - 1 downto 0 do
+          if RecursiveJoyAxisMove(C.Controls[I]) then
+            Exit(true);
+      end;
+
+      Result := false;
+    end;
+
+  var
+    I: Integer;
+  begin
+    { exit as soon as something returns "true", meaning the event is handled }
+    for I := Controls.Count - 1 downto 0 do
+      if RecursiveJoyAxisMove(Controls[I]) then
+        Exit;
+  end;
+
+  { Call JoyButtonPress on all controls. }
+  procedure HandleJoyButtonPress(const JoyID, Button: Byte);
+
+    function RecursiveJoyButtonPress(const C: TUIControl): boolean;
+    var
+      I: Integer;
+    begin
+      if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
+      begin
+        if C.JoyButtonPress(JoyID, Button) then
+          Exit(true);
+
+        for I := C.ControlsCount - 1 downto 0 do
+          if RecursiveJoyButtonPress(C.Controls[I]) then
+            Exit(true);
+      end;
+
+      Result := false;
+    end;
+
+  var
+    I: Integer;
+  begin
+    { exit as soon as something returns "true", meaning the event is handled }
+    for I := Controls.Count - 1 downto 0 do
+      if RecursiveJoyButtonPress(Controls[I]) then
+        Exit;
+  end;
+
 var
-  I, J, K: Integer;
+  I, J: Integer;
   C: TUIControl;
   HandleInput: boolean;
   Dummy: boolean;
@@ -1683,26 +1738,12 @@ begin
         //Joysticks.Down(I, J);
         //Joysticks.Up(I, J);
         if Joysticks.Press(I, J) then
-          for K := Controls.Count - 1 downto 0 do
-          begin
-            C := Controls[K];
-            if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
-            begin
-              C.JoyButtonPress(I, J);
-            end;
-          end;
+          HandleJoyButtonPress(I, J);
       end;
       for J := 0 to Joysticks.GetJoy(I)^.Info.Count.Axes -1 do
       begin
         if Joysticks.AxisPos(I, J) <> 0 then
-          for K := Controls.Count - 1 downto 0 do
-          begin
-            C := Controls[K];
-            if C.GetExists and C.CapturesEventsAtPosition(MousePosition) then
-            begin
-              C.JoyAxisMove(I, J);
-            end;
-          end;
+          HandleJoyAxisMove(I, J);
       end;
     end;
   end;
