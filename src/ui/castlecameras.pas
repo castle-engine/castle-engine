@@ -2270,8 +2270,8 @@ var
   Moved: boolean;
   MoveSize: Double;
 begin
-  if not (ci3dMouse in Input) then Exit;
-  if FModelBox.IsEmptyOrZero then Exit;
+  if not (ci3dMouse in Input) then Exit(false);
+  if FModelBox.IsEmptyOrZero then Exit(false);
   Result := true;
 
   Moved := false;
@@ -2304,7 +2304,7 @@ var
   Moved: boolean;
   RotationSize: Double;
 begin
-  if not (ci3dMouse in Input) then Exit;
+  if not (ci3dMouse in Input) then Exit(false);
   Result := true;
 
   Moved := false;
@@ -4097,7 +4097,7 @@ function TWalkCamera.SensorTranslation(const X, Y, Z, Length: Double;
 var
   MoveSize: Double;
 begin
-  if not (ci3dMouse in Input) then Exit;
+  if not (ci3dMouse in Input) then Exit(false);
   Result := true;
 
   MoveSize := Length * SecondsPassed / 5000;
@@ -4129,7 +4129,7 @@ end;
 function TWalkCamera.SensorRotation(const X, Y, Z, Angle: Double;
   const SecondsPassed: Single): boolean;
 begin
-  if not (ci3dMouse in Input) then Exit;
+  if not (ci3dMouse in Input) then Exit(false);
   Result := true;
 
   if Abs(X) > 0.4 then      { tilt forward / backward }
