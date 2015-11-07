@@ -373,11 +373,16 @@ const
 procedure TCastleOnScreenMenu.RecalculateSize;
 
   function ChildHeight(const Index: Integer): Integer;
+  var
+    C: TUIControl;
   begin
-    Result := Controls[Index].Rect.Height;
+    C := Controls[Index];
+    // ChildHeight assumes that TCastleLabel(C).AutoSize = true
+    Assert((not (C is TCastleLabel)) or (TCastleLabel(C).AutoSize = true));
+    Result := C.Rect.Height;
     { add accessory (slider etc.) height inside the menu item }
-    if Controls[Index].ControlsCount <> 0 then
-      MaxVar(Result, Controls[Index].Controls[0].Rect.Height);
+    if C.ControlsCount <> 0 then
+      MaxVar(Result, C.Controls[0].Rect.Height);
   end;
 
 const
@@ -402,7 +407,10 @@ begin
   begin
     C := Controls[I];
     if C is TCastleLabel then
+    begin
       TCastleLabel(C).AutoSize := true; // later we'll turn it back to false
+      TCastleLabel(C).PaddingHorizontal := 0; // later we'll turn it back to nonzero
+    end;
     MaxVar(MaxItemWidth, C.Rect.Width);
     { add accessory (slider etc.) width inside the menu item }
     if C.ControlsCount <> 0 then
@@ -423,7 +431,7 @@ begin
       FHeight += Round(UIScale * SpaceBetweenItems(I));
   end;
 
-  FWidth += 2 * PaddingScaled;
+  FWidth += 2 * PaddingScaled + 2 * Round(UIScale * ItemPaddingHorizontal);
   FHeight += 2 * PaddingScaled;
 
   { calculate children Widths and Heights }
@@ -465,7 +473,7 @@ begin
       ItemsBelowHeight += Cardinal(R.Height + Round(UIScale * SpaceBetweenItems(I)));
 
     if C.ControlsCount <> 0 then
-      // divide by UIScale, because TCastleLabel Left / Bottom will multiply by it...
+      // divide by UIScale, because TCastleLabel.Rect will multiply by it...
       C.Controls[0].Left := Round((MaxItemWidth + MarginBeforeAccessoryScaled) / UIScale);
   end;
 end;
