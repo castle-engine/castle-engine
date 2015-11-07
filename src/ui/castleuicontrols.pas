@@ -306,8 +306,8 @@ type
 
     { When the tooltip should be shown (mouse hovers over a control
       with a tooltip) then the TooltipVisible is set to @true,
-      and TooltipPosition indicate left-bottom suggested position
-      of the tooltip.
+      and TooltipPosition indicate left-bottom (in screen space, regardless of UIScaling)
+      suggested position of the tooltip.
 
       The tooltip is only detected when TUIControl.TooltipExists.
       See TUIControl.TooltipExists and TUIControl.TooltipStyle and

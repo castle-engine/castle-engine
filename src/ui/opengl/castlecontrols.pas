@@ -1114,8 +1114,9 @@ begin
   TooltipLabel.Text.Append(Tooltip);
   TooltipRect := TooltipLabel.Rect;
 
-  X := Round(Container.TooltipPosition[0]);
-  Y := Round(Container.TooltipPosition[1]);
+  { divide by TooltipLabel.UIScale because TooltipLabel.Rect will multiply by it }
+  X := Round(Container.TooltipPosition[0] / TooltipLabel.UIScale);
+  Y := Round(Container.TooltipPosition[1] / TooltipLabel.UIScale);
 
   { now try to fix X, Y to make tooltip fit inside a window }
   MinVar(X, ContainerWidth - TooltipRect.Width);
