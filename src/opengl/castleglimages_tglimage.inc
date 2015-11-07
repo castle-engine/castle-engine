@@ -70,7 +70,8 @@ type
       @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
         by OpenGL.) }
     constructor Create(const Image: TEncodedImage;
-      const ASmoothScaling: boolean = false);
+      const ASmoothScaling: boolean);
+    constructor Create(const Image: TEncodedImage); deprecated 'use Create(Image, ASmoothScaling) and specify ASmoothScaling explicitly';
 
     { Load image from disk, and prepare for drawing.
 
@@ -319,6 +320,11 @@ begin
   PrepareStatic;
 end;
 
+constructor TGLImage.Create(const Image: TEncodedImage);
+begin
+  Create(Image, false);
+end;
+
 constructor TGLImage.Create(const URL: string;
   const ASmoothScaling: boolean);
 begin
@@ -336,7 +342,7 @@ begin
     Image := LoadImage(URL, PixelsImageClasses, ResizeToX, ResizeToY, Interpolation) else
     Image := LoadImage(URL, LoadAsClass, ResizeToX, ResizeToY, Interpolation);
   try
-    Create(Image);
+    Create(Image, false);
   finally FreeAndNil(Image) end;
 end;
 
@@ -864,7 +870,7 @@ procedure ImageDraw(const Image: TCastleImage);
 var
   GLImage: TGLImage;
 begin
-  GLImage := TGLImage.Create(Image);
+  GLImage := TGLImage.Create(Image, false);
   try
     GLImage.Draw(0, 0);
   finally FreeAndNil(GLImage) end;

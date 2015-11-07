@@ -1399,15 +1399,15 @@ procedure TCastleButton.GLContextOpen;
 begin
   inherited;
   if (FGLImage = nil) and (FImage <> nil) then
-    FGLImage := TGLImage.Create(FImage);
+    FGLImage := TGLImage.Create(FImage, true);
   if (FGLCustomBackgroundPressed = nil) and (FCustomBackgroundPressed <> nil) then
-    FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed);
+    FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true);
   if (FGLCustomBackgroundFocused = nil) and (FCustomBackgroundFocused <> nil) then
-    FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused);
+    FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true);
   if (FGLCustomBackgroundFocused = nil) and (FCustomBackgroundFocused <> nil) then
-    FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused);
+    FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true);
   if (FGLCustomBackgroundNormal = nil) and (FCustomBackgroundNormal <> nil) then
-    FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal);
+    FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal, true);
   UpdateTextSize;
 end;
 
@@ -1590,7 +1590,7 @@ begin
     FImage := Value;
 
     if GLInitialized and (FImage <> nil) then
-      FGLImage := TGLImage.Create(FImage);
+      FGLImage := TGLImage.Create(FImage, true);
 
     UpdateSize;
   end;
@@ -1606,7 +1606,7 @@ begin
     FCustomBackgroundPressed := Value;
 
     if GLInitialized and (FCustomBackgroundPressed <> nil) then
-      FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed);
+      FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true);
 
     UpdateSize;
   end;
@@ -1622,7 +1622,7 @@ begin
     FCustomBackgroundFocused := Value;
 
     if GLInitialized and (FCustomBackgroundFocused <> nil) then
-      FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused);
+      FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true);
 
     UpdateSize;
   end;
@@ -1638,7 +1638,7 @@ begin
     FCustomBackgroundNormal := Value;
 
     if GLInitialized and (FCustomBackgroundNormal <> nil) then
-      FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal);
+      FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal, true);
 
     UpdateSize;
   end;

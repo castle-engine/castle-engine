@@ -624,7 +624,7 @@ end;
 function TItemResource.GLImage: TGLImage;
 begin
   if FGLImage = nil then
-    FGLImage := TGLImage.Create(Image);
+    FGLImage := TGLImage.Create(Image, true);
   Result := FGLImage;
 end;
 
