@@ -364,6 +364,7 @@ type
     FColor: TCastleColor;
     FCorners: TVector4Integer;
     FOwnsImage: boolean;
+    FSmoothScaling: boolean;
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TCastleImage);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
@@ -375,6 +376,7 @@ type
     procedure SetFullSize(const Value: boolean);
     procedure SetProportional(const Value: boolean);
     procedure SetColor(const Value: TCastleColor);
+    procedure SetSmoothScaling(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -430,6 +432,12 @@ type
       read FAlphaChannel write SetAlphaChannel default acAuto;
     { Deprecated, use more flexible AlphaChannel instead. }
     property Blending: boolean read GetBlending write SetBlending stored false; deprecated;
+
+    { Is the image scaling mode smooth (bilinear filtering)
+      or not (nearest-pixel filtering).
+      See @link(TGLImage.SmoothScaling). }
+    property SmoothScaling: boolean
+      read FSmoothScaling write SetSmoothScaling default true;
 
     { Size of the image control.
 
@@ -1797,6 +1805,7 @@ begin
   inherited;
   FColor := White;
   FOwnsImage := true;
+  FSmoothScaling := true;
 end;
 
 destructor TCastleImageControl.Destroy;
@@ -1806,6 +1815,16 @@ begin
     FImage := nil;
   FreeAndNil(FGLImage);
   inherited;
+end;
+
+procedure TCastleImageControl.SetSmoothScaling(const Value: boolean);
+begin
+  if FSmoothScaling <> Value then
+  begin
+    FSmoothScaling := Value;
+    if FGLImage <> nil then
+      FGLImage.SmoothScaling := Value;
+  end;
 end;
 
 procedure TCastleImageControl.SetURL(const Value: string);
@@ -1909,7 +1928,7 @@ begin
       if FGLImage <> nil then
         FGLImage.Load(FImage) else
       begin
-        FGLImage := TGLImage.Create(FImage, true);
+        FGLImage := TGLImage.Create(FImage, FSmoothScaling);
         FGLImage.Color := Color;
       end;
       if AlphaChannel <> acAuto then
