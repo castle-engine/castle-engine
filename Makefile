@@ -147,6 +147,8 @@ EXAMPLES_RES_FILES := $(addsuffix .res,$(EXAMPLES_BASE_NAMES)) \
 .PHONY: examples
 examples:
 	$(foreach NAME,$(EXAMPLES_BASE_NAMES),$(NAME)_compile.sh && ) true
+# compile all examples with CastleEngineManifest.xml inside
+	find . -iname CastleEngineManifest.xml -execdir castle-engine $(CASTLE_ENGINE_TOOL_OPTIONS) compile ';'
 
 .PHONY: examples-ignore-errors
 examples-ignore-errors:
