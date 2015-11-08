@@ -710,6 +710,9 @@ type
       read FPaddingHorizontal write FPaddingHorizontal default 0;
     property PaddingVertical: Integer
       read FPaddingVertical write FPaddingVertical default 0;
+    property Padding: Integer
+      read FPaddingHorizontal write FPaddingHorizontal stored false;
+      deprecated 'use PaddingVertical and/or PaddingHorizontal';
     { @groupEnd }
 
     { Extra spacing between lines (may also be negative to squeeze lines
