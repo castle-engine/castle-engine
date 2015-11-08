@@ -661,7 +661,7 @@ type
   TCastleLabel = class(TUIControlFont)
   private
     FText: TStrings;
-    FPaddingHorizontal, FPaddingVertical: Integer;
+    FPaddingHorizontal, FPaddingVertical, FPadding: Integer;
     FLineSpacing: Integer;
     FColor: TCastleColor;
     FTags: boolean;
@@ -705,14 +705,15 @@ type
     property Text: TStrings read FText;
 
     { Inside the label rectangle, padding between rect borders and text.
+      Total horizontal padding is the sum @code(PaddingHorizontal + Padding),
+      total verical padding is the sum @code(PaddingVertical + Padding).
       @groupBegin }
     property PaddingHorizontal: Integer
       read FPaddingHorizontal write FPaddingHorizontal default 0;
     property PaddingVertical: Integer
       read FPaddingVertical write FPaddingVertical default 0;
     property Padding: Integer
-      read FPaddingHorizontal write FPaddingHorizontal stored false;
-      deprecated 'use PaddingVertical and/or PaddingHorizontal';
+      read FPadding write FPadding default 0;
     { @groupEnd }
 
     { Extra spacing between lines (may also be negative to squeeze lines
@@ -1118,8 +1119,7 @@ begin
   end;
 
   { assign TooltipLabel.Text first, to get TooltipRect.Width/Height }
-  TooltipLabel.PaddingHorizontal := 5;
-  TooltipLabel.PaddingVertical := 5;
+  TooltipLabel.Padding := 5;
   TooltipLabel.Color := Theme.TooltipTextColor;
   TooltipLabel.Text.Clear;
   TooltipLabel.Text.Append(Tooltip);
@@ -2781,8 +2781,8 @@ begin
     TextToRender := GetTextToRender(FreeTextToRender);
     try
       US := UIScale;
-      PaddingHorizontalScaled := Round(US * PaddingHorizontal);
-      PaddingVerticalScaled := Round(US * PaddingVertical);
+      PaddingHorizontalScaled := Round(US * (PaddingHorizontal + Padding));
+      PaddingVerticalScaled := Round(US * (PaddingVertical + Padding));
       LineSpacingScaled := Round(US * LineSpacing);
       Result := Rectangle(
         LeftBottomScaled,
@@ -2814,8 +2814,8 @@ begin
   try
     SR := ScreenRect;
     US := UIScale;
-    PaddingHorizontalScaled := Round(US * PaddingHorizontal);
-    PaddingVerticalScaled := Round(US * PaddingVertical);
+    PaddingHorizontalScaled := Round(US * (PaddingHorizontal + Padding));
+    PaddingVerticalScaled := Round(US * (PaddingVertical + Padding));
     LineSpacingScaled := Round(US * LineSpacing);
     if Frame then
       Theme.Draw(SR, ImageType, UIScale, FrameColor);
