@@ -989,6 +989,11 @@
       HasInterfaceDeclarations = @true, like Script or ComposedShader. }
     procedure AddCustomField(Field: TX3DField; const Exposed: boolean = false);
 
+    { Add to node InterfaceDeclarations given field or event.
+      This should only be used with nodes having
+      HasInterfaceDeclarations = @true, like Script or ComposedShader. }
+    procedure AddCustomFieldOrEvent(AFieldOrEvent: TX3DFieldOrEvent);
+
     { What happens when transformation of the node changes.
       This is internally used by TCastleSceneCore when Transform (or similar)
       node affecting this node changes. It's an important optimization,
@@ -3065,17 +3070,21 @@ begin
   IDecl.AddFieldOrEvent(Self);
 end;
 
-procedure TX3DNode.AddCustomField(Field: TX3DField; const Exposed: boolean);
+procedure TX3DNode.AddCustomFieldOrEvent(AFieldOrEvent: TX3DFieldOrEvent);
 var
   IDecl: TX3DInterfaceDeclaration;
 begin
-  Field.Exposed := Exposed;
-
   IDecl := TX3DInterfaceDeclaration.Create(Self);
-  IDecl.FieldOrEvent := Field;
-  Field.ParentInterfaceDeclaration := IDecl;
+  IDecl.FieldOrEvent := AFieldOrEvent;
+  AFieldOrEvent.ParentInterfaceDeclaration := IDecl;
   InterfaceDeclarations.Add(IDecl);
   PostAddInterfaceDeclaration(IDecl);
+end;
+
+procedure TX3DNode.AddCustomField(Field: TX3DField; const Exposed: boolean);
+begin
+  Field.Exposed := Exposed;
+  AddCustomFieldOrEvent(Field);
 end;
 
 function TX3DNode.TransformationChange: TNodeTransformationChange;

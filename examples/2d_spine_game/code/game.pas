@@ -188,6 +188,7 @@ begin
   Status.Padding := 5;
   Status.Color := Red;
   Status.Left := 10;
+  Status.Anchor(vpTop, -10);
   Status.Text.Text := 'FPS: ...'; // set initial text, to make 1st WindowResize set proper position
   // Status.Bottom := ...; // vertical Status position will be adjusted in WindowResize
   Window.Controls.InsertFront(Status);
@@ -311,7 +312,7 @@ begin
   if Event.IsKey(K_F5) then
     Window.SaveScreen(FileNameAutoInc(ApplicationName + '_screen_%d.png'));
   if Event.IsKey(K_Escape) then
-    Application.Quit;
+    Application.Terminate;
 
   if Event.IsMouseButton(mbLeft) then
   begin
@@ -348,7 +349,6 @@ end;
 
 procedure WindowResize(Container: TUIContainer);
 begin
-  Status.AlignVertical(prTop, prTop, -10);
 end;
 
 procedure TButtonsHandler.CameraView3DClick(Sender: TObject);
