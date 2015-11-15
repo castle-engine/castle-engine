@@ -37,6 +37,20 @@ function OpenURL(AURL: String): Boolean;
   that automatically detects local filenames and URLs leading to local filenames. }
 function OpenDocument(APath: String): Boolean;
 
+{ Share a text/link through user-choosen application.
+  This is available only on Android right now, ignored elsewhere.
+
+  @param(Title The short title of the share.)
+  @param(Subject Used as an email subject, and any other app on Android
+    that interprets EXTRA_SUBJECT parameter.)
+  @param(Content Multi-line share text content, possibly with URL inside.)
+}
+procedure ShareText(const Title, Subject, Content: string);
+
+{ Vibrate the device.
+  This is available only on Android right now, ignored elsewhere. }
+procedure Vibrate(const Miliseconds: Cardinal);
+
 implementation
 
 { Copied and adapted from Lazarus LCL unit LCLIntf. The core of our engine
@@ -52,6 +66,8 @@ implementation
     TProcess.CommandLine. This avoids the need for many paranoid quoting
     previously present here.
   - Some bits may use our CastleUtils, CastleFilesUtils functions.
+  - On Android, we use CastleMessaging to integrate with Android activities
+    through Java APIs.
 
   So:
   - FilenameIsAbsolute => IsPathAbsolute
@@ -72,7 +88,8 @@ uses
   {$ifdef UNIX} BaseUnix, {$endif}
   {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef DARWIN} MacOSAll, {$endif} CastleURIUtils,
-  SysUtils, Classes, Process, CastleUtils, CastleFilesUtils, CastleLog;
+  SysUtils, Classes, Process,
+  CastleUtils, CastleFilesUtils, CastleLog, CastleMessaging;
 
 { lcl/lclstrconsts.pas ------------------------------------------------------- }
 
@@ -124,7 +141,21 @@ begin
 end;
 
 {$endif}
+
 {$ifdef UNIX}
+
+{$ifdef ANDROID}
+function OpenURL(AURL: String): Boolean;
+begin
+  Messaging.Send(['intent-view-uri', AURL]);
+  Result := true;
+end;
+
+function OpenDocument(APath: String): Boolean;
+begin
+  Result := OpenURL(FilenameToURISafe(APath));
+end;
+{$else}
 
 { lcl/include/unixfileutil.inc ----------------------------------------------- }
 
@@ -287,7 +318,18 @@ begin
   RunCmdFromPath(lApp,APath);
 end;
 
-  {$endif}
-{$endif}
+    {$endif}
+  {$endif}  // not Android
+{$endif} // UNIX
+
+procedure ShareText(const Title, Subject, Content: string);
+begin
+  Messaging.Send(['intent-send-text', Title, Subject, Content]);
+end;
+
+procedure Vibrate(const Miliseconds: Cardinal);
+begin
+  Messaging.Send(['vibrate', IntToStr(Miliseconds)]);
+end;
 
 end.

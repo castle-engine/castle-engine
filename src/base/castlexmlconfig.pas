@@ -356,7 +356,7 @@ implementation
 
 uses //Base64,
   CastleStringUtils, CastleFilesUtils, CastleLog, CastleURIUtils,
-  CastleJavaMessaging, CastleWarnings;
+  CastleWarnings;
 
 procedure Register;
 begin
