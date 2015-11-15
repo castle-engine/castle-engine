@@ -52,8 +52,17 @@ type
     { Initialize AdMob ads. You need to create the unit ids on AdMob website
       (or use TestAdMobBannerUnitId, TestAdMobInterstitialUnitId for testing).
 
+      TestDeviceIds may be empty, or it may contain a list of devices
+      where you always want to see test ads --- even with real (non-test) ad units.
+      This is useful when you test ads in your application (with real ad units,
+      on a real phone). Paste here the list of your devices
+      (see https://developers.google.com/mobile-ads-sdk/docs/admob/android/quick-start ,
+      you can see your device ids in "adb logcat" output) in order to avoid
+      getting banned for clicking on your own ads.
+
       Usually called from @link(TCastleApplication.OnInitializeJavaActivity). }
-    procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId: string);
+    procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
+      const TestDeviceIds: array of string);
 
     { Initialize StartApp ads.
       You need to register your game on http://startapp.com/ to get app id.
@@ -128,9 +137,13 @@ begin
   end;
 end;
 
-procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId: string);
+procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
+  const TestDeviceIds: array of string);
+var
+  TestDeviceIdsGlued: string;
 begin
-  Messaging.Send(['ads-google-initialize', BannerUnitId, InterstitialUnitId]);
+  TestDeviceIdsGlued := GlueStrings(TestDeviceIds, ',');
+  Messaging.Send(['ads-google-initialize', BannerUnitId, InterstitialUnitId, TestDeviceIdsGlued]);
 end;
 
 procedure TAds.InitializeChartboost(const AppId, AppSignature: string);

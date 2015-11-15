@@ -45,13 +45,17 @@ type
   end;
 
   { Manage in-app purchases in your game.
+
     Usage: simply construct an instance of this class (or a subclass --
     it is useful to override some methods of this class for a particular game).
-    Then use it to query information about the products (the prices,
-    whether user owns them etc.), and to buy products.
+    Call @link(SetAvailableProducts) to get the prices and ownership information
+    about items. Use various methods to query information about the products
+    and to buy products (@link(Purchase)).
 
     @bold(You have to create the products to purchase, and their prices in various
-    currencies, in the Google Developer Console.) }
+    currencies, in the Google Developer Console.) The names of products
+    you provide to @link(SetAvailableProducts) or @link(Product) methods
+    should correspond to product names you set in the Google Developer Console. }
   TInAppPurchases = class
   private
   type
@@ -71,26 +75,34 @@ type
       and waits for some other code (maybe overridden SuccessfullyConsumed
       implementation, maybe something else) will handle it and reset
       the @code(Product.SuccessfullyConsumed) flag to @false. }
-    procedure SuccessfullyConsumed(const Product: TInAppProduct); virtual;
+    procedure SuccessfullyConsumed(const AProduct: TInAppProduct); virtual;
     { Called when the product becomes owned, in particular when it's
       successfully bought. }
-    procedure Owns(const Product: TInAppProduct); virtual;
+    procedure Owns(const AProduct: TInAppProduct); virtual;
   public
     constructor Create;
     destructor Destroy; override;
 
+    { Initialize a list of product names for which to query prices
+      from server. }
+    procedure SetAvailableProducts(const Strings: array of string);
+
     { Initiate a purchase of given item. }
-    procedure Purchase(const Product: TInAppProduct);
+    procedure Purchase(const AProduct: TInAppProduct);
 
     { Initiate a consumption of a consumable item.
       You should listen on a "successfull consumption" (override
       @link(SuccessfullyConsumed)
       method and/or watch @link(TInAppProduct.SuccessfullyConsumed))
       until you actually act on the consumption (increase player gold or such). }
-    procedure Consume(const Product: TInAppProduct);
+    procedure Consume(const AProduct: TInAppProduct);
 
-    { Find product with given name. Creates and adds new, if not found. }
-    function FindName(const Name: string): TInAppProduct;
+    { Find product with given name.
+
+      Creates and adds new product, if not found (useful in case
+      you asked for a product before information about it arrived from the net,
+      or before you even called SetAvailableProducts with it). }
+    function Product(const Name: string): TInAppProduct;
 
     { Purely for debug purposes, mockup buying (pretend that all purchases succeed). }
     property DebugMockupBuying: boolean
@@ -133,32 +145,32 @@ function TInAppPurchases.MessageReceived(const Received: TCastleStringList): boo
 begin
   Result := false;
   if (Received.Count = 3) and
-     (Received[0] = 'biling-can-purchase') then
+     (Received[0] = 'in-app-purchases-can-purchase') then
   begin
-    FindName(Received[1]).FPriceRaw := Received[2];
+    Product(Received[1]).FPriceRaw := Received[2];
     Result := true;
   end else
   if (Received.Count = 2) and
-     (Received[0] = 'biling-owns') then
+     (Received[0] = 'in-app-purchases-owns') then
   begin
-    Owns(FindName(Received[1]));
+    Owns(Product(Received[1]));
     Result := true;
   end else
   if (Received.Count = 2) and
-     (Received[0] = 'biling-consumed') then
+     (Received[0] = 'in-app-purchases-consumed') then
   begin
-    SuccessfullyConsumed(FindName(Received[1]));
+    SuccessfullyConsumed(Product(Received[1]));
     Result := true;
   end else
   if (Received.Count = 1) and
-     (Received[0] = 'biling-owns-known-completely') then
+     (Received[0] = 'in-app-purchases-known-completely') then
   begin
     KnownCompletely;
     Result := true;
   end;
 end;
 
-function TInAppPurchases.FindName(const Name: string): TInAppProduct;
+function TInAppPurchases.Product(const Name: string): TInAppProduct;
 var
   I: Integer;
 begin
@@ -174,28 +186,28 @@ begin
   List.Add(Result);
 end;
 
-procedure TInAppPurchases.Owns(const Product: TInAppProduct);
+procedure TInAppPurchases.Owns(const AProduct: TInAppProduct);
 begin
-  Product.FOwns := true;
+  AProduct.FOwns := true;
 end;
 
-procedure TInAppPurchases.Purchase(const Product: TInAppProduct);
+procedure TInAppPurchases.Purchase(const AProduct: TInAppProduct);
 begin
   if DebugMockupBuying then
-    Owns(Product) else
-    Messaging.Send(['biling-purchase', Product.Name]);
+    Owns(AProduct) else
+    Messaging.Send(['in-app-purchases-purchase', AProduct.Name]);
 end;
 
-procedure TInAppPurchases.Consume(const Product: TInAppProduct);
+procedure TInAppPurchases.Consume(const AProduct: TInAppProduct);
 begin
   if DebugMockupBuying then
-    SuccessfullyConsumed(Product) else
-    Messaging.Send(['biling-consume', Product.Name]);
+    SuccessfullyConsumed(AProduct) else
+    Messaging.Send(['in-app-purchases-consume', AProduct.Name]);
 end;
 
-procedure TInAppPurchases.SuccessfullyConsumed(const Product: TInAppProduct);
+procedure TInAppPurchases.SuccessfullyConsumed(const AProduct: TInAppProduct);
 begin
-  Product.SuccessfullyConsumed := true;
+  AProduct.SuccessfullyConsumed := true;
 end;
 
 procedure TInAppPurchases.KnownCompletely;
@@ -205,13 +217,18 @@ var
 begin
   if Log then
   begin
-    LogStr := 'In-app Purchases product details known completely:' + NL;
+    LogStr := 'Product details known completely:' + NL;
     for I := 0 to List.Count - 1 do
       LogStr += 'Product ' + List[I].Name +
         ', price ' + List[I].Price +
         ', owned ' + CastleStringUtils.BoolToStr[List[I].Owns] + NL;
-    WritelnLogMultiline('In-app Purchases', LogStr);
+    WritelnLogMultiline('InAppPurchases', LogStr);
   end;
+end;
+
+procedure TInAppPurchases.SetAvailableProducts(const Strings: array of string);
+begin
+  Messaging.Send(['in-app-purchases-set-available-products', GlueStrings(Strings, ',')]);
 end;
 
 end.
