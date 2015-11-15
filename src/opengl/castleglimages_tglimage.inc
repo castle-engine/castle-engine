@@ -176,12 +176,20 @@ type
       e.g. use ImageX = Width and ImageWidth = -Width to mirror
       image horizontally.
 
+      Rotation parameter determine rotation of image in degrees. Default = 0.
+      CenterX, CenterY parametres can be used to move point of drawing. It's usefull
+      to move center of rotation when rotation is used. Default values = 0. They takes
+      values from 0 to 1. Value 0.5 means center of image.
+
       @groupBegin }
     procedure Draw;
-    procedure Draw(const X, Y: Integer);
-    procedure Draw(const Pos: TVector2Integer);
+    procedure Draw(const X, Y: Integer;
+      const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
+    procedure Draw(const Pos: TVector2Integer;
+      const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
-      const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+      const ImageX, ImageY, ImageWidth, ImageHeight: Single;
+      const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
     procedure Draw(const ScreenRectangle: TRectangle);
     procedure Draw(const ScreenRectangle: TRectangle;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single);
@@ -454,20 +462,24 @@ begin
   Draw(WindowPos[0], WindowPos[1]);
 end;
 
-procedure TGLImage.Draw(const X, Y: Integer);
+procedure TGLImage.Draw(const X, Y: Integer;
+  const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
 begin
-  Draw(X, Y, Width, Height, 0, 0, Width, Height);
+  Draw(X, Y, Width, Height, 0, 0, Width, Height, CenterX, CenterY, Rotation);
 end;
 
-procedure TGLImage.Draw(const Pos: TVector2Integer);
+procedure TGLImage.Draw(const Pos: TVector2Integer;
+  const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
 begin
-  Draw(Pos[0], Pos[1], Width, Height, 0, 0, Width, Height);
+  Draw(Pos[0], Pos[1], Width, Height, 0, 0, Width, Height, CenterX, CenterY, Rotation);
 end;
 
 procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
-  const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+  const ImageX, ImageY, ImageWidth, ImageHeight: Single;
+  const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
 var
   TexX0, TexY0, TexX1, TexY1: Single;
+  PixCenterX, PixCenterY: Integer;
   {$ifdef GLImageUseShaders}
   ColorTreatment: TColorTreatment;
   AttribEnabled: array [0..1] of TGLuint;
@@ -476,6 +488,19 @@ var
   {$endif}
 begin
   if (DrawWidth = 0) or (DrawHeight = 0) then Exit;
+
+  PixCenterX := -Round(CenterX * DrawWidth);
+  PixCenterY := -Round(CenterY * DrawHeight);
+
+  { Protect from X, Y and sizes going outside of the SmallInt range.
+    We want to squeeze X, Y into SmallInt to make it a little more efficient
+    to render, and there are no displays with resolution outside of SmallInt
+    range anyway. }
+  if (PixCenterX < Low(SmallInt)) or
+     (PixCenterY < Low(SmallInt)) or
+     (PixCenterX + DrawWidth  > High(SmallInt)) or
+     (PixCenterX + DrawHeight > High(SmallInt)) then
+    Exit;
 
   if GLFeatures.UseMultiTexturing then glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, Texture);
@@ -486,24 +511,14 @@ begin
   TexX1 := (ImageX + ImageWidth ) / Width;
   TexY1 := (ImageY + ImageHeight) / Height;
 
-  { Protect from X, Y and sizes going outside of the SmallInt range.
-    We want to squeeze X, Y into SmallInt to make it a little more efficient
-    to render, and there are no displays with resolution outside of SmallInt
-    range anyway. }
-  if (X < Low(SmallInt)) or
-     (Y < Low(SmallInt)) or
-     (X + DrawWidth  > High(SmallInt)) or
-     (X + DrawHeight > High(SmallInt)) then
-    Exit;
-
   Point[0].TexCoord := Vector2Single(TexX0, TexY0);
-  Point[0].Position := Vector2SmallInt(X            , Y);
+  Point[0].Position := Vector2SmallInt(PixCenterX            , PixCenterY);
   Point[1].TexCoord := Vector2Single(TexX1, TexY0);
-  Point[1].Position := Vector2SmallInt(X + DrawWidth, Y);
+  Point[1].Position := Vector2SmallInt(PixCenterX + DrawWidth, PixCenterY);
   Point[2].TexCoord := Vector2Single(TexX1, TexY1);
-  Point[2].Position := Vector2SmallInt(X + DrawWidth, Y + DrawHeight);
+  Point[2].Position := Vector2SmallInt(PixCenterX + DrawWidth, PixCenterY + DrawHeight);
   Point[3].TexCoord := Vector2Single(TexX0, TexY1);
-  Point[3].Position := Vector2SmallInt(X            , Y + DrawHeight);
+  Point[3].Position := Vector2SmallInt(PixCenterX            , PixCenterY + DrawHeight);
 
   if GLFeatures.VertexBufferObject then
   begin
@@ -534,6 +549,9 @@ begin
   {$else}
   glLoadIdentity();
   glColorv(Color);
+  glTranslatef(X, Y, 0);
+  if Rotation <> 0 then
+    glRotatef(Rotation, 0, 0, 1);
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
