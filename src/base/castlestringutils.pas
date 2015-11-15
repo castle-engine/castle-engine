@@ -299,6 +299,8 @@ function NextTokenOnce(const s: string; SeekPos: integer = 1;
 function CreateTokens(const s: string;
   const TokenDelims: TSetOfChars = WhiteSpaces): TCastleStringList;
 
+function GlueStrings(const Strings: array of string; const Delimiter: char): string;
+
 { Find substring SubText within Text. Returns 0 if not found.
   Similar to a standard Pos function, with some improvements.
 
@@ -1254,6 +1256,17 @@ begin
    Result.Add(Token);
   until false;
  except Result.Free; raise end;
+end;
+
+function GlueStrings(const Strings: array of string; const Delimiter: char): string;
+var
+  I: Integer;
+begin
+  if High(Strings) = -1 then
+    Exit('');
+  Result := Strings[0];
+  for I := 1 to High(Strings) do
+    Result += Delimiter + Strings[I];
 end;
 
 function FindPos(const SubText, Text: string; StartPosition, Count: integer; const Options: TSearchOptions; const WordBorders: TSetOfChars): integer;

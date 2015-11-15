@@ -196,9 +196,24 @@ end;
 
 var
   FMessaging: TMessaging;
+  FinalizationDone: boolean;
+
+procedure DoInitialization;
+begin
+  if (not FinalizationDone) and (FMessaging = nil) then
+  begin
+    JavaCommunicationCS := TCriticalSection.Create;
+    FMessaging := TMessaging.Create;
+  end;
+end;
 
 function Messaging: TMessaging;
 begin
+  { in case you access Messaging before our unit "initialization" works
+    (for example, in case your unit "initiazalition" is executed first and
+    it does does some Messaging.Send), then initialize us now. }
+  DoInitialization;
+
   Result := FMessaging;
 end;
 
@@ -240,9 +255,9 @@ end;
 {$endif}
 
 initialization
-  JavaCommunicationCS := TCriticalSection.Create;
-  FMessaging := TMessaging.Create;
+  DoInitialization;
 finalization
+  FinalizationDone := true;
   FreeAndNil(FMessaging);
   FreeAndNil(JavaCommunicationCS);
 end.
