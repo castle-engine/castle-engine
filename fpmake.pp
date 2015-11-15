@@ -115,6 +115,10 @@ begin
     P.Targets.AddUnit('castlevorbisfile.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'base');
+    P.Targets.AddUnit('castleads.pas');
+    P.Targets.AddUnit('castleanalytics.pas');
+    P.Targets.AddUnit('castlegoogleplaygames.pas');
+    P.Targets.AddUnit('castleinapppurchases.pas');
     P.Targets.AddUnit('castleclassutils.pas');
     P.Targets.AddUnit('castlecolors.pas');
     P.Targets.AddUnit('castleconfig.pas');
@@ -122,7 +126,7 @@ begin
     P.Targets.AddUnit('castlefilesutils.pas');
     P.Targets.AddUnit('castlegziointernal.pas');
     P.Targets.AddUnit('castleinterfaces.pas');
-    P.Targets.AddUnit('castlejavamessaging.pas');
+    P.Targets.AddUnit('castlemessaging.pas');
     P.Targets.AddUnit('castlelog.pas');
     P.Targets.AddUnit('castleopendocument.pas');
     P.Targets.AddUnit('castleparameters.pas');
