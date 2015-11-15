@@ -133,25 +133,25 @@ function TInAppPurchases.MessageReceived(const Received: TCastleStringList): boo
 begin
   Result := false;
   if (Received.Count = 3) and
-     (Received[0] = 'biling-can-purchase') then
+     (Received[0] = 'in-app-purchases-can-purchase') then
   begin
     FindName(Received[1]).FPriceRaw := Received[2];
     Result := true;
   end else
   if (Received.Count = 2) and
-     (Received[0] = 'biling-owns') then
+     (Received[0] = 'in-app-purchases-owns') then
   begin
     Owns(FindName(Received[1]));
     Result := true;
   end else
   if (Received.Count = 2) and
-     (Received[0] = 'biling-consumed') then
+     (Received[0] = 'in-app-purchases-consumed') then
   begin
     SuccessfullyConsumed(FindName(Received[1]));
     Result := true;
   end else
   if (Received.Count = 1) and
-     (Received[0] = 'biling-owns-known-completely') then
+     (Received[0] = 'in-app-purchases-known-completely') then
   begin
     KnownCompletely;
     Result := true;
@@ -183,14 +183,14 @@ procedure TInAppPurchases.Purchase(const Product: TInAppProduct);
 begin
   if DebugMockupBuying then
     Owns(Product) else
-    Messaging.Send(['biling-purchase', Product.Name]);
+    Messaging.Send(['in-app-purchases-purchase', Product.Name]);
 end;
 
 procedure TInAppPurchases.Consume(const Product: TInAppProduct);
 begin
   if DebugMockupBuying then
     SuccessfullyConsumed(Product) else
-    Messaging.Send(['biling-consume', Product.Name]);
+    Messaging.Send(['in-app-purchases-consume', Product.Name]);
 end;
 
 procedure TInAppPurchases.SuccessfullyConsumed(const Product: TInAppProduct);
@@ -205,12 +205,12 @@ var
 begin
   if Log then
   begin
-    LogStr := 'In-app Purchases product details known completely:' + NL;
+    LogStr := 'Product details known completely:' + NL;
     for I := 0 to List.Count - 1 do
       LogStr += 'Product ' + List[I].Name +
         ', price ' + List[I].Price +
         ', owned ' + CastleStringUtils.BoolToStr[List[I].Owns] + NL;
-    WritelnLogMultiline('In-app Purchases', LogStr);
+    WritelnLogMultiline('InAppPurchases', LogStr);
   end;
 end;
 
