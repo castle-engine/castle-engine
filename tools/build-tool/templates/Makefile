@@ -5,10 +5,7 @@
 ALL_TARGETS := \
   windows/plugin-automatic-windows-resources.rc.inc \
   windows/automatic-windows-resources.rc.inc \
-  windows/automatic-windows.manifest.inc \
-  android/AndroidManifest.xml.inc \
-  android/res/values/strings.xml.inc \
-  android/jni/Android.mk.inc
+  windows/automatic-windows.manifest.inc
 
 default: $(ALL_TARGETS)
 

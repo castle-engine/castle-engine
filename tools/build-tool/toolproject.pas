@@ -43,6 +43,8 @@ type
     FVersion: string;
     FVersionCode: Cardinal;
     FScreenOrientation: TScreenOrientation;
+    // Helpers only for ExtractTemplateFoundFile.
+    ExtractTemplateDestinationPath, ExtractTemplateDir: string;
     function PluginCompiledFile(const OS: TOS; const CPU: TCPU): string;
     procedure GatherFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
@@ -56,6 +58,7 @@ type
       Otherwise, takes more files,
       and assumes that Files are (and will be) URLs relative to @link(Path). }
     procedure PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
+    procedure ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
   public
     constructor Create;
     constructor Create(const APath: string);
@@ -99,6 +102,17 @@ type
     function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
 
     function ReplaceMacros(const Source: string): string;
+
+    { Recursively copy a directory from TemplatePath (this is relative
+      to build-tool data) to the DestinationPath (this should be an absolute
+      existing directory name).
+
+      Each file is processed by the ReplaceMacros method.
+
+      The existing files in destination are @bold(not) overwritten (this allows
+      to preserve custom user code, in case the android_project attribute
+      in CastleEngineManifest.xml was used). }
+    procedure ExtractTemplate(const TemplatePath, DestinationPath: string);
 
     { Output Android library resulting from compilation.
       Use only if AndroidSource <> ''.
@@ -977,6 +991,41 @@ begin
     FreeAndNil(Patterns);
     FreeAndNil(Values);
   end;
+end;
+
+procedure TCastleProject.ExtractTemplate(const TemplatePath, DestinationPath: string);
+var
+  TemplateFilesCount: Cardinal;
+begin
+  ExtractTemplateDestinationPath := InclPathDelim(DestinationPath);
+  ExtractTemplateDir := URIToFilenameSafe(ApplicationData(TemplatePath));
+  if not DirectoryExists(ExtractTemplateDir) then
+    raise Exception.Create('Cannot find Android project template in "' + ExtractTemplateDir + '". Make sure you have installed the data files of the Castle Game Engine build-tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to a parent of the castle_game_engine/ or castle-engine/ directory, the build-tool will then find its data correctly.');
+
+  TemplateFilesCount := FindFiles(ExtractTemplateDir, '*', false,
+    @ExtractTemplateFoundFile, [ffRecursive]);
+  if Verbose then
+    Writeln(Format('Copied template "%s" (%d files) to "%s"',
+      [TemplatePath, TemplateFilesCount, DestinationPath]));
+end;
+
+procedure TCastleProject.ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+var
+  DestinationRelativeFileName, DestinationFileName, Contents: string;
+begin
+  DestinationRelativeFileName := PrefixRemove(ExtractTemplateDir, FileInfo.AbsoluteName, true);
+  DestinationFileName := ExtractTemplateDestinationPath + DestinationRelativeFileName;
+  if FileExists(DestinationFileName) then
+  begin
+    if Verbose then
+      Writeln('Not overwriting custom ' + DestinationRelativeFileName);
+    Exit;
+  end;
+
+  Contents := FileToString(FileInfo.URL);
+  Contents := ReplaceMacros(Contents);
+  CheckForceDirectories(ExtractFilePath(DestinationFileName));
+  StringToFile(FilenameToURISafe(DestinationFileName), Contents);
 end;
 
 { globals -------------------------------------------------------------------- }

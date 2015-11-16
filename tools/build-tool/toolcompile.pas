@@ -65,16 +65,12 @@ begin
     begin
       { Use $CASTLE_ENGINE_PATH environment variable as the directory
         containing castle_game_engine/ or castle-engine/ as subdirectory.
-        Then this script outputs all -Fu and -Fi options for FPC to include
-        Castle Game Engine sources.
+        Then add all -Fu and -Fi options for FPC to include Castle Game Engine
+        sources.
 
-        We also output -dCASTLE_ENGINE_PATHS_ALREADY_DEFINED,
-        and @.../castle-fpc.cfg, to add castle-fpc.cfg with the rest of
-        proper Castle Game Engine compilation options.
-
-        This script is useful to compile programs using Castle Game Engine
+        This way you can compile programs using Castle Game Engine
         from any directory. You just have to
-        set $CASTLE_ENGINE_PATH environment variable before calling
+        set $CASTLE_ENGINE_PATH environment variable
         (or make sure that units paths are in fpc.cfg). }
 
       { calculate CastleEngineSrc }
@@ -125,8 +121,10 @@ begin
         AddEnginePath('game');
 
         { Do not add castle-fpc.cfg.
-          Instead, rely on code below duplicating castle-fpc.cfg logic.
-          This way, it's tested.
+          Instead, rely on code below duplicating castle-fpc.cfg logic
+          (reasons: engine sources, with castle-fpc.cfg, may not be available
+          where build-tool is called).
+
         FpcOptions.Add('-dCASTLE_ENGINE_PATHS_ALREADY_DEFINED');
         FpcOptions.Add('@' + InclPathDelim(CastleEnginePath) + 'castle_game_engine(or castle-engine)/castle-fpc.cfg');
         }

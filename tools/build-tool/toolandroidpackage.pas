@@ -49,21 +49,23 @@ var
     and they avoid overwriting stuff already existing (in case CastleEngineManifest.xml
     contained explicit android_project path). }
 
+  procedure PackageCheckForceDirectories(const Dirs: string);
+  begin
+    CheckForceDirectories(AndroidProjectPath + Dirs);
+  end;
+
   procedure PackageStringToFile(const FileName, Contents: string);
   begin
+    PackageCheckForceDirectories(ExtractFilePath(FileName));
     if not FileExists(AndroidProjectPath + FileName) then
       StringToFile(AndroidProjectPath + FileName, Contents) else
     if Verbose then
       Writeln('Not overwriting custom ' + FileName);
   end;
 
-  procedure PackageCheckForceDirectories(const Dirs: string);
-  begin
-    CheckForceDirectories(AndroidProjectPath + Dirs);
-  end;
-
   procedure PackageSaveImage(const Image: TCastleImage; const FileName: string);
   begin
+    PackageCheckForceDirectories(ExtractFilePath(FileName));
     if not FileExists(AndroidProjectPath + FileName) then
       SaveImage(Image, FilenameToURISafe(AndroidProjectPath + FileName)) else
     if Verbose then
@@ -72,6 +74,7 @@ var
 
   procedure PackageSmartCopyFile(const FileFrom, FileTo: string);
   begin
+    PackageCheckForceDirectories(ExtractFilePath(FileTo));
     if not FileExists(AndroidProjectPath + FileTo) then
       SmartCopyFile(FileFrom, AndroidProjectPath + FileTo) else
     if Verbose then
@@ -80,6 +83,12 @@ var
 
   { Generate simple text stuff for Android project from templates. }
   procedure GenerateFromTemplates;
+  begin
+    Project.ExtractTemplate('android/base/', AndroidProjectPath);
+  end;
+
+  { Generate jni/Android.mk file }
+  procedure GenerateAndroidMk;
 
     function AddExternalLibraryMk(const LibraryName: string): string;
     begin
@@ -91,26 +100,14 @@ var
         '';
     end;
 
-  const
-    AndroidManifestTemplate = {$I templates/android/AndroidManifest.xml.inc};
-    StringsTemplate = {$I templates/android/res/values/strings.xml.inc};
-    AndroidMkTemplate = {$I templates/android/jni/Android.mk.inc};
   var
     AndroidMkContents: string;
   begin
-    PackageStringToFile('AndroidManifest.xml',
-      Project.ReplaceMacros(AndroidManifestTemplate));
-
-    PackageCheckForceDirectories('res' + PathDelim + 'values');
-    PackageStringToFile('res' + PathDelim + 'values' + PathDelim + 'strings.xml',
-      Project.ReplaceMacros(StringsTemplate));
-
-    PackageCheckForceDirectories('jni');
-    AndroidMkContents := Project.ReplaceMacros(AndroidMkTemplate);
+    AndroidMkContents := 'LOCAL_PATH := $(call my-dir)' + LineEnding;
+    AndroidMkContents += AddExternalLibraryMk(ChangeFileExt(ExtractFileName(Project.AndroidSource), ''));
     if depSound in Project.Dependencies then
       AndroidMkContents += AddExternalLibraryMk('openal');
-    PackageStringToFile('jni' + PathDelim + 'Android.mk',
-      AndroidMkContents);
+    PackageStringToFile('jni' + PathDelim + 'Android.mk', AndroidMkContents);
   end;
 
   procedure GenerateIcons;
@@ -125,7 +122,6 @@ var
       R := Icon.MakeResized(Size, Size, rniLanczos);
       try
         Dir := 'res' + PathDelim + 'drawable-' + S + 'dpi';
-        PackageCheckForceDirectories(Dir);
         PackageSaveImage(R, Dir + PathDelim + 'ic_launcher.png');
       finally FreeAndNil(R) end;
     end;
@@ -155,7 +151,6 @@ var
     I: Integer;
     FileFrom, FileTo: string;
   begin
-    PackageCheckForceDirectories('assets');
     for I := 0 to Files.Count - 1 do
     begin
       FileFrom := Project.DataPath + Files[I];
@@ -287,6 +282,7 @@ begin
   PackageMode := SuggestedPackageMode;
 
   GenerateFromTemplates;
+  GenerateAndroidMk;
   GenerateIcons;
   GenerateAssets;
   GenerateLibrary;
