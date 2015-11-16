@@ -27,7 +27,7 @@ procedure CreateAndroidPackage(const Project: TCastleProject;
 
 procedure InstallAndroidPackage(const Name, QualifiedName: string);
 
-procedure RunAndroidPackage(const Name, QualifiedName: string);
+procedure RunAndroidPackage(const Project: TCastleProject);
 
 implementation
 
@@ -83,9 +83,25 @@ var
 
   { Generate simple text stuff for Android project from templates. }
   procedure GenerateFromTemplates;
+  var
+    TemplatePath, DestinationPath: string;
   begin
-    Project.ExtractTemplate('android/base/', AndroidProjectPath);
+    { calculate absolute DestinationPath.
+      Use CombinePaths, as AndroidProjectPath may come from
+      CastleEngineManifest.xml attribute android_project, in which case it *may*
+      (does not have to) be relative to project dir. }
+    DestinationPath := CombinePaths(Project.Path, AndroidProjectPath);
+    case Project.AndroidProjectType of
+      apBase      : TemplatePath := 'android/base/';
+      apIntegrated: TemplatePath := 'android/integrated/';
+      else raise EInternalError.Create('GenerateFromTemplates:Project.AndroidProjectType unhandled');
+    end;
+    Project.ExtractTemplate(TemplatePath, DestinationPath);
   end;
+
+(* TODO: right now this is unused,
+   so we don't include openal in Android.mk correctly.
+   This needs to be modified to append to what templates generated in jni/Android.mk.
 
   { Generate jni/Android.mk file }
   procedure GenerateAndroidMk;
@@ -109,6 +125,7 @@ var
       AndroidMkContents += AddExternalLibraryMk('openal');
     PackageStringToFile('jni' + PathDelim + 'Android.mk', AndroidMkContents);
   end;
+*)
 
   procedure GenerateIcons;
   var
@@ -282,7 +299,7 @@ begin
   PackageMode := SuggestedPackageMode;
 
   GenerateFromTemplates;
-  GenerateAndroidMk;
+  // right now Android.mk is in templates: GenerateAndroidMk;
   GenerateIcons;
   GenerateAssets;
   GenerateLibrary;
@@ -331,21 +348,29 @@ begin
   Writeln('Install successfull.');
 end;
 
-procedure RunAndroidPackage(const Name, QualifiedName: string);
+procedure RunAndroidPackage(const Project: TCastleProject);
+var
+  ActivityName: string;
 begin
+  case Project.AndroidProjectType of
+    apBase      : ActivityName := 'android.app.NativeActivity';
+    apIntegrated: ActivityName := 'net.sourceforge.castleengine.MainActivity';
+    else raise EInternalError.Create('RunAndroidPackage:Project.AndroidProjectType unhandled');
+  end;
+
   RunCommandSimple('adb', ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
-    '-n', QualifiedName + '/android.app.NativeActivity']);
+    '-n', Project.QualifiedName + '/' + ActivityName ]);
   Writeln('Run successfull.');
   if (FindExe('bash') <> '') and
      (FindExe('grep') <> '') then
   begin
-    Writeln('Running "adb logcat | grep ' + Name + '" (we are assuming that your ApplicationName is ''' + Name + ''') to see log output from your application. Just break this process with Ctrl+C to stop.');
+    Writeln('Running "adb logcat | grep ' + Project.Name + '" (we are assuming that your ApplicationName is ''' + Project.Name + ''') to see log output from your application. Just break this process with Ctrl+C to stop.');
     { run through ExecuteProcess, because we don't want to capture output,
       we want to immediately pass it to user }
-    ExecuteProcess(FindExe('bash'), ['-c', 'adb logcat | grep "' + Name + '"']);
+    ExecuteProcess(FindExe('bash'), ['-c', 'adb logcat | grep "' + Project.Name + '"']);
   end else
-    Writeln('Run "adb logcat | grep ' + Name + '" (we are assuming that your ApplicationName is ''' + Name + ''') to see log output from your application. Install "bash" and "grep" on $PATH (on Windows, you may want to install MinGW or Cygwin) to run it automatically here.');
+    Writeln('Run "adb logcat | grep ' + Project.Name + '" (we are assuming that your ApplicationName is ''' + Project.Name + ''') to see log output from your application. Install "bash" and "grep" on $PATH (on Windows, you may want to install MinGW or Cygwin) to run it automatically here.');
 end;
 
 end.

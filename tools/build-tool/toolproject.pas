@@ -28,6 +28,8 @@ type
 
   TScreenOrientation = (soAny, soLandscape, soPortrait);
 
+  TAndroidProjectType = (apBase, apIntegrated);
+
   TCastleProject = class
   private
     FDependencies: TDependencies;
@@ -43,6 +45,10 @@ type
     FVersion: string;
     FVersionCode: Cardinal;
     FScreenOrientation: TScreenOrientation;
+    FAndroidProjectType: TAndroidProjectType;
+    GooglePlayServicesAppId,
+      GooglePlayServicesLibLocation,
+      GooglePlayServicesLibLocationRelative: string;
     // Helpers only for ExtractTemplateFoundFile.
     ExtractTemplateDestinationPath, ExtractTemplateDir: string;
     function PluginCompiledFile(const OS: TOS; const CPU: TCPU): string;
@@ -96,6 +102,7 @@ type
     property PluginSource: string read FPluginSource;
     property AndroidProject: string read FAndroidProject;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
+    property AndroidProjectType: TAndroidProjectType read FAndroidProjectType;
 
     { Path to external library. This checks existence of appropriate environment
       variables and files along the way, and raises exception in case of trouble. }
@@ -162,6 +169,7 @@ end;
 
 const
   DataName = 'data';
+  GooglePlayServicesUndefined = '(undefined in CastleEngineManifest.xml)';
 
 constructor TCastleProject.Create(const APath: string);
 
@@ -226,7 +234,7 @@ constructor TCastleProject.Create(const APath: string);
 
   var
     Doc: TXMLDocument;
-    ManifestURL: string;
+    ManifestURL, AndroidProjectTypeStr: string;
     ChildElements: TDOMNodeList;
     Element, ChildElement: TDOMElement;
     I: Integer;
@@ -305,6 +313,26 @@ constructor TCastleProject.Create(const APath: string);
             Icons.Add(ChildElement.AttributeString('path'));
           end;
         end;
+
+        Element := DOMGetChildElement(Doc.DocumentElement, 'android', false);
+        if Element <> nil then
+        begin
+          if Element.AttributeString('project_type', AndroidProjectTypeStr) then
+          begin
+            if AndroidProjectTypeStr = 'base' then
+              FAndroidProjectType := apBase else
+            if AndroidProjectTypeStr = 'integrated' then
+              FAndroidProjectType := apIntegrated else
+              raise Exception.CreateFmt('Invalid android project_type "%s"', [AndroidProjectTypeStr]);
+          end;
+
+          ChildElement := DOMGetChildElement(Element, 'google_play_services', false);
+          if ChildElement <> nil then
+          begin
+            GooglePlayServicesAppId := ChildElement.AttributeStringDef('app_id', GooglePlayServicesUndefined);
+            GooglePlayServicesLibLocation := ChildElement.AttributeStringDef('lib_location', GooglePlayServicesUndefined);
+          end;
+        end;
       finally FreeAndNil(Doc) end;
     end;
 
@@ -375,6 +403,9 @@ begin
   ExcludePaths := TCastleStringList.Create;
   FDependencies := [];
   FIcons := TIconFileNames.Create;
+  FAndroidProjectType := apBase;
+  GooglePlayServicesAppId := GooglePlayServicesUndefined;
+  GooglePlayServicesLibLocation := GooglePlayServicesUndefined;
 
   FPath := InclPathDelim(APath);
   FDataPath := InclPathDelim(Path + DataName);
@@ -751,7 +782,7 @@ begin
      Iff(Plugin, ' (as a plugin)', '')]));
 
   if OS = Android then
-    RunAndroidPackage(Name, QualifiedName) else
+    RunAndroidPackage(Self) else
   begin
     if Plugin then
       raise Exception.Create('The "run" command cannot be used for runninig "plugin" type application right now.');
@@ -978,6 +1009,8 @@ begin
     Patterns.Add('ANDROID_LIBRARY_NAME'); Values.Add(ChangeFileExt(ExtractFileName(AndroidSource), ''));
     Patterns.Add('ANDROID_SCREEN_ORIENTATION'); Values.Add(AndroidScreenOrientation[ScreenOrientation]);
     Patterns.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'); Values.Add(AndroidScreenOrientationFeature[ScreenOrientation]);
+    Patterns.Add('ANDROID_GOOGLE_PLAY_SERVICES_APP_ID'); Values.Add(GooglePlayServicesAppId);
+    Patterns.Add('ANDROID_GOOGLE_PLAY_SERVICES_LIB_LOCATION'); Values.Add(GooglePlayServicesLibLocationRelative);
     // add CamelCase() replacements, add ${} around
     for I := 0 to Patterns.Count - 1 do
     begin
@@ -1002,6 +1035,12 @@ begin
   if not DirectoryExists(ExtractTemplateDir) then
     raise Exception.Create('Cannot find Android project template in "' + ExtractTemplateDir + '". Make sure you have installed the data files of the Castle Game Engine build-tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to a parent of the castle_game_engine/ or castle-engine/ directory, the build-tool will then find its data correctly.');
 
+  { calculate GooglePlayServicesLibLocationRelative now, for ReplaceMacros }
+  GooglePlayServicesLibLocationRelative :=
+    ExtractRelativePath(ExtractTemplateDestinationPath,
+      { make sure GooglePlayServicesLibLocation is absolute }
+      CombinePaths(Path, GooglePlayServicesLibLocation));
+
   TemplateFilesCount := FindFiles(ExtractTemplateDir, '*', false,
     @ExtractTemplateFoundFile, [ffRecursive]);
   if Verbose then
@@ -1011,7 +1050,8 @@ end;
 
 procedure TCastleProject.ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
 var
-  DestinationRelativeFileName, DestinationFileName, Contents: string;
+  DestinationRelativeFileName, DestinationFileName, Contents, Ext: string;
+  BinaryFile: boolean;
 begin
   DestinationRelativeFileName := PrefixRemove(ExtractTemplateDir, FileInfo.AbsoluteName, true);
   DestinationFileName := ExtractTemplateDestinationPath + DestinationRelativeFileName;
@@ -1022,10 +1062,18 @@ begin
     Exit;
   end;
 
-  Contents := FileToString(FileInfo.URL);
-  Contents := ReplaceMacros(Contents);
+  Ext := ExtractFileExt(FileInfo.AbsoluteName);
+  BinaryFile := SameText(Ext, '.so') or SameText(Ext, '.jar');
   CheckForceDirectories(ExtractFilePath(DestinationFileName));
-  StringToFile(FilenameToURISafe(DestinationFileName), Contents);
+  if BinaryFile then
+  begin
+    CheckCopyFile(FileInfo.AbsoluteName, DestinationFileName);
+  end else
+  begin
+    Contents := FileToString(FileInfo.URL);
+    Contents := ReplaceMacros(Contents);
+    StringToFile(FilenameToURISafe(DestinationFileName), Contents);
+  end;
 end;
 
 { globals -------------------------------------------------------------------- }
