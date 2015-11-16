@@ -127,6 +127,19 @@ var
   end;
 *)
 
+  { Try to find "android" tool executable, exception if not found. }
+  function AndroidExe: string;
+  begin
+    { try to find in $ANDROID_HOME }
+    Result := AddExeExtension(InclPathDelim(GetEnvironmentVariable('ANDROID_HOME')) +
+      'tools' + PathDelim + 'android');
+    { try to find on $PATH }
+    if not FileExists(Result) then
+      Result := FindExe('android');
+    if Result = '' then
+      raise Exception.Create('Cannot find "android" executable on $PATH, or within $ANDROID_HOME. Install Android SDK and make sure that "android" executable is on $PATH, or that $ANDROID_HOME environment variable is set correctly.');
+  end;
+
   procedure GenerateIcons;
   var
     Icon: TCastleImage;
@@ -219,28 +232,27 @@ var
     end;
   end;
 
-  procedure RunAndroidUpdateProject;
+  { Run "android update project",
+    this creates a proper Android project files (build.xml, local.properties). }
+  procedure RunAndroidUpdateProject(const LibrarySubdirectory: string = '');
   const
     AndroidTarget = 'android-19';
   var
-    ProcessOutput, AndroidExe: string;
+    ProcessOutput: string;
     ProcessStatus: Integer;
   begin
-    { try to find "android" tool in $ANDROID_HOME }
-    AndroidExe := AddExeExtension(InclPathDelim(GetEnvironmentVariable('ANDROID_HOME')) +
-      'tools' + PathDelim + 'android');
-    { try to find "android" tool on $PATH }
-    if not FileExists(AndroidExe) then
-      AndroidExe := FindExe('android');
-    if AndroidExe = '' then
-      raise Exception.Create('Cannot find "android" executable on $PATH, or within $ANDROID_HOME. Install Android SDK and make sure that "android" executable is on $PATH, or that $ANDROID_HOME environment variable is set correctly.');
-    RunCommandIndirPassthrough(AndroidProjectPath, AndroidExe,
-      ['update', 'project', '--name', Project.Name, '--path', '.', '--target', AndroidTarget],
-      ProcessOutput, ProcessStatus);
+    if LibrarySubdirectory <> '' then
+      RunCommandIndirPassthrough(AndroidProjectPath + LibrarySubdirectory, AndroidExe,
+        ['update', 'lib-project',                     '--path', '.', '--target', AndroidTarget],
+        ProcessOutput, ProcessStatus) else
+      RunCommandIndirPassthrough(AndroidProjectPath{ + LibrarySubdirectory}, AndroidExe,
+        ['update', 'project', '--name', Project.Name, '--path', '.', '--target', AndroidTarget],
+        ProcessOutput, ProcessStatus);
     if ProcessStatus <> 0 then
       raise Exception.Create('"android" call failed, cannot create Android apk. Inspect above error messages, and make sure Android SDK is installed correctly. Make sure that target "' + AndroidTarget + '" is installed.');
   end;
 
+  { Run "ndk-build", this moves our .so correctly to the final apk. }
   procedure RunNdkBuild(const PackageMode: TCompilationMode);
   var
     NdkOverrideName, NdkOverrideValue: string;
@@ -255,6 +267,7 @@ var
     RunCommandSimple(AndroidProjectPath, 'ndk-build', ['--silent'], NdkOverrideName, NdkOverrideValue);
   end;
 
+  { Run "ant debug/release" to actually build the final apk. }
   procedure RunAnt(const PackageMode: TCompilationMode);
   begin
     RunCommandSimple(AndroidProjectPath, 'ant', [PackageModeToName[PackageMode], '-noinput', '-quiet']);
@@ -300,6 +313,8 @@ begin
 
   GenerateFromTemplates;
   // right now Android.mk is in templates: GenerateAndroidMk;
+  if Project.AndroidProjectType = apIntegrated then
+    RunAndroidUpdateProject(PathDelim + 'google-play-services_lib');
   GenerateIcons;
   GenerateAssets;
   GenerateLibrary;
