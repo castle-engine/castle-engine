@@ -29,7 +29,13 @@ resourcestring
 { Open URL with the suitable application.
 
   This detects and handles also local files (as filenames, or URLs with "file:"
-  protocol). }
+  protocol).
+
+  On Android, it can use the Android intent system to open the URL,
+  supporting all URL types that are handled by some installed app.
+  For example, it will support the market:// URLs.
+  To use this, declare your Android project type as "integrated".
+  See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ . }
 function OpenURL(AURL: String): Boolean;
 
 { Open a local file or directory.
@@ -38,7 +44,11 @@ function OpenURL(AURL: String): Boolean;
 function OpenDocument(APath: String): Boolean;
 
 { Share a text/link through user-choosen application.
+
   This is available only on Android right now, ignored elsewhere.
+  To include the necessary integration code in your Android project,
+  you must declare your Android project type as "integrated".
+  See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .
 
   @param(Title The short title of the share.)
   @param(Subject Used as an email subject, and any other app on Android
@@ -48,7 +58,11 @@ function OpenDocument(APath: String): Boolean;
 procedure ShareText(const Title, Subject, Content: string);
 
 { Vibrate the device.
-  This is available only on Android right now, ignored elsewhere. }
+
+  This is available only on Android right now, ignored elsewhere.
+  To include the necessary integration code in your Android project,
+  you must declare your Android project type as "integrated".
+  See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ . }
 procedure Vibrate(const Miliseconds: Cardinal);
 
 implementation

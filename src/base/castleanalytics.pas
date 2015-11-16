@@ -25,8 +25,21 @@ type
     and/or Game Analytics http://www.gameanalytics.com/ .
     Right now they only work on Android, through Java APIs.
 
-    Usage: Create an instance of it (only a single instance allowed)
-    and use in your app. }
+    Usage:
+
+    @orderedList(
+      @item(Create an instance of it (only a single instance allowed).)
+      @item(Initialize at least one analytics backend using the @code(InitializeXxx)
+        method.)
+      @item(Use the remaining methods, like @link(Event), to report events
+        in your app.)
+      @item(
+        To include the necessary integration code in your Android project,
+        you must declare your Android project type as "integrated".
+        See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .
+      )
+    )
+  }
   TAnalytics = class
   public
     { Initialize Google Analytics https://www.google.com/analytics/ .

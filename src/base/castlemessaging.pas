@@ -40,6 +40,10 @@ type
     On other platforms than Android, right now it simply does nothing
     --- messsages are not send anywhere.
 
+    To make it work, include the necessary integration code in your Android project.
+    You must declare your Android project type as "integrated".
+    See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .
+
     This is used automatically by various engine classes like
     @link(TGooglePlayGames), @link(TAds), @link(TAnalytics), @link(TInAppPurchases).
     User code typically only needs to call @code(Messaging.Update) continously,
