@@ -111,7 +111,7 @@ type
     function ReplaceMacros(const Source: string): string;
 
     { Recursively copy a directory from TemplatePath (this is relative
-      to build-tool data) to the DestinationPath (this should be an absolute
+      to the build tool data) to the DestinationPath (this should be an absolute
       existing directory name).
 
       Each file is processed by the ReplaceMacros method.
@@ -1033,7 +1033,7 @@ begin
   ExtractTemplateDestinationPath := InclPathDelim(DestinationPath);
   ExtractTemplateDir := URIToFilenameSafe(ApplicationData(TemplatePath));
   if not DirectoryExists(ExtractTemplateDir) then
-    raise Exception.Create('Cannot find Android project template in "' + ExtractTemplateDir + '". Make sure you have installed the data files of the Castle Game Engine build-tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to a parent of the castle_game_engine/ or castle-engine/ directory, the build-tool will then find its data correctly.');
+    raise Exception.Create('Cannot find Android project template in "' + ExtractTemplateDir + '". Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to a parent of the castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.');
 
   { calculate GooglePlayServicesLibLocationRelative now, for ReplaceMacros }
   GooglePlayServicesLibLocationRelative :=

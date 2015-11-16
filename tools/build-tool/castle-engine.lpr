@@ -162,11 +162,16 @@ begin
       { We do not complain about missing or invalid $CASTLE_ENGINE_PATH
         otherwise, because for some operations ApplicationData is not used,
         and also sometimes the default ApplicationData (in case of system-wide
-        installation in /usr/share/build-tool/ ) will be Ok. }
+        installation in /usr/share/castle-engine/ ) will be Ok. }
       Exit;
     if Verbose then
       Writeln('Build tool found its data in ' + ApplicationDataOverride);
   end;
+end;
+
+function MyGetApplicationName: string;
+begin
+  Result := 'castle-engine';
 end;
 
 procedure Run;
@@ -174,6 +179,7 @@ var
   Command, S, FileName: string;
   Project: TCastleProject;
 begin
+  OnGetApplicationName := @MyGetApplicationName;
   OnWarning := @OnWarningWrite;
 
   OS := DefaultOS;
