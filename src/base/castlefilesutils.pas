@@ -339,9 +339,9 @@ function ParentPath(DirName: string;
   Else the result is an absolute path calculated by combining RelPath
   with BasePath.
 
-  @deprecated This is deprecated, you should instead operate on URLs
-  and combine them using CastleURIUtils.Combines. }
-function CombinePaths(BasePath, RelPath: string): string; deprecated;
+  Usually you should instead operate on URLs
+  and combine them using @link(CastleURIUtils.CombineURI). }
+function CombinePaths(BasePath, RelPath: string): string;
 
 { Search a file on $PATH. Works with double quotes around components
   of path list, avoiding this bug: http://bugs.freepascal.org/view.php?id=19279.

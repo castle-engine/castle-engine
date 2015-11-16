@@ -27,7 +27,7 @@ procedure CreateAndroidPackage(const Project: TCastleProject;
 
 procedure InstallAndroidPackage(const Name, QualifiedName: string);
 
-procedure RunAndroidPackage(const Name, QualifiedName: string);
+procedure RunAndroidPackage(const Project: TCastleProject);
 
 implementation
 
@@ -49,21 +49,23 @@ var
     and they avoid overwriting stuff already existing (in case CastleEngineManifest.xml
     contained explicit android_project path). }
 
+  procedure PackageCheckForceDirectories(const Dirs: string);
+  begin
+    CheckForceDirectories(AndroidProjectPath + Dirs);
+  end;
+
   procedure PackageStringToFile(const FileName, Contents: string);
   begin
+    PackageCheckForceDirectories(ExtractFilePath(FileName));
     if not FileExists(AndroidProjectPath + FileName) then
       StringToFile(AndroidProjectPath + FileName, Contents) else
     if Verbose then
       Writeln('Not overwriting custom ' + FileName);
   end;
 
-  procedure PackageCheckForceDirectories(const Dirs: string);
-  begin
-    CheckForceDirectories(AndroidProjectPath + Dirs);
-  end;
-
   procedure PackageSaveImage(const Image: TCastleImage; const FileName: string);
   begin
+    PackageCheckForceDirectories(ExtractFilePath(FileName));
     if not FileExists(AndroidProjectPath + FileName) then
       SaveImage(Image, FilenameToURISafe(AndroidProjectPath + FileName)) else
     if Verbose then
@@ -72,6 +74,7 @@ var
 
   procedure PackageSmartCopyFile(const FileFrom, FileTo: string);
   begin
+    PackageCheckForceDirectories(ExtractFilePath(FileTo));
     if not FileExists(AndroidProjectPath + FileTo) then
       SmartCopyFile(FileFrom, AndroidProjectPath + FileTo) else
     if Verbose then
@@ -80,6 +83,28 @@ var
 
   { Generate simple text stuff for Android project from templates. }
   procedure GenerateFromTemplates;
+  var
+    TemplatePath, DestinationPath: string;
+  begin
+    { calculate absolute DestinationPath.
+      Use CombinePaths, as AndroidProjectPath may come from
+      CastleEngineManifest.xml attribute android_project, in which case it *may*
+      (does not have to) be relative to project dir. }
+    DestinationPath := CombinePaths(Project.Path, AndroidProjectPath);
+    case Project.AndroidProjectType of
+      apBase      : TemplatePath := 'android/base/';
+      apIntegrated: TemplatePath := 'android/integrated/';
+      else raise EInternalError.Create('GenerateFromTemplates:Project.AndroidProjectType unhandled');
+    end;
+    Project.ExtractTemplate(TemplatePath, DestinationPath);
+  end;
+
+(* TODO: right now this is unused,
+   so we don't include openal in Android.mk correctly.
+   This needs to be modified to append to what templates generated in jni/Android.mk.
+
+  { Generate jni/Android.mk file }
+  procedure GenerateAndroidMk;
 
     function AddExternalLibraryMk(const LibraryName: string): string;
     begin
@@ -91,27 +116,16 @@ var
         '';
     end;
 
-  const
-    AndroidManifestTemplate = {$I templates/android/AndroidManifest.xml.inc};
-    StringsTemplate = {$I templates/android/res/values/strings.xml.inc};
-    AndroidMkTemplate = {$I templates/android/jni/Android.mk.inc};
   var
     AndroidMkContents: string;
   begin
-    PackageStringToFile('AndroidManifest.xml',
-      Project.ReplaceMacros(AndroidManifestTemplate));
-
-    PackageCheckForceDirectories('res' + PathDelim + 'values');
-    PackageStringToFile('res' + PathDelim + 'values' + PathDelim + 'strings.xml',
-      Project.ReplaceMacros(StringsTemplate));
-
-    PackageCheckForceDirectories('jni');
-    AndroidMkContents := Project.ReplaceMacros(AndroidMkTemplate);
+    AndroidMkContents := 'LOCAL_PATH := $(call my-dir)' + LineEnding;
+    AndroidMkContents += AddExternalLibraryMk(ChangeFileExt(ExtractFileName(Project.AndroidSource), ''));
     if depSound in Project.Dependencies then
       AndroidMkContents += AddExternalLibraryMk('openal');
-    PackageStringToFile('jni' + PathDelim + 'Android.mk',
-      AndroidMkContents);
+    PackageStringToFile('jni' + PathDelim + 'Android.mk', AndroidMkContents);
   end;
+*)
 
   procedure GenerateIcons;
   var
@@ -125,7 +139,6 @@ var
       R := Icon.MakeResized(Size, Size, rniLanczos);
       try
         Dir := 'res' + PathDelim + 'drawable-' + S + 'dpi';
-        PackageCheckForceDirectories(Dir);
         PackageSaveImage(R, Dir + PathDelim + 'ic_launcher.png');
       finally FreeAndNil(R) end;
     end;
@@ -155,7 +168,6 @@ var
     I: Integer;
     FileFrom, FileTo: string;
   begin
-    PackageCheckForceDirectories('assets');
     for I := 0 to Files.Count - 1 do
     begin
       FileFrom := Project.DataPath + Files[I];
@@ -287,6 +299,7 @@ begin
   PackageMode := SuggestedPackageMode;
 
   GenerateFromTemplates;
+  // right now Android.mk is in templates: GenerateAndroidMk;
   GenerateIcons;
   GenerateAssets;
   GenerateLibrary;
@@ -335,21 +348,29 @@ begin
   Writeln('Install successfull.');
 end;
 
-procedure RunAndroidPackage(const Name, QualifiedName: string);
+procedure RunAndroidPackage(const Project: TCastleProject);
+var
+  ActivityName: string;
 begin
+  case Project.AndroidProjectType of
+    apBase      : ActivityName := 'android.app.NativeActivity';
+    apIntegrated: ActivityName := 'net.sourceforge.castleengine.MainActivity';
+    else raise EInternalError.Create('RunAndroidPackage:Project.AndroidProjectType unhandled');
+  end;
+
   RunCommandSimple('adb', ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
-    '-n', QualifiedName + '/android.app.NativeActivity']);
+    '-n', Project.QualifiedName + '/' + ActivityName ]);
   Writeln('Run successfull.');
   if (FindExe('bash') <> '') and
      (FindExe('grep') <> '') then
   begin
-    Writeln('Running "adb logcat | grep ' + Name + '" (we are assuming that your ApplicationName is ''' + Name + ''') to see log output from your application. Just break this process with Ctrl+C to stop.');
+    Writeln('Running "adb logcat | grep ' + Project.Name + '" (we are assuming that your ApplicationName is ''' + Project.Name + ''') to see log output from your application. Just break this process with Ctrl+C to stop.');
     { run through ExecuteProcess, because we don't want to capture output,
       we want to immediately pass it to user }
-    ExecuteProcess(FindExe('bash'), ['-c', 'adb logcat | grep "' + Name + '"']);
+    ExecuteProcess(FindExe('bash'), ['-c', 'adb logcat | grep "' + Project.Name + '"']);
   end else
-    Writeln('Run "adb logcat | grep ' + Name + '" (we are assuming that your ApplicationName is ''' + Name + ''') to see log output from your application. Install "bash" and "grep" on $PATH (on Windows, you may want to install MinGW or Cygwin) to run it automatically here.');
+    Writeln('Run "adb logcat | grep ' + Project.Name + '" (we are assuming that your ApplicationName is ''' + Project.Name + ''') to see log output from your application. Install "bash" and "grep" on $PATH (on Windows, you may want to install MinGW or Cygwin) to run it automatically here.');
 end;
 
 end.

@@ -23,6 +23,7 @@
 
 uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleWarnings,
+  CastleFilesUtils, CastleURIUtils,
   ToolArchitectures, ToolProject, ToolCompile, ToolUtils;
 
 var
@@ -141,11 +142,44 @@ begin
   end;
 end;
 
+{ For some operations (like creating an Android project), the tool uses
+  ApplicationData files. So make sure that ApplicationData is correct.
+  We can use $CASTLE_ENGINE_PATH environment variable for this. }
+procedure AdjustApplicationData;
+var
+  CastleEnginePath, Data1, Data2, DataSuffix: string;
+begin
+  CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
+  if CastleEnginePath <> '' then
+  begin
+    DataSuffix := PathDelim + 'tools' + PathDelim + 'build-tool' + PathDelim + 'data' + PathDelim;
+    Data1 := InclPathDelim(CastleEnginePath) + 'castle_game_engine' + DataSuffix;
+    Data2 := InclPathDelim(CastleEnginePath) + 'castle-engine' + DataSuffix;
+    if DirectoryExists(Data1) then
+      ApplicationDataOverride := FilenameToURISafe(Data1) else
+    if DirectoryExists(Data2) then
+      ApplicationDataOverride := FilenameToURISafe(Data2) else
+      { We do not complain about missing or invalid $CASTLE_ENGINE_PATH
+        otherwise, because for some operations ApplicationData is not used,
+        and also sometimes the default ApplicationData (in case of system-wide
+        installation in /usr/share/castle-engine/ ) will be Ok. }
+      Exit;
+    if Verbose then
+      Writeln('Build tool found its data in ' + ApplicationDataOverride);
+  end;
+end;
+
+function MyGetApplicationName: string;
+begin
+  Result := 'castle-engine';
+end;
+
 procedure Run;
 var
   Command, S, FileName: string;
   Project: TCastleProject;
 begin
+  OnGetApplicationName := @MyGetApplicationName;
   OnWarning := @OnWarningWrite;
 
   OS := DefaultOS;
@@ -166,6 +200,8 @@ begin
       S += '. Note: in case of Windows 64-bit, remember to specify both OS and CPU like this: "--os=win64 --cpu=x86_64"';
     raise EInvalidParams.Create(S);
   end;
+
+  AdjustApplicationData;
 
   if Command = 'simple-compile' then
   begin

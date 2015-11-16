@@ -28,6 +28,8 @@ type
 
   TScreenOrientation = (soAny, soLandscape, soPortrait);
 
+  TAndroidProjectType = (apBase, apIntegrated);
+
   TCastleProject = class
   private
     FDependencies: TDependencies;
@@ -43,6 +45,12 @@ type
     FVersion: string;
     FVersionCode: Cardinal;
     FScreenOrientation: TScreenOrientation;
+    FAndroidProjectType: TAndroidProjectType;
+    GooglePlayServicesAppId,
+      GooglePlayServicesLibLocation,
+      GooglePlayServicesLibLocationRelative: string;
+    // Helpers only for ExtractTemplateFoundFile.
+    ExtractTemplateDestinationPath, ExtractTemplateDir: string;
     function PluginCompiledFile(const OS: TOS; const CPU: TCPU): string;
     procedure GatherFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
@@ -56,6 +64,7 @@ type
       Otherwise, takes more files,
       and assumes that Files are (and will be) URLs relative to @link(Path). }
     procedure PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
+    procedure ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
   public
     constructor Create;
     constructor Create(const APath: string);
@@ -93,12 +102,24 @@ type
     property PluginSource: string read FPluginSource;
     property AndroidProject: string read FAndroidProject;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
+    property AndroidProjectType: TAndroidProjectType read FAndroidProjectType;
 
     { Path to external library. This checks existence of appropriate environment
       variables and files along the way, and raises exception in case of trouble. }
     function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
 
     function ReplaceMacros(const Source: string): string;
+
+    { Recursively copy a directory from TemplatePath (this is relative
+      to the build tool data) to the DestinationPath (this should be an absolute
+      existing directory name).
+
+      Each file is processed by the ReplaceMacros method.
+
+      The existing files in destination are @bold(not) overwritten (this allows
+      to preserve custom user code, in case the android_project attribute
+      in CastleEngineManifest.xml was used). }
+    procedure ExtractTemplate(const TemplatePath, DestinationPath: string);
 
     { Output Android library resulting from compilation.
       Use only if AndroidSource <> ''.
@@ -148,6 +169,7 @@ end;
 
 const
   DataName = 'data';
+  GooglePlayServicesUndefined = '(undefined in CastleEngineManifest.xml)';
 
 constructor TCastleProject.Create(const APath: string);
 
@@ -212,7 +234,7 @@ constructor TCastleProject.Create(const APath: string);
 
   var
     Doc: TXMLDocument;
-    ManifestURL: string;
+    ManifestURL, AndroidProjectTypeStr: string;
     ChildElements: TDOMNodeList;
     Element, ChildElement: TDOMElement;
     I: Integer;
@@ -291,6 +313,26 @@ constructor TCastleProject.Create(const APath: string);
             Icons.Add(ChildElement.AttributeString('path'));
           end;
         end;
+
+        Element := DOMGetChildElement(Doc.DocumentElement, 'android', false);
+        if Element <> nil then
+        begin
+          if Element.AttributeString('project_type', AndroidProjectTypeStr) then
+          begin
+            if AndroidProjectTypeStr = 'base' then
+              FAndroidProjectType := apBase else
+            if AndroidProjectTypeStr = 'integrated' then
+              FAndroidProjectType := apIntegrated else
+              raise Exception.CreateFmt('Invalid android project_type "%s"', [AndroidProjectTypeStr]);
+          end;
+
+          ChildElement := DOMGetChildElement(Element, 'google_play_services', false);
+          if ChildElement <> nil then
+          begin
+            GooglePlayServicesAppId := ChildElement.AttributeStringDef('app_id', GooglePlayServicesUndefined);
+            GooglePlayServicesLibLocation := ChildElement.AttributeStringDef('lib_location', GooglePlayServicesUndefined);
+          end;
+        end;
       finally FreeAndNil(Doc) end;
     end;
 
@@ -361,6 +403,9 @@ begin
   ExcludePaths := TCastleStringList.Create;
   FDependencies := [];
   FIcons := TIconFileNames.Create;
+  FAndroidProjectType := apBase;
+  GooglePlayServicesAppId := GooglePlayServicesUndefined;
+  GooglePlayServicesLibLocation := GooglePlayServicesUndefined;
 
   FPath := InclPathDelim(APath);
   FDataPath := InclPathDelim(Path + DataName);
@@ -737,7 +782,7 @@ begin
      Iff(Plugin, ' (as a plugin)', '')]));
 
   if OS = Android then
-    RunAndroidPackage(Name, QualifiedName) else
+    RunAndroidPackage(Self) else
   begin
     if Plugin then
       raise Exception.Create('The "run" command cannot be used for runninig "plugin" type application right now.');
@@ -964,6 +1009,8 @@ begin
     Patterns.Add('ANDROID_LIBRARY_NAME'); Values.Add(ChangeFileExt(ExtractFileName(AndroidSource), ''));
     Patterns.Add('ANDROID_SCREEN_ORIENTATION'); Values.Add(AndroidScreenOrientation[ScreenOrientation]);
     Patterns.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'); Values.Add(AndroidScreenOrientationFeature[ScreenOrientation]);
+    Patterns.Add('ANDROID_GOOGLE_PLAY_SERVICES_APP_ID'); Values.Add(GooglePlayServicesAppId);
+    Patterns.Add('ANDROID_GOOGLE_PLAY_SERVICES_LIB_LOCATION'); Values.Add(GooglePlayServicesLibLocationRelative);
     // add CamelCase() replacements, add ${} around
     for I := 0 to Patterns.Count - 1 do
     begin
@@ -976,6 +1023,56 @@ begin
   finally
     FreeAndNil(Patterns);
     FreeAndNil(Values);
+  end;
+end;
+
+procedure TCastleProject.ExtractTemplate(const TemplatePath, DestinationPath: string);
+var
+  TemplateFilesCount: Cardinal;
+begin
+  ExtractTemplateDestinationPath := InclPathDelim(DestinationPath);
+  ExtractTemplateDir := URIToFilenameSafe(ApplicationData(TemplatePath));
+  if not DirectoryExists(ExtractTemplateDir) then
+    raise Exception.Create('Cannot find Android project template in "' + ExtractTemplateDir + '". Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to a parent of the castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.');
+
+  { calculate GooglePlayServicesLibLocationRelative now, for ReplaceMacros }
+  GooglePlayServicesLibLocationRelative :=
+    ExtractRelativePath(ExtractTemplateDestinationPath,
+      { make sure GooglePlayServicesLibLocation is absolute }
+      CombinePaths(Path, GooglePlayServicesLibLocation));
+
+  TemplateFilesCount := FindFiles(ExtractTemplateDir, '*', false,
+    @ExtractTemplateFoundFile, [ffRecursive]);
+  if Verbose then
+    Writeln(Format('Copied template "%s" (%d files) to "%s"',
+      [TemplatePath, TemplateFilesCount, DestinationPath]));
+end;
+
+procedure TCastleProject.ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+var
+  DestinationRelativeFileName, DestinationFileName, Contents, Ext: string;
+  BinaryFile: boolean;
+begin
+  DestinationRelativeFileName := PrefixRemove(ExtractTemplateDir, FileInfo.AbsoluteName, true);
+  DestinationFileName := ExtractTemplateDestinationPath + DestinationRelativeFileName;
+  if FileExists(DestinationFileName) then
+  begin
+    if Verbose then
+      Writeln('Not overwriting custom ' + DestinationRelativeFileName);
+    Exit;
+  end;
+
+  Ext := ExtractFileExt(FileInfo.AbsoluteName);
+  BinaryFile := SameText(Ext, '.so') or SameText(Ext, '.jar');
+  CheckForceDirectories(ExtractFilePath(DestinationFileName));
+  if BinaryFile then
+  begin
+    CheckCopyFile(FileInfo.AbsoluteName, DestinationFileName);
+  end else
+  begin
+    Contents := FileToString(FileInfo.URL);
+    Contents := ReplaceMacros(Contents);
+    StringToFile(FilenameToURISafe(DestinationFileName), Contents);
   end;
 end;
 

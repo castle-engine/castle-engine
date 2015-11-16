@@ -37,10 +37,27 @@ const
 type
   TAdType = (atAdMob, atChartboost, atStartApp);
 
-  { Ads (advertisements) in game manager.
-    Right now only actually does something on Android.
-    Create an instance of it (only a single instance allowed) and use in your app
-    to show/hide ads. }
+  { Advertisements in game.
+    Right now only on Android (does nothing on other platforms,
+    as CastleMessaging does nothing on non-Android platforms).
+
+    Usage:
+
+    @orderedList(
+      @item(Create an instance of this class (only a single instance allowed).)
+
+      @item(Initialize at least one ad network using one of the
+        @code(InitializeXxx) methods. Usually you want to call the initialization
+        from @link(TCastleApplication.OnInitializeJavaActivity).)
+
+      @item(Use remaining methods of this class to show / hide ads, like
+        @link(ShowInterstitial), @link(ShowBanner), @link(HideBanner).)
+
+      @item(To include the necessary integration code in your Android project,
+        you must declare your Android project type as "integrated".
+        See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .)
+    )
+  }
   TAds = class
   private
     FOnInterstitialShown: TNotifyEvent;
@@ -179,13 +196,13 @@ begin
     hpLeft: Gravity := Gravity or GravityLeft;
     hpRight: Gravity := Gravity or GravityRight;
     hpMiddle: Gravity := Gravity or GravityCenterHorizontal;
-    else raise EInternalError.Create('ShowBannerAd:HorizontalGravity?');
+    else raise EInternalError.Create('ShowBanner:HorizontalGravity?');
   end;
   case VerticalPosition of
     vpTop: Gravity := Gravity or GravityTop;
     vpBottom: Gravity := Gravity or GravityBottom;
     vpMiddle: Gravity := Gravity or GravityCenterVertical;
-    else raise EInternalError.Create('ShowBannerAd:VerticalPosition?');
+    else raise EInternalError.Create('ShowBanner:VerticalPosition?');
   end;
   Messaging.Send(['ads-google-banner-show', IntToStr(Gravity)]);
 end;
