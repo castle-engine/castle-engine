@@ -46,9 +46,9 @@ type
     FVersionCode: Cardinal;
     FScreenOrientation: TScreenOrientation;
     FAndroidProjectType: TAndroidProjectType;
-    GooglePlayServicesAppId,
-      GooglePlayServicesLibLocation,
-      GooglePlayServicesLibLocationRelative: string;
+    GooglePlayServicesAppId: string;
+    // GooglePlayServicesLibLocation: string;
+    // GooglePlayServicesLibLocationRelative: string;
     // Helpers only for ExtractTemplateFoundFile.
     ExtractTemplateDestinationPath, ExtractTemplateDir: string;
     function PluginCompiledFile(const OS: TOS; const CPU: TCPU): string;
@@ -330,7 +330,7 @@ constructor TCastleProject.Create(const APath: string);
           if ChildElement <> nil then
           begin
             GooglePlayServicesAppId := ChildElement.AttributeStringDef('app_id', GooglePlayServicesUndefined);
-            GooglePlayServicesLibLocation := ChildElement.AttributeStringDef('lib_location', GooglePlayServicesUndefined);
+            //GooglePlayServicesLibLocation := ChildElement.AttributeStringDef('lib_location', GooglePlayServicesUndefined);
           end;
         end;
       finally FreeAndNil(Doc) end;
@@ -405,7 +405,7 @@ begin
   FIcons := TIconFileNames.Create;
   FAndroidProjectType := apBase;
   GooglePlayServicesAppId := GooglePlayServicesUndefined;
-  GooglePlayServicesLibLocation := GooglePlayServicesUndefined;
+  //GooglePlayServicesLibLocation := GooglePlayServicesUndefined;
 
   FPath := InclPathDelim(APath);
   FDataPath := InclPathDelim(Path + DataName);
@@ -1010,7 +1010,7 @@ begin
     Patterns.Add('ANDROID_SCREEN_ORIENTATION'); Values.Add(AndroidScreenOrientation[ScreenOrientation]);
     Patterns.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'); Values.Add(AndroidScreenOrientationFeature[ScreenOrientation]);
     Patterns.Add('ANDROID_GOOGLE_PLAY_SERVICES_APP_ID'); Values.Add(GooglePlayServicesAppId);
-    Patterns.Add('ANDROID_GOOGLE_PLAY_SERVICES_LIB_LOCATION'); Values.Add(GooglePlayServicesLibLocationRelative);
+    //Patterns.Add('ANDROID_GOOGLE_PLAY_SERVICES_LIB_LOCATION'); Values.Add(GooglePlayServicesLibLocationRelative);
     // add CamelCase() replacements, add ${} around
     for I := 0 to Patterns.Count - 1 do
     begin
@@ -1035,11 +1035,11 @@ begin
   if not DirectoryExists(ExtractTemplateDir) then
     raise Exception.Create('Cannot find Android project template in "' + ExtractTemplateDir + '". Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to a parent of the castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.');
 
-  { calculate GooglePlayServicesLibLocationRelative now, for ReplaceMacros }
-  GooglePlayServicesLibLocationRelative :=
-    ExtractRelativePath(ExtractTemplateDestinationPath,
-      { make sure GooglePlayServicesLibLocation is absolute }
-      CombinePaths(Path, GooglePlayServicesLibLocation));
+  // { calculate GooglePlayServicesLibLocationRelative now, for ReplaceMacros }
+  // GooglePlayServicesLibLocationRelative :=
+  //   ExtractRelativePath(ExtractTemplateDestinationPath,
+  //     { make sure GooglePlayServicesLibLocation is absolute }
+  //     CombinePaths(Path, GooglePlayServicesLibLocation));
 
   TemplateFilesCount := FindFiles(ExtractTemplateDir, '*', false,
     @ExtractTemplateFoundFile, [ffRecursive]);
