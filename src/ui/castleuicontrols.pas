@@ -1088,13 +1088,13 @@ end;
     property Bottom: Integer read FBottom write SetBottom default 0;
 
     { X coordinate of center of rotation. Value from 0 to 1. Default value 0. }
-    property CenterX: Single read FCenterX write FCenterX;
+    property CenterX: Single read FCenterX write FCenterX default 0;
 
     { Y coordinate of center of rotation. Value from 0 to 1. Default value 0. }
-    property CenterY: Single read FCenterY write FCenterY;
+    property CenterY: Single read FCenterY write FCenterY default 0;
 
     { Rotation in degrees.  Default value 0. }
-    property Rotation: Single read FRotation write FRotation;
+    property Rotation: Single read FRotation write FRotation default 0;
 
     { Automatically adjust horizontal position to align us to
       the parent horizontally. Note that the value of @link(Left) remains
@@ -2471,9 +2471,6 @@ begin
   inherited;
   FExists := true;
   FEnableUIScaling := true;
-  FCenterX := 0;
-  FCenterY := 0;
-  FRotation := 0;
 end;
 
 destructor TUIControl.Destroy;
