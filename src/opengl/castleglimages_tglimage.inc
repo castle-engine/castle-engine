@@ -190,15 +190,19 @@ type
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single;
       const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
-    procedure Draw(const ScreenRectangle: TRectangle);
     procedure Draw(const ScreenRectangle: TRectangle;
-      const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+      const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
     procedure Draw(const ScreenRectangle: TRectangle;
-      const ImageRect: TRectangle);
+      const ImageX, ImageY, ImageWidth, ImageHeight: Single;
+      const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
+    procedure Draw(const ScreenRectangle: TRectangle;
+      const ImageRect: TRectangle;
+      const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
     { @groupEnd }
 
     procedure DrawFlipped(const ScreenRectangle: TRectangle;
-      const FlipHorizontal, FlipVertical: boolean);
+      const FlipHorizontal, FlipVertical: boolean;
+      const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
 
     { In case of @link(Draw3x3) or @link(Draw3x1), the corners
       on screen are scaled by this amount. This is especially useful
@@ -592,23 +596,28 @@ begin
   GLEnableTexture(etNone);
 end;
 
-procedure TGLImage.Draw(const ScreenRectangle: TRectangle);
+procedure TGLImage.Draw(const ScreenRectangle: TRectangle;
+  const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
 begin
   Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
     ScreenRectangle.Width, ScreenRectangle.Height,
-    0, 0, Width, Height);
+    0, 0, Width, Height,
+    CenterX, CenterY, Rotation);
 end;
 
 procedure TGLImage.Draw(const ScreenRectangle: TRectangle;
-  const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+  const ImageX, ImageY, ImageWidth, ImageHeight: Single;
+  const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
 begin
   Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
     ScreenRectangle.Width, ScreenRectangle.Height,
-    ImageX, ImageY, ImageWidth, ImageHeight);
+    ImageX, ImageY, ImageWidth, ImageHeight,
+    CenterX, CenterY, Rotation);
 end;
 
 procedure TGLImage.DrawFlipped(const ScreenRectangle: TRectangle;
-  const FlipHorizontal, FlipVertical: boolean);
+  const FlipHorizontal, FlipVertical: boolean;
+  const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
 var
   ImageX, ImageY, ImageWidth, ImageHeight: Single;
 begin
@@ -632,16 +641,19 @@ begin
     ImageHeight := Height;
   end;
 
-  Draw(ScreenRectangle, ImageX, ImageY, ImageWidth, ImageHeight);
+  Draw(ScreenRectangle, ImageX, ImageY, ImageWidth, ImageHeight,
+    CenterX, CenterY, Rotation);
 end;
 
 procedure TGLImage.Draw(const ScreenRectangle: TRectangle;
-  const ImageRect: TRectangle);
+  const ImageRect: TRectangle;
+  const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
 begin
   Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
     ScreenRectangle.Width, ScreenRectangle.Height,
     ImageRect.Left, ImageRect.Bottom,
-    ImageRect.Width, ImageRect.Height);
+    ImageRect.Width, ImageRect.Height,
+    CenterX, CenterY, Rotation);
 end;
 
 procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
