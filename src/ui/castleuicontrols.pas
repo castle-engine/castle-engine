@@ -787,6 +787,7 @@ end;
     function RectWithAnchors: TRectangle;
     procedure SetEnableUIScaling(const Value: boolean);
   protected
+    FCenterX, FCenterY, FRotation: Single;
     procedure DefineProperties(Filer: TFiler); override;
     procedure SetContainer(const Value: TUIContainer); override;
 
@@ -1085,6 +1086,15 @@ end;
 
     property Left: Integer read FLeft write SetLeft stored false default 0;
     property Bottom: Integer read FBottom write SetBottom default 0;
+
+    { X coordinate of center of rotation. Value from 0 to 1. Default value 0. }
+    property CenterX: Single read FCenterX write FCenterX;
+
+    { Y coordinate of center of rotation. Value from 0 to 1. Default value 0. }
+    property CenterY: Single read FCenterY write FCenterY;
+
+    { Rotation in degrees.  Default value 0. }
+    property Rotation: Single read FRotation write FRotation;
 
     { Automatically adjust horizontal position to align us to
       the parent horizontally. Note that the value of @link(Left) remains
@@ -2461,6 +2471,9 @@ begin
   inherited;
   FExists := true;
   FEnableUIScaling := true;
+  FCenterX := 0;
+  FCenterY := 0;
+  FRotation := 0;
 end;
 
 destructor TUIControl.Destroy;

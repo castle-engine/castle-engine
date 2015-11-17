@@ -1859,7 +1859,7 @@ begin
   if FGLImage = nil then Exit;
   SR := ScreenRect;
   if ZeroVector(FCorners) then
-    FGLImage.Draw(SR) else
+    FGLImage.Draw(SR, FCenterX, FCenterY, FRotation) else
   begin
     FGLImage.ScaleCorners := UIScale;
     FGLImage.Draw3x3(SR, FCorners);
