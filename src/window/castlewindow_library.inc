@@ -216,7 +216,7 @@ end;
   also Application.OnUpdate and Application.OnTimer. }
 procedure TCastleApplication.LibraryUpdate;
 begin
-  DoSelfUpdate;
+  DoApplicationUpdate;
   FOpenWindows.DoUpdate;
   MaybeDoTimer(LastDoTimerTime);
 end;

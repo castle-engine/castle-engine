@@ -1287,6 +1287,15 @@ function OnGLContextOpen: TGLContextEventList;
 function OnGLContextClose: TGLContextEventList;
 { @groupEnd }
 
+{ Global callbacks called continously when (at least one) window is open.
+
+  You can use this just like @link(TCastleControl.OnUpdate)
+  or @link(TCastleWindow.OnUpdate) or @link(TCastleApplication.OnUpdate),
+  but in situations where you cannot access an instance of control/window
+  and you want to work both with Lazarus @link(TCastleControl)
+  and our custom @link(TCastleApplication). }
+function OnApplicationUpdate: TGLContextEventList;
+
 function IsGLContextOpen: boolean;
 
 const
@@ -3349,7 +3358,7 @@ begin
 end;
 
 var
-  FOnGLContextOpen, FOnGLContextClose: TGLContextEventList;
+  FOnGLContextOpen, FOnGLContextClose, FOnApplicationUpdate: TGLContextEventList;
 
 function OnGLContextOpen: TGLContextEventList;
 begin
@@ -3365,7 +3374,15 @@ begin
   Result := FOnGLContextClose;
 end;
 
+function OnApplicationUpdate: TGLContextEventList;
+begin
+  if FOnApplicationUpdate = nil then
+    FOnApplicationUpdate := TGLContextEventList.Create;
+  Result := FOnApplicationUpdate;
+end;
+
 finalization
   FreeAndNil(FOnGLContextOpen);
   FreeAndNil(FOnGLContextClose);
+  FreeAndNil(FOnApplicationUpdate);
 end.

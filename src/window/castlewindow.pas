@@ -399,7 +399,7 @@ unit CastleWindow;
     You can call all DoUpdate and DoTimer for all Application.OpenWindows
     using Application.FOpenWindows.DoUpdate/Timer (this will give usually
     inefficient but working backend)
-  - Call TCastleApplication.DoSelfUpdate and DoSelfTimer when appropriate.
+  - Call TCastleApplication.DoApplicationUpdate and DoApplicationTimer when appropriate.
     Remember that you can always assume that the ONLY existing instance of
     TCastleApplication is Application.
   Some important things that can be easily forgotten:
@@ -2439,22 +2439,21 @@ end;
         then once. }
     procedure QuitWhenNoOpenWindows;
 
-    { This simply checks Assigned(FOnUpdate) and only then calls FOnUpdate.
-      ALWAYS use this method instead of directly calling FOnUpdate. }
-    procedure DoSelfUpdate;
+    { Call OnUpdate, call OnApplicationUpdate. }
+    procedure DoApplicationUpdate;
 
-    { Same as DoSelfUpdate, but here with FOnTimer. }
-    procedure DoSelfTimer;
+    { Call OnTimer. }
+    procedure DoApplicationTimer;
 
     { Something useful for some CastleWindow backends. This will implement
-      (in a simple way) calling of DoSelfOpen and OpenWindows.DoTimer.
+      (in a simple way) calling of DoApplicationTimer and OpenWindows.DoTimer.
 
       Declare in TCastleApplication some variable like
         LastDoTimerTime: TMilisecTime
       initialized to 0. Then just call very often (probably at the same time
-      you're calling DoSelfUpdate)
+      you're calling DoApplicationUpdate)
         MaybeDoTimer(LastDoTimerTime);
-      This will take care of calling DoSelfTimer and OpenWindows.DoTimer
+      This will take care of calling DoApplicationTimer and OpenWindows.DoTimer
       at the appropriate times. It will use and update LastDoTimerTime,
       you shouldn't read or write LastDoTimerTime yourself. }
     procedure MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
@@ -4533,12 +4532,13 @@ begin
   QuitWhenNoOpenWindows;
 end;
 
-procedure TCastleApplication.DoSelfUpdate;
+procedure TCastleApplication.DoApplicationUpdate;
 begin
   if Assigned(FOnUpdate) then FOnUpdate;
+  OnApplicationUpdate.ExecuteForward;
 end;
 
-procedure TCastleApplication.DoSelfTimer;
+procedure TCastleApplication.DoApplicationTimer;
 begin
   if Assigned(FOnTimer) then FOnTimer;
 end;
@@ -4552,7 +4552,7 @@ begin
       (MilisecTimesSubtract(Now, ALastDoTimerTime) >= FTimerMilisec)) then
   begin
     ALastDoTimerTime := Now;
-    DoSelfTimer;
+    DoApplicationTimer;
     FOpenWindows.DoTimer;
   end;
 end;
@@ -4561,7 +4561,10 @@ function TCastleApplication.AllowSuspendForInput: boolean;
 var
   I: Integer;
 begin
-  Result := not (Assigned(OnUpdate) or Assigned(OnTimer));
+  Result := not (
+    Assigned(OnUpdate) or
+    Assigned(OnTimer) or
+    (OnApplicationUpdate.Count <> 0));
   if not Result then Exit;
 
   for I := 0 to OpenWindowsCount - 1 do

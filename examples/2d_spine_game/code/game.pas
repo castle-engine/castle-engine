@@ -284,10 +284,6 @@ var
   T: TVector3Single;
   Pos, Dir, Up: TVector3Single;
 begin
-  { process messages between native code and Java on Android, this is necessary
-    for GooglePlayGames component to work. }
-  Messaging.Update;
-
   Status.Text.Text := Format('FPS: %f (real : %f)',
     [Window.Fps.FrameTime, Window.Fps.RealTime]);
 
