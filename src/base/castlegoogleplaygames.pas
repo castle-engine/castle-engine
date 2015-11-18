@@ -30,12 +30,19 @@ type
 
     @orderedList(
       @item(Create an instance of it (only a single instance allowed).)
+      @item(Call @link(TGooglePlayGames.Initialize) at some point.
+        Usually from @link(TCastleApplication.OnInitializeJavaActivity).
+        User will be automatically asked to sign-in to Google Play then.)
       @item(Use this to manage Google Games achievements, leaderboards and so on.)
       @item(
         To include the necessary integration code in your Android project,
         you must declare your Android project type as "integrated".
         See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .
-      )
+
+        Also make sure that your game uses @link(TMessaginig) class,
+        in particular that it calls @code(Messaging.Update) continuously and exports
+        an extra JNI function from CastleMessaging unit in the Android library.
+        See @link(TMessaginig) docs for details.)
     ) }
   TGooglePlayGames = class
   private
@@ -45,6 +52,8 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+
+    procedure Initialize;
 
     property OnBestScoreReceived: TBestScoreEvent read FOnBestScoreReceived write FOnBestScoreReceived;
 
@@ -121,6 +130,11 @@ begin
     FSignedIn := false;
     Result := true;
   end;
+end;
+
+procedure TGooglePlayGames.Initialize;
+begin
+  Messaging.Send(['google-play-games-initialize']);
 end;
 
 procedure TGooglePlayGames.Achievement(const AchievementId: string);

@@ -14,6 +14,8 @@ import com.google.android.gms.games.Games;
 import com.google.android.gms.games.leaderboard.LeaderboardVariant;
 import com.google.android.gms.games.leaderboard.Leaderboards.LoadPlayerScoreResult;
 
+import ${QUALIFIED_NAME}.R;
+
 /**
  * Integration of Google Games (achievements, leaderboards and more) with
  * Castle Game Engine.
@@ -22,6 +24,7 @@ public class ComponentGoogleGames extends ComponentAbstract
 {
     private static final String TAG = "${NAME}.castleengine.ComponentGoogleGames";
     private static int REQUEST_SIGN_IN = 9001;
+    private boolean initialized, scheduledStart;
 
     private GoogleApiClient mGoogleApiClient;
 
@@ -35,40 +38,66 @@ public class ComponentGoogleGames extends ComponentAbstract
         super(activity);
     }
 
-    @Override
-    public void onCreate() {
+    private void initialize()
+    {
+        if (initialized) {
+            return;
+        }
+
+        String appId = getActivity().getResources().getString(R.string.app_id);
+        if (appId.equals("")) {
+            Log.e(TAG, "You must define Google Play Games id of your game in CastleEngineManifest.xml, like <google_play_services app_id=\"xxxx\" />. You get this id after creating Google Game Services for your game in Google Developer Console. Without this, GooglePlayGames integration cannot be initialized.");
+            return;
+        }
+
         // Create the Google Api Client with access to the Play Game services
         mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
             .addConnectionCallbacks(getActivity())
             .addOnConnectionFailedListener(getActivity())
             .addApi(Games.API).addScope(Games.SCOPE_GAMES)
             .build();
+        initialized = true;
+
+        if (scheduledStart) {
+            onStart();
+            scheduledStart = false;
+        }
     }
 
     @Override
     public void onStart() {
+        if (!initialized) {
+            scheduledStart = true; // send connect() to mGoogleApiClient when we will be initialized
+            return;
+        }
+
         mGoogleApiClient.connect();
     }
 
     @Override
     public void onStop() {
+        scheduledStart = false;
+        if (!initialized) {
+            return;
+        }
+
         mGoogleApiClient.disconnect();
     }
 
     /**
-     * Return mGoogleSignedIn,
+     * Return initialized and mGoogleSignedIn,
      * while by the way also checking related stuff, to be secure. */
     private boolean checkGamesConnection()
     {
-        if (mGoogleSignedIn && mGoogleApiClient == null) {
-            Log.w(TAG, "mGoogleSignedIn is true, but mGoogleApiClient == null");
-            mGoogleSignedIn = false;
+        if (initialized && mGoogleApiClient == null) {
+            Log.w(TAG, "initialized is true, but mGoogleApiClient == null");
+            initialized = false;
         }
-        if (mGoogleSignedIn && !mGoogleApiClient.isConnected()) {
+        if (initialized && mGoogleSignedIn && !mGoogleApiClient.isConnected()) {
             Log.w(TAG, "mGoogleSignedIn is true, but mGoogleApiClient.isConnected() == false");
             mGoogleSignedIn = false;
         }
-        return mGoogleSignedIn;
+        return initialized && mGoogleSignedIn;
     }
 
     // Are we signed in. Starts at false (native code can assume this
@@ -113,7 +142,6 @@ public class ComponentGoogleGames extends ComponentAbstract
             }
         }
     }
-
 
     private boolean mResolvingConnectionFailure = false;
     private boolean mAutoStartSignInFlow = true;
@@ -206,8 +234,8 @@ public class ComponentGoogleGames extends ComponentAbstract
 
     private void signInClicked()
     {
-        /* don't act when inside sign-out process */
-        if (mDuringSignOut) {
+        /* don't act when inside sign-out process, or not initialized */
+        if (mDuringSignOut || !initialized) {
             return;
         }
 
@@ -221,8 +249,8 @@ public class ComponentGoogleGames extends ComponentAbstract
 
     private void signOutClicked()
     {
-        /* don't act when inside sign-out process */
-        if (mDuringSignOut) {
+        /* don't act when inside sign-out process, or not initialized */
+        if (mDuringSignOut || !initialized) {
             return;
         }
 
@@ -328,6 +356,10 @@ public class ComponentGoogleGames extends ComponentAbstract
     @Override
     public boolean messageReceived(String[] parts)
     {
+        if (parts.length == 1 && parts[0].equals("google-play-games-initialize")) {
+            initialize();
+            return true;
+        } else
         if (parts.length == 2 && parts[0].equals("get-best-score")) {
             mDefaultLeaderboardToRefresh = parts[1];
             /* refresh score now, if possible */

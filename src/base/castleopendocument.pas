@@ -34,7 +34,8 @@ resourcestring
   On Android, it can use the Android intent system to open the URL,
   supporting all URL types that are handled by some installed app.
   For example, it will support the market:// URLs.
-  To use this, declare your Android project type as "integrated".
+  To use this, declare your Android project type as "integrated",
+  and use @link(TMessaginig) properly in your game.
   See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ . }
 function OpenURL(AURL: String): Boolean;
 
@@ -49,6 +50,7 @@ function OpenDocument(APath: String): Boolean;
   To include the necessary integration code in your Android project,
   you must declare your Android project type as "integrated".
   See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .
+  Also use @link(TMessaginig) properly in your game.
 
   @param(Title The short title of the share.)
   @param(Subject Used as an email subject, and any other app on Android
@@ -62,7 +64,8 @@ procedure ShareText(const Title, Subject, Content: string);
   This is available only on Android right now, ignored elsewhere.
   To include the necessary integration code in your Android project,
   you must declare your Android project type as "integrated".
-  See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ . }
+  See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .
+  Also use @link(TMessaginig) properly in your game. }
 procedure Vibrate(const Miliseconds: Cardinal);
 
 implementation
