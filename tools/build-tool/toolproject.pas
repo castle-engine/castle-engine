@@ -104,8 +104,8 @@ type
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property AndroidProjectType: TAndroidProjectType read FAndroidProjectType;
 
-    { Path to external library. This checks existence of appropriate environment
-      variables and files along the way, and raises exception in case of trouble. }
+    { Path to the external library. This checks existence of appropriate
+      files along the way, and raises exception in case of trouble. }
     function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
 
     function ReplaceMacros(const Source: string): string;
@@ -140,6 +140,9 @@ uses StrUtils, DOM, Process, Classes,
   CastleURIUtils, CastleXMLUtils, CastleWarnings, CastleFilesUtils,
   ToolPackage, ToolWindowsResources, ToolAndroidPackage, ToolWindowsRegistry;
 
+const
+  SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to a parent of the castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.';
+
 { TCastleProject ------------------------------------------------------------- }
 
 const
@@ -169,7 +172,7 @@ end;
 
 const
   DataName = 'data';
-  GooglePlayServicesUndefined = '(undefined in CastleEngineManifest.xml)';
+  //GooglePlayServicesUndefined = '(undefined in CastleEngineManifest.xml)';
 
 constructor TCastleProject.Create(const APath: string);
 
@@ -329,7 +332,7 @@ constructor TCastleProject.Create(const APath: string);
           ChildElement := DOMGetChildElement(Element, 'google_play_services', false);
           if ChildElement <> nil then
           begin
-            GooglePlayServicesAppId := ChildElement.AttributeStringDef('app_id', GooglePlayServicesUndefined);
+            GooglePlayServicesAppId := ChildElement.AttributeStringDef('app_id', '');
             //GooglePlayServicesLibLocation := ChildElement.AttributeStringDef('lib_location', GooglePlayServicesUndefined);
           end;
         end;
@@ -404,7 +407,6 @@ begin
   FDependencies := [];
   FIcons := TIconFileNames.Create;
   FAndroidProjectType := apBase;
-  GooglePlayServicesAppId := GooglePlayServicesUndefined;
   //GooglePlayServicesLibLocation := GooglePlayServicesUndefined;
 
   FPath := InclPathDelim(APath);
@@ -588,24 +590,12 @@ end;
 
 function TCastleProject.ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
 var
-  CastleEnginePath, ExternalLibrariesPath1, ExternalLibrariesPath2: string;
+  LibraryURL: string;
 begin
-  CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
-  if CastleEnginePath = '' then
-    raise Exception.Create('CASTLE_ENGINE_PATH environment variable not defined, we cannot find external libraries to use for packaging.');
-
-  ExternalLibrariesPath1 := InclPathDelim(CastleEnginePath) + 'external_libraries';
-  ExternalLibrariesPath2 := InclPathDelim(CastleEnginePath) + 'external-libraries';
-  if DirectoryExists(ExternalLibrariesPath1) then
-    Result := ExternalLibrariesPath1 else
-  if DirectoryExists(ExternalLibrariesPath2) then
-    Result := ExternalLibrariesPath2 else
-    raise Exception.Create('CASTLE_ENGINE_PATH environment variable defined, but we cannot find "external libraries" directory inside, searched in: "' + ExternalLibrariesPath1 + '" and "' + ExternalLibrariesPath2 + '"');
-
-  Result := Result + PathDelim + CPUToString(CPU) + '-' + OSToString(OS) +
-    PathDelim + LibraryName;
+  LibraryURL := ApplicationData('external_libraries/' + CPUToString(CPU) + '-' + OSToString(OS) + '/' + LibraryName);
+  Result := URIToFilenameSafe(LibraryURL);
   if not FileExists(Result) then
-    raise Exception.Create('Dependency library not found in ' + Result);
+    raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
 end;
 
 procedure TCastleProject.DoPackage(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
@@ -1033,7 +1023,7 @@ begin
   ExtractTemplateDestinationPath := InclPathDelim(DestinationPath);
   ExtractTemplateDir := URIToFilenameSafe(ApplicationData(TemplatePath));
   if not DirectoryExists(ExtractTemplateDir) then
-    raise Exception.Create('Cannot find Android project template in "' + ExtractTemplateDir + '". Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to a parent of the castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.');
+    raise Exception.Create('Cannot find Android project template in "' + ExtractTemplateDir + '". ' + SErrDataDir);
 
   // { calculate GooglePlayServicesLibLocationRelative now, for ReplaceMacros }
   // GooglePlayServicesLibLocationRelative :=
