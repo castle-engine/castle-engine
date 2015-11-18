@@ -20,7 +20,7 @@ public class ComponentStartApp extends ComponentAbstract
 {
     private static final String TAG = "${NAME}.castleengine.ComponentStartApp";
 
-    private boolean mInitialized, scheduledStart, scheduledResume;
+    private boolean initialized, scheduledStart, scheduledResume;
     private StartAppAd startAppAd;
 
     public ComponentStartApp(MainActivity activity)
@@ -30,14 +30,14 @@ public class ComponentStartApp extends ComponentAbstract
 
     private void initialize(String appId)
     {
-        if (mInitialized) {
+        if (initialized) {
             return;
         }
 
         startAppAd = new StartAppAd(getActivity());
         StartAppSDK.init(getActivity(), appId, false);
         Log.i(TAG, "StartApp initialized (will send delayed onStart: " + scheduledStart + ", will send delayed onResume: " + scheduledResume + ")");
-        mInitialized = true;
+        initialized = true;
 
         if (scheduledStart) {
             onStart();
@@ -52,7 +52,7 @@ public class ComponentStartApp extends ComponentAbstract
     @Override
     public void onDestroy()
     {
-        if (!mInitialized) {
+        if (!initialized) {
             return;
         }
     }
@@ -60,7 +60,7 @@ public class ComponentStartApp extends ComponentAbstract
     @Override
     public void onResume()
     {
-        if (!mInitialized) {
+        if (!initialized) {
             scheduledResume = true; // send onResume to startapp when it will be initialized
             return;
         }
@@ -71,7 +71,7 @@ public class ComponentStartApp extends ComponentAbstract
     public void onPause()
     {
         scheduledResume = false;
-        if (!mInitialized) {
+        if (!initialized) {
             return;
         }
         startAppAd.onPause();
@@ -80,7 +80,7 @@ public class ComponentStartApp extends ComponentAbstract
     @Override
     public void onStart()
     {
-        if (!mInitialized) {
+        if (!initialized) {
             scheduledStart = true; // send onStart to startapp when it will be initialized
             return;
         }
@@ -91,14 +91,14 @@ public class ComponentStartApp extends ComponentAbstract
     public void onStop()
     {
         scheduledStart = false;
-        if (!mInitialized) {
+        if (!initialized) {
             return;
         }
     }
 
     private void showInterstitial()
     {
-        if (mInitialized) {
+        if (initialized) {
             startAppAd.showAd(new AdDisplayListener() {
                 @Override
                 public void adHidden(Ad ad) {
