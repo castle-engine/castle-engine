@@ -6,18 +6,13 @@
   android_source="code/castle_spine_android.lpr"
   author="Michalis Kamburelis and Paweł Wojciechowicz"
   screen_orientation="landscape">
-  <version value="0.9" code="9" />
+  <version value="0.10" code="10" />
   <icons>
     <icon path="promo-graphics/icon.png" />
   </icons>
   <package>
     <include path="COPYING.GPL2.txt" />
     <include path="AUTHORS.txt" />
-    <!-- These large images are unused, we use their xxx_smaller variants -->
-    <exclude path="data/background/trees.png" />
-    <exclude path="data/background/background.png" />
-    <!-- These debug images are unused -->
-    <exclude path="data/background/background_smaller_debug_limits.*" />
   </package>
   <android project_type="integrated">
     <google_play_services app_id="459592926652" />
