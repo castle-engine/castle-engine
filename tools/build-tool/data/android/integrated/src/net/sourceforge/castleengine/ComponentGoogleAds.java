@@ -21,7 +21,7 @@ public class ComponentGoogleAds extends ComponentAbstract
 {
     private static final String TAG = "${NAME}.castleengine.ComponentGoogleAds";
 
-    private boolean mInitialized;
+    private boolean initialized;
     private String mBannerUnitId, mInterstitialUnitId;
     private PopupWindow adPopup;
     private InterstitialAd interstitial;
@@ -34,11 +34,11 @@ public class ComponentGoogleAds extends ComponentAbstract
 
     private void initialize(String bannerUnitId, String interstitialUnitId, String[] aTestDeviceIds)
     {
-        if (mInitialized) {
+        if (initialized) {
             return;
         }
 
-        mInitialized = true;
+        initialized = true;
         mBannerUnitId = bannerUnitId;
         mInterstitialUnitId = interstitialUnitId;
         testDeviceIds = aTestDeviceIds;
@@ -70,7 +70,7 @@ public class ComponentGoogleAds extends ComponentAbstract
 
     private void bannerShow(int gravity)
     {
-        if (!mInitialized) {
+        if (!initialized) {
             return;
         }
 
@@ -154,7 +154,7 @@ public class ComponentGoogleAds extends ComponentAbstract
      */
     private void interstitialDisplay(boolean waitUntilLoaded)
     {
-        if (mInitialized) {
+        if (initialized) {
             if (waitUntilLoaded || interstitial.isLoaded()) {
                 if (waitUntilLoaded && !interstitial.isLoaded()) {
                     Log.i(TAG, "Requested showing interstitial ad with waitUntilLoaded, and ad not ready yet. Will wait until ad is ready.");

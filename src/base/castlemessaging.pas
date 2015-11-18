@@ -40,9 +40,40 @@ type
     On other platforms than Android, right now it simply does nothing
     --- messsages are not send anywhere.
 
-    To make it work, include the necessary integration code in your Android project.
-    You must declare your Android project type as "integrated".
-    See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .
+    To make this work:
+
+    @unorderedList(
+      @item(Include the necessary integration code in your Android project.
+        Simply declare your Android project type as "integrated".
+        See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .)
+
+      @item(In @link(TCastleWindow.OnUpdate) or @link(TCastleControl.OnUpdate) call
+        @code(Messaging.Update), to keep processing messages from/to Java bridge.)
+
+      @item(In your main Android library lpr file, you need to export the JNI function
+        @link(Java_net_sourceforge_castleengine_MainActivity_jniMessage) defined in this unit.
+        So change your xxx_android.lpr file from
+
+@longCode(#
+library castle_spine_android;
+uses CastleAndroidNativeAppGlue, Game;
+exports
+  ANativeActivity_onCreate;
+end.
+#)
+
+        to this:
+
+@longCode(#
+uses CastleAndroidNativeAppGlue, Game, CastleMessaging;
+exports
+  Java_net_sourceforge_castleengine_MainActivity_jniMessage,
+  ANativeActivity_onCreate;
+end.
+#)
+
+      )
+    )
 
     This is used automatically by various engine classes like
     @link(TGooglePlayGames), @link(TAds), @link(TAnalytics), @link(TInAppPurchases).

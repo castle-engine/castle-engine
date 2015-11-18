@@ -18,7 +18,7 @@ public class ComponentGameAnalytics extends ComponentAbstract
 {
     private static final String TAG = "${NAME}.castleengine.ComponentGameAnalytics";
 
-    private boolean mInitialized;
+    private boolean initialized;
 
     public ComponentGameAnalytics(MainActivity activity)
     {
@@ -56,13 +56,13 @@ public class ComponentGameAnalytics extends ComponentAbstract
 
         Log.i(TAG, "GameAnalytics initialized with application version " + version);
 
-        mInitialized = true;
+        initialized = true;
     }
 
     @Override
     public void onResume()
     {
-        if (!mInitialized) {
+        if (!initialized) {
             return;
         }
         // Only needed if your API level is below 14.
@@ -74,7 +74,7 @@ public class ComponentGameAnalytics extends ComponentAbstract
     @Override
     public void onPause()
     {
-        if (!mInitialized) {
+        if (!initialized) {
             return;
         }
         // Only needed if your API level is below 14.
@@ -86,7 +86,7 @@ public class ComponentGameAnalytics extends ComponentAbstract
     @Override
     public void onStop()
     {
-        if (!mInitialized) {
+        if (!initialized) {
             return;
         }
         // Only needed if your API level is below 14.
@@ -97,7 +97,7 @@ public class ComponentGameAnalytics extends ComponentAbstract
 
     private void sendScreenView(String screenName)
     {
-        if (!mInitialized) {
+        if (!initialized) {
             return;
         }
         GameAnalytics.addDesignEventWithEventId("screenView:" + screenName);
@@ -106,7 +106,7 @@ public class ComponentGameAnalytics extends ComponentAbstract
     private void sendEvent(String category, String action, String label,
         long value)
     {
-        if (!mInitialized) {
+        if (!initialized) {
             return;
         }
         GameAnalytics.addDesignEventWithEventId(category + ":" + action + ":" + label, (float)value);
@@ -119,7 +119,7 @@ public class ComponentGameAnalytics extends ComponentAbstract
     private void sendEventPurchase(String category, String action, String label,
         long value, String productName)
     {
-        if (!mInitialized) {
+        if (!initialized) {
             return;
         }
         // For now, we use productName as "currency".
@@ -137,7 +137,7 @@ public class ComponentGameAnalytics extends ComponentAbstract
     private void sendTiming(String category, String variable,
         String label, long timeMiliseconds)
     {
-        if (!mInitialized) {
+        if (!initialized) {
             return;
         }
         GameAnalytics.addDesignEventWithEventId(

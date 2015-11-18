@@ -18,7 +18,7 @@ public class ComponentChartboost extends ComponentAbstract
 {
     private static final String TAG = "${NAME}.castleengine.ComponentChartboost";
 
-    private boolean mInitialized, scheduledStart, scheduledResume;
+    private boolean initialized, scheduledStart, scheduledResume;
     private boolean mShown;
 
     public ComponentChartboost(MainActivity activity)
@@ -88,7 +88,7 @@ public class ComponentChartboost extends ComponentAbstract
 
     private void initialize(String appId, String appSignature)
     {
-        if (mInitialized) {
+        if (initialized) {
             return;
         }
 
@@ -101,7 +101,7 @@ public class ComponentChartboost extends ComponentAbstract
         Chartboost.setDelegate(delegate);
         Chartboost.onCreate(getActivity());
         Log.i(TAG, "Chartboost initialized with appId " + appId + " (will send delayed onStart: " + scheduledStart + ", will send delayed onResume: " + scheduledResume + ")");
-        mInitialized = true;
+        initialized = true;
 
         if (scheduledStart) {
             onStart();
@@ -116,7 +116,7 @@ public class ComponentChartboost extends ComponentAbstract
     @Override
     public void onDestroy()
     {
-        if (!mInitialized) {
+        if (!initialized) {
             return;
         }
         Chartboost.onDestroy(getActivity());
@@ -125,8 +125,8 @@ public class ComponentChartboost extends ComponentAbstract
     @Override
     public void onResume()
     {
-        if (!mInitialized) {
-            scheduledResume = true; // send onResume to startapp when it will be initialized
+        if (!initialized) {
+            scheduledResume = true; // send onResume to Chartboost SDK when we will be initialized
             return;
         }
         Chartboost.onResume(getActivity());
@@ -136,7 +136,7 @@ public class ComponentChartboost extends ComponentAbstract
     public void onPause()
     {
         scheduledResume = false;
-        if (!mInitialized) {
+        if (!initialized) {
             return;
         }
         Chartboost.onPause(getActivity());
@@ -145,8 +145,8 @@ public class ComponentChartboost extends ComponentAbstract
     @Override
     public void onStart()
     {
-        if (!mInitialized) {
-            scheduledStart = true; // send onStart to startapp when it will be initialized
+        if (!initialized) {
+            scheduledStart = true; // send onStart to Chartboost SDK when we will be initialized
             return;
         }
         Chartboost.onStart(getActivity());
@@ -159,7 +159,7 @@ public class ComponentChartboost extends ComponentAbstract
     public void onStop()
     {
         scheduledStart = false;
-        if (!mInitialized) {
+        if (!initialized) {
             return;
         }
         Chartboost.onStop(getActivity());
@@ -168,7 +168,7 @@ public class ComponentChartboost extends ComponentAbstract
     @Override
     public boolean onBackPressed()
     {
-        if (!mInitialized) {
+        if (!initialized) {
             return false; // let default activity onBackPressed to work
         }
 
@@ -178,7 +178,7 @@ public class ComponentChartboost extends ComponentAbstract
 
     private void showInterstitial()
     {
-        if (mInitialized) {
+        if (initialized) {
             if (!Chartboost.hasInterstitial(CBLocation.LOCATION_DEFAULT)) {
                 Log.i(TAG, "Interstitial not in cache yet, will wait for it");
             }
@@ -187,7 +187,7 @@ public class ComponentChartboost extends ComponentAbstract
             mShown = true;
         } else {
             // pretend that ad was displayed, in case native app waits for it
-            messageSend(new String[]{"ads-startapp-interstitial-display", "shown"});
+            messageSend(new String[]{"ads-chartboost-interstitial-display", "shown"});
         }
     }
 
