@@ -15,6 +15,10 @@
 
 { Library to run the game on Android. }
 library castle_spine_android;
-uses CastleAndroidNativeAppGlue, Game;
-exports ANativeActivity_onCreate;
+uses CastleAndroidNativeAppGlue, Game, CastleMessaging;
+exports
+  { add CastleMesaging JNI stuff, to integrate with various libraries on Android,
+    like Google Play Games Services. }
+  Java_net_sourceforge_castleengine_MainActivity_jniMessage,
+  ANativeActivity_onCreate;
 end.

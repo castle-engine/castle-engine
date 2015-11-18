@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="castle_spine"
-  caption="Dragon Spine"
+  caption="Dragon Spine: Game Engine Demo"
   qualified_name="net.sourceforge.castleengine.castlespine"
   standalone_source="code/castle_spine.lpr"
   android_source="code/castle_spine_android.lpr"
   author="Michalis Kamburelis and Paweł Wojciechowicz"
   screen_orientation="landscape">
-  <version value="0.8" code="8" />
+  <version value="0.9" code="9" />
   <icons>
     <icon path="promo-graphics/icon.png" />
   </icons>
@@ -19,4 +19,7 @@
     <!-- These debug images are unused -->
     <exclude path="data/background/background_smaller_debug_limits.*" />
   </package>
+  <android project_type="integrated">
+    <google_play_services app_id="459592926652" />
+  </android>
 </project>

@@ -25,3 +25,4 @@ release-src:
 release-android:
 	castle-engine package --os=android --cpu=arm
 	castle-engine install --os=android --cpu=arm
+	castle-engine run --os=android --cpu=arm
