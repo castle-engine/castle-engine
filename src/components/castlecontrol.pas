@@ -563,6 +563,7 @@ begin
     C := CastleControls[I] as TCastleControlCustom;
     C.DoUpdate;
   end;
+  OnApplicationUpdate.ExecuteForward;
 
   DoLimitFPS;
 

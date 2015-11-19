@@ -55,10 +55,6 @@ type
     To include the necessary integration code in your Android project,
     you must declare your Android project type as "integrated".
     See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .
-    Also make sure that your game uses @link(TMessaginig) class,
-    in particular that it calls @code(Messaging.Update) continuously and exports
-    an extra JNI function from CastleMessaging unit in the Android library.
-    See @link(TMessaginig) docs for details.
 
     @bold(You have to create the products to purchase, and their prices in various
     currencies, in the Google Developer Console.) The names of products

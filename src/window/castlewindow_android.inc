@@ -531,7 +531,7 @@ function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boole
   { Call Update on Application and all open Windows, call OnTimer on Application }
   procedure WindowsUpdateAndTimer;
   begin
-    DoSelfUpdate;
+    DoApplicationUpdate;
     FOpenWindows.DoUpdate;
     MaybeDoTimer(LastDoTimerTime);
   end;

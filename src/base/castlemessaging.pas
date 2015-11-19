@@ -47,9 +47,6 @@ type
         Simply declare your Android project type as "integrated".
         See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .)
 
-      @item(In @link(TCastleWindow.OnUpdate) or @link(TCastleControl.OnUpdate) call
-        @code(Messaging.Update), to keep processing messages from/to Java bridge.)
-
       @item(In your main Android library lpr file, you need to export the JNI function
         @link(Java_net_sourceforge_castleengine_MainActivity_jniMessage) defined in this unit.
         So change your xxx_android.lpr file from
@@ -76,10 +73,7 @@ end.
     )
 
     This is used automatically by various engine classes like
-    @link(TGooglePlayGames), @link(TAds), @link(TAnalytics), @link(TInAppPurchases).
-    User code typically only needs to call @code(Messaging.Update) continously,
-    for example from @link(TCastleWindowCustom.OnUpdate) or
-    @link(TCastleControlCustom.OnUpdate). }
+    @link(TGooglePlayGames), @link(TAds), @link(TAnalytics), @link(TInAppPurchases). }
   TMessaging = class
   private
     ToJava: TCastleStringList;
@@ -90,6 +84,8 @@ end.
     function ReceiveStr: string;
     { Receive next message from Java. @nil if none. }
     function Receive: TCastleStringList;
+    { Called constantly to process messages from Java. }
+    procedure Update;
   public
     constructor Create;
     destructor Destroy; override;
@@ -98,11 +94,6 @@ end.
     procedure Send(const Strings: array of string);
     { Callbacks called when new message from Java is received. }
     property OnReceive: TMessageReceivedEventList read FOnReceive;
-
-    { Call this constantly to process messages from Java.
-      For example call it in @link(TCastleWindow.OnUpdate) or
-      @link(TCastleControl.OnUpdate). }
-    procedure Update;
 
     { Log each message send/received from/to Java.
       Note that this is sometimes quite verbose, and it also allows cheaters
@@ -124,7 +115,7 @@ function Messaging: TMessaging;
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleLog, CastleWarnings;
+  CastleUtils, CastleLog, CastleWarnings, CastleUIControls;
 
 var
   JavaCommunicationCS: TCriticalSection;
@@ -242,6 +233,12 @@ begin
   end;
 end;
 
+procedure ApplicationUpdate;
+begin
+  if FMessaging <> nil then
+    FMessaging.Update;
+end;
+
 function Messaging: TMessaging;
 begin
   { in case you access Messaging before our unit "initialization" works
@@ -291,8 +288,15 @@ end;
 
 initialization
   DoInitialization;
+  {$ifdef ANDROID}
+  { No point in doing this on non-Android, as only Android communicates
+    through it. }
+  OnApplicationUpdate.Add(@ApplicationUpdate);
+  {$endif}
 finalization
   FinalizationDone := true;
   FreeAndNil(FMessaging);
   FreeAndNil(JavaCommunicationCS);
+  if OnApplicationUpdate <> nil then
+    OnApplicationUpdate.Remove(@ApplicationUpdate);
 end.

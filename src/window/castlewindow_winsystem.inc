@@ -208,7 +208,7 @@ begin
 
   if (OpenWindowsCount <> 0) and (not CheckMessage) then
   begin
-    { no messages to us - call DoSelfUpdate now.
+    { no messages to us - call DoApplicationUpdate now.
       Wywolujemy OnUpdate teraz bo :
        - gbybysmy wywolywali OnUpdate w kazdym wywolaniu ProcessMessage
          to doprowadzalisbysmy do tego ze np. ruch mysza powoduje
@@ -230,7 +230,7 @@ begin
          A tego nie chcemy - patrz komentarze w interfejsie,
          nadrzednym celem jest by OnUpdate bylo wykonywane mniej
          wiecej tak czesto co OnRender.  }
-    DoSelfUpdate;
+    DoApplicationUpdate;
 
     { redraw some windows; we do it only if our event queue is empty.
       Przy okazji robimy DoUpdate okien, majac nadzieje ze gromadzac

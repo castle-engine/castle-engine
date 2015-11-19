@@ -838,10 +838,10 @@ end;
 procedure TCastleApplication.ApplicationIdle(Sender: TObject; var Done: Boolean);
 begin
   { Call Update and timer events of Application and all windows.
-    Update events are handled by DoSelfUpdate and OpenWindows.DoUpdate.
+    Update events are handled by DoApplicationUpdate and OpenWindows.DoUpdate.
     Timer events are handled by MaybeDoTimer, that in turn will call
-    (when needed) DoSelfTimer and OpenWindows.DoTimer. }
-  DoSelfUpdate;
+    (when needed) DoApplicationTimer and OpenWindows.DoTimer. }
+  DoApplicationUpdate;
   FOpenWindows.DoUpdate;
   MaybeDoTimer(LastDoTimerTime);
 
