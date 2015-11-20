@@ -473,6 +473,41 @@ procedure TCastleProject.DoCompile(const OS: TOS; const CPU: TCPU; const Plugin:
               {$endif};
   end;
 
+  procedure CheckAnroidSource;
+
+    procedure InvalidAndroidSource;
+    var
+      SError: string;
+    begin
+      SError := 'The android source library in "' + AndroidSource + '" must export the necessary JNI functions for our integration to work. By scannig the source, it seems it does not. Change the source code to this:' +NL+
+        '---------------------------------------------------------------------' +NL+
+        'library ' + ChangeFileExt(ExtractFileName(AndroidSource), '') + ';' +NL;
+      if AndroidProjectType = apIntegrated then
+        SError +=
+          'uses CastleAndroidNativeAppGlue, Game, CastleMessaging;' +NL+
+          'exports' +NL+
+          '  Java_net_sourceforge_castleengine_MainActivity_jniMessage,' +NL+
+          '  ANativeActivity_onCreate;' +NL+
+          'end.' +NL else
+        SError +=
+          'uses CastleAndroidNativeAppGlue, Game;' +NL+
+          'exports ANativeActivity_onCreate;' +NL+
+          'end.' +NL;
+      SError +=
+        '---------------------------------------------------------------------';
+      raise Exception.Create(SError);
+    end;
+
+  var
+    AndroidSourceContents: string;
+  begin
+    AndroidSourceContents := FileToString(AndroidSource);
+    if Pos('ANativeActivity_onCreate', AndroidSourceContents) = 0 then
+      InvalidAndroidSource;
+    if Pos('Java_net_sourceforge_castleengine_MainActivity_jniMessage', AndroidSourceContents) = 0 then
+      InvalidAndroidSource;
+  end;
+
 var
   SourceExe, DestExe, MainSource: string;
 begin
@@ -485,6 +520,7 @@ begin
       begin
         if AndroidSource = '' then
           raise Exception.Create('android_source property for project not defined, cannot compile Android version');
+        CheckAnroidSource;
         Compile(OS, CPU, Plugin, Mode, Path, AndroidSource);
         Writeln('Compiled library for Android in ', AndroidLibraryFile(true));
       end;
