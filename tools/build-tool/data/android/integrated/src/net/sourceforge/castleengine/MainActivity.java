@@ -204,9 +204,7 @@ public class MainActivity extends NativeActivity implements
     static {
         safeLoadLibrary("GameAnalytics");
 
-        /* TODO: for now, disable sounds, slow on Android
-        safeLoadLibrary("openal");
-        */
+        ${ANDROID_ACTIVITY_LOAD_LIBRARIES}
 
         safeLoadLibrary("${ANDROID_LIBRARY_NAME}");
     }

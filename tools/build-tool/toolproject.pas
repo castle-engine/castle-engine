@@ -28,7 +28,7 @@ type
 
   TScreenOrientation = (soAny, soLandscape, soPortrait);
 
-  TAndroidProjectType = (apBase, apIntegrated);
+  TAndroidProjectType = (apBase, apSimple, apIntegrated);
 
   TCastleProject = class
   private
@@ -324,6 +324,8 @@ constructor TCastleProject.Create(const APath: string);
           begin
             if AndroidProjectTypeStr = 'base' then
               FAndroidProjectType := apBase else
+            if AndroidProjectTypeStr = 'simple' then
+              FAndroidProjectType := apSimple else
             if AndroidProjectTypeStr = 'integrated' then
               FAndroidProjectType := apIntegrated else
               raise Exception.CreateFmt('Invalid android project_type "%s"', [AndroidProjectTypeStr]);
@@ -938,6 +940,39 @@ end;
 
 function TCastleProject.ReplaceMacros(const Source: string): string;
 
+const
+  AndroidScreenOrientation: array [TScreenOrientation] of string =
+  ('unspecified', 'sensorLandscape', 'sensorPortrait');
+  AndroidScreenOrientationFeature: array [TScreenOrientation] of string =
+  ('',
+   '<uses-feature android:name="android.hardware.screen.landscape"/>',
+   '<uses-feature android:name="android.hardware.screen.portrait"/>');
+
+  function AndroidActivityLoadLibraries: string;
+  begin
+    Result := '';
+    if depSound in Dependencies then
+      Result += 'safeLoadLibrary("openal");' + NL;
+  end;
+
+  function AndroidMkLoadLibraries: string;
+
+    function AddExternalLibraryMk(const LibraryName: string): string;
+    begin
+      Result := NL +
+        'include $(CLEAR_VARS)' + NL +
+        'LOCAL_MODULE := lib' + LibraryName + NL +
+        'LOCAL_SRC_FILES := lib' + LibraryName + '.so' + NL +
+        'include $(PREBUILT_SHARED_LIBRARY)' + NL +
+        '';
+    end;
+
+  begin
+    Result := '';
+    if depSound in Dependencies then
+      Result += AddExternalLibraryMk('openal');
+  end;
+
   { Make CamelCase with only safe characters (digits and letters). }
   function MakeCamelCase(S: string): string;
   var
@@ -951,14 +986,6 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
           Result += S[I] else
           Result += UpCase(S[I]);
   end;
-
-const
-  AndroidScreenOrientation: array [TScreenOrientation] of string =
-  ('unspecified', 'sensorLandscape', 'sensorPortrait');
-  AndroidScreenOrientationFeature: array [TScreenOrientation] of string =
-  ('',
-   '<uses-feature android:name="android.hardware.screen.landscape"/>',
-   '<uses-feature android:name="android.hardware.screen.portrait"/>');
 
 var
   Patterns, Values: TCastleStringList;
@@ -996,10 +1023,16 @@ begin
     Patterns.Add('CAPTION');         Values.Add(Caption);
     Patterns.Add('AUTHOR');          Values.Add(NonEmptyAuthor);
     Patterns.Add('EXECUTABLE_NAME'); Values.Add(ExecutableName);
+
+    { Android specific stuff }
+
     Patterns.Add('ANDROID_LIBRARY_NAME'); Values.Add(ChangeFileExt(ExtractFileName(AndroidSource), ''));
     Patterns.Add('ANDROID_SCREEN_ORIENTATION'); Values.Add(AndroidScreenOrientation[ScreenOrientation]);
     Patterns.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'); Values.Add(AndroidScreenOrientationFeature[ScreenOrientation]);
     Patterns.Add('ANDROID_GOOGLE_PLAY_SERVICES_APP_ID'); Values.Add(GooglePlayServicesAppId);
+    Patterns.Add('ANDROID_ACTIVITY_LOAD_LIBRARIES'); Values.Add(AndroidActivityLoadLibraries);
+    Patterns.Add('ANDROID_MK_LOAD_LIBRARIES'); Values.Add(AndroidMkLoadLibraries);
+
     //Patterns.Add('ANDROID_GOOGLE_PLAY_SERVICES_LIB_LOCATION'); Values.Add(GooglePlayServicesLibLocationRelative);
     // add CamelCase() replacements, add ${} around
     for I := 0 to Patterns.Count - 1 do
