@@ -383,45 +383,44 @@ var
   {$endif}
   begin
     Result := (DDS <> nil) and DDS.Mipmaps;
-    if Result and (DDS.DDSType <> dtTexture) then
+    if not Result then Exit;
+
+    if DDS.DDSType <> dtTexture then
     begin
       OnWarning(wtMinor, 'Texture', 'DDS image contains mipmaps, but not for 2D texture');
-      Result := false;
+      Exit(false);
     end;
 
     {$ifdef OpenGLES}
     OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
     Exit(false);
     {$else}
-    if Result and (not GLFeatures.Version_1_2) then
+    if not GLFeatures.Version_1_2 then
     begin
       OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
-      Result := false;
+      Exit(false);
     end;
 
-    if Result then
-    begin
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
-      if LoadBase then
-        FromLevel := 0 else
-        FromLevel := 1;
-      for I := FromLevel to DDS.MipmapsCount - 1 do
-        if DDS.Images[I] is TCastleImage then
-        begin
-          CalculateImageRightSize(TCastleImage(DDS.Images[I]), GUITexture,
-            ImageRightSize, ImageRightSizeFree);
-          try
-            glTexImage2DImage(ImageRightSize, I);
-          finally
-            if ImageRightSizeFree then
-              FreeAndNil(ImageRightSize) else
-              ImageRightSize := nil;
-          end;
-        end else
-        if DDS.Images[I] is TGPUCompressedImage then
-          glCompressedTextureImage2D(TGPUCompressedImage(DDS.Images[I]), I, LoadedSize) else
-          raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
-    end;
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
+    if LoadBase then
+      FromLevel := 0 else
+      FromLevel := 1;
+    for I := FromLevel to DDS.MipmapsCount - 1 do
+      if DDS.Images[I] is TCastleImage then
+      begin
+        CalculateImageRightSize(TCastleImage(DDS.Images[I]), GUITexture,
+          ImageRightSize, ImageRightSizeFree);
+        try
+          glTexImage2DImage(ImageRightSize, I);
+        finally
+          if ImageRightSizeFree then
+            FreeAndNil(ImageRightSize) else
+            ImageRightSize := nil;
+        end;
+      end else
+      if DDS.Images[I] is TGPUCompressedImage then
+        glCompressedTextureImage2D(TGPUCompressedImage(DDS.Images[I]), I, LoadedSize) else
+        raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
     {$endif}
   end;
 
