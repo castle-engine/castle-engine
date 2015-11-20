@@ -206,6 +206,7 @@ type
         In simple cases you can just ignore the result of this method.
         In advanced cases, you can use it to observe and update the sound
         later.) }
+    function PlaySound(const Buffer: TSoundBuffer): TSound;
     function PlaySound(const Buffer: TSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
@@ -1232,6 +1233,13 @@ begin
   Result := PlaySound(Buffer, Spatial, Looping, Importance,
     Gain, MinGain, MaxGain, Position, Pitch,
     { use default values for next parameters }
+    DefaultReferenceDistance, DefaultMaxDistance);
+end;
+
+function TSoundEngine.PlaySound(const Buffer: TSoundBuffer): TSound;
+begin
+  Result := PlaySound(Buffer, false, false, 0,
+    1, 0, 1, ZeroVector3Single, 1,
     DefaultReferenceDistance, DefaultMaxDistance);
 end;
 
