@@ -29,7 +29,7 @@ implementation
 uses SysUtils, CastleWindow, CastleControls, CastleUIControls, CastleRectangles,
   CastleGLUtils, CastleColors, X3DNodes, CastleFilesUtils, CastleLog,
   CastleSceneCore, CastleFindFiles, CastleStringUtils, CastleMessages,
-  CastleProgress, CastleWindowProgress, CastleUtils;
+  CastleProgress, CastleWindowProgress, CastleUtils, CastleSoundEngine;
 
 var
   {$ifdef SOLID_BACKGROUND}
@@ -45,9 +45,12 @@ var
   ProgressButton: TCastleButton;
   ReopenContextButton: TCastleButton;
   ToggleTextureUpdatesButton: TCastleButton;
+  PlaySoundButton: TCastleButton;
 
   MyShaderEffect: TEffectNode;
   MyScreenEffect: TScreenEffectNode;
+
+  SoundBuffer1, SoundBuffer2: TSoundBuffer;
 
 type
   TDummy = class
@@ -60,6 +63,7 @@ type
     procedure ReopenContextClick(Sender: TObject);
     procedure ToggleTextureUpdates(Sender: TObject);
     procedure ToggleTextureUpdatesCallback(Node: TX3DNode);
+    procedure PlaySound(Sender: TObject);
   end;
 
 procedure TDummy.ToggleShaderClick(Sender: TObject);
@@ -171,6 +175,13 @@ begin
     TGeneratedCubeMapTextureNode, @ToggleTextureUpdatesCallback, false);
 end;
 
+procedure TDummy.PlaySound(Sender: TObject);
+begin
+  if Random < 0.5 then
+    SoundEngine.PlaySound(SoundBuffer1) else
+    SoundEngine.PlaySound(SoundBuffer2);
+end;
+
 procedure FindFilesCallback(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
 begin
   WritelnLog('FindFiles', 'Found URL:%s, Name:%s, AbsoluteName:%s, Directory:%s',
@@ -245,6 +256,11 @@ begin
   ToggleTextureUpdatesButton.OnClick := @TDummy(nil).ToggleTextureUpdates;
   Window.Controls.InsertFront(ToggleTextureUpdatesButton);
 
+  PlaySoundButton := TCastleButton.Create(Window);
+  PlaySoundButton.Caption := 'Play Sound';
+  PlaySoundButton.OnClick := @TDummy(nil).PlaySound;
+  Window.Controls.InsertFront(PlaySoundButton);
+
   MyShaderEffect := Window.SceneManager.MainScene.RootNode.TryFindNodeByName(
     TEffectNode, 'MyShaderEffect', false) as TEffectNode;
   ToggleShaderButton.Pressed := (MyShaderEffect <> nil) and MyShaderEffect.Enabled;
@@ -260,6 +276,9 @@ begin
   FindFiles(ApplicationData('') + 'skies', '*', true, @FindFilesCallback, nil, [ffRecursive]);
   FindFiles(ApplicationData('') + 'textures/castle', '*', true, @FindFilesCallback, nil, [ffRecursive]);
   FindFiles(ApplicationData('') + 'textures/castle/', '*', true, @FindFilesCallback, nil, [ffRecursive]);
+
+  SoundBuffer1 := SoundEngine.LoadBuffer(ApplicationData('sounds/werewolf_howling.wav'));
+  SoundBuffer2 := SoundEngine.LoadBuffer(ApplicationData('sounds/player_potion_drink.wav'));
 end;
 
 procedure WindowRender(Container: TUIContainer);
@@ -315,6 +334,10 @@ begin
   Bottom -= ToggleTextureUpdatesButton.Height + Margin;
   ToggleTextureUpdatesButton.Align(hpRight, hpRight, -Margin);
   ToggleTextureUpdatesButton.Bottom := Bottom;
+
+  Bottom -= PlaySoundButton.Height + Margin;
+  PlaySoundButton.Align(hpRight, hpRight, -Margin);
+  PlaySoundButton.Bottom := Bottom;
 end;
 
 function MyGetApplicationName: string;

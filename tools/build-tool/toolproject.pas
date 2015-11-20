@@ -28,7 +28,7 @@ type
 
   TScreenOrientation = (soAny, soLandscape, soPortrait);
 
-  TAndroidProjectType = (apBase, apIntegrated);
+  TAndroidProjectType = (apBase, apSimple, apIntegrated);
 
   TCastleProject = class
   private
@@ -324,6 +324,8 @@ constructor TCastleProject.Create(const APath: string);
           begin
             if AndroidProjectTypeStr = 'base' then
               FAndroidProjectType := apBase else
+            if AndroidProjectTypeStr = 'simple' then
+              FAndroidProjectType := apSimple else
             if AndroidProjectTypeStr = 'integrated' then
               FAndroidProjectType := apIntegrated else
               raise Exception.CreateFmt('Invalid android project_type "%s"', [AndroidProjectTypeStr]);
@@ -471,6 +473,41 @@ procedure TCastleProject.DoCompile(const OS: TOS; const CPU: TCPU; const Plugin:
               {$endif};
   end;
 
+  procedure CheckAnroidSource;
+
+    procedure InvalidAndroidSource;
+    var
+      SError: string;
+    begin
+      SError := 'The android source library in "' + AndroidSource + '" must export the necessary JNI functions for our integration to work. By scannig the source, it seems it does not. Change the source code to this:' +NL+
+        '---------------------------------------------------------------------' +NL+
+        'library ' + ChangeFileExt(ExtractFileName(AndroidSource), '') + ';' +NL;
+      if AndroidProjectType = apIntegrated then
+        SError +=
+          'uses CastleAndroidNativeAppGlue, Game, CastleMessaging;' +NL+
+          'exports' +NL+
+          '  Java_net_sourceforge_castleengine_MainActivity_jniMessage,' +NL+
+          '  ANativeActivity_onCreate;' +NL+
+          'end.' +NL else
+        SError +=
+          'uses CastleAndroidNativeAppGlue, Game;' +NL+
+          'exports ANativeActivity_onCreate;' +NL+
+          'end.' +NL;
+      SError +=
+        '---------------------------------------------------------------------';
+      raise Exception.Create(SError);
+    end;
+
+  var
+    AndroidSourceContents: string;
+  begin
+    AndroidSourceContents := FileToString(AndroidSource);
+    if Pos('ANativeActivity_onCreate', AndroidSourceContents) = 0 then
+      InvalidAndroidSource;
+    if Pos('Java_net_sourceforge_castleengine_MainActivity_jniMessage', AndroidSourceContents) = 0 then
+      InvalidAndroidSource;
+  end;
+
 var
   SourceExe, DestExe, MainSource: string;
 begin
@@ -483,6 +520,7 @@ begin
       begin
         if AndroidSource = '' then
           raise Exception.Create('android_source property for project not defined, cannot compile Android version');
+        CheckAnroidSource;
         Compile(OS, CPU, Plugin, Mode, Path, AndroidSource);
         Writeln('Compiled library for Android in ', AndroidLibraryFile(true));
       end;
@@ -938,6 +976,39 @@ end;
 
 function TCastleProject.ReplaceMacros(const Source: string): string;
 
+const
+  AndroidScreenOrientation: array [TScreenOrientation] of string =
+  ('unspecified', 'sensorLandscape', 'sensorPortrait');
+  AndroidScreenOrientationFeature: array [TScreenOrientation] of string =
+  ('',
+   '<uses-feature android:name="android.hardware.screen.landscape"/>',
+   '<uses-feature android:name="android.hardware.screen.portrait"/>');
+
+  function AndroidActivityLoadLibraries: string;
+  begin
+    Result := '';
+    if depSound in Dependencies then
+      Result += 'safeLoadLibrary("openal");' + NL;
+  end;
+
+  function AndroidMkLoadLibraries: string;
+
+    function AddExternalLibraryMk(const LibraryName: string): string;
+    begin
+      Result := NL +
+        'include $(CLEAR_VARS)' + NL +
+        'LOCAL_MODULE := lib' + LibraryName + NL +
+        'LOCAL_SRC_FILES := lib' + LibraryName + '.so' + NL +
+        'include $(PREBUILT_SHARED_LIBRARY)' + NL +
+        '';
+    end;
+
+  begin
+    Result := '';
+    if depSound in Dependencies then
+      Result += AddExternalLibraryMk('openal');
+  end;
+
   { Make CamelCase with only safe characters (digits and letters). }
   function MakeCamelCase(S: string): string;
   var
@@ -951,14 +1022,6 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
           Result += S[I] else
           Result += UpCase(S[I]);
   end;
-
-const
-  AndroidScreenOrientation: array [TScreenOrientation] of string =
-  ('unspecified', 'sensorLandscape', 'sensorPortrait');
-  AndroidScreenOrientationFeature: array [TScreenOrientation] of string =
-  ('',
-   '<uses-feature android:name="android.hardware.screen.landscape"/>',
-   '<uses-feature android:name="android.hardware.screen.portrait"/>');
 
 var
   Patterns, Values: TCastleStringList;
@@ -996,10 +1059,16 @@ begin
     Patterns.Add('CAPTION');         Values.Add(Caption);
     Patterns.Add('AUTHOR');          Values.Add(NonEmptyAuthor);
     Patterns.Add('EXECUTABLE_NAME'); Values.Add(ExecutableName);
+
+    { Android specific stuff }
+
     Patterns.Add('ANDROID_LIBRARY_NAME'); Values.Add(ChangeFileExt(ExtractFileName(AndroidSource), ''));
     Patterns.Add('ANDROID_SCREEN_ORIENTATION'); Values.Add(AndroidScreenOrientation[ScreenOrientation]);
     Patterns.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'); Values.Add(AndroidScreenOrientationFeature[ScreenOrientation]);
     Patterns.Add('ANDROID_GOOGLE_PLAY_SERVICES_APP_ID'); Values.Add(GooglePlayServicesAppId);
+    Patterns.Add('ANDROID_ACTIVITY_LOAD_LIBRARIES'); Values.Add(AndroidActivityLoadLibraries);
+    Patterns.Add('ANDROID_MK_LOAD_LIBRARIES'); Values.Add(AndroidMkLoadLibraries);
+
     //Patterns.Add('ANDROID_GOOGLE_PLAY_SERVICES_LIB_LOCATION'); Values.Add(GooglePlayServicesLibLocationRelative);
     // add CamelCase() replacements, add ${} around
     for I := 0 to Patterns.Count - 1 do

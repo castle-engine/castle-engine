@@ -54,15 +54,6 @@ var
     CheckForceDirectories(AndroidProjectPath + Dirs);
   end;
 
-  procedure PackageStringToFile(const FileName, Contents: string);
-  begin
-    PackageCheckForceDirectories(ExtractFilePath(FileName));
-    if not FileExists(AndroidProjectPath + FileName) then
-      StringToFile(AndroidProjectPath + FileName, Contents) else
-    if Verbose then
-      Writeln('Not overwriting custom ' + FileName);
-  end;
-
   procedure PackageSaveImage(const Image: TCastleImage; const FileName: string);
   begin
     PackageCheckForceDirectories(ExtractFilePath(FileName));
@@ -93,39 +84,12 @@ var
     DestinationPath := CombinePaths(Project.Path, AndroidProjectPath);
     case Project.AndroidProjectType of
       apBase      : TemplatePath := 'android/base/';
+      apSimple    : TemplatePath := 'android/simple/';
       apIntegrated: TemplatePath := 'android/integrated/';
       else raise EInternalError.Create('GenerateFromTemplates:Project.AndroidProjectType unhandled');
     end;
     Project.ExtractTemplate(TemplatePath, DestinationPath);
   end;
-
-(* TODO: right now this is unused,
-   so we don't include openal in Android.mk correctly.
-   This needs to be modified to append to what templates generated in jni/Android.mk.
-
-  { Generate jni/Android.mk file }
-  procedure GenerateAndroidMk;
-
-    function AddExternalLibraryMk(const LibraryName: string): string;
-    begin
-      Result := LineEnding +
-        'include $(CLEAR_VARS)' + LineEnding +
-        'LOCAL_MODULE := lib' + LibraryName + LineEnding +
-        'LOCAL_SRC_FILES := lib' + LibraryName + '.so' + LineEnding +
-        'include $(PREBUILT_SHARED_LIBRARY)' + LineEnding +
-        '';
-    end;
-
-  var
-    AndroidMkContents: string;
-  begin
-    AndroidMkContents := 'LOCAL_PATH := $(call my-dir)' + LineEnding;
-    AndroidMkContents += AddExternalLibraryMk(ChangeFileExt(ExtractFileName(Project.AndroidSource), ''));
-    if depSound in Project.Dependencies then
-      AndroidMkContents += AddExternalLibraryMk('openal');
-    PackageStringToFile('jni' + PathDelim + 'Android.mk', AndroidMkContents);
-  end;
-*)
 
   { Try to find "android" tool executable, exception if not found. }
   function AndroidExe: string;
@@ -312,7 +276,6 @@ begin
   PackageMode := SuggestedPackageMode;
 
   GenerateFromTemplates;
-  // right now Android.mk is in templates: GenerateAndroidMk;
   if Project.AndroidProjectType = apIntegrated then
     RunAndroidUpdateProject(PathDelim + 'google-play-services_lib');
   GenerateIcons;
@@ -367,12 +330,9 @@ procedure RunAndroidPackage(const Project: TCastleProject);
 var
   ActivityName: string;
 begin
-  case Project.AndroidProjectType of
-    apBase      : ActivityName := 'android.app.NativeActivity';
-    apIntegrated: ActivityName := 'net.sourceforge.castleengine.MainActivity';
-    else raise EInternalError.Create('RunAndroidPackage:Project.AndroidProjectType unhandled');
-  end;
-
+  if Project.AndroidProjectType = apBase then
+    ActivityName := 'android.app.NativeActivity' else
+    ActivityName := 'net.sourceforge.castleengine.MainActivity';
   RunCommandSimple('adb', ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
     '-n', Project.QualifiedName + '/' + ActivityName ]);
