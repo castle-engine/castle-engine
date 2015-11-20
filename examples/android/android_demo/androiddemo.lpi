@@ -30,16 +30,13 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="3">
+    <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="castle_android_utilities"/>
+        <PackageName Value="castle_window"/>
       </Item1>
       <Item2>
-        <PackageName Value="castle_window"/>
-      </Item2>
-      <Item3>
         <PackageName Value="castle_base"/>
-      </Item3>
+      </Item2>
     </RequiredPackages>
     <Units Count="1">
       <Unit0>

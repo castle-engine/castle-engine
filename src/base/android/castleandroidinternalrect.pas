@@ -14,7 +14,7 @@
  * limitations under the License.
  *}
 
-unit CastleAndroidRect;
+unit CastleAndroidInternalRect;
 
 interface
 

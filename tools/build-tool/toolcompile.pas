@@ -119,6 +119,7 @@ begin
         AddEnginePath('ui/windows');
         AddEnginePath('ui/opengl');
         AddEnginePath('game');
+        AddEnginePath('services');
 
         { Do not add castle-fpc.cfg.
           Instead, rely on code below duplicating castle-fpc.cfg logic

@@ -105,7 +105,7 @@ implementation
 
 uses CastleUtils, CastleClassUtils, CastleTimeUtils, CastleWarnings,
   CastleFilesUtils, CastleURIUtils,
-  SysUtils {$ifdef ANDROID}, CastleAndroidLog {$endif};
+  SysUtils {$ifdef ANDROID}, CastleAndroidInternalLog {$endif};
 
 var
   FLog: boolean = false;

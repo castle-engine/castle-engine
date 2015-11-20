@@ -15,7 +15,7 @@
  *}
  
 { @exclude Internal for the engine. }
-unit CastleAndroidAssetManager;
+unit CastleAndroidInternalAssetManager;
 
 interface
 

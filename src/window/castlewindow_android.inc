@@ -30,14 +30,14 @@
 { $define CASTLE_PERSISTENT_ANDROID_STATE}
 
 {$ifdef read_interface_uses}
-CastleAndroidNativeWindow, CastleAndroidInput,
+CastleAndroidInternalNativeWindow, CastleAndroidInternalInput,
 CastleAndroidNativeAppGlue, CastleGenericLists,
 {$endif}
 
 {$ifdef read_implementation_uses}
 JNI,
-CastleAndroidCWString, CastleAndroidLooper,
-CastleAndroidLog, CastleAndroidAssetStream,
+CastleAndroidInternalCWString, CastleAndroidInternalLooper,
+CastleAndroidInternalLog, CastleAndroidInternalAssetStream,
 {$ifdef CASTLE_PERSISTENT_ANDROID_STATE} CastleConfig, {$endif}
 CastleOpenAL, CastleVorbisFile, CastleFreeTypeH, CastleZLib,
 {$endif}

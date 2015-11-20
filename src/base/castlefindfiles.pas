@@ -165,7 +165,7 @@ function FindFirstFile(const Path, Mask: string;
 implementation
 
 uses CastleURIUtils, CastleLog, StrUtils
-  {$ifdef ANDROID}, CastleAndroidAssetManager, CastleAndroidAssetStream {$endif};
+  {$ifdef ANDROID}, CastleAndroidInternalAssetManager, CastleAndroidInternalAssetStream {$endif};
 
 { Note that some limitations of FindFirst/FindNext underneath are reflected in our
   functionality. Under Windows, mask is treated somewhat hacky:
