@@ -28,7 +28,7 @@
 { Reworked FPC CWString, to delay loading of library until Android
   activity started, necessary on some Android versions.
   @exclude Not documented for PasDoc. }
-unit CastleAndroidCWString;
+unit CastleAndroidInternalCWString;
 
 interface
 
@@ -39,7 +39,7 @@ procedure InitializeAndroidCWString;
 
 implementation
 
-uses dynlibs, CastleAndroidLog;
+uses dynlibs, CastleAndroidInternalLog;
 
 type
   UErrorCode = SizeInt;

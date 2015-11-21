@@ -2,7 +2,7 @@
 *.rsj
 *.rst
 examples/2d/controls_demo
-examples/2d_spine_game/castle_spine
+examples/2d_dragon_spine_android_game/castle_spine
 examples/3d_rendering_processing/animate_3d_model_by_code
 examples/3d_rendering_processing/animate_3d_model_by_code_2
 examples/3d_rendering_processing/build_3d_object_by_code

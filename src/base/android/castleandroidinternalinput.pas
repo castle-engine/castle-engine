@@ -15,11 +15,11 @@
   *)
 
 { @exclude Internal for the engine. }
-unit CastleAndroidInput;
+unit CastleAndroidInternalInput;
 
 interface
 
-uses ctypes, CastleAndroidLooper, CastleAndroidKeycodes;
+uses ctypes, CastleAndroidInternalLooper, CastleAndroidInternalKeycodes;
 
 (******************************************************************
  *

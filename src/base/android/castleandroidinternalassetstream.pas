@@ -14,11 +14,11 @@
 }
 
 { Reading Android asset files as streams. }
-unit CastleAndroidAssetStream;
+unit CastleAndroidInternalAssetStream;
 
 interface
 
-uses SysUtils, Classes, CastleAndroidAssetManager;
+uses SysUtils, Classes, CastleAndroidInternalAssetManager;
 
 type
   EAssetReadError = class(EReadError);

@@ -48,11 +48,12 @@ type
         See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .)
 
       @item(In your main Android library lpr file, you need to export the JNI function
-        @link(Java_net_sourceforge_castleengine_MainActivity_jniMessage) defined in this unit.
+        @link(Java_net_sourceforge_castleengine_MainActivity_jniMessage) defined
+        in this unit.
         So change your xxx_android.lpr file from
 
 @longCode(#
-library castle_spine_android;
+library xxx;
 uses CastleAndroidNativeAppGlue, Game;
 exports
   ANativeActivity_onCreate;
@@ -62,6 +63,7 @@ end.
         to this:
 
 @longCode(#
+library xxx;
 uses CastleAndroidNativeAppGlue, Game, CastleMessaging;
 exports
   Java_net_sourceforge_castleengine_MainActivity_jniMessage,

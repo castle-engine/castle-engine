@@ -1,6 +1,6 @@
 { Android logging facility.
   @exclude Internal for the engine. }
-unit CastleAndroidLog;
+unit CastleAndroidInternalLog;
 
 interface
 

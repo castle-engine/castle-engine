@@ -14,11 +14,11 @@
  * limitations under the License.
   *)
 
-unit CastleAndroidConfiguration;
+unit CastleAndroidInternalConfiguration;
 
 interface
 
-uses ctypes, CastleAndroidAssetManager;
+uses ctypes, CastleAndroidInternalAssetManager;
 
 const
   LibName = 'libandroid.so';

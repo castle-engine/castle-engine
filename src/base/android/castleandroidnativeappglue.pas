@@ -42,9 +42,9 @@ uses
   CThreads,
 
   ctypes,baseunix,unixtype,
-  CastleAndroidConfiguration, CastleAndroidLooper, CastleAndroidLog,
-  CastleAndroidInput, CastleAndroidRect, CastleAndroidNativeWindow,
-  CastleAndroidNativeActivity;
+  CastleAndroidInternalConfiguration, CastleAndroidInternalLooper, CastleAndroidInternalLog,
+  CastleAndroidInternalInput, CastleAndroidInternalRect, CastleAndroidInternalNativeWindow,
+  CastleAndroidInternalNativeActivity;
 
 (**
  * The native activity interface provided by <android/native_activity.h>
@@ -312,7 +312,7 @@ implementation
 uses SysUtils, Classes, CastleUtils;
 
 { Use Libc memory allocation routines where needed. It seems savedState
-  must be managed using them, onSaveInstanceState in CastleAndroidNativeActivity
+  must be managed using them, onSaveInstanceState in CastleAndroidInternalNativeActivity
   is documented like that. }
 const
   CLibName = 'c';

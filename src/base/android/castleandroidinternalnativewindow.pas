@@ -15,11 +15,11 @@
   *)
 
 { @exclude Internal for the engine. }
-unit CastleAndroidNativeWindow;
+unit CastleAndroidInternalNativeWindow;
 
 interface
 
-uses ctypes, CastleAndroidRect;
+uses ctypes, CastleAndroidInternalRect;
 
 (*
  * Pixel formats that a window can use.

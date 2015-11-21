@@ -15,12 +15,12 @@
  }
 
 { @exclude Internal for the engine. }
-unit CastleAndroidNativeActivity;
+unit CastleAndroidInternalNativeActivity;
 
 interface
 
-uses CastleAndroidAssetManager, CastleAndroidInput, CastleAndroidNativeWindow,
-  CastleAndroidRect, jni, ctypes;
+uses CastleAndroidInternalAssetManager, CastleAndroidInternalInput, CastleAndroidInternalNativeWindow,
+  CastleAndroidInternalRect, jni, ctypes;
 
 {
  * This structure defines the native side of an android.app.NativeActivity.

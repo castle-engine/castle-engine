@@ -108,7 +108,7 @@ implementation
 
 uses URIParser, CastleURIUtils, CastleUtils, CastleLog, CastleZStream,
   CastleClassUtils, CastleDataURI, CastleProgress
-  {$ifdef ANDROID}, CastleAndroidAssetStream {$endif};
+  {$ifdef ANDROID}, CastleAndroidInternalAssetStream {$endif};
 
 { TProgressMemoryStream ------------------------------------------------------ }
 

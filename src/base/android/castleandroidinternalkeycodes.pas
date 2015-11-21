@@ -20,7 +20,7 @@
 // The NDK files are located in usr/include/android/keycodes.h
 
 { @exclude Internal for the engine. }
-unit CastleAndroidKeycodes;
+unit CastleAndroidInternalKeycodes;
 
 interface
 
