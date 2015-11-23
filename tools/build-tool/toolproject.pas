@@ -504,7 +504,8 @@ procedure TCastleProject.DoCompile(const OS: TOS; const CPU: TCPU; const Plugin:
     AndroidSourceContents := FileToString(AndroidSource);
     if Pos('ANativeActivity_onCreate', AndroidSourceContents) = 0 then
       InvalidAndroidSource;
-    if Pos('Java_net_sourceforge_castleengine_MainActivity_jniMessage', AndroidSourceContents) = 0 then
+    if (AndroidProjectType = apIntegrated) and
+       (Pos('Java_net_sourceforge_castleengine_MainActivity_jniMessage', AndroidSourceContents) = 0) then
       InvalidAndroidSource;
   end;
 
