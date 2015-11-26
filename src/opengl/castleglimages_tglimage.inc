@@ -57,6 +57,7 @@ type
     FColor: TCastleColor;
     FSmoothScaling: boolean;
     FScaleCorners: Single;
+    FCenterX, FCenterY, FRotation: Single;
     procedure AlphaBegin;
     procedure AlphaEnd;
     procedure UpdateSmoothScaling(const NeedToBind: boolean);
@@ -176,33 +177,21 @@ type
       e.g. use ImageX = Width and ImageWidth = -Width to mirror
       image horizontally.
 
-      Rotation parameter determine rotation of image in degrees. Default = 0.
-      CenterX, CenterY parametres can be used to move point of drawing. It's usefull
-      to move center of rotation when rotation is used. Default values = 0. They takes
-      values from 0 to 1. Value 0.5 means center of image.
-
       @groupBegin }
     procedure Draw;
-    procedure Draw(const X, Y: Integer;
-      const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
-    procedure Draw(const Pos: TVector2Integer;
-      const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
+    procedure Draw(const X, Y: Integer);
+    procedure Draw(const Pos: TVector2Integer);
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
-      const ImageX, ImageY, ImageWidth, ImageHeight: Single;
-      const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
+      const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+    procedure Draw(const ScreenRectangle: TRectangle);
     procedure Draw(const ScreenRectangle: TRectangle;
-      const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
+      const ImageX, ImageY, ImageWidth, ImageHeight: Single);
     procedure Draw(const ScreenRectangle: TRectangle;
-      const ImageX, ImageY, ImageWidth, ImageHeight: Single;
-      const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
-    procedure Draw(const ScreenRectangle: TRectangle;
-      const ImageRect: TRectangle;
-      const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
+      const ImageRect: TRectangle);
     { @groupEnd }
 
     procedure DrawFlipped(const ScreenRectangle: TRectangle;
-      const FlipHorizontal, FlipVertical: boolean;
-      const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
+      const FlipHorizontal, FlipVertical: boolean);
 
     { In case of @link(Draw3x3) or @link(Draw3x1), the corners
       on screen are scaled by this amount. This is especially useful
@@ -296,6 +285,15 @@ type
 
     property ScalingPossible: boolean read FSmoothScaling write SetSmoothScaling;
       deprecated 'use SmoothScaling';
+
+    { X coordinate of center of rotation. Value from 0 to 1. Default value 0. }
+    property CenterX: Single read FCenterX write FCenterX default 0;
+
+    { Y coordinate of center of rotation. Value from 0 to 1. Default value 0. }
+    property CenterY: Single read FCenterY write FCenterY default 0;
+
+    { Rotation in degrees.  Default value 0. }
+    property Rotation: Single read FRotation write FRotation default 0;
   end;
 
 { Draw the image on 2D screen. Note that if you want to use this
@@ -466,21 +464,18 @@ begin
   Draw(WindowPos[0], WindowPos[1]);
 end;
 
-procedure TGLImage.Draw(const X, Y: Integer;
-  const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
+procedure TGLImage.Draw(const X, Y: Integer);
 begin
-  Draw(X, Y, Width, Height, 0, 0, Width, Height, CenterX, CenterY, Rotation);
+  Draw(X, Y, Width, Height, 0, 0, Width, Height);
 end;
 
-procedure TGLImage.Draw(const Pos: TVector2Integer;
-  const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
+procedure TGLImage.Draw(const Pos: TVector2Integer);
 begin
-  Draw(Pos[0], Pos[1], Width, Height, 0, 0, Width, Height, CenterX, CenterY, Rotation);
+  Draw(Pos[0], Pos[1], Width, Height, 0, 0, Width, Height);
 end;
 
 procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
-  const ImageX, ImageY, ImageWidth, ImageHeight: Single;
-  const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
+  const ImageX, ImageY, ImageWidth, ImageHeight: Single);
 var
   TexX0, TexY0, TexX1, TexY1: Single;
   PixCenterX, PixCenterY: Integer;
@@ -493,8 +488,8 @@ var
 begin
   if (DrawWidth = 0) or (DrawHeight = 0) then Exit;
 
-  PixCenterX := -Round(CenterX * DrawWidth);
-  PixCenterY := -Round(CenterY * DrawHeight);
+  PixCenterX := -Round(FCenterX * DrawWidth);
+  PixCenterY := -Round(FCenterY * DrawHeight);
 
   { Protect from X, Y and sizes going outside of the SmallInt range.
     We want to squeeze X, Y into SmallInt to make it a little more efficient
@@ -554,8 +549,8 @@ begin
   glLoadIdentity();
   glColorv(Color);
   glTranslatef(X, Y, 0);
-  if Rotation <> 0 then
-    glRotatef(Rotation, 0, 0, 1);
+  if FRotation <> 0 then
+    glRotatef(FRotation, 0, 0, 1);
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -596,28 +591,23 @@ begin
   GLEnableTexture(etNone);
 end;
 
-procedure TGLImage.Draw(const ScreenRectangle: TRectangle;
-  const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
+procedure TGLImage.Draw(const ScreenRectangle: TRectangle);
 begin
   Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
     ScreenRectangle.Width, ScreenRectangle.Height,
-    0, 0, Width, Height,
-    CenterX, CenterY, Rotation);
+    0, 0, Width, Height);
 end;
 
 procedure TGLImage.Draw(const ScreenRectangle: TRectangle;
-  const ImageX, ImageY, ImageWidth, ImageHeight: Single;
-  const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
+  const ImageX, ImageY, ImageWidth, ImageHeight: Single);
 begin
   Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
     ScreenRectangle.Width, ScreenRectangle.Height,
-    ImageX, ImageY, ImageWidth, ImageHeight,
-    CenterX, CenterY, Rotation);
+    ImageX, ImageY, ImageWidth, ImageHeight);
 end;
 
 procedure TGLImage.DrawFlipped(const ScreenRectangle: TRectangle;
-  const FlipHorizontal, FlipVertical: boolean;
-  const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
+  const FlipHorizontal, FlipVertical: boolean);
 var
   ImageX, ImageY, ImageWidth, ImageHeight: Single;
 begin
@@ -641,19 +631,16 @@ begin
     ImageHeight := Height;
   end;
 
-  Draw(ScreenRectangle, ImageX, ImageY, ImageWidth, ImageHeight,
-    CenterX, CenterY, Rotation);
+  Draw(ScreenRectangle, ImageX, ImageY, ImageWidth, ImageHeight);
 end;
 
 procedure TGLImage.Draw(const ScreenRectangle: TRectangle;
-  const ImageRect: TRectangle;
-  const  CenterX: Single=0; const CenterY: Single=0; const Rotation: Single=0);
+  const ImageRect: TRectangle);
 begin
   Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
     ScreenRectangle.Width, ScreenRectangle.Height,
     ImageRect.Left, ImageRect.Bottom,
-    ImageRect.Width, ImageRect.Height,
-    CenterX, CenterY, Rotation);
+    ImageRect.Width, ImageRect.Height);
 end;
 
 procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
