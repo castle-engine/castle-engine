@@ -39,7 +39,7 @@ type
         See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .)
     )
   }
-  TAnalytics = class
+  TAnalytics = class(TComponent)
   public
     { Initialize Google Analytics https://www.google.com/analytics/ .
       Usually called from @link(TCastleApplication.OnInitializeJavaActivity). }

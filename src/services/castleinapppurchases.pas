@@ -18,7 +18,7 @@ unit CastleInAppPurchases;
 
 interface
 
-uses FGL,
+uses Classes, FGL,
   CastleStringUtils;
 
 type
@@ -60,7 +60,7 @@ type
     currencies, in the Google Developer Console.) The names of products
     you provide to @link(SetAvailableProducts) or @link(Product) methods
     should correspond to product names you set in the Google Developer Console. }
-  TInAppPurchases = class
+  TInAppPurchases = class(TComponent)
   private
   type
     TProductList = specialize TFPGObjectList<TInAppProduct>;
@@ -84,7 +84,7 @@ type
       successfully bought. }
     procedure Owns(const AProduct: TInAppProduct); virtual;
   public
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     { Initialize a list of product names for which to query prices
@@ -106,7 +106,7 @@ type
       Creates and adds new product, if not found (useful in case
       you asked for a product before information about it arrived from the net,
       or before you even called SetAvailableProducts with it). }
-    function Product(const Name: string): TInAppProduct;
+    function Product(const ProductName: string): TInAppProduct;
 
     { Purely for debug purposes, mockup buying (pretend that all purchases succeed). }
     property DebugMockupBuying: boolean
@@ -130,7 +130,7 @@ end;
 
 { TInAppPurchases ------------------------------------------------------------ }
 
-constructor TInAppPurchases.Create;
+constructor TInAppPurchases.Create(AOwner: TComponent);
 begin
   inherited;
   List := TProductList.Create(true);
@@ -174,17 +174,17 @@ begin
   end;
 end;
 
-function TInAppPurchases.Product(const Name: string): TInAppProduct;
+function TInAppPurchases.Product(const ProductName: string): TInAppProduct;
 var
   I: Integer;
 begin
   for I := 0 to List.Count - 1 do
-    if List[I].Name = Name then
+    if List[I].Name = ProductName then
       Exit(List[I]);
 
   { not found, so create new }
   Result := TInAppProduct.Create;
-  Result.FName := Name;
+  Result.FName := ProductName;
   if DebugMockupBuying then
     Result.FPriceRaw := '10,00 USD'; //'6,15 zł';
   List.Add(Result);

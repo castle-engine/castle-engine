@@ -791,26 +791,6 @@ end;
     procedure DefineProperties(Filer: TFiler); override;
     procedure SetContainer(const Value: TUIContainer); override;
 
-    { UI scale of this control, derived from container
-      (see @link(TUIContainer.UIScaling).
-
-      All the drawing and measuring inside your control must take this into
-      account. The final @link(Rect) result must already take this scaling
-      into account, so that parent controls may depend on it. In the simplest
-      case, your @code(Rect) should return
-
-@longCode(#
-function TMyControl.Rect: TRectangle;
-begin
-  Result := Rectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
-end;
-#)
-
-      This is so simple only when your drawing code 100% adjusts
-      the drawn contents to the passed @link(ScreenRect). It's not always
-      that easy, that's why we don't do it automatically in the engine. }
-    function UIScale: Single;
-
     { The left-bottom corner scaled by UIScale,
       useful for implementing overridden @code(Rect) methods. }
     function LeftBottomScaled: TVector2Integer;
@@ -1034,7 +1014,7 @@ end;
     procedure Anchor(const AVerticalAnchor: TVerticalPosition;
       const AVerticalAnchorDelta: Integer = 0);
 
-    { Manually position the control with respect to the parent
+    { Immediately position the control with respect to the parent
       by adjusting @link(Left).
       Deprecated, use @link(Align) with THorizontalPosition. }
     procedure AlignHorizontal(
@@ -1042,7 +1022,7 @@ end;
       const ContainerPosition: TPositionRelative = prMiddle;
       const X: Integer = 0); deprecated 'use Align, or use even simpler HasHorizontalAnchor, HorizontalAnchor, HorizontalAnchorDelta';
 
-    { Manually position the control with respect to the parent
+    { Immediately position the control with respect to the parent
       by adjusting @link(Left).
 
       Note that in simple cases, you can achieve the same functionality
@@ -1052,7 +1032,7 @@ end;
       const ContainerPosition: THorizontalPosition;
       const X: Integer = 0);
 
-    { Manually position the control with respect to the parent
+    { Immediately position the control with respect to the parent
       by adjusting @link(Bottom).
       Deprecated, use @link(Align) with TVerticalPosition. }
     procedure AlignVertical(
@@ -1060,7 +1040,7 @@ end;
       const ContainerPosition: TPositionRelative = prMiddle;
       const Y: Integer = 0); deprecated 'use Align, or use even simpler HasVerticalAnchor, VerticalAnchor, VerticalAnchorDelta';
 
-    { Manually position the control with respect to the parent
+    { Immediately position the control with respect to the parent
       by adjusting @link(Bottom).
 
       Note that in simple cases, you can achieve the same functionality
@@ -1070,12 +1050,32 @@ end;
       const ContainerPosition: TVerticalPosition;
       const Y: Integer = 0);
 
-    { Manually center the control within the parent,
+    { Immediately center the control within the parent,
       both horizontally and vertically.
 
       Note that in simple cases, you can achieve the same functionality
       by HasHorizontalAnchor, HorizontalAnchor, HasVerticalAnchor, VerticalAnchor. }
     procedure Center;
+
+    { UI scale of this control, derived from container
+      (see @link(TUIContainer.UIScaling).
+
+      All the drawing and measuring inside your control must take this into
+      account. The final @link(Rect) result must already take this scaling
+      into account, so that parent controls may depend on it. In the simplest
+      case, your @code(Rect) should return
+
+@longCode(#
+function TMyControl.Rect: TRectangle;
+begin
+  Result := Rectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
+end;
+#)
+
+      This is so simple only when your drawing code 100% adjusts
+      the drawn contents to the passed @link(ScreenRect). It's not always
+      that easy, that's why we don't do it automatically in the engine. }
+    function UIScale: Single;
   published
     { Not existing control is not visible, it doesn't receive input
       and generally doesn't exist from the point of view of user.

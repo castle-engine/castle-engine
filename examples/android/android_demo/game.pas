@@ -190,10 +190,27 @@ end;
 
 { One-time initialization. }
 procedure ApplicationInitialize;
+const
+  Margin = 10;
+
+var
+  AnchorY: Integer;
+
+  { Anchor next button under the previous one. }
+  procedure AnchorNextButton(const B: TCastleButton);
+  begin
+    B.Anchor(vpTop, AnchorY);
+    AnchorY -= Margin + Round(B.Rect.Height / B.UIScale);
+  end;
+
 begin
   InitializeLog('1.0.0');
 
   Progress.UserInterface := WindowProgressInterface;
+
+  Window.Container.UIScaling := usEncloseReferenceSize;
+  Window.Container.UIReferenceWidth := 1024;
+  Window.Container.UIReferenceHeight := 768;
 
 {$ifdef SOLID_BACKGROUND}
   { Show other controls under SceneManager, this way our Background
@@ -207,59 +224,87 @@ begin
 
   Image := TCastleImageControl.Create(Window);
   Image.URL := ApplicationData('sample_image_with_alpha.png' {'sample_texture.ppm'});
+  Image.Anchor(hpLeft, Margin);
+  Image.Anchor(vpTop, -Margin);
   Window.Controls.InsertFront(Image);
 
   Window.Load(ApplicationData('castle_with_lights_and_camera.wrl'));
   Window.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
   Window.MainScene.ProcessEvents := true;
 
+  { buttons in middle-top, from top to bottom }
+
+  AnchorY := -Margin;
+
   ToggleShaderButton := TCastleButton.Create(Window);
   ToggleShaderButton.Caption := 'Toggle Shader Effect';
   ToggleShaderButton.OnClick := @TDummy(nil).ToggleShaderClick;
   ToggleShaderButton.Toggle := true;
+  ToggleShaderButton.Anchor(hpMiddle);
   Window.Controls.InsertFront(ToggleShaderButton);
+  AnchorNextButton(ToggleShaderButton);
 
   ToggleScreenEffectButton := TCastleButton.Create(Window);
   ToggleScreenEffectButton.Caption := 'Toggle Screen Effect';
   ToggleScreenEffectButton.OnClick := @TDummy(nil).ToggleScreenEffectClick;
   ToggleScreenEffectButton.Toggle := true;
+  ToggleScreenEffectButton.Anchor(hpMiddle);
   Window.Controls.InsertFront(ToggleScreenEffectButton);
+  AnchorNextButton(ToggleScreenEffectButton);
 
   ToggleSSAOButton := TCastleButton.Create(Window);
   ToggleSSAOButton.Caption := 'Toggle SSAO';
   ToggleSSAOButton.OnClick := @TDummy(nil).ToggleSSAOClick;
   ToggleSSAOButton.Toggle := true;
+  ToggleSSAOButton.Anchor(hpMiddle);
   Window.Controls.InsertFront(ToggleSSAOButton);
+  AnchorNextButton(ToggleSSAOButton);
+
+  { buttons in right-top, from top to bottom }
+
+  AnchorY := -Margin;
 
   TouchUIButton := TCastleButton.Create(Window);
   TouchUIButton.Caption := 'Next Touch UI';
   TouchUIButton.OnClick := @TDummy(nil).TouchUIClick;
+  TouchUIButton.Anchor(hpRight, -Margin);
   Window.Controls.InsertFront(TouchUIButton);
+  AnchorNextButton(TouchUIButton);
 
   MessageButton := TCastleButton.Create(Window);
   MessageButton.Caption := 'Test Modal Message';
   MessageButton.OnClick := @TDummy(nil).MessageClick;
+  MessageButton.Anchor(hpRight, -Margin);
   Window.Controls.InsertFront(MessageButton);
+  AnchorNextButton(MessageButton);
 
   ProgressButton := TCastleButton.Create(Window);
   ProgressButton.Caption := 'Test Progress Bar';
   ProgressButton.OnClick := @TDummy(nil).ProgressClick;
+  ProgressButton.Anchor(hpRight, -Margin);
   Window.Controls.InsertFront(ProgressButton);
+  AnchorNextButton(ProgressButton);
 
   ReopenContextButton := TCastleButton.Create(Window);
   ReopenContextButton.Caption := 'Test Reopening OpenGL Context';
   ReopenContextButton.OnClick := @TDummy(nil).ReopenContextClick;
+  ReopenContextButton.Anchor(hpRight, -Margin);
   Window.Controls.InsertFront(ReopenContextButton);
+  AnchorNextButton(ReopenContextButton);
 
   ToggleTextureUpdatesButton := TCastleButton.Create(Window);
   ToggleTextureUpdatesButton.Caption := 'Toggle CubeMap Texture Updates';
   ToggleTextureUpdatesButton.OnClick := @TDummy(nil).ToggleTextureUpdates;
+  ToggleTextureUpdatesButton.Anchor(hpRight, -Margin);
   Window.Controls.InsertFront(ToggleTextureUpdatesButton);
+  AnchorNextButton(ToggleTextureUpdatesButton);
 
   PlaySoundButton := TCastleButton.Create(Window);
   PlaySoundButton.Caption := 'Play Sound';
   PlaySoundButton.OnClick := @TDummy(nil).PlaySound;
+  PlaySoundButton.Anchor(hpRight, -Margin);
   Window.Controls.InsertFront(PlaySoundButton);
+  AnchorNextButton(PlaySoundButton);
 
   MyShaderEffect := Window.SceneManager.MainScene.RootNode.TryFindNodeByName(
     TEffectNode, 'MyShaderEffect', false) as TEffectNode;
@@ -290,56 +335,6 @@ begin
     Window.SceneManager.Statistics.ShapesVisible]));
 end;
 
-procedure WindowResize(Container: TUIContainer);
-const
-  Margin = 10;
-var
-  Bottom: Integer;
-begin
-  Image.Align(hpLeft, hpLeft, Margin);
-  Image.Align(vpTop, vpTop, -Margin);
-
-  Bottom := Window.Height;
-
-  Bottom -= ToggleShaderButton.Height + Margin;
-  ToggleShaderButton.Align(hpMiddle, hpMiddle);
-  ToggleShaderButton.Bottom := Bottom;
-
-  Bottom -= ToggleScreenEffectButton.Height + Margin;
-  ToggleScreenEffectButton.Align(hpMiddle, hpMiddle);
-  ToggleScreenEffectButton.Bottom := Bottom;
-
-  Bottom -= ToggleSSAOButton.Height + Margin;
-  ToggleSSAOButton.Align(hpMiddle, hpMiddle);
-  ToggleSSAOButton.Bottom := Bottom;
-
-  Bottom := Window.Height;
-
-  Bottom -= TouchUIButton.Height + Margin;
-  TouchUIButton.Align(hpRight, hpRight, -Margin);
-  TouchUIButton.Bottom := Bottom;
-
-  Bottom -= MessageButton.Height + Margin;
-  MessageButton.Align(hpRight, hpRight, -Margin);
-  MessageButton.Bottom := Bottom;
-
-  Bottom -= ProgressButton.Height + Margin;
-  ProgressButton.Align(hpRight, hpRight, -Margin);
-  ProgressButton.Bottom := Bottom;
-
-  Bottom -= ReopenContextButton.Height + Margin;
-  ReopenContextButton.Align(hpRight, hpRight, -Margin);
-  ReopenContextButton.Bottom := Bottom;
-
-  Bottom -= ToggleTextureUpdatesButton.Height + Margin;
-  ToggleTextureUpdatesButton.Align(hpRight, hpRight, -Margin);
-  ToggleTextureUpdatesButton.Bottom := Bottom;
-
-  Bottom -= PlaySoundButton.Height + Margin;
-  PlaySoundButton.Align(hpRight, hpRight, -Margin);
-  PlaySoundButton.Bottom := Bottom;
-end;
-
 function MyGetApplicationName: string;
 begin
   Result := 'androiddemo';
@@ -356,5 +351,4 @@ initialization
   Window := TCastleWindowTouch.Create(Application);
   Application.MainWindow := Window;
   Window.OnRender := @WindowRender;
-  Window.OnResize := @WindowResize;
 end.

@@ -2298,7 +2298,10 @@ begin
   FInputText := AInputText;
   SetLength(Buttons, Length(AButtons));
   for I := 0 to High(AButtons) do
+  begin
     Buttons[I] := AButtons[I];
+    Buttons[I].EnableUIScaling := false; // TODO: for now, TCastleDialog does not support UIScaling
+  end;
 end;
 
 destructor TCastleDialog.Destroy;

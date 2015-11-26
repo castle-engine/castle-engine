@@ -438,7 +438,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
   Application.OnInitializeJavaActivity := @ApplicationInitializeJavaActivity;
 
-  GooglePlayGames := TGooglePlayGames.Create;
+  GooglePlayGames := TGooglePlayGames.Create(nil);
 
   { create Window and initialize Window callbacks }
   Window := TCastleWindowCustom.Create(Application);

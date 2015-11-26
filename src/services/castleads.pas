@@ -58,12 +58,12 @@ type
         See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .)
     )
   }
-  TAds = class
+  TAds = class(TComponent)
   private
     FOnInterstitialShown: TNotifyEvent;
     function MessageReceived(const Received: TCastleStringList): boolean;
   public
-    constructor Create;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     { Initialize AdMob ads. You need to create the unit ids on AdMob website
@@ -111,7 +111,7 @@ implementation
 uses SysUtils,
   CastleUtils, CastleMessaging;
 
-constructor TAds.Create;
+constructor TAds.Create(AOwner: TComponent);
 begin
   inherited;
   Messaging.OnReceive.Add(@MessageReceived);
