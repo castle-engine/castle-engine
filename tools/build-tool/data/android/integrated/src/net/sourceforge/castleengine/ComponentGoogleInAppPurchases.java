@@ -30,6 +30,7 @@ import com.android.vending.billing.IInAppBillingService;
 public class ComponentGoogleInAppPurchases extends ComponentAbstract
 {
     private static final String TAG = "${NAME}.castleengine.ComponentGoogleInAppPurchases";
+    private static int REQUEST_PURCHASE = 9200;
 
     IInAppBillingService mBilingService;
     String mPayLoad;
@@ -180,7 +181,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                 return;
             }
             getActivity().startIntentSenderForResult(pendingIntent.getIntentSender(),
-                getActivity().REQUEST_PURCHASE, new Intent(), Integer.valueOf(0), Integer.valueOf(0),
+                REQUEST_PURCHASE, new Intent(), Integer.valueOf(0), Integer.valueOf(0),
                 Integer.valueOf(0));
         } catch (SendIntentException e) {
             Log.e(TAG, "SendIntentException when sending buy intent.");
@@ -344,7 +345,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        if (requestCode == getActivity().REQUEST_PURCHASE) {
+        if (requestCode == REQUEST_PURCHASE) {
             Log.i(TAG, "onActivityResult - REQUEST_PURCHASE");
             purchaseActivityResult(resultCode, intent);
         }

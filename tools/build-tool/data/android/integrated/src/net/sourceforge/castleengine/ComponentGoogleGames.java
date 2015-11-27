@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.util.Log;
 import android.app.Activity;
+import android.os.Bundle;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -20,10 +21,15 @@ import ${QUALIFIED_NAME}.R;
  * Integration of Google Games (achievements, leaderboards and more) with
  * Castle Game Engine.
  */
-public class ComponentGoogleGames extends ComponentAbstract
+public class ComponentGoogleGames extends ComponentAbstract implements
+    GoogleApiClient.ConnectionCallbacks,
+    GoogleApiClient.OnConnectionFailedListener
 {
     private static final String TAG = "${NAME}.castleengine.ComponentGoogleGames";
     private static int REQUEST_SIGN_IN = 9001;
+    private static int REQUEST_ACHIEVEMENTS = 9101;
+    private static int REQUEST_LEADERBOARD = 9102;
+
     private boolean initialized, scheduledStart;
 
     private GoogleApiClient mGoogleApiClient;
@@ -52,8 +58,8 @@ public class ComponentGoogleGames extends ComponentAbstract
 
         // Create the Google Api Client with access to the Play Game services
         mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
-            .addConnectionCallbacks(getActivity())
-            .addOnConnectionFailedListener(getActivity())
+            .addConnectionCallbacks(this)
+            .addOnConnectionFailedListener(this)
             .addApi(Games.API).addScope(Games.SCOPE_GAMES)
             .build();
         initialized = true;
@@ -119,7 +125,8 @@ public class ComponentGoogleGames extends ComponentAbstract
     private long mScoreToSendWhenConnected;
     private String mScoreToSendWhenConnectedLeaderboard;
 
-    public void onConnected()
+    @Override
+    public void onConnected(Bundle connectionHint)
     {
         Log.i(TAG, "onConnected (Google Games connected OK!)");
 
@@ -183,6 +190,7 @@ public class ComponentGoogleGames extends ComponentAbstract
         }
     }
 
+    @Override
     public void onConnectionFailed(ConnectionResult connectionResult)
     {
         Log.w(TAG, "onConnectionFailed");
@@ -201,7 +209,7 @@ public class ComponentGoogleGames extends ComponentAbstract
 
             // Attempt to resolve the connection failure.
             if (!resolveConnectionFailure(getActivity(),
-                    mGoogleApiClient, connectionResult, getActivity().REQUEST_SIGN_IN)) {
+                    mGoogleApiClient, connectionResult, REQUEST_SIGN_IN)) {
                 mResolvingConnectionFailure = false;
             }
         }
@@ -210,7 +218,8 @@ public class ComponentGoogleGames extends ComponentAbstract
         setGoogleSignedIn(false);
     }
 
-    public void onConnectionSuspended()
+    @Override
+    public void onConnectionSuspended(int i)
     {
         Log.i(TAG, "onConnectionSuspended, attempting to reconnect");
         setGoogleSignedIn(false);
@@ -220,7 +229,7 @@ public class ComponentGoogleGames extends ComponentAbstract
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        if (requestCode == getActivity().REQUEST_SIGN_IN) {
+        if (requestCode == REQUEST_SIGN_IN) {
             Log.i(TAG, "onActivityResult - REQUEST_SIGN_IN");
             mSignInClicked = false;
             mResolvingConnectionFailure = false;
@@ -282,7 +291,7 @@ public class ComponentGoogleGames extends ComponentAbstract
     {
         if (checkGamesConnection()) {
             getActivity().startActivityForResult(Games.Achievements.getAchievementsIntent(
-                mGoogleApiClient), getActivity().REQUEST_ACHIEVEMENTS);
+                mGoogleApiClient), REQUEST_ACHIEVEMENTS);
         } else {
             Log.i(TAG, "Not connected to Google Games -> connecting, in response to showAchievements");
             signInClicked();
@@ -306,7 +315,7 @@ public class ComponentGoogleGames extends ComponentAbstract
     {
         if (checkGamesConnection()) {
             getActivity().startActivityForResult(Games.Leaderboards.getLeaderboardIntent(
-                mGoogleApiClient, leaderboardId), getActivity().REQUEST_LEADERBOARD);
+                mGoogleApiClient, leaderboardId), REQUEST_LEADERBOARD);
         } else {
             Log.i(TAG, "Not connected to Google Games -> connecting, in response to showLeaderboard");
             signInClicked();
