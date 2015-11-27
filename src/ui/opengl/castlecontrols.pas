@@ -425,11 +425,11 @@ type
       with borders work. }
     property Corners: TVector4Integer read FCorners write FCorners;
 
-    { X coordinate of center of rotation. Value from 0 to 1. Default value 0. }
-    property CenterX: Single read GetCenterX write SetCenterX default 0;
+    { X coordinate of center of rotation. Value from 0 to 1. Default value 0.5. }
+    property CenterX: Single read GetCenterX write SetCenterX default 0.5;
 
-    { Y coordinate of center of rotation. Value from 0 to 1. Default value 0. }
-    property CenterY: Single read GetCenterY write SetCenterY default 0;
+    { Y coordinate of center of rotation. Value from 0 to 1. Default value 0.5. }
+    property CenterY: Single read GetCenterY write SetCenterY default 0.5;
 
     { Rotation in degrees.  Default value 0. }
     property Rotation: Single read GetRotation write SetRotation default 0;
@@ -1824,9 +1824,6 @@ begin
   FColor := White;
   FOwnsImage := true;
   FSmoothScaling := true;
-  FCenterX := 0.5;
-  FCenterY := 0.5;
-  FRotation := 0;
 end;
 
 destructor TCastleImageControl.Destroy;

@@ -286,11 +286,11 @@ type
     property ScalingPossible: boolean read FSmoothScaling write SetSmoothScaling;
       deprecated 'use SmoothScaling';
 
-    { X coordinate of center of rotation. Value from 0 to 1. Default value 0. }
-    property CenterX: Single read FCenterX write FCenterX default 0;
+    { X coordinate of center of rotation. Value from 0 to 1. Default value 0.5. }
+    property CenterX: Single read FCenterX write FCenterX default 0.5;
 
-    { Y coordinate of center of rotation. Value from 0 to 1. Default value 0. }
-    property CenterY: Single read FCenterY write FCenterY default 0;
+    { Y coordinate of center of rotation. Value from 0 to 1. Default value 0.5. }
+    property CenterY: Single read FCenterY write FCenterY default 0.5;
 
     { Rotation in degrees.  Default value 0. }
     property Rotation: Single read FRotation write FRotation default 0;
@@ -319,6 +319,9 @@ begin
 
   FColor := White;
   FScaleCorners := 1;
+  FCenterX := 0.5;
+  FCenterY := 0.5;
+  FRotation := 0;
 
   glGenTextures(1, @Texture);
   Load(Image); // Load will already call proper glBindTexture
@@ -548,7 +551,7 @@ begin
   {$else}
   glLoadIdentity();
   glColorv(Color);
-  glTranslatef(X, Y, 0);
+  glTranslatef(X - PixCenterX, Y - PixCenterY, 0);
   if FRotation <> 0 then
     glRotatef(FRotation, 0, 0, 1);
 
