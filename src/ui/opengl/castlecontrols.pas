@@ -365,6 +365,12 @@ type
     FCorners: TVector4Integer;
     FOwnsImage: boolean;
     FSmoothScaling: boolean;
+    function GetCenterX: Single;
+    function GetCenterY: Single;
+    function GetRotation: Single;
+    procedure SetCenterX(AValue: Single);
+    procedure SetCenterY(AValue: Single);
+    procedure SetRotation(AValue: Single);
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TCastleImage);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
@@ -418,6 +424,15 @@ type
       See @link(TGLImage.Draw3x3) for the details how drawing image
       with borders work. }
     property Corners: TVector4Integer read FCorners write FCorners;
+
+    { X coordinate of center of rotation. Value from 0 to 1. Default value 0. }
+    property CenterX: Single read GetCenterX write SetCenterX default 0;
+
+    { Y coordinate of center of rotation. Value from 0 to 1. Default value 0. }
+    property CenterY: Single read GetCenterY write SetCenterY default 0;
+
+    { Rotation in degrees.  Default value 0. }
+    property Rotation: Single read GetRotation write SetRotation default 0;
   published
     { URL of the image. Setting this also sets @link(Image).
       Set this to '' to clear the image. }
@@ -1809,6 +1824,9 @@ begin
   FColor := White;
   FOwnsImage := true;
   FSmoothScaling := true;
+  FCenterX := 0.5;
+  FCenterY := 0.5;
+  FRotation := 0;
 end;
 
 destructor TCastleImageControl.Destroy;
@@ -1839,6 +1857,36 @@ begin
   { only once new Image is successfully loaded, change property value.
     If LoadImage raised exception, URL will remain unchanged. }
   FURL := Value;
+end;
+
+function TCastleImageControl.GetCenterX: Single;
+begin
+  Result := FGLImage.CenterX;
+end;
+
+function TCastleImageControl.GetCenterY: Single;
+begin
+  Result := FGLImage.CenterY;
+end;
+
+function TCastleImageControl.GetRotation: Single;
+begin
+  Result := FGLImage.Rotation;
+end;
+
+procedure TCastleImageControl.SetCenterX(AValue: Single);
+begin
+  FGLImage.CenterX := AValue;
+end;
+
+procedure TCastleImageControl.SetCenterY(AValue: Single);
+begin
+  FGLImage.CenterY := AValue;
+end;
+
+procedure TCastleImageControl.SetRotation(AValue: Single);
+begin
+  FGLImage.Rotation := AValue;
 end;
 
 procedure TCastleImageControl.SetImage(const Value: TCastleImage);
