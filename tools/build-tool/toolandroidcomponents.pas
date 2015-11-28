@@ -31,6 +31,7 @@ type
     destructor Destroy; override;
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
     property Name: string read FName;
+    property Parameters: TStringStringMap read FParameters;
   end;
 
   TAndroidComponentList = class(specialize TFPGObjectList<TAndroidComponent>)
@@ -66,22 +67,18 @@ end;
 procedure TAndroidComponent.ReadCastleEngineManifest(const Element: TDOMElement);
 var
   ChildElements: TDOMNodeList;
-  ParametersElement, ChildElement: TDOMElement;
+  ChildElement: TDOMElement;
   I: Integer;
 begin
   FName := Element.AttributeString('name');
 
-  ParametersElement := DOMGetChildElement(Element, 'parameters', false);
-  if ParametersElement <> nil then
+  ChildElements := Element.GetElementsByTagName('parameter');
+  for I := 0 to ChildElements.Count - 1 do
   begin
-    ChildElements := Element.GetElementsByTagName('parameter');
-    for I := 0 to ChildElements.Count - 1 do
-    begin
-      ChildElement := ChildElements[I] as TDOMElement;
-      FParameters.Add(
-        ChildElement.AttributeString('key'),
-        ChildElement.AttributeString('value'));
-    end;
+    ChildElement := ChildElements[I] as TDOMElement;
+    FParameters.Add(
+      ChildElement.AttributeString('key'),
+      ChildElement.AttributeString('value'));
   end;
 end;
 

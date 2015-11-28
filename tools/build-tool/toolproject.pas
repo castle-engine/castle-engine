@@ -47,9 +47,6 @@ type
     FScreenOrientation: TScreenOrientation;
     FAndroidProjectType: TAndroidProjectType;
     FAndroidComponents: TAndroidComponentList;
-    GooglePlayServicesAppId: string;
-    // GooglePlayServicesLibLocation: string;
-    // GooglePlayServicesLibLocationRelative: string;
     // Helpers only for ExtractTemplateFoundFile.
     ExtractTemplateDestinationPath, ExtractTemplateDir: string;
     function PluginCompiledFile(const OS: TOS; const CPU: TCPU): string;
@@ -174,7 +171,6 @@ end;
 
 const
   DataName = 'data';
-  //GooglePlayServicesUndefined = '(undefined in CastleEngineManifest.xml)';
 
 constructor TCastleProject.Create(const APath: string);
 
@@ -333,13 +329,6 @@ constructor TCastleProject.Create(const APath: string);
               raise Exception.CreateFmt('Invalid android project_type "%s"', [AndroidProjectTypeStr]);
           end;
 
-          ChildElement := DOMGetChildElement(Element, 'google_play_services', false);
-          if ChildElement <> nil then
-          begin
-            GooglePlayServicesAppId := ChildElement.AttributeStringDef('app_id', '');
-            //GooglePlayServicesLibLocation := ChildElement.AttributeStringDef('lib_location', GooglePlayServicesUndefined);
-          end;
-
           ChildElement := DOMGetChildElement(Element, 'components', false);
           if ChildElement <> nil then
             FAndroidComponents.ReadCastleEngineManifest(ChildElement);
@@ -416,7 +405,6 @@ begin
   FIcons := TIconFileNames.Create;
   FAndroidProjectType := apBase;
   FAndroidComponents := TAndroidComponentList.Create(true);
-  //GooglePlayServicesLibLocation := GooglePlayServicesUndefined;
 
   FPath := InclPathDelim(APath);
   FDataPath := InclPathDelim(Path + DataName);
@@ -1033,7 +1021,7 @@ const
 
 var
   Macros: TStringStringMap;
-  I: Integer;
+  I, J: Integer;
   P, NonEmptyAuthor: string;
   VersionComponents: array [0..3] of Cardinal;
   VersionComponentsString: TCastleStringList;
@@ -1070,11 +1058,14 @@ begin
     Macros.Add('ANDROID_LIBRARY_NAME'                , ChangeFileExt(ExtractFileName(AndroidSource), ''));
     Macros.Add('ANDROID_SCREEN_ORIENTATION'          , AndroidScreenOrientation[ScreenOrientation]);
     Macros.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'  , AndroidScreenOrientationFeature[ScreenOrientation]);
-    Macros.Add('ANDROID_GOOGLE_PLAY_SERVICES_APP_ID' , GooglePlayServicesAppId);
     Macros.Add('ANDROID_ACTIVITY_LOAD_LIBRARIES'     , AndroidActivityLoadLibraries);
     Macros.Add('ANDROID_MK_LOAD_LIBRARIES'           , AndroidMkLoadLibraries);
-
-    //Macros.Add('ANDROID_GOOGLE_PLAY_SERVICES_LIB_LOCATION' , GooglePlayServicesLibLocationRelative);
+    for I := 0 to AndroidComponents.Count - 1 do
+      for J := 0 to AndroidComponents[I].Parameters.Count - 1 do
+        Macros.Add('ANDROID.' +
+          UpperCase(AndroidComponents[I].Name) + '.' +
+          UpperCase(AndroidComponents[I].Parameters.Keys[J]),
+          AndroidComponents[I].Parameters.Data[J]);
 
     // add CamelCase() replacements, add ${} around
     for I := 0 to Macros.Count - 1 do
@@ -1096,12 +1087,6 @@ begin
   ExtractTemplateDir := ExclPathDelim(URIToFilenameSafe(ApplicationData(TemplatePath)));
   if not DirectoryExists(ExtractTemplateDir) then
     raise Exception.Create('Cannot find Android project template in "' + ExtractTemplateDir + '". ' + SErrDataDir);
-
-  // { calculate GooglePlayServicesLibLocationRelative now, for ReplaceMacros }
-  // GooglePlayServicesLibLocationRelative :=
-  //   ExtractRelativePath(ExtractTemplateDestinationPath,
-  //     { make sure GooglePlayServicesLibLocation is absolute }
-  //     CombinePaths(Path, GooglePlayServicesLibLocation));
 
   TemplateFilesCount := FindFiles(ExtractTemplateDir, '*', false,
     @ExtractTemplateFoundFile, [ffRecursive]);

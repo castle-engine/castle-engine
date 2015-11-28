@@ -15,6 +15,11 @@
     <include path="AUTHORS.txt" />
   </package>
   <android project_type="integrated">
-    <google_play_services app_id="459592926652" />
+    <components>
+      <component name="google_play_services" />
+      <component name="google_play_games">
+        <parameter key="app_id" value="459592926652" />
+      </component>
+    </components>
   </android>
 </project>

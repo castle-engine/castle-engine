@@ -25,7 +25,6 @@ public class MainActivity extends NativeActivity
 
         components.add(messaging = new ComponentMessaging(this));
         components.add(new ComponentMiscellaneous(this));
-        components.add(new ComponentGoogleGames(this));
 
         /* ANDROID-COMPONENTS-INITIALIZATION */
 

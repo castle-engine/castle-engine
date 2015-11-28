@@ -21,11 +21,11 @@ import ${QUALIFIED_NAME}.R;
  * Integration of Google Games (achievements, leaderboards and more) with
  * Castle Game Engine.
  */
-public class ComponentGoogleGames extends ComponentAbstract implements
+public class ComponentGooglePlayGames extends ComponentAbstract implements
     GoogleApiClient.ConnectionCallbacks,
     GoogleApiClient.OnConnectionFailedListener
 {
-    private static final String TAG = "${NAME}.castleengine.ComponentGoogleGames";
+    private static final String TAG = "${NAME}.castleengine.ComponentGooglePlayGames";
     private static int REQUEST_SIGN_IN = 9001;
     private static int REQUEST_ACHIEVEMENTS = 9101;
     private static int REQUEST_LEADERBOARD = 9102;
@@ -39,7 +39,7 @@ public class ComponentGoogleGames extends ComponentAbstract implements
      */
     private String mDefaultLeaderboardToRefresh;
 
-    public ComponentGoogleGames(MainActivity activity)
+    public ComponentGooglePlayGames(MainActivity activity)
     {
         super(activity);
     }

@@ -31,12 +31,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- For Google Games integration -->
-        <meta-data android:name="com.google.android.gms.version"
-          android:value="@integer/google_play_services_version" />
-        <meta-data android:name="com.google.android.gms.games.APP_ID"
-          android:value="@string/app_id" />
     </application>
 
     <!-- About min version:
