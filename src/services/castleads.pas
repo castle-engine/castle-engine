@@ -35,7 +35,7 @@ const
   TestAdMobInterstitialUnitId = 'ca-app-pub-3940256099942544/1033173712';
 
 type
-  TAdType = (atAdMob, atChartboost, atStartApp);
+  TAdNetwork = (anAdMob, anChartboost, anStartApp);
 
   { Advertisements in game.
     Right now only on Android (does nothing on other platforms,
@@ -54,8 +54,10 @@ type
         @link(ShowInterstitial), @link(ShowBanner), @link(HideBanner).)
 
       @item(To include the necessary integration code in your Android project,
-        you must declare your Android project type as "integrated".
-        See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .)
+        declare your Android project type as "integrated" with
+        the appropriate components (admob, chartboost, startapp...)
+        inside CastleEngineManifest.xml .
+        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Types-And-Components .)
     )
   }
   TAds = class(TComponent)
@@ -94,14 +96,19 @@ type
     procedure InitializeChartboost(const AppId, AppSignature: string);
 
     { Show interstitial (full-screen) ad. }
-    procedure ShowInterstitial(const AdType: TAdType; const WaitUntilLoaded: boolean);
+    procedure ShowInterstitial(const AdNetwork: TAdNetwork; const WaitUntilLoaded: boolean);
 
-    { Show banner ad. TODO: right now, this is only implemented with AdMob (google ads). }
-    procedure ShowBanner(const HorizontalGravity: THorizontalPosition;
+    { Show banner ad.
+
+      TODO: right now, this is only implemented with AdMob (google ads). }
+    procedure ShowBanner(const AdNetwork: TAdNetwork;
+      const HorizontalGravity: THorizontalPosition;
       const VerticalPosition: TVerticalPosition);
 
-    { Hide banner ad. TODO: right now, this is only implemented with AdMob (google ads). }
-    procedure HideBanner;
+    { Hide banner ad.
+
+      TODO: right now, this is only implemented with AdMob (google ads). }
+    procedure HideBanner(const AdNetwork: TAdNetwork);
 
     property OnInterstitialShown: TNotifyEvent read FOnInterstitialShown write FOnInterstitialShown;
   end;
@@ -129,7 +136,7 @@ begin
   Result := false;
 
   if (Received.Count = 2) and
-     ( (Received[0] = 'ads-google-interstitial-display') or
+     ( (Received[0] = 'ads-admob-interstitial-display') or
        (Received[0] = 'ads-chartboost-interstitial-display') or
        (Received[0] = 'ads-startapp-interstitial-display')
      ) and
@@ -141,16 +148,16 @@ begin
   end;
 end;
 
-procedure TAds.ShowInterstitial(const AdType: TAdType; const WaitUntilLoaded: boolean);
+procedure TAds.ShowInterstitial(const AdNetwork: TAdNetwork; const WaitUntilLoaded: boolean);
 begin
-  case AdType of
-    atAdMob:
+  case AdNetwork of
+    anAdMob:
       if WaitUntilLoaded then
-        Messaging.Send(['ads-google-interstitial-display', 'wait-until-loaded']) else
-        Messaging.Send(['ads-google-interstitial-display', 'no-wait']);
-    atChartboost: Messaging.Send(['ads-chartboost-show-interstitial']);
-    atStartApp: Messaging.Send(['ads-startapp-show-interstitial']);
-    else raise EInternalError.Create('Unimplemented AdType');
+        Messaging.Send(['ads-admob-interstitial-display', 'wait-until-loaded']) else
+        Messaging.Send(['ads-admob-interstitial-display', 'no-wait']);
+    anChartboost: Messaging.Send(['ads-chartboost-show-interstitial']);
+    anStartApp: Messaging.Send(['ads-startapp-show-interstitial']);
+    else raise EInternalError.Create('Unimplemented AdNetwork');
   end;
 end;
 
@@ -160,7 +167,7 @@ var
   TestDeviceIdsGlued: string;
 begin
   TestDeviceIdsGlued := GlueStrings(TestDeviceIds, ',');
-  Messaging.Send(['ads-google-initialize', BannerUnitId, InterstitialUnitId, TestDeviceIdsGlued]);
+  Messaging.Send(['ads-admob-initialize', BannerUnitId, InterstitialUnitId, TestDeviceIdsGlued]);
 end;
 
 procedure TAds.InitializeChartboost(const AppId, AppSignature: string);
@@ -173,7 +180,8 @@ begin
   Messaging.Send(['ads-startapp-initialize', AppId]);
 end;
 
-procedure TAds.ShowBanner(const HorizontalGravity: THorizontalPosition;
+procedure TAds.ShowBanner(const AdNetwork: TAdNetwork;
+  const HorizontalGravity: THorizontalPosition;
   const VerticalPosition: TVerticalPosition);
 const
   { Gravity constants for some messages, for example to indicate ad placement.
@@ -191,6 +199,9 @@ const
 var
   Gravity: Integer;
 begin
+  if AdNetwork <> anAdMob then
+    Exit; // TODO: not implemented for other ad networks
+
   Gravity := 0;
   case HorizontalGravity of
     hpLeft: Gravity := Gravity or GravityLeft;
@@ -204,12 +215,15 @@ begin
     vpMiddle: Gravity := Gravity or GravityCenterVertical;
     else raise EInternalError.Create('ShowBanner:VerticalPosition?');
   end;
-  Messaging.Send(['ads-google-banner-show', IntToStr(Gravity)]);
+  Messaging.Send(['ads-admob-banner-show', IntToStr(Gravity)]);
 end;
 
-procedure TAds.HideBanner;
+procedure TAds.HideBanner(const AdNetwork: TAdNetwork);
 begin
-  Messaging.Send(['ads-google-banner-hide']);
+  if AdNetwork <> anAdMob then
+    Exit; // TODO: not implemented for other ad networks
+
+  Messaging.Send(['ads-admob-banner-hide']);
 end;
 
 end.

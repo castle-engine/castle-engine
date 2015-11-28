@@ -3,7 +3,6 @@ package net.sourceforge.castleengine;
 
 import android.view.View;
 import android.os.Build;
-import android.os.Vibrator;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -42,19 +41,6 @@ public class ComponentMiscellaneous extends ComponentAbstract
         }
     }
 
-    /* Vibrations ------------------------------------------------------------ */
-
-    /* See
-       http://stackoverflow.com/questions/13950338/how-to-make-an-android-device-vibrate
-       http://developer.android.com/reference/android/os/Vibrator.html
-    */
-
-    private void vibrate(long milliseconds)
-    {
-        Vibrator vibs = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
-        vibs.vibrate(milliseconds);
-    }
-
     /* Shares ---------------------------------------------------------------- */
 
     /**
@@ -91,11 +77,6 @@ public class ComponentMiscellaneous extends ComponentAbstract
         } else
         if (parts.length >= 4 && parts[0].equals("intent-send-text")) {
             intentSendText(parts[1], parts[2], glueStringArray(parts, 3, "="));
-            return true;
-        } else
-        if (parts.length == 2 && parts[0].equals("vibrate")) {
-            long milliseconds = Long.parseLong(parts[1]);
-            vibrate(milliseconds);
             return true;
         } else {
             return false;

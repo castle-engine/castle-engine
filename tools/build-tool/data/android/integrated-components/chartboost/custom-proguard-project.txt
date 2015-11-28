@@ -1,0 +1,7 @@
+# -*- mode: shell-script -*-
+# GameAnalytics proguard file.
+# This will be added to the main integrated/custom-proguard-project.txt
+# file by the build tool.
+
+## chartboost ##
+-keep class com.chartboost.** { *; }

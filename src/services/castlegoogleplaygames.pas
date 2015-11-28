@@ -35,10 +35,10 @@ type
         Usually from @link(TCastleApplication.OnInitializeJavaActivity).
         User will be automatically asked to sign-in to Google Play then.)
       @item(Use this to manage Google Games achievements, leaderboards and so on.)
-      @item(
-        To include the necessary integration code in your Android project,
-        you must declare your Android project type as "integrated".
-        See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .)
+      @item(To include the necessary integration code in your Android project,
+        declare your Android project type as "integrated" with
+        the "google_play_games" component inside CastleEngineManifest.xml.
+        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Types-And-Components .)
     ) }
   TGooglePlayGames = class(TComponent)
   private

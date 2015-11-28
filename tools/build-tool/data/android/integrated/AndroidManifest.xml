@@ -13,15 +13,11 @@
 
     <!-- See http://developer.android.com/reference/android/app/NativeActivity.html
       for example manifest using NativeActivity.
-
-      Required for Chartboost:
-      - android:hardwareAccelerated="true"
     -->
     <application
         android:label="@string/app_name"
         android:icon="@drawable/ic_launcher"
-        android:hasCode="true"
-        android:hardwareAccelerated="true">
+        android:hasCode="true">
         <activity android:name="net.sourceforge.castleengine.MainActivity"
                 android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
                 android:launchMode="singleTask"
@@ -35,35 +31,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- For Google Games integration -->
-        <meta-data android:name="com.google.android.gms.version"
-          android:value="@integer/google_play_services_version" />
-        <meta-data android:name="com.google.android.gms.games.APP_ID"
-          android:value="@string/app_id" />
-
-        <!-- For Google Ads (see https://developers.google.com/mobile-ads-sdk/docs/admob/android/quick-start) -->
-        <!--Include the AdActivity configChanges and theme. -->
-        <activity android:name="com.google.android.gms.ads.AdActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
-            android:theme="@android:style/Theme.Translucent" />
-
-        <!-- For Chartboost, following
-          https://github.com/freshplanet/ANE-Chartboost/issues/12
-          https://answers.chartboost.com/hc/en-us/articles/201219545-Android-Integration -->
-        <activity android:name="com.chartboost.sdk.CBImpressionActivity"
-            android:excludeFromRecents="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
-
-        <!-- For StartApp -->
-        <activity android:name="com.startapp.android.publish.list3d.List3DActivity"
-                  android:theme="@android:style/Theme" />
-        <activity android:name="com.startapp.android.publish.OverlayActivity"
-                  android:theme="@android:style/Theme.Translucent"
-                  android:configChanges="orientation|keyboardHidden|screenSize" />
-        <activity android:name="com.startapp.android.publish.FullScreenActivity"
-                  android:theme="@android:style/Theme"
-                  android:configChanges="orientation|keyboardHidden|screenSize" />
     </application>
 
     <!-- About min version:
@@ -76,31 +43,4 @@
     <uses-feature android:glEsVersion="0x00020000"/>
 
     ${ANDROID_SCREEN_ORIENTATION_FEATURE}
-
-    <!-- For Google biling -->
-    <uses-permission android:name="com.android.vending.BILLING" />
-
-    <!-- Required by Chartboost. -->
-    <!-- Required by Game Analytics 2.x. -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-
-    <!-- Required by Game Analytics 2.x. -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
-    <!-- Include required permissions for Google Mobile Ads (see https://developers.google.com/mobile-ads-sdk/docs/admob/android/quick-start).
-         They are also required for Google Analytics.
-         They are also required for Game Analytics.
-         They are also required for Chartboost.
-         They are also required for StartApp.
-    -->
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-
-    <!-- Optional (recommended) for Chartboost.
-         Required for StartApp.
-    -->
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-
-    <!-- vibration -->
-    <uses-permission android:name="android.permission.VIBRATE"/>
 </manifest>

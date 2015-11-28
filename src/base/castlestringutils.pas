@@ -41,7 +41,8 @@ unit CastleStringUtils;
 
 interface
 
-uses SysUtils, CastleUtils, Classes;
+uses SysUtils, Classes, FGL,
+  CastleUtils;
 
 type
   TDynamicStringArray = array of string;
@@ -74,6 +75,23 @@ type
     property L[Index: Integer]: string read GetL write SetL;
 
     function ToArray: TDynamicStringArray;
+  end;
+
+  { String-to-string map. Note that in simple cases you can also
+    use standard TStringList functionality (see it's properties Names, Values),
+    and this is better if your key/values may be multiline. }
+  TStringStringMap = class(specialize TFPGMap<string, string>)
+  public
+    { Set given key value, trying to preserve previous key value too.
+      This is useful for safely setting X3D META values.
+
+      Compared to normal PutKeyData, this behaves smarter if given Name
+      is already set. If it's set with the same Content, we do nothing.
+      If the Content is different, we move previous content to a
+      @code(Name + '-previous') key.
+      This way previous content value is preserved once (but not more,
+      to not grow the X3D file indefinitely). }
+    procedure PutPreserve(const Name, Content: string);
   end;
 
 type
@@ -513,6 +531,7 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
   Options cannot contain soBackwards flag. }
 function SReplacePatterns(const s: string; const patterns, values: array of string; const Options: TSearchOptions): string;
 function SReplacePatterns(const s: string; const patterns, values: TStrings; const Options: TSearchOptions): string;
+function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const Options: TSearchOptions): string;
 
 function SCharsCount(const s: string; c: char): Cardinal; overload;
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal; overload;
@@ -927,6 +946,28 @@ begin
   SetLength(Result, Count);
   for I := 0 to Count - 1 do
     Result[I] := Strings[I];
+end;
+
+{ TStringStringMap ----------------------------------------------------------- }
+
+procedure TStringStringMap.PutPreserve(const Name, Content: string);
+var
+  PreviousContent: string;
+  I: Integer;
+begin
+  I := IndexOf(Name);
+  if I <> -1 then
+  begin
+    PreviousContent := Data[I];
+    if PreviousContent <> Content then
+    begin
+      { move current content to -previous name }
+      KeyData[Name + '-previous'] := PreviousContent;
+      { set new content }
+      Data[I] := Content;
+    end;
+  end else
+    KeyData[Name] := Content;
 end;
 
 { routines ------------------------------------------------------------------- }
@@ -1656,6 +1697,29 @@ begin
     PatternsList.AssignArray(Patterns);
     ValuesList := TCastleStringList.Create;
     ValuesList.AssignArray(Values);
+    Result := SReplacePatterns(S, PatternsList, ValuesList, Options);
+  finally
+    FreeAndNil(PatternsList);
+    FreeAndNil(ValuesList);
+  end;
+end;
+
+function SReplacePatterns(const s: string; const Parameters: TStringStringMap;
+  const Options: TSearchOptions): string;
+var
+  PatternsList, ValuesList: TCastleStringList;
+  I: Integer;
+begin
+  PatternsList := nil;
+  ValuesList := nil;
+  try
+    PatternsList := TCastleStringList.Create;
+    ValuesList := TCastleStringList.Create;
+    for I := 0 to Parameters.Count - 1 do
+    begin
+      PatternsList.Add(Parameters.Keys[I]);
+      ValuesList.Add(Parameters.Data[I]);
+    end;
     Result := SReplacePatterns(S, PatternsList, ValuesList, Options);
   finally
     FreeAndNil(PatternsList);

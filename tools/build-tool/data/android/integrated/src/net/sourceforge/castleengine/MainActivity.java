@@ -1,41 +1,21 @@
 /* -*- tab-width: 4 -*- */
 package net.sourceforge.castleengine;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.annotation.SuppressLint;
 import android.app.NativeActivity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import java.util.ArrayList;
-import java.util.List;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-
-public class MainActivity extends NativeActivity implements
-    GoogleApiClient.ConnectionCallbacks,
-    GoogleApiClient.OnConnectionFailedListener
+public class MainActivity extends NativeActivity
 {
     private static final String TAG = "${NAME}.castleengine.MainActivity";
 
-    public static int REQUEST_SIGN_IN = 9001;
-    public static int REQUEST_ACHIEVEMENTS = 9101;
-    public static int REQUEST_LEADERBOARD = 9102;
-    public static int REQUEST_PURCHASE = 9200;
-
     private ComponentMessaging messaging;
-    private ComponentGameAnalytics gameAnalytics;
-    private ComponentGoogleAnalytics googleAnalytics;
-    private ComponentMiscellaneous miscellaneous;
-    private ComponentGoogleGames googleGames;
-    private ComponentGoogleInAppPurchases googleInAppPurchases;
-    private ComponentGoogleAds googleAds;
-    private ComponentChartboost chartboost;
-    private ComponentStartApp startApp;
-
     private List<ComponentAbstract> components = new ArrayList<ComponentAbstract>();
 
     @Override
@@ -44,14 +24,9 @@ public class MainActivity extends NativeActivity implements
         Log.i(TAG, "Custom castleengine.MainActivity created");
 
         components.add(messaging = new ComponentMessaging(this));
-        components.add(gameAnalytics = new ComponentGameAnalytics(this));
-        components.add(googleAnalytics = new ComponentGoogleAnalytics(this));
-        components.add(miscellaneous = new ComponentMiscellaneous(this));
-        components.add(googleGames = new ComponentGoogleGames(this));
-        components.add(googleInAppPurchases = new ComponentGoogleInAppPurchases(this));
-        components.add(googleAds = new ComponentGoogleAds(this));
-        components.add(chartboost = new ComponentChartboost(this));
-        components.add(startApp = new ComponentStartApp(this));
+        components.add(new ComponentMiscellaneous(this));
+
+        /* ANDROID-COMPONENTS-INITIALIZATION */
 
         for (ComponentAbstract component : components) {
             component.onCreate();
@@ -90,24 +65,6 @@ public class MainActivity extends NativeActivity implements
         for (ComponentAbstract component : components) {
             component.onStop();
         }
-    }
-
-    @Override
-    public void onConnected(Bundle connectionHint)
-    {
-        googleGames.onConnected();
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult)
-    {
-        googleGames.onConnectionFailed(connectionResult);
-    }
-
-    @Override
-    public void onConnectionSuspended(int i)
-    {
-        googleGames.onConnectionSuspended();
     }
 
     @Override
@@ -190,7 +147,7 @@ public class MainActivity extends NativeActivity implements
 
     public native String jniMessage(String javaToNative);
 
-    private static final void safeLoadLibrary(String libName)
+    public static final void safeLoadLibrary(String libName)
     {
         try {
             System.loadLibrary(libName);
@@ -202,7 +159,9 @@ public class MainActivity extends NativeActivity implements
     }
 
     static {
-        safeLoadLibrary("GameAnalytics");
+        /* OpenAL may be loaded from here. It must be loaded before
+           our game's native code will try to open openal library,
+           so it's most reliable to place it here before loading game's library. */
 
         ${ANDROID_ACTIVITY_LOAD_LIBRARIES}
 

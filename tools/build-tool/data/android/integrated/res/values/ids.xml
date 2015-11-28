@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Google Games id. Used by AndroidManifest.xml -->
-    <string name="app_id">${ANDROID_GOOGLE_PLAY_SERVICES_APP_ID}</string>
-</resources>

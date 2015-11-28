@@ -1,5 +1,5 @@
 {
-  Copyright 2012-2014 Michalis Kamburelis. and Lazarus developers.
+  Copyright 2012-2014 Michalis Kamburelis and Lazarus developers.
 
   This file is part of "Castle Game Engine".
 
@@ -35,8 +35,7 @@ resourcestring
   supporting all URL types that are handled by some installed app.
   For example, it will support the market:// URLs.
   To use this, declare your Android project type as "integrated",
-  and use @link(TMessaginig) properly in your game.
-  See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ . }
+  see https://github.com/castle-engine/castle-engine/wiki/Android-Project-Types-And-Components . }
 function OpenURL(AURL: String): Boolean;
 
 { Open a local file or directory.
@@ -49,8 +48,7 @@ function OpenDocument(APath: String): Boolean;
   This is available only on Android right now, ignored elsewhere.
   To include the necessary integration code in your Android project,
   you must declare your Android project type as "integrated".
-  See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .
-  Also use @link(TMessaginig) properly in your game.
+  See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Types-And-Components .
 
   @param(Title The short title of the share.)
   @param(Subject Used as an email subject, and any other app on Android
@@ -63,9 +61,9 @@ procedure ShareText(const Title, Subject, Content: string);
 
   This is available only on Android right now, ignored elsewhere.
   To include the necessary integration code in your Android project,
-  you must declare your Android project type as "integrated".
-  See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .
-  Also use @link(TMessaginig) properly in your game. }
+  declare your Android project type as "integrated" with
+  the "vibrate" component inside CastleEngineManifest.xml.
+  See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Types-And-Components . }
 procedure Vibrate(const Miliseconds: Cardinal);
 
 implementation

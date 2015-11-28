@@ -101,19 +101,6 @@
   TGroupNode_2 = TGroupNode;
 
   TStringLongIntMap = specialize TFPGMap<string, LongInt>;
-  TStringStringMap = class(specialize TFPGMap<string, string>)
-  public
-    { Set given key value, trying to preserve previous key value too.
-      This is useful for safely setting X3D META values.
-
-      Compared to normal PutKeyData, this behaves smarter if given Name
-      is already set. If it's set with the same Content, we do nothing.
-      If the Content is different, we move previous content to a
-      @code(Name + '-previous') key.
-      This way previous content value is preserved once (but not more,
-      to not grow the X3D file indefinitely). }
-    procedure PutPreserve(const Name, Content: string);
-  end;
 
   { A top-level VRML/X3D node. This is what you get by loading 3D model from file.
 
@@ -594,26 +581,6 @@ begin
 
   Result := FdChildren.SearchValid(Func);
   if Result <> nil then Exit;
-end;
-
-procedure TStringStringMap.PutPreserve(const Name, Content: string);
-var
-  PreviousContent: string;
-  I: Integer;
-begin
-  I := IndexOf(Name);
-  if I <> -1 then
-  begin
-    PreviousContent := Data[I];
-    if PreviousContent <> Content then
-    begin
-      { move current content to -previous name }
-      KeyData[Name + '-previous'] := PreviousContent;
-      { set new content }
-      Data[I] := Content;
-    end;
-  end else
-    KeyData[Name] := Content;
 end;
 
 procedure TX3DRootNode.CreateNode;
