@@ -54,7 +54,7 @@ type
 
     To include the necessary integration code in your Android project,
     declare your Android project type as "integrated" with
-    the "in_app_purchases" component inside CastleEngineManifest.xml.
+    the "google_in_app_purchases" component inside CastleEngineManifest.xml.
     See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Types-And-Components .
 
     To include the necessary integration code in your Android project,
