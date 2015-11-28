@@ -76,12 +76,15 @@ var
   procedure GenerateFromTemplates;
   var
     TemplatePath, DestinationPath: string;
+    I: Integer;
   begin
     { calculate absolute DestinationPath.
       Use CombinePaths, as AndroidProjectPath may come from
       CastleEngineManifest.xml attribute android_project, in which case it *may*
       (does not have to) be relative to project dir. }
     DestinationPath := CombinePaths(Project.Path, AndroidProjectPath);
+
+    { add Android project core directory }
     case Project.AndroidProjectType of
       apBase      : TemplatePath := 'android/base/';
       apSimple    : TemplatePath := 'android/simple/';
@@ -89,6 +92,13 @@ var
       else raise EInternalError.Create('GenerateFromTemplates:Project.AndroidProjectType unhandled');
     end;
     Project.ExtractTemplate(TemplatePath, DestinationPath);
+
+    { add Android project components }
+    for I := 0 to Project.AndroidComponents.Count - 1 do
+    begin
+      TemplatePath := 'android/integrated-components/' + Project.AndroidComponents[I].Name;
+      Project.ExtractTemplate(TemplatePath, DestinationPath);
+    end;
   end;
 
   { Try to find "android" tool executable, exception if not found. }

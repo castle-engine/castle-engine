@@ -53,6 +53,11 @@ type
     and to buy products (@link(Purchase)).
 
     To include the necessary integration code in your Android project,
+    declare your Android project type as "integrated" with
+    the "in_app_purchases" component inside CastleEngineManifest.xml.
+    See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Types-And-Components .
+
+    To include the necessary integration code in your Android project,
     you must declare your Android project type as "integrated".
     See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .
 

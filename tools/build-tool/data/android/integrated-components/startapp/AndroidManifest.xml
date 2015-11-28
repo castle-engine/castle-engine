@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This manifest will be merged with main integrated/AndroidManifest.xml
+     by the build tool. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- For StartApp -->
+        <activity android:name="com.startapp.android.publish.list3d.List3DActivity"
+                  android:theme="@android:style/Theme" />
+        <activity android:name="com.startapp.android.publish.OverlayActivity"
+                  android:theme="@android:style/Theme.Translucent"
+                  android:configChanges="orientation|keyboardHidden|screenSize" />
+        <activity android:name="com.startapp.android.publish.FullScreenActivity"
+                  android:theme="@android:style/Theme"
+                  android:configChanges="orientation|keyboardHidden|screenSize" />
+    </application>
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+</manifest>

@@ -20,7 +20,7 @@ interface
 
 uses SysUtils,
   CastleFindFiles, CastleStringUtils, CastleUtils,
-  ToolArchitectures, ToolCompile, ToolUtils;
+  ToolArchitectures, ToolCompile, ToolUtils, ToolAndroidComponents;
 
 type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
@@ -46,6 +46,7 @@ type
     FVersionCode: Cardinal;
     FScreenOrientation: TScreenOrientation;
     FAndroidProjectType: TAndroidProjectType;
+    FAndroidComponents: TAndroidComponentList;
     GooglePlayServicesAppId: string;
     // GooglePlayServicesLibLocation: string;
     // GooglePlayServicesLibLocationRelative: string;
@@ -103,6 +104,7 @@ type
     property AndroidProject: string read FAndroidProject;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property AndroidProjectType: TAndroidProjectType read FAndroidProjectType;
+    property AndroidComponents: TAndroidComponentList read FAndroidComponents;
 
     { Path to the external library. This checks existence of appropriate
       files along the way, and raises exception in case of trouble. }
@@ -337,6 +339,10 @@ constructor TCastleProject.Create(const APath: string);
             GooglePlayServicesAppId := ChildElement.AttributeStringDef('app_id', '');
             //GooglePlayServicesLibLocation := ChildElement.AttributeStringDef('lib_location', GooglePlayServicesUndefined);
           end;
+
+          ChildElement := DOMGetChildElement(Element, 'components', false);
+          if ChildElement <> nil then
+            FAndroidComponents.ReadCastleEngineManifest(ChildElement);
         end;
       finally FreeAndNil(Doc) end;
     end;
@@ -409,6 +415,7 @@ begin
   FDependencies := [];
   FIcons := TIconFileNames.Create;
   FAndroidProjectType := apBase;
+  FAndroidComponents := TAndroidComponentList.Create(true);
   //GooglePlayServicesLibLocation := GooglePlayServicesUndefined;
 
   FPath := InclPathDelim(APath);
@@ -1025,7 +1032,7 @@ const
   end;
 
 var
-  Patterns, Values: TCastleStringList;
+  Macros: TStringStringMap;
   I: Integer;
   P, NonEmptyAuthor: string;
   VersionComponents: array [0..3] of Cardinal;
@@ -1044,46 +1051,41 @@ begin
     NonEmptyAuthor := 'Unknown Author' else
     NonEmptyAuthor := Author;
 
-  Patterns := nil;
-  Values := nil;
+  Macros := TStringStringMap.Create;
   try
-    Patterns := TCastleStringList.Create;
-    Values := TCastleStringList.Create;
-    Patterns.Add('VERSION_MAJOR');   Values.Add(IntToStr(VersionComponents[0]));
-    Patterns.Add('VERSION_MINOR');   Values.Add(IntToStr(VersionComponents[1]));
-    Patterns.Add('VERSION_RELEASE'); Values.Add(IntToStr(VersionComponents[2]));
-    Patterns.Add('VERSION_BUILD');   Values.Add(IntToStr(VersionComponents[3]));
-    Patterns.Add('VERSION');         Values.Add(Version);
-    Patterns.Add('VERSION_CODE');    Values.Add(IntToStr(FVersionCode));
-    Patterns.Add('NAME');            Values.Add(Name);
-    Patterns.Add('QUALIFIED_NAME');  Values.Add(QualifiedName);
-    Patterns.Add('CAPTION');         Values.Add(Caption);
-    Patterns.Add('AUTHOR');          Values.Add(NonEmptyAuthor);
-    Patterns.Add('EXECUTABLE_NAME'); Values.Add(ExecutableName);
+    Macros.Add('VERSION_MAJOR'   , IntToStr(VersionComponents[0]));
+    Macros.Add('VERSION_MINOR'   , IntToStr(VersionComponents[1]));
+    Macros.Add('VERSION_RELEASE' , IntToStr(VersionComponents[2]));
+    Macros.Add('VERSION_BUILD'   , IntToStr(VersionComponents[3]));
+    Macros.Add('VERSION'         , Version);
+    Macros.Add('VERSION_CODE'    , IntToStr(FVersionCode));
+    Macros.Add('NAME'            , Name);
+    Macros.Add('QUALIFIED_NAME'  , QualifiedName);
+    Macros.Add('CAPTION'         , Caption);
+    Macros.Add('AUTHOR'          , NonEmptyAuthor);
+    Macros.Add('EXECUTABLE_NAME' , ExecutableName);
 
     { Android specific stuff }
 
-    Patterns.Add('ANDROID_LIBRARY_NAME'); Values.Add(ChangeFileExt(ExtractFileName(AndroidSource), ''));
-    Patterns.Add('ANDROID_SCREEN_ORIENTATION'); Values.Add(AndroidScreenOrientation[ScreenOrientation]);
-    Patterns.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'); Values.Add(AndroidScreenOrientationFeature[ScreenOrientation]);
-    Patterns.Add('ANDROID_GOOGLE_PLAY_SERVICES_APP_ID'); Values.Add(GooglePlayServicesAppId);
-    Patterns.Add('ANDROID_ACTIVITY_LOAD_LIBRARIES'); Values.Add(AndroidActivityLoadLibraries);
-    Patterns.Add('ANDROID_MK_LOAD_LIBRARIES'); Values.Add(AndroidMkLoadLibraries);
+    Macros.Add('ANDROID_LIBRARY_NAME'                , ChangeFileExt(ExtractFileName(AndroidSource), ''));
+    Macros.Add('ANDROID_SCREEN_ORIENTATION'          , AndroidScreenOrientation[ScreenOrientation]);
+    Macros.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'  , AndroidScreenOrientationFeature[ScreenOrientation]);
+    Macros.Add('ANDROID_GOOGLE_PLAY_SERVICES_APP_ID' , GooglePlayServicesAppId);
+    Macros.Add('ANDROID_ACTIVITY_LOAD_LIBRARIES'     , AndroidActivityLoadLibraries);
+    Macros.Add('ANDROID_MK_LOAD_LIBRARIES'           , AndroidMkLoadLibraries);
 
-    //Patterns.Add('ANDROID_GOOGLE_PLAY_SERVICES_LIB_LOCATION'); Values.Add(GooglePlayServicesLibLocationRelative);
+    //Macros.Add('ANDROID_GOOGLE_PLAY_SERVICES_LIB_LOCATION' , GooglePlayServicesLibLocationRelative);
+
     // add CamelCase() replacements, add ${} around
-    for I := 0 to Patterns.Count - 1 do
+    for I := 0 to Macros.Count - 1 do
     begin
-      P := Patterns[I];
-      Patterns[I] := '${' + P + '}';
-      Patterns.Add('${CamelCase(' + P + ')}');
-      Values.Add(MakeCamelCase(Values[I]));
+      P := Macros.Keys[I];
+      Macros.Keys[I] := '${' + P + '}';
+      //debug: Writeln(Macros.Keys[I], '->', Macros.Data[I]);
+      Macros.Add('${CamelCase(' + P + ')}', MakeCamelCase(Macros.Data[I]));
     end;
-    Result := SReplacePatterns(Source, Patterns, Values, []);
-  finally
-    FreeAndNil(Patterns);
-    FreeAndNil(Values);
-  end;
+    Result := SReplacePatterns(Source, Macros, []);
+  finally FreeAndNil(Macros) end;
 end;
 
 procedure TCastleProject.ExtractTemplate(const TemplatePath, DestinationPath: string);
@@ -1091,7 +1093,7 @@ var
   TemplateFilesCount: Cardinal;
 begin
   ExtractTemplateDestinationPath := InclPathDelim(DestinationPath);
-  ExtractTemplateDir := URIToFilenameSafe(ApplicationData(TemplatePath));
+  ExtractTemplateDir := ExclPathDelim(URIToFilenameSafe(ApplicationData(TemplatePath)));
   if not DirectoryExists(ExtractTemplateDir) then
     raise Exception.Create('Cannot find Android project template in "' + ExtractTemplateDir + '". ' + SErrDataDir);
 
@@ -1110,13 +1112,25 @@ end;
 
 procedure TCastleProject.ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
 var
-  DestinationRelativeFileName, DestinationFileName, Contents, Ext: string;
+  DestinationRelativeFileName, DestinationRelativeFileNameSlashes,
+    DestinationFileName, Contents, Ext: string;
   BinaryFile: boolean;
 begin
-  DestinationRelativeFileName := PrefixRemove(ExtractTemplateDir, FileInfo.AbsoluteName, true);
+  DestinationRelativeFileName := PrefixRemove(InclPathDelim(ExtractTemplateDir),
+    FileInfo.AbsoluteName, true);
   DestinationFileName := ExtractTemplateDestinationPath + DestinationRelativeFileName;
   if FileExists(DestinationFileName) then
   begin
+    DestinationRelativeFileNameSlashes := StringReplace(
+      DestinationRelativeFileName, '\', '/', [rfReplaceAll]);
+    if SameText(DestinationRelativeFileNameSlashes, 'AndroidManifest.xml') then
+      MergeAndroidManifest(FileInfo.AbsoluteName, DestinationFileName) else
+    if SameText(DestinationRelativeFileNameSlashes, 'jni/Android.mk') then
+      MergeAndroidMk(FileInfo.AbsoluteName, DestinationFileName) else
+    if SameText(DestinationRelativeFileNameSlashes, 'project.properties') then
+      MergeAndroidProjectProperties(FileInfo.AbsoluteName, DestinationFileName) else
+    if SameText(DestinationRelativeFileNameSlashes, 'src/net/sourceforge/castleengine/MainActivity.java') then
+      MergeAndroidMainActivity(FileInfo.AbsoluteName, DestinationFileName) else
     if Verbose then
       Writeln('Not overwriting custom ' + DestinationRelativeFileName);
     Exit;

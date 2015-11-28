@@ -15,11 +15,11 @@ import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.AdListener;
 
 /**
- * Integration of Google Ads with Castle Game Engine.
+ * Integration of Google Ads (AdMob) with Castle Game Engine.
  */
-public class ComponentGoogleAds extends ComponentAbstract
+public class ComponentAdMob extends ComponentAbstract
 {
-    private static final String TAG = "${NAME}.castleengine.ComponentGoogleAds";
+    private static final String TAG = "${NAME}.castleengine.ComponentAdMob";
 
     private boolean initialized;
     private String mBannerUnitId, mInterstitialUnitId;
@@ -27,7 +27,7 @@ public class ComponentGoogleAds extends ComponentAbstract
     private InterstitialAd interstitial;
     private String[] testDeviceIds;
 
-    public ComponentGoogleAds(MainActivity activity)
+    public ComponentAdMob(MainActivity activity)
     {
         super(activity);
     }
@@ -60,7 +60,7 @@ public class ComponentGoogleAds extends ComponentAbstract
             @Override
             public void onAdClosed() {
                 Log.i(TAG, "Ad Closed");
-                messageSend(new String[]{"ads-google-interstitial-display", "shown"});
+                messageSend(new String[]{"ads-admob-interstitial-display", "shown"});
             }
         });
 
@@ -164,31 +164,31 @@ public class ComponentGoogleAds extends ComponentAbstract
             }
         } else {
             // pretend that ad was displayed, in case native app waits for it
-            messageSend(new String[]{"ads-google-interstitial-display", "shown"});
+            messageSend(new String[]{"ads-admob-interstitial-display", "shown"});
         }
     }
 
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if (parts.length == 4 && parts[0].equals("ads-google-initialize")) {
+        if (parts.length == 4 && parts[0].equals("ads-admob-initialize")) {
             initialize(parts[1], parts[2], parts[3].split(","));
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("ads-google-banner-show")) {
+        if (parts.length == 2 && parts[0].equals("ads-admob-banner-show")) {
             int gravity = Integer.parseInt(parts[1]);
             bannerShow(gravity);
             return true;
         } else
-        if (parts.length == 1 && parts[0].equals("ads-google-banner-hide")) {
+        if (parts.length == 1 && parts[0].equals("ads-admob-banner-hide")) {
             bannerHide();
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("ads-google-interstitial-display") && parts[1].equals("wait-until-loaded")) {
+        if (parts.length == 2 && parts[0].equals("ads-admob-interstitial-display") && parts[1].equals("wait-until-loaded")) {
             interstitialDisplay(true);
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("ads-google-interstitial-display") && parts[1].equals("no-wait")) {
+        if (parts.length == 2 && parts[0].equals("ads-admob-interstitial-display") && parts[1].equals("no-wait")) {
             interstitialDisplay(false);
             return true;
         } else {

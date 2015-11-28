@@ -1,3 +1,4 @@
+# -*- mode: shell-script -*-
 # To enable ProGuard in your project, edit project.properties
 # to define the proguard.config property as described in that file.
 #
@@ -37,18 +38,3 @@
 -keepnames class * implements android.os.Parcelable {
     public static final ** CREATOR;
 }
-
-# from
-# http://support.gameanalytics.com/hc/en-us/articles/200841746-Options
-
-## GSON (used by Game Analytics 1.x) ##
--keepattributes Signature
--keepattributes *Annotation*
--keep class sun.misc.Unsafe { *; }
--keep class com.google.gson.stream.** { *; }
-
-## GAME ANALYTICS ##
--keep class com.gameanalytics.android.** { *; }
-
-## chartboost ##
--keep class com.chartboost.** { *; }

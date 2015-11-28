@@ -33,10 +33,11 @@ type
         method.)
       @item(Use the remaining methods, like @link(Event), to report events
         in your app.)
-      @item(
-        To include the necessary integration code in your Android project,
-        you must declare your Android project type as "integrated".
-        See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .)
+      @item(To include the necessary integration code in your Android project,
+        declare your Android project type as "integrated" with
+        the appropriate components (game_analytycs and/or google_analytics)
+        inside CastleEngineManifest.xml .
+        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Types-And-Components .)
     )
   }
   TAnalytics = class(TComponent)

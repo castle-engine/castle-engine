@@ -24,14 +24,10 @@ public class MainActivity extends NativeActivity
         Log.i(TAG, "Custom castleengine.MainActivity created");
 
         components.add(messaging = new ComponentMessaging(this));
-        components.add(new ComponentGameAnalytics(this));
-        components.add(new ComponentGoogleAnalytics(this));
         components.add(new ComponentMiscellaneous(this));
         components.add(new ComponentGoogleGames(this));
-        components.add(new ComponentGoogleInAppPurchases(this));
-        components.add(new ComponentGoogleAds(this));
-        components.add(new ComponentChartboost(this));
-        components.add(new ComponentStartApp(this));
+
+        /* ANDROID-COMPONENTS-INITIALIZATION */
 
         for (ComponentAbstract component : components) {
             component.onCreate();
@@ -152,7 +148,7 @@ public class MainActivity extends NativeActivity
 
     public native String jniMessage(String javaToNative);
 
-    private static final void safeLoadLibrary(String libName)
+    public static final void safeLoadLibrary(String libName)
     {
         try {
             System.loadLibrary(libName);
@@ -164,8 +160,6 @@ public class MainActivity extends NativeActivity
     }
 
     static {
-        safeLoadLibrary("GameAnalytics");
-
         ${ANDROID_ACTIVITY_LOAD_LIBRARIES}
 
         safeLoadLibrary("${ANDROID_LIBRARY_NAME}");
