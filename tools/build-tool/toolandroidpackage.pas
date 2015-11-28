@@ -87,17 +87,26 @@ var
     { add Android project core directory }
     case Project.AndroidProjectType of
       apBase      : TemplatePath := 'android/base/';
-      apSimple    : TemplatePath := 'android/simple/';
       apIntegrated: TemplatePath := 'android/integrated/';
       else raise EInternalError.Create('GenerateFromTemplates:Project.AndroidProjectType unhandled');
     end;
     Project.ExtractTemplate(TemplatePath, DestinationPath);
 
-    { add Android project components }
-    for I := 0 to Project.AndroidComponents.Count - 1 do
+    if Project.AndroidProjectType = apIntegrated then
     begin
-      TemplatePath := 'android/integrated-components/' + Project.AndroidComponents[I].Name;
-      Project.ExtractTemplate(TemplatePath, DestinationPath);
+      { add Android project components }
+      for I := 0 to Project.AndroidComponents.Count - 1 do
+      begin
+        TemplatePath := 'android/integrated-components/' + Project.AndroidComponents[I].Name;
+        Project.ExtractTemplate(TemplatePath, DestinationPath);
+      end;
+
+      { add sound component, if sound library is in Dependencies }
+      if depSound in Project.Dependencies then
+      begin
+        TemplatePath := 'android/integrated-components/sound';
+        Project.ExtractTemplate(TemplatePath, DestinationPath);
+      end;
     end;
   end;
 
@@ -247,27 +256,6 @@ var
     RunCommandSimple(AndroidProjectPath, 'ant', [PackageModeToName[PackageMode], '-noinput', '-quiet']);
   end;
 
-  { Add a library from external_libraries. Adds smart, without overwriting
-    custom files (like PackageSmartCopyFile). }
-  procedure AddExternalLibrary(const LibraryName: string);
-  var
-    FileFrom, FileTo: string;
-  begin
-    FileTo := AndroidProjectPath + 'jni' + PathDelim + LibraryName;
-    if not FileExists(FileTo) then
-    begin
-      FileFrom := Project.ExternalLibraryPath(OS, CPU, LibraryName);
-      { Note that this is not checked if FileExists(FileTo) exists.
-        So if you have a custom library already present, we don't require to have
-        a standard version on ExternalLibrariesPath. }
-      if not FileExists(FileFrom) then
-        raise Exception.Create('Dependency library not found in ' + FileFrom);
-      SmartCopyFile(FileFrom, FileTo);
-    end else
-    if Verbose then
-      Writeln('Not overwriting custom ' + FileTo);
-  end;
-
 var
   ApkName: string;
   PackageMode: TCompilationMode;
@@ -286,15 +274,13 @@ begin
   PackageMode := SuggestedPackageMode;
 
   GenerateFromTemplates;
-  if Project.AndroidProjectType = apIntegrated then
+  if (Project.AndroidProjectType = apIntegrated) and
+     Project.AndroidComponents.HasComponent('google_play_services') then
     RunAndroidUpdateProject(PathDelim + 'google-play-services_lib');
   GenerateIcons;
   GenerateAssets;
   GenerateLibrary;
   GenerateAntProperties(PackageMode);
-
-  if depSound in Project.Dependencies then
-    AddExternalLibrary('libopenal.so');
 
   RunAndroidUpdateProject;
   RunNdkBuild(PackageMode);

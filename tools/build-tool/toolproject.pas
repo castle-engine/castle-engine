@@ -28,7 +28,7 @@ type
 
   TScreenOrientation = (soAny, soLandscape, soPortrait);
 
-  TAndroidProjectType = (apBase, apSimple, apIntegrated);
+  TAndroidProjectType = (apBase, apIntegrated);
 
   TCastleProject = class
   private
@@ -322,8 +322,6 @@ constructor TCastleProject.Create(const APath: string);
           begin
             if AndroidProjectTypeStr = 'base' then
               FAndroidProjectType := apBase else
-            if AndroidProjectTypeStr = 'simple' then
-              FAndroidProjectType := apSimple else
             if AndroidProjectTypeStr = 'integrated' then
               FAndroidProjectType := apIntegrated else
               raise Exception.CreateFmt('Invalid android project_type "%s"', [AndroidProjectTypeStr]);
@@ -987,24 +985,6 @@ const
       Result += 'safeLoadLibrary("openal");' + NL;
   end;
 
-  function AndroidMkLoadLibraries: string;
-
-    function AddExternalLibraryMk(const LibraryName: string): string;
-    begin
-      Result := NL +
-        'include $(CLEAR_VARS)' + NL +
-        'LOCAL_MODULE := lib' + LibraryName + NL +
-        'LOCAL_SRC_FILES := lib' + LibraryName + '.so' + NL +
-        'include $(PREBUILT_SHARED_LIBRARY)' + NL +
-        '';
-    end;
-
-  begin
-    Result := '';
-    if depSound in Dependencies then
-      Result += AddExternalLibraryMk('openal');
-  end;
-
   { Make CamelCase with only safe characters (digits and letters). }
   function MakeCamelCase(S: string): string;
   var
@@ -1059,7 +1039,6 @@ begin
     Macros.Add('ANDROID_SCREEN_ORIENTATION'          , AndroidScreenOrientation[ScreenOrientation]);
     Macros.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'  , AndroidScreenOrientationFeature[ScreenOrientation]);
     Macros.Add('ANDROID_ACTIVITY_LOAD_LIBRARIES'     , AndroidActivityLoadLibraries);
-    Macros.Add('ANDROID_MK_LOAD_LIBRARIES'           , AndroidMkLoadLibraries);
     for I := 0 to AndroidComponents.Count - 1 do
       for J := 0 to AndroidComponents[I].Parameters.Count - 1 do
         Macros.Add('ANDROID.' +

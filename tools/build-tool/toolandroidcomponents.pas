@@ -37,6 +37,7 @@ type
   TAndroidComponentList = class(specialize TFPGObjectList<TAndroidComponent>)
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
+    function HasComponent(const Name: string): boolean;
   end;
 
 procedure MergeAndroidManifest(const Source, Destination: string);
@@ -100,6 +101,16 @@ begin
     Add(Component);
     Component.ReadCastleEngineManifest(ChildElement);
   end;
+end;
+
+function TAndroidComponentList.HasComponent(const Name: string): boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].Name = Name then
+      Exit(true);
+  Result := false;
 end;
 
 { globals -------------------------------------------------------------------- }
