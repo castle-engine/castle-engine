@@ -1089,12 +1089,12 @@ begin
       DestinationRelativeFileName, '\', '/', [rfReplaceAll]);
     if SameText(DestinationRelativeFileNameSlashes, 'AndroidManifest.xml') then
       MergeAndroidManifest(FileInfo.AbsoluteName, DestinationFileName) else
-    if SameText(DestinationRelativeFileNameSlashes, 'jni/Android.mk') then
-      MergeAndroidMk(FileInfo.AbsoluteName, DestinationFileName) else
-    if SameText(DestinationRelativeFileNameSlashes, 'project.properties') then
-      MergeAndroidProjectProperties(FileInfo.AbsoluteName, DestinationFileName) else
     if SameText(DestinationRelativeFileNameSlashes, 'src/net/sourceforge/castleengine/MainActivity.java') then
       MergeAndroidMainActivity(FileInfo.AbsoluteName, DestinationFileName) else
+    if SameText(DestinationRelativeFileNameSlashes, 'jni/Android.mk') or
+       SameText(DestinationRelativeFileNameSlashes, 'custom-proguard-project.txt') or
+       SameText(DestinationRelativeFileNameSlashes, 'project.properties') then
+      MergeAppend(FileInfo.AbsoluteName, DestinationFileName) else
     if Verbose then
       Writeln('Not overwriting custom ' + DestinationRelativeFileName);
     Exit;

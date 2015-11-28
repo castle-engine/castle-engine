@@ -159,7 +159,7 @@ public class MainActivity extends NativeActivity
     }
 
     static {
-        /* OpenAL may be places here. It must be loaded before
+        /* OpenAL may be loaded from here. It must be loaded before
            our game's native code will try to open openal library,
            so it's most reliable to place it here before loading game's library. */
 

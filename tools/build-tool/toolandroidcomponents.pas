@@ -41,8 +41,7 @@ type
   end;
 
 procedure MergeAndroidManifest(const Source, Destination: string);
-procedure MergeAndroidMk(const Source, Destination: string);
-procedure MergeAndroidProjectProperties(const Source, Destination: string);
+procedure MergeAppend(const Source, Destination: string);
 procedure MergeAndroidMainActivity(const Source, Destination: string);
 
 implementation
@@ -218,16 +217,6 @@ begin
   DestinationContents := FileToString(FilenameToURISafe(Destination));
   DestinationContents := DestinationContents + NL + SourceContents;
   StringToFile(Destination, DestinationContents);
-end;
-
-procedure MergeAndroidMk(const Source, Destination: string);
-begin
-  MergeAppend(Source, Destination);
-end;
-
-procedure MergeAndroidProjectProperties(const Source, Destination: string);
-begin
-  MergeAppend(Source, Destination);
 end;
 
 procedure MergeAndroidMainActivity(const Source, Destination: string);
