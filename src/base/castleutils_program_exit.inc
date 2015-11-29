@@ -24,6 +24,10 @@ type
     is good enough, and showing exception class is not needed. }
   EWithHiddenClassName = class(Exception);
 
+  { @deprecated Special class to raise an exception that is always catched. }
+  TCodeBreaker = class(TObject)
+  end deprecated;
+
 { Nice exception description. Contains exception ClassName
   (if not descends from EWithHiddenClassName), exception Message (if
   descends from Exception), and ExceptAddr (if not @nil, and code is compiled
