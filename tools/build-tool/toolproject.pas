@@ -1082,6 +1082,15 @@ var
 begin
   DestinationRelativeFileName := PrefixRemove(InclPathDelim(ExtractTemplateDir),
     FileInfo.AbsoluteName, true);
+
+  if IsWild(DestinationRelativeFileName, '*setup_sdk.sh', true) or
+     IsWild(DestinationRelativeFileName, '*~', true) then
+  begin
+    if Verbose then
+      Writeln('Ignoring template file: ' + DestinationRelativeFileName);
+    Exit;
+  end;
+
   DestinationFileName := ExtractTemplateDestinationPath + DestinationRelativeFileName;
   if FileExists(DestinationFileName) then
   begin
