@@ -1240,6 +1240,9 @@ end;
     procedure InsertBackIfNotExists(const NewItem: TUIControl);
     procedure InsertBack(const NewItems: TUIControlList);
 
+    procedure InsertIfNotExists(const Index: Integer; const NewItem: TUIControl); deprecated 'use InsertFrontIfNotExists or InsertBackIfNotExists';
+    procedure AddIfNotExists(const NewItem: TUIControl); deprecated 'use InsertFrontIfNotExists or InsertBackIfNotExists';
+
     { BeginDisableContextOpenClose disables sending
       TUIControl.GLContextOpen and TUIControl.GLContextClose to all the controls
       on the list. EndDisableContextOpenClose ends this.
@@ -3077,6 +3080,16 @@ begin
   end;
 end;
 
+procedure TChildrenControls.InsertIfNotExists(const Index: Integer; const NewItem: TUIControl);
+begin
+  Insert(Index, NewItem);
+end;
+
+procedure TChildrenControls.AddIfNotExists(const NewItem: TUIControl);
+begin
+  Insert(Count, NewItem);
+end;
+
 function TChildrenControls.IndexOf(const Item: TUIControl): Integer;
 begin
   Result := FList.IndexOf(Item);
@@ -3327,7 +3340,6 @@ begin
     Insert(0, Item);
   end;
 end;
-
 
 { TGLContextEventList -------------------------------------------------------- }
 
