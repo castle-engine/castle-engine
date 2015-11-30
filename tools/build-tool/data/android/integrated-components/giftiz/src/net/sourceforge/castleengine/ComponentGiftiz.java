@@ -34,13 +34,13 @@ public class ComponentGiftiz extends ComponentAbstract
         updateButtonImage();
     }
 
-	@Override
-	public void buttonNeedsUpdate()
+    @Override
+    public void buttonNeedsUpdate()
     {
-		updateButtonImage();
-	}
+        updateButtonImage();
+    }
 
-	private void updateButtonImage()
+    private void updateButtonImage()
     {
         switch (GiftizSDK.Inner.getButtonStatus(getActivity())) {
             case ButtonInvisible: messageSend(new String[]{"giftiz-button-status", "invisible"}); break;
@@ -48,7 +48,7 @@ public class ComponentGiftiz extends ComponentAbstract
             case ButtonBadge: messageSend(new String[]{"giftiz-button-status", "badge"}); break;
             case ButtonWarning: messageSend(new String[]{"giftiz-button-status", "warning"}); break;
         }
-	}
+    }
 
     @Override
     public void onPause()
