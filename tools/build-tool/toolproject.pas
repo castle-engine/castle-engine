@@ -1086,8 +1086,8 @@ begin
   if IsWild(DestinationRelativeFileName, '*setup_sdk.sh', true) or
      IsWild(DestinationRelativeFileName, '*~', true) then
   begin
-    if Verbose then
-      Writeln('Ignoring template file: ' + DestinationRelativeFileName);
+    // if Verbose then
+    //   Writeln('Ignoring template file: ' + DestinationRelativeFileName);
     Exit;
   end;
 
@@ -1097,13 +1097,13 @@ begin
     DestinationRelativeFileNameSlashes := StringReplace(
       DestinationRelativeFileName, '\', '/', [rfReplaceAll]);
     if SameText(DestinationRelativeFileNameSlashes, 'AndroidManifest.xml') then
-      MergeAndroidManifest(FileInfo.AbsoluteName, DestinationFileName) else
+      MergeAndroidManifest(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
     if SameText(DestinationRelativeFileNameSlashes, 'src/net/sourceforge/castleengine/MainActivity.java') then
-      MergeAndroidMainActivity(FileInfo.AbsoluteName, DestinationFileName) else
+      MergeAndroidMainActivity(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
     if SameText(DestinationRelativeFileNameSlashes, 'jni/Android.mk') or
        SameText(DestinationRelativeFileNameSlashes, 'custom-proguard-project.txt') or
        SameText(DestinationRelativeFileNameSlashes, 'project.properties') then
-      MergeAppend(FileInfo.AbsoluteName, DestinationFileName) else
+      MergeAppend(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
     if Verbose then
       Writeln('Not overwriting custom ' + DestinationRelativeFileName);
     Exit;

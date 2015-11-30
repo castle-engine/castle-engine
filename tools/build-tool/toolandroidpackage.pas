@@ -286,6 +286,12 @@ begin
   if (Project.AndroidProjectType = apIntegrated) and
      Project.AndroidComponents.HasComponent('google_play_services') then
     RunAndroidUpdateProject(PathDelim + 'google-play-services_lib');
+  if (Project.AndroidProjectType = apIntegrated) and
+     Project.AndroidComponents.HasComponent('giftiz') then
+  begin
+    RunAndroidUpdateProject(PathDelim + 'GiftizSDKLibrary');
+    PackageCheckForceDirectories(PathDelim + 'GiftizSDKLibrary' + PathDelim + 'src');
+  end;
   GenerateIcons;
   GenerateAssets;
   GenerateLibrary;
