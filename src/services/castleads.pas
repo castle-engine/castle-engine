@@ -57,7 +57,7 @@ type
         declare your Android project type as "integrated" with
         the appropriate components (admob, chartboost, startapp...)
         inside CastleEngineManifest.xml .
-        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Types-And-Components .)
+        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine .)
     )
   }
   TAds = class(TComponent)

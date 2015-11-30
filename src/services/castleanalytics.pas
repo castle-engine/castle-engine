@@ -37,7 +37,7 @@ type
         declare your Android project type as "integrated" with
         the appropriate components (game_analytycs and/or google_analytics)
         inside CastleEngineManifest.xml .
-        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Types-And-Components .)
+        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine .)
     )
   }
   TAnalytics = class(TComponent)

@@ -19,7 +19,8 @@ unit ToolAndroidComponents;
 interface
 
 uses FGL, DOM,
-  CastleUtils, CastleStringUtils;
+  CastleUtils, CastleStringUtils,
+  ToolUtils;
 
 type
   TAndroidComponent = class
@@ -40,15 +41,17 @@ type
     function HasComponent(const Name: string): boolean;
   end;
 
-procedure MergeAndroidManifest(const Source, Destination: string);
-procedure MergeAppend(const Source, Destination: string);
-procedure MergeAndroidMainActivity(const Source, Destination: string);
+procedure MergeAndroidManifest(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
+procedure MergeAppend(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
+procedure MergeAndroidMainActivity(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
 
 implementation
 
-uses SysUtils, XMLRead, XMLWrite,
-  CastleXMLUtils, CastleURIUtils,
-  ToolUtils;
+uses SysUtils, Classes, XMLRead, XMLWrite,
+  CastleXMLUtils, CastleURIUtils;
 
 { TAndroidComponent ---------------------------------------------------------- }
 
@@ -114,9 +117,21 @@ end;
 
 { globals -------------------------------------------------------------------- }
 
-procedure MergeAndroidManifest(const Source, Destination: string);
+procedure MergeAndroidManifest(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
 var
   SourceXml, DestinationXml: TXMLDocument;
+
+  procedure ReadXmlExpandingMacros(out Document: TXMLDocument; const FileName: string);
+  var
+    StringStream: TStringStream;
+  begin
+    StringStream := TStringStream.Create(
+      ReplaceMacros(FileToString(FilenameToURISafe(FileName))));
+    try
+      ReadXMLFile(Document, StringStream);
+    finally FreeAndNil(StringStream) end;
+  end;
 
   procedure MergeApplication(const SourceApplication: TDOMElement);
   var
@@ -132,8 +147,8 @@ var
     SourceNodes := SourceApplication.GetChildNodes;
     for I := 0 to SourceNodes.Count - 1 do
     begin
-      if Verbose then
-        Writeln('Appending node ', SourceNodes[I].NodeName, ' of type ', SourceNodes[I].NodeType);
+      // if Verbose then
+      //   Writeln('Appending node ', SourceNodes[I].NodeName, ' of type ', SourceNodes[I].NodeType);
       DestinationApplication.AppendChild(
         SourceNodes[I].CloneNode(true, DestinationXml));
     end;
@@ -144,8 +159,8 @@ var
       if SourceAttribs[I].NodeType <> ATTRIBUTE_NODE then
         raise Exception.Create('Attribute node does not have NodeType = ATTRIBUTE_NODE: ' +
           SourceAttribs[I].NodeName);
-      if Verbose then
-        Writeln('Appending attribute ', SourceAttribs[I].NodeName);
+      // if Verbose then
+      //   Writeln('Appending attribute ', SourceAttribs[I].NodeName);
       DestinationApplication.SetAttribute(
         SourceAttribs[I].NodeName, SourceAttribs[I].NodeValue);
     end;
@@ -166,8 +181,8 @@ var
            I.Current.HasAttribute('android:name') and
            (I.Current.AttributeString('android:name') = SourceName) then
         begin
-          if Verbose then
-            Writeln('Main AndroidManifest.xml already uses-permission with ' + SourceName);
+          // if Verbose then
+          //   Writeln('Main AndroidManifest.xml already uses-permission with ' + SourceName);
           Exit;
         end;
       end;
@@ -180,11 +195,14 @@ var
 var
   I: TXMLElementIterator;
 begin
-  if Verbose then
-    Writeln('Merging "', Source, '" into "', Destination, '"');
+  // if Verbose then
+  //   Writeln('Merging "', Source, '" into "', Destination, '"');
 
   try
-    ReadXMLFile(SourceXml, Source); // this nils SourceXml in case of error
+    { Do not simply read Source by
+        ReadXMLFile(SourceXml, Source);
+      because we want to call ReplaceMacros() on source contents. }
+    ReadXMLExpandingMacros(SourceXml, Source); // this nils SourceXml in case of error
     try
       ReadXMLFile(DestinationXml, Destination); // this nils DestinationXml in case of error
 
@@ -206,30 +224,32 @@ begin
   finally FreeAndNil(SourceXml) end;
 end;
 
-procedure MergeAppend(const Source, Destination: string);
+procedure MergeAppend(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
 var
   SourceContents, DestinationContents: string;
 begin
-  if Verbose then
-    Writeln('Merging "', Source, '" into "', Destination, '"');
+  // if Verbose then
+  //   Writeln('Merging "', Source, '" into "', Destination, '"');
 
-  SourceContents := FileToString(FilenameToURISafe(Source));
+  SourceContents := ReplaceMacros(FileToString(FilenameToURISafe(Source)));
   DestinationContents := FileToString(FilenameToURISafe(Destination));
   DestinationContents := DestinationContents + NL + SourceContents;
   StringToFile(Destination, DestinationContents);
 end;
 
-procedure MergeAndroidMainActivity(const Source, Destination: string);
+procedure MergeAndroidMainActivity(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
 const
   InsertMarker = '/* ANDROID-COMPONENTS-INITIALIZATION */';
 var
   SourceContents, DestinationContents: string;
   MarkerPos: Integer;
 begin
-  if Verbose then
-    Writeln('Merging "', Source, '" into "', Destination, '"');
+  // if Verbose then
+  //   Writeln('Merging "', Source, '" into "', Destination, '"');
 
-  SourceContents := FileToString(FilenameToURISafe(Source));
+  SourceContents := ReplaceMacros(FileToString(FilenameToURISafe(Source)));
   DestinationContents := FileToString(FilenameToURISafe(Destination));
   MarkerPos := Pos(InsertMarker, DestinationContents);
   if MarkerPos = 0 then

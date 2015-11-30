@@ -220,15 +220,21 @@ var
   procedure RunAndroidUpdateProject(const LibrarySubdirectory: string = '');
   const
     AndroidTarget = 'android-19';
+    WWWComponents = 'https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine';
   var
-    ProcessOutput: string;
+    Dir, ProcessOutput: string;
     ProcessStatus: Integer;
   begin
+    Dir := AndroidProjectPath + LibrarySubdirectory;
     if LibrarySubdirectory <> '' then
-      RunCommandIndirPassthrough(AndroidProjectPath + LibrarySubdirectory, AndroidExe,
+    begin
+      if not DirectoryExists(Dir) then
+        raise Exception.Create('Cannot find directory "' + Dir + '", make sure you installed the components dependencies (see "Requires" sections on ' + WWWComponents + ')');
+      RunCommandIndirPassthrough(Dir, AndroidExe,
         ['update', 'lib-project',                     '--path', '.', '--target', AndroidTarget],
-        ProcessOutput, ProcessStatus) else
-      RunCommandIndirPassthrough(AndroidProjectPath{ + LibrarySubdirectory}, AndroidExe,
+        ProcessOutput, ProcessStatus)
+    end else
+      RunCommandIndirPassthrough(Dir, AndroidExe,
         ['update', 'project', '--name', Project.Name, '--path', '.', '--target', AndroidTarget],
         ProcessOutput, ProcessStatus);
     if ProcessStatus <> 0 then
@@ -253,7 +259,10 @@ var
   { Run "ant debug/release" to actually build the final apk. }
   procedure RunAnt(const PackageMode: TCompilationMode);
   begin
-    RunCommandSimple(AndroidProjectPath, 'ant', [PackageModeToName[PackageMode], '-noinput', '-quiet']);
+    RunCommandSimple(AndroidProjectPath, 'ant',
+      [ { enable extra warnings, following http://stackoverflow.com/questions/7682150/use-xlintdeprecation-with-android }
+        '-Djava.compilerargs=-Xlint:unchecked -Xlint:deprecation',
+        PackageModeToName[PackageMode], '-noinput', '-quiet']);
   end;
 
 var
@@ -277,6 +286,12 @@ begin
   if (Project.AndroidProjectType = apIntegrated) and
      Project.AndroidComponents.HasComponent('google_play_services') then
     RunAndroidUpdateProject(PathDelim + 'google-play-services_lib');
+  if (Project.AndroidProjectType = apIntegrated) and
+     Project.AndroidComponents.HasComponent('giftiz') then
+  begin
+    RunAndroidUpdateProject(PathDelim + 'GiftizSDKLibrary');
+    PackageCheckForceDirectories(PathDelim + 'GiftizSDKLibrary' + PathDelim + 'src');
+  end;
   GenerateIcons;
   GenerateAssets;
   GenerateLibrary;
