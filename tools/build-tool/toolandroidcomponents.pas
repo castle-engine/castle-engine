@@ -132,8 +132,8 @@ var
     SourceNodes := SourceApplication.GetChildNodes;
     for I := 0 to SourceNodes.Count - 1 do
     begin
-      if Verbose then
-        Writeln('Appending node ', SourceNodes[I].NodeName, ' of type ', SourceNodes[I].NodeType);
+      // if Verbose then
+      //   Writeln('Appending node ', SourceNodes[I].NodeName, ' of type ', SourceNodes[I].NodeType);
       DestinationApplication.AppendChild(
         SourceNodes[I].CloneNode(true, DestinationXml));
     end;
@@ -144,8 +144,8 @@ var
       if SourceAttribs[I].NodeType <> ATTRIBUTE_NODE then
         raise Exception.Create('Attribute node does not have NodeType = ATTRIBUTE_NODE: ' +
           SourceAttribs[I].NodeName);
-      if Verbose then
-        Writeln('Appending attribute ', SourceAttribs[I].NodeName);
+      // if Verbose then
+      //   Writeln('Appending attribute ', SourceAttribs[I].NodeName);
       DestinationApplication.SetAttribute(
         SourceAttribs[I].NodeName, SourceAttribs[I].NodeValue);
     end;
@@ -166,8 +166,8 @@ var
            I.Current.HasAttribute('android:name') and
            (I.Current.AttributeString('android:name') = SourceName) then
         begin
-          if Verbose then
-            Writeln('Main AndroidManifest.xml already uses-permission with ' + SourceName);
+          // if Verbose then
+          //   Writeln('Main AndroidManifest.xml already uses-permission with ' + SourceName);
           Exit;
         end;
       end;
@@ -180,8 +180,8 @@ var
 var
   I: TXMLElementIterator;
 begin
-  if Verbose then
-    Writeln('Merging "', Source, '" into "', Destination, '"');
+  // if Verbose then
+  //   Writeln('Merging "', Source, '" into "', Destination, '"');
 
   try
     ReadXMLFile(SourceXml, Source); // this nils SourceXml in case of error
@@ -210,8 +210,8 @@ procedure MergeAppend(const Source, Destination: string);
 var
   SourceContents, DestinationContents: string;
 begin
-  if Verbose then
-    Writeln('Merging "', Source, '" into "', Destination, '"');
+  // if Verbose then
+  //   Writeln('Merging "', Source, '" into "', Destination, '"');
 
   SourceContents := FileToString(FilenameToURISafe(Source));
   DestinationContents := FileToString(FilenameToURISafe(Destination));
@@ -226,8 +226,8 @@ var
   SourceContents, DestinationContents: string;
   MarkerPos: Integer;
 begin
-  if Verbose then
-    Writeln('Merging "', Source, '" into "', Destination, '"');
+  // if Verbose then
+  //   Writeln('Merging "', Source, '" into "', Destination, '"');
 
   SourceContents := FileToString(FilenameToURISafe(Source));
   DestinationContents := FileToString(FilenameToURISafe(Destination));
