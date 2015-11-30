@@ -6,10 +6,13 @@
         android:hardwareAccelerated="true">
         <!-- For Chartboost, following
           https://github.com/freshplanet/ANE-Chartboost/issues/12
-          https://answers.chartboost.com/hc/en-us/articles/201219545-Android-Integration -->
+          https://answers.chartboost.com/hc/en-us/articles/201219545-Android-Integration
+          https://answers.chartboost.com/hc/en-us/articles/201219445-Android-SDK-Download (see SDK 6.x version notes) -->
         <activity android:name="com.chartboost.sdk.CBImpressionActivity"
             android:excludeFromRecents="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
+            android:hardwareAccelerated="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
     </application>
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>

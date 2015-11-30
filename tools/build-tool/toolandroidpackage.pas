@@ -259,7 +259,10 @@ var
   { Run "ant debug/release" to actually build the final apk. }
   procedure RunAnt(const PackageMode: TCompilationMode);
   begin
-    RunCommandSimple(AndroidProjectPath, 'ant', [PackageModeToName[PackageMode], '-noinput', '-quiet']);
+    RunCommandSimple(AndroidProjectPath, 'ant',
+      [ { enable extra warnings, following http://stackoverflow.com/questions/7682150/use-xlintdeprecation-with-android }
+        '-Djava.compilerargs=-Xlint:unchecked -Xlint:deprecation',
+        PackageModeToName[PackageMode], '-noinput', '-quiet']);
   end;
 
 var

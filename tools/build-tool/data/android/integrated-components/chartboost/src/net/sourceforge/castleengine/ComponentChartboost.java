@@ -93,9 +93,13 @@ public class ComponentChartboost extends ComponentAbstract
         }
 
         Chartboost.startWithAppId(getActivity(), appId, appSignature);
-        // necessary following
-        // https://github.com/freshplanet/ANE-Chartboost/issues/12
-        // https://answers.chartboost.com/hc/en-us/articles/201219545-Android-Integration
+        // Necessary following
+        //   https://github.com/freshplanet/ANE-Chartboost/issues/12
+        //   https://answers.chartboost.com/hc/en-us/articles/201219545-Android-Integration
+        // Later version of
+        //   https://answers.chartboost.com/hc/en-us/articles/201219545-Android-Integration
+        //   suggests it's no longer required for SDK 6.x, it's also marked as deprecated in Java.
+        //   We'll remove this call soon.
         Chartboost.setImpressionsUseActivities(true);
         //Chartboost.setLoggingLevel(Level.ALL); // not on prod!
         Chartboost.setDelegate(delegate);
