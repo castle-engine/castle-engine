@@ -220,15 +220,21 @@ var
   procedure RunAndroidUpdateProject(const LibrarySubdirectory: string = '');
   const
     AndroidTarget = 'android-19';
+    WWWComponents = 'https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine';
   var
-    ProcessOutput: string;
+    Dir, ProcessOutput: string;
     ProcessStatus: Integer;
   begin
+    Dir := AndroidProjectPath + LibrarySubdirectory;
     if LibrarySubdirectory <> '' then
-      RunCommandIndirPassthrough(AndroidProjectPath + LibrarySubdirectory, AndroidExe,
+    begin
+      if not DirectoryExists(Dir) then
+        raise Exception.Create('Cannot find directory "' + Dir + '", make sure you installed the components dependencies (see "Requires" sections on ' + WWWComponents + ')');
+      RunCommandIndirPassthrough(Dir, AndroidExe,
         ['update', 'lib-project',                     '--path', '.', '--target', AndroidTarget],
-        ProcessOutput, ProcessStatus) else
-      RunCommandIndirPassthrough(AndroidProjectPath{ + LibrarySubdirectory}, AndroidExe,
+        ProcessOutput, ProcessStatus)
+    end else
+      RunCommandIndirPassthrough(Dir, AndroidExe,
         ['update', 'project', '--name', Project.Name, '--path', '.', '--target', AndroidTarget],
         ProcessOutput, ProcessStatus);
     if ProcessStatus <> 0 then
