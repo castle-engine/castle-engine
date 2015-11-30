@@ -27,10 +27,12 @@
 # Not-so-commonly-useful targets:
 #
 #   cleanmore --
-#     Same as clean, and also delete:
+#     Same as clean, but also delete:
 #     - Emacs backup files (*~) and
 #     - Delphi backup files (*.~???)
 #     - pasdoc generated documentation in doc/pasdoc/
+#     - closed-source libs you may have left in tools/build-tool/data
+#     This is a useful step when packing the release of CGE.
 #
 #   cleanall --
 #     Same as cleanmore for now.
@@ -206,6 +208,11 @@ cleanmore: clean
 			   -iname '*.blend1' \
 			')' -exec rm -f '{}' ';'
 	$(MAKE) -C doc/pasdoc/ clean
+	rm -Rf tools/build-tool/data/android/integrated-components/google_play_services/google-play-services_lib/ \
+	       tools/build-tool/data/android/integrated-components/chartboost/libs/*.jar \
+	       tools/build-tool/data/android/integrated-components/startapp/libs/*.jar \
+	       tools/build-tool/data/android/integrated-components/game_analytics/libs/*.jar \
+	       tools/build-tool/data/android/integrated-components/game_analytics/jni/*/*.so
 
 cleanall: cleanmore
 
