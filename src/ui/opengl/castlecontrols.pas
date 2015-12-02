@@ -425,13 +425,13 @@ type
       with borders work. }
     property Corners: TVector4Integer read FCorners write FCorners;
 
-    { X coordinate of center of rotation. Value from 0 to 1. Default value 0.5. }
+    { X coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
     property CenterX: Single read GetCenterX write SetCenterX default 0.5;
 
-    { Y coordinate of center of rotation. Value from 0 to 1. Default value 0.5. }
+    { Y coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
     property CenterY: Single read GetCenterY write SetCenterY default 0.5;
 
-    { Rotation in degrees.  Default value 0. }
+    { Rotation in degrees. Default value 0. }
     property Rotation: Single read GetRotation write SetRotation default 0;
   published
     { URL of the image. Setting this also sets @link(Image).
@@ -1874,16 +1874,19 @@ end;
 procedure TCastleImageControl.SetCenterX(AValue: Single);
 begin
   FGLImage.CenterX := AValue;
+  VisibleChange;
 end;
 
 procedure TCastleImageControl.SetCenterY(AValue: Single);
 begin
   FGLImage.CenterY := AValue;
+  VisibleChange;
 end;
 
 procedure TCastleImageControl.SetRotation(AValue: Single);
 begin
   FGLImage.Rotation := AValue;
+  VisibleChange;
 end;
 
 procedure TCastleImageControl.SetImage(const Value: TCastleImage);

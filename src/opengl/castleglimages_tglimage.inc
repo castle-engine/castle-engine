@@ -58,6 +58,8 @@ type
     FSmoothScaling: boolean;
     FScaleCorners: Single;
     FCenterX, FCenterY, FRotation: Single;
+    ScreenCenterX, ScreenCenterY: Single;
+    UseScreenCenter: boolean;
     procedure AlphaBegin;
     procedure AlphaEnd;
     procedure UpdateSmoothScaling(const NeedToBind: boolean);
@@ -286,13 +288,13 @@ type
     property ScalingPossible: boolean read FSmoothScaling write SetSmoothScaling;
       deprecated 'use SmoothScaling';
 
-    { X coordinate of center of rotation. Value from 0 to 1. Default value 0.5. }
+    { X coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
     property CenterX: Single read FCenterX write FCenterX default 0.5;
 
-    { Y coordinate of center of rotation. Value from 0 to 1. Default value 0.5. }
+    { Y coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
     property CenterY: Single read FCenterY write FCenterY default 0.5;
 
-    { Rotation in degrees.  Default value 0. }
+    { Rotation in degrees. Default value 0. }
     property Rotation: Single read FRotation write FRotation default 0;
   end;
 
@@ -481,28 +483,16 @@ procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
 var
   TexX0, TexY0, TexX1, TexY1: Single;
-  PixCenterX, PixCenterY: Integer;
   {$ifdef GLImageUseShaders}
   ColorTreatment: TColorTreatment;
   AttribEnabled: array [0..1] of TGLuint;
   AttribLocation: TGLuint;
   Prog: TGLSLProgram;
+  {$else}
+  ShiftX, ShiftY: Single;
   {$endif}
 begin
   if (DrawWidth = 0) or (DrawHeight = 0) then Exit;
-
-  PixCenterX := -Round(FCenterX * DrawWidth);
-  PixCenterY := -Round(FCenterY * DrawHeight);
-
-  { Protect from X, Y and sizes going outside of the SmallInt range.
-    We want to squeeze X, Y into SmallInt to make it a little more efficient
-    to render, and there are no displays with resolution outside of SmallInt
-    range anyway. }
-  if (PixCenterX < Low(SmallInt)) or
-     (PixCenterY < Low(SmallInt)) or
-     (PixCenterX + DrawWidth  > High(SmallInt)) or
-     (PixCenterX + DrawHeight > High(SmallInt)) then
-    Exit;
 
   if GLFeatures.UseMultiTexturing then glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, Texture);
@@ -513,14 +503,24 @@ begin
   TexX1 := (ImageX + ImageWidth ) / Width;
   TexY1 := (ImageY + ImageHeight) / Height;
 
+  { Protect from X, Y and sizes going outside of the SmallInt range.
+    We want to squeeze X, Y into SmallInt to make it a little more efficient
+    to render, and there are no displays with resolution outside of SmallInt
+    range anyway. }
+  if (X < Low(SmallInt)) or
+     (Y < Low(SmallInt)) or
+     (X + DrawWidth  > High(SmallInt)) or
+     (X + DrawHeight > High(SmallInt)) then
+    Exit;
+
   Point[0].TexCoord := Vector2Single(TexX0, TexY0);
-  Point[0].Position := Vector2SmallInt(PixCenterX            , PixCenterY);
+  Point[0].Position := Vector2SmallInt(X            , Y);
   Point[1].TexCoord := Vector2Single(TexX1, TexY0);
-  Point[1].Position := Vector2SmallInt(PixCenterX + DrawWidth, PixCenterY);
+  Point[1].Position := Vector2SmallInt(X + DrawWidth, Y);
   Point[2].TexCoord := Vector2Single(TexX1, TexY1);
-  Point[2].Position := Vector2SmallInt(PixCenterX + DrawWidth, PixCenterY + DrawHeight);
+  Point[2].Position := Vector2SmallInt(X + DrawWidth, Y + DrawHeight);
   Point[3].TexCoord := Vector2Single(TexX0, TexY1);
-  Point[3].Position := Vector2SmallInt(PixCenterX            , PixCenterY + DrawHeight);
+  Point[3].Position := Vector2SmallInt(X            , Y + DrawHeight);
 
   if GLFeatures.VertexBufferObject then
   begin
@@ -551,9 +551,21 @@ begin
   {$else}
   glLoadIdentity();
   glColorv(Color);
-  glTranslatef(X - PixCenterX, Y - PixCenterY, 0);
   if FRotation <> 0 then
+  begin
+    if UseScreenCenter then
+    begin
+      ShiftX := ScreenCenterX;
+      ShiftY := ScreenCenterY;
+    end else
+    begin
+      ShiftX := X + FCenterX * DrawWidth;
+      ShiftY := Y + FCenterY * DrawHeight;
+    end;
+    glTranslatef( ShiftX,  ShiftY, 0);
     glRotatef(FRotation, 0, 0, 1);
+    glTranslatef(-ShiftX, -ShiftY, 0);
+  end;
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -706,6 +718,14 @@ begin
     Alpha := acNone;
   end;
 
+  { setup rotations }
+  if Rotation <> 0 then
+  begin
+    UseScreenCenter := true; // only temporary for this Draw3x3 call
+    ScreenCenterX := X + FCenterX * DrawWidth;
+    ScreenCenterY := Y + FCenterY * DrawHeight;
+  end;
+
   { 4 corners }
   Draw(XScreenLeft, YScreenBottom, DrawCornerLeft, DrawCornerBottom,
         XImageLeft,  YImageBottom,     CornerLeft,     CornerBottom);
@@ -748,6 +768,7 @@ begin
     Alpha := OldAlpha;
     AlphaEnd;
   end;
+  UseScreenCenter := false;
 end;
 
 procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
