@@ -833,6 +833,14 @@ begin
     Alpha := acNone;
   end;
 
+  { setup rotations }
+  if Rotation <> 0 then
+  begin
+    UseScreenCenter := true; // only temporary for this Draw3x3 call
+    ScreenCenterX := X + FCenterX * DrawWidth;
+    ScreenCenterY := Y + FCenterY * DrawHeight;
+  end;
+
   { 2 sides }
   HorizontalScreenSize := DrawWidth - SideLeft - SideRight;
   HorizontalImageSize  :=     Width - SideLeft - SideRight;
@@ -856,6 +864,7 @@ begin
     Alpha := OldAlpha;
     AlphaEnd;
   end;
+  UseScreenCenter := false;
 end;
 
 procedure TGLImage.Draw3x1(const X, Y, DrawWidth, DrawHeight: Integer;
