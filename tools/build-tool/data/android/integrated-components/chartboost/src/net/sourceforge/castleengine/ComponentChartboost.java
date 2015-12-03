@@ -104,7 +104,7 @@ public class ComponentChartboost extends ComponentAbstract
         //Chartboost.setLoggingLevel(Level.ALL); // not on prod!
         Chartboost.setDelegate(delegate);
         Chartboost.onCreate(getActivity());
-        Log.i(TAG, "Chartboost initialized with appId " + appId + " (will send delayed onStart: " + scheduledStart + ", will send delayed onResume: " + scheduledResume + ")");
+        Log.i(TAG, "Chartboost initialized (will send delayed onStart: " + scheduledStart + ", will send delayed onResume: " + scheduledResume + ")");
         initialized = true;
 
         if (scheduledStart) {

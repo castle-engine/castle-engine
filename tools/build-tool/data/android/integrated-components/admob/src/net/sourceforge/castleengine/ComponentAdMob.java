@@ -43,6 +43,7 @@ public class ComponentAdMob extends ComponentAbstract
         mInterstitialUnitId = interstitialUnitId;
         testDeviceIds = aTestDeviceIds;
         interstitialInitialize();
+        Log.i(TAG, "AdMob initialized");
     }
 
     private void interstitialInitialize()
