@@ -129,6 +129,7 @@ public class ComponentHeyzap extends ComponentAbstract
             }
         };
         VideoAd.setOnStatusListener(videoListener);
+        VideoAd.fetch();
 
         Log.i(TAG, "Heyzap initialized (will send delayed onStart: " + scheduledStart + ", will send delayed onResume: " + scheduledResume + ")");
         initialized = true;
@@ -179,10 +180,14 @@ public class ComponentHeyzap extends ComponentAbstract
             scheduledStart = true; // send onStart to Heyzap SDK when we will be initialized
             return;
         }
-        // just for test
-        // HeyzapAds.startTestActivity(getActivity());
 
-        VideoAd.fetch();
+    }
+
+    private void startTestActivity()
+    {
+        if (initialized) {
+            HeyzapAds.startTestActivity(getActivity());
+        }
     }
 
     @Override
@@ -259,7 +264,12 @@ public class ComponentHeyzap extends ComponentAbstract
         if (parts.length == 2 && parts[0].equals("ads-heyzap-show-interstitial") && parts[1].equals("video")) {
             showVideo();
             return true;
-        } else {
+        } else
+        if (parts.length == 1 && parts[0].equals("ads-heyzap-start-test-activity")) {
+            startTestActivity();
+            return true;
+        } else
+        {
             return false;
         }
     }
