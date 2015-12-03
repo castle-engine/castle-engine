@@ -35,7 +35,7 @@ const
   TestAdMobInterstitialUnitId = 'ca-app-pub-3940256099942544/1033173712';
 
 type
-  TAdNetwork = (anAdMob, anChartboost, anStartApp);
+  TAdNetwork = (anAdMob, anChartboost, anStartApp, anHeyzap);
 
   { Advertisements in game.
     Right now only on Android (does nothing on other platforms,
@@ -55,7 +55,7 @@ type
 
       @item(To include the necessary integration code in your Android project,
         declare your Android project type as "integrated" with
-        the appropriate components (admob, chartboost, startapp...)
+        the appropriate components (admob, chartboost, startapp, heyzap...)
         inside CastleEngineManifest.xml .
         See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine .)
     )
@@ -95,8 +95,16 @@ type
       Usually called from @link(TCastleApplication.OnInitializeJavaActivity). }
     procedure InitializeChartboost(const AppId, AppSignature: string);
 
+    { Initialize Heyzap ads.
+      You need to register your game on https://www.heyzap.com/ to get publisher id.
+
+      Usually called from @link(TCastleApplication.OnInitializeJavaActivity). }
+    procedure InitializeHeyzap(const PublisherId: string);
+
     { Show interstitial (full-screen) ad. }
-    procedure ShowInterstitial(const AdNetwork: TAdNetwork; const WaitUntilLoaded: boolean);
+    procedure ShowInterstitial(const AdNetwork: TAdNetwork;
+      const WaitUntilLoaded: boolean;
+      const Static: boolean = true);
 
     { Show banner ad.
 
@@ -138,7 +146,8 @@ begin
   if (Received.Count = 2) and
      ( (Received[0] = 'ads-admob-interstitial-display') or
        (Received[0] = 'ads-chartboost-interstitial-display') or
-       (Received[0] = 'ads-startapp-interstitial-display')
+       (Received[0] = 'ads-startapp-interstitial-display') or
+       (Received[0] = 'ads-heyzap-interstitial-display')
      ) and
      (Received[1] = 'shown') then
   begin
@@ -148,7 +157,8 @@ begin
   end;
 end;
 
-procedure TAds.ShowInterstitial(const AdNetwork: TAdNetwork; const WaitUntilLoaded: boolean);
+procedure TAds.ShowInterstitial(const AdNetwork: TAdNetwork;
+  const WaitUntilLoaded, Static: boolean);
 begin
   case AdNetwork of
     anAdMob:
@@ -157,6 +167,10 @@ begin
         Messaging.Send(['ads-admob-interstitial-display', 'no-wait']);
     anChartboost: Messaging.Send(['ads-chartboost-show-interstitial']);
     anStartApp: Messaging.Send(['ads-startapp-show-interstitial']);
+    anHeyzap:
+      if Static then
+        Messaging.Send(['ads-heyzap-show-interstitial', 'static']) else
+        Messaging.Send(['ads-heyzap-show-interstitial', 'video']);
     else raise EInternalError.Create('Unimplemented AdNetwork');
   end;
 end;
@@ -178,6 +192,11 @@ end;
 procedure TAds.InitializeStartapp(const AppId: string);
 begin
   Messaging.Send(['ads-startapp-initialize', AppId]);
+end;
+
+procedure TAds.InitializeHeyzap(const PublisherId: string);
+begin
+  Messaging.Send(['ads-heyzap-initialize', PublisherId]);
 end;
 
 procedure TAds.ShowBanner(const AdNetwork: TAdNetwork;
