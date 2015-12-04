@@ -22,25 +22,38 @@ public class ActivityPopup
         // Inspired by http://www.dynadream.com/ddweb/index.php/Special_Blog?id=20
         popup = new PopupWindow(activity);
 
-        // This is the minimum size for AdMob, we need to set this in case our
-        // target device run at 320x480 resolution
-        // (Otherwise no ad will be shown, see the padding kill below)
-        // Trick from http://www.dynadream.com/ddweb/index.php/Special_Blog?id=20
-        popup.setWidth(320);
-        popup.setHeight(50);
-        popup.setWindowLayoutMode(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        /*
+        if (smallAdMobSize) {
+            // This is the minimum size for AdMob, we need to set this in case our
+            // target device run at 320x480 resolution
+            // (Otherwise no ad will be shown, see the padding kill below)
+            // Trick from http://www.dynadream.com/ddweb/index.php/Special_Blog?id=20
+            popup.setWidth(320);
+            popup.setHeight(50);
+            popup.setWindowLayoutMode(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        } else {
+        */
+        // for better-paying ads, you want to give more space.
+        popup.setWindowLayoutMode(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
         popup.setClippingEnabled(false);
+        //popup.setBackgroundDrawable(null);
 
         LinearLayout layout = new LinearLayout(activity);
-        // The layout system for the PopupWindow will kill some pixels due
-        // to margins/paddings etc... (No way to remove it), so padd it to adjust
-        // Trick from http://www.dynadream.com/ddweb/index.php/Special_Blog?id=20
-        layout.setPadding(-10, -10, -10, -10);
-        MarginLayoutParams params = new MarginLayoutParams(
-            LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, 0, 0, 0);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.addView(childView, params);
+        /*
+        if (smallAdMobSize) {
+            // The layout system for the PopupWindow will kill some pixels due
+            // to margins/paddings etc... (No way to remove it), so padd it to adjust
+            // Trick from http://www.dynadream.com/ddweb/index.php/Special_Blog?id=20
+            layout.setPadding(-10, -10, -10, -10);
+            MarginLayoutParams params = new MarginLayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+            params.setMargins(0, 0, 0, 0);
+            layout.addView(childView, params);
+        } else {
+        */
+
+        layout.addView(childView);
         popup.setContentView(layout);
 
         //ViewGroup decorView = (ViewGroup)getWindow().getDecorView();
