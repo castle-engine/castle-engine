@@ -170,7 +170,7 @@ type
     { Show interstitial (full-screen) ad. }
     procedure ShowInterstitial(const AdNetwork: TAdNetwork;
       const WaitUntilLoaded: boolean;
-      const Static: boolean = true);
+      const Static: boolean = false);
 
     { Show banner ad.
       Banners are not supported by all ad networks (only AdMob and Heyzap now),
