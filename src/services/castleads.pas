@@ -64,9 +64,13 @@ type
   private
     type
       TAdNetworkHandler = class abstract
-      private
+      strict private
         FOnInterstitialShown: TNotifyEvent;
         function MessageReceived(const Received: TCastleStringList): boolean;
+      strict protected
+        function GravityToInt(
+          const HorizontalGravity: THorizontalPosition;
+          const VerticalGravity: TVerticalPosition): Integer;
       public
         constructor Create;
         destructor Destroy; override;
@@ -75,7 +79,7 @@ type
         class function Name: string; virtual; abstract;
         procedure ShowBanner(
           const HorizontalGravity: THorizontalPosition;
-          const VerticalPosition: TVerticalPosition); virtual;
+          const VerticalGravity: TVerticalPosition); virtual;
         procedure HideBanner; virtual;
         procedure ShowInterstitial(const WaitUntilLoaded: boolean;
           const Static: boolean); virtual;
@@ -89,7 +93,7 @@ type
         class function Name: string; override;
         procedure ShowBanner(
           const HorizontalGravity: THorizontalPosition;
-          const VerticalPosition: TVerticalPosition); override;
+          const VerticalGravity: TVerticalPosition); override;
         procedure HideBanner; override;
         procedure ShowInterstitial(const WaitUntilLoaded: boolean;
           const Static: boolean); override;
@@ -115,6 +119,10 @@ type
       public
         constructor Create(const PublisherId: string);
         class function Name: string; override;
+        procedure ShowBanner(
+          const HorizontalGravity: THorizontalPosition;
+          const VerticalGravity: TVerticalPosition); override;
+        procedure HideBanner; override;
         procedure ShowInterstitial(const WaitUntilLoaded: boolean;
           const Static: boolean); override;
         procedure StartTestActivity; override;
@@ -165,15 +173,15 @@ type
       const Static: boolean = true);
 
     { Show banner ad.
-      Banners are not implemented by all ad networks (only AdMob now),
-      in which case this call is silently ignored. }
+      Banners are not supported by all ad networks (only AdMob and Heyzap now),
+      in case they are unsupported this call is silently ignored. }
     procedure ShowBanner(const AdNetwork: TAdNetwork;
       const HorizontalGravity: THorizontalPosition;
-      const VerticalPosition: TVerticalPosition);
+      const VerticalGravity: TVerticalPosition);
 
     { Hide banner ad.
-      Banners are not implemented by all ad networks (only AdMob now),
-      in which case this call is silently ignored. }
+      Banners are not supported by all ad networks (only AdMob and Heyzap now),
+      in case they are unsupported this call is silently ignored. }
     procedure HideBanner(const AdNetwork: TAdNetwork);
 
     { Show Heyzap activity to test various ad networks integrations.
@@ -220,7 +228,7 @@ end;
 
 procedure TAds.TAdNetworkHandler.ShowBanner(
   const HorizontalGravity: THorizontalPosition;
-  const VerticalPosition: TVerticalPosition);
+  const VerticalGravity: TVerticalPosition);
 begin
 end;
 
@@ -239,6 +247,38 @@ end;
 
 procedure TAds.TAdNetworkHandler.StartTestActivity;
 begin
+end;
+
+function TAds.TAdNetworkHandler.GravityToInt(
+  const HorizontalGravity: THorizontalPosition;
+  const VerticalGravity: TVerticalPosition): Integer;
+const
+  { Gravity constants for some messages, for example to indicate ad placement.
+    Equal to constants on
+    http://developer.android.com/reference/android/view/Gravity.html .
+    @groupBegin }
+  GravityLeft = $00000003; //< Push object to the left of its container, not changing its size.
+  GravityRight = $00000005; //< Push object to the right of its container, not changing its size.
+  GravityTop = $00000030; //< Push object to the top of its container, not changing its size.
+  GravityBottom = $00000050; //< Push object to the bottom of its container, not changing its size.
+  GravityCenterHorizontal = $00000001; //< Place object in the horizontal center of its container, not changing its size.
+  GravityCenterVertical = $00000010; //< Place object in the vertical center of its container, not changing its size.
+  //GravityNo = 0; //< Constant indicating that no gravity has been set.
+  { @groupEnd }
+begin
+  Result := 0;
+  case HorizontalGravity of
+    hpLeft: Result := Result or GravityLeft;
+    hpRight: Result := Result or GravityRight;
+    hpMiddle: Result := Result or GravityCenterHorizontal;
+    else raise EInternalError.Create('ShowBanner:HorizontalGravity?');
+  end;
+  case VerticalGravity of
+    vpTop: Result := Result or GravityTop;
+    vpBottom: Result := Result or GravityBottom;
+    vpMiddle: Result := Result or GravityCenterVertical;
+    else raise EInternalError.Create('ShowBanner:VerticalGravity?');
+  end;
 end;
 
 { TAdMobHandler -------------------------------------------------------------- }
@@ -260,37 +300,10 @@ end;
 
 procedure TAds.TAdMobHandler.ShowBanner(
   const HorizontalGravity: THorizontalPosition;
-  const VerticalPosition: TVerticalPosition);
-const
-  { Gravity constants for some messages, for example to indicate ad placement.
-    Equal to constants on
-    http://developer.android.com/reference/android/view/Gravity.html .
-    @groupBegin }
-  GravityLeft = $00000003; //< Push object to the left of its container, not changing its size.
-  GravityRight = $00000005; //< Push object to the right of its container, not changing its size.
-  GravityTop = $00000030; //< Push object to the top of its container, not changing its size.
-  GravityBottom = $00000050; //< Push object to the bottom of its container, not changing its size.
-  GravityCenterHorizontal = $00000001; //< Place object in the horizontal center of its container, not changing its size.
-  GravityCenterVertical = $00000010; //< Place object in the vertical center of its container, not changing its size.
-  //GravityNo = 0; //< Constant indicating that no gravity has been set.
-  { @groupEnd }
-var
-  Gravity: Integer;
+  const VerticalGravity: TVerticalPosition);
 begin
-  Gravity := 0;
-  case HorizontalGravity of
-    hpLeft: Gravity := Gravity or GravityLeft;
-    hpRight: Gravity := Gravity or GravityRight;
-    hpMiddle: Gravity := Gravity or GravityCenterHorizontal;
-    else raise EInternalError.Create('ShowBanner:HorizontalGravity?');
-  end;
-  case VerticalPosition of
-    vpTop: Gravity := Gravity or GravityTop;
-    vpBottom: Gravity := Gravity or GravityBottom;
-    vpMiddle: Gravity := Gravity or GravityCenterVertical;
-    else raise EInternalError.Create('ShowBanner:VerticalPosition?');
-  end;
-  Messaging.Send(['ads-' + Name + '-banner-show', IntToStr(Gravity)]);
+  Messaging.Send(['ads-' + Name + '-banner-show',
+    IntToStr(GravityToInt(HorizontalGravity, VerticalGravity))]);
 end;
 
 procedure TAds.TAdMobHandler.HideBanner;
@@ -352,6 +365,19 @@ end;
 class function TAds.THeyzapHandler.Name: string;
 begin
   Result := 'heyzap';
+end;
+
+procedure TAds.THeyzapHandler.ShowBanner(
+  const HorizontalGravity: THorizontalPosition;
+  const VerticalGravity: TVerticalPosition);
+begin
+  Messaging.Send(['ads-' + Name + '-banner-show',
+    IntToStr(GravityToInt(HorizontalGravity, VerticalGravity))]);
+end;
+
+procedure TAds.THeyzapHandler.HideBanner;
+begin
+  Messaging.Send(['ads-' + Name + '-banner-hide']);
 end;
 
 procedure TAds.THeyzapHandler.ShowInterstitial(const WaitUntilLoaded, Static: boolean);
@@ -429,10 +455,10 @@ end;
 
 procedure TAds.ShowBanner(const AdNetwork: TAdNetwork;
   const HorizontalGravity: THorizontalPosition;
-  const VerticalPosition: TVerticalPosition);
+  const VerticalGravity: TVerticalPosition);
 begin
   if FNetworks[AdNetwork] <> nil then
-    FNetworks[AdNetwork].ShowBanner(HorizontalGravity, VerticalPosition);
+    FNetworks[AdNetwork].ShowBanner(HorizontalGravity, VerticalGravity);
 end;
 
 procedure TAds.HideBanner(const AdNetwork: TAdNetwork);
