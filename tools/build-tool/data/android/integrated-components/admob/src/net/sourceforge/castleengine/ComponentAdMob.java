@@ -1,12 +1,8 @@
 /* -*- tab-width: 4 -*- */
 package net.sourceforge.castleengine;
 
-import android.widget.LinearLayout;
-import android.widget.PopupWindow;
-import android.view.ViewGroup.LayoutParams;
-import android.view.ViewGroup.MarginLayoutParams;
-import android.view.View;
 import android.util.Log;
+import android.view.View;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
@@ -23,7 +19,7 @@ public class ComponentAdMob extends ComponentAbstract
 
     private boolean initialized;
     private String mBannerUnitId, mInterstitialUnitId;
-    private PopupWindow adPopup;
+    private ActivityPopup adPopup;
     private InterstitialAd interstitial;
     private String[] testDeviceIds;
 
@@ -82,37 +78,9 @@ public class ComponentAdMob extends ComponentAbstract
         // Place the AdView in a PopupWindow.
         AdView adView = new AdView(getActivity());
         adView.setAdUnitId(mBannerUnitId);
-        adView.setAdSize(AdSize.BANNER);
+        adView.setAdSize(AdSize.SMART_BANNER);
 
-        // Inspired by http://www.dynadream.com/ddweb/index.php/Special_Blog?id=20
-        adPopup = new PopupWindow(getActivity());
-
-        // This is the minimum size for AdMob, we need to set this in case our target device run at 320x480 resolution (Otherwise no ad will be shown, see the padding kill below)
-        // Trick from http://www.dynadream.com/ddweb/index.php/Special_Blog?id=20
-        adPopup.setWidth(320);
-        adPopup.setHeight(50);
-        adPopup.setWindowLayoutMode(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        adPopup.setClippingEnabled(false);
-
-        LinearLayout popupLayout = new LinearLayout(getActivity());
-        // The layout system for the PopupWindow will kill some pixels due
-        // to margins/paddings etc... (No way to remove it), so padd it to adjust
-        // Trick from http://www.dynadream.com/ddweb/index.php/Special_Blog?id=20
-        popupLayout.setPadding(-10, -10, -10, -10);
-        MarginLayoutParams params = new MarginLayoutParams(
-            LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, 0, 0, 0);
-        popupLayout.setOrientation(LinearLayout.VERTICAL);
-        popupLayout.addView(adView, params);
-        adPopup.setContentView(popupLayout);
-
-        //ViewGroup decorView = (ViewGroup)getWindow().getDecorView();
-        //View gameView = decorView.getChildAt(0);
-        View gameView = getActivity().findViewById(android.R.id.content);
-
-        // Note: do not call adPopup.showAtLocation earlier,
-        // see http://stackoverflow.com/questions/17787011/android-view-windowmanagerbadtokenexception-unable-to-add-window-token-null
-        adPopup.showAtLocation(gameView, gravity, 0, 0);
+        adPopup = new ActivityPopup(getActivity(), gravity, adView);
 
         adView.setVisibility(View.VISIBLE);
         adView.loadAd(buildAdRequest());
@@ -137,7 +105,7 @@ public class ComponentAdMob extends ComponentAbstract
     private void bannerHide()
     {
         if (adPopup != null) {
-            adPopup.dismiss();
+            adPopup.dispose();
             adPopup = null;
         }
     }
@@ -174,6 +142,13 @@ public class ComponentAdMob extends ComponentAbstract
     {
         if (parts.length == 4 && parts[0].equals("ads-admob-initialize")) {
             initialize(parts[1], parts[2], parts[3].split(","));
+            return true;
+        } else
+        // The standard String.split cuts off trailing strings if empty
+        // (see http://docs.oracle.com/javase/7/docs/api/java/lang/String.html#split%28java.lang.String%29 ).
+        // This means that we may receive less strings if the last param is empty.
+        if (parts.length == 3 && parts[0].equals("ads-admob-initialize")) {
+            initialize(parts[1], parts[2], new String[]{});
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("ads-admob-banner-show")) {

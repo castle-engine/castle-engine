@@ -3,6 +3,9 @@
      by the build tool. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application android:hardwareAccelerated="true">
+        <!-- AdMob -->
+        <activity android:name="com.google.android.gms.ads.AdActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" />
+
         <!-- Chartboost -->
         <activity android:name="com.chartboost.sdk.CBImpressionActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar" android:excludeFromRecents="true" />
 
@@ -23,13 +26,13 @@
         </receiver>
     </application>
 
-    <!-- Required by Chartboost, Heyzap Ad Network, and UnityAds -->
+    <!-- Required by AdMob, Chartboost, Heyzap Ad Network, and UnityAds -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Required by Chartboost -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
-    <!-- Required by Chartboost, Heyzap Ad Network, and UnityAds -->
+    <!-- Required by AdMob, Chartboost, Heyzap Ad Network, and UnityAds -->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Required by Chartboost, and UnityAds -->

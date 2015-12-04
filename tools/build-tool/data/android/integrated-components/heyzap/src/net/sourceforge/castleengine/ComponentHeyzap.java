@@ -7,6 +7,7 @@ import com.heyzap.sdk.ads.HeyzapAds;
 import com.heyzap.sdk.ads.InterstitialAd;
 import com.heyzap.sdk.ads.VideoAd;
 import com.heyzap.sdk.ads.HeyzapAds.OnStatusListener;
+import com.heyzap.sdk.ads.BannerAdView;
 
 /**
  * Heyzap (https://www.heyzap.com/)
@@ -18,6 +19,8 @@ public class ComponentHeyzap extends ComponentAbstract
 
     private boolean initialized, scheduledStart, scheduledResume;
     private boolean mShown;
+    private ActivityPopup adPopup;
+    private BannerAdView bannerAdView;
 
     public ComponentHeyzap(MainActivity activity)
     {
@@ -129,6 +132,7 @@ public class ComponentHeyzap extends ComponentAbstract
             }
         };
         VideoAd.setOnStatusListener(videoListener);
+        VideoAd.fetch();
 
         Log.i(TAG, "Heyzap initialized (will send delayed onStart: " + scheduledStart + ", will send delayed onResume: " + scheduledResume + ")");
         initialized = true;
@@ -149,7 +153,10 @@ public class ComponentHeyzap extends ComponentAbstract
         if (!initialized) {
             return;
         }
-        // nothing to do here now
+        if (bannerAdView != null) {
+            bannerAdView.destroy();
+        }
+        bannerHide();
     }
 
     @Override
@@ -179,10 +186,14 @@ public class ComponentHeyzap extends ComponentAbstract
             scheduledStart = true; // send onStart to Heyzap SDK when we will be initialized
             return;
         }
-        // just for test
-        // HeyzapAds.startTestActivity(getActivity());
 
-        VideoAd.fetch();
+    }
+
+    private void startTestActivity()
+    {
+        if (initialized) {
+            HeyzapAds.startTestActivity(getActivity());
+        }
     }
 
     @Override
@@ -245,11 +256,43 @@ public class ComponentHeyzap extends ComponentAbstract
         }
     }
 
+    private void bannerShow(int gravity)
+    {
+        if (!initialized) {
+            return;
+        }
+
+        if (adPopup != null) {
+            return; // nothing to do, already showing
+        }
+
+        bannerAdView = new BannerAdView(getActivity());
+        adPopup = new ActivityPopup(getActivity(), gravity, bannerAdView);
+        bannerAdView.load();
+    }
+
+    private void bannerHide()
+    {
+        if (adPopup != null) {
+            adPopup.dispose();
+            adPopup = null;
+        }
+    }
+
     @Override
     public boolean messageReceived(String[] parts)
     {
         if (parts.length == 2 && parts[0].equals("ads-heyzap-initialize")) {
             initialize(parts[1]);
+            return true;
+        } else
+        if (parts.length == 2 && parts[0].equals("ads-heyzap-banner-show")) {
+            int gravity = Integer.parseInt(parts[1]);
+            bannerShow(gravity);
+            return true;
+        } else
+        if (parts.length == 1 && parts[0].equals("ads-heyzap-banner-hide")) {
+            bannerHide();
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("ads-heyzap-show-interstitial") && parts[1].equals("static")) {
@@ -259,7 +302,12 @@ public class ComponentHeyzap extends ComponentAbstract
         if (parts.length == 2 && parts[0].equals("ads-heyzap-show-interstitial") && parts[1].equals("video")) {
             showVideo();
             return true;
-        } else {
+        } else
+        if (parts.length == 1 && parts[0].equals("ads-heyzap-start-test-activity")) {
+            startTestActivity();
+            return true;
+        } else
+        {
             return false;
         }
     }

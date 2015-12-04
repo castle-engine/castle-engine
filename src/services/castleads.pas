@@ -62,10 +62,76 @@ type
   }
   TAds = class(TComponent)
   private
+    type
+      TAdNetworkHandler = class abstract
+      strict private
+        FOnInterstitialShown: TNotifyEvent;
+        function MessageReceived(const Received: TCastleStringList): boolean;
+      strict protected
+        function GravityToInt(
+          const HorizontalGravity: THorizontalPosition;
+          const VerticalGravity: TVerticalPosition): Integer;
+      public
+        constructor Create;
+        destructor Destroy; override;
+        property OnInterstitialShown: TNotifyEvent
+          read FOnInterstitialShown write FOnInterstitialShown;
+        class function Name: string; virtual; abstract;
+        procedure ShowBanner(
+          const HorizontalGravity: THorizontalPosition;
+          const VerticalGravity: TVerticalPosition); virtual;
+        procedure HideBanner; virtual;
+        procedure ShowInterstitial(const WaitUntilLoaded: boolean;
+          const Static: boolean); virtual;
+        procedure StartTestActivity; virtual;
+      end;
+
+      TAdMobHandler = class(TAdNetworkHandler)
+      public
+        constructor Create(const BannerUnitId, InterstitialUnitId: string;
+          const TestDeviceIds: array of string);
+        class function Name: string; override;
+        procedure ShowBanner(
+          const HorizontalGravity: THorizontalPosition;
+          const VerticalGravity: TVerticalPosition); override;
+        procedure HideBanner; override;
+        procedure ShowInterstitial(const WaitUntilLoaded: boolean;
+          const Static: boolean); override;
+      end;
+
+      TChartboostHandler = class(TAdNetworkHandler)
+      public
+        constructor Create(const AppId, AppSignature: string);
+        class function Name: string; override;
+        procedure ShowInterstitial(const WaitUntilLoaded: boolean;
+          const Static: boolean); override;
+      end;
+
+      TStartappHandler = class(TAdNetworkHandler)
+      public
+        constructor Create(const AppId: string);
+        class function Name: string; override;
+        procedure ShowInterstitial(const WaitUntilLoaded: boolean;
+          const Static: boolean); override;
+      end;
+
+      THeyzapHandler = class(TAdNetworkHandler)
+      public
+        constructor Create(const PublisherId: string);
+        class function Name: string; override;
+        procedure ShowBanner(
+          const HorizontalGravity: THorizontalPosition;
+          const VerticalGravity: TVerticalPosition); override;
+        procedure HideBanner; override;
+        procedure ShowInterstitial(const WaitUntilLoaded: boolean;
+          const Static: boolean); override;
+        procedure StartTestActivity; override;
+      end;
+    var
+    FNetworks: array [TAdNetwork] of TAdNetworkHandler;
     FOnInterstitialShown: TNotifyEvent;
-    function MessageReceived(const Received: TCastleStringList): boolean;
+    procedure InterstitialShownNotification(Sender: TObject);
   public
-    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     { Initialize AdMob ads. You need to create the unit ids on AdMob website
@@ -104,21 +170,26 @@ type
     { Show interstitial (full-screen) ad. }
     procedure ShowInterstitial(const AdNetwork: TAdNetwork;
       const WaitUntilLoaded: boolean;
-      const Static: boolean = true);
+      const Static: boolean = false);
 
     { Show banner ad.
-
-      TODO: right now, this is only implemented with AdMob (google ads). }
+      Banners are not supported by all ad networks (only AdMob and Heyzap now),
+      in case they are unsupported this call is silently ignored. }
     procedure ShowBanner(const AdNetwork: TAdNetwork;
       const HorizontalGravity: THorizontalPosition;
-      const VerticalPosition: TVerticalPosition);
+      const VerticalGravity: TVerticalPosition);
 
     { Hide banner ad.
-
-      TODO: right now, this is only implemented with AdMob (google ads). }
+      Banners are not supported by all ad networks (only AdMob and Heyzap now),
+      in case they are unsupported this call is silently ignored. }
     procedure HideBanner(const AdNetwork: TAdNetwork);
 
-    property OnInterstitialShown: TNotifyEvent read FOnInterstitialShown write FOnInterstitialShown;
+    { Show Heyzap activity to test various ad networks integrations.
+      This is for now supported only by anHeyzap. }
+    procedure StartTestActivity(const AdNetwork: TAdNetwork);
+
+    property OnInterstitialShown: TNotifyEvent
+      read FOnInterstitialShown write FOnInterstitialShown;
   end;
 
 implementation
@@ -126,29 +197,27 @@ implementation
 uses SysUtils,
   CastleUtils, CastleMessaging;
 
-constructor TAds.Create(AOwner: TComponent);
+{ TAdNetworkHandler ---------------------------------------------------------- }
+
+constructor TAds.TAdNetworkHandler.Create;
 begin
   inherited;
   Messaging.OnReceive.Add(@MessageReceived);
 end;
 
-destructor TAds.Destroy;
+destructor TAds.TAdNetworkHandler.Destroy;
 begin
   if Messaging <> nil then
     Messaging.OnReceive.Remove(@MessageReceived);
   inherited;
 end;
 
-function TAds.MessageReceived(const Received: TCastleStringList): boolean;
+function TAds.TAdNetworkHandler.MessageReceived(const Received: TCastleStringList): boolean;
 begin
   Result := false;
 
   if (Received.Count = 2) and
-     ( (Received[0] = 'ads-admob-interstitial-display') or
-       (Received[0] = 'ads-chartboost-interstitial-display') or
-       (Received[0] = 'ads-startapp-interstitial-display') or
-       (Received[0] = 'ads-heyzap-interstitial-display')
-     ) and
+     (Received[0] = 'ads-' + Name + '-interstitial-display') and
      (Received[1] = 'shown') then
   begin
     if Assigned(OnInterstitialShown) then
@@ -157,51 +226,32 @@ begin
   end;
 end;
 
-procedure TAds.ShowInterstitial(const AdNetwork: TAdNetwork;
-  const WaitUntilLoaded, Static: boolean);
-begin
-  case AdNetwork of
-    anAdMob:
-      if WaitUntilLoaded then
-        Messaging.Send(['ads-admob-interstitial-display', 'wait-until-loaded']) else
-        Messaging.Send(['ads-admob-interstitial-display', 'no-wait']);
-    anChartboost: Messaging.Send(['ads-chartboost-show-interstitial']);
-    anStartApp: Messaging.Send(['ads-startapp-show-interstitial']);
-    anHeyzap:
-      if Static then
-        Messaging.Send(['ads-heyzap-show-interstitial', 'static']) else
-        Messaging.Send(['ads-heyzap-show-interstitial', 'video']);
-    else raise EInternalError.Create('Unimplemented AdNetwork');
-  end;
-end;
-
-procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
-  const TestDeviceIds: array of string);
-var
-  TestDeviceIdsGlued: string;
-begin
-  TestDeviceIdsGlued := GlueStrings(TestDeviceIds, ',');
-  Messaging.Send(['ads-admob-initialize', BannerUnitId, InterstitialUnitId, TestDeviceIdsGlued]);
-end;
-
-procedure TAds.InitializeChartboost(const AppId, AppSignature: string);
-begin
-  Messaging.Send(['ads-chartboost-initialize', AppId, AppSignature]);
-end;
-
-procedure TAds.InitializeStartapp(const AppId: string);
-begin
-  Messaging.Send(['ads-startapp-initialize', AppId]);
-end;
-
-procedure TAds.InitializeHeyzap(const PublisherId: string);
-begin
-  Messaging.Send(['ads-heyzap-initialize', PublisherId]);
-end;
-
-procedure TAds.ShowBanner(const AdNetwork: TAdNetwork;
+procedure TAds.TAdNetworkHandler.ShowBanner(
   const HorizontalGravity: THorizontalPosition;
-  const VerticalPosition: TVerticalPosition);
+  const VerticalGravity: TVerticalPosition);
+begin
+end;
+
+procedure TAds.TAdNetworkHandler.HideBanner;
+begin
+end;
+
+procedure TAds.TAdNetworkHandler.ShowInterstitial(const WaitUntilLoaded: boolean;
+  const Static: boolean);
+begin
+  { if the network doesn't support showing interstitial, pretend it's shown,
+    in case user code waits for OnInterstitialShown. }
+  if Assigned(OnInterstitialShown) then
+    OnInterstitialShown(Self);
+end;
+
+procedure TAds.TAdNetworkHandler.StartTestActivity;
+begin
+end;
+
+function TAds.TAdNetworkHandler.GravityToInt(
+  const HorizontalGravity: THorizontalPosition;
+  const VerticalGravity: TVerticalPosition): Integer;
 const
   { Gravity constants for some messages, for example to indicate ad placement.
     Equal to constants on
@@ -215,34 +265,212 @@ const
   GravityCenterVertical = $00000010; //< Place object in the vertical center of its container, not changing its size.
   //GravityNo = 0; //< Constant indicating that no gravity has been set.
   { @groupEnd }
-var
-  Gravity: Integer;
 begin
-  if AdNetwork <> anAdMob then
-    Exit; // TODO: not implemented for other ad networks
-
-  Gravity := 0;
+  Result := 0;
   case HorizontalGravity of
-    hpLeft: Gravity := Gravity or GravityLeft;
-    hpRight: Gravity := Gravity or GravityRight;
-    hpMiddle: Gravity := Gravity or GravityCenterHorizontal;
+    hpLeft: Result := Result or GravityLeft;
+    hpRight: Result := Result or GravityRight;
+    hpMiddle: Result := Result or GravityCenterHorizontal;
     else raise EInternalError.Create('ShowBanner:HorizontalGravity?');
   end;
-  case VerticalPosition of
-    vpTop: Gravity := Gravity or GravityTop;
-    vpBottom: Gravity := Gravity or GravityBottom;
-    vpMiddle: Gravity := Gravity or GravityCenterVertical;
-    else raise EInternalError.Create('ShowBanner:VerticalPosition?');
+  case VerticalGravity of
+    vpTop: Result := Result or GravityTop;
+    vpBottom: Result := Result or GravityBottom;
+    vpMiddle: Result := Result or GravityCenterVertical;
+    else raise EInternalError.Create('ShowBanner:VerticalGravity?');
   end;
-  Messaging.Send(['ads-admob-banner-show', IntToStr(Gravity)]);
+end;
+
+{ TAdMobHandler -------------------------------------------------------------- }
+
+constructor TAds.TAdMobHandler.Create(const BannerUnitId, InterstitialUnitId: string;
+  const TestDeviceIds: array of string);
+var
+  TestDeviceIdsGlued: string;
+begin
+  inherited Create;
+  TestDeviceIdsGlued := GlueStrings(TestDeviceIds, ',');
+  Messaging.Send(['ads-' + Name + '-initialize', BannerUnitId, InterstitialUnitId, TestDeviceIdsGlued]);
+end;
+
+class function TAds.TAdMobHandler.Name: string;
+begin
+  Result := 'admob';
+end;
+
+procedure TAds.TAdMobHandler.ShowBanner(
+  const HorizontalGravity: THorizontalPosition;
+  const VerticalGravity: TVerticalPosition);
+begin
+  Messaging.Send(['ads-' + Name + '-banner-show',
+    IntToStr(GravityToInt(HorizontalGravity, VerticalGravity))]);
+end;
+
+procedure TAds.TAdMobHandler.HideBanner;
+begin
+  Messaging.Send(['ads-' + Name + '-banner-hide']);
+end;
+
+procedure TAds.TAdMobHandler.ShowInterstitial(const WaitUntilLoaded, Static: boolean);
+begin
+  if WaitUntilLoaded then
+    Messaging.Send(['ads-' + Name + '-interstitial-display', 'wait-until-loaded']) else
+    Messaging.Send(['ads-' + Name + '-interstitial-display', 'no-wait']);
+end;
+
+{ TChartboostHandler --------------------------------------------------------- }
+
+constructor TAds.TChartboostHandler.Create(const AppId, AppSignature: string);
+begin
+  inherited Create;
+  Messaging.Send(['ads-' + Name + '-initialize', AppId, AppSignature]);
+end;
+
+class function TAds.TChartboostHandler.Name: string;
+begin
+  Result := 'chartboost';
+end;
+
+procedure TAds.TChartboostHandler.ShowInterstitial(const WaitUntilLoaded, Static: boolean);
+begin
+  Messaging.Send(['ads-' + Name + '-show-interstitial']);
+end;
+
+{ TStartappHandler --------------------------------------------------------- }
+
+constructor TAds.TStartappHandler.Create(const AppId: string);
+begin
+  inherited Create;
+  Messaging.Send(['ads-' + Name + '-initialize', AppId]);
+end;
+
+class function TAds.TStartappHandler.Name: string;
+begin
+  Result := 'startapp';
+end;
+
+procedure TAds.TStartappHandler.ShowInterstitial(const WaitUntilLoaded, Static: boolean);
+begin
+  Messaging.Send(['ads-' + Name + '-show-interstitial']);
+end;
+
+{ THeyzapHandler --------------------------------------------------------- }
+
+constructor TAds.THeyzapHandler.Create(const PublisherId: string);
+begin
+  inherited Create;
+  Messaging.Send(['ads-' + Name + '-initialize', PublisherId]);
+end;
+
+class function TAds.THeyzapHandler.Name: string;
+begin
+  Result := 'heyzap';
+end;
+
+procedure TAds.THeyzapHandler.ShowBanner(
+  const HorizontalGravity: THorizontalPosition;
+  const VerticalGravity: TVerticalPosition);
+begin
+  Messaging.Send(['ads-' + Name + '-banner-show',
+    IntToStr(GravityToInt(HorizontalGravity, VerticalGravity))]);
+end;
+
+procedure TAds.THeyzapHandler.HideBanner;
+begin
+  Messaging.Send(['ads-' + Name + '-banner-hide']);
+end;
+
+procedure TAds.THeyzapHandler.ShowInterstitial(const WaitUntilLoaded, Static: boolean);
+begin
+  if Static then
+    Messaging.Send(['ads-' + Name + '-show-interstitial', 'static']) else
+    Messaging.Send(['ads-' + Name + '-show-interstitial', 'video']);
+end;
+
+procedure TAds.THeyzapHandler.StartTestActivity;
+begin
+  Messaging.Send(['ads-' + Name + '-start-test-activity']);
+end;
+
+{ TAds ----------------------------------------------------------------------- }
+
+destructor TAds.Destroy;
+var
+  AdNetwork: TAdNetwork;
+begin
+  for AdNetwork := Low(AdNetwork) to High(AdNetwork) do
+    FreeAndNil(FNetworks[AdNetwork]);
+  inherited;
+end;
+
+procedure TAds.InterstitialShownNotification(Sender: TObject);
+begin
+  if Assigned(OnInterstitialShown) then
+    OnInterstitialShown(Self);
+end;
+
+procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
+  const TestDeviceIds: array of string);
+begin
+  if FNetworks[anAdMob] <> nil then
+    FreeAndNil(FNetworks[anAdMob]);
+  FNetworks[anAdMob] := TAdMobHandler.Create(BannerUnitId, InterstitialUnitId, TestDeviceIds);
+  FNetworks[anAdMob].OnInterstitialShown := @InterstitialShownNotification;
+end;
+
+procedure TAds.InitializeStartapp(const AppId: string);
+begin
+  if FNetworks[anStartApp] <> nil then
+    FreeAndNil(FNetworks[anStartApp]);
+  FNetworks[anStartApp] := TStartAppHandler.Create(AppId);
+  FNetworks[anStartApp].OnInterstitialShown := @InterstitialShownNotification;
+end;
+
+procedure TAds.InitializeChartboost(const AppId, AppSignature: string);
+begin
+  if FNetworks[anChartboost] <> nil then
+    FreeAndNil(FNetworks[anChartboost]);
+  FNetworks[anChartboost] := TChartboostHandler.Create(AppId, AppSignature);
+  FNetworks[anChartboost].OnInterstitialShown := @InterstitialShownNotification;
+end;
+
+procedure TAds.InitializeHeyzap(const PublisherId: string);
+begin
+  if FNetworks[anHeyzap] <> nil then
+    FreeAndNil(FNetworks[anHeyzap]);
+  FNetworks[anHeyzap] := THeyzapHandler.Create(PublisherId);
+  FNetworks[anHeyzap].OnInterstitialShown := @InterstitialShownNotification;
+end;
+
+procedure TAds.ShowInterstitial(const AdNetwork: TAdNetwork;
+  const WaitUntilLoaded, Static: boolean);
+begin
+  if FNetworks[AdNetwork] <> nil then
+    FNetworks[AdNetwork].ShowInterstitial(WaitUntilLoaded, Static) else
+  { if the network is not initialized, pretend it's shown,
+    in case user code waits for OnInterstitialShown. }
+  if Assigned(OnInterstitialShown) then
+    OnInterstitialShown(Self);
+end;
+
+procedure TAds.ShowBanner(const AdNetwork: TAdNetwork;
+  const HorizontalGravity: THorizontalPosition;
+  const VerticalGravity: TVerticalPosition);
+begin
+  if FNetworks[AdNetwork] <> nil then
+    FNetworks[AdNetwork].ShowBanner(HorizontalGravity, VerticalGravity);
 end;
 
 procedure TAds.HideBanner(const AdNetwork: TAdNetwork);
 begin
-  if AdNetwork <> anAdMob then
-    Exit; // TODO: not implemented for other ad networks
+  if FNetworks[AdNetwork] <> nil then
+    FNetworks[AdNetwork].HideBanner;
+end;
 
-  Messaging.Send(['ads-admob-banner-hide']);
+procedure TAds.StartTestActivity(const AdNetwork: TAdNetwork);
+begin
+  if FNetworks[AdNetwork] <> nil then
+    FNetworks[AdNetwork].StartTestActivity;
 end;
 
 end.
