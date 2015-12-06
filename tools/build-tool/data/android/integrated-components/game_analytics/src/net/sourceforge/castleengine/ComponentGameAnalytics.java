@@ -29,6 +29,11 @@ public class ComponentGameAnalytics extends ComponentAbstract
         super(activity);
     }
 
+    public String getName()
+    {
+        return "game-analytics";
+    }
+
     /**
      * Initialize the integration. Pass gameKey and secretKey that should
      * be passed to GameAnalytics.initializeWithGameKey method ---

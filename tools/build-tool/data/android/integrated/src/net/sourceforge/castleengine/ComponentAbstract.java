@@ -8,7 +8,7 @@ import android.app.Activity;
 /**
  * Abstract component of MainActivity.
  */
-public class ComponentAbstract
+public abstract class ComponentAbstract
 {
     private MainActivity mActivity;
 
@@ -17,7 +17,9 @@ public class ComponentAbstract
         mActivity = activity;
     }
 
-    protected MainActivity getActivity()
+    public abstract String getName();
+
+    public MainActivity getActivity()
     {
         return mActivity;
     }

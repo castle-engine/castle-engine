@@ -26,6 +26,11 @@ public class ComponentChartboost extends ComponentAbstract
         super(activity);
     }
 
+    public String getName()
+    {
+        return "chartboost";
+    }
+
     ChartboostDelegate delegate = new ChartboostDelegate()
     {
         private void interstitialDone(boolean retry)

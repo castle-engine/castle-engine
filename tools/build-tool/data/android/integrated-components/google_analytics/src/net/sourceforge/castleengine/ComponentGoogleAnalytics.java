@@ -26,6 +26,11 @@ public class ComponentGoogleAnalytics extends ComponentAbstract
         super(activity);
     }
 
+    public String getName()
+    {
+        return "google-analytics";
+    }
+
     private synchronized Tracker getAppTracker() {
         if (mTracker == null && mAnalyticsPropertyId != null) {
             GoogleAnalytics analytics = GoogleAnalytics.getInstance(

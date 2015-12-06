@@ -20,6 +20,11 @@ public class ComponentGiftiz extends ComponentAbstract
         super(activity);
     }
 
+    public String getName()
+    {
+        return "giftiz";
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();

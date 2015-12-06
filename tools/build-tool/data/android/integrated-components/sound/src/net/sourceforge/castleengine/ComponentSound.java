@@ -12,4 +12,9 @@ public class ComponentSound extends ComponentAbstract
     {
         super(activity);
     }
+
+    public String getName()
+    {
+        return "sound";
+    }
 }

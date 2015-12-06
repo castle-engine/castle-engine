@@ -49,6 +49,11 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
         purchaseTokens = new HashMap<String, String>();
     }
 
+    public String getName()
+    {
+        return "google-in-app-purchases";
+    }
+
     ServiceConnection mBilingConnection = new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {
