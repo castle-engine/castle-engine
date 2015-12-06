@@ -65,17 +65,15 @@ type
     type
       TAdNetworkHandler = class abstract
       strict private
-        FOnInterstitialShown: TNotifyEvent;
         function MessageReceived(const Received: TCastleStringList): boolean;
       strict protected
         function GravityToInt(
           const HorizontalGravity: THorizontalPosition;
           const VerticalGravity: TVerticalPosition): Integer;
       public
+        Parent: TAds;
         constructor Create;
         destructor Destroy; override;
-        property OnInterstitialShown: TNotifyEvent
-          read FOnInterstitialShown write FOnInterstitialShown;
         class function Name: string; virtual; abstract;
         procedure ShowBanner(
           const HorizontalGravity: THorizontalPosition;
@@ -128,10 +126,13 @@ type
         procedure StartTestActivity; override;
       end;
     var
+    FBannerSize: TRectangle;
     FNetworks: array [TAdNetwork] of TAdNetworkHandler;
     FOnInterstitialShown: TNotifyEvent;
-    procedure InterstitialShownNotification(Sender: TObject);
+  protected
+    procedure InterstitialShown; virtual;
   public
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     { Initialize AdMob ads. You need to create the unit ids on AdMob website
@@ -190,12 +191,14 @@ type
 
     property OnInterstitialShown: TNotifyEvent
       read FOnInterstitialShown write FOnInterstitialShown;
+
+    property BannerSize: TRectangle read FBannerSize;
   end;
 
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleMessaging;
+  CastleUtils, CastleMessaging, CastleWarnings;
 
 { TAdNetworkHandler ---------------------------------------------------------- }
 
@@ -220,9 +223,25 @@ begin
      (Received[0] = 'ads-' + Name + '-interstitial-display') and
      (Received[1] = 'shown') then
   begin
-    if Assigned(OnInterstitialShown) then
-      OnInterstitialShown(Self);
+    Parent.InterstitialShown;
     Result := true;
+  end else
+
+  if (Received.Count = 5) and
+     (Received[0] = 'ads-' + Name + '-banner-size') then
+  begin
+    Result := true;
+    try
+      Parent.FBannerSize := Rectangle(
+        StrToInt(Received[1]),
+        StrToInt(Received[2]),
+        StrToInt(Received[3]),
+        StrToInt(Received[4])
+      );
+    except
+      on EConvertError do
+        OnWarning(wtMajor, 'Ads', 'Cannot process banner size from ' + GlueStrings(Received, '='));
+    end;
   end;
 end;
 
@@ -241,8 +260,7 @@ procedure TAds.TAdNetworkHandler.ShowInterstitial(const WaitUntilLoaded: boolean
 begin
   { if the network doesn't support showing interstitial, pretend it's shown,
     in case user code waits for OnInterstitialShown. }
-  if Assigned(OnInterstitialShown) then
-    OnInterstitialShown(Self);
+  Parent.InterstitialShown;
 end;
 
 procedure TAds.TAdNetworkHandler.StartTestActivity;
@@ -394,6 +412,12 @@ end;
 
 { TAds ----------------------------------------------------------------------- }
 
+constructor TAds.Create(AOwner: TComponent);
+begin
+  inherited;
+  FBannerSize := TRectangle.Empty;
+end;
+
 destructor TAds.Destroy;
 var
   AdNetwork: TAdNetwork;
@@ -403,19 +427,13 @@ begin
   inherited;
 end;
 
-procedure TAds.InterstitialShownNotification(Sender: TObject);
-begin
-  if Assigned(OnInterstitialShown) then
-    OnInterstitialShown(Self);
-end;
-
 procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
   const TestDeviceIds: array of string);
 begin
   if FNetworks[anAdMob] <> nil then
     FreeAndNil(FNetworks[anAdMob]);
   FNetworks[anAdMob] := TAdMobHandler.Create(BannerUnitId, InterstitialUnitId, TestDeviceIds);
-  FNetworks[anAdMob].OnInterstitialShown := @InterstitialShownNotification;
+  FNetworks[anAdMob].Parent := Self;
 end;
 
 procedure TAds.InitializeStartapp(const AppId: string);
@@ -423,7 +441,7 @@ begin
   if FNetworks[anStartApp] <> nil then
     FreeAndNil(FNetworks[anStartApp]);
   FNetworks[anStartApp] := TStartAppHandler.Create(AppId);
-  FNetworks[anStartApp].OnInterstitialShown := @InterstitialShownNotification;
+  FNetworks[anStartApp].Parent := Self;
 end;
 
 procedure TAds.InitializeChartboost(const AppId, AppSignature: string);
@@ -431,7 +449,7 @@ begin
   if FNetworks[anChartboost] <> nil then
     FreeAndNil(FNetworks[anChartboost]);
   FNetworks[anChartboost] := TChartboostHandler.Create(AppId, AppSignature);
-  FNetworks[anChartboost].OnInterstitialShown := @InterstitialShownNotification;
+  FNetworks[anChartboost].Parent := Self;
 end;
 
 procedure TAds.InitializeHeyzap(const PublisherId: string);
@@ -439,7 +457,13 @@ begin
   if FNetworks[anHeyzap] <> nil then
     FreeAndNil(FNetworks[anHeyzap]);
   FNetworks[anHeyzap] := THeyzapHandler.Create(PublisherId);
-  FNetworks[anHeyzap].OnInterstitialShown := @InterstitialShownNotification;
+  FNetworks[anHeyzap].Parent := Self;
+end;
+
+procedure TAds.InterstitialShown;
+begin
+  if Assigned(OnInterstitialShown) then
+    OnInterstitialShown(Self);
 end;
 
 procedure TAds.ShowInterstitial(const AdNetwork: TAdNetwork;
@@ -449,8 +473,7 @@ begin
     FNetworks[AdNetwork].ShowInterstitial(WaitUntilLoaded, Static) else
   { if the network is not initialized, pretend it's shown,
     in case user code waits for OnInterstitialShown. }
-  if Assigned(OnInterstitialShown) then
-    OnInterstitialShown(Self);
+    InterstitialShown;
 end;
 
 procedure TAds.ShowBanner(const AdNetwork: TAdNetwork;

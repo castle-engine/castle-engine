@@ -20,6 +20,11 @@ public class ComponentVibrate extends ComponentAbstract
         super(activity);
     }
 
+    public String getName()
+    {
+        return "vibrate";
+    }
+
     /* See
        http://stackoverflow.com/questions/13950338/how-to-make-an-android-device-vibrate
        http://developer.android.com/reference/android/os/Vibrator.html

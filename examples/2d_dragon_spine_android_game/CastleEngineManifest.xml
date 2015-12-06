@@ -20,6 +20,18 @@
       <component name="google_play_games">
         <parameter key="app_id" value="459592926652" />
       </component>
+
+      <!-- unused here, uncomment only to test compilation -->
+      <!-- <component name="admob" /> -->
+      <!-- <component name="chartboost" /> -->
+      <!-- <component name="game_analytics" /> -->
+      <!-- <component name="giftiz" /> -->
+      <!-- <component name="google_analytics" /> -->
+      <!-- <component name="google_in_app_purchases" /> -->
+      <!-- <component name="heyzap" /> -->
+      <!-- <component name="sound" /> -->
+      <!-- <component name="startapp" /> -->
+      <!-- <component name="vibrate" /> -->
     </components>
   </android>
 </project>

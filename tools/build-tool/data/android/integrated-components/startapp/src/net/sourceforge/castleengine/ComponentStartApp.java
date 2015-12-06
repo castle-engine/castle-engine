@@ -28,6 +28,11 @@ public class ComponentStartApp extends ComponentAbstract
         super(activity);
     }
 
+    public String getName()
+    {
+        return "startapp";
+    }
+
     private void initialize(String appId)
     {
         if (initialized) {

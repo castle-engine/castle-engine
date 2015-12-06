@@ -18,6 +18,11 @@ public class ComponentMiscellaneous extends ComponentAbstract
         super(activity);
     }
 
+    public String getName()
+    {
+        return "miscellaneous";
+    }
+
     /** Immersive mode. */
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {

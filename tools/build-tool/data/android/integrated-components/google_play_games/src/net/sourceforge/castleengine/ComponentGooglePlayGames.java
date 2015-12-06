@@ -44,6 +44,11 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         super(activity);
     }
 
+    public String getName()
+    {
+        return "google-play-games";
+    }
+
     private void initialize()
     {
         if (initialized) {

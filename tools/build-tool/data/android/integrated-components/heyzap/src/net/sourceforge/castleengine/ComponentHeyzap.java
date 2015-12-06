@@ -27,6 +27,11 @@ public class ComponentHeyzap extends ComponentAbstract
         super(activity);
     }
 
+    public String getName()
+    {
+        return "heyzap";
+    }
+
     private void initialize(String publisherId)
     {
         if (initialized) {
@@ -267,7 +272,7 @@ public class ComponentHeyzap extends ComponentAbstract
         }
 
         bannerAdView = new BannerAdView(getActivity());
-        adPopup = new ActivityPopup(getActivity(), gravity, bannerAdView);
+        adPopup = new ActivityPopup(this, gravity, bannerAdView);
         bannerAdView.load();
     }
 

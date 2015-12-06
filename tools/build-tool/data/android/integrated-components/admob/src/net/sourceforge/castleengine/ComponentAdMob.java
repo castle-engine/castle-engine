@@ -28,6 +28,11 @@ public class ComponentAdMob extends ComponentAbstract
         super(activity);
     }
 
+    public String getName()
+    {
+        return "admob";
+    }
+
     private void initialize(String bannerUnitId, String interstitialUnitId, String[] aTestDeviceIds)
     {
         if (initialized) {
@@ -80,7 +85,7 @@ public class ComponentAdMob extends ComponentAbstract
         adView.setAdUnitId(mBannerUnitId);
         adView.setAdSize(AdSize.SMART_BANNER);
 
-        adPopup = new ActivityPopup(getActivity(), gravity, adView);
+        adPopup = new ActivityPopup(this, gravity, adView);
 
         adView.setVisibility(View.VISIBLE);
         adView.loadAd(buildAdRequest());

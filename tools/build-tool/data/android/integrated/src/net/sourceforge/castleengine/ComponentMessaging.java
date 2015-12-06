@@ -15,6 +15,11 @@ public class ComponentMessaging extends ComponentAbstract
 {
     private static final String TAG = "${NAME}.castleengine.ComponentMessaging";
 
+    public String getName()
+    {
+        return "messaging";
+    }
+
     /**
      * Allow debug stuff. Right now this means to
      * log native messages. Do not show this on production, to make it harder
@@ -56,7 +61,8 @@ public class ComponentMessaging extends ComponentAbstract
             }
 
             String message = getActivity().jniMessage(toNativeStr);
-            if (message != null && message.length() != 0) {
+            boolean wasMessage = message != null && message.length() != 0;
+            if (wasMessage) {
                 if (debug) {
                     Log.i(TAG, "JNI: Java received message from native code: " + message);
                 }
@@ -66,8 +72,8 @@ public class ComponentMessaging extends ComponentAbstract
                 }
             }
 
-            // run again in a short time
-            timerHandler.postDelayed(this, 500);
+            // run again in a short time (shorter if there was a message, since next one may follow)
+            timerHandler.postDelayed(this, wasMessage ? 10 : 500);
         }
     };
 
