@@ -87,7 +87,7 @@ end.
     { Receive next message from Java. @nil if none. }
     function Receive: TCastleStringList;
     { Called constantly to process messages from Java. }
-    procedure Update;
+    procedure Update(Sender: TObject);
   public
     constructor Create;
     destructor Destroy; override;
@@ -144,10 +144,18 @@ begin
   ToJava := TCastleStringList.Create;
   FromJava := TCastleStringList.Create;
   FOnReceive := TMessageReceivedEventList.Create;
+
+  {$ifdef ANDROID}
+  { No point in doing this on non-Android, as only Android communicates
+    through it. }
+  ApplicationProperties.OnUpdate.Add(@Update);
+  {$endif}
 end;
 
 destructor TMessaging.Destroy;
 begin
+  if ApplicationProperties(false) <> nil then
+    ApplicationProperties(false).OnUpdate.Remove(@Update);
   FreeAndNil(ToJava);
   FreeAndNil(FromJava);
   FreeAndNil(FOnReceive);
@@ -206,7 +214,7 @@ begin
     Result := nil;
 end;
 
-procedure TMessaging.Update;
+procedure TMessaging.Update(Sender: TObject);
 var
   Received: TCastleStringList;
 begin
@@ -233,12 +241,6 @@ begin
     JavaCommunicationCS := TCriticalSection.Create;
     FMessaging := TMessaging.Create;
   end;
-end;
-
-procedure ApplicationUpdate;
-begin
-  if FMessaging <> nil then
-    FMessaging.Update;
 end;
 
 function Messaging: TMessaging;
@@ -290,15 +292,8 @@ end;
 
 initialization
   DoInitialization;
-  {$ifdef ANDROID}
-  { No point in doing this on non-Android, as only Android communicates
-    through it. }
-  OnApplicationUpdate.Add(@ApplicationUpdate);
-  {$endif}
 finalization
   FinalizationDone := true;
   FreeAndNil(FMessaging);
   FreeAndNil(JavaCommunicationCS);
-  if OnApplicationUpdate <> nil then
-    OnApplicationUpdate.Remove(@ApplicationUpdate);
 end.

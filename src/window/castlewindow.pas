@@ -4435,13 +4435,14 @@ end;
 procedure TCastleApplication.CastleEngineInitialize;
 begin
   if Initialized and not InitializedJavaActivity then
-    WritelnLog('Android', 'Android Java activity was killed, but native thread survived. Calling only OnInitializeJavaActivity');
+    WritelnLog('Android', 'Android Java activity was killed (and now got created from stratch), but native thread survived. Calling only OnInitializeJavaActivity.');
 
   if not InitializedJavaActivity then
   begin
     InitializedJavaActivity := true;
     if Assigned(OnInitializeJavaActivity) then
       OnInitializeJavaActivity();
+    ApplicationProperties._InitializeJavaActivity;
   end;
 
   if not Initialized then
@@ -4535,7 +4536,7 @@ end;
 procedure TCastleApplication.DoApplicationUpdate;
 begin
   if Assigned(FOnUpdate) then FOnUpdate;
-  OnApplicationUpdate.ExecuteForward;
+  ApplicationProperties._Update;
 end;
 
 procedure TCastleApplication.DoApplicationTimer;
@@ -4564,7 +4565,7 @@ begin
   Result := not (
     Assigned(OnUpdate) or
     Assigned(OnTimer) or
-    (OnApplicationUpdate.Count <> 0));
+    (ApplicationProperties.OnUpdate.Count <> 0));
   if not Result then Exit;
 
   for I := 0 to OpenWindowsCount - 1 do

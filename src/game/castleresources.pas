@@ -945,7 +945,7 @@ begin
 end;
 
 initialization
-  OnGLContextClose.Add(@ContextClose);
+  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
   FResources := T3DResourceList.Create(true);
   ResourceClasses := TResourceClasses.Create;
 finalization
