@@ -302,7 +302,7 @@ begin
 end;
 
 initialization
-  OnGLContextClose.Add(@ContextClose);
+  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
 finalization
   FreeAndNil(BoundFboStack);
   FreeAndNil(FTextureMemoryProfiler);

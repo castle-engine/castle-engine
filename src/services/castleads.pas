@@ -48,7 +48,7 @@ type
 
       @item(Initialize at least one ad network using one of the
         @code(InitializeXxx) methods. Usually you want to call the initialization
-        from @link(TCastleApplication.OnInitializeJavaActivity).)
+        from @link(TCastleApplication.OnInitialize).)
 
       @item(Use remaining methods of this class to show / hide ads, like
         @link(ShowInterstitial), @link(ShowBanner), @link(HideBanner).)
@@ -65,19 +65,20 @@ type
     type
       TAdNetworkHandler = class abstract
       strict private
+        FParent: TAds;
+        FBannerShowing: boolean;
+        FBannerGravity: Integer;
         function MessageReceived(const Received: TCastleStringList): boolean;
+        procedure InterstitialShown;
       strict protected
-        function GravityToInt(
-          const HorizontalGravity: THorizontalPosition;
-          const VerticalGravity: TVerticalPosition): Integer;
+        FInterstitialShowing: boolean;
+        procedure ReinitializeJavaActivity(Sender: TObject); virtual;
       public
-        Parent: TAds;
-        constructor Create;
+        constructor Create(const AParent: TAds);
         destructor Destroy; override;
+        property Parent: TAds read FParent;
         class function Name: string; virtual; abstract;
-        procedure ShowBanner(
-          const HorizontalGravity: THorizontalPosition;
-          const VerticalGravity: TVerticalPosition); virtual;
+        procedure ShowBanner(const Gravity: Integer); virtual;
         procedure HideBanner; virtual;
         procedure ShowInterstitial(const WaitUntilLoaded: boolean;
           const Static: boolean); virtual;
@@ -85,41 +86,57 @@ type
       end;
 
       TAdMobHandler = class(TAdNetworkHandler)
+      strict private
+        FBannerUnitId, FInterstitialUnitId, FTestDeviceIdsGlued: string;
+      strict protected
+        procedure ReinitializeJavaActivity(Sender: TObject); override;
       public
-        constructor Create(const BannerUnitId, InterstitialUnitId: string;
+        constructor Create(const AParent: TAds;
+          const ABannerUnitId, AInterstitialUnitId: string;
           const TestDeviceIds: array of string);
         class function Name: string; override;
-        procedure ShowBanner(
-          const HorizontalGravity: THorizontalPosition;
-          const VerticalGravity: TVerticalPosition); override;
+        procedure ShowBanner(const Gravity: Integer); override;
         procedure HideBanner; override;
         procedure ShowInterstitial(const WaitUntilLoaded: boolean;
           const Static: boolean); override;
       end;
 
       TChartboostHandler = class(TAdNetworkHandler)
+      strict private
+        FAppId, FAppSignature: string;
+      strict protected
+        procedure ReinitializeJavaActivity(Sender: TObject); override;
       public
-        constructor Create(const AppId, AppSignature: string);
+        constructor Create(const AParent: TAds;
+          const AnAppId, AnAppSignature: string);
         class function Name: string; override;
         procedure ShowInterstitial(const WaitUntilLoaded: boolean;
           const Static: boolean); override;
       end;
 
       TStartappHandler = class(TAdNetworkHandler)
+      strict private
+        FAppId: string;
+      strict protected
+        procedure ReinitializeJavaActivity(Sender: TObject); override;
       public
-        constructor Create(const AppId: string);
+        constructor Create(const AParent: TAds;
+          const AnAppId: string);
         class function Name: string; override;
         procedure ShowInterstitial(const WaitUntilLoaded: boolean;
           const Static: boolean); override;
       end;
 
       THeyzapHandler = class(TAdNetworkHandler)
+      strict private
+        FPublisherId: string;
+      strict protected
+        procedure ReinitializeJavaActivity(Sender: TObject); override;
       public
-        constructor Create(const PublisherId: string);
+        constructor Create(const AParent: TAds;
+          const APublisherId: string);
         class function Name: string; override;
-        procedure ShowBanner(
-          const HorizontalGravity: THorizontalPosition;
-          const VerticalGravity: TVerticalPosition); override;
+        procedure ShowBanner(const Gravity: Integer); override;
         procedure HideBanner; override;
         procedure ShowInterstitial(const WaitUntilLoaded: boolean;
           const Static: boolean); override;
@@ -146,26 +163,26 @@ type
       you can see your device ids in "adb logcat" output) in order to avoid
       getting banned for clicking on your own ads.
 
-      Usually called from @link(TCastleApplication.OnInitializeJavaActivity). }
+      Usually called from @link(TCastleApplication.OnInitialize). }
     procedure InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
       const TestDeviceIds: array of string);
 
     { Initialize StartApp ads.
       You need to register your game on http://startapp.com/ to get app id.
 
-      Usually called from @link(TCastleApplication.OnInitializeJavaActivity). }
+      Usually called from @link(TCastleApplication.OnInitialize). }
     procedure InitializeStartapp(const AppId: string);
 
     { Initialize Chartboost ads.
       You need to register your game on http://chartboost.com/ to get app id and signature.
 
-      Usually called from @link(TCastleApplication.OnInitializeJavaActivity). }
+      Usually called from @link(TCastleApplication.OnInitialize). }
     procedure InitializeChartboost(const AppId, AppSignature: string);
 
     { Initialize Heyzap ads.
       You need to register your game on https://www.heyzap.com/ to get publisher id.
 
-      Usually called from @link(TCastleApplication.OnInitializeJavaActivity). }
+      Usually called from @link(TCastleApplication.OnInitialize). }
     procedure InitializeHeyzap(const PublisherId: string);
 
     { Show interstitial (full-screen) ad. }
@@ -198,20 +215,24 @@ type
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleMessaging, CastleWarnings;
+  CastleUtils, CastleMessaging, CastleWarnings, CastleUIControls;
 
 { TAdNetworkHandler ---------------------------------------------------------- }
 
-constructor TAds.TAdNetworkHandler.Create;
+constructor TAds.TAdNetworkHandler.Create(const AParent: TAds);
 begin
-  inherited;
+  inherited Create;
+  FParent := AParent;
   Messaging.OnReceive.Add(@MessageReceived);
+  ApplicationProperties.OnInitializeJavaActivity.Add(@ReinitializeJavaActivity);
 end;
 
 destructor TAds.TAdNetworkHandler.Destroy;
 begin
   if Messaging <> nil then
     Messaging.OnReceive.Remove(@MessageReceived);
+  if ApplicationProperties(false) <> nil then
+    ApplicationProperties(false).OnInitializeJavaActivity.Remove(@ReinitializeJavaActivity);
   inherited;
 end;
 
@@ -223,7 +244,7 @@ begin
      (Received[0] = 'ads-' + Name + '-interstitial-display') and
      (Received[1] = 'shown') then
   begin
-    Parent.InterstitialShown;
+    InterstitialShown;
     Result := true;
   end else
 
@@ -245,14 +266,15 @@ begin
   end;
 end;
 
-procedure TAds.TAdNetworkHandler.ShowBanner(
-  const HorizontalGravity: THorizontalPosition;
-  const VerticalGravity: TVerticalPosition);
+procedure TAds.TAdNetworkHandler.ShowBanner(const Gravity: Integer);
 begin
+  FBannerShowing := true;
+  FBannerGravity := Gravity;
 end;
 
 procedure TAds.TAdNetworkHandler.HideBanner;
 begin
+  FBannerShowing := false;
 end;
 
 procedure TAds.TAdNetworkHandler.ShowInterstitial(const WaitUntilLoaded: boolean;
@@ -260,55 +282,49 @@ procedure TAds.TAdNetworkHandler.ShowInterstitial(const WaitUntilLoaded: boolean
 begin
   { if the network doesn't support showing interstitial, pretend it's shown,
     in case user code waits for OnInterstitialShown. }
-  Parent.InterstitialShown;
+  InterstitialShown;
 end;
 
 procedure TAds.TAdNetworkHandler.StartTestActivity;
 begin
 end;
 
-function TAds.TAdNetworkHandler.GravityToInt(
-  const HorizontalGravity: THorizontalPosition;
-  const VerticalGravity: TVerticalPosition): Integer;
-const
-  { Gravity constants for some messages, for example to indicate ad placement.
-    Equal to constants on
-    http://developer.android.com/reference/android/view/Gravity.html .
-    @groupBegin }
-  GravityLeft = $00000003; //< Push object to the left of its container, not changing its size.
-  GravityRight = $00000005; //< Push object to the right of its container, not changing its size.
-  GravityTop = $00000030; //< Push object to the top of its container, not changing its size.
-  GravityBottom = $00000050; //< Push object to the bottom of its container, not changing its size.
-  GravityCenterHorizontal = $00000001; //< Place object in the horizontal center of its container, not changing its size.
-  GravityCenterVertical = $00000010; //< Place object in the vertical center of its container, not changing its size.
-  //GravityNo = 0; //< Constant indicating that no gravity has been set.
-  { @groupEnd }
+procedure TAds.TAdNetworkHandler.ReinitializeJavaActivity(Sender: TObject);
 begin
-  Result := 0;
-  case HorizontalGravity of
-    hpLeft: Result := Result or GravityLeft;
-    hpRight: Result := Result or GravityRight;
-    hpMiddle: Result := Result or GravityCenterHorizontal;
-    else raise EInternalError.Create('ShowBanner:HorizontalGravity?');
-  end;
-  case VerticalGravity of
-    vpTop: Result := Result or GravityTop;
-    vpBottom: Result := Result or GravityBottom;
-    vpMiddle: Result := Result or GravityCenterVertical;
-    else raise EInternalError.Create('ShowBanner:VerticalGravity?');
-  end;
+  { this is important if the Java application was killed, but native code survived,
+    while waiting for ad to finish. Reproduce: turn on "kill app when sending to bg"
+    in Android debug options, then use "watch ad" and return to game. }
+  if FInterstitialShowing then
+    InterstitialShown;
+  Parent.FBannerSize := TRectangle.Empty;
+  { reshow banner, if necessary }
+  if FBannerShowing then
+    ShowBanner(FBannerGravity);
+end;
+
+procedure TAds.TAdNetworkHandler.InterstitialShown;
+begin
+  FInterstitialShowing := false;
+  Parent.InterstitialShown;
 end;
 
 { TAdMobHandler -------------------------------------------------------------- }
 
-constructor TAds.TAdMobHandler.Create(const BannerUnitId, InterstitialUnitId: string;
+constructor TAds.TAdMobHandler.Create(const AParent: TAds;
+  const ABannerUnitId, AInterstitialUnitId: string;
   const TestDeviceIds: array of string);
-var
-  TestDeviceIdsGlued: string;
 begin
-  inherited Create;
-  TestDeviceIdsGlued := GlueStrings(TestDeviceIds, ',');
-  Messaging.Send(['ads-' + Name + '-initialize', BannerUnitId, InterstitialUnitId, TestDeviceIdsGlued]);
+  inherited Create(AParent);
+  FTestDeviceIdsGlued := GlueStrings(TestDeviceIds, ',');
+  FBannerUnitId := ABannerUnitId;
+  FInterstitialUnitId := AInterstitialUnitId;
+  ReinitializeJavaActivity(nil);
+end;
+
+procedure TAds.TAdMobHandler.ReinitializeJavaActivity(Sender: TObject);
+begin
+  Messaging.Send(['ads-' + Name + '-initialize', FBannerUnitId, FInterstitialUnitId, FTestDeviceIdsGlued]);
+  inherited;
 end;
 
 class function TAds.TAdMobHandler.Name: string;
@@ -316,21 +332,21 @@ begin
   Result := 'admob';
 end;
 
-procedure TAds.TAdMobHandler.ShowBanner(
-  const HorizontalGravity: THorizontalPosition;
-  const VerticalGravity: TVerticalPosition);
+procedure TAds.TAdMobHandler.ShowBanner(const Gravity: Integer);
 begin
-  Messaging.Send(['ads-' + Name + '-banner-show',
-    IntToStr(GravityToInt(HorizontalGravity, VerticalGravity))]);
+  inherited;
+  Messaging.Send(['ads-' + Name + '-banner-show', IntToStr(Gravity)]);
 end;
 
 procedure TAds.TAdMobHandler.HideBanner;
 begin
   Messaging.Send(['ads-' + Name + '-banner-hide']);
+  inherited;
 end;
 
 procedure TAds.TAdMobHandler.ShowInterstitial(const WaitUntilLoaded, Static: boolean);
 begin
+  FInterstitialShowing := true;
   if WaitUntilLoaded then
     Messaging.Send(['ads-' + Name + '-interstitial-display', 'wait-until-loaded']) else
     Messaging.Send(['ads-' + Name + '-interstitial-display', 'no-wait']);
@@ -338,10 +354,19 @@ end;
 
 { TChartboostHandler --------------------------------------------------------- }
 
-constructor TAds.TChartboostHandler.Create(const AppId, AppSignature: string);
+constructor TAds.TChartboostHandler.Create(const AParent: TAds;
+  const AnAppId, AnAppSignature: string);
 begin
-  inherited Create;
-  Messaging.Send(['ads-' + Name + '-initialize', AppId, AppSignature]);
+  inherited Create(AParent);
+  FAppId := AnAppId;
+  FAppSignature := AnAppSignature;
+  ReinitializeJavaActivity(nil);
+end;
+
+procedure TAds.TChartboostHandler.ReinitializeJavaActivity(Sender: TObject);
+begin
+  Messaging.Send(['ads-' + Name + '-initialize', FAppId, FAppSignature]);
+  inherited;
 end;
 
 class function TAds.TChartboostHandler.Name: string;
@@ -351,15 +376,24 @@ end;
 
 procedure TAds.TChartboostHandler.ShowInterstitial(const WaitUntilLoaded, Static: boolean);
 begin
+  FInterstitialShowing := true;
   Messaging.Send(['ads-' + Name + '-show-interstitial']);
 end;
 
 { TStartappHandler --------------------------------------------------------- }
 
-constructor TAds.TStartappHandler.Create(const AppId: string);
+constructor TAds.TStartappHandler.Create(const AParent: TAds;
+  const AnAppId: string);
 begin
-  inherited Create;
-  Messaging.Send(['ads-' + Name + '-initialize', AppId]);
+  inherited Create(AParent);
+  FAppId := AnAppId;
+  ReinitializeJavaActivity(nil);
+end;
+
+procedure TAds.TStartappHandler.ReinitializeJavaActivity(Sender: TObject);
+begin
+  Messaging.Send(['ads-' + Name + '-initialize', FAppId]);
+  inherited;
 end;
 
 class function TAds.TStartappHandler.Name: string;
@@ -369,15 +403,24 @@ end;
 
 procedure TAds.TStartappHandler.ShowInterstitial(const WaitUntilLoaded, Static: boolean);
 begin
+  FInterstitialShowing := true;
   Messaging.Send(['ads-' + Name + '-show-interstitial']);
 end;
 
 { THeyzapHandler --------------------------------------------------------- }
 
-constructor TAds.THeyzapHandler.Create(const PublisherId: string);
+constructor TAds.THeyzapHandler.Create(const AParent: TAds;
+  const APublisherId: string);
 begin
-  inherited Create;
-  Messaging.Send(['ads-' + Name + '-initialize', PublisherId]);
+  inherited Create(AParent);
+  FPublisherId := APublisherId;
+  ReinitializeJavaActivity(nil);
+end;
+
+procedure TAds.THeyzapHandler.ReinitializeJavaActivity(Sender: TObject);
+begin
+  Messaging.Send(['ads-' + Name + '-initialize', FPublisherId]);
+  inherited;
 end;
 
 class function TAds.THeyzapHandler.Name: string;
@@ -385,21 +428,21 @@ begin
   Result := 'heyzap';
 end;
 
-procedure TAds.THeyzapHandler.ShowBanner(
-  const HorizontalGravity: THorizontalPosition;
-  const VerticalGravity: TVerticalPosition);
+procedure TAds.THeyzapHandler.ShowBanner(const Gravity: Integer);
 begin
-  Messaging.Send(['ads-' + Name + '-banner-show',
-    IntToStr(GravityToInt(HorizontalGravity, VerticalGravity))]);
+  inherited;
+  Messaging.Send(['ads-' + Name + '-banner-show', IntToStr(Gravity)]);
 end;
 
 procedure TAds.THeyzapHandler.HideBanner;
 begin
   Messaging.Send(['ads-' + Name + '-banner-hide']);
+  inherited;
 end;
 
 procedure TAds.THeyzapHandler.ShowInterstitial(const WaitUntilLoaded, Static: boolean);
 begin
+  FInterstitialShowing := true;
   if Static then
     Messaging.Send(['ads-' + Name + '-show-interstitial', 'static']) else
     Messaging.Send(['ads-' + Name + '-show-interstitial', 'video']);
@@ -407,6 +450,7 @@ end;
 
 procedure TAds.THeyzapHandler.StartTestActivity;
 begin
+  inherited;
   Messaging.Send(['ads-' + Name + '-start-test-activity']);
 end;
 
@@ -432,32 +476,29 @@ procedure TAds.InitializeAdMob(const BannerUnitId, InterstitialUnitId: string;
 begin
   if FNetworks[anAdMob] <> nil then
     FreeAndNil(FNetworks[anAdMob]);
-  FNetworks[anAdMob] := TAdMobHandler.Create(BannerUnitId, InterstitialUnitId, TestDeviceIds);
-  FNetworks[anAdMob].Parent := Self;
+  FNetworks[anAdMob] := TAdMobHandler.Create(Self,
+    BannerUnitId, InterstitialUnitId, TestDeviceIds);
 end;
 
 procedure TAds.InitializeStartapp(const AppId: string);
 begin
   if FNetworks[anStartApp] <> nil then
     FreeAndNil(FNetworks[anStartApp]);
-  FNetworks[anStartApp] := TStartAppHandler.Create(AppId);
-  FNetworks[anStartApp].Parent := Self;
+  FNetworks[anStartApp] := TStartAppHandler.Create(Self, AppId);
 end;
 
 procedure TAds.InitializeChartboost(const AppId, AppSignature: string);
 begin
   if FNetworks[anChartboost] <> nil then
     FreeAndNil(FNetworks[anChartboost]);
-  FNetworks[anChartboost] := TChartboostHandler.Create(AppId, AppSignature);
-  FNetworks[anChartboost].Parent := Self;
+  FNetworks[anChartboost] := TChartboostHandler.Create(Self, AppId, AppSignature);
 end;
 
 procedure TAds.InitializeHeyzap(const PublisherId: string);
 begin
   if FNetworks[anHeyzap] <> nil then
     FreeAndNil(FNetworks[anHeyzap]);
-  FNetworks[anHeyzap] := THeyzapHandler.Create(PublisherId);
-  FNetworks[anHeyzap].Parent := Self;
+  FNetworks[anHeyzap] := THeyzapHandler.Create(Self, PublisherId);
 end;
 
 procedure TAds.InterstitialShown;
@@ -479,9 +520,42 @@ end;
 procedure TAds.ShowBanner(const AdNetwork: TAdNetwork;
   const HorizontalGravity: THorizontalPosition;
   const VerticalGravity: TVerticalPosition);
+
+  function GravityToInt(
+    const HorizontalGravity: THorizontalPosition;
+    const VerticalGravity: TVerticalPosition): Integer;
+  const
+    { Gravity constants for some messages, for example to indicate ad placement.
+      Equal to constants on
+      http://developer.android.com/reference/android/view/Gravity.html .
+      @groupBegin }
+    GravityLeft = $00000003; //< Push object to the left of its container, not changing its size.
+    GravityRight = $00000005; //< Push object to the right of its container, not changing its size.
+    GravityTop = $00000030; //< Push object to the top of its container, not changing its size.
+    GravityBottom = $00000050; //< Push object to the bottom of its container, not changing its size.
+    GravityCenterHorizontal = $00000001; //< Place object in the horizontal center of its container, not changing its size.
+    GravityCenterVertical = $00000010; //< Place object in the vertical center of its container, not changing its size.
+    //GravityNo = 0; //< Constant indicating that no gravity has been set.
+    { @groupEnd }
+  begin
+    Result := 0;
+    case HorizontalGravity of
+      hpLeft: Result := Result or GravityLeft;
+      hpRight: Result := Result or GravityRight;
+      hpMiddle: Result := Result or GravityCenterHorizontal;
+      else raise EInternalError.Create('ShowBanner:HorizontalGravity?');
+    end;
+    case VerticalGravity of
+      vpTop: Result := Result or GravityTop;
+      vpBottom: Result := Result or GravityBottom;
+      vpMiddle: Result := Result or GravityCenterVertical;
+      else raise EInternalError.Create('ShowBanner:VerticalGravity?');
+    end;
+  end;
+
 begin
   if FNetworks[AdNetwork] <> nil then
-    FNetworks[AdNetwork].ShowBanner(HorizontalGravity, VerticalGravity);
+    FNetworks[AdNetwork].ShowBanner(GravityToInt(HorizontalGravity, VerticalGravity));
 end;
 
 procedure TAds.HideBanner(const AdNetwork: TAdNetwork);

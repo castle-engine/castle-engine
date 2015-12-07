@@ -41,13 +41,20 @@ type
     )
   }
   TAnalytics = class(TComponent)
+  private
+    FLastGoogleAnalyticsPropertyId: string;
+    FLastGameAnalyticsGameKey, FLastGameAnalyticsSecretKey: string;
+    procedure ReinitializeJavaActivity(Sender: TObject);
   public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
     { Initialize Google Analytics https://www.google.com/analytics/ .
-      Usually called from @link(TCastleApplication.OnInitializeJavaActivity). }
+      Usually called from @link(TCastleApplication.OnInitialize). }
     procedure InitializeGoogleAnalytics(const AnalyticsPropertyId: string);
 
     { Initialize Game Analytics http://www.gameanalytics.com/ .
-      Usually called from @link(TCastleApplication.OnInitializeJavaActivity). }
+      Usually called from @link(TCastleApplication.OnInitialize). }
     procedure InitializeGameAnalytics(const GameKey, SecretKey: string);
 
     { Send to analytics view of the screen, e.g. when user switches
@@ -64,15 +71,41 @@ type
 implementation
 
 uses SysUtils,
-  CastleMessaging;
+  CastleMessaging, CastleUIControls;
+
+constructor TAnalytics.Create(AOwner: TComponent);
+begin
+  inherited;
+  ApplicationProperties.OnInitializeJavaActivity.Add(@ReinitializeJavaActivity);
+end;
+
+destructor TAnalytics.Destroy;
+begin
+  if ApplicationProperties(false) <> nil then
+    ApplicationProperties(false).OnInitializeJavaActivity.Remove(@ReinitializeJavaActivity);
+  inherited;
+end;
+
+procedure TAnalytics.ReinitializeJavaActivity(Sender: TObject);
+begin
+  { in case Java activity got killed and is created again, reinitialize components }
+  if FLastGoogleAnalyticsPropertyId <> '' then
+    InitializeGoogleAnalytics(FLastGoogleAnalyticsPropertyId);
+  if (FLastGameAnalyticsGameKey <> '') and
+     (FLastGameAnalyticsSecretKey <> '') then
+    InitializeGameAnalytics(FLastGameAnalyticsGameKey, FLastGameAnalyticsSecretKey);
+end;
 
 procedure TAnalytics.InitializeGoogleAnalytics(const AnalyticsPropertyId: string);
 begin
+  FLastGoogleAnalyticsPropertyId := AnalyticsPropertyId;
   Messaging.Send(['google-analytics-initialize', AnalyticsPropertyId]);
 end;
 
 procedure TAnalytics.InitializeGameAnalytics(const GameKey, SecretKey: string);
 begin
+  FLastGameAnalyticsGameKey := GameKey;
+  FLastGameAnalyticsSecretKey := SecretKey;
   Messaging.Send(['game-analytics-initialize', GameKey, SecretKey]);
 end;
 

@@ -1318,10 +1318,27 @@ end;
       and our custom @link(TCastleApplication). }
     property OnUpdate: TNotifyEventList read FOnUpdate;
 
-    { Callbacks called when Android Java activity is started.
-      This may happen more often the TCastleApplication.OnInitialize,
-      as sometimes Android system may kill the Java activity without
-      killing the native thread. }
+    { Callbacks called when Android Java activity started.
+      Called every time a Java activity is created.
+
+      @unorderedList(
+        @item(For the first time, it's called right before
+          @link(TCastleApplication.OnInitialize).)
+
+        @item(Later this is called when Java activity
+          died (and is restarting now), but the native code thread survived.
+          So all native code memory is already cool (no need to call
+          @link(TCastleApplication.OnInitialize)),
+          but we need to reinitialize Java part.
+
+          Note that this is different from @link(TCastleWindowCustom.OnOpen).
+          We lose OpenGL context often, actually every time user switches to another
+          app, without having neither Java nor native threads killed.
+        )
+      )
+
+      For non-Android applications, this is simply always called exactly
+      once, exactly before calling @link(OnInitialize). }
     property OnInitializeJavaActivity: TNotifyEventList read FOnInitializeJavaActivity;
 
     { Internal for Castle Game Engine.

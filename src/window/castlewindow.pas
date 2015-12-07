@@ -2369,7 +2369,7 @@ end;
   {$undef read_application_interface}
 
   private
-    FOnInitialize, FOnInitializeJavaActivity: TProcedure;
+    FOnInitialize{, FOnInitializeJavaActivity}: TProcedure;
     Initialized, InitializedJavaActivity: boolean;
     FOnUpdate :TUpdateFunc;
     FOnTimer :TProcedure;
@@ -2387,7 +2387,8 @@ end;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindowCustom;
-    { Run @link(OnInitialize) and @link(OnInitializeJavaActivity) callbacks,
+    { Run @link(OnInitialize) and
+      @link(TCastleApplicationProperties.OnInitializeJavaActivity) callbacks,
       if not run yet.
 
       Called CastleEngineInitialize, not just @code(Initialize),
@@ -2557,26 +2558,8 @@ end;
       bars etc. when loading). }
     property OnInitialize: TProcedure read FOnInitialize write FOnInitialize;
 
-    { The Android Java activity started.
-      Called every time a Java activity is created.
-
-      @unorderedList(
-        @item(For the first time, it's called right before @link(OnInitialize).)
-        @item(Later this is called when Java activity
-          died (and is restarting now), but the native code thread survived.
-          So all native code memory is already cool (no need to call OnInitialize),
-          but we need to reinitialize Java part.
-
-          Note that this is different from @link(TCastleWindowCustom.OnOpen).
-          We lose OpenGL context often, actually every time user switches to another
-          app, without having neither Java nor native threads killed.
-        )
-      )
-
-      For non-Android applications, this is simply always called exactly
-      once, exactly before calling @link(OnInitialize). }
-    property OnInitializeJavaActivity: TProcedure
-      read FOnInitializeJavaActivity write FOnInitializeJavaActivity;
+    {property OnInitializeJavaActivity: TProcedure
+      read FOnInitializeJavaActivity write FOnInitializeJavaActivity;}
 
     { Continously occuring event.
       @seealso TCastleWindowCustom.OnUpdate. }
@@ -4440,8 +4423,8 @@ begin
   if not InitializedJavaActivity then
   begin
     InitializedJavaActivity := true;
-    if Assigned(OnInitializeJavaActivity) then
-      OnInitializeJavaActivity();
+    {if Assigned(OnInitializeJavaActivity) then
+      OnInitializeJavaActivity();}
     ApplicationProperties._InitializeJavaActivity;
   end;
 

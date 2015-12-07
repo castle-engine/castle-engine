@@ -32,7 +32,7 @@ type
     @orderedList(
       @item(Create an instance of it (only a single instance allowed).)
       @item(Call @link(TGooglePlayGames.Initialize) at some point.
-        Usually from @link(TCastleApplication.OnInitializeJavaActivity).
+        Usually from @link(TCastleApplication.OnInitialize).
         User will be automatically asked to sign-in to Google Play then.)
       @item(Use this to manage Google Games achievements, leaderboards and so on.)
       @item(To include the necessary integration code in your Android project,
@@ -43,8 +43,9 @@ type
   TGooglePlayGames = class(TComponent)
   private
     FOnBestScoreReceived: TBestScoreEvent;
-    FSignedIn: boolean;
+    FSignedIn, FInitialized: boolean;
     function MessageReceived(const Received: TCastleStringList): boolean;
+    procedure ReinitializeJavaActivity(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -84,19 +85,32 @@ type
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleMessaging;
+  CastleUtils, CastleMessaging, CastleUIControls;
 
 constructor TGooglePlayGames.Create(AOwner: TComponent);
 begin
   inherited;
   Messaging.OnReceive.Add(@MessageReceived);
+  ApplicationProperties.OnInitializeJavaActivity.Add(@ReinitializeJavaActivity);
 end;
 
 destructor TGooglePlayGames.Destroy;
 begin
   if Messaging <> nil then
     Messaging.OnReceive.Remove(@MessageReceived);
+  if ApplicationProperties(false) <> nil then
+    ApplicationProperties(false).OnInitializeJavaActivity.Remove(@ReinitializeJavaActivity);
   inherited;
+end;
+
+procedure TGooglePlayGames.ReinitializeJavaActivity(Sender: TObject);
+begin
+  { in case Java activity got killed and is created again, reinitialize components }
+  if FInitialized then
+  begin
+    FSignedIn := false;
+    Initialize;
+  end;
 end;
 
 function TGooglePlayGames.MessageReceived(const Received: TCastleStringList): boolean;
@@ -130,6 +144,7 @@ end;
 
 procedure TGooglePlayGames.Initialize;
 begin
+  FInitialized := true;
   Messaging.Send(['google-play-games-initialize']);
 end;
 
