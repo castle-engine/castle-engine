@@ -48,32 +48,39 @@ public class ComponentMessaging extends ComponentAbstract
     Handler timerHandler = new Handler();
     Runnable timerRunnable = new Runnable()
     {
+        /**
+         * Do periodic stuff here.
+         */
         @Override
-        public void run() {
-            // do periodic stuff here
+        public void run()
+        {
+            boolean somethingHappened = false;
+
             String toNativeStr = null;
             if (toNative.size() != 0) {
                 toNativeStr = toNative.get(0);
                 if (debug) {
                     Log.i(TAG, "JNI: Java posting a message to the native code: " + toNativeStr);
                 }
+                somethingHappened = true;
                 toNative.remove(0);
             }
 
             String message = getActivity().jniMessage(toNativeStr);
-            boolean wasMessage = message != null && message.length() != 0;
-            if (wasMessage) {
+            if (message != null && message.length() != 0) {
                 if (debug) {
                     Log.i(TAG, "JNI: Java received message from native code: " + message);
                 }
+                somethingHappened = true;
                 String[] parts = message.split("=");
                 if (!getActivity().messageReceived(parts)) {
                     Log.w(TAG, "Message unhandled: " + message);
                 }
             }
 
-            // run again in a short time (shorter if there was a message, since next one may follow)
-            timerHandler.postDelayed(this, wasMessage ? 10 : 500);
+            // run again in a short time (shorter if something happened,
+            // since next messages may follow)
+            timerHandler.postDelayed(this, somethingHappened ? 10 : 500);
         }
     };
 
