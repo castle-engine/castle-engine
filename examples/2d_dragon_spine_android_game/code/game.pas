@@ -51,12 +51,6 @@ var
   AchievementMoveSubmitted,
     AchievementSeeLeftSubmitted, AchievementSeeRightSubmitted: boolean;
 
-procedure ApplicationInitializeJavaActivity;
-begin
-  Messaging.Log := true; // useful to debug what is communicated to Google Play Games
-  GooglePlayGames.Initialize;
-end;
-
 { main game stuff ------------------------------------------------------------ }
 
 var
@@ -140,6 +134,11 @@ procedure ApplicationInitialize;
 const
   ButtonPadding = 30;
 begin
+  Messaging.Log := true; // useful to debug what is communicated to Google Play Games
+
+  GooglePlayGames := TGooglePlayGames.Create(nil);
+  GooglePlayGames.Initialize;
+
   SceneManager := T2DSceneManager.Create(Application);
   { show SceneManager.BackgroundColor underneath scene manager }
   SceneManager.Transparent := false;
@@ -436,9 +435,6 @@ initialization
 
   { initialize Application callbacks }
   Application.OnInitialize := @ApplicationInitialize;
-  Application.OnInitializeJavaActivity := @ApplicationInitializeJavaActivity;
-
-  GooglePlayGames := TGooglePlayGames.Create(nil);
 
   { create Window and initialize Window callbacks }
   Window := TCastleWindowCustom.Create(Application);

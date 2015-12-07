@@ -2220,5 +2220,5 @@ initialization
     OnGLContextClose[0].
     Every other unit initializion does OnGLContextClose.Add,
     so our initialization will stay as OnGLContextClose[0]. }
-  OnGLContextClose.Insert(0, @ContextClose);
+  ApplicationProperties.OnGLContextClose.Insert(0, @ContextClose);
 end.

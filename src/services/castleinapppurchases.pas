@@ -72,7 +72,9 @@ type
   var
     FDebugMockupBuying: boolean;
     List: TProductList;
+    FLastAvailableProducts: string;
     function MessageReceived(const Received: TCastleStringList): boolean;
+    procedure ReinitializeJavaActivity(Sender: TObject);
   protected
     { Called when the knowledge about what do we own is complete. }
     procedure KnownCompletely; virtual;
@@ -121,7 +123,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleMessaging, CastleUtils, CastleLog, CastleUnicode;
+  CastleMessaging, CastleUtils, CastleLog, CastleUnicode, CastleUIControls;
 
 { TInAppProduct -------------------------------------------------------------- }
 
@@ -140,14 +142,24 @@ begin
   inherited;
   List := TProductList.Create(true);
   Messaging.OnReceive.Add(@MessageReceived);
+  ApplicationProperties.OnInitializeJavaActivity.Add(@ReinitializeJavaActivity);
 end;
 
 destructor TInAppPurchases.Destroy;
 begin
   if Messaging <> nil then
     Messaging.OnReceive.Remove(@MessageReceived);
+  if ApplicationProperties(false) <> nil then
+    ApplicationProperties(false).OnInitializeJavaActivity.Remove(@ReinitializeJavaActivity);
   FreeAndNil(List);
   inherited;
+end;
+
+procedure TInAppPurchases.ReinitializeJavaActivity(Sender: TObject);
+begin
+  { in case Java activity got killed and is created again, reinitialize components }
+  if FLastAvailableProducts <> '' then
+    Messaging.Send(['in-app-purchases-set-available-products', FLastAvailableProducts]);
 end;
 
 function TInAppPurchases.MessageReceived(const Received: TCastleStringList): boolean;
@@ -237,7 +249,8 @@ end;
 
 procedure TInAppPurchases.SetAvailableProducts(const Strings: array of string);
 begin
-  Messaging.Send(['in-app-purchases-set-available-products', GlueStrings(Strings, ',')]);
+  FLastAvailableProducts := GlueStrings(Strings, ',');
+  Messaging.Send(['in-app-purchases-set-available-products', FLastAvailableProducts]);
 end;
 
 end.

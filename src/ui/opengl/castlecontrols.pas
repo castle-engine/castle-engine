@@ -3569,7 +3569,7 @@ begin
 end;
 
 initialization
-  OnGLContextClose.Add(@ContextClose);
+  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
   FTheme := TCastleTheme.Create;
 finalization
   FreeAndNil(FTheme);

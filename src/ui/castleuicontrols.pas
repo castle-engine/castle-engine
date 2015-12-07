@@ -1265,41 +1265,103 @@ end;
     procedure ExecuteBackward;
   end;
 
-{ Global callbacks called when OpenGL context (like Lazarus TCastleControl
-  or TCastleWindow) is open/closed.
-  Useful for things that want to be notified
-  about OpenGL context existence, but cannot refer to a particular instance
-  of TCastleControl or TCastleWindow.
+  { Events and properties of the Castle Game Engine application,
+    usually accessed through the @link(ApplicationProperties) singleton.
 
-  Note that we may have many OpenGL contexts (TCastleWindow or TCastleControl)
-  open simultaneously. They all share OpenGL resources.
-  OnGLContextOpen is called when first OpenGL context is open,
-  that is: no previous context was open.
-  OnGLContextClose is called when last OpenGL context is closed,
-  that is: no more contexts remain open.
-  Note that this implies that they may be called many times:
-  e.g. if you open one window, then close it, then open another
-  window then close it.
+    These members work regardless if you use CastleWindow or CastleControl.
+    For more fine-grained application control,
+    see TCastleApplication (in case you use CastleWindow)
+    or Lazarus (LCL) TApplication (in case you use CastleControl). }
+  TCastleApplicationProperties = class
+  private
+    FIsGLContextOpen: boolean;
+    FOnGLContextOpen, FOnGLContextClose: TGLContextEventList;
+    FOnUpdate, FOnInitializeJavaActivity: TNotifyEventList;
+  public
+    constructor Create;
+    destructor Destroy; override;
 
-  Callbacks on OnGLContextOpen are called from first to last.
-  Callbacks on OnGLContextClose are called in reverse order,
-  so OnGLContextClose[0] is called last.
+    { Callbacks called when the OpenGL context is opened or closed.
+      Use when you want to be notified about OpenGL context availability,
+      but cannot refer to a particular instance of TCastleControl or TCastleWindow.
 
-  @groupBegin }
-function OnGLContextOpen: TGLContextEventList;
-function OnGLContextClose: TGLContextEventList;
-{ @groupEnd }
+      Note that we may have many OpenGL contexts (many
+      TCastleWindow or TCastleControl instances) open simultaneously.
+      They all share OpenGL resources.
+      OnGLContextOpen is called when first OpenGL context is open,
+      that is: no previous context was open.
+      OnGLContextClose is called when last OpenGL context is closed,
+      that is: no more contexts remain open.
+      Note that this implies that they may be called many times:
+      e.g. if you open one window, then close it, then open another
+      window then close it.
 
-{ Global callbacks called continously when (at least one) window is open.
+      Callbacks on OnGLContextOpen are called from first to last.
+      Callbacks on OnGLContextClose are called in reverse order,
+      so OnGLContextClose[0] is called last.
 
-  You can use this just like @link(TCastleControl.OnUpdate)
-  or @link(TCastleWindow.OnUpdate) or @link(TCastleApplication.OnUpdate),
-  but in situations where you cannot access an instance of control/window
-  and you want to work both with Lazarus @link(TCastleControl)
-  and our custom @link(TCastleApplication). }
-function OnApplicationUpdate: TGLContextEventList;
+      @groupBegin }
+    property OnGLContextOpen: TGLContextEventList read FOnGLContextOpen;
+    property OnGLContextClose: TGLContextEventList read FOnGLContextClose;
+    { @groupEnd }
 
-function IsGLContextOpen: boolean;
+    { Is the OpenGL context available. IOW, we are between OnGLContextOpen
+      and OnGLContextClose. }
+    property IsGLContextOpen: boolean read FIsGLContextOpen;
+
+    { Callbacks called continously when (at least one) window is open.
+
+      You can use this just like @link(TCastleControl.OnUpdate)
+      or @link(TCastleWindow.OnUpdate) or @link(TCastleApplication.OnUpdate),
+      but in situations where you cannot access an instance of control/window
+      and you want to work both with Lazarus @link(TCastleControl)
+      and our custom @link(TCastleApplication). }
+    property OnUpdate: TNotifyEventList read FOnUpdate;
+
+    { Callbacks called when Android Java activity started.
+      Called every time a Java activity is created.
+
+      @unorderedList(
+        @item(For the first time, it's called right before
+          @link(TCastleApplication.OnInitialize).)
+
+        @item(Later this is called when Java activity
+          died (and is restarting now), but the native code thread survived.
+          So all native code memory is already cool (no need to call
+          @link(TCastleApplication.OnInitialize)),
+          but we need to reinitialize Java part.
+
+          Note that this is different from @link(TCastleWindowCustom.OnOpen).
+          We lose OpenGL context often, actually every time user switches to another
+          app, without having neither Java nor native threads killed.
+        )
+      )
+
+      For non-Android applications, this is simply always called exactly
+      once, exactly before calling @link(OnInitialize). }
+    property OnInitializeJavaActivity: TNotifyEventList read FOnInitializeJavaActivity;
+
+    { Internal for Castle Game Engine.
+      Called from CastleWindow or CastleControl.
+      Don't call these methods yourself.
+      @groupBegin
+      @exclude }
+    procedure _GLContextOpen;
+    { @exclude }
+    procedure _GLContextClose;
+    { @exclude }
+    procedure _Update;
+    { @exclude }
+    procedure _InitializeJavaActivity;
+    { @groupEnd }
+  end;
+
+function ApplicationProperties(
+  const CreateIfNotExisting: boolean = true): TCastleApplicationProperties;
+
+function OnGLContextOpen: TGLContextEventList; deprecated 'use ApplicationProperties.OnGLContextOpen';
+function OnGLContextClose: TGLContextEventList; deprecated 'use ApplicationProperties.OnGLContextClose';
+function IsGLContextOpen: boolean; deprecated 'use ApplicationProperties.IsGLContextOpen';
 
 const
   { Deprecated name for rs2D. }
@@ -2012,7 +2074,7 @@ var
   I: Integer;
 begin
   if OpenWindowsCount = 1 then
-    OnGLContextOpen.ExecuteForward;
+    ApplicationProperties._GLContextOpen;
 
   { Call GLContextOpen on controls before OnOpen,
     this way OnOpen has controls with GLInitialized = true,
@@ -2053,7 +2115,7 @@ begin
       RecursiveGLContextClose(Controls[I]);
 
   if OpenWindowsCount = 1 then
-    OnGLContextClose.ExecuteBackward;
+    ApplicationProperties._GLContextClose;
 end;
 
 function TUIContainer.AllowSuspendForInput: boolean;
@@ -3343,19 +3405,10 @@ end;
 
 { TGLContextEventList -------------------------------------------------------- }
 
-var
-  FIsGLContextOpen: boolean;
-
-function IsGLContextOpen: boolean;
-begin
-  Result := FIsGLContextOpen;
-end;
-
 procedure TGLContextEventList.ExecuteForward;
 var
   I: Integer;
 begin
-  FIsGLContextOpen := true;
   for I := 0 to Count - 1 do
     Items[I]();
 end;
@@ -3366,35 +3419,75 @@ var
 begin
   for I := Count - 1 downto 0 do
     Items[I]();
+end;
+
+{ TCastleApplicationProperties ----------------------------------------------- }
+
+var
+  FApplicationProperties: TCastleApplicationProperties;
+
+function ApplicationProperties(const CreateIfNotExisting: boolean): TCastleApplicationProperties;
+begin
+  if (FApplicationProperties = nil) and CreateIfNotExisting then
+    FApplicationProperties := TCastleApplicationProperties.Create;
+  Result := FApplicationProperties;
+end;
+
+constructor TCastleApplicationProperties.Create;
+begin
+  inherited;
+  FOnGLContextOpen := TGLContextEventList.Create;
+  FOnGLContextClose := TGLContextEventList.Create;
+  FOnUpdate := TNotifyEventList.Create;
+  FOnInitializeJavaActivity := TNotifyEventList.Create;
+end;
+
+destructor TCastleApplicationProperties.Destroy;
+begin
+  FreeAndNil(FOnGLContextOpen);
+  FreeAndNil(FOnGLContextClose);
+  FreeAndNil(FOnUpdate);
+  FreeAndNil(FOnInitializeJavaActivity);
+  inherited;
+end;
+
+procedure TCastleApplicationProperties._GLContextOpen;
+begin
+  FIsGLContextOpen := true;
+  FOnGLContextOpen.ExecuteForward;
+end;
+
+procedure TCastleApplicationProperties._GLContextClose;
+begin
+  FOnGLContextClose.ExecuteBackward;
   FIsGLContextOpen := false;
 end;
 
-var
-  FOnGLContextOpen, FOnGLContextClose, FOnApplicationUpdate: TGLContextEventList;
+procedure TCastleApplicationProperties._Update;
+begin
+  FOnUpdate.ExecuteAll(Self);
+end;
+
+procedure TCastleApplicationProperties._InitializeJavaActivity;
+begin
+  FOnInitializeJavaActivity.ExecuteAll(Self);
+end;
 
 function OnGLContextOpen: TGLContextEventList;
 begin
-  if FOnGLContextOpen = nil then
-    FOnGLContextOpen := TGLContextEventList.Create;
-  Result := FOnGLContextOpen;
+  Result := ApplicationProperties.OnGLContextOpen;
 end;
 
 function OnGLContextClose: TGLContextEventList;
 begin
-  if FOnGLContextClose = nil then
-    FOnGLContextClose := TGLContextEventList.Create;
-  Result := FOnGLContextClose;
+  Result := ApplicationProperties.OnGLContextClose;
 end;
 
-function OnApplicationUpdate: TGLContextEventList;
+function IsGLContextOpen: boolean;
 begin
-  if FOnApplicationUpdate = nil then
-    FOnApplicationUpdate := TGLContextEventList.Create;
-  Result := FOnApplicationUpdate;
+  Result := ApplicationProperties.IsGLContextOpen;
 end;
 
 finalization
-  FreeAndNil(FOnGLContextOpen);
-  FreeAndNil(FOnGLContextClose);
-  FreeAndNil(FOnApplicationUpdate);
+  FreeAndNil(FApplicationProperties);
 end.
