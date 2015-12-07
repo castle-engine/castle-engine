@@ -232,36 +232,30 @@ type
       the opacity (alpha) of the source image. That is,
 
       @preformatted(
-result := destination image * (1 - source alpha) + source image * (source alpha)
+destination.rgb := destination.rgb * (1 - source.alpha) + source.rgb * source.alpha;
+destination.alpha := destination.alpha; // never changed by this drawing mode
 )
 
-      So when drawing @italic(an image with alpha over an image without alpha),
-      their colors will be blended according to the above equation.
-      When drawing @italic(an image without alpha over anything),
-      source contents will always replace the destination image underneath
-      (as an image without alpha is treated like fully opaque).
-
-      TODO: Right now, when drawing @italic(an image with alpha over another
-      image with alpha), source will also simply replace the contents of destination,
-      which is not necessarily correct and subject to change!
-      (Since the above equation doesn't specify what happens with resulting
-      alpha channel, it's hard to say what's the expected behavior here...). }
+      An image type without alpha (like TRGBImage or TGrayscaleImage)
+      is always treated like it has alpha = 1.0 (fully opaque) everywhere.
+      In particular, this means that when drawing @italic(an image
+      without alpha over any other image), source RGB contents will
+      simply replace the destination RGB contents. }
     dmBlend,
 
     { Additive drawing mode, where the image contents of source image
       are added to the existing destination image. That is,
 
       @preformatted(
-result := destination image + source image * (source alpha)
+destination.rgb := destination.rgb + source.rgb * source.alpha;
+destination.alpha := destination.alpha; // never changed by this drawing mode
 )
 
       So when drawing @italic(an image with alpha over an image without alpha),
       the colors will be added according to the above equation, only source
       is multiplied by alpha. To speed this operation, one can use
       @link(TRGBAlphaImage.PremultiplyAlpha) on the source image first,
-      very useful if you plan to draw the same source image many times.
-
-      TODO: for other cases, this is not implemented correctly now. }
+      very useful if you plan to draw the same source image many times. }
     dmAdd
   );
 
@@ -339,7 +333,7 @@ result := destination image + source image * (source alpha)
       Override this to add copying using some more sophisticated method
       than just memory copying (so also for handling mode other than
       dmBlend). }
-    procedure DrawCore(Source: TCastleImage;
+    procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); virtual;
   public
@@ -404,15 +398,14 @@ result := destination image + source image * (source alpha)
       preferably something like ^(array of TPixel). }
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): Pointer;
 
-    { This inverts RGB colors (i.e. changes each RGB component's value
-      to High(Byte)-value). Doesn't touch other components,
-      e.g. alpha value in case of TRGBAlphaImage descendant.
+    { Inverts all colors (RGB or grayscale, but doesn't touch alpha channel).
+      "Inverting" means changing color C in range [0..1] to 1-C,
+      so black becomes white, white becomes black etc.
 
-      Note that this may be not overriden in every TCastleImage descendant,
-      then default implementation of this method in this class
-      will raise EInternalError. This also means that you must not
-      call inherited in descendants when overriding this method. }
-    procedure InvertRGBColors; virtual;
+      @italic(For descendants implementors:)
+      Override it if necessary, otherwise the default implementation in this class
+      will raise EInternalError. }
+    procedure InvertColors; virtual;
 
     { Set the RGB color portion of the pixel.
 
@@ -569,7 +562,7 @@ result := destination image + source image * (source alpha)
           is a simple conversion to grayscale (actually incorrect, even if often
           visually acceptable; actually instead of 0.33 one has to use
           GrayscaleFloat/ByteValues, this is already implemented
-          in ImageTransformColorsTo1st function)
+          in ImageTransformColorsVar function)
 
       Note: it's often more optimal to hard-code necessary color transformations
       as TColorModulatorFunc and use ModulateRGB.
@@ -688,9 +681,9 @@ result := destination image + source image * (source alpha)
       and you want to apply it over a destination image with blending
       (adding scaled source to a destination color),
       and not suitable when Mode is <> dmBlend.
-      Descendants with alpha channel should override @link(DrawCore)
+      Descendants with alpha channel should override @link(DrawFromCore)
       to handle drawing with blending (for dmBlend),
-      all descendants should override @link(DrawCore)
+      all descendants should override @link(DrawFromCore)
       to handle drawing with Mode <> dmBlend.
 
       @raises(EImageDrawError When drawing cannot be performed,
@@ -856,8 +849,6 @@ result := destination image + source image * (source alpha)
   );
   TGPUCompressions = set of TGPUCompression;
 
-  ECannotFlipCompressedImage = class(Exception);
-
   { Image compressed using one of the GPU texture compression algorithms. }
   TGPUCompressedImage = class(TEncodedImage)
   private
@@ -878,18 +869,13 @@ result := destination image + source image * (source alpha)
 
     { Flip compressed image vertically, losslessly.
 
-      This works only for (some) S3TC images.
+      This works only for S3TC images, and only when their height is 1, 2, 3
+      or a multiple of 4. Note that this is always satisfied if image height
+      is a power of two (as common for textures).
       It uses the knowledge of how S3TC compression works
       to losslessly flip the image, without re-compressing it.
       The idea is described here
-      [http://users.telenet.be/tfautre/softdev/ddsload/explanation.htm].
-
-      @raises(ECannotFlipCompressedImage
-        Raised when image Height is not 1, 2, 3
-        or a multiple of 4 (since the trick doesn't work in these cases,
-        pixels would move between 4x4 blocks). Note that if Height
-        is a power of two (as common for OpenGL textures) then it's
-        always possible to make a flip.) }
+      [http://users.telenet.be/tfautre/softdev/ddsload/explanation.htm]. }
     procedure FlipVertical;
 
     { Decompress the image.
@@ -980,7 +966,7 @@ type
     class function FromFpImage(const FPImage: TFPMemoryImage): TRGBImage;
     function ToFpImage: TFPMemoryImage; override;
   protected
-    procedure DrawCore(Source: TCastleImage;
+    procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); override;
   public
@@ -993,7 +979,7 @@ type
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector3Byte;
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector3Byte;
 
-    procedure InvertRGBColors; override;
+    procedure InvertColors; override;
 
     procedure SetColorRGB(const x, y: Integer; const v: TVector3Single); override;
 
@@ -1074,6 +1060,10 @@ type
     function GetAlphaPixels: PVector4Byte;
     class function FromFpImage(const FPImage: TFPMemoryImage): TRGBAlphaImage;
     function ToFpImage: TFPMemoryImage; override;
+  protected
+    procedure DrawFromCore(Source: TCastleImage;
+      X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
+      const Mode: TDrawMode); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector4Byte }
     property AlphaPixels: PVector4Byte read GetAlphaPixels;
@@ -1084,7 +1074,7 @@ type
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector4Byte;
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector4Byte;
 
-    procedure InvertRGBColors; override;
+    procedure InvertColors; override;
 
     procedure SetColorRGB(const x, y: Integer; const v: TVector3Single); override;
 
@@ -1160,6 +1150,7 @@ type
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector3Single;
 
     procedure SetColorRGB(const x, y: Integer; const v: TVector3Single); override;
+    procedure InvertColors; override;
 
     procedure Clear(const Pixel: TVector3Single); reintroduce;
     function IsClear(const Pixel: TVector3Single): boolean; reintroduce;
@@ -1192,6 +1183,10 @@ type
     function GetGrayscalePixels: PByte;
     class function FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleImage;
     function ToFpImage: TFPMemoryImage; override;
+  protected
+    procedure DrawFromCore(Source: TCastleImage;
+      X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
+      const Mode: TDrawMode); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PByte }
     property GrayscalePixels: PByte read GetGrayscalePixels;
@@ -1201,6 +1196,8 @@ type
 
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PByte;
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PByteArray;
+
+    procedure InvertColors; override;
 
     procedure Clear(const Pixel: Byte); reintroduce;
     function IsClear(const Pixel: Byte): boolean; reintroduce;
@@ -1246,6 +1243,10 @@ type
     function GetGrayscaleAlphaPixels: PVector2Byte;
     class function FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleAlphaImage;
     function ToFpImage: TFPMemoryImage; override;
+  protected
+    procedure DrawFromCore(Source: TCastleImage;
+      X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
+      const Mode: TDrawMode); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector2Byte }
     property GrayscaleAlphaPixels: PVector2Byte read GetGrayscaleAlphaPixels;
@@ -1255,6 +1256,8 @@ type
 
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector2Byte;
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector2Byte;
+
+    procedure InvertColors; override;
 
     procedure Clear(const Pixel: TVector2Byte); reintroduce;
     function IsClear(const Pixel: TVector2Byte): boolean; reintroduce;
@@ -1414,7 +1417,7 @@ function LoadImage(const URL: string;
 { Load image to TEncodedImage format.
   This allows loading image compressed with GPU, which is good for optimally
   loading it to GPU. However, the operations on GPU-compressed image are very
-  limited, we generally cannot do much with GPU-compressed date except
+  limited, we generally cannot do much with GPU-compressed data except
   rendering it.
 
   @seealso LoadImage
@@ -1499,7 +1502,7 @@ var
 { Maximum alpha channel type. Chooses "full range" if anything is "full range",
   otherwise choose "simple yes/no" if anything is "simple yes/no",
   otherwise returns "no alpha channel". }
-procedure AlphaMaxTo1st(var A: TAlphaChannel; const B: TAlphaChannel);
+procedure AlphaMaxVar(var A: TAlphaChannel; const B: TAlphaChannel);
 
 function StringToAlpha(S: string; var WarningDone: boolean): TAutoAlphaChannel;
 
@@ -1587,6 +1590,7 @@ uses ExtInterpolation, FPCanvas, FPImgCanv,
 { parts ---------------------------------------------------------------------- }
 
 {$I castleimages_file_formats.inc}
+{$I castleimages_draw.inc}
 {$I images_bmp.inc}
 {$ifndef CASTLE_PNG_USING_FCL_IMAGE}
   {$I images_png.inc}
@@ -1697,9 +1701,9 @@ begin
     ' method not implemented for this TCastleImage descendant');
 end;
 
-procedure TCastleImage.InvertRGBColors;
+procedure TCastleImage.InvertColors;
 begin
-  NotImplemented('InvertRGBColors');
+  NotImplemented('InvertColors');
 end;
 
 procedure TCastleImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
@@ -2223,91 +2227,6 @@ begin
     0, 0, Image.Width, Image.Height);
 end;
 
-procedure TCastleImage.DrawCore(Source: TCastleImage;
-  X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
-  const Mode: TDrawMode);
-var
-  Line: Integer;
-  Ptr, SourcePtr: Pointer;
-  RowWidth, SourceRowWidth, SourceCopyRowWidth: Cardinal;
-begin
-  if Source.ClassType <> ClassType then
-    raise EImageDrawError.CreateFmt('Cannot draw pixels from image class %s to %s',
-      [Source.ClassName, ClassName]);
-
-  if Mode <> dmBlend then
-    raise EImageDrawError.CreateFmt('Base TCastleImage.DrawCore cannot draw pixels with Mode <> dmBlend, override DrawCore to implement this correctly, from image class %s to %s',
-      [Source.ClassName, ClassName]);
-
-  Ptr := PixelPtr(X, Y);
-  RowWidth := Width * PixelSize;
-
-  SourcePtr := Source.PixelPtr(SourceX, SourceY);
-  SourceRowWidth := Source.Width * Source.PixelSize;
-  SourceCopyRowWidth := SourceWidth * Source.PixelSize;
-
-  for Line := 0 to Integer(SourceHeight) - 1 do
-  begin
-    Move(SourcePtr^, Ptr^, SourceCopyRowWidth);
-    PtrUInt(Ptr) := PtrUInt(Ptr) + RowWidth;
-    PtrUInt(SourcePtr) := PtrUInt(SourcePtr) + SourceRowWidth;
-  end;
-end;
-
-procedure TCastleImage.DrawFrom(Source: TCastleImage;
-  X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
-  const Mode: TDrawMode);
-begin
-  if X < 0 then
-  begin
-    SourceX += -X;
-    SourceWidth -= -X;
-    X := 0;
-  end;
-
-  if Y < 0 then
-  begin
-    SourceY += -Y;
-    SourceHeight -= -Y;
-    Y := 0;
-  end;
-
-  if SourceX < 0 then
-  begin
-    X += -SourceX;
-    SourceWidth -= -SourceX;
-    SourceX := 0;
-  end;
-
-  if SourceY < 0 then
-  begin
-    Y += -SourceY;
-    SourceHeight -= -SourceY;
-    SourceY := 0;
-  end;
-
-  SourceWidth  := Min(SourceWidth , Width  - X, Source.Width );
-  SourceHeight := Min(SourceHeight, Height - Y, Source.Height);
-
-  if (SourceWidth > 0) and
-     (SourceHeight > 0) and
-     (SourceX < Source.Width) and
-     (SourceY < Source.Height) then
-    DrawCore(Source, X, Y, SourceX, SourceY, SourceWidth, SourceHeight, Mode);
-end;
-
-procedure TCastleImage.DrawFrom(Source: TCastleImage; const X, Y: Integer;
-  const Mode: TDrawMode);
-begin
-  DrawFrom(Source, X, Y, 0, 0, Source.Width, Source.Height, Mode);
-end;
-
-procedure TCastleImage.DrawTo(Destination: TCastleImage; const X, Y: Integer;
-  const Mode: TDrawMode);
-begin
-  Destination.DrawFrom(Self, X, Y, Mode);
-end;
-
 procedure TCastleImage.LerpSimpleCheckConditions(SecondImage: TCastleImage);
 begin
   if (Width <> SecondImage.Width) or
@@ -2610,7 +2529,7 @@ begin
   Result := PArray_Vector3Byte(inherited RowPtr(Y, Z));
 end;
 
-procedure TRGBImage.InvertRGBColors;
+procedure TRGBImage.InvertColors;
 var
   i: Cardinal;
   prgb: PVector3byte;
@@ -2668,202 +2587,6 @@ type PPixel = PVector3Byte;
 procedure TRGBImage.ModulateRGB(const ColorModulator: TColorModulatorByteFunc);
 type PPixel = PVector3Byte;
 {$I images_modulatergb_implement.inc}
-
-function BlendBytes(const Dest, Source, Opacity: Byte): Byte; inline;
-var
-  W: Word;
-begin
-  W :=
-    Word(Dest  ) * (255 - Opacity) div 255 +
-    Word(Source) * Opacity         div 255;
-  if W > 255 then W := 255;
-  Result := W;
-end;
-
-function AddBytes(const Dest, Source, Opacity: Byte): Byte; inline;
-var
-  W: Word;
-begin
-  W := Dest + Word(Source) * Opacity div 255;
-  if W > 255 then W := 255;
-  Result := W;
-end;
-
-function AddBytesPremultiplied(const Dest, Source: Byte): Byte; inline;
-var
-  W: Word;
-begin
-  W := Dest + Source;
-  if W > 255 then W := 255;
-  Result := W;
-end;
-
-procedure TRGBImage.DrawCore(Source: TCastleImage;
-  X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
-  const Mode: TDrawMode);
-
-  procedure SourceRGBAlpha(Source: TRGBAlphaImage);
-  var
-    PSource: PVector4Byte;
-    PDest: PVector3Byte;
-    DestX, DestY: Integer;
-  begin
-    case Mode of
-      dmBlend:
-        for DestY := Y to Y + SourceHeight - 1 do
-        begin
-          PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-          PDest := PixelPtr(X, DestY);
-          for DestX := X to X + SourceWidth - 1 do
-          begin
-            PDest^[0] := BlendBytes(PDest^[0], PSource^[0], PSource^[3]);
-            PDest^[1] := BlendBytes(PDest^[1], PSource^[1], PSource^[3]);
-            PDest^[2] := BlendBytes(PDest^[2], PSource^[2], PSource^[3]);
-            Inc(PSource);
-            Inc(PDest);
-          end;
-        end;
-      dmAdd:
-        if Source.PremultipliedAlpha then
-        begin
-          for DestY := Y to Y + SourceHeight - 1 do
-          begin
-            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-            PDest := PixelPtr(X, DestY);
-            for DestX := X to X + SourceWidth - 1 do
-            begin
-              PDest^[0] := AddBytesPremultiplied(PDest^[0], PSource^[0]);
-              PDest^[1] := AddBytesPremultiplied(PDest^[1], PSource^[1]);
-              PDest^[2] := AddBytesPremultiplied(PDest^[2], PSource^[2]);
-              Inc(PSource);
-              Inc(PDest);
-            end;
-          end;
-        end else
-        begin
-          for DestY := Y to Y + SourceHeight - 1 do
-          begin
-            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-            PDest := PixelPtr(X, DestY);
-            for DestX := X to X + SourceWidth - 1 do
-            begin
-              PDest^[0] := AddBytes(PDest^[0], PSource^[0], PSource^[3]);
-              PDest^[1] := AddBytes(PDest^[1], PSource^[1], PSource^[3]);
-              PDest^[2] := AddBytes(PDest^[2], PSource^[2], PSource^[3]);
-              Inc(PSource);
-              Inc(PDest);
-            end;
-          end;
-        end;
-      else raise EInternalError.Create('Blend mode not implemented (TRGBImage.DrawCore)');
-    end;
-  end;
-
-  procedure SourceGrayscaleAlpha(Source: TGrayscaleAlphaImage);
-  var
-    PSource: PVector2Byte;
-    PDest: PVector3Byte;
-    DestX, DestY: Integer;
-  begin
-    case Mode of
-      dmBlend:
-        for DestY := Y to Y + SourceHeight - 1 do
-        begin
-          PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-          PDest := PixelPtr(X, DestY);
-          for DestX := X to X + SourceWidth - 1 do
-          begin
-            PDest^[0] := BlendBytes(PDest^[0], PSource^[0], PSource^[1]);
-            PDest^[1] := BlendBytes(PDest^[1], PSource^[0], PSource^[1]);
-            PDest^[2] := BlendBytes(PDest^[2], PSource^[0], PSource^[1]);
-            Inc(PSource);
-            Inc(PDest);
-          end;
-        end;
-      dmAdd:
-        {if Source.PremultipliedAlpha then
-        begin
-          for DestY := Y to Y + SourceHeight - 1 do
-          begin
-            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-            PDest := PixelPtr(X, DestY);
-            for DestX := X to X + SourceWidth - 1 do
-            begin
-              PDest^[0] := AddBytesPremultiplied(PDest^[0], PSource^[0]);
-              PDest^[1] := AddBytesPremultiplied(PDest^[1], PSource^[0]);
-              PDest^[2] := AddBytesPremultiplied(PDest^[2], PSource^[0]);
-              Inc(PSource);
-              Inc(PDest);
-            end;
-          end;
-        end else}
-        begin
-          for DestY := Y to Y + SourceHeight - 1 do
-          begin
-            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-            PDest := PixelPtr(X, DestY);
-            for DestX := X to X + SourceWidth - 1 do
-            begin
-              PDest^[0] := AddBytes(PDest^[0], PSource^[0], PSource^[1]);
-              PDest^[1] := AddBytes(PDest^[1], PSource^[0], PSource^[1]);
-              PDest^[2] := AddBytes(PDest^[2], PSource^[0], PSource^[1]);
-              Inc(PSource);
-              Inc(PDest);
-            end;
-          end;
-        end;
-      else raise EInternalError.Create('Blend mode not implemented (TRGBImage.DrawCore)');
-    end;
-  end;
-
-  procedure SourceGrayscale(Source: TGrayscaleImage);
-  var
-    PSource: PByte;
-    PDest: PVector3Byte;
-    DestX, DestY: Integer;
-  begin
-    case Mode of
-      dmBlend:
-        for DestY := Y to Y + SourceHeight - 1 do
-        begin
-          PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-          PDest := PixelPtr(X, DestY);
-          for DestX := X to X + SourceWidth - 1 do
-          begin
-            PDest^[0] := PSource^;
-            PDest^[1] := PSource^;
-            PDest^[2] := PSource^;
-            Inc(PSource);
-            Inc(PDest);
-          end;
-        end;
-      dmAdd:
-        for DestY := Y to Y + SourceHeight - 1 do
-        begin
-          PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
-          PDest := PixelPtr(X, DestY);
-          for DestX := X to X + SourceWidth - 1 do
-          begin
-            PDest^[0] := AddBytesPremultiplied(PDest^[0], PSource^);
-            PDest^[1] := AddBytesPremultiplied(PDest^[1], PSource^);
-            PDest^[2] := AddBytesPremultiplied(PDest^[2], PSource^);
-            Inc(PSource);
-            Inc(PDest);
-          end;
-        end;
-      else raise EInternalError.Create('Blend mode not implemented (TRGBImage.DrawCore)');
-    end;
-  end;
-
-begin
-  if Source is TRGBAlphaImage then
-    SourceRGBAlpha(TRGBAlphaImage(Source)) else
-  if Source is TGrayscaleAlphaImage then
-    SourceGrayscaleAlpha(TGrayscaleAlphaImage(Source)) else
-  if Source is TGrayscaleImage then
-    SourceGrayscale(TGrayscaleImage(Source)) else
-    inherited;
-end;
 
 function TRGBImage.ToRGBAlphaImage: TRGBAlphaImage;
 var
@@ -3054,7 +2777,7 @@ begin
   Result := PArray_Vector4Byte(inherited RowPtr(Y, Z));
 end;
 
-procedure TRGBAlphaImage.InvertRGBColors;
+procedure TRGBAlphaImage.InvertColors;
 var
   i: Cardinal;
   palpha: PVector4byte;
@@ -3367,6 +3090,21 @@ begin
   OutputCol^[2] := Weights[0] * Cols[0]^[2] + Weights[1] * Cols[1]^[2] + Weights[2] * Cols[2]^[2] + Weights[3] * Cols[3]^[2];
 end;
 
+procedure TRGBFloatImage.InvertColors;
+var
+  I: Cardinal;
+  P: PVector3Single;
+begin
+  P := RGBFloatPixels;
+  for I := 1 to Width * Height * Depth do
+  begin
+    P^[0] := Max(1-P^[0], 0.0);
+    P^[1] := Max(1-P^[1], 0.0);
+    P^[2] := Max(1-P^[2], 0.0);
+    Inc(P);
+  end;
+end;
+
 { TGrayscaleImage ------------------------------------------------------------ }
 
 function TGrayscaleImage.GetGrayscalePixels: PByte;
@@ -3523,6 +3261,19 @@ begin
     inherited;
 end;
 
+procedure TGrayscaleImage.InvertColors;
+var
+  I: Cardinal;
+  P: PByte;
+begin
+  P := GrayscalePixels;
+  for I := 1 to Width * Height * Depth do
+  begin
+    P^ := High(Byte)-P^;
+    Inc(P);
+  end;
+end;
+
 { TGrayscaleAlphaImage ------------------------------------------------------------ }
 
 function TGrayscaleAlphaImage.GetGrayscaleAlphaPixels: PVector2Byte;
@@ -3660,6 +3411,19 @@ begin
     inherited;
 end;
 
+procedure TGrayscaleAlphaImage.InvertColors;
+var
+  I: Cardinal;
+  P: PVector2Byte;
+begin
+  P := GrayscaleAlphaPixels;
+  for I := 1 to Width * Height * Depth do
+  begin
+    P^[0] := High(Byte)-P^[0];
+    Inc(P);
+  end;
+end;
+
 { RGBE <-> 3 Single color convertion --------------------------------- }
 
 const
@@ -3770,7 +3534,7 @@ end;
   (where the contents will be copied to alpha, and intensity set to white).
 
   If the image already had an alpha channel, then just return it. }
-procedure ImageAddAlphaTo1st(var Img: TEncodedImage);
+procedure ImageAddAlphaVar(var Img: TEncodedImage);
 var
   NewImg: TCastleImage;
 begin
@@ -3789,7 +3553,7 @@ begin
 
   if not Img.HasAlpha then
     raise EInternalError.Create(
-      'ImageAddAlphaTo1st not possible for this image class: ' + Img.ClassName);
+      'ImageAddAlphaVar not possible for this image class: ' + Img.ClassName);
 end;
 
 function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
@@ -3803,7 +3567,7 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
   end;
 
   { On input, Image must be TRGBImage and on output it will be TGrayscaleImage. }
-  procedure ImageGrayscaleTo1st(var Image: TEncodedImage);
+  procedure ImageGrayscaleVar(var Image: TEncodedImage);
   var
     NewImage: TGrayscaleImage;
   begin
@@ -3812,7 +3576,7 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
     Image := NewImage;
   end;
 
-  procedure ImageRGBToFloatTo1st(var Image: TEncodedImage);
+  procedure ImageRGBToFloatVar(var Image: TEncodedImage);
   var
     NewResult: TEncodedImage;
   begin
@@ -3821,7 +3585,7 @@ function LoadEncodedImage(Stream: TStream; const StreamFormat: TImageFormat;
     Image := NewResult;
   end;
 
-  procedure ImageRGBToGrayscaleTo1st(var Image: TEncodedImage);
+  procedure ImageRGBToGrayscaleVar(var Image: TEncodedImage);
   var
     NewResult: TEncodedImage;
   begin
@@ -3851,7 +3615,7 @@ begin
             if ClassAllowed(TRGBFloatImage) then
             begin
               Result := Load(Stream, [TRGBImage]);
-              ImageRGBToFloatTo1st(result);
+              ImageRGBToFloatVar(result);
             end else
               raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot load this image file format to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
           end;
@@ -3863,14 +3627,14 @@ begin
             if ClassAllowed(TGrayscaleImage) then
             begin
               Result := Load(Stream, [TRGBImage]);
-              ImageRGBToGrayscaleTo1st(result);
+              ImageRGBToGrayscaleVar(result);
             end else
 { TODO:     if ClassAllowed(TGrayscaleAlphaImage) then
               ... }
             if ClassAllowed(TRGBFloatImage) then
             begin
               Result := Load(Stream, [TRGBImage]);
-              ImageRGBToFloatTo1st(result);
+              ImageRGBToFloatVar(result);
             end else
               raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot load this image file format to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
           end;
@@ -3883,21 +3647,21 @@ begin
             begin
               if ClassAllowed(TRGBAlphaImage) then
               begin
-                ImageAddAlphaTo1st(Result);
+                ImageAddAlphaVar(Result);
               end else
               if ClassAllowed(TGrayscaleImage) then
               begin
-                ImageGrayscaleTo1st(Result);
+                ImageGrayscaleVar(Result);
               end else
               { TODO:
               if ClassAllowed(TGrayscaleAlphaImage) then
               begin
-                ImageAddAlphaTo1st(Result);
-                ImageGrayscaleAlphaTo1st(Result);
+                ImageAddAlphaVar(Result);
+                ImageGrayscaleAlphaVar(Result);
               end else }
               if ClassAllowed(TRGBFloatImage) then
               begin
-                ImageRGBToFloatTo1st(result);
+                ImageRGBToFloatVar(result);
               end else
                 raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot load this image file format to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
             end;
@@ -3911,16 +3675,16 @@ begin
               Result := LoadRGBE(Stream, [TRGBImage]);
               if ClassAllowed(TRGBAlphaImage) then
               begin
-                ImageAddAlphaTo1st(result);
+                ImageAddAlphaVar(result);
               end else
               if ClassAllowed(TGrayscaleImage) then
               begin
-                ImageGrayscaleTo1st(Result);
+                ImageGrayscaleVar(Result);
               end else
               if ClassAllowed(TGrayscaleAlphaImage) then
               begin
-                ImageGrayscaleTo1st(Result);
-                ImageAddAlphaTo1st(Result);
+                ImageGrayscaleVar(Result);
+                ImageAddAlphaVar(Result);
               end else
                 raise EUnableToLoadImage.CreateFmt('LoadEncodedImage: RGBE format cannot be loaded to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
             end;
@@ -4134,7 +3898,7 @@ end;
 
 { unit initialization / finalization ----------------------------------------- }
 
-procedure AlphaMaxTo1st(var A: TAlphaChannel; const B: TAlphaChannel);
+procedure AlphaMaxVar(var A: TAlphaChannel; const B: TAlphaChannel);
 begin
   if B > A then A := B;
 end;

@@ -420,6 +420,7 @@ begin
     StatusText.Padding := 5;
     StatusText.Left := 5;
     StatusText.Bottom := 5;
+    StatusText.Frame := true;
     Window.Controls.InsertFront(StatusText);
 
     { init menu }
@@ -427,7 +428,7 @@ begin
     Window.MainMenu := CreateMainMenu;
 
     SceneManager := TMySceneManager.Create(Application);
-    Window.Controls.Add(SceneManager);
+    Window.Controls.InsertFront(SceneManager);
 
     { init PreciseCurve }
     SetPreciseCurve(

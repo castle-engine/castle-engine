@@ -220,7 +220,7 @@ var
 begin
   AddedSomewhere := false;
 
-  Triangle := Addr(ParentTree.Triangles.L[ItemIndex].Local.Triangle);
+  Triangle := Addr(ParentTree.Triangles.List^[ItemIndex].Local.Triangle);
 
   { First prototype of this just run SecondTestAndAdd 8 times, without
     initial SubnodesWithBox checking. It turns out that it's faster
@@ -279,7 +279,7 @@ end;
 
 function TTriangleOctreeNode.GetItems(ItemIndex: integer): PTriangle;
 begin
- result := Addr(ParentTree.Triangles.L[ItemsIndices.L[ItemIndex]]);
+ result := ParentTree.Triangles.Ptr(ItemsIndices.L[ItemIndex]);
 end;
 
 { TTriangleOctreeNode Collisions ------------------------------------------------------ }
@@ -522,7 +522,7 @@ var
   I: Integer;
 begin
   for I := 0 to Triangles.Count - 1 do
-    EnumerateTriangleFunc(Addr(Triangles.L[I]));
+    EnumerateTriangleFunc(Triangles.Ptr(I));
 end;
 
 function TTriangleOctree.TrianglesCount: Cardinal;

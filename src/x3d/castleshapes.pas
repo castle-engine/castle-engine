@@ -68,8 +68,8 @@ type
 
   TShapeTraverseFunc = procedure (Shape: TShape) is nested;
 
-  TEnumerateShapeTexturesFunction = procedure (Shape: TShape;
-    Texture: TAbstractTextureNode) of object;
+  TEnumerateShapeTexturesFunction = function (Shape: TShape;
+    Texture: TAbstractTextureNode): Pointer of object;
 
   TTestShapeVisibility = function (Shape: TShape): boolean of object;
 
@@ -150,8 +150,11 @@ type
 
       This looks into the Appearance.texture field (and if it's MultiTexture,
       looks into it's children). Also it looks into shaders textures.
-      Also, for VRML 1.0, looks into LastNodes.Texture2. }
-    procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); virtual; abstract;
+      Also, for VRML 1.0, looks into LastNodes.Texture2.
+
+      If Enumerate callbacks returns non-nil for some texture, returns it immediately,
+      and stops further processing. }
+    function EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): Pointer; virtual; abstract;
 
     function DebugInfo(const Indent: string = ''): string; virtual; abstract;
   end;
@@ -532,7 +535,7 @@ type
       const CreaseAngle: Single): TVector3SingleList;
     { @groupEnd }
 
-    procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); override;
+    function EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
 
     { Is the texture node Node possibly used by this shape.
       This is equivalent to checking does EnumerateShapeTextures return this shape. }
@@ -618,7 +621,7 @@ type
 
     property Children: TShapeTreeList read FChildren;
 
-    procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); override;
+    function EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
 
     {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
 
@@ -766,7 +769,7 @@ type
     function ShapesCount(const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false): Cardinal; override;
-    procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); override;
+    function EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
     function DebugInfo(const Indent: string = ''): string; override;
   end;
 
@@ -789,7 +792,7 @@ type
     function ShapesCount(const OnlyActive: boolean;
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false): Cardinal; override;
-    procedure EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction); override;
+    function EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
     function DebugInfo(const Indent: string = ''): string; override;
   end;
 
@@ -1719,35 +1722,44 @@ begin
   Result := FNormals;
 end;
 
-procedure TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction);
+function TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): Pointer;
 
-  procedure HandleSingleTextureNode(Tex: TX3DNode);
+  function HandleSingleTextureNode(Tex: TX3DNode): Pointer;
   begin
     if (Tex <> nil) and
        (Tex is TAbstractTextureNode) then
-      Enumerate(Self, TAbstractTextureNode(Tex));
+      Result := Enumerate(Self, TAbstractTextureNode(Tex)) else
+      Result := nil;
   end;
 
-  procedure HandleTextureNode(Tex: TX3DNode);
+  function HandleTextureNode(Tex: TX3DNode): Pointer;
   var
     I: Integer;
   begin
+    Result := nil;
+
     if (Tex <> nil) and
        (Tex is TMultiTextureNode) then
     begin
-      Enumerate(Self, TMultiTextureNode(Tex));
+      Result := Enumerate(Self, TMultiTextureNode(Tex));
+      if Result <> nil then Exit;
+
       for I := 0 to TMultiTextureNode(Tex).FdTexture.Items.Count - 1 do
-        HandleSingleTextureNode(TMultiTextureNode(Tex).FdTexture.Items.Items[I]);
+      begin
+        Result := HandleSingleTextureNode(TMultiTextureNode(Tex).FdTexture.Items.Items[I]);
+        if Result <> nil then Exit;
+      end;
     end else
-      HandleSingleTextureNode(Tex);
+      Result := HandleSingleTextureNode(Tex);
   end;
 
   { Scan IDecls for SFNode and MFNode fields, handling texture nodes inside. }
-  procedure HandleShaderFields(IDecls: TX3DInterfaceDeclarationList);
+  function HandleShaderFields(IDecls: TX3DInterfaceDeclarationList): Pointer;
   var
     I, J: Integer;
     UniformField: TX3DField;
   begin
+    Result := nil;
     for I := 0 to IDecls.Count - 1 do
     begin
       UniformField := IDecls.Items[I].Field;
@@ -1756,12 +1768,16 @@ procedure TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction);
       begin
         if UniformField is TSFNode then
         begin
-          HandleTextureNode(TSFNode(UniformField).Value);
+          Result := HandleTextureNode(TSFNode(UniformField).Value);
+          if Result <> nil then Exit;
         end else
         if UniformField is TMFNode then
         begin
           for J := 0 to TMFNode(UniformField).Count - 1 do
-            HandleTextureNode(TMFNode(UniformField).Items[J]);
+          begin
+            Result := HandleTextureNode(TMFNode(UniformField).Items[J]);
+            if Result <> nil then Exit;
+          end;
         end;
       end;
     end;
@@ -1772,42 +1788,50 @@ var
   I: Integer;
   App: TAppearanceNode;
 begin
-  HandleTextureNode(State.LastNodes.Texture2);
+  Result := HandleTextureNode(State.LastNodes.Texture2);
+  if Result <> nil then Exit;
 
   if (State.ShapeNode <> nil) and
      (State.ShapeNode.Appearance <> nil) then
   begin
     App := State.ShapeNode.Appearance;
-    HandleTextureNode(App.FdTexture.Value);
+    Result := HandleTextureNode(App.FdTexture.Value);
+    if Result <> nil then Exit;
 
     for I := 0 to App.FdShaders.Count - 1 do
     begin
       ComposedShader := App.FdShaders.GLSLShader(I);
       if ComposedShader <> nil then
-        HandleShaderFields(ComposedShader.InterfaceDeclarations);
+      begin
+        Result := HandleShaderFields(ComposedShader.InterfaceDeclarations);
+        if Result <> nil then Exit;
+      end;
     end;
 
     for I := 0 to App.FdEffects.Count - 1 do
       if App.FdEffects[I] is TEffectNode then
-        HandleShaderFields(TEffectNode(App.FdEffects[I]).InterfaceDeclarations);
+      begin
+        Result := HandleShaderFields(TEffectNode(App.FdEffects[I]).InterfaceDeclarations);
+        if Result <> nil then Exit;
+      end;
   end;
 
-  HandleTextureNode(OriginalGeometry.FontTextureNode);
+  Result := HandleTextureNode(OriginalGeometry.FontTextureNode);
+  if Result <> nil then Exit;
 end;
 
 type
   TUsesTextureHelper = class
     Node: TAbstractTextureNode;
-    procedure HandleTexture(Shape: TShape; Texture: TAbstractTextureNode);
+    function HandleTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
   end;
 
-  BreakUsesTexture = class(TCodeBreaker);
-
-procedure TUsesTextureHelper.HandleTexture(Shape: TShape;
-  Texture: TAbstractTextureNode);
+function TUsesTextureHelper.HandleTexture(Shape: TShape;
+  Texture: TAbstractTextureNode): Pointer;
 begin
   if Texture = Node then
-    raise BreakUsesTexture.Create;
+    Result := Texture { anything non-nil } else
+    Result := nil;
 end;
 
 function TShape.UsesTexture(Node: TAbstractTextureNode): boolean;
@@ -1817,12 +1841,7 @@ begin
   Helper := TUsesTextureHelper.Create;
   try
     Helper.Node := Node;
-    try
-      EnumerateTextures(@Helper.HandleTexture);
-      Result := false;
-    except
-      on BreakUsesTexture do Result := true;
-    end;
+    Result := EnumerateTextures(@Helper.HandleTexture) <> nil;
   finally Helper.Free end;
 end;
 
@@ -2162,12 +2181,16 @@ begin
   end;
 end;
 
-procedure TShapeTreeGroup.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction);
+function TShapeTreeGroup.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): Pointer;
 var
   I: Integer;
 begin
+  Result := nil;
   for I := 0 to FChildren.Count - 1 do
-    FChildren.Items[I].EnumerateTextures(Enumerate);
+  begin
+    Result := FChildren.Items[I].EnumerateTextures(Enumerate);
+    if Result <> nil then Exit;
+  end;
 end;
 
 {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
@@ -2295,7 +2318,7 @@ begin
         Following X3D spec "Specifying too few levels will result in
         the last level being used repeatedly for the lowest levels of detail",
         so just clamp to last children. }
-      MinTo1st(Result, Children.Count - 1);
+      MinVar(Result, Children.Count - 1);
     except
       on E: ETransformedResultInvalid do
       begin
@@ -2367,9 +2390,10 @@ begin
   Result := 0;
 end;
 
-procedure TProximitySensorInstance.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction);
+function TProximitySensorInstance.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): Pointer;
 begin
   { Nothing to do: no geometry shapes, no children here }
+  Result := nil;
 end;
 
 function TProximitySensorInstance.DebugInfo(const Indent: string = ''): string;
@@ -2392,9 +2416,10 @@ begin
   Result := 0;
 end;
 
-procedure TVisibilitySensorInstance.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction);
+function TVisibilitySensorInstance.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): Pointer;
 begin
   { Nothing to do: no geometry shapes, no children here }
+  Result := nil;
 end;
 
 function TVisibilitySensorInstance.DebugInfo(const Indent: string = ''): string;

@@ -159,6 +159,10 @@ procedure TTextureMemoryProfiler.Deallocate(const TextureId: TGLTextureId);
 var
   I: Integer;
 begin
+  if not ApplicationProperties.IsGLContextOpen then
+    OnWarning(wtMajor, 'Textures', Format('Releasing texture id %d after OpenGL context is closed. This means that you free some OpenGL resources (like TGLImage) too late, you should move their destruction to an event like TCastleWindow.OnClose or TCastleControl.OnGLContextClose.',
+      [TextureId]));
+
   if FEnabled then
   begin
     I := FindTextureId(TextureId);

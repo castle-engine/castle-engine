@@ -19,14 +19,26 @@
 {$I castlewindow_egl.inc}
 {$I castlewindow_dialogs_by_messages.inc}
 
+{ Load / save Config when activity is sleeping / woken up.
+
+  This does not provide a real persistence, so it's of limited use,
+  and actually would cause problems if you use real persistence
+  (like http://developer.android.com/guide/topics/data/data-storage.html)
+  since you would not know which to trust --- the persistent file,
+  or stuff provided by application load state?
+  So for now, it's not used. }
+{ $define CASTLE_PERSISTENT_ANDROID_STATE}
+
 {$ifdef read_interface_uses}
-CastleAndroidNativeWindow, CastleAndroidInput,
+CastleAndroidInternalNativeWindow, CastleAndroidInternalInput,
 CastleAndroidNativeAppGlue, CastleGenericLists,
 {$endif}
 
 {$ifdef read_implementation_uses}
-CastleAndroidCWString, CastleAndroidLooper,
-CastleAndroidLog, CastleAndroidAssetStream, CastleConfig,
+JNI,
+CastleAndroidInternalCWString, CastleAndroidInternalLooper,
+CastleAndroidInternalLog, CastleAndroidInternalAssetStream,
+{$ifdef CASTLE_PERSISTENT_ANDROID_STATE} CastleConfig, {$endif}
 CastleOpenAL, CastleVorbisFile, CastleFreeTypeH, CastleZLib,
 {$endif}
 
@@ -127,7 +139,9 @@ end;
 procedure TCastleApplication.HandleCommand(App: PAndroid_app; Command: Integer);
 var
   QEvent: TQueuedEvent;
+  {$ifdef CASTLE_PERSISTENT_ANDROID_STATE}
   ConfigState: TStringStream;
+  {$endif}
 begin
   case Command of
     APP_CMD_INIT_WINDOW:
@@ -147,6 +161,7 @@ begin
         QEvents.Clear;
         CloseContext;
       end;
+    {$ifdef CASTLE_PERSISTENT_ANDROID_STATE}
     APP_CMD_SAVE_STATE:
       begin
         { We cannot delay processing this, onSaveInstanceState waits for us
@@ -164,6 +179,7 @@ begin
           WritelnLogMultiline('Config', 'Saved state:' + NL + ConfigState.DataString);
         finally FreeAndNil(ConfigState) end;
       end;
+    {$endif CASTLE_PERSISTENT_ANDROID_STATE}
   end;
 end;
 
@@ -286,11 +302,70 @@ begin
 end;
 
 procedure AndroidMainImplementation(App: PAndroid_App);
+
+  function GetInternalDataPath: string;
+  var
+    Env: PJNIEnv;
+
+    activityClass: jclass;
+    getFilesDir: jmethodID;
+    fileObject: jobject;
+
+    fileClass: jclass;
+    getAbsolutePath: jmethodID;
+    pathObject: jobject;
+
+    ResultStr: PChar;
+    Dummy: JBoolean;
+  begin
+    if App^.Activity^.InternalDataPath <> nil then
+      Result := App^.Activity^.InternalDataPath else // this is the usual route
+    { On Android 2.3.x, above is unfortunately broken.
+      So get internal data path manually, see
+      http://stackoverflow.com/questions/10683119/android-app-activity-internaldatapath-still-null-in-2-3-8-ndk-r8
+      https://groups.google.com/forum/#!topic/android-ndk/4lD8OS-w4UU }
+    begin
+      Env := nil; // make sure uninitialized
+
+      { you need to get Env this way, not from App^.Activity^.Env,
+        otherwise fileClass := Env^^.GetObjectClass will crash with segfault. }
+      App^.Activity^.VM^^.AttachCurrentThread(App^.Activity^.VM, @Env, nil);
+
+      activityClass := Env^^.GetObjectClass(Env, app^.activity^.clazz);
+      getFilesDir := Env^^.GetMethodID(Env, activityClass, 'getFilesDir', '()Ljava/io/File;');
+      fileObject := Env^^.CallObjectMethod(Env, app^.activity^.clazz, getFilesDir);
+
+      fileClass := Env^^.GetObjectClass(Env, fileObject);
+      getAbsolutePath := Env^^.GetMethodID(Env, fileClass, 'getAbsolutePath', '()Ljava/lang/String;');
+      pathObject := Env^^.CallObjectMethod(Env, fileObject, getAbsolutePath);
+
+      Dummy := 0;
+      ResultStr := Env^^.GetStringUTFChars(Env, jstring(pathObject),
+        {$ifdef VER2} Dummy {$else} @Dummy {$endif});
+
+      Result := AnsiString(ResultStr); // will copy characters
+
+      Env^^.DeleteLocalRef(Env, pathObject);
+      Env^^.DeleteLocalRef(Env, fileClass);
+      Env^^.DeleteLocalRef(Env, fileObject);
+      Env^^.DeleteLocalRef(Env, activityClass);
+
+      Env^^.ReleaseStringUTFChars(Env, jstring(pathObject), ResultStr);
+
+      App^.Activity^.VM^^.DetachCurrentThread(App^.Activity^.VM);
+    end;
+  end;
+
+{$ifdef CASTLE_PERSISTENT_ANDROID_STATE}
 var
   ConfigState: TStringStream;
+{$endif CASTLE_PERSISTENT_ANDROID_STATE}
 begin
   Application.AndroidApp := App;
 
+  ApplicationConfigOverride := FilenameToURISafe(InclPathDelim(GetInternalDataPath));
+
+  {$ifdef CASTLE_PERSISTENT_ANDROID_STATE}
   { Use SavedState as XML contents that should be loaded to global Config.
     Note that we directly use AndroidLog below, not WritelnLog or OnWarning,
     because user code had no chance to call InitializeLog yet. }
@@ -313,6 +388,7 @@ begin
     finally FreeAndNil(ConfigState) end;
   end else
     AndroidLog(alInfo, 'Config: no saved state');
+  {$endif CASTLE_PERSISTENT_ANDROID_STATE}
 
   Application.Run;
 end;
@@ -455,7 +531,7 @@ function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boole
   { Call Update on Application and all open Windows, call OnTimer on Application }
   procedure WindowsUpdateAndTimer;
   begin
-    DoSelfUpdate;
+    DoApplicationUpdate;
     FOpenWindows.DoUpdate;
     MaybeDoTimer(LastDoTimerTime);
   end;
@@ -525,7 +601,11 @@ begin
     if AndroidApp^.DestroyRequested = 1 then
     begin
       CloseContext;
-      Exit(false);
+      Terminate; // tell ancestor TCustomApplication to end our loop
+      { The result of ProcessMessage must always be "not Terminated"
+        to work with TCustomApplication correctly.
+        In this case we know it's "false", since we called "Terminate" above. }
+      Exit(not Terminated);
     end;
 
   // loop condition avoids being clogged with motion events
@@ -555,7 +635,9 @@ begin
     we should rather let WaitForMessage mechanism work (when all windows are
     closed, we should usually have WaitForMessage = true). }
 
-  Result := true;
+  { the result of ProcessMessage must always be "not Terminated"
+    to work with TCustomApplication correctly. }
+  Result := not Terminated;
 end;
 
 procedure TCastleApplication.Run;
@@ -597,7 +679,12 @@ begin
   ZLibInitialization;
   {$endif}
 
-  while ProcessMessage(true, true) do ;
+  { this is called by Android activity onCreate, so Java activity
+    was recreated }
+  InitializedJavaActivity := false;
+
+  inherited Initialize; // set Terminated := false
+  inherited Run; // calls DoRun, surrounded by HandleException, in a loop
 
   FreeAndNil(QEvents);
 end;

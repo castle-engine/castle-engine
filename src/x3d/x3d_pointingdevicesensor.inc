@@ -453,7 +453,7 @@ begin
     { add offset, and clamp by min/maxAngle }
     RotationAngle += FdOffset.Value;
     if FdMinAngle.Value <= FdMaxAngle.Value then
-      Clamp(RotationAngle, FdMinAngle.Value, FdMaxAngle.Value);
+      ClampVar(RotationAngle, FdMinAngle.Value, FdMaxAngle.Value);
 
     EventRotation_changed.Send(Vector4Single(0, 1, 0, RotationAngle), Time);
     WasRotation := true;
@@ -615,9 +615,9 @@ begin
     Translation += FdOffset.Value;
 
     if FdMinPosition.Value[0] <= FdMaxPosition.Value[0] then
-      Clamp(Translation[0], FdMinPosition.Value[0], FdMaxPosition.Value[0]);
+      ClampVar(Translation[0], FdMinPosition.Value[0], FdMaxPosition.Value[0]);
     if FdMinPosition.Value[1] <= FdMaxPosition.Value[1] then
-      Clamp(Translation[1], FdMinPosition.Value[1], FdMaxPosition.Value[1]);
+      ClampVar(Translation[1], FdMinPosition.Value[1], FdMaxPosition.Value[1]);
 
     EventTranslation_changed.Send(Translation, Time);
     WasTranslation := true;

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Loading and saving user preferences (Config). }
+{ Loading and saving user preferences (UserConfig). }
 unit CastleConfig;
 
 interface
@@ -23,21 +23,29 @@ uses SysUtils, CastleXMLConfig;
 type
   TCastleConfig = CastleXMLConfig.TCastleConfig;
 
-var
-  { An instance of TCastleConfig to manage user preferences.
-    All units that want to load or save some configuration should
-    add their callbacks to the
-    @link(TCastleConfig.OnLoad Config.OnLoad),
-    @link(TCastleConfig.OnSave Config.OnSave) list.
-    This way final application may (but doesn't have to) preserve
-    the user configuration of all engine components,
-    by calling Config.Load, Config.Save. }
-  Config: TCastleConfig;
+{ User preferences.
+  See http://castle-engine.sourceforge.net/tutorial_user_prefs.php . }
+function UserConfig: TCastleConfig;
+
+function Config: TCastleConfig; deprecated 'use UserConfig';
 
 implementation
 
+var
+  FUserConfig: TCastleConfig;
+
+function UserConfig: TCastleConfig;
+begin
+  Result := FUserConfig;
+end;
+
+function Config: TCastleConfig;
+begin
+  Result := UserConfig;
+end;
+
 initialization
-  Config := TCastleConfig.Create(nil);
+  FUserConfig := TCastleConfig.Create(nil);
 finalization
-  FreeAndNil(Config);
+  FreeAndNil(FUserConfig);
 end.

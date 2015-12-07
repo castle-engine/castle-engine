@@ -1,3 +1,4 @@
+{ -*- compile-command: "./dircleaner_compile.sh" -*- }
 {
   Copyright 2001-2014 Michalis Kamburelis.
 
@@ -75,7 +76,7 @@ var
   FilesSize: Cardinal = 0;
 
 procedure CleanFiles_FileProc(const FileInfo: TFileInfo;
-  Data: Pointer);
+  Data: Pointer; var StopSearch: boolean);
 begin
   Inc(FilesCount);
   FilesSize += FileInfo.Size;
@@ -108,7 +109,7 @@ end;
 
 var DirsCount: Cardinal = 0;
 
-procedure CleanDirs_FileProc(const FileInfo: TFileInfo; Data: Pointer);
+procedure CleanDirs_FileProc(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
 begin
   if not FileInfo.Directory then Exit;
 
@@ -164,9 +165,13 @@ begin
   DefaultFilesToClean.Add('*.cmo');  { -'- }
   DefaultFilesToClean.Add('*.cmx');  { -'- }
   DefaultFilesToClean.Add('.DS_Store'); { Mac OS X (Finder?) }
-  DefaultFilesToClean.Add('automatic-windows-resources.rc');  { castle-engine tool }
-  DefaultFilesToClean.Add('automatic-windows.manifest'); { -'- }
-  // Note: do not remove automatic-windows-resources.res, 
+
+  // commented for now; castle-engine tool should clear them itself.
+  // And clearing them here is not good for castle-engine tool sources...:)
+  // DefaultFilesToClean.Add('automatic-windows-resources.rc');  { castle-engine tool }
+  // DefaultFilesToClean.Add('automatic-windows.manifest'); { -'- }
+
+  // Note: do not remove automatic-windows-resources.res,
   // it would prevent compiling without castle-engine tool
 end;
 
@@ -229,7 +234,7 @@ const
            Writeln(nl+
              nl+
              SCastleEngineProgramHelpSuffix('dircleaner', '1.0.0', true));
-           ProgramBreak;
+           Halt;
          end;
       1: FilesToClean.Add(Argument);
       2: DirsToClean.Add(Argument);

@@ -897,9 +897,9 @@ begin
   { calculate TextureSlotsUsed }
   InitialTextureSlotsUsed := TextureSlotsUsed;
   TextureSlotsUsed += TextureNode.FdTexture.Count;
-  MinTo1st(TextureSlotsUsed, TextureUnitsCount);
+  MinVar(TextureSlotsUsed, TextureUnitsCount);
   if not GLFeatures.UseMultiTexturing then
-    MinTo1st(TextureSlotsUsed, 1);
+    MinVar(TextureSlotsUsed, 1);
 
   for I := 0 to TextureSlotsUsed - InitialTextureSlotsUsed - 1 do
   begin

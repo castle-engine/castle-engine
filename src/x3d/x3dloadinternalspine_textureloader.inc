@@ -22,6 +22,8 @@ type
     TSimpleTextureLoader). }
   TTextureLoader = class abstract
   public
+    { Create an X3D node for given AttachmentName.
+      May return @nil, and then TexCoord and TexRect are left undefined. }
     function UseNode(const AttachmentName: string;
       out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TImageTextureNode; virtual; abstract;
   end;

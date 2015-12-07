@@ -2,7 +2,7 @@
 *.rsj
 *.rst
 examples/2d/controls_demo
-examples/2d_spine_game/castle_spine
+examples/2d_dragon_spine_android_game/castle_spine
 examples/3d_rendering_processing/animate_3d_model_by_code
 examples/3d_rendering_processing/animate_3d_model_by_code_2
 examples/3d_rendering_processing/build_3d_object_by_code
@@ -21,9 +21,11 @@ examples/3d_rendering_processing/triangulate_demo.res
 examples/3d_rendering_processing/view_3d_model_advanced
 examples/3d_rendering_processing/view_3d_model_advanced.res
 examples/3d_rendering_processing/view_3d_model_basic
+examples/3d_rendering_processing/combine_multiple_x3d_into_one
 examples/3d_sound_game/data/levels/base/devel/process_base_b
 examples/3d_sound_game/data/levels/base/devel/process_base_b.res
 examples/3d_sound_game/lets_take_a_walk
+examples/android/android_demo/androiddemo
 examples/android/android_demo/android/assets/
 examples/android/android_demo/android/bin/
 examples/android/android_demo/android/libs/
@@ -58,7 +60,8 @@ examples/images_videos/gaussian_write
 examples/images_videos/image_compare
 examples/images_videos/image_convert
 examples/images_videos/image_identify
-examples/images_videos/image_to_pas
+tools/image2pascal/image2pascal
+tools/image2pascal/image2pascal.exe
 examples/images_videos/simple_video_editor
 examples/isometric_game/sandbox
 examples/lazarus/load_model_and_camera_manually/lib/
@@ -100,3 +103,5 @@ src/x3d/teapot/teapot_3d_to_pascal
 src/x3d/teapot/teapot_3d_to_pascal.res
 tests/test_castle_game_engine
 tools/castle-engine
+tools/build-tool/castle-engine
+tools/texturefont2pascal/texturefont2pascal

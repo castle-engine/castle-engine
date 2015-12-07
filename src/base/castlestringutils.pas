@@ -41,7 +41,8 @@ unit CastleStringUtils;
 
 interface
 
-uses SysUtils, CastleUtils, Classes;
+uses SysUtils, Classes, FGL,
+  CastleUtils;
 
 type
   TDynamicStringArray = array of string;
@@ -76,6 +77,23 @@ type
     function ToArray: TDynamicStringArray;
   end;
 
+  { String-to-string map. Note that in simple cases you can also
+    use standard TStringList functionality (see it's properties Names, Values),
+    and this is better if your key/values may be multiline. }
+  TStringStringMap = class(specialize TFPGMap<string, string>)
+  public
+    { Set given key value, trying to preserve previous key value too.
+      This is useful for safely setting X3D META values.
+
+      Compared to normal PutKeyData, this behaves smarter if given Name
+      is already set. If it's set with the same Content, we do nothing.
+      If the Content is different, we move previous content to a
+      @code(Name + '-previous') key.
+      This way previous content value is preserved once (but not more,
+      to not grow the X3D file indefinitely). }
+    procedure PutPreserve(const Name, Content: string);
+  end;
+
 type
   { }
   TSearchOptions = set of (soMatchCase, soWholeWord, soBackwards);
@@ -93,11 +111,11 @@ function RandomString: string;
 { Replace all occurrences of FromPattern string to ToPattern string,
   within another string S.
 
-  @code(StringReplaceAllTo1st(s, from, to)) is actually equivalent to
+  @code(StringReplaceAllVar(s, from, to)) is actually equivalent to
   simply @code(s := StringReplace(s, from, to, [rfReplaceAll, rfIgnoreCase])).
-  So StringReplaceAllTo1st is just a wrapper for very common use case of
+  So StringReplaceAllVar is just a wrapper for very common use case of
   StringReplace. }
-procedure StringReplaceAllTo1st(var S: string;
+procedure StringReplaceAllVar(var S: string;
   const FromPattern, ToPattern: string;
   IgnoreCase: boolean = true); overload;
 
@@ -298,6 +316,9 @@ function NextTokenOnce(const s: string; SeekPos: integer = 1;
   with 2 items: 'foo' and 'bar'. }
 function CreateTokens(const s: string;
   const TokenDelims: TSetOfChars = WhiteSpaces): TCastleStringList;
+
+function GlueStrings(const Strings: array of string; const Delimiter: char): string;
+function GlueStrings(const Strings: TStrings; const Delimiter: char): string;
 
 { Find substring SubText within Text. Returns 0 if not found.
   Similar to a standard Pos function, with some improvements.
@@ -511,6 +532,7 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
   Options cannot contain soBackwards flag. }
 function SReplacePatterns(const s: string; const patterns, values: array of string; const Options: TSearchOptions): string;
 function SReplacePatterns(const s: string; const patterns, values: TStrings; const Options: TSearchOptions): string;
+function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const Options: TSearchOptions): string;
 
 function SCharsCount(const s: string; c: char): Cardinal; overload;
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal; overload;
@@ -927,17 +949,39 @@ begin
     Result[I] := Strings[I];
 end;
 
+{ TStringStringMap ----------------------------------------------------------- }
+
+procedure TStringStringMap.PutPreserve(const Name, Content: string);
+var
+  PreviousContent: string;
+  I: Integer;
+begin
+  I := IndexOf(Name);
+  if I <> -1 then
+  begin
+    PreviousContent := Data[I];
+    if PreviousContent <> Content then
+    begin
+      { move current content to -previous name }
+      KeyData[Name + '-previous'] := PreviousContent;
+      { set new content }
+      Data[I] := Content;
+    end;
+  end else
+    KeyData[Name] := Content;
+end;
+
 { routines ------------------------------------------------------------------- }
 
 function RandomString: string;
 var i: integer;
 begin
- result := '';
- for i := 1 to random(10) do result := result+char(byte('A')+Random(26));
- for i := 1 to 3 do result := result+char(byte('0')+Random(10));
+  result := '';
+  for i := 1 to random(10) do result := result+char(byte('A')+Random(26));
+  for i := 1 to 3 do result := result+char(byte('0')+Random(10));
 end;
 
-procedure StringReplaceAllTo1st(var S: string;
+procedure StringReplaceAllVar(var S: string;
   const FromPattern, ToPattern: string;
   IgnoreCase: boolean);
 (*
@@ -956,105 +1000,117 @@ begin
  end;
 *)
 begin
- if IgnoreCase then
-  s := StringReplace(s, FromPattern, ToPattern, [rfReplaceAll, rfIgnoreCase]) else
-  s := StringReplace(s, FromPattern, ToPattern, [rfReplaceAll]);
+  if IgnoreCase then
+    s := StringReplace(s, FromPattern, ToPattern, [rfReplaceAll, rfIgnoreCase]) else
+    s := StringReplace(s, FromPattern, ToPattern, [rfReplaceAll]);
 end;
 
 function BreakLine(const s: string; MaxCol: integer; onbreakChars: TSetOfChars): string;
-var done: integer;
-    nowcol, i, brk: integer;
-label brokenSuccess;
-const breakingstr = nl;
+var
+  done: integer;
+  nowcol, i, brk: integer;
+  BrokenSuccess: boolean;
+const
+  breakingstr = nl;
 begin
- Done := 0;
- Result := '';
+  Done := 0;
+  Result := '';
 
- i := 1;
- while i <= Length(s) do
- begin
-  if s[i] in [#10, #13] then
+  i := 1;
+  while i <= Length(s) do
   begin
-   { niech i obejmie cale zakonczenie linii ktore moze byc 2-znakowe #13#10 lub #10#13 }
-   case s[i] of
-    #13 : if SCharIs(s, i+1, #10) then Inc(i);
-    #10 : if SCharIs(s, i+1, #13) then Inc(i);
-   end;
-   Result := Result + CopyPos(s, Done+1, i);
-   Done := i;
-  end else
-  begin
-   NowCol := i - Done;
-   if NowCol > MaxCol then
-   begin
-    { we got line s[done+1..i] that we have to break somewhere. }
-    for brk := i downto Done + 1 do
-     if s[brk] in OnBreakChars then
-     begin
-      Result := Result + CopyPos(s, Done+1, Brk-1) + BreakingStr;
-      Done := brk; { we left the rest : s[brk+1..i] to be done }
-      goto brokenSuccess;
-     end;
-    { ups ! it can't be broken - no onbreakChars found ! so we break after
-      done+maxcol position. }
-    Result := Result + Copy(s, Done+1, MaxCol) + BreakingStr;
-    Done := Done + MaxCol;
-    brokenSuccess:;
-   end;
+    if s[i] in [#10, #13] then
+    begin
+      { niech i obejmie cale zakonczenie linii ktore moze byc 2-znakowe #13#10 lub #10#13 }
+      case s[i] of
+        #13 : if SCharIs(s, i+1, #10) then Inc(i);
+        #10 : if SCharIs(s, i+1, #13) then Inc(i);
+      end;
+      Result := Result + CopyPos(s, Done+1, i);
+      Done := i;
+    end else
+    begin
+      NowCol := i - Done;
+      if NowCol > MaxCol then
+      begin
+        { we got line s[done+1..i] that we have to break somewhere. }
+        BrokenSuccess := false;
+        for brk := i downto Done + 1 do
+          if s[brk] in OnBreakChars then
+          begin
+            Result := Result + CopyPos(s, Done+1, Brk-1) + BreakingStr;
+            Done := brk; { we left the rest : s[brk+1..i] to be done }
+            Break;
+            BrokenSuccess := true;;
+          end;
+        if not BrokenSuccess then
+        begin
+          { ups ! it can't be broken - no onbreakChars found ! so we break after
+            done+maxcol position. }
+          Result := Result + Copy(s, Done+1, MaxCol) + BreakingStr;
+          Done := Done + MaxCol;
+        end;
+      end;
+    end;
+
+    Inc(i);
   end;
 
-  Inc(i);
- end;
-
- if Done < Length(S) then
-  Result := Result + SEnding(S, Done+1);
+  if Done < Length(S) then
+    Result := Result + SEnding(S, Done+1);
 end;
 
 function SDeleteChars(const s: string; const excludedChars: TSetOfChars): string;
-var i, j: integer;
+var
+  i, j: integer;
 begin
- SetLength(result, length(s));
- j := 1;
- for i := 1 to length(s) do
-  if not (s[i] in excludedChars) then
-   begin result[j] := s[i]; Inc(j); end;
- SetLength(result, j-1);
+  SetLength(result, length(s));
+  j := 1;
+  for i := 1 to length(s) do
+    if not (s[i] in excludedChars) then
+      begin result[j] := s[i]; Inc(j); end;
+  SetLength(result, j-1);
 end;
 
 function SReplaceChars(const s, FromChars, ToChars: string): string;
-var i, p: integer;
+var
+  i, p: integer;
 begin
- result := s;
- for i := 1 to Length(result) do
- begin
-  p := CharPos(result[i], FromChars);
-  if p > 0 then result[i] := ToChars[p];
- end;
+  Assert(Length(FromChars) = Length(ToChars));
+  result := s;
+  for i := 1 to Length(result) do
+  begin
+    p := CharPos(result[i], FromChars);
+    if p > 0 then result[i] := ToChars[p];
+  end;
 end;
 
 function SReplaceChars(const s: string; FromChars: TSetOfChars; ToChar: char): string;
-var i: integer;
+var
+  i: integer;
 begin
- result := s;
- for i := 1 to Length(result) do
-  if result[i] in FromChars then result[i] := ToChar;
+  result := s;
+  for i := 1 to Length(result) do
+    if result[i] in FromChars then result[i] := ToChar;
 end;
 
 function SReplaceChars(const s: string; FromChar, ToChar: char): string;
-var i: Integer;
+var
+  i: Integer;
 begin
- Result := S;
- for i := 1 to Length(Result) do
-  if Result[i] = FromChar then Result[i] := ToChar;
+  Result := S;
+  for i := 1 to Length(Result) do
+    if Result[i] = FromChar then Result[i] := ToChar;
 end;
 
 function SPad(const s: string; len: integer; c: char): string;
-var lnow: integer;
+var
+  lnow: integer;
 begin
- lnow := length(s);
- if lnow < len then
-  Result := StringOfChar(c, len-lnow) + s else
-  Result := s;
+  lnow := length(s);
+  if lnow < len then
+    Result := StringOfChar(c, len-lnow) + s else
+    Result := s;
 end;
 
 function SZeroPad(const s: string; len: integer): string;
@@ -1062,39 +1118,40 @@ begin result := SPad(s, len, '0') end;
 
 function LoCase(c: char): char;
 begin
- if c in ['A'..'Z'] then
-  result := chr(ord(c)-ord('A')+ord('a')) else
-  result := c;
+  if c in ['A'..'Z'] then
+    result := chr(ord(c)-ord('A')+ord('a')) else
+    result := c;
 end;
 
 function CharPos(c: char; const s: string; Offset: Integer): integer;
-var i: integer;
+var
+  i: integer;
 begin
- for i := Offset to length(s) do
-  if s[i] = c then begin result := i; exit end;
- result := 0;
+  for i := Offset to length(s) do
+    if s[i] = c then begin result := i; exit end;
+  result := 0;
 end;
 
 function CharsPos(const chars: TSetOfChars; const s: string): integer;
 begin
- for result := 1 to Length(s) do
-  if s[result] in chars then exit;
- result := 0;
+  for result := 1 to Length(s) do
+    if s[result] in chars then exit;
+  result := 0;
 end;
 
 function CharsPosEx(const Chars: TSetOfChars; const S: string;
   Offset: Integer): integer;
 begin
- for Result := Offset to Length(S) do
-   if S[Result] in Chars then Exit;
- Result := 0;
+  for Result := Offset to Length(S) do
+    if S[Result] in Chars then Exit;
+  Result := 0;
 end;
 
 function BackCharsPos(const chars: TSetOfChars; const s: string): integer;
 begin
- for result := Length(s) downto 1 do
-  if s[result] in chars then exit;
- result := 0;
+  for result := Length(s) downto 1 do
+    if s[result] in chars then exit;
+  result := 0;
 end;
 
 function BackPos(const SubString, S: string): integer;
@@ -1241,6 +1298,28 @@ begin
    Result.Add(Token);
   until false;
  except Result.Free; raise end;
+end;
+
+function GlueStrings(const Strings: array of string; const Delimiter: char): string;
+var
+  I: Integer;
+begin
+  if High(Strings) = -1 then
+    Exit('');
+  Result := Strings[0];
+  for I := 1 to High(Strings) do
+    Result += Delimiter + Strings[I];
+end;
+
+function GlueStrings(const Strings: TStrings; const Delimiter: char): string;
+var
+  I: Integer;
+begin
+  if Strings.Count = 0 then
+    Exit('');
+  Result := Strings[0];
+  for I := 1 to Strings.Count - 1 do
+    Result += Delimiter + Strings[I];
 end;
 
 function FindPos(const SubText, Text: string; StartPosition, Count: integer; const Options: TSearchOptions; const WordBorders: TSetOfChars): integer;
@@ -1630,6 +1709,29 @@ begin
     PatternsList.AssignArray(Patterns);
     ValuesList := TCastleStringList.Create;
     ValuesList.AssignArray(Values);
+    Result := SReplacePatterns(S, PatternsList, ValuesList, Options);
+  finally
+    FreeAndNil(PatternsList);
+    FreeAndNil(ValuesList);
+  end;
+end;
+
+function SReplacePatterns(const s: string; const Parameters: TStringStringMap;
+  const Options: TSearchOptions): string;
+var
+  PatternsList, ValuesList: TCastleStringList;
+  I: Integer;
+begin
+  PatternsList := nil;
+  ValuesList := nil;
+  try
+    PatternsList := TCastleStringList.Create;
+    ValuesList := TCastleStringList.Create;
+    for I := 0 to Parameters.Count - 1 do
+    begin
+      PatternsList.Add(Parameters.Keys[I]);
+      ValuesList.Add(Parameters.Data[I]);
+    end;
     Result := SReplacePatterns(S, PatternsList, ValuesList, Options);
   finally
     FreeAndNil(PatternsList);

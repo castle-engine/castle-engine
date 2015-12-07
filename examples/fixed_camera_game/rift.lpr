@@ -104,11 +104,11 @@ begin
            '  --debug-log           Print log on StdOut. Be sure to redirect' +nl+
            '                        if running on Windows.'
            );
-         ProgramBreak;
+         Halt;
        end;
     1: begin
          WritelnStr(Version);
-         ProgramBreak;
+         Halt;
        end;
     2: WasParam_NoScreenChange := true;
     3: begin
@@ -138,23 +138,19 @@ begin
     - ApplicationConfig uses this. }
   OnGetApplicationName := @MyGetApplicationName;
 
+  //InitializeLog;
+
   { configure Notifications }
   Notifications.MaxMessages := 4;
   Notifications.Color := Vector4Single(0.8, 0.8, 0.8, 1.0);
 
-  SoundEngine; //< initialize before loading config and SoundEngine.ParseParameters
-  Config.Load;
+  UserConfig.Load;
+  SoundEngine.LoadFromConfig(UserConfig);
 
   { parse parameters }
   SoundEngine.ParseParameters;
   Window.ParseParameters([poDisplay]);
   Parameters.Parse(Options, @OptionProc, nil);
-
-  { This should be called from CastleXMLConfig actually...
-    but at CastleXMLConfig initialization it's too soon to call it
-    (Log is not initialized yet). }
-  if Log then
-    WritelnLog('Config', 'Loading configuration from "%s"', [Config.URL]);
 
   Window.Width := RequestedScreenWidth;
   Window.Height := RequestedScreenHeight;
@@ -211,5 +207,6 @@ begin
   { unload all }
   CreaturesKinds.UnLoad;
 
-  Config.Save;
+  SoundEngine.SaveToConfig(UserConfig);
+  UserConfig.Save;
 end.

@@ -304,8 +304,7 @@
 
   TLODNode_1 = class(TAbstractChildNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -800,8 +799,7 @@
 
   TSwitchNode_1 = class(TAbstractChildNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -1349,14 +1347,15 @@ begin
   result := 'LOD';
 end;
 
-procedure TLODNode_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TLODNode_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   { TODO: we should use here the LOD matching camera distance.
     For now, just like TAbstractLODNode.DirectEnumerateActive, we ignore the issue. }
   if VRML1ChildrenCount = 0 then
     raise EX3DError.Create('LOD node must have at least one child');
 
-  Func(Self, VRML1Children[0]);
+  Result := Func(Self, VRML1Children[0]);
+  if Result <> nil then Exit;
 end;
 
 class function TLODNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -2389,11 +2388,12 @@ end;
 type
   TVRML1SeparatorEnumerator = class
     State: TX3DGraphTraverseState;
-    procedure Enumerate(Node, Child: TX3DNode);
+    function Enumerate(Node, Child: TX3DNode): Pointer;
   end;
 
-procedure TVRML1SeparatorEnumerator.Enumerate(Node, Child: TX3DNode);
+function TVRML1SeparatorEnumerator.Enumerate(Node, Child: TX3DNode): Pointer;
 begin
+  Result := nil;
   if Child is TLocalFogNode then
     State.LocalFog := TLocalFogNode(Child);
 end;
@@ -2407,7 +2407,7 @@ begin
 
   { Use TVRML1SeparatorEnumerator, to propagate LocalFog into children,
     just like VRML >= 2 grouping nodes. Otherwise LocalFog would
-    not never work in VRML 1.0. }
+    never work in VRML 1.0. }
   Enumerator := TVRML1SeparatorEnumerator.Create;
   try
     Enumerator.State := StateStack.Top;
@@ -2451,14 +2451,17 @@ begin
   result := 'Switch';
 end;
 
-procedure TSwitchNode_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TSwitchNode_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
+  Result := nil;
+
   if FdWhichChild.Value = -3 then
   begin
     { Enumerate all.
       Note : value -3 is already deprecated in VRML 1.0;
       but I support it, at least for now. }
-    inherited;
+    Result := inherited;
+    if Result <> nil then Exit;
   end else
   begin
     { Jezeli whichChild jest nieprawidlowe to w rezultacie nie wejdziemy w
@@ -2467,7 +2470,10 @@ begin
       valid child number and is not -3 instructs Switch to not enter
       into any child. This is conforming with the VRML 97 specification) }
     if Between(FdWhichChild.Value, 0, VRML1ChildrenCount - 1) then
-      Func(Self, VRML1Children[FdWhichChild.Value]);
+    begin
+      Result := Func(Self, VRML1Children[FdWhichChild.Value]);
+      if Result <> nil then Exit;
+    end;
   end;
 end;
 

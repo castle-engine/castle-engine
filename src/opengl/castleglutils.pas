@@ -565,6 +565,48 @@ procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); depr
 { @groupEnd }
 {$endif}
 
+type
+  TBlendingSourceFactor = (
+    bsSrcAlpha,
+    bsOneMinusSrcAlpha,
+    bsZero,
+    bsOne,
+
+    bsDstColor,
+    bsSrcColor, //< As a source factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
+    bsDstAlpha,
+    bsOneMinusDstColor,
+    bsOneMinusSrcColor, //< As a source factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
+    bsOneMinusDstAlpha,
+
+    bsSrcAlphaSaturate,
+
+    bsConstantColor,
+    bsOneMinusConstantColor,
+    bsConstantAlpha,
+    bsOneMinusConstantAlpha
+  );
+  TBlendingDestinationFactor = (
+    bdSrcAlpha,
+    bdOneMinusSrcAlpha,
+    bdZero,
+    bdOne,
+
+    bdDstColor, //< As a destination factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
+    bdSrcColor,
+    bdDstAlpha,
+    bdOneMinusDstColor, //< As a destination factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
+    bdOneMinusSrcColor,
+    bdOneMinusDstAlpha,
+
+    // not supported by OpenGL for destination factor: bsSrcAlphaSaturate
+    { }
+    bdConstantColor,
+    bdOneMinusConstantColor,
+    bdConstantAlpha,
+    bdOneMinusConstantAlpha
+  );
+
 { Draw a rectangle that modulates colors underneath,
   suddenly changing it to FadeColor and then fading to blackness and
   then fading back to normal, as FadeIntensity goes down from 1.0 to 0.0.
@@ -581,7 +623,8 @@ procedure GLFadeRectangle(const Rect: TRectangle;
 { Draw a rectangle with blending.
   @deprecated Deprecated, use DrawRectangle instead. }
 procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
-  const SourceFactor, DestinationFactor: TGLenum;
+  const SourceFactor: TBlendingSourceFactor;
+  const DestinationFactor: TBlendingDestinationFactor;
   const Color: TVector4Single); deprecated;
 procedure GLBlendRectangle(const Rect: TRectangle;
   const Color: TVector4Single); deprecated;
@@ -592,8 +635,8 @@ procedure GLBlendRectangle(const Rect: TRectangle;
   ForceBlending forces the usage of blending. When it is @false,
   we use blending only if Color[3] (alpha) < 1.  }
 procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
-  const BlendingSourceFactor: TGLEnum = GL_SRC_ALPHA;
-  const BlendingDestinationFactor: TGLEnum = GL_ONE_MINUS_SRC_ALPHA;
+  const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
+  const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
   const ForceBlending: boolean = false);
 
 { Multiline string describing attributes of current OpenGL
@@ -719,6 +762,9 @@ procedure SetGlobalAmbient(const Value: TVector3Single);
   For VRML 2.0 / X3D, lighting equations suggest that it should be zero. }
 property GlobalAmbient: TVector3Single
   read GetGlobalAmbient write SetGlobalAmbient;
+
+procedure GLBlendFunction(const SourceFactor: TBlendingSourceFactor;
+  const DestinationFactor: TBlendingDestinationFactor);
 
 {$undef read_interface}
 
@@ -1512,7 +1558,8 @@ end;
 {$endif}
 
 procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
-  const SourceFactor, DestinationFactor: TGLenum;
+  const SourceFactor: TBlendingSourceFactor;
+  const DestinationFactor: TBlendingDestinationFactor;
   const Color: TVector4Single);
 begin
   DrawRectangle(Rectangle(X1, Y1, X2 - X1, Y2 - Y1), Color,
@@ -1522,7 +1569,7 @@ end;
 procedure GLBlendRectangle(const Rect: TRectangle;
   const Color: TVector4Single);
 begin
-  DrawRectangle(Rect, Color, GL_ONE, GL_SRC_ALPHA, true);
+  DrawRectangle(Rect, Color, bsOne, bdSrcAlpha, true);
 end;
 
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
@@ -1546,8 +1593,8 @@ const
     then all components of our glColor are also always <= 1,
     and this means that we will always make the screen darker (or equal,
     but never brighter). }
-  SourceFactor = GL_ZERO;
-  DestinationFactor = GL_SRC_COLOR;
+  SourceFactor = bsZero;
+  DestinationFactor = bdSrcColor;
 var
   Color: TCastleColor;
 begin
@@ -1574,6 +1621,48 @@ end;
 
 { DrawRectangle ---------------------------------------------------------------- }
 
+const
+  BlendingSourceFactorToGL: array [TBlendingSourceFactor] of TGLEnum = (
+    GL_SRC_ALPHA,
+    GL_ONE_MINUS_SRC_ALPHA,
+    GL_ZERO,
+    GL_ONE,
+
+    GL_DST_COLOR,
+    GL_SRC_COLOR,
+    GL_DST_ALPHA,
+    GL_ONE_MINUS_DST_COLOR,
+    GL_ONE_MINUS_SRC_COLOR,
+    GL_ONE_MINUS_DST_ALPHA,
+
+    GL_SRC_ALPHA_SATURATE,
+
+    GL_CONSTANT_COLOR,
+    GL_ONE_MINUS_CONSTANT_COLOR,
+    GL_CONSTANT_ALPHA,
+    GL_ONE_MINUS_CONSTANT_ALPHA
+  );
+  BlendingDestinationFactorToGL: array [TBlendingDestinationFactor] of TGLEnum = (
+    GL_SRC_ALPHA,
+    GL_ONE_MINUS_SRC_ALPHA,
+    GL_ZERO,
+    GL_ONE,
+
+    GL_DST_COLOR,
+    GL_SRC_COLOR,
+    GL_DST_ALPHA,
+    GL_ONE_MINUS_DST_COLOR,
+    GL_ONE_MINUS_SRC_COLOR,
+    GL_ONE_MINUS_DST_ALPHA,
+
+    // GL_SRC_ALPHA_SATURATE, // not supported as destination factor
+
+    GL_CONSTANT_COLOR,
+    GL_ONE_MINUS_CONSTANT_COLOR,
+    GL_CONSTANT_ALPHA,
+    GL_ONE_MINUS_CONSTANT_ALPHA
+  );
+
 var
   {$ifdef GLImageUseShaders}
   GLRectangleProgram: TGLSLProgram;
@@ -1581,7 +1670,7 @@ var
   RectanglePointVbo: TGLuint;
   RectanglePoint: packed array [0..3] of TVector2SmallInt;
 
-procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
+procedure DrawRectangleGL(const R: TRectangle; const Color: TCastleColor;
   const BlendingSourceFactor, BlendingDestinationFactor: TGLEnum;
   const ForceBlending: boolean);
 var
@@ -1661,6 +1750,18 @@ begin
   if Blending then
     glDisable(GL_BLEND);
 end;
+
+procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
+  const BlendingSourceFactor: TBlendingSourceFactor;
+  const BlendingDestinationFactor: TBlendingDestinationFactor;
+  const ForceBlending: boolean);
+begin
+  DrawRectangleGL(R, Color,
+    BlendingSourceFactorToGL[BlendingSourceFactor],
+    BlendingDestinationFactorToGL[BlendingDestinationFactor], ForceBlending);
+end;
+
+{ GLInformationString -------------------------------------------------------- }
 
 function GLInformationString: string;
 const
@@ -2090,6 +2191,14 @@ begin
   {$endif}
 end;
 
+procedure GLBlendFunction(const SourceFactor: TBlendingSourceFactor;
+  const DestinationFactor: TBlendingDestinationFactor);
+begin
+  glBlendFunc(
+    BlendingSourceFactorToGL[SourceFactor],
+    BlendingDestinationFactorToGL[DestinationFactor]);
+end;
+
 procedure ContextClose;
 begin
   glFreeBuffer(RectanglePointVbo);
@@ -2111,5 +2220,5 @@ initialization
     OnGLContextClose[0].
     Every other unit initializion does OnGLContextClose.Add,
     so our initialization will stay as OnGLContextClose[0]. }
-  OnGLContextClose.Insert(0, @ContextClose);
+  ApplicationProperties.OnGLContextClose.Insert(0, @ContextClose);
 end.

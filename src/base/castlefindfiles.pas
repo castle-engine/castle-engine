@@ -41,8 +41,11 @@ type
 
   TFileInfoList = specialize TGenericStructList<TFileInfo>;
 
-  TFoundFileProc = procedure (const FileInfo: TFileInfo; Data: Pointer);
-  TFoundFileMethod = procedure (const FileInfo: TFileInfo) of object;
+  { Called for each file found.
+    StopSearch is always initially @false, you can change it to @true to stop
+    the enclosing FindFiles call. }
+  TFoundFileProc = procedure (const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+  TFoundFileMethod = procedure (const FileInfo: TFileInfo; var StopSearch: boolean) of object;
 
   TFindFilesOption = (
     { If ffRecursive is in Options then FindFiles (and friends) descend into
@@ -152,19 +155,17 @@ function FindFiles(const PathAndMask: string; const FindDirectories: boolean;
   we still set NewBase (to original Base). }
 function SearchFileHard(Path: string; const Base: string; out NewBase: string): boolean;
 
-{ Find first file matching given Mask. The file can be anything (including
-  a symlink or directory). It is not searched recursively, it is only searched
-  for in the directory inside Mask.
-
+{ Find first file matching given Mask inside Path.
   If found, returns @true and sets FileInfo.
   Otherwise, returns @false and leaves FileInfo undefined. }
-function FindFirstFile(const Mask: string;
+function FindFirstFile(const Path, Mask: string;
+  const FindDirectories: boolean; const Options: TFindFilesOptions;
   out FileInfo: TFileInfo): boolean;
 
 implementation
 
 uses CastleURIUtils, CastleLog, StrUtils
-  {$ifdef ANDROID}, CastleAndroidAssetManager, CastleAndroidAssetStream {$endif};
+  {$ifdef ANDROID}, CastleAndroidInternalAssetManager, CastleAndroidInternalAssetStream {$endif};
 
 { Note that some limitations of FindFirst/FindNext underneath are reflected in our
   functionality. Under Windows, mask is treated somewhat hacky:
@@ -187,7 +188,8 @@ uses CastleURIUtils, CastleLog, StrUtils
   and ReadAllFirst = false. }
 function FindFiles_NonRecursive(const Path, Mask: string;
   const FindDirectories: boolean;
-  FileProc: TFoundFileProc; FileProcData: Pointer): Cardinal;
+  FileProc: TFoundFileProc; FileProcData: Pointer;
+  var StopSearch: boolean): Cardinal;
 
   procedure LocalFileSystem;
   var
@@ -208,7 +210,7 @@ function FindFiles_NonRecursive(const Path, Mask: string;
     LocalPath := InclPathDelim(LocalPath);
     SearchError := FindFirst(LocalPath + Mask, Attr, FileRec);
     try
-      while SearchError = 0 do
+      while (SearchError = 0) and (not StopSearch) do
       begin
         AbsoluteName := LocalPath + FileRec.Name;
         Inc(Result);
@@ -219,7 +221,7 @@ function FindFiles_NonRecursive(const Path, Mask: string;
         FileInfo.Size := FileRec.Size;
         FileInfo.URL := FilenameToURISafe(AbsoluteName);
         if Assigned(FileProc) then
-          FileProc(FileInfo, FileProcData);
+          FileProc(FileInfo, FileProcData, StopSearch);
 
         SearchError := FindNext(FileRec);
       end;
@@ -257,10 +259,10 @@ function FindFiles_NonRecursive(const Path, Mask: string;
         if IsWild(FileInfo.Name, Mask, false) then
         begin
           if Assigned(FileProc) then
-            FileProc(FileInfo, FileProcData);
+            FileProc(FileInfo, FileProcData, StopSearch);
           Inc(Result);
         end;
-      until false;
+      until StopSearch;
     finally AAssetDir_close(Dir) end;
   end;
   {$endif}
@@ -285,12 +287,12 @@ end;
   and ReadAllFirst = false. }
 function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: boolean;
   FileProc: TFoundFileProc; FileProcData: Pointer;
-  DirContentsLast: boolean): Cardinal;
+  DirContentsLast: boolean; var StopSearch: boolean): Cardinal;
 
   procedure WriteDirContent;
   begin
     Result := Result +
-      FindFiles_NonRecursive(Path, Mask, FindDirectories, FileProc, FileProcData);
+      FindFiles_NonRecursive(Path, Mask, FindDirectories, FileProc, FileProcData, StopSearch);
   end;
 
   { Search in subdirectories recursively. }
@@ -316,13 +318,13 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
       faDirectory { potential flags on directory: } or faSysFile or faArchive,
       FileRec);
     try
-      while SearchError = 0 do
+      while (SearchError = 0) and (not StopSearch) do
       begin
         if ((faDirectory and FileRec.Attr) <> 0) and
            (not SpecialDirName(FileRec.Name)) then
           Result := Result +
             FindFiles_Recursive(FilenameToURISafe(LocalPath + FileRec.Name), Mask,
-              FindDirectories, FileProc, FileProcData, DirContentsLast);
+              FindDirectories, FileProc, FileProcData, DirContentsLast, StopSearch);
         SearchError := FindNext(FileRec);
       end;
     finally FindClose(FileRec) end;
@@ -333,12 +335,12 @@ begin
 
   if DirContentsLast then
   begin
-    WriteSubdirs;
-    WriteDirContent;
+    WriteSubdirs;    if StopSearch then Exit;
+    WriteDirContent; if StopSearch then Exit;
   end else
   begin
-    WriteDirContent;
-    WriteSubdirs;
+    WriteDirContent; if StopSearch then Exit;
+    WriteSubdirs;    if StopSearch then Exit;
   end;
 end;
 
@@ -346,14 +348,17 @@ end;
 function FindFiles_NonReadAllFirst(const Path, Mask: string; FindDirectories: boolean;
   FileProc: TFoundFileProc; FileProcData: Pointer;
   Recursive, DirContentsLast: boolean): Cardinal;
+var
+  StopSearch: boolean;
 begin
+  StopSearch := false;
   if Recursive then
-    Result := FindFiles_Recursive(Path, Mask, FindDirectories, fileProc, FileProcData, DirContentsLast) else
-    Result := FindFiles_NonRecursive(Path, Mask, FindDirectories, fileProc, FileProcData);
+    Result := FindFiles_Recursive(Path, Mask, FindDirectories, fileProc, FileProcData, DirContentsLast, StopSearch) else
+    Result := FindFiles_NonRecursive(Path, Mask, FindDirectories, fileProc, FileProcData, StopSearch);
 end;
 
 procedure FileProc_AddToFileInfos(
-  const FileInfo: TFileInfo; Data: Pointer);
+  const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
 begin
   TFileInfoList(Data).Add(FileInfo);
 end;
@@ -364,6 +369,7 @@ function FindFiles(const Path, Mask: string; const FindDirectories: boolean;
 var
   FileInfos: TFileInfoList;
   i: Integer;
+  StopSearch: boolean;
 begin
   if ffReadAllFirst in Options then
   begin
@@ -374,8 +380,14 @@ begin
         ffRecursive in Options,
         ffDirContentsLast in Options);
       if Assigned(FileProc) then
+      begin
+        StopSearch := false;
         for i := 0 to FileInfos.Count - 1 do
-          FileProc(FileInfos.L[i], FileProcData);
+        begin
+          FileProc(FileInfos.L[i], FileProcData, StopSearch);
+          if StopSearch then Break;
+        end;
+      end;
     finally FileInfos.Free end;
   end else
   begin
@@ -403,9 +415,9 @@ type
   PFoundFileMethodWrapper = ^TFoundFileMethodWrapper;
 
 procedure FoundFileProcToMethod(
-  const FileInfo: TFileInfo; Data: Pointer);
+  const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
 begin
-  PFoundFileMethodWrapper(Data)^.Contents(FileInfo);
+  PFoundFileMethodWrapper(Data)^.Contents(FileInfo, StopSearch);
 end;
 
 function FindFiles(const Path, Mask: string; const FindDirectories: boolean;
@@ -428,25 +440,26 @@ end;
 { related utilities ---------------------------------------------------------- }
 
 type
-  TSearchFileHard = class
+  TSearchFileHardHelper = class
     Base: string;
+    IsFound: boolean;
     Found: string;
-    procedure Callback(const FileInfo: TFileInfo);
+    procedure Callback(const FileInfo: TFileInfo; var StopSearch: boolean);
   end;
-  BreakSearchFileHard = class(TCodeBreaker);
 
-procedure TSearchFileHard.Callback(const FileInfo: TFileInfo);
-begin
-  if AnsiSameText(FileInfo.Name, Base) then
+  procedure TSearchFileHardHelper.Callback(const FileInfo: TFileInfo; var StopSearch: boolean);
   begin
-    Found := FileInfo.Name;
-    raise BreakSearchFileHard.Create;
+    if AnsiSameText(FileInfo.Name, Base) then
+    begin
+      Found := FileInfo.Name;
+      IsFound := true;
+      StopSearch := true;
+    end;
   end;
-end;
 
 function SearchFileHard(Path: string; const Base: string; out NewBase: string): boolean;
 var
-  S: TSearchFileHard;
+  Helper: TSearchFileHardHelper;
   P: string;
 begin
   NewBase := Base;
@@ -462,48 +475,43 @@ begin
 
   if FileExists(Path + Base) then Exit(true);
 
-  S := TSearchFileHard.Create;
+  Helper := TSearchFileHardHelper.Create;
   try
-    try
-      S.Base := Base;
-      FindFiles(Path + '*', false, @S.Callback, []);
-    except
-      on BreakSearchFileHard do
-      begin
-        NewBase := S.Found;
-        Result := true;
-        Exit;
-      end;
-    end;
-  finally FreeAndNil(S) end;
+    Helper.Base := Base;
+    FindFiles(Path + '*', false, @Helper.Callback, []);
+    Result := Helper.IsFound;
+    if Result then
+      NewBase := Helper.Found;
+  finally FreeAndNil(Helper) end;
 end;
 
 type
-  BreakFindFirstFile = class(TCodeBreaker)
+  TFindFirstFileHelper = class
+    IsFound: boolean;
     FoundFile: TFileInfo;
+    procedure Callback(const FileInfo: TFileInfo; var StopSearch: boolean);
   end;
 
-procedure FindFirstFileCallback(const FileInfo: TFileInfo; Data: Pointer);
+  procedure TFindFirstFileHelper.Callback(const FileInfo: TFileInfo; var StopSearch: boolean);
+  begin
+    FoundFile := FileInfo;
+    IsFound := true;
+    StopSearch := true;
+  end;
+
+function FindFirstFile(const Path, Mask: string;
+  const FindDirectories: boolean; const Options: TFindFilesOptions;
+  out FileInfo: TFileInfo): boolean;
 var
-  E: BreakFindFirstFile;
+  Helper: TFindFirstFileHelper;
 begin
-  E := BreakFindFirstFile.Create;
-  E.FoundFile := FileInfo;
-  raise E;
-end;
-
-function FindFirstFile(const Mask: string; out FileInfo: TFileInfo): boolean;
-begin
+  Helper := TFindFirstFileHelper.Create;
   try
-    FindFiles(Mask, true, @FindFirstFileCallback, nil, []);
-    Result := false;
-  except
-    on B: BreakFindFirstFile do
-    begin
-      Result := true;
-      FileInfo := B.FoundFile;
-    end;
-  end;
+    FindFiles(Path, Mask, FindDirectories, @Helper.Callback, Options);
+    Result := Helper.IsFound;
+    if Result then
+      FileInfo := Helper.FoundFile;
+  finally FreeAndNil(Helper) end;
 end;
 
 end.

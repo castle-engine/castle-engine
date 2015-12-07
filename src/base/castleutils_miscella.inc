@@ -47,19 +47,6 @@ type
     nasty errors). }
   PtrObject = ^TObject;
 
-  (*Class to be raised (like an exception) and caught, to exit from some
-    code blocks.
-
-    When deriving new TCodeBreaker descendant, specify always where it's caught.
-    It should be caught and silenced (without causing any errors) in appropriate
-    place. This way doing @code(raise BreakXxx.Create) is a way to exit from
-    given code part.
-
-    This class does not inherit from @code(Exception) because it does not
-    signal some errorneous situation (it must always be caught and silenced),
-    also it doesn't need a Message property. *)
-  TCodeBreaker = class(TObject);
-
   { Internal error in the program. Something that definitely should not
     happen and indicates a bug that should be reported.
 

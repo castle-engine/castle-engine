@@ -87,7 +87,7 @@ const
              '          Strips colors to only one channel, i.e.' +nl+
              '          sets to zero intensities of other two channels.' +nl+
              '');
-           ProgramBreak;
+           Halt;
          end;
       1: FloatScale *= StrToFloat(Argument);
       2: FloatGamma *= StrToFloat(Argument);

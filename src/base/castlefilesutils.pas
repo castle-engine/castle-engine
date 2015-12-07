@@ -139,6 +139,9 @@ function UserConfigFile(const Extension: string): string; deprecated;
   @deprecated Deprecated, use ApplicationData instead. }
 function ProgramDataPath: string; deprecated;
 
+var
+  ApplicationConfigOverride: string;
+
 { URL where we should read and write configuration files.
   This always returns a @code(file://...) URL,
   which is comfortable since our engine operates on URLs most of the time.
@@ -283,6 +286,8 @@ procedure CheckRemoveDir(const DirFileName: string);
 { Make sure directory exists, eventually creating it, recursively, checking result. }
 procedure CheckForceDirectories(const Dir: string);
 
+procedure CheckCopyFile(const Source, Dest: string);
+
 procedure CheckRenameFile(const Source, Dest: string);
 
 { Remove the directory DirName, @italic(recursively, unconditionally,
@@ -334,9 +339,9 @@ function ParentPath(DirName: string;
   Else the result is an absolute path calculated by combining RelPath
   with BasePath.
 
-  @deprecated This is deprecated, you should instead operate on URLs
-  and combine them using CastleURIUtils.Combines. }
-function CombinePaths(BasePath, RelPath: string): string; deprecated;
+  Usually you should instead operate on URLs
+  and combine them using @link(CastleURIUtils.CombineURI). }
+function CombinePaths(BasePath, RelPath: string): string;
 
 { Search a file on $PATH. Works with double quotes around components
   of path list, avoiding this bug: http://bugs.freepascal.org/view.php?id=19279.
@@ -379,7 +384,7 @@ function BundlePath: string;
 
 implementation
 
-uses {$ifdef DARWIN} MacOSAll, {$endif} CastleStringUtils,
+uses {$ifdef DARWIN} MacOSAll, {$endif} Classes, CastleStringUtils,
   {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog, CastleWarnings,
   CastleURIUtils, CastleFindFiles;
 
@@ -441,6 +446,9 @@ function ApplicationConfig(const Path: string): string;
 var
   ConfigDir, Dir: string;
 begin
+  if ApplicationConfigOverride <> '' then
+    Exit(ApplicationConfigOverride + Path);
+
   ConfigDir := InclPathDelim(GetAppConfigDir(false));
   Dir := ConfigDir + ExtractFilePath(Path);
   if not ForceDirectories(Dir) then
@@ -622,6 +630,19 @@ begin
     raise Exception.CreateFmt('Cannot create directory "%s"', [Dir]);
 end;
 
+procedure CheckCopyFile(const Source, Dest: string);
+var
+  SourceFile, DestFile: TFileStream;
+begin
+  SourceFile := TFileStream.Create(Source, fmOpenRead);
+  try
+    DestFile := TFileStream.Create(Dest, fmCreate);
+    try
+      DestFile.CopyFrom(SourceFile, SourceFile.Size);
+    finally FreeAndNil(DestFile) end;
+  finally FreeAndNil(SourceFile) end;
+end;
+
 procedure CheckRenameFile(const Source, Dest: string);
 begin
   {$ifdef MSWINDOWS}
@@ -630,12 +651,20 @@ begin
   SysUtils.DeleteFile(Dest);
   {$endif}
   if not RenameFile(Source, Dest) then
+  begin
+    {$ifdef UNIX}
+    WritelnLog('File', Format('Cannot rename/move from "%s" to "%s", assuming it''s because they are on different disks, trying slower copy+delete approach', [Source, Dest]));
+    CheckCopyFile(Source, Dest);
+    CheckDeleteFile(Source, false);
+    {$else}
     raise Exception.CreateFmt('Cannot rename/move from "%s" to "%s"', [Source, Dest]);
+    {$endif}
+  end;
 end;
 
-procedure RemoveNonEmptyDir_Internal(const FileInfo: TFileInfo; Data: Pointer);
+procedure RemoveNonEmptyDir_Internal(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
 begin
-  if SpecialDirName(FileInfo.Name) then exit;
+  if SpecialDirName(FileInfo.Name) then Exit;
 
   if FileInfo.Directory then
     CheckRemoveDir(FileInfo.AbsoluteName) else
@@ -860,7 +889,7 @@ begin
     IntToStr(System.Random(MaxInt)) + '_';
 
   { Check is it really Ok. }
-  if FindFirstFile(Result + '*', FileInfo) then
+  if FindFirstFile(Result, '*', true, [], FileInfo) then
     raise Exception.CreateFmt('Failed to generate unique temporary file prefix "%s": filename "%s" already exists',
       [Result, FileInfo.AbsoluteName]);
 end;

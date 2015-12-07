@@ -212,10 +212,16 @@ begin
 
   MaxTime := 0;
   for I := 0 to BoneTimelines.Count - 1 do
-    MaxTo1st(MaxTime, BoneTimelines[I].MaxTime);
+    MaxVar(MaxTime, BoneTimelines[I].MaxTime);
   for I := 0 to SlotTimelines.Count - 1 do
-    MaxTo1st(MaxTime, SlotTimelines[I].MaxTime);
-  MaxTo1st(MaxTime, DrawOrderTimelines.MaxTime);
+    MaxVar(MaxTime, SlotTimelines[I].MaxTime);
+  MaxVar(MaxTime, DrawOrderTimelines.MaxTime);
+  { TimeSensor.cycleInterval should be > 0
+    (see testcase spine/test-animation-zero-time for where it's needed).
+    Also, this is passed as MaxAnimationTime to other BuildNodes methods,
+    that also assume that MaxAnimationTime > 0. }
+  if MaxTime <= 0 then
+    MaxTime := 1;
   Node.FdCycleInterval.Value := MaxTime;
 
   NodeUsedAsChild := true;
@@ -371,8 +377,8 @@ begin
           Slots, SlotsAnimated, CurvesRemoved);
       end;
 
-    WritelnLog('Spine', 'Spine animations curves parsed, empty curves removed: %d',
-      [CurvesRemoved]);
+    // WritelnLog('Spine', 'Spine animations curves parsed, empty curves removed: %d',
+    //   [CurvesRemoved]);
   end;
 end;
 

@@ -202,25 +202,13 @@ type
     FMaxAllocatedSources: Cardinal;
     procedure SetMinAllocatedSources(const Value: Cardinal);
     procedure SetMaxAllocatedSources(const Value: Cardinal);
-  protected
-    { Load and save into XML config file some sound engine properties.
-      Everything is loaded / saved under the path "sound/" inside Config.
-
-      TSoundAllocator saves MinAllocatedSources, MaxAllocatedSources.
-      Descendant TSoundEngine additionally saves current Device, Enable
-      (unless Enable was set by @--no-sound command-line option).
-      Descendant TRepoSoundEngine additionally saves sound and music volume.
-
-      @groupBegin }
-    procedure LoadFromConfig(const Config: TCastleConfig); virtual;
-    procedure SaveToConfig(const Config: TCastleConfig); virtual;
-    { @groupEnd }
   public
     const
       DefaultMinAllocatedSources = 4;
       DefaultMaxAllocatedSources = 16;
 
     constructor Create;
+    destructor Destroy; override;
     procedure ALContextOpen; virtual;
     procedure ALContextClose; virtual;
 
@@ -269,6 +257,21 @@ type
     { Stop all the sources currently playing. Especially useful since
       you have to stop a source before releasing it's associated buffer. }
     procedure StopAllSources;
+
+    { Load and save into the config file sound engine properties.
+      For example use with @link(UserConfig) to store sound preferences
+      along with other user preferences.
+      Everything is loaded / saved under the path "sound/" inside Config.
+
+      TSoundAllocator saves MinAllocatedSources, MaxAllocatedSources.
+      Descendant TSoundEngine additionally saves current Device, Enable
+      (unless Enable was set by @--no-sound command-line option).
+      Descendant TRepoSoundEngine additionally saves sound and music volume.
+
+      @groupBegin }
+    procedure LoadFromConfig(const Config: TCastleConfig); virtual;
+    procedure SaveToConfig(const Config: TCastleConfig); virtual;
+    { @groupEnd }
   published
     { Minimum / maximum number of allocated OpenAL sources.
       Always keep MinAllocatedSources <= MaxAllocatedSources.
@@ -299,7 +302,7 @@ type
 
 implementation
 
-uses CastleALUtils;
+uses CastleALUtils, CastleConfig;
 
 { TSound ---------------------------------------------------------- }
 
@@ -468,6 +471,20 @@ begin
   inherited;
   FMinAllocatedSources := DefaultMinAllocatedSources;
   FMaxAllocatedSources := DefaultMaxAllocatedSources;
+  // automatic loading/saving is more troublesome than it's worth
+  // Config.AddLoadListener(@LoadFromConfig);
+  // Config.AddSaveListener(@SaveToConfig);
+end;
+
+destructor TSoundAllocator.Destroy;
+begin
+  // automatic loading/saving is more troublesome than it's worth
+  // if Config <> nil then
+  // begin
+  //   Config.RemoveLoadListener(@LoadFromConfig);
+  //   Config.RemoveSaveListener(@SaveToConfig);
+  // end;
+  inherited;
 end;
 
 procedure TSoundAllocator.ALContextOpen;

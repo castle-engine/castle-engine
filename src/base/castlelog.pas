@@ -18,6 +18,8 @@
   Various units of the engine print some logging info when @link(Log) is true. }
 unit CastleLog;
 
+{$include castleconf.inc}
+
 interface
 
 uses Classes;
@@ -94,21 +96,16 @@ procedure WriteLogMultiline(const Title: string; const LogMessage: string);
   a final newline, because we will add final newline ourselves. }
 procedure WritelnLogMultiline(const Title: string; const LogMessage: string);
 
+var
+  { Dump backtrace (call stack) with each log.
+    Displaying line info requires compiling your program with -gl. }
+  BacktraceOnLog: boolean = false;
+
 implementation
 
 uses CastleUtils, CastleClassUtils, CastleTimeUtils, CastleWarnings,
   CastleFilesUtils, CastleURIUtils,
-  SysUtils {$ifdef ANDROID}, CastleAndroidLog {$endif};
-
-{ Dump backtrace (always to StdErr for now, regardless of LogStream)
-  of each log.
-
-  Displaying line info requires compiling your program with -gl.
-  Unfortunately line info is not 100% reliable (sometimes it only works in gdb;
-  sometimes it does not even work in gdb, but still you can use gdb's "info symbol xxx"
-  to resolve addresses to method names).
-  Depends very much on OS, debug info type, and FPC version. }
-{ $define BACKTRACE_ON_LOG}
+  SysUtils {$ifdef ANDROID}, CastleAndroidInternalLog {$endif};
 
 var
   FLog: boolean = false;
@@ -195,16 +192,19 @@ begin
   FLog := true;
 end;
 
-procedure WriteLogRaw(const S: string); inline;
+procedure WriteLogRaw(const S: string); {$ifdef SUPPORTS_INLINE} inline; {$endif}
 begin
   if Log then
   begin
-    WriteStr(LogStream, S); // we know that LogStream <> nil when FLog = true
-    {$ifdef BACKTRACE_ON_LOG}
-    Dump_Stack(StdErr, Get_Frame);
-    {$endif}
     {$ifdef ANDROID}
-    AndroidLog(alInfo, S);
+    if BacktraceOnLog then
+      AndroidLog(alInfo, S + DumpStackToString(Get_Frame) + NL) else
+      AndroidLog(alInfo, S);
+    {$else}
+    // we know that LogStream <> nil when FLog = true
+    if BacktraceOnLog then
+      WriteStr(LogStream, S + DumpStackToString(Get_Frame) + NL) else
+      WriteStr(LogStream, S);
     {$endif}
   end;
 end;

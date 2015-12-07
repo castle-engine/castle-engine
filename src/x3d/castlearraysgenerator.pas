@@ -1678,7 +1678,7 @@ begin
       VertexIndex := IndexNum;
 
     VertexColor := OnRadianceTransfer(Geometry,
-      Addr(RadianceTransfer.L[VertexIndex * RadianceTransferVertexSize]),
+      Addr(RadianceTransfer.List^[VertexIndex * RadianceTransferVertexSize]),
       RadianceTransferVertexSize);
 
     Arrays.Color(ArrayIndexNum)^ := Vector4Single(VertexColor, MaterialOpacity);
@@ -2303,7 +2303,7 @@ procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
       Tangent := VectorSubtract(DIn3D, Triangle3D[0]) else
       Tangent := VectorSubtract(Triangle3D[0], DIn3D);
 
-    NormalizeTo1st(Tangent);
+    NormalizeVar(Tangent);
 
     Result := true;
   end;

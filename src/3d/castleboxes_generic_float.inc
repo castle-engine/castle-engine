@@ -7,7 +7,7 @@ function IsCenteredBox3DPlaneCollision(
   const Plane: TVector4GenericFloat): boolean;
 { Implementation of this is based on
   [http://jgt.akpeters.com/papers/AkenineMoller01/tribox.html]
-  planeBoxOverlap routine, by Tomas Akenine-Möller,
+  planeBoxOverlap routine, by Tomas Akenine-Moller,
   mentioned in his paper [http://jgt.akpeters.com/papers/AkenineMoller01/]
   about "Fast 3D Triangle-Box Overlap Testing", downloadable from
   [http://www.cs.lth.se/home/Tomas_Akenine_Moller/pubs/tribox.pdf].

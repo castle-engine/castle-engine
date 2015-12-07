@@ -695,7 +695,7 @@ begin
     for I := 0 to TextWidths.Count - 1 do
     begin
       TextWidths.L[I] := Font.TextWidth(Strings[I]);
-      MaxTo1st(MaxTextWidth, TextWidths.L[I]);
+      MaxVar(MaxTextWidth, TextWidths.L[I]);
     end;
 
     if Strings.Count <> 0 then

@@ -116,6 +116,9 @@
     FTimeDependentNodeHandler: TTimeDependentNodeHandler;
     { To satify IAbstractTimeDependentNode }
     function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
+  protected
+    { CycleInterval that is always > 0. }
+    function SafeCycleInterval: TFloatTime;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -147,7 +150,14 @@
     private FEventIsPaused: TSFBoolEvent;
     public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
 
+    { The cycle of a time-dependent node (like TTimeSensorNode) lasts for
+      this long (in seconds).
+
+      Note that on TTimeSensorNode descendants, you can also get and set this
+      by the class helper TTimeSensorNode.CycleInterval.
+      This of course gets/sets the same X3D "cycleInterval" value. }
     function CycleInterval: TFloatTime; virtual; abstract;
+
     property TimeDependentNodeHandler: TTimeDependentNodeHandler
       read FTimeDependentNodeHandler;
   end;
@@ -639,6 +649,13 @@ begin
   Result := FTimeDependentNodeHandler;
 end;
 
+function TAbstractTimeDependentNode.SafeCycleInterval: TFloatTime;
+begin
+  Result := CycleInterval;
+  if Result <= 0 then
+    Result := 1;
+end;
+
 procedure TTimeSensorNode.CreateNode;
 begin
   inherited;
@@ -696,7 +713,7 @@ var
 begin
   if FdEnabled.Value then
   begin
-    Fraction := TimeDependentNodeHandler.ElapsedTimeInCycle / CycleInterval;
+    Fraction := TimeDependentNodeHandler.ElapsedTimeInCycle / SafeCycleInterval;
     if (Fraction = 0) and (Time.Seconds > FdStartTime.Value) then Fraction := 1;
     Eventfraction_changed.Send(Fraction, Time);
 
@@ -723,8 +740,8 @@ begin
     end;
 
     if Loop then
-      EventFraction_changed.Send(Frac(Time / CycleInterval), FakeX3DTime) else
-      EventFraction_changed.Send(Clamped(Time / CycleInterval, 0, 1), FakeX3DTime);
+      EventFraction_changed.Send(Frac(Time / SafeCycleInterval), FakeX3DTime) else
+      EventFraction_changed.Send(Clamped(Time / SafeCycleInterval, 0, 1), FakeX3DTime);
     EventTime.Send(Time, FakeX3DTime);
   end;
 end;

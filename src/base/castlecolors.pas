@@ -16,6 +16,8 @@
 { Color utilities, including HSV <-> RGB convertion. }
 unit CastleColors;
 
+{$include castleconf.inc}
+
 interface
 
 uses Math, CastleVectors;
@@ -71,14 +73,15 @@ const
 
 { Calculate color intensity, for converting color to grayscale.
   @groupBegin }
-function GrayscaleValue(const v: TCastleColorRGB): Single; overload;
-function GrayscaleValue(const v: TVector3Byte): Byte; overload;
-function GrayscaleValue(const v: TCastleColor): Single; overload;
+function GrayscaleValue(const v: TCastleColorRGB): Single; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
+function GrayscaleValue(const v: TCastleColor): Single; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
+function GrayscaleValue(const v: TVector3Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
+function GrayscaleValue(const v: TVector4Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
 { @groupEnd }
 
-function Grayscale(const v: TCastleColorRGB): TCastleColorRGB; overload;
-function Grayscale(const v: TVector3Byte): TVector3Byte; overload;
-function Grayscale(const v: TCastleColor): TCastleColor; overload;
+function Grayscale(const v: TCastleColorRGB): TCastleColorRGB; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
+function Grayscale(const v: TVector3Byte): TVector3Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
+function Grayscale(const v: TCastleColor): TCastleColor; {$ifdef SUPPORTS_INLINE} inline; {$endif} overload;
 
 type
   { Function that processes RGB colors, used by TCastleImage.ModulateRGB. }
@@ -101,7 +104,7 @@ function ColorBlueConvertByte(const Color: TVector3Byte): TVector3Byte;
 
 { Set color values for two other channels to 0.
   Note that it's something entirely different than
-  ImageConvertToChannelTo1st: here we preserve original channel values,
+  ImageConvertToChannelVar: here we preserve original channel values,
   and remove values on two other channels.
 
   @groupBegin }
@@ -199,6 +202,13 @@ begin
 end;
 
 function GrayscaleValue(const v: TVector3Byte): Byte;
+begin
+  result := (GrayscaleValuesByte[0]*v[0]+
+             GrayscaleValuesByte[1]*v[1]+
+             GrayscaleValuesByte[2]*v[2]) div 256;
+end;
+
+function GrayscaleValue(const v: TVector4Byte): Byte;
 begin
   result := (GrayscaleValuesByte[0]*v[0]+
              GrayscaleValuesByte[1]*v[1]+

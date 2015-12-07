@@ -109,7 +109,7 @@ begin
   Window := TCastleWindowCustom.Create(Application);
 
   SceneManager := TMySceneManager.Create(Application);
-  Window.Controls.Add(SceneManager);
+  Window.Controls.InsertFront(SceneManager);
 
   Scene := TCastleScene.Create(Application);
   OnWarning := @OnWarningWrite;

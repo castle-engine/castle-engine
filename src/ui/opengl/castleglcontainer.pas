@@ -58,92 +58,77 @@ procedure TGLContainer.EventRender;
     CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
   end;
 
-  { Call Render for all controls having RenderStyle = rs3D.
-
-    Also (since we call RenderStyle for everything anyway)
-    calculates AnythingWants2D = if any control returned RenderStyle = rs2D.
-    If not, you can later avoid even changing projection to 2D. }
-  procedure Render3D(out AnythingWants2D: boolean);
+  procedure RenderWithChildren(const C: TUIControl;
+    var SomeControlHasRenderStyle2D: boolean;
+    const FilterRenderStyle: TRenderStyle);
   var
     I: Integer;
-    C: TUIControl;
   begin
-    AnythingWants2D := false;
-
-    { draw controls in "downto" order, back to front }
-    for I := Controls.Count - 1 downto 0 do
+    if C.GetExists then
     begin
-      C := Controls[I];
       { We check C.GLInitialized, because it may happen that a control
-        did not receive GLContextOpen yet, in case we initialize some rendering
-        during TUIContainer.EventOpen.
-        See castle_game_engine/tests/testcontainer.pas for cases
-        when this is really needed. Although right now the container OnOpen
-        is always after all TUIControl.GLContextOpen, but the problem may
-        still occur if another control does SaveScreen during it's
-        own GLContextOpen. }
-      if C.GetExists and C.GLInitialized then
-        case C.RenderStyle of
-          rs2D: AnythingWants2D := true;
-          { Set OpenGL state that may be changed carelessly, and has some
-            guanteed value, for TUIControl.Render calls.
-            For now, just glLoadIdentity. }
-          rs3D: begin ControlRenderBegin; C.Render; end;
-        end;
-    end;
+        did not receive GLContextOpen yet, in case we cause some rendering
+        during TUIContainer.EventOpen (e.g. because some TUIControl.GLContextOpen
+        calls Window.Screenshot, so everything is rendered
+        before even the rest of controls received TUIControl.GLContextOpen).
+        See castle_game_engine/tests/testcontainer.pas . }
 
-    if TooltipVisible and (Focus <> nil) then
-      case Focus.TooltipStyle of
-        rs2D: AnythingWants2D := true;
-        rs3D: begin ControlRenderBegin; Focus.TooltipRender; end;
+      if C.GLInitialized then
+      begin
+        if C.RenderStyle = FilterRenderStyle then
+        begin
+          ControlRenderBegin;
+          C.Render;
+        end;
+        if C.RenderStyle = rs2D then
+          SomeControlHasRenderStyle2D := true;
       end;
 
-    case RenderStyle of
-      rs2D: AnythingWants2D := true;
-      rs3D: begin ControlRenderBegin; if Assigned(OnRender) then OnRender(Self); end;
+      for I := 0 to C.ControlsCount - 1 do
+        RenderWithChildren(C.Controls[I], SomeControlHasRenderStyle2D, FilterRenderStyle);
     end;
   end;
 
-  procedure Render2D;
+  procedure RenderEverything(const FilterRenderStyle: TRenderStyle; out SomeControlHasRenderStyle2D: boolean);
   var
-    C: TUIControl;
     I: Integer;
   begin
-    { draw controls in "downto" order, back to front }
-    for I := Controls.Count - 1 downto 0 do
+    SomeControlHasRenderStyle2D := false;
+
+    { draw controls in "to" order, back to front }
+    for I := 0 to Controls.Count - 1 do
+      RenderWithChildren(Controls[I], SomeControlHasRenderStyle2D, FilterRenderStyle);
+
+    if TooltipVisible and (Focus.Count <> 0) then
     begin
-      C := Controls[I];
-      if C.GetExists and C.GLInitialized and (C.RenderStyle = rs2D) then
+      if Focus.Last.TooltipStyle = FilterRenderStyle then
       begin
         ControlRenderBegin;
-        C.Render;
+        Focus.Last.TooltipRender;
       end;
+      if Focus.Last.TooltipStyle = rs2D then
+        SomeControlHasRenderStyle2D := true;
     end;
 
-    if TooltipVisible and (Focus <> nil) and (Focus.TooltipStyle = rs2D) then
-    begin
-      ControlRenderBegin;
-      Focus.TooltipRender;
-    end;
-
-    if RenderStyle = rs2D then
+    if RenderStyle = FilterRenderStyle then
     begin
       ControlRenderBegin;
       if Assigned(OnRender) then OnRender(Self);
     end;
+    if RenderStyle = rs2D then
+      SomeControlHasRenderStyle2D := true;
   end;
 
 var
-  AnythingWants2D: boolean;
+  SomeControlHasRenderStyle2D, Dummy: boolean;
 begin
   { Required to make DrawRectangle and TGLImage.Draw correct. }
   Viewport2DSize[0] := Width;
   Viewport2DSize[1] := Height;
 
-  Render3D(AnythingWants2D);
-
-  if AnythingWants2D then
-    Render2D;
+  RenderEverything(rs3D, SomeControlHasRenderStyle2D);
+  if SomeControlHasRenderStyle2D then
+    RenderEverything(rs2D, Dummy);
 end;
 
 end.

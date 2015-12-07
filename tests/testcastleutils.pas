@@ -307,11 +307,11 @@ var
   A: Integer;
 begin
   A := 123;
-  Clamp(A, 100, 200);
+  ClampVar(A, 100, 200);
   AssertTrue(A = 123);
-  Clamp(A, 50, 100);
+  ClampVar(A, 50, 100);
   AssertTrue(A = 100);
-  Clamp(A, 200, 300);
+  ClampVar(A, 200, 300);
   AssertTrue(A = 200);
 
   AssertTrue(Clamped(123, 100, 200) = 123);

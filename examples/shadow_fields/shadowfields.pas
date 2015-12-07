@@ -331,7 +331,7 @@ begin
       Sphere := 0 else
     begin
       Sphere := Round(Distance);
-      MinTo1st(Sphere, SFSpheresCount - 1);
+      MinVar(Sphere, SFSpheresCount - 1);
     end;
   end;
 
@@ -343,11 +343,11 @@ function TShadowField.IndexFromPoint(V: TVector3Single;
   out Sphere: Cardinal; out Side: TCubeMapSide; out Pixel: Cardinal):
   boolean;
 begin
-  VectorSubtractTo1st(V, SpheresMiddle);
+  VectorSubtractVar(V, SpheresMiddle);
   if ZeroVector(V) then
     Exit(false);
 
-  VectorScaleTo1st(V, 1/Scale);
+  VectorScaleVar(V, 1/Scale);
 
   if not SphereIndexFromPoint(V, Sphere) then Exit(false);
 
@@ -362,11 +362,11 @@ function TShadowField.Index4FromPoint(
   out Pixel: TVector4Cardinal;
   out Ratio: TVector4Single): boolean;
 begin
-  VectorSubtractTo1st(V, SpheresMiddle);
+  VectorSubtractVar(V, SpheresMiddle);
   if ZeroVector(V) then
     Exit(false);
 
-  VectorScaleTo1st(V, 1/Scale);
+  VectorScaleVar(V, 1/Scale);
 
   if not SphereIndexFromPoint(V, Sphere) then Exit(false);
 
@@ -381,11 +381,11 @@ function TShadowField.Index2FromPoint(V: TVector3Single;
 var
   Distance: Float;
 begin
-  VectorSubtractTo1st(V, SpheresMiddle);
+  VectorSubtractVar(V, SpheresMiddle);
   if ZeroVector(V) then
     Exit(false);
 
-  VectorScaleTo1st(V, 1/Scale);
+  VectorScaleVar(V, 1/Scale);
 
   { calculate Sphere number using VectorLen(V) }
   Distance := VectorLen(V);
@@ -446,7 +446,7 @@ begin
   Distance := MapRange(Sphere, 0, SFSpheresCount - 1,
     FirstSphereRadius, LastSphereRadius);
   Result := VectorAdjustToLength(CubeMapDirection(CubeMapSide, Pixel), Distance);
-  VectorAddTo1st(Result, SpheresMiddle);
+  VectorAddVar(Result, SpheresMiddle);
 end;
 
 end.

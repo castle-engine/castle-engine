@@ -104,6 +104,7 @@ begin
   Application.MainWindow := nil;
 
   Status := TCastleLabel.Create(Self);
+  Status.Frame := true;
   Parent.Controls.InsertFront(Status);
 
   MessageButton := TCastleButton.Create(Self);

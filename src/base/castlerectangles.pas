@@ -24,9 +24,9 @@ type
   { Horizontal position of one control/rectangle
     with respect to another.
 
-    This is used by TUIRectangularControl.Align and TRectangle.Align
+    This is used by TUIControl.Align and TRectangle.Align
     to specify the alignment of one control/rectangle with respect to another.
-    In case of TUIRectangularControl.Align, this specifies
+    In case of TUIControl.Align, this specifies
     the align of control with respect to the container
     (TCastleWindow or TCastleControl).
 
@@ -35,11 +35,11 @@ type
     @orderedList(
       @item(
         When we talk about the position of the control
-        (for example ControlPosition for TUIRectangularControl.Align),
+        (for example ControlPosition for TUIControl.Align),
         it determines which border of the control to align.)
       @item(
         When we talk about the position of the container
-        (for example ContainerPosition for TUIRectangularControl.Align),
+        (for example ContainerPosition for TUIControl.Align),
         this specifies the container border.)
     )
 
@@ -102,6 +102,8 @@ type
 
     const
       Empty: TRectangle = (Left: 0; Bottom: 0; Width: 0; Height: 0);
+
+    function IsEmpty: boolean;
 
     function Contains(const X, Y: Integer): boolean;
     function Contains(const Point: TVector2Single): boolean;
@@ -174,6 +176,13 @@ type
 
     function ScaleToWidth(const NewWidth: Cardinal): TRectangle;
     function ScaleToHeight(const NewHeight: Cardinal): TRectangle;
+    function ScaleAroundMiddle(const Factor: Single): TRectangle;
+    function ScaleAround0(const Factor: Single): TRectangle;
+
+    { Scale and align us to fit inside rectangle R, preserving our aspect ratio. }
+    function FitInside(const R: TRectangle;
+      const AlignHorizontal: THorizontalPosition = hpMiddle;
+      const AlignVertical: TVerticalPosition = vpMiddle): TRectangle;
 
     { Align this rectangle within other rectangle by calculating new value
       for @link(Left). }
@@ -202,6 +211,8 @@ type
       const Y: Integer = 0): TRectangle;
 
     function ToString: string;
+
+    function Translate(const V: TVector2Integer): TRectangle;
   end;
 
   TRectangleList = class(specialize TGenericStructList<TRectangle>)
@@ -217,9 +228,11 @@ function Rectangle(const Left, Bottom: Integer;
 function Rectangle(const LeftBottom: TVector2Integer;
   const Width, Height: Cardinal): TRectangle;
 
+operator+ (const R1, R2: TRectangle): TRectangle;
+
 implementation
 
-uses SysUtils,
+uses SysUtils, Math,
   CastleUtils;
 
 { TRectangle ----------------------------------------------------------------- }
@@ -240,6 +253,11 @@ begin
   Result.Bottom := LeftBottom[1];
   Result.Width := Width;
   Result.Height := Height;
+end;
+
+function TRectangle.IsEmpty: boolean;
+begin
+  Result := (Width = 0) or (Height = 0);
 end;
 
 function TRectangle.Contains(const X, Y: Integer): boolean;
@@ -309,7 +327,7 @@ end;
 function TRectangle.RemoveLeft(W: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(W, Width);
+  MinVar(W, Width);
   Result.Left += W;
   Result.Width -= W;
 end;
@@ -317,7 +335,7 @@ end;
 function TRectangle.RemoveBottom(H: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(H, Height);
+  MinVar(H, Height);
   Result.Bottom += H;
   Result.Height -= H;
 end;
@@ -325,14 +343,14 @@ end;
 function TRectangle.RemoveRight(W: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(W, Width);
+  MinVar(W, Width);
   Result.Width -= W;
 end;
 
 function TRectangle.RemoveTop(H: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(H, Height);
+  MinVar(H, Height);
   Result.Height -= H;
 end;
 
@@ -365,21 +383,21 @@ end;
 function TRectangle.LeftPart(W: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(W, Width);
+  MinVar(W, Width);
   Result.Width := W;
 end;
 
 function TRectangle.BottomPart(H: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(H, Height);
+  MinVar(H, Height);
   Result.Height := H;
 end;
 
 function TRectangle.RightPart(W: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(W, Width);
+  MinVar(W, Width);
   Result.Left += Width - W;
   Result.Width := W;
 end;
@@ -387,7 +405,7 @@ end;
 function TRectangle.TopPart(H: Cardinal): TRectangle;
 begin
   Result := Self;
-  MinTo1st(H, Height);
+  MinVar(H, Height);
   Result.Bottom += Height - H;
   Result.Height := H;
 end;
@@ -446,6 +464,45 @@ begin
   Result.Bottom := Bottom;
   Result.Width := Width * NewHeight div Height;
   Result.Height := NewHeight;
+end;
+
+function TRectangle.ScaleAroundMiddle(const Factor: Single): TRectangle;
+begin
+  Result.Width  := Round(Width  * Factor);
+  Result.Height := Round(Height * Factor);
+  Result.Left   := Left   + (Width  - Result.Width ) div 2;
+  Result.Bottom := Bottom + (Height - Result.Height) div 2;
+  // Result.Left := Result.AlignCore(PivotHorizontal, Self, PivotHorizontal);
+  // Result.Bottom := Result.AlignCore(PivotVertical, Self, PivotVertical);
+end;
+
+function TRectangle.ScaleAround0(const Factor: Single): TRectangle;
+var
+  ResultRight, ResultTop: Integer;
+begin
+  Result.Left   := Floor(Left   * Factor);
+  Result.Bottom := Floor(Bottom * Factor);
+  ResultRight := Ceil(Right * Factor);
+  ResultTop   := Ceil(Top   * Factor);
+  Result.Width  := ResultRight - Result.Left;
+  Result.Height := ResultTop   - Result.Bottom;
+end;
+
+function TRectangle.FitInside(const R: TRectangle;
+  const AlignHorizontal: THorizontalPosition = hpMiddle;
+  const AlignVertical: TVerticalPosition = vpMiddle): TRectangle;
+begin
+  if R.Width / R.Height > Width / Height then
+  begin
+    Result.Height := R.Height;
+    Result.Width := Width * Result.Height div Height;
+  end else
+  begin
+    Result.Width := R.Width;
+    Result.Height := Height * Result.Width div Width;
+  end;
+  Result.Left := AlignCore(AlignHorizontal, R, AlignHorizontal, 0);
+  Result.Bottom := AlignCore(AlignVertical, R, AlignVertical, 0);
 end;
 
 function TRectangle.AlignCore(
@@ -510,6 +567,14 @@ begin
   Result.Height := Height;
 end;
 
+function TRectangle.Translate(const V: TVector2Integer): TRectangle;
+begin
+  Result.Left := Left + V[0];
+  Result.Bottom := Bottom + V[1];
+  Result.Width := Width;
+  Result.Height := Height;
+end;
+
 { TRectangleList -------------------------------------------------------------- }
 
 function TRectangleList.FindRectangle(const X, Y: Integer): Integer;
@@ -526,6 +591,26 @@ begin
     if L[Result].Contains(Point) then
       Exit;
   Result := -1;
+end;
+
+{ operators ------------------------------------------------------------------ }
+
+operator+ (const R1, R2: TRectangle): TRectangle;
+var
+  Right, Top: Integer;
+begin
+  if R1.IsEmpty then
+    Result := R2 else
+  if R2.IsEmpty then
+    Result := R1 else
+  begin
+    Result.Left   := Min(R1.Left  , R2.Left);
+    Result.Bottom := Min(R1.Bottom, R2.Bottom);
+    Right := Max(R1.Right   , R2.Right);
+    Top   := Max(R1.Top     , R2.Top);
+    Result.Width  := Right - Result.Left;
+    Result.Height := Top   - Result.Bottom;
+  end;
 end;
 
 end.

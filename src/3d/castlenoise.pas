@@ -54,7 +54,7 @@ function BlurredInterpolatedNoise2D_Spline(const X, Y: Single; const Seed: Cardi
 
 implementation
 
-uses Math;
+uses Math, CastleCurves;
 
 { Integer noise -------------------------------------------------------------- }
 
@@ -206,32 +206,6 @@ function IntegerNoise(const X, Y: LongInt; const Seed: Cardinal): Single;
 begin
   Result := IntegerNoiseCore(X, Y, 0, Seed) / High(LongWord);
 end;
-
-{ Catmull-Rom cubic spline interpolate --------------------------------------- }
-
-{ Interpolate along the spline. }
-function SplineInterpolate(const V0, V1, V2, V3, X: Single): Single;
-{ Following http://www.mvps.org/directx/articles/catmull/. }
-begin
-  Result := 0.5 * (
-    (2 * V1) +
-    (-V0 + V2) * X +
-    (2*V0 - 5*V1 + 4*V2 - V3) * Sqr(X) +
-    (-V0 + 3*V1- 3*V2 + V3) * Sqr(X) * X
-  );
-end;
-
-{ The one on http://freespace.virgin.net/hugo.elias/models/m_perlin.htm
-  seems equivalent. But, uhm, missing weights?
-var
-  P, Q, R, S: Single;
-begin
-  P := (V3 - V2) - (V0 - V1);
-  Q := (V0 - V1) - P;
-  R := V2 - V0;
-  S := V1;
-  Result := (P * X + Q) * Sqr(X) + R * X + S;
-end;}
 
 { Interpolated noise for 2D coords ------------------------------------------- }
 

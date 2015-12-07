@@ -255,7 +255,7 @@ type
     Used for various properties:
     TUIControl.Cursor, T3D.Cursor, TCastleWindowCustom.Cursor.
 
-    mcDefault, mcNone, mcCustom have somewhat special meanings.
+    mcDefault, mcNone, mcForceNone, mcCustom have somewhat special meanings.
     The rest are some cursor images will well-defined meanings for the user,
     their exact look may depend on current window manager theme etc.  }
   TMouseCursor = (
@@ -263,6 +263,13 @@ type
     mcDefault,
     { Make cursor invisible. }
     mcNone,
+    { Forcefully make cursor invisible.
+
+      If *any* UI control under the cursor
+      says that the cursor is mcForceNone, it will be invisible.
+      This is in contrast to mcNone, that only hides the cursor if
+      the currently focused control (under the mouse cursor) sets it. }
+    mcForceNone,
     { Use a custom cursor image in TCastleWindowCustom.CustomCursor.
 
       In normal circumstances, this should not be used for

@@ -41,7 +41,30 @@ type
 function UTF8CharacterLength(p: PChar): integer;
 function UTF8Length(const s: string): PtrInt;
 function UTF8Length(p: PChar; ByteCount: PtrInt): PtrInt;
+
+{ Return unicode character pointed by P.
+
+  The typical usage of this is to iterate over UTF-8 string char-by-char, like this:
+
+@longCode(#
+var
+  C: TUnicodeChar;
+  TextPtr: PChar;
+  CharLen: Integer;
+begin
+  TextPtr := PChar(S);
+  C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  while (C > 0) and (CharLen > 0) do
+  begin
+    Inc(TextPtr, CharLen);
+    // here process C...
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  end;
+end;
+#)
+}
 function UTF8CharacterToUnicode(p: PChar; out CharLen: integer): TUnicodeChar;
+//function UTF8CharacterToUnicode(const S: string): TUnicodeChar;
 
 function UnicodeToUTF8(CodePoint: TUnicodeChar): string;
 function UnicodeToUTF8Inline(CodePoint: TUnicodeChar; Buf: PChar): integer;
@@ -213,6 +236,15 @@ begin
     CharLen:=0;
   end;
 end;
+
+{
+function UTF8CharacterToUnicode(const S: string): TUnicodeChar;
+var
+  IgnoredCharLen: integer;
+begin
+  Result := UTF8CharacterToUnicode(PChar(S), IgnoredCharLen);
+end;
+}
 
 function UnicodeToUTF8(CodePoint: TUnicodeChar): string;
 var

@@ -66,12 +66,10 @@ type
         OldSwapFullScreen_Key: TKey;
         OldClose_charkey: char;
         OldFpsShowOnCaption: boolean;
-        OldControls: TUIControlList;
+        OldControls: TChildrenControls;
         OldAutomaticTouchControl: boolean;
         procedure WindowOpen(Container: TUIContainer);
         procedure WindowClose(Container: TUIContainer);
-      protected
-        procedure Notification(AComponent: TComponent; Operation: TOperation); override;
       public
         { When adding new attributes to TCastleWindowCustom that should be saved/restored,
           you must remember to
@@ -235,7 +233,8 @@ type
     to draw the saved image in a simplest 2D OpenGL projection. }
   TGLModeFrozenScreen = class(TGLMode)
   private
-    Control: TCastleImageControl;
+    SaveScreenControl: TCastleImageControl;
+    ErrorBackground: TErrorBackground;
   public
     constructor Create(AWindow: TCastleWindowCustom);
     destructor Destroy; override;
@@ -252,8 +251,6 @@ uses CastleUtils, CastleWindowTouch;
 { TGLMode.TWindowState -------------------------------------------------------------- }
 
 constructor TGLMode.TWindowState.Create(AWindow: TCastleWindowCustom);
-var
-  I: Integer;
 begin
   inherited Create(nil);
   Window := AWindow;
@@ -285,10 +282,8 @@ begin
   oldClose_charkey := Window.Close_charkey;
   oldFpsShowOnCaption := Window.FpsShowOnCaption;
 
-  OldControls := TUIControlList.Create(false);
+  OldControls := TChildrenControls.Create(nil);
   OldControls.Assign(Window.Controls);
-  for I := 0 to OldControls.Count - 1 do
-    OldControls[I].FreeNotification(Self);
   OldControls.BeginDisableContextOpenClose;
 
   { save AutomaticTouchInterface,
@@ -302,8 +297,6 @@ begin
 end;
 
 destructor TGLMode.TWindowState.Destroy;
-var
-  I: Integer;
 begin
   Window.OnOpenObject := OldOpenObject;
   Window.OnCloseObject := OldCloseObject;
@@ -334,8 +327,6 @@ begin
   begin
     Window.Controls.Assign(OldControls);
     OldControls.EndDisableContextOpenClose;
-    for I := 0 to OldControls.Count - 1 do
-      OldControls[I].RemoveFreeNotification(Self);
     FreeAndNil(OldControls);
   end;
 
@@ -416,13 +407,6 @@ begin
   if Window is TCastleWindowTouch then
     TCastleWindowTouch(Window).AutomaticTouchInterface := false;
   Window.Controls.Clear;
-end;
-
-procedure TGLMode.TWindowState.Notification(AComponent: TComponent; Operation: TOperation);
-begin
-  inherited;
-  if (Operation = opRemove) and (AComponent is TUIControl) and (OldControls <> nil) then
-    OldControls.DeleteAll(AComponent);
 end;
 
 { TGLMode -------------------------------------------------------------------- }
@@ -511,22 +495,33 @@ constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowCustom);
 begin
   inherited Create(AWindow);
 
-  Control := TCastleImageControl.Create(nil);
-  Control.Stretch := true;
-  Control.FullSize := true;
+  if Theme.MessageErrorBackground then
+  begin
+    ErrorBackground := TErrorBackground.Create(nil);
+  end else
+  begin
+    SaveScreenControl := TCastleImageControl.Create(nil);
+    SaveScreenControl.Stretch := true;
+    SaveScreenControl.FullSize := true;
 
-  { save screen, before changing state. }
-  Control.Image := Window.SaveScreen;
+    { save screen, before changing state. }
+    SaveScreenControl.Image := Window.SaveScreen;
+    SaveScreenControl.Color := Theme.BackgroundTint;
+  end;
 
   OldState.SetStandardState(nil, nil, @NoClose);
-  AWindow.Controls.InsertFront(Control);
+
+  if Theme.MessageErrorBackground then
+    AWindow.Controls.InsertFront(ErrorBackground) else
+    AWindow.Controls.InsertFront(SaveScreenControl)
 end;
 
 destructor TGLModeFrozenScreen.Destroy;
 begin
   inherited;
   { it's a little safer to call this after inherited }
-  FreeAndNil(Control);
+  FreeAndNil(SaveScreenControl);
+  FreeAndNil(ErrorBackground);
 end;
 
 { routines ------------------------------------------------------------------- }

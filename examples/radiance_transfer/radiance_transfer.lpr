@@ -110,7 +110,7 @@ begin
 
     SHVectorGLCapture(LightSHBasis, Scene.BoundingBox.Middle,
       @DrawLight, 100, 100, LightIntensityScale);
-    glViewport(ContainerRect);
+    glViewport(ScreenRect);
   end;
 
   Scene.Render(RenderingCamera.Frustum, RenderParams);
@@ -294,7 +294,7 @@ begin
   Window.MainMenu := CreateMainMenu;
   Window.OnMenuClick := @MenuClick;
 
-  Window.Controls.Add(SceneManager);
+  Window.Controls.InsertFront(SceneManager);
 
   Window.OnOpen := @Open;
   Window.OnUpdate := @Update;

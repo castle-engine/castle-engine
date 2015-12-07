@@ -691,14 +691,14 @@ function Vector_Init_Lerp(const A: Double; const V1, V2: TVector4_Double): TVect
 
 { Normalize the first 3 vector components. For zero vectors, does nothing.
   @groupBegin }
-procedure NormalizeTo1st3Singlev(vv: PVector3Single);
-procedure NormalizeTo1st3Bytev(vv: PVector3Byte);
+procedure NormalizeVar3Singlev(vv: PVector3Single);
+procedure NormalizeVar3Bytev(vv: PVector3Byte);
 { @groupEnd }
 
-procedure NormalizeTo1st(var v: TVector2Single); overload;
-procedure NormalizeTo1st(var v: TVector2Double); overload;
-procedure NormalizeTo1st(var v: TVector3Single); overload;
-procedure NormalizeTo1st(var v: TVector3Double); overload;
+procedure NormalizeVar(var v: TVector2Single); overload;
+procedure NormalizeVar(var v: TVector2Double); overload;
+procedure NormalizeVar(var v: TVector3Single); overload;
+procedure NormalizeVar(var v: TVector3Double); overload;
 
 function Normalized(const v: TVector2Single): TVector2Single; overload;
 function Normalized(const v: TVector2Double): TVector2Double; overload;
@@ -715,12 +715,12 @@ procedure Vector_Normalize(var V: TVector3_Double); overload;
   so that length of plane vector (taken from 1st @italic(three) coordinates)
   is one.
 
-  Also, contrary to normal NormalizeTo1st on 3-component vectors,
+  Also, contrary to normal NormalizeVar on 3-component vectors,
   this will fail with some awful error (like floating point overflow)
   in case length of plane vector is zero. That's because we know
   that plane vector @italic(must) be always non-zero. }
-procedure NormalizePlaneTo1st(var v: TVector4Single); overload;
-procedure NormalizePlaneTo1st(var v: TVector4Double); overload;
+procedure NormalizePlaneVar(var v: TVector4Single); overload;
+procedure NormalizePlaneVar(var v: TVector4Double); overload;
 
 function ZeroVector(const v: TVector3Single): boolean; overload;
 function ZeroVector(const v: TVector3Double): boolean; overload;
@@ -732,6 +732,7 @@ function ZeroVector(const v: TVector3Double; const EqualityEpsilon: Double): boo
 function ZeroVector(const v: TVector4Single; const EqualityEpsilon: Single): boolean; overload;
 function ZeroVector(const v: TVector4Double; const EqualityEpsilon: Double): boolean; overload;
 
+function ZeroVector(const v: TVector4Integer): boolean; overload;
 function ZeroVector(const v: TVector4Cardinal): boolean; overload;
 
 function PerfectlyZeroVector(const v: TVector2Single): boolean; overload;
@@ -743,7 +744,7 @@ function PerfectlyZeroVector(const v: TVector4Double): boolean; overload;
 
 { Subtract two vectors.
 
-  Versions *To1st place result back into the 1st vector,
+  Versions *Var place result back into the 1st vector,
   like "-=" operator. Are @italic(very very slightly) faster.
 
   @groupBegin }
@@ -753,17 +754,17 @@ function VectorSubtract(const V1, V2: TVector3Single): TVector3Single; overload;
 function VectorSubtract(const V1, V2: TVector3Double): TVector3Double; overload;
 function VectorSubtract(const V1, V2: TVector4Single): TVector4Single; overload;
 function VectorSubtract(const V1, V2: TVector4Double): TVector4Double; overload;
-procedure VectorSubtractTo1st(var v1: TVector2Single; const v2: TVector2Single); overload;
-procedure VectorSubtractTo1st(var v1: TVector2Double; const v2: TVector2Double); overload;
-procedure VectorSubtractTo1st(var v1: TVector3Single; const v2: TVector3Single); overload;
-procedure VectorSubtractTo1st(var v1: TVector3Double; const v2: TVector3Double); overload;
-procedure VectorSubtractTo1st(var v1: TVector4Single; const v2: TVector4Single); overload;
-procedure VectorSubtractTo1st(var v1: TVector4Double; const v2: TVector4Double); overload;
+procedure VectorSubtractVar(var v1: TVector2Single; const v2: TVector2Single); overload;
+procedure VectorSubtractVar(var v1: TVector2Double; const v2: TVector2Double); overload;
+procedure VectorSubtractVar(var v1: TVector3Single; const v2: TVector3Single); overload;
+procedure VectorSubtractVar(var v1: TVector3Double; const v2: TVector3Double); overload;
+procedure VectorSubtractVar(var v1: TVector4Single; const v2: TVector4Single); overload;
+procedure VectorSubtractVar(var v1: TVector4Double; const v2: TVector4Double); overload;
 { @groupEnd }
 
 { Add two vectors.
 
-  Versions *To1st place result back into the 1st vector,
+  Versions *Var place result back into the 1st vector,
   like "+=" operator. Are @italic(very very slightly) faster.
 
   @groupBegin }
@@ -773,17 +774,17 @@ function VectorAdd(const V1, V2: TVector3Single): TVector3Single; overload;
 function VectorAdd(const V1, V2: TVector3Double): TVector3Double; overload;
 function VectorAdd(const V1, V2: TVector4Single): TVector4Single; overload;
 function VectorAdd(const V1, V2: TVector4Double): TVector4Double; overload;
-procedure VectorAddTo1st(var v1: TVector2Single; const v2: TVector2Single); overload;
-procedure VectorAddTo1st(var v1: TVector2Double; const v2: TVector2Double); overload;
-procedure VectorAddTo1st(var v1: TVector3Single; const v2: TVector3Single); overload;
-procedure VectorAddTo1st(var v1: TVector3Double; const v2: TVector3Double); overload;
-procedure VectorAddTo1st(var v1: TVector4Single; const v2: TVector4Single); overload;
-procedure VectorAddTo1st(var v1: TVector4Double; const v2: TVector4Double); overload;
+procedure VectorAddVar(var v1: TVector2Single; const v2: TVector2Single); overload;
+procedure VectorAddVar(var v1: TVector2Double; const v2: TVector2Double); overload;
+procedure VectorAddVar(var v1: TVector3Single; const v2: TVector3Single); overload;
+procedure VectorAddVar(var v1: TVector3Double; const v2: TVector3Double); overload;
+procedure VectorAddVar(var v1: TVector4Single; const v2: TVector4Single); overload;
+procedure VectorAddVar(var v1: TVector4Double; const v2: TVector4Double); overload;
 { @groupEnd }
 
 { Scale vector (aka multiply by scalar).
 
-  Versions *To1st scale place result back into the 1st vector,
+  Versions *Var scale place result back into the 1st vector,
   like "*=" operator. Are @italic(very very slightly) faster.
 
   @groupBegin }
@@ -793,17 +794,17 @@ function VectorScale(const v1: TVector3Single; const Scalar: Single): TVector3Si
 function VectorScale(const v1: TVector3Double; const Scalar: Double): TVector3Double; overload;
 function VectorScale(const v1: TVector4Single; const Scalar: Single): TVector4Single; overload;
 function VectorScale(const v1: TVector4Double; const Scalar: Double): TVector4Double; overload;
-procedure VectorScaleTo1st(var v1: TVector2Single; const Scalar: Single); overload;
-procedure VectorScaleTo1st(var v1: TVector2Double; const Scalar: Double); overload;
-procedure VectorScaleTo1st(var v1: TVector3Single; const Scalar: Single); overload;
-procedure VectorScaleTo1st(var v1: TVector3Double; const Scalar: Double); overload;
-procedure VectorScaleTo1st(var v1: TVector4Single; const Scalar: Single); overload;
-procedure VectorScaleTo1st(var v1: TVector4Double; const Scalar: Double); overload;
+procedure VectorScaleVar(var v1: TVector2Single; const Scalar: Single); overload;
+procedure VectorScaleVar(var v1: TVector2Double; const Scalar: Double); overload;
+procedure VectorScaleVar(var v1: TVector3Single; const Scalar: Single); overload;
+procedure VectorScaleVar(var v1: TVector3Double; const Scalar: Double); overload;
+procedure VectorScaleVar(var v1: TVector4Single; const Scalar: Single); overload;
+procedure VectorScaleVar(var v1: TVector4Double; const Scalar: Double); overload;
 { @groupEnd }
 
 { Negate vector (return -V).
 
-  Versions *To1st scale place result back into the 1st vector.
+  Versions *Var scale place result back into the 1st vector.
   Are @italic(very very slightly) faster.
 
   @groupBegin }
@@ -813,12 +814,12 @@ function VectorNegate(const v: TVector3Single): TVector3Single; overload;
 function VectorNegate(const v: TVector3Double): TVector3Double; overload;
 function VectorNegate(const v: TVector4Single): TVector4Single; overload;
 function VectorNegate(const v: TVector4Double): TVector4Double; overload;
-procedure VectorNegateTo1st(var v: TVector2Single); overload;
-procedure VectorNegateTo1st(var v: TVector2Double); overload;
-procedure VectorNegateTo1st(var v: TVector3Single); overload;
-procedure VectorNegateTo1st(var v: TVector3Double); overload;
-procedure VectorNegateTo1st(var v: TVector4Single); overload;
-procedure VectorNegateTo1st(var v: TVector4Double); overload;
+procedure VectorNegateVar(var v: TVector2Single); overload;
+procedure VectorNegateVar(var v: TVector2Double); overload;
+procedure VectorNegateVar(var v: TVector3Single); overload;
+procedure VectorNegateVar(var v: TVector3Double); overload;
+procedure VectorNegateVar(var v: TVector4Single); overload;
+procedure VectorNegateVar(var v: TVector4Double); overload;
 { @groupEnd }
 
 { Scale vector such that it has given length (VecLen).
@@ -826,8 +827,8 @@ procedure VectorNegateTo1st(var v: TVector4Double); overload;
   @groupBegin }
 function VectorAdjustToLength(const v: TVector3Single; VecLen: Single): TVector3Single; overload;
 function VectorAdjustToLength(const v: TVector3Double; VecLen: Double): TVector3Double; overload;
-procedure VectorAdjustToLengthTo1st(var v: TVector3Single; VecLen: Single); overload;
-procedure VectorAdjustToLengthTo1st(var v: TVector3Double; VecLen: Double); overload;
+procedure VectorAdjustToLengthVar(var v: TVector3Single; VecLen: Single); overload;
+procedure VectorAdjustToLengthVar(var v: TVector3Double; VecLen: Double); overload;
 { @groupEnd }
 
 { Vector length.
@@ -909,18 +910,18 @@ function VectorDotProduct(const v1: TVector3Double; const v2: TVector4Double): D
   @groupBegin }
 function VectorMultiplyComponents(const V1, V2: TVector3Single): TVector3Single; overload;
 function VectorMultiplyComponents(const V1, V2: TVector3Double): TVector3Double; overload;
-procedure VectorMultiplyComponentsTo1st(var v1: TVector3Single; const v2: TVector3Single); overload;
-procedure VectorMultiplyComponentsTo1st(var v1: TVector3Double; const v2: TVector3Double); overload;
+procedure VectorMultiplyComponentsVar(var v1: TVector3Single; const v2: TVector3Single); overload;
+procedure VectorMultiplyComponentsVar(var v1: TVector3Double; const v2: TVector3Double); overload;
 { @groupEnd }
 
 { Change each vector component into Power(component, Exp).
   @raises(EInvalidArgument When some component is < 0 and Exp <> 0.
-    Version VectorPowerComponentsTo1st leaves the V in undefined state
+    Version VectorPowerComponentsVar leaves the V in undefined state
     in case of such exception.) }
 function VectorPowerComponents(const v: TVector3Single; const Exp: Single): TVector3Single; overload;
 function VectorPowerComponents(const v: TVector3Double; const Exp: Double): TVector3Double; overload;
-procedure VectorPowerComponentsTo1st(var v: TVector3Single; const Exp: Single); overload;
-procedure VectorPowerComponentsTo1st(var v: TVector3Double; const Exp: Double); overload;
+procedure VectorPowerComponentsVar(var v: TVector3Single; const Exp: Single); overload;
+procedure VectorPowerComponentsVar(var v: TVector3Double; const Exp: Double); overload;
 
 { Cosinus of angle between two vectors.
 
@@ -1100,8 +1101,8 @@ function PlaneMove(const Plane: TVector4Single;
 function PlaneMove(const Plane: TVector4Double;
   const Move: TVector3Double): TVector4Double; overload;
 
-procedure PlaneMoveTo1st(var Plane: TVector4Single; const Move: TVector3Single); overload;
-procedure PlaneMoveTo1st(var Plane: TVector4Double; const Move: TVector3Double); overload;
+procedure PlaneMoveVar(var Plane: TVector4Single; const Move: TVector3Single); overload;
+procedure PlaneMoveVar(var Plane: TVector4Double; const Move: TVector3Double); overload;
 
 function PlaneAntiMove(const Plane: TVector4Single;
   const Move: TVector3Single): TVector4Single; overload;
@@ -1550,20 +1551,20 @@ function MatrixAdd(const m1, m2: TMatrix4Single): TMatrix4Single; overload;
 function MatrixAdd(const m1, m2: TMatrix3Double): TMatrix3Double; overload;
 function MatrixAdd(const m1, m2: TMatrix4Double): TMatrix4Double; overload;
 
-procedure MatrixAddTo1st(var m1: TMatrix3Single; const m2: TMatrix3Single); overload;
-procedure MatrixAddTo1st(var m1: TMatrix4Single; const m2: TMatrix4Single); overload;
-procedure MatrixAddTo1st(var m1: TMatrix3Double; const m2: TMatrix3Double); overload;
-procedure MatrixAddTo1st(var m1: TMatrix4Double; const m2: TMatrix4Double); overload;
+procedure MatrixAddVar(var m1: TMatrix3Single; const m2: TMatrix3Single); overload;
+procedure MatrixAddVar(var m1: TMatrix4Single; const m2: TMatrix4Single); overload;
+procedure MatrixAddVar(var m1: TMatrix3Double; const m2: TMatrix3Double); overload;
+procedure MatrixAddVar(var m1: TMatrix4Double; const m2: TMatrix4Double); overload;
 
 function MatrixSubtract(const m1, m2: TMatrix3Single): TMatrix3Single; overload;
 function MatrixSubtract(const m1, m2: TMatrix4Single): TMatrix4Single; overload;
 function MatrixSubtract(const m1, m2: TMatrix3Double): TMatrix3Double; overload;
 function MatrixSubtract(const m1, m2: TMatrix4Double): TMatrix4Double; overload;
 
-procedure MatrixSubtractTo1st(var m1: TMatrix3Single; const m2: TMatrix3Single); overload;
-procedure MatrixSubtractTo1st(var m1: TMatrix4Single; const m2: TMatrix4Single); overload;
-procedure MatrixSubtractTo1st(var m1: TMatrix3Double; const m2: TMatrix3Double); overload;
-procedure MatrixSubtractTo1st(var m1: TMatrix4Double; const m2: TMatrix4Double); overload;
+procedure MatrixSubtractVar(var m1: TMatrix3Single; const m2: TMatrix3Single); overload;
+procedure MatrixSubtractVar(var m1: TMatrix4Single; const m2: TMatrix4Single); overload;
+procedure MatrixSubtractVar(var m1: TMatrix3Double; const m2: TMatrix3Double); overload;
+procedure MatrixSubtractVar(var m1: TMatrix4Double; const m2: TMatrix4Double); overload;
 
 function MatrixNegate(const m1: TMatrix3Single): TMatrix3Single; overload;
 function MatrixNegate(const m1: TMatrix4Single): TMatrix4Single; overload;
@@ -1656,8 +1657,8 @@ function MatrixInverse(const M: TMatrix4Double; const Determinant: Double): TMat
 
 { Transpose the matrix.
   @groupBegin }
-procedure MatrixTransposeTo1st(var M: TMatrix3Single); overload;
-procedure MatrixTransposeTo1st(var M: TMatrix3Double); overload;
+procedure MatrixTransposeVar(var M: TMatrix3Single); overload;
+procedure MatrixTransposeVar(var M: TMatrix3Double); overload;
 
 function MatrixTranspose(const M: TMatrix3Single): TMatrix3Single; overload;
 function MatrixTranspose(const M: TMatrix3Double): TMatrix3Double; overload;
@@ -2029,7 +2030,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    VectorNegateTo1st(L[I]);
+    VectorNegateVar(L[I]);
 end;
 
 procedure TVector3SingleList.Normalize;
@@ -2037,7 +2038,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    NormalizeTo1st(L[I]);
+    NormalizeVar(L[I]);
 end;
 
 procedure TVector3SingleList.MultiplyComponents(const V: TVector3Single);
@@ -2045,7 +2046,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    VectorMultiplyComponentsTo1st(L[I], V);
+    VectorMultiplyComponentsVar(L[I], V);
 end;
 
 procedure TVector3SingleList.AssignLerp(const Fraction: Single;
@@ -2067,7 +2068,7 @@ begin
   for I := 0 to Count - 1 do
   begin
     L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
-    NormalizeTo1st(L[I]);
+    NormalizeVar(L[I]);
   end;
 end;
 
@@ -2111,7 +2112,7 @@ begin
       so time saving would be minimal (and small temporary memory cost
       introduced). }
 
-    V2 := Addr(L[I + 1]);
+    V2 := Ptr(I + 1);
     for J := I + 1 to Count - 1 do
     begin
       if PointsDistanceSqr(V1^, V2^) < MergeDistance then
@@ -2819,7 +2820,7 @@ end;
 function Normal3Single(const x, y: Single; const z: Single{=0}): TVector3Single;
 begin
   result[0] := x; result[1] := y; result[2] := z;
-  NormalizeTo1st3Singlev(@result);
+  NormalizeVar3Singlev(@result);
 end;
 
 function Vector3SingleFromStr(const s: string): TVector3Single; {$I castlevectors_vector3fromstr.inc}
@@ -3055,7 +3056,7 @@ begin
   Result.Data[3] := V1.Data[3] + A * (V2.Data[3] - V1.Data[3]);
 end;
 
-procedure NormalizeTo1st3Singlev(vv: PVector3Single);
+procedure NormalizeVar3Singlev(vv: PVector3Single);
 var
   Len: Single;
 begin
@@ -3069,7 +3070,7 @@ begin
   vv^[2] := vv^[2] / Len;
 end;
 
-procedure NormalizeTo1st3Bytev(vv: PVector3Byte);
+procedure NormalizeVar3Bytev(vv: PVector3Byte);
 var
   Len: integer;
 begin
@@ -3084,6 +3085,11 @@ begin
 end;
 
 function ZeroVector(const v: TVector4Cardinal): boolean;
+begin
+  result := IsMemCharFilled(v, SizeOf(v), #0);
+end;
+
+function ZeroVector(const v: TVector4Integer): boolean;
 begin
   result := IsMemCharFilled(v, SizeOf(v), #0);
 end;
@@ -3548,7 +3554,7 @@ begin
     Result := M3 else
   begin
     Result := MatrixInverse(M3, D);
-    MatrixTransposeTo1st(Result);
+    MatrixTransposeVar(Result);
   end;
 end;
 

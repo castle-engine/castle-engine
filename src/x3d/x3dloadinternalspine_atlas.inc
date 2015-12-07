@@ -59,10 +59,11 @@ type
     procedure Parse(const URL: string);
     procedure BuildNodes(const BaseUrl: string);
     { Find atlas page and region corresponding to given region name.
-      @raises ESpineReadError If bone does not exist. }
-    procedure Find(const RegionName: string; out Page: TAtlasPage; out Region: TAtlasRegion);
-
-    function UseNode(const AttachmentName: string;
+      Returns @false if it does not exist (the out vars are undefined in
+      this case). }
+    function Find(const RegionName: string;
+      out Page: TAtlasPage; out Region: TAtlasRegion): boolean;
+    function UseNode(const RegionName: string;
       out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TImageTextureNode; override;
   end;
 
@@ -138,21 +139,40 @@ end;
 
 procedure TAtlasPage.BuildNodes(const BaseUrl: string);
 var
-  I: Integer;
+  I, ReferenceImageWidth, ReferenceImageHeight: Integer;
 begin
   Node := TImageTextureNode.Create('Page_' + ToX3DName(TextureURL), BaseUrl);
   Node.FdUrl.Items.Add(TextureURL);
   Node.RepeatS := IsRepeat;
   Node.RepeatT := IsRepeat;
 
-  { The only way to calculate TextureXY and TextureSize is to actually load the texture.
-    We use the texture Node for this, this way loaded texture will be reused for
-    actual model rendering. }
-  Node.IsTextureLoaded := true;
-  if Node.IsTextureImage then
+  ReferenceImageWidth := 0;
+  ReferenceImageHeight := 0;
+  if (Size[0] > 0) and (Size[1] > 0) then
+  begin
+    { It's best to read reference sizes from .atlas file.
+      This way you can scale the image underneath at any time, without changing
+      the .atlas file, and it will render Ok. }
+    ReferenceImageWidth := Size[0];
+    ReferenceImageHeight := Size[1];
+  end else
+  begin
+    { Then the only way to calculate tex coords is to actually load the texture.
+      We use the texture Node for this, this way loaded texture will be reused for
+      actual model rendering. }
+    Node.IsTextureLoaded := true;
+    if Node.IsTextureImage then
+    begin
+      ReferenceImageWidth := Node.TextureImage.Width;
+      ReferenceImageHeight := Node.TextureImage.Height;
+    end;
+  end;
+
+  if (ReferenceImageWidth > 0) and
+     (ReferenceImageHeight > 0) then
   begin
     for I := 0 to Regions.Count - 1 do
-      Regions[I].CalculateTexCoord(Node.TextureImage.Width, Node.TextureImage.Height);
+      Regions[I].CalculateTexCoord(ReferenceImageWidth, ReferenceImageHeight);
   end else
     OnWarning(wtMajor, 'Spine', SysUtils.Format('Cannot load texture "%s", texture coordinates cannot be correctly calculated based on Spine atlas information',
       [TextureURL]));
@@ -348,8 +368,8 @@ begin
     Pages[I].BuildNodes(BaseUrl);
 end;
 
-procedure TAtlas.Find(const RegionName: string;
-  out Page: TAtlasPage; out Region: TAtlasRegion);
+function TAtlas.Find(const RegionName: string;
+  out Page: TAtlasPage; out Region: TAtlasRegion): boolean;
 var
   I, J: Integer;
 begin
@@ -360,19 +380,21 @@ begin
     begin
       Region := Page.Regions[J];
       if Region.Name = RegionName then
-        Exit;
+        Exit(true);
     end;
   end;
-  raise ESpineReadError.CreateFmt('Region name "%s" not found in atlas', [RegionName]);
+
+  OnWarning(wtMinor, 'Spine', Format('Region name "%s" not found in atlas', [RegionName]));
+  Result := false;
 end;
 
-function TAtlas.UseNode(const AttachmentName: string;
+function TAtlas.UseNode(const RegionName: string;
   out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TImageTextureNode;
 var
   AtlasPage: TAtlasPage;
   AtlasRegion: TAtlasRegion;
 begin
-  Find(AttachmentName, AtlasPage, AtlasRegion);
+  if not Find(RegionName, AtlasPage, AtlasRegion) then Exit(nil);
   Result := AtlasPage.Node;
   AtlasPage.NodeUsedAsChild := true;
   TexRect := AtlasRegion.TexRect;

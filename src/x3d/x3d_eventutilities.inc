@@ -278,6 +278,8 @@ begin
   KeyCount := FdKey.Items.Count;
   if KeyCount <> 0 then { for KeyCount = 0, do nothing }
   begin
+    Assert(Value is TSFFloat);
+    Assert(not IsNan((Value as TSFFloat).Value));
     NewKeyRange := KeyRange((Value as TSFFloat).Value);
 
     { For NewKeyRange = 0 (before 1st key), leave it as 0.

@@ -51,8 +51,7 @@
     function GetShading: TShading;
     procedure SetShading(const Value: TShading);
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
 
@@ -133,8 +132,7 @@
     function GetTexture: TAbstractTextureNode;
     procedure SetTexture(const Value: TAbstractTextureNode);
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     procedure CreateNode; override;
@@ -474,8 +472,7 @@ begin
   Fields.Add(FFdOctreeTriangles);
 end;
 
-procedure TAbstractShapeNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TAbstractShapeNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
   { According to VRML spec, when geometry is NULL then object is not
     drawn so appearance doesn't matter. }
@@ -483,13 +480,11 @@ begin
   if FdGeometry.CurrentChildAllowed and
      (FdGeometry.Value <> nil) then
   begin
-    FdAppearance.EnumerateValid(Func);
+    Result := FdAppearance.SearchValid(Func);
+    if Result <> nil then Exit;
 
-    { We could also do now
-        FdGeometry.EnumerateValid(Func);
-      but actually we already checked conditions, so we can just call Func
-      directly. }
-    Func(Self, FdGeometry.Value);
+    Result := FdGeometry.SearchValid(Func);
+    if Result <> nil then Exit;
   end;
 end;
 
@@ -747,15 +742,25 @@ begin
     Result := nil;
 end;
 
-procedure TAppearanceNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TAppearanceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FFdFillProperties.EnumerateValid(Func);
-  FFdLineProperties.EnumerateValid(Func);
-  FFdMaterial.EnumerateValid(Func);
-  FFdShaders.EnumerateValid(Func);
-  FFdTexture.EnumerateValid(Func);
-  FFdTextureTransform.EnumerateValid(Func);
+  Result := FFdFillProperties.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := FFdLineProperties.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := FFdMaterial.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := FFdShaders.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := FFdTexture.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := FFdTextureTransform.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 function TAppearanceNode.GetTexture: TAbstractTextureNode;

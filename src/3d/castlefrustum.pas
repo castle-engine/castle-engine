@@ -223,7 +223,7 @@ type
       const Box: TBox3D): boolean;
 
     function Move(const M: TVector3Single): TFrustum;
-    procedure MoveTo1st(const M: TVector3Single);
+    procedure MoveVar(const M: TVector3Single);
 
     { Is Direction within a frustum. You can think of
       direction it as a "point infinitely away in given Direction",
@@ -306,7 +306,7 @@ begin
 
   for fp := Low(fp) to LastPlane do
   begin
-    NormalizePlaneTo1st(Planes[fp]);
+    NormalizePlaneVar(Planes[fp]);
 
     { Previously we used this hack:
 
@@ -319,11 +319,11 @@ begin
       very small (but non-zero) length.
 
       I could do here
-        NormalizePlaneTo1st(Planes[fp]);
-      instead, but that would be slow (NormalizePlaneTo1st costs me
+        NormalizePlaneVar(Planes[fp]);
+      instead, but that would be slow (NormalizePlaneVar costs me
       calculating 1 Sqrt).
     if VectorLenSqr(PVector3Single(@Planes[fp])^) < 0.001 then
-      VectorScaleTo1st(Planes[fp], 100000);
+      VectorScaleVar(Planes[fp], 100000);
     }
   end;
 end;
@@ -611,16 +611,16 @@ begin
   Result.NormalizePlanes;
 end;
 
-procedure TFrustum.MoveTo1st(const M: TVector3Single);
+procedure TFrustum.MoveVar(const M: TVector3Single);
 begin
-  PlaneMoveTo1st(Planes[fpLeft]  , M);
-  PlaneMoveTo1st(Planes[fpRight] , M);
-  PlaneMoveTo1st(Planes[fpBottom], M);
-  PlaneMoveTo1st(Planes[fpTop]   , M);
-  PlaneMoveTo1st(Planes[fpNear]  , M);
+  PlaneMoveVar(Planes[fpLeft]  , M);
+  PlaneMoveVar(Planes[fpRight] , M);
+  PlaneMoveVar(Planes[fpBottom], M);
+  PlaneMoveVar(Planes[fpTop]   , M);
+  PlaneMoveVar(Planes[fpNear]  , M);
   { This is Ok for frustum with infinite far plane, since
     PlaneMove will simply keep the far plane invalid }
-  PlaneMoveTo1st(Planes[fpFar]   , M);
+  PlaneMoveVar(Planes[fpFar]   , M);
   NormalizePlanes;
 end;
 

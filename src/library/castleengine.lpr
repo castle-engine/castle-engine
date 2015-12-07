@@ -171,7 +171,7 @@ begin
         if C.Exists and (C.RenderStyle = rs2D) then
         begin
           C.Exists := false;
-          Restore2D.Add(C);
+          Restore2D.InsertFront(C);
         end;
       end;
       // make screenshot
@@ -620,7 +620,7 @@ begin
           Result := 1 else
           Result := 0;
       end;
-      
+
       5: begin    // ecgevarWalkTouchCtl
         Result := cgehelper_ConstFromTouchInterface(Window.AutomaticWalkTouchCtl);
       end;
@@ -732,4 +732,3 @@ begin
   {Do not remove the exception masking lines}
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
 end.
-

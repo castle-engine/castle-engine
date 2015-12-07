@@ -4,7 +4,7 @@ set -eu
 # Call this script from this directory,
 # or from base castle_game_engine directory.
 
-# Allow calling this script from it's dir.
+# Change to the directory where castle-fpc.cfg is.
 if [ -f castleengine.lpr ]; then cd ../../; fi
 
 # We clean first, to

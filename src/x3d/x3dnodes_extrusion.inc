@@ -62,25 +62,25 @@ type
     { Are begin and end caps at the same place.
 
       This is a stronger condition
-      than just a SpineClosed: whole SpineTransformTo1st must be
+      than just a SpineClosed: whole SpineTransformVar must be
       guaranteed the same at the beginning and end. The Extrusion rules are such
       that closed spine -> always produces the same automatic orientation
       calculated at the beginning and end (X, Y, Z vectors in
-      TVRMLExtrusion.SpineTransformTo1st implementation). But we also
+      TVRMLExtrusion.SpineTransformVar implementation). But we also
       have to compare Orientation and Scale factors --- only when they
       also match, the caps match. }
     property BeginEndCapsMatching: boolean read FBeginEndCapsMatching;
 
     { If Spine > 0, LastY and LastZ must contain what was set here by calling
-      SpineTransformTo1st(Spine - 1, LastY, LastZ). }
-    procedure SpineTransformTo1st(Spine: Cardinal;
+      SpineTransformVar(Spine - 1, LastY, LastZ). }
+    procedure SpineTransformVar(Spine: Cardinal;
       var LastY, LastZ: TVector3Single;
       out Transform: TMatrix4Single);
 
-    procedure SpineScaleTo1st(Spine: Cardinal;
+    procedure SpineScaleVar(Spine: Cardinal;
       out Scale: TVector2Single);
 
-    procedure SpineOrientationTo1st(Spine: Cardinal;
+    procedure SpineOrientationVar(Spine: Cardinal;
       out Orientation: TVector4Single);
   end;
 
@@ -138,10 +138,10 @@ begin
 
   if SpineClosed then
   begin
-    SpineScaleTo1st(0, BeginScale);
-    SpineScaleTo1st(High, EndScale);
-    SpineOrientationTo1st(0, BeginOrientation);
-    SpineOrientationTo1st(High, EndOrientation);
+    SpineScaleVar(0, BeginScale);
+    SpineScaleVar(High, EndScale);
+    SpineOrientationVar(0, BeginOrientation);
+    SpineOrientationVar(High, EndOrientation);
     FBeginEndCapsMatching :=
       VectorsPerfectlyEqual(BeginOrientation, EndOrientation) and
       VectorsPerfectlyEqual(BeginScale, EndScale);
@@ -149,7 +149,7 @@ begin
     FBeginEndCapsMatching := false;
 end;
 
-procedure TVRMLExtrusion.SpineScaleTo1st(Spine: Cardinal;
+procedure TVRMLExtrusion.SpineScaleVar(Spine: Cardinal;
   out Scale: TVector2Single);
 begin
   Assert(Between(Spine, 0, High));
@@ -161,7 +161,7 @@ begin
     Scale := Node.FdScale.Items.L[Spine];
 end;
 
-procedure TVRMLExtrusion.SpineOrientationTo1st(Spine: Cardinal;
+procedure TVRMLExtrusion.SpineOrientationVar(Spine: Cardinal;
   out Orientation: TVector4Single);
 begin
   Assert(Between(Spine, 0, High));
@@ -173,7 +173,7 @@ begin
     Orientation := Node.FdOrientation.Items.L[Spine];
 end;
 
-procedure TVRMLExtrusion.SpineTransformTo1st(Spine: Cardinal;
+procedure TVRMLExtrusion.SpineTransformVar(Spine: Cardinal;
   var LastY, LastZ: TVector3Single;
   out Transform: TMatrix4Single);
 var
@@ -216,7 +216,7 @@ var
       Y := VectorSubtract(SpinePoints.L[I], SpinePoints.L[I - 1]);
       if not ZeroVector(Y) then
       begin
-        NormalizeTo1st(Y);
+        NormalizeVar(Y);
         Exit;
       end;
     end;
@@ -279,7 +279,7 @@ var
     Y := VectorSubtract(SpinePoints.L[1], SpinePoints.L[High - 1]);
 
     if not ZeroVector(Y) then
-      NormalizeTo1st(Y) else
+      NormalizeVar(Y) else
       FindFirstNonCoincident(Y);
 
     Z := VectorProduct(
@@ -287,9 +287,9 @@ var
       VectorSubtract(SpinePoints.L[High - 1], SpinePoints.L[0]));
 
     if not ZeroVector(Z) then
-      NormalizeTo1st(Z) else
+      NormalizeVar(Z) else
     if FindFirstNonColinear(Z) then
-      NormalizeTo1st(Z) else
+      NormalizeVar(Z) else
       Z := AllColinear(Y);
   end;
 
@@ -314,11 +314,11 @@ begin
     begin
       Y := VectorSubtract(SpinePoints.L[1], SpinePoints.L[0]);
       if not ZeroVector(Y) then
-        NormalizeTo1st(Y) else
+        NormalizeVar(Y) else
         FindFirstNonCoincident(Y);
 
       if FindFirstNonColinear(Z) then
-        NormalizeTo1st(Z) else
+        NormalizeVar(Z) else
         Z := AllColinear(Y);
     end;
   end else
@@ -329,7 +329,7 @@ begin
     begin
       Y := VectorSubtract(SpinePoints.L[High], SpinePoints.L[High - 1]);
       if not ZeroVector(Y) then
-        NormalizeTo1st(Y) else
+        NormalizeVar(Y) else
         Y := LastY;
 
       Z := LastZ;
@@ -343,7 +343,7 @@ begin
     Y := VectorSubtract(SpinePoints.L[Spine + 1], SpinePoints.L[Spine - 1]);
 
     if not ZeroVector(Y) then
-      NormalizeTo1st(Y) else
+      NormalizeVar(Y) else
       Y := LastY;
 
     Z := VectorProduct(
@@ -351,13 +351,13 @@ begin
       VectorSubtract(SpinePoints.L[Spine - 1], SpinePoints.L[Spine]));
 
     if not ZeroVector(Z) then
-      NormalizeTo1st(Z) else
+      NormalizeVar(Z) else
       Z := LastZ;
   end;
 
   if (Spine > 0) and (VectorDotProduct(LastZ, Z) < 0) then
   begin
-    VectorNegateTo1st(Z);
+    VectorNegateVar(Z);
   end;
 
   LastY := Y;
@@ -365,8 +365,8 @@ begin
 
   X := VectorProduct(Y, Z);
 
-  SpineScaleTo1st(Spine, Scale);
-  SpineOrientationTo1st(Spine, Orientation);
+  SpineScaleVar(Spine, Scale);
+  SpineOrientationVar(Spine, Orientation);
 
   Transform := MatrixMult(
     TransformToCoordsMatrix(SpinePoints.L[Spine], X, Y, Z),

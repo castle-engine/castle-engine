@@ -89,8 +89,8 @@ begin
   Skins.Parse(O, DefaultSkin, Bones);
   Animations.Parse(O, Bones, BonesAnimated, Slots, SlotsAnimated);
 
-  WritelnLog('Spine', Format('Skeleton read, bones: %d, slots: %d, skins: %d, animations: %d',
-    [Bones.Count, Slots.Count, Skins.Count, Animations.Count]));
+  // WritelnLog('Spine', Format('Skeleton read, bones: %d, slots: %d, skins: %d, animations: %d',
+  //   [Bones.Count, Slots.Count, Skins.Count, Animations.Count]));
 end;
 
 procedure TSkeleton.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader;
@@ -103,11 +103,18 @@ var
     S: string;
     I: Integer;
   begin
-    S := Format('Available skins count: %d', [Skins.Count]) + NL;
-    for I := 0 to Skins.Count - 1 do
-      S += Format('  Available skin %d: %s', [I, Skins[I].Name]) + NL;
-    S += Format('Using skin: %s', [CurrentSkin.Name]);
-    WritelnLogMultiline('Spine', S);
+    if Skins.Count = 1 then
+    begin
+      Assert(CurrentSkin = Skins[0]);
+      WritelnLog('Spine', BaseUrl + ' available skins: 1 (' + CurrentSkin.Name + ').');
+    end else
+    begin
+      S := Format(BaseUrl + ' available skins: %d', [Skins.Count]) + NL;
+      for I := 0 to Skins.Count - 1 do
+        S += Format('  Available skin %d: %s', [I, Skins[I].Name]) + NL;
+      S += Format('Using skin: %s', [CurrentSkin.Name]);
+      WritelnLogMultiline('Spine', S);
+    end;
   end;
 
 var

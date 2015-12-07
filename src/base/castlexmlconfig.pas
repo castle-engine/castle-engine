@@ -36,14 +36,26 @@ type
   end;
 
   { Store configuration in XML format.
+    Adds various Castle Game Engine extensions to the ancestor TXMLConfig
+    class:
 
-    This is a descendant of TXMLConfig that adds various small extensions:
-    float types (GetFloat, SetFloat, SetDeleteFloat),
-    vector types, key (TKey) types,
-    PathElement utility. }
+    @unorderedList(
+      @item(load/save from an URL or a TStream (not just a filename),)
+      @item(load/save to the default config file location (for user preferences),)
+      @item(load/save more types (floats, vectors, colors, URLs, TKeys,
+        multiline text...),)
+      @item(PathElement utility, to use powerful DOM functions when needed
+        to process something more complex,)
+      @item(encrypt/descrypt contents, just use BlowFishKeyPhrase property
+        (this is actually built-in in our modified TXMLConfig).)
+    )
+
+    See http://castle-engine.sourceforge.net/tutorial_user_prefs.php
+    for more documentation. }
   TCastleConfig = class(TXMLConfig)
   private
     FOnLoad, FOnSave: TCastleConfigEventList;
+    FLoaded: boolean;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -249,51 +261,92 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
 
     procedure NotModified;
 
-    { Called at @link(Load). }
-    property OnLoad: TCastleConfigEventList read FOnLoad;
+    { Listeners, automatically called at the @link(Load) or @link(Save)
+      calls.
 
-    { Called at @link(Save). }
-    property OnSave: TCastleConfigEventList read FOnSave;
+      @bold(If the config file is already loaded when you call
+      AddLoadListener, then the Listener is called immediately.)
+      This is useful to make sure that Listener is always called,
+      regardless of the order. (Regardless if you call Config.Load
+      or Config.AddLoadListener first.)
 
-    { Load the current configuration of the engine components.
-      Sets @code(TXMLConfig.URL), loading the appropriate file to our properties,
-      and then calls the OnLoad callbacks to allow all engine components
-      read their settings.
+      @groupBegin }
+    procedure AddLoadListener(const Listener: TCastleConfigEvent);
+    procedure AddSaveListener(const Listener: TCastleConfigEvent);
+    procedure RemoveLoadListener(const Listener: TCastleConfigEvent);
+    procedure RemoveSaveListener(const Listener: TCastleConfigEvent);
+    { @groupEnd }
 
-      Accepts URL as parameter, converting it to a local filename
-      under the hood.
+    { Load the current persistent data (user preferences, savegames etc.).
+      All the versions load the appropriate file,
+      and call all the listeners (from AddLoadListener)
+      to allow the engine (and your own) components to read our settings.
 
-      The overloaded parameter-less version chooses
-      a suitable filename for storing per-program user preferences.
-      It uses ApplicationName to pick a filename that is unique
-      to your application (usually you want to assign OnGetApplicationName
-      callback to set your name, unless you're fine with default determination
-      that looks at stuff like ParamStr(0)).
-      See FPC OnGetApplicationName docs.
-      It uses @link(ApplicationConfig) to determine location of this file.
+      @unorderedList(
+        @item(The overloaded parameter-less version chooses
+          a default filename for storing application user preferences.
 
-      The overloaded version with TStream parameter loads from a stream.
-      URL is set to empty.
+          It uses ApplicationName to pick a filename that is unique
+          to your application (usually you want to assign OnGetApplicationName
+          callback to set your name, unless you're fine with default determination
+          that looks at stuff like ParamStr(0)).
+          See FPC OnGetApplicationName docs.
+          It uses @link(ApplicationConfig) to determine location of this file.
+
+          In case the default config is corrupted, it automatically
+          catches the exception and loads an empty config.
+          It also stores the URL in this case to make sure that following
+          @link(Save) call with overwrite the default config location with a good one.
+          This is useful in case user somehow corrupted the config file on disk.)
+
+        @item(The overloaded version with URL parameter
+          sets @code(TXMLConfig.URL), loading the file from given URL.
+          As always, URL may be just a simple filename,
+          or an URL with 'file://' protocol, to just load a file from
+          the local filesystem.)
+
+        @item(The overloaded version with TStream parameter loads from a stream.
+          URL is set to PretendURL (just pass empty string if you don't
+          want to be able to save it back).)
+      )
 
       @groupBegin }
     procedure Load(const AURL: string);
     procedure Load;
-    procedure Load(const Stream: TStream);
+    procedure Load(const Stream: TStream; const PretendURL: string);
+    procedure LoadFromString(const Data: string; const PretendURL: string);
+    //procedure LoadFromBase64(const Base64Contents: string);
     { @groupEnd }
+
+    { Load empty config. This loads a clear content, without any saved
+      settings, but it takes care to set @link(Loaded) to @true,
+      run OnLoad listeners and so on. Useful if your default config
+      is broken for some reason (e.g. file corruption),
+      but you want to override it and just get into a state
+      where config is considered loaded.  }
+    procedure LoadEmpty(const PretendURL: string);
+
+    property Loaded: boolean read FLoaded;
 
     { Save the configuration of all engine components.
       Calls the OnSave callbacks to allow all engine components
-      to store their settings in our properties, and then flushes
-      them to disk (using @code(TXMLConfig.URL) property)
-      by inherited Flush method.
+      to store their settings in our properties.
 
-      The overloaded version with TStream parameter saves to a stream.
-      If does not use inherited Flush method, instead it always unconditionally
-      dumps contents to stream.
+      @unorderedList(
+        @item(The overloaded parameter-less version flushes
+          the changes to disk, thus saving them back to the file from which
+          they were read (in @code(TXMLConfig.URL) property).)
+
+        @item(The overloaded version with TStream parameter saves to a stream.
+          If does not use inherited Flush method, instead it always
+          unconditionally dumps contents to stream.)
+      )
 
       @groupBegin }
     procedure Save;
     procedure Save(const Stream: TStream);
+    function SaveToString: string;
+    //function SaveToBase64: string;
     { @groupEnd }
   end;
 
@@ -301,7 +354,9 @@ procedure Register;
 
 implementation
 
-uses CastleStringUtils, CastleFilesUtils, CastleLog, CastleURIUtils;
+uses //Base64,
+  CastleStringUtils, CastleFilesUtils, CastleLog, CastleURIUtils,
+  CastleWarnings;
 
 procedure Register;
 begin
@@ -593,11 +648,11 @@ begin
     Result := DefaultValue else
     Result := E.TextContent;
   { convert all to Unix-line endings }
-  StringReplaceAllTo1st(Result, #13, '', false);
+  StringReplaceAllVar(Result, #13, '', false);
   { in case we're not on Unix, convert to current line endings }
   {$warnings off} { don't warn about dead code on OSes where NL = #10 }
   if #10 <> NL then
-    StringReplaceAllTo1st(Result, #10, NL, false);
+    StringReplaceAllVar(Result, #10, NL, false);
   {$warnings on}
 end;
 
@@ -616,40 +671,137 @@ end;
 procedure TCastleConfig.Load(const AURL: string);
 begin
   URL := AURL;
-  OnLoad.ExecuteAll(Self);
+  FOnLoad.ExecuteAll(Self);
+  FLoaded := true;
 
   { This is used for various files (not just user preferences,
-    also resource.xml files), and logging this gets too talkative for now.
-  if Log then
-    WritelnLog('Config', 'Loading configuration from "%s"', [AURL]); }
+    also resource.xml files). Logging this may get talkative, but it's also
+    useful for now... }
+  WritelnLog('Config', 'Loading configuration from "%s"', [AURL]);
 end;
 
 procedure TCastleConfig.Load;
+var
+  LoadURL: string;
 begin
-  Load(ApplicationConfig(ApplicationName + '.conf'));
+  LoadURL := ApplicationConfig(ApplicationName + '.conf');
+  try
+    Load(LoadURL);
+  except
+    on E: Exception do
+    begin
+      OnWarning(wtMajor, 'UserConfig', 'User config corrupted (will load defaults): ' + E.Message);
+      LoadEmpty(LoadURL);
+    end;
+  end;
 end;
 
 procedure TCastleConfig.Save;
 begin
-  OnSave.ExecuteAll(Self);
+  FOnSave.ExecuteAll(Self);
   Flush;
-
   if Log and (URL <> '') then
     WritelnLog('Config', 'Saving configuration to "%s"', [URL]);
 end;
 
-procedure TCastleConfig.Load(const Stream: TStream);
+procedure TCastleConfig.Load(const Stream: TStream; const PretendURL: string);
 begin
   WritelnLog('Config', 'Loading configuration from stream');
-  LoadFromStream(Stream);
-  OnLoad.ExecuteAll(Self);
+  LoadFromStream(Stream, PretendURL);
+  FOnLoad.ExecuteAll(Self);
+  FLoaded := true;
 end;
 
 procedure TCastleConfig.Save(const Stream: TStream);
 begin
-  OnSave.ExecuteAll(Self);
+  FOnSave.ExecuteAll(Self);
   SaveToStream(Stream);
   WritelnLog('Config', 'Saving configuration to stream');
+end;
+
+procedure TCastleConfig.AddLoadListener(const Listener: TCastleConfigEvent);
+begin
+  if Loaded then
+    Listener(Self);
+  FOnLoad.Add(Listener);
+end;
+
+procedure TCastleConfig.AddSaveListener(const Listener: TCastleConfigEvent);
+begin
+  FOnSave.Add(Listener);
+end;
+
+procedure TCastleConfig.RemoveLoadListener(const Listener: TCastleConfigEvent);
+begin
+  FOnLoad.Remove(Listener);
+end;
+
+procedure TCastleConfig.RemoveSaveListener(const Listener: TCastleConfigEvent);
+begin
+  FOnSave.Remove(Listener);
+end;
+
+{ // Should work, but was never tested
+procedure TCastleConfig.LoadFromBase64(const Base64Contents: string);
+var
+  Base64Decode: TBase64DecodingStream;
+  InputStream: TStringStream;
+begin
+  InputStream := TStringStream.Create(Base64Contents);
+  try
+    Base64Decode := TBase64DecodingStream.Create(InputStream, bdmMIME);
+    try
+      Load(Base64Decode);
+    finally FreeAndNil(Base64Decode) end;
+  finally FreeAndNil(InputStream) end;
+end;
+}
+
+procedure TCastleConfig.LoadFromString(const Data: string; const PretendURL: string);
+var
+  InputStream: TStringStream;
+begin
+  InputStream := TStringStream.Create(Data);
+  try
+    Load(InputStream, PretendURL);
+  finally FreeAndNil(InputStream) end;
+end;
+
+procedure TCastleConfig.LoadEmpty(const PretendURL: string);
+const
+  EmptyConfig = '<?xml version="1.0" encoding="utf-8"?>' + LineEnding +
+    '<CONFIG>' + LineEnding +
+    '</CONFIG>';
+begin
+  LoadFromString(EmptyConfig, PretendURL);
+end;
+
+{ // Should work, but was never tested
+function TCastleConfig.SaveToBase64: string;
+var
+  Base64Encode: TBase64EncodingStream;
+  ResultStream: TStringStream;
+begin
+  ResultStream := TStringStream.Create('');
+  try
+    Base64Encode := TBase64EncodingStream.Create(ResultStream);
+    try
+      Save(Base64Encode);
+      Result := ResultStream.DataString;
+    finally FreeAndNil(Base64Encode) end;
+  finally FreeAndNil(ResultStream) end;
+end;
+}
+
+function TCastleConfig.SaveToString: string;
+var
+  ResultStream: TStringStream;
+begin
+  ResultStream := TStringStream.Create('');
+  try
+    Save(ResultStream);
+    Result := ResultStream.DataString;
+  finally FreeAndNil(ResultStream) end;
 end;
 
 end.

@@ -14,10 +14,10 @@ begin
   XFrac := Frac(X); if XFrac < 0 then XFrac += 1;
   YFrac := Frac(Y); if YFrac < 0 then YFrac += 1;
 
-  Result := SplineInterpolate(
-    SplineInterpolate( IntegerNoise(X0, Y0, Seed), IntegerNoise(X1, Y0, Seed), IntegerNoise(X2, Y0, Seed), IntegerNoise(X3, Y0, Seed), XFrac),
-    SplineInterpolate( IntegerNoise(X0, Y1, Seed), IntegerNoise(X1, Y1, Seed), IntegerNoise(X2, Y1, Seed), IntegerNoise(X3, Y1, Seed), XFrac),
-    SplineInterpolate( IntegerNoise(X0, Y2, Seed), IntegerNoise(X1, Y2, Seed), IntegerNoise(X2, Y2, Seed), IntegerNoise(X3, Y2, Seed), XFrac),
-    SplineInterpolate( IntegerNoise(X0, Y3, Seed), IntegerNoise(X1, Y3, Seed), IntegerNoise(X2, Y3, Seed), IntegerNoise(X3, Y3, Seed), XFrac),
+  Result := CatmullRom(
+    CatmullRom( IntegerNoise(X0, Y0, Seed), IntegerNoise(X1, Y0, Seed), IntegerNoise(X2, Y0, Seed), IntegerNoise(X3, Y0, Seed), XFrac),
+    CatmullRom( IntegerNoise(X0, Y1, Seed), IntegerNoise(X1, Y1, Seed), IntegerNoise(X2, Y1, Seed), IntegerNoise(X3, Y1, Seed), XFrac),
+    CatmullRom( IntegerNoise(X0, Y2, Seed), IntegerNoise(X1, Y2, Seed), IntegerNoise(X2, Y2, Seed), IntegerNoise(X3, Y2, Seed), XFrac),
+    CatmullRom( IntegerNoise(X0, Y3, Seed), IntegerNoise(X1, Y3, Seed), IntegerNoise(X2, Y3, Seed), IntegerNoise(X3, Y3, Seed), XFrac),
     YFrac);
 end;

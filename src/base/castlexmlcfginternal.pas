@@ -106,12 +106,12 @@ type
     property Modified: Boolean read FModified;
 
     { Load and save config state to a TStream instance.
-      Loading changes URL to empty, and does Flush before, so it works
+      Loading changes URL to PretendURL, and does Flush before, so it works
       similarly to setting an URL.
       Saving does not change any state (it also ignores the @link(Modified)
       value), it unconditionally dumps the contents to stream.
       @groupBegin }
-    procedure LoadFromStream(const Stream: TStream);
+    procedure LoadFromStream(const Stream: TStream; const PretendURL: string);
     procedure SaveToStream(const Stream: TStream);
     { @groupEnd }
   published
@@ -443,11 +443,11 @@ begin
   {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('TXMLConfig.SetURL END');{$ENDIF}
 end;
 
-procedure TXMLConfig.LoadFromStream(const Stream: TStream);
+procedure TXMLConfig.LoadFromStream(const Stream: TStream; const PretendURL: string);
 begin
   Flush;
   FreeAndNil(Doc);
-  FURL := '';
+  FURL := PretendURL;
 
   ReadXMLFile(Doc, Stream);
 

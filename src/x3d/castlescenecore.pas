@@ -313,7 +313,7 @@ type
   public
     function IndexOfTextureNode(TextureNode: TX3DNode): Integer;
     function FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
-    procedure AddShapeTexture(Shape: TShape; Tex: TAbstractTextureNode);
+    function AddShapeTexture(Shape: TShape; Tex: TAbstractTextureNode): Pointer;
     procedure UpdateShadowMaps(LightNode: TAbstractLightNode);
   end;
 
@@ -747,9 +747,9 @@ type
     FMainLightForShadows: TVector4Single;
     FMainLightForShadowsNode: TAbstractLightNode;
     FMainLightForShadowsTransform: TMatrix4Single;
-    procedure SearchMainLightForShadows(
+    function SearchMainLightForShadows(
       Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
     { Based on FMainLightForShadowsNode and FMainLightForShadowsTransform,
       calculate FMainLightForShadows (position). }
     procedure CalculateMainLightForShadowsPosition;
@@ -2228,15 +2228,17 @@ var
 begin
   Index := IndexOfTextureNode(TextureNode);
   if Index <> -1 then
-    Result := Addr(L[Index]) else
+    Result := Ptr(Index) else
     Result := nil;
 end;
 
-procedure TGeneratedTextureList.AddShapeTexture(Shape: TShape;
-  Tex: TAbstractTextureNode);
+function TGeneratedTextureList.AddShapeTexture(Shape: TShape;
+  Tex: TAbstractTextureNode): Pointer;
 var
   GenTex: PGeneratedTexture;
 begin
+  Result := nil;
+
   if (Tex is TGeneratedCubeMapTextureNode) or
      (Tex is TGeneratedShadowMapNode) or
      (Tex is TRenderedTextureNode) then
@@ -2641,14 +2643,14 @@ type
     ParentScene: TCastleSceneCore;
     ShapesGroup: TShapeTreeGroup;
     Active: boolean;
-    procedure Traverse(
+    function Traverse(
       Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
   end;
 
-procedure TChangedAllTraverser.Traverse(
+function TChangedAllTraverser.Traverse(
   Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
 
   { Handle ITransformNode node }
   procedure HandleTransform(TransformNode: TX3DNode);
@@ -2811,6 +2813,8 @@ procedure TChangedAllTraverser.Traverse(
 var
   Shape: TShape;
 begin
+  Result := nil;
+
   if Node is TAbstractGeometryNode then
   begin
     { Add shape to Shapes }
@@ -3057,7 +3061,7 @@ procedure TCastleSceneCore.ChangedAll;
 
     for I := 0 to GlobalLights.Count - 1 do
     begin
-      L := Addr(GlobalLights.L[I]);
+      L := GlobalLights.Ptr(I);
       LNode := L^.Node;
 
       { TODO: for spot lights, it would be an optimization to also limit
@@ -3246,14 +3250,14 @@ type
       active or not). }
     Inactive: Cardinal;
     Changes: TX3DChanges;
-    procedure TransformChangeTraverse(
+    function TransformChangeTraverse(
       Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
   end;
 
-procedure TTransformChangeHelper.TransformChangeTraverse(
+function TTransformChangeHelper.TransformChangeTraverse(
   Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
 
   { Handle ITransformNode }
   procedure HandleTransform(TransformNode: TX3DNode);
@@ -3290,7 +3294,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
       Shapes := @NewShapes;
 
       TransformNode.TraverseIntoChildren(
-        StateStack, TX3DNode, @TransformChangeTraverse, ParentInfo);
+        StateStack, TX3DNode, @Self.TransformChangeTraverse, ParentInfo);
     finally Shapes := OldShapes end;
 
     TraverseIntoChildren := false;
@@ -3324,7 +3328,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
         if ChildInactive then Inc(Inactive);
 
         SwitchNode.FdChildren.Items[I].TraverseInternal(
-          StateStack, TX3DNode, @TransformChangeTraverse, ParentInfo);
+          StateStack, TX3DNode, @Self.TransformChangeTraverse, ParentInfo);
 
         if ChildInactive then Dec(Inactive);
       end;
@@ -3367,7 +3371,7 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
         if Cardinal(I) <> ShapeLOD.Level then Inc(Inactive);
 
         LODNode.FdChildren.Items[I].TraverseInternal(
-          StateStack, TX3DNode, @TransformChangeTraverse, ParentInfo);
+          StateStack, TX3DNode, @Self.TransformChangeTraverse, ParentInfo);
 
         if Cardinal(I) <> ShapeLOD.Level then Dec(Inactive);
       end;
@@ -3464,6 +3468,8 @@ procedure TTransformChangeHelper.TransformChangeTraverse(
 var
   Shape: TShape;
 begin
+  Result := nil;
+
   case Node.TransformationChange of
     ntcNone: ;
     ntcSwitch: HandleSwitch(TSwitchNode(Node));
@@ -3813,7 +3819,7 @@ var
         if SI.Current.State.Lights <> nil then
           for J := 0 to SI.Current.State.Lights.Count - 1 do
           begin
-            LightInstance := Addr(SI.Current.State.Lights.L[J]);
+            LightInstance := SI.Current.State.Lights.Ptr(J);
             if LightInstance^.Node = LightNode then
             begin
               LightNode.UpdateLightInstance(LightInstance^);
@@ -3860,7 +3866,7 @@ var
       for a testcase. }
     for I := 0 to GlobalLights.Count - 1 do
     begin
-      L := Addr(GlobalLights.L[I]);
+      L := GlobalLights.Ptr(I);
       if L^.Node = ANode then
         L^.Node.UpdateLightInstance(L^);
     end;
@@ -4713,20 +4719,17 @@ end;
 { viewpoints ----------------------------------------------------------------- }
 
 type
-  BreakFirstViewpointFound = class(TCodeBreaker);
-
   TFirstViewpointSeeker = class
     OnlyPerspective: boolean;
     ViewpointDescription: string;
-    FoundNode: TAbstractViewpointNode;
-    procedure Seek(
+    function Seek(
       Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+      ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
   end;
 
-  procedure TFirstViewpointSeeker.Seek(
+  function TFirstViewpointSeeker.Seek(
     Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-    ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+    ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
   var
     V: TAbstractViewpointNode;
   begin
@@ -4736,10 +4739,8 @@ type
        ( (ViewpointDescription = '') or
          ( (Node is TAbstractX3DViewpointNode) and
            (TAbstractX3DViewpointNode(Node).FdDescription.Value = ViewpointDescription) ) ) then
-    begin
-      FoundNode := V;
-      raise BreakFirstViewpointFound.Create;
-    end;
+      Result := V else
+      Result := nil;
   end;
 
 function TCastleSceneCore.GetViewpointCore(
@@ -4758,15 +4759,8 @@ begin
     try
       Seeker.OnlyPerspective := OnlyPerspective;
       Seeker.ViewpointDescription := ViewpointDescription;
-
-      try
-        RootNode.Traverse(TAbstractViewpointNode, @Seeker.Seek);
-      except
-        on BreakFirstViewpointFound do
-        begin
-          Result := Seeker.FoundNode;
-        end;
-      end;
+      Result := TAbstractViewpointNode(
+        RootNode.Traverse(TAbstractViewpointNode, @Seeker.Seek));
     finally FreeAndNil(Seeker) end;
   end;
 
@@ -6379,9 +6373,6 @@ begin
   Result := FFogStack;
 end;
 
-type
-  BreakMainLightForShadows = class(TCodeBreaker);
-
 procedure TCastleSceneCore.CalculateMainLightForShadowsPosition;
 begin
   if FMainLightForShadowsNode is TAbstractPositionalLightNode then
@@ -6399,9 +6390,9 @@ begin
       'and no direction', [FMainLightForShadowsNode.NodeTypeName]);
 end;
 
-procedure TCastleSceneCore.SearchMainLightForShadows(
+function TCastleSceneCore.SearchMainLightForShadows(
   Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
-  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean);
+  ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
 var
   L: TAbstractLightNode absolute Node;
 begin
@@ -6412,8 +6403,9 @@ begin
     FMainLightForShadowsTransform := StateStack.Top.Transform;
     FMainLightForShadowsExists := true;
     CalculateMainLightForShadowsPosition;
-    raise BreakMainLightForShadows.Create;
-  end;
+    Result := Node; // anything non-nil to break traversing
+  end else
+    Result := nil;
 end;
 
 procedure TCastleSceneCore.ValidateMainLightForShadows;
@@ -6422,9 +6414,7 @@ procedure TCastleSceneCore.ValidateMainLightForShadows;
   begin
     FMainLightForShadowsExists := false;
     if RootNode <> nil then
-    try
       RootNode.Traverse(TAbstractLightNode, @SearchMainLightForShadows);
-    except on BreakMainLightForShadows do ; end;
   end;
 
 begin

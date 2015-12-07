@@ -13,50 +13,62 @@
   ----------------------------------------------------------------------------
 }
 
-{ Controls drawn inside OpenGL context. }
+{ Standard 2D controls: buttons, labels, sliders etc. }
 unit CastleControls;
 
 interface
 
 uses Classes, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
-  CastleColors, CastleProgress;
+  CastleColors, CastleProgress, CastleTimeUtils;
 
 type
   TCastleLabel = class;
 
-  { Base class for all controls inside an OpenGL context using a font. }
-  TUIControlFont = class(TUIRectangularControl)
+  { Base class for all controls inside an OpenGL context using a font.
+    Allows to customize font and font size per-control, or use defaults. }
+  TUIControlFont = class(TUIControl)
   private
     FTooltip: string;
     TooltipLabel: TCastleLabel;
     FCustomFont: TCastleFont;
     FOwnsCustomFont: boolean;
-    FLastSeenUIFont: TCastleFont; //< remembered only to call FontChanged
+    FLastSeenUIFontXxx: TCastleFont; //< remembered only to call FontChanged
+    FFontSize: Single;
+    FCustomizedFont: TCustomizedFont; //< used only when FFontSize <> 0 for now
+    FSmallFont: boolean;
     procedure SetCustomFont(const Value: TCastleFont);
+    procedure SetFontSize(const Value: Single);
+    procedure SetSmallFont(const Value: boolean);
   protected
-    { Font custom to this control. By default this returns UIFont,
-      you can override this to return your font.
-      It's OK to return here @nil if font is not ready yet,
-      but during Render (when OpenGL context is available) font must be ready. }
-    function Font: TCastleFont; virtual;
-    { Called when Font result changed, either by setting CustomFont or when
-      UIFont assigned changed. }
+    { Font that should be used for rendering and measuring this control.
+
+      Depending on various properties
+      (@(SmallFont), @link(CustomFont), @link(FontSize), @link(TUIControl.UIScale))
+      it may return @link(UIFont), @link(UIFontSmall), or @link(CustomFont),
+      or a TCustomizedFont instances that wraps (and scales) one of the above. }
+    function Font: TCastleFont;
+
+    { Called when Font or it's size changed. }
     procedure FontChanged; virtual;
+    procedure UIScaleChanged; override;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     destructor Destroy; override;
     procedure GLContextClose; override;
     function TooltipExists: boolean; override;
     procedure TooltipRender; override;
     procedure Render; override;
-    { Check does currently used font (see CustomFont) changed,
+    { Check does currently used font (see @link(Font)) changed,
       and eventually call FontChanged method @italic(now).
 
       You only need to explicitly call this in very specific circumstances,
-      when you just changed UIFont (changing CustomFont automatically
-      immediately calls FontChanged) and you want control size to be updated
-      immediately (for example, you need TCastleButton.Height to be immediately
-      valid). Without calling this, it could be updated only at next Render call. }
+      when you just changed @link(UIFont) or @link(UIFontSmall) (as changing
+      @link(CustomFont) automatically
+      immediately calls this) and you want control size to be updated
+      immediately (for example, you need @link(TCastleButton.Height)
+      to be immediately valid). Without calling this,
+      it could be updated only at next Render call. }
     procedure CheckFontChanged;
   published
     { Tooltip string, displayed when user hovers the mouse over a control.
@@ -67,11 +79,27 @@ type
     property Tooltip: string read FTooltip write FTooltip;
 
     { When non-nil, this font will be used to draw this control.
-      Otherwise the default UIFont will be used. }
+      Otherwise the global @link(UIFont) or @link(UIFontSmall)
+      (depending on @link(SmallFont)) will be used. }
     property CustomFont: TCastleFont
       read FCustomFont write SetCustomFont;
     property OwnsCustomFont: boolean
       read FOwnsCustomFont write FOwnsCustomFont default false;
+      deprecated 'use TCastleFont (inherited from TComponent) owner mechanism';
+
+    { Use given font size when drawing. Leave at default zero to use
+      the default size of the font (may still be scaled by @link(TUIControl.UIScale),
+      but this happens only if @link(TUIContainer.UIScaling) is set to
+      something else than default usNone).
+      Font itself is taken from
+      @link(CustomFont) or, if not set, from @link(UIFont) or @link(UIFontSmall). }
+    property FontSize: Single read FFontSize write SetFontSize default 0.0;
+
+    { Use smaller font.
+      If no @link(CustomFont) is assigned, this says to use
+      @link(UIFontSmall) instead of @link(UIFont).
+      If @link(CustomFont) is assigned, this says to scale it's size by 2. }
+    property SmallFont: boolean read FSmallFont write SetSmallFont default false;
   end;
 
   TCastleButtonImageLayout = (ilTop, ilBottom, ilLeft, ilRight);
@@ -92,9 +120,22 @@ type
     FAutoSize, FAutoSizeWidth, FAutoSizeHeight: boolean;
     TextWidth, TextHeight: Cardinal;
     FPressed: boolean;
-    FOwnsImage: boolean;
-    FImage: TCastleImage;
-    FGLImage: TGLImage;
+    FImage,
+      FCustomBackgroundPressed,
+      FCustomBackgroundFocused,
+      FCustomBackgroundNormal: TCastleImage;
+    FGLImage,
+      FGLCustomBackgroundPressed,
+      FGLCustomBackgroundFocused,
+      FGLCustomBackgroundNormal: TGLImage;
+    FOwnsImage,
+      FOwnsCustomBackgroundPressed,
+      FOwnsCustomBackgroundFocused,
+      FOwnsCustomBackgroundNormal: boolean;
+    FCustomBackground: boolean;
+    FCustomBackgroundCorners: TVector4Integer;
+    FCustomTextColor: TCastleColor;
+    FCustomTextColorUse: boolean;
     FToggle: boolean;
     ClickStarted: boolean;
     FMinImageWidth: Cardinal;
@@ -104,6 +145,7 @@ type
     FMinWidth, FMinHeight: Cardinal;
     FImageMargin: Cardinal;
     FPaddingHorizontal, FPaddingVertical: Cardinal;
+    FTintPressed, FTintFocused, FTintNormal: TCastleColor;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -114,7 +156,9 @@ type
       This depends on Caption, AutoSize*, Font availability. }
     procedure UpdateSize;
     procedure SetImage(const Value: TCastleImage);
-    procedure SetPressed(const Value: boolean);
+    procedure SetCustomBackgroundPressed(const Value: TCastleImage);
+    procedure SetCustomBackgroundFocused(const Value: TCastleImage);
+    procedure SetCustomBackgroundNormal(const Value: TCastleImage);
     procedure SetImageLayout(const Value: TCastleButtonImageLayout);
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
@@ -123,6 +167,7 @@ type
     procedure SetImageMargin(const Value: Cardinal);
   protected
     procedure FontChanged; override;
+    procedure SetPressed(const Value: boolean); virtual;
   public
     const
       DefaultImageMargin = 10;
@@ -132,7 +177,6 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function PositionInside(const Position: TVector2Single): boolean; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -156,6 +200,47 @@ type
       to be displayed at the same level, regardless of their images sizes. }
     property MinImageWidth: Cardinal read FMinImageWidth write FMinImageWidth default 0;
     property MinImageHeight: Cardinal read FMinImageHeight write FMinImageHeight default 0;
+
+    { Color tint when button is pressed. Opaque white by default. }
+    property TintPressed: TCastleColor read FTintPressed write FTintPressed;
+    { Color tint when button is focused. Opaque white by default. }
+    property TintFocused: TCastleColor read FTintFocused write FTintFocused;
+    { Color tint when button is neither pressed nor focused. Opaque white by default. }
+    property TintNormal : TCastleColor read FTintNormal  write FTintNormal;
+
+    { Use custom background images. If @true, we use properties
+      @unorderedList(
+        @item @link(CustomBackgroundPressed) (or fallback on @link(CustomBackgroundNormal) if @nil),
+        @item @link(CustomBackgroundFocused) (or fallback on @link(CustomBackgroundNormal) if @nil),
+        @item @link(CustomBackgroundNormal) (or fallback on transparent background if @nil).
+      ).
+      They are rendered as 3x3 images (see TGLImage.Draw3x3) with corners
+      specified by @link(CustomBackgroundCorners). }
+    property CustomBackground: boolean read FCustomBackground write FCustomBackground default false;
+
+    { Background image on the pressed button. See @link(CustomBackground) for details. }
+    property CustomBackgroundPressed: TCastleImage read FCustomBackgroundPressed write SetCustomBackgroundPressed;
+    { Should we free @link(CustomBackgroundPressed) image when you set another one or at destructor. }
+    property OwnsCustomBackgroundPressed: boolean read FOwnsCustomBackgroundPressed write FOwnsCustomBackgroundPressed default false;
+    { Background image on the focused button. See @link(CustomBackground) for details. }
+    property CustomBackgroundFocused: TCastleImage read FCustomBackgroundFocused write SetCustomBackgroundFocused;
+    { Should we free @link(CustomBackgroundFocused) image when you set another one or at destructor. }
+    property OwnsCustomBackgroundFocused: boolean read FOwnsCustomBackgroundFocused write FOwnsCustomBackgroundFocused default false;
+    { Background image on the normal button. See @link(CustomBackground) for details. }
+    property CustomBackgroundNormal: TCastleImage read FCustomBackgroundNormal write SetCustomBackgroundNormal;
+    { Should we free @link(CustomBackgroundNormal) image when you set another one or at destructor. }
+    property OwnsCustomBackgroundNormal: boolean read FOwnsCustomBackgroundNormal write FOwnsCustomBackgroundNormal default false;
+
+    { Corners used when rendering custom background images.
+      See @link(CustomBackground) for details. Zero by default. }
+    property CustomBackgroundCorners: TVector4Integer read FCustomBackgroundCorners write FCustomBackgroundCorners;
+
+    { Should we use custom text color in @link(CustomTextColor)
+      instead of @code(Theme.TextColor). }
+    property CustomTextColorUse: boolean read FCustomTextColorUse write FCustomTextColorUse;
+    { Text color to use if @link(CustomTextColorUse) is @true.
+      Black by default, just like @code(Theme.TextColor). }
+    property CustomTextColor: TCastleColor read FCustomTextColor write FCustomTextColor;
   published
     property Width: Cardinal read FWidth write SetWidth default 0;
     property Height: Cardinal read FHeight write SetHeight default 0;
@@ -230,7 +315,7 @@ type
     for other controls like buttons and such.
     May be used as a toolbar, together with appropriately placed
     TCastleButton over it. }
-  TCastlePanel = class(TUIRectangularControl)
+  TCastlePanel = class(TUIControl)
   private
     FWidth: Cardinal;
     FHeight: Cardinal;
@@ -241,7 +326,6 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function PositionInside(const Position: TVector2Single): boolean; override;
     function Rect: TRectangle; override;
 
     { Separator lines drawn on panel. Useful if you want to visually separate
@@ -266,7 +350,7 @@ type
     We automatically use alpha test or alpha blending based
     on loaded image alpha channel (see TGLImage.Alpha).
     You can influence this by @link(AlphaChannel) property. }
-  TCastleImageControl = class(TUIRectangularControl)
+  TCastleImageControl = class(TUIControl)
   private
     FURL: string;
     FImage: TCastleImage;
@@ -277,6 +361,16 @@ type
     FFullSize: boolean;
     FWidth: Cardinal;
     FHeight: Cardinal;
+    FColor: TCastleColor;
+    FCorners: TVector4Integer;
+    FOwnsImage: boolean;
+    FSmoothScaling: boolean;
+    function GetCenterX: Single;
+    function GetCenterY: Single;
+    function GetRotation: Single;
+    procedure SetCenterX(AValue: Single);
+    procedure SetCenterY(AValue: Single);
+    procedure SetRotation(AValue: Single);
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TCastleImage);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
@@ -287,30 +381,58 @@ type
     procedure SetHeight(const Value: Cardinal);
     procedure SetFullSize(const Value: boolean);
     procedure SetProportional(const Value: boolean);
+    procedure SetColor(const Value: TCastleColor);
+    procedure SetSmoothScaling(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function PositionInside(const Position: TVector2Single): boolean; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
     function Rect: TRectangle; override;
+    procedure ImageChanged;
 
-    { Image displayed, or @nil if none.
-      This image is owned by this component. If you set this property
-      to your custom TCastleImage instance you should
+    { Image displayed, or @nil if none. You can set it by setting @link(URL),
+      or you can set this property directly if you loaded/created the image contents
+      yourself.
+
+      Note that by default the TCastleImage instance assigned here is owned
+      by this component (see @link(OwnsImage)).
+      So if you set this property to your custom TCastleImage instance you should
       leave memory management of this instance to this component.
       If necessary, you can always create a copy by TCastleImage.MakeCopy
-      if you want to give here only a copy.
+      if you want to give here only a copy, or you can change @link(OwnsImage) to @false.
 
       It is allowed to modify the contents or even size of this image.
       Just make sure to call ImageChanged after the modifications are done
       to update the actual rendered image.
-      The control size will be updated immediately (respecing current
-      @link(Stretch) and related properties). }
+      The control size will be updated immediately (taking into account current
+      @link(Stretch) and related properties values). }
     property Image: TCastleImage read FImage write SetImage;
 
-    procedure ImageChanged;
+    { Whether the memory management of assigned @link(Image) is automatic.
+      See @link(Image) documentation for details. }
+    property OwnsImage: boolean read FOwnsImage write FOwnsImage default true;
+
+    { Color tint of the image. This simply multiplies the image RGBA components,
+      just like @link(TGLImage.Color). By default this is opaque white,
+      which means that image colors are unchanged. }
+    property Color: TCastleColor read FColor write SetColor;
+
+    { Corners of the image that are not stretched even
+      in case @link(Stretch) is used.
+      See @link(TGLImage.Draw3x3) for the details how drawing image
+      with borders work. }
+    property Corners: TVector4Integer read FCorners write FCorners;
+
+    { X coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
+    property CenterX: Single read GetCenterX write SetCenterX default 0.5;
+
+    { Y coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
+    property CenterY: Single read GetCenterY write SetCenterY default 0.5;
+
+    { Rotation in degrees. Default value 0. }
+    property Rotation: Single read GetRotation write SetRotation default 0;
   published
     { URL of the image. Setting this also sets @link(Image).
       Set this to '' to clear the image. }
@@ -326,6 +448,12 @@ type
     { Deprecated, use more flexible AlphaChannel instead. }
     property Blending: boolean read GetBlending write SetBlending stored false; deprecated;
 
+    { Is the image scaling mode smooth (bilinear filtering)
+      or not (nearest-pixel filtering).
+      See @link(TGLImage.SmoothScaling). }
+    property SmoothScaling: boolean
+      read FSmoothScaling write SetSmoothScaling default true;
+
     { Size of the image control.
 
       If Stretch = @false, then values you set for Width, Height, FullSize,
@@ -339,8 +467,8 @@ type
       @unorderedList(
         @item(If Stretch = @true and FullSize = @true then values of Width,
           Height, Left, Bottom do not matter:
-          image always fills the whole container
-          (@link(Rect) corresponds to the container area).)
+          image always fills the whole parent
+          (@link(Rect) corresponds to the parent area).)
 
         @item(Otherwise, if Stretch = @true and Proportional = @true,
           then the image will be proportionally scaled to fit within
@@ -378,7 +506,7 @@ type
 
   { Control for touch interfaces. Shows one "lever", that can be moved
     up/down/left/right, and controls the movement while Walking or Flying. }
-  TCastleTouchControl = class(TUIRectangularControl)
+  TCastleTouchControl = class(TUIControl)
   private
     FTouchMode: TCastleTouchCtlMode;
     FLeverOffset: TVector2Single;
@@ -386,19 +514,13 @@ type
     FPosition: TCastleTouchPosition;
     function SizeScale: Single;
     procedure SetPosition(const Value: TCastleTouchPosition);
-    { Update Left and Bottom based on Position and current Container size. }
-    procedure UpdateLeftBottom;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
     { Size of this control, ignoring GetExists. }
-    function Width: Cardinal;
-    function Height: Cardinal;
     function Rect: TRectangle; override;
 
-    function PositionInside(const Position: TVector2Single): boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
@@ -410,6 +532,15 @@ type
   published
     property TouchMode: TCastleTouchCtlMode
       read FTouchMode write SetTouchMode default ctcmWalking;
+
+    { Set position of touch control. Right now this simply sets
+      the anchor using @link(TUIControl.HasHorizontalAnchor) and friends.
+      Tip: Use @link(TUIContainer.UIScaling) to have the anchors automatically
+      scale with screen size.
+
+      The size of the control is set to be constant physical size,
+      so it's not affected by @link(TUIContainer.UIScaling), only by
+      @link(TUIContainer.Dpi). }
     property Position: TCastleTouchPosition
       read FPosition write SetPosition default tpManual;
   end;
@@ -478,10 +609,11 @@ type
       When assigned, stretched to cover whole screen. }
     GLBackground: TGLImage;
     Background: TCastleImage;
-    Align: THorizontalPosition;
+    TextAlign: THorizontalPosition;
     { Should we display InputText }
     DrawInputText: boolean;
     Buttons: array of TCastleButton;
+    LifeTime: TFloatTime;
 
     procedure SetScroll(Value: Single);
     { How many pixels up should be move the text.
@@ -497,8 +629,6 @@ type
       Returns 0 if there are no Buttons = ''. }
     function ButtonsHeight: Integer;
     procedure UpdateSizes;
-    { The whole rectangle where we draw dialog box. }
-    function WholeMessageRect: TRectangle;
     { If ScrollBarVisible, ScrollBarWholeWidth. Else 0. }
     function RealScrollBarWholeWidth: Integer;
     function Font: TCastleFont;
@@ -507,6 +637,9 @@ type
       This is not magically handled --- if you implement a modal dialog box,
       you should check in your loop whether something set Answered to @true. }
     Answered: boolean;
+
+    { The whole rectangle where we draw dialog box. }
+    function Rect: TRectangle; override;
 
     { Input text. Displayed only if DrawInputText. }
     property InputText: string read FInputText write SetInputText;
@@ -520,7 +653,7 @@ type
       const AButtons: array of TCastleButton;
       const ADrawInputText: boolean; const AInputText: string;
       const ABackground: TCastleImage);
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+    procedure Resize; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -528,7 +661,7 @@ type
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
     procedure Render; override;
-    function PositionInside(const Position: TVector2Single): boolean; override;
+    function CapturesEventsAtPosition(const Position: TVector2Single): boolean; override;
   end;
 
   TThemeImage = (
@@ -537,25 +670,29 @@ type
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip,
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
-    tiCrosshair1, tiCrosshair2);
+    tiCrosshair1, tiCrosshair2, tiErrorBackground);
 
-  { Label with possibly multiline text, in a box. }
+  { Label with possibly multiline text, in an optional box. }
   TCastleLabel = class(TUIControlFont)
   private
     FText: TStrings;
-    FPadding: Integer;
+    FPaddingHorizontal, FPaddingVertical, FPadding: Integer;
     FLineSpacing: Integer;
     FColor: TCastleColor;
     FTags: boolean;
     FFrame: boolean;
+    FFrameColor: TCastleColor;
     FMaxWidth: Integer;
     { For internal use by tooltip rendering. In normal circumstances,
       leave this at tiLabel. }
     ImageType: TThemeImage;
     FAlignment: THorizontalPosition;
-    { Calculate surrounding rectangle, like for @link(Rect),
-      also calculating TextBroken (in case MaxWidth <> 0) along they way. }
-    function RectCore(out TextBroken: TStrings): TRectangle;
+    FAutoSize: boolean;
+    FWidth, FHeight: Cardinal;
+    function GetTextToRender(out FreeTextToRender: boolean): TStrings;
+    procedure SetWidth(const Value: Cardinal);
+    procedure SetHeight(const Value: Cardinal);
+    procedure SetAutoSize(const Value: boolean);
   public
     const
       DefaultLineSpacing = 2;
@@ -567,11 +704,32 @@ type
 
     { Text color. By default it's white. }
     property Color: TCastleColor read FColor write FColor;
+
+    { Color tint of the background image, see @link(Frame). By default white. }
+    property FrameColor: TCastleColor read FFrameColor write FFrameColor;
   published
+    property Width: Cardinal read FWidth write SetWidth default 0;
+    property Height: Cardinal read FHeight write SetHeight default 0;
+
+    { Should we automatically adjust size to the text size, or not.
+      The size of the label determines where does it display the @link(Frame),
+      where does it catch events, where is it aligned (see @link(Alignment))
+      and so on. }
+    property AutoSize: boolean read FAutoSize write SetAutoSize default true;
+
     property Text: TStrings read FText;
 
-    { Inside the label box, padding between rect borders and text. }
-    property Padding: Integer read FPadding write FPadding default 0;
+    { Inside the label rectangle, padding between rect borders and text.
+      Total horizontal padding is the sum @code(PaddingHorizontal + Padding),
+      total verical padding is the sum @code(PaddingVertical + Padding).
+      @groupBegin }
+    property PaddingHorizontal: Integer
+      read FPaddingHorizontal write FPaddingHorizontal default 0;
+    property PaddingVertical: Integer
+      read FPaddingVertical write FPaddingVertical default 0;
+    property Padding: Integer
+      read FPadding write FPadding default 0;
+    { @groupEnd }
 
     { Extra spacing between lines (may also be negative to squeeze lines
       tighter). }
@@ -583,11 +741,11 @@ type
 
     { Draw frame around the text. Frame uses theme image tiLabel,
       see TCastleTheme.Images if you want to customize it. }
-    property Frame: boolean read FFrame write FFrame default true;
+    property Frame: boolean read FFrame write FFrame default false;
 
     { If non-zero, limit the width of resulting label.
       The text will be broken in the middle of lines, to make it fit
-      (together with @link(Padding)) inside MaxWidth. }
+      (together with @link(PaddingHorizontal)) inside MaxWidth. }
     property MaxWidth: Integer read FMaxWidth write FMaxWidth;
 
     { Horizontal alignment of the text. }
@@ -597,26 +755,25 @@ type
 
   TCastleCrosshairShape = (csCross, csCrossRect);
 
-  TCastleCrosshair = class(TUIRectangularControl)
+  TCastleCrosshair = class(TUIControl)
   private
     FShape: TCastleCrosshairShape;
     procedure SetShape(const Value: TCastleCrosshairShape);
     function ImageType: TThemeImage;
-    function SizeScale: Single;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
 
     { Size of this control, ignoring GetExists. }
-    function Width: Cardinal;
-    function Height: Cardinal;
     function Rect: TRectangle; override;
-    function PositionInside(const Position: TVector2Single): boolean; override;
-
   published
-    { 0: invisible, 1: cross, 2: cross with rect }
     property Shape: TCastleCrosshairShape read FShape write SetShape default csCross;
+
+    { By default, crosshair is centered. }
+    property HasHorizontalAnchor default true;
+    property HasVerticalAnchor default true;
+    property HorizontalAnchor default hpMiddle;
+    property VerticalAnchor default vpMiddle;
   end;
 
   TCastleProgressBar = class(TUIControl)
@@ -633,7 +790,7 @@ type
     procedure Render; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
-    function Rect: TRectangle;
+    function Rect: TRectangle; override;
 
     { Progress that rules the position and title displayed. }
     property Progress: TProgress read FProgress write FProgress;
@@ -659,6 +816,121 @@ type
       default TProgressUserInterface.DefaultBarYPosition;
   end;
 
+  { Error background, for various error handlers. }
+  TErrorBackground = class(TUIControl)
+    procedure Render; override;
+  end;
+
+  TCastleAbstractSlider = class(TUIControlFont)
+  strict private
+    FDisplayValue: boolean;
+    FWidth: Cardinal;
+    FHeight: Cardinal;
+    FOnChange: TNotifyEvent;
+    procedure SetWidth(const Value: Cardinal);
+    procedure SetHeight(const Value: Cardinal);
+    function IndicatorWidth(const R: TRectangle): Integer;
+  private
+    { Draw a slider at given Position. If Position is outside 0..1, it is clamped
+      to 0..1 (this way we do not show slider at some wild position if it's
+      outside the expected range; but DrawSliderText will still show the true,
+      unclamped, value). }
+    procedure DrawSliderPosition(const R: TRectangle; const Position: Single);
+
+    { Returns a value of Position, always in 0..1 range,
+      that would result in slider being drawn at XCoord screen position
+      by DrawSliderPosition.
+      Takes Rectangle as the rectangle currently occupied by the whole slider. }
+    function XCoordToSliderPosition(const XCoord: Single;
+      const R: TRectangle): Single;
+
+    procedure DrawSliderText(const R: TRectangle; const Text: string);
+  strict protected
+    { React to value change. The default implementation simply calls the OnChange
+      event, if assigned. This is called when value is changed by user actions
+      (key, mouse), not when it's explicitly assigned by code. }
+    procedure DoChange; virtual;
+  public
+    const
+      DefaultWidth = 200;
+      DefaultHeight = 20;
+    constructor Create(AOwner: TComponent); override;
+    procedure Render; override;
+    function Rect: TRectangle; override;
+  published
+    property Width: Cardinal read FWidth write SetWidth default DefaultWidth;
+    property Height: Cardinal read FHeight write SetHeight default DefaultHeight;
+
+    property SmallFont default true;
+
+    { Display the current value as text on the slider.
+      May be useful, if the exact numbers have some meaning for the user.
+      The exact method to display is defined by method
+      @link(TCastleFloatSlider.ValueToStr) or
+      @link(TCastleIntegerSlider.ValueToStr) (depending on descendant),
+      so you can further customize it. }
+    property DisplayValue: boolean
+      read FDisplayValue write FDisplayValue default true;
+
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+  end;
+
+  TCastleFloatSlider = class(TCastleAbstractSlider)
+  private
+    FMin: Single;
+    FMax: Single;
+    FValue: Single;
+    procedure SetMin(const AMin: Single);
+    procedure SetMax(const AMax: Single);
+    procedure SetValue(const AValue: Single);
+  public
+    const
+      DefaultMin = 0.0;
+      DefaultMax = 1.0;
+    constructor Create(AOwner: TComponent); override;
+    procedure Render; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
+    function ValueToStr(const AValue: Single): string; virtual;
+  published
+    property Min: Single read FMin write SetMin default DefaultMin;
+    property Max: Single read FMax write SetMax default DefaultMax;
+
+    { Current value. Usually within @link(Min) and @link(Max) range,
+      although the general code should be ready for handle any value here
+      (to work even during changes to @link(Min) and @link(Max) properties). }
+    property Value: Single read FValue write SetValue default DefaultMin;
+  end;
+
+  TCastleIntegerSlider = class(TCastleAbstractSlider)
+  private
+    FMin: Integer;
+    FMax: Integer;
+    FValue: Integer;
+    function XCoordToValue(
+      const XCoord: Single; const R: TRectangle): Integer;
+    procedure SetMin(const AMin: Integer);
+    procedure SetMax(const AMax: Integer);
+    procedure SetValue(const AValue: Integer);
+  public
+    const
+      DefaultMin = 0;
+      DefaultMax = 10;
+    constructor Create(AOwner: TComponent); override;
+    procedure Render; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
+    function ValueToStr(const AValue: Integer): string; virtual;
+  published
+    property Min: Integer read FMin write SetMin default DefaultMin;
+    property Max: Integer read FMax write SetMax default DefaultMax;
+
+    { Current value. Usually within @link(Min) and @link(Max) range,
+      although the general code should be ready for handle any value here
+      (to work even during changes to @link(Min) and @link(Max) properties). }
+    property Value: Integer read FValue write SetValue default DefaultMin;
+  end;
+
   { Theme for 2D GUI controls.
     Should only be used through the single global instance @link(Theme). }
   TCastleTheme = class
@@ -669,6 +941,7 @@ type
     FOwnsImages: array [TThemeImage] of boolean;
     FMessageFont: TCastleFont;
     FOwnsMessageFont: boolean;
+    FMessageErrorBackground: boolean;
     function GetImages(const ImageType: TThemeImage): TCastleImage;
     procedure SetImages(const ImageType: TThemeImage; const Value: TCastleImage);
     function GetOwnsImages(const ImageType: TThemeImage): boolean;
@@ -693,10 +966,28 @@ type
     BarEmptyColor: TVector3Byte;
     BarFilledColor: TVector3Byte;
 
-    { Tint of background image under TCastleDialog.
+    { Tint of background image under TCastleDialog and TGLModeFrozenScreen.
       Default is (0.25, 0.25, 0.25, 1), which makes background darker,
       which helps dialog to stand out. }
     BackgroundTint: TCastleColor;
+
+    { Undernath various message dialogs show "error background"
+      (@link(tiErrorBackground)) image instead of the default behaviour.
+      @italic(This is automatically used by CastleWindow exception handler,
+      you should not need to modify this property yourself.)
+
+      This affects modal messages made by @link(CastleMessages) unit,
+      and modal messages made by @link(TCastleWindowCustom.MessageOK) and friends,
+      or modal states by @link(TGLModeFrozenScreen).
+
+      The default behaviour of them is to show the TCastleDialog provided background
+      (coming from screenshot usually), in case of
+      @link(CastleMessages) it is mixed with @link(BackgroundTint).
+      But saving the screen is potentially a bad idea when an exception occured
+      (since the application may be already in some dirty state, for which
+      the developer is not necessarily prepared). }
+    property MessageErrorBackground: boolean
+      read FMessageErrorBackground write FMessageErrorBackground default false;
 
     constructor Create;
     destructor Destroy; override;
@@ -727,9 +1018,10 @@ type
       If you do not specify a color, white will be used, so image will be displayed
       as-is. Specifying a color means that image will be multiplied by it,
       just like for @link(TGLImage.Color). }
-    procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage);
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
-      const Color: TCastleColor);
+      const UIScale: Single = 1.0);
+    procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
+      const UIScale: Single; const Color: TCastleColor);
 
     { Font used by dialogs. Leave @nil to use UIFont. }
     property MessageFont: TCastleFont read FMessageFont write SetMessageFont;
@@ -751,7 +1043,9 @@ function GetUIFont: TCastleFont;
 procedure SetUIFont(const Value: TCastleFont);
 
 function GetUIFontSmall: TCastleFont;
+  deprecated 'use UIFont and temporarily change the size to be smaller, or use TUIControlFont.SmallFont';
 procedure SetUIFontSmall(const Value: TCastleFont);
+  deprecated 'use UIFont and temporarily change the size to be smaller, or use TUIControlFont.SmallFont';
 
 property UIFont: TCastleFont read GetUIFont write SetUIFont;
 property UIFontSmall: TCastleFont read GetUIFontSmall write SetUIFontSmall;
@@ -768,7 +1062,8 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
 
 procedure Register;
 begin
-  RegisterComponents('Castle', [TCastleButton, TCastleImageControl]);
+  RegisterComponents('Castle', [TCastleButton, TCastleImageControl,
+    TCastleIntegerSlider, TCastleFloatSlider]);
 end;
 
 { UIFont --------------------------------------------------------------------- }
@@ -814,6 +1109,7 @@ end;
 destructor TUIControlFont.Destroy;
 begin
   CustomFont := nil; // make sure to free FCustomFont, if necessary
+  FreeAndNil(FCustomizedFont);
   inherited;
 end;
 
@@ -831,6 +1127,8 @@ begin
   begin
     TooltipLabel := TCastleLabel.Create(nil);
     TooltipLabel.ImageType := tiTooltip;
+    TooltipLabel.Frame := true;
+    TooltipLabel.Container := Container;
     { we know that GL context now exists, so just directly call GLContextOpen }
     TooltipLabel.GLContextOpen;
   end;
@@ -842,14 +1140,15 @@ begin
   TooltipLabel.Text.Append(Tooltip);
   TooltipRect := TooltipLabel.Rect;
 
-  X := Round(Container.TooltipPosition[0]);
-  Y := Round(Container.TooltipPosition[1]);
+  { divide by TooltipLabel.UIScale because TooltipLabel.Rect will multiply by it }
+  X := Round(Container.TooltipPosition[0] / TooltipLabel.UIScale);
+  Y := Round(Container.TooltipPosition[1] / TooltipLabel.UIScale);
 
   { now try to fix X, Y to make tooltip fit inside a window }
-  MinTo1st(X, ContainerWidth - TooltipRect.Width);
-  MinTo1st(Y, ContainerHeight - TooltipRect.Height);
-  MaxTo1st(X, 0);
-  MaxTo1st(Y, 0);
+  MinVar(X, ContainerWidth - TooltipRect.Width);
+  MinVar(Y, ContainerHeight - TooltipRect.Height);
+  MaxVar(X, 0);
+  MaxVar(Y, 0);
 
   TooltipLabel.Left := X;
   TooltipLabel.Bottom := Y;
@@ -865,34 +1164,98 @@ begin
   FreeAndNil(TooltipLabel);
   if CustomFont <> nil then
     CustomFont.GLContextClose;
+  if FCustomizedFont <> nil then
+    FCustomizedFont.GLContextClose;
   inherited;
 end;
 
 function TUIControlFont.Font: TCastleFont;
 begin
-  if GLInitialized then
+  if CustomFont <> nil then
+    Result := CustomFont else
+    Result := UIFont;
+
+  { if FontSize or UIScale are non-trivial,
+    wrap Result in TCustomizedFont instance }
+  if (FFontSize <> 0) or (UIScale <> 1) or SmallFont then
   begin
-    if CustomFont <> nil then
-      Result := CustomFont else
-      Result := UIFont;
-  end else
-    Result := nil;
+    if FCustomizedFont = nil then
+      FCustomizedFont := TCustomizedFont.Create(nil);
+    if FFontSize <> 0 then
+      FCustomizedFont.Size := FFontSize else
+      FCustomizedFont.Size := Result.Size; // to have something to multiply in line below
+    FCustomizedFont.Size := FCustomizedFont.Size * UIScale;
+    if SmallFont then
+      FCustomizedFont.Size := FCustomizedFont.Size * 0.5;
+    FCustomizedFont.SourceFont := Result;
+    Result := FCustomizedFont;
+  end;
 end;
 
 procedure TUIControlFont.SetCustomFont(const Value: TCastleFont);
 begin
   if FCustomFont <> Value then
   begin
+    if FCustomFont <> nil then
+      FCustomFont.RemoveFreeNotification(Self);
+    {$warnings off}
     if OwnsCustomFont then
       FreeAndNil(FCustomFont) else
       FCustomFont := nil;
+    {$warnings on}
     FCustomFont := Value;
+    if FCustomFont <> nil then
+      FCustomFont.FreeNotification(Self);
+    { don't call virtual function, that may try to measure the text by accessing Font
+      (needlessly using UIFont, possibly even recreating UIFont if "finalization"
+      of this unit already run, possibly even accessing invalid free TextureFontData). }
+    if not (csDestroying in ComponentState) then
+      FontChanged;
+  end;
+end;
+
+procedure TUIControlFont.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+
+  if (Operation = opRemove) and (AComponent = FCustomFont) then
+  begin
+    { set to nil by SetCustomFont to clean nicely }
+    { since it's already being freed, do not apply OwnsCustomFont effect
+      inside SetCustomFont. }
+    {$warnings off}
+    OwnsCustomFont := false;
+    {$warnings on}
+    CustomFont := nil;
+  end;
+end;
+
+procedure TUIControlFont.SetFontSize(const Value: Single);
+begin
+  if FFontSize <> Value then
+  begin
+    FFontSize := Value;
+    FontChanged;
+  end;
+end;
+
+procedure TUIControlFont.SetSmallFont(const Value: boolean);
+begin
+  if FSmallFont <> Value then
+  begin
+    FSmallFont := Value;
     FontChanged;
   end;
 end;
 
 procedure TUIControlFont.FontChanged;
 begin
+end;
+
+procedure TUIControlFont.UIScaleChanged;
+begin
+  inherited;
+  FontChanged;
 end;
 
 procedure TUIControlFont.Render;
@@ -902,10 +1265,19 @@ begin
 end;
 
 procedure TUIControlFont.CheckFontChanged;
+var
+  DefaultFont: TCastleFont;
 begin
-  if (CustomFont = nil) and (FLastSeenUIFont <> FUIFont) then
+  { we do not use here UIFont[Small] but FUIFont[Small],
+    to not create font without need. If the corresponding global font is nil now,
+    it can remain nil, no need to initialize it yet. }
+  if SmallFont then
+    DefaultFont := FUIFontSmall else
+    DefaultFont := FUIFont;
+
+  if (CustomFont = nil) and (FLastSeenUIFontXxx <> DefaultFont) then
     FontChanged;
-  FLastSeenUIFont := FUIFont; // do not use UIFont to not create font without need
+  FLastSeenUIFontXxx := DefaultFont;
 end;
 
 { TCastleButton --------------------------------------------------------------- }
@@ -920,45 +1292,105 @@ begin
   FImageMargin := DefaultImageMargin;
   FPaddingHorizontal := DefaultPaddingHorizontal;
   FPaddingVertical := DefaultPaddingVertical;
+  FTintPressed := White;
+  FTintFocused := White;
+  FTintNormal := White;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 end;
 
 destructor TCastleButton.Destroy;
 begin
   if OwnsImage then FreeAndNil(FImage);
+  if OwnsCustomBackgroundPressed then FreeAndNil(FCustomBackgroundPressed);
+  if OwnsCustomBackgroundFocused then FreeAndNil(FCustomBackgroundFocused);
+  if OwnsCustomBackgroundNormal  then FreeAndNil(FCustomBackgroundNormal);
+
   FreeAndNil(FGLImage);
+  FreeAndNil(FGLCustomBackgroundPressed);
+  FreeAndNil(FGLCustomBackgroundFocused);
+  FreeAndNil(FGLCustomBackgroundNormal);
+
   inherited;
 end;
 
 procedure TCastleButton.Render;
 var
-  TextLeft, TextBottom, ImgLeft, ImgBottom: Integer;
+  TextLeft, TextBottom, ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight: Integer;
   Background: TThemeImage;
+  CustomBackgroundImage: TGLImage;
+  SR: TRectangle;
+  ImageMarginScaled: Cardinal;
+  UseImage: boolean;
+  Tint, TextColor: TCastleColor;
 begin
   inherited;
 
+  ImageMarginScaled := Round(ImageMargin * UIScale);
+
+  SR := ScreenRect;
+
+  { calculate Tint }
   if Pressed then
-    Background := tiButtonPressed else
+    Tint := TintPressed else
   if Focused then
-    Background := tiButtonFocused else
-    Background := tiButtonNormal;
-  Theme.Draw(Rect, Background);
+    Tint := TintFocused else
+    Tint := TintNormal;
 
-  TextLeft := Left + (Width - TextWidth) div 2;
-  if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilLeft) then
-    TextLeft += (FImage.Width + ImageMargin) div 2 else
-  if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilRight) then
-    TextLeft -= (FImage.Width + ImageMargin) div 2;
+  { calculate CustomBackgroundImage }
+  CustomBackgroundImage := nil;
+  if CustomBackground then
+  begin
+    if Pressed then
+      CustomBackgroundImage := FGLCustomBackgroundPressed else
+    if Focused then
+      CustomBackgroundImage := FGLCustomBackgroundFocused else
+      CustomBackgroundImage := FGLCustomBackgroundNormal;
+    { instead of CustomBackgroundPressed/Focused, use Normal, if available }
+    if CustomBackgroundImage = nil then
+      CustomBackgroundImage := FGLCustomBackgroundNormal;
+    { render using CustomBackgroundImage, if any }
+    if CustomBackgroundImage <> nil then
+    begin
+      CustomBackgroundImage.Color := Tint;
+      CustomBackgroundImage.ScaleCorners := UIScale;
+      CustomBackgroundImage.Draw3x3(SR, CustomBackgroundCorners);
+    end;
+  end else
+  begin
+    if Pressed then
+      Background := tiButtonPressed else
+    if Focused then
+      Background := tiButtonFocused else
+      Background := tiButtonNormal;
+    Theme.Draw(SR, Background, UIScale, Tint);
+  end;
 
-  TextBottom := Bottom + (Height - TextHeight) div 2;
-  if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilBottom) then
-    TextBottom += (FImage.Height + ImageMargin) div 2 else
-  if (FImage <> nil) and (FGLImage <> nil) and (ImageLayout = ilTop) then
-    TextBottom -= (FImage.Height + ImageMargin) div 2;
+  UseImage := (FImage <> nil) and (FGLImage <> nil);
+  if UseImage then
+  begin
+    ImgScreenWidth  := Round(UIScale * FImage.Width);
+    ImgScreenHeight := Round(UIScale * FImage.Height);
+  end;
 
-  Font.Print(TextLeft, TextBottom, Theme.TextColor, Caption);
+  TextLeft := SR.Left + (SR.Width - TextWidth) div 2;
+  if UseImage and (ImageLayout = ilLeft) then
+    TextLeft += (ImgScreenWidth + ImageMarginScaled) div 2 else
+  if UseImage and (ImageLayout = ilRight) then
+    TextLeft -= (ImgScreenWidth + ImageMarginScaled) div 2;
 
-  if (FImage <> nil) and (FGLImage <> nil) then
+  TextBottom := SR.Bottom + (SR.Height - TextHeight) div 2;
+  if UseImage and (ImageLayout = ilBottom) then
+    TextBottom += (ImgScreenHeight + ImageMarginScaled) div 2 else
+  if UseImage and (ImageLayout = ilTop) then
+    TextBottom -= (ImgScreenHeight + ImageMarginScaled) div 2;
+  TextBottom += Font.Descend;
+
+  TextColor := Theme.TextColor;
+  if CustomTextColorUse then
+    TextColor := CustomTextColor;
+  Font.Print(TextLeft, TextBottom, TextColor, Caption);
+
+  if UseImage then
   begin
     { update FGLImage.Alpha based on ImageAlphaTest }
     if FImage.HasAlpha then
@@ -968,46 +1400,48 @@ begin
         FGLImage.Alpha := acFullRange;
     end;
     case ImageLayout of
-      ilLeft         : ImgLeft := TextLeft - FImage.Width - ImageMargin;
-      ilRight        : ImgLeft := TextLeft + TextWidth + ImageMargin;
-      ilBottom, ilTop: ImgLeft := Left + (Width - FImage.Width) div 2;
+      ilLeft         : ImgLeft := TextLeft - ImgScreenWidth - ImageMarginScaled;
+      ilRight        : ImgLeft := TextLeft + TextWidth + ImageMarginScaled;
+      ilBottom, ilTop: ImgLeft := SR.Left + (SR.Width - ImgScreenWidth) div 2;
     end;
     case ImageLayout of
-      ilBottom       : ImgBottom := TextBottom - FImage.Height - ImageMargin;
-      ilTop          : ImgBottom := TextBottom + TextHeight + ImageMargin;
-      ilLeft, ilRight: ImgBottom := Bottom + (Height - FImage.Height) div 2;
+      ilBottom       : ImgBottom := TextBottom - ImgScreenHeight - ImageMarginScaled;
+      ilTop          : ImgBottom := TextBottom + TextHeight + ImageMarginScaled;
+      ilLeft, ilRight: ImgBottom := SR.Bottom + (SR.Height - ImgScreenHeight) div 2;
     end;
-    FGLImage.Draw(ImgLeft, ImgBottom);
+    FGLImage.Draw(Rectangle(ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight));
   end;
-end;
-
-function TCastleButton.PositionInside(const Position: TVector2Single): boolean;
-begin
-  Result :=
-    (Position[0] >= Left) and
-    (Position[0]  < Left + Width) and
-    (Position[1] >= Bottom) and
-    (Position[1]  < Bottom + Height);
 end;
 
 procedure TCastleButton.GLContextOpen;
 begin
   inherited;
   if (FGLImage = nil) and (FImage <> nil) then
-    FGLImage := TGLImage.Create(FImage);
+    FGLImage := TGLImage.Create(FImage, true);
+  if (FGLCustomBackgroundPressed = nil) and (FCustomBackgroundPressed <> nil) then
+    FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true);
+  if (FGLCustomBackgroundFocused = nil) and (FCustomBackgroundFocused <> nil) then
+    FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true);
+  if (FGLCustomBackgroundFocused = nil) and (FCustomBackgroundFocused <> nil) then
+    FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true);
+  if (FGLCustomBackgroundNormal = nil) and (FCustomBackgroundNormal <> nil) then
+    FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal, true);
   UpdateTextSize;
 end;
 
 procedure TCastleButton.GLContextClose;
 begin
   FreeAndNil(FGLImage);
+  FreeAndNil(FGLCustomBackgroundPressed);
+  FreeAndNil(FGLCustomBackgroundFocused);
+  FreeAndNil(FGLCustomBackgroundNormal);
   inherited;
 end;
 
 function TCastleButton.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if Result or (not GetExists) or (Event.EventType <> itMouseButton) then Exit;
+  if Result or (Event.EventType <> itMouseButton) then Exit;
 
   Result := ExclusiveEvents;
   if not Toggle then FPressed := true;
@@ -1019,7 +1453,7 @@ end;
 function TCastleButton.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if Result or (not GetExists) or (Event.EventType <> itMouseButton) then Exit;
+  if Result or (Event.EventType <> itMouseButton) then Exit;
 
   if ClickStarted then
   begin
@@ -1034,12 +1468,16 @@ begin
       mouse down on the button, and then release mouse while still over
       the button.
 
-      (Larger UI toolkits have also the concept of "capturing",
-      that a Focused control with Pressed captures remaining
-      mouse/key events even when mouse goes out. This allows the user
-      to move mouse out from the control, and still go back to make mouse up
-      and make "click". }
-    DoClick;
+      We have to check ScreenRect.Contains, since (because we keep "focus"
+      on this button, if mouse down was on this) we *always* get release event
+      (even if mouse position is no longer over this button).
+
+      This is consistent with behaviours of other toolkits.
+      It means that if the user does mouse down over the button,
+      moves mouse out from the control, then moves it back inside,
+      then does mouse up -> it counts as a "click". }
+    if ScreenRect.Contains(Event.Position) then
+      DoClick;
   end;
 end;
 
@@ -1096,7 +1534,7 @@ begin
   if Font <> nil then
   begin
     TextWidth := Font.TextWidth(Caption);
-    TextHeight := Font.RowHeightBase;
+    TextHeight := Font.RowHeight;
     UpdateSize;
   end;
 end;
@@ -1104,14 +1542,23 @@ end;
 procedure TCastleButton.UpdateSize;
 var
   ImgSize: Cardinal;
+  MinWidthScaled, MinHeightScaled,
+    ImageMarginScaled,
+    PaddingHorizontalScaled, PaddingVerticalScaled: Cardinal;
 begin
   if AutoSize then
   begin
+    PaddingHorizontalScaled := Round(PaddingHorizontal * UIScale);
+    PaddingVerticalScaled   := Round(PaddingVertical   * UIScale);
+    ImageMarginScaled       := Round(ImageMargin       * UIScale);
+    MinWidthScaled          := Round(MinWidth          * UIScale);
+    MinHeightScaled         := Round(MinHeight         * UIScale);
+
     { We modify FWidth, FHeight directly,
       to avoid causing UpdateFocusAndMouseCursor too many times.
       We'll call it at the end explicitly. }
-    if AutoSizeWidth then FWidth := TextWidth + PaddingHorizontal * 2;
-    if AutoSizeHeight then FHeight := TextHeight + PaddingVertical * 2;
+    if AutoSizeWidth then FWidth := TextWidth + PaddingHorizontalScaled * 2;
+    if AutoSizeHeight then FHeight := TextHeight + PaddingVerticalScaled * 2;
     if (FImage <> nil) or
        (MinImageWidth <> 0) or
        (MinImageHeight <> 0) then
@@ -1121,9 +1568,10 @@ begin
         if FImage <> nil then
           ImgSize := Max(FImage.Width, MinImageWidth) else
           ImgSize := MinImageWidth;
+        ImgSize := Round(ImgSize * UIScale);
         case ImageLayout of
-          ilLeft, ilRight: FWidth := Width + ImgSize + ImageMargin;
-          ilTop, ilBottom: FWidth := Max(Width, ImgSize + PaddingHorizontal * 2);
+          ilLeft, ilRight: FWidth := Width + ImgSize + ImageMarginScaled;
+          ilTop, ilBottom: FWidth := Max(Width, ImgSize + PaddingHorizontalScaled * 2);
         end;
       end;
       if AutoSizeHeight then
@@ -1131,18 +1579,19 @@ begin
         if FImage <> nil then
           ImgSize := Max(FImage.Height, MinImageHeight) else
           ImgSize := MinImageHeight;
+        ImgSize := Round(ImgSize * UIScale);
         case ImageLayout of
-          ilLeft, ilRight: FHeight := Max(Height, ImgSize + PaddingVertical * 2);
-          ilTop, ilBottom: FHeight := Height + ImgSize + ImageMargin;
+          ilLeft, ilRight: FHeight := Max(Height, ImgSize + PaddingVerticalScaled * 2);
+          ilTop, ilBottom: FHeight := Height + ImgSize + ImageMarginScaled;
         end;
       end;
     end;
 
     { at the end apply MinXxx properties }
     if AutoSizeWidth then
-      MaxTo1st(FWidth, MinWidth);
+      MaxVar(FWidth, MinWidthScaled);
     if AutoSizeHeight then
-      MaxTo1st(FHeight, MinHeight);
+      MaxVar(FHeight, MinHeightScaled);
 
     if (AutoSizeWidth or AutoSizeHeight) and (Container <> nil) then
       Container.UpdateFocusAndMouseCursor;
@@ -1159,7 +1608,55 @@ begin
     FImage := Value;
 
     if GLInitialized and (FImage <> nil) then
-      FGLImage := TGLImage.Create(FImage);
+      FGLImage := TGLImage.Create(FImage, true);
+
+    UpdateSize;
+  end;
+end;
+
+procedure TCastleButton.SetCustomBackgroundPressed(const Value: TCastleImage);
+begin
+  if FCustomBackgroundPressed <> Value then
+  begin
+    if OwnsCustomBackgroundPressed then FreeAndNil(FCustomBackgroundPressed);
+    FreeAndNil(FGLCustomBackgroundPressed);
+
+    FCustomBackgroundPressed := Value;
+
+    if GLInitialized and (FCustomBackgroundPressed <> nil) then
+      FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true);
+
+    UpdateSize;
+  end;
+end;
+
+procedure TCastleButton.SetCustomBackgroundFocused(const Value: TCastleImage);
+begin
+  if FCustomBackgroundFocused <> Value then
+  begin
+    if OwnsCustomBackgroundFocused then FreeAndNil(FCustomBackgroundFocused);
+    FreeAndNil(FGLCustomBackgroundFocused);
+
+    FCustomBackgroundFocused := Value;
+
+    if GLInitialized and (FCustomBackgroundFocused <> nil) then
+      FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true);
+
+    UpdateSize;
+  end;
+end;
+
+procedure TCastleButton.SetCustomBackgroundNormal(const Value: TCastleImage);
+begin
+  if FCustomBackgroundNormal <> Value then
+  begin
+    if OwnsCustomBackgroundNormal then FreeAndNil(FCustomBackgroundNormal);
+    FreeAndNil(FGLCustomBackgroundNormal);
+
+    FCustomBackgroundNormal := Value;
+
+    if GLInitialized and (FCustomBackgroundNormal <> nil) then
+      FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal, true);
 
     UpdateSize;
   end;
@@ -1253,7 +1750,12 @@ end;
 
 function TCastleButton.Rect: TRectangle;
 begin
-  Result := Rectangle(Left, Bottom, Width, Height);
+  Result := Rectangle(LeftBottomScaled, Width, Height);
+  { in case auto-size is off, scale Width/Height here }
+  if not (AutoSize and AutoSizeWidth) then
+    Result.Width := Round(Result.Width * UIScale);
+  if not (AutoSize and AutoSizeHeight) then
+    Result.Height := Round(Result.Height * UIScale);
 end;
 
 { TCastlePanel ------------------------------------------------------------------ }
@@ -1277,22 +1779,13 @@ var
   I: Integer;
 begin
   inherited;
-  Theme.Draw(Rect, tiPanel);
+  Theme.Draw(Rect, tiPanel, UIScale);
 
   for I := 0 to VerticalSeparators.Count - 1 do
     Theme.Draw(Rectangle(
       Left + VerticalSeparators[I], Bottom + SeparatorMargin,
       Theme.Images[tiPanelSeparator].Width, Height - 2 * SeparatorMargin),
-      tiPanelSeparator);
-end;
-
-function TCastlePanel.PositionInside(const Position: TVector2Single): boolean;
-begin
-  Result :=
-    (Position[0] >= Left) and
-    (Position[0]  < Left + Width) and
-    (Position[1] >= Bottom) and
-    (Position[1]  < Bottom + Height);
+      tiPanelSeparator, UIScale);
 end;
 
 class function TCastlePanel.SeparatorSize: Cardinal;
@@ -1320,7 +1813,7 @@ end;
 
 function TCastlePanel.Rect: TRectangle;
 begin
-  Result := Rectangle(Left, Bottom, Width, Height);
+  Result := Rectangle(LeftBottomScaled, Width, Height);
 end;
 
 { TCastleImageControl ---------------------------------------------------------------- }
@@ -1328,13 +1821,28 @@ end;
 constructor TCastleImageControl.Create(AOwner: TComponent);
 begin
   inherited;
+  FColor := White;
+  FOwnsImage := true;
+  FSmoothScaling := true;
 end;
 
 destructor TCastleImageControl.Destroy;
 begin
-  FreeAndNil(FImage);
+  if OwnsImage then
+    FreeAndNil(FImage) else
+    FImage := nil;
   FreeAndNil(FGLImage);
   inherited;
+end;
+
+procedure TCastleImageControl.SetSmoothScaling(const Value: boolean);
+begin
+  if FSmoothScaling <> Value then
+  begin
+    FSmoothScaling := Value;
+    if FGLImage <> nil then
+      FGLImage.SmoothScaling := Value;
+  end;
 end;
 
 procedure TCastleImageControl.SetURL(const Value: string);
@@ -1348,43 +1856,73 @@ begin
   FURL := Value;
 end;
 
+function TCastleImageControl.GetCenterX: Single;
+begin
+  Result := FGLImage.CenterX;
+end;
+
+function TCastleImageControl.GetCenterY: Single;
+begin
+  Result := FGLImage.CenterY;
+end;
+
+function TCastleImageControl.GetRotation: Single;
+begin
+  Result := FGLImage.Rotation;
+end;
+
+procedure TCastleImageControl.SetCenterX(AValue: Single);
+begin
+  FGLImage.CenterX := AValue;
+  VisibleChange;
+end;
+
+procedure TCastleImageControl.SetCenterY(AValue: Single);
+begin
+  FGLImage.CenterY := AValue;
+  VisibleChange;
+end;
+
+procedure TCastleImageControl.SetRotation(AValue: Single);
+begin
+  FGLImage.Rotation := AValue;
+  VisibleChange;
+end;
+
 procedure TCastleImageControl.SetImage(const Value: TCastleImage);
 begin
   if FImage <> Value then
   begin
-    FreeAndNil(FImage);
+    if OwnsImage then FreeAndNil(FImage);
     FImage := Value;
     ImageChanged;
   end;
 end;
 
 procedure TCastleImageControl.Render;
+var
+  SR: TRectangle;
 begin
   inherited;
   if FGLImage = nil then Exit;
-  FGLImage.Draw(Rect);
+  SR := ScreenRect;
+  if ZeroVector(FCorners) then
+    FGLImage.Draw(SR) else
+  begin
+    FGLImage.ScaleCorners := UIScale;
+    FGLImage.Draw3x3(SR, FCorners);
+  end;
   { Useful to debug that Proportional works.
   if Stretch and not FullSize then
-    Theme.Draw(Rectangle(Left, Bottom, Width, Height), tiActiveFrame); }
-end;
-
-function TCastleImageControl.PositionInside(const Position: TVector2Single): boolean;
-var
-  R: TRectangle;
-begin
-  R := Rect;
-  Result := FullSize or
-    ( (Position[0] >= R.Left) and
-      (Position[0]  < R.Left + R.Width) and
-      (Position[1] >= R.Bottom) and
-      (Position[1]  < R.Bottom + R.Height)
-    );
+    Theme.Draw(Rectangle(Left, Bottom, Width, Height), tiActiveFrame, UIScale); }
 end;
 
 function TCastleImageControl.Rect: TRectangle;
 var
   NewWidth, NewHeight, NewLeft, NewBottom: Integer;
+  ApplyScaling: boolean;
 begin
+  ApplyScaling := true;
   if not Stretch then
   begin
     if FImage <> nil then
@@ -1393,7 +1931,10 @@ begin
   end else
   begin
     if FullSize then
-      Result := ContainerRect else
+    begin
+      Result := ParentRect;
+      ApplyScaling := false;
+    end else
     if Proportional and (FImage <> nil) then
     begin
       if Width / Height > FImage.Width / FImage.Height then
@@ -1410,6 +1951,10 @@ begin
     end else
       Result := Rectangle(Left, Bottom, Width, Height);
   end;
+
+  if ApplyScaling then
+    // applying UIScale on this is easy...
+    Result := Result.ScaleAround0(UIScale);
 end;
 
 procedure TCastleImageControl.GLContextOpen;
@@ -1433,7 +1978,10 @@ begin
     begin
       if FGLImage <> nil then
         FGLImage.Load(FImage) else
-        FGLImage := TGLImage.Create(FImage, true);
+      begin
+        FGLImage := TGLImage.Create(FImage, FSmoothScaling);
+        FGLImage.Color := Color;
+      end;
       if AlphaChannel <> acAuto then
         FGLImage.Alpha := AlphaChannel;
     end else
@@ -1487,6 +2035,17 @@ begin
   end;
 end;
 
+procedure TCastleImageControl.SetColor(const Value: TCastleColor);
+begin
+  if not VectorsPerfectlyEqual(FColor, Value) then
+  begin
+    FColor := Value;
+    if FGLImage <> nil then
+      FGLImage.Color := Value;
+    VisibleChange;
+  end;
+end;
+
 procedure TCastleImageControl.SetWidth(const Value: Cardinal);
 begin
   if FWidth <> Value then
@@ -1520,6 +2079,8 @@ constructor TCastleCrosshair.Create(AOwner: TComponent);
 begin
   inherited;
   FShape := csCross;
+  Anchor(hpMiddle);
+  Anchor(vpMiddle);
 end;
 
 procedure TCastleCrosshair.SetShape(const Value: TCastleCrosshairShape);
@@ -1535,45 +2096,18 @@ begin
     Result := tiCrosshair1;
 end;
 
-procedure TCastleCrosshair.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
-begin
-  inherited;
-  Left := (AContainerWidth - Width) div 2;   // keep in the center
-  Bottom := (AContainerHeight - Height) div 2;
-  VisibleChange;
-end;
-
-function TCastleCrosshair.SizeScale: Single;
-begin
-  if Container <> nil then
-    Result := Container.Dpi / 96 else
-    Result := 1;
-end;
-
-function TCastleCrosshair.Width: Cardinal;
-begin
-  Result := Round(Theme.Images[ImageType].Width  * SizeScale);
-end;
-
-function TCastleCrosshair.Height: Cardinal;
-begin
-  Result := Round(Theme.Images[ImageType].Height * SizeScale);
-end;
-
 function TCastleCrosshair.Rect: TRectangle;
 begin
-  Result := Rectangle(Left, Bottom, Width, Height);
-end;
+  Result := Theme.Images[ImageType].Rect;
 
-function TCastleCrosshair.PositionInside(const Position: TVector2Single): boolean;
-begin
-  Result := false; // this control is just passively drawn onto screen
+  // applying UIScale on this is easy...
+  Result := Result.ScaleAround0(UIScale);
 end;
 
 procedure TCastleCrosshair.Render;
 begin
   inherited;
-  Theme.Draw(Rect, ImageType);
+  Theme.Draw(ScreenRect, ImageType, UIScale);
 end;
 
 { TCastleTouchControl ---------------------------------------------------------------- }
@@ -1586,65 +2120,40 @@ end;
 
 function TCastleTouchControl.SizeScale: Single;
 begin
-  if Container <> nil then
+  if ContainerSizeKnown then
     Result := Container.Dpi / 96 else
     Result := 1;
 end;
 
-function TCastleTouchControl.Width: Cardinal;
-begin
-  Result := Round(Theme.Images[tiTouchCtlOuter].Width  * SizeScale);
-end;
-
-function TCastleTouchControl.Height: Cardinal;
-begin
-  Result := Round(Theme.Images[tiTouchCtlOuter].Height * SizeScale);
-end;
-
 function TCastleTouchControl.Rect: TRectangle;
 begin
-  Result := Rectangle(Left, Bottom, Width, Height);
+  // do not apply UIScale here to Width / Height,
+  // it's already adjusted to physical size
+  Result := Rectangle(LeftBottomScaled,
+    Round(Theme.Images[tiTouchCtlOuter].Width  * SizeScale),
+    Round(Theme.Images[tiTouchCtlOuter].Height * SizeScale));
 end;
 
 procedure TCastleTouchControl.SetPosition(const Value: TCastleTouchPosition);
+const
+  CtlBorder = 24;
 begin
   if FPosition <> Value then
   begin
     FPosition := Value;
-    if GLInitialized then UpdateLeftBottom;
+    case Position of
+      tpLeft:
+        begin
+          Anchor(hpLeft, CtlBorder);
+          Anchor(vpBottom, CtlBorder);
+        end;
+      tpRight:
+        begin
+          Anchor(hpRight, -CtlBorder);
+          Anchor(vpBottom, CtlBorder);
+        end;
+    end;
   end;
-end;
-
-procedure TCastleTouchControl.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
-begin
-  inherited;
-  UpdateLeftBottom;
-end;
-
-procedure TCastleTouchControl.UpdateLeftBottom;
-var
-  CtlBorder: Integer;
-begin
-  CtlBorder := Round(24 * Container.Dpi / 96);
-  case Position of
-    tpLeft:
-      begin
-        Left := CtlBorder;
-        Bottom := CtlBorder;
-        VisibleChange;
-      end;
-    tpRight:
-      begin
-        Left := ContainerWidth - Width - CtlBorder;
-        Bottom := CtlBorder;
-        VisibleChange;
-      end;
-  end;
-end;
-
-function TCastleTouchControl.PositionInside(const Position: TVector2Single): boolean;
-begin
-  Result := Rect.Contains(Position);
 end;
 
 function TCastleTouchControl.MaxOffsetDist: Integer;
@@ -1660,8 +2169,11 @@ var
   LeverDist: Double;
   InnerRect: TRectangle;
   ImageInner, ImageOuter: TThemeImage;
+  SR: TRectangle;
 begin
   inherited;
+  SR := ScreenRect;
+
   if FTouchMode = ctcmFlyUpdown then
   begin
     ImageInner := tiTouchCtlFlyInner;
@@ -1671,7 +2183,7 @@ begin
     ImageInner := tiTouchCtlInner;
     ImageOuter := tiTouchCtlOuter;
   end;
-  Theme.Draw(Rect, ImageOuter);
+  Theme.Draw(SR, ImageOuter, UIScale);
 
   // compute lever offset (must not move outside outer ring)
   LeverDist := VectorLen(FLeverOffset);
@@ -1691,10 +2203,10 @@ begin
   InnerRect := Theme.Images[ImageInner].Rect; // rectangle at (0,0)
   InnerRect.Width  := Round(InnerRect.Width  * SizeScale);
   InnerRect.Height := Round(InnerRect.Height * SizeScale);
-  InnerRect.Left   := Left   + (Width  - InnerRect.Width ) div 2 + LevOffsetTrimmedX;
-  InnerRect.Bottom := Bottom + (Height - InnerRect.Height) div 2 + LevOffsetTrimmedY;
+  InnerRect.Left   := SR.Left   + (SR.Width  - InnerRect.Width ) div 2 + LevOffsetTrimmedX;
+  InnerRect.Bottom := SR.Bottom + (SR.Height - InnerRect.Height) div 2 + LevOffsetTrimmedY;
 
-  Theme.Draw(InnerRect, ImageInner);
+  Theme.Draw(InnerRect, ImageInner, UIScale);
 end;
 
 procedure TCastleTouchControl.SetTouchMode(const Value: TCastleTouchCtlMode);
@@ -1706,7 +2218,7 @@ end;
 function TCastleTouchControl.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if Result or (not GetExists) or (Event.EventType <> itMouseButton) then Exit;
+  if Result or (Event.EventType <> itMouseButton) then Exit;
 
   Result := ExclusiveEvents;
   FDragging := Event.FingerIndex;
@@ -1716,7 +2228,7 @@ end;
 function TCastleTouchControl.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if Result or (not GetExists) or (Event.EventType <> itMouseButton) then Exit;
+  if Result or (Event.EventType <> itMouseButton) then Exit;
 
   if FDragging = Event.FingerIndex then
   begin
@@ -1807,6 +2319,9 @@ end;
 
 { TCastleDialog -------------------------------------------------------------- }
 
+const
+  CaretChar = '|';
+
 constructor TCastleDialog.Create(AOwner: TComponent);
 begin
   inherited;
@@ -1826,12 +2341,15 @@ begin
   Background := ABackground;
   if GLInitialized then
     GLBackground := TGLImage.Create(Background, true);
-  Align := ATextAlign;
+  TextAlign := ATextAlign;
   DrawInputText := ADrawInputText;
   FInputText := AInputText;
   SetLength(Buttons, Length(AButtons));
   for I := 0 to High(AButtons) do
+  begin
     Buttons[I] := AButtons[I];
+    Buttons[I].EnableUIScaling := false; // TODO: for now, TCastleDialog does not support UIScaling
+  end;
 end;
 
 destructor TCastleDialog.Destroy;
@@ -1857,7 +2375,7 @@ end;
 
 procedure TCastleDialog.SetScroll(Value: Single);
 begin
-  Clamp(Value, ScrollMin, ScrollMax);
+  ClampVar(Value, ScrollMin, ScrollMax);
   if Value <> Scroll then
   begin
     FScroll := Value;
@@ -1894,36 +2412,40 @@ var
 begin
   Result := 0;
   for Button in Buttons do
-    MaxTo1st(Result, Button.Height + 2 * BoxMargin);
+    MaxVar(Result, Button.Height + 2 * BoxMargin);
 end;
 
-procedure TCastleDialog.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
-var
-  MessageRect: TRectangle;
-  X, Y, I: Integer;
-  Button: TCastleButton;
+procedure TCastleDialog.Resize;
 begin
   inherited;
   UpdateSizes;
-
-  { Reposition Buttons. }
-  if Length(Buttons) <> 0 then
-  begin
-    MessageRect := WholeMessageRect;
-    X := MessageRect.Right  - BoxMargin;
-    Y := MessageRect.Bottom + BoxMargin;
-    for I := Length(Buttons) - 1 downto 0 do
-    begin
-      Button := Buttons[I];
-      X -= Button.Width;
-      Button.Left := X;
-      Button.Bottom := Y;
-      X -= ButtonHorizontalMargin;
-    end;
-  end;
 end;
 
 procedure TCastleDialog.UpdateSizes;
+
+  { Reposition Buttons. }
+  procedure UpdateButtons;
+  var
+    MessageRect: TRectangle;
+    X, Y, I: Integer;
+    Button: TCastleButton;
+  begin
+    if Length(Buttons) <> 0 then
+    begin
+      MessageRect := Rect;
+      X := MessageRect.Right  - BoxMargin;
+      Y := MessageRect.Bottom + BoxMargin;
+      for I := Length(Buttons) - 1 downto 0 do
+      begin
+        Button := Buttons[I];
+        X -= Button.Width;
+        Button.Left := X;
+        Button.Bottom := Y;
+        X -= ButtonHorizontalMargin;
+      end;
+    end;
+  end;
+
 var
   BreakWidth, ButtonsWidth: integer;
   WindowScrolledHeight: Integer;
@@ -1933,7 +2455,7 @@ begin
     our string lists Broken_Xxx. We must here always subtract
     ScrollBarWholeWidth to be on the safe side, because we don't know
     yet is ScrollBarVisible. }
-  BreakWidth := Max(0, ContainerWidth - BoxMargin * 2
+  BreakWidth := Max(0, ParentRect.Width - BoxMargin * 2
     - WindowMargin * 2 - ScrollBarWholeWidth);
 
   { calculate MaxLineWidth and AllScrolledLinesCount }
@@ -1949,7 +2471,7 @@ begin
     ButtonsWidth += Button.Width + ButtonHorizontalMargin;
   if ButtonsWidth > 0 then
     ButtonsWidth -= ButtonHorizontalMargin; // extract margin from last button
-  MaxTo1st(MaxLineWidth, ButtonsWidth);
+  MaxVar(MaxLineWidth, ButtonsWidth);
 
   if DrawInputText then
   begin
@@ -1961,7 +2483,7 @@ begin
       That's because InputText is the editable text for the user,
       so there should be indication of "empty line". }
     if Broken_InputText.count = 0 then Broken_InputText.Add('');
-    MaxLineWidth := max(MaxLineWidth, font.MaxTextWidth(Broken_InputText));
+    MaxVar(MaxLineWidth, Font.MaxTextWidth(Broken_InputText) + Font.TextWidth(CaretChar));
     AllScrolledLinesCount += Broken_InputText.count;
   end;
 
@@ -2004,12 +2526,14 @@ begin
     Scroll := ScrollMin;
     ScrollInitialized := true;
   end;
+
+  UpdateButtons;
 end;
 
 function TCastleDialog.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result then Exit;
 
   { if not ScrollBarVisible then there is no point in changing Scroll
     (because always ScrollMin = ScrollMax = Scroll = 0).
@@ -2055,7 +2579,7 @@ end;
 function TCastleDialog.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result then Exit;
 
   if Event.IsMouseButton(mbLeft) then
   begin
@@ -2067,7 +2591,7 @@ end;
 function TCastleDialog.Motion(const Event: TInputMotion): boolean;
 begin
   Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result then Exit;
 
   Result := ScrollBarDragging;
   if Result then
@@ -2094,39 +2618,67 @@ begin
     if Container.Pressed[K_Down] then Scroll := Scroll + Factor;
     HandleInput := not ExclusiveEvents;
   end;
+
+  LifeTime += SecondsPassed;
+  { when we have input text, we display blinking caret, so keep redrawing }
+  if DrawInputText then
+    VisibleChange;
 end;
 
 procedure TCastleDialog.Render;
+type
+  TCaretMode = (cmNone, cmVisible, cmInvisible);
 
   { Render a Text line, and move Y up to the line above. }
   procedure DrawString(X: Integer; var Y: Integer; const Color: TCastleColor;
-    const text: string; const TextAlign: THorizontalPosition);
+    Text: string; const TextAlign: THorizontalPosition;
+    const Caret: TCaretMode);
+  var
+    CaretWidth: Integer;
   begin
+    if Caret <> cmNone then
+      CaretWidth := Font.TextWidth(CaretChar) else
+      CaretWidth := 0;
     { change X only locally, to take TextAlign into account }
     case TextAlign of
-      hpMiddle: X += (MaxLineWidth - font.TextWidth(text)) div 2;
-      hpRight : X +=  MaxLineWidth - font.TextWidth(text);
+      hpMiddle: X += (MaxLineWidth - (Font.TextWidth(Text) + CaretWidth)) div 2;
+      hpRight : X +=  MaxLineWidth - (Font.TextWidth(Text) + CaretWidth);
     end;
-    Font.Print(X, Y, Color, text);
+    if Caret = cmVisible then
+      Text := Text + CaretChar;
+    Font.Print(X, Y, Color, Text);
     { change Y for caller, to print next line higher }
-    Y += font.RowHeight;
+    Y += Font.RowHeight;
   end;
 
   { Render all lines in S, and move Y up to the line above. }
   procedure DrawStrings(const X: Integer; var Y: Integer;
-    const Color: TCastleColor; const s: TStrings; TextAlign: THorizontalPosition);
+    const Color: TCastleColor; const s: TStrings; TextAlign: THorizontalPosition;
+    const AddCaret: boolean);
+  const
+    CaretSpeed = 1; //< how many blinks per second
   var
-    i: integer;
+    I: Integer;
+    Caret: TCaretMode;
   begin
-    for i := s.count-1 downto 0 do
+    for i := S.Count - 1 downto 0 do
+    begin
+      if AddCaret and (I = S.Count - 1) then
+      begin
+        if FloatModulo(LifeTime * CaretSpeed, 1.0) < 0.5 then
+          Caret := cmVisible else
+          Caret := cmInvisible;
+      end else
+        Caret := cmNone;
       { each DrawString call will move Y up }
-      DrawString(X, Y, Color, s[i], TextAlign);
+      DrawString(X, Y, Color, s[i], TextAlign, Caret);
+    end;
   end;
 
 var
   MessageRect: TRectangle;
   { InnerRect to okienko w ktorym mieszcza sie napisy,
-    a wiec WholeMessageRect zmniejszony o BoxMargin we wszystkich kierunkach
+    a wiec Rect zmniejszony o BoxMargin we wszystkich kierunkach
     i z ew. obcieta prawa czescia przeznaczona na ScrollbarFrame. }
   InnerRect: TRectangle;
   ScrollBarLength: integer;
@@ -2143,11 +2695,11 @@ begin
   if GLBackground <> nil then
   begin
     GLBackground.Color := Theme.BackgroundTint;
-    GLBackground.Draw(ContainerRect);
+    GLBackground.Draw(ParentRect);
   end;
 
-  MessageRect := WholeMessageRect;
-  Theme.Draw(MessageRect, tiWindow);
+  MessageRect := Rect;
+  Theme.Draw(MessageRect, tiWindow, UIScale);
 
   MessageRect := MessageRect.RemoveBottom(ButtonsHeight);
 
@@ -2161,7 +2713,7 @@ begin
     ScrollbarFrame := MessageRect.RightPart(ScrollBarWholeWidth).
       RemoveRight(Theme.Corners[tiWindow][1]).
       RemoveTop(Theme.Corners[tiWindow][0]);
-    Theme.Draw(ScrollbarFrame, tiScrollbarFrame);
+    Theme.Draw(ScrollbarFrame, tiScrollbarFrame, UIScale);
 
     ScrollBarLength := MessageRect.Height - ScrollBarMargin*2;
     ScrollbarSlider := ScrollbarFrame;
@@ -2169,7 +2721,7 @@ begin
       div AllScrolledLinesCount;
     ScrollbarSlider.Bottom += Round(MapRange(Scroll,
       ScrollMin, ScrollMax, ScrollbarFrame.Height - ScrollbarSlider.Height, 0));
-    Theme.Draw(ScrollbarSlider, tiScrollbarSlider);
+    Theme.Draw(ScrollbarSlider, tiScrollbarSlider, UIScale);
   end else
   begin
     ScrollbarFrame := TRectangle.Empty;
@@ -2188,15 +2740,15 @@ begin
   { draw Broken_InputText and Broken_Text.
     Order matters, as it's drawn from bottom to top. }
   if DrawInputText then
-    DrawStrings(TextX, TextY, Theme.MessageInputTextColor, Broken_InputText, Align);
-  DrawStrings(TextX, TextY, Theme.MessageTextColor, Broken_Text, Align);
+    DrawStrings(TextX, TextY, Theme.MessageInputTextColor, Broken_InputText, TextAlign, true);
+  DrawStrings(TextX, TextY, Theme.MessageTextColor, Broken_Text, TextAlign, false);
 
   ScissorDisable;
 end;
 
-function TCastleDialog.PositionInside(const Position: TVector2Single): boolean;
+function TCastleDialog.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
 begin
-  Result := true;
+  Result := true; // always capture
 end;
 
 function TCastleDialog.RealScrollBarWholeWidth: Integer;
@@ -2204,13 +2756,16 @@ begin
   Result := Iff(ScrollBarVisible, ScrollBarWholeWidth, 0);
 end;
 
-function TCastleDialog.WholeMessageRect: TRectangle;
+function TCastleDialog.Rect: TRectangle;
+var
+  PR: TRectangle;
 begin
-  Result := Rectangle(0, 0, ContainerWidth, ContainerHeight).Center(
+  PR := ParentRect;
+  Result := Rectangle(0, 0, PR.Width, PR.Height).Center(
     Min(MaxLineWidth + BoxMargin * 2 + RealScrollBarWholeWidth,
-      ContainerWidth  - WindowMargin * 2),
+      PR.Width  - WindowMargin * 2),
     Min(AllScrolledLinesCount * Font.RowHeight + BoxMargin * 2 + ButtonsHeight,
-      ContainerHeight - WindowMargin * 2));
+      PR.Height - WindowMargin * 2));
 end;
 
 function TCastleDialog.Font: TCastleFont;
@@ -2227,8 +2782,10 @@ begin
   inherited;
   FText := TStringList.Create;
   FColor := White;
-  FFrame := true;
+  FFrame := false;
+  FFrameColor := White;
   FLineSpacing := DefaultLineSpacing;
+  FAutoSize := true;
   ImageType := tiLabel;
 end;
 
@@ -2238,65 +2795,120 @@ begin
   inherited;
 end;
 
-function TCastleLabel.RectCore(out TextBroken: TStrings): TRectangle;
+function TCastleLabel.GetTextToRender(out FreeTextToRender: boolean): TStrings;
 var
-  TextToRender: TStrings;
+  PaddingHorizontalScaled, MaxWidthScaled: Integer;
+  US: Single;
 begin
-  TextBroken := nil;
   if MaxWidth = 0 then
-    TextToRender := Text else
   begin
-    TextBroken := TStringList.Create;
-    TextToRender := TextBroken;
+    Result := Text;
+    FreeTextToRender := false;
+  end else
+  begin
+    US := UIScale;
+    PaddingHorizontalScaled := Round(US * PaddingHorizontal);
+    MaxWidthScaled := Round(US * MaxWidth);
+
+    Result := TStringList.Create;
+    FreeTextToRender := true;
     { TODO: this breaks not taking Tags property into account.
       When Tags=@true and some tags are actually used,
       the text may not be broken optimally (as BreakLines will think
       that invisible tags actually take space). }
-    Font.BreakLines(Text, TextBroken, MaxWidth - 2 * Padding);
+    Font.BreakLines(Text, Result, MaxWidthScaled - 2 * PaddingHorizontalScaled);
   end;
-
-  Result := Rectangle(Left, Bottom,
-    Font.MaxTextWidth(TextToRender, Tags) + 2 * Padding,
-    (Font.RowHeight + LineSpacing) * TextToRender.Count + 2 * Padding + Font.Descend);
 end;
 
 function TCastleLabel.Rect: TRectangle;
 var
-  TextBroken: TStrings;
+  TextToRender: TStrings;
+  FreeTextToRender: boolean;
+  PaddingHorizontalScaled, PaddingVerticalScaled, LineSpacingScaled: Integer;
+  US: Single;
 begin
-  TextBroken := nil;
-  try
-    Result := RectCore(TextBroken);
-  finally FreeAndNil(TextBroken) end;
+  if AutoSize then
+  begin
+    TextToRender := GetTextToRender(FreeTextToRender);
+    try
+      US := UIScale;
+      PaddingHorizontalScaled := Round(US * (PaddingHorizontal + Padding));
+      PaddingVerticalScaled := Round(US * (PaddingVertical + Padding));
+      LineSpacingScaled := Round(US * LineSpacing);
+      Result := Rectangle(
+        LeftBottomScaled,
+        Font.MaxTextWidth(TextToRender, Tags) + 2 * PaddingHorizontalScaled,
+        (Font.RowHeight + LineSpacingScaled) * TextToRender.Count +
+          2 * PaddingVerticalScaled + Font.Descend);
+    finally
+      if FreeTextToRender then FreeAndNil(TextToRender);
+    end;
+  end else
+  begin
+    Result := Rectangle(
+      LeftBottomScaled, Round(Width * UIScale), Round(Height * UIScale));
+  end;
 end;
 
 procedure TCastleLabel.Render;
 var
-  R: TRectangle;
-  TextBroken, TextToRender: TStrings;
-  TextX: Integer;
+  SR: TRectangle;
+  TextToRender: TStrings;
+  FreeTextToRender: boolean;
+  TextX, PaddingHorizontalScaled, PaddingVerticalScaled, LineSpacingScaled: Integer;
+  US: Single;
 begin
   inherited;
   if Text.Count = 0 then Exit;
 
-  TextToRender := Text;
-  TextBroken := nil;
+  TextToRender := GetTextToRender(FreeTextToRender);
   try
-    R := RectCore(TextBroken);
-    if TextBroken <> nil then
-      TextToRender := TextBroken;
+    SR := ScreenRect;
+    US := UIScale;
+    PaddingHorizontalScaled := Round(US * (PaddingHorizontal + Padding));
+    PaddingVerticalScaled := Round(US * (PaddingVertical + Padding));
+    LineSpacingScaled := Round(US * LineSpacing);
     if Frame then
-      Theme.Draw(R, ImageType);
+      Theme.Draw(SR, ImageType, UIScale, FrameColor);
     case Alignment of
-      hpLeft  : TextX := R.Left + Padding;
-      hpMiddle: TextX := (R.Left + R.Right) div 2;
-      hpRight : TextX := R.Right - Padding;
+      hpLeft  : TextX := SR.Left + PaddingHorizontalScaled;
+      hpMiddle: TextX := (SR.Left + SR.Right) div 2;
+      hpRight : TextX := SR.Right - PaddingHorizontalScaled;
       else raise EInternalError.Create('TCastleLabel.Render: Alignment?');
     end;
     Font.PrintStrings(TextX,
-      R.Bottom + Padding + Font.Descend, Color, TextToRender, Tags, LineSpacing,
-      Alignment);
-  finally FreeAndNil(TextBroken) end;
+      SR.Bottom + PaddingVerticalScaled + Font.Descend, Color, TextToRender,
+      Tags, LineSpacingScaled, Alignment);
+  finally
+    if FreeTextToRender then FreeAndNil(TextToRender);
+  end;
+end;
+
+procedure TCastleLabel.SetWidth(const Value: Cardinal);
+begin
+  if FWidth <> Value then
+  begin
+    FWidth := Value;
+    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+  end;
+end;
+
+procedure TCastleLabel.SetHeight(const Value: Cardinal);
+begin
+  if FHeight <> Value then
+  begin
+    FHeight := Value;
+    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+  end;
+end;
+
+procedure TCastleLabel.SetAutoSize(const Value: boolean);
+begin
+  if FAutoSize <> Value then
+  begin
+    FAutoSize := Value;
+    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+  end;
 end;
 
 { TCastleProgressBar --------------------------------------------------------- }
@@ -2392,13 +3004,15 @@ end;
 
 function TCastleProgressBar.Rect: TRectangle;
 var
-  XMargin, Height, YMiddle, Bottom: Integer;
+  XMargin, Height, YMiddle, Bot: Integer;
+  PR: TRectangle;
 begin
-  XMargin := ContainerWidth div 8;
-  Height := ContainerHeight div 12;
-  YMiddle := Round(ContainerHeight * YPosition);
-  Bottom := YMiddle - Height div 2;
-  Result := Rectangle(XMargin, Bottom, ContainerWidth - 2 * XMargin, Height);
+  PR := ParentRect;
+  XMargin := PR.Width div 8;
+  Height := PR.Height div 12;
+  YMiddle := Round(PR.Height * YPosition);
+  Bot := YMiddle - Height div 2;
+  Result := Rectangle(XMargin, Bot, PR.Width - 2 * XMargin, Height);
 end;
 
 procedure TCastleProgressBar.Render;
@@ -2415,15 +3029,15 @@ begin
   if Progress = nil then Exit;
 
   if FGLBackground <> nil then
-    FGLBackground.Draw(ContainerRect);
+    FGLBackground.Draw(ParentRect);
 
   BarRect := Rect;
-  Theme.Draw(BarRect, tiProgressBar);
+  Theme.Draw(BarRect, tiProgressBar, UIScale);
 
   FillRect := BarRect.LeftPart(Round(BarRect.Width * Progress.Position / Progress.Max));
   { it's normal that at the beginning FillRect is too small to be drawn }
   Theme.GLImages[tiProgressFill].IgnoreTooLargeCorners := true;
-  Theme.Draw(FillRect, tiProgressFill);
+  Theme.Draw(FillRect, tiProgressFill, UIScale);
 
   MaxTextWidth := BarRect.Width - Padding;
   Caption := Progress.Title;
@@ -2484,6 +3098,304 @@ begin
   inherited;
 end;
 
+{ TErrorBackground ------------------------------------------------------ }
+
+procedure TErrorBackground.Render;
+begin
+  inherited;
+  Theme.Draw(ParentRect, tiErrorBackground, UIScale);
+end;
+
+{ TCastleAbstractSlider ------------------------------------------------------ }
+
+constructor TCastleAbstractSlider.Create(AOwner: TComponent);
+begin
+  inherited;
+  FDisplayValue := true;
+  FWidth := DefaultWidth;
+  FHeight := DefaultHeight;
+  SmallFont := true;
+end;
+
+function TCastleAbstractSlider.Rect: TRectangle;
+begin
+  Result := Rectangle(Left, Bottom, Width, Height);
+  // applying UIScale on this is easy...
+  Result := Result.ScaleAround0(UIScale);
+end;
+
+procedure TCastleAbstractSlider.Render;
+begin
+  inherited;
+  Theme.Draw(ScreenRect, tiSlider, UIScale);
+end;
+
+function TCastleAbstractSlider.IndicatorWidth(const R: TRectangle): Integer;
+begin
+  Result := R.Height div 2 { guess suitable tiSliderPosition width from height };
+end;
+
+procedure TCastleAbstractSlider.DrawSliderPosition(const R: TRectangle;
+  const Position: Single);
+var
+  IndicatorW: Integer;
+begin
+  IndicatorW := IndicatorWidth(R);
+  Theme.Draw(Rectangle(
+    R.Left +
+      Round(MapRangeClamped(Position, 0, 1, IndicatorW div 2, R.Width - IndicatorW div 2))
+      - IndicatorW div 2,
+    R.Bottom,
+    IndicatorW,
+    R.Height), tiSliderPosition, UIScale);
+end;
+
+function TCastleAbstractSlider.XCoordToSliderPosition(
+  const XCoord: Single; const R: TRectangle): Single;
+var
+  IndicatorW: Integer;
+begin
+  IndicatorW := IndicatorWidth(R);
+  Result := Clamped(MapRange(XCoord,
+    R.Left + IndicatorW div 2,
+    R.Left + R.Width - IndicatorW div 2, 0, 1), 0, 1);
+end;
+
+procedure TCastleAbstractSlider.DrawSliderText(
+  const R: TRectangle; const Text: string);
+begin
+  Font.Print(
+    R.Left + (R.Width - Font.TextWidth(Text)) div 2,
+    R.Bottom + (R.Height - Font.RowHeight) div 2,
+    Black, Text);
+end;
+
+procedure TCastleAbstractSlider.DoChange;
+begin
+  if Assigned(OnChange) then
+    OnChange(Self);
+end;
+
+procedure TCastleAbstractSlider.SetWidth(const Value: Cardinal);
+begin
+  if FWidth <> Value then
+  begin
+    FWidth := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleAbstractSlider.SetHeight(const Value: Cardinal);
+begin
+  if FHeight <> Value then
+  begin
+    FHeight := Value;
+    VisibleChange;
+  end;
+end;
+
+{ TCastleFloatSlider --------------------------------------------------------- }
+
+constructor TCastleFloatSlider.Create(AOwner: TComponent);
+begin
+  inherited;
+  FMin := DefaultMin;
+  FMax := DefaultMax;
+  FValue := FMin;
+end;
+
+procedure TCastleFloatSlider.Render;
+var
+  R: TRectangle;
+begin
+  inherited;
+  R := ScreenRect;
+  DrawSliderPosition(R, MapRange(Value, Min, Max, 0, 1));
+  if DisplayValue then
+    DrawSliderText(R, ValueToStr(Value));
+end;
+
+function TCastleFloatSlider.Press(const Event: TInputPressRelease): boolean;
+
+  function ValueChange: Single;
+  begin
+    Result := (Max - Min) / 100;
+  end;
+
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Event.IsKey(K_Right) then
+  begin
+    Value := CastleUtils.Min(Max, Value + ValueChange);
+    DoChange;
+    Result := ExclusiveEvents;
+  end else
+  if Event.IsKey(K_Left) then
+  begin
+    Value := CastleUtils.Max(Min, Value - ValueChange);
+    DoChange;
+    Result := ExclusiveEvents;
+  end else
+  if Event.IsMouseButton(mbLeft) then
+  begin
+    Value := MapRange(XCoordToSliderPosition(Event.Position[0], ScreenRect), 0, 1,
+      Min, Max);
+    DoChange;
+    Result := ExclusiveEvents;
+  end;
+end;
+
+function TCastleFloatSlider.Motion(const Event: TInputMotion): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if mbLeft in Event.Pressed then
+  begin
+    Value := MapRange(XCoordToSliderPosition(Event.Position[0], ScreenRect), 0, 1,
+      Min, Max);
+    DoChange;
+    Result := ExclusiveEvents;
+  end;
+end;
+
+function TCastleFloatSlider.ValueToStr(const AValue: Single): string;
+begin
+  Result := Format('%f', [AValue]);
+end;
+
+procedure TCastleFloatSlider.SetMin(const AMin: Single);
+begin
+  if FMin <> AMin then
+  begin
+    FMin := AMin;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleFloatSlider.SetMax(const AMax: Single);
+begin
+  if FMax <> AMax then
+  begin
+    FMax := AMax;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleFloatSlider.SetValue(const AValue: Single);
+begin
+  if FValue <> AValue then
+  begin
+    FValue := AValue;
+    VisibleChange;
+  end;
+end;
+
+{ TCastleIntegerSlider ------------------------------------------------------- }
+
+constructor TCastleIntegerSlider.Create(AOwner: TComponent);
+begin
+  inherited;
+  FMin := DefaultMin;
+  FMax := DefaultMax;
+  FValue := FMin;
+end;
+
+procedure TCastleIntegerSlider.Render;
+var
+  R: TRectangle;
+begin
+  inherited;
+  R := ScreenRect;
+  DrawSliderPosition(R, MapRange(Value, Min, Max, 0, 1));
+  if DisplayValue then
+    DrawSliderText(R, ValueToStr(Value));
+end;
+
+function TCastleIntegerSlider.Press(const Event: TInputPressRelease): boolean;
+const
+  ValueChange = 1;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Event.IsKey(K_Right) then
+  begin
+    Value := CastleUtils.Min(Max, Value + ValueChange);
+    DoChange;
+    Result := ExclusiveEvents;
+  end else
+  if Event.IsKey(K_Left) then
+  begin
+    Value := CastleUtils.Max(Min, Value - ValueChange);
+    DoChange;
+    Result := ExclusiveEvents;
+  end else
+  if Event.IsMouseButton(mbLeft) then
+  begin
+    Value := XCoordToValue(Event.Position[0], ScreenRect);
+    DoChange;
+    Result := ExclusiveEvents;
+  end;
+end;
+
+function TCastleIntegerSlider.XCoordToValue(
+  const XCoord: Single; const R: TRectangle): Integer;
+begin
+  { We do additional Clamped over Round result to avoid any
+    chance of floating-point errors due to lack of precision. }
+  Result := Clamped(Round(
+    MapRange(XCoordToSliderPosition(XCoord, R), 0, 1,
+      Min, Max)), Min, Max);
+end;
+
+function TCastleIntegerSlider.Motion(const Event: TInputMotion): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if mbLeft in Event.Pressed then
+  begin
+    Value := XCoordToValue(Event.Position[0], ScreenRect);
+    DoChange;
+    Result := ExclusiveEvents;
+  end;
+end;
+
+function TCastleIntegerSlider.ValueToStr(const AValue: Integer): string;
+begin
+  Result := IntToStr(AValue);
+end;
+
+procedure TCastleIntegerSlider.SetMin(const AMin: Integer);
+begin
+  if FMin <> AMin then
+  begin
+    FMin := AMin;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleIntegerSlider.SetMax(const AMax: Integer);
+begin
+  if FMax <> AMax then
+  begin
+    FMax := AMax;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleIntegerSlider.SetValue(const AValue: Integer);
+begin
+  if FValue <> AValue then
+  begin
+    FValue := AValue;
+    VisibleChange;
+  end;
+end;
+
 { TCastleTheme --------------------------------------------------------------- }
 
 constructor TCastleTheme.Create;
@@ -2496,6 +3408,7 @@ begin
   BackgroundTint        := Vector4Single(0.25, 0.25, 0.25, 1);
 
   FOwnsMessageFont := true;
+  FMessageErrorBackground := false;
 
   FImages[tiPanel] := Panel;
   FCorners[tiPanel] := Vector4Integer(0, 0, 0, 0);
@@ -2539,6 +3452,8 @@ begin
   FCorners[tiCrosshair1] := Vector4Integer(0, 0, 0, 0);
   FImages[tiCrosshair2] := Crosshair2;
   FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiErrorBackground] := ErrorBackground;
+  FCorners[tiErrorBackground] := Vector4Integer(0, 0, 0, 0);
 end;
 
 destructor TCastleTheme.Destroy;
@@ -2611,15 +3526,17 @@ begin
     FMessageFont.GLContextClose;
 end;
 
-procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage);
+procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
+  const UIScale: Single);
 begin
-  Draw(Rect, ImageType, White);
+  Draw(Rect, ImageType, UIScale, White);
 end;
 
 procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
-  const Color: TCastleColor);
+  const UIScale: Single; const Color: TCastleColor);
 begin
   GLImages[ImageType].Color := Color;
+  GLImages[ImageType].ScaleCorners := UIScale;
   GLImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
 end;
 
@@ -2652,7 +3569,7 @@ begin
 end;
 
 initialization
-  OnGLContextClose.Add(@ContextClose);
+  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
   FTheme := TCastleTheme.Create;
 finalization
   FreeAndNil(FTheme);

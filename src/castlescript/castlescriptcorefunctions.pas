@@ -315,6 +315,11 @@ type
     class function ShortName: string; override;
   end;
 
+  TCasScriptLerp = class(TCasScriptFunction)
+  public
+    class function ShortName: string; override;
+  end;
+
 implementation
 
 class function TCasScriptAdd.Name: string;
@@ -805,6 +810,11 @@ end;
 class function TCasScriptRandom.ShortName: string;
 begin
   Result := 'random';
+end;
+
+class function TCasScriptLerp.ShortName: string;
+begin
+  Result := 'lerp';
 end;
 
 end.

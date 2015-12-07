@@ -237,8 +237,11 @@ begin
         FlipBlock[3] := @DXT45_Flip3Block;
         FlipBlock[4] := @DXT45_Flip4Block;
       end;
-    else raise ECannotFlipCompressedImage.CreateFmt('Cannot flip image compressed with GPU compression %s',
-      [GPUCompressionInfo[Compression].Name]);
+    { Don't even make a warning about it, just silently exit.
+      Image author must be aware that we cannot flip when creating the image. }
+    // else raise ECannotFlipCompressedImage.CreateFmt('Cannot flip image compressed with GPU compression %s',
+    //   [GPUCompressionInfo[Compression].Name]);
+    else Exit;
   end;
 
   WidthInBlocks := DivRoundUp(Width, 4);
@@ -279,6 +282,9 @@ begin
   begin
     { Nothing to do }
   end else
-    raise ECannotFlipCompressedImage.CreateFmt('Cannot flip image compressed with S3TC when image height is not a multiple of 4 (or 1, 2, 3). Image height is %d',
-      [Height]);
+  begin
+    OnWarning(wtMajor, 'S3TC', Format('Cannot flip image compressed with S3TC when image height is not a multiple of 4 (or 1, 2, 3). Image height is %d',
+      [Height]));
+    Exit;
+  end;
 end;

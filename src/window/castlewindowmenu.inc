@@ -251,12 +251,16 @@
       So either use Key or CharKey, and leave the other one at default
       value (Key = K_None, CharKey = #0).
 
-      Note that
-      CharKey = #8 (CharBackSpace = CtrlH) or
-      CharKey = #9 (CharTab = CtrlI) or
-      CharKey = #13 (CharEnter = CtrlM)
-      are interpreted to mean the combination of letter with Ctrl modfier.
-      They do @bold(not) mean the backspace or tab or enter keys.
+      The CharKey values within range CtrlA..CtrlZ mean
+      that user must press the given letter with Ctrl modfier. This rule
+      includes some special chars like
+      @unorderedList(
+        @item CharKey = #8 (equal to CharBackSpace, also equal to CtrlH) or
+        @item CharKey = #9 (equal to CharTab, also equal to CtrlI) or
+        @item CharKey = #13 (equal to CharEnter, also equal to CtrlM).
+      )
+      The CharKey values above do @bold(not) mean the backspace or tab or enter
+      keys, they mean the combination of Ctrl key + respective letter.
       If you want to have backspace/tab/enter keys to activate the menu item,
       use Key = K_BackSpace, Key = K_Tab or Key =  K_Enter.
 

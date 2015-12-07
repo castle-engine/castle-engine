@@ -32,8 +32,7 @@
 
   TAbstractNurbsSurfaceGeometryNode = class(TAbstractParametricGeometryNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
 
@@ -100,8 +99,7 @@
     descendant). }
   TContour2DNode = class(TAbstractNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -141,8 +139,7 @@
 
   TNurbsCurveNode = class(TAbstractParametricGeometryNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -209,8 +206,7 @@
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -249,8 +245,7 @@
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -317,8 +312,7 @@
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -363,8 +357,7 @@
 
   TNurbsSweptSurfaceNode = class(TAbstractParametricGeometryNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -394,8 +387,7 @@
 
   TNurbsSwungSurfaceNode = class(TAbstractParametricGeometryNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -456,8 +448,7 @@
 
   TNurbsTrimmedSurfaceNode = class(TAbstractNurbsSurfaceGeometryNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -571,11 +562,13 @@ begin
   { X3D specification comment: [2,Inf) }
 end;
 
-procedure TAbstractNurbsSurfaceGeometryNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TAbstractNurbsSurfaceGeometryNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FdcontrolPoint.EnumerateValid(Func);
-  FdtexCoord.EnumerateValid(Func);
+  Result := FdcontrolPoint.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := FdtexCoord.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure TContour2DNode.CreateNode;
@@ -611,10 +604,10 @@ begin
   Result := Version.Major >= 3;
 end;
 
-procedure TContour2DNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TContour2DNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Fdchildren.EnumerateValid(Func);
+  Result := Fdchildren.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure TContourPolyline2DNode.CreateNode;
@@ -714,10 +707,10 @@ begin
   Result := Version.Major >= 3;
 end;
 
-procedure TNurbsCurveNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TNurbsCurveNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FdcontrolPoint.EnumerateValid(Func);
+  Result := FdcontrolPoint.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 { Convert X3D or VRML 97 NurbsCurve to LineSet. }
@@ -919,10 +912,10 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNurbsOrientationInterpolatorNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TNurbsOrientationInterpolatorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FdcontrolPoint.EnumerateValid(Func);
+  Result := FdcontrolPoint.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure TNurbsOrientationInterpolatorNode.EventSet_FractionReceive(
@@ -1363,10 +1356,10 @@ begin
   Result := Version.Major >= 3;
 end;
 
-procedure TNurbsPositionInterpolatorNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TNurbsPositionInterpolatorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FdcontrolPoint.EnumerateValid(Func);
+  Result := FdcontrolPoint.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure TNurbsPositionInterpolatorNode.EventSet_FractionReceive(
@@ -1515,10 +1508,10 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNurbsSurfaceInterpolatorNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TNurbsSurfaceInterpolatorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FdcontrolPoint.EnumerateValid(Func);
+  Result := FdcontrolPoint.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure TNurbsSurfaceInterpolatorNode.EventSet_FractionReceive(
@@ -1632,11 +1625,13 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNurbsSweptSurfaceNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TNurbsSweptSurfaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FdcrossSectionCurve.EnumerateValid(Func);
-  FdtrajectoryCurve.EnumerateValid(Func);
+  Result := FdcrossSectionCurve.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := FdtrajectoryCurve.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 {$define TGeometryNotImplemented := TNurbsSweptSurfaceNode}
@@ -1681,11 +1676,13 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNurbsSwungSurfaceNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TNurbsSwungSurfaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FdprofileCurve.EnumerateValid(Func);
-  FdtrajectoryCurve.EnumerateValid(Func);
+  Result := FdprofileCurve.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := FdtrajectoryCurve.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 {$define TGeometryNotImplemented := TNurbsSwungSurfaceNode}
@@ -1778,10 +1775,10 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TNurbsTrimmedSurfaceNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TNurbsTrimmedSurfaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  FdtrimmingContour.EnumerateValid(Func);
+  Result := FdtrimmingContour.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 function TNurbsTrimmedSurfaceNode.Proxy(var State: TX3DGraphTraverseState;

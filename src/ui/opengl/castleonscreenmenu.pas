@@ -27,230 +27,58 @@ uses Classes, CastleVectors, CastleFonts, CastleControls,
 type
   TCastleOnScreenMenu = class;
 
-  { Attachment to a specific menu item of TCastleOnScreenMenu,
-    for example may store a value associated with given menu option,
-    and allow to change it by a slider. }
-  TMenuAccessory = class
-  private
-    FOwnedByParent: boolean;
+  { Button that looks nice as an "accessory"
+    attached to the TCastleOnScreenMenu item. }
+  TCastleMenuButton = class(TCastleButton)
   public
-    constructor Create;
-
-    { Return the width you will need to display yourself.
-
-      Note that this will be asked only from FixItemsRectangles
-      from TCastleOnScreenMenu. So for example TMenuArgument
-      is *not* supposed to return here something based on
-      current TMenuArgument.Value,
-      because we will not query GetWidth after every change of
-      TMenuArgument.Value. Instead, TMenuArgument
-      should return here the width of widest possible Value. }
-    function GetWidth: Integer; virtual; abstract;
-
-    { Draw (2D) contents. Note that Rectangle.Width is for sure the same
-      as you returned in GetWidth. }
-    procedure Draw(const Rectangle: TRectangle); virtual; abstract;
-
-    { This will be called if user will press a key when currently
-      selected item has this TMenuAccessory.
-
-      You can use ParentMenu to call ParentMenu.AccessoryValueChanged. }
-    function KeyDown(Key: TKey; C: char;
-      ParentMenu: TCastleOnScreenMenu): boolean; virtual;
-
-    { Called when user clicks the mouse when currently
-      selected item has this TMenuAccessory.
-
-      Called only if Event.MousePosition is within
-      current Rectangle (place on screen) of this accessory.
-      This Rectangle is also passed here, so you can e.g. calculate mouse position
-      relative to current accessory as (Event.Position[0] - Rectangle.Left,
-      Event.Position[1] - Rectangle.Bottom).
-
-      Note that while the user holds the mouse clicked (Event.Pressed <> []),
-      the mouse is "grabbed" by this accessory, and even when the user
-      will move the mouse over other items, they will not receive their
-      MouseDown/Motion messages until user will let the mouse go.
-      This prevents the bad situation when user does MouseDown e.g.
-      on "Sound Volume" slider, slides it to the right and then accidentaly
-      moves the mouse also a little down, and suddenly he's over "Music Volume"
-      slider and he changed the position of "Music Volume" slider.
-
-      You can use ParentMenu to call ParentMenu.AccessoryValueChanged. }
-    function MouseDown(const Event: TInputPressRelease;
-      const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu): boolean; virtual;
-
-    { Called when user moves the mouse over the currently selected
-      menu item and menu item has this accessory.
-
-      Just like with MouseDown: This will be called only if Event.Position
-      is within appropriate Rectangle of accessory.
-      You can use ParentMenu to call ParentMenu.AccessoryValueChanged. }
-    procedure Motion(const Event: TInputMotion;
-      const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu); virtual;
-
-    { Should this accessory be freed when TCastleOnScreenMenu using it is freed.
-      Useful to set this to @false when you want to share one TMenuAccessory
-      across more than one TCastleOnScreenMenu. }
-    property OwnedByParent: boolean
-      read FOwnedByParent write FOwnedByParent default true;
+    constructor Create(AOwner: TComponent); override;
+  published
+    property CustomBackground default true;
+    property CustomTextColorUse default true;
+    property PaddingHorizontal default 0;
+    property PaddingVertical default 0;
   end;
 
-  { This is TMenuAccessory that will just display
-    additional text (using some different color than Menu.CurrentItemColor)
-    after the menu item. The intention is that the Value will be changeable
-    by the user (while the basic item text remains constant).
-    For example Value may describe "on" / "off" state of something,
-    the name of some key currently assigned to some function etc. }
-  TMenuArgument = class(TMenuAccessory)
+  { Button that looks nice as an "accessory" that can be toggled
+    (shows "yes" / "no" depending on @link(TCastleButton.Pressed)),
+    attached to the TCastleOnScreenMenu item. }
+  TCastleMenuToggle = class(TCastleMenuButton)
   private
-    FMaximumValueWidth: Integer;
-    FValue: string;
-  public
-    constructor Create(const AMaximumValueWidth: Integer);
-
-    property Value: string read FValue write FValue;
-
-    property MaximumValueWidth: Integer
-      read FMaximumValueWidth write FMaximumValueWidth;
-
-    { Calculate text width using font used by TMenuArgument. }
-    class function TextWidth(const Text: string): Integer;
-
-    function GetWidth: Integer; override;
-    procedure Draw(const Rectangle: TRectangle); override;
-  end;
-
-  { This is like TMenuArgument that displays boolean value
-    (as "Yes" or "No").
-
-    Don't access MaximumValueWidth or inherited Value (as string)
-    when using this class --- this class should handle this by itself. }
-  TMenuBooleanArgument = class(TMenuArgument)
-  private
-    FBooleanValue: boolean;
-    procedure SetValue(const AValue: boolean);
-  public
-    constructor Create(const AValue: boolean);
-    property Value: boolean read FBooleanValue write SetValue;
-  end;
-
-  TMenuSlider = class(TMenuAccessory)
-  private
-    FDisplayValue: boolean;
+    FAutoToggle: boolean;
   protected
-    { Draw a slider at given Position. If Position is outside 0..1, it is clamped
-      to 0..1 (this way we do not show slider at some wild position if it's
-      outside the expected range; but DrawSliderText will still show the true,
-      unclamped, value). }
-    procedure DrawSliderPosition(const Rectangle: TRectangle; const Position: Single);
-
-    { Returns a value of Position, always in 0..1 range,
-      that would result in slider being drawn at XCoord screen position
-      by DrawSliderPosition.
-      Takes Rectangle as the rectangle currently occupied by the whole slider. }
-    function XCoordToSliderPosition(const XCoord: Single;
-      const Rectangle: TRectangle): Single;
-
-    procedure DrawSliderText(const Rectangle: TRectangle; const Text: string);
+    procedure SetPressed(const Value: boolean); override;
   public
-    constructor Create;
-
-    function GetWidth: Integer; override;
-    procedure Draw(const Rectangle: TRectangle); override;
-
-    { Should the Value be displayed as text ?
-      Usually useful --- but only if the Value has some meaning for the user.
-      If @true, then ValueToStr is used. }
-    property DisplayValue: boolean
-      read FDisplayValue write FDisplayValue default true;
+    constructor Create(AOwner: TComponent); override;
+    procedure DoClick; override;
+  published
+    property Toggle default true;
+    { Automatically negate @link(TCastleButton.Pressed Pressed) on each click.
+      This makes it easy to handle this component, often it means that you
+      don't need to handle it's @link(TCastleButton.OnClick OnClick) event,
+      and you only need to observe it's @link(TCastleButton.Pressed Pressed)
+      value. }
+    property AutoToggle: boolean read FAutoToggle write FAutoToggle default false;
   end;
 
-  TMenuFloatSlider = class(TMenuSlider)
-  private
-    FBeginRange: Single;
-    FEndRange: Single;
-    FValue: Single;
-  public
-    constructor Create(const ABeginRange, AEndRange, AValue: Single);
-
-    property BeginRange: Single read FBeginRange;
-    property EndRange: Single read FEndRange;
-
-    { Current value. When setting this property, always make sure
-      that it's within the allowed range. }
-    property Value: Single read FValue write FValue;
-
-    procedure Draw(const Rectangle: TRectangle); override;
-
-    function KeyDown(Key: TKey; C: char;
-      ParentMenu: TCastleOnScreenMenu): boolean; override;
-
-    function MouseDown(const Event: TInputPressRelease;
-      const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu): boolean; override;
-
-    procedure Motion(const Event: TInputMotion;
-      const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu); override;
-
-    function ValueToStr(const AValue: Single): string; virtual;
-  end;
-
-  TMenuIntegerSlider = class(TMenuSlider)
-  private
-    FBeginRange: Integer;
-    FEndRange: Integer;
-    FValue: Integer;
-
-    function XCoordToValue(
-      const XCoord: Single; const Rectangle: TRectangle): Integer;
-  public
-    constructor Create(const ABeginRange, AEndRange, AValue: Integer);
-
-    property BeginRange: Integer read FBeginRange;
-    property EndRange: Integer read FEndRange;
-
-    { Current value. When setting this property, always make sure
-      that it's within the allowed range. }
-    property Value: Integer read FValue write FValue;
-
-    procedure Draw(const Rectangle: TRectangle); override;
-
-    function KeyDown(Key: TKey; C: char;
-      ParentMenu: TCastleOnScreenMenu): boolean; override;
-
-    function MouseDown(const Event: TInputPressRelease;
-      const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu): boolean; override;
-
-    procedure Motion(const Event: TInputMotion;
-      const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu); override;
-
-    function ValueToStr(const AValue: Integer): string; virtual;
-  end;
-
-  { On-screen menu displayed in OpenGL. All the menu items are simply
-    displayed on the screen, one after the other. Typical for game menus.
-    Normal user programs may prefer to use the menu bar instead of this
+  { On-screen menu, with all menu items displayed on the screen,
+    one under the other. Typical for game menus.
+    Normal tools may prefer to use the menu bar instead of this
     (for example TCastleWindowCustom.Menu, or normal Lazarus menu).
-    Although this still may be useful for displaying things like sliders. }
-  TCastleOnScreenMenu = class(TUIControl)
+
+    Each menu item can have an "accessory", for example an associated
+    slider (from TCastleFloatSlider, any TUIControl is OK).
+    This allows to use this menu also for settings. }
+  TCastleOnScreenMenu = class(TUIControlFont)
   private
-    FFullSize: boolean;
+    FCaptureAllEvents: boolean;
     FOnClick: TNotifyEvent;
-    FOnAccessoryValueChanged: TNotifyEvent;
-    FItems: TStringList;
     FCurrentItem: Integer;
-    FPositionRelativeMenuX: THorizontalPosition;
-    FPositionRelativeMenuY: TVerticalPosition;
-    FPositionRelativeScreenX: THorizontalPosition;
-    FPositionRelativeScreenY: TVerticalPosition;
+    { Calculated menu items positions and sizes, by RecalculateSize. }
     FRectangles: TRectangleList;
-    FAccessoryRectangles: TRectangleList;
-    FAllItemsRectangle: TRectangle;
+    FWidth, FHeight: Cardinal; //< calculated necessary size
     FKeyNextItem: TKey;
     FKeyPreviousItem: TKey;
     FKeySelectItem: TKey;
-    FKeySliderDecrease: TKey;
-    FKeySliderIncrease: TKey;
     MenuAnimation: Single;
     FCurrentItemBorderColor1: TCastleColor;
     FCurrentItemBorderColor2: TCastleColor;
@@ -259,25 +87,19 @@ type
     MaxItemWidth: Integer;
     FRegularSpaceBetweenItems: Cardinal;
     FDrawBackgroundRectangle: boolean;
-    { Item accessory that currently has "grabbed" the mouse.
-      -1 if none. }
-    ItemAccessoryGrabbed: Integer;
     FDrawFocusedBorder: boolean;
-    FDesignerMode: boolean;
-    FPositionAbsolute,
-      PositionScreenRelativeMove, PositionMenuRelativeMove: TVector2Integer;
     FBackgroundOpacityFocused, FBackgroundOpacityNotFocused: Single;
     function GetCurrentItem: Integer;
     procedure SetCurrentItem(const Value: Integer);
-    procedure SetItems(const Value: TStringList);
-    procedure SetDesignerMode(const Value: boolean);
+    procedure SetRegularSpaceBetweenItems(const Value: Cardinal);
+    function FindChildIndex(const ScreenPosition: TVector2Single): Integer;
+  protected
+    procedure UIScaleChanged; override;
   public
     const
       DefaultMenuKeyNextItem = K_Down;
       DefaultMenuKeyPreviousItem = K_Up;
       DefaultMenuKeySelectItem = K_Enter;
-      DefaultMenuKeySliderIncrease = K_Right;
-      DefaultMenuKeySliderDecrease = K_Left;
 
       DefaultCurrentItemBorderColor1: TCastleColor = (1.0, 1.0, 1.0, 1.0) { White  }; { }
       DefaultCurrentItemBorderColor2: TCastleColor = (0.5, 0.5, 0.5, 1.0) { Gray   }; { }
@@ -288,43 +110,15 @@ type
       DefaultBackgroundOpacityNotFocused = 0.4;
       DefaultBackgroundOpacityFocused = 0.7;
 
-    var
-      { Position of the menu. Expressed as position of some corner of the menu
-        (see PositionRelativeMenuX/Y), relative to some corner of the
-        screen (see PositionRelativeScreenX/Y).
-
-        See TPositionRelative documentation for more information.
-
-        You may be interested in DesignerMode for a possibility to set
-        this property at run-time.
-
-        Expressed as a public field (instead of a read-write property)
-        because assigning a field of record property is a risk in ObjectPascal
-        (you may be modifying only a temporary copy of the record returned
-        by property getter). }
-      Position: TVector2Integer;
-
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { PositionAbsolute expresses the position of the menu rectangle
-      independently from all PositionRelative* properties.
-      You can think of it as "What value would Position have
-      if all PositionRelative* were equal hpLeft / hpBottom".
+    procedure Add(const S: string);
+    procedure Add(const S: string; const Accessory: TUIControl);
 
-      An easy exercise for the reader is to check implementation that when
-      all PositionRelative* are hpLeft/vpBottom, PositionAbsolute is indeed
-      always equal to Position :)
-
-      This is read-only, is calculated by FixItemsRectangles.
-      It's calculated anyway because our drawing code needs this.
-      You may find it useful if you want to draw something relative to menu
-      position. }
-    property PositionAbsolute: TVector2Integer read FPositionAbsolute;
-
-    { When Items.Count <> 0, this is always some number
-      between 0 and Items.Count - 1.
-      Otherwise (when Items.Count <> 0) this is always -1.
+    { When ControlsCount <> 0, this is always some number
+      between 0 and ControlsCount - 1.
+      Otherwise (when ControlsCount <> 0) this is always -1.
 
       If you assign it to wrong value (breaking conditions above),
       or if you change Items such that conditions are broken,
@@ -332,10 +126,6 @@ type
 
       Changing this calls CurrentItemChanged automatically when needed. }
     property CurrentItem: Integer read GetCurrentItem write SetCurrentItem;
-
-    { The accessory (like a slider) attached to currently selected menu item.
-      @nil if none. }
-    function CurrentAccessory: TMenuAccessory;
 
     { These change CurrentItem as appropriate.
       Usually you will just let this class call it internally
@@ -346,50 +136,14 @@ type
     procedure PreviousItem;
     { @groupEnd }
 
-    procedure GLContextClose; override;
-
     { Calculate final positions, sizes of menu items on the screen.
-      You must call FixItemsRectangles between last modification of
-      @unorderedList(
-        @itemSpacing Compact
-        @item Items
-        @item Position
-        @item(RegularSpaceBetweenItems (and eventually everything else that
-          affects your custom SpaceBetweenItems implementation))
-      )
-      and calling one of the procedures
-      @unorderedList(
-        @itemSpacing Compact
-        @item Render
-        @item Motion
-        @item Press
-        @item Release
-        @item Update
-      )
-      You can call this only while OpenGL context is initialized.
+      Usually this is called automatically when necessary. }
+    procedure RecalculateSize;
 
-      ContainerResize already calls FixItemsRectangles, and window resize is already
-      called automatically by window (at the addition to Controls list,
-      or whenever window size changes). So in simplest cases (when you
-      fill @link(Items) etc. properties before adding TCastleOnScreenMenu to Controls)
-      you, in practice, do not have to call this explicitly. }
-    procedure FixItemsRectangles;
+    procedure Resize; override;
 
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
-
-    { Calculates menu items positions, sizes.
-      These are initialized by FixItemsRectangles.
-      They are absolutely read-only for the user of this class.
-      You can use them to do some graphic effects, when you e.g.
-      want to draw something on the screen that is somehow positioned
-      relative to some menu item or to whole menu rectangle.
-      Note that AllItemsRectangle includes also some outside margin.
-      @groupBegin }
-    property Rectangles: TRectangleList read FRectangles;
-    property AllItemsRectangle: TRectangle read FAllItemsRectangle;
-    property AccessoryRectangles: TRectangleList read FAccessoryRectangles;
-    { @groupEnd }
-
+    function Rect: TRectangle; override;
+    function CapturesEventsAtPosition(const Position: TVector2Single): boolean; override;
     procedure Render; override;
 
     property KeyNextItem: TKey read FKeyNextItem write FKeyNextItem
@@ -398,62 +152,38 @@ type
       default DefaultMenuKeyPreviousItem;
     property KeySelectItem: TKey read FKeySelectItem write FKeySelectItem
       default DefaultMenuKeySelectItem;
-    property KeySliderIncrease: TKey
-      read FKeySliderIncrease write FKeySliderIncrease
-      default DefaultMenuKeySliderIncrease;
-    property KeySliderDecrease: TKey
-      read FKeySliderDecrease write FKeySliderDecrease
-      default DefaultMenuKeySliderDecrease;
 
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
-    function PositionInside(const Point: TVector2Single): boolean; override;
     function AllowSuspendForInput: boolean; override;
 
     { Called when user will select CurrentItem, either with mouse
       or with keyboard. }
-    procedure Click; virtual;
+    procedure Click; virtual; deprecated 'use TCastleMenuButton and it''s OnClick event';
 
     { @deprecated Deprecated name for Click. }
-    procedure CurrentItemSelected; virtual; deprecated;
-
-    { Called when the value of current accessory (TMenuAccessory assigned
-      to CurrentItem) changed its value.
-      (Which may happen due to user clicking, or pressing some keys etc.)
-
-      Note that this will not be called when you just set
-      Value of some property.
-
-      In the TCastleOnScreenMenu class this just calls VisibleChange,
-      and OnAccessoryValueChanged. You can look at CurrentAccessory
-      or (less advised) CurrentItem to see what changed. }
-    procedure AccessoryValueChanged; virtual;
-
-    { @deprecated Deprecated name for AccessoryValueChanged. }
-    procedure CurrentItemAccessoryValueChanged; virtual; deprecated;
+    procedure CurrentItemSelected; virtual; deprecated 'use TCastleMenuButton and it''s OnClick event';
 
     { Called when CurrentItem changed.
-      But *not* when CurrentItem changed because of Items.Count changes.
+      But *not* when CurrentItem changed because of ControlsCount changes.
       In this class this just calls VisibleChange and
       plays sound stMenuCurrentItemChanged. }
     procedure CurrentItemChanged; virtual;
 
     { Default value is DefaultCurrentItemBorderColor1 }
     property CurrentItemBorderColor1: TCastleColor
-      read FCurrentItemBorderColor1
-      write FCurrentItemBorderColor1;
+      read FCurrentItemBorderColor1 write FCurrentItemBorderColor1;
     { Default value is DefaultCurrentItemBorderColor2 }
     property CurrentItemBorderColor2: TCastleColor
-      read FCurrentItemBorderColor2
-      write FCurrentItemBorderColor2;
+      read FCurrentItemBorderColor2 write FCurrentItemBorderColor2;
     { Default value is DefaultCurrentItemColor }
-    property CurrentItemColor       : TCastleColor
+    property CurrentItemColor: TCastleColor
       read FCurrentItemColor write FCurrentItemColor;
     { Default value is DefaultNonCurrentItemColor }
-    property NonCurrentItemColor    : TCastleColor
+    property NonCurrentItemColor: TCastleColor
       read FNonCurrentItemColor write FNonCurrentItemColor;
 
     { Return the space needed before NextItemIndex.
@@ -463,59 +193,10 @@ type
       Default implementation in this class simply returns
       RegularSpaceBetweenItems always.
 
-      Note that this is used only at FixItemsRectangles call.
+      Note that this is used only at RecalculateSize call.
       So when some variable affecting the implementation of this changes,
-      you should call FixItemsRectangles again. }
+      you should call RecalculateSize again. }
     function SpaceBetweenItems(const NextItemIndex: Cardinal): Cardinal; virtual;
-
-    { "Designer mode" is useful for a developer to visually design
-      some properties of TCastleOnScreenMenu.
-
-      @link(Container) of this control will be aumatically used,
-      we will set mouse position when entering DesignerMode
-      to match current menu position. This is usually desirable (otherwise
-      slight mouse move will immediately change menu position).
-      To make it work, make sure @link(Container) is assigned
-      before setting DesignerMode to @true --- in other words,
-      make sure you add this control to something like TCastleWindowCustom.Controls
-      first, and only then set DesignedMode := @true.
-      This works assuming that you always call our Render with identity
-      transform matrix (otherwise, this unit is not able to know how to
-      calculate mouse position corresponding to given menu PositionAbsolute).
-
-      By default, we're not in designer mode,
-      and user has @italic(no way to enter into designer mode).
-      You have to actually add some code to your program to activate
-      designer mode. E.g. in "The Rift" game I required that user
-      passes @--debug-menu-designer command-line option and then
-      DesignerMode could be toggled by F12 key press.
-
-      Right now, features of designer mode:
-      @unorderedList(
-        @item(Mouse move change Position to current mouse position.)
-        @item(PositionRelative changing:
-          @unorderedList(
-            @itemSpacing Compact
-            @item Key X     changes PositionRelativeScreenX value,
-            @item key Y     changes PositionRelativeScreenY value,
-            @item Key CtrlX changes PositionRelativeMenuX values,
-            @item Key CtrlY changes PositionRelativeMenuY values.
-          )
-          Also, a white line is drawn in designer mode, to indicate
-          the referenced screen and menu positions.
-          A line connects the appropriate
-          container position (from PositionRelativeScreen) to the appropriate
-          control position (from PositionRelativeMenu).)
-        @item(CtrlB toggles DrawBackgroundRectangle.)
-        @item(Key CtrlD dumps current properties to StdOut.
-          Basically, every property that can be changed from designer mode
-          is dumped here. This is crucial function if you decide that
-          you want to actually use the designed properties in your program,
-          so you want to paste code setting such properties.)
-      ) }
-    property DesignerMode: boolean
-      read FDesignerMode write SetDesignerMode default false;
-
   published
     { Opacity of the background rectangle (displayed when DrawBackgroundRectangle).
       @groupBegin }
@@ -529,26 +210,6 @@ type
       default DefaultBackgroundOpacityNotFocused;
     { @groupEnd }
 
-    { See TPositionRelative documentation for meaning of these four
-      PositionRelativeXxx properties.
-      @groupBegin }
-    property PositionRelativeMenuX: THorizontalPosition
-      read FPositionRelativeMenuX write FPositionRelativeMenuX
-      default hpMiddle;
-
-    property PositionRelativeMenuY: TVerticalPosition
-      read FPositionRelativeMenuY write FPositionRelativeMenuY
-      default vpMiddle;
-
-    property PositionRelativeScreenX: THorizontalPosition
-      read FPositionRelativeScreenX write FPositionRelativeScreenX
-      default hpMiddle;
-
-    property PositionRelativeScreenY: TVerticalPosition
-      read FPositionRelativeScreenY write FPositionRelativeScreenY
-      default vpMiddle;
-    { @groupEnd }
-
     property DrawBackgroundRectangle: boolean
       read FDrawBackgroundRectangle write FDrawBackgroundRectangle
       default true;
@@ -558,359 +219,71 @@ type
       If you want more control over it (if you want to add more/less
       space between some menu items), override SpaceBetweenItems method. }
     property RegularSpaceBetweenItems: Cardinal
-      read FRegularSpaceBetweenItems write FRegularSpaceBetweenItems
+      read FRegularSpaceBetweenItems write SetRegularSpaceBetweenItems
       default DefaultRegularSpaceBetweenItems;
 
     { Draw a flashing border around the menu when we are focused. }
     property DrawFocusedBorder: boolean read FDrawFocusedBorder write FDrawFocusedBorder
       default true;
 
-    { Items of this menu.
-
-      Note that Objects of this class have special meaning: they must
-      be either nil or some TMenuAccessory instance
-      (different TMenuAccessory instance for each item).
-      When freeing this TCastleOnScreenMenu instance, note that we will also
-      free all Items.Objects. }
-    property Items: TStringList read FItems write SetItems;
-
     { Called when user will select CurrentItem.
       @seealso Click }
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
+      deprecated 'use TCastleMenuButton and it''s OnClick event';
 
-    { Called when the value of current accessory (TMenuAccessory assigned
-      to CurrentItem) will change value.
-      @seealso AccessoryValueChanged }
-    property OnAccessoryValueChanged: TNotifyEvent
-      read FOnAccessoryValueChanged
-      write FOnAccessoryValueChanged;
-
-    { Should menu intercept all key/mouse input, that is behave like
-      it was filling full container (window or lazarus component).
+    { Should menu intercept all key/mouse input, regardless if mouse position
+      is over our rectangle.
       This affects key/mouse processing (menu processes input
       before all controls underneath), but not drawing (controls underneath
       are still visible as usual). }
-    property FullSize: boolean read FFullSize write FFullSize default false;
+    property CaptureAllEvents: boolean
+      read FCaptureAllEvents write FCaptureAllEvents default false;
   end;
 
 procedure Register;
 
-{ @deprecated Deprecated names for UIFont and UIFontSmall in CastleControls unit.
-  @groupBegin }
-property MenuFont: TCastleFont read GetUIFont write SetUIFont;
-property SliderFont: TCastleFont read GetUIFontSmall write SetUIFontSmall;
-{ @groupEnd }
-
 implementation
 
 uses SysUtils, CastleUtils, CastleImages, CastleFilesUtils, CastleClassUtils,
-  CastleStringUtils, CastleGLImages, CastleSoundEngine, CastleGL;
+  CastleStringUtils, CastleGLImages, CastleSoundEngine;
 
 procedure Register;
 begin
   RegisterComponents('Castle', [TCastleOnScreenMenu]);
 end;
 
-{ TMenuAccessory ------------------------------------------------------ }
+{ TCastleMenuButton ---------------------------------------------------------- }
 
-constructor TMenuAccessory.Create;
+constructor TCastleMenuButton.Create(AOwner: TComponent);
 begin
   inherited;
-  FOwnedByParent := true;
+  CustomBackground := true; // leave CustomBackgroundImage for transparent background
+  CustomTextColorUse := true;
+  CustomTextColor := LightGreen;
+  PaddingHorizontal := 0;
+  PaddingVertical := 0;
 end;
 
-function TMenuAccessory.KeyDown(Key: TKey; C: char;
-  ParentMenu: TCastleOnScreenMenu): boolean;
-begin
-  { Nothing to do in this class. }
-  Result := false;
-end;
+{ TCastleMenuToggle ---------------------------------------------------------- }
 
-function TMenuAccessory.MouseDown(const Event: TInputPressRelease;
-  const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu): boolean;
-begin
-  { Nothing to do in this class. }
-  Result := false;
-end;
-
-procedure TMenuAccessory.Motion(const Event: TInputMotion;
-  const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu);
-begin
-  { Nothing to do in this class. }
-end;
-
-{ TMenuArgument -------------------------------------------------------- }
-
-constructor TMenuArgument.Create(const AMaximumValueWidth: Integer);
-begin
-  inherited Create;
-  FMaximumValueWidth := AMaximumValueWidth;
-end;
-
-class function TMenuArgument.TextWidth(const Text: string): Integer;
-begin
-  Result := UIFont.TextWidth(Text);
-end;
-
-function TMenuArgument.GetWidth: Integer;
-begin
-  Result := MaximumValueWidth;
-end;
-
-procedure TMenuArgument.Draw(const Rectangle: TRectangle);
-begin
-  UIFont.Print(Rectangle.Left, Rectangle.Bottom + UIFont.Descend,
-    LightGreen, Value);
-end;
-
-{ TMenuBooleanArgument ----------------------------------------------------- }
-
-constructor TMenuBooleanArgument.Create(const AValue: boolean);
-begin
-  inherited Create(
-    Max(TMenuArgument.TextWidth(BoolToStrYesNo[true]),
-        TMenuArgument.TextWidth(BoolToStrYesNo[false])));
-  FBooleanValue := AValue;
-  inherited Value := BoolToStrYesNo[Value];
-end;
-
-procedure TMenuBooleanArgument.SetValue(const AValue: boolean);
-begin
-  if FBooleanValue <> AValue then
-  begin
-    FBooleanValue := AValue;
-    inherited Value := BoolToStrYesNo[Value];
-  end;
-end;
-
-{ TMenuSlider -------------------------------------------------------------- }
-
-constructor TMenuSlider.Create;
+constructor TCastleMenuToggle.Create(AOwner: TComponent);
 begin
   inherited;
-  FDisplayValue := true;
+  Toggle := true;
+  Caption := BoolToStrYesNo[Pressed];
 end;
 
-const
-   // you can increase/decrease these freely
-  SliderWidth = 250;
-  SliderPositionWidth = 10;
-
-function TMenuSlider.GetWidth: Integer;
-begin
-  Result := SliderWidth;
-end;
-
-procedure TMenuSlider.Draw(const Rectangle: TRectangle);
-begin
-  Theme.Draw(Rectangle, tiSlider);
-end;
-
-procedure TMenuSlider.DrawSliderPosition(const Rectangle: TRectangle;
-  const Position: Single);
-begin
-  Theme.Draw(CastleRectangles.Rectangle(
-    Rectangle.Left + Round(MapRange(Clamped(Position, 0, 1), 0, 1,
-      0, SliderWidth - SliderPositionWidth)),
-    Rectangle.Bottom,
-    SliderPositionWidth,
-    Rectangle.Height), tiSliderPosition);
-end;
-
-function TMenuSlider.XCoordToSliderPosition(
-  const XCoord: Single; const Rectangle: TRectangle): Single;
-begin
-  Result := Clamped(MapRange(XCoord,
-    Rectangle.Left,
-    Rectangle.Left + SliderWidth - SliderPositionWidth, 0, 1), 0, 1);
-end;
-
-procedure TMenuSlider.DrawSliderText(
-  const Rectangle: TRectangle; const Text: string);
-begin
-  UIFontSmall.Print(
-    Rectangle.Left + (Rectangle.Width - UIFontSmall.TextWidth(Text)) div 2,
-    Rectangle.Bottom + (Rectangle.Height - UIFontSmall.RowHeight) div 2,
-    Black, Text);
-end;
-
-{ TMenuFloatSlider --------------------------------------------------------- }
-
-constructor TMenuFloatSlider.Create(
-  const ABeginRange, AEndRange, AValue: Single);
-begin
-  inherited Create;
-  FBeginRange := ABeginRange;
-  FEndRange := AEndRange;
-  FValue := AValue;
-end;
-
-procedure TMenuFloatSlider.Draw(const Rectangle: TRectangle);
+procedure TCastleMenuToggle.SetPressed(const Value: boolean);
 begin
   inherited;
-
-  DrawSliderPosition(Rectangle, MapRange(Value, BeginRange, EndRange, 0, 1));
-
-  if DisplayValue then
-    DrawSliderText(Rectangle, ValueToStr(Value));
+  Caption := BoolToStrYesNo[Pressed];
 end;
 
-function TMenuFloatSlider.KeyDown(Key: TKey; C: char;
-  ParentMenu: TCastleOnScreenMenu): boolean;
-var
-  ValueChange: Single;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  { TODO: TMenuFloatSlider should rather get "smooth" changing of Value ? }
-  if Key <> K_None then
-  begin
-    ValueChange := (EndRange - BeginRange) / 100;
-
-    { KeySelectItem works just like KeySliderIncrease.
-      Why ? Because KeySelectItem does something with most menu items,
-      so user would be surprised if it doesn't work at all with slider
-      menu items. Increasing slider value seems like some sensible operation
-      to do on slider menu item. }
-
-    if (Key = ParentMenu.KeySelectItem) or
-       (Key = ParentMenu.KeySliderIncrease) then
-    begin
-      FValue := Min(EndRange, Value + ValueChange);
-      ParentMenu.AccessoryValueChanged;
-      Result := ParentMenu.ExclusiveEvents;
-    end else
-    if Key = ParentMenu.KeySliderDecrease then
-    begin
-      FValue := Max(BeginRange, Value - ValueChange);
-      ParentMenu.AccessoryValueChanged;
-      Result := ParentMenu.ExclusiveEvents
-    end;
-  end;
-end;
-
-function TMenuFloatSlider.MouseDown(const Event: TInputPressRelease;
-  const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if Event.MouseButton = mbLeft then
-  begin
-    FValue := MapRange(XCoordToSliderPosition(Event.Position[0], Rectangle), 0, 1,
-      BeginRange, EndRange);
-    ParentMenu.AccessoryValueChanged;
-    Result := ParentMenu.ExclusiveEvents;
-  end;
-end;
-
-procedure TMenuFloatSlider.Motion(const Event: TInputMotion;
-  const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu);
-begin
-  if mbLeft in Event.Pressed then
-  begin
-    FValue := MapRange(XCoordToSliderPosition(Event.Position[0], Rectangle), 0, 1,
-      BeginRange, EndRange);
-    ParentMenu.AccessoryValueChanged;
-  end;
-end;
-
-function TMenuFloatSlider.ValueToStr(const AValue: Single): string;
-begin
-  Result := Format('%f', [AValue]);
-end;
-
-{ TMenuIntegerSlider ------------------------------------------------------- }
-
-constructor TMenuIntegerSlider.Create(
-  const ABeginRange, AEndRange, AValue: Integer);
-begin
-  inherited Create;
-  FBeginRange := ABeginRange;
-  FEndRange := AEndRange;
-  FValue := AValue;
-end;
-
-procedure TMenuIntegerSlider.Draw(const Rectangle: TRectangle);
+procedure TCastleMenuToggle.DoClick;
 begin
   inherited;
-
-  DrawSliderPosition(Rectangle, MapRange(Value, BeginRange, EndRange, 0, 1));
-
-  if DisplayValue then
-    DrawSliderText(Rectangle, ValueToStr(Value));
-end;
-
-function TMenuIntegerSlider.KeyDown(Key: TKey; C: char;
-  ParentMenu: TCastleOnScreenMenu): boolean;
-var
-  ValueChange: Integer;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if Key <> K_None then
-  begin
-    ValueChange := 1;
-
-    { KeySelectItem works just like KeySliderIncrease.
-      Reasoning: see TMenuFloatSlider. }
-
-    if (Key = ParentMenu.KeySelectItem) or
-       (Key = ParentMenu.KeySliderIncrease) then
-    begin
-      FValue := Min(EndRange, Value + ValueChange);
-      ParentMenu.AccessoryValueChanged;
-      Result := ParentMenu.ExclusiveEvents;
-    end else
-    if Key = ParentMenu.KeySliderDecrease then
-    begin
-      FValue := Max(BeginRange, Value - ValueChange);
-      ParentMenu.AccessoryValueChanged;
-      Result := ParentMenu.ExclusiveEvents;
-    end;
-  end;
-end;
-
-function TMenuIntegerSlider.XCoordToValue(
-  const XCoord: Single; const Rectangle: TRectangle): Integer;
-begin
-  { We do additional Clamped over Round result to avoid any
-    chance of floating-point errors due to lack of precision. }
-  Result := Clamped(Round(
-    MapRange(XCoordToSliderPosition(XCoord, Rectangle), 0, 1,
-      BeginRange, EndRange)), BeginRange, EndRange);
-end;
-
-function TMenuIntegerSlider.MouseDown(
-  const Event: TInputPressRelease;
-  const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if Event.MouseButton = mbLeft then
-  begin
-    FValue := XCoordToValue(Event.Position[0], Rectangle);
-    ParentMenu.AccessoryValueChanged;
-    Result := ParentMenu.ExclusiveEvents;
-  end;
-end;
-
-procedure TMenuIntegerSlider.Motion(const Event: TInputMotion;
-  const Rectangle: TRectangle; ParentMenu: TCastleOnScreenMenu);
-begin
-  if mbLeft in Event.Pressed then
-  begin
-    FValue := XCoordToValue(Event.Position[0], Rectangle);
-    ParentMenu.AccessoryValueChanged;
-  end;
-end;
-
-function TMenuIntegerSlider.ValueToStr(const AValue: Integer): string;
-begin
-  Result := IntToStr(AValue);
+  if AutoToggle then
+    Pressed := not Pressed;
 end;
 
 { TCastleOnScreenMenu -------------------------------------------------------------------- }
@@ -918,23 +291,14 @@ end;
 constructor TCastleOnScreenMenu.Create(AOwner: TComponent);
 begin
   inherited;
-  FItems := TStringList.Create;
   FCurrentItem := 0;
   FRectangles := TRectangleList.Create;
-  FAccessoryRectangles := TRectangleList.Create;
   BackgroundOpacityNotFocused := DefaultBackgroundOpacityNotFocused;
   BackgroundOpacityFocused    := DefaultBackgroundOpacityFocused;
-
-  FPositionRelativeMenuX := hpMiddle;
-  FPositionRelativeMenuY := vpMiddle;
-  FPositionRelativeScreenX := hpMiddle;
-  FPositionRelativeScreenY := vpMiddle;
 
   KeyNextItem := DefaultMenuKeyNextItem;
   KeyPreviousItem := DefaultMenuKeyPreviousItem;
   KeySelectItem := DefaultMenuKeySelectItem;
-  KeySliderIncrease := DefaultMenuKeySliderIncrease;
-  KeySliderDecrease := DefaultMenuKeySliderDecrease;
 
   FCurrentItemBorderColor1 := DefaultCurrentItemBorderColor1;
   FCurrentItemBorderColor2 := DefaultCurrentItemBorderColor2;
@@ -947,22 +311,7 @@ begin
 end;
 
 destructor TCastleOnScreenMenu.Destroy;
-var
-  I: Integer;
 begin
-  if FItems <> nil then
-  begin
-    for I := 0 to FItems.Count - 1 do
-      if FItems.Objects[I] <> nil then
-      begin
-        if TMenuAccessory(FItems.Objects[I]).OwnedByParent then
-          FItems.Objects[I].Free;
-        FItems.Objects[I] := nil;
-      end;
-    FreeAndNil(FItems);
-  end;
-
-  FreeAndNil(FAccessoryRectangles);
   FreeAndNil(FRectangles);
   inherited;
 end;
@@ -972,27 +321,14 @@ begin
   Result := FCurrentItem;
 
   { Make sure that CurrentItem conditions are OK.
+    User can change the Controls list at any moment, so you cannot depend that
+    FCurrentItem is Ok here. }
 
-    Alternatively we could watch for this in SetCurrentItem, but then
-    changing Items by user of this class could invalidate it.
-    So it's safest to just check the conditions here. }
-
-  if Items.Count <> 0 then
+  if ControlsCount <> 0 then
   begin
-    Clamp(Result, 0, Items.Count - 1);
+    ClampVar(Result, 0, ControlsCount - 1);
   end else
     Result := -1;
-end;
-
-function TCastleOnScreenMenu.CurrentAccessory: TMenuAccessory;
-var
-  I: Integer;
-begin
-  I := CurrentItem;
-  if (I <> -1) and
-     (Items.Objects[I] is TMenuAccessory) then
-    Result := TMenuAccessory(Items.Objects[I]) else
-    Result := nil;
 end;
 
 procedure TCastleOnScreenMenu.SetCurrentItem(const Value: Integer);
@@ -1008,9 +344,9 @@ end;
 
 procedure TCastleOnScreenMenu.NextItem;
 begin
-  if Items.Count <> 0 then
+  if ControlsCount <> 0 then
   begin
-    if CurrentItem = Items.Count - 1 then
+    if CurrentItem = ControlsCount - 1 then
       CurrentItem := 0 else
       CurrentItem := CurrentItem + 1;
   end;
@@ -1018,16 +354,12 @@ end;
 
 procedure TCastleOnScreenMenu.PreviousItem;
 begin
-  if Items.Count <> 0 then
+  if ControlsCount <> 0 then
   begin
     if CurrentItem = 0 then
-      CurrentItem := Items.Count - 1 else
+      CurrentItem := ControlsCount - 1 else
       CurrentItem := CurrentItem - 1;
   end;
-end;
-
-procedure TCastleOnScreenMenu.GLContextClose;
-begin
 end;
 
 function TCastleOnScreenMenu.SpaceBetweenItems(const NextItemIndex: Cardinal): Cardinal;
@@ -1038,169 +370,136 @@ end;
 const
   MarginBeforeAccessory = 20;
 
-procedure TCastleOnScreenMenu.FixItemsRectangles;
+procedure TCastleOnScreenMenu.RecalculateSize;
+
+  function ChildHeight(const Index: Integer): Integer;
+  var
+    C: TUIControl;
+  begin
+    C := Controls[Index];
+    // ChildHeight assumes that TCastleLabel(C).AutoSize = true
+    Assert((not (C is TCastleLabel)) or (TCastleLabel(C).AutoSize = true));
+    Result := C.Rect.Height;
+    { add accessory (slider etc.) height inside the menu item }
+    if C.ControlsCount <> 0 then
+      MaxVar(Result, C.Controls[0].Rect.Height);
+  end;
+
 const
-  AllItemsRectangleMargin = 30;
+  Padding = 30;
+  ItemPaddingHorizontal = 5;
 var
   I: Integer;
   WholeItemWidth, MaxAccessoryWidth: Integer;
   ItemsBelowHeight: Cardinal;
+  MarginBeforeAccessoryScaled, PaddingScaled: Integer;
+  C: TUIControl;
+  R: TRectangle;
 begin
-  { If ContainerResize not called yet, wait for FixItemsRectangles call
-    from the first ContainerResize. }
-  if not ContainerSizeKnown then
-    Exit;
+  MarginBeforeAccessoryScaled := Round(UIScale * MarginBeforeAccessory);
+  PaddingScaled := Round(UIScale * Padding);
 
-  ItemAccessoryGrabbed := -1;
-
-  FAccessoryRectangles.Count := Items.Count;
-
-  { calculate FAccessoryRectangles[].Width, MaxItemWidth, MaxAccessoryWidth }
+  { calculate MaxItemWidth, MaxAccessoryWidth }
 
   MaxItemWidth := 0;
   MaxAccessoryWidth := 0;
-  for I := 0 to Items.Count - 1 do
+  for I := 0 to ControlsCount - 1 do
   begin
-    MaxTo1st(MaxItemWidth, UIFont.TextWidth(Items[I]));
-
-    if Items.Objects[I] <> nil then
-      FAccessoryRectangles.L[I].Width :=
-        TMenuAccessory(Items.Objects[I]).GetWidth else
-      FAccessoryRectangles.L[I].Width := 0;
-
-    MaxTo1st(MaxAccessoryWidth, FAccessoryRectangles.L[I].Width);
+    C := Controls[I];
+    if C is TCastleLabel then
+    begin
+      TCastleLabel(C).AutoSize := true; // later we'll turn it back to false
+      TCastleLabel(C).PaddingHorizontal := 0; // later we'll turn it back to nonzero
+    end;
+    MaxVar(MaxItemWidth, C.Rect.Width);
+    { add accessory (slider etc.) width inside the menu item }
+    if C.ControlsCount <> 0 then
+      MaxVar(MaxAccessoryWidth, C.Controls[0].Rect.Width);
   end;
 
-  { calculate FAllItemsRectangle Width and Height }
+  { calculate FWidth and FHeight }
 
-  FAllItemsRectangle.Width := MaxItemWidth;
+  FWidth := MaxItemWidth;
   if MaxAccessoryWidth <> 0 then
-    FAllItemsRectangle.Width += MarginBeforeAccessory + MaxAccessoryWidth;
+    FWidth += MarginBeforeAccessoryScaled + MaxAccessoryWidth;
 
-  FAllItemsRectangle.Height := 0;
-  for I := 0 to Items.Count - 1 do
+  FHeight := 0;
+  for I := 0 to ControlsCount - 1 do
   begin
-    FAllItemsRectangle.Height += UIFont.RowHeight;
+    FHeight += ChildHeight(I);
     if I > 0 then
-      FAllItemsRectangle.Height += Integer(SpaceBetweenItems(I));
+      FHeight += Round(UIScale * SpaceBetweenItems(I));
   end;
 
-  FAllItemsRectangle.Width += 2 * AllItemsRectangleMargin;
-  FAllItemsRectangle.Height += 2 * AllItemsRectangleMargin;
+  FWidth += 2 * PaddingScaled + 2 * Round(UIScale * ItemPaddingHorizontal);
+  FHeight += 2 * PaddingScaled;
 
-  { calculate Rectangles Widths and Heights }
+  { calculate children Widths and Heights }
 
-  Rectangles.Count := 0;
-  for I := 0 to Items.Count - 1 do
+  FRectangles.Count := 0;
+  for I := 0 to ControlsCount - 1 do
   begin
     if MaxAccessoryWidth <> 0 then
-      WholeItemWidth := MaxItemWidth + MarginBeforeAccessory + MaxAccessoryWidth else
-      WholeItemWidth := UIFont.TextWidth(Items[I]);
-    Rectangles.Add(Rectangle(0, 0, WholeItemWidth,
-      UIFont.Descend + UIFont.RowHeight));
+      WholeItemWidth := MaxItemWidth + MarginBeforeAccessoryScaled + MaxAccessoryWidth else
+      WholeItemWidth := Controls[I].Rect.Width;
+    FRectangles.Add(Rectangle(0, 0, WholeItemWidth, ChildHeight(I)));
   end;
-
-  { Now take into account Position, PositionRelative*
-    and calculate PositionAbsolute.
-
-    By the way, we also calculate PositionScreenRelativeMove
-    and PositionMenuRelativeMove, but you don't have to worry about them
-    too much, they are only for DesignerMode to visualize current
-    PositionRelative* meaning. }
-
-  case PositionRelativeScreenX of
-    hpLeft  : PositionScreenRelativeMove[0] := 0;
-    hpMiddle: PositionScreenRelativeMove[0] := ContainerWidth div 2;
-    hpRight : PositionScreenRelativeMove[0] := ContainerWidth;
-    else raise EInternalError.Create('PositionRelative* = ?');
-  end;
-
-  case PositionRelativeScreenY of
-    vpBottom: PositionScreenRelativeMove[1] := 0;
-    vpMiddle: PositionScreenRelativeMove[1] := ContainerHeight div 2;
-    vpTop   : PositionScreenRelativeMove[1] := ContainerHeight;
-    else raise EInternalError.Create('PositionRelative* = ?');
-  end;
-
-  case PositionRelativeMenuX of
-    hpLeft  : PositionMenuRelativeMove[0] := 0;
-    hpMiddle: PositionMenuRelativeMove[0] := FAllItemsRectangle.Width div 2;
-    hpRight : PositionMenuRelativeMove[0] := FAllItemsRectangle.Width;
-    else raise EInternalError.Create('PositionRelative* = ?');
-  end;
-
-  case PositionRelativeMenuY of
-    vpBottom: PositionMenuRelativeMove[1] := 0;
-    vpMiddle: PositionMenuRelativeMove[1] := FAllItemsRectangle.Height div 2;
-    vpTop   : PositionMenuRelativeMove[1] := FAllItemsRectangle.Height;
-    else raise EInternalError.Create('PositionRelative* = ?');
-  end;
-
-  FPositionAbsolute := Position + PositionScreenRelativeMove - PositionMenuRelativeMove;
 
   { Calculate positions of all rectangles. }
 
   { we iterate downwards from Rectangles.Count - 1 to 0, updating ItemsBelowHeight.
-    That's OpenGL (and so, Rectangles.L[I].Bottom) coordinates grow up, while
-    our menu items are specified from highest to lowest. }
+    That because our coordinates grow up,
+    but our menu items are specified from highest to lowest. }
   ItemsBelowHeight := 0;
 
-  for I := Rectangles.Count - 1 downto 0 do
+  for I := FRectangles.Count - 1 downto 0 do
   begin
-    Rectangles.L[I].Left := PositionAbsolute[0] + AllItemsRectangleMargin;
-    Rectangles.L[I].Bottom := PositionAbsolute[1] + AllItemsRectangleMargin + ItemsBelowHeight;
+    C := Controls[I];
+    FRectangles.L[I].Left := PaddingScaled;
+    FRectangles.L[I].Bottom := PaddingScaled + ItemsBelowHeight;
+    R := FRectangles.L[I];
 
+    // divide by UIScale, because TCastleLabel.Rect will multiply by it...
+    C.Left   := Round(R.Left / UIScale);
+    C.Bottom := Round(R.Bottom / UIScale);
+    if C is TCastleLabel then
+    begin
+      TCastleLabel(C).AutoSize := false;
+      TCastleLabel(C).PaddingHorizontal := ItemPaddingHorizontal;
+      TCastleLabel(C).Width  := Round(R.Width / UIScale) + ItemPaddingHorizontal * 2;
+      TCastleLabel(C).Height := Round(R.Height / UIScale);
+    end;
     if I > 0 then
-      ItemsBelowHeight += Cardinal(UIFont.RowHeight + Integer(SpaceBetweenItems(I)));
-  end;
-  FAllItemsRectangle.Left := PositionAbsolute[0];
-  FAllItemsRectangle.Bottom := PositionAbsolute[1];
+      ItemsBelowHeight += Cardinal(R.Height + Round(UIScale * SpaceBetweenItems(I)));
 
-  { Calculate FAccessoryRectangles[].Left, Bottom, Height }
-  for I := 0 to Rectangles.Count - 1 do
-  begin
-    FAccessoryRectangles.L[I].Left := Rectangles.L[I].Left +
-      MaxItemWidth + MarginBeforeAccessory;
-    FAccessoryRectangles.L[I].Bottom := Rectangles.L[I].Bottom;
-    FAccessoryRectangles.L[I].Height := Rectangles.L[I].Height;
+    if C.ControlsCount <> 0 then
+      // divide by UIScale, because TCastleLabel.Rect will multiply by it...
+      C.Controls[0].Left := Round((MaxItemWidth + MarginBeforeAccessoryScaled) / UIScale);
   end;
 end;
 
-procedure TCastleOnScreenMenu.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+procedure TCastleOnScreenMenu.Resize;
 begin
   inherited;
-  FixItemsRectangles;
+  RecalculateSize;
 end;
 
 procedure TCastleOnScreenMenu.Render;
-
-  procedure DrawPositionRelativeLine;
-  begin
-    {$ifndef OpenGLES}
-    // TODO-es
-    glColorv(White);
-    glLineWidth(1.0);
-    glBegin(GL_LINES);
-      glVertexv(PositionScreenRelativeMove);
-      glVertexv(PositionAbsolute + PositionMenuRelativeMove);
-    glEnd();
-    {$endif}
-  end;
-
-const
-  CurrentItemBorderMargin = 5;
 var
   I: Integer;
   ItemColor, BgColor, CurrentItemBorderColor: TCastleColor;
+  SR: TRectangle;
 begin
-  if not GetExists then Exit;
+  inherited;
+
+  SR := ScreenRect;
 
   if DrawBackgroundRectangle then
   begin
     if Focused then
       BgColor := Vector4Single(0, 0, 0, BackgroundOpacityFocused) else
       BgColor := Vector4Single(0, 0, 0, BackgroundOpacityNotFocused);
-    DrawRectangle(FAllItemsRectangle, BgColor);
+    DrawRectangle(SR, BgColor);
   end;
 
   { Calculate CurrentItemBorderColor }
@@ -1213,98 +512,35 @@ begin
       CurrentItemBorderColor2, CurrentItemBorderColor1);
 
   if Focused and DrawFocusedBorder then
-    Theme.Draw(FAllItemsRectangle, tiActiveFrame, CurrentItemBorderColor);
+    Theme.Draw(SR, tiActiveFrame, UIScale, CurrentItemBorderColor);
 
-  for I := 0 to Items.Count - 1 do
+  for I := 0 to ControlsCount - 1 do
   begin
     if I = CurrentItem then
     begin
-      Theme.Draw(Rectangles.L[I].Grow(CurrentItemBorderMargin, 0),
-        tiActiveFrame, CurrentItemBorderColor);
+      Theme.Draw(Controls[I].ScreenRect, tiActiveFrame, UIScale, CurrentItemBorderColor);
       ItemColor := CurrentItemColor;
     end else
       ItemColor := NonCurrentItemColor;
-
-    UIFont.Print(Rectangles.L[I].Left, Rectangles.L[I].Bottom + UIFont.Descend,
-      ItemColor, Items[I]);
-
-    if Items.Objects[I] <> nil then
-      TMenuAccessory(Items.Objects[I]).Draw(FAccessoryRectangles.L[I]);
+    if Controls[I] is TCastleLabel then
+      TCastleLabel(Controls[I]).Color := ItemColor;
   end;
+end;
 
-  if DesignerMode then
-    DrawPositionRelativeLine;
+function TCastleOnScreenMenu.FindChildIndex(
+  const ScreenPosition: TVector2Single): Integer;
+var
+  I: Integer;
+begin
+  for I := 0 to ControlsCount - 1 do
+    if Controls[I].ScreenRect.Contains(ScreenPosition) then
+      Exit(I);
+  Result := -1;
 end;
 
 function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
 
   function KeyDown(const Key: TKey; const C: char): boolean;
-
-    function CurrentAccessoryKeyDown: boolean;
-    begin
-      Result := false;
-      if Items.Objects[CurrentItem] <> nil then
-      begin
-        Result := TMenuAccessory(Items.Objects[CurrentItem]).KeyDown(
-          Key, C, Self);
-      end;
-    end;
-
-    procedure IncPositionRelative(
-      var H: THorizontalPosition; var V: TVerticalPosition;
-      const NextH, NextV: boolean);
-    var
-      OldChange, NewChange: TVector2Integer;
-    begin
-      { We want to change P, but preserve PositionAbsolute.
-        I.e. we want to change P, but also adjust Position such that
-        resulting PositionAbsolute will stay the same. This is very comfortable
-        for user is DesignerMode that wants often to change some
-        PositionRelative, but wants to preserve current menu position
-        (as visible on the screen currently) the same.
-
-        Key is the equation
-          PositionAbsolute = Position + PositionScreenRelativeMove - PositionMenuRelativeMove;
-        The part that changes when P changes is
-          (PositionScreenRelativeMove - PositionMenuRelativeMove)
-        Currently it's equal OldChange. So
-          PositionAbsolute = Position + OldChange
-        After P changes and FixItemsRectangles does it's work, it's NewChange. So it's
-          PositionAbsolute = Position + NewChange;
-        But I want PositionAbsolute to stay the same. So I add (OldChange - NewChange)
-        to the equation after:
-          PositionAbsolute = Position + (OldChange - NewChange) + NewChange;
-        This way PositionAbsolute will stay the same. So
-          NewPosition := Position + (OldChange - NewChange); }
-      OldChange := PositionScreenRelativeMove - PositionMenuRelativeMove;
-
-      if NextH then
-        if H = High(H) then H := Low(H) else H := Succ(H);
-      if NextV then
-        if V = High(V) then V := Low(V) else V := Succ(V);
-
-      { Call FixItemsRectangles only to set new
-        PositionScreenRelativeMove - PositionMenuRelativeMove. }
-      FixItemsRectangles;
-
-      NewChange := PositionScreenRelativeMove - PositionMenuRelativeMove;
-      Position := Position + OldChange - NewChange;
-
-      { Call FixItemsRectangles once again, since Position changed. }
-      FixItemsRectangles;
-    end;
-
-  const
-    HorizontalPositionName: array [THorizontalPosition] of string =
-    ( 'hpLeft',
-      'hpMiddle',
-      'hpRight' );
-    VerticalPositionName: array [TVerticalPosition] of string =
-    ( 'vpBottom',
-      'vpMiddle',
-      'vpTop' );
-    BooleanToStr: array [boolean] of string=('false','true');
-
   begin
     Result := false;
 
@@ -1318,45 +554,12 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
       NextItem;
       Result := ExclusiveEvents;
     end else
-    if Key = KeySelectItem then
+    if (Key = KeySelectItem) and (CurrentItem <> -1) then
     begin
-      CurrentAccessoryKeyDown;
+      {$warnings off}
       Click;
+      {$warnings on}
       Result := ExclusiveEvents;
-    end else
-      Result := CurrentAccessoryKeyDown;
-
-    if DesignerMode then
-    begin
-      case C of
-        CtrlB:
-          begin
-            DrawBackgroundRectangle := not DrawBackgroundRectangle;
-            Result := ExclusiveEvents;
-          end;
-        'x': begin IncPositionRelative(FPositionRelativeScreenX, FPositionRelativeScreenY, true, false); Result := ExclusiveEvents; end;
-        'y': begin IncPositionRelative(FPositionRelativeScreenX, FPositionRelativeScreenY, false, true); Result := ExclusiveEvents; end;
-        CtrlX: begin IncPositionRelative(FPositionRelativeMenuX, FPositionRelativeMenuY, true, false); Result := ExclusiveEvents; end;
-        CtrlY: begin IncPositionRelative(FPositionRelativeMenuX, FPositionRelativeMenuY, false, true); Result := ExclusiveEvents; end;
-        CtrlD:
-          begin
-            InfoWrite(Format(
-              'Position := Vector2Integer(%d, %d);' +nl+
-              'PositionRelativeScreenX := %s;' +nl+
-              'PositionRelativeScreenY := %s;' +nl+
-              'PositionRelativeMenuX := %s;' +nl+
-              'PositionRelativeMenuY := %s;' +nl+
-              'DrawBackgroundRectangle := %s;',
-              [ Position[0],
-                Position[1],
-                HorizontalPositionName[PositionRelativeScreenX],
-                VerticalPositionName[PositionRelativeScreenY],
-                HorizontalPositionName[PositionRelativeMenuX],
-                VerticalPositionName[PositionRelativeMenuY],
-                BooleanToStr[DrawBackgroundRectangle] ]));
-            Result := ExclusiveEvents;
-          end;
-      end;
     end;
   end;
 
@@ -1365,25 +568,15 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
     NewItemIndex: Integer;
   begin
     Result := false;
-
-    if (CurrentItem <> -1) and
-       (Items.Objects[CurrentItem] <> nil) and
-       FAccessoryRectangles.L[CurrentItem].Contains(Container.MousePosition) and
-       (Container.MousePressed - [Button] = []) then
-    begin
-      ItemAccessoryGrabbed := CurrentItem;
-      TMenuAccessory(Items.Objects[CurrentItem]).MouseDown(
-        Event, FAccessoryRectangles.L[CurrentItem], Self);
-      Result := ExclusiveEvents;
-    end;
-
     if Event.MouseButton = mbLeft then
     begin
-      NewItemIndex := Rectangles.FindRectangle(Container.MousePosition);
+      NewItemIndex := FindChildIndex(Container.MousePosition);
       if NewItemIndex <> -1 then
       begin
         CurrentItem := NewItemIndex;
+        {$warnings off}
         Click;
+        {$warnings on}
         Result := ExclusiveEvents;
       end;
     end;
@@ -1391,7 +584,8 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
 
 begin
   Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result then Exit;
+
   case Event.EventType of
     itKey        : Result := KeyDown(Event.Key, Event.KeyCharacter);
     itMouseButton: Result := MouseDown(Event.MouseButton);
@@ -1399,69 +593,33 @@ begin
 end;
 
 function TCastleOnScreenMenu.Motion(const Event: TInputMotion): boolean;
-
-  procedure ChangePosition;
-  var
-    NewPositionAbsolute: TVector2Single;
-  begin
-    NewPositionAbsolute := Container.MousePosition;
-    { I want Position set such that Container.MousePosition
-      are lower/left corner of menu rectangle. I know that
-        PositionAbsolute = Position + PositionScreenRelativeMove - PositionMenuRelativeMove;
-      Container.MousePosition are new PositionAbsolute,
-      so I can calculate from this new desired Position value. }
-    Position[0] := Round(NewPositionAbsolute[0]) - PositionScreenRelativeMove[0] + PositionMenuRelativeMove[0];
-    Position[1] := Round(NewPositionAbsolute[1]) - PositionScreenRelativeMove[1] + PositionMenuRelativeMove[1];
-    FixItemsRectangles;
-  end;
-
 var
   NewItemIndex: Integer;
 begin
   Result := inherited;
-  if Result or (not GetExists) then Exit;
+  if Result then Exit;
 
-  NewItemIndex := Rectangles.FindRectangle(Event.Position);
+  NewItemIndex := FindChildIndex(Event.Position);
   if NewItemIndex <> -1 then
   begin
     if NewItemIndex <> CurrentItem then
-      CurrentItem := NewItemIndex else
-    { If NewItemIndex = CurrentItem and NewItemIndex <> -1,
-      then user just moves mouse within current item.
-      So maybe we should call TMenuAccessory.Motion. }
-    if (Items.Objects[CurrentItem] <> nil) and
-       FAccessoryRectangles.L[CurrentItem].Contains(Event.Position) and
-       (ItemAccessoryGrabbed = CurrentItem) then
-      TMenuAccessory(Items.Objects[CurrentItem]).Motion(
-        Event, FAccessoryRectangles.L[CurrentItem], Self);
+    begin
+      CurrentItem := NewItemIndex;
+      Result := ExclusiveEvents;
+    end;
   end;
-
-  if DesignerMode then
-    ChangePosition;
-
-  Result := ExclusiveEvents;
 end;
 
 function TCastleOnScreenMenu.Release(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
-  if Result or (not GetExists) or (Event.EventType <> itMouseButton) then Exit;
-
-  { This is actually not needed, smart check for
-    (MousePressed - [Button] = []) inside MouseDown handles everything,
-    so we don't have to depend on MouseUp for ungrabbing.
-    But I do it here, just "to keep my state as current as possible". }
-  if Container.MousePressed = [] then
-    ItemAccessoryGrabbed := -1;
-
-  Result := ExclusiveEvents;
+  if Result or (Event.EventType <> itMouseButton) then Exit;
 end;
 
 procedure TCastleOnScreenMenu.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 begin
   inherited;
-  if not GetExists then Exit;
   MenuAnimation += 0.5 * SecondsPassed;
   MenuAnimation := Frac(MenuAnimation);
   VisibleChange;
@@ -1474,8 +632,17 @@ end;
 
 procedure TCastleOnScreenMenu.Click;
 begin
+  {$warnings off}
   if Assigned(OnClick) then OnClick(Self);
+  {$warnings on}
   SoundEngine.Sound(stMenuClick);
+
+  { TODO: dirty special handling for button attached to menu item.
+    Also, this means that button can be activated by simple "mouse down",
+    while usually it should be activated by "mouse down + mouse up". }
+  if (Controls[CurrentItem].ControlsCount <> 0) and
+     (Controls[CurrentItem].Controls[0] is TCastleButton) then
+    TCastleButton(Controls[CurrentItem].Controls[0]).DoClick;
 end;
 
 procedure TCastleOnScreenMenu.CurrentItemChanged;
@@ -1484,39 +651,65 @@ begin
   SoundEngine.Sound(stMenuCurrentItemChanged);
 end;
 
-procedure TCastleOnScreenMenu.AccessoryValueChanged;
-begin
-  VisibleChange;
-  if Assigned(OnAccessoryValueChanged) then OnAccessoryValueChanged(Self);
-end;
-
 procedure TCastleOnScreenMenu.CurrentItemSelected;
 begin
-  Click; { call non-deprecated equivalent }
+  {$warnings off}
+  Click;
+  {$warnings on}
 end;
 
-procedure TCastleOnScreenMenu.CurrentItemAccessoryValueChanged;
+function TCastleOnScreenMenu.Rect: TRectangle;
 begin
-  AccessoryValueChanged; { call non-deprecated equivalent }
+  Result := Rectangle(LeftBottomScaled, FWidth, FHeight);
 end;
 
-procedure TCastleOnScreenMenu.SetDesignerMode(const Value: boolean);
+function TCastleOnScreenMenu.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
 begin
-  if (not FDesignerMode) and Value and (Container <> nil) then
-    Container.MousePosition :=
-      Vector2Single(PositionAbsolute[0], PositionAbsolute[1]);
-
-  FDesignerMode := Value;
+  Result := CaptureAllEvents or (inherited CapturesEventsAtPosition(Position));
 end;
 
-function TCastleOnScreenMenu.PositionInside(const Point: TVector2Single): boolean;
+procedure TCastleOnScreenMenu.SetRegularSpaceBetweenItems(const Value: Cardinal);
 begin
-  Result := FullSize or FAllItemsRectangle.Contains(Point);
+  if FRegularSpaceBetweenItems <> Value then
+  begin
+    FRegularSpaceBetweenItems := Value;
+    RecalculateSize;
+  end;
 end;
 
-procedure TCastleOnScreenMenu.SetItems(const Value: TStringList);
+procedure TCastleOnScreenMenu.Add(const S: string);
 begin
-  FItems.Assign(Value);
+  Add(S, nil);
+end;
+
+procedure TCastleOnScreenMenu.Add(const S: string; const Accessory: TUIControl);
+var
+  L: TCastleLabel;
+begin
+  L := TCastleLabel.Create(Self);
+  L.Text.Text := S;
+  L.CustomFont := CustomFont;
+  L.FontSize := FontSize;
+  InsertFront(L);
+  if Accessory <> nil then
+  begin
+    L.InsertFront(Accessory);
+    { pass our CustomFont / FontSize to children.
+      TODO: this is a poor way, it's not updated later when we change
+      CustomFont/FontSize, it's not recursive.... }
+    if Accessory is TUIControlFont then
+    begin
+      TUIControlFont(Accessory).CustomFont := CustomFont;
+      TUIControlFont(Accessory).FontSize := FontSize;
+    end;
+  end;
+  RecalculateSize;
+end;
+
+procedure TCastleOnScreenMenu.UIScaleChanged;
+begin
+  inherited;
+  RecalculateSize;
 end;
 
 end.

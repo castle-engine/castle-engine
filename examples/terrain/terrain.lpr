@@ -60,7 +60,7 @@ uses SysUtils, Classes, CastleBoxes, CastleKeysMouse, CastleColors,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
   RenderTerrains, CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
   Castle3D, CastleFrustum, CastleSceneManager, CastleURIUtils,
-  CastleRectangles;
+  CastleRectangles, CastleControls;
 
 type
   TTerrainType = (ttNoise, ttCasScript, ttImage, ttGrid);
@@ -94,47 +94,219 @@ var
   SpecializedGridRendering: boolean = true;
 
 type
-  TControlsNoise = class(TCastleOnScreenMenu)
+  TCommonMenu = class(TCastleOnScreenMenu)
   public
-    OctavesSlider: TMenuFloatSlider;
-    AmplitudeSlider: TMenuFloatSlider;
-    FrequencySlider: TMenuFloatSlider;
-    SmoothnessSlider: TMenuFloatSlider;
-    HeterogeneousSlider: TMenuFloatSlider;
-    SeedSlider: TMenuIntegerSlider;
+    SubdivisionSlider: TCastleIntegerSlider;
+    BaseSizeSlider: TCastleFloatSlider;
+    LayersCountSlider: TCastleIntegerSlider;
+    ImageHeightScaleSlider: TCastleFloatSlider;
 
     constructor Create(AOwner: TComponent); override;
-    procedure AccessoryValueChanged; override;
+
+    procedure SubdivisionChanged(Sender: TObject);
+    procedure BaseSizeChanged(Sender: TObject);
+    procedure LayersCountChanged(Sender: TObject);
+    procedure ImageHeightScaleChanged(Sender: TObject);
+  end;
+
+  TControlsNoise = class(TCommonMenu)
+  public
+    OctavesSlider: TCastleFloatSlider;
+    AmplitudeSlider: TCastleFloatSlider;
+    FrequencySlider: TCastleFloatSlider;
+    SmoothnessSlider: TCastleFloatSlider;
+    HeterogeneousSlider: TCastleFloatSlider;
+    SeedSlider: TCastleIntegerSlider;
+
+    constructor Create(AOwner: TComponent); override;
+
+    procedure OctavesChanged(Sender: TObject);
+    procedure AmplitudeChanged(Sender: TObject);
+    procedure FrequencyChanged(Sender: TObject);
+    procedure SmoothnessChanged(Sender: TObject);
+    procedure HeterogeneousChanged(Sender: TObject);
+    procedure SeedChanged(Sender: TObject);
   end;
 
   { For any TTerrainImage except
     TTerrainNoise (that has it's own TControlsNoise). }
-  TControlsImage = class(TCastleOnScreenMenu)
+  TControlsImage = class(TCommonMenu)
   public
     constructor Create(AOwner: TComponent); override;
-    procedure AccessoryValueChanged; override;
   end;
 
   { For any TCurrentTerrain. }
-  TControlsGeneral = class(TCastleOnScreenMenu)
+  TControlsGeneral = class(TCommonMenu)
   public
     constructor Create(AOwner: TComponent); override;
-    procedure AccessoryValueChanged; override;
   end;
+
+procedure TCommonMenu.SubdivisionChanged(Sender: TObject);
+begin
+  Subdivision := SubdivisionSlider.Value;
+end;
+
+procedure TCommonMenu.BaseSizeChanged(Sender: TObject);
+begin
+  BaseSize := BaseSizeSlider.Value;
+end;
+
+procedure TCommonMenu.LayersCountChanged(Sender: TObject);
+begin
+  LayersCount := LayersCountSlider.Value;
+end;
+
+procedure TCommonMenu.ImageHeightScaleChanged(Sender: TObject);
+begin
+  (CurrentTerrain as TTerrainImage).ImageHeightScale := ImageHeightScaleSlider.Value;
+end;
+
+procedure TControlsNoise.OctavesChanged(Sender: TObject);
+begin
+  (CurrentTerrain as TTerrainNoise).Octaves := OctavesSlider.Value;
+end;
+
+procedure TControlsNoise.SmoothnessChanged(Sender: TObject);
+begin
+  (CurrentTerrain as TTerrainNoise).Smoothness := SmoothnessSlider.Value;
+end;
+
+procedure TControlsNoise.HeterogeneousChanged(Sender: TObject);
+begin
+  (CurrentTerrain as TTerrainNoise).Heterogeneous := HeterogeneousSlider.Value;
+end;
+
+procedure TControlsNoise.AmplitudeChanged(Sender: TObject);
+begin
+  (CurrentTerrain as TTerrainNoise).Amplitude := AmplitudeSlider.Value;
+end;
+
+procedure TControlsNoise.FrequencyChanged(Sender: TObject);
+begin
+  (CurrentTerrain as TTerrainNoise).Frequency := FrequencySlider.Value;
+end;
+
+procedure TControlsNoise.SeedChanged(Sender: TObject);
+begin
+  (CurrentTerrain as TTerrainNoise).Seed := SeedSlider.Value;
+end;
+
+constructor TCommonMenu.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  { sliders used by both Controls* }
+  SubdivisionSlider := TCastleIntegerSlider.Create(Self);
+  SubdivisionSlider.Min := 2;
+  SubdivisionSlider.Max := 10;
+  SubdivisionSlider.Value := Subdivision;
+  SubdivisionSlider.OnChange := @SubdivisionChanged;
+
+  BaseSizeSlider := TCastleFloatSlider.Create(Self);
+  BaseSizeSlider.Min := 0.1;
+  BaseSizeSlider.Max := 20;
+  BaseSizeSlider.Value := BaseSize;
+  BaseSizeSlider.OnChange := @BaseSizeChanged;
+
+  LayersCountSlider := TCastleIntegerSlider.Create(Self);
+  LayersCountSlider.Min := 1;
+  LayersCountSlider.Max := 10;
+  LayersCountSlider.Value := LayersCount;
+  LayersCountSlider.OnChange := @LayersCountChanged;
+
+  ImageHeightScaleSlider := TCastleFloatSlider.Create(Self);
+  ImageHeightScaleSlider.Min := 0.0;
+  ImageHeightScaleSlider.Max := 2.0;
+  ImageHeightScaleSlider.Value := 0.25;
+  ImageHeightScaleSlider.OnChange := @ImageHeightScaleChanged;
+
+  HasHorizontalAnchor := true;
+  HorizontalAnchor := hpLeft;
+  HorizontalAnchorDelta := 10;
+  HasVerticalAnchor := true;
+  VerticalAnchor := vpBottom;
+  VerticalAnchorDelta := 10;
+end;
+
+constructor TControlsNoise.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  OctavesSlider := TCastleFloatSlider.Create(Self);
+  OctavesSlider.Min := 0.0;
+  OctavesSlider.Max := 20.0;
+  OctavesSlider.Value := 4.0;
+  OctavesSlider.OnChange := @OctavesChanged;
+
+  SmoothnessSlider := TCastleFloatSlider.Create(Self);
+  SmoothnessSlider.Min := 1.0;
+  SmoothnessSlider.Max := 10.0;
+  SmoothnessSlider.Value := 2.0;
+  SmoothnessSlider.OnChange := @SmoothnessChanged;
+
+  HeterogeneousSlider := TCastleFloatSlider.Create(Self);
+  HeterogeneousSlider.Min := 0.0;
+  HeterogeneousSlider.Max := 2.0;
+  HeterogeneousSlider.Value := 0.0;
+  HeterogeneousSlider.OnChange := @HeterogeneousChanged;
+
+  AmplitudeSlider := TCastleFloatSlider.Create(Self);
+  AmplitudeSlider.Min := 0.1;
+  AmplitudeSlider.Max := 10.0;
+  AmplitudeSlider.Value := 1.0;
+  AmplitudeSlider.OnChange := @AmplitudeChanged;
+
+  FrequencySlider := TCastleFloatSlider.Create(Self);
+  FrequencySlider.Min := 0.5;
+  FrequencySlider.Max := 10.0;
+  FrequencySlider.Value := 1.0;
+  FrequencySlider.OnChange := @FrequencyChanged;
+
+  SeedSlider := TCastleIntegerSlider.Create(Self);
+  SeedSlider.Min := 0;
+  SeedSlider.Max := 99;
+  SeedSlider.Value := 0;
+  SeedSlider.OnChange := @SeedChanged;
+
+  Add('Octaves', OctavesSlider);
+  Add('Smoothness', SmoothnessSlider);
+  Add('Heterogeneous', HeterogeneousSlider);
+  Add('Amplitude (scales height)', AmplitudeSlider);
+  Add('Frequency (scales size)', FrequencySlider);
+  Add('Seed', SeedSlider);
+  Add('Subdivision (render details)', SubdivisionSlider);
+  Add('Size of the most detailed layer (and export)', BaseSizeSlider);
+  Add('Layers Count (render farther)', LayersCountSlider);
+  Add('Image scale (load image first)', ImageHeightScaleSlider);
+end;
+
+constructor TControlsImage.Create(AOwner: TComponent);
+begin
+  inherited;
+  Add('Subdivision (render details)', SubdivisionSlider);
+  Add('Size of the most detailed layer (and export)', BaseSizeSlider);
+  Add('Layers Count (render farther)', LayersCountSlider);
+  Add('Image scale (load image first)', ImageHeightScaleSlider);
+end;
+
+constructor TControlsGeneral.Create(AOwner: TComponent);
+begin
+  inherited;
+  Add('Subdivision (render details)', SubdivisionSlider);
+  Add('Size of the most detailed layer (and export)', BaseSizeSlider);
+  Add('Layers Count (render farther)', LayersCountSlider);
+  // do not include ImageHeightScaleSlider, should not be used with this terrain
+end;
 
 var
   { ui controls }
   ControlsNoise: TControlsNoise;
   ControlsImage: TControlsImage;
   ControlsGeneral: TControlsGeneral;
-  SubdivisionSlider: TMenuIntegerSlider;
-  BaseSizeSlider: TMenuFloatSlider;
-  LayersCountSlider: TMenuIntegerSlider;
-  ImageHeightScaleSlider: TMenuFloatSlider;
   SceneManager: TCastleSceneManager;
 
 { Current TCastleOnScreenMenu, or none, based on Terrain class and ControlsVisible. }
-function CurrentControls: TCastleOnScreenMenu;
+function CurrentControls: TCommonMenu;
 begin
   if not ControlsVisible then Exit(nil);
 
@@ -152,10 +324,10 @@ begin
     FreeAndNil(CurrentTerrain);
     CurrentTerrain := Value;
 
-    Window.Controls.MakeSingle(TCastleOnScreenMenu, CurrentControls, true);
+    Window.Controls.MakeSingle(TCommonMenu, CurrentControls, false);
 
     if CurrentTerrain is TTerrainImage then
-      TTerrainImage(CurrentTerrain).ImageHeightScale := ImageHeightScaleSlider.Value;
+      TTerrainImage(CurrentTerrain).ImageHeightScale := CurrentControls.ImageHeightScaleSlider.Value;
 
     if CurrentTerrain is TTerrainNoise then
     begin
@@ -313,111 +485,6 @@ begin
   Result := InfiniteBox;
 end;
 
-constructor TControlsNoise.Create(AOwner: TComponent);
-begin
-  inherited;
-
-  OctavesSlider := TMenuFloatSlider.Create(0.0, 20.0, 4.0);
-  SmoothnessSlider := TMenuFloatSlider.Create(1.0, 10.0, 2.0);
-  HeterogeneousSlider := TMenuFloatSlider.Create(0.0, 2.0, 0.0);
-  AmplitudeSlider := TMenuFloatSlider.Create(0.1, 10.0, 1.0);
-  FrequencySlider := TMenuFloatSlider.Create(0.5, 10.0, 1.0);
-  SeedSlider := TMenuIntegerSlider.Create(0, 99, 0);
-
-  Items.AddObject('Octaves', OctavesSlider);
-  Items.AddObject('Smoothness', SmoothnessSlider);
-  Items.AddObject('Heterogeneous', HeterogeneousSlider);
-  Items.AddObject('Amplitude (scales height)', AmplitudeSlider);
-  Items.AddObject('Frequency (scales size)', FrequencySlider);
-  Items.AddObject('Seed', SeedSlider);
-  Items.AddObject('Subdivision (render details)', SubdivisionSlider);
-  Items.AddObject('Size of the most detailed layer (and export)', BaseSizeSlider);
-  Items.AddObject('Layers Count (render farther)', LayersCountSlider);
-  Items.AddObject('Image scale (load image first)', ImageHeightScaleSlider);
-  PositionRelativeScreenX := hpLeft;
-  PositionRelativeScreenY := vpBottom;
-  PositionRelativeMenuX := hpLeft;
-  PositionRelativeMenuY := vpBottom;
-  Position := Vector2Integer(10, 10);
-end;
-
-procedure TControlsNoise.AccessoryValueChanged;
-begin
-  if not (CurrentTerrain is TTerrainNoise) then Exit;
-  if CurrentAccessory = OctavesSlider then
-    (CurrentTerrain as TTerrainNoise).Octaves := OctavesSlider.Value;
-  if CurrentAccessory = SmoothnessSlider then
-    (CurrentTerrain as TTerrainNoise).Smoothness := SmoothnessSlider.Value;
-  if CurrentAccessory = HeterogeneousSlider then
-    (CurrentTerrain as TTerrainNoise).Heterogeneous := HeterogeneousSlider.Value;
-  if CurrentAccessory = AmplitudeSlider then
-    (CurrentTerrain as TTerrainNoise).Amplitude := AmplitudeSlider.Value;
-  if CurrentAccessory = FrequencySlider then
-    (CurrentTerrain as TTerrainNoise).Frequency := FrequencySlider.Value;
-  if CurrentAccessory = SeedSlider then
-    (CurrentTerrain as TTerrainNoise).Seed := SeedSlider.Value;
-  if CurrentAccessory = SubdivisionSlider then
-    Subdivision := SubdivisionSlider.Value;
-  if CurrentAccessory = BaseSizeSlider then
-    BaseSize := BaseSizeSlider.Value;
-  if CurrentAccessory = LayersCountSlider then
-    LayersCount := LayersCountSlider.Value;
-  if CurrentAccessory = ImageHeightScaleSlider then
-    (CurrentTerrain as TTerrainNoise).ImageHeightScale := ImageHeightScaleSlider.Value;
-  inherited;
-end;
-
-constructor TControlsImage.Create(AOwner: TComponent);
-begin
-  inherited;
-  Items.AddObject('Subdivision (render details)', SubdivisionSlider);
-  Items.AddObject('Size of the most detailed layer (and export)', BaseSizeSlider);
-  Items.AddObject('Layers Count (render farther)', LayersCountSlider);
-  Items.AddObject('Image scale (load image first)', ImageHeightScaleSlider);
-  PositionRelativeScreenX := hpLeft;
-  PositionRelativeScreenY := vpBottom;
-  PositionRelativeMenuX := hpLeft;
-  PositionRelativeMenuY := vpBottom;
-  Position := Vector2Integer(10, 10);
-end;
-
-procedure TControlsImage.AccessoryValueChanged;
-begin
-  if CurrentAccessory = SubdivisionSlider then
-    Subdivision := SubdivisionSlider.Value;
-  if CurrentAccessory = BaseSizeSlider then
-    BaseSize := BaseSizeSlider.Value;
-  if CurrentAccessory = LayersCountSlider then
-    LayersCount := LayersCountSlider.Value;
-  if CurrentAccessory = ImageHeightScaleSlider then
-    (CurrentTerrain as TTerrainImage).ImageHeightScale := ImageHeightScaleSlider.Value;
-  inherited;
-end;
-
-constructor TControlsGeneral.Create(AOwner: TComponent);
-begin
-  inherited;
-  Items.AddObject('Subdivision (render details)', SubdivisionSlider);
-  Items.AddObject('Size of the most detailed layer (and export)', BaseSizeSlider);
-  Items.AddObject('Layers Count (render farther)', LayersCountSlider);
-  PositionRelativeScreenX := hpLeft;
-  PositionRelativeScreenY := vpBottom;
-  PositionRelativeMenuX := hpLeft;
-  PositionRelativeMenuY := vpBottom;
-  Position := Vector2Integer(10, 10);
-end;
-
-procedure TControlsGeneral.AccessoryValueChanged;
-begin
-  if CurrentAccessory = SubdivisionSlider then
-    Subdivision := SubdivisionSlider.Value;
-  if CurrentAccessory = BaseSizeSlider then
-    BaseSize := BaseSizeSlider.Value;
-  if CurrentAccessory = LayersCountSlider then
-    LayersCount := LayersCountSlider.Value;
-  inherited;
-end;
-
 { Load GLSL program from files, add #define if Fog, relink. }
 procedure GLSLProgramRegenerate;
 var
@@ -455,16 +522,6 @@ procedure Open(Container: TUIContainer);
 begin
   RenderTerrainsOpenGL;
 
-  { sliders used by both Controls* }
-  SubdivisionSlider := TMenuIntegerSlider.Create(2, 10, Subdivision);
-  SubdivisionSlider.OwnedByParent := false;
-  BaseSizeSlider := TMenuFloatSlider.Create(0.1, 20, BaseSize);
-  BaseSizeSlider.OwnedByParent := false;
-  LayersCountSlider := TMenuIntegerSlider.Create(1, 10, LayersCount);
-  LayersCountSlider.OwnedByParent := false;
-  ImageHeightScaleSlider := TMenuFloatSlider.Create(0.0, 2.0, 0.25);
-  ImageHeightScaleSlider.OwnedByParent := false;
-
   ControlsNoise := TControlsNoise.Create(nil);
   ControlsImage := TControlsImage.Create(nil);
   ControlsGeneral := TControlsGeneral.Create(nil);
@@ -496,10 +553,6 @@ begin
   FreeAndNil(ControlsNoise);
   FreeAndNil(ControlsImage);
   FreeAndNil(ControlsGeneral);
-  FreeAndNil(SubdivisionSlider);
-  FreeAndNil(BaseSizeSlider);
-  FreeAndNil(LayersCountSlider);
-  FreeAndNil(ImageHeightScaleSlider);
 
   RenderTerrainsCloseGL;
 end;
@@ -646,7 +699,7 @@ begin
     145:
       begin
         ControlsVisible := not ControlsVisible;
-        Window.Controls.MakeSingle(TCastleOnScreenMenu, CurrentControls, true);
+        Window.Controls.MakeSingle(TCommonMenu, CurrentControls, false);
       end;
     147: SpecializedGridRendering := not SpecializedGridRendering;
     150:

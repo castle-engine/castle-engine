@@ -101,13 +101,13 @@ function max(const a, b, c: Extended): Extended; overload; {$ifdef SUPPORTS_INLI
   Works like @code(A := Min(A, B)), but is marginally faster,
   since you don't have to do anything when A is already smaller.
   @groupBegin }
-procedure MinTo1st(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MinTo1st(var a: Integer ; const b: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MinTo1st(var a: Cardinal; const b: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MinTo1st(var a: Single  ; const b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MinTo1st(var a: Double  ; const b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: Integer ; const b: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: Cardinal; const b: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: Single  ; const b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: Double  ; const b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure MinTo1st(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MinVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
 
@@ -115,13 +115,13 @@ procedure MinTo1st(var a: Extended; const b: Extended); overload; {$ifdef SUPPOR
   Works like @code(A := Max(A, B)), but is marginally faster,
   since you don't have to do anything when A is already larger.
   @groupBegin }
-procedure MaxTo1st(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MaxTo1st(var a: Integer ; const b: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MaxTo1st(var a: Cardinal; const b: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MaxTo1st(var a: Single  ; const b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure MaxTo1st(var a: Double  ; const b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: Integer ; const b: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: Cardinal; const b: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: Single  ; const b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: Double  ; const b: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure MaxTo1st(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure MaxVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
 
@@ -148,13 +148,22 @@ function Clamped(const a, vBegin, vEnd: Double  ): Double  ; overload; {$ifdef S
 function Clamped(const a, vBegin, vEnd: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 
-procedure Clamp(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure Clamp(var a: integer ; const vBegin, vEnd: integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure Clamp(var a: cardinal; const vBegin, vEnd: cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure Clamp(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-procedure Clamp(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: integer ; const vBegin, vEnd: integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: cardinal; const vBegin, vEnd: cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure Clamp(var a: Extended; const vBegin, vEnd: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: Extended; const vBegin, vEnd: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+{$endif}
+
+procedure Clamp(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: integer ; const vBegin, vEnd: integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: cardinal; const vBegin, vEnd: cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+procedure Clamp(var a: Double  ; const vBegin, vEnd: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
+{$ifndef EXTENDED_EQUALS_DOUBLE}
+procedure Clamp(var a: Extended; const vBegin, vEnd: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} deprecated 'Use ClampVar';
 {$endif}
 
 { 3D coordinates (0, 1 or 2) except the given coordinate.
@@ -245,8 +254,10 @@ function DivRoundUp(Value, Divider: Integer): Integer; overload;
 
   @groupBegin }
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float; overload;
+function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float; overload;
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
 function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float; overload;
+function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float; overload;
 function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
 { @groupEnd }
 
@@ -331,6 +342,7 @@ function IntSqrt(const Value: Cardinal): Cardinal;
   Just like GLSL smoothstep:
   http://www.khronos.org/opengles/sdk/docs/manglsl/xhtml/smoothstep.xml }
 function SmoothStep(const Edge0, Edge1, X: Single): Single;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -400,22 +412,22 @@ function Max(const a, b, c: Double): Double;     begin if A > B then begin if C 
 function Max(const a, b, c: Extended): Extended; begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
 {$endif}
 
-procedure MinTo1st(var a: Int64   ; const b: Int64   ); begin if B < A then A := B end;
-procedure MinTo1st(var a: Integer ; const b: Integer ); begin if B < A then A := B end;
-procedure MinTo1st(var a: Cardinal; const b: Cardinal); begin if B < A then A := B end;
-procedure MinTo1st(var a: Single  ; const b: Single  ); begin if B < A then A := B end;
-procedure MinTo1st(var a: Double  ; const b: Double  ); begin if B < A then A := B end;
+procedure MinVar(var a: Int64   ; const b: Int64   ); begin if B < A then A := B end;
+procedure MinVar(var a: Integer ; const b: Integer ); begin if B < A then A := B end;
+procedure MinVar(var a: Cardinal; const b: Cardinal); begin if B < A then A := B end;
+procedure MinVar(var a: Single  ; const b: Single  ); begin if B < A then A := B end;
+procedure MinVar(var a: Double  ; const b: Double  ); begin if B < A then A := B end;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure MinTo1st(var a: Extended; const b: Extended); begin if B < A then A := B end;
+procedure MinVar(var a: Extended; const b: Extended); begin if B < A then A := B end;
 {$endif}
 
-procedure MaxTo1st(var a: Int64   ; const b: Int64   ); begin if B > A then A := B end;
-procedure MaxTo1st(var a: Integer ; const b: Integer ); begin if B > A then A := B end;
-procedure MaxTo1st(var a: Cardinal; const b: Cardinal); begin if B > A then A := B end;
-procedure MaxTo1st(var a: Single  ; const b: Single  ); begin if B > A then A := B end;
-procedure MaxTo1st(var a: Double  ; const b: Double  ); begin if B > A then A := B end;
+procedure MaxVar(var a: Int64   ; const b: Int64   ); begin if B > A then A := B end;
+procedure MaxVar(var a: Integer ; const b: Integer ); begin if B > A then A := B end;
+procedure MaxVar(var a: Cardinal; const b: Cardinal); begin if B > A then A := B end;
+procedure MaxVar(var a: Single  ; const b: Single  ); begin if B > A then A := B end;
+procedure MaxVar(var a: Double  ; const b: Double  ); begin if B > A then A := B end;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
-procedure MaxTo1st(var a: Extended; const b: Extended); begin if B > A then A := B end;
+procedure MaxVar(var a: Extended; const b: Extended); begin if B > A then A := B end;
 {$endif}
 
 function IndexMax(const a0, a1, a2: Double): Integer;
@@ -499,6 +511,44 @@ begin
   if a < vBegin then result := vBegin else
   if a > vEnd then result := vEnd else
     result := a;
+end;
+{$endif}
+
+procedure ClampVar(var a: Int64;    const vBegin, vEnd: Int64);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure ClampVar(var a: integer;  const vBegin, vEnd: integer);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure ClampVar(var a: cardinal; const vBegin, vEnd: cardinal);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure ClampVar(var a: Single;   const vBegin, vEnd: Single);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure ClampVar(var a: Double;   const vBegin, vEnd: Double);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+{$ifndef EXTENDED_EQUALS_DOUBLE}
+procedure ClampVar(var a: Extended; const vBegin, vEnd: Extended);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
 end;
 {$endif}
 
@@ -640,6 +690,14 @@ begin
   Result := Result * (destEnd - destBegin) + destBegin;
 end;
 
+function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float;
+begin
+  { Map range SourceBegin .. SourceEnd to 0..1, and express SourceVal there. }
+  Result := (sourceVal - sourceBegin) / (sourceEnd - sourceBegin);
+  { Map range 0..1 to DestBegin .. DestEnd }
+  Result := Result * (destEnd - destBegin) + destBegin;
+end;
+
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float;
 begin
   { Map range SourceBegin .. SourceEnd to 0..1, and express SourceVal there. }
@@ -649,6 +707,14 @@ begin
 end;
 
 function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float;
+begin
+  Result := MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd);
+  if destEnd < destBegin then
+    SwapValues(destBegin, destEnd);
+  Result := Clamped(Result, destBegin, destEnd);
+end;
+
+function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float;
 begin
   Result := MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd);
   if destEnd < destBegin then
@@ -807,7 +873,7 @@ begin
 
       Instead we just clamp Remainder to [0, B] once again, the hard way. }
 
-    Clamp(Remainder, 0, B);
+    ClampVar(Remainder, 0, B);
   end;
 end;
 
@@ -888,4 +954,5 @@ begin
   Result := Clamped((X - Edge0) / (Edge1 - Edge0), 0.0, 1.0);
   Result := Result * Result * (3.0 - 2.0 * Result);
 end;
+
 {$endif read_implementation}

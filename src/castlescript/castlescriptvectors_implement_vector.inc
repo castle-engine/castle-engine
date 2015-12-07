@@ -83,6 +83,15 @@ begin
     1/TCasScriptFloat(Arguments[1]).Value);
 end;
 
+class procedure TCasScriptVecXx.HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
+  TCasScriptVecXx(AResult).Value := Lerp(
+    TCasScriptFloat(Arguments[0]).Value,
+    TCasScriptVecXx(Arguments[1]).Value,
+    TCasScriptVecXx(Arguments[2]).Value);
+end;
+
 class procedure TCasScriptVecXx.HandleMax(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   I: Integer;
@@ -207,6 +216,7 @@ begin
   FunctionHandlers.RegisterHandler(@TCasScriptVecXx(nil).HandleMultiply, TCasScriptMultiply, [TCasScriptVecXx, TCasScriptFloat], false);
   FunctionHandlers.RegisterHandler(@TCasScriptVecXx(nil).HandleMultiply, TCasScriptMultiply, [TCasScriptFloat, TCasScriptVecXx], false);
   FunctionHandlers.RegisterHandler(@TCasScriptVecXx(nil).HandleDivide, TCasScriptDivide, [TCasScriptVecXx, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler(@TCasScriptVecXx(nil).HandleLerp, TCasScriptLerp, [TCasScriptFloat, TCasScriptVecXx, TCasScriptVecXx], false);
 
   FunctionHandlers.RegisterHandler(@TCasScriptVecXx(nil).HandleMax, TCasScriptMax, [TCasScriptVecXx, TCasScriptVecXx], false);
   FunctionHandlers.RegisterHandler(@TCasScriptVecXx(nil).HandleMin, TCasScriptMin, [TCasScriptVecXx, TCasScriptVecXx], false);

@@ -252,9 +252,17 @@ type
   public
     constructor Create;
 
+    { Internal for Castle Game Engine.
+      Called from CastleWindow or CastleControl.
+      Don't call these methods yourself.
+      @groupBegin
+      @exclude }
     procedure _RenderBegin;
+    { @exclude }
     procedure _RenderEnd;
+    { @exclude }
     procedure _UpdateBegin;
+    { @groupEnd }
 
     { Rendering speed in frames per second. This tells FPS,
       if we would only call Render (EventRender, OnRender) all the time.

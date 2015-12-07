@@ -582,7 +582,7 @@ type
 
     { Replace first found descendant of ReplaceClass with NewItem.
       In case no descendant of ReplaceClass was found,
-      we'll we add NewItem to the list (depending on AddBeginning value:
+      we'll we add NewItem to the list (depending on AddEnd value:
       at the beginning or at the end of the list).
 
       If NewItem is @nil, this simply removes the first found
@@ -603,7 +603,7 @@ type
       is under / above each other), you want to place NewItem at the same
       position as previous TCastleOnScreenMenu instance, if any. }
     function MakeSingle(ReplaceClass: TClass; NewItem: TObject;
-      AddBeginning: boolean = false): TObject;
+      AddEnd: boolean): TObject;
 
     { Extract (remove from the list, but never free) given item index.
       This is similar TObjectList.Extract, except it takes an index. }
@@ -618,7 +618,7 @@ type
       Shifts all other pointers to the left.
       Returns how many instances were removed (that is, how much Count
       was decreased). }
-    function DeleteAll(Item: TObject): Cardinal;
+    function RemoveAll(Item: TObject): Cardinal;
 
     function IsFirst(Value: TObject): boolean;
     function IsLast(Value: TObject): boolean;
@@ -654,10 +654,13 @@ procedure FPGObjectList_FreeAndNilItem(List: TFPSList; I: Integer);
 { Set to @nil (never freeing) given item on TFPGObjectList. }
 procedure FPGObjectList_NilItem(List: TFPSList; I: Integer);
 
+function DumpStackToString(const BaseFramePointer: Pointer): string;
+function DumpExceptionBackTraceToString: string;
+
 implementation
 
 uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
-  StrUtils, CastleDownload, CastleURIUtils;
+  StrUtils, CastleDownload, CastleURIUtils, StreamIO;
 
 { TTextReaderWriter ---------------------------------------------------------- }
 
@@ -1539,7 +1542,7 @@ begin
 end;
 
 function TCastleObjectList.MakeSingle(ReplaceClass: TClass; NewItem: TObject;
-  AddBeginning: boolean): TObject;
+  AddEnd: boolean): TObject;
 var
   I: Integer;
 begin
@@ -1566,9 +1569,9 @@ begin
     end;
 
   Result := nil;
-  if AddBeginning then
-    Insert(0, NewItem) else
-    Insert(Count, NewItem);
+  if AddEnd then
+    Insert(Count, NewItem) else
+    Insert(0, NewItem);
 end;
 
 function TCastleObjectList.Extract(Index: Integer): TObject;
@@ -1598,7 +1601,7 @@ begin
   Result := nil;
 end;
 
-function TCastleObjectList.DeleteAll(Item: TObject): Cardinal;
+function TCastleObjectList.RemoveAll(Item: TObject): Cardinal;
 var
   I: Integer;
 begin
@@ -1690,6 +1693,38 @@ begin
     previous Items[I] must contain a valid reference or nil, not something freed.
     And we cannot temporarily change FreeObjects, as it's not in TFPSList). }
   PPointer(List.List)[I] := nil;
+end;
+
+function DumpStackToString(const BaseFramePointer: Pointer): string;
+var
+  TextFile: Text;
+  StringStream: TStringStream;
+begin
+  StringStream := TStringStream.Create('');
+  try
+    AssignStream(TextFile, StringStream);
+    Rewrite(TextFile);
+    try
+      Dump_Stack(TextFile, BaseFramePointer);
+    finally CloseFile(TextFile) end;
+    Result := StringStream.DataString;
+  finally FreeAndNil(StringStream) end;
+end;
+
+function DumpExceptionBackTraceToString: string;
+var
+  TextFile: Text;
+  StringStream: TStringStream;
+begin
+  StringStream := TStringStream.Create('');
+  try
+    AssignStream(TextFile, StringStream);
+    Rewrite(TextFile);
+    try
+      DumpExceptionBackTrace(TextFile);
+    finally CloseFile(TextFile) end;
+    Result := StringStream.DataString;
+  finally FreeAndNil(StringStream) end;
 end;
 
 initialization

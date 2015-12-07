@@ -19,11 +19,12 @@ unit CastleLevels;
 
 interface
 
-uses CastleVectors, CastleSceneCore, CastleScene, CastleBoxes, X3DNodes,
+uses Classes, DOM, FGL,
+  CastleVectors, CastleSceneCore, CastleScene, CastleBoxes, X3DNodes,
   X3DFields, CastleCameras, CastleSectors, CastleUtils, CastleClassUtils,
   CastlePlayer, CastleResources, CastleProgress, CastlePrecalculatedAnimation,
-  DOM, CastleSoundEngine, Castle3D, CastleShapes, CastleConfig, CastleImages,
-  Classes, CastleTimeUtils, CastleSceneManager, FGL, CastleFindFiles;
+  CastleSoundEngine, Castle3D, CastleShapes, CastleXMLConfig, CastleImages,
+  CastleTimeUtils, CastleSceneManager, CastleFindFiles;
 
 type
   TLevelLogic = class;
@@ -251,9 +252,7 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     { How many TGameSceneManager have references to our children by
       TGameSceneManager.Info? }
     References: Cardinal;
-    procedure AddFromInfo(const Info: TFileInfo);
-    { Save Played properties of every level. }
-    procedure SaveToConfig(const Config: TCastleConfig);
+    procedure AddFromInfo(const Info: TFileInfo; var StopSearch: boolean);
   public
     { raises Exception if such Name is not on the list. }
     function FindName(const AName: string): TLevelInfo;
@@ -291,13 +290,17 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     procedure AddFromFile(const URL: string);
 
     { For all available levels, read their TLevelInfo.Played
-      from user preferences.
+      from config file (like @link(UserConfig)).
 
       This is useful only if you actually look at
       TLevelInfo.Played for any purpose (for example,
       to decide which levels are displayed in the menu). By default,
       our engine doesn't look at TLevelInfo.Played for anything. }
-    procedure LoadFromConfig;
+    procedure LoadFromConfig(const Config: TCastleConfig);
+
+    { Save Played properties of every level
+      to a config file (like @link(UserConfig)). }
+    procedure SaveToConfig(const Config: TCastleConfig);
   end;
 
   { Scene manager that can comfortably load and manage a 3D game level.
@@ -1276,7 +1279,7 @@ begin
   Result := A.Number - B.Number;
 end;
 
-procedure TLevelInfoList.LoadFromConfig;
+procedure TLevelInfoList.LoadFromConfig(const Config: TCastleConfig);
 var
   I: Integer;
 begin
@@ -1297,7 +1300,7 @@ begin
       Items[I].DefaultPlayed);
 end;
 
-procedure TLevelInfoList.AddFromInfo(const Info: TFileInfo);
+procedure TLevelInfoList.AddFromInfo(const Info: TFileInfo; var StopSearch: boolean);
 begin
   AddFromFile(Info.URL);
 end;
@@ -1331,14 +1334,8 @@ end;
 initialization
   FLevels := TLevelInfoList.Create(true);
   Inc(FLevels.References);
-
-  Config.OnSave.Add(@FLevels.SaveToConfig);
 finalization
   FreeAndNil(FLevelLogicClasses);
-
-  if (FLevels <> nil) and (Config <> nil) then
-    Config.OnSave.Remove(@FLevels.SaveToConfig);
-
   { there may still exist TGameSceneManager instances that refer to our
     TLevelInfo instances. So we don't always free Levels below. }
   if FLevels <> nil then

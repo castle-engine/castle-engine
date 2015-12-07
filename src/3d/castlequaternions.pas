@@ -204,7 +204,7 @@ end;
 
 procedure TQuaternion.ConjugateMe;
 begin
-  VectorNegateTo1st(Data.Vector);
+  VectorNegateVar(Data.Vector);
 end;
 
 function TQuaternion.Rotate(const Point: TVector4Single): TVector4Single;
@@ -324,8 +324,8 @@ end;
 operator* (const Q1, Q2: TQuaternion): TQuaternion;
 begin
   Result.Data.Vector := VectorProduct(Q1.Data.Vector, Q2.Data.Vector);
-  VectorAddTo1st(Result.Data.Vector, VectorScale(Q1.Data.Vector, Q2.Data.Real));
-  VectorAddTo1st(Result.Data.Vector, VectorScale(Q2.Data.Vector, Q1.Data.Real));
+  VectorAddVar(Result.Data.Vector, VectorScale(Q1.Data.Vector, Q2.Data.Real));
+  VectorAddVar(Result.Data.Vector, VectorScale(Q2.Data.Vector, Q1.Data.Real));
 
   Result.Data.Real := Q1.Data.Real * Q2.Data.Real - VectorDotProduct(Q1.Data.Vector, Q2.Data.Vector);
 end;
@@ -365,7 +365,7 @@ begin
   { Sometimes CosTheta may get slightly > 1, and then ArcCos fails with
     EInvalidArgument. Testcase: demo_models/x3d/orientation_cos_1.x3d
     with view3dscene. }
-  MinTo1st(CosTheta, 1);
+  MinVar(CosTheta, 1);
 
   Theta := ArcCos(CosTheta);
   SinTheta := Sin(Theta);

@@ -45,19 +45,42 @@ type
 
     Each state has comfortable @link(Start) and @link(Finish)
     methods that you can override to perform work when state becomes
-    current, or stops being current. Most importantly, you can
-    add/remove additional state-specific UI controls in @link(Start) and @link(Finish)
-    methods. Add them in @link(Start) method like
-    @code(StateContainer.Controls.InsertFront(...)), remove them by
-    @code(StateContainer.Controls.Remove(...)).
+    current, or stops being current.
+
+    You can add/remove state-specific UI controls in various ways.
+    You can add them in the constructor of this state (and then free in destructor),
+    or add them in @link(Start), free in @link(Finish).
+
+    @orderedList(
+      @item(It's simplest and best to add/keep children controls as real
+        children of the current state, so add them
+        using methods @link(TUIControl.InsertFront) and
+        @link(TUIControl.InsertBack).)
+
+      @item(Eventually, for special tricks, you can add controls that are
+        conceptually the state "children" directly to the
+        @code(StateContainer.Controls) list.
+        This allows to keep some children on the @code(StateContainer.Controls)
+        list for a longer
+        time (not only when this state is active), which may be useful for optimization,
+        to not reinitialize GL resources too often.
+        To do this, add controls using
+        @code(StateContainer.Controls.InsertFront(...)), remove them by
+        @code(StateContainer.Controls.Remove(...)),
+        and make sure to override @link(InsertAtPosition) method such that state instance
+        is inserted in @code(StateContainer.Controls) right behind your UI.)
+    )
 
     Current state is also placed on the list of container controls.
-    (Always @italic(under) state-specific UI controls you added
-    to container in @link(Start) method.) This way state is notified
-    about UI events, and can react to them. In case of events that
-    can be "handled" (like TUIControl.Press, TUIControl.Release events)
-    the state is notified about them only if no other state-specific
-    UI control handled them.
+    This way state is notified
+    about UI events, and can react to them. Since state-specific UI
+    should always be at the front of us, or our children,
+    so in case of events that can be "handled"
+    (like TUIControl.Press, TUIControl.Release events)
+    the state-specific UI controls will handle them @italic(before)
+    the state itself (if you override TUIControl.Press or such in state,
+    be sure to call @code(inherited) first, to make sure it really
+    happens).
 
     This way state can
 
@@ -104,6 +127,11 @@ type
       When the state is current, then @link(Container) property (from
       ancestor, see TUIControl.Container) is equal to this. }
     function StateContainer: TUIContainer; virtual;
+
+    { Position on @code(StateContainer.Controls) where we insert this state.
+      By default, state is inserted as the front-most control, so position is equal
+      to @code(StateContainer.Controls.Count). }
+    function InsertAtPosition: Integer; virtual;
   public
     { Current state. In case multiple states are active (only possible
       if you used @link(Push) method), this is the bottom state.
@@ -127,7 +155,7 @@ type
     { State becomes current.
       This is called right before adding the state to the
       @code(StateContainer.Controls) list, so the state methods
-      GLContextOpen and ContainerResize will be called next (as for all
+      GLContextOpen and Resize will be called next (as for all
       normal TUIControl). }
     procedure Start; virtual;
 
@@ -141,7 +169,7 @@ type
       you initialized in @link(Start). }
     procedure Finish; virtual;
 
-    function PositionInside(const Position: TVector2Single): boolean; override;
+    function Rect: TRectangle; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
   end;
@@ -231,30 +259,20 @@ begin
   Result := FStateStack[Index];
 end;
 
-procedure TUIState.InternalStart;
-var
-  ControlsCount, PositionInControls: Integer;
-  NewControls: TUIControlList;
+function TUIState.InsertAtPosition: Integer;
 begin
-  NewControls := StateContainer.Controls;
-  ControlsCount := NewControls.Count;
-  Start;
+  Result := StateContainer.Controls.Count;
+end;
 
-  { actually insert to NewControls, this will also call GLContextOpen
-    and ContainerResize.
+procedure TUIState.InternalStart;
+begin
+  Start;
+  { actually insert, this will also call GLContextOpen  and Resize.
     However, check first that we're still the current state,
     to safeguard from the fact that Start changed state
     (like the loading state, that changes to play state immediately in start). }
   if FStateStack.IndexOf(Self) <> -1 then
-  begin
-    PositionInControls := NewControls.Count - ControlsCount;
-    if PositionInControls < 0 then
-    begin
-      OnWarning(wtMinor, 'State', 'TUIState.Start removed some controls from container');
-      PositionInControls := 0;
-    end;
-    NewControls.Insert(PositionInControls, Self);
-  end;
+    StateContainer.Controls.Insert(InsertAtPosition, Self);
 end;
 
 procedure TUIState.InternalFinish;
@@ -356,9 +374,11 @@ begin
   Result.Height := Round(Result.Height * Scale);
 end;
 
-function TUIState.PositionInside(const Position: TVector2Single): boolean;
+function TUIState.Rect: TRectangle;
 begin
-  Result := true;
+  { 1. always capture events on whole container
+    2. make child controls (anchored to us) behave like anchored to whole window. }
+  Result := ParentRect;
 end;
 
 procedure TUIState.GLContextOpen;

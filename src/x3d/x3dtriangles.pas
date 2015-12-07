@@ -1156,7 +1156,7 @@ function TBaseTrianglesOctree.MoveCollision(
          VectorSubtract(ProposedNewPos, NewPos), PlanePtr^) then
       NewPosShift := VectorScale(PlaneNormalPtr^,  Radius * RadiusEnlarge) else
       NewPosShift := VectorScale(PlaneNormalPtr^, -Radius * RadiusEnlarge);
-    VectorAddTo1st(NewPos, NewPosShift);
+    VectorAddVar(NewPos, NewPosShift);
 
     { Even though I calculated NewPos so that it's not blocked by object
       Blocker, I must check whether it's not blocked by something else
@@ -1232,7 +1232,7 @@ function TBaseTrianglesOctree.MoveCollision(
         plane as possible, and then move along the blocker).
         Instead we move all the way along the blocker. This is in practice Ok. }
 
-      VectorAdjustToLengthTo1st(Slide, PointsDistance(OldPos, ProposedNewPos));
+      VectorAdjustToLengthVar(Slide, PointsDistance(OldPos, ProposedNewPos));
 
       NewPos := VectorAdd(OldPos, Slide);
 
@@ -1291,7 +1291,7 @@ function TBaseTrianglesOctree.MoveCollision(
 
           if not ZeroVector(Slide) then
           begin
-            VectorAdjustToLengthTo1st(Slide, PointsDistance(OldPos, ProposedNewPos));
+            VectorAdjustToLengthVar(Slide, PointsDistance(OldPos, ProposedNewPos));
             NewPos := VectorAdd(OldPos, Slide);
             Result := MoveCollision(OldPos, NewPos,
               IsRadius, Radius, OldBox, NewBox, TriangleToIgnore, TrianglesToIgnoreFunc);

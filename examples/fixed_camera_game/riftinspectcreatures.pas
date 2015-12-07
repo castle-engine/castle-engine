@@ -110,7 +110,7 @@ begin
     Window.AutoRedisplay := true;
 
     SceneManager := TRiftSceneManager.Create(nil);
-    Window.Controls.Add(SceneManager);
+    Window.Controls.InsertBack(SceneManager);
 
     SceneManager.Camera := TWalkCamera.Create(SceneManager);
     (SceneManager.Camera as TWalkCamera).Init(
@@ -134,6 +134,7 @@ begin
       StatusText.Left := 5;
       StatusText.Bottom := 5;
       StatusText.Color := Yellow;
+      StatusText.Frame := true;
       Window.Controls.InsertFront(StatusText);
 
       Window.OnPress := @Press;

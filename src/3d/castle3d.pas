@@ -2690,7 +2690,7 @@ begin
     TTestCastle3D.TestNotifications and TTestCastle3D.TestNotificationsSceneManager. }
 
   if (Operation = opRemove) and (AComponent is T3D) and (List <> nil) then
-    List.DeleteAll(AComponent);
+    List.RemoveAll(AComponent);
 end;
 
 function T3DList.HeightCollision(const Position, GravityUp: TVector3Single;
@@ -3586,7 +3586,7 @@ procedure T3DCustomTransform.Update(const SecondsPassed: Single; var RemoveMe: T
           See TBaseTrianglesOctree.MoveCollision. }
         if not Sphere(RadiusIgnored) then
           MaximumFallingDistance -= 0.01;
-        MinTo1st(FallingDistance, MaximumFallingDistance);
+        MinVar(FallingDistance, MaximumFallingDistance);
       end;
 
       if not Move(GravityUp * -FallingDistance, true) then

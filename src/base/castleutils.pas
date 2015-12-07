@@ -57,9 +57,6 @@
 
       Initial (probably localized) value of DecimalSeparator
       is saved in LocaleDecimalSeparator variable.)
-
-    @item(Installs my handler for ExceptProc, see comments at
-      @link(HaltCodeOnException).)
   )
 }
 
@@ -143,7 +140,6 @@ uses CastleStringUtils, CastleFilesUtils;
 {$undef read_implementation}
 
 initialization
- InitializationProgramExit;
  InitializationOSSpecific;
 
  Randomize; { required by e.g. GetTempFname }
@@ -164,5 +160,4 @@ initialization
  {$endif}
 finalization
  FinalizationOSSpecific;
- FinalizationProgramExit;
 end.

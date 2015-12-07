@@ -189,8 +189,8 @@ type
     function ToNiceStr: string;
     function ToRawStr: string;
 
-    procedure Clamp(var point: TVector3Single); overload;
-    procedure Clamp(var point: TVector3Double); overload;
+    procedure ClampVar(var point: TVector3Single); overload;
+    procedure ClampVar(var point: TVector3Double); overload;
 
     { TryBoxRayClosestIntersection calculates intersection between the
       ray (returns closest intersection to RayOrigin) and the box.
@@ -493,8 +493,8 @@ function BoundingBox3DFromSphere(const Center: TVector3Single;
   const Radius: Single): TBox3D;
 
 operator+ (const Box1, Box2: TBox3D): TBox3D;
-operator+ (const B: TBox3D; const V: TVector3Single): TBox3D;
-operator+ (const V: TVector3Single; const B: TBox3D): TBox3D;
+operator+ (const B: TBox3D; const V: TVector3Single): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
+operator+ (const V: TVector3Single; const B: TBox3D): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
 
 implementation
 
@@ -723,12 +723,12 @@ begin
   if IsEmpty then
     Data := Box2.Data else
   begin
-    MinTo1st(Data[0, 0], box2.Data[0, 0]);
-    MaxTo1st(Data[1, 0], box2.Data[1, 0]);
-    MinTo1st(Data[0, 1], box2.Data[0, 1]);
-    MaxTo1st(Data[1, 1], box2.Data[1, 1]);
-    MinTo1st(Data[0, 2], box2.Data[0, 2]);
-    MaxTo1st(Data[1, 2], box2.Data[1, 2]);
+    MinVar(Data[0, 0], box2.Data[0, 0]);
+    MaxVar(Data[1, 0], box2.Data[1, 0]);
+    MinVar(Data[0, 1], box2.Data[0, 1]);
+    MaxVar(Data[1, 1], box2.Data[1, 1]);
+    MinVar(Data[0, 2], box2.Data[0, 2]);
+    MaxVar(Data[1, 2], box2.Data[1, 2]);
   end;
 end;
 
@@ -740,12 +740,12 @@ begin
     Data[1] := Point;
   end else
   begin
-    MinTo1st(Data[0, 0], Point[0]);
-    MaxTo1st(Data[1, 0], Point[0]);
-    MinTo1st(Data[0, 1], Point[1]);
-    MaxTo1st(Data[1, 1], Point[1]);
-    MinTo1st(Data[0, 2], Point[2]);
-    MaxTo1st(Data[1, 2], Point[2]);
+    MinVar(Data[0, 0], Point[0]);
+    MaxVar(Data[1, 0], Point[0]);
+    MinVar(Data[0, 1], Point[1]);
+    MaxVar(Data[1, 1], Point[1]);
+    MinVar(Data[0, 2], Point[2]);
+    MaxVar(Data[1, 2], Point[2]);
   end;
 end;
 
@@ -919,8 +919,8 @@ end;
    end;
   end;}
 
-procedure TBox3D.Clamp(var point: TVector3Single); CLAMP_IMPLEMENTATION
-procedure TBox3D.Clamp(var point: TVector3Double); CLAMP_IMPLEMENTATION
+procedure TBox3D.ClampVar(var point: TVector3Single); CLAMP_IMPLEMENTATION
+procedure TBox3D.ClampVar(var point: TVector3Double); CLAMP_IMPLEMENTATION
 
 function TBox3D.TryRayClosestIntersection(
   out Intersection: TVector3Single;
@@ -1737,13 +1737,13 @@ begin
     for I := 1 to VertsCount - 1 do
     begin
       V := GetVertex(I);
-      MinTo1st(Result.Data[0][0], V[0]);
-      MinTo1st(Result.Data[0][1], V[1]);
-      MinTo1st(Result.Data[0][2], V[2]);
+      MinVar(Result.Data[0][0], V[0]);
+      MinVar(Result.Data[0][1], V[1]);
+      MinVar(Result.Data[0][2], V[2]);
 
-      MaxTo1st(Result.Data[1][0], V[0]);
-      MaxTo1st(Result.Data[1][1], V[1]);
-      MaxTo1st(Result.Data[1][2], V[2]);
+      MaxVar(Result.Data[1][0], V[0]);
+      MaxVar(Result.Data[1][1], V[1]);
+      MaxVar(Result.Data[1][2], V[2]);
     end;
   end;
 end;
@@ -1918,19 +1918,19 @@ begin
   Result.Data[1][2] += Radius;
 end;
 
-operator+ (const box1, box2: TBox3D): TBox3D;
+operator+ (const Box1, Box2: TBox3D): TBox3D;
 begin
-  if box1.IsEmpty then
-    Result := box2 else
-  if box2.IsEmpty then
-    Result := box1 else
+  if Box1.IsEmpty then
+    Result := Box2 else
+  if Box2.IsEmpty then
+    Result := Box1 else
   begin
-    result.Data[0, 0] := min(box1.Data[0, 0], box2.Data[0, 0]);
-    result.Data[1, 0] := max(box1.Data[1, 0], box2.Data[1, 0]);
-    result.Data[0, 1] := min(box1.Data[0, 1], box2.Data[0, 1]);
-    result.Data[1, 1] := max(box1.Data[1, 1], box2.Data[1, 1]);
-    result.Data[0, 2] := min(box1.Data[0, 2], box2.Data[0, 2]);
-    result.Data[1, 2] := max(box1.Data[1, 2], box2.Data[1, 2]);
+    Result.Data[0, 0] := Min(Box1.Data[0, 0], Box2.Data[0, 0]);
+    Result.Data[1, 0] := Max(Box1.Data[1, 0], Box2.Data[1, 0]);
+    Result.Data[0, 1] := Min(Box1.Data[0, 1], Box2.Data[0, 1]);
+    Result.Data[1, 1] := Max(Box1.Data[1, 1], Box2.Data[1, 1]);
+    Result.Data[0, 2] := Min(Box1.Data[0, 2], Box2.Data[0, 2]);
+    Result.Data[1, 2] := Max(Box1.Data[1, 2], Box2.Data[1, 2]);
   end;
 end;
 

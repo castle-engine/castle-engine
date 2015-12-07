@@ -55,11 +55,15 @@ type
     FAlpha: TAlphaChannel;
     FIgnoreTooLargeCorners: boolean;
     FColor: TCastleColor;
-    FScalingPossible: boolean;
+    FSmoothScaling: boolean;
+    FScaleCorners: Single;
+    FCenterX, FCenterY, FRotation: Single;
+    ScreenCenterX, ScreenCenterY: Single;
+    UseScreenCenter: boolean;
     procedure AlphaBegin;
     procedure AlphaEnd;
-    procedure UpdateScalingPossible(const NeedToBind: boolean);
-    procedure SetScalingPossible(const Value: boolean);
+    procedure UpdateSmoothScaling(const NeedToBind: boolean);
+    procedure SetSmoothScaling(const Value: boolean);
     { Prepare static stuff for rendering. }
     class procedure PrepareStatic;
     function CurrentFilter: TTextureFilter;
@@ -69,7 +73,8 @@ type
       @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
         by OpenGL.) }
     constructor Create(const Image: TEncodedImage;
-      const AScalingPossible: boolean = false);
+      const ASmoothScaling: boolean);
+    constructor Create(const Image: TEncodedImage); deprecated 'use Create(Image, ASmoothScaling) and specify ASmoothScaling explicitly';
 
     { Load image from disk, and prepare for drawing.
 
@@ -98,7 +103,7 @@ type
         by OpenGL.)
     }
     constructor Create(const URL: string;
-      const AScalingPossible: boolean = false);
+      const ASmoothScaling: boolean = false);
     constructor Create(const URL: string;
       const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
@@ -106,7 +111,7 @@ type
       const Interpolation: TResizeInterpolation = riNearest);
     constructor Create(const URL: string;
       const LoadAsClass: array of TEncodedImageClass;
-      const AScalingPossible: boolean);
+      const ASmoothScaling: boolean);
 
     destructor Destroy; override;
 
@@ -160,8 +165,8 @@ type
       DrawWidth and DrawHeight of the rectangle on the screen, and explicitly choose
       the portion of the image to draw. If you want to draw scaled image
       (that is, use ImageWidth different than DrawWidth or ImageHeight
-      different than DrawHeight) be sure to construct an image with
-      ScalingPossible = @true (otherwise runtime scaling may look ugly).
+      different than DrawHeight) consider constructing an image with
+      SmoothScaling = @true (otherwise the scaling will look pixelated).
 
       Note that the image position (ImageX, ImageY) is specified
       like a texture coordinate. So (0, 0) is actually
@@ -169,7 +174,7 @@ type
       and (Width,Height) is the right-top corner of the right-top pixel.
       That is why image position and sizes are floats, it makes sense
       to render partial pixels this way (make sure you have
-      ScalingPossible = @true to get nice scaling of image contents).
+      SmoothScaling = @true to get nice scaling of image contents).
       You can also flip the image horizontally or vertically,
       e.g. use ImageX = Width and ImageWidth = -Width to mirror
       image horizontally.
@@ -186,6 +191,16 @@ type
     procedure Draw(const ScreenRectangle: TRectangle;
       const ImageRect: TRectangle);
     { @groupEnd }
+
+    procedure DrawFlipped(const ScreenRectangle: TRectangle;
+      const FlipHorizontal, FlipVertical: boolean);
+
+    { In case of @link(Draw3x3) or @link(Draw3x1), the corners
+      on screen are scaled by this amount. This is especially useful
+      for UI scaling, see @link(TUIContainer.UIScaling)
+      and @link(TUIControl.UIScale). }
+    property ScaleCorners: Single
+      read FScaleCorners write FScaleCorners default 1;
 
     { Draw the image on the screen, divided into 3x3 parts for corners,
       sides, and inside.
@@ -254,19 +269,33 @@ type
       to new image. }
     procedure Load(const Image: TEncodedImage);
 
-    { Is the image filtering mode ready for scaling. "Scaling" here means drawing
-      such that one image pixel does not perfectly cover one screen pixel.
-      For example, using @link(Draw) to draw the whole image,
-      but with the size of the image on screen different than image size.
-      If you want to do such drawing, set ScalingPossible to @true.
+    { Is the image scaling mode smooth (bilinear filtering)
+      or not (nearest-pixel filtering).
+      This is important if you draw the image
+      such that one image pixel does not perfectly fit one screen pixel.
 
-      On the other hand, if you will not ever do scaling, then leave
-      ScalingPossible to @false. It may cause minimally faster drawing,
+      If you will not ever do any scaling, then set
+      this to @false. It may cause minimally faster drawing,
       and avoids any possible artifacts from bilinear filtering.
+
+      If you will do scaling, you usually want to set this to @true,
+      unless you deliberately want a pixelated look (for pixelart).
 
       Note that switching this property after this object is constructed
       is possible, but costly. }
-    property ScalingPossible: boolean read FScalingPossible write SetScalingPossible;
+    property SmoothScaling: boolean read FSmoothScaling write SetSmoothScaling;
+
+    property ScalingPossible: boolean read FSmoothScaling write SetSmoothScaling;
+      deprecated 'use SmoothScaling';
+
+    { X coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
+    property CenterX: Single read FCenterX write FCenterX default 0.5;
+
+    { Y coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
+    property CenterY: Single read FCenterY write FCenterY default 0.5;
+
+    { Rotation in degrees. Default value 0. }
+    property Rotation: Single read FRotation write FRotation default 0;
   end;
 
 { Draw the image on 2D screen. Note that if you want to use this
@@ -283,7 +312,7 @@ procedure ImageDraw(const Image: TCastleImage); deprecated;
 {$ifdef read_implementation}
 
 constructor TGLImage.Create(const Image: TEncodedImage;
-  const AScalingPossible: boolean);
+  const ASmoothScaling: boolean);
 begin
   inherited Create;
 
@@ -291,21 +320,30 @@ begin
   // no need to create new OpenGL texture for the same image.
 
   FColor := White;
+  FScaleCorners := 1;
+  FCenterX := 0.5;
+  FCenterY := 0.5;
+  FRotation := 0;
 
   glGenTextures(1, @Texture);
   Load(Image); // Load will already call proper glBindTexture
-  FScalingPossible := AScalingPossible;
-  UpdateScalingPossible(false);
+  FSmoothScaling := ASmoothScaling;
+  UpdateSmoothScaling(false);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
 
   PrepareStatic;
 end;
 
-constructor TGLImage.Create(const URL: string;
-  const AScalingPossible: boolean);
+constructor TGLImage.Create(const Image: TEncodedImage);
 begin
-  Create(URL, [], AScalingPossible);
+  Create(Image, false);
+end;
+
+constructor TGLImage.Create(const URL: string;
+  const ASmoothScaling: boolean);
+begin
+  Create(URL, [], ASmoothScaling);
 end;
 
 constructor TGLImage.Create(const URL: string;
@@ -319,13 +357,13 @@ begin
     Image := LoadImage(URL, PixelsImageClasses, ResizeToX, ResizeToY, Interpolation) else
     Image := LoadImage(URL, LoadAsClass, ResizeToX, ResizeToY, Interpolation);
   try
-    Create(Image);
+    Create(Image, false);
   finally FreeAndNil(Image) end;
 end;
 
 constructor TGLImage.Create(const URL: string;
   const LoadAsClass: array of TEncodedImageClass;
-  const AScalingPossible: boolean);
+  const ASmoothScaling: boolean);
 var
   Image: TEncodedImage;
 begin
@@ -333,7 +371,7 @@ begin
     Image := LoadEncodedImage(URL, PixelsImageClasses) else
     Image := LoadEncodedImage(URL, LoadAsClass);
   try
-    Create(Image, AScalingPossible);
+    Create(Image, ASmoothScaling);
   finally FreeAndNil(Image) end;
 end;
 
@@ -450,6 +488,8 @@ var
   AttribEnabled: array [0..1] of TGLuint;
   AttribLocation: TGLuint;
   Prog: TGLSLProgram;
+  {$else}
+  ShiftX, ShiftY: Single;
   {$endif}
 begin
   if (DrawWidth = 0) or (DrawHeight = 0) then Exit;
@@ -511,6 +551,21 @@ begin
   {$else}
   glLoadIdentity();
   glColorv(Color);
+  if FRotation <> 0 then
+  begin
+    if UseScreenCenter then
+    begin
+      ShiftX := ScreenCenterX;
+      ShiftY := ScreenCenterY;
+    end else
+    begin
+      ShiftX := X + FCenterX * DrawWidth;
+      ShiftY := Y + FCenterY * DrawHeight;
+    end;
+    glTranslatef( ShiftX,  ShiftY, 0);
+    glRotatef(FRotation, 0, 0, 1);
+    glTranslatef(-ShiftX, -ShiftY, 0);
+  end;
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -566,6 +621,34 @@ begin
     ImageX, ImageY, ImageWidth, ImageHeight);
 end;
 
+procedure TGLImage.DrawFlipped(const ScreenRectangle: TRectangle;
+  const FlipHorizontal, FlipVertical: boolean);
+var
+  ImageX, ImageY, ImageWidth, ImageHeight: Single;
+begin
+  if FlipHorizontal then
+  begin
+    ImageX := Width;
+    ImageWidth := -Width;
+  end else
+  begin
+    ImageX := 0;
+    ImageWidth := Width;
+  end;
+
+  if FlipVertical then
+  begin
+    ImageY := Height;
+    ImageHeight := -Height;
+  end else
+  begin
+    ImageY := 0;
+    ImageHeight := Height;
+  end;
+
+  Draw(ScreenRectangle, ImageX, ImageY, ImageWidth, ImageHeight);
+end;
+
 procedure TGLImage.Draw(const ScreenRectangle: TRectangle;
   const ImageRect: TRectangle);
 begin
@@ -587,16 +670,22 @@ var
   OptimizeAlpha: boolean;
   {$endif}
   EpsilonT, EpsilonR, EpsilonB, EpsilonL: Single;
+  DrawCornerTop, DrawCornerRight, DrawCornerBottom, DrawCornerLeft: Integer;
 const
   { We tweak texture coordinates a little, to avoid bilinear filtering
     that would cause border colors to "bleed" over the texture inside.
     Something minimally > 0.5 is necessary. }
   Epsilon = 0.51;
 begin
-  if not ( (CornerLeft + CornerRight < Width) and
-           (CornerLeft + CornerRight < DrawWidth) and
-           (CornerBottom + CornerTop < Height) and
-           (CornerBottom + CornerTop < DrawHeight)) then
+  DrawCornerTop    := Round(CornerTop    * ScaleCorners);
+  DrawCornerRight  := Round(CornerRight  * ScaleCorners);
+  DrawCornerBottom := Round(CornerBottom * ScaleCorners);
+  DrawCornerLeft   := Round(CornerLeft   * ScaleCorners);
+
+  if not ( (    CornerLeft +     CornerRight <     Width) and
+           (DrawCornerLeft + DrawCornerRight < DrawWidth) and
+           (    CornerBottom +     CornerTop <     Height) and
+           (DrawCornerBottom + DrawCornerTop < DrawHeight)) then
   begin
     if Log and not IgnoreTooLargeCorners then
       WritelnLog('Draw3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %d %d',
@@ -608,13 +697,13 @@ begin
 
   XScreenLeft := X;
   XImageLeft := 0;
-  XScreenRight := X + DrawWidth - CornerRight;
-  XImageRight := Width - CornerRight;
+  XScreenRight := X + DrawWidth - DrawCornerRight;
+  XImageRight  :=         Width -     CornerRight;
 
   YScreenBottom := Y;
   YImageBottom := 0;
-  YScreenTop := Y + DrawHeight - CornerTop;
-  YImageTop := Height - CornerTop;
+  YScreenTop := Y + DrawHeight - DrawCornerTop;
+  YImageTop  :=         Height -     CornerTop;
 
   { For speed, we only apply AlphaBegin/End once.
     In case of GLImageUseShaders, this optimization is only useful
@@ -629,31 +718,39 @@ begin
     Alpha := acNone;
   end;
 
+  { setup rotations }
+  if Rotation <> 0 then
+  begin
+    UseScreenCenter := true; // only temporary for this Draw3x3 call
+    ScreenCenterX := X + FCenterX * DrawWidth;
+    ScreenCenterY := Y + FCenterY * DrawHeight;
+  end;
+
   { 4 corners }
-  Draw(XScreenLeft, YScreenBottom, CornerLeft, CornerBottom,
-        XImageLeft,  YImageBottom, CornerLeft, CornerBottom);
-  Draw(XScreenRight, YScreenBottom, CornerRight, CornerBottom,
-        XImageRight,  YImageBottom, CornerRight, CornerBottom);
-  Draw(XScreenRight, YScreenTop, CornerRight, CornerTop,
-        XImageRight,  YImageTop, CornerRight, CornerTop);
-  Draw(XScreenLeft, YScreenTop, CornerLeft, CornerTop,
-        XImageLeft,  YImageTop, CornerLeft, CornerTop);
+  Draw(XScreenLeft, YScreenBottom, DrawCornerLeft, DrawCornerBottom,
+        XImageLeft,  YImageBottom,     CornerLeft,     CornerBottom);
+  Draw(XScreenRight, YScreenBottom, DrawCornerRight, DrawCornerBottom,
+        XImageRight,  YImageBottom,     CornerRight,     CornerBottom);
+  Draw(XScreenRight, YScreenTop, DrawCornerRight, DrawCornerTop,
+        XImageRight,  YImageTop,     CornerRight,     CornerTop);
+  Draw(XScreenLeft, YScreenTop, DrawCornerLeft, DrawCornerTop,
+        XImageLeft,  YImageTop,     CornerLeft,     CornerTop);
 
   { 4 sides }
-  HorizontalScreenSize := DrawWidth - CornerLeft - CornerRight;
-  HorizontalImageSize  :=     Width - CornerLeft - CornerRight;
-  VerticalScreenSize := DrawHeight - CornerTop - CornerBottom;
-  VerticalImageSize  :=     Height - CornerTop - CornerBottom;
+  HorizontalScreenSize := DrawWidth - DrawCornerLeft - DrawCornerRight;
+  HorizontalImageSize  :=     Width -     CornerLeft -     CornerRight;
+  VerticalScreenSize := DrawHeight - DrawCornerTop - DrawCornerBottom;
+  VerticalImageSize  :=     Height -     CornerTop -     CornerBottom;
 
-  Draw(XScreenLeft + CornerLeft, YScreenBottom, HorizontalScreenSize, CornerBottom,
-        XImageLeft + CornerLeft,  YImageBottom,  HorizontalImageSize, CornerBottom);
-  Draw(XScreenLeft + CornerLeft, YScreenTop, HorizontalScreenSize, CornerTop,
-        XImageLeft + CornerLeft,  YImageTop,  HorizontalImageSize, CornerTop);
+  Draw(XScreenLeft + DrawCornerLeft, YScreenBottom, HorizontalScreenSize, DrawCornerBottom,
+        XImageLeft +     CornerLeft,  YImageBottom,  HorizontalImageSize,     CornerBottom);
+  Draw(XScreenLeft + DrawCornerLeft, YScreenTop, HorizontalScreenSize, DrawCornerTop,
+        XImageLeft +     CornerLeft,  YImageTop,  HorizontalImageSize,     CornerTop);
 
-  Draw(XScreenLeft, YScreenBottom + CornerBottom, CornerLeft, VerticalScreenSize,
-        XImageLeft,  YImageBottom + CornerBottom, CornerLeft,  VerticalImageSize);
-  Draw(XScreenRight, YScreenBottom + CornerBottom, CornerRight, VerticalScreenSize,
-        XImageRight,  YImageBottom + CornerBottom, CornerRight,  VerticalImageSize);
+  Draw(XScreenLeft, YScreenBottom + DrawCornerBottom, DrawCornerLeft, VerticalScreenSize,
+        XImageLeft,  YImageBottom +     CornerBottom,     CornerLeft,  VerticalImageSize);
+  Draw(XScreenRight, YScreenBottom + DrawCornerBottom, DrawCornerRight, VerticalScreenSize,
+        XImageRight,  YImageBottom +     CornerBottom,     CornerRight,  VerticalImageSize);
 
   { inside }
   if CornerLeft > 0   then EpsilonL := Epsilon else EpsilonL := 0;
@@ -661,8 +758,8 @@ begin
   if CornerRight > 0  then EpsilonR := Epsilon else EpsilonR := 0;
   if CornerBottom > 0 then EpsilonB := Epsilon else EpsilonB := 0;
 
-  Draw(X + CornerLeft           , Y + CornerBottom           , HorizontalScreenSize, VerticalScreenSize,
-           CornerLeft + EpsilonL,     CornerBottom + EpsilonB, HorizontalImageSize - (EpsilonL+EpsilonR), VerticalImageSize - (EpsilonT+EpsilonB));
+  Draw(X + DrawCornerLeft           , Y + DrawCornerBottom           , HorizontalScreenSize, VerticalScreenSize,
+               CornerLeft + EpsilonL,         CornerBottom + EpsilonB, HorizontalImageSize - (EpsilonL+EpsilonR), VerticalImageSize - (EpsilonT+EpsilonB));
 
   {$ifdef GLImageUseShaders}
   if OptimizeAlpha then
@@ -671,6 +768,7 @@ begin
     Alpha := OldAlpha;
     AlphaEnd;
   end;
+  UseScreenCenter := false;
 end;
 
 procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
@@ -735,6 +833,14 @@ begin
     Alpha := acNone;
   end;
 
+  { setup rotations }
+  if Rotation <> 0 then
+  begin
+    UseScreenCenter := true; // only temporary for this Draw3x3 call
+    ScreenCenterX := X + FCenterX * DrawWidth;
+    ScreenCenterY := Y + FCenterY * DrawHeight;
+  end;
+
   { 2 sides }
   HorizontalScreenSize := DrawWidth - SideLeft - SideRight;
   HorizontalImageSize  :=     Width - SideLeft - SideRight;
@@ -758,6 +864,7 @@ begin
     Alpha := OldAlpha;
     AlphaEnd;
   end;
+  UseScreenCenter := false;
 end;
 
 procedure TGLImage.Draw3x1(const X, Y, DrawWidth, DrawHeight: Integer;
@@ -777,7 +884,7 @@ end;
 
 function TGLImage.CurrentFilter: TTextureFilter;
 begin
-  if ScalingPossible then
+  if SmoothScaling then
   begin
     Result.Minification := minLinear;
     Result.Magnification := magLinear;
@@ -788,19 +895,19 @@ begin
   end;
 end;
 
-procedure TGLImage.UpdateScalingPossible(const NeedToBind: boolean);
+procedure TGLImage.UpdateSmoothScaling(const NeedToBind: boolean);
 begin
   if NeedToBind then
     glBindTexture(GL_TEXTURE_2D, Texture);
   SetTextureFilter(GL_TEXTURE_2D, CurrentFilter);
 end;
 
-procedure TGLImage.SetScalingPossible(const Value: boolean);
+procedure TGLImage.SetSmoothScaling(const Value: boolean);
 begin
-  if FScalingPossible <> Value then
+  if FSmoothScaling <> Value then
   begin
-    FScalingPossible := Value;
-    UpdateScalingPossible(true);
+    FSmoothScaling := Value;
+    UpdateSmoothScaling(true);
   end;
 end;
 
@@ -813,7 +920,7 @@ procedure ImageDraw(const Image: TCastleImage);
 var
   GLImage: TGLImage;
 begin
-  GLImage := TGLImage.Create(Image);
+  GLImage := TGLImage.Create(Image, false);
   try
     GLImage.Draw(0, 0);
   finally FreeAndNil(GLImage) end;

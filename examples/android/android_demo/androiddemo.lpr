@@ -1,8 +1,6 @@
-{ -*- compile-command: "sh compile.sh" -*- }
-library AndroidDemo;
-
-uses CastleAndroidNativeAppGlue, Game;
-
-exports ANativeActivity_onCreate;
-
+library androiddemo;
+uses CastleAndroidNativeAppGlue, Game, CastleMessaging;
+exports
+  Java_net_sourceforge_castleengine_MainActivity_jniMessage,
+  ANativeActivity_onCreate;
 end.

@@ -145,7 +145,7 @@ var CommandNum: Integer;
     ResultStr: string;
     ResultBool: boolean;
 begin
- BonusErrorMessg := 'Run with parameter "help" for, well, help about using program.';
+ //BonusErrorMessg := 'Run with parameter "help" for, well, help about using program.';
 
  Parameters.CheckHighAtLeast(1);
  if AnsiLowerCase(Parameters[1]) = 'help' then
@@ -197,7 +197,7 @@ begin
  { return Result* in appropriate way }
  case Commands[CommandNum].CommandResult of
   crString: Write(ResultStr);
-  crBoolean: HaltBool(ResultBool);
+  crBoolean: if ResultBool then Halt(0) else Halt(1);
   else raise EInternalError.Create('CommandResult not impl');
  end;
 end.

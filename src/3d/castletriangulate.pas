@@ -426,7 +426,7 @@ begin
       P1 := GetMostDistantVertex(Center);
       if not EarAround(P1, P0, P2, PolygonNormal) then Exit;
       Assert(not ZeroVector(PolygonNormal));
-      NormalizeTo1st(PolygonNormal);
+      NormalizeVar(PolygonNormal);
 
       if Log and LogTriangulation then
         WritelnLog('Triangulation', Format('Most distant vertex: %d. Triangle for PolygonNormal: %d - %d - %d. Polygon normal: %s',
@@ -492,7 +492,7 @@ begin
               Leave ValidEar = false, so it will not be actually returned. }
             Break;
           end;
-          NormalizeTo1st(EarNormal);
+          NormalizeVar(EarNormal);
 
           ValidEar := true;
 
@@ -705,7 +705,7 @@ begin
     Exit(ResultForIncorrectPoly);
   end;
 
-  NormalizeTo1st(Result);
+  NormalizeVar(Result);
 end;
 
 function IndexedPolygonNormal(

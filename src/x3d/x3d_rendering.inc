@@ -432,8 +432,7 @@
 
   TAbstractComposedGeometryNode = class(TAbstractX3DGeometryNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
 
@@ -685,8 +684,7 @@
 
   TLineSetNode = class(TAbstractX3DGeometryNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -738,8 +736,7 @@
 
   TPointSetNode = class(TAbstractX3DGeometryNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -1213,15 +1210,25 @@ begin
     Result := nil;
 end;
 
-procedure TAbstractComposedGeometryNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TAbstractComposedGeometryNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Fdattrib.EnumerateValid(Func);
-  Fdcolor.EnumerateValid(Func);
-  Fdcoord.EnumerateValid(Func);
-  FdfogCoord.EnumerateValid(Func);
-  Fdnormal.EnumerateValid(Func);
-  FdtexCoord.EnumerateValid(Func);
+  Result := Fdattrib.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := Fdcolor.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := Fdcoord.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := FdfogCoord.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := Fdnormal.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := FdtexCoord.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure TAbstractCoordinateNode.CreateNode;
@@ -1640,13 +1647,19 @@ begin
   Result := true;
 end;
 
-procedure TLineSetNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TLineSetNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Fdattrib.EnumerateValid(Func);
-  Fdcolor.EnumerateValid(Func);
-  Fdcoord.EnumerateValid(Func);
-  FdfogCoord.EnumerateValid(Func);
+  Result := Fdattrib.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := Fdcolor.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := Fdcoord.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := FdfogCoord.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 function TLineSetNode.Lit(State: TX3DGraphTraverseState): boolean;
@@ -1745,13 +1758,19 @@ begin
   Result := FdAttrib;
 end;
 
-procedure TPointSetNode.DirectEnumerateActive(
-  Func: TEnumerateChildrenFunction);
+function TPointSetNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Fdattrib.EnumerateValid(Func);
-  Fdcolor.EnumerateValid(Func);
-  Fdcoord.EnumerateValid(Func);
-  FdfogCoord.EnumerateValid(Func);
+  Result := Fdattrib.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := Fdcolor.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := Fdcoord.SearchValid(Func);
+  if Result <> nil then Exit;
+
+  Result := FdfogCoord.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 function TPointSetNode.Lit(State: TX3DGraphTraverseState): boolean;

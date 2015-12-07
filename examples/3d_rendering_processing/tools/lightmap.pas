@@ -61,14 +61,14 @@ type
     It's any vector not parallel to TrianglePos plane.)
 
 }
-procedure TriangleLightMapTo1st(const Image: TCastleImage;
+procedure TriangleLightMapVar(const Image: TCastleImage;
   LeftDownImagePart: boolean;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
   const TrianglePos: TTriangle3Single;
   const RenderDir: TVector3Single);
 
 { Render the light map on a quad. Everything works exactly like with
-  TriangleLightMapTo1st, except that now we render for the quad,
+  TriangleLightMapVar, except that now we render for the quad,
   filling the whole resulting Image.
 
   Quad[0] point corresponds to the lower-left image corner,
@@ -76,8 +76,8 @@ procedure TriangleLightMapTo1st(const Image: TCastleImage;
 
   We show progress of operation using CastleProgress, if ProgresTitle <> ''.
 
-  @seealso TriangleLightMapTo1st }
-procedure QuadLightMapTo1st(const Image: TCastleImage;
+  @seealso TriangleLightMapVar }
+procedure QuadLightMapVar(const Image: TCastleImage;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
   const Quad: TQuad3Single;
   const RenderDir: TVector3Single;
@@ -96,11 +96,11 @@ begin
  for i := 0 to Lights.Count-1 do
   if Octree.LightNotBlocked(Lights.L[i], Point, PointPlaneNormal,
     RenderDir, nil, true) then
-   VectorAddTo1st(result, Lights.L[i].ContributionCameraIndependent(
+   VectorAddVar(result, Lights.L[i].ContributionCameraIndependent(
      Point, PointPlaneNormal, WhiteRGB));
 end;
 
-procedure TriangleLightMapTo1st(const Image: TCastleImage;
+procedure TriangleLightMapVar(const Image: TCastleImage;
   LeftDownImagePart: boolean;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
   const TrianglePos: TTriangle3Single;
@@ -120,8 +120,8 @@ var RayNormVector: TVector3Single;
   var RayOrigin: TVector3Single;
   begin
    RayOrigin := TrianglePos[1];
-   VectorAddTo1st(RayOrigin, VectorScale( VectorSubtract(TrianglePos[0], TrianglePos[1]), Tri10Pos));
-   VectorAddTo1st(RayOrigin, VectorScale( VectorSubtract(TrianglePos[2], TrianglePos[1]), Tri12Pos));
+   VectorAddVar(RayOrigin, VectorScale( VectorSubtract(TrianglePos[0], TrianglePos[1]), Tri10Pos));
+   VectorAddVar(RayOrigin, VectorScale( VectorSubtract(TrianglePos[2], TrianglePos[1]), Tri12Pos));
    result := PointLightMap(RayOrigin, RayNormVector, Lights, Octree, RenderDir);
   end;
 
@@ -166,7 +166,7 @@ begin
  result := TriangleNormPlane(Tri);
 end;
 
-procedure QuadLightMapTo1st(const Image: TCastleImage;
+procedure QuadLightMapVar(const Image: TCastleImage;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
   const Quad: TQuad3Single;
   const RenderDir: TVector3Single;
@@ -178,8 +178,8 @@ var RayNormVector: TVector3Single;
   var RayOrigin: TVector3Single;
   begin
    RayOrigin := Quad[0];
-   VectorAddTo1st(RayOrigin, VectorScale( VectorSubtract(Quad[1], Quad[0]), Quad01Pos));
-   VectorAddTo1st(RayOrigin, VectorScale( VectorSubtract(Quad[3], Quad[0]), Quad03Pos));
+   VectorAddVar(RayOrigin, VectorScale( VectorSubtract(Quad[1], Quad[0]), Quad01Pos));
+   VectorAddVar(RayOrigin, VectorScale( VectorSubtract(Quad[3], Quad[0]), Quad03Pos));
    result := PointLightMap(RayOrigin, RayNormVector, Lights, Octree, RenderDir);
   end;
 
@@ -191,8 +191,8 @@ var RayNormVector: TVector3Single;
 var x, y: Integer;
 begin
 { prosto:
-    TriangleLightMapTo1st(Image, true , Lights, Octree, Triangle3Single(Quad[3], Quad[0], Quad[1]), RenderDir);
-    TriangleLightMapTo1st(Image, false, Lights, Octree, Triangle3Single(Quad[1], Quad[2], Quad[3]), RenderDir);
+    TriangleLightMapVar(Image, true , Lights, Octree, Triangle3Single(Quad[3], Quad[0], Quad[1]), RenderDir);
+    TriangleLightMapVar(Image, false, Lights, Octree, Triangle3Single(Quad[1], Quad[2], Quad[3]), RenderDir);
   Ale nie robimy tak zeby zrobic tutaj progres. (no i zyskujemy w ten
   sposob odrobinke szybkosci).
 }

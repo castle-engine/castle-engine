@@ -123,7 +123,6 @@ begin
     P.Targets.AddUnit('castlegziointernal.pas');
     P.Targets.AddUnit('castleinterfaces.pas');
     P.Targets.AddUnit('castlelog.pas');
-    P.Targets.AddUnit('castleopendocument.pas');
     P.Targets.AddUnit('castleparameters.pas');
     P.Targets.AddUnit('castleprogress.pas');
     P.Targets.AddUnit('castlerectangles.pas');
@@ -143,23 +142,36 @@ begin
     P.Targets.AddUnit('castleprogressconsole.pas');
     P.Targets.AddUnit('castlerecentfiles.pas');
 
+    P.SourcePath.Add('src' + PathDelim + 'services');
+    P.Targets.AddUnit('castleads.pas');
+    P.Targets.AddUnit('castleanalytics.pas');
+    P.Targets.AddUnit('castlegoogleplaygames.pas');
+    P.Targets.AddUnit('castleinapppurchases.pas');
+    P.Targets.AddUnit('castlemessaging.pas');
+    P.Targets.AddUnit('castleopendocument.pas');
+
     {$ifdef ANDROID_POSSIBLE}
     if Defaults.OS = Android then
     begin
       P.SourcePath.Add('src' + PathDelim + 'base' + PathDelim + 'android');
-      P.Targets.AddUnit('castleandroidlog.pas');
-      P.Targets.AddUnit('castleandroidassetmanager.pas');
-      P.Targets.AddUnit('castleandroidconfiguration.pas');
-      P.Targets.AddUnit('castleandroidinput.pas');
-      P.Targets.AddUnit('castleandroidkeycodes.pas');
-      P.Targets.AddUnit('castleandroidlog.pas');
-      P.Targets.AddUnit('castleandroidlooper.pas');
-      P.Targets.AddUnit('castleandroidnativeactivity.pas');
+      P.Targets.AddUnit('castleandroidinternalassetmanager.pas');
+      P.Targets.AddUnit('castleandroidinternalconfiguration.pas');
+      P.Targets.AddUnit('castleandroidinternalinput.pas');
+      P.Targets.AddUnit('castleandroidinternalkeycodes.pas');
+      P.Targets.AddUnit('castleandroidinternallog.pas');
+      P.Targets.AddUnit('castleandroidinternallog.pas');
+      P.Targets.AddUnit('castleandroidinternallooper.pas');
+      P.Targets.AddUnit('castleandroidinternalnativeactivity.pas');
+      P.Targets.AddUnit('castleandroidinternalnativewindow.pas');
+      P.Targets.AddUnit('castleandroidinternalrect.pas');
       P.Targets.AddUnit('castleandroidnativeappglue.pas');
-      P.Targets.AddUnit('castleandroidnativewindow.pas');
-      P.Targets.AddUnit('castleandroidrect.pas');
     end;
     {$endif}
+
+    if IOS then
+    begin
+      P.SourcePath.Add('src' + PathDelim + 'base' + PathDelim + 'ios');
+    end;
 
     P.SourcePath.Add('src' + PathDelim + 'castlescript');
     P.Targets.AddUnit('castlescript.pas');
@@ -239,6 +251,7 @@ begin
     P.Targets.AddUnit('castlekeysmouse.pas');
     P.Targets.AddUnit('pk3dconnexion.pas');
     P.Targets.AddUnit('castleuicontrols.pas');
+    P.Targets.AddUnit('castlejoysticks.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'windows');

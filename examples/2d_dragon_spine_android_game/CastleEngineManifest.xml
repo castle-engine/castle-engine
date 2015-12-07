@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="castle_spine"
+  caption="Dragon:Castle Game Engine Demo"
+  qualified_name="net.sourceforge.castleengine.castlespine"
+  standalone_source="code/castle_spine.lpr"
+  android_source="code/castle_spine_android.lpr"
+  author="Michalis Kamburelis and Paweł Wojciechowicz"
+  screen_orientation="landscape">
+  <version value="1.1" code="12" />
+  <icons>
+    <icon path="promo-graphics/icon.png" />
+  </icons>
+  <package>
+    <include path="COPYING.GPL2.txt" />
+    <include path="AUTHORS.txt" />
+  </package>
+  <android project_type="integrated">
+    <components>
+      <component name="google_play_services" />
+      <component name="google_play_games">
+        <parameter key="app_id" value="459592926652" />
+      </component>
+
+      <!-- unused here, uncomment only to test compilation -->
+      <!-- <component name="admob" /> -->
+      <!-- <component name="chartboost" /> -->
+      <!-- <component name="game_analytics" /> -->
+      <!-- <component name="giftiz" /> -->
+      <!-- <component name="google_analytics" /> -->
+      <!-- <component name="google_in_app_purchases" /> -->
+      <!-- <component name="heyzap" /> -->
+      <!-- <component name="sound" /> -->
+      <!-- <component name="startapp" /> -->
+      <!-- <component name="vibrate" /> -->
+    </components>
+  </android>
+</project>

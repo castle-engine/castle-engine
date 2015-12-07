@@ -18,6 +18,8 @@ unit CastleCurves;
 
 {$I castleconf.inc}
 
+{$modeswitch nestedprocvars}{$H+}
+
 interface
 
 uses Classes, FGL, CastleVectors, CastleBoxes, CastleUtils, CastleScript,
@@ -349,16 +351,21 @@ type
   TRationalBezierCurveList = specialize TFPGObjectList<TRationalBezierCurve>;
   {$warnings on}
 
-  { Smooth interpolated curve, each segment (ControlPoints[i]..ControlPoints[i+1])
-    is converted to a rational Bezier curve (with 4 control points)
-    when rendering.
+  { Piecewise (composite) cubic Bezier curve.
+    Each segment (ControlPoints[i]..ControlPoints[i+1])
+    is a cubic Bezier curve (Bezier with 4 control points,
+    2 points in the middle are auto-calculated for max smoothness).
+
+    It is a cubic B-spline. Which is equivalent to C2 continuous
+    composite Bézier curves. See
+    https://en.wikipedia.org/wiki/Spline_%28mathematics%29 .
 
     You can also explicitly convert it to a list of bezier curves using
     ToRationalBezierCurves.
 
-    Here too ControlPoints.Count MAY be 1.
-    (For TControlPointsCurve it must be >= 2). }
-  TSmoothInterpolatedCurve = class(TInterpolatedCurve)
+    ControlPoints.Count may be 1 (in general,
+    for TControlPointsCurve, it must be >= 2). }
+  TPiecewiseCubicBezier = class(TInterpolatedCurve)
   private
     BezierCurves: TRationalBezierCurveList;
     ConvexHullPoints: TVector3SingleList;
@@ -388,11 +395,75 @@ type
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-  end deprecated 'Rendering of TSmoothInterpolatedCurve is not portable to OpenGLES (that is: Android and iOS) and not very efficient. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
+  end deprecated 'Rendering of TPiecewiseCubicBezier is not portable to OpenGLES (that is: Android and iOS) and not very efficient. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
+
+  {$warnings off} { Consciously using deprecated stuff. }
+  TSmoothInterpolatedCurve = TPiecewiseCubicBezier;
+  {$warnings on}
+
+(*TODO: buggy now.
+  TFastPiecewiseCubicBezier = class(TInterpolatedCurve)
+  public
+    function Point(const t: Float): TVector3Single; override;
+    class function NiceClassName: string; override;
+  end;
+*)
+
+type
+  TCubicBezier2DPoints = array [0..3] of TVector2Single;
+  TCubicBezier3DPoints = array [0..3] of TVector3Single;
+
+{ Cubic (4 control points) Bezier curve (with all weights equal) in 1D. }
+function CubicBezier1D(T: Single; const Points: TVector4Single): Single;
+
+{ Cubic (4 control points) Bezier curve (with all weights equal) in 2D. }
+function CubicBezier2D(T: Single; const Points: TCubicBezier2DPoints): TVector2Single;
+
+{ Cubic (4 control points) Bezier curve (with all weights equal) in 3D. }
+function CubicBezier3D(T: Single; const Points: TCubicBezier3DPoints): TVector3Single;
+
+{ Catmull-Rom spline. Nice way to have a function that for certain arguments
+  reaches certain values, and between interpolates smoothly.
+
+  Catmull-Rom splines are a special case of cubic Hermite splines, see
+  https://en.wikipedia.org/wiki/Cubic_Hermite_spline . }
+function CatmullRomSpline(const X: Single; const Loop: boolean;
+  const Arguments: TSingleList;
+  const Values: TSingleList): Single;
+
+{ Catmull-Rom spline low-level function.
+  For X in [0..1], the curve values change from V1 to V2.
+  V0 and V3 are curve values outside the [0..1] range, used to calculate tangents.
+
+  See http://www.mvps.org/directx/articles/catmull/.
+
+  @seealso CatmullRomSpline }
+function CatmullRom(const V0, V1, V2, V3, X: Single): Single;
+
+{ Hermite spline. Nice way to have a function that for certain arguments
+  reaches certain values, and between interpolates smoothly.
+  Requires specifying tangent values (use @link(CatmullRomSpline)
+  or @link(HermiteTenseSpline) to use automatic tangents). }
+function HermiteSpline(const X: Single; const Loop: boolean;
+  const Arguments, Values, Tangents: TSingleList): Single;
+
+{ Hermite spline with tangents zero (it will be horizontal at control points).
+  Nice way to have a function that for certain arguments
+  reaches certain values, and between interpolates smoothly.
+
+  This is equivalent (for faster) to using @link(HermiteSpline) with all
+  tangents equal to zero.
+
+  This is called a "cardinal spline", a special case of
+  Hermite spline, with all tangents calculated with "tension" parameter equal
+  to 1 (maximum), which means that all tangents are simply zero (horizontal).
+  See https://en.wikipedia.org/wiki/Cubic_Hermite_spline for math behind this. }
+function HermiteTenseSpline(const X: Single; const Loop: boolean;
+  const Arguments, Values: TSingleList): Single;
 
 implementation
 
-uses SysUtils, CastleGL, CastleConvexHull, CastleGLUtils;
+uses SysUtils, Math, CastleGL, CastleConvexHull, CastleGLUtils;
 
 { TCurve ------------------------------------------------------------ }
 
@@ -888,7 +959,7 @@ var
   k, KMin, KMax, KMiddle: Cardinal;
   hk: Float;
 begin
-  Clamp(x, MinX, MaxX);
+  ClampVar(x, MinX, MaxX);
 
   { calculate k: W ktorym przedziale x[k-1]..x[k] jest argument ?
     TODO: nalezoloby pomyslec o wykorzystaniu faktu
@@ -1135,18 +1206,18 @@ begin
   inherited;
 end;
 
-{ TSmoothInterpolatedCurve ------------------------------------------------------------ }
+{ TPiecewiseCubicBezier --------------------------------------------------- }
 
-function TSmoothInterpolatedCurve.CreateConvexHullPoints: TVector3SingleList;
+function TPiecewiseCubicBezier.CreateConvexHullPoints: TVector3SingleList;
 begin
   Result := ConvexHullPoints;
 end;
 
-procedure TSmoothInterpolatedCurve.DestroyConvexHullPoints(Points: TVector3SingleList);
+procedure TPiecewiseCubicBezier.DestroyConvexHullPoints(Points: TVector3SingleList);
 begin
 end;
 
-function TSmoothInterpolatedCurve.Point(const t: Float): TVector3Single;
+function TPiecewiseCubicBezier.Point(const t: Float): TVector3Single;
 var
   i: Integer;
 begin
@@ -1159,14 +1230,14 @@ begin
   Result := BezierCurves[i].Point(t);
 end;
 
-function TSmoothInterpolatedCurve.ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurveList;
+function TPiecewiseCubicBezier.ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurveList;
 var
   S: TVector3SingleList;
 
   function MiddlePoint(i, Sign: Integer): TVector3Single;
   begin
     Result := ControlPoints.L[i];
-    VectorAddTo1st(Result,
+    VectorAddVar(Result,
       VectorScale(S.L[i], Sign * (ControlPointT(i) - ControlPointT(i-1)) / 3));
   end;
 
@@ -1217,7 +1288,7 @@ begin
       for i := 0 to C.Count-1 do
       begin
         C.L[i] := VectorSubtract(ControlPoints.L[i+1], ControlPoints.L[i]);
-        VectorScaleTo1st(C.L[i],
+        VectorScaleVar(C.L[i],
           1/(ControlPointT(i+1) - ControlPointT(i)));
       end;
 
@@ -1253,12 +1324,12 @@ begin
   except Result.Free; raise end;
 end;
 
-class function TSmoothInterpolatedCurve.NiceClassName: string;
+class function TPiecewiseCubicBezier.NiceClassName: string;
 begin
-  Result := 'Smooth Interpolated curve';
+  Result := 'Cubic B-Spline (piecewise C2-Smooth Cubic Bezier)';
 end;
 
-procedure TSmoothInterpolatedCurve.UpdateControlPoints;
+procedure TPiecewiseCubicBezier.UpdateControlPoints;
 var
   i: Integer;
 begin
@@ -1276,17 +1347,288 @@ begin
   end;
 end;
 
-constructor TSmoothInterpolatedCurve.Create(AOwner: TComponent);
+constructor TPiecewiseCubicBezier.Create(AOwner: TComponent);
 begin
   inherited;
   ConvexHullPoints := TVector3SingleList.Create;
 end;
 
-destructor TSmoothInterpolatedCurve.Destroy;
+destructor TPiecewiseCubicBezier.Destroy;
 begin
   FreeAndNil(BezierCurves);
   FreeAndNil(ConvexHullPoints);
   inherited;
+end;
+
+{ TFastPiecewiseCubicBezier -------------------------------------------------- }
+
+(*
+TODO: buggy now.
+
+class function TFastPiecewiseCubicBezier.NiceClassName: string;
+begin
+  Result := 'Fast Cubic B-Spline (piecewise C2-Smooth Cubic Bezier)';
+end;
+
+function TFastPiecewiseCubicBezier.Point(const T: Float): TVector3Single;
+
+  { This asssumes that I = [0..ControlPoints.Count - 2]. }
+  function C(const I: Integer): TVector3Single;
+  begin
+    Result := ControlPoints.L[I + 1] - ControlPoints.L[I];
+  end;
+
+  { This asssumes that I = [0..ControlPoints.Count - 1],
+    not outside of this range, and that ControlPoints.Count > 2. }
+  function S(const I: Integer): TVector3Single;
+  begin
+    if I = 0 then
+      Exit(C(0) * 2 - S(1)) else
+    if I = ControlPoints.Count - 1 then
+      Exit(C(ControlPoints.Count - 2) * 2 - S(ControlPoints.Count - 2)) else
+      Exit((ControlPoints.L[I - 1] + ControlPoints.L[I]) / 2);
+  end;
+
+var
+  T01: Single;
+  TInsidePiece: Double;
+  IndexBefore: Int64;
+  IndexAfter: Integer;
+  PieceControlPoints: TCubicBezier3DPoints;
+begin
+  Assert(ControlPoints.Count >= 1);
+  if ControlPoints.Count = 1 then
+    Exit(ControlPoints.Items[0]);
+
+  T01 := MapRangeClamped(T, TBegin, TEnd, 0, 1);
+  if ControlPoints.Count = 2 then
+    Exit(Lerp(T01, ControlPoints.Items[0], ControlPoints.Items[1]));
+
+  FloatDivMod(T01, 1 / (ControlPoints.Count - 1), IndexBefore, TInsidePiece);
+  ClampVar(IndexBefore, 0, ControlPoints.Count - 2);
+  IndexAfter := IndexBefore + 1;
+  TInsidePiece *= ControlPoints.Count - 1; // make TInsidePiece in 0..1 range
+
+  PieceControlPoints[0] := ControlPoints[IndexBefore];
+  PieceControlPoints[3] := ControlPoints[IndexAfter];
+
+  PieceControlPoints[1] := PieceControlPoints[0] + S(IndexBefore) / 3;
+  PieceControlPoints[2] := PieceControlPoints[3] - S(IndexAfter) / 3;
+
+  Result := CubicBezier3D(TInsidePiece, PieceControlPoints);
+end;
+*)
+
+{ global routines ------------------------------------------------------------ }
+
+function CubicBezier1D(T: Single; const Points: TVector4Single): Single;
+var
+  T1: Single;
+begin
+  T := Clamped(T, 0, 1);
+  T1 := 1 - T;
+  Result := Points[0] *     Sqr(T1) * T1 +
+            Points[1] * 3 * Sqr(T1) * T +
+            Points[2] * 3 * Sqr(T) * T1 +
+            Points[3] *     Sqr(T) * T;
+end;
+
+function CubicBezier2D(T: Single; const Points: TCubicBezier2DPoints): TVector2Single;
+var
+  T1: Single;
+begin
+  T := Clamped(T, 0, 1);
+  T1 := 1 - T;
+  Result := Points[0] * (    Sqr(T1) * T1) +
+            Points[1] * (3 * Sqr(T1) * T) +
+            Points[2] * (3 * Sqr(T) * T1) +
+            Points[3] * (    Sqr(T) * T);
+end;
+
+function CubicBezier3D(T: Single; const Points: TCubicBezier3DPoints): TVector3Single;
+var
+  T1: Single;
+begin
+  T := Clamped(T, 0, 1);
+  T1 := 1 - T;
+  Result := Points[0] * (    Sqr(T1) * T1) +
+            Points[1] * (3 * Sqr(T1) * T) +
+            Points[2] * (3 * Sqr(T) * T1) +
+            Points[3] * (    Sqr(T) * T);
+end;
+
+type
+  { Calculate curve segment value, knowing that X is between
+    Arguments[IndexOfRightValue - 1] and
+    Arguments[IndexOfRightValue] and that count > 1 and IndexOfRightValue > 0.
+    XInSegment is X already transformed from
+    Arguments[IndexOfRightValue - 1] and
+    Arguments[IndexOfRightValue] to the [0..1] range.
+    IOW, this is the curve-specific equation, with all boring special cases
+    eliminated. }
+  TCurveSegmentFunction = function (const IndexOfRightValue: Integer;
+    const XInSegment: Single): Single is nested;
+
+{ General spline calculation, using SegmentFunction for a curve-specific equation. }
+function CalculateSpline(const X: Single; const Loop: boolean;
+  const Arguments, Values: TSingleList;
+  const SegmentFunction: TCurveSegmentFunction): Single;
+
+  { Calculate assuming that X is between [First..Last], and Count > 1. }
+  function CalculateInRange(const X: Single): Single;
+  var
+    I, C: Integer;
+  begin
+    C := Arguments.Count;
+
+    // TODO: make binary search
+    I := 1;
+    while (I + 1 < C) and (X > Arguments.L[I]) do Inc(I);
+
+    Result := SegmentFunction(I,
+      (X - Arguments.L[I - 1]) / (Arguments.L[I] - Arguments.L[I - 1]));
+  end;
+
+var
+  C: Integer;
+  FirstArg, LastArg, Len: Single;
+begin
+  C := Arguments.Count;
+
+  if C = 0 then
+    Result := 0 else
+  begin
+    FirstArg := Arguments.L[0];
+    if C = 1 then
+      Result := FirstArg else
+    begin
+      LastArg := Arguments.L[C - 1];
+      Len := LastArg - FirstArg;
+      if X < FirstArg then
+      begin
+        if Loop then
+          Result := CalculateInRange(X + Ceil((FirstArg - X) / Len) * Len) else
+          Result := Values.L[0];
+      end else
+      if X > LastArg then
+      begin
+        if Loop then
+          Result := CalculateInRange(X - Ceil((X - LastArg) / Len) * Len) else
+          Result := Values.L[C - 1];
+      end else
+        Result := CalculateInRange(X);
+    end;
+  end;
+end;
+
+function CatmullRom(const V0, V1, V2, V3, X: Single): Single;
+var
+  X2, X3: Single;
+begin
+  X2 := Sqr(X);
+  X3 := X2 * X;
+  Result := 0.5 * (
+    (2 * V1) +
+    (-V0 + V2) * X +
+    (2*V0 - 5*V1 + 4*V2 - V3) * X2 +
+    (-V0 + 3*V1- 3*V2 + V3) * X3
+  );
+end;
+
+function CatmullRomSpline(const X: Single; const Loop: boolean;
+  const Arguments: TSingleList;
+  const Values: TSingleList): Single;
+
+  function CatmullRomSegment(const I: Integer; const XInSegment: Single): Single;
+  var
+    C: Integer;
+    V0, V1, V2, V3: Single;
+  begin
+    C := Arguments.Count;
+
+    V1 := Values.L[I - 1];
+    V2 := Values.L[I];
+
+    if I - 2 = -1 then
+    begin
+      if Loop then
+        V0 := Values.L[C - 2] else // not Values.L[C - 1], as first and last values are usually equal
+        V0 := Values.L[0];
+    end else
+      V0 := Values.L[I - 2];
+
+    if I + 1 = C then
+    begin
+      if Loop then
+        V3 := Values.L[1] else // not Values.L[C - 1], as first and last values are usually equal
+        V3 := Values.L[C - 1];
+    end else
+      V3 := Values.L[I + 1];
+
+    Result := CatmullRom(V0, V1, V2, V3, XInSegment);
+  end;
+
+begin
+  if Arguments.Count <> Values.Count then
+    raise Exception.Create('CatmullRomSpline: Arguments and Values lists must have equal count');
+  Result := CalculateSpline(X, Loop, Arguments, Values, @CatmullRomSegment);
+end;
+
+function Hermite(const V0, V1, Tangent0, Tangent1, X: Single): Single;
+var
+  X2, X3: Single;
+begin
+  X2 := Sqr(X);
+  X3 := X2 * X;
+  { equation from https://en.wikipedia.org/wiki/Cubic_Hermite_spline }
+  Result :=
+    (2 * X3 - 3 * X2 + 1) * V0 +
+    (X3 - 2 * X2 + X) * Tangent0 +
+    (-2 * X3 + 3 *X2) * V1 +
+    (X3 - X2) * Tangent1;
+end;
+
+function HermiteSpline(const X: Single; const Loop: boolean;
+  const Arguments, Values, Tangents: TSingleList): Single;
+
+  function HermiteSegment(const I: Integer; const XInSegment: Single): Single;
+  begin
+    Result := Hermite(
+      Values  .L[I - 1], Values  .L[I],
+      Tangents.L[I - 1], Tangents.L[I], XInSegment);
+  end;
+
+begin
+  if (Arguments.Count <> Values.Count) or
+     (Arguments.Count <> Tangents.Count) then
+    raise Exception.Create('HermiteSpline: Arguments and Values and Tangents lists must have equal count');
+  Result := CalculateSpline(X, Loop, Arguments, Values, @HermiteSegment);
+end;
+
+function HermiteTense(const V0, V1, X: Single): Single;
+var
+  X2, X3: Single;
+begin
+  X2 := Sqr(X);
+  X3 := X2 * X;
+  Result :=
+    (2 * X3 - 3 * X2 + 1) * V0 +
+    (-2 * X3 + 3 *X2) * V1;
+end;
+
+function HermiteTenseSpline(const X: Single; const Loop: boolean;
+  const Arguments, Values: TSingleList): Single;
+
+  function HermiteTenseSegment(const I: Integer; const XInSegment: Single): Single;
+  begin
+    Result := HermiteTense(
+      Values.L[I - 1], Values.L[I], XInSegment);
+  end;
+
+begin
+  if Arguments.Count <> Values.Count then
+    raise Exception.Create('HermiteTenseSpline: Arguments and Values lists must have equal count');
+  Result := CalculateSpline(X, Loop, Arguments, Values, @HermiteTenseSegment);
 end;
 
 end.

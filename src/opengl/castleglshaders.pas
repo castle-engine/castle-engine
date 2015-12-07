@@ -394,7 +394,7 @@ begin
   begin
     SetLength(Result, Len);
     glGetShaderInfoLog(ShaderId, Len, @Len2, PChar(Result));
-    StringReplaceAllTo1st(Result, #0, NL);
+    StringReplaceAllVar(Result, #0, NL);
   end else
     Result := '';
 end;
@@ -410,7 +410,7 @@ begin
   begin
     SetLength(Result, Len);
     glGetProgramInfoLog(ProgramId, Len, @Len2, PChar(Result));
-    StringReplaceAllTo1st(Result, #0, NL);
+    StringReplaceAllVar(Result, #0, NL);
   end else
     Result := '';
 end;
@@ -427,7 +427,7 @@ begin
   begin
     SetLength(Result, Len);
     glGetInfoLogARB(GLhandleARB(ObjectId), Len, @Len2, PChar(Result));
-    StringReplaceAllTo1st(Result, #0, NL);
+    StringReplaceAllVar(Result, #0, NL);
   end else
     Result := '';
 end;

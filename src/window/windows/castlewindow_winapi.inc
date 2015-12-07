@@ -1256,9 +1256,10 @@ begin
   { initialize Handle for CursorHandles }
 
   CursorHandles[mcNone].Handle := 0;
+  CursorHandles[mcForceNone].Handle := 0;
 
   for C := Low(C) to High(C) do
-    if not (C in [mcDefault, mcNone, mcCustom]) then
+    if not (C in [mcDefault, mcNone, mcForceNone, mcCustom]) then
       CursorHandles[C].Handle := LoadCursor(0, CursorHandles[C].NameForLoadCursor);
 
   { create window class (WindowClass) }

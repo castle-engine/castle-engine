@@ -399,7 +399,7 @@ unit CastleWindow;
     You can call all DoUpdate and DoTimer for all Application.OpenWindows
     using Application.FOpenWindows.DoUpdate/Timer (this will give usually
     inefficient but working backend)
-  - Call TCastleApplication.DoSelfUpdate and DoSelfTimer when appropriate.
+  - Call TCastleApplication.DoApplicationUpdate and DoApplicationTimer when appropriate.
     Remember that you can always assume that the ONLY existing instance of
     TCastleApplication is Application.
   Some important things that can be easily forgotten:
@@ -482,12 +482,15 @@ interface
 uses {$define read_interface_uses}
   {$I castlewindow_backend.inc}
   {$undef read_interface_uses}
-  SysUtils, Classes, CastleVectors, CastleGL, CastleRectangles, CastleColors,
+  { FPC units }
+  SysUtils, Classes, FGL, CustApp,
+  { Castle Game Engine units }
+  CastleVectors, CastleGL, CastleRectangles, CastleColors,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls, CastleGLContainer,
-  CastleCameras, FGL, pk3DConnexion,
-  { VRML/X3D stuff }
+  CastleCameras, pk3DConnexion,
+  { Castle Game Engine units depending on VRML/X3D stuff }
   X3DNodes, CastleScene, CastleSceneManager, CastleLevels;
 
 {$define read_interface}
@@ -1094,8 +1097,7 @@ type
       proceed as if your size requirements are satisfied.
 
       Special WindowDefaultSize value of these properties
-      means: at @link(Open), use some comfortable size slightly
-      smaller than desktop size.
+      means: at @link(Open), calculate and use some comfortable window size.
       @groupBegin }
     property Width: integer read FWidth write FWidth default WindowDefaultSize;
     property Height: integer read FHeight write FHeight default WindowDefaultSize;
@@ -1837,7 +1839,7 @@ end;
       write SetCustomCursor;
 
     property RenderStyle: TRenderStyle read GetRenderStyle write SetRenderStyle default rs2D;
-    function Controls: TUIControlList;
+    function Controls: TChildrenControls;
 
     { Is the OpenGL context initialized. This is equivalent to @code(not Closed),
       which means we are between an @link(Open) and @link(Close) calls. }
@@ -1970,9 +1972,9 @@ end;
     procedure SaveScreen(const URL: string); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
-    function SaveScreenToGL(const ScalingPossible: boolean = false): TGLImage; overload;
+    function SaveScreenToGL(const SmoothScaling: boolean = false): TGLImage; overload;
     function SaveScreenToGL(const SaveRect: TRectangle;
-      const ScalingPossible: boolean = false): TGLImage; overload;
+      const SmoothScaling: boolean = false): TGLImage; overload;
     { @groupEnd }
 
     { Color buffer where we draw, and from which it makes sense to grab pixels.
@@ -2355,7 +2357,7 @@ end;
     The only instance of this class should be in @link(Application) variable.
     Don't create any other instances of class TCastleApplication, there's no
     point in doing that. }
-  TCastleApplication = class(TComponent)
+  TCastleApplication = class(TCustomApplication)
 
   { Include CastleWindow-backend-specific parts of
     TCastleApplication class. Rules and comments that apply here are
@@ -2367,8 +2369,8 @@ end;
   {$undef read_application_interface}
 
   private
-    FOnInitialize: TProcedure;
-    Initialized: boolean;
+    FOnInitialize{, FOnInitializeJavaActivity}: TProcedure;
+    Initialized, InitializedJavaActivity: boolean;
     FOnUpdate :TUpdateFunc;
     FOnTimer :TProcedure;
     FTimerMilisec :Cardinal;
@@ -2385,7 +2387,19 @@ end;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindowCustom;
-    procedure Initialize;
+    { Run @link(OnInitialize) and
+      @link(TCastleApplicationProperties.OnInitializeJavaActivity) callbacks,
+      if not run yet.
+
+      Called CastleEngineInitialize, not just @code(Initialize),
+      because this is something entirely different from inherited
+      TCustomApplication.Initialize. In particular, this should not
+      be ever called by user code --- TCastleWindow implementation
+      takes care to call it automatically. }
+    procedure CastleEngineInitialize;
+
+    { Use MainWindow, or a guessed window supposed to be the main. }
+    function GuessedMainWindow: TCastleWindowCustom;
 
     { Add new item to OpenWindows.
       Windows must not be already on OpenWindows list. }
@@ -2426,22 +2440,21 @@ end;
         then once. }
     procedure QuitWhenNoOpenWindows;
 
-    { This simply checks Assigned(FOnUpdate) and only then calls FOnUpdate.
-      ALWAYS use this method instead of directly calling FOnUpdate. }
-    procedure DoSelfUpdate;
+    { Call OnUpdate, call OnApplicationUpdate. }
+    procedure DoApplicationUpdate;
 
-    { Same as DoSelfUpdate, but here with FOnTimer. }
-    procedure DoSelfTimer;
+    { Call OnTimer. }
+    procedure DoApplicationTimer;
 
     { Something useful for some CastleWindow backends. This will implement
-      (in a simple way) calling of DoSelfOpen and OpenWindows.DoTimer.
+      (in a simple way) calling of DoApplicationTimer and OpenWindows.DoTimer.
 
       Declare in TCastleApplication some variable like
         LastDoTimerTime: TMilisecTime
       initialized to 0. Then just call very often (probably at the same time
-      you're calling DoSelfUpdate)
+      you're calling DoApplicationUpdate)
         MaybeDoTimer(LastDoTimerTime);
-      This will take care of calling DoSelfTimer and OpenWindows.DoTimer
+      This will take care of calling DoApplicationTimer and OpenWindows.DoTimer
       at the appropriate times. It will use and update LastDoTimerTime,
       you shouldn't read or write LastDoTimerTime yourself. }
     procedure MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
@@ -2453,6 +2466,18 @@ end;
 
     procedure DoLimitFPS;
     procedure SetMainWindow(const Value: TCastleWindowCustom);
+
+    { Close all open windows, make ProcessMessage return @false,
+      finish the @link(Run) method (if working), and thus finish the
+      application work. }
+    procedure CloseAllOpenWindows;
+  protected
+    { Override TCustomApplication to pass TCustomApplication.Log
+      to CastleLog logger. }
+    procedure DoLog(EventType : TEventType; const Msg : String); override;
+    { Every backend must override this. TCustomApplication will
+      automatically catch exceptions occuring inside DoRun. }
+    procedure DoRun; override;
   public
     { If VideoResize, then next VideoChange call will
       try to resize the screen to given VideoResizeWidth /
@@ -2516,7 +2541,8 @@ end;
     property OpenWindows[Index: integer]: TCastleWindowCustom read GetOpenWindows;
     { @groupEnd }
 
-    { The backend is initialized. Called only once, at the very beginning
+    { The application and CastleWindow backend is initialized.
+      Called only once, at the very beginning
       of the game, when we're ready to load everything
       and the first OpenGL context is initialized (right before
       calling TCastleWindowCustom.OnOpen).
@@ -2531,6 +2557,9 @@ end;
       when OpenGL context is active, to allow you to display progress
       bars etc. when loading). }
     property OnInitialize: TProcedure read FOnInitialize write FOnInitialize;
+
+    {property OnInitializeJavaActivity: TProcedure
+      read FOnInitializeJavaActivity write FOnInitializeJavaActivity;}
 
     { Continously occuring event.
       @seealso TCastleWindowCustom.OnUpdate. }
@@ -2606,8 +2635,9 @@ end;
       and later restore the original ones.
       This is useful for behavior similar to modal dialog boxes.
 
-      Returns @true if we should continue, that is
-      if @link(Quit) method was not called (directly or by closing
+      For comfort, returns @code(not Terminated).
+      So it returns @true if we should continue, that is
+      if @code(Terminate) method was not called (directly or by closing
       the last window). If you want to check it (if you
       allow the user at all to close the application during modal box or such)
       you can do:
@@ -2675,10 +2705,7 @@ end;
       thus we are up-to-date with window system requests. }
     function ProcessAllMessages: boolean;
 
-    { Close all open windows, make ProcessMessage return @false,
-      finish the @link(Run) method (if working), and thus finish the
-      application work. }
-    procedure Quit;
+    procedure Quit; deprecated 'Use Terminate';
 
     { Run the program using TCastleWindowCustom, by doing the event loop.
       Think of it as just a shortcut for "while ProcessMessage do ;".
@@ -2696,6 +2723,8 @@ end;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    procedure HandleException(Sender: TObject); override;
   published
     { Limit the number of (real) frames per second, to not hog the CPU.
       Set to zero to not limit.
@@ -2774,6 +2803,7 @@ function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModif
 implementation
 
 uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils, CastleWarnings,
+  CastleControls,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
@@ -2944,8 +2974,8 @@ begin
       it will be slightly smaller (menu bar takes some space). }
     if Width  = WindowDefaultSize then FWidth  := Application.ScreenWidth  * 4 div 5;
     if Height = WindowDefaultSize then FHeight := Application.ScreenHeight * 4 div 5;
-    Clamp(FWidth , MinWidth , MaxWidth);
-    Clamp(FHeight, MinHeight, MaxHeight);
+    ClampVar(FWidth , MinWidth , MaxWidth);
+    ClampVar(FHeight, MinHeight, MaxHeight);
     if Left = WindowPositionCenter then FLeft := (Application.ScreenWidth  - Width ) div 2;
     if Top  = WindowPositionCenter then FTop  := (Application.ScreenHeight - Height) div 2;
 
@@ -3001,24 +3031,29 @@ begin
       glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
     {$endif}
 
-    Application.Initialize;
+    try
+      Application.CastleEngineInitialize;
 
-    { call first EventOpen and EventResize. Zwroc uwage ze te DoResize i DoOpen
-      MUSZA byc wykonane na samym koncu procedury Open - jak juz wszystko inne
-      zostalo wykonane. Wszystko po to ze juz w pierwszym OnOpen lub OnResize
-      moze zostac wywolane Application.ProcessMessages np. w wyniku wywolania w OnOpen
-      CastleMessages.MessageOk. }
-    EventOpenCalled := true;
-    Container.EventOpen(Application.OpenWindowsCount);
+      { call first EventOpen and EventResize. Zwroc uwage ze te DoResize i DoOpen
+        MUSZA byc wykonane na samym koncu procedury Open - jak juz wszystko inne
+        zostalo wykonane. Wszystko po to ze juz w pierwszym OnOpen lub OnResize
+        moze zostac wywolane Application.ProcessMessages np. w wyniku wywolania w OnOpen
+        CastleMessages.MessageOk. }
+      EventOpenCalled := true;
+      Container.EventOpen(Application.OpenWindowsCount);
 
-    { Check Closed here, in case OnOpen closed the window
-      (by calling Application.Quit (that calls Close on all windows) or direct Close
-      on this window). Note that Close calls
-      CloseBackend and generally has *immediate* effect --- that's why
-      doing anything more with window now (like MakeCurrent) would be wrong. }
-    if Closed then Exit;
+      { Check Closed here, in case OnOpen closed the window
+        (by calling Application.Quit (that calls Close on all windows) or direct Close
+        on this window). Note that Close calls
+        CloseBackend and generally has *immediate* effect --- that's why
+        doing anything more with window now (like MakeCurrent) would be wrong. }
+      if Closed then Exit;
 
-    DoResize(FWidth, FHeight, true);
+      DoResize(FWidth, FHeight, true);
+    except
+      { capture exceptions from Application.OnInitialize, Window.OnOpen, Window.OnResize }
+      Application.HandleException(Self);
+    end;
 
     { Check Closed here, in case OnResize closed the window. }
     if Closed then Exit;
@@ -3503,18 +3538,18 @@ begin
   Result := SaveScreen_NoFlush(SaveRect, SaveScreenBuffer);
 end;
 
-function TCastleWindowCustom.SaveScreenToGL(const ScalingPossible: boolean): TGLImage;
+function TCastleWindowCustom.SaveScreenToGL(const SmoothScaling: boolean): TGLImage;
 begin
-  Result := SaveScreenToGL(Rect, ScalingPossible);
+  Result := SaveScreenToGL(Rect, SmoothScaling);
 end;
 
 function TCastleWindowCustom.SaveScreenToGL(
   const SaveRect: TRectangle;
-  const ScalingPossible: boolean): TGLImage;
+  const SmoothScaling: boolean): TGLImage;
 begin
   Container.EventBeforeRender;
   Container.EventRender;
-  Result := SaveScreenToGL_NoFlush(SaveRect, SaveScreenBuffer, ScalingPossible);
+  Result := SaveScreenToGL_NoFlush(SaveRect, SaveScreenBuffer, SmoothScaling);
 end;
 
 procedure TCastleWindowCustom.SaveScreenDialog(ProposedURL: string);
@@ -4064,7 +4099,7 @@ end;
 {$ifndef CASTLE_WINDOW_LCL}
 procedure TCastleWindowCustom.Invalidate;
 begin
-  if not Closed then 
+  if not Closed then
     Invalidated := true;
 end;
 {$endif}
@@ -4080,7 +4115,7 @@ begin
   Container.RenderStyle := Value;
 end;
 
-function TCastleWindowCustom.Controls: TUIControlList;
+function TCastleWindowCustom.Controls: TChildrenControls;
 begin
   Result := Container.Controls;
 end;
@@ -4247,7 +4282,7 @@ begin
     we'll make use of it. }
   FSceneManager.SetSubComponent(true);
   FSceneManager.Name := 'SceneManager';
-  Controls.Add(SceneManager);
+  Controls.InsertFront(SceneManager);
 end;
 
 procedure TCastleWindow.Load(const SceneURL: string);
@@ -4365,7 +4400,7 @@ begin
     no way for them to close properly (that is, TCastleWindowCustom.CloseBackend
     may, and usually will, fail with very strange errors when called
     after freeing central Application). }
-  Quit;
+  CloseAllOpenWindows;
 
   { unregister free notification from these objects }
   MainWindow := nil;
@@ -4380,8 +4415,19 @@ begin
   inherited;
 end;
 
-procedure TCastleApplication.Initialize;
+procedure TCastleApplication.CastleEngineInitialize;
 begin
+  if Initialized and not InitializedJavaActivity then
+    WritelnLog('Android', 'Android Java activity was killed (and now got created from stratch), but native thread survived. Calling only OnInitializeJavaActivity.');
+
+  if not InitializedJavaActivity then
+  begin
+    InitializedJavaActivity := true;
+    {if Assigned(OnInitializeJavaActivity) then
+      OnInitializeJavaActivity();}
+    ApplicationProperties._InitializeJavaActivity;
+  end;
+
   if not Initialized then
   begin
     Initialized := true;
@@ -4428,7 +4474,9 @@ procedure TCastleApplication.OpenWindowsRemove(Window: TCastleWindowCustom;
   QuitWhenLastWindowClosed: boolean);
 begin
   if (FOpenWindows.Remove(Window) <> -1) and
-     (OpenWindowsCount = 0) and QuitWhenLastWindowClosed then Quit;
+     (OpenWindowsCount = 0) and
+     QuitWhenLastWindowClosed then
+    CloseAllOpenWindows;
 end;
 
 function TCastleApplication.FindWindow(Window: TCastleWindowCustom): integer;
@@ -4439,6 +4487,11 @@ begin
 end;
 
 procedure TCastleApplication.Quit;
+begin
+  Terminate;
+end;
+
+procedure TCastleApplication.CloseAllOpenWindows;
 var
   OldOpenWindowsCount: Integer;
 begin
@@ -4463,12 +4516,13 @@ begin
   QuitWhenNoOpenWindows;
 end;
 
-procedure TCastleApplication.DoSelfUpdate;
+procedure TCastleApplication.DoApplicationUpdate;
 begin
   if Assigned(FOnUpdate) then FOnUpdate;
+  ApplicationProperties._Update;
 end;
 
-procedure TCastleApplication.DoSelfTimer;
+procedure TCastleApplication.DoApplicationTimer;
 begin
   if Assigned(FOnTimer) then FOnTimer;
 end;
@@ -4482,7 +4536,7 @@ begin
       (MilisecTimesSubtract(Now, ALastDoTimerTime) >= FTimerMilisec)) then
   begin
     ALastDoTimerTime := Now;
-    DoSelfTimer;
+    DoApplicationTimer;
     FOpenWindows.DoTimer;
   end;
 end;
@@ -4491,7 +4545,10 @@ function TCastleApplication.AllowSuspendForInput: boolean;
 var
   I: Integer;
 begin
-  Result := not (Assigned(OnUpdate) or Assigned(OnTimer));
+  Result := not (
+    Assigned(OnUpdate) or
+    Assigned(OnTimer) or
+    (ApplicationProperties.OnUpdate.Count <> 0));
   if not Result then Exit;
 
   for I := 0 to OpenWindowsCount - 1 do
@@ -4582,6 +4639,102 @@ begin
     end else
       LastLimitFPSTime := NowTime;
   end;
+end;
+
+function TCastleApplication.GuessedMainWindow: TCastleWindowCustom;
+begin
+  if MainWindow <> nil then
+    Result := MainWindow else
+  if OpenWindowsCount = 1 then
+    Result := OpenWindows[0] else
+    Result := nil; // no open window, or unknown which window is the main one
+end;
+
+{ Similar to TCustomApplication.HandleException, but not entirely.
+
+  - We don't want to fallback on SysUtils.ShowException, that is rather
+    useless because when IsConsole, it shows only a summary of exception,
+    without any stacktrace.
+
+  - Also we prefer our own ExceptMessage.
+
+  - If we cannot show the exception, we prefer to simply reraise it,
+    closing the program, with default FPC exception handler (that shows
+    the stacktrace). }
+procedure TCastleApplication.HandleException(Sender: TObject);
+
+  procedure DefaultShowException(ExceptObject: TObject; ExceptAddr: Pointer);
+  var
+    OriginalObj: TObject;
+    OriginalAddr: Pointer;
+    OriginalFrameCount: Longint;
+    OriginalFrame: Pointer;
+    ErrMessage: string;
+  begin
+    ErrMessage := ExceptMessage(ExceptObject, ExceptAddr) + NL + NL + DumpExceptionBackTraceToString;
+    { in case the following code, trying to handle the exception with nice GUI,
+      will fail and crash horribly -- make sure to log the exception. }
+    WritelnLog('Exception', ErrMessage);
+
+    if (GuessedMainWindow <> nil) and
+       (not GuessedMainWindow.Closed) and
+       { for some weird reason (even though we try to protect from it in code)
+         handling of GuessedMainWindow.MessageOK causes another exception
+         that resulted in recursive call to HandleException.
+         Prevent the loop with just crash in this case. }
+       (not Theme.MessageErrorBackground) then
+    begin
+      try
+        OriginalObj := ExceptObject;
+        OriginalAddr := ExceptAddr;
+        OriginalFrameCount := ExceptFrameCount;
+        OriginalFrame := ExceptFrames;
+        Theme.MessageErrorBackground := true;
+        GuessedMainWindow.MessageOK(ErrMessage, mtError);
+        Theme.MessageErrorBackground := false;
+      except
+        on E: TObject do
+        begin
+          OnWarning(wtMajor, 'Exception', 'Exception ' + E.ClassName + ' occured in the error handler itself. This means we cannot report the exception by a nice dialog box. The *original* exception report follows.');
+          ExceptProc(OriginalObj, OriginalAddr, OriginalFrameCount, OriginalFrame);
+          OnWarning(wtMajor, 'Exception', 'And below is a report about the exception within exception handler.');
+          ExceptProc(SysUtils.ExceptObject, SysUtils.ExceptAddr, SysUtils.ExceptFrameCount, SysUtils.ExceptFrames);
+          Halt(1);
+        end;
+      end;
+    end else
+    begin
+      { reraise, causing the app to exit with default FPC messsage and stacktrace }
+      { not nice, as the stacktrace becomes overridden by this line in CastleWindow.pas:
+      raise Exception.Create('Unhandled exception ' + ExceptMessage(ExceptObject, ExceptAddr));
+      }
+      { not correct, causes errors probably because ExceptObject is already freed:
+      raise ExceptObject at ExceptAddr;
+      }
+      { this works best: }
+      ExceptProc(ExceptObject, ExceptAddr, ExceptFrameCount, ExceptFrames);
+      Halt(1);
+    end;
+  end;
+
+begin
+  if (not (ExceptObject is Exception)) or
+     (not Assigned(OnException)) then
+    DefaultShowException(ExceptObject, ExceptAddr) else
+    OnException(Sender, Exception(ExceptObject));
+
+  if StopOnException then
+    Terminate;
+end;
+
+procedure TCastleApplication.DoLog(EventType : TEventType; const Msg : String);
+begin
+  WritelnLog('CastleWindow', Msg);
+end;
+
+procedure TCastleApplication.DoRun;
+begin
+  ProcessMessage(true, true);
 end;
 
 { global --------------------------------------------------------------------- }

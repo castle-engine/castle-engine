@@ -252,10 +252,10 @@ begin
     end;
   end;
 
-  StringReplaceAllTo1st(FieldDefaultValue, '"', '''', false);
+  StringReplaceAllVar(FieldDefaultValue, '"', '''', false);
   { make booleans lowecase, I like them more lowercase }
-  StringReplaceAllTo1st(FieldDefaultValue, 'FALSE', 'false', false);
-  StringReplaceAllTo1st(FieldDefaultValue, 'TRUE', 'true', false);
+  StringReplaceAllVar(FieldDefaultValue, 'FALSE', 'false', false);
+  StringReplaceAllVar(FieldDefaultValue, 'TRUE', 'true', false);
 
   FieldComment := Trim(SEnding(Line, SeekPos));
 

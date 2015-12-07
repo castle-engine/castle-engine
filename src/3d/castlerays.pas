@@ -265,7 +265,7 @@ begin
   { Transform ray to take camera settings into acount. }
   RayDirection := TransformToCoords(RayDirection, CamSide, CamUp, -CamDirection);
 
-  NormalizeTo1st(RayDirection);
+  NormalizeVar(RayDirection);
 end;
 
 { TOrthographicRaysWindow ---------------------------------------------------- }

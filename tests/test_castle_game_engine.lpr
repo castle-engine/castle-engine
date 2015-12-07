@@ -1,4 +1,3 @@
-{ -*- compile-command: "./compile_console.sh" -*- }
 program test_castle_game_engine;
 
 { Define this if you use text runner for our tests.
@@ -17,6 +16,7 @@ uses
   CastleWarnings,
 
   { Test units (their order determines default tests order) }
+  TestSysUtils,
   TestCastleUtils,
   TestRectangles,
   TestGenericLists,
@@ -28,6 +28,7 @@ uses
   TestKeysMouse,
   TestFPImage,
   TestImages,
+  TestImagesDraw,
   TestOldFPCBugs,
   TestCastleBoxes,
   TestCastleFrustum,

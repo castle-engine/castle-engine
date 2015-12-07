@@ -133,7 +133,7 @@ end;
 
 procedure TButtons.ExitButtonClick(Sender: TObject);
 begin
-  Application.Quit;
+  Application.Terminate;
 end;
 
 procedure TButtons.RenderDebug3DButtonClick(Sender: TObject);
@@ -263,7 +263,7 @@ begin
     S := Player.Inventory[I].Resource.Caption;
     if Player.Inventory[I].Quantity <> 1 then
       S += Format(' (%d)', [Player.Inventory[I].Quantity]);
-    UIFontSmall.Print(X, Y - UIFontSmall.RowHeight, Yellow, S);
+    UIFont.Print(X, Y - UIFont.RowHeight, Yellow, S);
   end;
 
   { Simple color effects over the screen:
@@ -282,10 +282,10 @@ begin
     code). Engine example examples/3d_rendering_processing/multiple_viewports.lpr
     shows how to set them up in code. }
   if Player.Swimming = psUnderWater then
-    DrawRectangle(ContainerRect, Vector4Single(0, 0, 0.1, 0.5));
+    DrawRectangle(ParentRect, Vector4Single(0, 0, 0.1, 0.5));
   if Player.Dead then
-    GLFadeRectangle(ContainerRect, Red, 1.0) else
-    GLFadeRectangle(ContainerRect, Player.FadeOutColor, Player.FadeOutIntensity);
+    GLFadeRectangle(ParentRect, Red, 1.0) else
+    GLFadeRectangle(ParentRect, Player.FadeOutColor, Player.FadeOutIntensity);
 end;
 
 var
@@ -422,6 +422,19 @@ begin
   Window := TCastleWindow.Create(Application);
   SceneManager := Window.SceneManager;
 
+  { Load user preferences file.
+    You can use it for your own user persistent data
+    (preferences or savegames), see
+    http://castle-engine.sourceforge.net/tutorial_user_prefs.php .
+
+    You can also use it to store SoundEngine preferences (these include
+    sound enabled state and volume) by SoundEngine.LoadFromConfig / SaveToConfig
+    methods. Note that this should be used before SoundEngine.ParseParameters,
+    otherwise command-line parameter --no-sound (handled by
+    SoundEngine.ParseParameters) would always be overridden by config file value. }
+  UserConfig.Load;
+  SoundEngine.LoadFromConfig(UserConfig);
+
   { Parse command-line parameters.
     Options parsed by Window.ParseParameters are documented on
     http://castle-engine.sourceforge.net/opengl_options.php .
@@ -445,13 +458,6 @@ begin
   Theme.Images[tiActiveFrame] := LoadImage(ApplicationData('box.png'));
   Theme.OwnsImages[tiActiveFrame] := true;
   Theme.Corners[tiActiveFrame] := Vector4Integer(38, 38, 38, 38);
-
-  { Load configuration file. This loads configuration for various parts of the
-    engine that add their callbacks to Config.OnLoad, Config.OnSave.
-    Of course you can also use this for your game specific purposes,
-    as Config is just standard FPC TXMLConfig class (with some extensions,
-    see CastleXMLConfig unit). }
-  Config.Load;
 
   { Create extra viewport to observe the 3D world.
 
@@ -501,6 +507,8 @@ begin
     (no key/mouse button correspond to it), because not all games may want
     to allow player to do this. }
   Input_DropItem.Assign(K_R);
+  // allow shooting by clicking or pressing Ctrl key
+  Input_Attack.Assign(K_Ctrl, K_None, #0, true, mbLeft);
 
   { Allow using type="MedKit" inside resource.xml files,
     to define our MedKit item. }
@@ -579,11 +587,20 @@ begin
     Of course this is completely optional, you could instead create your own
     TCastleNotifications instance (to not see the default notifications
     made by some engine units) or just don't use notifications at all. }
+  Notifications.TextAlignment := hpMiddle;
+  Notifications.Anchor(hpMiddle);
+  Notifications.Anchor(vpBottom, 5);
+  Notifications.Color := Yellow;
   Window.Controls.InsertFront(Notifications);
 
   { Create and add Game2DControls to visualize player life, inventory and pain. }
   Game2DControls := TGame2DControls.Create(Application);
   Window.Controls.InsertFront(Game2DControls);
+
+  { Insert default crosshair.
+    You can draw your own crosshair easily (using TGLImage.Draw
+    inside TGame2DControls, or using TCastleImageControl). }
+  Window.Controls.InsertFront(TCastleCrosshair.Create(Application));
 
   { Run the game loop.
     In more advanced cases, you can also execute each step of the loop
@@ -592,8 +609,9 @@ begin
       and <whatever you want> do <whatever you want>;" }
   Application.Run;
 
-  { Save the configuration file. This is commented out for now,
+  { Save the configuration file. This is commented out here,
     as this example program does not give user any UI to actually change
     any configuration. }
-  //Config.Save;
+  //SoundEngine.SaveToConfig(UserConfig);
+  //UserConfig.Save;
 end.

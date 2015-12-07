@@ -362,7 +362,7 @@ begin
     if Application.XCursors[Cursor] = X.None then
     begin
       { initialize XCursors[Cursor] }
-      if Cursor = mcNone then
+      if Cursor in [mcNone, mcForceNone] then
         Application.XCursors[Cursor] := CreateNoneCursor else
         Application.XCursors[Cursor] := XCreateFontCursor(Application.XDisplay,
           XCursorShapeFromMy[Cursor]);

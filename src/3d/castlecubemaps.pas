@@ -119,7 +119,7 @@ begin
   { Result = exactly CubeMapInfo[Side].Dir when
     PixelX/Y = CubeMapSize/2 (pixel is on the middle of the image). }
   Result := CubeMapInfo[Side].Dir;
-  VectorAddTo1st(Result,
+  VectorAddVar(Result,
     VectorScale(CubeMapInfo[Side].Side, -1 + 2 * PixelX/CubeMapSize
 
     { We want the generated direction to be exactly in the middle of
@@ -141,7 +141,7 @@ begin
       so all will be perfect. }
       + 1/CubeMapSize
     ));
-  VectorAddTo1st(Result,
+  VectorAddVar(Result,
     VectorScale(CubeMapInfo[Side].Up  , -1 + 2 * PixelY/CubeMapSize
       + 1/CubeMapSize));
 end;
@@ -191,8 +191,8 @@ begin
     0, CubeMapSize - 1));
 
   { clamp, just to be safe }
-  Clamp(PixelX, 0, CubeMapSize - 1);
-  Clamp(PixelY, 0, CubeMapSize - 1);
+  ClampVar(PixelX, 0, CubeMapSize - 1);
+  ClampVar(PixelY, 0, CubeMapSize - 1);
 
   Pixel := PixelY * CubeMapSize + PixelX;
 end;
@@ -279,8 +279,8 @@ begin
   { clamp, just to be safe }
   for I := 0 to 3 do
   begin
-    Clamp(PixelX[I], 0, CubeMapSize - 1);
-    Clamp(PixelY[I], 0, CubeMapSize - 1);
+    ClampVar(PixelX[I], 0, CubeMapSize - 1);
+    ClampVar(PixelY[I], 0, CubeMapSize - 1);
     Pixel[I] := PixelY[I] * CubeMapSize + PixelX[I];
   end;
 end;
@@ -319,7 +319,7 @@ begin
 
   { normalize Dir. Since we already have DirLength,
     we can just call VectorScale. }
-  VectorScaleTo1st(Dir, 1/DirLength);
+  VectorScaleVar(Dir, 1/DirLength);
 
   Result := VectorDotProduct(Dir, CubeMapInfo[Side].Dir) *
     ( 4 / Sqr(CubeMapSize) ) /

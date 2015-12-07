@@ -211,7 +211,7 @@ function TComposedCubeMapTextureNode.LoadSides: boolean;
     end;
 
     { If any slice has full-range alpha, then assume whole texture does. }
-    AlphaMaxTo1st(FAlphaChannelData, SideTex.AlphaChannel);
+    AlphaMaxVar(FAlphaChannelData, SideTex.AlphaChannel);
   end;
 
 begin

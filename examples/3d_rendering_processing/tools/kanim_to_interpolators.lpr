@@ -53,8 +53,8 @@ begin
     Save3D(Node, Stream, 'kanim_to_interpolators', '', xeClassic);
 
     Suffix := SceneSuffix;
-    StringReplaceAllTo1st(Suffix, '$(CoordinateNodeName)', CoordinateNodeName);
-    StringReplaceAllTo1st(Suffix, '$(CycleInterval)', FloatToStr(CycleInterval));
+    StringReplaceAllVar(Suffix, '$(CoordinateNodeName)', CoordinateNodeName);
+    StringReplaceAllVar(Suffix, '$(CycleInterval)', FloatToStr(CycleInterval));
     WritelnStr(Stream, Suffix);
   finally Stream.Free end;
 end;

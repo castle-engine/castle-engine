@@ -99,7 +99,9 @@ begin
   SampleImage.URL := 'sample_image.png';
   SampleImageAlpha.URL := 'sample_image_with_alpha.png';
 
-  OnScreenMenu1.Position := Vector2Integer(400, 150);
+  OnScreenMenu1.Add('one');
+  OnScreenMenu1.Add('two');
+  OnScreenMenu1.Add('three');
 end;
 
 procedure TForm1.BrowserResize(Sender: TObject);

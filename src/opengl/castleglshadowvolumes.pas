@@ -500,7 +500,7 @@ procedure TGLShadowVolumeRenderer.InitSceneDontSetupStencil(const SceneBox: TBox
           NearPlane[2] * LightPositionDouble[2] +
           NearPlane[3] * LightPositionDouble[3]) > 0 then
       begin
-        VectorNegateTo1st(NearPlane);
+        VectorNegateVar(NearPlane);
         Result :=
           InsidePlane(NearPlane) and
           InsidePlane(TrianglePlane(FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ, LightPosition3^)) and

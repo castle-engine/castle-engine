@@ -128,8 +128,8 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TLightInstance)
 var
   SetNoAttenuation: boolean;
   Attenuat: TVector3Single;
-  Color3, AmbientColor3: TVector3f;
-  Color4, AmbientColor4: TVector4f;
+  Color3, AmbientColor3: TVector3Single;
+  Color4, AmbientColor4: TVector4Single;
 begin
   glLightNum += GL_LIGHT0;
 
@@ -251,7 +251,7 @@ var
   begin
     for I := 0 to Lights.Count - 1 do
     begin
-      Light := Addr(Lights.L[I]);
+      Light := Lights.Ptr(I);
 
       LightOn := Light^.Node.FdOn.Value;
       if Assigned(LightRenderEvent) then

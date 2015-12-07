@@ -315,7 +315,7 @@ type
   T3DResourceList = class(specialize TFPGObjectList<T3DResource>)
   private
     ResourceXmlReload: boolean;
-    procedure AddFromInfo(const FileInfo: TFileInfo);
+    procedure AddFromInfo(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure AddFromFileDefaultReload(const URL: string);
   public
     { Find resource with given T3DResource.Name.
@@ -700,7 +700,7 @@ end;
 
 { T3DResourceList ------------------------------------------------------------- }
 
-procedure T3DResourceList.AddFromInfo(const FileInfo: TFileInfo);
+procedure T3DResourceList.AddFromInfo(const FileInfo: TFileInfo; var StopSearch: boolean);
 begin
   AddFromFileDefaultReload(FileInfo.URL);
 end;
@@ -945,7 +945,7 @@ begin
 end;
 
 initialization
-  OnGLContextClose.Add(@ContextClose);
+  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
   FResources := T3DResourceList.Create(true);
   ResourceClasses := TResourceClasses.Create;
 finalization

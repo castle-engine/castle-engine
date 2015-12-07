@@ -113,7 +113,7 @@ begin
     like the ones calculated in TriangulateFace algorithm. }
   EarNormal := TriangleDir(V0, V1, V2);
   Assert(not ZeroVector(EarNormal));
-  NormalizeTo1st(EarNormal);
+  NormalizeVar(EarNormal);
 
   E1 := VectorProduct(EarNormal, V0 - V1);
   E2 := VectorProduct(EarNormal, V1 - V2);
@@ -217,12 +217,12 @@ begin
   MaxV := Vertexes[0];
   for I := 1 to Vertexes.Count - 1 do
   begin
-    MinTo1st(MinV[0], Vertexes[I][0]);
-    MinTo1st(MinV[1], Vertexes[I][1]);
-    MinTo1st(MinV[2], Vertexes[I][2]);
-    MaxTo1st(MaxV[0], Vertexes[I][0]);
-    MaxTo1st(MaxV[1], Vertexes[I][1]);
-    MaxTo1st(MaxV[2], Vertexes[I][2]);
+    MinVar(MinV[0], Vertexes[I][0]);
+    MinVar(MinV[1], Vertexes[I][1]);
+    MinVar(MinV[2], Vertexes[I][2]);
+    MaxVar(MaxV[0], Vertexes[I][0]);
+    MaxVar(MaxV[1], Vertexes[I][1]);
+    MaxVar(MaxV[2], Vertexes[I][2]);
   end;
 
   { make MinV/MaxV even slightly more distant, to have some margin around

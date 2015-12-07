@@ -446,7 +446,7 @@ begin
     Move := Vector3Single(VectorSubtract(
       UnProject(Event.   Position[0], Event.   Position[1], WinZ),
       UnProject(Event.OldPosition[0], Event.OldPosition[1], WinZ)));
-    VectorAddTo1st(ControlPoints(CurrentCurve).L[CurrentPoint], Move);
+    VectorAddVar(ControlPoints(CurrentCurve).L[CurrentPoint], Move);
     (Surface.Curves[CurrentCurve] as TControlPointsCurve).UpdateControlPoints;
     Window.Invalidate;
   end;

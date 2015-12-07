@@ -190,7 +190,7 @@ end;
   Also NurbsUniformKnotIfNeeded is based on NodeNurbsSurface::linearUknot.
 
   White dune:
-  - http://vrml.cip.ica.uni-stuttgart.de/dune/
+  - http://wdune.ourproject.org/
   - J. "MUFTI" Scheurich, Stephen F. White
   - GPL >= 2, so we're free to copy
   - findSpan and basisFuns were methods in NodeNurbsCurve
@@ -330,7 +330,7 @@ begin
   if Tangent <> nil then
   begin
     Tangent^ := (du - Result * duw) / w;
-    NormalizeTo1st(Tangent^);
+    NormalizeVar(Tangent^);
   end;
 
   FreeAndNil(basis);
@@ -416,7 +416,7 @@ begin
     un := (du - Result * duw) / w;
     vn := (dv - Result * dvw) / w;
     normal^ := un >< vn;
-    NormalizeTo1st(normal^);
+    NormalizeVar(normal^);
   end;
 
   FreeAndNil(uBasis);
@@ -479,17 +479,17 @@ begin
 
       for I := 1 to Point.Count - 1 do
       begin
-        V := Addr(Point.L[I]);
+        V := Point.Ptr(I);
         W := Weight.L[I];
         if W = 0 then W := 1;
 
-        MinTo1st(Result.Data[0][0], V^[0] / W);
-        MinTo1st(Result.Data[0][1], V^[1] / W);
-        MinTo1st(Result.Data[0][2], V^[2] / W);
+        MinVar(Result.Data[0][0], V^[0] / W);
+        MinVar(Result.Data[0][1], V^[1] / W);
+        MinVar(Result.Data[0][2], V^[2] / W);
 
-        MaxTo1st(Result.Data[1][0], V^[0] / W);
-        MaxTo1st(Result.Data[1][1], V^[1] / W);
-        MaxTo1st(Result.Data[1][2], V^[2] / W);
+        MaxVar(Result.Data[1][0], V^[0] / W);
+        MaxVar(Result.Data[1][1], V^[1] / W);
+        MaxVar(Result.Data[1][2], V^[2] / W);
       end;
     end;
   end else
@@ -535,13 +535,13 @@ begin
 
         V := MatrixMultPoint(Transform, Point.L[I] / W);
 
-        MinTo1st(Result.Data[0][0], V[0]);
-        MinTo1st(Result.Data[0][1], V[1]);
-        MinTo1st(Result.Data[0][2], V[2]);
+        MinVar(Result.Data[0][0], V[0]);
+        MinVar(Result.Data[0][1], V[1]);
+        MinVar(Result.Data[0][2], V[2]);
 
-        MaxTo1st(Result.Data[1][0], V[0]);
-        MaxTo1st(Result.Data[1][1], V[1]);
-        MaxTo1st(Result.Data[1][2], V[2]);
+        MaxVar(Result.Data[1][0], V[0]);
+        MaxVar(Result.Data[1][1], V[1]);
+        MaxVar(Result.Data[1][2], V[2]);
       end;
     end;
   end else

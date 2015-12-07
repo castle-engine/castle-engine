@@ -63,7 +63,7 @@
 
 { We do *not* define inline functions/methods when compiling from
   Lazarus package. This is to workaround FPC bug
-  http://bugs.freepascal.org/view.php?id=12223 }
+  http://bugs.freepascal.org/view.php?id=12223 . }
 {$ifndef CASTLE_ENGINE_LAZARUS_PACKAGE}
   {$define SUPPORTS_INLINE}
 {$endif}
@@ -80,7 +80,7 @@
 {$ifdef VER2_4_0} {$undef TOBJECT_HAS_EQUALS} {$endif}
 
 {$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
-  {$if defined(iPHONESIM) or (defined(DARWIN) and defined(CPUARM))}
+  {$if defined(iPHONESIM) or (defined(DARWIN) and (defined(CPUARM) or defined(CPUARM64)))}
     {$define iOS}
   {$endif}
 {$endif}

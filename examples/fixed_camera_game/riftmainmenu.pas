@@ -49,11 +49,9 @@ type
     constructor Create(AOwner: TComponent); override;
     { Let rift callbacks handle the events too. }
     property ExclusiveEvents default false;
-    { Always treat like inside --- the menu is the only thing with
-      which user interacts. }
-    function PositionInside(const Point: TVector2Single): boolean; override;
-    { Since PositionInside is always @true, no point in visualizing focused. }
+    { Since Rect is always fullsize, no point in visualizing focused. }
     property DrawFocusedBorder default false;
+    property CaptureAllEvents default true;
   end;
 
   TRiftSubMenu = class(TRiftMenu)
@@ -75,11 +73,10 @@ type
     SoundVolume: TSoundVolumeMenuItem;
     MusicVolume: TMusicVolumeMenuItem;
 
-    OpenALDeviceArgument: TMenuArgument;
+    OpenALDeviceArgument: TCastleLabel;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Click; override;
-    procedure AccessoryValueChanged; override;
   end;
 
   TChangeOpenALDeviceMenu = class(TRiftSubMenu)
@@ -97,7 +94,6 @@ var
 { Actual menu procedures and CastleWindow callbacks ------------------------------ }
 
 var
-  CurrentMenu: TCastleOnScreenMenu;
   GLMenuBg: TGLImage;
   UserQuit: boolean;
 
@@ -105,7 +101,6 @@ var
   (when new value is @nil) from Window.Controls. }
 procedure SetCurrentMenu(const NewValue: TCastleOnScreenMenu);
 begin
-  CurrentMenu := NewValue;
   Window.Controls.MakeSingle(TCastleOnScreenMenu, NewValue);
 end;
 
@@ -123,11 +118,6 @@ procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 begin
   if Event.IsKey(CharEscape) then
     SetCurrentMenu(MainMenu);
-
-  if DebugMenuDesignerAllowed and Event.IsKey(K_F12) then
-  begin
-    CurrentMenu.DesignerMode := not CurrentMenu.DesignerMode;
-  end;
 end;
 
 procedure CloseQuery(Container: TUIContainer);
@@ -166,19 +156,18 @@ begin
   CurrentItemBorderColor2 := Vector4Single(186/255, 134/255,  88/255, 1.0);
   CurrentItemColor        := Vector4Single(252/255, 253/255, 200/255, 1.0);
   NonCurrentItemColor     := CurrentItemBorderColor2;
-  PositionRelativeScreenX := hpRight;
-  PositionRelativeScreenY := vpTop;
-  PositionRelativeMenuX := hpRight;
-  PositionRelativeMenuY := vpTop;
-  Position := Vector2Integer(-91, -62);
+
+  HasHorizontalAnchor := true;
+  HorizontalAnchor := hpRight;
+  HorizontalAnchorDelta := -91;
+  HasVerticalAnchor := true;
+  VerticalAnchor := vpTop;
+  VerticalAnchorDelta := -62;
+
   DrawBackgroundRectangle := false;
   ExclusiveEvents := false;
   DrawFocusedBorder := false;
-end;
-
-function TRiftMenu.PositionInside(const Point: TVector2Single): boolean;
-begin
-  Result := true;
+  CaptureAllEvents := true;
 end;
 
 { TRiftMainMenu -------------------------------------------------------------- }
@@ -186,11 +175,11 @@ end;
 constructor TRiftMainMenu.Create(AOwner: TComponent);
 begin
   inherited;
-  Items.Add('New game');
-  Items.Add('Sound options');
+  Add('New game');
+  Add('Sound options');
   { TODO: this should be more hidden from user, in some debug menu }
-  Items.Add('Debug: inspect creatures');
-  Items.Add('Quit');
+  Add('Debug: inspect creatures');
+  Add('Quit');
 end;
 
 procedure TRiftMainMenu.Click;
@@ -218,24 +207,28 @@ end;
 constructor TRiftSubMenu.Create(AOwner: TComponent);
 begin
   inherited;
-  Position := Vector2Integer(54, -273);
-  PositionRelativeScreenX := hpLeft;
-  PositionRelativeScreenY := vpTop;
-  PositionRelativeMenuX := hpLeft;
-  PositionRelativeMenuY := vpTop;
+
+  HasHorizontalAnchor := true;
+  HorizontalAnchor := hpLeft;
+  HorizontalAnchorDelta := 54;
+  HasVerticalAnchor := true;
+  VerticalAnchor := vpTop;
+  VerticalAnchorDelta := -273;
+
   DrawBackgroundRectangle := true;
 end;
 
 procedure TRiftSubMenu.Render;
+var
+  SR: TRectangle;
 const
   SubMenuTextColor: TCastleColor = (0.7, 0.7, 0.7, 1.0);
 begin
   { background of submenu is mainmenu }
   MainMenu.Render;
   inherited;
-  UIFont.Print(PositionAbsolute[0],
-    PositionAbsolute[1] + AllItemsRectangle.Height - 20, SubMenuTextColor,
-    SubMenuTitle + ' :');
+  SR := ScreenRect;
+  UIFont.Print(SR.Left, SR.Top - 20, SubMenuTextColor, SubMenuTitle + ' :');
 end;
 
 { TRiftSoundMenu ------------------------------------------------------------- }
@@ -244,14 +237,14 @@ constructor TRiftSoundMenu.Create(AOwner: TComponent);
 begin
   inherited;
 
-  OpenALDeviceArgument := TMenuArgument.Create(450);
-  OpenALDeviceArgument.Value := SoundEngine.DeviceNiceName;
+  OpenALDeviceArgument := TCastleLabel.Create(Self);
+  OpenALDeviceArgument.Text.Text := SoundEngine.DeviceNiceName;
 
   SoundInfo := TSoundInfoMenuItem.Create(Window, Self);
   SoundVolume := TSoundVolumeMenuItem.Create(Window, Self);
   MusicVolume := TMusicVolumeMenuItem.Create(Window, Self);
-  Items.AddObject('Sound output device', OpenALDeviceArgument);
-  Items.Add('Back to main menu');
+  Add('Sound output device', OpenALDeviceArgument);
+  Add('Back to main menu');
 
   SubMenuTitle := 'Sound options';
 end;
@@ -278,14 +271,6 @@ begin
   end;
 end;
 
-procedure TRiftSoundMenu.AccessoryValueChanged;
-begin
-  case CurrentItem of
-    1: SoundVolume.AccessoryValueChanged;
-    2: MusicVolume.AccessoryValueChanged;
-  end;
-end;
-
 { TChangeOpenALDeviceMenu ---------------------------------------------------- }
 
 constructor TChangeOpenALDeviceMenu.Create(AOwner: TComponent);
@@ -295,8 +280,8 @@ begin
   inherited;
 
   for I := 0 to SoundEngine.Devices.Count - 1 do
-    Items.Add(SoundEngine.Devices[I].NiceName);
-  Items.Add('Cancel');
+    Add(SoundEngine.Devices[I].NiceName);
+  Add('Cancel');
 
   SubMenuTitle := 'Change sound output device';
 end;
@@ -314,7 +299,7 @@ begin
   begin
     SoundEngine.Device := SoundEngine.Devices[CurrentItem].Name;
     { ALCDevice value changed now to new value. }
-    SoundMenu.OpenALDeviceArgument.Value := SoundEngine.Devices[CurrentItem].NiceName;
+    SoundMenu.OpenALDeviceArgument.Text.Text := SoundEngine.Devices[CurrentItem].NiceName;
     if not SoundEngine.ALActive then
       MessageOK(Window, SoundEngine.SoundInitializationReport);
   end;

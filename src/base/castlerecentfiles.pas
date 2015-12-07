@@ -34,10 +34,6 @@ type
     FURLs: TStringList;
     FMaxCount: Cardinal;
     FOnOpenRecent: TOnOpenRecent;
-
-    { Load and save recently opened files list to/from the Config file. }
-    procedure LoadFromConfig(const Config: TCastleConfig);
-    procedure SaveToConfig(const Config: TCastleConfig);
   protected
     { Create and destroy menu (or anything else that mirrors URLs contents).
       @groupBegin }
@@ -65,6 +61,12 @@ type
 
     { List of currently stored URLs. @italic(This is readonly.) }
     property URLs: TStringList read FURLs;
+
+    { Load and save recently opened files list to/from the Config file.
+      @groupBegin }
+    procedure LoadFromConfig(const Config: TCastleConfig);
+    procedure SaveToConfig(const Config: TCastleConfig);
+    { @groupEnd }
   published
     property OnOpenRecent: TOnOpenRecent read FOnOpenRecent write FOnOpenRecent;
 
@@ -74,7 +76,7 @@ type
 
 implementation
 
-uses SysUtils, CastleClassUtils, CastleConfig, CastleURIUtils;
+uses SysUtils, CastleClassUtils, CastleURIUtils;
 
 constructor TRecentFiles.Create(AOwner: TComponent);
 begin
@@ -82,19 +84,19 @@ begin
   FURLs := TStringList.Create;
   FMaxCount := DefaultMaxCount;
 
-  { one day, make this optional, to also enable many TRecentFiles instances
-    in a program not overwriting each others' state. }
-  Config.OnLoad.Add(@LoadFromConfig);
-  Config.OnSave.Add(@SaveToConfig);
+  // automatic loading/saving is more troublesome than it's worth
+  // Config.AddLoadListener(@LoadFromConfig);
+  // Config.AddSaveListener(@SaveToConfig);
 end;
 
 destructor TRecentFiles.Destroy;
 begin
-  if Config <> nil then
-  begin
-    Config.OnLoad.Remove(@LoadFromConfig);
-    Config.OnSave.Remove(@SaveToConfig);
-  end;
+  // automatic loading/saving is more troublesome than it's worth
+  // if Config <> nil then
+  // begin
+  //   Config.RemoveLoadListener(@LoadFromConfig);
+  //   Config.RemoveSaveListener(@SaveToConfig);
+  // end;
 
   FreeAndNil(FURLs);
   inherited;

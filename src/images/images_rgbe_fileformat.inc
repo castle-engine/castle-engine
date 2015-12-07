@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2014 Michalis Kamburelis.
+  Copyright 2003-2015 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,33 +13,34 @@
   ----------------------------------------------------------------------------
 }
 
-{ LoadRGBE i SaveRGBE napisane na podstawie opisu formatu RGBE w
-  /win/docs/radiance/refer/filefmts.pdf, dostepnym w Internecie
-  ze stron Radiance'a. Zaczete przy okazji zabaw w wakacje po RGK.
+{ LoadRGBE and SaveRGBE coded based on the RGBE format description inside
+  the Radiance documentation.
 
-  Format pixela RGBE jest wyjasniony przez Grega Warda w Graphic Gems II.5.
+  The RGBE encoding for a single pixel is explained by Greg Ward in
+  Graphic Gems II.5.
 
-  Proste kodowane RLE zrobione w RGBE (mowimy tu o nowej wersji
-  kodowania RGBE) (mniej wiecej na podstawie Glassnera, Graphic Gems II.8) :
-  - bajt > 128 oznacza ze nastepny_bajt nalezy powtorzyc bajt-128 razy
-  - bajt <= 128 oznacza ze teraz nastepuje ciag bajt bajtow ktory
-    nie jest spakowany, tzn. ten ciag bajtow nalezy literalnie przekopiowac
-    do docelowego miejsca.
-  - wartosc bajt = 0 jest zabroniona.
+  The specification of new RLE encoding in RGBE (more-or-less based on
+  Glassner in Graphic Gems II.8):
+  - ThisByte > 128 means to repeat NextByte by ThisByte-128 times
+  - ThisByte <= 128 means that an unpacked bytes follow.
+  - ThisByte = 0 is not allowed.
 
-  Stare kodowanie RLE:
-  - nieznormalizowany (nie ma mantysy >= 0.5 * 256) pixel = (1, 1, 1, RepeatCount)
-    mowi zeby powtorzyc ostatni pixel RepeatCount razy. Kolejne pixele tej postaci
-    podaja coraz starsze bajty liczby powtorzen, tzn. kolejne RepeatCount
-    nalezy przesuwac o 8, 16, itd. bitow w lewo.
+  The specification of old RLE encoding in RGBE:
+  - a special unnormalized pixel (does not have a mantissa >= 0.5 * 256)
+    looking like this: (1, 1, 1, RepeatCount) means to repeat
+    the last pixel RepeatCount times. Consecutive pixels of this form
+    add the more significant bytes of the repeat count,
+    IOW the next (1, 1, 1, NextRepeatCount) means to repeat "NextRepeatCount shl 8"
+    times, the next next (1, 1, 1, NextNextRepeatCount)
+    means to repeat "NextNextRepeatCount shl 16" times and so on.
 }
 
 function LoadRGBE(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 var LoadResult: TCastleImage absolute result;
 
+  { Read from Stream one scanline (of the length result.Width) to RGBERow. }
   procedure ReadRGBERow(RGBERow: PArray_Vector4Byte);
-  { odczytaj ze Stream jedna scanline (dlugosci result.Width) do RGBERow }
 
     function CompressedLineMarker(const Marker: TVector4Byte): boolean;
     begin
@@ -241,11 +242,4 @@ begin
       end;
     end;
   end;
-end;
-
-{ simple helper funcs ---------------------------------------- }
-
-procedure SaveRGBEFromByteRGB(const Img: TRGBImage; Stream: TStream);
-begin
-  SaveRGBE(Img, Stream);
 end;

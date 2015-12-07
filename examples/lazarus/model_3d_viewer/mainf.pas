@@ -108,7 +108,7 @@ implementation
 uses LCLType, LCLIntf, CastleVectors, CastleBoxes, X3DNodes, CastleRenderer,
   CastleClassUtils, CastleUtils, X3DLoad, CastleURIUtils,
   CastleGLUtils, CastleSceneCore, CastleFilesUtils, CastleParameters,
-  OpenGLInformation, CastleLCLUtils, ConsoleF, CastleImages;
+  OpenGLInformation, CastleLCLUtils, ConsoleF, CastleImages, CastleSoundEngine;
 
 procedure TMain.OpenScene(const URL: string);
 begin
@@ -293,7 +293,9 @@ procedure TMain.FormCreate(Sender: TObject);
 begin
   { load config settings }
   OnGetApplicationName := @MyGetApplicationName;
-  Config.Load;
+  UserConfig.Load;
+  SoundEngine.LoadFromConfig(UserConfig);
+  RecentFiles.LoadFromConfig(UserConfig);
 
   RecentFiles.NextMenuItem := MenuSep1;
 
@@ -328,7 +330,9 @@ end;
 procedure TMain.FormDestroy(Sender: TObject);
 begin
   { save config settings }
-  Config.Save;
+  SoundEngine.SaveToConfig(UserConfig);
+  RecentFiles.SaveToConfig(UserConfig);
+  UserConfig.Save;
 end;
 
 procedure TMain.RecentFilesOpenRecent(const URL: string);
@@ -421,4 +425,3 @@ end;
 initialization
   {$I mainf.lrs}
 end.
-

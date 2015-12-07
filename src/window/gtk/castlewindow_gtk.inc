@@ -145,8 +145,6 @@ private
   { used in ProcessUpdates }
   LastDoTimerTime: TMilisecTime;
 
-  QuitPosted: boolean;
-
   { Find in OpenWindows window with WindowGtk = given seekWindowGtk.
     Return nil if no such window is found. }
   function TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowCustom;
@@ -364,6 +362,7 @@ begin
 end;
 
 { callbacks for gtk -----------------------------------------------------
+
   All gtk callback names are named signal_xxx where xxx is the gtk signal name.
   So all events have names like signal_yyy_event.
 
@@ -371,19 +370,61 @@ end;
   have 1st parameter AGLAreaGtk: PGtkAreaGtk.
   Similarly, callbackas that expect as 1st parameter WindowGtk of some
   OpenWindows window have 1st parameter AWindowGtk: PGtkWindow.
+
+  Note that we capture and handle exceptions here, we don't depend on
+  Application.DoRun to catch exceptions from our ProcessMessage.
+  This avoids problems with GTK: we *cannot* let any exception go out
+  from the GTK callback, it causes further SEGFAULTs,
+  probably because GTK is simply not prepared for a callback to raise exception.
+  A simple test is to remove these try..except clauses, and instead do
+
+    try
+      gtk_main_iteration_do(WaitForMessage);
+    except
+      on E: TObject do
+        HandleException(E);
+    end;
+
+  instead of direct
+
+    gtk_main_iteration_do(WaitForMessage);
+
+  in ProcessMessage. The result? At the end of HandleException, you get
+  SEGFAULT at the end of TCastleWindowCustom.MessageOK...
+  (debugger doesn't show sensible stuff, it's like GtkDialogRun is Ok,
+  and then any instruction just crashes.)
+  I found no other explanation other than GTK memory got corrupted.
+  Catching exception inside the callback, and handling it here, works OK.
 }
+
+{$define SIGNAL_GENERAL_BEGIN:=
+try}
+{$define SIGNAL_GENERAL_END:=
+except
+  on E: TObject do
+    // sender is just Application, like TCustomApplication.Run does
+    Application.HandleException(Application);
+end}
 
 {$define SIGNAL_GLAREA_BEGIN:=
 begin
- with Application.FindGLAreaGtk(AGLAreaGtk) do begin}
+  with Application.FindGLAreaGtk(AGLAreaGtk) do
+  begin
+    SIGNAL_GENERAL_BEGIN}
 {$define SIGNAL_GLAREA_END:=
- end; end}
+    SIGNAL_GENERAL_END;
+  end;
+end}
 
 {$define SIGNAL_WINDOW_BEGIN:=
 begin
- with Application.FindWindowGtk(AWindowGtk) do begin}
+  with Application.FindWindowGtk(AWindowGtk) do
+  begin
+    SIGNAL_GENERAL_BEGIN}
 {$define SIGNAL_WINDOW_END:=
- end; end}
+    SIGNAL_GENERAL_END;
+  end;
+end}
 
 function signal_expose_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventExpose;
   data: gpointer): gboolean; cdecl;
@@ -590,54 +631,57 @@ SIGNAL_GLAREA_END;
 
 procedure signal_menu_item_activate(AMenuItemGtk: PGtkMenuItem;
   data: gpointer); cdecl;
-var MenuItem: TMenuItem;
-    Window: TCastleWindowCustom;
+var
+  MenuItem: TMenuItem;
+  Window: TCastleWindowCustom;
 begin
- MenuItem := MenuItemFromSmallId( PtrInt(Data) );
- Window := TCastleWindowCustom( gtk_object_get_user_data(GTK_OBJECT(AMenuItemGtk)) );
+  SIGNAL_GENERAL_BEGIN
+    MenuItem := MenuItemFromSmallId( PtrInt(Data) );
+    Window := TCastleWindowCustom( gtk_object_get_user_data(GTK_OBJECT(AMenuItemGtk)) );
 
- if MenuItem is TMenuItemChecked then
- begin
-  { GTK checked menu items do always something like our AutoCheckedToggle.
-    This assert confirms that: }
+    if MenuItem is TMenuItemChecked then
+    begin
+      { GTK checked menu items do always something like our AutoCheckedToggle.
+        This assert confirms that: }
 
-  if not (MenuItem is TMenuItemRadio) then
-    Assert( gtk_check_menu_item_get_active(PGtkCheckMenuItem(AMenuItemGtk)) <>
+      if not (MenuItem is TMenuItemRadio) then
+        Assert( gtk_check_menu_item_get_active(PGtkCheckMenuItem(AMenuItemGtk)) <>
+                TMenuItemChecked(MenuItem).Checked);
+
+      { I don't want this (because, first of all, not always my
+        TMenuItemChecked will have AutoCheckedToggle = true.
+        Second, when not MenuActive, I do not want such behaviour, even for
+        AutoCheckedToggle = true.)
+
+        So below I'm simply returning such GTK menu item to it's previous state.
+
+        Note that we CAN'T do here simple
+        1. gtk_check_menu_item_set_active(PGtkCheckMenuItem(AMenuItemGtk),
+            not (gtk_check_menu_item_get_active(AMenuItemGtk)));
+        or (equivalent)
+        2. gtk_check_menu_item_set_active(PGtkCheckMenuItem(AMenuItemGtk),
             TMenuItemChecked(MenuItem).Checked);
+        because gtk_check_menu_item_set_active
+        would call THIS SIGNAL ONCE AGAIN when we change active state !
+        This means that inside gtk_check_menu_item_set_active this
+        procedure would be called once again (if we were using 1.,
+        this would already be a bug, because this would lead to recursive
+        call. If we were using 2., the bug will be
+        because we would call Window.DoMenuClick(MenuItem) TWICE.
 
-  { I don't want this (because, first of all, not always my
-    TMenuItemChecked will have AutoCheckedToggle = true.
-    Second, when not MenuActive, I do not want such behaviour, even for
-    AutoCheckedToggle = true.)
+        So I must temporary block this signal before doing
+        gtk_check_menu_item_set_active. }
+      MenuItemBlock(AMenuItemGtk, MenuItem);
+      try
+        gtk_check_menu_item_set_active(PGtkCheckMenuItem(AMenuItemGtk),
+          TMenuItemChecked(MenuItem).Checked);
+      finally
+        MenuItemUnblock(AMenuItemGtk, MenuItem);
+      end;
+    end;
 
-    So below I'm simply returning such GTK menu item to it's previous state.
-
-    Note that we CAN'T do here simple
-    1. gtk_check_menu_item_set_active(PGtkCheckMenuItem(AMenuItemGtk),
-        not (gtk_check_menu_item_get_active(AMenuItemGtk)));
-    or (equivalent)
-    2. gtk_check_menu_item_set_active(PGtkCheckMenuItem(AMenuItemGtk),
-        TMenuItemChecked(MenuItem).Checked);
-    because gtk_check_menu_item_set_active
-    would call THIS SIGNAL ONCE AGAIN when we change active state !
-    This means that inside gtk_check_menu_item_set_active this
-    procedure would be called once again (if we were using 1.,
-    this would already be a bug, because this would lead to recursive
-    call. If we were using 2., the bug will be
-    because we would call Window.DoMenuClick(MenuItem) TWICE.
-
-    So I must temporary block this signal before doing
-    gtk_check_menu_item_set_active. }
-  MenuItemBlock(AMenuItemGtk, MenuItem);
-  try
-   gtk_check_menu_item_set_active(PGtkCheckMenuItem(AMenuItemGtk),
-     TMenuItemChecked(MenuItem).Checked);
-  finally
-   MenuItemUnblock(AMenuItemGtk, MenuItem);
-  end;
- end;
-
- Window.DoMenuClick(MenuItem);
+    Window.DoMenuClick(MenuItem);
+  SIGNAL_GENERAL_END;
 end;
 
 function signal_window_focus_out_event(AWindowGtk: PGtkWindow;
@@ -716,7 +760,7 @@ begin
         { don't do anything, Application.Cursors[mcDefault] should be nil,
           gdk_window_set_cursor will understand nil as "use parent"
           and that's exactly what we want for mcDefault. };
-      mcNone: Application.Cursors[Cursor] := CreateNoneCursor;
+      mcNone, mcForceNone: Application.Cursors[Cursor] := CreateNoneCursor;
       mcCustom: { TODO: temporary, behave like mcDefault };
       else
         Application.Cursors[Cursor] := gdk_cursor_new_for_display(
@@ -1316,7 +1360,6 @@ var
   OkButtonText: PChar;
   Dialog: PGtkFileChooserDialog;
   CFileName: PChar;
-  FoundFile: TFileInfo;
   ExpandedFileName, Dir: string;
 begin
   if OpenDialog then
@@ -1375,9 +1418,9 @@ begin
     ExpandedFileName := ExpandFileName(FileName);
 
     { Test in one go whether file exists, and is a regular file or dir. }
-    if FindFirstFile(ExpandedFileName, FoundFile) then
+    if FileExists(ExpandedFileName) then
     begin
-      if FoundFile.Directory then
+      if DirectoryExists(ExpandedFileName) then
         gtk_file_chooser_set_current_folder(Dialog, PChar(ExpandedFileName)) else
       begin
         if HasDefaultFilter and not GtkVersionAtLeast(2, 24, 4) then
@@ -1539,13 +1582,13 @@ procedure TCastleApplication.ProcessUpdates;
 
   { Call Update and timer events of Application and all windows.
 
-    Update events are handled by DoSelfUpdate and OpenWindows.DoUpdate.
+    Update events are handled by DoApplicationUpdate and OpenWindows.DoUpdate.
 
     Timer events are handled by MaybeDoTimer, that in turn will call
-    (when needed) DoSelfTimer and OpenWindows.DoTimer. }
+    (when needed) DoApplicationTimer and OpenWindows.DoTimer. }
   procedure WindowsUpdateAndTimer;
   begin
-    DoSelfUpdate;
+    DoApplicationUpdate;
     FOpenWindows.DoUpdate;
 
     { For simplicity, we're implementing here our own timer mechanism,
@@ -1595,8 +1638,7 @@ end;
 procedure TCastleApplication.Run;
 begin
   if OpenWindowsCount = 0 then Exit;
-
-  while ProcessMessage(true, true) do ;
+  inherited Run; // calls DoRun, surrounded by HandleException, in a loop
 
   { Do not replace this with gtk_main().
     We need to use our ProcessMessage to call our ProcessUpdates. }
@@ -1612,7 +1654,7 @@ begin
 
     Summing it up, just call ProcessMessage(true) while gtk_events_pending. }
 
-  Result := not QuitPosted;
+  Result := not Terminated;
 
   while Result and (gtk_events_pending() <> 0) do
   begin
@@ -1630,7 +1672,7 @@ begin
       since we call ProcessMessage only when gtk_events_pending() <> 0,
       which then avoids ProcessUpdates.) }
     ProcessUpdates;
-    Result := not QuitPosted;
+    Result := not Terminated;
   end;
 end;
 
@@ -1660,11 +1702,11 @@ begin
      So a program that doesn't call gtk_main at all has
      main_loops = nil always.
 
-     This means that I should trace the QuitPosted value myself,
+     This means that I should trace the Terminated value myself,
      just like I do for X11 or WinAPI CastleWindow implementations.
      And the result of gtk_main_iteration_do call should be ignored. *)
 
-  if QuitPosted then Exit(false);
+  if Terminated then Exit(false);
 
   { Only allow yourself a ProcessUpdates call when no events are pending.
     This is done regardless of WaitForMessage mechanism.
@@ -1676,11 +1718,11 @@ begin
   if gtk_events_pending() = 0 then
   begin
     ProcessUpdates;
-    if QuitPosted then Exit(false);
+    if Terminated then Exit(false);
   end;
 
-  { Once we had below condition "and (not QuitPosted)",
-    but it's pointless, we know QuitPosted is false now. }
+  { Once we had below condition "and (not Terminated)",
+    but it's pointless, we know Terminated is false now. }
   WaitForMessage := WaitForMessage and Application.AllowSuspendForInput;
 
   { we could probably not call gtk_main_iteration_do when WasAnyMessage = false,
@@ -1689,10 +1731,10 @@ begin
   WasAnyMessage := (gtk_events_pending() <> 0) or WaitForMessage;
 
   gtk_main_iteration_do(WaitForMessage);
-  Result := not QuitPosted;
+  Result := not Terminated;
 
   if (not WasAnyMessage) and
-     (not QuitPosted) and
+     (not Terminated) and
      (not WaitForMessage) and
      WaitToLimitFPS then
     DoLimitFPS;
@@ -1702,7 +1744,7 @@ procedure TCastleApplication.QuitWhenNoOpenWindows;
 begin
  if gtk_main_level() > 0 then gtk_main_quit();
 
- { QuitPosted is needed, gtk_main_quit is not enough --- see
+ { Tracking "Terminated" is needed, gtk_main_quit is not enough --- see
    comments in ProcessMessage implementation.
 
    Actually, we call gtk_main_quit
@@ -1711,7 +1753,7 @@ begin
    which is entirely possible), then calling gtk_main_quit
    would not be needed at all. }
 
- QuitPosted := true;
+ Terminate; // set Terminated := true
 end;
 
 procedure TCastleApplication.CreateBackend;
@@ -1747,7 +1789,7 @@ begin
 
   gtk_gl_init(@argc, @argv);
 
-  QuitPosted := false;
+  inherited Initialize; // set Terminated := false
 end;
 
 procedure TCastleApplication.DestroyBackend;

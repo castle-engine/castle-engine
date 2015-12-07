@@ -310,11 +310,21 @@ var
   SavedMode: TGLMode;
   Background: TCastleImage;
   Button: TCastleButton;
+  ErrorBackground: TErrorBackground;
 begin
   if Log then
     WritelnLogMultiline('Message', TextList.Text);
 
-  Background := Window.SaveScreen;
+  if Theme.MessageErrorBackground then
+  begin
+    Background := nil;
+    ErrorBackground := TErrorBackground.Create(nil);
+  end else
+  begin
+    Background := Window.SaveScreen;
+    ErrorBackground := nil;
+  end;
+
   { Among other things, using @NoClose below allows users to safely use
     MessageXxx inside own OnCloseQuery, like
       if MessageYesNo('Are you sure ?') then Window.Close; }
@@ -326,6 +336,8 @@ begin
     for Button in AButtons do
       Window.Controls.InsertFront(Button);
     Window.Controls.InsertBack(Dialog);
+    if Theme.MessageErrorBackground then
+      Window.Controls.InsertBack(ErrorBackground);
     Window.Invalidate;
     { WaitForMessage = false is necessary, otherwise SecondsPassed
       for update would be large. }
@@ -333,6 +345,7 @@ begin
 
   finally
     FreeAndNil(SavedMode);
+    FreeAndNil(ErrorBackground);
     AInputText := Dialog.InputText;
   end;
 end;

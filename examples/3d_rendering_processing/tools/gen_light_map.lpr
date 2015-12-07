@@ -28,7 +28,7 @@ uses SysUtils, CastleUtils, CastleVectors, X3DNodes, CastleSceneCore,
   LightMap, CastleImages, CastleProgress, CastleProgressConsole, CastleTimeUtils,
   CastleParameters;
 
-function ReadParametersVectorTo1st(i: Integer): TVector3Single;
+function ReadParametersVectorVar(i: Integer): TVector3Single;
 begin
  result[0] := StrToFloat(Parameters[i]);
  result[1] := StrToFloat(Parameters[i+1]);
@@ -54,8 +54,8 @@ begin
  OutImageURL := Parameters[2];
  ImageSizeX := StrToInt(Parameters[3]);
  ImageSizeY := StrToInt(Parameters[4]);
- for i := 0 to 3 do Quad[i] := ReadParametersVectorTo1st(5 + i*3);
- RenderDir := ReadParametersVectorTo1st(5 + 4*3);
+ for i := 0 to 3 do Quad[i] := ReadParametersVectorVar(5 + i*3);
+ RenderDir := ReadParametersVectorVar(5 + 4*3);
 
  Image := nil;
 
@@ -82,7 +82,7 @@ begin
 
   { render to Image }
   ProcessTimerBegin;
-  QuadLightMapTo1st(Image, Scene.GlobalLights, Scene.OctreeVisibleTriangles, Quad,
+  QuadLightMapVar(Image, Scene.GlobalLights, Scene.OctreeVisibleTriangles, Quad,
     RenderDir, 'Rendering');
   Writeln(Format('Rendering done in %f seconds.', [ProcessTimerEnd]));
 

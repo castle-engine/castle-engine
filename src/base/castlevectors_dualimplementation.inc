@@ -40,44 +40,44 @@ begin
   Result[3] := V1[3] VectorOp V2[3];
 end;
 
-procedure VectorOpTo1stFuncName(var v1: TVector2; const v2: TVector2);
+procedure VectorOpVarFuncName(var v1: TVector2; const v2: TVector2);
 begin
-  V1[0] VectorOpTo1st V2[0];
-  V1[1] VectorOpTo1st V2[1];
+  V1[0] VectorOpVar V2[0];
+  V1[1] VectorOpVar V2[1];
 end;
 
-procedure VectorOpTo1stFuncName(var V1: TVector3; const V2: TVector3);
+procedure VectorOpVarFuncName(var V1: TVector3; const V2: TVector3);
 begin
-  V1[0] VectorOpTo1st V2[0];
-  V1[1] VectorOpTo1st V2[1];
-  V1[2] VectorOpTo1st V2[2];
+  V1[0] VectorOpVar V2[0];
+  V1[1] VectorOpVar V2[1];
+  V1[2] VectorOpVar V2[2];
 end;
 
-procedure VectorOpTo1stFuncName(var v1: TVector4; const v2: TVector4);
+procedure VectorOpVarFuncName(var v1: TVector4; const v2: TVector4);
 begin
-  V1[0] VectorOpTo1st V2[0];
-  V1[1] VectorOpTo1st V2[1];
-  V1[2] VectorOpTo1st V2[2];
-  V1[3] VectorOpTo1st V2[3];
+  V1[0] VectorOpVar V2[0];
+  V1[1] VectorOpVar V2[1];
+  V1[2] VectorOpVar V2[2];
+  V1[3] VectorOpVar V2[3];
 end;
 }
 
   {$define VectorOpFuncName := VectorSubtract}
-  {$define VectorOpTo1stFuncName := VectorSubtractTo1st}
+  {$define VectorOpVarFuncName := VectorSubtractVar}
   {$define VectorOp := -}
-  {$define VectorOpTo1st := -=}
+  {$define VectorOpVar := -=}
   VECTOR_OP_FUNCS
 
   {$define VectorOpFuncName := VectorAdd}
-  {$define VectorOpTo1stFuncName := VectorAddTo1st}
+  {$define VectorOpVarFuncName := VectorAddVar}
   {$define VectorOp:= +}
-  {$define VectorOpTo1st:= +=}
+  {$define VectorOpVar:= +=}
   VECTOR_OP_FUNCS
 
 {$undef VectorOpFuncName}
-{$undef VectorOpTo1stFuncName}
+{$undef VectorOpVarFuncName}
 {$undef VectorOp}
-{$undef VectorOpTo1st}
+{$undef VectorOpVar}
 {$undef VECTOR_OP_FUNCS}
 
 function VectorScale(const v1: TVector2; const Scalar: TScalar): TVector2;
@@ -101,20 +101,20 @@ begin
   Result[3] := V1[3] * Scalar;
 end;
 
-procedure VectorScaleTo1st(var v1: TVector2; const Scalar: TScalar);
+procedure VectorScaleVar(var v1: TVector2; const Scalar: TScalar);
 begin
   V1[0] *= Scalar;
   V1[1] *= Scalar;
 end;
 
-procedure VectorScaleTo1st(var v1: TVector3; const Scalar: TScalar);
+procedure VectorScaleVar(var v1: TVector3; const Scalar: TScalar);
 begin
   V1[0] *= Scalar;
   V1[1] *= Scalar;
   V1[2] *= Scalar;
 end;
 
-procedure VectorScaleTo1st(var v1: TVector4; const Scalar: TScalar);
+procedure VectorScaleVar(var v1: TVector4; const Scalar: TScalar);
 begin
   V1[0] *= Scalar;
   V1[1] *= Scalar;
@@ -143,20 +143,20 @@ begin
   Result[3] := -v[3];
 end;
 
-procedure VectorNegateTo1st(var v: TVector2);
+procedure VectorNegateVar(var v: TVector2);
 begin
   v[0] := -v[0];
   v[1] := -v[1];
 end;
 
-procedure VectorNegateTo1st(var v: TVector3);
+procedure VectorNegateVar(var v: TVector3);
 begin
   v[0] := -v[0];
   v[1] := -v[1];
   v[2] := -v[2];
 end;
 
-procedure VectorNegateTo1st(var v: TVector4);
+procedure VectorNegateVar(var v: TVector4);
 begin
   v[0] := -v[0];
   v[1] := -v[1];
@@ -219,7 +219,7 @@ begin
   Result[2] := V1[2] * V2[2];
 end;
 
-procedure VectorMultiplyComponentsTo1st(var V1: TVector3; const V2: TVector3);
+procedure VectorMultiplyComponentsVar(var V1: TVector3; const V2: TVector3);
 begin
   V1[0] *= V2[0];
   V1[1] *= V2[1];
@@ -288,7 +288,7 @@ begin
   Result.Data := V;
 end;
 
-procedure NormalizeTo1st(var V: TVector2);
+procedure NormalizeVar(var V: TVector2);
 var
   len: TScalar;
 begin
@@ -298,7 +298,7 @@ begin
   V[1] /= len;
 end;
 
-procedure NormalizeTo1st(var V: TVector3);
+procedure NormalizeVar(var V: TVector3);
 var
   len: TScalar;
 begin
@@ -309,7 +309,7 @@ begin
   V[2] /= len;
 end;
 
-procedure NormalizePlaneTo1st(var v: TVector4);
+procedure NormalizePlaneVar(var v: TVector4);
 var
   len: TScalar;
 begin
@@ -370,9 +370,9 @@ begin
   result := VectorScale(v, VecLen/VectorLen(v));
 end;
 
-procedure VectorAdjustToLengthTo1st(var v: TVector3; VecLen: TScalar);
+procedure VectorAdjustToLengthVar(var v: TVector3; VecLen: TScalar);
 begin
-  VectorScaleTo1st(v, VecLen/VectorLen(v));
+  VectorScaleVar(v, VecLen/VectorLen(v));
 end;
 
 function VectorLen(const v: TVector2): TScalar;
@@ -412,7 +412,7 @@ begin
   Result[2] := Power(v[2], Exp);
 end;
 
-procedure VectorPowerComponentsTo1st(var v: TVector3; const Exp: TScalar);
+procedure VectorPowerComponentsVar(var v: TVector3; const Exp: TScalar);
 begin
   v[0] := Power(v[0], Exp);
   v[1] := Power(v[1], Exp);
@@ -489,24 +489,24 @@ end;
 function Normalized(const v: TVector3): TVector3;
 begin
   Result := v;
-  NormalizeTo1st(result);
+  NormalizeVar(result);
 end;
 
 function Normalized(const v: TVector2): TVector2;
 begin
   Result := v;
-  NormalizeTo1st(result);
+  NormalizeVar(result);
 end;
 
 function Vector_Get_Normalized(const V: TVector3_): TVector3_;
 begin
   Result.Data := V.Data;
-  NormalizeTo1st(Result.Data);
+  NormalizeVar(Result.Data);
 end;
 
 procedure Vector_Normalize(var V: TVector3_);
 begin
-  NormalizeTo1st(V.Data);
+  NormalizeVar(V.Data);
 end;
 
 function RotatePointAroundAxisDeg(Angle: TScalar; const Point: TVector3;
@@ -785,7 +785,7 @@ begin
                Plane[2] * Move[2];
 end;
 
-procedure PlaneMoveTo1st(var Plane: TVector4; const Move: TVector3);
+procedure PlaneMoveVar(var Plane: TVector4; const Move: TVector3);
 begin
   Plane[3] -= Plane[0] * Move[0] +
               Plane[1] * Move[1] +
@@ -1290,8 +1290,8 @@ begin
     // Intersection := VectorAdd(RayOrigin, VectorScale(RayDirection, MaybeT));
     // powyzsza instrukcja zapisana ponizej w 3 linijkach dziala nieco szybciej:
     Intersection := RayDirection;
-    VectorScaleTo1st(Intersection, MaybeT);
-    VectorAddTo1st(Intersection, RayOrigin);
+    VectorScaleVar(Intersection, MaybeT);
+    VectorAddVar(Intersection, RayOrigin);
 
     t := MaybeT;
   end;
@@ -1320,8 +1320,8 @@ begin
     // Intersection := VectorAdd(Segment0, VectorScale(SegmentVector, MaybeT));
     // powyzsza instrukcja zapisana ponizej w 3 linijkach dziala nieco szybciej:
     Intersection := SegmentVector;
-    VectorScaleTo1st(Intersection, MaybeT);
-    VectorAddTo1st(Intersection, Segment0);
+    VectorScaleVar(Intersection, MaybeT);
+    VectorAddVar(Intersection, Segment0);
 
     t := MaybeT;
   end;
@@ -1623,7 +1623,7 @@ begin
       result[i, j] := m1[i, j] + m2[i, j];
 end;
 
-procedure MatrixAddTo1st(var m1: TMatrix3; const m2: TMatrix3);
+procedure MatrixAddVar(var m1: TMatrix3; const m2: TMatrix3);
 var
   i, j: integer;
 begin
@@ -1641,7 +1641,7 @@ begin
       result[i, j] := m1[i, j] + m2[i, j];
 end;
 
-procedure MatrixAddTo1st(var m1: TMatrix4; const m2: TMatrix4);
+procedure MatrixAddVar(var m1: TMatrix4; const m2: TMatrix4);
 var
   i, j: integer;
 begin
@@ -1659,7 +1659,7 @@ begin
       result[i, j] := m1[i, j] - m2[i, j];
 end;
 
-procedure MatrixSubtractTo1st(var m1: TMatrix3; const m2: TMatrix3);
+procedure MatrixSubtractVar(var m1: TMatrix3; const m2: TMatrix3);
 var
   i, j: integer;
 begin
@@ -1677,7 +1677,7 @@ begin
       result[i, j] := m1[i, j] - m2[i, j];
 end;
 
-procedure MatrixSubtractTo1st(var m1: TMatrix4; const m2: TMatrix4);
+procedure MatrixSubtractVar(var m1: TMatrix4; const m2: TMatrix4);
 var
   i, j: integer;
 begin
@@ -2250,7 +2250,7 @@ begin
   Result[3] := M[3][Row];
 end;
 
-procedure MatrixTransposeTo1st(var M: TMatrix3);
+procedure MatrixTransposeVar(var M: TMatrix3);
 var
   Tmp: TScalar;
 begin

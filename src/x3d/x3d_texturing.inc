@@ -999,7 +999,7 @@ begin
     ChildTex := FdTexture[I];
     if (ChildTex <> nil) and
        (ChildTex is TAbstractTextureNode) then
-      AlphaMaxTo1st(Result, TAbstractTextureNode(ChildTex).AlphaChannel);
+      AlphaMaxVar(Result, TAbstractTextureNode(ChildTex).AlphaChannel);
   end;
 end;
 

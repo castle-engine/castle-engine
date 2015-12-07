@@ -109,8 +109,8 @@ type
     FScenes: TCastleSceneList;
 
     FBlending: boolean;
-    FBlendingSourceFactor: TGLenum;
-    FBlendingDestinationFactor: TGLenum;
+    FBlendingSourceFactor: TBlendingSourceFactor;
+    FBlendingDestinationFactor: TBlendingDestinationFactor;
     FBlendingSort: TBlendingSort;
     FControlBlending: boolean;
     FWireframeColor: TVector3Single;
@@ -126,8 +126,8 @@ type
     procedure ReleaseCachedResources; override;
 
     procedure SetBlending(const Value: boolean); virtual;
-    procedure SetBlendingSourceFactor(const Value: TGLenum); virtual;
-    procedure SetBlendingDestinationFactor(const Value: TGLenum); virtual;
+    procedure SetBlendingSourceFactor(const Value: TBlendingSourceFactor); virtual;
+    procedure SetBlendingDestinationFactor(const Value: TBlendingDestinationFactor); virtual;
     procedure SetBlendingSort(const Value: TBlendingSort); virtual;
     procedure SetControlBlending(const Value: boolean); virtual;
     procedure SetUseOcclusionQuery(const Value: boolean); virtual;
@@ -136,12 +136,12 @@ type
   public
     const
       { }
-      DefaultBlendingSourceFactor = GL_SRC_ALPHA;
+      DefaultBlendingSourceFactor = bsSrcAlpha;
 
       { Default value of Attributes.BlendingDestinationFactor.
         See TSceneRenderingAttributes.BlendingDestinationFactor.
 
-        Using ONE_MINUS_SRC_ALPHA is the standard value for 3D graphic stuff,
+        Using bdOneMinusSrcAlpha is the standard value for 3D graphic stuff,
         often producing best results. However, it causes troubles when
         multiple transparent shapes are visible on the same screen pixel.
         For closed convex 3D objects, using backface culling
@@ -150,16 +150,16 @@ type
         see TSceneRenderingAttributes.BlendingSort.
         Sometimes, no solution works for all camera angles.
 
-        Another disadvantage of ONE_MINUS_SRC_ALPHA may be that
+        Another disadvantage of bdOneMinusSrcAlpha may be that
         the color of opaque shapes disappears too quickly from
-        resulting image (since GL_ONE_MINUS_SRC_ALPHA scales it down).
+        resulting image (since bdOneMinusSrcAlpha scales it down).
         So the image may be darker than you like.
 
-        You can instead consider using GL_ONE, that doesn't require sorting
+        You can instead consider using bdOne, that doesn't require sorting
         and never has problems with multiple transparent shapes.
         On the other hand, it only adds to the color,
         often making too bright results. }
-      DefaultBlendingDestinationFactor = GL_ONE_MINUS_SRC_ALPHA;
+      DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
 
       { }
       DefaultBlendingSort = bsNone;
@@ -192,24 +192,20 @@ type
       read FBlending write SetBlending default true;
 
     { Blending function parameters, used when @link(Blending).
-      See OpenGL documentation of glBlendFunc for possible values here.
-
-      See also DefaultBlendingDestinationFactor for comments about
-      GL_ONE and GL_ONE_MINUS_SRC_ALPHA.
 
       Note that this is only a default, VRML/X3D model can override this
       for specific shapes by using our extension BlendMode node.
       See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_blending].
 
-      Note that BlendingSort may be overridden is a specific 3D models
+      Note that BlendingSort may be overridden in a specific 3D models
       by using NavigationInfo node with blendingSort field,
       see TNavigationInfoNode.BlendingSort.
 
       @groupBegin }
-    property BlendingSourceFactor: TGLenum
+    property BlendingSourceFactor: TBlendingSourceFactor
       read FBlendingSourceFactor write SetBlendingSourceFactor
       default DefaultBlendingSourceFactor;
-    property BlendingDestinationFactor: TGLenum
+    property BlendingDestinationFactor: TBlendingDestinationFactor
       read FBlendingDestinationFactor write SetBlendingDestinationFactor
       default DefaultBlendingDestinationFactor;
     property BlendingSort: TBlendingSort
@@ -1756,7 +1752,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := Addr(Triangles.L[EdgePtr^.Triangles[0]]);
+    TrianglePtr := Triangles.Ptr(EdgePtr^.Triangles[0]);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
@@ -1788,7 +1784,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := Addr(Triangles.L[EdgePtr^.TriangleIndex]);
+    TrianglePtr := Triangles.Ptr(EdgePtr^.TriangleIndex);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
@@ -2196,7 +2192,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := Addr(Triangles.L[EdgePtr^.Triangles[0]]);
+    TrianglePtr := Triangles.Ptr(EdgePtr^.Triangles[0]);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
@@ -2276,7 +2272,7 @@ var
     EdgeV0, EdgeV1: PVector3Single;
     TrianglePtr: PTriangle3Single;
   begin
-    TrianglePtr := Addr(Triangles.L[EdgePtr^.TriangleIndex]);
+    TrianglePtr := Triangles.Ptr(EdgePtr^.TriangleIndex);
     EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + 0) mod 3];
     EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
 
@@ -2727,13 +2723,13 @@ begin
 end;
 
 procedure TSceneRenderingAttributes.SetBlendingSourceFactor(
-  const Value: TGLenum);
+  const Value: TBlendingSourceFactor);
 begin
   FBlendingSourceFactor := Value;
 end;
 
 procedure TSceneRenderingAttributes.SetBlendingDestinationFactor(
-  const Value: TGLenum);
+  const Value: TBlendingDestinationFactor);
 begin
   FBlendingDestinationFactor := Value;
 end;

@@ -73,7 +73,7 @@ type
     FVolume: Single;
     ALDevice: PALCdevice;
     ALContext: PALCcontext;
-    FEnable: boolean;
+    FEnabled: boolean;
     FALInitialized: boolean;
     FDefaultRolloffFactor: Single;
     FDefaultReferenceDistance: Single;
@@ -99,10 +99,7 @@ type
       Use only when ALActive. }
     procedure UpdateDistanceModel;
     procedure SetDevice(const Value: string);
-    procedure SetEnable(const Value: boolean);
-  protected
-    procedure LoadFromConfig(const Config: TCastleConfig); override;
-    procedure SaveToConfig(const Config: TCastleConfig); override;
+    procedure SetEnabled(const Value: boolean);
   public
     const
       DefaultVolume = 1.0;
@@ -110,9 +107,14 @@ type
       DefaultDefaultReferenceDistance = 1.0;
       DefaultDefaultMaxDistance = MaxSingle;
       DefaultDistanceModel = dmLinearDistanceClamped;
+      DefaultDevice = '';
+      DefaultEnabled = true;
 
     constructor Create;
     destructor Destroy; override;
+
+    procedure LoadFromConfig(const Config: TCastleConfig); override;
+    procedure SaveToConfig(const Config: TCastleConfig); override;
 
     { Initialize OpenAL library, and output device and context.
       Sets ALInitialized, ALActive, SoundInitializationReport, EFXSupported,
@@ -204,6 +206,7 @@ type
         In simple cases you can just ignore the result of this method.
         In advanced cases, you can use it to observe and update the sound
         later.) }
+    function PlaySound(const Buffer: TSoundBuffer): TSound;
     function PlaySound(const Buffer: TSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
@@ -285,7 +288,9 @@ type
       If the OpenAL context is already initialized when setting this,
       we will eventually close it. (More precisely, we will
       do ALContextClose and then ALContextOpen again. This behaves correctly.) }
-    property Enable: boolean read FEnable write SetEnable default true;
+    property Enabled: boolean read FEnabled write SetEnabled default DefaultEnabled;
+
+    property Enable : boolean read FEnabled write SetEnabled default DefaultEnabled; deprecated 'Use Enabled';
 
     { How the sound is attenuated with the distance.
       These are used only for spatialized sounds created with PlaySound.
@@ -469,12 +474,12 @@ type
       and does something only if we have OpenAL context and some sounds,
       so it's actually safe to call it always). }
     procedure LoadSoundsBuffers;
-  protected
-    procedure LoadFromConfig(const Config: TCastleConfig); override;
-    procedure SaveToConfig(const Config: TCastleConfig); override;
   public
     constructor Create;
     destructor Destroy; override;
+
+    procedure LoadFromConfig(const Config: TCastleConfig); override;
+    procedure SaveToConfig(const Config: TCastleConfig); override;
 
     { In addition to initializing OpenAL context, this also loads sound files. }
     procedure ALContextOpen; override;
@@ -733,28 +738,31 @@ begin
   FDefaultReferenceDistance := DefaultDefaultReferenceDistance;
   FDefaultMaxDistance := DefaultDefaultMaxDistance;
   FDistanceModel := DefaultDistanceModel;
-  FEnable := true;
+  FEnabled := DefaultEnabled;
+  FDevice := DefaultDevice;
   FEnableSaveToConfig := true;
   DeviceSaveToConfig := true;
   BuffersCache := TSoundBuffersCacheList.Create;
   FOnOpenClose := TNotifyEventList.Create;
 
-  Config.OnLoad.Add(@LoadFromConfig);
-  Config.OnSave.Add(@SaveToConfig);
-
   { Default OpenAL listener attributes }
   ListenerPosition := ZeroVector3Single;
   ListenerOrientation[0] := Vector3Single(0, 0, -1);
   ListenerOrientation[1] := Vector3Single(0, 1, 0);
+
+  // automatic loading/saving is more troublesome than it's worth
+  // Config.AddLoadListener(@LoadFromConfig);
+  // Config.AddSaveListener(@SaveToConfig);
 end;
 
 destructor TSoundEngine.Destroy;
 begin
-  if Config <> nil then
-  begin
-    Config.OnLoad.Remove(@LoadFromConfig);
-    Config.OnSave.Remove(@SaveToConfig);
-  end;
+  // automatic loading/saving is more troublesome than it's worth
+  // if Config <> nil then
+  // begin
+  //   Config.RemoveLoadListener(@LoadFromConfig);
+  //   Config.RemoveSaveListener(@SaveToConfig);
+  // end;
 
   ALContextClose;
   FreeAndNil(BuffersCache);
@@ -1006,7 +1014,7 @@ begin
   Assert(not ALActive, 'OpenAL context is already active');
   Assert(not ALInitialized, 'OpenAL context initialization was already attempted');
 
-  if not Enable then
+  if not Enabled then
     FSoundInitializationReport :=
       'OpenAL initialization aborted: sound is disabled (by --no-sound command-line option, or menu item or such)' else
   begin
@@ -1228,6 +1236,13 @@ begin
     DefaultReferenceDistance, DefaultMaxDistance);
 end;
 
+function TSoundEngine.PlaySound(const Buffer: TSoundBuffer): TSound;
+begin
+  Result := PlaySound(Buffer, false, false, 0,
+    1, 0, 1, ZeroVector3Single, 1,
+    DefaultReferenceDistance, DefaultMaxDistance);
+end;
+
 function TSoundEngine.LoadBuffer(const URL: string;
   out Duration: TFloatTime): TSoundBuffer;
 var
@@ -1356,17 +1371,17 @@ begin
   end;
 end;
 
-procedure TSoundEngine.SetEnable(const Value: boolean);
+procedure TSoundEngine.SetEnabled(const Value: boolean);
 begin
-  if Value <> FEnable then
+  if Value <> FEnabled then
   begin
     if ALInitialized then
     begin
       ALContextClose;
-      FEnable := Value;
+      FEnabled := Value;
       ALContextOpen;
     end else
-      FEnable := Value;
+      FEnabled := Value;
     FEnableSaveToConfig := true; // caller will eventually change it to false
   end;
 end;
@@ -1383,7 +1398,7 @@ begin
          Engine.DeviceSaveToConfig := false;
        end;
     1: begin
-         Engine.Enable := false;
+         Engine.Enabled := false;
          Engine.EnableSaveToConfig := false;
        end;
     else raise EInternalError.Create('OpenALOptionProc');
@@ -1461,24 +1476,20 @@ begin
   Result := 'Some OpenAL device'; // some default
 end;
 
-const
-  DefaultAudioDevice = '';
-  DefaultAudioEnable = true;
-
 procedure TSoundEngine.LoadFromConfig(const Config: TCastleConfig);
 begin
   inherited;
-  Device := Config.GetValue('sound/device', DefaultAudioDevice);
-  Enable := Config.GetValue('sound/enable', DefaultAudioEnable);
+  Device := Config.GetValue('sound/device', DefaultDevice);
+  Enabled := Config.GetValue('sound/enable', DefaultEnabled);
 end;
 
 procedure TSoundEngine.SaveToConfig(const Config: TCastleConfig);
 begin
-  inherited;
   if DeviceSaveToConfig then
-    Config.SetDeleteValue('sound/device', Device, DefaultAudioDevice);
+    Config.SetDeleteValue('sound/device', Device, DefaultDevice);
   if EnableSaveToConfig then
-    Config.SetDeleteValue('sound/enable', Enable, DefaultAudioEnable);
+    Config.SetDeleteValue('sound/enable', Enabled, DefaultEnabled);
+  inherited;
 end;
 
 { TRepoSoundEngine ----------------------------------------------------------- }
@@ -1503,10 +1514,21 @@ begin
   Sounds.Add(TSoundInfo.Create);
 
   FMusicPlayer := TMusicPlayer.Create(Self);
+
+  // automatic loading/saving is more troublesome than it's worth
+  // Config.AddLoadListener(@LoadFromConfig);
+  // Config.AddSaveListener(@SaveToConfig);
 end;
 
 destructor TRepoSoundEngine.Destroy;
 begin
+  // automatic loading/saving is more troublesome than it's worth
+  // if Config <> nil then
+  // begin
+  //   Config.RemoveLoadListener(@LoadFromConfig);
+  //   Config.RemoveSaveListener(@SaveToConfig);
+  // end;
+
   FreeAndNil(FSoundImportanceNames);
   FreeAndNil(FSounds);
   FreeAndNil(FMusicPlayer);
@@ -1572,10 +1594,11 @@ end;
 function TRepoSoundEngine.Sound(SoundType: TSoundType;
   const Looping: boolean): TSound;
 begin
-  { If there is no actual sound, exit early without initializing OpenAL }
-  if Sounds[SoundType].Buffer = 0 then Exit(nil);
-
   if not ALInitialized then ALContextOpen;
+
+  { If there is no actual sound, exit early without initializing OpenAL.
+    Do it *after* ALContextOpen, otherwise Buffer is always zero. }
+  if Sounds[SoundType].Buffer = 0 then Exit(nil);
 
   Result := PlaySound(
     Sounds[SoundType].Buffer, false, Looping,
@@ -1590,10 +1613,11 @@ function TRepoSoundEngine.Sound3D(SoundType: TSoundType;
   const Position: TVector3Single;
   const Looping: boolean): TSound;
 begin
-  { If there is no actual sound, exit early without initializing OpenAL }
-  if Sounds[SoundType].Buffer = 0 then Exit(nil);
-
   if not ALInitialized then ALContextOpen;
+
+  { If there is no actual sound, exit early without initializing OpenAL.
+    Do it *after* ALContextOpen, otherwise Buffer is always zero. }
+  if Sounds[SoundType].Buffer = 0 then Exit(nil);
 
   Result := PlaySound(
     Sounds[SoundType].Buffer, true, Looping,
@@ -1755,13 +1779,13 @@ end;
 
 procedure TRepoSoundEngine.SaveToConfig(const Config: TCastleConfig);
 begin
-  inherited;
   Config.SetDeleteFloat('sound/volume', Volume, DefaultVolume);
   { This may be called from destructors and the like, so better check
     that MusicPlayer is not nil. }
   if MusicPlayer <> nil then
     Config.SetDeleteFloat('sound/music/volume',
       MusicPlayer.MusicVolume, TMusicPlayer.DefaultMusicVolume);
+  inherited;
 end;
 
 { TMusicPlayer --------------------------------------------------------------- }

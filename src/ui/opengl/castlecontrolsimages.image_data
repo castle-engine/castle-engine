@@ -14866,3 +14866,10 @@ const
      221,  221,  221,  221,  221,  221,  221,  221,  221,  221,  221,  221,
      221,  221,  221,  221,  221,  221,  221,  221,  221,  221,  221,  221);
 
+const
+  ErrorBackgroundWidth = 1;
+  ErrorBackgroundHeight = 1;
+  ErrorBackgroundDepth = 1;
+  ErrorBackgroundPixels: array[0 .. ErrorBackgroundWidth * ErrorBackgroundHeight * ErrorBackgroundDepth * 1 - 1] of Byte = (
+      84);
+

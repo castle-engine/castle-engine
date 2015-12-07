@@ -335,6 +335,7 @@ type
     class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleModulo(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleSin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -1389,6 +1390,15 @@ begin
       TCasScriptFloat(AResult).Value / TCasScriptFloat(Arguments[I]).Value;
 end;
 
+class procedure TCasScriptFloat.HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
+  TCasScriptFloat(AResult).Value := Lerp(
+    TCasScriptFloat(Arguments[0]).Value,
+    TCasScriptFloat(Arguments[1]).Value,
+    TCasScriptFloat(Arguments[2]).Value);
+end;
+
 class procedure TCasScriptFloat.HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
@@ -2074,7 +2084,7 @@ var
 begin
   GreedyArguments := Args.Count;
   if GreedyArgumentsCalculation <> -1 then
-    MinTo1st(GreedyArguments, GreedyArgumentsCalculation);
+    MinVar(GreedyArguments, GreedyArgumentsCalculation);
 
   { We have to calculate arguments first, to know their type,
     to decide which handler is suitable.
@@ -2723,6 +2733,7 @@ initialization
   FunctionHandlers.RegisterHandler(@TCasScriptFloat(nil).HandleSubtract, TCasScriptSubtract, [TCasScriptFloat], true);
   FunctionHandlers.RegisterHandler(@TCasScriptFloat(nil).HandleMultiply, TCasScriptMultiply, [TCasScriptFloat], true);
   FunctionHandlers.RegisterHandler(@TCasScriptFloat(nil).HandleDivide, TCasScriptDivide, [TCasScriptFloat], true);
+  FunctionHandlers.RegisterHandler(@TCasScriptFloat(nil).HandleLerp, TCasScriptLerp, [TCasScriptFloat, TCasScriptFloat, TCasScriptFloat], false);
   FunctionHandlers.RegisterHandler(@TCasScriptFloat(nil).HandleNegate, TCasScriptNegate, [TCasScriptFloat], false);
   FunctionHandlers.RegisterHandler(@TCasScriptFloat(nil).HandleModulo, TCasScriptModulo, [TCasScriptFloat, TCasScriptFloat], false);
   FunctionHandlers.RegisterHandler(@TCasScriptFloat(nil).HandleSin, TCasScriptSin, [TCasScriptFloat], false);

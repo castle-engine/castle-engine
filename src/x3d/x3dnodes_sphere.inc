@@ -88,7 +88,7 @@ begin
   BottomCircleIndex := Coord.Count;
   Coord.Count := Coord.Count + QuadricSlices + 1;
   StackCircle(1, StackRadius, StackHeight);
-  GenerateCircle(QuadricSlices, StackRadius, StackHeight, Addr(Coord.L[BottomCircleIndex]));
+  GenerateCircle(QuadricSlices, StackRadius, StackHeight, Coord.Ptr(BottomCircleIndex));
   Coord[Coord.Count - 1] := Coord.L[BottomCircleIndex];
   Normal.Count := Normal.Count + QuadricSlices + 1;
   for I := 0 to QuadricSlices - 1 do
@@ -119,7 +119,7 @@ begin
     CircleIndex := Coord.Count;
     Coord.Count := Coord.Count + QuadricSlices + 1;
     StackCircle(StackNum, StackRadius, StackHeight);
-    GenerateCircle(QuadricSlices, StackRadius, StackHeight, Addr(Coord.L[CircleIndex]));
+    GenerateCircle(QuadricSlices, StackRadius, StackHeight, Coord.Ptr(CircleIndex));
     Coord[Coord.Count - 1] := Coord.L[CircleIndex];
     Normal.Count := Normal.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices - 1 do

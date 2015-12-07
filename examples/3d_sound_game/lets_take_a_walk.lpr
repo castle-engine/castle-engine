@@ -114,7 +114,7 @@ begin
   if T[2] > 0 then
   begin
     T[2] -= 5 * SecondsPassed;
-    MaxTo1st(T[2], 0);
+    MaxVar(T[2], 0);
     Translation := T;
   end;
 
@@ -274,11 +274,11 @@ begin
           TCastleWindowCustom.ParseParametersHelp(StandardParseOptions, true) +nl+
           nl+
           SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, true));
-        ProgramBreak;
+        Halt;
       end;
     1:begin
         Writeln(Version);
-        ProgramBreak;
+        Halt;
       end;
   end;
 end;
@@ -287,8 +287,9 @@ end;
 
 begin
   { load config, before SoundEngine.ParseParameters
-    (that may change Enable by --no-sound). }
-  Config.Load;
+    (that may change SoundEngine.Enable by --no-sound). }
+  UserConfig.Load;
+  SoundEngine.LoadFromConfig(UserConfig);
 
   { init messages }
   Theme.Images[tiWindow] := WindowDarkTransparent;

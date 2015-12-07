@@ -204,7 +204,7 @@ begin
 
   MaxRowWidth := 0;
   for I := 0 to Strings.Count - 1 do
-    MaxTo1st(MaxRowWidth, Font.TextWidth(Strings[I]) * XScale);
+    MaxVar(MaxRowWidth, Font.TextWidth(Strings[I]) * XScale);
 
   case Justify of
     fjBegin, fjFirst :
@@ -469,8 +469,8 @@ begin
     for I := 1 to FdXDimension.Value * FdZDimension.Value - 1 do
     begin
       Y := FdHeight.Items.L[I];
-      MinTo1st(Result.Data[0, 1], Y);
-      MaxTo1st(Result.Data[1, 1], Y);
+      MinVar(Result.Data[0, 1], Y);
+      MaxVar(Result.Data[1, 1], Y);
     end;
   end;
 end;
@@ -493,10 +493,10 @@ begin
     E.Node := Self;
     for I := 0 to E.High do
     begin
-      E.SpineTransformTo1st(I, LastY, LastZ, Transform);
+      E.SpineTransformVar(I, LastY, LastZ, Transform);
       for J := 0 to FdCrossSection.Count - 1 do
       begin
-        Point2d := Addr(FdCrossSection.Items.L[J]);
+        Point2d := FdCrossSection.Items.Ptr(J);
         Result.Add(MatrixMultPoint(Transform,
           Vector3Single(Point2d^[0], 0, Point2d^[1])));
       end;
@@ -520,10 +520,10 @@ begin
     E.Node := Self;
     for I := 0 to E.High do
     begin
-      E.SpineTransformTo1st(I, LastY, LastZ, Transform);
+      E.SpineTransformVar(I, LastY, LastZ, Transform);
       for J := 0 to FdCrossSection.Count - 1 do
       begin
-        Point2d := Addr(FdCrossSection.Items.L[J]);
+        Point2d := FdCrossSection.Items.Ptr(J);
         Result.Add(MatrixMultPoint(State.Transform,
           MatrixMultPoint(Transform,
             Vector3Single(Point2d^[0], 0, Point2d^[1]))));

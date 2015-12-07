@@ -27,10 +27,12 @@
 # Not-so-commonly-useful targets:
 #
 #   cleanmore --
-#     Same as clean, and also delete:
+#     Same as clean, but also delete:
 #     - Emacs backup files (*~) and
 #     - Delphi backup files (*.~???)
 #     - pasdoc generated documentation in doc/pasdoc/
+#     - closed-source libs you may have left in tools/build-tool/data
+#     This is a useful step when packing the release of CGE.
 #
 #   cleanall --
 #     Same as cleanmore for now.
@@ -71,12 +73,10 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/image_convert \
   examples/images_videos/dds_decompose \
   examples/images_videos/image_identify \
-  examples/images_videos/image_to_pas \
   examples/images_videos/image_compare \
   examples/images_videos/simple_video_editor \
   examples/fonts/test_font_break \
   examples/fonts/font_from_texture \
-  examples/fonts/texturefont2pascal \
   examples/window/window_events \
   examples/window/window_menu \
   examples/window/window_gtk_mix \
@@ -107,6 +107,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/scene_manager_demos \
   examples/3d_rendering_processing/view_3d_model_basic \
   examples/3d_rendering_processing/build_3d_object_by_code \
+  examples/3d_rendering_processing/combine_multiple_x3d_into_one \
   src/x3d/teapot/teapot_3d_to_pascal \
   src/x3d/nodes_specification/x3d_nodes_spec_to_pascal/x3d_nodes_spec_to_pascal \
   src/x3d/nodes_specification/generate_x3d_nodes_helpers/generate_x3d_nodes_to_pascal \
@@ -119,7 +120,9 @@ EXAMPLES_BASE_NAMES := \
   examples/fps_game/fps_game \
   examples/2d/controls_demo \
   examples/android/android_demo/androiddemo_standalone \
-  tools/castle-engine
+  tools/build-tool/castle-engine \
+  tools/image2pascal/image2pascal \
+  tools/texturefont2pascal/texturefont2pascal
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
@@ -146,6 +149,8 @@ EXAMPLES_RES_FILES := $(addsuffix .res,$(EXAMPLES_BASE_NAMES)) \
 .PHONY: examples
 examples:
 	$(foreach NAME,$(EXAMPLES_BASE_NAMES),$(NAME)_compile.sh && ) true
+# compile all examples with CastleEngineManifest.xml inside
+	find . -iname CastleEngineManifest.xml -execdir castle-engine $(CASTLE_ENGINE_TOOL_OPTIONS) compile ';'
 
 .PHONY: examples-ignore-errors
 examples-ignore-errors:
@@ -184,7 +189,6 @@ clean: cleanexamples
 	rm -Rf packages/castle_base.pas \
 	  packages/castle_window.pas \
 	  packages/castle_components.pas \
-	  packages/castle_android_utilities.pas \
 	  packages/alternative_castle_window_based_on_lcl.pas \
 	  tests/test_castle_game_engine \
 	  tests/test_castle_game_engine.exe \
@@ -204,6 +208,11 @@ cleanmore: clean
 			   -iname '*.blend1' \
 			')' -exec rm -f '{}' ';'
 	$(MAKE) -C doc/pasdoc/ clean
+	rm -Rf tools/build-tool/data/android/integrated-components/google_play_services/google-play-services_lib/ \
+	       tools/build-tool/data/android/integrated-components/chartboost/libs/*.jar \
+	       tools/build-tool/data/android/integrated-components/startapp/libs/*.jar \
+	       tools/build-tool/data/android/integrated-components/game_analytics/libs/*.jar \
+	       tools/build-tool/data/android/integrated-components/game_analytics/jni/*/*.so
 
 cleanall: cleanmore
 

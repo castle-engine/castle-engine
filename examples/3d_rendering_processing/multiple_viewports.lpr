@@ -25,11 +25,12 @@
 
 {$I castleconf.inc}
 
-uses SysUtils, CastleGL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene, CastleSceneManager,
+uses SysUtils, CastleGL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene,
   CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
-  CastleControls, CastleWarnings, CastleScreenEffects,
+  CastleControls, CastleWarnings, CastleScreenEffects, CastleSceneManager,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
-  CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages;
+  CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages
+  {$ifdef ADD_GL_ANIMATION} , Castle3D, CastlePrecalculatedAnimation {$endif};
 
 { TMyViewport ---------------------------------------------------------------- }
 
@@ -44,24 +45,24 @@ type
 procedure TMyViewport.SetFocused(const Value: boolean);
 begin
   if Value <> Focused then
-    { The TMyViewport2D.Render is based on Focused value. }
+    { The TMyViewportFrame.Render is based on Focused value. }
     VisibleChange;
 
   inherited;
 end;
 
-{ TMyViewport2D -------------------------------------------------------------- }
+{ TMyViewportFrame -------------------------------------------------------------- }
 
 type
   { 2D controls over the viewport. For this we need TUIControl instance
     with RenderStyle 2D. }
-  TMyViewport2D = class(TUIControl)
+  TMyViewportFrame = class(TUIControl)
   public
     Viewport: TMyViewport;
     procedure Render; override;
   end;
 
-procedure TMyViewport2D.Render;
+procedure TMyViewportFrame.Render;
 begin
   if Viewport.Focused then
     Theme.Draw(Viewport.Rect, tiActiveFrame);
@@ -148,7 +149,7 @@ var
   Window: TCastleWindow;
   Scene: TCastleScene;
   Viewports: array [0..3] of TMyViewport;
-  Viewports2D: array [0..3] of TMyViewport2D;
+  ViewportFrames: array [0..3] of TMyViewportFrame;
   ViewportsLabels: array [0..3] of TCastleLabel;
   OpenButton, QuitButton: TCastleButton;
 
@@ -235,15 +236,9 @@ begin
   NewURL := URL;
   if Window.FileDialog('Open 3D file', NewURL, true, Load3D_FileFilters) then
   begin
-    try
-      Scene.Load(NewURL);
-    except
-      on E: Exception do
-      begin
-        Window.MessageOk('Cannot open file "' + NewURL + '": ' + E.Message, mtError);
-        Exit;
-      end;
-    end;
+    Scene.Load(NewURL);
+    // In case of trouble when loading, this will raise an exception.
+    // Let the default Application exception handler show it.
     URL := NewURL;
     CameraReinitialize;
   end;
@@ -251,7 +246,7 @@ end;
 
 procedure TDummy.QuitButtonClick(Sender: TObject);
 begin
-  Application.Quit;
+  Application.Terminate;
 end;
 
 var
@@ -280,15 +275,15 @@ begin
 
   {$ifdef ADD_GL_ANIMATION}
   { initialize Transform }
-  Transform := T3DTransform.Create(SceneManager);
+  Transform := T3DTransform.Create(Window.SceneManager);
   Transform.Translation := Vector3Single(5, 3, 60);
   Window.SceneManager.Items.Add(Transform);
 
   { initialize Animation }
-  Animation := TCastlePrecalculatedAnimation.Create(SceneManager);
+  Animation := TCastlePrecalculatedAnimation.Create(Window.SceneManager);
   Animation.LoadFromFile('models/raptor.kanim', false, true);
   Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
-  Transform.Child := Animation;
+  Transform.Add(Animation);
   {$endif ADD_GL_ANIMATION}
 
   { one viewport shows only wireframe }
@@ -315,17 +310,17 @@ begin
     Viewports[I].FullSize := false;
     Viewports[I].ShadowVolumes := I = 1;
     { The initial Resize event will position viewports correctly }
-    Window.Controls.Add(Viewports[I]);
+    Window.Controls.InsertFront(Viewports[I]);
 
-    Viewports2D[I] := TMyViewport2D.Create(Application);
-    Viewports2D[I].Viewport := Viewports[I];
-    Window.Controls.Add(Viewports2D[I]);
+    ViewportFrames[I] := TMyViewportFrame.Create(Application);
+    ViewportFrames[I].Viewport := Viewports[I];
+    Window.Controls.InsertFront(ViewportFrames[I]);
 
     ViewportsLabels[I] := TCastleLabel.Create(Application);
     ViewportsLabels[I].Text.Text := Viewports[I].Caption;
     ViewportsLabels[I].Color := Yellow;
     ViewportsLabels[I].Padding := 5;
-    Window.Controls.Add(ViewportsLabels[I]);
+    Window.Controls.InsertFront(ViewportsLabels[I]);
   end;
   Assert(Window.SceneManager.Viewports.Count = High(Viewports) + 1);
 

@@ -113,7 +113,7 @@ var
   LightUniqueName: string;
 begin
   for I := 0 to Count - 1 do
-    if L[I].Light = Light then Exit(Addr(L[I]));
+    if L[I].Light = Light then Exit(Ptr(I));
 
   { add a new TLight record }
   Result := Add;
@@ -441,7 +441,7 @@ procedure TLightList.ShapeAdd(Shape: TShape);
     if not Box.IsEmpty then
     begin
       LightNode.Box3DDistances(Box, MinReceiverDistance, MaxReceiverDistance);
-      MaxTo1st(Light^.MaxShadowReceiverDistance, MaxReceiverDistance);
+      MaxVar(Light^.MaxShadowReceiverDistance, MaxReceiverDistance);
       { We do not use MinReceiverDistance for anything }
     end;
   end;
@@ -528,8 +528,8 @@ begin
     { Projection near/far must include all shadow casters between
       light source and the shadow receivers. }
     Light.Light.Box3DDistances(ShadowCastersBox, ProjectionNear, ProjectionFar);
-    MaxTo1st(ProjectionNear, 0);
-    MinTo1st(ProjectionFar, Light.MaxShadowReceiverDistance);
+    MaxVar(ProjectionNear, 0);
+    MinVar(ProjectionFar, Light.MaxShadowReceiverDistance);
 
     if ProjectionNear > ProjectionFar then
     begin
@@ -558,7 +558,7 @@ begin
       { final correction of auto-calculated projectionNear: must be > 0,
         and preferably > some epsilon of projectionFar (to avoid depth
         precision problems). }
-      MaxTo1st(ProjectionNear, ProjectionFar * 0.001);
+      MaxVar(ProjectionNear, ProjectionFar * 0.001);
     end;
   end;
 
@@ -635,7 +635,7 @@ begin
 
       for I := 0 to Lights.Count - 1 do
       begin
-        L := Addr(Lights.L[I]);
+        L := Lights.Ptr(I);
 
         Lights.HandleLightAutomaticProjection(L^);
 

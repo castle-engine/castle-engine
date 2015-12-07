@@ -169,9 +169,9 @@ procedure TTestCastleBoxes.TestIsBox3DTriangleCollision;
 
       AssertTrue(Box.IsTriangleCollision(Triangle));
 
-      VectorAddTo1st(Triangle[0], Vector3Single(100, 100, 100));
-      VectorAddTo1st(Triangle[1], Vector3Single(100, 100, 100));
-      VectorAddTo1st(Triangle[2], Vector3Single(100, 100, 100));
+      VectorAddVar(Triangle[0], Vector3Single(100, 100, 100));
+      VectorAddVar(Triangle[1], Vector3Single(100, 100, 100));
+      VectorAddVar(Triangle[2], Vector3Single(100, 100, 100));
       AssertTrue(not Box.IsTriangleCollision(Triangle));
     end;
 
@@ -190,9 +190,9 @@ procedure TTestCastleBoxes.TestIsBox3DTriangleCollision;
 
       AssertTrue(Box.IsTriangleCollision(Triangle));
 
-      VectorAddTo1st(Triangle[0], Vector3Single(100, 100, 100));
-      VectorAddTo1st(Triangle[1], Vector3Single(100, 100, 100));
-      VectorAddTo1st(Triangle[2], Vector3Single(100, 100, 100));
+      VectorAddVar(Triangle[0], Vector3Single(100, 100, 100));
+      VectorAddVar(Triangle[1], Vector3Single(100, 100, 100));
+      VectorAddVar(Triangle[2], Vector3Single(100, 100, 100));
       AssertTrue(not Box.IsTriangleCollision(Triangle));
     end;
   end;
@@ -235,7 +235,7 @@ var
     const Plane: TVector4Single): boolean;
   { Implementation of this is based on
     [http://jgt.akpeters.com/papers/AkenineMoller01/tribox.html]
-    planeBoxOverlap routine, by Tomas Akenine-Möller,
+    planeBoxOverlap routine, by Tomas Akenine-Moller,
     mentioned in his paper [http://jgt.akpeters.com/papers/AkenineMoller01/]
     about "Fast 3D Triangle-Box Overlap Testing", downloadable from
     [http://www.cs.lth.se/home/Tomas_Akenine_Moller/pubs/tribox.pdf].
@@ -282,7 +282,7 @@ var
 
   { Implementation of this is based on
     [http://jgt.akpeters.com/papers/AkenineMoller01/tribox.html],
-    by Tomas Akenine-Möller, described
+    by Tomas Akenine-Moller, described
     in his paper [http://jgt.akpeters.com/papers/AkenineMoller01/]
     "Fast 3D Triangle-Box Overlap Testing", downloadable from
     [http://www.cs.lth.se/home/Tomas_Akenine_Moller/pubs/tribox.pdf].
@@ -489,10 +489,8 @@ var
 
 const
   A = 1.980401039123535;
-{$ifdef CPU64}
 var
   OldBox3DPlaneCollisionEqualityEpsilon: Double;
-{$endif}
 begin
   EqualityEpsilon := 1e-5;
 
@@ -532,18 +530,17 @@ begin
   Triangle[2][1] := -26.554182052612305;
   Triangle[2][2] := -A;
 
-  {$ifdef CPU64}
   { Looks like for this test, even larger Box3DPlaneCollisionEqualityEpsilon
-    is needed under x86_64 (tested on Linux with fpc 2.2.4 and trunk on 2009-08-21). }
+    is needed.
+    At least under x86_64 (tested on Linux with fpc 2.2.4 and trunk on 2009-08-21,
+    tested again with FPC 3.1.1 from 2015-11).
+    And probably on armel / armhf too. }
   OldBox3DPlaneCollisionEqualityEpsilon := Box3DPlaneCollisionEqualityEpsilon;
   Box3DPlaneCollisionEqualityEpsilon := 1e-3;
-  {$endif}
 
   DoTest('2', true);
 
-  {$ifdef CPU64}
   Box3DPlaneCollisionEqualityEpsilon := OldBox3DPlaneCollisionEqualityEpsilon;
-  {$endif}
 
   Box.Data[0][0] := 0.283733367919922;
   Box.Data[0][1] := -47.603790283203125;

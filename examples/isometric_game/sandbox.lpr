@@ -2,26 +2,35 @@ program SandBox;
 
 {$apptype GUI}
 
-uses SysUtils, CastleWindow, SandBoxMap, CastleFilesUtils,
-  CastleWindowModes, SandBoxPlayer, CastleStringUtils, Math, CastleUtils,
-  CastleGLUtils, SandBoxGame, CastleKeysMouse, CastleMessages, CastleGLImages,
-  CastleImages, CastleColors;
+uses
+  { standard units }
+  SysUtils, Math,
+  { Castle Game Engine units }
+  CastleWindow, CastleFilesUtils, CastleWindowModes, CastleStringUtils,
+  CastleUtils, CastleGLUtils, CastleKeysMouse, CastleMessages, CastleGLImages,
+  CastleImages, CastleColors, CastleLog,
+  { game units }
+  SandBoxMap, SandBoxPlayer, SandBoxGame;
 
 var
-  Window: TCastleWindowCustom;
   Player: TPlayer;
-  Quit: boolean;
   ViewMoveX, ViewMoveY: Single;
   ViewFollowsPlayer: boolean = true;
 
-procedure LoadMap;
+procedure WindowOpen(Container: TUIContainer);
 begin
   Map := TMap.CreateFromFile(ApplicationData('maps/1.map'));
   Player := TPlayer.Create;
   Player.Teleport(Map.PlayerStartX, Map.PlayerStartY, dirSouth);
 end;
 
-procedure Render(Container: TUIContainer);
+procedure WindowClose(Container: TUIContainer);
+begin
+  FreeAndNil(Player);
+  FreeAndNil(Map);
+end;
+
+procedure WindowRender(Container: TUIContainer);
 var
   RealViewMoveX, RealViewMoveY: Integer;
 
@@ -49,8 +58,8 @@ var
 begin
   GLClear([cbColor], Black);
 
-  BaseFitX := Ceil(ScreenWidth / BaseWidth) + 1;
-  BaseFitY := Ceil(2 * ScreenHeight / BaseHeight) + 1;
+  BaseFitX := Ceil(Window.Width / BaseWidth) + 1;
+  BaseFitY := Ceil(2 * Window.Height / BaseHeight) + 1;
 
   if ViewFollowsPlayer then
   begin
@@ -80,10 +89,10 @@ begin
   Y1 -= Ceil(2 * RealViewMoveY / BaseHeight);
   Y2 -= Floor(2 * RealViewMoveY / BaseHeight);
   { Eventually correct to be inside 0..Map.Width/Height - 1 range }
-  Clamp(X1, 0, Map.Width - 1);
-  Clamp(X2, 0, Map.Width - 1);
-  Clamp(Y1, 0, Map.Height - 1);
-  Clamp(Y2, 0, Map.Height - 1);
+  ClampVar(X1, 0, Map.Width - 1);
+  ClampVar(X2, 0, Map.Width - 1);
+  ClampVar(Y1, 0, Map.Height - 1);
+  ClampVar(Y2, 0, Map.Height - 1);
 
   for X := X1 to X2 do
     for Y := Y1 to Y2 do
@@ -92,7 +101,7 @@ begin
       DrawImageOnTile(X, Y, MapTile.BaseTile.GLImage);
     end;
 
-  { TODO: shitty code, should draw only the part that fits within the window.
+  { TODO: unoptimal code, should draw only the part that fits within the window.
     We should auto-check width/height of bonus tile, to know when to draw it.
     Even better, we should record this on the map --- which tile is visible
     where. }
@@ -118,7 +127,7 @@ begin
   end;
 end;
 
-procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
+procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 var
   NewViewMoveX, NewViewMoveY: Integer;
 
@@ -219,12 +228,12 @@ begin
                Map.SaveToFile(ApplicationData('maps/' + URL + '.map'));
            end;
       'i': ShowFieldInfo;
-      CharEscape: Quit := true;
+      CharEscape: Window.Close;
     end;
   end;
 end;
 
-procedure Update(Container: TUIContainer);
+procedure WindowUpdate(Container: TUIContainer);
 const
   ViewMoveChangeSpeed = 10.0 * 50.0;
 begin
@@ -261,39 +270,24 @@ begin
   Player.Update;
 end;
 
-procedure Game;
-var
-  SavedMode: TGLMode;
-begin
-  SavedMode := TGLMode.CreateReset(Window, @Render, @Resize2D, nil);
-  try
-    Window.AutoRedisplay := true;
-    Window.OnPress := @Press;
-    Window.OnUpdate := @Update;
-    Window.FpsShowOnCaption := true;
-
-    Quit := false;
-    repeat
-      if not Application.ProcessMessage(true, true) then Quit := true;
-    until Quit;
-
-  finally FreeAndNil(SavedMode); end;
-end;
 
 begin
+  InitializeLog;
+
   Window := TCastleWindowCustom.Create(Application);
 
   Window.Caption := 'The Sandbox';
+  { Our drawing routine is not prepared to react perfectly to window size change
+    at runtime. So disable it, for now. }
   Window.ResizeAllowed := raOnlyAtOpen;
+  Window.AutoRedisplay := true;
+  Window.FpsShowOnCaption := true;
+  Window.OnOpen := @WindowOpen;
+  Window.OnClose := @WindowClose;
   Window.OnResize := @Resize2D;
+  Window.OnRender := @WindowRender;
+  Window.OnPress := @WindowPress;
+  Window.OnUpdate := @WindowUpdate;
 
-  Window.Open;
-  ScreenWidth := Window.Width;
-  ScreenHeight := Window.Height;
-
-  LoadMap;
-  Game;
-
-  FreeAndNil(Player);
-  FreeAndNil(Map);
+  Window.OpenAndRun;
 end.

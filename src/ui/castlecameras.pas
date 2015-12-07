@@ -129,6 +129,10 @@ type
     procedure SetEnableDragging(const Value: boolean); virtual;
     function GetIgnoreAllInputs: boolean;
     procedure SetIgnoreAllInputs(const Value: boolean);
+    { Setter of the @link(ProjectionMatrix) property.
+      TCamera descendants may override this.
+      In normal circumstances, you should not call it anywhere (it's automatically
+      called by the scene manager). }
     procedure SetProjectionMatrix(const Value: TMatrix4Single); virtual;
     procedure SetRadius(const Value: Single); virtual;
   public
@@ -180,14 +184,13 @@ type
       Be sure to set @link(ProjectionMatrix) before using this. }
     property Frustum: TFrustum read FFrustum;
 
-    { Projection matrix that you should pass here to have Frustum
-      calculated for you.
+    { Projection matrix of the camera.
+      Camera needs to know this to calculate @link(Frustum),
+      which in turn allows rendering code to use frustum culling.
 
-      This is initially IdentityMatrix4Single.
-      This is not modified anywhere from this class.
-      *You* should modify it, you should set it to projection matrix
-      that you use, if you want to use Frustum value.
-      This is used whenever Frustum is recalculated. }
+      In normal circumstances, if you use our @italic(scene manager)
+      and viewport (@link(TCastleAbstractViewport)) for rendering,
+      this is automatically correctly set for you. }
     property ProjectionMatrix: TMatrix4Single
       read FProjectionMatrix write SetProjectionMatrix;
 
@@ -252,7 +255,7 @@ type
       (0, 0) is bottom-left. }
     procedure Ray(const WindowPosition: TVector2Single;
       const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3Single);
+      out RayOrigin, RayDirection: TVector3Single); deprecated 'use CustomRay with proper viewport sizes, or use higher-level utilities like SceneManager.MouseRayHit instead';
 
     { Calculate a ray picked by current mouse position on the window.
       Uses current Container (both to get it's size and to get current
@@ -264,7 +267,7 @@ type
       @seealso CustomRay }
     procedure MouseRay(
       const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3Single);
+      out RayOrigin, RayDirection: TVector3Single); deprecated 'use CustomRay with proper viewport sizes, or use higher-level utilities like SceneManager.MouseRayHit instead';
 
     { Calculate a ray picked by WindowPosition position on the viewport,
       assuming current viewport dimensions are as given.
@@ -1636,7 +1639,7 @@ type
     function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
     function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
 
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); override;
+    procedure Resize; override;
     function GetNavigationType: TNavigationType; override;
 
     procedure SetInitialView(
@@ -1928,15 +1931,15 @@ var
   OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
   Pos, Dir, Up: TVector3Single;
 begin
-  NormalizeTo1st(AInitialDirection);
-  NormalizeTo1st(AInitialUp);
+  NormalizeVar(AInitialDirection);
+  NormalizeVar(AInitialUp);
   MakeVectorsOrthoOnTheirPlane(AInitialUp, AInitialDirection);
 
   if TransformCurrentCamera then
   begin
     GetView(Pos, Dir, Up);
 
-    VectorAddTo1st(Pos, VectorSubtract(AInitialPosition, FInitialPosition));
+    VectorAddVar(Pos, VectorSubtract(AInitialPosition, FInitialPosition));
 
     if not (VectorsPerfectlyEqual(FInitialDirection, AInitialDirection) and
             VectorsPerfectlyEqual(FInitialUp       , AInitialUp ) ) then
@@ -2267,8 +2270,8 @@ var
   Moved: boolean;
   MoveSize: Double;
 begin
-  if not (ci3dMouse in Input) then Exit;
-  if FModelBox.IsEmptyOrZero then Exit;
+  if not (ci3dMouse in Input) then Exit(false);
+  if FModelBox.IsEmptyOrZero then Exit(false);
   Result := true;
 
   Moved := false;
@@ -2301,7 +2304,7 @@ var
   Moved: boolean;
   RotationSize: Double;
 begin
-  if not (ci3dMouse in Input) then Exit;
+  if not (ci3dMouse in Input) then Exit(false);
   Result := true;
 
   Moved := false;
@@ -2470,8 +2473,7 @@ var
     end;
 
   var
-    W2, H2: Cardinal;
-    AvgX, AvgY, ZRotAngle, ZRotRatio: Single;
+    W2, H2, AvgX, AvgY, ZRotAngle, ZRotRatio: Single;
   begin
     if (not ContainerSizeKnown) or Turntable then
     begin
@@ -2484,8 +2486,9 @@ var
       { clamp, since mouse positions may be wild }
       AvgX := (Event.Position[0] + Event.OldPosition[0]) / 2;
       AvgY := (Event.Position[1] + Event.OldPosition[1]) / 2;
-      W2 := ContainerWidth  div 2;
-      H2 := ContainerHeight div 2;
+      { let physical size affect scaling speed }
+      W2 := Container.Width  * 96 / (Container.Dpi * 2); // multiply by 96 to keep old constants working
+      H2 := Container.Height * 96 / (Container.Dpi * 2);
       { calculate rotation around Z }
       ZRotAngle :=
         ArcTan2((Event.OldPosition[1] - H2) / H2, (Event.OldPosition[0] - W2) / W2) -
@@ -2647,8 +2650,8 @@ begin
     are not normalized. Fix them now, GetView guarantees normalized vectors. }
   if ScaleFactor <> 1 then
   begin
-    NormalizeTo1st(FDirection);
-    NormalizeTo1st(FUp);
+    NormalizeVar(FDirection);
+    NormalizeVar(FUp);
   end;
 
   inherited;
@@ -3367,7 +3370,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
         FallingVectorLength is no longer than
         (AboveHeight - RealPreferredHeight).
         Initially I wanted to do here
-          MinTo1st(FallingVectorLength, AboveHeight);
+          MinVar(FallingVectorLength, AboveHeight);
         i.e. to allow camera to fall below RealPreferredHeight.
 
         But this didn't work like it should. Why ?
@@ -3389,7 +3392,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
         below RealPreferredHeight. And that's what I'm doing. }
       FallingVectorLength :=
         MoveSpeed * MoveVerticalSpeed * FFallSpeed * SecondsPassed;
-      MinTo1st(FallingVectorLength, AboveHeight - RealPreferredHeight);
+      MinVar(FallingVectorLength, AboveHeight - RealPreferredHeight);
 
       if Move(VectorScale(GravityUp, - FallingVectorLength), true, false) and
         (not VectorsPerfectlyEqual(Position, PositionBefore)) then
@@ -3571,7 +3574,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
       end;
 
       AngleRotate := SecondsPassed * 5;
-      MinTo1st(AngleRotate, Abs(Angle - HalfPi));
+      MinVar(AngleRotate, Abs(Angle - HalfPi));
       if not FFallingOnTheGroundAngleIncrease then
         AngleRotate := -AngleRotate;
 
@@ -3739,7 +3742,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
         if FloatsEqual(AngleRadBetweenTargetAndGravity, HalfPi) then
           TargetUp := GravityUp else
         if AngleRadBetweenTargetAndGravity > HalfPi then
-          VectorNegateTo1st(TargetUp);
+          VectorNegateVar(TargetUp);
 
         AngleRadBetweenTarget := AngleRadBetweenVectors(TargetUp, FUp);
         AngleRadBetweenTargetChange := 0.5 * SecondsPassed;
@@ -4094,7 +4097,7 @@ function TWalkCamera.SensorTranslation(const X, Y, Z, Length: Double;
 var
   MoveSize: Double;
 begin
-  if not (ci3dMouse in Input) then Exit;
+  if not (ci3dMouse in Input) then Exit(false);
   Result := true;
 
   MoveSize := Length * SecondsPassed / 5000;
@@ -4126,7 +4129,7 @@ end;
 function TWalkCamera.SensorRotation(const X, Y, Z, Angle: Double;
   const SecondsPassed: Single): boolean;
 begin
-  if not (ci3dMouse in Input) then Exit;
+  if not (ci3dMouse in Input) then Exit(false);
   Result := true;
 
   if Abs(X) > 0.4 then      { tilt forward / backward }
@@ -4247,7 +4250,7 @@ begin
   begin
     FMouseLook := Value;
     if FMouseLook then
-      Cursor := mcNone else
+      Cursor := mcForceNone else
       Cursor := mcDefault;
   end;
 end;
@@ -4651,11 +4654,11 @@ begin
   FExamine.Container := Value;
 end;
 
-procedure TUniversalCamera.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
+procedure TUniversalCamera.Resize;
 begin
   inherited;
-  FWalk.ContainerResize(AContainerWidth, AContainerHeight);
-  FExamine.ContainerResize(AContainerWidth, AContainerHeight);
+  FWalk.Resize;
+  FExamine.Resize;
 end;
 
 procedure TUniversalCamera.SetInitialView(
@@ -4823,8 +4826,8 @@ var
   Rot1Quat, Rot2Quat: TQuaternion;
   Rot1CosAngle, Rot2CosAngle: Single;
 begin
-  NormalizeTo1st(CamDir);
-  NormalizeTo1st(CamUp);
+  NormalizeVar(CamDir);
+  NormalizeVar(CamUp);
 
   { calculate Rot1Quat }
   Rot1Axis := VectorProduct(DefaultCameraDirection, CamDir);
@@ -4838,7 +4841,7 @@ begin
     { Normalize *after* checking ZeroVector, otherwise normalization
       could change some almost-zero vector into a (practically random)
       vector of length 1. }
-    NormalizeTo1st(Rot1Axis);
+    NormalizeVar(Rot1Axis);
   Rot1CosAngle := VectorDotProduct(DefaultCameraDirection, CamDir);
   Rot1Quat := QuatFromAxisAngleCos(Rot1Axis, Rot1CosAngle);
 
@@ -4849,7 +4852,7 @@ begin
     Calculating Rot2Axis below is a solution. }
   Rot2Axis := VectorProduct(StdCamUpAfterRot1, CamUp);
 
-  (*We could now do NormalizeTo1st(Rot2Axis),
+  (*We could now do NormalizeVar(Rot2Axis),
     after making sure it's not zero. Like
 
     { we need larger epsilon for ZeroVector below, in case
@@ -4860,7 +4863,7 @@ begin
       { Normalize *after* checking ZeroVector, otherwise normalization
         could change some almost-zero vector into a (practically random)
         vector of length 1. }
-      NormalizeTo1st(Rot2Axis);
+      NormalizeVar(Rot2Axis);
 
     And later do
 
@@ -4911,10 +4914,10 @@ var
   Offset: Single;
 begin
   Direction := UnitVector3Single[WantedDirection];
-  if not WantedDirectionPositive then VectorNegateTo1st(Direction);
+  if not WantedDirectionPositive then VectorNegateVar(Direction);
 
   Up := UnitVector3Single[WantedUp];
-  if not WantedUpPositive then VectorNegateTo1st(Up);
+  if not WantedUpPositive then VectorNegateVar(Up);
 
   if Box.IsEmpty then
   begin

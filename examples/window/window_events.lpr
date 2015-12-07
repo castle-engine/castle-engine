@@ -24,7 +24,7 @@ program window_events;
 
 uses SysUtils, CastleUtils, CastleGLUtils, CastleNotifications, CastleWindow,
   CastleKeysMouse, CastleStringUtils, CastleColors, Classes, CastleMessages,
-  CastleControls, CastleVectors;
+  CastleControls, CastleVectors, CastleRectangles;
 
 var
   Window: TCastleWindowCustom;
@@ -149,10 +149,13 @@ begin
   Window.OnTimer := @Timer;
 
   Notifications := TCastleNotifications.Create(Window);
-  Notifications.VerticalPosition := vpUp;
+  Notifications.Anchor(hpMiddle);
+  Notifications.Anchor(vpTop, -5);
+  Notifications.TextAlignment := hpMiddle;
+  Notifications.Color := Yellow;
   Notifications.MaxMessages := 15;
   Notifications.Timeout := 20000;
-  Window.Controls.Add(Notifications);
+  Window.Controls.InsertFront(Notifications);
 
   Window.OpenAndRun;
 end.

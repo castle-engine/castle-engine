@@ -130,7 +130,7 @@ begin
   for I := 0 to Length(Indexes) - 1 do
     if DirectIndexes[I] >= 0 then
     begin
-      VectorAddTo1st(ShapeElements[DirectIndexes[I]].Normal, FaceNormal);
+      VectorAddVar(ShapeElements[DirectIndexes[I]].Normal, FaceNormal);
       { Split FaceArea into the number of polygon corners. }
       ShapeElements[DirectIndexes[I]].Area += FaceArea;
     end;
@@ -185,7 +185,7 @@ procedure CalculateElements;
 
       { Normalize all new normals }
       for I := 0 to Coord.Count - 1 do
-        NormalizeTo1st(ShapeElements[I].Normal);
+        NormalizeVar(ShapeElements[I].Normal);
     end else
     begin
       SetLength(Shapes[ShapeIndex].CoordToElement, 0);
@@ -355,7 +355,7 @@ begin
   { calculate maximum area, which is just AreaScale }
   AreaScale := 0;
   for I := 0 to Elements.Count - 1 do
-    MaxTo1st(AreaScale, Elements.L[I].Area);
+    MaxVar(AreaScale, Elements.L[I].Area);
 
   { calculate PositionScale, PositionShift.
     We have min/max in Scene.BoundingBox. }
@@ -758,8 +758,8 @@ begin
       Especially important for $elements_count, since then the "for" loop
       inside the shader can be unrolled.
       Required e.g. by NVidia GPU "GeForce FX 5200/AGP/SSE2/3DNOW!" }
-    StringReplaceAllTo1st(ShaderString, '$tex_elements_size', IntToStr(ElementsTexSize));
-    StringReplaceAllTo1st(ShaderString, '$elements_count', IntToStr(Elements.Count));
+    StringReplaceAllVar(ShaderString, '$tex_elements_size', IntToStr(ElementsTexSize));
+    StringReplaceAllVar(ShaderString, '$elements_count', IntToStr(Elements.Count));
   end;
 
   GLSLProgram[0].AttachFragmentShader(ShaderString);
@@ -908,7 +908,7 @@ begin
 
     { init SceneManager, with a Scene inside }
     SceneManager := TMySceneManager.Create(Window);
-    Window.Controls.Add(SceneManager);
+    Window.Controls.InsertFront(SceneManager);
     SceneManager.MainScene := Scene;
     SceneManager.Items.Add(Scene);
 

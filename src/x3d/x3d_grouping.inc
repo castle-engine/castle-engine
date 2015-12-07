@@ -88,8 +88,7 @@
 
   TGroupNode = class(TAbstractX3DGroupingNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -102,19 +101,6 @@
   TGroupNode_2 = TGroupNode;
 
   TStringLongIntMap = specialize TFPGMap<string, LongInt>;
-  TStringStringMap = class(specialize TFPGMap<string, string>)
-  public
-    { Set given key value, trying to preserve previous key value too.
-      This is useful for safely setting X3D META values.
-
-      Compared to normal PutKeyData, this behaves smarter if given Name
-      is already set. If it's set with the same Content, we do nothing.
-      If the Content is different, we move previous content to a
-      @code(Name + '-previous') key.
-      This way previous content value is preserved once (but not more,
-      to not grow the X3D file indefinitely). }
-    procedure PutPreserve(const Name, Content: string);
-  end;
 
   { A top-level VRML/X3D node. This is what you get by loading 3D model from file.
 
@@ -228,8 +214,7 @@
 
   TStaticGroupNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -256,8 +241,7 @@
     depending on used VRML version. }
   TSwitchNode = class(TAbstractX3DGroupingNode)
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -289,8 +273,7 @@
   private
     WarningNegativeScaleDone: boolean;
   protected
-    procedure DirectEnumerateActive(
-      Func: TEnumerateChildrenFunction); override;
+    function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
@@ -326,7 +309,7 @@ type
     WasPointingDeviceSensor: boolean;
     { Add pointing device sensor (including Anchor) node. }
     procedure AddPointingDeviceSensor(Child:TX3DNode);
-    procedure EnumerateChildrenFunction(Node, Child: TX3DNode);
+    function EnumerateChildrenFunction(Node, Child: TX3DNode): Pointer;
   end;
 
   procedure TGeneralGroupingEnumerator.AddPointingDeviceSensor(Child:TX3DNode);
@@ -344,11 +327,12 @@ type
     State.PointingDeviceSensors.Add(Child);
   end;
 
-  procedure TGeneralGroupingEnumerator.EnumerateChildrenFunction(
-    Node, Child: TX3DNode);
+  function TGeneralGroupingEnumerator.EnumerateChildrenFunction(
+    Node, Child: TX3DNode): Pointer;
   var
     CP: PClipPlane;
   begin
+    Result := nil;
     if (Child is TAbstractLightNode) and
        (TAbstractLightNode(Child).Scope = lsLocal) then
       { We do CreateLightInstance with State from TAbstractGroupingNode node,
@@ -557,7 +541,7 @@ begin
     "A children field is not allowed to directly contain
     multiple instances of the same node."
     Thus the question how we should deal with multiple items to remove
-    (use Delete or DeleteAll in implementation below?) doesn't exist.
+    (use Remove or RemoveAll in implementation below?) doesn't exist.
 
     Note that I didn't find such notice in VRML 97 specification.
     This seems to be undefined case in VRML 97? }
@@ -590,33 +574,13 @@ begin
   Result := Version.Major >= 2;
 end;
 
-procedure TGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
-var
-  I: Integer;
+function TGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  inherited;
-  for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren[I]);
-end;
+  Result := inherited;
+  if Result <> nil then Exit;
 
-procedure TStringStringMap.PutPreserve(const Name, Content: string);
-var
-  PreviousContent: string;
-  I: Integer;
-begin
-  I := IndexOf(Name);
-  if I <> -1 then
-  begin
-    PreviousContent := Data[I];
-    if PreviousContent <> Content then
-    begin
-      { move current content to -previous name }
-      KeyData[Name + '-previous'] := PreviousContent;
-      { set new content }
-      Data[I] := Content;
-    end;
-  end else
-    KeyData[Name] := Content;
+  Result := FdChildren.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure TX3DRootNode.CreateNode;
@@ -776,12 +740,10 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-procedure TStaticGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
-var
-  I: Integer;
+function TStaticGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren[I]);
+  Result := FdChildren.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 procedure TSwitchNode.CreateNode;
@@ -815,10 +777,14 @@ begin
   Result := Version.Major >= 2;
 end;
 
-procedure TSwitchNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
+function TSwitchNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
+  Result := nil;
   if Between(FdWhichChoice.Value, 0, FdChildren.Count - 1) then
-    Func(Self, FdChildren[FdWhichChoice.Value]);
+  begin
+    Result := Func(Self, FdChildren[FdWhichChoice.Value]);
+    if Result <> nil then Exit;
+  end;
 end;
 
 function TSwitchNode.TransformationChange: TNodeTransformationChange;
@@ -875,12 +841,10 @@ begin
   Result := Version.Major >= 2;
 end;
 
-procedure TTransformNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction);
-var
-  I: Integer;
+function TTransformNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  for I := 0 to FdChildren.Count - 1 do
-    Func(Self, FdChildren[I]);
+  Result := FdChildren.SearchValid(Func);
+  if Result <> nil then Exit;
 end;
 
 function TTransformNode.TransformationChange: TNodeTransformationChange;

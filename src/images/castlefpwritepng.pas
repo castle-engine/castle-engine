@@ -1,4 +1,6 @@
-{ Fixed FpWritePng (grep for "CGE"). }
+{ Fixed FpWritePng.
+  See http://bugs.freepascal.org/view.php?id=28082 .
+  Grep for "CGE" to see our changes. }
 
 {
     This file is part of the Free Pascal run time library.
