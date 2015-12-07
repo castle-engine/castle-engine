@@ -24,6 +24,7 @@ var
   Line: Integer;
   Ptr, SourcePtr: Pointer;
   RowWidth, SourceRowWidth, SourceCopyRowWidth: Cardinal;
+
 begin
   if Source.ClassType <> ClassType then
     raise EImageDrawError.CreateFmt('Cannot draw pixels from image class %s to %s',
@@ -181,6 +182,11 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
     PSource: PVector4Byte;
     PDest: PVector4Byte;
     DestX, DestY: Integer;
+
+    //variables for smart-blending mode
+    SourceAlphaColor,ThisAlphaColor: PVector4byte;
+    alpha1,alpha2,alpha1d,alphaSum:single;
+    ix,iy,j: integer;
   begin
     case Mode of
       dmBlend:
@@ -197,6 +203,32 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             Inc(PDest);
           end;
         end;
+      dmBlendSmart:
+          for iy := 0 to SourceHeight-1 do if (Y+iy<height) and (SourceY+iy<source.height) then begin
+           //scan through the image line-by-line
+           //Range-checking is done to avoid messing up the images
+           //get the pointers
+           ThisAlphaColor := PixelPtr(X, Y+iy);
+           SourceAlphaColor := Source.PixelPtr(SourceX, SourceY+iy);
+           //scan each pixel in the line
+           for ix := 0 to SourceWidth-1 do if (x+ix<width) and (SourceX+ix<source.width) then begin
+            //get single alpha
+            alpha1:=ThisAlphaColor^[3]/255;
+            alpha2:=SourceAlphaColor^[3]/255;
+            //calculate alpha-sums according to https://en.wikipedia.org/wiki/Alpha_compositing
+            alpha1d:=alpha1*(1-alpha2);
+            alphasum:=alpha1+(1-alpha1)*alpha2;
+            // if alpha sum >0 then do the pixel colors and alpha summation according to the formula
+            if alphaSum>0 then begin
+              for j:=0 to 2 do
+                ThisAlphaColor^[j] := round((ThisAlphaColor^[j]*alpha1d + SourceAlphaColor^[j]*alpha2)/alphaSum);
+              ThisAlphaColor^[3] := round(255*alphaSum);
+            end;
+            //adjust the pointers by pixelsize
+            PtrUInt(ThisAlphaColor) := PtrUInt(ThisAlphaColor) + PixelSize;
+            PtrUInt(SourceAlphaColor) := PtrUInt(SourceAlphaColor) + source.PixelSize;
+           end;
+          end;
       dmAdd:
         if Source.PremultipliedAlpha then
         begin

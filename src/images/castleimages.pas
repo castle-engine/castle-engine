@@ -243,6 +243,13 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       simply replace the destination RGB contents. }
     dmBlend,
 
+    { An advanced blending mode capable of blending 2 images with alpha channel
+    based on https://en.wikipedia.org/wiki/Alpha_compositing formula for alpha-blending.
+    This one is much less efficient than dmBlend and should be used only in case
+    sevral layers of semi-transparent images should overlay one another and it
+    matters to accurately account for both images alpha channel}
+    dmBlendSmart,
+
     { Additive drawing mode, where the image contents of source image
       are added to the existing destination image. That is,
 
