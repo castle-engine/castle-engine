@@ -33,13 +33,23 @@
         </activity>
     </application>
 
-    <!-- About min version:
-      We need OpenGL ES 2.0, which means Android 2.0 (API Level 5) and higher.
-      We want also NativeActivity and EGL, which require API level 9 or higher.
+    <!--
+      - About minSdkVersion:
+        We need OpenGL ES 2.0, which means Android 2.0 (API Level 5) and higher.
+        We want also NativeActivity and EGL, which require API level 9 or higher.
+
+      - About targetSdkVersion:
+        You cannot increase targetSdkVersion above 22, because of FPC+Android problems:
+
+          http://lists.freepascal.org/pipermail/fpc-devel/2015-September/035948.html
+          http://fpc-devel.freepascal.narkive.com/tMJHK2Hw/fpc-app-crash-with-has-text-relocations-android-6-0
+
+        (compiling with -fPIC doesn't help). Your app will crash then with
+
+          E AndroidRuntime: java.lang.RuntimeException: Unable to start activity ComponentInfo{...}: java.lang.IllegalArgumentException: Unable to load native library: ....
+          E AndroidRuntime: Caused by: java.lang.IllegalArgumentException: Unable to load native library: .....so
     -->
-    <uses-sdk
-      android:minSdkVersion="9"
-      android:targetSdkVersion="18" />
+    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="18" />
     <uses-feature android:glEsVersion="0x00020000"/>
 
     ${ANDROID_SCREEN_ORIENTATION_FEATURE}
