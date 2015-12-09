@@ -19,7 +19,7 @@ public class ComponentChartboost extends ComponentAbstract
     private static final String TAG = "${NAME}.castleengine.ComponentChartboost";
 
     private boolean initialized, scheduledStart, scheduledResume;
-    private boolean mShown;
+    private boolean fullScreenAdVisible;
 
     public ComponentChartboost(MainActivity activity)
     {
@@ -31,27 +31,27 @@ public class ComponentChartboost extends ComponentAbstract
         return "chartboost";
     }
 
+    private void fullScreenAdClosed(boolean cacheNext)
+    {
+        messageSend(new String[]{"ads-chartboost-full-screen-ad-closed"});
+        fullScreenAdVisible = false;
+        if (cacheNext) {
+            // cache next interstitial.
+            // Don't do this in case loading of previous one failed,
+            // as we would spam console (and Toast notifications) with failures.
+            Chartboost.cacheInterstitial(CBLocation.LOCATION_DEFAULT);
+        }
+    }
+
     ChartboostDelegate delegate = new ChartboostDelegate()
     {
-        private void interstitialDone(boolean retry)
-        {
-            messageSend(new String[]{"ads-chartboost-interstitial-display", "shown"});
-            mShown = false;
-            if (retry) {
-                // cache next interstitial.
-                // Don't do this in case loading of previous one failed,
-                // as we would spam console (and Toast notifications) with failures.
-                Chartboost.cacheInterstitial(CBLocation.LOCATION_DEFAULT);
-            }
-        }
-
         // Override the Chartboost delegate callbacks you wish to track and control
         @Override
         public void didCloseInterstitial(String location)
         {
             super.didCloseInterstitial(location);
             Log.i(TAG, "Chartbooost Interstitial Close, location: "+ (location != null ? location : "null"));
-            interstitialDone(true);
+            fullScreenAdClosed(true);
         }
 
         @Override
@@ -62,7 +62,7 @@ public class ComponentChartboost extends ComponentAbstract
             // it's when user switches out of our app).
             // Needed, since we don't get Closed callback
             // when user presses on the app.
-            interstitialDone(true);
+            fullScreenAdClosed(true);
         }
 
         @Override
@@ -71,11 +71,11 @@ public class ComponentChartboost extends ComponentAbstract
                 (location != null ? location : "null") + ", error: " + error.name());
             // do not show Toast outside of show cycle
             // (e.g. when cacheInterstitial from onStart fails)
-            if (mShown) {
+            if (fullScreenAdVisible) {
                 Toast.makeText(getActivity().getApplicationContext(),
                     "No ads available, continuing without ad.", Toast.LENGTH_SHORT).show();
             }
-            interstitialDone(false);
+            fullScreenAdClosed(false);
         }
 
         @Override
@@ -187,16 +187,16 @@ public class ComponentChartboost extends ComponentAbstract
 
     private void showInterstitial()
     {
+        fullScreenAdVisible = true;
         if (initialized) {
             if (!Chartboost.hasInterstitial(CBLocation.LOCATION_DEFAULT)) {
                 Log.i(TAG, "Interstitial not in cache yet, will wait for it");
             }
             Log.i(TAG, "Interstitial showing");
             Chartboost.showInterstitial(CBLocation.LOCATION_DEFAULT);
-            mShown = true;
         } else {
             // pretend that ad was displayed, in case native app waits for it
-            messageSend(new String[]{"ads-chartboost-interstitial-display", "shown"});
+            fullScreenAdClosed(false);
         }
     }
 

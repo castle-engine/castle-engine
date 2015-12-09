@@ -37,6 +37,8 @@ const
 type
   TAdNetwork = (anAdMob, anChartboost, anStartApp, anHeyzap);
 
+  TFullScreenAdType = (atInterstitialStatic, atInterstitialVideo, atReward);
+
   { Advertisements in game.
     Right now only on Android (does nothing on other platforms,
     as CastleMessaging does nothing on non-Android platforms).
@@ -51,7 +53,7 @@ type
         from @link(TCastleApplication.OnInitialize).)
 
       @item(Use remaining methods of this class to show / hide ads, like
-        @link(ShowInterstitial), @link(ShowBanner), @link(HideBanner).)
+        @link(ShowFullScreenAd), @link(ShowBanner), @link(HideBanner).)
 
       @item(To include the necessary integration code in your Android project,
         declare your Android project type as "integrated" with
@@ -69,9 +71,9 @@ type
         FBannerShowing: boolean;
         FBannerGravity: Integer;
         function MessageReceived(const Received: TCastleStringList): boolean;
-        procedure InterstitialShown;
+        procedure FullScreenAdClosed;
       strict protected
-        FInterstitialShowing: boolean;
+        FFullScreenAdVisible: boolean;
         procedure ReinitializeJavaActivity(Sender: TObject); virtual;
       public
         constructor Create(const AParent: TAds);
@@ -80,8 +82,8 @@ type
         class function Name: string; virtual; abstract;
         procedure ShowBanner(const Gravity: Integer); virtual;
         procedure HideBanner; virtual;
-        procedure ShowInterstitial(const WaitUntilLoaded: boolean;
-          const Static: boolean); virtual;
+        procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
+          const WaitUntilLoaded: boolean); virtual;
         procedure StartTestActivity; virtual;
       end;
 
@@ -97,8 +99,8 @@ type
         class function Name: string; override;
         procedure ShowBanner(const Gravity: Integer); override;
         procedure HideBanner; override;
-        procedure ShowInterstitial(const WaitUntilLoaded: boolean;
-          const Static: boolean); override;
+        procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
+          const WaitUntilLoaded: boolean); override;
       end;
 
       TChartboostHandler = class(TAdNetworkHandler)
@@ -110,8 +112,8 @@ type
         constructor Create(const AParent: TAds;
           const AnAppId, AnAppSignature: string);
         class function Name: string; override;
-        procedure ShowInterstitial(const WaitUntilLoaded: boolean;
-          const Static: boolean); override;
+        procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
+          const WaitUntilLoaded: boolean); override;
       end;
 
       TStartappHandler = class(TAdNetworkHandler)
@@ -123,8 +125,8 @@ type
         constructor Create(const AParent: TAds;
           const AnAppId: string);
         class function Name: string; override;
-        procedure ShowInterstitial(const WaitUntilLoaded: boolean;
-          const Static: boolean); override;
+        procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
+          const WaitUntilLoaded: boolean); override;
       end;
 
       THeyzapHandler = class(TAdNetworkHandler)
@@ -138,16 +140,16 @@ type
         class function Name: string; override;
         procedure ShowBanner(const Gravity: Integer); override;
         procedure HideBanner; override;
-        procedure ShowInterstitial(const WaitUntilLoaded: boolean;
-          const Static: boolean); override;
+        procedure ShowFullScreenAd(const AdType: TFullScreenAdType;
+          const WaitUntilLoaded: boolean); override;
         procedure StartTestActivity; override;
       end;
     var
     FBannerSize: TRectangle;
     FNetworks: array [TAdNetwork] of TAdNetworkHandler;
-    FOnInterstitialShown: TNotifyEvent;
+    FOnFullScreenAdClosed: TNotifyEvent;
   protected
-    procedure InterstitialShown; virtual;
+    procedure FullScreenAdClosed; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -185,10 +187,23 @@ type
       Usually called from @link(TCastleApplication.OnInitialize). }
     procedure InitializeHeyzap(const PublisherId: string);
 
-    { Show interstitial (full-screen) ad. }
-    procedure ShowInterstitial(const AdNetwork: TAdNetwork;
-      const WaitUntilLoaded: boolean;
-      const Static: boolean = false);
+    { Show full-screen ad, interstitial (in-between) or reward ad.
+
+      Not all ad networks support (or differentiate between) all full-screen
+      ad types possible in TFullScreenAdType enumeration.
+      So we eventually show other sensible ad type instead.
+
+      If WaitUntilLoaded, then we wait until the ad contents are fetched
+      (be sure to show some "loading" state to user, as it may take a while
+      in case of a slow network). If not WaitUntilLoaded, then we immediately
+      resign if ad is not loaded yet. Not all ad implementations support this
+      setting reliably, so this is only a suggestion.
+
+      In any case, after this method is called, we make sure to call callback
+      OnFullScreenAdClosed sometime. }
+    procedure ShowFullScreenAd(const AdNetwork: TAdNetwork;
+      const AdType: TFullScreenAdType;
+      const WaitUntilLoaded: boolean);
 
     { Show banner ad.
       Banners are not supported by all ad networks (only AdMob and Heyzap now),
@@ -206,8 +221,8 @@ type
       This is for now supported only by anHeyzap. }
     procedure StartTestActivity(const AdNetwork: TAdNetwork);
 
-    property OnInterstitialShown: TNotifyEvent
-      read FOnInterstitialShown write FOnInterstitialShown;
+    property OnFullScreenAdClosed: TNotifyEvent
+      read FOnFullScreenAdClosed write FOnFullScreenAdClosed;
 
     property BannerSize: TRectangle read FBannerSize;
   end;
@@ -240,11 +255,10 @@ function TAds.TAdNetworkHandler.MessageReceived(const Received: TCastleStringLis
 begin
   Result := false;
 
-  if (Received.Count = 2) and
-     (Received[0] = 'ads-' + Name + '-interstitial-display') and
-     (Received[1] = 'shown') then
+  if (Received.Count = 1) and
+     (Received[0] = 'ads-' + Name + '-full-screen-ad-closed') then
   begin
-    InterstitialShown;
+    FullScreenAdClosed;
     Result := true;
   end else
 
@@ -277,12 +291,12 @@ begin
   FBannerShowing := false;
 end;
 
-procedure TAds.TAdNetworkHandler.ShowInterstitial(const WaitUntilLoaded: boolean;
-  const Static: boolean);
+procedure TAds.TAdNetworkHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
+  const WaitUntilLoaded: boolean);
 begin
-  { if the network doesn't support showing interstitial, pretend it's shown,
-    in case user code waits for OnInterstitialShown. }
-  InterstitialShown;
+  { if the network doesn't support showing full-screen ads, pretend it's shown,
+    in case user code waits for OnFullScreenAdClosed. }
+  FullScreenAdClosed;
 end;
 
 procedure TAds.TAdNetworkHandler.StartTestActivity;
@@ -294,18 +308,18 @@ begin
   { this is important if the Java application was killed, but native code survived,
     while waiting for ad to finish. Reproduce: turn on "kill app when sending to bg"
     in Android debug options, then use "watch ad" and return to game. }
-  if FInterstitialShowing then
-    InterstitialShown;
+  if FFullScreenAdVisible then
+    FullScreenAdClosed;
   Parent.FBannerSize := TRectangle.Empty;
   { reshow banner, if necessary }
   if FBannerShowing then
     ShowBanner(FBannerGravity);
 end;
 
-procedure TAds.TAdNetworkHandler.InterstitialShown;
+procedure TAds.TAdNetworkHandler.FullScreenAdClosed;
 begin
-  FInterstitialShowing := false;
-  Parent.InterstitialShown;
+  FFullScreenAdVisible := false;
+  Parent.FullScreenAdClosed;
 end;
 
 { TAdMobHandler -------------------------------------------------------------- }
@@ -344,12 +358,13 @@ begin
   inherited;
 end;
 
-procedure TAds.TAdMobHandler.ShowInterstitial(const WaitUntilLoaded, Static: boolean);
+procedure TAds.TAdMobHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
+  const WaitUntilLoaded: boolean);
 begin
-  FInterstitialShowing := true;
+  FFullScreenAdVisible := true;
   if WaitUntilLoaded then
-    Messaging.Send(['ads-' + Name + '-interstitial-display', 'wait-until-loaded']) else
-    Messaging.Send(['ads-' + Name + '-interstitial-display', 'no-wait']);
+    Messaging.Send(['ads-' + Name + '-show-interstitial', 'wait-until-loaded']) else
+    Messaging.Send(['ads-' + Name + '-show-interstitial', 'no-wait']);
 end;
 
 { TChartboostHandler --------------------------------------------------------- }
@@ -374,9 +389,10 @@ begin
   Result := 'chartboost';
 end;
 
-procedure TAds.TChartboostHandler.ShowInterstitial(const WaitUntilLoaded, Static: boolean);
+procedure TAds.TChartboostHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
+  const WaitUntilLoaded: boolean);
 begin
-  FInterstitialShowing := true;
+  FFullScreenAdVisible := true;
   Messaging.Send(['ads-' + Name + '-show-interstitial']);
 end;
 
@@ -401,9 +417,10 @@ begin
   Result := 'startapp';
 end;
 
-procedure TAds.TStartappHandler.ShowInterstitial(const WaitUntilLoaded, Static: boolean);
+procedure TAds.TStartappHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
+  const WaitUntilLoaded: boolean);
 begin
-  FInterstitialShowing := true;
+  FFullScreenAdVisible := true;
   Messaging.Send(['ads-' + Name + '-show-interstitial']);
 end;
 
@@ -440,12 +457,15 @@ begin
   inherited;
 end;
 
-procedure TAds.THeyzapHandler.ShowInterstitial(const WaitUntilLoaded, Static: boolean);
+procedure TAds.THeyzapHandler.ShowFullScreenAd(const AdType: TFullScreenAdType;
+  const WaitUntilLoaded: boolean);
 begin
-  FInterstitialShowing := true;
-  if Static then
-    Messaging.Send(['ads-' + Name + '-show-interstitial', 'static']) else
-    Messaging.Send(['ads-' + Name + '-show-interstitial', 'video']);
+  FFullScreenAdVisible := true;
+  case AdType of
+    atInterstitialStatic: Messaging.Send(['ads-' + Name + '-show-full-screen', 'interstitial-static']);
+    atInterstitialVideo : Messaging.Send(['ads-' + Name + '-show-full-screen', 'interstitial-video']);
+    else { atReward     :}Messaging.Send(['ads-' + Name + '-show-full-screen', 'reward']);
+  end;
 end;
 
 procedure TAds.THeyzapHandler.StartTestActivity;
@@ -501,20 +521,20 @@ begin
   FNetworks[anHeyzap] := THeyzapHandler.Create(Self, PublisherId);
 end;
 
-procedure TAds.InterstitialShown;
+procedure TAds.FullScreenAdClosed;
 begin
-  if Assigned(OnInterstitialShown) then
-    OnInterstitialShown(Self);
+  if Assigned(OnFullScreenAdClosed) then
+    OnFullScreenAdClosed(Self);
 end;
 
-procedure TAds.ShowInterstitial(const AdNetwork: TAdNetwork;
-  const WaitUntilLoaded, Static: boolean);
+procedure TAds.ShowFullScreenAd(const AdNetwork: TAdNetwork;
+  const AdType: TFullScreenAdType; const WaitUntilLoaded: boolean);
 begin
   if FNetworks[AdNetwork] <> nil then
-    FNetworks[AdNetwork].ShowInterstitial(WaitUntilLoaded, Static) else
+    FNetworks[AdNetwork].ShowFullScreenAd(AdType, WaitUntilLoaded) else
   { if the network is not initialized, pretend it's shown,
-    in case user code waits for OnInterstitialShown. }
-    InterstitialShown;
+    in case user code waits for OnFullScreenAdClosed. }
+    FullScreenAdClosed;
 end;
 
 procedure TAds.ShowBanner(const AdNetwork: TAdNetwork;
