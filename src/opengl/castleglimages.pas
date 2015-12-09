@@ -64,7 +64,8 @@ interface
 
 uses SysUtils, FGL, CastleGL,
   CastleImages, CastleVectors, CastleGLUtils,
-  CastleVideos, CastleDDS, CastleRectangles, CastleGLShaders, CastleColors;
+  CastleVideos, CastleDDS, CastleRectangles, CastleGLShaders, CastleColors,
+  CastleTimeUtils;
 
 const
   PixelsImageClasses: array [0..3] of TEncodedImageClass = (
