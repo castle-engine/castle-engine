@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.heyzap.sdk.ads.HeyzapAds;
 import com.heyzap.sdk.ads.InterstitialAd;
+import com.heyzap.sdk.ads.IncentivizedAd;
 import com.heyzap.sdk.ads.VideoAd;
 import com.heyzap.sdk.ads.HeyzapAds.OnStatusListener;
 import com.heyzap.sdk.ads.BannerAdView;
@@ -18,7 +19,7 @@ public class ComponentHeyzap extends ComponentAbstract
     private static final String TAG = "${NAME}.castleengine.ComponentHeyzap";
 
     private boolean initialized, scheduledStart, scheduledResume;
-    private boolean mShown;
+    private boolean fullScreenAdVisible;
     private ActivityPopup adPopup;
     private BannerAdView bannerAdView;
 
@@ -56,13 +57,13 @@ public class ComponentHeyzap extends ComponentAbstract
             @Override
             public void onHide(String tag) {
                 // Ad was closed. The user has returned to your application.
-                interstitialDone();
+                fullScreenAdClosed();
             }
 
             @Override
             public void onFailedToShow(String tag) {
                 // Display was called but there was no ad to show
-                interstitialDone();
+                fullScreenAdClosed();
             }
 
             @Override
@@ -73,7 +74,7 @@ public class ComponentHeyzap extends ComponentAbstract
             @Override
             public void onFailedToFetch(String tag) {
                 // No ad was able to be fetched
-                interstitialDone();
+                fullScreenAdClosed();
             }
 
             @Override
@@ -102,13 +103,13 @@ public class ComponentHeyzap extends ComponentAbstract
             @Override
             public void onHide(String tag) {
                 // Ad was closed. The user has returned to your application.
-                interstitialDone();
+                fullScreenAdClosed();
             }
 
             @Override
             public void onFailedToShow(String tag) {
                 // Display was called but there was no ad to show
-                interstitialDone();
+                fullScreenAdClosed();
             }
 
             @Override
@@ -123,7 +124,7 @@ public class ComponentHeyzap extends ComponentAbstract
                 // Do not react to onFailedToFetch for videos,
                 // as we handle their fetching failure manually by checking
                 // VideoAd.isAvailable
-                // interstitialDone();
+                // fullScreenAdClosed();
             }
 
             @Override
@@ -138,6 +139,8 @@ public class ComponentHeyzap extends ComponentAbstract
         };
         VideoAd.setOnStatusListener(videoListener);
         VideoAd.fetch();
+        IncentivizedAd.setOnStatusListener(videoListener);
+        IncentivizedAd.fetch();
 
         Log.i(TAG, "Heyzap initialized (will send delayed onStart: " + scheduledStart + ", will send delayed onResume: " + scheduledResume + ")");
         initialized = true;
@@ -218,46 +221,65 @@ public class ComponentHeyzap extends ComponentAbstract
             return false; // let default activity onBackPressed to work
         }
 
-        // If an interstitial is on screen, close it.
+        // If a full-screen ad is on screen, close it.
         return HeyzapAds.onBackPressed();
     }
 
-    private void interstitialDone()
+    private void fullScreenAdClosed()
     {
-        if (mShown) {
-            messageSend(new String[]{"ads-heyzap-interstitial-display", "shown"});
-            mShown = false;
+        if (fullScreenAdVisible) {
+            messageSend(new String[]{"ads-heyzap-full-screen-ad-closed"});
+            fullScreenAdVisible = false;
         }
     }
 
     private void showInterstitial()
     {
         if (initialized) {
-            mShown = true;
+            fullScreenAdVisible = true;
             InterstitialAd.display(getActivity());
             Log.i(TAG, "Interstitial showing");
         } else {
             // pretend that ad was displayed, in case native app waits for it
-            messageSend(new String[]{"ads-heyzap-interstitial-display", "shown"});
+            fullScreenAdClosed();
         }
     }
 
     private void showVideo()
     {
+        fullScreenAdVisible = true;
         if (initialized) {
             if (VideoAd.isAvailable()) {
-                mShown = true;
                 VideoAd.display(getActivity());
                 VideoAd.fetch();
                 Log.i(TAG, "Video showing");
             } else {
                 Log.i(TAG, "Video not in cache yet, just skip it");
                 // pretend that ad was displayed, in case native app waits for it
-                messageSend(new String[]{"ads-heyzap-interstitial-display", "shown"});
+                fullScreenAdClosed();
             }
         } else {
             // pretend that ad was displayed, in case native app waits for it
-            messageSend(new String[]{"ads-heyzap-interstitial-display", "shown"});
+            fullScreenAdClosed();
+        }
+    }
+
+    private void showIncentivized()
+    {
+        fullScreenAdVisible = true;
+        if (initialized) {
+            if (IncentivizedAd.isAvailable()) {
+                IncentivizedAd.display(getActivity());
+                IncentivizedAd.fetch();
+                Log.i(TAG, "Incentivized showing");
+            } else {
+                Log.i(TAG, "Incentivized not in cache yet, just skip it");
+                // pretend that ad was displayed, in case native app waits for it
+                fullScreenAdClosed();
+            }
+        } else {
+            // pretend that ad was displayed, in case native app waits for it
+            fullScreenAdClosed();
         }
     }
 
@@ -300,12 +322,16 @@ public class ComponentHeyzap extends ComponentAbstract
             bannerHide();
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("ads-heyzap-show-interstitial") && parts[1].equals("static")) {
+        if (parts.length == 2 && parts[0].equals("ads-heyzap-show-full-screen") && parts[1].equals("interstitial-static")) {
             showInterstitial();
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("ads-heyzap-show-interstitial") && parts[1].equals("video")) {
+        if (parts.length == 2 && parts[0].equals("ads-heyzap-show-full-screen") && parts[1].equals("interstitial-video")) {
             showVideo();
+            return true;
+        } else
+        if (parts.length == 2 && parts[0].equals("ads-heyzap-show-full-screen") && parts[1].equals("reward")) {
+            showIncentivized();
             return true;
         } else
         if (parts.length == 1 && parts[0].equals("ads-heyzap-start-test-activity")) {

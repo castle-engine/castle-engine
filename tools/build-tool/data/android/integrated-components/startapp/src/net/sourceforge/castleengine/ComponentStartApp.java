@@ -101,6 +101,11 @@ public class ComponentStartApp extends ComponentAbstract
         }
     }
 
+    private void fullScreenAdClosed()
+    {
+        messageSend(new String[]{"ads-startapp-full-screen-ad-closed"});
+    }
+
     private void showInterstitial()
     {
         if (initialized) {
@@ -108,7 +113,7 @@ public class ComponentStartApp extends ComponentAbstract
                 @Override
                 public void adHidden(Ad ad) {
                     Log.i(TAG, "StartApp adHidden");
-                    messageSend(new String[]{"ads-startapp-interstitial-display", "shown"});
+                    fullScreenAdClosed();
                 }
                 @Override
                 public void adDisplayed(Ad ad) {
@@ -129,14 +134,14 @@ public class ComponentStartApp extends ComponentAbstract
                 @Override
                 public void adNotDisplayed(Ad arg0) {
                     Log.i(TAG, "StartApp adNotDisplayed");
-                    messageSend(new String[]{"ads-startapp-interstitial-display", "shown"});
+                    fullScreenAdClosed();
                 }
             }); // show the ad
 
             startAppAd.loadAd(); // load the next ad
         } else {
             // pretend that ad was displayed, in case native app waits for it
-            messageSend(new String[]{"ads-startapp-interstitial-display", "shown"});
+            fullScreenAdClosed();
         }
     }
 
