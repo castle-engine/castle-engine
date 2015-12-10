@@ -145,6 +145,7 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'services');
     P.Targets.AddUnit('castleads.pas');
     P.Targets.AddUnit('castleanalytics.pas');
+    P.Targets.AddUnit('castlegiftiz.pas');
     P.Targets.AddUnit('castlegoogleplaygames.pas');
     P.Targets.AddUnit('castleinapppurchases.pas');
     P.Targets.AddUnit('castlemessaging.pas');
