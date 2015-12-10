@@ -43,6 +43,7 @@ type
     function GetCenter: TVector2Single;
     function GetPosition: TVector2Integer;
     function GetRotation: Single;
+    procedure SetAnimTime(AValue: TFloatTime);
     procedure SetCenter(AValue: TVector2Single);
     procedure SetCenterX(AValue: Single);
     procedure SetCenterY(AValue: Single);
@@ -121,6 +122,10 @@ type
 
     { Is animation TimeLoop? }
     property TimeLoop: Boolean read FTimeLoop write FTimeLoop;
+
+    { Animation time can be set explicity. Writing to this property also recalculate
+      current frame. }
+    property Time: TFloatTime read FAnimTime write SetAnimTime;
   end;
 
   {$endif read_interface}
@@ -136,6 +141,13 @@ end;
 function TSprite.GetRotation: Single;
 begin
   Result := FImage.Rotation;
+end;
+
+procedure TSprite.SetAnimTime(AValue: TFloatTime);
+begin
+  if FAnimTime = AValue then Exit;
+  FAnimTime := AValue;
+  FFrame := TVideo.FrameIndexFromTime(FAnimTime, FFrames, FFramesPerSecond, FTimeLoop, False); //todo: add time backward
 end;
 
 function TSprite.GetFrameRect: TRectangle;
@@ -248,16 +260,13 @@ end;
 procedure TSprite.Update(ATime: Single);
 begin
   if not FPlaying then Exit;
-  FAnimTime += ATime;
-  FFrame := Round(FAnimTime / FFrameDuration);
-  if FFrame >= FFrames then
+
+  Time := Time + ATime;
+
+  if (FFrame >= FFrames) and (not FTimeLoop) then
   begin
-    if not FTimeLoop then
-    begin
-      Pause;
-      Exit;
-    end;
-    FFrame := FFrame mod FFrames;
+    Pause;
+    Exit;
   end;
 end;
 
