@@ -19,8 +19,9 @@ unit CastleResources;
 
 interface
 
-uses CastleVectors, Classes, CastleXMLConfig, CastlePrecalculatedAnimation,
-  CastleScene, X3DNodes, Castle3D, DOM, FGL, CastleBoxes, CastleFindFiles;
+uses Classes, DOM, FGL,
+  CastleVectors, CastleXMLConfig, CastlePrecalculatedAnimation, CastleTimeUtils,
+  CastleScene, X3DNodes, Castle3D, CastleBoxes, CastleFindFiles;
 
 type
   T3DResource = class;
@@ -78,7 +79,7 @@ type
       If we use TCastleScene with TimeSensor underneath, then this returns
       the scene with state reflecting given time --- in other words, we'll
       send proper events to TimeSensor to make this Time current. }
-    function Scene(const Time: Single; const Loop: boolean): TCastleScene;
+    function Scene(const Time: TFloatTime; const Loop: boolean): TCastleScene;
 
     { Animation URL, only when each animation is inside a separate 3D file.
       See [http://castle-engine.sourceforge.net/creating_data_resources.php]
@@ -378,7 +379,8 @@ procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: 
 
 implementation
 
-uses SysUtils, CastleProgress, CastleXMLUtils, CastleTimeUtils, CastleUtils,
+uses SysUtils,
+  CastleProgress, CastleXMLUtils, CastleUtils,
   CastleStringUtils, CastleLog, CastleConfig, CastleUIControls, CastleFilesUtils;
 
 type
@@ -398,7 +400,7 @@ begin
   AOwner.Animations.Add(Self);
 end;
 
-function T3DResourceAnimation.Scene(const Time: Single;
+function T3DResourceAnimation.Scene(const Time: TFloatTime;
   const Loop: boolean): TCastleScene;
 begin
   if Animation <> nil then

@@ -63,7 +63,7 @@ unit CastleGLImages;
 interface
 
 uses SysUtils, FGL, CastleGL,
-  CastleImages, CastleVectors, CastleGLUtils,
+  CastleImages, CastleVectors, CastleGLUtils, CastleTimeUtils,
   CastleVideos, CastleDDS, CastleRectangles, CastleGLShaders, CastleColors;
 
 const
