@@ -57,10 +57,6 @@ type
     the "google_in_app_purchases" component inside CastleEngineManifest.xml.
     See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine .
 
-    To include the necessary integration code in your Android project,
-    you must declare your Android project type as "integrated".
-    See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .
-
     @bold(You have to create the products to purchase, and their prices in various
     currencies, in the Google Developer Console.) The names of products
     you provide to @link(SetAvailableProducts) or @link(Product) methods
