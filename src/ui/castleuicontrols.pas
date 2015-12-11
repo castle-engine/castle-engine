@@ -3064,6 +3064,15 @@ begin
   HorizontalAnchorDelta := AHorizontalAnchorDelta;
 end;
 
+procedure TUIControl.Anchor(const AVerticalAnchor: TVerticalPosition;
+  const AVerticalAnchorDelta: Integer);
+begin
+  HasVerticalAnchor := true;
+  VerticalAnchorSelf := AVerticalAnchor;
+  VerticalAnchorParent := AVerticalAnchor;
+  VerticalAnchorDelta := AVerticalAnchorDelta;
+end;
+
 procedure TUIControl.Anchor(
   const AVerticalAnchorSelf, AVerticalAnchorParent: TVerticalPosition;
   const AVerticalAnchorDelta: Integer);
@@ -3071,15 +3080,6 @@ begin
   HasVerticalAnchor := true;
   VerticalAnchorSelf := AVerticalAnchorSelf;
   VerticalAnchorParent := AVerticalAnchorParent;
-  VerticalAnchorDelta := AVerticalAnchorDelta;
-end;
-
-procedure TUIControl.Anchor(const AVerticalAnchor: TVerticalPosition;
-  const AVerticalAnchorDelta: Integer);
-begin
-  HasVerticalAnchor := true;
-  VerticalAnchorSelf := AVerticalAnchor;
-  VerticalAnchorParent := AVerticalAnchor;
   VerticalAnchorDelta := AVerticalAnchorDelta;
 end;
 
