@@ -46,7 +46,7 @@ type
     constructor Create(Video: TVideo);
 
     property Count: Integer read FCount;
-    function IndexFromTime(const Time: Single): Integer;
+    function IndexFromTime(const Time: TFloatTime): Integer;
 
     { See TVideo.FramesPerSecond. }
     property FramesPerSecond: Single read FFramesPerSecond write FFramesPerSecond;
@@ -78,7 +78,7 @@ type
       const GUITexture:  boolean);
     destructor Destroy; override;
 
-    function GLTextureFromTime(const Time: Single): TGLTextureId;
+    function GLTextureFromTime(const Time: TFloatTime): TGLTextureId;
   end;
 
   { Video expressed as a series of TGLImage, to play as 2D GUI control. }
@@ -96,7 +96,7 @@ type
       const Interpolation: TResizeInterpolation = riBilinear);
     destructor Destroy; override;
 
-    function GLImageFromTime(const Time: Single): TGLImage;
+    function GLImageFromTime(const Time: TFloatTime): TGLImage;
   end;
 
 {$endif read_interface}
@@ -117,7 +117,7 @@ begin
   FHeight := Video.Height
 end;
 
-function TGLVideo.IndexFromTime(const Time: Single): Integer;
+function TGLVideo.IndexFromTime(const Time: TFloatTime): Integer;
 begin
   Result := TVideo.FrameIndexFromTime(Time, Count, FramesPerSecond,
     TimeLoop, TimeBackwards);
@@ -155,7 +155,7 @@ begin
   inherited;
 end;
 
-function TGLVideo3D.GLTextureFromTime(const Time: Single): TGLTextureId;
+function TGLVideo3D.GLTextureFromTime(const Time: TFloatTime): TGLTextureId;
 begin
   Result := FItems[IndexFromTime(Time)];
 end;
@@ -209,7 +209,7 @@ begin
   inherited;
 end;
 
-function TGLVideo2D.GLImageFromTime(const Time: Single): TGLImage;
+function TGLVideo2D.GLImageFromTime(const Time: TFloatTime): TGLImage;
 begin
   Result := FItems[IndexFromTime(Time)];
 end;

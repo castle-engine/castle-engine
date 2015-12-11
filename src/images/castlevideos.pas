@@ -18,7 +18,8 @@ unit CastleVideos;
 
 interface
 
-uses SysUtils, CastleImages, FGL;
+uses SysUtils, FGL,
+  CastleImages, CastleTimeUtils;
 
 type
   EInvalidFadeFrames = class(Exception);
@@ -89,8 +90,8 @@ type
     property Items [Index: Integer]: TCastleImage read GetItems;
     function Width: Cardinal;
     function Height: Cardinal;
-    function IndexFromTime(const Time: Single): Integer;
-    function ImageFromTime(const Time: Single): TCastleImage;
+    function IndexFromTime(const Time: TFloatTime): Integer;
+    function ImageFromTime(const Time: TFloatTime): TCastleImage;
     { @groupEnd }
 
     { Duration of the video. In seconds (or, more precisely, in the
@@ -264,7 +265,7 @@ type
 
       In particular, this public for TGLVideo.IndexFromTime,
       TGLVideo.GLTextureFromTime methods. }
-    class function FrameIndexFromTime(const Time: Single;
+    class function FrameIndexFromTime(const Time: TFloatTime;
       const ACount: Integer;
       const AFramesPerSecond: Single;
       const ATimeLoop, ATimeBackwards: boolean): Integer;
@@ -402,7 +403,7 @@ implementation
 
 uses Classes, CastleClassUtils, CastleUtils, Math, CastleStringUtils,
   CastleWarnings, CastleFilesUtils, CastleProgress, CastleTextureImages,
-  CastleLog, CastleDownload, CastleURIUtils, CastleFindFiles, CastleTimeUtils;
+  CastleLog, CastleDownload, CastleURIUtils, CastleFindFiles;
 
 { TVideo --------------------------------------------------------------------- }
 
@@ -432,7 +433,7 @@ begin
   Result := FItems[Index];
 end;
 
-class function TVideo.FrameIndexFromTime(const Time: Single;
+class function TVideo.FrameIndexFromTime(const Time: TFloatTime;
   const ACount: Integer;
   const AFramesPerSecond: Single;
   const ATimeLoop, ATimeBackwards: boolean): Integer;
@@ -468,14 +469,14 @@ begin
   end;
 end;
 
-function TVideo.IndexFromTime(const Time: Single): Integer;
+function TVideo.IndexFromTime(const Time: TFloatTime): Integer;
 begin
   Assert(Loaded);
   Result := FrameIndexFromTime(Time, Count, FramesPerSecond,
     TimeLoop, TimeBackwards);
 end;
 
-function TVideo.ImageFromTime(const Time: Single): TCastleImage;
+function TVideo.ImageFromTime(const Time: TFloatTime): TCastleImage;
 begin
   Result := FItems[IndexFromTime(Time)];
 end;

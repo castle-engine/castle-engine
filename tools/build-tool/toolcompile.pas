@@ -183,7 +183,7 @@ begin
 
     case OS of
       Android:
-        { See https://sourceforge.net/p/castle-engine/wiki/Android%20development/#notes-about-compiling-with-hard-floats-cfvfpv3 }
+        { See https://github.com/castle-engine/castle-engine/wiki/Android-Internal-Information#notes-about-compiling-with-hard-floats--cfvfpv3 }
         FpcOptions.Add('-CfVFPV3');
     end;
 

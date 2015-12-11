@@ -58,8 +58,10 @@ type
       default DefaultPadding;
     property HasHorizontalAnchor stored false;
     property HasVerticalAnchor stored false;
-    property HorizontalAnchor stored false;
-    property VerticalAnchor stored false;
+    property HorizontalAnchorSelf stored false;
+    property HorizontalAnchorParent stored false;
+    property VerticalAnchorSelf stored false;
+    property VerticalAnchorParent stored false;
   end;
 
 implementation
@@ -249,7 +251,7 @@ begin
   begin
     if ScreenRect.Contains(Event.Position) then
     begin
-      if HorizontalAnchor = hpLeft then
+      if HorizontalAnchorSelf = hpLeft then
         Anchor(hpRight) else
         Anchor(hpLeft);
     end;

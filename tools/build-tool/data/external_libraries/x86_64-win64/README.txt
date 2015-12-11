@@ -4,7 +4,7 @@ together with Windows 64-bit programs using the Castle Game Engine
 
 You need to distribute these files together with your Windows programs,
 alongside the exe file. You can use our build tool (see
-https://sourceforge.net/p/castle-engine/wiki/Build%20tool/ )
+https://github.com/castle-engine/castle-engine/wiki/Build-Tool )
 to easily package your programs together with their dependendent libraries.
 
 Origins:

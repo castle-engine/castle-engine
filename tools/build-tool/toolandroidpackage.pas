@@ -226,7 +226,7 @@ const
   procedure GenerateAntProperties(var PackageMode: TCompilationMode);
   const
     SourceAntProperties = 'AndroidAntProperties.txt';
-    WWW = 'https://sourceforge.net/p/castle-engine/wiki/Android%20development/';
+    WWW = 'https://github.com/castle-engine/castle-engine/wiki/Android';
   var
     S: TStringList;
   begin

@@ -63,9 +63,8 @@ unit CastleGLImages;
 interface
 
 uses SysUtils, FGL, CastleGL,
-  CastleImages, CastleVectors, CastleGLUtils,
-  CastleVideos, CastleDDS, CastleRectangles, CastleGLShaders, CastleColors,
-  CastleTimeUtils;
+  CastleImages, CastleVectors, CastleGLUtils, CastleTimeUtils,
+  CastleVideos, CastleDDS, CastleRectangles, CastleGLShaders, CastleColors;
 
 const
   PixelsImageClasses: array [0..3] of TEncodedImageClass = (

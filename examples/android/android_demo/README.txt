@@ -3,7 +3,7 @@ using full-featured SceneManager (TCastleScene underneath)).
 This compiles to a library libandroiddemo.so.
 
 Compile and run the application for Android by
-https://sourceforge.net/p/castle-engine/wiki/Build%20tool/ :
+https://github.com/castle-engine/castle-engine/wiki/Build-Tool :
 
   castle-engine package --os=android --cpu=arm --mode=debug
   castle-engine install --os=android --cpu=arm
@@ -23,7 +23,7 @@ into the final apk, and even installs and runs it
 
 Note that you will need to install Android SDK, Android NDK
 and FPC cross-compiler first. See
-https://sourceforge.net/p/castle-engine/wiki/Android%20development/
+https://github.com/castle-engine/castle-engine/wiki/Android
 for details how to do it.
 
 If you want to take a look at the internals of the Android integration,
