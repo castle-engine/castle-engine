@@ -752,10 +752,10 @@ end;
     FBottom: Integer;
     FParent: TUIControl; //< null means that parent is our owner
     FHasHorizontalAnchor: boolean;
-    FHorizontalAnchor: THorizontalPosition;
+    FHorizontalAnchorSelf, FHorizontalAnchorParent: THorizontalPosition;
     FHorizontalAnchorDelta: Integer;
     FHasVerticalAnchor: boolean;
-    FVerticalAnchor: TVerticalPosition;
+    FVerticalAnchorSelf, FVerticalAnchorParent: TVerticalPosition;
     FVerticalAnchorDelta: Integer;
     FEnableUIScaling: boolean;
     procedure SetExists(const Value: boolean);
@@ -779,10 +779,12 @@ end;
     procedure SetBottom(const Value: Integer);
 
     procedure SetHasHorizontalAnchor(const Value: boolean);
-    procedure SetHorizontalAnchor(const Value: THorizontalPosition);
+    procedure SetHorizontalAnchorSelf(const Value: THorizontalPosition);
+    procedure SetHorizontalAnchorParent(const Value: THorizontalPosition);
     procedure SetHorizontalAnchorDelta(const Value: Integer);
     procedure SetHasVerticalAnchor(const Value: boolean);
-    procedure SetVerticalAnchor(const Value: TVerticalPosition);
+    procedure SetVerticalAnchorSelf(const Value: TVerticalPosition);
+    procedure SetVerticalAnchorParent(const Value: TVerticalPosition);
     procedure SetVerticalAnchorDelta(const Value: Integer);
     function RectWithAnchors: TRectangle;
     procedure SetEnableUIScaling(const Value: boolean);
@@ -1003,14 +1005,32 @@ end;
 
     { Quick way to enable horizontal anchor, to automatically keep this
       control aligned to parent. Sets @link(HasHorizontalAnchor),
-      @link(HorizontalAnchor), @link(HorizontalAnchorDelta). }
+      @link(HorizontalAnchorSelf), @link(HorizontalAnchorParent),
+      @link(HorizontalAnchorDelta). }
     procedure Anchor(const AHorizontalAnchor: THorizontalPosition;
+      const AHorizontalAnchorDelta: Integer = 0);
+
+    { Quick way to enable horizontal anchor, to automatically keep this
+      control aligned to parent. Sets @link(HasHorizontalAnchor),
+      @link(HorizontalAnchorSelf), @link(HorizontalAnchorParent),
+      @link(HorizontalAnchorDelta). }
+    procedure Anchor(
+      const AHorizontalAnchorSelf, AHorizontalAnchorParent: THorizontalPosition;
       const AHorizontalAnchorDelta: Integer = 0);
 
     { Quick way to enable vertical anchor, to automatically keep this
       control aligned to parent. Sets @link(HasVerticalAnchor),
-      @link(VerticalAnchor), @link(VerticalAnchorDelta). }
+      @link(VerticalAnchorSelf), @link(VerticalAnchorParent),
+      @link(VerticalAnchorDelta). }
     procedure Anchor(const AVerticalAnchor: TVerticalPosition;
+      const AVerticalAnchorDelta: Integer = 0);
+
+    { Quick way to enable vertical anchor, to automatically keep this
+      control aligned to parent. Sets @link(HasVerticalAnchor),
+      @link(VerticalAnchorSelf), @link(VerticalAnchorParent),
+      @link(VerticalAnchorDelta). }
+    procedure Anchor(
+      const AVerticalAnchorSelf, AVerticalAnchorParent: TVerticalPosition;
       const AVerticalAnchorDelta: Integer = 0);
 
     { Immediately position the control with respect to the parent
@@ -1019,13 +1039,16 @@ end;
     procedure AlignHorizontal(
       const ControlPosition: TPositionRelative = prMiddle;
       const ContainerPosition: TPositionRelative = prMiddle;
-      const X: Integer = 0); deprecated 'use Align, or use even simpler HasHorizontalAnchor, HorizontalAnchor, HorizontalAnchorDelta';
+      const X: Integer = 0); deprecated 'use Align or Anchor';
 
     { Immediately position the control with respect to the parent
       by adjusting @link(Left).
 
-      Note that in simple cases, you can achieve the same functionality
-      by HasHorizontalAnchor, HorizontalAnchor, HorizontalAnchorDelta. }
+      Note that using @link(Anchor) is often more comfortable than this method,
+      since you only need to set anchor once (for example, right after creating
+      the control). In contract, adjusting position using this method
+      will typically need to be repeated at each window on resize,
+      like in @link(TCastleWindowCustom.OnResize). }
     procedure Align(
       const ControlPosition: THorizontalPosition;
       const ContainerPosition: THorizontalPosition;
@@ -1037,13 +1060,16 @@ end;
     procedure AlignVertical(
       const ControlPosition: TPositionRelative = prMiddle;
       const ContainerPosition: TPositionRelative = prMiddle;
-      const Y: Integer = 0); deprecated 'use Align, or use even simpler HasVerticalAnchor, VerticalAnchor, VerticalAnchorDelta';
+      const Y: Integer = 0); deprecated 'use Align or Anchor';
 
     { Immediately position the control with respect to the parent
       by adjusting @link(Bottom).
 
-      Note that in simple cases, you can achieve the same functionality
-      by HasVerticalAnchor, VerticalAnchor, VerticalAnchorDelta. }
+      Note that using @link(Anchor) is often more comfortable than this method,
+      since you only need to set anchor once (for example, right after creating
+      the control). In contract, adjusting position using this method
+      will typically need to be repeated at each window on resize,
+      like in @link(TCastleWindowCustom.OnResize). }
     procedure Align(
       const ControlPosition: TVerticalPosition;
       const ContainerPosition: TVerticalPosition;
@@ -1052,8 +1078,12 @@ end;
     { Immediately center the control within the parent,
       both horizontally and vertically.
 
-      Note that in simple cases, you can achieve the same functionality
-      by HasHorizontalAnchor, HorizontalAnchor, HasVerticalAnchor, VerticalAnchor. }
+      Note that using @link(Anchor) is often more comfortable than this method,
+      since you only need to set anchor once. For example, right after creating
+      the control call @code(Anchor(hpMiddle); Anchor(vpMiddle);).
+      In contrast, adjusting position using this method
+      will typically need to be repeated at each window on resize,
+      like in @link(TCastleWindowCustom.OnResize). }
     procedure Center;
 
     { UI scale of this control, derived from container
@@ -1094,10 +1124,15 @@ end;
       @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
     property HasHorizontalAnchor: boolean
       read FHasHorizontalAnchor write SetHasHorizontalAnchor default false;
-    { Which border to align (both our and parent border),
+    { Which @bold(our) border to align (it's aligned
+      to parent @link(HorizontalAnchorParent) border),
       only used if @link(HasHorizontalAnchor). }
-    property HorizontalAnchor: THorizontalPosition
-      read FHorizontalAnchor write SetHorizontalAnchor default hpLeft;
+    property HorizontalAnchorSelf: THorizontalPosition
+      read FHorizontalAnchorSelf write SetHorizontalAnchorSelf default hpLeft;
+    { Which @bold(parent) border is aligned to our @link(HorizontalAnchorSelf) border,
+      only used if @link(HasHorizontalAnchor). }
+    property HorizontalAnchorParent: THorizontalPosition
+      read FHorizontalAnchorParent write SetHorizontalAnchorParent default hpLeft;
     { Delta between our border and parent,
       only used if @link(HasHorizontalAnchor). }
     property HorizontalAnchorDelta: Integer
@@ -1111,10 +1146,15 @@ end;
       @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
     property HasVerticalAnchor: boolean
       read FHasVerticalAnchor write SetHasVerticalAnchor default false;
-    { Which border to align (both our and parent border),
+    { Which @bold(our) border to align (it's aligned
+      to parent @link(VerticalAnchorParent) border),
       only used if @link(HasVerticalAnchor). }
-    property VerticalAnchor: TVerticalPosition
-      read FVerticalAnchor write SetVerticalAnchor default vpBottom;
+    property VerticalAnchorSelf: TVerticalPosition
+      read FVerticalAnchorSelf write SetVerticalAnchorSelf default vpBottom;
+    { Which @bold(parent) border is aligned to our @link(VerticalAnchorSelf) border,
+      only used if @link(HasVerticalAnchor). }
+    property VerticalAnchorParent: TVerticalPosition
+      read FVerticalAnchorParent write SetVerticalAnchorParent default vpBottom;
     { Delta between our border and parent,
       only used if @link(HasVerticalAnchor). }
     property VerticalAnchorDelta: Integer
@@ -2875,35 +2915,6 @@ end;
 *)
 
 function TUIControl.RectWithAnchors: TRectangle;
-
-  { Faster versions of TRectangle.AlignCore, knowing that ParentRect
-    ("other" rectangle) has Left/Bottom = (0,0) in local coords
-    (so no need to worry about them) and that ThisPosition = OtherPosition. }
-
-  function FastAlignCore(
-    const Position: THorizontalPosition;
-    const ThisWidth, OtherRectWidth: Integer;
-    const X: Integer): Integer;
-  begin
-    case Position of
-      hpLeft  : Result := X;
-      hpMiddle: Result := X - ThisWidth div 2 + OtherRectWidth div 2;
-      hpRight : Result := X - ThisWidth       + OtherRectWidth;
-    end;
-  end;
-
-  function FastAlignCore(
-    const Position: TVerticalPosition;
-    const ThisHeight, OtherRectHeight: Integer;
-    const Y: Integer): Integer;
-  begin
-    case Position of
-      vpBottom: Result := Y;
-      vpMiddle: Result := Y - ThisHeight div 2 + OtherRectHeight div 2;
-      vpTop   : Result := Y - ThisHeight       + OtherRectHeight;
-    end;
-  end;
-
 var
   PR: TRectangle;
 begin
@@ -2917,12 +2928,12 @@ begin
 
   { apply anchors }
   if HasHorizontalAnchor or HasVerticalAnchor then
-    PR := ParentRect; // only PR.Left / PR.Bottom are unused, so no need to get ParentRectAnchored
+    PR := ParentRect;
   if HasHorizontalAnchor then
-    Result.Left := FastAlignCore(HorizontalAnchor, Result.Width , PR.Width ,
+    Result.Left := Result.AlignCore(HorizontalAnchorSelf, PR, HorizontalAnchorParent,
       Round(UIScale * HorizontalAnchorDelta));
   if HasVerticalAnchor then
-    Result.Bottom := FastAlignCore(VerticalAnchor, Result.Height, PR.Height,
+    Result.Bottom := Result.AlignCore(VerticalAnchorSelf, PR, VerticalAnchorParent,
       Round(UIScale * VerticalAnchorDelta));
 end;
 
@@ -2971,11 +2982,20 @@ begin
   end;
 end;
 
-procedure TUIControl.SetHorizontalAnchor(const Value: THorizontalPosition);
+procedure TUIControl.SetHorizontalAnchorSelf(const Value: THorizontalPosition);
 begin
-  if FHorizontalAnchor <> Value then
+  if FHorizontalAnchorSelf <> Value then
   begin
-    FHorizontalAnchor := Value;
+    FHorizontalAnchorSelf := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TUIControl.SetHorizontalAnchorParent(const Value: THorizontalPosition);
+begin
+  if FHorizontalAnchorParent <> Value then
+  begin
+    FHorizontalAnchorParent := Value;
     VisibleChange;
   end;
 end;
@@ -2998,11 +3018,20 @@ begin
   end;
 end;
 
-procedure TUIControl.SetVerticalAnchor(const Value: TVerticalPosition);
+procedure TUIControl.SetVerticalAnchorSelf(const Value: TVerticalPosition);
 begin
-  if FVerticalAnchor <> Value then
+  if FVerticalAnchorSelf <> Value then
   begin
-    FVerticalAnchor := Value;
+    FVerticalAnchorSelf := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TUIControl.SetVerticalAnchorParent(const Value: TVerticalPosition);
+begin
+  if FVerticalAnchorParent <> Value then
+  begin
+    FVerticalAnchorParent := Value;
     VisibleChange;
   end;
 end;
@@ -3020,15 +3049,37 @@ procedure TUIControl.Anchor(const AHorizontalAnchor: THorizontalPosition;
   const AHorizontalAnchorDelta: Integer);
 begin
   HasHorizontalAnchor := true;
-  HorizontalAnchor := AHorizontalAnchor;
+  HorizontalAnchorSelf := AHorizontalAnchor;
+  HorizontalAnchorParent := AHorizontalAnchor;
   HorizontalAnchorDelta := AHorizontalAnchorDelta;
+end;
+
+procedure TUIControl.Anchor(
+  const AHorizontalAnchorSelf, AHorizontalAnchorParent: THorizontalPosition;
+  const AHorizontalAnchorDelta: Integer);
+begin
+  HasHorizontalAnchor := true;
+  HorizontalAnchorSelf := AHorizontalAnchorSelf;
+  HorizontalAnchorParent := AHorizontalAnchorParent;
+  HorizontalAnchorDelta := AHorizontalAnchorDelta;
+end;
+
+procedure TUIControl.Anchor(
+  const AVerticalAnchorSelf, AVerticalAnchorParent: TVerticalPosition;
+  const AVerticalAnchorDelta: Integer);
+begin
+  HasVerticalAnchor := true;
+  VerticalAnchorSelf := AVerticalAnchorSelf;
+  VerticalAnchorParent := AVerticalAnchorParent;
+  VerticalAnchorDelta := AVerticalAnchorDelta;
 end;
 
 procedure TUIControl.Anchor(const AVerticalAnchor: TVerticalPosition;
   const AVerticalAnchorDelta: Integer);
 begin
   HasVerticalAnchor := true;
-  VerticalAnchor := AVerticalAnchor;
+  VerticalAnchorSelf := AVerticalAnchor;
+  VerticalAnchorParent := AVerticalAnchor;
   VerticalAnchorDelta := AVerticalAnchorDelta;
 end;
 

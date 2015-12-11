@@ -220,12 +220,8 @@ begin
   ImageHeightScaleSlider.Value := 0.25;
   ImageHeightScaleSlider.OnChange := @ImageHeightScaleChanged;
 
-  HasHorizontalAnchor := true;
-  HorizontalAnchor := hpLeft;
-  HorizontalAnchorDelta := 10;
-  HasVerticalAnchor := true;
-  VerticalAnchor := vpBottom;
-  VerticalAnchorDelta := 10;
+  Anchor(hpLeft, 10);
+  Anchor(vpBottom, 10);
 end;
 
 constructor TControlsNoise.Create(AOwner: TComponent);
