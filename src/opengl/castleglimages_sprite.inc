@@ -29,13 +29,13 @@ type
     FImage: TGLImage;
     FX, FY: Integer;
     FDrawingWidth, FDrawingHeight: Cardinal;
-    //FCenterX, FCenterY, FRotation: Single;
     FFrames, FFrameWidth, FFrameHeight, FCols, FRows: Cardinal;
     FFramesPerSecond, FFrameDuration: Single;
     FAnimTime: TFloatTime;
     FFrame: Cardinal;
     FPlaying: Boolean;
     FTimeLoop: Boolean;
+    FLeftMarginOffset, FTopMarginOffset: Cardinal;
     function GetCenterX: Single;
     function GetCenterY: Single;
     function GetFrameRect: TRectangle;
@@ -126,6 +126,20 @@ type
     { Animation time can be set explicity. Writing to this property also recalculate
       current frame. }
     property Time: TFloatTime read FAnimTime write SetAnimTime;
+
+    { Width of single frame. Default value is calculated in constructor
+      depend on cols count. }
+    property FrameWidth: Cardinal read FFrameWidth write FFrameWidth;
+
+    { Height of single frame. Default value is calculated in constructor
+      depend on rows count. }
+    property FrameHeight: Cardinal read FFrameHeight write FFrameHeight;
+
+    { Define X offset. Useful if first frame don't start at X=0. }
+    property LeftMarginOffset: Cardinal read FLeftMarginOffset write FLeftMarginOffset default 0;
+
+    { Define Y offset. Useful if first frame don't start at Y=0. }
+    property TopMarginOffset: Cardinal read FTopMarginOffset write FTopMarginOffset default 0;
   end;
 
   {$endif read_interface}
@@ -152,8 +166,8 @@ end;
 
 function TSprite.GetFrameRect: TRectangle;
 begin
-  Result.Left := FFrame mod FCols * FFrameWidth;
-  Result.Bottom := (FImage.Height - FFrameHeight) - FFrame div FCols * FFrameHeight;
+  Result.Left := FFrame mod FCols * FFrameWidth + FLeftMarginOffset;
+  Result.Bottom := (FImage.Height - FFrameHeight) - FFrame div FCols * FFrameHeight - FTopMarginOffset;
   Result.Width := FFrameWidth;
   Result.Height := FFrameHeight;
 end;
@@ -244,11 +258,12 @@ begin
   FDrawingWidth := FFrameWidth;
   FDrawingHeight := FFrameHeight;
   FPlaying := APlay;
-
   FFrame := 0;
   FAnimTime := 0;
   SetFramesPerSecond(DefaultFramesPerSecond);
   FTimeLoop := ATimeLoop;
+  FLeftMarginOffset := 0;
+  FTopMarginOffset := 0;
 end;
 
 destructor TSprite.Destroy;
