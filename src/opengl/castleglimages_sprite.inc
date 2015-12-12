@@ -36,6 +36,7 @@ type
     FPlaying: Boolean;
     FTimeLoop: Boolean;
     FLeftMarginOffset, FTopMarginOffset: Cardinal;
+    FTimeBackwards: Boolean;
     function GetCenterX: Single;
     function GetCenterY: Single;
     function GetFrameRect: TRectangle;
@@ -140,6 +141,9 @@ type
 
     { Define Y offset. Useful if first frame don't start at Y=0. }
     property TopMarginOffset: Cardinal read FTopMarginOffset write FTopMarginOffset default 0;
+
+    { See TVideo.TimeBackwards. }
+    property TimeBackwards: Boolean read FTimeBackwards write FTimeBackwards default False;
   end;
 
   {$endif read_interface}
@@ -161,7 +165,7 @@ procedure TSprite.SetAnimTime(AValue: TFloatTime);
 begin
   if FAnimTime = AValue then Exit;
   FAnimTime := AValue;
-  FFrame := TVideo.FrameIndexFromTime(FAnimTime, FFrames, FFramesPerSecond, FTimeLoop, False); //todo: add time backward
+  FFrame := TVideo.FrameIndexFromTime(FAnimTime, FFrames, FFramesPerSecond, FTimeLoop, FTimeBackwards);
 end;
 
 function TSprite.GetFrameRect: TRectangle;
@@ -264,6 +268,7 @@ begin
   FTimeLoop := ATimeLoop;
   FLeftMarginOffset := 0;
   FTopMarginOffset := 0;
+  FTimeBackwards := False;
 end;
 
 destructor TSprite.Destroy;
