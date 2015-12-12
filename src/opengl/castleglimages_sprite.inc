@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Part of CastleGLImages unit: drawing 2D images on screen (TGLImage class). }
+{ Part of CastleGLImages unit: drawing 2D sprites on screen (TSprite class). }
 
 {$ifdef read_interface}
 

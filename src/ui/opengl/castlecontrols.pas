@@ -1055,6 +1055,10 @@ property UIFontSmall: TCastleFont read GetUIFontSmall write SetUIFontSmall;
 
 function Theme: TCastleTheme;
 
+{$define read_interface}
+{$I castlecontrols_tiledmap.inc}
+{$undef read_interface}
+
 procedure Register;
 
 implementation
@@ -3569,6 +3573,10 @@ begin
   if FTheme <> nil then
     FTheme.GLContextClose;
 end;
+
+{$define read_implementation}
+{$I castlecontrols_tiledmap.inc}
+{$undef read_implementation}
 
 initialization
   ApplicationProperties.OnGLContextClose.Add(@ContextClose);
