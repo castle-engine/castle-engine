@@ -1662,7 +1662,7 @@ end;
       on closing the window (i.e. QuitWhenLastWindowClosed = false).
       By default, if this event is undefined, we call Close(true)
       when user tries to close the window. }
-    property OnCloseQuery: TContainerEvent read FOnCloseQuery write FOnCloseQuery; { = nil }
+    property OnCloseQuery: TContainerEvent read FOnCloseQuery write FOnCloseQuery;
 
     { Mouse or a finger on touch device moved.
 
@@ -1717,15 +1717,17 @@ end;
       Note: this is currently supported only by CASTLE_WINDOW_LCL backend. }
     property OnDropFiles: TDropFilesFunc read FOnDropFiles write FOnDropFiles;
 
-    { Should we automatically redraw the window all the time,
-      without a need for Invalidate call.
+    { Should we automatically redraw the window constantly the time,
+      without a need for @link(Invalidate) call.
+
       If @true, window will behave like a redraw is always needed,
-      and EventRender (OnRender) will be always called as often as posible.
-      This may be a waste of OS resources, so don't use it, unless
-      you know that you really have some animation displayed
-      all the time. }
+      and EventRender (OnRender) will called constantly.
+      This may be a waste of resources (CPU etc.), so if you want
+      to be nicer for resources (and your program may does not change it's display
+      for many frames), you can set it to @false, and manually call
+      @link(Invalidate) when you need to redraw the screen. }
     property AutoRedisplay: boolean read fAutoRedisplay write SetAutoRedisplay
-      default false;
+      default true;
 
     { -------------------------------------------------------------------------
       Menu things (menu may be modified at runtime, everything will be
@@ -2916,6 +2918,7 @@ begin
   FCursor := mcDefault;
   FMultiSampling := 1;
   FVisible := true;
+  FAutoRedisplay := true;
   OwnsMainMenu := true;
   FDpi := DefaultDpi;
   FPressed := TKeysPressed.Create;
