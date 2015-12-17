@@ -21,7 +21,8 @@ type
 
   {}
   TCastleTiledMap = class(TUIControl)
-
+  private
+    FAtlas: TSprite;
   end;
 
 {$endif read_interface}
