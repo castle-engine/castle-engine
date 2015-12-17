@@ -182,6 +182,7 @@ type
       @groupBegin }
     procedure Draw;
     procedure Draw(const X, Y: Integer);
+    procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer);
     procedure Draw(const Pos: TVector2Integer);
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single);
@@ -472,6 +473,11 @@ end;
 procedure TGLImage.Draw(const X, Y: Integer);
 begin
   Draw(X, Y, Width, Height, 0, 0, Width, Height);
+end;
+
+procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer);
+begin
+  Draw(X, Y, DrawWidth, DrawHeight, 0, 0, Width, Height);
 end;
 
 procedure TGLImage.Draw(const Pos: TVector2Integer);
