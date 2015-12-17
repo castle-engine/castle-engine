@@ -3323,6 +3323,7 @@ begin
   begin
     if C.DisableContextOpenClose = 0 then
       C.GLContextOpen;
+    AContainer.Invalidate;
     { Call initial Resize for control.
       If window OpenGL context is not yet initialized, defer it to
       the Open time, then our initial EventResize will be called
