@@ -19,24 +19,37 @@
 
 type
 
-  //todo: individual each frame duration
+  { Single frame individual duration time (in seconds). }
+  TSpriteAnimationFrame = record
+    Frame: Cardinal;
+    Duration: Single;
+  end;
+
+  { Custom animation of a sprite. Animation is defined as array of used frames. }
+  TSpriteAnimation = array of TSpriteAnimationFrame;
 
   { Sprite images class. Sprite is an image with many animation frames arranged
     in rows and columns. Frames are readed from left to right and from top
-    to bottom. }
+    to bottom.
+    Custom animations feature. todo: description }
   TSprite = class
+  type
+    TSpriteAnimations = specialize TFPGList<TSpriteAnimation>;
   private
     FImage: TGLImage;
     FX, FY: Integer;
     FDrawingWidth, FDrawingHeight: Cardinal;
     FFrames, FFrameWidth, FFrameHeight, FCols, FRows: Cardinal;
-    FFramesPerSecond, FFrameDuration: Single;
+    FFramesPerSecond{, FFrameDuration}: Single;
     FAnimTime: TFloatTime;
     FFrame: Cardinal;
     FPlaying: Boolean;
     FTimeLoop: Boolean;
     FLeftMarginOffset, FTopMarginOffset: Cardinal;
     FTimeBackwards: Boolean;
+    FAnimations: TSpriteAnimations;
+    FUseCustomAnimations: Boolean;
+    FCurrentAnimation: Integer;
     function GetCenterX: Single;
     function GetCenterY: Single;
     function GetFrameRect: TRectangle;
@@ -144,6 +157,9 @@ type
 
     { See TVideo.TimeBackwards. }
     property TimeBackwards: Boolean read FTimeBackwards write FTimeBackwards default False;
+
+    { Is custom animations feature in use? }
+    property UseCustomAnimations: Boolean read FUseCustomAnimations write FUseCustomAnimations default False;
   end;
 
   {$endif read_interface}
@@ -269,6 +285,7 @@ begin
   FLeftMarginOffset := 0;
   FTopMarginOffset := 0;
   FTimeBackwards := False;
+  FUseCustomAnimations := False;
 end;
 
 destructor TSprite.Destroy;
