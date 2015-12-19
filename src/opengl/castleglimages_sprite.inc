@@ -29,7 +29,7 @@ type
   TSpriteAnimation = array of TSpriteAnimationFrame;
 
   { @abstract(Sprite images class. Sprite is an image with many animation frames arranged
-    in rows and columns. Frames are readed from left to right and from top
+    in rows and columns. Frames are read from left to right and from top
     to bottom.)
 
     Custom animations feature. Custom animation is an array of frames with
