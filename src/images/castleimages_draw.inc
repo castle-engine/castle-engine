@@ -17,6 +17,9 @@
 
 { TCastleImage --------------------------------------------------------------- }
 
+const
+  SErrBlendModeNotImplemented = 'Blend mode not implemented (drawing from image class %s to %s)';
+
 procedure TCastleImage.DrawFromCore(Source: TCastleImage;
   X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
   const Mode: TDrawMode);
@@ -24,14 +27,13 @@ var
   Line: Integer;
   Ptr, SourcePtr: Pointer;
   RowWidth, SourceRowWidth, SourceCopyRowWidth: Cardinal;
-
 begin
   if Source.ClassType <> ClassType then
-    raise EImageDrawError.CreateFmt('Cannot draw pixels from image class %s to %s',
+    raise EImageDrawError.CreateFmt('Blend mode for this source/destination combination may be not implemented. Cannot draw pixels from image class %s to %s',
       [Source.ClassName, ClassName]);
 
   if Mode <> dmBlend then
-    raise EImageDrawError.CreateFmt('Base TCastleImage.DrawFromCore cannot draw pixels with Mode <> dmBlend, override DrawFromCore to implement this correctly, from image class %s to %s',
+    raise EImageDrawError.CreateFmt('Blend mode for this source/destination combination may be not implemented. Base TCastleImage.DrawFromCore cannot draw pixels with Mode <> dmBlend, override DrawFromCore to implement this correctly, from image class %s to %s',
       [Source.ClassName, ClassName]);
 
   Ptr := PixelPtr(X, Y);
@@ -173,7 +175,7 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             Inc(PDest);
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TRGBAlphaImage.DrawFromCore)');
+      else raise EImageDrawError.Create('Blend mode not implemented (TRGBAlphaImage.DrawFromCore)');
     end;
   end;
 
@@ -184,9 +186,8 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
     DestX, DestY: Integer;
 
     //variables for smart-blending mode
-    SourceAlphaColor,ThisAlphaColor: PVector4byte;
     alpha1,alpha2,alpha1d,alphaSum:single;
-    ix,iy,j: integer;
+    j: integer;
   begin
     case Mode of
       dmBlend:
@@ -204,31 +205,29 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
           end;
         end;
       dmBlendSmart:
-          for iy := 0 to SourceHeight-1 do if (Y+iy<height) and (SourceY+iy<source.height) then begin
-           //scan through the image line-by-line
-           //Range-checking is done to avoid messing up the images
-           //get the pointers
-           ThisAlphaColor := PixelPtr(X, Y+iy);
-           SourceAlphaColor := Source.PixelPtr(SourceX, SourceY+iy);
-           //scan each pixel in the line
-           for ix := 0 to SourceWidth-1 do if (x+ix<width) and (SourceX+ix<source.width) then begin
+        for DestY := Y to Y + SourceHeight - 1 do
+        begin
+          PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+          PDest := PixelPtr(X, DestY);
+          for DestX := X to X + SourceWidth - 1 do
+          begin
             //get single alpha
-            alpha1:=ThisAlphaColor^[3]/255;
-            alpha2:=SourceAlphaColor^[3]/255;
+            alpha1 := PDest^[3]/255;
+            alpha2 := PSource^[3]/255;
             //calculate alpha-sums according to https://en.wikipedia.org/wiki/Alpha_compositing
-            alpha1d:=alpha1*(1-alpha2);
-            alphasum:=alpha1+(1-alpha1)*alpha2;
+            alpha1d := alpha1*(1-alpha2);
+            alphasum := alpha1+(1-alpha1)*alpha2;
             // if alpha sum >0 then do the pixel colors and alpha summation according to the formula
-            if alphaSum>0 then begin
-              for j:=0 to 2 do
-                ThisAlphaColor^[j] := round((ThisAlphaColor^[j]*alpha1d + SourceAlphaColor^[j]*alpha2)/alphaSum);
-              ThisAlphaColor^[3] := round(255*alphaSum);
+            if alphaSum > 0 then
+            begin
+              for j := 0 to 2 do
+                PDest^[j] := Round((PDest^[j]*alpha1d + PSource^[j]*alpha2)/alphaSum);
+              PDest^[3] := Round(255*alphaSum);
             end;
-            //adjust the pointers by pixelsize
-            PtrUInt(ThisAlphaColor) := PtrUInt(ThisAlphaColor) + PixelSize;
-            PtrUInt(SourceAlphaColor) := PtrUInt(SourceAlphaColor) + source.PixelSize;
-           end;
+            Inc(PSource);
+            Inc(PDest);
           end;
+        end;
       dmAdd:
         if Source.PremultipliedAlpha then
         begin
@@ -261,7 +260,7 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TRGBAlphaImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
@@ -318,7 +317,7 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TRGBAlphaImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
@@ -357,7 +356,7 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             Inc(PDest);
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TRGBAlphaImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
@@ -401,7 +400,7 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             Inc(PDest);
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TRGBImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
@@ -458,7 +457,7 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TRGBImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
@@ -515,7 +514,7 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TRGBImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
@@ -554,7 +553,7 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             Inc(PDest);
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TRGBImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
@@ -623,7 +622,7 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TGrayscaleImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
@@ -674,7 +673,7 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TGrayscaleImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
@@ -714,7 +713,7 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TGrayscaleImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
@@ -749,7 +748,7 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             Inc(PDest);
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TGrayscaleImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
@@ -802,7 +801,7 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             Inc(PDest);
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TGrayscaleAlphaImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
@@ -853,7 +852,7 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TGrayscaleAlphaImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
@@ -904,7 +903,7 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             end;
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TGrayscaleAlphaImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
@@ -939,7 +938,7 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             Inc(PDest);
           end;
         end;
-      else raise EInternalError.Create('Blend mode not implemented (TGrayscaleAlphaImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
