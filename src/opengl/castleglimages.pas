@@ -126,6 +126,7 @@ procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGL
 {$I castleglimages_rendertotexture.inc}
 {$I castleglimages_texturememoryprofiler.inc}
 {$I castleglimages_video.inc}
+{$I castleglimages_sprite.inc}
 {$undef read_interface}
 
 implementation
@@ -280,6 +281,7 @@ end;
 {$I castleglimages_rendertotexture.inc}
 {$I castleglimages_texturememoryprofiler.inc}
 {$I castleglimages_video.inc}
+{$I castleglimages_sprite.inc}
 {$undef read_implementation}
 
 { initialization / finalization ---------------------------------------------- }
