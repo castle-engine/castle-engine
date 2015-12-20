@@ -18,7 +18,7 @@ unit CastleControls;
 
 interface
 
-uses Classes, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
+uses Classes, FGL, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
   CastleColors, CastleProgress, CastleTimeUtils;
 
