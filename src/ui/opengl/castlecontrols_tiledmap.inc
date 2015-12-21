@@ -31,6 +31,18 @@ type
       Value: string;
     end;
 
+    { Binary data definition. }
+    TData = record
+      { The encoding used to encode the tile layer data. When used, it can be
+        "base64" and "csv" at the moment. }
+      Encoding: string; //todo: make set type?
+      { The compression used to compress the tile layer data. Tiled Qt supports
+        "gzip" and "zlib". }
+      Compression: string; //todo: make set type?
+      { Binary data. }
+      Data: array of Cardinal;
+    end;
+
     PImage = ^TImage;
     { Image definition. }
     TImage = record
