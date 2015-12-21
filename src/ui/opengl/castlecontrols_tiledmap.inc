@@ -32,14 +32,14 @@ type
     end;
 
     { Binary data definition. }
-    TData = record
+    TData = record //todo: is encoded and compressed really necessary?
       { The encoding used to encode the tile layer data. When used, it can be
         "base64" and "csv" at the moment. }
       Encoding: string; //todo: make set type?
       { The compression used to compress the tile layer data. Tiled Qt supports
         "gzip" and "zlib". }
       Compression: string; //todo: make set type?
-      { Binary data. }
+      { Binary data. Uncompressed and decoded. }
       Data: array of Cardinal;
     end;
 
@@ -99,6 +99,7 @@ type
     { List of tilesets. }
     TTilesets = specialize TFPGList<PTileset>;
 
+    PLayer = ^TLayer;
     { Layer definition. }
     TLayer = record
       { The name of the layer. }
@@ -112,6 +113,9 @@ type
       { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
       OffsetY: Integer;
     end;
+
+    { List of layers. }
+    TLayers = specialize TFPGList<PLayer>;
 
   private
     { Map stuff. }
