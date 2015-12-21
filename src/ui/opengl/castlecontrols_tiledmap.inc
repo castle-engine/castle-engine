@@ -24,6 +24,13 @@ type
     Based on Tiled version 0.14. }
   TCastleTiledMap = class(TUIControl)
   type
+    TProperty = record
+      { The name of the property. }
+      Name: string;
+      { The value of the property. }
+      Value: string;
+    end;
+
     PImage = ^TImage;
     { Image definition. }
     TImage = record
@@ -79,6 +86,21 @@ type
 
     { List of tilesets. }
     TTilesets = specialize TFPGList<PTileset>;
+
+    { Layer definition. }
+    TLayer = record
+      { The name of the layer. }
+      Name: string;
+      { The opacity of the layer as a value from 0 to 1. Defaults to 1. }
+      Opacity: Single;
+      { Whether the layer is shown (1) or hidden (0). Defaults to 1. }
+      Visible: Boolean;
+      { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
+      OffsetX: Integer;
+      { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
+      OffsetY: Integer;
+    end;
+
   private
     { Map stuff. }
     { The TMX format version, generally 1.0. }
