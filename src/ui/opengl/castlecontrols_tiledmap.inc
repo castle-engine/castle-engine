@@ -20,9 +20,31 @@
 
 type
 
-  { Loading and manipulating "Tiled" map files (http://mapeditor.org). }
+  { Loading and manipulating "Tiled" map files (http://mapeditor.org).
+    Based on Tiled version 0.14. }
   TCastleTiledMap = class(TUIControl)
   type
+    PImage = ^TImage;
+    { Image definition. }
+    TImage = record
+      { Used for embedded images, in combination with a data child element.
+        Valid values are file extensions like png, gif, jpg, bmp, etc. (since 0.9) }
+      Format: string;
+      { The reference to the tileset image file (Tiled supports most common
+        image formats). }
+      Source: string;
+      { Defines a specific color that is treated as transparent (example value:
+        "#FF00FF" for magenta). Up until Tiled 0.12, this value is written out
+        without a # but this is planned to change. }
+      Trans: string; //todo: convert to some color format?
+      { The image width in pixels (optional, used for tile index correction when
+        the image changes). }
+      Width: Cardinal;
+      { The image height in pixels (optional). }
+      Height: Cardinal;
+    end;
+
+    PTileset = ^TTileset;
     { Tileset definition. }
     TTileset = record
       { Sprite loaded from parsed XML. }
@@ -49,15 +71,42 @@ type
       Margin: Cardinal;
       { The number of tiles in this tileset (since 0.13) }
       TileCount: Cardinal;
+      { This element is used to specify an offset in pixels, to be applied when
+        drawing a tile from the related tileset. When not present, no offset is applied. }
+      TileOffset: TVector2Integer;
+      Image: PImage;
     end;
 
     { List of tilesets. }
-    TTilesets = specialize TFPGList<TTileset>;
+    TTilesets = specialize TFPGList<PTileset>;
+  private
+    { Map stuff. }
+    { The TMX format version, generally 1.0. }
+    FVersion: string; //todo: change to set?
+    { Map orientation. Tiled supports "orthogonal", "isometric" and "staggered"
+      (since 0.9) at the moment. }
+    FOrientation: string; //todo: change to set?
+    { The map width in tiles. }
+    FWidth: Cardinal;
+    { The map height in tiles. }
+    FHeight: Cardinal;
+    { The width of a tile. }
+    FTileWidth: Cardinal;
+    { The height of a tile. }
+    FTileHeight: Cardinal;
+    { The background color of the map. (since 0.9, optional) }
+    FBackgroundColor: string; //todo: convert to some color format?
+    { The order in which tiles on tile layers are rendered. Valid values are
+      right-down (the default), right-up, left-down and left-up. In all cases,
+      the map is drawn row-by-row. (since 0.10, but only supported for orthogonal
+      maps at the moment) }
+    FRenderOrder: string; //todo: convert to some color format?
   private
     FTilesets: TTilesets;
     procedure LoadTMXFile(AURL: string);
   public
-    constructor Create(AURL: string);
+    { @param(AURL) - URL to TMX file. }
+    constructor Create(AOwner: TComponent; AURL: string); reintroduce;
     destructor Destroy; override;
     procedure Render; override;
   end;
@@ -71,8 +120,9 @@ begin
 
 end;
 
-constructor TCastleTiledMap.Create(AURL: string);
+constructor TCastleTiledMap.Create(AOwner: TComponent; AURL: string);
 begin
+  inherited Create(AOwner);
   FTilesets := TTilesets.Create;
 
   //Load TMX
