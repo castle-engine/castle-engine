@@ -27,7 +27,7 @@ type
 
   { Loading and manipulating "Tiled" map files (http://mapeditor.org).
     Based on Tiled version 0.14. }
-  TCastleTiledMap = class(TUIControl)
+  TCastleTiledMap = class
   type
     TProperty = record
       { The name of the property. }
@@ -71,8 +71,6 @@ type
     PTileset = ^TTileset;
     { Tileset definition. }
     TTileset = record
-      { Sprite loaded from parsed XML. }
-      Sprite: TSprite;
       { The first global tile ID of this tileset (this global ID maps to the first
       tile in this tileset). }
       FirstGID: Cardinal;
@@ -149,9 +147,8 @@ type
     procedure LoadTMXFile(AURL: string);
   public
     { @param(AURL) - URL to TMX file. }
-    constructor Create(AOwner: TComponent; AURL: string); reintroduce;
+    constructor Create(AURL: string);
     destructor Destroy; override;
-    procedure Render; override;
   end;
 
 implementation
@@ -161,9 +158,8 @@ begin
 
 end;
 
-constructor TCastleTiledMap.Create(AOwner: TComponent; AURL: string);
+constructor TCastleTiledMap.Create(AURL: string);
 begin
-  inherited Create(AOwner);
   FTilesets := TTilesets.Create;
 
   //Load TMX
@@ -181,10 +177,6 @@ begin
   inherited Destroy;
 end;
 
-procedure TCastleTiledMap.Render;
-begin
-  inherited Render;
-end;
 
 end.
 

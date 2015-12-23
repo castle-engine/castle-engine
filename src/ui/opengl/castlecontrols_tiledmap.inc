@@ -18,7 +18,10 @@
 
 {$ifdef read_interface}
 
+type
+  TCastleTiledMapControl = class(TUIControl)
 
+  end;
 
 {$endif read_interface}
 
