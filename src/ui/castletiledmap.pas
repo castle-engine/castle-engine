@@ -21,7 +21,7 @@ unit CastleTiledMap;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils, CastleGenericLists, CastleVectors;
 
 type
 
@@ -68,7 +68,7 @@ type
       Height: Cardinal;
     end;
 
-    PTileset = ^TTileset;
+    //PTileset = ^TTileset;
     { Tileset definition. }
     TTileset = record
       { The first global tile ID of this tileset (this global ID maps to the first
@@ -100,9 +100,9 @@ type
     end;
 
     { List of tilesets. }
-    TTilesets = specialize TFPGList<PTileset>;
+    TTilesets = specialize TGenericStructList<TTileset>;
 
-    PLayer = ^TLayer;
+    //PLayer = ^TLayer;
     { Layer definition. }
     TLayer = record
       { The name of the layer. }
@@ -118,7 +118,7 @@ type
     end;
 
     { List of layers. }
-    TLayers = specialize TFPGList<PLayer>;
+    TLayers = specialize TGenericStructList<TLayer>;
 
   private
     { Map stuff. }

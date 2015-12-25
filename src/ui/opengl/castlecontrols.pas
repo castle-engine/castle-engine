@@ -20,7 +20,7 @@ interface
 
 uses Classes, FGL, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
-  CastleColors, CastleProgress, CastleTimeUtils;
+  CastleColors, CastleProgress, CastleTimeUtils, CastleTiledMap;
 
 type
   TCastleLabel = class;
