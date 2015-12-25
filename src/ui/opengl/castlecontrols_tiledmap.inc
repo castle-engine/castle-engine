@@ -20,13 +20,25 @@
 
 type
   TCastleTiledMapControl = class(TUIControl)
-
+  private
+    FTiledMap: TCastleTiledMap;
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure Render; override;
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
+constructor TCastleTiledMapControl.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+end;
 
+procedure TCastleTiledMapControl.Render;
+begin
+  inherited Render;
+end;
 
 {$endif read_implementation}

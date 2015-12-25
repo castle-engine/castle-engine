@@ -36,8 +36,11 @@ type
       Value: string;
     end;
 
+    { List of properties. }
+    TProperties = specialize TGenericStructList<TProperty>;
+
     { Binary data definition. }
-    TData = record //todo: is encoded and compressed really necessary?
+    TData = record //todo: is encoded and compressed really necessary to keep?
       { The encoding used to encode the tile layer data. When used, it can be
         "base64" and "csv" at the moment. }
       Encoding: string; //todo: make set type?
@@ -46,6 +49,7 @@ type
       Compression: string; //todo: make set type?
       { Binary data. Uncompressed and decoded. }
       Data: array of Cardinal;
+      // todo: Tile
     end;
 
     PImage = ^TImage;
@@ -96,7 +100,10 @@ type
       { This element is used to specify an offset in pixels, to be applied when
         drawing a tile from the related tileset. When not present, no offset is applied. }
       TileOffset: TVector2Integer;
+      Properties: TProperties;
       Image: PImage;
+      // todo: Tile
+      // todo: TerrainTypes
     end;
 
     { List of tilesets. }
@@ -115,10 +122,71 @@ type
       OffsetX: Integer;
       { Rendering offset for this layer in pixels. Defaults to 0. (since 0.14). }
       OffsetY: Integer;
+      Properties: TProperties;
+      Data: TData;
     end;
 
     { List of layers. }
     TLayers = specialize TGenericStructList<TLayer>;
+
+    { Object definition. }
+    TTiledObject = record
+      { Unique ID of the object. Each object that is placed on a map gets
+        a unique id. Even if an object was deleted, no object gets the same ID.
+        Can not be changed in Tiled Qt. (since Tiled 0.11) }
+      Id: Integer;
+      { The name of the object. An arbitrary string. }
+      Name: string;
+      { The type of the object. An arbitrary string. }
+      Type_: string;
+      { The x coordinate of the object in pixels. }
+      X: Integer;
+      { The y coordinate of the object in pixels. }
+      Y: Integer;
+      { The width of the object in pixels (defaults to 0). }
+      Width: Integer;
+      { The height of the object in pixels (defaults to 0). }
+      Height: Integer;
+      { The rotation of the object in degrees clockwise (defaults to 0). (since 0.10) }
+      Rotation: Single;
+      { An reference to a tile (optional). }
+      GId: Integer;
+      { Whether the object is shown (1) or hidden (0). Defaults to 1. (since 0.9) }
+      Visible: Boolean;
+      Properties: TProperties;
+      // todo: ellipses, poligons, polilines
+    end;
+
+    TTiledObjects = specialize TGenericStructList<TTiledObject>;
+
+    { Object group definition. }
+    TObjectGroup = record
+      { The name of the object group. }
+      Name: string;
+      { The color used to display the objects in this group. }
+      Color: string; //todo: convert to some color format
+      { The x coordinate of the object group in tiles. Defaults to 0 and can no longer be changed in Tiled Qt. }
+      X: Integer;
+      { The y coordinate of the object group in tiles. Defaults to 0 and can no longer be changed in Tiled Qt. }
+      Y: Integer;
+      { The width of the object group in tiles. Meaningless. }
+      Width: Integer;
+      { The height of the object group in tiles. Meaningless. }
+      Height: Integer;
+      { The opacity of the layer as a value from 0 to 1. Defaults to 1. }
+      Opacity: Single;
+      { Whether the layer is shown (1) or hidden (0). Defaults to 1. }
+      Visible: Boolean;
+      { Rendering offset for this object group in pixels. Defaults to 0. (since 0.14) }
+      OffsetX: Integer;
+      { Rendering offset for this object group in pixels. Defaults to 0. (since 0.14) }
+      OffsetY: Integer;
+      { Whether the objects are drawn according to the order of appearance
+        ("index") or sorted by their y-coordinate ("topdown"). Defaults to "topdown". }
+      DrawOrder: string; //todo: convert to some set?
+      Objects: TTiledObjects;
+      Properties: TProperties;
+    end;
 
   private
     { Map stuff. }
@@ -144,6 +212,8 @@ type
     FRenderOrder: string; //todo: convert to some color format?
   private
     FTilesets: TTilesets;
+    FProperties: TProperties;
+    FLayers: TLayers;
     procedure LoadTMXFile(AURL: string);
   public
     { @param(AURL) - URL to TMX file. }
@@ -161,6 +231,8 @@ end;
 constructor TCastleTiledMap.Create(AURL: string);
 begin
   FTilesets := TTilesets.Create;
+  FProperties := TProperties.Create;
+  FLayers := TLayers.Create;
 
   //Load TMX
   LoadTMXFile(AURL); //try?
@@ -174,6 +246,8 @@ end;
 destructor TCastleTiledMap.Destroy;
 begin
   FreeAndNil(FTilesets);
+  FreeAndNil(FProperties);
+  FreeAndNil(FLayers);
   inherited Destroy;
 end;
 
