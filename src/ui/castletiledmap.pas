@@ -132,6 +132,8 @@ type
     { List of layers. }
     TLayers = specialize TGenericStructList<TLayer>;
 
+    TTileObjectPrimitive = (TOP_Ellipse, TOP_Poligon, TOP_PolyLine);
+
     { Object definition. }
     TTiledObject = record
       { Unique ID of the object. Each object that is placed on a map gets
@@ -157,7 +159,10 @@ type
       { Whether the object is shown (1) or hidden (0). Defaults to 1. (since 0.9) }
       Visible: Boolean;
       Properties: TProperties;
-      // todo: ellipses, poligons, polilines
+      { List of points for poligon and poliline. }
+      Points: TVector2IntegerList;
+      Primitive: TTileObjectPrimitive;
+      // todo: image
     end;
 
     TTiledObjects = specialize TGenericStructList<TTiledObject>;
