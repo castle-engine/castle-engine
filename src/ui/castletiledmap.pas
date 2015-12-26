@@ -21,7 +21,7 @@ unit CastleTiledMap;
 interface
 
 uses
-  Classes, SysUtils, CastleGenericLists, CastleVectors;
+  Classes, SysUtils, CastleGenericLists, CastleVectors, CastleColors;
 
 type
 
@@ -39,14 +39,17 @@ type
     { List of properties. }
     TProperties = specialize TGenericStructList<TProperty>;
 
+    TEncodingType = (ET_Base64, ET_CSV);
+    TCompressionType = (CT_GZip, ZLib);
+
     { Binary data definition. }
     TData = record //todo: is encoded and compressed really necessary to keep?
       { The encoding used to encode the tile layer data. When used, it can be
         "base64" and "csv" at the moment. }
-      Encoding: string; //todo: make set type?
+      Encoding: TEncodingType;
       { The compression used to compress the tile layer data. Tiled Qt supports
         "gzip" and "zlib". }
-      Compression: string; //todo: make set type?
+      Compression: TCompressionType;
       { Binary data. Uncompressed and decoded. }
       Data: array of Cardinal;
       // todo: Tile
@@ -64,7 +67,7 @@ type
       { Defines a specific color that is treated as transparent (example value:
         "#FF00FF" for magenta). Up until Tiled 0.12, this value is written out
         without a # but this is planned to change. }
-      Trans: string; //todo: convert to some color format?
+      Trans: TCastleColorRGB;
       { The image width in pixels (optional, used for tile index correction when
         the image changes). }
       Width: Cardinal;
@@ -159,12 +162,14 @@ type
 
     TTiledObjects = specialize TGenericStructList<TTiledObject>;
 
+    TObjectsDrawOrder = (ODO_Index, ODO_TopDown);
+
     { Object group definition. }
     TObjectGroup = record
       { The name of the object group. }
       Name: string;
       { The color used to display the objects in this group. }
-      Color: string; //todo: convert to some color format
+      Color: TCastleColorRGB;
       { The x coordinate of the object group in tiles. Defaults to 0 and can no longer be changed in Tiled Qt. }
       X: Integer;
       { The y coordinate of the object group in tiles. Defaults to 0 and can no longer be changed in Tiled Qt. }
@@ -183,10 +188,13 @@ type
       OffsetY: Integer;
       { Whether the objects are drawn according to the order of appearance
         ("index") or sorted by their y-coordinate ("topdown"). Defaults to "topdown". }
-      DrawOrder: string; //todo: convert to some set?
+      DrawOrder: TObjectsDrawOrder;
       Objects: TTiledObjects;
       Properties: TProperties;
     end;
+
+    TMapOrientation = (MO_Orthogonal, MO_Isometric, MO_Staggered);
+    TMapRenderOrder = (MRO_RightDown, MRO_RightUp, MRO_LeftDown, MRO_LeftUp);
 
   private
     { Map stuff. }
@@ -194,7 +202,7 @@ type
     FVersion: string; //todo: change to set?
     { Map orientation. Tiled supports "orthogonal", "isometric" and "staggered"
       (since 0.9) at the moment. }
-    FOrientation: string; //todo: change to set?
+    FOrientation: TMapOrientation;
     { The map width in tiles. }
     FWidth: Cardinal;
     { The map height in tiles. }
@@ -204,12 +212,12 @@ type
     { The height of a tile. }
     FTileHeight: Cardinal;
     { The background color of the map. (since 0.9, optional) }
-    FBackgroundColor: string; //todo: convert to some color format?
+    FBackgroundColor: TCastleColorRGB;
     { The order in which tiles on tile layers are rendered. Valid values are
       right-down (the default), right-up, left-down and left-up. In all cases,
       the map is drawn row-by-row. (since 0.10, but only supported for orthogonal
       maps at the moment) }
-    FRenderOrder: string; //todo: convert to some color format?
+    FRenderOrder: TMapRenderOrder;
   private
     FTilesets: TTilesets;
     FProperties: TProperties;
