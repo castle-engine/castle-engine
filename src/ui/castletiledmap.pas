@@ -107,8 +107,39 @@ type
   { List of tilesets. }
   TTilesets = specialize TGenericStructList<TTileset>;
 
+  TObjectsDrawOrder = (ODO_Index, ODO_TopDown);
+
+  { Object group definition. Moved to TLayer. }
+  {TObjectGroup = record
+    { The name of the object group. }
+    Name: string;
+    { The color used to display the objects in this group. }
+    Color: TCastleColorRGB;
+    { The x coordinate of the object group in tiles. Defaults to 0 and can no longer be changed in Tiled Qt. }
+    X: Integer;
+    { The y coordinate of the object group in tiles. Defaults to 0 and can no longer be changed in Tiled Qt. }
+    Y: Integer;
+    { The width of the object group in tiles. Meaningless. }
+    Width: Integer;
+    { The height of the object group in tiles. Meaningless. }
+    Height: Integer;
+    { The opacity of the layer as a value from 0 to 1. Defaults to 1. }
+    Opacity: Single;
+    { Whether the layer is shown (1) or hidden (0). Defaults to 1. }
+    Visible: Boolean;
+    { Rendering offset for this object group in pixels. Defaults to 0. (since 0.14) }
+    OffsetX: Integer;
+    { Rendering offset for this object group in pixels. Defaults to 0. (since 0.14) }
+    OffsetY: Integer;
+    { Whether the objects are drawn according to the order of appearance
+      ("index") or sorted by their y-coordinate ("topdown"). Defaults to "topdown". }
+    DrawOrder: TObjectsDrawOrder;
+    Objects: TTiledObjects;
+    Properties: TProperties;
+  end;}
+
   //PLayer = ^TLayer;
-  { Layer definition. }
+  { Layer definition. Internally we treat "object group" as normal layer. }
   TLayer = record
     { The name of the layer. }
     Name: string;
@@ -122,6 +153,22 @@ type
     OffsetY: Integer;
     Properties: TProperties;
     Data: TData;
+    { If True then the layer will be treated as object group instead of normal layer. }
+    IsLayerAnObjectGroup: Boolean;
+    { The color used to display the objects in this group. }
+    Color: TCastleColorRGB;
+    { The x coordinate of the object group in tiles. Defaults to 0 and can no longer be changed in Tiled Qt. }
+    X: Integer;
+    { The y coordinate of the object group in tiles. Defaults to 0 and can no longer be changed in Tiled Qt. }
+    Y: Integer;
+    { The width of the object group in tiles. Meaningless. }
+    Width: Integer;
+    { The height of the object group in tiles. Meaningless. }
+    Height: Integer;
+    { Whether the objects are drawn according to the order of appearance
+      ("index") or sorted by their y-coordinate ("topdown"). Defaults to "topdown". }
+    DrawOrder: TObjectsDrawOrder;
+    Objects: TTiledObjects;
   end;
 
   { List of layers. }
@@ -161,37 +208,6 @@ type
   end;
 
   TTiledObjects = specialize TGenericStructList<TTiledObject>;
-
-  TObjectsDrawOrder = (ODO_Index, ODO_TopDown);
-
-  { Object group definition. }
-  TObjectGroup = record
-    { The name of the object group. }
-    Name: string;
-    { The color used to display the objects in this group. }
-    Color: TCastleColorRGB;
-    { The x coordinate of the object group in tiles. Defaults to 0 and can no longer be changed in Tiled Qt. }
-    X: Integer;
-    { The y coordinate of the object group in tiles. Defaults to 0 and can no longer be changed in Tiled Qt. }
-    Y: Integer;
-    { The width of the object group in tiles. Meaningless. }
-    Width: Integer;
-    { The height of the object group in tiles. Meaningless. }
-    Height: Integer;
-    { The opacity of the layer as a value from 0 to 1. Defaults to 1. }
-    Opacity: Single;
-    { Whether the layer is shown (1) or hidden (0). Defaults to 1. }
-    Visible: Boolean;
-    { Rendering offset for this object group in pixels. Defaults to 0. (since 0.14) }
-    OffsetX: Integer;
-    { Rendering offset for this object group in pixels. Defaults to 0. (since 0.14) }
-    OffsetY: Integer;
-    { Whether the objects are drawn according to the order of appearance
-      ("index") or sorted by their y-coordinate ("topdown"). Defaults to "topdown". }
-    DrawOrder: TObjectsDrawOrder;
-    Objects: TTiledObjects;
-    Properties: TProperties;
-  end;
 
   TMapOrientation = (MO_Orthogonal, MO_Isometric, MO_Staggered);
   TMapRenderOrder = (MRO_RightDown, MRO_RightUp, MRO_LeftDown, MRO_LeftUp);
