@@ -21,7 +21,8 @@ unit CastleTiledMap;
 interface
 
 uses
-  Classes, SysUtils, DOM, XMLRead, CastleGenericLists, CastleVectors, CastleColors;
+  Classes, SysUtils, DOM, XMLRead, CastleGenericLists, CastleVectors,
+  CastleColors, CastleUtils, CastleURIUtils;
 
 type
   TProperty = record
@@ -253,10 +254,17 @@ implementation
 procedure TCastleTiledMap.LoadTMXFile(AURL: string);
 var
   Doc: TXMLDocument;
+  TmpStr: string;
 begin
   Doc := nil;
   try
-    ReadXMLFile(Doc, AURL);
+    ReadXMLFile(Doc, AbsoluteURI(AURL));
+
+    //Parse parameters
+    Check(LowerCase(Doc.DocumentElement.TagName) = 'map',
+      'Root element of TMX file must be <map>');
+    if Doc.DocumentElement.AttributeString('version', TmpStr) then
+      FVersion := TmpStr;
   finally
     FreeAndNil(Doc);
   end;
@@ -270,11 +278,6 @@ begin
 
   //Load TMX
   LoadTMXFile(AURL);
-
-  //Parse parameters
-
-  //Create atlas
-  //FAtlas := TSprite.Create('URL',frames, cols, rows);
 end;
 
 destructor TCastleTiledMap.Destroy;
