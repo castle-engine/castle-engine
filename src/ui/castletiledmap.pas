@@ -254,6 +254,7 @@ procedure TCastleTiledMap.LoadTMXFile(AURL: string);
 var
   Doc: TXMLDocument;
   TmpStr: string;
+  I: TXMLElementIterator;
 begin
   Doc := nil;
   try
@@ -264,6 +265,17 @@ begin
       'Root element of TMX file must be <map>');
     if Doc.DocumentElement.AttributeString('version', TmpStr) then
       FVersion := TmpStr;
+    //Parse childrens
+    I := TXMLElementIterator.Create(Doc.DocumentElement);
+    try
+      while I.GetNext do
+      begin
+        //... here goes your code to process I.Current ...
+        case I.Current.TagName of //todo: make case insensitive?
+          'tileset':;
+        end;
+      end;
+    finally FreeAndNil(I) end;
   finally
     FreeAndNil(Doc);
   end;
