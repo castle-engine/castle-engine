@@ -5,8 +5,8 @@
     <application>
         <activity android:name="com.purplebrain.giftiz.sdk.GiftizWebViewActivity" />
         <meta-data android:name="GIFTIZ_PARTNER_KEY" android:value="${ANDROID.GIFTIZ.PARTNER_KEY}" />
-        <!-- optional -->
-        <meta-data android:name="SHOW_GIFTIZ_LOG" android:value="true" />
+        <!-- optional, only for debugging -->
+        <!-- <meta-data android:name="SHOW_GIFTIZ_LOG" android:value="true" /> -->
     </application>
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
