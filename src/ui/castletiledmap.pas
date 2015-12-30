@@ -22,7 +22,7 @@ interface
 
 uses
   Classes, SysUtils, DOM, XMLRead, CastleGenericLists, CastleVectors,
-  CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils;
+  CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils, CastleLog;
 
 type
   TProperty = record
@@ -258,7 +258,7 @@ var
 begin
   Doc := nil;
   try
-    ReadXMLFile(Doc, AbsoluteURI(AURL));
+    ReadXMLFile(Doc, URIDeleteProtocol(AURL));  //todo: check AbsoluteURI
 
     //Parse parameters
     Check(LowerCase(Doc.DocumentElement.TagName) = 'map',
@@ -271,6 +271,7 @@ begin
       while I.GetNext do
       begin
         //... here goes your code to process I.Current ...
+        WritelnLog('LoadTMXFile element: ', I.Current.TagName);
         case I.Current.TagName of //todo: make case insensitive?
           'tileset':;
         end;
