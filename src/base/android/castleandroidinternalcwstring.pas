@@ -30,7 +30,7 @@
   @exclude Not documented for PasDoc. }
 unit CastleAndroidInternalCWString;
 
-{$define FPC_NEW_VERSION_WITH_UNICODE}
+{ $define FPC_NEW_VERSION_WITH_UNICODE}
 {$ifdef VER3_0}
   {$undef FPC_NEW_VERSION_WITH_UNICODE}
 {$endif}
