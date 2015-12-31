@@ -68,7 +68,14 @@ type
     to manage this, you can simply declare TBox3D type and copy / pass around
     this box to other procedures. }
   TBox3D = object
-    Data: array [0..1   ] of TVector3Single;
+    Data: array [0..1] of TVector3Single;
+
+    const
+      { Special TBox3D value meaning "bounding box is empty".
+        This is different than just bounding box with zero sizes,
+        as bounding box with zero sizes still has some position.
+        Empty bounding box doesn't contain any portion of 3D space. }
+      Empty: TBox3D = (Data: ((0, 0, 0), (-1, -1, -1)));
 
     { Check is box empty.
       You can think of this function as "compare Box with EmptyBox3D".
