@@ -337,7 +337,7 @@ begin
   begin
     Format := Element.GetAttribute('format');
     Source := Element.GetAttribute('source');
-    if Element.GetAttribute('trans') <> '' then
+    if Element.GetAttribute('trans') <> '' then //todo: if no trans then use some default trans
       Trans := HexToColorRGB(Element.GetAttribute('trans')); //todo: test convertion
     Width := StrToInt(Element.GetAttribute('width'));
     Height := StrToInt(Element.GetAttribute('height'));
