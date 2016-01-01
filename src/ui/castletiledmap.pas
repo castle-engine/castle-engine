@@ -51,7 +51,6 @@ type
     // todo: Tile
   end;
 
-  PImage = ^TImage;
   { Image definition. }
   TImage = record
     { Used for embedded images, in combination with a data child element.
@@ -69,6 +68,7 @@ type
     Width: Cardinal;
     { The image height in pixels (optional). }
     Height: Cardinal;
+    //todo: data
   end;
 
   //PTileset = ^TTileset;
@@ -100,7 +100,7 @@ type
       drawing a tile from the related tileset. When not present, no offset is applied. }
     TileOffset: TVector2Integer;
     Properties: TProperties;
-    Image: PImage;
+    Image: TImage;
     // todo: Tile
     // todo: TerrainTypes
   end;
@@ -241,6 +241,7 @@ type
     procedure LoadTileset(Element: TDOMElement);
     procedure LoadProperty(Element: TDOMElement; var AProperty: TProperty);
     procedure LoadProperties(Element: TDOMElement; var AProperties: TProperties);
+    procedure LoadImage(Element: TDOMElement; var AImage: TImage);
   private
     FTilesets: TTilesets;
     FProperties: TProperties;
@@ -292,7 +293,7 @@ begin
           NewTileset.TileOffset[1] := StrToInt(I.Current.GetAttribute('y'));
         end;
         'properties': LoadProperties(I.Current, NewTileset.Properties);
-        //todo: Image: PImage;
+        'image': LoadImage(I.Current, NewTileset.Image);
       end;
     end;
   finally FreeAndNil(I) end;
@@ -328,6 +329,25 @@ begin
       AProperties := TProperties.Create;
     AProperties.Add(NewProperty);
   finally FreeAndNil(I) end;
+end;
+
+procedure TCastleTiledMap.LoadImage(Element: TDOMElement; var AImage: TImage);
+begin
+  with AImage do
+  begin
+    Format := Element.GetAttribute('format');
+    Source := Element.GetAttribute('source');
+    if Element.GetAttribute('trans') <> '' then
+      Trans := HexToColorRGB(Element.GetAttribute('trans')); //todo: test convertion
+    Width := StrToInt(Element.GetAttribute('width'));
+    Height := StrToInt(Element.GetAttribute('height'));
+    WritelnLog('LoadImage Format', Format);
+    WritelnLog('LoadImage Source', Source);
+    WritelnLog('LoadImage Trans', ColorRGBToHex(Trans));
+    WritelnLog('LoadImage Width', IntToStr(Width));
+    WritelnLog('LoadImage Height', IntToStr(Height));
+  end;
+  //todo: loading data element
 end;
 
 procedure TCastleTiledMap.LoadTMXFile(AURL: string);
