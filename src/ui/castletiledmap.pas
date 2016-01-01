@@ -237,6 +237,8 @@ type
       the map is drawn row-by-row. (since 0.10, but only supported for orthogonal
       maps at the moment) }
     FRenderOrder: TMapRenderOrder;
+
+    procedure LoadTileset(Element: TDOMElement);
   private
     FTilesets: TTilesets;
     FProperties: TProperties;
@@ -249,6 +251,23 @@ type
   end;
 
 implementation
+
+procedure TCastleTiledMap.LoadTileset(Element: TDOMElement);
+var
+  I: TXMLElementIterator;
+  NewTileset: TTileset;
+begin
+  I := TXMLElementIterator.Create(Element);
+  try
+    while I.GetNext do
+    begin
+      with NewTileset do
+      begin
+
+      end;
+    end;
+  finally FreeAndNil(I) end;
+end;
 
 procedure TCastleTiledMap.LoadTMXFile(AURL: string);
 var
@@ -270,10 +289,9 @@ begin
     try
       while I.GetNext do
       begin
-        //... here goes your code to process I.Current ...
-        WritelnLog('LoadTMXFile element: ', I.Current.TagName);
-        case I.Current.TagName of //todo: make case insensitive?
-          'tileset':;
+        WritelnLog('LoadTMXFile element', I.Current.TagName);
+        case LowerCase(I.Current.TagName) of
+          'tileset': LoadTileset(I.Current);
         end;
       end;
     finally FreeAndNil(I) end;
