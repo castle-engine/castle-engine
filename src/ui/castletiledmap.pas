@@ -242,6 +242,7 @@ type
     procedure LoadProperty(Element: TDOMElement; var AProperty: TProperty);
     procedure LoadProperties(Element: TDOMElement; var AProperties: TProperties);
     procedure LoadImage(Element: TDOMElement; var AImage: TImage);
+    procedure LoadLayer(Element: TDOMElement);
   private
     FTilesets: TTilesets;
     FProperties: TProperties;
@@ -337,8 +338,9 @@ begin
   begin
     Format := Element.GetAttribute('format');
     Source := Element.GetAttribute('source');
-    if Element.GetAttribute('trans') <> '' then //todo: if no trans then use some default trans
+    if Element.hasAttribute('trans') then //todo: if no trans then use some default trans
       Trans := HexToColorRGB(Element.GetAttribute('trans')); //todo: test convertion
+    //todo: ERangeError sometimes
     Width := StrToInt(Element.GetAttribute('width'));
     Height := StrToInt(Element.GetAttribute('height'));
     WritelnLog('LoadImage Format', Format);
@@ -348,6 +350,49 @@ begin
     WritelnLog('LoadImage Height', IntToStr(Height));
   end;
   //todo: loading data element
+end;
+
+procedure TCastleTiledMap.LoadLayer(Element: TDOMElement);
+var
+  I: TXMLElementIterator;
+  NewLayer: TLayer;
+begin
+  with NewLayer do
+  begin
+    Properties := nil;
+    Opacity := 1;
+    Visible := True;
+    OffsetX := 0;
+    OffsetY := 0;
+    Name := Element.GetAttribute('name');
+    if Element.hasAttribute('opacity') then
+      Opacity := StrToFloat(Element.GetAttribute('opacity'));
+    if Element.GetAttribute('visible') = '0' then
+      Visible := False;
+    if Element.hasAttribute('offsetx') then
+      OffsetX := StrToInt(Element.GetAttribute('offsetx'));
+    if Element.hasAttribute('offsety') then
+      OffsetY := StrToInt(Element.GetAttribute('offsety'));
+    WritelnLog('LoadTileset Name', Name);
+    WritelnLog('LoadTileset Visible', BoolToStr(Visible, 'True', 'False'));
+    WritelnLog('LoadTileset Opacity', FloatToStr(Opacity));
+    WritelnLog('LoadTileset OffsetX', IntToStr(OffsetX));
+    WritelnLog('LoadTileset OffsetY', IntToStr(OffsetY));
+  end;
+
+  I := TXMLElementIterator.Create(Element);
+  try
+    while I.GetNext do
+    begin
+      WritelnLog('LoadLayer element', I.Current.TagName);
+      case LowerCase(I.Current.TagName) of
+        'properties': LoadProperties(I.Current, NewLayer.Properties);
+        //todo: data element
+      end;
+    end;
+  finally FreeAndNil(I) end;
+
+  FLayers.Add(NewLayer);
 end;
 
 procedure TCastleTiledMap.LoadTMXFile(AURL: string);
@@ -373,6 +418,7 @@ begin
         WritelnLog('LoadTMXFile element', I.Current.TagName);
         case LowerCase(I.Current.TagName) of
           'tileset': LoadTileset(I.Current);
+          'layer': LoadLayer(I.Current);
         end;
       end;
     finally FreeAndNil(I) end;
