@@ -239,6 +239,8 @@ type
     FRenderOrder: TMapRenderOrder;
 
     procedure LoadTileset(Element: TDOMElement);
+    procedure LoadProperty(Element: TDOMElement; var AProperty: TProperty);
+    procedure LoadProperties(Element: TDOMElement; var AProperties: TProperties);
   private
     FTilesets: TTilesets;
     FProperties: TProperties;
@@ -257,15 +259,74 @@ var
   I: TXMLElementIterator;
   NewTileset: TTileset;
 begin
+  with NewTileset do
+  begin
+    TileOffset := ZeroVector2Integer;
+    Properties := nil;
+    FirstGID := StrToInt(Element.GetAttribute('firstgid'));
+    Source := Element.GetAttribute('source');
+    Name := Element.GetAttribute('name');
+    TileWidth := StrToInt(Element.GetAttribute('tilewidth'));
+    TileHeight := StrToInt(Element.GetAttribute('tileheight'));
+    Spacing := StrToInt(Element.GetAttribute('spacing'));
+    Margin := StrToInt(Element.GetAttribute('margin'));;
+    TileCount := StrToInt(Element.GetAttribute('tilecount'));
+    WritelnLog('LoadTileset firstgid', IntToStr(FirstGID));
+    WritelnLog('LoadTileset source', Source);
+    WritelnLog('LoadTileset Name', Name);
+    WritelnLog('LoadTileset TileWidth', IntToStr(TileWidth));
+    WritelnLog('LoadTileset TileHeight', IntToStr(TileHeight));
+    WritelnLog('LoadTileset Spacing', IntToStr(Spacing));
+    WritelnLog('LoadTileset Margin', IntToStr(Margin));
+    WritelnLog('LoadTileset TileCount', IntToStr(TileCount));
+  end;
+
   I := TXMLElementIterator.Create(Element);
   try
     while I.GetNext do
     begin
-      with NewTileset do
-      begin
-
+      WritelnLog('LoadTileset element', I.Current.TagName);
+      case LowerCase(I.Current.TagName) of
+        'tileoffset': begin
+          NewTileset.TileOffset[0] := StrToInt(I.Current.GetAttribute('x'));
+          NewTileset.TileOffset[1] := StrToInt(I.Current.GetAttribute('y'));
+        end;
+        'properties': LoadProperties(I.Current, NewTileset.Properties);
+        //todo: Image: PImage;
       end;
     end;
+  finally FreeAndNil(I) end;
+
+  FTilesets.Add(NewTileset);
+end;
+
+procedure TCastleTiledMap.LoadProperty(Element: TDOMElement;
+  var AProperty: TProperty);
+begin
+  AProperty.Name := Element.GetAttribute('name');
+  AProperty.Value := Element.GetAttribute('value');
+  WritelnLog('LoadProperty name', AProperty.Name);
+  WritelnLog('LoadProperty value', AProperty.Value);
+end;
+
+procedure TCastleTiledMap.LoadProperties(Element: TDOMElement;
+  var AProperties: TProperties);
+var
+  I: TXMLElementIterator;
+  NewProperty: TProperty;
+begin
+  I := TXMLElementIterator.Create(Element);
+  try
+    while I.GetNext do
+    begin
+      WritelnLog('LoadProperties element', I.Current.TagName);
+      case LowerCase(I.Current.TagName) of
+        'property': LoadProperty(I.Current, NewProperty);
+      end;
+    end;
+    if not Assigned (AProperties) then
+      AProperties := TProperties.Create;
+    AProperties.Add(NewProperty);
   finally FreeAndNil(I) end;
 end;
 
