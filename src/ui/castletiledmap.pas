@@ -173,6 +173,7 @@ type
   end;
 
   TTiledObjects = specialize TGenericStructList<TTiledObject>;
+  TLayerType = (LT_Layer, LT_ObjectGroup, LT_ImageLayer);
 
   { Layer definition. Internally we treat "object group" as normal layer. }
   TLayer = record
@@ -204,6 +205,7 @@ type
       ("index") or sorted by their y-coordinate ("topdown"). Defaults to "topdown". }
     DrawOrder: TObjectsDrawOrder;
     Objects: TTiledObjects;
+    LayerType: TLayerType;
   end;
 
   { List of layers. }
@@ -243,6 +245,9 @@ type
     procedure LoadProperties(Element: TDOMElement; var AProperties: TProperties);
     procedure LoadImage(Element: TDOMElement; var AImage: TImage);
     procedure LoadLayer(Element: TDOMElement);
+    procedure LoadObjectGroup(Element: TDOMElement);
+    procedure LoadTiledObject(Element: TDOMElement; var ATiledObject: TTiledObject);
+    procedure LoadImageLayer(Element: TDOMElement);
   private
     FTilesets: TTilesets;
     FProperties: TProperties;
@@ -356,6 +361,7 @@ procedure TCastleTiledMap.LoadLayer(Element: TDOMElement);
 var
   I: TXMLElementIterator;
   NewLayer: TLayer;
+  TmpStr: string;
 begin
   with NewLayer do
   begin
@@ -364,15 +370,16 @@ begin
     Visible := True;
     OffsetX := 0;
     OffsetY := 0;
+    LayerType := LT_Layer;
     Name := Element.GetAttribute('name');
-    if Element.hasAttribute('opacity') then
-      Opacity := StrToFloat(Element.GetAttribute('opacity'));
+    if Element.AttributeString('opacity', TmpStr) then
+      Opacity := StrToFloat(TmpStr);
     if Element.GetAttribute('visible') = '0' then
       Visible := False;
-    if Element.hasAttribute('offsetx') then
-      OffsetX := StrToInt(Element.GetAttribute('offsetx'));
-    if Element.hasAttribute('offsety') then
-      OffsetY := StrToInt(Element.GetAttribute('offsety'));
+    if Element.AttributeString('offsetx', TmpStr) then
+      OffsetX := StrToInt(TmpStr);
+    if Element.AttributeString('offsety', TmpStr) then
+      OffsetY := StrToInt(TmpStr);
     WritelnLog('LoadTileset Name', Name);
     WritelnLog('LoadTileset Visible', BoolToStr(Visible, 'True', 'False'));
     WritelnLog('LoadTileset Opacity', FloatToStr(Opacity));
@@ -393,6 +400,75 @@ begin
   finally FreeAndNil(I) end;
 
   FLayers.Add(NewLayer);
+end;
+
+procedure TCastleTiledMap.LoadObjectGroup(Element: TDOMElement);
+var
+  I: TXMLElementIterator;
+  NewLayer: TLayer;
+  NewObject: TTiledObject;
+  TmpStr: string;
+begin
+  with NewLayer do
+  begin
+    Properties := nil;
+    Objects := nil;
+    Opacity := 1;
+    Visible := True;
+    OffsetX := 0;
+    OffsetY := 0;
+    DrawOrder := ODO_TopDown;
+    LayerType := LT_ObjectGroup;
+    Name := Element.GetAttribute('name');
+    if Element.AttributeString('opacity', TmpStr) then
+      Opacity := StrToFloat(TmpStr);
+    if Element.GetAttribute('visible') = '0' then
+      Visible := False;
+    if Element.AttributeString('offsetx', TmpStr) then
+      OffsetX := StrToInt(TmpStr);
+    if Element.AttributeString('offsety', TmpStr) then
+      OffsetY := StrToInt(TmpStr);
+    if Element.AttributeString('draworder', TmpStr) then
+      case TmpStr of
+        'index': DrawOrder := ODO_Index;
+        'topdown': DrawOrder := ODO_TopDown;
+      end;
+    WritelnLog('LoadTileset Name', Name);
+    WritelnLog('LoadTileset Visible', BoolToStr(Visible, 'True', 'False'));
+    WritelnLog('LoadTileset Opacity', FloatToStr(Opacity));
+    WritelnLog('LoadTileset OffsetX', IntToStr(OffsetX));
+    WritelnLog('LoadTileset OffsetY', IntToStr(OffsetY));
+  end;
+
+  I := TXMLElementIterator.Create(Element);
+  try
+    while I.GetNext do
+    begin
+      WritelnLog('LoadObjectGroup element', I.Current.TagName);
+      case LowerCase(I.Current.TagName) of
+        'properties': LoadProperties(I.Current, NewLayer.Properties);
+        'object': begin
+          LoadTiledObject(I.Current, NewObject);
+          if not Assigned(NewLayer.Objects) then
+            NewLayer.Objects := TTiledObjects.Create;
+          NewLayer.Objects.Add(NewObject);
+        end;
+      end;
+    end;
+  finally FreeAndNil(I) end;
+
+  FLayers.Add(NewLayer);
+end;
+
+procedure TCastleTiledMap.LoadTiledObject(Element: TDOMElement;
+  var ATiledObject: TTiledObject);
+begin
+
+end;
+
+procedure TCastleTiledMap.LoadImageLayer(Element: TDOMElement);
+begin
+
 end;
 
 procedure TCastleTiledMap.LoadTMXFile(AURL: string);
