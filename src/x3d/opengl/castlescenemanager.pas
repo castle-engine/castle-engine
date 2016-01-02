@@ -805,7 +805,9 @@ type
       loading. This is especially useful for long precalculated animations
       (TCastlePrecalculatedAnimation with a lot of ScenesCount), they show nice
       linearly increasing progress bar. }
-    procedure PrepareResources(const DisplayProgressTitle: string = ''); virtual;
+    procedure PrepareResources(const DisplayProgressTitle: string = '');
+    procedure PrepareResources(const Item: T3D;
+      const DisplayProgressTitle: string = '');
 
     procedure BeforeRender; override;
     procedure Render; override;
@@ -2845,7 +2847,8 @@ begin
   end;
 end;
 
-procedure TCastleSceneManager.PrepareResources(const DisplayProgressTitle: string);
+procedure TCastleSceneManager.PrepareResources(const Item: T3D;
+  const DisplayProgressTitle: string);
 var
   Options: TPrepareResourcesOptions;
 begin
@@ -2884,13 +2887,18 @@ begin
     begin
       Progress.Init(Items.PrepareResourcesSteps, DisplayProgressTitle, true);
       try
-        Items.PrepareResources(Options, true, BaseLights);
+        Item.PrepareResources(Options, true, BaseLights);
       finally Progress.Fini end;
     end else
-      Items.PrepareResources(Options, false, BaseLights);
+      Item.PrepareResources(Options, false, BaseLights);
 
     NeedsUpdateGeneratedTextures := true;
   end;
+end;
+
+procedure TCastleSceneManager.PrepareResources(const DisplayProgressTitle: string);
+begin
+  PrepareResources(Items, DisplayProgressTitle);
 end;
 
 procedure TCastleSceneManager.BeforeRender;
