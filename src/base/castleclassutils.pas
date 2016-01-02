@@ -629,8 +629,12 @@ type
 
   TNotifyEventList = class(specialize TGenericStructList<TNotifyEvent>)
   public
-    { Call all (non-nil) Items. }
+    { Call all (non-nil) Items, from first to last. }
     procedure ExecuteAll(Sender: TObject);
+    { Call all (non-nil) Items, from first to last. }
+    procedure ExecuteForward(Sender: TObject);
+    { Call all (non-nil) Items, from last to first. }
+    procedure ExecuteBackward(Sender: TObject);
   end;
 
 { Remove all nils.
@@ -1644,6 +1648,20 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
+    if Assigned(L[I]) then
+      L[I](Sender);
+end;
+
+procedure TNotifyEventList.ExecuteForward(Sender: TObject);
+begin
+  ExecuteAll(Sender);
+end;
+
+procedure TNotifyEventList.ExecuteBackward(Sender: TObject);
+var
+  I: Integer;
+begin
+  for I := Count - 1 downto 0 do
     if Assigned(L[I]) then
       L[I](Sender);
 end;

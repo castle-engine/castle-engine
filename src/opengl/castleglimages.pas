@@ -287,20 +287,9 @@ end;
 { initialization / finalization ---------------------------------------------- }
 
 procedure ContextClose;
-{$ifdef GLImageUseShaders}
-var
-  AlphaTestShader: boolean;
-  ColorTreatment: TGLImage.TColorTreatment;
-{$endif}
 begin
   TextureMemoryProfiler.CheckLeaks;
-
-  glFreeBuffer(TGLImage.PointVbo);
-  {$ifdef GLImageUseShaders}
-  for AlphaTestShader in boolean do
-    for ColorTreatment in TGLImage.TColorTreatment do
-      FreeAndNil(TGLImage.GLSLProgram[AlphaTestShader, ColorTreatment]);
-  {$endif}
+  TGLImage.StaticGLContextClose;
 end;
 
 initialization

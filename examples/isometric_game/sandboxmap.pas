@@ -7,9 +7,7 @@ uses Classes, CastleVectors, CastleImages, CastleGLUtils, CastleGLImages;
 type
   TTile = class
   public
-    { @noAutoLinkHere }
-    Image: TCastleImage;
-    GLImage: TGLImage;
+    GLImage: TGLImageManaged;
     { Relative URL vs tiles directory.
       This is read and written from/to a map file. }
     RelativeURL: string;
@@ -74,7 +72,6 @@ uses SysUtils, CastleFilesUtils, CastleUtils, SandBoxGame, CastleStringUtils,
 
 destructor TTile.Destroy;
 begin
-  FreeAndNil(Image);
   FreeAndNil(GLImage);
   inherited;
 end;
@@ -88,6 +85,7 @@ end;
 
 procedure TBaseTile.LoadFromFile;
 var
+  Image: TCastleImage;
   NewImage: TRGBAlphaImage;
 begin
   Image := LoadImage(FullURL, [TRGBImage, TRGBAlphaImage], BaseWidth, BaseHeight);
@@ -108,15 +106,17 @@ begin
     SaveImage(Image, FullURL); }
   end;
 
-  GLImage := TGLImage.Create(Image);
+  GLImage := TGLImageManaged.Create(Image, false, true);
 end;
 
 { TBonusTile ----------------------------------------------------------------- }
 
 procedure TBonusTile.LoadFromFile;
+var
+  Image: TCastleImage;
 begin
   Image := LoadImage(FullURL, PixelsImageClasses);
-  GLImage := TGLImage.Create(Image);
+  GLImage := TGLImageManaged.Create(Image, false, true);
 end;
 
 { TMap ----------------------------------------------------------------------- }
