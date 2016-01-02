@@ -416,6 +416,7 @@ type
   private
     Renderer: TGLRenderer;
     FReceiveShadowVolumes: boolean;
+    RegisteredGLContextCloseListener: boolean;
 
     { Cache used by this scene. Always initialized to non-nil by constructor. }
     Cache: TGLRendererContextCache;
@@ -451,6 +452,7 @@ type
       requires that we disconnect Renderer from OpenGL context.
       Other things, like Background, don't have to be destroyed in this case. }
     procedure CloseGLRenderer;
+    procedure GLContextCloseEvent(Sender: TObject);
   private
     FOwnsRenderer: boolean;
 
@@ -847,7 +849,7 @@ var
 implementation
 
 uses CastleGLVersion, CastleImages, CastleLog, CastleWarnings,
-  CastleStringUtils, CastleRenderingCamera;
+  CastleStringUtils, CastleRenderingCamera, CastleUIControls;
 
 var
   TemporaryAttributeChange: Cardinal = 0;
@@ -977,6 +979,13 @@ begin
   FreeAndNil(BlendingRenderer);
   FreeAndNil(FilteredShapes);
 
+  if RegisteredGLContextCloseListener and
+     (ApplicationProperties <> nil) then
+  begin
+    ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextCloseEvent);
+    RegisteredGLContextCloseListener := false;
+  end;
+
   GLContextClose;
 
   { Note that this calls Renderer.Attributes, so use this before
@@ -1105,6 +1114,11 @@ begin
   inherited;
   CloseGLRenderer;
   InvalidateBackground;
+end;
+
+procedure TCastleScene.GLContextCloseEvent(Sender: TObject);
+begin
+  GLContextClose;
 end;
 
 function TCastleScene.ShapeFog(Shape: TShape): IAbstractFogObject;
@@ -1428,10 +1442,16 @@ begin
 
   if Dirty <> 0 then Exit;
 
-  if GLVersion = nil then
+  if not ApplicationProperties.IsGLContextOpen then
   begin
     WritelnLog('PrepareResources', 'OpenGL context not available, skipping preparing TCastleScene OpenGL resources');
     Exit;
+  end;
+
+  if not RegisteredGLContextCloseListener then
+  begin
+    RegisteredGLContextCloseListener := true;
+    ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
   end;
 
   { When preparing resources, files (like textures) may get loaded,

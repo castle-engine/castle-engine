@@ -1164,10 +1164,6 @@ begin
   { make sure to call GLContextClose on TooltipLabel,
     actually we can just free it now }
   FreeAndNil(TooltipLabel);
-  if CustomFont <> nil then
-    CustomFont.GLContextClose;
-  if FCustomizedFont <> nil then
-    FCustomizedFont.GLContextClose;
   inherited;
 end;
 
@@ -3524,8 +3520,6 @@ var
 begin
   for ImageType in TThemeImage do
     FreeAndNil(FGLImages[ImageType]);
-  if FMessageFont <> nil then
-    FMessageFont.GLContextClose;
 end;
 
 procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
@@ -3562,10 +3556,6 @@ end;
 
 procedure ContextClose;
 begin
-  if FUIFont <> nil then
-    FUIFont.GLContextClose;
-  if FUIFontSmall <> nil then
-    FUIFontSmall.GLContextClose;
   if FTheme <> nil then
     FTheme.GLContextClose;
 end;

@@ -45,6 +45,7 @@ type
     FOutlineHighQuality: boolean;
     FPropertiesStack: TSavedPropertiesList;
     procedure MakeMeasure;
+    procedure GLContextCloseEvent(Sender: TObject);
   strict protected
     { Calculate properties based on measuring the font.
       The default implementation in TCastleFont looks at TextHeight of sample texts
@@ -57,6 +58,7 @@ type
     procedure SetScale(const Value: Single); virtual;
     function GetSize: Single; virtual; abstract;
     procedure SetSize(const Value: Single); virtual; abstract;
+    procedure GLContextClose; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -120,31 +122,12 @@ type
       const TextHorizontalAlignment: THorizontalPosition = hpLeft);
 
     { The font may require some OpenGL resources for drawing.
-      You can explicitly create them using GLContextOpen (although it is never
-      needed) and explicitly destroy them (although it is needed only in some
-      situations).
-
-      You can explicitly create resources using GLContextOpen.
-      It's always optional to call GLContextOpen, resources
-      will be automatically created anyway in the nearest @link(Print) call.
-      Note that only the PrintXxx methods require an OpenGL context,
-      the rest of the methods (like measuring the text sizes)
-      may be used at any time, even before initializing the OpenGL context.
-
-      You can also explicitly release the OpenGL resources using GLContextClose.
-      This is required if you want to keep the TCastleFont instance existing
-      even after OpenGL context is closed.
-      It is automatically done at destruction, so you do not have to worry
-      about it if you want to destroy TCastleFont instance before closing
-      OpenGL context.
-      Calling GLContextClose is also automatically taken care of if
-      you use this font as @link(CastleControls.UIFont),
-      @link(CastleControls.UIFontSmall),
-      @link(TUIControlFont.CustomFont) or @link(TCastleTheme.MessageFont).
-
+      You can explicitly create them using PrepareResources (although it is never
+      needed, resources will be automatically created if needed).
+      There's no public method to explicitly destroy them,
+      they are always destroyed automatically.
       @groupBegin }
-    procedure GLContextOpen; virtual;
-    procedure GLContextClose; virtual;
+    procedure PrepareResources; virtual;
     { @groupEnd }
 
     function TextWidth(const S: string): Integer; virtual; abstract;
@@ -363,6 +346,7 @@ type
     procedure SetScale(const Value: Single); override;
     function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
+    procedure GLContextClose; override;
   public
     { The default component constructor. If you construct font
       this way, @bold(you must call @link(Load) before doing anything else
@@ -402,8 +386,7 @@ type
     procedure Load(const Data: TTextureFontData;
       const OwnsData: boolean = false);
     destructor Destroy; override;
-    procedure GLContextOpen; override;
-    procedure GLContextClose; override;
+    procedure PrepareResources; override;
     procedure Print(const X, Y: Integer; const Color: TCastleColor;
       const S: string); override;
     function TextWidth(const S: string): Integer; override;
@@ -443,6 +426,7 @@ type
     procedure SetScale(const Value: Single); override;
     function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
+    procedure GLContextClose; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -453,8 +437,7 @@ type
         This is independent from CharMargin and image contents.) }
     procedure Load(AImage: TCastleImage;
       const AImageCols, AImageRows, ACharMargin, ACharDisplayMargin: Integer);
-    procedure GLContextOpen; override;
-    procedure GLContextClose; override;
+    procedure PrepareResources; override;
     procedure Print(const X, Y: Integer; const Color: TCastleColor;
       const S: string); override;
     function TextWidth(const S: string): Integer; override;
@@ -480,6 +463,7 @@ type
   strict protected
     function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
+    procedure GLContextClose; override;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -488,8 +472,7 @@ type
 
     property SourceFont: TCastleFont read FSourceFont write SetSourceFont;
 
-    procedure GLContextOpen; override;
-    procedure GLContextClose; override;
+    procedure PrepareResources; override;
     procedure Print(const X, Y: Integer; const Color: TCastleColor;
       const S: string); override;
     function TextWidth(const S: string): Integer; override;
@@ -583,16 +566,24 @@ begin
   inherited;
   FScale := 1;
   FOutlineColor := Black;
+  ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
 end;
 
 destructor TCastleFont.Destroy;
 begin
+  if ApplicationProperties <> nil then
+    ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextCloseEvent);
   GLContextClose;
   FreeAndNil(FPropertiesStack);
   inherited;
 end;
 
-procedure TCastleFont.GLContextOpen;
+procedure TCastleFont.GLContextCloseEvent(Sender: TObject);
+begin
+  GLContextClose;
+end;
+
+procedure TCastleFont.PrepareResources;
 begin
 end;
 
@@ -1062,7 +1053,7 @@ begin
   Result := Scale <> 1;
 end;
 
-procedure TTextureFont.GLContextOpen;
+procedure TTextureFont.PrepareResources;
 begin
   inherited;
   if GLImage = nil then
@@ -1097,7 +1088,7 @@ var
   end;
 
 begin
-  GLContextOpen;
+  PrepareResources;
 
   GLImage.Color := Color;
   ScreenX := X;
@@ -1247,7 +1238,7 @@ begin
   Result := Scale <> 1;
 end;
 
-procedure TSimpleTextureFont.GLContextOpen;
+procedure TSimpleTextureFont.PrepareResources;
 begin
   inherited;
   if GLImage = nil then
@@ -1266,7 +1257,7 @@ var
   ImageX, ImageY: Single;
   I, CharIndex, ScreenX, ScreenY: Integer;
 begin
-  GLContextOpen;
+  PrepareResources;
 
   GLImage.Color := Color;
   for I := 1 to Length(S) do
@@ -1374,10 +1365,10 @@ begin
   end;
 end;
 
-procedure TCustomizedFont.GLContextOpen;
+procedure TCustomizedFont.PrepareResources;
 begin
   if FSourceFont <> nil then
-    FSourceFont.GLContextOpen;
+    FSourceFont.PrepareResources;
 end;
 
 procedure TCustomizedFont.GLContextClose;
