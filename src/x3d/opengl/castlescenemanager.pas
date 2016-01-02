@@ -807,7 +807,7 @@ type
       linearly increasing progress bar. }
     procedure PrepareResources(const DisplayProgressTitle: string = '');
     procedure PrepareResources(const Item: T3D;
-      const DisplayProgressTitle: string = '');
+      const DisplayProgressTitle: string = ''); virtual;
 
     procedure BeforeRender; override;
     procedure Render; override;
