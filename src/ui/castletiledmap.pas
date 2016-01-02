@@ -1,5 +1,5 @@
 {
-  Copyright 2015 Tomasz Wojtyś
+  Copyright 2015, 2016 Tomasz Wojtyś
 
   This file is part of "Castle Game Engine".
 
@@ -405,12 +405,35 @@ begin
   try
     ReadXMLFile(Doc, URIDeleteProtocol(AURL));  //todo: check AbsoluteURI
 
-    //Parse parameters
+    //Parse map attributes
     Check(LowerCase(Doc.DocumentElement.TagName) = 'map',
       'Root element of TMX file must be <map>');
     if Doc.DocumentElement.AttributeString('version', TmpStr) then
       FVersion := TmpStr;
-    //Parse childrens
+    if Doc.DocumentElement.AttributeString('orientation', TmpStr) then
+      case TmpStr of
+        'orthogonal': FOrientation := MO_Orthogonal;
+        'isometric': FOrientation := MO_Isometric;
+        'staggered': FOrientation := MO_Staggered;
+      end;
+    if Doc.DocumentElement.AttributeString('width', TmpStr) then
+      FWidth := StrToInt(TmpStr);
+    if Doc.DocumentElement.AttributeString('height', TmpStr) then
+      FHeight := StrToInt(TmpStr);
+    if Doc.DocumentElement.AttributeString('tilewidth', TmpStr) then
+      FTileWidth := StrToInt(TmpStr);
+    if Doc.DocumentElement.AttributeString('tileheight', TmpStr) then
+      FTileHeight := StrToInt(TmpStr);
+    if Doc.DocumentElement.AttributeString('backgroundcolor', TmpStr) then
+      FBackgroundColor := HexToColorRGB(TmpStr);
+    if Doc.DocumentElement.AttributeString('renderorder', TmpStr) then
+      case TmpStr of
+        'right-down': FRenderOrder := MRO_RightDown;
+        'right-up': FRenderOrder := MRO_RightUp;
+        'left-down': FRenderOrder := MRO_LeftDown;
+        'left-up': FRenderOrder := MRO_LeftUp;
+      end;
+    //Parse map childrens
     I := TXMLElementIterator.Create(Doc.DocumentElement);
     try
       while I.GetNext do
