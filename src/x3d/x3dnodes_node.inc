@@ -1552,8 +1552,11 @@ begin
   { This is a workaround for Blender errorneous VRML 1.0 export.
     Blender exports relative paths by prefixing them by "//"
     (that's a general convention used internally by Blender, AFAIK).
-    Here I simply remove this "//". }
-  if IsPrefix('//', RelativePath) then
+    Here we simply remove this "//".
+
+    Note: 3rd parameter IgnoreCase = false not only for speed,
+    but also to workaround FPC 3.1.1 bug on Android+Arm. }
+  if IsPrefix('//', RelativePath, false) then
     Result := CombineURI(BaseUrl, SEnding(RelativePath, 3)) else
     Result := CombineURI(BaseUrl, RelativePath);
 end;
