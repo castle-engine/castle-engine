@@ -1284,12 +1284,14 @@ type
       and override their GLContextOpen / GLContextClose methods to react to
       context being open/closed. Using such TUIControl classes
       is usually easier, as you add/remove them from controls whenever
-      you want (e.g. you add them in ApplicationInitialize),
+      you want (e.g. you add them in
+      @link(TCastleApplication.OnInitialize Application.OnInitialize)),
       and underneath they create/release/create again the OpenGL resources
       when necessary.
 
-      WindowOpen is always *after* ApplicationInitialize.
-      In normal circumstances, for a standalone game, the WindowOpen will
+      OnOpen is always called @bold(after)
+      @link(TCastleApplication.OnInitialize Application.OnInitialize).
+      In normal circumstances, for a typical standalone game, the OnOpen will
       happen only once. But for other targets, it may be necessary to close/reopen
       the OpenGL context many times, e.g. on mobile platforms it's normal
       that application may "loose" the OpenGL context and it may need
@@ -1317,9 +1319,12 @@ type
       for a one-time initialization (it is executed right before
       the very first OnOpen would be executed).
       Use this callback only to create OpenGL resources
-      (destroyed in OnClose). }
+      (destroyed in OnClose).
+
+      @groupBegin }
     property OnOpen: TContainerEvent read GetOnOpen write SetOnOpen;
     property OnOpenObject: TContainerObjectEvent read GetOnOpenObject write SetOnOpenObject;
+    { @groupEnd }
 
     { Minimum and maximum window sizes. Always
 
@@ -3035,7 +3040,12 @@ begin
     {$endif}
 
     try
+      { make ApplicationProperties.IsGLContextOpen true now, to allow creating
+        TGLImage.Create from Application.OnInitialize work Ok. }
+      ApplicationProperties._GLContextEarlyOpen;
+
       Application.CastleEngineInitialize;
+      if Closed then Exit;
 
       { call first EventOpen and EventResize. Zwroc uwage ze te DoResize i DoOpen
         MUSZA byc wykonane na samym koncu procedury Open - jak juz wszystko inne

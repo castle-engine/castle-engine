@@ -17,19 +17,6 @@ var
   ViewMoveX, ViewMoveY: Single;
   ViewFollowsPlayer: boolean = true;
 
-procedure WindowOpen(Container: TUIContainer);
-begin
-  Map := TMap.CreateFromFile(ApplicationData('maps/1.map'));
-  Player := TPlayer.Create;
-  Player.Teleport(Map.PlayerStartX, Map.PlayerStartY, dirSouth);
-end;
-
-procedure WindowClose(Container: TUIContainer);
-begin
-  FreeAndNil(Player);
-  FreeAndNil(Map);
-end;
-
 procedure WindowRender(Container: TUIContainer);
 var
   RealViewMoveX, RealViewMoveY: Integer;
@@ -60,7 +47,7 @@ begin
 
   BaseFitX := Ceil(Window.Width / BaseWidth) + 1;
   BaseFitY := Ceil(2 * Window.Height / BaseHeight) + 1;
-
+  
   if ViewFollowsPlayer then
   begin
     { Ignore ViewMoveX/Y, calculate RealView such that the player
@@ -263,6 +250,13 @@ begin
     if Window.Pressed[K_Numpad_6] then Player.Move(dirEast);
     if Window.Pressed[K_Numpad_2] then Player.Move(dirSouth);
     if Window.Pressed[K_Numpad_8] then Player.Move(dirNorth);
+
+    if Window.Pressed[K_F10] then
+    begin
+      { simulate OpenGL context close + open, this may happen at any time on Android/iOS }
+      Window.Close(false);
+      Window.Open;
+    end;
   end;
 
   GameTime += Window.Fps.UpdateSecondsPassed;
@@ -282,12 +276,20 @@ begin
   Window.ResizeAllowed := raOnlyAtOpen;
   Window.AutoRedisplay := true;
   Window.FpsShowOnCaption := true;
-  Window.OnOpen := @WindowOpen;
-  Window.OnClose := @WindowClose;
   Window.OnResize := @Resize2D;
   Window.OnRender := @WindowRender;
   Window.OnPress := @WindowPress;
   Window.OnUpdate := @WindowUpdate;
 
-  Window.OpenAndRun;
+  Map := TMap.CreateFromFile(ApplicationData('maps/1.map'));
+  Player := TPlayer.Create;
+  Player.Teleport(Map.PlayerStartX, Map.PlayerStartY, dirSouth);
+  try
+    Window.Open;
+    Player.CalculatePixelPosition;
+    Application.Run;
+  finally
+    FreeAndNil(Player);
+    FreeAndNil(Map);
+  end;
 end.

@@ -18,7 +18,16 @@
 {$ifdef read_interface}
 
 type
-  { Image ready to be drawn on 2D screen. }
+  { Image ready to be drawn on 2D screen.
+
+    @bold(An instance of this class can only exist when the OpenGL context is open.)
+    So usually you want to create it in @link(TUIControl.GLContextOpen)
+    and destroy in @link(TUIControl.GLContextClose).
+    Or create in @link(TCastleWindowCustom.OnOpen) and destroy
+    in @link(TCastleWindowCustom.OnClose).
+
+    If you want more comfort, use @link(TGLImageManaged) or even a full-featured
+    2D control @link(TCastleImageControl). }
   TGLImage = class
   private
     const
@@ -41,6 +50,7 @@ type
       {$endif}
     var
     { Static OpenGL resources, used by all TGLImage instances. }
+    StaticResourcesReady: boolean; static;
     PointVbo: TGLuint; static;
     { Point VBO contents, reused in every Draw. }
     Point: array [0..PointCount - 1] of TPoint; static;
@@ -62,10 +72,12 @@ type
     UseScreenCenter: boolean;
     procedure AlphaBegin;
     procedure AlphaEnd;
-    procedure UpdateSmoothScaling(const NeedToBind: boolean);
     procedure SetSmoothScaling(const Value: boolean);
-    { Prepare static stuff for rendering. }
-    class procedure PrepareStatic;
+    { Create / destroy static stuff for rendering. }
+    class procedure StaticGLContextOpen;
+    class procedure StaticGLContextClose;
+    procedure GLContextOpen(const AImage: TEncodedImage);
+    procedure GLContextClose;
     function CurrentFilter: TTextureFilter;
   public
     { Prepare image for drawing.
@@ -180,17 +192,17 @@ type
       image horizontally.
 
       @groupBegin }
-    procedure Draw;
-    procedure Draw(const X, Y: Integer);
-    procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer);
-    procedure Draw(const Pos: TVector2Integer);
+    procedure Draw; overload;
+    procedure Draw(const X, Y: Integer); overload;
+    procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer); overload;
+    procedure Draw(const Pos: TVector2Integer); overload;
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
-      const ImageX, ImageY, ImageWidth, ImageHeight: Single);
-    procedure Draw(const ScreenRectangle: TRectangle);
+      const ImageX, ImageY, ImageWidth, ImageHeight: Single); overload; virtual;
+    procedure Draw(const ScreenRectangle: TRectangle); overload;
     procedure Draw(const ScreenRectangle: TRectangle;
-      const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+      const ImageX, ImageY, ImageWidth, ImageHeight: Single); overload;
     procedure Draw(const ScreenRectangle: TRectangle;
-      const ImageRect: TRectangle);
+      const ImageRect: TRectangle); overload;
     { @groupEnd }
 
     procedure DrawFlipped(const ScreenRectangle: TRectangle;
@@ -268,7 +280,7 @@ type
       Use this to efficiently replace the TGLImage contents on GPU.
       Updates the @link(Width), @link(Height), @link(Alpha) to correspond
       to new image. }
-    procedure Load(const Image: TEncodedImage);
+    procedure Load(const AImage: TEncodedImage); virtual;
 
     { Is the image scaling mode smooth (bilinear filtering)
       or not (nearest-pixel filtering).
@@ -299,6 +311,79 @@ type
     property Rotation: Single read FRotation write FRotation default 0;
   end;
 
+  { Image ready to be drawn on 2D screen, with automatically
+    managed OpenGL resources.
+
+    This is a descendant of TGLImage that is easier to use:
+    it can be created and destroyed at any moment (no need to worry about
+    whether OpenGL context is created), and an instance can survive
+    OpenGL context close + open.
+
+    The catch is that this keeps the image pixels in normal memory all the time. }
+  TGLImageManaged = class(TGLImage)
+  private
+    FImage: TEncodedImage;
+    FOwnsImage: boolean;
+    procedure SetImage(const AImage: TEncodedImage);
+    procedure GLContextCloseEvent(Sender: TObject);
+  public
+    { Prepare image for drawing. The @code(Image) instance passed here must
+      exist throughout the lifetime of this instance. It can be automatically freed
+      if OwnsImage = @true.
+
+      @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
+        by OpenGL.) }
+    constructor Create(const AImage: TEncodedImage; const ASmoothScaling: boolean;
+      const AOwnsImage: boolean);
+
+    { Load image from disk, and prepare for drawing.
+
+      @param(LoadAsClass Force a specific image class to load.
+        Must be a subset of PixelsImageClasses, as other classes cannot
+        be loaded into OpenGL 2D images, otherwise you may get
+        EImageClassNotSupportedForOpenGL exception.
+        Pass empty set [] to load into any allowed class
+        (it's equivalent to passing LoadAsClass = PixelsImageClasses).
+
+        You can pass e.g. [TRGBImage] to force loading into an RGB image without
+        an alpha channel (it will be stripped from the image if necessary).)
+
+      @param(ResizeToX After loading, resize to given width.
+        Pass 0 to not resize width.)
+
+      @param(ResizeToY After loading, resize to given height.
+        Pass 0 to not resize height.)
+
+      @param(Interpolation If any resizing will be needed (if
+        ResizeToX / ResizeToY parameters request some specific size,
+        and it is different than loaded image size) then the resize
+        operation will use given interpolation.)
+
+      @raises(EImageClassNotSupportedForOpenGL When image class is not supported
+        by OpenGL.)
+    }
+    constructor Create(const URL: string;
+      const ASmoothScaling: boolean = false);
+    constructor Create(const URL: string;
+      const LoadAsClass: array of TEncodedImageClass;
+      const ResizeToX: Cardinal = 0;
+      const ResizeToY: Cardinal = 0;
+      const Interpolation: TResizeInterpolation = riNearest);
+    constructor Create(const URL: string;
+      const LoadAsClass: array of TEncodedImageClass;
+      const ASmoothScaling: boolean);
+
+    destructor Destroy; override;
+
+    property Image: TEncodedImage read FImage write SetImage;
+    property OwnsImage: boolean read FOwnsImage write FOwnsImage;
+
+    procedure Load(const AImage: TEncodedImage); override;
+
+    procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+      const ImageX, ImageY, ImageWidth, ImageHeight: Single); override;
+  end;
+
 { Draw the image on 2D screen. Note that if you want to use this
   many times, it will be much faster to create TGLImage instance.
 
@@ -311,6 +396,8 @@ procedure ImageDraw(const Image: TCastleImage); deprecated;
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ TGLImage ------------------------------------------------------------------- }
 
 constructor TGLImage.Create(const Image: TEncodedImage;
   const ASmoothScaling: boolean);
@@ -325,15 +412,10 @@ begin
   FCenterX := 0.5;
   FCenterY := 0.5;
   FRotation := 0;
-
-  glGenTextures(1, @Texture);
-  Load(Image); // Load will already call proper glBindTexture
+  { this sets CurrentFilter, that will be immediately used by Load }
   FSmoothScaling := ASmoothScaling;
-  UpdateSmoothScaling(false);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLFeatures.CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLFeatures.CLAMP_TO_EDGE);
 
-  PrepareStatic;
+  Load(Image);
 end;
 
 constructor TGLImage.Create(const Image: TEncodedImage);
@@ -378,27 +460,46 @@ end;
 
 destructor TGLImage.Destroy;
 begin
-  glFreeTexture(Texture);
+  GLContextClose;
   inherited;
 end;
 
-procedure TGLImage.Load(const Image: TEncodedImage);
+procedure TGLImage.GLContextOpen(const AImage: TEncodedImage);
 begin
-  LoadGLGeneratedTexture(Texture, Image, CurrentFilter, Texture2DClampToEdge,
+  if Texture = 0 then
+    glGenTextures(1, @Texture);
+  LoadGLGeneratedTexture(Texture, AImage, CurrentFilter, Texture2DClampToEdge,
     nil, true);
+end;
 
-  FWidth := Image.Width;
-  FHeight := Image.Height;
-  FAlpha := Image.AlphaChannel;
+procedure TGLImage.GLContextClose;
+begin
+  glFreeTexture(Texture);
+end;
+
+procedure TGLImage.Load(const AImage: TEncodedImage);
+begin
+  FWidth := AImage.Width;
+  FHeight := AImage.Height;
+  FAlpha := AImage.AlphaChannel;
 
   {$ifdef GLImageUseShaders}
   { calculate TextureHasOnlyAlpha, useful only for GLSL image rendering }
-  TextureHasOnlyAlpha := (Image is TGrayscaleImage) and
-    (TGrayscaleImage(Image).TreatAsAlpha);
+  TextureHasOnlyAlpha := (AImage is TGrayscaleImage) and
+    (TGrayscaleImage(AImage).TreatAsAlpha);
   {$endif}
+
+  { in case of TGLImage, this is the only way to call GLContextOpen.
+    But in case of TGLImageManaged, GLContextOpen can be called
+    from other moments too. }
+  if ApplicationProperties.IsGLContextOpen then
+  begin
+    GLContextOpen(AImage);
+    StaticGLContextOpen;
+  end;
 end;
 
-class procedure TGLImage.PrepareStatic;
+class procedure TGLImage.StaticGLContextOpen;
 {$ifdef GLImageUseShaders}
 var
   AlphaTestShader: boolean;
@@ -435,6 +536,25 @@ begin
         GLSLProgram[AlphaTestShader, ColorTreatment] := NewProgram;
       end;
   {$endif}
+
+  StaticResourcesReady := true;
+end;
+
+class procedure TGLImage.StaticGLContextClose;
+{$ifdef GLImageUseShaders}
+var
+  AlphaTestShader: boolean;
+  ColorTreatment: TGLImage.TColorTreatment;
+{$endif}
+begin
+  glFreeBuffer(PointVbo);
+  {$ifdef GLImageUseShaders}
+  for AlphaTestShader in boolean do
+    for ColorTreatment in TColorTreatment do
+      FreeAndNil(GLSLProgram[AlphaTestShader, ColorTreatment]);
+  {$endif}
+
+  StaticResourcesReady := false;
 end;
 
 procedure TGLImage.AlphaBegin;
@@ -499,6 +619,11 @@ var
   {$endif}
 begin
   if (DrawWidth = 0) or (DrawHeight = 0) then Exit;
+
+  if Texture = 0 then
+    raise Exception.Create('TGLImage resources are not ready when trying to render. This probably means that you created TGLImage when OpenGL context was not created yet. The simplest solution is to use TGLImageManaged instead');
+  if not StaticResourcesReady then
+    raise Exception.Create('TGLImage static resources are not ready when trying to render. This probably means that OpenGL context was freed, but TGLImage was not recreated');
 
   if GLFeatures.UseMultiTexturing then glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, Texture);
@@ -901,19 +1026,16 @@ begin
   end;
 end;
 
-procedure TGLImage.UpdateSmoothScaling(const NeedToBind: boolean);
-begin
-  if NeedToBind then
-    glBindTexture(GL_TEXTURE_2D, Texture);
-  SetTextureFilter(GL_TEXTURE_2D, CurrentFilter);
-end;
-
 procedure TGLImage.SetSmoothScaling(const Value: boolean);
 begin
   if FSmoothScaling <> Value then
   begin
     FSmoothScaling := Value;
-    UpdateSmoothScaling(true);
+    if Texture <> 0 then { if GL resources available now --- this is needed for TGLImageManaged }
+    begin
+      glBindTexture(GL_TEXTURE_2D, Texture);
+      SetTextureFilter(GL_TEXTURE_2D, CurrentFilter);
+    end;
   end;
 end;
 
@@ -921,6 +1043,95 @@ function TGLImage.Rect: TRectangle;
 begin
   Result := Rectangle(0, 0, Width, Height);
 end;
+
+{ TGLImageManaged ------------------------------------------------------------ }
+
+constructor TGLImageManaged.Create(const AImage: TEncodedImage;
+  const ASmoothScaling, AOwnsImage: boolean);
+begin
+  inherited Create(AImage, ASmoothScaling);
+  // note that above Create will call virtual Load() which will already set our FImage
+  FOwnsImage := AOwnsImage;
+  ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
+end;
+
+constructor TGLImageManaged.Create(const URL: string;
+  const ASmoothScaling: boolean);
+begin
+  Create(URL, [], ASmoothScaling);
+end;
+
+constructor TGLImageManaged.Create(const URL: string;
+  const LoadAsClass: array of TEncodedImageClass;
+  const ResizeToX, ResizeToY: Cardinal;
+  const Interpolation: TResizeInterpolation);
+var
+  NewImage: TCastleImage;
+begin
+  if High(LoadAsClass) = -1 then
+    NewImage := LoadImage(URL, PixelsImageClasses, ResizeToX, ResizeToY, Interpolation) else
+    NewImage := LoadImage(URL, LoadAsClass, ResizeToX, ResizeToY, Interpolation);
+  Create(NewImage, { ASmoothScaling } false, { AOwnsImage } true);
+end;
+
+constructor TGLImageManaged.Create(const URL: string;
+  const LoadAsClass: array of TEncodedImageClass;
+  const ASmoothScaling: boolean);
+var
+  NewImage: TEncodedImage;
+begin
+  if High(LoadAsClass) = -1 then
+    NewImage := LoadEncodedImage(URL, PixelsImageClasses) else
+    NewImage := LoadEncodedImage(URL, LoadAsClass);
+  Create(NewImage, ASmoothScaling, { AOwnsImage } true);
+end;
+
+destructor TGLImageManaged.Destroy;
+begin
+  if FOwnsImage then
+    FreeAndNil(FImage) else
+    FImage := nil;
+  if ApplicationProperties <> nil then
+    ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextCloseEvent);
+  inherited;
+end;
+
+procedure TGLImageManaged.Load(const AImage: TEncodedImage);
+begin
+  if FOwnsImage then
+    FreeAndNil(FImage) else
+    FImage := nil;
+  inherited Load(AImage);
+  FImage := AImage;
+end;
+
+procedure TGLImageManaged.SetImage(const AImage: TEncodedImage);
+begin
+  { exactly like Load(), but can ignore the call is AImage reference normal.
+    Load() should not do it, to allow loading the same AImage reference
+    in case AImage contents change. }
+  if FImage <> AImage then
+    Load(AImage);
+end;
+
+procedure TGLImageManaged.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+  const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+begin
+  { initialize OpenGL resources on-demand }
+  if not StaticResourcesReady then
+    StaticGLContextOpen;
+  if Texture = 0 then
+    GLContextOpen(FImage);
+
+  inherited;
+end;
+
+procedure TGLImageManaged.GLContextCloseEvent(Sender: TObject);
+begin
+  GLContextClose;
+end;
+
+{ global --------------------------------------------------------------------- }
 
 procedure ImageDraw(const Image: TCastleImage);
 var

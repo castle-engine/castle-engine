@@ -250,6 +250,9 @@ type
     FrameTimePassed: TTimerResult;
     FMaxSensibleSecondsPassed: Single;
   public
+    const
+      DefaultMaxSensibleSecondsPassed = 0.5;
+
     constructor Create;
 
     { Internal for Castle Game Engine.
@@ -306,7 +309,8 @@ type
       event from OS.
       Used only when non-zero. }
     property MaxSensibleSecondsPassed: Single
-      read FMaxSensibleSecondsPassed write FMaxSensibleSecondsPassed;
+      read FMaxSensibleSecondsPassed write FMaxSensibleSecondsPassed
+      default DefaultMaxSensibleSecondsPassed;
 
     { Forces UpdateSecondsPassed for the next Update call (using _UpdateBegin)
       to be zero.
@@ -543,6 +547,9 @@ begin
   FUpdateSecondsPassed := 1 / DefaultFps;
   FFrameTime := DefaultFps;
   FRealTime := DefaultFps;
+
+  { the default is non-zero now, since all Android games need it }
+  FMaxSensibleSecondsPassed := DefaultMaxSensibleSecondsPassed;
 
   ZeroNextSecondsPassed;
 end;

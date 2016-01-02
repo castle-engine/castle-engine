@@ -1316,7 +1316,8 @@ end;
   private
     FIsGLContextOpen: boolean;
     FOnGLContextOpen, FOnGLContextClose: TGLContextEventList;
-    FOnUpdate, FOnInitializeJavaActivity: TNotifyEventList;
+    FOnUpdate, FOnInitializeJavaActivity,
+      FOnGLContextOpenObject, FOnGLContextCloseObject: TNotifyEventList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -1342,7 +1343,9 @@ end;
 
       @groupBegin }
     property OnGLContextOpen: TGLContextEventList read FOnGLContextOpen;
+    property OnGLContextOpenObject: TNotifyEventList read FOnGLContextOpenObject;
     property OnGLContextClose: TGLContextEventList read FOnGLContextClose;
+    property OnGLContextCloseObject: TNotifyEventList read FOnGLContextCloseObject;
     { @groupEnd }
 
     { Is the OpenGL context available. IOW, we are between OnGLContextOpen
@@ -1387,6 +1390,8 @@ end;
       @groupBegin
       @exclude }
     procedure _GLContextOpen;
+    { @exclude }
+    procedure _GLContextEarlyOpen;
     { @exclude }
     procedure _GLContextClose;
     { @exclude }
@@ -3489,7 +3494,9 @@ constructor TCastleApplicationProperties.Create;
 begin
   inherited;
   FOnGLContextOpen := TGLContextEventList.Create;
+  FOnGLContextOpenObject := TNotifyEventList.Create;
   FOnGLContextClose := TGLContextEventList.Create;
+  FOnGLContextCloseObject := TNotifyEventList.Create;
   FOnUpdate := TNotifyEventList.Create;
   FOnInitializeJavaActivity := TNotifyEventList.Create;
 end;
@@ -3497,20 +3504,29 @@ end;
 destructor TCastleApplicationProperties.Destroy;
 begin
   FreeAndNil(FOnGLContextOpen);
+  FreeAndNil(FOnGLContextOpenObject);
   FreeAndNil(FOnGLContextClose);
+  FreeAndNil(FOnGLContextCloseObject);
   FreeAndNil(FOnUpdate);
   FreeAndNil(FOnInitializeJavaActivity);
   inherited;
+end;
+
+procedure TCastleApplicationProperties._GLContextEarlyOpen;
+begin
+  FIsGLContextOpen := true;
 end;
 
 procedure TCastleApplicationProperties._GLContextOpen;
 begin
   FIsGLContextOpen := true;
   FOnGLContextOpen.ExecuteForward;
+  FOnGLContextOpenObject.ExecuteForward(Self);
 end;
 
 procedure TCastleApplicationProperties._GLContextClose;
 begin
+  FOnGLContextCloseObject.ExecuteBackward(Self);
   FOnGLContextClose.ExecuteBackward;
   FIsGLContextOpen := false;
 end;
