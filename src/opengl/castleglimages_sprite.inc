@@ -39,7 +39,7 @@ type
   type
     TSpriteAnimations = specialize TFPGList<TSpriteAnimation>;
   private
-    FImage: TGLImage;
+    FImage: TGLImageManaged;
     FX, FY: Integer;
     FDrawingWidth, FDrawingHeight: Cardinal;
     FFrames, FFrameWidth, FFrameHeight, FCols, FRows: Cardinal;
@@ -76,7 +76,7 @@ type
       @param(AFrames) - total numer of animation frames,
       @param(ACols) - number of columns,
       @param(ARows) - number of rows,
-      @param(ASmoothscaling) - enables interpolation, see TGLImage for details, default True,
+      @param(ASmoothscaling) - enables interpolation, see @link(TGLImage.SmoothScaling) for details, default @True,
       @param(ATimeLoop) - should animation be repeated?, default True,
       @param(APlay) - is animation playing? if not then current frame will be displaied. }
     constructor Create(const URL: string;
@@ -175,9 +175,9 @@ type
     function SwitchToAnimation(const AAnimIndex: Integer; const ACustomFrame: Cardinal=0): Boolean;
   end;
 
-  {$endif read_interface}
+{$endif read_interface}
 
-  {$ifdef read_implementation}
+{$ifdef read_implementation}
 
 function TSprite.GetPosition: TVector2Integer;
 begin
@@ -305,7 +305,7 @@ constructor TSprite.Create(const URL: string;
   const ASmoothScaling: Boolean = True;
   const ATimeLoop: Boolean = True; const APlay: Boolean=False);
 begin
-  FImage := TGLImage.Create(URL, ASmoothScaling);
+  FImage := TGLImageManaged.Create(URL, ASmoothScaling);
   FFrames := AFrames;
   FCols := ACols;
   FRows := ARows;

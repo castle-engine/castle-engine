@@ -192,17 +192,17 @@ type
       image horizontally.
 
       @groupBegin }
-    procedure Draw;
-    procedure Draw(const X, Y: Integer);
-    procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer);
-    procedure Draw(const Pos: TVector2Integer);
+    procedure Draw; overload;
+    procedure Draw(const X, Y: Integer); overload;
+    procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer); overload;
+    procedure Draw(const Pos: TVector2Integer); overload;
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
-      const ImageX, ImageY, ImageWidth, ImageHeight: Single); virtual;
-    procedure Draw(const ScreenRectangle: TRectangle);
+      const ImageX, ImageY, ImageWidth, ImageHeight: Single); overload; virtual;
+    procedure Draw(const ScreenRectangle: TRectangle); overload;
     procedure Draw(const ScreenRectangle: TRectangle;
-      const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+      const ImageX, ImageY, ImageWidth, ImageHeight: Single); overload;
     procedure Draw(const ScreenRectangle: TRectangle;
-      const ImageRect: TRectangle);
+      const ImageRect: TRectangle); overload;
     { @groupEnd }
 
     procedure DrawFlipped(const ScreenRectangle: TRectangle;
