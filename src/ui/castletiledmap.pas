@@ -21,7 +21,7 @@ unit CastleTiledMap;
 interface
 
 uses
-  Classes, SysUtils, DOM, XMLRead, CastleGenericLists, CastleVectors,
+  Classes, SysUtils, DOM, XMLRead, base64, zstream, {zlib,} CastleGenericLists, CastleVectors,
   CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils, CastleLog;
 
 type
@@ -35,8 +35,8 @@ type
   { List of properties. }
   TProperties = specialize TGenericStructList<TProperty>;
 
-  TEncodingType = (ET_Base64, ET_CSV);
-  TCompressionType = (CT_GZip, CT_ZLib);
+  TEncodingType = (ET_None, ET_Base64, ET_CSV);
+  TCompressionType = (CT_None, CT_GZip, CT_ZLib);
 
   { Binary data definition. }
   TData = record //todo: is encoded and compressed really necessary to keep?
@@ -357,12 +357,11 @@ begin
     Source := Element.GetAttribute('source');
     if Element.hasAttribute('trans') then //todo: if no trans then use some default trans
       Trans := HexToColorRGB(Element.GetAttribute('trans')); //todo: test convertion
-    //todo: ERangeError sometimes
     Width := StrToInt(Element.GetAttribute('width'));
     Height := StrToInt(Element.GetAttribute('height'));
     WritelnLog('LoadImage Format', Format);
     WritelnLog('LoadImage Source', Source);
-    WritelnLog('LoadImage Trans', ColorRGBToHex(Trans));
+    //WritelnLog('LoadImage Trans', ColorRGBToHex(Trans));//todo: ERangeError sometimes
     WritelnLog('LoadImage Width', IntToStr(Width));
     WritelnLog('LoadImage Height', IntToStr(Height));
   end;
@@ -405,7 +404,7 @@ begin
         WritelnLog('LoadLayer element', I.Current.TagName);
         case LowerCase(I.Current.TagName) of
           'properties': LoadProperties(I.Current, Properties);
-          //todo: data element
+          'data': LoadData(I.Current, Data);
         end;
       end;
     finally FreeAndNil(I) end;
@@ -568,12 +567,19 @@ begin
 end;
 
 procedure TCastleTiledMap.LoadData(Element: TDOMElement; var AData: TData);
+const
+  BufferSize = 16;
 var
   I: TXMLElementIterator;
-  TmpStr, RawData: string;
+  TmpStr, RawData{, DecodedData}: string;
+  Decompressor, Decoder: TStream;
+  Buffer: array[0..BufferSize-1] of Cardinal;
+  DataCount, DataLength: Longint;
 begin
   with AData do
   begin
+    Encoding := ET_None;
+    Compression := CT_None;
     if Element.AttributeString('encoding', TmpStr) then
       case TmpStr of
         'base64': Encoding := ET_Base64;
@@ -585,10 +591,41 @@ begin
         'zlib': Compression := CT_ZLib;
       end;
 
-    //todo: load decode uncompress binary data
-    RawData := Element.NodeValue;
-    WritelnLog('LoadData RawData', RawData);
-    //todo: tile flipping
+    if (Encoding = ET_None) or (Compression = CT_None) then
+    begin
+      // todo: use XML tiles
+    end else begin
+      //todo: load decode uncompress binary data
+      RawData := Element.TextContent;
+      WritelnLog('LoadData RawData', RawData);
+      case Encoding of
+        ET_Base64: begin
+          Decoder := TBase64DecodingStream.Create(TStringStream.Create(RawData));
+          //DecodedData := DecodeStringBase64(RawData);
+        end;
+        ET_CSV: ; //todo: csv reading
+      end;
+      //WritelnLog('LoadData DecodedData', DecodedData);
+      case Compression of
+        CT_Gzip : ; //todo: gzip reading
+        CT_ZLib: ; //todo: zlib reading
+      end;
+      Decompressor := TDecompressionStream.Create(Decoder);
+      while True do
+      begin
+        DataCount := Decompressor.Read(Buffer, BufferSize * SizeOf(Cardinal));
+        WritelnLog('datacount', IntToStr(DataCount));
+        if DataCount = 0 then Break;
+        //DataLength := Length(Data);
+        //SetLength(Data, DataLength+DataCount div SizeOf(Cardinal));
+        //Move(Buffer, Data[DataLength], DataCount);
+        //todo: add data from buffer to Data array
+      end;
+      //Decompressor.Seek(125*4, soBeginning);
+      WritelnLog('LoadData Decompressor.Size', IntToStr(Decompressor.ReadDWord));
+
+      //todo: tile flipping
+    end;
 
     I := TXMLElementIterator.Create(Element);
     try
