@@ -36,7 +36,7 @@ type
   TProperties = specialize TGenericStructList<TProperty>;
 
   TEncodingType = (ET_Base64, ET_CSV);
-  TCompressionType = (CT_GZip, ZLib);
+  TCompressionType = (CT_GZip, CT_ZLib);
 
   { Binary data definition. }
   TData = record //todo: is encoded and compressed really necessary to keep?
@@ -48,7 +48,7 @@ type
     Compression: TCompressionType;
     { Binary data. Uncompressed and decoded. }
     Data: array of Cardinal;
-    // todo: Tile
+    Tiles: array of Integer;
   end;
 
   { Image definition. }
@@ -248,6 +248,7 @@ type
     procedure LoadObjectGroup(Element: TDOMElement);
     procedure LoadTiledObject(Element: TDOMElement; var ATiledObject: TTiledObject);
     procedure LoadImageLayer(Element: TDOMElement);
+    procedure LoadData(Element: TDOMElement; var AData: TData);
   private
     FTilesets: TTilesets;
     FProperties: TProperties;
@@ -265,19 +266,28 @@ procedure TCastleTiledMap.LoadTileset(Element: TDOMElement);
 var
   I: TXMLElementIterator;
   NewTileset: TTileset;
+  TmpStr: string;
 begin
   with NewTileset do
   begin
     TileOffset := ZeroVector2Integer;
     Properties := nil;
-    FirstGID := StrToInt(Element.GetAttribute('firstgid'));
-    Source := Element.GetAttribute('source');
-    Name := Element.GetAttribute('name');
-    TileWidth := StrToInt(Element.GetAttribute('tilewidth'));
-    TileHeight := StrToInt(Element.GetAttribute('tileheight'));
-    Spacing := StrToInt(Element.GetAttribute('spacing'));
-    Margin := StrToInt(Element.GetAttribute('margin'));;
-    TileCount := StrToInt(Element.GetAttribute('tilecount'));
+    if Element.AttributeString('firstgid', TmpStr) then
+      FirstGID := StrToInt(TmpStr);
+    if Element.AttributeString('source', TmpStr) then
+      Source := TmpStr;
+    if Element.AttributeString('name', TmpStr) then
+      Name := TmpStr;
+    if Element.AttributeString('tilewidth', TmpStr) then
+      TileWidth := StrToInt(TmpStr);
+    if Element.AttributeString('tileheight', TmpStr) then
+      TileHeight := StrToInt(TmpStr);
+    if Element.AttributeString('spacing', TmpStr) then
+      Spacing := StrToInt(TmpStr);
+    if Element.AttributeString('margin', TmpStr) then
+      Margin := StrToInt(TmpStr);
+    if Element.AttributeString('tilecount', TmpStr) then
+      TileCount := StrToInt(TmpStr);
     WritelnLog('LoadTileset firstgid', IntToStr(FirstGID));
     WritelnLog('LoadTileset source', Source);
     WritelnLog('LoadTileset Name', Name);
@@ -286,23 +296,23 @@ begin
     WritelnLog('LoadTileset Spacing', IntToStr(Spacing));
     WritelnLog('LoadTileset Margin', IntToStr(Margin));
     WritelnLog('LoadTileset TileCount', IntToStr(TileCount));
-  end;
 
-  I := TXMLElementIterator.Create(Element);
-  try
-    while I.GetNext do
-    begin
-      WritelnLog('LoadTileset element', I.Current.TagName);
-      case LowerCase(I.Current.TagName) of
-        'tileoffset': begin
-          NewTileset.TileOffset[0] := StrToInt(I.Current.GetAttribute('x'));
-          NewTileset.TileOffset[1] := StrToInt(I.Current.GetAttribute('y'));
+    I := TXMLElementIterator.Create(Element);
+    try
+      while I.GetNext do
+      begin
+        WritelnLog('LoadTileset element', I.Current.TagName);
+        case LowerCase(I.Current.TagName) of
+          'tileoffset': begin
+            TileOffset[0] := StrToInt(I.Current.GetAttribute('x'));
+            TileOffset[1] := StrToInt(I.Current.GetAttribute('y'));
+          end;
+          'properties': LoadProperties(I.Current, Properties);
+          'image': LoadImage(I.Current, Image);
         end;
-        'properties': LoadProperties(I.Current, NewTileset.Properties);
-        'image': LoadImage(I.Current, NewTileset.Image);
       end;
-    end;
-  finally FreeAndNil(I) end;
+    finally FreeAndNil(I) end;
+  end;
 
   FTilesets.Add(NewTileset);
 end;
@@ -385,19 +395,19 @@ begin
     WritelnLog('LoadTileset Opacity', FloatToStr(Opacity));
     WritelnLog('LoadTileset OffsetX', IntToStr(OffsetX));
     WritelnLog('LoadTileset OffsetY', IntToStr(OffsetY));
-  end;
 
-  I := TXMLElementIterator.Create(Element);
-  try
-    while I.GetNext do
-    begin
-      WritelnLog('LoadLayer element', I.Current.TagName);
-      case LowerCase(I.Current.TagName) of
-        'properties': LoadProperties(I.Current, NewLayer.Properties);
-        //todo: data element
+    I := TXMLElementIterator.Create(Element);
+    try
+      while I.GetNext do
+      begin
+        WritelnLog('LoadLayer element', I.Current.TagName);
+        case LowerCase(I.Current.TagName) of
+          'properties': LoadProperties(I.Current, Properties);
+          //todo: data element
+        end;
       end;
-    end;
-  finally FreeAndNil(I) end;
+    finally FreeAndNil(I) end;
+  end;
 
   FLayers.Add(NewLayer);
 end;
@@ -553,6 +563,42 @@ begin
   end;
 
   FLayers.Add(NewLayer);
+end;
+
+procedure TCastleTiledMap.LoadData(Element: TDOMElement; var AData: TData);
+var
+  I: TXMLElementIterator;
+begin
+  with AData do
+  begin
+    if Element.AttributeString('encoding', TmpStr) then
+      case TmpStr of
+        'base64': Encoding := ET_Base64;
+        'csv': Encoding := ET_CSV;
+      end;
+    if Element.AttributeString('compression', TmpStr) then
+      case TmpStr of
+        'gzip': Compression := CT_Gzip;
+        'zlib': Compression := CT_ZLib;
+      end;
+
+    //todo: load decode uncompress binary data
+    //todo: tile flipping
+
+    I := TXMLElementIterator.Create(Element);
+    try
+      while I.GetNext do
+      begin
+        WritelnLog('LoadData element', I.Current.TagName);
+        case LowerCase(I.Current.TagName) of
+          'tile': begin
+            SetLength(Tiles, Length(Tiles)+1);
+            Tiles[High(Tiles)] := StrToInt(I.Current.GetAttribute('gid'));
+          end;
+        end;
+      end;
+    finally FreeAndNil(I) end;
+  end;
 end;
 
 procedure TCastleTiledMap.LoadTMXFile(AURL: string);
