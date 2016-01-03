@@ -169,7 +169,7 @@ type
     { List of points for poligon and poliline. }
     Points: TVector2IntegerList;
     Primitive: TTileObjectPrimitive;
-    // todo: image
+    Image: TImage;
   end;
 
   TTiledObjects = specialize TGenericStructList<TTiledObject>;
@@ -462,8 +462,54 @@ end;
 
 procedure TCastleTiledMap.LoadTiledObject(Element: TDOMElement;
   var ATiledObject: TTiledObject);
+var
+  I: TXMLElementIterator;
+  TmpStr: string;
 begin
+  with ATiledObject do
+  begin
+    Width := 0;
+    Height := 0;
+    Rotation := 0;
+    Visible := True;
+    Properties := nil;
+    if Element.AttributeString('id', TmpStr) then
+      Id := StrToInt(TmpStr);
+    if Element.AttributeString('name', TmpStr) then
+      Name := TmpStr;
+    if Element.AttributeString('type', TmpStr) then
+      Type_ := TmpStr;
+    if Element.AttributeString('x', TmpStr) then
+      X := StrToInt(TmpStr);
+    if Element.AttributeString('y', TmpStr) then
+      Y := StrToInt(TmpStr);
+    if Element.AttributeString('width', TmpStr) then
+      Width := StrToInt(TmpStr);
+    if Element.AttributeString('height', TmpStr) then
+      Height := StrToInt(TmpStr);
+    if Element.AttributeString('rotation', TmpStr) then
+      Rotation := StrToFloat(TmpStr);
+    if Element.AttributeString('gid', TmpStr) then
+      GId := StrToInt(TmpStr);
+    if Element.AttributeString('visible', TmpStr) then
+      if TmpStr = '0' then
+        Visible := False;
 
+    I := TXMLElementIterator.Create(Element);
+    try
+      while I.GetNext do
+      begin
+        WritelnLog('LoadTiledObject element', I.Current.TagName);
+        case LowerCase(I.Current.TagName) of
+          'properties': LoadProperties(I.Current, Properties);
+          'ellipse': Primitive := TOP_Ellipse;
+          'polygon': Primitive := TOP_Poligon;//todo: points
+          'polyline': Primitive := TOP_PolyLine;//todo: points
+          'image': LoadImage(I.Current, Image);
+        end;
+      end;
+    finally FreeAndNil(I) end;
+  end;
 end;
 
 procedure TCastleTiledMap.LoadImageLayer(Element: TDOMElement);
