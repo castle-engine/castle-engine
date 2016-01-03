@@ -1185,17 +1185,6 @@ begin
   if IgnoreCase then
     Result := AnsiCompareText(Copy(S, 1, Length(Prefix)), Prefix) = 0 else
     Result := AnsiCompareStr(Copy(S, 1, Length(Prefix)), Prefix) = 0;
-
-  { TODO: FPC 3.1.1 (not earlier) has a weird bug here, only for Android+Arm
-    (not on x65_64), when called from TX3DNode.PathFromBaseUrl,
-    with IgnoreCase = true. It will answer true, claiming that "//" is a prefix
-    of everything.
-
-    It defies testing somewhat, as it will generate correct results
-    if we uncomment the logging below. }
-  // if Result then
-  //   WritelnLog('TEST', 'YES! "%s" and "%s", ignore case: "%s", copied prefix "%s"',
-  //     [Prefix, S, BoolToStr[IgnoreCase], Copy(S, 1, Length(Prefix))]);
 end;
 
 function IsSuffix(const Suffix, S: string; IgnoreCase: boolean): boolean;

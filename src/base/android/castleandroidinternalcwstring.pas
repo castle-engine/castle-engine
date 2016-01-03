@@ -288,29 +288,17 @@ begin
     Result:=_CompareStr(s1, s2);
     exit;
   end;
-  InitThreadData;
-  if (coIgnoreCase in Options) then
-    u_strCaseCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), U_COMPARE_CODE_POINT_ORDER, err)
-  else
+  if (coIgnoreCase in Options) then begin
+    err:=0;
+    Result:=u_strCaseCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), U_COMPARE_CODE_POINT_ORDER, err);
+  end
+  else begin
+    InitThreadData;
     if DefColl <> nil then
       Result:=ucol_strcoll(DefColl, PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2))
     else
       Result:=u_strCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), True);
-end;
-
-function CompareTextUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions): PtrInt;
-const
-  U_COMPARE_CODE_POINT_ORDER = $8000;
-var
-  err: UErrorCode;
-begin
-  if hlibICU = 0 then begin
-    // fallback implementation
-    Result:=_CompareStr(UpperUnicodeString(s1), UpperUnicodeString(s2));
-    exit;
   end;
-  err:=0;
-  Result:=u_strCaseCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), U_COMPARE_CODE_POINT_ORDER, err);
 end;
 
 function UpperAnsiString(const s : AnsiString) : AnsiString;
@@ -325,22 +313,22 @@ end;
 
 function CompareStrAnsiString(const s1, s2: ansistring): PtrInt;
 begin
-  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2),[]);
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), []);
 end;
 
 function StrCompAnsi(s1,s2 : PChar): PtrInt;
 begin
-  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2),[]);
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), []);
 end;
 
 function AnsiCompareText(const S1, S2: ansistring): PtrInt;
 begin
-  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2),[coIgnoreCase]);
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), [coIgnoreCase]);
 end;
 
 function AnsiStrIComp(S1, S2: PChar): PtrInt;
 begin
-  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2),[coIgnoreCase]);
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), [coIgnoreCase]);
 end;
 
 function AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
@@ -349,7 +337,7 @@ var
 begin
   SetString(as1, S1, MaxLen);
   SetString(as2, S2, MaxLen);
-  Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2),[]);
+  Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2), []);
 end;
 
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
@@ -358,7 +346,7 @@ var
 begin
   SetString(as1, S1, MaxLen);
   SetString(as2, S2, MaxLen);
-  Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2),[coIgnoreCase]);
+  Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2), [coIgnoreCase]);
 end;
 
 function AnsiStrLower(Str: PChar): PChar;
@@ -452,11 +440,6 @@ end;
 function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
 begin
   Result:=CompareUnicodeString(s1, s2, Options);
-end;
-
-function CompareTextWideString(const s1, s2 : WideString): PtrInt;
-begin
-  Result:=CompareTextUnicodeString(s1, s2,[coIgnoreCase]);
 end;
 
 Procedure SetCWideStringManager;
@@ -895,7 +878,7 @@ var
   end;
 
 const
-  ICUver: array [1..5] of ansistring = ('3_8', '4_2', '44', '46', '48');
+  ICUver: array [1..9] of ansistring = ('3_8', '4_2', '44', '46', '48', '50', '51', '53', '55');
   TestProcName = 'ucnv_open';
 
 var
@@ -923,9 +906,6 @@ begin
     // Finding unknown ICU version
     Val(ICUver[High(ICUver)], i);
     repeat
-      { Michalis note: original code used Inc(i,2),
-        but Nexus 5 with Android 5.0.1 has _53.
-        TODO: submit to FPC to correct in original CWString for Android. }
       Inc(i);
       Str(i, s);
       s:='_'  + s;
