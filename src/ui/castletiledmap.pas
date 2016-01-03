@@ -152,13 +152,13 @@ type
     { The type of the object. An arbitrary string. }
     Type_: string;
     { The x coordinate of the object in pixels. }
-    X: Integer;
+    X: Single;
     { The y coordinate of the object in pixels. }
-    Y: Integer;
+    Y: Single;
     { The width of the object in pixels (defaults to 0). }
-    Width: Integer;
+    Width: Single;
     { The height of the object in pixels (defaults to 0). }
-    Height: Integer;
+    Height: Single;
     { The rotation of the object in degrees clockwise (defaults to 0). (since 0.10) }
     Rotation: Single;
     { An reference to a tile (optional). }
@@ -167,7 +167,7 @@ type
     Visible: Boolean;
     Properties: TProperties;
     { List of points for poligon and poliline. }
-    Points: TVector2IntegerList;
+    Points: TVector2SingleList;
     Primitive: TTileObjectPrimitive;
     Image: TImage;
   end;
@@ -206,6 +206,8 @@ type
     DrawOrder: TObjectsDrawOrder;
     Objects: TTiledObjects;
     LayerType: TLayerType;
+    { Used by ImageLayer. }
+    Image: TImage;
   end;
 
   { List of layers. }
@@ -490,13 +492,13 @@ begin
     if Element.AttributeString('type', TmpStr) then
       Type_ := TmpStr;
     if Element.AttributeString('x', TmpStr) then
-      X := StrToInt(TmpStr);
+      X := StrToFloat(TmpStr);
     if Element.AttributeString('y', TmpStr) then
-      Y := StrToInt(TmpStr);
+      Y := StrToFloat(TmpStr);
     if Element.AttributeString('width', TmpStr) then
-      Width := StrToInt(TmpStr);
+      Width := StrToFloat(TmpStr);
     if Element.AttributeString('height', TmpStr) then
-      Height := StrToInt(TmpStr);
+      Height := StrToFloat(TmpStr);
     if Element.AttributeString('rotation', TmpStr) then
       Rotation := StrToFloat(TmpStr);
     if Element.AttributeString('gid', TmpStr) then
@@ -568,6 +570,7 @@ end;
 procedure TCastleTiledMap.LoadData(Element: TDOMElement; var AData: TData);
 var
   I: TXMLElementIterator;
+  TmpStr, RawData: string;
 begin
   with AData do
   begin
@@ -583,6 +586,8 @@ begin
       end;
 
     //todo: load decode uncompress binary data
+    RawData := Element.NodeValue;
+    WritelnLog('LoadData RawData', RawData);
     //todo: tile flipping
 
     I := TXMLElementIterator.Create(Element);
