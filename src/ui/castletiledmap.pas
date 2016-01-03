@@ -513,8 +513,46 @@ begin
 end;
 
 procedure TCastleTiledMap.LoadImageLayer(Element: TDOMElement);
+var
+  I: TXMLElementIterator;
+  NewLayer: TLayer;
+  TmpStr: string;
 begin
+  with NewLayer do
+  begin
+    Properties := nil;
+    Opacity := 1;
+    Visible := True;
+    LayerType := LT_ImageLayer;
+    Name := Element.GetAttribute('name');
+    if Element.AttributeString('opacity', TmpStr) then
+      Opacity := StrToFloat(TmpStr);
+    if Element.GetAttribute('visible') = '0' then
+      Visible := False;
+    if Element.AttributeString('x', TmpStr) then
+      X := StrToInt(TmpStr);
+    if Element.AttributeString('y', TmpStr) then
+      Y := StrToInt(TmpStr);
+    WritelnLog('LoadTileset Name', Name);
+    WritelnLog('LoadTileset Visible', BoolToStr(Visible, 'True', 'False'));
+    WritelnLog('LoadTileset Opacity', FloatToStr(Opacity));
+    WritelnLog('LoadTileset X', IntToStr(X));
+    WritelnLog('LoadTileset Y', IntToStr(Y));
 
+    I := TXMLElementIterator.Create(Element);
+    try
+      while I.GetNext do
+      begin
+        WritelnLog('LoadImageLayer element', I.Current.TagName);
+        case LowerCase(I.Current.TagName) of
+          'properties': LoadProperties(I.Current, NewLayer.Properties);
+          'image': LoadImage(I.Current, Image);
+        end;
+      end;
+    finally FreeAndNil(I) end;
+  end;
+
+  FLayers.Add(NewLayer);
 end;
 
 procedure TCastleTiledMap.LoadTMXFile(AURL: string);
@@ -564,6 +602,9 @@ begin
         case LowerCase(I.Current.TagName) of
           'tileset': LoadTileset(I.Current);
           'layer': LoadLayer(I.Current);
+          'objectgroup': LoadObjectGroup(I.Current);
+          'imagelayer': LoadImageLayer(I.Current);
+          'properties': LoadProperties(I.Current, FProperties);
         end;
       end;
     finally FreeAndNil(I) end;
