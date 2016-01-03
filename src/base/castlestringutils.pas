@@ -1182,9 +1182,9 @@ end;
 
 function IsPrefix(const Prefix, S: string; IgnoreCase: boolean): boolean;
 begin
- if IgnoreCase then
-  result := AnsiCompareText(Copy(S, 1, Length(Prefix)), Prefix) = 0 else
-  result := AnsiCompareStr(Copy(S, 1, Length(Prefix)), Prefix) = 0;
+  if IgnoreCase then
+    Result := AnsiCompareText(Copy(S, 1, Length(Prefix)), Prefix) = 0 else
+    Result := AnsiCompareStr(Copy(S, 1, Length(Prefix)), Prefix) = 0;
 end;
 
 function IsSuffix(const Suffix, S: string; IgnoreCase: boolean): boolean;
