@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Rectangle representation (TRectangle). }
+{ Rectangle representation (TRectangle, TFloatRectangle). }
 unit CastleRectangles;
 
 interface
@@ -82,14 +82,15 @@ type
     vpTop
   );
 
-  { 2D rectangle with integer coordinates.
+  { 2D rectangle with @bold(integer) coordinates.
     Useful for various 2D GUI operations.
 
     The area covered by the rectangle starts in (Left,Bottom)
     pixel and spans (Width,Height) pixels. This means that the right-top pixel
     covered by the rectangle is (Left + Width - 1,Bottom + Height - 1).
     The rectangle is empty (@link(Contains) will always answer @false)
-    when either Width or Height are zero. }
+    when either Width or Height are zero. Neither Width nor Height can ever
+    be negative. }
   TRectangle = object
   private
     function GetRight: Integer;
@@ -213,6 +214,57 @@ type
     function ToString: string;
 
     function Translate(const V: TVector2Integer): TRectangle;
+
+    { Does it have any common part with another rectangle. }
+    function Collides(const R: TRectangle): boolean;
+  end;
+
+  { 2D rectangle with @bold(float) coordinates.
+    Useful for various 2D GUI operations, and for bounding boxes for 2D objects.
+
+    The area covered by the rectangle starts at (Left,Bottom) position
+    and spans (Width,Height) units.
+    The rectangle is empty (@link(Contains) will always answer @false)
+    when either Width or Height are zero. Neither Width nor Height can ever
+    be negative. }
+  TFloatRectangle = object
+  private
+    function GetRight: Single;
+    function GetTop: Single;
+  public
+    Left, Bottom: Single;
+    Width, Height: Single;
+
+    const
+      Empty: TFloatRectangle = (Left: 0; Bottom: 0; Width: 0; Height: 0);
+
+    function IsEmpty: boolean;
+
+    function Contains(const X, Y: Single): boolean;
+    function Contains(const Point: TVector2Single): boolean;
+
+    { Right and Top pixels are 1 pixel *outside* of the rectangle.
+      @groupBegin }
+    property Right: Single read GetRight;
+    property Top: Single read GetTop;
+    { @groupEnd }
+
+    { Grow (when Delta > 0) or shrink (when Delta < 0)
+      the rectangle, returning new value.
+      This adds a margin of Delta pixels around all sides of the rectangle,
+      so in total width grows by 2 * Delta, and the same for height.
+      In case of shrinking, we protect from shrinking too much:
+      the resulting width or height is set to zero (which makes a valid
+      and empty rectangle) if shrinking too much. }
+    function Grow(const Delta: Single): TFloatRectangle;
+    function Grow(const DeltaX, DeltaY: Single): TFloatRectangle;
+
+    function ToString: string;
+
+    function Translate(const V: TVector2Single): TFloatRectangle;
+
+    { Does it have any common part with another rectangle. }
+    function Collides(const R: TFloatRectangle): boolean;
   end;
 
   TRectangleList = class(specialize TGenericStructList<TRectangle>)
@@ -227,8 +279,11 @@ function Rectangle(const Left, Bottom: Integer;
   const Width, Height: Cardinal): TRectangle;
 function Rectangle(const LeftBottom: TVector2Integer;
   const Width, Height: Cardinal): TRectangle;
+function FloatRectangle(const Left, Bottom, Width, Height: Single): TFloatRectangle;
+function FloatRectangle(const R: TRectangle): TFloatRectangle;
 
 operator+ (const R1, R2: TRectangle): TRectangle;
+operator+ (const R1, R2: TFloatRectangle): TFloatRectangle;
 
 implementation
 
@@ -257,7 +312,7 @@ end;
 
 function TRectangle.IsEmpty: boolean;
 begin
-  Result := (Width = 0) or (Height = 0);
+  Result := (Width <= 0) or (Height <= 0);
 end;
 
 function TRectangle.Contains(const X, Y: Integer): boolean;
@@ -575,6 +630,114 @@ begin
   Result.Height := Height;
 end;
 
+function TRectangle.Collides(const R: TRectangle): boolean;
+begin
+  Result :=
+    (not IsEmpty) and
+    (not R.IsEmpty) and
+    (not ((  Right - 1 < R.Left) or
+          (R.Right - 1 <   Left))) and
+    (not ((  Top   - 1 < R.Bottom) or
+          (R.Top   - 1 <   Bottom)));
+end;
+
+{ TFloatRectangle ----------------------------------------------------------------- }
+
+function FloatRectangle(const Left, Bottom, Width, Height: Single): TFloatRectangle;
+begin
+  Result.Left := Left;
+  Result.Bottom := Bottom;
+  Result.Width := Width;
+  Result.Height := Height;
+end;
+
+function FloatRectangle(const R: TRectangle): TFloatRectangle;
+begin
+  Result.Left   := R.Left;
+  Result.Bottom := R.Bottom;
+  Result.Width  := R.Width;
+  Result.Height := R.Height;
+end;
+
+function TFloatRectangle.IsEmpty: boolean;
+begin
+  Result := (Width <= 0) or (Height <= 0);
+end;
+
+function TFloatRectangle.Contains(const X, Y: Single): boolean;
+begin
+  Result := (X >= Left  ) and (X <= Left   + Width) and
+            (Y >= Bottom) and (Y <= Bottom + Height);
+end;
+
+function TFloatRectangle.Contains(const Point: TVector2Single): boolean;
+begin
+  Result := (Point[0] >= Left  ) and (Point[0] <= Left   + Width) and
+            (Point[1] >= Bottom) and (Point[1] <= Bottom + Height);
+end;
+
+function TFloatRectangle.Grow(const DeltaX, DeltaY: Single): TFloatRectangle;
+begin
+  if Width + 2 * DeltaX < 0 then
+  begin
+    Result.Left := Left + Width / 2;
+    Result.Width := 0;
+  end else
+  begin
+    Result.Left := Left - DeltaX;
+    Result.Width := Width + 2 * DeltaX;
+  end;
+
+  if Height + 2 * DeltaY < 0 then
+  begin
+    Result.Bottom := Bottom + Height / 2;
+    Result.Height := 0;
+  end else
+  begin
+    Result.Bottom := Bottom - DeltaY;
+    Result.Height := Height + 2 * DeltaY;
+  end;
+end;
+
+function TFloatRectangle.Grow(const Delta: Single): TFloatRectangle;
+begin
+  Result := Grow(Delta, Delta);
+end;
+
+function TFloatRectangle.GetRight: Single;
+begin
+  Result := Left + Width;
+end;
+
+function TFloatRectangle.GetTop: Single;
+begin
+  Result := Bottom + Height;
+end;
+
+function TFloatRectangle.ToString: string;
+begin
+  Result := Format('TFloatRectangle: %fx%f %fx%f', [Left, Bottom, Width, Height]);
+end;
+
+function TFloatRectangle.Translate(const V: TVector2Single): TFloatRectangle;
+begin
+  Result.Left := Left + V[0];
+  Result.Bottom := Bottom + V[1];
+  Result.Width := Width;
+  Result.Height := Height;
+end;
+
+function TFloatRectangle.Collides(const R: TFloatRectangle): boolean;
+begin
+  Result :=
+    (not IsEmpty) and
+    (not R.IsEmpty) and
+    (not ((  Right < R.Left) or
+          (R.Right <   Left))) and
+    (not ((  Top   < R.Bottom) or
+          (R.Top   <   Bottom)));
+end;
+
 { TRectangleList -------------------------------------------------------------- }
 
 function TRectangleList.FindRectangle(const X, Y: Integer): Integer;
@@ -598,6 +761,24 @@ end;
 operator+ (const R1, R2: TRectangle): TRectangle;
 var
   Right, Top: Integer;
+begin
+  if R1.IsEmpty then
+    Result := R2 else
+  if R2.IsEmpty then
+    Result := R1 else
+  begin
+    Result.Left   := Min(R1.Left  , R2.Left);
+    Result.Bottom := Min(R1.Bottom, R2.Bottom);
+    Right := Max(R1.Right   , R2.Right);
+    Top   := Max(R1.Top     , R2.Top);
+    Result.Width  := Right - Result.Left;
+    Result.Height := Top   - Result.Bottom;
+  end;
+end;
+
+operator+ (const R1, R2: TFloatRectangle): TFloatRectangle;
+var
+  Right, Top: Single;
 begin
   if R1.IsEmpty then
     Result := R2 else
