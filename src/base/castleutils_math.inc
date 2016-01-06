@@ -263,6 +263,7 @@ function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: 
 
 { Random float value in the given range.
   Make sure RangeBegin < RangeEnd. }
+function RandomFloatRange(const RangeBegin, RangeEnd: Single): Single;
 function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float;
 
 { Angle between a 2D line segments and OX axis. Angle 0 means that Y1 = Y2
@@ -730,9 +731,14 @@ begin
   Result := Clamped(Result, destBegin, destEnd);
 end;
 
+function RandomFloatRange(const RangeBegin, RangeEnd: Single): Single;
+begin
+ result := Random * (RangeEnd - RangeBegin) + RangeBegin;
+end;
+
 function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float;
 begin
- result := Random*(RangeEnd-RangeBegin) + RangeBegin;
+ result := Random * (RangeEnd - RangeBegin) + RangeBegin;
 end;
 
 function AngleRadPointToPoint(x1, y1, x2, y2: Single): Single;
