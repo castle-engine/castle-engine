@@ -591,7 +591,7 @@ begin
         'zlib': Compression := CT_ZLib;
       end;
 
-    if (Encoding = ET_None) or (Compression = CT_None) then
+    if (Encoding = ET_None) and (Compression = CT_None) then
     begin
       // todo: use XML tiles
     end else begin
@@ -618,6 +618,17 @@ begin
           finally
             Decompressor.Free;
           end;
+        end;
+        CT_None: begin
+          //Base64 only
+          repeat
+            DataCount := Decoder.Read(Buffer, BufferSize * SizeOf(Cardinal));
+            //WritelnLog('LoadData DataCount', IntToStr(DataCount));
+            DataLength := Length(Data);
+            SetLength(Data, DataLength+(DataCount div SizeOf(Cardinal)));
+            if DataCount > 0 then // becouse if DataCount=0 then ERangeCheck error
+              Move(Buffer, Data[DataLength], DataCount);
+          until DataCount < SizeOf(Buffer);
         end;
       end;
 
