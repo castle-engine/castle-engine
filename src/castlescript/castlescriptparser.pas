@@ -30,15 +30,16 @@ interface
 uses CastleScript, CastleScriptLexer, Math;
 
 type
-  { Reexported in this unit, so that the identifier ECasScriptSyntaxError
-    will be visible when using this unit. }
+  { Error when parsing CastleScript expression. }
   ECasScriptSyntaxError = CastleScriptLexer.ECasScriptSyntaxError;
 
-{ Creates and returns instance of TCasScriptExpression,
-  that represents parsed tree of expression in S,
-  casted to float. The easiest way to evaluate such expression
+{ Parse a CastleScript expression that should be calculated to a float value.
+  The easiest way to evaluate such expression
   is to call @link(TCasScriptExpression.AsFloat) method.
 
+  This creates and returns an instance of TCasScriptExpression,
+  that represents parsed tree of expression in S,
+  casted to float.
   This parses a subset of CastleScript language, that allows you
   to define only one expression without any assignments.
   Also the end result is always casted to the float() type
@@ -64,6 +65,15 @@ type
 
   @raises(ECasScriptSyntaxError in case of error when parsing expression.) }
 function ParseFloatExpression(const S: string;
+  const Variables: array of TCasScriptValue): TCasScriptExpression;
+
+{ Parse a CastleScript expression that should be calculated to a float value.
+  The easiest way to evaluate such expression
+  is to call @link(TCasScriptExpression.AsInt) method.
+
+  See @link(ParseFloatExpression) for more details, this procedure is equivalent
+  but it operates on floats. }
+function ParseIntExpression(const S: string;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 
 { Creates and returns instance of TCasScriptExpression,
@@ -460,9 +470,9 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-{ ParseFloatExpression ------------------------------------------------------- }
+{ ParseXxxExpression ------------------------------------------------------- }
 
-function ParseFloatExpression(const S: string;
+function ParseSimpleExpression(const S: string;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 var
   Lexer: TCasScriptLexer;
@@ -486,11 +496,24 @@ begin
         on E: ECasScriptFunctionArgumentsError do
           raise ECasScriptParserError.Create(Lexer, E.Message);
       end;
-
-      { At the end, wrap Result in float() cast. }
-      Result := TCasScriptFloatFun.Create([Result]);
     except Result.FreeByParentExpression; raise end;
   finally Lexer.Free end;
+end;
+
+function ParseFloatExpression(const S: string;
+  const Variables: array of TCasScriptValue): TCasScriptExpression;
+begin
+  Result := ParseSimpleExpression(S, Variables);
+  { At the end, wrap Result in float() cast. }
+  Result := TCasScriptFloatFun.Create([Result]);
+end;
+
+function ParseIntExpression(const S: string;
+  const Variables: array of TCasScriptValue): TCasScriptExpression;
+begin
+  Result := ParseSimpleExpression(S, Variables);
+  { At the end, wrap Result in int() cast. }
+  Result := TCasScriptInt.Create([Result]);
 end;
 
 function ParseExpression(const S: string;

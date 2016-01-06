@@ -171,6 +171,11 @@ type
       To easily create such expression, use @link(ParseFloatExpression). }
     function AsFloat(const ADefaultValue: Float = 0): Float;
 
+    { Execute expression, return the result as a simple integer value.
+      It assumes that the expression is written to always return integer.
+      To easily create such expression, use @link(ParseIntExpression). }
+    function AsInt(const ADefaultValue: Int64 = 0): Int64;
+
     { Call Free, but only if this is not TCasScriptValue with
       OwnedByParentExpression = false. (This cannot be implemented
       cleanly, as virtual procedure, since it must work when Self is @nil,
@@ -1002,6 +1007,29 @@ begin
     Result := TCasScriptFloat(Res).Value else
   begin
     OnWarning(wtMajor, 'CastleScript', 'CastleScript expression result is not float');
+    Result := ADefaultValue;
+  end;
+end;
+
+function TCasScriptExpression.AsInt(const ADefaultValue: Int64): Int64;
+var
+  Res: TCasScriptValue;
+begin
+  try
+    Res := Execute;
+  except
+    on E: ECasScriptError do
+    begin
+      OnWarning(wtMajor, 'CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
+      Result := ADefaultValue;
+      Exit;
+    end;
+  end;
+
+  if Res is TCasScriptInteger then
+    Result := TCasScriptInteger(Res).Value else
+  begin
+    OnWarning(wtMajor, 'CastleScript', 'CastleScript expression result is not int');
     Result := ADefaultValue;
   end;
 end;
