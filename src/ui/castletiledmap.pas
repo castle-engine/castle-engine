@@ -595,34 +595,31 @@ begin
     begin
       // todo: use XML tiles
     end else begin
-      //todo: load decode uncompress binary data
       RawData := Element.TextContent;
       WritelnLog('LoadData RawData', RawData);
       case Encoding of
         ET_Base64: begin
           Decoder := TBase64DecodingStream.Create(TStringStream.Create(RawData));
-          //DecodedData := DecodeStringBase64(RawData);
         end;
         ET_CSV: ; //todo: csv reading
       end;
-      //WritelnLog('LoadData DecodedData', DecodedData);
       case Compression of
-        CT_Gzip : ; //todo: gzip reading
-        CT_ZLib: ; //todo: zlib reading
+        CT_Gzip: WritelnLog('LoadData', 'Gzip format not implemented'); //todo: gzip reading
+        CT_ZLib: begin
+          try
+            Decompressor := TDecompressionStream.Create(Decoder);
+            repeat
+              DataCount := Decompressor.Read(Buffer, BufferSize * SizeOf(Cardinal));
+              DataLength := Length(Data);
+              SetLength(Data, DataLength+(DataCount div SizeOf(Cardinal)));
+              if DataCount > 0 then // becouse if DataCount=0 then ERangeCheck error
+                Move(Buffer, Data[DataLength], DataCount);
+            until DataCount < SizeOf(Buffer);
+          finally
+            Decompressor.Free;
+          end;
+        end;
       end;
-      Decompressor := TDecompressionStream.Create(Decoder);
-      while True do
-      begin
-        DataCount := Decompressor.Read(Buffer, BufferSize * SizeOf(Cardinal));
-        WritelnLog('datacount', IntToStr(DataCount));
-        if DataCount = 0 then Break;
-        //DataLength := Length(Data);
-        //SetLength(Data, DataLength+DataCount div SizeOf(Cardinal));
-        //Move(Buffer, Data[DataLength], DataCount);
-        //todo: add data from buffer to Data array
-      end;
-      //Decompressor.Seek(125*4, soBeginning);
-      WritelnLog('LoadData Decompressor.Size', IntToStr(Decompressor.ReadDWord));
 
       //todo: tile flipping
     end;
