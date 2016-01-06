@@ -213,6 +213,7 @@ type
 
     function ToString: string;
 
+    { Move the rectangle. Empty rectangle after moving is still an empty rectangle. }
     function Translate(const V: TVector2Integer): TRectangle;
 
     { Does it have any common part with another rectangle. }
@@ -265,6 +266,7 @@ type
 
     function ToString: string;
 
+    { Move the rectangle. Empty rectangle after moving is still an empty rectangle. }
     function Translate(const V: TVector2Single): TFloatRectangle;
 
     { Does it have any common part with another rectangle. }
