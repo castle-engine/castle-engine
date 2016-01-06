@@ -774,6 +774,12 @@ type
     function ScreenEffectsCount: Integer;
     function ScreenEffectsNeedDepth: boolean;
     { @groupEnd }
+
+    { Create a scene with the same contents (X3D scene graph) as this one.
+      Note that this @bold(does not copy other scene attributes),
+      like @link(ProcessEvents) or @link(Spatial) or rendering attributes
+      in @link(Attributes). }
+    function Clone(const AOwner: TComponent): TCastleScene;
   published
     { Fine-tune performance of @link(Render) when
       OctreeRendering is @italic(not) available.
@@ -2673,6 +2679,13 @@ begin
   if (frBackgroundImageInNodes in Resources) and
      (FBackground <> nil) then
     FBackground.FreeResources;
+end;
+
+function TCastleScene.Clone(const AOwner: TComponent): TCastleScene;
+begin
+  Result := TCastleScene.Create(AOwner);
+  if RootNode <> nil then
+    Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;
 
 { TSceneRenderingAttributes ---------------------------------------------- }

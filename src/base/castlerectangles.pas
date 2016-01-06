@@ -225,8 +225,12 @@ type
     The area covered by the rectangle starts at (Left,Bottom) position
     and spans (Width,Height) units.
     The rectangle is empty (@link(Contains) will always answer @false)
-    when either Width or Height are zero. Neither Width nor Height can ever
-    be negative. }
+    when either Width or Height are less than zero.
+    @bold(This is consistent with it's 3D equivalent, @link(TBox3D),
+    and different from it's integer counterpart @link(TRectangle).)
+    In case of float bounding box (@link(TBox3D)) or float rectangle
+    (@name), having a zero size makes sense, and it still is something non-empty
+    (a single 2D or 3D point has zero size, but also has position). }
   TFloatRectangle = object
   private
     function GetRight: Single;
@@ -236,7 +240,7 @@ type
     Width, Height: Single;
 
     const
-      Empty: TFloatRectangle = (Left: 0; Bottom: 0; Width: 0; Height: 0);
+      Empty: TFloatRectangle = (Left: 0; Bottom: 0; Width: -1; Height: -1);
 
     function IsEmpty: boolean;
 
@@ -661,7 +665,7 @@ end;
 
 function TFloatRectangle.IsEmpty: boolean;
 begin
-  Result := (Width <= 0) or (Height <= 0);
+  Result := (Width < 0) or (Height < 0);
 end;
 
 function TFloatRectangle.Contains(const X, Y: Single): boolean;
