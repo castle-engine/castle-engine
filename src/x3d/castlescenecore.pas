@@ -757,6 +757,8 @@ type
   private
     FHeadlightOn: boolean;
     FOnHeadlightOnChanged: TNotifyEvent;
+    FAnimateOnlyWhenVisible: boolean;
+    FAnimateOnlyWhenVisibleGatheredTime: TFloatTime;
 
     procedure RenderingCameraChanged(const RenderingCamera: TRenderingCamera;
       Viewpoint: TAbstractViewpointNode);
@@ -764,6 +766,10 @@ type
   protected
     { List of TScreenEffectNode nodes, collected by ChangedAll. }
     ScreenEffectNodes: TX3DNodeList;
+
+    { Is the scene visible currently. Descendants may set this to @true
+      during @link(T3D.Render). }
+    IsVisibleNow: boolean;
 
     { Create TShape (or descendant) instance suitable for this
       TCastleSceneCore descendant. In this class, this simply creates new
@@ -1959,6 +1965,13 @@ type
       ) }
     property InitialViewpointName: string
       read FInitialViewpointName write FInitialViewpointName;
+
+    { When @true, we animate (more precisely: process time pass in @link(Update))
+      only when the model is visible. This is a powerful optimization,
+      but be careful if you depend on your animations
+      for something else than just visual effect. }
+    property AnimateOnlyWhenVisible: boolean
+      read FAnimateOnlyWhenVisible write FAnimateOnlyWhenVisible default false;
   end;
 
 var
@@ -5824,6 +5837,8 @@ begin
 end;
 
 procedure TCastleSceneCore.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+var
+  SP: Single;
 begin
   inherited;
   if not GetExists then Exit;
@@ -5833,17 +5848,22 @@ begin
   if LastUpdateFrameId = TFramesPerSecond.FrameId then Exit;
   LastUpdateFrameId := TFramesPerSecond.FrameId;
 
-  { Ignore Update calls when SecondsPassed is precisely zero
-    (this may happen, and is correct, see TFramesPerSecond.ZeroNextSecondsPassed).
-    In this case, time increase will be zero so the whole code
-    will not do anything anyway.
+  if FAnimateOnlyWhenVisible and not IsVisibleNow then
+    FAnimateOnlyWhenVisibleGatheredTime += SecondsPassed else
+  begin
+    { Ignore Update calls when SecondsPassed is precisely zero
+      (this may happen, and is correct, see TFramesPerSecond.ZeroNextSecondsPassed).
+      In this case, time increase will be zero so the whole code
+      will not do anything anyway.
 
-    (Well, time dependent nodes like TimeSensor could "realize" that startTime
-    happened *now*, and send initial events to start animation.
-    But actually we take care of it in HandleChangeTimeStopStart.) }
-
-  if TimePlaying and (SecondsPassed <> 0) then
-    IncreaseTime(TimePlayingSpeed * SecondsPassed);
+      (Well, time dependent nodes like TimeSensor could "realize" that startTime
+      happened *now*, and send initial events to start animation.
+      But actually we take care of it in HandleChangeTimeStopStart.) }
+    SP := SecondsPassed + FAnimateOnlyWhenVisibleGatheredTime;
+    FAnimateOnlyWhenVisibleGatheredTime := 0;
+    if TimePlaying and (SP <> 0) then
+      IncreaseTime(TimePlayingSpeed * SP);
+  end;
 
   Inc(FTime.PlusTicks);
 
@@ -5855,6 +5875,8 @@ begin
     RootTransformationChanged(TransformationDirty);
     TransformationDirty := [];
   end;
+
+  IsVisibleNow := false;
 end;
 
 { changes schedule ----------------------------------------------------------- }
