@@ -21,7 +21,7 @@ unit CastleTiledMap;
 interface
 
 uses
-  Classes, SysUtils, DOM, XMLRead, base64, zstream, {zlib,} CastleGenericLists, CastleVectors,
+  Classes, SysUtils, DOM, XMLRead, base64, zstream, {zlib,} CSVDocument, CastleGenericLists, CastleVectors,
   CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils, CastleLog;
 
 type
@@ -575,6 +575,7 @@ var
   Decompressor, Decoder: TStream;
   Buffer: array[0..BufferSize-1] of Cardinal;
   DataCount, DataLength: Longint;
+  CSVParser: TCSVParser;
 begin
   with AData do
   begin
@@ -601,7 +602,10 @@ begin
         ET_Base64: begin
           Decoder := TBase64DecodingStream.Create(TStringStream.Create(RawData));
         end;
-        ET_CSV: ; //todo: csv reading
+        ET_CSV: begin
+          CSVParser := TCSVParser.Create;
+          CSVParser.SetSource(RawData);
+        end; //todo: csv reading
       end;
       case Compression of
         CT_Gzip: WritelnLog('LoadData', 'Gzip format not implemented'); //todo: gzip reading
