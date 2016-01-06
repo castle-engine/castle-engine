@@ -18,7 +18,8 @@ unit CastleBoxes;
 
 interface
 
-uses CastleVectors, SysUtils, CastleUtils, CastleGenericLists, CastleTriangles;
+uses CastleVectors, SysUtils, CastleUtils, CastleGenericLists, CastleTriangles,
+  CastleRectangles;
 
 type
   EBox3DEmpty = class(Exception);
@@ -393,6 +394,9 @@ type
 
     { Diagonal of the box, zero if empty. }
     function Diagonal: Single;
+
+    function RectangleXY: TFloatRectangle;
+    function RectangleXZ: TFloatRectangle;
   end;
 
   TBox3DBool = array [boolean] of TVector3Single;
@@ -1687,6 +1691,30 @@ begin
     Result := Sqrt(Sqr(Data[1][0] - Data[0][0]) +
                    Sqr(Data[1][1] - Data[0][1]) +
                    Sqr(Data[1][2] - Data[0][2]));
+end;
+
+function TBox3D.RectangleXY: TFloatRectangle;
+begin
+  if IsEmpty then
+    Exit(TFloatRectangle.Empty) else
+  begin
+    Result.Left   := Data[0][0];
+    Result.Bottom := Data[0][1];
+    Result.Width  := Data[1][0] - Data[0][0];
+    Result.Height := Data[1][1] - Data[0][1];
+  end;
+end;
+
+function TBox3D.RectangleXZ: TFloatRectangle;
+begin
+  if IsEmpty then
+    Exit(TFloatRectangle.Empty) else
+  begin
+    Result.Left   := Data[0][0];
+    Result.Bottom := Data[0][2];
+    Result.Width  := Data[1][0] - Data[0][0];
+    Result.Height := Data[1][2] - Data[0][2];
+  end;
 end;
 
 { Routines ------------------------------------------------------------------- }

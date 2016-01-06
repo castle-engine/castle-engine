@@ -102,11 +102,17 @@ type
   T2DScene = class(TCastleScene)
   public
     constructor Create(AOwner: TComponent); override;
+
+    { Create a scene with the same contents (X3D scene graph) as this one.
+      Note that this @bold(does not copy other scene attributes),
+      like @link(ProcessEvents) or @link(Spatial) or rendering attributes
+      in @link(Attributes). }
+    function Clone(const AOwner: TComponent): T2DScene;
   end;
 
 implementation
 
-uses CastleVectors, CastleGLUtils;
+uses CastleVectors, CastleGLUtils, X3DNodes;
 
 { T2DSceneManager -------------------------------------------------------- }
 
@@ -176,6 +182,13 @@ constructor T2DScene.Create(AOwner: TComponent);
 begin
   inherited;
   Attributes.BlendingSort := bs2D;
+end;
+
+function T2DScene.Clone(const AOwner: TComponent): T2DScene;
+begin
+  Result := T2DScene.Create(AOwner);
+  if RootNode <> nil then
+    Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;
 
 end.
