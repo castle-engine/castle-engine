@@ -110,35 +110,6 @@ type
 
   TObjectsDrawOrder = (ODO_Index, ODO_TopDown);
 
-  { Object group definition. Moved to TLayer. }
-  {TObjectGroup = record
-    { The name of the object group. }
-    Name: string;
-    { The color used to display the objects in this group. }
-    Color: TCastleColorRGB;
-    { The x coordinate of the object group in tiles. Defaults to 0 and can no longer be changed in Tiled Qt. }
-    X: Integer;
-    { The y coordinate of the object group in tiles. Defaults to 0 and can no longer be changed in Tiled Qt. }
-    Y: Integer;
-    { The width of the object group in tiles. Meaningless. }
-    Width: Integer;
-    { The height of the object group in tiles. Meaningless. }
-    Height: Integer;
-    { The opacity of the layer as a value from 0 to 1. Defaults to 1. }
-    Opacity: Single;
-    { Whether the layer is shown (1) or hidden (0). Defaults to 1. }
-    Visible: Boolean;
-    { Rendering offset for this object group in pixels. Defaults to 0. (since 0.14) }
-    OffsetX: Integer;
-    { Rendering offset for this object group in pixels. Defaults to 0. (since 0.14) }
-    OffsetY: Integer;
-    { Whether the objects are drawn according to the order of appearance
-      ("index") or sorted by their y-coordinate ("topdown"). Defaults to "topdown". }
-    DrawOrder: TObjectsDrawOrder;
-    Objects: TTiledObjects;
-    Properties: TProperties;
-  end;}
-
   TTileObjectPrimitive = (TOP_Ellipse, TOP_Poligon, TOP_PolyLine);
 
   { Object definition. }
@@ -572,12 +543,10 @@ const
   CSVDataSeparator = Char(',');
 var
   I: TXMLElementIterator;
-  TmpStr, RawData{, DecodedData}: string;
+  TmpStr, RawData: string;
   Decompressor, Decoder: TStream;
   Buffer: array[0..BufferSize-1] of Cardinal;
   DataCount, DataLength: Longint;
-  //CSVParser: TCSVParser;
-  //CSVCurrentCol: Integer;
   CSVItem: string;
   tmpChar, p: PChar;
   CSVDataCount: Cardinal;
@@ -619,7 +588,7 @@ begin
             Inc(CSVDataCount);
             tmpChar := StrScan(StrPos(tmpChar, CSVDataSeparator) + 1, CSVDataSeparator);
           end;
-          WritelnLog('LoadData CSVDataCount', IntToStr(CSVDataCount));
+          // read data
           SetLength(Data, CSVDataCount + 1);
           p := PChar(RawData);
           DataCount := 0;
@@ -650,11 +619,10 @@ begin
           end;
         end;
         CT_None: begin
-          //Base64 only
+          // Base64 only
           if Encoding = ET_Base64 then
             repeat
               DataCount := Decoder.Read(Buffer, BufferSize * SizeOf(Cardinal));
-              //WritelnLog('LoadData DataCount', IntToStr(DataCount));
               DataLength := Length(Data);
               SetLength(Data, DataLength+(DataCount div SizeOf(Cardinal)));
               if DataCount > 0 then // becouse if DataCount=0 then ERangeCheck error
@@ -692,7 +660,7 @@ begin
   try
     ReadXMLFile(Doc, URIDeleteProtocol(AURL));  //todo: check AbsoluteURI
 
-    //Parse map attributes
+    // Parse map attributes
     Check(LowerCase(Doc.DocumentElement.TagName) = 'map',
       'Root element of TMX file must be <map>');
     if Doc.DocumentElement.AttributeString('version', TmpStr) then
@@ -720,7 +688,7 @@ begin
         'left-down': FRenderOrder := MRO_LeftDown;
         'left-up': FRenderOrder := MRO_LeftUp;
       end;
-    //Parse map childrens
+    // Parse map childrens
     I := TXMLElementIterator.Create(Doc.DocumentElement);
     try
       while I.GetNext do
