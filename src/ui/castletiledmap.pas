@@ -569,13 +569,18 @@ end;
 procedure TCastleTiledMap.LoadData(Element: TDOMElement; var AData: TData);
 const
   BufferSize = 16;
+  CSVDataSeparator = Char(',');
 var
   I: TXMLElementIterator;
   TmpStr, RawData{, DecodedData}: string;
   Decompressor, Decoder: TStream;
   Buffer: array[0..BufferSize-1] of Cardinal;
   DataCount, DataLength: Longint;
-  CSVParser: TCSVParser;
+  //CSVParser: TCSVParser;
+  //CSVCurrentCol: Integer;
+  CSVItem: string;
+  tmpChar, p: PChar;
+  CSVDataCount: Cardinal;
 begin
   with AData do
   begin
@@ -603,8 +608,54 @@ begin
           Decoder := TBase64DecodingStream.Create(TStringStream.Create(RawData));
         end;
         ET_CSV: begin
-          CSVParser := TCSVParser.Create;
-          CSVParser.SetSource(RawData);
+          // remove EOLs
+          RawData := StringReplace(RawData, #10, '', [rfReplaceAll]);
+          RawData := StringReplace(RawData, #13, '', [rfReplaceAll]);
+          // count data
+          CSVDataCount := 0;
+          tmpChar := StrScan(PChar(RawData), CSVDataSeparator);;
+          while tmpChar <> nil do
+          begin
+            Inc(CSVDataCount);
+            tmpChar := StrScan(StrPos(tmpChar, CSVDataSeparator) + 1, CSVDataSeparator);
+            //WritelnLog('LoadData tmpChar', tmpChar);
+          end;
+          WritelnLog('LoadData CSVDataCount', IntToStr(CSVDataCount));
+          SetLength(Data, CSVDataCount + 1);
+          p := PChar(RawData);
+          DataCount := 0;
+          repeat
+            tmpChar := StrPos(p, CSVDataSeparator);
+            if tmpChar = nil then tmpChar := StrScan(p, #0);
+            SetString(CSVItem, p, tmpChar - p);
+            Data[DataCount] := StrToInt(CSVItem);
+            Inc(DataCount);
+            p := tmpChar + 1;
+          until tmpChar^ = #0;
+          {try
+            CSVParser := TCSVParser.Create;
+            CSVParser.SetSource(RawData);
+            CSVParser.Delimiter := ',';
+            CSVParser.IgnoreOuterWhitespace := True;
+            CSVParser.LineEnding := '';
+            DataLength := CSVParser.MaxColCount;
+            WritelnLog('LoadData CSV DataLength', IntToStr(DataLength));
+            CSVCurrentCol := 0;
+            while CSVParser.ParseNextCell do
+            begin
+             { if (CSVParser.CurrentCellText = #10) or (CSVParser.CurrentCellText = #13) then
+              begin
+                //CSVCurrentCol := 0;
+                WritelnLog('LoadData CSVCurrentRow', 'line end');
+                Continue;
+              end; }
+              //Inc(CSVCurrentCol);
+              //Data[] := StrToInt(CSVParser.CurrentCellText);
+              WritelnLog('LoadData CSV data', CSVParser.CurrentCellText+'-');
+            end;
+          finally
+            CSVParser.Free;
+          end;}
         end; //todo: csv reading
       end;
       case Compression of
@@ -625,14 +676,15 @@ begin
         end;
         CT_None: begin
           //Base64 only
-          repeat
-            DataCount := Decoder.Read(Buffer, BufferSize * SizeOf(Cardinal));
-            //WritelnLog('LoadData DataCount', IntToStr(DataCount));
-            DataLength := Length(Data);
-            SetLength(Data, DataLength+(DataCount div SizeOf(Cardinal)));
-            if DataCount > 0 then // becouse if DataCount=0 then ERangeCheck error
-              Move(Buffer, Data[DataLength], DataCount);
-          until DataCount < SizeOf(Buffer);
+          if Encoding = ET_Base64 then
+            repeat
+              DataCount := Decoder.Read(Buffer, BufferSize * SizeOf(Cardinal));
+              //WritelnLog('LoadData DataCount', IntToStr(DataCount));
+              DataLength := Length(Data);
+              SetLength(Data, DataLength+(DataCount div SizeOf(Cardinal)));
+              if DataCount > 0 then // becouse if DataCount=0 then ERangeCheck error
+                Move(Buffer, Data[DataLength], DataCount);
+            until DataCount < SizeOf(Buffer);
         end;
       end;
 
