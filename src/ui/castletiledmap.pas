@@ -91,7 +91,7 @@ type
       comma-separated indexes in the terrain types array in the order top-left,
       top-right, bottom-left, bottom-right. Leaving out a value means that corner
       has no terrain. (optional) (since 0.9) }
-    Terrain: string; // todo: terrain definition
+    Terrain: string; // todo: terrain type definition
     { A percentage indicating the probability that this tile is chosen when it
       competes with others while editing with the terrain tool. (optional) (since 0.9) }
     Probability: Single;
@@ -127,7 +127,7 @@ type
       <tileset> element described here. (There is the firstgid attribute missing
       and this source attribute is also not there. These two attributes
       are kept in the TMX map, since they are map specific.) }
-    Source: string;
+    Source: string; //todo: convert the path to some relative
     { The name of this tileset. }
     Name: string;
     { The (maximum) width of the tiles in this tileset. }
@@ -241,7 +241,7 @@ type
   private
     { Map stuff. }
     { The TMX format version, generally 1.0. }
-    FVersion: string; //todo: change to set?
+    FVersion: string;
     { Map orientation. Tiled supports "orthogonal", "isometric" and "staggered"
       (since 0.9) at the moment. }
     FOrientation: TMapOrientation;
@@ -790,4 +790,3 @@ end;
 
 
 end.
-
