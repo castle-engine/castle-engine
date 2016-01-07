@@ -21,7 +21,7 @@ unit CastleTiledMap;
 interface
 
 uses
-  Classes, SysUtils, DOM, XMLRead, base64, zstream, {zlib,} CSVDocument, CastleGenericLists, CastleVectors,
+  Classes, SysUtils, DOM, XMLRead, base64, zstream, CastleGenericLists, CastleVectors,
   CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils, CastleLog;
 
 type
@@ -618,7 +618,6 @@ begin
           begin
             Inc(CSVDataCount);
             tmpChar := StrScan(StrPos(tmpChar, CSVDataSeparator) + 1, CSVDataSeparator);
-            //WritelnLog('LoadData tmpChar', tmpChar);
           end;
           WritelnLog('LoadData CSVDataCount', IntToStr(CSVDataCount));
           SetLength(Data, CSVDataCount + 1);
@@ -632,31 +631,7 @@ begin
             Inc(DataCount);
             p := tmpChar + 1;
           until tmpChar^ = #0;
-          {try
-            CSVParser := TCSVParser.Create;
-            CSVParser.SetSource(RawData);
-            CSVParser.Delimiter := ',';
-            CSVParser.IgnoreOuterWhitespace := True;
-            CSVParser.LineEnding := '';
-            DataLength := CSVParser.MaxColCount;
-            WritelnLog('LoadData CSV DataLength', IntToStr(DataLength));
-            CSVCurrentCol := 0;
-            while CSVParser.ParseNextCell do
-            begin
-             { if (CSVParser.CurrentCellText = #10) or (CSVParser.CurrentCellText = #13) then
-              begin
-                //CSVCurrentCol := 0;
-                WritelnLog('LoadData CSVCurrentRow', 'line end');
-                Continue;
-              end; }
-              //Inc(CSVCurrentCol);
-              //Data[] := StrToInt(CSVParser.CurrentCellText);
-              WritelnLog('LoadData CSV data', CSVParser.CurrentCellText+'-');
-            end;
-          finally
-            CSVParser.Free;
-          end;}
-        end; //todo: csv reading
+        end;
       end;
       case Compression of
         CT_Gzip: WritelnLog('LoadData', 'Gzip format not implemented'); //todo: gzip reading
