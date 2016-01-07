@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TMX files processing unit. }
+{ TMX files processing unit. Based on Tiled v0.15. }
 unit CastleTiledMap;
 
 {$mode objfpc}{$H+}
@@ -39,7 +39,7 @@ type
   TCompressionType = (CT_None, CT_GZip, CT_ZLib);
 
   { Binary data definition. }
-  TData = record //todo: is encoded and compressed really necessary to keep?
+  TData = record
     { The encoding used to encode the tile layer data. When used, it can be
       "base64" and "csv" at the moment. }
     Encoding: TEncodingType;
@@ -70,6 +70,37 @@ type
     //todo: data
   end;
 
+  { Single frame of animation. }
+  TFrame = record
+    { The local ID of a tile within the parent tileset. }
+    TileId: Cardinal;
+    { How long (in milliseconds) this frame should be displayed before advancing
+      to the next frame. }
+    Duration: Cardinal;
+  end;
+
+  { Contains a list of animation frames.
+    As of Tiled 0.10, each tile can have exactly one animation associated with it.
+    In the future, there could be support for multiple named animations on a tile. }
+  TAnimation = specialize TGenericStructList<TFrame>;
+
+  TTile = record //todo: tile loading
+    { The local tile ID within its tileset. }
+    Id: Cardinal;
+    { Defines the terrain type of each corner of the tile, given as
+      comma-separated indexes in the terrain types array in the order top-left,
+      top-right, bottom-left, bottom-right. Leaving out a value means that corner
+      has no terrain. (optional) (since 0.9) }
+    Terrain: string; // todo: terrain definition
+    { A percentage indicating the probability that this tile is chosen when it
+      competes with others while editing with the terrain tool. (optional) (since 0.9) }
+    Probability: Single;
+    Properties: TProperties;
+    Image: TImage;
+    //todo: ObjectGroup since 0.10
+    Animation: TAnimation; //todo: animation loading
+  end;
+
   //PTileset = ^TTileset;
   { Tileset definition. }
   TTileset = record
@@ -95,6 +126,9 @@ type
     Margin: Cardinal;
     { The number of tiles in this tileset (since 0.13) }
     TileCount: Cardinal;
+    { The number of tile columns in the tileset. For image collection tilesets
+    it is editable and is used when displaying the tileset. (since 0.15) }
+    Columns: Cardinal;
     { This element is used to specify an offset in pixels, to be applied when
       drawing a tile from the related tileset. When not present, no offset is applied. }
     TileOffset: TVector2Integer;
@@ -164,9 +198,9 @@ type
     { The color used to display the objects in this group. }
     Color: TCastleColorRGB;
     { The x coordinate of the object group in tiles. Defaults to 0 and can no longer be changed in Tiled Qt. }
-    X: Integer;
+    X: Integer; //todo: deprecated since 0.15
     { The y coordinate of the object group in tiles. Defaults to 0 and can no longer be changed in Tiled Qt. }
-    Y: Integer;
+    Y: Integer; //todo: deprecated since 0.15
     { The width of the object group in tiles. Meaningless. }
     Width: Integer;
     { The height of the object group in tiles. Meaningless. }
@@ -260,6 +294,8 @@ begin
       Margin := StrToInt(TmpStr);
     if Element.AttributeString('tilecount', TmpStr) then
       TileCount := StrToInt(TmpStr);
+    if Element.AttributeString('columns', TmpStr) then
+      Columns := StrToInt(TmpStr);
     WritelnLog('LoadTileset firstgid', IntToStr(FirstGID));
     WritelnLog('LoadTileset source', Source);
     WritelnLog('LoadTileset Name', Name);
@@ -268,6 +304,7 @@ begin
     WritelnLog('LoadTileset Spacing', IntToStr(Spacing));
     WritelnLog('LoadTileset Margin', IntToStr(Margin));
     WritelnLog('LoadTileset TileCount', IntToStr(TileCount));
+    WritelnLog('LoadTileset Columns', IntToStr(Columns));
 
     I := TXMLElementIterator.Create(Element);
     try
@@ -504,6 +541,8 @@ begin
     Properties := nil;
     Opacity := 1;
     Visible := True;
+    OffsetX := 0;
+    OffsetY := 0;
     LayerType := LT_ImageLayer;
     Name := Element.GetAttribute('name');
     if Element.AttributeString('opacity', TmpStr) then
@@ -511,14 +550,20 @@ begin
     if Element.GetAttribute('visible') = '0' then
       Visible := False;
     if Element.AttributeString('x', TmpStr) then
-      X := StrToInt(TmpStr);
+      X := StrToInt(TmpStr); //todo: deprecated since 0.15
     if Element.AttributeString('y', TmpStr) then
-      Y := StrToInt(TmpStr);
+      Y := StrToInt(TmpStr); //todo: deprecated since 0.15
+    if Element.AttributeString('offsetx', TmpStr) then
+      OffsetX := StrToInt(TmpStr);
+    if Element.AttributeString('offsety', TmpStr) then
+      OffsetY := StrToInt(TmpStr);
     WritelnLog('LoadTileset Name', Name);
     WritelnLog('LoadTileset Visible', BoolToStr(Visible, 'True', 'False'));
     WritelnLog('LoadTileset Opacity', FloatToStr(Opacity));
     WritelnLog('LoadTileset X', IntToStr(X));
     WritelnLog('LoadTileset Y', IntToStr(Y));
+    WritelnLog('LoadTileset OffsetX', IntToStr(OffsetX));
+    WritelnLog('LoadTileset OffsetY', IntToStr(OffsetY));
 
     I := TXMLElementIterator.Create(Element);
     try

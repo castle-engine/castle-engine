@@ -1,5 +1,5 @@
 {
-  Copyright 2015 Tomasz Wojtyś
+  Copyright 2015, 2016 Tomasz Wojtyś
 
   This file is part of "Castle Game Engine".
 
