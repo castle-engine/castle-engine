@@ -48,7 +48,6 @@ type
     Compression: TCompressionType;
     { Binary data. Uncompressed and decoded. }
     Data: array of Cardinal;
-    Tiles: array of Integer;
   end;
 
   { Image definition. }
@@ -550,7 +549,9 @@ var
   CSVItem: string;
   tmpChar, p: PChar;
   CSVDataCount: Cardinal;
+  UsePlainXML: Boolean;
 begin
+  UsePlainXML := False;
   with AData do
   begin
     Encoding := ET_None;
@@ -568,7 +569,7 @@ begin
 
     if (Encoding = ET_None) and (Compression = CT_None) then
     begin
-      // todo: use XML tiles
+      UsePlainXML := True;
     end else begin
       RawData := Element.TextContent;
       WritelnLog('LoadData RawData', RawData);
@@ -640,9 +641,10 @@ begin
       begin
         WritelnLog('LoadData element', I.Current.TagName);
         case LowerCase(I.Current.TagName) of
-          'tile': begin
-            SetLength(Tiles, Length(Tiles)+1);
-            Tiles[High(Tiles)] := StrToInt(I.Current.GetAttribute('gid'));
+          'tile': if UsePlainXML then
+          begin
+            SetLength(Data, Length(Data)+1);
+            Data[High(Data)] := StrToInt(I.Current.GetAttribute('gid'));
           end;
         end;
       end;
