@@ -101,6 +101,21 @@ type
     Animation: TAnimation; //todo: animation loading
   end;
 
+  { Tiles list. }
+  TTiles = specialize TGenericStructList<TTile>;
+
+  TTerrain = record
+    { The name of the terrain type. }
+    Name: string;
+    { The local tile-id of the tile that represents the terrain visually. }
+    Tile: Cardinal;
+    Properties: TProperties;
+  end;
+
+  { This element defines an array of terrain types, which can be referenced from
+    the terrain attribute of the tile element. }
+  TTerrainTypes = specialize TGenericStructList<TTerrain>;
+
   //PTileset = ^TTileset;
   { Tileset definition. }
   TTileset = record
@@ -134,8 +149,8 @@ type
     TileOffset: TVector2Integer;
     Properties: TProperties;
     Image: TImage;
-    // todo: Tile
-    // todo: TerrainTypes
+    Tiles: TTiles; // todo: Tiles loading
+    TerrainTypes: TTerrainTypes; //todo: loading TerrainTypes
   end;
 
   { List of tilesets. }
