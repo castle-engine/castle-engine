@@ -1170,6 +1170,7 @@ var
 
     Shape.ModelView := ModelView;
     Renderer.RenderShape(Shape, ShapeFog(Shape));
+    IsVisibleNow := true;
   end;
 
   { Call RenderShape if some tests succeed.
