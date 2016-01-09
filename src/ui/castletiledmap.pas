@@ -498,6 +498,38 @@ procedure TCastleTiledMap.LoadTiledObject(Element: TDOMElement;
 var
   I: TXMLElementIterator;
   TmpStr: string;
+
+  procedure ReadPoints(const PointsString: string; var PointsList: TVector2SingleList);
+  const
+    PointsSeparator = Char(' ');
+    SinglePointSeparator = Char(',');
+  var
+    tmpChar, p: PChar;
+    tmpChar2, p2: PChar;
+    tmpPoint, tmpPoint2: string;
+    VectorPoint: TVector2Single;
+  begin
+    if not Assigned(PointsList) then PointsList := TVector2SingleList.Create;
+    p := PChar(PointsString);
+    repeat
+      tmpChar := StrPos(p, PointsSeparator);
+      if tmpChar = nil then tmpChar := StrScan(p, #0);
+      SetString(tmpPoint, p, tmpChar - p);
+      p2 := PChar(tmpPoint);
+
+      tmpChar2 := StrPos(p2, SinglePointSeparator);
+      SetString(tmpPoint2, p2, tmpChar2 - p2);
+      VectorPoint[0] := StrToFloat(tmpPoint2);
+      p2 := tmpChar2 + 1;
+      tmpChar2 := StrScan(p2, #0);
+      SetString(tmpPoint2, p2, tmpChar2 - p2);
+      VectorPoint[1] := StrToFloat(tmpPoint2);
+      PointsList.Add();
+
+      p := tmpChar + 1;
+    until tmpChar^ = #0;
+  end;
+
 begin
   with ATiledObject do
   begin
@@ -506,6 +538,7 @@ begin
     Rotation := 0;
     Visible := True;
     Properties := nil;
+    Points := nil;
     if Element.AttributeString('id', TmpStr) then
       Id := StrToInt(TmpStr);
     if Element.AttributeString('name', TmpStr) then
@@ -536,8 +569,14 @@ begin
         case LowerCase(I.Current.TagName) of
           'properties': LoadProperties(I.Current, Properties);
           'ellipse': Primitive := TOP_Ellipse;
-          'polygon': Primitive := TOP_Poligon;//todo: points
-          'polyline': Primitive := TOP_PolyLine;//todo: points
+          'polygon': begin
+            Primitive := TOP_Poligon;
+            ReadPoints(I.Current.GetAttribute('points'), Points);
+          end;
+          'polyline': begin
+            Primitive := TOP_PolyLine;
+            ReadPoints(I.Current.GetAttribute('points'), Points);
+          end;
           'image': LoadImage(I.Current, Image);
         end;
       end;
