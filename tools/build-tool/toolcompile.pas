@@ -180,7 +180,12 @@ begin
           FpcOptions.Add('-Co');
           FpcOptions.Add('-Sa');
           FpcOptions.Add('-CR');
-          FpcOptions.Add('-g');
+          // Use Dwarf debug info format,
+          // as compiling with Stabs causes FPC Internal error 200610054 (Linux i386 or x86_64).
+          // See http://wiki.lazarus.freepascal.org/GDB_Debugger_Tips#General
+          //FpcOptions.Add('-g');
+          FpcOptions.Add('-gw');
+          FpcOptions.Add('-godwarfsets');
           FpcOptions.Add('-gl');
           FpcOptions.Add('-dDEBUG');
         end;
