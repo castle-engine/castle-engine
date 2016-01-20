@@ -81,17 +81,14 @@
   as some functionality assumes that all shortcuts are already added
   at the time @code(Config.Load) is called.
   The engine units themselves never call @code(Config.Load), it is left
-  to the final application.
-
-  This unit also defines new CastleScript function: @code(shortcut),
-  see [http://castle-engine.sourceforge.net/castle_script.php#function_shortcut]. }
+  to the final application. }
 unit CastleInputs;
 
 interface
 
 uses Classes, FGL,
   CastleKeysMouse, CastleUtils, CastleClassUtils,
-  CastleXMLConfig, CastleScript, CastleUIControls;
+  CastleXMLConfig, CastleUIControls;
 
 type
   TInputGroup = (igLocal, igBasic, igItems, igOther);
@@ -347,9 +344,10 @@ type
   end;
 
   TInputShortcutList = class(specialize TFPGObjectList<TInputShortcut>)
-  private
-    function FindName(const Name: string): TInputShortcut;
   public
+    { Find shortcut by name, returns @nil if not found. }
+    function FindName(const Name: string): TInputShortcut;
+
     { Seeks for a shortcut that has matching key or mouse button or mouse wheel.
       @nil if not found. }
     function SeekMatchingShortcut(const Event: TInputPressRelease): TInputShortcut;
@@ -687,9 +685,9 @@ var
 begin
   for I := 0 to Count - 1 do
   begin
-    Config.SetDeleteValue('inputs/' + Items[I].Name + '/key1',
+    Config.SetDeleteKey('inputs/' + Items[I].Name + '/key1',
       Items[I].Key1, Items[I].DefaultKey1);
-    Config.SetDeleteValue('inputs/' + Items[I].Name + '/key2',
+    Config.SetDeleteKey('inputs/' + Items[I].Name + '/key2',
       Items[I].Key2, Items[I].DefaultKey2);
     Config.SetDeleteValue('inputs/' + Items[I].Name + '/mouse_button_use',
       Items[I].MouseButtonUse, Items[I].DefaultMouseButtonUse);
@@ -726,9 +724,9 @@ begin
 
   for I := 0 to Count - 1 do
   begin
-    Items[I].Key1 := Config.GetValue(
+    Items[I].Key1 := Config.GetKey(
       'inputs/' + Items[I].Name + '/key1', Items[I].DefaultKey1);
-    Items[I].Key2 := Config.GetValue(
+    Items[I].Key2 := Config.GetKey(
       'inputs/' + Items[I].Name + '/key2', Items[I].DefaultKey2);
     Items[I].MouseButtonUse := Config.GetValue(
       'inputs/' + Items[I].Name + '/mouse_button_use',
@@ -786,37 +784,6 @@ begin
   Result := nil;
 end;
 
-{ TCasScriptShortcut --------------------------------------------------------- }
-
-type
-  TCasScriptShortcut = class(TCasScriptFunction)
-  public
-    class function ShortName: string; override;
-    class procedure Handle(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-  end;
-
-class function TCasScriptShortcut.ShortName: string;
-begin
-  Result := 'shortcut';
-end;
-
-class procedure TCasScriptShortcut.Handle(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-var
-  N: string;
-  I: TInputShortcut;
-begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptString);
-  N := TCasScriptString(Arguments[0]).Value;
-  if InputsAll <> nil then
-  begin
-    I := InputsAll.FindName(N);
-    if I <> nil then
-      TCasScriptString(AResult).Value := I.Description else
-      TCasScriptString(AResult).Value := Format('(shortcut name "%s" undefined)', [N]);
-  end else
-    TCasScriptString(AResult).Value := 'input names not available (finalization of CastleInputs unit is already done)';
-end;
-
 { initialization / finalization ---------------------------------------------- }
 
 procedure DoInitialization;
@@ -831,8 +798,6 @@ begin
   // automatic loading/saving is more troublesome than it's worth
   // UserConfig.AddLoadListener(@InputsAll.LoadFromConfig);
   // UserConfig.AddSaveListener(@InputsAll.SaveToConfig);
-
-  FunctionHandlers.RegisterHandler(@TCasScriptShortcut(nil).Handle, TCasScriptShortcut, [TCasScriptString], false);
 end;
 
 procedure DoFinalization;

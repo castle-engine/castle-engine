@@ -21,8 +21,8 @@ unit CastleGLUtils;
 
 interface
 
-uses Math, CastleGL, SysUtils, CastleUtils, CastleVectors, CastleBoxes,
-  CastleImages, Matrix, CastleRectangles, CastleColors;
+uses Math, CastleImages, CastleGL, SysUtils, CastleUtils, CastleVectors,
+  Matrix, CastleRectangles, CastleColors;
 
 {$define read_interface}
 
@@ -417,36 +417,6 @@ procedure SetCurrentColor(const Value: TCastleColor);
   with explicit Color parameter. }
 property CurrentColor: TCastleColor read GetCurrentColor write SetCurrentColor;
 
-{ Simple save/restore of OpenGL pixel store ---------------------------------- }
-
-type
-  TUnpackNotAlignedData = record
-    Alignment: Cardinal;
-  end;
-  TPackNotAlignedData = TUnpackNotAlignedData;
-
-{ Save/restore OpenGL pixel store for unpacking TRGBImage.
-  Before you pass an TRGBImage to glDrawPixels, glTexImage1D, glTexImage2D,
-  glBitmap, glPolygonStipple and such, call
-  BeforeUnpackNotAlignedRGBImage, and later call
-  AfterUnpackNotAlignedRGBImage to restore original state.
-  @groupBegin }
-procedure BeforeUnpackNotAlignedRGBImage(out unpackdata: TUnpackNotAlignedData; imageWidth: cardinal);
-procedure AfterUnpackNotAlignedRGBImage(const unpackData: TUnpackNotAlignedData; imageWidth: cardinal);
-{ @groupEnd }
-
-{ Save/restore OpenGL pixel store for unpacking / packing given TCastleImage.
-  Before you pass this image to some OpenGL procedures
-  (like glDrawPixels for unpacking, glReadPixels for packing),
-  call BeforeXxx, and later call AfterXxx to restore original state.
-  These will take care of setting/restoring pixel alignment.
-  @groupBegin }
-procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TCastleImage);
-procedure AfterUnpackImage(const unpackData: TUnpackNotAlignedData; image: TCastleImage);
-procedure BeforePackImage(out packdata: TPackNotAlignedData; image: TCastleImage);
-procedure AfterPackImage(const packData: TPackNotAlignedData; image: TCastleImage);
-{ @groupEnd }
-
 { Projection matrix -------------------------------------------------------- }
 
 function GetProjectionMatrix: TMatrix4Single;
@@ -532,29 +502,6 @@ procedure CastleGluSphere(
   Nothing is generated besides vertex positions ---
   no normal vectors, no texture coords, nothing. }
 procedure glDrawAxisWire(const Position: TVector3Single; Size: Single);
-
-{ Draw corner markers (3 lines) at the 8 corners of the box.
-  Proportion is the fraction of the box length, the marker extends too. }
-procedure glDrawCornerMarkers(const Box: TBox3D; const Proportion: Single = 0.1);
-
-{ Draw the wireframe box.
-  Nothing is generated besides vertex positions ---
-  no normal vectors, no texture coords, nothing. }
-procedure glDrawBox3DWire(const Box: TBox3D);
-
-{ Draw simple box. Nothing is generated besides vertex positions ---
-  no normal vectors, no texture coords, nothing. Order is CCW outside
-  (so if you want, you can turn on backface culling yourself).
-
-  You @bold(must enable GL_VERTEX_ARRAY before using this).
-  (It's not done automatically, as it's much faster to do it once
-  for many glDrawBox3DSimple calls. Example --- bzwgen city view behind
-  building 1, with occlusion query used: FPC 150 vs 110 when
-  GL_VERTEX_ARRAY is activated once in OcclusionBoxStateBegin, not here.
-  Tested on fglrx on Radeon X1600 (chantal).)
-
-  It can be safely placed in a display list. }
-procedure glDrawBox3DSimple(const Box: TBox3D);
 
 { Call glColor, taking Opacity as separate Single argument.
   Deprecated, do not use colors like that, instead pass TCastleColor
@@ -766,6 +713,8 @@ property GlobalAmbient: TVector3Single
 procedure GLBlendFunction(const SourceFactor: TBlendingSourceFactor;
   const DestinationFactor: TBlendingDestinationFactor);
 
+{$I castleglutils_mipmaps.inc}
+
 {$undef read_interface}
 
 implementation
@@ -773,7 +722,9 @@ implementation
 {$define read_implementation}
 
 uses CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
-  CastleGLImages, CastleLog, CastleWarnings, CastleUIControls;
+  CastleLog, CastleWarnings, CastleApplicationProperties;
+
+{$I castleglutils_mipmaps.inc}
 
 procedure GLInformationInitialize;
 begin
@@ -1268,62 +1219,6 @@ begin
     .glViewport(Rect.Left, Rect.Bottom, Rect.Width, Rect.Height);
 end;
 
-{ uproszczenia dla sejwowania / ladowania gl state : ---------------------------------- }
-
-procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TCastleImage);
-begin
-  unpackData.Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
-  if unpackData.Alignment = 0 then
-    raise Exception.Create('OpenGL context is probably not initialized yet: glGetInteger(GL_UNPACK_ALIGNMENT) returned 0');
-  if (image.Width * Image.PixelSize mod unpackData.Alignment) <> 0 then
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-end;
-
-procedure AfterUnpackImage(const unpackData: TUnpackNotAlignedData; image: TCastleImage);
-begin
-  if (image.Width * Image.PixelSize mod unpackData.Alignment) <> 0 then
-    glPixelStorei(GL_UNPACK_ALIGNMENT, unpackData.Alignment);
-end;
-
-procedure BeforeUnpackNotAlignedRGBImage(out unpackData: TUnpackNotAlignedData; imageWidth: cardinal);
-begin
-  unpackData.Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
-  if (imageWidth*3 mod unpackData.Alignment) <> 0 then
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-end;
-
-procedure AfterUnpackNotAlignedRGBImage(const unpackData: TUnpackNotAlignedData; imageWidth: cardinal);
-begin
-  if (imageWidth*3 mod unpackData.Alignment) <> 0 then
-    glPixelStorei(GL_UNPACK_ALIGNMENT, unpackData.Alignment);
-end;
-
-procedure BeforePackImage(out packdata: TPackNotAlignedData; image: TCastleImage);
-begin
-  packData.Alignment := glGetInteger(GL_PACK_ALIGNMENT);
-  if (image.Width * Image.PixelSize mod packData.Alignment) <> 0 then
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-end;
-
-procedure AfterPackImage(const packData: TPackNotAlignedData; image: TCastleImage);
-begin
-  if (image.Width * Image.PixelSize mod packData.Alignment) <> 0 then
-    glPixelStorei(GL_PACK_ALIGNMENT, packData.Alignment);
-end;
-
-procedure BeforePackNotAlignedRGBImage(out packdata: TPackNotAlignedData; imageWidth: cardinal);
-begin
-  packData.Alignment := glGetInteger(GL_PACK_ALIGNMENT);
-  if (imageWidth*3 mod packData.Alignment) <> 0 then
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-end;
-
-procedure AfterPackNotAlignedRGBImage(const packData: TPackNotAlignedData; imageWidth: cardinal);
-begin
-  if (imageWidth*3 mod packData.Alignment) <> 0 then
-    glPixelStorei(GL_PACK_ALIGNMENT, packData.Alignment);
-end;
-
 { projection matrix ---------------------------------------------------------- }
 
 var
@@ -1441,109 +1336,6 @@ begin
     glVertexv(Position - Vector3Single(0, 0, Size));
     glVertexv(Position + Vector3Single(0, 0, Size));
   glEnd;
-end;
-
-procedure glDrawCornerMarkers(const Box: TBox3D; const Proportion: Single);
-
-  procedure glDrawCorners(const minx, miny, minz, maxx, maxy, maxz: Single);
-
-    procedure glDrawCornerLines(const x, y, z, dx, dy, dz: Single);
-    begin
-      glVertex3f(x, y, z);
-      glVertex3f(x+dx, y, z);
-      glVertex3f(x, y, z);
-      glVertex3f(x, y+dy, z);
-      glVertex3f(x, y, z);
-      glVertex3f(x, y, z+dz);
-    end;
-
-  var
-    Xlength, Ylength, Zlength: Single;
-  begin
-    Xlength := (maxx - minx) * Proportion;
-    Ylength := (maxy - miny) * Proportion;
-    Zlength := (maxz - minz) * Proportion;
-    glBegin(GL_LINES);
-      glDrawCornerLines(minx,miny,minz,Xlength,Ylength,Zlength);
-      glDrawCornerLines(minx,miny,maxz,Xlength,Ylength,-Zlength);
-      glDrawCornerLines(minx,maxy,minz,Xlength,-Ylength,Zlength);
-      glDrawCornerLines(minx,maxy,maxz,Xlength,-Ylength,-Zlength);
-      glDrawCornerLines(maxx,miny,minz,-Xlength,Ylength,Zlength);
-      glDrawCornerLines(maxx,miny,maxz,-Xlength,Ylength,-Zlength);
-      glDrawCornerLines(maxx,maxy,minz,-Xlength,-Ylength,Zlength);
-      glDrawCornerLines(maxx,maxy,maxz,-Xlength,-Ylength,-Zlength);
-    glEnd;
-  end;
-
-begin
-  glDrawCorners(Box.Data[0,0], Box.Data[0,1], Box.Data[0,2],
-                Box.Data[1,0], Box.Data[1,1], Box.Data[1,2]);
-end;
-
-procedure glDrawBox3DWire(const Box: TBox3D);
-
-  procedure glDrawRaw(const minx, miny, minz, maxx, maxy, maxz: Single);
-  begin
-    glBegin(GL_LINE_LOOP);
-      glVertex3f(minx, miny, minz);
-      glVertex3f(maxx, miny, minz);
-      glVertex3f(maxx, maxy, minz);
-      glVertex3f(minx, maxy, minz);
-      glVertex3f(minx, maxy, maxz);
-      glVertex3f(maxx, maxy, maxz);
-      glVertex3f(maxx, miny, maxz);
-      glVertex3f(minx, miny, maxz);
-    glEnd;
-
-    glBegin(GL_LINES);
-      glVertex3f(minx, miny, minz);
-      glVertex3f(minx, maxy, minz);
-      glVertex3f(minx, miny, maxz);
-      glVertex3f(minx, maxy, maxz);
-      glVertex3f(maxx, miny, minz);
-      glVertex3f(maxx, miny, maxz);
-      glVertex3f(maxx, maxy, minz);
-      glVertex3f(maxx, maxy, maxz);
-    glEnd;
-  end;
-
-begin
-  glDrawRaw(Box.Data[0,0], Box.Data[0,1], Box.Data[0,2],
-            Box.Data[1,0], Box.Data[1,1], Box.Data[1,2])
-end;
-
-procedure glDrawBox3DSimple(const Box: TBox3D);
-var
-  Verts: array [0..7] of TVector3Single;
-const
-  VertsIndices: array [0..23] of TGLuint =
-  (
-    0, 1, 3, 2,
-    1, 5, 7, 3,
-    5, 4, 6, 7,
-    4, 0, 2, 6,
-    2, 3, 7, 6,
-    0, 4, 5, 1
-  );
-begin
-  if Box.IsEmpty then Exit;
-
-  { Verts index in octal notation indicates which of 8 vertexes it is. }
-  Verts[0] := Box.Data[0];
-  Verts[1] := Box.Data[0]; Verts[1][0] := Box.Data[1][0];
-  Verts[2] := Box.Data[0]; Verts[2][1] := Box.Data[1][1];
-  Verts[4] := Box.Data[0]; Verts[4][2] := Box.Data[1][2];
-
-  Verts[3] := Box.Data[1]; Verts[3][2] := Box.Data[0][2];
-  Verts[5] := Box.Data[1]; Verts[5][1] := Box.Data[0][1];
-  Verts[6] := Box.Data[1]; Verts[6][0] := Box.Data[0][0];
-  Verts[7] := Box.Data[1];
-
-  glVertexPointer(3, GL_FLOAT, 0, @Verts);
-
-  { TODO: use vbo. Speed of this is important for occlusion query. }
-
-  glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, @VertsIndices);
 end;
 
 procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single);

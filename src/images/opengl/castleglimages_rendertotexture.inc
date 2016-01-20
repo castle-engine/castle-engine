@@ -777,7 +777,7 @@ end;
 procedure TGLRenderToTexture.GenerateMipmap;
 begin
   glBindTexture(CompleteTextureTarget, Texture);
-  CastleGLImages.GenerateMipmap(CompleteTextureTarget);
+  CastleGLUtils.GenerateMipmap(CompleteTextureTarget);
   { TODO: size of these mipmaps is not accounted for in texture memory profiler }
 end;
 

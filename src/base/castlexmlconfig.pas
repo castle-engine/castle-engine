@@ -19,7 +19,7 @@ unit CastleXMLConfig;
 interface
 
 uses SysUtils, Classes, DOM,
-  CastleUtils, CastleXMLCfgInternal, CastleVectors, CastleKeysMouse,
+  CastleUtils, CastleXMLCfgInternal, CastleVectors,
   CastleGenericLists, CastleColors;
 
 type
@@ -42,7 +42,7 @@ type
     @unorderedList(
       @item(load/save from an URL or a TStream (not just a filename),)
       @item(load/save to the default config file location (for user preferences),)
-      @item(load/save more types (floats, vectors, colors, URLs, TKeys,
+      @item(load/save more types (floats, vectors, colors, URLs,
         multiline text...),)
       @item(PathElement utility, to use powerful DOM functions when needed
         to process something more complex,)
@@ -116,18 +116,6 @@ type
       const AValue: TVector4Single); overload;
     procedure SetDeleteValue(const APath: string;
       const AValue, ADefaultValue: TVector4Single); overload;
-    { @groupEnd }
-
-    { Reading/writing key values to config file.
-      Key names are expected to follow StrToKey and KeyToStr functions in CastleKeysMouse.
-
-      @groupBegin }
-    function GetValue(const APath: string;
-      const ADefaultValue: TKey): TKey; overload;
-    procedure SetValue(const APath: string;
-      const AValue: TKey); overload;
-    procedure SetDeleteValue(const APath: string;
-      const AValue, ADefaultValue: TKey); overload;
     { @groupEnd }
 
     { Colors reading/writing to config file.
@@ -493,24 +481,6 @@ var
 begin
   for I := 0 to High(AValue) do
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
-end;
-
-function TCastleConfig.GetValue(const APath: string;
-  const ADefaultValue: TKey): TKey;
-begin
-  Result := StrToKey(GetValue(APath, KeyToStr(ADefaultValue)), ADefaultValue);
-end;
-
-procedure TCastleConfig.SetValue(const APath: string;
-  const AValue: TKey);
-begin
-  SetValue(APath, KeyToStr(AValue));
-end;
-
-procedure TCastleConfig.SetDeleteValue(const APath: string;
-  const AValue, ADefaultValue: TKey);
-begin
-  SetDeleteValue(APath, KeyToStr(AValue), KeyToStr(ADefaultValue));
 end;
 
 const

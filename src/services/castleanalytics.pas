@@ -71,7 +71,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleMessaging, CastleUIControls;
+  CastleMessaging, CastleApplicationProperties;
 
 constructor TAnalytics.Create(AOwner: TComponent);
 begin

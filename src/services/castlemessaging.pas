@@ -117,7 +117,7 @@ function Messaging: TMessaging;
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleLog, CastleWarnings, CastleUIControls;
+  CastleUtils, CastleLog, CastleWarnings, CastleApplicationProperties;
 
 var
   JavaCommunicationCS: TCriticalSection;

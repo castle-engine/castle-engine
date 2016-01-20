@@ -50,9 +50,55 @@ procedure SimpleOcclusionQueryRender(const Shape: TGLShape;
 implementation
 
 uses SysUtils, CastleClassUtils, CastleShapeOctree, CastleBoxes,
-  CastleGLUtils, CastleGL;
+  CastleGLUtils, CastleGL, CastleVectors;
 
 {$ifndef OpenGLES} // TODO-es this whole unit
+
+{ Draw simple box. Nothing is generated besides vertex positions ---
+  no normal vectors, no texture coords, nothing. Order is CCW outside
+  (so if you want, you can turn on backface culling yourself).
+
+  You @bold(must enable GL_VERTEX_ARRAY before using this).
+  (It's not done automatically, as it's much faster to do it once
+  for many glDrawBox3DSimple calls. Example --- bzwgen city view behind
+  building 1, with occlusion query used: FPC 150 vs 110 when
+  GL_VERTEX_ARRAY is activated once in OcclusionBoxStateBegin, not here.
+  Tested on fglrx on Radeon X1600 (chantal).)
+
+  It can be safely placed in a display list. }
+procedure glDrawBox3DSimple(const Box: TBox3D);
+var
+  Verts: array [0..7] of TVector3Single;
+const
+  VertsIndices: array [0..23] of TGLuint =
+  (
+    0, 1, 3, 2,
+    1, 5, 7, 3,
+    5, 4, 6, 7,
+    4, 0, 2, 6,
+    2, 3, 7, 6,
+    0, 4, 5, 1
+  );
+begin
+  if Box.IsEmpty then Exit;
+
+  { Verts index in octal notation indicates which of 8 vertexes it is. }
+  Verts[0] := Box.Data[0];
+  Verts[1] := Box.Data[0]; Verts[1][0] := Box.Data[1][0];
+  Verts[2] := Box.Data[0]; Verts[2][1] := Box.Data[1][1];
+  Verts[4] := Box.Data[0]; Verts[4][2] := Box.Data[1][2];
+
+  Verts[3] := Box.Data[1]; Verts[3][2] := Box.Data[0][2];
+  Verts[5] := Box.Data[1]; Verts[5][1] := Box.Data[0][1];
+  Verts[6] := Box.Data[1]; Verts[6][0] := Box.Data[0][0];
+  Verts[7] := Box.Data[1];
+
+  glVertexPointer(3, GL_FLOAT, 0, @Verts);
+
+  { TODO: use vbo. Speed of this is important for occlusion query. }
+
+  glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, @VertsIndices);
+end;
 
 { TOcclusionQuery ------------------------------------------------------------ }
 

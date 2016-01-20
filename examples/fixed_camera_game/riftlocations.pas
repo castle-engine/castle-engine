@@ -80,7 +80,9 @@ var
 implementation
 
 uses SysUtils, DOM, CastleProgress, CastleImages, CastleRenderer, CastleUIControls,
-  CastleGLUtils, CastleWindow, CastleXMLUtils, CastleSceneCore, RiftWindow, RiftData;
+  CastleGLUtils, CastleWindow, CastleXMLUtils, CastleSceneCore,
+  CastleApplicationProperties,
+  RiftWindow, RiftData;
 
 { TLocation ------------------------------------------------------------------ }
 
@@ -227,6 +229,6 @@ begin
 end;
 
 initialization
-  OnGLContextOpen.Add(@ContextOpen);
-  OnGLContextClose.Add(@ContextClose);
+  ApplicationProperties.OnGLContextOpen.Add(@ContextOpen);
+  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
 end.

@@ -210,7 +210,10 @@ begin
   begin
     Parameters.CheckHigh(2);
     FileName := Parameters[2];
-    Compile(OS, CPU, Plugin, Mode, ExtractFilePath(FileName), FileName);
+    { use GetCurrentDir as WorkingDir,
+      so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
+      Working dir for FPC must be equal to our own working dir. }
+    Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName);
   end else
   begin
     Parameters.CheckHigh(1);

@@ -230,7 +230,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleMessaging, CastleWarnings, CastleUIControls;
+  CastleUtils, CastleMessaging, CastleWarnings, CastleApplicationProperties;
 
 { TAdNetworkHandler ---------------------------------------------------------- }
 

@@ -22,7 +22,7 @@ interface
 
 uses Classes, FGL, CastleGLImages, CastleStringUtils, CastleColors,
   CastleVectors, CastleTextureFontData, CastleImages, CastleUnicode,
-  CastleRectangles, CastleUIControls;
+  CastleRectangles, CastleApplicationProperties;
 
 type
   { Abstract class for 2D font. }

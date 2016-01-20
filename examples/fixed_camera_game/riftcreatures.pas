@@ -27,8 +27,9 @@ unit RiftCreatures;
 
 interface
 
-uses CastlePrecalculatedAnimation, CastleUtils, CastleClassUtils, Classes, CastleScene,
-  SysUtils, CastleVectors, Castle3D, CastleFrustum,
+uses SysUtils, Classes,
+  CastlePrecalculatedAnimation, CastleUtils, CastleClassUtils, CastleScene,
+  CastleVectors, Castle3D, CastleFrustum, CastleApplicationProperties,
   RiftWindow, RiftGame, RiftLoadable, CastleTimeUtils, X3DNodes,
   FGL, CastleColors;
 
@@ -165,8 +166,8 @@ var
 
 implementation
 
-uses CastleLog, CastleProgress, Math, CastleGL, CastleGLUtils, CastleWindow,
-  CastleUIControls, RiftData, RiftVideoOptions;
+uses Math, CastleLog, CastleProgress, CastleGL, CastleGLUtils, CastleWindow,
+  CastleUIControls, CastleGLBoxes, RiftData, RiftVideoOptions;
 
 { TCreatureKind -------------------------------------------------------------- }
 
@@ -702,5 +703,5 @@ initialization
   PlayerKind := TCreatureKind.Create('player');
   CreaturesKinds.Add(PlayerKind);
 
-  OnGLContextClose.Add(@ContextClose);
+  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
 end.
