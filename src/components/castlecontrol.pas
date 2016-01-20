@@ -467,7 +467,7 @@ var
 implementation
 
 uses LCLType, CastleGL, CastleGLUtils, CastleStringUtils, X3DLoad, Math,
-  CastleLog, Contnrs, CastleLCLUtils;
+  CastleLog, Contnrs, CastleLCLUtils, CastleApplicationProperties;
 
 procedure Register;
 begin
@@ -1173,7 +1173,7 @@ begin
     nicely. }
   FSceneManager.SetSubComponent(true);
   FSceneManager.Name := 'SceneManager';
-  Controls.Add(SceneManager);
+  Controls.InsertFront(SceneManager);
 end;
 
 procedure TCastleControl.Load(const SceneURL: string);
@@ -1255,7 +1255,7 @@ begin
     nicely. }
   FSceneManager.SetSubComponent(true);
   FSceneManager.Name := 'SceneManager';
-  Controls.Add(SceneManager);
+  Controls.InsertFront(SceneManager);
 end;
 
 initialization
