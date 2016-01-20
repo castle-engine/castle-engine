@@ -441,7 +441,10 @@ type
       read FUIExplicitScale write SetUIExplicitScale default 1.0;
   end;
 
-  { Base class for things that listen to user input: cameras and 2D controls. }
+  { Base class for things that listen to user input.
+
+    TODO: this is separate from TInputListener class only to avoid FPC 2.6.4
+    bug Internal error 200610054 when using the stabs debug info. }
   TInputListener = class(TComponent)
   private
     FOnVisibleChange: TNotifyEvent;
