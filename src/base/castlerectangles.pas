@@ -513,6 +513,7 @@ end;
 
 function TRectangle.ScaleToWidth(const NewWidth: Cardinal): TRectangle;
 begin
+  if IsEmpty then Exit(Empty);
   Result.Left := Left;
   Result.Bottom := Bottom;
   Result.Width := NewWidth;
@@ -521,6 +522,7 @@ end;
 
 function TRectangle.ScaleToHeight(const NewHeight: Cardinal): TRectangle;
 begin
+  if IsEmpty then Exit(Empty);
   Result.Left := Left;
   Result.Bottom := Bottom;
   Result.Width := Width * NewHeight div Height;
@@ -529,6 +531,7 @@ end;
 
 function TRectangle.ScaleAroundMiddle(const Factor: Single): TRectangle;
 begin
+  if IsEmpty then Exit(Empty);
   Result.Width  := Round(Width  * Factor);
   Result.Height := Round(Height * Factor);
   Result.Left   := Left   + (Width  - Result.Width ) div 2;
@@ -541,6 +544,7 @@ function TRectangle.ScaleAround0(const Factor: Single): TRectangle;
 var
   ResultRight, ResultTop: Integer;
 begin
+  if IsEmpty then Exit(Empty);
   Result.Left   := Floor(Left   * Factor);
   Result.Bottom := Floor(Bottom * Factor);
   ResultRight := Ceil(Right * Factor);
