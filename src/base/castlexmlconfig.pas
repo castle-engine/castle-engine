@@ -60,7 +60,18 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Internal notes: At the beginning I made the float methods
+    { Get a @italic(required) integer attribute, raise exception if missing or invalid.
+      @raises(EMissingAttribute If the attribute is missing or empty.)
+      @raises(EConvertError If the attribute exists but has invalid format.) }
+    function GetValue(const APath: String): Integer; overload;
+
+    { Get a @italic(required) boolean attribute, raise exception if missing or invalid.
+      @raises(EMissingAttribute If the attribute is missing or empty.)
+      @raises(EConvertError If the attribute exists but has invalid format.) }
+    function GetValue(const APath: String): Boolean; overload;
+
+    { Internal notes about GetFloat / SetFloat:
+      At the beginning I made the float methods
       to overload existing names (GetValue, SetValue etc.).
 
       But this turned out to be a *very* bad idea: integers are
@@ -75,15 +86,23 @@ type
       will choose GetValue that interprets given value as an integer.
       If you perviously stored a float value there
       (like by SetValue('float_param', 3.14)) then the GetValue above
-      will compile but fail miserably at runtime }
+      will compile but fail miserably at runtime.
+    }
 
-    { }
+    { Float values reading/writing to config file.
+
+      @raises(EMissingAttribute Raised by GetFloat(string) (overloaded
+        version without the ADefaultValue parameter) if the attribute is missing.)
+
+      @groupBegin }
     function GetFloat(const APath: string;
       const ADefaultValue: Float): Float;
+    function GetFloat(const APath: string): Float;
     procedure SetFloat(const APath: string;
       const AValue: Float);
     procedure SetDeleteFloat(const APath: string;
       const AValue, ADefaultValue: Float);
+    { @groupEnd }
 
     { 2D, 3D, 4D vectors reading/writing to config file.
 
@@ -93,28 +112,28 @@ type
 
       You can read such vector by
 
-      @longCode(# GetValue('example/path/to/myVector', Vector4Single(0, 0, 0, 0)); #)
+      @longCode(# GetVector('example/path/to/myVector', Vector4Single(0, 0, 0, 0)); #)
 
       @groupBegin }
-    function GetValue(const APath: string;
+    function GetVector(const APath: string;
       const ADefaultValue: TVector2Single): TVector2Single; overload;
-    procedure SetValue(const APath: string;
+    procedure SetVector(const APath: string;
       const AValue: TVector2Single); overload;
-    procedure SetDeleteValue(const APath: string;
+    procedure SetDeleteVector(const APath: string;
       const AValue, ADefaultValue: TVector2Single); overload;
 
-    function GetValue(const APath: string;
+    function GetVector(const APath: string;
       const ADefaultValue: TVector3Single): TVector3Single; overload;
-    procedure SetValue(const APath: string;
+    procedure SetVector(const APath: string;
       const AValue: TVector3Single); overload;
-    procedure SetDeleteValue(const APath: string;
+    procedure SetDeleteVector(const APath: string;
       const AValue, ADefaultValue: TVector3Single); overload;
 
-    function GetValue(const APath: string;
+    function GetVector(const APath: string;
       const ADefaultValue: TVector4Single): TVector4Single; overload;
-    procedure SetValue(const APath: string;
+    procedure SetVector(const APath: string;
       const AValue: TVector4Single); overload;
-    procedure SetDeleteValue(const APath: string;
+    procedure SetDeleteVector(const APath: string;
       const AValue, ADefaultValue: TVector4Single); overload;
     { @groupEnd }
 
@@ -173,7 +192,8 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
       on the file and then use some real DOM functions to more directly
       operate/read on XML document.
 
-      Note that for paths that you pass to various SetValue versions,
+      Note that for paths that you pass to various
+      SetValue / SetColor / SetFloat / SetVector versions,
       the last path component is the attribute name. You do not pass
       this here. Path passed here should end with the name of final
       element.
@@ -194,7 +214,7 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
       of the same element: XMLConfig will (probably ?) just always ignore
       the second one. Which means that if you use this method to change
       some XML content, you should be careful when accessing this content
-      from regular XMLConfig Get/SetValue methods. }
+      from regular XMLConfig GetValue / SetValue methods. }
     function PathElement(const APath: string;
       const RaiseExceptionWhenMissing: boolean = false): TDOMElement;
 
@@ -377,6 +397,24 @@ begin
   inherited;
 end;
 
+function TCastleConfig.GetValue(const APath: String): Integer;
+begin
+  Result := StrToInt(GetNonEmptyValue(APath));
+end;
+
+function TCastleConfig.GetValue(const APath: String): Boolean;
+var
+  S: String;
+begin
+  S := GetNonEmptyValue(APath);
+  if AnsiCompareText(S, 'TRUE') = 0 then
+    Result := true else
+  if AnsiCompareText(s, 'FALSE') = 0 then
+    Result := false else
+    raise EConvertError.CreateFmt('Invalid boolean value "%s" in XML attribute "%s"',
+      [S, APath]);
+end;
+
 function TCastleConfig.GetFloat(const APath: string;
   const ADefaultValue: Float): Float;
 var
@@ -384,6 +422,11 @@ var
 begin
   ResultString := GetValue(APath, FloatToStr(ADefaultValue));
   Result := StrToFloatDef(ResultString, ADefaultValue);
+end;
+
+function TCastleConfig.GetFloat(const APath: string): Float;
+begin
+  Result := StrToFloat(GetNonEmptyValue(APath));
 end;
 
 procedure TCastleConfig.SetFloat(const APath: string;
@@ -402,7 +445,7 @@ const
   VectorComponentPaths: array [0..3] of string =
   ('/x', '/y', '/z', '/w');
 
-function TCastleConfig.GetValue(const APath: string;
+function TCastleConfig.GetVector(const APath: string;
   const ADefaultValue: TVector2Single): TVector2Single;
 var
   I: Integer;
@@ -411,7 +454,7 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
-procedure TCastleConfig.SetValue(const APath: string;
+procedure TCastleConfig.SetVector(const APath: string;
   const AValue: TVector2Single);
 var
   I: Integer;
@@ -420,7 +463,7 @@ begin
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
-procedure TCastleConfig.SetDeleteValue(const APath: string;
+procedure TCastleConfig.SetDeleteVector(const APath: string;
   const AValue, ADefaultValue: TVector2Single);
 var
   I: Integer;
@@ -429,7 +472,7 @@ begin
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
-function TCastleConfig.GetValue(const APath: string;
+function TCastleConfig.GetVector(const APath: string;
   const ADefaultValue: TVector3Single): TVector3Single;
 var
   I: Integer;
@@ -438,7 +481,7 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
-procedure TCastleConfig.SetValue(const APath: string;
+procedure TCastleConfig.SetVector(const APath: string;
   const AValue: TVector3Single);
 var
   I: Integer;
@@ -447,7 +490,7 @@ begin
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
-procedure TCastleConfig.SetDeleteValue(const APath: string;
+procedure TCastleConfig.SetDeleteVector(const APath: string;
   const AValue, ADefaultValue: TVector3Single);
 var
   I: Integer;
@@ -456,7 +499,7 @@ begin
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
-function TCastleConfig.GetValue(const APath: string;
+function TCastleConfig.GetVector(const APath: string;
   const ADefaultValue: TVector4Single): TVector4Single;
 var
   I: Integer;
@@ -465,7 +508,7 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
-procedure TCastleConfig.SetValue(const APath: string;
+procedure TCastleConfig.SetVector(const APath: string;
   const AValue: TVector4Single);
 var
   I: Integer;
@@ -474,7 +517,7 @@ begin
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
-procedure TCastleConfig.SetDeleteValue(const APath: string;
+procedure TCastleConfig.SetDeleteVector(const APath: string;
   const AValue, ADefaultValue: TVector4Single);
 var
   I: Integer;
