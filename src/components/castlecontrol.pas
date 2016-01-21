@@ -105,12 +105,10 @@ type
     FGLInitialized: boolean;
     FPressed: TKeysPressed;
     FMousePressed: CastleKeysMouse.TMouseButtons;
-
+    FAutoRedisplay: boolean;
     { manually track when we need to be repainted, useful for AggressiveUpdate }
     Invalidated: boolean;
-
     FFps: TFramesPerSecond;
-
     FOnOpen: TNotifyEvent;
     FOnBeforeRender: TNotifyEvent;
     FOnRender: TNotifyEvent;
@@ -132,6 +130,7 @@ type
     procedure UpdateShiftState(const Shift: TShiftState);
 
     procedure SetMousePosition(const Value: TVector2Single);
+    procedure SetAutoRedisplay(const Value: boolean);
   protected
     procedure DestroyHandle; override;
     procedure DoExit; override;
@@ -349,6 +348,21 @@ type
       so it is continously called even when your game
       is overwhelmed by messages (like mouse moves) and redraws. }
     property OnUpdate: TNotifyEvent read FOnUpdate write FOnUpdate;
+
+    { Should we automatically redraw the window all the time,
+      without the need for an @link(Invalidate) call.
+      If @true (the default), OnRender will called constantly.
+
+      If your game may have a still screen (nothing animates),
+      then this approach is a little unoptimal, as we use CPU and GPU
+      for drawing, when it's not needed. In such case, you can set this
+      property to @false, and make sure that you call
+      @link(Invalidate) always when you need to redraw the screen.
+      Note that the engine components always call @link(Invalidate) when
+      necessary, so usually you should only call it yourself if you provide
+      a custom @link(OnRender) implementation. }
+    property AutoRedisplay: boolean read FAutoRedisplay write SetAutoRedisplay
+      default true;
   end;
 
   { Same as TGameSceneManager, redefined only to work as a sub-component
@@ -763,6 +777,7 @@ begin
   TabStop := true;
   FFps := TFramesPerSecond.Create;
   FPressed := TKeysPressed.Create;
+  FAutoRedisplay := true;
 
   FContainer := TContainer.Create(Self);
   { SetSubComponent and Name setting (must be unique only within TCastleControl,
@@ -805,6 +820,12 @@ begin
   FreeAndNil(FFps);
   FreeAndNil(FContainer);
   inherited;
+end;
+
+procedure TCastleControlCustom.SetAutoRedisplay(const Value: boolean);
+begin
+  FAutoRedisplay := value;
+  if Value then Invalidate;
 end;
 
 { Initial idea was to do
@@ -1099,6 +1120,7 @@ end;
 
 procedure TCastleControlCustom.DoUpdate;
 begin
+  if AutoRedisplay then Invalidate;
   Fps._UpdateBegin;
   Container.EventUpdate;
 end;
@@ -1124,6 +1146,9 @@ begin
       if GLVersion.BuggySwapNonStandardViewport then
         glViewport(Rect);
       SwapBuffers;
+      // it seems calling Invalidate from Paint doesn't work, so we'll
+      // have to do it elsewhere
+      // if AutoRedisplay then Invalidate;
     finally Fps._RenderEnd end;
   end;
 end;
