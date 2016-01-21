@@ -81,8 +81,8 @@ type
 
     { Callbacks called continously when (at least one) window is open.
 
-      You can use this just like @link(TCastleControl.OnUpdate)
-      or @link(TCastleWindow.OnUpdate) or @link(TCastleApplication.OnUpdate),
+      You can use this just like @link(TCastleControlCustom.OnUpdate)
+      or @link(TCastleWindowCustom.OnUpdate) or @link(TCastleApplication.OnUpdate),
       but in situations where you cannot access an instance of control/window
       and you want to work both with Lazarus @link(TCastleControl)
       and our custom @link(TCastleApplication). }
@@ -108,7 +108,7 @@ type
       )
 
       For non-Android applications, this is simply always called exactly
-      once, exactly before calling @link(OnInitialize). }
+      once, exactly before calling @link(TCastleApplication.OnInitialize). }
     property OnInitializeJavaActivity: TNotifyEventList read FOnInitializeJavaActivity;
 
     { Internal for Castle Game Engine.

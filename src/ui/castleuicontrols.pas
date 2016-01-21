@@ -180,8 +180,8 @@ type
     returns @link(TUIControl.CapturesEventsAtPosition) = @true.
 
     We also call various methods to every control.
-    These include @link(TUIControl.Update), @link(TUIControl.Render),
-    @link(TUIControl.Resize). }
+    These include @link(TInputListener.Update), @link(TUIControl.Render),
+    @link(TInputListener.Resize). }
   TUIContainer = class abstract(TComponent)
   private
     type
@@ -873,7 +873,7 @@ end;
         @item(@italic((For fixed-function pipeline.))
           The 2D orthographic projection is always set at the beginning.
           Useful for 2D controls, 3D controls can just override projection
-          matrix, e.g. use @link(PerspectiveProjection).)
+          matrix, e.g. use @link(CastleGLUtils.PerspectiveProjection).)
 
         @item(glViewport is set to include whole container.)
 
