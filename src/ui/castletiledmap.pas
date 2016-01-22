@@ -524,7 +524,7 @@ var
       tmpChar2 := StrScan(p2, #0);
       SetString(tmpPoint2, p2, tmpChar2 - p2);
       VectorPoint[1] := StrToFloat(tmpPoint2);
-      PointsList.Add();
+      PointsList.Add(VectorPoint);
 
       p := tmpChar + 1;
     until tmpChar^ = #0;
