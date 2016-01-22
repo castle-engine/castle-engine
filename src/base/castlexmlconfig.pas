@@ -117,6 +117,7 @@ type
       @groupBegin }
     function GetVector(const APath: string;
       const ADefaultValue: TVector2Single): TVector2Single; overload;
+    function GetVector(const APath: string): TVector2Single; overload;
     procedure SetVector(const APath: string;
       const AValue: TVector2Single); overload;
     procedure SetDeleteVector(const APath: string;
@@ -124,6 +125,7 @@ type
 
     function GetVector(const APath: string;
       const ADefaultValue: TVector3Single): TVector3Single; overload;
+    function GetVector(const APath: string): TVector3Single; overload;
     procedure SetVector(const APath: string;
       const AValue: TVector3Single); overload;
     procedure SetDeleteVector(const APath: string;
@@ -131,10 +133,41 @@ type
 
     function GetVector(const APath: string;
       const ADefaultValue: TVector4Single): TVector4Single; overload;
+    function GetVector(const APath: string): TVector4Single; overload;
     procedure SetVector(const APath: string;
       const AValue: TVector4Single); overload;
     procedure SetDeleteVector(const APath: string;
       const AValue, ADefaultValue: TVector4Single); overload;
+
+    function GetValue(const APath: string;
+      const ADefaultValue: TVector2Single): TVector2Single;
+      overload; deprecated 'use GetVector';
+    procedure SetValue(const APath: string;
+      const AValue: TVector2Single);
+      overload; deprecated 'use SetVector';
+    procedure SetDeleteValue(const APath: string;
+      const AValue, ADefaultValue: TVector2Single);
+      overload; deprecated 'use SetDeleteVector';
+
+    function GetValue(const APath: string;
+      const ADefaultValue: TVector3Single): TVector3Single;
+      overload; deprecated 'use GetVector';
+    procedure SetValue(const APath: string;
+      const AValue: TVector3Single);
+      overload; deprecated 'use SetVector';
+    procedure SetDeleteValue(const APath: string;
+      const AValue, ADefaultValue: TVector3Single);
+      overload; deprecated 'use SetDeleteVector';
+
+    function GetValue(const APath: string;
+      const ADefaultValue: TVector4Single): TVector4Single;
+      overload; deprecated 'use GetVector';
+    procedure SetValue(const APath: string;
+      const AValue: TVector4Single);
+      overload; deprecated 'use SetVector';
+    procedure SetDeleteValue(const APath: string;
+      const AValue, ADefaultValue: TVector4Single);
+      overload; deprecated 'use SetDeleteVector';
     { @groupEnd }
 
     { Colors reading/writing to config file.
@@ -174,6 +207,7 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
       @groupBegin }
     function GetColor(const APath: string;
       const ADefaultColor: TCastleColorRGB): TCastleColorRGB; overload;
+    function GetColor(const APath: string): TCastleColorRGB; overload;
     procedure SetColor(const APath: string;
       const AColor: TCastleColorRGB); overload;
     procedure SetDeleteColor(const APath: string;
@@ -181,6 +215,7 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
 
     function GetColor(const APath: string;
       const ADefaultColor: TCastleColor): TCastleColor; overload;
+    function GetColor(const APath: string): TCastleColor; overload;
     procedure SetColor(const APath: string;
       const AColor: TCastleColor); overload;
     procedure SetDeleteColor(const APath: string;
@@ -424,6 +459,8 @@ begin
   Result := StrToFloatDef(ResultString, ADefaultValue);
 end;
 
+{ get/set floats ------------------------------------------------------------ }
+
 function TCastleConfig.GetFloat(const APath: string): Float;
 begin
   Result := StrToFloat(GetNonEmptyValue(APath));
@@ -441,6 +478,8 @@ begin
   SetDeleteValue(APath, FloatToStr(AValue), FloatToStr(ADefaultValue));
 end;
 
+{ get/set vectors ------------------------------------------------------------ }
+
 const
   VectorComponentPaths: array [0..3] of string =
   ('/x', '/y', '/z', '/w');
@@ -452,6 +491,14 @@ var
 begin
   for I := 0 to High(ADefaultValue) do
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+end;
+
+function TCastleConfig.GetVector(const APath: string): TVector2Single;
+var
+  I: Integer;
+begin
+  for I := 0 to High(Result) do
+    Result[I] := GetFloat(APath + VectorComponentPaths[I]);
 end;
 
 procedure TCastleConfig.SetVector(const APath: string;
@@ -481,6 +528,14 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
+function TCastleConfig.GetVector(const APath: string): TVector3Single;
+var
+  I: Integer;
+begin
+  for I := 0 to High(Result) do
+    Result[I] := GetFloat(APath + VectorComponentPaths[I]);
+end;
+
 procedure TCastleConfig.SetVector(const APath: string;
   const AValue: TVector3Single);
 var
@@ -508,6 +563,14 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
+function TCastleConfig.GetVector(const APath: string): TVector4Single;
+var
+  I: Integer;
+begin
+  for I := 0 to High(Result) do
+    Result[I] := GetFloat(APath + VectorComponentPaths[I]);
+end;
+
 procedure TCastleConfig.SetVector(const APath: string;
   const AValue: TVector4Single);
 var
@@ -526,6 +589,91 @@ begin
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
+{ deprecated get/set on vectors ---------------------------------------------- }
+
+function TCastleConfig.GetValue(const APath: string;
+  const ADefaultValue: TVector2Single): TVector2Single;
+var
+  I: Integer;
+begin
+  for I := 0 to High(ADefaultValue) do
+    Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+end;
+
+procedure TCastleConfig.SetValue(const APath: string;
+  const AValue: TVector2Single);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AValue) do
+    SetFloat(APath + VectorComponentPaths[I], AValue[I]);
+end;
+
+procedure TCastleConfig.SetDeleteValue(const APath: string;
+  const AValue, ADefaultValue: TVector2Single);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AValue) do
+    SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
+end;
+
+function TCastleConfig.GetValue(const APath: string;
+  const ADefaultValue: TVector3Single): TVector3Single;
+var
+  I: Integer;
+begin
+  for I := 0 to High(ADefaultValue) do
+    Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+end;
+
+procedure TCastleConfig.SetValue(const APath: string;
+  const AValue: TVector3Single);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AValue) do
+    SetFloat(APath + VectorComponentPaths[I], AValue[I]);
+end;
+
+procedure TCastleConfig.SetDeleteValue(const APath: string;
+  const AValue, ADefaultValue: TVector3Single);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AValue) do
+    SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
+end;
+
+function TCastleConfig.GetValue(const APath: string;
+  const ADefaultValue: TVector4Single): TVector4Single;
+var
+  I: Integer;
+begin
+  for I := 0 to High(ADefaultValue) do
+    Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+end;
+
+procedure TCastleConfig.SetValue(const APath: string;
+  const AValue: TVector4Single);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AValue) do
+    SetFloat(APath + VectorComponentPaths[I], AValue[I]);
+end;
+
+procedure TCastleConfig.SetDeleteValue(const APath: string;
+  const AValue, ADefaultValue: TVector4Single);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AValue) do
+    SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
+end;
+
+{ get/set colors ------------------------------------------------------------- }
+
 const
   ColorComponentPaths: array [0..3] of string =
   ('/red', '/green', '/blue', '/alpha');
@@ -543,6 +691,20 @@ begin
   begin
     for I := 0 to High(ADefaultColor) do
       Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
+  end;
+end;
+
+function TCastleConfig.GetColor(const APath: string): TCastleColorRGB;
+var
+  I: Integer;
+  Hex: string;
+begin
+  Hex := GetValue(APath + HexPath, '');
+  if Hex <> '' then
+    Result := HexToColorRGB(Hex) else
+  begin
+    for I := 0 to High(Result) do
+      Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I]), 0.0, 1.0);
   end;
 end;
 
@@ -581,6 +743,20 @@ begin
   end;
 end;
 
+function TCastleConfig.GetColor(const APath: string): TCastleColor;
+var
+  I: Integer;
+  Hex: string;
+begin
+  Hex := GetValue(APath + HexPath, '');
+  if Hex <> '' then
+    Result := HexToColor(Hex) else
+  begin
+    for I := 0 to High(Result) do
+      Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I]), 0.0, 1.0);
+  end;
+end;
+
 procedure TCastleConfig.SetColor(const APath: string;
   const AColor: TCastleColor);
 var
@@ -600,6 +776,8 @@ begin
   for I := 0 to High(AColor) do
     DeleteValue(APath + ColorComponentPaths[I]);
 end;
+
+{ others --------------------------------------------------------------------- }
 
 function TCastleConfig.PathElement(const APath: string;
   const RaiseExceptionWhenMissing: boolean): TDOMElement;
