@@ -855,7 +855,7 @@ var
 implementation
 
 uses CastleGLVersion, CastleImages, CastleLog, CastleWarnings,
-  CastleStringUtils, CastleRenderingCamera, CastleUIControls;
+  CastleStringUtils, CastleRenderingCamera, CastleApplicationProperties;
 
 var
   TemporaryAttributeChange: Cardinal = 0;
@@ -1155,6 +1155,15 @@ procedure TCastleScene.RenderScene(
 var
   ModelView: TMatrix4Single;
 
+  { Transformation of Params.RenderTransform and current RenderingCamera
+    expressed as a single combined matrix. }
+  function GetModelViewTransform: TMatrix4Single;
+  begin
+    if Params.RenderTransformIdentity then
+      Result := RenderingCamera.Matrix else
+      Result := RenderingCamera.Matrix * Params.RenderTransform;
+  end;
+
   { Renders Shape, by calling Renderer.RenderShape. }
   procedure RenderShape_NoTests(Shape: TGLShape);
   begin
@@ -1296,7 +1305,7 @@ begin
     LightRenderEvent := @LightRenderInShadow else
     LightRenderEvent := nil;
 
-  ModelView := Params.ModelViewTransform;
+  ModelView := GetModelViewTransform;
 
   {$ifndef OpenGLES}
   if not Params.RenderTransformIdentity then
@@ -1305,7 +1314,7 @@ begin
     glMultMatrix(Params.RenderTransform);
   end;
   { TODO: this should be replaced with just
-  glLoadMatrix(Params.ModelViewTransform);
+  glLoadMatrix(GetModelViewTransform);
     to just load full matrix, and be consistent with what happens on OpenGLES. }
   {$endif}
 

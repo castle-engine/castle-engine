@@ -122,11 +122,12 @@ PASDOC_INCLUDE_DIRS="\
   --include audio/\
   --include base/\
   --include base/$TARGET_OS/\
+  --include base/opengl/\
   --include fonts/
   --include fonts/$TARGET_OS/\
+  --include fonts/opengl/\
   --include images/\
-  --include opengl/\
-  --include opengl/$TARGET_OS/\
+  --include images/opengl/\
   --include window/\
   --include window/$TARGET_OS/\
   --include window/gtk/

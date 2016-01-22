@@ -29,7 +29,7 @@ type
     If you want more comfort, use @link(TGLImageManaged) or even a full-featured
     2D control @link(TCastleImageControl). }
   TGLImage = class
-  private
+  strict private
     const
       PointCount = 4;
     type
@@ -50,7 +50,6 @@ type
       {$endif}
     var
     { Static OpenGL resources, used by all TGLImage instances. }
-    StaticResourcesReady: boolean; static;
     PointVbo: TGLuint; static;
     { Point VBO contents, reused in every Draw. }
     Point: array [0..PointCount - 1] of TPoint; static;
@@ -59,7 +58,6 @@ type
     GLSLProgram: array [boolean { alpha test? }, TColorTreatment] of TGLSLProgram; static;
     {$endif}
 
-    Texture: TGLTextureId;
     FWidth: Cardinal;
     FHeight: Cardinal;
     FAlpha: TAlphaChannel;
@@ -73,12 +71,18 @@ type
     procedure AlphaBegin;
     procedure AlphaEnd;
     procedure SetSmoothScaling(const Value: boolean);
+    function CurrentFilter: TTextureFilter;
+  private
+    StaticResourcesReady: boolean; static;
+    Texture: TGLTextureId;
     { Create / destroy static stuff for rendering. }
     class procedure StaticGLContextOpen;
     class procedure StaticGLContextClose;
     procedure GLContextOpen(const AImage: TEncodedImage);
     procedure GLContextClose;
-    function CurrentFilter: TTextureFilter;
+  strict protected
+    function GetWidth: Cardinal; virtual;
+    function GetHeight: Cardinal; virtual;
   public
     { Prepare image for drawing.
 
@@ -115,7 +119,7 @@ type
         by OpenGL.)
     }
     constructor Create(const URL: string;
-      const ASmoothScaling: boolean = false);
+      const ASmoothScaling: boolean = true);
     constructor Create(const URL: string;
       const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
@@ -127,8 +131,8 @@ type
 
     destructor Destroy; override;
 
-    property Width: Cardinal read FWidth;
-    property Height: Cardinal read FHeight;
+    property Width: Cardinal read GetWidth;
+    property Height: Cardinal read GetHeight;
 
     { Rectangle representing the inside of this image.
       Always (Left,Bottom) are zero, and (Width,Height) correspond to image
@@ -193,8 +197,8 @@ type
 
       @groupBegin }
     procedure Draw; overload;
-    procedure Draw(const X, Y: Integer); overload;
-    procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer); overload;
+    procedure Draw(const X, Y: Single); overload;
+    procedure Draw(const X, Y, DrawWidth, DrawHeight: Single); overload;
     procedure Draw(const Pos: TVector2Integer); overload;
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single); overload; virtual;
@@ -282,6 +286,14 @@ type
       to new image. }
     procedure Load(const AImage: TEncodedImage); virtual;
 
+    { Prepare all the possible resources.
+      For descendants that load some stuf on demand
+      (@link(TGLImageOnDemand) and @link(TGLImageManaged))
+      this method can be used to force loading it now (if possible).
+      This is only useful if you want to avoid slowdown when loading it later,
+      and prefer to do the loading now. }
+    procedure PrepareResources; virtual;
+
     { Is the image scaling mode smooth (bilinear filtering)
       or not (nearest-pixel filtering).
       This is important if you draw the image
@@ -321,7 +333,7 @@ type
 
     The catch is that this keeps the image pixels in normal memory all the time. }
   TGLImageManaged = class(TGLImage)
-  private
+  strict private
     FImage: TEncodedImage;
     FOwnsImage: boolean;
     procedure SetImage(const AImage: TEncodedImage);
@@ -363,7 +375,7 @@ type
         by OpenGL.)
     }
     constructor Create(const URL: string;
-      const ASmoothScaling: boolean = false);
+      const ASmoothScaling: boolean = true);
     constructor Create(const URL: string;
       const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
@@ -379,7 +391,36 @@ type
     property OwnsImage: boolean read FOwnsImage write FOwnsImage;
 
     procedure Load(const AImage: TEncodedImage); override;
+    procedure PrepareResources; override;
+    procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+      const ImageX, ImageY, ImageWidth, ImageHeight: Single); override;
+  end;
 
+  { Image ready to be drawn on 2D screen, loaded on demand.
+
+    The image is loaded from disk on demand (only once needed),
+    and the OpenGL resources are also initilized on demand.
+    This is very efficient for memory usage,
+    but the catch is that even the image sizes are not known before the image
+    will be loaded (which will happen at nearest draw, or when you
+    explicitly call @link(PrepareResources)).
+
+    Like TGLImageManaged, this image instance
+    can be created and destroyed at any moment (no need to worry about
+    whether OpenGL context is created), and an instance can survive
+    OpenGL context close + open. }
+  TGLImageOnDemand = class(TGLImage)
+  strict private
+    FURL: string;
+    procedure GLContextCloseEvent(Sender: TObject);
+  strict protected
+    function GetWidth: Cardinal; override;
+    function GetHeight: Cardinal; override;
+  public
+    constructor Create(const AURL: string;
+      const ASmoothScaling: boolean = true);
+    destructor Destroy; override;
+    procedure PrepareResources; override;
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single); override;
   end;
@@ -466,10 +507,13 @@ end;
 
 procedure TGLImage.GLContextOpen(const AImage: TEncodedImage);
 begin
-  if Texture = 0 then
-    glGenTextures(1, @Texture);
-  LoadGLGeneratedTexture(Texture, AImage, CurrentFilter, Texture2DClampToEdge,
-    nil, true);
+  if AImage <> nil then
+  begin
+    if Texture = 0 then
+      glGenTextures(1, @Texture);
+    LoadGLGeneratedTexture(Texture, AImage, CurrentFilter,
+      Texture2DClampToEdge, nil, true);
+  end;
 end;
 
 procedure TGLImage.GLContextClose;
@@ -479,13 +523,23 @@ end;
 
 procedure TGLImage.Load(const AImage: TEncodedImage);
 begin
-  FWidth := AImage.Width;
-  FHeight := AImage.Height;
-  FAlpha := AImage.AlphaChannel;
+  if AImage <> nil then
+  begin
+    FWidth := AImage.Width;
+    FHeight := AImage.Height;
+    FAlpha := AImage.AlphaChannel;
+  end else
+  begin
+    FWidth := 0;
+    FHeight := 0;
+    FAlpha := acNone;
+  end;
 
   {$ifdef GLImageUseShaders}
   { calculate TextureHasOnlyAlpha, useful only for GLSL image rendering }
-  TextureHasOnlyAlpha := (AImage is TGrayscaleImage) and
+  TextureHasOnlyAlpha :=
+    (AImage <> nil) and
+    (AImage is TGrayscaleImage) and
     (TGrayscaleImage(AImage).TreatAsAlpha);
   {$endif}
 
@@ -590,14 +644,14 @@ begin
   Draw(WindowPos[0], WindowPos[1]);
 end;
 
-procedure TGLImage.Draw(const X, Y: Integer);
+procedure TGLImage.Draw(const X, Y: Single);
 begin
-  Draw(X, Y, Width, Height, 0, 0, Width, Height);
+  Draw(Round(X), Round(Y), Width, Height, 0, 0, Width, Height);
 end;
 
-procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer);
+procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Single);
 begin
-  Draw(X, Y, DrawWidth, DrawHeight, 0, 0, Width, Height);
+  Draw(Round(X), Round(Y), Round(DrawWidth), Round(DrawHeight), 0, 0, Width, Height);
 end;
 
 procedure TGLImage.Draw(const Pos: TVector2Integer);
@@ -1044,6 +1098,20 @@ begin
   Result := Rectangle(0, 0, Width, Height);
 end;
 
+procedure TGLImage.PrepareResources;
+begin
+end;
+
+function TGLImage.GetWidth: Cardinal;
+begin
+  Result := FWidth;
+end;
+
+function TGLImage.GetHeight: Cardinal;
+begin
+  Result := FHeight;
+end;
+
 { TGLImageManaged ------------------------------------------------------------ }
 
 constructor TGLImageManaged.Create(const AImage: TEncodedImage;
@@ -1117,18 +1185,98 @@ end;
 procedure TGLImageManaged.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
 begin
-  { initialize OpenGL resources on-demand }
-  if not StaticResourcesReady then
-    StaticGLContextOpen;
-  if Texture = 0 then
-    GLContextOpen(FImage);
-
+  // we load on demand, so do PrepareResources always
+  PrepareResources;
+  // PrepareResources, done while GL context is active, must make it true
+  Assert(Texture <> 0);
   inherited;
+end;
+
+procedure TGLImageManaged.PrepareResources;
+begin
+  inherited;
+
+  if ApplicationProperties.IsGLContextOpen then
+  begin
+    { initialize OpenGL resources on-demand }
+    if not StaticResourcesReady then
+      StaticGLContextOpen;
+    if Texture = 0 then
+      GLContextOpen(FImage);
+  end;
 end;
 
 procedure TGLImageManaged.GLContextCloseEvent(Sender: TObject);
 begin
   GLContextClose;
+end;
+
+{ TGLImageOnDemand ------------------------------------------------------------ }
+
+constructor TGLImageOnDemand.Create(const AURL: string;
+  const ASmoothScaling: boolean);
+begin
+  inherited Create(nil, ASmoothScaling);
+  FURL := AURL;
+  ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
+end;
+
+destructor TGLImageOnDemand.Destroy;
+begin
+  if ApplicationProperties <> nil then
+    ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextCloseEvent);
+  inherited;
+end;
+
+procedure TGLImageOnDemand.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+  const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+begin
+  // we load on demand, so do PrepareResources always
+  PrepareResources;
+  // PrepareResources, done while GL context is active, must make it true
+  Assert(Texture <> 0);
+  inherited;
+end;
+
+procedure TGLImageOnDemand.PrepareResources;
+var
+  Image: TEncodedImage;
+begin
+  inherited;
+
+  if ApplicationProperties.IsGLContextOpen then
+  begin
+    { initialize OpenGL resources on-demand }
+    if not StaticResourcesReady then
+      StaticGLContextOpen;
+
+    if Texture = 0 then
+    begin
+      Image := LoadEncodedImage(FURL, PixelsImageClasses);
+      try
+        inherited Load(Image);
+      finally FreeAndNil(Image) end;
+    end;
+  end;
+end;
+
+procedure TGLImageOnDemand.GLContextCloseEvent(Sender: TObject);
+begin
+  GLContextClose;
+end;
+
+function TGLImageOnDemand.GetWidth: Cardinal;
+begin
+  // load on demand, to know current size
+  PrepareResources;
+  Result := inherited GetWidth;
+end;
+
+function TGLImageOnDemand.GetHeight: Cardinal;
+begin
+  // load on demand, to know current size
+  PrepareResources;
+  Result := inherited GetHeight;
 end;
 
 { global --------------------------------------------------------------------- }

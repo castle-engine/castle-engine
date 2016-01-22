@@ -47,9 +47,9 @@ type
         Simply declare your Android project type as "integrated".
         https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine .)
 
-      @item(In your main Android library lpr file, you need to export the JNI function
-        @link(Java_net_sourceforge_castleengine_MainActivity_jniMessage) defined
-        in this unit.
+      @item(In your main Android library lpr file, you need to export
+        the JNI function @code(Java_net_sourceforge_castleengine_MainActivity_jniMessage)
+        defined in this unit.
         So change your xxx_android.lpr file from
 
 @longCode(#
@@ -117,7 +117,7 @@ function Messaging: TMessaging;
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleLog, CastleWarnings, CastleUIControls;
+  CastleUtils, CastleLog, CastleWarnings, CastleApplicationProperties;
 
 var
   JavaCommunicationCS: TCriticalSection;

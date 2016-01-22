@@ -2840,6 +2840,8 @@ initialization
 
   FunctionHandlers.RegisterHandler(@TCasScriptString(nil).HandleWriteln, TCasScriptWriteln, [TCasScriptString], false);
   FunctionHandlers.RegisterHandler(@TCasScriptString(nil).HandleCharacterFromCode, TCasScriptCharacterFromCode, [TCasScriptInteger], false);
+
+  FunctionHandlers.RegisterHandler(@TCasScriptShortcut(nil).Handle, TCasScriptShortcut, [TCasScriptString], false);
 finalization
   FreeAndNil(FunctionHandlers);
 end.

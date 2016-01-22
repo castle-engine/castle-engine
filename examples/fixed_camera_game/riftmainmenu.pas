@@ -38,6 +38,7 @@ uses SysUtils, CastleWindow, CastleFilesUtils,
   CastleGLUtils, CastleMessages, CastleOnScreenMenu, CastleWindowModes, CastleUtils,
   CastleVectors, CastleSoundMenu, Classes, CastleStringUtils, CastleControls,
   CastleGLImages, CastleUIControls, CastleColors, CastleSoundEngine,
+  CastleApplicationProperties,
   RiftData, RiftSound, RiftVideoOptions, RiftInspectCreatures, RiftPlay,
   RiftLocations, RiftGame, CastleKeysMouse, CastleRectangles;
 
@@ -321,6 +322,6 @@ begin
 end;
 
 initialization
-  OnGLContextOpen.Add(@ContextOpen);
-  OnGLContextClose.Add(@ContextClose);
+  ApplicationProperties.OnGLContextOpen.Add(@ContextOpen);
+  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
 end.

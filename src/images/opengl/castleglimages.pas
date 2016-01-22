@@ -117,7 +117,6 @@ procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGL
 {$define read_interface}
 {$I castleglimages_filter.inc}
 {$I castleglimages_wrap.inc}
-{$I castleglimages_mipmaps.inc}
 {$I castleglimages_tglimage.inc}
 {$I castleglimages_load_2d.inc}
 {$I castleglimages_load_3d.inc}
@@ -127,12 +126,13 @@ procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGL
 {$I castleglimages_texturememoryprofiler.inc}
 {$I castleglimages_video.inc}
 {$I castleglimages_sprite.inc}
+{$I castleglimages_packing.inc}
 {$undef read_interface}
 
 implementation
 
 uses CastleUtils, CastleLog, CastleGLVersion, CastleWarnings, CastleTextureImages,
-  CastleUIControls, CastleStringUtils;
+  CastleApplicationProperties, CastleStringUtils;
 
 function ImageGLFormat(const Img: TCastleImage): TGLenum;
 begin
@@ -272,7 +272,6 @@ end;
 {$define read_implementation}
 {$I castleglimages_filter.inc}
 {$I castleglimages_wrap.inc}
-{$I castleglimages_mipmaps.inc}
 {$I castleglimages_tglimage.inc}
 {$I castleglimages_load_2d.inc}
 {$I castleglimages_load_3d.inc}
@@ -282,6 +281,7 @@ end;
 {$I castleglimages_texturememoryprofiler.inc}
 {$I castleglimages_video.inc}
 {$I castleglimages_sprite.inc}
+{$I castleglimages_packing.inc}
 {$undef read_implementation}
 
 { initialization / finalization ---------------------------------------------- }

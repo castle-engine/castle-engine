@@ -685,7 +685,7 @@ type
     function GetColorBits: Cardinal;
     procedure SetColorBits(const Value: Cardinal);
     procedure SetAntiAliasing(const Value: TAntiAliasing);
-    procedure SetAutoRedisplay(value: boolean);
+    procedure SetAutoRedisplay(const Value: boolean);
     function GetPublicCaption: string;
     procedure SetPublicCaption(const Value: string);
     procedure SetCaption(const Part: TCaptionPart; const Value: string);
@@ -1722,16 +1722,19 @@ end;
       Note: this is currently supported only by CASTLE_WINDOW_LCL backend. }
     property OnDropFiles: TDropFilesFunc read FOnDropFiles write FOnDropFiles;
 
-    { Should we automatically redraw the window constantly the time,
-      without a need for @link(Invalidate) call.
+    { Should we automatically redraw the window all the time,
+      without the need for an @link(Invalidate) call.
+      If @true (the default), EventRender (OnRender) will called constantly.
 
-      If @true, window will behave like a redraw is always needed,
-      and EventRender (OnRender) will called constantly.
-      This may be a waste of resources (CPU etc.), so if you want
-      to be nicer for resources (and your program may does not change it's display
-      for many frames), you can set it to @false, and manually call
-      @link(Invalidate) when you need to redraw the screen. }
-    property AutoRedisplay: boolean read fAutoRedisplay write SetAutoRedisplay
+      If your game may have a still screen (nothing animates),
+      then this approach is a little unoptimal, as we use CPU and GPU
+      for drawing, when it's not needed. In such case, you can set this
+      property to @false, and make sure that you call
+      @link(Invalidate) always when you need to redraw the screen.
+      Note that the engine components always call @link(Invalidate) when
+      necessary, so usually you should only call it yourself if you provide
+      a custom @link(OnRender) implementation. }
+    property AutoRedisplay: boolean read FAutoRedisplay write SetAutoRedisplay
       default true;
 
     { -------------------------------------------------------------------------
@@ -2810,7 +2813,7 @@ function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModif
 implementation
 
 uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils, CastleWarnings,
-  CastleControls,
+  CastleControls, CastleApplicationProperties,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
@@ -3158,9 +3161,9 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.SetAutoRedisplay(value: boolean);
+procedure TCastleWindowCustom.SetAutoRedisplay(const Value: boolean);
 begin
-  fAutoRedisplay := value;
+  FAutoRedisplay := value;
   if Value then Invalidate;
 end;
 

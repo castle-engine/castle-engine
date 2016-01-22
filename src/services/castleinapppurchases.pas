@@ -119,7 +119,8 @@ type
 implementation
 
 uses SysUtils,
-  CastleMessaging, CastleUtils, CastleLog, CastleUnicode, CastleUIControls;
+  CastleMessaging, CastleUtils, CastleLog, CastleUnicode,
+  CastleApplicationProperties;
 
 { Convert many UTF-8 special characters to their ASCII counterparts.
   This is useful for converting arbitrary UTF-8 strings for display,

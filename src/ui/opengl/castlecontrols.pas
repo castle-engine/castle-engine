@@ -778,7 +778,7 @@ type
     property VerticalAnchorParent default vpMiddle;
   end;
 
-  TCastleProgressBar = class(TUIControl)
+  TCastleProgressBar = class(TUIControlFont)
   private
     { Background image. }
     FBackground: TCastleImage;
@@ -1064,7 +1064,8 @@ procedure Register;
 implementation
 
 uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
-  CastleTextureFont_DejaVuSans_10, CastleGLUtils;
+  CastleTextureFont_DejaVuSans_10, CastleGLUtils,
+  CastleApplicationProperties;
 
 procedure Register;
 begin
@@ -3019,12 +3020,13 @@ end;
 
 procedure TCastleProgressBar.Render;
 const
-  Padding = 20;
+  PaddingHorizontal = 20;
+  MinPaddingVertical = 4;
 var
   MaxTextWidth: Integer;
-  Font: TCastleFont;
   Caption: string;
   BarRect, FillRect: TRectangle;
+  HeightForText: Single;
 begin
   inherited;
 
@@ -3041,22 +3043,18 @@ begin
   Theme.GLImages[tiProgressFill].IgnoreTooLargeCorners := true;
   Theme.Draw(FillRect, tiProgressFill, UIScale);
 
-  MaxTextWidth := BarRect.Width - Padding;
+  MaxTextWidth := BarRect.Width - PaddingHorizontal;
   Caption := Progress.Title;
-  if (UIFont.RowHeight < BarRect.Height) and
-     (UIFont.TextWidth(Caption) < MaxTextWidth) then
-  begin
-    Font := UIFont;
-    if UIFont.TextWidth(Caption + Dots) < MaxTextWidth then
-      Caption += Dots;
-  end else
-  begin
-    Font := UIFontSmall;
-    MakeTextFit(Caption, Font, MaxTextWidth);
-  end;
-  Font.Print(BarRect.Left + Padding,
+
+  Font.PushProperties;
+  HeightForText := BarRect.Height - 2 * MinPaddingVertical;
+  if Font.RowHeight > HeightForText then
+    Font.Scale := Font.Scale / (Font.RowHeight / HeightForText);
+  MakeTextFit(Caption, Font, MaxTextWidth);
+  Font.Print(BarRect.Left + PaddingHorizontal,
     BarRect.Bottom + (BarRect.Height - Font.RowHeight) div 2,
     Theme.TextColor, Caption);
+  Font.PopProperties;
 end;
 
 constructor TCastleProgressBar.Create(AOwner: TComponent);

@@ -381,7 +381,8 @@ implementation
 
 uses SysUtils,
   CastleProgress, CastleXMLUtils, CastleUtils,
-  CastleStringUtils, CastleLog, CastleConfig, CastleUIControls, CastleFilesUtils;
+  CastleStringUtils, CastleLog, CastleConfig, CastleApplicationProperties,
+  CastleFilesUtils;
 
 type
   TResourceClasses = specialize TFPGMap<string, T3DResourceClass>;

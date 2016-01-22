@@ -96,6 +96,30 @@ begin
 end;
 
 procedure CleanFiles(const Pattern: string);
+
+  function SizeToStr(const Size: Int64): string;
+  begin
+    { powers of 1000, not 1024.
+      https://en.wikipedia.org/wiki/Gigabyte
+      https://en.wikipedia.org/wiki/Gibibyte
+      http://www.computerhope.com/unix/udu.htm
+      https://blogs.gnome.org/cneumair/2008/09/30/1-kb-1024-bytes-no-1-kb-1000-bytes/
+    }
+    if Size > 1000 * 1000 * 1000 then
+      Result := Format('%d.%.2d GB',
+        [ Size div (1000 * 1000 * 1000),
+         (Size div (  10 * 1000 * 1000)) mod 100]) else
+    if Size > 1000 * 1000 then
+      Result := Format('%d.%.2d MB',
+        [ Size div (1000 * 1000),
+         (Size div (  10 * 1000)) mod 100]) else
+    if Size > 1000 then
+      Result := Format('%d.%.2d KB',
+        [ Size div (1000),
+         (Size div (  10)) mod 100]) else
+      Result := Format('%d B', [Size]);
+  end;
+
 begin
   FilesCount := 0;
   FilesSize := 0;
@@ -104,7 +128,7 @@ begin
 
   if FilesCount <> 0 then
     Writeln(FilesCount, ' files matching ',Pattern,
-      ' (total size: ',FilesSize, ')');
+      ' (total size: ', SizeToStr(FilesSize), ')');
 end;
 
 var DirsCount: Cardinal = 0;
@@ -131,7 +155,7 @@ begin
   FindFiles(StartPath, Pattern, true, @CleanDirs_FileProc, nil, MaybeRecursive);
 
   if DirsCount <> 0 then
-    Writeln(DirsCount, ' dirs matching ',Pattern);
+    Writeln(DirsCount, ' dirs matching ', Pattern);
 end;
 
 procedure DefaultFilesToCleanInit;

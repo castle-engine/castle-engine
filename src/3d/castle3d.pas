@@ -195,10 +195,6 @@ type
 
     { Lights that shine on given 3D object. }
     function BaseLights(Scene: T3D): TAbstractLightInstancesList; virtual; abstract;
-
-    { Transformation of RenderTransform and current RenderingCamera
-      expressed at single matrix. }
-    function ModelViewTransform: TMatrix4Single;
   end;
 
   TRemoveType = (rtNone, rtRemove, rtRemoveAndFree);
@@ -1888,7 +1884,7 @@ var
 
 implementation
 
-uses CastleWarnings, CastleRenderingCamera;
+uses CastleWarnings;
 
 { TRayCollision --------------------------------------------------------------- }
 
@@ -1906,13 +1902,6 @@ begin
   inherited;
   RenderTransform := IdentityMatrix4Single;
   RenderTransformIdentity := true;
-end;
-
-function TRenderParams.ModelViewTransform: TMatrix4Single;
-begin
-  if RenderTransformIdentity then
-    Result := RenderingCamera.Matrix else
-    Result := RenderingCamera.Matrix * RenderTransform;
 end;
 
 { T3D -------------------------------------------------------------------- }

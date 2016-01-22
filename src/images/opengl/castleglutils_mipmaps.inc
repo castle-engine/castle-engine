@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Part of CastleGLImages unit: mipmaps utils. }
+{ Part of CastleGLUtils unit: mipmaps utils. }
 
 {$ifdef read_interface}
 

@@ -587,7 +587,7 @@ var
 implementation
 
 uses SysUtils, CastleGL, CastleFilesUtils, CastlePlayer, CastleGameNotifications,
-  CastleConfig, CastleCreatures;
+  CastleConfig, CastleCreatures, CastleGLBoxes;
 
 { TItemResource ------------------------------------------------------------ }
 
@@ -1132,8 +1132,10 @@ begin
         glDisable(GL_LIGHTING);
         glEnable(GL_DEPTH_TEST);
         glColorv(Gray);
+        {$warnings off} { this is already marked with TODO above }
         glDrawBox3DWire(BoundingBox);
         glDrawBox3DWire(BoxRotated);
+        {$warnings on}
         glColorv(Yellow);
         glDrawAxisWire(Middle, BoxRotated.AverageSize(true, 0));
       glPopAttrib;

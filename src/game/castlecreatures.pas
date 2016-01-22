@@ -950,7 +950,7 @@ var
 implementation
 
 uses SysUtils, DOM, CastleGL, CastleFilesUtils, CastleGLUtils,
-  CastleProgress, CastleGameNotifications, CastleUIControls;
+  CastleProgress, CastleGameNotifications, CastleUIControls, CastleGLBoxes;
 
 var
   DisableCreatures: Cardinal;
@@ -1400,7 +1400,9 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
     R: Single;
   begin
     glColorv(Gray);
+    {$warnings off} { this is already marked with TODO above }
     glDrawBox3DWire(BoundingBox);
+    {$warnings on}
 
     if Sphere(R) then
     begin

@@ -320,7 +320,17 @@ type
     class function ShortName: string; override;
   end;
 
+  { CastleScript function @code(shortcut),
+    see [http://castle-engine.sourceforge.net/castle_script.php#function_shortcut]. }
+  TCasScriptShortcut = class(TCasScriptFunction)
+  public
+    class function ShortName: string; override;
+    class procedure Handle(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  end;
+
 implementation
+
+uses SysUtils, CastleInputs;
 
 class function TCasScriptAdd.Name: string;
 begin
@@ -815,6 +825,30 @@ end;
 class function TCasScriptLerp.ShortName: string;
 begin
   Result := 'lerp';
+end;
+
+{ TCasScriptShortcut --------------------------------------------------------- }
+
+class function TCasScriptShortcut.ShortName: string;
+begin
+  Result := 'shortcut';
+end;
+
+class procedure TCasScriptShortcut.Handle(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  N: string;
+  I: TInputShortcut;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptString);
+  N := TCasScriptString(Arguments[0]).Value;
+  if InputsAll <> nil then
+  begin
+    I := InputsAll.FindName(N);
+    if I <> nil then
+      TCasScriptString(AResult).Value := I.Description else
+      TCasScriptString(AResult).Value := Format('(shortcut name "%s" undefined)', [N]);
+  end else
+    TCasScriptString(AResult).Value := 'input names not available (finalization of CastleInputs unit is already done)';
 end;
 
 end.

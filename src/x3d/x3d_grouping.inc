@@ -271,7 +271,7 @@
 
   TTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
   private
-    WarningNegativeScaleDone: boolean;
+    //WarningNegativeScaleDone: boolean;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
@@ -869,6 +869,8 @@ begin
   inherited;
   TransformState(State, Fdcenter.Value, Fdrotation.Value,
     Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
+  
+  {
   if ((Fdscale.Value[0] < 0) or
       (Fdscale.Value[1] < 0) or
       (Fdscale.Value[2] < 0)) and not WarningNegativeScaleDone then
@@ -876,6 +878,7 @@ begin
     WarningNegativeScaleDone := true;
     WritelnLog('VRML/X3D', 'Note: Transform.scale has negative component. It allows some tricks (especially sensible for unlit 2D stuff), but it makes lighting act weird. Make sure you use it only for unlit objects.');
   end;
+  }
 end;
 
 procedure RegisterGroupingNodes;

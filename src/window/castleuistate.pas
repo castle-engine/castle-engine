@@ -18,13 +18,6 @@ unit CastleUIState;
 
 {$I castleconf.inc}
 
-{ When defined, the non-OpenGL image data is kept loaded in memory.
-  This uses more RAM, but allows faster GLContextOpen/Close on the state,
-  as images do not need to be loaded from disk again. }
-{ $define KEEP_LOADED_DATA_IMAGES}
-{$ifdef ANDROID} {$undef KEEP_LOADED_DATA_IMAGES} {$endif}
-{$ifdef iOS} {$undef KEEP_LOADED_DATA_IMAGES} {$endif}
-
 interface
 
 uses Classes, FGL,
@@ -33,8 +26,6 @@ uses Classes, FGL,
 
 type
   TUIStateList = class;
-
-  TDataImageId = Integer;
 
   { UI state, a useful singleton to manage the state of your game UI.
 
@@ -95,16 +86,6 @@ type
     override in your state descendants to capture various events. }
   TUIState = class(TUIControl)
   private
-  type
-    TDataImage = class
-      URL: string;
-      Image: TEncodedImage;
-      GLImage: TGLImage;
-      destructor Destroy; override;
-    end;
-    TDataImageList = specialize TFPGObjectList<TDataImage>;
-  var
-    FDataImages: TDataImageList;
     FStartContainer: TUIContainer;
     procedure InternalStart;
     procedure InternalFinish;
@@ -114,15 +95,6 @@ type
     class procedure SetCurrent(const Value: TUIState); static;
     class function GetStateStack(const Index: Integer): TUIState; static;
   protected
-    { Adds image to the list of automatically loaded images for this state.
-      Path is automatically wrapped in ApplicationData(Path) to get URL.
-      The OpenGL image resource (TGLImage) is loaded when GL context
-      is active, available under DataGLImage(Id).
-      Where Id is the return value of this method. }
-    function AddDataImage(const Path: string): TDataImageId;
-    function DataGLImage(const Id: TDataImageId): TGLImage;
-    function DataImageRect(const Id: TDataImageId; const Scale: Single): TRectangle;
-
     { Container on which state works. By default, this is Application.MainWindow.
       When the state is current, then @link(Container) property (from
       ancestor, see TUIControl.Container) is equal to this. }
@@ -170,8 +142,6 @@ type
     procedure Finish; virtual;
 
     function Rect: TRectangle; override;
-    procedure GLContextOpen; override;
-    procedure GLContextClose; override;
   end;
 
   TUIStateList = class(specialize TFPGObjectList<TUIState>);
@@ -181,15 +151,6 @@ implementation
 uses SysUtils,
   CastleWindow, CastleWarnings, CastleFilesUtils, CastleUtils,
   CastleTimeUtils, CastleLog;
-
-{ TUIState.TDataImage ---------------------------------------------------------- }
-
-destructor TUIState.TDataImage.Destroy;
-begin
-  FreeAndNil(Image);
-  FreeAndNil(GLImage);
-  inherited;
-end;
 
 { TUIState --------------------------------------------------------------------- }
 
@@ -267,7 +228,7 @@ end;
 procedure TUIState.InternalStart;
 begin
   Start;
-  { actually insert, this will also call GLContextOpen  and Resize.
+  { actually insert, this will also call GLContextOpen and Resize.
     However, check first that we're still the current state,
     to safeguard from the fact that Start changed state
     (like the loading state, that changes to play state immediately in start). }
@@ -294,7 +255,6 @@ end;
 constructor TUIState.Create(AOwner: TComponent);
 begin
   inherited;
-  FDataImages := TDataImageList.Create;
 end;
 
 destructor TUIState.Destroy;
@@ -311,7 +271,6 @@ begin
       FreeAndNil(FStateStack);
   end;
 
-  FreeAndNil(FDataImages);
   inherited;
 end;
 
@@ -325,100 +284,11 @@ begin
   FStartContainer := nil;
 end;
 
-const
-  { Shift data image id from 0, to avoid accidentally using uninitialized zero
-    value to get the information for 1st image. This way passing 0 to DataGLImage
-    or DataImageRect will always fail. }
-  ShiftDataImageId = 10;
-
-function TUIState.AddDataImage(const Path: string): TDataImageId;
-var
-  DI: TDataImage;
-begin
-  DI := TDataImage.Create;
-  DI.URL := ApplicationData(Path);
-  {$ifdef KEEP_LOADED_DATA_IMAGES}
-  DI.Image := LoadEncodedImage(DI.URL, []);
-  {$endif}
-  if GLInitialized then
-  begin
-    {$ifndef KEEP_LOADED_DATA_IMAGES}
-    DI.Image := LoadEncodedImage(DI.URL, []);
-    {$endif}
-    DI.GLImage := TGLImage.Create(DI.Image, true);
-    {$ifndef KEEP_LOADED_DATA_IMAGES}
-    FreeAndNil(DI.Image);
-    {$endif}
-  end;
-
-  Result := FDataImages.Add(DI) + ShiftDataImageId;
-end;
-
-{ Do not make this public, to make outside code work
-  regardless of KEEP_LOADED_DATA_IMAGES defined.
-function TUIState.DataImage(const Index: TDataImageId): TCastleImage;
-begin
-  Result := FDataImages[Index - ShiftDataImageId].Image;
-end;
-}
-
-function TUIState.DataGLImage(const Id: TDataImageId): TGLImage;
-begin
-  Result := FDataImages[Id - ShiftDataImageId].GLImage;
-end;
-
-function TUIState.DataImageRect(const Id: TDataImageId; const Scale: Single): TRectangle;
-begin
-  Result := FDataImages[Id - ShiftDataImageId].GLImage.Rect;
-  Result.Width := Round(Result.Width * Scale);
-  Result.Height := Round(Result.Height * Scale);
-end;
-
 function TUIState.Rect: TRectangle;
 begin
   { 1. always capture events on whole container
     2. make child controls (anchored to us) behave like anchored to whole window. }
   Result := ParentRect;
-end;
-
-procedure TUIState.GLContextOpen;
-var
-  I: Integer;
-  DI: TDataImage;
-  StartTime: TProcessTimerResult;
-begin
-  inherited;
-  if FDataImages.Count <> 0 then
-  begin
-    StartTime := ProcessTimerNow;
-    for I := 0 to FDataImages.Count - 1 do
-    begin
-      DI := FDataImages[I];
-      if DI.GLImage = nil then
-      begin
-        {$ifndef KEEP_LOADED_DATA_IMAGES}
-        DI.Image := LoadEncodedImage(DI.URL, []);
-        {$endif}
-        DI.GLImage := TGLImage.Create(DI.Image, true);
-        {$ifndef KEEP_LOADED_DATA_IMAGES}
-        FreeAndNil(DI.Image);
-        {$endif}
-      end;
-    end;
-    WritelnLog('Loading', Format('Loading time of %d data images for state %s: %f',
-      [FDataImages.Count, ClassName,
-       ProcessTimerSeconds(ProcessTimerNow, StartTime)]));
-  end;
-end;
-
-procedure TUIState.GLContextClose;
-var
-  I: Integer;
-begin
-  if FDataImages <> nil then
-    for I := 0 to FDataImages.Count - 1 do
-      FreeAndNil(FDataImages[I].GLImage);
-  inherited;
 end;
 
 end.

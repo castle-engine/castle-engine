@@ -119,7 +119,7 @@ const
 var
   I: Integer;
 begin
-  Progress.Init(TestProgressSteps, 'Please wait...');
+  Progress.Init(TestProgressSteps, 'Please wait');
   try
     for I := 1 to TestProgressSteps do
     begin

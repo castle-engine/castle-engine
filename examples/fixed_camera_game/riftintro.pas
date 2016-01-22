@@ -36,7 +36,7 @@ implementation
 uses SysUtils, CastleGL, CastleWindow, CastleFilesUtils,
   CastleGLUtils, RiftData, CastleWindowModes, DOM, CastleImages, CastleSoundEngine,
   CastleGLImages, CastleUIControls, CastleStringUtils, RiftSound, RiftVideoOptions,
-  CastleKeysMouse, CastleColors;
+  CastleKeysMouse, CastleColors, CastleApplicationProperties;
 
 { $define DEBUG_INTRO_FAST}
 
@@ -211,8 +211,8 @@ begin
 end;
 
 initialization
-  OnGLContextOpen.Add(@ContextOpen);
-  OnGLContextClose.Add(@ContextClose);
+  ApplicationProperties.OnGLContextOpen.Add(@ContextOpen);
+  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
 finalization
   { ContextClose will be done anyway at GL context close,
     but it may be after finalization of this unit, when IntroParts is

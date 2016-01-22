@@ -106,7 +106,7 @@ var
     if Skins.Count = 1 then
     begin
       Assert(CurrentSkin = Skins[0]);
-      WritelnLog('Spine', BaseUrl + ' available skins: 1 (' + CurrentSkin.Name + ').');
+      //WritelnLog('Spine', BaseUrl + ' available skins: 1 (' + CurrentSkin.Name + ').');
     end else
     begin
       S := Format(BaseUrl + ' available skins: %d', [Skins.Count]) + NL;
