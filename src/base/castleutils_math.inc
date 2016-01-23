@@ -461,7 +461,7 @@ function Between(const a, vBegin, vEnd: Char): boolean;     begin Result := (vBe
 
 function RoundClamp255(const A: Single): Byte;
 var
-  I: Integer;
+  I: Int64;
 begin
   I := Round(A);
   if I < Low(Byte) then
