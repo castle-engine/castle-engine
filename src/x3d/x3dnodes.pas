@@ -5275,7 +5275,7 @@ begin
       DestinationEvent.Send(Value, Time);
   end else
   if Log then
-    WritelnLog('VRMLRoute', Format(
+    WritelnLog('VRML/X3D', Format(
       'Route from %s.%s ignored another event at <= timestamp (%f, while last event was on %f). Potential routes loop avoided',
       [ SourceNode.NodeName, SourceEvent.Name,
         Time.Seconds, LastEventTime.Seconds ]));
