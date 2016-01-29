@@ -555,17 +555,29 @@ type
   );
 
 { Draw a rectangle that modulates colors underneath,
-  suddenly changing it to FadeColor and then fading to blackness and
-  then fading back to normal, as FadeIntensity goes down from 1.0 to 0.0.
-  This is nice to use for a screen effect when player is hurt.
+  making nice animation to FadeColor while FadeIntensity changes from 1.0
+  down to 0.0.
+
+  The GLFadeRectangleLight version makes a flash to FadeColor,
+  then goes back to normal.
+  The GLFadeRectangle version makes additional flash to blackness
+  in the middle (so it goes from no modulation, to FadeColor,
+  to pure black, and then back to normal).
+  So it's a little more impressive when you're flashing with a dark color.
+
+  These are nice as a screen effect, to flash some color (e.g. flash
+  red color when the player is hurt).
 
   Only RGB portion of FadeColor is used. }
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
   const FadeColor: TVector3Single;
-  const FadeIntensity: Single); deprecated;
+  const FadeIntensity: Single); deprecated 'use TFlashEffect';
 procedure GLFadeRectangle(const Rect: TRectangle;
   const FadeColor: TCastleColor;
-  const FadeIntensity: Single);
+  const FadeIntensity: Single); deprecated 'use TFlashEffect';
+procedure GLFadeRectangleLight(const Rect: TRectangle;
+  const FadeColor: TCastleColor;
+  const FadeIntensity: Single); deprecated 'use TFlashEffect';
 
 { Draw a rectangle with blending.
   @deprecated Deprecated, use DrawRectangle instead. }
@@ -1367,8 +1379,10 @@ end;
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
   const FadeColor: TVector3Single; const FadeIntensity: Single);
 begin
+  {$warnings off}
   GLFadeRectangle(Rectangle(X1, Y1, X2 - X1, Y2 - Y1),
     Vector4Single(FadeColor, 1.0), FadeIntensity);
+  {$warnings on}
 end;
 
 procedure GLFadeRectangle(const Rect: TRectangle;
@@ -1379,7 +1393,7 @@ const
   { We assume that MinScale is small enough that difference between
     "FadeColor * MinScale * screen color" and
     "MinScale * screen color" is not noticeable. }
-  MinScale = 0.5;
+  MinScale = 0.1;
   { Constants below make resulting screen color = glColor * previous screen color.
     Note that as long as all components of FadeColor are <= 1,
     then all components of our glColor are also always <= 1,
@@ -1393,21 +1407,44 @@ begin
   if FadeIntensity > 0 then
   begin
     { for FadeIntensity in 1...FullWhiteEnd (going down):
-      screen color := FadeColor * screen color }
+      screen color := FadeColor * original screen color }
     if FadeIntensity > FullWhiteEnd then
       Color := FadeColor else
     { for FadeIntensity in FullWhiteEnd...FullBlack (going down):
-      screen color := FadeColor * screen color ...
-        FadeColor * MinScale * screen color }
+      final screen color changes:
+      - from screen color := FadeColor * original screen color
+      - to   screen color := FadeColor * MinScale * original screen color }
     if FadeIntensity > FullBlack then
       Color := FadeColor * MapRange(FadeIntensity, FullWhiteEnd, FullBlack, 1, MinScale) else
     { for FadeIntensity in FullBlack...0 (going down):
-      screen color := MinScale * screen color ...
-        unchanged screen color }
+      final screen color changes:
+      - from screen color := MinScale * original screen color
+      - to   screen color := original screen color }
       Color := White * MapRange(FadeIntensity, FullBlack, 0, MinScale, 1);
 
     Color[3] := 1.0; { alpha always 1.0 in this case }
     DrawRectangle(Rect, Color, SourceFactor, DestinationFactor, true);
+  end;
+end;
+
+procedure GLFadeRectangleLight(const Rect: TRectangle;
+  const FadeColor: TCastleColor; const FadeIntensity: Single);
+const
+  FullTime = 0.9;
+  SourceFactor = bsZero;
+  DestinationFactor = bdSrcColor;
+var
+  Color: TCastleColor;
+  Intensity: Single;
+begin
+  if FadeIntensity > 0 then
+  begin
+    if FadeIntensity < FullTime then
+      Intensity := MapRange(FadeIntensity, 0, FullTime, 0, 1) else
+      Intensity := MapRange(FadeIntensity, FullTime, 1, 1, 0);
+    Color := FadeColor;
+    Color[3] := Intensity; { alpha always 1.0 in this case }
+    DrawRectangle(Rect, Color, bsSrcAlpha, bdOneMinusSrcAlpha, true);
   end;
 end;
 
