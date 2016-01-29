@@ -201,16 +201,16 @@ type
 
 @longCode(#
 Color := GetColor('example/path/to/myColor', Black);
-ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
+ColorRGB := GetColorRGB('example/path/to/myColorRGB', BlackRGB);
 #)
 
       @groupBegin }
-    function GetColor(const APath: string;
+    function GetColorRGB(const APath: string;
       const ADefaultColor: TCastleColorRGB): TCastleColorRGB; overload;
-    function GetColor(const APath: string): TCastleColorRGB; overload;
-    procedure SetColor(const APath: string;
+    function GetColorRGB(const APath: string): TCastleColorRGB; overload;
+    procedure SetColorRGB(const APath: string;
       const AColor: TCastleColorRGB); overload;
-    procedure SetDeleteColor(const APath: string;
+    procedure SetDeleteColorRGB(const APath: string;
       const AColor, ADefaultColor: TCastleColorRGB); overload;
 
     function GetColor(const APath: string;
@@ -679,7 +679,7 @@ const
   ('/red', '/green', '/blue', '/alpha');
   HexPath = '/hex';
 
-function TCastleConfig.GetColor(const APath: string;
+function TCastleConfig.GetColorRGB(const APath: string;
   const ADefaultColor: TCastleColorRGB): TCastleColorRGB;
 var
   I: Integer;
@@ -689,12 +689,17 @@ begin
   if Hex <> '' then
     Result := HexToColorRGB(Hex) else
   begin
-    for I := 0 to High(ADefaultColor) do
-      Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
+    Hex := GetValue(APath + HexPath, '');
+    if Hex <> '' then
+      Result := HexToColorRGB(Hex) else
+    begin
+      for I := 0 to High(ADefaultColor) do
+        Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
+    end;
   end;
 end;
 
-function TCastleConfig.GetColor(const APath: string): TCastleColorRGB;
+function TCastleConfig.GetColorRGB(const APath: string): TCastleColorRGB;
 var
   I: Integer;
   Hex: string;
@@ -703,12 +708,17 @@ begin
   if Hex <> '' then
     Result := HexToColorRGB(Hex) else
   begin
-    for I := 0 to High(Result) do
-      Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I]), 0.0, 1.0);
+    Hex := GetValue(APath, '');
+    if Hex <> '' then
+      Result := HexToColorRGB(Hex) else
+    begin
+      for I := 0 to High(Result) do
+        Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I]), 0.0, 1.0);
+    end;
   end;
 end;
 
-procedure TCastleConfig.SetColor(const APath: string;
+procedure TCastleConfig.SetColorRGB(const APath: string;
   const AColor: TCastleColorRGB);
 var
   I: Integer;
@@ -718,7 +728,7 @@ begin
     DeleteValue(APath + ColorComponentPaths[I]);
 end;
 
-procedure TCastleConfig.SetDeleteColor(const APath: string;
+procedure TCastleConfig.SetDeleteColorRGB(const APath: string;
   const AColor, ADefaultColor: TCastleColorRGB);
 var
   I: Integer;
@@ -738,8 +748,13 @@ begin
   if Hex <> '' then
     Result := HexToColor(Hex) else
   begin
-    for I := 0 to High(ADefaultColor) do
-      Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
+    Hex := GetValue(APath, '');
+    if Hex <> '' then
+      Result := HexToColor(Hex) else
+    begin
+      for I := 0 to High(ADefaultColor) do
+        Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
+    end;
   end;
 end;
 
@@ -752,8 +767,13 @@ begin
   if Hex <> '' then
     Result := HexToColor(Hex) else
   begin
-    for I := 0 to High(Result) do
-      Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I]), 0.0, 1.0);
+    Hex := GetValue(APath, '');
+    if Hex <> '' then
+      Result := HexToColor(Hex) else
+    begin
+      for I := 0 to High(Result) do
+        Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I]), 0.0, 1.0);
+    end;
   end;
 end;
 
