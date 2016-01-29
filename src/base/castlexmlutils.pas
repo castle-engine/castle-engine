@@ -174,6 +174,12 @@ type
       @raises EDOMAttributeMissing }
     function AttributeBoolean(const AttrName: string): boolean;
 
+    { Read from Element attribute value as color. }
+    function AttributeColor(const AttrName: string): TCastleColor;
+
+    { Read from Element attribute value as RGB color. }
+    function AttributeColorRGB(const AttrName: string): TCastleColorRGB;
+
     { Retrieves from Element given attribute as a string, or a default value. }
     function AttributeStringDef(const AttrName: string; const DefaultValue: string): string;
 
@@ -531,6 +537,18 @@ function TDOMElementHelper.AttributeBoolean(const AttrName: string): boolean;
 begin
   if not AttributeBoolean(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (boolean) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
+function TDOMElementHelper.AttributeColor(const AttrName: string): TCastleColor;
+begin
+  if not AttributeColor(AttrName, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (color) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
+function TDOMElementHelper.AttributeColorRGB(const AttrName: string): TCastleColorRGB;
+begin
+  if not AttributeColorRGB(AttrName, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (rgb color) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
 function TDOMElementHelper.AttributeStringDef(const AttrName: string; const DefaultValue: string): string;
