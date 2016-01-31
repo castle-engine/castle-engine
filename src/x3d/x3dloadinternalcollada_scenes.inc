@@ -77,7 +77,7 @@ var
     VisualSceneId: string;
     VisualScene: TX3DNode;
   begin
-    InstanceVisualScene := DOMGetChildElement(SceneElement,
+    InstanceVisualScene := SceneElement.ChildElement(
       'instance_visual_scene', false);
     if InstanceVisualScene <> nil then
     begin

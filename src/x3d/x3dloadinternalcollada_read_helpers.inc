@@ -30,9 +30,9 @@ function ReadChildText(Element: TDOMElement; const ChildTagName: string): string
 var
   Child: TDOMElement;
 begin
-  Child := DOMGetChildElement(Element, ChildTagName, false);
+  Child := Element.ChildElement(ChildTagName, false);
   if Child <> nil then
-    Result := DOMGetTextData(Child) else
+    Result := Child.TextData else
     Result := '';
 end;
 
@@ -47,11 +47,11 @@ function ReadChildFloat(Element: TDOMElement; const ChildTagName: string;
 var
   Child: TDOMElement;
 begin
-  Child := DOMGetChildElement(Element, ChildTagName, false);
+  Child := Element.ChildElement(ChildTagName, false);
   Result := Child <> nil;
   if Result then
   try
-    Value := StrToFloat(DOMGetTextData(Child));
+    Value := StrToFloat(Child.TextData);
   except on EConvertError do Result := false; end;
 end;
 
@@ -77,11 +77,11 @@ function ReadChildVector(Element: TDOMElement; const ChildTagName: string;
 var
   Child: TDOMElement;
 begin
-  Child := DOMGetChildElement(Element, ChildTagName, false);
+  Child := Element.ChildElement(ChildTagName, false);
   Result := Child <> nil;
   if Result then
   try
-    Value := Vector3SingleFromStr(DOMGetTextData(Child));
+    Value := Vector3SingleFromStr(Child.TextData);
   except on EConvertError do Result := false; end;
 end;
 

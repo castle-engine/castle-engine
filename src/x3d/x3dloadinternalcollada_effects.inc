@@ -74,16 +74,16 @@ begin
   TextureName := '';
   TexCoordName := '';
   Result := WhiteRGB;
-  Child := DOMGetChildElement(Element, 'color', false);
+  Child := Element.ChildElement('color', false);
   if Child <> nil then
   begin
     { I simply drop 4th color component, I don't know what's the use of this
       (alpha is exposed by effect/materials parameter transparency, so color
       alpha is supposed to mean something else ?). }
-    Result := Vector3SingleCut(Vector4SingleFromStr(DOMGetTextData(Child)));
+    Result := Vector3SingleCut(Vector4SingleFromStr(Child.TextData));
   end else
   begin
-    Child := DOMGetChildElement(Element, 'texture', false);
+    Child := Element.ChildElement('texture', false);
     if Child <> nil then
     begin
       Child.AttributeString('texture', TextureName);
@@ -106,10 +106,10 @@ function ReadFloatOrParam(Element: TDOMElement): Float;
 var
   FloatElement: TDOMElement;
 begin
-  FloatElement := DOMGetChildElement(Element, 'float', false);
+  FloatElement := Element.ChildElement('float', false);
   if FloatElement <> nil then
   begin
-    Result := StrToFloat(DOMGetTextData(FloatElement));
+    Result := StrToFloat(FloatElement.TextData);
   end else
     { We don't support anything else than <float> here, just use
       default 1 eventually. }
@@ -144,11 +144,11 @@ var
       (half-vector) technique is used. What's much more practically
       important, OpenGL uses Blinn method. So actually I always do
       blinn method (at least for real-time rendering). }
-    TechniqueChild := DOMGetChildElement(TechniqueElement, 'phong', false);
+    TechniqueChild := TechniqueElement.ChildElement('phong', false);
     if TechniqueChild = nil then
-      TechniqueChild := DOMGetChildElement(TechniqueElement, 'blinn', false);
+      TechniqueChild := TechniqueElement.ChildElement('blinn', false);
     if TechniqueChild = nil then
-      TechniqueChild := DOMGetChildElement(TechniqueElement, 'lambert', false);
+      TechniqueChild := TechniqueElement.ChildElement('lambert', false);
 
     if TechniqueChild <> nil then
     begin
@@ -239,7 +239,7 @@ var
   begin
     if Element.AttributeString('sid', Name) then
     begin
-      Child := DOMGetChildElement(Element, 'surface', false);
+      Child := Element.ChildElement('surface', false);
       if Child <> nil then
       begin
         { Read <surface>. It has <init_from>, referring to name on Images. }
@@ -251,7 +251,7 @@ var
             [RefersTo]));
       end else
       begin
-        Child := DOMGetChildElement(Element, 'sampler2D', false);
+        Child := Element.ChildElement('sampler2D', false);
         if Child <> nil then
         begin
           { Read <sampler2D>. It has <source>, referring to name on Surfaces. }
@@ -283,7 +283,7 @@ begin
   Mat := TMaterialNode.Create('', BaseUrl);
   Appearance.FdMaterial.Value := Mat;
 
-  ProfileElement := DOMGetChildElement(EffectElement, 'profile_COMMON', false);
+  ProfileElement := EffectElement.ChildElement('profile_COMMON', false);
   if ProfileElement <> nil then
   begin
     Surfaces := TStringTextureNodeMap.Create;

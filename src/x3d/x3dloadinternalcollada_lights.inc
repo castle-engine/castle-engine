@@ -47,10 +47,10 @@ begin
       begin
         Light := nil;
 
-        TechniqueE := DOMGetChildElement(I.Current, 'technique_common', false);
+        TechniqueE := I.Current.ChildElement('technique_common', false);
         if TechniqueE <> nil then
         begin
-          LightE := DOMGetChildElement(TechniqueE, 'point', false);
+          LightE := TechniqueE.ChildElement('point', false);
           if LightE <> nil then
           begin
             Point := TPointLightNode.Create(Id, BaseUrl);
@@ -58,7 +58,7 @@ begin
             Light := Point;
           end else
           begin
-            LightE := DOMGetChildElement(TechniqueE, 'directional', false);
+            LightE := TechniqueE.ChildElement('directional', false);
             if LightE <> nil then
             begin
               Directional := TDirectionalLightNode.Create(Id, BaseUrl);
@@ -66,7 +66,7 @@ begin
               Light := Directional;
             end else
             begin
-              LightE := DOMGetChildElement(TechniqueE, 'spot', false);
+              LightE := TechniqueE.ChildElement('spot', false);
               if LightE <> nil then
               begin
                 Spot := TSpotLightNode.Create(Id, BaseUrl);
@@ -80,7 +80,7 @@ begin
                 Light := Spot;
               end else
               begin
-                LightE := DOMGetChildElement(TechniqueE, 'ambient', false);
+                LightE := TechniqueE.ChildElement('ambient', false);
                 if LightE <> nil then
                 begin
                   Point := TPointLightNode.Create(Id, BaseUrl);
@@ -106,10 +106,10 @@ begin
           begin
             { calculate light radius }
             Radius := MaxSingle;
-            ExtraE := DOMGetChildElement(I.Current, 'extra', false);
+            ExtraE := I.Current.ChildElement('extra', false);
             if ExtraE <> nil then
             begin
-              TechniqueE := DOMGetChildElement(ExtraE, 'technique', false);
+              TechniqueE := ExtraE.ChildElement('technique', false);
               if (TechniqueE <> nil) and
                  TechniqueE.AttributeString('profile', Profile) and
                  (Profile = 'blender') then

@@ -84,10 +84,10 @@ procedure AddGeometryInstance(Group: TAbstractX3DGroupingNode;
       For InstantiatingElement = instance (Collada 1.3.x), this must not
       be present.
       (But we actually don't check these conditions, just handle any case.) }
-    BindMaterial := DOMGetChildElement(InstantiatingElement, 'bind_material', false);
+    BindMaterial := InstantiatingElement.ChildElement('bind_material', false);
     if BindMaterial <> nil then
     begin
-      Technique := DOMGetChildElement(BindMaterial, 'technique_common', false);
+      Technique := BindMaterial.ChildElement('technique_common', false);
       if Technique <> nil then
       begin
         { read <instance_material list inside.
@@ -183,20 +183,20 @@ var
   begin
     Result := false;
 
-    Child := DOMGetChildElement(GeometryE, 'extra', false);
+    Child := GeometryE.ChildElement('extra', false);
     if Child = nil then Exit;
 
-    Child := DOMGetChildElement(Child, 'technique', false);
+    Child := Child.ChildElement('technique', false);
     if Child = nil then Exit;
 
     if not (Child.AttributeString('profile', Profile) and
             (Profile = 'MAYA')) then
       Exit;
 
-    Child := DOMGetChildElement(Child, 'double_sided', false);
+    Child := Child.ChildElement('double_sided', false);
     if Child = nil then Exit;
 
-    Result := StrToIntDef(DOMGetTextData(Child), 0) <> 0;
+    Result := StrToIntDef(Child.TextData, 0) <> 0;
   end;
 
   { Read <source> within <mesh>. }
@@ -214,7 +214,7 @@ var
     if not SourceElement.AttributeString('id', Source.Name) then
       Source.Name := '';
 
-    FloatArray := DOMGetChildElement(SourceElement, 'float_array', false);
+    FloatArray := SourceElement.ChildElement('float_array', false);
     if FloatArray <> nil then
     begin
       if not FloatArray.AttributeInteger('count', FloatArrayCount) then
@@ -227,7 +227,7 @@ var
         FloatArrayId := '';
 
       Source.Floats.Count := FloatArrayCount;
-      FloatArrayContents := DOMGetTextData(FloatArray);
+      FloatArrayContents := FloatArray.TextData;
 
       SeekPos := 1;
       for I := 0 to FloatArrayCount - 1 do
@@ -242,17 +242,17 @@ var
         Source.Floats.L[I] := StrToFloat(Token);
       end;
 
-      Technique := DOMGetChildElement(SourceElement, 'technique_common', false);
+      Technique := SourceElement.ChildElement('technique_common', false);
       if Technique = nil then
       begin
-        Technique := DOMGetChildElement(SourceElement, 'technique', false);
+        Technique := SourceElement.ChildElement('technique', false);
         { TODO: actually, I should search for technique with profile="COMMON"
           in this case, right ? }
       end;
 
       if Technique <> nil then
       begin
-        Accessor := DOMGetChildElement(Technique, 'accessor', false);
+        Accessor := Technique.ChildElement('accessor', false);
 
         { read <accessor> attributes }
 
@@ -564,8 +564,8 @@ var
   begin
     Indexes := ReadPrimitiveCommon(PrimitiveE);
     try
-      VCountE := DOMGetChildElement(PrimitiveE, 'vcount', false);
-      P := DOMGetChildElement(PrimitiveE, 'p', false);
+      VCountE := PrimitiveE.ChildElement('vcount', false);
+      P := PrimitiveE.ChildElement('p', false);
 
       if (VCountE <> nil) and (P <> nil) then
       begin
@@ -596,7 +596,7 @@ var
   begin
     Indexes := ReadPrimitiveCommon(PrimitiveE);
     try
-      P := DOMGetChildElement(PrimitiveE, 'p', false);
+      P := PrimitiveE.ChildElement('p', false);
       if P <> nil then
       begin
         Indexes.BeginElement(P);
@@ -695,7 +695,7 @@ var
   begin
     Indexes := ReadPrimitiveCommon(PrimitiveE);
     try
-      P := DOMGetChildElement(PrimitiveE, 'p', false);
+      P := PrimitiveE.ChildElement('p', false);
       if P <> nil then
       begin
         Indexes.BeginElement(P);
@@ -743,7 +743,7 @@ begin
   Geometry.Name := GeometryId;
   Geometries.Add(Geometry);
 
-  Mesh := DOMGetChildElement(GeometryElement, 'mesh', false);
+  Mesh := GeometryElement.ChildElement('mesh', false);
   if Mesh <> nil then
   begin
     Coord := nil;

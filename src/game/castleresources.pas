@@ -809,7 +809,7 @@ var
 begin
   Clear;
 
-  ResourcesElement := DOMGetChildElement(ParentElement, 'prepare_resources', false);
+  ResourcesElement := ParentElement.ChildElement('prepare_resources', false);
 
   if ResourcesElement <> nil then
   begin

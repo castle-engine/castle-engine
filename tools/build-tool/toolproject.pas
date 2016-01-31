@@ -265,7 +265,7 @@ constructor TCastleProject.Create(const APath: string);
         FScreenOrientation := StringToScreenOrientation(
           Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
 
-        Element := DOMGetChildElement(Doc.DocumentElement, 'version', false);
+        Element := Doc.DocumentElement.ChildElement('version', false);
         FVersionCode := DefautVersionCode;
         if Element <> nil then
         begin
@@ -273,7 +273,7 @@ constructor TCastleProject.Create(const APath: string);
           FVersionCode := Element.AttributeCardinalDef('code', DefautVersionCode);
         end;
 
-        Element := DOMGetChildElement(Doc.DocumentElement, 'dependencies', false);
+        Element := Doc.DocumentElement.ChildElement('dependencies', false);
         if Element <> nil then
         begin
           ChildElements := Element.GetElementsByTagName('dependency');
@@ -285,7 +285,7 @@ constructor TCastleProject.Create(const APath: string);
           end;
         end;
 
-        Element := DOMGetChildElement(Doc.DocumentElement, 'package', false);
+        Element := Doc.DocumentElement.ChildElement('package', false);
         if Element <> nil then
         begin
           ChildElements := Element.GetElementsByTagName('include');
@@ -304,7 +304,7 @@ constructor TCastleProject.Create(const APath: string);
           end;
         end;
 
-        Element := DOMGetChildElement(Doc.DocumentElement, 'icons', false);
+        Element := Doc.DocumentElement.ChildElement('icons', false);
         if Element <> nil then
         begin
           ChildElements := Element.GetElementsByTagName('icon');
@@ -315,7 +315,7 @@ constructor TCastleProject.Create(const APath: string);
           end;
         end;
 
-        Element := DOMGetChildElement(Doc.DocumentElement, 'android', false);
+        Element := Doc.DocumentElement.ChildElement('android', false);
         if Element <> nil then
         begin
           if Element.AttributeString('project_type', AndroidProjectTypeStr) then
@@ -327,7 +327,7 @@ constructor TCastleProject.Create(const APath: string);
               raise Exception.CreateFmt('Invalid android project_type "%s"', [AndroidProjectTypeStr]);
           end;
 
-          ChildElement := DOMGetChildElement(Element, 'components', false);
+          ChildElement := Element.ChildElement('components', false);
           if ChildElement <> nil then
             FAndroidComponents.ReadCastleEngineManifest(ChildElement);
         end;

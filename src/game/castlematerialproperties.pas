@@ -148,9 +148,7 @@ begin
       if I.Current.TagName = 'toxic' then
       begin
         FToxic := true;
-        ToxicDamage := DOMGetOneChildElement(I.Current);
-        if (ToxicDamage = nil) or (ToxicDamage.TagName <> 'damage') then
-          raise Exception.Create('Missing <damage> inside <toxic> element');
+        ToxicDamage := I.Current.ChildElement('damage');
         if not ToxicDamage.AttributeSingle('const', FToxicDamageConst) then
           FToxicDamageConst := 0;
         if not ToxicDamage.AttributeSingle('random', FToxicDamageRandom) then

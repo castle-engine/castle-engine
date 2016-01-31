@@ -140,8 +140,7 @@ var
     SourceAttribs: TDOMNamedNodeMap;
     I: Integer;
   begin
-    DestinationApplication := DOMGetChildElement(DestinationXml.DocumentElement,
-      'application', true);
+    DestinationApplication := DestinationXml.DocumentElement.ChildElement('application');
 
     // GetChildNodes includes child comments, elements, everything... except attributes
     SourceNodes := SourceApplication.GetChildNodes;

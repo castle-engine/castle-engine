@@ -45,24 +45,24 @@ procedure ReadMaterial(MatElement: TDOMElement);
       OnWarning(wtMinor, 'Collada', 'Expected <param> with type "float3"');
       Result := ZeroVector3Single;
     end else
-      Result := Vector3SingleFromStr(DOMGetTextData(Element));
-  end;
+       Result := Vector3SingleFromStr(Element.TextData);
+   end;
 
-  function ReadParamAsFloat(Element: TDOMElement): Float;
-  var
-    AType: string;
-  begin
-    if not Element.AttributeString('type', AType) then
-    begin
-      OnWarning(wtMinor, 'Collada', '<param> has no type attribute');
-      Result := 0;
-    end else
-    if AType <> 'float' then
-    begin
-      OnWarning(wtMinor, 'Collada', 'Expected <param> with type "float"');
-      Result := 0;
-    end else
-      Result := StrToFloat(DOMGetTextData(Element));
+   function ReadParamAsFloat(Element: TDOMElement): Float;
+   var
+     AType: string;
+   begin
+     if not Element.AttributeString('type', AType) then
+     begin
+       OnWarning(wtMinor, 'Collada', '<param> has no type attribute');
+       Result := 0;
+     end else
+     if AType <> 'float' then
+     begin
+       OnWarning(wtMinor, 'Collada', 'Expected <param> with type "float"');
+       Result := 0;
+     end else
+       Result := StrToFloat(Element.TextData);
   end;
 
 var
@@ -92,16 +92,16 @@ var
       and one reference to it (to Materials list). }
     Materials[MatId] := Effect;
 
-    ShaderElement := DOMGetChildElement(MatElement, 'shader', false);
+    ShaderElement := MatElement.ChildElement('shader', false);
     if ShaderElement <> nil then
     begin
-       TechniqueElement := DOMGetChildElement(ShaderElement, 'technique', false);
+       TechniqueElement := ShaderElement.ChildElement('technique', false);
        if TechniqueElement <> nil then
        begin
-         PassElement := DOMGetChildElement(TechniqueElement, 'pass', false);
+         PassElement := TechniqueElement.ChildElement('pass', false);
          if PassElement <> nil then
          begin
-           ProgramElement := DOMGetChildElement(PassElement, 'program', false);
+           ProgramElement := PassElement.ChildElement('program', false);
            if ProgramElement <> nil then
            begin
              I := TXMLElementFilteringIterator.Create(ProgramElement, 'param');
@@ -160,7 +160,7 @@ var
   begin
     if MatId = '' then Exit;
 
-    InstanceEffect := DOMGetChildElement(MatElement, 'instance_effect', false);
+    InstanceEffect := MatElement.ChildElement('instance_effect', false);
     if InstanceEffect <> nil then
     begin
       if InstanceEffect.AttributeString('url', EffectId) and

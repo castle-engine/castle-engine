@@ -4759,11 +4759,11 @@ begin
     Name := NewName else
     raise EX3DXmlError.Create('Missing "name" for <ProtoDeclare> element');
 
-  E := DOMGetChildElement(Element, 'ProtoInterface', false);
+  E := Element.ChildElement('ProtoInterface', false);
   if E <> nil then
     ParseInterfaceDeclarationsXML(false, E, Reader);
 
-  E := DOMGetChildElement(Element, 'ProtoBody', false);
+  E := Element.ChildElement('ProtoBody', false);
   if E = nil then
     raise EX3DXmlError.CreateFmt('Missing <ProtoBody> inside <ProtoDeclare> element of prototype "%s"', [Name]);
 

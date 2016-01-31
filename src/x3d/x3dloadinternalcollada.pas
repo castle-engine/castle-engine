@@ -229,7 +229,7 @@ begin
       Result.ForceVersion := X3DVersion;
 
       { Read library_images. These may be referred to inside effects. }
-      LibraryE := DOMGetChildElement(Doc.DocumentElement, 'library_images', false);
+      LibraryE := Doc.DocumentElement.ChildElement('library_images', false);
       if LibraryE <> nil then
         ReadLibraryImages(LibraryE);
 
@@ -237,7 +237,7 @@ begin
         Effects may be referenced by materials,
         and there's no guarantee that library_effects will occur before
         library_materials. Testcase: "COLLLADA 1.4.1 Basic Samples/Cube/cube.dae". }
-      LibraryE := DOMGetChildElement(Doc.DocumentElement, 'library_effects', false);
+      LibraryE := Doc.DocumentElement.ChildElement('library_effects', false);
       if LibraryE <> nil then
         ReadLibraryEffects(LibraryE);
 
