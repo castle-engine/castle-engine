@@ -216,7 +216,8 @@ begin
     Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName);
   end else
   begin
-    Parameters.CheckHigh(1);
+    if Command <> 'run' then
+      Parameters.CheckHigh(1);
     Project := TCastleProject.Create;
     try
       if Command = 'create-manifest' then
@@ -235,7 +236,7 @@ begin
       if Command = 'install' then
         Project.DoInstall(OS, CPU, Plugin) else
       if Command = 'run' then
-        Project.DoRun(OS, CPU, Plugin) else
+        Project.DoRun(OS, CPU, Plugin, Parameters) else
       if Command = 'package-source' then
       begin
         Project.DoClean;

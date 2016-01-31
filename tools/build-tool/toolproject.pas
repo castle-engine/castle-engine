@@ -75,7 +75,7 @@ type
     procedure DoCompile(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
     procedure DoPackage(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
     procedure DoInstall(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
-    procedure DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
+    procedure DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Params: TCastleStringList);
     procedure DoPackageSource;
     procedure DoClean;
 
@@ -795,7 +795,8 @@ begin
     raise Exception.Create('The "install" command is not useful for this OS / CPU right now. Install the application manually.');
 end;
 
-procedure TCastleProject.DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
+procedure TCastleProject.DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+  const Params: TCastleStringList);
 var
   ExeName: string;
 begin
@@ -813,7 +814,7 @@ begin
     { run through ExecuteProcess, because we don't want to capture output,
       we want to immediately pass it to user }
     SetCurrentDir(Path);
-    ExecuteProcess(ExeName, []);
+    ExecuteProcess(ExeName, Params.ToArray);
   end;
   //else
   // raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
