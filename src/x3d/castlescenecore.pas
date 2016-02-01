@@ -763,6 +763,7 @@ type
     procedure RenderingCameraChanged(const RenderingCamera: TRenderingCamera;
       Viewpoint: TAbstractViewpointNode);
     procedure SetHeadlightOn(const Value: boolean);
+    function AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
   protected
     { List of TScreenEffectNode nodes, collected by ChangedAll. }
     ScreenEffectNodes: TX3DNodeList;
@@ -1820,6 +1821,16 @@ type
       X3D nodes graph, for example if you start to delete / add some TimeSensor
       nodes.  }
     function Animations: TStringList;
+
+(*
+    { Forcefully set 3D pose from given animation, with given time in animation.
+      This avoids the normal passage of time in X3D scenes,
+      it also ignores the @link(ProcessEvents) and @link(AnimateOnlyWhenVisible)
+      properties, and forces the current time by @link(TTimeSensorNode.FakeTime). }
+    function ForceAnimationPose(const AnimationName: string;
+      const Looping: TPlayAnimationLooping;
+      const TimeInAnimation: TFloatTime): boolean;
+*)
 
     { Play a named animation (like detected by @link(Animations) method).
       Also stops previously playing named animation, if any.
@@ -6946,15 +6957,44 @@ begin
   end;
 end;
 
+function TCastleSceneCore.AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
+begin
+  if RootNode <> nil then
+    Result := RootNode.TryFindNodeByName(TTimeSensorNode,
+      AnimationPrefix + AnimationName, true) as TTimeSensorNode else
+    Result := nil;
+end;
+
+(*
+function TCastleSceneCore.ForceAnimationPose(const AnimationName: string;
+  const Looping: TPlayAnimationLooping;
+  const TimeInAnimation: TFloatTime): boolean;
+var
+  TimeNode: TTimeSensorNode;
+  Loop: boolean;
+begin
+  TimeNode := AnimationTimeSensor(AnimationName);
+  Result := TimeNode <> nil;
+  if Result then
+  begin
+    TimeNode.FdStartTime.Send(Time.Seconds);
+    Loop := TimeNode.Loop;
+    case Looping of
+      paForceLooping   : Loop := true;
+      paForceNotLooping: Loop := false;
+    end;
+    TimeNode.FakeTime(Time.Seconds + TimeInAnimation, Loop);
+    Inc(FTime.PlusTicks);
+  end;
+end;
+*)
+
 function TCastleSceneCore.PlayAnimation(const AnimationName: string;
   const Looping: TPlayAnimationLooping): boolean;
 var
   TimeNode: TTimeSensorNode;
 begin
-  if RootNode <> nil then
-    TimeNode := RootNode.TryFindNodeByName(TTimeSensorNode,
-      AnimationPrefix + AnimationName, true) as TTimeSensorNode else
-    TimeNode := nil;
+  TimeNode := AnimationTimeSensor(AnimationName);
   Result := TimeNode <> nil;
   if Result then
   begin
