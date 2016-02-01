@@ -3689,15 +3689,6 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
     end;
 
     function TryFalling: boolean;
-
-      { Return +1 or -1, randomly. }
-      function RandomPlusMinus: Integer;
-      begin
-        Result := Random(2);
-        if Result = 0 then
-          Result := -1;
-      end;
-
     const
       Fde_VerticalRotateDeviation = 50.0;
       Fde_HorizontalRotateDeviation = 15.0;
@@ -4618,7 +4609,7 @@ begin
     be noticeable for a very short time, so I don't think that's a real
     problem... unless I see some example when it looks bad. }
 
-  FFallingOnTheGroundAngleIncrease := Random(2) = 0;
+  FFallingOnTheGroundAngleIncrease := RandomBoolean;
 end;
 
 procedure TWalkCamera.CancelFalling;

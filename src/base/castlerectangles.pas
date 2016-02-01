@@ -254,6 +254,8 @@ type
     property Top: Single read GetTop;
     { @groupEnd }
 
+    function Middle: TVector2Single;
+
     { Grow (when Delta > 0) or shrink (when Delta < 0)
       the rectangle, returning new value.
       This adds a margin of Delta pixels around all sides of the rectangle,
@@ -684,6 +686,11 @@ function TFloatRectangle.Contains(const Point: TVector2Single): boolean;
 begin
   Result := (Point[0] >= Left  ) and (Point[0] <= Left   + Width) and
             (Point[1] >= Bottom) and (Point[1] <= Bottom + Height);
+end;
+
+function TFloatRectangle.Middle: TVector2Single;
+begin
+  Result := Vector2Single(Left + Width / 2, Bottom + Height / 2);
 end;
 
 function TFloatRectangle.Grow(const DeltaX, DeltaY: Single): TFloatRectangle;

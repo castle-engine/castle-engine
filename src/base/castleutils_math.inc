@@ -266,6 +266,11 @@ function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: 
 function RandomFloatRange(const RangeBegin, RangeEnd: Single): Single;
 function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float;
 
+function RandomBoolean: boolean;
+
+{ Random -1 or +1. }
+function RandomPlusMinus: integer;
+
 { Angle between a 2D line segments and OX axis. Angle 0 means that Y1 = Y2
   and X2 > X1, then the angle increases as you rotate CCW. In radians. }
 function AngleRadPointToPoint(x1, y1, x2, y2: Single): Single;
@@ -273,9 +278,6 @@ function AngleRadPointToPoint(x1, y1, x2, y2: Single): Single;
 { Calculate power Base to Exponent, knowing both arguments (and so,
   also the result) are >= 0. }
 function NatNatPower(Base, Exponent: Cardinal): Cardinal;
-
-{ Random -1 or +1. }
-function RandomPlusMinus: integer;
 
 {$ifdef FPC}
 { }
@@ -733,12 +735,24 @@ end;
 
 function RandomFloatRange(const RangeBegin, RangeEnd: Single): Single;
 begin
- result := Random * (RangeEnd - RangeBegin) + RangeBegin;
+  Result := Random * (RangeEnd - RangeBegin) + RangeBegin;
 end;
 
 function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float;
 begin
- result := Random * (RangeEnd - RangeBegin) + RangeBegin;
+  Result := Random * (RangeEnd - RangeBegin) + RangeBegin;
+end;
+
+function RandomBoolean: boolean;
+begin
+  Result := Random(2) = 0;
+end;
+
+function RandomPlusMinus: Integer;
+const
+  PlusMinus: array [boolean] of Integer = (-1, +1);
+begin
+  Result := PlusMinus[RandomBoolean];
 end;
 
 function AngleRadPointToPoint(x1, y1, x2, y2: Single): Single;
@@ -780,12 +794,6 @@ begin
   i := i-1;
   result := result*base;
  end;
-end;
-
-function RandomPlusMinus: integer;
-const PlusMinus: array[0..1]of integer = (-1,+1);
-begin
- result := PlusMinus[Random(2)];
 end;
 
 {$ifdef FPC}
