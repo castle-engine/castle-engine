@@ -26,10 +26,9 @@ begin
   begin
     P := AddPackage('castle-game-engine');
 
-    { Should work on at least
-        P.OSes := AllUnixOSes + [win32, win64];
-      But below we limit the list only to the OSes actually tested. }
-    P.OSes := [Darwin, Linux, Freebsd, Win32, IPhoneSim
+    { Should work on AllUnixOSes, actually.
+      But let's limit the list only to the OSes actually tested. }
+    P.OSes := [Darwin, Linux, Freebsd, Win32, Win64, IPhoneSim
       {$ifdef ANDROID_POSSIBLE} , Android {$endif}];
 
     P.Options.Text := '@castle-fpc.cfg';
