@@ -23,7 +23,7 @@
 
 uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleWarnings,
-  CastleFilesUtils, CastleURIUtils,
+  CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   ToolArchitectures, ToolProject, ToolCompile, ToolUtils;
 
 var
@@ -181,6 +181,7 @@ procedure Run;
 var
   Command, S, FileName: string;
   Project: TCastleProject;
+  RestOfParameters: TCastleStringList;
 begin
   OnGetApplicationName := @MyGetApplicationName;
   OnWarning := @OnWarningWrite;
@@ -236,7 +237,15 @@ begin
       if Command = 'install' then
         Project.DoInstall(OS, CPU, Plugin) else
       if Command = 'run' then
-        Project.DoRun(OS, CPU, Plugin, Parameters) else
+      begin
+        RestOfParameters := TCastleStringList.Create;
+        try
+          RestOfParameters.Text := Parameters.Text;
+          RestOfParameters.Delete(0); // remove our own name
+          RestOfParameters.Delete(0); // remove "run"
+          Project.DoRun(OS, CPU, Plugin, RestOfParameters);
+        finally FreeAndNil(RestOfParameters) end;
+      end else
       if Command = 'package-source' then
       begin
         Project.DoClean;

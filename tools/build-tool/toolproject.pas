@@ -419,6 +419,7 @@ begin
   FreeAndNil(IncludePathsRecursive);
   FreeAndNil(ExcludePaths);
   FreeAndNil(FIcons);
+  FreeAndNil(FAndroidComponents);
   inherited;
 end;
 
