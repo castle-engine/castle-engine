@@ -1077,6 +1077,7 @@ type
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
     function WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean; virtual; abstract;
     function WorldRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; virtual; abstract;
+    function WorldSphereCollision(const Pos: TVector3Single; const Radius: Single): boolean;
     { @groupEnd }
   end;
 
@@ -3057,6 +3058,12 @@ end;
 function T3DWorld.GravityCoordinate: Integer;
 begin
   Result := MaxAbsVectorCoord(GravityUp);
+end;
+
+function T3DWorld.WorldSphereCollision(const Pos: TVector3Single;
+  const Radius: Single): boolean;
+begin
+  Result := SphereCollision(Pos, Radius, nil);
 end;
 
 { T3DCustomTransform -------------------------------------------------------- }
