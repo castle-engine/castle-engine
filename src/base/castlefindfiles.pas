@@ -200,7 +200,10 @@ function FindFiles_NonRecursive(const Path, Mask: string;
   begin
     Result := 0;
 
+    {$warnings off}
+    { don't warn that faXxx are unportable }
     Attr := faReadOnly or faHidden or faArchive { for symlinks } or faSysFile;
+    {$warnings on}
     if FindDirectories then
       Attr := Attr or faDirectory;
 
@@ -314,9 +317,11 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
     end;
 
     LocalPath := InclPathDelim(LocalPath);
+    {$warnings off}
     SearchError := FindFirst(LocalPath + '*',
       faDirectory { potential flags on directory: } or faSysFile or faArchive,
       FileRec);
+    {$warnings on}
     try
       while (SearchError = 0) and (not StopSearch) do
       begin
