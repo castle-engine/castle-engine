@@ -519,6 +519,7 @@ type
 
     PlayingAnimationNode: TTimeSensorNode;
     FAnimationPrefix: string;
+    FAnimationsList: TStringList;
 
     { When this is non-empty, then the transformation change happened,
       and should be processed (for the whole X3D graph inside RootNode).
@@ -1815,12 +1816,21 @@ type
     { List the names of available animations in this file.
       Detected in VRML/X3D models as simply TimeSensor nodes with node name
       starting with "Animation_Xxx" (see @link(AnimationPrefix) property).
-      Caller is responsible for freeing resulting TStringList instance.
 
-      Note that the list of animations may change it you rebuild the underlying
+      The resulting TStringList instance is owned by this object,
+      do not free it.
+
+      Note that the list of animations may change if you rebuild the underlying
       X3D nodes graph, for example if you start to delete / add some TimeSensor
       nodes.  }
-    function Animations: TStringList;
+    property AnimationsList: TStringList read FAnimationsList;
+
+    { Does named animation with given name exist.
+      @seealso AnimationsList
+      @seealso PlayAnimation }
+    function HasAnimation(const AnimationName: string): boolean;
+
+    function Animations: TStringList; deprecated 'use AnimationsList (and do not free it''s result)';
 
 (*
     { Forcefully set 3D pose from given animation, with given time in animation.
@@ -2414,6 +2424,7 @@ begin
   ScheduledHumanoidAnimateSkin := TX3DNodeList.Create(false);
   KeyDeviceSensorNodes := TX3DNodeList.Create(false);
   TimeDependentHandlers := TTimeDependentHandlerList.Create(false);
+  FAnimationsList := TStringList.Create;
 
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
@@ -2476,6 +2487,7 @@ begin
   FreeAndNil(FOctreeDynamicCollisions);
   FreeAndNil(FOctreeVisibleTriangles);
   FreeAndNil(FOctreeCollidableTriangles);
+  FreeAndNil(FAnimationsList);
 
   if OwnsRootNode then
     FreeAndNil(FRootNode) else
@@ -3167,6 +3179,7 @@ begin
     ShapeLODs.Clear;
     GlobalLights.Clear;
     FViewpointsArray.Clear;
+    FAnimationsList.Clear;
 
     if RootNode <> nil then
     begin
@@ -3194,6 +3207,11 @@ begin
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     DoViewpointsChanged;
 
+    { recreate FAnimationsList now }
+    FreeAndNil(FAnimationsList);
+    {$warnings off}
+    FAnimationsList := Animations;
+    {$warnings on}
   finally
     BackgroundStack.EndChangesSchedule;
     FogStack.EndChangesSchedule;
@@ -6955,6 +6973,11 @@ begin
       RootNode.EnumerateNodes(TTimeSensorNode, @Enum.Enumerate, true);
     finally FreeAndNil(Enum) end;
   end;
+end;
+
+function TCastleSceneCore.HasAnimation(const AnimationName: string): boolean;
+begin
+  Result := FAnimationsList.IndexOf(AnimationName) <> -1;
 end;
 
 function TCastleSceneCore.AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
