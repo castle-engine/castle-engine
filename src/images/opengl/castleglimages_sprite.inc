@@ -42,7 +42,7 @@ type
     FImage: TGLImageManaged;
     FX, FY: Integer;
     FDrawingWidth, FDrawingHeight: Cardinal;
-    FFrames, FFrameWidth, FFrameHeight, FCols, FRows: Cardinal;
+    FFrames, FFrameWidth, FFrameHeight, FColumns: Cardinal;
     FFramesPerSecond: Single;
     FAnimTime: TFloatTime;
     FFrame, FCustomFrame: Cardinal;
@@ -74,15 +74,45 @@ type
     { Constructor.
       @param(URL) - URL of source image,
       @param(AFrames) - total numer of animation frames,
-      @param(ACols) - number of columns,
+      @param(AColumns) - number of columns,
       @param(ARows) - number of rows,
       @param(ASmoothscaling) - enables interpolation, see @link(TGLImage.SmoothScaling) for details, default @True,
       @param(ATimeLoop) - should animation be repeated?, default True,
       @param(APlay) - is animation playing? if not then current frame will be displaied. }
     constructor Create(const URL: string;
-      const AFrames, ACols, ARows: Cardinal;
+      const AFrames, AColumns, ARows: Cardinal;
       const ASmoothScaling: Boolean = True;
-      const ATimeLoop: Boolean = True; const APlay: Boolean=False);
+      const ATimeLoop: Boolean = True; const APlay: Boolean = False);
+
+    { Constructor that takes explicit frame size,
+      and loaded TGLImageManaged instance.
+
+      @param(AImage) - source image (will be owned by this sprite),
+      @param(AFrames) - total numer of animation frames,
+      @param(AColumns) - number of columns,
+      @param(AFrameWidth) - width of each frame,
+      @param(AFrameWidth) - height of each frame,
+      @param(ATimeLoop) - should animation be repeated?, default True,
+      @param(APlay) - is animation playing? if not then current frame will be displaied. }
+    constructor CreateFrameSize(const AImage: TGLImageManaged;
+      const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
+      const ATimeLoop: Boolean = True; const APlay: Boolean = False);
+
+    { Constructor that takes explicit frame size.
+
+      @param(URL) - URL of source image,
+      @param(AFrames) - total numer of animation frames,
+      @param(AColumns) - number of columns,
+      @param(AFrameWidth) - width of each frame,
+      @param(AFrameWidth) - height of each frame,
+      @param(ASmoothscaling) - enables interpolation, see @link(TGLImage.SmoothScaling) for details, default @True,
+      @param(ATimeLoop) - should animation be repeated?, default True,
+      @param(APlay) - is animation playing? if not then current frame will be displaied. }
+    constructor CreateFrameSize(const URL: string;
+      const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
+      const ASmoothScaling: Boolean = True;
+      const ATimeLoop: Boolean = True; const APlay: Boolean = False);
+
     destructor Destroy; override;
 
     { Update current frame.
@@ -173,6 +203,14 @@ type
     { Switch to animation with index AAnimIndex.
       @returns(@true on success, @false if AAnimIndex is out of bound) }
     function SwitchToAnimation(const AAnimIndex: Integer; const ACustomFrame: Cardinal=0): Boolean;
+
+    { Duration, in seconds. Assuming no custom animations are
+      used. See @link(AddSpriteAnimation), @link(UseCustomAnimations)
+      about custom animations -- in that case, each custom animation
+      has it's own duration.
+
+      This is just the number of @link(Frames) divided by @link(FramesPerSecond). }
+    function Duration: Single;
   end;
 
 {$endif read_interface}
@@ -223,8 +261,8 @@ end;
 
 function TSprite.GetFrameRect: TRectangle;
 begin
-  Result.Left := FFrame mod FCols * FFrameWidth + FLeftMarginOffset;
-  Result.Bottom := (FImage.Height - FFrameHeight) - FFrame div FCols * FFrameHeight - FTopMarginOffset;
+  Result.Left := FFrame mod FColumns * FFrameWidth + FLeftMarginOffset;
+  Result.Bottom := (FImage.Height - FFrameHeight) - FFrame div FColumns * FFrameHeight - FTopMarginOffset;
   Result.Width := FFrameWidth;
   Result.Height := FFrameHeight;
 end;
@@ -300,17 +338,16 @@ begin
   FImage.Rotation := AValue;
 end;
 
-constructor TSprite.Create(const URL: string;
-  const AFrames, ACols, ARows: Cardinal;
-  const ASmoothScaling: Boolean = True;
-  const ATimeLoop: Boolean = True; const APlay: Boolean=False);
+constructor TSprite.CreateFrameSize(const AImage: TGLImageManaged;
+  const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
+  const ATimeLoop: Boolean = True; const APlay: Boolean = False);
 begin
-  FImage := TGLImageManaged.Create(URL, ASmoothScaling);
+  inherited Create;
+  FImage := AImage;
   FFrames := AFrames;
-  FCols := ACols;
-  FRows := ARows;
-  FFrameWidth := FImage.Width div FCols;
-  FFrameHeight := FImage.Height div FRows;
+  FColumns := AColumns;
+  FFrameWidth := AFrameWidth;
+  FFrameHeight := AFrameHeight;
   FDrawingWidth := FFrameWidth;
   FDrawingHeight := FFrameHeight;
   FPlaying := APlay;
@@ -326,11 +363,40 @@ begin
   FCustomFrame := 0;
 end;
 
+constructor TSprite.CreateFrameSize(const URL: string;
+  const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
+  const ASmoothScaling: Boolean = True;
+  const ATimeLoop: Boolean = True; const APlay: Boolean = False);
+var
+  Img: TGLImageManaged;
+begin
+  Img := TGLImageManaged.Create(URL, ASmoothScaling);
+  CreateFrameSize(Img, AFrames, AColumns, AFrameWidth, AFrameHeight,
+    ATimeLoop, APlay);
+end;
+
+constructor TSprite.Create(const URL: string;
+  const AFrames, AColumns, ARows: Cardinal;
+  const ASmoothScaling: Boolean = True;
+  const ATimeLoop: Boolean = True; const APlay: Boolean = False);
+var
+  Img: TGLImageManaged;
+begin
+  Img := TGLImageManaged.Create(URL, ASmoothScaling);
+  CreateFrameSize(Img, AFrames, AColumns,
+    { Note that ARows is not remembered in this instance.
+      It's only used to calculate default AFrameHeight below, which can
+      be changed later. }
+    { AFrameWidth } Img.Width div FColumns,
+    { AFrameHeight } Img.Height div ARows,
+    ATimeLoop, APlay);
+end;
+
 destructor TSprite.Destroy;
 begin
   FreeAndNil(FImage);
   FreeAndNil(FAnimations);
-  inherited Destroy;
+  inherited;
 end;
 
 procedure TSprite.Update(ATime: Single);
@@ -388,6 +454,11 @@ begin
     FCustomFrame := 0 else
       FCustomFrame := ACustomFrame;
   Result := True;
+end;
+
+function TSprite.Duration: Single;
+begin
+  Result := Frames / FramesPerSecond;
 end;
 
 {$endif read_implementation}
