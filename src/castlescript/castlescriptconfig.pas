@@ -41,7 +41,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleScriptParser;
+  CastleScript, CastleScriptParser;
 
 function TCastleConfigScriptHelper.GetFloatExpression(const APath: string;
   const ADefaultValue: Float): Float;
@@ -53,14 +53,23 @@ function TCastleConfigScriptHelper.GetFloatExpression(const APath: string;
   const ADefaultValue: string): Float;
 var
   ResultString: string;
+  E: TCasScriptExpression;
 begin
   ResultString := GetValue(APath, ADefaultValue);
-  Result := ParseFloatExpression(ResultString, []).AsFloat;
+  E := ParseFloatExpression(ResultString, []);
+  try
+    Result := E.AsFloat;
+  finally FreeAndNil(E) end;
 end;
 
 function TCastleConfigScriptHelper.GetFloatExpression(const APath: string): Float;
+var
+  E: TCasScriptExpression;
 begin
-  Result := ParseFloatExpression(GetNonEmptyValue(APath), []).AsFloat;
+  E := ParseFloatExpression(GetNonEmptyValue(APath), []);
+  try
+    Result := E.AsFloat;
+  finally FreeAndNil(E) end;
 end;
 
 end.
