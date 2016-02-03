@@ -78,7 +78,7 @@ type
       @param(ARows) - number of rows,
       @param(ASmoothscaling) - enables interpolation, see @link(TGLImage.SmoothScaling) for details, default @True,
       @param(ATimeLoop) - should animation be repeated?, default True,
-      @param(APlay) - is animation playing? if not then current frame will be displaied. }
+      @param(APlay) - is animation playing? if not then current frame will be displayed. }
     constructor Create(const URL: string;
       const AFrames, AColumns, ARows: Cardinal;
       const ASmoothScaling: Boolean = True;
@@ -93,7 +93,7 @@ type
       @param(AFrameWidth) - width of each frame,
       @param(AFrameWidth) - height of each frame,
       @param(ATimeLoop) - should animation be repeated?, default True,
-      @param(APlay) - is animation playing? if not then current frame will be displaied. }
+      @param(APlay) - is animation playing? if not then current frame will be displayed. }
     constructor CreateFrameSize(const AImage: TGLImageManaged;
       const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
       const ATimeLoop: Boolean = True; const APlay: Boolean = False);
@@ -107,7 +107,7 @@ type
       @param(AFrameWidth) - height of each frame,
       @param(ASmoothscaling) - enables interpolation, see @link(TGLImage.SmoothScaling) for details, default @True,
       @param(ATimeLoop) - should animation be repeated?, default True,
-      @param(APlay) - is animation playing? if not then current frame will be displaied. }
+      @param(APlay) - is animation playing? if not then current frame will be displayed. }
     constructor CreateFrameSize(const URL: string;
       const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
       const ASmoothScaling: Boolean = True;
@@ -116,8 +116,8 @@ type
     destructor Destroy; override;
 
     { Update current frame.
-      @param(ATime) time from previous update. }
-    procedure Update(ATime: Single);
+      @param(SecondsPassed) time from previous update. }
+    procedure Update(SecondsPassed: Single);
 
     { Play animation. }
     procedure Play;
@@ -125,8 +125,25 @@ type
     { Pause animation. }
     procedure Pause;
 
-    { Draw the sprite. }
+    { Draw the sprite.
+
+      The overloaded version without AX, AY or ScreenRectangle parameters uses
+      the last position set by @link(Move) method. This is the position
+      of the bottom-left frame corner on screen.
+
+      The overloaded version without DrawWidth, DrawHeight or ScreenRectangle
+      parameters uses the last size set by @link(DrawingWidth), @link(DrawingHeight)
+      properties. This is the size of the frame on screen.
+
+      All versions use the rotation set by the last @link(Move) method.
+      This is the rotation of the frame on screen.
+
+      The overloaded versions deliberately look and work
+      similar to @link(TGLImage.Draw) versions. }
     procedure Draw;
+    procedure Draw(const AX, AY: Single);
+    procedure Draw(const AX, AY, DrawWidth, DrawHeight: Single);
+    procedure Draw(const ScreenRectangle: TRectangle);
 
     { Move sprite to position and rotation. }
     procedure Move(AX, AY: Integer; ARot: Single=0);
@@ -165,22 +182,23 @@ type
     { Current frame. }
     property Frame: Cardinal read FFrame write SetFrame;
 
-    { Is animation proceed? }
+    { Does the animation proceeds forward when you call @link(Update) method. }
     property Playing: Boolean read FPlaying write FPlaying default False;
 
-    { Is animation TimeLoop? }
+    { Does the animation loop, that is display the same animation over and over
+      when time exceeded the animation duration. }
     property TimeLoop: Boolean read FTimeLoop write FTimeLoop;
 
-    { Animation time can be set explicity. Writing to this property also recalculate
-      current frame. }
+    { Current time within the animation, it determines the current frame.
+      Yoy can set this explicity. Alternatively, you can call the @link(Update)
+      method continously while the animation is @link(Playing), and then
+      the time will increase automatically. }
     property Time: TFloatTime read FAnimTime write SetAnimTime;
 
-    { Width of single frame. Default value is calculated in constructor
-      depend on cols count. }
+    { Width of single frame. Initial value is by the constructor. }
     property FrameWidth: Cardinal read FFrameWidth write FFrameWidth;
 
-    { Height of single frame. Default value is calculated in constructor
-      depend on rows count. }
+    { Height of single frame. Initial value is by the constructor. }
     property FrameHeight: Cardinal read FFrameHeight write FFrameHeight;
 
     { Define X offset. Useful if first frame don't start at X=0. }
@@ -230,18 +248,18 @@ end;
 
 procedure TSprite.SetAnimTime(AValue: TFloatTime);
 var
-  _anim: TSpriteAnimation;
+  Anim: TSpriteAnimation;
 begin
   if FAnimTime = AValue then Exit;
   FAnimTime := AValue;
   if FUseCustomAnimations then
   begin
     if FAnimations.Count = 0 then Exit;
-    _anim := FAnimations.Items[FCurrentAnimation];
-    while (FAnimTime - FCustomAnimTimestamp) >= _anim[FCustomFrame].Duration do
+    Anim := FAnimations.Items[FCurrentAnimation];
+    while (FAnimTime - FCustomAnimTimestamp) >= Anim[FCustomFrame].Duration do
     begin
       // todo: custom animation loops
-      if FCustomFrame = High(_anim) then
+      if FCustomFrame = High(Anim) then
       begin
         if FTimeLoop then
         begin
@@ -252,8 +270,8 @@ begin
         end;
       end else
         Inc(FCustomFrame);
-      FCustomAnimTimestamp += _anim[FCustomFrame].Duration;
-      FFrame := _anim[FCustomFrame].Frame;
+      FCustomAnimTimestamp += Anim[FCustomFrame].Duration;
+      FFrame := Anim[FCustomFrame].Frame;
     end;
   end else
     FFrame := TVideo.FrameIndexFromTime(FAnimTime, FFrames, FFramesPerSecond, FTimeLoop, FTimeBackwards);
@@ -399,11 +417,11 @@ begin
   inherited;
 end;
 
-procedure TSprite.Update(ATime: Single);
+procedure TSprite.Update(SecondsPassed: Single);
 begin
   if not FPlaying then Exit;
 
-  Time := Time + ATime;
+  Time := Time + SecondsPassed;
 
   // looping implemented in SetAnimTime
   {if (FFrame >= FFrames) and (not FTimeLoop) then
@@ -426,6 +444,25 @@ end;
 procedure TSprite.Draw;
 begin
   FImage.Draw(GetDrawRect, GetFrameRect);
+end;
+
+procedure TSprite.Draw(const AX, AY: Single);
+begin
+  FImage.Draw(
+    Rectangle(Round(AX), Round(AY), DrawingWidth, DrawingHeight),
+    GetFrameRect);
+end;
+
+procedure TSprite.Draw(const AX, AY, DrawWidth, DrawHeight: Single);
+begin
+  FImage.Draw(
+    Rectangle(Round(AX), Round(AY), Round(DrawWidth), Round(DrawHeight)),
+    GetFrameRect);
+end;
+
+procedure TSprite.Draw(const ScreenRectangle: TRectangle);
+begin
+  FImage.Draw(ScreenRectangle, GetFrameRect);
 end;
 
 procedure TSprite.Move(AX, AY: Integer; ARot: Single);
