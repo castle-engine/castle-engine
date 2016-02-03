@@ -91,6 +91,12 @@ type
 
     { Float values reading/writing to config file.
 
+      Note: for powerful reading of float expressions,
+      consider using @code(GetFloatExpression) instead of @code(GetFloat).
+      It can read expressions like @code("3.0 * 2.0") or @code("sin(2.0)").
+      Use CastleScriptConfig unit to introduce
+      necessary class helper for this, see @link(TCastleConfigScriptHelper.GetFloatExpression).
+
       @raises(EMissingAttribute Raised by GetFloat(string) (overloaded
         version without the ADefaultValue parameter) if the attribute is missing.)
 
@@ -450,6 +456,8 @@ begin
       [S, APath]);
 end;
 
+{ get/set floats ------------------------------------------------------------ }
+
 function TCastleConfig.GetFloat(const APath: string;
   const ADefaultValue: Float): Float;
 var
@@ -458,8 +466,6 @@ begin
   ResultString := GetValue(APath, FloatToStr(ADefaultValue));
   Result := StrToFloatDef(ResultString, ADefaultValue);
 end;
-
-{ get/set floats ------------------------------------------------------------ }
 
 function TCastleConfig.GetFloat(const APath: string): Float;
 begin
