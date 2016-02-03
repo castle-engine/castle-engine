@@ -19,7 +19,7 @@ unit CastleXMLConfig;
 interface
 
 uses SysUtils, Classes, DOM,
-  CastleUtils, CastleXMLCfgInternal, CastleVectors,
+  CastleUtils, CastleXMLCfgInternal, CastleXMLUtils, CastleVectors,
   CastleGenericLists, CastleColors;
 
 type
@@ -283,6 +283,44 @@ ColorRGB := GetColorRGB('example/path/to/myColorRGB', BlackRGB);
       (But it is OK if it is empty.)
       Never returns @nil. }
     function PathChildren(const APath: string; const ChildName: string): TDOMNodeList;
+
+    { For a given path, return iterator for elements of a given name.
+
+      For example, assume you have an XML like this:
+
+@preformatted(
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <game_configuration>
+    <locations>
+      <location name="location_1st">...</location>
+      <location name="location_2nd">...</location>
+    </locations>
+  </game_configuration>
+</CONFIG>
+)
+
+      You can process it like this:
+
+@longCode(#
+var
+  I: TXMLElementIterator;
+begin
+  I := PathChildrenIterator('game_configuration/locations', 'location');
+  try
+    while I.GetNext do
+    begin
+      // ... here goes your code to process I.Current ...
+    end;
+  finally FreeAndNil(I) end;
+end;
+#)
+
+      Raises exception if element indicated by APath does not exist.
+      (But it is OK if it is empty.)
+      Never returns @nil. }
+    function PathChildrenIterator(const APath: string;
+      const ChildName: string): TXMLElementIterator;
 
     { Read an URL from an XML attribute.
       The attribute in an XML file may be an absolute or relative URL,
@@ -841,6 +879,13 @@ function TCastleConfig.PathChildren(const APath: string;
   const ChildName: string): TDOMNodeList;
 begin
   Result := PathElement(APath, true).GetElementsByTagName(ChildName);
+end;
+
+function TCastleConfig.PathChildrenIterator(const APath: string;
+  const ChildName: string): TXMLElementIterator;
+begin
+  Result := TXMLElementFilteringIterator.Create(
+    PathElement(APath, true), ChildName);
 end;
 
 function TCastleConfig.GetURL(const APath: string;
