@@ -293,9 +293,9 @@ end;
     FCurrent: TDOMElement;
   public
     constructor Create(ParentElement: TDOMElement);
-    destructor Destroy; override;
     function GetNext: boolean; virtual;
     property Current: TDOMElement read FCurrent;
+    procedure Rewind;
   end;
 
   { Iterate over children elements of given XML element, that have matching TagName. }
@@ -746,9 +746,9 @@ begin
   ChildIndex := -1;
 end;
 
-destructor TXMLElementIterator.Destroy;
+procedure TXMLElementIterator.Rewind;
 begin
-  inherited;
+  ChildIndex := -1;
 end;
 
 function TXMLElementIterator.GetNext: boolean;
