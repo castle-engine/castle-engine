@@ -277,7 +277,7 @@ end;
 var
   I: TXMLElementIterator;
 begin
-  I := TXMLElementIterator.Create(Element);
+  I := Element.ChildrenIterator;
   try
     while I.GetNext do
     begin

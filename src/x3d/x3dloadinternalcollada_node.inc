@@ -86,7 +86,7 @@ begin
     should affect instantiated object. So the bottom line is that for
     Collada 1.3, I must first gather all transforms, then do instantiations. }
 
-  I := TXMLElementIterator.Create(NodeElement);
+  I := NodeElement.ChildrenIterator;
   try
     while I.GetNext do
     begin
@@ -131,7 +131,7 @@ begin
 
   { Now iterate to read instantiations and recursive nodes. }
 
-  I := TXMLElementIterator.Create(NodeElement);
+  I := NodeElement.ChildrenIterator;
   try
     while I.GetNext do
     begin
@@ -161,7 +161,7 @@ procedure ReadNodesSequence(Group: TAbstractX3DGroupingNode;
 var
   I: TXMLElementIterator;
 begin
-  I := TXMLElementIterator.Create(SceneElement);
+  I := SceneElement.ChildrenIterator;
   try
     while I.GetNext do
       if I.Current.TagName = 'node' then

@@ -30,7 +30,7 @@ procedure ReadLibraryLights(LibraryE: TDOMElement);
   end;
 
 var
-  I: TXMLElementFilteringIterator;
+  I: TXMLElementIterator;
   Light: TAbstractLightNode;
   Point: TPointLightNode;
   Directional: TDirectionalLightNode;
@@ -40,7 +40,7 @@ var
   FalloffAngle, Radius: Float;
   LightColor: TVector3Single;
 begin
-  I := TXMLElementFilteringIterator.Create(LibraryE, 'light');
+  I := LibraryE.ChildrenIterator('light');
   try
     while I.GetNext do
       if I.Current.AttributeString('id', Id) then

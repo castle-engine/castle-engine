@@ -73,7 +73,7 @@ var
   var
     ShaderElement, TechniqueElement, PassElement, ProgramElement: TDOMElement;
     ParamName: string;
-    I: TXMLElementFilteringIterator;
+    I: TXMLElementIterator;
     Effect: TColladaEffect;
     Appearance: TAppearanceNode;
     Mat: TMaterialNode;
@@ -104,7 +104,7 @@ var
            ProgramElement := PassElement.ChildElement('program', false);
            if ProgramElement <> nil then
            begin
-             I := TXMLElementFilteringIterator.Create(ProgramElement, 'param');
+             I := ProgramElement.ChildrenIterator('param');
              try
                while I.GetNext do
                  if I.Current.AttributeString('name', ParamName) then
@@ -189,9 +189,9 @@ end;
   <library type="MATERIAL"> (Collada < 1.4.x). }
 procedure ReadLibraryMaterials(LibraryElement: TDOMElement);
 var
-  I: TXMLElementFilteringIterator;
+  I: TXMLElementIterator;
 begin
-  I := TXMLElementFilteringIterator.Create(LibraryElement, 'material');
+  I := LibraryElement.ChildrenIterator('material');
   try
     while I.GetNext do
       ReadMaterial(I.Current);

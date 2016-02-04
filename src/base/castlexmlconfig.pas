@@ -885,8 +885,7 @@ end;
 function TCastleConfig.PathChildrenIterator(const APath: string;
   const ChildName: string): TXMLElementIterator;
 begin
-  Result := TXMLElementFilteringIterator.Create(
-    PathElement(APath, true), ChildName);
+  Result := PathElement(APath, true).ChildrenIterator(ChildName);
 end;
 
 function TCastleConfig.GetURL(const APath: string;

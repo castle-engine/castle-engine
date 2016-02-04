@@ -813,7 +813,7 @@ begin
 
   if ResourcesElement <> nil then
   begin
-    I := TXMLElementIterator.Create(ResourcesElement);
+    I := ResourcesElement.ChildrenIterator;
     try
       while I.GetNext do
       begin

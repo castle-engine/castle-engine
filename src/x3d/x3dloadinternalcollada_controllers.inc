@@ -132,9 +132,9 @@ end;
 { Read <library_controllers> from Collada 1.4.x }
 procedure ReadLibraryControllers(LibraryElement: TDOMElement);
 var
-  I: TXMLElementFilteringIterator;
+  I: TXMLElementIterator;
 begin
-  I := TXMLElementFilteringIterator.Create(LibraryElement, 'controller');
+  I := LibraryElement.ChildrenIterator('controller');
   try
     while I.GetNext do
       ReadController(I.Current);

@@ -1661,7 +1661,7 @@ begin
     Check(SoundConfig.DocumentElement.TagName = 'sounds',
       'Root node of sounds/index.xml must be <sounds>');
 
-    I := TXMLElementIterator.Create(SoundConfig.DocumentElement);
+    I := SoundConfig.DocumentElement.ChildrenIterator;
     try
       while I.GetNext do
       begin

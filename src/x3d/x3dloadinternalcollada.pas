@@ -244,7 +244,7 @@ begin
       { Read libraries of things that may be referenced within library_visual_scenes.
         For some models, <library_visual_scenes> may be before them (test from
         collada.org/owl/ : "New Uploads/COLLADA 1.5.0 Kinematics/COLLADA 1.5.0 Kinematics/COLLADA/KR150/kr150.dae") }
-      I := TXMLElementIterator.Create(Doc.DocumentElement);
+      I := Doc.DocumentElement.ChildrenIterator;
       try
         while I.GetNext do
           if I.Current.TagName = 'library' then { only Collada < 1.4.x }
@@ -261,14 +261,14 @@ begin
             ReadLibraryControllers(I.Current);
       finally FreeAndNil(I); end;
 
-      I := TXMLElementIterator.Create(Doc.DocumentElement);
+      I := Doc.DocumentElement.ChildrenIterator;
       try
         while I.GetNext do
           if I.Current.TagName = 'library_nodes' then
             ReadLibraryNodes(I.Current);
       finally FreeAndNil(I); end;
 
-      I := TXMLElementIterator.Create(Doc.DocumentElement);
+      I := Doc.DocumentElement.ChildrenIterator;
       try
         while I.GetNext do
           if I.Current.TagName = 'library_visual_scenes' then { only Collada >= 1.4.x }

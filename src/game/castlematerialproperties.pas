@@ -142,7 +142,7 @@ begin
   if not Element.AttributeString('alpha_channel', FAlphaChannel) then
     FAlphaChannel := '';
 
-  I := TXMLElementIterator.Create(Element);
+  I := Element.ChildrenIterator;
   try
     while I.GetNext do
       if I.Current.TagName = 'toxic' then

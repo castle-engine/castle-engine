@@ -3337,7 +3337,7 @@ procedure TX3DField.ParseXMLElement(Element: TDOMElement; Reader: TX3DReader);
 var
   I: TXMLElementIterator;
 begin
-  I := TXMLElementIterator.Create(Element);
+  I := Element.ChildrenIterator;
   try
     if I.GetNext then
       OnWarning(wtMajor, 'VRML/X3D', Format('X3D field "%s" is not SFNode or MFNode, but a node value (XML element "%s") is specified',

@@ -40,13 +40,13 @@ var
   end;
 
 var
-  I: TXMLElementFilteringIterator;
+  I: TXMLElementIterator;
   Viewpoint: TViewpointNode;
   OrthoViewpoint: TOrthoViewpointNode;
   OpticsE, TechniqueE, PerspectiveE, OrthographicE: TDOMElement;
   XFov, YFov, XMag, YMag, AspectRatio: Float;
 begin
-  I := TXMLElementFilteringIterator.Create(LibraryE, 'camera');
+  I := LibraryE.ChildrenIterator('camera');
   try
     while I.GetNext do
       if I.Current.AttributeString('id', Id) then

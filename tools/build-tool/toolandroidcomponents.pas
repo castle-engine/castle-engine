@@ -173,7 +173,7 @@ var
   begin
     SourceName := SourceUsesPermission.AttributeString('android:name');
 
-    I := TXMLElementIterator.Create(DestinationXml.DocumentElement);
+    I := DestinationXml.DocumentElement.ChildrenIterator;
     try
       while I.GetNext do
       begin
@@ -206,7 +206,7 @@ begin
     try
       ReadXMLFile(DestinationXml, Destination); // this nils DestinationXml in case of error
 
-      I := TXMLElementIterator.Create(SourceXml.DocumentElement);
+      I := SourceXml.DocumentElement.ChildrenIterator;
       try
         while I.GetNext do
         begin

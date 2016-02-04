@@ -90,7 +90,7 @@ var
   NodeField, ProtoField: string;
   NodeFieldOrEvent: TX3DFieldOrEvent;
 begin
-  I := TXMLElementIterator.Create(ISElement);
+  I := ISElement.ChildrenIterator;
   try
     while I.GetNext do
       if ParseConnectElement(I.Current, NodeField, ProtoField) then
@@ -167,7 +167,7 @@ function ParseXMLNode(Element: TDOMElement;
       Reader.Nodes.Bind(Result, false);
 
       { parse field values from <fieldValue> elements }
-      ProtoIter := TXMLElementIterator.Create(Element);
+      ProtoIter := Element.ChildrenIterator;
       try
         PositionInParent := 0;
 
@@ -388,7 +388,7 @@ var
     Head := X3DHeaderElement.ChildElement('head', false);
     if Head = nil then Exit;
 
-    I := TXMLElementIterator.Create(Head);
+    I := Head.ChildrenIterator;
     try
       while I.GetNext do
       begin
@@ -491,7 +491,7 @@ begin
       ParseHead;
     end;
 
-    I := TXMLElementIterator.Create(Element);
+    I := Element.ChildrenIterator;
     try
       PositionInParent := 0;
 

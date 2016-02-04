@@ -162,7 +162,7 @@ var
       Transparency := 1;
       HasTransparency := false;
 
-      I := TXMLElementIterator.Create(TechniqueChild);
+      I := TechniqueChild.ChildrenIterator;
       try
         while I.GetNext do
         begin
@@ -289,7 +289,7 @@ begin
     Surfaces := TStringTextureNodeMap.Create;
     Samplers2D := TStringTextureNodeMap.Create;
     try
-      I := TXMLElementIterator.Create(ProfileElement);
+      I := ProfileElement.ChildrenIterator;
       try
         while I.GetNext do
           if I.Current.TagName = 'technique' then
@@ -310,9 +310,9 @@ end;
   All effects are added to the Effects list. }
 procedure ReadLibraryEffects(LibraryElement: TDOMElement);
 var
-  I: TXMLElementFilteringIterator;
+  I: TXMLElementIterator;
 begin
-  I := TXMLElementFilteringIterator.Create(LibraryElement, 'effect');
+  I := LibraryElement.ChildrenIterator('effect');
   try
     while I.GetNext do
       ReadEffect(I.Current);

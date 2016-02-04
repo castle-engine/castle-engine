@@ -3091,7 +3091,7 @@ var
   I: TXMLElementIterator;
   ContainerFieldDummy: string;
 begin
-  I := TXMLElementIterator.Create(Element);
+  I := Element.ChildrenIterator;
   try
     if I.GetNext then
     begin
@@ -3539,7 +3539,7 @@ var
   I: TXMLElementIterator;
   ContainerFieldDummy: string;
 begin
-  I := TXMLElementIterator.Create(Element);
+  I := Element.ChildrenIterator;
   try
     while I.GetNext do
     begin
@@ -4673,7 +4673,7 @@ var
   I: TX3DInterfaceDeclaration;
   Iter: TXMLElementIterator;
 begin
-  Iter := TXMLElementIterator.Create(Element);
+  Iter := Element.ChildrenIterator;
   try
     while Iter.GetNext do
     begin

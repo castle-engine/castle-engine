@@ -28,11 +28,11 @@ var
 { Read <library_images> (Collada 1.4.x). Fills Images list. }
 procedure ReadLibraryImages(LibraryElement: TDOMElement);
 var
-  I: TXMLElementFilteringIterator;
+  I: TXMLElementIterator;
   Image: TImageTextureNode;
   ImageId, ImageUrl: string;
 begin
-  I := TXMLElementFilteringIterator.Create(LibraryElement, 'image');
+  I := LibraryElement.ChildrenIterator('image');
   try
     while I.GetNext do
       if I.Current.AttributeString('id', ImageId) then

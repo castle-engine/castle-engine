@@ -177,7 +177,7 @@ begin
     raise Exception.CreateFmt(
       '<locations> doesn''t have a required attribute "start_name"', []);
 
-  I := TXMLElementIterator.Create(LocationsElement);
+  I := LocationsElement.ChildrenIterator;
   try
     while I.GetNext do
     begin

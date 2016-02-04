@@ -1850,7 +1850,7 @@ var
     Import: TX3DImport;
     ExportItem: TX3DExport;
   begin
-    I := TXMLElementIterator.Create(Element);
+    I := Element.ChildrenIterator;
     try
       while I.GetNext do
       begin
