@@ -283,6 +283,7 @@ ColorRGB := GetColorRGB('example/path/to/myColorRGB', BlackRGB);
       (But it is OK if it is empty.)
       Never returns @nil. }
     function PathChildren(const APath: string; const ChildName: string): TDOMNodeList;
+      deprecated 'use PathChildrenIterator';
 
     { For a given path, return iterator for elements of a given name.
 

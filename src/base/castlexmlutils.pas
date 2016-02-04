@@ -21,62 +21,11 @@ interface
 uses SysUtils, DOM,
   CastleUtils, CastleColors;
 
-{ Retrieves from Element attribute Value and returns @true,
-  or (of there is no such attribute) returns @false
-  and does not modify Value. Value is a "var", not "out" param,
-  because in the latter case it's guaranteed that the old Value
-  will not be cleared.
-
-  @deprecated Deprecated, use Element.AttributeString instead. }
-function DOMGetAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: string): boolean;
-  deprecated 'use helper method AttributeString on TDOMElement';
-
-{ Like DOMGetAttribute, but reads Cardinal value.
-
-  @deprecated Deprecated, use Element.AttributeCardinal instead. }
-function DOMGetCardinalAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Cardinal): boolean;
-  deprecated 'use helper method AttributeCardinal on TDOMElement';
-
-{ Like DOMGetAttribute, but reads Integer value.
-
-  @deprecated Deprecated, use Element.AttributeInteger instead. }
-function DOMGetIntegerAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Integer): boolean;
-  deprecated 'use helper method AttributeInteger on TDOMElement';
-
-{ Like DOMGetAttribute, but reads Single value.
-
-  @deprecated Deprecated, use Element.AttributeSingle instead. }
-function DOMGetSingleAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Single): boolean;
-  deprecated 'use helper method AttributeSingle on TDOMElement';
-
-{ Like DOMGetAttribute, but reads Float value.
-
-  @deprecated Deprecated, use Element.AttributeFloat instead. }
-function DOMGetFloatAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: Float): boolean;
-  deprecated 'use helper method AttributeFloat on TDOMElement';
-
-{ Like DOMGetAttribute, but reads Boolean value.
-  A boolean value is interpreted just like FPC's TXMLConfig
-  objects: true is designated by word @code(true), false by word
-  @code(false), case is ignored.
-
-  If attribute exists but it's value
-  is not @code(true) or @code(false), then returns @false and doesn't
-  modify Value paramater. So behaves just like the attribute didn't exist.
-
-  @deprecated Deprecated, use Element.AttributeBoolean instead. }
-function DOMGetBooleanAttribute(const Element: TDOMElement;
-  const AttrName: string; var Value: boolean): boolean;
-  deprecated 'use helper method AttributeBoolean on TDOMElement';
-
 type
   EDOMAttributeMissing = class(Exception);
   EDOMChildElementError = class(Exception);
+
+  TXMLElementIterator = class;
 
   TDOMElementHelper = class helper for TDOMElement
 
@@ -249,6 +198,40 @@ type
         If child not found (or found more than once), and Required = @true.)  }
     function ChildElement(const ChildName: string; const Required: boolean = true): TDOMElement;
 
+    { Iterator over all children elements. Use like this:
+
+@longCode(#
+var
+  I: TXMLElementIterator;
+begin
+  I := Element.ChildrenIterator;
+  try
+    while I.GetNext do
+    begin
+      // ... here goes your code to process I.Current ...
+    end;
+  finally FreeAndNil(I) end;
+end;
+#) }
+    function ChildrenIterator: TXMLElementIterator;
+
+    { Iterator over all children elements named ChildName. Use like this:
+
+@longCode(#
+var
+  I: TXMLElementIterator;
+begin
+  I := Element.ChildrenIterator('item');
+  try
+    while I.GetNext do
+    begin
+      // ... here goes your code to process I.Current ...
+    end;
+  finally FreeAndNil(I) end;
+end;
+#) }
+    function ChildrenIterator(const ChildName: string): TXMLElementIterator;
+
     { The text data contained in this element.
 
       This is suitable if an element is supposed to contain only some text.
@@ -260,34 +243,6 @@ type
     function TextData: DOMString;
   end;
 
-{ Returns the @italic(one and only) child element of this Element.
-  If given Element has none or more than one child elements,
-  returns @nil. This is handy for parsing XML in cases when you
-  know that given element must contain exactly one other element
-  in correct XML file. }
-function DOMGetOneChildElement(const Element: TDOMElement): TDOMElement;
-  deprecated 'This method did not prove to be of much use, and it only clutters the API. Don''t use, or show us a convincing usecase when this is sensible.';
-
-function DOMGetChildElement(const Element: TDOMElement;
-  const ChildName: string; RaiseOnError: boolean): TDOMElement;
-  deprecated 'use TDOMElement helper called ChildElement';
-
-function DOMGetTextData(const Element: TDOMElement): DOMString;
-  deprecated 'use TDOMElement helper called TextData';
-
-{ Gets a child of Element named ChildName, and gets text data within
-  this child.
-
-  This is just a shortcut for @code(DOMGetTextData(DOMGetChildElement(Element,
-  ChildName, true))).
-
-  @raises(EDOMChildElementError
-    If child not found or found more than once and RaiseOnError) }
-function DOMGetTextChild(const Element: TDOMElement;
-  const ChildName: string): string;
-  deprecated 'This method did not prove to be of much use, and it only clutters the API. Don''t use, or show us a convincing usecase when this is sensible.';
-
-type
   { Iterate over all children elements of given XML element.
 
     Without this, typical iteration looks like
@@ -300,17 +255,16 @@ var
   ChildElement: TDOMElement;
 begin
   ChildrenList := Element.ChildNodes;
-  try
-    for Index := 0 to ChildrenList.Count - 1 do
+
+  for Index := 0 to ChildrenList.Count - 1 do
+  begin
+    ChildNode := ChildrenList.Item[Index];
+    if ChildNode.NodeType = ELEMENT_NODE then
     begin
-      ChildNode := ChildrenList.Item[Index];
-      if ChildNode.NodeType = ELEMENT_NODE then
-      begin
-        ChildElement := ChildNode as TDOMElement;
-        ... here goes your code to process ChildElement ...
-      end;
+      ChildElement := ChildNode as TDOMElement;
+      ... here goes your code to process ChildElement ...
     end;
-  finally FreeChildNodes(ChildrenList); end;
+  end;
 end;
 #)
 
@@ -382,6 +336,86 @@ end;
     property Current: string read FCurrent;
   end;
 
+{ Retrieves from Element attribute Value and returns @true,
+  or (of there is no such attribute) returns @false
+  and does not modify Value. Value is a "var", not "out" param,
+  because in the latter case it's guaranteed that the old Value
+  will not be cleared.
+
+  @deprecated Deprecated, use Element.AttributeString instead. }
+function DOMGetAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: string): boolean;
+  deprecated 'use helper method AttributeString on TDOMElement';
+
+{ Like DOMGetAttribute, but reads Cardinal value.
+
+  @deprecated Deprecated, use Element.AttributeCardinal instead. }
+function DOMGetCardinalAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: Cardinal): boolean;
+  deprecated 'use helper method AttributeCardinal on TDOMElement';
+
+{ Like DOMGetAttribute, but reads Integer value.
+
+  @deprecated Deprecated, use Element.AttributeInteger instead. }
+function DOMGetIntegerAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: Integer): boolean;
+  deprecated 'use helper method AttributeInteger on TDOMElement';
+
+{ Like DOMGetAttribute, but reads Single value.
+
+  @deprecated Deprecated, use Element.AttributeSingle instead. }
+function DOMGetSingleAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: Single): boolean;
+  deprecated 'use helper method AttributeSingle on TDOMElement';
+
+{ Like DOMGetAttribute, but reads Float value.
+
+  @deprecated Deprecated, use Element.AttributeFloat instead. }
+function DOMGetFloatAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: Float): boolean;
+  deprecated 'use helper method AttributeFloat on TDOMElement';
+
+{ Like DOMGetAttribute, but reads Boolean value.
+  A boolean value is interpreted just like FPC's TXMLConfig
+  objects: true is designated by word @code(true), false by word
+  @code(false), case is ignored.
+
+  If attribute exists but it's value
+  is not @code(true) or @code(false), then returns @false and doesn't
+  modify Value paramater. So behaves just like the attribute didn't exist.
+
+  @deprecated Deprecated, use Element.AttributeBoolean instead. }
+function DOMGetBooleanAttribute(const Element: TDOMElement;
+  const AttrName: string; var Value: boolean): boolean;
+  deprecated 'use helper method AttributeBoolean on TDOMElement';
+
+{ Returns the @italic(one and only) child element of this Element.
+  If given Element has none or more than one child elements,
+  returns @nil. This is handy for parsing XML in cases when you
+  know that given element must contain exactly one other element
+  in correct XML file. }
+function DOMGetOneChildElement(const Element: TDOMElement): TDOMElement;
+  deprecated 'This method did not prove to be of much use, and it only clutters the API. Don''t use, or show us a convincing usecase when this is sensible.';
+
+function DOMGetChildElement(const Element: TDOMElement;
+  const ChildName: string; RaiseOnError: boolean): TDOMElement;
+  deprecated 'use TDOMElement helper called ChildElement';
+
+function DOMGetTextData(const Element: TDOMElement): DOMString;
+  deprecated 'use TDOMElement helper called TextData';
+
+{ Gets a child of Element named ChildName, and gets text data within
+  this child.
+
+  This is just a shortcut for @code(DOMGetTextData(DOMGetChildElement(Element,
+  ChildName, true))).
+
+  @raises(EDOMChildElementError
+    If child not found or found more than once and RaiseOnError) }
+function DOMGetTextChild(const Element: TDOMElement;
+  const ChildName: string): string;
+  deprecated 'This method did not prove to be of much use, and it only clutters the API. Don''t use, or show us a convincing usecase when this is sensible.';
+
 { If needed, free result of TDOMElement.ChildNodes.
 
   This abstracts FPC DOM unit differences:
@@ -395,6 +429,7 @@ end;
       and their Release method doesn't exist (since rev 13113).)
   ) }
 procedure FreeChildNodes(const ChildNodes: TDOMNodeList);
+  deprecated 'this is useless since a long time (FPC >= 2.4.x), you can remove this a the engine does not support older FPC versions anyway';
 
 { Replacements for standard ReadXMLFile and WriteXMLFile that operate on URLs.
   Optionally they can encrypt / decrypt content using BlowFish.
@@ -634,24 +669,23 @@ var
 begin
   Result := nil;
   Children := ChildNodes;
-  try
-    for I := 0 to Integer(Children.Count) - 1 do
+
+  for I := 0 to Integer(Children.Count) - 1 do
+  begin
+    Node := Children.Item[I];
+    if (Node.NodeType = ELEMENT_NODE) and
+       ((Node as TDOMElement).TagName = ChildName) then
     begin
-      Node := Children.Item[I];
-      if (Node.NodeType = ELEMENT_NODE) and
-         ((Node as TDOMElement).TagName = ChildName) then
+      if Result = nil then
+        Result := TDOMElement(Node) else
       begin
-        if Result = nil then
-          Result := TDOMElement(Node) else
-        begin
-          if Required then
-            raise EDOMChildElementError.CreateFmt(
-              'Child "%s" occurs more than once', [ChildName]) else
-            Exit(nil);
-        end;
+        if Required then
+          raise EDOMChildElementError.CreateFmt(
+            'Child "%s" occurs more than once', [ChildName]) else
+          Exit(nil);
       end;
     end;
-  finally FreeChildNodes(Children) end;
+  end;
 
   if (Result = nil) and Required then
     raise EDOMChildElementError.CreateFmt('Child "%s" not found', [ChildName])
@@ -681,18 +715,117 @@ var
 begin
   Result := '';
   Children := ChildNodes;
-  try
-    for I := 0 to Integer(Children.Count) - 1 do
+  for I := 0 to Integer(Children.Count) - 1 do
+  begin
+    Node := Children.Item[I];
+    case Node.NodeType of
+      TEXT_NODE: Result += (Node as TDOMText).Data;
+      ELEMENT_NODE: raise Exception.CreateFmt(
+        'Child elements not allowed within element <%s>, but found %s',
+          [TagName, (Node as TDOMElement).TagName]);
+    end;
+  end;
+end;
+
+function TDOMElementHelper.ChildrenIterator: TXMLElementIterator;
+begin
+  Result := TXMLElementIterator.Create(Self);
+end;
+
+function TDOMElementHelper.ChildrenIterator(const ChildName: string): TXMLElementIterator;
+begin
+  Result := TXMLElementFilteringIterator.Create(Self, ChildName);
+end;
+
+{ TXMLElementIterator -------------------------------------------------------- }
+
+constructor TXMLElementIterator.Create(ParentElement: TDOMElement);
+begin
+  inherited Create;
+  ChildNodes := ParentElement.ChildNodes;
+  ChildIndex := -1;
+end;
+
+destructor TXMLElementIterator.Destroy;
+begin
+  inherited;
+end;
+
+function TXMLElementIterator.GetNext: boolean;
+var
+  ChildNode: TDOMNode;
+begin
+  repeat
+    Inc(ChildIndex);
+
+    if ChildIndex >= Integer(ChildNodes.Count) then
     begin
-      Node := Children.Item[I];
-      case Node.NodeType of
-        TEXT_NODE: Result += (Node as TDOMText).Data;
-        ELEMENT_NODE: raise Exception.CreateFmt(
-          'Child elements not allowed within element <%s>, but found %s',
-            [TagName, (Node as TDOMElement).TagName]);
+      Result := false;
+      Break;
+    end else
+    begin
+      ChildNode := ChildNodes[ChildIndex];
+      if ChildNode.NodeType = ELEMENT_NODE then
+      begin
+        Result := true;
+        FCurrent := ChildNode as TDOMElement;
+        Break;
       end;
     end;
-  finally FreeChildNodes(Children) end;
+  until false;
+end;
+
+{ TXMLElementFilteringIterator ----------------------------------------------- }
+
+constructor TXMLElementFilteringIterator.Create(ParentElement: TDOMElement; const TagName: string);
+begin
+  inherited Create(ParentElement);
+  FTagName := TagName;
+end;
+
+function TXMLElementFilteringIterator.GetNext: boolean;
+begin
+  repeat
+    Result := inherited GetNext;
+  until (not Result) or (Current.TagName = FTagName);
+end;
+
+{ TXMLCDataIterator -------------------------------------------------------- }
+
+constructor TXMLCDataIterator.Create(ParentElement: TDOMElement);
+begin
+  inherited Create;
+  ChildNodes := ParentElement.ChildNodes;
+  ChildIndex := -1;
+end;
+
+destructor TXMLCDataIterator.Destroy;
+begin
+  inherited;
+end;
+
+function TXMLCDataIterator.GetNext: boolean;
+var
+  ChildNode: TDOMNode;
+begin
+  repeat
+    Inc(ChildIndex);
+
+    if ChildIndex >= Integer(ChildNodes.Count) then
+    begin
+      Result := false;
+      Break;
+    end else
+    begin
+      ChildNode := ChildNodes[ChildIndex];
+      if ChildNode.NodeType = CDATA_SECTION_NODE then
+      begin
+        Result := true;
+        FCurrent := (ChildNode as TDOMCDataSection).Data;
+        Break;
+      end;
+    end;
+  until false;
 end;
 
 { globals -------------------------------------------------------------------- }
@@ -752,121 +885,26 @@ var
 begin
   Result := nil;
   Children := Element.ChildNodes;
-  try
-    for I := 0 to Integer(Children.Count) - 1 do
+  for I := 0 to Integer(Children.Count) - 1 do
+  begin
+    Node := Children.Item[I];
+    if Node.NodeType = ELEMENT_NODE then
     begin
-      Node := Children.Item[I];
-      if Node.NodeType = ELEMENT_NODE then
+      if Result = nil then
+        Result := Node as TDOMElement else
       begin
-        if Result = nil then
-          Result := Node as TDOMElement else
-        begin
-          { More than one element in Children. }
-          Result := nil;
-          Exit;
-        end;
+        { More than one element in Children. }
+        Result := nil;
+        Exit;
       end;
     end;
-  finally FreeChildNodes(Children) end;
+  end;
 end;
 
 function DOMGetTextChild(const Element: TDOMElement;
   const ChildName: string): string;
 begin
   Result := Element.ChildElement(ChildName).TextData;
-end;
-
-{ TXMLElementIterator -------------------------------------------------------- }
-
-constructor TXMLElementIterator.Create(ParentElement: TDOMElement);
-begin
-  inherited Create;
-  ChildNodes := ParentElement.ChildNodes;
-  ChildIndex := -1;
-end;
-
-destructor TXMLElementIterator.Destroy;
-begin
-  FreeChildNodes(ChildNodes);
-  inherited;
-end;
-
-function TXMLElementIterator.GetNext: boolean;
-var
-  ChildNode: TDOMNode;
-begin
-  repeat
-    Inc(ChildIndex);
-
-    if ChildIndex >= Integer(ChildNodes.Count) then
-    begin
-      Result := false;
-      Break;
-    end else
-    begin
-      ChildNode := ChildNodes[ChildIndex];
-      if ChildNode.NodeType = ELEMENT_NODE then
-      begin
-        Result := true;
-        FCurrent := ChildNode as TDOMElement;
-        Break;
-      end;
-    end;
-  until false;
-end;
-
-{ TXMLElementFilteringIterator ----------------------------------------------- }
-
-constructor TXMLElementFilteringIterator.Create(ParentElement: TDOMElement; const TagName: string);
-begin
-  inherited Create(ParentElement);
-  FTagName := TagName;
-end;
-
-function TXMLElementFilteringIterator.GetNext: boolean;
-begin
-  repeat
-    Result := inherited GetNext;
-  until (not Result) or (Current.TagName = FTagName);
-end;
-
-{ TXMLCDataIterator -------------------------------------------------------- }
-
-constructor TXMLCDataIterator.Create(ParentElement: TDOMElement);
-begin
-  inherited Create;
-  ChildNodes := ParentElement.ChildNodes;
-  ChildIndex := -1;
-end;
-
-destructor TXMLCDataIterator.Destroy;
-begin
-  FreeChildNodes(ChildNodes);
-  inherited;
-end;
-
-function TXMLCDataIterator.GetNext: boolean;
-var
-  ChildNode: TDOMNode;
-begin
-  repeat
-    Inc(ChildIndex);
-
-    if ChildIndex >= Integer(ChildNodes.Count) then
-    begin
-      Result := false;
-      Break;
-    end else
-    begin
-      ChildNode := ChildNodes[ChildIndex];
-      if ChildNode.NodeType = CDATA_SECTION_NODE then
-      begin
-        Result := true;
-        FCurrent := (ChildNode as TDOMCDataSection).Data;
-        Break;
-      end;
-    end;
-  until false;
 end;
 
 procedure FreeChildNodes(const ChildNodes: TDOMNodeList);

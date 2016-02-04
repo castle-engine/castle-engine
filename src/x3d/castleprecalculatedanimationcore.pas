@@ -120,7 +120,7 @@ const
 var
   AbsoluteBaseUrl: string;
   FrameElement: TDOMElement;
-  Children: TDOMNodeList;
+  Children: TXMLElementIterator;
   I: Integer;
   FrameTime: Single;
   FrameURL: string;
@@ -157,39 +157,38 @@ begin
         [Attr.Name]);
   end;
 
-  Children := Element.ChildNodes;
+  Children := Element.ChildrenIterator;
   try
-    for I := 0 to Integer(Children.Count) - 1 do
-      if Children.Item[I].NodeType = ELEMENT_NODE then
-      begin
-        FrameElement := Children.Item[I] as TDOMElement;
-        Check(FrameElement.TagName = 'frame',
-          'Each child of <animation> element must be a <frame> element');
+    while Children.GetNext do
+    begin
+      FrameElement := Children.Current;
+      Check(FrameElement.TagName = 'frame',
+        'Each child of <animation> element must be a <frame> element');
 
-        if not FrameElement.AttributeSingle('time', FrameTime) then
-          raise Exception.Create('<frame> element must have a "time" attribute');
+      if not FrameElement.AttributeSingle('time', FrameTime) then
+        raise Exception.Create('<frame> element must have a "time" attribute');
 
-        if not FrameElement.AttributeString('url', FrameURL) then
-          if not FrameElement.AttributeString('file_name', FrameURL) then
-            raise Exception.Create('<frame> element must have an "url" (or deprecated "file_name") attribute');
+      if not FrameElement.AttributeString('url', FrameURL) then
+        if not FrameElement.AttributeString('file_name', FrameURL) then
+          raise Exception.Create('<frame> element must have an "url" (or deprecated "file_name") attribute');
 
-        { Make FrameURL absolute, treating it as relative vs
-          AbsoluteBaseUrl }
-        FrameURL := CombineURI(AbsoluteBaseUrl, FrameURL);
+      { Make FrameURL absolute, treating it as relative vs
+        AbsoluteBaseUrl }
+      FrameURL := CombineURI(AbsoluteBaseUrl, FrameURL);
 
-        if (Times.Count > 0) and (FrameTime <= Times.Last) then
-          raise Exception.Create(
-            'Frames within <animation> element must be specified in ' +
-            'increasing time order');
+      if (Times.Count > 0) and (FrameTime <= Times.Last) then
+        raise Exception.Create(
+          'Frames within <animation> element must be specified in ' +
+          'increasing time order');
 
-        ModelURLs.Add(FrameURL);
-        Times.Add(FrameTime);
-      end;
+      ModelURLs.Add(FrameURL);
+      Times.Add(FrameTime);
+    end;
+  finally FreeAndNil(Children) end;
 
-    if ModelURLs.Count = 0 then
-      raise Exception.Create(
-        'At least one <frame> is required within <animation> element');
-  finally FreeChildNodes(Children) end;
+  if ModelURLs.Count = 0 then
+    raise Exception.Create(
+      'At least one <frame> is required within <animation> element');
 end;
 
 end.

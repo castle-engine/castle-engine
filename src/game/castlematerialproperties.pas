@@ -166,10 +166,8 @@ end;
 procedure TMaterialProperties.SetURL(const Value: string);
 var
   Config: TXMLDocument;
-  Element: TDOMElement;
-  Elements: TDOMNodeList;
+  Elements: TXMLElementIterator;
   MaterialProperty: TMaterialProperty;
-  I: Integer;
   Stream: TStream;
 begin
   FURL := Value;
@@ -187,21 +185,19 @@ begin
     Check(Config.DocumentElement.TagName = 'properties',
       'Root node of material properties file must be <properties>');
 
-    Elements := Config.DocumentElement.ChildNodes;
+    Elements := Config.DocumentElement.ChildrenIterator;
     try
-      for I := 0 to Elements.Count - 1 do
-        if Elements.Item[I].NodeType = ELEMENT_NODE then
-        begin
-          Element := Elements.Item[I] as TDOMElement;
-          Check(Element.TagName = 'property',
-            'Material properties file must be a sequence of <property> elements');
+      while Elements.GetNext do
+      begin
+        Check(Elements.Current.TagName = 'property',
+          'Material properties file must be a sequence of <property> elements');
 
-          MaterialProperty := TMaterialProperty.Create;
-          Add(MaterialProperty);
+        MaterialProperty := TMaterialProperty.Create;
+        Add(MaterialProperty);
 
-          MaterialProperty.LoadFromDOMElement(Element, AbsoluteURI(URL));
-        end;
-    finally FreeChildNodes(Elements); end;
+        MaterialProperty.LoadFromDOMElement(Elements.Current, AbsoluteURI(URL));
+      end;
+    finally FreeAndNil(Elements); end;
   finally
     SysUtils.FreeAndNil(Config);
   end;

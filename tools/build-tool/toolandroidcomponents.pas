@@ -69,40 +69,41 @@ end;
 
 procedure TAndroidComponent.ReadCastleEngineManifest(const Element: TDOMElement);
 var
-  ChildElements: TDOMNodeList;
+  ChildElements: TXMLElementIterator;
   ChildElement: TDOMElement;
-  I: Integer;
 begin
   FName := Element.AttributeString('name');
 
-  ChildElements := Element.GetElementsByTagName('parameter');
-  for I := 0 to ChildElements.Count - 1 do
-  begin
-    ChildElement := ChildElements[I] as TDOMElement;
-    FParameters.Add(
-      ChildElement.AttributeString('key'),
-      ChildElement.AttributeString('value'));
-  end;
+  ChildElements := Element.ChildrenIterator('parameter');
+  try
+    while ChildElements.GetNext do
+    begin
+      ChildElement := ChildElements.Current;
+      FParameters.Add(
+        ChildElement.AttributeString('key'),
+        ChildElement.AttributeString('value'));
+    end;
+  finally FreeAndNil(ChildElements) end;
 end;
 
 { TAndroidComponentList ------------------------------------------------------ }
 
 procedure TAndroidComponentList.ReadCastleEngineManifest(const Element: TDOMElement);
 var
-  ChildElements: TDOMNodeList;
+  ChildElements: TXMLElementIterator;
   ChildElement: TDOMElement;
-  I: Integer;
   Component: TAndroidComponent;
 begin
-  ChildElements := Element.GetElementsByTagName('component');
-  for I := 0 to ChildElements.Count - 1 do
-  begin
-    ChildElement := ChildElements[I] as TDOMElement;
-
-    Component := TAndroidComponent.Create;
-    Add(Component);
-    Component.ReadCastleEngineManifest(ChildElement);
-  end;
+  ChildElements := Element.ChildrenIterator('component');
+  try
+    while ChildElements.GetNext do
+    begin
+      ChildElement := ChildElements.Current;
+      Component := TAndroidComponent.Create;
+      Add(Component);
+      Component.ReadCastleEngineManifest(ChildElement);
+    end;
+  finally FreeAndNil(ChildElements) end;
 end;
 
 function TAndroidComponentList.HasComponent(const Name: string): boolean;

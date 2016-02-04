@@ -236,9 +236,8 @@ constructor TCastleProject.Create(const APath: string);
   var
     Doc: TXMLDocument;
     ManifestURL, AndroidProjectTypeStr: string;
-    ChildElements: TDOMNodeList;
+    ChildElements: TXMLElementIterator;
     Element, ChildElement: TDOMElement;
-    I: Integer;
   begin
     ManifestFile := Path + ManifestName;
     if not FileExists(ManifestFile) then
@@ -276,43 +275,51 @@ constructor TCastleProject.Create(const APath: string);
         Element := Doc.DocumentElement.ChildElement('dependencies', false);
         if Element <> nil then
         begin
-          ChildElements := Element.GetElementsByTagName('dependency');
-          for I := 0 to ChildElements.Count - 1 do
-          begin
-            ChildElement := ChildElements[I] as TDOMElement;
-            Include(FDependencies,
-              StringToDependency(ChildElement.AttributeString('name')));
-          end;
+          ChildElements := Element.ChildrenIterator('dependency');
+          try
+            while ChildElements.GetNext do
+            begin
+              ChildElement := ChildElements.Current;
+              Include(FDependencies,
+                StringToDependency(ChildElement.AttributeString('name')));
+            end;
+          finally FreeAndNil(ChildElements) end;
         end;
 
         Element := Doc.DocumentElement.ChildElement('package', false);
         if Element <> nil then
         begin
-          ChildElements := Element.GetElementsByTagName('include');
-          for I := 0 to ChildElements.Count - 1 do
-          begin
-            ChildElement := ChildElements[I] as TDOMElement;
-            IncludePaths.Add(ChildElement.AttributeString('path'));
-            IncludePathsRecursive.Add(ChildElement.AttributeBooleanDef('recursive', false));
-          end;
+          ChildElements := Element.ChildrenIterator('include');
+          try
+            while ChildElements.GetNext do
+            begin
+              ChildElement := ChildElements.Current;
+              IncludePaths.Add(ChildElement.AttributeString('path'));
+              IncludePathsRecursive.Add(ChildElement.AttributeBooleanDef('recursive', false));
+            end;
+          finally FreeAndNil(ChildElements) end;
 
-          ChildElements := Element.GetElementsByTagName('exclude');
-          for I := 0 to ChildElements.Count - 1 do
-          begin
-            ChildElement := ChildElements[I] as TDOMElement;
-            ExcludePaths.Add(ChildElement.AttributeString('path'));
-          end;
+          ChildElements := Element.ChildrenIterator('exclude');
+          try
+            while ChildElements.GetNext do
+            begin
+              ChildElement := ChildElements.Current;
+              ExcludePaths.Add(ChildElement.AttributeString('path'));
+            end;
+          finally FreeAndNil(ChildElements) end;
         end;
 
         Element := Doc.DocumentElement.ChildElement('icons', false);
         if Element <> nil then
         begin
-          ChildElements := Element.GetElementsByTagName('icon');
-          for I := 0 to ChildElements.Count - 1 do
-          begin
-            ChildElement := ChildElements[I] as TDOMElement;
-            Icons.Add(ChildElement.AttributeString('path'));
-          end;
+          ChildElements := Element.ChildrenIterator('icon');
+          try
+            while ChildElements.GetNext do
+            begin
+              ChildElement := ChildElements.Current;
+              Icons.Add(ChildElement.AttributeString('path'));
+            end;
+          finally FreeAndNil(ChildElements) end;
         end;
 
         Element := Doc.DocumentElement.ChildElement('android', false);
