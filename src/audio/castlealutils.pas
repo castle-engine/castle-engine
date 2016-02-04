@@ -95,7 +95,7 @@ type
 
   We don't check does @code(Attribute) really return value of given type.
   This means that if you will request value of the wrong type for
-  given @code(Attribute), OpenAL may do some convertion, or may set the error
+  given @code(Attribute), OpenAL may do some conversion, or may set the error
   state. In some cases you may even get nasty access violation errors
   or accidental writes over some random place in memory --- this may
   happen if for given @code(Attribute) OpenAL likes to return an array

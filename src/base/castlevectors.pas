@@ -187,7 +187,7 @@
   or TVector3_Single objects. However, for the case when they are all
   TVector3_Single objects, this is highly un-optimal, and
   @preformatted(  V3 := V1 >< V2;)
-  is much faster, since it avoids the implicit convertions (unnecessary
+  is much faster, since it avoids the implicit conversions (unnecessary
   memory copying around).
 }
 
@@ -621,7 +621,7 @@ function Normal3Single(const x, y: Single; const z: Single = 0.0): TVector3Singl
 
 { Convert string to vector. Each component is simply parsed by StrToFloat,
   and components must be separated by whitespace (see @link(WhiteSpaces) constant).
-  @raises(EConvertError In case of problems during convertion (invalid float
+  @raises(EConvertError In case of problems during conversion (invalid float
     or unexpected string end or expected but missed string end).)
   @groupBegin }
 function Vector3SingleFromStr(const s: string): TVector3Single;
@@ -640,7 +640,7 @@ function Matrix4Double(const M: TMatrix4Single): TMatrix4Double;
 function Matrix4Single(const M: TMatrix4Double): TMatrix4Single;
 { @groupEnd }
 
-{ Overload := operator to allow convertion between
+{ Overload := operator to allow conversion between
   Matrix unit objects and this unit's arrays easy. }
 operator := (const V: TVector2_Single): TVector2Single;
 operator := (const V: TVector3_Single): TVector3Single;

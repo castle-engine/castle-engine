@@ -15,7 +15,7 @@
 
 { String utilities.
   Also some operations on chars and PChars.
-  And various convertions strings<->numbers.
+  And various conversions strings<->numbers.
 
   General comments for all procedures that have parameter like IgnoreCase:
   @unorderedList(
@@ -684,7 +684,7 @@ function FormatNameCounter(const NamePattern: string;
   const Index: Integer; const AllowOldPercentSyntax: boolean): string;
 { @groupEnd }
 
-{ convertions ------------------------------------------------------------ }
+{ conversions ------------------------------------------------------------ }
 
 const
   { I should restrain from adding more similiar BoolToStrXxx constants
@@ -2019,7 +2019,7 @@ begin
     ReplacementsDone);
 end;
 
-{ convertions ------------------------------------------------------------ }
+{ conversions ------------------------------------------------------------ }
 
 function DigitAsChar(b: byte): char;
 begin Result := char(b+byte('0')) end;

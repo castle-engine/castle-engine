@@ -780,7 +780,7 @@ begin
     where := StrPos(start, PChar(extension));
     if where = nil then Break;
     terminator := Pointer(PtrUInt(where) + PtrUInt(Length(extension)));
-    {$warnings off} { Stop warning about unportable PtrUInt convertions }
+    {$warnings off} { Stop warning about unportable PtrUInt conversions }
     if (where = start) or (PChar(Pointer(PtrUInt(where) - PtrUInt(1)))^ = ' ') then
     {$warnings on}
     begin

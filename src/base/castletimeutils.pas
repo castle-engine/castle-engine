@@ -54,7 +54,7 @@ type
         Also "The Castle" and "The Rift" prooved it's enough in practice.
 
         I could have choosen Extended here,
-        but for X3D sake (to avoid unnecessary floating-point convertions
+        but for X3D sake (to avoid unnecessary floating-point conversions
         all around), let's stick to Double for now.)
     )
   }

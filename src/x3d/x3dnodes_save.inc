@@ -38,15 +38,15 @@ function Save3DVersion(Node: TX3DNode): TX3DVersion;
   This can be used to convert VRML 2.0 to X3D.
   For VRML 1.0 or Inventor, this will just save them in X3D (XML or classic)
   encoding, which is not really usable. We simply don't implement
-  VRML 1.0/Inventor convertion (it's difficult, and not worth the trouble,
+  VRML 1.0/Inventor conversion (it's difficult, and not worth the trouble,
   VRML 1.0/Inventor are really old).
 
   Note that converting to X3D will change the nodes graph, possibly
   removing some nodes. If you use TCastleSceneCore, you should call
   TCastleSceneCore.BeforeNodesFree before and TCastleSceneCore.ChangedAll
-  when such convertion occcurs (you can easily test whether it may
+  when such conversion occcurs (you can easily test whether it may
   happen by Save3DWillConvertToX3D). If you use Encoding=xeClassic
-  and ForceConvertingToX3D=false, you're safe: convertion will not happen.
+  and ForceConvertingToX3D=false, you're safe: conversion will not happen.
 
   @param(Version Which VRML/X3D specification version should be used
     to encode. It should be calculated by Save3DVersion(Node).
@@ -66,7 +66,7 @@ function Save3DVersion(Node: TX3DNode): TX3DVersion;
     So this should really be calculated based on model contents,
     usually by Save3DVersion(Node).
 
-    A limited VRML 2.0 convertion is possible by ForceConvertingToX3D = true.
+    A limited VRML 2.0 conversion is possible by ForceConvertingToX3D = true.
     In this case, Version will be automatically changed to X3D anyway.)
 
   @groupBegin }
@@ -131,7 +131,7 @@ begin
      TX3DRootNode(Node).HasForceVersion then
     Result := TX3DRootNode(Node).ForceVersion else
     { Use latest X3D. We should promote latest, best version of VRML/X3D.
-      Also, this avoids convertion to X3D when saving it to XML encoding. }
+      Also, this avoids conversion to X3D when saving it to XML encoding. }
     Result := X3DVersion;
 end;
 
@@ -201,7 +201,7 @@ begin
       This will find which nodes have ForVRMLVersion method requiring
       only VRML 2.0. These are only:
       TLODNode_2, TNurbsCurveNode_2, TNurbsPositionInterpolatorNode_2.
-    - TLODNode_2 doesn't actually need convertion. Only a field name
+    - TLODNode_2 doesn't actually need conversion. Only a field name
       changes, which should be taken care of NameForVersion mechanism.
     - TNurbsSurfaceNode needs additionally to be changed in
       TNurbsPatchSurfaceNode.
@@ -264,7 +264,7 @@ var
       then Node must be a TX3DRootNode to replace in it the version.
       Fortunately, our Save3DVersion already guarantees it:
       if a node isn't TX3DRootNode, it's always treated as X3D already,
-      so a convertion will not happen. }
+      so a conversion will not happen. }
     Assert(Node is TX3DRootNode, 'Nodes must be TX3DRootNode to convert to X3D, to mark new version.');
     (Node as TX3DRootNode).HasForceVersion := true;
     (Node as TX3DRootNode).ForceVersion := Version;

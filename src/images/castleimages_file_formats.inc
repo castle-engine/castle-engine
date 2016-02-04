@@ -224,7 +224,7 @@ type
     specified in LoadImage or LoadEncodedImage call can be returned by Load of this format)
     then LoadImage and LoadEncodedImage will try more elaborate approach. This means that
     it will try using Load of this image format, followed by
-    some convertions of the image afterwards. This is generally less
+    some conversions of the image afterwards. This is generally less
     efficient, as it means that temporary image will be created during
     loading.
   }
@@ -308,7 +308,7 @@ type
 
     { If Load is assigned, this describes what TEncodedImage descendants
       can be returned by this Load. LoadImage and LoadEncodedImage need this information,
-      to make necessary convertions to other TEncodedImage classes,
+      to make necessary conversions to other TEncodedImage classes,
       when possible. }
     LoadedClasses: TImageLoadHandledClasses;
 

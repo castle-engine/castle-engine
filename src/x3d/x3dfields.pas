@@ -92,9 +92,9 @@ type
     { VRML/X3D version number. For resolving node class names and other stuff. }
     property Version: TX3DVersion read FVersion;
 
-    { Apply unit convertion.
-      If this is angle convertion factor, it is stored and used internally.
-      If this is length convertion factor, we update our
+    { Apply unit conversion.
+      If this is angle conversion factor, it is stored and used internally.
+      If this is length conversion factor, we update our
       LengthConversionFactor property, but it's callers responsibility
       to make use of it. (You want to use here TX3DRootNode.Scale.) }
     procedure UnitConversion(const Category, Name: string;

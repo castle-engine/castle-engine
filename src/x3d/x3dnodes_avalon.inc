@@ -616,7 +616,7 @@ procedure TConverterNode.EventInReceive(
 begin
   if FdEnabled.Value then
     { TODO: uhhhmmmm, I cannot convert here (as I don't know to what I should
-      convert... Convertion must be done along the route, when destination
+      convert... Conversion must be done along the route, when destination
       is known. }
     EventOut.Send(Value, Time);
 end;

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Color utilities, including HSV <-> RGB convertion. }
+{ Color utilities, including HSV <-> RGB conversion. }
 unit CastleColors;
 
 {$include castleconf.inc}
@@ -162,7 +162,7 @@ const
   { Weights to change RGB color to grayscale.
 
     Grayscale color is just a color with red = green = blue.
-    So the simplest convertion of RGB to grayscale is just to set
+    So the simplest conversion of RGB to grayscale is just to set
     all three R, G, B components to the average (R + G + B) / 3.
     But, since human eye is most sensitive to green, then to red,
     and least sensitive to blue, it's better to calculate this
@@ -178,7 +178,7 @@ const
      B * GrayscaleValuesByte[2]) div 256
   #)
 
-    GrayscaleValuesByte[] are declared as Word type to force implicit convertion
+    GrayscaleValuesByte[] are declared as Word type to force implicit conversion
     in above expression from Byte to Word, since you have to use Word range
     to temporarily hold Byte * Byte multiplication in expression above.
 

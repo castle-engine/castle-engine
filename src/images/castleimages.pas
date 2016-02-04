@@ -753,11 +753,11 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       When implementing descendants: the base implementation of this method
       in TCastleImage handles only the case when Image class equals our own class.
       And raises EImageAssignmentError in other cases.
-      Override this method if you want to actually handle some convertions
+      Override this method if you want to actually handle some conversions
       when assignning.
 
       @raises(EImageAssignmentError If it's not possible to convert from
-        Source class to us. Not every possible convertion is implemented now.)
+        Source class to us. Not every possible conversion is implemented now.)
     }
     procedure Assign(const Source: TCastleImage); virtual;
 
@@ -1004,15 +1004,15 @@ type
 
       Although float format offers superior precision compared to 8bit RGB,
       there is a slight chance of some unnoticeable loss of information
-      in such convertion, since floating-point values are involved
+      in such conversion, since floating-point values are involved
       in calculation.
 
       But generally this conversion is relatively safe (contrary to
-      convertion float -> 8-bit RGB, which must be lossy).
+      conversion float -> 8-bit RGB, which must be lossy).
 
-      But still you should note that doing such convertion has little
+      But still you should note that doing such conversion has little
       sense since float format is useful only when you have colors that can't
-      be expressed as simple 8-bit RGB. But by using this convertion
+      be expressed as simple 8-bit RGB. But by using this conversion
       you initially fill float image with data that does not have
       precision beyond standard 0..255 discreet range for each RGB component... }
     function ToRGBFloat: TRGBFloatImage;
@@ -1164,7 +1164,7 @@ type
 
     { Converts TRGBFloatImage to TRGBImage.
       Colors in pixels are simply rounded using @link(Vector3Byte).
-      So such convertion not only kills the floating-point
+      So such conversion not only kills the floating-point
       precision in float format but also clamps color components
       to 0..1. }
     function ToRGBImage: TRGBImage;
@@ -1281,7 +1281,7 @@ type
     procedure Assign(const Source: TCastleImage); override;
   end;
 
-{ RGBE <-> 3 Single color convertion --------------------------------- }
+{ RGBE <-> 3 Single color conversion --------------------------------- }
 
 { Encode RGB color as Red + Green + Blue + Exponent format.
   This allows you to encode high-precision colors in 4 bytes,
@@ -3431,7 +3431,7 @@ begin
   end;
 end;
 
-{ RGBE <-> 3 Single color convertion --------------------------------- }
+{ RGBE <-> 3 Single color conversion --------------------------------- }
 
 const
   { do signed Exponent dodaj RGBEExponentOffset zeby zapisac exponent jako Byte }
