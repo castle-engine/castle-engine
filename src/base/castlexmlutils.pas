@@ -296,6 +296,7 @@ end;
     function GetNext: boolean; virtual;
     property Current: TDOMElement read FCurrent;
     procedure Rewind;
+    function Count: Integer;
   end;
 
   { Iterate over children elements of given XML element, that have matching TagName. }
@@ -749,6 +750,11 @@ end;
 procedure TXMLElementIterator.Rewind;
 begin
   ChildIndex := -1;
+end;
+
+function TXMLElementIterator.Count: Integer;
+begin
+  Result := ChildNodes.Count;
 end;
 
 function TXMLElementIterator.GetNext: boolean;
