@@ -572,6 +572,7 @@ function Vector3Longint(const p0, p1, p2: Longint): TVector3Longint;
 
 function Vector3Double(const x, y: Double; const z: Double = 0.0): TVector3Double; overload;
 function Vector3Double(const v: TVector3Single): TVector3Double; overload;
+function Vector3Double(const v2: TVector2Double; const z: Double = 0.0): TVector3Double; overload;
 
 function Vector4Single(const x, y: Single;
   const z: Single = 0; const w: Single = 1): TVector4Single; overload;
@@ -1579,7 +1580,7 @@ function MatrixMultScalar(const m: TMatrix4Double; const s: Double): TMatrix4Dou
 type
   ETransformedResultInvalid = class(EVectorInvalidOp);
 
-{ Transform a 3D point with 4x4 matrix.
+{ Transform a 3D or 2D point with 4x4 matrix.
 
   This works by temporarily converting point to 4-component vector
   (4th component is 1). After multiplying matrix * vector we divide
@@ -1589,14 +1590,16 @@ type
 
   @raises(ETransformedResultInvalid This is raised when matrix
   will transform point to a direction (vector with 4th component
-  equal zero). In this case we just cannot interpret the result as a 3D point.)
+  equal zero). In this case we just cannot interpret the result as a point.)
 
   @groupBegin }
 function MatrixMultPoint(const m: TMatrix4Single; const pt: TVector3Single): TVector3Single; overload;
 function MatrixMultPoint(const m: TMatrix4Double; const pt: TVector3Double): TVector3Double; overload;
+function MatrixMultPoint(const m: TMatrix4Single; const pt: TVector2Single): TVector2Single; overload;
+function MatrixMultPoint(const m: TMatrix4Double; const pt: TVector2Double): TVector2Double; overload;
 { @groupEnd }
 
-{ Transform a 3D direction with 4x4 matrix.
+{ Transform a 3D or 2D direction with 4x4 matrix.
 
   This works by temporarily converting direction to 4-component vector
   (4th component is 0). After multiplying matrix * vector we check
@@ -1604,13 +1607,13 @@ function MatrixMultPoint(const m: TMatrix4Double; const pt: TVector3Double): TVe
 
   @raises(ETransformedResultInvalid This is raised when matrix
   will transform direction to a point (vector with 4th component
-  nonzero). In this case we just cannot interpret the result as a 3D direction.)
+  nonzero). In this case we just cannot interpret the result as a direction.)
 
   @groupBegin }
-function MatrixMultDirection(const m: TMatrix4Single;
-  const Dir: TVector3Single): TVector3Single; overload;
-function MatrixMultDirection(const m: TMatrix4Double;
-  const Dir: TVector3Double): TVector3Double; overload;
+function MatrixMultDirection(const m: TMatrix4Single; const Dir: TVector3Single): TVector3Single; overload;
+function MatrixMultDirection(const m: TMatrix4Double; const Dir: TVector3Double): TVector3Double; overload;
+function MatrixMultDirection(const m: TMatrix4Single; const Dir: TVector2Single): TVector2Single; overload;
+function MatrixMultDirection(const m: TMatrix4Double; const Dir: TVector2Double): TVector2Double; overload;
 { @groupEnd }
 
 function MatrixMultVector(const m: TMatrix2Single; const v: TVector2Single): TVector2Single; overload;
@@ -1993,6 +1996,7 @@ end;
 {$define TVector2_ := TVector2_Single}
 {$define TVector3_ := TVector3_Single}
 {$define TVector4_ := TVector4_Single}
+{$define Vector3 := Vector3Single}
 {$I castlevectors_dualimplementation.inc}
 
 {$define TScalar := Double}
@@ -2015,6 +2019,7 @@ end;
 {$define TVector2_ := TVector2_Double}
 {$define TVector3_ := TVector3_Double}
 {$define TVector4_ := TVector4_Double}
+{$define Vector3 := Vector3Double}
 {$I castlevectors_dualimplementation.inc}
 
 { TVector3SingleList ----------------------------------------------------- }
@@ -2738,6 +2743,12 @@ end;
 function Vector3Double(const v: TVector3Single): TVector3Double;
 begin
   result[0] := v[0]; result[1] := v[1]; result[2] := v[2];
+end;
+
+function Vector3Double(const v2: TVector2Double; const z: Double): TVector3Double;
+begin
+  move(v2, result, SizeOf(v2));
+  result[2] := z;
 end;
 
 function Vector2Byte(x, y: Byte): TVector2Byte;

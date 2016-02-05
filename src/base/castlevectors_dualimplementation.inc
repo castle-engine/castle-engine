@@ -1763,6 +1763,15 @@ begin
   end;
 end;
 
+function MatrixMultPoint(const m: TMatrix4; const pt: TVector2): TVector2;
+var
+  Res3D: TVector3;
+begin
+  Res3D := MatrixMultPoint(M, Vector3(Pt, 0));
+  Result[0] := Res3D[0];
+  Result[1] := Res3D[1];
+end;
+
 function MatrixMultDirection(const m: TMatrix4;
   const Dir: TVector3): TVector3;
 var
@@ -1781,6 +1790,15 @@ begin
     if not Zero(Divisor) then
       raise ETransformedResultInvalid.Create('3D direction transformed by 4x4 matrix to a point');
   end;
+end;
+
+function MatrixMultDirection(const m: TMatrix4; const Dir: TVector2): TVector2;
+var
+  Res3D: TVector3;
+begin
+  Res3D := MatrixMultDirection(M, Vector3(Dir, 0));
+  Result[0] := Res3D[0];
+  Result[1] := Res3D[1];
 end;
 
 function MatrixMultVector(const m: TMatrix4; const v: TVector4): TVector4;
