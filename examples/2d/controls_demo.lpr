@@ -87,6 +87,7 @@ begin
   ImageWithBorders.Corners := Vector4Integer(40, 40, 40, 40);
   ImageWithBorders.Stretch := true;
   ImageWithBorders.FullSize := true;
+  //ImageWithBorders.Rotation := 0.5;
   Window.Controls.InsertBack(ImageWithBorders);
 
   Notifications := TCastleNotifications.Create(Window);

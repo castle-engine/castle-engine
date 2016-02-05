@@ -365,12 +365,12 @@ type
     FCorners: TVector4Integer;
     FOwnsImage: boolean;
     FSmoothScaling: boolean;
-    function GetCenterX: Single;
-    function GetCenterY: Single;
-    function GetRotation: Single;
-    procedure SetCenterX(AValue: Single);
-    procedure SetCenterY(AValue: Single);
-    procedure SetRotation(AValue: Single);
+    FCenterX: Single;
+    FCenterY: Single;
+    FRotation: Single;
+    procedure SetCenterX(const AValue: Single);
+    procedure SetCenterY(const AValue: Single);
+    procedure SetRotation(const AValue: Single);
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TCastleImage);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
@@ -426,13 +426,13 @@ type
     property Corners: TVector4Integer read FCorners write FCorners;
 
     { X coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
-    property CenterX: Single read GetCenterX write SetCenterX default 0.5;
+    property CenterX: Single read FCenterX write SetCenterX default 0.5;
 
     { Y coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
-    property CenterY: Single read GetCenterY write SetCenterY default 0.5;
+    property CenterY: Single read FCenterY write SetCenterY default 0.5;
 
-    { Rotation in degrees. Default value 0. }
-    property Rotation: Single read GetRotation write SetRotation default 0;
+    { Rotation in radians. Default value 0. }
+    property Rotation: Single read FRotation write SetRotation default 0;
   published
     { URL of the image. Setting this also sets @link(Image).
       Set this to '' to clear the image. }
@@ -1823,6 +1823,9 @@ begin
   FColor := White;
   FOwnsImage := true;
   FSmoothScaling := true;
+  FCenterX := 0.5;
+  FCenterY := 0.5;
+  FRotation := 0;
 end;
 
 destructor TCastleImageControl.Destroy;
@@ -1855,37 +1858,43 @@ begin
   FURL := Value;
 end;
 
-function TCastleImageControl.GetCenterX: Single;
+procedure TCastleImageControl.SetCenterX(const AValue: Single);
 begin
-  Result := FGLImage.CenterX;
+  if FCenterX <> AValue then
+  begin
+    FCenterX := AValue;
+    if FGLImage <> nil then
+    begin
+      FGLImage.CenterX := FCenterX;
+      VisibleChange;
+    end;
+  end;
 end;
 
-function TCastleImageControl.GetCenterY: Single;
+procedure TCastleImageControl.SetCenterY(const AValue: Single);
 begin
-  Result := FGLImage.CenterY;
+  if FCenterY <> AValue then
+  begin
+    FCenterY := AValue;
+    if FGLImage <> nil then
+    begin
+      FGLImage.CenterY := FCenterY;
+      VisibleChange;
+    end;
+  end;
 end;
 
-function TCastleImageControl.GetRotation: Single;
+procedure TCastleImageControl.SetRotation(const AValue: Single);
 begin
-  Result := FGLImage.Rotation;
-end;
-
-procedure TCastleImageControl.SetCenterX(AValue: Single);
-begin
-  FGLImage.CenterX := AValue;
-  VisibleChange;
-end;
-
-procedure TCastleImageControl.SetCenterY(AValue: Single);
-begin
-  FGLImage.CenterY := AValue;
-  VisibleChange;
-end;
-
-procedure TCastleImageControl.SetRotation(AValue: Single);
-begin
-  FGLImage.Rotation := AValue;
-  VisibleChange;
+  if FRotation <> AValue then
+  begin
+    FRotation := AValue;
+    if FGLImage <> nil then
+    begin
+      FGLImage.Rotation := FRotation;
+      VisibleChange;
+    end;
+  end;
 end;
 
 procedure TCastleImageControl.SetImage(const Value: TCastleImage);
@@ -1980,6 +1989,9 @@ begin
       begin
         FGLImage := TGLImage.Create(FImage, FSmoothScaling);
         FGLImage.Color := Color;
+        FGLImage.CenterX := FCenterX;
+        FGLImage.CenterY := FCenterY;
+        FGLImage.Rotation := FRotation;
       end;
       if AlphaChannel <> acAuto then
         FGLImage.Alpha := AlphaChannel;
@@ -2040,8 +2052,10 @@ begin
   begin
     FColor := Value;
     if FGLImage <> nil then
+    begin
       FGLImage.Color := Value;
-    VisibleChange;
+      VisibleChange;
+    end;
   end;
 end;
 

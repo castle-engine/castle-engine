@@ -131,7 +131,8 @@ procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGL
 
 implementation
 
-uses CastleUtils, CastleLog, CastleGLVersion, CastleWarnings, CastleTextureImages,
+uses Math,
+  CastleUtils, CastleLog, CastleGLVersion, CastleWarnings, CastleTextureImages,
   CastleApplicationProperties, CastleStringUtils;
 
 function ImageGLFormat(const Img: TCastleImage): TGLenum;

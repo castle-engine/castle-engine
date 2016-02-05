@@ -319,8 +319,11 @@ type
     { Y coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
     property CenterY: Single read FCenterY write FCenterY default 0.5;
 
-    { Rotation in degrees. Default value 0. }
-    property Rotation: Single read FRotation write FRotation default 0;
+    { Rotation in radians. Increase to rotate in a counter-clockwise direction.
+      Hint: use function like ArcTan2 from Math unit to convert 2D direction
+      into a rotation angle. }
+    property Rotation: Single
+      read FRotation write FRotation default 0;
   end;
 
   { Image ready to be drawn on 2D screen, with automatically
@@ -748,7 +751,7 @@ begin
       ShiftY := Y + FCenterY * DrawHeight;
     end;
     glTranslatef( ShiftX,  ShiftY, 0);
-    glRotatef(FRotation, 0, 0, 1);
+    glRotatef(RadToDeg(FRotation), 0, 0, 1);
     glTranslatef(-ShiftX, -ShiftY, 0);
   end;
 
