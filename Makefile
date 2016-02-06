@@ -39,10 +39,17 @@
 #     Intention is to remove *everything* that can be manually recreated,
 #     even if somewhat hard, and clean editor backup.
 
-# compiling ------------------------------------------------------------
+# compile ------------------------------------------------------------
 
 .PHONY: all
 all:
+	$(MAKE) --no-print-directory build-using-fpmake
+	tools/texturefont2pascal/texturefont2pascal_compile.sh
+	tools/image2pascal/image2pascal_compile.sh
+	tools/build-tool/castle-engine_compile.sh
+
+.PHONY: build-using-fpmake
+build-using-fpmake:
 	fpc fpmake.pp
 	@echo 'Running fpmake. If this fails saying that "rtl" is not found, remember to set FPCDIR environment variable, see http://wiki.freepascal.org/FPMake .'
 # Workaround FPC >= 3.x problem (bug?) --- it ignores $FPCDIR, but --globalunitdir works
@@ -53,6 +60,43 @@ all:
 	else \
 	   ./fpmake; \
 	fi
+
+# install / uninstall --------------------------------------------------------
+#
+# Note that this *does not* take care of installing the unit files.
+# So it does not copy .ppu/.o files, it does not change your /etc/fpc.cfg
+# or ~/.fpc.cfg. There are many ways how to install unit files,
+# we leave this step up to you.
+# See http://castle-engine.sourceforge.net/engine.php for documentation.
+#
+# Below we only take care of installing the tools.
+# By default they are installed system-wide to /usr/local ,
+# so you can run "make" followed by "sudo make install" to have the tools
+# ready on a typical Unix system.
+
+# Standard installation dirs, following conventions on
+# http://www.gnu.org/prep/standards/html_node/Directory-Variables.html#Directory-Variables
+PREFIX=$(DESTDIR)/usr/local
+EXEC_PREFIX=$(PREFIX)
+BINDIR=$(EXEC_PREFIX)/bin
+DATAROOTDIR=$(PREFIX)/share
+DATADIR=$(DATAROOTDIR)
+
+.PHONY: install
+install:
+	install tools/texturefont2pascal/texturefont2pascal $(BINDIR)
+	install tools/image2pascal/image2pascal $(BINDIR)
+	install tools/build-tool/castle-engine $(BINDIR)
+#	cp -R tools/build-tool/data $(DATADIR)/castle-engine
+	cd tools/build-tool/data/ && \
+	  find . -type f -exec install -D '{}' $(DATADIR)/castle-engine/'{}' ';'
+
+.PHONY: uninstall
+uninstall:
+	rm -f  $(BINDIR)/texturefont2pascal \
+	       $(BINDIR)/image2pascal \
+	       $(BINDIR)/castle-engine
+	rm -Rf $(DATADIR)/castle-engine
 
 # examples and tools -----------------------------------------------------------
 
