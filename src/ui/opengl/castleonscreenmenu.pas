@@ -115,6 +115,7 @@ type
 
     procedure Add(const S: string);
     procedure Add(const S: string; const Accessory: TUIControl);
+    procedure Add(const S: string; const ItemOnClick: TNotifyEvent);
 
     { When ControlsCount <> 0, this is always some number
       between 0 and ControlsCount - 1.
@@ -677,11 +678,6 @@ begin
   end;
 end;
 
-procedure TCastleOnScreenMenu.Add(const S: string);
-begin
-  Add(S, nil);
-end;
-
 procedure TCastleOnScreenMenu.Add(const S: string; const Accessory: TUIControl);
 var
   L: TCastleLabel;
@@ -704,6 +700,20 @@ begin
     end;
   end;
   RecalculateSize;
+end;
+
+procedure TCastleOnScreenMenu.Add(const S: string);
+begin
+  Add(S, TUIControl(nil));
+end;
+
+procedure TCastleOnScreenMenu.Add(const S: string; const ItemOnClick: TNotifyEvent);
+var
+  Button: TCastleMenuButton;
+begin
+  Button := TCastleMenuButton.Create(Self);
+  Button.OnClick := ItemOnClick;
+  Add(S, Button);
 end;
 
 procedure TCastleOnScreenMenu.UIScaleChanged;
