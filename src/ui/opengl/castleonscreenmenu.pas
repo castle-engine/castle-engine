@@ -711,6 +711,12 @@ procedure TCastleOnScreenMenu.Add(const S: string; const ItemOnClick: TNotifyEve
 var
   Button: TCastleMenuButton;
 begin
+  { This method depends on the fact that leaving Caption='' on TCastleMenuButton
+    makes it's size (width, height) exactly 0. Otherwise our menu items
+    would needlessly grow to accomodate invisible button.
+    Try setting Button.Caption := ' ' to see this problem,
+    e.g. on "The Castle" start menu). }
+
   Button := TCastleMenuButton.Create(Self);
   Button.OnClick := ItemOnClick;
   Add(S, Button);
