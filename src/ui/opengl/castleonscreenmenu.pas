@@ -117,7 +117,8 @@ type
     procedure Add(const S: string; const Accessory: TUIControl);
     procedure Add(const S: string; const ItemOnClick: TNotifyEvent);
 
-    { When ControlsCount <> 0, this is always some number
+    { Currently selected child index.
+      When ControlsCount <> 0, this is always some number
       between 0 and ControlsCount - 1.
       Otherwise (when ControlsCount <> 0) this is always -1.
 
