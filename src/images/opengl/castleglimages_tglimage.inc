@@ -664,39 +664,26 @@ end;
 
 procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+var
+  ShiftX, ShiftY: Single;
 
-  { Multiply Matrix * Point, for Point being of TVector2SmallInt type.
-
-    Note that this is unoptimal, we're using 4x4 matrix
-    for making simple operations on 2D vectors.
-    - In reality, we could express rotation+translation in 2D
-      using 3x2 matrix, instead of 4x4 matrix as now.
-    - And we could make it even faster by dedicated
-      routine that does shift + rotate + shift in 2D,
-      instead of using general matrix multiplication.
-
-    But it's fast enough for now:)
-  }
-  function Point2DMatrixMultiply(const Matrix: TMatrix4Single;
-    const Point: TVector2SmallInt): TVector2SmallInt;
+  { Rotate Point by Rotation radians around (ShiftX, ShiftY). }
+  function RotatePoint2DAroundShift(const Point: TVector2SmallInt): TVector2SmallInt;
   var
     PointSingle, ResultSingle: TVector2Single;
   begin
-    PointSingle := Vector2Single(Point[0], Point[1]);
-    ResultSingle := MatrixMultPoint(Matrix, PointSingle);
-    Result := Vector2SmallInt(Round(ResultSingle[0]), Round(ResultSingle[1]));
+    PointSingle := Vector2Single(Point[0] - ShiftX, Point[1] - ShiftY);
+    ResultSingle := RotatePoint2D(PointSingle, Rotation);
+    Result := Vector2SmallInt(Round(ResultSingle[0] + ShiftX), Round(ResultSingle[1] + ShiftY));
   end;
 
 var
   TexX0, TexY0, TexX1, TexY1: Single;
-  Matrix: TMatrix4Single;
   {$ifdef GLImageUseShaders}
   ColorTreatment: TColorTreatment;
   AttribEnabled: array [0..1] of TGLuint;
   AttribLocation: TGLuint;
   Prog: TGLSLProgram;
-  {$else}
-  ShiftX, ShiftY: Single;
   {$endif}
 begin
   if (DrawWidth = 0) or (DrawHeight = 0) then Exit;
@@ -745,14 +732,10 @@ begin
       ShiftX := X + FCenterX * DrawWidth;
       ShiftY := Y + FCenterY * DrawHeight;
     end;
-    Matrix :=
-      TranslationMatrix( ShiftX,  ShiftY, 0) *
-      RotationMatrixRad(Rotation, 0, 0, 1) *
-      TranslationMatrix(-ShiftX, -ShiftY, 0);
-    Point[0].Position := Point2DMatrixMultiply(Matrix, Point[0].Position);
-    Point[1].Position := Point2DMatrixMultiply(Matrix, Point[1].Position);
-    Point[2].Position := Point2DMatrixMultiply(Matrix, Point[2].Position);
-    Point[3].Position := Point2DMatrixMultiply(Matrix, Point[3].Position);
+    Point[0].Position := RotatePoint2DAroundShift(Point[0].Position);
+    Point[1].Position := RotatePoint2DAroundShift(Point[1].Position);
+    Point[2].Position := RotatePoint2DAroundShift(Point[2].Position);
+    Point[3].Position := RotatePoint2DAroundShift(Point[3].Position);
   end;
 
   if GLFeatures.VertexBufferObject then

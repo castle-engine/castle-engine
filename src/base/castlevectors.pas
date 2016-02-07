@@ -993,6 +993,10 @@ function RotatePointAroundAxisRad(Angle: Single; const Point: TVector3Single; co
 function RotatePointAroundAxisRad(Angle: Double; const Point: TVector3Double; const Axis: TVector3Double): TVector3Double; overload;
 { @groupEnd }
 
+{ Rotate point in 2D, in a counter-clockwise fashion.
+  AngleRad is in radians. }
+function RotatePoint2D(const Point: TVector2Single; const AngleRad: Single): TVector2Single;
+
 { Which coordinate (0, 1, 2, and eventually 3 for 4D versions) is the largest.
   When the vector components are equal, the first one "wins", for example
   if V[0] = V[1] (and are larger than other vector component) we return 0.
@@ -3209,6 +3213,19 @@ begin
     InvertedMatrix[1, 1] := 1 / ScaleFactor[1];
     InvertedMatrix[2, 2] := 1 / ScaleFactor[2];
   end;
+end;
+
+function RotatePoint2D(const Point: TVector2Single; const AngleRad: Single): TVector2Single;
+var
+  AngleSin, AngleCos: Float;
+  S, C: Single;
+begin
+  SinCos(AngleRad, AngleSin, AngleCos);
+  { convert Float to Single once }
+  S := AngleSin;
+  C := AngleCos;
+  Result[0] := Point[0] * C - Point[1] * S;
+  Result[1] := Point[0] * S + Point[1] * C;
 end;
 
 function RotationMatrixRad(const AngleRad: Single;
