@@ -664,8 +664,32 @@ end;
 
 procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+
+  { Multiply Matrix * Point, for Point being of TVector2SmallInt type.
+
+    Note that this is unoptimal, we're using 4x4 matrix
+    for making simple operations on 2D vectors.
+    - In reality, we could express rotation+translation in 2D
+      using 3x2 matrix, instead of 4x4 matrix as now.
+    - And we could make it even faster by dedicated
+      routine that does shift + rotate + shift in 2D,
+      instead of using general matrix multiplication.
+
+    But it's fast enough for now:)
+  }
+  function Point2DMatrixMultiply(const Matrix: TMatrix4Single;
+    const Point: TVector2SmallInt): TVector2SmallInt;
+  var
+    PointSingle, ResultSingle: TVector2Single;
+  begin
+    PointSingle := Vector2Single(Point[0], Point[1]);
+    ResultSingle := MatrixMultPoint(Matrix, PointSingle);
+    Result := Vector2SmallInt(Round(ResultSingle[0]), Round(ResultSingle[1]));
+  end;
+
 var
   TexX0, TexY0, TexX1, TexY1: Single;
+  Matrix: TMatrix4Single;
   {$ifdef GLImageUseShaders}
   ColorTreatment: TColorTreatment;
   AttribEnabled: array [0..1] of TGLuint;
@@ -710,6 +734,27 @@ begin
   Point[3].TexCoord := Vector2Single(TexX0, TexY1);
   Point[3].Position := Vector2SmallInt(X            , Y + DrawHeight);
 
+  if FRotation <> 0 then
+  begin
+    if UseScreenCenter then
+    begin
+      ShiftX := ScreenCenterX;
+      ShiftY := ScreenCenterY;
+    end else
+    begin
+      ShiftX := X + FCenterX * DrawWidth;
+      ShiftY := Y + FCenterY * DrawHeight;
+    end;
+    Matrix :=
+      TranslationMatrix( ShiftX,  ShiftY, 0) *
+      RotationMatrixRad(Rotation, 0, 0, 1) *
+      TranslationMatrix(-ShiftX, -ShiftY, 0);
+    Point[0].Position := Point2DMatrixMultiply(Matrix, Point[0].Position);
+    Point[1].Position := Point2DMatrixMultiply(Matrix, Point[1].Position);
+    Point[2].Position := Point2DMatrixMultiply(Matrix, Point[2].Position);
+    Point[3].Position := Point2DMatrixMultiply(Matrix, Point[3].Position);
+  end;
+
   if GLFeatures.VertexBufferObject then
   begin
     glBindBuffer(GL_ARRAY_BUFFER, PointVbo);
@@ -739,21 +784,6 @@ begin
   {$else}
   glLoadIdentity();
   glColorv(Color);
-  if FRotation <> 0 then
-  begin
-    if UseScreenCenter then
-    begin
-      ShiftX := ScreenCenterX;
-      ShiftY := ScreenCenterY;
-    end else
-    begin
-      ShiftX := X + FCenterX * DrawWidth;
-      ShiftY := Y + FCenterY * DrawHeight;
-    end;
-    glTranslatef( ShiftX,  ShiftY, 0);
-    glRotatef(RadToDeg(FRotation), 0, 0, 1);
-    glTranslatef(-ShiftX, -ShiftY, 0);
-  end;
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
