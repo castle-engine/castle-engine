@@ -7040,6 +7040,7 @@ begin
       so avoid accidentally triggering the loop detection mechanism by increasing time }
     Inc(FTime.PlusTicks);
     TimeNode.FdStartTime.Send(Time.Seconds);
+    Inc(FTime.PlusTicks);
     PlayingAnimationNode := TimeNode;
   end;
 end;
