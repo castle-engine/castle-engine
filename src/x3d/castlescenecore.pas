@@ -624,7 +624,7 @@ type
 
     { Internal procedure that handles Time changes. }
     procedure InternalSetTime(
-      const NewValue: TX3DTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
+      NewValue: TX3DTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
 
     procedure ResetLastEventTime(Node: TX3DNode);
   private
@@ -5765,7 +5765,7 @@ begin
 end;
 
 procedure TCastleSceneCore.InternalSetTime(
-  const NewValue: TX3DTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
+  NewValue: TX3DTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
 var
   SomethingVisibleChanged: boolean;
   I: Integer;
@@ -5779,13 +5779,20 @@ begin
 
       for I := 0 to TimeDependentHandlers.Count - 1 do
       begin
+        { when ResetTime (e.g. when this is caused by ResetTimeAtLoad) then all
+          time handlers will change elapsedTime on all TimeSensors to 0
+          (see TTimeDependentNodeHandler.SetTime implementation). And this will
+          cause elapsedTime and fraction_changed outputs generated even for
+          inactive TimeSensors. So make sure to avoid routes loop warnings
+          by increasing PlusTicks below. 
+          (reproduction: escape_universe game restart.) }
+        Inc(NewValue.PlusTicks);
         if TimeDependentHandlers[I].SetTime(Time, NewValue, TimeIncrease, ResetTime) and
           (TimeDependentHandlers[I].Node is TMovieTextureNode) then
           SomethingVisibleChanged := true;
       end;
 
-      { If SomethingVisibleChanged (on MovieTexture nodes),
-        then we have to redisplay. }
+      { If SomethingVisibleChanged (in MovieTexture nodes), we have to redisplay. }
       if SomethingVisibleChanged then
         VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 
