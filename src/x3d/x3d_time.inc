@@ -351,9 +351,13 @@ var
     and loop = TRUE. }
   procedure IncreaseElapsedTime(Increase: TFloatTime; StopOnNonLoopedEnd: boolean);
   begin
-    // in case of time resetting, we can have wild differences
-    // between stopTime and NewValue, and Increase could get < 0, secure.
+    { In case of time resetting, we can have wild differences
+      between stopTime and NewValue, and Increase could get < 0.
+      Consider for example trick with startTime := 0, stopTime := 1
+      in UpdateNewPlayingAnimation in TCastleSceneCore.InternalSetTime.
+      So make sure Increase here is always >= 0. }
     MaxVar(Increase, 0);
+
     NewElapsedTime      := NewElapsedTime      + Increase;
     FElapsedTimeInCycle := FElapsedTimeInCycle + Increase;
 

@@ -7110,6 +7110,8 @@ begin
       executed by non-last PlayAnimation call within the same frame,
       and so these animations play (while they should not), simultaneously
       with desired animations.
+      (reproduction: escape_universe, boss flying + flying_left/right + dying
+      animations.)
 
       Don't even set TimeNode.Loop here --- setting Loop property
       on a node, and then not controlling it's startTime / stopTime,
