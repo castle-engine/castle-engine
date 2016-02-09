@@ -350,8 +350,7 @@ var
     and CycleTime value) if the *new* cycle started. This means
     that new ElapsedTime reached the non-zero CycleInterval
     and loop = TRUE. }
-  procedure IncreaseElapsedTime(const Increase: TFloatTime;
-    StopOnNonLoopedEnd: boolean);
+  procedure IncreaseElapsedTime(Increase: TFloatTime; StopOnNonLoopedEnd: boolean);
   begin
     // in case of time resetting, we can have wild differences
     // between stopTime and NewValue, and Increase could get < 0, secure.
