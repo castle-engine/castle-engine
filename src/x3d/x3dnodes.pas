@@ -5281,8 +5281,9 @@ begin
   end else
   if Log then
     WritelnLog('VRML/X3D', Format(
-      'Route from %s.%s ignored another event at <= timestamp (%f.%d, while last event was on %f.%d). Potential routes loop avoided',
+      'Route %s.%s -> %s.%s ignored another event at <= timestamp (%f.%d, while last event was on %f.%d). Potential routes loop avoided',
       [ SourceNode.NodeName, SourceEvent.Name,
+        DestinationNode.NodeName, DestinationEvent.Name,
         Time.Seconds, Time.PlusTicks,
         LastEventTime.Seconds, LastEventTime.PlusTicks ]));
 end;
