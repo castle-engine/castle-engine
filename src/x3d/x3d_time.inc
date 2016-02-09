@@ -106,7 +106,7 @@
       8.2 ("concepts") for logic behind all those start/stop/pause/resumeTime,
       cycleInterval, loop properties.
 
-      @returns(If some state of time-dependent node  changed.) }
+      @returns(If some state of time-dependent node changed.) }
     function SetTime(const OldValue, NewValue: TX3DTime;
       const TimeIncrease: TFloatTime; const ResetTime: boolean): boolean;
   end;
@@ -397,6 +397,7 @@ begin
         ]));
   {$endif}
 
+  Result := false;
   CurrentTime := NewValue;
 
   if (Fdenabled <> nil) and (not Fdenabled.Value) then
@@ -576,7 +577,7 @@ begin
   {$ifdef LOG_TIME_DEPENDENT_NODES}
   if Log then
     WritelnLog('TimeDependentNodes', Format('%s: after: active %s, paused %s',
-      [ Node.NodeTypeName,
+      [ Node.NiceName,
         BoolToStr[IsActive],
         BoolToStr[IsPaused]]));
   {$endif}
