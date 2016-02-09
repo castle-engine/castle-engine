@@ -90,8 +90,7 @@
       This is the most important method of this class, that basically
       implements time-dependent nodes operations.
 
-      OldValue, NewValue and TimeIncrease must match, as produced
-      by TCastleSceneCore.SetTime and friends.
+      NewValue and TimeIncrease are produced by TCastleSceneCore.SetTime and friends.
 
       When ResetTime = true, this means that "TimeIncrease value is unknown"
       (you @italic(must) pass TimeIncrease = 0 in this case).
@@ -107,7 +106,7 @@
       cycleInterval, loop properties.
 
       @returns(If some state of time-dependent node changed.) }
-    function SetTime(const OldValue, NewValue: TX3DTime;
+    function SetTime(const NewValue: TX3DTime;
       const TimeIncrease: TFloatTime; const ResetTime: boolean): boolean;
   end;
 
@@ -329,7 +328,7 @@ begin
 end;
 
 function TTimeDependentNodeHandler.SetTime(
-  const OldValue, NewValue: TX3DTime;
+  const NewValue: TX3DTime;
   const TimeIncrease: TFloatTime; const ResetTime: boolean): boolean;
 
 var
@@ -391,9 +390,9 @@ begin
 
   {$ifdef LOG_TIME_DEPENDENT_NODES}
   if Log then
-    WritelnLog('TimeDependentNodes', Format('%s: time changes from %f (by +%f) to %f. Cycle interval: %f. Before state: active %s, paused %s, loop %s',
+    WritelnLog('TimeDependentNodes', Format('%s: time changes by +%f to %f. Cycle interval: %f. Before state: active %s, paused %s, loop %s',
       [ Node.NodeTypeName,
-        OldValue.Seconds, TimeIncrease, NewValue.Seconds,
+        TimeIncrease, NewValue.Seconds,
         CycleInterval,
         BoolToStr[IsActive], BoolToStr[IsPaused], BoolToStr[FdLoop.Value]
         ]));

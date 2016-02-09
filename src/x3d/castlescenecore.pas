@@ -4103,7 +4103,7 @@ var
       we would mistakenly interpret resuming (from paused state) just like
       activation (from stopped state), testcase time_sensor_3.x3dv. }
 
-    Handler.SetTime(Time, Time, 0, false);
+    Handler.SetTime(Time, 0, false);
 
     { No need to do VisibleChangeHere.
       Redisplay will be done by next IncreaseTime run, if active now. }
@@ -5766,47 +5766,118 @@ end;
 
 procedure TCastleSceneCore.InternalSetTime(
   NewValue: TX3DTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
-var
-  SomethingVisibleChanged: boolean;
-  I: Integer;
-  ChangedSkin: TMFVec3f;
+
+  { Apply NewPlayingAnimation* stuff.
+
+    Call outside of AnimateOnlyWhenVisible check, to do it even when object is not visible.
+    Otherwise stop/start time would be shifted to when it becomes visible, which is not perfect
+    (although it would be Ok in practice too?) }
+  procedure UpdateNewPlayingAnimation;
+  begin
+    if NewPlayingAnimationUse then
+    begin
+      NewPlayingAnimationUse := false;
+      if PlayingAnimationNode <> nil then
+      begin
+        PlayingAnimationNode.StopTime := Time.Seconds;
+        Inc(FTime.PlusTicks);
+      end;
+      PlayingAnimationNode := NewPlayingAnimationNode;
+      if PlayingAnimationNode <> nil then
+      begin
+        case NewPlayingAnimationLooping of
+          paForceLooping   : PlayingAnimationNode.Loop := true;
+          paForceNotLooping: PlayingAnimationNode.Loop := false;
+        end;
+        Inc(FTime.PlusTicks);
+        PlayingAnimationNode.StartTime := Time.Seconds;
+        Inc(FTime.PlusTicks);
+      end;
+    end;
+  end;
+
+  { Call SetTime on all TimeDependentHandlers. }
+  procedure UpdateTimeDependentHandlers(const ExtraTimeIncrease: TFloatTime);
+  var
+    SomethingVisibleChanged: boolean;
+    I: Integer;
+  begin
+    SomethingVisibleChanged := false;
+
+    for I := 0 to TimeDependentHandlers.Count - 1 do
+    begin
+      { when ResetTime (e.g. when this is caused by ResetTimeAtLoad) then all
+        time handlers will change elapsedTime on all TimeSensors to 0
+        (see TTimeDependentNodeHandler.SetTime implementation). And this will
+        cause elapsedTime and fraction_changed outputs generated even for
+        inactive TimeSensors. So make sure to avoid routes loop warnings
+        by increasing PlusTicks below.
+        (reproduction: escape_universe game restart.) }
+      Inc(NewValue.PlusTicks);
+      if TimeDependentHandlers[I].SetTime(NewValue, TimeIncrease + ExtraTimeIncrease, ResetTime) and
+        (TimeDependentHandlers[I].Node is TMovieTextureNode) then
+        SomethingVisibleChanged := true;
+    end;
+
+    { If SomethingVisibleChanged (in MovieTexture nodes), we have to redisplay. }
+    if SomethingVisibleChanged then
+      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+  end;
+
+  { Call UpdateTimeDependentHandlers, but only if AnimateOnlyWhenVisible logic agrees.
+    Note that ResetTime = true forces always an UpdateTimeDependentHandlers(0.0) call. }
+  procedure UpdateTimeDependentHandlersIfVisible;
+  begin
+    if FAnimateOnlyWhenVisible and (not IsVisibleNow) and (not ResetTime) then
+      FAnimateOnlyWhenVisibleGatheredTime += TimeIncrease else
+    begin
+      if ResetTime then
+        FAnimateOnlyWhenVisibleGatheredTime := 0;
+      UpdateTimeDependentHandlers(FAnimateOnlyWhenVisibleGatheredTime);
+      FAnimateOnlyWhenVisibleGatheredTime := 0;
+    end;
+    IsVisibleNow := false;
+  end;
+
+  { Call humanoids AnimateSkin.
+    This could actually be done from anywhere, as long as it gets called
+    fairly soon after every HAnimJoint animation. }
+  procedure UpdateHumanoidSkin;
+  var
+    I: Integer;
+    ChangedSkin: TMFVec3f;
+  begin
+    for I := 0 to ScheduledHumanoidAnimateSkin.Count - 1 do
+    begin
+      ChangedSkin := (ScheduledHumanoidAnimateSkin.Items[I]
+        as THAnimHumanoidNode).AnimateSkin;
+      if ChangedSkin <> nil then
+        ChangedSkin.Changed;
+    end;
+    ScheduledHumanoidAnimateSkin.Count := 0;
+  end;
+
+  { Process TransformationDirty at the end of increasing time, to apply scheduled
+    TransformationDirty in the same Update, as soon as possible
+    (useful e.g. for mana shot animation in dragon_squash). }
+  procedure UpdateTransformationDirty;
+  begin
+    if TransformationDirty <> [] then
+    begin
+      RootTransformationChanged(TransformationDirty);
+      TransformationDirty := [];
+    end;
+  end;
+
 begin
   if ProcessEvents then
   begin
     BeginChangesSchedule;
     try
-      SomethingVisibleChanged := false;
-
-      for I := 0 to TimeDependentHandlers.Count - 1 do
-      begin
-        { when ResetTime (e.g. when this is caused by ResetTimeAtLoad) then all
-          time handlers will change elapsedTime on all TimeSensors to 0
-          (see TTimeDependentNodeHandler.SetTime implementation). And this will
-          cause elapsedTime and fraction_changed outputs generated even for
-          inactive TimeSensors. So make sure to avoid routes loop warnings
-          by increasing PlusTicks below. 
-          (reproduction: escape_universe game restart.) }
-        Inc(NewValue.PlusTicks);
-        if TimeDependentHandlers[I].SetTime(Time, NewValue, TimeIncrease, ResetTime) and
-          (TimeDependentHandlers[I].Node is TMovieTextureNode) then
-          SomethingVisibleChanged := true;
-      end;
-
-      { If SomethingVisibleChanged (in MovieTexture nodes), we have to redisplay. }
-      if SomethingVisibleChanged then
-        VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-
-      { call humanoids AnimateSkin now.
-        This could actually be done anywhere, as long as it gets called
-        fairly soon after every HAnimJoint animation. }
-      for I := 0 to ScheduledHumanoidAnimateSkin.Count - 1 do
-      begin
-        ChangedSkin := (ScheduledHumanoidAnimateSkin.Items[I]
-          as THAnimHumanoidNode).AnimateSkin;
-        if ChangedSkin <> nil then
-          ChangedSkin.Changed;
-      end;
-      ScheduledHumanoidAnimateSkin.Count := 0;
+      UpdateNewPlayingAnimation;
+      UpdateTimeDependentHandlersIfVisible;
+      UpdateHumanoidSkin;
+      UpdateTransformationDirty;
     finally
       EndChangesSchedule;
     end;
@@ -5889,56 +5960,20 @@ begin
   if LastUpdateFrameId = TFramesPerSecond.FrameId then Exit;
   LastUpdateFrameId := TFramesPerSecond.FrameId;
 
-  if NewPlayingAnimationUse then
-  begin
-    NewPlayingAnimationUse := false;
-    if PlayingAnimationNode <> nil then
-    begin
-      PlayingAnimationNode.StopTime := Time.Seconds;
-      Inc(FTime.PlusTicks);
-    end;
-    PlayingAnimationNode := NewPlayingAnimationNode;
-    if PlayingAnimationNode <> nil then
-    begin
-      case NewPlayingAnimationLooping of
-        paForceLooping   : PlayingAnimationNode.Loop := true;
-        paForceNotLooping: PlayingAnimationNode.Loop := false;
-      end;
-      Inc(FTime.PlusTicks);
-      PlayingAnimationNode.StartTime := Time.Seconds;
-      Inc(FTime.PlusTicks);
-    end;
-  end;
+  { Most of the "update" job should go to InternalSetTime implementation,
+    because TCastlePrecalculatedAnimation calls only SetTime, not Update. }
 
-  if FAnimateOnlyWhenVisible and not IsVisibleNow then
-    FAnimateOnlyWhenVisibleGatheredTime += SecondsPassed else
-  begin
-    { Ignore Update calls when SecondsPassed is precisely zero
-      (this may happen, and is correct, see TFramesPerSecond.ZeroNextSecondsPassed).
-      In this case, time increase will be zero so the whole code
-      will not do anything anyway.
+  { Ignore calls when SecondsPassed is precisely zero
+    (this may happen, and is correct, see TFramesPerSecond.ZeroNextSecondsPassed).
+    In this case, time increase will be zero so the whole code
+    will not do anything anyway.
 
-      (Well, time dependent nodes like TimeSensor could "realize" that startTime
-      happened *now*, and send initial events to start animation.
-      But actually we take care of it in HandleChangeTimeStopStart.) }
-    SP := SecondsPassed + FAnimateOnlyWhenVisibleGatheredTime;
-    FAnimateOnlyWhenVisibleGatheredTime := 0;
-    if TimePlaying and (SP <> 0) then
-      IncreaseTime(TimePlayingSpeed * SP);
-  end;
-
-  Inc(FTime.PlusTicks);
-
-  { process TransformationDirty after IncreaseTime, to apply scheduled
-    TransformationDirty in the same Update, as soon as possible
-    (useful e.g. for mana shot animation in dragon_squash). }
-  if TransformationDirty <> [] then
-  begin
-    RootTransformationChanged(TransformationDirty);
-    TransformationDirty := [];
-  end;
-
-  IsVisibleNow := false;
+    (Well, time dependent nodes like TimeSensor could "realize" that startTime
+    happened *now*, and send initial events to start animation.
+    But actually we take care of it in HandleChangeTimeStopStart.) }
+  SP := TimePlayingSpeed * SecondsPassed;
+  if TimePlaying and (SP <> 0) then
+    IncreaseTime(SP);
 end;
 
 { changes schedule ----------------------------------------------------------- }
