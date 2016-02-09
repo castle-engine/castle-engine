@@ -522,7 +522,7 @@ type
     NewPlayingAnimationNode: TTimeSensorNode;
     NewPlayingAnimationLooping: TPlayAnimationLooping;
     FAnimationPrefix: string;
-    FAnimationsList: TStringList;
+    FAnimationsList: TStrings;
 
     { When this is non-empty, then the transformation change happened,
       and should be processed (for the whole X3D graph inside RootNode).
@@ -767,7 +767,6 @@ type
     procedure RenderingCameraChanged(const RenderingCamera: TRenderingCamera;
       Viewpoint: TAbstractViewpointNode);
     procedure SetHeadlightOn(const Value: boolean);
-    function AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
   protected
     { List of TScreenEffectNode nodes, collected by ChangedAll. }
     ScreenEffectNodes: TX3DNodeList;
@@ -1826,7 +1825,7 @@ type
       Note that the list of animations may change if you rebuild the underlying
       X3D nodes graph, for example if you start to delete / add some TimeSensor
       nodes.  }
-    property AnimationsList: TStringList read FAnimationsList;
+    property AnimationsList: TStrings read FAnimationsList;
 
     { Does named animation with given name exist.
       @seealso AnimationsList
@@ -7035,7 +7034,7 @@ begin
         [AnimationName]));
       Exit;
     end;
-    List.Add(AnimationName);
+    List.AddObject(AnimationName, Node);
   end;
 end;
 
@@ -7060,14 +7059,6 @@ begin
   Result := FAnimationsList.IndexOf(AnimationName) <> -1;
 end;
 
-function TCastleSceneCore.AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
-begin
-  if RootNode <> nil then
-    Result := RootNode.TryFindNodeByName(TTimeSensorNode,
-      AnimationPrefix + AnimationName, true) as TTimeSensorNode else
-    Result := nil;
-end;
-
 (*
 function TCastleSceneCore.ForceAnimationPose(const AnimationName: string;
   const Looping: TPlayAnimationLooping;
@@ -7076,7 +7067,7 @@ var
   TimeNode: TTimeSensorNode;
   Loop: boolean;
 begin
-  TimeNode := AnimationTimeSensor(AnimationName);
+  TimeNode := ...;
   Result := TimeNode <> nil;
   if Result then
   begin
@@ -7095,10 +7086,10 @@ end;
 function TCastleSceneCore.PlayAnimation(const AnimationName: string;
   const Looping: TPlayAnimationLooping): boolean;
 var
-  TimeNode: TTimeSensorNode;
+  Index: Integer;
 begin
-  TimeNode := AnimationTimeSensor(AnimationName);
-  Result := TimeNode <> nil;
+  Index := FAnimationsList.IndexOf(AnimationName);
+  Result := Index <> -1;
   if Result then
   begin
     { We defer actual sending of stopTime and startTime to Update method.
@@ -7118,7 +7109,7 @@ begin
       means that it will play infinitely (because the default values
       mean that stopTime is ignored).
     }
-    NewPlayingAnimationNode := TimeNode;
+    NewPlayingAnimationNode := FAnimationsList.Objects[Index] as TTimeSensorNode;
     NewPlayingAnimationLooping := Looping;
     NewPlayingAnimationUse := true;
   end;
@@ -7126,14 +7117,15 @@ end;
 
 function TCastleSceneCore.AnimationDuration(const AnimationName: string): TFloatTime;
 var
+  Index: Integer;
   TimeNode: TTimeSensorNode;
 begin
-  if RootNode <> nil then
-    TimeNode := RootNode.TryFindNodeByName(TTimeSensorNode,
-      AnimationPrefix + AnimationName, true) as TTimeSensorNode else
-    TimeNode := nil;
-  if TimeNode <> nil then
-    Result := TimeNode.CycleInterval else
+  Index := FAnimationsList.IndexOf(AnimationName);
+  if Index <> -1 then
+  begin
+    TimeNode := FAnimationsList.Objects[Index] as TTimeSensorNode;
+    Result := TimeNode.CycleInterval;
+  end else
     Result := 0;
 end;
 
