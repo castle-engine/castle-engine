@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
 
-  { }
+  { Callback type for @link(TX3DEvent.OnReceive). }
   TX3DEventReceive = procedure (Event: TX3DEvent; Value: TX3DField;
     const Time: TX3DTime) of object;
 
@@ -87,6 +87,27 @@
       these are used by node itself to listen to events send to it.
       For output fields, these are used by routes, scripts to listen
       to events occuring.
+
+      When you handle this callback to send another X3D event,
+      you should pass around the same @code(Time) value.
+      This makes sure that X3D route loop detection mechanism works fine.
+      For example, here's how handling TimeSensor.elapsedTime_receive event
+      sends fraction_changed event:
+
+@longCode(#
+procedure TTimeSensorNode.EventElapsedTimeReceive(
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+var
+  Fraction: Single;
+begin
+  if FdEnabled.Value then
+  begin
+    Fraction := ...; // doesn't matter here how this is calculated
+    // Pass "Time" parameter further by a call below
+    Eventfraction_changed.Send(Fraction, Time);
+  end;
+end;
+#)
 
       All callbacks here are simply called by @link(Send) method. }
     property OnReceive: TX3DEventReceiveList read FOnReceive;
