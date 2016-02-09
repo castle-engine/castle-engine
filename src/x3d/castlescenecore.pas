@@ -518,6 +518,9 @@ type
     ScheduledHumanoidAnimateSkin: TX3DNodeList;
 
     PlayingAnimationNode: TTimeSensorNode;
+    NewPlayingAnimationUse: boolean;
+    NewPlayingAnimationNode: TTimeSensorNode;
+    NewPlayingAnimationLooping: TPlayAnimationLooping;
     FAnimationPrefix: string;
     FAnimationsList: TStringList;
 
@@ -3002,6 +3005,8 @@ begin
   KeyDeviceSensorNodes.Clear;
   TimeDependentHandlers.Clear;
   PlayingAnimationNode := nil;
+  NewPlayingAnimationNode := nil;
+  NewPlayingAnimationUse := false;
 
   if not InternalChangedAll then
   begin
@@ -5877,6 +5882,27 @@ begin
   if LastUpdateFrameId = TFramesPerSecond.FrameId then Exit;
   LastUpdateFrameId := TFramesPerSecond.FrameId;
 
+  if NewPlayingAnimationUse then
+  begin
+    NewPlayingAnimationUse := false;
+    if PlayingAnimationNode <> nil then
+    begin
+      PlayingAnimationNode.StopTime := Time.Seconds;
+      Inc(FTime.PlusTicks);
+    end;
+    PlayingAnimationNode := NewPlayingAnimationNode;
+    if PlayingAnimationNode <> nil then
+    begin
+      case NewPlayingAnimationLooping of
+        paForceLooping   : PlayingAnimationNode.Loop := true;
+        paForceNotLooping: PlayingAnimationNode.Loop := false;
+      end;
+      Inc(FTime.PlusTicks);
+      PlayingAnimationNode.StartTime := Time.Seconds;
+      Inc(FTime.PlusTicks);
+    end;
+  end;
+
   if FAnimateOnlyWhenVisible and not IsVisibleNow then
     FAnimateOnlyWhenVisibleGatheredTime += SecondsPassed else
   begin
@@ -7021,27 +7047,24 @@ begin
   Result := TimeNode <> nil;
   if Result then
   begin
-    { stop previous animation, if any.
-      Do it only if new AnimationName is found,
-      otherwise animation would be left in weird state left in the middle
-      of previous animation. }
-    if PlayingAnimationNode <> nil then
-    begin
-      PlayingAnimationNode.FdStopTime.Send(Time.Seconds);
-      PlayingAnimationNode := nil;
-    end;
-    Inc(FTime.PlusTicks);
+    { We defer actual sending of stopTime and startTime to Update method.
+      This way multiple calls to PlayAnimation within the same frame
+      behave Ok, only last one matters.
 
-    case Looping of
-      paForceLooping   : TimeNode.FdLoop.Send(true);
-      paForceNotLooping: TimeNode.FdLoop.Send(false);
-    end;
-    { sending stopTime and startTime may affect the same routes,
-      so avoid accidentally triggering the loop detection mechanism by increasing time }
-    Inc(FTime.PlusTicks);
-    TimeNode.FdStartTime.Send(Time.Seconds);
-    Inc(FTime.PlusTicks);
-    PlayingAnimationNode := TimeNode;
+      Otherwise we're left
+      with TimeSensor having equal stopTime and startTime on animations
+      executed by non-last PlayAnimation call within the same frame,
+      and so these animations play (while they should not), simultaneously
+      with desired animations.
+
+      Don't even set TimeNode.Loop here --- setting Loop property
+      on a node, and then not controlling it's startTime / stopTime,
+      means that it will play infinitely (because the default values
+      mean that stopTime is ignored).
+    }
+    NewPlayingAnimationNode := TimeNode;
+    NewPlayingAnimationLooping := Looping;
+    NewPlayingAnimationUse := true;
   end;
 end;
 
