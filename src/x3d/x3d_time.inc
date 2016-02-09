@@ -353,6 +353,9 @@ var
   procedure IncreaseElapsedTime(const Increase: TFloatTime;
     StopOnNonLoopedEnd: boolean);
   begin
+    // in case of time resetting, we can have wild differences
+    // between stopTime and NewValue, and Increase could get < 0, secure.
+    MaxVar(Increase, 0);
     NewElapsedTime      := NewElapsedTime      + Increase;
     FElapsedTimeInCycle := FElapsedTimeInCycle + Increase;
 
@@ -441,10 +444,9 @@ begin
        ( (NewValue.Seconds < FdStopTime.Value) or
          { stopTime is ignored if it's <= startTime }
          (FdStopTime.Value <= FdStartTime.Value) ) and
-       { avoid starting the movie if it should be stopped according
+       { avoid starting the animation if it should be stopped according
          to loop and cycleInterval }
-       not ( (NewValue.Seconds - FdStartTime.Value >
-             CycleInterval) and
+       not ( (NewValue.Seconds - FdStartTime.Value > CycleInterval) and
              (not FdLoop.Value) ) then
     begin
       NewIsActive := true;
