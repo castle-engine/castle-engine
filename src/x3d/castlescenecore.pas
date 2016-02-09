@@ -5779,8 +5779,20 @@ procedure TCastleSceneCore.InternalSetTime(
       NewPlayingAnimationUse := false;
       if PlayingAnimationNode <> nil then
       begin
-        PlayingAnimationNode.StopTime := Time.Seconds;
-        Inc(FTime.PlusTicks);
+        { Stopping animation this way, instead of setting StopTime := current time,
+          seems more secure in case you will move time backwards,
+          e.g. by ResetTime or ResetTimeAtLoad.
+
+          Then it's important that you don't accidentally activate a time sensor that is
+          inactive, but was active long time ago.
+          This trick will work assuming you never reset time to something < 1.
+          (If you do reset time to something very small, then typical TimeSensors will
+          have problems anyway,
+          see http://castle-engine.sourceforge.net/x3d_time_origin_considered_uncomfortable.php ). }
+        PlayingAnimationNode.StartTime := 0; Inc(FTime.PlusTicks);
+        PlayingAnimationNode.StopTime := 1;  Inc(FTime.PlusTicks);
+        PlayingAnimationNode.Loop := false;  Inc(FTime.PlusTicks);
+        //PlayingAnimationNode.StopTime := Time.Seconds;  Inc(FTime.PlusTicks);
       end;
       PlayingAnimationNode := NewPlayingAnimationNode;
       if PlayingAnimationNode <> nil then
