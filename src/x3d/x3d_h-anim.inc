@@ -716,7 +716,10 @@ begin
         begin
           TempToSend := TSFVec3f.Create(ChildJoint, 'center', NewChildCenter);
           try
-            ChildJoint.FdCenter.EventOut.Send(TempToSend, Scene.NextEventTime);
+            { Scene may be nil, reproduce by:
+              view3dscene ~/Dropbox/3dmodels/vrmlx3d/hanim/kambi_hanim_200_spec/hanim_loa_3.wrl }
+            if Scene <> nil then
+              ChildJoint.FdCenter.EventOut.Send(TempToSend, Scene.NextEventTime);
           finally FreeAndNil(TempToSend) end;
         end;
 
