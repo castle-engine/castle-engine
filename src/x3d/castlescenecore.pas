@@ -5796,10 +5796,13 @@ procedure TCastleSceneCore.InternalSetTime(
     Otherwise stop/start time would be shifted to when it becomes visible, which is not perfect
     (although it would be Ok in practice too?) }
   procedure UpdateNewPlayingAnimation;
+  var
+    SameAnimation: boolean;
   begin
     if NewPlayingAnimationUse then
     begin
       NewPlayingAnimationUse := false;
+      SameAnimation := PlayingAnimationNode = NewPlayingAnimationNode;
       if PlayingAnimationNode <> nil then
       begin
         { We want to stop old PlayingAnimationNode from sending any further
@@ -5855,7 +5858,9 @@ procedure TCastleSceneCore.InternalSetTime(
         end;
         PlayingAnimationNode.Enabled := true;
         PlayingAnimationNode.StopTime := 0;
-        PlayingAnimationNode.StartTime := Time;
+        if not SameAnimation then
+          { setting startTime on a running TimeSensor would be ignored }
+          PlayingAnimationNode.StartTime := Time;
       end;
     end;
   end;
