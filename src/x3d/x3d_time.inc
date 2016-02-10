@@ -252,7 +252,11 @@ procedure TSFTimeIgnoreWhenActive.ExposedEventReceive(
   end;
 
 begin
-  if Active then Exit;
+  if Active then
+  begin
+    WritelnLog('Change Ignored', 'An change of "' + Name + '" field while the time-dependent node is active is ignored (the value remains unchanged), following the X3D specification.');
+    Exit;
+  end;
   inherited;
 end;
 
@@ -420,11 +424,10 @@ begin
     Exit;
   end;
 
-  { Note that each set of IsActive, IsPaused, ElapsedTime may generate events.
-    So we cannot carelessly set them many times in this method,
-    as double events are bad (besides possible unneeded overhead with
-    propagating them, route ignore events at the same timestamp,
-    since they may indicate loops in routes).
+  { Note that each set of IsActive, IsPaused, ElapsedTime may generate
+    an X3D event. So we should not carelessly set them many times in this method,
+    as it would waste time (why send an event that something changes,
+    when right after it you send another event that is changes?).
 
     Solution: below we will operate on local copies of these variables,
     like NewIsActive, NewIsPaused etc.

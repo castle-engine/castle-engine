@@ -2445,6 +2445,7 @@ begin
   KeyDeviceSensorNodes := TX3DNodeList.Create(false);
   TimeDependentHandlers := TTimeDependentHandlerList.Create(false);
   FAnimationsList := TStringList.Create;
+  TStringList(FAnimationsList).CaseSensitive := true; // X3D node names are case-sensitive
 
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
@@ -5801,20 +5802,49 @@ procedure TCastleSceneCore.InternalSetTime(
       NewPlayingAnimationUse := false;
       if PlayingAnimationNode <> nil then
       begin
-        { Stopping animation this way, instead of setting StopTime := current time,
-          seems more secure in case you will move time backwards,
-          e.g. by ResetTime or ResetTimeAtLoad.
+        { We want to stop old PlayingAnimationNode from sending any further
+          elapsedTime events (elapsedTime causes also fraction_changed).
+          Sending of further elapsedTime means that two animations try to play
+          at the same time, and modify the same transforms.
 
-          Then it's important that you don't accidentally activate a time sensor that is
-          inactive, but was active long time ago.
-          This trick will work assuming you never reset time to something < 1.
+          One way to stop animation is to set
+
+            PlayingAnimationNode.StopTime := Time;
+
+          While it works in practice (no reproducible bug with it found),
+          it has 2 problems:
+
+          - There will be 1 additional frame when TimeSensor "finishes of"
+            the animation, by remaining "TimeIncrease - (NewTime - FdStopTime.Value)"
+            duration. This isn't a problem in practice, since it only happens for 1 frame
+            (then the old TimeSensor becomes inactive), but it stil feels dirty/wasteful.
+
+          - In case you will move time backwards, e.g. by ResetTime or ResetTimeAtLoad,
+            you may get into trouble.
+            You may accidentally activate a time sensor that is
+            inactive now, but was active long time ago.
+
+          To overcome the 2nd problem, we tried the trick below.
+          It will work assuming you never reset time to something < 1.
           (If you do reset time to something very small, then typical TimeSensors will
           have problems anyway,
-          see http://castle-engine.sourceforge.net/x3d_time_origin_considered_uncomfortable.php ). }
-        PlayingAnimationNode.StartTime := 0;
-        PlayingAnimationNode.StopTime := 1;
-        PlayingAnimationNode.Loop := false;
-        //PlayingAnimationNode.StopTime := Time;
+          see http://castle-engine.sourceforge.net/x3d_time_origin_considered_uncomfortable.php ).
+
+            PlayingAnimationNode.StartTime := 0;
+            PlayingAnimationNode.StopTime := 1;
+            PlayingAnimationNode.Loop := false;
+
+          But this:
+          - Still has the "1 additional frame when TimeSensor finishes of" dirtyness.
+          - Also, setting startTime while time-dependent node is active is ignored,
+            X3D spec requires this, see our TSFTimeIgnoreWhenActive implementation.
+            (bug reproduction: escape_universe, meteorite_1 dying).
+
+          So it's simpest and reliable to just set enabled=false on old TimeSensor.
+          TTimeDependentNodeHandler.SetTime then guarantees it will immediately stop
+          sending elapsedTime events. }
+
+        PlayingAnimationNode.Enabled := false;
       end;
       PlayingAnimationNode := NewPlayingAnimationNode;
       if PlayingAnimationNode <> nil then
@@ -5823,6 +5853,8 @@ procedure TCastleSceneCore.InternalSetTime(
           paForceLooping   : PlayingAnimationNode.Loop := true;
           paForceNotLooping: PlayingAnimationNode.Loop := false;
         end;
+        PlayingAnimationNode.Enabled := true;
+        PlayingAnimationNode.StopTime := 0;
         PlayingAnimationNode.StartTime := Time;
       end;
     end;
@@ -7007,6 +7039,7 @@ end;
 
 type
   TAnimationsEnumerator = class
+    //Parent: TCastleSceneCore;
     AnimationPrefix: string;
     List: TStringList;
     procedure Enumerate(Node: TX3DNode);
@@ -7031,6 +7064,9 @@ begin
         [AnimationName]));
       Exit;
     end;
+    // if Log then
+    //   WritelnLog('Animation', 'In %s, named animation: %s, duration %f',
+    //     [URICaption(Parent.URL), AnimationName, (Node as TTimeSensorNode).CycleInterval]);
     List.AddObject(AnimationName, Node);
   end;
 end;
@@ -7040,10 +7076,12 @@ var
   Enum: TAnimationsEnumerator;
 begin
   Result := TStringList.Create;
+  Result.CaseSensitive := true; // X3D node names are case-sensitive
   if RootNode <> nil then
   begin
     Enum := TAnimationsEnumerator.Create;
     try
+      //Enum.Parent := Self;
       Enum.List := Result;
       Enum.AnimationPrefix := AnimationPrefix;
       RootNode.EnumerateNodes(TTimeSensorNode, @Enum.Enumerate, true);

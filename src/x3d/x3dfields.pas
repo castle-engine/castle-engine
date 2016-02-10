@@ -659,8 +659,7 @@ type
       The Create constructor should be just a comfortable extension of
       CreateUndefined, that does the same and addiionally gets parameters
       that specify default field value. }
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string);
 
     { Virtual constructor, that you can use to construct field instance when
       field class is known only at runtime.
