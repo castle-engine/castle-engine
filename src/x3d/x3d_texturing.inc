@@ -921,7 +921,7 @@ begin
       FTextureUsedFullUrl := FullUrl;
       FDuration := FTextureVideo.TimeDuration;
       if Scene <> nil then
-        EventDuration_Changed.Send(FDuration, Scene.GetTime);
+        EventDuration_Changed.Send(FDuration, Scene.NextEventTime);
       Break;
     except
       on E: Exception do

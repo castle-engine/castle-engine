@@ -44,7 +44,7 @@ type
     procedure Add(FieldOrEvent: TX3DFieldOrEvent);
 
     procedure BeforeExecute;
-    procedure AfterExecute;
+    procedure AfterExecute(const Time: TX3DTime);
 
     { Clear the memory when the last events were generated from this script.
       For each script output-capable field (inputOutput or outputOnly)
@@ -89,7 +89,8 @@ procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
   This checks ValueAssigned, and propagates value change to appropriate
   field/event, sending event/setting field. }
 procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
-  FieldOrEvent: TX3DFieldOrEvent; var LastEventTime: TX3DTime);
+  FieldOrEvent: TX3DFieldOrEvent; var LastEventTime: TX3DTime;
+  const Time: TX3DTime);
 
 {$undef read_interface}
 
@@ -294,26 +295,8 @@ begin
 end;
 
 procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
-  FieldOrEvent: TX3DFieldOrEvent; var LastEventTime: TX3DTime);
-
-  function GetTimestamp(out Time: TX3DTime): boolean;
-  begin
-    { In practice, this should always return true, as script is
-      run only when ProcessEvents := true, script node always has
-      ParentNode assigned, and when ProcessEvents = true then
-      EventsEngine is also assigned.
-      But we secure here, and work like this wasn't required.
-
-      This way you could use scripting even without ProcessEvents
-      (just to set initializeOnly). Useless, but possible. }
-
-    Result := (FieldOrEvent.ParentNode <> nil) and
-      (TX3DNode(FieldOrEvent.ParentNode).Scene <> nil);
-    if Result then
-    begin
-      Time := TX3DNode(FieldOrEvent.ParentNode).Scene.GetTime;
-    end;
-  end;
+  FieldOrEvent: TX3DFieldOrEvent; var LastEventTime: TX3DTime;
+  const Time: TX3DTime);
 
   function CreateTempField(Event: TX3DEvent): TX3DField;
   begin
@@ -331,7 +314,6 @@ procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
 var
   AbortSending: boolean;
   Field: TX3DField;
-  Time: TX3DTime;
   SendToEvent: TX3DEvent;
 begin
   if Value.ValueAssigned then
@@ -461,8 +443,7 @@ begin
 
     if SendToEvent <> nil then
     begin
-      if (not AbortSending) and
-        GetTimestamp(Time) then
+      if not AbortSending then
       begin
         if Time > LastEventTime then
         begin
@@ -522,7 +503,7 @@ begin
   end;
 end;
 
-procedure TCasScriptX3DValueList.AfterExecute;
+procedure TCasScriptX3DValueList.AfterExecute(const Time: TX3DTime);
 var
   I: Integer;
   WasSomeValueAssigned: boolean;
@@ -570,7 +551,7 @@ begin
         begin
           if Items[I].ValueAssigned then
             WasSomeValueAssigned := true;
-          X3DCasScriptAfterExecute(Items[I], FieldOrEvents[I], FLastEventTimes.L[I]);
+          X3DCasScriptAfterExecute(Items[I], FieldOrEvents[I], FLastEventTimes.L[I], Time);
         end;
       until not WasSomeValueAssigned;
     finally InsideAfterExecute := false end;

@@ -552,6 +552,9 @@ end;
 procedure TPlaneSensorNode.Deactivate(const Time: TX3DTime);
 begin
   if FdAutoOffset.Value and WasTranslation then
+    { Hm, we don't pass Time below, instead Scene.NextEventTime will be used.
+      But that's even better, since we guarantee no loops in Deactivate()
+      calls? }
     FdOffset.Send(Translation);
 
   inherited;

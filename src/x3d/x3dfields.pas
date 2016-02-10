@@ -3151,7 +3151,7 @@ begin
   if Exposed and (ParentNode <> nil) and
     ( (ParentNode as TX3DNode).Scene <> nil ) then
   begin
-    EventIn.Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    EventIn.Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
   end else
   begin
     ValuePossiblyChanged := not FastEqualsValue(Value);

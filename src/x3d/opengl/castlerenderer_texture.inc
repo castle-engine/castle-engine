@@ -1458,7 +1458,6 @@ var
 var
   CameraMatrix, CameraRotationMatrix, SavedProjectionMatrix, NewProjectionMatrix: TMatrix4Single;
   Pos, Dir, Up: TVector3Single;
-  Scene: TX3DEventsEngine;
 begin
   if GLName = 0 then Exit;
 
@@ -1501,15 +1500,6 @@ begin
     error (test e.g. view3dscene on rendered_texture.x3dv). }
   if NeedsMipmaps and (not DepthMap) then
     RenderToTexture.GenerateMipmap;
-
-  { We want to call IncreaseTimeTick now, otherwise our rendering.Send(false)
-    event would be always rejected (as the rendering.Send(true) already
-    traveled through through the same route at the same time,
-    so new event would be rejected as it can be a signal that we have
-    a cycle in routes.) }
-  Scene := TextureNode.Scene;
-  if Scene <> nil then
-    Scene.IncreaseTimeTick;
 
   TextureNode.EventRendering.Send(false);
 

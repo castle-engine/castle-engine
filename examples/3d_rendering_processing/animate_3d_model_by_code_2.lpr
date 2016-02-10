@@ -49,8 +49,8 @@ begin
     for J := 0 to YCount - 1 do
     begin
       Transform[I, J].FdTranslation.Value[2] := 2 *
-        Sin(I / 2 + Scene.Time.Seconds) *
-        Cos(J / 2 + Scene.Time.Seconds);
+        Sin(I / 2 + Scene.Time) *
+        Cos(J / 2 + Scene.Time);
       Transform[I, J].FdTranslation.Changed;
     end;
 end;

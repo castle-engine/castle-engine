@@ -1263,12 +1263,6 @@ var
         for I := 0 to VisibilitySensors.Count - 1 do
           if VisibilitySensors.Keys[I].FdEnabled.Value then
           begin
-            { increment timestamp for each VisibilitySensor,
-              otherwise sensors_environmental/visibility_sensor.x3dv
-              has a problem at initialization, when multiple sensors
-              send isActive = TRUE, and X3D mechanism to avoid loops
-              kicks in. }
-            IncreaseTimeTick;
             { calculate NewActive }
             NewActive := false;
             Instances := VisibilitySensors.Data[I];
@@ -1278,7 +1272,13 @@ var
                 NewActive := true;
                 Break;
               end;
-            VisibilitySensors.Keys[I].SetIsActive(NewActive, Time);
+            { Note that NextEventTime below increases time tick for every
+              VisibilitySensor, which is good,
+              otherwise sensors_environmental/visibility_sensor.x3dv
+              has a problem at initialization, when multiple sensors
+              send isActive = TRUE, and X3D mechanism to avoid loops
+              kicks in. }
+            VisibilitySensors.Keys[I].SetIsActive(NewActive, NextEventTime);
           end;
       finally EndChangesSchedule; end;
     end;

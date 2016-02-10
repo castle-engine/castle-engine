@@ -716,16 +716,15 @@ begin
         begin
           TempToSend := TSFVec3f.Create(ChildJoint, 'center', NewChildCenter);
           try
-            ChildJoint.FdCenter.EventOut.Send(TempToSend);
+            ChildJoint.FdCenter.EventOut.Send(TempToSend, Scene.NextEventTime);
           finally FreeAndNil(TempToSend) end;
         end;
 
-        { Increasing here PlusTicks is a little hack.
-          If you'll next want to traverse a parent joint,
+        { Note that Send() above will use Scene.NextEventTime
+          which with increase time by a "tick".
+          This is good --- if you'll next want to traverse a parent joint,
           this center will again be changed, and should be send (otherwise
           routes e.g. in Humanoid Visualization in view3dscene will not work). }
-        if Scene <> nil then
-          Scene.IncreaseTimeTick;
       end;
     end;
 end;

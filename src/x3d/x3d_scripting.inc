@@ -31,9 +31,8 @@
 
     procedure EventUrlReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-  protected
     procedure ExecuteScript(const FunctionName: string;
-      ReceivedValue: TX3DField);
+      ReceivedValue: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -131,13 +130,12 @@ begin
 end;
 
 procedure TAbstractScriptNode.ExecuteScript(const FunctionName: string;
-  ReceivedValue: TX3DField);
+  ReceivedValue: TX3DField; const Time: TX3DTime);
 var
   I: Integer;
   ParameterValue, ParameterTime: TCasScriptValue;
 begin
-  if Initialized and
-     (Scene <> nil) then
+  if Initialized and (Scene <> nil) then
   begin
     { Disable this by default, as it really trashes the log with a lot
       of messages in case script is used continously (with TimeSensor or such).
@@ -165,7 +163,9 @@ begin
             X3DCasScriptBeforeExecute(ParameterValue, ReceivedValue);
           end else
             ParameterValue := nil;
-          ParameterTime := TCasScriptFloat.Create(true, Scene.GetTime.Seconds);
+          { Note: it's not really important whether below we'd use
+            Scene.Time or Time.Seconds. } 
+          ParameterTime := TCasScriptFloat.Create(true, Scene.Time);
           try
             CastleScriptVariables.BeforeExecute;
             try
@@ -190,7 +190,7 @@ begin
               (not Writeable), but we allow it to be writeable now, for local
               changes by user (may be comfortable sometimes). }
 
-            CastleScriptVariables.AfterExecute;
+            CastleScriptVariables.AfterExecute(Time);
           finally
             FreeAndNil(ParameterValue);
             FreeAndNil(ParameterTime)
@@ -318,7 +318,7 @@ begin
       if ValidUrlFound then
       begin
         FInitialized := Value;
-        ExecuteScript('initialize', nil);
+        ExecuteScript('initialize', nil, Scene.NextEventTime);
       end else
       begin
         if FailedUrlsLog <> '' then
@@ -327,7 +327,7 @@ begin
       end;
     end else
     begin
-      ExecuteScript('shutdown', nil);
+      ExecuteScript('shutdown', nil, Scene.NextEventTime);
       FInitialized := Value;
     end;
   end;
@@ -385,7 +385,7 @@ begin
   if Event.ParentExposedField <> nil then
     FunctionName := Event.ParentExposedField.Name else
     FunctionName := Event.Name;
-  ExecuteScript(FunctionName, Value);
+  ExecuteScript(FunctionName, Value, Time);
 end;
 
 procedure RegisterScriptingNodes;

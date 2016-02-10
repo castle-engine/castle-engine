@@ -239,7 +239,7 @@ procedure TX3DEvent.Send(Field: TX3DField);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Field, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Field, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 function TX3DEvent.SendNeeded: boolean;

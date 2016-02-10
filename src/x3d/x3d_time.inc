@@ -48,15 +48,9 @@
   public
     Node: TX3DNode;
 
-    CurrentTime: TX3DTime;
-
-    { These describe current state of this TimeDependentNode,
-      see X3D specification about "Time" component.
-
-      Their setting causes appropriate events to be generated
-      (with Time = CurrentTime, so be sure to update it before changing
-      these properties. SetTime automatically does this for you.).
-
+    { Current state of this time-dependent node
+      (see X3D specification about "Time" component for exact meaning).
+      Changing them automatically causes appropriate events to be generated.
       @groupBegin }
     property IsActive: boolean read FIsActive write SetIsActive;
     property IsPaused: boolean read FIsPaused write SetIsPaused;
@@ -90,7 +84,8 @@
       This is the most important method of this class, that basically
       implements time-dependent nodes operations.
 
-      NewValue and TimeIncrease are produced by TCastleSceneCore.SetTime and friends.
+      NewTime and TimeIncrease are produced
+      by TCastleSceneCore.SetTime and friends.
 
       When ResetTime = true, this means that "TimeIncrease value is unknown"
       (you @italic(must) pass TimeIncrease = 0 in this case).
@@ -99,14 +94,14 @@
       In other circumstances, TimeIncrease must be >= 0.
       (It's allowed to pass TimeIncrease = 0 and ResetTime = false, this doesn't
       advance the clock, but is a useful trick to force some update,
-      see TVRMScene.ChangedField implementation.)
+      see TCastleSceneCore.ChangedField implementation.)
 
       References: see X3D specification "Time" component,
       8.2 ("concepts") for logic behind all those start/stop/pause/resumeTime,
       cycleInterval, loop properties.
 
       @returns(If some state of time-dependent node changed.) }
-    function SetTime(const NewValue: TX3DTime;
+    function SetTime(const NewTime: TFloatTime;
       const TimeIncrease: TFloatTime; const ResetTime: boolean): boolean;
   end;
 
@@ -299,7 +294,7 @@ begin
   if Value <> FIsActive then
   begin
     FIsActive := Value;
-    EventIsActive.Send(Value, CurrentTime);
+    EventIsActive.Send(Value, Node.Scene.NextEventTime);
   end;
 end;
 
@@ -308,7 +303,7 @@ begin
   if Value <> FIsPaused then
   begin
     FIsPaused := Value;
-    EventIsPaused.Send(Value, CurrentTime);
+    EventIsPaused.Send(Value, Node.Scene.NextEventTime);
   end;
 end;
 
@@ -317,7 +312,22 @@ begin
   if Value <> FElapsedTime then
   begin
     FElapsedTime := Value;
-    EventElapsedTime.Send(Value, CurrentTime);
+
+    { NextEventTime below will automatically increase time tick
+      of current time, and that's a good thing.
+
+      Otherwise there was a bug when TCastleSceneCore.ResetTime
+      (caused by ResetTimeAtLoad) was calling all time handlers
+      and in effect changing elapsedTime on all TimeSensors to 0
+      (see TTimeDependentNodeHandler.SetTime implementation). This was
+      (and still is) causing elapsedTime and fraction_changed outputs
+      generated even for inactive TimeSensors.
+
+      So it must avoid routes loop warnings by increasing PlusTicks
+      for next elapsedTime send
+      (reproduction: escape_universe game restart.) }
+
+    EventElapsedTime.Send(Value, Node.Scene.NextEventTime);
   end;
 end;
 
@@ -328,7 +338,7 @@ begin
 end;
 
 function TTimeDependentNodeHandler.SetTime(
-  const NewValue: TX3DTime;
+  const NewTime: TFloatTime;
   const TimeIncrease: TFloatTime; const ResetTime: boolean): boolean;
 
 var
@@ -352,7 +362,7 @@ var
   procedure IncreaseElapsedTime(Increase: TFloatTime; StopOnNonLoopedEnd: boolean);
   begin
     { In case of time resetting, we can have wild differences
-      between stopTime and NewValue, and Increase could get < 0.
+      between stopTime and NewTime, and Increase could get < 0.
       Consider for example trick with startTime := 0, stopTime := 1
       in UpdateNewPlayingAnimation in TCastleSceneCore.InternalSetTime.
       So make sure Increase here is always >= 0. }
@@ -369,9 +379,9 @@ var
         begin
           FElapsedTimeInCycle := FloatModulo(FElapsedTimeInCycle, CycleInterval);
           { Send the time value when the cycle started, which was
-            a little earlier than CurrentTime: earlier by ElapsedTimeInCycle. }
+            a little earlier than NewTime: earlier by ElapsedTimeInCycle. }
           CycleTimeSend := true;
-          CycleTime := CurrentTime.Seconds - ElapsedTimeInCycle;
+          CycleTime := NewTime - ElapsedTimeInCycle;
         end else
         begin
           if StopOnNonLoopedEnd then
@@ -396,14 +406,13 @@ begin
   if Log then
     WritelnLog('TimeDependentNodes', Format('%s: time changes by +%f to %f. Cycle interval: %f. Before state: active %s, paused %s, loop %s',
       [ Node.NodeTypeName,
-        TimeIncrease, NewValue.Seconds,
+        TimeIncrease, NewTime,
         CycleInterval,
         BoolToStr[IsActive], BoolToStr[IsPaused], BoolToStr[FdLoop.Value]
         ]));
   {$endif}
 
   Result := false;
-  CurrentTime := NewValue;
 
   if (Fdenabled <> nil) and (not Fdenabled.Value) then
   begin
@@ -442,13 +451,13 @@ begin
 
   if not NewIsActive then
   begin
-    if (NewValue.Seconds >= FdStartTime.Value) and
-       ( (NewValue.Seconds < FdStopTime.Value) or
+    if (NewTime >= FdStartTime.Value) and
+       ( (NewTime < FdStopTime.Value) or
          { stopTime is ignored if it's <= startTime }
          (FdStopTime.Value <= FdStartTime.Value) ) and
        { avoid starting the animation if it should be stopped according
          to loop and cycleInterval }
-       not ( (NewValue.Seconds - FdStartTime.Value > CycleInterval) and
+       not ( (NewTime - FdStartTime.Value > CycleInterval) and
              (not FdLoop.Value) ) then
     begin
       NewIsActive := true;
@@ -458,7 +467,7 @@ begin
 
       { Do not advance by TimeIncrease (time from last Time),
         advance only by the time passed since startTime. }
-      IncreaseElapsedTime(NewValue.Seconds - FdStartTime.Value, true);
+      IncreaseElapsedTime(NewTime - FdStartTime.Value, true);
 
       if not CycleTimeSend then
       begin
@@ -467,7 +476,7 @@ begin
           This should be the "time at the beginning of the current cycle".
 
           Since IncreaseElapsedTime didn't detect a new cycle,
-          so NewElapsedTime = NewValue.Seconds - FdStartTime.Value fits
+          so NewElapsedTime = NewTime - FdStartTime.Value fits
           (is < ) within the CycleInterval. So startTime is the beginning
           of our cycle.
 
@@ -486,36 +495,34 @@ begin
   end else
   if NewIsPaused then
   begin
-    if (NewValue.Seconds >= FdResumeTime.Value) and
+    if (NewTime >= FdResumeTime.Value) and
        (FdResumeTime.Value > FdPauseTime.Value) then
     begin
       NewIsPaused := false;
       { Advance only by the time passed since resumeTime. }
-      IncreaseElapsedTime(NewValue.Seconds - FdResumeTime.Value, true);
+      IncreaseElapsedTime(NewTime - FdResumeTime.Value, true);
       Result := true;
     end;
   end else
   begin
     Result := true;
 
-    if (NewValue.Seconds >= FdStopTime.Value) and
+    if (NewTime >= FdStopTime.Value) and
        { stopTime is ignored if it's <= startTime }
        (FdStopTime.Value > FdStartTime.Value) then
     begin
       NewIsActive := false;
       { advance only to the stopTime }
       if TimeIncrease <> 0 then
-        IncreaseElapsedTime(TimeIncrease -
-          (NewValue.Seconds - FdStopTime.Value), false);
+        IncreaseElapsedTime(TimeIncrease - (NewTime - FdStopTime.Value), false);
     end else
-    if (NewValue.Seconds >= FdPauseTime.Value) and
+    if (NewTime >= FdPauseTime.Value) and
        (FdPauseTime.Value > FdResumeTime.Value) then
     begin
       NewIsPaused := true;
       { advance only to the pauseTime }
       if TimeIncrease <> 0 then
-        IncreaseElapsedTime(TimeIncrease -
-          (NewValue.Seconds - FdPauseTime.Value), false);
+        IncreaseElapsedTime(TimeIncrease - (NewTime - FdPauseTime.Value), false);
     end else
     begin
       { active and not paused movie }
@@ -550,7 +557,7 @@ begin
     end;
 
     if CycleTimeSend and (EventCycleTime <> nil) then
-      EventCycleTime.Send(CycleTime, CurrentTime);
+      EventCycleTime.Send(CycleTime, Node.Scene.NextEventTime);
   end else
   begin
     if not NewIsPaused then

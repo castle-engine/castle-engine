@@ -620,11 +620,11 @@ type
     procedure ScriptsInitialize;
     procedure ScriptsFinalize;
   private
-    FTime: TX3DTime;
+    FTimeNow: TX3DTime;
 
     { Internal procedure that handles Time changes. }
     procedure InternalSetTime(
-      NewValue: TX3DTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
+      const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
 
     procedure ResetLastEventTime(Node: TX3DNode);
   private
@@ -1512,20 +1512,38 @@ type
     procedure IncreaseTime(const TimeIncrease: TFloatTime);
     { @groupEnd }
 
-    { Increase @link(Time) by some infinitely small value.
-      This simply increments @code(Time.PlusTicks), which may be sometimes
-      useful: this allows events to pass through the ROUTEs
-      without the fear of being rejected as "recursive (cycle) events". }
-    procedure IncreaseTimeTick; override;
+    procedure IncreaseTimeTick;
+      deprecated 'it should not be necessary to call this, ever; using TX3DEvent.Send(...) or TX3DEvent.Send(..., NextEventTime) will automatically behave Ok.';
 
-    { This is the scene time, that is passed to time-dependent nodes.
-      See X3D specification "Time" component about time-dependent nodes.
-      In short, this "drives" the time passed to TimeSensor, MovieTexture
-      and AudioClip. See SetTime for changing this.
+    { The time within this scene, in seconds.
+      Increasing this "drives" the animations (by increasing
+      time of time-dependent nodes like X3D TimeSensor, which in turn
+      drive the rest of the animation).
 
-      Default value is 0.0 (zero). }
-    property Time: TX3DTime read FTime;
-    function GetTime: TX3DTime; override;
+      You can use @link(SetTime) or @link(IncreasTime) to move time
+      forward manually. But usually there's no need for it:
+      our @link(Update) method takes care of it automatically,
+      you only need to place the scene inside @link(TCastleSceneManager.Items).
+
+      You can start/stop time progress by @link(TimePlaying)
+      and scale it by @link(TimePlayingSpeed). These properties
+      affect how the time is updated by the @link(Update) method
+      (so if you use @link(SetTime) or @link(IncreasTime) methods,
+      you're working around these properties).
+
+      Default time value is 0.0 (zero). However it will be reset
+      at load to a current time (seconds since Unix epoch ---
+      that's what X3D standard says to use, although you can change
+      it by KambiNavigationInfo.timeOriginAtLoad,
+      see http://castle-engine.sourceforge.net/x3d_implementation_navigation_extensions.php#section_ext_time_origin_at_load ).
+      You can perform this "time reset" yourself by @link(ResetTimeAtLoad)
+      or @link(ResetTime). }
+    function Time: TFloatTime; override;
+
+    { Time that should be used for next event.
+      You usually don't need to call this directly, this is automatically
+      used by TX3DEvent.Send when you don't specify explicit time. }
+    function NextEventTime: TX3DTime; override;
 
     { Set @link(Time) to arbitrary value.
 
@@ -2029,8 +2047,8 @@ procedure TX3DBindableStack.SendIsBound(Node: TAbstractBindableNode;
 begin
   if Node <> nil then
   begin
-    Node.EventIsBound.Send(Value, ParentScene.Time);
-    Node.EventBindTime.Send(ParentScene.Time.Seconds, ParentScene.Time);
+    Node.EventIsBound.Send(Value, ParentScene.NextEventTime);
+    Node.EventBindTime.Send(ParentScene.Time, ParentScene.NextEventTime);
   end;
 end;
 
@@ -2971,7 +2989,7 @@ begin
        (LODTree.Children.Count <> 0) then
     begin
       LODTree.WasLevel_ChangedSend := true;
-      LODTree.LODNode.EventLevel_Changed.Send(LongInt(NewLevel), Time);
+      LODTree.LODNode.EventLevel_Changed.Send(LongInt(NewLevel), NextEventTime);
     end;
 
     if OldLevel <> NewLevel then
@@ -4227,7 +4245,7 @@ var
 
     if (not Enabled) and (PointingDeviceActiveSensors.IndexOf(DragSensor) <> -1) then
     begin
-      DragSensor.Deactivate(Time);
+      DragSensor.Deactivate(NextEventTime);
       FPointingDeviceActiveSensors.Remove(DragSensor);
       DoPointingDeviceSensorsChange;
     end;
@@ -5248,7 +5266,6 @@ procedure TCastleSceneCore.SetProcessEvents(const Value: boolean);
   var
     I: Integer;
   begin
-    Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
       if CameraViewKnown then
@@ -5313,12 +5330,11 @@ begin
 
   if ProcessEvents then
   begin
-    Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
       for I := 0 to KeyDeviceSensorNodes.Count - 1 do
         (KeyDeviceSensorNodes.Items[I] as TAbstractKeyDeviceSensorNode).
-          KeyDown(Event.Key, Event.KeyCharacter, FTime);
+          KeyDown(Event.Key, Event.KeyCharacter, NextEventTime);
     finally EndChangesSchedule; end;
 
     { Never treat the event as handled here,
@@ -5340,12 +5356,11 @@ begin
 
   if ProcessEvents then
   begin
-    Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
       for I := 0 to KeyDeviceSensorNodes.Count - 1 do
         (KeyDeviceSensorNodes.Items[I] as TAbstractKeyDeviceSensorNode).
-          KeyUp(Event.Key, Event.KeyCharacter, FTime);
+          KeyUp(Event.Key, Event.KeyCharacter, NextEventTime);
     finally EndChangesSchedule; end;
 
     { Never treat the event as handled here,
@@ -5383,7 +5398,6 @@ begin
 
   if ProcessEvents then
   begin
-    Inc(FTime.PlusTicks);
     { Note that using Begin/EndChangesSchedule is not only for efficiency
       here. It's also sometimes needed to keep the code correct: note
       that ChangedAll changes everything, including State pointers.
@@ -5417,11 +5431,10 @@ begin
                   IndexOf(ActiveSensor) <> -1);
 
               NewIsOver := (OverItem <> nil) and
-                (OverItem^.State.PointingDeviceSensors.
-                  IndexOf(ActiveSensor) <> -1);
+                (OverItem^.State.PointingDeviceSensors.IndexOf(ActiveSensor) <> -1);
 
               if OldIsOver <> NewIsOver then
-                ActiveSensor.EventIsOver.Send(NewIsOver, Time);
+                ActiveSensor.EventIsOver.Send(NewIsOver, NextEventTime);
             end;
           end;
         end else
@@ -5459,7 +5472,7 @@ begin
             begin
               if (OldSensors[I] is TAbstractPointingDeviceSensorNode) and
                 TAbstractPointingDeviceSensorNode(OldSensors[I]).FdEnabled.Value then
-                TAbstractPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, Time);
+                TAbstractPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, NextEventTime);
             end;
 
           for I := 0 to NewSensors.Count - 1 do
@@ -5467,7 +5480,7 @@ begin
             begin
               if (NewSensors[I] is TAbstractPointingDeviceSensorNode) and
                 TAbstractPointingDeviceSensorNode(NewSensors[I]).FdEnabled.Value then
-                TAbstractPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, Time);
+                TAbstractPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, NextEventTime);
             end;
         end else
         if PointingDeviceOverItem <> nil then
@@ -5480,7 +5493,7 @@ begin
           for I := 0 to OldSensors.Count - 1 do
             if (OldSensors[I] is TAbstractPointingDeviceSensorNode) and
               TAbstractPointingDeviceSensorNode(OldSensors[I]).FdEnabled.Value then
-              TAbstractPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, Time);
+              TAbstractPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, NextEventTime);
         end else
         begin
           Assert(OverItem <> nil);
@@ -5493,7 +5506,7 @@ begin
           for I := 0 to NewSensors.Count - 1 do
             if (NewSensors[I] is TAbstractPointingDeviceSensorNode) and
               TAbstractPointingDeviceSensorNode(NewSensors[I]).FdEnabled.Value then
-              TAbstractPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, Time);
+              TAbstractPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, NextEventTime);
         end;
 
         FPointingDeviceOverItem := OverItem;
@@ -5521,16 +5534,16 @@ begin
               TouchSensor.EventHitPoint_Changed.Send(
                 { hitPoint_changed event wants a point in local coords,
                   we can get this by InverseTransform. }
-                MatrixMultPoint(OverItem^.State.InvertedTransform, Pick.Point), Time);
+                MatrixMultPoint(OverItem^.State.InvertedTransform, Pick.Point), NextEventTime);
 
               {$ifndef CONSERVE_TRIANGLE_MEMORY}
               if TouchSensor.EventHitNormal_Changed.SendNeeded then
                 TouchSensor.EventHitNormal_Changed.Send(
-                  OverItem^.INormal(Pick.Point), Time);
+                  OverItem^.INormal(Pick.Point), NextEventTime);
 
               if TouchSensor.EventHitTexCoord_Changed.SendNeeded then
                 TouchSensor.EventHitTexCoord_Changed.Send(
-                  OverItem^.ITexCoord2D(Pick.Point), Time);
+                  OverItem^.ITexCoord2D(Pick.Point), NextEventTime);
               {$endif not CONSERVE_TRIANGLE_MEMORY}
             end;
           end;
@@ -5543,7 +5556,7 @@ begin
           TAbstractPointingDeviceSensorNode;
         if ActiveSensor is TAbstractDragSensorNode then
           TAbstractDragSensorNode(ActiveSensor).Drag(
-            Time, Pick.RayOrigin, Pick.RayDirection);
+            NextEventTime, Pick.RayOrigin, Pick.RayDirection);
       end;
     finally
       EndChangesSchedule;
@@ -5616,7 +5629,7 @@ function TCastleSceneCore.PointingDeviceActivate(const Active: boolean;
         to false) was not called yet. }
 
       if NewViewpoint <> nil then
-        NewViewpoint.EventSet_Bind.Send(true, Time);
+        NewViewpoint.EventSet_Bind.Send(true, NextEventTime);
     end;
   end;
 
@@ -5634,7 +5647,7 @@ var
       PointingDeviceActiveSensors.Add(Sensor);
       { We do this only when PointingDeviceOverItem <> nil,
         so we know that PointingDeviceOverPoint is meaningful. }
-      Sensor.Activate(Time, Sensors.Transform, Sensors.InvertedTransform,
+      Sensor.Activate(NextEventTime, Sensors.Transform, Sensors.InvertedTransform,
         PointingDeviceOverPoint);
     end;
   end;
@@ -5650,7 +5663,6 @@ begin
 
   if ProcessEvents and (FPointingDeviceActive <> Active) then
   begin
-    Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
       ActiveChanged := false;
@@ -5689,7 +5701,7 @@ begin
           begin
             ActiveSensor := PointingDeviceActiveSensors.Items[I]
               as TAbstractPointingDeviceSensorNode;
-            ActiveSensor.Deactivate(Time);
+            ActiveSensor.Deactivate(NextEventTime);
             { If we're still over the sensor, generate touchTime for TouchSensor }
             if (PointingDeviceOverItem <> nil) and
                (PointingDeviceOverItem^.State.PointingDeviceSensors.
@@ -5697,7 +5709,7 @@ begin
                (ActiveSensor is TTouchSensorNode) then
             begin
               TTouchSensorNode(ActiveSensor).
-                EventTouchTime.Send(Time.Seconds, Time);
+                EventTouchTime.Send(Time, NextEventTime);
             end;
           end;
           FPointingDeviceActiveSensors.Count := 0;
@@ -5758,13 +5770,24 @@ end;
 
 { Time stuff ------------------------------------------------------------ }
 
-function TCastleSceneCore.GetTime: TX3DTime;
+function TCastleSceneCore.Time: TFloatTime;
 begin
-  Result := FTime;
+  Result := FTimeNow.Seconds;
+end;
+
+function TCastleSceneCore.NextEventTime: TX3DTime;
+begin
+  { Increase @link(FTime) by some infinitely small value.
+    This allows events to pass through the ROUTEs
+    without the fear of being rejected as "recursive (cycle) events"
+    from previous events. }
+
+  Inc(FTimeNow.PlusTicks);
+  Result := FTimeNow;
 end;
 
 procedure TCastleSceneCore.InternalSetTime(
-  NewValue: TX3DTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
+  const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
 
   { Apply NewPlayingAnimation* stuff.
 
@@ -5788,10 +5811,10 @@ procedure TCastleSceneCore.InternalSetTime(
           (If you do reset time to something very small, then typical TimeSensors will
           have problems anyway,
           see http://castle-engine.sourceforge.net/x3d_time_origin_considered_uncomfortable.php ). }
-        PlayingAnimationNode.StartTime := 0; Inc(FTime.PlusTicks);
-        PlayingAnimationNode.StopTime := 1;  Inc(FTime.PlusTicks);
-        PlayingAnimationNode.Loop := false;  Inc(FTime.PlusTicks);
-        //PlayingAnimationNode.StopTime := Time.Seconds;  Inc(FTime.PlusTicks);
+        PlayingAnimationNode.StartTime := 0;
+        PlayingAnimationNode.StopTime := 1;
+        PlayingAnimationNode.Loop := false;
+        //PlayingAnimationNode.StopTime := Time;
       end;
       PlayingAnimationNode := NewPlayingAnimationNode;
       if PlayingAnimationNode <> nil then
@@ -5800,9 +5823,7 @@ procedure TCastleSceneCore.InternalSetTime(
           paForceLooping   : PlayingAnimationNode.Loop := true;
           paForceNotLooping: PlayingAnimationNode.Loop := false;
         end;
-        Inc(FTime.PlusTicks);
-        PlayingAnimationNode.StartTime := Time.Seconds;
-        Inc(FTime.PlusTicks);
+        PlayingAnimationNode.StartTime := Time;
       end;
     end;
   end;
@@ -5817,15 +5838,7 @@ procedure TCastleSceneCore.InternalSetTime(
 
     for I := 0 to TimeDependentHandlers.Count - 1 do
     begin
-      { when ResetTime (e.g. when this is caused by ResetTimeAtLoad) then all
-        time handlers will change elapsedTime on all TimeSensors to 0
-        (see TTimeDependentNodeHandler.SetTime implementation). And this will
-        cause elapsedTime and fraction_changed outputs generated even for
-        inactive TimeSensors. So make sure to avoid routes loop warnings
-        by increasing PlusTicks below.
-        (reproduction: escape_universe game restart.) }
-      Inc(NewValue.PlusTicks);
-      if TimeDependentHandlers[I].SetTime(NewValue, TimeIncrease + ExtraTimeIncrease, ResetTime) and
+      if TimeDependentHandlers[I].SetTime(Time, TimeIncrease + ExtraTimeIncrease, ResetTime) and
         (TimeDependentHandlers[I].Node is TMovieTextureNode) then
         SomethingVisibleChanged := true;
     end;
@@ -5881,6 +5894,9 @@ procedure TCastleSceneCore.InternalSetTime(
   end;
 
 begin
+  FTimeNow.Seconds := NewValue;
+  FTimeNow.PlusTicks := 0; // using InternalSetTime always resets PlusTicks
+
   if ProcessEvents then
   begin
     BeginChangesSchedule;
@@ -5893,30 +5909,21 @@ begin
       EndChangesSchedule;
     end;
   end;
-
-  FTime := NewValue;
 end;
 
 procedure TCastleSceneCore.SetTime(const NewValue: TFloatTime);
 var
   TimeIncrease: TFloatTime;
-  NewCompleteValue: TX3DTime;
 begin
-  NewCompleteValue.Seconds := NewValue;
-  NewCompleteValue.PlusTicks := 0;
-  TimeIncrease := NewValue - FTime.Seconds;
+  TimeIncrease := NewValue - FTimeNow.Seconds;
   if TimeIncrease > 0 then
-    InternalSetTime(NewCompleteValue, TimeIncrease, false);
+    InternalSetTime(NewValue, TimeIncrease, false);
 end;
 
 procedure TCastleSceneCore.IncreaseTime(const TimeIncrease: TFloatTime);
-var
-  NewCompleteValue: TX3DTime;
 begin
-  NewCompleteValue.Seconds := FTime.Seconds + TimeIncrease;
-  NewCompleteValue.PlusTicks := 0;
   if TimeIncrease > 0 then
-    InternalSetTime(NewCompleteValue, TimeIncrease, false);
+    InternalSetTime(FTimeNow.Seconds + TimeIncrease, TimeIncrease, false);
 end;
 
 procedure TCastleSceneCore.ResetLastEventTime(Node: TX3DNode);
@@ -5930,15 +5937,10 @@ begin
 end;
 
 procedure TCastleSceneCore.ResetTime(const NewValue: TFloatTime);
-var
-  NewCompleteValue: TX3DTime;
 begin
   if RootNode <> nil then
     RootNode.EnumerateNodes(@ResetLastEventTime, false);
-
-  NewCompleteValue.Seconds := NewValue;
-  NewCompleteValue.PlusTicks := 0;
-  InternalSetTime(NewCompleteValue, 0, true);
+  InternalSetTime(NewValue, 0, true);
 end;
 
 procedure TCastleSceneCore.ResetTimeAtLoad;
@@ -5956,7 +5958,7 @@ end;
 
 procedure TCastleSceneCore.IncreaseTimeTick;
 begin
-  Inc(FTime.PlusTicks);
+  Inc(FTimeNow.PlusTicks);
 end;
 
 procedure TCastleSceneCore.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -6073,10 +6075,10 @@ begin
       if NewIsActive <> PSI.IsActive then
       begin
         PSI.IsActive := NewIsActive;
-        ProxNode.EventIsActive.Send(NewIsActive, Time);
+        ProxNode.EventIsActive.Send(NewIsActive, NextEventTime);
         if NewIsActive then
-          ProxNode.EventEnterTime.Send(Time.Seconds, Time) else
-          ProxNode.EventExitTime.Send(Time.Seconds, Time);
+          ProxNode.EventEnterTime.Send(Time, NextEventTime) else
+          ProxNode.EventExitTime.Send(Time, NextEventTime);
       end;
 
       { Call position_changed, orientation_changed, even if this is just
@@ -6087,13 +6089,13 @@ begin
 
       if NewIsActive then
       begin
-        ProxNode.EventPosition_Changed.Send(Position, Time);
+        ProxNode.EventPosition_Changed.Send(Position, NextEventTime);
         if ProxNode.EventOrientation_Changed.SendNeeded then
         begin
           Direction := MatrixMultDirection(PSI.InvertedTransform, CameraDirection);
           Up        := MatrixMultDirection(PSI.InvertedTransform, CameraUp);
           ProxNode.EventOrientation_Changed.Send(
-            CamDirUp2Orient(Direction, Up), Time);
+            CamDirUp2Orient(Direction, Up), NextEventTime);
         end;
         { TODO: centerOfRotation_changed }
       end;
@@ -6119,11 +6121,9 @@ begin
 
     if ProcessEvents then
     begin
-      Inc(FTime.PlusTicks);
       for I := 0 to ProximitySensors.Count - 1 do
         ProximitySensorUpdate(ProximitySensors[I]);
 
-      Inc(FTime.PlusTicks);
       { Update camera information on all Billboard nodes,
         and retraverse scene from Billboard nodes. So we treat Billboard nodes
         much like Transform nodes, except that their transformation animation
@@ -6146,9 +6146,8 @@ begin
       if WatchForTransitionComplete and not ACamera.Animation then
       begin
         WatchForTransitionComplete := false;
-        Inc(FTime.PlusTicks);
         if NavigationInfoStack.Top <> nil then
-          NavigationInfoStack.Top.EventTransitionComplete.Send(true, Time);
+          NavigationInfoStack.Top.EventTransitionComplete.Send(true, NextEventTime);
       end;
     end;
   finally EndChangesSchedule end;
@@ -6174,7 +6173,7 @@ begin
   for I := 0 to CompiledScriptHandlers.Count - 1 do
     if CompiledScriptHandlers.L[I].Name = HandlerName then
     begin
-      CompiledScriptHandlers.L[I].Handler(ReceivedValue, Time);
+      CompiledScriptHandlers.L[I].Handler(ReceivedValue, NextEventTime);
       Break;
     end;
 end;
@@ -6465,7 +6464,7 @@ begin
   begin
     Camera.SetView(Position, Direction, Up);
     if NavigationInfoStack.Top <> nil then
-      NavigationInfoStack.Top.EventTransitionComplete.Send(true, Time);
+      NavigationInfoStack.Top.EventTransitionComplete.Send(true, NextEventTime);
   end;
 end;
 
@@ -6622,24 +6621,22 @@ begin
   begin
     BeginChangesSchedule;
     try
-      Inc(FTime.PlusTicks);
-
       if Viewpoint.EventCameraMatrix.SendNeeded then
-        Viewpoint.EventCameraMatrix.Send(RenderingCamera.Matrix, Time);
+        Viewpoint.EventCameraMatrix.Send(RenderingCamera.Matrix, NextEventTime);
 
       if Viewpoint.EventCameraInverseMatrix.SendNeeded then
       begin
         RenderingCamera.InverseMatrixNeeded;
-        Viewpoint.EventCameraInverseMatrix.Send(RenderingCamera.InverseMatrix, Time);
+        Viewpoint.EventCameraInverseMatrix.Send(RenderingCamera.InverseMatrix, NextEventTime);
       end;
 
       if Viewpoint.EventCameraRotationMatrix.SendNeeded then
-        Viewpoint.EventCameraRotationMatrix.Send(RenderingCamera.RotationMatrix3, Time);
+        Viewpoint.EventCameraRotationMatrix.Send(RenderingCamera.RotationMatrix3, NextEventTime);
 
       if Viewpoint.EventCameraRotationInverseMatrix.SendNeeded then
       begin
         RenderingCamera.RotationInverseMatrixNeeded;
-        Viewpoint.EventCameraRotationInverseMatrix.Send(RenderingCamera.RotationInverseMatrix3, Time);
+        Viewpoint.EventCameraRotationInverseMatrix.Send(RenderingCamera.RotationInverseMatrix3, NextEventTime);
       end;
     finally EndChangesSchedule end;
   end;
@@ -6903,8 +6900,8 @@ begin
     end;
 
     if FViewpointsArray[Idx] = FViewpointStack.Top then
-      FViewpointsArray[Idx].EventSet_Bind.Send(false, Time);
-    FViewpointsArray[Idx].EventSet_Bind.Send(true, Time);
+      FViewpointsArray[Idx].EventSet_Bind.Send(false, NextEventTime);
+    FViewpointsArray[Idx].EventSet_Bind.Send(true, NextEventTime);
 
     if not Animated then
       ForceTeleportTransitions := OldForceTeleport;
