@@ -1834,8 +1834,9 @@ type
     { @groupEnd }
 
     { List the names of available animations in this file.
-      Detected in VRML/X3D models as simply TimeSensor nodes with node name
-      starting with "Animation_Xxx" (see @link(AnimationPrefix) property).
+      Animations are detected in VRML/X3D models as simply TimeSensor nodes
+      (if you set @link(AnimationPrefix) property, we additionally
+      filter them to show only the names starting with given prefix).
 
       The resulting TStringList instance is owned by this object,
       do not free it.
@@ -1873,12 +1874,17 @@ type
       0 if not found. }
     function AnimationDuration(const AnimationName: string): TFloatTime;
 
-    { The required prefix of a TimeSensor node to be considered a "named animation"
-      by our methods like @link(Animations), @link(PlayAnimation),
-      and @link(AnimationDuration).
-      By default this is DefaultAnimationPrefix.
-      You can set this to an empty string to consider all TimeSensor nodes
-      a possible "named animation". }
+    { The prefix of an X3D TimeSensor node name to treat it as a "named animation".
+      Named animation are used by methods @link(AnimationsList), @link(PlayAnimation),
+      and @link(AnimationDuration), @link(HasAnimation).
+      By default this is empty, which means we consider all TimeSensor nodes
+      a "named animation".
+
+      You can set this to something like 'Anim_' or 'Animation_'
+      or whatever your 3D export software produces. Only the TimeSensor
+      nodes with names starting with this prefix will be available
+      on @link(AnimationsList), and this prefix will be stripped from
+      the names you see when using methods like @link(PlayAnimation). }
     property AnimationPrefix: string
       read FAnimationPrefix write FAnimationPrefix;
   published
@@ -7059,8 +7065,9 @@ begin
     AnimationName := PrefixRemove(AnimationPrefix, Node.NodeName, false);
     if AnimationName = '' then
     begin
-      OnWarning(wtMinor, 'Named Animations', Format('TimeSensor node name is exactly "%s", this indicates named animation with empty name, ignoring',
-        [AnimationName]));
+      if AnimationPrefix <> '' then // this is normal with AnimationPrefix = '' on many scenes
+        OnWarning(wtMinor, 'Named Animations', Format('TimeSensor node name is exactly "%s", this indicates named animation with empty name, ignoring',
+          [AnimationName]));
       Exit;
     end;
     if List.IndexOf(AnimationName) <> -1 then

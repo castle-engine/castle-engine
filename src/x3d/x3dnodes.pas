@@ -2116,7 +2116,7 @@ const
 
   { Standard prefix name for a time sensor to be recognized as a "named animation"
     for TCastleSceneCore.PlayAnimation and friends. }
-  DefaultAnimationPrefix = 'Animation_';
+  DefaultAnimationPrefix = '';
 
   AllAccessTypes = [atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput];
   RestrictedAccessTypes = [atInputOnly, atOutputOnly, atInitializeOnly];
