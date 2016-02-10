@@ -56,7 +56,16 @@ begin
   JsonArray := Json.Find(Name, jtArray) as TJSONArray;
   if JsonArray <> nil then
     for I := 0 to JsonArray.Count - 1 do
-      if JsonArray[I] is TJSONIntegerNumber then
-        List.Add(JsonArray[I].AsInteger);
+    begin
+      { On FPC 2.6.2, we have here TJSONInt64Number.
+        On FPC 3.0.0, we have here TJSONIntegerNumber.
+        (Did not test this on FPC 2.6.4 -- just do "Writeln(JsonArray[I].ClassName);" and open any Spine JSON with mesh.)
+        So don't check "if JsonArray[I] is TJSONIntegerNumber then" or such,
+        better just use [I].AsInteger (or Integers[I]).
+
+        (Testcase: when this goes wrong, Spine mesh (e.g. hero wings in escape_universe) doesn't show,
+        because IndexedTriangleSet remains unset.) }
+      List.Add(JsonArray[I].AsInteger);
+    end;
 end;
 {$endif}

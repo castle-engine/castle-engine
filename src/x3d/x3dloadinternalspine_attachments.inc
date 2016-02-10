@@ -282,6 +282,8 @@ begin
   ReadLongIntList(Json, 'triangles', Triangles);
   if Triangles.Count mod 3 <> 0 then
     OnWarning(wtMajor, 'Spine', 'Triangles list ends in the middle of the triangle');
+  if Triangles.Count = 0 then
+    OnWarning(wtMajor, 'Spine', 'Triangles empty, mesh is empty');
 
   ReadLongIntList(Json, 'edges', Edges);
   Hull := Json.Get('hull', 0);
