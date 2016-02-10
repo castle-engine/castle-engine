@@ -71,6 +71,7 @@
 {$ifdef VER2_0} {$fatal FPC 2.0.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
 {$ifdef VER2_2} {$fatal FPC 2.2.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
 {$ifdef VER2_4} {$fatal FPC 2.4.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
+{$ifdef VER2_6_0} {$fatal FPC 2.6.0 is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
 
 {$define TOBJECT_HAS_EQUALS}
 {$ifdef VER2_0}   {$undef TOBJECT_HAS_EQUALS} {$endif}
