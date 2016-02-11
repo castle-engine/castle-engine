@@ -19,7 +19,7 @@ unit CastleXMLUtils;
 interface
 
 uses SysUtils, DOM,
-  CastleUtils, CastleColors;
+  CastleUtils, CastleColors, CastleVectors;
 
 type
   EDOMAttributeMissing = class(Exception);
@@ -88,6 +88,20 @@ type
       or (of there is no such attribute) returns @false
       and does not modify Value. }
     function AttributeColorRGB(const AttrName: string; var Value: TCastleColorRGB): boolean;
+
+    { Read from Element attribute as a 2D vector (2 floats), and returns @true,
+      or (of there is no such attribute) returns @false
+      and does not modify Value.
+
+      @raises EConvertError If the attribute exists in XML, but has invalid format. }
+    function AttributeVector2(const AttrName: string; var Value: TVector2Single): boolean;
+
+    { Read from Element attribute as a 3D vector (3 floats), and returns @true,
+      or (of there is no such attribute) returns @false
+      and does not modify Value.
+
+      @raises EConvertError If the attribute exists in XML, but has invalid format. }
+    function AttributeVector3(const AttrName: string; var Value: TVector3Single): boolean;
 
     { ------------------------------------------------------------------------
       Get a required attribute, returns value (exception if not found). }
@@ -170,6 +184,14 @@ type
 
     { Retrieves from Element given attribute as an RGB color, or a default value. }
     function AttributeColorRGBDef(const AttrName: string; const DefaultValue: TCastleColorRGB): TCastleColorRGB;
+
+    { Retrieves from Element given attribute as a 2D vector (2 floats), or a default value.
+      @raises EConvertError If the value exists in XML, but has invalid format. }
+    function AttributeVector2Def(const AttrName: string; const DefaultValue: TVector2Single): TVector2Single;
+
+    { Retrieves from Element given attribute as a 3D vector (3 floats), or a default value.
+      @raises EConvertError If the value exists in XML, but has invalid format. }
+    function AttributeVector3Def(const AttrName: string; const DefaultValue: TVector3Single): TVector3Single;
 
     { Other methods ---------------------------------------------------------- }
 
@@ -548,6 +570,26 @@ begin
     Value := HexToColorRGB(ValueStr);
 end;
 
+function TDOMElementHelper.AttributeVector2(
+  const AttrName: string; var Value: TVector2Single): boolean;
+var
+  ValueStr: string;
+begin
+  Result := AttributeString(AttrName, ValueStr);
+  if Result then
+    Value := Vector2SingleFromStr(ValueStr);
+end;
+
+function TDOMElementHelper.AttributeVector3(
+  const AttrName: string; var Value: TVector3Single): boolean;
+var
+  ValueStr: string;
+begin
+  Result := AttributeString(AttrName, ValueStr);
+  if Result then
+    Value := Vector3SingleFromStr(ValueStr);
+end;
+
 { ------------------------------------------------------------------------
   TDOMElementHelper:
   Get a required attribute, returns value (exception if not found). }
@@ -655,6 +697,18 @@ end;
 function TDOMElementHelper.AttributeColorRGBDef(const AttrName: string; const DefaultValue: TCastleColorRGB): TCastleColorRGB;
 begin
   if not AttributeColorRGB(AttrName, Result) then
+    Result := DefaultValue;
+end;
+
+function TDOMElementHelper.AttributeVector2Def(const AttrName: string; const DefaultValue: TVector2Single): TVector2Single;
+begin
+  if not AttributeVector2(AttrName, Result) then
+    Result := DefaultValue;
+end;
+
+function TDOMElementHelper.AttributeVector3Def(const AttrName: string; const DefaultValue: TVector3Single): TVector3Single;
+begin
+  if not AttributeVector3(AttrName, Result) then
     Result := DefaultValue;
 end;
 

@@ -625,10 +625,11 @@ function Normal3Single(const x, y: Single; const z: Single = 0.0): TVector3Singl
   @raises(EConvertError In case of problems during conversion (invalid float
     or unexpected string end or expected but missed string end).)
   @groupBegin }
-function Vector3SingleFromStr(const s: string): TVector3Single;
-function Vector3DoubleFromStr(const s: string): TVector3Double;
-function Vector3ExtendedFromStr(const s: string): TVector3Extended;
-function Vector4SingleFromStr(const s: string): TVector4Single;
+function Vector2SingleFromStr(const S: string): TVector2Single;
+function Vector3SingleFromStr(const S: string): TVector3Single;
+function Vector3DoubleFromStr(const S: string): TVector3Double;
+function Vector3ExtendedFromStr(const S: string): TVector3Extended;
+function Vector4SingleFromStr(const S: string): TVector4Single;
 { @groupEnd }
 
 { Convert between single and double precision matrices.
@@ -2836,6 +2837,17 @@ function Normal3Single(const x, y: Single; const z: Single{=0}): TVector3Single;
 begin
   result[0] := x; result[1] := y; result[2] := z;
   NormalizeVar3Singlev(@result);
+end;
+
+function Vector2SingleFromStr(const S: string): TVector2Single;
+var
+  SPosition: Integer;
+begin
+  SPosition := 1;
+  Result[0] := StrToFloat(NextToken(S, SPosition));
+  Result[1] := StrToFloat(NextToken(S, SPosition));
+  if NextToken(S, SPosition) <> '' then
+    raise EConvertError.Create('Expected end of data when reading vector from string');
 end;
 
 function Vector3SingleFromStr(const s: string): TVector3Single; {$I castlevectors_vector3fromstr.inc}
