@@ -5848,6 +5848,9 @@ procedure TCastleSceneCore.InternalSetTime(
           - Also, setting startTime while time-dependent node is active is ignored,
             X3D spec requires this, see our TSFTimeIgnoreWhenActive implementation.
             (bug reproduction: escape_universe, meteorite_1 dying).
+          - Also, it's bad to unconditionally set "Loop" value.
+            If user is using paDefault for animation, (s)he expects
+            that PlayAnimation doesn't change it ever.
 
           So it's simpest and reliable to just set enabled=false on old TimeSensor.
           TTimeDependentNodeHandler.SetTime then guarantees it will immediately stop
