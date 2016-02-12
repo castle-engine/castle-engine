@@ -3137,11 +3137,8 @@ begin
 end;
 
 function T3DCustomTransform.AverageScale: Single;
-var
-  S: TVector3Single;
 begin
-  S := GetScale;
-  Result := (S[0] + S[1] + S[2]) / 3;
+  Result := Approximate3DScale(GetScale);
 end;
 
 { We assume in all methods below that OnlyTranslation is the most common case,

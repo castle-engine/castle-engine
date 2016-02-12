@@ -664,6 +664,19 @@ procedure SwapValues(var V1, V2: TVector4Double); overload;
 function VectorAverage(const V: TVector3Single): Single; overload;
 function VectorAverage(const V: TVector3Double): Double; overload;
 
+{ When you really, really must approximate a 3D scale by a single float.
+  If your algorithm cannot handle non-uniform 3D scale,
+  you have to approximate 3D scale by a single float.
+
+  This is similar to an average of X, Y, Z, but it additionally
+  secures in case some of X, Y, Z are negative and some are positive
+  (like scale (-1, 1), common in 2D to flip horizontally).
+
+  @groupBegin }
+function Approximate3DScale(const X, Y, Z: Single): Single;
+function Approximate3DScale(const V: TVector3Single): Single;
+{ @groupEnd }
+
 { Linear interpolation between two vector values.
   Returns (1-A) * V1 + A * V2 (well, calculated a little differently for speed).
   So A = 0 gives V1, A = 1 gives V2, and values between and around are
@@ -2962,6 +2975,24 @@ begin
 end;
 
 { some math on vectors ------------------------------------------------------- }
+
+function Approximate3DScale(const X, Y, Z: Single): Single;
+begin
+  if (X * Y < 0) or
+     (X * Z < 0) or
+     (Y * X < 0) then
+    { If some values have opposite signs, it's better to make
+      an average of absolute values. This way a scale like (-1, 1, 1),
+      that flips X but preserves size, results in 1 (not 1/3).
+      Bug reproduce: escape with mirrored map parts. }
+    Result := (Abs(X) + Abs(Y) + Abs(Z)) / 3 else
+    Result := (    X  +     Y  +     Z ) / 3;
+end;
+
+function Approximate3DScale(const V: TVector3Single): Single;
+begin
+  Result := Approximate3DScale(V[0], V[1], V[2]);
+end;
 
 function VectorsPerfectlyEqual(const V1, V2: TVector2Byte): boolean;
 begin

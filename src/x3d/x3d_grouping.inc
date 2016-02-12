@@ -861,7 +861,7 @@ procedure TransformState(State: TX3DGraphTraverseState;
 begin
   TransformMatricesMult(State.Transform, State.InvertedTransform,
     Center, Rotation, Scale, ScaleOrientation, Translation);
-  State.TransformScale *= (Scale[0] + Scale[1] + Scale[2]) / 3;
+  State.TransformScale *= Approximate3DScale(Scale);
 end;
 
 procedure TTransformNode.ApplyTransform(State: TX3DGraphTraverseState);

@@ -4692,9 +4692,10 @@ begin
     a matrix. Works OK for combination of identity, scaling,
     translation matrices.
     Fails awfully on rotation (and possibly many other) matrices. }
-  Result := ( FValue[0, 0] +
-              FValue[1, 1] +
-              FValue[2, 2] ) / 3;
+  Result := Approximate3DScale(
+    FValue[0, 0],
+    FValue[1, 1],
+    FValue[2, 2]);
 end;
 
 { TSFMatrix4d ------------------------------------------------------------------ }
