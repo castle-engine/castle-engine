@@ -158,6 +158,7 @@
 
   TTimeSensorNode = class(TAbstractTimeDependentNode, IAbstractSensorNode)
   private
+    FakingTime: Integer;
     procedure EventElapsedTimeReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
@@ -736,7 +737,7 @@ procedure TTimeSensorNode.EventElapsedTimeReceive(
 var
   Fraction: Single;
 begin
-  if FdEnabled.Value then
+  if (FakingTime = 0) and FdEnabled.Value then
   begin
     Fraction := TimeDependentNodeHandler.ElapsedTimeInCycle / SafeCycleInterval;
     if (Fraction = 0) and (Time.Seconds > FdStartTime.Value) then Fraction := 1;
@@ -773,11 +774,13 @@ procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime; const Loop
 begin
   if FdEnabled.Value then
   begin
+    Inc(FakingTime);
     if Loop then
       EventFraction_changed.Send(Frac(TimeInAnimation / SafeCycleInterval), TimeOfEvents) else
       EventFraction_changed.Send(Clamped(TimeInAnimation / SafeCycleInterval, 0, 1), TimeOfEvents);
     EventElapsedTime.Send(TimeInAnimation, TimeOfEvents);
     EventTime.Send(TimeInAnimation, TimeOfEvents);
+    Dec(FakingTime);
   end;
 end;
 
