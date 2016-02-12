@@ -251,10 +251,15 @@ procedure TSFTimeIgnoreWhenActive.ExposedEventReceive(
       (ParentNode as IAbstractTimeDependentNode).TimeDependentNodeHandler.IsActive;
   end;
 
+var
+  SceneName: string;
 begin
   if Active then
   begin
-    WritelnLog('Change Ignored', 'An change of "' + Name + '" field while the time-dependent node is active is ignored (the value remains unchanged), following the X3D specification.');
+    if TX3DNode(ParentNode).Scene <> nil then
+      SceneName := TX3DNode(ParentNode).Scene.Name else
+      SceneName := '<scene-unknown>';
+    WritelnLog('Change Ignored', 'An change of "' + TX3DNode(ParentNode).NiceName + '.' + Name + '" field (scene "' + SceneName + '") while the time-dependent node is active is ignored (the value remains unchanged), following the X3D specification.');
     Exit;
   end;
   inherited;
