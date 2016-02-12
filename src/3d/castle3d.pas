@@ -1359,6 +1359,8 @@ type
     { @groupEnd }
 
     procedure Translate(const T: TVector3Single); override;
+
+    procedure Clear;
   end;
 
   TOrientationType = (
@@ -3709,6 +3711,15 @@ end;
 procedure T3DTransform.Translate(const T: TVector3Single);
 begin
   Translation := Translation + T;
+end;
+
+procedure T3DTransform.Clear;
+begin
+  Center := ZeroVector3Single;
+  Rotation := ZeroVector4Single;
+  Scale := NoScale;
+  ScaleOrientation := ZeroVector4Single;
+  Translation := ZeroVector3Single;
 end;
 
 { T3DOrient ------------------------------------------------------------------ }
