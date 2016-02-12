@@ -1853,15 +1853,16 @@ type
 
     function Animations: TStringList; deprecated 'use AnimationsList (and do not free it''s result)';
 
-(*
-    { Forcefully set 3D pose from given animation, with given time in animation.
+    { Forcefully, immediately, set 3D pose from given animation,
+      with given time in animation.
+
       This avoids the normal passage of time in X3D scenes,
-      it also ignores the @link(ProcessEvents) and @link(AnimateOnlyWhenVisible)
-      properties, and forces the current time by @link(TTimeSensorNode.FakeTime). }
+      it ignores the @link(ProcessEvents) and @link(AnimateOnlyWhenVisible)
+      properties, it ignores the current animation set by @link(PlayAnimation),
+      and forces the current time on TimeSensors by @link(TTimeSensorNode.FakeTime). }
     function ForceAnimationPose(const AnimationName: string;
-      const Looping: TPlayAnimationLooping;
-      const TimeInAnimation: TFloatTime): boolean;
-*)
+      const TimeInAnimation: TFloatTime;
+      const Looping: TPlayAnimationLooping): boolean;
 
     { Play a named animation (like detected by @link(Animations) method).
       Also stops previously playing named animation, if any.
@@ -7109,29 +7110,27 @@ begin
   Result := FAnimationsList.IndexOf(AnimationName) <> -1;
 end;
 
-(*
 function TCastleSceneCore.ForceAnimationPose(const AnimationName: string;
-  const Looping: TPlayAnimationLooping;
-  const TimeInAnimation: TFloatTime): boolean;
+  const TimeInAnimation: TFloatTime;
+  const Looping: TPlayAnimationLooping): boolean;
 var
+  Index: Integer;
   TimeNode: TTimeSensorNode;
   Loop: boolean;
 begin
-  TimeNode := ...;
-  Result := TimeNode <> nil;
+  Index := FAnimationsList.IndexOf(AnimationName);
+  Result := Index <> -1;
   if Result then
   begin
-    TimeNode.FdStartTime.Send(Time.Seconds);
-    Loop := TimeNode.Loop;
+    TimeNode := FAnimationsList.Objects[Index] as TTimeSensorNode;
     case Looping of
       paForceLooping   : Loop := true;
       paForceNotLooping: Loop := false;
+      else               Loop := TimeNode.Loop;
     end;
-    TimeNode.FakeTime(Time.Seconds + TimeInAnimation, Loop);
-    Inc(FTime.PlusTicks);
+    TimeNode.FakeTime(TimeInAnimation, Loop, NextEventTime);
   end;
 end;
-*)
 
 function TCastleSceneCore.PlayAnimation(const AnimationName: string;
   const Looping: TPlayAnimationLooping): boolean;

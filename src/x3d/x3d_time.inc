@@ -204,9 +204,14 @@
       instead we follow our own Loop parameter.
       We take into account TimeSensor.cycleInterval (FdCycleInterval) and
       TimeSensor.enabled (FdEnabled) fields, just like normal TimeSensor.
-      We send out fraction_changed (EventFraction_changed) and time (EventTime)
-      output events. }
-    procedure FakeTime(const Time: TFloatTime; const Loop: boolean);
+      We send out fraction_changed, elapsedTime and time X3D output events,
+      and they should drive the rest of animation.
+
+      @groupBegin }
+    procedure FakeTime(const TimeInAnimation: TFloatTime; const Loop: boolean);
+    procedure FakeTime(const TimeInAnimation: TFloatTime; const Loop: boolean;
+      const TimeOfEvents: TX3DTime);
+    { @groupEnd }
   end;
 
 {$endif read_interface}
@@ -744,25 +749,35 @@ end;
 var
   FakeX3DTime: TX3DTime;
 
-procedure TTimeSensorNode.FakeTime(const Time: TFloatTime; const Loop: boolean);
+procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime; const Loop: boolean);
+begin
+  { This method may be called with any TimeInAnimation values sequence,
+    e.g. decreasing.
+
+    So we have to calculate TimeOfEvents independent from Time,
+    and always growing (to avoid the normal VRML/X3D mechanism that prevents
+    passing ROUTEs with an older timestamp (see TX3DRoute.EventReceive).
+    We do this by simply using a fake timestamp that is always growing. }
+  if FakeX3DTime.PlusTicks <> High(FakeX3DTime.PlusTicks) then
+    Inc(FakeX3DTime.PlusTicks) else
+  begin
+    FakeX3DTime.Seconds += 1;
+    FakeX3DTime.PlusTicks := 0;
+  end;
+
+  FakeTime(TimeInAnimation, Loop, FakeX3DTime);
+end;
+
+procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime; const Loop: boolean;
+  const TimeOfEvents: TX3DTime);
 begin
   if FdEnabled.Value then
   begin
-    { This method may be called with any Time values sequence, e.g. decreasing.
-      So we have to avoid the normal VRML/X3D mechanism that prevents
-      passing ROUTEs with an older timestamp (see TX3DRoute.EventReceive).
-      We do this by simply using a fake timestamp that is always growing. }
-    if FakeX3DTime.PlusTicks <> High(FakeX3DTime.PlusTicks) then
-      Inc(FakeX3DTime.PlusTicks) else
-    begin
-      FakeX3DTime.Seconds += 1;
-      FakeX3DTime.PlusTicks := 0;
-    end;
-
     if Loop then
-      EventFraction_changed.Send(Frac(Time / SafeCycleInterval), FakeX3DTime) else
-      EventFraction_changed.Send(Clamped(Time / SafeCycleInterval, 0, 1), FakeX3DTime);
-    EventTime.Send(Time, FakeX3DTime);
+      EventFraction_changed.Send(Frac(TimeInAnimation / SafeCycleInterval), TimeOfEvents) else
+      EventFraction_changed.Send(Clamped(TimeInAnimation / SafeCycleInterval, 0, 1), TimeOfEvents);
+    EventElapsedTime.Send(TimeInAnimation, TimeOfEvents);
+    EventTime.Send(TimeInAnimation, TimeOfEvents);
   end;
 end;
 
