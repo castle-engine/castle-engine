@@ -98,6 +98,15 @@ uninstall:
 	       $(BINDIR)/castle-engine
 	rm -Rf $(DATADIR)/castle-engine
 
+# Strip libraries that cannot be distributed in Debian package of CGE for now,
+# because they (possibly) cannot be recompiled by Debian software right now
+# (or maybe they can, but noone had time to try it yet, and wrap in a script).
+# This concerns some Windows and Android libs.
+.PHONY: strip-precompiled-libraries
+strip-precompiled-libraries:
+	rm -Rf tools/build-tool/data/external_libraries/ \
+	       tools/build-tool/data/android/integrated-components/sound/
+
 # examples and tools -----------------------------------------------------------
 
 # Note that images/examples/fft_tests is not included here,
