@@ -26,4 +26,5 @@ if [ '!' -f "${SUPPORT_LIB_LOCATION}" ]; then
   exit 1
 fi
 
+mkdir -p libs/
 cp -R "${SUPPORT_LIB_LOCATION}" libs/
