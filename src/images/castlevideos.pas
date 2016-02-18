@@ -185,7 +185,7 @@ type
 
     property Loaded: boolean read FLoaded;
 
-    { @abstract(Should the video be played in a loop?)
+    { Play the video in a never-ending loop.
 
       If yes, then IndexFromTime and ImageFromTime will return information
       that causes the video to be played in an infinite loop.
@@ -199,7 +199,7 @@ type
       *FromTime methods return. }
     property TimeLoop: boolean read FTimeLoop write FTimeLoop default false;
 
-    { @abstract(Should the video be played backwards after playing forward?)
+    { Play the video backwards after playing it forward.
 
       This cooperates with TimeLoop. If this is @true and TimeLoop = @false,
       video will be played once forward, once backward, and then stop.
