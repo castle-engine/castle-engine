@@ -21,7 +21,7 @@
   For example you can resize images, you can draw one image on another,
   convert to grayscale and so on.
 
-  The "image" concept here includes various interesting image features
+  The "image" as understood by this unit may have some interesting features
   useful with modern GPUs: image data may be compressed for GPU
   (@link(TGPUCompressedImage)), image data may be 3D
   (every image has @code(Depth), in addition to
@@ -41,11 +41,9 @@
   or an image with data compressed for GPU (@link(TGPUCompressedImage)).
 
   When reading and writing image files, we understand various image
-  formats. (See TImageFormat in castleimages_file_formats.inc
-  for a current list of supported formats,
-  with comments specific to particular formats.
-  Nicely formatted list of supported formats is part of
-  glviewimage docs: http://castle-engine.sourceforge.net/glviewimage.php .)
+  formats. See glViewImage documentation
+  ( http://castle-engine.sourceforge.net/glviewimage.php )
+  for a current list of supported image formats.
 
   The basic loading and saving procedures are LoadImage and SaveImage.
   Example usage:
