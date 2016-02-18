@@ -187,7 +187,7 @@ type
 
     { Play the video in a never-ending loop.
 
-      If yes, then IndexFromTime and ImageFromTime will return information
+      If @true then IndexFromTime and ImageFromTime will return information
       that causes the video to be played in an infinite loop.
       This cooperates with TimeBackwards:
       If TimeBackwards is also @true, then each loop step will play
