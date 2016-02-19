@@ -3545,6 +3545,9 @@ procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage
 begin
   GLImages[ImageType].Color := Color;
   GLImages[ImageType].ScaleCorners := UIScale;
+  if Color[3] < 1 then
+    GLImages[ImageType].Alpha := acFullRange else
+    GLImages[ImageType].Alpha := FImages[ImageType].AlphaChannel;
   GLImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
 end;
 
