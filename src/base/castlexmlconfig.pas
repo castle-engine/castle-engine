@@ -70,6 +70,13 @@ type
       @raises(EConvertError If the attribute exists but has invalid format.) }
     function GetBoolean(const APath: String): Boolean; overload;
 
+    { Get a @italic(required, non-empty) string value.
+      Value must exist and cannot be empty in XML file.
+      @raises(EMissingAttribute If value doesn't exist or is empty in XML file.) }
+    function GetStringNonEmpty(const APath: string): string;
+
+    function GetNonEmptyValue(const APath: string): string; deprecated 'use GetStringNonEmpty';
+
     { Internal notes about GetFloat / SetFloat:
       At the beginning I made the float methods
       to overload existing names (GetValue, SetValue etc.).
@@ -342,10 +349,10 @@ end;
       to current OS newlines. }
     function GetMultilineText(const APath: string; const DefaultValue: string): string;
 
-    { Get a value, as a string. Value must exist and cannot be empty in XML file.
-
-      @raises(EMissingAttribute If value doesn't exist or is empty in XML file.) }
-    function GetNonEmptyValue(const APath: string): string;
+    { Read @italic(required, non-empty) string from a text content of given element.
+      The text may be multiline, line endings are guaranteed to be converted
+      to current OS newlines. }
+    function GetMultilineText(const APath: string): string;
 
     procedure NotModified;
 
@@ -479,20 +486,32 @@ end;
 
 function TCastleConfig.GetInteger(const APath: String): Integer;
 begin
-  Result := StrToInt(GetNonEmptyValue(APath));
+  Result := StrToInt(GetStringNonEmpty(APath));
 end;
 
 function TCastleConfig.GetBoolean(const APath: String): Boolean;
 var
   S: String;
 begin
-  S := GetNonEmptyValue(APath);
+  S := GetStringNonEmpty(APath);
   if AnsiCompareText(S, 'TRUE') = 0 then
     Result := true else
   if AnsiCompareText(s, 'FALSE') = 0 then
     Result := false else
     raise EConvertError.CreateFmt('Invalid boolean value "%s" in XML attribute "%s"',
       [S, APath]);
+end;
+
+function TCastleConfig.GetStringNonEmpty(const APath: string): string;
+begin
+  Result := GetValue(APath, '');
+  if Result = '' then
+    raise EMissingAttribute.CreateFmt('Missing attribute "%s" in XML file', [APath]);
+end;
+
+function TCastleConfig.GetNonEmptyValue(const APath: string): string;
+begin
+  Result := GetStringNonEmpty(APath);
 end;
 
 { get/set floats ------------------------------------------------------------ }
@@ -508,7 +527,7 @@ end;
 
 function TCastleConfig.GetFloat(const APath: string): Float;
 begin
-  Result := StrToFloat(GetNonEmptyValue(APath));
+  Result := StrToFloat(GetStringNonEmpty(APath));
 end;
 
 procedure TCastleConfig.SetFloat(const APath: string;
@@ -918,11 +937,11 @@ begin
   {$warnings on}
 end;
 
-function TCastleConfig.GetNonEmptyValue(const APath: string): string;
+function TCastleConfig.GetMultilineText(const APath: string): string;
 begin
-  Result := GetValue(APath, '');
+  Result := GetMultilineText(APath, '');
   if Result = '' then
-    raise EMissingAttribute.CreateFmt('Missing attribute "%s" in XML file', [APath]);
+    raise EMissingAttribute.CreateFmt('Missing multi-line text context of element "%s" in XML file', [APath]);
 end;
 
 procedure TCastleConfig.NotModified;

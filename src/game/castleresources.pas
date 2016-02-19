@@ -725,14 +725,14 @@ begin
       if Log then
         WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
 
-      ResourceClassName := Xml.GetNonEmptyValue('type');
+      ResourceClassName := Xml.GetStringNonEmpty('type');
       ResourceClassIndex := ResourceClasses.IndexOf(ResourceClassName);
       if ResourceClassIndex <> -1 then
         ResourceClass := ResourceClasses.Data[ResourceClassIndex] else
         raise Exception.CreateFmt('Resource type "%s" not found, mentioned in file "%s"',
           [ResourceClassName, URL]);
 
-      ResourceName := Xml.GetNonEmptyValue('name');
+      ResourceName := Xml.GetStringNonEmpty('name');
       if CharsPos(AllChars - ['a'..'z', 'A'..'Z'], ResourceName) <> 0 then
         raise Exception.CreateFmt('Resource name "%s" is invalid. Resource names may only use English letters (not even digits or underscores are allowed).',
           [ResourceName]);

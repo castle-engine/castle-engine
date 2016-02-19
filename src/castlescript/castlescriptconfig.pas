@@ -66,7 +66,7 @@ function TCastleConfigScriptHelper.GetFloatExpression(const APath: string): Floa
 var
   E: TCasScriptExpression;
 begin
-  E := ParseFloatExpression(GetNonEmptyValue(APath), []);
+  E := ParseFloatExpression(GetStringNonEmpty(APath), []);
   try
     Result := E.AsFloat;
   finally FreeAndNil(E) end;
