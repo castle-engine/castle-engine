@@ -109,4 +109,12 @@ src/x3d/teapot/teapot_3d_to_pascal.res
 tests/test_castle_game_engine
 tools/castle-engine
 tools/build-tool/castle-engine
+tools/build-tool/data/android/integrated-components/chartboost/libs/*.jar
+tools/build-tool/data/android/integrated-components/game_analytics/gameanalytics/*.jar
+tools/build-tool/data/android/integrated-components/game_analytics/libs/*.jar
+tools/build-tool/data/android/integrated-components/giftiz/GiftizSDKLibrary/
+tools/build-tool/data/android/integrated-components/google_play_services/google-play-services_lib/
+tools/build-tool/data/android/integrated-components/google_play_services/libs/*.jar
+tools/build-tool/data/android/integrated-components/heyzap/libs/*.jar
+tools/build-tool/data/android/integrated-components/startapp/libs/*.jar
 tools/texturefont2pascal/texturefont2pascal
