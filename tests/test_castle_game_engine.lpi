@@ -58,7 +58,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <SearchPaths>
-      <IncludeFiles Value="../../castle_game_engine/src/base"/>
+      <IncludeFiles Value="../src/base"/>
       <OtherUnitFiles Value="../examples/shadow_fields"/>
     </SearchPaths>
     <Parsing>
