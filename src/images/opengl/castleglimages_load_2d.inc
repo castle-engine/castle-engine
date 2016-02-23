@@ -504,6 +504,16 @@ begin
 
     if Filter.NeedsMipmaps then
     begin
+      {$ifdef ANDROID}
+      if TGPUCompressedImage(Image).Compression in
+           [tcATITC_RGB, tcATITC_RGBA_ExplicitAlpha, tcATITC_RGBA_InterpolatedAlpha] then
+      begin
+        { Update GL_TEXTURE_MIN_FILTER, since we already initialized it earlier. }
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        OnWarning(wtMinor, 'Texture', 'Using mipmaps for compressed textures is broken on Android with some ATI GPUs. We fallback to GL_LINEAR minification for ' + Image.URL);
+      end else
+      {$endif}
+
       if not LoadMipmapsFromDDS(DDSForMipmaps, false) then
       try
         GenerateMipmap(GL_TEXTURE_2D);
