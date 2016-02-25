@@ -58,7 +58,7 @@ const
   3D libraries (like OpenGL), for example it will never return TRGBFloatImage
   (although OpenGL may support it, but we cannot be sure at this point).
   It may return texture compressed using one of the GPU compression algorithms
-  (see TGPUCompression).
+  (see TTextureCompression).
 
   If the image comes from a DDS file, it will also return it
   (if not, DDS returned will be @nil). This allows you to e.g. use

@@ -770,7 +770,7 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
   TEncodedImageList = specialize TFPGObjectList<TEncodedImage>;
 
   { Possible compression of textures for GPU. }
-  TGPUCompression = (
+  TTextureCompression = (
     { S3TC DXT1 compression, for RGB images with no alpha or simple yes/no alpha.
       This compression format is often supported by desktop OpenGL implementations.
       See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC.
@@ -852,18 +852,18 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       also PVRTexTool and ATI compressonator. }
     tcETC1
   );
-  TGPUCompressions = set of TGPUCompression;
+  TTextureCompressions = set of TTextureCompression;
 
   { Image compressed using one of the GPU texture compression algorithms. }
   TGPUCompressedImage = class(TEncodedImage)
   private
-    FCompression: TGPUCompression;
+    FCompression: TTextureCompression;
     FSize: Cardinal;
   public
     constructor Create(const AWidth, AHeight, ADepth: Cardinal;
-      const ACompression: TGPUCompression);
+      const ACompression: TTextureCompression);
 
-    property Compression: TGPUCompression read FCompression;
+    property Compression: TTextureCompression read FCompression;
 
     { Size of the whole image data inside RawPixels, in bytes. }
     function Size: Cardinal; override;
@@ -1516,14 +1516,14 @@ const
   ('AUTO', 'NONE', 'SIMPLE_YES_NO', 'FULL_RANGE');
 
 type
-  TGPUCompressionInfo = object
+  TTextureCompressionInfo = object
     Name: string;
     RequiresPowerOf2: boolean;
     AlphaChannel: TAlphaChannel;
   end;
 
 const
-  GPUCompressionInfo: array [TGPUCompression] of TGPUCompressionInfo =
+  TextureCompressionInfo: array [TTextureCompression] of TTextureCompressionInfo =
   ( (Name: 'DXT1 (no alpha)'             ; RequiresPowerOf2: true ; AlphaChannel: acNone),
     (Name: 'DXT1'                        ; RequiresPowerOf2: true ; AlphaChannel: acSimpleYesNo),
     (Name: 'DXT3'                        ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
@@ -1567,12 +1567,12 @@ begin
   if IsPrefix(ApplicationData('animation/dragon/'), ImageUrl) then
   begin
     if GLFeatures = nil then
-      OnWarning(wtMinor, 'GPUCompression', 'Cannot determine whether to use GPU compressed version for ' + ImageUrl + ' because the image is loaded before GPU capabilities are known') else
+      OnWarning(wtMinor, 'TextureCompression', 'Cannot determine whether to use GPU compressed version for ' + ImageUrl + ' because the image is loaded before GPU capabilities are known') else
     if tcPvrtc1_4bpp_RGBA in GLFeatures.TextureCompression then
     begin
       ImageUrl := ExtractURIPath(ImageUrl) + 'compressed/pvrtc1_4bpp_rgba/' +
         ExtractURIName(ImageUrl) + '.dds';
-      WritelnLog('GPUCompression', 'Using compressed alternative ' + ImageUrl);
+      WritelnLog('TextureCompression', 'Using compressed alternative ' + ImageUrl);
     end;
   end;
 end;
@@ -2333,7 +2333,7 @@ end;
 
 constructor TGPUCompressedImage.Create(
   const AWidth, AHeight, ADepth: Cardinal;
-  const ACompression: TGPUCompression);
+  const ACompression: TTextureCompression);
 begin
   inherited Create;
   FWidth := AWidth;
@@ -2394,7 +2394,7 @@ begin
       FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 8;
 
     else raise EInvalidDDS.CreateFmt('Cannot calculate size for texture compressed with %s',
-      [GPUCompressionInfo[Compression].Name]);
+      [TextureCompressionInfo[Compression].Name]);
   end;
 
   FRawPixels := GetMem(FSize);
@@ -2407,7 +2407,7 @@ end;
 
 function TGPUCompressedImage.HasAlpha: boolean;
 begin
-  Result := GPUCompressionInfo[Compression].AlphaChannel <> acNone;
+  Result := TextureCompressionInfo[Compression].AlphaChannel <> acNone;
 end;
 
 function TGPUCompressedImage.AlphaChannel(
@@ -2415,7 +2415,7 @@ function TGPUCompressedImage.AlphaChannel(
 begin
   { Compressed data doesn't analyze alpha channel, instead
     we determine alpha channel from the compression type. }
-  Result := GPUCompressionInfo[Compression].AlphaChannel;
+  Result := TextureCompressionInfo[Compression].AlphaChannel;
 end;
 
 {$I images_s3tc_flip_vertical.inc}

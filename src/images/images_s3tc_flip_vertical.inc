@@ -240,7 +240,7 @@ begin
     { Don't even make a warning about it, just silently exit.
       Image author must be aware that we cannot flip when creating the image. }
     // else raise ECannotFlipCompressedImage.CreateFmt('Cannot flip image compressed with GPU compression %s',
-    //   [GPUCompressionInfo[Compression].Name]);
+    //   [TextureCompressionInfo[Compression].Name]);
     else Exit;
   end;
 

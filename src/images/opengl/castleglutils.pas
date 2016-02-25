@@ -208,7 +208,7 @@ type
     TextureCubeMap: TGLSupport;
 
     { Which texture compression formats are supported. }
-    TextureCompression: TGPUCompressions;
+    TextureCompression: TTextureCompressions;
 
     { VBO support (in OpenGL (ES) core). }
     VertexBufferObject: boolean;
@@ -1701,16 +1701,16 @@ const
       Result := 'Framebuffer not available';
   end;
 
-  function GPUCompressionsToString(const Compressions: TGPUCompressions): string;
+  function TextureCompressionsToString(const Compressions: TTextureCompressions): string;
   var
-    C: TGPUCompression;
+    C: TTextureCompression;
   begin
     Result := '';
     for C := Low(C) to High(C) do
       if C in Compressions then
       begin
         if Result <> '' then Result += ', ';
-        Result += GPUCompressionInfo[C].Name;
+        Result += TextureCompressionInfo[C].Name;
       end;
     Result := '[' + Result + ']';
   end;
@@ -1755,7 +1755,7 @@ begin
     '  Vertex Buffer Object: ' + BoolToStr[GLFeatures.VertexBufferObject] +nl+
     '  GenerateMipmap available (and reliable): ' + BoolToStr[HasGenerateMipmap] +nl+
     '  Cube map textures: ' + GLSupportNames[GLFeatures.TextureCubeMap] +nl+
-    '  Compressed textures supported: ' + GPUCompressionsToString(GLFeatures.TextureCompression) +nl+
+    '  Compressed textures supported: ' + TextureCompressionsToString(GLFeatures.TextureCompression) +nl+
     '  3D textures: ' + GLSupportNames[GLFeatures.Texture3D] +nl+
     '  Textures non-power-of-2: ' + BoolToStr[GLFeatures.TextureNonPowerOfTwo] +nl+
     '  Blend constant parameter: ' + BoolToStr[GLFeatures.BlendConstant] +nl+

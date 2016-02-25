@@ -85,7 +85,7 @@ type
     { Some DDS files specify unknown GPU texture compression.
       To read them, set this to true and set AutomaticCompressionType. }
     class var AutomaticCompression: boolean;
-    class var AutomaticCompressionType: TGPUCompression;
+    class var AutomaticCompressionType: TTextureCompression;
 
     constructor Create;
     destructor Destroy; override;
@@ -177,7 +177,7 @@ type
     { Decompress texture images (if any) on the @link(Images) list,
       replacing them with uncompressed equivalents.
       This can be used to decompress textures compressed using
-      GPU compression algorithms, see @link(TGPUCompression).
+      GPU compression algorithms, see @link(TTextureCompression).
       See TGPUCompressedImage.Decompress.
 
       Just like @link(Flatten3d):
@@ -1116,7 +1116,7 @@ var
         end;
       end { ReadUncompressed };
 
-      procedure ReadCompressed(Compression: TGPUCompression);
+      procedure ReadCompressed(Compression: TTextureCompression);
       var
         { Within ReadUncompressed, Result is always of TGPUCompressedImage class }
         Res: TGPUCompressedImage absolute Result;
@@ -1149,7 +1149,7 @@ var
             ) then
             OnWarning(wtMinor, 'DDS', Format('Incorrect size for GPU compressed texture (DDS says %d, calculated should be %d, compression is %s)',
               [Header.PitchOrLinearSize, Result.Size,
-               GPUCompressionInfo[Compression].Name]));
+               TextureCompressionInfo[Compression].Name]));
 
           Stream.ReadBuffer(Res.RawPixels^, Res.Size);
 
@@ -1504,7 +1504,7 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
         tcATITC_RGBA_ExplicitAlpha    : Header.PixelFormat.FourCC := 'ATCA';
         tcATITC_RGBA_InterpolatedAlpha: Header.PixelFormat.FourCC := 'ATCI';
         else raise EImageSaveError.CreateFmt('When saving DDS: Cannot save to DDS with compression %s',
-          [GPUCompressionInfo[TGPUCompressedImage(Images[0]).Compression].Name]);
+          [TextureCompressionInfo[TGPUCompressedImage(Images[0]).Compression].Name]);
       end;
     end else
       raise Exception.CreateFmt('Unable to save image class %s to DDS image',

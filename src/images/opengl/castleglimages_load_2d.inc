@@ -275,12 +275,12 @@ procedure glCompressedTextureImage2D(Image: TGPUCompressedImage; Level: TGLint;
 begin
   if not (Image.Compression in GLFeatures.TextureCompression) then
     raise ECannotLoadCompressedTexture.CreateFmt('Cannot load textures compressed using %s, your OpenGL/OpenGLES does not support the necessary extensions',
-      [GPUCompressionInfo[Image.Compression].Name]);
+      [TextureCompressionInfo[Image.Compression].Name]);
 
-  if GPUCompressionInfo[Image.Compression].RequiresPowerOf2 and
+  if TextureCompressionInfo[Image.Compression].RequiresPowerOf2 and
      not IsTextureSized(Image, tsRequiredPowerOf2) then
     raise ECannotLoadCompressedTexture.CreateFmt('Cannot load compressed textures: texture size is %d x %d, it''s not a power-of-2. Textures compressed with %s must be provided with power-of-2 sizes.',
-      [Image.Width, Image.Height, GPUCompressionInfo[Image.Compression].Name]);
+      [Image.Width, Image.Height, TextureCompressionInfo[Image.Compression].Name]);
 
   { Pixel packing parameters (stuff changed by Before/AfterUnpackImage)
     doesn't affect loading compressed textures, as far as I understand.

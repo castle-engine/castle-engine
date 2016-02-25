@@ -195,7 +195,7 @@ var
   begin
   if not (Image.Compression in GLFeatures.TextureCompression) then
     raise ECannotLoadCompressedTexture.CreateFmt('Cannot load textures compressed using %s, your OpenGL/OpenGLES does not support the necessary extensions',
-      [GPUCompressionInfo[Image.Compression].Name]);
+      [TextureCompressionInfo[Image.Compression].Name]);
 
     if not IsCubeMapTextureSized(Image) then
       raise ECannotLoadCompressedTexture.CreateFmt('Cannot load compressed textures: texture size is %d x %d, it''s not correct for a cube map, and we cannot resize compressed textures',
