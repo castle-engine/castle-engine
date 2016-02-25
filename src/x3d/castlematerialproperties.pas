@@ -19,39 +19,21 @@ unit CastleMaterialProperties;
 
 interface
 
-uses CastleUtils, CastleClassUtils, Classes, DOM, CastleSoundEngine, FGL;
+uses Classes, DOM, FGL,
+  CastleUtils, CastleClassUtils, CastleSoundEngine, CastleStringUtils,
+  CastleImages, CastleFindFiles;
 
 type
-  { Store information that is naturally associated with a given material
-    or texture in an external file. Right now this allows to define things
-    like footsteps, toxic ground (hurts player), and bump mapping.
-
-    In the future, it should be possible to express all these properties
-    in pure VRML/X3D (inside Appearance / Material / ImageTexture nodes).
-    Right now, you can do this with bump mapping, see
-    http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_bump_mapping ,
-    but not footsteps or toxic ground.
-    In the future it should also be possible to express these properties
-    in 3D authoring software (like Blender), and easily export them
-    to appropriate VRML/X3D nodes.
-    For now, this TMaterialProperty allows us to easily customize materials
-    in a way that is not possible in Blender.
-
-    Using an external file for material properties has also long-term
-    advantages: it can be shared across many 3D models, for example
-    you can define footsteps sound for all grounds using the @code(grass.png)
-    textures, in all levels, at once.
-
-    You have to load an XML file by setting
-    @link(TMaterialProperties.URL MaterialProperties.URL) property. }
+  { Information for a particular material. }
   TMaterialProperty = class
-  private
+  strict private
     FTextureBaseName: string;
     FFootstepsSound: TSoundType;
     FToxic: boolean;
     FToxicDamageConst, FToxicDamageRandom, FToxicDamageTime: Single;
     FNormalMap: string;
     FAlphaChannel: string;
+  private
     procedure LoadFromDOMElement(Element: TDOMElement; const BaseUrl: string);
   public
     { Texture basename to associate this property will all appearances
@@ -88,35 +70,117 @@ type
     property AlphaChannel: string read FAlphaChannel write FAlphaChannel;
   end;
 
-  { Material properties collection, see TMaterialProperty. }
+  { Store information that is naturally associated with a given material
+    or texture in an external file. Documentation and example of such
+    file is on  http://castle-engine.sourceforge.net/creating_data_material_properties.php .
+    Right now this allows to define things like:
+
+    @unorderedList(
+      @itemSpacing compact
+      @item footsteps,
+      @item toxic ground (hurts player),
+      @item bump mapping (normal maps and height maps for given texture),
+      @item texture GPU-compressed alternatives.
+    )
+
+    In the future, it should be possible to express all these properties
+    in pure VRML/X3D (inside Appearance / Material / ImageTexture nodes).
+    Right now, you can do this with bump mapping, see
+    http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_bump_mapping ,
+    but not footsteps or toxic ground.
+    In the future it should also be possible to express these properties
+    in 3D authoring software (like Blender), and easily export them
+    to appropriate VRML/X3D nodes.
+    For now, this TMaterialProperty allows us to easily customize materials
+    in a way that is not possible in Blender.
+
+    Using an external file for material properties has also long-term
+    advantages: it can be shared across many 3D models, for example
+    you can define footsteps sound for all grounds using the @code(grass.png)
+    textures, in all levels, at once.
+
+    You have to load an XML file by setting
+    @link(TMaterialProperties.URL MaterialProperties.URL) property.
+  }
   TMaterialProperties = class(specialize TFPGObjectList<TMaterialProperty>)
-  private
+  strict private
+    type
+      TAutoCompressedTextures = class
+      strict private
+        const
+          PathsIgnoreCase = true;
+        var
+        FAutoProcessImageURLs: boolean;
+        IncludePaths: TCastleStringList; // absolute URLs
+        IncludePathsRecursive: TBooleanList;
+        ExcludePaths: TCastleStringList;
+        FFormats: TTextureCompressions;
+        GatheringResult: TCastleStringList;
+        procedure GatherCallback(const FileInfo: TFileInfo; var StopSearch: boolean);
+        procedure LoadImageEvent(var URL: string);
+      public
+        constructor Create(const Element: TDOMElement; const BaseUrl: string; const AnAutoProcessImageURLs: boolean);
+        destructor Destroy; override;
+        function AutoCompressedTextures: TCastleStringList;
+        class function CompressedTextureURL(const URL: string;
+          const TextureCompression: TTextureCompression): string;
+        property Formats: TTextureCompressions read FFormats;
+      end;
+    var
+    FAutoCompressedTextures: TAutoCompressedTextures;
     FURL: string;
+    FAutoProcessImageURLs: boolean;
     procedure SetURL(const Value: string);
   public
+    const
+      { TODO: auto_compressed, once we compare }
+      AutoCompressedDirName = 'compressed';
+
+    constructor Create(const AnAutoProcessImageURLs: boolean);
+    destructor Destroy; override;
+
     { Load material properties from given XML file.
       Set this to empty string to unload previously loaded properties.
       See Castle1 and fps_game data for examples how this looks like,
       in @code(material_properties.xml). }
     property URL: string read FURL write SetURL;
-    { Deprecated name for URL. @deprecated }
-    property FileName: string read FURL write SetURL; deprecated;
+
+    property FileName: string read FURL write SetURL; deprecated 'use URL';
 
     { Find material properties for given texture basename.
       Returns @nil if no material properties are found
       (in particular, if @link(URL) was not set yet). }
     function FindTextureBaseName(const TextureBaseName: string): TMaterialProperty;
+
+    { Get the URLs of all textures that should have automatically
+      generated GPU-compressed counterparts.
+      Returns a list of absolute URLs.
+
+      This is to be used by "castle-engine auto-compress-textures"
+      tool, or similar tools.
+
+      Caller is responsible for freeing the returned TCastleStringList list. }
+    function AutoCompressedTextures: TCastleStringList;
+
+    { For given texture (absolute) URL and compression,
+      return the proper URL of auto-compressed counterpart. }
+    class function AutoCompressedTextureURL(const TextureURL: string;
+      const TextureCompression: TTextureCompression): string;
+
+    { Automatic formats used for all AutoCompressedTextures. }
+    function AutoCompressedTextureFormats: TTextureCompressions;
   end;
 
-{ Known material properties.
+{ Material and texture properties, see @link(TMaterialProperties).
   Set the @link(TMaterialProperties.URL URL) property
   to load material properties from XML file. }
 function MaterialProperties: TMaterialProperties;
 
 implementation
 
-uses SysUtils, XMLRead, CastleXMLUtils, CastleFilesUtils, X3DNodes,
-  CastleURIUtils, CastleDownload;
+uses SysUtils, XMLRead, StrUtils,
+  CastleXMLUtils, CastleFilesUtils, X3DNodes, CastleGLUtils,
+  CastleURIUtils, CastleDownload, CastleWarnings, CastleLog;
 
 { TMaterialProperty --------------------------------------------------------- }
 
@@ -161,7 +225,193 @@ begin
   finally FreeAndNil(I) end;
 end;
 
+{ TMaterialProperties.TAutoCompressedTextures -------------------------------- }
+
+constructor TMaterialProperties.TAutoCompressedTextures.Create(
+  const Element: TDOMElement; const BaseUrl: string;
+  const AnAutoProcessImageURLs: boolean);
+var
+  ChildElements: TXMLElementIterator;
+  ChildElement, FormatsElement: TDOMElement;
+begin
+  inherited Create;
+  FAutoProcessImageURLs := AnAutoProcessImageURLs;
+  IncludePaths := TCastleStringList.Create;
+  IncludePathsRecursive := TBooleanList.Create;
+  ExcludePaths := TCastleStringList.Create;
+
+  { read from XML }
+
+  ChildElements := Element.ChildrenIterator('include');
+  try
+    while ChildElements.GetNext do
+    begin
+      ChildElement := ChildElements.Current;
+      IncludePaths.Add(ChildElement.AttributeURL('path', BaseUrl));
+      IncludePathsRecursive.Add(ChildElement.AttributeBooleanDef('recursive', false));
+    end;
+  finally FreeAndNil(ChildElements) end;
+
+  ChildElements := Element.ChildrenIterator('exclude');
+  try
+    while ChildElements.GetNext do
+    begin
+      ChildElement := ChildElements.Current;
+      ExcludePaths.Add(ChildElement.AttributeString('path'));
+    end;
+  finally FreeAndNil(ChildElements) end;
+
+  FormatsElement := Element.ChildElement('formats', false);
+  if FormatsElement <> nil then
+  begin
+    ChildElements := FormatsElement.ChildrenIterator('format');
+    try
+      while ChildElements.GetNext do
+        Include(FFormats, StringToTextureCompression(
+          ChildElements.Current.AttributeString('name')));
+    finally FreeAndNil(ChildElements) end;
+  end;
+
+  if FAutoProcessImageURLs then
+    AddLoadImageListener(@LoadImageEvent);
+end;
+
+destructor TMaterialProperties.TAutoCompressedTextures.Destroy;
+begin
+  FreeAndNil(IncludePaths);
+  FreeAndNil(IncludePathsRecursive);
+  FreeAndNil(ExcludePaths);
+  if FAutoProcessImageURLs then
+    RemoveLoadImageListener(@LoadImageEvent);
+  inherited;
+end;
+
+procedure TMaterialProperties.TAutoCompressedTextures.GatherCallback(const FileInfo: TFileInfo; var StopSearch: boolean);
+begin
+  if (Pos('/' + AutoCompressedDirName + '/', FileInfo.URL) = 0) and
+     IsImageMimeType(URIMimeType(FileInfo.URL), false, false) then
+    GatheringResult.Add(FileInfo.URL);
+end;
+
+function TMaterialProperties.TAutoCompressedTextures.
+  AutoCompressedTextures: TCastleStringList;
+
+  procedure Exclude(const PathMask: string; const Files: TCastleStringList);
+  var
+    I: Integer;
+  begin
+    I := 0;
+    while I < Files.Count do
+    begin
+      if IsWild(Files[I], PathMask, PathsIgnoreCase) then
+        Files.Delete(I) else
+        Inc(I);
+    end;
+  end;
+
+var
+  I: Integer;
+  FindOptions: TFindFilesOptions;
+begin
+  Result := TCastleStringList.Create;
+  GatheringResult := Result;
+
+  for I := 0 to IncludePaths.Count - 1 do
+  begin
+    if IncludePathsRecursive[I] then
+      FindOptions := [ffRecursive] else
+      { not recursive, so that e.g. <include path="my_texture.png" />
+	or <include path="subdir/my_texture.png" />
+	should not include *all* my_texture.png files inside. }
+      FindOptions := [];
+    FindFiles(IncludePaths[I], false, @GatherCallback, FindOptions);
+  end;
+
+  GatheringResult := nil;
+
+  for I := 0 to ExcludePaths.Count - 1 do
+    Exclude(ExcludePaths[I], Result);
+end;
+
+procedure TMaterialProperties.TAutoCompressedTextures.LoadImageEvent(
+  var URL: string);
+var
+  URLName, URLPath: string;
+
+  { Texture has GPU-compressed counterpart, according to include/exclude
+    variables. So try to replace URL with something compressed. }
+  procedure ReplaceURL;
+  var
+    C: TTextureCompression;
+  begin
+    if GLFeatures = nil then
+      OnWarning(wtMinor, 'GPUCompression', 'Cannot determine whether to use GPU compressed version for ' + URL + ' because the image is loaded before GPU capabilities are known') else
+    for C in Formats do
+      if C in GLFeatures.TextureCompression then
+      begin
+        URL := CompressedTextureURL(URL, C);
+        WritelnLog('GPUCompression', 'Using compressed alternative ' + URL);
+        Exit;
+      end;
+  end;
+
+  { Check is URL not excluded, and eventually call ReplaceURL. }
+  procedure CheckExcludeAndReplaceURL;
+  var
+    I: Integer;
+  begin
+    for I := 0 to ExcludePaths.Count - 1 do
+      if IsWild(URL, ExcludePaths[I], PathsIgnoreCase) then
+        Exit;
+    ReplaceURL;
+  end;
+
+var
+  I: Integer;
+  IncludePath, IncludeMask: string;
+  PathMatches: boolean;
+begin
+  URLPath := ExtractURIPath(URL);
+  URLName := ExtractURIName(URL);
+  for I := 0 to IncludePaths.Count - 1 do
+  begin
+    IncludePath := ExtractURIPath(IncludePaths[I]);
+    IncludeMask := ExtractURIName(IncludePaths[I]);
+    if IncludePathsRecursive[I] then
+      PathMatches := IsPrefix(IncludePath, URLPath, PathsIgnoreCase) else
+      PathMatches := AnsiSameText(IncludePath, URLPath); { assume PathsIgnoreCase=true }
+    if PathMatches and IsWild(URLName, IncludeMask, PathsIgnoreCase) then
+    begin
+      CheckExcludeAndReplaceURL;
+      Exit;
+    end;
+  end;
+end;
+
+class function TMaterialProperties.TAutoCompressedTextures.CompressedTextureURL(
+  const URL: string;
+  const TextureCompression: TTextureCompression): string;
+begin
+  Result := ExtractURIPath(URL) + AutoCompressedDirName + '/' +
+    //LowerCase(TextureCompressionToString(TextureCompression)) + '/' +
+    // TODO testing - like old script
+    StringReplace(LowerCase(TextureCompressionToString(TextureCompression)), 'interpolatedalpha', 'interpolated', [rfReplaceAll]) + '/' +
+    ExtractURIName(URL) + '.dds';
+end;
+
 { TMaterialProperties ---------------------------------------------------------- }
+
+constructor TMaterialProperties.Create(const AnAutoProcessImageURLs: boolean);
+begin
+  inherited Create({ owns objects } true);
+  FAutoProcessImageURLs := AnAutoProcessImageURLs;
+end;
+
+destructor TMaterialProperties.Destroy;
+begin
+  FreeAndNil(FAutoCompressedTextures);
+  inherited;
+end;
 
 procedure TMaterialProperties.SetURL(const Value: string);
 var
@@ -169,10 +419,12 @@ var
   Elements: TXMLElementIterator;
   MaterialProperty: TMaterialProperty;
   Stream: TStream;
+  AutoCompressedTexturesElement: TDOMElement;
 begin
   FURL := Value;
 
   Clear;
+  FreeAndNil(FAutoCompressedTextures);
 
   if URL = '' then Exit;
 
@@ -185,19 +437,20 @@ begin
     Check(Config.DocumentElement.TagName = 'properties',
       'Root node of material properties file must be <properties>');
 
-    Elements := Config.DocumentElement.ChildrenIterator;
+    Elements := Config.DocumentElement.ChildrenIterator('property');
     try
       while Elements.GetNext do
       begin
-        Check(Elements.Current.TagName = 'property',
-          'Material properties file must be a sequence of <property> elements');
-
         MaterialProperty := TMaterialProperty.Create;
         Add(MaterialProperty);
-
         MaterialProperty.LoadFromDOMElement(Elements.Current, AbsoluteURI(URL));
       end;
     finally FreeAndNil(Elements); end;
+
+    AutoCompressedTexturesElement := Config.DocumentElement.ChildElement('auto_compressed_textures', false);
+    if AutoCompressedTexturesElement <> nil then
+      FAutoCompressedTextures := TAutoCompressedTextures.Create(
+        AutoCompressedTexturesElement, URL, FAutoProcessImageURLs);
   finally
     SysUtils.FreeAndNil(Config);
   end;
@@ -212,6 +465,29 @@ begin
       Exit(Items[I]);
   Result := nil;
 end;
+
+function TMaterialProperties.AutoCompressedTextures: TCastleStringList;
+begin
+  if FAutoCompressedTextures <> nil then
+    Result := FAutoCompressedTextures.AutoCompressedTextures else
+    Result := TCastleStringList.Create;
+end;
+
+class function TMaterialProperties.AutoCompressedTextureURL(const TextureURL: string;
+  const TextureCompression: TTextureCompression): string;
+begin
+  Result := TAutoCompressedTextures.CompressedTextureURL(TextureURL,
+    TextureCompression);
+end;
+
+function TMaterialProperties.AutoCompressedTextureFormats: TTextureCompressions;
+begin
+  if FAutoCompressedTextures <> nil then
+    Result := FAutoCompressedTextures.Formats else
+    Result := [];
+end;
+
+{ globals -------------------------------------------------------------------- }
 
 var
   FMaterialProperties: TMaterialProperties;

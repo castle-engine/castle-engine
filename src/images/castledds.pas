@@ -1194,7 +1194,7 @@ var
             { There's no way to recognize from DDS file header whether it uses
               or not some transparent pixels. (DDPF_ALPHAPIXELS is never
               specified for compressed formats.)
-              Theoreticall, every DXT1 image may have some transparent pixels,
+              Potentially, every DXT1 image may have some transparent pixels,
               so use tcDxt1_RGBA. }
             ReadCompressed(tcDxt1_RGBA) else
           if Header.PixelFormat.FourCC = 'DXT3' then

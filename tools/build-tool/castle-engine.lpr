@@ -106,6 +106,15 @@ begin
           '  Use this instead of "compile" only if there''s some good reason' +NL+
           '  you don''t want to use CastleEngineManifest.xml to your project.' +NL+
           NL+
+          '- "auto-compress-textures" :' +NL+
+          '  Create GPU-compressed versions of textures,' +NL+
+          '  for the textures mentioned in <auto_compressed_textures>' +NL+
+          '  inside the file data/material_properties.xml.' +NL+
+          NL+
+          '- "auto-compress-clean" :' +NL+
+          '  Clear "auto_compressed" subdirectories, that should contain only' +NL+
+          '  the output created by "auto-compress-textures" target.' +NL+
+          NL+
           'Available options are:' +NL+
           HelpOptionHelp +NL+
           VersionOptionHelp +NL+
@@ -253,6 +262,10 @@ begin
       end else
       if Command = 'clean' then
         Project.DoClean else
+      if Command = 'auto-compress-textures' then
+        Project.DoAutoCompressTextures else
+      if Command = 'auto-compress-clean' then
+        Project.DoAutoCompressClean else
         raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
     finally FreeAndNil(Project) end;
   end;

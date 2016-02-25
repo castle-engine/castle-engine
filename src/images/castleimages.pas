@@ -1524,10 +1524,10 @@ type
 
 const
   TextureCompressionInfo: array [TTextureCompression] of TTextureCompressionInfo =
-  ( (Name: 'DXT1 (no alpha)'             ; RequiresPowerOf2: true ; AlphaChannel: acNone),
-    (Name: 'DXT1'                        ; RequiresPowerOf2: true ; AlphaChannel: acSimpleYesNo),
-    (Name: 'DXT3'                        ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
-    (Name: 'DXT5'                        ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
+  ( (Name: 'DXT1_RGB'                    ; RequiresPowerOf2: false; AlphaChannel: acNone),
+    (Name: 'DXT1_RGBA'                   ; RequiresPowerOf2: false; AlphaChannel: acSimpleYesNo),
+    (Name: 'DXT3'                        ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
+    (Name: 'DXT5'                        ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
     { See http://community.imgtec.com/files/pvrtc-texture-compression-user-guide/
       "PVRTC2 vs PVRTC1" section --- PVRTC1 require power-of-two. } { }
     (Name: 'PVRTC1_4bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone),
@@ -1544,25 +1544,44 @@ const
     (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone)
   );
 
+{ Convert TTextureCompression enum to string. }
+function TextureCompressionToString(const TextureCompression: TTextureCompression): string;
+
+{ Convert string to TTextureCompression enum. Possible values correspond
+  to names listed in TextureCompressionInfo array, they are also equal
+  to enum Pascal names without leading "tc".
+  Compares given strig ignoring the case.
+  @raises(Exception If the string value does not name any
+    TTextureCompression value.) }
+function StringToTextureCompression(const S: string): TTextureCompression;
+
 type
-  TLoadImagePreprocessEvent = procedure (var ImageUrl: string);
-var
+  { Listener type for @link(AddLoadImageListener). }
+  TLoadImageEvent = procedure (var ImageUrl: string) of object;
 
-  { If assigned, all URLs loaded by LoadImage and LoadEncodedImage are processed
-    by this event. This allows to globally modify / observe your images paths,
-    e.g. to use GPU compressed alternative versions.
+{ All URLs loaded by LoadImage and LoadEncodedImage are processed
+  by this event. This allows to globally modify / observe your images paths,
+  e.g. to use GPU compressed alternative versions.
 
-    @italic(An example:) To work on any GPU, you want to have various
-    versions of your textures (uncompressed, and also compressed with
-    various GPU algorithms) in your data.
-    Use this procedure to redirect all image loading to use your
-    compressed versions, when they are supported by the GPU:
+  This is automatically used by @link(TMaterialProperties MaterialProperties)
+  to automatically use GPU compressed textures.
+  See http://castle-engine.sourceforge.net/creating_data_material_properties.php .
+  You can also use it yourself, instead or in addition
+  to @link(TMaterialProperties MaterialProperties) processing.
 
-    @longCode(#
+  @italic(An example:) To work on any GPU, you want to have various
+  versions of your textures (uncompressed, and also compressed with
+  various GPU algorithms) in your data.
+  Use this procedure to redirect all image loading to use your
+  compressed versions, when they are supported by the GPU.
+  By doing it like this we capture all kinds of image loading --- from TGLImage,
+  from TCastleScene and so on.
+
+  @longCode(#
 uses ..., CastleURIUtils, CastleGLUtils, CastleLog, CastleStringUtils,
   CastleFilesUtils, CastleWarnings;
 
-procedure GPUTextureAlternative(var ImageUrl: string);
+procedure TTextureUtils.GPUTextureAlternative(var ImageUrl: string);
 begin
   if IsPrefix(ApplicationData('animation/dragon/'), ImageUrl) then
   begin
@@ -1578,17 +1597,22 @@ begin
 end;
 
 initialization
-  LoadImagePreprocess := @GPUTextureAlternative;
+  AddLoadImageListener(@TTextureUtils(nil).GPUTextureAlternative);
+finalization
+  RemoveLoadImageListener(@GPUTextureAlternative);
 end.
 #)
-  }
-  LoadImagePreprocess: TLoadImagePreprocessEvent;
+}
+procedure AddLoadImageListener(const Event: TLoadImageEvent);
+
+{ Remove listener added by @link(AddLoadImageListener). }
+procedure RemoveLoadImageListener(const Event: TLoadImageEvent);
 
 {$undef read_interface}
 
 implementation
 
-uses ExtInterpolation, FPCanvas, FPImgCanv,
+uses ExtInterpolation, FPCanvas, FPImgCanv, CastleGenericLists,
   CastleProgress, CastleStringUtils, CastleFilesUtils, CastleWarnings,
   CastleDDS, CastleDownload, CastleURIUtils;
 
@@ -3529,7 +3553,27 @@ begin
   result[2] := v[2]*Multiplier;
 end;
 
+{ TLoadImageEventList -------------------------------------------------------- }
+
+type
+  TLoadImageEventList = class(specialize TGenericStructList<TLoadImageEvent>)
+  public
+    procedure Execute(var URL: string);
+  end;
+
+procedure TLoadImageEventList.Execute(var URL: string);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I](URL);
+end;
+
+var
+  LoadImageEvents: TLoadImageEventList;
+
 { LoadEncodedImage ----------------------------------------------------------- }
+
 
 { Make sure the image has an alpha channel.
   If image doesn't have an alpha channel (it is TRGBImage or TGrayscaleImage),
@@ -3724,8 +3768,7 @@ var
 begin
   try
     try
-      if Assigned(LoadImagePreprocess) then
-        LoadImagePreprocess(URL);
+      LoadImageEvents.Execute(URL);
       F := Download(URL, [soForceMemoryStream], MimeType);
     except
       on E: EReadError do raise EImageLoadError.Create(E.Message);
@@ -3901,7 +3944,7 @@ begin
   finally FreeAndNil(Stream) end;
 end;
 
-{ unit initialization / finalization ----------------------------------------- }
+{ others --------------------------------------------------------------------- }
 
 procedure AlphaMaxVar(var A: TAlphaChannel; const B: TAlphaChannel);
 begin
@@ -3929,12 +3972,42 @@ begin
   end;
 end;
 
+function TextureCompressionToString(const TextureCompression: TTextureCompression): string;
+begin
+  Result := TextureCompressionInfo[TextureCompression].Name;
+end;
+
+function StringToTextureCompression(const S: string): TTextureCompression;
+var
+  SLower: string;
+begin
+  SLower := LowerCase(S);
+  for Result := Low(Result) to High(Result) do
+    if SLower = LowerCase(TextureCompressionInfo[Result].Name) then
+      Exit;
+  raise Exception.CreateFmt('Invalid texture compression name "%s"', [S]);
+end;
+
+procedure AddLoadImageListener(const Event: TLoadImageEvent);
+begin
+  LoadImageEvents.Add(Event);
+end;
+
+procedure RemoveLoadImageListener(const Event: TLoadImageEvent);
+begin
+  LoadImageEvents.Remove(Event);
+end;
+
+{ unit initialization / finalization ----------------------------------------- }
+
 initialization
   InitializeImagesFileFilters;
   {$ifndef CASTLE_PNG_USING_FCL_IMAGE}
   InitializePNG;
   {$endif}
+  LoadImageEvents := TLoadImageEventList.Create;
 finalization
   FreeAndNil(LoadImage_FileFilters);
   FreeAndNil(SaveImage_FileFilters);
+  FreeAndNil(LoadImageEvents);
 end.

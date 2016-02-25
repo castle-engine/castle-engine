@@ -285,7 +285,6 @@ begin
       'Searching inside filesystem with protocol %s not possible', [P]);
 end;
 
-
 { This is equivalent to FindFiles with Recursive = true,
   and ReadAllFirst = false. }
 function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: boolean;
