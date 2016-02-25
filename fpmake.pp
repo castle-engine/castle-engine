@@ -234,7 +234,7 @@ begin
     P.Targets.AddUnit('castlelevels.pas');
     P.Targets.AddUnit('castleplayer.pas');
     P.Targets.AddUnit('castleresources.pas');
-    P.Targets.AddUnit('castlematerialproperties.pas');
+    P.Targets.AddUnit('castlescenemanager.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'images');
     P.Targets.AddUnit('castlefpwritepng.pas');
@@ -292,6 +292,7 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'x3d');
     P.Targets.AddUnit('castlearraysgenerator.pas');
+    P.Targets.AddUnit('castlematerialproperties.pas');
     P.Targets.AddUnit('castlenormals.pas');
     P.Targets.AddUnit('castlerenderingcamera.pas');
     P.Targets.AddUnit('castlescenecore.pas');
@@ -323,7 +324,6 @@ begin
     P.Targets.AddUnit('castlebackground.pas');
     P.Targets.AddUnit('castleglcubemaps.pas');
     P.Targets.AddUnit('castlescene.pas');
-    P.Targets.AddUnit('castlescenemanager.pas');
     P.Targets.AddUnit('castlerendererinternalshader.pas');
     P.Targets.AddUnit('castlerendererinternallights.pas');
     P.Targets.AddUnit('castlerendererinternaltextureenv.pas');

@@ -521,7 +521,7 @@
         <UnitName Value="CastleLevels"/>
       </Item120>
       <Item121>
-        <Filename Value="../src/game/castlematerialproperties.pas"/>
+        <Filename Value="../src/x3d/castlematerialproperties.pas"/>
         <UnitName Value="CastleMaterialProperties"/>
       </Item121>
       <Item122>
@@ -917,7 +917,7 @@
         <UnitName Value="CastleSceneInternalShape"/>
       </Item218>
       <Item219>
-        <Filename Value="../src/x3d/opengl/castlescenemanager.pas"/>
+        <Filename Value="../src/game/castlescenemanager.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleSceneManager"/>
       </Item219>
