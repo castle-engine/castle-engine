@@ -420,7 +420,8 @@ begin
   ReadManifest;
   GuessDependencies;
   CloseDependencies;
-  Writeln('Project "' + Name + '" dependencies: ' + DependenciesToStr(Dependencies));
+  if Verbose then
+    Writeln('Project "' + Name + '" dependencies: ' + DependenciesToStr(Dependencies));
 end;
 
 destructor TCastleProject.Destroy;
