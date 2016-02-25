@@ -86,6 +86,9 @@ procedure AutoCompressTextures(const Project: TCastleProject);
       SaveImage(Image, FilenameToURISafe(InputFlippedFile));
     finally FreeAndNil(Image) end;
 
+    { this is worse, as it requires ImageMagick }
+    // RunCommandSimple(FindExe('convert'), [InputFile, '-flip', InputFlippedFile]);
+
     OutputTempFile := TempPrefix + 'output' + ExtractFileExt(OutputFile);
 
     RunCommandSimple(ExtractFilePath(TempPrefix),
