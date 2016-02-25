@@ -80,14 +80,16 @@ procedure AutoCompressTextures(const Project: TCastleProject);
     TempPrefix := GetTempFileNamePrefix;
 
     InputFlippedFile := TempPrefix + '.png';
-    Image := LoadImage(FilenameToURISafe(InputFile));
-    try
-      Image.FlipVertical;
-      SaveImage(Image, FilenameToURISafe(InputFlippedFile));
-    finally FreeAndNil(Image) end;
+    // Image := LoadImage(FilenameToURISafe(InputFile));
+    // try
+    //   Image.FlipVertical;
+    //   SaveImage(Image, FilenameToURISafe(InputFlippedFile));
+    // finally FreeAndNil(Image) end;
 
     { this is worse, as it requires ImageMagick }
-    // RunCommandSimple(FindExe('convert'), [InputFile, '-flip', InputFlippedFile]);
+    // TODO: except, ATI Compressonator consistently produces invalid output
+    // if we don't use ImageMagick's convert...
+    RunCommandSimple(FindExe('convert'), [InputFile, '-flip', InputFlippedFile]);
 
     OutputTempFile := TempPrefix + 'output' + ExtractFileExt(OutputFile);
 
