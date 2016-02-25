@@ -133,8 +133,7 @@ type
     procedure SetURL(const Value: string);
   public
     const
-      { TODO: auto_compressed, once we compare }
-      AutoCompressedDirName = 'compressed';
+      AutoCompressedDirName = 'auto_compressed';
 
     constructor Create(const AnAutoProcessImageURLs: boolean);
     destructor Destroy; override;
@@ -393,9 +392,7 @@ class function TMaterialProperties.TAutoCompressedTextures.CompressedTextureURL(
   const TextureCompression: TTextureCompression): string;
 begin
   Result := ExtractURIPath(URL) + AutoCompressedDirName + '/' +
-    //LowerCase(TextureCompressionToString(TextureCompression)) + '/' +
-    // TODO testing - like old script
-    StringReplace(LowerCase(TextureCompressionToString(TextureCompression)), 'interpolatedalpha', 'interpolated', [rfReplaceAll]) + '/' +
+    LowerCase(TextureCompressionToString(TextureCompression)) + '/' +
     ExtractURIName(URL) + '.dds';
 end;
 
