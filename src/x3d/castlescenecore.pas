@@ -5867,10 +5867,22 @@ procedure TCastleSceneCore.InternalSetTime(
           paForceNotLooping: PlayingAnimationNode.Loop := false;
         end;
         PlayingAnimationNode.Enabled := true;
+        { Disable the "ignore" mechanism, otherwise
+          setting startTime on a running TimeSensor would be ignored.
+          Testcase: e.g. mana animation on dark_dragon and dragon_squash. }
+        if SameAnimation then
+        begin
+          Inc(PlayingAnimationNode.FdStopTime.NeverIgnore);
+          Inc(PlayingAnimationNode.FdStartTime.NeverIgnore);
+        end;
         PlayingAnimationNode.StopTime := 0;
-        if not SameAnimation then
-          { setting startTime on a running TimeSensor would be ignored }
-          PlayingAnimationNode.StartTime := Time;
+        PlayingAnimationNode.StartTime := Time;
+        { Enable the "ignore" mechanism again, to follow X3D spec. }
+        if SameAnimation then
+        begin
+          Dec(PlayingAnimationNode.FdStopTime.NeverIgnore);
+          Dec(PlayingAnimationNode.FdStartTime.NeverIgnore);
+        end;
       end;
     end;
   end;

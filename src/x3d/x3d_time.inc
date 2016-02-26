@@ -105,6 +105,28 @@
       const TimeIncrease: TFloatTime; const ResetTime: boolean): boolean;
   end;
 
+  { Time field, that ignores it's input event when parent time-dependent node
+    is active. }
+  TSFTimeIgnoreWhenActive = class(TSFTime)
+  protected
+    class function ExposedEventsFieldClass: TX3DFieldClass; override;
+    procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
+      const Time: TX3DTime); override;
+  public
+    NeverIgnore: Cardinal;
+  end;
+
+  { Time field, that ignores it's input event when parent time-dependent node
+    is active and setting to value <= startTime. }
+  TSFStopTime = class(TSFTime)
+  protected
+    class function ExposedEventsFieldClass: TX3DFieldClass; override;
+    procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
+      const Time: TX3DTime); override;
+  public
+    NeverIgnore: Cardinal;
+  end;
+
   TAbstractTimeDependentNode = class(TAbstractChildNode, IAbstractTimeDependentNode)
   private
     FTimeDependentNodeHandler: TTimeDependentNodeHandler;
@@ -126,11 +148,11 @@
     private FFdResumeTime: TSFTime;
     public property FdResumeTime: TSFTime read FFdResumeTime;
 
-    private FFdStartTime: TSFTime;
-    public property FdStartTime: TSFTime read FFdStartTime;
+    private FFdStartTime: TSFTimeIgnoreWhenActive;
+    public property FdStartTime: TSFTimeIgnoreWhenActive read FFdStartTime;
 
-    private FFdStopTime: TSFTime;
-    public property FdStopTime: TSFTime read FFdStopTime;
+    private FFdStopTime: TSFStopTime;
+    public property FdStopTime: TSFStopTime read FFdStopTime;
 
     { Event out } { }
     private FEventElapsedTime: TSFTimeEvent;
@@ -167,8 +189,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdCycleInterval: TSFTime;
-    public property FdCycleInterval: TSFTime read FFdCycleInterval;
+    private FFdCycleInterval: TSFTimeIgnoreWhenActive;
+    public property FdCycleInterval: TSFTimeIgnoreWhenActive read FFdCycleInterval;
 
     { Event out } { }
     private FEventCycleTime: TSFTimeEvent;
@@ -221,23 +243,6 @@
 
 { Field types for startTime/stopTime ----------------------------------------- }
 
-type
-  { SFTime that ignores it's input event when parent time-dependent node
-    is active. }
-  TSFTimeIgnoreWhenActive = class(TSFTime)
-  protected
-    class function ExposedEventsFieldClass: TX3DFieldClass; override;
-    procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
-      const Time: TX3DTime); override;
-  end;
-
-  TSFStopTime = class(TSFTime)
-  protected
-    class function ExposedEventsFieldClass: TX3DFieldClass; override;
-    procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
-      const Time: TX3DTime); override;
-  end;
-
 class function TSFTimeIgnoreWhenActive.ExposedEventsFieldClass: TX3DFieldClass;
 begin
   Result := TSFTime;
@@ -250,22 +255,29 @@ procedure TSFTimeIgnoreWhenActive.ExposedEventReceive(
 
     Doing this inside local procedure to limit lifetime of IAbstractTimeDependentNode,
     to secure against http://bugs.freepascal.org/view.php?id=10374 }
-  function Active: boolean;
+  function Ignore: boolean;
   begin
-    Result := (ParentNode <> nil) and
+    Result :=
+      (NeverIgnore = 0) and
+      (ParentNode <> nil) and
       Supports(ParentNode, IAbstractTimeDependentNode) and
       (ParentNode as IAbstractTimeDependentNode).TimeDependentNodeHandler.IsActive;
   end;
 
-var
-  SceneName: string;
-begin
-  if Active then
+  procedure LogIgnored;
+  var
+    SceneName: string;
   begin
     if TX3DNode(ParentNode).Scene <> nil then
       SceneName := TX3DNode(ParentNode).Scene.Name else
       SceneName := '<scene-unknown>';
-    WritelnLog('Change Ignored', 'An change of "' + TX3DNode(ParentNode).NiceName + '.' + Name + '" field (scene "' + SceneName + '") while the time-dependent node is active is ignored (the value remains unchanged), following the X3D specification.');
+    WritelnLog('Change Ignored', 'A change of "' + TX3DNode(ParentNode).NiceName + '.' + Name + '" field (scene "' + SceneName + '") while the time-dependent node is active is ignored (the value remains unchanged), following the X3D specification.');
+  end;
+
+begin
+  if Ignore then
+  begin
+    LogIgnored;
     Exit;
   end;
   inherited;
@@ -283,11 +295,13 @@ procedure TSFStopTime.ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
 
     Doing this inside local procedure to limit lifetime of IAbstractTimeDependentNode,
     to secure against http://bugs.freepascal.org/view.php?id=10374 }
-  function Active: boolean;
+  function Ignore: boolean;
   var
     H: TTimeDependentNodeHandler;
   begin
-    Result := (ParentNode <> nil) and
+    Result :=
+      (NeverIgnore = 0) and
+      (ParentNode <> nil) and
       Supports(ParentNode, IAbstractTimeDependentNode);
     if Result then
     begin
@@ -297,8 +311,22 @@ procedure TSFStopTime.ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
     end;
   end;
 
+  procedure LogIgnored;
+  var
+    SceneName: string;
+  begin
+    if TX3DNode(ParentNode).Scene <> nil then
+      SceneName := TX3DNode(ParentNode).Scene.Name else
+      SceneName := '<scene-unknown>';
+    WritelnLog('Change Ignored', 'A change of "' + TX3DNode(ParentNode).NiceName + '.' + Name + '" field (scene "' + SceneName + '"), to the value <= startTime, while the time-dependent node is active is ignored (the value remains unchanged), following the X3D specification.');
+  end;
+
 begin
-  if Active then Exit;
+  if Ignore then
+  begin
+    LogIgnored;
+    Exit;
+  end;
   inherited;
 end;
 
