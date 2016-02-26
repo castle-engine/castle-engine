@@ -52,13 +52,16 @@ procedure AutoCompressTextures(const Project: TCastleProject);
   end;
 
   procedure AMDCompress(const InputFile, OutputFile: string;
-    const C: TTextureCompression; const CompressionNameForTool: string);
+    const C: TTextureCompression; const CompressionNameForTool: string;
+    const Dxt1UseAlpha: boolean = false);
   var
     {$ifndef MSWINDOWS}
     WineExe: string;
     {$endif}
     ToolExe, InputFlippedFile, OutputTempFile, TempPrefix: string;
     Image: TCastleImage;
+    CommandExe: string;
+    CommandOptions: TCastleStringList;
   begin
     { On non-Windows, we need wine for this }
     {$ifndef MSWINDOWS}
@@ -97,15 +100,25 @@ procedure AutoCompressTextures(const Project: TCastleProject);
 
     OutputTempFile := TempPrefix + 'output' + ExtractFileExt(OutputFile);
 
-    RunCommandSimple(ExtractFilePath(TempPrefix),
-      {$ifdef MSWINDOWS} ToolExe, [
-      {$else}            WineExe, [ToolExe,
+    CommandOptions := TCastleStringList.Create;
+    try
+      {$ifdef MSWINDOWS} CommandExe := ToolExe; CommandOptions.AddArray([
+      {$else}            CommandExe := WineExe; CommandOptions.AddArray([ToolExe,
       {$endif}
-      '-fd', CompressionNameForTool,
-      { we cannot just pass InputFlippedFile, OutputFile to compressonator,
-        because it may be running in wine and not understanding Unix absolute paths. }
-      ExtractFileName(InputFlippedFile),
-      ExtractFileName(OutputTempFile)]);
+        '-fd', CompressionNameForTool,
+        { we cannot just pass InputFlippedFile, OutputFile to compressonator,
+          because it may be running in wine and not understanding Unix absolute paths. }
+        ExtractFileName(InputFlippedFile),
+        ExtractFileName(OutputTempFile)]);
+      { TODO: it doesn't seem to help, DXT1_RGBA is still without
+        anything useful in alpha value. Seems like AMDCompressCLI bug,
+        or I just don't know how to use the DXT1 options? }
+      if Dxt1UseAlpha then
+        CommandOptions.AddArray(
+          ['-DXT1UseAlpha', '1', '-AlphaThreshold', '0.5']);
+      RunCommandSimple(ExtractFilePath(TempPrefix),
+        CommandExe, CommandOptions.ToArray);
+    finally FreeAndNil(CommandOptions) end;
 
     CheckRenameFile(OutputTempFile, OutputFile);
     CheckDeleteFile(InputFlippedFile, true);
@@ -165,14 +178,8 @@ begin
             OutputPath := ExtractFilePath(OutputFile);
             CheckForceDirectories(OutputPath);
             case C of
-              { tcDxt1_RGB and tcDxt1_RGBA result in the same output file,
-                DXT1 is the same compression in both cases, and there's no option
-                how to differentiate between this in DDS file.
-
-                TODO: hm, with new AMDCompress, maybe we can/should use
-                -DXT1UseAlpha and -AlphaThreshold for tcDxt1_RGBA? }
               tcDxt1_RGB : AMDCompress(TextureFile, OutputFile, C, 'DXT1');
-              tcDxt1_RGBA: AMDCompress(TextureFile, OutputFile, C, 'DXT1');
+              tcDxt1_RGBA: AMDCompress(TextureFile, OutputFile, C, 'DXT1', true);
               tcDxt3     : AMDCompress(TextureFile, OutputFile, C, 'DXT3');
               tcDxt5     : AMDCompress(TextureFile, OutputFile, C, 'DXT5');
 
