@@ -31,6 +31,23 @@ uses SysUtils,
   CastleWarnings, CastleFindFiles,
   ToolUtils;
 
+type
+  ECannotFindTool = class(Exception)
+  strict private
+    FToolName: string;
+  public
+    constructor Create(const AToolName: string; const C: TTextureCompression);
+    property ToolName: string read FToolName;
+  end;
+
+constructor ECannotFindTool.Create(const AToolName: string;
+  const C: TTextureCompression);
+begin
+  FToolName := AToolName;
+  inherited CreateFmt('Cannot find tool "%s" necessary to make compressed texture format %s',
+    [ToolName, TextureCompressionToString(C)]);
+end;
+
 procedure AutoCompressTextures(const Project: TCastleProject);
 
   procedure TryToolExe(var ToolExe: string; const ToolExeAbsolutePath: string);
@@ -46,14 +63,12 @@ procedure AutoCompressTextures(const Project: TCastleProject);
     begin
       ToolExe := FindExe(ToolExeName);
       if ToolExe = '' then
-        raise Exception.CreateFmt('Cannot find tool "%s" necessary to make compressed texture format %s',
-          [ToolExeName, TextureCompressionToString(C)]);
+        raise ECannotFindTool.Create(ToolExeName, C);
     end;
   end;
 
   procedure AMDCompress(const InputFile, OutputFile: string;
-    const C: TTextureCompression; const CompressionNameForTool: string;
-    const Dxt1UseAlpha: boolean = false);
+    const C: TTextureCompression; const CompressionNameForTool: string);
   var
     {$ifndef MSWINDOWS}
     WineExe: string;
@@ -113,7 +128,7 @@ procedure AutoCompressTextures(const Project: TCastleProject);
       { TODO: it doesn't seem to help, DXT1_RGBA is still without
         anything useful in alpha value. Seems like AMDCompressCLI bug,
         or I just don't know how to use the DXT1 options? }
-      if Dxt1UseAlpha then
+      if C = tcDxt1_RGB then // special options for tcDxt1_RGB
         CommandOptions.AddArray(
           ['-DXT1UseAlpha', '1', '-AlphaThreshold', '0.5']);
       RunCommandSimple(ExtractFilePath(TempPrefix),
@@ -122,6 +137,88 @@ procedure AutoCompressTextures(const Project: TCastleProject);
 
     CheckRenameFile(OutputTempFile, OutputFile);
     CheckDeleteFile(InputFlippedFile, true);
+  end;
+
+  procedure ATICompressonator(const InputFile, OutputFile: string;
+    const C: TTextureCompression; const CompressionNameForTool: string);
+  var
+    {$ifndef MSWINDOWS}
+    WineExe: string;
+    {$endif}
+    ToolExe, InputFlippedFile, OutputTempFile, TempPrefix, ConvertExe: string;
+    //Image: TCastleImage;
+  begin
+    { On non-Windows, we need wine for this }
+    {$ifndef MSWINDOWS}
+    WineExe := '';
+    TryToolExePath(WineExe, 'wine', C);
+    {$endif}
+
+    ToolExe := '';
+    {$ifdef MSWINDOWS}
+    TryToolExe(ToolExe, 'c:/Program Files/AMD/The Compressonator 1.50/TheCompressonator.exe');
+    TryToolExe(ToolExe, 'c:/Program Files (x86)/AMD/The Compressonator 1.50/TheCompressonator.exe');
+    {$endif}
+    {$ifdef UNIX}
+    TryToolExe(ToolExe, HomePath + '.wine/drive_c/Program Files/AMD/The Compressonator 1.50/TheCompressonator.exe');
+    TryToolExe(ToolExe, HomePath + '.wine/drive_c/Program Files (x86)/AMD/The Compressonator 1.50/TheCompressonator.exe');
+    {$endif}
+    TryToolExePath(ToolExe, 'TheCompressonator', C);
+
+    TempPrefix := GetTempFileNamePrefix;
+
+    InputFlippedFile := TempPrefix + '.png';
+    // Image := LoadImage(FilenameToURISafe(InputFile));
+    // try
+    //   Image.FlipVertical;
+    //   SaveImage(Image, FilenameToURISafe(InputFlippedFile));
+    // finally FreeAndNil(Image) end;
+
+    { this is worse, as it requires ImageMagick.
+      But, ATI Compressonator consistently produces invalid output
+      if we don't use ImageMagick's convert... }
+    ConvertExe := '';
+    TryToolExePath(ConvertExe, 'convert', C);
+    RunCommandSimple(ConvertExe, [InputFile, '-flip', InputFlippedFile]);
+
+    OutputTempFile := TempPrefix + 'output' + ExtractFileExt(OutputFile);
+
+    RunCommandSimple(ExtractFilePath(TempPrefix),
+      {$ifdef MSWINDOWS} ToolExe, [
+      {$else}            WineExe, [ToolExe,
+      {$endif}
+      '-convert',
+      '-overwrite',
+      { we cannot just pass InputFlippedFile, OutputFile to compressonator,
+        because it may be running in wine and not understanding Unix absolute paths. }
+      ExtractFileName(InputFlippedFile),
+      ExtractFileName(OutputTempFile),
+      '-codec', 'ATICompressor.dll',
+      '+fourCC', CompressionNameForTool]);
+
+    CheckRenameFile(OutputTempFile, OutputFile);
+    CheckDeleteFile(InputFlippedFile, true);
+  end;
+
+  procedure AMDCompressFallbackATICompressonator(
+    const InputFile, OutputFile: string;
+    const C: TTextureCompression;
+    const CompressionNameForAMDCompress: string;
+    const CompressionNameForATICompressonator: string);
+  begin
+    try
+      AMDCompress(InputFile, OutputFile, C, CompressionNameForAMDCompress);
+    except
+      on E: ECannotFindTool do
+      begin
+        if E.ToolName = 'AMDCompressCLI' then
+        begin
+          Writeln('Cannot find AMDCompressCLI executable. Falling back to ATICompressonator.');
+          ATICompressonator(InputFile, OutputFile, C, CompressionNameForATICompressonator);
+        end else
+          raise;
+      end;
+    end;
   end;
 
   procedure PVRTexTool(const InputFile, OutputFile: string;
@@ -178,14 +275,18 @@ begin
             OutputPath := ExtractFilePath(OutputFile);
             CheckForceDirectories(OutputPath);
             case C of
-              tcDxt1_RGB : AMDCompress(TextureFile, OutputFile, C, 'DXT1');
-              tcDxt1_RGBA: AMDCompress(TextureFile, OutputFile, C, 'DXT1', true);
-              tcDxt3     : AMDCompress(TextureFile, OutputFile, C, 'DXT3');
-              tcDxt5     : AMDCompress(TextureFile, OutputFile, C, 'DXT5');
+              { For ATICompressonator DXT1:
+                tcDxt1_RGB and tcDxt1_RGBA result in the same output file,
+                DXT1 is the same compression in both cases, and there's no option
+                how to differentiate between this in DDS file. }
+              tcDxt1_RGB : AMDCompressFallbackATICompressonator(TextureFile, OutputFile, C, 'DXT1', 'DXT1');
+              tcDxt1_RGBA: AMDCompressFallbackATICompressonator(TextureFile, OutputFile, C, 'DXT1', 'DXT1');
+              tcDxt3     : AMDCompressFallbackATICompressonator(TextureFile, OutputFile, C, 'DXT3', 'DXT3');
+              tcDxt5     : AMDCompressFallbackATICompressonator(TextureFile, OutputFile, C, 'DXT5', 'DXT5');
 
-              tcATITC_RGB                   : AMDCompress(TextureFile, OutputFile, C, 'ATC_RGB');
-              tcATITC_RGBA_InterpolatedAlpha: AMDCompress(TextureFile, OutputFile, C, 'ATC_RGBA_Interpolated');
-              tcATITC_RGBA_ExplicitAlpha    : AMDCompress(TextureFile, OutputFile, C, 'ATC_RGBA_Explicit');
+              tcATITC_RGB                   : AMDCompressFallbackATICompressonator(TextureFile, OutputFile, C, 'ATC_RGB'              , 'ATC ');
+              tcATITC_RGBA_InterpolatedAlpha: AMDCompressFallbackATICompressonator(TextureFile, OutputFile, C, 'ATC_RGBA_Interpolated', 'ATCI');
+              tcATITC_RGBA_ExplicitAlpha    : AMDCompressFallbackATICompressonator(TextureFile, OutputFile, C, 'ATC_RGBA_Explicit'    , 'ATCA');
 
               tcPvrtc1_4bpp_RGB:  PVRTexTool(TextureFile, OutputFile, C, 'PVRTC1_4_RGB');
               tcPvrtc1_2bpp_RGB:  PVRTexTool(TextureFile, OutputFile, C, 'PVRTC1_2_RGB');
