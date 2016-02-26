@@ -1520,28 +1520,37 @@ type
     Name: string;
     RequiresPowerOf2: boolean;
     AlphaChannel: TAlphaChannel;
+
+    { When generating to DDS (that has reverted row order with respect to OpenGL),
+      most of the compressed textures should flipped before.
+      When reading, we except them to be already flipped.
+      The exceptions are DXT* formats, that are read correctly (unflipped)
+      from DDS.
+
+      This is only a limitation of the DDS format, irrelevant for future KTX. }
+    DDSFlipped: boolean;
   end;
 
 const
   TextureCompressionInfo: array [TTextureCompression] of TTextureCompressionInfo =
-  ( (Name: 'DXT1_RGB'                    ; RequiresPowerOf2: false; AlphaChannel: acNone),
-    (Name: 'DXT1_RGBA'                   ; RequiresPowerOf2: false; AlphaChannel: acSimpleYesNo),
-    (Name: 'DXT3'                        ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
-    (Name: 'DXT5'                        ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
+  ( (Name: 'DXT1_RGB'                    ; RequiresPowerOf2: false; AlphaChannel: acNone       ; DDSFlipped: false),
+    (Name: 'DXT1_RGBA'                   ; RequiresPowerOf2: false; AlphaChannel: acSimpleYesNo; DDSFlipped: false),
+    (Name: 'DXT3'                        ; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: false),
+    (Name: 'DXT5'                        ; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: false),
     { See http://community.imgtec.com/files/pvrtc-texture-compression-user-guide/
       "PVRTC2 vs PVRTC1" section --- PVRTC1 require power-of-two. } { }
-    (Name: 'PVRTC1_4bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone),
-    (Name: 'PVRTC1_2bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone),
-    (Name: 'PVRTC1_4bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
-    (Name: 'PVRTC1_2bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
-    (Name: 'PVRTC2_4bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
-    (Name: 'PVRTC2_2bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
+    (Name: 'PVRTC1_4bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone       ; DDSFlipped: true),
+    (Name: 'PVRTC1_2bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone       ; DDSFlipped: true),
+    (Name: 'PVRTC1_4bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acFullRange  ; DDSFlipped: true),
+    (Name: 'PVRTC1_2bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acFullRange  ; DDSFlipped: true),
+    (Name: 'PVRTC2_4bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: true),
+    (Name: 'PVRTC2_2bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: true),
     { Tests show that ATITC does not need power-of-two sizes. }
-    (Name: 'ATITC_RGB'                   ; RequiresPowerOf2: false; AlphaChannel: acNone),
-    (Name: 'ATITC_RGBA_ExplicitAlpha'    ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
-    (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: false; AlphaChannel: acFullRange),
+    (Name: 'ATITC_RGB'                   ; RequiresPowerOf2: false; AlphaChannel: acNone       ; DDSFlipped: true),
+    (Name: 'ATITC_RGBA_ExplicitAlpha'    ; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: true),
+    (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: true),
     { TODO: unconfirmed RequiresPowerOf2 for ETC1. } { }
-    (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone)
+    (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone       ; DDSFlipped: true)
   );
 
 { Convert TTextureCompression enum to string. }
