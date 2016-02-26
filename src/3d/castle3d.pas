@@ -1400,7 +1400,10 @@ type
 
     procedure Translate(const T: TVector3Single); override;
 
-    procedure Clear;
+    { Make the transform do nothing --- zero @link(Translation), zero @link(Rotation),
+      @link(Scale) to one. Also resets @link(Orientation) and
+      @link(ScaleOrientation). }
+    procedure Identity;
   end;
 
   TOrientationType = (
@@ -3753,7 +3756,7 @@ begin
   Translation := Translation + T;
 end;
 
-procedure T3DTransform.Clear;
+procedure T3DTransform.Identity;
 begin
   Center := ZeroVector3Single;
   Rotation := ZeroVector4Single;
