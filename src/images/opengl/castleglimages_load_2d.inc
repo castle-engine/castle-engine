@@ -569,8 +569,8 @@ begin
   end;
 
   if Image.HasAlpha then
-    Result := TRGBImage.Create(Image.Width, Image.Height, Image.Depth) else
-    Result := TRGBAlphaImage.Create(Image.Width, Image.Height, Image.Depth);
+    Result := TRGBAlphaImage.Create(Image.Width, Image.Height, Image.Depth) else
+    Result := TRGBImage.Create(Image.Width, Image.Height, Image.Depth);
 
   BeforePackImage(PackData, Result);
   try
