@@ -1029,6 +1029,9 @@ type
     property MessageFont: TCastleFont read FMessageFont write SetMessageFont;
     property OwnsMessageFont: boolean
       read FOwnsMessageFont write FOwnsMessageFont default true;
+
+    { Set dialogs theme to light. }
+    procedure DialogsLight;
   end;
 
 { The 2D fonts used throughout UI interface.
@@ -3559,6 +3562,14 @@ begin
       FreeAndNil(FMessageFont);
     FMessageFont := Value;
   end;
+end;
+
+procedure TCastleTheme.DialogsLight;
+begin
+  MessageInputTextColor := Vector4Single(0, 0.4, 0, 1.0);
+  MessageTextColor := Black;
+  Images[tiWindow] := WindowGray;
+  Images[tiLabel] := FrameYellowBlack;
 end;
 
 var
