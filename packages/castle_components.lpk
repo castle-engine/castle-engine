@@ -30,14 +30,15 @@
           <ShowHints Value="False"/>
         </Verbosity>
         <CustomOptions Value="-Sh
--dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
+-dCASTLE_ENGINE_LAZARUS_PACKAGE
+-Ur"/>
       </Other>
     </CompilerOptions>
     <Description Value="Castle Game Engine - Lazarus components.
 "/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
-    <Version Major="5" Minor="2" Release="0"/>
+    <Version Major="5" Minor="2"/>
     <Files Count="6">
       <Item1>
         <Filename Value="../src/components/castlecontrol.pas"/>
