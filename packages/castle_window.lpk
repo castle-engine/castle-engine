@@ -29,8 +29,7 @@
           <ShowNotes Value="False"/>
           <ShowHints Value="False"/>
         </Verbosity>
-        <CustomOptions Value="-dCASTLE_ENGINE_LAZARUS_PACKAGE
--Ur"/>
+        <CustomOptions Value="-dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
       </Other>
     </CompilerOptions>
     <Description Value="Castle Game Engine - CastleWindow and units using it.

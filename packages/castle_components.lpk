@@ -30,8 +30,7 @@
           <ShowHints Value="False"/>
         </Verbosity>
         <CustomOptions Value="-Sh
--dCASTLE_ENGINE_LAZARUS_PACKAGE
--Ur"/>
+-dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
       </Other>
     </CompilerOptions>
     <Description Value="Castle Game Engine - Lazarus components.
