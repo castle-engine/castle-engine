@@ -565,11 +565,11 @@
         <Type Value="Include"/>
       </Item131>
       <Item132>
-        <Filename Value="../src/images/castleprogress.pas"/>
+        <Filename Value="../src/base/castleprogress.pas"/>
         <UnitName Value="CastleProgress"/>
       </Item132>
       <Item133>
-        <Filename Value="../src/images/castleprogressconsole.pas"/>
+        <Filename Value="../src/base/castleprogressconsole.pas"/>
         <UnitName Value="CastleProgressConsole"/>
       </Item133>
       <Item134>

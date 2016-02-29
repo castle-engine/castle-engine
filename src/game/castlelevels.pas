@@ -971,7 +971,7 @@ end;
 
 procedure TGameSceneManager.LoadLevel(const AInfo: TLevelInfo);
 var
-  SavedImage: TRGBImage;
+  SavedImage: TObject;
   SavedBarYPosition: Single;
   SavedOwnsImage: boolean;
 begin
