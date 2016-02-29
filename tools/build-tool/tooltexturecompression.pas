@@ -293,11 +293,18 @@ var
   I: Integer;
   C: TTextureCompression;
   TextureFile, TextureURL, OutputFile, OutputURL, OutputPath: string;
+  MatPropsURL: string;
   MatProps: TMaterialProperties;
 begin
+  MatPropsURL := FilenameToURISafe(Project.DataPath + 'material_properties.xml');
+  if not URIFileExists(MatPropsURL) then
+  begin
+    Writeln('Material properties file does not exist, so not compressing anything: ' + MatPropsURL);
+    Exit;
+  end;
   MatProps := TMaterialProperties.Create(false);
   try
-    MatProps.URL := FilenameToURISafe(Project.DataPath + 'material_properties.xml');
+    MatProps.URL := MatPropsURL;
     Textures := MatProps.AutoCompressedTextures;
     try
       for I := 0 to Textures.Count - 1 do
