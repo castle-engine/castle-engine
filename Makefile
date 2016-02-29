@@ -223,8 +223,13 @@ cleanexamples:
 
 .PHONY: examples-laz
 examples-laz:
+# Compile twice to avoid FPC errors when it instantly tries to recompile
+# the units again, because it errorneously things something changed.
+	lazbuild packages/castle_base.lpk
 	lazbuild packages/castle_base.lpk
 	lazbuild packages/castle_window.lpk
+	lazbuild packages/castle_window.lpk
+	lazbuild packages/castle_components.lpk
 	lazbuild packages/castle_components.lpk
 	$(foreach NAME,$(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES),lazbuild $(NAME).lpi && ) true
 
