@@ -504,27 +504,50 @@ begin
 
     if Filter.NeedsMipmaps then
     begin
-      {$ifdef ANDROID}
-      if TGPUCompressedImage(Image).Compression in
-           [tcATITC_RGB, tcATITC_RGBA_ExplicitAlpha, tcATITC_RGBA_InterpolatedAlpha] then
+      if not LoadMipmapsFromDDS(DDSForMipmaps, false) then
       begin
+        // GenerateMipmap(GL_TEXTURE_2D);
+        // LoadedSize += TTextureMemoryProfiler.MipmapsSize(Image);
+
+        { On Android doing GenerateMipmap on compressed images
+          definitely fails. Tested on:
+          - Qualcomm/Adreno (Nexus 5), OpenGL ES 3.0 V@127.0 AU@
+          - PowerVR (Pentagram Tab 7.6)
+          - Qualcomm/Adreno (older phone from PW)
+          and GenerateMipmap there definitely doesn't work.
+
+          On Nexus 5 it even makes GL_INVALID_OPERATION.
+          (On PowerVR my testcase was doing GL_OUT_OF_MEMORY, so it posibly
+          masked earlier GL_INVALID_OPERATION. And on "older phone from PW"
+          I didn't run -dDEBUG version. IOW, it is possible that *everywhere*
+          we had GL_INVALID_OPERATION error.)
+
+          OTOH, on desktop OpenGL, with DXT5 textures,
+          4.4.0 NVIDIA 340.96 on Linux, GenerateMipmap on DXT5 indeed works.
+          No GL error (and glGetError is checked),
+          and the mipmaps are really generated (commenting out makes them white).
+
+          Docs (for OpenGL, GLES 2.0, GLES 3.2
+            https://www.khronos.org/opengles/sdk/docs/man/xhtml/glGenerateMipmap.xml
+            https://www.khronos.org/opengles/sdk/docs/man/
+            https://www.khronos.org/opengles/sdk/docs/man32/
+          ) all say:
+            GL_INVALID_OPERATION is generated if the zero level array is stored in a compressed internal format.
+
+          This suggests that it's safest to assume that GenerateMipmap DOES NOT
+          work on compressed textures, and (if mipmaps were not provided explicitly)
+          we cannot use them. }
+
         { Update GL_TEXTURE_MIN_FILTER, since we already initialized it earlier. }
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        OnWarning(wtMinor, 'Texture', 'Using mipmaps for compressed textures is broken on Android with some ATI GPUs. We fallback to GL_LINEAR minification for ' + Image.URL);
-      end else
-      {$endif}
-
-      if not LoadMipmapsFromDDS(DDSForMipmaps, false) then
-      try
-        GenerateMipmap(GL_TEXTURE_2D);
-        LoadedSize += TTextureMemoryProfiler.MipmapsSize(Image);
-      except
-        on E: EGenerateMipmapNotAvailable do
-        begin
-          { Update GL_TEXTURE_MIN_FILTER, since we already initialized it earlier. }
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-          OnWarning(wtMinor, 'Texture', 'Creating mipmaps for compressed textures requires GenerateMipmap functionality, but it is not available. We will fallback to GL_LINEAR minification: ' + E.Message);
-        end;
+        { Warn, so that developer is aware of it.
+          Better solution may be to
+          - compress textures along with mipmaps.
+          - or not request mipmaps (filtering = linear from start).
+          Without doing anything, using compressed textures will be inconsistent
+          with uncompressed, since the analogous code will succeed in creating
+          mipmaps from uncompressed texture data. }
+        OnWarning(wtMinor, 'Texture', 'Generating mipmaps for compressed textures not possible. Turning off mipmaps for ' + Image.URL);
       end;
     end;
 

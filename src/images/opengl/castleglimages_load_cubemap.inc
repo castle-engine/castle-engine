@@ -193,9 +193,9 @@ var
       extensions are missing or mipmaps were required.) }
   procedure LoadCompressed(const Image: TGPUCompressedImage);
   begin
-  if not (Image.Compression in GLFeatures.TextureCompression) then
-    raise ECannotLoadCompressedTexture.CreateFmt('Cannot load textures compressed using %s, your OpenGL/OpenGLES does not support the necessary extensions',
-      [TextureCompressionInfo[Image.Compression].Name]);
+    if not (Image.Compression in GLFeatures.TextureCompression) then
+      raise ECannotLoadCompressedTexture.CreateFmt('Cannot load textures compressed using %s, your OpenGL/OpenGLES does not support the necessary extensions',
+        [TextureCompressionInfo[Image.Compression].Name]);
 
     if not IsCubeMapTextureSized(Image) then
       raise ECannotLoadCompressedTexture.CreateFmt('Cannot load compressed textures: texture size is %d x %d, it''s not correct for a cube map, and we cannot resize compressed textures',
@@ -386,6 +386,14 @@ begin
     if HasMipmapsFromDDS(DDSForMipmaps) then
       LoadMipmapsFromDDS(DDSForMipmaps) else
     begin
+      { TODO: if the texture is compressed, we should not actually try
+        to do GenerateMipmap, as it can exit with GL_INVALID_OPERATION
+        (see comments in castleglimages_load_2d.inc). Instead we should
+        change filtering to not use mipmaps.
+
+        Called of glTextureCubeMap must be ready for it (filter should
+        change). }
+
       GenerateMipmap(GL_TEXTURE_CUBE_MAP);
       { TODO: this is cubemap mipmaps size assuming that provided
         cubemap images were already power of 2, and within good dimensions. }
