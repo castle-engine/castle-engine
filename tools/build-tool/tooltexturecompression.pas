@@ -176,7 +176,8 @@ procedure AutoCompressTextures(const Project: TCastleProject);
     InputFlippedFile := TempPrefix + '.png';
     // Image := LoadImage(FilenameToURISafe(InputFile));
     // try
-    //   Image.FlipVertical;
+    //   if TextureCompressionInfo[C].DDSFlipped then
+    //     Image.FlipVertical;
     //   SaveImage(Image, FilenameToURISafe(InputFlippedFile));
     // finally FreeAndNil(Image) end;
 
@@ -185,7 +186,9 @@ procedure AutoCompressTextures(const Project: TCastleProject);
       if we don't use ImageMagick's convert... }
     ConvertExe := '';
     TryToolExePath(ConvertExe, 'convert', C);
-    RunCommandSimple(ConvertExe, [InputFile, '-flip', InputFlippedFile]);
+    if TextureCompressionInfo[C].DDSFlipped then
+      RunCommandSimple(ConvertExe, [InputFile, '-flip', InputFlippedFile]) else
+      RunCommandSimple(ConvertExe, [InputFile, InputFlippedFile]);
 
     OutputTempFile := TempPrefix + 'output' + ExtractFileExt(OutputFile);
 
@@ -252,7 +255,34 @@ procedure AutoCompressTextures(const Project: TCastleProject);
       ['-f', CompressionNameForTool,
        '-q', 'pvrtcbest',
        '-m', '1',
-       '-squarecanvas', '+' ,
+       { On iOS, it seems that PVRTC textures must be square.
+         See
+         - https://en.wikipedia.org/wiki/PVRTC
+         - https://developer.apple.com/library/ios/documentation/3DDrawing/Conceptual/OpenGLES_ProgrammingGuide/TextureTool/TextureTool.html
+         But this is only an Apple implementation limitation, not a limitation
+         of PVRTC1 compression.
+         More info on this compression on
+         - http://cdn.imgtec.com/sdk-documentation/PVRTC+%26+Texture+Compression.User+Guide.pdf
+         - http://blog.imgtec.com/powervr/pvrtc2-taking-texture-compression-to-a-new-dimension
+
+         In practice, forcing texture here to be square is very bad:
+         - If a texture is addressed from the top, e.g. in Spine atlas file,
+           then it's broken now. So using a texture atlases like 1024x512 from Spine
+           would be broken.
+         - ... and there's no sensible solution to the above problem.
+           We could shift the texture, but then what if something addresses
+           it from the bottom?
+         - What if something (VRML/X3D or Collada texture coords) addresses
+           texture in 0...1 range?
+         - To fully work with it, we would have to store original texture
+           size somewhere, and it's shift with regards to new compressed texture,
+           and support it everywhere where we "interpret" texture coordinates
+           (like when reading Spine atlas, or in shaders when sampling
+           texture coordinates). Absolutely ugly.
+
+         So, don't do this! Allow rectangular PVRTC textures!
+       }
+       // '-squarecanvas', '+' ,
        '-flip', 'y', // TODO: use this only when TextureCompressionInfo[C].DDSFlipped
        '-i', InputFile,
        '-o', OutputFile]);
