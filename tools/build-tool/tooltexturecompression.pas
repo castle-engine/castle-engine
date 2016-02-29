@@ -16,6 +16,10 @@
 { Compressing textures. }
 unit ToolTextureCompression;
 
+{ Unfortunately, AMDCompressCLI output is broken now.
+  See http://castle-engine.sourceforge.net/creating_data_material_properties.php . }
+{ $define USE_AMDCompress}
+
 interface
 
 uses CastleUtils, CastleStringUtils,
@@ -67,6 +71,7 @@ procedure AutoCompressTextures(const Project: TCastleProject);
     end;
   end;
 
+  {$ifdef USE_AMDCompress}
   procedure AMDCompress(const InputFile, OutputFile: string;
     const C: TTextureCompression; const CompressionNameForTool: string);
   var
@@ -138,6 +143,7 @@ procedure AutoCompressTextures(const Project: TCastleProject);
     CheckRenameFile(OutputTempFile, OutputFile);
     CheckDeleteFile(InputFlippedFile, true);
   end;
+  {$endif}
 
   procedure ATICompressonator(const InputFile, OutputFile: string;
     const C: TTextureCompression; const CompressionNameForTool: string);
@@ -206,6 +212,7 @@ procedure AutoCompressTextures(const Project: TCastleProject);
     const CompressionNameForAMDCompress: string;
     const CompressionNameForATICompressonator: string);
   begin
+    {$ifdef USE_AMDCompress}
     try
       AMDCompress(InputFile, OutputFile, C, CompressionNameForAMDCompress);
     except
@@ -219,6 +226,9 @@ procedure AutoCompressTextures(const Project: TCastleProject);
           raise;
       end;
     end;
+    {$else}
+    ATICompressonator(InputFile, OutputFile, C, CompressionNameForATICompressonator);
+    {$endif}
   end;
 
   procedure PVRTexTool(const InputFile, OutputFile: string;
