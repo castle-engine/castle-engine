@@ -42,8 +42,8 @@ type
     ifJPEG, ifGIF, ifTGA, ifXPM, ifPSD, ifPCX, ifPNM,
 
     { We handle fully DDS (DirectDraw Surface) image format.
-      See also TDDSImage class in DDS unit,
-      this exposes even more features of the DDS image format. }
+      See also TCompositeImage class in CastleCompositeImage unit,
+      that exposes even more features of the DDS image format. }
     ifDDS,
 
     { High-dynamic range image format, originally used by Radiance.
@@ -161,7 +161,7 @@ function LoadRGBE(Stream: TStream;
 
 { Load DDS image file into a single 2D image. This simply returns the first
   image found in DDS file, which should be the main image.
-  If you want to investigate other images in DDS, you have to use TDDSImage
+  If you want to investigate other images in DDS, you have to use TCompositeImage
   class. }
 function LoadDDS(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;

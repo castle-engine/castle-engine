@@ -22,7 +22,7 @@
   and the files are saved in $1 directory). }
 program dds_decompose;
 
-uses SysUtils, CastleUtils, CastleImages, CastleDDS, CastleWarnings,
+uses SysUtils, CastleUtils, CastleImages, CastleCompositeImage, CastleWarnings,
   CastleStringUtils, CastleParameters, CastleURIUtils;
 
 var
@@ -42,34 +42,34 @@ const
   end;
 
 var
-  DImg: TDDSImage;
+  Composite: TCompositeImage;
   OutputName, OutputBaseName: string;
   I: Integer;
 begin
   OnWarning := @OnWarningWrite;
   Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHigh(1);
-  DImg := TDDSImage.Create;
+  Composite := TCompositeImage.Create;
   try
-    DImg.LoadFromFile(Parameters[1]);
-    DImg.Flatten3d;
-    Writeln('DDS loaded:', nl,
-      '  Width x Height x Depth: ', DImg.Width, ' x ', DImg.Height, ' x ', DImg.Depth, nl,
-      '  Type: ', DDSTypeToString[DImg.DDSType], nl,
-      '  Mipmaps: ', DImg.Mipmaps, nl,
-      '  Simple 2D images inside: ', DImg.Images.Count);
+    Composite.LoadFromFile(Parameters[1]);
+    Composite.Flatten3d;
+    Writeln('Composite (DDS, KTX...) loaded:', nl,
+      '  Width x Height x Depth: ', Composite.Width, ' x ', Composite.Height, ' x ', Composite.Depth, nl,
+      '  Type: ', CompositeTypeToString[Composite.CompositeType], nl,
+      '  Mipmaps: ', Composite.Mipmaps, nl,
+      '  Simple 2D images inside: ', Composite.Images.Count);
 
     if SaveDecomposed then
     begin
       OutputBaseName := ExtractURIPath(Parameters[1]) +
         DeleteURIExt(ExtractURIName(Parameters[1])) + '_';
-      for I := 0 to DImg.Images.Count - 1 do
+      for I := 0 to Composite.Images.Count - 1 do
       begin
         OutputName := OutputBaseName + IntToStrZPad(I, 2) + '.png';
         Writeln('Writing ', OutputName);
-        SaveImage(DImg.Images[I], OutputName);
+        SaveImage(Composite.Images[I], OutputName);
       end;
     end;
 
-  finally FreeAndNil(DImg) end;
+  finally FreeAndNil(Composite) end;
 end.

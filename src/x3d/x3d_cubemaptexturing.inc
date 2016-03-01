@@ -115,18 +115,18 @@
     private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
 
-    { Load cube environment map from DDS image.
+    { Load cube environment map from a composite (DDS, KTX...) image.
 
       In case of problems, will make OnWarning.
       This includes situations when url cannot be loaded for whatever reason.
-      Also problems when url contains valid DDS image,
+      Also problems when url contains valid Composite image,
       but not describing cube map with all 6 sides.
 
       If all URLs failed, will return @nil.
 
       Although the loaded image is not saved here, we do save the AlphaChannel
       type. Our AlphaChannel method will reflect last loaded image. }
-    function LoadImage: TDDSImage;
+    function LoadImage: TCompositeImage;
   end;
 
 {$endif read_interface}
@@ -312,20 +312,20 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
-function TImageCubeMapTextureNode.LoadImage: TDDSImage;
+function TImageCubeMapTextureNode.LoadImage: TCompositeImage;
 var
   I: Integer;
   FullUrl: string;
 begin
-  Result := TDDSImage.Create;
+  Result := TCompositeImage.Create;
   try
     for I := 0 to FdUrl.Items.Count - 1 do
     begin
       FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
 
-      if not TDDSImage.MatchesURL(FullUrl) then
+      if not TCompositeImage.MatchesURL(FullUrl) then
       begin
-        OnWarning(wtMinor, 'VRML/X3D', Format('Only DDS format is supported for ImageCubeMapTexture node, but URL is "%s"', [FullUrl]));
+        OnWarning(wtMinor, 'VRML/X3D', Format('Only composite (DDS, KTX...) format is supported for ImageCubeMapTexture node, but URL is "%s"', [FullUrl]));
         Continue;
       end;
 
@@ -335,24 +335,24 @@ begin
         on E: Exception do
         begin
           Result.Close;
-          OnWarning(wtMinor, 'VRML/X3D', Format('Error when loading DDS file "%s": %s', [FullUrl, E.Message]));
+          OnWarning(wtMinor, 'VRML/X3D', Format('Error when loading composite file "%s": %s', [FullUrl, E.Message]));
           Continue;
         end;
       end;
 
       FAlphaChannelData := Result.Images[0].AlphaChannel;
 
-      if Result.DDSType <> dtCubeMap then
+      if Result.CompositeType <> ctCubeMap then
       begin
         Result.Close;
-        OnWarning(wtMinor, 'VRML/X3D', Format('DDS image "%s" given for ImageCubeMapTexture doesn''t describe a cube map texture', [FullUrl]));
+        OnWarning(wtMinor, 'VRML/X3D', Format('Composite image "%s" given for ImageCubeMapTexture doesn''t describe a cube map texture', [FullUrl]));
         Continue;
       end;
 
-      if Result.CubeMapSides <> AllDDSCubeMapSides then
+      if Result.CubeMapSides <> AllCubeMapSides then
       begin
         Result.Close;
-        OnWarning(wtMinor, 'VRML/X3D', Format('DDS image "%s" given for ImageCubeMapTexture doesn''t contain all cube map sides', [FullUrl]));
+        OnWarning(wtMinor, 'VRML/X3D', Format('Composite image "%s" given for ImageCubeMapTexture doesn''t contain all cube map sides', [FullUrl]));
         Continue;
       end;
 

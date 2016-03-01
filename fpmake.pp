@@ -240,7 +240,7 @@ begin
     P.Targets.AddUnit('castlefpwritepng.pas');
     P.Targets.AddUnit('castleimages.pas');
     P.Targets.AddUnit('castlepng.pas');
-    P.Targets.AddUnit('castledds.pas');
+    P.Targets.AddUnit('castlecompositeimage.pas');
     P.Targets.AddUnit('castletextureimages.pas');
     P.Targets.AddUnit('castlevideos.pas');
 

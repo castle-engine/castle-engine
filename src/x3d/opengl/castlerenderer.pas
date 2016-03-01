@@ -206,7 +206,7 @@ uses
   X3DFields, X3DNodes, X3DLexer, CastleImages,
   CastleGLUtils, CastleRendererInternalLights,
   CastleGLShaders, CastleGLImages, CastleVideos, X3DTime, CastleShapes,
-  CastleGLCubeMaps, CastleClassUtils, CastleDDS, Castle3D, FGL,
+  CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D, FGL,
   CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader, X3DShadowMaps,
   CastleRendererInternalTextureEnv;
 
@@ -703,7 +703,7 @@ type
       const Filter: TTextureFilter;
       const TextureAnisotropy: TGLfloat;
       const TextureWrap: TTextureWrap2D;
-      const DDSForMipmaps: TDDSImage;
+      const CompositeForMipmaps: TCompositeImage;
       const GUITexture: boolean): TGLuint;
 
     procedure TextureImage_DecReference(
@@ -732,7 +732,7 @@ type
       PositiveX, NegativeX,
       PositiveY, NegativeY,
       PositiveZ, NegativeZ: TEncodedImage;
-      DDSForMipmaps: TDDSImage): TGLuint;
+      CompositeForMipmaps: TCompositeImage): TGLuint;
 
     procedure TextureCubeMap_DecReference(
       const TextureGLName: TGLuint);
@@ -773,7 +773,7 @@ type
       const Filter: TTextureFilter;
       const Anisotropy: TGLfloat;
       const TextureWrap: TTextureWrap3D;
-      Image: TEncodedImage; DDS: TDDSImage): TGLuint;
+      Image: TEncodedImage; Composite: TCompositeImage): TGLuint;
 
     procedure Texture3D_DecReference(
       const TextureGLName: TGLuint);
@@ -1239,7 +1239,7 @@ function TGLRendererContextCache.TextureImage_IncReference(
   const Filter: TTextureFilter;
   const TextureAnisotropy: TGLfloat;
   const TextureWrap: TTextureWrap2D;
-  const DDSForMipmaps: TDDSImage;
+  const CompositeForMipmaps: TCompositeImage;
   const GUITexture: boolean): TGLuint;
 var
   I: Integer;
@@ -1289,7 +1289,7 @@ begin
     That's because in case LoadGLTexture raises exception,
     we don't want to add texture to cache (because caller would have
     no way to call TextureImage_DecReference later). }
-  Result := LoadGLTexture(TextureImage, Filter, TextureWrap, DDSForMipmaps, GUITexture);
+  Result := LoadGLTexture(TextureImage, Filter, TextureWrap, CompositeForMipmaps, GUITexture);
 
   TexParameterMaxAnisotropy(GL_TEXTURE_2D, TextureAnisotropy);
 
@@ -1417,7 +1417,7 @@ function TGLRendererContextCache.TextureCubeMap_IncReference(
   PositiveX, NegativeX,
   PositiveY, NegativeY,
   PositiveZ, NegativeZ: TEncodedImage;
-  DDSForMipmaps: TDDSImage): TGLuint;
+  CompositeForMipmaps: TCompositeImage): TGLuint;
 var
   I: Integer;
   TextureCached: TTextureCubeMapCache;
@@ -1448,7 +1448,7 @@ begin
     PositiveX, NegativeX,
     PositiveY, NegativeY,
     PositiveZ, NegativeZ,
-    DDSForMipmaps,
+    CompositeForMipmaps,
     Filter.NeedsMipmaps);
 
   TexParameterMaxAnisotropy(GL_TEXTURE_CUBE_MAP, Anisotropy);
@@ -1494,7 +1494,7 @@ function TGLRendererContextCache.Texture3D_IncReference(
   const Filter: TTextureFilter;
   const Anisotropy: TGLfloat;
   const TextureWrap: TTextureWrap3D;
-  Image: TEncodedImage; DDS: TDDSImage): TGLuint;
+  Image: TEncodedImage; Composite: TCompositeImage): TGLuint;
 var
   I: Integer;
   TextureCached: TTexture3DCache;
@@ -1519,7 +1519,7 @@ begin
   {$ifndef OpenGLES} // TODO-OpenGLES3 (3D textures are only available in OpenGLES3)
   glBindTexture(GL_TEXTURE_3D, Result);
 
-  glTextureImage3d(Result, Image, Filter, DDS);
+  glTextureImage3d(Result, Image, Filter, Composite);
 
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
   glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, TextureWrap[1]);

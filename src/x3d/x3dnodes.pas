@@ -176,7 +176,7 @@ uses SysUtils, FGL, Classes, XMLRead, DOM,
   CastleVectors, X3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors,
   CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
-  CastleScript, X3DCastleScript, CastleOctree, CastleDDS, CastleTextureImages,
+  CastleScript, X3DCastleScript, CastleOctree, CastleCompositeImage, CastleTextureImages,
   CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
   CastleTextureFontData, CastleGenericLists, CastleShaders, CastleRays;
 

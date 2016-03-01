@@ -542,8 +542,8 @@
         <UnitName Value="CastleSceneManager"/>
       </Item125>
       <Item126>
-        <Filename Value="../src/images/castledds.pas"/>
-        <UnitName Value="CastleDDS"/>
+        <Filename Value="../src/images/castlecompositeimage.pas"/>
+        <UnitName Value="CastleCompositeImage"/>
       </Item126>
       <Item127>
         <Filename Value="../src/images/castlefpwritepng.pas"/>
@@ -586,7 +586,7 @@
         <Type Value="Include"/>
       </Item136>
       <Item137>
-        <Filename Value="../src/images/images_dds.inc"/>
+        <Filename Value="../src/images/images_composite.inc"/>
         <Type Value="Include"/>
       </Item137>
       <Item138>

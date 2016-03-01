@@ -1623,7 +1623,7 @@ implementation
 
 uses ExtInterpolation, FPCanvas, FPImgCanv, CastleGenericLists,
   CastleProgress, CastleStringUtils, CastleFilesUtils, CastleWarnings,
-  CastleDDS, CastleDownload, CastleURIUtils;
+  CastleCompositeImage, CastleDownload, CastleURIUtils;
 
 { parts ---------------------------------------------------------------------- }
 
@@ -1638,7 +1638,7 @@ uses ExtInterpolation, FPCanvas, FPImgCanv, CastleGenericLists,
 {$I images_ipl.inc}
 {$I images_rgbe_fileformat.inc}
 {$I images_external_tool.inc}
-{$I images_dds.inc}
+{$I images_composite.inc}
 
 { Colors ------------------------------------------------------------------ }
 

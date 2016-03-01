@@ -13,74 +13,118 @@
   ----------------------------------------------------------------------------
 }
 
-{ DDS image file format handling (TDDSImage). }
-unit CastleDDS;
+{ Composite (like DDS) image file format handling (TCompositeImage). }
+unit CastleCompositeImage;
 
 interface
 
 uses Classes, CastleImages;
 
 type
-  EInvalidDDS = class(EInvalidImageFormat);
+  EInvalidCompositeImage = class(EInvalidImageFormat);
+  EInvalidDDS = class(EInvalidCompositeImage);
 
-  { Type of data in DDS image file. This doesn't take into account mipmaps
-    (they are orthogonal to types here). }
-  TDDSType = (
-    dtTexture,
-    dtCubeMap,
-    dtVolume);
+  { Type of data in a TCompositeImage file.
+    This doesn't take into account mipmaps (they are orthogonal to types here). }
+  TCompositeType = (
+    ctTexture,
+    ctCubeMap,
+    ctVolume);
 
-  { DDS cube map sides.
+  { Cube map faces.
+    Always interpreted in right-handed orientation (like for OpenGL or OpenGL ES)
+    by our engine.
+    Order matches the order of OpenGL constants
+    GL_TEXTURE_CUBE_MAP_POSITIVE/NEGATIVE_X/Y/Z_ARB. }
+  TCubeMapSide = (
+    csPositiveX,
+    csNegativeX,
+    csPositiveY,
+    csNegativeY,
+    csPositiveZ,
+    csNegativeZ);
+  TCubeMapSides = set of TCubeMapSide;
 
-    Note that if you work in right-handed coordinate system (like
-    OpenGL, see http://opengl.org/registry/specs/ARB/texture_cube_map.txt)
-    then you should swap the meaning of positive/negative y faces.
-    That's because cube map sides are named and written in DDS file
-    in a way natural for DirectX, and DirectX has left-handed coordinate system,
-    which means that one axis seems reverted when you want OpenGL right-handed
-    coord system.
-    See [http://castle-engine.sourceforge.net/x3d_implementation_status.php#section_dds]
-    for more. }
-  TDDSCubeMapSide = (
-    dcsPositiveX,
-    dcsNegativeX,
-    dcsPositiveY,
-    dcsNegativeY,
-    dcsPositiveZ,
-    dcsNegativeZ);
-  TDDSCubeMapSides = set of TDDSCubeMapSide;
+  TCubeMapImages = array [TCubeMapSide] of TCastleImage;
 
-  { DDS image file.
+  { Composite image file (like DDS). This supports image that can have mipmaps,
+    can be 3D, and can be a cubemap. This is something more than our TCastleImage
+    (or TEncodedImage), which can only be a single pixel matrix (it can be 3D,
+    but it cannot be a cubemap or have mipmaps).
 
-    Basically, DDS is just a sequence of images
-    (in the @link(Images) property). The interpretation of the image sequence
-    depends on other fields: first of all @link(DDSType) and @link(Mipmaps).
+    In essence, this is a container for a sequence of simple images
+    in the @link(Images) property.
+    The interpretation of the image sequence
+    depends on other fields: first of all @link(CompositeType) and @link(Mipmaps).
 
-    The basic usage of this class is to load a DDS file: see LoadFromFile,
-    LoadFromStream.
+    Right now supports only the DDS file format, but eventually
+    will support KTX too.
+
+    The basic usage of this class is to load a file using LoadFromFile
+    or LoadFromStream.
 
     Note that you can write (change) many properties of this class.
-    This allows you to create, or load and edit, DDS files.
-    You can even later save the DDS image back to the stream (like a file) by
+    This allows you to create, or load and edit, composite files.
+    You can even later save the composite image back to the stream (like a file) by
     SaveToStream or SaveToFile. Be careful though: you're responsible then
     to set all properties to sensible values. For example, the length
     (and interpretation) of @link(Images) list is determined by other properties
     of this class, so be sure to set them all to something sensible. }
-  TDDSImage = class
-  private
-    FImages: TEncodedImageList;
-    function GetImages(const Index: Integer): TEncodedImage;
+  TCompositeImage = class
+  strict private
+    type
+      { DDS cube map sides.
 
-  private
+        Compared with TCubeMapSide type, the meaning
+        positive/negative Y faces is swapped.
+
+        Reason: Cube map sides are named and written in DDS file
+        in a way natural for DirectX, and DirectX has left-handed coordinate system,
+        which means that one axis seems reverted when you want OpenGL right-handed
+        coord system (like
+        OpenGL, see http://opengl.org/registry/specs/ARB/texture_cube_map.txt).
+        See [http://castle-engine.sourceforge.net/x3d_implementation_status.php#section_dds]
+        for more. }
+      TDDSCubeMapSide = (
+        dcsPositiveX,
+        dcsNegativeX,
+        dcsPositiveY,
+        dcsNegativeY,
+        dcsPositiveZ,
+        dcsNegativeZ);
+      TDDSCubeMapSides = set of TDDSCubeMapSide;
+    const
+      { Convert TDDSCubeMapSide to TCubeMapSide. }
+      DDSToCubeMapSide: array [TDDSCubeMapSide] of TCubeMapSide =
+      ( csPositiveX,
+        csNegativeX,
+        csNegativeY,
+        csPositiveY,
+        csPositiveZ,
+        csNegativeZ
+      );
+      { Convert TCubeMapSide to TDDSCubeMapSide. }
+      DDSFromCubeMapSide: array [TCubeMapSide] of TDDSCubeMapSide =
+      ( dcsPositiveX,
+        dcsNegativeX,
+        dcsNegativeY,
+        dcsPositiveY,
+        dcsPositiveZ,
+        dcsNegativeZ
+      );
+    var
+    FImages: TEncodedImageList;
     FWidth: Cardinal;
     FHeight: Cardinal;
-    FDDSType: TDDSType;
+    FCompositeType: TCompositeType;
     FMipmaps: boolean;
     FMipmapsCount: Cardinal;
     FCubeMapSides: TDDSCubeMapSides;
     FDepth: Cardinal;
-
     FOwnsFirstImage: boolean;
+    function GetImages(const Index: Integer): TEncodedImage;
+    function GetCubeMapSides: TCubeMapSides;
+    procedure SetCubeMapSides(const Value: TCubeMapSides);
   public
     { Some DDS files specify unknown GPU texture compression.
       To read them, set this to true and set AutomaticCompressionType. }
@@ -90,9 +134,9 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    { Images sequence stored in this DDS file.
+    { Images sequence stored in this composite file.
 
-      This has always length > 0 when DDS is successfully loaded
+      This has always length > 0 when file is successfully loaded
       (that is, when LoadFromStream method finished without raising any
       exception). }
     property Images: TEncodedImageList read FImages;
@@ -100,9 +144,9 @@ type
     property Width: Cardinal read FWidth write FWidth;
     property Height: Cardinal read FHeight write FHeight;
 
-    property DDSType: TDDSType read FDDSType write FDDSType;
+    property CompositeType: TCompositeType read FCompositeType write FCompositeType;
 
-    { Does this DDS file contain mipmaps.
+    { Does this composite image contain mipmaps.
       If @true, then all @link(Images) are guaranteed to have sizes
       being power of 2. }
     property Mipmaps: boolean read FMipmaps write FMipmaps;
@@ -111,23 +155,23 @@ type
     property MipmapsCount: Cardinal read FMipmapsCount write FMipmapsCount;
 
     { Present cube map sides.
-      Valid only when image is loaded and is dtCubeMap. }
-    property CubeMapSides: TDDSCubeMapSides read FCubeMapSides write FCubeMapSides;
+      Valid only when image is loaded and is ctCubeMap. }
+    property CubeMapSides: TCubeMapSides read GetCubeMapSides write SetCubeMapSides;
 
     { Depth of volume (3D) texture.
-      Always 1 when DDSType is not dtVolume, this is usually comfortable. }
+      Always 1 when CompositeType is not ctVolume, this is usually comfortable. }
     property Depth: Cardinal read FDepth write FDepth;
 
     { Return given side of cube map.
-      Assumes DDSType = dtCubeMap and CubeMapSides = all.
+      Assumes CompositeType = ctCubeMap and CubeMapSides = all.
 
       Level is mipmap level. Pass 0 for base level.
       When not @link(Mipmaps), Level must be 0. }
-    function CubeMapImage(const Side: TDDSCubeMapSide;
+    function CubeMapImage(const Side: TCubeMapSide;
       const Level: Cardinal = 0): TEncodedImage;
 
-    { Load DDS image from any TStream.
-      @raises(EInvalidDDS In case of any error in the file data.) }
+    { Load composite (DDS) image from any TStream.
+      @raises(EInvalidCompositeImage In case of any error in the file data.) }
     procedure LoadFromStream(Stream: TStream);
 
     procedure LoadFromFile(const URL: string);
@@ -140,7 +184,7 @@ type
       after creation. }
     procedure Close;
 
-    { When @false, then closing this DDS image will not free Images[0].
+    { When @false, then closing this composite image will not free Images[0].
       Closing happens when you call the @link(Close) method or
       destructor of this object. When this is @false, you're responsible
       to storing and freeing Images[0] later yourself, or you'll get memory
@@ -151,7 +195,7 @@ type
     { Convert 3D images in @link(Images) list into a sequences of 2D images.
       Useful utility for 3d (volume) textures.
 
-      Normal loading of 3d DDS textures creates single TCastleImage (using Depth
+      Normal loading of 3D composite textures creates single TCastleImage (using Depth
       possibly > 1) for each mipmap level. Such TCastleImage with depth
       is comfortable if you want to load this 3d texture into OpenGL
       (as then the image data is just a continous memory area,
@@ -189,15 +233,17 @@ type
         for any reason.) }
     procedure DecompressTexture;
 
-    { Does this URL look like it contains DDS contents. Guesses looking
-      at filename extension. }
+    { Does this URL look like it contains composite (DDS, KTX...) contents.
+      Guesses looking at filename extension. }
     class function MatchesURL(const URL: string): boolean;
+
+    procedure AddCubeMapImages(const AImages: TCubeMapImages);
   end;
 
 const
-  AllDDSCubeMapSides = [Low(TDDSCubeMapSide) .. High(TDDSCubeMapSide)];
+  AllCubeMapSides = [Low(TCubeMapSide) .. High(TCubeMapSide)];
 
-  DDSTypeToString: array [TDDSType] of string =
+  CompositeTypeToString: array [TCompositeType] of string =
   ( 'Texture', 'CubeMap', 'Volume' );
 
 implementation
@@ -546,7 +592,7 @@ begin
   FWidth := Width;
   FRowBytePadding := RowBytePadding;
 
-  { We already checked in TDDSImage.LoadFromStream that RGBitCount divides
+  { We already checked in TCompositeImage.LoadFromStream that RGBitCount divides
     by 8 and is not zero. }
   PixelByteSize := FPixelFormat^.RGBBitCount div 8;
 
@@ -632,23 +678,23 @@ begin
   end;
 end;
 
-{ TDDSImage ------------------------------------------------------------------ }
+{ TCompositeImage ------------------------------------------------------------------ }
 
-constructor TDDSImage.Create;
+constructor TCompositeImage.Create;
 begin
   inherited;
   FOwnsFirstImage := true;
   FImages := TEncodedImageList.Create(false);
 end;
 
-destructor TDDSImage.Destroy;
+destructor TCompositeImage.Destroy;
 begin
   Close;
   FreeAndNil(FImages);
   inherited;
 end;
 
-procedure TDDSImage.Close;
+procedure TCompositeImage.Close;
 var
   I: Integer;
 begin
@@ -658,20 +704,23 @@ begin
   Images.Count := 0;
 end;
 
-function TDDSImage.GetImages(const Index: Integer): TEncodedImage;
+function TCompositeImage.GetImages(const Index: Integer): TEncodedImage;
 begin
   Result := FImages[Index];
 end;
 
-function TDDSImage.CubeMapImage(const Side: TDDSCubeMapSide;
+function TCompositeImage.CubeMapImage(const Side: TCubeMapSide;
   const Level: Cardinal): TEncodedImage;
+var
+  Index: Integer;
 begin
+  Index := Ord(DDSFromCubeMapSide[Side]);
   if Mipmaps then
-    Result := FImages[Cardinal(Ord(Side)) * FMipmapsCount + Level] else
-    Result := FImages[Ord(Side)];
+    Result := FImages[Cardinal(Index) * FMipmapsCount + Level] else
+    Result := FImages[Index];
 end;
 
-procedure TDDSImage.LoadFromStream(Stream: TStream);
+procedure TCompositeImage.LoadFromStream(Stream: TStream);
 
   procedure CheckWarn(const Check: boolean; const Message: string);
   begin
@@ -685,7 +734,7 @@ var
   { Reading header initializes many instance fields:
     FWidth, FHeight,
     FMipmaps, FMipmapsCount,
-    FDDSType, FCubeMapSides, FDepth }
+    FCompositeType, FCubeMapSides, FDepth }
   procedure ReadHeader;
   var
     Magic: array [0 .. 3] of char;
@@ -724,13 +773,13 @@ var
     { May be changed later if volume texture }
     FDepth := 1;
 
-    { calculate DDSType }
+    { calculate CompositeType }
     Check( (Header.Caps2 and DDSCAPS2_VOLUME = 0) or
            (Header.Caps2 and DDSCAPS2_CUBEMAP = 0),
       'DDS capabilities indicate CUBEMAP and VOLUME texture at the same time');
     if Header.Caps2 and DDSCAPS2_CUBEMAP <> 0 then
     begin
-      FDDSType := dtCubeMap;
+      FCompositeType := ctCubeMap;
 
       { calculate FCubeMapSides }
       FCubeMapSides := [];
@@ -744,14 +793,14 @@ var
     end else
     if Header.Caps2 and DDSCAPS2_VOLUME <> 0 then
     begin
-      FDDSType := dtVolume;
+      FCompositeType := ctVolume;
 
       { calculate FDepth }
       Check(Header.Flags and DDSD_DEPTH <> 0, 'Missing DDSD_DEPTH, but DDS is a VOLUME texture');
       FDepth := Header.Depth;
     end else
-      FDDSType := dtTexture;
-    if FDDSType <> dtTexture then
+      FCompositeType := ctTexture;
+    if FCompositeType <> ctTexture then
       { This invalid situation happens on
         http://regedit.gamedev.pl/Download/Rozne/Tekstury%20narzedziowe/NoiseVolume.dds
         (from
@@ -1224,7 +1273,7 @@ var
               in this case, it's still zero. }
             if AutomaticCompression then
               ReadCompressed(AutomaticCompressionType) else
-              raise EInvalidDDS.CreateFmt('Unknown texture format in DDS: FourCC is DX10 and DxgiFormat is %d. Assign TDDSImage.AutomaticCompression and TDDSImage.AutomaticCompressionType in the engine to override this.',
+              raise EInvalidDDS.CreateFmt('Unknown texture format in DDS: FourCC is DX10 and DxgiFormat is %d. Assign TCompositeImage.AutomaticCompression and TCompositeImage.AutomaticCompressionType in the engine to override this.',
                 [HeaderDxt10.DxgiFormat]);
           end else
           if (Header.PixelFormat.FourCCLW = D3DFMT_R16F) or
@@ -1295,8 +1344,8 @@ var
         raise EInvalidDDS.CreateFmt('DDS image has mipmaps, but width or height are not a power of 2: %d x %d', [Width, Height]);
     end;
 
-    case DDSType of
-      dtTexture:
+    case CompositeType of
+      ctTexture:
         begin
           if Mipmaps then
           begin
@@ -1315,7 +1364,7 @@ var
             FImages[0] := ReadImage(Width, Height, 1, 0);
           end;
         end;
-      dtCubeMap:
+      ctCubeMap:
         begin
           for Side := Low(Side) to High(Side) do
             if Side in FCubeMapSides then
@@ -1336,7 +1385,7 @@ var
               end;
             end;
         end;
-      dtVolume:
+      ctVolume:
         begin
           if Mipmaps then
           begin
@@ -1355,7 +1404,7 @@ var
             Images.Add(ReadImage(Width, Height, Depth, 0));
           end;
         end;
-      else raise EInternalError.Create('DDSType?');
+      else raise EInternalError.Create('CompositeType?');
     end;
   end { ReadImages };
 
@@ -1373,7 +1422,7 @@ begin
   end;
 end;
 
-procedure TDDSImage.LoadFromFile(const URL: string);
+procedure TCompositeImage.LoadFromFile(const URL: string);
 var
   S: TStream;
 begin
@@ -1383,7 +1432,7 @@ begin
   finally FreeAndNil(S) end;
 end;
 
-procedure TDDSImage.SaveToStream(Stream: TStream);
+procedure TCompositeImage.SaveToStream(Stream: TStream);
 
   procedure WriteHeader;
   const
@@ -1411,28 +1460,28 @@ procedure TDDSImage.SaveToStream(Stream: TStream);
       Header.MipMapCount := MipmapsCount;
     end;
 
-    case DDSType of
-      dtTexture: ;
-      dtCubeMap:
+    case CompositeType of
+      ctTexture: ;
+      ctCubeMap:
         begin
           Header.Caps1 := Header.Caps1 or DDSCAPS_COMPLEX;
           Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP;
 
-          if dcsPositiveX in CubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_POSITIVEX;
-          if dcsNegativeX in CubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_NEGATIVEX;
-          if dcsPositiveY in CubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_POSITIVEY;
-          if dcsNegativeY in CubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_NEGATIVEY;
-          if dcsPositiveZ in CubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_POSITIVEZ;
-          if dcsNegativeZ in CubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_NEGATIVEZ;
+          if dcsPositiveX in FCubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_POSITIVEX;
+          if dcsNegativeX in FCubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_NEGATIVEX;
+          if dcsPositiveY in FCubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_POSITIVEY;
+          if dcsNegativeY in FCubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_NEGATIVEY;
+          if dcsPositiveZ in FCubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_POSITIVEZ;
+          if dcsNegativeZ in FCubeMapSides then Header.Caps2 := Header.Caps2 or DDSCAPS2_CUBEMAP_NEGATIVEZ;
         end;
-      dtVolume:
+      ctVolume:
         begin
           Header.Caps1 := Header.Caps1 or DDSCAPS_COMPLEX;
           Header.Caps2 := Header.Caps2 or DDSCAPS2_VOLUME;
           Header.Flags := Header.Flags or DDSD_DEPTH;
           Header.Depth := Depth;
         end;
-      else raise EInternalError.Create('DDSType');
+      else raise EInternalError.Create('CompositeType');
     end;
 
     if Images[0] is TCastleImage then
@@ -1555,7 +1604,7 @@ begin
   WriteImages;
 end;
 
-procedure TDDSImage.SaveToFile(const URL: string);
+procedure TCompositeImage.SaveToFile(const URL: string);
 var
   S: TStream;
 begin
@@ -1565,18 +1614,18 @@ begin
   finally FreeAndNil(S) end;
 end;
 
-class function TDDSImage.MatchesURL(const URL: string): boolean;
+class function TCompositeImage.MatchesURL(const URL: string): boolean;
 begin
   Result := URIMimeType(URL) = 'image/x-dds';
 end;
 
-procedure TDDSImage.Flatten3d;
+procedure TCompositeImage.Flatten3d;
 var
   NewImages: TEncodedImageList;
   OldImage, NewImage: TCastleImage;
   I, J: Integer;
 begin
-  if (DDSType = dtVolume) and (Depth > 1) then
+  if (CompositeType = ctVolume) and (Depth > 1) then
   begin
     NewImages := TEncodedImageList.Create(false);
 
@@ -1603,7 +1652,7 @@ begin
   end;
 end;
 
-procedure TDDSImage.DecompressTexture;
+procedure TCompositeImage.DecompressTexture;
 var
   OldImage: TGPUCompressedImage;
   I: Integer;
@@ -1615,6 +1664,40 @@ begin
       Images[I] := OldImage.Decompress;
       FreeAndNil(OldImage);
     end;
+end;
+
+function TCompositeImage.GetCubeMapSides: TCubeMapSides;
+var
+  DDSSide: TDDSCubeMapSide;
+begin
+  Result := [];
+  for DDSSide in FCubeMapSides do
+    Include(Result, DDSToCubeMapSide[DDSSide]);
+end;
+
+procedure TCompositeImage.SetCubeMapSides(const Value: TCubeMapSides);
+var
+  Side: TCubeMapSide;
+begin
+  FCubeMapSides := [];
+  for Side in Value do
+    Include(FCubeMapSides, DDSFromCubeMapSide[Side]);
+end;
+
+procedure TCompositeImage.AddCubeMapImages(const AImages: TCubeMapImages);
+var
+  StartIndex: Integer;
+begin
+  StartIndex := Images.Count;
+  Images.Count := StartIndex + 6;
+  { note that we use DDSFromCubeMapSide on the left side,
+    so that Images order is like in TDDSCubeMapSide enum. }
+  Images[StartIndex + Ord(DDSFromCubeMapSide[csPositiveX])] := AImages[csPositiveX];
+  Images[StartIndex + Ord(DDSFromCubeMapSide[csNegativeX])] := AImages[csNegativeX];
+  Images[StartIndex + Ord(DDSFromCubeMapSide[csPositiveY])] := AImages[csPositiveY];
+  Images[StartIndex + Ord(DDSFromCubeMapSide[csNegativeY])] := AImages[csNegativeY];
+  Images[StartIndex + Ord(DDSFromCubeMapSide[csPositiveZ])] := AImages[csPositiveZ];
+  Images[StartIndex + Ord(DDSFromCubeMapSide[csNegativeZ])] := AImages[csNegativeZ];
 end;
 
 end.

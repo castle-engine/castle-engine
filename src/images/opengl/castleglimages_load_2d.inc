@@ -103,9 +103,9 @@ var
 
   @orderedList(
     @item(
-      As a first try, if DDSForMipmaps is non-nil
-      and has mipmaps (DDSForMipmaps.Mipmaps), we will load these mipmaps.
-      DDSForMipmaps must be a normal 2D texture (DDSType = dtTexture).
+      As a first try, if CompositeForMipmaps is non-nil
+      and has mipmaps (CompositeForMipmaps.Mipmaps), we will load these mipmaps.
+      CompositeForMipmaps must be a normal 2D texture (CompositeType = ctTexture).
 
       Otherwise, we'll try to generate mipmaps, using various OpenGL mechanisms.)
 
@@ -135,13 +135,13 @@ var
 function LoadGLTexture(const image: TEncodedImage;
   const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
-  const DDSForMipmaps: TDDSImage = nil;
+  const CompositeForMipmaps: TCompositeImage = nil;
   const GUITexture: boolean = false): TGLTextureId; overload;
 
 function LoadGLTexture(const URL: string;
   const Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
-  const DDSForMipmaps: TDDSImage = nil;
+  const CompositeForMipmaps: TCompositeImage = nil;
   const GUITexture: boolean = false): TGLTextureId; overload;
 { @groupEnd }
 
@@ -161,7 +161,7 @@ function LoadGLTexture(const URL: string;
 procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId; const image: TEncodedImage;
   Filter: TTextureFilter;
   const Wrap: TTextureWrap2D;
-  const DDSForMipmaps: TDDSImage = nil;
+  const CompositeForMipmaps: TCompositeImage = nil;
   const GUITexture: boolean = false); overload;
 { @groupEnd }
 
@@ -242,21 +242,21 @@ end;
 
 function LoadGLTexture(const image: TEncodedImage;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
-  const DDSForMipmaps: TDDSImage; const GUITexture: boolean): TGLTextureId;
+  const CompositeForMipmaps: TCompositeImage; const GUITexture: boolean): TGLTextureId;
 begin
   glGenTextures(1, @result);
-  LoadGLGeneratedTexture(result, image, Filter, Wrap, DDSForMipmaps, GUITexture);
+  LoadGLGeneratedTexture(result, image, Filter, Wrap, CompositeForMipmaps, GUITexture);
 end;
 
 function LoadGLTexture(const URL: string;
   const Filter: TTextureFilter; const Wrap: TTextureWrap2D;
-  const DDSForMipmaps: TDDSImage; const GUITexture: boolean): TGLTextureId;
+  const CompositeForMipmaps: TCompositeImage; const GUITexture: boolean): TGLTextureId;
 var
   Image: TEncodedImage;
 begin
   Image := LoadTextureImage(URL);
   try
-    Result := LoadGLTexture(Image, Filter, Wrap, DDSForMipmaps, GUITexture);
+    Result := LoadGLTexture(Image, Filter, Wrap, CompositeForMipmaps, GUITexture);
   finally Image.Free end;
 end;
 
@@ -313,7 +313,7 @@ end;
 
 procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId;
   const Image: TEncodedImage; Filter: TTextureFilter; const Wrap: TTextureWrap2D;
-  const DDSForMipmaps: TDDSImage; const GUITexture: boolean);
+  const CompositeForMipmaps: TCompositeImage; const GUITexture: boolean);
 var
   ImageInternalFormat: TGLuint;
   ImageFormat: TGLuint;
@@ -359,7 +359,7 @@ var
     glTexImage2DImage(Image, 0);
   end;
 
-  { Check should we load mipmaps from DDS. Load them, if yes.
+  { Check should we load mipmaps from Composite image. Load them, if yes.
 
     If LoadBase this also loads the base image (mipmap level 0).
 
@@ -374,7 +374,7 @@ var
     --- you could clearly see that mipmaps are ignored and ugly nearest filtering
     gets used.
     Using LoadBase automatically workarounds this. }
-  function LoadMipmapsFromDDS(DDS: TDDSImage; LoadBase: boolean): boolean;
+  function LoadMipmapsFromComposite(Composite: TCompositeImage; LoadBase: boolean): boolean;
   {$ifndef OpenGLES}
   var
     I, FromLevel: Integer;
@@ -382,33 +382,33 @@ var
     ImageRightSizeFree: boolean;
   {$endif}
   begin
-    Result := (DDS <> nil) and DDS.Mipmaps;
+    Result := (Composite <> nil) and Composite.Mipmaps;
     if not Result then Exit;
 
-    if DDS.DDSType <> dtTexture then
+    if Composite.CompositeType <> ctTexture then
     begin
-      OnWarning(wtMinor, 'Texture', 'DDS image contains mipmaps, but not for 2D texture');
+      OnWarning(wtMinor, 'Texture', 'Composite (DDS, KTX...) image contains mipmaps, but not for 2D texture');
       Exit(false);
     end;
 
     {$ifdef OpenGLES}
-    OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
+    OnWarning(wtMinor, 'Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
     Exit(false);
     {$else}
     if not GLFeatures.Version_1_2 then
     begin
-      OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      OnWarning(wtMinor, 'Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
       Exit(false);
     end;
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, Composite.MipmapsCount - 1);
     if LoadBase then
       FromLevel := 0 else
       FromLevel := 1;
-    for I := FromLevel to DDS.MipmapsCount - 1 do
-      if DDS.Images[I] is TCastleImage then
+    for I := FromLevel to Composite.MipmapsCount - 1 do
+      if Composite.Images[I] is TCastleImage then
       begin
-        CalculateImageRightSize(TCastleImage(DDS.Images[I]), GUITexture,
+        CalculateImageRightSize(TCastleImage(Composite.Images[I]), GUITexture,
           ImageRightSize, ImageRightSizeFree);
         try
           glTexImage2DImage(ImageRightSize, I);
@@ -418,8 +418,8 @@ var
             ImageRightSize := nil;
         end;
       end else
-      if DDS.Images[I] is TGPUCompressedImage then
-        glCompressedTextureImage2D(TGPUCompressedImage(DDS.Images[I]), I, LoadedSize) else
+      if Composite.Images[I] is TGPUCompressedImage then
+        glCompressedTextureImage2D(TGPUCompressedImage(Composite.Images[I]), I, LoadedSize) else
         raise EInvalidImageForOpenGLTexture.CreateFmt('Cannot load to OpenGL texture image class %s', [Image.ClassName]);
     {$endif}
   end;
@@ -445,7 +445,7 @@ var
 
   procedure LoadMipmapped(const image: TCastleImage);
   begin
-    if not LoadMipmapsFromDDS(DDSForMipmaps, true) then
+    if not LoadMipmapsFromComposite(CompositeForMipmaps, true) then
     if HasGenerateMipmap then
     begin
       glTexImage2DImage(Image, 0);
@@ -504,7 +504,7 @@ begin
 
     if Filter.NeedsMipmaps then
     begin
-      if not LoadMipmapsFromDDS(DDSForMipmaps, false) then
+      if not LoadMipmapsFromComposite(CompositeForMipmaps, false) then
       begin
         // GenerateMipmap(GL_TEXTURE_2D);
         // LoadedSize += TTextureMemoryProfiler.MipmapsSize(Image);

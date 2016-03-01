@@ -52,7 +52,7 @@ uses
   TestShadowFields,
   TestGLVersion,
   TestURLUtils,
-  TestDDS,
+  TestCastleCompositeImage,
   TestCastleTriangulate,
   TestGame,
   TestURIUtils,

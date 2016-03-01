@@ -1038,7 +1038,7 @@ begin
     Filter,
     Anisotropy,
     TextureWrap,
-    TextureNode.TextureDDS,
+    TextureNode.TextureComposite,
     GUITexture);
 end;
 
@@ -1623,7 +1623,7 @@ var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
   GUITexture: boolean;
-  DDS: TDDSImage;
+  Composite: TCompositeImage;
 begin
   if GLFeatures.TextureCubeMap = gsNone then
   begin
@@ -1631,10 +1631,10 @@ begin
     Exit;
   end;
 
-  DDS := TextureNode.LoadImage;
+  Composite := TextureNode.LoadImage;
   { If TextureNode doesn't contain anything useful, just exit.
     TextureNode.LoadImage already did necessary OnWarnings. }
-  if DDS = nil then Exit;
+  if Composite = nil then Exit;
 
   try
 
@@ -1646,24 +1646,22 @@ begin
         be minimized (to avoid loading image many times, but also
         to avoid making repeated warnings in case image fails).
         Should be cached, like for 2D texture nodes.
-      - We do not use cube map mipmaps stored inside DDS file.
+      - We do not use cube map mipmaps stored inside Composite file.
     }
 
-    SetTextureRGBFromImage(DDS.CubeMapImage(dcsPositiveX));
+    SetTextureRGBFromImage(Composite.CubeMapImage(csPositiveX));
 
     GLName := Renderer.Cache.TextureCubeMap_IncReference(
       TextureNode,
       Filter, Anisotropy,
-      DDS.CubeMapImage(dcsPositiveX),
-      DDS.CubeMapImage(dcsNegativeX),
-      { Swap meaning of positive/negative Y faces from DDS,
-        see TDDSCubeMapSide for explanation. }
-      DDS.CubeMapImage(dcsNegativeY),
-      DDS.CubeMapImage(dcsPositiveY),
-      DDS.CubeMapImage(dcsPositiveZ),
-      DDS.CubeMapImage(dcsNegativeZ),
-      DDS);
-  finally FreeAndNil(DDS); end;
+      Composite.CubeMapImage(csPositiveX),
+      Composite.CubeMapImage(csNegativeX),
+      Composite.CubeMapImage(csPositiveY),
+      Composite.CubeMapImage(csNegativeY),
+      Composite.CubeMapImage(csPositiveZ),
+      Composite.CubeMapImage(csNegativeZ),
+      Composite);
+  finally FreeAndNil(Composite); end;
 end;
 
 { TGLGeneratedCubeMapTextureNode --------------------------------------------- }
@@ -1844,7 +1842,7 @@ begin
 
   GLName := Renderer.Cache.Texture3D_IncReference(
     TextureNode, Filter, Anisotropy,
-    TextureWrap, TextureNode.TextureImage, TextureNode.TextureDDS);
+    TextureWrap, TextureNode.TextureImage, TextureNode.TextureComposite);
 end;
 
 procedure TGL3DTextureNode.Unprepare;
