@@ -40,7 +40,7 @@ type
       {$ifdef GLImageUseShaders}
       TColorTreatment = (
         { Use texture color to draw. }
-        ctTexture,
+        ctPureTexture,
         { Use constant color * texture (on all RGBA channels). }
         ctColorMultipliesTexture,
         { Use constant color for RGB,
@@ -752,7 +752,7 @@ begin
     ColorTreatment := ctColorMultipliesTextureAlpha else
   if not VectorsPerfectlyEqual(Color, White) then
     ColorTreatment := ctColorMultipliesTexture else
-    ColorTreatment := ctTexture;
+    ColorTreatment := ctPureTexture;
 
   Prog := GLSLProgram[Alpha = acSimpleYesNo, ColorTreatment];
   Prog.Enable;
@@ -761,7 +761,7 @@ begin
   AttribEnabled[1] := Prog.VertexAttribPointer('tex_coord', 0, 2, GL_FLOAT, GL_FALSE,
     SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
   Prog.SetUniform('viewport_size', Viewport2DSize);
-  if ColorTreatment <> ctTexture then
+  if ColorTreatment <> ctPureTexture then
     Prog.SetUniform('color', Color);
 
   {$else}
