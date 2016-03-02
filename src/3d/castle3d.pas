@@ -211,8 +211,9 @@ type
         non-wall-sliding version (without separate ProposedNewPos
         and NewPos).)
       @item(Non-wall-sliding MoveCollision version,
-        SegmentCollision, SphereCollision, BoxCollision and RayCollision
-        and HeightCollision check for collisions with our BoundingBox,
+        SegmentCollision, SphereCollision, SphereCollision2D, PointCollision2D,
+        BoxCollision, RayCollision, and HeightCollision
+        check for collisions with our BoundingBox,
         using TBox3D methods:
         @link(TBox3D.TryRayClosestIntersection),
         @link(TBox3D.TryRayEntrance),
@@ -313,6 +314,10 @@ type
       const ALineOfSight: boolean): boolean; virtual;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+    function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+    function PointCollision2D(const Point: TVector2Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
 
@@ -387,8 +392,10 @@ type
       player (in third-person perspective, camera may differ from player),
       other creatures. That is because everything
       resolves collisions through our methods MoveCollision and HeightCollision
-      (high-level) or SegmentCollision, SphereCollision, BoxCollision
-      (low-level). (Note that RayCollision is excluded from this,
+      (high-level) or SegmentCollision, SphereCollision, SphereCollision2D,
+      PointCollision2D, BoxCollision (low-level).
+
+      (Note that RayCollision is excluded from this,
       it exceptionally ignores Collides value, as it's primarily used for picking.
       Same for SegmentCollision with LineOfSight=true.)
 
@@ -968,6 +975,10 @@ type
       const ALineOfSight: boolean): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function PointCollision2D(const Point: TVector2Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(const RayOrigin, RayDirection: TVector3Single;
@@ -1078,6 +1089,8 @@ type
     function WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean; virtual; abstract;
     function WorldRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; virtual; abstract;
     function WorldSphereCollision(const Pos: TVector3Single; const Radius: Single): boolean;
+    function WorldSphereCollision2D(const Pos: TVector2Single; const Radius: Single): boolean;
+    function WorldPointCollision2D(const Point: TVector2Single): boolean;
     { @groupEnd }
   end;
 
@@ -1144,6 +1157,9 @@ type
     function GetScaleOrientation: TVector4Single; virtual;
     { @groupEnd }
 
+    { Get translation in 2D (uses GetTranslation, ignores Z coord). }
+    function GetTranslation2D: TVector2Single;
+
     { Can we use simple GetTranslation instead of full TransformMatricesMult.
       Returning @true allows optimization in some cases. }
     function OnlyTranslation: boolean; virtual;
@@ -1180,6 +1196,10 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function PointCollision2D(const Point: TVector2Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
@@ -2198,6 +2218,18 @@ begin
   Result := GetCollides and BoundingBox.SphereCollision(Pos, Radius);
 end;
 
+function T3D.SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  Result := GetCollides and BoundingBox.SphereCollision2D(Pos, Radius);
+end;
+
+function T3D.PointCollision2D(const Point: TVector2Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  Result := GetCollides and BoundingBox.PointInside2D(Point);
+end;
+
 function T3D.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -2905,6 +2937,52 @@ begin
   end;
 end;
 
+function T3DList.SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+var
+  I: Integer;
+begin
+  Result := false;
+
+  if GetCollides then
+  begin
+    if GetChild <> nil then
+    begin
+      Result := GetChild.SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc);
+      if Result then Exit;
+    end;
+
+    for I := 0 to List.Count - 1 do
+    begin
+      Result := List[I].SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc);
+      if Result then Exit;
+    end;
+  end;
+end;
+
+function T3DList.PointCollision2D(const Point: TVector2Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+var
+  I: Integer;
+begin
+  Result := false;
+
+  if GetCollides then
+  begin
+    if GetChild <> nil then
+    begin
+      Result := GetChild.PointCollision2D(Point, TrianglesToIgnoreFunc);
+      if Result then Exit;
+    end;
+
+    for I := 0 to List.Count - 1 do
+    begin
+      Result := List[I].PointCollision2D(Point, TrianglesToIgnoreFunc);
+      if Result then Exit;
+    end;
+  end;
+end;
+
 function T3DList.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
@@ -3111,6 +3189,17 @@ begin
   Result := SphereCollision(Pos, Radius, nil);
 end;
 
+function T3DWorld.WorldSphereCollision2D(const Pos: TVector2Single;
+  const Radius: Single): boolean;
+begin
+  Result := SphereCollision2D(Pos, Radius, nil);
+end;
+
+function T3DWorld.WorldPointCollision2D(const Point: TVector2Single): boolean;
+begin
+  Result := PointCollision2D(Point, nil);
+end;
+
 { T3DCustomTransform -------------------------------------------------------- }
 
 constructor T3DCustomTransform.Create(AOwner: TComponent);
@@ -3122,6 +3211,15 @@ end;
 function T3DCustomTransform.GetTranslation: TVector3Single;
 begin
   Result := ZeroVector3Single;
+end;
+
+function T3DCustomTransform.GetTranslation2D: TVector2Single;
+var
+  T: TVector3Single;
+begin
+  T := GetTranslation;
+  Result[0] := T[0];
+  Result[1] := T[1];
 end;
 
 function T3DCustomTransform.GetCenter: TVector3Single;
@@ -3408,6 +3506,36 @@ begin
       Pos - GetTranslation, Radius, TrianglesToIgnoreFunc) else
     Result := inherited SphereCollision(
       MatrixMultPoint(TransformInverse, Pos), Radius / AverageScale, TrianglesToIgnoreFunc);
+end;
+
+function T3DCustomTransform.SphereCollision2D(
+  const Pos: TVector2Single; const Radius: Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  { inherited will check these anyway. But by checking them here,
+    we can potentially avoid the cost of transforming into local space. }
+  if not GetCollides then Exit(false);
+
+  if OnlyTranslation then
+    Result := inherited SphereCollision2D(
+      Pos - GetTranslation2D, Radius, TrianglesToIgnoreFunc) else
+    Result := inherited SphereCollision2D(
+      MatrixMultPoint(TransformInverse, Pos), Radius / AverageScale, TrianglesToIgnoreFunc);
+end;
+
+function T3DCustomTransform.PointCollision2D(
+  const Point: TVector2Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  { inherited will check these anyway. But by checking them here,
+    we can potentially avoid the cost of transforming into local space. }
+  if not GetCollides then Exit(false);
+
+  if OnlyTranslation then
+    Result := inherited PointCollision2D(
+      Point - GetTranslation2D, TrianglesToIgnoreFunc) else
+    Result := inherited PointCollision2D(
+      MatrixMultPoint(TransformInverse, Point), TrianglesToIgnoreFunc);
 end;
 
 function T3DCustomTransform.BoxCollision(

@@ -155,6 +155,9 @@ type
     function PointInside(const Point: TVector3Double): boolean; overload;
     { @groupEnd }
 
+    { Is the 2D point inside the 2D projection of the box, ignores the Z coord of box. }
+    function PointInside2D(const Point: TVector2Single): boolean;
+
     { Is the 2D point inside the 2D projection of the box.
       2D projection (of point and box) is obtained by rejecting
       the IgnoreIndex coordinate (must be 0, 1 or 2). }
@@ -309,11 +312,13 @@ type
     function SphereSimpleCollision(
       const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
 
-    { Check for box <-> sphere collision.
-      This is a little slower than SphereSimpleCollision, although still
-      damn fast, and it's a precise check. }
+    { Check box vs sphere collision. }
     function SphereCollision(
       const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
+
+    { Check box vs sphere collision in 2D (ignores Z coordinates of box). }
+    function SphereCollision2D(
+      const SphereCenter: TVector2Single; const SphereRadius: Single): boolean;
 
     { Calculate a plane in 3D space with direction = given Direction, moved
       maximally in Direction and still intersecting the given Box.
@@ -707,6 +712,14 @@ end;
 procedure PointInside2D_InvalidIgnoreIndex;
 begin
   raise EInternalError.Create('Invalid IgnoreIndex for TBox3D.PointInside2D');
+end;
+
+function TBox3D.PointInside2D(const Point: TVector2Single): boolean;
+begin
+  if IsEmpty then Exit(false);
+  Result :=
+    (Data[0, 0] <= Point[0]) and (Point[0] <=  Data[1, 0]) and
+    (Data[0, 1] <= Point[1]) and (Point[1] <=  Data[1, 1]);
 end;
 
 function TBox3D.PointInside2D(const Point: TVector3Single;
@@ -1482,6 +1495,24 @@ begin
 
   if SphereCenter[2] < Data[0][2] then D += Sqr(SphereCenter[2] - Data[0][2]) else
   if SphereCenter[2] > Data[1][2] then D += Sqr(SphereCenter[2] - Data[1][2]);
+
+  Result := D <= Sqr(SphereRadius);
+end;
+
+function TBox3D.SphereCollision2D(
+  const SphereCenter: TVector2Single; const SphereRadius: Single): boolean;
+var
+  D: Single;
+begin
+  if IsEmpty then Exit(false);
+
+  D := 0;
+
+  if SphereCenter[0] < Data[0][0] then D += Sqr(SphereCenter[0] - Data[0][0]) else
+  if SphereCenter[0] > Data[1][0] then D += Sqr(SphereCenter[0] - Data[1][0]);
+
+  if SphereCenter[1] < Data[0][1] then D += Sqr(SphereCenter[1] - Data[0][1]) else
+  if SphereCenter[1] > Data[1][1] then D += Sqr(SphereCenter[1] - Data[1][1]);
 
   Result := D <= Sqr(SphereRadius);
 end;

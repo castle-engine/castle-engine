@@ -823,6 +823,10 @@ type
       const ALineOfSight: boolean): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function PointCollision2D(const Point: TVector2Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(const RayOrigin, RayDirection: TVector3Single;
@@ -6815,6 +6819,26 @@ begin
       OctreeCollisions.IsSphereCollision(
         Pos, Radius, nil, TrianglesToIgnoreFunc) else
     Result := inherited SphereCollision(Pos, Radius, TrianglesToIgnoreFunc);
+end;
+
+function TCastleSceneCore.SphereCollision2D(
+  const Pos: TVector2Single; const Radius: Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  if OctreeCollisions <> nil then
+    Result := GetCollides and
+      OctreeCollisions.IsSphereCollision2D(Pos, Radius, nil, TrianglesToIgnoreFunc) else
+    Result := inherited SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc);
+end;
+
+function TCastleSceneCore.PointCollision2D(
+  const Point: TVector2Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  if OctreeCollisions <> nil then
+    Result := GetCollides and
+      OctreeCollisions.IsPointCollision2D(Point, nil, TrianglesToIgnoreFunc) else
+    Result := inherited PointCollision2D(Point, TrianglesToIgnoreFunc);
 end;
 
 function TCastleSceneCore.BoxCollision(const Box: TBox3D;

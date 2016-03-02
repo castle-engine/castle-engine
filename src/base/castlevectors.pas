@@ -1016,6 +1016,8 @@ function RotatePoint2D(const Point: TVector2Single; const AngleRad: Single): TVe
   if V[0] = V[1] (and are larger than other vector component) we return 0.
   MaxAbsVectorCoord compares the absolute value of components.
   @groupBegin }
+function MaxVectorCoord(const v: TVector2Single): integer; overload;
+function MaxVectorCoord(const v: TVector2Double): integer; overload;
 function MaxVectorCoord(const v: TVector3Single): integer; overload;
 function MaxVectorCoord(const v: TVector3Double): integer; overload;
 function MaxVectorCoord(const v: TVector4Single): integer; overload;
@@ -1328,6 +1330,8 @@ function PointToSimplePlaneDistance(const point: TVector3Double;
 
 function PointOnLineClosestToPoint(const line0, lineVector, point: TVector3Single): TVector3Single; overload;
 function PointOnLineClosestToPoint(const line0, lineVector, point: TVector3Double): TVector3Double; overload;
+function PointOnLineClosestToPoint(const line0, lineVector, point: TVector2Single): TVector2Single; overload;
+function PointOnLineClosestToPoint(const line0, lineVector, point: TVector2Double): TVector2Double; overload;
 
 function PointToLineDistanceSqr(const point, line0, lineVector: TVector3Single): Single; overload;
 function PointToLineDistanceSqr(const point, line0, lineVector: TVector3Double): Double; overload;
@@ -1455,6 +1459,8 @@ function TryPlaneSegmentDirIntersection(out Intersection: TVector3Double; out T:
   const Plane: TVector4Double; const Segment0, SegmentVector: TVector3Double): boolean; overload;
 { @groupEnd }
 
+function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector2Single): boolean; overload;
+function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector2Double): boolean; overload;
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3Single): boolean; overload;
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3Double): boolean; overload;
 

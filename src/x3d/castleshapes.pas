@@ -2702,7 +2702,9 @@ begin
     SortPosition and A.BoundingBox, we merely look at A.BoundingBox.
     This way looking at 2D Spine scene from the other side is also Ok.
 
-    For speed, we don't look at bounding box Middle, only at it's min point. }
+    For speed, we don't look at bounding box Middle, only at it's min point.
+    The assumption here is that shape is 2D, so
+      BoundingBox.Data[0][2] = BoundingBox.Data[1][2] = BoundingBox.Middle[2] . }
 
   if (not A.BoundingBox.IsEmpty) and
     ( B.BoundingBox.IsEmpty or

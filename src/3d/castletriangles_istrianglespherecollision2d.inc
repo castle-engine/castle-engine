@@ -14,13 +14,9 @@
 }
 
 var
-  Intersection: TVector3;
+  Intersection: TVector2;
   SphereRadiusSqr: TScalar;
   I, NextI: integer;
-  {$ifndef HAS_PRECALC_PLANE} TriPlane: TVector4; {$endif}
-  { In case HAS_PRECALC_PLANE is not defined, TriDir is valid only once
-    TriPlane is calculated. }
-  TriDir: TVector3 absolute TriPlane;
 begin
   SphereRadiusSqr := Sqr(SphereRadius);
 
@@ -32,11 +28,7 @@ begin
      (PointsDistanceSqr(Tri[2], SphereCenter) <= SphereRadiusSqr) then
     Exit(true);
 
-  {$ifndef HAS_PRECALC_PLANE} TriPlane := TrianglePlane(Tri);{$endif}
-  (* Is SphereCenter within the triangle. *)
-  Intersection := PointOnPlaneClosestToPoint(TriPlane, SphereCenter);
-  if (PointsDistanceSqr(SphereCenter, Intersection) <= SphereRadiusSqr) and
-     IsPointOnTrianglePlaneWithinTriangle(Intersection, Tri, TriDir) then
+  if IsPointWithinTriangle2D(SphereCenter, Tri) then
     Exit(true);
 
   (* Is SphereCenter close to one of the triangles' edges. *)
