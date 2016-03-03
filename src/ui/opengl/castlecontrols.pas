@@ -418,8 +418,9 @@ type
       by this component (see @link(OwnsImage)).
       So if you set this property to your custom TCastleImage instance you should
       leave memory management of this instance to this component.
-      If necessary, you can always create a copy by TCastleImage.MakeCopy
-      if you want to give here only a copy, or you can change @link(OwnsImage) to @false.
+      You can either create a copy by TCastleImage.MakeCopy
+      if you want to give here only a copy, or you can change @link(OwnsImage)
+      to @false.
 
       It is allowed to modify the contents or even size of this image.
       Just make sure to call ImageChanged after the modifications are done
