@@ -122,14 +122,17 @@ type
     FPressed: boolean;
     FImage,
       FCustomBackgroundPressed,
+      FCustomBackgroundDisabled,
       FCustomBackgroundFocused,
       FCustomBackgroundNormal: TCastleImage;
     FGLImage,
       FGLCustomBackgroundPressed,
+      FGLCustomBackgroundDisabled,
       FGLCustomBackgroundFocused,
       FGLCustomBackgroundNormal: TGLImage;
     FOwnsImage,
       FOwnsCustomBackgroundPressed,
+      FOwnsCustomBackgroundDisabled,
       FOwnsCustomBackgroundFocused,
       FOwnsCustomBackgroundNormal: boolean;
     FCustomBackground: boolean;
@@ -145,7 +148,8 @@ type
     FMinWidth, FMinHeight: Cardinal;
     FImageMargin: Cardinal;
     FPaddingHorizontal, FPaddingVertical: Cardinal;
-    FTintPressed, FTintFocused, FTintNormal: TCastleColor;
+    FTintPressed, FTintDisabled, FTintFocused, FTintNormal: TCastleColor;
+    FEnabled: boolean;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -157,6 +161,7 @@ type
     procedure UpdateSize;
     procedure SetImage(const Value: TCastleImage);
     procedure SetCustomBackgroundPressed(const Value: TCastleImage);
+    procedure SetCustomBackgroundDisabled(const Value: TCastleImage);
     procedure SetCustomBackgroundFocused(const Value: TCastleImage);
     procedure SetCustomBackgroundNormal(const Value: TCastleImage);
     procedure SetImageLayout(const Value: TCastleButtonImageLayout);
@@ -165,6 +170,7 @@ type
     procedure SetMinWidth(const Value: Cardinal);
     procedure SetMinHeight(const Value: Cardinal);
     procedure SetImageMargin(const Value: Cardinal);
+    procedure SetEnabled(const Value: boolean);
   protected
     procedure FontChanged; override;
     procedure SetPressed(const Value: boolean); virtual;
@@ -201,16 +207,19 @@ type
     property MinImageWidth: Cardinal read FMinImageWidth write FMinImageWidth default 0;
     property MinImageHeight: Cardinal read FMinImageHeight write FMinImageHeight default 0;
 
-    { Color tint when button is pressed. Opaque white by default. }
-    property TintPressed: TCastleColor read FTintPressed write FTintPressed;
+    { Color tint when button is pressed (regardless if enabled or disabled). Opaque white by default. }
+    property TintPressed : TCastleColor read FTintPressed  write FTintPressed;
+    { Color tint when button is disabled (and not pressed). Opaque white by default. }
+    property TintDisabled: TCastleColor read FTintDisabled write FTintDisabled;
     { Color tint when button is focused. Opaque white by default. }
-    property TintFocused: TCastleColor read FTintFocused write FTintFocused;
-    { Color tint when button is neither pressed nor focused. Opaque white by default. }
-    property TintNormal : TCastleColor read FTintNormal  write FTintNormal;
+    property TintFocused : TCastleColor read FTintFocused  write FTintFocused;
+    { Color tint when button is enabled, but neither pressed nor focused. Opaque white by default. }
+    property TintNormal  : TCastleColor read FTintNormal   write FTintNormal;
 
     { Use custom background images. If @true, we use properties
       @unorderedList(
         @item @link(CustomBackgroundPressed) (or fallback on @link(CustomBackgroundNormal) if @nil),
+        @item @link(CustomBackgroundDisabled) (or fallback on @link(CustomBackgroundNormal) if @nil),
         @item @link(CustomBackgroundFocused) (or fallback on @link(CustomBackgroundNormal) if @nil),
         @item @link(CustomBackgroundNormal) (or fallback on transparent background if @nil).
       ).
@@ -222,10 +231,17 @@ type
     property CustomBackgroundPressed: TCastleImage read FCustomBackgroundPressed write SetCustomBackgroundPressed;
     { Should we free @link(CustomBackgroundPressed) image when you set another one or at destructor. }
     property OwnsCustomBackgroundPressed: boolean read FOwnsCustomBackgroundPressed write FOwnsCustomBackgroundPressed default false;
+
+    { Background image on the disabled button. See @link(CustomBackground) for details. }
+    property CustomBackgroundDisabled: TCastleImage read FCustomBackgroundDisabled write SetCustomBackgroundDisabled;
+    { Should we free @link(CustomBackgroundDisabled) image when you set another one or at destructor. }
+    property OwnsCustomBackgroundDisabled: boolean read FOwnsCustomBackgroundDisabled write FOwnsCustomBackgroundDisabled default false;
+
     { Background image on the focused button. See @link(CustomBackground) for details. }
     property CustomBackgroundFocused: TCastleImage read FCustomBackgroundFocused write SetCustomBackgroundFocused;
     { Should we free @link(CustomBackgroundFocused) image when you set another one or at destructor. }
     property OwnsCustomBackgroundFocused: boolean read FOwnsCustomBackgroundFocused write FOwnsCustomBackgroundFocused default false;
+
     { Background image on the normal button. See @link(CustomBackground) for details. }
     property CustomBackgroundNormal: TCastleImage read FCustomBackgroundNormal write SetCustomBackgroundNormal;
     { Should we free @link(CustomBackgroundNormal) image when you set another one or at destructor. }
@@ -236,7 +252,7 @@ type
     property CustomBackgroundCorners: TVector4Integer read FCustomBackgroundCorners write FCustomBackgroundCorners;
 
     { Should we use custom text color in @link(CustomTextColor)
-      instead of @code(Theme.TextColor). }
+      instead of @code(Theme.TextColor) or @code(Theme.DisabledTextColor). }
     property CustomTextColorUse: boolean read FCustomTextColorUse write FCustomTextColorUse;
     { Text color to use if @link(CustomTextColorUse) is @true.
       Black by default, just like @code(Theme.TextColor). }
@@ -308,6 +324,8 @@ type
 
     property ImageMargin: Cardinal read FImageMargin write SetImageMargin
       default DefaultImageMargin;
+
+    property Enabled: boolean read FEnabled write SetEnabled default true;
   end;
 
   { Panel inside OpenGL context.
@@ -666,7 +684,7 @@ type
 
   TThemeImage = (
     tiPanel, tiPanelSeparator, tiProgressBar, tiProgressFill,
-    tiButtonPressed, tiButtonFocused, tiButtonNormal,
+    tiButtonPressed, tiButtonDisabled, tiButtonFocused, tiButtonNormal,
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip,
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
@@ -961,7 +979,7 @@ type
     procedure SetMessageFont(const Value: TCastleFont);
   public
     TooltipTextColor: TCastleColor;
-    TextColor: TCastleColor;
+    TextColor, DisabledTextColor: TCastleColor;
     MessageTextColor: TCastleColor;
     MessageInputTextColor: TCastleColor;
 
@@ -1295,20 +1313,24 @@ begin
   FPaddingHorizontal := DefaultPaddingHorizontal;
   FPaddingVertical := DefaultPaddingVertical;
   FTintPressed := White;
+  FTintDisabled := White;
   FTintFocused := White;
   FTintNormal := White;
+  FEnabled := true;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 end;
 
 destructor TCastleButton.Destroy;
 begin
   if OwnsImage then FreeAndNil(FImage);
-  if OwnsCustomBackgroundPressed then FreeAndNil(FCustomBackgroundPressed);
-  if OwnsCustomBackgroundFocused then FreeAndNil(FCustomBackgroundFocused);
-  if OwnsCustomBackgroundNormal  then FreeAndNil(FCustomBackgroundNormal);
+  if OwnsCustomBackgroundPressed  then FreeAndNil(FCustomBackgroundPressed);
+  if OwnsCustomBackgroundDisabled then FreeAndNil(FCustomBackgroundDisabled);
+  if OwnsCustomBackgroundFocused  then FreeAndNil(FCustomBackgroundFocused);
+  if OwnsCustomBackgroundNormal   then FreeAndNil(FCustomBackgroundNormal);
 
   FreeAndNil(FGLImage);
   FreeAndNil(FGLCustomBackgroundPressed);
+  FreeAndNil(FGLCustomBackgroundDisabled);
   FreeAndNil(FGLCustomBackgroundFocused);
   FreeAndNil(FGLCustomBackgroundNormal);
 
@@ -1334,6 +1356,8 @@ begin
   { calculate Tint }
   if Pressed then
     Tint := TintPressed else
+  if not Enabled then
+    Tint := TintDisabled else
   if Focused then
     Tint := TintFocused else
     Tint := TintNormal;
@@ -1344,10 +1368,12 @@ begin
   begin
     if Pressed then
       CustomBackgroundImage := FGLCustomBackgroundPressed else
+    if not Enabled then
+      CustomBackgroundImage := FGLCustomBackgroundDisabled else
     if Focused then
       CustomBackgroundImage := FGLCustomBackgroundFocused else
       CustomBackgroundImage := FGLCustomBackgroundNormal;
-    { instead of CustomBackgroundPressed/Focused, use Normal, if available }
+    { instead of CustomBackgroundDisabled/Pressed/Focused, use Normal, if available }
     if CustomBackgroundImage = nil then
       CustomBackgroundImage := FGLCustomBackgroundNormal;
     { render using CustomBackgroundImage, if any }
@@ -1361,6 +1387,8 @@ begin
   begin
     if Pressed then
       Background := tiButtonPressed else
+    if not Enabled then
+      Background := tiButtonDisabled else
     if Focused then
       Background := tiButtonFocused else
       Background := tiButtonNormal;
@@ -1387,7 +1415,9 @@ begin
     TextBottom -= (ImgScreenHeight + ImageMarginScaled) div 2;
   TextBottom += Font.Descend;
 
-  TextColor := Theme.TextColor;
+  if Enabled then
+    TextColor := Theme.TextColor else
+    TextColor := Theme.DisabledTextColor;
   if CustomTextColorUse then
     TextColor := CustomTextColor;
   Font.Print(TextLeft, TextBottom, TextColor, Caption);
@@ -1422,8 +1452,8 @@ begin
     FGLImage := TGLImage.Create(FImage, true);
   if (FGLCustomBackgroundPressed = nil) and (FCustomBackgroundPressed <> nil) then
     FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true);
-  if (FGLCustomBackgroundFocused = nil) and (FCustomBackgroundFocused <> nil) then
-    FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true);
+  if (FGLCustomBackgroundDisabled = nil) and (FCustomBackgroundDisabled <> nil) then
+    FGLCustomBackgroundDisabled := TGLImage.Create(FCustomBackgroundDisabled, true);
   if (FGLCustomBackgroundFocused = nil) and (FCustomBackgroundFocused <> nil) then
     FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true);
   if (FGLCustomBackgroundNormal = nil) and (FCustomBackgroundNormal <> nil) then
@@ -1435,6 +1465,7 @@ procedure TCastleButton.GLContextClose;
 begin
   FreeAndNil(FGLImage);
   FreeAndNil(FGLCustomBackgroundPressed);
+  FreeAndNil(FGLCustomBackgroundDisabled);
   FreeAndNil(FGLCustomBackgroundFocused);
   FreeAndNil(FGLCustomBackgroundNormal);
   inherited;
@@ -1446,10 +1477,13 @@ begin
   if Result or (Event.EventType <> itMouseButton) then Exit;
 
   Result := ExclusiveEvents;
-  if not Toggle then FPressed := true;
-  ClickStarted := true;
-  { We base our Render on Pressed value. }
-  VisibleChange;
+  if Enabled and not Toggle then
+  begin
+    FPressed := true;
+    ClickStarted := true;
+    { We base our Render on Pressed value. }
+    VisibleChange;
+  end;
 end;
 
 function TCastleButton.Release(const Event: TInputPressRelease): boolean;
@@ -1478,7 +1512,7 @@ begin
       It means that if the user does mouse down over the button,
       moves mouse out from the control, then moves it back inside,
       then does mouse up -> it counts as a "click". }
-    if ScreenRect.Contains(Event.Position) then
+    if Enabled and ScreenRect.Contains(Event.Position) then
       DoClick;
   end;
 end;
@@ -1632,6 +1666,22 @@ begin
   end;
 end;
 
+procedure TCastleButton.SetCustomBackgroundDisabled(const Value: TCastleImage);
+begin
+  if FCustomBackgroundDisabled <> Value then
+  begin
+    if OwnsCustomBackgroundDisabled then FreeAndNil(FCustomBackgroundDisabled);
+    FreeAndNil(FGLCustomBackgroundDisabled);
+
+    FCustomBackgroundDisabled := Value;
+
+    if GLInitialized and (FCustomBackgroundDisabled <> nil) then
+      FGLCustomBackgroundDisabled := TGLImage.Create(FCustomBackgroundDisabled, true);
+
+    UpdateSize;
+  end;
+end;
+
 procedure TCastleButton.SetCustomBackgroundFocused(const Value: TCastleImage);
 begin
   if FCustomBackgroundFocused <> Value then
@@ -1746,6 +1796,15 @@ begin
   begin
     FImageMargin := Value;
     UpdateSize;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleButton.SetEnabled(const Value: boolean);
+begin
+  if FEnabled <> Value then
+  begin
+    FEnabled := Value;
     VisibleChange;
   end;
 end;
@@ -3416,6 +3475,7 @@ begin
   inherited;
   TooltipTextColor      := Vector4Single(0   , 0, 0, 1);
   TextColor             := Vector4Single(0   , 0, 0, 1);
+  DisabledTextColor     := Vector4Single(0.33, 0.33, 0.33, 1);
   MessageInputTextColor := Vector4Single(0.33, 1, 1, 1);
   MessageTextColor      := Vector4Single(1   , 1, 1, 1);
   BackgroundTint        := Vector4Single(0.25, 0.25, 0.25, 1);
@@ -3433,6 +3493,8 @@ begin
   FCorners[tiProgressFill] := Vector4Integer(1, 1, 1, 1);
   FImages[tiButtonNormal] := ButtonNormal;
   FCorners[tiButtonNormal] := Vector4Integer(2, 2, 2, 2);
+  FImages[tiButtonDisabled] := ButtonDisabled;
+  FCorners[tiButtonDisabled] := Vector4Integer(2, 2, 2, 2);
   FImages[tiButtonPressed] := ButtonPressed;
   FCorners[tiButtonPressed] := Vector4Integer(2, 2, 2, 2);
   FImages[tiButtonFocused] := ButtonFocused;
