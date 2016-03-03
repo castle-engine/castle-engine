@@ -812,8 +812,8 @@
         <UnitName Value="CastleMaterialProperties"/>
       </Item192>
       <Item193>
-        <Filename Value="../src/x3d/castlenormals.pas"/>
-        <UnitName Value="CastleNormals"/>
+        <Filename Value="../src/x3d/castleinternalnormals.pas"/>
+        <UnitName Value="CastleInternalNormals"/>
       </Item193>
       <Item194>
         <Filename Value="../src/x3d/castleprecalculatedanimationcore.pas"/>

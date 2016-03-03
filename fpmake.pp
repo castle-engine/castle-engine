@@ -293,7 +293,7 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'x3d');
     P.Targets.AddUnit('castlearraysgenerator.pas');
     P.Targets.AddUnit('castlematerialproperties.pas');
-    P.Targets.AddUnit('castlenormals.pas');
+    P.Targets.AddUnit('castleinternalnormals.pas');
     P.Targets.AddUnit('castlerenderingcamera.pas');
     P.Targets.AddUnit('castlescenecore.pas');
     P.Targets.AddUnit('castleshapes.pas');

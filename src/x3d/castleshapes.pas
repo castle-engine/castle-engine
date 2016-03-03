@@ -898,7 +898,7 @@ var
 
 implementation
 
-uses CastleProgress, CastleSceneCore, CastleNormals, CastleLog, CastleWarnings,
+uses CastleProgress, CastleSceneCore, CastleInternalNormals, CastleLog, CastleWarnings,
   CastleStringUtils, CastleArraysGenerator, CastleImages, CastleURIUtils;
 
 const

@@ -19,7 +19,7 @@
   This is developed for VRML/X3D geometric primitives,
   although some parts are not coupled with VRML/X3D stuff.
   So it can be used in other situations too. }
-unit CastleNormals;
+unit CastleInternalNormals;
 
 interface
 
@@ -184,7 +184,7 @@ var
         Found := true; { Found := true, but keep looking in case duplicated }
         NormalsResult.L[I] := Normal;
       end;
-    Assert(Found, 'CastleNormals.SetNormal failed, vertex not on face');
+    Assert(Found, 'CastleInternalNormals.SetNormal failed, vertex not on face');
   end;
 
   procedure CalculateVertexNormals(VertexNum: Integer);
