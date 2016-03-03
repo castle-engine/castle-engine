@@ -3,6 +3,8 @@
 *.rst
 *.o
 *.ppu
+*.blend1
+*.blend2
 *~
 fpmake
 units/
