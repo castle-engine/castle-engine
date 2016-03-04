@@ -177,7 +177,7 @@ begin
   begin
     CP := (Curves[I] as TControlPointsCurve).ControlPoints;
     for J := 0 to CP.Count - 1 do
-      Result.Add(CP.L[J]);
+      Result.Add(CP.List^[J]);
   end;
 end;
 

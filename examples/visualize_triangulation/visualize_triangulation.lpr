@@ -163,7 +163,7 @@ begin
     Vertexes := TVector3SingleList.Create;
     Vertexes.Count := Extrusion.FdCrossSection.Count;
     for I := 0 to Vertexes.Count - 1 do
-      Vertexes.L[I] := Extrusion.CrossSection3D(I);
+      Vertexes.List^[I] := Extrusion.CrossSection3D(I);
   finally FreeAndNil(Scene) end;
 
   CreateCommon(ExtractURIName(URL), 0, 2, false);
@@ -181,7 +181,7 @@ begin
   Vertexes := TVector3SingleList.Create;
   Vertexes.Count := High(AVertexes) + 1;
   for I := 0 to Vertexes.Count - 1 do
-    Vertexes.L[I] := AVertexes[I];
+    Vertexes.List^[I] := AVertexes[I];
 
   CreateCommon(Name, AVisualizeX, AVisualizeY, RevertOrder);
 end;
@@ -196,7 +196,7 @@ begin
 
   if RevertOrder then
     for I := 0 to Vertexes.Count div 2 - 1 do
-      SwapValues(Vertexes.L[I], Vertexes.L[Vertexes.Count - 1 - I]);
+      SwapValues(Vertexes.List^[I], Vertexes.List^[Vertexes.Count - 1 - I]);
 
   Image := TFPMemoryImage.Create(1024, 1024);
   Image.UsePalette := false;
