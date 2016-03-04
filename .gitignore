@@ -6,14 +6,14 @@
 *.blend1
 *.blend2
 *~
-fpmake
-units/
+castle-game-engine-i386-linux.fpm
 examples/2d/controls_demo
 examples/2d_dragon_spine_android_game/castle_spine
 examples/3d_rendering_processing/animate_3d_model_by_code
 examples/3d_rendering_processing/animate_3d_model_by_code_2
 examples/3d_rendering_processing/build_3d_object_by_code
 examples/3d_rendering_processing/call_pascal_code_from_3d_model_script
+examples/3d_rendering_processing/combine_multiple_x3d_into_one
 examples/3d_rendering_processing/custom_3d_object
 examples/3d_rendering_processing/fog_culling
 examples/3d_rendering_processing/gl_primitive_performance
@@ -28,14 +28,13 @@ examples/3d_rendering_processing/triangulate_demo.res
 examples/3d_rendering_processing/view_3d_model_advanced
 examples/3d_rendering_processing/view_3d_model_advanced.res
 examples/3d_rendering_processing/view_3d_model_basic
-examples/3d_rendering_processing/combine_multiple_x3d_into_one
 examples/3d_sound_game/data/levels/base/devel/process_base_b
 examples/3d_sound_game/data/levels/base/devel/process_base_b.res
 examples/3d_sound_game/lets_take_a_walk
-examples/android/android_demo/androiddemo
 examples/android/android_demo/android/assets/
 examples/android/android_demo/android/bin/
 examples/android/android_demo/android/libs/
+examples/android/android_demo/androiddemo
 examples/android/android_demo/androiddemo_standalone
 examples/android/drawing_toy/android/assets/
 examples/android/drawing_toy/android/bin/
@@ -44,6 +43,7 @@ examples/android/drawing_toy/android/jni/libdrawing_toy.so
 examples/android/drawing_toy/android/libs/
 examples/android/drawing_toy/android/local.properties
 examples/android/drawing_toy/android/obj/
+examples/android/drawing_toy/drawing_toy
 examples/audio/algets
 examples/audio/alplay
 examples/audio/doppler_demo
@@ -67,8 +67,6 @@ examples/images_videos/gaussian_write
 examples/images_videos/image_compare
 examples/images_videos/image_convert
 examples/images_videos/image_identify
-tools/image2pascal/image2pascal
-tools/image2pascal/image2pascal.exe
 examples/images_videos/simple_video_editor
 examples/isometric_game/sandbox
 examples/lazarus/load_model_and_camera_manually/lib/
@@ -82,6 +80,7 @@ examples/lazarus/two_controls/two_controls.lps
 examples/lazarus/two_controls/two_controls.res
 examples/plugin/cge_3d_viewer/cge_3d_viewer
 examples/plugin/cge_3d_viewer/npcge_3d_viewer.linux-i386.so
+examples/portable_game_skeleton/my_fantastic_game
 examples/radiance_transfer/precompute_radiance_transfer
 examples/radiance_transfer/radiance_transfer
 examples/radiance_transfer/show_sh
@@ -99,6 +98,7 @@ examples/window/multi_window
 examples/window/window_events
 examples/window/window_gtk_mix
 examples/window/window_menu
+fpmake
 packages/castle_base.pas
 packages/castle_components.pas
 packages/castle_window.pas
@@ -109,7 +109,6 @@ src/x3d/nodes_specification/x3d_nodes_spec_to_pascal/x3d_nodes_spec_to_pascal
 src/x3d/teapot/teapot_3d_to_pascal
 src/x3d/teapot/teapot_3d_to_pascal.res
 tests/test_castle_game_engine
-tools/castle-engine
 tools/build-tool/castle-engine
 tools/build-tool/data/android/integrated-components/chartboost/libs/*.jar
 tools/build-tool/data/android/integrated-components/game_analytics/gameanalytics/*.jar
@@ -119,4 +118,8 @@ tools/build-tool/data/android/integrated-components/google_play_services/google-
 tools/build-tool/data/android/integrated-components/google_play_services/libs/*.jar
 tools/build-tool/data/android/integrated-components/heyzap/libs/*.jar
 tools/build-tool/data/android/integrated-components/startapp/libs/*.jar
+tools/castle-engine
+tools/image2pascal/image2pascal
+tools/image2pascal/image2pascal.exe
 tools/texturefont2pascal/texturefont2pascal
+units/

@@ -252,10 +252,12 @@ clean: cleanexamples
 	  packages/alternative_castle_window_based_on_lcl.pas \
 	  tests/test_castle_game_engine \
 	  tests/test_castle_game_engine.exe \
-	  examples/portable_game_skeleton/my_fantastic_game_standalone \
-	  examples/portable_game_skeleton/my_fantastic_game_standalone.exe
+	  examples/android/drawing_toy/drawing_toy \
+	  examples/android/drawing_toy/drawing_toy.exe \
+	  examples/portable_game_skeleton/my_fantastic_game \
+	  examples/portable_game_skeleton/my_fantastic_game.exe
 # fpmake binary, and units/ produced by fpmake compilation
-	rm -Rf fpmake fpmake.exe units/
+	rm -Rf fpmake fpmake.exe units/ *.fpm
 # lazarus produces lib/ subdirectories during compilation
 	find examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
 # clean every project with CastleEngineManifest.xml
