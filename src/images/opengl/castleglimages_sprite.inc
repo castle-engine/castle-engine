@@ -28,17 +28,24 @@ type
   { Custom animation of a sprite. Animation is defined as array of used frames. }
   TSpriteAnimation = array of TSpriteAnimationFrame;
 
-  { @abstract(Sprite images class. Sprite is an image with many animation frames arranged
-    in rows and columns. Frames are read from left to right and from top
-    to bottom.)
+  { Sprite is an animation composed from frames arranged
+    in rows and columns inside a single image.
+    Frames are read from left to right and from top to bottom.
 
-    Custom animations feature. Custom animation is an array of frames with
-    corresponding frames duration. Frames can be in any order. There are no
-    objections to use some particural frame many times with different duration time. }
+    In the simple case, a sprite represents a single animation,
+    and the frames are just in consecutive order.
+
+    With the help of "custom animations" feature, you can define many
+    animations in a sprite.
+    Each custom animation is an array of frames with
+    corresponding frames duration. Frames can be in any order. It is valid
+    to use some particural frame many times with different
+    duration time. }
   TSprite = class
-  type
-    TSpriteAnimations = specialize TFPGList<TSpriteAnimation>;
   private
+    type
+      TSpriteAnimations = specialize TFPGList<TSpriteAnimation>;
+    var
     FImage: TGLImageManaged;
     FX, FY: Integer;
     FDrawingWidth, FDrawingHeight: Cardinal;
@@ -164,7 +171,8 @@ type
     { Destination frame height to draw. }
     property DrawingHeight: Cardinal read FDrawingHeight write FDrawingHeight;
 
-    { Drawing rectangle. }
+    { Drawing rectangle. This is just a shortcut to get / set
+      properties @link(X), @link(Y), DrawingWidth, DrawingHeight. }
     property DrawRect: TRectangle read GetDrawRect write SetDrawRect;
 
     { Center of rotation. Values between 0 and 1. }
@@ -176,7 +184,7 @@ type
     { Total number of frames. Readonly. Defined at creation. }
     property Frames: Cardinal read FFrames;
 
-    { Frames Per Second for sprite animation. }
+    { How many frames per second to play. }
     property FramesPerSecond: Single read FFramesPerSecond write SetFramesPerSecond default DefaultFramesPerSecond;
 
     { Current frame. }
@@ -195,19 +203,22 @@ type
       the time will increase automatically. }
     property Time: TFloatTime read FAnimTime write SetAnimTime;
 
-    { Width of single frame. Initial value is by the constructor. }
+    { Width of a single frame. Initial value is set by the constructor. }
     property FrameWidth: Cardinal read FFrameWidth write FFrameWidth;
 
-    { Height of single frame. Initial value is by the constructor. }
+    { Height of a single frame. Initial value is set by the constructor. }
     property FrameHeight: Cardinal read FFrameHeight write FFrameHeight;
 
-    { Define X offset. Useful if first frame don't start at X=0. }
+    { X offset for frame position on the underlying image.
+      Useful if the first frame doesn't start at X=0. }
     property LeftMarginOffset: Cardinal read FLeftMarginOffset write FLeftMarginOffset default 0;
 
-    { Define Y offset. Useful if first frame don't start at Y=0. }
+    { Y offset for frame position on the underlying image.
+      Useful if the first frame doesn't start at Y=0. }
     property TopMarginOffset: Cardinal read FTopMarginOffset write FTopMarginOffset default 0;
 
-    { See TVideo.TimeBackwards. }
+    { Should we play the animation backwards after playing it forward.
+      See TVideo.TimeBackwards. }
     property TimeBackwards: Boolean read FTimeBackwards write FTimeBackwards default False;
 
     { Is custom animations feature in use? }
