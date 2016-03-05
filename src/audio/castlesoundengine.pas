@@ -546,8 +546,22 @@ type
       by RepositoryURL.
       Always for SoundName = '' it will return stNone.
 
-      @raises Exception On invalid SoundName when RaiseError = @true. }
-    function SoundFromName(const SoundName: string; const RaiseError: boolean = true): TSoundType;
+      @param(Required
+
+        If Required = @true, it will make a warning when the sound name
+        is not found. This may mean that sound is missing in your sounds.xml
+        file (so you should correct your sounds.xml),
+        or that you didn't load the sounds.xml file yet
+        (so you should correct your code to set @link(TRepoSoundEngine.RepositoryURL)
+        early enough), or that you specified invalid sound name.
+        When Required = @false, missing sound is silently ignored,
+        which is sensible if it was optional.
+
+        Regardless of the Required value, we return stNone for missing sound.
+        So the Required parameter only determines whether we make a warning,
+        or not.)
+    }
+    function SoundFromName(const SoundName: string; const Required: boolean = true): TSoundType;
 
     { Play given sound. This should be used to play sounds
       that are not spatial, i.e. have no place in 3D space.
@@ -677,14 +691,6 @@ var
 { The sound engine. Singleton instance of TRepoSoundEngine, the most capable
   engine class. Created on first call to this function. }
 function SoundEngine: TRepoSoundEngine;
-
-var
-  { Should TRepoSoundEngine.SoundFromName ignore (return stNone)
-    all missing sounds. This works like RaiseError parameter for
-    TRepoSoundEngine.SoundFromName was @true.
-    It's a debug feature, useful if you load resources but don't really
-    plan to play their sounds, don't depend on it in your games. }
-  IgnoreAllMissingSounds: boolean;
 
 implementation
 
@@ -1752,15 +1758,15 @@ begin
 end;
 
 function TRepoSoundEngine.SoundFromName(const SoundName: string;
-  const RaiseError: boolean): TSoundType;
+  const Required: boolean): TSoundType;
 begin
   for Result := 0 to Sounds.Count - 1 do
     if Sounds[Result].Name = SoundName then
       Exit;
 
-  if RaiseError and not IgnoreAllMissingSounds then
-    raise Exception.CreateFmt('Unknown sound name "%s"', [SoundName]) else
-    Result := stNone;
+  if Required then
+    OnWarning(wtMinor, 'Sound', Format('Unknown sound name "%s"', [SoundName]));
+  Result := stNone;
 end;
 
 procedure TRepoSoundEngine.AddSoundImportanceName(const Name: string;

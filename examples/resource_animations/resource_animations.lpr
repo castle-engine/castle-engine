@@ -262,10 +262,6 @@ begin
   Application.MainWindow := Window;
   Progress.UserInterface := WindowProgressInterface;
 
-  { otherwise if you use "Add resource..." button and load a resource
-    using sounds, we may get errors about undefined sound names. }
-  IgnoreAllMissingSounds := true;
-
   Resources.LoadFromFiles;
 
   TestAddingResourceByCode;
