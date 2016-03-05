@@ -32,7 +32,7 @@ implementation
 
 uses SysUtils,
   CastleURIUtils, CastleMaterialProperties, CastleImages, CastleFilesUtils,
-  CastleWarnings, CastleFindFiles,
+  CastleWarnings, CastleFindFiles, CastleSoundEngine,
   ToolUtils;
 
 type
@@ -296,6 +296,10 @@ var
   MatPropsURL: string;
   MatProps: TMaterialProperties;
 begin
+  { avoid errors in case of material_properties.xml refers to sounds
+    (in footsteps) that are not loaded yet here. }
+  IgnoreAllMissingSounds := true;
+
   MatPropsURL := FilenameToURISafe(Project.DataPath + 'material_properties.xml');
   if not URIFileExists(MatPropsURL) then
   begin
