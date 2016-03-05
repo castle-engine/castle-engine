@@ -123,3 +123,6 @@ tools/image2pascal/image2pascal
 tools/image2pascal/image2pascal.exe
 tools/texturefont2pascal/texturefont2pascal
 units/
+doc/pasdoc/cache/
+doc/pasdoc/html/
+doc/pasdoc/latex/

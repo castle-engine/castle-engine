@@ -72,13 +72,13 @@ type
     procedure SetRotation(AValue: Single);
   public
     { Constructor.
-      @param(URL) - URL of source image,
-      @param(AFrames) - total numer of animation frames,
-      @param(AColumns) - number of columns,
-      @param(ARows) - number of rows,
-      @param(ASmoothscaling) - enables interpolation, see @link(TGLImage.SmoothScaling) for details, default @True,
-      @param(ATimeLoop) - should animation be repeated?, default True,
-      @param(APlay) - is animation playing? if not then current frame will be displayed. }
+      @param(URL URL of source image.)
+      @param(AFrames Total numer of animation frames.)
+      @param(AColumns Mumber of columns.)
+      @param(ARows Number of rows.)
+      @param(ASmoothscaling Enables interpolation, see @link(TGLImage.SmoothScaling) for details, default @True.)
+      @param(ATimeLoop Should animation be repeated?, default @true.)
+      @param(APlay Is animation playing? if not then current frame will be displayed.) }
     constructor Create(const URL: string;
       const AFrames, AColumns, ARows: Cardinal;
       const ASmoothScaling: Boolean = True;
@@ -87,27 +87,27 @@ type
     { Constructor that takes explicit frame size,
       and loaded TGLImageManaged instance.
 
-      @param(AImage) - source image (will be owned by this sprite),
-      @param(AFrames) - total numer of animation frames,
-      @param(AColumns) - number of columns,
-      @param(AFrameWidth) - width of each frame,
-      @param(AFrameWidth) - height of each frame,
-      @param(ATimeLoop) - should animation be repeated?, default True,
-      @param(APlay) - is animation playing? if not then current frame will be displayed. }
+      @param(AImage Source image (will be owned by this sprite).)
+      @param(AFrames Total numer of animation frames.)
+      @param(AColumns Number of columns.)
+      @param(AFrameWidth Width of each frame.)
+      @param(AFrameHeight Height of each frame.)
+      @param(ATimeLoop Should animation be repeated?, default @true.)
+      @param(APlay Is animation playing? if not then current frame will be displayed.) }
     constructor CreateFrameSize(const AImage: TGLImageManaged;
       const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
       const ATimeLoop: Boolean = True; const APlay: Boolean = False);
 
     { Constructor that takes explicit frame size.
 
-      @param(URL) - URL of source image,
-      @param(AFrames) - total numer of animation frames,
-      @param(AColumns) - number of columns,
-      @param(AFrameWidth) - width of each frame,
-      @param(AFrameWidth) - height of each frame,
-      @param(ASmoothscaling) - enables interpolation, see @link(TGLImage.SmoothScaling) for details, default @True,
-      @param(ATimeLoop) - should animation be repeated?, default True,
-      @param(APlay) - is animation playing? if not then current frame will be displayed. }
+      @param(URL URL of source image.)
+      @param(AFrames Total numer of animation frames.)
+      @param(AColumns Number of columns.)
+      @param(AFrameWidth Width of each frame.)
+      @param(AFrameHeight Height of each frame.)
+      @param(ASmoothscaling Enables interpolation, see @link(TGLImage.SmoothScaling) for details, default @True.)
+      @param(ATimeLoop Should animation be repeated?, default True.)
+      @param(APlay Is animation playing? if not then current frame will be displayed.) }
     constructor CreateFrameSize(const URL: string;
       const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
       const ASmoothScaling: Boolean = True;
@@ -116,7 +116,7 @@ type
     destructor Destroy; override;
 
     { Update current frame.
-      @param(SecondsPassed) time from previous update. }
+      @param(SecondsPassed Time from previous update.) }
     procedure Update(SecondsPassed: Single);
 
     { Play animation. }
@@ -214,7 +214,7 @@ type
     property UseCustomAnimations: Boolean read FUseCustomAnimations write FUseCustomAnimations default False;
 
     { Adding an animation to internal list.
-      @param(AAnimation) - the animation to add.
+      @param(AAnimation The animation to add.)
       @returns(the animation index). }
     function AddSpriteAnimation(const AAnimation: TSpriteAnimation): Integer;
 
