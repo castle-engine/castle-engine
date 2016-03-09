@@ -297,7 +297,7 @@ begin
     P.Targets.AddUnit('castlerenderingcamera.pas');
     P.Targets.AddUnit('castlescenecore.pas');
     P.Targets.AddUnit('castleshapes.pas');
-    P.Targets.AddUnit('castleprecalculatedanimationcore.pas');
+    P.Targets.AddUnit('castleinternalnodeinterpolator.pas');
     P.Targets.AddUnit('castleraytracer.pas');
     P.Targets.AddUnit('castleshapeoctree.pas');
     P.Targets.AddUnit('castleterrain.pas');

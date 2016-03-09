@@ -816,8 +816,8 @@
         <UnitName Value="CastleInternalNormals"/>
       </Item193>
       <Item194>
-        <Filename Value="../src/x3d/castleprecalculatedanimationcore.pas"/>
-        <UnitName Value="CastlePrecalculatedAnimationCore"/>
+        <Filename Value="../src/x3d/castleinternalnodeinterpolator.pas"/>
+        <UnitName Value="CastleInternalNodeInterpolator"/>
       </Item194>
       <Item195>
         <Filename Value="../src/x3d/castleraytracer.pas"/>

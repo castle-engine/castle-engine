@@ -439,7 +439,7 @@ type
       (although, for the same of various optimizations, you should try
       to make it as tight as reasonably possible.) For now, it's also OK
       to make it a little too small (nothing bad will happen).
-      Although all currently implemented descendants (TCastleSceneCore, TCastlePrecalculatedAnimationCore,
+      Although all currently implemented descendants (TCastleSceneCore, TCastlePrecalculatedAnimation,
       more) guarantee it's never too small. }
     function BoundingBox: TBox3D; virtual; abstract;
 

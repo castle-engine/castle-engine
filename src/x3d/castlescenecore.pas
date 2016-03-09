@@ -523,6 +523,7 @@ type
     NewPlayingAnimationLooping: TPlayAnimationLooping;
     FAnimationPrefix: string;
     FAnimationsList: TStrings;
+    FTimeAtLoad: TFloatTime;
 
     { When this is non-empty, then the transformation change happened,
       and should be processed (for the whole X3D graph inside RootNode).
@@ -1569,6 +1570,9 @@ type
       and our extension
       [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_time_origin_at_load]. }
     procedure ResetTimeAtLoad;
+
+    { Initial world time, set by the last ResetTimeAtLoad call. }
+    property TimeAtLoad: TFloatTime read FTimeAtLoad;
 
     { Stack of background nodes. The node at the top is the current background.
       All nodes on this stack must descend from TAbstractBackgroundNode class. }
@@ -6007,15 +6011,12 @@ begin
 end;
 
 procedure TCastleSceneCore.ResetTimeAtLoad;
-var
-  TimeAtLoad: TFloatTime;
 begin
   if (NavigationInfoStack.Top <> nil) and
      (NavigationInfoStack.Top is TKambiNavigationInfoNode) and
-     TKambiNavigationInfoNode(NavigationInfoStack.Top).FdTimeOriginAtLoad.Value
-    then
-    TimeAtLoad := 0.0 else
-    TimeAtLoad := DateTimeToUnix(Now);
+     TKambiNavigationInfoNode(NavigationInfoStack.Top).TimeOriginAtLoad then
+    FTimeAtLoad := 0.0 else
+    FTimeAtLoad := DateTimeToUnix(Now);
   ResetTime(TimeAtLoad);
 end;
 

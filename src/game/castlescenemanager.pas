@@ -664,7 +664,7 @@ type
 
     @link(Items) property keeps a tree of T3D objects.
     All our 3D objects, like TCastleSceneCore (and so also TCastleScene)
-    and TCastlePrecalculatedAnimationCore (and so also TCastlePrecalculatedAnimation) descend from
+    and TCastlePrecalculatedAnimation descend from
     T3D, and you can add them to the scene manager.
     And naturally you can implement your own T3D descendants,
     representing any 3D (possibly dynamic, animated and even interactive) object.
