@@ -27,12 +27,11 @@ program scene_manager_demos;
 {$apptype CONSOLE}
 
 uses CastleUtils, CastleWindow, CastleVectors, CastleWarnings, Castle3D,
-  CastleSceneCore, CastleScene, CastlePrecalculatedAnimation, X3DFields, X3DNodes;
+  CastleSceneCore, CastleScene, X3DFields, X3DNodes;
 
 var
   Window: TCastleWindow;
-  Scene, ParticlesScene: TCastleScene;
-  DinoAnimation: TCastlePrecalculatedAnimation;
+  Scene, ParticlesScene, DinoScene: TCastleScene;
   ParticlesTransform, DinoTransform: T3DTransform;
   ParticleScript: TScriptNode;
 begin
@@ -70,7 +69,7 @@ begin
     |- ParticlesTransform (class T3DTransform)
        |- ParticlesScene (class TCastleScene)
     |- DinoTransform (class T3DTransform)
-       |- DinoAnimation (class TCastlePrecalculatedAnimation)
+       |- DinoScene (class TCastleScene)
   }
 
   { initialize ParticlesTransform }
@@ -95,18 +94,19 @@ begin
 
   { initialize DinoTransform }
   DinoTransform := T3DTransform.Create(Application);
-  DinoTransform.Translation := Vector3Single(-28, -3, -20);
+  DinoTransform.Translation := Vector3Single(-20, -1, -2);
   Window.SceneManager.Items.Add(DinoTransform);
 
-  { initialize DinoAnimation }
-  DinoAnimation := TCastlePrecalculatedAnimation.Create(Application);
-  DinoAnimation.LoadFromFile('models/raptor.kanim', false, true);
-  DinoAnimation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
+  { initialize DinoScene }
+  DinoScene := TCastleScene.Create(Application);
+  DinoScene.Load('models/raptor.kanim');
+  DinoScene.ProcessEvents := true;
+  DinoScene.Spatial := [ssRendering, ssDynamicCollisions];
   { render wireframe over a normal model. See TWireframeEffect docs
     for other options.  }
-  DinoAnimation.Attributes.WireframeEffect := weSolidWireframe;
-  DinoAnimation.Attributes.WireframeColor := Vector3Single(0, 0.25, 0); { dark green }
-  DinoTransform.Add(DinoAnimation);
+  DinoScene.Attributes.WireframeEffect := weSolidWireframe;
+  DinoScene.Attributes.WireframeColor := Vector3Single(0, 0.25, 0); { dark green }
+  DinoTransform.Add(DinoScene);
 
   Window.FpsShowOnCaption := true;
 
