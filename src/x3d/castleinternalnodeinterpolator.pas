@@ -37,6 +37,7 @@ type
     const
       DefaultScenesPerTime = 30;
       DefaultEqualityEpsilon = 0.001;
+      DefaultAnimationName = 'animation';
 
     { Load animation data from KAnim file (in a given URL) to a set of variables.
       See [http://castle-engine.sourceforge.net/kanim_format.php]
@@ -735,12 +736,13 @@ begin
 
   Result := TX3DRootNode.Create('', BaseUrl);
 
-  TimeSensor := TTimeSensorNode.Create('animation', BaseUrl);
+  TimeSensor := TTimeSensorNode.Create(DefaultAnimationName, BaseUrl);
   TimeSensor.CycleInterval := Duration;
   TimeSensor.Loop := Loop;
   Result.FdChildren.Add(TimeSensor);
 
-  IntSequencer := TIntegerSequencerNode.Create('animation_IntegerSequencer', BaseUrl);
+  IntSequencer := TIntegerSequencerNode.Create(
+    DefaultAnimationName + '_IntegerSequencer', BaseUrl);
   if Backwards then
   begin
     IntSequencer.FdKey.Count := Nodes.Count * 2;
@@ -767,10 +769,10 @@ begin
   end;
   Result.FdChildren.Add(IntSequencer);
 
-  Switch := TSwitchNode.Create('animation_Switch', BaseUrl);
+  Switch := TSwitchNode.Create(DefaultAnimationName + '_Switch', BaseUrl);
   for I := 0 to Nodes.Count - 1 do
     Switch.FdChildren.Add(Nodes[I]);
-  { we set whichChoice to 0 to have sensible, 
+  { we set whichChoice to 0 to have sensible,
     non-empty bounding box before you run the animation }
   Switch.WhichChoice := 0;
   Result.FdChildren.Add(Switch);
