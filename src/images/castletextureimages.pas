@@ -241,9 +241,9 @@ begin
   {$ifdef DEBUG_CACHE}
   Writeln('++ : texture image ', URL, ' : ', 1);
   {$endif}
-  if Log and (AlphaChannel <> acNone) then
-    WritelnLog('Alpha Detection', 'Texture image ' + URIDisplay(URL) +
-      ' detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = acSimpleYesNo]);
+  // if Log and (AlphaChannel <> acNone) then
+  //   WritelnLog('Alpha Detection', 'Texture image ' + URIDisplay(URL) +
+  //     ' detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = acSimpleYesNo]);
 end;
 
 procedure TTexturesVideosCache.TextureImage_DecReference(
