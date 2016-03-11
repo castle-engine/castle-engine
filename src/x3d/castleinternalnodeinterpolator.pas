@@ -439,6 +439,18 @@ begin
       TInlineNode(Result).LoadedInlineDirectly;
     end;
 
+    if Result is TX3DRootNode then
+    begin
+      { copy TX3DRootNode special fields, like TX3DRootNode.DeepCopyCore.
+        This is necessary for WrapRootNode working Ok lower in this file. }
+      TX3DRootNode(Result).HasForceVersion := (Model1 as TX3DRootNode).HasForceVersion;
+      TX3DRootNode(Result).ForceVersion := (Model1 as TX3DRootNode).ForceVersion;
+      TX3DRootNode(Result).Scale := (Model1 as TX3DRootNode).Scale;
+      TX3DRootNode(Result).Profile := (Model1 as TX3DRootNode).Profile;
+      TX3DRootNode(Result).Components.Assign((Model1 as TX3DRootNode).Components);
+      TX3DRootNode(Result).Meta.Assign((Model1 as TX3DRootNode).Meta);
+    end;
+
     { TODO: the code below doesn't deal efficiently with the situation when single
       TX3DNode is used as a child many times in one of the nodes.
       (through "USE" keyword). Code below will then unnecessarily
@@ -725,10 +737,28 @@ class function TNodeInterpolator.LoadSequenceToX3D(
   const Nodes: TX3DNodeList; const Duration: Single;
   const Loop, Backwards: boolean): TX3DRootNode;
 var
+  BaseUrl: string;
+
+  { For VRML 1.0, wrap the contents in SeparateGroup. Prevents leaking
+    transformations between switch node children (testcase:
+    castle-game/data/creatures/alien/walk.kanim). Possibly it could be done
+    differently at higher level (because this is a switch, so it should
+    block leaking anyway, but probably Switch for X3D doesn't work for VRML 1.0
+    so well...). But it's obsolete VRML 1.0, so the hack is acceptable:) }
+  function WrapRootNode(const RootNode: TX3DRootNode): TX3DNode;
+  begin
+    if RootNode.HasForceVersion and (RootNode.ForceVersion.Major <= 1) then
+    begin
+      Result := TSeparatorNode_1.Create('', BaseUrl);
+      Result.VRML1ChildAdd(RootNode);
+    end else
+      Result := RootNode;
+  end;
+
+var
   TimeSensor: TTimeSensorNode;
   IntSequencer: TIntegerSequencerNode;
   Switch: TSwitchNode;
-  BaseUrl: string;
   I: Integer;
   Route: TX3DRoute;
 begin
@@ -771,7 +801,7 @@ begin
 
   Switch := TSwitchNode.Create(DefaultAnimationName + '_Switch', BaseUrl);
   for I := 0 to Nodes.Count - 1 do
-    Switch.FdChildren.Add(Nodes[I]);
+    Switch.FdChildren.Add(WrapRootNode(Nodes[I] as TX3DRootNode));
   { we set whichChoice to 0 to have sensible,
     non-empty bounding box before you run the animation }
   Switch.WhichChoice := 0;
