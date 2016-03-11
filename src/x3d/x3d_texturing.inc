@@ -771,6 +771,8 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+function BlenderRelativePath(const RelativePath: string): boolean; forward;
+
 procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
 var
   I: Integer;
@@ -792,7 +794,11 @@ begin
         FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureComposite,
           FAlphaChannelData);
         WasCacheUsed := true;
-        if WarnAboutAbsoluteFilenames and AbsoluteFileURI(FdUrl.Items[I]) then
+        if WarnAboutAbsoluteFilenames and
+           AbsoluteFileURI(FdUrl.Items[I]) and
+           { AbsoluteFileURI mistakes Blender relative paths '//xxx' as absolute,
+             so eliminate them below. }
+           not BlenderRelativePath(FdUrl.Items[I]) then
           OnWarning(wtMinor, 'VRML/X3D', Format('Loaded data from an absolute filename "%s", this makes the data possibly unportable (it will probably not work on other systems/locations). Always use relative paths.',
             [FdUrl.Items[I]]));
         FTextureUsedFullUrl := URIDisplay(FullUrl);

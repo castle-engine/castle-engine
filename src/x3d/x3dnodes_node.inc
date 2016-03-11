@@ -1547,13 +1547,18 @@ begin
  result := '';
 end;
 
+function BlenderRelativePath(const RelativePath: string): boolean;
+begin
+  Result := IsPrefix('//', RelativePath, false);
+end;
+
 function TX3DNode.PathFromBaseUrl(const RelativePath: string): string;
 begin
   { This is a workaround for Blender errorneous VRML 1.0 export.
     Blender exports relative paths by prefixing them by "//"
     (that's a general convention used internally by Blender, AFAIK).
     Here we simply remove this "//". }
-  if IsPrefix('//', RelativePath, false) then
+  if BlenderRelativePath(RelativePath) then
     Result := CombineURI(BaseUrl, SEnding(RelativePath, 3)) else
     Result := CombineURI(BaseUrl, RelativePath);
 end;
