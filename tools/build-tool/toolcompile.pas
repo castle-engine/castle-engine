@@ -36,6 +36,49 @@ uses SysUtils, Process,
   CastleUtils, CastleStringUtils, CastleWarnings, CastleFilesUtils,
   ToolUtils;
 
+type
+  TFPCVersion = object
+    Major, Minor, Release: Integer;
+  end;
+
+function FPCVersion: TFPCVersion;
+var
+  FpcOutput, FpcExe, Token: string;
+  FpcExitStatus, SeekPos: Integer;
+begin
+  Writeln('Querying FPC version...');
+  FpcExe := FindExe('fpc');
+  if FpcExe = '' then
+    raise Exception.Create('Cannot find "fpc" program on $PATH. Make sure it is installed, and available on $PATH');
+  MyRunCommandIndir(GetCurrentDir, FpcExe, ['-iV'], FpcOutput, FpcExitStatus);
+  if FpcExitStatus <> 0 then
+    raise Exception.Create('Failed to query FPC version');
+
+  { parse output into 3 numbers }
+  FpcOutput := Trim(FpcOutput);
+  SeekPos := 1;
+
+  Token := NextToken(FpcOutput, SeekPos, ['.', '-']);
+  if Token = '' then
+    raise Exception.CreateFmt('Failed to query FPC version: no major version in response "%s"', [FpcOutput]);
+  Result.Major := StrToInt(Token);
+
+  Token := NextToken(FpcOutput, SeekPos, ['.', '-']);
+  if Token = '' then
+    raise Exception.CreateFmt('Failed to query FPC version: no minor version in response "%s"', [FpcOutput]);
+  Result.Minor := StrToInt(Token);
+
+  Token := NextToken(FpcOutput, SeekPos, ['.', '-']);
+  if Token = '' then
+  begin
+    OnWarning(wtMajor, 'FPC', Format('Failed to query FPC version: no release version in response "%s", assuming 0', [FpcOutput]));
+    Result.Release := 0;
+  end else
+    Result.Release := StrToInt(Token);
+
+  Writeln(Format('Recognized version %d.%d.%d', [Result.Major, Result.Minor, Result.Release]));
+end;
+
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string);
 var
@@ -157,17 +200,20 @@ begin
     FpcOptions.Add('-Sh');
     FpcOptions.Add('-vm2045'); // do not show Warning: (2045) APPTYPE is not supported by the target OS
     FpcOptions.Add('-vm5024'); // do not show Hint: (5024) Parameter "..." not used
-    { do not show
-        Warning: Implicit string type conversion from "AnsiString" to "WideString"
-        Warning: Implicit string type conversion from "AnsiString" to "UnicodeString"
-      As we normally use AnsiString, and we deal with XML units
-      (using WideString / UnicodeString), this is normal situation for us. }
-    //FpcOptions.Add('-vm4105'); // not available in FPC 2.6.4
-    { do not show
-        Warning: Implicit string type conversion with potential data loss from "WideString" to "AnsiString"
-      As we normally use AnsiString, and we deal with XML units
-      (using WideString / UnicodeString), this is normal situation for us. }
-    //FpcOptions.Add('-vm4104'); // not available in FPC 2.6.4
+    if FPCVersion.Major >= 3 then
+    begin
+      { do not show
+          Warning: Implicit string type conversion from "AnsiString" to "WideString"
+          Warning: Implicit string type conversion from "AnsiString" to "UnicodeString"
+        As we normally use AnsiString, and we deal with XML units
+        (using WideString / UnicodeString), this is normal situation for us. }
+      FpcOptions.Add('-vm4105'); // not available in FPC 2.6.4
+      { do not show
+          Warning: Implicit string type conversion with potential data loss from "WideString" to "AnsiString"
+        As we normally use AnsiString, and we deal with XML units
+        (using WideString / UnicodeString), this is normal situation for us. }
+      FpcOptions.Add('-vm4104'); // not available in FPC 2.6.4
+    end;
     FpcOptions.Add('-T' + OSToString(OS));
     FpcOptions.Add('-P' + CPUToString(CPU));
 
