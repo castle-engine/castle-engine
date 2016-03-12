@@ -14,7 +14,8 @@
 }
 
 { A precalculated 3D animation rendered in OpenGL (TCastlePrecalculatedAnimation). }
-unit CastlePrecalculatedAnimation;
+unit CastlePrecalculatedAnimation
+  deprecated 'instead of TCastlePrecalculatedAnimation, use TCastleScene to load animations in any format (X3D, KAnim...) and run them using methods like PlayAnimation';
 
 interface
 
@@ -658,8 +659,6 @@ type
       read FInitialViewpointName write FInitialViewpointName;
   end;
 
-  TCastlePrecalculatedAnimationList = specialize TFPGObjectList<TCastlePrecalculatedAnimation>;
-
 const
   DefaultAnimationSmoothness = 1.0;
 
@@ -967,9 +966,12 @@ begin
   Times := TSingleList.Create;
   KeyNodes := TX3DNodeList.Create(false);
   try
+    {$warnings off}
+    { deliberately using deprecated Load3DSequence in deprecated unit }
     Load3DSequence(URL, AllowStdIn,
       KeyNodes, Times, ScenesPerTime, EqualityEpsilon,
       NewTimeLoop, NewTimeBackwards);
+    {$warnings on}
 
     ScenesPerTime := Round(ScenesPerTime * Smoothness);
 

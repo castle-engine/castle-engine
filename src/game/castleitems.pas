@@ -22,7 +22,7 @@ interface
 
 uses CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
   CastleClassUtils, Classes, CastleImages, CastleGLUtils,
-  CastlePrecalculatedAnimation, CastleResources, CastleGLImages,
+  CastleResources, CastleGLImages,
   CastleXMLConfig, CastleSoundEngine, CastleFrustum, Castle3D, FGL, CastleColors;
 
 type
