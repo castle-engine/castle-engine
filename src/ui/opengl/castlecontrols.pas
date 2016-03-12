@@ -28,7 +28,7 @@ type
   { Base class for all controls inside an OpenGL context using a font.
     Allows to customize font and font size per-control, or use defaults. }
   TUIControlFont = class(TUIControl)
-  private
+  strict private
     FTooltip: string;
     TooltipLabel: TCastleLabel;
     FCustomFont: TCastleFont;
@@ -112,7 +112,7 @@ type
     TCastleButton.Bottom), TCastleButton.Caption,
     and assign TCastleButton.OnClick (or ovevrride TCastleButton.DoClick). }
   TCastleButton = class(TUIControlFont)
-  private
+  strict private
     FWidth: Cardinal;
     FHeight: Cardinal;
     FOnClick: TNotifyEvent;
@@ -334,7 +334,7 @@ type
     May be used as a toolbar, together with appropriately placed
     TCastleButton over it. }
   TCastlePanel = class(TUIControl)
-  private
+  strict private
     FWidth: Cardinal;
     FHeight: Cardinal;
     FVerticalSeparators: TCardinalList;
@@ -369,7 +369,7 @@ type
     on loaded image alpha channel (see TGLImage.Alpha).
     You can influence this by @link(AlphaChannel) property. }
   TCastleImageControl = class(TUIControl)
-  private
+  strict private
     FURL: string;
     FImage: TCastleImage;
     FGLImage: TGLImage;
@@ -526,13 +526,14 @@ type
   { Control for touch interfaces. Shows one "lever", that can be moved
     up/down/left/right, and controls the movement while Walking or Flying. }
   TCastleTouchControl = class(TUIControl)
-  private
+  strict private
     FTouchMode: TCastleTouchCtlMode;
     FLeverOffset: TVector2Single;
     FDragging: Integer; //< finger index that started drag, -1 if none
     FPosition: TCastleTouchPosition;
     function SizeScale: Single;
     procedure SetPosition(const Value: TCastleTouchPosition);
+    function MaxOffsetDist: Integer;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
@@ -546,8 +547,6 @@ type
     procedure SetTouchMode(const Value: TCastleTouchCtlMode);
     procedure GetSensorRotation(var X, Y, Z, Angle: Double);
     procedure GetSensorTranslation(var X, Y, Z, Length: Double);
-  private
-    function MaxOffsetDist: Integer;
   published
     property TouchMode: TCastleTouchCtlMode
       read FTouchMode write SetTouchMode default ctcmWalking;
@@ -569,7 +568,7 @@ type
     instead you usually have TCastleSceneManager that fills the whole screen,
     and it provides a background already. }
   TCastleSimpleBackground = class(TUIControl)
-  private
+  strict private
     FColor: TCastleColor;
   public
     constructor Create(AOwner: TComponent); override;
@@ -693,7 +692,7 @@ type
 
   { Label with possibly multiline text, in an optional box. }
   TCastleLabel = class(TUIControlFont)
-  private
+  strict private
     FText: TStrings;
     FPaddingHorizontal, FPaddingVertical, FPadding: Integer;
     FLineSpacing: Integer;
@@ -702,9 +701,6 @@ type
     FFrame: boolean;
     FFrameColor: TCastleColor;
     FMaxWidth: Integer;
-    { For internal use by tooltip rendering. In normal circumstances,
-      leave this at tiLabel. }
-    ImageType: TThemeImage;
     FAlignment: THorizontalPosition;
     FAutoSize: boolean;
     FWidth, FHeight: Cardinal;
@@ -712,6 +708,10 @@ type
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
     procedure SetAutoSize(const Value: boolean);
+  private
+    { For internal use by tooltip rendering. In normal circumstances,
+      leave this at tiLabel. }
+    ImageType: TThemeImage;
   public
     const
       DefaultLineSpacing = 2;
@@ -775,7 +775,7 @@ type
   TCastleCrosshairShape = (csCross, csCrossRect);
 
   TCastleCrosshair = class(TUIControl)
-  private
+  strict private
     FShape: TCastleCrosshairShape;
     procedure SetShape(const Value: TCastleCrosshairShape);
     function ImageType: TThemeImage;
@@ -798,7 +798,7 @@ type
   end;
 
   TCastleProgressBar = class(TUIControlFont)
-  private
+  strict private
     { Background image. }
     FBackground: TCastleImage;
     FGLBackground: TGLImage;
@@ -897,7 +897,7 @@ type
   end;
 
   TCastleFloatSlider = class(TCastleAbstractSlider)
-  private
+  strict private
     FMin: Single;
     FMax: Single;
     FValue: Single;
@@ -924,7 +924,7 @@ type
   end;
 
   TCastleIntegerSlider = class(TCastleAbstractSlider)
-  private
+  strict private
     FMin: Integer;
     FMax: Integer;
     FValue: Integer;
@@ -955,7 +955,7 @@ type
   { Theme for 2D GUI controls.
     Should only be used through the single global instance @link(Theme). }
   TCastleTheme = class
-  private
+  strict private
     FImages: array [TThemeImage] of TCastleImage;
     FCorners: array [TThemeImage] of TVector4Integer;
     FGLImages: array [TThemeImage] of TGLImage;
@@ -970,14 +970,15 @@ type
     function GetCorners(const ImageType: TThemeImage): TVector4Integer;
     procedure SetCorners(const ImageType: TThemeImage; const Value: TVector4Integer);
     function GetGLImages(const ImageType: TThemeImage): TGLImage;
-    procedure GLContextClose;
+    procedure GLContextClose(Sender: TObject);
+    procedure SetMessageFont(const Value: TCastleFont);
+  private
     { TGLImage instances for fast and easy drawing of images on 2D screen.
       Reading them for the 1st time means that the TGLImage instance is created,
       so use them only when OpenGL context is already active (window is open etc.).
       Changing the TCastleImage instance will automatically free (and recreate
       at next access) the corresponding TGLImage instance. }
     property GLImages[const ImageType: TThemeImage]: TGLImage read GetGLImages;
-    procedure SetMessageFont(const Value: TCastleFont);
   public
     TooltipTextColor: TCastleColor;
     TextColor, DisabledTextColor: TCastleColor;
@@ -3530,16 +3531,17 @@ begin
   FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
   FImages[tiErrorBackground] := ErrorBackground;
   FCorners[tiErrorBackground] := Vector4Integer(0, 0, 0, 0);
+
+  ApplicationProperties.OnGLContextCloseObject.Add(@GLContextClose);
 end;
 
 destructor TCastleTheme.Destroy;
 var
   I: TThemeImage;
 begin
+  ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextClose);
   for I in TThemeImage do
-    if FOwnsImages[I] then
-      FreeAndNil(FImages[I]) else
-      FImages[I] := nil;
+    Images[I] := nil; // will free Images[I] if necessary
   if OwnsMessageFont then
     FreeAndNil(FMessageFont) else
     FMessageFont := nil;
@@ -3592,7 +3594,7 @@ begin
   Result := FGLImages[ImageType];
 end;
 
-procedure TCastleTheme.GLContextClose;
+procedure TCastleTheme.GLContextClose(Sender: TObject);
 var
   ImageType: TThemeImage;
 begin
@@ -3643,14 +3645,7 @@ begin
   Result := FTheme;
 end;
 
-procedure ContextClose;
-begin
-  if FTheme <> nil then
-    FTheme.GLContextClose;
-end;
-
 initialization
-  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
   FTheme := TCastleTheme.Create;
 finalization
   FreeAndNil(FTheme);
