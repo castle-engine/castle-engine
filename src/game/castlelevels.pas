@@ -30,7 +30,9 @@ type
   TLevelLogic = class;
   TLevelLogicClass = class of TLevelLogic;
   TCastleSceneClass = class of TCastleScene;
+  {$warnings off}
   TCastlePrecalculatedAnimationClass = class of TCastlePrecalculatedAnimation;
+  {$warnings on}
   TGameSceneManager = class;
 
   TLevelInfo = class
@@ -448,8 +450,10 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     function LoadLevelAnimation(const URL: string;
       const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean;
       const AnimationClass: TCastlePrecalculatedAnimationClass): TCastlePrecalculatedAnimation;
+      deprecated 'whole TCastlePrecalculatedAnimation is deprecated, use TCastleScene for rendering all animations';
     function LoadLevelAnimation(const URL: string;
       const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean): TCastlePrecalculatedAnimation;
+      deprecated 'whole TCastlePrecalculatedAnimation is deprecated, use TCastleScene for rendering all animations';
     { @groupEnd }
 
     { Load 3D scene from file, doing common tasks.
@@ -1113,9 +1117,12 @@ function TLevelLogic.LoadLevelAnimation(
   const URL: string;
   const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean): TCastlePrecalculatedAnimation;
 begin
+  {$warnings off}
+  { knowingly using deprecated function in another deprecated function }
   Result := LoadLevelAnimation(URL,
     CreateFirstOctreeCollisions, CreateLastOctreeCollisions,
     TCastlePrecalculatedAnimation);
+  {$warnings on}
 end;
 
 procedure TLevelLogic.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
