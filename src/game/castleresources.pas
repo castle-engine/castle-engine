@@ -377,7 +377,7 @@ implementation
 uses SysUtils,
   CastleProgress, CastleXMLUtils, CastleUtils, CastleSceneCore,
   CastleStringUtils, CastleLog, CastleConfig, CastleApplicationProperties,
-  CastleFilesUtils, CastleInternalNodeInterpolator;
+  CastleFilesUtils, CastleInternalNodeInterpolator, CastleWarnings;
 
 type
   TResourceClasses = specialize TFPGMap<string, T3DResourceClass>;
@@ -491,12 +491,16 @@ begin
   if ResourceConfig.GetValue('model/' + Name + '/file_name', '') <> '' then
   begin
     URL := ResourceConfig.GetURL('model/' + Name + '/file_name', true);
-    WritelnLog('Deprecated', 'Reading from deprecated "file_name" attribute inside resource.xml. Use "url" instead.');
+    OnWarning(wtMinor, 'Deprecated', 'Reading from deprecated "file_name" attribute inside resource.xml. Use "url" instead.');
   end else
     URL := ResourceConfig.GetURL('model/' + Name + '/url', true);
-  AnimationName := ResourceConfig.GetValue('model/' + Name + '/time_sensor', '');
+  AnimationName := ResourceConfig.GetValue('model/' + Name + '/animation_name', '');
   if AnimationName = '' then
-    AnimationName := ResourceConfig.GetValue('model/' + Name + '/animation_name', '');
+  begin
+    AnimationName := ResourceConfig.GetValue('model/' + Name + '/time_sensor', '');
+    if AnimationName <> '' then
+      OnWarning(wtMinor, 'Deprecated', 'Reading from deprecated "time_sensor" attribute inside resource.xml. Use "animation_name" instead.');
+  end;
 end;
 
 { T3DResourceAnimationList --------------------------------------------------- }
