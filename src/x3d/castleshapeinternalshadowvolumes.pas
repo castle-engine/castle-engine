@@ -82,28 +82,8 @@ type
 
   TTriangle3SingleList = specialize TGenericStructList<TTriangle3Single>;
 
-  { Triangles array for shadow casting shape. In local shape coordinates.
-
-    This guarantees that the whole array has first OpaqueCount opaque triangles,
-    then the rest is transparent.
-    The precise definition between "opaque"
-    and "transparent" is done by TShape.Transparent.
-    This is also used by OpenGL rendering to determine which shapes
-    need blending.
-
-    This separation into opaque and transparent parts
-    (with OpaqueCount marking the border) is useful for shadow volumes
-    algorithm, that must treat transparent shadow casters a little
-    differently. }
-  TTrianglesShadowCastersList = class(TTriangle3SingleList)
-  private
-    FOpaqueCount: Cardinal;
-  public
-    { Numer of opaque triangles on this list. Opaque triangles
-      are guarenteed to be placed before all transparent triangles
-      on this list. }
-    property OpaqueCount: Cardinal read FOpaqueCount;
-  end;
+  { Triangles array for shadow casting shape. In local shape coordinates. }
+  TTrianglesShadowCastersList = TTriangle3SingleList;
 
   TShapeShadowVolumes = class
   strict private
@@ -117,9 +97,10 @@ type
     FTrianglesListShadowCasters: TTrianglesShadowCastersList;
     FManifoldEdges: TManifoldEdgeList;
     FBorderEdges: TBorderEdgeList;
-    FShape: TObject;
     procedure CalculateIfNeededManifoldAndBorderEdges;
   public
+    FShape: TObject;
+
     constructor Create(const AShape: TObject);
     destructor Destroy; override;
 
@@ -133,10 +114,6 @@ type
 
     { Returns an array of triangles that should be shadow casters
       for this scene.
-
-      Additionally, TTrianglesShadowCastersList contains some
-      additional information needed for rendering with shadows:
-      currently, this means TTrianglesShadowCastersList.OpaqueCount.
 
       Results of these functions are cached, and are also owned by this object.
       So don't modify it, don't free it. }
@@ -255,24 +232,11 @@ function TShapeShadowVolumes.TrianglesListShadowCasters: TTrianglesShadowCasters
       TriangleAdder := TTriangleAdder.Create;
       try
         TriangleAdder.TriangleList := Result;
-
         if ShadowCaster(Shape) then
-        begin
-          { Add all opaque triangles }
-          if not Shape.Transparent then
-            Shape.LocalTriangulate(false, @TriangleAdder.AddTriangle);
-
-          { Mark OpaqueCount border }
-          Result.FOpaqueCount := Result.Count;
-
-          { Add all transparent triangles }
-          if Shape.Transparent then
-            Shape.LocalTriangulate(false, @TriangleAdder.AddTriangle);
-        end;
-
+          Shape.LocalTriangulate(false, @TriangleAdder.AddTriangle);
         if Log and LogShadowVolumes then
-          WritelnLog('Shadow volumes', Format('Shadows casters triangles: %d opaque, %d total',
-            [Result.OpaqueCount, Result.Count]));
+          WritelnLog('Shadow volumes', Format('Shadows casters triangles: %d',
+            [Result.Count]));
       finally FreeAndNil(TriangleAdder) end;
     except Result.Free; raise end;
   end;

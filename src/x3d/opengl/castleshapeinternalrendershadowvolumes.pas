@@ -59,7 +59,7 @@ type
       const LightPos: TVector4Single;
       const Transform: TMatrix4Single;
       const LightCap, DarkCap: boolean;
-      const UseBlending: boolean);
+      const ForceOpaque: boolean);
 
     { Render silhouette edges. See TCastleScene.RenderSilhouetteEdges. }
     procedure RenderSilhouetteEdges(
@@ -74,7 +74,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleGL, CastleGLUtils, CastleUtils;
+  CastleGL, CastleGLUtils, CastleUtils, CastleShapes;
 
 { Return vertex Original extruded into infinity, as seen from light
   at position LightPos.
@@ -114,7 +114,7 @@ procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
   const LightPos: TVector4Single;
   const Transform: TMatrix4Single;
   const LightCap, DarkCap: boolean;
-  const UseBlending: boolean);
+  const ForceOpaque: boolean);
 
 {$ifndef OpenGLES} //TODO-es
 
@@ -326,8 +326,7 @@ var
         may have caps (like transparent ones) and some note
         (like opaque ones with zpass)).
 
-        TODO: implement above. We'll need triangles sorted by transparency,
-        with some marker TrianglesOpaqueCount.
+        TODO: implement above.
     }
 
     procedure OpaqueTrianglesBegin;
@@ -367,7 +366,6 @@ var
   var
     TrianglePtr: PTriangle3Single;
     I: Integer;
-    OpaqueCount: Cardinal;
   begin
     TrianglesPlaneSide.Count := Triangles.Count;
     TrianglePtr := PTriangle3Single(Triangles.List);
@@ -375,25 +373,19 @@ var
     { If light is directional, no need to render dark cap }
     DarkCap := DarkCap and (LightPos[3] <> 0);
 
-    if UseBlending then
-      OpaqueCount := Triangles.OpaqueCount else
-      OpaqueCount := Triangles.Count; { everything is opaque in this case }
+    if ForceOpaque or not TShape(FShape).Transparent then
+      OpaqueTrianglesBegin else
+      TransparentTrianglesBegin;
 
-    OpaqueTrianglesBegin;
-    for I := 0 to Integer(OpaqueCount) - 1 do
+    for I := 0 to Triangles.Count - 1 do
     begin
       TrianglesPlaneSide.L[I] := PlaneSide(TrianglePtr^);
       Inc(TrianglePtr);
     end;
-    OpaqueTrianglesEnd;
 
-    TransparentTrianglesBegin;
-    for I := OpaqueCount to Triangles.Count - 1 do
-    begin
-      TrianglesPlaneSide.L[I] := PlaneSide(TrianglePtr^);
-      Inc(TrianglePtr);
-    end;
-    TransparentTrianglesEnd;
+    if ForceOpaque or not TShape(FShape).Transparent then
+      OpaqueTrianglesEnd else
+      TransparentTrianglesEnd;
   end;
 
 var

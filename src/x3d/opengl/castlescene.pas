@@ -1669,6 +1669,7 @@ var
   SVRenderer: TGLShadowVolumeRenderer;
   SI: TShapeTreeIterator;
   T: TMatrix4Single;
+  ForceOpaque: boolean;
 begin
   if GetExists and CastShadowVolumes then
   begin
@@ -1679,6 +1680,8 @@ begin
 
     SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
     SVRenderer.InitScene(Box);
+
+    ForceOpaque := not (Attributes.Blending and (Attributes.Mode = rmFull));
 
     if SVRenderer.SceneShadowPossiblyVisible then
     begin
@@ -1693,7 +1696,7 @@ begin
             SVRenderer.LightPosition, T,
             SVRenderer.ZFailAndLightCap,
             SVRenderer.ZFail,
-            { UseBlending } Attributes.Blending and (Attributes.Mode = rmFull));
+            ForceOpaque);
         end;
       finally FreeAndNil(SI) end;
     end;
