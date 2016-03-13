@@ -8,12 +8,30 @@ FPC+valgrind and valgrind/callgrind manual.
 http://valgrind.org/docs/manual/cl-manual.html
 http://wiki.lazarus.freepascal.org/Profiling
 
+------------------------------------------------------------------------------
 Compile for valgrind:
+
 - Make sure you compile with -gv option, this adds stuff necessary for valgrind.
-  You can search in ../castle-fpc.cfg for valgrind options and uncomment them.
+  Also line info (-gl) is much helpful.
+
+  - If you compile from command-line using direct "fpc ..." command
+    and "@castle-fpc.cfg", then search in ../castle-fpc.cfg for
+    valgrind options and uncomment them.
+
+  - Otherwise, just add
+    -gv
+    -gl
+    to your ~/.fpc.cfg. Remember to remove them later.
+
 - Clean units (to recompile all for valgrind), like
-    ./clean_everything.sh
-- Compile as usual, with -dRELEASE (you want to profile released code)
+    make clean
+  in CGE directory. Otherwise, you will not get profiling info inside CGE
+  routines.
+
+- Compile your project as usual. Compile a release version (with -dRELEASE),
+  you want to profile released code (otherwise you may find
+  serious time eaters in stuff like range or overflow checking,
+  and they will skew your results).
 
 ------------------------------------------------------------------------------
 For speed profiling:

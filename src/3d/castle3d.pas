@@ -51,8 +51,7 @@ type
 
   { Various things that T3D.PrepareResources may prepare. }
   TPrepareResourcesOption = (prRender, prBackground, prBoundingBox,
-    prTrianglesListShadowCasters,
-    prManifoldAndBorderEdges,
+    prShadowVolume,
     { Prepare octrees (determined by things like TCastleSceneCore.Spatial). }
     prSpatial,
     prScreenEffects);
