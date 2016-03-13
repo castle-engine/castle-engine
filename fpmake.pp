@@ -296,6 +296,7 @@ begin
     P.Targets.AddUnit('castleinternalnormals.pas');
     P.Targets.AddUnit('castlerenderingcamera.pas');
     P.Targets.AddUnit('castlescenecore.pas');
+    P.Targets.AddUnit('castleshapeinternalshadowvolumes.pas');
     P.Targets.AddUnit('castleshapes.pas');
     P.Targets.AddUnit('castleinternalnodeinterpolator.pas');
     P.Targets.AddUnit('castleraytracer.pas');
@@ -324,6 +325,7 @@ begin
     P.Targets.AddUnit('castlebackground.pas');
     P.Targets.AddUnit('castleglcubemaps.pas');
     P.Targets.AddUnit('castlescene.pas');
+    P.Targets.AddUnit('castleshapeinternalrendershadowvolumes.pas');
     P.Targets.AddUnit('castlerendererinternalshader.pas');
     P.Targets.AddUnit('castlerendererinternallights.pas');
     P.Targets.AddUnit('castlerendererinternaltextureenv.pas');
