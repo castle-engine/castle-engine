@@ -308,8 +308,7 @@ begin
   SoundMenu := TRiftSoundMenu.Create(nil);
   ChangeOpenALDeviceMenu := TChangeOpenALDeviceMenu.Create(nil);
 
-  GLMenuBg := TGLImage.Create(DataURLFromConfig(
-    DataConfig.GetValue('main_menu/image', 'required_xml_value_missing')),
+  GLMenuBg := TGLImage.Create(DataConfig.GetURL('main_menu/image'),
     [], Window.Width, Window.Height);
 end;
 

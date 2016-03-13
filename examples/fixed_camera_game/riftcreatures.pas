@@ -28,7 +28,7 @@ unit RiftCreatures;
 interface
 
 uses SysUtils, Classes,
-  CastlePrecalculatedAnimation, CastleUtils, CastleClassUtils, CastleScene,
+  CastleUtils, CastleClassUtils, CastleScene,
   CastleVectors, Castle3D, CastleFrustum, CastleApplicationProperties,
   RiftWindow, RiftGame, RiftLoadable, CastleTimeUtils, X3DNodes,
   FGL, CastleColors;
@@ -44,16 +44,8 @@ type
   TCreatureAnimation = class
   public
     URL: string;
-    { Created in TCreatureKind.Load }
-    Animation: TCastlePrecalculatedAnimation;
-
-    { Note that Changes values for this same animation have always
-      possible = false. (i.e. Animations[S].ChangesPossible[S] = false
-      for any given S). }
-    ChangesPossible: array [TCreatureState] of boolean;
-    ChangesDuration: array [TCreatureState] of TFloatTime;
-    { Created in TCreatureKind.Load }
-    ChangesAnimation: array [TCreatureState] of TCastlePrecalculatedAnimation;
+    Animation: TCastleScene; //< Created in TCreatureKind.Load
+    Duration: Single;
   end;
 
   TCreatureKind = class(TLoadable)
@@ -88,8 +80,6 @@ type
     procedure UnLoad;
   end;
 
-  ECreatureStateChangeNotPossible = class(Exception);
-
   TCreature = class(T3DOrient)
   private
     FKind: TCreatureKind;
@@ -99,27 +89,12 @@ type
   private
     { SetState actually only "schedules" actual state change at the nearest
       comfortable time (namely, when current animation will get to the state
-      when it's sensible to start smooth transition using ChangesAnimations
-      animation). }
+      when it's sensible to make transition). }
     ScheduledTransitionBegin: boolean;
     ScheduledTransitionBeginNewState: TCreatureState;
     ScheduledTransitionBeginTime: TFloatTime;
 
-    { If @true, then were in transition from old state now.
-      This must occur before any new state changes, so
-      if both Scheduled* are true,
-      ScheduledTransitionEnd is always < ScheduledTransitionBegin ! }
-    ScheduledTransitionEnd: boolean;
-    ScheduledTransitionEndOldState: TCreatureState;
-    ScheduledTransitionEndTime: TFloatTime;
-
-    { Time from last change of state.
-      Note that for each SetState, it usually changes two times in Update:
-      1. First, when ScheduledTransitionBegin "kicks in":
-         ScheduledTransitionEnd becomes true, and CurrentStateStartTime is set
-         to current WorldTime.
-      2. Then, at some point ScheduledTransitionEnd changes to false,
-         CurrentStateStartTime is reset to current WorldTime again. }
+    { Time of last change of state, from world time. }
     CurrentStateStartTime: TFloatTime;
 
     StandTimeToBeBored: TFloatTime;
@@ -166,8 +141,10 @@ var
 
 implementation
 
-uses Math, CastleLog, CastleProgress, CastleGL, CastleGLUtils, CastleWindow,
-  CastleUIControls, CastleGLBoxes, RiftData, RiftVideoOptions;
+uses Math,
+  CastleLog, CastleProgress, CastleGL, CastleGLUtils, CastleWindow,
+  CastleUIControls, CastleGLBoxes, CastleSceneCore,
+  RiftData, RiftVideoOptions;
 
 { TCreatureKind -------------------------------------------------------------- }
 
@@ -198,55 +175,24 @@ procedure TCreatureKind.LoadFromConfig;
 const
   DefaultDuration = 0.5;
 var
-  S, SChange: TCreatureState;
+  S: TCreatureState;
   StatePath: string;
 begin
   for S := Low(S) to High(S) do
   begin
     StatePath := 'creatures/' + Name + '/' + CreatureStateName[S] + '/';
-
-    Animations[S].URL := DataURLFromConfig(
-      DataConfig.GetValue(StatePath + 'url', ''));
-
-    for SChange := Low(SChange) to High(SChange) do
-    begin
-      Animations[S].ChangesPossible[SChange] := (S <> SChange) and
-        DataConfig.GetValue(
-          StatePath + CreatureStateName[SChange] + '/possible', true);
-
-      Animations[S].ChangesDuration[SChange] :=
-        DataConfig.GetFloat(
-          StatePath + CreatureStateName[SChange] + '/duration', DefaultDuration);
-    end;
+    Animations[S].URL := DataConfig.GetURL(StatePath + 'url');
   end;
 end;
 
 function TCreatureKind.LoadSteps: Cardinal;
-var
-  S, SChange: TCreatureState;
 begin
-  Result := inherited LoadSteps + Ord(High(S)) + 1;
-  for S := Low(S) to High(S) do
-    for SChange := Low(SChange) to High(SChange) do
-      if Animations[S].ChangesPossible[SChange] then
-        Inc(Result);
+  Result := inherited LoadSteps + Ord(High(TCreatureState)) + 1;
 end;
 
 procedure TCreatureKind.LoadInternal(const BaseLights: TLightInstancesList);
-
-  procedure AnimationPrepareResources(A: TCastlePrecalculatedAnimation);
-  begin
-    A.PrepareResources([prRender, prBoundingBox] + prShadowVolume, false, BaseLights);
-  end;
-
-const
-  ChangeStateScenesPerTime = 30;
-  ChangeStateEqualityEpsilon = 0.01;
-
 var
-  S, SChange: TCreatureState;
-  RootNodes: TX3DNodeList;
-  Times: TSingleList;
+  S: TCreatureState;
 begin
   inherited;
 
@@ -258,76 +204,26 @@ begin
 
   for S := Low(S) to High(S) do
   begin
-    Animations[S].Animation := TCastlePrecalculatedAnimation.Create(nil);
-    Animations[S].Animation.LoadFromFile(Animations[S].URL, false, true);
-    AnimationPrepareResources(Animations[S].Animation);
+    Animations[S].Animation := TCastleScene.Create(nil);
+    Animations[S].Animation.Load(Animations[S].URL);
+    Animations[S].Animation.PrepareResources(
+      [prRender, prBoundingBox, prShadowVolume], false, BaseLights);
+    Animations[S].Duration := Animations[S].Animation.AnimationDuration('animation');
     Progress.Step;
 
     if Log then
       WritelnLog('Creature Animation', 'Loaded ' + Animations[S].URL);
   end;
-
-  RootNodes := nil;
-  Times := nil;
-  try
-    RootNodes := TX3DNodeList.Create(false);
-    Times := TSingleList.Create;
-
-    for S := Low(S) to High(S) do
-    begin
-      for SChange := Low(SChange) to High(SChange) do
-        if Animations[S].ChangesPossible[SChange] then
-        begin
-          RootNodes.Clear;
-          RootNodes.Add(Animations[S].Animation.LastScene.RootNode);
-          { We must make DeepCopy here, since new TCastlePrecalculatedAnimation
-            will always own this node. }
-          RootNodes.Add(Animations[SChange].Animation.FirstScene.RootNode.DeepCopy);
-
-          Times.Count := 0;
-          Times.Add(0);
-          Times.Add(Animations[S].ChangesDuration[SChange]);
-
-          Animations[S].ChangesAnimation[SChange] :=
-            TCastlePrecalculatedAnimation.Create(nil);
-          Animations[S].ChangesAnimation[SChange].Load(
-            RootNodes, false, Times,
-            ChangeStateScenesPerTime,
-            ChangeStateEqualityEpsilon);
-          Animations[S].ChangesAnimation[SChange].TimeLoop := false;
-          Animations[S].ChangesAnimation[SChange].TimeBackwards := false;
-          AnimationPrepareResources(Animations[S].ChangesAnimation[SChange]);
-
-          if Log then
-            WritelnLog('Creature Animation',
-              Format('Loaded change state "%s" -> "%s"',
-                [ CreatureStateName[S],
-                  CreatureStateName[SChange] ]));
-
-          Progress.Step;
-        end;
-    end;
-  finally
-    FreeAndNil(RootNodes);
-    FreeAndNil(Times);
-  end;
 end;
 
 procedure TCreatureKind.UnLoadInternal;
 var
-  S, SChange: TCreatureState;
+  S: TCreatureState;
 begin
   for S := Low(S) to High(S) do
     { this may be called from inherited destructor, so check for <> nil }
     if Animations[S] <> nil then
-    begin
-      for SChange := Low(SChange) to High(SChange) do
-        FreeAndNil(Animations[S].ChangesAnimation[SChange]);
-      { ChangesAnimation contain references to a TX3DNode from basic
-        animation (LoadInternal does so), so it's safest to release
-        basic animation *at the end* (when nothing references it anymore). }
       FreeAndNil(Animations[S].Animation);
-    end;
 
   inherited;
 end;
@@ -390,15 +286,6 @@ procedure TCreature.SetState(const Value: TCreatureState);
 begin
   if Value <> FState then
   begin
-    if not Kind.Animations[FState].ChangesPossible[Value] then
-      raise ECreatureStateChangeNotPossible.CreateFmt(
-        'State change "%s" -> "%s" is not allowed, ' +
-        'because in normal circumstances game mechanics ' +
-        'never allow it (change "possible" field in index.xml if you ' +
-        'want to allow this change)',
-        [ CreatureStateName[FState],
-          CreatureStateName[Value] ]);
-
     { Note that using the "SetState sets scheduled state change"
       works OK if you will call SetState multiple times while waiting for
       comfortable time to actually change state: each SetState simply
@@ -409,13 +296,7 @@ begin
     ScheduledTransitionBegin := true;
     ScheduledTransitionBeginNewState := Value;
     { calculate ScheduledTransitionBeginTime }
-    if ScheduledTransitionEnd then
-    begin
-      { wait for transition to end, then wait for animation to end }
-      ScheduledTransitionBeginTime := ScheduledTransitionEndTime +
-        Kind.Animations[FState].Animation.TimeEnd;
-    end else
-    if Kind.Animations[FState].Animation.TimeDuration = 0 then
+    if Kind.Animations[FState].Duration = 0 then
     begin
       { That's easy, just switch to new state already ! }
       ScheduledTransitionBeginTime := WorldTime;
@@ -426,12 +307,11 @@ begin
       ScheduledTransitionBeginTime := CurrentStateStartTime +
         RoundFloatDown(
           WorldTime - CurrentStateStartTime,
-          Kind.Animations[FState].Animation.TimeDurationWithBack);
+          Kind.Animations[FState].Duration);
 
       { Now at ScheduledTransitionBeginTime the animation was in starting
         position, and this is the time <= now. }
-
-      ScheduledTransitionBeginTime += Kind.Animations[FState].Animation.TimeEnd;
+      ScheduledTransitionBeginTime += Kind.Animations[FState].Duration;
 
       { Now at ScheduledTransitionBeginTime animation will end !
         This is good time to switch... unless it already occurred
@@ -442,50 +322,29 @@ begin
         So we correct it. If there were no floating point errors inside
         RoundFloatDown, loop below should execute at most once. }
       while ScheduledTransitionBeginTime < WorldTime do
-        ScheduledTransitionBeginTime +=
-          Kind.Animations[FState].Animation.TimeDurationWithBack;
+        ScheduledTransitionBeginTime += Kind.Animations[FState].Duration;
     end;
   end;
 end;
 
 function TCreature.GetChild: T3D;
+var
+  Scene: TCastleScene;
 begin
-  if ScheduledTransitionEnd then
-    Result := Kind.Animations[
-      ScheduledTransitionEndOldState].ChangesAnimation[FState].
-      Scene(WorldTime - CurrentStateStartTime) else
-    Result := Kind.Animations[FState].Animation.
-      Scene(WorldTime - CurrentStateStartTime);
+  Scene := Kind.Animations[FState].Animation;
+  Result := Scene;
+  Scene.ForceAnimationPose('animation',
+    WorldTime - CurrentStateStartTime, paForceLooping);
 end;
 
 procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
-  if ScheduledTransitionEnd then
-  begin
-    if WorldTime > ScheduledTransitionEndTime then
-    begin
-      ScheduledTransitionEnd := false;
-      CurrentStateStartTime := WorldTime;
-    end;
-
-    { Note that ScheduledTransitionBeginTime must be >
-      ScheduledScheduledTransitionEndTime (if ScheduledTransitionBegin
-      is true). That's why it's OK to check ScheduledTransitionBegin
-      below only if ScheduledTransitionEnd was false. }
-  end else
   if ScheduledTransitionBegin then
   begin
     if WorldTime > ScheduledTransitionBeginTime then
     begin
       ScheduledTransitionBegin := false;
-      ScheduledTransitionEnd := true;
-
-      ScheduledTransitionEndOldState := FState;
       FState := ScheduledTransitionBeginNewState;
-
-      ScheduledTransitionEndTime := ScheduledTransitionBeginTime +
-        Kind.Animations[ScheduledTransitionEndOldState].ChangesDuration[FState];
-
       CurrentStateStartTime := WorldTime;
     end;
   end else
@@ -622,8 +481,7 @@ var
 begin
   inherited;
 
-  if (ScheduledTransitionEnd or (not ScheduledTransitionBegin)) and
-     (State = csWalk) then
+  if (not ScheduledTransitionBegin) and (State = csWalk) then
   begin
     { Do walking. If walking ends (because target reached, or can't reach target),
       change to csStand. }
@@ -654,7 +512,6 @@ procedure TPlayer.LocationChanged;
 begin
   FState := csStand;
   ScheduledTransitionBegin := false;
-  ScheduledTransitionEnd := false;
   CurrentStateStartTime := WorldTime;
 end;
 
