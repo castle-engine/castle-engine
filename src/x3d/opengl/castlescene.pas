@@ -606,8 +606,8 @@ type
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
-      algorithm. Checks ShadowVolumeRenderer.InitScene to know if the shadow
-      needs to be rendered at all.
+      algorithm. Uses ShadowVolumeRenderer for rendering, and to detect if rendering
+      is necessary at all.
       It will calculate current bounding box (looking at ParentTransform,
       ParentTransformIsIdentity and BoundingBox method).
 
@@ -1665,7 +1665,7 @@ procedure TCastleScene.RenderShadowVolume(
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4Single);
 var
-  Box: TBox3D;
+  SceneBox, ShapeBox: TBox3D;
   SVRenderer: TGLShadowVolumeRenderer;
   SI: TShapeTreeIterator;
   T: TMatrix4Single;
@@ -1673,30 +1673,36 @@ var
 begin
   if GetExists and CastShadowVolumes then
   begin
-    { calculate Box }
-    Box := BoundingBox;
-    if not ParentTransformIsIdentity then
-      Box := Box.Transform(ParentTransform);
-
     SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
-    SVRenderer.InitScene(Box);
 
     ForceOpaque := not (Attributes.Blending and (Attributes.Mode = rmFull));
 
-    if SVRenderer.SceneShadowPossiblyVisible then
+    { calculate and check SceneBox }
+    SceneBox := BoundingBox;
+    if not ParentTransformIsIdentity then
+      SceneBox := SceneBox.Transform(ParentTransform);
+    SVRenderer.InitCaster(SceneBox);
+    if SVRenderer.CasterShadowPossiblyVisible then
     begin
       SI := TShapeTreeIterator.Create(Shapes, true);
       try
         while SI.GetNext do
         begin
-          if ParentTransformIsIdentity then
-            T :=                   SI.Current.State.Transform else
-            T := ParentTransform * SI.Current.State.Transform;
-          SI.Current.InternalShadowVolumes.RenderSilhouetteShadowVolume(
-            SVRenderer.LightPosition, T,
-            SVRenderer.ZFailAndLightCap,
-            SVRenderer.ZFail,
-            ForceOpaque);
+          ShapeBox := SI.Current.BoundingBox;
+          if not ParentTransformIsIdentity then
+            ShapeBox := ShapeBox.Transform(ParentTransform);
+          SVRenderer.InitCaster(ShapeBox);
+          if SVRenderer.CasterShadowPossiblyVisible then
+          begin
+            if ParentTransformIsIdentity then
+              T :=                   SI.Current.State.Transform else
+              T := ParentTransform * SI.Current.State.Transform;
+            SI.Current.InternalShadowVolumes.RenderSilhouetteShadowVolume(
+              SVRenderer.LightPosition, T,
+              SVRenderer.ZFailAndLightCap,
+              SVRenderer.ZFail,
+              ForceOpaque);
+          end;
         end;
       finally FreeAndNil(SI) end;
     end;
