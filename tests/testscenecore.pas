@@ -27,11 +27,13 @@ uses X3DNodes, CastleSceneCore, X3DLoad, CastleVectors, CastleShapes,
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
   Scene: TCastleSceneCore;
+  Manifold, Border: Cardinal;
 begin
   Scene := TCastleSceneCore.Create(nil);
   try
     Scene.Load('data/model_manifold.wrl');
-    AssertTrue(Scene.BorderEdges.Count = 0);
+    Scene.EdgesCount(Manifold, Border);
+    AssertTrue(Border = 0);
   finally FreeAndNil(Scene) end;
 end;
 
