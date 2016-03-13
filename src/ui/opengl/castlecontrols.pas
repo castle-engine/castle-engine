@@ -1479,12 +1479,16 @@ begin
   if Result or (Event.EventType <> itMouseButton) then Exit;
 
   Result := ExclusiveEvents;
-  if Enabled and not Toggle then
+  if Enabled then
   begin
-    FPressed := true;
+    if not Toggle then
+    begin
+      FPressed := true;
+      { We base our Render on Pressed value. }
+      VisibleChange;
+    end;
+    // regardless of Toggle value, set ClickStarted, to be able to reach OnClick.
     ClickStarted := true;
-    { We base our Render on Pressed value. }
-    VisibleChange;
   end;
 end;
 
