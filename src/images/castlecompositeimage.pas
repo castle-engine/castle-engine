@@ -172,7 +172,7 @@ type
 
     { Load composite (DDS) image from any TStream.
       @raises(EInvalidCompositeImage In case of any error in the file data.) }
-    procedure LoadFromStream(Stream: TStream);
+    procedure LoadFromStream(Stream: TStream; const URL: string = '');
 
     procedure LoadFromFile(const URL: string);
 
@@ -720,7 +720,7 @@ begin
     Result := FImages[Index];
 end;
 
-procedure TCompositeImage.LoadFromStream(Stream: TStream);
+procedure TCompositeImage.LoadFromStream(Stream: TStream; const URL: string);
 
   procedure CheckWarn(const Check: boolean; const Message: string);
   begin
@@ -1314,6 +1314,9 @@ var
           ReadUncompressed(utPureAlpha);
         end;
       except FreeAndNil(Result); raise end;
+
+      // useful to see this URL in logs, TextureMemoryProfiler dumps etc.
+      Result.URL := URL + '[subimage]';
     end { ReadImage };
 
     procedure AllocateImages(const Count: Cardinal);
@@ -1428,7 +1431,7 @@ var
 begin
   S := Download(URL, [soForceMemoryStream]);
   try
-    LoadFromStream(S);
+    LoadFromStream(S, URL);
   finally FreeAndNil(S) end;
 end;
 
