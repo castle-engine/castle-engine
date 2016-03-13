@@ -24,9 +24,11 @@ unit CastleShapes;
 
 interface
 
-uses SysUtils, Classes, CastleVectors, Castle3D, CastleBoxes, X3DNodes, CastleClassUtils,
+uses SysUtils, Classes, FGL,
+  CastleVectors, Castle3D, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleTriangleOctree, CastleFrustum, CastleOctree, X3DTriangles,
-  X3DFields, CastleGeometryArrays, FGL, CastleTriangles, CastleMaterialProperties;
+  X3DFields, CastleGeometryArrays, CastleTriangles, CastleMaterialProperties,
+  CastleShapeInternalShadowVolumes;
 
 const
   { }
@@ -44,18 +46,6 @@ const
   );
 
 type
-  { Internal type for TShape
-    @exclude }
-  TShapeValidities = set of (svLocalBBox, svBBox,
-    svVerticesCountNotOver,  svVerticesCountOver,
-    svTrianglesCountNotOver, svTrianglesCountOver,
-    svBoundingSphere,
-    svNormals);
-
-  { Internal type for TShape
-    @exclude }
-  TShapeNormalsCached = (ncSmooth, ncFlat, ncCreaseAngle);
-
   { Possible spatial structure types that may be managed by TShape,
     see TShape.Spatial. }
   TShapeSpatialStructure = (
@@ -181,6 +171,15 @@ type
     methods of @link(TCastleSceneCore). }
   TShape = class(TShapeTree)
   private
+  type
+    TShapeValidities = set of (svLocalBBox, svBBox,
+      svVerticesCountNotOver,  svVerticesCountOver,
+      svTrianglesCountNotOver, svTrianglesCountOver,
+      svBoundingSphere,
+      svNormals);
+    TShapeNormalsCached = (ncSmooth, ncFlat, ncCreaseAngle);
+
+    var
     FLocalBoundingBox: TBox3D;
     FBoundingBox: TBox3D;
     FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
@@ -202,6 +201,8 @@ type
 
     IsCachedMaterialProperty: boolean;
     CachedMaterialProperty: TMaterialProperty;
+
+    FShadowVolumes: TShapeShadowVolumes;
 
     { Just like Geometry() and State(), except return @nil if no proxy available
       (when Geometry would return the same thing as OriginalGeometry).
@@ -589,6 +590,9 @@ type
 
     { Material property associated with this shape's material/texture. }
     function MaterialProperty: TMaterialProperty;
+
+    { @exclude }
+    property InternalShadowVolumes: TShapeShadowVolumes read FShadowVolumes;
   end;
 
   TShapeTreeList = specialize TFPGObjectList<TShapeTree>;
@@ -956,6 +960,7 @@ begin
   inherited Create(AParentScene);
 
   FTriangleOctreeLimits := DefLocalTriangleOctreeLimits;
+  FShadowVolumes := TShapeShadowVolumes.Create(Self);
 
   FOriginalGeometry := AOriginalGeometry;
   FOriginalState := AOriginalState;
@@ -980,6 +985,7 @@ end;
 
 destructor TShape.Destroy;
 begin
+  FreeAndNil(FShadowVolumes);
   FreeProxy;
   FreeAndNil(FNormals);
   FreeAndNil(FOriginalState);
@@ -1470,6 +1476,15 @@ begin
     svTrianglesCountNotOver, svTrianglesCountOver,
     svBoundingSphere,
     svNormals];
+
+  { Clear variables after removing fvTrianglesList* }
+  FShadowVolumes.InvalidateTrianglesListShadowCasters;
+
+  { Edges topology possibly changed. }
+  if not ChangedOnlyCoord then
+    { When ChangedOnlyCoord, we don't do InvalidateManifoldAndBorderEdges,
+      and this an important optimization (makes mesh deformation cheaper). }
+    FShadowVolumes.InvalidateManifoldAndBorderEdges;
 
   if not CalledFromParentScene then
   begin

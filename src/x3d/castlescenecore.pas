@@ -30,81 +30,17 @@ uses
   CastleRays;
 
 type
-  TTriangle3SingleList = specialize TGenericStructList<TTriangle3Single>;
-
   { Internal helper type for TCastleSceneCore.
     @exclude }
   TSceneValidity = (fvBoundingBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver,
-    fvTrianglesListShadowCasters,
-    fvManifoldAndBorderEdges,
     fvMainLightForShadows,
     fvShapesActiveCount,
     fvShapesActiveVisibleCount);
 
   { @exclude }
   TSceneValidities = set of TSceneValidity;
-
-  { Scene edge that is between exactly two triangles.
-    It's used by @link(TCastleSceneCore.ManifoldEdges),
-    and this is crucial for rendering silhouette shadow volumes in OpenGL. }
-  TManifoldEdge = record
-    { Index to get vertexes of this edge.
-      The actual edge's vertexes are not recorded here (this would prevent
-      using TCastleSceneCore.ShareManifoldAndBorderEdges with various scenes from
-      the same animation). You should get them as the VertexIndex
-      and (VertexIndex+1) mod 3 vertexes of the first triangle
-      (i.e. Triangles[0]). }
-    VertexIndex: Cardinal;
-
-    { Indexes to TCastleSceneCore.TrianglesListShadowCasters array }
-    Triangles: array [0..1] of Cardinal;
-
-    { These are vertexes at VertexIndex and (VertexIndex+1)mod 3 positions,
-      but @italic(only at generation of manifold edges time).
-      Like said in VertexIndex, keeping here actual vertex info would prevent
-      TCastleSceneCore.ShareManifoldAndBorderEdges. However, using these when generating
-      makes a great speed-up when generating manifold edges.
-
-      Memory cost is acceptable: assume we have model with 10 000 faces,
-      so 15 000 edges (assuming it's correctly closed manifold), so we waste
-      15 000 * 2 * SizeOf(TVector3Single) = 360 000 bytes... that's really nothing
-      to worry (we waste much more on other things).
-
-      Checked with "The Castle": indeed, this costs about 1 MB memory
-      (out of 218 MB...), with really lot of creatures... On the other hand,
-      this causes small speed-up when loading: loading creatures is about
-      5 seconds faster (18 with, 23 without this).
-
-      So memory loss is small, speed gain is noticeable (but still small),
-      implementation code is a little simplified, so I'm keeping this.
-      Also, in the future, maybe it will be sensible
-      to use this for actual shadow quad rendering, in cases when we know that
-      TCastleSceneCore.ShareManifoldAndBorderEdges was not used to make it. }
-    V0, V1: TVector3Single;
-  end;
-  PManifoldEdge = ^TManifoldEdge;
-
-  TManifoldEdgeList = specialize TGenericStructList<TManifoldEdge>;
-
-  { Scene edge that has one neighbor, i.e. border edge.
-    It's used by @link(TCastleSceneCore.BorderEdges),
-    and this is crucial for rendering silhouette shadow volumes in OpenGL. }
-  TBorderEdge = record
-    { Index to get vertex of this edge.
-      The actual edge's vertexes are not recorded here (this would prevent
-      using TCastleSceneCore.ShareManifoldAndBorderEdges with various scenes from
-      the same animation). You should get them as the VertexIndex
-      and (VertexIndex+1) mod 3 vertexes of the triangle TriangleIndex. }
-    VertexIndex: Cardinal;
-
-    { Index to TCastleSceneCore.TrianglesListShadowCasters array. }
-    TriangleIndex: Cardinal;
-  end;
-  PBorderEdge = ^TBorderEdge;
-
-  TBorderEdgeList = specialize TGenericStructList<TBorderEdge>;
 
   { These are various features that may be freed by
     TCastleSceneCore.FreeResources.
@@ -155,18 +91,13 @@ type
       The same comments as for frTextureDataInNodes apply. }
     frBackgroundImageInNodes,
 
-    { Free triangle list created by TrianglesListShadowCasters call.
-      This list is also implicitly created by ManifoldEdges or BorderEdges. }
-    frTrianglesListShadowCasters,
-
-    { Free edges lists in ManifoldEdges and BorderEdges.
-
-      Frees memory, but next call to ManifoldEdges and BorderEdges will
-      need to calculate them again (or you will need to call
-      TCastleSceneCore.ShareManifoldAndBorderEdges again).
-      Note that using this scene as shadow caster for shadow volumes algorithm
-      requires ManifoldEdges and BorderEdges. }
-    frManifoldAndBorderEdges);
+    { Free data created for shadow volumes processing.
+      This frees some memory, but trying to render shadow volumes will
+      need to recreate this data again (at least for all active shapes).
+      So freeing this is useful only if you have used shadow volumes,
+      but you will not need to render with shadow volumes anymore
+      (for some time). }
+    frShadowVolume);
 
   TSceneFreeResources = set of TSceneFreeResource;
 
@@ -379,29 +310,6 @@ type
     ssCollidableTriangles);
   TSceneSpatialStructures = set of TSceneSpatialStructure;
 
-  { Triangles array for shadow casting object.
-
-    This guarantees that the whole array has first OpaqueCount opaque triangles,
-    then the rest is transparent.
-    The precise definition between "opaque"
-    and "transparent" is done by TShape.Transparent.
-    This is also used by OpenGL rendering to determine which shapes
-    need blending.
-
-    This separation into opaque and transparent parts
-    (with OpaqueCount marking the border) is useful for shadow volumes
-    algorithm, that must treat transparent shadow casters a little
-    differently. }
-  TTrianglesShadowCastersList = class(TTriangle3SingleList)
-  private
-    FOpaqueCount: Cardinal;
-  public
-    { Numer of opaque triangles on this list. Opaque triangles
-      are guarenteed to be placed before all transparent triangles
-      on this list. }
-    property OpaqueCount: Cardinal read FOpaqueCount;
-  end;
-
   TGeometryChange =
   ( { Everything changed. All octrees must be rebuild, old State pointers
       may be invalid.
@@ -432,7 +340,7 @@ type
       gcLocalGeometryChangedCoord means that coordinates changed.
       Compared to gcLocalGeometryChanged, this means that model edges
       structure remains the same (this is helpful e.g. to avoid
-      recalculating Manifold/BorderEdges in parent scene).
+      recalculating Manifold/BorderEdges).
 
       In this case, DoGeometryChanged parameter LocalGeometryShape is non-nil
       and indicated the (only) shape that changed.
@@ -572,13 +480,8 @@ type
   var
     FShapesActiveCount: Cardinal;
     FShapesActiveVisibleCount: Cardinal;
-    FTrianglesListShadowCasters: TTrianglesShadowCastersList;
     { For easier access to list of viewpoints in the scene }
     FViewpointsArray: TAbstractViewpointNodeList;
-
-    { Removes fvTrianglesListShadowCasters from Validities,
-      and clears FTrianglesListShadowCasters variable. }
-    procedure InvalidateTrianglesListShadowCasters;
 
     function GetViewpointCore(
       const OnlyPerspective: boolean;
@@ -587,16 +490,6 @@ type
       const ViewpointDescription: string):
       TAbstractViewpointNode;
   private
-    FManifoldEdges: TManifoldEdgeList;
-    FBorderEdges: TBorderEdgeList;
-    FOwnsManifoldAndBorderEdges: boolean;
-
-    { Removes fvManifoldAndBorderEdges from Validities,
-      and clears FManifold/BordEdges variables. }
-    procedure InvalidateManifoldAndBorderEdges;
-
-    procedure CalculateIfNeededManifoldAndBorderEdges;
-
     procedure FreeResources_UnloadTextureData(Node: TX3DNode);
     procedure FreeResources_UnloadTexture3DData(Node: TX3DNode);
   private
@@ -1081,22 +974,22 @@ type
     { @groupEnd }
 
     { Returns short information about the scene.
-      This consists of a few lines, separated by CastleUtils.NL.
-      Last line also ends with CastleUtils.NL.
-
-      Note that AManifoldAndBorderEdges = @true will require calculation
-      of ManifoldEdges and BorderEdges (if they weren't calculated already).
-      If you don't want to actually use them (if you wanted only to
-      report them to user), then you may free them (freeing some memory)
-      with @code(FreeResources([frManifoldAndBorderEdges])). }
+      This consists of a few lines, separated by newlines.
+      Last line also ends with CastleUtils.NL. }
     function Info(
       ATriangleVerticesCounts,
-      ABoundingBox,
-      AManifoldAndBorderEdges: boolean): string;
+      ABoundingBox: boolean;
+      AManifoldAndBorderEdges: boolean): string; deprecated 'do not use this, better to construct a summary string yourself';
 
     function InfoTriangleVerticesCounts: string;
+      deprecated 'better to construct a string yourself, use TrianglesCount, VerticesCount';
     function InfoBoundingBox: string;
+      deprecated 'better to construct a string yourself, use BoundingBox.ToString';
     function InfoManifoldAndBorderEdges: string;
+      deprecated 'better to construct a string yourself, use EdgesCount';
+
+    { Edges count in the scene, for information purposes. }
+    procedure EdgesCount(out ManifoldEdges, BorderEdges: Cardinal);
 
     { Actual VRML/X3D graph defining this scene.
 
@@ -1305,83 +1198,6 @@ type
       const ViewpointDescription: string = ''):
       TAbstractViewpointNode;
     { @groupEnd }
-
-    { Returns an array of triangles that should be shadow casters
-      for this scene.
-
-      Additionally, TTrianglesShadowCastersList contains some
-      additional information needed for rendering with shadows:
-      currently, this means TTrianglesShadowCastersList.OpaqueCount.
-
-      Results of these functions are cached, and are also owned by this object.
-      So don't modify it, don't free it. }
-    function TrianglesListShadowCasters: TTrianglesShadowCastersList;
-
-    { ManifoldEdges is a list of edges that have exactly @bold(two) neighbor
-      triangles, and BorderEdges is a list of edges that have exactly @bold(one)
-      neighbor triangle. These are crucial for rendering shadows using shadow
-      volumes.
-
-      Edges with more than two neighbors are allowed. If an edge has an odd
-      number of neighbors, it will be placed in BorderEdges. Every other pair
-      of neighbors will be "paired" and placed as one manifold edge inside
-      ManifoldEdges. So actually edge with exactly 1 neighbor (odd number,
-      so makes one BorderEdges item) and edge with exactly 2 neighbors
-      (even number, one pair of triangles, makes one item in ManifoldEdges)
-      --- they are just a special case of a general rule, that allows any
-      neighbors number.
-
-      Note that vertexes must be consistently ordered in triangles.
-      For two neighboring triangles, if one triangle's edge has
-      order V0, V1, then on the neighbor triangle the order must be reversed
-      (V1, V0). This is true in almost all situations, for example
-      if you have a closed solid object and all outside faces are ordered
-      consistently (all CCW or all CW).
-      Failure to order consistently will result in edges not being "paired",
-      i.e. we will not recognize that some 2 edges are in fact one edge between
-      two neighboring triangles --- and this will result in more edges in
-      BorderEdges.
-
-      Both of these lists are calculated at once, i.e. when you call ManifoldEdges
-      or BorderEdges for the 1st time, actually both ManifoldEdges and
-      BorderEdges are calculated at once. If all edges are in ManifoldEdges,
-      then the scene is a correct closed manifold, or rather it's composed
-      from any number of closed manifolds.
-
-      Results of these functions are cached, and are also owned by this object.
-      So don't modify it, don't free it.
-
-      This uses TrianglesListShadowCasters.
-
-      @groupBegin }
-    function ManifoldEdges: TManifoldEdgeList;
-    function BorderEdges: TBorderEdgeList;
-    { @groupEnd }
-
-    { This allows you to "share" @link(ManifoldEdges) and
-      @link(BorderEdges) values between TCastleSceneCore instances,
-      to conserve memory and preparation time.
-      The values set here will be returned by following ManifoldEdges and
-      BorderEdges calls. The values passed here will @italic(not
-      be owned) by this object --- you gave this, you're responsible for
-      freeing it.
-
-      This is handy if you know that this scene has the same
-      ManifoldEdges and BorderEdges contents as some other scene. In particular,
-      this is extremely handy in cases of animations in TCastlePrecalculatedAnimation,
-      where all scenes actually need only a single instance of TManifoldEdgeList
-      and TBorderEdgeList,
-      this greatly speeds up TCastlePrecalculatedAnimation loading and reduces memory use.
-
-      Note that passing here as values the same references
-      that are already returned by ManifoldEdges / BorderEdges is always
-      guaranteed to be a harmless operation. If ManifoldEdges  / BorderEdges
-      was owned by this object,
-      it will remain owned in this case (while in normal sharing situation,
-      values set here are assumed to be owned by something else). }
-    procedure ShareManifoldAndBorderEdges(
-      ManifoldShared: TManifoldEdgeList;
-      BorderShared: TBorderEdgeList);
 
     { Frees some scene resources, to conserve memory.
       See TSceneFreeResources documentation. }
@@ -2482,12 +2298,6 @@ begin
   { This also deinitializes script nodes. }
   ProcessEvents := false;
 
-  { free FTrianglesList* variables }
-  InvalidateTrianglesListShadowCasters;
-
-  { frees FManifoldEdges, FBorderEdges if needed }
-  InvalidateManifoldAndBorderEdges;
-
   FreeAndNil(ScheduledHumanoidAnimateSkin);
   FreeAndNil(ScreenEffectNodes);
   FreeAndNil(ProximitySensors);
@@ -3204,12 +3014,6 @@ begin
     ViewpointStack.CheckForDeletedNodes(RootNode, true);
 
     Validities := [];
-
-    { Clear variables after removing fvTrianglesList* from Validities }
-    InvalidateTrianglesListShadowCasters;
-
-    { Clear variables after removing fvManifoldAndBorderEdges from Validities }
-    InvalidateManifoldAndBorderEdges;
 
     { Clean Shapes and other stuff initialized by traversing }
     FreeAndNil(FShapes);
@@ -3967,8 +3771,6 @@ var
       fvBoundingBox,
       fvVerticesCountNotOver, fvVerticesCountOver,
       fvTrianglesCountNotOver, fvTrianglesCountOver,
-      fvTrianglesListShadowCasters,
-      fvManifoldAndBorderEdges
     }
 
     Validities := Validities - [
@@ -4181,9 +3983,8 @@ var
   procedure HandleChangeShadowCasters;
   begin
     { When Appearance.shadowCaster field changed, then
-      TrianglesListShadowCasters and Manifold/BorderEdges change. }
-    InvalidateTrianglesListShadowCasters;
-    InvalidateManifoldAndBorderEdges;
+      TrianglesListShadowCasters and Manifold/BorderEdges changed in shapes. }
+    FreeResources([frShadowVolume]);
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 
@@ -4372,57 +4173,16 @@ procedure TCastleSceneCore.DoGeometryChanged(const Change: TGeometryChange;
   LocalGeometryShape: TShape);
 var
   SomeLocalGeometryChanged: boolean;
-  EdgesStructureChanged: boolean;
 begin
   Validities := Validities - [fvBoundingBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
-    fvTrianglesCountNotOver, fvTrianglesCountOver,
-    fvTrianglesListShadowCasters];
+    fvTrianglesCountNotOver, fvTrianglesCountOver];
 
-  { Clear variables after removing fvTrianglesList* }
-  InvalidateTrianglesListShadowCasters;
-
-  { First, call LocalGeometryChanged(true, ...) on shapes when needed.
-
-    By the way, also calculate SomeLocalGeometryChanged (= if any
+  { Calculate SomeLocalGeometryChanged (= if any
     LocalGeometryChanged was called, which means that octree and
-    bounding box/sphere of some shape changed).
-
-    Note that this also creates implication ScheduledGeometryChangedAll
-    => SomeLocalGeometryChanged. In later code, I sometimes check
-    for SomeLocalGeometryChanged, knowing that this also checks for
-    ScheduledGeometryChangedAll.
-
-    By the way, also calculate EdgesStructureChanged. }
-
-  if Change = gcAll then
-  begin
-    SomeLocalGeometryChanged := true;
-    EdgesStructureChanged := true;
-
-    { No need to do here LocalGeometryChanged on all shapes:
-      we know that ChangedAll already did (or will, soon) recreate
-      all the shapes. So their geometry stuff will be correctly reinitialized
-      anyway. }
-  end else
-  begin
-    { Note that if
-      ScheduledLocalGeometryChangedCoord = true, but
-      ScheduledLocalGeometryChanged = false, then
-      EdgesStructureChanged may remain false. This is the very reason
-      for     ScheduledLocalGeometryChangedCoord separation from
-      regular ScheduledLocalGeometryChanged. }
-
-    SomeLocalGeometryChanged := Change in
-      [gcLocalGeometryChanged, gcLocalGeometryChangedCoord];
-    EdgesStructureChanged := Change in
-      [gcActiveShapesChanged, gcLocalGeometryChanged];
-  end;
-
-  { Use EdgesStructureChanged to decide should be invalidate
-    ManifoldAndBorderEdges. }
-  if EdgesStructureChanged then
-    InvalidateManifoldAndBorderEdges;
+    bounding box/sphere of some shape changed). }
+  SomeLocalGeometryChanged := (Change = gcAll) or
+    (Change in [gcLocalGeometryChanged, gcLocalGeometryChangedCoord]);
 
   if (FOctreeRendering <> nil) and
      ((Change in [gcVisibleTransformChanged, gcActiveShapesChanged]) or
@@ -4436,7 +4196,7 @@ begin
 
   if Assigned(OnGeometryChanged) then
     OnGeometryChanged(Self, SomeLocalGeometryChanged,
-      { We know LocalGeometryShape is nil now for Change not in
+      { We know LocalGeometryShape is nil now if Change does not contain
         gcLocalGeometryChanged*. }
       LocalGeometryShape);
 end;
@@ -4497,11 +4257,29 @@ begin
   Result += NL;
 end;
 
-function TCastleSceneCore.InfoManifoldAndBorderEdges: string;
+procedure TCastleSceneCore.EdgesCount(out ManifoldEdges, BorderEdges: Cardinal);
+var
+  SI: TShapeTreeIterator;
 begin
-  Result := Format('Edges detection: all edges split into %d manifold edges and %d border edges. Remember that for shadow volumes perfect manifold (that is, zero border edges) is required, otherwise the scene will not cast shadows.',
-    [ ManifoldEdges.Count,
-      BorderEdges.Count ]) + NL;
+  ManifoldEdges := 0;
+  BorderEdges := 0;
+  SI := TShapeTreeIterator.Create(Shapes, true);
+  try
+    while SI.GetNext do
+    begin
+      ManifoldEdges += SI.Current.InternalShadowVolumes.ManifoldEdges.Count;
+      BorderEdges += SI.Current.InternalShadowVolumes.BorderEdges.Count;
+    end;
+  finally FreeAndNil(SI) end;
+end;
+
+function TCastleSceneCore.InfoManifoldAndBorderEdges: string;
+var
+  ManifoldEdges, BorderEdges: Cardinal;
+begin
+  EdgesCount(ManifoldEdges, BorderEdges);
+  Result := Format('Edges detection: all edges split into %d manifold edges and %d border edges. Remember that for shadow volumes, only the shapes that are perfect manifold (have zero border edges) can cast shadows.',
+    [ManifoldEdges, BorderEdges]) + NL;
 end;
 
 function TCastleSceneCore.Info(
@@ -4513,19 +4291,28 @@ begin
 
   if ATriangleVerticesCounts then
   begin
+    {$warnings off}
+    { deliberately using deprecated function in another deprecated function }
     Result += InfoTriangleVerticesCounts;
+    {$warnings on}
   end;
 
   if ABoundingBox then
   begin
     if Result <> '' then Result += NL;
+    {$warnings off}
+    { deliberately using deprecated function in another deprecated function }
     Result += InfoBoundingBox;
+    {$warnings on}
   end;
 
   if AManifoldAndBorderEdges then
   begin
     if Result <> '' then Result += NL;
+    {$warnings off}
+    { deliberately using deprecated function in another deprecated function }
     Result += InfoManifoldAndBorderEdges;
+    {$warnings on}
   end;
 end;
 
@@ -4879,328 +4666,6 @@ begin
   Assert(ProjectionType = ptPerspective);
 end;
 
-{ triangles list ------------------------------------------------------------- }
-
-type
-  TTriangleAdder = class
-    TriangleList: TTriangle3SingleList;
-    procedure AddTriangle(Shape: TObject;
-      const Position: TTriangle3Single;
-      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
-      const Face: TFaceIndex);
-  end;
-
-procedure TTriangleAdder.AddTriangle(Shape: TObject;
-  const Position: TTriangle3Single;
-  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
-  const Face: TFaceIndex);
-begin
-  if IsValidTriangle(Position) then
-    TriangleList.Add(Position);
-end;
-
-function TCastleSceneCore.TrianglesListShadowCasters: TTrianglesShadowCastersList;
-
-  function CreateTrianglesListShadowCasters: TTrianglesShadowCastersList;
-
-    function ShadowCaster(AShape: TShape): boolean;
-    var
-      Shape: TAbstractShapeNode;
-    begin
-      Shape := AShape.State.ShapeNode;
-      Result := not (
-        (Shape <> nil) and
-        (Shape.FdAppearance.Value <> nil) and
-        (Shape.FdAppearance.Value is TAppearanceNode) and
-        (not TAppearanceNode(Shape.FdAppearance.Value).FdShadowCaster.Value));
-    end;
-
-  var
-    SI: TShapeTreeIterator;
-    TriangleAdder: TTriangleAdder;
-    WasSomeTransparentShadowCaster: boolean;
-  begin
-    Result := TTrianglesShadowCastersList.Create;
-    try
-      Result.Capacity := TrianglesCount(false);
-      TriangleAdder := TTriangleAdder.Create;
-      try
-        TriangleAdder.TriangleList := Result;
-
-        { This variable allows a small optimization: if there are
-          no transparent triangles for shadow casters,
-          then there's no need to iterate over Shapes
-          second time. }
-        WasSomeTransparentShadowCaster := false;
-
-        { Add all opaque triangles }
-        SI := TShapeTreeIterator.Create(Shapes, true);
-        try
-          while SI.GetNext do
-            if ShadowCaster(SI.Current) then
-            begin
-              if not SI.Current.Transparent then
-                SI.Current.Triangulate(false, @TriangleAdder.AddTriangle) else
-                WasSomeTransparentShadowCaster := true;
-            end;
-        finally FreeAndNil(SI) end;
-
-        { Mark OpaqueCount border }
-        Result.FOpaqueCount := Result.Count;
-
-        { Add all transparent triangles }
-        if WasSomeTransparentShadowCaster then
-        begin
-          SI := TShapeTreeIterator.Create(Shapes, true);
-          try
-            while SI.GetNext do
-              if ShadowCaster(SI.Current) and
-                 SI.Current.Transparent then
-                SI.Current.Triangulate(false, @TriangleAdder.AddTriangle);
-          finally FreeAndNil(SI) end;
-        end;
-
-        if Log and LogShadowVolumes then
-          WritelnLog('Shadow volumes', Format('Shadows casters triangles: %d opaque, %d total',
-            [Result.OpaqueCount, Result.Count]));
-
-      finally FreeAndNil(TriangleAdder) end;
-    except Result.Free; raise end;
-  end;
-
-begin
-  if not (fvTrianglesListShadowCasters in Validities) then
-  begin
-    FreeAndNil(FTrianglesListShadowCasters);
-    FTrianglesListShadowCasters := CreateTrianglesListShadowCasters;
-    Include(Validities, fvTrianglesListShadowCasters);
-  end;
-
-  Result := FTrianglesListShadowCasters;
-end;
-
-procedure TCastleSceneCore.InvalidateTrianglesListShadowCasters;
-begin
-  Exclude(Validities, fvTrianglesListShadowCasters);
-  FreeAndNil(FTrianglesListShadowCasters);
-end;
-
-{ edges lists ------------------------------------------------------------- }
-
-procedure TCastleSceneCore.CalculateIfNeededManifoldAndBorderEdges;
-
-  { Sets FManifoldEdges and FBorderEdges. Assumes that FManifoldEdges and
-    FBorderEdges are @nil on enter. }
-  procedure CalculateManifoldAndBorderEdges;
-
-    { If the counterpart of this edge (edge from neighbor) exists in
-      EdgesSingle, then it adds this edge (along with it's counterpart)
-      to FManifoldEdges.
-
-      Otherwise, it just adds the edge to EdgesSingle. This can happen
-      if it's the 1st time this edge occurs, or maybe the 3d one, 5th...
-      all odd occurrences, assuming that ordering of faces is consistent,
-      so that counterpart edges are properly detected. }
-    procedure AddEdgeCheckManifold(
-      EdgesSingle: TManifoldEdgeList;
-      const TriangleIndex: Cardinal;
-      const V0: TVector3Single;
-      const V1: TVector3Single;
-      const VertexIndex: Cardinal;
-      Triangles: TTriangle3SingleList);
-    var
-      I: Integer;
-      EdgePtr: PManifoldEdge;
-    begin
-      if EdgesSingle.Count <> 0 then
-      begin
-        EdgePtr := PManifoldEdge(EdgesSingle.List);
-        for I := 0 to EdgesSingle.Count - 1 do
-        begin
-          { It would also be possible to get EdgePtr^.V0/1 by code like
-
-            TrianglePtr := @Triangles.L[EdgePtr^.Triangles[0]];
-            EdgeV0 := @TrianglePtr^[EdgePtr^.VertexIndex];
-            EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
-
-            But, see TManifoldEdge.V0/1 comments --- current version is
-            a little faster.
-          }
-
-          { Triangles must be consistently ordered on a manifold,
-            so the second time an edge is present, we know it must
-            be in different order. So we compare V0 with EdgeV1
-            (and V1 with EdgeV0), no need to compare V1 with EdgeV1. }
-          if VectorsPerfectlyEqual(V0, EdgePtr^.V1) and
-             VectorsPerfectlyEqual(V1, EdgePtr^.V0) then
-          begin
-            EdgePtr^.Triangles[1] := TriangleIndex;
-
-            { Move edge to FManifoldEdges: it has 2 neighboring triangles now. }
-            FManifoldEdges.Add^ := EdgePtr^;
-
-            { Remove this from EdgesSingle.
-              Note that we delete from EdgesSingle fast, using assignment and
-              deleting only from the end (normal Delete would want to shift
-              EdgesSingle contents in memory, to preserve order of items;
-              but we don't care about order). }
-            EdgePtr^ := EdgesSingle.L[EdgesSingle.Count - 1];
-            EdgesSingle.Count := EdgesSingle.Count - 1;
-
-            Exit;
-          end;
-          Inc(EdgePtr);
-        end;
-      end;
-
-      { New edge: add new item to EdgesSingle }
-      EdgePtr := EdgesSingle.Add;
-      EdgePtr^.VertexIndex := VertexIndex;
-      EdgePtr^.Triangles[0] := TriangleIndex;
-      EdgePtr^.V0 := V0;
-      EdgePtr^.V1 := V1;
-    end;
-
-  var
-    I: Integer;
-    Triangles: TTriangle3SingleList;
-    TrianglePtr: PTriangle3Single;
-    EdgesSingle: TManifoldEdgeList;
-  begin
-    Assert(FManifoldEdges = nil);
-    Assert(FBorderEdges = nil);
-
-    { It's important here that TrianglesListShadowCasters guarentees that only valid
-      triangles are included. Otherwise degenerate triangles could make
-      shadow volumes rendering result bad. }
-    Triangles := TrianglesListShadowCasters;
-
-    FManifoldEdges := TManifoldEdgeList.Create;
-    { There is a precise relation between number of edges and number of faces
-      on a closed manifold: E = T * 3 / 2. }
-    FManifoldEdges.Capacity := Triangles.Count * 3 div 2;
-
-    { EdgesSingle are edges that have no neighbor,
-      i.e. have only one adjacent triangle. At the end, what's left here
-      will be simply copied to BorderEdges. }
-    EdgesSingle := TManifoldEdgeList.Create;
-    try
-      EdgesSingle.Capacity := Triangles.Count * 3 div 2;
-
-      TrianglePtr := PTriangle3Single(Triangles.List);
-      for I := 0 to Triangles.Count - 1 do
-      begin
-        { TrianglePtr points to Triangles[I] now }
-        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[0], TrianglePtr^[1], 0, Triangles);
-        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[1], TrianglePtr^[2], 1, Triangles);
-        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[2], TrianglePtr^[0], 2, Triangles);
-        Inc(TrianglePtr);
-      end;
-
-      FBorderEdges := TBorderEdgeList.Create;
-
-      if EdgesSingle.Count <> 0 then
-      begin
-        { scene not a perfect manifold: less than 2 faces for some edges
-          (the case with more than 2 is already eliminated above).
-          So we copy EdgesSingle to BorderEdges. }
-        FBorderEdges.Count := EdgesSingle.Count;
-        for I := 0 to EdgesSingle.Count - 1 do
-        begin
-          FBorderEdges.L[I].VertexIndex := EdgesSingle.L[I].VertexIndex;
-          FBorderEdges.L[I].TriangleIndex := EdgesSingle.L[I].Triangles[0];
-        end;
-      end;
-    finally FreeAndNil(EdgesSingle); end;
-
-    if Log and LogShadowVolumes then
-      WritelnLog('Shadow volumes', Format(
-        'Edges: %d manifold, %d border',
-        [FManifoldEdges.Count, FBorderEdges.Count] ));
-  end;
-
-begin
-  if not (fvManifoldAndBorderEdges in Validities) then
-  begin
-    FOwnsManifoldAndBorderEdges := true;
-    CalculateManifoldAndBorderEdges;
-    Include(Validities, fvManifoldAndBorderEdges);
-  end;
-end;
-
-function TCastleSceneCore.ManifoldEdges: TManifoldEdgeList;
-begin
-  CalculateIfNeededManifoldAndBorderEdges;
-  Result := FManifoldEdges;
-end;
-
-function TCastleSceneCore.BorderEdges: TBorderEdgeList;
-begin
-  CalculateIfNeededManifoldAndBorderEdges;
-  Result := FBorderEdges;
-end;
-
-procedure TCastleSceneCore.ShareManifoldAndBorderEdges(
-  ManifoldShared: TManifoldEdgeList;
-  BorderShared: TBorderEdgeList);
-begin
-  Assert(
-    (ManifoldShared = FManifoldEdges) =
-    (BorderShared = FBorderEdges),
-    'For ShareManifoldAndBorderEdges, either both ManifoldShared and ' +
-    'BorderShared should be the same as already owned, or both should ' +
-    'be different. If you have a good reason to break this, report, ' +
-    'implementation of ShareManifoldAndBorderEdges may be improved ' +
-    'if it''s needed');
-
-  if (fvManifoldAndBorderEdges in Validities) and
-    (ManifoldShared = FManifoldEdges) then
-    { No need to do anything in this case.
-
-      If ManifoldShared = FManifoldEdges = nil, then we may leave
-      FOwnsManifoldAndBorderEdges = true
-      while it could be = false (if we let this procedure continue),
-      but this doesn't matter (since FOwnsManifoldAndBorderEdges doesn't matter
-      when FManifoldEdges = nil).
-
-      If ManifoldShared <> nil and old FOwnsManifoldAndBorderEdges is false
-      then this doesn't change anything.
-
-      Finally, the important case: If ManifoldShared <> nil and old
-      FOwnsManifoldAndBorderEdges is true. Then it would be very very bad
-      to continue this method, as we would free FManifoldEdges pointer
-      and right away set FManifoldEdges to the same pointer (that would
-      be invalid now). }
-    Exit;
-
-  if FOwnsManifoldAndBorderEdges then
-  begin
-    FreeAndNil(FManifoldEdges);
-    FreeAndNil(FBorderEdges);
-  end;
-
-  FManifoldEdges := ManifoldShared;
-  FBorderEdges := BorderShared;
-  FOwnsManifoldAndBorderEdges := false;
-  Include(Validities, fvManifoldAndBorderEdges);
-end;
-
-procedure TCastleSceneCore.InvalidateManifoldAndBorderEdges;
-begin
-  Exclude(Validities, fvManifoldAndBorderEdges);
-
-  { Clear variables after removing fvManifoldAndBorderEdges }
-  if FOwnsManifoldAndBorderEdges then
-  begin
-    FreeAndNil(FManifoldEdges);
-    FreeAndNil(FBorderEdges);
-  end else
-  begin
-    FManifoldEdges := nil;
-    FBorderEdges := nil;
-  end;
-end;
-
 { freeing resources ---------------------------------------------------------- }
 
 procedure TCastleSceneCore.FreeResources_UnloadTextureData(Node: TX3DNode);
@@ -5214,6 +4679,18 @@ begin
 end;
 
 procedure TCastleSceneCore.FreeResources(Resources: TSceneFreeResources);
+
+  procedure FreeShadowVolumes;
+  var
+    SI: TShapeTreeIterator;
+  begin
+    SI := TShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        SI.Current.InternalShadowVolumes.FreeResources;
+    finally FreeAndNil(SI) end;
+  end;
+
 begin
   if (frTextureDataInNodes in Resources) and (RootNode <> nil) then
   begin
@@ -5223,11 +4700,8 @@ begin
       @FreeResources_UnloadTexture3DData, false);
   end;
 
-  if frTrianglesListShadowCasters in Resources then
-    InvalidateTrianglesListShadowCasters;
-
-  if frManifoldAndBorderEdges in Resources then
-    InvalidateManifoldAndBorderEdges;
+  if frShadowVolume in Resources then
+    FreeShadowVolumes;
 end;
 
 { events --------------------------------------------------------------------- }
@@ -6709,13 +6183,28 @@ end;
 procedure TCastleSceneCore.PrepareResources(Options: TPrepareResourcesOptions;
   ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 
+  { PrepareShapesOctrees and PrepareShadowVolumes could be optimized
+    into one run }
+
   procedure PrepareShapesOctrees;
   var
     SI: TShapeTreeIterator;
   begin
     SI := TShapeTreeIterator.Create(Shapes, false);
     try
-      while SI.GetNext do SI.Current.OctreeTriangles;
+      while SI.GetNext do
+        SI.Current.OctreeTriangles;
+    finally FreeAndNil(SI) end;
+  end;
+
+  procedure PrepareShadowVolumes;
+  var
+    SI: TShapeTreeIterator;
+  begin
+    SI := TShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        SI.Current.InternalShadowVolumes.PrepareResources;
     finally FreeAndNil(SI) end;
   end;
 
@@ -6725,11 +6214,8 @@ begin
   if prBoundingBox in Options then
     BoundingBox { ignore the result };
 
-  if prTrianglesListShadowCasters in Options then
-    TrianglesListShadowCasters;
-
-  if prManifoldAndBorderEdges in Options then
-    ManifoldEdges;
+  if prShadowVolume in Options then
+    PrepareShadowVolumes;
 
   if prSpatial in Options then
   begin

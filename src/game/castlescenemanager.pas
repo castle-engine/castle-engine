@@ -2863,7 +2863,7 @@ begin
     Options := [prRender, prBackground, prBoundingBox, prScreenEffects];
 
     if Viewports.UsesShadowVolumes then
-      Options := Options + prShadowVolume;
+      Include(Options, prShadowVolume);
 
     { We need one viewport, to setup it's projection and to setup it's camera.
       There really no perfect choice, although in practice any viewport

@@ -455,7 +455,7 @@ procedure T3DResourceAnimation.Prepare(const BaseLights: TAbstractLightInstances
     if DoProgress then Progress.Step;
 
     if Scene <> nil then
-      Scene.PrepareResources([prRender, prBoundingBox] + prShadowVolume,
+      Scene.PrepareResources([prRender, prBoundingBox, prShadowVolume],
         false, BaseLights);
     if DoProgress then Progress.Step;
   end;

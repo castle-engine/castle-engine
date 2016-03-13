@@ -495,6 +495,7 @@ type
       ATriangleVerticesCounts,
       ABoundingBox,
       AManifoldAndBorderEdges: boolean): string;
+      deprecated 'do not use this, better to construct a summary string yourself';
 
     { Handling key and mouse events.
 
@@ -967,9 +968,12 @@ begin
   Times := TSingleList.Create;
   KeyNodes := TX3DNodeList.Create(false);
   try
+    {$warnings off}
+    { deliberately using deprecated function in a deprecated unit }
     Load3DSequence(URL, AllowStdIn,
       KeyNodes, Times, ScenesPerTime, EqualityEpsilon,
       NewTimeLoop, NewTimeBackwards);
+    {$warnings on}
 
     ScenesPerTime := Round(ScenesPerTime * Smoothness);
 
@@ -1057,25 +1061,12 @@ procedure TCastlePrecalculatedAnimation.PrepareResources(Options: TPrepareResour
   ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 var
   I: Integer;
-  SceneOptions: TPrepareResourcesOptions;
 begin
   if not Loaded then Exit;
 
   for I := 0 to FScenes.Count - 1 do
   begin
-    { For I <> 0, we don't want to pass prManifoldAndBorderEdges to scenes. }
-    SceneOptions := Options;
-    if I <> 0 then
-      Exclude(SceneOptions, prManifoldAndBorderEdges);
-
-    FScenes[I].PrepareResources(SceneOptions, false, BaseLights);
-
-    { TODO: this isn't so simple, since not all scenes have to
-      be structurally equal anymore. }
-    if (prManifoldAndBorderEdges in Options) and (I <> 0) then
-      FScenes[I].ShareManifoldAndBorderEdges(
-        FScenes[0].ManifoldEdges, FScenes[0].BorderEdges);
-
+    FScenes[I].PrepareResources(Options, false, BaseLights);
     if ProgressStep then
       Progress.Step;
   end;
@@ -1250,7 +1241,10 @@ begin
 
   if ATriangleVerticesCounts then
   begin
+    {$warnings off}
+    { deliberately using deprecated function in another deprecated function }
     Result += FirstScene.InfoTriangleVerticesCounts;
+    {$warnings on}
   end;
 
   if ABoundingBox then
@@ -1258,13 +1252,19 @@ begin
     if Result <> '' then Result += NL;
     { We do not call FirstScene.InfoBoundingBox here, instead we want
       to get full bounding box of the animation. }
+    {$warnings off}
+    { deliberately using deprecated function in another deprecated function }
     Result += InfoBoundingBox;
+    {$warnings on}
   end;
 
   if AManifoldAndBorderEdges then
   begin
     if Result <> '' then Result += NL;
+    {$warnings off}
+    { deliberately using deprecated function in another deprecated function }
     Result += FirstScene.InfoManifoldAndBorderEdges;
+    {$warnings on}
   end;
 end;
 
