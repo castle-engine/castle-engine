@@ -816,6 +816,8 @@ begin
   Route.SetSourceDirectly(IntSequencer.EventValue_changed);
   Route.SetDestinationDirectly(Switch.FdWhichChoice);
   Result.Routes.Add(Route);
+
+  Result.ManuallyExportNode(TimeSensor);
 end;
 
 class procedure TNodeInterpolator.LoadToX3D_GetKeyNodeWithTime(const Index: Cardinal;

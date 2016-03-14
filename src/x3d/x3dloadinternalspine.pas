@@ -121,6 +121,7 @@ begin
               try
                 Skeleton.Parse(Json);
                 Skeleton.BuildNodes(URL, TextureLoader, Result, SkinName);
+                Skeleton.Animations.Exported(Result);
               finally FreeAndNil(Skeleton) end;
             end;
           except FreeAndNil(Result); raise end;

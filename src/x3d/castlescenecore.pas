@@ -6580,16 +6580,25 @@ type
     //Parent: TCastleSceneCore;
     AnimationPrefix: string;
     List: TStringList;
+    procedure EnumerateWithAlias(const Node: TX3DNode; const NodeName: string;
+      const Overwrite: boolean);
     procedure Enumerate(Node: TX3DNode);
   end;
 
 procedure TAnimationsEnumerator.Enumerate(Node: TX3DNode);
+begin
+  EnumerateWithAlias(Node, Node.NodeName, false);
+end;
+
+procedure TAnimationsEnumerator.EnumerateWithAlias(const Node: TX3DNode;
+  const NodeName: string; const Overwrite: boolean);
 var
   AnimationName: string;
+  ExistingIndex: Integer;
 begin
-  if IsPrefix(AnimationPrefix, Node.NodeName, false) then
+  if IsPrefix(AnimationPrefix, NodeName, false) then
   begin
-    AnimationName := PrefixRemove(AnimationPrefix, Node.NodeName, false);
+    AnimationName := PrefixRemove(AnimationPrefix, NodeName, false);
     if AnimationName = '' then
     begin
       if AnimationPrefix <> '' then // this is normal with AnimationPrefix = '' on many scenes
@@ -6597,22 +6606,24 @@ begin
           [AnimationName]));
       Exit;
     end;
-    if List.IndexOf(AnimationName) <> -1 then
+    ExistingIndex := List.IndexOf(AnimationName);
+    if ExistingIndex <> -1 then
     begin
-      OnWarning(wtMinor, 'Named Animations', Format('Animation name "%s" occurs multiple times in scene',
-        [AnimationName]));
-      Exit;
+      if not Overwrite then
+        OnWarning(wtMinor, 'Named Animations', Format('Animation name "%s" occurs multiple times in scene',
+          [AnimationName]));
+      List.Objects[ExistingIndex] := Node;
+    end else
+    begin
+      List.AddObject(AnimationName, Node);
     end;
-    // if Log then
-    //   WritelnLog('Animation', 'In %s, named animation: %s, duration %f',
-    //     [URICaption(Parent.URL), AnimationName, (Node as TTimeSensorNode).CycleInterval]);
-    List.AddObject(AnimationName, Node);
   end;
 end;
 
 function TCastleSceneCore.Animations: TStringList;
 var
   Enum: TAnimationsEnumerator;
+  I: Integer;
 begin
   Result := TStringList.Create;
   Result.CaseSensitive := true; // X3D node names are case-sensitive
@@ -6624,6 +6635,14 @@ begin
       Enum.List := Result;
       Enum.AnimationPrefix := AnimationPrefix;
       RootNode.EnumerateNodes(TTimeSensorNode, @Enum.Enumerate, true);
+
+      { recognize named animations also from IMPORTed node names.
+        This alllows to import and rename animations, which is useful. }
+      if RootNode.ImportedNames <> nil then
+        for I := 0 to RootNode.ImportedNames.Count - 1 do
+          Enum.EnumerateWithAlias(
+            RootNode.ImportedNames[I].Node,
+            RootNode.ImportedNames[I].Name, true);
     finally FreeAndNil(Enum) end;
   end;
 end;

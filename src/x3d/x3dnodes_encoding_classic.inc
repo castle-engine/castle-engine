@@ -558,7 +558,7 @@ begin
     Reader := TX3DReaderNames.Create(false, BaseUrl, Lexer.Version);
     try
       Result := ParseStatements(Lexer, Reader, vtEnd, true);
-      Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);
+      Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames, Result.FImportedNames);
     finally FreeAndNil(Reader) end;
   finally FreeAndNil(Lexer) end;
 end;

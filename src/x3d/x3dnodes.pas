@@ -1760,6 +1760,7 @@ type
     Node: TX3DNode;
     Name: string;
     Finished: boolean;
+    function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNameRec;
   end;
   PX3DNodeNameRec = ^TX3DNodeNameRec;
 
@@ -1808,6 +1809,8 @@ type
       only to it's own name, which is true during parsing
       (when nothing can change in the middle of parsing). }
     function Bound(Node: TX3DNode): boolean;
+
+    function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNames;
   end;
 
   TX3DPrototypeNames = class(TStringListCaseSens)
@@ -5717,6 +5720,15 @@ begin
   Result.ExportedNodeAlias := ExportedNodeAlias;
 end;
 
+{ TX3DNodeNameRec ------------------------------------------------------------ }
+
+function TX3DNodeNameRec.DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNameRec;
+begin
+  Result.Node := CopyState.DeepCopy(Node);
+  Result.Name := Name;
+  Result.Finished := Finished;
+end;
+
 { TX3DNodeNames ----------------------------------------------------------- }
 
 constructor TX3DNodeNames.Create(const AAutoRemove: boolean);
@@ -5802,6 +5814,16 @@ end;
 function TX3DNodeNames.Bound(Node: TX3DNode): boolean;
 begin
   Result := IndexOfNode(Node) <> -1;
+end;
+
+function TX3DNodeNames.DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNames;
+var
+  I: Integer;
+begin
+  Result := TX3DNodeNames.Create(AutoRemove);
+  Result.Count := Count;
+  for I := 0 to Count - 1 do
+    Result.Items[I] := Items[I].DeepCopy(CopyState);
 end;
 
 { TX3DPrototypeNames -------------------------------------------------------- }

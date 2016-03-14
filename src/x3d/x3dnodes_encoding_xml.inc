@@ -561,7 +561,7 @@ begin
     Reader := TX3DReaderNames.Create(true, URL, Version);
     try
       Result := ParseStatements(SceneElement, true, Doc.DocumentElement, Reader);
-      Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);
+      Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames, Result.FImportedNames);
     finally FreeAndNil(Reader) end;
   finally
     FreeAndNil(Doc);
