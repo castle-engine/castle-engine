@@ -22,11 +22,13 @@ unit CastleCurves;
 
 interface
 
-uses Classes, FGL, DOM,
+uses SysUtils, Classes, FGL, DOM,
   CastleVectors, CastleBoxes, CastleUtils, CastleScript,
   CastleClassUtils, Castle3D, CastleFrustum, CastleColors;
 
 type
+  ECurveFileInvalid = class(Exception);
+
   { 3D curve, a set of points defined by a continous function @link(Point)
     for arguments within [TBegin, TEnd]. }
   TCurve = class(T3D)
@@ -48,6 +50,7 @@ type
     { Curve function, for each parameter value determine the 3D point.
       This determines the actual shape of the curve. }
     function Point(const t: Float): TVector3Single; virtual; abstract;
+    function Point2D(const t: Float): TVector2Single;
 
     { Curve function to work with rendered line segments begin/end points.
       This is simply a more specialized version of @link(Point),
@@ -80,17 +83,22 @@ type
       const Params: TRenderParams); override;
 
     constructor Create(AOwner: TComponent); override;
+
+    { Load the first curve defined in given XML file.
+      Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
+      visually. }
+    class function LoadFromFile(const URL: string): TCurve;
   end;
 
   TCurveList = class(specialize TFPGObjectList<TCurve>)
   public
     { Load curves definitions from a simple XML file.
-      Hint: use https://github.com/castle-engine/bezier-curves to design curves
+      Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
       visually. }
     procedure LoadFromFile(const URL: string);
 
     { Save curve definitions to a simple XML file.
-      Hint: use https://github.com/castle-engine/bezier-curves to design curves
+      Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
       visually. }
     procedure SaveToFile(const URL: string);
   end;
@@ -330,7 +338,7 @@ function HermiteTenseSpline(const X: Single; const Loop: boolean;
 
 implementation
 
-uses SysUtils, Math,
+uses Math,
   CastleGL, CastleConvexHull, CastleGLUtils, CastleXMLUtils, CastleDownload;
 
 { TCurve ------------------------------------------------------------ }
@@ -402,6 +410,28 @@ begin
   WritelnStr(Stream, Format('    <time begin="%f" end="%f" />', [TBegin, TEnd]));
 end;
 
+function TCurve.Point2D(const T: Float): TVector2Single;
+var
+  V: TVector3Single;
+begin
+  V := Point(T);
+  Result[0] := V[0];
+  Result[1] := V[1];
+end;
+
+class function TCurve.LoadFromFile(const URL: string): TCurve;
+var
+  List: TCurveList;
+begin
+  List := TCurveList.Create(true);
+  try
+    List.LoadFromFile(URL);
+    if List.Count = 0 then
+      raise ECurveFileInvalid.Create('Empty curve XML file, cannot get first curve');
+    Result := List.Extract(List.First);
+  finally FreeAndNil(List) end;
+end;
+
 { TCurveList ---------------------------------------------------- }
 
 procedure TCurveList.LoadFromFile(const URL: string);
@@ -432,7 +462,7 @@ begin
           Curve := TPiecewiseCubicBezier.Create(nil) else
         if SameText(CurveTypeStr, TCasScriptCurve.ClassName) then
           Curve := TCasScriptCurve.Create(nil) else
-          raise Exception.CreateFmt('Curve type "%s" unknown', [CurveTypeStr]);
+          raise ECurveFileInvalid.CreateFmt('Curve type "%s" unknown', [CurveTypeStr]);
         Curve.LoadFromElement(I.Current);
         if Curve is TControlPointsCurve then
           TControlPointsCurve(Curve).UpdateControlPoints;
