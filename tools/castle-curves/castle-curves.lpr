@@ -24,7 +24,7 @@ uses SysUtils, Classes, Math,
   CastleUtils, CastleMessages, CastleCurves, CastleVectors, CastleFonts,
   CastleKeysMouse, CastleParameters, CastleClassUtils,
   CastleFilesUtils, CastleStringUtils, CastleColors, CastleURIUtils,
-  CastleUIControls, CastleControls, CastleGLImages;
+  CastleUIControls, CastleControls, CastleGLImages, CastleOpenDocument;
 
 var
   Window: TCastleWindowCustom;
@@ -38,7 +38,7 @@ var
     Always set using SetSelectedPoint. }
   SelectedPoint: Integer = -1;
 
-  RenderSegments: Cardinal = 100;
+  RenderSegments: Cardinal = 500;
   ShowPoints: boolean = true;
   ShowSelectedCurveConvexHull: boolean = false;
   LineWidth: Float = 1;
@@ -67,6 +67,11 @@ var
   BackgroundImageURL: string;
 
   Zoom: Single = 1;
+
+const
+  Version = '2.0.0';
+  CurvesToolURL = 'https://github.com/castle-engine/castle-engine/wiki/Curves-tool';
+  DonateURL = 'http://castle-engine.sourceforge.net/donate.php';
 
 { Call this always when SelectedPoint or SelectedCurve or (any) contents of
   Curves[SelectedCurve] changes. It is always called from
@@ -641,6 +646,19 @@ begin
     432: NewCurvesClass := TRationalBezierCurve;
     {$warnings on}
 
+    1010:if not OpenURL(CurvesToolURL) then
+           Window.MessageOk(SCannotOpenURL, mtError);
+    1020:if not OpenURL(DonateURL) then
+           Window.MessageOk(SCannotOpenURL, mtError);
+    1030:begin
+           MessageOk(Window,
+             'castle-curves: curves editor for Castle Game Engine.' +nl+
+             'Version ' + Version + '.' + NL +
+             NL +
+             CurvesToolURL + NL +
+             NL +
+             'Compiled with ' + SCompilerDescription +'.');
+         end;
     else raise EInternalError.Create('not impl menu item');
   end;
   Window.Invalidate;
@@ -659,12 +677,12 @@ begin
     M.Append(TMenuItem.Create('_Open ...',            4, CtrlO));
     M.Append(TMenuItem.Create('_Save ...',            6, CtrlS));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Save screen to _file ...', 8, K_F5));
+    M.Append(TMenuItem.Create('Save screen ...', 8, K_F5));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('_Exit',                10, CtrlW));
     Result.Append(M);
   M := TMenu.Create('_Background');
-    M.Append(TMenuItem.Create('_Load from file ...', 201));
+    M.Append(TMenuItem.Create('_Load ...', 201));
     M.Append(TMenuItem.Create('_Clear',              202));
     Result.Append(M);
   M := TMenu.Create('_View');
@@ -714,12 +732,17 @@ begin
     M.Append(TMenuItem.Create('Weight of selected point x 2',        412, 'w'));
     M.Append(TMenuItem.Create('Weight of selected point / 2',        413, 'W'));
     Result.Append(M);
+  M := TMenu.Create('_Help');
+    M.Append(TMenuItem.Create('Visit castle-curves website',  1010));
+    M.Append(TMenuItem.Create('Donate to Castle Game Engine', 1020));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('About castle-curves',          1030));
+    Result.Append(M);
 end;
 
 { options ------------------------------------------------------------ }
 
 const
-  Version = '2.0.0';
   Options: array[0..1] of TOption = (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone)
@@ -764,6 +787,12 @@ begin
   ColorCurveNotSelected := Green;
   ColorPointSelected := White;
   Theme.DialogsLight;
+
+  if URIFileExists(ApplicationData('grid.png')) then
+  begin
+    BackgroundImageURL := ApplicationData('grid.png');
+    BackgroundImage := TGLImageManaged.Create(BackgroundImageURL);
+  end;
 
   Curves := TControlPointsCurveList.Create(true);
   try
