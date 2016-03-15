@@ -48,6 +48,7 @@ var
     (changing them by any means, like a menu command, breaks dragging).
     Always SelectedPoint <> -1 (so SelectedCurve also <>-1) when Dragging. }
   Dragging: boolean = false;
+  DraggingFarEnoughToBeActive: boolean;
   DraggingStartPosition: TVector2Single;
 
   { Just an indication of from what URL we loaded these Curves /
@@ -293,20 +294,22 @@ procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
     if SelectedPoint <> -1 then
     begin
       Dragging := true;
+      DraggingFarEnoughToBeActive := false;
       DraggingStartPosition := Event.Position;
     end;
   end;
 
+var
+  Pos: TVector2Single;
 begin
+  Pos := Event.Position / Zoom;
   if Event.IsMouseButton(mbLeft) then
   begin
-    if (mkCtrl in Window.Pressed.Modifiers) or
-       (SelectedPoint = -1) then
-      AddNewPoint(Event.Position / Zoom) else
-      StartDragging;
+    SelectClosestPoint(Pos);
+    StartDragging;
   end else
   if Event.IsMouseButton(mbRight) then
-    SelectClosestPoint(Event.Position / Zoom) else
+    AddNewPoint(Pos) else
     Exit;
 
   Window.Invalidate;
@@ -317,30 +320,39 @@ begin
   if Event.IsMouseButton(mbLeft) then
   begin
     Dragging := false;
-    if VectorsEqual(DraggingStartPosition, Event.Position) then
-      AddNewPoint(Event.Position / Zoom);
     Window.Invalidate;
   end;
 end;
 
 procedure Motion(Container: TUIContainer; const Event: TInputMotion);
+const
+  DraggingFarEnough = 5;
 var
-  Move: TVector3Single;
+  Change: TVector2Single;
+  Change3D: TVector3Single;
   I: Integer;
 begin
   if Dragging then
   begin
-    Move[0] := (Event.Position[0] - Event.OldPosition[0]) / Zoom;
-    Move[1] := (Event.Position[1] - Event.OldPosition[1]) / Zoom;
-    Move[2] := 0;
+    if not DraggingFarEnoughToBeActive then
+    begin
+      DraggingFarEnoughToBeActive :=
+        PointsDistanceSqr(DraggingStartPosition, Event.Position) > Sqr(DraggingFarEnough);
+      if DraggingFarEnoughToBeActive then
+        Change := Event.Position - DraggingStartPosition else
+        // do not drag until you move mouse definitely away, to avoid accidental dragging
+        Exit;
+    end else
+      Change := Event.Position - Event.OldPosition;
 
+    Change3D := Vector3Single(Change, 0);
     if not (mkShift in Window.Pressed.Modifiers) then
     begin
-      Curves[SelectedCurve].ControlPoints.L[SelectedPoint] += Move;
+      Curves[SelectedCurve].ControlPoints.L[SelectedPoint] += Change3D;
     end else
     begin
       for i := 0 to Curves[SelectedCurve].ControlPoints.Count-1 do
-        Curves[SelectedCurve].ControlPoints.L[i] += Move;
+        Curves[SelectedCurve].ControlPoints.L[i] += Change3D;
     end;
 
     Curves[SelectedCurve].UpdateControlPoints;
