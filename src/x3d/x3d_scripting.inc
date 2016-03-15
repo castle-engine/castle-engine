@@ -290,8 +290,8 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
             [E.ClassName, URIDisplay(URL), E.Message ]));
     end;
 
-    if Result and Log then
-      WritelnLog('Script', Format('Loaded from URL "%s"', [URIDisplay(URL)]));
+    // if Result and Log and LogScript then
+    //   WritelnLog('Script', Format('Loaded from URL "%s"', [URIDisplay(URL)]));
   end;
 
 var
