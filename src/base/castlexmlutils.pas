@@ -151,14 +151,28 @@ type
       @raises EDOMAttributeMissing }
     function AttributeBoolean(const AttrName: string): boolean;
 
-    { ------------------------------------------------------------------------
-      Get an optional attribute, returns attribute or a default value. }
-
-    { Read from Element attribute value as color. }
+    { Retrieves from Element given attribute as a color,
+      raises EDOMAttributeMissing if missing or has invalid format.
+      @raises EDOMAttributeMissing }
     function AttributeColor(const AttrName: string): TCastleColor;
 
-    { Read from Element attribute value as RGB color. }
+    { Retrieves from Element given attribute as an RGB color,
+      raises EDOMAttributeMissing if missing or has invalid format.
+      @raises EDOMAttributeMissing }
     function AttributeColorRGB(const AttrName: string): TCastleColorRGB;
+
+    { Retrieves from Element given attribute as a 2D vector (2 floats),
+      raises EDOMAttributeMissing if missing or has invalid format.
+      @raises EDOMAttributeMissing }
+    function AttributeVector2(const AttrName: string): TVector2Single;
+
+    { Retrieves from Element given attribute as a 3D vector (3 floats),
+      raises EDOMAttributeMissing if missing or has invalid format.
+      @raises EDOMAttributeMissing }
+    function AttributeVector3(const AttrName: string): TVector3Single;
+
+    { ------------------------------------------------------------------------
+      Get an optional attribute, returns attribute or a default value. }
 
     { Retrieves from Element given attribute as a string, or a default value. }
     function AttributeStringDef(const AttrName: string; const DefaultValue: string): string;
@@ -459,6 +473,8 @@ procedure FreeChildNodes(const ChildNodes: TDOMNodeList);
   @groupBegin }
 procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
 procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
+function URLReadXML(const URL: String): TXMLDocument;
+function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument;
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String);
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
 { @groupEnd }
@@ -636,10 +652,6 @@ begin
     raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (boolean) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-{ ------------------------------------------------------------------------
-  TDOMElementHelper:
-  Get an optional attribute, returns attribute or a default value. }
-
 function TDOMElementHelper.AttributeColor(const AttrName: string): TCastleColor;
 begin
   if not AttributeColor(AttrName, Result) then
@@ -649,8 +661,24 @@ end;
 function TDOMElementHelper.AttributeColorRGB(const AttrName: string): TCastleColorRGB;
 begin
   if not AttributeColorRGB(AttrName, Result) then
-    raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (rgb color) attribute "%s" on element "%s"', [AttrName, TagName]);
+    raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (RGB color) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
+
+function TDOMElementHelper.AttributeVector2(const AttrName: string): TVector2Single;
+begin
+  if not AttributeVector2(AttrName, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (vector2) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
+function TDOMElementHelper.AttributeVector3(const AttrName: string): TVector3Single;
+begin
+  if not AttributeVector3(AttrName, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (vector3) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
+{ ------------------------------------------------------------------------
+  TDOMElementHelper:
+  Get an optional attribute, returns attribute or a default value. }
 
 function TDOMElementHelper.AttributeStringDef(const AttrName: string; const DefaultValue: string): string;
 begin
@@ -1011,6 +1039,22 @@ begin
   try
     ReadXMLFile(Doc, Stream);
   finally FreeAndNil(Stream) end;
+end;
+
+function URLReadXML(const URL: String): TXMLDocument;
+begin
+  try
+    // URLReadXML and ReadXMLFile nil the parameter when there's no need to free it
+    URLReadXML(Result, URL);
+  except FreeAndNil(Result); raise; end;
+end;
+
+function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument;
+begin
+  try
+    // URLReadXML and ReadXMLFile nil the parameter when there's no need to free it
+    URLReadXML(Result, URL, BlowFishKeyPhrase);
+  except FreeAndNil(Result); raise; end;
 end;
 
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
