@@ -43,12 +43,12 @@ var
   ShowSelectedCurveConvexHull: boolean = false;
   LineWidth: Float = 1;
 
-  { True between Right mouse down and (right mouse up or selected thing changes).
-    So SelectedPoint/Curve will always stay constant (and Curves[SelectedCurve]
-    too) while Dragging = true.
-    Always SelectedPoint <> -1 (so SelectedCurve also <>-1) when Dragging.
-    Updated in Press, Release, SelectedChanged. }
+  { Indicates dragging with mouse.
+    So SelectedPoint and SelectedCurve never change during dragging
+    (changing them by any means, like a menu command, breaks dragging).
+    Always SelectedPoint <> -1 (so SelectedCurve also <>-1) when Dragging. }
   Dragging: boolean = false;
+  DraggingStartPosition: TVector2Single;
 
   { Just an indication of from what URL we loaded these Curves /
     where we saved them last time / etc.
@@ -206,40 +206,39 @@ begin
   end;
 end;
 
+{ Add new curve point and select it. }
+procedure AddNewPoint(const Event: TInputPressRelease);
+var
+  NewPoint: TVector3Single;
+begin
+  NewPoint := Vector3Single(Event.Position[0], Event.Position[1], 0);
+
+  if SelectedCurve = -1 then
+  begin
+    Curves.Add(NewCurvesClass.Create(nil));
+    SetSelectedCurve(Curves.Count - 1);
+  end;
+
+  if SelectedPoint = -1 then
+  begin
+    Curves[SelectedCurve].ControlPoints.Add(NewPoint);
+    SetSelectedPoint(Curves[SelectedCurve].ControlPoints.Count-1);
+  end else
+  begin
+    Curves[SelectedCurve].ControlPoints.Insert(SelectedPoint+1, NewPoint);
+    SetSelectedPoint(SelectedPoint+1);
+  end;
+
+  { set Weight of new point }
+  {$warnings off}
+  if Curves[SelectedCurve] is TRationalBezierCurve then
+    TRationalBezierCurve(Curves[SelectedCurve]).Weights.Insert(SelectedPoint, 1);
+  {$warnings on}
+
+  Curves[SelectedCurve].UpdateControlPoints;
+end;
+
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
-
-  procedure AddNewPoint(const NewPoint: TVector3Single);
-  { add new point and select it }
-  begin
-    if SelectedCurve = -1 then
-    begin
-      Curves.Add(NewCurvesClass.Create(nil));
-      SetSelectedCurve(Curves.Count - 1);
-    end;
-
-    if SelectedPoint = -1 then
-    begin
-      Curves[SelectedCurve].ControlPoints.Add(NewPoint);
-      SetSelectedPoint(Curves[SelectedCurve].ControlPoints.Count-1);
-    end else
-    begin
-      Curves[SelectedCurve].ControlPoints.Insert(SelectedPoint+1, NewPoint);
-      SetSelectedPoint(SelectedPoint+1);
-    end;
-
-    { set Weight of new point }
-    {$warnings off}
-    if Curves[SelectedCurve] is TRationalBezierCurve then
-      TRationalBezierCurve(Curves[SelectedCurve]).Weights.Insert(SelectedPoint, 1);
-    {$warnings on}
-
-    Curves[SelectedCurve].UpdateControlPoints;
-  end;
-
-  procedure AddNewPoint;
-  begin
-    AddNewPoint(Vector3Single(Event.Position[0], Event.Position[1], 0));
-  end;
 
   procedure ClosestControlPoint(const Point: TVector2Single;
     var CurveNum, PointNum: Integer);
@@ -279,7 +278,11 @@ procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 
   procedure StartDragging;
   begin
-    if SelectedPoint <> -1 then Dragging := true;
+    if SelectedPoint <> -1 then
+    begin
+      Dragging := true;
+      DraggingStartPosition := Event.Position;
+    end;
   end;
 
 begin
@@ -287,12 +290,8 @@ begin
   begin
     if (mkCtrl in Window.Pressed.Modifiers) or
        (SelectedPoint = -1) then
-      AddNewPoint else
+      AddNewPoint(Event) else
       StartDragging;
-  end else
-  if Event.IsMouseButton(mbMiddle) then
-  begin
-    AddNewPoint;
   end else
   if Event.IsMouseButton(mbRight) then
     SelectClosestPoint(Window.MousePosition) else
@@ -306,6 +305,8 @@ begin
   if Event.IsMouseButton(mbLeft) then
   begin
     Dragging := false;
+    if VectorsEqual(DraggingStartPosition, Event.Position) then
+      AddNewPoint(Event);
     Window.Invalidate;
   end;
 end;
