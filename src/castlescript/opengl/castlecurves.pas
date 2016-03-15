@@ -320,19 +320,6 @@ type
     (For TControlPointsCurve it must be >= 2) }
   TRationalBezierCurve = class(TControlPointsCurve)
   public
-    { Splits this curve using Casteljau algorithm.
-
-      Under B1 and B2 returns two new, freshly created, bezier curves,
-      such that if you concatenate them - they will create this curve.
-      Proportion is something from (0; 1).
-      B1 will be equal to Self for T in TBegin .. TMiddle,
-      B2 will be equal to Self for T in TMiddle .. TEnd,
-      where TMiddle = TBegin + Proportion * (TEnd - TBegin).
-
-      B1.ControlPoints.Count = B2.ControlPoints.Count =
-        Self.ControlPoints.Count. }
-    procedure Split(const Proportion: Float; var B1, B2: TRationalBezierCurve);
-
     function Point(const t: Float): TVector3Single; override;
     class function NiceClassName: string; override;
   public
@@ -1062,15 +1049,18 @@ end;
 
 { TRationalBezierCurve ----------------------------------------------- }
 
-{$define DE_CASTELJAU_DECLARE:=
+function TRationalBezierCurve.Point(const t: Float): TVector3Single;
 var
+  u: Float;
   W: TVector3SingleList;
   Wgh: TFloatList;
-  i, k, n, j: Integer;}
+  i, k, n, j: Integer;
+begin
+  { u := t normalized to [0; 1] }
+  u := (t - TBegin) / (TEnd - TBegin);
 
-{ This initializes W and Wgh (0-th step of de Casteljau algorithm).
-  It uses ControlPoints, Weights. }
-{$define DE_CASTELJAU_BEGIN:=
+  { Initializes W and Wgh (0-th step of de Casteljau algorithm).
+    It uses ControlPoints, Weights. }
   n := ControlPoints.Count - 1;
 
   W := nil;
@@ -1083,85 +1073,28 @@ var
     W.Assign(ControlPoints);
     Wgh := TFloatList.Create;
     Wgh.Assign(Weights);
-}
-
-{ This caculates in W and Wgh k-th step of de Casteljau algorithm.
-  This assumes that W and Wgh already contain (k-1)-th step.
-  Uses u as the target point position (in [0; 1]) }
-{$define DE_CASTELJAU_STEP:=
-begin
-  for i := 0 to n - k do
-  begin
-    for j := 0 to 2 do
-      W.L[i][j]:=(1-u) * Wgh[i  ] * W.L[i  ][j] +
-                         u * Wgh[i+1] * W.L[i+1][j];
-    Wgh.L[i]:=(1-u) * Wgh[i] + u * Wgh[i+1];
-    for j := 0 to 2 do
-      W.L[i][j] /= Wgh.L[i];
-  end;
-end;}
-
-{ This frees W and Wgh. }
-{$define DE_CASTELJAU_END:=
-  finally
-    Wgh.Free;
-    W.Free;
-  end;}
-
-procedure TRationalBezierCurve.Split(const Proportion: Float; var B1, B2: TRationalBezierCurve);
-var TMiddle, u: Float;
-DE_CASTELJAU_DECLARE
-begin
-  TMiddle := TBegin + Proportion * (TEnd - TBegin);
-  {$warnings off} { Consciously using deprecated stuff. }
-  B1 := TRationalBezierCurve.Create(nil);
-  B2 := TRationalBezierCurve.Create(nil);
-  {$warnings on}
-  B1.TBegin := TBegin;
-  B1.TEnd := TMiddle;
-  B2.TBegin := TMiddle;
-  B2.TEnd := TEnd;
-  B1.ControlPoints.Count := ControlPoints.Count;
-  B2.ControlPoints.Count := ControlPoints.Count;
-  B1.Weights.Count := Weights.Count;
-  B2.Weights.Count := Weights.Count;
-
-  { now we do Casteljau algorithm, similiar to what we do in Point.
-    But this time our purpose is to update B1.ControlPoints/Weights and
-    B2.ControlPoints/Weights. }
-
-  u := Proportion;
-
-  DE_CASTELJAU_BEGIN
-    B1.ControlPoints.L[0] := ControlPoints.L[0];
-    B1.Weights      .L[0] := Wgh          .L[0];
-    B2.ControlPoints.L[n] := ControlPoints.L[n];
-    B2.Weights      .L[n] := Wgh          .L[n];
 
     for k := 1 to n do
     begin
-      DE_CASTELJAU_STEP
-
-      B1.ControlPoints.L[k]   := W  .L[0];
-      B1.Weights      .L[k]   := Wgh.L[0];
-      B2.ControlPoints.L[n-k] := W  .L[n-k];
-      B2.Weights      .L[n-k] := Wgh.L[n-k];
+      { This caculates in W and Wgh k-th step of de Casteljau algorithm.
+        This assumes that W and Wgh already contain (k-1)-th step.
+        Uses u as the target point position (in [0; 1]) }
+      for i := 0 to n - k do
+      begin
+        for j := 0 to 2 do
+          W.L[i][j]:=(1-u) * Wgh[i  ] * W.L[i  ][j] +
+                             u * Wgh[i+1] * W.L[i+1][j];
+        Wgh.L[i]:=(1-u) * Wgh[i] + u * Wgh[i+1];
+        for j := 0 to 2 do
+          W.L[i][j] /= Wgh.L[i];
+      end;
     end;
-  DE_CASTELJAU_END
-end;
 
-function TRationalBezierCurve.Point(const t: Float): TVector3Single;
-var
-  u: Float;
-DE_CASTELJAU_DECLARE
-begin
-  { u := t normalized to [0; 1] }
-  u := (t - TBegin) / (TEnd - TBegin);
-
-  DE_CASTELJAU_BEGIN
-    for k := 1 to n do DE_CASTELJAU_STEP
     Result := W.L[0];
-  DE_CASTELJAU_END
+  finally
+    Wgh.Free;
+    W.Free;
+  end;
 end;
 
 class function TRationalBezierCurve.NiceClassName: string;
