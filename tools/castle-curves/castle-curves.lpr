@@ -63,6 +63,9 @@ var
   ColorPointSelected: TCastleColor;
 
   BackgroundImage: TGLImageManaged;
+  BackgroundImageURL: string;
+
+  Zoom: Single = 1;
 
 { Call this always when SelectedPoint or SelectedCurve or (any) contents of
   Curves[SelectedCurve] changes. It is always called from
@@ -114,6 +117,7 @@ begin
 end;
 
 const
+  SErrSelectCurve = 'You must select some curve.';
   SErrSelectRationalCurve = 'You must select a Rational Bezier curve.';
   SErrSelectPiecewiseCubicBezierCurve = 'You must select a Piecewise Cubic Bezier curve.';
   SErrSelectRationalCurvePoint =
@@ -172,49 +176,54 @@ begin
 
   GLClear([cbColor], Black);
   if BackgroundImage <> nil then
-    BackgroundImage.Draw;
+    BackgroundImage.Draw(BackgroundImage.Rect.ScaleAround0(Zoom));
 
-  { draw convex hull of SelectedCurve }
-  if ShowSelectedCurveConvexHull and (SelectedCurve <> -1) then
-  begin
-    {$warnings off}
-    Curves[SelectedCurve].ConvexHullColor := ColorConvexHull;
-    Curves[SelectedCurve].RenderConvexHull;
-    {$warnings on}
-  end;
+  glPushMatrix;
+    glScalef(Zoom, Zoom, Zoom);
 
-  { draw all curves and their control points }
-  for i := 0 to Curves.Count-1 do
-  begin
-    {$warnings off}
-    { this program knowingly uses a lot of deprecated CastleCurves stuff
-      for rendering... }
-    Curves[i].LineWidth := LineWidth;
-    if i = SelectedCurve then
-      Curves[i].Color := ColorCurveSelected else
-      Curves[i].Color := ColorCurveNotSelected;
-    Curves[i].ControlPointsColor := Curves[i].Color;
-    if ShowPoints then Curves[i].RenderControlPoints;
-    Curves[i].Render(RenderSegments);
-    {$warnings on}
-  end;
+    { draw convex hull of SelectedCurve }
+    if ShowSelectedCurveConvexHull and (SelectedCurve <> -1) then
+    begin
+      {$warnings off}
+      Curves[SelectedCurve].ConvexHullColor := ColorConvexHull;
+      Curves[SelectedCurve].RenderConvexHull;
+      {$warnings on}
+    end;
 
-  { draw SelectedPoint }
-  if SelectedPoint <> -1 then
-  begin
-    glColorv(ColorPointSelected);
-    glBegin(GL_POINTS);
-      glVertexv(Curves[SelectedCurve].ControlPoints.Items[SelectedPoint]);
-    glEnd;
-  end;
+    { draw all curves and their control points }
+    for i := 0 to Curves.Count-1 do
+    begin
+      {$warnings off}
+      { this program knowingly uses a lot of deprecated CastleCurves stuff
+        for rendering... }
+      Curves[i].LineWidth := LineWidth;
+      if i = SelectedCurve then
+        Curves[i].Color := ColorCurveSelected else
+        Curves[i].Color := ColorCurveNotSelected;
+      Curves[i].ControlPointsColor := Curves[i].Color;
+      if ShowPoints then Curves[i].RenderControlPoints;
+      Curves[i].Render(RenderSegments);
+      {$warnings on}
+    end;
+
+    { draw SelectedPoint }
+    if SelectedPoint <> -1 then
+    begin
+      glColorv(ColorPointSelected);
+      glBegin(GL_POINTS);
+        glVertexv(Curves[SelectedCurve].ControlPoints.Items[SelectedPoint]);
+      glEnd;
+    end;
+
+  glPopMatrix;
 end;
 
 { Add new curve point and select it. }
-procedure AddNewPoint(const Event: TInputPressRelease);
+procedure AddNewPoint(const Position: TVector2Single);
 var
   NewPoint: TVector3Single;
 begin
-  NewPoint := Vector3Single(Event.Position[0], Event.Position[1], 0);
+  NewPoint := Vector3Single(Position[0], Position[1], 0);
 
   if SelectedCurve = -1 then
   begin
@@ -293,11 +302,11 @@ begin
   begin
     if (mkCtrl in Window.Pressed.Modifiers) or
        (SelectedPoint = -1) then
-      AddNewPoint(Event) else
+      AddNewPoint(Event.Position / Zoom) else
       StartDragging;
   end else
   if Event.IsMouseButton(mbRight) then
-    SelectClosestPoint(Window.MousePosition) else
+    SelectClosestPoint(Event.Position / Zoom) else
     Exit;
 
   Window.Invalidate;
@@ -309,7 +318,7 @@ begin
   begin
     Dragging := false;
     if VectorsEqual(DraggingStartPosition, Event.Position) then
-      AddNewPoint(Event);
+      AddNewPoint(Event.Position / Zoom);
     Window.Invalidate;
   end;
 end;
@@ -321,8 +330,8 @@ var
 begin
   if Dragging then
   begin
-    Move[0] := Event.Position[0] - Event.OldPosition[0];
-    Move[1] := Event.Position[1] - Event.OldPosition[1];
+    Move[0] := (Event.Position[0] - Event.OldPosition[0]) / Zoom;
+    Move[1] := (Event.Position[1] - Event.OldPosition[1]) / Zoom;
     Move[2] := 0;
 
     if not (mkShift in Window.Pressed.Modifiers) then
@@ -342,6 +351,23 @@ end;
 procedure Open(Container: TUIContainer);
 begin
   glPointSize(10);
+end;
+
+procedure Update(Container: TUIContainer);
+const
+  ZoomFactor = 2;
+
+  procedure ChangeZoom(const Multiply: Single);
+  begin
+    Zoom *= Multiply;
+    ClampVar(Zoom, 0.01, 100);
+  end;
+
+begin
+  if Container.Pressed.Characters['+'] then
+    ChangeZoom(Power(ZoomFactor, Container.Fps.UpdateSecondsPassed));
+  if Container.Pressed.Characters['-'] then
+    ChangeZoom(Power(1 / ZoomFactor, Container.Fps.UpdateSecondsPassed));
 end;
 
 { menu ------------------------------------------------------------ }
@@ -492,9 +518,53 @@ procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
     end;
   end;
 
+  procedure SetSelectedWeight;
+  var
+    NewWeight: Single;
+  begin
+    if RationalBezierCurvePointSelected then
+    begin
+      {$warnings off}
+      NewWeight := TRationalBezierCurve(Curves[SelectedCurve]).
+        Weights[SelectedPoint];
+      {$warnings on}
+      if MessageInputQuery(Window, 'Enter new weight:', NewWeight) then
+      begin
+        if NewWeight <= 0 then
+          MessageOK(Window, 'Invalid weight, each weight must be > 0') else
+        begin
+          {$warnings off}
+          TRationalBezierCurve(Curves[SelectedCurve]).
+            Weights[SelectedPoint] := NewWeight;
+          {$warnings on}
+          Curves[SelectedCurve].UpdateControlPoints;
+          SelectedChanged;
+        end;
+      end;
+    end else
+      MessageOK(Window, SErrSelectRationalCurvePoint);
+  end;
+
+  procedure ScaleCurve;
+  var
+    Scale: Single;
+    I: Integer;
+  begin
+    if SelectedCurve <> -1 then
+    begin
+      Scale := 1;
+      if MessageInputQuery(Window, 'Enter scale:', Scale) then
+      begin
+        for I := 0 to Curves[SelectedCurve].ControlPoints.Count - 1 do
+          Curves[SelectedCurve].ControlPoints.L[I] *= Scale;
+        Curves[SelectedCurve].UpdateControlPoints;
+      end;
+    end else
+      MessageOK(Window, SErrSelectCurve);
+  end;
+
 var
   S: string;
-  NewWeight: Float;
 begin
   case MenuItem.IntData of
     4:  OpenFile;
@@ -502,20 +572,22 @@ begin
     8:  Window.SaveScreenDialog(FileNameAutoInc('castle-curves_%d.png'));
     10: Window.Close;
 
-    201: FreeAndNil(BackgroundImage);
-    202: begin
-           S := '';
+    201: begin
+           S := BackgroundImageURL;
            if Window.FileDialog('Open background image', S, true,
              LoadImage_FileFilters) then
            begin
+             BackgroundImageURL := S;
              FreeAndNil(BackgroundImage);
-             BackgroundImage := TGLImageManaged.Create(S);
+             BackgroundImage := TGLImageManaged.Create(BackgroundImageURL);
            end;
          end;
+    202: FreeAndNil(BackgroundImage);
 
     305: StatusText.Exists := not StatusText.Exists;
     310: ShowPoints := not ShowPoints;
     320: ShowSelectedCurveConvexHull := not ShowSelectedCurveConvexHull;
+    326: Zoom := 1;
     330: RenderSegments := Max(1, MessageInputCardinal(Window,
            'Render curves as ... segments ?', RenderSegments));
     331: RenderSegments *= 2;
@@ -527,6 +599,7 @@ begin
     343: Window.ColorDialog(ColorCurveNotSelected);
     344: Window.ColorDialog(ColorPointSelected);
 
+    401: ScaleCurve;
     403: begin
            SetSelectedCurve(-1);
            SetSelectedPoint(-1);
@@ -537,37 +610,8 @@ begin
     407: ChangeSelectedPoint(false);
     408: DeleteSelectedPoint;
     409: DeleteSelectedCurve;
-    411: if RationalBezierCurvePointSelected then
-         begin
-           {$warnings off}
-           s := FloatToStr(TRationalBezierCurve(Curves[SelectedCurve]).
-             Weights[SelectedPoint]);
-           {$warnings on}
-           if MessageInputQuery(Window, 'Enter new weight:', s) then
-           begin
-             try
-               NewWeight := StrToFloat(s);
-             except
-               on E: EConvertError do
-               begin
-                 MessageOK(Window, 'Invalid weight : '+E.Message);
-                 Exit;
-               end;
-             end;
+    411: SetSelectedWeight;
 
-             if NewWeight <= 0 then
-               MessageOK(Window, 'Invalid weight, each weight must be > 0') else
-             begin
-               {$warnings off}
-               TRationalBezierCurve(Curves[SelectedCurve]).
-                 Weights[SelectedPoint] := NewWeight;
-               {$warnings on}
-               Curves[SelectedCurve].UpdateControlPoints;
-               SelectedChanged;
-             end;
-           end;
-         end else
-           MessageOK(Window, SErrSelectRationalCurvePoint);
     412: if RationalBezierCurvePointSelected then
            {$warnings off}
            with TRationalBezierCurve(Curves[SelectedCurve]).Weights do
@@ -605,11 +649,11 @@ begin
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Save screen to _file ...', 8, K_F5));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('_Exit',                10, CharEscape));
+    M.Append(TMenuItem.Create('_Exit',                10, CtrlW));
     Result.Append(M);
   M := TMenu.Create('_Background');
-    M.Append(TMenuItem.Create('_Clear',              201));
-    M.Append(TMenuItem.Create('_Load from file ...', 202));
+    M.Append(TMenuItem.Create('_Load from file ...', 201));
+    M.Append(TMenuItem.Create('_Clear',              202));
     Result.Append(M);
   M := TMenu.Create('_View');
     M.Append(TMenuItemChecked.Create('Show / Hide _status', 305, K_F1,
@@ -621,36 +665,40 @@ begin
       'Show / Hide _convex hull of selected curve',         320,
       ShowSelectedCurveConvexHull, true));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Set curves _rendering segments ...', 330));
-    M.Append(TMenuItem.Create('Curves rendering segments x 2',     331, 's'));
-    M.Append(TMenuItem.Create('Curves rendering segments / 2',     332, 'S'));
+    M.Append(TMenuItem.Create('No Zoom' , 326, K_Home));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Set line width ...',                336));
+    M.Append(TMenuItem.Create('Set curves _rendering segments ...', 330));
+    M.Append(TMenuItem.Create('Curves rendering segments x 2',      331, 's'));
+    M.Append(TMenuItem.Create('Curves rendering segments / 2',      332, 'S'));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Set line width ...',                 336));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Change convex hull color ...',         341));
     M.Append(TMenuItem.Create('Change selected curve color ...',      342));
     M.Append(TMenuItem.Create('Change non-selected curves color ...', 343));
     M.Append(TMenuItem.Create('Change selected point color ...',      344));
     Result.Append(M);
-  M := TMenu.Create('_Edit');
-    M.Append(TMenuItem.Create('_Nothing selected',                    403, 'n'));
+  M := TMenu.Create('_Select');
+    M.Append(TMenuItem.Create('_Nothing selected',                   403, 'n'));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Select _next curve',                   404, 'c'));
-    M.Append(TMenuItem.Create('Select _previous curve',               405, 'C'));
+    M.Append(TMenuItem.Create('Select _next curve',                  404, 'c'));
+    M.Append(TMenuItem.Create('Select _previous curve',              405, 'C'));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Select next point on this curve',     406, 'p'));
+    M.Append(TMenuItem.Create('Select previous point on this curve', 407, 'P'));
     M.Append(TMenuSeparator.Create);
       M2 := TMenu.Create('Set new curves _type');
       M2.Append(TMenuItem.Create('_Piecewise Cubic Bezier curve',       431));
       M2.Append(TMenuItem.Create('_Rational Bezier curve (Deprecated)', 432));
     M.Append(M2);
-    M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Delete selected _point',               408, 'd'));
-    M.Append(TMenuItem.Create('Delete selected _curve',               409, 'D'));
     Result.Append(M);
-  M := TMenu.Create('Edit _points');
-    M.Append(TMenuItem.Create('Select _next point on this curve',     406, 'p'));
-    M.Append(TMenuItem.Create('Select _previous point on this curve', 407, 'P'));
+  M := TMenu.Create('_Edit');
+    M.Append(TMenuItem.Create('_Scale curve...',                     401));
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Set _weight of selected point ...',    411));
+    M.Append(TMenuItem.Create('Delete selected _point',              408, 'd'));
+    M.Append(TMenuItem.Create('Delete selected _curve',              409, 'D'));
+    M.Append(TMenuSeparator.Create);
+    M.Append(TMenuItem.Create('Set _weight of selected point ...',   411));
     M.Append(TMenuItem.Create('Weight of selected point x 2',        412, 'w'));
     M.Append(TMenuItem.Create('Weight of selected point / 2',        413, 'W'));
     Result.Append(M);
@@ -727,6 +775,7 @@ begin
     Window.OnRelease := @Release;
     Window.OnMotion := @Motion;
     Window.OnOpen := @Open;
+    Window.OnUpdate := @Update;
     Window.OpenAndRun;
   finally FreeAndNil(Curves) end;
 end.
