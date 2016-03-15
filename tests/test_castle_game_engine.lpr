@@ -56,7 +56,8 @@ uses
   TestCastleTriangulate,
   TestGame,
   TestURIUtils,
-  TestCastleXMLUtils
+  TestCastleXMLUtils,
+  TestCastleCurves
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
   { These require CastleWindow initializing it's own window. So they
     1. conflict with LCL windows (so only when TEXT_RUNNER)

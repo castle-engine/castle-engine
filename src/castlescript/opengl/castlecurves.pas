@@ -351,12 +351,15 @@ type
   TRationalBezierCurveList = specialize TFPGObjectList<TRationalBezierCurve>;
   {$warnings on}
 
+  TCubicBezier2DPoints = array [0..3] of TVector2Single;
+  TCubicBezier3DPoints = array [0..3] of TVector3Single;
+
   { Piecewise (composite) cubic Bezier curve.
     Each segment (ControlPoints[i]..ControlPoints[i+1])
     is a cubic Bezier curve (Bezier with 4 control points,
     2 points in the middle are auto-calculated for max smoothness).
 
-    It is a cubic B-spline. Which is equivalent to C2 continuous
+    This is a cubic B-spline. Which is equivalent to C2 continuous
     composite Bézier curves. See
     https://en.wikipedia.org/wiki/Spline_%28mathematics%29 .
 
@@ -364,54 +367,33 @@ type
     ToRationalBezierCurves.
 
     ControlPoints.Count may be 1 (in general,
-    for TControlPointsCurve, it must be >= 2). }
+    for TControlPointsCurve, it must be >= 2).
+
+    Note that, while using this to calculate points on curve is OK,
+    rendering this, and placing it on SceneManager.Items list, is deprecated.
+    It is not portable to OpenGLES (that is: Android and iOS) and
+    not very efficient. For portable and fast curves consider using
+    X3D NURBS nodes (wrapped in a TCastleScene) instead.
+    Or convert this curve to a TLineSetNode X3D node.
+  }
   TPiecewiseCubicBezier = class(TInterpolatedCurve)
   private
-    BezierCurves: TRationalBezierCurveList;
+    BezierCurves: array of TCubicBezier3DPoints;
     ConvexHullPoints: TVector3SingleList;
   protected
     function CreateConvexHullPoints: TVector3SingleList; override;
     procedure DestroyConvexHullPoints(Points: TVector3SingleList); override;
   public
-    function Point(const t: Float): TVector3Single; override;
-
-    { convert this to a list of TRationalBezierCurve.
-
-      From each line segment ControlPoint[i] ... ControlPoint[i+1]
-      you get one TRationalBezierCurve with 4 control points,
-      where ControlPoint[0] and ControlPoint[3] are taken from
-      ours ControlPoint[i] ... ControlPoint[i+1] and the middle
-      ControlPoint[1], ControlPoint[2] are calculated so that all those
-      bezier curves join smoothly.
-
-      All Weights are set to 1.0 (so actually these are all normal
-      Bezier curves; but I'm treating normal Bezier curves as Rational
-      Bezier curves everywhere here) }
-    function ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurveList;
-
-    procedure UpdateControlPoints; override;
-
-    class function NiceClassName: string; override;
-
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-  end deprecated 'Rendering of TPiecewiseCubicBezier is not portable to OpenGLES (that is: Android and iOS) and not very efficient. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
+    procedure UpdateControlPoints; override;
+    function Point(const t: Float): TVector3Single; override;
+    class function NiceClassName: string; override;
+  end;
 
   {$warnings off} { Consciously using deprecated stuff. }
   TSmoothInterpolatedCurve = TPiecewiseCubicBezier;
   {$warnings on}
-
-(*TODO: buggy now.
-  TFastPiecewiseCubicBezier = class(TInterpolatedCurve)
-  public
-    function Point(const t: Float): TVector3Single; override;
-    class function NiceClassName: string; override;
-  end;
-*)
-
-type
-  TCubicBezier2DPoints = array [0..3] of TVector2Single;
-  TCubicBezier3DPoints = array [0..3] of TVector3Single;
 
 { Cubic (4 control points) Bezier curve (with all weights equal) in 1D. }
 function CubicBezier1D(T: Single; const Points: TVector4Single): Single;
@@ -1219,109 +1201,43 @@ end;
 
 function TPiecewiseCubicBezier.Point(const t: Float): TVector3Single;
 var
-  i: Integer;
+  T01: Single;
+  TInsidePiece: Double;
+  IndexBefore: Int64;
+  IndexBeforeChange: Integer;
 begin
+  Assert(ControlPoints.Count >= 1);
   if ControlPoints.Count = 1 then
-    Exit(ControlPoints.L[0]);
+    Exit(ControlPoints.Items[0]);
 
-  for i := 0 to BezierCurves.Count-1 do
-    if t <= BezierCurves[i].TEnd then Break;
+  T01 := MapRange(T, TBegin, TEnd, 0, 1);
+  if ControlPoints.Count = 2 then
+    // super-fast case
+    Exit(Lerp(T01, ControlPoints.Items[0], ControlPoints.Items[1]));
 
-  Result := BezierCurves[i].Point(t);
-end;
+  FloatDivMod(T01, 1 / (ControlPoints.Count - 1), IndexBefore, TInsidePiece);
+  TInsidePiece *= ControlPoints.Count - 1; // make TInsidePiece in 0..1 range
 
-function TPiecewiseCubicBezier.ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurveList;
-var
-  S: TVector3SingleList;
-
-  function MiddlePoint(i, Sign: Integer): TVector3Single;
+  { fix IndexBefore (together with TInsidePiece, synchronized)
+    to be within [0, ControlPoints.Count - 2] range.
+    Necessary so that both IndexBefore and IndexAfter are later in valid
+    control points [0, ControlPoints.Count - 1] range. }
+  IndexBeforeChange := 0;
+  if IndexBefore > ControlPoints.Count - 2 then
+    IndexBeforeChange := -(IndexBefore - (ControlPoints.Count - 2)) else
+  if IndexBefore < 0 then
+    IndexBeforeChange := -IndexBefore;
+  if IndexBeforeChange <> 0 then
   begin
-    Result := ControlPoints.L[i];
-    VectorAddVar(Result,
-      VectorScale(S.L[i], Sign * (ControlPointT(i) - ControlPointT(i-1)) / 3));
+    IndexBefore += IndexBeforeChange;
+    TInsidePiece -= IndexBeforeChange;
   end;
+  Assert(IndexBefore >= 0);
+  Assert(IndexBefore <= ControlPoints.Count - 2);
 
-var
-  C: TVector3SingleList;
-  i: Integer;
-  {$warnings off} { Consciously using deprecated stuff. }
-  NewCurve: TRationalBezierCurve;
-  {$warnings on}
-begin
-  Result := TRationalBezierCurveList.Create(ResultOwnsCurves);
-  try
-    if ControlPoints.Count <= 1 then Exit;
+  // writeln('TPiecewiseCubicBezier got ', IndexBefore, ' ', TInsidePiece:1:2);
 
-    if ControlPoints.Count = 2 then
-    begin
-      { Normal calcualtions (based on SLE mmgk notes) cannot be done when
-        ControlPoints.Count = 2:
-        C.Count would be 1, S.Count would be 2,
-        S[0] would be calculated based on C[0] and S[1],
-        S[1] would be calculated based on C[0] and S[0].
-        So I can't calculate S[0] and S[1] using given equations when
-        ControlPoints.Count = 2. So I must implement a special case for
-        ControlPoints.Count = 2. }
-      {$warnings off} { Consciously using deprecated stuff. }
-      NewCurve := TRationalBezierCurve.Create(nil);
-      {$warnings on}
-      NewCurve.TBegin := ControlPointT(0);
-      NewCurve.TEnd := ControlPointT(1);
-      NewCurve.ControlPoints.Add(ControlPoints.L[0]);
-      NewCurve.ControlPoints.Add(Lerp(1/3, ControlPoints.L[0], ControlPoints.L[1]));
-      NewCurve.ControlPoints.Add(Lerp(2/3, ControlPoints.L[0], ControlPoints.L[1]));
-      NewCurve.ControlPoints.Add(ControlPoints.L[1]);
-      NewCurve.Weights.AddArray([1.0, 1.0, 1.0, 1.0]);
-      NewCurve.UpdateControlPoints;
-      Result.Add(NewCurve);
-
-      Exit;
-    end;
-
-    { based on SLE mmgk notes, "Krzywe Beziera" page 4 }
-    C := nil;
-    S := nil;
-    try
-      C := TVector3SingleList.Create;
-      C.Count := ControlPoints.Count-1;
-      { calculate C values }
-      for i := 0 to C.Count-1 do
-      begin
-        C.L[i] := VectorSubtract(ControlPoints.L[i+1], ControlPoints.L[i]);
-        VectorScaleVar(C.L[i],
-          1/(ControlPointT(i+1) - ControlPointT(i)));
-      end;
-
-      S := TVector3SingleList.Create;
-      S.Count := ControlPoints.Count;
-      { calculate S values }
-      for i := 1 to S.Count-2 do
-        S.L[i] := Lerp( (ControlPointT(i+1) - ControlPointT(i))/
-                            (ControlPointT(i+1) - ControlPointT(i-1)),
-                            C.L[i-1], C.L[i]);
-      S.L[0        ] := VectorSubtract(VectorScale(C.L[0        ], 2), S.L[1        ]);
-      S.L[S.Count-1] := VectorSubtract(VectorScale(C.L[S.Count-2], 2), S.L[S.Count-2]);
-
-      for i := 1 to ControlPoints.Count-1 do
-      begin
-        {$warnings off} { Consciously using deprecated stuff. }
-        NewCurve := TRationalBezierCurve.Create(nil);
-        {$warnings on}
-        NewCurve.TBegin := ControlPointT(i-1);
-        NewCurve.TEnd := ControlPointT(i);
-        NewCurve.ControlPoints.Add(ControlPoints.L[i-1]);
-        NewCurve.ControlPoints.Add(MiddlePoint(i-1, +1));
-        NewCurve.ControlPoints.Add(MiddlePoint(i  , -1));
-        NewCurve.ControlPoints.Add(ControlPoints.L[i]);
-        NewCurve.Weights.AddArray([1.0, 1.0, 1.0, 1.0]);
-        NewCurve.UpdateControlPoints;
-        Result.Add(NewCurve);
-      end;
-    finally
-      C.Free;
-      S.Free;
-    end;
-  except Result.Free; raise end;
+  Result := CubicBezier3D(TInsidePiece, BezierCurves[IndexBefore]);
 end;
 
 class function TPiecewiseCubicBezier.NiceClassName: string;
@@ -1330,21 +1246,80 @@ begin
 end;
 
 procedure TPiecewiseCubicBezier.UpdateControlPoints;
-var
-  i: Integer;
+
+  procedure UpdateBezierCurves;
+  var
+    S: TVector3SingleList;
+    C: TVector3SingleList;
+    I: Integer;
+    PointBegin, PointEnd: TVector3Single;
+  begin
+    { Normal calculations cannot be done when
+      ControlPoints.Count = 2:
+      C.Count would be 1, S.Count would be 2,
+      S[0] would be calculated based on C[0] and S[1],
+      S[1] would be calculated based on C[0] and S[0].
+      So we can't calculate S[0] and S[1] using given equations when
+      ControlPoints.Count = 2.
+
+      Point() method implements a special case for ControlPoints.Count = 2,
+      it just does Lerp then. }
+    if ControlPoints.Count <= 2 then
+      Exit;
+
+    { based on SLE mmgk notes, "Krzywe Beziera" page 4 }
+    C := nil;
+    S := nil;
+    try
+      C := TVector3SingleList.Create;
+      C.Count := ControlPoints.Count - 1;
+      { calculate C values }
+      for I := 0 to C.Count - 1 do
+        C[I] := ControlPoints[I + 1] - ControlPoints[I];
+
+      S := TVector3SingleList.Create;
+      S.Count := ControlPoints.Count;
+      { calculate S values }
+      for I := 1 to S.Count - 2 do
+        S[I] := (C[I-1] + C[I]) / 2;
+      S[0        ] := C[0        ] * 2 - S[1        ];
+      S[S.Count-1] := C[S.Count-2] * 2 - S[S.Count-2];
+
+      SetLength(BezierCurves, ControlPoints.Count - 1);
+
+      for I := 1 to ControlPoints.Count - 1 do
+      begin
+        PointBegin := ControlPoints.L[I - 1];
+        PointEnd   := ControlPoints.L[I];
+        BezierCurves[I - 1][0] := PointBegin;
+        BezierCurves[I - 1][1] := PointBegin + S[I -1] / 3;
+        BezierCurves[I - 1][2] := PointEnd   - S[I   ] / 3;
+        BezierCurves[I - 1][3] := PointEnd;
+      end;
+    finally
+      C.Free;
+      S.Free;
+    end;
+  end;
+
+  procedure UpdateConvexHullPoints;
+  var
+    I: Integer;
+  begin
+    ConvexHullPoints.Clear;
+    ConvexHullPoints.AddList(ControlPoints);
+    for I := 0 to Length(BezierCurves) - 1 do
+    begin
+      { add also intermediate control points }
+      ConvexHullPoints.Add(BezierCurves[I][1]);
+      ConvexHullPoints.Add(BezierCurves[I][2]);
+    end;
+  end;
+
 begin
   inherited;
-  FreeAndNil(BezierCurves);
-
-  BezierCurves := ToRationalBezierCurves(true);
-
-  ConvexHullPoints.Clear;
-  ConvexHullPoints.AddList(ControlPoints);
-  for i := 0 to BezierCurves.Count-1 do
-  begin
-    ConvexHullPoints.Add(BezierCurves[i].ControlPoints.L[1]);
-    ConvexHullPoints.Add(BezierCurves[i].ControlPoints.L[2]);
-  end;
+  UpdateBezierCurves;
+  UpdateConvexHullPoints;
 end;
 
 constructor TPiecewiseCubicBezier.Create(AOwner: TComponent);
@@ -1355,69 +1330,9 @@ end;
 
 destructor TPiecewiseCubicBezier.Destroy;
 begin
-  FreeAndNil(BezierCurves);
   FreeAndNil(ConvexHullPoints);
   inherited;
 end;
-
-{ TFastPiecewiseCubicBezier -------------------------------------------------- }
-
-(*
-TODO: buggy now.
-
-class function TFastPiecewiseCubicBezier.NiceClassName: string;
-begin
-  Result := 'Fast Cubic B-Spline (piecewise C2-Smooth Cubic Bezier)';
-end;
-
-function TFastPiecewiseCubicBezier.Point(const T: Float): TVector3Single;
-
-  { This asssumes that I = [0..ControlPoints.Count - 2]. }
-  function C(const I: Integer): TVector3Single;
-  begin
-    Result := ControlPoints.L[I + 1] - ControlPoints.L[I];
-  end;
-
-  { This asssumes that I = [0..ControlPoints.Count - 1],
-    not outside of this range, and that ControlPoints.Count > 2. }
-  function S(const I: Integer): TVector3Single;
-  begin
-    if I = 0 then
-      Exit(C(0) * 2 - S(1)) else
-    if I = ControlPoints.Count - 1 then
-      Exit(C(ControlPoints.Count - 2) * 2 - S(ControlPoints.Count - 2)) else
-      Exit((ControlPoints.L[I - 1] + ControlPoints.L[I]) / 2);
-  end;
-
-var
-  T01: Single;
-  TInsidePiece: Double;
-  IndexBefore: Int64;
-  IndexAfter: Integer;
-  PieceControlPoints: TCubicBezier3DPoints;
-begin
-  Assert(ControlPoints.Count >= 1);
-  if ControlPoints.Count = 1 then
-    Exit(ControlPoints.Items[0]);
-
-  T01 := MapRangeClamped(T, TBegin, TEnd, 0, 1);
-  if ControlPoints.Count = 2 then
-    Exit(Lerp(T01, ControlPoints.Items[0], ControlPoints.Items[1]));
-
-  FloatDivMod(T01, 1 / (ControlPoints.Count - 1), IndexBefore, TInsidePiece);
-  ClampVar(IndexBefore, 0, ControlPoints.Count - 2);
-  IndexAfter := IndexBefore + 1;
-  TInsidePiece *= ControlPoints.Count - 1; // make TInsidePiece in 0..1 range
-
-  PieceControlPoints[0] := ControlPoints[IndexBefore];
-  PieceControlPoints[3] := ControlPoints[IndexAfter];
-
-  PieceControlPoints[1] := PieceControlPoints[0] + S(IndexBefore) / 3;
-  PieceControlPoints[2] := PieceControlPoints[3] - S(IndexAfter) / 3;
-
-  Result := CubicBezier3D(TInsidePiece, PieceControlPoints);
-end;
-*)
 
 { global routines ------------------------------------------------------------ }
 
