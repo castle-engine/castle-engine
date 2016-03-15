@@ -46,6 +46,7 @@ all:
 	$(MAKE) --no-print-directory build-using-fpmake
 	tools/texturefont2pascal/texturefont2pascal_compile.sh
 	tools/image2pascal/image2pascal_compile.sh
+	tools/castle-curves/castle-curves_compile.sh
 	tools/build-tool/castle-engine_compile.sh
 
 .PHONY: build-using-fpmake
@@ -86,6 +87,7 @@ DATADIR=$(DATAROOTDIR)
 install:
 	install tools/texturefont2pascal/texturefont2pascal $(BINDIR)
 	install tools/image2pascal/image2pascal $(BINDIR)
+	install tools/castle-curves/castle-curves $(BINDIR)
 	install tools/build-tool/castle-engine $(BINDIR)
 #	cp -R tools/build-tool/data $(DATADIR)/castle-engine
 	cd tools/build-tool/data/ && \
@@ -95,6 +97,7 @@ install:
 uninstall:
 	rm -f  $(BINDIR)/texturefont2pascal \
 	       $(BINDIR)/image2pascal \
+	       $(BINDIR)/castle-curves \
 	       $(BINDIR)/castle-engine
 	rm -Rf $(DATADIR)/castle-engine
 
@@ -182,7 +185,8 @@ EXAMPLES_BASE_NAMES := \
   examples/android/android_demo/androiddemo_standalone \
   tools/build-tool/castle-engine \
   tools/image2pascal/image2pascal \
-  tools/texturefont2pascal/texturefont2pascal
+  tools/texturefont2pascal/texturefont2pascal \
+  tools/castle-curves/castle-curves
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
@@ -300,10 +304,12 @@ clean-window:
 # ----------------------------------------
 # Set SVN tag.
 
-svntag:
-	source ../www/pack/generated_versions.sh && \
-	  svn copy https://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine \
-	           https://svn.code.sf.net/p/castle-engine/code/tags/castle_game_engine/"$$GENERATED_VERSION_CASTLE_GAME_ENGINE" \
-	  -m "Tagging the $$GENERATED_VERSION_CASTLE_GAME_ENGINE version of 'Castle Game Engine'."
+# Don't use anymore, we use GIT now.
+
+# svntag:
+# 	source ../www/pack/generated_versions.sh && \
+# 	  svn copy https://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine \
+# 	           https://svn.code.sf.net/p/castle-engine/code/tags/castle_game_engine/"$$GENERATED_VERSION_CASTLE_GAME_ENGINE" \
+# 	  -m "Tagging the $$GENERATED_VERSION_CASTLE_GAME_ENGINE version of 'Castle Game Engine'."
 
 # eof ------------------------------------------------------------

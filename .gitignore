@@ -118,6 +118,10 @@ tools/build-tool/data/android/integrated-components/google_play_services/google-
 tools/build-tool/data/android/integrated-components/google_play_services/libs/*.jar
 tools/build-tool/data/android/integrated-components/heyzap/libs/*.jar
 tools/build-tool/data/android/integrated-components/startapp/libs/*.jar
+tools/castle-curves/castle-curves
+tools/castle-curves/castle-curves.exe
+examples/curves_surfaces/simplest_curve_read
+examples/curves_surfaces/simplest_curve_read.exe
 tools/castle-engine
 tools/image2pascal/image2pascal
 tools/image2pascal/image2pascal.exe
