@@ -140,7 +140,7 @@ begin
   Text.Clear;
   Text.Append(Format('Selected curve : %s', [IntToStrOrNone(SelectedCurve)]));
   if SelectedCurve <> -1 then
-    Text.Append(Format('  Curve type : %s', [Curves[SelectedCurve].NiceClassName]));
+    Text.Append(Format('  Curve type : %s', [Curves[SelectedCurve].ClassName]));
   Text.Append(Format('Selected point : %s', [IntToStrOrNone(SelectedPoint)]));
   {$warnings off}
   if RationalBezierCurvePointSelected then
@@ -149,7 +149,7 @@ begin
   {$warnings on}
   Text.Append('');
   Text.Append(Format('Rendering segments = %d', [RenderSegments]));
-  Text.Append(Format('New curves type = %s', [NewCurvesClass.NiceClassName]));
+  Text.Append(Format('New curves type = %s', [NewCurvesClass.ClassName]));
 
   inherited;
 end;
@@ -177,21 +177,24 @@ begin
   { draw convex hull of SelectedCurve }
   if ShowSelectedCurveConvexHull and (SelectedCurve <> -1) then
   begin
+    {$warnings off}
     Curves[SelectedCurve].ConvexHullColor := ColorConvexHull;
     Curves[SelectedCurve].RenderConvexHull;
+    {$warnings on}
   end;
 
   { draw all curves and their control points }
   for i := 0 to Curves.Count-1 do
   begin
+    {$warnings off}
+    { this program knowingly uses a lot of deprecated CastleCurves stuff
+      for rendering... }
     Curves[i].LineWidth := LineWidth;
     if i = SelectedCurve then
       Curves[i].Color := ColorCurveSelected else
       Curves[i].Color := ColorCurveNotSelected;
     Curves[i].ControlPointsColor := Curves[i].Color;
     if ShowPoints then Curves[i].RenderControlPoints;
-    {$warnings off}
-    { this program knowingly uses a lot of deprecated CastleCurves stuff }
     Curves[i].Render(RenderSegments);
     {$warnings on}
   end;
@@ -425,50 +428,77 @@ procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
     end;
   end;
 
+  procedure OpenFile;
+  var
+    S: string;
+    NewCurves: TCurveList;
+    I: Integer;
+  begin
+    S := CurvesURL;
+    if Window.FileDialog('Open curves from XML file', S, true,
+      'All Files|*|*XML files|*.xml') then
+    begin
+      NewCurves := nil;
+      try
+        NewCurves := TCurveList.Create(false);
+        NewCurves.LoadFromFile(s);
+      except
+        on E: Exception do
+        begin
+          MessageOK(Window, 'Error while loading file "' +s +'" : ' + E.Message);
+          FreeAndNil(NewCurves); // avoid memory leaks
+          Exit;
+        end;
+      end;
+
+      { move curve instances from NewCurves to Curves.
+        Potentially, various curve types may be stored in curves file,
+        but right now we support only TControlPointsCurve. }
+      Curves.Clear;
+      for I := 0 to NewCurves.Count - 1 do
+        if NewCurves[I] is TControlPointsCurve then
+          Curves.Add(NewCurves[I] as TControlPointsCurve);
+      FreeAndNil(NewCurves);
+
+      { select stuff after Curves is updated }
+      SetCurvesURL(s);
+      if Curves.Count <> 0 then { select first curve, if available }
+        SetSelectedCurve(0) else
+        SetSelectedCurve(-1);
+      if SelectedCurve = -1 then
+        SetSelectedPoint(-1) else
+        SetSelectedPoint(0);
+    end;
+  end;
+
+  procedure SaveFile;
+  var
+    S: string;
+    NewCurves: TCurveList;
+    I: Integer;
+  begin
+    s := CurvesURL;
+    if Window.FileDialog('Save curves to XML file', s, false,
+      'All Files|*|*XML files|*.xml') then
+    begin
+      try
+        NewCurves := TCurveList.Create(false);
+        for I := 0 to Curves.Count - 1 do
+          NewCurves.Add(Curves[I]);
+        NewCurves.SaveToFile(S);
+      finally FreeAndNil(NewCurves) end;
+
+      SetCurvesURL(S);
+    end;
+  end;
+
 var
-  s: string;
+  S: string;
   NewWeight: Float;
-  NewCurves: TControlPointsCurveList;
 begin
   case MenuItem.IntData of
-    4:  begin
-          s := CurvesURL;
-          if Window.FileDialog('Open curves from XML file', s, true,
-            'All Files|*|*XML files|*.xml') then
-          begin
-            NewCurves := nil;
-            try
-              NewCurves := TControlPointsCurveList.Create(true);
-              NewCurves.LoadFromFile(s);
-            except
-              on E: Exception do
-              begin
-                MessageOK(Window, 'Error while loading file "' +s +'" : ' + E.Message);
-                FreeAndNil(NewCurves); // avoid memory leaks
-                Exit;
-              end;
-            end;
-            { only when loading NewCurves succeded -- then we free Curves }
-            FreeAndNil(Curves);
-            Curves := NewCurves;
-            SetCurvesURL(s);
-            if Curves.Count <> 0 then { select first curve, if available }
-              SetSelectedCurve(0) else
-              SetSelectedCurve(-1);
-            if SelectedCurve = -1 then
-              SetSelectedPoint(-1) else
-              SetSelectedPoint(0);
-          end;
-        end;
-    6:  begin
-          s := CurvesURL;
-          if Window.FileDialog('Save curves to XML file', s, false,
-            'All Files|*|*XML files|*.xml') then
-          begin
-            Curves.SaveToFile(s);
-            SetCurvesURL(s);
-          end;
-        end;
+    4:  OpenFile;
+    6:  SaveFile;
     8:  Window.SaveScreenDialog(FileNameAutoInc('castle-curves_%d.png'));
     10: Window.Close;
 

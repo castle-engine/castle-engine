@@ -28,16 +28,16 @@ uses Classes, FGL, DOM,
 
 type
   { 3D curve, a set of points defined by a continous function @link(Point)
-    for arguments within [TBegin, TEnd].
-
-    Note that some descendants return only an approximate BoundingBox result,
-    it may be too small or too large sometimes. }
+    for arguments within [TBegin, TEnd]. }
   TCurve = class(T3D)
   private
     FColor: TCastleColor;
     FLineWidth: Single;
     FTBegin, FTEnd: Single;
     FDefaultSegments: Cardinal;
+  protected
+    procedure LoadFromElement(const E: TDOMElement); virtual;
+    procedure SaveToStream(const Stream: TStream); virtual;
   public
     { The valid range of curve function argument. Must be TBegin <= TEnd.
       @groupBegin }
@@ -66,8 +66,10 @@ type
 
     { Curve rendering color. White by default. }
     property Color: TCastleColor read FColor write FColor;
+      deprecated 'Do not use this, as you should not use Render method.';
 
     property LineWidth: Single read FLineWidth write FLineWidth default 1;
+      deprecated 'Do not use this, as you should not use Render method.';
 
     { Default number of segments, used when rendering by T3D interface
       (that is, @code(Render(Frustum, TransparentGroup...)) method.) }
@@ -80,22 +82,35 @@ type
     constructor Create(AOwner: TComponent); override;
   end;
 
-  TCurveList = specialize TFPGObjectList<TCurve>;
+  TCurveList = class(specialize TFPGObjectList<TCurve>)
+  public
+    { Load curves definitions from a simple XML file.
+      Hint: use https://github.com/castle-engine/bezier-curves to design curves
+      visually. }
+    procedure LoadFromFile(const URL: string);
+
+    { Save curve definitions to a simple XML file.
+      Hint: use https://github.com/castle-engine/bezier-curves to design curves
+      visually. }
+    procedure SaveToFile(const URL: string);
+  end;
 
   { Curve defined by explicitly giving functions for
     Point(t) = x(t), y(t), z(t) as CastleScript expressions. }
   TCasScriptCurve = class(TCurve)
   private
     FSegmentsForBoundingBox: Cardinal;
-    procedure SetSegmentsForBoundingBox(AValue: Cardinal);
-    procedure SetTVariable(AValue: TCasScriptFloat);
-  protected
     FTVariable: TCasScriptFloat;
     FFunction: array [0..2] of TCasScriptExpression;
     FBoundingBox: TBox3D;
+    procedure SetSegmentsForBoundingBox(AValue: Cardinal);
+    procedure SetTVariable(AValue: TCasScriptFloat);
     function GetFunction(const Index: Integer): TCasScriptExpression;
     procedure SetFunction(const Index: Integer; const Value: TCasScriptExpression);
     procedure UpdateBoundingBox;
+  protected
+    procedure LoadFromElement(const E: TDOMElement); override;
+    procedure SaveToStream(const Stream: TStream); override;
   public
     function Point(const t: Float): TVector3Single; override;
 
@@ -151,23 +166,21 @@ type
       CreateConvexHullPoints. (and does nothing in DestroyConvexHullPoints) }
     function CreateConvexHullPoints: TVector3SingleList; virtual;
     procedure DestroyConvexHullPoints(Points: TVector3SingleList); virtual;
-
-    procedure LoadFromElementCore(const E: TDOMElement);
-    procedure SaveToStreamCore(const Stream: TStream);
   protected
-    procedure LoadFromElement(const E: TDOMElement); virtual; abstract;
-    procedure SaveToStream(const Stream: TStream); virtual; abstract;
+    procedure LoadFromElement(const E: TDOMElement); override;
+    procedure SaveToStream(const Stream: TStream); override;
   public
     ControlPoints: TVector3SingleList;
 
     property ControlPointsColor: TCastleColor read FControlPointsColor write FControlPointsColor;
+      deprecated 'Do not use this, as you should not use RenderControlPoints method.';
 
     { Render control points, using ControlPointsColor. }
     procedure RenderControlPoints;
+      deprecated 'Do not render stuff directly by this method. Instead create TCastleScene, initialize it''s X3D graph based on ControlPoints, and add it to the SceneManager.Items.';
 
-    { This class provides implementation for BoundingBox: it is simply
-      a BoundingBox of ControlPoints. Subclasses may (but don't have to)
-      override this to calculate better (more accurate) BoundingBox. }
+    { Bounding box of the curve.
+      In this class, it is simply a BoundingBox of ControlPoints. }
     function BoundingBox: TBox3D; override;
 
     { Always after changing ControlPoints or TBegin or TEnd and before calling Point,
@@ -178,25 +191,21 @@ type
       When overriding: always call inherited first. }
     procedure UpdateControlPoints; virtual;
 
-    { Nice class name, with spaces, starts with a capital letter.
-      Much better than ClassName. Especially under FPC 1.0.x where
-      ClassName is always uppercased. }
-    class function NiceClassName: string; virtual; abstract;
-
     property ConvexHullColor: TCastleColor read FConvexHullColor write FConvexHullColor;
+      deprecated 'Do not use this, as you should not use RenderConvexHull method.';
 
     { Render convex hull polygon, using ConvexHullColor.
       Ignores Z-coord of ControlPoints. }
     procedure RenderConvexHull;
+      deprecated 'Do not render stuff directly by this method. Instead create TCastleScene, initialize it''s X3D graph based on ConvexHullPoints, and add it to the SceneManager.Items.';
 
-    { Constructor.
-      It has to be virtual because it's called by CreateDivideCasScriptCurve. }
+    { Constructor. }
     constructor Create(AOwner: TComponent); override;
 
-    { Calculates ControlPoints taking Point(i, ControlPointsCount-1)
-      for i in [0 .. ControlPointsCount-1] from CasScriptCurve.
+    { Calculate initial control points by sampling given TCasScriptCurve,
+      with analytical curve equation.
       TBegin and TEnd are copied from CasScriptCurve. }
-    constructor CreateDivideCasScriptCurve(CasScriptCurve: TCasScriptCurve;
+    constructor CreateFromEquation(CasScriptCurve: TCasScriptCurve;
       ControlPointsCount: Cardinal);
 
     destructor Destroy; override;
@@ -204,18 +213,7 @@ type
 
   TControlPointsCurveClass = class of TControlPointsCurve;
 
-  TControlPointsCurveList = class(specialize TFPGObjectList<TControlPointsCurve>)
-  public
-    { Load curves definitions from a simple XML file.
-      Hint: use https://github.com/castle-engine/bezier-curves to design curves
-      visually. }
-    procedure LoadFromFile(const URL: string);
-
-    { Save curve definitions to a simple XML file.
-      Hint: use https://github.com/castle-engine/bezier-curves to design curves
-      visually. }
-    procedure SaveToFile(const URL: string);
-  end;
+  TControlPointsCurveList = specialize TFPGObjectList<TControlPointsCurve>;
 
   { Rational Bezier curve (Bezier curve with weights).
     Note: for Bezier Curve ControlPoints.Count MAY be 1.
@@ -234,7 +232,6 @@ type
     destructor Destroy; override;
     procedure UpdateControlPoints; override;
     function Point(const t: Float): TVector3Single; override;
-    class function NiceClassName: string; override;
   end deprecated 'Rendering of TRationalBezierCurve is not portable to OpenGLES (that is: Android and iOS) and not very efficient. Also, this is usually not very useful curve for game purposes, you usually want to use cubic Bezier (CubicBezier3D) or piecewise cubic Bezier (TPiecewiseCubicBezier) instead. For portable and fast general curves use X3D NURBS nodes (wrapped in a TCastleScene) instead.';
 
   {$warnings off} { Consciously using deprecated stuff. }
@@ -252,6 +249,7 @@ type
     This is a cubic B-spline. Which is equivalent to C2 continuous
     composite Bézier curves. See
     https://en.wikipedia.org/wiki/Spline_%28mathematics%29 .
+    Aka Cubic B-Spline (piecewise C2-Smooth Cubic Bezier).
 
     You can also explicitly convert it to a list of bezier curves using
     ToRationalBezierCurves.
@@ -270,18 +268,16 @@ type
   strict private
     BezierCurves: array of TCubicBezier3DPoints;
     ConvexHullPoints: TVector3SingleList;
+    FBoundingBox: TBox3D;
   strict protected
     function CreateConvexHullPoints: TVector3SingleList; override;
     procedure DestroyConvexHullPoints(Points: TVector3SingleList); override;
-  protected
-    procedure LoadFromElement(const E: TDOMElement); override;
-    procedure SaveToStream(const Stream: TStream); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure UpdateControlPoints; override;
     function Point(const t: Float): TVector3Single; override;
-    class function NiceClassName: string; override;
+    function BoundingBox: TBox3D; override;
   end;
 
 { Cubic (4 control points) Bezier curve (with all weights equal) in 1D. }
@@ -348,8 +344,10 @@ procedure TCurve.Render(Segments: Cardinal);
 var i: Integer;
 begin
   {$ifndef OpenGLES} //TODO-es
+  {$warnings off}
   glColorv(Color);
   glLineWidth(LineWidth);
+  {$warnings on}
   glBegin(GL_LINE_STRIP);
   for i := 0 to Segments do glVertexv(PointOfSegment(i, Segments));
   glEnd;
@@ -388,6 +386,79 @@ begin
   FDefaultSegments := 10;
   FLineWidth := 1;
   FColor := White;
+end;
+
+procedure TCurve.LoadFromElement(const E: TDOMElement);
+var
+  ETime: TDOMElement;
+begin
+  ETime := E.ChildElement('time');
+  TBegin := ETime.AttributeSingle('begin');
+  TEnd := ETime.AttributeSingle('end');
+end;
+
+procedure TCurve.SaveToStream(const Stream: TStream);
+begin
+  WritelnStr(Stream, Format('    <time begin="%f" end="%f" />', [TBegin, TEnd]));
+end;
+
+{ TCurveList ---------------------------------------------------- }
+
+procedure TCurveList.LoadFromFile(const URL: string);
+var
+  Document: TXMLDocument;
+  I: TXMLElementIterator;
+  CurveTypeStr: string;
+  Curve: TCurve;
+begin
+  Clear;
+
+  Document := URLReadXML(URL);
+  try
+    Check(Document.DocumentElement.TagName = 'curves',
+      'Root node of curves file must be <curves>');
+
+    I := Document.DocumentElement.ChildrenIterator('curve');
+    try
+      while I.GetNext do
+      begin
+        CurveTypeStr := I.Current.AttributeString('type');
+        {$warnings off}
+        { consciously using deprecated }
+        if SameText(CurveTypeStr, TRationalBezierCurve.ClassName) then
+          Curve := TRationalBezierCurve.Create(nil) else
+        {$warnings on}
+        if SameText(CurveTypeStr, TPiecewiseCubicBezier.ClassName) then
+          Curve := TPiecewiseCubicBezier.Create(nil) else
+        if SameText(CurveTypeStr, TCasScriptCurve.ClassName) then
+          Curve := TCasScriptCurve.Create(nil) else
+          raise Exception.CreateFmt('Curve type "%s" unknown', [CurveTypeStr]);
+        Curve.LoadFromElement(I.Current);
+        if Curve is TControlPointsCurve then
+          TControlPointsCurve(Curve).UpdateControlPoints;
+        Add(Curve);
+      end;
+    finally FreeAndNil(I); end;
+  finally FreeAndNil(Document) end;
+end;
+
+procedure TCurveList.SaveToFile(const URL: string);
+var
+  Stream: TStream;
+  I: Integer;
+begin
+  Stream := URLSaveStream(URL);
+  try
+    WritelnStr(Stream, '<?xml version="1.0"?>');
+    WritelnStr(Stream, '<curves>');
+    for I := 0 to Count - 1 do
+    begin
+      WritelnStr(Stream, '  <curve type="' + Items[I].ClassName + '">');
+      Items[I].SaveToStream(Stream);
+      WritelnStr(Stream, '  </curve>');
+    end;
+    WritelnStr(Stream, '</curves>');
+  finally FreeAndNil(Stream) end;
 end;
 
 { TCasScriptCurve ------------------------------------------------------------ }
@@ -486,6 +557,18 @@ begin
   inherited;
 end;
 
+procedure TCasScriptCurve.LoadFromElement(const E: TDOMElement);
+begin
+  inherited LoadFromElement(E);
+  // TODO: load TCasScriptCurve specifics
+end;
+
+procedure TCasScriptCurve.SaveToStream(const Stream: TStream);
+begin
+  inherited SaveToStream(Stream);
+  // TODO: save TCasScriptCurve specifics
+end;
+
 { TControlPointsCurve ------------------------------------------------ }
 
 procedure TControlPointsCurve.RenderControlPoints;
@@ -493,7 +576,9 @@ var
   i: Integer;
 begin
   {$ifndef OpenGLES} //TODO-es
+  {$warnings off}
   glColorv(ControlPointsColor);
+  {$warnings on}
   glBegin(GL_POINTS);
   for i := 0 to ControlPoints.Count-1 do glVertexv(ControlPoints.L[i]);
   glEnd;
@@ -531,7 +616,9 @@ begin
     CH := ConvexHull(CHPoints);
     try
       {$ifndef OpenGLES} //TODO-es
+      {$warnings off}
       glColorv(ConvexHullColor);
+      {$warnings on}
       glBegin(GL_POLYGON);
       try
         for i := 0 to CH.Count-1 do
@@ -553,7 +640,7 @@ begin
   FConvexHullColor := White;
 end;
 
-constructor TControlPointsCurve.CreateDivideCasScriptCurve(
+constructor TControlPointsCurve.CreateFromEquation(
   CasScriptCurve: TCasScriptCurve; ControlPointsCount: Cardinal);
 var
   i: Integer;
@@ -573,15 +660,12 @@ begin
   inherited;
 end;
 
-procedure TControlPointsCurve.LoadFromElementCore(const E: TDOMElement);
+procedure TControlPointsCurve.LoadFromElement(const E: TDOMElement);
 var
   I: TXMLElementIterator;
-  ETime: TDOMElement;
   EControlPoints: TDOMElement;
 begin
-  ETime := E.ChildElement('time');
-  TBegin := ETime.AttributeSingle('begin');
-  TEnd := ETime.AttributeSingle('end');
+  inherited LoadFromElement(E);
 
   EControlPoints := E.ChildElement('control_points');
   I := EControlPoints.ChildrenIterator('control_point');
@@ -591,12 +675,12 @@ begin
   finally FreeAndNil(I); end;
 end;
 
-procedure TControlPointsCurve.SaveToStreamCore(const Stream: TStream);
+procedure TControlPointsCurve.SaveToStream(const Stream: TStream);
 var
   I: Integer;
   VectorStr: string;
 begin
-  WritelnStr(Stream, Format('    <time begin="%f" end="%f" />', [TBegin, TEnd]));
+  inherited SaveToStream(Stream);
 
   WritelnStr(Stream, '    <control_points>');
   for I := 0 to ControlPoints.Count - 1 do
@@ -605,58 +689,6 @@ begin
     WritelnStr(Stream, '      <control_point value="' + VectorStr + '"/>');
   end;
   WritelnStr(Stream, '    </control_points>');
-end;
-
-{ TControlPointsCurveList ---------------------------------------------------- }
-
-procedure TControlPointsCurveList.LoadFromFile(const URL: string);
-var
-  Document: TXMLDocument;
-  I: TXMLElementIterator;
-  CurveTypeStr: string;
-  Curve: TControlPointsCurve;
-begin
-  Clear;
-
-  Document := URLReadXML(URL);
-  try
-    Check(Document.DocumentElement.TagName = 'curves',
-      'Root node of curves file must be <curves>');
-
-    I := Document.DocumentElement.ChildrenIterator('curve');
-    try
-      while I.GetNext do
-      begin
-        CurveTypeStr := I.Current.AttributeString('type');
-        if CurveTypeStr = 'rational_bezier' then
-          {$warnings off}
-          { consciously using deprecated }
-          Curve := TRationalBezierCurve.Create(nil) else
-          {$warnings on}
-        if CurveTypeStr = 'piecewise_cubic_bezier' then
-          Curve := TPiecewiseCubicBezier.Create(nil) else
-          raise Exception.CreateFmt('Curve type "%s" unknown', [CurveTypeStr]);
-        Curve.LoadFromElement(I.Current);
-        Curve.UpdateControlPoints;
-        Add(Curve);
-      end;
-    finally FreeAndNil(I); end;
-  finally FreeAndNil(Document) end;
-end;
-
-procedure TControlPointsCurveList.SaveToFile(const URL: string);
-var
-  Stream: TStream;
-  I: Integer;
-begin
-  Stream := URLSaveStream(URL);
-  try
-    WritelnStr(Stream, '<?xml version="1.0"?>');
-    WritelnStr(Stream, '<curves>');
-    for I := 0 to Count - 1 do
-      Items[I].SaveToStream(Stream);
-    WritelnStr(Stream, '</curves>');
-  finally FreeAndNil(Stream) end;
 end;
 
 { TRationalBezierCurve ----------------------------------------------- }
@@ -709,11 +741,6 @@ begin
   end;
 end;
 
-class function TRationalBezierCurve.NiceClassName: string;
-begin
-  Result := 'Rational Bezier curve';
-end;
-
 procedure TRationalBezierCurve.UpdateControlPoints;
 begin
   inherited;
@@ -738,7 +765,7 @@ var
   I: TXMLElementIterator;
   EControlPoints: TDOMElement;
 begin
-  inherited LoadFromElementCore(E);
+  inherited LoadFromElement(E);
 
   EControlPoints := E.ChildElement('weights');
   I := EControlPoints.ChildrenIterator('weight');
@@ -752,15 +779,12 @@ procedure TRationalBezierCurve.SaveToStream(const Stream: TStream);
 var
   I: Integer;
 begin
-  WritelnStr(Stream, '  <curve type="rational_bezier">');
-  inherited SaveToStreamCore(Stream);
+  inherited SaveToStream(Stream);
 
   WritelnStr(Stream, '    <weights>');
   for I := 0 to Weights.Count - 1 do
     WritelnStr(Stream, '      <weight value="' + FloatToRawStr(Weights[I]) + '"/>');
   WritelnStr(Stream, '    </weights>');
-
-  WritelnStr(Stream, '  </curve>');
 end;
 
 { TPiecewiseCubicBezier --------------------------------------------------- }
@@ -815,11 +839,6 @@ begin
   if IndexBefore >= Length(BezierCurves) then
     raise Exception.Create('Curves data inside PiecewiseCubicBezier not initialized, probably you forgot to call UpdateControlPoints after changing the ControlPoints');
   Result := CubicBezier3D(TInsidePiece, BezierCurves[IndexBefore]);
-end;
-
-class function TPiecewiseCubicBezier.NiceClassName: string;
-begin
-  Result := 'Cubic B-Spline (piecewise C2-Smooth Cubic Bezier)';
 end;
 
 procedure TPiecewiseCubicBezier.UpdateControlPoints;
@@ -893,10 +912,17 @@ procedure TPiecewiseCubicBezier.UpdateControlPoints;
     end;
   end;
 
+  procedure UpdateBoundingBox;
+  begin
+    FBoundingBox := CalculateBoundingBox(PVector3Single(ConvexHullPoints.List),
+      ConvexHullPoints.Count, 0);
+  end;
+
 begin
   inherited;
   UpdateBezierCurves;
   UpdateConvexHullPoints;
+  UpdateBoundingBox;
 end;
 
 constructor TPiecewiseCubicBezier.Create(AOwner: TComponent);
@@ -911,16 +937,9 @@ begin
   inherited;
 end;
 
-procedure TPiecewiseCubicBezier.LoadFromElement(const E: TDOMElement);
+function TPiecewiseCubicBezier.BoundingBox: TBox3D;
 begin
-  inherited LoadFromElementCore(E);
-end;
-
-procedure TPiecewiseCubicBezier.SaveToStream(const Stream: TStream);
-begin
-  WritelnStr(Stream, '  <curve type="piecewise_cubic_bezier">');
-  inherited SaveToStreamCore(Stream);
-  WritelnStr(Stream, '  </curve>');
+  Result := FBoundingBox;
 end;
 
 { global routines ------------------------------------------------------------ }
