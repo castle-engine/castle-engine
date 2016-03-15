@@ -33,7 +33,7 @@ program interpolated_curves;
 uses CastleGL, CastleWindow, CastleGLUtils, SysUtils, CastleVectors,
   CastleCurves, CastleScript, CastleMessages, CastleUIControls, CastleKeysMouse,
   CastleUtils, CastleScriptParser, CastleScriptCoreFunctions,
-  CastleSceneManager, CastleControls,
+  CastleSceneManager, CastleControls, CastleInterpolatedCurves,
   Classes, CastleStringUtils, Castle3D, CastleColors;
 
 { global vars ------------------------------------------------------------ }
