@@ -29,7 +29,7 @@ type
 implementation
 
 uses SysUtils, Classes, Math,
-  CastleVectors, CastleUtils, CastleCurves;
+  CastleVectors, CastleUtils, CastleCurves, CastleInterpolatedCurves;
 
 { TSlowestPiecewiseCubicBezier ---------------------------------------------- }
 
@@ -63,8 +63,6 @@ type
     function ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurveList;
 
     procedure UpdateControlPoints; override;
-
-    class function NiceClassName: string; override;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -191,11 +189,6 @@ begin
   except Result.Free; raise end;
 end;
 
-class function TSlowestPiecewiseCubicBezier.NiceClassName: string;
-begin
-  Result := 'Cubic B-Spline (piecewise C2-Smooth Cubic Bezier)';
-end;
-
 procedure TSlowestPiecewiseCubicBezier.UpdateControlPoints;
 var
   i: Integer;
@@ -236,15 +229,9 @@ type
   TOnlinePiecewiseCubicBezier = class(TInterpolatedCurve)
   public
     function Point(const t: Float): TVector3Single; override;
-    class function NiceClassName: string; override;
   end;
 
 { TOnlinePiecewiseCubicBezier implementation --------------------------------- }
-
-class function TOnlinePiecewiseCubicBezier.NiceClassName: string;
-begin
-  Result := 'Fast Cubic B-Spline (piecewise C2-Smooth Cubic Bezier)';
-end;
 
 function TOnlinePiecewiseCubicBezier.Point(const T: Float): TVector3Single;
 

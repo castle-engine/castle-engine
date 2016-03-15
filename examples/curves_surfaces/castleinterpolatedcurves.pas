@@ -59,8 +59,6 @@ type
     procedure UpdateControlPoints; override;
     function Point(const t: Float): TVector3Single; override;
 
-    class function NiceClassName: string; override;
-
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
@@ -120,24 +118,18 @@ type
   TNaturalCubicSplineCurve = class(TNaturalCubicSplineCurve_Abstract)
   protected
     function Closed: boolean; override;
-  public
-    class function NiceClassName: string; override;
   end;
 
   { 3D curve defined by three 1D natural cubic splines, always treated as closed. }
   TNaturalCubicSplineCurveAlwaysClosed = class(TNaturalCubicSplineCurve_Abstract)
   protected
     function Closed: boolean; override;
-  public
-    class function NiceClassName: string; override;
   end;
 
   { 3D curve defined by three 1D natural cubic splines, never treated as closed. }
   TNaturalCubicSplineCurveNeverClosed = class(TNaturalCubicSplineCurve_Abstract)
   protected
     function Closed: boolean; override;
-  public
-    class function NiceClassName: string; override;
   end;
 
 implementation
@@ -194,11 +186,6 @@ begin
       musimy miec wiecej ControlPoints zeby dostac Floating Point Overflow. }
     Result[i] := F;
   end;
-end;
-
-class function TLagrangeInterpolatedCurve.NiceClassName: string;
-begin
-  Result := 'Lagrange interpolated curve';
 end;
 
 constructor TLagrangeInterpolatedCurve.Create(AOwner: TComponent);
@@ -486,11 +473,6 @@ end;
 
 { TNaturalCubicSplineCurve -------------------------------------------------- }
 
-class function TNaturalCubicSplineCurve.NiceClassName: string;
-begin
-  Result := 'Natural cubic spline curve';
-end;
-
 function TNaturalCubicSplineCurve.Closed: boolean;
 begin
   Result := VectorsEqual(ControlPoints.First,
@@ -499,22 +481,12 @@ end;
 
 { TNaturalCubicSplineCurveAlwaysClosed -------------------------------------- }
 
-class function TNaturalCubicSplineCurveAlwaysClosed.NiceClassName: string;
-begin
-  Result := 'Natural cubic spline curve (closed)';
-end;
-
 function TNaturalCubicSplineCurveAlwaysClosed.Closed: boolean;
 begin
   Result := true;
 end;
 
 { TNaturalCubicSplineCurveNeverClosed ---------------------------------------- }
-
-class function TNaturalCubicSplineCurveNeverClosed.NiceClassName: string;
-begin
-  Result := 'Natural cubic spline curve (not closed)';
-end;
 
 function TNaturalCubicSplineCurveNeverClosed.Closed: boolean;
 begin
