@@ -172,7 +172,7 @@ begin
 
   GLClear([cbColor], Black);
   if BackgroundImage <> nil then
-    BackgroundImage.Draw(Window.Rect);
+    BackgroundImage.Draw;
 
   { draw convex hull of SelectedCurve }
   if ShowSelectedCurveConvexHull and (SelectedCurve <> -1) then
