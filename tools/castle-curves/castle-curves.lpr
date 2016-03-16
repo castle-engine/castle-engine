@@ -256,6 +256,12 @@ begin
   Curves[SelectedCurve].UpdateControlPoints;
 end;
 
+procedure ChangeZoom(const Multiply: Single);
+begin
+  Zoom *= Multiply;
+  ClampVar(Zoom, 0.01, 100);
+end;
+
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 
   procedure ClosestControlPoint(const Point: TVector2Single;
@@ -304,6 +310,8 @@ procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
     end;
   end;
 
+const
+  ZoomFactor = 1.05;
 var
   Pos: TVector2Single;
 begin
@@ -315,6 +323,10 @@ begin
   end else
   if Event.IsMouseButton(mbRight) then
     AddNewPoint(Pos) else
+  if Event.IsMouseWheel(mwUp) or Event.IsMouseWheel(mwLeft) then
+    ChangeZoom(ZoomFactor) else
+  if Event.IsMouseWheel(mwDown) or Event.IsMouseWheel(mwRight) then
+    ChangeZoom(1/ZoomFactor) else
     Exit;
 
   Window.Invalidate;
@@ -373,13 +385,6 @@ end;
 procedure Update(Container: TUIContainer);
 const
   ZoomFactor = 2;
-
-  procedure ChangeZoom(const Multiply: Single);
-  begin
-    Zoom *= Multiply;
-    ClampVar(Zoom, 0.01, 100);
-  end;
-
 begin
   if Container.Pressed.Characters['+'] then
     ChangeZoom(Power(ZoomFactor, Container.Fps.UpdateSecondsPassed));
@@ -818,5 +823,8 @@ begin
     Window.OnOpen := @Open;
     Window.OnUpdate := @Update;
     Window.OpenAndRun;
-  finally FreeAndNil(Curves) end;
+  finally
+    FreeAndNil(Curves);
+    FreeAndNil(BackgroundImage);
+  end;
 end.
