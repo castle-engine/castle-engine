@@ -940,6 +940,8 @@ var
   OS: TOS;
   CPU: TCPU;
 begin
+  DeletedFiles := 0;
+
   if StandaloneSource <> '' then
   begin
     TryDeleteFile(ChangeFileExt(ExecutableName, ''));

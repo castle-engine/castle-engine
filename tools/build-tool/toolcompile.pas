@@ -34,6 +34,7 @@ implementation
 
 uses SysUtils, Process,
   CastleUtils, CastleStringUtils, CastleWarnings, CastleFilesUtils,
+  CastleFindFiles,
   ToolUtils;
 
 type
@@ -41,12 +42,12 @@ type
     Major, Minor, Release: Integer;
   end;
 
+{ Get FPC version by running "fpc -iV". }
 function FPCVersion: TFPCVersion;
 var
   FpcOutput, FpcExe, Token: string;
   FpcExitStatus, SeekPos: Integer;
 begin
-  Writeln('Querying FPC version...');
   FpcExe := FindExe('fpc');
   if FpcExe = '' then
     raise Exception.Create('Cannot find "fpc" program on $PATH. Make sure it is installed, and available on $PATH');
@@ -76,7 +77,44 @@ begin
   end else
     Result.Release := StrToInt(Token);
 
-  Writeln(Format('Recognized version %d.%d.%d', [Result.Major, Result.Minor, Result.Release]));
+  Writeln(Format('FPC version: %d.%d.%d', [Result.Major, Result.Minor, Result.Release]));
+end;
+
+type
+  TCleanDirectoryHelper = class
+    DeletedFiles: Cardinal; //< only for DeleteFoundFile
+    procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+  end;
+
+procedure TCleanDirectoryHelper.DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+begin
+  if Verbose then
+    Writeln('Deleting ' + FileInfo.AbsoluteName);
+  CheckDeleteFile(FileInfo.AbsoluteName);
+  Inc(DeletedFiles);
+end;
+
+{ Clean compilation trash in Directory, recursively. }
+procedure CleanDirectory(const Directory: string);
+var
+  Helper: TCleanDirectoryHelper;
+
+  procedure DeleteFilesRecursive(const Mask: string);
+  begin
+    FindFiles(Directory, Mask, false, @Helper.DeleteFoundFile, [ffRecursive]);
+  end;
+
+begin
+  Helper := TCleanDirectoryHelper.Create;
+  try
+    // clean FPC compilation stuff
+    DeleteFilesRecursive('*.ppu');
+    DeleteFilesRecursive('*.o');
+    DeleteFilesRecursive('*.or');
+    DeleteFilesRecursive('*.rst');
+    DeleteFilesRecursive('*.rsj');
+    Writeln('Deleted ', Helper.DeletedFiles, ' files');
+  finally FreeAndNil(Helper) end;
 end;
 
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
@@ -279,9 +317,29 @@ begin
     FpcExe := FindExe('fpc');
     if FpcExe = '' then
       raise Exception.Create('Cannot find "fpc" program on $PATH. Make sure it is installed, and available on $PATH');
+
     RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus);
     if FpcExitStatus <> 0 then
-      raise Exception.Create('Failed to compile');
+    begin
+      if Pos('Fatal: Internal error', FpcOutput) <> 0 then
+      begin
+        Writeln('-------------------------------------------------------------');
+        Writeln('It seems FPC crashed with a compiler error (Internal error). If you can reproduce this problem, please report it to http://bugs.freepascal.org/ ! We want to help FPC developers to fix this problem, and the only way to do it is to report it. If you need help creating a good bugreport, speak up on the FPC or Castle Game Engine mailing list.');
+        Writeln;
+        Writeln('As a workaround, right now we''ll clean your project, and (if we have permissions) the Castle Game Engine units, and try compiling again.');
+        Writeln('-------------------------------------------------------------');
+        { when we're called to compile a project, WorkingDirectory is the project
+          path, so this is always Ok. }
+        CleanDirectory(WorkingDirectory);
+        if CastleEngineSrc <> '' then
+          CleanDirectory(CastleEngineSrc);
+        RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus);
+        if FpcExitStatus <> 0 then
+          { do not retry compiling in a loop, give up }
+          raise Exception.Create('Failed to compile');
+      end else
+        raise Exception.Create('Failed to compile');
+    end;
   finally FreeAndNil(FpcOptions) end;
 end;
 
