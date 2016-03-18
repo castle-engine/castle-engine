@@ -261,10 +261,19 @@ function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: 
 function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
 { @groupEnd }
 
-{ Random float value in the given range.
-  Make sure RangeBegin < RangeEnd. }
+{ Random float value in the given range,
+  result is between RangeBegin and RangeEnd.
+  Always pass arguments such that RangeBegin < RangeEnd. }
 function RandomFloatRange(const RangeBegin, RangeEnd: Single): Single;
 function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float;
+
+{ Random int value in the given range,
+  result is always >= RangeBegin and < RangeEnd.
+  So @italic(result is never equal to RangeEnd), this is often convenient,
+  and makes @code(RandomIntRange(0, N)) consistent with @code(Random(N)).
+  Always pass arguments such that RangeBegin < RangeEnd. }
+function RandomIntRange(const RangeBegin, RangeEnd: Integer): Integer;
+function RandomIntRange(const RangeBegin, RangeEnd: Int64): Int64;
 
 function RandomBoolean: boolean;
 
@@ -741,6 +750,16 @@ end;
 function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float;
 begin
   Result := Random * (RangeEnd - RangeBegin) + RangeBegin;
+end;
+
+function RandomIntRange(const RangeBegin, RangeEnd: Integer): Integer;
+begin
+  Result := RangeBegin + Random(RangeEnd - RangeBegin);
+end;
+
+function RandomIntRange(const RangeBegin, RangeEnd: Int64): Int64;
+begin
+  Result := RangeBegin + Random(RangeEnd - RangeBegin);
 end;
 
 function RandomBoolean: boolean;
