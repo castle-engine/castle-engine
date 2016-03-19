@@ -123,8 +123,8 @@ type
         theirs.)
     )
 
-    This descends from TTerrainImage, so you add an image to
-    your function result. }
+    This descends from TTerrainImage, so you can add an image to
+    your function result, e.g. to flatten some specific generated area. }
   TTerrainNoise = class(TTerrainImage)
   private
     FOctaves: Single;
