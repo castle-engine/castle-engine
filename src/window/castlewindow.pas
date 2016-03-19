@@ -2221,7 +2221,7 @@ end;
       Right now only meaningful when using NPAPI plugin. }
     property NamedParameters: TCastleStringList read FNamedParameters;
   private
-    LastFpsOutputTick: DWORD;
+    LastFpsOutputTick: TMilisecTime;
     FFpsShowOnCaption: boolean;
     FSwapFullScreen_Key: TKey;
     FClose_CharKey: char;

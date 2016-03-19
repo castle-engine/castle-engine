@@ -536,6 +536,8 @@ begin
 
   if FTimerState = tsQueryPerformance then
     QueryPerformanceCounter(Result) else
+    { Unfortunately, below will cast GetTickCount64 back to 32-bit.
+      Hopefully QueryPerformanceCounter is usually available. }
     Result := GetTickCount64;
 end;
 {$endif MSWINDOWS}
