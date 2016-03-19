@@ -55,7 +55,7 @@ begin
   for Side := Low(Side) to High(Side) do
     for Pixel := 0 to Sqr(CubeMapSize) - 1 do
     begin
-      if Scene.OctreeVisibleTriangles.IsRayCollision(Point,
+      if Scene.InternalOctreeVisibleTriangles.IsRayCollision(Point,
         CubeMapDirection(Side, Pixel), nil, false, nil) then
         Color := 0 else
         Color := High(Byte);

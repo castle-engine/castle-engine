@@ -110,7 +110,7 @@ begin
         begin
           RayDirectionPT := RandomHemispherePointConst;
           RayDirection := PhiThetaToXYZ(RayDirectionPT, N);
-          if not Scene.OctreeVisibleTriangles.IsRayCollision(V, RayDirection,
+          if not Scene.InternalOctreeVisibleTriangles.IsRayCollision(V, RayDirection,
             nil, true { yes, ignore margin at start, to not hit V },
             nil) then
           begin

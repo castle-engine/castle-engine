@@ -192,9 +192,19 @@ begin
       begin
         if Event.MouseButton = mbLeft then
         begin
+          { This is a cleaner way to query mouse picks
+            if CurrentLocation.Scene was part of scene manager.
+            But for now, this example does rendering tricks
+            (see TGameSceneManager.Render3D) and avoids using SceneManager
+            is normal way. TODO: to be fixed.
+
+          if SceneManager.MouseRayHit <> nil then
+            Player.WantsToWalk(SceneManager.MouseRayHit.Last.Point);
+          }
+
           SceneCamera.CustomRay(Window.Rect, Window.MousePosition,
             SceneManager.Projection, RayOrigin, RayDirection);
-          if CurrentLocation.Scene.OctreeCollisions.RayCollision(
+          if CurrentLocation.Scene.InternalOctreeCollisions.RayCollision(
                SelectedPoint, RayOrigin, RayDirection, true, nil, false, nil) <> nil then
           begin
             Player.WantsToWalk(SelectedPoint);

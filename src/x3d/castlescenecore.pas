@@ -288,25 +288,60 @@ type
   PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
   TCompiledScriptHandlerInfoList = specialize TGenericStructList<TCompiledScriptHandlerInfo>;
 
-  { Possible spatial structure types that may be managed by TCastleSceneCore,
+  { Possible spatial structures that may be managed by TCastleSceneCore,
     see TCastleSceneCore.Spatial. }
   TSceneSpatialStructure = (
-    { Create and keep current the TCastleSceneCore.OctreeRendering.
-      This is a dynamic octree containing all visible shapes. }
+    { Create @italic(and keep up-to-date) a spatial structure
+      containing all visible shapes.
+      It's useful for "frustum culling", it will be automatically
+      used by TCastleScene rendering to speed it up.
+
+      This octree will be automatically updated on dynamic scenes
+      (when e.g. animation moves some shape by changing it's transformation). }
     ssRendering,
 
-    { Create and keep current the TCastleSceneCore.OctreeDynamicCollisions.
-      This is a dynamic octree containing all collidable items. }
+    { Create @italic(and keep up-to-date) a spatial structure
+      containing all collidable shapes (and then reaching
+      into collidable triangles for a specifc shape).
+      It is automatically used by the XxxCollision methods in this class.
+
+      This is actually a hierarchy of octrees: scene is partitioned
+      first into Shapes (each instance of VRML/X3D geometry node),
+      and then each Shape has an octree of triangles inside.
+
+      This octree is useful for all kinds of collision detection.
+      Compared to OctreeCollidableTriangles, it is (very slightly on typical scenes)
+      less efficient, but it can also be updated very fast.
+      For example, merely transforming some Shape means that only
+      one item needs to be moved in the top-level shape tree.
+      So this is the most important structure for collision detection on
+      dynamic scenes. }
     ssDynamicCollisions,
 
-    { Create the TCastleSceneCore.OctreeVisibleTriangles.
-      This is an octree containing all visible triangles, suitable only
-      for scenes that stay static. }
+    { Create a spatial structure containing all visible triangles, suitable only
+      for scenes that stay static.
+
+      It's primarily use is for ray-tracers, that make a lot of collision queries
+      to the same scene in the same time. When rendering using OpenGL,
+      this has no use currently.
+
+      This structure is not updated on scene changes. In fact, the scene
+      contents cannot change when this octree is created --- as this octree
+      keeps pointers to some states that may become invalid in dynamic scenes. }
     ssVisibleTriangles,
 
-    { Create the TCastleSceneCore.OctreeCollidableTriangles.
-      This is an octree containing all collidable triangles, suitable only
-      for scenes that stay static. }
+    { Create a spatial structure containing containing all collidable triangles.
+      This is actually unused for now.
+
+      It may be useful to you if you're absolutely sure that you have a static scene
+      (nothing changes, e.g. because ProcessEvents = @false) and
+      you want to have collision detection with the scene.
+
+      For dynamic scenes, using this is a bad idea as
+      this octree is not updated on scene changes. In fact, the scene
+      contents cannot change when this octree is created --- as this octree
+      keeps pointers to some states that may become invalid in dynamic scenes.
+      Use ssDynamicCollisions for dynamic scenes. }
     ssCollidableTriangles);
   TSceneSpatialStructures = set of TSceneSpatialStructure;
 
@@ -638,6 +673,39 @@ type
     FOctreeVisibleTriangles: TTriangleOctree;
     FOctreeCollidableTriangles: TTriangleOctree;
     FSpatial: TSceneSpatialStructures;
+
+    { Properties of created triangle octrees.
+      See TriangleOctree unit comments for description.
+
+      Default value comes from DefTriangleOctreeLimits.
+
+      They are used only when the octree is created, so usually you
+      want to set them right before changing @link(Spatial) from []
+      to something else.
+
+      Note that particular models may override this by
+      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_octree_properties].
+
+      @groupBegin }
+    function TriangleOctreeLimits: POctreeLimits;
+
+    { Properties of created shape octrees.
+      See ShapeOctree unit comments for description.
+
+      Default value comes from DefShapeOctreeLimits.
+
+      If ShapeOctreeProgressTitle <> '', it will be shown during
+      octree creation (through TProgress.Title). Will be shown only
+      if progress is not active already
+      (so we avoid starting "progress bar within progress bar").
+
+      They are used only when the octree is created, so usually you
+      want to set them right before changing @link(Spatial) from []
+      to something else.
+
+      Note that particular models may override this by
+      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_octree_properties]. }
+    function ShapeOctreeLimits: POctreeLimits;
 
     procedure SetSpatial(const Value: TSceneSpatialStructures);
   private
@@ -1027,140 +1095,101 @@ type
     { If @true, RootNode will be freed by destructor of this class. }
     property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode default true;
 
-    { The dynamic octree containing all visible shapes.
-      It's useful for "frustum culling", it will be automatically
-      used by TCastleScene.RenderFrustum to speed up the rendering.
+    { A spatial structure containing all visible shapes.
+      Add ssRendering to @link(Spatial) property, otherwise it's @nil.
 
-      This octree will be automatically updated on dynamic scenes
-      (when e.g. animation moves some shape by changing it's transformation).
-
-      Add ssRendering to @link(Spatial) property to have this available,
-      otherwise it's @nil.
+      @bold(You should not usually use this directly.
+      Instead use SceneManager
+      (like @link(TCastleSceneManager) or @link(T2DSceneManager))
+      and then use @code(SceneManager.Items.WorldXxxCollision) methods like
+      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       Note that when VRML/X3D scene contains Collision nodes, this octree
-      contains the @italic(visible (not necessarily collidable)) objects.  }
-    function OctreeRendering: TShapeOctree;
+      contains the @italic(visible (not necessarily collidable)) objects. }
+    function InternalOctreeRendering: TShapeOctree;
 
-    { The dynamic octree containing all collidable items.
+    { A spatial structure containing all collidable shapes.
+      Add ssDynamicCollisions to @link(Spatial) property, otherwise it's @nil.
 
-      This is actually a hierarchy of octrees: scene is partitioned
-      first into Shapes (each instance of VRML/X3D geometry node),
-      and then each Shape has an octree of triangles inside.
-
-      This octree is useful for all kinds of collision detection.
-      Compared to OctreeCollidableTriangles, it is (very slightly on typical scenes)
-      less efficient, but it can also be updated very fast.
-      For example, merely transforming some Shape means that only
-      one item needs to be moved in the top-level shape tree.
-      So this is the most important structure for collision detection on
-      dynamic scenes.
+      @bold(You should not usually use this directly.
+      Instead use SceneManager
+      (like @link(TCastleSceneManager) or @link(T2DSceneManager))
+      and then use @code(SceneManager.Items.WorldXxxCollision) methods like
+      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       You can use OctreeCollisions to get either OctreeDynamicCollisions
       or OctreeCollidableTriangles, whichever is available.
-
-      Add ssDynamicCollisions to @link(Spatial) property to have this available,
-      otherwise it's @nil.
 
       Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(collidable (not necessarily rendered)) objects.
 
       TODO: Temporarily, this is updated simply by rebuilding.
       This is a work in progress. }
-    function OctreeDynamicCollisions: TShapeOctree;
+    function InternalOctreeDynamicCollisions: TShapeOctree;
 
-    { The octree containing all visible triangles.
-      It's mainly useful for ray-tracers. When rendering using OpenGL,
-      this has no use currently.
+    { A spatial structure containing all visible triangles, suitable only
+      for scenes that stay static.
+      Add ssVisibleTriangles to @link(Spatial) property, otherwise it's @nil.
 
-      This octree is not updated on scene changes. In fact, the scene
-      contents cannot change when this octree is created --- as this octree
-      keeps pointers to some states that may become invalid in dynamic scenes.
+      @bold(You should not usually use this directly.
+      Instead use SceneManager
+      (like @link(TCastleSceneManager) or @link(T2DSceneManager))
+      and then use @code(SceneManager.Items.WorldXxxCollision) methods like
+      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
-      Add ssVisibleTriangles to @link(Spatial) property to have this available,
-      otherwise it's @nil.
+      Note that when VRML/X3D scene contains X3D Collision nodes, this octree
+      contains the @italic(visible (not necessarily collidable)) objects. }
+    function InternalOctreeVisibleTriangles: TTriangleOctree;
 
-      Note that when VRML/X3D scene contains Collision nodes, this octree
-      contains the @italic(visible (not necessarily collidable)) objects.  }
-    function OctreeVisibleTriangles: TTriangleOctree;
-
-    { The octree containing all collidable triangles.
+    { A spatial structure containing containing all collidable triangles.
       This is pretty much unused for now.
+      Add ssCollidableTriangles to @link(Spatial) property, otherwise it's @nil.
 
-      It may be useful if you're absolutely sure that you have a static scene
-      (nothing changes, e.g. because ProcessEvents = @false) and
-      you want to have collision detection with the scene.
+      @bold(You should not usually use this directly.
+      Instead use SceneManager
+      (like @link(TCastleSceneManager) or @link(T2DSceneManager))
+      and then use @code(SceneManager.Items.WorldXxxCollision) methods like
+      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
-      For dynamic scenes, using this is a bad idea as
-      this octree is not updated on scene changes. In fact, the scene
-      contents cannot change when this octree is created --- as this octree
-      keeps pointers to some states that may become invalid in dynamic scenes.
-      Use OctreeDynamicCollisions for dynamic scenes.
+      It is automatically used by the XxxCollision methods in this class,
+      if exists, unless OctreeDynamicCollisions exists.
 
-      You can use OctreeCollisions to get either OctreeDynamicCollisions
-      or OctreeCollidableTriangles, whichever is available.
-
-      Add ssCollidableTriangles to @link(Spatial) property to have this available,
-      otherwise it's @nil.
-
-      Note that when VRML/X3D scene contains Collision nodes, this octree
-      contains the @italic(collidable (not necessarily rendered)) objects.  }
-    function OctreeCollidableTriangles: TTriangleOctree;
+      Note that you can use OctreeCollisions to get either OctreeDynamicCollisions
+      or OctreeCollidableTriangles, whichever is available. }
+    function InternalOctreeCollidableTriangles: TTriangleOctree;
 
     { Octree for collisions. This returns either OctreeCollidableTriangles
       or OctreeDynamicCollisions, whichever is available (or @nil if none).
       Be sure to add ssDynamicCollisions or ssCollidableTriangles to have
-      this available. }
-    function OctreeCollisions: TBaseTrianglesOctree;
+      this available.
 
-    { Properties of created triangle octrees.
-      See TriangleOctree unit comments for description.
+      @bold(You should not usually use this directly.
+      Instead use SceneManager
+      (like @link(TCastleSceneManager) or @link(T2DSceneManager))
+      and then use @code(SceneManager.Items.WorldXxxCollision) methods like
+      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).) }
+    function InternalOctreeCollisions: TBaseTrianglesOctree;
 
-      Default value comes from DefTriangleOctreeLimits.
-
-      If TriangleOctreeProgressTitle <> '', it will be shown during
-      octree creation (through TProgress.Title). Will be shown only
-      if progress is not active already
-      ( so we avoid starting "progress bar within progress bar").
-
-      They are used only when the octree is created, so usually you
-      want to set them right before changing @link(Spatial) from []
-      to something else.
-
-      Note that particular models may override this by
-      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_octree_properties].
-
-      @groupBegin }
-    function TriangleOctreeLimits: POctreeLimits;
-
+    { Progress title shown during spatial structure creation
+      (through TProgress.Title). Uses only when not empty,
+      and only if progress was not active already
+      (so we avoid starting "progress bar within a progress bar"). }
     property TriangleOctreeProgressTitle: string
       read  FTriangleOctreeProgressTitle
       write FTriangleOctreeProgressTitle;
-    { @groupEnd }
 
-    { Properties of created shape octrees.
-      See ShapeOctree unit comments for description.
-
-      Default value comes from DefShapeOctreeLimits.
-
-      If ShapeOctreeProgressTitle <> '', it will be shown during
-      octree creation (through TProgress.Title). Will be shown only
-      if progress is not active already
-      (so we avoid starting "progress bar within progress bar").
-
-      They are used only when the octree is created, so usually you
-      want to set them right before changing @link(Spatial) from []
-      to something else.
-
-      Note that particular models may override this by
-      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_octree_properties].
-
-      @groupBegin }
-    function ShapeOctreeLimits: POctreeLimits;
-
+    { Progress title shown during spatial structure creation
+      (through TProgress.Title). Uses only when not empty,
+      and only if progress was not active already
+      (so we avoid starting "progress bar within a progress bar"). }
     property ShapeOctreeProgressTitle: string
       read  FShapeOctreeProgressTitle
       write FShapeOctreeProgressTitle;
-    { @groupEnd }
 
     { Viewpoint defined in the 3D file (or some default camera settings
       if no viewpoint is found).
@@ -2711,8 +2740,8 @@ begin
     if (ssDynamicCollisions in ParentScene.Spatial) and
        Shape.Collidable then
     begin
-      Shape.TriangleOctreeProgressTitle := ParentScene.TriangleOctreeProgressTitle;
-      Shape.Spatial := [ssTriangles];
+      Shape.InternalTriangleOctreeProgressTitle := ParentScene.TriangleOctreeProgressTitle;
+      Shape.InternalSpatial := [ssTriangles];
     end;
   end else
 
@@ -4379,12 +4408,12 @@ procedure TCastleSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
             [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_octree_properties].
           }
 
-          SI.Current.TriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
-          SI.Current.Spatial := Value;
+          SI.Current.InternalTriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
+          SI.Current.InternalSpatial := Value;
           { prepare OctreeTriangles. Not really needed, but otherwise
             shape's octrees would be updated (even on static scenes!)
             when the model runs. }
-          SI.Current.OctreeTriangles;
+          SI.Current.InternalOctreeTriangles;
         end;
 
     finally FreeAndNil(SI) end;
@@ -4441,7 +4470,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.OctreeRendering: TShapeOctree;
+function TCastleSceneCore.InternalOctreeRendering: TShapeOctree;
 begin
   if (ssRendering in Spatial) and (FOctreeRendering = nil) then
   begin
@@ -4456,7 +4485,7 @@ begin
   Result := FOctreeRendering;
 end;
 
-function TCastleSceneCore.OctreeDynamicCollisions: TShapeOctree;
+function TCastleSceneCore.InternalOctreeDynamicCollisions: TShapeOctree;
 begin
   if (ssDynamicCollisions in Spatial) and (FOctreeDynamicCollisions = nil) then
   begin
@@ -4471,7 +4500,7 @@ begin
   Result := FOctreeDynamicCollisions;
 end;
 
-function TCastleSceneCore.OctreeVisibleTriangles: TTriangleOctree;
+function TCastleSceneCore.InternalOctreeVisibleTriangles: TTriangleOctree;
 begin
   if (ssVisibleTriangles in Spatial) and (FOctreeVisibleTriangles = nil) then
     FOctreeVisibleTriangles := CreateTriangleOctree(
@@ -4481,7 +4510,7 @@ begin
   Result := FOctreeVisibleTriangles;
 end;
 
-function TCastleSceneCore.OctreeCollidableTriangles: TTriangleOctree;
+function TCastleSceneCore.InternalOctreeCollidableTriangles: TTriangleOctree;
 begin
   if (ssCollidableTriangles in Spatial) and (FOctreeCollidableTriangles = nil) then
     FOctreeCollidableTriangles := CreateTriangleOctree(
@@ -4491,12 +4520,12 @@ begin
   Result := FOctreeCollidableTriangles;
 end;
 
-function TCastleSceneCore.OctreeCollisions: TBaseTrianglesOctree;
+function TCastleSceneCore.InternalOctreeCollisions: TBaseTrianglesOctree;
 begin
-  if OctreeCollidableTriangles <> nil then
-    Result := OctreeCollidableTriangles else
-  if OctreeDynamicCollisions <> nil then
-    Result := OctreeDynamicCollisions else
+  if InternalOctreeCollidableTriangles <> nil then
+    Result := InternalOctreeCollidableTriangles else
+  if InternalOctreeDynamicCollisions <> nil then
+    Result := InternalOctreeDynamicCollisions else
     Result := nil;
 end;
 
@@ -6193,7 +6222,7 @@ procedure TCastleSceneCore.PrepareResources(Options: TPrepareResourcesOptions;
     SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
-        SI.Current.OctreeTriangles;
+        SI.Current.InternalOctreeTriangles;
     finally FreeAndNil(SI) end;
   end;
 
@@ -6219,10 +6248,10 @@ begin
 
   if prSpatial in Options then
   begin
-    OctreeRendering;
-    OctreeDynamicCollisions;
-    OctreeVisibleTriangles;
-    OctreeCollidableTriangles;
+    InternalOctreeRendering;
+    InternalOctreeDynamicCollisions;
+    InternalOctreeVisibleTriangles;
+    InternalOctreeCollidableTriangles;
     PrepareShapesOctrees;
   end;
 end;
@@ -6231,7 +6260,7 @@ function TCastleSceneCore.HeightCollision(const Position, GravityUp: TVector3Sin
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
   begin
     Result := false;
     AboveHeight := MaxSingle;
@@ -6239,7 +6268,7 @@ begin
 
     if GetCollides then
     begin
-      Result := OctreeCollisions.HeightCollision(Position, GravityUp,
+      Result := InternalOctreeCollisions.HeightCollision(Position, GravityUp,
         AboveHeight, PTriangle(AboveGround), nil, TrianglesToIgnoreFunc);
     end;
   end else
@@ -6253,11 +6282,11 @@ function TCastleSceneCore.MoveCollision(
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
   begin
     if GetCollides then
     begin
-      Result := OctreeCollisions.MoveCollision(OldPos, ProposedNewPos, NewPos,
+      Result := InternalOctreeCollisions.MoveCollision(OldPos, ProposedNewPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, nil, TrianglesToIgnoreFunc);
     end else
     begin
@@ -6275,10 +6304,10 @@ function TCastleSceneCore.MoveCollision(
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
   begin
     Result := (not GetCollides) or
-      OctreeCollisions.MoveCollision(OldPos, NewPos,
+      InternalOctreeCollisions.MoveCollision(OldPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, nil, TrianglesToIgnoreFunc);
   end else
     Result := inherited MoveCollision(OldPos, NewPos,
@@ -6289,9 +6318,9 @@ function TCastleSceneCore.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
     Result := (GetCollides or (ALineOfSight and GetExists)) and
-      OctreeCollisions.IsSegmentCollision(
+      InternalOctreeCollisions.IsSegmentCollision(
         Pos1, Pos2,
         nil, false, TrianglesToIgnoreFunc) else
     Result := inherited SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, ALineOfSight);
@@ -6301,9 +6330,9 @@ function TCastleSceneCore.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
     Result := GetCollides and
-      OctreeCollisions.IsSphereCollision(
+      InternalOctreeCollisions.IsSphereCollision(
         Pos, Radius, nil, TrianglesToIgnoreFunc) else
     Result := inherited SphereCollision(Pos, Radius, TrianglesToIgnoreFunc);
 end;
@@ -6312,9 +6341,9 @@ function TCastleSceneCore.SphereCollision2D(
   const Pos: TVector2Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
     Result := GetCollides and
-      OctreeCollisions.IsSphereCollision2D(Pos, Radius, nil, TrianglesToIgnoreFunc) else
+      InternalOctreeCollisions.IsSphereCollision2D(Pos, Radius, nil, TrianglesToIgnoreFunc) else
     Result := inherited SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc);
 end;
 
@@ -6322,18 +6351,18 @@ function TCastleSceneCore.PointCollision2D(
   const Point: TVector2Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
     Result := GetCollides and
-      OctreeCollisions.IsPointCollision2D(Point, nil, TrianglesToIgnoreFunc) else
+      InternalOctreeCollisions.IsPointCollision2D(Point, nil, TrianglesToIgnoreFunc) else
     Result := inherited PointCollision2D(Point, TrianglesToIgnoreFunc);
 end;
 
 function TCastleSceneCore.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
     Result := GetCollides and
-      OctreeCollisions.IsBoxCollision(
+      InternalOctreeCollisions.IsBoxCollision(
         Box,  nil, TrianglesToIgnoreFunc) else
     Result := inherited BoxCollision(Box, TrianglesToIgnoreFunc);
 end;
@@ -6346,12 +6375,12 @@ var
   IntersectionDistance: Single;
   NewNode: PRayCollisionNode;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
   begin
     Result := nil;
     if GetExists then
     begin
-      Triangle := OctreeCollisions.RayCollision(
+      Triangle := InternalOctreeCollisions.RayCollision(
         Intersection, IntersectionDistance, RayOrigin, RayDirection,
         { ReturnClosestIntersection } true,
         { TriangleToIgnore } nil,

@@ -384,8 +384,8 @@ type
       It contains only triangles within this shape.
 
       There is no distinction here between collidable / visible
-      (as for TCastleSceneCore octrees), since the whole shape may be
-      visible and/or collidable.
+      (as for TCastleSceneCore octrees), since only the whole shape may be
+      marked as visible and/or collidable, not particular triangles.
 
       The triangles are specified in local coordinate system of this shape
       (that is, they are independent from transformation within State.Transform).
@@ -406,35 +406,34 @@ type
       Parent TCastleSceneCore will also take care of actually using
       this octree: TCastleSceneCore.OctreeCollisions methods actually use the
       octrees of specific shapes at the bottom. }
-    function OctreeTriangles: TTriangleOctree;
+    function InternalOctreeTriangles: TTriangleOctree;
 
     { Which spatial structrues (octrees, for now) should be created and managed.
       This works analogous to TCastleSceneCore.Spatial, but this manages
-      octrees within this TShape. }
-    property Spatial: TShapeSpatialStructures read FSpatial write SetSpatial;
+      octrees within this TShape.
+
+      Parent TCastleSceneCore will take care to keep this value updated,
+      you should only set TCastleSceneCore.Spatial from the outside. }
+    property InternalSpatial: TShapeSpatialStructures read FSpatial write SetSpatial;
 
     { Properties of created triangle octrees.
       See TriangleOctree unit comments for description.
 
       Default value comes from DefLocalTriangleOctreeLimits.
 
-      If TriangleOctreeProgressTitle <> '', it will be shown during
-      octree creation (through TProgress.Title). Will be shown only
-      if progress is not active already
-      ( so we avoid starting "progress bar within progress bar").
-
       They are used only when the octree is created, so usually you
       want to set them right before changing @link(Spatial) from []
-      to something else.
+      to something else. }
+    function InternalTriangleOctreeLimits: POctreeLimits;
 
-      @groupBegin }
-    function TriangleOctreeLimits: POctreeLimits;
-
-    property TriangleOctreeProgressTitle: string
+    { If TriangleOctreeProgressTitle <> '', it will be shown during
+      octree creation (through TProgress.Title). Will be shown only
+      if progress is not active already
+      (so we avoid starting "progress bar within progress bar"). }
+    property InternalTriangleOctreeProgressTitle: string
       read  FTriangleOctreeProgressTitle
       write FTriangleOctreeProgressTitle;
-    { @groupEnd }
-  public
+
     { Looking at material and color and texture nodes,
       decide if the shape is opaque or (partially) transparent.
 
@@ -1009,13 +1008,13 @@ begin
   FreeAndNil(FOctreeTriangles);
 end;
 
-function TShape.OctreeTriangles: TTriangleOctree;
+function TShape.InternalOctreeTriangles: TTriangleOctree;
 begin
-  if (ssTriangles in Spatial) and (FOctreeTriangles = nil) then
+  if (ssTriangles in InternalSpatial) and (FOctreeTriangles = nil) then
   begin
     FOctreeTriangles := CreateTriangleOctree(
       OverrideOctreeLimits(FTriangleOctreeLimits),
-      TriangleOctreeProgressTitle);
+      InternalTriangleOctreeProgressTitle);
     if Log and LogChanges then
       WritelnLog('X3D changes (octree)', Format(
         'Shape(%s).OctreeTriangles updated', [PointerToStr(Self)]));
@@ -1024,7 +1023,7 @@ begin
   Result := FOctreeTriangles;
 end;
 
-function TShape.TriangleOctreeLimits: POctreeLimits;
+function TShape.InternalTriangleOctreeLimits: POctreeLimits;
 begin
   Result := @FTriangleOctreeLimits;
 end;
@@ -1436,11 +1435,11 @@ procedure TShape.SetSpatial(const Value: TShapeSpatialStructures);
 var
   Old, New: boolean;
 begin
-  if Value <> Spatial then
+  if Value <> InternalSpatial then
   begin
     { Handle OctreeTriangles }
 
-    Old := ssTriangles in Spatial;
+    Old := ssTriangles in InternalSpatial;
     New := ssTriangles in Value;
 
     if Old and not New then
@@ -1589,7 +1588,7 @@ begin
   begin
   {$endif}
 
-    Result := OctreeTriangles.RayCollision(
+    Result := InternalOctreeTriangles.RayCollision(
       Intersection, IntersectionDistance, RayOrigin, RayDirection,
       ReturnClosestIntersection,
       TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
@@ -1630,7 +1629,7 @@ begin
   begin
   {$endif}
 
-    Result := OctreeTriangles.SegmentCollision(
+    Result := InternalOctreeTriangles.SegmentCollision(
       Intersection, IntersectionDistance, Pos1, Pos2,
       ReturnClosestIntersection,
       TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);

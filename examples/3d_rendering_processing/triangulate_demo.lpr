@@ -40,11 +40,11 @@ begin
       finally FreeAndNil(Handler) end;
     finally FreeAndNil(SI) end;
 
-    { An alternative method: use Scene.OctreeVisibleTriangles.Triangles.
+    { An alternative method: use Scene.InternalOctreeVisibleTriangles.Triangles.
       This is available only when Scene.Spatial contains appropriate flag.
       This method is useful in larger programs, when besides writing triangles,
       you want to e.g. render or perform collision detection with the scene.
-      In such case, you will have Scene.OctreeVisibleTriangles
+      In such case, you will have Scene.InternalOctreeVisibleTriangles
       created anyway. So you can use it also to get triangles list.
 
     var
@@ -54,9 +54,9 @@ begin
 
     Scene.Spatial := Scene.Spatial + [ssVisibleTriangles];
     Scene.TriangleOctreeLimits^.MaxDepth := 1;
-    for I := 0 to Scene.OctreeVisibleTriangles.Triangles.Count - 1 do
+    for I := 0 to Scene.InternalOctreeVisibleTriangles.Triangles.Count - 1 do
     begin
-      TriangleInfo := @(Scene.OctreeVisibleTriangles.Triangles.List^[I]);
+      TriangleInfo := @(Scene.InternalOctreeVisibleTriangles.Triangles.List^[I]);
       Writeln('Triangle position (in world coordinates): ', TriangleToNiceStr(TriangleInfo^.World.Triangle));
     end;
     }

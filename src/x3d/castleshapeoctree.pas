@@ -300,7 +300,7 @@ begin
     try
       LocalBox := BoundingBox3DFromSphere(Pos, Radius).Transform(
         Shape.State.InvertedTransform);
-      Result := Shape.OctreeTriangles.BoxCollision(
+      Result := Shape.InternalOctreeTriangles.BoxCollision(
         LocalBox, TriangleToIgnore, TrianglesToIgnoreFunc);
     except
       on ETransformedResultInvalid do Result := nil;
@@ -354,7 +354,7 @@ begin
     try
       LocalPos := MatrixMultPoint(Shape.State.InvertedTransform, Pos);
       LocalRadius := Radius / Shape.State.TransformScale;
-      Result := Shape.OctreeTriangles.SphereCollision2D(
+      Result := Shape.InternalOctreeTriangles.SphereCollision2D(
         LocalPos, LocalRadius, TriangleToIgnore, TrianglesToIgnoreFunc);
     except
       on ETransformedResultInvalid do Result := nil;
@@ -405,7 +405,7 @@ begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
       LocalPoint := MatrixMultPoint(Shape.State.InvertedTransform, Point);
-      Result := Shape.OctreeTriangles.PointCollision2D(
+      Result := Shape.InternalOctreeTriangles.PointCollision2D(
         LocalPoint, TriangleToIgnore, TrianglesToIgnoreFunc);
     except
       on ETransformedResultInvalid do Result := nil;
@@ -455,7 +455,7 @@ begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
       LocalBox := ABox.Transform(Shape.State.InvertedTransform);
-      Result := Shape.OctreeTriangles.BoxCollision(
+      Result := Shape.InternalOctreeTriangles.BoxCollision(
         LocalBox, TriangleToIgnore, TrianglesToIgnoreFunc);
     except
       on ETransformedResultInvalid do Result := nil;
@@ -676,7 +676,7 @@ begin
     for I := 0 to ItemsIndices.Count - 1 do
     begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
-      Assert(Shape.OctreeTriangles <> nil);
+      Assert(Shape.InternalOctreeTriangles <> nil);
       try
         LocalRayOrigin := MatrixMultPoint(Shape.State.InvertedTransform, RayOrigin);
         LocalRayDirection := MatrixMultDirection(Shape.State.InvertedTransform, RayDirection);
@@ -809,7 +809,7 @@ var
   I: Integer;
 begin
   for I := 0 to ShapesList.Count - 1 do
-    ShapesList.Items[I].OctreeTriangles.EnumerateTrianglesUpdateWorld(
+    ShapesList.Items[I].InternalOctreeTriangles.EnumerateTrianglesUpdateWorld(
       EnumerateTriangleFunc);
 end;
 
@@ -819,7 +819,7 @@ var
 begin
   Result := 0;
   for I := 0 to ShapesList.Count - 1 do
-    Result += ShapesList.Items[I].OctreeTriangles.TrianglesCount;
+    Result += ShapesList.Items[I].InternalOctreeTriangles.TrianglesCount;
 end;
 
 end.

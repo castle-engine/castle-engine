@@ -277,7 +277,7 @@ type
 
       This method doesn't impose any lag of one frame (like UseOcclusionQuery).
 
-      This requires the usage of TCastleSceneCore.OctreeRendering.
+      This requires the usage of ssRendering in TCastleSceneCore.Spatial.
       Also, it always does frustum culling (like fcBox for now),
       regardless of TCastleScene.OctreeFrustumCulling setting.
 
@@ -741,8 +741,8 @@ type
       in @link(Attributes). }
     function Clone(const AOwner: TComponent): TCastleScene;
   published
-    { Fine-tune performance of @link(Render) when
-      OctreeRendering is @italic(not) available.
+    { Fine-tune performance of rendering when
+      ssRendering is @italic(not) in @link(TCastleSceneCore.Spatial).
 
       @link(Render) tests each Shape for collision with given Frustum
       before rendering this Shape. It can use Shape.BoundingBox
@@ -759,8 +759,8 @@ type
     property FrustumCulling: TFrustumCulling
       read FFrustumCulling write SetFrustumCulling default fcBox;
 
-    { Fine-tune performance of @link(Render) when
-      OctreeRendering @italic(is available).
+    { Fine-tune performance of rendering when
+      ssRendering is included in @link(TCastleSceneCore.Spatial).
 
       See TFrustumCulling. }
     property OctreeFrustumCulling: TFrustumCulling
@@ -1284,7 +1284,7 @@ begin
     if Attributes.ReallyUseHierarchicalOcclusionQuery and
        (not Attributes.DebugHierOcclusionQueryResults) and
        (RenderingCamera.Target = rtScreen) and
-       (OctreeRendering <> nil) then
+       (InternalOctreeRendering <> nil) then
     begin
       HierarchicalOcclusionQueryRenderer.Render(@RenderShape_SomeTests,
         Frustum, Params);
@@ -1824,7 +1824,7 @@ procedure TCastleScene.RenderFrustumOctree_EnumerateShapes(
 var
   Shape: TGLShape;
 begin
-  Shape := TGLShape(OctreeRendering.ShapesList[ShapeIndex]);
+  Shape := TGLShape(InternalOctreeRendering.ShapesList[ShapeIndex]);
 
   if (not Shape.RenderFrustumOctree_Visible) and
      ( CollidesForSure or
@@ -1838,7 +1838,7 @@ procedure TCastleScene.Render(const Frustum: TFrustum; const Params: TRenderPara
   That is, choose test function suitable for our Frustum,
   octrees and some settings.
 
-  If OctreeRendering is initialized (so be sure to include
+  If InternalOctreeRendering is initialized (so be sure to include
   ssRendering in @link(Spatial)), this octree will be used to quickly
   find visible Shape. Otherwise, we will just enumerate all
   Shapes (which may be slower if you really have a lot of Shapes). }
@@ -1863,8 +1863,8 @@ begin
   begin
     RenderFrustum_Frustum := @Frustum;
 
-    if OctreeRendering <> nil then
-      RenderFrustumOctree(OctreeRendering) else
+    if InternalOctreeRendering <> nil then
+      RenderFrustumOctree(InternalOctreeRendering) else
       Render(FrustumCullingFunc, Frustum, Params);
   end;
 end;
