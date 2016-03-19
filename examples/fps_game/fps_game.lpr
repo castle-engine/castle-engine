@@ -22,7 +22,7 @@ uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels
   Castle3D, CastleFilesUtils, CastleGameNotifications,
   CastleSceneManager, CastleVectors, CastleUIControls, CastleGLUtils,
   CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
-  CastleCreatures, CastleRectangles, CastleImages;
+  CastleCreatures, CastleRectangles, CastleImages, CastleLog;
 
 var
   Window: TCastleWindow;
@@ -411,6 +411,10 @@ begin
   { Write warnings on standard output (console).
     By default, warnings are only written to log, and log by default goes nowhere. }
   OnWarning := @OnWarningWrite;
+  { optionally, enable log.
+    See http://castle-engine.sourceforge.net/tutorial_log.php
+    to know where it's going. }
+  //InitializeLog;
 
   { Create a window.
     Standard TCastleWindow (just like analogous Lazarus component TCastleControl)
