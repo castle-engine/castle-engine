@@ -959,6 +959,8 @@ procedure TSoundEngine.ALContextOpen;
       (spec says that context is initially in processing state). }
 
     try
+      //raise EOpenALError.Create('Test pretend OpenAL fails');
+
       FALActive := false;
       FEFXSupported := false;
       ALActivationErrorMessage := '';
@@ -1600,10 +1602,18 @@ end;
 function TRepoSoundEngine.Sound(SoundType: TSoundType;
   const Looping: boolean): TSound;
 begin
+  { If there is no actual sound, exit early without initializing OpenAL.
+    - SoundType is stNone if not defined in sounds.xml.
+    - SoundType is <> stNone but URL = '' if sound name is defined in
+      sounds.xml with explicit url="", like this:
+      <sound name="player_sudden_pain" url="" />
+  }
+  if (SoundType = stNone) or (Sounds[SoundType].URL = '') then Exit(nil);
+
   if not ALInitialized then ALContextOpen;
 
-  { If there is no actual sound, exit early without initializing OpenAL.
-    Do it *after* ALContextOpen, otherwise Buffer is always zero. }
+  { Check this *after* ALContextOpen, since Buffer is always zero before OpenAL
+    is initialized. }
   if Sounds[SoundType].Buffer = 0 then Exit(nil);
 
   Result := PlaySound(
@@ -1619,10 +1629,14 @@ function TRepoSoundEngine.Sound3D(SoundType: TSoundType;
   const Position: TVector3Single;
   const Looping: boolean): TSound;
 begin
+  { If there is no actual sound, exit early without initializing OpenAL.
+    See Sound for duplicate of this "if" and more comments. }
+  if (SoundType = stNone) or (Sounds[SoundType].URL = '') then Exit(nil);
+
   if not ALInitialized then ALContextOpen;
 
-  { If there is no actual sound, exit early without initializing OpenAL.
-    Do it *after* ALContextOpen, otherwise Buffer is always zero. }
+  { Do it *after* ALContextOpen, since Buffer is always zero before OpenAL
+    is initialized. }
   if Sounds[SoundType].Buffer = 0 then Exit(nil);
 
   Result := PlaySound(
@@ -1696,7 +1710,7 @@ begin
           Standard I.Current.GetAttribute wouldn't allow me this. }
         if (I.Current.AttributeString('url', S.URL) or
             I.Current.AttributeString('file_name', S.URL)) and
-          (S.URL <> '') then
+           (S.URL <> '') then
           { Make URL absolute, using RepositoryURLAbsolute, if non-empty URL
             was specified in XML file. }
           S.URL := CombineURI(RepositoryURLAbsolute, S.URL);
