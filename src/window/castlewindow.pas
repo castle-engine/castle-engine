@@ -3455,9 +3455,9 @@ begin
   { show FPS on caption once FpsCaptionUpdateInterval passed }
   if FpsShowOnCaption and
      ((lastFpsOutputTick = 0) or
-      (TimeTickDiff(lastFpsOutputTick, GetTickCount) >= FpsCaptionUpdateInterval)) then
+      (TimeTickDiff(lastFpsOutputTick, CastleTimeUtils.GetTickCount64) >= FpsCaptionUpdateInterval)) then
   begin
-    LastFpsOutputTick := GetTickCount;
+    LastFpsOutputTick := CastleTimeUtils.GetTickCount64;
     SetCaption(cpFps, Format(' - FPS : %f (real : %f)', [Fps.FrameTime, Fps.RealTime]));
   end;
 end;
@@ -4547,7 +4547,7 @@ procedure TCastleApplication.MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
 var
   Now: TMilisecTime;
 begin
-  Now := GetTickCount;
+  Now := CastleTimeUtils.GetTickCount64;
   if ((ALastDoTimerTime = 0) or
       (MilisecTimesSubtract(Now, ALastDoTimerTime) >= FTimerMilisec)) then
   begin

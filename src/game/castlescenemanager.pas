@@ -3130,7 +3130,7 @@ begin
       quickly after sound stopped. }
     if SoundEngine.ALActive then
     begin
-      TimeNow := GetTickCount;
+      TimeNow := CastleTimeUtils.GetTickCount64;
       if TimeTickSecondLater(LastSoundRefresh, TimeNow, SoundRefreshDelay) then
       begin
         LastSoundRefresh := TimeNow;

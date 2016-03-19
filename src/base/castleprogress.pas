@@ -334,7 +334,7 @@ begin
   { Calling UserInterface.Init updates LastUpdatePos and LastUpdateTick,
     just like calling UserInterface.Update. }
   LastUpdatePos := FPosition;
-  LastUpdateTick := GetTickCount;
+  LastUpdateTick := CastleTimeUtils.GetTickCount64;
 
   UserInterfaceDelayed := DelayUserInterface;
 
@@ -371,7 +371,7 @@ begin
   begin
     { Either actually init user interface, or resign from calling
       UserInterface.Update. }
-    if TimeTickDiff(LastUpdateTick, GetTickCount) > UpdateTicks then
+    if TimeTickDiff(LastUpdateTick, CastleTimeUtils.GetTickCount64) > UpdateTicks then
     begin
       UserInterface.Init(Self);
       UserInterfaceDelayed := false;
@@ -380,10 +380,10 @@ begin
   end;
 
   if ((Position - LastUpdatePos) / Max > 1 / UpdatePart) and
-     (TimeTickDiff(LastUpdateTick, GetTickCount) > UpdateTicks) then
+     (TimeTickDiff(LastUpdateTick, CastleTimeUtils.GetTickCount64) > UpdateTicks) then
   begin
     LastUpdatePos := FPosition;
-    LastUpdateTick := GetTickCount;
+    LastUpdateTick := CastleTimeUtils.GetTickCount64;
     UserInterface.Update(Self);
 
     {$ifdef TESTING_PROGRESS_DELAY}
