@@ -22,6 +22,7 @@
   @groupBegin }
 procedure SwapValues(var a, b: Byte    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: QWord   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -140,6 +141,7 @@ function Between(const a, vBegin, vEnd: Char    ): boolean; overload; {$ifdef SU
 function RoundClamp255(const A: Single): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 
 function Clamped(const a, vBegin, vEnd: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: QWord   ): QWord   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -149,6 +151,7 @@ function Clamped(const a, vBegin, vEnd: Extended): Extended; overload; {$ifdef S
 {$endif}
 
 procedure ClampVar(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: QWord   ; const vBegin, vEnd: QWord   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: integer ; const vBegin, vEnd: integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: cardinal; const vBegin, vEnd: cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -255,9 +258,11 @@ function DivRoundUp(Value, Divider: Integer): Integer; overload;
   @groupBegin }
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float; overload;
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float; overload;
+function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: QWord  ): float; overload;
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
 function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float; overload;
 function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float; overload;
+function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: QWord  ): float; overload;
 function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
 { @groupEnd }
 
@@ -361,6 +366,7 @@ function SmoothStep(const Edge0, Edge1, X: Single): Single;
 
 procedure SwapValues(var a, b: Byte);     var Tmp: Byte;     begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Int64);    var Tmp: Int64;    begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: QWord);    var Tmp: QWord;    begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Integer);  var Tmp: integer;  begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Cardinal); var Tmp: Cardinal; begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Single);   var Tmp: Single;   begin Tmp := A; A := B; B := Tmp; end;
@@ -489,6 +495,13 @@ begin
     result := a;
 end;
 
+function Clamped(const a, vBegin, vEnd: QWord): QWord;
+begin
+  if a < vBegin then result := vBegin else
+  if a > vEnd then result := vEnd else
+    result := a;
+end;
+
 function Clamped(const a, vBegin, vEnd: integer): integer;
 begin
   if a < vBegin then result := vBegin else
@@ -527,6 +540,12 @@ end;
 {$endif}
 
 procedure ClampVar(var a: Int64;    const vBegin, vEnd: Int64);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure ClampVar(var a: QWord;    const vBegin, vEnd: QWord);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;
@@ -710,6 +729,16 @@ begin
   Result := Result * (destEnd - destBegin) + destBegin;
 end;
 
+function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: QWord  ): float;
+{$I norqcheckbegin.inc}
+begin
+  { Map range SourceBegin .. SourceEnd to 0..1, and express SourceVal there. }
+  Result := (sourceVal - sourceBegin) / (sourceEnd - sourceBegin);
+  { Map range 0..1 to DestBegin .. DestEnd }
+  Result := Result * (destEnd - destBegin) + destBegin;
+end;
+{$I norqcheckend.inc}
+
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float;
 begin
   { Map range SourceBegin .. SourceEnd to 0..1, and express SourceVal there. }
@@ -727,6 +756,14 @@ begin
 end;
 
 function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float;
+begin
+  Result := MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd);
+  if destEnd < destBegin then
+    SwapValues(destBegin, destEnd);
+  Result := Clamped(Result, destBegin, destEnd);
+end;
+
+function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: QWord  ): float;
 begin
   Result := MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd);
   if destEnd < destBegin then
