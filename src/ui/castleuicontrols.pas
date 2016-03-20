@@ -738,12 +738,16 @@ end;
     using fields like Width, Height, FullSize.
     Some descendants may allow both approaches, switchable by
     property like TCastleButton.AutoSize or TCastleImageControl.Stretch.
+    The base @link(TUIControl.Rect) returns always an empty rectangle,
+    most descendants will want to override it (you can also ignore the issue
+    in your own TUIControl descendants, if the given control size will
+    never be used for anything).
 
     All screen (mouse etc.) coordinates passed here should be in the usual
     window system coordinates, that is (0, 0) is left-top window corner.
     (Note that this is contrary to the usual OpenGL 2D system,
     where (0, 0) is left-bottom window corner.) }
-  TUIControl = class(TInputListener)
+  TUIControl = class abstract(TInputListener)
   private
     FDisableContextOpenClose: Cardinal;
     FFocused: boolean;
@@ -1174,6 +1178,43 @@ end;
       if you need to disable UI scaling recursively). }
     property EnableUIScaling: boolean
       read FEnableUIScaling write SetEnableUIScaling default true;
+  end;
+
+  { UI control with configurable size.
+    By itself, this does not show anything. But it's useful as an ancestor
+    class for new UI classes that want their size to fully configurable,
+    or as a container for UI children. }
+  TUIControlSizeable = class(TUIControl)
+  strict private
+    FWidth, FHeight: Cardinal;
+    FFullSize: boolean;
+  public
+    { Control size.
+
+      When FullSize is @true (the default), the control always fills
+      the whole parent (like TCastleWindow or TCastleControl,
+      if you just placed the control on TCastleWindowCustom.Controls
+      or TCastleControlCustom.Controls),
+      and the values of @link(TUIControl.Left Left),
+      @link(TUIControl.Bottom Bottom), @link(Width), @link(Height) are ignored.
+
+      @seealso TUIControl.Rect
+
+      @groupBegin }
+    property FullSize: boolean read FFullSize write FFullSize default true;
+    property Width: Cardinal read FWidth write FWidth default 0;
+    property Height: Cardinal read FHeight write FHeight default 0;
+    { @groupEnd }
+
+    constructor Create(AOwner: TComponent); override;
+
+    { Position and size of the control, assuming it exists.
+
+      Looks at @link(FullSize) value, and the parent size
+      (when @link(FullSize) is @true), or at the properties
+      @link(Left), @link(Bottom), @link(Width), @link(Height)
+      (when @link(FullSize) is @false). }
+    function Rect: TRectangle; override;
   end;
 
   { Simple list of TUIControl instances. }
@@ -1869,7 +1910,10 @@ function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
     begin
       { try to pass press to C children }
       for I := C.ControlsCount - 1 downto 0 do
-        if RecursivePress(C.Controls[I]) then
+        { checking "I < C.ControlsCount" below is a poor safeguard in case
+          some Press handler changes the Controls.Count.
+          At least we will not crash. }
+        if (I < C.ControlsCount) and RecursivePress(C.Controls[I]) then
           Exit(true);
 
       { try C.Press itself }
@@ -1907,7 +1951,10 @@ begin
 
   { pass to all Controls with TUIControl.Press event }
   for I := Controls.Count - 1 downto 0 do
-    if RecursivePress(Controls[I]) then
+    { checking "I < Controls.Count" below is a poor safeguard in case
+      some Press handler changes the Controls.Count.
+      At least we will not crash. }
+    if (I < Controls.Count) and RecursivePress(Controls[I]) then
       Exit(true);
 
   { pass to container event }
@@ -2980,6 +3027,25 @@ begin
   VerticalAnchorSelf := AVerticalAnchorSelf;
   VerticalAnchorParent := AVerticalAnchorParent;
   VerticalAnchorDelta := AVerticalAnchorDelta;
+end;
+
+{ TUIControlSizeable --------------------------------------------------------- }
+
+constructor TUIControlSizeable.Create(AOwner: TComponent);
+begin
+  inherited;
+  FFullSize := true;
+end;
+
+function TUIControlSizeable.Rect: TRectangle;
+begin
+  if FullSize then
+    Result := ParentRect else
+  begin
+    Result := Rectangle(Left, Bottom, Width, Height);
+    // applying UIScale on this is easy...
+    Result := Result.ScaleAround0(UIScale);
+  end;
 end;
 
 { TChildrenControls ------------------------------------------------------------- }
