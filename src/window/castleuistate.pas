@@ -34,13 +34,18 @@ type
     (Unless you use TUIState.Push, in which case you build a stack
     of states, all of them are available at the same time.)
 
-    Each state has comfortable @link(Start) and @link(Finish)
+    Each state has @link(Start) and @link(Stop)
     methods that you can override to perform work when state becomes
-    current, or stops being current.
+    part of the current state stack, or stops being part of it.
+    You can also override @link(Resume) and @link(Pause) methods,
+    to perform work when the state becomes the top-most state or is no longer
+    the top-most state. The distinction becomes important once you play
+    around with pushing/popping states.
+    The names are deliberaly similar to Android lifecycle callback names:)
 
     You can add/remove state-specific UI controls in various ways.
     You can add them in the constructor of this state (and then free in destructor),
-    or add them in @link(Start), free in @link(Finish).
+    or add them in @link(Start), free in @link(Stop).
 
     @orderedList(
       @item(It's simplest and best to add/keep children controls as real
@@ -88,7 +93,7 @@ type
   private
     FStartContainer: TUIContainer;
     procedure InternalStart;
-    procedure InternalFinish;
+    procedure InternalStop;
 
     class var FStateStack: TUIStateList;
     class function GetCurrent: TUIState; static;
@@ -124,22 +129,56 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { State becomes current.
-      This is called right before adding the state to the
-      @code(StateContainer.Controls) list, so the state methods
-      GLContextOpen and Resize will be called next (as for all
-      normal TUIControl). }
+    { State becomes active, it's now part of the state stack.
+
+      Active state is part of the StateStack, and will soon become
+      the @link(Current) state. When the state is set to be current,
+      by @code(TUIState.Current := MyState), this happens:
+
+      @orderedList(
+        @item(MyStart is pushed as the top-most state on state stack.)
+        @item(MyStart.Start is called.)
+        @item(MyStart is added to the @code(StateContainer.Controls) list,
+          so the state methods GLContextOpen and Resize are called
+          (as for all normal TUIControl instances).)
+        @item(MyStar.Resume is called.)
+      ) }
     procedure Start; virtual;
 
-    { State is no longer current.
-      This is called after removing the state from the
-      @code(StateContainer.Controls) list.
+    { State is no longer active, no longer part of state stack.
+
+      When the current state stops becoming active, this happens:
+
+      @orderedList(
+        @item(MyStart.Pause is called.)
+        @item(MyStart is removed from the
+          @code(StateContainer.Controls) list.
+          So the state method GLContextClose is called
+          (as for all normal TUIControl instances).)
+        @item(MyStart.Stop is called.)
+        @item(MyStart is removed from the on state stack.)
+      )
 
       This is always called to finalize the started state.
-      When the current state is destroyed, it's @link(Finish) is called
-      too. So you can use this method to reliably finalize whatever
+      When the state is destroyed, it's @link(Pause) and @link(Stop)
+      are called too, so you can use this method to reliably finalize whatever
       you initialized in @link(Start). }
-    procedure Finish; virtual;
+    procedure Stop; virtual;
+
+    { State is now the top-most state. See @link(Start) and @link(Stop)
+      docs about state lifecycle methods.
+      This is called after @link(Start), it is also called
+      when you pop another state, making this state the top-most. }
+    procedure Resume; virtual;
+
+    { State is no longer the top-most state. See @link(Start) and @link(Stop)
+      docs about state lifecycle methods.
+      This is called before @link(Stop), it is also called
+      when another state is pushed over this state, so this stops
+      being the the top-most state. }
+    procedure Pause; virtual;
+
+    procedure Finish; virtual; deprecated 'use Stop';
 
     function Rect: TRectangle; override;
   end;
@@ -171,7 +210,7 @@ begin
     Exit;
 
   { Remove and finish topmost state.
-    The loop is written to work even when some state Finish method
+    The loop is written to work even when some state Stop method
     changes states. }
   while StateStackCount <> 0 do
     Pop;
@@ -186,11 +225,17 @@ class procedure TUIState.Push(const NewState: TUIState);
 begin
   if NewState <> nil then
   begin
+    { pause previous top-most state }
+    if (FStateStack <> nil) and
+       (FStateStack.Count <> 0) then
+      FStateStack.Last.Pause;
+
     { create FStateStack on demand now }
     if FStateStack = nil then
       FStateStack := TUIStateList.Create(false);
     FStateStack.Add(NewState);
     NewState.InternalStart;
+    NewState.Resume;
   end;
 end;
 
@@ -199,10 +244,16 @@ var
   TopState: TUIState;
 begin
   TopState := FStateStack.Last;
-  TopState.InternalFinish;
+  TopState.Pause;
+  TopState.InternalStop;
   if TopState = FStateStack.Last then
     FStateStack.Delete(FStateStack.Count - 1) else
-    OnWarning(wtMinor, 'State', 'Topmost state is no longer topmost after its Finish method. Do not change state stack from state Finish methods.');
+    OnWarning(wtMinor, 'State', 'Topmost state is no longer topmost after its Stop method. Do not change state stack from state Stop methods.');
+
+  { resume new top-most state }
+  if (FStateStack <> nil) and
+     (FStateStack.Count <> 0) then
+    FStateStack.Last.Resume;
 end;
 
 class function TUIState.StateStackCount: Integer;
@@ -236,16 +287,16 @@ begin
     StateContainer.Controls.Insert(InsertAtPosition, Self);
 end;
 
-procedure TUIState.InternalFinish;
+procedure TUIState.InternalStop;
 begin
   StateContainer.Controls.Remove(Self);
-  Finish;
+  Stop;
 end;
 
 function TUIState.StateContainer: TUIContainer;
 begin
   if FStartContainer <> nil then
-    { between Start and Finish, be sure to return the same thing
+    { between Start and Stop, be sure to return the same thing
       from StateContainer method. Also makes it working when Application
       is nil when destroying state from CastleWindow finalization. }
     Result := FStartContainer else
@@ -263,7 +314,9 @@ begin
   if (FStateStack <> nil) and
      (FStateStack.IndexOf(Self) <> -1) then
   begin
-    InternalFinish;
+    if FStateStack.Last = Self then
+      Pause;
+    InternalStop;
     FStateStack.Remove(Self);
     { deallocate empty FStateStack. Doing this here allows to deallocate
       FStateStack only once all states finished gracefully. }
@@ -274,14 +327,30 @@ begin
   inherited;
 end;
 
+procedure TUIState.Resume;
+begin
+end;
+
+procedure TUIState.Pause;
+begin
+end;
+
 procedure TUIState.Start;
 begin
   FStartContainer := StateContainer;
 end;
 
-procedure TUIState.Finish;
+procedure TUIState.Stop;
 begin
   FStartContainer := nil;
+
+  {$warnings off}
+  Finish;
+  {$warnings on}
+end;
+
+procedure TUIState.Finish;
+begin
 end;
 
 function TUIState.Rect: TRectangle;
