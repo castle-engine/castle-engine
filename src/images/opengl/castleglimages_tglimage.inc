@@ -1191,7 +1191,8 @@ end;
 
 procedure TGLImageManaged.SetImage(const AImage: TEncodedImage);
 begin
-  { exactly like Load(), but can ignore the call is AImage reference normal.
+  { exactly like Load(), but can ignore the call if AImage reference
+    is already set.
     Load() should not do it, to allow loading the same AImage reference
     in case AImage contents change. }
   if FImage <> AImage then
