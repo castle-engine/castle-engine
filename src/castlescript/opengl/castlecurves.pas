@@ -349,9 +349,10 @@ begin
 end;
 
 procedure TCurve.Render(Segments: Cardinal);
-var i: Integer;
+{$ifndef OpenGLES} //TODO-es
+var
+  i: Integer;
 begin
-  {$ifndef OpenGLES} //TODO-es
   {$warnings off}
   glColorv(Color);
   glLineWidth(LineWidth);
@@ -359,7 +360,9 @@ begin
   glBegin(GL_LINE_STRIP);
   for i := 0 to Segments do glVertexv(PointOfSegment(i, Segments));
   glEnd;
-  {$endif}
+{$else}
+begin
+{$endif}
 end;
 
 procedure TCurve.Render(const Frustum: TFrustum;
@@ -602,17 +605,19 @@ end;
 { TControlPointsCurve ------------------------------------------------ }
 
 procedure TControlPointsCurve.RenderControlPoints;
+{$ifndef OpenGLES} //TODO-es
 var
   i: Integer;
 begin
-  {$ifndef OpenGLES} //TODO-es
   {$warnings off}
   glColorv(ControlPointsColor);
   {$warnings on}
   glBegin(GL_POINTS);
   for i := 0 to ControlPoints.Count-1 do glVertexv(ControlPoints.L[i]);
   glEnd;
-  {$endif}
+{$else}
+begin
+{$endif}
 end;
 
 function TControlPointsCurve.BoundingBox: TBox3D;
@@ -636,6 +641,7 @@ begin
 end;
 
 procedure TControlPointsCurve.RenderConvexHull;
+{$ifndef OpenGLES} //TODO-es
 var
   CHPoints: TVector3SingleList;
   CH: TIntegerList;
@@ -645,7 +651,6 @@ begin
   try
     CH := ConvexHull(CHPoints);
     try
-      {$ifndef OpenGLES} //TODO-es
       {$warnings off}
       glColorv(ConvexHullColor);
       {$warnings on}
@@ -654,9 +659,11 @@ begin
         for i := 0 to CH.Count-1 do
           glVertexv(CHPoints.L[CH[i]]);
       finally glEnd end;
-      {$endif}
     finally CH.Free end;
   finally DestroyConvexHullPoints(CHPoints) end;
+{$else}
+begin
+{$endif}
 end;
 
 constructor TControlPointsCurve.Create(AOwner: TComponent);
