@@ -24,7 +24,8 @@
   by directives. And specyfying only a subset of them is useless.
   The proper compiler options to compile the engine are in ../../castle-fpc.cfg
   configuration file (used also by fpmake compilation method),
-  and they are replicated in Lazarus packages compilation settings.
+  and they are replicated in Lazarus packages compilation settings,
+  and are replicated once more in castle-engine build tool code.
 }
 
 {$ifndef CASTLE_CONF_INCLUDED}
