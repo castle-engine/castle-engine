@@ -29,10 +29,11 @@ type
 
   { UI state, a useful singleton to manage the state of your game UI.
 
-    Only one state is @italic(current) at a given time, it can
-    be get or set using the TUIState.Current property.
-    (Unless you use TUIState.Push, in which case you build a stack
-    of states, all of them are available at the same time.)
+    In simple cases, only one state is @italic(current) at a given time,
+    and it can be get or set using the @link(TUIState.Current) property.
+    In more complex cases, you can use @link(TUIState.Push) and @link(TUIState.Pop)
+    to build a stack of states, and in effect multiple states are active at the same time.
+    All of the states on stack are @italic(started), but only the top-most is @italic(resumed).
 
     Each state has @link(Start) and @link(Stop)
     methods that you can override to perform work when state becomes
@@ -41,7 +42,7 @@ type
     to perform work when the state becomes the top-most state or is no longer
     the top-most state. The distinction becomes important once you play
     around with pushing/popping states.
-    The names are deliberaly similar to Android lifecycle callback names:)
+    The names are deliberaly similar to Android lifecycle callback names.
 
     You can add/remove state-specific UI controls in various ways.
     You can add them in the constructor of this state (and then free in destructor),
@@ -98,6 +99,7 @@ type
     class var FStateStack: TUIStateList;
     class function GetCurrent: TUIState; static;
     class procedure SetCurrent(const Value: TUIState); static;
+    class function GetCurrentTop: TUIState; static;
     class function GetStateStack(const Index: Integer): TUIState; static;
   protected
     { Container on which state works. By default, this is Application.MainWindow.
@@ -111,13 +113,15 @@ type
     function InsertAtPosition: Integer; virtual;
   public
     { Current state. In case multiple states are active (only possible
-      if you used @link(Push) method), this is the bottom state.
+      if you used @link(Push) method), this is the bottom state
+      (use @link(CurrentTop) to get top state).
       Setting this resets whole state stack. }
     class property Current: TUIState read GetCurrent write SetCurrent;
+    class property CurrentTop: TUIState read GetCurrentTop;
 
-    { Pushing the state adds it above the @link(Current) state.
+    { Pushing the state adds it at the top of the state stack.
 
-      The current state is conceptually at the bottom of state stack, always.
+      The state known as @link(Current) is conceptually at the bottom of state stack, always.
       When it is nil, then pushing new state sets the @link(Current) state.
       Otherwise @link(Current) state is left as-it-is, new state is added on top. }
     class procedure Push(const NewState: TUIState);
@@ -139,8 +143,8 @@ type
 
     { State becomes active, it's now part of the state stack.
 
-      Active state is part of the StateStack, and will soon become
-      the @link(Current) state. When the state is set to be current,
+      Started state is part of the StateStack, and will soon become
+      running (top-most on the stack). When the state is set to be current,
       by @code(TUIState.Current := MyState), this happens:
 
       @orderedList(
@@ -155,7 +159,7 @@ type
 
     { State is no longer active, no longer part of state stack.
 
-      When the current state stops becoming active, this happens:
+      When the state stops becoming active, this happens:
 
       @orderedList(
         @item(MyStart.Pause is called.)
@@ -207,6 +211,14 @@ begin
      (FStateStack.Count = 0) then
     Result := nil else
     Result := FStateStack[0];
+end;
+
+class function TUIState.GetCurrentTop: TUIState;
+begin
+  if (FStateStack = nil) or
+     (FStateStack.Count = 0) then
+    Result := nil else
+    Result := FStateStack[FStateStack.Count - 1];
 end;
 
 class procedure TUIState.SetCurrent(const Value: TUIState);
