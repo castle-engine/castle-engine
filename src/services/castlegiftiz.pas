@@ -147,11 +147,6 @@ begin
   end;
 end;
 
-function TGiftizButton.KeepInFront: boolean;
-begin
-  Result := true;
-end;
-
 function TGiftizButton.GetExists: boolean;
 begin
   Result := (inherited GetExists) and GiftizStatusVisible;

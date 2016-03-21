@@ -237,11 +237,6 @@ begin
   Result := true;
 end;
 
-function TCastleInspectorControl.KeepInFront: boolean;
-begin
-  Result := true;
-end;
-
 function TCastleInspectorControl.Motion(const Event: TInputMotion): boolean;
 begin
   Result := inherited;
