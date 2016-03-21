@@ -291,6 +291,11 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
       http://castle-engine.sourceforge.net/creating_data_levels.php .  }
     procedure AddFromFile(const URL: string);
 
+    { Sort by @link(TLevelInfo.Number).
+      Done automatically at the end of @link(LoadFromFiles),
+      you may want to call it explicitly after doing @link(AddFromFile). }
+    procedure SortByNumber;
+
     { For all available levels, read their TLevelInfo.Played
       from config file (like @link(UserConfig)).
 
@@ -1333,6 +1338,11 @@ end;
 procedure TLevelInfoList.LoadFromFiles;
 begin
   LoadFromFiles(ApplicationData(''));
+  SortByNumber;
+end;
+
+procedure TLevelInfoList.SortByNumber;
+begin
   Sort(@IsSmallerByNumber);
 end;
 
