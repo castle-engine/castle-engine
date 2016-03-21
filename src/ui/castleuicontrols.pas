@@ -765,6 +765,7 @@ end;
     FVerticalAnchorSelf, FVerticalAnchorParent: TVerticalPosition;
     FVerticalAnchorDelta: Integer;
     FEnableUIScaling: boolean;
+    FKeepInFront: boolean;
     procedure SetExists(const Value: boolean);
     function GetControls(const I: Integer): TUIControl;
     procedure SetControls(const I: Integer; const Item: TUIControl);
@@ -806,11 +807,6 @@ end;
     procedure UIScaleChanged; virtual;
 
     //procedure DoCursorChange; override;
-
-    { Keep the control in front of other controls (with KeepInFront=@false)
-      when inserting. TODO: This is more a hack than a nice solution.
-      It also assumes that the result is constant for given instance lifetime. }
-    function KeepInFront: boolean; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -830,6 +826,9 @@ end;
 
     { Remove control added by @link(InsertFront) or @link(InsertBack). }
     procedure RemoveControl(Item: TUIControl);
+
+    { Remove all child controls added by @link(InsertFront) or @link(InsertBack). }
+    procedure ClearControls;
 
     { Return whether item really exists, see @link(Exists).
       Non-existing item does not receive any of the render or input or update calls.
@@ -1178,6 +1177,14 @@ end;
       if you need to disable UI scaling recursively). }
     property EnableUIScaling: boolean
       read FEnableUIScaling write SetEnableUIScaling default true;
+
+    { Keep the control in front of other controls (with KeepInFront=@false)
+      when inserting.
+
+      TODO: Do not change this propertyu while the control is already
+      a children of something. }
+    property KeepInFront: boolean read FKeepInFront write FKeepInFront
+      default false;
   end;
 
   { UI control with configurable size.
@@ -2530,11 +2537,6 @@ begin
   inherited;
 end;
 
-function TUIControl.KeepInFront: boolean;
-begin
-  Result := false;
-end;
-
 procedure TUIControl.CreateControls;
 begin
   if FControls = nil then
@@ -2584,6 +2586,12 @@ procedure TUIControl.RemoveControl(Item: TUIControl);
 begin
   if FControls <> nil then
     FControls.Remove(Item);
+end;
+
+procedure TUIControl.ClearControls;
+begin
+  if FControls <> nil then
+    FControls.Clear;
 end;
 
 function TUIControl.GetControls(const I: Integer): TUIControl;
@@ -3202,7 +3210,7 @@ begin
       begin
         if ((C.FContainer <> nil) or (C.FParent <> nil)) and
            ((Container <> nil) or (FParent <> nil)) then
-          OnWarning(wtMajor, 'UI', 'Inserting to the UI list (InsertFront, InsertBack) an item that is already a part of other UI list. The result is undefined, you cannot insert the same TUIControl instance multiple times.');
+          OnWarning(wtMajor, 'UI', 'Inserting to the UI list (InsertFront, InsertBack) an item that is already a part of other UI list: ' + C.Name + ' (' + C.ClassName + '). The result is undefined, you cannot insert the same TUIControl instance multiple times.');
         C.FreeNotification(FCaptureFreeNotifications);
         if Container <> nil then RegisterContainer(C, FContainer);
         C.FParent := FParent;
