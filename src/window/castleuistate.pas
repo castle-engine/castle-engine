@@ -121,7 +121,15 @@ type
       When it is nil, then pushing new state sets the @link(Current) state.
       Otherwise @link(Current) state is left as-it-is, new state is added on top. }
     class procedure Push(const NewState: TUIState);
+
+    { Pop the current top-most state, whatever it is. }
     class procedure Pop;
+
+    { Pop the top-most state, checking it is as expected.
+      Makes a warning, and does nothing, if the current top-most state
+      is different than indicated. This is usually a safer (more chance
+      to easily catch bugs) version of Pop than the parameter-less version. }
+    class procedure Pop(const CurrentTopMostState: TUIState);
 
     class function StateStackCount: Integer;
     class property StateStack [const Index: Integer]: TUIState read GetStateStack;
@@ -254,6 +262,22 @@ begin
   if (FStateStack <> nil) and
      (FStateStack.Count <> 0) then
     FStateStack.Last.Resume;
+end;
+
+class procedure TUIState.Pop(const CurrentTopMostState: TUIState);
+begin
+  if (FStateStack = nil) or (FStateStack.Count = 0) then
+  begin
+    OnWarning(wtMinor, 'State', 'Cannot pop UI state, that stack is empty');
+    Exit;
+  end;
+  if FStateStack.Last <> CurrentTopMostState then
+  begin
+    OnWarning(wtMinor, 'State', 'Cannot pop UI state, top-most state is expected to be ' + CurrentTopMostState.ClassName + ', but is ' + FStateStack.Last.ClassName);
+    Exit;
+  end;
+
+  Pop;
 end;
 
 class function TUIState.StateStackCount: Integer;
