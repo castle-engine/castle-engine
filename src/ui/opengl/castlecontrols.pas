@@ -531,8 +531,10 @@ type
     FLeverOffset: TVector2Single;
     FDragging: Integer; //< finger index that started drag, -1 if none
     FPosition: TCastleTouchPosition;
-    function SizeScale: Single;
+    FScale: Single;
+    function TotalScale: Single;
     procedure SetPosition(const Value: TCastleTouchPosition);
+    procedure SetScale(const Value: Single);
     function MaxOffsetDist: Integer;
   public
     constructor Create(AOwner: TComponent); override;
@@ -561,6 +563,8 @@ type
       @link(TUIContainer.Dpi). }
     property Position: TCastleTouchPosition
       read FPosition write SetPosition default tpManual;
+
+    property Scale: Single read FScale write SetScale default 1;
   end;
 
   { Simple background fill. Using OpenGL GLClear, so unconditionally
@@ -2197,12 +2201,22 @@ constructor TCastleTouchControl.Create(AOwner: TComponent);
 begin
   inherited;
   FDragging := -1;
+  FScale := 1;
 end;
 
-function TCastleTouchControl.SizeScale: Single;
+procedure TCastleTouchControl.SetScale(const Value: Single);
+begin
+  if FScale <> Value then
+  begin
+    FScale := Value;
+    VisibleChange;
+  end;
+end;
+
+function TCastleTouchControl.TotalScale: Single;
 begin
   if ContainerSizeKnown then
-    Result := Container.Dpi / 96 else
+    Result := Scale * Container.Dpi / 96 else
     Result := 1;
 end;
 
@@ -2211,8 +2225,8 @@ begin
   // do not apply UIScale here to Width / Height,
   // it's already adjusted to physical size
   Result := Rectangle(LeftBottomScaled,
-    Round(Theme.Images[tiTouchCtlOuter].Width  * SizeScale),
-    Round(Theme.Images[tiTouchCtlOuter].Height * SizeScale));
+    Round(Theme.Images[tiTouchCtlOuter].Width  * TotalScale),
+    Round(Theme.Images[tiTouchCtlOuter].Height * TotalScale));
 end;
 
 procedure TCastleTouchControl.SetPosition(const Value: TCastleTouchPosition);
@@ -2234,12 +2248,13 @@ begin
           Anchor(vpBottom, CtlBorder);
         end;
     end;
+    VisibleChange;
   end;
 end;
 
 function TCastleTouchControl.MaxOffsetDist: Integer;
 begin
-  Result := Round(SizeScale *
+  Result := Round(TotalScale *
     (Theme.Images[tiTouchCtlOuter].Width -
      Theme.Images[tiTouchCtlInner].Width) / 2);
 end;
@@ -2282,8 +2297,8 @@ begin
 
   // draw lever
   InnerRect := Theme.Images[ImageInner].Rect; // rectangle at (0,0)
-  InnerRect.Width  := Round(InnerRect.Width  * SizeScale);
-  InnerRect.Height := Round(InnerRect.Height * SizeScale);
+  InnerRect.Width  := Round(InnerRect.Width  * TotalScale);
+  InnerRect.Height := Round(InnerRect.Height * TotalScale);
   InnerRect.Left   := SR.Left   + (SR.Width  - InnerRect.Width ) div 2 + LevOffsetTrimmedX;
   InnerRect.Bottom := SR.Bottom + (SR.Height - InnerRect.Height) div 2 + LevOffsetTrimmedY;
 
@@ -2292,8 +2307,12 @@ end;
 
 procedure TCastleTouchControl.SetTouchMode(const Value: TCastleTouchCtlMode);
 begin
-  FTouchMode := Value;
-  { we may swap outer image depending on the TouchMode in some later version }
+  if FTouchMode <> Value then
+  begin
+    FTouchMode := Value;
+    { we may swap outer image depending on the TouchMode in some later version }
+    VisibleChange;
+  end;
 end;
 
 function TCastleTouchControl.Press(const Event: TInputPressRelease): boolean;
