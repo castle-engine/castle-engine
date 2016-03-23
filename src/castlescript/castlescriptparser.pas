@@ -76,6 +76,24 @@ function ParseFloatExpression(const S: string;
 function ParseIntExpression(const S: string;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 
+{ Parse a CastleScript expression that should be calculated to a string value.
+  The easiest way to evaluate such expression
+  is to call @link(TCasScriptExpression.AsString) method.
+
+  See @link(ParseFloatExpression) for more details, this procedure is equivalent
+  but it operates on strings. }
+function ParseStringExpression(const S: string;
+  const Variables: array of TCasScriptValue): TCasScriptExpression;
+
+{ Parse a CastleScript expression that should be calculated to a boolean value.
+  The easiest way to evaluate such expression
+  is to call @link(TCasScriptExpression.AsBool) method.
+
+  See @link(ParseFloatExpression) for more details, this procedure is equivalent
+  but it operates on booleans. }
+function ParseBoolExpression(const S: string;
+  const Variables: array of TCasScriptValue): TCasScriptExpression;
+
 { Creates and returns instance of TCasScriptExpression,
   that represents parsed tree of expression in S.
   @param(Variables contains a list of named values you want
@@ -306,25 +324,12 @@ begin
   except Result.FreeByParentExpression; raise end;
 end;
 
-type
-  TCasScriptValuesArray = array of TCasScriptValue;
-
-function VariablesListToArray(
-  const Variables: TCasScriptValueList): TCasScriptValuesArray;
-var
-  I: Integer;
-begin
-  SetLength(Result, Variables.Count);
-  for I := 0 to Variables.Count - 1 do
-    Result[I] := Variables[I];
-end;
-
 function Expression(
   const Lexer: TCasScriptLexer;
   Environment: TCasScriptEnvironment;
   const Variables: TCasScriptValueList): TCasScriptExpression;
 begin
-  Result := Expression(Lexer, Environment, VariablesListToArray(Variables));
+  Result := Expression(Lexer, Environment, Variables.ToArray);
 end;
 
 function Expression(
@@ -516,6 +521,22 @@ begin
   Result := TCasScriptInt.Create([Result]);
 end;
 
+function ParseStringExpression(const S: string;
+  const Variables: array of TCasScriptValue): TCasScriptExpression;
+begin
+  Result := ParseSimpleExpression(S, Variables);
+  { At the end, wrap Result in string() cast. }
+  Result := TCasScriptStringFun.Create([Result]);
+end;
+
+function ParseBoolExpression(const S: string;
+  const Variables: array of TCasScriptValue): TCasScriptExpression;
+begin
+  Result := ParseSimpleExpression(S, Variables);
+  { At the end, wrap Result in bool() cast. }
+  Result := TCasScriptBool.Create([Result]);
+end;
+
 function ParseExpression(const S: string;
   const Variables: array of TCasScriptValue): TCasScriptExpression;
 var
@@ -570,7 +591,7 @@ end;
 function ParseProgram(const S: string;
   const Variables: TCasScriptValueList): TCasScriptProgram;
 begin
-  Result := ParseProgram(S, VariablesListToArray(Variables));
+  Result := ParseProgram(S, Variables.ToArray);
 end;
 
 function ParseProgram(const S: string;
