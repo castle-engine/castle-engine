@@ -79,7 +79,7 @@ type
 
   { String-to-string map. Note that in simple cases you can also
     use standard TStringList functionality (see it's properties Names, Values),
-    and this is better if your key/values may be multiline. }
+    but this is better if your key/values may be multiline. }
   TStringStringMap = class(specialize TFPGMap<string, string>)
   public
     { Set given key value, trying to preserve previous key value too.
@@ -92,6 +92,12 @@ type
       This way previous content value is preserved once (but not more,
       to not grow the X3D file indefinitely). }
     procedure PutPreserve(const Name, Content: string);
+
+    { Create another TStringStringMap with exactly the same contents at the beginning. }
+    function CreateCopy: TStringStringMap;
+
+    { Assign contents (all keys, values) of another TStringStringMap instance. }
+    procedure Assign(const Source: TStringStringMap);
   end;
 
 type
@@ -969,6 +975,23 @@ begin
     end;
   end else
     KeyData[Name] := Content;
+end;
+
+function TStringStringMap.CreateCopy: TStringStringMap;
+begin
+  Result := TStringStringMap.Create;
+  try
+    Result.Assign(Self);
+  except FreeAndNil(Result); raise end;
+end;
+
+procedure TStringStringMap.Assign(const Source: TStringStringMap);
+var
+  I: Integer;
+begin
+  Clear;
+  for I := 0 to Source.Count - 1 do
+    KeyData[Source.Keys[I]] := Source.Data[I];
 end;
 
 { routines ------------------------------------------------------------------- }
