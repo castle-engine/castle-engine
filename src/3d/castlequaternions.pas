@@ -17,6 +17,8 @@
   @noAutoLinkHere }
 unit CastleQuaternions;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors;

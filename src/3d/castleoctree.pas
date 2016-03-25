@@ -62,6 +62,8 @@ end;
 *)
 unit CastleOctree;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, CastleVectors, CastleBoxes, CastleUtils, CastleFrustum, Contnrs;

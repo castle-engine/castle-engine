@@ -16,6 +16,8 @@
 { Utilities for cube (environment) maps. }
 unit CastleCubeMaps;
 
+{$I castleconf.inc}
+
 interface
 
 uses Math,

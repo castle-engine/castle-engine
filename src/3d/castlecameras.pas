@@ -16,6 +16,8 @@
 { Cameras to navigate in 3D space (TExamineCamera, TWalkCamera, TUniversalCamera). }
 unit CastleCameras;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, CastleVectors, CastleUtils, CastleKeysMouse, CastleBoxes, CastleQuaternions,

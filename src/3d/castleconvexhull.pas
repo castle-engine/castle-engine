@@ -21,6 +21,8 @@
 
 unit CastleConvexHull;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors, CastleUtils, Math;
