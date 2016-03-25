@@ -64,8 +64,6 @@
 
 unit CastlePng;
 
-{$I castleconf.inc}
-
 interface
 
 uses CastleZLib;

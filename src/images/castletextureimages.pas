@@ -30,6 +30,8 @@
   that only returns TCastleImage (a "normal" way to deal with image data). }
 unit CastleTextureImages;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleImages, CastleCompositeImage, CastleUtils, FGL, CastleVideos;
