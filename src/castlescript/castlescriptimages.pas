@@ -16,6 +16,8 @@
 { CastleScript image types and built-in functions. }
 unit CastleScriptImages;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors, CastleScript, CastleImages;

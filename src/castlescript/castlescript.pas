@@ -64,6 +64,8 @@
 }
 unit CastleScript;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Math, Contnrs, CastleUtils, CastleClassUtils, Classes, FGL;
