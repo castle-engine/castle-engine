@@ -17,6 +17,8 @@
   (TMessaging). }
 unit CastleMessaging;
 
+{$I castleconf.inc}
+
 interface
 
 uses {$ifdef ANDROID} JNI, {$endif} SyncObjs,

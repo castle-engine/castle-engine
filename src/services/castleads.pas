@@ -16,6 +16,8 @@
 { Ads (advertisements) in game (TAds). }
 unit CastleAds;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, CastleRectangles, CastleStringUtils;
