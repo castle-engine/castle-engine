@@ -26,7 +26,8 @@ function Load3DS(const URL: string): TX3DRootNode;
 implementation
 
 uses CastleUtils, Classes, CastleClassUtils, SysUtils, CastleVectors, X3DCameraUtils,
-  FGL, X3DLoadInternalUtils, CastleWarnings, CastleDownload, CastleURIUtils;
+  FGL, X3DLoadInternalUtils, CastleWarnings, CastleDownload, CastleURIUtils,
+  CastleStreamUtils;
 
 { 3DS reading mostly based on spec from
   [http://www.martinreddy.net/gfx/3d/3DS.spec].
@@ -348,6 +349,17 @@ type
     len: LongWord;
   end;
 
+  T3dsStreamHelper = class helper(TStreamHelper) for TStream
+    procedure ReadChunkHeader(out Buffer: TChunkHeader); inline;
+  end;
+
+procedure T3dsStreamHelper.ReadChunkHeader(out Buffer: TChunkHeader); inline;
+begin
+  ReadBuffer(Buffer, SizeOf(Buffer));
+  Buffer.id := LEtoN(Buffer.id);
+  Buffer.len := LEtoN(Buffer.len);
+end;
+
 procedure Check3dsFile(TrueValue: boolean; const ErrMessg: string);
 begin
   if not TrueValue then raise EInvalid3dsFile.Create(ErrMessg);
@@ -367,24 +379,32 @@ var
   h: TChunkHeader;
   hEnd: Int64;
   Col3Byte: TVector3Byte;
+{$ifdef ENDIAN_BIG}
+  b: Byte;
+{$endif ENDIAN_BIG}
 begin
   result := false;
   while Stream.Position < EndPos do
   begin
-    Stream.ReadBuffer(h, SizeOf(h));
+    Stream.ReadChunkHeader(h);
     hEnd := Stream.Position -SizeOf(TChunkHeader) + h.len;
     { TODO: we ignore gamma correction entirely so we don't distinct
       gamma corrected and not corrected colors }
     case h.id of
       CHUNK_RGBF, CHUNK_RGBF_GAMMA:
         begin
-          Stream.ReadBuffer(Col, SizeOf(Col));
+          Stream.ReadLE(Col);
           result := true;
           break;
         end;
       CHUNK_RGBB, CHUNK_RGBB_GAMMA:
         begin
           Stream.ReadBuffer(Col3Byte, SizeOf(Col3Byte));
+          {$ifdef ENDIAN_BIG}
+          b := Col3Byte[0];
+          Col3Byte[0] := Col3Byte[2];
+          Col3Byte[2] := b;
+          {$endif ENDIAN_BIG}
           Col := Vector3Single(Col3Byte);
           result := true;
           break;
@@ -417,11 +437,11 @@ begin
   result := false;
   while Stream.Position < EndPos do
   begin
-    Stream.ReadBuffer(h, SizeOf(h));
+    Stream.ReadChunkHeader(h);
     hEnd := Stream.Position -SizeOf(TChunkHeader) + h.len;
     if h.id = CHUNK_DOUBLE_BYTE then
     begin
-      Stream.ReadBuffer(DoubleByte, SizeOf(DoubleByte));
+      Stream.ReadLE(DoubleByte);
       result := true;
       break;
     end else
@@ -470,14 +490,14 @@ procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
     { read MAP subchunks }
     while Stream.Position < EndPos do
     begin
-      Stream.ReadBuffer(h, SizeOf(h));
+      Stream.ReadChunkHeader(h);
       hEnd := Stream.Position -SizeOf(TChunkHeader) +h.len;
       case h.id of
         CHUNK_MAP_FILE: Result.MapURL := StreamReadZeroEndString(Stream);
-        CHUNK_MAP_USCALE: Stream.ReadBuffer(Result.Scale[0], SizeOf(Single));
-        CHUNK_MAP_VSCALE: Stream.ReadBuffer(Result.Scale[1], SizeOf(Single));
-        CHUNK_MAP_UOFFSET: Stream.ReadBuffer(Result.Offset[0], SizeOf(Single));
-        CHUNK_MAP_VOFFSET: Stream.ReadBuffer(Result.Offset[1], SizeOf(Single));
+        CHUNK_MAP_USCALE: Stream.ReadLE(Result.Scale[0]);
+        CHUNK_MAP_VSCALE: Stream.ReadLE(Result.Scale[1]);
+        CHUNK_MAP_UOFFSET: Stream.ReadLE(Result.Offset[0]);
+        CHUNK_MAP_VOFFSET: Stream.ReadLE(Result.Offset[1]);
         else Stream.Position := hEnd;
       end;
     end;
@@ -490,7 +510,7 @@ begin
   { read material subchunks }
   while Stream.Position < EndPos do
   begin
-    Stream.ReadBuffer(h, SizeOf(h));
+    Stream.ReadChunkHeader(h);
     hEnd := Stream.Position -SizeOf(TChunkHeader) +h.len;
     case h.id of
       { Colors }
@@ -557,7 +577,7 @@ begin
 
   while Stream.Position < EndPos do
   begin
-    Stream.ReadBuffer(h, SizeOf(h));
+    Stream.ReadChunkHeader(h);
     if h.id = CHUNK_MATNAME then
     begin
       MatName := StreamReadZeroEndString(Stream);
@@ -615,7 +635,7 @@ begin
   { searching for chunk TRIMESH / CAMERA / LIGHT }
   while Stream.Position < ObjectEndPos do
   begin
-    Stream.ReadBuffer(h, SizeOf(h));
+    Stream.ReadChunkHeader(h);
     ChunkEndPos := Stream.Position + h.len - SizeOf(TChunkHeader);
     case h.id of
       CHUNK_TRIMESH: Result := TTrimesh3ds.Create(ObjName, AScene, Stream, ChunkEndPos);
@@ -623,7 +643,7 @@ begin
       CHUNK_LIGHT: Result := TLight3ds.Create(ObjName, AScene, Stream, ChunkEndPos);
     end;
     if Result <> nil then break;
-    Stream.Position := Stream.Position + h.len - SizeOf(TChunkHeader);
+    Stream.Position := ChunkEndPos;
   end;
 
   {if none of the TRIMESH / CAMERA / LIGHT chunks found raise error}
@@ -648,12 +668,12 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
   begin
     if VertsCount = 0 then
     begin
-      Stream.ReadBuffer(FVertsCount, SizeOf(FVertsCount));
+      Stream.ReadLE(FVertsCount);
       { Use GetClearMem to have Verts memory safely initialized to 0 }
       Verts := GetClearMem(SizeOf(TVertex3ds)*VertsCount);
     end else
     begin
-      Stream.ReadBuffer(VertsCountCheck, SizeOf(VertsCountCheck));
+      Stream.ReadLE(VertsCountCheck);
       Check3dsFile( VertsCountCheck = VertsCount,
         'Different VertexCount info for 3ds object '+Name);
     end;
@@ -665,7 +685,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
   begin
     ReadVertsCount;
     for i := 0 to VertsCount-1 do
-      Stream.ReadBuffer(Verts^[i].Pos, SizeOf(Verts^[i].Pos));
+      Stream.ReadLE(Verts^[i].Pos);
   end;
 
   procedure ReadMaplist(chunkEnd: Int64);
@@ -675,7 +695,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
     FHasTexCoords := true;
     ReadVertsCount;
     for i := 0 to VertsCount-1 do
-      Stream.ReadBuffer(Verts^[i].TexCoord, SizeOf(Verts^[i].TexCoord));
+      Stream.ReadLE(Verts^[i].TexCoord);
     Stream.Position := chunkEnd; { skip subchunks }
   end;
 
@@ -690,10 +710,10 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
     begin
       MatName := StreamReadZeroEndString(Stream);
       MatIndex := Scene.Materials.MaterialIndex(MatName);
-      Stream.ReadBuffer(MatFaceCount, SizeOf(MatFaceCount));
+      Stream.ReadLE(MatFaceCount);
       for i := 1 to MatFaceCount do
       begin
-        Stream.ReadBuffer(FaceNum, SizeOf(FaceNum));
+        Stream.ReadLE(FaceNum);
         Check3dsFile(FaceNum < FacesCount,
           'Invalid face number for material '+MatName);
         Check3dsFile(Faces^[FaceNum].FaceMaterialIndex = -1,
@@ -710,7 +730,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
     hEnd: Int64;
   begin
     Check3dsFile(FacesCount = 0, 'Duplicate faces specification for 3ds object '+Name);
-    Stream.ReadBuffer(FFacesCount, SizeOf(FFacesCount));
+    Stream.ReadLE(FFacesCount);
     Faces := GetMem(SizeOf(TFace3ds)*FacesCount);
     for i := 0 to FacesCount-1 do
     with Faces^[i] do
@@ -718,8 +738,8 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
       { init face }
       Stream.ReadBuffer(Word3, SizeOf(Word3));
       for j := 0 to 2 do
-        VertsIndices[j] := Word3[j];
-      Stream.ReadBuffer(Flags, SizeOf(Flags));
+        VertsIndices[j] := LEtoN(Word3[j]);
+      Stream.ReadLE(Flags);
       { decode Flags }
       for j := 0 to 2 do
         EdgeFlags[j]:=(FACEFLAG_EDGES[j] and Flags) <> 0;
@@ -731,7 +751,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
     { read subchunks - look for FACEMAT chunk }
     while Stream.Position < chunkEnd do
     begin
-      Stream.ReadBuffer(h, SizeOf(h));
+      Stream.ReadChunkHeader(h);
       hEnd := Stream.Position + h.len - SizeOf(TChunkHeader);
       if h.id = CHUNK_FACEMAT then
         ReadFacemat else
@@ -748,7 +768,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
   begin
     Matrix := IdentityMatrix4Single;
     for I := 0 to 3 do
-      Stream.ReadBuffer(Matrix[I], SizeOf(TVector3Single));
+      Stream.ReadLE(Matrix[I]);
     { The 4th row of our matrix will remain (0,0,0,1). }
 
     if not MatricesPerfectlyEqual(Matrix, IdentityMatrix4Single) then
@@ -778,7 +798,7 @@ begin
   { read subchunks inside CHUNK_TRIMESH }
   while Stream.Position < ChunkEndPos do
   begin
-    Stream.ReadBuffer(h, SizeOf(h));
+    Stream.ReadChunkHeader(h);
     hend := Stream.Position + h.len - SizeOf(TChunkHeader);
     case h.id of
       CHUNK_VERTLIST: ReadVertlist;
@@ -810,10 +830,10 @@ begin
   inherited;
 
   { read CHUNK_CAMERA }
-  Stream.ReadBuffer(FPosition, SizeOf(FPosition));
-  Stream.ReadBuffer(FTarget, SizeOf(FTarget));
-  Stream.ReadBuffer(FBank, SizeOf(FBank));
-  Stream.ReadBuffer(FLens, SizeOf(FLens));
+  Stream.ReadLE(FPosition);
+  Stream.ReadLE(FTarget);
+  Stream.ReadLE(FBank);
+  Stream.ReadLE(FLens);
 end;
 
 function TCamera3ds.Direction: TVector3Single;
@@ -852,7 +872,7 @@ begin
   Enabled := true; { TODO: we could read this from 3ds file }
 
   { read inside CHUNK_LIGHT }
-  Stream.ReadBuffer(Pos, SizeOf(Pos));
+  Stream.ReadLE(Pos);
   TryReadColorInSubchunks(Col, Stream, ChunkEndPos);
 end;
 
@@ -871,12 +891,12 @@ begin
   Lights := TLight3dsList.Create;
   Materials := TMaterial3dsList.Create;
 
-  Stream.ReadBuffer(hmain, SizeOf(hmain));
+  Stream.ReadChunkHeader(hmain);
   Check3dsFile(hmain.id = CHUNK_MAIN, 'First chunk id <> CHUNK_MAIN');
 
   while Stream.Position < hmain.len do
   begin
-    Stream.ReadBuffer(hsubmain, SizeOf(hsubmain));
+    Stream.ReadChunkHeader(hsubmain);
     hsubmainEnd := Stream.Position+hsubmain.len-SizeOf(TChunkHeader);
     case hsubmain.id of
       CHUNK_OBJMESH:
@@ -884,7 +904,7 @@ begin
           { look for chunks OBJBLOCK and MATERIAL }
           while Stream.Position < hsubmainEnd do
           begin
-            Stream.ReadBuffer(hsubObjMesh, SizeOf(hsubObjMesh));
+            Stream.ReadChunkHeader(hsubObjMesh);
             hsubObjMeshEnd := Stream.Position + hsubObjMesh.len - SizeOf(TChunkHeader);
             case hsubObjMesh.id of
               CHUNK_OBJBLOCK:
@@ -901,7 +921,7 @@ begin
             end;
           end;
         end;
-      CHUNK_VERSION: Stream.ReadBuffer(Version, SizeOf(Version));
+      CHUNK_VERSION: Stream.ReadLE(Version);
       else Stream.Position := hsubmainEnd;
     end;
   end;
