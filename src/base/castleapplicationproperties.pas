@@ -17,6 +17,8 @@
   (TCastleApplicationProperties). }
 unit CastleApplicationProperties;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleClassUtils, CastleGenericLists;

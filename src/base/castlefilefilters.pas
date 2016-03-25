@@ -16,6 +16,8 @@
 { File filters, for TCastleWindowCustom.FileDialog and Lazarus file dialogs. }
 unit CastleFileFilters;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, FGL;

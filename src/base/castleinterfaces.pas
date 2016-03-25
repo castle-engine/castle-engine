@@ -31,6 +31,8 @@
 { Utilities for interfaces. }
 unit CastleInterfaces;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes;

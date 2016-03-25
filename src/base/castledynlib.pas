@@ -16,6 +16,8 @@
 { Dynamic libraries loading (TDynLib). }
 unit CastleDynLib;
 
+{$I castleconf.inc}
+
 interface
 
 uses
