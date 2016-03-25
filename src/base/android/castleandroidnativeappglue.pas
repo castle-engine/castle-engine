@@ -17,6 +17,8 @@
 
 unit CastleAndroidNativeAppGlue;
 
+{$I castleconf.inc}
+
 interface
 
 uses

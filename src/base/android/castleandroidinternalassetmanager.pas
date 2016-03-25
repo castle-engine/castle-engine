@@ -17,6 +17,8 @@
 { @exclude Internal for the engine. }
 unit CastleAndroidInternalAssetManager;
 
+{$I castleconf.inc}
+
 interface
 
 uses ctypes;

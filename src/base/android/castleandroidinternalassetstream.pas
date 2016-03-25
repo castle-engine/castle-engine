@@ -16,6 +16,8 @@
 { Reading Android asset files as streams. }
 unit CastleAndroidInternalAssetStream;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, CastleAndroidInternalAssetManager;

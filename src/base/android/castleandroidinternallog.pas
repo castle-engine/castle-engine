@@ -2,6 +2,8 @@
   @exclude Internal for the engine. }
 unit CastleAndroidInternalLog;
 
+{$I castleconf.inc}
+
 interface
 
 { Based on Android NDK platforms/android-4/arch-arm/usr/include/android/log.h .

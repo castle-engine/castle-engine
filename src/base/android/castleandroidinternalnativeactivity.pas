@@ -17,6 +17,8 @@
 { @exclude Internal for the engine. }
 unit CastleAndroidInternalNativeActivity;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleAndroidInternalAssetManager, CastleAndroidInternalInput, CastleAndroidInternalNativeWindow,

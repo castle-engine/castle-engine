@@ -16,6 +16,8 @@
 
 unit CastleAndroidInternalConfiguration;
 
+{$I castleconf.inc}
+
 interface
 
 uses ctypes, CastleAndroidInternalAssetManager;
