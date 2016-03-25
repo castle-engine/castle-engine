@@ -16,6 +16,8 @@
 { Spine 2D animations loader. }
 unit X3DLoadInternalSpine;
 
+{$I castleconf.inc}
+
 interface
 
 uses X3DNodes;

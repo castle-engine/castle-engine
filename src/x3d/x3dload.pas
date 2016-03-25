@@ -59,6 +59,8 @@
 }
 unit X3DLoad;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors, SysUtils, X3DNodes, X3DLoadInternalMD3,

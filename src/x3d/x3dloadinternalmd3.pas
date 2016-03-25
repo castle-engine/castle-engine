@@ -17,6 +17,8 @@
   [http://icculus.org/homepages/phaethon/q3a/formats/md3format.html]. }
 unit X3DLoadInternalMD3;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, CastleUtils, CastleClassUtils, CastleVectors, X3DNodes,

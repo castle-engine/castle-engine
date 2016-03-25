@@ -17,6 +17,8 @@
   @exclude Internal unit for CastleRenderer and CastleRendererInternalShader. }
 unit CastleRendererInternalTextureEnv;
 
+{$I castleconf.inc}
+
 interface
 
 type

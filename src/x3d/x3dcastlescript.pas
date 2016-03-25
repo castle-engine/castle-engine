@@ -16,6 +16,8 @@
 { CastleScript utilities for usage as VRML/X3D scripts. }
 unit X3DCastleScript;
 
+{$I castleconf.inc}
+
 interface
 
 uses X3DFields, CastleScript, CastleUtils, CastleClassUtils, X3DTime;

@@ -16,6 +16,8 @@
 { Triangle octrees (TTriangleOctree). }
 unit CastleTriangleOctree;
 
+{$I castleconf.inc}
+
 {
   TODO
   - Right now, since we keep pointers to TTriangle created by TCastleSceneCore,

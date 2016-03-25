@@ -16,6 +16,8 @@
 { Background for 3D world (TBackground). }
 unit CastleBackground;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors, SysUtils, CastleUtils, CastleImages, X3DNodes,

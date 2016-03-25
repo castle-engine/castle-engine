@@ -32,6 +32,7 @@
 
 unit CastleShapeOctree;
 
+{$I castleconf.inc}
 {$I octreeconf.inc}
 
 interface

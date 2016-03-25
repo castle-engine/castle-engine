@@ -18,6 +18,8 @@
     for camera handling.) }
 unit X3DCameraUtils;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleUtils, CastleVectors, CastleBoxes, X3DNodes;

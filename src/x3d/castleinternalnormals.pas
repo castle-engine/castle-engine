@@ -21,6 +21,8 @@
   So it can be used in other situations too. }
 unit CastleInternalNormals;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, CastleUtils, CastleVectors, X3DNodes;

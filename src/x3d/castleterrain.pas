@@ -16,6 +16,8 @@
 { Terrain (height map) implementations. }
 unit CastleTerrain;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, CastleScript, CastleImages, X3DNodes,
