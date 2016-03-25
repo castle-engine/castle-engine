@@ -14,6 +14,7 @@
   original C headers.) }
 unit CastleOgg;
 
+{$I castleconf.inc}
 {$packrecords C}
 
 interface

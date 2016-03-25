@@ -1,6 +1,8 @@
 { OggVorbis decoder. }
 unit CastleVorbisDecoder;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, CastleOpenAL;

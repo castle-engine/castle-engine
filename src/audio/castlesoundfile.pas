@@ -21,6 +21,8 @@
   initialized are clearly marked as such in the documentation. }
 unit CastleSoundFile;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, CastleUtils, Classes, CastleOpenAL, CastleTimeUtils;

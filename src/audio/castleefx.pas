@@ -19,6 +19,8 @@
   through wine). }
 unit CastleEFX;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors, CastleOpenAL, Math;

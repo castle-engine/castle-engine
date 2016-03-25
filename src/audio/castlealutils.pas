@@ -25,6 +25,8 @@
 
 unit CastleALUtils;
 
+{$I castleconf.inc}
+
 interface
 
 {$define read_interface}
