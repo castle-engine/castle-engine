@@ -360,6 +360,27 @@ function IntSqrt(const Value: Cardinal): Cardinal;
   http://www.khronos.org/opengles/sdk/docs/manglsl/xhtml/smoothstep.xml }
 function SmoothStep(const Edge0, Edge1, X: Single): Single;
 
+{ Utility functions to control the endianess of Single and Double values; no
+  support for Extended though as such values have yet to be encountered when
+  read from a file
+
+  @groupBegin }
+function SwapEndian(const Value: Single): Single; overload;
+function SwapEndian(const Value: Double): Double; overload;
+
+function NtoLE(const Value: Single): Single; overload;
+function NtoLE(const Value: Double): Double; overload;
+
+function NtoBE(const Value: Single): Single; overload;
+function NtoBE(const Value: Double): Double; overload;
+
+function LEtoN(const Value: Single): Single; overload;
+function LEtoN(const Value: Double): Double; overload;
+
+function BEtoN(const Value: Single): Single; overload;
+function BEtoN(const Value: Double): Double; overload;
+{ @groupEnd }
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -1023,6 +1044,88 @@ function SmoothStep(const Edge0, Edge1, X: Single): Single;
 begin
   Result := Clamped((X - Edge0) / (Edge1 - Edge0), 0.0, 1.0);
   Result := Result * Result * (3.0 - 2.0 * Result);
+end;
+
+function SwapEndian(const Value: Single): Single;
+begin
+  PLongWord(@Result)^ := SwapEndian(PLongWord(@Value)^);
+end;
+
+function SwapEndian(const Value: Double): Double;
+begin
+  PQWord(@Result)^ := SwapEndian(PQWord(@Value)^);
+end;
+
+function NtoLE(const Value: Single): Single;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(Value);
+{$else ENDIAN_BIG}
+  Result := Value;
+{$endif ENDIAN_BIG}
+end;
+
+function NtoLE(const Value: Double): Double;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(Value);
+{$else ENDIAN_BIG}
+  Result := Value;
+{$endif ENDIAN_BIG}
+end;
+
+function NtoBE(const Value: Single): Single;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := Value;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(Value);
+{$endif ENDIAN_BIG}
+end;
+
+function NtoBE(const Value: Double): Double;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := Value;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(Value);
+{$endif ENDIAN_BIG}
+end;
+
+function LEtoN(const Value: Single): Single;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(Value);
+{$else ENDIAN_BIG}
+  Result := Value;
+{$endif ENDIAN_BIG}
+end;
+
+function LEtoN(const Value: Double): Double;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(Value);
+{$else ENDIAN_BIG}
+  Result := Value;
+{$endif ENDIAN_BIG}
+end;
+
+function BEtoN(const Value: Single): Single;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := Value;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(Value);
+{$endif ENDIAN_BIG}
+end;
+
+function BEtoN(const Value: Double): Double;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := Value;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(Value);
+{$endif ENDIAN_BIG}
 end;
 
 {$endif read_implementation}
