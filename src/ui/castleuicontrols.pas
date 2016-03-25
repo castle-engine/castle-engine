@@ -17,6 +17,8 @@
 { User interface (2D) basic classes: @link(TUIControl) and @link(TUIContainer). }
 unit CastleUIControls;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, FGL,

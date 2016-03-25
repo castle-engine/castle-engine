@@ -42,6 +42,7 @@ unit TDxInput_TLB;
 // removing them from the $IFDEF blocks. However, such items must still be    
 // programmatically created via a method of the appropriate CoClass before    
 // they can be used.                                                          
+{$I castleconf.inc}
 {$TYPEDADDRESS OFF} // Unit must be compiled without type-checked pointers. 
 {$WARN SYMBOL_PLATFORM OFF}
 {$WRITEABLECONST ON}

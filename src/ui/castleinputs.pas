@@ -84,6 +84,8 @@
   to the final application. }
 unit CastleInputs;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, FGL,

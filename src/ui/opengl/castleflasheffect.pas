@@ -16,6 +16,8 @@
 { Screen effects done by blending screen with given color (TCastleFlashEffect). }
 unit CastleFlashEffect;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes,

@@ -16,6 +16,8 @@
 { Standard 2D controls: buttons, labels, sliders etc. }
 unit CastleControls;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
