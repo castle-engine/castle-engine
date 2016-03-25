@@ -226,6 +226,135 @@ begin
   V1[2] *= V2[2];
 end;
 
+function SwapEndian(const V: TVector2): TVector2;
+begin
+  Result[0] := SwapEndian(V[0]);
+  Result[1] := SwapEndian(V[1]);
+end;
+
+function SwapEndian(const V: TVector3): TVector3;
+begin
+  Result[0] := SwapEndian(V[0]);
+  Result[1] := SwapEndian(V[1]);
+  Result[2] := SwapEndian(V[2]);
+end;
+
+function SwapEndian(const V: TVector4): TVector4;
+begin
+  Result[0] := SwapEndian(V[0]);
+  Result[1] := SwapEndian(V[1]);
+  Result[2] := SwapEndian(V[2]);
+  Result[3] := SwapEndian(V[3]);
+end;
+
+function NtoLE(const V: TVector2): TVector2;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$else ENDIAN_BIG}
+  Result := V;
+{$endif ENDIAN_BIG}
+end;
+
+function NtoLE(const V: TVector3): TVector3;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$else ENDIAN_BIG}
+  Result := V;
+{$endif ENDIAN_BIG}
+end;
+
+function NtoLE(const V: TVector4): TVector4;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$else ENDIAN_BIG}
+  Result := V;
+{$endif ENDIAN_BIG}
+end;
+
+function NtoBE(const V: TVector2): TVector2;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := V;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$endif ENDIAN_BIG}
+end;
+
+function NtoBE(const V: TVector3): TVector3;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := V;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$endif ENDIAN_BIG}
+end;
+
+function NtoBE(const V: TVector4): TVector4;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := V;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$endif ENDIAN_BIG}
+end;
+
+function LEtoN(const V: TVector2): TVector2;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$else ENDIAN_BIG}
+  Result := V;
+{$endif ENDIAN_BIG}
+end;
+
+function LEtoN(const V: TVector3): TVector3;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$else ENDIAN_BIG}
+  Result := V;
+{$endif ENDIAN_BIG}
+end;
+
+function LEtoN(const V: TVector4): TVector4;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$else ENDIAN_BIG}
+  Result := V;
+{$endif ENDIAN_BIG}
+end;
+
+function BEtoN(const V: TVector2): TVector2;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := V;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$endif ENDIAN_BIG}
+end;
+
+function BEtoN(const V: TVector3): TVector3;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := V;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$endif ENDIAN_BIG}
+end;
+
+function BEtoN(const V: TVector4): TVector4;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := V;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$endif ENDIAN_BIG}
+end;
+
 procedure SwapValues(var V1, V2: TVector2);
 var
   Tmp: TVector2;

@@ -651,6 +651,43 @@ operator := (const V: TVector2Single): TVector2_Single;
 operator := (const V: TVector3Single): TVector3_Single;
 operator := (const V: TVector4Single): TVector4_Single;
 
+{ Endianess utility functions for vectors  ----------------------------------- }
+
+function SwapEndian(const V: TVector2Single): TVector2Single; overload;
+function SwapEndian(const V: TVector2Double): TVector2Double; overload;
+function SwapEndian(const V: TVector3Single): TVector3Single; overload;
+function SwapEndian(const V: TVector3Double): TVector3Double; overload;
+function SwapEndian(const V: TVector4Single): TVector4Single; overload;
+function SwapEndian(const V: TVector4Double): TVector4Double; overload;
+
+function LEtoN(const V: TVector2Single): TVector2Single; overload;
+function LEtoN(const V: TVector2Double): TVector2Double; overload;
+function LEtoN(const V: TVector3Single): TVector3Single; overload;
+function LEtoN(const V: TVector3Double): TVector3Double; overload;
+function LEtoN(const V: TVector4Single): TVector4Single; overload;
+function LEtoN(const V: TVector4Double): TVector4Double; overload;
+
+function BEtoN(const V: TVector2Single): TVector2Single; overload;
+function BEtoN(const V: TVector2Double): TVector2Double; overload;
+function BEtoN(const V: TVector3Single): TVector3Single; overload;
+function BEtoN(const V: TVector3Double): TVector3Double; overload;
+function BEtoN(const V: TVector4Single): TVector4Single; overload;
+function BEtoN(const V: TVector4Double): TVector4Double; overload;
+
+function NtoLE(const V: TVector2Single): TVector2Single; overload;
+function NtoLE(const V: TVector2Double): TVector2Double; overload;
+function NtoLE(const V: TVector3Single): TVector3Single; overload;
+function NtoLE(const V: TVector3Double): TVector3Double; overload;
+function NtoLE(const V: TVector4Single): TVector4Single; overload;
+function NtoLE(const V: TVector4Double): TVector4Double; overload;
+
+function NtoBE(const V: TVector2Single): TVector2Single; overload;
+function NtoBE(const V: TVector2Double): TVector2Double; overload;
+function NtoBE(const V: TVector3Single): TVector3Single; overload;
+function NtoBE(const V: TVector3Double): TVector3Double; overload;
+function NtoBE(const V: TVector4Single): TVector4Single; overload;
+function NtoBE(const V: TVector4Double): TVector4Double; overload;
+
 { Simple vectors operations  ------------------------------------------------- }
 
 { }
