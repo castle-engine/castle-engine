@@ -18,7 +18,6 @@
 unit CastleControl;
 
 {$I castleconf.inc}
-{$mode objfpc}{$H+}
 
 interface
 

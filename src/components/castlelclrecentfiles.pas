@@ -17,6 +17,8 @@
   See TRecentFiles class. }
 unit CastleLCLRecentFiles;
 
+{$I castleconf.inc}
+
 interface
 
 uses Menus, CastleRecentFiles;

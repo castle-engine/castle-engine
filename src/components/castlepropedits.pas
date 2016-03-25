@@ -21,6 +21,8 @@
   by PasDoc. It's only for Lazarus registration.) }
 unit CastlePropEdits;
 
+{$I castleconf.inc}
+
 interface
 
 procedure Register;
