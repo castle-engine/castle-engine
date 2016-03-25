@@ -17,6 +17,8 @@
 
 unit CastleWindowsFonts;
 
+{$I castleconf.inc}
+
 interface
 
 uses Windows, SysUtils, CastleUtils;
