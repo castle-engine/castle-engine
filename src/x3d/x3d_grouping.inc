@@ -262,6 +262,7 @@
     class function ClassNodeTypeName: string; override;
 
     private FFdWhichChoice: TSFInt32;
+    {This property shouldn't be set manually. See TSwitchNodeHelper.WhichChoice.}
     public property FdWhichChoice: TSFInt32 read FFdWhichChoice;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;

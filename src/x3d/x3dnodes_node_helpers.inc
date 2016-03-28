@@ -1072,11 +1072,14 @@ type
     property BboxSize: TVector3Single read GetBboxSize write SetBboxSize;
   end;
 
+  { This is a helper for TSwitchNode to read and write WhichChoice field. }
   TSwitchNodeHelper = class helper for TSwitchNode
   private
     function GetWhichChoice: Integer;
     procedure SetWhichChoice(const Value: Integer);
   public
+    { Determines which child of TSwichNode is active at the moment.
+Any negative number determines no child is selected. Pay attention that in this case TSwitchNode still exists in the scene and consumes some CPU/GPU resources at each render that might become significant at ~1000 TSwitchNodes. Use TCastleScene.exists for more efficient optimizations. }
     property WhichChoice: Integer read GetWhichChoice write SetWhichChoice;
   end;
 
