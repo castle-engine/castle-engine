@@ -94,9 +94,9 @@ var i: Integer;
 begin
  result := ZeroVector3Single;
  for i := 0 to Lights.Count-1 do
-  if Octree.LightNotBlocked(Lights.L[i], Point, PointPlaneNormal,
+  if Octree.LightNotBlocked(Lights.List^[i], Point, PointPlaneNormal,
     RenderDir, nil, true) then
-   VectorAddVar(result, Lights.L[i].ContributionCameraIndependent(
+   VectorAddVar(result, Lights.List^[i].ContributionCameraIndependent(
      Point, PointPlaneNormal, WhiteRGB));
 end;
 

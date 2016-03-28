@@ -116,7 +116,7 @@ function RandomHemispherePointCosThetaExpXYZ(const n: Single;
 implementation
 
 { Note: Math unit operates of Float type. We try to minimize in some routines
-  below convertions Single <-> Float. }
+  below conversions Single <-> Float. }
 
 uses Math;
 

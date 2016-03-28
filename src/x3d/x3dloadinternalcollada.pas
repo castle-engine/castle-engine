@@ -229,7 +229,7 @@ begin
       Result.ForceVersion := X3DVersion;
 
       { Read library_images. These may be referred to inside effects. }
-      LibraryE := DOMGetChildElement(Doc.DocumentElement, 'library_images', false);
+      LibraryE := Doc.DocumentElement.ChildElement('library_images', false);
       if LibraryE <> nil then
         ReadLibraryImages(LibraryE);
 
@@ -237,14 +237,14 @@ begin
         Effects may be referenced by materials,
         and there's no guarantee that library_effects will occur before
         library_materials. Testcase: "COLLLADA 1.4.1 Basic Samples/Cube/cube.dae". }
-      LibraryE := DOMGetChildElement(Doc.DocumentElement, 'library_effects', false);
+      LibraryE := Doc.DocumentElement.ChildElement('library_effects', false);
       if LibraryE <> nil then
         ReadLibraryEffects(LibraryE);
 
       { Read libraries of things that may be referenced within library_visual_scenes.
         For some models, <library_visual_scenes> may be before them (test from
         collada.org/owl/ : "New Uploads/COLLADA 1.5.0 Kinematics/COLLADA 1.5.0 Kinematics/COLLADA/KR150/kr150.dae") }
-      I := TXMLElementIterator.Create(Doc.DocumentElement);
+      I := Doc.DocumentElement.ChildrenIterator;
       try
         while I.GetNext do
           if I.Current.TagName = 'library' then { only Collada < 1.4.x }
@@ -261,14 +261,14 @@ begin
             ReadLibraryControllers(I.Current);
       finally FreeAndNil(I); end;
 
-      I := TXMLElementIterator.Create(Doc.DocumentElement);
+      I := Doc.DocumentElement.ChildrenIterator;
       try
         while I.GetNext do
           if I.Current.TagName = 'library_nodes' then
             ReadLibraryNodes(I.Current);
       finally FreeAndNil(I); end;
 
-      I := TXMLElementIterator.Create(Doc.DocumentElement);
+      I := Doc.DocumentElement.ChildrenIterator;
       try
         while I.GetNext do
           if I.Current.TagName = 'library_visual_scenes' then { only Collada >= 1.4.x }

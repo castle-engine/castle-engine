@@ -16,11 +16,11 @@
 { Demo of using custom viewports (TCastleViewport) to view the same 3D world
   (scene manager in TCastleSceneManager). }
 
-{ If defined, then the 3D world will contain a translated TCastlePrecalculatedAnimation
-  with a dinosaur. It's most suitable when as the main scene you load
+{ If defined, then the 3D world will contain an additional animation
+  of a dinosaur. It's most suitable when as the main scene you load
   models/bridge_final.x3dv, then you get a setup similar to scene_manager_demos.
-  This shows that animated TCastlePrecalculatedAnimation works fully with mirrors
-  by GeneratedCubeMapTexture, also in custom viewports. }
+  This shows that animation from 2nd file works fully with mirrors
+  by GeneratedCubeMapTexture in 1st file, also in custom viewports. }
 { $define ADD_GL_ANIMATION}
 
 {$I castleconf.inc}
@@ -30,7 +30,7 @@ uses SysUtils, CastleGL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene,
   CastleControls, CastleWarnings, CastleScreenEffects, CastleSceneManager,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
   CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages
-  {$ifdef ADD_GL_ANIMATION} , Castle3D, CastlePrecalculatedAnimation {$endif};
+  {$ifdef ADD_GL_ANIMATION} , Castle3D {$endif};
 
 { TMyViewport ---------------------------------------------------------------- }
 
@@ -221,7 +221,8 @@ end;
 
 var
   URL: string = 'models/teapot.x3dv';
-  //  '../../../demo_models/shadow_volumes/shadows_dynamic.x3dv'
+  // 'models/bridge_final.x3dv';
+  // '../../../demo_models/shadow_volumes/shadows_dynamic.x3dv'
 
 type
   TDummy = class
@@ -253,7 +254,7 @@ var
   I: Integer;
   Background: TCastleSimpleBackground;
   {$ifdef ADD_GL_ANIMATION}
-  Animation: TCastlePrecalculatedAnimation;
+  Animation: TCastleScene;
   Transform: T3DTransform;
   {$endif ADD_GL_ANIMATION}
 begin
@@ -276,13 +277,14 @@ begin
   {$ifdef ADD_GL_ANIMATION}
   { initialize Transform }
   Transform := T3DTransform.Create(Window.SceneManager);
-  Transform.Translation := Vector3Single(5, 3, 60);
+//  Transform.Translation := Vector3Single(5, 3, 60);
   Window.SceneManager.Items.Add(Transform);
 
   { initialize Animation }
-  Animation := TCastlePrecalculatedAnimation.Create(Window.SceneManager);
-  Animation.LoadFromFile('models/raptor.kanim', false, true);
-  Animation.FirstScene.Spatial := [ssRendering, ssDynamicCollisions];
+  Animation := TCastleScene.Create(Window.SceneManager);
+  Animation.Load('models/raptor.kanim');
+  Animation.ProcessEvents := true;
+  Animation.Spatial := [ssRendering, ssDynamicCollisions];
   Transform.Add(Animation);
   {$endif ADD_GL_ANIMATION}
 

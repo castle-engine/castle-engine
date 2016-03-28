@@ -47,6 +47,11 @@ public class ComponentAdMob extends ComponentAbstract
         Log.i(TAG, "AdMob initialized");
     }
 
+    private void fullScreenAdClosed()
+    {
+        messageSend(new String[]{"ads-admob-full-screen-ad-closed"});
+    }
+
     private void interstitialInitialize()
     {
         // Create the interstitial.
@@ -62,7 +67,7 @@ public class ComponentAdMob extends ComponentAbstract
             @Override
             public void onAdClosed() {
                 Log.i(TAG, "Ad Closed");
-                messageSend(new String[]{"ads-admob-interstitial-display", "shown"});
+                fullScreenAdClosed();
             }
         });
 
@@ -119,12 +124,9 @@ public class ComponentAdMob extends ComponentAbstract
      * Invoke this when you are ready to display an interstitial.
      *
      * If waitUntilLoaded == true, we will wait until the ad is loaded.
-     * This guarantees you get message back ad-interstitial-display=shown
-     * when the ad is eventually closed.
      *
      * If waitUntilLoaded == false, we will ignore the request is the ad
      * is not ready yet (e.g. because Internet connection is slow/broken now).
-     * So you cannot depend on getting back ad-interstitial-display=shown!
      */
     private void interstitialDisplay(boolean waitUntilLoaded)
     {
@@ -135,10 +137,13 @@ public class ComponentAdMob extends ComponentAbstract
                 }
                 interstitial.show();
                 interstitialInitialize(); // load next interstitial ad
+            } else {
+                // pretend that ad was displayed, in case native app waits for it
+                fullScreenAdClosed();
             }
         } else {
             // pretend that ad was displayed, in case native app waits for it
-            messageSend(new String[]{"ads-admob-interstitial-display", "shown"});
+            fullScreenAdClosed();
         }
     }
 
@@ -165,11 +170,11 @@ public class ComponentAdMob extends ComponentAbstract
             bannerHide();
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("ads-admob-interstitial-display") && parts[1].equals("wait-until-loaded")) {
+        if (parts.length == 2 && parts[0].equals("ads-admob-show-interstitial") && parts[1].equals("wait-until-loaded")) {
             interstitialDisplay(true);
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("ads-admob-interstitial-display") && parts[1].equals("no-wait")) {
+        if (parts.length == 2 && parts[0].equals("ads-admob-show-interstitial") && parts[1].equals("no-wait")) {
             interstitialDisplay(false);
             return true;
         } else {

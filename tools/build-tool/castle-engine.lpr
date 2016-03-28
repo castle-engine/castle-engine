@@ -23,7 +23,7 @@
 
 uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleWarnings,
-  CastleFilesUtils, CastleURIUtils,
+  CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   ToolArchitectures, ToolProject, ToolCompile, ToolUtils;
 
 var
@@ -106,6 +106,15 @@ begin
           '  Use this instead of "compile" only if there''s some good reason' +NL+
           '  you don''t want to use CastleEngineManifest.xml to your project.' +NL+
           NL+
+          '- "auto-compress-textures" :' +NL+
+          '  Create GPU-compressed versions of textures,' +NL+
+          '  for the textures mentioned in <auto_compressed_textures>' +NL+
+          '  inside the file data/material_properties.xml.' +NL+
+          NL+
+          '- "auto-compress-clean" :' +NL+
+          '  Clear "auto_compressed" subdirectories, that should contain only' +NL+
+          '  the output created by "auto-compress-textures" target.' +NL+
+          NL+
           'Available options are:' +NL+
           HelpOptionHelp +NL+
           VersionOptionHelp +NL+
@@ -147,18 +156,21 @@ end;
   We can use $CASTLE_ENGINE_PATH environment variable for this. }
 procedure AdjustApplicationData;
 var
-  CastleEnginePath, Data1, Data2, DataSuffix: string;
+  CastleEnginePath, Data1, Data2, Data3, DataSuffix: string;
 begin
   CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
   if CastleEnginePath <> '' then
   begin
     DataSuffix := PathDelim + 'tools' + PathDelim + 'build-tool' + PathDelim + 'data' + PathDelim;
-    Data1 := InclPathDelim(CastleEnginePath) + 'castle_game_engine' + DataSuffix;
-    Data2 := InclPathDelim(CastleEnginePath) + 'castle-engine' + DataSuffix;
+    Data1 := ExclPathDelim(CastleEnginePath) + DataSuffix;
+    Data2 := InclPathDelim(CastleEnginePath) + 'castle_game_engine' + DataSuffix;
+    Data3 := InclPathDelim(CastleEnginePath) + 'castle-engine' + DataSuffix;
     if DirectoryExists(Data1) then
       ApplicationDataOverride := FilenameToURISafe(Data1) else
     if DirectoryExists(Data2) then
       ApplicationDataOverride := FilenameToURISafe(Data2) else
+    if DirectoryExists(Data3) then
+      ApplicationDataOverride := FilenameToURISafe(Data3) else
       { We do not complain about missing or invalid $CASTLE_ENGINE_PATH
         otherwise, because for some operations ApplicationData is not used,
         and also sometimes the default ApplicationData (in case of system-wide
@@ -178,6 +190,7 @@ procedure Run;
 var
   Command, S, FileName: string;
   Project: TCastleProject;
+  RestOfParameters: TCastleStringList;
 begin
   OnGetApplicationName := @MyGetApplicationName;
   OnWarning := @OnWarningWrite;
@@ -207,10 +220,14 @@ begin
   begin
     Parameters.CheckHigh(2);
     FileName := Parameters[2];
-    Compile(OS, CPU, Plugin, Mode, ExtractFilePath(FileName), FileName);
+    { use GetCurrentDir as WorkingDir,
+      so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
+      Working dir for FPC must be equal to our own working dir. }
+    Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName);
   end else
   begin
-    Parameters.CheckHigh(1);
+    if Command <> 'run' then
+      Parameters.CheckHigh(1);
     Project := TCastleProject.Create;
     try
       if Command = 'create-manifest' then
@@ -229,7 +246,15 @@ begin
       if Command = 'install' then
         Project.DoInstall(OS, CPU, Plugin) else
       if Command = 'run' then
-        Project.DoRun(OS, CPU, Plugin) else
+      begin
+        RestOfParameters := TCastleStringList.Create;
+        try
+          RestOfParameters.Text := Parameters.Text;
+          RestOfParameters.Delete(0); // remove our own name
+          RestOfParameters.Delete(0); // remove "run"
+          Project.DoRun(OS, CPU, Plugin, RestOfParameters);
+        finally FreeAndNil(RestOfParameters) end;
+      end else
       if Command = 'package-source' then
       begin
         Project.DoClean;
@@ -237,6 +262,10 @@ begin
       end else
       if Command = 'clean' then
         Project.DoClean else
+      if Command = 'auto-compress-textures' then
+        Project.DoAutoCompressTextures else
+      if Command = 'auto-compress-clean' then
+        Project.DoAutoCompressClean else
         raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
     finally FreeAndNil(Project) end;
   end;

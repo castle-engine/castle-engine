@@ -36,8 +36,6 @@ type
     FShowNotExisting: boolean;
     function ControlColor(const C: TUIControl): TCastleColor;
     function ControlDescription(const C: TUIControl): string;
-  protected
-    function KeepInFront: boolean; override;
   public
     const
       DefaultPadding = 10;
@@ -58,8 +56,11 @@ type
       default DefaultPadding;
     property HasHorizontalAnchor stored false;
     property HasVerticalAnchor stored false;
-    property HorizontalAnchor stored false;
-    property VerticalAnchor stored false;
+    property HorizontalAnchorSelf stored false;
+    property HorizontalAnchorParent stored false;
+    property VerticalAnchorSelf stored false;
+    property VerticalAnchorParent stored false;
+    property KeepInFront stored false;
   end;
 
 implementation
@@ -75,6 +76,7 @@ begin
   FRectWhenControlsInitialized := TRectangle.Empty;
   Anchor(hpLeft);
   Anchor(vpBottom);
+  KeepInFront := true;
 
   FText := TStringList.Create;
   FControlsUnderMouse := TUIControlList.Create(false);
@@ -235,11 +237,6 @@ begin
   Result := true;
 end;
 
-function TCastleInspectorControl.KeepInFront: boolean;
-begin
-  Result := true;
-end;
-
 function TCastleInspectorControl.Motion(const Event: TInputMotion): boolean;
 begin
   Result := inherited;
@@ -249,7 +246,7 @@ begin
   begin
     if ScreenRect.Contains(Event.Position) then
     begin
-      if HorizontalAnchor = hpLeft then
+      if HorizontalAnchorSelf = hpLeft then
         Anchor(hpRight) else
         Anchor(hpLeft);
     end;

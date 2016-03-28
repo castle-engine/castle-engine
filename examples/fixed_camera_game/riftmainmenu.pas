@@ -38,6 +38,7 @@ uses SysUtils, CastleWindow, CastleFilesUtils,
   CastleGLUtils, CastleMessages, CastleOnScreenMenu, CastleWindowModes, CastleUtils,
   CastleVectors, CastleSoundMenu, Classes, CastleStringUtils, CastleControls,
   CastleGLImages, CastleUIControls, CastleColors, CastleSoundEngine,
+  CastleApplicationProperties,
   RiftData, RiftSound, RiftVideoOptions, RiftInspectCreatures, RiftPlay,
   RiftLocations, RiftGame, CastleKeysMouse, CastleRectangles;
 
@@ -157,12 +158,8 @@ begin
   CurrentItemColor        := Vector4Single(252/255, 253/255, 200/255, 1.0);
   NonCurrentItemColor     := CurrentItemBorderColor2;
 
-  HasHorizontalAnchor := true;
-  HorizontalAnchor := hpRight;
-  HorizontalAnchorDelta := -91;
-  HasVerticalAnchor := true;
-  VerticalAnchor := vpTop;
-  VerticalAnchorDelta := -62;
+  Anchor(hpRight, -91);
+  Anchor(vpTop, -62);
 
   DrawBackgroundRectangle := false;
   ExclusiveEvents := false;
@@ -208,12 +205,8 @@ constructor TRiftSubMenu.Create(AOwner: TComponent);
 begin
   inherited;
 
-  HasHorizontalAnchor := true;
-  HorizontalAnchor := hpLeft;
-  HorizontalAnchorDelta := 54;
-  HasVerticalAnchor := true;
-  VerticalAnchor := vpTop;
-  VerticalAnchorDelta := -273;
+  Anchor(hpLeft, 54);
+  Anchor(vpTop, -273);
 
   DrawBackgroundRectangle := true;
 end;
@@ -315,8 +308,7 @@ begin
   SoundMenu := TRiftSoundMenu.Create(nil);
   ChangeOpenALDeviceMenu := TChangeOpenALDeviceMenu.Create(nil);
 
-  GLMenuBg := TGLImage.Create(DataURLFromConfig(
-    DataConfig.GetValue('main_menu/image', 'required_xml_value_missing')),
+  GLMenuBg := TGLImage.Create(DataConfig.GetURL('main_menu/image'),
     [], Window.Width, Window.Height);
 end;
 
@@ -329,6 +321,6 @@ begin
 end;
 
 initialization
-  OnGLContextOpen.Add(@ContextOpen);
-  OnGLContextClose.Add(@ContextClose);
+  ApplicationProperties.OnGLContextOpen.Add(@ContextOpen);
+  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
 end.

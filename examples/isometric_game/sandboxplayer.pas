@@ -26,31 +26,32 @@ type
     FYPixel: Integer;
     FDirection: TDirection;
   public
-    constructor Create;
-    destructor Destroy; override;
-
-    property X: Cardinal read FX;
-    property Y: Cardinal read FY;
-    { These are coords calculated by ViewMoveToCenterPosition from (X, Y)
-      in main program. }
-    property XPixel: Integer read FXPixel;
-    property YPixel: Integer read FYPixel;
-  public
-    GLImage: array [TDirection] of TGLImage;
-
-    property Direction: TDirection read FDirection;
-
-    procedure Teleport(ANewX, ANewY: Cardinal; NewDirection: TDirection);
-    { Note that ChangeX, ChangeY may point to invalid coords --- we will
-      correct (clamp) them as needed. }
-    procedure Move(ChangeX, ChangeY: Integer; NewDirection: TDirection); overload;
-    procedure Move(NewDirection: TDirection); overload;
-  public
     { If Moving then he moves from (X, Y) position to (NewX, NewY).
       MovingSmallMoveX, MovingSmallMoveX is the exact pixel displacement
       of the player sprite then. }
     Moving: boolean;
     MovingSmallMoveX, MovingSmallMoveY: Single;
+
+    GLImage: array [TDirection] of TGLImageManaged;
+
+    constructor Create;
+    destructor Destroy; override;
+
+    property X: Cardinal read FX;
+    property Y: Cardinal read FY;
+    { These are calculated by CalculatePixelPosition. }
+    property XPixel: Integer read FXPixel;
+    property YPixel: Integer read FYPixel;
+
+    property Direction: TDirection read FDirection;
+
+    procedure Teleport(ANewX, ANewY: Cardinal; NewDirection: TDirection);
+    { Calculate XPixel, YPixel once the Window sizes are known. }
+    procedure CalculatePixelPosition;
+    { Note that ChangeX, ChangeY may point to invalid coords --- we will
+      correct (clamp) them as needed. }
+    procedure Move(ChangeX, ChangeY: Integer; NewDirection: TDirection); overload;
+    procedure Move(NewDirection: TDirection); overload;
 
     procedure Update;
   end;
@@ -77,7 +78,7 @@ begin
 
   for Dir := Low(Dir) to High(Dir) do
   begin
-    GLImage[Dir] := TGLImage.Create(ApplicationData(
+    GLImage[Dir] := TGLImageManaged.Create(ApplicationData(
       'tiles/woldforge/sprites/creatures/observer/observer_float_' +
       MoveShortcutNames[Dir] + '_1_hh.png'));
   end;
@@ -96,8 +97,12 @@ procedure TPlayer.Teleport(ANewX, ANewY: Cardinal; NewDirection: TDirection);
 begin
   FX := ANewX;
   FY := ANewy;
-  ViewMoveToCenterPosition(X, Y, FXPixel, FYPixel);
   FDirection := NewDirection;
+end;
+
+procedure TPlayer.CalculatePixelPosition;
+begin
+  ViewMoveToCenterPosition(X, Y, FXPixel, FYPixel);
 end;
 
 procedure TPlayer.Move(ChangeX, ChangeY: Integer; NewDirection: TDirection);

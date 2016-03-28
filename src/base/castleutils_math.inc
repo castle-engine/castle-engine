@@ -22,6 +22,7 @@
   @groupBegin }
 procedure SwapValues(var a, b: Byte    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure SwapValues(var a, b: QWord   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure SwapValues(var a, b: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -140,6 +141,7 @@ function Between(const a, vBegin, vEnd: Char    ): boolean; overload; {$ifdef SU
 function RoundClamp255(const A: Single): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 
 function Clamped(const a, vBegin, vEnd: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function Clamped(const a, vBegin, vEnd: QWord   ): QWord   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function Clamped(const a, vBegin, vEnd: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -149,6 +151,7 @@ function Clamped(const a, vBegin, vEnd: Extended): Extended; overload; {$ifdef S
 {$endif}
 
 procedure ClampVar(var a: Int64   ; const vBegin, vEnd: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+procedure ClampVar(var a: QWord   ; const vBegin, vEnd: QWord   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: integer ; const vBegin, vEnd: integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: cardinal; const vBegin, vEnd: cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure ClampVar(var a: Single  ; const vBegin, vEnd: Single  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -255,15 +258,32 @@ function DivRoundUp(Value, Divider: Integer): Integer; overload;
   @groupBegin }
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float; overload;
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float; overload;
+function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: QWord  ): float; overload;
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
 function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: integer): float; overload;
 function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: Int64  ): float; overload;
+function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: QWord  ): float; overload;
 function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float; overload;
 { @groupEnd }
 
-{ Random float value in the given range.
-  Make sure RangeBegin < RangeEnd. }
+{ Random float value in the given range,
+  result is between RangeBegin and RangeEnd.
+  Always pass arguments such that RangeBegin < RangeEnd. }
+function RandomFloatRange(const RangeBegin, RangeEnd: Single): Single;
 function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float;
+
+{ Random int value in the given range,
+  result is always >= RangeBegin and < RangeEnd.
+  So @italic(result is never equal to RangeEnd), this is often convenient,
+  and makes @code(RandomIntRange(0, N)) consistent with @code(Random(N)).
+  Always pass arguments such that RangeBegin < RangeEnd. }
+function RandomIntRange(const RangeBegin, RangeEnd: Integer): Integer;
+function RandomIntRange(const RangeBegin, RangeEnd: Int64): Int64;
+
+function RandomBoolean: boolean;
+
+{ Random -1 or +1. }
+function RandomPlusMinus: integer;
 
 { Angle between a 2D line segments and OX axis. Angle 0 means that Y1 = Y2
   and X2 > X1, then the angle increases as you rotate CCW. In radians. }
@@ -272,9 +292,6 @@ function AngleRadPointToPoint(x1, y1, x2, y2: Single): Single;
 { Calculate power Base to Exponent, knowing both arguments (and so,
   also the result) are >= 0. }
 function NatNatPower(Base, Exponent: Cardinal): Cardinal;
-
-{ Random -1 or +1. }
-function RandomPlusMinus: integer;
 
 {$ifdef FPC}
 { }
@@ -349,6 +366,7 @@ function SmoothStep(const Edge0, Edge1, X: Single): Single;
 
 procedure SwapValues(var a, b: Byte);     var Tmp: Byte;     begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Int64);    var Tmp: Int64;    begin Tmp := A; A := B; B := Tmp; end;
+procedure SwapValues(var a, b: QWord);    var Tmp: QWord;    begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Integer);  var Tmp: integer;  begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Cardinal); var Tmp: Cardinal; begin Tmp := A; A := B; B := Tmp; end;
 procedure SwapValues(var a, b: Single);   var Tmp: Single;   begin Tmp := A; A := B; B := Tmp; end;
@@ -460,7 +478,7 @@ function Between(const a, vBegin, vEnd: Char): boolean;     begin Result := (vBe
 
 function RoundClamp255(const A: Single): Byte;
 var
-  I: Integer;
+  I: Int64;
 begin
   I := Round(A);
   if I < Low(Byte) then
@@ -471,6 +489,13 @@ begin
 end;
 
 function Clamped(const a, vBegin, vEnd: Int64): Int64;
+begin
+  if a < vBegin then result := vBegin else
+  if a > vEnd then result := vEnd else
+    result := a;
+end;
+
+function Clamped(const a, vBegin, vEnd: QWord): QWord;
 begin
   if a < vBegin then result := vBegin else
   if a > vEnd then result := vEnd else
@@ -515,6 +540,12 @@ end;
 {$endif}
 
 procedure ClampVar(var a: Int64;    const vBegin, vEnd: Int64);
+begin
+  if a < vBegin then a := vBegin else
+  if a > vEnd then a := vEnd;
+end;
+
+procedure ClampVar(var a: QWord;    const vBegin, vEnd: QWord);
 begin
   if a < vBegin then a := vBegin else
   if a > vEnd then a := vEnd;
@@ -698,6 +729,16 @@ begin
   Result := Result * (destEnd - destBegin) + destBegin;
 end;
 
+function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: QWord  ): float;
+{$I norqcheckbegin.inc}
+begin
+  { Map range SourceBegin .. SourceEnd to 0..1, and express SourceVal there. }
+  Result := (sourceVal - sourceBegin) / (sourceEnd - sourceBegin);
+  { Map range 0..1 to DestBegin .. DestEnd }
+  Result := Result * (destEnd - destBegin) + destBegin;
+end;
+{$I norqcheckend.inc}
+
 function MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float;
 begin
   { Map range SourceBegin .. SourceEnd to 0..1, and express SourceVal there. }
@@ -722,6 +763,14 @@ begin
   Result := Clamped(Result, destBegin, destEnd);
 end;
 
+function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: QWord  ): float;
+begin
+  Result := MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd);
+  if destEnd < destBegin then
+    SwapValues(destBegin, destEnd);
+  Result := Clamped(Result, destBegin, destEnd);
+end;
+
 function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: float  ): float;
 begin
   Result := MapRange(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd);
@@ -730,9 +779,36 @@ begin
   Result := Clamped(Result, destBegin, destEnd);
 end;
 
+function RandomFloatRange(const RangeBegin, RangeEnd: Single): Single;
+begin
+  Result := Random * (RangeEnd - RangeBegin) + RangeBegin;
+end;
+
 function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float;
 begin
- result := Random*(RangeEnd-RangeBegin) + RangeBegin;
+  Result := Random * (RangeEnd - RangeBegin) + RangeBegin;
+end;
+
+function RandomIntRange(const RangeBegin, RangeEnd: Integer): Integer;
+begin
+  Result := RangeBegin + Random(RangeEnd - RangeBegin);
+end;
+
+function RandomIntRange(const RangeBegin, RangeEnd: Int64): Int64;
+begin
+  Result := RangeBegin + Random(RangeEnd - RangeBegin);
+end;
+
+function RandomBoolean: boolean;
+begin
+  Result := Random(2) = 0;
+end;
+
+function RandomPlusMinus: Integer;
+const
+  PlusMinus: array [boolean] of Integer = (-1, +1);
+begin
+  Result := PlusMinus[RandomBoolean];
 end;
 
 function AngleRadPointToPoint(x1, y1, x2, y2: Single): Single;
@@ -774,12 +850,6 @@ begin
   i := i-1;
   result := result*base;
  end;
-end;
-
-function RandomPlusMinus: integer;
-const PlusMinus: array[0..1]of integer = (-1,+1);
-begin
- result := PlusMinus[Random(2)];
 end;
 
 {$ifdef FPC}

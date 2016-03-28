@@ -20,15 +20,15 @@
     UsedCache: TTexturesVideosCache;
     FTextureLoaded: boolean;
     FTextureImage: TEncodedImage;
-    FTextureDDS: TDDSImage;
+    FTextureComposite: TCompositeImage;
     procedure SetTextureLoaded(const Value: boolean);
   protected
     { This does the actual loading of texture data.
 
       You can assume here that texture is not loaded now,
-      UsedCache, FTextureImage, FTextureDDS are all nil.
+      UsedCache, FTextureImage, FTextureComposite are all nil.
       Try to load the texture data, making OnWarning as appropriate,
-      and set all UsedCache, FTextureImage, FTextureDDS, FAlphaChannelData. }
+      and set all UsedCache, FTextureImage, FTextureComposite, FAlphaChannelData. }
     procedure LoadTextureData; virtual; abstract;
   public
     procedure CreateNode; override;
@@ -48,10 +48,11 @@
 
     { Load and unload 3D texture.
 
-      When loading, we will try to set TextureImage and TextureDDS.
+      When loading, we will try to set TextureImage and TextureComposite.
       If loading is successfull, TextureImage will be always set to non-nil
-      (TextureDDS will be set to non-nil only if image came from some DDS image).
-      If loading failed, both TextureImage and TextureDDS will be @nil.
+      (TextureComposite will be set to non-nil only if image came from some
+      composite (DDS, KTX...) image).
+      If loading failed, both TextureImage and TextureComposite will be @nil.
 
       Note that even when loading failed (TextureImage remained @nil),
       TextureLoaded value still changes to @true. This is good --- it makes
@@ -65,7 +66,7 @@
       read FTextureLoaded write SetTextureLoaded;
 
     property TextureImage: TEncodedImage read FTextureImage;
-    property TextureDDS: TDDSImage read FTextureDDS;
+    property TextureComposite: TCompositeImage read FTextureComposite;
   end;
 
   TComposedTexture3DNode = class(TAbstractTexture3DNode)
@@ -211,10 +212,10 @@ begin
       LoadTextureData else
     begin
       if UsedCache <> nil then
-        UsedCache.TextureImage_DecReference(FTextureImage, FTextureDDS) else
+        UsedCache.TextureImage_DecReference(FTextureImage, FTextureComposite) else
       begin
         FreeAndNil(FTextureImage);
-        FreeAndNil(FTextureDDS);
+        FreeAndNil(FTextureComposite);
       end;
       UsedCache := nil;
     end;
@@ -370,28 +371,28 @@ begin
     FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
 
     try
-      FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS,
+      FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureComposite,
         FAlphaChannelData);
     except
       on E: Exception do
       begin
-        FTextureDDS := nil;
+        FTextureComposite := nil;
         OnWarning(wtMinor, 'VRML/X3D', Format('Error when loading ImageTexture3D file "%s": %s', [FullUrl, E.Message]));
         Continue;
       end;
     end;
 
-    if FTextureDDS = nil then
+    if FTextureComposite = nil then
     begin
-      X3DCache.TextureImage_DecReference(FTextureImage, FTextureDDS);
-      OnWarning(wtMinor, 'VRML/X3D', Format('Only DDS format is supported for ImageTexture3D node, but URL is "%s"', [FullUrl]));
+      X3DCache.TextureImage_DecReference(FTextureImage, FTextureComposite);
+      OnWarning(wtMinor, 'VRML/X3D', Format('Only composite formats (DDS, KTX...) are supported for ImageTexture3D node, but URL is "%s"', [FullUrl]));
       Continue;
     end;
 
-    if FTextureDDS.DDSType <> dtVolume then
+    if FTextureComposite.CompositeType <> ctVolume then
     begin
-      X3DCache.TextureImage_DecReference(FTextureImage, FTextureDDS);
-      OnWarning(wtMinor, 'VRML/X3D', Format('DDS image "%s" given for ImageTexture3D doesn''t describe a volume (3d) texture', [FullUrl]));
+      X3DCache.TextureImage_DecReference(FTextureImage, FTextureComposite);
+      OnWarning(wtMinor, 'VRML/X3D', Format('Composite image "%s" given for ImageTexture3D doesn''t describe a volume (3d) texture', [FullUrl]));
       Continue;
     end;
 

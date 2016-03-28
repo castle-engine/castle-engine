@@ -83,15 +83,15 @@ begin
   try
     for I := 0 to Coord.Count - 1 do
     begin
-      VertexTransfer := Addr(RadianceTransfer.L[I * SHBasisCount]);
+      VertexTransfer := Addr(RadianceTransfer.List^[I * SHBasisCount]);
 
       { V = scene-space vertex coord }
-      V := MatrixMultPoint(Transform, Coord.L[I]);
+      V := MatrixMultPoint(Transform, Coord.List^[I]);
 
       { N = scene-space normal coord
         TODO: MatrixMultDirection will not work under non-uniform scaling
         matrix correctly. }
-      N := Normalized(MatrixMultDirection(Transform, Normals.L[I]));
+      N := Normalized(MatrixMultDirection(Transform, Normals.List^[I]));
 
       for SHBase := 0 to SHBasisCount - 1 do
         VertexTransfer[SHBase] := ZeroVector3Single;
@@ -110,7 +110,7 @@ begin
         begin
           RayDirectionPT := RandomHemispherePointConst;
           RayDirection := PhiThetaToXYZ(RayDirectionPT, N);
-          if not Scene.OctreeVisibleTriangles.IsRayCollision(V, RayDirection,
+          if not Scene.InternalOctreeVisibleTriangles.IsRayCollision(V, RayDirection,
             nil, true { yes, ignore margin at start, to not hit V },
             nil) then
           begin
@@ -239,7 +239,7 @@ begin
         if RadianceTransfer <> nil then
         begin
           { For PRT, we need a normal per-vertex, so always calculate
-            smooth normals. Simple, and thanks to CastleNormals
+            smooth normals. Simple, and thanks to CastleInternalNormals
             this works for all VRML/X3D coord-based nodes (and only for
             those RadianceTransfer is defined). }
           Normals := SI.Current.NormalsSmooth(true);

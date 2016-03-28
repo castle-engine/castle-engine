@@ -74,7 +74,7 @@ procedure AddGeometryInstance(Group: TAbstractX3DGroupingNode;
   var
     BindMaterial, Technique: TDOMElement;
     InstanceMaterialSymbol, InstanceMaterialTarget: string;
-    I: TXMLElementFilteringIterator;
+    I: TXMLElementIterator;
     Effect: TColladaEffect;
   begin
     if MaterialId = '' then Exit(nil);
@@ -84,17 +84,17 @@ procedure AddGeometryInstance(Group: TAbstractX3DGroupingNode;
       For InstantiatingElement = instance (Collada 1.3.x), this must not
       be present.
       (But we actually don't check these conditions, just handle any case.) }
-    BindMaterial := DOMGetChildElement(InstantiatingElement, 'bind_material', false);
+    BindMaterial := InstantiatingElement.ChildElement('bind_material', false);
     if BindMaterial <> nil then
     begin
-      Technique := DOMGetChildElement(BindMaterial, 'technique_common', false);
+      Technique := BindMaterial.ChildElement('technique_common', false);
       if Technique <> nil then
       begin
         { read <instance_material list inside.
           This may contain multiple materials, but actually we're only
           interested in a single material, so we look for material with
           symbol = MaterialId. }
-        I := TXMLElementFilteringIterator.Create(Technique, 'instance_material');
+        I := Technique.ChildrenIterator('instance_material');
         try
           while I.GetNext do
             if I.Current.AttributeString('symbol', InstanceMaterialSymbol) and
@@ -183,20 +183,20 @@ var
   begin
     Result := false;
 
-    Child := DOMGetChildElement(GeometryE, 'extra', false);
+    Child := GeometryE.ChildElement('extra', false);
     if Child = nil then Exit;
 
-    Child := DOMGetChildElement(Child, 'technique', false);
+    Child := Child.ChildElement('technique', false);
     if Child = nil then Exit;
 
     if not (Child.AttributeString('profile', Profile) and
             (Profile = 'MAYA')) then
       Exit;
 
-    Child := DOMGetChildElement(Child, 'double_sided', false);
+    Child := Child.ChildElement('double_sided', false);
     if Child = nil then Exit;
 
-    Result := StrToIntDef(DOMGetTextData(Child), 0) <> 0;
+    Result := StrToIntDef(Child.TextData, 0) <> 0;
   end;
 
   { Read <source> within <mesh>. }
@@ -206,7 +206,7 @@ var
     SeekPos, FloatArrayCount, I: Integer;
     FloatArrayContents, Token, AccessorSource, ParamName, ParamType, FloatArrayId: string;
     Source: TColladaSource;
-    It: TXMLElementFilteringIterator;
+    It: TXMLElementIterator;
   begin
     Source := TColladaSource.Create;
     Sources.Add(Source);
@@ -214,7 +214,7 @@ var
     if not SourceElement.AttributeString('id', Source.Name) then
       Source.Name := '';
 
-    FloatArray := DOMGetChildElement(SourceElement, 'float_array', false);
+    FloatArray := SourceElement.ChildElement('float_array', false);
     if FloatArray <> nil then
     begin
       if not FloatArray.AttributeInteger('count', FloatArrayCount) then
@@ -227,7 +227,7 @@ var
         FloatArrayId := '';
 
       Source.Floats.Count := FloatArrayCount;
-      FloatArrayContents := DOMGetTextData(FloatArray);
+      FloatArrayContents := FloatArray.TextData;
 
       SeekPos := 1;
       for I := 0 to FloatArrayCount - 1 do
@@ -242,17 +242,17 @@ var
         Source.Floats.L[I] := StrToFloat(Token);
       end;
 
-      Technique := DOMGetChildElement(SourceElement, 'technique_common', false);
+      Technique := SourceElement.ChildElement('technique_common', false);
       if Technique = nil then
       begin
-        Technique := DOMGetChildElement(SourceElement, 'technique', false);
+        Technique := SourceElement.ChildElement('technique', false);
         { TODO: actually, I should search for technique with profile="COMMON"
           in this case, right ? }
       end;
 
       if Technique <> nil then
       begin
-        Accessor := DOMGetChildElement(Technique, 'accessor', false);
+        Accessor := Technique.ChildElement('accessor', false);
 
         { read <accessor> attributes }
 
@@ -280,7 +280,7 @@ var
         if AccessorSource <> '#' + FloatArrayId then
           OnWarning(wtMajor, 'Collada', '<accessor> source does not refer to <float_array> in the same <source>, this is not supported');
 
-        It := TXMLElementFilteringIterator.Create(Accessor, 'param');
+        It := Accessor.ChildrenIterator('param');
         try
           while It.GetNext do
           begin
@@ -340,7 +340,7 @@ var
   { Read <vertices> within <mesh> }
   procedure ReadVertices(VerticesElement: TDOMElement);
   var
-    I: TXMLElementFilteringIterator;
+    I: TXMLElementIterator;
     InputSemantic, InputSourceName, Id: string;
     InputSource: TColladaSource;
   begin
@@ -356,7 +356,7 @@ var
     Coord := TCoordinateNode.Create(Id, BaseUrl);
     CoordCorrect := true;
 
-    I := TXMLElementFilteringIterator.Create(VerticesElement, 'input');
+    I := VerticesElement.ChildrenIterator('input');
     try
       while I.GetNext do
         if I.Current.AttributeString('semantic', InputSemantic) and
@@ -390,7 +390,7 @@ var
     - Returns Indexes instance, to parse indexes of this primitive. }
   function ReadPrimitiveCommon(PrimitiveE: TDOMElement): TColladaIndexes;
   var
-    I: TXMLElementFilteringIterator;
+    I: TXMLElementIterator;
     InputSemantic, InputSourceId, X3DGeometryName: string;
     Primitive: TColladaPrimitive;
     InputSource: TColladaSource;
@@ -440,7 +440,7 @@ var
 
     InputsCount := 0;
 
-    I := TXMLElementFilteringIterator.Create(PrimitiveE, 'input');
+    I := PrimitiveE.ChildrenIterator('input');
     try
       while I.GetNext do
       begin
@@ -537,12 +537,12 @@ var
   { Read <polygons> within <mesh> }
   procedure ReadPolygons(PrimitiveE: TDOMElement);
   var
-    I: TXMLElementFilteringIterator;
+    I: TXMLElementIterator;
     Indexes: TColladaIndexes;
   begin
     Indexes := ReadPrimitiveCommon(PrimitiveE);
     try
-      I := TXMLElementFilteringIterator.Create(PrimitiveE, 'p');
+      I := PrimitiveE.ChildrenIterator('p');
       try
         while I.GetNext do
         begin
@@ -564,8 +564,8 @@ var
   begin
     Indexes := ReadPrimitiveCommon(PrimitiveE);
     try
-      VCountE := DOMGetChildElement(PrimitiveE, 'vcount', false);
-      P := DOMGetChildElement(PrimitiveE, 'p', false);
+      VCountE := PrimitiveE.ChildElement('vcount', false);
+      P := PrimitiveE.ChildElement('p', false);
 
       if (VCountE <> nil) and (P <> nil) then
       begin
@@ -596,7 +596,7 @@ var
   begin
     Indexes := ReadPrimitiveCommon(PrimitiveE);
     try
-      P := DOMGetChildElement(PrimitiveE, 'p', false);
+      P := PrimitiveE.ChildElement('p', false);
       if P <> nil then
       begin
         Indexes.BeginElement(P);
@@ -613,13 +613,13 @@ var
   { Read <trifans> within <mesh> }
   procedure ReadTriFans(PrimitiveE: TDOMElement);
   var
-    I: TXMLElementFilteringIterator;
+    I: TXMLElementIterator;
     Indexes: TColladaIndexes;
     Vertex1, Vertex2, VertexPrevious, VertexNext: TIndex;
   begin
     Indexes := ReadPrimitiveCommon(PrimitiveE);
     try
-      I := TXMLElementFilteringIterator.Create(PrimitiveE, 'p');
+      I := PrimitiveE.ChildrenIterator('p');
       try
         while I.GetNext do
         begin
@@ -649,14 +649,14 @@ var
   { Read <tristrips> within <mesh> }
   procedure ReadTriStrips(PrimitiveE: TDOMElement);
   var
-    I: TXMLElementFilteringIterator;
+    I: TXMLElementIterator;
     Indexes: TColladaIndexes;
     Vertex1, Vertex2, Vertex3, VertexNext: TIndex;
     Turn: boolean;
   begin
     Indexes := ReadPrimitiveCommon(PrimitiveE);
     try
-      I := TXMLElementFilteringIterator.Create(PrimitiveE, 'p');
+      I := PrimitiveE.ChildrenIterator('p');
       try
         while I.GetNext do
         begin
@@ -695,7 +695,7 @@ var
   begin
     Indexes := ReadPrimitiveCommon(PrimitiveE);
     try
-      P := DOMGetChildElement(PrimitiveE, 'p', false);
+      P := PrimitiveE.ChildElement('p', false);
       if P <> nil then
       begin
         Indexes.BeginElement(P);
@@ -712,12 +712,12 @@ var
   { Read <linestrips> within <mesh> }
   procedure ReadLineStrips(PrimitiveE: TDOMElement);
   var
-    I: TXMLElementFilteringIterator;
+    I: TXMLElementIterator;
     Indexes: TColladaIndexes;
   begin
     Indexes := ReadPrimitiveCommon(PrimitiveE);
     try
-      I := TXMLElementFilteringIterator.Create(PrimitiveE, 'p');
+      I := PrimitiveE.ChildrenIterator('p');
       try
         while I.GetNext do
         begin
@@ -743,7 +743,7 @@ begin
   Geometry.Name := GeometryId;
   Geometries.Add(Geometry);
 
-  Mesh := DOMGetChildElement(GeometryElement, 'mesh', false);
+  Mesh := GeometryElement.ChildElement('mesh', false);
   if Mesh <> nil then
   begin
     Coord := nil;
@@ -751,7 +751,7 @@ begin
     LastNormal := nil;
     Sources := TColladaSourceList.Create;
     try
-      I := TXMLElementIterator.Create(Mesh);
+      I := Mesh.ChildrenIterator;
       try
         while I.GetNext do
           if I.Current.TagName = 'source' then
@@ -789,9 +789,9 @@ end;
   <library type="GEOMETRY"> (Collada < 1.4.x). }
 procedure ReadLibraryGeometries(LibraryElement: TDOMElement);
 var
-  I: TXMLElementFilteringIterator;
+  I: TXMLElementIterator;
 begin
-  I := TXMLElementFilteringIterator.Create(LibraryElement, 'geometry');
+  I := LibraryElement.ChildrenIterator('geometry');
   try
     while I.GetNext do
       ReadGeometry(I.Current);

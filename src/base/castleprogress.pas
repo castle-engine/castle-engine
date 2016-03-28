@@ -21,7 +21,7 @@ unit CastleProgress;
 
 interface
 
-uses SysUtils, CastleUtils, CastleTimeUtils, CastleImages;
+uses SysUtils, CastleUtils, CastleTimeUtils;
 
 type
   TProgress = class;
@@ -30,10 +30,10 @@ type
     See @link(TProgress) for information how to use progress bars. }
   TProgressUserInterface = class
   private
-    FImage: TRGBImage;
-    FOwnsImage: boolean;
     FBarYPosition: Single;
-    procedure SetImage(const Value: TRGBImage);
+    FImage: TObject;
+    FOwnsImage: boolean;
+    procedure SetImage(const Value: TObject);
   public
     const
       DefaultBarYPosition = 0.5;
@@ -42,16 +42,21 @@ type
     destructor Destroy; override;
 
     { Image displayed as a background of the progress bar.
+
       Not all progress bar interfaces support it, some simply ignore it.
-      You can leave it @nil, then we will simply capture screen contents
-      each time the progress bar starts.
+      You can leave it @nil, then the interface will use whatever is suitable
+      (e.g. capture screen contents each time the progress bar starts).
 
       Whether the image assigned here is "owned" (that is, "automatically
       freed") by TProgressUserInterface instance depends on OwnsImage.
       In any case, we don't modify the image
       (if we need to resize it to fit the screen size,
-      we do it on a temporary copy). }
-    property Image: TRGBImage read FImage write SetImage;
+      we do it on a temporary copy).
+
+      The type of this must be @link(CastleImages.TRGBImage), but it cannot
+      be declared as such here, we want this unit to be part of base
+      units, not dependent on images. }
+    property Image: TObject read FImage write SetImage;
     property OwnsImage: boolean read FOwnsImage write FOwnsImage default false;
 
     { Vertical position of the displayed progress bar.
@@ -287,7 +292,7 @@ begin
   inherited;
 end;
 
-procedure TProgressUserInterface.SetImage(const Value: TRGBImage);
+procedure TProgressUserInterface.SetImage(const Value: TObject);
 begin
   if FImage <> Value then
   begin
@@ -329,7 +334,7 @@ begin
   { Calling UserInterface.Init updates LastUpdatePos and LastUpdateTick,
     just like calling UserInterface.Update. }
   LastUpdatePos := FPosition;
-  LastUpdateTick := GetTickCount;
+  LastUpdateTick := CastleTimeUtils.GetTickCount64;
 
   UserInterfaceDelayed := DelayUserInterface;
 
@@ -366,7 +371,7 @@ begin
   begin
     { Either actually init user interface, or resign from calling
       UserInterface.Update. }
-    if TimeTickDiff(LastUpdateTick, GetTickCount) > UpdateTicks then
+    if TimeTickDiff(LastUpdateTick, CastleTimeUtils.GetTickCount64) > UpdateTicks then
     begin
       UserInterface.Init(Self);
       UserInterfaceDelayed := false;
@@ -375,10 +380,10 @@ begin
   end;
 
   if ((Position - LastUpdatePos) / Max > 1 / UpdatePart) and
-     (TimeTickDiff(LastUpdateTick, GetTickCount) > UpdateTicks) then
+     (TimeTickDiff(LastUpdateTick, CastleTimeUtils.GetTickCount64) > UpdateTicks) then
   begin
     LastUpdatePos := FPosition;
-    LastUpdateTick := GetTickCount;
+    LastUpdateTick := CastleTimeUtils.GetTickCount64;
     UserInterface.Update(Self);
 
     {$ifdef TESTING_PROGRESS_DELAY}

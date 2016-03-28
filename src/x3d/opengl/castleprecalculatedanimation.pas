@@ -14,20 +14,19 @@
 }
 
 { A precalculated 3D animation rendered in OpenGL (TCastlePrecalculatedAnimation). }
-unit CastlePrecalculatedAnimation;
+unit CastlePrecalculatedAnimation
+  deprecated 'instead of TCastlePrecalculatedAnimation, use TCastleScene to load animations in any format (X3D, KAnim...) and run them using methods like PlayAnimation';
 
 interface
 
 uses SysUtils, Classes, FGL,
   X3DNodes, CastleRenderer, CastleSceneCore, CastleScene,
-  CastleUtils, CastleBoxes, CastleClassUtils, CastlePrecalculatedAnimationCore,
+  CastleUtils, CastleBoxes, CastleClassUtils,
   CastleKeysMouse, CastleTimeUtils, CastleFrustum, CastleVectors, Castle3D, X3DTriangles,
-  CastleTriangles, CastleRectangles, CastleCameras;
+  CastleTriangles, CastleRectangles, CastleCameras,
+  CastleInternalNodeInterpolator;
 
 type
-  TGetRootNodeWithTime = procedure (const Index: Cardinal;
-    out RootNode: TX3DRootNode; out Time: Single) of object;
-
   { A "precalculated" animation done by
     interpolating between a number of 3D model states.
 
@@ -75,7 +74,7 @@ type
     Specifically the section
     "Non-interactive precalculated animation: TCastlePrecalculatedAnimation",
     [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.animation_precalculated.html]. }
-  TCastlePrecalculatedAnimation = class(TCastlePrecalculatedAnimationCore)
+  TCastlePrecalculatedAnimation = class(T3D)
   private
     FScenes: TCastleSceneList;
     function GetScenes(I: Integer): TCastleScene;
@@ -107,41 +106,41 @@ type
     function InfoBoundingBox: string;
   private
     { Helpers for Load implementation. }
-    Load_RootNodes: TX3DNodeList;
-    Load_Times: TSingleList;
-    procedure Load_GetRootNodeWithTime(const Index: Cardinal;
-      out RootNode: TX3DRootNode; out Time: Single);
+    Load_KeyNodes: TX3DNodeList;
+    Load_KeyTimes: TSingleList;
+    procedure Load_GetKeyNodeWithTime(const Index: Cardinal;
+      out KeyNode: TX3DRootNode; out Time: Single);
   private
     { Helpers for LoadFromEvents implementation. }
     LoadFromEvents_TimeBegin: Single;
     LoadFromEvents_Scene: TCastleSceneCore;
     LoadFromEvents_ScenesPerTime: Cardinal;
-    procedure LoadFromEvents_GetRootNodeWithTime(const Index: Cardinal;
-      out RootNode: TX3DRootNode; out Time: Single);
-    procedure LoadFromEvents_GetRootNodeWithTime_Progress(
+    procedure LoadFromEvents_GetKeyNodeWithTime(const Index: Cardinal;
+      out KeyNode: TX3DRootNode; out Time: Single);
+    procedure LoadFromEvents_GetKeyNodeWithTime_Progress(
       const Index: Cardinal;
-      out RootNode: TX3DRootNode; out Time: Single);
+      out KeyNode: TX3DRootNode; out Time: Single);
 
     procedure SetOwnsFirstRootNode(const Value: boolean);
   protected
     { Internal version of @link(Load) routines, feasible to load
-      from both ready RootNodes array and to automatically generate RootNodes
+      from both ready KeyNodes array and to automatically generate KeyNodes
       on the fly.
 
-      GetRootNodeWithTime will be called with indexes from 0 to RootNodesCount - 1.
+      GetKeyNodeWithTime will be called with indexes from 0 to KeyNodesCount - 1.
       It's guaranteed that it will be called in this order (from 0 upwards to
-      RootNodesCount - 1) and will be called exactly once for each index.
+      KeyNodesCount - 1) and will be called exactly once for each index.
       So it's safe to e.g. create RootNode with some costly operation there.
 
-      Note that RootNode passed to GetRootNodeWithTime becomes owned by
+      Note that RootNode passed to GetKeyNodeWithTime becomes owned by
       this class. Well, you can get control over only the first one,
       by AOwnsFirstRootNode, but you cannot free it anyway while this is loaded.
 
       See @link(Load) for more information, including the meaning of
       EqualityEpsilon. }
     procedure LoadCore(
-      GetRootNodeWithTime: TGetRootNodeWithTime;
-      RootNodesCount: Cardinal;
+      GetKeyNodeWithTime: TGetKeyNodeWithTime;
+      KeyNodesCount: Cardinal;
       AOwnsFirstRootNode: boolean;
       ScenesPerTime: Cardinal;
       const EqualityEpsilon: Single);
@@ -182,27 +181,27 @@ type
       before you do almost anything with this object.
       @link(Loaded) changes to @true after calling this.
 
-      @param(RootNodes
+      @param(KeyNodes
         Models describing the "predefined" frames of animation.
         They must descend from TX3DRootNode.
 
         For all nodes except the first: They are @italic(always)
         owned by this class --- that's needed,
         because actually we may do some operations on these models when
-        building animation (including even freeing some RootNodes,
-        if we will find that they are equivalent to some other RootNodes).
+        building animation (including even freeing some KeyNodes,
+        if we will find that they are equivalent to some other KeyNodes).
         They all must point to different objects.
 
         You must supply at least one item here (you cannot make an animation
         from 0 items).)
 
       @param(Times Array specifying the point of time for each "predefined"
-        frame. Length of this array must equal to length of RootNodes array.)
+        frame. Length of this array must equal to length of KeyNodes array.)
 
       @param(ScenesPerTime
         This says how many scenes will be used for period of time equal to 1.0.
         This will determine Scenes.Count.
-        RootNodes[0] always takes Scenes[0] and RootNodes[High(RootNodes)]
+        KeyNodes[0] always takes Scenes[0] and KeyNodes[High(KeyNodes)]
         always takes Scenes[Scenes.High].
 
         Note that if we will find that some nodes along the way are
@@ -212,11 +211,11 @@ type
         since rendeting will be the same (but less memory-consuming).
 
         Special value ScenesPerTime = 0 means that you want to have only the
-        RootNodes you explicitly passed in the scene, not more.
+        KeyNodes you explicitly passed in the scene, not more.
         No more intermediate scenes will ever be created.
         This creates a trivial animation that suddenly jumps from
         one RootNode to the next at specified times. It may be useful if you
-        already have generated a lot of RootNodes, densely distributed
+        already have generated a lot of KeyNodes, densely distributed
         over time, and you don't need TCastlePrecalculatedAnimation to insert any more
         scenes.)
 
@@ -231,9 +230,9 @@ type
         same node that are in fact equal.)
     }
     procedure Load(
-      RootNodes: TX3DNodeList;
+      KeyNodes: TX3DNodeList;
       AOwnsFirstRootNode: boolean;
-      ATimes: TSingleList;
+      AKeyTimes: TSingleList;
       ScenesPerTime: Cardinal;
       const EqualityEpsilon: Single);
 
@@ -266,7 +265,7 @@ type
 
       This just calls @link(Load) with parameters such that
       @orderedList(
-        @item(RootNodes list contains one specified node)
+        @item(KeyNodes list contains one specified node)
         @item(Times contain only one item 0.0)
         @item(ScenesPerTime and EqualityEpsilon have some unimportant
           values --- they are not meaningfull when you have only one scene)
@@ -497,6 +496,7 @@ type
       ATriangleVerticesCounts,
       ABoundingBox,
       AManifoldAndBorderEdges: boolean): string;
+      deprecated 'do not use this, better to construct a summary string yourself';
 
     { Handling key and mouse events.
 
@@ -660,8 +660,6 @@ type
       read FInitialViewpointName write FInitialViewpointName;
   end;
 
-  TCastlePrecalculatedAnimationList = specialize TFPGObjectList<TCastlePrecalculatedAnimation>;
-
 const
   DefaultAnimationSmoothness = 1.0;
 
@@ -753,19 +751,6 @@ begin
   ParentAnimation.CursorChange;
 end;
 
-{ EModelsStructureDifferent -------------------------------------------------- }
-
-type
-  EModelsStructureDifferent = class(Exception)
-    constructor CreateFmt(const S: string; const Args: array of const);
-  end;
-
-constructor EModelsStructureDifferent.CreateFmt(const S: string;
-  const Args: array of const);
-begin
-  inherited CreateFmt('Models are structurally different: ' + S, Args);
-end;
-
 { TCastlePrecalculatedAnimation ------------------------------------------------------------ }
 
 { About Create and CreateCustomCache relationship:
@@ -812,379 +797,15 @@ begin
 end;
 
 procedure TCastlePrecalculatedAnimation.LoadCore(
-  GetRootNodeWithTime: TGetRootNodeWithTime;
-  RootNodesCount: Cardinal;
+  GetKeyNodeWithTime: TGetKeyNodeWithTime;
+  KeyNodesCount: Cardinal;
   AOwnsFirstRootNode: boolean;
   ScenesPerTime: Cardinal;
   const EqualityEpsilon: Single);
-
-  { This will check that Model1 and Model2 are exactly equal,
-    or that at least interpolating (see VRMLModelLerp) is possible.
-
-    If models are structurally different (which means that even
-    interpolating between Model1 and Model2 is not possible),
-    it will raise EModelsStructureDifferent. }
-  procedure CheckVRMLModelsStructurallyEqual(Model1, Model2: TX3DNode);
-
-    procedure CheckSFNodesStructurallyEqual(Field1, Field2: TSFNode);
-    begin
-      if (Field1.Value <> nil) and (Field2.Value <> nil) then
-      begin
-        CheckVRMLModelsStructurallyEqual(Field1.Value, Field2.Value);
-      end else
-      if not ((Field1.Value = nil) and (Field2.Value = nil)) then
-        raise EModelsStructureDifferent.CreateFmt('Field "%s" of type SFNode ' +
-          'is once NULL and once not-NULL', [Field1.Name]);
-    end;
-
-    procedure CheckMFNodesStructurallyEqual(Field1, Field2: TMFNode);
-    var
-      I: Integer;
-    begin
-      if Field1.Items.Count <> Field2.Items.Count then
-        raise EModelsStructureDifferent.CreateFmt(
-          'Different number of children in MFNode fields: "%d" and "%d"',
-          [Model1.VRML1ChildrenCount, Model2.VRML1ChildrenCount]);
-
-      for I := 0 to Field1.Items.Count - 1 do
-        CheckVRMLModelsStructurallyEqual(Field1[I], Field2[I]);
-    end;
-
-  var
-    I: Integer;
-  begin
-    { Yes, Model1 and Model2 must have *exactly* the same classes. }
-    if Model1.ClassType <> Model2.ClassType then
-      raise EModelsStructureDifferent.CreateFmt(
-        'Different nodes classes: "%s" and "%s"',
-        [Model1.ClassName, Model2.ClassName]);
-
-    { Make sure that *Inline content is loaded now. }
-    if Model1 is TInlineNode then
-    begin
-      TInlineNode(Model1).LoadInlined(false);
-      TInlineNode(Model2).LoadInlined(false);
-    end;
-
-    if Model1.NodeName <> Model2.NodeName then
-      raise EModelsStructureDifferent.CreateFmt(
-        'Different names of nodes: "%s" and "%s"',
-        [Model1.NodeName, Model2.NodeName]);
-
-    { We are interested whether Model1.BaseUrl and Model2.BaseUrl will
-      give different results when using them to resolve relative URLs.
-      Simply comparing them is not good --- they may contain filenames
-      at the end. Stripping these filenames with ExtractURIPath
-      is dirty. So we just test CombineURI with a test name. }
-    if Model1.PathFromBaseUrl('test') <> Model2.PathFromBaseUrl('test') then
-      raise EModelsStructureDifferent.CreateFmt(
-        'BaseUrl of nodes different (will resolve relative URLs to different things): "%s" and "%s"',
-        [Model1.BaseUrl, Model2.BaseUrl]);
-
-    if Model1.VRML1ChildrenCount <> Model2.VRML1ChildrenCount then
-      raise EModelsStructureDifferent.CreateFmt(
-        'Different number of children in nodes: "%d" and "%d"',
-        [Model1.VRML1ChildrenCount, Model2.VRML1ChildrenCount]);
-
-    for I := 0 to Model1.VRML1ChildrenCount - 1 do
-      CheckVRMLModelsStructurallyEqual(Model1.VRML1Children[I], Model2.VRML1Children[I]);
-
-    { Yes, the situation below can happen. *Usually* when we know
-      that Model1 and Model2 are equal classes then we know that
-      they have the same number of fields of the same type.
-      However, for TX3DUnknownNode, it's not that easy. Two different instances
-      of TX3DUnknownNode class may have completely different fields,
-      so we must safeguard against this. }
-    if Model1.Fields.Count <> Model2.Fields.Count then
-      raise EModelsStructureDifferent.CreateFmt(
-        'Different number of fields in nodes: "%d" and "%d"',
-        [Model1.Fields.Count, Model2.Fields.Count]);
-
-    for I := 0 to Model1.Fields.Count - 1 do
-    begin
-      if Model1.Fields[I].ClassType <> Model2.Fields[I].ClassType then
-        raise EModelsStructureDifferent.CreateFmt(
-          'Different type of field number %d in nodes: "%s" and "%s"',
-          [I, Model1.Fields[I].ClassName, Model2.Fields[I].ClassName]);
-
-      if Model1.Fields[I] is TSFNode then
-        CheckSFNodesStructurallyEqual(
-          TSFNode(Model1.Fields[I]), TSFNode(Model2.Fields[I])) else
-      if Model1.Fields[I] is TMFNode then
-        CheckMFNodesStructurallyEqual(
-          TMFNode(Model1.Fields[I]), TMFNode(Model2.Fields[I])) else
-      if Model1.Fields[I].CanAssignLerp then
-      begin
-        if Model1.Fields[I] is TX3DMultField then
-        begin
-          try
-            (Model1.Fields[I] as TX3DMultField).CheckCountEqual
-              (Model2.Fields[I] as TX3DMultField);
-          except
-            (* Translate EX3DMultFieldDifferentCount exception
-               (may be raised by TX3DMultField.CheckCountEqual above)
-               to EModelsStructureDifferent. *)
-            on E: EX3DMultFieldDifferentCount do
-              raise EModelsStructureDifferent.CreateFmt('%s', [E.Message]);
-          end;
-        end;
-        { Else we have single-value field that can lerp.
-          No need to check anything in this case,
-          it's ready to go (that is, to lerp). }
-      end else
-      begin
-        { Check fields for equality.
-
-          Some special fields like TInlineNode.FdUrl do not
-          have to be equal, as they don't have any role for the
-          "real" meaning of the model. I mean, if TInlineNode.Inlined
-          contents (loaded from pointed file) have the same structure,
-          then we're happy. And it's handy to allow this --- see e.g.
-          examples/models/gus_1_final.wrl and
-          examples/models/gus_2_final.wrl trick. }
-
-        if not (
-           ( (Model1 is TInlineNode)            and (Model1.Fields[I].Name = 'url') ) or
-           Model1.Fields[I].Equals(Model2.Fields[I], EqualityEpsilon)
-           ) then
-          raise EModelsStructureDifferent.CreateFmt(
-            'Fields "%s" (class "%s") are not equal',
-            [Model1.Fields[I].Name, Model1.Fields[I].ClassName]);
-      end;
-    end;
-  end;
-
-  { This will merge equal children of Model1 and Model2,
-    and check that Model1 and Model2 are exactly equal.
-
-    It assumes that models are structurally equal, i.e. that you
-    already did run CheckVRMLModelsStructurallyEqual over them.
-
-    It works recursively: first it checks for every children
-    are they equal. For each pair that is equal, it replaces
-    given children in Model2 with appropriate children of Model1.
-    At the end, if every children pair was equal and additionally
-    if all fields are equal, then it returns true.
-
-    Such copying of references is useful, because then we simply copy given
-    node's reference instead of duplicating this object.
-    This way Model1 and Model2 and all models interpolated along the way
-    can share the same object reference. This is very good, because:
-
-    1. If nodes are equal then creating new object each
-       time would mean that I create a lot of objects with exactly the
-       same contents. So memory is wasted, without any good reason.
-
-    2. For nodes like ImageTexture, this is good because then the image
-       is loaded from the file only once. This means that memory is saved,
-       once again. This also means that in case when texture file doesn't
-       exist, user gets only 1 warning/error message (instead of getting
-       warning/error message for each duplicated TImageTextureNode instance).
-
-    3. Also for nodes like ImageTexture, this means that if we use the same
-       GLRenderer to render every model of the animation,
-       then GLRenderer will recognize this and given texture
-       will be loaded only once for OpenGL. So loading time and
-       memory are saved *once again*  (otherwise OpenGL would allocate
-       internal copy of texture for each duplicated node, once again
-       wasting a lot of memory).
-
-       Although 2. and 3. are actually somewhat void right now,
-       as we have a more general cache that caches texture resources
-       even across different nodes right now (the only need is to have
-       equal URLs).
-
-    4. And later the Shape cache of TGLRenderer can speed
-       up loading time and conserve memory use, if it sees the same
-       reference to given GeometryNode twice. }
-  function VRMLModelsMerge(Model1, Model2: TX3DNode): boolean;
-
-    function SFNodesMerge(Field1, Field2: TSFNode): boolean;
-    begin
-      Result := true;
-
-      { Equality was already checked by CheckVRMLModelsStructurallyEqual,
-        so now if one SFNode value is not nil, we know that the other
-        one is not nil too. }
-      if Field1.Value <> nil then
-      begin
-        if VRMLModelsMerge(Field1.Value, Field2.Value) then
-          Field1.Value := Field2.Value else
-          Result := false;
-      end;
-    end;
-
-    function MFNodesMerge(Field1, Field2: TMFNode): boolean;
-    var
-      I: Integer;
-    begin
-      Result := true;
-
-      { Note that we already know that Counts are equals,
-        checked already by CheckVRMLModelsStructurallyEqual. }
-      Assert(Field1.Items.Count = Field2.Items.Count);
-      for I := 0 to Field1.Items.Count - 1 do
-      begin
-        if VRMLModelsMerge(Field1[I], Field2[I]) then
-        begin
-          { Think of this as
-              Field1[I] := Field2[I]
-            but I can't call this directly, I must use Field1.Replace
-            to not mess reference counts. }
-          Field1.Replace(I, Field2[I]);
-        end else
-          Result := false;
-      end;
-    end;
-
-  var
-    I: Integer;
-  begin
-    Result := true;
-
-    { Note that this loop will iterate over every Children,
-      even if somewhere along the way we will already set Result to false.
-      Even if we already know that Result is false, we stil want to
-      merge Model1 and Model2 children as much as we can. }
-    for I := 0 to Model1.VRML1ChildrenCount - 1 do
-    begin
-      if VRMLModelsMerge(Model1.VRML1Children[I], Model2.VRML1Children[I]) then
-      begin
-        { Tests: Writeln('merged child ', I, ' of class ',
-          Model1.VRML1Children[I].NodeTypeName); }
-        Model1.VRML1Children[I] := Model2.VRML1Children[I];
-      end else
-        Result := false;
-    end;
-
-    if not Result then Exit;
-
-    for I := 0 to Model1.Fields.Count - 1 do
-    begin
-      if Model1.Fields[I] is TSFNode then
-      begin
-        if not SFNodesMerge(TSFNode(Model1.Fields[I]),
-                            TSFNode(Model2.Fields[I])) then
-          Result := false;
-      end else
-      if Model1.Fields[I] is TMFNode then
-      begin
-        if not MFNodesMerge(TMFNode(Model1.Fields[I]),
-                            TMFNode(Model2.Fields[I])) then
-          Result := false;
-      end else
-      if Model1.Fields[I].CanAssignLerp then
-      begin
-        if not Model1.Fields[I].Equals(Model2.Fields[I], EqualityEpsilon) then
-          Result := false;
-      end;
-
-      { Other fields were already checked by CheckVRMLModelsStructurallyEqual }
-    end;
-  end;
-
-  { Linear interpolation between Model1 and Model2.
-    A = 0 means Model1, A = 1 means Model2, A between 0 and 1 is lerp
-    between Model1 and Model2.
-
-    If Model1 and Model2 are the same object (the same references),
-    then this will return just Model1. This way it keeps memory optimization
-    described by VRMLModelsMerge. This is also true if both Model1 and Model2
-    are nil: then you can safely call this and it will return also nil. }
-  function VRMLModelLerp(const A: Single; Model1, Model2: TX3DNode): TX3DNode;
-
-    procedure SFNodeLerp(Target, Field1, Field2: TSFNode);
-    begin
-      Target.Value := VRMLModelLerp(A, Field1.Value, Field2.Value);
-    end;
-
-    procedure MFNodeLerp(Target, Field1, Field2: TMFNode);
-    var
-      I: Integer;
-    begin
-      for I := 0 to Field1.Items.Count - 1 do
-        Target.Add(VRMLModelLerp(A, Field1[I], Field2[I]));
-    end;
-
-  var
-    I: Integer;
-  begin
-    if Model1 = Model2 then
-      Exit(Model1);
-
-    Result := TX3DNodeClass(Model1.ClassType).Create(Model1.NodeName,
-      Model1.BaseUrl);
-    try
-      { We already loaded all inlines (in CheckVRMLModelsStructurallyEqual).
-        We have to mark it now, by setting Loaded := true field as necessary
-        inside inline nodes --- otherwise, they could be loaded again
-        (adding content to already existing nodes, making content loaded
-        more than once). }
-      if Result is TInlineNode then
-      begin
-        TInlineNode(Result).LoadedInlineDirectly;
-      end;
-
-      { TODO: the code below doesn't deal efficiently with the situation when single
-        TX3DNode is used as a child many times in one of the nodes.
-        (through VRML "USE" keyword). Code below will then unnecessarily
-        create copies of such things (wasting construction time and memory),
-        instead of reusing the same object reference. }
-      for I := 0 to Model1.VRML1ChildrenCount - 1 do
-        Result.VRML1ChildAdd(VRMLModelLerp(A, Model1.VRML1Children[I], Model2.VRML1Children[I]));
-
-      { TODO: for TX3DUnknownNode, we should fill here Result.Fields.
-        Also for TX3DPrototypeNode. }
-
-      for I := 0 to Model1.Fields.Count - 1 do
-      begin
-        if Model1.Fields[I] is TSFNode then
-        begin
-          SFNodeLerp(
-            (Result.Fields[I] as TSFNode),
-            (Model1.Fields[I] as TSFNode),
-            (Model2.Fields[I] as TSFNode));
-        end else
-        if Model1.Fields[I] is TMFNode then
-        begin
-          MFNodeLerp(
-            (Result.Fields[I] as TMFNode),
-            (Model1.Fields[I] as TMFNode),
-            (Model2.Fields[I] as TMFNode));
-        end else
-        if Model1.Fields[I].CanAssignLerp then
-        begin
-          Result.Fields[I].AssignLerp(A, Model1.Fields[I], Model2.Fields[I]);
-        end else
-        begin
-          { These fields cannot be interpolated.
-            So just copy to Result.Fields[I]. }
-          Result.Fields[I].Assign(Model1.Fields[I]);
-        end;
-      end;
-    except
-      FreeAndNil(Result);
-      raise;
-    end;
-  end;
-
 var
   SceneStatic: boolean;
-
-  function CreateOneScene(Node: TX3DRootNode;
-    OwnsRootNode: boolean): TAnimationScene;
-  begin
-    Result := TAnimationScene.CreateForAnimation(
-      Node, OwnsRootNode, Renderer, Self, SceneStatic);
-  end;
-
-var
+  Nodes: TX3DNodeList;
   I: Integer;
-  StructurallyEqual, RootNodesEqual: boolean;
-  LastSceneIndex: Integer;
-  LastSceneRootNode, NewRootNode: TX3DRootNode;
-  LastTime, NewTime: Single;
-  SceneIndex: Integer;
 begin
   Close;
 
@@ -1193,118 +814,60 @@ begin
   { We want all the scenes to be dynamic only when
     (TryFirstSceneDynamic and (FScenes.Count = 1)).
     We don't know yet FScenes.Count, but FScenes.Count = 1 is quite special:
-    it only (if and only if) occurs if RootNodesCount = 1. }
-  SceneStatic := not (TryFirstSceneDynamic and (RootNodesCount = 1));
+    it only (if and only if) occurs if KeyNodesCount = 1. }
+  SceneStatic := not (TryFirstSceneDynamic and (KeyNodesCount = 1));
 
-  FScenes := TCastleSceneList.Create(false);
+  Nodes := TNodeInterpolator.BakeToSequence(GetKeyNodeWithTime, KeyNodesCount,
+    ScenesPerTime, EqualityEpsilon, FTimeBegin, FTimeEnd);
+  try
 
-  { calculate FScenes contents now }
-
-  { RootNodes[0] goes to FScenes[0], that's easy }
-  GetRootNodeWithTime(0, NewRootNode, NewTime);
-
-  FScenes.Count := 1;
-  FScenes[0] := CreateOneScene(NewRootNode, OwnsFirstRootNode);
-  LastSceneIndex := 0;
-  LastTime := NewTime;
-  LastSceneRootNode := NewRootNode;
-
-  { calculate TimeBegin at this point }
-  FTimeBegin := NewTime;
-
-  for I := 1 to RootNodesCount - 1 do
-  begin
-    { Now add RootNodes[I] }
-    GetRootNodeWithTime(I, NewRootNode, NewTime);
-
-    StructurallyEqual := false;
-
-    try
-      CheckVRMLModelsStructurallyEqual(LastSceneRootNode, NewRootNode);
-      StructurallyEqual := true;
-    except
-      on E: EModelsStructureDifferent do
-      begin
-        if Log then
-          WritelnLog('PrecalculatedAnimation', Format(
-            'Nodes %d and %d structurally different, so animation will not be smoothed between them: ',
-            [I - 1, I]) + E.Message);
-      end;
-    end;
-
-    FScenes.Count := FScenes.Count +
-      Max(1, Round((NewTime - LastTime) * ScenesPerTime));
-
-    if StructurallyEqual then
+    { calculate FScenes }
+    FScenes := TCastleSceneList.Create(false);
+    FScenes.Count := Nodes.Count;
+    for I := 0 to FScenes.Count - 1 do
     begin
-      { Try to merge it with LastSceneRootNode.
-        Then initialize FScenes[LastSceneIndex + 1 to FScenes.Count - 1]. }
-      RootNodesEqual := VRMLModelsMerge(NewRootNode, LastSceneRootNode);
-      if RootNodesEqual then
-      begin
-        { In this case I don't waste memory, and I'm simply reusing
-          LastSceneRootNode. Actually, I'm just copying FScenes[LastSceneIndex].
-          This way I have a series of the same instances of TCastleScene
-          along the way. When freeing FScenes, we will be smart and
+      if (I > 0) and (Nodes[I] = Nodes[I - 1]) then
+        { In this case don't waste memory, only reuse
+          LastSceneRootNode. Actually, just copy last scene.
+          This way we have a series of the same instances of TCastleScene
+          along the FScenes list. When freeing FScenes, we will be smart and
           avoid deallocating the same pointer twice. }
-        FreeAndNil(NewRootNode);
-        for SceneIndex := LastSceneIndex + 1 to FScenes.Count - 1 do
-          FScenes[SceneIndex] := FScenes[LastSceneIndex];
-      end else
-      begin
-        for SceneIndex := LastSceneIndex + 1 to FScenes.Count - 2 do
-          FScenes[SceneIndex] := CreateOneScene(VRMLModelLerp(
-            MapRange(SceneIndex, LastSceneIndex, FScenes.Count - 1, 0.0, 1.0),
-            LastSceneRootNode, NewRootNode) as TX3DRootNode, true);
-        FScenes[FScenes.Count - 1] := CreateOneScene(NewRootNode, true);
-        LastSceneRootNode := NewRootNode;
-      end;
-    end else
-    begin
-      { We cannot interpolate between last and new node.
-        So just duplicate last node until FScenes.Count - 2,
-        and at FScenes.Last insert new node. }
-      for SceneIndex := LastSceneIndex + 1 to FScenes.Count - 2 do
-        FScenes[SceneIndex] := FScenes[LastSceneIndex];
-      FScenes[FScenes.Count - 1] := CreateOneScene(NewRootNode, true);
-      LastSceneRootNode := NewRootNode;
+        FScenes[I] := FScenes[I - 1] else
+        FScenes[I] := TAnimationScene.CreateForAnimation(
+          Nodes[I] as TX3DRootNode,
+          (I <> 0) or OwnsFirstRootNode, Renderer, Self, SceneStatic);
     end;
 
-    LastTime := NewTime;
-    LastSceneIndex := FScenes.Count - 1;
-  end;
-
-  { calculate TimeEnd at this point }
-  FTimeEnd := NewTime;
+  finally FreeAndNil(Nodes) end;
 
   FLoaded := true;
 end;
 
-procedure TCastlePrecalculatedAnimation.Load_GetRootNodeWithTime(const Index: Cardinal;
-  out RootNode: TX3DRootNode; out Time: Single);
+procedure TCastlePrecalculatedAnimation.Load_GetKeyNodeWithTime(const Index: Cardinal;
+  out KeyNode: TX3DRootNode; out Time: Single);
 begin
-  RootNode := Load_RootNodes[Index] as TX3DRootNode;
-  Time := Load_Times[Index];
+  KeyNode := Load_KeyNodes[Index] as TX3DRootNode;
+  Time := Load_KeyTimes[Index];
 end;
 
 procedure TCastlePrecalculatedAnimation.Load(
-  RootNodes: TX3DNodeList;
+  KeyNodes: TX3DNodeList;
   AOwnsFirstRootNode: boolean;
-  ATimes: TSingleList;
+  AKeyTimes: TSingleList;
   ScenesPerTime: Cardinal;
   const EqualityEpsilon: Single);
 begin
-  Assert(RootNodes.Count = ATimes.Count);
-  Load_RootNodes := RootNodes;
-  Load_Times := ATimes;
+  Assert(KeyNodes.Count = AKeyTimes.Count);
+  Load_KeyNodes := KeyNodes;
+  Load_KeyTimes := AKeyTimes;
 
-  LoadCore(@Load_GetRootNodeWithTime, RootNodes.Count,
+  LoadCore(@Load_GetKeyNodeWithTime, KeyNodes.Count,
     AOwnsFirstRootNode, ScenesPerTime, EqualityEpsilon);
 end;
 
-procedure TCastlePrecalculatedAnimation.LoadFromEvents_GetRootNodeWithTime(
+procedure TCastlePrecalculatedAnimation.LoadFromEvents_GetKeyNodeWithTime(
   const Index: Cardinal;
-  out RootNode: TX3DRootNode; out Time: Single);
+  out KeyNode: TX3DRootNode; out Time: Single);
 begin
   Time := LoadFromEvents_TimeBegin;
   if LoadFromEvents_ScenesPerTime <> 0 then
@@ -1314,14 +877,14 @@ begin
     LoadFromEvents_Scene.ResetTime(Time) else
     LoadFromEvents_Scene.SetTime(Time);
 
-  RootNode := LoadFromEvents_Scene.RootNode.DeepCopy as TX3DRootNode;
+  KeyNode := LoadFromEvents_Scene.RootNode.DeepCopy as TX3DRootNode;
 end;
 
-procedure TCastlePrecalculatedAnimation.LoadFromEvents_GetRootNodeWithTime_Progress(
+procedure TCastlePrecalculatedAnimation.LoadFromEvents_GetKeyNodeWithTime_Progress(
   const Index: Cardinal;
-  out RootNode: TX3DRootNode; out Time: Single);
+  out KeyNode: TX3DRootNode; out Time: Single);
 begin
-  LoadFromEvents_GetRootNodeWithTime(Index, RootNode, Time);
+  LoadFromEvents_GetKeyNodeWithTime(Index, KeyNode, Time);
   Progress.Step;
 end;
 
@@ -1349,20 +912,20 @@ begin
     begin
       Progress.Init(Count, ProgressTitle);
       try
-        LoadCore(@LoadFromEvents_GetRootNodeWithTime_Progress, Count,
+        LoadCore(@LoadFromEvents_GetKeyNodeWithTime_Progress, Count,
           true, 0, EqualityEpsilon);
       finally
         Progress.Fini;
       end;
     end else
     begin
-      LoadCore(@LoadFromEvents_GetRootNodeWithTime, Count,
+      LoadCore(@LoadFromEvents_GetKeyNodeWithTime, Count,
         true, 0, EqualityEpsilon);
     end;
 
     { Although LoadCore sets FTimeEnd already, it may be a little
       smaller than ATimeEnd if ScenesPerTime is very small.
-      Last scene generated by LoadFromEvents_GetRootNodeWithTime
+      Last scene generated by LoadFromEvents_GetKeyNodeWithTime
       will not necessarily "hit" exactly TimeEnd.
       In particular, when ScenesPerTime = 0, LoadCore will just set
       FTimeEnd to TimeBegin...
@@ -1378,39 +941,42 @@ procedure TCastlePrecalculatedAnimation.LoadStatic(
   RootNode: TX3DNode;
   AOwnsRootNode: boolean);
 var
-  RootNodes: TX3DNodeList;
-  ATimes: TSingleList;
+  KeyNodes: TX3DNodeList;
+  AKeyTimes: TSingleList;
 begin
-  RootNodes := TX3DNodeList.Create(false);
+  KeyNodes := TX3DNodeList.Create(false);
   try
-    ATimes := TSingleList.Create;
+    AKeyTimes := TSingleList.Create;
     try
-      RootNodes.Add(RootNode);
-      ATimes.Add(0);
-      Load(RootNodes, AOwnsRootNode, ATimes, 1, 0.0);
-    finally FreeAndNil(ATimes) end;
-  finally FreeAndNil(RootNodes) end;
+      KeyNodes.Add(RootNode);
+      AKeyTimes.Add(0);
+      Load(KeyNodes, AOwnsRootNode, AKeyTimes, 1, 0.0);
+    finally FreeAndNil(AKeyTimes) end;
+  finally FreeAndNil(KeyNodes) end;
 end;
 
 procedure TCastlePrecalculatedAnimation.LoadFromFile(const URL: string;
   const AllowStdIn, LoadTime: boolean; const Smoothness: Float);
 var
   Times: TSingleList;
-  RootNodes: TX3DNodeList;
+  KeyNodes: TX3DNodeList;
   ScenesPerTime: Cardinal;
   EqualityEpsilon: Single;
   NewTimeLoop, NewTimeBackwards: boolean;
 begin
   Times := TSingleList.Create;
-  RootNodes := TX3DNodeList.Create(false);
+  KeyNodes := TX3DNodeList.Create(false);
   try
+    {$warnings off}
+    { deliberately using deprecated function in a deprecated unit }
     Load3DSequence(URL, AllowStdIn,
-      RootNodes, Times, ScenesPerTime, EqualityEpsilon,
+      KeyNodes, Times, ScenesPerTime, EqualityEpsilon,
       NewTimeLoop, NewTimeBackwards);
+    {$warnings on}
 
     ScenesPerTime := Round(ScenesPerTime * Smoothness);
 
-    Load(RootNodes, true, Times, ScenesPerTime, EqualityEpsilon);
+    Load(KeyNodes, true, Times, ScenesPerTime, EqualityEpsilon);
 
     if LoadTime then
     begin
@@ -1422,7 +988,7 @@ begin
       [URL, ScenesCount]);
   finally
     FreeAndNil(Times);
-    FreeAndNil(RootNodes);
+    FreeAndNil(KeyNodes);
   end;
 end;
 
@@ -1494,25 +1060,12 @@ procedure TCastlePrecalculatedAnimation.PrepareResources(Options: TPrepareResour
   ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 var
   I: Integer;
-  SceneOptions: TPrepareResourcesOptions;
 begin
   if not Loaded then Exit;
 
   for I := 0 to FScenes.Count - 1 do
   begin
-    { For I <> 0, we don't want to pass prManifoldAndBorderEdges to scenes. }
-    SceneOptions := Options;
-    if I <> 0 then
-      Exclude(SceneOptions, prManifoldAndBorderEdges);
-
-    FScenes[I].PrepareResources(SceneOptions, false, BaseLights);
-
-    { TODO: this isn't so simple, since not all scenes have to
-      be structurally equal anymore. }
-    if (prManifoldAndBorderEdges in Options) and (I <> 0) then
-      FScenes[I].ShareManifoldAndBorderEdges(
-        FScenes[0].ManifoldEdges, FScenes[0].BorderEdges);
-
+    FScenes[I].PrepareResources(Options, false, BaseLights);
     if ProgressStep then
       Progress.Step;
   end;
@@ -1687,7 +1240,10 @@ begin
 
   if ATriangleVerticesCounts then
   begin
+    {$warnings off}
+    { deliberately using deprecated function in another deprecated function }
     Result += FirstScene.InfoTriangleVerticesCounts;
+    {$warnings on}
   end;
 
   if ABoundingBox then
@@ -1695,13 +1251,19 @@ begin
     if Result <> '' then Result += NL;
     { We do not call FirstScene.InfoBoundingBox here, instead we want
       to get full bounding box of the animation. }
+    {$warnings off}
+    { deliberately using deprecated function in another deprecated function }
     Result += InfoBoundingBox;
+    {$warnings on}
   end;
 
   if AManifoldAndBorderEdges then
   begin
     if Result <> '' then Result += NL;
+    {$warnings off}
+    { deliberately using deprecated function in another deprecated function }
     Result += FirstScene.InfoManifoldAndBorderEdges;
+    {$warnings on}
   end;
 end;
 

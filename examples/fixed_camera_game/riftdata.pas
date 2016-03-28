@@ -30,20 +30,9 @@ uses CastleXMLConfig;
 var
   DataConfig: TCastleConfig;
 
-{ If ARelativeURL is a URL relative to a location of our index.xml
-  config file, this returns the full absolute URL of this file.
-  It's OK if ARelativeURL is in fact absolute --- then it will
-  be simply returned. }
-function DataURLFromConfig(const ARelativeURL: string): string;
-
 implementation
 
 uses SysUtils, CastleFilesUtils, CastleURIUtils;
-
-function DataURLFromConfig(const ARelativeURL: string): string;
-begin
-  Result := CombineURI(DataConfig.URL, ARelativeURL);
-end;
 
 initialization
   DataConfig := TCastleConfig.Create(nil);

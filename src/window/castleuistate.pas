@@ -18,13 +18,6 @@ unit CastleUIState;
 
 {$I castleconf.inc}
 
-{ When defined, the non-OpenGL image data is kept loaded in memory.
-  This uses more RAM, but allows faster GLContextOpen/Close on the state,
-  as images do not need to be loaded from disk again. }
-{ $define KEEP_LOADED_DATA_IMAGES}
-{$ifdef ANDROID} {$undef KEEP_LOADED_DATA_IMAGES} {$endif}
-{$ifdef iOS} {$undef KEEP_LOADED_DATA_IMAGES} {$endif}
-
 interface
 
 uses Classes, FGL,
@@ -34,22 +27,26 @@ uses Classes, FGL,
 type
   TUIStateList = class;
 
-  TDataImageId = Integer;
-
   { UI state, a useful singleton to manage the state of your game UI.
 
-    Only one state is @italic(current) at a given time, it can
-    be get or set using the TUIState.Current property.
-    (Unless you use TUIState.Push, in which case you build a stack
-    of states, all of them are available at the same time.)
+    In simple cases, only one state is @italic(current) at a given time,
+    and it can be get or set using the @link(TUIState.Current) property.
+    In more complex cases, you can use @link(TUIState.Push) and @link(TUIState.Pop)
+    to build a stack of states, and in effect multiple states are active at the same time.
+    All of the states on stack are @italic(started), but only the top-most is @italic(resumed).
 
-    Each state has comfortable @link(Start) and @link(Finish)
+    Each state has @link(Start) and @link(Stop)
     methods that you can override to perform work when state becomes
-    current, or stops being current.
+    part of the current state stack, or stops being part of it.
+    You can also override @link(Resume) and @link(Pause) methods,
+    to perform work when the state becomes the top-most state or is no longer
+    the top-most state. The distinction becomes important once you play
+    around with pushing/popping states.
+    The names are deliberaly similar to Android lifecycle callback names.
 
     You can add/remove state-specific UI controls in various ways.
     You can add them in the constructor of this state (and then free in destructor),
-    or add them in @link(Start), free in @link(Finish).
+    or add them in @link(Start), free in @link(Stop).
 
     @orderedList(
       @item(It's simplest and best to add/keep children controls as real
@@ -95,34 +92,16 @@ type
     override in your state descendants to capture various events. }
   TUIState = class(TUIControl)
   private
-  type
-    TDataImage = class
-      URL: string;
-      Image: TEncodedImage;
-      GLImage: TGLImage;
-      destructor Destroy; override;
-    end;
-    TDataImageList = specialize TFPGObjectList<TDataImage>;
-  var
-    FDataImages: TDataImageList;
     FStartContainer: TUIContainer;
     procedure InternalStart;
-    procedure InternalFinish;
+    procedure InternalStop;
 
     class var FStateStack: TUIStateList;
     class function GetCurrent: TUIState; static;
     class procedure SetCurrent(const Value: TUIState); static;
+    class function GetCurrentTop: TUIState; static;
     class function GetStateStack(const Index: Integer): TUIState; static;
   protected
-    { Adds image to the list of automatically loaded images for this state.
-      Path is automatically wrapped in ApplicationData(Path) to get URL.
-      The OpenGL image resource (TGLImage) is loaded when GL context
-      is active, available under DataGLImage(Id).
-      Where Id is the return value of this method. }
-    function AddDataImage(const Path: string): TDataImageId;
-    function DataGLImage(const Id: TDataImageId): TGLImage;
-    function DataImageRect(const Id: TDataImageId; const Scale: Single): TRectangle;
-
     { Container on which state works. By default, this is Application.MainWindow.
       When the state is current, then @link(Container) property (from
       ancestor, see TUIControl.Container) is equal to this. }
@@ -134,17 +113,27 @@ type
     function InsertAtPosition: Integer; virtual;
   public
     { Current state. In case multiple states are active (only possible
-      if you used @link(Push) method), this is the bottom state.
+      if you used @link(Push) method), this is the bottom state
+      (use @link(CurrentTop) to get top state).
       Setting this resets whole state stack. }
     class property Current: TUIState read GetCurrent write SetCurrent;
+    class property CurrentTop: TUIState read GetCurrentTop;
 
-    { Pushing the state adds it above the @link(Current) state.
+    { Pushing the state adds it at the top of the state stack.
 
-      The current state is conceptually at the bottom of state stack, always.
+      The state known as @link(Current) is conceptually at the bottom of state stack, always.
       When it is nil, then pushing new state sets the @link(Current) state.
       Otherwise @link(Current) state is left as-it-is, new state is added on top. }
     class procedure Push(const NewState: TUIState);
+
+    { Pop the current top-most state, whatever it is. }
     class procedure Pop;
+
+    { Pop the top-most state, checking it is as expected.
+      Makes a warning, and does nothing, if the current top-most state
+      is different than indicated. This is usually a safer (more chance
+      to easily catch bugs) version of Pop than the parameter-less version. }
+    class procedure Pop(const CurrentTopMostState: TUIState);
 
     class function StateStackCount: Integer;
     class property StateStack [const Index: Integer]: TUIState read GetStateStack;
@@ -152,26 +141,58 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { State becomes current.
-      This is called right before adding the state to the
-      @code(StateContainer.Controls) list, so the state methods
-      GLContextOpen and Resize will be called next (as for all
-      normal TUIControl). }
+    { State becomes active, it's now part of the state stack.
+
+      Started state is part of the StateStack, and will soon become
+      running (top-most on the stack). When the state is set to be current,
+      by @code(TUIState.Current := MyState), this happens:
+
+      @orderedList(
+        @item(MyStart is pushed as the top-most state on state stack.)
+        @item(MyStart.Start is called.)
+        @item(MyStart is added to the @code(StateContainer.Controls) list,
+          so the state methods GLContextOpen and Resize are called
+          (as for all normal TUIControl instances).)
+        @item(MyStar.Resume is called.)
+      ) }
     procedure Start; virtual;
 
-    { State is no longer current.
-      This is called after removing the state from the
-      @code(StateContainer.Controls) list.
+    { State is no longer active, no longer part of state stack.
+
+      When the state stops becoming active, this happens:
+
+      @orderedList(
+        @item(MyStart.Pause is called.)
+        @item(MyStart is removed from the
+          @code(StateContainer.Controls) list.
+          So the state method GLContextClose is called
+          (as for all normal TUIControl instances).)
+        @item(MyStart.Stop is called.)
+        @item(MyStart is removed from the on state stack.)
+      )
 
       This is always called to finalize the started state.
-      When the current state is destroyed, it's @link(Finish) is called
-      too. So you can use this method to reliably finalize whatever
+      When the state is destroyed, it's @link(Pause) and @link(Stop)
+      are called too, so you can use this method to reliably finalize whatever
       you initialized in @link(Start). }
-    procedure Finish; virtual;
+    procedure Stop; virtual;
+
+    { State is now the top-most state. See @link(Start) and @link(Stop)
+      docs about state lifecycle methods.
+      This is called after @link(Start), it is also called
+      when you pop another state, making this state the top-most. }
+    procedure Resume; virtual;
+
+    { State is no longer the top-most state. See @link(Start) and @link(Stop)
+      docs about state lifecycle methods.
+      This is called before @link(Stop), it is also called
+      when another state is pushed over this state, so this stops
+      being the the top-most state. }
+    procedure Pause; virtual;
+
+    procedure Finish; virtual; deprecated 'use Stop';
 
     function Rect: TRectangle; override;
-    procedure GLContextOpen; override;
-    procedure GLContextClose; override;
   end;
 
   TUIStateList = class(specialize TFPGObjectList<TUIState>);
@@ -181,15 +202,6 @@ implementation
 uses SysUtils,
   CastleWindow, CastleWarnings, CastleFilesUtils, CastleUtils,
   CastleTimeUtils, CastleLog;
-
-{ TUIState.TDataImage ---------------------------------------------------------- }
-
-destructor TUIState.TDataImage.Destroy;
-begin
-  FreeAndNil(Image);
-  FreeAndNil(GLImage);
-  inherited;
-end;
 
 { TUIState --------------------------------------------------------------------- }
 
@@ -201,6 +213,14 @@ begin
     Result := FStateStack[0];
 end;
 
+class function TUIState.GetCurrentTop: TUIState;
+begin
+  if (FStateStack = nil) or
+     (FStateStack.Count = 0) then
+    Result := nil else
+    Result := FStateStack[FStateStack.Count - 1];
+end;
+
 class procedure TUIState.SetCurrent(const Value: TUIState);
 begin
   { exit early if there's nothing to do }
@@ -210,7 +230,7 @@ begin
     Exit;
 
   { Remove and finish topmost state.
-    The loop is written to work even when some state Finish method
+    The loop is written to work even when some state Stop method
     changes states. }
   while StateStackCount <> 0 do
     Pop;
@@ -225,11 +245,17 @@ class procedure TUIState.Push(const NewState: TUIState);
 begin
   if NewState <> nil then
   begin
+    { pause previous top-most state }
+    if (FStateStack <> nil) and
+       (FStateStack.Count <> 0) then
+      FStateStack.Last.Pause;
+
     { create FStateStack on demand now }
     if FStateStack = nil then
       FStateStack := TUIStateList.Create(false);
     FStateStack.Add(NewState);
     NewState.InternalStart;
+    NewState.Resume;
   end;
 end;
 
@@ -238,10 +264,32 @@ var
   TopState: TUIState;
 begin
   TopState := FStateStack.Last;
-  TopState.InternalFinish;
+  TopState.Pause;
+  TopState.InternalStop;
   if TopState = FStateStack.Last then
     FStateStack.Delete(FStateStack.Count - 1) else
-    OnWarning(wtMinor, 'State', 'Topmost state is no longer topmost after its Finish method. Do not change state stack from state Finish methods.');
+    OnWarning(wtMinor, 'State', 'Topmost state is no longer topmost after its Stop method. Do not change state stack from state Stop methods.');
+
+  { resume new top-most state }
+  if (FStateStack <> nil) and
+     (FStateStack.Count <> 0) then
+    FStateStack.Last.Resume;
+end;
+
+class procedure TUIState.Pop(const CurrentTopMostState: TUIState);
+begin
+  if (FStateStack = nil) or (FStateStack.Count = 0) then
+  begin
+    OnWarning(wtMinor, 'State', 'Cannot pop UI state, that stack is empty');
+    Exit;
+  end;
+  if FStateStack.Last <> CurrentTopMostState then
+  begin
+    OnWarning(wtMinor, 'State', 'Cannot pop UI state, top-most state is expected to be ' + CurrentTopMostState.ClassName + ', but is ' + FStateStack.Last.ClassName);
+    Exit;
+  end;
+
+  Pop;
 end;
 
 class function TUIState.StateStackCount: Integer;
@@ -267,7 +315,7 @@ end;
 procedure TUIState.InternalStart;
 begin
   Start;
-  { actually insert, this will also call GLContextOpen  and Resize.
+  { actually insert, this will also call GLContextOpen and Resize.
     However, check first that we're still the current state,
     to safeguard from the fact that Start changed state
     (like the loading state, that changes to play state immediately in start). }
@@ -275,16 +323,16 @@ begin
     StateContainer.Controls.Insert(InsertAtPosition, Self);
 end;
 
-procedure TUIState.InternalFinish;
+procedure TUIState.InternalStop;
 begin
   StateContainer.Controls.Remove(Self);
-  Finish;
+  Stop;
 end;
 
 function TUIState.StateContainer: TUIContainer;
 begin
   if FStartContainer <> nil then
-    { between Start and Finish, be sure to return the same thing
+    { between Start and Stop, be sure to return the same thing
       from StateContainer method. Also makes it working when Application
       is nil when destroying state from CastleWindow finalization. }
     Result := FStartContainer else
@@ -294,7 +342,6 @@ end;
 constructor TUIState.Create(AOwner: TComponent);
 begin
   inherited;
-  FDataImages := TDataImageList.Create;
 end;
 
 destructor TUIState.Destroy;
@@ -303,7 +350,9 @@ begin
   if (FStateStack <> nil) and
      (FStateStack.IndexOf(Self) <> -1) then
   begin
-    InternalFinish;
+    if FStateStack.Last = Self then
+      Pause;
+    InternalStop;
     FStateStack.Remove(Self);
     { deallocate empty FStateStack. Doing this here allows to deallocate
       FStateStack only once all states finished gracefully. }
@@ -311,8 +360,15 @@ begin
       FreeAndNil(FStateStack);
   end;
 
-  FreeAndNil(FDataImages);
   inherited;
+end;
+
+procedure TUIState.Resume;
+begin
+end;
+
+procedure TUIState.Pause;
+begin
 end;
 
 procedure TUIState.Start;
@@ -320,58 +376,17 @@ begin
   FStartContainer := StateContainer;
 end;
 
-procedure TUIState.Finish;
+procedure TUIState.Stop;
 begin
   FStartContainer := nil;
+
+  {$warnings off}
+  Finish;
+  {$warnings on}
 end;
 
-const
-  { Shift data image id from 0, to avoid accidentally using uninitialized zero
-    value to get the information for 1st image. This way passing 0 to DataGLImage
-    or DataImageRect will always fail. }
-  ShiftDataImageId = 10;
-
-function TUIState.AddDataImage(const Path: string): TDataImageId;
-var
-  DI: TDataImage;
+procedure TUIState.Finish;
 begin
-  DI := TDataImage.Create;
-  DI.URL := ApplicationData(Path);
-  {$ifdef KEEP_LOADED_DATA_IMAGES}
-  DI.Image := LoadEncodedImage(DI.URL, []);
-  {$endif}
-  if GLInitialized then
-  begin
-    {$ifndef KEEP_LOADED_DATA_IMAGES}
-    DI.Image := LoadEncodedImage(DI.URL, []);
-    {$endif}
-    DI.GLImage := TGLImage.Create(DI.Image, true);
-    {$ifndef KEEP_LOADED_DATA_IMAGES}
-    FreeAndNil(DI.Image);
-    {$endif}
-  end;
-
-  Result := FDataImages.Add(DI) + ShiftDataImageId;
-end;
-
-{ Do not make this public, to make outside code work
-  regardless of KEEP_LOADED_DATA_IMAGES defined.
-function TUIState.DataImage(const Index: TDataImageId): TCastleImage;
-begin
-  Result := FDataImages[Index - ShiftDataImageId].Image;
-end;
-}
-
-function TUIState.DataGLImage(const Id: TDataImageId): TGLImage;
-begin
-  Result := FDataImages[Id - ShiftDataImageId].GLImage;
-end;
-
-function TUIState.DataImageRect(const Id: TDataImageId; const Scale: Single): TRectangle;
-begin
-  Result := FDataImages[Id - ShiftDataImageId].GLImage.Rect;
-  Result.Width := Round(Result.Width * Scale);
-  Result.Height := Round(Result.Height * Scale);
 end;
 
 function TUIState.Rect: TRectangle;
@@ -379,46 +394,6 @@ begin
   { 1. always capture events on whole container
     2. make child controls (anchored to us) behave like anchored to whole window. }
   Result := ParentRect;
-end;
-
-procedure TUIState.GLContextOpen;
-var
-  I: Integer;
-  DI: TDataImage;
-  StartTime: TProcessTimerResult;
-begin
-  inherited;
-  if FDataImages.Count <> 0 then
-  begin
-    StartTime := ProcessTimerNow;
-    for I := 0 to FDataImages.Count - 1 do
-    begin
-      DI := FDataImages[I];
-      if DI.GLImage = nil then
-      begin
-        {$ifndef KEEP_LOADED_DATA_IMAGES}
-        DI.Image := LoadEncodedImage(DI.URL, []);
-        {$endif}
-        DI.GLImage := TGLImage.Create(DI.Image, true);
-        {$ifndef KEEP_LOADED_DATA_IMAGES}
-        FreeAndNil(DI.Image);
-        {$endif}
-      end;
-    end;
-    WritelnLog('Loading', Format('Loading time of %d data images for state %s: %f',
-      [FDataImages.Count, ClassName,
-       ProcessTimerSeconds(ProcessTimerNow, StartTime)]));
-  end;
-end;
-
-procedure TUIState.GLContextClose;
-var
-  I: Integer;
-begin
-  if FDataImages <> nil then
-    for I := 0 to FDataImages.Count - 1 do
-      FreeAndNil(FDataImages[I].GLImage);
-  inherited;
 end;
 
 end.

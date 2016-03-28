@@ -357,7 +357,7 @@ begin
     end;
   finally FreeAndNil(Reader) end;
 
-  WritelnLog('Spine', Format('Atlas parsed, pages: %d', [Pages.Count]));
+  //WritelnLog('Spine', Format('Atlas parsed, pages: %d', [Pages.Count]));
 end;
 
 procedure TAtlas.BuildNodes(const BaseUrl: string);

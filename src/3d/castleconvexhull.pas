@@ -13,7 +13,11 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Calculating convex hull.) }
+{ @abstract(Calculating convex hull.)
+
+  TODO: This is an old and abandoned unit.
+  The ConvexHull utility should just be moved to TVector3SingleList method?
+}
 
 unit CastleConvexHull;
 

@@ -85,13 +85,14 @@ const
     for TFileFilterList.AddFiltersFromString and TCastleWindowCustom.FileDialog. }
   Load3D_FileFilters =
   'All Files|*|' +
-  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json|' +
+  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
     and X3D binary (*.x3db;*.x3db.gz)
   }
   'X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz|' +
   'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz|' +
+  'Castle Game Engine animations (*.kanim)|*.kanim|' +
   'Collada (*.dae)|*.dae|' +
   'Inventor (*.iv)|*.iv|' +
   '3D Studio (*.3ds)|*.3ds|' +
@@ -105,64 +106,83 @@ const
   For model formats that cannot express animations (like GEO or Wavefront OBJ)
   or that express animations in a single file (like VRML/X3D >= 2.0)
   we load them exactly like Load3D, adding exactly one item
-  to RootNodes.
+  to KeyNodes.
   So this function handles @italic(at least) the same model formats as Load3D.
 
-  Additionally:
+  Additionally, we load KAnim and MD3 formats to a sequence of frames.
 
-  @unorderedList(
-    @item(We load kanim format. It can only be loaded to a sequence of files,
-      so Load3D cannot deal with it at all.)
-
-    @item(We load MD3 format in a little different (usually more efficient)
-      way: to a sequence of frames. In comparison, Load3D loads MD3
-      into an interpolated animation.)
-  )
-
-  @param(RootNodes Sequence of root nodes will be stored there.
+  @param(KeyNodes Sequence of root nodes will be stored there.
     Pass here some created and empty instance of TX3DNodeList.)
 
-  @param(ATimes Sequence of time values.
+  @param(KeyTimes Sequence of time values.
     Pass here some created and empty instance of TSingleList.)
 }
 procedure Load3DSequence(
   const URL: string;
-  AllowStdIn: boolean;
-  RootNodes: TX3DNodeList;
-  Times: TSingleList;
+  const AllowStdIn: boolean;
+  const KeyNodes: TX3DNodeList;
+  const KeyTimes: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
-  out TimeLoop, TimeBackwards: boolean);
+  out TimeLoop, TimeBackwards: boolean); deprecated 'use Load3D instead of Load3DSequence';
 
 const
   { File filters for files loaded by Load3DSequence, suitable
     for TFileFilterList.AddFiltersFromString and TCastleWindowCustom.FileDialog. }
-  Load3DSequence_FileFilters =
-  'All Files|*|' +
-  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json|' +
-  'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
-  { TODO:
-    X3D binary (*.x3db;*.x3db.gz)
-  }
-  'X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz|' +
-  'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz|' +
-  'Castle Game Engine animations (*.kanim)|*.kanim|' +
-  'Collada (*.dae)|*.dae|' +
-  'Inventor (*.iv)|*.iv|' +
-  '3D Studio (*.3ds)|*.3ds|' +
-  'Quake 3 engine models (*.md3)|*.md3|' +
-  'Wavefront (*.obj)|*.obj|' +
-  'Videoscape (*.geo)|*.geo|' +
-  'Spine animation (*.json)|*.json';
+  Load3DSequence_FileFilters = Load3D_FileFilters deprecated 'use Load3D_FileFilters, and use Load3D instead of Load3DSequence';
 
 implementation
 
-uses CastlePrecalculatedAnimationCore, CastleClassUtils, CastleURIUtils,
+uses CastleClassUtils, CastleURIUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
-  X3DLoadInternalCollada, X3DLoadInternalSpine;
+  X3DLoadInternalCollada, X3DLoadInternalSpine,
+  CastleInternalNodeInterpolator;
 
 function Load3D(const URL: string;
   AllowStdIn, NilOnUnrecognizedFormat: boolean): TX3DRootNode;
+
+  function LoadKAnim(const URL: string): TX3DRootNode;
+  var
+    KeyNodes: TX3DNodeList;
+    KeyTimes: TSingleList;
+    ScenesPerTime: Cardinal;
+    EqualityEpsilon: Single;
+    TimeLoop, TimeBackwards: boolean;
+  begin
+    KeyNodes := TX3DNodeList.Create(false);
+    KeyTimes := TSingleList.Create;
+    try
+      TNodeInterpolator.LoadKAnimToKeyNodes(URL, KeyNodes, KeyTimes, ScenesPerTime,
+        EqualityEpsilon, TimeLoop, TimeBackwards);
+      Result := TNodeInterpolator.LoadToX3D(KeyNodes, KeyTimes,
+        ScenesPerTime, EqualityEpsilon, TimeLoop, TimeBackwards);
+    finally
+      FreeAndNil(KeyNodes);
+      FreeAndNil(KeyTimes);
+    end;
+  end;
+
+  function LoadMD3(const URL: string): TX3DRootNode;
+  var
+    KeyNodes: TX3DNodeList;
+    KeyTimes: TSingleList;
+    ScenesPerTime: Cardinal;
+    EqualityEpsilon: Single;
+    TimeLoop, TimeBackwards: boolean;
+  begin
+    KeyNodes := TX3DNodeList.Create(false);
+    KeyTimes := TSingleList.Create;
+    try
+      LoadMD3Sequence(URL, KeyNodes, KeyTimes, ScenesPerTime,
+        EqualityEpsilon, TimeLoop, TimeBackwards);
+      Result := TNodeInterpolator.LoadToX3D(KeyNodes, KeyTimes,
+        ScenesPerTime, EqualityEpsilon, TimeLoop, TimeBackwards);
+    finally
+      FreeAndNil(KeyNodes);
+      FreeAndNil(KeyTimes);
+    end;
+  end;
+
 var
   MimeType: string;
   Gzipped: boolean;
@@ -189,9 +209,6 @@ begin
     if MimeType = 'application/x-wavefront-obj' then
       Result := LoadWavefrontOBJ(URL) else
 
-    if MimeType = 'application/x-md3' then
-      Result := LoadMD3(URL) else
-
     if MimeType = 'model/vnd.collada+xml' then
       Result := LoadCollada(URL) else
 
@@ -205,6 +222,12 @@ begin
        (URIMimeType(URIDeleteAnchor(URL, true), Gzipped) = 'application/json') then
       Result := LoadSpine(URL) else
 
+    if MimeType = 'application/x-kanim' then
+      Result := LoadKAnim(URL) else
+
+    if MimeType = 'application/x-md3' then
+      Result := LoadMD3(URL) else
+
     if NilOnUnrecognizedFormat then
       Result := nil else
       raise Exception.CreateFmt(
@@ -214,43 +237,17 @@ begin
 end;
 
 procedure Load3DSequence(const URL: string;
-  AllowStdIn: boolean;
-  RootNodes: TX3DNodeList;
-  Times: TSingleList;
+  const AllowStdIn: boolean;
+  const KeyNodes: TX3DNodeList;
+  const KeyTimes: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
   out TimeLoop, TimeBackwards: boolean);
 
-  procedure LoadKanim;
-  var
-    ModelURLs: TStringList;
-    I, J: Integer;
-  begin
-    ModelURLs := TStringList.Create;
-    try
-      TCastlePrecalculatedAnimationCore.LoadFromFileToVars(URL, ModelURLs, Times,
-        ScenesPerTime, EqualityEpsilon, TimeLoop, TimeBackwards);
-
-      Assert(ModelURLs.Count = Times.Count);
-      Assert(ModelURLs.Count >= 1);
-
-      { Now use ModelURLs to load RootNodes }
-      RootNodes.Count := ModelURLs.Count;
-      for I := 0 to ModelURLs.Count - 1 do
-      try
-        RootNodes[I] := Load3D(ModelURLs[I]);
-      except
-        for J := 0 to I - 1 do
-          FPGObjectList_FreeAndNilItem(RootNodes, J);
-        raise;
-      end;
-    finally FreeAndNil(ModelURLs) end;
-  end;
-
   procedure LoadSingle(Node: TX3DNode);
   begin
-    RootNodes.Add(Node);
-    Times.Add(0); { One time value }
+    KeyNodes.Add(Node);
+    KeyTimes.Add(0); { One time value }
     ScenesPerTime := 1;      { doesn't matter }
     EqualityEpsilon := 0.0;  { doesn't matter }
     TimeLoop := false;      { doesn't matter }
@@ -260,16 +257,17 @@ procedure Load3DSequence(const URL: string;
 var
   MimeType: string;
 begin
-  Assert(Times.Count = 0);
-  Assert(RootNodes.Count = 0);
+  Assert(KeyTimes.Count = 0);
+  Assert(KeyNodes.Count = 0);
 
   MimeType := URIMimeType(URL);
 
   if MimeType = 'application/x-kanim' then
-    LoadKanim else
+    TNodeInterpolator.LoadKAnimToKeyNodes(URL, KeyNodes, KeyTimes, ScenesPerTime,
+      EqualityEpsilon, TimeLoop, TimeBackwards) else
 
   if MimeType = 'application/x-md3' then
-    LoadMD3Sequence(URL, RootNodes, Times, ScenesPerTime,
+    LoadMD3Sequence(URL, KeyNodes, KeyTimes, ScenesPerTime,
       EqualityEpsilon, TimeLoop, TimeBackwards) else
 
     LoadSingle(Load3D(URL, AllowStdIn));

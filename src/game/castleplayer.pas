@@ -435,8 +435,8 @@ var
 implementation
 
 uses Math, SysUtils, CastleClassUtils, CastleUtils, X3DNodes, CastleControls,
-  CastleImages, CastleFilesUtils, CastleUIControls, CastlePrecalculatedAnimation,
-  CastleOpenAL, CastleGL,
+  CastleImages, CastleFilesUtils, CastleUIControls,
+  CastleOpenAL, CastleGL, CastleGLBoxes,
   CastleGameNotifications, CastleXMLConfig, CastleGLImages, CastleConfig,
   CastleResources, CastleShapes, CastleRenderingCamera;
 
@@ -485,7 +485,9 @@ begin
       glPushMatrix;
         glMultMatrix(Params.RenderTransform);
         glColorv(Gray);
+        {$warnings off} { this is already marked with TODO above }
         glDrawBox3DWire(BoundingBox);
+        {$warnings on}
       glPopMatrix;
     glPopAttrib;
   end;

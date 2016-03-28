@@ -685,7 +685,7 @@ begin
     ChildrenToSend := TMFNode.CreateUndefined(Self, EventChildren.Name, false);
     try
       ChildrenToSend.Add(FInlined);
-      EventChildren.Send(ChildrenToSend, Scene.GetTime);
+      EventChildren.Send(ChildrenToSend, Scene.NextEventTime);
     finally FreeAndNil(ChildrenToSend) end;
   end;
 end;

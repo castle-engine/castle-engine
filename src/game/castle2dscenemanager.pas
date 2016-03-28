@@ -54,7 +54,7 @@ type
   T2DSceneManager = class(TCastleSceneManager)
   private
     FProjectionAutoSize: boolean;
-    FProjectionHeight: Single;
+    FProjectionHeight, FProjectionWidth: Single;
     FCurrentProjectionWidth, FCurrentProjectionHeight: Single;
     FProjectionSpan: Single;
   protected
@@ -63,27 +63,33 @@ type
     const
       DefaultProjectionSpan = 1000.0;
     property RenderStyle default rs2D;
-    { When @true, the size of the world visible in our viewport will depend
-      on scene manager size. ProjectionHeight is ignored then.
-      When @false, ProjectionHeight is used to determine the height
-      of world visible in our viewport (width is automatically adjusted
-      to follow aspect ratio of viewport size).
+
+    { When ProjectionAutoSize is @true, the size of the world visible
+      in our viewport depends on scene manager size.
+      ProjectionHeight and ProjectionWidth are ignored then.
+
+      When ProjectionAutoSize is @false, ProjectionHeight and ProjectionWidth
+      are used to determine the world visible in our viewport.
+      If one of them is zero, the other is automatically adjusted to
+      follow aspect ratio of viewport size.
+      If both of them are zero, projection is automatically calculated just as if
+      ProjectionAutoSize was @true.
+      @bold(By default, height is 1.0 and width is automatically adjusted
+      to follow aspect ratio.)
 
       In all cases, CurrentProjectionWidth and CurrentProjectionHeight
-      must be checked to see actual projection dimensions.
-      When this is @true, then CurrentProjectionWidth and CurrentProjectionHeight
-      are determined by the scene manager size (which is also available using
-      @link(TUIControl.Rect) method). When this is @false,
-      then CurrentProjectionHeight is equal to ProjectionHeight,
-      and CurrentProjectionWidth is adjusted to follow aspect ratio. }
+      can be checked to see actual projection dimensions. }
     property ProjectionAutoSize: boolean
       read FProjectionAutoSize write FProjectionAutoSize default true;
     property ProjectionHeight: Single
       read FProjectionHeight write FProjectionHeight default 1;
+    property ProjectionWidth: Single
+      read FProjectionWidth write FProjectionWidth default 0;
     property CurrentProjectionWidth: Single read FCurrentProjectionWidth;
     property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
     property ProjectionSpan: Single
       read FProjectionSpan write FProjectionSpan default DefaultProjectionSpan;
+
     constructor Create(AOwner: TComponent); override;
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
   published
@@ -96,11 +102,17 @@ type
   T2DScene = class(TCastleScene)
   public
     constructor Create(AOwner: TComponent); override;
+
+    { Create a scene with the same contents (X3D scene graph) as this one.
+      Note that this @bold(does not copy other scene attributes),
+      like @link(ProcessEvents) or @link(Spatial) or rendering attributes
+      in @link(Attributes). }
+    function Clone(const AOwner: TComponent): T2DScene;
   end;
 
 implementation
 
-uses CastleVectors, CastleGLUtils;
+uses CastleVectors, CastleGLUtils, X3DNodes;
 
 { T2DSceneManager -------------------------------------------------------- }
 
@@ -111,6 +123,8 @@ begin
   Transparent := true;
   ProjectionAutoSize := true;
   FProjectionSpan := DefaultProjectionSpan;
+  FProjectionHeight := 1;
+  FProjectionWidth := 0;
 end;
 
 function T2DSceneManager.CreateDefaultCamera(AOwner: TComponent): TCamera;
@@ -133,15 +147,28 @@ begin
   Result.ProjectionType := ptOrthographic;
   Result.OrthoDimensions[0] := 0;
   Result.OrthoDimensions[1] := 0;
-  if ProjectionAutoSize then
+
+  if ProjectionAutoSize or
+     ((ProjectionWidth = 0) and (ProjectionHeight = 0)) then
   begin
     FCurrentProjectionWidth := Rect.Width;
     FCurrentProjectionHeight := Rect.Height;
   end else
+  if ProjectionWidth = 0 then
   begin
     FCurrentProjectionWidth := ProjectionHeight * Rect.Width / Rect.Height;
     FCurrentProjectionHeight := ProjectionHeight;
+  end else
+  if ProjectionHeight = 0 then
+  begin
+    FCurrentProjectionWidth := ProjectionWidth;
+    FCurrentProjectionHeight := ProjectionWidth * Rect.Height / Rect.Width;
+  end else
+  begin
+    FCurrentProjectionWidth := ProjectionWidth;
+    FCurrentProjectionHeight := ProjectionHeight;
   end;
+
   Result.OrthoDimensions[2] := FCurrentProjectionWidth;
   Result.OrthoDimensions[3] := FCurrentProjectionHeight;
   Result.ProjectionNear := -ProjectionSpan;
@@ -155,6 +182,13 @@ constructor T2DScene.Create(AOwner: TComponent);
 begin
   inherited;
   Attributes.BlendingSort := bs2D;
+end;
+
+function T2DScene.Clone(const AOwner: TComponent): T2DScene;
+begin
+  Result := T2DScene.Create(AOwner);
+  if RootNode <> nil then
+    Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;
 
 end.

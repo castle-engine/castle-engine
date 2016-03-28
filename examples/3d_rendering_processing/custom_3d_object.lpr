@@ -34,7 +34,8 @@ program custom_3d_object;
 
 uses CastleVectors, CastleBoxes, CastleGL, CastleWindow, CastleFrustum,
   CastleClassUtils, CastleUtils, SysUtils, Classes, Castle3D,
-  CastleGLUtils, CastleFilesUtils, CastleStringUtils, CastleKeysMouse;
+  CastleGLUtils, CastleFilesUtils, CastleStringUtils, CastleKeysMouse,
+  CastleGLBoxes;
 
 type
   TCube = class(T3D)

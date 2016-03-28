@@ -80,7 +80,9 @@ var
 implementation
 
 uses SysUtils, DOM, CastleProgress, CastleImages, CastleRenderer, CastleUIControls,
-  CastleGLUtils, CastleWindow, CastleXMLUtils, CastleSceneCore, RiftWindow, RiftData;
+  CastleGLUtils, CastleWindow, CastleXMLUtils, CastleSceneCore,
+  CastleApplicationProperties,
+  RiftWindow, RiftData;
 
 { TLocation ------------------------------------------------------------------ }
 
@@ -175,7 +177,7 @@ begin
     raise Exception.CreateFmt(
       '<locations> doesn''t have a required attribute "start_name"', []);
 
-  I := TXMLElementIterator.Create(LocationsElement);
+  I := LocationsElement.ChildrenIterator;
   try
     while I.GetNext do
     begin
@@ -187,17 +189,9 @@ begin
       if Location.Name = StartLocationName then
         StartLocation := Location;
 
-      if not I.Current.AttributeString('image_url', Location.FImageURL) then
-        MissingLocationAttribute('image_url');
-      Location.FImageURL := DataURLFromConfig(Location.FImageURL);
-
-      if not I.Current.AttributeString('shadowed_image_url', Location.FShadowedImageURL) then
-        MissingLocationAttribute('shadowed_image_url');
-      Location.FShadowedImageURL := DataURLFromConfig(Location.FShadowedImageURL);
-
-      if not I.Current.AttributeString('scene_url', Location.FSceneURL) then
-        MissingLocationAttribute('scene_url');
-      Location.FSceneURL := DataURLFromConfig(Location.FSceneURL);
+      Location.FImageURL := I.Current.AttributeURL('image_url', DataConfig.URL);
+      Location.FShadowedImageURL := I.Current.AttributeURL('shadowed_image_url', DataConfig.URL);
+      Location.FSceneURL := I.Current.AttributeURL('scene_url', DataConfig.URL);
 
       I.Current.AttributeString('scene_camera_description',
         Location.FSceneCameraDescription);
@@ -227,6 +221,6 @@ begin
 end;
 
 initialization
-  OnGLContextOpen.Add(@ContextOpen);
-  OnGLContextClose.Add(@ContextClose);
+  ApplicationProperties.OnGLContextOpen.Add(@ContextOpen);
+  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
 end.

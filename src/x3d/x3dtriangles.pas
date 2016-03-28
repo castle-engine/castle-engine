@@ -187,6 +187,24 @@ type
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; virtual; abstract;
 
+    function CommonSphere2D(const pos: TVector2Single;
+      const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+
+    function CommonSphere2DLeaf(const pos: TVector2Single;
+      const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; virtual; abstract;
+
+    function CommonPoint2D(const Point: TVector2Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+
+    function CommonPoint2DLeaf(const Point: TVector2Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; virtual; abstract;
+
     function CommonBox(const ABox: TBox3D;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
@@ -258,6 +276,24 @@ type
 
     function IsSphereCollision(const pos: TVector3Single;
       const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual; abstract;
+
+    function SphereCollision2D(const pos: TVector2Single;
+      const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; virtual; abstract;
+
+    function IsSphereCollision2D(const pos: TVector2Single;
+      const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual; abstract;
+
+    function PointCollision2D(const Point: TVector2Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; virtual; abstract;
+
+    function IsPointCollision2D(const Point: TVector2Single;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual; abstract;
 
@@ -459,6 +495,24 @@ type
 
     function IsSphereCollision(const pos: TVector3Single;
       const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+
+    function SphereCollision2D(const pos: TVector2Single;
+      const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+
+    function IsSphereCollision2D(const pos: TVector2Single;
+      const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+
+    function PointCollision2D(const Point: TVector2Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+
+    function IsPointCollision2D(const Point: TVector2Single;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 
@@ -878,6 +932,70 @@ begin
   end;
 end;
 
+function TBaseTrianglesOctreeNode.CommonSphere2D(const pos: TVector2Single;
+  const Radius: Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+var
+  BoxLo, BoxHi: TOctreeSubnodeIndex;
+  SubnodesBoxMin, SubnodesBoxMax: TVector2Single;
+  B0, B1, B2: boolean;
+begin
+  if not IsLeaf then
+  begin
+    Result := nil;
+
+    { Visit every subnode containing this sphere, and look for collision there.
+      TODO: we take box below, as simply bounding box of the sphere,
+      so potentially we visit more nodes than necessary. }
+    SubnodesBoxMin := VectorSubtract(pos, Vector2Single(Radius, Radius) );
+    SubnodesBoxMax := VectorAdd(     pos, Vector2Single(Radius, Radius) );
+
+    SubnodesWithBox2D(SubnodesBoxMin, SubnodesBoxMax, BoxLo, BoxHi);
+
+    for B0 := BoxLo[0] to BoxHi[0] do
+      for B1 := BoxLo[1] to BoxHi[1] do
+        for B2 := BoxLo[2] to BoxHi[2] do
+        begin
+          Result := TBaseTrianglesOctreeNode(TreeSubNodes[B0, B1, B2]).
+            CommonSphere2D(Pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
+          if Result <> nil then Exit;
+        end;
+  end else
+  begin
+    Result := CommonSphere2DLeaf(Pos, Radius, TriangleToIgnore,
+      TrianglesToIgnoreFunc);
+  end;
+end;
+
+function TBaseTrianglesOctreeNode.CommonPoint2D(const Point: TVector2Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+var
+  BoxLo, BoxHi: TOctreeSubnodeIndex;
+  B0, B1, B2: boolean;
+begin
+  if not IsLeaf then
+  begin
+    Result := nil;
+
+    SubnodesWithBox2D(Point, Point, BoxLo, BoxHi);
+
+    for B0 := BoxLo[0] to BoxHi[0] do
+      for B1 := BoxLo[1] to BoxHi[1] do
+        for B2 := BoxLo[2] to BoxHi[2] do
+        begin
+          Result := TBaseTrianglesOctreeNode(TreeSubNodes[B0, B1, B2]).
+            CommonPoint2D(Point, TriangleToIgnore, TrianglesToIgnoreFunc);
+          if Result <> nil then Exit;
+        end;
+  end else
+  begin
+    Result := CommonPoint2DLeaf(Point, TriangleToIgnore,
+      TrianglesToIgnoreFunc);
+  end;
+end;
+
 function TBaseTrianglesOctreeNode.CommonBox(const ABox: TBox3D;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
@@ -1009,6 +1127,40 @@ function TBaseTrianglesOctree.IsSphereCollision(const pos: TVector3Single;
 begin
   Result := TBaseTrianglesOctreeNode(InternalTreeRoot).IsSphereCollision(
     Pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
+end;
+
+function TBaseTrianglesOctree.SphereCollision2D(const pos: TVector2Single;
+  const Radius: Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+begin
+  Result := TBaseTrianglesOctreeNode(InternalTreeRoot).SphereCollision2D(
+    Pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
+end;
+
+function TBaseTrianglesOctree.IsSphereCollision2D(const pos: TVector2Single;
+  const Radius: Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  Result := TBaseTrianglesOctreeNode(InternalTreeRoot).IsSphereCollision2D(
+    Pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
+end;
+
+function TBaseTrianglesOctree.PointCollision2D(const Point: TVector2Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+begin
+  Result := TBaseTrianglesOctreeNode(InternalTreeRoot).PointCollision2D(
+    Point, TriangleToIgnore, TrianglesToIgnoreFunc);
+end;
+
+function TBaseTrianglesOctree.IsPointCollision2D(const Point: TVector2Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  Result := TBaseTrianglesOctreeNode(InternalTreeRoot).IsPointCollision2D(
+    Point, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
 function TBaseTrianglesOctree.BoxCollision(const ABox: TBox3D;

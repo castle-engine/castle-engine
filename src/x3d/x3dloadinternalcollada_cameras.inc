@@ -40,13 +40,13 @@ var
   end;
 
 var
-  I: TXMLElementFilteringIterator;
+  I: TXMLElementIterator;
   Viewpoint: TViewpointNode;
   OrthoViewpoint: TOrthoViewpointNode;
   OpticsE, TechniqueE, PerspectiveE, OrthographicE: TDOMElement;
   XFov, YFov, XMag, YMag, AspectRatio: Float;
 begin
-  I := TXMLElementFilteringIterator.Create(LibraryE, 'camera');
+  I := LibraryE.ChildrenIterator('camera');
   try
     while I.GetNext do
       if I.Current.AttributeString('id', Id) then
@@ -54,13 +54,13 @@ begin
         CameraGroup := TGroupNode.Create(Id, BaseUrl);
         Cameras.Add(CameraGroup);
 
-        OpticsE := DOMGetChildElement(I.Current, 'optics', false);
+        OpticsE := I.Current.ChildElement('optics', false);
         if OpticsE <> nil then
         begin
-          TechniqueE := DOMGetChildElement(OpticsE, 'technique_common', false);
+          TechniqueE := OpticsE.ChildElement('technique_common', false);
           if TechniqueE <> nil then
           begin
-            PerspectiveE := DOMGetChildElement(TechniqueE, 'perspective', false);
+            PerspectiveE := TechniqueE.ChildElement('perspective', false);
             if PerspectiveE <> nil then
             begin
               Viewpoint := TViewpointNode.Create(Id + '_viewpoint', BaseUrl);
@@ -81,7 +81,7 @@ begin
               InitializeNavigationInfo(PerspectiveE);
             end else
             begin
-              OrthographicE := DOMGetChildElement(TechniqueE, 'orthographic', false);
+              OrthographicE := TechniqueE.ChildElement('orthographic', false);
               if OrthographicE <> nil then
               begin
                 OrthoViewpoint := TOrthoViewpointNode.Create(Id + '_viewpoint', BaseUrl);

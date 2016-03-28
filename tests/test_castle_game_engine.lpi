@@ -51,15 +51,14 @@
       <Unit1>
         <Filename Value="castlebasetestcase.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="CastleBaseTestCase"/>
       </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <SearchPaths>
-      <IncludeFiles Value="../../castle_game_engine/src/base"/>
-      <OtherUnitFiles Value="../examples/shadow_fields"/>
+      <IncludeFiles Value="../src/base"/>
+      <OtherUnitFiles Value="../examples/shadow_fields;../examples/curves_surfaces"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>

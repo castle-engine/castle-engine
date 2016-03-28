@@ -18,7 +18,8 @@ unit CastleBoxes;
 
 interface
 
-uses CastleVectors, SysUtils, CastleUtils, CastleGenericLists, CastleTriangles;
+uses CastleVectors, SysUtils, CastleUtils, CastleGenericLists, CastleTriangles,
+  CastleRectangles;
 
 type
   EBox3DEmpty = class(Exception);
@@ -68,7 +69,14 @@ type
     to manage this, you can simply declare TBox3D type and copy / pass around
     this box to other procedures. }
   TBox3D = object
-    Data: array [0..1   ] of TVector3Single;
+    Data: array [0..1] of TVector3Single;
+
+    const
+      { Special TBox3D value meaning "bounding box is empty".
+        This is different than just bounding box with zero sizes,
+        as bounding box with zero sizes still has some position.
+        Empty bounding box doesn't contain any portion of 3D space. }
+      Empty: TBox3D = (Data: ((0, 0, 0), (-1, -1, -1)));
 
     { Check is box empty.
       You can think of this function as "compare Box with EmptyBox3D".
@@ -146,6 +154,9 @@ type
     function PointInside(const Point: TVector3Single): boolean; overload;
     function PointInside(const Point: TVector3Double): boolean; overload;
     { @groupEnd }
+
+    { Is the 2D point inside the 2D projection of the box, ignores the Z coord of box. }
+    function PointInside2D(const Point: TVector2Single): boolean;
 
     { Is the 2D point inside the 2D projection of the box.
       2D projection (of point and box) is obtained by rejecting
@@ -301,11 +312,13 @@ type
     function SphereSimpleCollision(
       const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
 
-    { Check for box <-> sphere collision.
-      This is a little slower than SphereSimpleCollision, although still
-      damn fast, and it's a precise check. }
+    { Check box vs sphere collision. }
     function SphereCollision(
       const SphereCenter: TVector3Single; const SphereRadius: Single): boolean;
+
+    { Check box vs sphere collision in 2D (ignores Z coordinates of box). }
+    function SphereCollision2D(
+      const SphereCenter: TVector2Single; const SphereRadius: Single): boolean;
 
     { Calculate a plane in 3D space with direction = given Direction, moved
       maximally in Direction and still intersecting the given Box.
@@ -386,6 +399,9 @@ type
 
     { Diagonal of the box, zero if empty. }
     function Diagonal: Single;
+
+    function RectangleXY: TFloatRectangle;
+    function RectangleXZ: TFloatRectangle;
   end;
 
   TBox3DBool = array [boolean] of TVector3Single;
@@ -696,6 +712,14 @@ end;
 procedure PointInside2D_InvalidIgnoreIndex;
 begin
   raise EInternalError.Create('Invalid IgnoreIndex for TBox3D.PointInside2D');
+end;
+
+function TBox3D.PointInside2D(const Point: TVector2Single): boolean;
+begin
+  if IsEmpty then Exit(false);
+  Result :=
+    (Data[0, 0] <= Point[0]) and (Point[0] <=  Data[1, 0]) and
+    (Data[0, 1] <= Point[1]) and (Point[1] <=  Data[1, 1]);
 end;
 
 function TBox3D.PointInside2D(const Point: TVector3Single;
@@ -1475,6 +1499,24 @@ begin
   Result := D <= Sqr(SphereRadius);
 end;
 
+function TBox3D.SphereCollision2D(
+  const SphereCenter: TVector2Single; const SphereRadius: Single): boolean;
+var
+  D: Single;
+begin
+  if IsEmpty then Exit(false);
+
+  D := 0;
+
+  if SphereCenter[0] < Data[0][0] then D += Sqr(SphereCenter[0] - Data[0][0]) else
+  if SphereCenter[0] > Data[1][0] then D += Sqr(SphereCenter[0] - Data[1][0]);
+
+  if SphereCenter[1] < Data[0][1] then D += Sqr(SphereCenter[1] - Data[0][1]) else
+  if SphereCenter[1] > Data[1][1] then D += Sqr(SphereCenter[1] - Data[1][1]);
+
+  Result := D <= Sqr(SphereRadius);
+end;
+
 function TBox3D.MaximumPlane(
   const Direction: TVector3Single): TVector4Single;
 var
@@ -1680,6 +1722,30 @@ begin
     Result := Sqrt(Sqr(Data[1][0] - Data[0][0]) +
                    Sqr(Data[1][1] - Data[0][1]) +
                    Sqr(Data[1][2] - Data[0][2]));
+end;
+
+function TBox3D.RectangleXY: TFloatRectangle;
+begin
+  if IsEmpty then
+    Exit(TFloatRectangle.Empty) else
+  begin
+    Result.Left   := Data[0][0];
+    Result.Bottom := Data[0][1];
+    Result.Width  := Data[1][0] - Data[0][0];
+    Result.Height := Data[1][1] - Data[0][1];
+  end;
+end;
+
+function TBox3D.RectangleXZ: TFloatRectangle;
+begin
+  if IsEmpty then
+    Exit(TFloatRectangle.Empty) else
+  begin
+    Result.Left   := Data[0][0];
+    Result.Bottom := Data[0][2];
+    Result.Width  := Data[1][0] - Data[0][0];
+    Result.Height := Data[1][2] - Data[0][2];
+  end;
 end;
 
 { Routines ------------------------------------------------------------------- }

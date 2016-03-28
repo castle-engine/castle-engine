@@ -85,7 +85,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleMessaging, CastleUIControls;
+  CastleUtils, CastleMessaging, CastleApplicationProperties;
 
 constructor TGooglePlayGames.Create(AOwner: TComponent);
 begin

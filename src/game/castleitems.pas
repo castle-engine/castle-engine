@@ -22,7 +22,7 @@ interface
 
 uses CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
   CastleClassUtils, Classes, CastleImages, CastleGLUtils,
-  CastlePrecalculatedAnimation, CastleResources, CastleGLImages,
+  CastleResources, CastleGLImages,
   CastleXMLConfig, CastleSoundEngine, CastleFrustum, Castle3D, FGL, CastleColors;
 
 type
@@ -49,13 +49,12 @@ type
     FCaption: string;
     FImageURL: string;
     FImage: TEncodedImage;
-    FGLImage: TGLImage;
+    FGLImage: TGLImageManaged;
     FBoundingBoxRotated: TBox3D;
   protected
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
       const GravityUp: TVector3Single;
       const DoProgress: boolean); override;
-    procedure ReleaseCore; override;
     { Which TInventoryItem descendant to create when constructing item
       of this resource by CreateItem. }
     function ItemClass: TInventoryItemClass; virtual;
@@ -63,7 +62,6 @@ type
     constructor Create(const AName: string); override;
     destructor Destroy; override;
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
-    procedure GLContextClose; override;
 
     { Nice caption to display. }
     property Caption: string read FCaption;
@@ -88,7 +86,7 @@ type
 
     property ImageURL: string read FImageURL;
 
-    { OpenGL resource to draw @link(Image). }
+    { Resource to draw @link(Image). }
     function GLImage: TGLImage;
 
     { The largest possible bounding box of the 3D item,
@@ -587,7 +585,7 @@ var
 implementation
 
 uses SysUtils, CastleGL, CastleFilesUtils, CastlePlayer, CastleGameNotifications,
-  CastleConfig, CastleCreatures;
+  CastleConfig, CastleCreatures, CastleGLBoxes;
 
 { TItemResource ------------------------------------------------------------ }
 
@@ -600,6 +598,7 @@ end;
 destructor TItemResource.Destroy;
 begin
   FreeAndNil(FImage);
+  FreeAndNil(FGLImage);
   inherited;
 end;
 
@@ -624,7 +623,8 @@ end;
 function TItemResource.GLImage: TGLImage;
 begin
   if FGLImage = nil then
-    FGLImage := TGLImage.Create(Image, true);
+    { TODO: this will load the ImageURL 2nd time. }
+    FGLImage := TGLImageManaged.Create(ImageURL);
   Result := FGLImage;
 end;
 
@@ -643,18 +643,6 @@ begin
     B.Transform(RotationMatrixDeg(45 + 90 * 3, GravityUp));
   { prepare GLImage now }
   GLImage;
-end;
-
-procedure TItemResource.GLContextClose;
-begin
-  FreeAndNil(FGLImage);
-  inherited;
-end;
-
-procedure TItemResource.ReleaseCore;
-begin
-  FreeAndNil(FGLImage);
-  inherited;
 end;
 
 function TItemResource.CreateItem(const AQuantity: Cardinal): TInventoryItem;
@@ -1132,8 +1120,10 @@ begin
         glDisable(GL_LIGHTING);
         glEnable(GL_DEPTH_TEST);
         glColorv(Gray);
+        {$warnings off} { this is already marked with TODO above }
         glDrawBox3DWire(BoundingBox);
         glDrawBox3DWire(BoxRotated);
+        {$warnings on}
         glColorv(Yellow);
         glDrawAxisWire(Middle, BoxRotated.AverageSize(true, 0));
       glPopAttrib;

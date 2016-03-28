@@ -1,5 +1,5 @@
 # This Makefile uses castle-engine build tool for most operations.
-# See https://sourceforge.net/p/castle-engine/wiki/Build%20tool/ .
+# See https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
 
 .PHONY: standalone
 standalone:

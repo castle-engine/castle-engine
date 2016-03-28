@@ -45,6 +45,7 @@ type
     procedure TestPlaneTransform;
     procedure TestTransformToFromCoordsMatrix;
     procedure Test2D;
+    procedure TestApproximateScale;
   end;
 
 function RandomVector: TVector3Single;
@@ -733,6 +734,19 @@ begin
     PointsDistance2DSqr(P1, P2, 3);
     Fail('Above PointsDistance2DSqr with IgnoreIndex = 3 should raise exception');
   except end;
+end;
+
+procedure TTestCastleVectors.TestApproximateScale;
+const
+  EqualityEpsilon = 0.0001;
+begin
+  AssertFloatsEqual(2, Approximate3DScale(2, 2, 2), EqualityEpsilon);
+  AssertFloatsEqual(-2, Approximate3DScale(-2, -2, -2), EqualityEpsilon);
+  AssertFloatsEqual(1, Approximate3DScale(1, 1, 1), EqualityEpsilon);
+  AssertFloatsEqual(-1, Approximate3DScale(-1, -1, -1), EqualityEpsilon);
+  AssertFloatsEqual(7/3, Approximate3DScale(1, 3, 3), EqualityEpsilon);
+  AssertFloatsEqual(-7/3, Approximate3DScale(-1, -3, -3), EqualityEpsilon);
+  AssertFloatsEqual(1, Approximate3DScale(-1, 1, 1), EqualityEpsilon);
 end;
 
 initialization

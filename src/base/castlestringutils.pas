@@ -15,7 +15,7 @@
 
 { String utilities.
   Also some operations on chars and PChars.
-  And various convertions strings<->numbers.
+  And various conversions strings<->numbers.
 
   General comments for all procedures that have parameter like IgnoreCase:
   @unorderedList(
@@ -79,7 +79,7 @@ type
 
   { String-to-string map. Note that in simple cases you can also
     use standard TStringList functionality (see it's properties Names, Values),
-    and this is better if your key/values may be multiline. }
+    but this is better if your key/values may be multiline. }
   TStringStringMap = class(specialize TFPGMap<string, string>)
   public
     { Set given key value, trying to preserve previous key value too.
@@ -92,6 +92,12 @@ type
       This way previous content value is preserved once (but not more,
       to not grow the X3D file indefinitely). }
     procedure PutPreserve(const Name, Content: string);
+
+    { Create another TStringStringMap with exactly the same contents at the beginning. }
+    function CreateCopy: TStringStringMap;
+
+    { Assign contents (all keys, values) of another TStringStringMap instance. }
+    procedure Assign(const Source: TStringStringMap);
   end;
 
 type
@@ -684,7 +690,7 @@ function FormatNameCounter(const NamePattern: string;
   const Index: Integer; const AllowOldPercentSyntax: boolean): string;
 { @groupEnd }
 
-{ convertions ------------------------------------------------------------ }
+{ conversions ------------------------------------------------------------ }
 
 const
   { I should restrain from adding more similiar BoolToStrXxx constants
@@ -971,6 +977,23 @@ begin
     KeyData[Name] := Content;
 end;
 
+function TStringStringMap.CreateCopy: TStringStringMap;
+begin
+  Result := TStringStringMap.Create;
+  try
+    Result.Assign(Self);
+  except FreeAndNil(Result); raise end;
+end;
+
+procedure TStringStringMap.Assign(const Source: TStringStringMap);
+var
+  I: Integer;
+begin
+  Clear;
+  for I := 0 to Source.Count - 1 do
+    KeyData[Source.Keys[I]] := Source.Data[I];
+end;
+
 { routines ------------------------------------------------------------------- }
 
 function RandomString: string;
@@ -1182,9 +1205,9 @@ end;
 
 function IsPrefix(const Prefix, S: string; IgnoreCase: boolean): boolean;
 begin
- if IgnoreCase then
-  result := AnsiCompareText(Copy(S, 1, Length(Prefix)), Prefix) = 0 else
-  result := AnsiCompareStr(Copy(S, 1, Length(Prefix)), Prefix) = 0;
+  if IgnoreCase then
+    Result := AnsiCompareText(Copy(S, 1, Length(Prefix)), Prefix) = 0 else
+    Result := AnsiCompareStr(Copy(S, 1, Length(Prefix)), Prefix) = 0;
 end;
 
 function IsSuffix(const Suffix, S: string; IgnoreCase: boolean): boolean;
@@ -2019,7 +2042,7 @@ begin
     ReplacementsDone);
 end;
 
-{ convertions ------------------------------------------------------------ }
+{ conversions ------------------------------------------------------------ }
 
 function DigitAsChar(b: byte): char;
 begin Result := char(b+byte('0')) end;

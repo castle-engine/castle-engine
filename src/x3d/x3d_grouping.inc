@@ -126,7 +126,7 @@
     FComponents: TStringLongIntMap;
     FMeta: TStringStringMap;
     FPrototypeNames: TX3DPrototypeNames;
-    FExportedNames: TX3DNodeNames;
+    FExportedNames, FImportedNames: TX3DNodeNames;
     FScale: Single;
     procedure TopLevelCheckChild(const Child: TX3DNode);
   protected
@@ -202,6 +202,11 @@
       Useful for importing them later, to handle IMPORT/EXPORT X3D mechanism. }
     property ExportedNames: TX3DNodeNames read FExportedNames;
 
+    { Node names imported into this file by the IMPORT keyword.
+      You may want to take this into account when searching nodes by name,
+      this allows the user to rename nodes from Inlined files. }
+    property ImportedNames: TX3DNodeNames read FImportedNames;
+
     { Scale of the model.
       When loading, this is set to honor @code("UNIT length ...")
       declaration in X3D 3.3.
@@ -210,6 +215,16 @@
       the existing scale of the outer model (always to make the resulting
       complete node graph keep the assumption 1 unit = 1 meter). }
     property Scale: Single read FScale write FScale default 1.0;
+
+    { Export node without using X3D parser. Use if you build X3D graph by hand,
+      and you want do add the EXPORT X3D clause (see X3D specification about EXPORT
+      to know what it does), such that it's not only serializable, but also
+      works (is recognized by models that Inline this one).
+
+      @groupBegin }
+    procedure ManuallyExportNode(const Node: TX3DNode; const ExportedAlias: string);
+    procedure ManuallyExportNode(const Node: TX3DNode);
+    { @groupEnd }
   end;
 
   TStaticGroupNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
@@ -271,7 +286,7 @@
 
   TTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
   private
-    WarningNegativeScaleDone: boolean;
+    //WarningNegativeScaleDone: boolean;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
@@ -598,6 +613,7 @@ begin
   FreeAndNil(FMeta);
   FreeAndNil(FPrototypeNames);
   FreeAndNil(FExportedNames);
+  FreeAndNil(FImportedNames);
   inherited;
 end;
 
@@ -654,6 +670,16 @@ begin
   Res.Profile := Profile;
   Res.Components.Assign(Components);
   Res.Meta.Assign(Meta);
+  if ExportedNames <> nil then
+  begin
+    FreeAndNil(Res.FExportedNames);
+    Res.FExportedNames := ExportedNames.DeepCopy(CopyState);
+  end;
+  if ImportedNames <> nil then
+  begin
+    FreeAndNil(Res.FImportedNames);
+    Res.FImportedNames := ImportedNames.DeepCopy(CopyState);
+  end;
 end;
 
 procedure TX3DRootNode.ForceSaveAsX3D(const AMajor: Integer = 3;
@@ -705,6 +731,30 @@ begin
     State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
     State.TransformScale *= Scale;
   end;
+end;
+
+procedure TX3DRootNode.ManuallyExportNode(const Node: TX3DNode; const ExportedAlias: string);
+var
+  ExportItem: TX3DExport;
+begin
+  if Node.NodeName = '' then
+    raise Exception.Create('You cannot export nodes with empty names');
+
+  ExportItem := TX3DExport.Create;
+  ExportsList.Add(ExportItem);
+  ExportItem.ExportedNodeName := Node.NodeName;
+  ExportItem.ExportedNodeAlias := ExportedAlias;
+
+  { merely adding ExportItem is not enough, we have to also replicate what
+    parsing of EXPORT clause does, and add it to ExportedNames. }
+  if FExportedNames = nil then
+    FExportedNames := TX3DNodeNames.Create(false);
+  ExportedNames.Bind(Node, true, ExportedAlias);
+end;
+
+procedure TX3DRootNode.ManuallyExportNode(const Node: TX3DNode);
+begin
+  ManuallyExportNode(Node, Node.NodeName);
 end;
 
 procedure TStaticGroupNode.CreateNode;
@@ -861,7 +911,7 @@ procedure TransformState(State: TX3DGraphTraverseState;
 begin
   TransformMatricesMult(State.Transform, State.InvertedTransform,
     Center, Rotation, Scale, ScaleOrientation, Translation);
-  State.TransformScale *= (Scale[0] + Scale[1] + Scale[2]) / 3;
+  State.TransformScale *= Approximate3DScale(Scale);
 end;
 
 procedure TTransformNode.ApplyTransform(State: TX3DGraphTraverseState);
@@ -869,6 +919,8 @@ begin
   inherited;
   TransformState(State, Fdcenter.Value, Fdrotation.Value,
     Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
+
+  {
   if ((Fdscale.Value[0] < 0) or
       (Fdscale.Value[1] < 0) or
       (Fdscale.Value[2] < 0)) and not WarningNegativeScaleDone then
@@ -876,6 +928,7 @@ begin
     WarningNegativeScaleDone := true;
     WritelnLog('VRML/X3D', 'Note: Transform.scale has negative component. It allows some tricks (especially sensible for unlit 2D stuff), but it makes lighting act weird. Make sure you use it only for unlit objects.');
   end;
+  }
 end;
 
 procedure RegisterGroupingNodes;

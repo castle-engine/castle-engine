@@ -1727,7 +1727,7 @@ begin
   if FdFilename.Value <> '' then
   try
     FullUrl := PathFromBaseUrl(FdFilename.Value);
-    FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS,
+    FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureComposite,
       FAlphaChannelData);
     FTextureUsedFullUrl := FullUrl;
     CacheUsed := true;
@@ -2008,9 +2008,7 @@ end;
 
 function TScaleNode_1.TransformScale: Single;
 begin
-  Result := ( FdScaleFactor.Value[0] +
-              FdScaleFactor.Value[1] +
-              FdScaleFactor.Value[2] ) / 3;
+  Result := Approximate3DScale(FdScaleFactor.Value);
 end;
 
 procedure TTransformNode_1.CreateNode;
@@ -2086,9 +2084,7 @@ end;
 
 function TTransformNode_1.TransformScale: Single;
 begin
-  Result := ( FdScaleFactor.Value[0] +
-              FdScaleFactor.Value[1] +
-              FdScaleFactor.Value[2] ) / 3;
+  Result := Approximate3DScale(FdScaleFactor.Value);
 end;
 
 class function TTransformNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;

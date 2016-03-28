@@ -30,7 +30,9 @@ type
   TLevelLogic = class;
   TLevelLogicClass = class of TLevelLogic;
   TCastleSceneClass = class of TCastleScene;
+  {$warnings off}
   TCastlePrecalculatedAnimationClass = class of TCastlePrecalculatedAnimation;
+  {$warnings on}
   TGameSceneManager = class;
 
   TLevelInfo = class
@@ -289,6 +291,11 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
       http://castle-engine.sourceforge.net/creating_data_levels.php .  }
     procedure AddFromFile(const URL: string);
 
+    { Sort by @link(TLevelInfo.Number).
+      Done automatically at the end of @link(LoadFromFiles),
+      you may want to call it explicitly after doing @link(AddFromFile). }
+    procedure SortByNumber;
+
     { For all available levels, read their TLevelInfo.Played
       from config file (like @link(UserConfig)).
 
@@ -448,8 +455,10 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     function LoadLevelAnimation(const URL: string;
       const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean;
       const AnimationClass: TCastlePrecalculatedAnimationClass): TCastlePrecalculatedAnimation;
+      deprecated 'whole TCastlePrecalculatedAnimation is deprecated, use TCastleScene for rendering all animations';
     function LoadLevelAnimation(const URL: string;
       const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean): TCastlePrecalculatedAnimation;
+      deprecated 'whole TCastlePrecalculatedAnimation is deprecated, use TCastleScene for rendering all animations';
     { @groupEnd }
 
     { Load 3D scene from file, doing common tasks.
@@ -935,7 +944,7 @@ begin
     { calculate Options for PrepareResources }
     Options := [prRender, prBackground, prBoundingBox];
     if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
-      Options := Options + prShadowVolume;
+      Include(Options, prShadowVolume);
 
     MainScene.PrepareResources(Options, false, BaseLights);
 
@@ -971,7 +980,7 @@ end;
 
 procedure TGameSceneManager.LoadLevel(const AInfo: TLevelInfo);
 var
-  SavedImage: TRGBImage;
+  SavedImage: TObject;
   SavedBarYPosition: Single;
   SavedOwnsImage: boolean;
 begin
@@ -1062,7 +1071,7 @@ begin
   { calculate Options for PrepareResources }
   Options := [prRender, prBoundingBox { always needed }];
   if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
-    Options := Options + prShadowVolume;
+    Include(Options, prShadowVolume);
 
   Result.PrepareResources(Options, false, World.BaseLights);
 
@@ -1094,7 +1103,7 @@ begin
   { calculate Options for PrepareResources }
   Options := [prRender, prBoundingBox { always needed }];
   if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
-    Options := Options + prShadowVolume;
+    Include(Options, prShadowVolume);
 
   Result.PrepareResources(Options, false, World.BaseLights);
 
@@ -1113,9 +1122,12 @@ function TLevelLogic.LoadLevelAnimation(
   const URL: string;
   const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean): TCastlePrecalculatedAnimation;
 begin
+  {$warnings off}
+  { knowingly using deprecated function in another deprecated function }
   Result := LoadLevelAnimation(URL,
     CreateFirstOctreeCollisions, CreateLastOctreeCollisions,
     TCastlePrecalculatedAnimation);
+  {$warnings on}
 end;
 
 procedure TLevelLogic.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -1326,6 +1338,11 @@ end;
 procedure TLevelInfoList.LoadFromFiles;
 begin
   LoadFromFiles(ApplicationData(''));
+  SortByNumber;
+end;
+
+procedure TLevelInfoList.SortByNumber;
+begin
   Sort(@IsSmallerByNumber);
 end;
 

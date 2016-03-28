@@ -83,7 +83,7 @@ end;
   to the LibraryNodes list. }
 procedure ReadLibraryNodes(LibraryNodesElement: TDOMElement);
 var
-  I: TXMLElementFilteringIterator;
+  I: TXMLElementIterator;
   NodeAvail: PNodeAvailableInLibrary;
   J: Integer;
 begin
@@ -102,7 +102,7 @@ begin
   LibraryNodesAvailable := TNodeAvailableInLibraryList.Create;
   try
     { calculate LibraryNodesAvailable contents }
-    I := TXMLElementFilteringIterator.Create(LibraryNodesElement, 'node');
+    I := LibraryNodesElement.ChildrenIterator('node');
     try
       while I.GetNext do
       begin

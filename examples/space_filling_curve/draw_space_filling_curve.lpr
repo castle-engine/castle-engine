@@ -57,7 +57,7 @@ begin
     This program should work perfectly with and without DoubleBuffer. }
   if Window.DoubleBuffer then GLClear([cbColor], Gray);
 
-  GLImage := TGLImage.Create(CurveImage);
+  GLImage := TGLImage.Create(CurveImage, false);
   try
     GLImage.Draw(0, 0);
   finally FreeAndNil(GLImage) end;

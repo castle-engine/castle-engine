@@ -75,9 +75,11 @@ type
     procedure DoCompile(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
     procedure DoPackage(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
     procedure DoInstall(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
-    procedure DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
+    procedure DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Params: TCastleStringList);
     procedure DoPackageSource;
     procedure DoClean;
+    procedure DoAutoCompressTextures;
+    procedure DoAutoCompressClean;
 
     { Detailed information about the project, read-only and useful for
       various project operations. }
@@ -137,10 +139,11 @@ implementation
 
 uses StrUtils, DOM, Process, Classes,
   CastleURIUtils, CastleXMLUtils, CastleWarnings, CastleFilesUtils,
-  ToolPackage, ToolWindowsResources, ToolAndroidPackage, ToolWindowsRegistry;
+  ToolPackage, ToolWindowsResources, ToolAndroidPackage, ToolWindowsRegistry,
+  ToolTextureCompression;
 
 const
-  SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to a parent of the castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.';
+  SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.';
 
 { TCastleProject ------------------------------------------------------------- }
 
@@ -236,9 +239,8 @@ constructor TCastleProject.Create(const APath: string);
   var
     Doc: TXMLDocument;
     ManifestURL, AndroidProjectTypeStr: string;
-    ChildElements: TDOMNodeList;
+    ChildElements: TXMLElementIterator;
     Element, ChildElement: TDOMElement;
-    I: Integer;
   begin
     ManifestFile := Path + ManifestName;
     if not FileExists(ManifestFile) then
@@ -265,7 +267,7 @@ constructor TCastleProject.Create(const APath: string);
         FScreenOrientation := StringToScreenOrientation(
           Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
 
-        Element := DOMGetChildElement(Doc.DocumentElement, 'version', false);
+        Element := Doc.DocumentElement.ChildElement('version', false);
         FVersionCode := DefautVersionCode;
         if Element <> nil then
         begin
@@ -273,49 +275,57 @@ constructor TCastleProject.Create(const APath: string);
           FVersionCode := Element.AttributeCardinalDef('code', DefautVersionCode);
         end;
 
-        Element := DOMGetChildElement(Doc.DocumentElement, 'dependencies', false);
+        Element := Doc.DocumentElement.ChildElement('dependencies', false);
         if Element <> nil then
         begin
-          ChildElements := Element.GetElementsByTagName('dependency');
-          for I := 0 to ChildElements.Count - 1 do
-          begin
-            ChildElement := ChildElements[I] as TDOMElement;
-            Include(FDependencies,
-              StringToDependency(ChildElement.AttributeString('name')));
-          end;
+          ChildElements := Element.ChildrenIterator('dependency');
+          try
+            while ChildElements.GetNext do
+            begin
+              ChildElement := ChildElements.Current;
+              Include(FDependencies,
+                StringToDependency(ChildElement.AttributeString('name')));
+            end;
+          finally FreeAndNil(ChildElements) end;
         end;
 
-        Element := DOMGetChildElement(Doc.DocumentElement, 'package', false);
+        Element := Doc.DocumentElement.ChildElement('package', false);
         if Element <> nil then
         begin
-          ChildElements := Element.GetElementsByTagName('include');
-          for I := 0 to ChildElements.Count - 1 do
-          begin
-            ChildElement := ChildElements[I] as TDOMElement;
-            IncludePaths.Add(ChildElement.AttributeString('path'));
-            IncludePathsRecursive.Add(ChildElement.AttributeBooleanDef('recursive', false));
-          end;
+          ChildElements := Element.ChildrenIterator('include');
+          try
+            while ChildElements.GetNext do
+            begin
+              ChildElement := ChildElements.Current;
+              IncludePaths.Add(ChildElement.AttributeString('path'));
+              IncludePathsRecursive.Add(ChildElement.AttributeBooleanDef('recursive', false));
+            end;
+          finally FreeAndNil(ChildElements) end;
 
-          ChildElements := Element.GetElementsByTagName('exclude');
-          for I := 0 to ChildElements.Count - 1 do
-          begin
-            ChildElement := ChildElements[I] as TDOMElement;
-            ExcludePaths.Add(ChildElement.AttributeString('path'));
-          end;
+          ChildElements := Element.ChildrenIterator('exclude');
+          try
+            while ChildElements.GetNext do
+            begin
+              ChildElement := ChildElements.Current;
+              ExcludePaths.Add(ChildElement.AttributeString('path'));
+            end;
+          finally FreeAndNil(ChildElements) end;
         end;
 
-        Element := DOMGetChildElement(Doc.DocumentElement, 'icons', false);
+        Element := Doc.DocumentElement.ChildElement('icons', false);
         if Element <> nil then
         begin
-          ChildElements := Element.GetElementsByTagName('icon');
-          for I := 0 to ChildElements.Count - 1 do
-          begin
-            ChildElement := ChildElements[I] as TDOMElement;
-            Icons.Add(ChildElement.AttributeString('path'));
-          end;
+          ChildElements := Element.ChildrenIterator('icon');
+          try
+            while ChildElements.GetNext do
+            begin
+              ChildElement := ChildElements.Current;
+              Icons.Add(ChildElement.AttributeString('path'));
+            end;
+          finally FreeAndNil(ChildElements) end;
         end;
 
-        Element := DOMGetChildElement(Doc.DocumentElement, 'android', false);
+        Element := Doc.DocumentElement.ChildElement('android', false);
         if Element <> nil then
         begin
           if Element.AttributeString('project_type', AndroidProjectTypeStr) then
@@ -327,7 +337,7 @@ constructor TCastleProject.Create(const APath: string);
               raise Exception.CreateFmt('Invalid android project_type "%s"', [AndroidProjectTypeStr]);
           end;
 
-          ChildElement := DOMGetChildElement(Element, 'components', false);
+          ChildElement := Element.ChildElement('components', false);
           if ChildElement <> nil then
             FAndroidComponents.ReadCastleEngineManifest(ChildElement);
         end;
@@ -410,7 +420,8 @@ begin
   ReadManifest;
   GuessDependencies;
   CloseDependencies;
-  Writeln('Project "' + Name + '" dependencies: ' + DependenciesToStr(Dependencies));
+  if Verbose then
+    Writeln('Project "' + Name + '" dependencies: ' + DependenciesToStr(Dependencies));
 end;
 
 destructor TCastleProject.Destroy;
@@ -419,6 +430,7 @@ begin
   FreeAndNil(IncludePathsRecursive);
   FreeAndNil(ExcludePaths);
   FreeAndNil(FIcons);
+  FreeAndNil(FAndroidComponents);
   inherited;
 end;
 
@@ -795,7 +807,8 @@ begin
     raise Exception.Create('The "install" command is not useful for this OS / CPU right now. Install the application manually.');
 end;
 
-procedure TCastleProject.DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
+procedure TCastleProject.DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+  const Params: TCastleStringList);
 var
   ExeName: string;
 begin
@@ -813,7 +826,7 @@ begin
     { run through ExecuteProcess, because we don't want to capture output,
       we want to immediately pass it to user }
     SetCurrentDir(Path);
-    ExecuteProcess(ExeName, []);
+    ExecuteProcess(ExeName, Params.ToArray);
   end;
   //else
   // raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
@@ -927,6 +940,8 @@ var
   OS: TOS;
   CPU: TCPU;
 begin
+  DeletedFiles := 0;
+
   if StandaloneSource <> '' then
   begin
     TryDeleteFile(ChangeFileExt(ExecutableName, ''));
@@ -966,6 +981,16 @@ begin
   TryDeleteFile('automatic-windows.manifest');
 
   Writeln('Deleted ', DeletedFiles, ' files');
+end;
+
+procedure TCastleProject.DoAutoCompressTextures;
+begin
+  AutoCompressTextures(Self);
+end;
+
+procedure TCastleProject.DoAutoCompressClean;
+begin
+  AutoCompressClean(Self);
 end;
 
 function TCastleProject.ReplaceMacros(const Source: string): string;

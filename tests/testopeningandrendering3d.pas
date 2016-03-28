@@ -57,7 +57,7 @@ procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
 begin
   if RecreateSceneEachTime then
   begin
-    Write('Recreating scene... ');
+    //Write('Recreating scene... ');
 
     FreeAndNil(Scene);
     AssertTrue(SceneManager.MainScene = nil);
@@ -72,7 +72,7 @@ begin
     SceneManager.MainScene := Scene;
   end;
 
-  Writeln('Testing "' + FileName + '"');
+  //Writeln('Testing "' + FileName + '"');
 
   if FileName = '' then
     Scene.Load(nil, true) else

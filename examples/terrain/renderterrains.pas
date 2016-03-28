@@ -185,7 +185,7 @@ begin
       P := @(Points[I * CountSteps1]);
       for J := 0 to CountSteps do
       begin
-        { calculate P^, which is Points.L[I * CountSteps1 + J] }
+        { calculate P^, which is Points.List^[I * CountSteps1 + J] }
         CalculatePositionColor(P^, I, J);
         Inc(P);
       end;
@@ -196,7 +196,7 @@ begin
       P := @(Points[I * CountSteps1]);
       for J := 0 to CountStepsQ + 1 do
       begin
-        { calculate P^, which is Points.L[I * CountSteps1 + J] }
+        { calculate P^, which is Points.List^[I * CountSteps1 + J] }
         CalculatePositionColor(P^, I, J);
         Inc(P);
       end;
@@ -204,7 +204,7 @@ begin
       P := @(Points[I * CountSteps1 + CountStepsQ * 3]);
       for J := CountStepsQ * 3 to CountSteps do
       begin
-        { calculate P^, which is Points.L[I * CountSteps1 + J] }
+        { calculate P^, which is Points.List^[I * CountSteps1 + J] }
         CalculatePositionColor(P^, I, J);
         Inc(P);
       end;
@@ -215,7 +215,7 @@ begin
       P := @(Points[I * CountSteps1]);
       for J := 0 to CountSteps do
       begin
-        { calculate P^, which is Points.L[I * CountSteps1 + J] }
+        { calculate P^, which is Points.List^[I * CountSteps1 + J] }
         CalculatePositionColor(P^, I, J);
         Inc(P);
       end;
@@ -244,7 +244,7 @@ begin
     for I := 0 to CountSteps do
       for J := 0 to CountSteps do
       begin
-        { calculate P^, which is Points.L[I * CountSteps1 + J] }
+        { calculate P^, which is Points.List^[I * CountSteps1 + J] }
         CalculatePositionColor(P^, I, J);
         Inc(P);
       end;

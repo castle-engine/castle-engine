@@ -65,7 +65,7 @@
     for X3DTexture2DNode, so X3D hierarchy is nicely preserved. }
   TAbstractTexture2DNode = class(TAbstractTextureNode)
   private
-    { Together we call FTextureImage, FTextureDDS,
+    { Together we call FTextureImage, FTextureComposite,
       FTextureVideo, FAlphaChannelData as "texture data". }
 
     { FTextureImage is <> nil if texture is currently loaded (IsTextureLoaded)
@@ -75,9 +75,9 @@
       IsTextureImage checks this also. }
     FTextureImage: TEncodedImage;
 
-    { Only if FTextureImage is <> nil, then FTextureDDS may also be <> nil,
-      it this image is part of DDS file. }
-    FTextureDDS: TDDSImage;
+    { Only if FTextureImage is <> nil, then FTextureComposite may also be <> nil,
+      it this image is part of Composite file. }
+    FTextureComposite: TCompositeImage;
 
     { Analogous to FTextureImage, this is the loaded video file.
       Assigned here, should always have TVideo.Loaded = @true. }
@@ -85,7 +85,7 @@
 
     FAlphaChannelData: TAlphaChannel;
 
-    { Non-nil only if FTextureImage, FTextureDDS or FTextueVideo
+    { Non-nil only if FTextureImage, FTextureComposite or FTextueVideo
       should be freed using
       UsedCache (TextureImage_DecReference or Video_DecReference).
       Also loaded FTextureVideo should always have it's own Cache property set
@@ -104,7 +104,7 @@
 
       It should set either FTextureImage or FTextureVideo to something non-nil
       (don't care here about the previous value of these fields --- it's for
-      sure @nil). If FTextureImage is set, you can also set FTextureDDS.
+      sure @nil). If FTextureImage is set, you can also set FTextureComposite.
       If you leave them as @nil, this means that loading failed
       (and OnWarning didn't cause an exception).
       You should also set FAlphaChannelData.
@@ -143,12 +143,12 @@
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    { TextureImage, TextureDDS and TextureVideo contain actual texture data.
+    { TextureImage, TextureComposite and TextureVideo contain actual texture data.
       TextureImage may come from inline VRML texture or could be loaded
       from file (including from some URL), this doesn't concern you here.
 
       Calls to TextureImage, TextureVideo, IsTextureImage, IsTextureVideo,
-      TextureDDS
+      TextureComposite
       will automatically load the data, so in simple situations you really
       don't need to do anything. Just check and use them when you want,
       and things will just work. See IsTextureLoaded for more control
@@ -166,7 +166,7 @@
       @groupBegin }
     function TextureImage: TEncodedImage;
     function IsTextureImage: boolean;
-    function TextureDDS: TDDSImage;
+    function TextureComposite: TCompositeImage;
     function TextureVideo: TVideo;
     function IsTextureVideo: boolean;
     { @groupEnd }
@@ -183,7 +183,7 @@
       if it's not loaded already. Setting to @false may be useful if you want
       to release resources (e.g. when you want to keep TTextureNode instance
       loaded but you know that you will not need
-      TextureImage / TextureDDS / TextureVideo anymore).
+      TextureImage / TextureComposite / TextureVideo anymore).
       You can also set it to @false and then back to @true if you want to
       request reloading the texture from URL (e.g. if you suspect that
       the URL contents changed).
@@ -587,12 +587,12 @@ begin
   begin
     if UsedCache <> nil then
     begin
-      UsedCache.TextureImage_DecReference(FTextureImage, FTextureDDS);
+      UsedCache.TextureImage_DecReference(FTextureImage, FTextureComposite);
       UsedCache := nil;
     end else
     begin
       FreeAndNil(FTextureImage);
-      FreeAndNil(FTextureDDS);
+      FreeAndNil(FTextureComposite);
     end;
   end;
 
@@ -620,13 +620,13 @@ begin
   Result := (TextureImage <> nil) and (not TextureImage.IsEmpty);
 end;
 
-function TAbstractTexture2DNode.TextureDDS: TDDSImage;
+function TAbstractTexture2DNode.TextureComposite: TCompositeImage;
 begin
   { Setting IsTextureLoaded property will initialize
-    FTextureImage, FTextureDDS. }
+    FTextureImage, FTextureComposite. }
   IsTextureLoaded := true;
 
-  Result := FTextureDDS;
+  Result := FTextureComposite;
 end;
 
 function TAbstractTexture2DNode.TextureVideo: TVideo;
@@ -771,6 +771,8 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+function BlenderRelativePath(const RelativePath: string): boolean; forward;
+
 procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
 var
   I: Integer;
@@ -789,10 +791,14 @@ begin
     begin
       FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
       try
-        FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureDDS,
+        FTextureImage := X3DCache.TextureImage_IncReference(FullUrl, FTextureComposite,
           FAlphaChannelData);
         WasCacheUsed := true;
-        if WarnAboutAbsoluteFilenames and AbsoluteFileURI(FdUrl.Items[I]) then
+        if WarnAboutAbsoluteFilenames and
+           AbsoluteFileURI(FdUrl.Items[I]) and
+           { AbsoluteFileURI mistakes Blender relative paths '//xxx' as absolute,
+             so eliminate them below. }
+           not BlenderRelativePath(FdUrl.Items[I]) then
           OnWarning(wtMinor, 'VRML/X3D', Format('Loaded data from an absolute filename "%s", this makes the data possibly unportable (it will probably not work on other systems/locations). Always use relative paths.',
             [FdUrl.Items[I]]));
         FTextureUsedFullUrl := URIDisplay(FullUrl);
@@ -921,7 +927,7 @@ begin
       FTextureUsedFullUrl := FullUrl;
       FDuration := FTextureVideo.TimeDuration;
       if Scene <> nil then
-        EventDuration_Changed.Send(FDuration, Scene.GetTime);
+        EventDuration_Changed.Send(FDuration, Scene.NextEventTime);
       Break;
     except
       on E: Exception do

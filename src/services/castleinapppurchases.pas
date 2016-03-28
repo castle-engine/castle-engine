@@ -57,10 +57,6 @@ type
     the "google_in_app_purchases" component inside CastleEngineManifest.xml.
     See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine .
 
-    To include the necessary integration code in your Android project,
-    you must declare your Android project type as "integrated".
-    See https://sourceforge.net/p/castle-engine/wiki/Android%20development/ .
-
     @bold(You have to create the products to purchase, and their prices in various
     currencies, in the Google Developer Console.) The names of products
     you provide to @link(SetAvailableProducts) or @link(Product) methods
@@ -118,12 +114,29 @@ type
     { Purely for debug purposes, mockup buying (pretend that all purchases succeed). }
     property DebugMockupBuying: boolean
       read FDebugMockupBuying write FDebugMockupBuying default false;
-   end;
+  end;
 
 implementation
 
 uses SysUtils,
-  CastleMessaging, CastleUtils, CastleLog, CastleUnicode, CastleUIControls;
+  CastleMessaging, CastleUtils, CastleLog, CastleUnicode,
+  CastleApplicationProperties;
+
+{ Convert many UTF-8 special characters to their ASCII counterparts.
+  This is useful for converting arbitrary UTF-8 strings for display,
+  when your font may not contain various local UTF-8 special characters. }
+function ConvertSpecialsToAscii(const S: string): string;
+begin
+  Result := SReplacePatterns(S,
+    { useful list of local chars from
+      http://stackoverflow.com/questions/2096667/convert-unicode-to-ascii-without-changing-the-string-length-in-java/2097224#comment46476953_2097224
+      with something from
+      http://www.xe.com/symbols.php
+    }
+    [' ', 'r̀', 'r̂', 'r̃', 'r̈', 'ʼ' , 'ŕ', 'ř', 't̀', 't̂', 'ẗ', 'ţ', 'ỳ', 'ỹ', 'ẙ', 'ʼ' , 'y̎', 'ý', 'ÿ', 'ŷ', 'p̂', 'p̈', 's̀', 's̃', 's̈', 's̊', 'ʼ' , 's̸', 'ś', 'ŝ', 'Ş', 'ş', 'š', 'd̂', 'd̃', 'd̈', 'ď', 'ʼ' , 'ḑ', 'f̈', 'f̸', 'g̀', 'g̃', 'g̈', 'ʼ̧', '‌', '​', '‌', '​', '́', 'ĝ', 'ǧ', 'ḧ', 'ĥ', 'j̈', 'j', 'ʼ' , 'ḱ', 'k̂', 'k̈', 'k̸', 'ǩ', 'l̂', 'l̃', 'l̈', 'Ł', 'ł', 'ẅ', 'ẍ', 'c̃', 'c̈', 'c̊', 'c', 'ʼ' , 'c̸', 'Ç', 'ç', 'ç', 'ć', 'ĉ', 'č', 'v̂', 'v̈', 'v', 'ʼ' , 'v̸', 'b́', 'b̧', 'ǹ', 'n̂', 'n̈', 'n̊', 'n', 'ʼ' , 'ń', 'ņ', 'ň', 'ñ', 'm̀', 'm̂', 'm̃', '‌', '​', 'm̈', '‌', '​', 'm̊', 'm̌', 'ǵ', 'ß', '€', '£'],
+    [' ', 'r', 'r', 'r', 'r', '''', 'r', 'r', 't', 't', 't', 't', 'y', 'y', 'y', '''', 'y', 'y', 'y', 'y', 'p', 'p', 's', 's', 's', 's', '''', 's', 's', 's', 'S', 's', 's', 'd', 'd', 'd', 'd', '''', 'd', 'f', 'f', 'g', 'g', 'g', '' , '', '', '', '', '', 'g', 'g', 'h', 'h', 'j', 'j', '''', 'k', 'k', 'k', 'K', 'k', 'l', 'l', 'l', 'L', 'l', 'w', 'x', 'c', 'c', 'c', 'c', '''', 'c', 'C', 'c', 'c', 'c', 'c', 'c', 'v', 'v', 'v', '''', 'v', 'b', 'b', 'n', 'n', 'n', 'n', 'n', '''', 'n', 'n', 'n', 'n', 'm', 'm', 'm', '', '', 'm', '', '', 'm', 'm', 'g', 'B', 'EUR', 'L'],
+    [soMatchCase]);
+end;
 
 { TInAppProduct -------------------------------------------------------------- }
 
@@ -132,7 +145,7 @@ begin
   if PriceRaw = '' then
     Result := ValueWhenUnknown else
     { note: do not use SReplaceChars, as these are UTF-8 chars, not 8-bit chars. }
-    Result := SReplacePatterns(PriceRaw, [' ', 'ł'], [' ', 'l'], [soMatchCase]);
+    Result := ConvertSpecialsToAscii(PriceRaw);
 end;
 
 { TInAppPurchases ------------------------------------------------------------ }

@@ -34,15 +34,16 @@ type
 
 implementation
 
-uses CastleVectors, ShadowFields, CastleUtils, CastleCubeMaps;
+uses CastleVectors, ShadowFields, CastleUtils, CastleFilesUtils,
+  CastleCompositeImage, CastleCubeMaps;
 
 procedure TTestShadowFields.Test1;
 var
   SF: TShadowField;
-  URL: string;
+  FileName: string;
   Map: PCubeMapByte;
 begin
-  URL := InclPathDelim(GetTempDir) + 'testing.shadow_field';
+  FileName := GetTempFileNameCheck;
 
   { Save and load shadow field with some non-zero values.
     Tests that save, load work.
@@ -76,12 +77,12 @@ begin
     Map^[csPositiveX, 10] := 99;
     Map^[csNegativeX, 20] := 88;
 
-    SF.SaveToFile(URL);
+    SF.SaveToFile(FileName);
   finally FreeAndNil(SF) end;
 
   SF := TShadowField.Create;
   try
-    SF.LoadFromFile(URL);
+    SF.LoadFromFile(FileName);
     Assert(SF.FirstSphereRadius = 2);
     Assert(SF.LastSphereRadius = 10);
 
@@ -134,6 +135,8 @@ begin
       VectorLen(SF.PointFromIndex(10, csNegativeX, 0)) >
       VectorLen(SF.PointFromIndex(11, csNegativeX, 0)));
   finally FreeAndNil(SF) end;
+
+  CheckDeleteFile(FileName, true);
 end;
 
 initialization

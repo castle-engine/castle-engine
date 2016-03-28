@@ -1038,7 +1038,7 @@ begin
     Filter,
     Anisotropy,
     TextureWrap,
-    TextureNode.TextureDDS,
+    TextureNode.TextureComposite,
     GUITexture);
 end;
 
@@ -1458,7 +1458,6 @@ var
 var
   CameraMatrix, CameraRotationMatrix, SavedProjectionMatrix, NewProjectionMatrix: TMatrix4Single;
   Pos, Dir, Up: TVector3Single;
-  Scene: TX3DEventsEngine;
 begin
   if GLName = 0 then Exit;
 
@@ -1501,15 +1500,6 @@ begin
     error (test e.g. view3dscene on rendered_texture.x3dv). }
   if NeedsMipmaps and (not DepthMap) then
     RenderToTexture.GenerateMipmap;
-
-  { We want to call IncreaseTimeTick now, otherwise our rendering.Send(false)
-    event would be always rejected (as the rendering.Send(true) already
-    traveled through through the same route at the same time,
-    so new event would be rejected as it can be a signal that we have
-    a cycle in routes.) }
-  Scene := TextureNode.Scene;
-  if Scene <> nil then
-    Scene.IncreaseTimeTick;
 
   TextureNode.EventRendering.Send(false);
 
@@ -1633,7 +1623,7 @@ var
   Filter: TTextureFilter;
   Anisotropy: TGLfloat;
   GUITexture: boolean;
-  DDS: TDDSImage;
+  Composite: TCompositeImage;
 begin
   if GLFeatures.TextureCubeMap = gsNone then
   begin
@@ -1641,10 +1631,10 @@ begin
     Exit;
   end;
 
-  DDS := TextureNode.LoadImage;
+  Composite := TextureNode.LoadImage;
   { If TextureNode doesn't contain anything useful, just exit.
     TextureNode.LoadImage already did necessary OnWarnings. }
-  if DDS = nil then Exit;
+  if Composite = nil then Exit;
 
   try
 
@@ -1656,24 +1646,22 @@ begin
         be minimized (to avoid loading image many times, but also
         to avoid making repeated warnings in case image fails).
         Should be cached, like for 2D texture nodes.
-      - We do not use cube map mipmaps stored inside DDS file.
+      - We do not use cube map mipmaps stored inside Composite file.
     }
 
-    SetTextureRGBFromImage(DDS.CubeMapImage(dcsPositiveX));
+    SetTextureRGBFromImage(Composite.CubeMapImage(csPositiveX));
 
     GLName := Renderer.Cache.TextureCubeMap_IncReference(
       TextureNode,
       Filter, Anisotropy,
-      DDS.CubeMapImage(dcsPositiveX),
-      DDS.CubeMapImage(dcsNegativeX),
-      { Swap meaning of positive/negative Y faces from DDS,
-        see TDDSCubeMapSide for explanation. }
-      DDS.CubeMapImage(dcsNegativeY),
-      DDS.CubeMapImage(dcsPositiveY),
-      DDS.CubeMapImage(dcsPositiveZ),
-      DDS.CubeMapImage(dcsNegativeZ),
-      DDS);
-  finally FreeAndNil(DDS); end;
+      Composite.CubeMapImage(csPositiveX),
+      Composite.CubeMapImage(csNegativeX),
+      Composite.CubeMapImage(csPositiveY),
+      Composite.CubeMapImage(csNegativeY),
+      Composite.CubeMapImage(csPositiveZ),
+      Composite.CubeMapImage(csNegativeZ),
+      Composite);
+  finally FreeAndNil(Composite); end;
 end;
 
 { TGLGeneratedCubeMapTextureNode --------------------------------------------- }
@@ -1854,7 +1842,7 @@ begin
 
   GLName := Renderer.Cache.Texture3D_IncReference(
     TextureNode, Filter, Anisotropy,
-    TextureWrap, TextureNode.TextureImage, TextureNode.TextureDDS);
+    TextureWrap, TextureNode.TextureImage, TextureNode.TextureComposite);
 end;
 
 procedure TGL3DTextureNode.Unprepare;

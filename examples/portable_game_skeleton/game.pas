@@ -13,7 +13,7 @@ var
 implementation
 
 uses SysUtils, CastleWindow, CastleScene, CastleControls,
-  CastleFilesUtils, CastleSceneCore, CastleKeysMouse;
+  CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors;
 
 var
   ExampleImage: TCastleImageControl;
@@ -29,6 +29,8 @@ begin
 
   ExampleImage := TCastleImageControl.Create(Window);
   ExampleImage.URL := ApplicationData('example_image.png');
+  ExampleImage.Bottom := 100;
+  ExampleImage.Left := 100;
   Window.Controls.InsertFront(ExampleImage);
 
   ExampleScene := TCastleScene.Create(Application);
@@ -39,9 +41,10 @@ begin
   Window.SceneManager.MainScene := ExampleScene;
 end;
 
-procedure WindowResize(Container: TUIContainer);
+procedure WindowRender(Container: TUIContainer);
 begin
-  // ... react to Container Width / Height changes
+  // ... custom rendering code
+  UIFont.Print(10, 10, Yellow, Format('FPS: %f', [Container.Fps.RealTime]));
 end;
 
 procedure WindowUpdate(Container: TUIContainer);
@@ -71,7 +74,7 @@ initialization
   { create Window and initialize Window callbacks }
   Window := TCastleWindowTouch.Create(Application);
   Application.MainWindow := Window;
-  Window.OnResize := @WindowResize;
+  Window.OnRender := @WindowRender;
   Window.OnUpdate := @WindowUpdate;
   Window.OnPress := @WindowPress;
 end.

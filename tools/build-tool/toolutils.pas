@@ -33,30 +33,43 @@ function FileSize(const FileName: string): Int64;
   Also gathers error output to the same string.
   Like Process.RunCommandIndir in FPC >= 2.6.4, but also captures error output.
 
-  Note that you should always pass here absolute filename, e.g. found by FindExe,
-  to avoid FPC errors (the default FPC algorithm searching $PATH may mistake binary
-  for a directory with the same name). }
+  @param(ExeName Executable name, should be an absolute filename
+    e.g. found by FindExe. This will avoid FPC errors (the default FPC
+    algorithm searching $PATH may mistake binary for a directory with
+    the same name).)
+
+  @param(OutputString Standard output (stdout) and standard error output
+    (stderr) of the command.)
+}
 procedure MyRunCommandIndir(
   const CurDir: string; const ExeName: string;
   const Options: array of string;
-  var outputstring:string; var exitstatus:integer);
+  var OutputString:string; var ExitStatus:integer);
 
 { Run command in given directory with given arguments,
   gathering output and status to string, and also letting output
   to go to our output.
 
-  It also allows to override a specific environment variable,
-  when OverrideEnvironmentName not empty. }
+  @param(ExeName Executable name, should be an absolute filename
+    e.g. found by FindExe. Like for MyRunCommandIndir.)
+
+  @param(OutputString Stdout and stderr of the process.
+    Like by MyRunCommandIndir.)
+
+  @param(OverrideEnvironmentName
+    When not empty, this environment variable has set
+    value OverrideEnvironmentValue in the process.) }
 procedure RunCommandIndirPassthrough(
   const CurDir: string; const ExeName: string;
   const Options: array of string;
-  var outputstring:string; var exitstatus:integer;
+  var OutputString:string; var ExitStatus:integer;
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = '');
 
 { Run command in given (or current) directory with given arguments,
   letting output (stdout and stderr) to go to our stdout.
-  Command is searched on $PATH following standard OS conventions.
+  Command is searched on $PATH following standard OS conventions,
+  if it's not already an absolute filename.
   Raises exception if command fails (detected by exit code <> 0). }
 procedure RunCommandSimple(
   const ExeName: string; const Options: array of string);
@@ -112,7 +125,7 @@ begin
   finally FreeAndNil(SourceFile) end;
 end;
 
-procedure MyRunCommandIndir(const CurDir: string;const ExeName: string;const Options: array of string;var outputstring:string;var exitstatus:integer);
+procedure MyRunCommandIndir(const CurDir: string;const ExeName: string;const Options: array of string;var OutputString:string;var ExitStatus:integer);
 { Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }
 Const
   READ_BYTES = 65536; // not too small to avoid fragmentation when reading large files.
@@ -141,31 +154,31 @@ begin
       p.Execute;
       while p.Running do
       begin
-        Setlength(outputstring,BytesRead + READ_BYTES);
-        NumBytes := p.Output.Read(outputstring[1+bytesread], READ_BYTES);
+        Setlength(OutputString,BytesRead + READ_BYTES);
+        NumBytes := p.Output.Read(OutputString[1+bytesread], READ_BYTES);
         if NumBytes > 0 then
           Inc(BytesRead, NumBytes) else
           Sleep(100);
       end;
       repeat
-        Setlength(outputstring,BytesRead + READ_BYTES);
-        NumBytes := p.Output.Read(outputstring[1+bytesread], READ_BYTES);
+        Setlength(OutputString,BytesRead + READ_BYTES);
+        NumBytes := p.Output.Read(OutputString[1+bytesread], READ_BYTES);
         if NumBytes > 0 then
           Inc(BytesRead, NumBytes);
       until NumBytes <= 0;
-      setlength(outputstring,BytesRead);
-      exitstatus:=p.exitstatus;
+      setlength(OutputString,BytesRead);
+      ExitStatus:=p.ExitStatus;
     except
       on e : Exception do
       begin
-        setlength(outputstring,BytesRead);
+        setlength(OutputString,BytesRead);
         raise;
       end;
     end;
   finally p.free end;
 end;
 
-procedure RunCommandIndirPassthrough(const CurDir: string;const ExeName: string;const Options: array of string;var outputstring:string;var exitstatus:integer;
+procedure RunCommandIndirPassthrough(const CurDir: string;const ExeName: string;const Options: array of string;var OutputString:string;var ExitStatus:integer;
   const OverrideEnvironmentName: string = '';
   const OverrideEnvironmentValue: string = '');
 { Adjusted from fpc/trunk/packages/fcl-process/src/process.pp }
@@ -208,26 +221,26 @@ begin
       p.Execute;
       while p.Running do
       begin
-        Setlength(outputstring,BytesRead + READ_BYTES);
-        NumBytes := p.Output.Read(outputstring[1+bytesread], READ_BYTES);
-        Write(Copy(outputstring, 1+bytesread, NumBytes)); // passthrough
+        Setlength(OutputString,BytesRead + READ_BYTES);
+        NumBytes := p.Output.Read(OutputString[1+bytesread], READ_BYTES);
+        Write(Copy(OutputString, 1+bytesread, NumBytes)); // passthrough
         if NumBytes > 0 then
           Inc(BytesRead, NumBytes) else
           Sleep(100);
       end;
       repeat
-        Setlength(outputstring,BytesRead + READ_BYTES);
-        NumBytes := p.Output.Read(outputstring[1+bytesread], READ_BYTES);
-        Write(Copy(outputstring, 1+bytesread, NumBytes)); // passthrough
+        Setlength(OutputString,BytesRead + READ_BYTES);
+        NumBytes := p.Output.Read(OutputString[1+bytesread], READ_BYTES);
+        Write(Copy(OutputString, 1+bytesread, NumBytes)); // passthrough
         if NumBytes > 0 then
           Inc(BytesRead, NumBytes);
       until NumBytes <= 0;
-      setlength(outputstring,BytesRead);
-      exitstatus:=p.exitstatus;
+      setlength(OutputString,BytesRead);
+      ExitStatus:=p.ExitStatus;
     except
       on e : Exception do
       begin
-        setlength(outputstring,BytesRead);
+        setlength(OutputString,BytesRead);
         raise;
       end;
     end;
@@ -254,10 +267,14 @@ var
 begin
   { use FindExe to use our fixed PathFileSearch that does not accidentaly find
     "ant" directory as "ant" executable }
-  AbsoluteExeName := FindExe(ExeName);
-  if AbsoluteExeName = '' then
-    raise Exception.CreateFmt('Cannot find "%s" on environment variable $PATH. Make sure "%s" is installed and $PATH is configured correctly',
-      [ExeName, ExeName]);
+  if IsPathAbsolute(ExeName) then
+    AbsoluteExeName := ExeName else
+  begin
+    AbsoluteExeName := FindExe(ExeName);
+    if AbsoluteExeName = '' then
+      raise Exception.CreateFmt('Cannot find "%s" on environment variable $PATH. Make sure "%s" is installed and $PATH is configured correctly',
+        [ExeName, ExeName]);
+  end;
 
   RunCommandIndirPassthrough(CurDir, AbsoluteExeName, Options,
     ProcessOutput, ProcessStatus, OverrideEnvironmentName, OverrideEnvironmentValue);

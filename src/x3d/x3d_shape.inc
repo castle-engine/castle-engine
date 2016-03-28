@@ -474,6 +474,8 @@ end;
 
 function TAbstractShapeNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
+  Result := nil;
+
   { According to VRML spec, when geometry is NULL then object is not
     drawn so appearance doesn't matter. }
 

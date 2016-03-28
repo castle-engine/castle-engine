@@ -18,7 +18,8 @@ unit CastleVideos;
 
 interface
 
-uses SysUtils, CastleImages, FGL;
+uses SysUtils, FGL,
+  CastleImages, CastleTimeUtils;
 
 type
   EInvalidFadeFrames = class(Exception);
@@ -89,8 +90,8 @@ type
     property Items [Index: Integer]: TCastleImage read GetItems;
     function Width: Cardinal;
     function Height: Cardinal;
-    function IndexFromTime(const Time: Single): Integer;
-    function ImageFromTime(const Time: Single): TCastleImage;
+    function IndexFromTime(const Time: TFloatTime): Integer;
+    function ImageFromTime(const Time: TFloatTime): TCastleImage;
     { @groupEnd }
 
     { Duration of the video. In seconds (or, more precisely, in the
@@ -175,7 +176,7 @@ type
     procedure Resize(const ResizeToX, ResizeToY: Cardinal;
       const Interpolation: TResizeInterpolation = riNearest);
 
-    { This releases all resources allocared by Load (or LoadFromFile).
+    { Release all resources allocated by @link(Load) (or @link(LoadFromFile)).
       @link(Loaded) property changes to @false after calling this.
 
       It's safe to call this even if @link(Loaded) is already @false --- then
@@ -184,9 +185,9 @@ type
 
     property Loaded: boolean read FLoaded;
 
-    { @abstract(Should the video be played in a loop?)
+    { Play the video in a never-ending loop.
 
-      If yes, then IndexFromTime and ImageFromTime will return information
+      If @true then IndexFromTime and ImageFromTime will return information
       that causes the video to be played in an infinite loop.
       This cooperates with TimeBackwards:
       If TimeBackwards is also @true, then each loop step will play
@@ -198,7 +199,7 @@ type
       *FromTime methods return. }
     property TimeLoop: boolean read FTimeLoop write FTimeLoop default false;
 
-    { @abstract(Should the video be played backwards after playing forward?)
+    { Play the video backwards after playing it forward.
 
       This cooperates with TimeLoop. If this is @true and TimeLoop = @false,
       video will be played once forward, once backward, and then stop.
@@ -264,7 +265,7 @@ type
 
       In particular, this public for TGLVideo.IndexFromTime,
       TGLVideo.GLTextureFromTime methods. }
-    class function FrameIndexFromTime(const Time: Single;
+    class function FrameIndexFromTime(const Time: TFloatTime;
       const ACount: Integer;
       const AFramesPerSecond: Single;
       const ATimeLoop, ATimeBackwards: boolean): Integer;
@@ -402,7 +403,7 @@ implementation
 
 uses Classes, CastleClassUtils, CastleUtils, Math, CastleStringUtils,
   CastleWarnings, CastleFilesUtils, CastleProgress, CastleTextureImages,
-  CastleLog, CastleDownload, CastleURIUtils, CastleFindFiles, CastleTimeUtils;
+  CastleLog, CastleDownload, CastleURIUtils, CastleFindFiles;
 
 { TVideo --------------------------------------------------------------------- }
 
@@ -432,7 +433,7 @@ begin
   Result := FItems[Index];
 end;
 
-class function TVideo.FrameIndexFromTime(const Time: Single;
+class function TVideo.FrameIndexFromTime(const Time: TFloatTime;
   const ACount: Integer;
   const AFramesPerSecond: Single;
   const ATimeLoop, ATimeBackwards: boolean): Integer;
@@ -468,14 +469,14 @@ begin
   end;
 end;
 
-function TVideo.IndexFromTime(const Time: Single): Integer;
+function TVideo.IndexFromTime(const Time: TFloatTime): Integer;
 begin
   Assert(Loaded);
   Result := FrameIndexFromTime(Time, Count, FramesPerSecond,
     TimeLoop, TimeBackwards);
 end;
 
-function TVideo.ImageFromTime(const Time: Single): TCastleImage;
+function TVideo.ImageFromTime(const Time: TFloatTime): TCastleImage;
 begin
   Result := FItems[IndexFromTime(Time)];
 end;

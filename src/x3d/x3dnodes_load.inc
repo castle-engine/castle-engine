@@ -35,11 +35,11 @@
 
     { Extract names, before destructing this object.
       This method can be used only right before calling the destructor.
-      It copies the prototype and exported names list (names visible
+      It copies the prototype, exported, imported names list (names visible
       from the outside), and sets them to @nil (to avoid releasing them
       at destruction). }
     procedure ExtractNames(out APrototypes: TX3DPrototypeNames;
-      out AExported: TX3DNodeNames);
+      out AExported, AImported: TX3DNodeNames);
 
     { Current namespace for DEF/USE.
 
@@ -131,13 +131,15 @@ begin
 end;
 
 procedure TX3DReaderNames.ExtractNames(out APrototypes: TX3DPrototypeNames;
-  out AExported: TX3DNodeNames);
+  out AExported, AImported: TX3DNodeNames);
 begin
   APrototypes := FPrototypes;
   AExported := FExported;
+  AImported := FImported;
 
   FPrototypes := nil;
   FExported := nil;
+  FImported := nil;
 end;
 
 procedure TX3DReaderNames.DoExport(E: TX3DExport);

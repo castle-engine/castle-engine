@@ -3,11 +3,25 @@
      by the build tool. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application android:hardwareAccelerated="true">
+        <!-- AdColony -->
+        <activity android:name="com.jirbo.adcolony.AdColonyOverlay"
+        android:configChanges="keyboardHidden|orientation|screenSize"
+        android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
+        <activity android:name="com.jirbo.adcolony.AdColonyFullscreen"
+        android:configChanges="keyboardHidden|orientation|screenSize"
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+        <activity android:name="com.jirbo.adcolony.AdColonyBrowser"
+        android:configChanges="keyboardHidden|orientation|screenSize"
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+
         <!-- AdMob -->
         <activity android:name="com.google.android.gms.ads.AdActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" />
 
         <!-- Chartboost -->
         <activity android:name="com.chartboost.sdk.CBImpressionActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar" android:excludeFromRecents="true" />
+
+        <!-- Facebook Audience Network -->
+        <activity android:name="com.facebook.ads.InterstitialAdActivity" android:configChanges="keyboardHidden|orientation|screenSize" />
 
         <!-- UnityAds -->
         <activity android:name="com.unity3d.ads.android.view.UnityAdsFullscreenActivity"  android:configChanges="fontScale|keyboard|keyboardHidden|locale|mnc|mcc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode|touchscreen" android:hardwareAccelerated="true" />
@@ -26,15 +40,15 @@
         </receiver>
     </application>
 
-    <!-- Required by AdMob, Chartboost, Heyzap Ad Network, and UnityAds -->
+    <!-- Required by AdColony, AdMob, Chartboost, Facebook Audience Network, Heyzap Ad Network, and UnityAds -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Required by Chartboost -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
-    <!-- Required by AdMob, Chartboost, Heyzap Ad Network, and UnityAds -->
+    <!-- Required by AdColony, AdMob, Chartboost, Facebook Audience Network, Heyzap Ad Network, and UnityAds -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Required by Chartboost, and UnityAds -->
+    <!-- Required by AdColony, Chartboost, and UnityAds -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 </manifest>

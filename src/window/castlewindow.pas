@@ -685,7 +685,7 @@ type
     function GetColorBits: Cardinal;
     procedure SetColorBits(const Value: Cardinal);
     procedure SetAntiAliasing(const Value: TAntiAliasing);
-    procedure SetAutoRedisplay(value: boolean);
+    procedure SetAutoRedisplay(const Value: boolean);
     function GetPublicCaption: string;
     procedure SetPublicCaption(const Value: string);
     procedure SetCaption(const Part: TCaptionPart; const Value: string);
@@ -1284,12 +1284,14 @@ type
       and override their GLContextOpen / GLContextClose methods to react to
       context being open/closed. Using such TUIControl classes
       is usually easier, as you add/remove them from controls whenever
-      you want (e.g. you add them in ApplicationInitialize),
+      you want (e.g. you add them in
+      @link(TCastleApplication.OnInitialize Application.OnInitialize)),
       and underneath they create/release/create again the OpenGL resources
       when necessary.
 
-      WindowOpen is always *after* ApplicationInitialize.
-      In normal circumstances, for a standalone game, the WindowOpen will
+      OnOpen is always called @bold(after)
+      @link(TCastleApplication.OnInitialize Application.OnInitialize).
+      In normal circumstances, for a typical standalone game, the OnOpen will
       happen only once. But for other targets, it may be necessary to close/reopen
       the OpenGL context many times, e.g. on mobile platforms it's normal
       that application may "loose" the OpenGL context and it may need
@@ -1317,9 +1319,12 @@ type
       for a one-time initialization (it is executed right before
       the very first OnOpen would be executed).
       Use this callback only to create OpenGL resources
-      (destroyed in OnClose). }
+      (destroyed in OnClose).
+
+      @groupBegin }
     property OnOpen: TContainerEvent read GetOnOpen write SetOnOpen;
     property OnOpenObject: TContainerObjectEvent read GetOnOpenObject write SetOnOpenObject;
+    { @groupEnd }
 
     { Minimum and maximum window sizes. Always
 
@@ -1662,7 +1667,7 @@ end;
       on closing the window (i.e. QuitWhenLastWindowClosed = false).
       By default, if this event is undefined, we call Close(true)
       when user tries to close the window. }
-    property OnCloseQuery: TContainerEvent read FOnCloseQuery write FOnCloseQuery; { = nil }
+    property OnCloseQuery: TContainerEvent read FOnCloseQuery write FOnCloseQuery;
 
     { Mouse or a finger on touch device moved.
 
@@ -1718,14 +1723,19 @@ end;
     property OnDropFiles: TDropFilesFunc read FOnDropFiles write FOnDropFiles;
 
     { Should we automatically redraw the window all the time,
-      without a need for Invalidate call.
-      If @true, window will behave like a redraw is always needed,
-      and EventRender (OnRender) will be always called as often as posible.
-      This may be a waste of OS resources, so don't use it, unless
-      you know that you really have some animation displayed
-      all the time. }
-    property AutoRedisplay: boolean read fAutoRedisplay write SetAutoRedisplay
-      default false;
+      without the need for an @link(Invalidate) call.
+      If @true (the default), EventRender (OnRender) will called constantly.
+
+      If your game may have a still screen (nothing animates),
+      then this approach is a little unoptimal, as we use CPU and GPU
+      for drawing, when it's not needed. In such case, you can set this
+      property to @false, and make sure that you call
+      @link(Invalidate) always when you need to redraw the screen.
+      Note that the engine components always call @link(Invalidate) when
+      necessary, so usually you should only call it yourself if you provide
+      a custom @link(OnRender) implementation. }
+    property AutoRedisplay: boolean read FAutoRedisplay write SetAutoRedisplay
+      default true;
 
     { -------------------------------------------------------------------------
       Menu things (menu may be modified at runtime, everything will be
@@ -2211,7 +2221,7 @@ end;
       Right now only meaningful when using NPAPI plugin. }
     property NamedParameters: TCastleStringList read FNamedParameters;
   private
-    LastFpsOutputTick: DWORD;
+    LastFpsOutputTick: TMilisecTime;
     FFpsShowOnCaption: boolean;
     FSwapFullScreen_Key: TKey;
     FClose_CharKey: char;
@@ -2803,7 +2813,7 @@ function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModif
 implementation
 
 uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils, CastleWarnings,
-  CastleControls,
+  CastleControls, CastleApplicationProperties,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
@@ -2916,6 +2926,7 @@ begin
   FCursor := mcDefault;
   FMultiSampling := 1;
   FVisible := true;
+  FAutoRedisplay := true;
   OwnsMainMenu := true;
   FDpi := DefaultDpi;
   FPressed := TKeysPressed.Create;
@@ -3032,7 +3043,12 @@ begin
     {$endif}
 
     try
+      { make ApplicationProperties.IsGLContextOpen true now, to allow creating
+        TGLImage.Create from Application.OnInitialize work Ok. }
+      ApplicationProperties._GLContextEarlyOpen;
+
       Application.CastleEngineInitialize;
+      if Closed then Exit;
 
       { call first EventOpen and EventResize. Zwroc uwage ze te DoResize i DoOpen
         MUSZA byc wykonane na samym koncu procedury Open - jak juz wszystko inne
@@ -3145,9 +3161,9 @@ begin
   end;
 end;
 
-procedure TCastleWindowCustom.SetAutoRedisplay(value: boolean);
+procedure TCastleWindowCustom.SetAutoRedisplay(const Value: boolean);
 begin
-  fAutoRedisplay := value;
+  FAutoRedisplay := value;
   if Value then Invalidate;
 end;
 
@@ -3439,9 +3455,9 @@ begin
   { show FPS on caption once FpsCaptionUpdateInterval passed }
   if FpsShowOnCaption and
      ((lastFpsOutputTick = 0) or
-      (TimeTickDiff(lastFpsOutputTick, GetTickCount) >= FpsCaptionUpdateInterval)) then
+      (TimeTickDiff(lastFpsOutputTick, CastleTimeUtils.GetTickCount64) >= FpsCaptionUpdateInterval)) then
   begin
-    LastFpsOutputTick := GetTickCount;
+    LastFpsOutputTick := CastleTimeUtils.GetTickCount64;
     SetCaption(cpFps, Format(' - FPS : %f (real : %f)', [Fps.FrameTime, Fps.RealTime]));
   end;
 end;
@@ -4531,7 +4547,7 @@ procedure TCastleApplication.MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
 var
   Now: TMilisecTime;
 begin
-  Now := GetTickCount;
+  Now := CastleTimeUtils.GetTickCount64;
   if ((ALastDoTimerTime = 0) or
       (MilisecTimesSubtract(Now, ALastDoTimerTime) >= FTimerMilisec)) then
   begin

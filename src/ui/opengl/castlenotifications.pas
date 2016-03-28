@@ -182,7 +182,7 @@ procedure TCastleNotifications.Show(S: TStringList);
       if Messages.Count = MaxMessages then Messages.Delete(0);
       N := TNotification.Create;
       N.Text := S[i];
-      N.Time := GetTickCount;
+      N.Time := CastleTimeUtils.GetTickCount64;
       N.Width := Font.TextWidth(N.Text);
       N.Color := Color;
       Messages.Add(N);
@@ -264,7 +264,7 @@ var
   C: TCastleColor;
 begin
   inherited;
-  GTC := GetTickCount;
+  GTC := CastleTimeUtils.GetTickCount64;
   TimeoutMilisec := Round(Timeout * 1000);
   TimeoutToFadeMilisec := Round((Timeout - Fade) * 1000);
   for I := Messages.Count - 1 downto 0 do

@@ -171,6 +171,21 @@ type
       To easily create such expression, use @link(ParseFloatExpression). }
     function AsFloat(const ADefaultValue: Float = 0): Float;
 
+    { Execute expression, return the result as a simple integer value.
+      It assumes that the expression is written to always return integer.
+      To easily create such expression, use @link(ParseIntExpression). }
+    function AsInt(const ADefaultValue: Int64 = 0): Int64;
+
+    { Execute expression, return the result as a simple string value.
+      It assumes that the expression is written to always return string.
+      To easily create such expression, use @link(ParseStringExpression). }
+    function AsString(const ADefaultValue: string = ''): string;
+
+    { Execute expression, return the result as a simple boolean value.
+      It assumes that the expression is written to always return boolean.
+      To easily create such expression, use @link(ParseBoolExpression). }
+    function AsBool(const ADefaultValue: boolean = false): boolean;
+
     { Call Free, but only if this is not TCasScriptValue with
       OwnedByParentExpression = false. (This cannot be implemented
       cleanly, as virtual procedure, since it must work when Self is @nil,
@@ -237,10 +252,14 @@ type
 
   TCasScriptValueClass = class of TCasScriptValue;
   TCasScriptValueClassArray = array of TCasScriptValueClass;
+  TCasScriptValuesArray = array of TCasScriptValue;
 
   TCasScriptValueList = class(specialize TFPGObjectList<TCasScriptValue>)
   public
     procedure AddArray(const A: array of TCasScriptValue);
+    function ToArray: TCasScriptValuesArray;
+    { Find an item by Name. @nil if not found. }
+    function FindName(const VariableName: string): TCasScriptValue;
   end;
 
   { This is a very special CastleScript value, used to represent user-defined
@@ -1006,6 +1025,75 @@ begin
   end;
 end;
 
+function TCasScriptExpression.AsInt(const ADefaultValue: Int64): Int64;
+var
+  Res: TCasScriptValue;
+begin
+  try
+    Res := Execute;
+  except
+    on E: ECasScriptError do
+    begin
+      OnWarning(wtMajor, 'CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
+      Result := ADefaultValue;
+      Exit;
+    end;
+  end;
+
+  if Res is TCasScriptInteger then
+    Result := TCasScriptInteger(Res).Value else
+  begin
+    OnWarning(wtMajor, 'CastleScript', 'CastleScript expression result is not int');
+    Result := ADefaultValue;
+  end;
+end;
+
+function TCasScriptExpression.AsString(const ADefaultValue: string): string;
+var
+  Res: TCasScriptValue;
+begin
+  try
+    Res := Execute;
+  except
+    on E: ECasScriptError do
+    begin
+      OnWarning(wtMajor, 'CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
+      Result := ADefaultValue;
+      Exit;
+    end;
+  end;
+
+  if Res is TCasScriptString then
+    Result := TCasScriptString(Res).Value else
+  begin
+    OnWarning(wtMajor, 'CastleScript', 'CastleScript expression result is not string');
+    Result := ADefaultValue;
+  end;
+end;
+
+function TCasScriptExpression.AsBool(const ADefaultValue: boolean): boolean;
+var
+  Res: TCasScriptValue;
+begin
+  try
+    Res := Execute;
+  except
+    on E: ECasScriptError do
+    begin
+      OnWarning(wtMajor, 'CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
+      Result := ADefaultValue;
+      Exit;
+    end;
+  end;
+
+  if Res is TCasScriptBoolean then
+    Result := TCasScriptBoolean(Res).Value else
+  begin
+    OnWarning(wtMajor, 'CastleScript', 'CastleScript expression result is not boolean');
+    Result := ADefaultValue;
+  end;
+end;
+
 { TCasScriptExpressionList -------------------------------------------------- }
 
 procedure TCasScriptExpressionList.AddArray(const A: array of TCasScriptExpression);
@@ -1064,6 +1152,25 @@ begin
   Count := Count + High(A) + 1;
   if High(A) <> -1 then
     System.Move(A[0], List^[OldCount], SizeOf(Pointer) * (High(A) + 1));
+end;
+
+function TCasScriptValueList.ToArray: TCasScriptValuesArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, Count);
+  for I := 0 to Count - 1 do
+    Result[I] := Items[I];
+end;
+
+function TCasScriptValueList.FindName(const VariableName: string): TCasScriptValue;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    if Items[I].Name = VariableName then
+      Exit(Items[I]);
+  Result := nil;
 end;
 
 { TCasScriptParameterValue --------------------------------------------------- }
@@ -2812,6 +2919,8 @@ initialization
 
   FunctionHandlers.RegisterHandler(@TCasScriptString(nil).HandleWriteln, TCasScriptWriteln, [TCasScriptString], false);
   FunctionHandlers.RegisterHandler(@TCasScriptString(nil).HandleCharacterFromCode, TCasScriptCharacterFromCode, [TCasScriptInteger], false);
+
+  FunctionHandlers.RegisterHandler(@TCasScriptShortcut(nil).Handle, TCasScriptShortcut, [TCasScriptString], false);
 finalization
   FreeAndNil(FunctionHandlers);
 end.

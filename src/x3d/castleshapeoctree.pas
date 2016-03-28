@@ -66,6 +66,15 @@ type
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 
+    function LocalSphereCollision2D(const pos: TVector2Single;
+      const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+
+    function LocalPointCollision2D(const Point: TVector2Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+
     function LocalBoxCollision(const ABox: TBox3D;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
@@ -94,6 +103,15 @@ type
 
     function CommonSphereLeaf(const pos: TVector3Single;
       const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+
+    function CommonSphere2DLeaf(const pos: TVector2Single;
+      const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+
+    function CommonPoint2DLeaf(const Point: TVector2Single;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
@@ -131,6 +149,24 @@ type
 
     function IsSphereCollision(const pos: TVector3Single;
       const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+
+    function SphereCollision2D(const pos: TVector2Single;
+      const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+
+    function IsSphereCollision2D(const pos: TVector2Single;
+      const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+
+    function PointCollision2D(const Point: TVector2Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+
+    function IsPointCollision2D(const Point: TVector2Single;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
@@ -264,7 +300,7 @@ begin
     try
       LocalBox := BoundingBox3DFromSphere(Pos, Radius).Transform(
         Shape.State.InvertedTransform);
-      Result := Shape.OctreeTriangles.BoxCollision(
+      Result := Shape.InternalOctreeTriangles.BoxCollision(
         LocalBox, TriangleToIgnore, TrianglesToIgnoreFunc);
     except
       on ETransformedResultInvalid do Result := nil;
@@ -301,6 +337,108 @@ begin
     TrianglesToIgnoreFunc) <> nil;
 end;
 
+function TShapeOctreeNode.CommonSphere2DLeaf(const Pos: TVector2Single;
+  const Radius: Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+var
+  I: Integer;
+  Shape: TShape;
+  LocalPos: TVector2Single;
+  LocalRadius: Single;
+begin
+  Result := nil;
+  for I := 0 to ItemsIndices.Count - 1 do
+  begin
+    Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
+    try
+      LocalPos := MatrixMultPoint(Shape.State.InvertedTransform, Pos);
+      LocalRadius := Radius / Shape.State.TransformScale;
+      Result := Shape.InternalOctreeTriangles.SphereCollision2D(
+        LocalPos, LocalRadius, TriangleToIgnore, TrianglesToIgnoreFunc);
+    except
+      on ETransformedResultInvalid do Result := nil;
+    end;
+    if Result <> nil then Exit;
+  end;
+end;
+
+function TShapeOctreeNode.LocalSphereCollision2D(const Pos: TVector2Single;
+  const Radius: Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+begin
+  Result := CommonSphere2D(pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
+end;
+
+function TShapeOctreeNode.SphereCollision2D(const Pos: TVector2Single;
+  const Radius: Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+begin
+  Result := LocalSphereCollision2D(Pos, Radius, TriangleToIgnore,
+    TrianglesToIgnoreFunc);
+  if Result <> nil then
+    Result^.UpdateWorld;
+end;
+
+function TShapeOctreeNode.IsSphereCollision2D(const Pos: TVector2Single;
+  const Radius: Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  Result := LocalSphereCollision2D(Pos, Radius, TriangleToIgnore,
+    TrianglesToIgnoreFunc) <> nil;
+end;
+
+function TShapeOctreeNode.CommonPoint2DLeaf(const Point: TVector2Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+var
+  I: Integer;
+  Shape: TShape;
+  LocalPoint: TVector2Single;
+begin
+  Result := nil;
+  for I := 0 to ItemsIndices.Count - 1 do
+  begin
+    Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
+    try
+      LocalPoint := MatrixMultPoint(Shape.State.InvertedTransform, Point);
+      Result := Shape.InternalOctreeTriangles.PointCollision2D(
+        LocalPoint, TriangleToIgnore, TrianglesToIgnoreFunc);
+    except
+      on ETransformedResultInvalid do Result := nil;
+    end;
+    if Result <> nil then Exit;
+  end;
+end;
+
+function TShapeOctreeNode.LocalPointCollision2D(const Point: TVector2Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+begin
+  Result := CommonPoint2D(Point, TriangleToIgnore, TrianglesToIgnoreFunc);
+end;
+
+function TShapeOctreeNode.PointCollision2D(const Point: TVector2Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+begin
+  Result := LocalPointCollision2D(Point, TriangleToIgnore,
+    TrianglesToIgnoreFunc);
+  if Result <> nil then
+    Result^.UpdateWorld;
+end;
+
+function TShapeOctreeNode.IsPointCollision2D(const Point: TVector2Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  Result := LocalPointCollision2D(Point, TriangleToIgnore,
+    TrianglesToIgnoreFunc) <> nil;
+end;
+
 function TShapeOctreeNode.CommonBoxLeaf(const ABox: TBox3D;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
@@ -317,7 +455,7 @@ begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
       LocalBox := ABox.Transform(Shape.State.InvertedTransform);
-      Result := Shape.OctreeTriangles.BoxCollision(
+      Result := Shape.InternalOctreeTriangles.BoxCollision(
         LocalBox, TriangleToIgnore, TrianglesToIgnoreFunc);
     except
       on ETransformedResultInvalid do Result := nil;
@@ -538,7 +676,7 @@ begin
     for I := 0 to ItemsIndices.Count - 1 do
     begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
-      Assert(Shape.OctreeTriangles <> nil);
+      Assert(Shape.InternalOctreeTriangles <> nil);
       try
         LocalRayOrigin := MatrixMultPoint(Shape.State.InvertedTransform, RayOrigin);
         LocalRayDirection := MatrixMultDirection(Shape.State.InvertedTransform, RayDirection);
@@ -671,7 +809,7 @@ var
   I: Integer;
 begin
   for I := 0 to ShapesList.Count - 1 do
-    ShapesList.Items[I].OctreeTriangles.EnumerateTrianglesUpdateWorld(
+    ShapesList.Items[I].InternalOctreeTriangles.EnumerateTrianglesUpdateWorld(
       EnumerateTriangleFunc);
 end;
 
@@ -681,7 +819,7 @@ var
 begin
   Result := 0;
   for I := 0 to ShapesList.Count - 1 do
-    Result += ShapesList.Items[I].OctreeTriangles.TrianglesCount;
+    Result += ShapesList.Items[I].InternalOctreeTriangles.TrianglesCount;
 end;
 
 end.

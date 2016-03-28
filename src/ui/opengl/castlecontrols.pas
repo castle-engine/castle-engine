@@ -28,7 +28,7 @@ type
   { Base class for all controls inside an OpenGL context using a font.
     Allows to customize font and font size per-control, or use defaults. }
   TUIControlFont = class(TUIControl)
-  private
+  strict private
     FTooltip: string;
     TooltipLabel: TCastleLabel;
     FCustomFont: TCastleFont;
@@ -112,7 +112,7 @@ type
     TCastleButton.Bottom), TCastleButton.Caption,
     and assign TCastleButton.OnClick (or ovevrride TCastleButton.DoClick). }
   TCastleButton = class(TUIControlFont)
-  private
+  strict private
     FWidth: Cardinal;
     FHeight: Cardinal;
     FOnClick: TNotifyEvent;
@@ -122,14 +122,17 @@ type
     FPressed: boolean;
     FImage,
       FCustomBackgroundPressed,
+      FCustomBackgroundDisabled,
       FCustomBackgroundFocused,
       FCustomBackgroundNormal: TCastleImage;
     FGLImage,
       FGLCustomBackgroundPressed,
+      FGLCustomBackgroundDisabled,
       FGLCustomBackgroundFocused,
       FGLCustomBackgroundNormal: TGLImage;
     FOwnsImage,
       FOwnsCustomBackgroundPressed,
+      FOwnsCustomBackgroundDisabled,
       FOwnsCustomBackgroundFocused,
       FOwnsCustomBackgroundNormal: boolean;
     FCustomBackground: boolean;
@@ -145,7 +148,8 @@ type
     FMinWidth, FMinHeight: Cardinal;
     FImageMargin: Cardinal;
     FPaddingHorizontal, FPaddingVertical: Cardinal;
-    FTintPressed, FTintFocused, FTintNormal: TCastleColor;
+    FTintPressed, FTintDisabled, FTintFocused, FTintNormal: TCastleColor;
+    FEnabled: boolean;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -157,6 +161,7 @@ type
     procedure UpdateSize;
     procedure SetImage(const Value: TCastleImage);
     procedure SetCustomBackgroundPressed(const Value: TCastleImage);
+    procedure SetCustomBackgroundDisabled(const Value: TCastleImage);
     procedure SetCustomBackgroundFocused(const Value: TCastleImage);
     procedure SetCustomBackgroundNormal(const Value: TCastleImage);
     procedure SetImageLayout(const Value: TCastleButtonImageLayout);
@@ -165,6 +170,7 @@ type
     procedure SetMinWidth(const Value: Cardinal);
     procedure SetMinHeight(const Value: Cardinal);
     procedure SetImageMargin(const Value: Cardinal);
+    procedure SetEnabled(const Value: boolean);
   protected
     procedure FontChanged; override;
     procedure SetPressed(const Value: boolean); virtual;
@@ -201,16 +207,19 @@ type
     property MinImageWidth: Cardinal read FMinImageWidth write FMinImageWidth default 0;
     property MinImageHeight: Cardinal read FMinImageHeight write FMinImageHeight default 0;
 
-    { Color tint when button is pressed. Opaque white by default. }
-    property TintPressed: TCastleColor read FTintPressed write FTintPressed;
+    { Color tint when button is pressed (regardless if enabled or disabled). Opaque white by default. }
+    property TintPressed : TCastleColor read FTintPressed  write FTintPressed;
+    { Color tint when button is disabled (and not pressed). Opaque white by default. }
+    property TintDisabled: TCastleColor read FTintDisabled write FTintDisabled;
     { Color tint when button is focused. Opaque white by default. }
-    property TintFocused: TCastleColor read FTintFocused write FTintFocused;
-    { Color tint when button is neither pressed nor focused. Opaque white by default. }
-    property TintNormal : TCastleColor read FTintNormal  write FTintNormal;
+    property TintFocused : TCastleColor read FTintFocused  write FTintFocused;
+    { Color tint when button is enabled, but neither pressed nor focused. Opaque white by default. }
+    property TintNormal  : TCastleColor read FTintNormal   write FTintNormal;
 
     { Use custom background images. If @true, we use properties
       @unorderedList(
         @item @link(CustomBackgroundPressed) (or fallback on @link(CustomBackgroundNormal) if @nil),
+        @item @link(CustomBackgroundDisabled) (or fallback on @link(CustomBackgroundNormal) if @nil),
         @item @link(CustomBackgroundFocused) (or fallback on @link(CustomBackgroundNormal) if @nil),
         @item @link(CustomBackgroundNormal) (or fallback on transparent background if @nil).
       ).
@@ -222,10 +231,17 @@ type
     property CustomBackgroundPressed: TCastleImage read FCustomBackgroundPressed write SetCustomBackgroundPressed;
     { Should we free @link(CustomBackgroundPressed) image when you set another one or at destructor. }
     property OwnsCustomBackgroundPressed: boolean read FOwnsCustomBackgroundPressed write FOwnsCustomBackgroundPressed default false;
+
+    { Background image on the disabled button. See @link(CustomBackground) for details. }
+    property CustomBackgroundDisabled: TCastleImage read FCustomBackgroundDisabled write SetCustomBackgroundDisabled;
+    { Should we free @link(CustomBackgroundDisabled) image when you set another one or at destructor. }
+    property OwnsCustomBackgroundDisabled: boolean read FOwnsCustomBackgroundDisabled write FOwnsCustomBackgroundDisabled default false;
+
     { Background image on the focused button. See @link(CustomBackground) for details. }
     property CustomBackgroundFocused: TCastleImage read FCustomBackgroundFocused write SetCustomBackgroundFocused;
     { Should we free @link(CustomBackgroundFocused) image when you set another one or at destructor. }
     property OwnsCustomBackgroundFocused: boolean read FOwnsCustomBackgroundFocused write FOwnsCustomBackgroundFocused default false;
+
     { Background image on the normal button. See @link(CustomBackground) for details. }
     property CustomBackgroundNormal: TCastleImage read FCustomBackgroundNormal write SetCustomBackgroundNormal;
     { Should we free @link(CustomBackgroundNormal) image when you set another one or at destructor. }
@@ -236,7 +252,7 @@ type
     property CustomBackgroundCorners: TVector4Integer read FCustomBackgroundCorners write FCustomBackgroundCorners;
 
     { Should we use custom text color in @link(CustomTextColor)
-      instead of @code(Theme.TextColor). }
+      instead of @code(Theme.TextColor) or @code(Theme.DisabledTextColor). }
     property CustomTextColorUse: boolean read FCustomTextColorUse write FCustomTextColorUse;
     { Text color to use if @link(CustomTextColorUse) is @true.
       Black by default, just like @code(Theme.TextColor). }
@@ -308,6 +324,8 @@ type
 
     property ImageMargin: Cardinal read FImageMargin write SetImageMargin
       default DefaultImageMargin;
+
+    property Enabled: boolean read FEnabled write SetEnabled default true;
   end;
 
   { Panel inside OpenGL context.
@@ -316,7 +334,7 @@ type
     May be used as a toolbar, together with appropriately placed
     TCastleButton over it. }
   TCastlePanel = class(TUIControl)
-  private
+  strict private
     FWidth: Cardinal;
     FHeight: Cardinal;
     FVerticalSeparators: TCardinalList;
@@ -351,7 +369,7 @@ type
     on loaded image alpha channel (see TGLImage.Alpha).
     You can influence this by @link(AlphaChannel) property. }
   TCastleImageControl = class(TUIControl)
-  private
+  strict private
     FURL: string;
     FImage: TCastleImage;
     FGLImage: TGLImage;
@@ -365,12 +383,12 @@ type
     FCorners: TVector4Integer;
     FOwnsImage: boolean;
     FSmoothScaling: boolean;
-    function GetCenterX: Single;
-    function GetCenterY: Single;
-    function GetRotation: Single;
-    procedure SetCenterX(AValue: Single);
-    procedure SetCenterY(AValue: Single);
-    procedure SetRotation(AValue: Single);
+    FCenterX: Single;
+    FCenterY: Single;
+    FRotation: Single;
+    procedure SetCenterX(const AValue: Single);
+    procedure SetCenterY(const AValue: Single);
+    procedure SetRotation(const AValue: Single);
     procedure SetURL(const Value: string);
     procedure SetImage(const Value: TCastleImage);
     procedure SetAlphaChannel(const Value: TAutoAlphaChannel);
@@ -400,8 +418,9 @@ type
       by this component (see @link(OwnsImage)).
       So if you set this property to your custom TCastleImage instance you should
       leave memory management of this instance to this component.
-      If necessary, you can always create a copy by TCastleImage.MakeCopy
-      if you want to give here only a copy, or you can change @link(OwnsImage) to @false.
+      You can either create a copy by TCastleImage.MakeCopy
+      if you want to give here only a copy, or you can change @link(OwnsImage)
+      to @false.
 
       It is allowed to modify the contents or even size of this image.
       Just make sure to call ImageChanged after the modifications are done
@@ -426,13 +445,13 @@ type
     property Corners: TVector4Integer read FCorners write FCorners;
 
     { X coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
-    property CenterX: Single read GetCenterX write SetCenterX default 0.5;
+    property CenterX: Single read FCenterX write SetCenterX default 0.5;
 
     { Y coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
-    property CenterY: Single read GetCenterY write SetCenterY default 0.5;
+    property CenterY: Single read FCenterY write SetCenterY default 0.5;
 
-    { Rotation in degrees. Default value 0. }
-    property Rotation: Single read GetRotation write SetRotation default 0;
+    { Rotation in radians. Default value 0. }
+    property Rotation: Single read FRotation write SetRotation default 0;
   published
     { URL of the image. Setting this also sets @link(Image).
       Set this to '' to clear the image. }
@@ -507,13 +526,16 @@ type
   { Control for touch interfaces. Shows one "lever", that can be moved
     up/down/left/right, and controls the movement while Walking or Flying. }
   TCastleTouchControl = class(TUIControl)
-  private
+  strict private
     FTouchMode: TCastleTouchCtlMode;
     FLeverOffset: TVector2Single;
     FDragging: Integer; //< finger index that started drag, -1 if none
     FPosition: TCastleTouchPosition;
-    function SizeScale: Single;
+    FScale: Single;
+    function TotalScale: Single;
     procedure SetPosition(const Value: TCastleTouchPosition);
+    procedure SetScale(const Value: Single);
+    function MaxOffsetDist: Integer;
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
@@ -527,8 +549,6 @@ type
     procedure SetTouchMode(const Value: TCastleTouchCtlMode);
     procedure GetSensorRotation(var X, Y, Z, Angle: Double);
     procedure GetSensorTranslation(var X, Y, Z, Length: Double);
-  private
-    function MaxOffsetDist: Integer;
   published
     property TouchMode: TCastleTouchCtlMode
       read FTouchMode write SetTouchMode default ctcmWalking;
@@ -543,6 +563,8 @@ type
       @link(TUIContainer.Dpi). }
     property Position: TCastleTouchPosition
       read FPosition write SetPosition default tpManual;
+
+    property Scale: Single read FScale write SetScale default 1;
   end;
 
   { Simple background fill. Using OpenGL GLClear, so unconditionally
@@ -550,7 +572,7 @@ type
     instead you usually have TCastleSceneManager that fills the whole screen,
     and it provides a background already. }
   TCastleSimpleBackground = class(TUIControl)
-  private
+  strict private
     FColor: TCastleColor;
   public
     constructor Create(AOwner: TComponent); override;
@@ -666,7 +688,7 @@ type
 
   TThemeImage = (
     tiPanel, tiPanelSeparator, tiProgressBar, tiProgressFill,
-    tiButtonPressed, tiButtonFocused, tiButtonNormal,
+    tiButtonPressed, tiButtonDisabled, tiButtonFocused, tiButtonNormal,
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip,
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
@@ -674,7 +696,7 @@ type
 
   { Label with possibly multiline text, in an optional box. }
   TCastleLabel = class(TUIControlFont)
-  private
+  strict private
     FText: TStrings;
     FPaddingHorizontal, FPaddingVertical, FPadding: Integer;
     FLineSpacing: Integer;
@@ -683,9 +705,6 @@ type
     FFrame: boolean;
     FFrameColor: TCastleColor;
     FMaxWidth: Integer;
-    { For internal use by tooltip rendering. In normal circumstances,
-      leave this at tiLabel. }
-    ImageType: TThemeImage;
     FAlignment: THorizontalPosition;
     FAutoSize: boolean;
     FWidth, FHeight: Cardinal;
@@ -693,6 +712,10 @@ type
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
     procedure SetAutoSize(const Value: boolean);
+  private
+    { For internal use by tooltip rendering. In normal circumstances,
+      leave this at tiLabel. }
+    ImageType: TThemeImage;
   public
     const
       DefaultLineSpacing = 2;
@@ -756,7 +779,7 @@ type
   TCastleCrosshairShape = (csCross, csCrossRect);
 
   TCastleCrosshair = class(TUIControl)
-  private
+  strict private
     FShape: TCastleCrosshairShape;
     procedure SetShape(const Value: TCastleCrosshairShape);
     function ImageType: TThemeImage;
@@ -772,12 +795,14 @@ type
     { By default, crosshair is centered. }
     property HasHorizontalAnchor default true;
     property HasVerticalAnchor default true;
-    property HorizontalAnchor default hpMiddle;
-    property VerticalAnchor default vpMiddle;
+    property HorizontalAnchorSelf default hpMiddle;
+    property HorizontalAnchorParent default hpMiddle;
+    property VerticalAnchorSelf default vpMiddle;
+    property VerticalAnchorParent default vpMiddle;
   end;
 
-  TCastleProgressBar = class(TUIControl)
-  private
+  TCastleProgressBar = class(TUIControlFont)
+  strict private
     { Background image. }
     FBackground: TCastleImage;
     FGLBackground: TGLImage;
@@ -876,7 +901,7 @@ type
   end;
 
   TCastleFloatSlider = class(TCastleAbstractSlider)
-  private
+  strict private
     FMin: Single;
     FMax: Single;
     FValue: Single;
@@ -903,7 +928,7 @@ type
   end;
 
   TCastleIntegerSlider = class(TCastleAbstractSlider)
-  private
+  strict private
     FMin: Integer;
     FMax: Integer;
     FValue: Integer;
@@ -934,7 +959,7 @@ type
   { Theme for 2D GUI controls.
     Should only be used through the single global instance @link(Theme). }
   TCastleTheme = class
-  private
+  strict private
     FImages: array [TThemeImage] of TCastleImage;
     FCorners: array [TThemeImage] of TVector4Integer;
     FGLImages: array [TThemeImage] of TGLImage;
@@ -949,17 +974,18 @@ type
     function GetCorners(const ImageType: TThemeImage): TVector4Integer;
     procedure SetCorners(const ImageType: TThemeImage; const Value: TVector4Integer);
     function GetGLImages(const ImageType: TThemeImage): TGLImage;
-    procedure GLContextClose;
+    procedure GLContextClose(Sender: TObject);
+    procedure SetMessageFont(const Value: TCastleFont);
+  private
     { TGLImage instances for fast and easy drawing of images on 2D screen.
       Reading them for the 1st time means that the TGLImage instance is created,
       so use them only when OpenGL context is already active (window is open etc.).
       Changing the TCastleImage instance will automatically free (and recreate
       at next access) the corresponding TGLImage instance. }
     property GLImages[const ImageType: TThemeImage]: TGLImage read GetGLImages;
-    procedure SetMessageFont(const Value: TCastleFont);
   public
     TooltipTextColor: TCastleColor;
-    TextColor: TCastleColor;
+    TextColor, DisabledTextColor: TCastleColor;
     MessageTextColor: TCastleColor;
     MessageInputTextColor: TCastleColor;
 
@@ -1027,6 +1053,9 @@ type
     property MessageFont: TCastleFont read FMessageFont write SetMessageFont;
     property OwnsMessageFont: boolean
       read FOwnsMessageFont write FOwnsMessageFont default true;
+
+    { Set dialogs theme to light. }
+    procedure DialogsLight;
   end;
 
 { The 2D fonts used throughout UI interface.
@@ -1058,7 +1087,8 @@ procedure Register;
 implementation
 
 uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
-  CastleTextureFont_DejaVuSans_10, CastleGLUtils;
+  CastleTextureFont_DejaVuSans_10, CastleGLUtils,
+  CastleApplicationProperties;
 
 procedure Register;
 begin
@@ -1162,10 +1192,6 @@ begin
   { make sure to call GLContextClose on TooltipLabel,
     actually we can just free it now }
   FreeAndNil(TooltipLabel);
-  if CustomFont <> nil then
-    CustomFont.GLContextClose;
-  if FCustomizedFont <> nil then
-    FCustomizedFont.GLContextClose;
   inherited;
 end;
 
@@ -1293,20 +1319,24 @@ begin
   FPaddingHorizontal := DefaultPaddingHorizontal;
   FPaddingVertical := DefaultPaddingVertical;
   FTintPressed := White;
+  FTintDisabled := White;
   FTintFocused := White;
   FTintNormal := White;
+  FEnabled := true;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 end;
 
 destructor TCastleButton.Destroy;
 begin
   if OwnsImage then FreeAndNil(FImage);
-  if OwnsCustomBackgroundPressed then FreeAndNil(FCustomBackgroundPressed);
-  if OwnsCustomBackgroundFocused then FreeAndNil(FCustomBackgroundFocused);
-  if OwnsCustomBackgroundNormal  then FreeAndNil(FCustomBackgroundNormal);
+  if OwnsCustomBackgroundPressed  then FreeAndNil(FCustomBackgroundPressed);
+  if OwnsCustomBackgroundDisabled then FreeAndNil(FCustomBackgroundDisabled);
+  if OwnsCustomBackgroundFocused  then FreeAndNil(FCustomBackgroundFocused);
+  if OwnsCustomBackgroundNormal   then FreeAndNil(FCustomBackgroundNormal);
 
   FreeAndNil(FGLImage);
   FreeAndNil(FGLCustomBackgroundPressed);
+  FreeAndNil(FGLCustomBackgroundDisabled);
   FreeAndNil(FGLCustomBackgroundFocused);
   FreeAndNil(FGLCustomBackgroundNormal);
 
@@ -1332,6 +1362,8 @@ begin
   { calculate Tint }
   if Pressed then
     Tint := TintPressed else
+  if not Enabled then
+    Tint := TintDisabled else
   if Focused then
     Tint := TintFocused else
     Tint := TintNormal;
@@ -1342,10 +1374,12 @@ begin
   begin
     if Pressed then
       CustomBackgroundImage := FGLCustomBackgroundPressed else
+    if not Enabled then
+      CustomBackgroundImage := FGLCustomBackgroundDisabled else
     if Focused then
       CustomBackgroundImage := FGLCustomBackgroundFocused else
       CustomBackgroundImage := FGLCustomBackgroundNormal;
-    { instead of CustomBackgroundPressed/Focused, use Normal, if available }
+    { instead of CustomBackgroundDisabled/Pressed/Focused, use Normal, if available }
     if CustomBackgroundImage = nil then
       CustomBackgroundImage := FGLCustomBackgroundNormal;
     { render using CustomBackgroundImage, if any }
@@ -1359,6 +1393,8 @@ begin
   begin
     if Pressed then
       Background := tiButtonPressed else
+    if not Enabled then
+      Background := tiButtonDisabled else
     if Focused then
       Background := tiButtonFocused else
       Background := tiButtonNormal;
@@ -1385,7 +1421,9 @@ begin
     TextBottom -= (ImgScreenHeight + ImageMarginScaled) div 2;
   TextBottom += Font.Descend;
 
-  TextColor := Theme.TextColor;
+  if Enabled then
+    TextColor := Theme.TextColor else
+    TextColor := Theme.DisabledTextColor;
   if CustomTextColorUse then
     TextColor := CustomTextColor;
   Font.Print(TextLeft, TextBottom, TextColor, Caption);
@@ -1420,8 +1458,8 @@ begin
     FGLImage := TGLImage.Create(FImage, true);
   if (FGLCustomBackgroundPressed = nil) and (FCustomBackgroundPressed <> nil) then
     FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true);
-  if (FGLCustomBackgroundFocused = nil) and (FCustomBackgroundFocused <> nil) then
-    FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true);
+  if (FGLCustomBackgroundDisabled = nil) and (FCustomBackgroundDisabled <> nil) then
+    FGLCustomBackgroundDisabled := TGLImage.Create(FCustomBackgroundDisabled, true);
   if (FGLCustomBackgroundFocused = nil) and (FCustomBackgroundFocused <> nil) then
     FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true);
   if (FGLCustomBackgroundNormal = nil) and (FCustomBackgroundNormal <> nil) then
@@ -1433,6 +1471,7 @@ procedure TCastleButton.GLContextClose;
 begin
   FreeAndNil(FGLImage);
   FreeAndNil(FGLCustomBackgroundPressed);
+  FreeAndNil(FGLCustomBackgroundDisabled);
   FreeAndNil(FGLCustomBackgroundFocused);
   FreeAndNil(FGLCustomBackgroundNormal);
   inherited;
@@ -1444,10 +1483,17 @@ begin
   if Result or (Event.EventType <> itMouseButton) then Exit;
 
   Result := ExclusiveEvents;
-  if not Toggle then FPressed := true;
-  ClickStarted := true;
-  { We base our Render on Pressed value. }
-  VisibleChange;
+  if Enabled then
+  begin
+    if not Toggle then
+    begin
+      FPressed := true;
+      { We base our Render on Pressed value. }
+      VisibleChange;
+    end;
+    // regardless of Toggle value, set ClickStarted, to be able to reach OnClick.
+    ClickStarted := true;
+  end;
 end;
 
 function TCastleButton.Release(const Event: TInputPressRelease): boolean;
@@ -1476,7 +1522,7 @@ begin
       It means that if the user does mouse down over the button,
       moves mouse out from the control, then moves it back inside,
       then does mouse up -> it counts as a "click". }
-    if ScreenRect.Contains(Event.Position) then
+    if Enabled and ScreenRect.Contains(Event.Position) then
       DoClick;
   end;
 end;
@@ -1630,6 +1676,22 @@ begin
   end;
 end;
 
+procedure TCastleButton.SetCustomBackgroundDisabled(const Value: TCastleImage);
+begin
+  if FCustomBackgroundDisabled <> Value then
+  begin
+    if OwnsCustomBackgroundDisabled then FreeAndNil(FCustomBackgroundDisabled);
+    FreeAndNil(FGLCustomBackgroundDisabled);
+
+    FCustomBackgroundDisabled := Value;
+
+    if GLInitialized and (FCustomBackgroundDisabled <> nil) then
+      FGLCustomBackgroundDisabled := TGLImage.Create(FCustomBackgroundDisabled, true);
+
+    UpdateSize;
+  end;
+end;
+
 procedure TCastleButton.SetCustomBackgroundFocused(const Value: TCastleImage);
 begin
   if FCustomBackgroundFocused <> Value then
@@ -1748,6 +1810,15 @@ begin
   end;
 end;
 
+procedure TCastleButton.SetEnabled(const Value: boolean);
+begin
+  if FEnabled <> Value then
+  begin
+    FEnabled := Value;
+    VisibleChange;
+  end;
+end;
+
 function TCastleButton.Rect: TRectangle;
 begin
   Result := Rectangle(LeftBottomScaled, Width, Height);
@@ -1824,6 +1895,9 @@ begin
   FColor := White;
   FOwnsImage := true;
   FSmoothScaling := true;
+  FCenterX := 0.5;
+  FCenterY := 0.5;
+  FRotation := 0;
 end;
 
 destructor TCastleImageControl.Destroy;
@@ -1856,37 +1930,43 @@ begin
   FURL := Value;
 end;
 
-function TCastleImageControl.GetCenterX: Single;
+procedure TCastleImageControl.SetCenterX(const AValue: Single);
 begin
-  Result := FGLImage.CenterX;
+  if FCenterX <> AValue then
+  begin
+    FCenterX := AValue;
+    if FGLImage <> nil then
+    begin
+      FGLImage.CenterX := FCenterX;
+      VisibleChange;
+    end;
+  end;
 end;
 
-function TCastleImageControl.GetCenterY: Single;
+procedure TCastleImageControl.SetCenterY(const AValue: Single);
 begin
-  Result := FGLImage.CenterY;
+  if FCenterY <> AValue then
+  begin
+    FCenterY := AValue;
+    if FGLImage <> nil then
+    begin
+      FGLImage.CenterY := FCenterY;
+      VisibleChange;
+    end;
+  end;
 end;
 
-function TCastleImageControl.GetRotation: Single;
+procedure TCastleImageControl.SetRotation(const AValue: Single);
 begin
-  Result := FGLImage.Rotation;
-end;
-
-procedure TCastleImageControl.SetCenterX(AValue: Single);
-begin
-  FGLImage.CenterX := AValue;
-  VisibleChange;
-end;
-
-procedure TCastleImageControl.SetCenterY(AValue: Single);
-begin
-  FGLImage.CenterY := AValue;
-  VisibleChange;
-end;
-
-procedure TCastleImageControl.SetRotation(AValue: Single);
-begin
-  FGLImage.Rotation := AValue;
-  VisibleChange;
+  if FRotation <> AValue then
+  begin
+    FRotation := AValue;
+    if FGLImage <> nil then
+    begin
+      FGLImage.Rotation := FRotation;
+      VisibleChange;
+    end;
+  end;
 end;
 
 procedure TCastleImageControl.SetImage(const Value: TCastleImage);
@@ -1981,6 +2061,9 @@ begin
       begin
         FGLImage := TGLImage.Create(FImage, FSmoothScaling);
         FGLImage.Color := Color;
+        FGLImage.CenterX := FCenterX;
+        FGLImage.CenterY := FCenterY;
+        FGLImage.Rotation := FRotation;
       end;
       if AlphaChannel <> acAuto then
         FGLImage.Alpha := AlphaChannel;
@@ -2041,8 +2124,10 @@ begin
   begin
     FColor := Value;
     if FGLImage <> nil then
+    begin
       FGLImage.Color := Value;
-    VisibleChange;
+      VisibleChange;
+    end;
   end;
 end;
 
@@ -2116,12 +2201,22 @@ constructor TCastleTouchControl.Create(AOwner: TComponent);
 begin
   inherited;
   FDragging := -1;
+  FScale := 1;
 end;
 
-function TCastleTouchControl.SizeScale: Single;
+procedure TCastleTouchControl.SetScale(const Value: Single);
+begin
+  if FScale <> Value then
+  begin
+    FScale := Value;
+    VisibleChange;
+  end;
+end;
+
+function TCastleTouchControl.TotalScale: Single;
 begin
   if ContainerSizeKnown then
-    Result := Container.Dpi / 96 else
+    Result := Scale * Container.Dpi / 96 else
     Result := 1;
 end;
 
@@ -2130,8 +2225,8 @@ begin
   // do not apply UIScale here to Width / Height,
   // it's already adjusted to physical size
   Result := Rectangle(LeftBottomScaled,
-    Round(Theme.Images[tiTouchCtlOuter].Width  * SizeScale),
-    Round(Theme.Images[tiTouchCtlOuter].Height * SizeScale));
+    Round(Theme.Images[tiTouchCtlOuter].Width  * TotalScale),
+    Round(Theme.Images[tiTouchCtlOuter].Height * TotalScale));
 end;
 
 procedure TCastleTouchControl.SetPosition(const Value: TCastleTouchPosition);
@@ -2153,12 +2248,13 @@ begin
           Anchor(vpBottom, CtlBorder);
         end;
     end;
+    VisibleChange;
   end;
 end;
 
 function TCastleTouchControl.MaxOffsetDist: Integer;
 begin
-  Result := Round(SizeScale *
+  Result := Round(TotalScale *
     (Theme.Images[tiTouchCtlOuter].Width -
      Theme.Images[tiTouchCtlInner].Width) / 2);
 end;
@@ -2201,8 +2297,8 @@ begin
 
   // draw lever
   InnerRect := Theme.Images[ImageInner].Rect; // rectangle at (0,0)
-  InnerRect.Width  := Round(InnerRect.Width  * SizeScale);
-  InnerRect.Height := Round(InnerRect.Height * SizeScale);
+  InnerRect.Width  := Round(InnerRect.Width  * TotalScale);
+  InnerRect.Height := Round(InnerRect.Height * TotalScale);
   InnerRect.Left   := SR.Left   + (SR.Width  - InnerRect.Width ) div 2 + LevOffsetTrimmedX;
   InnerRect.Bottom := SR.Bottom + (SR.Height - InnerRect.Height) div 2 + LevOffsetTrimmedY;
 
@@ -2211,8 +2307,12 @@ end;
 
 procedure TCastleTouchControl.SetTouchMode(const Value: TCastleTouchCtlMode);
 begin
-  FTouchMode := Value;
-  { we may swap outer image depending on the TouchMode in some later version }
+  if FTouchMode <> Value then
+  begin
+    FTouchMode := Value;
+    { we may swap outer image depending on the TouchMode in some later version }
+    VisibleChange;
+  end;
 end;
 
 function TCastleTouchControl.Press(const Event: TInputPressRelease): boolean;
@@ -3017,12 +3117,13 @@ end;
 
 procedure TCastleProgressBar.Render;
 const
-  Padding = 20;
+  PaddingHorizontal = 20;
+  MinPaddingVertical = 4;
 var
   MaxTextWidth: Integer;
-  Font: TCastleFont;
   Caption: string;
   BarRect, FillRect: TRectangle;
+  HeightForText: Single;
 begin
   inherited;
 
@@ -3039,22 +3140,18 @@ begin
   Theme.GLImages[tiProgressFill].IgnoreTooLargeCorners := true;
   Theme.Draw(FillRect, tiProgressFill, UIScale);
 
-  MaxTextWidth := BarRect.Width - Padding;
+  MaxTextWidth := BarRect.Width - PaddingHorizontal;
   Caption := Progress.Title;
-  if (UIFont.RowHeight < BarRect.Height) and
-     (UIFont.TextWidth(Caption) < MaxTextWidth) then
-  begin
-    Font := UIFont;
-    if UIFont.TextWidth(Caption + Dots) < MaxTextWidth then
-      Caption += Dots;
-  end else
-  begin
-    Font := UIFontSmall;
-    MakeTextFit(Caption, Font, MaxTextWidth);
-  end;
-  Font.Print(BarRect.Left + Padding,
+
+  Font.PushProperties;
+  HeightForText := BarRect.Height - 2 * MinPaddingVertical;
+  if Font.RowHeight > HeightForText then
+    Font.Scale := Font.Scale / (Font.RowHeight / HeightForText);
+  MakeTextFit(Caption, Font, MaxTextWidth);
+  Font.Print(BarRect.Left + PaddingHorizontal,
     BarRect.Bottom + (BarRect.Height - Font.RowHeight) div 2,
     Theme.TextColor, Caption);
+  Font.PopProperties;
 end;
 
 constructor TCastleProgressBar.Create(AOwner: TComponent);
@@ -3403,6 +3500,7 @@ begin
   inherited;
   TooltipTextColor      := Vector4Single(0   , 0, 0, 1);
   TextColor             := Vector4Single(0   , 0, 0, 1);
+  DisabledTextColor     := Vector4Single(0.33, 0.33, 0.33, 1);
   MessageInputTextColor := Vector4Single(0.33, 1, 1, 1);
   MessageTextColor      := Vector4Single(1   , 1, 1, 1);
   BackgroundTint        := Vector4Single(0.25, 0.25, 0.25, 1);
@@ -3420,6 +3518,8 @@ begin
   FCorners[tiProgressFill] := Vector4Integer(1, 1, 1, 1);
   FImages[tiButtonNormal] := ButtonNormal;
   FCorners[tiButtonNormal] := Vector4Integer(2, 2, 2, 2);
+  FImages[tiButtonDisabled] := ButtonDisabled;
+  FCorners[tiButtonDisabled] := Vector4Integer(2, 2, 2, 2);
   FImages[tiButtonPressed] := ButtonPressed;
   FCorners[tiButtonPressed] := Vector4Integer(2, 2, 2, 2);
   FImages[tiButtonFocused] := ButtonFocused;
@@ -3454,16 +3554,17 @@ begin
   FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
   FImages[tiErrorBackground] := ErrorBackground;
   FCorners[tiErrorBackground] := Vector4Integer(0, 0, 0, 0);
+
+  ApplicationProperties.OnGLContextCloseObject.Add(@GLContextClose);
 end;
 
 destructor TCastleTheme.Destroy;
 var
   I: TThemeImage;
 begin
+  ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextClose);
   for I in TThemeImage do
-    if FOwnsImages[I] then
-      FreeAndNil(FImages[I]) else
-      FImages[I] := nil;
+    Images[I] := nil; // will free Images[I] if necessary
   if OwnsMessageFont then
     FreeAndNil(FMessageFont) else
     FMessageFont := nil;
@@ -3516,14 +3617,12 @@ begin
   Result := FGLImages[ImageType];
 end;
 
-procedure TCastleTheme.GLContextClose;
+procedure TCastleTheme.GLContextClose(Sender: TObject);
 var
   ImageType: TThemeImage;
 begin
   for ImageType in TThemeImage do
     FreeAndNil(FGLImages[ImageType]);
-  if FMessageFont <> nil then
-    FMessageFont.GLContextClose;
 end;
 
 procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage;
@@ -3537,6 +3636,9 @@ procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage
 begin
   GLImages[ImageType].Color := Color;
   GLImages[ImageType].ScaleCorners := UIScale;
+  if Color[3] < 1 then
+    GLImages[ImageType].Alpha := acFullRange else
+    GLImages[ImageType].Alpha := FImages[ImageType].AlphaChannel;
   GLImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
 end;
 
@@ -3550,6 +3652,14 @@ begin
   end;
 end;
 
+procedure TCastleTheme.DialogsLight;
+begin
+  MessageInputTextColor := Vector4Single(0, 0.4, 0, 1.0);
+  MessageTextColor := Black;
+  Images[tiWindow] := WindowGray;
+  Images[tiLabel] := FrameYellowBlack;
+end;
+
 var
   FTheme: TCastleTheme;
 
@@ -3558,18 +3668,7 @@ begin
   Result := FTheme;
 end;
 
-procedure ContextClose;
-begin
-  if FUIFont <> nil then
-    FUIFont.GLContextClose;
-  if FUIFontSmall <> nil then
-    FUIFontSmall.GLContextClose;
-  if FTheme <> nil then
-    FTheme.GLContextClose;
-end;
-
 initialization
-  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
   FTheme := TCastleTheme.Create;
 finalization
   FreeAndNil(FTheme);

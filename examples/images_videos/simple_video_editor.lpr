@@ -272,7 +272,7 @@ begin
     MenuRevert.Enabled := false;
     M.Append(MenuRevert);
     M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('_Exit',       20, CharEscape));
+    M.Append(TMenuItem.Create('_Exit',       20, CtrlW));
     Result.Append(M);
   M := TMenu.Create('_Playback');
     M.Append(TMenuItemChecked.Create('_Playing / Paused', 110, CtrlP,

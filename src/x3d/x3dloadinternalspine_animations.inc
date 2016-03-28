@@ -39,6 +39,8 @@
       const Slots: TSlotList; const SlotsAnimated: TSlotsAnimated);
     procedure BuildNodes(const BaseUrl: string; const Container: TX3DRootNode;
       const BonesAnimated: TBonesAnimated; const SlotsAnimated: TSlotsAnimated);
+    { Add all TimeSensors to EXPORTed nodes. }
+    procedure Exported(const RootNode: TX3DRootNode);
   end;
 {$endif}
 
@@ -390,6 +392,14 @@ var
 begin
   for I := 0 to Count - 1 do
     Items[I].BuildNodes(BaseUrl, Container, BonesAnimated, SlotsAnimated);
+end;
+
+procedure TAnimationList.Exported(const RootNode: TX3DRootNode);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    RootNode.ManuallyExportNode(Items[I].Node);
 end;
 
 {$endif}

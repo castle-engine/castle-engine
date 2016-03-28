@@ -13,40 +13,42 @@
   ----------------------------------------------------------------------------
 }
 
-{ w zaleznosci od tego czy zdefiniowales HAS_PRECALC_PLANE
-  to makro wygeneruje inna implementacje funkcji IsTriangleSphereCollision }
-var intersection: TVector3;
-    SphereRadiusSqr: TScalar;
-    i: integer;
-    {$ifndef HAS_PRECALC_PLANE} TriPlane: TVector4; {$endif}
-    { pamietaj ze TriDir dla ifndef HAS_PRECALC_PLANE jest dobre dopiero
-      po obliczeniu TriPlane }
-    TriDir: TVector3 absolute TriPlane;
+var
+  Intersection: TVector3;
+  SphereRadiusSqr: TScalar;
+  I, NextI: integer;
+  {$ifndef HAS_PRECALC_PLANE} TriPlane: TVector4; {$endif}
+  { In case HAS_PRECALC_PLANE is not defined, TriDir is valid only once
+    TriPlane is calculated. }
+  TriDir: TVector3 absolute TriPlane;
 begin
- SphereRadiusSqr := Sqr(SphereRadius);
- if (PointsDistanceSqr(Tri[0], SphereCenter) <= SphereRadiusSqr) or
-    (PointsDistanceSqr(Tri[1], SphereCenter) <= SphereRadiusSqr) or
-    (PointsDistanceSqr(Tri[2], SphereCenter) <= SphereRadiusSqr) then exit(true);
+  SphereRadiusSqr := Sqr(SphereRadius);
 
- {$ifndef HAS_PRECALC_PLANE} TriPlane := TrianglePlane(Tri);{$endif}
- intersection := PointOnPlaneClosestToPoint(TriPlane, SphereCenter);
- if (PointsDistanceSqr(SphereCenter, intersection) <= SphereRadiusSqr) and
-    IsPointOnTrianglePlaneWithinTriangle(intersection, Tri, TriDir) then
-  exit(true);
+  (* Is SphereCenter within the radius of one of triangle corners.
+     Note that this case is necessary, it is not fully catched by
+     "SphereCenter close to one of the triangles' edges" lower. *)
+  if (PointsDistanceSqr(Tri[0], SphereCenter) <= SphereRadiusSqr) or
+     (PointsDistanceSqr(Tri[1], SphereCenter) <= SphereRadiusSqr) or
+     (PointsDistanceSqr(Tri[2], SphereCenter) <= SphereRadiusSqr) then
+    Exit(true);
 
- (* pozostaje nam sprawdzic czy moze punkt SphereCenter jest blisko jednego
-    z bokow trojkata (ale nie musimy juz sprawdzac czy jest blisko jakiegos rogu;
-    dzieki temu wystarczy ze obliczymy na kazdym boku trojkata punkt najblizszy
-    SphereCenter i obliczymy odleglosc tego punktu od SphereCenter (powinna byc
-    mniejsza niz SphereRadius)) *)
- for i := 0 to 2 do
- begin
-  intersection := PointOnLineClosestToPoint(Tri[i],
-    VectorSubtract(Tri[(i+1)mod 3], Tri[i]), SphereCenter);
-  if IsPointOnSegmentLineWithinSegment(intersection, Tri[i], Tri[(i+1)mod 3]) and
-     (PointsDistanceSqr(SphereCenter, intersection) <= SphereRadiusSqr) then
-   exit(true);
- end;
+  {$ifndef HAS_PRECALC_PLANE} TriPlane := TrianglePlane(Tri);{$endif}
+  (* Is SphereCenter within the triangle. *)
+  Intersection := PointOnPlaneClosestToPoint(TriPlane, SphereCenter);
+  if (PointsDistanceSqr(SphereCenter, Intersection) <= SphereRadiusSqr) and
+     IsPointOnTrianglePlaneWithinTriangle(Intersection, Tri, TriDir) then
+    Exit(true);
 
- result := false;
+  (* Is SphereCenter close to one of the triangles' edges. *)
+  for I := 0 to 2 do
+  begin
+    NextI := (I + 1) mod 3;
+    Intersection := PointOnLineClosestToPoint(Tri[I],
+      VectorSubtract(Tri[NextI], Tri[I]), SphereCenter);
+    if IsPointOnSegmentLineWithinSegment(Intersection, Tri[I], Tri[NextI]) and
+       (PointsDistanceSqr(SphereCenter, Intersection) <= SphereRadiusSqr) then
+      Exit(true);
+  end;
+
+  Result := false;
 end;

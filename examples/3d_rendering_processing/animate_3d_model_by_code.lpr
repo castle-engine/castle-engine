@@ -58,13 +58,13 @@ begin
     below). It's most natural to just use Scene.Time property for this.
     (Scene.Time is already incremented for us by SceneManager.) }
 
-  TransformBox2.FdRotation.RotationRad := Scene.Time.Seconds;
+  TransformBox2.FdRotation.RotationRad := Scene.Time;
   TransformBox2.FdRotation.Changed;
 
-  TransformBox3.FdRotation.RotationRad := Scene.Time.Seconds * 2;
+  TransformBox3.FdRotation.RotationRad := Scene.Time * 2;
   TransformBox3.FdRotation.Changed;
 
-  TransformBox4.FdRotation.RotationRad := Scene.Time.Seconds * 4;
+  TransformBox4.FdRotation.RotationRad := Scene.Time * 4;
   TransformBox4.FdRotation.Changed;
 end;
 

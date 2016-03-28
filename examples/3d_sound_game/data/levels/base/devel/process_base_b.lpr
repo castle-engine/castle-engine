@@ -65,10 +65,10 @@ begin
   TextureCoordinate2ForMeshBasePlane.FdPoint.Items.Count :=
     Coordinate3ForMeshBasePlane.FdPoint.Items.Count;
   for i := 0 to Coordinate3ForMeshBasePlane.FdPoint.Items.Count - 1 do
-   TextureCoordinate2ForMeshBasePlane.FdPoint.Items.L[i] :=
+   TextureCoordinate2ForMeshBasePlane.FdPoint.Items.List^[i] :=
      Vector2Single(
-       MapRange(Coordinate3ForMeshBasePlane.FdPoint.Items.L[i, 0], -4.55, 5.45, 0.0, 1.0),
-       MapRange(Coordinate3ForMeshBasePlane.FdPoint.Items.L[i, 1], -4.57, 4.23, 0.0, 1.0));
+       MapRange(Coordinate3ForMeshBasePlane.FdPoint.Items.List^[i, 0], -4.55, 5.45, 0.0, 1.0),
+       MapRange(Coordinate3ForMeshBasePlane.FdPoint.Items.List^[i, 1], -4.57, 4.23, 0.0, 1.0));
   MeshBasePlaneNode.VRML1ChildAdd(1, TextureCoordinate2ForMeshBasePlane);
 
   { add textureCoordIndex fields to Street and Ground IFS }

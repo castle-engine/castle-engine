@@ -20,7 +20,7 @@ unit CastleKeysMouse;
 
 interface
 
-uses CastleUtils, CastleStringUtils, CastleVectors;
+uses CastleUtils, CastleStringUtils, CastleVectors, CastleXMLConfig;
 
 type
   { Keys on keyboard.
@@ -549,6 +549,7 @@ type
     function IsKey(const AKeyCharacter: char): boolean;
     { @groupEnd }
     function IsMouseButton(const AMouseButton: TMouseButton): boolean;
+    function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
 
     { Textual description of this event. }
     function ToString: string;
@@ -576,6 +577,21 @@ function InputMouseWheel(const Position: TVector2Single;
 { Construct TInputMotion. }
 function InputMotion(const OldPosition, Position: TVector2Single;
   const Pressed: TMouseButtons; const FingerIndex: TFingerIndex): TInputMotion;
+
+type
+  TCastleConfigKeysMouseHelper = class helper for TCastleConfig
+    { Reading/writing key values to config file.
+      Key names are expected to follow StrToKey and KeyToStr functions in CastleKeysMouse.
+
+      @groupBegin }
+    function GetKey(const APath: string;
+      const ADefaultValue: TKey): TKey; overload;
+    procedure SetKey(const APath: string;
+      const AValue: TKey); overload;
+    procedure SetDeleteKey(const APath: string;
+      const AValue, ADefaultValue: TKey); overload;
+    { @groupEnd }
+  end;
 
 implementation
 
@@ -981,6 +997,11 @@ begin
   Result := (EventType = itMouseButton) and (MouseButton = AMouseButton);
 end;
 
+function TInputPressRelease.IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
+begin
+  Result := (EventType = itMouseWheel) and (MouseWheel = AMouseWheel);
+end;
+
 function TInputPressRelease.ToString: string;
 begin
   case EventType of
@@ -1038,6 +1059,26 @@ begin
   Result.Position := Position;
   Result.Pressed := Pressed;
   Result.FingerIndex := FingerIndex;
+end;
+
+{ TCastleConfigKeysMouseHelper ----------------------------------------------- }
+
+function TCastleConfigKeysMouseHelper.GetKey(const APath: string;
+  const ADefaultValue: TKey): TKey;
+begin
+  Result := StrToKey(GetValue(APath, KeyToStr(ADefaultValue)), ADefaultValue);
+end;
+
+procedure TCastleConfigKeysMouseHelper.SetKey(const APath: string;
+  const AValue: TKey);
+begin
+  SetValue(APath, KeyToStr(AValue));
+end;
+
+procedure TCastleConfigKeysMouseHelper.SetDeleteKey(const APath: string;
+  const AValue, ADefaultValue: TKey);
+begin
+  SetDeleteValue(APath, KeyToStr(AValue), KeyToStr(ADefaultValue));
 end;
 
 end.

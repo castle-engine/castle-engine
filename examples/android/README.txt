@@ -7,7 +7,7 @@ but also standalone (exe, for Windows, Linux, Mac OS X...), or a web browser
 plugin.
 
 Compile them using the Castle Game Engine build tool
-https://sourceforge.net/p/castle-engine/wiki/Build%20tool/ .
+https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
 
 - android_demo/ - the first demo for Android with a 3D scene.
   Tests various things

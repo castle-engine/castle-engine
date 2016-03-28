@@ -42,7 +42,7 @@ end;
 { Read <library_visual_scenes> from Collada 1.4.x }
 procedure ReadLibraryVisualScenes(LibraryElement: TDOMElement);
 var
-  I: TXMLElementFilteringIterator;
+  I: TXMLElementIterator;
   LibraryId: string;
   VisualScenesSwitch: TSwitchNode;
 begin
@@ -58,7 +58,7 @@ begin
   VisualScenesSwitch := TSwitchNode.Create(LibraryId, BaseUrl);
   ResultModel.FdChildren.Add(VisualScenesSwitch);
 
-  I := TXMLElementFilteringIterator.Create(LibraryElement, 'visual_scene');
+  I := LibraryElement.ChildrenIterator('visual_scene');
   try
     while I.GetNext do
       ReadVisualScene(VisualScenesSwitch, I.Current);
@@ -77,7 +77,7 @@ var
     VisualSceneId: string;
     VisualScene: TX3DNode;
   begin
-    InstanceVisualScene := DOMGetChildElement(SceneElement,
+    InstanceVisualScene := SceneElement.ChildElement(
       'instance_visual_scene', false);
     if InstanceVisualScene <> nil then
     begin

@@ -176,7 +176,7 @@ uses SysUtils, FGL, Classes, XMLRead, DOM,
   CastleVectors, X3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors,
   CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
-  CastleScript, X3DCastleScript, CastleOctree, CastleDDS, CastleTextureImages,
+  CastleScript, X3DCastleScript, CastleOctree, CastleCompositeImage, CastleTextureImages,
   CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
   CastleTextureFontData, CastleGenericLists, CastleShaders, CastleRays;
 
@@ -1760,6 +1760,7 @@ type
     Node: TX3DNode;
     Name: string;
     Finished: boolean;
+    function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNameRec;
   end;
   PX3DNodeNameRec = ^TX3DNodeNameRec;
 
@@ -1808,6 +1809,8 @@ type
       only to it's own name, which is true during parsing
       (when nothing can change in the middle of parsing). }
     function Bound(Node: TX3DNode): boolean;
+
+    function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNames;
   end;
 
   TX3DPrototypeNames = class(TStringListCaseSens)
@@ -2116,7 +2119,7 @@ const
 
   { Standard prefix name for a time sensor to be recognized as a "named animation"
     for TCastleSceneCore.PlayAnimation and friends. }
-  DefaultAnimationPrefix = 'Animation_';
+  DefaultAnimationPrefix = '';
 
   AllAccessTypes = [atInputOnly, atOutputOnly, atInitializeOnly, atInputOutput];
   RestrictedAccessTypes = [atInputOnly, atOutputOnly, atInitializeOnly];
@@ -3086,7 +3089,7 @@ var
   I: TXMLElementIterator;
   ContainerFieldDummy: string;
 begin
-  I := TXMLElementIterator.Create(Element);
+  I := Element.ChildrenIterator;
   try
     if I.GetNext then
     begin
@@ -3534,7 +3537,7 @@ var
   I: TXMLElementIterator;
   ContainerFieldDummy: string;
 begin
-  I := TXMLElementIterator.Create(Element);
+  I := Element.ChildrenIterator;
   try
     while I.GetNext do
     begin
@@ -4668,7 +4671,7 @@ var
   I: TX3DInterfaceDeclaration;
   Iter: TXMLElementIterator;
 begin
-  Iter := TXMLElementIterator.Create(Element);
+  Iter := Element.ChildrenIterator;
   try
     while Iter.GetNext do
     begin
@@ -4759,11 +4762,11 @@ begin
     Name := NewName else
     raise EX3DXmlError.Create('Missing "name" for <ProtoDeclare> element');
 
-  E := DOMGetChildElement(Element, 'ProtoInterface', false);
+  E := Element.ChildElement('ProtoInterface', false);
   if E <> nil then
     ParseInterfaceDeclarationsXML(false, E, Reader);
 
-  E := DOMGetChildElement(Element, 'ProtoBody', false);
+  E := Element.ChildElement('ProtoBody', false);
   if E = nil then
     raise EX3DXmlError.CreateFmt('Missing <ProtoBody> inside <ProtoDeclare> element of prototype "%s"', [Name]);
 
@@ -5275,10 +5278,12 @@ begin
       DestinationEvent.Send(Value, Time);
   end else
   if Log then
-    WritelnLog('VRMLRoute', Format(
-      'Route from %s.%s ignored another event at <= timestamp (%f, while last event was on %f). Potential routes loop avoided',
+    WritelnLog('VRML/X3D', Format(
+      'Route %s.%s -> %s.%s ignored another event at <= timestamp (%f.%d, while last event was on %f.%d). Potential routes loop avoided',
       [ SourceNode.NodeName, SourceEvent.Name,
-        Time.Seconds, LastEventTime.Seconds ]));
+        DestinationNode.NodeName, DestinationEvent.Name,
+        Time.Seconds, Time.PlusTicks,
+        LastEventTime.Seconds, LastEventTime.PlusTicks ]));
 end;
 
 procedure TX3DRoute.ResetLastEventTime;
@@ -5715,6 +5720,15 @@ begin
   Result.ExportedNodeAlias := ExportedNodeAlias;
 end;
 
+{ TX3DNodeNameRec ------------------------------------------------------------ }
+
+function TX3DNodeNameRec.DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNameRec;
+begin
+  Result.Node := CopyState.DeepCopy(Node);
+  Result.Name := Name;
+  Result.Finished := Finished;
+end;
+
 { TX3DNodeNames ----------------------------------------------------------- }
 
 constructor TX3DNodeNames.Create(const AAutoRemove: boolean);
@@ -5800,6 +5814,16 @@ end;
 function TX3DNodeNames.Bound(Node: TX3DNode): boolean;
 begin
   Result := IndexOfNode(Node) <> -1;
+end;
+
+function TX3DNodeNames.DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNames;
+var
+  I: Integer;
+begin
+  Result := TX3DNodeNames.Create(AutoRemove);
+  Result.Count := Count;
+  for I := 0 to Count - 1 do
+    Result.Items[I] := Items[I].DeepCopy(CopyState);
 end;
 
 { TX3DPrototypeNames -------------------------------------------------------- }

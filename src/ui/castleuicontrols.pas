@@ -22,7 +22,7 @@ interface
 uses SysUtils, Classes, FGL,
   CastleKeysMouse, CastleUtils, CastleClassUtils,
   CastleGenericLists, CastleRectangles, CastleTimeUtils, pk3DConnexion,
-  CastleImages, CastleVectors, CastleJoysticks;
+  CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties;
 
 const
   { Default value for container's Dpi, as is usually set on desktops. }
@@ -180,8 +180,8 @@ type
     returns @link(TUIControl.CapturesEventsAtPosition) = @true.
 
     We also call various methods to every control.
-    These include @link(TUIControl.Update), @link(TUIControl.Render),
-    @link(TUIControl.Resize). }
+    These include @link(TInputListener.Update), @link(TUIControl.Render),
+    @link(TInputListener.Resize). }
   TUIContainer = class abstract(TComponent)
   private
     type
@@ -441,7 +441,10 @@ type
       read FUIExplicitScale write SetUIExplicitScale default 1.0;
   end;
 
-  { Base class for things that listen to user input: cameras and 2D controls. }
+  { Base class for things that listen to user input.
+
+    TODO: this is separate from TInputListener class only to avoid FPC 2.6.4
+    bug Internal error 200610054 when using the stabs debug info. }
   TInputListener = class(TComponent)
   private
     FOnVisibleChange: TNotifyEvent;
@@ -735,12 +738,16 @@ end;
     using fields like Width, Height, FullSize.
     Some descendants may allow both approaches, switchable by
     property like TCastleButton.AutoSize or TCastleImageControl.Stretch.
+    The base @link(TUIControl.Rect) returns always an empty rectangle,
+    most descendants will want to override it (you can also ignore the issue
+    in your own TUIControl descendants, if the given control size will
+    never be used for anything).
 
     All screen (mouse etc.) coordinates passed here should be in the usual
     window system coordinates, that is (0, 0) is left-top window corner.
     (Note that this is contrary to the usual OpenGL 2D system,
     where (0, 0) is left-bottom window corner.) }
-  TUIControl = class(TInputListener)
+  TUIControl = class abstract(TInputListener)
   private
     FDisableContextOpenClose: Cardinal;
     FFocused: boolean;
@@ -752,12 +759,13 @@ end;
     FBottom: Integer;
     FParent: TUIControl; //< null means that parent is our owner
     FHasHorizontalAnchor: boolean;
-    FHorizontalAnchor: THorizontalPosition;
+    FHorizontalAnchorSelf, FHorizontalAnchorParent: THorizontalPosition;
     FHorizontalAnchorDelta: Integer;
     FHasVerticalAnchor: boolean;
-    FVerticalAnchor: TVerticalPosition;
+    FVerticalAnchorSelf, FVerticalAnchorParent: TVerticalPosition;
     FVerticalAnchorDelta: Integer;
     FEnableUIScaling: boolean;
+    FKeepInFront: boolean;
     procedure SetExists(const Value: boolean);
     function GetControls(const I: Integer): TUIControl;
     procedure SetControls(const I: Integer; const Item: TUIControl);
@@ -779,10 +787,12 @@ end;
     procedure SetBottom(const Value: Integer);
 
     procedure SetHasHorizontalAnchor(const Value: boolean);
-    procedure SetHorizontalAnchor(const Value: THorizontalPosition);
+    procedure SetHorizontalAnchorSelf(const Value: THorizontalPosition);
+    procedure SetHorizontalAnchorParent(const Value: THorizontalPosition);
     procedure SetHorizontalAnchorDelta(const Value: Integer);
     procedure SetHasVerticalAnchor(const Value: boolean);
-    procedure SetVerticalAnchor(const Value: TVerticalPosition);
+    procedure SetVerticalAnchorSelf(const Value: TVerticalPosition);
+    procedure SetVerticalAnchorParent(const Value: TVerticalPosition);
     procedure SetVerticalAnchorDelta(const Value: Integer);
     function RectWithAnchors: TRectangle;
     procedure SetEnableUIScaling(const Value: boolean);
@@ -797,11 +807,6 @@ end;
     procedure UIScaleChanged; virtual;
 
     //procedure DoCursorChange; override;
-
-    { Keep the control in front of other controls (with KeepInFront=@false)
-      when inserting. TODO: This is more a hack than a nice solution.
-      It also assumes that the result is constant for given instance lifetime. }
-    function KeepInFront: boolean; virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -821,6 +826,9 @@ end;
 
     { Remove control added by @link(InsertFront) or @link(InsertBack). }
     procedure RemoveControl(Item: TUIControl);
+
+    { Remove all child controls added by @link(InsertFront) or @link(InsertBack). }
+    procedure ClearControls;
 
     { Return whether item really exists, see @link(Exists).
       Non-existing item does not receive any of the render or input or update calls.
@@ -868,7 +876,7 @@ end;
         @item(@italic((For fixed-function pipeline.))
           The 2D orthographic projection is always set at the beginning.
           Useful for 2D controls, 3D controls can just override projection
-          matrix, e.g. use @link(PerspectiveProjection).)
+          matrix, e.g. use @link(CastleGLUtils.PerspectiveProjection).)
 
         @item(glViewport is set to include whole container.)
 
@@ -1003,14 +1011,32 @@ end;
 
     { Quick way to enable horizontal anchor, to automatically keep this
       control aligned to parent. Sets @link(HasHorizontalAnchor),
-      @link(HorizontalAnchor), @link(HorizontalAnchorDelta). }
+      @link(HorizontalAnchorSelf), @link(HorizontalAnchorParent),
+      @link(HorizontalAnchorDelta). }
     procedure Anchor(const AHorizontalAnchor: THorizontalPosition;
+      const AHorizontalAnchorDelta: Integer = 0);
+
+    { Quick way to enable horizontal anchor, to automatically keep this
+      control aligned to parent. Sets @link(HasHorizontalAnchor),
+      @link(HorizontalAnchorSelf), @link(HorizontalAnchorParent),
+      @link(HorizontalAnchorDelta). }
+    procedure Anchor(
+      const AHorizontalAnchorSelf, AHorizontalAnchorParent: THorizontalPosition;
       const AHorizontalAnchorDelta: Integer = 0);
 
     { Quick way to enable vertical anchor, to automatically keep this
       control aligned to parent. Sets @link(HasVerticalAnchor),
-      @link(VerticalAnchor), @link(VerticalAnchorDelta). }
+      @link(VerticalAnchorSelf), @link(VerticalAnchorParent),
+      @link(VerticalAnchorDelta). }
     procedure Anchor(const AVerticalAnchor: TVerticalPosition;
+      const AVerticalAnchorDelta: Integer = 0);
+
+    { Quick way to enable vertical anchor, to automatically keep this
+      control aligned to parent. Sets @link(HasVerticalAnchor),
+      @link(VerticalAnchorSelf), @link(VerticalAnchorParent),
+      @link(VerticalAnchorDelta). }
+    procedure Anchor(
+      const AVerticalAnchorSelf, AVerticalAnchorParent: TVerticalPosition;
       const AVerticalAnchorDelta: Integer = 0);
 
     { Immediately position the control with respect to the parent
@@ -1019,13 +1045,16 @@ end;
     procedure AlignHorizontal(
       const ControlPosition: TPositionRelative = prMiddle;
       const ContainerPosition: TPositionRelative = prMiddle;
-      const X: Integer = 0); deprecated 'use Align, or use even simpler HasHorizontalAnchor, HorizontalAnchor, HorizontalAnchorDelta';
+      const X: Integer = 0); deprecated 'use Align or Anchor';
 
     { Immediately position the control with respect to the parent
       by adjusting @link(Left).
 
-      Note that in simple cases, you can achieve the same functionality
-      by HasHorizontalAnchor, HorizontalAnchor, HorizontalAnchorDelta. }
+      Note that using @link(Anchor) is often more comfortable than this method,
+      since you only need to set anchor once (for example, right after creating
+      the control). In contract, adjusting position using this method
+      will typically need to be repeated at each window on resize,
+      like in @link(TCastleWindowCustom.OnResize). }
     procedure Align(
       const ControlPosition: THorizontalPosition;
       const ContainerPosition: THorizontalPosition;
@@ -1037,13 +1066,16 @@ end;
     procedure AlignVertical(
       const ControlPosition: TPositionRelative = prMiddle;
       const ContainerPosition: TPositionRelative = prMiddle;
-      const Y: Integer = 0); deprecated 'use Align, or use even simpler HasVerticalAnchor, VerticalAnchor, VerticalAnchorDelta';
+      const Y: Integer = 0); deprecated 'use Align or Anchor';
 
     { Immediately position the control with respect to the parent
       by adjusting @link(Bottom).
 
-      Note that in simple cases, you can achieve the same functionality
-      by HasVerticalAnchor, VerticalAnchor, VerticalAnchorDelta. }
+      Note that using @link(Anchor) is often more comfortable than this method,
+      since you only need to set anchor once (for example, right after creating
+      the control). In contract, adjusting position using this method
+      will typically need to be repeated at each window on resize,
+      like in @link(TCastleWindowCustom.OnResize). }
     procedure Align(
       const ControlPosition: TVerticalPosition;
       const ContainerPosition: TVerticalPosition;
@@ -1052,8 +1084,12 @@ end;
     { Immediately center the control within the parent,
       both horizontally and vertically.
 
-      Note that in simple cases, you can achieve the same functionality
-      by HasHorizontalAnchor, HorizontalAnchor, HasVerticalAnchor, VerticalAnchor. }
+      Note that using @link(Anchor) is often more comfortable than this method,
+      since you only need to set anchor once. For example, right after creating
+      the control call @code(Anchor(hpMiddle); Anchor(vpMiddle);).
+      In contrast, adjusting position using this method
+      will typically need to be repeated at each window on resize,
+      like in @link(TCastleWindowCustom.OnResize). }
     procedure Center;
 
     { UI scale of this control, derived from container
@@ -1094,10 +1130,15 @@ end;
       @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
     property HasHorizontalAnchor: boolean
       read FHasHorizontalAnchor write SetHasHorizontalAnchor default false;
-    { Which border to align (both our and parent border),
+    { Which @bold(our) border to align (it's aligned
+      to parent @link(HorizontalAnchorParent) border),
       only used if @link(HasHorizontalAnchor). }
-    property HorizontalAnchor: THorizontalPosition
-      read FHorizontalAnchor write SetHorizontalAnchor default hpLeft;
+    property HorizontalAnchorSelf: THorizontalPosition
+      read FHorizontalAnchorSelf write SetHorizontalAnchorSelf default hpLeft;
+    { Which @bold(parent) border is aligned to our @link(HorizontalAnchorSelf) border,
+      only used if @link(HasHorizontalAnchor). }
+    property HorizontalAnchorParent: THorizontalPosition
+      read FHorizontalAnchorParent write SetHorizontalAnchorParent default hpLeft;
     { Delta between our border and parent,
       only used if @link(HasHorizontalAnchor). }
     property HorizontalAnchorDelta: Integer
@@ -1111,10 +1152,15 @@ end;
       @italic(Anchor distance is automatically affected by @link(TUIContainer.UIScaling).) }
     property HasVerticalAnchor: boolean
       read FHasVerticalAnchor write SetHasVerticalAnchor default false;
-    { Which border to align (both our and parent border),
+    { Which @bold(our) border to align (it's aligned
+      to parent @link(VerticalAnchorParent) border),
       only used if @link(HasVerticalAnchor). }
-    property VerticalAnchor: TVerticalPosition
-      read FVerticalAnchor write SetVerticalAnchor default vpBottom;
+    property VerticalAnchorSelf: TVerticalPosition
+      read FVerticalAnchorSelf write SetVerticalAnchorSelf default vpBottom;
+    { Which @bold(parent) border is aligned to our @link(VerticalAnchorSelf) border,
+      only used if @link(HasVerticalAnchor). }
+    property VerticalAnchorParent: TVerticalPosition
+      read FVerticalAnchorParent write SetVerticalAnchorParent default vpBottom;
     { Delta between our border and parent,
       only used if @link(HasVerticalAnchor). }
     property VerticalAnchorDelta: Integer
@@ -1131,6 +1177,51 @@ end;
       if you need to disable UI scaling recursively). }
     property EnableUIScaling: boolean
       read FEnableUIScaling write SetEnableUIScaling default true;
+
+    { Keep the control in front of other controls (with KeepInFront=@false)
+      when inserting.
+
+      TODO: Do not change this propertyu while the control is already
+      a children of something. }
+    property KeepInFront: boolean read FKeepInFront write FKeepInFront
+      default false;
+  end;
+
+  { UI control with configurable size.
+    By itself, this does not show anything. But it's useful as an ancestor
+    class for new UI classes that want their size to fully configurable,
+    or as a container for UI children. }
+  TUIControlSizeable = class(TUIControl)
+  strict private
+    FWidth, FHeight: Cardinal;
+    FFullSize: boolean;
+  public
+    { Control size.
+
+      When FullSize is @true (the default), the control always fills
+      the whole parent (like TCastleWindow or TCastleControl,
+      if you just placed the control on TCastleWindowCustom.Controls
+      or TCastleControlCustom.Controls),
+      and the values of @link(TUIControl.Left Left),
+      @link(TUIControl.Bottom Bottom), @link(Width), @link(Height) are ignored.
+
+      @seealso TUIControl.Rect
+
+      @groupBegin }
+    property FullSize: boolean read FFullSize write FFullSize default true;
+    property Width: Cardinal read FWidth write FWidth default 0;
+    property Height: Cardinal read FHeight write FHeight default 0;
+    { @groupEnd }
+
+    constructor Create(AOwner: TComponent); override;
+
+    { Position and size of the control, assuming it exists.
+
+      Looks at @link(FullSize) value, and the parent size
+      (when @link(FullSize) is @true), or at the properties
+      @link(Left), @link(Bottom), @link(Width), @link(Height)
+      (when @link(FullSize) is @false). }
+    function Rect: TRectangle; override;
   end;
 
   { Simple list of TUIControl instances. }
@@ -1254,110 +1345,6 @@ end;
     procedure EndDisableContextOpenClose;
     { @groupEnd }
   end;
-
-  TGLContextEvent = procedure;
-
-  TGLContextEventList = class(specialize TGenericStructList<TGLContextEvent>)
-  public
-    { Call all items, first to last. }
-    procedure ExecuteForward;
-    { Call all items, last to first. }
-    procedure ExecuteBackward;
-  end;
-
-  { Events and properties of the Castle Game Engine application,
-    usually accessed through the @link(ApplicationProperties) singleton.
-
-    These members work regardless if you use CastleWindow or CastleControl.
-    For more fine-grained application control,
-    see TCastleApplication (in case you use CastleWindow)
-    or Lazarus (LCL) TApplication (in case you use CastleControl). }
-  TCastleApplicationProperties = class
-  private
-    FIsGLContextOpen: boolean;
-    FOnGLContextOpen, FOnGLContextClose: TGLContextEventList;
-    FOnUpdate, FOnInitializeJavaActivity: TNotifyEventList;
-  public
-    constructor Create;
-    destructor Destroy; override;
-
-    { Callbacks called when the OpenGL context is opened or closed.
-      Use when you want to be notified about OpenGL context availability,
-      but cannot refer to a particular instance of TCastleControl or TCastleWindow.
-
-      Note that we may have many OpenGL contexts (many
-      TCastleWindow or TCastleControl instances) open simultaneously.
-      They all share OpenGL resources.
-      OnGLContextOpen is called when first OpenGL context is open,
-      that is: no previous context was open.
-      OnGLContextClose is called when last OpenGL context is closed,
-      that is: no more contexts remain open.
-      Note that this implies that they may be called many times:
-      e.g. if you open one window, then close it, then open another
-      window then close it.
-
-      Callbacks on OnGLContextOpen are called from first to last.
-      Callbacks on OnGLContextClose are called in reverse order,
-      so OnGLContextClose[0] is called last.
-
-      @groupBegin }
-    property OnGLContextOpen: TGLContextEventList read FOnGLContextOpen;
-    property OnGLContextClose: TGLContextEventList read FOnGLContextClose;
-    { @groupEnd }
-
-    { Is the OpenGL context available. IOW, we are between OnGLContextOpen
-      and OnGLContextClose. }
-    property IsGLContextOpen: boolean read FIsGLContextOpen;
-
-    { Callbacks called continously when (at least one) window is open.
-
-      You can use this just like @link(TCastleControl.OnUpdate)
-      or @link(TCastleWindow.OnUpdate) or @link(TCastleApplication.OnUpdate),
-      but in situations where you cannot access an instance of control/window
-      and you want to work both with Lazarus @link(TCastleControl)
-      and our custom @link(TCastleApplication). }
-    property OnUpdate: TNotifyEventList read FOnUpdate;
-
-    { Callbacks called when Android Java activity started.
-      Called every time a Java activity is created.
-
-      @unorderedList(
-        @item(For the first time, it's called right before
-          @link(TCastleApplication.OnInitialize).)
-
-        @item(Later this is called when Java activity
-          died (and is restarting now), but the native code thread survived.
-          So all native code memory is already cool (no need to call
-          @link(TCastleApplication.OnInitialize)),
-          but we need to reinitialize Java part.
-
-          Note that this is different from @link(TCastleWindowCustom.OnOpen).
-          We lose OpenGL context often, actually every time user switches to another
-          app, without having neither Java nor native threads killed.
-        )
-      )
-
-      For non-Android applications, this is simply always called exactly
-      once, exactly before calling @link(OnInitialize). }
-    property OnInitializeJavaActivity: TNotifyEventList read FOnInitializeJavaActivity;
-
-    { Internal for Castle Game Engine.
-      Called from CastleWindow or CastleControl.
-      Don't call these methods yourself.
-      @groupBegin
-      @exclude }
-    procedure _GLContextOpen;
-    { @exclude }
-    procedure _GLContextClose;
-    { @exclude }
-    procedure _Update;
-    { @exclude }
-    procedure _InitializeJavaActivity;
-    { @groupEnd }
-  end;
-
-function ApplicationProperties(
-  const CreateIfNotExisting: boolean = true): TCastleApplicationProperties;
 
 function OnGLContextOpen: TGLContextEventList; deprecated 'use ApplicationProperties.OnGLContextOpen';
 function OnGLContextClose: TGLContextEventList; deprecated 'use ApplicationProperties.OnGLContextClose';
@@ -1930,7 +1917,10 @@ function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
     begin
       { try to pass press to C children }
       for I := C.ControlsCount - 1 downto 0 do
-        if RecursivePress(C.Controls[I]) then
+        { checking "I < C.ControlsCount" below is a poor safeguard in case
+          some Press handler changes the Controls.Count.
+          At least we will not crash. }
+        if (I < C.ControlsCount) and RecursivePress(C.Controls[I]) then
           Exit(true);
 
       { try C.Press itself }
@@ -1968,7 +1958,10 @@ begin
 
   { pass to all Controls with TUIControl.Press event }
   for I := Controls.Count - 1 downto 0 do
-    if RecursivePress(Controls[I]) then
+    { checking "I < Controls.Count" below is a poor safeguard in case
+      some Press handler changes the Controls.Count.
+      At least we will not crash. }
+    if (I < Controls.Count) and RecursivePress(Controls[I]) then
       Exit(true);
 
   { pass to container event }
@@ -2544,11 +2537,6 @@ begin
   inherited;
 end;
 
-function TUIControl.KeepInFront: boolean;
-begin
-  Result := false;
-end;
-
 procedure TUIControl.CreateControls;
 begin
   if FControls = nil then
@@ -2598,6 +2586,12 @@ procedure TUIControl.RemoveControl(Item: TUIControl);
 begin
   if FControls <> nil then
     FControls.Remove(Item);
+end;
+
+procedure TUIControl.ClearControls;
+begin
+  if FControls <> nil then
+    FControls.Clear;
 end;
 
 function TUIControl.GetControls(const I: Integer): TUIControl;
@@ -2875,35 +2869,6 @@ end;
 *)
 
 function TUIControl.RectWithAnchors: TRectangle;
-
-  { Faster versions of TRectangle.AlignCore, knowing that ParentRect
-    ("other" rectangle) has Left/Bottom = (0,0) in local coords
-    (so no need to worry about them) and that ThisPosition = OtherPosition. }
-
-  function FastAlignCore(
-    const Position: THorizontalPosition;
-    const ThisWidth, OtherRectWidth: Integer;
-    const X: Integer): Integer;
-  begin
-    case Position of
-      hpLeft  : Result := X;
-      hpMiddle: Result := X - ThisWidth div 2 + OtherRectWidth div 2;
-      hpRight : Result := X - ThisWidth       + OtherRectWidth;
-    end;
-  end;
-
-  function FastAlignCore(
-    const Position: TVerticalPosition;
-    const ThisHeight, OtherRectHeight: Integer;
-    const Y: Integer): Integer;
-  begin
-    case Position of
-      vpBottom: Result := Y;
-      vpMiddle: Result := Y - ThisHeight div 2 + OtherRectHeight div 2;
-      vpTop   : Result := Y - ThisHeight       + OtherRectHeight;
-    end;
-  end;
-
 var
   PR: TRectangle;
 begin
@@ -2917,12 +2882,12 @@ begin
 
   { apply anchors }
   if HasHorizontalAnchor or HasVerticalAnchor then
-    PR := ParentRect; // only PR.Left / PR.Bottom are unused, so no need to get ParentRectAnchored
+    PR := ParentRect;
   if HasHorizontalAnchor then
-    Result.Left := FastAlignCore(HorizontalAnchor, Result.Width , PR.Width ,
+    Result.Left := Result.AlignCore(HorizontalAnchorSelf, PR, HorizontalAnchorParent,
       Round(UIScale * HorizontalAnchorDelta));
   if HasVerticalAnchor then
-    Result.Bottom := FastAlignCore(VerticalAnchor, Result.Height, PR.Height,
+    Result.Bottom := Result.AlignCore(VerticalAnchorSelf, PR, VerticalAnchorParent,
       Round(UIScale * VerticalAnchorDelta));
 end;
 
@@ -2971,11 +2936,20 @@ begin
   end;
 end;
 
-procedure TUIControl.SetHorizontalAnchor(const Value: THorizontalPosition);
+procedure TUIControl.SetHorizontalAnchorSelf(const Value: THorizontalPosition);
 begin
-  if FHorizontalAnchor <> Value then
+  if FHorizontalAnchorSelf <> Value then
   begin
-    FHorizontalAnchor := Value;
+    FHorizontalAnchorSelf := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TUIControl.SetHorizontalAnchorParent(const Value: THorizontalPosition);
+begin
+  if FHorizontalAnchorParent <> Value then
+  begin
+    FHorizontalAnchorParent := Value;
     VisibleChange;
   end;
 end;
@@ -2998,11 +2972,20 @@ begin
   end;
 end;
 
-procedure TUIControl.SetVerticalAnchor(const Value: TVerticalPosition);
+procedure TUIControl.SetVerticalAnchorSelf(const Value: TVerticalPosition);
 begin
-  if FVerticalAnchor <> Value then
+  if FVerticalAnchorSelf <> Value then
   begin
-    FVerticalAnchor := Value;
+    FVerticalAnchorSelf := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TUIControl.SetVerticalAnchorParent(const Value: TVerticalPosition);
+begin
+  if FVerticalAnchorParent <> Value then
+  begin
+    FVerticalAnchorParent := Value;
     VisibleChange;
   end;
 end;
@@ -3020,7 +3003,18 @@ procedure TUIControl.Anchor(const AHorizontalAnchor: THorizontalPosition;
   const AHorizontalAnchorDelta: Integer);
 begin
   HasHorizontalAnchor := true;
-  HorizontalAnchor := AHorizontalAnchor;
+  HorizontalAnchorSelf := AHorizontalAnchor;
+  HorizontalAnchorParent := AHorizontalAnchor;
+  HorizontalAnchorDelta := AHorizontalAnchorDelta;
+end;
+
+procedure TUIControl.Anchor(
+  const AHorizontalAnchorSelf, AHorizontalAnchorParent: THorizontalPosition;
+  const AHorizontalAnchorDelta: Integer);
+begin
+  HasHorizontalAnchor := true;
+  HorizontalAnchorSelf := AHorizontalAnchorSelf;
+  HorizontalAnchorParent := AHorizontalAnchorParent;
   HorizontalAnchorDelta := AHorizontalAnchorDelta;
 end;
 
@@ -3028,8 +3022,38 @@ procedure TUIControl.Anchor(const AVerticalAnchor: TVerticalPosition;
   const AVerticalAnchorDelta: Integer);
 begin
   HasVerticalAnchor := true;
-  VerticalAnchor := AVerticalAnchor;
+  VerticalAnchorSelf := AVerticalAnchor;
+  VerticalAnchorParent := AVerticalAnchor;
   VerticalAnchorDelta := AVerticalAnchorDelta;
+end;
+
+procedure TUIControl.Anchor(
+  const AVerticalAnchorSelf, AVerticalAnchorParent: TVerticalPosition;
+  const AVerticalAnchorDelta: Integer);
+begin
+  HasVerticalAnchor := true;
+  VerticalAnchorSelf := AVerticalAnchorSelf;
+  VerticalAnchorParent := AVerticalAnchorParent;
+  VerticalAnchorDelta := AVerticalAnchorDelta;
+end;
+
+{ TUIControlSizeable --------------------------------------------------------- }
+
+constructor TUIControlSizeable.Create(AOwner: TComponent);
+begin
+  inherited;
+  FFullSize := true;
+end;
+
+function TUIControlSizeable.Rect: TRectangle;
+begin
+  if FullSize then
+    Result := ParentRect else
+  begin
+    Result := Rectangle(Left, Bottom, Width, Height);
+    // applying UIScale on this is easy...
+    Result := Result.ScaleAround0(UIScale);
+  end;
 end;
 
 { TChildrenControls ------------------------------------------------------------- }
@@ -3186,7 +3210,7 @@ begin
       begin
         if ((C.FContainer <> nil) or (C.FParent <> nil)) and
            ((Container <> nil) or (FParent <> nil)) then
-          OnWarning(wtMajor, 'UI', 'Inserting to the UI list (InsertFront, InsertBack) an item that is already a part of other UI list. The result is undefined, you cannot insert the same TUIControl instance multiple times.');
+          OnWarning(wtMajor, 'UI', 'Inserting to the UI list (InsertFront, InsertBack) an item that is already a part of other UI list: ' + C.Name + ' (' + C.ClassName + '). The result is undefined, you cannot insert the same TUIControl instance multiple times.');
         C.FreeNotification(FCaptureFreeNotifications);
         if Container <> nil then RegisterContainer(C, FContainer);
         C.FParent := FParent;
@@ -3272,6 +3296,7 @@ begin
   begin
     if C.DisableContextOpenClose = 0 then
       C.GLContextOpen;
+    AContainer.Invalidate;
     { Call initial Resize for control.
       If window OpenGL context is not yet initialized, defer it to
       the Open time, then our initial EventResize will be called
@@ -3403,75 +3428,7 @@ begin
   end;
 end;
 
-{ TGLContextEventList -------------------------------------------------------- }
-
-procedure TGLContextEventList.ExecuteForward;
-var
-  I: Integer;
-begin
-  for I := 0 to Count - 1 do
-    Items[I]();
-end;
-
-procedure TGLContextEventList.ExecuteBackward;
-var
-  I: Integer;
-begin
-  for I := Count - 1 downto 0 do
-    Items[I]();
-end;
-
-{ TCastleApplicationProperties ----------------------------------------------- }
-
-var
-  FApplicationProperties: TCastleApplicationProperties;
-
-function ApplicationProperties(const CreateIfNotExisting: boolean): TCastleApplicationProperties;
-begin
-  if (FApplicationProperties = nil) and CreateIfNotExisting then
-    FApplicationProperties := TCastleApplicationProperties.Create;
-  Result := FApplicationProperties;
-end;
-
-constructor TCastleApplicationProperties.Create;
-begin
-  inherited;
-  FOnGLContextOpen := TGLContextEventList.Create;
-  FOnGLContextClose := TGLContextEventList.Create;
-  FOnUpdate := TNotifyEventList.Create;
-  FOnInitializeJavaActivity := TNotifyEventList.Create;
-end;
-
-destructor TCastleApplicationProperties.Destroy;
-begin
-  FreeAndNil(FOnGLContextOpen);
-  FreeAndNil(FOnGLContextClose);
-  FreeAndNil(FOnUpdate);
-  FreeAndNil(FOnInitializeJavaActivity);
-  inherited;
-end;
-
-procedure TCastleApplicationProperties._GLContextOpen;
-begin
-  FIsGLContextOpen := true;
-  FOnGLContextOpen.ExecuteForward;
-end;
-
-procedure TCastleApplicationProperties._GLContextClose;
-begin
-  FOnGLContextClose.ExecuteBackward;
-  FIsGLContextOpen := false;
-end;
-
-procedure TCastleApplicationProperties._Update;
-begin
-  FOnUpdate.ExecuteAll(Self);
-end;
-
-procedure TCastleApplicationProperties._InitializeJavaActivity;
-begin
-  FOnInitializeJavaActivity.ExecuteAll(Self);
-end;
+{ globals -------------------------------------------------------------------- }
 
 function OnGLContextOpen: TGLContextEventList;
 begin
@@ -3488,6 +3445,4 @@ begin
   Result := ApplicationProperties.IsGLContextOpen;
 end;
 
-finalization
-  FreeAndNil(FApplicationProperties);
 end.
