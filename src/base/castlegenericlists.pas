@@ -251,11 +251,7 @@ end;
 function TGenericStructList.Remove(const Item: T): Integer;
 begin
   Result := IndexOf(Item);
-  { for some reason, FPC 3.1.1 makes here incorrect warning:
-    castlegenericlists.pas(254,13) Warning: Function result variable does not seem to be initialized }
-  {$warnings off}
   if Result >= 0 then
-  {$warnings on}
     Delete(Result);
 end;
 
