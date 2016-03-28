@@ -161,6 +161,24 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             Inc(PDest);
           end;
         end;
+      dmMultiply:
+        {This mode implements simple multiply filter,
+         i.e. all values of image A are multiplied by all values of image B}
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := PDest^[0]*PSource^[0] div 255;
+              PDest^[1] := PDest^[1]*PSource^[1] div 255;
+              PDest^[2] := PDest^[2]*PSource^[2] div 255;
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         for DestY := Y to Y + SourceHeight - 1 do
         begin
@@ -228,6 +246,25 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             Inc(PDest);
           end;
         end;
+      dmMultiply:
+        {This mode implements simple multiply filter,
+         i.e. all values of image A are multiplied by all values of image B}
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := PDest^[0]*PSource^[0] div 255;
+              PDest^[1] := PDest^[1]*PSource^[1] div 255;
+              PDest^[2] := PDest^[2]*PSource^[2] div 255;
+              PDest^[3] := PDest^[3]*PSource^[3] div 255;
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         if Source.PremultipliedAlpha then
         begin
@@ -283,6 +320,24 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest^[2] := BlendBytes(PDest^[2], PSource^[0], PSource^[1]);
             Inc(PSource);
             Inc(PDest);
+          end;
+        end;
+      dmMultiply:
+        {This mode implements simple multiply filter,
+         i.e. all values of image A are multiplied by all values of image B}
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := PDest^[0]*PSource^[0] div 255;
+              PDest^[1] := PDest^[1]*PSource^[1] div 255;
+              PDest^[2] := PDest^[2]*PSource^[2] div 255;
+              Inc(PSource);
+              Inc(PDest);
+            end;
           end;
         end;
       dmAdd:

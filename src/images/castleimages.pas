@@ -248,6 +248,10 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       matters to accurately account for both images alpha channel. }
     dmBlendSmart,
 
+    { Simple implementation of 'multiply' filter. I.e. bytes of one image are just
+    multiplied by bytes of another image.}
+    dmMultiply,
+
     { Additive drawing mode, where the image contents of source image
       are added to the existing destination image. That is,
 
