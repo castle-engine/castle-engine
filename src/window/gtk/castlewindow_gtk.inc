@@ -752,23 +752,23 @@ const
     }
     GDK_LEFT_PTR, GDK_WATCH, GDK_XTERM, GDK_HAND2 );
 begin
-  if Application.Cursors[Cursor] = nil then
+  if Application.Cursors[InternalCursor] = nil then
   begin
     { initialize Application.Cursors[Cursor] }
-    case Cursor of
+    case InternalCursor of
       mcDefault:
         { don't do anything, Application.Cursors[mcDefault] should be nil,
           gdk_window_set_cursor will understand nil as "use parent"
           and that's exactly what we want for mcDefault. };
-      mcNone, mcForceNone: Application.Cursors[Cursor] := CreateNoneCursor;
+      mcNone, mcForceNone: Application.Cursors[InternalCursor] := CreateNoneCursor;
       mcCustom: { TODO: temporary, behave like mcDefault };
       else
-        Application.Cursors[Cursor] := gdk_cursor_new_for_display(
-          Application.XDisplayGdk, GdkCursorTypeFromMy[Cursor]);
+        Application.Cursors[InternalCursor] := gdk_cursor_new_for_display(
+          Application.XDisplayGdk, GdkCursorTypeFromMy[InternalCursor]);
     end;
   end;
 
-  gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, Application.Cursors[Cursor]);
+  gdk_window_set_cursor(GTK_WIDGET(GLAreaGtk)^.Window, Application.Cursors[InternalCursor]);
 end;
 
 {$ifndef CASTLE_WINDOW_GTK_WITH_XLIB}

@@ -119,7 +119,7 @@ begin
 
   { init our window state }
   UsedWindow.AutoRedisplay := true;
-  UsedWindow.Cursor := mcWait;
+  UsedWindow.InternalCursor := mcWait;
   { To actually draw progress start. }
   UsedWindow.Invalidate;
   Application.ProcessAllMessages;

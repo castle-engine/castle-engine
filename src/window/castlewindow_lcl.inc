@@ -429,7 +429,7 @@ begin
   Form.Width := Width;
   Form.Height := Height;
   Form.Caption := GetWholeCaption; // SetCaption may also change it later
-  Form.Cursor := CursorCastleToLCL[Cursor]; // SetCursor may also change it later
+  Form.Cursor := CursorCastleToLCL[InternalCursor]; // SetCursor may also change it later
 
   UpdateFullScreen;
 

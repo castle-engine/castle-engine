@@ -354,21 +354,21 @@ const
   ( XC_left_ptr, XC_watch, XC_xterm, XC_hand2 );
 begin
   { TODO: for now mcCustom is treated like mcDefault }
-  if (Cursor = mcDefault) or (Cursor = mcCustom) then
+  if InternalCursor in [mcDefault, mcCustom] then
   begin
     XUndefineCursor(Application.XDisplay, WindowXID);
   end else
   begin
-    if Application.XCursors[Cursor] = X.None then
+    if Application.XCursors[InternalCursor] = X.None then
     begin
-      { initialize XCursors[Cursor] }
-      if Cursor in [mcNone, mcForceNone] then
-        Application.XCursors[Cursor] := CreateNoneCursor else
-        Application.XCursors[Cursor] := XCreateFontCursor(Application.XDisplay,
-          XCursorShapeFromMy[Cursor]);
+      { initialize XCursors[InternalCursor] }
+      if InternalCursor in [mcNone, mcForceNone] then
+        Application.XCursors[InternalCursor] := CreateNoneCursor else
+        Application.XCursors[InternalCursor] := XCreateFontCursor(Application.XDisplay,
+          XCursorShapeFromMy[InternalCursor]);
     end;
 
-    XDefineCursor(Application.XDisplay, WindowXID, Application.XCursors[Cursor]);
+    XDefineCursor(Application.XDisplay, WindowXID, Application.XCursors[InternalCursor]);
   end;
 end;
 

@@ -599,7 +599,7 @@ type
     function Focused: boolean; override;
     function Pressed: TKeysPressed; override;
     function Fps: TFramesPerSecond; override;
-    procedure SetCursor(const Value: TMouseCursor); override;
+    procedure SetInternalCursor(const Value: TMouseCursor); override;
     function GetTouches(const Index: Integer): TTouch; override;
     function TouchesCount: Integer; override;
   end;
@@ -1826,11 +1826,16 @@ end;
 
     property Closed: boolean read FClosed default true;
 
-    { Sets mouse cursor appearance over this window.
-      See TMouseCursor for a list of possible values and their meanings.
-
-      TODO: for now, mcCustom is not handled anywhere. }
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
+      deprecated 'do not set this, engine will override this. Set TUIControl.Cursor of your UI controls to control the Cursor.';
+
+    { Mouse cursor appearance over this window.
+      See TMouseCursor for a list of possible values and their meanings.
+      TODO: for now, mcCustom is not handled anywhere.
+
+      Note that this is for internal usage in the engine. In your applications,
+      you should set TUIControl.Cursor, never set this property directly. }
+    property InternalCursor: TMouseCursor read FCursor write SetCursor default mcDefault;
 
     { Image for cursor, used only when @link(Cursor) = mcCustom.
       We will try hard to use any cursor image as appropriate, but on some platforms
@@ -2892,9 +2897,9 @@ begin
   Result := Parent.Fps;
 end;
 
-procedure TWindowContainer.SetCursor(const Value: TMouseCursor);
+procedure TWindowContainer.SetInternalCursor(const Value: TMouseCursor);
 begin
-  Parent.Cursor := Value;
+  Parent.InternalCursor := Value;
 end;
 
 function TWindowContainer.GetTouches(const Index: Integer): TTouch;

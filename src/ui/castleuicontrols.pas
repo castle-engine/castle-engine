@@ -248,8 +248,10 @@ type
     property OnUpdate: TContainerEvent read FOnUpdate write FOnUpdate;
     { @groupEnd }
 
-    procedure SetCursor(const Value: TMouseCursor); virtual; abstract;
-    property Cursor: TMouseCursor write SetCursor;
+    procedure SetInternalCursor(const Value: TMouseCursor); virtual; abstract;
+    property Cursor: TMouseCursor write SetInternalCursor;
+      deprecated 'do not set this, engine will override this. Set TUIControl.Cursor of your UI controls to control the Cursor.';
+    property InternalCursor: TMouseCursor write SetInternalCursor;
 
     function GetMousePosition: TVector2Single; virtual; abstract;
     procedure SetMousePosition(const Value: TVector2Single); virtual; abstract;
@@ -1620,7 +1622,7 @@ begin
   FFocus := FNewFocus;
   FNewFocus := Tmp;
 
-  Cursor := CalculateMouseCursor;
+  InternalCursor := CalculateMouseCursor;
 end;
 
 function TUIContainer.EventSensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
