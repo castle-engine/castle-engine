@@ -829,6 +829,7 @@ procedure TCastleProject.DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boo
   const Params: TCastleStringList);
 var
   ExeName: string;
+  ProcessStatus: Integer;
 begin
   Writeln(Format('Running project "%s" for OS / CPU "%s / %s"%s.',
     [Name, OSToString(OS), CPUToString(CPU),
@@ -844,7 +845,10 @@ begin
     { run through ExecuteProcess, because we don't want to capture output,
       we want to immediately pass it to user }
     SetCurrentDir(Path);
-    ExecuteProcess(ExeName, Params.ToArray);
+    ProcessStatus := ExecuteProcess(ExeName, Params.ToArray);
+    // this will cause our own status be non-zero
+    if ProcessStatus <> 0 then
+      raise Exception.CreateFmt('Process returned non-zero (failure) status %d', [ProcessStatus]);
   end;
   //else
   // raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
