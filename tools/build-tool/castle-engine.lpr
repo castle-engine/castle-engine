@@ -223,7 +223,7 @@ begin
     { use GetCurrentDir as WorkingDir,
       so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
       Working dir for FPC must be equal to our own working dir. }
-    Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName);
+    Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil);
   end else
   begin
     if Command <> 'run' then

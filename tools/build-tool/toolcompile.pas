@@ -18,14 +18,15 @@ unit ToolCompile;
 
 interface
 
-uses ToolArchitectures;
+uses Classes, ToolArchitectures;
 
 type
   TCompilationMode = (cmRelease, cmDebug);
 
 { Compile with FPC and proper command-line option given file. }
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string);
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
+  const SearchPaths: TStrings);
 
 function ModeToString(const M: TCompilationMode): string;
 function StringToMode(const S: string): TCompilationMode;
@@ -118,7 +119,8 @@ begin
 end;
 
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
-  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string);
+  const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
+  const SearchPaths: TStrings);
 var
   CastleEnginePath, CastleEngineSrc: string;
   FpcOptions: TCastleStringList;
@@ -130,6 +132,18 @@ var
       OnWarning(wtMajor, 'Path', Format('Path "%s" does not exist. Make sure that $CASTLE_ENGINE_PATH points to the directory containing Castle Game Engine sources (the castle_game_engine/ or castle-engine/ directory)', [Path]));
     FpcOptions.Add('-Fu' + Path);
     FpcOptions.Add('-Fi' + Path);
+  end;
+
+  procedure AddSearchPaths;
+  var
+    I: Integer;
+  begin
+    if SearchPaths <> nil then
+      for I := 0 to SearchPaths.Count - 1 do
+      begin
+        FpcOptions.Add('-Fu' + SearchPaths[I]);
+        FpcOptions.Add('-Fi' + SearchPaths[I]);
+      end;
   end;
 
 var
@@ -222,6 +236,8 @@ begin
         }
       end;
     end;
+
+    AddSearchPaths;
 
     { Specify the compilation options explicitly,
       duplicating logic from ../castle-fpc.cfg .

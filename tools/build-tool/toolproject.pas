@@ -18,7 +18,7 @@ unit ToolProject;
 
 interface
 
-uses SysUtils,
+uses SysUtils, Classes,
   CastleFindFiles, CastleStringUtils, CastleUtils,
   ToolArchitectures, ToolCompile, ToolUtils, ToolAndroidComponents;
 
@@ -39,6 +39,7 @@ type
     ManifestFile, FPath, FDataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
     FIcons: TIconFileNames;
+    FSearchPaths: TStringList;
     IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource, FPluginSource, FAndroidProject: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
@@ -89,7 +90,6 @@ type
     property QualifiedName: string read FQualifiedName;
     property Dependencies: TDependencies read FDependencies;
     property Name: string read FName;
-    property Icons: TIconFileNames read FIcons;
     { Project path. Always ends with path delimiter, like a slash or backslash. }
     property Path: string read FPath;
     { Project data path. Always ends with path delimiter, like a slash or backslash. }
@@ -103,6 +103,8 @@ type
     property AndroidProject: string read FAndroidProject;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property AndroidProjectType: TAndroidProjectType read FAndroidProjectType;
+    property Icons: TIconFileNames read FIcons;
+    property SearchPaths: TStringList read FSearchPaths;
     property AndroidComponents: TAndroidComponentList read FAndroidComponents;
 
     { Path to the external library. This checks existence of appropriate
@@ -137,7 +139,7 @@ function StringToScreenOrientation(const S: string): TScreenOrientation;
 
 implementation
 
-uses StrUtils, DOM, Process, Classes,
+uses StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleWarnings, CastleFilesUtils,
   ToolPackage, ToolWindowsResources, ToolAndroidPackage, ToolWindowsRegistry,
   ToolTextureCompression;
@@ -341,6 +343,20 @@ constructor TCastleProject.Create(const APath: string);
           if ChildElement <> nil then
             FAndroidComponents.ReadCastleEngineManifest(ChildElement);
         end;
+
+        Element := Doc.DocumentElement.ChildElement('compiler_options', false);
+        if Element <> nil then
+        begin
+          Element := Element.ChildElement('search_paths', false);
+          if Element <> nil then
+          begin
+            ChildElements := Element.ChildrenIterator('path');
+            try
+              while ChildElements.GetNext do
+                FSearchPaths.Add(ChildElements.Current.AttributeString('value'));
+            finally FreeAndNil(ChildElements) end;
+          end;
+        end;
       finally FreeAndNil(Doc) end;
     end;
 
@@ -411,6 +427,7 @@ begin
   ExcludePaths := TCastleStringList.Create;
   FDependencies := [];
   FIcons := TIconFileNames.Create;
+  FSearchPaths := TStringList.Create;
   FAndroidProjectType := apBase;
   FAndroidComponents := TAndroidComponentList.Create(true);
 
@@ -430,6 +447,7 @@ begin
   FreeAndNil(IncludePathsRecursive);
   FreeAndNil(ExcludePaths);
   FreeAndNil(FIcons);
+  FreeAndNil(FSearchPaths);
   FreeAndNil(FAndroidComponents);
   inherited;
 end;
@@ -527,7 +545,7 @@ begin
         if AndroidSource = '' then
           raise Exception.Create('android_source property for project not defined, cannot compile Android version');
         CheckAnroidSource;
-        Compile(OS, CPU, Plugin, Mode, Path, AndroidSource);
+        Compile(OS, CPU, Plugin, Mode, Path, AndroidSource, SearchPaths);
         Writeln('Compiled library for Android in ', AndroidLibraryFile(true));
       end;
     else
@@ -547,7 +565,7 @@ begin
         if OS in AllWindowsOSes then
           GenerateWindowsResources(@ReplaceMacros, Path, Icons, CPU, Plugin);
 
-        Compile(OS, CPU, Plugin, Mode, Path, MainSource);
+        Compile(OS, CPU, Plugin, Mode, Path, MainSource, SearchPaths);
 
         if Plugin then
         begin
