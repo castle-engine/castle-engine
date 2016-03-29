@@ -453,15 +453,20 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       const Interpolation: TResizeInterpolation = riNearest;
       const ProgressTitle: string = '');
 
-    { Change Width and Height and appropriately stretch
-      image contents.
+    { Change Width and Height and appropriately stretch image contents.
 
-      Preserves corners (provided in the same clockwise way
-      as TGLImage.Draw3x3: top, right, bottom, left), scaling the Corners
-      parameter (proportially to image scaling), and making sure that filtering
-      (especially bilinear) does not "leak" colors from one image area to another.
+      This scales the image in almost the same way as standard @link(Resize).
+      However, this is aware of the image corners and edges, which is good
+      if you plan to use this image with @link(TGLImage.Draw3x3) drawing.
+
+      The Corners parameter specifies the corners size, in the same
+      clockwise order as for @link(TGLImage.Draw3x3): top, right, bottom, left.
+      The corners will be scaled (proportially to image scaling),
+      and new Corners size returned.
+      Additionally it makes sure that filtering (especially bilinear)
+      does not "leak" colors from one image area to another.
       Effectively, the image is scaled like a 9 separate parts,
-      and colors cannot bleed from part to another.
+      and colors cannot bleed from one part to another.
 
       Both ResizeWidth, ResizeHeight parameters must be provided and non-zero. }
     procedure Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
