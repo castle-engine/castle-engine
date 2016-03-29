@@ -32,60 +32,60 @@ type
       Byte order.
 
       @groupBegin }
-    function ReadLE(out Value: Word): Boolean; overload;
-    function ReadLE(out Value: LongWord): Boolean; overload;
-    function ReadLE(out Value: QWord): Boolean; overload;
-    function ReadLE(out Value: SmallInt): Boolean; overload;
-    function ReadLE(out Value: LongInt): Boolean; overload;
-    function ReadLE(out Value: Int64): Boolean; overload;
-    function ReadLE(out Value: Single): Boolean; overload;
-    function ReadLE(out Value: Double): Boolean; overload;
-    function ReadLE(out Value: TVector2Single): Boolean; overload;
-    function ReadLE(out Value: TVector2Double): Boolean; overload;
-    function ReadLE(out Value: TVector3Single): Boolean; overload;
-    function ReadLE(out Value: TVector3Double): Boolean; overload;
-    function ReadLE(out Value: TVector4Single): Boolean; overload;
-    function ReadLE(out Value: TVector4Double): Boolean; overload;
+    procedure ReadLE(out Value: Word); overload;
+    procedure ReadLE(out Value: LongWord); overload;
+    procedure ReadLE(out Value: QWord); overload;
+    procedure ReadLE(out Value: SmallInt); overload;
+    procedure ReadLE(out Value: LongInt); overload;
+    procedure ReadLE(out Value: Int64); overload;
+    procedure ReadLE(out Value: Single); overload;
+    procedure ReadLE(out Value: Double); overload;
+    procedure ReadLE(out Value: TVector2Single); overload;
+    procedure ReadLE(out Value: TVector2Double); overload;
+    procedure ReadLE(out Value: TVector3Single); overload;
+    procedure ReadLE(out Value: TVector3Double); overload;
+    procedure ReadLE(out Value: TVector4Single); overload;
+    procedure ReadLE(out Value: TVector4Double); overload;
     { @groupEnd }
 
     { Reads a big endian value from the stream and converts it to native
       Byte order.
 
       @groupBegin }
-    function ReadBE(out Value: Word): Boolean; overload;
-    function ReadBE(out Value: LongWord): Boolean; overload;
-    function ReadBE(out Value: QWord): Boolean; overload;
-    function ReadBE(out Value: SmallInt): Boolean; overload;
-    function ReadBE(out Value: LongInt): Boolean; overload;
-    function ReadBE(out Value: Int64): Boolean; overload;
-    function ReadBE(out Value: Single): Boolean; overload;
-    function ReadBE(out Value: Double): Boolean; overload;
+    procedure ReadBE(out Value: Word); overload;
+    procedure ReadBE(out Value: LongWord); overload;
+    procedure ReadBE(out Value: QWord); overload;
+    procedure ReadBE(out Value: SmallInt); overload;
+    procedure ReadBE(out Value: LongInt); overload;
+    procedure ReadBE(out Value: Int64); overload;
+    procedure ReadBE(out Value: Single); overload;
+    procedure ReadBE(out Value: Double); overload;
     { @groupEnd }
 
     { Writes a value in native Byte order as little endian value to the stream.
 
       @groupBegin }
-    function WriteLE(const Value: Word): Boolean; overload;
-    function WriteLE(const Value: LongWord): Boolean; overload;
-    function WriteLE(const Value: QWord): Boolean; overload;
-    function WriteLE(const Value: SmallInt): Boolean; overload;
-    function WriteLE(const Value: LongInt): Boolean; overload;
-    function WriteLE(const Value: Int64): Boolean; overload;
-    function WriteLE(const Value: Single): Boolean; overload;
-    function WriteLE(const Value: Double): Boolean; overload;
+    procedure WriteLE(const Value: Word); overload;
+    procedure WriteLE(const Value: LongWord); overload;
+    procedure WriteLE(const Value: QWord); overload;
+    procedure WriteLE(const Value: SmallInt); overload;
+    procedure WriteLE(const Value: LongInt); overload;
+    procedure WriteLE(const Value: Int64); overload;
+    procedure WriteLE(const Value: Single); overload;
+    procedure WriteLE(const Value: Double); overload;
     { @groupEnd }
 
     { Writes a value in native Byte order as big endian value to the stream.
 
       @groupBegin }
-    function WriteBE(const Value: Word): Boolean; overload;
-    function WriteBE(const Value: LongWord): Boolean; overload;
-    function WriteBE(const Value: QWord): Boolean; overload;
-    function WriteBE(const Value: SmallInt): Boolean; overload;
-    function WriteBE(const Value: LongInt): Boolean; overload;
-    function WriteBE(const Value: Int64): Boolean; overload;
-    function WriteBE(const Value: Single): Boolean; overload;
-    function WriteBE(const Value: Double): Boolean; overload;
+    procedure WriteBE(const Value: Word); overload;
+    procedure WriteBE(const Value: LongWord); overload;
+    procedure WriteBE(const Value: QWord); overload;
+    procedure WriteBE(const Value: SmallInt); overload;
+    procedure WriteBE(const Value: LongInt); overload;
+    procedure WriteBE(const Value: Int64); overload;
+    procedure WriteBE(const Value: Single); overload;
+    procedure WriteBE(const Value: Double); overload;
     { @groupEnd }
   end;
 
@@ -96,340 +96,264 @@ uses
 
 { TStreamHelper -------------------------------------------------------------- }
 
-function TStreamHelper.ReadLE(out Value: Word): Boolean;
+procedure TStreamHelper.ReadLE(out Value: Word);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadLE(out Value: LongWord): Boolean;
+procedure TStreamHelper.ReadLE(out Value: LongWord);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadLE(out Value: QWord): Boolean;
+procedure TStreamHelper.ReadLE(out Value: QWord);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadLE(out Value: SmallInt): Boolean;
+procedure TStreamHelper.ReadLE(out Value: SmallInt);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadLE(out Value: LongInt): Boolean;
+procedure TStreamHelper.ReadLE(out Value: LongInt);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadLE(out Value: Int64): Boolean;
+procedure TStreamHelper.ReadLE(out Value: Int64);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadLE(out Value: Single): Boolean;
+procedure TStreamHelper.ReadLE(out Value: Single);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadLE(out Value: Double): Boolean;
+procedure TStreamHelper.ReadLE(out Value: Double);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadLE(out Value: TVector2Single): Boolean;
+procedure TStreamHelper.ReadLE(out Value: TVector2Single);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadLE(out Value: TVector2Double): Boolean;
+procedure TStreamHelper.ReadLE(out Value: TVector2Double);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadLE(out Value: TVector3Single): Boolean;
+procedure TStreamHelper.ReadLE(out Value: TVector3Single);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadLE(out Value: TVector3Double): Boolean;
+procedure TStreamHelper.ReadLE(out Value: TVector3Double);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadLE(out Value: TVector4Single): Boolean;
+procedure TStreamHelper.ReadLE(out Value: TVector4Single);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadLE(out Value: TVector4Double): Boolean;
+procedure TStreamHelper.ReadLE(out Value: TVector4Double);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadBE(out Value: Word): Boolean;
+procedure TStreamHelper.ReadBE(out Value: Word);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := BEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadBE(out Value: LongWord): Boolean;
+procedure TStreamHelper.ReadBE(out Value: LongWord);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := BEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadBE(out Value: QWord): Boolean;
+procedure TStreamHelper.ReadBE(out Value: QWord);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := BEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadBE(out Value: SmallInt): Boolean;
+procedure TStreamHelper.ReadBE(out Value: SmallInt);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := BEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadBE(out Value: LongInt): Boolean;
+procedure TStreamHelper.ReadBE(out Value: LongInt);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := BEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadBE(out Value: Int64): Boolean;
+procedure TStreamHelper.ReadBE(out Value: Int64);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := BEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadBE(out Value: Single): Boolean;
+procedure TStreamHelper.ReadBE(out Value: Single);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := BEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.ReadBE(out Value: Double): Boolean;
+procedure TStreamHelper.ReadBE(out Value: Double);
 begin
-  if Read(Value, SizeOf(Value)) <> SizeOf(Value) then
-    Exit(False);
+  ReadBuffer(Value, SizeOf(Value));
   Value := BEtoN(Value);
-  Result := True;
 end;
 
-function TStreamHelper.WriteLE(const Value: Word): Boolean;
+procedure TStreamHelper.WriteLE(const Value: Word);
 var
   tmp: Word;
 begin
   tmp := NToLE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(tmp) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-function TStreamHelper.WriteLE(const Value: LongWord): Boolean;
+procedure TStreamHelper.WriteLE(const Value: LongWord);
 var
   tmp: LongWord;
 begin
   tmp := NToLE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(tmp) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-function TStreamHelper.WriteLE(const Value: QWord): Boolean;
+procedure TStreamHelper.WriteLE(const Value: QWord);
 var
   tmp: QWord;
 begin
   tmp := NToLE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(tmp) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-function TStreamHelper.WriteLE(const Value: SmallInt): Boolean;
+procedure TStreamHelper.WriteLE(const Value: SmallInt);
 var
   tmp: SmallInt;
 begin
   tmp := NToLE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(tmp) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-function TStreamHelper.WriteLE(const Value: LongInt): Boolean;
+procedure TStreamHelper.WriteLE(const Value: LongInt);
 var
   tmp: LongInt;
 begin
   tmp := NToLE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(tmp) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-function TStreamHelper.WriteLE(const Value: Int64): Boolean;
+procedure TStreamHelper.WriteLE(const Value: Int64);
 var
   tmp: Int64;
 begin
   tmp := NToLE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(Value) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-function TStreamHelper.WriteLE(const Value: Single): Boolean;
+procedure TStreamHelper.WriteLE(const Value: Single);
 var
   tmp: Single;
 begin
   tmp := NToLE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(tmp) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-function TStreamHelper.WriteLE(const Value: Double): Boolean;
+procedure TStreamHelper.WriteLE(const Value: Double);
 var
   tmp: Double;
 begin
   tmp := NToLE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(tmp) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-function TStreamHelper.WriteBE(const Value: Word): Boolean;
+procedure TStreamHelper.WriteBE(const Value: Word);
 var
   tmp: Word;
 begin
   tmp := NToBE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(tmp) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-function TStreamHelper.WriteBE(const Value: LongWord): Boolean;
+procedure TStreamHelper.WriteBE(const Value: LongWord);
 var
   tmp: LongWord;
 begin
   tmp := NToBE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(tmp) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-function TStreamHelper.WriteBE(const Value: QWord): Boolean;
+procedure TStreamHelper.WriteBE(const Value: QWord);
 var
   tmp: QWord;
 begin
   tmp := NToBE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(tmp) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-function TStreamHelper.WriteBE(const Value: SmallInt): Boolean;
+procedure TStreamHelper.WriteBE(const Value: SmallInt);
 var
   tmp: SmallInt;
 begin
   tmp := NToBE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(tmp) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-function TStreamHelper.WriteBE(const Value: LongInt): Boolean;
+procedure TStreamHelper.WriteBE(const Value: LongInt);
 var
   tmp: LongInt;
 begin
   tmp := NToBE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(tmp) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-function TStreamHelper.WriteBE(const Value: Int64): Boolean;
+procedure TStreamHelper.WriteBE(const Value: Int64);
 var
   tmp: Int64;
 begin
   tmp := NToBE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(tmp) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-function TStreamHelper.WriteBE(const Value: Single): Boolean;
+procedure TStreamHelper.WriteBE(const Value: Single);
 var
   tmp: Single;
 begin
   tmp := NToBE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(tmp) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
-function TStreamHelper.WriteBE(const Value: Double): Boolean;
+procedure TStreamHelper.WriteBE(const Value: Double);
 var
   tmp: Double;
 begin
   tmp := NToBE(Value);
-  if Write(tmp, SizeOf(tmp)) <> SizeOf(tmp) then
-    Exit(False);
-  Result := True;
+  WriteBuffer(tmp, SizeOf(tmp));
 end;
 
 end.
