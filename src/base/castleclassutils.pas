@@ -1218,11 +1218,15 @@ begin
 end;
 
 function TSimplePeekCharStream.PeekChar: Integer;
+var
+  C: Char;
 begin
   if not IsPeekedChar then
   begin
-    if SourceStream.Read(PeekedChar, 1) = 0 then
-      PeekedChar := -1;
+    if SourceStream.Read(C, 1) = 0 then
+      PeekedChar := -1
+    else
+      PeekedChar := Ord(C);
     IsPeekedChar := true;
   end;
   Result := PeekedChar;
