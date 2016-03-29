@@ -16,6 +16,8 @@
 { Inspector of 2D controls (@link(TCastleInspectorControl)). }
 unit CastleInspectorControl;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes,

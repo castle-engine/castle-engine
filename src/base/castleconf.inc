@@ -74,6 +74,12 @@
 {$ifdef VER2_4} {$fatal FPC 2.4.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
 {$ifdef VER2_6_0} {$fatal FPC 2.6.0 is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
 
+{ we use ObjFPC mode with AnsiString everywhere }
+{$mode objfpc}{$H+}
+
+{ we use macros in various parts }
+{$macro on}
+
 {$define TOBJECT_HAS_EQUALS}
 {$ifdef VER2_0}   {$undef TOBJECT_HAS_EQUALS} {$endif}
 {$ifdef VER2_2_0} {$undef TOBJECT_HAS_EQUALS} {$endif}

@@ -18,6 +18,8 @@
   We handle basic geometry, we can open files exported by Blender exporter. }
 unit X3DLoadInternalGEO;
 
+{$I castleconf.inc}
+
 interface
 
 uses X3DNodes;

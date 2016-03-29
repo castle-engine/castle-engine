@@ -16,6 +16,8 @@
 { Converting fonts (TTextureFontData) to Pascal source code. }
 unit CastleFont2Pascal;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleTextureFontData, Classes;

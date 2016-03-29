@@ -16,6 +16,8 @@
 { CastleScript array types and built-in functions. }
 unit CastleScriptArrays;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors, CastleScript, CastleScriptVectors, CastleUtils, CastleStringUtils;

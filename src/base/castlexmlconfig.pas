@@ -16,6 +16,8 @@
 { Storing configuration files in XML (TCastleConfig). }
 unit CastleXMLConfig;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, DOM,

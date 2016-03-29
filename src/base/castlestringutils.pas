@@ -39,6 +39,8 @@
 
 unit CastleStringUtils;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, FGL,

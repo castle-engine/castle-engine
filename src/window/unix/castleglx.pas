@@ -35,6 +35,8 @@
 { @exclude (This is only a C header translation --- no nice PasDoc docs.) }
 unit CastleGlx;
 
+{$I castleconf.inc}
+
 interface
 
 {$MACRO ON}

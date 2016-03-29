@@ -19,6 +19,8 @@
   [http://castle-engine.sourceforge.net/castle-development.php]. }
 unit CastleSectors;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, CastleUtils, CastleClassUtils, Classes, CastleVectors, CastleBoxes,

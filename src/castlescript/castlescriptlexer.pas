@@ -21,6 +21,8 @@
 
 unit CastleScriptLexer;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleUtils, CastleScript, SysUtils, Math;

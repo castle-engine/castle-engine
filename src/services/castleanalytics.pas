@@ -16,6 +16,8 @@
 { Analytics (TAnalytics). }
 unit CastleAnalytics;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, CastleTimeUtils;

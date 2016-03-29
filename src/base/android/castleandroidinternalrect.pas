@@ -16,6 +16,8 @@
 
 unit CastleAndroidInternalRect;
 
+{$I castleconf.inc}
+
 interface
 
 uses ctypes;

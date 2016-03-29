@@ -16,6 +16,8 @@
 { Utilities for cooperation between LCL and "Castle Game Engine". }
 unit CastleLCLUtils;
 
+{$I castleconf.inc}
+
 interface
 
 uses Dialogs, Classes, Controls, CastleFileFilters, CastleKeysMouse,

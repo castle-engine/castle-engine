@@ -21,7 +21,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  **********************************************************************}
 
-{$mode objfpc}
+{$I castleconf.inc}
 {$inline on}
 {$implicitexceptions off}
 

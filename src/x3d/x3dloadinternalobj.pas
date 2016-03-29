@@ -19,6 +19,8 @@
   Texture URL is also read from material file. }
 unit X3DLoadInternalOBJ;
 
+{$I castleconf.inc}
+
 interface
 
 uses X3DNodes;

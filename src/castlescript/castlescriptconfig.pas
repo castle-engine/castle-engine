@@ -17,6 +17,8 @@
   (TCastleConfigScriptHelper). }
 unit CastleScriptConfig;
 
+{$I castleconf.inc}
+
 interface
 
 uses Math,

@@ -16,6 +16,7 @@
 { Shadow maps internal utilities. }
 unit X3DShadowMaps;
 
+{$I castleconf.inc}
 {$modeswitch nestedprocvars}{$H+}
 
 interface

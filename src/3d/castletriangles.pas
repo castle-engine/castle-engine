@@ -43,6 +43,8 @@
 }
 unit CastleTriangles;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleUtils, CastleVectors, CastleGenericLists;

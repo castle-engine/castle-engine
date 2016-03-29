@@ -16,6 +16,8 @@
 { Axis-aligned 3D boxes (TBox3D). }
 unit CastleBoxes;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors, SysUtils, CastleUtils, CastleGenericLists, CastleTriangles,

@@ -25,6 +25,8 @@
 
 unit CastleScriptParser;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleScript, CastleScriptLexer, Math;

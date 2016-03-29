@@ -19,6 +19,8 @@
   the current mouse position). }
 unit CastleRays;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors;

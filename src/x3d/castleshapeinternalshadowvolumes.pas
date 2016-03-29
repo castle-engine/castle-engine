@@ -15,6 +15,8 @@
 { Internal data for shadow volumes rendering in shapes. }
 unit CastleShapeInternalShadowVolumes;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleGenericLists, CastleVectors, CastleTriangles;

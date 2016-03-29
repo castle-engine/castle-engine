@@ -17,6 +17,8 @@
 
 unit X3DLoadInternal3DS;
 
+{$I castleconf.inc}
+
 interface
 
 uses X3DNodes;

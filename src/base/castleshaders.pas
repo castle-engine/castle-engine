@@ -1,6 +1,8 @@
 { Shaders types. Independent from OpenGL and X3D. }
 unit CastleShaders;
 
+{$I castleconf.inc}
+
 interface
 
 type

@@ -16,6 +16,8 @@
 { Spherical harmonic basis functions. }
 unit CastleSphericalHarmonics;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors, CastleUtils, Math, CastleCubeMaps;

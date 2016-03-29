@@ -17,6 +17,8 @@
   global MaterialProperties collection). }
 unit CastleMaterialProperties;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, DOM, FGL,

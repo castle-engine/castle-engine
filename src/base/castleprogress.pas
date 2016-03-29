@@ -16,6 +16,8 @@
 { Progress bar functionality (TProgress, global variable Progress). }
 unit CastleProgress;
 
+{$I castleconf.inc}
+
 { Define this only for testing }
 { $define TESTING_PROGRESS_DELAY}
 

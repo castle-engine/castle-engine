@@ -7,6 +7,8 @@ unit CastleControlsImages;
 
 interface
 
+{$I castleconf.inc}
+
 uses CastleImages;
 
 var

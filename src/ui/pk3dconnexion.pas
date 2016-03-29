@@ -48,6 +48,8 @@ unit pk3DConnexion;
 
 { TODO -oPatrick : React to newly connected devices! }
 
+{$I castleconf.inc}
+
 interface
 
 {$ifdef MSWINDOWS}

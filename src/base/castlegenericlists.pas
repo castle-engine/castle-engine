@@ -11,7 +11,7 @@
   Some small comfortable methods added. }
 unit CastleGenericLists;
 
-{$mode objfpc}{$H+}
+{$I castleconf.inc}
 
 {$ifdef VER2_2} {$define OldSyntax} {$endif}
 {$ifdef VER2_4} {$define OldSyntax} {$endif}

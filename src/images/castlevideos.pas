@@ -16,6 +16,8 @@
 { Video (movie) data (TVideo and helpers). }
 unit CastleVideos;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, FGL,

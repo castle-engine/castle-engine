@@ -55,6 +55,8 @@
 
 unit CastleSphereSampling;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors, CastleUtils;

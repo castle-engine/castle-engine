@@ -22,6 +22,8 @@
 { Receiving input from joysticks and gamepads. }
 unit CastleJoysticks;
 
+{$I castleconf.inc}
+
 interface
 
 {$IFDEF LINUX}

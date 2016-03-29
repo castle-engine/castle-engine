@@ -15,6 +15,8 @@
 { Reading data URI scheme (TDataURI). }
 unit CastleDataURI;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes;

@@ -17,6 +17,8 @@
   used by CastlePrecalculatedAnimation now. }
 unit CastleInternalNodeInterpolator;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes,

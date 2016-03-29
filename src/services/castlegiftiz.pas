@@ -16,6 +16,8 @@
 { Giftiz (http://www.giftiz.com/) integration (TGiftiz). }
 unit CastleGiftiz;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes,

@@ -16,6 +16,8 @@
 { X3D fields (TX3DField and many descendants). }
 unit X3DFields;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, SysUtils, DOM, FGL,

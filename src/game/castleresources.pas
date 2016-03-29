@@ -17,6 +17,8 @@
   that need to be loaded and reference counted. }
 unit CastleResources;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, DOM, FGL,

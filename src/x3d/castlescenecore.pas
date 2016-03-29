@@ -17,6 +17,7 @@
 
 unit CastleSceneCore;
 
+{$I castleconf.inc}
 {$I octreeconf.inc}
 
 interface

@@ -16,6 +16,8 @@
 { Scene manager (T2DSceneManager) and scene (T2DScene) best suited for 2D worlds. }
 unit Castle2DSceneManager;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes,

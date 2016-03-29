@@ -16,6 +16,8 @@
 { Notifications displayed in the OpenGL window (TCastleNotifications). }
 unit CastleNotifications;
 
+{$I castleconf.inc}
+
 interface
 
 uses FGL,

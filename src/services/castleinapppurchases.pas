@@ -16,6 +16,8 @@
 { In-app purchases (TInAppPurchases). }
 unit CastleInAppPurchases;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, FGL,

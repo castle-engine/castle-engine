@@ -17,6 +17,8 @@
   See TRecentFiles class. }
 unit CastleWindowRecentFiles;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, CastleWindow, CastleRecentFiles;

@@ -17,6 +17,8 @@
 unit CastlePrecalculatedAnimation
   deprecated 'instead of TCastlePrecalculatedAnimation, use TCastleScene to load animations in any format (X3D, KAnim...) and run them using methods like PlayAnimation';
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, FGL,

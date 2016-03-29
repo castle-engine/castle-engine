@@ -16,6 +16,8 @@
 { Shape (TShape class) and a simple tree of shapes (TShapeTree class). }
 unit CastleShapes;
 
+{$I castleconf.inc}
+
 { $define SHAPE_ITERATOR_SOPHISTICATED}
 
 {$I octreeconf.inc}

@@ -16,6 +16,8 @@
 { 3D sound engine (TSoundEngine and TRepoSoundEngine). }
 unit CastleSoundEngine;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, CastleOpenAL, CastleSoundAllocator, CastleVectors,

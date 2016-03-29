@@ -16,6 +16,8 @@
 { X3D time. }
 unit X3DTime;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleUtils, CastleTimeUtils, CastleGenericLists;

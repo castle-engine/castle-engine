@@ -16,6 +16,8 @@
 { Window with controls for easy navigation on touch interfaces. }
 unit CastleWindowTouch;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, CastleWindow, CastleControls, CastleCameras;

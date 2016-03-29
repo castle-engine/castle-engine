@@ -16,6 +16,8 @@
 { 3D sound smart allocation (TSoundAllocator). }
 unit CastleSoundAllocator;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, CastleOpenAL, CastleClassUtils, Classes, CastleUtils, CastleVectors,

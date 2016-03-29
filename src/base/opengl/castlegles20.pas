@@ -38,7 +38,6 @@
  ** 2.0. For details, see http://oss.sgi.com/projects/FreeB/
  **}
 unit CastleGLES20;
-{$mode objfpc}
 {$i castleconf.inc}
 
 {$ifdef linux}

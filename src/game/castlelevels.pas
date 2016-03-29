@@ -17,6 +17,8 @@
   management of available game levels (TLevelInfo, @link(Levels)). }
 unit CastleLevels;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, DOM, FGL,

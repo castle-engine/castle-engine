@@ -16,6 +16,8 @@
 { CastleScript built-in simple functions on four "core" types. }
 unit CastleScriptCoreFunctions;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleScript;

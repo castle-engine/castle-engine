@@ -16,6 +16,8 @@
 { Loading and saving user preferences (UserConfig). }
 unit CastleConfig;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, CastleXMLConfig;

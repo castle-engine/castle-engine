@@ -56,6 +56,8 @@
 
 unit CastleXF86VMode;
 
+{$I castleconf.inc}
+
 {$ifdef VER1_0_10}
   {$FATAL This unit cannot be safely
     used with FPC 1.0.10 due to some bugs in compiler (that were not present

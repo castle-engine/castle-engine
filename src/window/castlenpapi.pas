@@ -22,6 +22,8 @@
 }
 unit CastleNPAPI;
 
+{$I castleconf.inc}
+
 {$PACKRECORDS C}
 {$PACKENUM 4} // is default in ObjPas anyway, see http://www.freepascal.org/docs-html/prog/progsu59.html
 

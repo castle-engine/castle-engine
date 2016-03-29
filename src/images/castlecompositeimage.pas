@@ -16,6 +16,8 @@
 { Composite (like DDS) image file format handling (TCompositeImage). }
 unit CastleCompositeImage;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, CastleImages;

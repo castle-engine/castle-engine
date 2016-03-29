@@ -16,6 +16,8 @@
 { Base 3D objects (T3D, T3DList, T3DTransform, T3DOrient, T3DMoving). }
 unit Castle3D;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, Math, CastleVectors, CastleFrustum,

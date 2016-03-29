@@ -16,6 +16,8 @@
 { Parsing command-line options that control the quadric rendering quality. }
 unit X3DNodesDetailOptions;
 
+{$I castleconf.inc}
+
 interface
 
 { Parses @--detail-xxx command-line options, and sets Detail_Xxx variables

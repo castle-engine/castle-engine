@@ -16,6 +16,8 @@
 { Rectangle representation (TRectangle, TFloatRectangle). }
 unit CastleRectangles;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleGenericLists, CastleVectors;

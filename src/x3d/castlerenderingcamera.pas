@@ -16,6 +16,8 @@
 { @abstract(Current rendering camera (TRenderingCamera).) }
 unit CastleRenderingCamera;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleUtils, CastleVectors, CastleFrustum, CastleCameras, CastleGenericLists, X3DNodes;

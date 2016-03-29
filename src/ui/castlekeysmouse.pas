@@ -18,6 +18,8 @@
   and by non-Lazarus CastleWindow. }
 unit CastleKeysMouse;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleUtils, CastleStringUtils, CastleVectors, CastleXMLConfig;

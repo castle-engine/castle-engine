@@ -42,11 +42,10 @@
   configuration data
 }
 
-{$ifdef fpc}{$MODE objfpc}{$endif}
-{$H+}
-
 { @exclude Not ready for PasDoc, also internal. }
 unit CastleXMLCfgInternal;
+
+{$I castleconf.inc}
 
 interface
 

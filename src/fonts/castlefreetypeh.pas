@@ -29,7 +29,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}
 { @exclude Not ready for PasDoc. }
 unit CastleFreeTypeH;
 
