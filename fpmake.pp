@@ -226,6 +226,7 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'fonts' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlefonts.pas');
+    P.Targets.AddUnit('castlefontfamily.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'game');
     P.Targets.AddUnit('castle2dscenemanager.pas');
