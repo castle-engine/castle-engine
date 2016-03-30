@@ -453,7 +453,11 @@ type
 
     The underlying font properties remain unchanged
     (so it can be still used for other purposes,
-    directly or by other TCustomizedFont wrappers). }
+    directly or by other TCustomizedFont wrappers).
+
+    @italic(Do not get / set the @code(Scale) property of this instance),
+    it will not do anything in current implementation and should always
+    stay equal to 1. }
   TCustomizedFont = class(TCastleFont)
   strict private
     FSourceFont: TCastleFont;
