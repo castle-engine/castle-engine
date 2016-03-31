@@ -22,7 +22,7 @@ interface
 
 uses Classes, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
-  CastleColors, CastleProgress, CastleTimeUtils;
+  CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily;
 
 type
   TCastleLabel = class;
@@ -710,7 +710,7 @@ type
     FAlignment: THorizontalPosition;
     FAutoSize: boolean;
     FWidth, FHeight: Cardinal;
-    function GetTextToRender(out FreeTextToRender: boolean): TStrings;
+    function GetTextToRender: TRichText;
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
     procedure SetAutoSize(const Value: boolean);
@@ -771,7 +771,7 @@ type
     { If non-zero, limit the width of resulting label.
       The text will be broken in the middle of lines, to make it fit
       (together with @link(PaddingHorizontal)) inside MaxWidth. }
-    property MaxWidth: Integer read FMaxWidth write FMaxWidth;
+    property MaxWidth: Integer read FMaxWidth write FMaxWidth default 0;
 
     { Horizontal alignment of the text. }
     property Alignment: THorizontalPosition
@@ -2897,41 +2897,30 @@ begin
   inherited;
 end;
 
-function TCastleLabel.GetTextToRender(out FreeTextToRender: boolean): TStrings;
+function TCastleLabel.GetTextToRender: TRichText;
 var
   PaddingHorizontalScaled, MaxWidthScaled: Integer;
   US: Single;
 begin
-  if MaxWidth = 0 then
-  begin
-    Result := Text;
-    FreeTextToRender := false;
-  end else
+  Result := TRichText.Create(Font, Text, Tags);
+  if MaxWidth <> 0 then
   begin
     US := UIScale;
     PaddingHorizontalScaled := Round(US * PaddingHorizontal);
     MaxWidthScaled := Round(US * MaxWidth);
-
-    Result := TStringList.Create;
-    FreeTextToRender := true;
-    { TODO: this breaks not taking Tags property into account.
-      When Tags=@true and some tags are actually used,
-      the text may not be broken optimally (as BreakLines will think
-      that invisible tags actually take space). }
-    Font.BreakLines(Text, Result, MaxWidthScaled - 2 * PaddingHorizontalScaled);
+    Result.Wrap(MaxWidthScaled - 2 * PaddingHorizontalScaled);
   end;
 end;
 
 function TCastleLabel.Rect: TRectangle;
 var
-  TextToRender: TStrings;
-  FreeTextToRender: boolean;
+  TextToRender: TRichText;
   PaddingHorizontalScaled, PaddingVerticalScaled, LineSpacingScaled: Integer;
   US: Single;
 begin
   if AutoSize then
   begin
-    TextToRender := GetTextToRender(FreeTextToRender);
+    TextToRender := GetTextToRender;
     try
       US := UIScale;
       PaddingHorizontalScaled := Round(US * (PaddingHorizontal + Padding));
@@ -2939,11 +2928,11 @@ begin
       LineSpacingScaled := Round(US * LineSpacing);
       Result := Rectangle(
         LeftBottomScaled,
-        Font.MaxTextWidth(TextToRender, Tags) + 2 * PaddingHorizontalScaled,
+        TextToRender.MaxLineWidth + 2 * PaddingHorizontalScaled,
         (Font.RowHeight + LineSpacingScaled) * TextToRender.Count +
           2 * PaddingVerticalScaled + Font.Descend);
     finally
-      if FreeTextToRender then FreeAndNil(TextToRender);
+      FreeAndNil(TextToRender);
     end;
   end else
   begin
@@ -2955,15 +2944,14 @@ end;
 procedure TCastleLabel.Render;
 var
   SR: TRectangle;
-  TextToRender: TStrings;
-  FreeTextToRender: boolean;
+  TextToRender: TRichText;
   TextX, PaddingHorizontalScaled, PaddingVerticalScaled, LineSpacingScaled: Integer;
   US: Single;
 begin
   inherited;
-  if Text.Count = 0 then Exit;
+  if Text.Count = 0 then Exit; // early exit in case of easy, fast case
 
-  TextToRender := GetTextToRender(FreeTextToRender);
+  TextToRender := GetTextToRender;
   try
     SR := ScreenRect;
     US := UIScale;
@@ -2978,11 +2966,11 @@ begin
       hpRight : TextX := SR.Right - PaddingHorizontalScaled;
       else raise EInternalError.Create('TCastleLabel.Render: Alignment?');
     end;
-    Font.PrintStrings(TextX,
-      SR.Bottom + PaddingVerticalScaled + Font.Descend, Color, TextToRender,
-      Tags, LineSpacingScaled, Alignment);
+    TextToRender.Print(TextX,
+      SR.Bottom + PaddingVerticalScaled + Font.Descend, Color,
+      LineSpacingScaled, Alignment);
   finally
-    if FreeTextToRender then FreeAndNil(TextToRender);
+    FreeAndNil(TextToRender);
   end;
 end;
 
