@@ -325,6 +325,11 @@ type
       @link(Outline), @link(OutlineColor), @link(OutlineHighQuality). }
     procedure PushProperties;
     procedure PopProperties;
+
+    { Actual font-size. Usually same thing as @link(Size), but in case of proxy
+      font classes (like TCustomizedFont) it makes sure to never return zero
+      (which, in case of font proxies, means "use underlying font size"). }
+    function RealSize: Single; virtual;
   end;
 
   { @deprecated Deprecated name for TCastleFont. }
@@ -483,85 +488,13 @@ type
     function TextHeight(const S: string): Integer; override;
     function TextHeightBase(const S: string): Integer; override;
     function TextMove(const S: string): TVector2Integer; override;
+    function RealSize: Single; override;
   end;
 
 implementation
 
-uses CastleClassUtils, CastleGLUtils, SysUtils, CastleUtils, Math;
-
-{ HandleTags ----------------------------------------------------------------- }
-
-function HandleTags(const S: string;
-  out ColorChange: boolean; out Color: TCastleColor): string;
-
-  function ExtractColor(const S: string; P: Integer;
-    out Color: TCastleColor; out Length: Integer): boolean;
-  const
-    HexDigits = ['0'..'9', 'a'..'f', 'A'..'F'];
-  begin
-    Result := SCharIs(S, P    , HexDigits) and
-              SCharIs(S, P + 1, HexDigits) and
-              SCharIs(S, P + 2, HexDigits) and
-              SCharIs(S, P + 3, HexDigits) and
-              SCharIs(S, P + 4, HexDigits) and
-              SCharIs(S, P + 5, HexDigits);
-    Length := 6;
-    if Result then
-    begin
-      Color[0] := StrHexToInt(Copy(S, P    , 2)) / 255;
-      Color[1] := StrHexToInt(Copy(S, P + 2, 2)) / 255;
-      Color[2] := StrHexToInt(Copy(S, P + 4, 2)) / 255;
-      if SCharIs(S, P + 6, HexDigits) and
-         SCharIs(S, P + 7, HexDigits) then
-      begin
-        Length += 2;
-        Color[3] := StrHexToInt(Copy(S, P + 6, 2)) / 255;
-      end else
-        Color[3] := 1.0;
-    end;
-  end;
-
-  { Is SubText present inside Text on position P.
-    Secure for all lengths and values of position (that is, will answer
-    false if P is <= 0 or P is too large and some part of SubText would
-    be outside S). }
-  function SubStringMatch(const SubText, Text: string; P: Integer): boolean;
-  var
-    I: Integer;
-  begin
-    Result := (P >= 1) and
-              (P <= { signed } Integer(Length(Text)) - Length(SubText) + 1);
-    if Result then
-      for I := 1 to Length(SubText) do
-      begin
-        if SubText[I] <> Text[P] then Exit(false);
-        Inc(P);
-      end;
-  end;
-
-const
-  SFontColorBegin1 = '<font color="#';
-  SFontColorBegin2 = '">';
-  SFontEnd = '</font>';
-var
-  ColorLength: Integer;
-begin
-  ColorChange :=
-    { first check something most likely to fail, for speed }
-    SCharIs(S, 1, '<') and
-    SubStringMatch(SFontColorBegin1, S, 1) and
-    ExtractColor(S, Length(SFontColorBegin1) + 1, Color, ColorLength) and
-    SubStringMatch(SFontColorBegin2, S, Length(SFontColorBegin1) + ColorLength + 1) and
-    SubStringMatch(SFontEnd, S, Length(S) - Length(SFontEnd) + 1);
-
-  if ColorChange then
-  begin
-    Result := CopyPos(S,
-      Length(SFontColorBegin1) + Length(SFontColorBegin2) + ColorLength + 1,
-      Length(S) - Length(SFontEnd));
-  end else
-    Result := S;
-end;
+uses SysUtils, Math,
+  CastleClassUtils, CastleGLUtils, CastleUtils, CastleFontFamily;
 
 { TCastleFont ------------------------------------------------------}
 
@@ -768,19 +701,21 @@ end;
 
 function TCastleFont.MaxTextWidth(SList: TStrings; const Tags: boolean): Integer;
 var
-  I, LineW: Integer;
-  DummyColorChange: boolean;
-  DummyColor: TCastleColor;
-  S: string;
+  I: Integer;
+  RichText: TRichText;
 begin
-  result := 0;
-  for I := 0 to slist.Count-1 do
+  if not Tags then
   begin
-    S := SList[i];
-    if Tags then
-      S := HandleTags(S, DummyColorChange, DummyColor);
-    LineW := TextWidth(S);
-    if LineW > result then result := LineW;
+    { simple and fast implementation in case TRichText not needed }
+    Result := 0;
+    for I := 0 to SList.Count-1 do
+      MaxVar(Result, TextWidth(SList[I]));
+  end else
+  begin
+    RichText := TRichText.Create(Self, SList, Tags);
+    try
+      Result := RichText.MaxLineWidth;
+    finally FreeAndNil(RichText) end;
   end;
 end;
 
@@ -806,21 +741,23 @@ procedure TCastleFont.PrintStrings(const X0, Y0: Integer;
 
 var
   S: string;
-  ColorChange: boolean;
-  ColorChanged: TCastleColor;
   Line: Integer;
+  RichText: TRichText;
 begin
-  for Line := 0 to Strs.Count - 1 do
+  if not Tags then
   begin
-    S := Strs[Line];
-    if Tags then
+    { simple and fast implementation in case TRichText not needed }
+    for Line := 0 to Strs.Count - 1 do
     begin
-      S := HandleTags(S, ColorChange, ColorChanged);
-      if ColorChange then
-        Print(XPos(Line, S), YPos(Line), ColorChanged, S) else
-        Print(XPos(Line, S), YPos(Line), Color, S);
-    end else
+      S := Strs[Line];
       Print(XPos(Line, S), YPos(Line), Color, S);
+    end;
+  end else
+  begin
+    RichText := TRichText.Create(Self, Strs, Tags);
+    try
+      RichText.Print(X0, Y0, Color, LineSpacing, TextHorizontalAlignment);
+    finally FreeAndNil(RichText) end;
   end;
 end;
 
@@ -989,6 +926,11 @@ begin
   OutlineColor := SavedProperites.OutlineColor;
   OutlineHighQuality := SavedProperites.OutlineHighQuality;
   FPropertiesStack.Delete(FPropertiesStack.Count - 1);
+end;
+
+function TCastleFont.RealSize: Single;
+begin
+  Result := Size;
 end;
 
 { TTextureFont --------------------------------------------------------------- }
@@ -1440,6 +1382,13 @@ begin
   Result := FSourceFont.TextMove(S);
   if Size <> 0 then
     FSourceFont.PopProperties;
+end;
+
+function TCustomizedFont.RealSize: Single;
+begin
+  if Size <> 0 then
+    Result := Size else
+    Result := SourceFont.RealSize;
 end;
 
 end.

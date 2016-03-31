@@ -30,8 +30,10 @@ type
     During such processing and rendering, it automatically uses the correct
     subfont. It's closely tied with the TRichText class.
 
-    For simple operations, it simply uses the @link(Regular) subfont.
-    It can be treated as a font itself, since it has all the measuring
+    For simple operations, it simply uses the subfont indicated by the @link(Bold)
+    and @italic(Italic) properties. By default they are @false, and then we simply
+    use @link(RegularFont).
+    This class can be treated as a font itself, since it has all the measuring
     and rendering commands you expect from a font (and you could
     even use it as a subfont of another TFontFamily --- weird but works,
     in which case the "TFontFamily used as a subfont" just acts as a proxy
@@ -54,11 +56,14 @@ type
     FRegularFont, FBoldFont, FItalicFont, FBoldItalicFont: TCastleFont;
     // Note that we leave inherited Scale at == 1, always.
     FSize: Single;
+    FBold, FItalic: boolean;
     procedure SetRegularFont(const Value: TCastleFont);
     procedure SetBoldFont(const Value: TCastleFont);
     procedure SetItalicFont(const Value: TCastleFont);
     procedure SetBoldItalicFont(const Value: TCastleFont);
-    function SubFont(const Bold, Italic: boolean): TCastleFont;
+  private
+    function SubFont(const ABold, AItalic: boolean): TCastleFont;
+    function SubFont: TCastleFont;
   strict protected
     function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
@@ -74,6 +79,9 @@ type
     property ItalicFont: TCastleFont read FItalicFont write SetItalicFont;
     property BoldItalicFont: TCastleFont read FBoldItalicFont write SetBoldItalicFont;
 
+    property Bold: boolean read FBold write FBold default false;
+    property Italic: boolean read FItalic write FItalic default false;
+
     procedure PrepareResources; override;
     procedure Print(const X, Y: Integer; const Color: TCastleColor;
       const S: string); override;
@@ -81,39 +89,72 @@ type
     function TextHeight(const S: string): Integer; override;
     function TextHeightBase(const S: string): Integer; override;
     function TextMove(const S: string): TVector2Integer; override;
+    function RealSize: Single; override;
   end;
 
+  { @exclude Internal type for TRichText }
   TTextCommand = (
-    tcBold, tcBoldEnd, tcItalic, tcItalicEnd, tcFontColor, tcParagraph);
-  TTextProperty = class abstract;
-  TTextPropertyString = class(TTextProperty)
-    S: string;
-  end;
-  TTextPropertyCommand = class(TTextProperty)
-    Command: TTextCommand;
-    Color: TCastleColor;
-  end;
+    tcBold, tcBoldEnd,
+    tcItalic, tcItalicEnd,
+    tcFontColor, tcFontSize, tcFontEnd,
+    tcSmall, tcSmallEnd
+  );
 
-  { Line of text with processing commands. }
+  TTextProperty = class;
+
+  { Line of text with processing commands.
+    @exclude Internal type for TRichText. }
   TTextLine = class(specialize TFPGObjectList<TTextProperty>)
   strict private
     FLineWidthKnown: boolean;
     FLineWidth: Cardinal;
     FFont: TFontFamily;
   public
-    //function LineWidth: Cardinal;
+    type
+      TFontState = class
+        Color: TCastleColor;
+        Size: Single;
+      end;
+      TFontStateList = specialize TFPGObjectList<TFontState>;
 
-    { Render line of text at given position.
+      TPrintState = class
+        Color: TCastleColor;
+        DefaultSize: Single;
+        { Created on demand, only when some tcFontXxx command is seen. }
+        FontStack: TFontStateList;
+        { Note that Bold and Italic are expressed as integers,
+          to smoothly handle <b> embeded in <b>. The value <> 0 indicates
+          to use the given variant. }
+        Bold, Italic: Cardinal;
+        destructor Destroy; override;
+      end;
 
-      The values of Color, Bold, Italic specify the initial state
-      at the beginning of the line, they may get modified while rendering
-      the line. Note that Bold and Italic are expressed as integers,
-      to smoothly handle <b> embeded in <b>. They value <> 0 indicates
-      to use the given variant. }
-    // procedure Print(const Font: TFontFamily;
-    //   const X0, Y0: Integer; var Color: TCastleColor;
-    //   var Bold, Italic: Cardinal);
     constructor Create(const AFont: TFontFamily);
+    function LineWidth: Cardinal;
+    { Render line of text at given position. }
+    procedure Print(const State: TPrintState; X0, Y0: Integer);
+  end;
+
+  { @exclude Internal type for TRichText }
+  TTextProperty = class abstract
+    procedure Print(const Font: TFontFamily;
+      const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer); virtual; abstract;
+  end;
+
+  { @exclude Internal type for TRichText }
+  TTextPropertyString = class(TTextProperty)
+    S: string;
+    procedure Print(const Font: TFontFamily;
+      const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer); override;
+  end;
+
+  { @exclude Internal type for TRichText }
+  TTextPropertyCommand = class(TTextProperty)
+    Command: TTextCommand;
+    Color: TCastleColor;
+    Size: Integer;
+    procedure Print(const Font: TFontFamily;
+      const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer); override;
   end;
 
   { Multi-line text with processing commands
@@ -131,16 +172,25 @@ type
       e.g. @link(Wrap) always calculates this as a by-product of it's work. }
     FMaxLineWidth: Cardinal;
     FFont: TFontFamily;
+    FOwnsFont: boolean;
+    procedure SetTextWithoutTags(Text: TStrings);
+    procedure SetTextWithTags(Text: TStrings);
+    procedure AddTextWithTags(const S: string);
   public
-    constructor Create(const AFont: TFontFamily;
+    constructor Create(const AFont: TCastleFont;
       const Text: TStrings; const Tags: boolean);
-    //procedure Wrap(const Font: TFontFamily; const MaxLineWidth: Cardinal);
-    //function MaxLineWidth: Cardinal;
+    destructor Destroy; override;
+    function MaxLineWidth: Cardinal;
+    procedure Wrap(const MaxWidth: Cardinal);
+    procedure Print(const X0, Y0: Integer; const Color: TCastleColor;
+      const LineSpacing: Integer;
+      const TextHorizontalAlignment: THorizontalPosition = hpLeft);
   end;
 
 implementation
 
-uses SysUtils;
+uses SysUtils, StrUtils, Math,
+  CastleUtils, CastleStringUtils, CastleWarnings;
 
 { TFontFamily ------------------------------------------------------------ }
 
@@ -265,90 +315,583 @@ procedure TFontFamily.Print(const X, Y: Integer; const Color: TCastleColor;
 begin
   if Size <> 0 then
   begin
-    SubFont(false, false).PushProperties;
-    SubFont(false, false).Size := Size;
+    SubFont.PushProperties;
+    SubFont.Size := Size;
   end;
-  SubFont(false, false).Print(X, Y, Color, S);
+  SubFont.Print(X, Y, Color, S);
   if Size <> 0 then
-    SubFont(false, false).PopProperties;
+    SubFont.PopProperties;
 end;
 
 function TFontFamily.TextWidth(const S: string): Integer;
 begin
   if Size <> 0 then
   begin
-    SubFont(false, false).PushProperties;
-    SubFont(false, false).Size := Size;
+    SubFont.PushProperties;
+    SubFont.Size := Size;
   end;
-  Result := SubFont(false, false).TextWidth(S);
+  Result := SubFont.TextWidth(S);
   if Size <> 0 then
-    SubFont(false, false).PopProperties;
+    SubFont.PopProperties;
 end;
 
 function TFontFamily.TextHeight(const S: string): Integer;
 begin
   if Size <> 0 then
   begin
-    SubFont(false, false).PushProperties;
-    SubFont(false, false).Size := Size;
+    SubFont.PushProperties;
+    SubFont.Size := Size;
   end;
-  Result := SubFont(false, false).TextHeight(S);
+  Result := SubFont.TextHeight(S);
   if Size <> 0 then
-    SubFont(false, false).PopProperties;
+    SubFont.PopProperties;
 end;
 
 function TFontFamily.TextHeightBase(const S: string): Integer;
 begin
   if Size <> 0 then
   begin
-    SubFont(false, false).PushProperties;
-    SubFont(false, false).Size := Size;
+    SubFont.PushProperties;
+    SubFont.Size := Size;
   end;
-  Result := SubFont(false, false).TextHeightBase(S);
+  Result := SubFont.TextHeightBase(S);
   if Size <> 0 then
-    SubFont(false, false).PopProperties;
+    SubFont.PopProperties;
 end;
 
 function TFontFamily.TextMove(const S: string): TVector2Integer;
 begin
   if Size <> 0 then
   begin
-    SubFont(false, false).PushProperties;
-    SubFont(false, false).Size := Size;
+    SubFont.PushProperties;
+    SubFont.Size := Size;
   end;
-  Result := SubFont(false, false).TextMove(S);
+  Result := SubFont.TextMove(S);
   if Size <> 0 then
-    SubFont(false, false).PopProperties;
+    SubFont.PopProperties;
 end;
 
-function TFontFamily.SubFont(const Bold, Italic: boolean): TCastleFont;
+function TFontFamily.SubFont(const ABold, AItalic: boolean): TCastleFont;
 begin
-  if Bold and Italic and (BoldItalicFont <> nil) then
+  if ABold and AItalic and (BoldItalicFont <> nil) then
     Result := BoldItalicFont else
-  if Bold and (BoldFont <> nil) then
+  if ABold and (BoldFont <> nil) then
     Result := BoldFont else
-  if Italic and (ItalicFont <> nil) then
+  if AItalic and (ItalicFont <> nil) then
     Result := ItalicFont else
   if RegularFont <> nil then
     Result := RegularFont else
     raise Exception.Create('You must set at least RegularFont of TFontFamily to use it for processing and rendering');
 end;
 
+function TFontFamily.SubFont: TCastleFont;
+begin
+  Result := SubFont(Bold, Italic);
+end;
+
+function TFontFamily.RealSize: Single;
+begin
+  if Size <> 0 then
+    Result := Size else
+    Result := SubFont.RealSize;
+end;
+
+{ TPrintState ---------------------------------------------------------------- }
+
+destructor TTextLine.TPrintState.Destroy;
+begin
+  FreeAndNil(FontStack);
+  inherited;
+end;
+
+{ TTextPropertyString -------------------------------------------------------- }
+
+procedure TTextPropertyString.Print(const Font: TFontFamily;
+  const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer);
+begin
+  Font.Print(X0, Y0, State.Color, S);
+  X0 += Font.TextWidth(S);
+end;
+
+{ TTextPropertyCommand -------------------------------------------------------- }
+
+procedure TTextPropertyCommand.Print(const Font: TFontFamily;
+  const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer);
+const
+  SizeSmaller = 0.75;
+  SizeLarger = 1 / SizeSmaller;
+
+  { Convert HTML size as for <font>
+    https://developer.mozilla.org/en-US/docs/Web/HTML/Element/font to our font size. }
+  function HtmlSizeToMySize(const HtmlSize: Integer; const DefaultSize: Single): Single;
+  begin
+    if HtmlSize < 3 then
+      Result := DefaultSize * Power(SizeSmaller, 3 - HtmlSize) else
+    if HtmlSize > 3 then
+      Result := DefaultSize * Power(SizeLarger, HtmlSize - 3) else
+      Result := DefaultSize;
+  end;
+
+var
+  FontState: TTextLine.TFontState;
+begin
+  case Command of
+    tcBold:
+      begin
+        Inc(State.Bold);
+        Font.Bold := State.Bold <> 0;
+      end;
+    tcBoldEnd:
+      if State.Bold = 0 then
+        OnWarning(wtMinor, 'RichText', 'Mismatched </b>') else
+      begin
+        Dec(State.Bold);
+        Font.Bold := State.Bold <> 0;
+      end;
+    tcItalic:
+      begin
+        Inc(State.Italic);
+        Font.Italic := State.Italic <> 0;
+      end;
+    tcItalicEnd:
+      if State.Italic = 0 then
+        OnWarning(wtMinor, 'RichText', 'Mismatched </i>') else
+      begin
+        Dec(State.Italic);
+        Font.Italic := State.Italic <> 0;
+      end;
+    tcFontColor:
+      begin
+        if State.FontStack = nil then
+          State.FontStack := TTextLine.TFontStateList.Create;
+        FontState := TTextLine.TFontState.Create;
+        FontState.Color := State.Color;
+        FontState.Size := Font.RealSize;
+        State.FontStack.Add(FontState);
+
+        State.Color := Color;
+      end;
+    tcFontSize:
+      begin
+        if State.FontStack = nil then
+          State.FontStack := TTextLine.TFontStateList.Create;
+        FontState := TTextLine.TFontState.Create;
+        FontState.Color := State.Color;
+        FontState.Size := Font.RealSize;
+        State.FontStack.Add(FontState);
+
+        Font.Size := HtmlSizeToMySize(Size, State.DefaultSize);
+      end;
+    tcSmall:
+      begin
+        if State.FontStack = nil then
+          State.FontStack := TTextLine.TFontStateList.Create;
+        FontState := TTextLine.TFontState.Create;
+        FontState.Color := State.Color;
+        FontState.Size := Font.RealSize;
+        State.FontStack.Add(FontState);
+
+        Font.Size := Font.RealSize * SizeSmaller;
+      end;
+    tcFontEnd, tcSmallEnd:
+      if (State.FontStack = nil) or (State.FontStack.Count = 0) then
+        OnWarning(wtMinor, 'RichText', 'Mismatched </font> or </small>') else
+      begin
+        FontState := State.FontStack.Last;
+        State.Color := FontState.Color;
+        Font.Size := FontState.Size;
+        State.FontStack.Delete(State.FontStack.Count - 1); // remove last, popping from stack
+      end;
+    else raise EInternalError.Create('TTextPropertyCommand.Print unknown enum');
+  end;
+end;
+
 { TTextLine ------------------------------------------------------------------ }
 
 constructor TTextLine.Create(const AFont: TFontFamily);
 begin
-  inherited Create;
+  inherited Create(true);
   FFont := AFont;
+end;
+
+function TTextLine.LineWidth: Cardinal;
+var
+  I: Integer;
+begin
+  if not FLineWidthKnown then
+  begin
+    FLineWidthKnown := true;
+    FLineWidth := 0;
+    for I := 0 to Count - 1 do
+      // TODO: simple implementation, assumes font variant/size doesn't change
+      if Items[I] is TTextPropertyString then
+        FLineWidth += FFont.TextWidth(TTextPropertyString(Items[I]).S);
+  end;
+  Result := FLineWidth;
+end;
+
+procedure TTextLine.Print(const State: TPrintState; X0, Y0: Integer);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I].Print(FFont, State, X0, Y0);
 end;
 
 { TRichText ------------------------------------------------------------------ }
 
-constructor TRichText.Create(const AFont: TFontFamily;
+constructor TRichText.Create(const AFont: TCastleFont;
   const Text: TStrings; const Tags: boolean);
 begin
-  inherited Create;
-  FFont := AFont;
+  inherited Create(true);
+
+  if AFont is TFontFamily then
+  begin
+    FFont := AFont as TFontFamily;
+    FOwnsFont := false;
+  end else
+  begin
+    FFont := TFontFamily.Create(nil);
+    FFont.RegularFont := AFont;
+    FOwnsFont := true;
+  end;
+
+  if Tags then
+    SetTextWithTags(Text) else
+    SetTextWithoutTags(Text);
+end;
+
+destructor TRichText.Destroy;
+begin
+  if FOwnsFont then
+    FreeAndNil(FFont);
+  inherited;
+end;
+
+procedure TRichText.SetTextWithoutTags(Text: TStrings);
+var
+  PropS: TTextPropertyString;
+  I: Integer;
+begin
+  Count := Text.Count;
+  for I := 0 to Text.Count - 1 do
+  begin
+    PropS := TTextPropertyString.Create;
+    PropS.S := Text[I];
+    Items[I] := TTextLine.Create(FFont);
+    Items[I].Add(PropS);
+  end;
+end;
+
+procedure TRichText.SetTextWithTags(Text: TStrings);
+var
+  I: Integer;
+begin
+  Clear;
+  Capacity := Text.Count;
+  for I := 0 to Text.Count - 1 do
+    AddTextWithTags(Text[I]);
+end;
+
+procedure TRichText.AddTextWithTags(const S: string);
+var
+  TextLine: TTextLine;
+
+  { Test is given substring at position I within larger string S.
+    Does it fast (without creating a temporary copy for a subtring from S).
+    Case-sensitive. }
+  function SubstringStartsHere(const S: string; const I: Integer;
+    const Substring: string; out NextChar: Integer): boolean;
+  var
+    J, SubstringLength, SIndex: Integer;
+  begin
+    SubstringLength := Length(Substring);
+    NextChar := I + SubstringLength;
+    if NextChar > Length(S) + 1 then
+      Exit(false); // Substring too long
+    SIndex := I;
+    for J := 1 to SubstringLength do
+    begin
+      if Substring[J] <> S[SIndex] then
+        Exit(false);
+      Inc(SIndex);
+    end;
+    Result := true;
+  end;
+
+  function EntityFound(const S: string; const I: Integer;
+    out NextChar: Integer): TTextPropertyString;
+  begin
+    if SubstringStartsHere(S, I, '&amp;', NextChar) then
+    begin
+      Result := TTextPropertyString.Create;
+      Result.S := '&';
+    end else
+    if SubstringStartsHere(S, I, '&lt;', NextChar) then
+    begin
+      Result := TTextPropertyString.Create;
+      Result.S := '<';
+    end else
+    if SubstringStartsHere(S, I, '&gt;', NextChar) then
+    begin
+      Result := TTextPropertyString.Create;
+      Result.S := '>';
+    end else
+    if SubstringStartsHere(S, I, '&apos;', NextChar) then
+    begin
+      Result := TTextPropertyString.Create;
+      Result.S := '''';
+    end else
+    if SubstringStartsHere(S, I, '&quot;', NextChar) then
+    begin
+      Result := TTextPropertyString.Create;
+      Result.S := '"';
+    end else
+      Result := nil;
+  end;
+
+  function ReadFontColor(const S: string; const I: Integer;
+    out NextChar: Integer; out Color: TCastleColor): boolean;
+  var
+    EndPos: Integer;
+  const
+    HexDigits = ['0'..'9', 'a'..'f', 'A'..'F'];
+  begin
+    EndPos := PosEx('">', S, I);
+    NextChar := EndPos + 2;
+    { we have to find ">, and have exactly 6 or 8 characters for color }
+    Result := (EndPos = I + 6) or (EndPos = I + 8);
+
+    Color[0] := StrHexToInt(Copy(S, I    , 2)) / 255;
+    Color[1] := StrHexToInt(Copy(S, I + 2, 2)) / 255;
+    Color[2] := StrHexToInt(Copy(S, I + 4, 2)) / 255;
+    if EndPos = I + 8 then
+      Color[3] := StrHexToInt(Copy(S, I + 6, 2)) / 255 else
+      Color[3] := 1.0;
+  end;
+
+  function ReadFontSize(const S: string; const I: Integer;
+    out NextChar: Integer; out Size: Integer): boolean;
+  var
+    EndPos: Integer;
+    SizeRead: Int64;
+  begin
+    EndPos := PosEx('">', S, I);
+    NextChar := EndPos + 2;
+    Result := EndPos <> 0;
+    try
+      SizeRead := StrToInt(Copy(S, I, EndPos - I));
+    except
+      on EConvertError do Exit(false);
+    end;
+
+    if S[I] in ['+', '-'] then
+      { size is relative to 3.
+        See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/font }
+      Size := Clamped(3 + SizeRead, 1, 7) else
+      Size := Clamped(SizeRead, 1, 7);
+  end;
+
+  function CommandFound(const S: string; const I: Integer;
+    out NextChar: Integer): TTextPropertyCommand;
+  begin
+    if SubstringStartsHere(S, I, '<b>', NextChar) then
+    begin
+      Result := TTextPropertyCommand.Create;
+      Result.Command := tcBold;
+    end else
+    if SubstringStartsHere(S, I, '</b>', NextChar) then
+    begin
+      Result := TTextPropertyCommand.Create;
+      Result.Command := tcBoldEnd;
+    end else
+    if SubstringStartsHere(S, I, '<i>', NextChar) then
+    begin
+      Result := TTextPropertyCommand.Create;
+      Result.Command := tcItalic;
+    end else
+    if SubstringStartsHere(S, I, '</i>', NextChar) then
+    begin
+      Result := TTextPropertyCommand.Create;
+      Result.Command := tcItalicEnd;
+    end else
+    if SubstringStartsHere(S, I, '<font color="#', NextChar) then
+    begin
+      Result := TTextPropertyCommand.Create;
+      Result.Command := tcFontColor;
+      if not ReadFontColor(S, NextChar, NextChar, Result.Color) then
+        FreeAndNil(Result); // resign, not correct
+    end else
+    if SubstringStartsHere(S, I, '<font size="', NextChar) then
+    begin
+      Result := TTextPropertyCommand.Create;
+      Result.Command := tcFontSize;
+      if not ReadFontSize(S, NextChar, NextChar, Result.Size) then
+        FreeAndNil(Result); // resign, not correct
+    end else
+    if SubstringStartsHere(S, I, '</font>', NextChar) then
+    begin
+      Result := TTextPropertyCommand.Create;
+      Result.Command := tcFontEnd;
+    end else
+    if SubstringStartsHere(S, I, '<small>', NextChar) then
+    begin
+      Result := TTextPropertyCommand.Create;
+      Result.Command := tcSmall;
+    end else
+    if SubstringStartsHere(S, I, '</small>', NextChar) then
+    begin
+      Result := TTextPropertyCommand.Create;
+      Result.Command := tcSmallEnd;
+    end else
+      Result := nil;
+  end;
+
+  function SpecialFound(const S: string; const I: Integer;
+    out NextChar: Integer): TTextProperty;
+  begin
+    if S[I] = '&' then
+      Result := EntityFound(S, I, NextChar) else
+    if S[I] = '<' then
+      Result := CommandFound(S, I, NextChar) else
+      Result := nil;
+  end;
+
+  procedure AddRemainingString(const I, Done: Integer);
+  var
+    PropS: TTextPropertyString;
+  begin
+    if Done + 1 < I then
+    begin
+      PropS := TTextPropertyString.Create;
+      PropS.S := Copy(S, Done + 1, I - 1 - Done);
+      TextLine.Add(PropS);
+    end;
+  end;
+
+var
+  I, Done, NextChar, SLength: Integer;
+  SLowerCase: string;
+  PropSpecial: TTextProperty;
+begin
+  TextLine := TTextLine.Create(FFont);
+
+  { we search lowercase substrings inside this, thus we ignore case automatically
+    in the rest of the processing code }
+  SLowerCase := AnsiLowerCase(S);
+
+  Done := 0;
+  I := 1;
+  SLength := Length(S);
+
+  while I <= SLength do
+  begin
+    { for speed, quickly test and move on if this isn't any special character }
+    if S[I] in ['<', '&'] then
+    begin
+      { handle line-breaking elements specially here }
+      if SubstringStartsHere(SLowerCase, I, '<p>', NextChar) then
+      begin
+        AddRemainingString(I, Done);
+        Add(TextLine); TextLine := TTextLine.Create(FFont);
+        Add(TextLine); TextLine := TTextLine.Create(FFont);
+        Done := NextChar - 1;
+        I := NextChar;
+      end else
+      if SubstringStartsHere(SLowerCase, I, '<br>', NextChar) or
+         SubstringStartsHere(SLowerCase, I, '<br/>', NextChar) or
+         SubstringStartsHere(SLowerCase, I, '<br />', NextChar) then
+      begin
+        AddRemainingString(I, Done);
+        Add(TextLine); TextLine := TTextLine.Create(FFont);
+        Done := NextChar - 1;
+        I := NextChar;
+      end else
+      { handle entities and commands,
+        that break a text into multiple TTextProperty instances }
+      begin
+        PropSpecial := SpecialFound(SLowerCase, I, NextChar);
+        if PropSpecial <> nil then
+        begin
+          AddRemainingString(I, Done);
+          TextLine.Add(PropSpecial);
+          Done := NextChar - 1;
+          I := NextChar;
+        end else
+          Inc(I);
+      end;
+    end else
+      Inc(I);
+  end;
+
+  AddRemainingString(I, Done);
+  Add(TextLine);
+end;
+
+function TRichText.MaxLineWidth: Cardinal;
+var
+  I: Integer;
+begin
+  if not FMaxLineWidthKnown then
+  begin
+    FMaxLineWidthKnown := true;
+    FMaxLineWidth := 0;
+    for I := 0 to Count - 1 do
+      MaxVar(FMaxLineWidth, Items[I].LineWidth);
+  end;
+  Result := FMaxLineWidth;
+end;
+
+procedure TRichText.Wrap(const MaxWidth: Cardinal);
+begin
+  // TODO
+end;
+
+procedure TRichText.Print(const X0, Y0: Integer; const Color: TCastleColor;
+  const LineSpacing: Integer;
+  const TextHorizontalAlignment: THorizontalPosition = hpLeft);
+
+  function XPos(const Line: Integer): Integer;
+  begin
+    case TextHorizontalAlignment of
+      hpLeft  : Result := X0;
+      hpMiddle: Result := X0 - Items[Line].LineWidth div 2;
+      hpRight : Result := X0 - Items[Line].LineWidth;
+      else EInternalError.Create('TRichText.Print: TextHorizontalAlignment unknown');
+    end;
+  end;
+
+var
+  RowHeight: Integer;
+
+  function YPos(const Line: Integer): Integer;
+  begin
+    Result := (Count - 1 - Line) * (RowHeight + LineSpacing) + Y0;
+  end;
+
+var
+  State: TTextLine.TPrintState;
+  I: Integer;
+  RestoreBold, RestoreItalic: boolean;
+begin
+  State := TTextLine.TPrintState.Create;
+  try
+    { set FFont into Bold = Italic = false state }
+    RestoreBold := FFont.Bold;
+    RestoreItalic := FFont.Italic;
+    FFont.Bold := false;
+    FFont.Italic := false;
+    try
+      State.Color := Color;
+      State.DefaultSize := FFont.RealSize;
+      RowHeight := FFont.RowHeight;
+      for I := 0 to Count - 1 do
+        Items[I].Print(State, XPos(I), YPos(I));
+    finally
+      FFont.Bold := RestoreBold;
+      FFont.Italic := RestoreItalic;
+    end;
+  finally FreeAndNil(State) end;
 end;
 
 end.
