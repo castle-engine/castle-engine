@@ -887,13 +887,34 @@ var
       Result := nil;
   end;
 
+  function CommentFound(const S: string; const I: Integer;
+    out NextChar: Integer): TTextPropertyString;
+  var
+    EndPos: Integer;
+  begin
+    Result := nil;
+    if SubstringStartsHere(S, I, '<!--', NextChar) then
+    begin
+      EndPos := PosEx('-->', S, NextChar);
+      if EndPos <> 0 then
+      begin
+        NextChar := EndPos + 3;
+        Result := TTextPropertyString.Create; // with empty S
+      end;
+    end;
+  end;
+
   function SpecialFound(const S: string; const I: Integer;
     out NextChar: Integer): TTextProperty;
   begin
     if S[I] = '&' then
       Result := EntityFound(S, I, NextChar) else
     if S[I] = '<' then
-      Result := CommandFound(S, I, NextChar) else
+    begin
+      if SCharIs(S, I + 1, '!') then
+        Result := CommentFound(S, I, NextChar) else
+        Result := CommandFound(S, I, NextChar);
+    end else
       Result := nil;
   end;
 
