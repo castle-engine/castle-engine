@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "rich_text_demo.html" }
-'Using the TCastleLabel.RichText = true parameters allows to render text with HTML tags. We support a small subset of elements from HTML. We don''t try to implement a HTML renderer here!, only to implement some useful elements that are comfortable to use inline in a rich text. This way you can express more interesting text within a single string, within a single TCastleLabel instance.' + LineEnding +
+{ DON'T EDIT -- this file was automatically generated from "html_text_demo.html" }
+'Using the <b>TCastleLabel.Html = true</b> allows to render text with HTML markup. We support a small subset of elements from HTML. We don''t try to implement a full HTML renderer here!, only to implement some useful elements that are comfortable to use inline in a text. This way you can express more interesting text within a single string, within a single TCastleLabel instance.' + LineEnding +
 '' + LineEnding +
 'This text <b>is bold</b>. This one is even <b>bold and <i>italic and the same time!</i> (again only bold)</b> (again normal). You can go crazy with colors: <font color="#0000ff">blue <font color="#00FF00">green</font> back to blue <b>now blue and bold! <i>and italic too!</i> back to just bold</b> back to just blue</font>.' + LineEnding +
 '' + LineEnding +
@@ -12,9 +12,9 @@
 '' + LineEnding +
 'HTML comments also work (are omitted, zero size): <!-- comment --> <font color="#666666">&lt;-- this is how to write a comment --&gt;</font>.' + LineEnding +
 '' + LineEnding +
-'Whitespace: we treat whitespace <b>unlike</b> HTML. This means that a newline in text <b>does</b> result in a newline in output. And more spaces in input <b>do</b> in more spaces in output. Here''s a newline:' + LineEnding +
-'This is unlike HTML, but is consistent and very comfortable in our case - you often don''t need the rich text, but you still need to indicate newlines and more spaces. Another newline:' + LineEnding +
-'So a <i>newline/space in input is a visible newline/space in output</i>, regardless if you use rich text or not.' + LineEnding +
+'Whitespace: we treat whitespace <b>unlike</b> HTML. This means that a newline in text <b>does</b> result in a newline in output. And more spaces in input <b>do</b> make more space (like this:    ) in output. Here''s a newline:' + LineEnding +
+'This is unlike HTML, but is consistent and very comfortable in our case - you often don''t need the HTML markup, but you still need to indicate newlines and more spaces. Another newline:' + LineEnding +
+'So a <i>newline/space in input is a visible newline/space in output</i>, regardless if you use HTML markup or not.' + LineEnding +
 '' + LineEnding +
 'You can also use HTML paragraph &lt;p&gt; and &lt;br&gt; and &lt;br/&gt; elements.<br>Newline.<br/>Another newline.<p>Paragraph &lt;p&gt; is simply just 2 newlines, so it makes a line-size break. <p>Line wrapping always works Ok, <font color="#00FF00">even if you go crazy with colors and <b><i>bold/italic</i></b></font>. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.' + LineEnding +
 ''

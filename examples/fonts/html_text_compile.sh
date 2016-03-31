@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f rich_text.lpr ]; then cd ../../; fi
+if [ -f html_text.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/fonts/rich_text.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/fonts/html_text.lpr

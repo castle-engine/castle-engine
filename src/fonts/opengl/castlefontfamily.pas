@@ -25,8 +25,8 @@ uses Classes, FGL,
 
 type
   { Font family, with different subfonts for normal, bold, italic, bold+italic
-    variants. It implements the powerful methods to render and wrap text
-    with HTML tags (<b>, <i>, <p>, <font color="#rrbbgg">).
+    variants. Used together with TRichText, that has powerful methods to render
+    and wrap text with HTML elements (<b>, <i> etc. inside).
     During such processing and rendering, it automatically uses the correct
     subfont. It's closely tied with the TRichText class.
 
@@ -184,7 +184,7 @@ type
 
   { Multi-line text with processing commands
     (like "change font to bold now"). Used to render "rich text",
-    which is text that may contain (a subset of) HTML tags.
+    which is text that may contain (a subset of) HTML.
 
     Note that TRichText instance is always tied to a corresponding
     TFontFamily used to render it. @bold(Through the lifetime of TRichText,
@@ -198,14 +198,16 @@ type
     FWidth: Cardinal;
     FFont: TFontFamily;
     FOwnsFont: boolean;
-    procedure SetTextWithoutTags(Text: TStrings);
-    procedure SetTextWithTags(Text: TStrings);
-    procedure AddTextWithTags(const S: string);
+    procedure SetTextWithoutHtml(Text: TStrings);
+    procedure SetTextWithHtml(Text: TStrings);
+    procedure AddTextWithHtml(const S: string);
     function BeginProcessing(const InitialColor: TCastleColor): TTextLine.TPrintState;
     procedure EndProcessing(var State: TTextLine.TPrintState);
   public
     constructor Create(const AFont: TCastleFont;
-      const Text: TStrings; const Tags: boolean);
+      const Text: TStrings; const Html: boolean);
+    constructor Create(const AFont: TCastleFont;
+      const S: string; const Html: boolean);
     destructor Destroy; override;
     function Width: Cardinal;
     procedure Wrap(const MaxWidth: Cardinal);
@@ -579,7 +581,7 @@ begin
       end;
     tcBoldEnd:
       if State.Bold = 0 then
-        OnWarning(wtMinor, 'RichText', 'Mismatched </b>') else
+        OnWarning(wtMinor, 'HTML', 'Mismatched </b>') else
       begin
         Dec(State.Bold);
         Font.Bold := State.Bold <> 0;
@@ -591,7 +593,7 @@ begin
       end;
     tcItalicEnd:
       if State.Italic = 0 then
-        OnWarning(wtMinor, 'RichText', 'Mismatched </i>') else
+        OnWarning(wtMinor, 'HTML', 'Mismatched </i>') else
       begin
         Dec(State.Italic);
         Font.Italic := State.Italic <> 0;
@@ -631,7 +633,7 @@ begin
       end;
     tcFontEnd, tcSmallEnd:
       if (State.FontStack = nil) or (State.FontStack.Count = 0) then
-        OnWarning(wtMinor, 'RichText', 'Mismatched </font> or </small>') else
+        OnWarning(wtMinor, 'HTML', 'Mismatched </font> or </small>') else
       begin
         FontState := State.FontStack.Last;
         State.Color := FontState.Color;
@@ -681,7 +683,7 @@ end;
 { TRichText ------------------------------------------------------------------ }
 
 constructor TRichText.Create(const AFont: TCastleFont;
-  const Text: TStrings; const Tags: boolean);
+  const Text: TStrings; const Html: boolean);
 begin
   inherited Create(true);
 
@@ -696,9 +698,21 @@ begin
     FOwnsFont := true;
   end;
 
-  if Tags then
-    SetTextWithTags(Text) else
-    SetTextWithoutTags(Text);
+  if Html then
+    SetTextWithHtml(Text) else
+    SetTextWithoutHtml(Text);
+end;
+
+constructor TRichText.Create(const AFont: TCastleFont;
+  const S: string; const Html: boolean);
+var
+  Text: TStringList;
+begin
+  Text := TStringList.Create;
+  try
+    Text.Text := S;
+    Create(AFont, Text, Html);
+  finally FreeAndNil(Text) end;
 end;
 
 destructor TRichText.Destroy;
@@ -708,7 +722,7 @@ begin
   inherited;
 end;
 
-procedure TRichText.SetTextWithoutTags(Text: TStrings);
+procedure TRichText.SetTextWithoutHtml(Text: TStrings);
 var
   PropS: TTextPropertyString;
   I: Integer;
@@ -723,17 +737,17 @@ begin
   end;
 end;
 
-procedure TRichText.SetTextWithTags(Text: TStrings);
+procedure TRichText.SetTextWithHtml(Text: TStrings);
 var
   I: Integer;
 begin
   Clear;
   Capacity := Text.Count;
   for I := 0 to Text.Count - 1 do
-    AddTextWithTags(Text[I]);
+    AddTextWithHtml(Text[I]);
 end;
 
-procedure TRichText.AddTextWithTags(const S: string);
+procedure TRichText.AddTextWithHtml(const S: string);
 var
   TextLine: TTextLine;
 

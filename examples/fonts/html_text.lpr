@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo of TCastleLabel, with long wrapped text with HTML tags inside. }
+{ Demo of TCastleLabel, with long wrapped text with HTML inside. }
 
 uses SysUtils, Classes,
   CastleTextureFont_DjvSans_20, CastleTextureFont_DjvSansB_20,
@@ -25,21 +25,21 @@ const
   Margin = 10;
 var
   Label1: TCastleLabel;
-  ButtonTags, ButtonWrap, ButtonAlignLeft, ButtonAlignMiddle, ButtonAlignRight: TCastleButton;
+  ButtonHtml, ButtonWrap, ButtonAlignLeft, ButtonAlignMiddle, ButtonAlignRight: TCastleButton;
 
 type
   TButtonHandler = class
-    class procedure ClickTags(Sender: TObject);
+    class procedure ClickHtml(Sender: TObject);
     class procedure ClickWrap(Sender: TObject);
     class procedure ClickAlignLeft(Sender: TObject);
     class procedure ClickAlignMiddle(Sender: TObject);
     class procedure ClickAlignRight(Sender: TObject);
   end;
 
-class procedure TButtonHandler.ClickTags(Sender: TObject);
+class procedure TButtonHandler.ClickHtml(Sender: TObject);
 begin
-  ButtonTags.Pressed := not ButtonTags.Pressed;
-  Label1.Tags := ButtonTags.Pressed;
+  ButtonHtml.Pressed := not ButtonHtml.Pressed;
+  Label1.Html := ButtonHtml.Pressed;
 end;
 
 class procedure TButtonHandler.ClickWrap(Sender: TObject);
@@ -102,19 +102,19 @@ begin
   Background.Color := White; // Vector4Single(0.9, 0.9, 0.7, 1.0);
   Window.Controls.InsertFront(Background);
 
-  ButtonTags := TCastleButton.Create(Window);
-  ButtonTags.Caption := 'Tags';
-  ButtonTags.Toggle := true;
-  ButtonTags.Left := Margin;
-  ButtonTags.Bottom := Margin;
-  ButtonTags.OnClick := @TButtonHandler(nil).ClickTags;
-  ButtonTags.Pressed := true;
-  Window.Controls.InsertFront(ButtonTags);
+  ButtonHtml := TCastleButton.Create(Window);
+  ButtonHtml.Caption := 'HTML';
+  ButtonHtml.Toggle := true;
+  ButtonHtml.Left := Margin;
+  ButtonHtml.Bottom := Margin;
+  ButtonHtml.OnClick := @TButtonHandler(nil).ClickHtml;
+  ButtonHtml.Pressed := true;
+  Window.Controls.InsertFront(ButtonHtml);
 
   ButtonWrap := TCastleButton.Create(Window);
   ButtonWrap.Caption := 'Wrap';
   ButtonWrap.Toggle := true;
-  ButtonWrap.Left := 2 * Margin + ButtonTags.Width;
+  ButtonWrap.Left := 2 * Margin + ButtonHtml.Width;
   ButtonWrap.Bottom := Margin;
   ButtonWrap.OnClick := @TButtonHandler(nil).ClickWrap;
   ButtonWrap.Pressed := true;
@@ -146,11 +146,11 @@ begin
   Window.Controls.InsertFront(ButtonAlignLeft);
 
   Label1 := TCastleLabel.Create(Window);
-  Label1.Text.Text := {$I rich_text_demo.html.inc};
+  Label1.Text.Text := {$I html_text_demo.html.inc};
   Label1.CustomFont := Font;
   Label1.Left := Margin;
-  Label1.Bottom := 2 * Margin + ButtonTags.Height;
-  Label1.Tags := ButtonTags.Pressed;
+  Label1.Bottom := 2 * Margin + ButtonHtml.Height;
+  Label1.Html := ButtonHtml.Pressed;
   Label1.Color := Black;
   Window.Controls.InsertFront(Label1);
 

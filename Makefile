@@ -140,7 +140,7 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/simple_video_editor \
   examples/fonts/test_font_break \
   examples/fonts/font_from_texture \
-  examples/fonts/rich_text \
+  examples/fonts/html_text \
   examples/window/window_events \
   examples/window/window_menu \
   examples/window/window_gtk_mix \

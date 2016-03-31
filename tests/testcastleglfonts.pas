@@ -22,7 +22,7 @@ uses fpcunit, testutils, testregistry;
 type
   TTestCastleGLFonts = class(TTestCase)
   published
-    procedure TestMaxTextWidthTags;
+    procedure TestMaxTextWidthHtml;
   end;
 
 implementation
@@ -30,7 +30,7 @@ implementation
 uses SysUtils, Classes, CastleWindow,
   CastleFonts, CastleTextureFont_DejaVuSansMonoBold_15;
 
-procedure TTestCastleGLFonts.TestMaxTextWidthTags;
+procedure TTestCastleGLFonts.TestMaxTextWidthHtml;
 var
   Window: TCastleWindow;
 

@@ -703,7 +703,7 @@ type
     FPaddingHorizontal, FPaddingVertical, FPadding: Integer;
     FLineSpacing: Integer;
     FColor: TCastleColor;
-    FTags: boolean;
+    FHtml: boolean;
     FFrame: boolean;
     FFrameColor: TCastleColor;
     FMaxWidth: Integer;
@@ -760,9 +760,21 @@ type
       tighter). }
     property LineSpacing: Integer read FLineSpacing write FLineSpacing default DefaultLineSpacing;
 
-    { Does the text use HTML-like tags. This is very limited for now,
-      see TCastleFont.PrintStrings documentation. }
-    property Tags: boolean read FTags write FTags default false;
+    { Does the text use HTML markup.
+      This allows to easily change colors or use bold, italic text for demo.
+
+      See the example examples/fonts/html_text.lpr and
+      examples/fonts/html_text_demo.html for a demo.
+      See @link(TCastleFont.PrintStrings) documentation for a list of support HTML markup.
+
+      Note that to see the bold/italic font variants in the HTML markup,
+      you need to set the font to be TFontFamily with bold/italic variants.
+      See the example mentioned above, examples/fonts/html_text.lpr,
+      for a code how to do it. }
+    property Html: boolean read FHtml write FHtml default false;
+
+    property Tags: boolean read FHtml write FHtml stored false default false;
+      deprecated 'use Html instead';
 
     { Draw frame around the text. Frame uses theme image tiLabel,
       see TCastleTheme.Images if you want to customize it. }
@@ -2902,7 +2914,7 @@ var
   PaddingHorizontalScaled, MaxWidthScaled: Integer;
   US: Single;
 begin
-  Result := TRichText.Create(Font, Text, Tags);
+  Result := TRichText.Create(Font, Text, Html);
   if MaxWidth <> 0 then
   begin
     US := UIScale;
