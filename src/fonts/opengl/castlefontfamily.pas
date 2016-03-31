@@ -556,7 +556,10 @@ end;
 procedure TTextPropertyCommand.UpdateState(const Font: TFontFamily;
   const State: TTextLine.TPrintState);
 const
-  SizeSmaller = 0.75;
+  { Chosen constant seems to match Google Chrome's <small> sizing.
+    Firefox seems to have more complex equation for <small>
+    (effect of <small> seems to depend non-linearly on the parent size). }
+  SizeSmaller = 0.825;
   SizeLarger = 1 / SizeSmaller;
 
   { Convert HTML size as for <font>
