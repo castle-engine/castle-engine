@@ -126,6 +126,8 @@ type
           to smoothly handle <b> embeded in <b>. The value <> 0 indicates
           to use the given variant. }
         Bold, Italic: Cardinal;
+        { The default Font.Bold, Font.Italic before whole TRichText processing. }
+        RestoreBold, RestoreItalic: boolean;
         destructor Destroy; override;
       end;
 
@@ -139,6 +141,9 @@ type
   TTextProperty = class abstract
     procedure Print(const Font: TFontFamily;
       const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer); virtual; abstract;
+    function Wrap(const Font: TFontFamily; const State: TTextLine.TPrintState;
+      var CurrentWidth: Integer; const MaxWidth: Integer;
+      const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine; virtual; abstract;
   end;
 
   { @exclude Internal type for TRichText }
@@ -146,15 +151,31 @@ type
     S: string;
     procedure Print(const Font: TFontFamily;
       const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer); override;
+    { If there's a need to break, then:
+      - this property is modified (cut),
+      - CurrentLine is modified (cut),
+      - new line is returned,
+      - CurrentWidth is undefined.
+      Otherwise, this moves forward, increasing CurrentWidth. }
+    function Wrap(const Font: TFontFamily; const State: TTextLine.TPrintState;
+      var CurrentWidth: Integer; const MaxWidth: Integer;
+      const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine; override;
   end;
 
   { @exclude Internal type for TRichText }
   TTextPropertyCommand = class(TTextProperty)
+  strict private
+    procedure UpdateState(const Font: TFontFamily;
+      const State: TTextLine.TPrintState);
+  public
     Command: TTextCommand;
     Color: TCastleColor;
     Size: Integer;
     procedure Print(const Font: TFontFamily;
       const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer); override;
+    function Wrap(const Font: TFontFamily; const State: TTextLine.TPrintState;
+      var CurrentWidth: Integer; const MaxWidth: Integer;
+      const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine; override;
   end;
 
   { Multi-line text with processing commands
@@ -176,6 +197,8 @@ type
     procedure SetTextWithoutTags(Text: TStrings);
     procedure SetTextWithTags(Text: TStrings);
     procedure AddTextWithTags(const S: string);
+    function BeginProcessing(const InitialColor: TCastleColor): TTextLine.TPrintState;
+    procedure EndProcessing(var State: TTextLine.TPrintState);
   public
     constructor Create(const AFont: TCastleFont;
       const Text: TStrings; const Tags: boolean);
@@ -190,7 +213,7 @@ type
 implementation
 
 uses SysUtils, StrUtils, Math,
-  CastleUtils, CastleStringUtils, CastleWarnings;
+  CastleUtils, CastleStringUtils, CastleWarnings, CastleUnicode;
 
 { TFontFamily ------------------------------------------------------------ }
 
@@ -413,10 +436,108 @@ begin
   X0 += Font.TextWidth(S);
 end;
 
+function TTextPropertyString.Wrap(const Font: TFontFamily; const State: TTextLine.TPrintState;
+  var CurrentWidth: Integer; const MaxWidth: Integer;
+  const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine;
+
+  { Split line in the middle of this TTextPropertyString. }
+  procedure BreakLine(const PropWidthBytes: Integer; const LineIsNonEmptyAlready: boolean);
+  var
+    NewProp: TTextPropertyString;
+    ExtractedProp: TTextProperty;
+    BreakOutput1, BreakOutput2: string;
+    P: Integer;
+  begin
+    { We have to break this line now. }
+    P := BackCharsPos(WhiteSpaces, Copy(S, 1, PropWidthBytes));
+    if P > 0 then
+    begin
+      BreakOutput1 := Copy(S, 1, P - 1);
+      BreakOutput2 := SEnding(S, P + 1) { break at pos p, delete p-th char }
+    end else
+    begin
+      { in case we don't find a whitespace on which to break }
+      if LineIsNonEmptyAlready then
+        BreakOutput1 := '' else
+        BreakOutput1 := Copy(S, 1, PropWidthBytes);
+      BreakOutput2 := SEnding(S, Length(BreakOutput1) + 1);
+    end;
+
+    { now leave BreakOutput1 in this line, and add BreakOutput2
+      (along with remaining properties on this line) to new line }
+    S := BreakOutput1;
+
+    NewProp := TTextPropertyString.Create;
+    NewProp.S := BreakOutput2;
+
+    Result := TTextLine.Create(Font);
+    Result.Add(NewProp);
+
+    while CurrentLine.Count > CurrentPropertyIndex + 1 do
+    begin
+      ExtractedProp := CurrentLine.Items[CurrentPropertyIndex + 1];
+      CurrentLine.Extract(ExtractedProp);
+      Result.Add(ExtractedProp);
+    end;
+  end;
+
+var
+  PropWidthBytes: Integer;
+  C: TUnicodeChar;
+  SPtr: PChar;
+  CharLen: Integer;
+  LineIsNonEmptyAlready: boolean;
+begin
+  Result := nil;
+  LineIsNonEmptyAlready := CurrentWidth <> 0;
+  SPtr := PChar(S);
+
+  { If S is empty, there's no need to break it. }
+  C := UTF8CharacterToUnicode(SPtr, CharLen);
+  if (C > 0) and (CharLen > 0) then
+  begin
+    { the first character C is always considered to fit into BreakOutput1,
+      regardless of MaxWidth --- after all, we have to place this character
+      somewhere (otherwise we would have to reject this character
+      or raise an error). }
+    Inc(SPtr, CharLen);
+    PropWidthBytes := CharLen;
+    CurrentWidth += Font.TextWidth(UnicodeToUTF8(C));
+
+    C := UTF8CharacterToUnicode(SPtr, CharLen);
+    while (C > 0) and (CharLen > 0) and
+          (CurrentWidth + Font.TextWidth(UnicodeToUTF8(C)) <= MaxWidth) do
+    begin
+      Inc(SPtr, CharLen);
+      PropWidthBytes += CharLen;
+      CurrentWidth += Font.TextWidth(UnicodeToUTF8(C));
+
+      C := UTF8CharacterToUnicode(SPtr, CharLen);
+    end;
+
+    if (C > 0) and (CharLen > 0) then // then above loop stopped because we have to break
+      BreakLine(PropWidthBytes, LineIsNonEmptyAlready);
+  end;
+end;
+
 { TTextPropertyCommand -------------------------------------------------------- }
 
 procedure TTextPropertyCommand.Print(const Font: TFontFamily;
   const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer);
+begin
+  UpdateState(Font, State);
+end;
+
+function TTextPropertyCommand.Wrap(const Font: TFontFamily; const State: TTextLine.TPrintState;
+  var CurrentWidth: Integer; const MaxWidth: Integer;
+  const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine;
+begin
+  UpdateState(Font, State);
+  Result := nil;
+end;
+
+procedure TTextPropertyCommand.UpdateState(const Font: TFontFamily;
+  const State: TTextLine.TPrintState);
 const
   SizeSmaller = 0.75;
   SizeLarger = 1 / SizeSmaller;
@@ -842,9 +963,26 @@ begin
   Result := FMaxLineWidth;
 end;
 
-procedure TRichText.Wrap(const MaxWidth: Cardinal);
+function TRichText.BeginProcessing(const InitialColor: TCastleColor): TTextLine.TPrintState;
 begin
-  // TODO
+  Result := TTextLine.TPrintState.Create;
+
+  { set FFont into Bold = Italic = false state }
+  Result.RestoreBold := FFont.Bold;
+  Result.RestoreItalic := FFont.Italic;
+  FFont.Bold := false;
+  FFont.Italic := false;
+
+  Result.Color := InitialColor;
+  Result.DefaultSize := FFont.RealSize;
+end;
+
+procedure TRichText.EndProcessing(var State: TTextLine.TPrintState);
+begin
+  FFont.Bold := State.RestoreBold;
+  FFont.Italic := State.RestoreItalic;
+
+  FreeAndNil(State);
 end;
 
 procedure TRichText.Print(const X0, Y0: Integer; const Color: TCastleColor;
@@ -872,26 +1010,44 @@ var
 var
   State: TTextLine.TPrintState;
   I: Integer;
-  RestoreBold, RestoreItalic: boolean;
 begin
-  State := TTextLine.TPrintState.Create;
+  State := BeginProcessing(Color);
   try
-    { set FFont into Bold = Italic = false state }
-    RestoreBold := FFont.Bold;
-    RestoreItalic := FFont.Italic;
-    FFont.Bold := false;
-    FFont.Italic := false;
-    try
-      State.Color := Color;
-      State.DefaultSize := FFont.RealSize;
-      RowHeight := FFont.RowHeight;
-      for I := 0 to Count - 1 do
-        Items[I].Print(State, XPos(I), YPos(I));
-    finally
-      FFont.Bold := RestoreBold;
-      FFont.Italic := RestoreItalic;
+    RowHeight := FFont.RowHeight;
+    for I := 0 to Count - 1 do
+      Items[I].Print(State, XPos(I), YPos(I));
+  finally EndProcessing(State) end;
+end;
+
+procedure TRichText.Wrap(const MaxWidth: Cardinal);
+var
+  I, J: Integer;
+  LineWidth: Integer;
+  Line, NewLine: TTextLine;
+  State: TTextLine.TPrintState;
+begin
+  State := BeginProcessing(Black);
+  try
+    I := 0;
+    { note that the current Count will be changing, as we will split our own strings }
+    while I < Count do
+    begin
+      Line := Items[I];
+      LineWidth := 0;
+      for J := 0 to Line.Count - 1 do
+      begin
+        NewLine := Line[J].Wrap(FFont, State, LineWidth, MaxWidth, Line, J);
+        if NewLine <> nil then
+        begin
+          { next I loop iteration will break the next line,
+            which is the remainder of current line }
+          Insert(I + 1, NewLine);
+          Break; // Break from for J loop
+        end;
+      end;
+      Inc(I);
     end;
-  finally FreeAndNil(State) end;
+  finally EndProcessing(State) end;
 end;
 
 end.
