@@ -2928,7 +2928,7 @@ begin
       LineSpacingScaled := Round(US * LineSpacing);
       Result := Rectangle(
         LeftBottomScaled,
-        TextToRender.MaxLineWidth + 2 * PaddingHorizontalScaled,
+        TextToRender.Width + 2 * PaddingHorizontalScaled,
         (Font.RowHeight + LineSpacingScaled) * TextToRender.Count +
           2 * PaddingVerticalScaled + Font.Descend);
     finally

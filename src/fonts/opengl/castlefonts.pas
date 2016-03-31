@@ -714,7 +714,7 @@ begin
   begin
     RichText := TRichText.Create(Self, SList, Tags);
     try
-      Result := RichText.MaxLineWidth;
+      Result := RichText.Width;
     finally FreeAndNil(RichText) end;
   end;
 end;

@@ -106,8 +106,8 @@ type
     @exclude Internal type for TRichText. }
   TTextLine = class(specialize TFPGObjectList<TTextProperty>)
   strict private
-    FLineWidthKnown: boolean;
-    FLineWidth: Cardinal;
+    FWidthKnown: boolean;
+    FWidth: Cardinal;
     FFont: TFontFamily;
   public
     type
@@ -132,7 +132,8 @@ type
       end;
 
     constructor Create(const AFont: TFontFamily);
-    function LineWidth: Cardinal;
+    function Width(const State: TPrintState): Cardinal;
+    function KnownWidth: Cardinal;
     { Render line of text at given position. }
     procedure Print(const State: TPrintState; X0, Y0: Integer);
   end;
@@ -144,6 +145,7 @@ type
     function Wrap(const Font: TFontFamily; const State: TTextLine.TPrintState;
       var CurrentWidth: Integer; const MaxWidth: Integer;
       const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine; virtual; abstract;
+    function Width(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal; virtual; abstract;
   end;
 
   { @exclude Internal type for TRichText }
@@ -160,6 +162,7 @@ type
     function Wrap(const Font: TFontFamily; const State: TTextLine.TPrintState;
       var CurrentWidth: Integer; const MaxWidth: Integer;
       const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine; override;
+    function Width(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal; override;
   end;
 
   { @exclude Internal type for TRichText }
@@ -176,6 +179,7 @@ type
     function Wrap(const Font: TFontFamily; const State: TTextLine.TPrintState;
       var CurrentWidth: Integer; const MaxWidth: Integer;
       const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine; override;
+    function Width(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal; override;
   end;
 
   { Multi-line text with processing commands
@@ -187,11 +191,11 @@ type
     we assume that size and other properties of this font remain constant.) }
   TRichText = class(specialize TFPGObjectList<TTextLine>)
   strict private
-    FMaxLineWidthKnown: boolean;
+    FWidthKnown: boolean;
     { Known max line width, e.g. calculated by @link(Wrap).
       Using this allows to avoid recalculating this many times,
       e.g. @link(Wrap) always calculates this as a by-product of it's work. }
-    FMaxLineWidth: Cardinal;
+    FWidth: Cardinal;
     FFont: TFontFamily;
     FOwnsFont: boolean;
     procedure SetTextWithoutTags(Text: TStrings);
@@ -203,7 +207,7 @@ type
     constructor Create(const AFont: TCastleFont;
       const Text: TStrings; const Tags: boolean);
     destructor Destroy; override;
-    function MaxLineWidth: Cardinal;
+    function Width: Cardinal;
     procedure Wrap(const MaxWidth: Cardinal);
     procedure Print(const X0, Y0: Integer; const Color: TCastleColor;
       const LineSpacing: Integer;
@@ -520,6 +524,11 @@ begin
   end;
 end;
 
+function TTextPropertyString.Width(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal;
+begin
+  Result := Font.TextWidth(S);
+end;
+
 { TTextPropertyCommand -------------------------------------------------------- }
 
 procedure TTextPropertyCommand.Print(const Font: TFontFamily;
@@ -534,6 +543,12 @@ function TTextPropertyCommand.Wrap(const Font: TFontFamily; const State: TTextLi
 begin
   UpdateState(Font, State);
   Result := nil;
+end;
+
+function TTextPropertyCommand.Width(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal;
+begin
+  UpdateState(Font, State);
+  Result := 0;
 end;
 
 procedure TTextPropertyCommand.UpdateState(const Font: TFontFamily;
@@ -635,20 +650,24 @@ begin
   FFont := AFont;
 end;
 
-function TTextLine.LineWidth: Cardinal;
+function TTextLine.Width(const State: TPrintState): Cardinal;
 var
   I: Integer;
 begin
-  if not FLineWidthKnown then
-  begin
-    FLineWidthKnown := true;
-    FLineWidth := 0;
-    for I := 0 to Count - 1 do
-      // TODO: simple implementation, assumes font variant/size doesn't change
-      if Items[I] is TTextPropertyString then
-        FLineWidth += FFont.TextWidth(TTextPropertyString(Items[I]).S);
-  end;
-  Result := FLineWidth;
+  { note that this cannot just return FWidth, even if FWidthKnown,
+    because we still have to iterate over our properties to update State. }
+  FWidthKnown := true;
+  FWidth := 0;
+  for I := 0 to Count - 1 do
+    FWidth += Items[I].Width(FFont, State);
+  Result := FWidth;
+end;
+
+function TTextLine.KnownWidth: Cardinal;
+begin
+  if not FWidthKnown then
+    raise Exception.Create('Line width not known yet');
+  Result := FWidth;
 end;
 
 procedure TTextLine.Print(const State: TPrintState; X0, Y0: Integer);
@@ -949,20 +968,6 @@ begin
   Add(TextLine);
 end;
 
-function TRichText.MaxLineWidth: Cardinal;
-var
-  I: Integer;
-begin
-  if not FMaxLineWidthKnown then
-  begin
-    FMaxLineWidthKnown := true;
-    FMaxLineWidth := 0;
-    for I := 0 to Count - 1 do
-      MaxVar(FMaxLineWidth, Items[I].LineWidth);
-  end;
-  Result := FMaxLineWidth;
-end;
-
 function TRichText.BeginProcessing(const InitialColor: TCastleColor): TTextLine.TPrintState;
 begin
   Result := TTextLine.TPrintState.Create;
@@ -993,8 +998,8 @@ procedure TRichText.Print(const X0, Y0: Integer; const Color: TCastleColor;
   begin
     case TextHorizontalAlignment of
       hpLeft  : Result := X0;
-      hpMiddle: Result := X0 - Items[Line].LineWidth div 2;
-      hpRight : Result := X0 - Items[Line].LineWidth;
+      hpMiddle: Result := X0 - Items[Line].KnownWidth div 2;
+      hpRight : Result := X0 - Items[Line].KnownWidth;
       else EInternalError.Create('TRichText.Print: TextHorizontalAlignment unknown');
     end;
   end;
@@ -1011,12 +1016,34 @@ var
   State: TTextLine.TPrintState;
   I: Integer;
 begin
+  { force calculating FWidth for all lines }
+  if TextHorizontalAlignment in [hpMiddle, hpRight] then
+    Width;
+
   State := BeginProcessing(Color);
   try
     RowHeight := FFont.RowHeight;
     for I := 0 to Count - 1 do
       Items[I].Print(State, XPos(I), YPos(I));
   finally EndProcessing(State) end;
+end;
+
+function TRichText.Width: Cardinal;
+var
+  I: Integer;
+  State: TTextLine.TPrintState;
+begin
+  if not FWidthKnown then
+  begin
+    FWidthKnown := true;
+    FWidth := 0;
+    State := BeginProcessing(Black { any color });
+    try
+      for I := 0 to Count - 1 do
+        MaxVar(FWidth, Items[I].Width(State));
+    finally EndProcessing(State) end;
+  end;
+  Result := FWidth;
 end;
 
 procedure TRichText.Wrap(const MaxWidth: Cardinal);
@@ -1026,7 +1053,7 @@ var
   Line, NewLine: TTextLine;
   State: TTextLine.TPrintState;
 begin
-  State := BeginProcessing(Black);
+  State := BeginProcessing(Black { any color });
   try
     I := 0;
     { note that the current Count will be changing, as we will split our own strings }
