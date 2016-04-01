@@ -3707,12 +3707,6 @@ begin
   Result := FTheme;
 end;
 
-procedure ContextClose;
-begin
-  if FTheme <> nil then
-    FTheme.GLContextClose;
-end;
-
 {$define read_implementation}
 {$I castlecontrols_tiledmap.inc}
 {$undef read_implementation}

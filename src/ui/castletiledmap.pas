@@ -367,12 +367,15 @@ begin
     begin
       WritelnLog('LoadProperties element', I.Current.TagName);
       case LowerCase(I.Current.TagName) of
-        'property': LoadProperty(I.Current, NewProperty);
+        'property':
+        begin
+          LoadProperty(I.Current, NewProperty);
+          if not Assigned (AProperties) then
+            AProperties := TProperties.Create;
+          AProperties.Add(NewProperty);
+        end;
       end;
     end;
-    if not Assigned (AProperties) then
-      AProperties := TProperties.Create;
-    AProperties.Add(NewProperty);
   finally FreeAndNil(I) end;
 end;
 
