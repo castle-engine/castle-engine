@@ -18,6 +18,8 @@
   them as notifications. }
 unit CastleGameNotifications;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleNotifications;

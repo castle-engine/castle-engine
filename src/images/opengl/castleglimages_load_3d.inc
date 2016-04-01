@@ -31,9 +31,9 @@
 
   @orderedList(
     @item(
-      As a first try, if DDSForMipmaps is non-nil
-      and has mipmaps (DDSForMipmaps.Mipmaps), we will load these mipmaps.
-      DDSForMipmaps must be a 3D texture (DDSType = dtVolume).)
+      As a first try, if CompositeForMipmaps is non-nil
+      and has mipmaps (CompositeForMipmaps.Mipmaps), we will load these mipmaps.
+      CompositeForMipmaps must be a 3D texture (CompositeType = ctVolume).)
 
     @item(Otherwise, we'll generate mipmaps.
 
@@ -57,7 +57,7 @@
 }
 procedure glTextureImage3D(const TextureIdForProfiler: TGLTextureId;
   const Image: TEncodedImage;
-  Filter: TTextureFilter; DDSForMipmaps: TDDSImage);
+  Filter: TTextureFilter; CompositeForMipmaps: TCompositeImage);
 
 {$endif read_interface}
 
@@ -88,7 +88,7 @@ end;
 
 procedure glTextureImage3D(const TextureIdForProfiler: TGLTextureId;
   const Image: TEncodedImage;
-  Filter: TTextureFilter; DDSForMipmaps: TDDSImage);
+  Filter: TTextureFilter; CompositeForMipmaps: TCompositeImage);
 
 {$ifndef OpenGLES}
 var
@@ -132,30 +132,30 @@ var
     Core(Image);
   end;
 
-  { Check should we load mipmaps from DDS. Load them, if yes. }
-  function LoadMipmapsFromDDS(DDS: TDDSImage): boolean;
+  { Check should we load mipmaps from Composite. Load them, if yes. }
+  function LoadMipmapsFromComposite(Composite: TCompositeImage): boolean;
   var
     I: Integer;
   begin
-    Result := (DDS <> nil) and DDS.Mipmaps;
-    if Result and (DDS.DDSType <> dtVolume) then
+    Result := (Composite <> nil) and Composite.Mipmaps;
+    if Result and (Composite.CompositeType <> ctVolume) then
     begin
-      OnWarning(wtMinor, 'Texture', 'DDS image contains mipmaps, but not for 3D (volume) texture');
+      OnWarning(wtMinor, 'Texture', 'Composite image contains mipmaps, but not for 3D (volume) texture');
       Result := false;
     end;
 
     if Result and (not GLFeatures.Version_1_2) then
     begin
-      OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      OnWarning(wtMinor, 'Texture', 'Cannot load Composite image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
       Result := false;
     end;
 
     if Result then
     begin
-      glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
-      for I := 1 to DDS.MipmapsCount - 1 do
-        if DDS.Images[I] is TCastleImage then
-          glTexImage3DImage(TCastleImage(DDS.Images[I]), I) else
+      glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, Composite.MipmapsCount - 1);
+      for I := 1 to Composite.MipmapsCount - 1 do
+        if Composite.Images[I] is TCastleImage then
+          glTexImage3DImage(TCastleImage(Composite.Images[I]), I) else
           raise ETextureLoadError.CreateFmt('Image class %s cannot be loaded to OpenGL 3D texture. OpenGL doesn''t allow any 3D texture compression formats',
             [Image.ClassName]);
     end;
@@ -174,7 +174,7 @@ begin
 
   if Filter.NeedsMipmaps then
   begin
-    if not LoadMipmapsFromDDS(DDSForMipmaps) then
+    if not LoadMipmapsFromComposite(CompositeForMipmaps) then
     try
       GenerateMipmap(GL_TEXTURE_3D);
       LoadedSize += TTextureMemoryProfiler.MipmapsSize(Image);

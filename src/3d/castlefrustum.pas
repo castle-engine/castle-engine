@@ -16,6 +16,8 @@
 { Frustum object (TFrustum) and helpers. }
 unit CastleFrustum;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors, CastleBoxes;

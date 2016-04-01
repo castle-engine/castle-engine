@@ -28,6 +28,8 @@ var
   Window: TCastleWindow;
   Scene: TCastleScene;
   OpenButton: TCastleButton;
+//  URL: string = '/home/michalis/sources/castle-engine/demo-models/kanim/raptor.kanim';
+//  URL: string = '/home/michalis/sources/tremulous-data-unpacked/models/players/level4/nonseg.md3';
   URL: string = 'models/bridge_final.x3dv';
 
 type
@@ -41,6 +43,7 @@ begin
   if Window.FileDialog('Open 3D model', URL, true, Load3D_FileFilters) then
   begin
     Scene.Load(URL);
+    Scene.PlayAnimation('animation', paForceLooping); // play animation named "animation", if exists.
 
     { camera is separate from the 3D world, and so it is *not* reinitialized
       by simple reloading of the scene. In this demo, we want to move camera
@@ -84,6 +87,7 @@ begin
   { load a Scene and add it to Window.SceneManager, just like view_3d_model_simple }
   Scene := TCastleScene.Create(Application);
   Scene.Load(URL);
+  Scene.PlayAnimation('animation', paForceLooping); // play animation named "animation", if exists.
 
   { set titles for progress bars, otherwise progress bars are not used.
     This should be done before setting Scene.Spatial, since setting it may

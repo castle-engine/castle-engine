@@ -16,6 +16,8 @@
 { CastleScript vector and matrix types and built-in functions. }
 unit CastleScriptVectors;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors, CastleScript;

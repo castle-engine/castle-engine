@@ -110,7 +110,7 @@ begin
   if not ControllerElement.AttributeString('id', Controller.Name) then
     Controller.Name := '';
 
-  Skin := DOMGetChildElement(ControllerElement, 'skin', false);
+  Skin := ControllerElement.ChildElement('skin', false);
   if Skin <> nil then
   begin
     if Skin.AttributeString('source', Controller.Source) then
@@ -120,7 +120,7 @@ begin
         Delete(Controller.Source, 1, 1);
     end;
 
-    BindShapeMatrix := DOMGetChildElement(Skin, 'bind_shape_matrix', false);
+    BindShapeMatrix := Skin.ChildElement('bind_shape_matrix', false);
     if BindShapeMatrix <> nil then
     begin
       Controller.BoundShapeMatrixIdentity := false;
@@ -132,9 +132,9 @@ end;
 { Read <library_controllers> from Collada 1.4.x }
 procedure ReadLibraryControllers(LibraryElement: TDOMElement);
 var
-  I: TXMLElementFilteringIterator;
+  I: TXMLElementIterator;
 begin
-  I := TXMLElementFilteringIterator.Create(LibraryElement, 'controller');
+  I := LibraryElement.ChildrenIterator('controller');
   try
     while I.GetNext do
       ReadController(I.Current);

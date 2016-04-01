@@ -26,14 +26,14 @@
   cast_shadow_volumes="False">
 
   <model url="main.x3d">
-    <idle         url="idle.x3d"         time_sensor="TimeSensorIdle" />
-    <idle_to_walk url="idle_to_walk.x3d" time_sensor="TimeSensorIdleToWalk" />
-    <walk         url="walk.x3d"         time_sensor="TimeSensorWalk" />
-    <fire_missile url="fire_missile.x3d" time_sensor="TimeSensorFireMissile" />
-    <attack       url="attack.x3d"       time_sensor="TimeSensorAttack" />
-    <die          url="die.x3d"          time_sensor="TimeSensorDie" />
-    <die_back     url="die_back.x3d"     time_sensor="TimeSensorDieBack" />
-    <hurt         url="hurt.x3d"         time_sensor="TimeSensorHurt" />
+    <idle         url="idle.x3d"         animation_name="TimeSensorIdle" />
+    <idle_to_walk url="idle_to_walk.x3d" animation_name="TimeSensorIdleToWalk" />
+    <walk         url="walk.x3d"         animation_name="TimeSensorWalk" />
+    <fire_missile url="fire_missile.x3d" animation_name="TimeSensorFireMissile" />
+    <attack       url="attack.x3d"       animation_name="TimeSensorAttack" />
+    <die          url="die.x3d"          animation_name="TimeSensorDie" />
+    <die_back     url="die_back.x3d"     animation_name="TimeSensorDieBack" />
+    <hurt         url="hurt.x3d"         animation_name="TimeSensorHurt" />
   </model>
 
   <attack

@@ -56,7 +56,7 @@ type
 
   { Common abstract class for things that may act as a viewport:
     TCastleSceneManager and TCastleViewport. }
-  TCastleAbstractViewport = class(TUIControl)
+  TCastleAbstractViewport = class(TUIControlSizeable)
   private
     type
       TScreenPoint = packed record
@@ -64,8 +64,6 @@ type
         TexCoord: TVector2Single;
       end;
     var
-    FWidth, FHeight: Cardinal;
-    FFullSize: boolean;
     FCamera: TCamera;
     FPaused: boolean;
     FRenderParams: TManagerRenderParams;
@@ -298,14 +296,6 @@ type
       @bold(Read only), change these parameters only by overriding CalculateProjection. }
     property Projection: TProjection read FProjection;
 
-    { Position and size of the viewport, assuming it exists.
-
-      Looks at @link(FullSize) value, and the current container sizes
-      (when @link(FullSize) is @true), and at the properties
-      @link(Left), @link(Bottom), @link(Width), @link(Height)
-      (when @link(FullSize) is @false). }
-    function Rect: TRectangle; override;
-
     { Create default TCamera suitable for navigating in this scene.
       This is automatically used to initialize @link(Camera) property
       when @link(Camera) is @nil at ApplyProjection call.
@@ -394,22 +384,6 @@ type
     property BackgroundColor: TCastleColor
       read FBackgroundColor write FBackgroundColor;
   published
-    { Viewport dimensions where the 3D world will be drawn.
-
-      When FullSize is @true (the default), the viewport always fills
-      the whole parent (like TCastleWindow or TCastleControl,
-      if you just placed the scene manager on TCastleWindowCustom.Controls
-      or TCastleControlCustom.Controls),
-      and the values of Left, Bottom, Width, Height are ignored here.
-
-      @seealso Rect
-
-      @groupBegin }
-    property FullSize: boolean read FFullSize write FFullSize default true;
-    property Width: Cardinal read FWidth write FWidth default 0;
-    property Height: Cardinal read FHeight write FHeight default 0;
-    { @groupEnd }
-
     { Camera used to render.
 
       Cannot be @nil when rendering. If you don't assign anything here,
@@ -664,7 +638,7 @@ type
 
     @link(Items) property keeps a tree of T3D objects.
     All our 3D objects, like TCastleSceneCore (and so also TCastleScene)
-    and TCastlePrecalculatedAnimationCore (and so also TCastlePrecalculatedAnimation) descend from
+    and TCastlePrecalculatedAnimation descend from
     T3D, and you can add them to the scene manager.
     And naturally you can implement your own T3D descendants,
     representing any 3D (possibly dynamic, animated and even interactive) object.
@@ -1070,8 +1044,12 @@ type
     the same 3D world. Different viewports may have different cameras,
     but they always share the same 3D world (in scene manager).
 
-    You can control the size of this viewport by FullSize, @link(Left),
-    @link(Bottom), @link(Width), @link(Height) properties. For custom
+    You can control the size of this viewport by
+    @link(TUIControlSizeable.FullSize FullSize),
+    @link(TUIControl.Left Left),
+    @link(TUIControl.Bottom Bottom),
+    @link(TUIControlSizeable.Width Width),
+    @link(TUIControlSizeable.Height Height) properties. For custom
     viewports, you often want to set FullSize = @false
     and control viewport's position and size explicitly.
 
@@ -1214,7 +1192,6 @@ begin
   inherited;
   FBackgroundColor := Black;
   FUseGlobalLights := DefaultUseGlobalLights;
-  FFullSize := true;
   FRenderParams := TManagerRenderParams.Create;
   FShadowVolumes := DefaultShadowVolumes;
   DistortFieldOfViewY := 1;
@@ -1529,17 +1506,6 @@ end;
 function TCastleAbstractViewport.AllowSuspendForInput: boolean;
 begin
   Result := (Camera = nil) or Paused or (not GetExists) or Camera.AllowSuspendForInput;
-end;
-
-function TCastleAbstractViewport.Rect: TRectangle;
-begin
-  if FullSize then
-    Result := ParentRect else
-  begin
-    Result := Rectangle(Left, Bottom, Width, Height);
-    // applying UIScale on this is easy...
-    Result := Result.ScaleAround0(UIScale);
-  end;
 end;
 
 procedure TCastleAbstractViewport.ApplyProjection;
@@ -2863,7 +2829,7 @@ begin
     Options := [prRender, prBackground, prBoundingBox, prScreenEffects];
 
     if Viewports.UsesShadowVolumes then
-      Options := Options + prShadowVolume;
+      Include(Options, prShadowVolume);
 
     { We need one viewport, to setup it's projection and to setup it's camera.
       There really no perfect choice, although in practice any viewport
@@ -3130,7 +3096,7 @@ begin
       quickly after sound stopped. }
     if SoundEngine.ALActive then
     begin
-      TimeNow := GetTickCount;
+      TimeNow := CastleTimeUtils.GetTickCount64;
       if TimeTickSecondLater(LastSoundRefresh, TimeNow, SoundRefreshDelay) then
       begin
         LastSoundRefresh := TimeNow;

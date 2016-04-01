@@ -26,10 +26,9 @@ begin
   begin
     P := AddPackage('castle-game-engine');
 
-    { Should work on at least
-        P.OSes := AllUnixOSes + [win32, win64];
-      But below we limit the list only to the OSes actually tested. }
-    P.OSes := [Darwin, Linux, Freebsd, Win32, IPhoneSim
+    { Should work on AllUnixOSes, actually.
+      But let's limit the list only to the OSes actually tested. }
+    P.OSes := [Darwin, Linux, Freebsd, Win32, Win64, IPhoneSim
       {$ifdef ANDROID_POSSIBLE} , Android {$endif}];
 
     P.Options.Text := '@castle-fpc.cfg';
@@ -132,6 +131,7 @@ begin
     P.Targets.AddUnit('castleprogress.pas');
     P.Targets.AddUnit('castlerectangles.pas');
     P.Targets.AddUnit('castlestringutils.pas');
+    P.Targets.AddUnit('castlestreamutils.pas');
     P.Targets.AddUnit('castletimeutils.pas');
     P.Targets.AddUnit('castleunicode.pas');
     P.Targets.AddUnit('castleutils.pas');
@@ -192,6 +192,7 @@ begin
     P.Targets.AddUnit('castlescriptlexer.pas');
     P.Targets.AddUnit('castlescriptparser.pas');
     P.Targets.AddUnit('castlescriptvectors.pas');
+    P.Targets.AddUnit('castlescriptconfig.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'castlescript' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlecurves.pas');
@@ -225,6 +226,7 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'fonts' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlefonts.pas');
+    P.Targets.AddUnit('castlefontfamily.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'game');
     P.Targets.AddUnit('castle2dscenemanager.pas');
@@ -234,13 +236,13 @@ begin
     P.Targets.AddUnit('castlelevels.pas');
     P.Targets.AddUnit('castleplayer.pas');
     P.Targets.AddUnit('castleresources.pas');
-    P.Targets.AddUnit('castlematerialproperties.pas');
+    P.Targets.AddUnit('castlescenemanager.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'images');
     P.Targets.AddUnit('castlefpwritepng.pas');
     P.Targets.AddUnit('castleimages.pas');
     P.Targets.AddUnit('castlepng.pas');
-    P.Targets.AddUnit('castledds.pas');
+    P.Targets.AddUnit('castlecompositeimage.pas');
     P.Targets.AddUnit('castletextureimages.pas');
     P.Targets.AddUnit('castlevideos.pas');
 
@@ -270,8 +272,10 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlecontrols.pas');
+    P.Targets.AddUnit('castleinspectorcontrol.pas');
     P.Targets.AddUnit('castlenotifications.pas');
     P.Targets.AddUnit('castleonscreenmenu.pas');
+    P.Targets.AddUnit('castleflasheffect.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'window');
     P.Targets.AddUnit('castlemessages.pas');
@@ -291,11 +295,13 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'x3d');
     P.Targets.AddUnit('castlearraysgenerator.pas');
-    P.Targets.AddUnit('castlenormals.pas');
+    P.Targets.AddUnit('castlematerialproperties.pas');
+    P.Targets.AddUnit('castleinternalnormals.pas');
     P.Targets.AddUnit('castlerenderingcamera.pas');
     P.Targets.AddUnit('castlescenecore.pas');
+    P.Targets.AddUnit('castleshapeinternalshadowvolumes.pas');
     P.Targets.AddUnit('castleshapes.pas');
-    P.Targets.AddUnit('castleprecalculatedanimationcore.pas');
+    P.Targets.AddUnit('castleinternalnodeinterpolator.pas');
     P.Targets.AddUnit('castleraytracer.pas');
     P.Targets.AddUnit('castleshapeoctree.pas');
     P.Targets.AddUnit('castleterrain.pas');
@@ -322,7 +328,7 @@ begin
     P.Targets.AddUnit('castlebackground.pas');
     P.Targets.AddUnit('castleglcubemaps.pas');
     P.Targets.AddUnit('castlescene.pas');
-    P.Targets.AddUnit('castlescenemanager.pas');
+    P.Targets.AddUnit('castleshapeinternalrendershadowvolumes.pas');
     P.Targets.AddUnit('castlerendererinternalshader.pas');
     P.Targets.AddUnit('castlerendererinternallights.pas');
     P.Targets.AddUnit('castlerendererinternaltextureenv.pas');

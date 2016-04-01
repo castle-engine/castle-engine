@@ -16,6 +16,8 @@
 { Menu items (suitable for TCastleOnScreenMenu) to control the TRepoSoundEngine. }
 unit CastleSoundMenu;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleWindow, CastleOnScreenMenu, CastleSoundEngine, CastleUIControls,

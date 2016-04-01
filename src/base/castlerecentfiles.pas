@@ -16,6 +16,8 @@
 { Manage a list of recently open files (TRecentFiles). }
 unit CastleRecentFiles;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, CastleXMLConfig;

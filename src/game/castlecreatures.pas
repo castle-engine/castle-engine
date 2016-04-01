@@ -20,7 +20,7 @@ unit CastleCreatures;
 
 interface
 
-uses Classes, CastleVectors, CastlePrecalculatedAnimation, CastleBoxes, CastleClassUtils,
+uses Classes, CastleVectors, CastleBoxes, CastleClassUtils,
   CastleUtils, CastleScene, CastleSectors, CastleStringUtils,
   CastleResources, CastleXMLConfig, Castle3D,
   CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors, FGL;

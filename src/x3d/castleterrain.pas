@@ -16,6 +16,8 @@
 { Terrain (height map) implementations. }
 unit CastleTerrain;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, CastleScript, CastleImages, X3DNodes,
@@ -123,8 +125,8 @@ type
         theirs.)
     )
 
-    This descends from TTerrainImage, so you add an image to
-    your function result. }
+    This descends from TTerrainImage, so you can add an image to
+    your function result, e.g. to flatten some specific generated area. }
   TTerrainNoise = class(TTerrainImage)
   private
     FOctaves: Single;

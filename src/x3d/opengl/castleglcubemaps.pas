@@ -20,7 +20,7 @@ unit CastleGLCubeMaps;
 
 interface
 
-uses CastleVectors, CastleCubeMaps, CastleImages, CastleDDS,
+uses CastleVectors, CastleCubeMaps, CastleImages, CastleCompositeImage,
   CastleRenderingCamera, CastleGLImages, Castle3D, CastleGL, CastleGLUtils;
 
 type
@@ -47,9 +47,6 @@ procedure SHVectorGLCapture(
   const Render: TCubeMapRenderSimpleFunction;
   const MapScreenX, MapScreenY: Integer;
   const ScaleColor: Single);
-
-type
-  TCubeMapImages = array [TCubeMapSide] of TCastleImage;
 
 { Capture cube map by rendering environment from CapturePoint.
 
@@ -81,16 +78,15 @@ procedure GLCaptureCubeMapImages(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single);
 
-{ Capture cube map to DDS image by rendering environment from CapturePoint.
+{ Capture cube map to composite (DDS, KTX...) image by rendering environment from CapturePoint.
 
   See GLCaptureCubeMapImages for documentation, this works the same,
-  but it creates TDDSImage instance containing all six images (oriented
-  as appropriate for DDS). }
-function GLCaptureCubeMapDDS(
+  but it creates TCompositeImage instance containing all six images. }
+function GLCaptureCubeMapComposite(
   const Size: Cardinal;
   const CapturePoint: TVector3Single;
   const Render: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single): TDDSImage;
+  const ProjectionNear, ProjectionFar: Single): TCompositeImage;
 
 { Capture cube map to OpenGL cube map texture by rendering environment
   from CapturePoint.
@@ -253,11 +249,11 @@ begin
   finally FreeAndNil(RenderToTexture) end;
 end;
 
-function GLCaptureCubeMapDDS(
+function GLCaptureCubeMapComposite(
   const Size: Cardinal;
   const CapturePoint: TVector3Single;
   const Render: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single): TDDSImage;
+  const ProjectionNear, ProjectionFar: Single): TCompositeImage;
 var
   Images: TCubeMapImages;
   Side: TCubeMapSide;
@@ -268,22 +264,14 @@ begin
   GLCaptureCubeMapImages(Images, CapturePoint, Render,
     ProjectionNear, ProjectionFar);
 
-  Result := TDDSImage.Create;
+  Result := TCompositeImage.Create;
   Result.Width := Size;
   Result.Height := Size;
-  Result.DDSType := dtCubeMap;
-  Result.CubeMapSides := AllDDSCubeMapSides;
+  Result.CompositeType := ctCubeMap;
+  Result.CubeMapSides := AllCubeMapSides;
   Result.Mipmaps := false;
   Result.MipmapsCount := 1;
-  Result.Images.Count := 6;
-  Result.Images[Ord(dcsPositiveX)] := Images[csPositiveX];
-  Result.Images[Ord(dcsNegativeX)] := Images[csNegativeX];
-  { For DDS positive/negative Y must be swapped (Direct X has left-handed
-    coord system). }
-  Result.Images[Ord(dcsNegativeY)] := Images[csPositiveY];
-  Result.Images[Ord(dcsPositiveY)] := Images[csNegativeY];
-  Result.Images[Ord(dcsPositiveZ)] := Images[csPositiveZ];
-  Result.Images[Ord(dcsNegativeZ)] := Images[csNegativeZ];
+  Result.AddCubeMapImages(Images);
 end;
 
 procedure GLCaptureCubeMapTexture(

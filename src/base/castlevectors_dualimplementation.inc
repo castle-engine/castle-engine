@@ -226,6 +226,135 @@ begin
   V1[2] *= V2[2];
 end;
 
+function SwapEndian(const V: TVector2): TVector2;
+begin
+  Result[0] := SwapEndian(V[0]);
+  Result[1] := SwapEndian(V[1]);
+end;
+
+function SwapEndian(const V: TVector3): TVector3;
+begin
+  Result[0] := SwapEndian(V[0]);
+  Result[1] := SwapEndian(V[1]);
+  Result[2] := SwapEndian(V[2]);
+end;
+
+function SwapEndian(const V: TVector4): TVector4;
+begin
+  Result[0] := SwapEndian(V[0]);
+  Result[1] := SwapEndian(V[1]);
+  Result[2] := SwapEndian(V[2]);
+  Result[3] := SwapEndian(V[3]);
+end;
+
+function NtoLE(const V: TVector2): TVector2;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$else ENDIAN_BIG}
+  Result := V;
+{$endif ENDIAN_BIG}
+end;
+
+function NtoLE(const V: TVector3): TVector3;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$else ENDIAN_BIG}
+  Result := V;
+{$endif ENDIAN_BIG}
+end;
+
+function NtoLE(const V: TVector4): TVector4;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$else ENDIAN_BIG}
+  Result := V;
+{$endif ENDIAN_BIG}
+end;
+
+function NtoBE(const V: TVector2): TVector2;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := V;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$endif ENDIAN_BIG}
+end;
+
+function NtoBE(const V: TVector3): TVector3;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := V;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$endif ENDIAN_BIG}
+end;
+
+function NtoBE(const V: TVector4): TVector4;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := V;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$endif ENDIAN_BIG}
+end;
+
+function LEtoN(const V: TVector2): TVector2;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$else ENDIAN_BIG}
+  Result := V;
+{$endif ENDIAN_BIG}
+end;
+
+function LEtoN(const V: TVector3): TVector3;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$else ENDIAN_BIG}
+  Result := V;
+{$endif ENDIAN_BIG}
+end;
+
+function LEtoN(const V: TVector4): TVector4;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$else ENDIAN_BIG}
+  Result := V;
+{$endif ENDIAN_BIG}
+end;
+
+function BEtoN(const V: TVector2): TVector2;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := V;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$endif ENDIAN_BIG}
+end;
+
+function BEtoN(const V: TVector3): TVector3;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := V;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$endif ENDIAN_BIG}
+end;
+
+function BEtoN(const V: TVector4): TVector4;
+begin
+{$ifdef ENDIAN_BIG}
+  Result := V;
+{$else ENDIAN_BIG}
+  Result := SwapEndian(V);
+{$endif ENDIAN_BIG}
+end;
+
 procedure SwapValues(var V1, V2: TVector2);
 var
   Tmp: TVector2;
@@ -540,6 +669,12 @@ begin
   Result[2] := ((1 - cosAngle) * x * z - y * sinAngle)  * Point[0]
             + ((1 - cosAngle) * y * z + x * sinAngle)   * Point[1]
             + (cosAngle + (1 - cosAngle) * z * z)       * Point[2];
+end;
+
+function MaxVectorCoord(const v: TVector2): integer;
+begin
+  result := 0;
+  if v[1] > v[result] then result := 1;
 end;
 
 function MaxVectorCoord(const v: TVector3): integer;
@@ -1240,6 +1375,16 @@ begin
   result := VectorAdd(line0, VectorScale(lineVector, d));
 end;
 
+function PointOnLineClosestToPoint(
+  const line0, lineVector, point: TVector2): TVector2;
+var
+  d: TScalar;
+begin
+  d := (lineVector[0] * (point[0]-line0[0]) +
+        lineVector[1] * (point[1]-line0[1]) ) / VectorLenSqr(lineVector);
+  result := VectorAdd(line0, VectorScale(lineVector, d));
+end;
+
 function PointToLineDistanceSqr(const point, line0, lineVector: TVector3): TScalar;
 begin
   result := PointsDistanceSqr(point, PointOnLineClosestToPoint(line0, lineVector, point));
@@ -1335,7 +1480,21 @@ var
   c, i: integer;
 begin
   (*rzutujemy 3 zadane punkty na ta wspolrzedna na ktorej mamy najwieksza swobode*)
-  for i := 0 to 2 do vecSizes[i] := Abs(pos1[i]-pos2[i]);
+  for i := 0 to High(vecSizes) do
+    vecSizes[i] := Abs(pos1[i]-pos2[i]);
+  c := MaxVectorCoord(vecSizes);
+  result := ((pos1[c] <= intersection[c]) and (intersection[c] <= pos2[c])) or
+            ((pos1[c] >= intersection[c]) and (intersection[c] >= pos2[c]));
+end;
+
+function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector2): boolean;
+var
+  vecSizes: TVector2;
+  c, i: integer;
+begin
+  (*rzutujemy 3 zadane punkty na ta wspolrzedna na ktorej mamy najwieksza swobode*)
+  for i := 0 to High(vecSizes) do
+    vecSizes[i] := Abs(pos1[i]-pos2[i]);
   c := MaxVectorCoord(vecSizes);
   result := ((pos1[c] <= intersection[c]) and (intersection[c] <= pos2[c])) or
             ((pos1[c] >= intersection[c]) and (intersection[c] >= pos2[c]));
@@ -1763,6 +1922,15 @@ begin
   end;
 end;
 
+function MatrixMultPoint(const m: TMatrix4; const pt: TVector2): TVector2;
+var
+  Res3D: TVector3;
+begin
+  Res3D := MatrixMultPoint(M, Vector3(Pt, 0));
+  Result[0] := Res3D[0];
+  Result[1] := Res3D[1];
+end;
+
 function MatrixMultDirection(const m: TMatrix4;
   const Dir: TVector3): TVector3;
 var
@@ -1781,6 +1949,15 @@ begin
     if not Zero(Divisor) then
       raise ETransformedResultInvalid.Create('3D direction transformed by 4x4 matrix to a point');
   end;
+end;
+
+function MatrixMultDirection(const m: TMatrix4; const Dir: TVector2): TVector2;
+var
+  Res3D: TVector3;
+begin
+  Res3D := MatrixMultDirection(M, Vector3(Dir, 0));
+  Result[0] := Res3D[0];
+  Result[1] := Res3D[1];
 end;
 
 function MatrixMultVector(const m: TMatrix4; const v: TVector4): TVector4;

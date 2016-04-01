@@ -276,7 +276,7 @@ begin
   oldMainMenu := Window.MainMenu;
   if Window.MainMenu <> nil then
     oldMainMenuEnabled := Window.MainMenu.Enabled;
-  OldCursor := Window.Cursor;
+  OldCursor := Window.InternalCursor;
   OldCustomCursor := Window.CustomCursor;
   oldSwapFullScreen_Key := Window.SwapFullScreen_Key;
   oldClose_charkey := Window.Close_charkey;
@@ -317,7 +317,7 @@ begin
   Window.MainMenu := oldMainMenu;
   if Window.MainMenu <> nil then
     Window.MainMenu.Enabled := OldMainMenuEnabled;
-  Window.Cursor := OldCursor;
+  Window.InternalCursor := OldCursor;
   Window.CustomCursor := OldCustomCursor;
   Window.SwapFullScreen_Key := oldSwapFullScreen_Key;
   Window.Close_charkey := oldClose_charkey;
@@ -400,7 +400,7 @@ begin
   if Window.MainMenu <> nil then
     Window.MainMenu.Enabled := false;
   {Window.MainMenu := leave current value}
-  Window.Cursor := mcDefault;
+  Window.InternalCursor := mcDefault;
   Window.SwapFullScreen_Key := K_None;
   Window.Close_charkey := #0;
   Window.FpsShowOnCaption := false;

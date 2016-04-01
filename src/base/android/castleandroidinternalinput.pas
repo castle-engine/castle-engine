@@ -17,6 +17,8 @@
 { @exclude Internal for the engine. }
 unit CastleAndroidInternalInput;
 
+{$I castleconf.inc}
+
 interface
 
 uses ctypes, CastleAndroidInternalLooper, CastleAndroidInternalKeycodes;

@@ -478,7 +478,7 @@ begin
   WriteChunk;
 end;
 
-{ Color convertions }
+{ Color conversions }
 
 function TFPWriterPNG.ColorDataGrayB(color:TFPColor) : TColorData;
 var t : word;

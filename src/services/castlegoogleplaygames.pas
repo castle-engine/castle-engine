@@ -16,6 +16,8 @@
 { Google Play Game Services integration (TGooglePlayGames). }
 unit CastleGooglePlayGames;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes,

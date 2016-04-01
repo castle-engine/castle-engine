@@ -16,6 +16,8 @@
 { Utilities for creating custom screen effects. }
 unit CastleScreenEffects;
 
+{$I castleconf.inc}
+
 interface
 
 { Standard GLSL vertex shader for screen effect. }

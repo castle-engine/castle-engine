@@ -41,6 +41,8 @@
   @exclude }
 unit CastleGzioInternal;
 
+{$I castleconf.inc}
+
 interface
 
 uses zbase, crc, zdeflate, zinflate, Classes;

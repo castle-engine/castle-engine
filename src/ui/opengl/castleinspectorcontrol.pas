@@ -16,6 +16,8 @@
 { Inspector of 2D controls (@link(TCastleInspectorControl)). }
 unit CastleInspectorControl;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes,
@@ -36,8 +38,6 @@ type
     FShowNotExisting: boolean;
     function ControlColor(const C: TUIControl): TCastleColor;
     function ControlDescription(const C: TUIControl): string;
-  protected
-    function KeepInFront: boolean; override;
   public
     const
       DefaultPadding = 10;
@@ -62,6 +62,7 @@ type
     property HorizontalAnchorParent stored false;
     property VerticalAnchorSelf stored false;
     property VerticalAnchorParent stored false;
+    property KeepInFront stored false;
   end;
 
 implementation
@@ -77,6 +78,7 @@ begin
   FRectWhenControlsInitialized := TRectangle.Empty;
   Anchor(hpLeft);
   Anchor(vpBottom);
+  KeepInFront := true;
 
   FText := TStringList.Create;
   FControlsUnderMouse := TUIControlList.Create(false);
@@ -233,11 +235,6 @@ begin
 end;
 
 function TCastleInspectorControl.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
-begin
-  Result := true;
-end;
-
-function TCastleInspectorControl.KeepInFront: boolean;
 begin
   Result := true;
 end;

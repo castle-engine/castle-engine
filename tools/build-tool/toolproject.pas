@@ -18,7 +18,7 @@ unit ToolProject;
 
 interface
 
-uses SysUtils,
+uses SysUtils, Classes,
   CastleFindFiles, CastleStringUtils, CastleUtils,
   ToolArchitectures, ToolCompile, ToolUtils, ToolAndroidComponents;
 
@@ -39,6 +39,7 @@ type
     ManifestFile, FPath, FDataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
     FIcons: TIconFileNames;
+    FSearchPaths: TStringList;
     IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource, FPluginSource, FAndroidProject: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
@@ -75,9 +76,11 @@ type
     procedure DoCompile(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
     procedure DoPackage(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
     procedure DoInstall(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
-    procedure DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
+    procedure DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Params: TCastleStringList);
     procedure DoPackageSource;
     procedure DoClean;
+    procedure DoAutoCompressTextures;
+    procedure DoAutoCompressClean;
 
     { Detailed information about the project, read-only and useful for
       various project operations. }
@@ -87,7 +90,6 @@ type
     property QualifiedName: string read FQualifiedName;
     property Dependencies: TDependencies read FDependencies;
     property Name: string read FName;
-    property Icons: TIconFileNames read FIcons;
     { Project path. Always ends with path delimiter, like a slash or backslash. }
     property Path: string read FPath;
     { Project data path. Always ends with path delimiter, like a slash or backslash. }
@@ -101,6 +103,8 @@ type
     property AndroidProject: string read FAndroidProject;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property AndroidProjectType: TAndroidProjectType read FAndroidProjectType;
+    property Icons: TIconFileNames read FIcons;
+    property SearchPaths: TStringList read FSearchPaths;
     property AndroidComponents: TAndroidComponentList read FAndroidComponents;
 
     { Path to the external library. This checks existence of appropriate
@@ -135,9 +139,10 @@ function StringToScreenOrientation(const S: string): TScreenOrientation;
 
 implementation
 
-uses StrUtils, DOM, Process, Classes,
+uses StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleWarnings, CastleFilesUtils,
-  ToolPackage, ToolWindowsResources, ToolAndroidPackage, ToolWindowsRegistry;
+  ToolPackage, ToolWindowsResources, ToolAndroidPackage, ToolWindowsRegistry,
+  ToolTextureCompression;
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.';
@@ -236,9 +241,8 @@ constructor TCastleProject.Create(const APath: string);
   var
     Doc: TXMLDocument;
     ManifestURL, AndroidProjectTypeStr: string;
-    ChildElements: TDOMNodeList;
+    ChildElements: TXMLElementIterator;
     Element, ChildElement: TDOMElement;
-    I: Integer;
   begin
     ManifestFile := Path + ManifestName;
     if not FileExists(ManifestFile) then
@@ -265,7 +269,7 @@ constructor TCastleProject.Create(const APath: string);
         FScreenOrientation := StringToScreenOrientation(
           Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
 
-        Element := DOMGetChildElement(Doc.DocumentElement, 'version', false);
+        Element := Doc.DocumentElement.ChildElement('version', false);
         FVersionCode := DefautVersionCode;
         if Element <> nil then
         begin
@@ -273,49 +277,57 @@ constructor TCastleProject.Create(const APath: string);
           FVersionCode := Element.AttributeCardinalDef('code', DefautVersionCode);
         end;
 
-        Element := DOMGetChildElement(Doc.DocumentElement, 'dependencies', false);
+        Element := Doc.DocumentElement.ChildElement('dependencies', false);
         if Element <> nil then
         begin
-          ChildElements := Element.GetElementsByTagName('dependency');
-          for I := 0 to ChildElements.Count - 1 do
-          begin
-            ChildElement := ChildElements[I] as TDOMElement;
-            Include(FDependencies,
-              StringToDependency(ChildElement.AttributeString('name')));
-          end;
+          ChildElements := Element.ChildrenIterator('dependency');
+          try
+            while ChildElements.GetNext do
+            begin
+              ChildElement := ChildElements.Current;
+              Include(FDependencies,
+                StringToDependency(ChildElement.AttributeString('name')));
+            end;
+          finally FreeAndNil(ChildElements) end;
         end;
 
-        Element := DOMGetChildElement(Doc.DocumentElement, 'package', false);
+        Element := Doc.DocumentElement.ChildElement('package', false);
         if Element <> nil then
         begin
-          ChildElements := Element.GetElementsByTagName('include');
-          for I := 0 to ChildElements.Count - 1 do
-          begin
-            ChildElement := ChildElements[I] as TDOMElement;
-            IncludePaths.Add(ChildElement.AttributeString('path'));
-            IncludePathsRecursive.Add(ChildElement.AttributeBooleanDef('recursive', false));
-          end;
+          ChildElements := Element.ChildrenIterator('include');
+          try
+            while ChildElements.GetNext do
+            begin
+              ChildElement := ChildElements.Current;
+              IncludePaths.Add(ChildElement.AttributeString('path'));
+              IncludePathsRecursive.Add(ChildElement.AttributeBooleanDef('recursive', false));
+            end;
+          finally FreeAndNil(ChildElements) end;
 
-          ChildElements := Element.GetElementsByTagName('exclude');
-          for I := 0 to ChildElements.Count - 1 do
-          begin
-            ChildElement := ChildElements[I] as TDOMElement;
-            ExcludePaths.Add(ChildElement.AttributeString('path'));
-          end;
+          ChildElements := Element.ChildrenIterator('exclude');
+          try
+            while ChildElements.GetNext do
+            begin
+              ChildElement := ChildElements.Current;
+              ExcludePaths.Add(ChildElement.AttributeString('path'));
+            end;
+          finally FreeAndNil(ChildElements) end;
         end;
 
-        Element := DOMGetChildElement(Doc.DocumentElement, 'icons', false);
+        Element := Doc.DocumentElement.ChildElement('icons', false);
         if Element <> nil then
         begin
-          ChildElements := Element.GetElementsByTagName('icon');
-          for I := 0 to ChildElements.Count - 1 do
-          begin
-            ChildElement := ChildElements[I] as TDOMElement;
-            Icons.Add(ChildElement.AttributeString('path'));
-          end;
+          ChildElements := Element.ChildrenIterator('icon');
+          try
+            while ChildElements.GetNext do
+            begin
+              ChildElement := ChildElements.Current;
+              Icons.Add(ChildElement.AttributeString('path'));
+            end;
+          finally FreeAndNil(ChildElements) end;
         end;
 
-        Element := DOMGetChildElement(Doc.DocumentElement, 'android', false);
+        Element := Doc.DocumentElement.ChildElement('android', false);
         if Element <> nil then
         begin
           if Element.AttributeString('project_type', AndroidProjectTypeStr) then
@@ -327,9 +339,23 @@ constructor TCastleProject.Create(const APath: string);
               raise Exception.CreateFmt('Invalid android project_type "%s"', [AndroidProjectTypeStr]);
           end;
 
-          ChildElement := DOMGetChildElement(Element, 'components', false);
+          ChildElement := Element.ChildElement('components', false);
           if ChildElement <> nil then
             FAndroidComponents.ReadCastleEngineManifest(ChildElement);
+        end;
+
+        Element := Doc.DocumentElement.ChildElement('compiler_options', false);
+        if Element <> nil then
+        begin
+          Element := Element.ChildElement('search_paths', false);
+          if Element <> nil then
+          begin
+            ChildElements := Element.ChildrenIterator('path');
+            try
+              while ChildElements.GetNext do
+                FSearchPaths.Add(ChildElements.Current.AttributeString('value'));
+            finally FreeAndNil(ChildElements) end;
+          end;
         end;
       finally FreeAndNil(Doc) end;
     end;
@@ -401,6 +427,7 @@ begin
   ExcludePaths := TCastleStringList.Create;
   FDependencies := [];
   FIcons := TIconFileNames.Create;
+  FSearchPaths := TStringList.Create;
   FAndroidProjectType := apBase;
   FAndroidComponents := TAndroidComponentList.Create(true);
 
@@ -410,7 +437,8 @@ begin
   ReadManifest;
   GuessDependencies;
   CloseDependencies;
-  Writeln('Project "' + Name + '" dependencies: ' + DependenciesToStr(Dependencies));
+  if Verbose then
+    Writeln('Project "' + Name + '" dependencies: ' + DependenciesToStr(Dependencies));
 end;
 
 destructor TCastleProject.Destroy;
@@ -419,6 +447,8 @@ begin
   FreeAndNil(IncludePathsRecursive);
   FreeAndNil(ExcludePaths);
   FreeAndNil(FIcons);
+  FreeAndNil(FSearchPaths);
+  FreeAndNil(FAndroidComponents);
   inherited;
 end;
 
@@ -515,7 +545,7 @@ begin
         if AndroidSource = '' then
           raise Exception.Create('android_source property for project not defined, cannot compile Android version');
         CheckAnroidSource;
-        Compile(OS, CPU, Plugin, Mode, Path, AndroidSource);
+        Compile(OS, CPU, Plugin, Mode, Path, AndroidSource, SearchPaths);
         Writeln('Compiled library for Android in ', AndroidLibraryFile(true));
       end;
     else
@@ -535,7 +565,7 @@ begin
         if OS in AllWindowsOSes then
           GenerateWindowsResources(@ReplaceMacros, Path, Icons, CPU, Plugin);
 
-        Compile(OS, CPU, Plugin, Mode, Path, MainSource);
+        Compile(OS, CPU, Plugin, Mode, Path, MainSource, SearchPaths);
 
         if Plugin then
         begin
@@ -795,9 +825,11 @@ begin
     raise Exception.Create('The "install" command is not useful for this OS / CPU right now. Install the application manually.');
 end;
 
-procedure TCastleProject.DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
+procedure TCastleProject.DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+  const Params: TCastleStringList);
 var
   ExeName: string;
+  ProcessStatus: Integer;
 begin
   Writeln(Format('Running project "%s" for OS / CPU "%s / %s"%s.',
     [Name, OSToString(OS), CPUToString(CPU),
@@ -813,7 +845,10 @@ begin
     { run through ExecuteProcess, because we don't want to capture output,
       we want to immediately pass it to user }
     SetCurrentDir(Path);
-    ExecuteProcess(ExeName, []);
+    ProcessStatus := ExecuteProcess(ExeName, Params.ToArray);
+    // this will cause our own status be non-zero
+    if ProcessStatus <> 0 then
+      raise Exception.CreateFmt('Process returned non-zero (failure) status %d', [ProcessStatus]);
   end;
   //else
   // raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
@@ -927,6 +962,8 @@ var
   OS: TOS;
   CPU: TCPU;
 begin
+  DeletedFiles := 0;
+
   if StandaloneSource <> '' then
   begin
     TryDeleteFile(ChangeFileExt(ExecutableName, ''));
@@ -966,6 +1003,16 @@ begin
   TryDeleteFile('automatic-windows.manifest');
 
   Writeln('Deleted ', DeletedFiles, ' files');
+end;
+
+procedure TCastleProject.DoAutoCompressTextures;
+begin
+  AutoCompressTextures(Self);
+end;
+
+procedure TCastleProject.DoAutoCompressClean;
+begin
+  AutoCompressClean(Self);
 end;
 
 function TCastleProject.ReplaceMacros(const Source: string): string;

@@ -512,7 +512,6 @@ var
   var
     Origin: TVector3Single;
     LineBounds: TMFVec2f;
-    Time: TX3DTime;
     FinalRowHeight: Single;
     I: Integer;
   begin
@@ -528,8 +527,6 @@ var
 
         So the lacks of current Text rendering implementation
         make this somewhat simple :) }
-
-      Time := OriginalNode.Scene.GetTime;
 
       FinalRowHeight := Font.RowHeight * Spacing * YScale;
 
@@ -549,7 +546,7 @@ var
         fjEnd   : Origin[1] := -FinalRowHeight * Strings.Count;
         else raise EInternalError.Create('SendEvents: Invalid font justify value');
       end;
-      EventOrigin.Send(Origin, Time);
+      EventOrigin.Send(Origin, OriginalNode.Scene.NextEventTime);
 
       if EventLineBounds.SendNeeded then
       begin
@@ -573,12 +570,12 @@ var
             else raise EInternalError.Create('Invalid font justify value');
           end;
 
-          EventLineBounds.Send(LineBounds, Time);
+          EventLineBounds.Send(LineBounds, OriginalNode.Scene.NextEventTime);
         finally FreeAndNil(LineBounds) end;
       end;
 
       EventTextBounds.Send(Vector2Single(
-        MaxTextWidth * XScale, FinalRowHeight * Strings.Count), Time);
+        MaxTextWidth * XScale, FinalRowHeight * Strings.Count), OriginalNode.Scene.NextEventTime);
     end;
   end;
 

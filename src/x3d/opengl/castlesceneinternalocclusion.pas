@@ -175,7 +175,7 @@ var
         shape only once within this frame (FrameId is useful here). }
       for I := 0 to Node.ItemsIndices.Count - 1 do
       begin
-        Shape := TGLShape(Scene.OctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
+        Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
         if Shape.RenderedFrameId <> FrameId then
         begin
           RenderShape(Shape);
@@ -234,7 +234,7 @@ var
 
     for I := 0 to Node.ItemsIndices.Count - 1 do
     begin
-      Shape := TGLShape(Scene.OctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
+      Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
       if Shape.RenderedFrameId <> FrameId then
         Box.Add(Shape.BoundingBox);
     end;
@@ -261,13 +261,13 @@ begin
   {$include norqcheckend.inc}
 
   TraversalStack := TCastleObjectStack.Create;
-  TraversalStack.Capacity := Scene.OctreeRendering.ShapesList.Count;
+  TraversalStack.Capacity := Scene.InternalOctreeRendering.ShapesList.Count;
 
   QueryQueue := TCastleObjectQueue.Create;
-  QueryQueue.Capacity := Scene.OctreeRendering.ShapesList.Count;
+  QueryQueue.Capacity := Scene.InternalOctreeRendering.ShapesList.Count;
 
   try
-    TraversalStack.Push(Scene.OctreeRendering.TreeRoot);
+    TraversalStack.Push(Scene.InternalOctreeRendering.TreeRoot);
 
     repeat
       if (QueryQueue.Count <> 0) and

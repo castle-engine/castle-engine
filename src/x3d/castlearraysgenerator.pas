@@ -16,6 +16,8 @@
 { Generating TGeometryArrays for VRML/X3D shapes (TArraysGenerator). }
 unit CastleArraysGenerator;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleShapes, X3DNodes, X3DFields, CastleUtils, CastleGeometryArrays,

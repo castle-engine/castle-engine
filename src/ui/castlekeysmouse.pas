@@ -18,6 +18,8 @@
   and by non-Lazarus CastleWindow. }
 unit CastleKeysMouse;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleUtils, CastleStringUtils, CastleVectors, CastleXMLConfig;
@@ -549,6 +551,7 @@ type
     function IsKey(const AKeyCharacter: char): boolean;
     { @groupEnd }
     function IsMouseButton(const AMouseButton: TMouseButton): boolean;
+    function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
 
     { Textual description of this event. }
     function ToString: string;
@@ -994,6 +997,11 @@ end;
 function TInputPressRelease.IsMouseButton(const AMouseButton: TMouseButton): boolean;
 begin
   Result := (EventType = itMouseButton) and (MouseButton = AMouseButton);
+end;
+
+function TInputPressRelease.IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
+begin
+  Result := (EventType = itMouseWheel) and (MouseWheel = AMouseWheel);
 end;
 
 function TInputPressRelease.ToString: string;

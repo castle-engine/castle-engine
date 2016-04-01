@@ -29,6 +29,8 @@
   the only class useful for reading/writing gz files. }
 unit CastleZStream;
 
+{$I castleconf.inc}
+
 interface
 
 uses

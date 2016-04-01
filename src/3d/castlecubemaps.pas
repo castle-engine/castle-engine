@@ -16,18 +16,16 @@
 { Utilities for cube (environment) maps. }
 unit CastleCubeMaps;
 
+{$I castleconf.inc}
+
 interface
 
-uses CastleVectors, Math;
+uses Math,
+  CastleVectors, CastleCompositeImage;
 
 type
-  { Cube map faces.
+  TCubeMapSide = CastleCompositeImage.TCubeMapSide;
 
-    Order matches order of OpenGL constants
-    GL_TEXTURE_CUBE_MAP_POSITIVE/NEGATIVE_X/Y/Z_ARB. }
-  TCubeMapSide = (csPositiveX, csNegativeX,
-                  csPositiveY, csNegativeY,
-                  csPositiveZ, csNegativeZ);
   TCubeMapInfo = record
     Dir, Up, Side: TVector3Single;
     ScreenX, ScreenY: Integer;
@@ -74,7 +72,6 @@ procedure DirectionToCubeMap(const Dir: TVector3Single;
 
 type
   TCubeMapSide4 = array [0..3] of TCubeMapSide;
-  TCardinal4 = array [0..3] of Cardinal;
 
 { Return 4 cube map indexes (side and pixel, along with ratio)
   that are closest to given direction Dir.

@@ -67,25 +67,14 @@ var
   StatusText: TStatusText;
 
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
-
-  procedure ChangeState(NewState: TCreatureState);
-  begin
-    try
-      Creature.State := NewState;
-    except
-      on E: ECreatureStateChangeNotPossible do
-        MessageOk(Window, E.Message);
-    end;
-  end;
-
 begin
   if Event.EventType = itKey then
     case Event.KeyCharacter of
       CharEscape: UserQuit := true;
       'h': (SceneManager.Camera as TWalkCamera).GoToInitial;
-      's': ChangeState(csStand);
-      'w': ChangeState(csWalk);
-      'b': ChangeState(csBored);
+      's': Creature.State := csStand;
+      'w': Creature.State := csWalk;
+      'b': Creature.State := csBored;
       else
         case Event.Key of
           K_F5: Window.SaveScreen(FileNameAutoInc('rift_screen_%d.png'));
@@ -120,7 +109,10 @@ begin
       Vector3Single(0, 0, 1),
       0, 0.1);
     (SceneManager.Camera as TWalkCamera).MoveSpeed := 2.5;
-
+    { by default, forward is also activated with "w", and backward with "s",
+      which conflicts with our "walk" and "stand" shortcuts }
+    (SceneManager.Camera as TWalkCamera).Input_Forward.Assign(K_Up);
+    (SceneManager.Camera as TWalkCamera).Input_Backward.Assign(K_Down);
     CreaturesKinds.Load(SceneManager.BaseLights);
     { TODO: allow to choose creature }
     Creature := TCreature.Create(PlayerKind);

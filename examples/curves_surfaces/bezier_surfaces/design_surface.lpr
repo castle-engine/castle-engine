@@ -171,7 +171,7 @@ begin
       Assert(CurveControlPointsCount = Cardinal(ControlPoints(I).Count));
       for J := 0 to CurveControlPointsCount - 1 do
       begin
-        V := ControlPoints(I).L[J];
+        V := ControlPoints(I).List^[J];
         F.Write('%g %g %g ', [V[0], V[1], V[2]]);
       end;
       F.Writeln;
@@ -267,7 +267,7 @@ begin
         glDisable(GL_LIGHTING); { saved by GL_ENABLE_BIT }
         glDisable(GL_DEPTH_TEST);
         glBegin(GL_POINTS);
-          glVertexv(ControlPoints(CurrentCurve).L[CurrentPoint]);
+          glVertexv(ControlPoints(CurrentCurve).List^[CurrentPoint]);
         glEnd;
       glPopAttrib;
     end;
@@ -279,7 +279,7 @@ procedure Update(Container: TUIContainer);
 
   procedure Move(Coord, MoveDir: Integer);
   begin
-    ControlPoints(CurrentCurve).L[CurrentPoint][Coord] +=
+    ControlPoints(CurrentCurve).List^[CurrentPoint][Coord] +=
       MoveDir * Window.Fps.UpdateSecondsPassed * 50 * 0.01;
     (Surface.Curves[CurrentCurve] as TControlPointsCurve).UpdateControlPoints;
     Window.Invalidate;
@@ -355,7 +355,7 @@ procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
     for I := 0 to Surface.Curves.Count - 1 do
       for J := 0 to ControlPoints(I).Count - 1 do
       begin
-        Project(ControlPoints(I).L[J], WinX, WinY);
+        Project(ControlPoints(I).List^[J], WinX, WinY);
         Distance := Sqr(WinX - Event.Position[0]) +
                     Sqr(WinY - Event.Position[1]);
         if Distance < BestDistance then
@@ -437,16 +437,16 @@ begin
 
       (My first idea was just to calculate
       WinZ := MatrixMultPoint(Camera.Matrix,
-        ControlPoints(CurrentCurve).L[CurrentPoint])[2];
+        ControlPoints(CurrentCurve).List^[CurrentPoint])[2];
       but that's bad: WinZ value for gluUnProject is not the actual
       distance from the camera. It's expressed in the 0..1 range of
       depth buffer). }
-    WinZ := ProjectToZ(ControlPoints(CurrentCurve).L[CurrentPoint]);
+    WinZ := ProjectToZ(ControlPoints(CurrentCurve).List^[CurrentPoint]);
 
     Move := Vector3Single(VectorSubtract(
       UnProject(Event.   Position[0], Event.   Position[1], WinZ),
       UnProject(Event.OldPosition[0], Event.OldPosition[1], WinZ)));
-    VectorAddVar(ControlPoints(CurrentCurve).L[CurrentPoint], Move);
+    VectorAddVar(ControlPoints(CurrentCurve).List^[CurrentPoint], Move);
     (Surface.Curves[CurrentCurve] as TControlPointsCurve).UpdateControlPoints;
     Window.Invalidate;
   end;

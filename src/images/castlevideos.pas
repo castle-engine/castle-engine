@@ -16,6 +16,8 @@
 { Video (movie) data (TVideo and helpers). }
 unit CastleVideos;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, FGL,
@@ -176,7 +178,7 @@ type
     procedure Resize(const ResizeToX, ResizeToY: Cardinal;
       const Interpolation: TResizeInterpolation = riNearest);
 
-    { This releases all resources allocared by Load (or LoadFromFile).
+    { Release all resources allocated by @link(Load) (or @link(LoadFromFile)).
       @link(Loaded) property changes to @false after calling this.
 
       It's safe to call this even if @link(Loaded) is already @false --- then
@@ -185,9 +187,9 @@ type
 
     property Loaded: boolean read FLoaded;
 
-    { @abstract(Should the video be played in a loop?)
+    { Play the video in a never-ending loop.
 
-      If yes, then IndexFromTime and ImageFromTime will return information
+      If @true then IndexFromTime and ImageFromTime will return information
       that causes the video to be played in an infinite loop.
       This cooperates with TimeBackwards:
       If TimeBackwards is also @true, then each loop step will play
@@ -199,7 +201,7 @@ type
       *FromTime methods return. }
     property TimeLoop: boolean read FTimeLoop write FTimeLoop default false;
 
-    { @abstract(Should the video be played backwards after playing forward?)
+    { Play the video backwards after playing it forward.
 
       This cooperates with TimeLoop. If this is @true and TimeLoop = @false,
       video will be played once forward, once backward, and then stop.

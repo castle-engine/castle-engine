@@ -54,7 +54,7 @@ type
         Also "The Castle" and "The Rift" prooved it's enough in practice.
 
         I could have choosen Extended here,
-        but for X3D sake (to avoid unnecessary floating-point convertions
+        but for X3D sake (to avoid unnecessary floating-point conversions
         all around), let's stick to Double for now.)
     )
   }
@@ -64,22 +64,23 @@ const
   OldestTime = -MaxDouble;
 
 type
-  TMilisecTime = LongWord;
+  TMilisecTime = QWord;
 
 { Check is SecondTime larger by at least TimeDelay than FirstTime.
 
-  Naive implementation of this would be @code(SecondTime - FirstTime >= TimeDelay).
+  Simple implementation of this would be @code(SecondTime - FirstTime >= TimeDelay).
 
   FirstTime and SecondTime are milisecond times from some initial point.
-  For example, they may be taken from a function like GetTickCount.
-  Such time may "wrap" (TMilisecTime, just a LongWord, is limited).
+  For example, they may be taken from a function like 32-bit GetTickCount
+  (on older Windows; on newer we use GetTickCount64).
+  Such time may "wrap".
   This function checks these times intelligently, using the assumption that
   the SecondTime is always "later" than the FirstTime, and only having to check
   if it's later by at least TimeDelay.
 
   Always TimeTickSecond(X, X, 0) = @true. that is, when both times
   are actually equal, it's correctly "later by zero miliseconds". }
-function TimeTickSecondLater(firstTime, secondTime, timeDelay: TMilisecTime): boolean;
+function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTime): boolean;
 
 { Difference in times between SecondTime and FirstTime.
 
@@ -87,7 +88,7 @@ function TimeTickSecondLater(firstTime, secondTime, timeDelay: TMilisecTime): bo
   this function does a little better: takes into account that times may "wrap"
   (see TimeTickSecondLater), and uses the assumption that
   the SecondTime for sure "later", to calculate hopefully correct difference. }
-function TimeTickDiff(firstTime, secondTime: TMilisecTime): TMilisecTime;
+function TimeTickDiff(const FirstTime, SecondTime: TMilisecTime): TMilisecTime;
 
 { Simply add and subtract two TMilisecTime values.
 
@@ -100,20 +101,15 @@ function TimeTickDiff(firstTime, secondTime: TMilisecTime): TMilisecTime;
   in between (since TMilisecTime range is limited).
 
   @groupBegin }
-function MilisecTimesAdd(t1, t2: TMilisecTime): TMilisecTime;
-function MilisecTimesSubtract(t1, t2: TMilisecTime): TMilisecTime;
+function MilisecTimesAdd(const t1, t2: TMilisecTime): TMilisecTime;
+function MilisecTimesSubtract(const t1, t2: TMilisecTime): TMilisecTime;
 { @groupEnd }
 
-{ Get current time, in miliseconds. Such time wraps after ~49 days.
-
-  Under Windows, this is just a WinAPI GetTickCount call, it's a time
-  since system start.
-
-  Under Unix, similar result is obtained by gettimeofday call,
-  and cutting off some digits. So under Unix it's not a time since system start,
-  but since some arbitrary point. }
-function GetTickCount: TMilisecTime;
- {$ifdef MSWINDOWS} stdcall; external KernelDLL name 'GetTickCount'; {$endif MSWINDOWS}
+{ Get current time, in miliseconds. On newer OSes (non-Windows,
+  or Windows >= Windows Vista) this uses 64-bit int under the hood.
+  Or older Windows versions it's based on 32-bit Windows.GetTickCount
+  that measures time since system start, that will wrap in ~ 49 days. }
+function GetTickCount64: TMilisecTime;
 
 const
   MinDateTime: TDateTime = MinDouble;
@@ -222,7 +218,7 @@ const
   Implementation details: Under Unix this uses gettimeofday.
   Under Windows this uses QueryPerformanceCounter/Frequency,
   unless WinAPI "performance timer" is not available, then standard
-  GetTickCount is used. }
+  GetTickCount64 is used. }
 function Timer: TTimerResult;
 
 { TFramesPerSecond ----------------------------------------------------------- }
@@ -354,42 +350,85 @@ type
 
 implementation
 
-function TimeTickSecondLater(firstTime, secondTime, timeDelay: TMilisecTime): boolean;
+uses CastleLog;
+
+function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTime): boolean;
 var
-  bigint: Int64;
+  SecondTimeMinusDelay: Int64;
 begin
-  { Need 64 bit signed int to hold the result of LongWord - LongWord }
-  bigint := secondTime-timeDelay;
-  if bigint < 0 then
+  if Log and (FirstTime > SecondTime) then
+    WritelnLog('Time', 'FirstTime > SecondTime for TimeTickSecondLater. Maybe 32-bit GetTickCount just wrapped (Windows XP? Otherwise, 64-bit GetTickCount64 should always be used), or maybe you swapped arguments for TimeTickSecondLater.');
+  { Need 64 bit signed int to hold the result of QWord - QWord }
+  {$I norqcheckbegin.inc}
+  SecondTimeMinusDelay := SecondTime - TimeDelay;
+  {$I norqcheckend.inc}
+  if SecondTimeMinusDelay < 0 then
   begin
-    bigint := bigint+High(TMilisecTime);
-    result := (firstTime > secondTime) and (firstTime <= bigint);
-  end else result := firstTime <= bigint;
+    // detected Windows with 32-bit GetTickCount, it just wrapped, fix
+    SecondTimeMinusDelay := SecondTimeMinusDelay + High(LongWord);
+    result := (FirstTime > SecondTime) and (FirstTime <= SecondTimeMinusDelay);
+  end else
+    result := FirstTime <= SecondTimeMinusDelay;
 end;
 
-function TimeTickDiff(firstTime, secondTime: TMilisecTime): TMilisecTime;
+function TimeTickDiff(const FirstTime, SecondTime: TMilisecTime): TMilisecTime;
 begin
-  result := MilisecTimesSubtract(secondTime, firstTime);
+  result := MilisecTimesSubtract(SecondTime, FirstTime);
 {old implementation :
 
- if firstTime <= secondTime then
-  result := secondTime-firstTime else
-  result := High(TMilisecTime) -firstTime +secondTime;
+ if FirstTime <= SecondTime then
+  result := SecondTime-FirstTime else
+  result := High(LongWord) -FirstTime +SecondTime;
 }
 end;
 
 {$I norqcheckbegin.inc}
-function MilisecTimesAdd(t1, t2: TMilisecTime): TMilisecTime;
+function MilisecTimesAdd(const t1, t2: TMilisecTime): TMilisecTime;
 begin result := t1+t2 end;
 
-function MilisecTimesSubtract(t1, t2: TMilisecTime): TMilisecTime;
+function MilisecTimesSubtract(const t1, t2: TMilisecTime): TMilisecTime;
 begin result := t1-t2 end;
 {$I norqcheckend.inc}
 
-{$ifndef MSWINDOWS}
+{$ifdef MSWINDOWS}
+{ GetTickCount64 for Windows, from fpc/3.0.0/src/rtl/win/sysutils.pp }
+
+{$IFNDEF WINCE}
+type
+  TGetTickCount64 = function : QWord; stdcall;
+
+var
+  WinGetTickCount64: TGetTickCount64 = Nil;
+{$ENDIF}
+
+function GetTickCount64: QWord;
+{$IFNDEF WINCE}
+var
+  lib: THandle;
+{$ENDIF}
+begin
+{$IFNDEF WINCE}
+  { on Vista and newer there is a GetTickCount64 implementation }
+  if Win32MajorVersion >= 6 then begin
+    if not Assigned(WinGetTickCount64) then begin
+      lib := LoadLibrary('kernel32.dll');
+      WinGetTickCount64 := TGetTickCount64(
+                             GetProcAddress(lib, 'GetTickCount64'));
+    end;
+    Result := WinGetTickCount64();
+  end else
+{$ENDIF}
+    Result := Windows.GetTickCount;
+end;
+{$endif MSWINDOWS}
+
+{$ifdef UNIX}
+{ GetTickCount64 for Unix.
+  Not based on, but in fact very similar idea as the one in
+  FPC fpc/3.0.0/src/rtl/unix/sysutils.pp }
 
 {$I norqcheckbegin.inc}
-function GetTickCount: TMilisecTime;
+function GetTickCount64: TMilisecTime;
 var
   timeval: TTimeVal;
 begin
@@ -398,26 +437,12 @@ begin
   { By doing tv_sec * 1000, we reject 3 most significant digits from tv_sec.
     That's Ok, since these digits change least often.
     And this way we get the 3 least significant digits to fill
-    with tv_usec div 1000 (which must be < 1000, because tv_usec must be < 1 million).
+    with tv_usec div 1000 (which must be < 1000, because tv_usec must be < 1 million). }
 
-    This is the way to pack time into 32-bit in miliseconds.
-    It will wrap in about 49 days (49 days = 49* 24* 60* 60 *1000 milisekund
-    = 4 233 600 000 =~ High(LongWord)).
-
-    Note: I used to have here some old code that instead of
-      LongWord(timeval.tv_sec) * 1000
-    was doing
-      ( LongWord(timeval.tv_sec) mod (Int64(High(LongWord)) div 1000 + 1) ) * 1000
-    but I longer think it's necessary. After all, I'm inside
-    norqcheck begin/end so I don't have to care about such things,
-    and everything should work OK.
-  }
-
-  Result := LongWord(timeval.tv_sec) * 1000 + Longword(timeval.tv_usec) div 1000;
+  Result := Int64(timeval.tv_sec) * 1000 + (timeval.tv_usec div 1000);
 end;
 {$I norqcheckend.inc}
-
-{$endif not MSWINDOWS}
+{$endif UNIX}
 
 function DateTimeToAtStr(DateTime: TDateTime): string;
 begin
@@ -449,7 +474,7 @@ end;
 {$ifdef MSWINDOWS}
 function ProcessTimerNow: TProcessTimerResult;
 begin
-  Result := GetTickCount;
+  Result := GetTickCount64;
 end;
 
 function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
@@ -480,7 +505,7 @@ end;
 
 {$ifdef MSWINDOWS}
 type
-  TTimerState = (tsNotInitialized, tsQueryPerformance, tsGetTickCount);
+  TTimerState = (tsNotInitialized, tsQueryPerformance, tsGetTickCount64);
 
 var
   FTimerState: TTimerState = tsNotInitialized;
@@ -493,7 +518,7 @@ begin
   if QueryPerformanceFrequency(FTimerFrequency) then
     FTimerState := tsQueryPerformance else
   begin
-    FTimerState := tsGetTickCount;
+    FTimerState := tsGetTickCount64;
     FTimerFrequency := 1000;
   end;
 end;
@@ -511,7 +536,9 @@ begin
 
   if FTimerState = tsQueryPerformance then
     QueryPerformanceCounter(Result) else
-    Result := GetTickCount;
+    { Unfortunately, below will cast GetTickCount64 back to 32-bit.
+      Hopefully QueryPerformanceCounter is usually available. }
+    Result := GetTickCount64;
 end;
 {$endif MSWINDOWS}
 
@@ -568,7 +595,7 @@ begin
   Inc(FramesRendered);
   FrameTimePassed += Timer - RenderStartTime;
 
-  NowTime := GetTickCount;
+  NowTime := GetTickCount64;
   if NowTime - LastRecalculateTime >= TimeToRecalculate then
   begin
     { update FRealTime, FFrameTime once for TimeToRecalculate time.

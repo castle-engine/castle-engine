@@ -119,30 +119,6 @@ begin
                   VectorSubtract(Tri[2], Tri[0]))) / 4;
 end;
 
-function IsPointWithinTriangle2d(const P: TVector2; const Tri: TTriangle2): boolean;
-var
-  TriMiddle: TVector2;
-  line: TVector3;
-  i: integer;
-begin
-  TriMiddle := VectorAdd( VectorAdd(VectorScale(Tri[0], 1/3), VectorScale(Tri[1], 1/3)), VectorScale(Tri[2], 1/3));
-  (* teraz dla kazdej z 3 prostych zawierajacych boki trojkata
-     P musi byc po tej samej stronie prostej co TriMiddle. *)
-  for i := 0 to 2 do
-  begin
-    line := LineOfTwoDifferentPoints2d(Tri[i], Tri[(i+1)mod 3]);
-    if TriMiddle[0]*line[0] + TriMiddle[1]*line[1] + line[2] >= 0 then
-    begin
-      if P[0]*line[0] + P[1]*line[1] + line[2] < -ScalarEqualityEpsilon then exit(false);
-    end else
-    begin
-      if P[0]*line[0] + P[1]*line[1] + line[2] > ScalarEqualityEpsilon then exit(false);
-    end;
-  end;
-
-  result := true;
-end;
-
 function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3;
   const Tri: TTriangle3; const TriDir: TVector3): boolean;
 
@@ -294,6 +270,64 @@ begin
   end;
 end;}
 
+function IsPointWithinTriangle2D(const P: TVector2;
+  const Tri: TTriangle2): boolean;
+var
+  Area, S, T, One: TScalar;
+begin
+  { see http://stackoverflow.com/questions/2049582/how-to-determine-a-point-in-a-2d-triangle }
+  Area := 1 / 2 * (
+    - Tri[1][1]*Tri[2][0]
+    + Tri[0][1]*(-Tri[1][0] + Tri[2][0])
+    + Tri[0][0]*(Tri[1][1] - Tri[2][1])
+    + Tri[1][0]*Tri[2][1]);
+
+  S := 1/(2*Area)*(
+      Tri[0][1]*Tri[2][0]
+    - Tri[0][0]*Tri[2][1]
+    + (Tri[2][1] - Tri[0][1]) * P[0]
+    + (Tri[0][0] - Tri[2][0]) * P[1]);
+
+  One := 1 + ScalarEqualityEpsilon;
+  if (S < -ScalarEqualityEpsilon) or
+    { Like in 3D: checking this here is an optimization. }
+     (S > One) then
+    Exit(false);
+
+  T := 1/(2*Area)*(
+      Tri[0][0]*Tri[1][1]
+    - Tri[0][1]*Tri[1][0]
+    + (Tri[0][1] - Tri[1][1]) * P[0]
+    + (Tri[1][0] - Tri[0][0]) * P[1]);
+
+  { We could check at the end just this:
+      Result := (S > 0) and (T > 0) and (1 - S - T > 0);
+    Our more optimized version tries to exit early, and also applies
+    ScalarEqualityEpsilon. }
+
+  if T < -ScalarEqualityEpsilon then
+    Exit(false);
+  Result := S + T <= One;
+end;
+
+function IsPointWithinTriangle2D(const P: TVector2;
+  const Tri: TTriangle3): boolean;
+var
+  Tri2D: TTriangle2;
+begin
+  { project Tri on 2D }
+  Tri2D[0][0] := Tri[0][0];
+  Tri2D[0][1] := Tri[0][1];
+
+  Tri2D[1][0] := Tri[1][0];
+  Tri2D[1][1] := Tri[1][1];
+
+  Tri2D[2][0] := Tri[2][0];
+  Tri2D[2][1] := Tri[2][1];
+
+  Result := IsPointWithinTriangle2D(P, Tri2D);
+end;
+
 {$define TryTriangleSegmentDirCollision_IMPLEMENT:=
 var
   MaybeIntersection: TVector3;
@@ -356,6 +390,28 @@ function IsTriangleSphereCollision(const Tri: TTriangle3;
 function IsTriangleSphereCollision(const Tri: TTriangle3;
   const SphereCenter: TVector3; SphereRadius: TScalar): boolean;
 (*$I castletriangles_istrianglespherecollision.inc*)
+
+function IsTriangleSphereCollision2D(const Tri: TTriangle2;
+  const SphereCenter: TVector2; SphereRadius: TScalar): boolean;
+(*$I castletriangles_istrianglespherecollision2d.inc*)
+
+function IsTriangleSphereCollision2D(const Tri: TTriangle3;
+  const SphereCenter: TVector2; SphereRadius: TScalar): boolean;
+var
+  Tri2D: TTriangle2;
+begin
+  { project Tri on 2D }
+  Tri2D[0][0] := Tri[0][0];
+  Tri2D[0][1] := Tri[0][1];
+
+  Tri2D[1][0] := Tri[1][0];
+  Tri2D[1][1] := Tri[1][1];
+
+  Tri2D[2][0] := Tri[2][0];
+  Tri2D[2][1] := Tri[2][1];
+
+  Result := IsTriangleSphereCollision2D(Tri2D, SphereCenter, SphereRadius);
+end;
 
 function TryTriangleRayCollision(var Intersection: TVector3; var T: TScalar;
   const Tri: TTriangle3; const TriPlane: TVector4;

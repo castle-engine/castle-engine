@@ -16,6 +16,8 @@
 { @abstract(Triangulating a polygon.) }
 unit CastleTriangulate;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, CastleVectors, CastleUtils, CastleTriangles;

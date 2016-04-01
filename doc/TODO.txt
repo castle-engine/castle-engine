@@ -10,11 +10,6 @@ WWW:
   Maybe also rework demo_models layout to be more feature-oriented even more?
   Ideally, no vrml_1/2/x3d subdirs at top-level.
 
-- wp-embed? everywhere - vrmleng, michalis?
-  http://embedwordpress.com/ - nope, that's more a description how to create wordpress themes...
-  I want to easily insert wordpress into an existing php page.
-  Something started in /home/michalis/public_html/wordpress/part.php (chantal)
-
 - more stuff to sidebar?
   Maybe view3dscene should have a sidebar, with links to forum,bugs etc.
   Make "donate" place on the sidebar, with links to flattr and fundr?

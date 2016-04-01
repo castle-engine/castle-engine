@@ -16,6 +16,8 @@
 { Dialog windows. }
 unit CastleDialogs;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, Dialogs, ExtDlgs;

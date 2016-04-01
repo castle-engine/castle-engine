@@ -20,7 +20,7 @@
   Texture is any TEncodedImage instance. This includes not only
   a traditional 2D/3D matrix of pixels represented as TCastleImage,
   but also a texture compressed for GPU (TGPUCompressedImage). Moreover, a texture
-  may have mipmaps defined --- they are stored inside TDDSImage
+  may have mipmaps defined --- they are stored inside TCompositeImage
   instance (that contains a list of TEncodedImage).
 
   Since not everything can really deal with such flexible definition
@@ -30,9 +30,11 @@
   that only returns TCastleImage (a "normal" way to deal with image data). }
 unit CastleTextureImages;
 
+{$I castleconf.inc}
+
 interface
 
-uses CastleImages, CastleDDS, CastleUtils, FGL, CastleVideos;
+uses CastleImages, CastleCompositeImage, CastleUtils, FGL, CastleVideos;
 
 const
   { Image classes that are handled by absolutely all OpenGL versions. }
@@ -58,20 +60,20 @@ const
   3D libraries (like OpenGL), for example it will never return TRGBFloatImage
   (although OpenGL may support it, but we cannot be sure at this point).
   It may return texture compressed using one of the GPU compression algorithms
-  (see TGPUCompression).
+  (see TTextureCompression).
 
-  If the image comes from a DDS file, it will also return it
-  (if not, DDS returned will be @nil). This allows you to e.g. use
-  texture mipmaps recorded there. Note that DDS.OwnsFirstImage is set
+  If the image comes from a TCompositeImage file (DDS, KTX...), it will also return it
+  (if not, Composite returned will be @nil). This allows you to e.g. use
+  texture mipmaps recorded there. Note that Composite.OwnsFirstImage is set
   to @false, so you can always safely free everything by simple
-  @code(FreeAndNil(Image); FreeAndNil(DDS);).
+  @code(FreeAndNil(Image); FreeAndNil(Composite);).
 
-  Overloaded version without DDS parameter assumes you're
-  not interested in this information (still it handles DDS files of course,
-  it just doesn't return DDS object instance).
+  Overloaded version without Composite parameter assumes you're
+  not interested in this information (still it handles Composite files of course,
+  it just doesn't return Composite object instance).
 
   @groupBegin }
-function LoadTextureImage(const URL: string; out DDS: TDDSImage): TEncodedImage; overload;
+function LoadTextureImage(const URL: string; out Composite: TCompositeImage): TEncodedImage; overload;
 function LoadTextureImage(const URL: string): TEncodedImage; overload;
 { @groupEnd }
 
@@ -79,12 +81,12 @@ type
   { A cache of loaded images for textures.
 
     Load by TextureImage_IncReference, free by TextureImage_DecReference.
-    These replace LoadTextureImage, and manual freeing of Image/DDS.
+    These replace LoadTextureImage, and manual freeing of Image/Composite.
 
-    If you used IncReference that returns DDS, then you should also
-    free using DecReference that takes DDS.
-    If you used IncReference without DDS parameter, then also
-    free using DecReference without DDS parameter.
+    If you used IncReference that returns Composite, then you should also
+    free using DecReference that takes Composite.
+    If you used IncReference without Composite parameter, then also
+    free using DecReference without Composite parameter.
 
     The idea is that instead of @code(LoadTextureImage(...)) call
     @code(Cache.TextureImage_IncReference(...)).
@@ -125,7 +127,7 @@ type
         References: Cardinal;
         URL: string;
         Image: TEncodedImage;
-        DDS: TDDSImage;
+        Composite: TCompositeImage;
         AlphaChannel: TAlphaChannel;
       end;
       TCachedTextureList = specialize TFPGObjectList<TCachedTexture>;
@@ -135,12 +137,12 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    function TextureImage_IncReference(const URL: string; out DDS: TDDSImage;
+    function TextureImage_IncReference(const URL: string; out Composite: TCompositeImage;
       out AlphaChannel: TAlphaChannel): TEncodedImage;
     function TextureImage_IncReference(const URL: string;
       out AlphaChannel: TAlphaChannel): TEncodedImage;
 
-    procedure TextureImage_DecReference(var Image: TEncodedImage; var DDS: TDDSImage);
+    procedure TextureImage_DecReference(var Image: TEncodedImage; var Composite: TCompositeImage);
     procedure TextureImage_DecReference(var Image: TEncodedImage);
 
     function Empty: boolean; override;
@@ -150,21 +152,21 @@ implementation
 
 uses SysUtils, CastleStringUtils, CastleLog, CastleURIUtils;
 
-function LoadTextureImage(const URL: string; out DDS: TDDSImage): TEncodedImage;
+function LoadTextureImage(const URL: string; out Composite: TCompositeImage): TEncodedImage;
 begin
-  if not TDDSImage.MatchesURL(URL) then
+  if not TCompositeImage.MatchesURL(URL) then
   begin
     Result := LoadEncodedImage(URL, TextureImageClasses);
-    DDS := nil;
+    Composite := nil;
   end else
   begin
-    DDS := TDDSImage.Create;
+    Composite := TCompositeImage.Create;
     try
-      DDS.LoadFromFile(URL);
-      DDS.OwnsFirstImage := false;
-      Result := DDS.Images[0];
+      Composite.LoadFromFile(URL);
+      Composite.OwnsFirstImage := false;
+      Result := Composite.Images[0];
     except
-      FreeAndNil(DDS);
+      FreeAndNil(Composite);
       raise;
     end;
   end;
@@ -172,10 +174,10 @@ end;
 
 function LoadTextureImage(const URL: string): TEncodedImage;
 var
-  DDS: TDDSImage;
+  Composite: TCompositeImage;
 begin
-  Result := LoadTextureImage(URL, DDS);
-  DDS.Free;
+  Result := LoadTextureImage(URL, Composite);
+  Composite.Free;
 end;
 
 { TTexturesVideosCache ------------------------------------------------- }
@@ -200,7 +202,7 @@ begin
 end;
 
 function TTexturesVideosCache.TextureImage_IncReference(
-  const URL: string; out DDS: TDDSImage; out AlphaChannel: TAlphaChannel): TEncodedImage;
+  const URL: string; out Composite: TCompositeImage; out AlphaChannel: TAlphaChannel): TEncodedImage;
 var
   I: Integer;
   C: TCachedTexture;
@@ -216,7 +218,7 @@ begin
       Writeln('++ : texture image ', URL, ' : ', C.References);
       {$endif}
 
-      DDS := C.DDS;
+      Composite := C.Composite;
       AlphaChannel := C.AlphaChannel;
       Exit(C.Image);
     end;
@@ -227,7 +229,7 @@ begin
     we don't want to add image to cache (because caller would have
     no way to call TextureImage_DecReference later). }
 
-  Result := LoadTextureImage(URL, DDS);
+  Result := LoadTextureImage(URL, Composite);
   AlphaChannel := Result.AlphaChannel;
 
   C := TCachedTexture.Create;
@@ -235,19 +237,19 @@ begin
   C.References := 1;
   C.URL := URL;
   C.Image := Result;
-  C.DDS := DDS;
+  C.Composite := Composite;
   C.AlphaChannel := AlphaChannel;
 
   {$ifdef DEBUG_CACHE}
   Writeln('++ : texture image ', URL, ' : ', 1);
   {$endif}
-  if Log and (AlphaChannel <> acNone) then
-    WritelnLog('Alpha Detection', 'Texture image ' + URIDisplay(URL) +
-      ' detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = acSimpleYesNo]);
+  // if Log and (AlphaChannel <> acNone) then
+  //   WritelnLog('Alpha Detection', 'Texture image ' + URIDisplay(URL) +
+  //     ' detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = acSimpleYesNo]);
 end;
 
 procedure TTexturesVideosCache.TextureImage_DecReference(
-  var Image: TEncodedImage; var DDS: TDDSImage);
+  var Image: TEncodedImage; var Composite: TCompositeImage);
 var
   I: Integer;
   C: TCachedTexture;
@@ -263,31 +265,31 @@ begin
 
       { We cannot simply assert
 
-          C.DDS = DDS
+          C.Composite = Composite
 
         because when textures have many references,
-        some references may be with and some without DDS information.
+        some references may be with and some without Composite information.
         We don't want to force all references to the same URL to always
-        have or never have DDS information. (This would be uncomfortable
+        have or never have Composite information. (This would be uncomfortable
         for caller, as different nodes may share textures, e.g. VRML/X3D Background
-        and ImageTexture nodes. They would all be forced to remember DDS
+        and ImageTexture nodes. They would all be forced to remember Composite
         information this way.)
 
-        So we have to always keep DDS information in the cache,
-        and free it, regardless of whether called knows this DDS information.
+        So we have to always keep Composite information in the cache,
+        and free it, regardless of whether called knows this Composite information.
 
-        Only if passed DDS <> nil (we know caller keeps it) then we can
+        Only if passed Composite <> nil (we know caller keeps it) then we can
         check it for correctness. }
 
-      Assert((DDS = nil) or (C.DDS = DDS), 'Image pointers match in TTexturesVideosCache, DDS pointers should match too');
+      Assert((Composite = nil) or (C.Composite = Composite), 'Image pointers match in TTexturesVideosCache, Composite pointers should match too');
 
       Image := nil;
-      DDS := nil;
+      Composite := nil;
 
       if C.References = 1 then
       begin
         FreeAndNil(C.Image);
-        FreeAndNil(C.DDS);
+        FreeAndNil(C.Composite);
         CachedTextures.Delete(I);
         CheckEmpty;
       end else
@@ -305,7 +307,7 @@ end;
 function TTexturesVideosCache.TextureImage_IncReference(
   const URL: string; out AlphaChannel: TAlphaChannel): TEncodedImage;
 var
-  Dummy: TDDSImage;
+  Dummy: TCompositeImage;
 begin
   Result := TextureImage_IncReference(URL, Dummy, AlphaChannel);
 end;
@@ -313,7 +315,7 @@ end;
 procedure TTexturesVideosCache.TextureImage_DecReference(
   var Image: TEncodedImage);
 var
-  Dummy: TDDSImage;
+  Dummy: TCompositeImage;
 begin
   Dummy := nil;
   TextureImage_DecReference(Image, Dummy);

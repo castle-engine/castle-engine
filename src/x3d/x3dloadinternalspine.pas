@@ -16,6 +16,8 @@
 { Spine 2D animations loader. }
 unit X3DLoadInternalSpine;
 
+{$I castleconf.inc}
+
 interface
 
 uses X3DNodes;
@@ -24,7 +26,7 @@ function LoadSpine(URL: string): TX3DRootNode;
 
 implementation
 
-uses SysUtils, Classes, FGL, FpJson, JSONParser, Math,
+uses SysUtils, Classes, FGL, FpJson, JSONParser, JSONScanner, Math,
   CastleVectors, CastleUtils, CastleLog, CastleURIUtils, CastleDownload,
   CastleStringUtils, CastleClassUtils, CastleColors,
   X3DLoadInternalUtils, CastleWarnings, X3DFields, CastleGenericLists;
@@ -109,7 +111,13 @@ begin
   try
     S := Download(URL);
     try
-      P := TJSONParser.Create(S);
+      P :=
+        {$ifdef VER2} TJSONParser.Create(S);
+        {$else}
+          {$ifdef VER3_0} TJSONParser.Create(S);
+          {$else} { For FPC > 3.0.0 } TJSONParser.Create(S, [joUTF8, joComments]);
+          {$endif}
+        {$endif}
       try
         Json := P.Parse;
         try
@@ -121,6 +129,7 @@ begin
               try
                 Skeleton.Parse(Json);
                 Skeleton.BuildNodes(URL, TextureLoader, Result, SkinName);
+                Skeleton.Animations.Exported(Result);
               finally FreeAndNil(Skeleton) end;
             end;
           except FreeAndNil(Result); raise end;

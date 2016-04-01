@@ -18,6 +18,8 @@
     for camera handling.) }
 unit X3DCameraUtils;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleUtils, CastleVectors, CastleBoxes, X3DNodes;
@@ -160,54 +162,46 @@ const
 var
   RotationVectorForGravity: TVector3Single;
   AngleForGravity: Single;
+  { Workarounding FPC 3.1.1 internal error 200211262 in x3dcamerautils.pas }
+  S1, S2, S3, S4: string;
 begin
   Result := Format(Comment[Xml], [ApplicationName,
     VectorToRawStr(Direction),
     VectorToRawStr(Up),
     VectorToRawStr(GravityUp) ]);
 
-  {$ifdef VER3_1_1}
-  {$warning Workarounding FPC 3.1.1 internal error 200211262 in x3dcamerautils.pas, MakeCameraStr is not correct}
-  {$else}
-
   RotationVectorForGravity := VectorProduct(DefaultX3DGravityUp, GravityUp);
   if ZeroVector(RotationVectorForGravity) then
   begin
     { Then GravityUp is parallel to DefaultX3DGravityUp, which means that it's
       just the same. So we can use untranslated Viewpoint node. }
-    Result := Result +
-      Format(
-        UntransformedViewpoint[Version, Xml],
-        [ VectorToRawStr(Position),
-          VectorToRawStr( CamDirUp2Orient(Direction, Up) ) ]);
+    S1 := VectorToRawStr(Position);
+    S2 := VectorToRawStr(CamDirUp2Orient(Direction, Up));
+    Result := Result + Format(UntransformedViewpoint[Version, Xml], [S1, S2]);
   end else
   begin
     { Then we must transform Viewpoint node, in such way that
       DefaultX3DGravityUp affected by this transformation will give
       desired GravityUp. }
     AngleForGravity := AngleRadBetweenVectors(DefaultX3DGravityUp, GravityUp);
-    Result := Result +
-      Format(
-        TransformedViewpoint[Version, Xml],
-        [ VectorToRawStr(Position),
-          VectorToRawStr(RotationVectorForGravity),
-          FloatToRawStr(AngleForGravity),
-          { I want
-            1. standard VRML/X3D dir/up vectors
-            2. rotated by orientation
-            3. rotated around RotationVectorForGravity
-            will give MatrixWalker.Direction/Up.
-            CamDirUp2Orient will calculate the orientation needed to
-            achieve given up/dir vectors. So I have to pass there
-            MatrixWalker.Direction/Up *already rotated negatively
-            around RotationVectorForGravity*. }
-          VectorToRawStr( CamDirUp2Orient(
+    S1 := VectorToRawStr(Position);
+    S2 := VectorToRawStr(RotationVectorForGravity);
+    S3 := FloatToRawStr(AngleForGravity);
+    { We want such that
+        1. standard VRML/X3D dir/up vectors
+        2. rotated by orientation
+        3. rotated around RotationVectorForGravity
+      will give Camera.Direction/Up.
+      CamDirUp2Orient will calculate the orientation needed to
+      achieve given up/dir vectors. So I have to pass there
+      MatrixWalker.Direction/Up *already rotated negatively
+      around RotationVectorForGravity*. }
+    S4 := VectorToRawStr( CamDirUp2Orient(
             RotatePointAroundAxisRad(-AngleForGravity, Direction, RotationVectorForGravity),
             RotatePointAroundAxisRad(-AngleForGravity, Up       , RotationVectorForGravity)
-            )) ]);
+          ));
+    Result := Result + Format(TransformedViewpoint[Version, Xml], [S1, S2, S3, S4]);
   end;
-
-  {$endif}
 end;
 
 function MakeCameraNode(const Version: TX3DCameraVersion;

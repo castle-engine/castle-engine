@@ -16,6 +16,8 @@
 { 3D sound engine (TSoundEngine and TRepoSoundEngine). }
 unit CastleSoundEngine;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, CastleOpenAL, CastleSoundAllocator, CastleVectors,
@@ -546,8 +548,22 @@ type
       by RepositoryURL.
       Always for SoundName = '' it will return stNone.
 
-      @raises Exception On invalid SoundName when RaiseError = @true. }
-    function SoundFromName(const SoundName: string; const RaiseError: boolean = true): TSoundType;
+      @param(Required
+
+        If Required = @true, it will make a warning when the sound name
+        is not found. This may mean that sound is missing in your sounds.xml
+        file (so you should correct your sounds.xml),
+        or that you didn't load the sounds.xml file yet
+        (so you should correct your code to set @link(TRepoSoundEngine.RepositoryURL)
+        early enough), or that you specified invalid sound name.
+        When Required = @false, missing sound is silently ignored,
+        which is sensible if it was optional.
+
+        Regardless of the Required value, we return stNone for missing sound.
+        So the Required parameter only determines whether we make a warning,
+        or not.)
+    }
+    function SoundFromName(const SoundName: string; const Required: boolean = true): TSoundType;
 
     { Play given sound. This should be used to play sounds
       that are not spatial, i.e. have no place in 3D space.
@@ -677,14 +693,6 @@ var
 { The sound engine. Singleton instance of TRepoSoundEngine, the most capable
   engine class. Created on first call to this function. }
 function SoundEngine: TRepoSoundEngine;
-
-var
-  { Should TRepoSoundEngine.SoundFromName ignore (return stNone)
-    all missing sounds. This works like RaiseError parameter for
-    TRepoSoundEngine.SoundFromName was @true.
-    It's a debug feature, useful if you load resources but don't really
-    plan to play their sounds, don't depend on it in your games. }
-  IgnoreAllMissingSounds: boolean;
 
 implementation
 
@@ -953,6 +961,8 @@ procedure TSoundEngine.ALContextOpen;
       (spec says that context is initially in processing state). }
 
     try
+      //raise EOpenALError.Create('Test pretend OpenAL fails');
+
       FALActive := false;
       FEFXSupported := false;
       ALActivationErrorMessage := '';
@@ -1594,10 +1604,18 @@ end;
 function TRepoSoundEngine.Sound(SoundType: TSoundType;
   const Looping: boolean): TSound;
 begin
+  { If there is no actual sound, exit early without initializing OpenAL.
+    - SoundType is stNone if not defined in sounds.xml.
+    - SoundType is <> stNone but URL = '' if sound name is defined in
+      sounds.xml with explicit url="", like this:
+      <sound name="player_sudden_pain" url="" />
+  }
+  if (SoundType = stNone) or (Sounds[SoundType].URL = '') then Exit(nil);
+
   if not ALInitialized then ALContextOpen;
 
-  { If there is no actual sound, exit early without initializing OpenAL.
-    Do it *after* ALContextOpen, otherwise Buffer is always zero. }
+  { Check this *after* ALContextOpen, since Buffer is always zero before OpenAL
+    is initialized. }
   if Sounds[SoundType].Buffer = 0 then Exit(nil);
 
   Result := PlaySound(
@@ -1613,10 +1631,14 @@ function TRepoSoundEngine.Sound3D(SoundType: TSoundType;
   const Position: TVector3Single;
   const Looping: boolean): TSound;
 begin
+  { If there is no actual sound, exit early without initializing OpenAL.
+    See Sound for duplicate of this "if" and more comments. }
+  if (SoundType = stNone) or (Sounds[SoundType].URL = '') then Exit(nil);
+
   if not ALInitialized then ALContextOpen;
 
-  { If there is no actual sound, exit early without initializing OpenAL.
-    Do it *after* ALContextOpen, otherwise Buffer is always zero. }
+  { Do it *after* ALContextOpen, since Buffer is always zero before OpenAL
+    is initialized. }
   if Sounds[SoundType].Buffer = 0 then Exit(nil);
 
   Result := PlaySound(
@@ -1661,7 +1683,7 @@ begin
     Check(SoundConfig.DocumentElement.TagName = 'sounds',
       'Root node of sounds/index.xml must be <sounds>');
 
-    I := TXMLElementIterator.Create(SoundConfig.DocumentElement);
+    I := SoundConfig.DocumentElement.ChildrenIterator;
     try
       while I.GetNext do
       begin
@@ -1690,7 +1712,7 @@ begin
           Standard I.Current.GetAttribute wouldn't allow me this. }
         if (I.Current.AttributeString('url', S.URL) or
             I.Current.AttributeString('file_name', S.URL)) and
-          (S.URL <> '') then
+           (S.URL <> '') then
           { Make URL absolute, using RepositoryURLAbsolute, if non-empty URL
             was specified in XML file. }
           S.URL := CombineURI(RepositoryURLAbsolute, S.URL);
@@ -1752,15 +1774,15 @@ begin
 end;
 
 function TRepoSoundEngine.SoundFromName(const SoundName: string;
-  const RaiseError: boolean): TSoundType;
+  const Required: boolean): TSoundType;
 begin
   for Result := 0 to Sounds.Count - 1 do
     if Sounds[Result].Name = SoundName then
       Exit;
 
-  if RaiseError and not IgnoreAllMissingSounds then
-    raise Exception.CreateFmt('Unknown sound name "%s"', [SoundName]) else
-    Result := stNone;
+  if Required then
+    OnWarning(wtMinor, 'Sound', Format('Unknown sound name "%s"', [SoundName]));
+  Result := stNone;
 end;
 
 procedure TRepoSoundEngine.AddSoundImportanceName(const Name: string;

@@ -40,7 +40,7 @@ type
       {$ifdef GLImageUseShaders}
       TColorTreatment = (
         { Use texture color to draw. }
-        ctTexture,
+        ctPureTexture,
         { Use constant color * texture (on all RGBA channels). }
         ctColorMultipliesTexture,
         { Use constant color for RGB,
@@ -319,8 +319,11 @@ type
     { Y coordinate of the center of rotation. Value from 0 to 1. Default value 0.5. }
     property CenterY: Single read FCenterY write FCenterY default 0.5;
 
-    { Rotation in degrees. Default value 0. }
-    property Rotation: Single read FRotation write FRotation default 0;
+    { Rotation in radians. Increase to rotate in a counter-clockwise direction.
+      Hint: use function like ArcTan2 from Math unit to convert 2D direction
+      into a rotation angle. }
+    property Rotation: Single
+      read FRotation write FRotation default 0;
   end;
 
   { Image ready to be drawn on 2D screen, with automatically
@@ -662,14 +665,25 @@ end;
 procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
 var
+  ShiftX, ShiftY: Single;
+
+  { Rotate Point by Rotation radians around (ShiftX, ShiftY). }
+  function RotatePoint2DAroundShift(const Point: TVector2SmallInt): TVector2SmallInt;
+  var
+    PointSingle, ResultSingle: TVector2Single;
+  begin
+    PointSingle := Vector2Single(Point[0] - ShiftX, Point[1] - ShiftY);
+    ResultSingle := RotatePoint2D(PointSingle, Rotation);
+    Result := Vector2SmallInt(Round(ResultSingle[0] + ShiftX), Round(ResultSingle[1] + ShiftY));
+  end;
+
+var
   TexX0, TexY0, TexX1, TexY1: Single;
   {$ifdef GLImageUseShaders}
   ColorTreatment: TColorTreatment;
   AttribEnabled: array [0..1] of TGLuint;
   AttribLocation: TGLuint;
   Prog: TGLSLProgram;
-  {$else}
-  ShiftX, ShiftY: Single;
   {$endif}
 begin
   if (DrawWidth = 0) or (DrawHeight = 0) then Exit;
@@ -707,6 +721,23 @@ begin
   Point[3].TexCoord := Vector2Single(TexX0, TexY1);
   Point[3].Position := Vector2SmallInt(X            , Y + DrawHeight);
 
+  if FRotation <> 0 then
+  begin
+    if UseScreenCenter then
+    begin
+      ShiftX := ScreenCenterX;
+      ShiftY := ScreenCenterY;
+    end else
+    begin
+      ShiftX := X + FCenterX * DrawWidth;
+      ShiftY := Y + FCenterY * DrawHeight;
+    end;
+    Point[0].Position := RotatePoint2DAroundShift(Point[0].Position);
+    Point[1].Position := RotatePoint2DAroundShift(Point[1].Position);
+    Point[2].Position := RotatePoint2DAroundShift(Point[2].Position);
+    Point[3].Position := RotatePoint2DAroundShift(Point[3].Position);
+  end;
+
   if GLFeatures.VertexBufferObject then
   begin
     glBindBuffer(GL_ARRAY_BUFFER, PointVbo);
@@ -721,7 +752,7 @@ begin
     ColorTreatment := ctColorMultipliesTextureAlpha else
   if not VectorsPerfectlyEqual(Color, White) then
     ColorTreatment := ctColorMultipliesTexture else
-    ColorTreatment := ctTexture;
+    ColorTreatment := ctPureTexture;
 
   Prog := GLSLProgram[Alpha = acSimpleYesNo, ColorTreatment];
   Prog.Enable;
@@ -730,27 +761,12 @@ begin
   AttribEnabled[1] := Prog.VertexAttribPointer('tex_coord', 0, 2, GL_FLOAT, GL_FALSE,
     SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
   Prog.SetUniform('viewport_size', Viewport2DSize);
-  if ColorTreatment <> ctTexture then
+  if ColorTreatment <> ctPureTexture then
     Prog.SetUniform('color', Color);
 
   {$else}
   glLoadIdentity();
   glColorv(Color);
-  if FRotation <> 0 then
-  begin
-    if UseScreenCenter then
-    begin
-      ShiftX := ScreenCenterX;
-      ShiftY := ScreenCenterY;
-    end else
-    begin
-      ShiftX := X + FCenterX * DrawWidth;
-      ShiftY := Y + FCenterY * DrawHeight;
-    end;
-    glTranslatef( ShiftX,  ShiftY, 0);
-    glRotatef(FRotation, 0, 0, 1);
-    glTranslatef(-ShiftX, -ShiftY, 0);
-  end;
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1175,7 +1191,8 @@ end;
 
 procedure TGLImageManaged.SetImage(const AImage: TEncodedImage);
 begin
-  { exactly like Load(), but can ignore the call is AImage reference normal.
+  { exactly like Load(), but can ignore the call if AImage reference
+    is already set.
     Load() should not do it, to allow loading the same AImage reference
     in case AImage contents change. }
   if FImage <> AImage then

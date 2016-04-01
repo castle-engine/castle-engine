@@ -23,7 +23,7 @@
 
 uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleWarnings,
-  CastleFilesUtils, CastleURIUtils,
+  CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   ToolArchitectures, ToolProject, ToolCompile, ToolUtils;
 
 var
@@ -106,6 +106,15 @@ begin
           '  Use this instead of "compile" only if there''s some good reason' +NL+
           '  you don''t want to use CastleEngineManifest.xml to your project.' +NL+
           NL+
+          '- "auto-compress-textures" :' +NL+
+          '  Create GPU-compressed versions of textures,' +NL+
+          '  for the textures mentioned in <auto_compressed_textures>' +NL+
+          '  inside the file data/material_properties.xml.' +NL+
+          NL+
+          '- "auto-compress-clean" :' +NL+
+          '  Clear "auto_compressed" subdirectories, that should contain only' +NL+
+          '  the output created by "auto-compress-textures" target.' +NL+
+          NL+
           'Available options are:' +NL+
           HelpOptionHelp +NL+
           VersionOptionHelp +NL+
@@ -181,6 +190,7 @@ procedure Run;
 var
   Command, S, FileName: string;
   Project: TCastleProject;
+  RestOfParameters: TCastleStringList;
 begin
   OnGetApplicationName := @MyGetApplicationName;
   OnWarning := @OnWarningWrite;
@@ -213,10 +223,11 @@ begin
     { use GetCurrentDir as WorkingDir,
       so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
       Working dir for FPC must be equal to our own working dir. }
-    Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName);
+    Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil);
   end else
   begin
-    Parameters.CheckHigh(1);
+    if Command <> 'run' then
+      Parameters.CheckHigh(1);
     Project := TCastleProject.Create;
     try
       if Command = 'create-manifest' then
@@ -235,7 +246,15 @@ begin
       if Command = 'install' then
         Project.DoInstall(OS, CPU, Plugin) else
       if Command = 'run' then
-        Project.DoRun(OS, CPU, Plugin) else
+      begin
+        RestOfParameters := TCastleStringList.Create;
+        try
+          RestOfParameters.Text := Parameters.Text;
+          RestOfParameters.Delete(0); // remove our own name
+          RestOfParameters.Delete(0); // remove "run"
+          Project.DoRun(OS, CPU, Plugin, RestOfParameters);
+        finally FreeAndNil(RestOfParameters) end;
+      end else
       if Command = 'package-source' then
       begin
         Project.DoClean;
@@ -243,6 +262,10 @@ begin
       end else
       if Command = 'clean' then
         Project.DoClean else
+      if Command = 'auto-compress-textures' then
+        Project.DoAutoCompressTextures else
+      if Command = 'auto-compress-clean' then
+        Project.DoAutoCompressClean else
         raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
     finally FreeAndNil(Project) end;
   end;

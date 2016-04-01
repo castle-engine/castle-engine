@@ -27,21 +27,23 @@
   end;
 
   { Abstract 3D object handling VRML/X3D events.
-    Is also notified about changes to VRML/X3D nodes/fields. }
+    Is also notified about changes to VRML/X3D nodes/fields.
+
+    See TCastleSceneCore for documentation of these methods,
+    TCastleSceneCore is the only implementation of this interface in practice. }
   TX3DEventsEngine = class(T3D)
   protected
     procedure ExecuteCompiledScript(const HandlerName: string;  ReceivedValue: TX3DField); virtual; abstract;
   public
-    function GetTime: TX3DTime; virtual; abstract;
     function GetBackgroundStack: TX3DBindableStackBasic; virtual; abstract;
     function GetFogStack: TX3DBindableStackBasic; virtual; abstract;
     function GetNavigationInfoStack: TX3DBindableStackBasic; virtual; abstract;
     function GetViewpointStack: TX3DBindableStackBasic; virtual; abstract;
-
+    function Time: TFloatTime; virtual; abstract;
+    function NextEventTime: TX3DTime; virtual; abstract;
     procedure ChangedAll; virtual; abstract;
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual; abstract;
     procedure ChangedField(Field: TX3DField); virtual; abstract;
-    procedure IncreaseTimeTick; virtual; abstract;
   end;
 
   TX3DEventsEngineList = class(specialize TFPGObjectList<TX3DEventsEngine>)

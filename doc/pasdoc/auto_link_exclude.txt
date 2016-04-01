@@ -111,8 +111,11 @@ extract
 faces
 falling
 family
+frames
 field
 fields
+playing
+move
 filename
 filenames
 fini
@@ -361,3 +364,6 @@ world
 write
 writeable
 zero
+x
+y
+z

@@ -632,12 +632,12 @@ begin
           or just do the right thing if outside client area.
           So it's suitable when wParm <> h_Wnd or we want mcDefault. }
         if wParm = h_Wnd then
-          case Cursor of
+          case InternalCursor of
             mcDefault: { Fallback on DefWindowProc };
             mcCustom: { TODO, for now behave like mcDefault };
             else
               begin
-                Windows.SetCursor(Application.CursorHandles[Cursor].Handle);
+                Windows.SetCursor(Application.CursorHandles[InternalCursor].Handle);
                 Exit(1);
               end;
           end;

@@ -16,6 +16,8 @@
 { Base 3D objects (T3D, T3DList, T3DTransform, T3DOrient, T3DMoving). }
 unit Castle3D;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, Math, CastleVectors, CastleFrustum,
@@ -51,8 +53,7 @@ type
 
   { Various things that T3D.PrepareResources may prepare. }
   TPrepareResourcesOption = (prRender, prBackground, prBoundingBox,
-    prTrianglesListShadowCasters,
-    prManifoldAndBorderEdges,
+    prShadowVolume,
     { Prepare octrees (determined by things like TCastleSceneCore.Spatial). }
     prSpatial,
     prScreenEffects);
@@ -211,8 +212,9 @@ type
         non-wall-sliding version (without separate ProposedNewPos
         and NewPos).)
       @item(Non-wall-sliding MoveCollision version,
-        SegmentCollision, SphereCollision, BoxCollision and RayCollision
-        and HeightCollision check for collisions with our BoundingBox,
+        SegmentCollision, SphereCollision, SphereCollision2D, PointCollision2D,
+        BoxCollision, RayCollision, and HeightCollision
+        check for collisions with our BoundingBox,
         using TBox3D methods:
         @link(TBox3D.TryRayClosestIntersection),
         @link(TBox3D.TryRayEntrance),
@@ -313,6 +315,10 @@ type
       const ALineOfSight: boolean): boolean; virtual;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+    function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+    function PointCollision2D(const Point: TVector2Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
 
@@ -387,8 +393,10 @@ type
       player (in third-person perspective, camera may differ from player),
       other creatures. That is because everything
       resolves collisions through our methods MoveCollision and HeightCollision
-      (high-level) or SegmentCollision, SphereCollision, BoxCollision
-      (low-level). (Note that RayCollision is excluded from this,
+      (high-level) or SegmentCollision, SphereCollision, SphereCollision2D,
+      PointCollision2D, BoxCollision (low-level).
+
+      (Note that RayCollision is excluded from this,
       it exceptionally ignores Collides value, as it's primarily used for picking.
       Same for SegmentCollision with LineOfSight=true.)
 
@@ -432,7 +440,7 @@ type
       (although, for the same of various optimizations, you should try
       to make it as tight as reasonably possible.) For now, it's also OK
       to make it a little too small (nothing bad will happen).
-      Although all currently implemented descendants (TCastleSceneCore, TCastlePrecalculatedAnimationCore,
+      Although all currently implemented descendants (TCastleSceneCore, TCastlePrecalculatedAnimation,
       more) guarantee it's never too small. }
     function BoundingBox: TBox3D; virtual; abstract;
 
@@ -968,6 +976,10 @@ type
       const ALineOfSight: boolean): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function PointCollision2D(const Point: TVector2Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(const RayOrigin, RayDirection: TVector3Single;
@@ -1077,6 +1089,9 @@ type
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
     function WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean; virtual; abstract;
     function WorldRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; virtual; abstract;
+    function WorldSphereCollision(const Pos: TVector3Single; const Radius: Single): boolean;
+    function WorldSphereCollision2D(const Pos: TVector2Single; const Radius: Single): boolean;
+    function WorldPointCollision2D(const Point: TVector2Single): boolean;
     { @groupEnd }
   end;
 
@@ -1143,6 +1158,9 @@ type
     function GetScaleOrientation: TVector4Single; virtual;
     { @groupEnd }
 
+    { Get translation in 2D (uses GetTranslation, ignores Z coord). }
+    function GetTranslation2D: TVector2Single;
+
     { Can we use simple GetTranslation instead of full TransformMatricesMult.
       Returning @true allows optimization in some cases. }
     function OnlyTranslation: boolean; virtual;
@@ -1179,6 +1197,10 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function PointCollision2D(const Point: TVector2Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
@@ -1304,9 +1326,19 @@ type
       default DefaultMiddleHeight;
   end;
 
-  { Transform (move, rotate, scale) other T3D objects.
-    Descends from T3DList, transforming all it's children.
-    Defines simple properties like @link(Translation). }
+  { Transform (move, rotate, scale) children T3D objects.
+    Transformation is a combined 1. @link(Translation),
+    2. and @link(Rotation) around @link(Center) point,
+    3. and @link(Scale) around @link(Center) and with orientation given by
+    @link(ScaleOrientation).
+
+    For precise order of the translation/rotation/scale operations,
+    see the X3D Transform node specification.
+
+    Default values of all fields indicate "no transformation".
+    So everything is zero, except Scale is (1,1,1).
+
+    This descends from T3DList, and it transforms all it's children. }
   T3DTransform = class(T3DCustomTransform)
   private
     FCenter: TVector3Single;
@@ -1332,32 +1364,67 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    { Transformation is a combined Translation, and Rotation around Center point,
-      and Scale around Center and with orientation given by ScaleOrientation.
-      For precise order of these operations, see X3D Transform node.
+    { Translation (move) the children. Zero by default. }
+    property Translation: TVector3Single read FTranslation write SetTranslation;
 
-      Default values of these fields indicate no transformation.
-      So everything is zero, except Scale which is (1,1,1).
-      Scale must always have all components > 0 (some operations depend
-      that scale here is invertible and doesn't flip sides).
-      Non-uniform scale (e.g. when you scale along X coordinate 2 times,
-      but you scale along Y coordinate 3 times) works... to some extent,
-      that is collisions with spheres (including camera radius) are not perfect
-      in this case. For perfect results, keep your scale uniform.
+    { Center point around which the @link(Rotation) and @link(Scale) is performed. }
+    property Center: TVector3Single read FCenter write SetCenter;
 
+    { Rotation in 3D, around a specified axis.
       Rotation is expressed as a 4D vector, in which the first 3 components
       specify the rotation axis (does not need to be normalized, but must be non-zero),
       and the last component is the rotation angle @italic(in radians).
 
-      @groupBegin }
-    property Center: TVector3Single read FCenter write SetCenter;
+      Rotation is done around @link(Center). }
     property Rotation: TVector4Single read FRotation write SetRotation;
+
+    { Scale in 3D. Scaling is done around @link(Center)
+      and with orientation given by @link(ScaleOrientation).
+
+      Any scale value with @italic(somewhat) work (meaning: we do the best
+      we can). But there are some good rules about scaling:
+
+      @orderedList(
+        @item(If you can, keep the scale uniform, that is scale equal amount
+          in X, Y and Z. For example set scale = @code((3.0, 3.0, 3.0))
+          to scale 3x times, and avoid scale like @code((3.0, 1.0, 1.0))
+          that scales more in one direction.
+
+          Non-uniform scale works, but some collisions are not perfectly
+          calculated then. (For example, an ideal sphere is no longer a sphere
+          when scaled in non-uniform fashion, and not everywhere do we
+          account for that.) Although it works Ok on meshes.
+          @link(ScaleOrientation) matters in case of non-uniform scale.
+        )
+
+        @item(All scale components should > 0 if you want 3D lighting
+          to work corrrectly. That is, avoid negative scale, that flips
+          the orientation of faces (CCW becomes CW), or standard
+          lighting may not work Ok.
+
+          For unlit stuff, or custom lighting, negative scale may be Ok.
+          For many 2D games that use no lighting/custom lighting,
+          negative scale is Ok.)
+
+        @item(At least, keep all scale components non-zero.
+          Otherwise the scaling operation is not invertible,
+          and generally collisions will not work correctly.
+
+          If you really need to set zero scale, at least consider
+          using @link(Collides) = @false.)
+      )
+    }
     property Scale: TVector3Single read FScale write SetScale;
+
+    { Orientation in which 3D @link(Scale) is performed. }
     property ScaleOrientation: TVector4Single read FScaleOrientation write SetScaleOrientation;
-    property Translation: TVector3Single read FTranslation write SetTranslation;
-    { @groupEnd }
 
     procedure Translate(const T: TVector3Single); override;
+
+    { Make the transform do nothing --- zero @link(Translation), zero @link(Rotation),
+      @link(Scale) to one. Also resets @link(Orientation) and
+      @link(ScaleOrientation). }
+    procedure Identity;
   end;
 
   TOrientationType = (
@@ -2152,6 +2219,18 @@ begin
   Result := GetCollides and BoundingBox.SphereCollision(Pos, Radius);
 end;
 
+function T3D.SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  Result := GetCollides and BoundingBox.SphereCollision2D(Pos, Radius);
+end;
+
+function T3D.PointCollision2D(const Point: TVector2Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  Result := GetCollides and BoundingBox.PointInside2D(Point);
+end;
+
 function T3D.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -2859,6 +2938,52 @@ begin
   end;
 end;
 
+function T3DList.SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+var
+  I: Integer;
+begin
+  Result := false;
+
+  if GetCollides then
+  begin
+    if GetChild <> nil then
+    begin
+      Result := GetChild.SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc);
+      if Result then Exit;
+    end;
+
+    for I := 0 to List.Count - 1 do
+    begin
+      Result := List[I].SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc);
+      if Result then Exit;
+    end;
+  end;
+end;
+
+function T3DList.PointCollision2D(const Point: TVector2Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+var
+  I: Integer;
+begin
+  Result := false;
+
+  if GetCollides then
+  begin
+    if GetChild <> nil then
+    begin
+      Result := GetChild.PointCollision2D(Point, TrianglesToIgnoreFunc);
+      if Result then Exit;
+    end;
+
+    for I := 0 to List.Count - 1 do
+    begin
+      Result := List[I].PointCollision2D(Point, TrianglesToIgnoreFunc);
+      if Result then Exit;
+    end;
+  end;
+end;
+
 function T3DList.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
@@ -3059,6 +3184,23 @@ begin
   Result := MaxAbsVectorCoord(GravityUp);
 end;
 
+function T3DWorld.WorldSphereCollision(const Pos: TVector3Single;
+  const Radius: Single): boolean;
+begin
+  Result := SphereCollision(Pos, Radius, nil);
+end;
+
+function T3DWorld.WorldSphereCollision2D(const Pos: TVector2Single;
+  const Radius: Single): boolean;
+begin
+  Result := SphereCollision2D(Pos, Radius, nil);
+end;
+
+function T3DWorld.WorldPointCollision2D(const Point: TVector2Single): boolean;
+begin
+  Result := PointCollision2D(Point, nil);
+end;
+
 { T3DCustomTransform -------------------------------------------------------- }
 
 constructor T3DCustomTransform.Create(AOwner: TComponent);
@@ -3070,6 +3212,15 @@ end;
 function T3DCustomTransform.GetTranslation: TVector3Single;
 begin
   Result := ZeroVector3Single;
+end;
+
+function T3DCustomTransform.GetTranslation2D: TVector2Single;
+var
+  T: TVector3Single;
+begin
+  T := GetTranslation;
+  Result[0] := T[0];
+  Result[1] := T[1];
 end;
 
 function T3DCustomTransform.GetCenter: TVector3Single;
@@ -3130,11 +3281,8 @@ begin
 end;
 
 function T3DCustomTransform.AverageScale: Single;
-var
-  S: TVector3Single;
 begin
-  S := GetScale;
-  Result := (S[0] + S[1] + S[2]) / 3;
+  Result := Approximate3DScale(GetScale);
 end;
 
 { We assume in all methods below that OnlyTranslation is the most common case,
@@ -3359,6 +3507,36 @@ begin
       Pos - GetTranslation, Radius, TrianglesToIgnoreFunc) else
     Result := inherited SphereCollision(
       MatrixMultPoint(TransformInverse, Pos), Radius / AverageScale, TrianglesToIgnoreFunc);
+end;
+
+function T3DCustomTransform.SphereCollision2D(
+  const Pos: TVector2Single; const Radius: Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  { inherited will check these anyway. But by checking them here,
+    we can potentially avoid the cost of transforming into local space. }
+  if not GetCollides then Exit(false);
+
+  if OnlyTranslation then
+    Result := inherited SphereCollision2D(
+      Pos - GetTranslation2D, Radius, TrianglesToIgnoreFunc) else
+    Result := inherited SphereCollision2D(
+      MatrixMultPoint(TransformInverse, Pos), Radius / AverageScale, TrianglesToIgnoreFunc);
+end;
+
+function T3DCustomTransform.PointCollision2D(
+  const Point: TVector2Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  { inherited will check these anyway. But by checking them here,
+    we can potentially avoid the cost of transforming into local space. }
+  if not GetCollides then Exit(false);
+
+  if OnlyTranslation then
+    Result := inherited PointCollision2D(
+      Point - GetTranslation2D, TrianglesToIgnoreFunc) else
+    Result := inherited PointCollision2D(
+      MatrixMultPoint(TransformInverse, Point), TrianglesToIgnoreFunc);
 end;
 
 function T3DCustomTransform.BoxCollision(
@@ -3705,6 +3883,15 @@ end;
 procedure T3DTransform.Translate(const T: TVector3Single);
 begin
   Translation := Translation + T;
+end;
+
+procedure T3DTransform.Identity;
+begin
+  Center := ZeroVector3Single;
+  Rotation := ZeroVector4Single;
+  Scale := NoScale;
+  ScaleOrientation := ZeroVector4Single;
+  Translation := ZeroVector3Single;
 end;
 
 { T3DOrient ------------------------------------------------------------------ }

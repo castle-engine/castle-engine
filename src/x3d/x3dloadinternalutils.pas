@@ -16,6 +16,8 @@
 { Utilities for converting other 3D model formats into VRML/X3D. }
 unit X3DLoadInternalUtils;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors, X3DNodes;

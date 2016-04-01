@@ -24,9 +24,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc}{$h+}
 { @exclude Not ready for PasDoc. }
 unit CastleFtFont;
+
+{$I castleconf.inc}
 
 interface
 

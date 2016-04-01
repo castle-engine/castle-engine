@@ -29,7 +29,7 @@
       A lot of utilities included: for 2D textures (see LoadGLTexture),
       cube maps (see glTextureCubeMap), 3D textures (see glTextureImage3D).
       These functions wrap OpenGL calls like glTexImage2D to handle
-      our images (TEncodedImage (and descendant TCastleImage), TDDSImage),
+      our images (TEncodedImage (and descendant TCastleImage), TCompositeImage),
       and to automatically set texture parameters, mipmaps and such.)
 
     @item(Load and draw images in 2D.
@@ -64,7 +64,7 @@ interface
 
 uses SysUtils, FGL, CastleGL,
   CastleImages, CastleVectors, CastleGLUtils, CastleTimeUtils,
-  CastleVideos, CastleDDS, CastleRectangles, CastleGLShaders, CastleColors;
+  CastleVideos, CastleCompositeImage, CastleRectangles, CastleGLShaders, CastleColors;
 
 const
   PixelsImageClasses: array [0..3] of TEncodedImageClass = (
@@ -131,7 +131,8 @@ procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGL
 
 implementation
 
-uses CastleUtils, CastleLog, CastleGLVersion, CastleWarnings, CastleTextureImages,
+uses Math,
+  CastleUtils, CastleLog, CastleGLVersion, CastleWarnings, CastleTextureImages,
   CastleApplicationProperties, CastleStringUtils;
 
 function ImageGLFormat(const Img: TCastleImage): TGLenum;

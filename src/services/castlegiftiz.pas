@@ -16,6 +16,8 @@
 { Giftiz (http://www.giftiz.com/) integration (TGiftiz). }
 unit CastleGiftiz;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes,
@@ -50,8 +52,6 @@ type
     ImageNaked, ImageBadge, ImageWarning: TCastleImage;
     GiftizStatusVisible: boolean;
     function MessageReceived(const Received: TCastleStringList): boolean;
-  protected
-    function KeepInFront: boolean; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -65,6 +65,7 @@ type
     property AutoSize stored false;
     property Width stored false;
     property Height stored false;
+    property KeepInFront stored false;
   end;
 
 implementation
@@ -93,6 +94,7 @@ begin
   AutoSize := false;
   Width  := BaseButtonWidth;
   Height := BaseButtonHeight;
+  KeepInFront := true;
 
   ImageNaked := LoadImage(ApplicationData('giftiz/giftiz_logo.png'));
   ImageBadge := LoadImage(ApplicationData('giftiz/giftiz_logo_badge.png'));
@@ -145,11 +147,6 @@ begin
       OnWarning(wtMajor, 'Giftiz', 'Invalid button state ' + Received[1]);
     VisibleChange;
   end;
-end;
-
-function TGiftizButton.KeepInFront: boolean;
-begin
-  Result := true;
 end;
 
 function TGiftizButton.GetExists: boolean;

@@ -43,6 +43,8 @@
 }
 unit CastleTriangles;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleUtils, CastleVectors, CastleGenericLists;
@@ -142,9 +144,6 @@ function TriangleNormPlane(const Tri: TTriangle3Single): TVector4Single; overloa
 function TriangleNormPlane(const Tri: TTriangle3Double): TVector4Double; overload;
 { @groupEnd }
 
-function IsPointWithinTriangle2d(const P: TVector2Single; const Tri: TTriangle2Single): boolean; overload;
-function IsPointWithinTriangle2d(const P: TVector2Double; const Tri: TTriangle2Double): boolean; overload;
-
 { Assuming a point lies on a triangle plane,
   check does it lie inside a triangle.
   Give first 3 components of triangle plane as TriDir.
@@ -153,6 +152,18 @@ function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3Single;
   const Tri: TTriangle3Single; const TriDir: TVector3Single): boolean; overload;
 function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3Double;
   const Tri: TTriangle3Double; const TriDir: TVector3Double): boolean; overload;
+{ @groupEnd }
+
+{ Check does point lie inside a triangle, in 2D.
+  @groupBegin }
+function IsPointWithinTriangle2D(const P: TVector2Single;
+  const Tri: TTriangle2Single): boolean; overload;
+function IsPointWithinTriangle2D(const P: TVector2Double;
+  const Tri: TTriangle2Double): boolean; overload;
+function IsPointWithinTriangle2D(const P: TVector2Single;
+  const Tri: TTriangle3Single): boolean; overload;
+function IsPointWithinTriangle2D(const P: TVector2Double;
+  const Tri: TTriangle3Double): boolean; overload;
 { @groupEnd }
 
 { Check triangle with line segment collision.
@@ -181,6 +192,21 @@ function IsTriangleSphereCollision(const Tri: TTriangle3Single;
   const SphereCenter: TVector3Single; SphereRadius: Single): boolean; overload;
 function IsTriangleSphereCollision(const Tri: TTriangle3Double;
   const SphereCenter: TVector3Double; SphereRadius: Double): boolean; overload;
+
+{ Test collision between triangle and sphere in 2D.
+  If you use overloaded version with TTriangle3Single, the Z coordinate
+  of the triangle corners is simply ignored, so everything is projected
+  on the Z=0 plane.
+  @groupBegin }
+function IsTriangleSphereCollision2D(const Tri: TTriangle2Single;
+  const SphereCenter: TVector2Single; SphereRadius: Single): boolean; overload;
+function IsTriangleSphereCollision2D(const Tri: TTriangle2Double;
+  const SphereCenter: TVector2Double; SphereRadius: Double): boolean; overload;
+function IsTriangleSphereCollision2D(const Tri: TTriangle3Single;
+  const SphereCenter: TVector2Single; SphereRadius: Single): boolean; overload;
+function IsTriangleSphereCollision2D(const Tri: TTriangle3Double;
+  const SphereCenter: TVector2Double; SphereRadius: Double): boolean; overload;
+{ @groupEnd }
 
 { Calculate triangle with line segment collision.
   You can pass the triangle plane along with a triangle,

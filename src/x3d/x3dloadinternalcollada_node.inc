@@ -86,7 +86,7 @@ begin
     should affect instantiated object. So the bottom line is that for
     Collada 1.3, I must first gather all transforms, then do instantiations. }
 
-  I := TXMLElementIterator.Create(NodeElement);
+  I := NodeElement.ChildrenIterator;
   try
     while I.GetNext do
     begin
@@ -96,7 +96,7 @@ begin
       end else
       if I.Current.TagName = 'rotate' then
       begin
-        V4 := Vector4SingleFromStr(DOMGetTextData(I.Current));
+        V4 := Vector4SingleFromStr(I.Current.TextData);
         if V4[3] <> 0.0 then
         begin
           NestedTransform.FdRotation.ValueDeg := V4;
@@ -104,7 +104,7 @@ begin
       end else
       if I.Current.TagName = 'scale' then
       begin
-        V3 := Vector3SingleFromStr(DOMGetTextData(I.Current));
+        V3 := Vector3SingleFromStr(I.Current.TextData);
         if not VectorsPerfectlyEqual(V3, Vector3Single(1, 1, 1)) then
         begin
           NestedTransform.FdScale.Value := V3;
@@ -120,7 +120,7 @@ begin
       end else
       if I.Current.TagName = 'translate' then
       begin
-        V3 := Vector3SingleFromStr(DOMGetTextData(I.Current));
+        V3 := Vector3SingleFromStr(I.Current.TextData);
         if not VectorsPerfectlyEqual(V3, ZeroVector3Single) then
         begin
           NestedTransform.FdTranslation.Value := V3;
@@ -131,7 +131,7 @@ begin
 
   { Now iterate to read instantiations and recursive nodes. }
 
-  I := TXMLElementIterator.Create(NodeElement);
+  I := NodeElement.ChildrenIterator;
   try
     while I.GetNext do
     begin
@@ -161,7 +161,7 @@ procedure ReadNodesSequence(Group: TAbstractX3DGroupingNode;
 var
   I: TXMLElementIterator;
 begin
-  I := TXMLElementIterator.Create(SceneElement);
+  I := SceneElement.ChildrenIterator;
   try
     while I.GetNext do
       if I.Current.TagName = 'node' then

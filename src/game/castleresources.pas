@@ -13,14 +13,16 @@
   ----------------------------------------------------------------------------
 }
 
-{ Manage large 3D resources (scenes, precalculated animations and such)
+{ Manage large 3D resources (scenes and such)
   that need to be loaded and reference counted. }
 unit CastleResources;
+
+{$I castleconf.inc}
 
 interface
 
 uses Classes, DOM, FGL,
-  CastleVectors, CastleXMLConfig, CastlePrecalculatedAnimation, CastleTimeUtils,
+  CastleVectors, CastleXMLConfig, CastleTimeUtils,
   CastleScene, X3DNodes, Castle3D, CastleBoxes, CastleFindFiles;
 
 type
@@ -32,17 +34,13 @@ type
     FName: string;
     FRequired: boolean;
     FOwner: T3DResource;
-    { At most one of Animation or TimeSensorScene is defined }
-    Animation: TCastlePrecalculatedAnimation;
-    TimeSensorScene: TCastleScene;
-    TimeSensorNode: TTimeSensorNode;
+    FSceneForAnimation: TCastleScene;
     FDuration: Single;
     FURL: string;
-    FTimeSensor: string;
+    FAnimationName: string;
     procedure Prepare(const BaseLights: TAbstractLightInstancesList;
       const DoProgress: boolean);
     procedure Release;
-    procedure GLContextClose;
     procedure LoadFromFile(ResourceConfig: TCastleConfig);
     property Owner: T3DResource read FOwner;
   public
@@ -69,31 +67,33 @@ type
       This looping (or not looping) is done regardless of whether the 3D model
       wants (or not) looping. For example, in case of kanim files,
       we ignore their loop boolean attribute.
-      In case of X3D TimeSensor node, we ignore TimeSensor.loop field.
+      In case of X3D, we ignore TimeSensor.loop field.
       In other words, any looping settings inside 3D model are ignored.
       You control looping fully by the Loop parameter to this method.
 
-      If we use TCastlePrecalculatedAnimation underneath, then this returns
-      appropriate frame of this animation.
-
-      If we use TCastleScene with TimeSensor underneath, then this returns
-      the scene with state reflecting given time --- in other words, we'll
-      send proper events to TimeSensor to make this Time current. }
+      This returns the scene (TCastleScene) with state reflecting given time
+      (TimeSensor forced to given time). }
     function Scene(const Time: TFloatTime; const Loop: boolean): TCastleScene;
 
-    { Animation URL, only when each animation is inside a separate 3D file.
+    { Scene URL, only when each animation is inside a separate 3D file.
       See [http://castle-engine.sourceforge.net/creating_data_resources.php]
       for documentation how you can define creature animations. }
     property URL: string read FURL write FURL;
 
-    { Time sensor name, when animations are started by X3D TimeSensor node.
+    { Animation name (like for @link(TCastleSceneCore.PlayAnimation)),
+      which is equal to TimeSensor node name.
+      All animations are started by X3D TimeSensor node.
+      If not given, we assume it's just 'animation', which is fine
+      at least for KAnim and MD3 files loaded using TNodeInterpolator.
       This refers to an X3D TimeSensor node inside
       animation model (from @link(URL)) or, when not defined,
       inside whole resource model (from @link(T3DResource.ModelURL)).
 
       See [http://castle-engine.sourceforge.net/creating_data_resources.php]
       for documentation how you can define creature animations. }
-    property TimeSensor: string read FTimeSensor write FTimeSensor;
+    property AnimationName: string read FAnimationName write FAnimationName;
+    property TimeSensor: string read FAnimationName write FAnimationName;
+      deprecated 'use AnimationName';
 
     property Name: string read FName;
     property Required: boolean read FRequired;
@@ -177,9 +177,6 @@ type
       is not finished yet. This property is guaranteed to be @true only if
       preparation was fully successfully (no exceptions) finished. }
     property Prepared: boolean read FPrepared;
-
-    { Free any association with current OpenGL context. }
-    procedure GLContextClose; virtual;
 
     { Unique identifier of this resource.
       Used to refer to this resource from level placeholders
@@ -380,9 +377,9 @@ procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: 
 implementation
 
 uses SysUtils,
-  CastleProgress, CastleXMLUtils, CastleUtils,
+  CastleProgress, CastleXMLUtils, CastleUtils, CastleSceneCore,
   CastleStringUtils, CastleLog, CastleConfig, CastleApplicationProperties,
-  CastleFilesUtils;
+  CastleFilesUtils, CastleInternalNodeInterpolator, CastleWarnings;
 
 type
   TResourceClasses = specialize TFPGMap<string, T3DResourceClass>;
@@ -403,45 +400,32 @@ end;
 
 function T3DResourceAnimation.Scene(const Time: TFloatTime;
   const Loop: boolean): TCastleScene;
+var
+  Looping: TPlayAnimationLooping;
+  GoodAnimationName: string;
 begin
-  if Animation <> nil then
-  begin
-    Result := Animation.Scene(Time, Loop);
-
-    { It's a little dirty to assign some TCastleScene property below.
-      It would be better if we could assign ReceiveShadowVolumes on the T3D level,
-      and then just assign it like CastShadowVolumes at TCreature / TItemOnWorld.
-      But we can't (easily): ReceiveShadowVolumes is not possible at something like
-      T3DList, as it's not a choice ("if you don't receive, you're not rendered"),
-      but a state ("if you receive, you're rendered here; if you don't, you're
-      rendered there"). To overcome this, we'd need some
-      T3DList.ReceiveShadowVolumes = (rsYes, rsNo, rsUndefined)
-      at T3DList (default rsUndefined),
-      and TRenderParams.ShadowVolumesReceiversCheck boolean.
-      So not something nice and consistent like CastShadowVolumes.
-      For now, this one-line hack seems simpler. }
-    Result.ReceiveShadowVolumes := Owner.ReceiveShadowVolumes;
-  end else
-  if TimeSensorScene <> nil then
-  begin
-    Result := TimeSensorScene;
-    TimeSensorNode.FakeTime(Time, Loop);
-  end else
+  if FSceneForAnimation <> nil then
+    Result := FSceneForAnimation else
   if Owner.Model <> nil then
-  begin
-    Result := Owner.Model;
-    TimeSensorNode.FakeTime(Time, Loop);
-  end else
+    Result := Owner.Model else
     Result := nil;
+
+  if Result <> nil then
+  begin
+    if AnimationName <> '' then
+      GoodAnimationName := AnimationName else
+      GoodAnimationName := TNodeInterpolator.DefaultAnimationName;
+    if Loop then
+      Looping := paForceLooping else
+      Looping := paForceNotLooping;
+    Result.ForceAnimationPose(GoodAnimationName, Time, Looping);
+  end;
 end;
 
 function T3DResourceAnimation.BoundingBox: TBox3D;
 begin
-  if Animation <> nil then
-    Result := Animation.BoundingBox else
-  { TODO: this may not be the full bounding box of every animation frame }
-  if TimeSensorScene <> nil then
-    Result := TimeSensorScene.BoundingBox else
+  if FSceneForAnimation <> nil then
+    Result := FSceneForAnimation.BoundingBox else
   if Owner.Model <> nil then
     Result := Owner.Model.BoundingBox else
     { animation 3D model not loaded }
@@ -450,7 +434,7 @@ end;
 
 function T3DResourceAnimation.Defined: boolean;
 begin
-  Result := (URL <> '') or (TimeSensor <> '');
+  Result := (URL <> '') or (AnimationName <> '');
 end;
 
 procedure T3DResourceAnimation.Prepare(const BaseLights: TAbstractLightInstancesList;
@@ -459,34 +443,9 @@ procedure T3DResourceAnimation.Prepare(const BaseLights: TAbstractLightInstances
   { Prepare 3D resource loading it from given URL.
     Loads the resource only if URL is not empty,
     and only if it's not already loaded (that is,
-    when Animation or Scene = nil).
+    when Scene = nil).
     Prepares for fast rendering and other processing by T3D.PrepareResources.
     Calls Progress.Step 2 times, if DoProgress. }
-
-  procedure PreparePrecalculatedAnimation(
-    var Animation: TCastlePrecalculatedAnimation; var Duration: Single;
-    const URL: string);
-  begin
-    if (URL <> '') and (Animation = nil) then
-    begin
-      Animation := TCastlePrecalculatedAnimation.Create(nil);
-      Animation.LoadFromFile(URL, { AllowStdIn } false, { LoadTime } true);
-    end;
-    if DoProgress then Progress.Step;
-
-    if Animation <> nil then
-    begin
-      Animation.PrepareResources([prRender, prBoundingBox] + prShadowVolume,
-        false, BaseLights);
-      { calculate Duration }
-      Duration := Animation.TimeEnd;
-      if Animation.TimeBackwards then
-        Duration += Animation.TimeEnd - Animation.TimeBegin;
-    end else
-      Duration := 0;
-    if DoProgress then Progress.Step;
-  end;
-
   procedure PrepareScene(var Scene: TCastleScene; const URL: string);
   begin
     if (URL <> '') and (Scene = nil) then
@@ -498,32 +457,26 @@ procedure T3DResourceAnimation.Prepare(const BaseLights: TAbstractLightInstances
     if DoProgress then Progress.Step;
 
     if Scene <> nil then
-      Scene.PrepareResources([prRender, prBoundingBox] + prShadowVolume,
+      Scene.PrepareResources([prRender, prBoundingBox, prShadowVolume],
         false, BaseLights);
     if DoProgress then Progress.Step;
   end;
 
 begin
-  if (TimeSensor <> '') and (URL <> '') then
+  if URL <> '' then
   begin
-    PrepareScene(TimeSensorScene, URL);
-    TimeSensorNode := TimeSensorScene.RootNode.FindNodeByName(
-      TTimeSensorNode, TimeSensor, false) as TTimeSensorNode;
-    FDuration := TimeSensorNode.FdCycleInterval.Value;
+    PrepareScene(FSceneForAnimation, URL);
+    if AnimationName <> '' then
+      FDuration := FSceneForAnimation.AnimationDuration(AnimationName) else
+      FDuration := FSceneForAnimation.AnimationDuration(TNodeInterpolator.DefaultAnimationName);
   end else
-  if TimeSensor <> '' then
+  if AnimationName <> '' then
   begin
     if Owner.ModelURL = '' then
       raise Exception.CreateFmt('Animation "%s" of resource "%s": time_sensor is defined, but 3D model url is not defined (neither specific to this animation nor containing multiple animations)',
         [Name, Owner.Name]);
     PrepareScene(Owner.Model, Owner.ModelURL);
-    TimeSensorNode := Owner.Model.RootNode.FindNodeByName(
-      TTimeSensorNode, TimeSensor, false) as TTimeSensorNode;
-    FDuration := TimeSensorNode.FdCycleInterval.Value;
-  end else
-  if URL <> '' then
-  begin
-    PreparePrecalculatedAnimation(Animation, FDuration, URL);
+    FDuration := Owner.Model.AnimationDuration(AnimationName);
   end else
   if Required then
     raise Exception.CreateFmt('No definition for required animation "%s" of resource "%s". You have to define url or time_sensor for this animation in appropriate resource.xml file',
@@ -532,16 +485,7 @@ end;
 
 procedure T3DResourceAnimation.Release;
 begin
-  FreeAndNil(Animation);
-  FreeAndNil(TimeSensorScene);
-end;
-
-procedure T3DResourceAnimation.GLContextClose;
-begin
-  if Animation <> nil then
-    Animation.GLContextClose;
-  if TimeSensorScene <> nil then
-    TimeSensorScene.GLContextClose;
+  FreeAndNil(FSceneForAnimation);
 end;
 
 procedure T3DResourceAnimation.LoadFromFile(ResourceConfig: TCastleConfig);
@@ -549,10 +493,16 @@ begin
   if ResourceConfig.GetValue('model/' + Name + '/file_name', '') <> '' then
   begin
     URL := ResourceConfig.GetURL('model/' + Name + '/file_name', true);
-    WritelnLog('Deprecated', 'Reading from deprecated "file_name" attribute inside resource.xml. Use "url" instead.');
+    OnWarning(wtMinor, 'Deprecated', 'Reading from deprecated "file_name" attribute inside resource.xml. Use "url" instead.');
   end else
     URL := ResourceConfig.GetURL('model/' + Name + '/url', true);
-  TimeSensor := ResourceConfig.GetValue('model/' + Name + '/time_sensor', '');
+  AnimationName := ResourceConfig.GetValue('model/' + Name + '/animation_name', '');
+  if AnimationName = '' then
+  begin
+    AnimationName := ResourceConfig.GetValue('model/' + Name + '/time_sensor', '');
+    if AnimationName <> '' then
+      OnWarning(wtMinor, 'Deprecated', 'Reading from deprecated "time_sensor" attribute inside resource.xml. Use "animation_name" instead.');
+  end;
 end;
 
 { T3DResourceAnimationList --------------------------------------------------- }
@@ -614,16 +564,6 @@ begin
   if Animations <> nil then
     for I := 0 to Animations.Count - 1 do
       Animations[I].Release;
-end;
-
-procedure T3DResource.GLContextClose;
-var
-  I: Integer;
-begin
-  if Model <> nil then
-    Model.GLContextClose;
-  for I := 0 to Animations.Count - 1 do
-    Animations[I].GLContextClose;
 end;
 
 procedure T3DResource.LoadFromFile(ResourceConfig: TCastleConfig);
@@ -725,14 +665,14 @@ begin
       if Log then
         WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
 
-      ResourceClassName := Xml.GetNonEmptyValue('type');
+      ResourceClassName := Xml.GetStringNonEmpty('type');
       ResourceClassIndex := ResourceClasses.IndexOf(ResourceClassName);
       if ResourceClassIndex <> -1 then
         ResourceClass := ResourceClasses.Data[ResourceClassIndex] else
         raise Exception.CreateFmt('Resource type "%s" not found, mentioned in file "%s"',
           [ResourceClassName, URL]);
 
-      ResourceName := Xml.GetNonEmptyValue('name');
+      ResourceName := Xml.GetStringNonEmpty('name');
       if CharsPos(AllChars - ['a'..'z', 'A'..'Z'], ResourceName) <> 0 then
         raise Exception.CreateFmt('Resource name "%s" is invalid. Resource names may only use English letters (not even digits or underscores are allowed).',
           [ResourceName]);
@@ -809,11 +749,11 @@ var
 begin
   Clear;
 
-  ResourcesElement := DOMGetChildElement(ParentElement, 'prepare_resources', false);
+  ResourcesElement := ParentElement.ChildElement('prepare_resources', false);
 
   if ResourcesElement <> nil then
   begin
-    I := TXMLElementIterator.Create(ResourcesElement);
+    I := ResourcesElement.ChildrenIterator;
     try
       while I.GetNext do
       begin
@@ -920,25 +860,6 @@ end;
 
 { initialization / finalization ---------------------------------------------- }
 
-procedure ContextClose;
-var
-  I: Integer;
-begin
-  { Resources may be nil here, because
-    ContextClose may be called from CastleWindow unit finalization
-    that will be done after this unit's finalization (DoFinalization).
-
-    That's OK --- DoFinalization already freed
-    every item on Resources, and this implicitly did GLContextClose,
-    so everything is OK. }
-
-  if Resources <> nil then
-  begin
-    for I := 0 to Resources.Count - 1 do
-      Resources[I].GLContextClose;
-  end;
-end;
-
 var
   FResources: T3DResourceList;
 
@@ -948,7 +869,6 @@ begin
 end;
 
 initialization
-  ApplicationProperties.OnGLContextClose.Add(@ContextClose);
   FResources := T3DResourceList.Create(true);
   ResourceClasses := TResourceClasses.Create;
 finalization

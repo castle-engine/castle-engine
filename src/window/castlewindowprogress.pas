@@ -109,7 +109,7 @@ begin
   Bar.Progress := Progress;
 
   if Image <> nil then
-    Bar.Background := Image.MakeCopy else
+    Bar.Background := (Image as TRGBImage).MakeCopy else
     Bar.Background := UsedWindow.SaveScreen;
   Bar.YPosition := BarYPosition;
 
@@ -119,7 +119,7 @@ begin
 
   { init our window state }
   UsedWindow.AutoRedisplay := true;
-  UsedWindow.Cursor := mcWait;
+  UsedWindow.InternalCursor := mcWait;
   { To actually draw progress start. }
   UsedWindow.Invalidate;
   Application.ProcessAllMessages;

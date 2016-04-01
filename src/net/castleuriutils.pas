@@ -16,6 +16,8 @@
 { URI utilities. These extend standard FPC URIParser unit. }
 unit CastleURIUtils;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes;

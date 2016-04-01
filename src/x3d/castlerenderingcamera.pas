@@ -16,6 +16,8 @@
 { @abstract(Current rendering camera (TRenderingCamera).) }
 unit CastleRenderingCamera;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleUtils, CastleVectors, CastleFrustum, CastleCameras, CastleGenericLists, X3DNodes;
@@ -179,7 +181,7 @@ begin
     begin
       InverseMatrix := IdentityMatrix4Single;
       if Log then
-        WritelnLogMultiline('Camera', 'Camera matrix cannot be inverted, convertions between world and camera space will not be done. Camera matrix is: ' +
+        WritelnLogMultiline('Camera', 'Camera matrix cannot be inverted, conversions between world and camera space will not be done. Camera matrix is: ' +
           MatrixToRawStr(Matrix, '  '));
     end;
     InverseMatrixDone := true;
@@ -194,7 +196,7 @@ begin
     begin
       RotationInverseMatrix := IdentityMatrix4Single;
       if Log then
-        WritelnLogMultiline('Camera', 'Camera rotation matrix cannot be inverted, convertions between world and camera space will not be done. Camera matrix is: ' +
+        WritelnLogMultiline('Camera', 'Camera rotation matrix cannot be inverted, conversions between world and camera space will not be done. Camera matrix is: ' +
           MatrixToRawStr(RotationMatrix, '  '));
     end;
     RotationInverseMatrixDone := true;

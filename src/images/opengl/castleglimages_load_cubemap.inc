@@ -41,9 +41,9 @@ function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
   If mipmaps are requested:
 
   @orderedList(
-    @item(First of all, if DDSForMipmaps is non-nil and has mipmaps defined,
-      we will load them from this DDS image.
-      DDSForMipmaps must have DDSType = dtCubeMap.)
+    @item(First of all, if CompositeForMipmaps is non-nil and has mipmaps defined,
+      we will load them from this CompositeForMipmaps image.
+      CompositeForMipmaps must have CompositeType = ctCubeMap.)
 
     @item(Otherwise, we'll try to generate images using OpenGL GenerateMipmap.)
 
@@ -57,7 +57,7 @@ function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
     texture cannot be
     loaded for whatever reason (not availble appropriate extension,
     not correct texture size, mipmaps requested and
-    DDSForMipmaps/glGenerateMipmap not available).
+    CompositeForMipmaps/glGenerateMipmap not available).
     This includes EInvalidImageForOpenGLTexture if Image class is invalid
     for an OpenGL texture.)
 
@@ -68,7 +68,7 @@ procedure glTextureCubeMap(const TextureIdForProfiler: TGLTextureId;
   PositiveX, NegativeX,
   PositiveY, NegativeY,
   PositiveZ, NegativeZ: TEncodedImage;
-  DDSForMipmaps: TDDSImage;
+  CompositeForMipmaps: TCompositeImage;
   Mipmaps: boolean);
 
 {$endif read_interface}
@@ -160,7 +160,7 @@ end;
   Target should be one of the six cube map texture targets:
   GL_TEXTURE_CUBE_MAP_POSITIVE/NEGATIVE_X/Y/Z_ARB.
 
-  Also, this cannot load mipmaps from DDS or use GenerateMipmap
+  Also, this cannot load mipmaps from Composite or use GenerateMipmap
   (GenerateMipmap call must be done for whole cube map texture target).
   So this can create mipmaps only by gluBuild2DMipmaps. It will also
   fail with @link(ECannotLoadCompressedTexture) if mipmaps will be requested ---
@@ -193,9 +193,9 @@ var
       extensions are missing or mipmaps were required.) }
   procedure LoadCompressed(const Image: TGPUCompressedImage);
   begin
-  if not (Image.Compression in GLFeatures.TextureCompression) then
-    raise ECannotLoadCompressedTexture.CreateFmt('Cannot load textures compressed using %s, your OpenGL/OpenGLES does not support the necessary extensions',
-      [GPUCompressionInfo[Image.Compression].Name]);
+    if not (Image.Compression in GLFeatures.TextureCompression) then
+      raise ECannotLoadCompressedTexture.CreateFmt('Cannot load textures compressed using %s, your OpenGL/OpenGLES does not support the necessary extensions',
+        [TextureCompressionInfo[Image.Compression].Name]);
 
     if not IsCubeMapTextureSized(Image) then
       raise ECannotLoadCompressedTexture.CreateFmt('Cannot load compressed textures: texture size is %d x %d, it''s not correct for a cube map, and we cannot resize compressed textures',
@@ -313,67 +313,66 @@ procedure glTextureCubeMap(const TextureIdForProfiler: TGLTextureId;
   PositiveX, NegativeX,
   PositiveY, NegativeY,
   PositiveZ, NegativeZ: TEncodedImage;
-  DDSForMipmaps: TDDSImage;
+  CompositeForMipmaps: TCompositeImage;
   Mipmaps: boolean);
 var
   LoadedSize: Int64;
 
-  { Check should we load mipmaps from DDS. }
-  function HasMipmapsFromDDS(DDS: TDDSImage): boolean;
+  { Check should we load mipmaps from Composite. }
+  function HasMipmapsFromComposite(Composite: TCompositeImage): boolean;
   begin
-    Result := (DDS <> nil) and DDS.Mipmaps;
+    Result := (Composite <> nil) and Composite.Mipmaps;
     if not Result then Exit;
 
-    if DDS.DDSType <> dtCubeMap then
+    if Composite.CompositeType <> ctCubeMap then
     begin
-      OnWarning(wtMinor, 'Texture', 'DDS image contains mipmaps, but not for CubeMap texture');
+      OnWarning(wtMinor, 'Texture', 'Composite (DDS, KTX...) image contains mipmaps, but not for CubeMap texture');
       Exit(false);
     end;
 
     {$ifdef OpenGLES}
-    OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
+    OnWarning(wtMinor, 'Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
     Exit(false);
     {$else}
     if not GLFeatures.Version_1_2 then
     begin
-      OnWarning(wtMinor, 'Texture', 'Cannot load DDS image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      OnWarning(wtMinor, 'Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
       Exit(false);
     end;
     {$endif}
   end;
 
-  { Load mipmaps from DDS. Assume HasMipmapsFromDDS was true. }
-  procedure LoadMipmapsFromDDS(DDS: TDDSImage);
+  { Load mipmaps from Composite. Assume HasMipmapsFromComposite was true. }
+  procedure LoadMipmapsFromComposite(const Composite: TCompositeImage);
 
-    procedure LoadMipmapsFromDDSSide(GLSide: TGLenum; DDSSide: TDDSCubeMapSide);
+    procedure LoadMipmapsFromCompositeSide(const GLSide: TGLenum;
+      const CompositeSide: TCubeMapSide);
     var
       I: Integer;
     begin
-      for I := 1 to DDS.MipmapsCount - 1 do
-        glTextureCubeMapSide(GLSide, DDS.CubeMapImage(DDSSide, I), I, false, LoadedSize);
+      for I := 1 to Composite.MipmapsCount - 1 do
+        glTextureCubeMapSide(GLSide,
+          Composite.CubeMapImage(CompositeSide, I), I, false, LoadedSize);
     end;
 
   begin
     {$ifdef OpenGLES}
-    raise EInternalError.Create('HasMipmapsFromDDS should always return false on OpenGLES');
+    raise EInternalError.Create('HasMipmapsFromComposite should always return false on OpenGLES');
     {$else}
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, DDS.MipmapsCount - 1);
-    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, dcsPositiveX);
-    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, dcsNegativeX);
-    { Note Positive/Negative are swapped for Y.
-      DDS cube map sides are in left-handed coordinate system, like Direct X.
-      See TDDSCubeMapSide comments. }
-    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, dcsNegativeY);
-    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, dcsPositiveY);
-    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, dcsPositiveZ);
-    LoadMipmapsFromDDSSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, dcsNegativeZ);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, Composite.MipmapsCount - 1);
+    LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_POSITIVE_X, csPositiveX);
+    LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, csNegativeX);
+    LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, csPositiveY);
+    LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, csNegativeY);
+    LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, csPositiveZ);
+    LoadMipmapsFromCompositeSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, csNegativeZ);
     {$endif}
   end;
 
 begin
   LoadedSize := 0;
 
-  if Mipmaps and (HasMipmapsFromDDS(DDSForMipmaps) or HasGenerateMipmap) then
+  if Mipmaps and (HasMipmapsFromComposite(CompositeForMipmaps) or HasGenerateMipmap) then
   begin
     { Load six cube faces without mipmaps, then generate them all
       in one go with GenerateMipmap. }
@@ -383,9 +382,17 @@ begin
     glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, NegativeY, 0, false, LoadedSize);
     glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, PositiveZ, 0, false, LoadedSize);
     glTextureCubeMapSide(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, NegativeZ, 0, false, LoadedSize);
-    if HasMipmapsFromDDS(DDSForMipmaps) then
-      LoadMipmapsFromDDS(DDSForMipmaps) else
+    if HasMipmapsFromComposite(CompositeForMipmaps) then
+      LoadMipmapsFromComposite(CompositeForMipmaps) else
     begin
+      { TODO: if the texture is compressed, we should not actually try
+        to do GenerateMipmap, as it can exit with GL_INVALID_OPERATION
+        (see comments in castleglimages_load_2d.inc). Instead we should
+        change filtering to not use mipmaps.
+
+        Called of glTextureCubeMap must be ready for it (filter should
+        change). }
+
       GenerateMipmap(GL_TEXTURE_CUBE_MAP);
       { TODO: this is cubemap mipmaps size assuming that provided
         cubemap images were already power of 2, and within good dimensions. }

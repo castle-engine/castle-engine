@@ -39,10 +39,18 @@
 #     Intention is to remove *everything* that can be manually recreated,
 #     even if somewhat hard, and clean editor backup.
 
-# compiling ------------------------------------------------------------
+# compile ------------------------------------------------------------
 
 .PHONY: all
 all:
+	$(MAKE) --no-print-directory build-using-fpmake
+	tools/texturefont2pascal/texturefont2pascal_compile.sh
+	tools/image2pascal/image2pascal_compile.sh
+	tools/castle-curves/castle-curves_compile.sh
+	tools/build-tool/castle-engine_compile.sh
+
+.PHONY: build-using-fpmake
+build-using-fpmake:
 	fpc fpmake.pp
 	@echo 'Running fpmake. If this fails saying that "rtl" is not found, remember to set FPCDIR environment variable, see http://wiki.freepascal.org/FPMake .'
 # Workaround FPC >= 3.x problem (bug?) --- it ignores $FPCDIR, but --globalunitdir works
@@ -53,6 +61,54 @@ all:
 	else \
 	   ./fpmake; \
 	fi
+
+# install / uninstall --------------------------------------------------------
+#
+# Note that this *does not* take care of installing the unit files.
+# So it does not copy .ppu/.o files, it does not change your /etc/fpc.cfg
+# or ~/.fpc.cfg. There are many ways how to install unit files,
+# we leave this step up to you.
+# See http://castle-engine.sourceforge.net/engine.php for documentation.
+#
+# Below we only take care of installing the tools.
+# By default they are installed system-wide to /usr/local ,
+# so you can run "make" followed by "sudo make install" to have the tools
+# ready on a typical Unix system.
+
+# Standard installation dirs, following conventions on
+# http://www.gnu.org/prep/standards/html_node/Directory-Variables.html#Directory-Variables
+PREFIX=$(DESTDIR)/usr/local
+EXEC_PREFIX=$(PREFIX)
+BINDIR=$(EXEC_PREFIX)/bin
+DATAROOTDIR=$(PREFIX)/share
+DATADIR=$(DATAROOTDIR)
+
+.PHONY: install
+install:
+	install tools/texturefont2pascal/texturefont2pascal $(BINDIR)
+	install tools/image2pascal/image2pascal $(BINDIR)
+	install tools/castle-curves/castle-curves $(BINDIR)
+	install tools/build-tool/castle-engine $(BINDIR)
+#	cp -R tools/build-tool/data $(DATADIR)/castle-engine
+	cd tools/build-tool/data/ && \
+	  find . -type f -exec install -D '{}' $(DATADIR)/castle-engine/'{}' ';'
+
+.PHONY: uninstall
+uninstall:
+	rm -f  $(BINDIR)/texturefont2pascal \
+	       $(BINDIR)/image2pascal \
+	       $(BINDIR)/castle-curves \
+	       $(BINDIR)/castle-engine
+	rm -Rf $(DATADIR)/castle-engine
+
+# Strip libraries that cannot be distributed in Debian package of CGE for now,
+# because they (possibly) cannot be recompiled by Debian software right now
+# (or maybe they can, but noone had time to try it yet, and wrap in a script).
+# This concerns some Windows and Android libs.
+.PHONY: strip-precompiled-libraries
+strip-precompiled-libraries:
+	rm -Rf tools/build-tool/data/external_libraries/ \
+	       tools/build-tool/data/android/integrated-components/sound/
 
 # examples and tools -----------------------------------------------------------
 
@@ -84,6 +140,7 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/simple_video_editor \
   examples/fonts/test_font_break \
   examples/fonts/font_from_texture \
+  examples/fonts/html_text \
   examples/window/window_events \
   examples/window/window_menu \
   examples/window/window_gtk_mix \
@@ -129,7 +186,8 @@ EXAMPLES_BASE_NAMES := \
   examples/android/android_demo/androiddemo_standalone \
   tools/build-tool/castle-engine \
   tools/image2pascal/image2pascal \
-  tools/texturefont2pascal/texturefont2pascal
+  tools/texturefont2pascal/texturefont2pascal \
+  tools/castle-curves/castle-curves
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
@@ -199,10 +257,12 @@ clean: cleanexamples
 	  packages/alternative_castle_window_based_on_lcl.pas \
 	  tests/test_castle_game_engine \
 	  tests/test_castle_game_engine.exe \
-	  examples/portable_game_skeleton/my_fantastic_game_standalone \
-	  examples/portable_game_skeleton/my_fantastic_game_standalone.exe
+	  examples/android/drawing_toy/drawing_toy \
+	  examples/android/drawing_toy/drawing_toy.exe \
+	  examples/portable_game_skeleton/my_fantastic_game \
+	  examples/portable_game_skeleton/my_fantastic_game.exe
 # fpmake binary, and units/ produced by fpmake compilation
-	rm -Rf fpmake fpmake.exe units/
+	rm -Rf fpmake fpmake.exe units/ *.fpm
 # lazarus produces lib/ subdirectories during compilation
 	find examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
 # clean every project with CastleEngineManifest.xml
@@ -245,10 +305,12 @@ clean-window:
 # ----------------------------------------
 # Set SVN tag.
 
-svntag:
-	source ../www/pack/generated_versions.sh && \
-	  svn copy https://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine \
-	           https://svn.code.sf.net/p/castle-engine/code/tags/castle_game_engine/"$$GENERATED_VERSION_CASTLE_GAME_ENGINE" \
-	  -m "Tagging the $$GENERATED_VERSION_CASTLE_GAME_ENGINE version of 'Castle Game Engine'."
+# Don't use anymore, we use GIT now.
+
+# svntag:
+# 	source ../www/pack/generated_versions.sh && \
+# 	  svn copy https://svn.code.sf.net/p/castle-engine/code/trunk/castle_game_engine \
+# 	           https://svn.code.sf.net/p/castle-engine/code/tags/castle_game_engine/"$$GENERATED_VERSION_CASTLE_GAME_ENGINE" \
+# 	  -m "Tagging the $$GENERATED_VERSION_CASTLE_GAME_ENGINE version of 'Castle Game Engine'."
 
 # eof ------------------------------------------------------------

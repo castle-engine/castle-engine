@@ -187,7 +187,7 @@
   or TVector3_Single objects. However, for the case when they are all
   TVector3_Single objects, this is highly un-optimal, and
   @preformatted(  V3 := V1 >< V2;)
-  is much faster, since it avoids the implicit convertions (unnecessary
+  is much faster, since it avoids the implicit conversions (unnecessary
   memory copying around).
 }
 
@@ -574,6 +574,7 @@ function Vector3Longint(const p0, p1, p2: Longint): TVector3Longint;
 
 function Vector3Double(const x, y: Double; const z: Double = 0.0): TVector3Double; overload;
 function Vector3Double(const v: TVector3Single): TVector3Double; overload;
+function Vector3Double(const v2: TVector2Double; const z: Double = 0.0): TVector3Double; overload;
 
 function Vector4Single(const x, y: Single;
   const z: Single = 0; const w: Single = 1): TVector4Single; overload;
@@ -623,13 +624,14 @@ function Normal3Single(const x, y: Single; const z: Single = 0.0): TVector3Singl
 
 { Convert string to vector. Each component is simply parsed by StrToFloat,
   and components must be separated by whitespace (see @link(WhiteSpaces) constant).
-  @raises(EConvertError In case of problems during convertion (invalid float
+  @raises(EConvertError In case of problems during conversion (invalid float
     or unexpected string end or expected but missed string end).)
   @groupBegin }
-function Vector3SingleFromStr(const s: string): TVector3Single;
-function Vector3DoubleFromStr(const s: string): TVector3Double;
-function Vector3ExtendedFromStr(const s: string): TVector3Extended;
-function Vector4SingleFromStr(const s: string): TVector4Single;
+function Vector2SingleFromStr(const S: string): TVector2Single;
+function Vector3SingleFromStr(const S: string): TVector3Single;
+function Vector3DoubleFromStr(const S: string): TVector3Double;
+function Vector3ExtendedFromStr(const S: string): TVector3Extended;
+function Vector4SingleFromStr(const S: string): TVector4Single;
 { @groupEnd }
 
 { Convert between single and double precision matrices.
@@ -642,7 +644,7 @@ function Matrix4Double(const M: TMatrix4Single): TMatrix4Double;
 function Matrix4Single(const M: TMatrix4Double): TMatrix4Single;
 { @groupEnd }
 
-{ Overload := operator to allow convertion between
+{ Overload := operator to allow conversion between
   Matrix unit objects and this unit's arrays easy. }
 operator := (const V: TVector2_Single): TVector2Single;
 operator := (const V: TVector3_Single): TVector3Single;
@@ -650,6 +652,43 @@ operator := (const V: TVector4_Single): TVector4Single;
 operator := (const V: TVector2Single): TVector2_Single;
 operator := (const V: TVector3Single): TVector3_Single;
 operator := (const V: TVector4Single): TVector4_Single;
+
+{ Endianess utility functions for vectors  ----------------------------------- }
+
+function SwapEndian(const V: TVector2Single): TVector2Single; overload;
+function SwapEndian(const V: TVector2Double): TVector2Double; overload;
+function SwapEndian(const V: TVector3Single): TVector3Single; overload;
+function SwapEndian(const V: TVector3Double): TVector3Double; overload;
+function SwapEndian(const V: TVector4Single): TVector4Single; overload;
+function SwapEndian(const V: TVector4Double): TVector4Double; overload;
+
+function LEtoN(const V: TVector2Single): TVector2Single; overload;
+function LEtoN(const V: TVector2Double): TVector2Double; overload;
+function LEtoN(const V: TVector3Single): TVector3Single; overload;
+function LEtoN(const V: TVector3Double): TVector3Double; overload;
+function LEtoN(const V: TVector4Single): TVector4Single; overload;
+function LEtoN(const V: TVector4Double): TVector4Double; overload;
+
+function BEtoN(const V: TVector2Single): TVector2Single; overload;
+function BEtoN(const V: TVector2Double): TVector2Double; overload;
+function BEtoN(const V: TVector3Single): TVector3Single; overload;
+function BEtoN(const V: TVector3Double): TVector3Double; overload;
+function BEtoN(const V: TVector4Single): TVector4Single; overload;
+function BEtoN(const V: TVector4Double): TVector4Double; overload;
+
+function NtoLE(const V: TVector2Single): TVector2Single; overload;
+function NtoLE(const V: TVector2Double): TVector2Double; overload;
+function NtoLE(const V: TVector3Single): TVector3Single; overload;
+function NtoLE(const V: TVector3Double): TVector3Double; overload;
+function NtoLE(const V: TVector4Single): TVector4Single; overload;
+function NtoLE(const V: TVector4Double): TVector4Double; overload;
+
+function NtoBE(const V: TVector2Single): TVector2Single; overload;
+function NtoBE(const V: TVector2Double): TVector2Double; overload;
+function NtoBE(const V: TVector3Single): TVector3Single; overload;
+function NtoBE(const V: TVector3Double): TVector3Double; overload;
+function NtoBE(const V: TVector4Single): TVector4Single; overload;
+function NtoBE(const V: TVector4Double): TVector4Double; overload;
 
 { Simple vectors operations  ------------------------------------------------- }
 
@@ -663,6 +702,19 @@ procedure SwapValues(var V1, V2: TVector4Double); overload;
 
 function VectorAverage(const V: TVector3Single): Single; overload;
 function VectorAverage(const V: TVector3Double): Double; overload;
+
+{ When you really, really must approximate a 3D scale by a single float.
+  If your algorithm cannot handle non-uniform 3D scale,
+  you have to approximate 3D scale by a single float.
+
+  This is similar to an average of X, Y, Z, but it additionally
+  secures in case some of X, Y, Z are negative and some are positive
+  (like scale (-1, 1), common in 2D to flip horizontally).
+
+  @groupBegin }
+function Approximate3DScale(const X, Y, Z: Single): Single;
+function Approximate3DScale(const V: TVector3Single): Single;
+{ @groupEnd }
 
 { Linear interpolation between two vector values.
   Returns (1-A) * V1 + A * V2 (well, calculated a little differently for speed).
@@ -994,11 +1046,17 @@ function RotatePointAroundAxisRad(Angle: Single; const Point: TVector3Single; co
 function RotatePointAroundAxisRad(Angle: Double; const Point: TVector3Double; const Axis: TVector3Double): TVector3Double; overload;
 { @groupEnd }
 
+{ Rotate point in 2D, in a counter-clockwise fashion.
+  AngleRad is in radians. }
+function RotatePoint2D(const Point: TVector2Single; const AngleRad: Single): TVector2Single;
+
 { Which coordinate (0, 1, 2, and eventually 3 for 4D versions) is the largest.
   When the vector components are equal, the first one "wins", for example
   if V[0] = V[1] (and are larger than other vector component) we return 0.
   MaxAbsVectorCoord compares the absolute value of components.
   @groupBegin }
+function MaxVectorCoord(const v: TVector2Single): integer; overload;
+function MaxVectorCoord(const v: TVector2Double): integer; overload;
 function MaxVectorCoord(const v: TVector3Single): integer; overload;
 function MaxVectorCoord(const v: TVector3Double): integer; overload;
 function MaxVectorCoord(const v: TVector4Single): integer; overload;
@@ -1311,6 +1369,8 @@ function PointToSimplePlaneDistance(const point: TVector3Double;
 
 function PointOnLineClosestToPoint(const line0, lineVector, point: TVector3Single): TVector3Single; overload;
 function PointOnLineClosestToPoint(const line0, lineVector, point: TVector3Double): TVector3Double; overload;
+function PointOnLineClosestToPoint(const line0, lineVector, point: TVector2Single): TVector2Single; overload;
+function PointOnLineClosestToPoint(const line0, lineVector, point: TVector2Double): TVector2Double; overload;
 
 function PointToLineDistanceSqr(const point, line0, lineVector: TVector3Single): Single; overload;
 function PointToLineDistanceSqr(const point, line0, lineVector: TVector3Double): Double; overload;
@@ -1438,6 +1498,8 @@ function TryPlaneSegmentDirIntersection(out Intersection: TVector3Double; out T:
   const Plane: TVector4Double; const Segment0, SegmentVector: TVector3Double): boolean; overload;
 { @groupEnd }
 
+function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector2Single): boolean; overload;
+function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector2Double): boolean; overload;
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3Single): boolean; overload;
 function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3Double): boolean; overload;
 
@@ -1581,7 +1643,7 @@ function MatrixMultScalar(const m: TMatrix4Double; const s: Double): TMatrix4Dou
 type
   ETransformedResultInvalid = class(EVectorInvalidOp);
 
-{ Transform a 3D point with 4x4 matrix.
+{ Transform a 3D or 2D point with 4x4 matrix.
 
   This works by temporarily converting point to 4-component vector
   (4th component is 1). After multiplying matrix * vector we divide
@@ -1591,14 +1653,16 @@ type
 
   @raises(ETransformedResultInvalid This is raised when matrix
   will transform point to a direction (vector with 4th component
-  equal zero). In this case we just cannot interpret the result as a 3D point.)
+  equal zero). In this case we just cannot interpret the result as a point.)
 
   @groupBegin }
 function MatrixMultPoint(const m: TMatrix4Single; const pt: TVector3Single): TVector3Single; overload;
 function MatrixMultPoint(const m: TMatrix4Double; const pt: TVector3Double): TVector3Double; overload;
+function MatrixMultPoint(const m: TMatrix4Single; const pt: TVector2Single): TVector2Single; overload;
+function MatrixMultPoint(const m: TMatrix4Double; const pt: TVector2Double): TVector2Double; overload;
 { @groupEnd }
 
-{ Transform a 3D direction with 4x4 matrix.
+{ Transform a 3D or 2D direction with 4x4 matrix.
 
   This works by temporarily converting direction to 4-component vector
   (4th component is 0). After multiplying matrix * vector we check
@@ -1606,13 +1670,13 @@ function MatrixMultPoint(const m: TMatrix4Double; const pt: TVector3Double): TVe
 
   @raises(ETransformedResultInvalid This is raised when matrix
   will transform direction to a point (vector with 4th component
-  nonzero). In this case we just cannot interpret the result as a 3D direction.)
+  nonzero). In this case we just cannot interpret the result as a direction.)
 
   @groupBegin }
-function MatrixMultDirection(const m: TMatrix4Single;
-  const Dir: TVector3Single): TVector3Single; overload;
-function MatrixMultDirection(const m: TMatrix4Double;
-  const Dir: TVector3Double): TVector3Double; overload;
+function MatrixMultDirection(const m: TMatrix4Single; const Dir: TVector3Single): TVector3Single; overload;
+function MatrixMultDirection(const m: TMatrix4Double; const Dir: TVector3Double): TVector3Double; overload;
+function MatrixMultDirection(const m: TMatrix4Single; const Dir: TVector2Single): TVector2Single; overload;
+function MatrixMultDirection(const m: TMatrix4Double; const Dir: TVector2Double): TVector2Double; overload;
 { @groupEnd }
 
 function MatrixMultVector(const m: TMatrix2Single; const v: TVector2Single): TVector2Single; overload;
@@ -1995,6 +2059,7 @@ end;
 {$define TVector2_ := TVector2_Single}
 {$define TVector3_ := TVector3_Single}
 {$define TVector4_ := TVector4_Single}
+{$define Vector3 := Vector3Single}
 {$I castlevectors_dualimplementation.inc}
 
 {$define TScalar := Double}
@@ -2017,6 +2082,7 @@ end;
 {$define TVector2_ := TVector2_Double}
 {$define TVector3_ := TVector3_Double}
 {$define TVector4_ := TVector4_Double}
+{$define Vector3 := Vector3Double}
 {$I castlevectors_dualimplementation.inc}
 
 { TVector3SingleList ----------------------------------------------------- }
@@ -2742,6 +2808,12 @@ begin
   result[0] := v[0]; result[1] := v[1]; result[2] := v[2];
 end;
 
+function Vector3Double(const v2: TVector2Double; const z: Double): TVector3Double;
+begin
+  move(v2, result, SizeOf(v2));
+  result[2] := z;
+end;
+
 function Vector2Byte(x, y: Byte): TVector2Byte;
 begin
   result[0] := x; result[1] := y;
@@ -2823,6 +2895,17 @@ function Normal3Single(const x, y: Single; const z: Single{=0}): TVector3Single;
 begin
   result[0] := x; result[1] := y; result[2] := z;
   NormalizeVar3Singlev(@result);
+end;
+
+function Vector2SingleFromStr(const S: string): TVector2Single;
+var
+  SPosition: Integer;
+begin
+  SPosition := 1;
+  Result[0] := StrToFloat(NextToken(S, SPosition));
+  Result[1] := StrToFloat(NextToken(S, SPosition));
+  if NextToken(S, SPosition) <> '' then
+    raise EConvertError.Create('Expected end of data when reading vector from string');
 end;
 
 function Vector3SingleFromStr(const s: string): TVector3Single; {$I castlevectors_vector3fromstr.inc}
@@ -2937,6 +3020,24 @@ begin
 end;
 
 { some math on vectors ------------------------------------------------------- }
+
+function Approximate3DScale(const X, Y, Z: Single): Single;
+begin
+  if (X * Y < 0) or
+     (X * Z < 0) or
+     (Y * X < 0) then
+    { If some values have opposite signs, it's better to make
+      an average of absolute values. This way a scale like (-1, 1, 1),
+      that flips X but preserves size, results in 1 (not 1/3).
+      Bug reproduce: escape with mirrored map parts. }
+    Result := (Abs(X) + Abs(Y) + Abs(Z)) / 3 else
+    Result := (    X  +     Y  +     Z ) / 3;
+end;
+
+function Approximate3DScale(const V: TVector3Single): Single;
+begin
+  Result := Approximate3DScale(V[0], V[1], V[2]);
+end;
 
 function VectorsPerfectlyEqual(const V1, V2: TVector2Byte): boolean;
 begin
@@ -3200,6 +3301,19 @@ begin
     InvertedMatrix[1, 1] := 1 / ScaleFactor[1];
     InvertedMatrix[2, 2] := 1 / ScaleFactor[2];
   end;
+end;
+
+function RotatePoint2D(const Point: TVector2Single; const AngleRad: Single): TVector2Single;
+var
+  AngleSin, AngleCos: Float;
+  S, C: Single;
+begin
+  SinCos(AngleRad, AngleSin, AngleCos);
+  { convert Float to Single once }
+  S := AngleSin;
+  C := AngleCos;
+  Result[0] := Point[0] * C - Point[1] * S;
+  Result[1] := Point[0] * S + Point[1] * C;
 end;
 
 function RotationMatrixRad(const AngleRad: Single;

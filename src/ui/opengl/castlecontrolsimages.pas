@@ -7,6 +7,8 @@ unit CastleControlsImages;
 
 interface
 
+{$I castleconf.inc}
+
 uses CastleImages;
 
 var
@@ -23,6 +25,9 @@ var
 
 var
   TooltipRounded: TRGBAlphaImage;
+
+var
+  ButtonDisabled: TRGBAlphaImage;
 
 var
   ButtonPressed: TRGBAlphaImage;
@@ -123,6 +128,9 @@ initialization
   TooltipRounded := TRGBAlphaImage.Create(TooltipRoundedWidth, TooltipRoundedHeight, TooltipRoundedDepth);
   Move(TooltipRoundedPixels, TooltipRounded.RawPixels^, SizeOf(TooltipRoundedPixels));
   TooltipRounded.URL := 'embedded-image:/TooltipRounded';
+  ButtonDisabled := TRGBAlphaImage.Create(ButtonDisabledWidth, ButtonDisabledHeight, ButtonDisabledDepth);
+  Move(ButtonDisabledPixels, ButtonDisabled.RawPixels^, SizeOf(ButtonDisabledPixels));
+  ButtonDisabled.URL := 'embedded-image:/ButtonDisabled';
   ButtonPressed := TRGBAlphaImage.Create(ButtonPressedWidth, ButtonPressedHeight, ButtonPressedDepth);
   Move(ButtonPressedPixels, ButtonPressed.RawPixels^, SizeOf(ButtonPressedPixels));
   ButtonPressed.URL := 'embedded-image:/ButtonPressed';
@@ -201,6 +209,7 @@ finalization
   FreeAndNil(Slider);
   FreeAndNil(Tooltip);
   FreeAndNil(TooltipRounded);
+  FreeAndNil(ButtonDisabled);
   FreeAndNil(ButtonPressed);
   FreeAndNil(ButtonFocused);
   FreeAndNil(ButtonNormal);

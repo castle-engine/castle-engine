@@ -90,7 +90,7 @@ var
   NodeField, ProtoField: string;
   NodeFieldOrEvent: TX3DFieldOrEvent;
 begin
-  I := TXMLElementIterator.Create(ISElement);
+  I := ISElement.ChildrenIterator;
   try
     while I.GetNext do
       if ParseConnectElement(I.Current, NodeField, ProtoField) then
@@ -167,7 +167,7 @@ function ParseXMLNode(Element: TDOMElement;
       Reader.Nodes.Bind(Result, false);
 
       { parse field values from <fieldValue> elements }
-      ProtoIter := TXMLElementIterator.Create(Element);
+      ProtoIter := Element.ChildrenIterator;
       try
         PositionInParent := 0;
 
@@ -385,10 +385,10 @@ var
     Head: TDOMElement;
     I: TXMLElementIterator;
   begin
-    Head := DOMGetChildElement(X3DHeaderElement, 'head', false);
+    Head := X3DHeaderElement.ChildElement('head', false);
     if Head = nil then Exit;
 
-    I := TXMLElementIterator.Create(Head);
+    I := Head.ChildrenIterator;
     try
       while I.GetNext do
       begin
@@ -491,7 +491,7 @@ begin
       ParseHead;
     end;
 
-    I := TXMLElementIterator.Create(Element);
+    I := Element.ChildrenIterator;
     try
       PositionInParent := 0;
 
@@ -555,13 +555,13 @@ begin
       OnWarning(wtMajor, 'VRML/X3D', Format('Missing X3D version number, assuming %d.%d', [Version.Major, Version.Minor]));
     end;
 
-    SceneElement := DOMGetChildElement(Doc.DocumentElement, 'Scene', true);
+    SceneElement := Doc.DocumentElement.ChildElement('Scene', true);
 
     { X3D XML requires AutoRemove = true below }
     Reader := TX3DReaderNames.Create(true, URL, Version);
     try
       Result := ParseStatements(SceneElement, true, Doc.DocumentElement, Reader);
-      Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames);
+      Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames, Result.FImportedNames);
     finally FreeAndNil(Reader) end;
   finally
     FreeAndNil(Doc);

@@ -16,10 +16,12 @@
 { Storing configuration files in XML (TCastleConfig). }
 unit CastleXMLConfig;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, DOM,
-  CastleUtils, CastleXMLCfgInternal, CastleVectors,
+  CastleUtils, CastleXMLCfgInternal, CastleXMLUtils, CastleVectors,
   CastleGenericLists, CastleColors;
 
 type
@@ -63,12 +65,19 @@ type
     { Get a @italic(required) integer attribute, raise exception if missing or invalid.
       @raises(EMissingAttribute If the attribute is missing or empty.)
       @raises(EConvertError If the attribute exists but has invalid format.) }
-    function GetValue(const APath: String): Integer; overload;
+    function GetInteger(const APath: String): Integer; overload;
 
     { Get a @italic(required) boolean attribute, raise exception if missing or invalid.
       @raises(EMissingAttribute If the attribute is missing or empty.)
       @raises(EConvertError If the attribute exists but has invalid format.) }
-    function GetValue(const APath: String): Boolean; overload;
+    function GetBoolean(const APath: String): Boolean; overload;
+
+    { Get a @italic(required, non-empty) string value.
+      Value must exist and cannot be empty in XML file.
+      @raises(EMissingAttribute If value doesn't exist or is empty in XML file.) }
+    function GetStringNonEmpty(const APath: string): string;
+
+    function GetNonEmptyValue(const APath: string): string; deprecated 'use GetStringNonEmpty';
 
     { Internal notes about GetFloat / SetFloat:
       At the beginning I made the float methods
@@ -90,6 +99,12 @@ type
     }
 
     { Float values reading/writing to config file.
+
+      Note: for powerful reading of float expressions,
+      consider using @code(GetFloatExpression) instead of @code(GetFloat).
+      It can read expressions like @code("3.0 * 2.0") or @code("sin(2.0)").
+      Use CastleScriptConfig unit to introduce
+      necessary class helper for this, see @link(TCastleConfigScriptHelper.GetFloatExpression).
 
       @raises(EMissingAttribute Raised by GetFloat(string) (overloaded
         version without the ADefaultValue parameter) if the attribute is missing.)
@@ -115,26 +130,59 @@ type
       @longCode(# GetVector('example/path/to/myVector', Vector4Single(0, 0, 0, 0)); #)
 
       @groupBegin }
-    function GetVector(const APath: string;
+    function GetVector2(const APath: string;
       const ADefaultValue: TVector2Single): TVector2Single; overload;
-    procedure SetVector(const APath: string;
+    function GetVector2(const APath: string): TVector2Single; overload;
+    procedure SetVector2(const APath: string;
       const AValue: TVector2Single); overload;
-    procedure SetDeleteVector(const APath: string;
+    procedure SetDeleteVector2(const APath: string;
       const AValue, ADefaultValue: TVector2Single); overload;
 
-    function GetVector(const APath: string;
+    function GetVector3(const APath: string;
       const ADefaultValue: TVector3Single): TVector3Single; overload;
-    procedure SetVector(const APath: string;
+    function GetVector3(const APath: string): TVector3Single; overload;
+    procedure SetVector3(const APath: string;
       const AValue: TVector3Single); overload;
-    procedure SetDeleteVector(const APath: string;
+    procedure SetDeleteVector3(const APath: string;
       const AValue, ADefaultValue: TVector3Single); overload;
 
-    function GetVector(const APath: string;
+    function GetVector4(const APath: string;
       const ADefaultValue: TVector4Single): TVector4Single; overload;
-    procedure SetVector(const APath: string;
+    function GetVector4(const APath: string): TVector4Single; overload;
+    procedure SetVector4(const APath: string;
       const AValue: TVector4Single); overload;
-    procedure SetDeleteVector(const APath: string;
+    procedure SetDeleteVector4(const APath: string;
       const AValue, ADefaultValue: TVector4Single); overload;
+
+    function GetValue(const APath: string;
+      const ADefaultValue: TVector2Single): TVector2Single;
+      overload; deprecated 'use GetVector2';
+    procedure SetValue(const APath: string;
+      const AValue: TVector2Single);
+      overload; deprecated 'use SetVector2';
+    procedure SetDeleteValue(const APath: string;
+      const AValue, ADefaultValue: TVector2Single);
+      overload; deprecated 'use SetDeleteVector2';
+
+    function GetValue(const APath: string;
+      const ADefaultValue: TVector3Single): TVector3Single;
+      overload; deprecated 'use GetVector3';
+    procedure SetValue(const APath: string;
+      const AValue: TVector3Single);
+      overload; deprecated 'use SetVector3';
+    procedure SetDeleteValue(const APath: string;
+      const AValue, ADefaultValue: TVector3Single);
+      overload; deprecated 'use SetDeleteVector3';
+
+    function GetValue(const APath: string;
+      const ADefaultValue: TVector4Single): TVector4Single;
+      overload; deprecated 'use GetVector4';
+    procedure SetValue(const APath: string;
+      const AValue: TVector4Single);
+      overload; deprecated 'use SetVector4';
+    procedure SetDeleteValue(const APath: string;
+      const AValue, ADefaultValue: TVector4Single);
+      overload; deprecated 'use SetDeleteVector4';
     { @groupEnd }
 
     { Colors reading/writing to config file.
@@ -168,19 +216,21 @@ type
 
 @longCode(#
 Color := GetColor('example/path/to/myColor', Black);
-ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
+ColorRGB := GetColorRGB('example/path/to/myColorRGB', BlackRGB);
 #)
 
       @groupBegin }
-    function GetColor(const APath: string;
+    function GetColorRGB(const APath: string;
       const ADefaultColor: TCastleColorRGB): TCastleColorRGB; overload;
-    procedure SetColor(const APath: string;
+    function GetColorRGB(const APath: string): TCastleColorRGB; overload;
+    procedure SetColorRGB(const APath: string;
       const AColor: TCastleColorRGB); overload;
-    procedure SetDeleteColor(const APath: string;
+    procedure SetDeleteColorRGB(const APath: string;
       const AColor, ADefaultColor: TCastleColorRGB); overload;
 
     function GetColor(const APath: string;
       const ADefaultColor: TCastleColor): TCastleColor; overload;
+    function GetColor(const APath: string): TCastleColor; overload;
     procedure SetColor(const APath: string;
       const AColor: TCastleColor); overload;
     procedure SetDeleteColor(const APath: string;
@@ -242,6 +292,45 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
       (But it is OK if it is empty.)
       Never returns @nil. }
     function PathChildren(const APath: string; const ChildName: string): TDOMNodeList;
+      deprecated 'use PathChildrenIterator';
+
+    { For a given path, return iterator for elements of a given name.
+
+      For example, assume you have an XML like this:
+
+@preformatted(
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <game_configuration>
+    <locations>
+      <location name="location_1st">...</location>
+      <location name="location_2nd">...</location>
+    </locations>
+  </game_configuration>
+</CONFIG>
+)
+
+      You can process it like this:
+
+@longCode(#
+var
+  I: TXMLElementIterator;
+begin
+  I := PathChildrenIterator('game_configuration/locations', 'location');
+  try
+    while I.GetNext do
+    begin
+      // ... here goes your code to process I.Current ...
+    end;
+  finally FreeAndNil(I) end;
+end;
+#)
+
+      Raises exception if element indicated by APath does not exist.
+      (But it is OK if it is empty.)
+      Never returns @nil. }
+    function PathChildrenIterator(const APath: string;
+      const ChildName: string): TXMLElementIterator;
 
     { Read an URL from an XML attribute.
       The attribute in an XML file may be an absolute or relative URL,
@@ -262,10 +351,10 @@ ColorRGB := GetColor('example/path/to/myColorRGB', BlackRGB);
       to current OS newlines. }
     function GetMultilineText(const APath: string; const DefaultValue: string): string;
 
-    { Get a value, as a string. Value must exist and cannot be empty in XML file.
-
-      @raises(EMissingAttribute If value doesn't exist or is empty in XML file.) }
-    function GetNonEmptyValue(const APath: string): string;
+    { Read @italic(required, non-empty) string from a text content of given element.
+      The text may be multiline, line endings are guaranteed to be converted
+      to current OS newlines. }
+    function GetMultilineText(const APath: string): string;
 
     procedure NotModified;
 
@@ -397,16 +486,16 @@ begin
   inherited;
 end;
 
-function TCastleConfig.GetValue(const APath: String): Integer;
+function TCastleConfig.GetInteger(const APath: String): Integer;
 begin
-  Result := StrToInt(GetNonEmptyValue(APath));
+  Result := StrToInt(GetStringNonEmpty(APath));
 end;
 
-function TCastleConfig.GetValue(const APath: String): Boolean;
+function TCastleConfig.GetBoolean(const APath: String): Boolean;
 var
   S: String;
 begin
-  S := GetNonEmptyValue(APath);
+  S := GetStringNonEmpty(APath);
   if AnsiCompareText(S, 'TRUE') = 0 then
     Result := true else
   if AnsiCompareText(s, 'FALSE') = 0 then
@@ -414,6 +503,20 @@ begin
     raise EConvertError.CreateFmt('Invalid boolean value "%s" in XML attribute "%s"',
       [S, APath]);
 end;
+
+function TCastleConfig.GetStringNonEmpty(const APath: string): string;
+begin
+  Result := GetValue(APath, '');
+  if Result = '' then
+    raise EMissingAttribute.CreateFmt('Missing attribute "%s" in XML file', [APath]);
+end;
+
+function TCastleConfig.GetNonEmptyValue(const APath: string): string;
+begin
+  Result := GetStringNonEmpty(APath);
+end;
+
+{ get/set floats ------------------------------------------------------------ }
 
 function TCastleConfig.GetFloat(const APath: string;
   const ADefaultValue: Float): Float;
@@ -426,7 +529,7 @@ end;
 
 function TCastleConfig.GetFloat(const APath: string): Float;
 begin
-  Result := StrToFloat(GetNonEmptyValue(APath));
+  Result := StrToFloat(GetStringNonEmpty(APath));
 end;
 
 procedure TCastleConfig.SetFloat(const APath: string;
@@ -441,11 +544,13 @@ begin
   SetDeleteValue(APath, FloatToStr(AValue), FloatToStr(ADefaultValue));
 end;
 
+{ get/set vectors ------------------------------------------------------------ }
+
 const
   VectorComponentPaths: array [0..3] of string =
   ('/x', '/y', '/z', '/w');
 
-function TCastleConfig.GetVector(const APath: string;
+function TCastleConfig.GetVector2(const APath: string;
   const ADefaultValue: TVector2Single): TVector2Single;
 var
   I: Integer;
@@ -454,7 +559,15 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
-procedure TCastleConfig.SetVector(const APath: string;
+function TCastleConfig.GetVector2(const APath: string): TVector2Single;
+var
+  I: Integer;
+begin
+  for I := 0 to High(Result) do
+    Result[I] := GetFloat(APath + VectorComponentPaths[I]);
+end;
+
+procedure TCastleConfig.SetVector2(const APath: string;
   const AValue: TVector2Single);
 var
   I: Integer;
@@ -463,7 +576,7 @@ begin
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
-procedure TCastleConfig.SetDeleteVector(const APath: string;
+procedure TCastleConfig.SetDeleteVector2(const APath: string;
   const AValue, ADefaultValue: TVector2Single);
 var
   I: Integer;
@@ -472,7 +585,7 @@ begin
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
-function TCastleConfig.GetVector(const APath: string;
+function TCastleConfig.GetVector3(const APath: string;
   const ADefaultValue: TVector3Single): TVector3Single;
 var
   I: Integer;
@@ -481,7 +594,15 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
-procedure TCastleConfig.SetVector(const APath: string;
+function TCastleConfig.GetVector3(const APath: string): TVector3Single;
+var
+  I: Integer;
+begin
+  for I := 0 to High(Result) do
+    Result[I] := GetFloat(APath + VectorComponentPaths[I]);
+end;
+
+procedure TCastleConfig.SetVector3(const APath: string;
   const AValue: TVector3Single);
 var
   I: Integer;
@@ -490,7 +611,7 @@ begin
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
-procedure TCastleConfig.SetDeleteVector(const APath: string;
+procedure TCastleConfig.SetDeleteVector3(const APath: string;
   const AValue, ADefaultValue: TVector3Single);
 var
   I: Integer;
@@ -499,7 +620,7 @@ begin
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
-function TCastleConfig.GetVector(const APath: string;
+function TCastleConfig.GetVector4(const APath: string;
   const ADefaultValue: TVector4Single): TVector4Single;
 var
   I: Integer;
@@ -508,7 +629,15 @@ begin
     Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
 end;
 
-procedure TCastleConfig.SetVector(const APath: string;
+function TCastleConfig.GetVector4(const APath: string): TVector4Single;
+var
+  I: Integer;
+begin
+  for I := 0 to High(Result) do
+    Result[I] := GetFloat(APath + VectorComponentPaths[I]);
+end;
+
+procedure TCastleConfig.SetVector4(const APath: string;
   const AValue: TVector4Single);
 var
   I: Integer;
@@ -517,7 +646,7 @@ begin
     SetFloat(APath + VectorComponentPaths[I], AValue[I]);
 end;
 
-procedure TCastleConfig.SetDeleteVector(const APath: string;
+procedure TCastleConfig.SetDeleteVector4(const APath: string;
   const AValue, ADefaultValue: TVector4Single);
 var
   I: Integer;
@@ -526,12 +655,97 @@ begin
     SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
 end;
 
+{ deprecated get/set on vectors ---------------------------------------------- }
+
+function TCastleConfig.GetValue(const APath: string;
+  const ADefaultValue: TVector2Single): TVector2Single;
+var
+  I: Integer;
+begin
+  for I := 0 to High(ADefaultValue) do
+    Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+end;
+
+procedure TCastleConfig.SetValue(const APath: string;
+  const AValue: TVector2Single);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AValue) do
+    SetFloat(APath + VectorComponentPaths[I], AValue[I]);
+end;
+
+procedure TCastleConfig.SetDeleteValue(const APath: string;
+  const AValue, ADefaultValue: TVector2Single);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AValue) do
+    SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
+end;
+
+function TCastleConfig.GetValue(const APath: string;
+  const ADefaultValue: TVector3Single): TVector3Single;
+var
+  I: Integer;
+begin
+  for I := 0 to High(ADefaultValue) do
+    Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+end;
+
+procedure TCastleConfig.SetValue(const APath: string;
+  const AValue: TVector3Single);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AValue) do
+    SetFloat(APath + VectorComponentPaths[I], AValue[I]);
+end;
+
+procedure TCastleConfig.SetDeleteValue(const APath: string;
+  const AValue, ADefaultValue: TVector3Single);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AValue) do
+    SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
+end;
+
+function TCastleConfig.GetValue(const APath: string;
+  const ADefaultValue: TVector4Single): TVector4Single;
+var
+  I: Integer;
+begin
+  for I := 0 to High(ADefaultValue) do
+    Result[I] := GetFloat(APath + VectorComponentPaths[I], ADefaultValue[I]);
+end;
+
+procedure TCastleConfig.SetValue(const APath: string;
+  const AValue: TVector4Single);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AValue) do
+    SetFloat(APath + VectorComponentPaths[I], AValue[I]);
+end;
+
+procedure TCastleConfig.SetDeleteValue(const APath: string;
+  const AValue, ADefaultValue: TVector4Single);
+var
+  I: Integer;
+begin
+  for I := 0 to High(AValue) do
+    SetDeleteFloat(APath + VectorComponentPaths[I], AValue[I], ADefaultValue[I]);
+end;
+
+{ get/set colors ------------------------------------------------------------- }
+
 const
   ColorComponentPaths: array [0..3] of string =
   ('/red', '/green', '/blue', '/alpha');
   HexPath = '/hex';
 
-function TCastleConfig.GetColor(const APath: string;
+function TCastleConfig.GetColorRGB(const APath: string;
   const ADefaultColor: TCastleColorRGB): TCastleColorRGB;
 var
   I: Integer;
@@ -541,12 +755,36 @@ begin
   if Hex <> '' then
     Result := HexToColorRGB(Hex) else
   begin
-    for I := 0 to High(ADefaultColor) do
-      Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
+    Hex := GetValue(APath + HexPath, '');
+    if Hex <> '' then
+      Result := HexToColorRGB(Hex) else
+    begin
+      for I := 0 to High(ADefaultColor) do
+        Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
+    end;
   end;
 end;
 
-procedure TCastleConfig.SetColor(const APath: string;
+function TCastleConfig.GetColorRGB(const APath: string): TCastleColorRGB;
+var
+  I: Integer;
+  Hex: string;
+begin
+  Hex := GetValue(APath + HexPath, '');
+  if Hex <> '' then
+    Result := HexToColorRGB(Hex) else
+  begin
+    Hex := GetValue(APath, '');
+    if Hex <> '' then
+      Result := HexToColorRGB(Hex) else
+    begin
+      for I := 0 to High(Result) do
+        Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I]), 0.0, 1.0);
+    end;
+  end;
+end;
+
+procedure TCastleConfig.SetColorRGB(const APath: string;
   const AColor: TCastleColorRGB);
 var
   I: Integer;
@@ -556,7 +794,7 @@ begin
     DeleteValue(APath + ColorComponentPaths[I]);
 end;
 
-procedure TCastleConfig.SetDeleteColor(const APath: string;
+procedure TCastleConfig.SetDeleteColorRGB(const APath: string;
   const AColor, ADefaultColor: TCastleColorRGB);
 var
   I: Integer;
@@ -576,8 +814,32 @@ begin
   if Hex <> '' then
     Result := HexToColor(Hex) else
   begin
-    for I := 0 to High(ADefaultColor) do
-      Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
+    Hex := GetValue(APath, '');
+    if Hex <> '' then
+      Result := HexToColor(Hex) else
+    begin
+      for I := 0 to High(ADefaultColor) do
+        Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I], ADefaultColor[I]), 0.0, 1.0);
+    end;
+  end;
+end;
+
+function TCastleConfig.GetColor(const APath: string): TCastleColor;
+var
+  I: Integer;
+  Hex: string;
+begin
+  Hex := GetValue(APath + HexPath, '');
+  if Hex <> '' then
+    Result := HexToColor(Hex) else
+  begin
+    Hex := GetValue(APath, '');
+    if Hex <> '' then
+      Result := HexToColor(Hex) else
+    begin
+      for I := 0 to High(Result) do
+        Result[I] := Clamped(GetFloat(APath + ColorComponentPaths[I]), 0.0, 1.0);
+    end;
   end;
 end;
 
@@ -600,6 +862,8 @@ begin
   for I := 0 to High(AColor) do
     DeleteValue(APath + ColorComponentPaths[I]);
 end;
+
+{ others --------------------------------------------------------------------- }
 
 function TCastleConfig.PathElement(const APath: string;
   const RaiseExceptionWhenMissing: boolean): TDOMElement;
@@ -639,6 +903,12 @@ begin
   Result := PathElement(APath, true).GetElementsByTagName(ChildName);
 end;
 
+function TCastleConfig.PathChildrenIterator(const APath: string;
+  const ChildName: string): TXMLElementIterator;
+begin
+  Result := PathElement(APath, true).ChildrenIterator(ChildName);
+end;
+
 function TCastleConfig.GetURL(const APath: string;
   const EmptyIfNoAttribute: boolean): string;
 begin
@@ -669,11 +939,11 @@ begin
   {$warnings on}
 end;
 
-function TCastleConfig.GetNonEmptyValue(const APath: string): string;
+function TCastleConfig.GetMultilineText(const APath: string): string;
 begin
-  Result := GetValue(APath, '');
+  Result := GetMultilineText(APath, '');
   if Result = '' then
-    raise EMissingAttribute.CreateFmt('Missing attribute "%s" in XML file', [APath]);
+    raise EMissingAttribute.CreateFmt('Missing multi-line text context of element "%s" in XML file', [APath]);
 end;
 
 procedure TCastleConfig.NotModified;

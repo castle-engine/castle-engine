@@ -16,6 +16,8 @@
 { Reporting warnings (OnWarning). }
 unit CastleWarnings;
 
+{$I castleconf.inc}
+
 interface
 
 type

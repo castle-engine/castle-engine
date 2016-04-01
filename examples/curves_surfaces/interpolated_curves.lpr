@@ -33,7 +33,7 @@ program interpolated_curves;
 uses CastleGL, CastleWindow, CastleGLUtils, SysUtils, CastleVectors,
   CastleCurves, CastleScript, CastleMessages, CastleUIControls, CastleKeysMouse,
   CastleUtils, CastleScriptParser, CastleScriptCoreFunctions,
-  CastleSceneManager, CastleControls,
+  CastleSceneManager, CastleControls, CastleInterpolatedCurves,
   Classes, CastleStringUtils, Castle3D, CastleColors;
 
 { global vars ------------------------------------------------------------ }
@@ -159,7 +159,7 @@ end;
 procedure SetApproxCurve;
 begin
   FreeAndNil(ApproxCurve);
-  ApproxCurve := ApproxCurveClass.CreateDivideCasScriptCurve(
+  ApproxCurve := ApproxCurveClass.CreateFromEquation(
     PreciseCurve, ApproxCurveControlPointsCount);
   SceneManager.Items.Add(ApproxCurve);
 
@@ -186,7 +186,7 @@ begin
   Text.Append(Format('  y(t) = %s', [PreciseCurve.YFunction.ToString]));
   Text.Append(Format('  z(t) = %s', [PreciseCurve.ZFunction.ToString])); }
   Text.Append('Approximating curve:');
-  Text.Append(Format('  Class = %s', [ApproxCurveClass.NiceClassName]));
+  Text.Append(Format('  Class = %s', [ApproxCurveClass.ClassName]));
   Text.Append(Format('  Control points count = %d', [ApproxCurveControlPointsCount]));
   Text.Append(Format('Rendering segments = %d', [CurvesRenderSegments]));
 
@@ -259,7 +259,7 @@ type
 
   constructor TMenuItemApproxClass.Create(ANewApproxClass: TControlPointsCurveClass);
   begin
-    inherited Create('Set class to "' +ANewApproxClass.NiceClassName +'"', -1);
+    inherited Create('Set class to "' +ANewApproxClass.ClassName +'"', -1);
     FNewApproxClass := ANewApproxClass;
   end;
 

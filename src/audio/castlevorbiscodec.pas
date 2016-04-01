@@ -2,6 +2,7 @@
   @exclude (This is only a C header translation --- no nice PasDoc docs.) }
 unit CastleVorbisCodec;
 
+{$I castleconf.inc}
 {$packrecords C}
 
 interface

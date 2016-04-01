@@ -16,6 +16,8 @@
 { Triangle octrees (TTriangleOctree). }
 unit CastleTriangleOctree;
 
+{$I castleconf.inc}
+
 {
   TODO
   - Right now, since we keep pointers to TTriangle created by TCastleSceneCore,
@@ -52,6 +54,15 @@ type
 
     function CommonSphereLeaf(const pos: TVector3Single;
       const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+
+    function CommonSphere2DLeaf(const pos: TVector2Single;
+      const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+
+    function CommonPoint2DLeaf(const Point: TVector2Single;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
@@ -96,6 +107,24 @@ type
 
     function IsSphereCollision(const pos: TVector3Single;
       const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+
+    function SphereCollision2D(const pos: TVector2Single;
+      const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+
+    function IsSphereCollision2D(const pos: TVector2Single;
+      const Radius: Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+
+    function PointCollision2D(const Point: TVector2Single;
+      const TriangleToIgnore: PTriangle;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+
+    function IsPointCollision2D(const Point: TVector2Single;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
@@ -319,6 +348,77 @@ function TTriangleOctreeNode.IsSphereCollision(const pos: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := SphereCollision(pos, Radius, TriangleToIgnore,
+    TrianglesToIgnoreFunc) <> nil;
+end;
+
+function TTriangleOctreeNode.SphereCollision2D(const pos: TVector2Single;
+  const Radius: Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+begin
+  Result := CommonSphere2D(pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
+end;
+
+function TTriangleOctreeNode.CommonSphere2DLeaf(const pos: TVector2Single;
+  const Radius: Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+var
+  i: integer;
+begin
+  for i := 0 to ItemsIndices.Count - 1 do
+  begin
+    Inc(TriangleCollisionTestsCounter);
+    Result := Items[i];
+    if IsTriangleSphereCollision2D(Result^.Local.Triangle, pos, Radius) and
+      (TriangleToIgnore <> Result) and
+      ( (not Assigned(TrianglesToIgnoreFunc)) or
+        (not TrianglesToIgnoreFunc(ParentTree, Result)) ) then
+      Exit;
+  end;
+  Exit(nil);
+end;
+
+function TTriangleOctreeNode.IsSphereCollision2D(const pos: TVector2Single;
+  const Radius: Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  Result := SphereCollision2D(pos, Radius, TriangleToIgnore,
+    TrianglesToIgnoreFunc) <> nil;
+end;
+
+function TTriangleOctreeNode.PointCollision2D(const Point: TVector2Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+begin
+  Result := CommonPoint2D(Point, TriangleToIgnore, TrianglesToIgnoreFunc);
+end;
+
+function TTriangleOctreeNode.CommonPoint2DLeaf(const Point: TVector2Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+var
+  i: integer;
+begin
+  for i := 0 to ItemsIndices.Count - 1 do
+  begin
+    Inc(TriangleCollisionTestsCounter);
+    Result := Items[i];
+    if IsPointWithinTriangle2D(Point, Result^.Local.Triangle) and
+      (TriangleToIgnore <> Result) and
+      ( (not Assigned(TrianglesToIgnoreFunc)) or
+        (not TrianglesToIgnoreFunc(ParentTree, Result)) ) then
+      Exit;
+  end;
+  Exit(nil);
+end;
+
+function TTriangleOctreeNode.IsPointCollision2D(const Point: TVector2Single;
+  const TriangleToIgnore: PTriangle;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  Result := PointCollision2D(Point, TriangleToIgnore,
     TrianglesToIgnoreFunc) <> nil;
 end;
 

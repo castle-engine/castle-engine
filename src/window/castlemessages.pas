@@ -312,8 +312,8 @@ var
   Button: TCastleButton;
   ErrorBackground: TErrorBackground;
 begin
-  if Log then
-    WritelnLogMultiline('Message', TextList.Text);
+  // if Log then
+  //   WritelnLogMultiline('Message', TextList.Text);
 
   if Theme.MessageErrorBackground then
   begin

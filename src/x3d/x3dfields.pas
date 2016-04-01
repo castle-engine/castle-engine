@@ -16,11 +16,14 @@
 { X3D fields (TX3DField and many descendants). }
 unit X3DFields;
 
+{$I castleconf.inc}
+
 interface
 
-uses CastleVectors, Classes, SysUtils, X3DLexer, CastleUtils, CastleClassUtils,
-  CastleImages, CastleStringUtils, CastleInterfaces, X3DTime, DOM,
-  FGL, CastleGenericLists, CastleColors;
+uses Classes, SysUtils, DOM, FGL,
+  CastleVectors, X3DLexer, CastleUtils, CastleClassUtils,
+  CastleImages, CastleStringUtils, CastleInterfaces,
+  X3DTime, CastleGenericLists, CastleColors, CastleQuaternions;
 
 {$define read_interface}
 
@@ -92,9 +95,9 @@ type
     { VRML/X3D version number. For resolving node class names and other stuff. }
     property Version: TX3DVersion read FVersion;
 
-    { Apply unit convertion.
-      If this is angle convertion factor, it is stored and used internally.
-      If this is length convertion factor, we update our
+    { Apply unit conversion.
+      If this is angle conversion factor, it is stored and used internally.
+      If this is length conversion factor, we update our
       LengthConversionFactor property, but it's callers responsibility
       to make use of it. (You want to use here TX3DRootNode.Scale.) }
     procedure UnitConversion(const Category, Name: string;
@@ -659,8 +662,7 @@ type
       The Create constructor should be just a comfortable extension of
       CreateUndefined, that does the same and addiionally gets parameters
       that specify default field value. }
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string);
+    constructor Create(AParentNode: TX3DFileItem; const AName: string);
 
     { Virtual constructor, that you can use to construct field instance when
       field class is known only at runtime.
@@ -3151,7 +3153,7 @@ begin
   if Exposed and (ParentNode <> nil) and
     ( (ParentNode as TX3DNode).Scene <> nil ) then
   begin
-    EventIn.Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    EventIn.Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
   end else
   begin
     ValuePossiblyChanged := not FastEqualsValue(Value);
@@ -3337,7 +3339,7 @@ procedure TX3DField.ParseXMLElement(Element: TDOMElement; Reader: TX3DReader);
 var
   I: TXMLElementIterator;
 begin
-  I := TXMLElementIterator.Create(Element);
+  I := Element.ChildrenIterator;
   try
     if I.GetNext then
       OnWarning(wtMajor, 'VRML/X3D', Format('X3D field "%s" is not SFNode or MFNode, but a node value (XML element "%s") is specified',
@@ -4693,9 +4695,10 @@ begin
     a matrix. Works OK for combination of identity, scaling,
     translation matrices.
     Fails awfully on rotation (and possibly many other) matrices. }
-  Result := ( FValue[0, 0] +
-              FValue[1, 1] +
-              FValue[2, 2] ) / 3;
+  Result := Approximate3DScale(
+    FValue[0, 0],
+    FValue[1, 1],
+    FValue[2, 2]);
 end;
 
 { TSFMatrix4d ------------------------------------------------------------------ }
@@ -4827,8 +4830,9 @@ end;
 
 procedure TSFRotation.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
-  Axis        := Lerp(A, (Value1 as TSFRotation).Axis       , (Value2 as TSFRotation).Axis);
-  RotationRad := Lerp(A, (Value1 as TSFRotation).RotationRad, (Value2 as TSFRotation).RotationRad);
+  { interpolate using slerp (testcase when linear interpolation on axis/vector fails:
+    god triangle in escape_universe) }
+  Value := SLerp(A, (Value1 as TSFRotation).Value, (Value2 as TSFRotation).Value);
 end;
 
 function TSFRotation.CanAssignLerp: boolean;

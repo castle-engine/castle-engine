@@ -21,7 +21,7 @@
   For example you can resize images, you can draw one image on another,
   convert to grayscale and so on.
 
-  The "image" concept here includes various interesting image features
+  The "image" as understood by this unit may have some interesting features
   useful with modern GPUs: image data may be compressed for GPU
   (@link(TGPUCompressedImage)), image data may be 3D
   (every image has @code(Depth), in addition to
@@ -41,11 +41,9 @@
   or an image with data compressed for GPU (@link(TGPUCompressedImage)).
 
   When reading and writing image files, we understand various image
-  formats. (See TImageFormat in castleimages_file_formats.inc
-  for a current list of supported formats,
-  with comments specific to particular formats.
-  Nicely formatted list of supported formats is part of
-  glviewimage docs: http://castle-engine.sourceforge.net/glviewimage.php .)
+  formats. See glViewImage documentation
+  ( http://castle-engine.sourceforge.net/glviewimage.php )
+  for a current list of supported image formats.
 
   The basic loading and saving procedures are LoadImage and SaveImage.
   Example usage:
@@ -455,15 +453,20 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       const Interpolation: TResizeInterpolation = riNearest;
       const ProgressTitle: string = '');
 
-    { Change Width and Height and appropriately stretch
-      image contents.
+    { Change Width and Height and appropriately stretch image contents.
 
-      Preserves corners (provided in the same clockwise way
-      as TGLImage.Draw3x3: top, right, bottom, left), scaling the Corners
-      parameter (proportially to image scaling), and making sure that filtering
-      (especially bilinear) does not "leak" colors from one image area to another.
+      This scales the image in almost the same way as standard @link(Resize).
+      However, this is aware of the image corners and edges, which is good
+      if you plan to use this image with @link(TGLImage.Draw3x3) drawing.
+
+      The Corners parameter specifies the corners size, in the same
+      clockwise order as for @link(TGLImage.Draw3x3): top, right, bottom, left.
+      The corners will be scaled (proportially to image scaling),
+      and new Corners size returned.
+      Additionally it makes sure that filtering (especially bilinear)
+      does not "leak" colors from one image area to another.
       Effectively, the image is scaled like a 9 separate parts,
-      and colors cannot bleed from part to another.
+      and colors cannot bleed from one part to another.
 
       Both ResizeWidth, ResizeHeight parameters must be provided and non-zero. }
     procedure Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
@@ -753,11 +756,11 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       When implementing descendants: the base implementation of this method
       in TCastleImage handles only the case when Image class equals our own class.
       And raises EImageAssignmentError in other cases.
-      Override this method if you want to actually handle some convertions
+      Override this method if you want to actually handle some conversions
       when assignning.
 
       @raises(EImageAssignmentError If it's not possible to convert from
-        Source class to us. Not every possible convertion is implemented now.)
+        Source class to us. Not every possible conversion is implemented now.)
     }
     procedure Assign(const Source: TCastleImage); virtual;
 
@@ -772,7 +775,7 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
   TEncodedImageList = specialize TFPGObjectList<TEncodedImage>;
 
   { Possible compression of textures for GPU. }
-  TGPUCompression = (
+  TTextureCompression = (
     { S3TC DXT1 compression, for RGB images with no alpha or simple yes/no alpha.
       This compression format is often supported by desktop OpenGL implementations.
       See http://en.wikipedia.org/wiki/S3_Texture_Compression about S3TC.
@@ -854,18 +857,18 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       also PVRTexTool and ATI compressonator. }
     tcETC1
   );
-  TGPUCompressions = set of TGPUCompression;
+  TTextureCompressions = set of TTextureCompression;
 
   { Image compressed using one of the GPU texture compression algorithms. }
   TGPUCompressedImage = class(TEncodedImage)
   private
-    FCompression: TGPUCompression;
+    FCompression: TTextureCompression;
     FSize: Cardinal;
   public
     constructor Create(const AWidth, AHeight, ADepth: Cardinal;
-      const ACompression: TGPUCompression);
+      const ACompression: TTextureCompression);
 
-    property Compression: TGPUCompression read FCompression;
+    property Compression: TTextureCompression read FCompression;
 
     { Size of the whole image data inside RawPixels, in bytes. }
     function Size: Cardinal; override;
@@ -1004,15 +1007,15 @@ type
 
       Although float format offers superior precision compared to 8bit RGB,
       there is a slight chance of some unnoticeable loss of information
-      in such convertion, since floating-point values are involved
+      in such conversion, since floating-point values are involved
       in calculation.
 
       But generally this conversion is relatively safe (contrary to
-      convertion float -> 8-bit RGB, which must be lossy).
+      conversion float -> 8-bit RGB, which must be lossy).
 
-      But still you should note that doing such convertion has little
+      But still you should note that doing such conversion has little
       sense since float format is useful only when you have colors that can't
-      be expressed as simple 8-bit RGB. But by using this convertion
+      be expressed as simple 8-bit RGB. But by using this conversion
       you initially fill float image with data that does not have
       precision beyond standard 0..255 discreet range for each RGB component... }
     function ToRGBFloat: TRGBFloatImage;
@@ -1164,7 +1167,7 @@ type
 
     { Converts TRGBFloatImage to TRGBImage.
       Colors in pixels are simply rounded using @link(Vector3Byte).
-      So such convertion not only kills the floating-point
+      So such conversion not only kills the floating-point
       precision in float format but also clamps color components
       to 0..1. }
     function ToRGBImage: TRGBImage;
@@ -1281,7 +1284,7 @@ type
     procedure Assign(const Source: TCastleImage); override;
   end;
 
-{ RGBE <-> 3 Single color convertion --------------------------------- }
+{ RGBE <-> 3 Single color conversion --------------------------------- }
 
 { Encode RGB color as Red + Green + Blue + Exponent format.
   This allows you to encode high-precision colors in 4 bytes,
@@ -1518,73 +1521,106 @@ const
   ('AUTO', 'NONE', 'SIMPLE_YES_NO', 'FULL_RANGE');
 
 type
-  TGPUCompressionInfo = object
+  TTextureCompressionInfo = object
     Name: string;
     RequiresPowerOf2: boolean;
     AlphaChannel: TAlphaChannel;
+
+    { When generating to DDS (that has reverted row order with respect to OpenGL),
+      most of the compressed textures should flipped before.
+      When reading, we except them to be already flipped.
+      The exceptions are DXT* formats, that are read correctly (unflipped)
+      from DDS.
+
+      This is only a limitation of the DDS format, irrelevant for future KTX. }
+    DDSFlipped: boolean;
   end;
 
 const
-  GPUCompressionInfo: array [TGPUCompression] of TGPUCompressionInfo =
-  ( (Name: 'DXT1 (no alpha)'             ; RequiresPowerOf2: true ; AlphaChannel: acNone),
-    (Name: 'DXT1'                        ; RequiresPowerOf2: true ; AlphaChannel: acSimpleYesNo),
-    (Name: 'DXT3'                        ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
-    (Name: 'DXT5'                        ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
+  TextureCompressionInfo: array [TTextureCompression] of TTextureCompressionInfo =
+  ( (Name: 'DXT1_RGB'                    ; RequiresPowerOf2: false; AlphaChannel: acNone       ; DDSFlipped: false),
+    (Name: 'DXT1_RGBA'                   ; RequiresPowerOf2: false; AlphaChannel: acSimpleYesNo; DDSFlipped: false),
+    (Name: 'DXT3'                        ; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: false),
+    (Name: 'DXT5'                        ; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: false),
     { See http://community.imgtec.com/files/pvrtc-texture-compression-user-guide/
       "PVRTC2 vs PVRTC1" section --- PVRTC1 require power-of-two. } { }
-    (Name: 'PVRTC1_4bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone),
-    (Name: 'PVRTC1_2bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone),
-    (Name: 'PVRTC1_4bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
-    (Name: 'PVRTC1_2bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acFullRange),
-    (Name: 'PVRTC2_4bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
-    (Name: 'PVRTC2_2bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
+    (Name: 'PVRTC1_4bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone       ; DDSFlipped: true),
+    (Name: 'PVRTC1_2bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone       ; DDSFlipped: true),
+    (Name: 'PVRTC1_4bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acFullRange  ; DDSFlipped: true),
+    (Name: 'PVRTC1_2bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acFullRange  ; DDSFlipped: true),
+    (Name: 'PVRTC2_4bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: true),
+    (Name: 'PVRTC2_2bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: true),
     { Tests show that ATITC does not need power-of-two sizes. }
-    (Name: 'ATITC_RGB'                   ; RequiresPowerOf2: false; AlphaChannel: acNone),
-    (Name: 'ATITC_RGBA_ExplicitAlpha'    ; RequiresPowerOf2: false; AlphaChannel: acFullRange),
-    (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: false; AlphaChannel: acFullRange),
+    (Name: 'ATITC_RGB'                   ; RequiresPowerOf2: false; AlphaChannel: acNone       ; DDSFlipped: true),
+    (Name: 'ATITC_RGBA_ExplicitAlpha'    ; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: true),
+    (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: true),
     { TODO: unconfirmed RequiresPowerOf2 for ETC1. } { }
-    (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone)
+    (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone       ; DDSFlipped: true)
   );
 
+{ Convert TTextureCompression enum to string. }
+function TextureCompressionToString(const TextureCompression: TTextureCompression): string;
+
+{ Convert string to TTextureCompression enum. Possible values correspond
+  to names listed in TextureCompressionInfo array, they are also equal
+  to enum Pascal names without leading "tc".
+  Compares given strig ignoring the case.
+  @raises(Exception If the string value does not name any
+    TTextureCompression value.) }
+function StringToTextureCompression(const S: string): TTextureCompression;
+
 type
-  TLoadImagePreprocessEvent = procedure (var ImageUrl: string);
-var
+  { Listener type for @link(AddLoadImageListener). }
+  TLoadImageEvent = procedure (var ImageUrl: string) of object;
 
-  { If assigned, all URLs loaded by LoadImage and LoadEncodedImage are processed
-    by this event. This allows to globally modify / observe your images paths,
-    e.g. to use GPU compressed alternative versions.
+{ All URLs loaded by LoadImage and LoadEncodedImage are processed
+  by this event. This allows to globally modify / observe your images paths,
+  e.g. to use GPU compressed alternative versions.
 
-    @italic(An example:) To work on any GPU, you want to have various
-    versions of your textures (uncompressed, and also compressed with
-    various GPU algorithms) in your data.
-    Use this procedure to redirect all image loading to use your
-    compressed versions, when they are supported by the GPU:
+  This is automatically used by @link(TMaterialProperties MaterialProperties)
+  to automatically use GPU compressed textures.
+  See http://castle-engine.sourceforge.net/creating_data_material_properties.php .
+  You can also use it yourself, instead or in addition
+  to @link(TMaterialProperties MaterialProperties) processing.
 
-    @longCode(#
+  @italic(An example:) To work on any GPU, you want to have various
+  versions of your textures (uncompressed, and also compressed with
+  various GPU algorithms) in your data.
+  Use this procedure to redirect all image loading to use your
+  compressed versions, when they are supported by the GPU.
+  By doing it like this we capture all kinds of image loading --- from TGLImage,
+  from TCastleScene and so on.
+
+  @longCode(#
 uses ..., CastleURIUtils, CastleGLUtils, CastleLog, CastleStringUtils,
   CastleFilesUtils, CastleWarnings;
 
-procedure GPUTextureAlternative(var ImageUrl: string);
+procedure TTextureUtils.GPUTextureAlternative(var ImageUrl: string);
 begin
   if IsPrefix(ApplicationData('animation/dragon/'), ImageUrl) then
   begin
     if GLFeatures = nil then
-      OnWarning(wtMinor, 'GPUCompression', 'Cannot determine whether to use GPU compressed version for ' + ImageUrl + ' because the image is loaded before GPU capabilities are known') else
+      OnWarning(wtMinor, 'TextureCompression', 'Cannot determine whether to use GPU compressed version for ' + ImageUrl + ' because the image is loaded before GPU capabilities are known') else
     if tcPvrtc1_4bpp_RGBA in GLFeatures.TextureCompression then
     begin
       ImageUrl := ExtractURIPath(ImageUrl) + 'compressed/pvrtc1_4bpp_rgba/' +
         ExtractURIName(ImageUrl) + '.dds';
-      WritelnLog('GPUCompression', 'Using compressed alternative ' + ImageUrl);
+      WritelnLog('TextureCompression', 'Using compressed alternative ' + ImageUrl);
     end;
   end;
 end;
 
 initialization
-  LoadImagePreprocess := @GPUTextureAlternative;
+  AddLoadImageListener(@TTextureUtils(nil).GPUTextureAlternative);
+finalization
+  RemoveLoadImageListener(@GPUTextureAlternative);
 end.
 #)
-  }
-  LoadImagePreprocess: TLoadImagePreprocessEvent;
+}
+procedure AddLoadImageListener(const Event: TLoadImageEvent);
+
+{ Remove listener added by @link(AddLoadImageListener). }
+procedure RemoveLoadImageListener(const Event: TLoadImageEvent);
 
 {$undef read_interface}
 
@@ -1592,7 +1628,7 @@ implementation
 
 uses ExtInterpolation, FPCanvas, FPImgCanv,
   CastleProgress, CastleStringUtils, CastleFilesUtils, CastleWarnings,
-  CastleDDS, CastleDownload, CastleURIUtils;
+  CastleCompositeImage, CastleDownload, CastleURIUtils;
 
 { parts ---------------------------------------------------------------------- }
 
@@ -1607,7 +1643,7 @@ uses ExtInterpolation, FPCanvas, FPImgCanv,
 {$I images_ipl.inc}
 {$I images_rgbe_fileformat.inc}
 {$I images_external_tool.inc}
-{$I images_dds.inc}
+{$I images_composite.inc}
 
 { Colors ------------------------------------------------------------------ }
 
@@ -2335,7 +2371,7 @@ end;
 
 constructor TGPUCompressedImage.Create(
   const AWidth, AHeight, ADepth: Cardinal;
-  const ACompression: TGPUCompression);
+  const ACompression: TTextureCompression);
 begin
   inherited Create;
   FWidth := AWidth;
@@ -2396,7 +2432,7 @@ begin
       FSize := FDepth * DivRoundUp(FWidth, 4) * DivRoundUp(FHeight, 4) * 8;
 
     else raise EInvalidDDS.CreateFmt('Cannot calculate size for texture compressed with %s',
-      [GPUCompressionInfo[Compression].Name]);
+      [TextureCompressionInfo[Compression].Name]);
   end;
 
   FRawPixels := GetMem(FSize);
@@ -2409,7 +2445,7 @@ end;
 
 function TGPUCompressedImage.HasAlpha: boolean;
 begin
-  Result := GPUCompressionInfo[Compression].AlphaChannel <> acNone;
+  Result := TextureCompressionInfo[Compression].AlphaChannel <> acNone;
 end;
 
 function TGPUCompressedImage.AlphaChannel(
@@ -2417,7 +2453,7 @@ function TGPUCompressedImage.AlphaChannel(
 begin
   { Compressed data doesn't analyze alpha channel, instead
     we determine alpha channel from the compression type. }
-  Result := GPUCompressionInfo[Compression].AlphaChannel;
+  Result := TextureCompressionInfo[Compression].AlphaChannel;
 end;
 
 {$I images_s3tc_flip_vertical.inc}
@@ -3431,7 +3467,7 @@ begin
   end;
 end;
 
-{ RGBE <-> 3 Single color convertion --------------------------------- }
+{ RGBE <-> 3 Single color conversion --------------------------------- }
 
 const
   { do signed Exponent dodaj RGBEExponentOffset zeby zapisac exponent jako Byte }
@@ -3515,11 +3551,10 @@ begin
 end;
 
 function VectorRGBETo3Single(const v: TVector4Byte): TVector3Single;
-{ implementacja : jak Graphic Gems II.5.
+{ Implementation like in Graphic Gems II.5.
 
-  Multiplier wychodzi od 1/256 (a nie 1/255), nalezaloby tu wiec poczynic
-  podobne uwagi co przy konwersji w druga strone, Vector3ToRGBE.
-  Patrz tamtejszy komentarz. }
+  Note: Multiplier is from 1/256 (not 1/255).
+  Same reasons as in Vector3ToRGBE implementation. }
 var
   Multiplier: Single;
 begin
@@ -3531,7 +3566,70 @@ begin
   result[2] := v[2]*Multiplier;
 end;
 
+{ TLoadImageEventList -------------------------------------------------------- }
+
+type
+  { List of TLoadImageEvent methods. }
+  TLoadImageEventList = class
+  strict private
+    { TODO: Cannot base TLoadImageEventList on
+        specialize TGenericStructList<TLoadImageEvent>
+      because of FPC 2.6.4 bugs, it would prevent using castle_bake.lpk in Lazarus
+      --- the unit then tries to endlessly recompile itself?
+      Even with -Ur, and -Ur is bad anyway (uncomfortable for engine development). }
+    FItems: array of TLoadImageEvent;
+    procedure Delete(const Index: Integer);
+  public
+    procedure Add(const M: TLoadImageEvent);
+    procedure Remove(const M: TLoadImageEvent);
+    procedure Execute(var URL: string);
+  end;
+
+procedure TLoadImageEventList.Add(const M: TLoadImageEvent);
+var
+  C: Integer;
+begin
+  C := Length(FItems);
+  SetLength(FItems, C + 1);
+  FItems[C] := M;
+end;
+
+procedure TLoadImageEventList.Remove(const M: TLoadImageEvent);
+var
+  I: Integer;
+begin
+  for I := 0 to High(FItems) do
+    if (TMethod(FItems[I]).Code = TMethod(M).Code) and
+       (TMethod(FItems[I]).Data = TMethod(M).Data) then
+    begin
+      Delete(I);
+      Exit;
+    end;
+end;
+
+procedure TLoadImageEventList.Delete(const Index: Integer);
+var
+  I, C: Integer;
+begin
+  C := Length(FItems);
+  for I := Index + 1 to C - 1 do
+    FItems[I - 1] := FItems[I];
+  SetLength(FItems, C - 1);
+end;
+
+procedure TLoadImageEventList.Execute(var URL: string);
+var
+  I: Integer;
+begin
+  for I := 0 to High(FItems) do
+    FItems[I](URL);
+end;
+
+var
+  LoadImageEvents: TLoadImageEventList;
+
 { LoadEncodedImage ----------------------------------------------------------- }
+
 
 { Make sure the image has an alpha channel.
   If image doesn't have an alpha channel (it is TRGBImage or TGrayscaleImage),
@@ -3726,8 +3824,7 @@ var
 begin
   try
     try
-      if Assigned(LoadImagePreprocess) then
-        LoadImagePreprocess(URL);
+      LoadImageEvents.Execute(URL);
       F := Download(URL, [soForceMemoryStream], MimeType);
     except
       on E: EReadError do raise EImageLoadError.Create(E.Message);
@@ -3903,7 +4000,7 @@ begin
   finally FreeAndNil(Stream) end;
 end;
 
-{ unit initialization / finalization ----------------------------------------- }
+{ others --------------------------------------------------------------------- }
 
 procedure AlphaMaxVar(var A: TAlphaChannel; const B: TAlphaChannel);
 begin
@@ -3931,12 +4028,42 @@ begin
   end;
 end;
 
+function TextureCompressionToString(const TextureCompression: TTextureCompression): string;
+begin
+  Result := TextureCompressionInfo[TextureCompression].Name;
+end;
+
+function StringToTextureCompression(const S: string): TTextureCompression;
+var
+  SLower: string;
+begin
+  SLower := LowerCase(S);
+  for Result := Low(Result) to High(Result) do
+    if SLower = LowerCase(TextureCompressionInfo[Result].Name) then
+      Exit;
+  raise Exception.CreateFmt('Invalid texture compression name "%s"', [S]);
+end;
+
+procedure AddLoadImageListener(const Event: TLoadImageEvent);
+begin
+  LoadImageEvents.Add(Event);
+end;
+
+procedure RemoveLoadImageListener(const Event: TLoadImageEvent);
+begin
+  LoadImageEvents.Remove(Event);
+end;
+
+{ unit initialization / finalization ----------------------------------------- }
+
 initialization
   InitializeImagesFileFilters;
   {$ifndef CASTLE_PNG_USING_FCL_IMAGE}
   InitializePNG;
   {$endif}
+  LoadImageEvents := TLoadImageEventList.Create;
 finalization
   FreeAndNil(LoadImage_FileFilters);
   FreeAndNil(SaveImage_FileFilters);
+  FreeAndNil(LoadImageEvents);
 end.

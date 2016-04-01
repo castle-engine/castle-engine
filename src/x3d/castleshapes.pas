@@ -16,6 +16,8 @@
 { Shape (TShape class) and a simple tree of shapes (TShapeTree class). }
 unit CastleShapes;
 
+{$I castleconf.inc}
+
 { $define SHAPE_ITERATOR_SOPHISTICATED}
 
 {$I octreeconf.inc}
@@ -24,9 +26,11 @@ unit CastleShapes;
 
 interface
 
-uses SysUtils, Classes, CastleVectors, Castle3D, CastleBoxes, X3DNodes, CastleClassUtils,
+uses SysUtils, Classes, FGL,
+  CastleVectors, Castle3D, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleTriangleOctree, CastleFrustum, CastleOctree, X3DTriangles,
-  X3DFields, CastleGeometryArrays, FGL, CastleTriangles, CastleMaterialProperties;
+  X3DFields, CastleGeometryArrays, CastleTriangles, CastleMaterialProperties,
+  CastleShapeInternalShadowVolumes;
 
 const
   { }
@@ -44,18 +48,6 @@ const
   );
 
 type
-  { Internal type for TShape
-    @exclude }
-  TShapeValidities = set of (svLocalBBox, svBBox,
-    svVerticesCountNotOver,  svVerticesCountOver,
-    svTrianglesCountNotOver, svTrianglesCountOver,
-    svBoundingSphere,
-    svNormals);
-
-  { Internal type for TShape
-    @exclude }
-  TShapeNormalsCached = (ncSmooth, ncFlat, ncCreaseAngle);
-
   { Possible spatial structure types that may be managed by TShape,
     see TShape.Spatial. }
   TShapeSpatialStructure = (
@@ -181,6 +173,15 @@ type
     methods of @link(TCastleSceneCore). }
   TShape = class(TShapeTree)
   private
+  type
+    TShapeValidities = set of (svLocalBBox, svBBox,
+      svVerticesCountNotOver,  svVerticesCountOver,
+      svTrianglesCountNotOver, svTrianglesCountOver,
+      svBoundingSphere,
+      svNormals);
+    TShapeNormalsCached = (ncSmooth, ncFlat, ncCreaseAngle);
+
+    var
     FLocalBoundingBox: TBox3D;
     FBoundingBox: TBox3D;
     FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
@@ -202,6 +203,8 @@ type
 
     IsCachedMaterialProperty: boolean;
     CachedMaterialProperty: TMaterialProperty;
+
+    FShadowVolumes: TShapeShadowVolumes;
 
     { Just like Geometry() and State(), except return @nil if no proxy available
       (when Geometry would return the same thing as OriginalGeometry).
@@ -383,8 +386,8 @@ type
       It contains only triangles within this shape.
 
       There is no distinction here between collidable / visible
-      (as for TCastleSceneCore octrees), since the whole shape may be
-      visible and/or collidable.
+      (as for TCastleSceneCore octrees), since only the whole shape may be
+      marked as visible and/or collidable, not particular triangles.
 
       The triangles are specified in local coordinate system of this shape
       (that is, they are independent from transformation within State.Transform).
@@ -405,35 +408,34 @@ type
       Parent TCastleSceneCore will also take care of actually using
       this octree: TCastleSceneCore.OctreeCollisions methods actually use the
       octrees of specific shapes at the bottom. }
-    function OctreeTriangles: TTriangleOctree;
+    function InternalOctreeTriangles: TTriangleOctree;
 
     { Which spatial structrues (octrees, for now) should be created and managed.
       This works analogous to TCastleSceneCore.Spatial, but this manages
-      octrees within this TShape. }
-    property Spatial: TShapeSpatialStructures read FSpatial write SetSpatial;
+      octrees within this TShape.
+
+      Parent TCastleSceneCore will take care to keep this value updated,
+      you should only set TCastleSceneCore.Spatial from the outside. }
+    property InternalSpatial: TShapeSpatialStructures read FSpatial write SetSpatial;
 
     { Properties of created triangle octrees.
       See TriangleOctree unit comments for description.
 
       Default value comes from DefLocalTriangleOctreeLimits.
 
-      If TriangleOctreeProgressTitle <> '', it will be shown during
-      octree creation (through TProgress.Title). Will be shown only
-      if progress is not active already
-      ( so we avoid starting "progress bar within progress bar").
-
       They are used only when the octree is created, so usually you
       want to set them right before changing @link(Spatial) from []
-      to something else.
+      to something else. }
+    function InternalTriangleOctreeLimits: POctreeLimits;
 
-      @groupBegin }
-    function TriangleOctreeLimits: POctreeLimits;
-
-    property TriangleOctreeProgressTitle: string
+    { If TriangleOctreeProgressTitle <> '', it will be shown during
+      octree creation (through TProgress.Title). Will be shown only
+      if progress is not active already
+      (so we avoid starting "progress bar within progress bar"). }
+    property InternalTriangleOctreeProgressTitle: string
       read  FTriangleOctreeProgressTitle
       write FTriangleOctreeProgressTitle;
-    { @groupEnd }
-  public
+
     { Looking at material and color and texture nodes,
       decide if the shape is opaque or (partially) transparent.
 
@@ -589,6 +591,9 @@ type
 
     { Material property associated with this shape's material/texture. }
     function MaterialProperty: TMaterialProperty;
+
+    { @exclude }
+    property InternalShadowVolumes: TShapeShadowVolumes read FShadowVolumes;
   end;
 
   TShapeTreeList = specialize TFPGObjectList<TShapeTree>;
@@ -898,7 +903,7 @@ var
 
 implementation
 
-uses CastleProgress, CastleSceneCore, CastleNormals, CastleLog, CastleWarnings,
+uses CastleProgress, CastleSceneCore, CastleInternalNormals, CastleLog, CastleWarnings,
   CastleStringUtils, CastleArraysGenerator, CastleImages, CastleURIUtils;
 
 const
@@ -956,6 +961,7 @@ begin
   inherited Create(AParentScene);
 
   FTriangleOctreeLimits := DefLocalTriangleOctreeLimits;
+  FShadowVolumes := TShapeShadowVolumes.Create(Self);
 
   FOriginalGeometry := AOriginalGeometry;
   FOriginalState := AOriginalState;
@@ -980,6 +986,7 @@ end;
 
 destructor TShape.Destroy;
 begin
+  FreeAndNil(FShadowVolumes);
   FreeProxy;
   FreeAndNil(FNormals);
   FreeAndNil(FOriginalState);
@@ -1003,13 +1010,13 @@ begin
   FreeAndNil(FOctreeTriangles);
 end;
 
-function TShape.OctreeTriangles: TTriangleOctree;
+function TShape.InternalOctreeTriangles: TTriangleOctree;
 begin
-  if (ssTriangles in Spatial) and (FOctreeTriangles = nil) then
+  if (ssTriangles in InternalSpatial) and (FOctreeTriangles = nil) then
   begin
     FOctreeTriangles := CreateTriangleOctree(
       OverrideOctreeLimits(FTriangleOctreeLimits),
-      TriangleOctreeProgressTitle);
+      InternalTriangleOctreeProgressTitle);
     if Log and LogChanges then
       WritelnLog('X3D changes (octree)', Format(
         'Shape(%s).OctreeTriangles updated', [PointerToStr(Self)]));
@@ -1018,7 +1025,7 @@ begin
   Result := FOctreeTriangles;
 end;
 
-function TShape.TriangleOctreeLimits: POctreeLimits;
+function TShape.InternalTriangleOctreeLimits: POctreeLimits;
 begin
   Result := @FTriangleOctreeLimits;
 end;
@@ -1430,11 +1437,11 @@ procedure TShape.SetSpatial(const Value: TShapeSpatialStructures);
 var
   Old, New: boolean;
 begin
-  if Value <> Spatial then
+  if Value <> InternalSpatial then
   begin
     { Handle OctreeTriangles }
 
-    Old := ssTriangles in Spatial;
+    Old := ssTriangles in InternalSpatial;
     New := ssTriangles in Value;
 
     if Old and not New then
@@ -1470,6 +1477,15 @@ begin
     svTrianglesCountNotOver, svTrianglesCountOver,
     svBoundingSphere,
     svNormals];
+
+  { Clear variables after removing fvTrianglesList* }
+  FShadowVolumes.InvalidateTrianglesListShadowCasters;
+
+  { Edges topology possibly changed. }
+  if not ChangedOnlyCoord then
+    { When ChangedOnlyCoord, we don't do InvalidateManifoldAndBorderEdges,
+      and this an important optimization (makes mesh deformation cheaper). }
+    FShadowVolumes.InvalidateManifoldAndBorderEdges;
 
   if not CalledFromParentScene then
   begin
@@ -1574,7 +1590,7 @@ begin
   begin
   {$endif}
 
-    Result := OctreeTriangles.RayCollision(
+    Result := InternalOctreeTriangles.RayCollision(
       Intersection, IntersectionDistance, RayOrigin, RayDirection,
       ReturnClosestIntersection,
       TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
@@ -1615,7 +1631,7 @@ begin
   begin
   {$endif}
 
-    Result := OctreeTriangles.SegmentCollision(
+    Result := InternalOctreeTriangles.SegmentCollision(
       Intersection, IntersectionDistance, Pos1, Pos2,
       ReturnClosestIntersection,
       TriangleToIgnore, IgnoreMarginAtStart, TrianglesToIgnoreFunc);
@@ -2702,7 +2718,9 @@ begin
     SortPosition and A.BoundingBox, we merely look at A.BoundingBox.
     This way looking at 2D Spine scene from the other side is also Ok.
 
-    For speed, we don't look at bounding box Middle, only at it's min point. }
+    For speed, we don't look at bounding box Middle, only at it's min point.
+    The assumption here is that shape is 2D, so
+      BoundingBox.Data[0][2] = BoundingBox.Data[1][2] = BoundingBox.Middle[2] . }
 
   if (not A.BoundingBox.IsEmpty) and
     ( B.BoundingBox.IsEmpty or

@@ -82,7 +82,7 @@ begin
 
   { render to Image }
   ProcessTimerBegin;
-  QuadLightMapVar(Image, Scene.GlobalLights, Scene.OctreeVisibleTriangles, Quad,
+  QuadLightMapVar(Image, Scene.GlobalLights, Scene.InternalOctreeVisibleTriangles, Quad,
     RenderDir, 'Rendering');
   Writeln(Format('Rendering done in %f seconds.', [ProcessTimerEnd]));
 

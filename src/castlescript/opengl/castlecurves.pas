@@ -22,23 +22,24 @@ unit CastleCurves;
 
 interface
 
-uses Classes, FGL, CastleVectors, CastleBoxes, CastleUtils, CastleScript,
+uses SysUtils, Classes, FGL, DOM,
+  CastleVectors, CastleBoxes, CastleUtils, CastleScript,
   CastleClassUtils, Castle3D, CastleFrustum, CastleColors;
 
 type
-  { 3D curve, a set of points defined by a continous function @link(Point)
-    for arguments within [TBegin, TEnd].
+  ECurveFileInvalid = class(Exception);
 
-    Note that some descendants return only an approximate BoundingBox result,
-    it may be too small or too large sometimes.
-    (Maybe at some time I'll make this more rigorous, as some code may require
-    that it's a proper bounding box, maybe too large but never too small.) }
+  { 3D curve, a set of points defined by a continous function @link(Point)
+    for arguments within [TBegin, TEnd]. }
   TCurve = class(T3D)
   private
     FColor: TCastleColor;
     FLineWidth: Single;
     FTBegin, FTEnd: Single;
     FDefaultSegments: Cardinal;
+  protected
+    procedure LoadFromElement(const E: TDOMElement); virtual;
+    procedure SaveToStream(const Stream: TStream); virtual;
   public
     { The valid range of curve function argument. Must be TBegin <= TEnd.
       @groupBegin }
@@ -49,6 +50,7 @@ type
     { Curve function, for each parameter value determine the 3D point.
       This determines the actual shape of the curve. }
     function Point(const t: Float): TVector3Single; virtual; abstract;
+    function Point2D(const t: Float): TVector2Single;
 
     { Curve function to work with rendered line segments begin/end points.
       This is simply a more specialized version of @link(Point),
@@ -67,8 +69,10 @@ type
 
     { Curve rendering color. White by default. }
     property Color: TCastleColor read FColor write FColor;
+      deprecated 'Do not use this, as you should not use Render method.';
 
     property LineWidth: Single read FLineWidth write FLineWidth default 1;
+      deprecated 'Do not use this, as you should not use Render method.';
 
     { Default number of segments, used when rendering by T3D interface
       (that is, @code(Render(Frustum, TransparentGroup...)) method.) }
@@ -79,24 +83,42 @@ type
       const Params: TRenderParams); override;
 
     constructor Create(AOwner: TComponent); override;
+
+    { Load the first curve defined in given XML file.
+      Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
+      visually. }
+    class function LoadFromFile(const URL: string): TCurve;
   end;
 
-  TCurveList = specialize TFPGObjectList<TCurve>;
+  TCurveList = class(specialize TFPGObjectList<TCurve>)
+  public
+    { Load curves definitions from a simple XML file.
+      Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
+      visually. }
+    procedure LoadFromFile(const URL: string);
+
+    { Save curve definitions to a simple XML file.
+      Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
+      visually. }
+    procedure SaveToFile(const URL: string);
+  end;
 
   { Curve defined by explicitly giving functions for
     Point(t) = x(t), y(t), z(t) as CastleScript expressions. }
   TCasScriptCurve = class(TCurve)
   private
     FSegmentsForBoundingBox: Cardinal;
-    procedure SetSegmentsForBoundingBox(AValue: Cardinal);
-    procedure SetTVariable(AValue: TCasScriptFloat);
-  protected
     FTVariable: TCasScriptFloat;
     FFunction: array [0..2] of TCasScriptExpression;
     FBoundingBox: TBox3D;
+    procedure SetSegmentsForBoundingBox(AValue: Cardinal);
+    procedure SetTVariable(AValue: TCasScriptFloat);
     function GetFunction(const Index: Integer): TCasScriptExpression;
     procedure SetFunction(const Index: Integer; const Value: TCasScriptExpression);
     procedure UpdateBoundingBox;
+  protected
+    procedure LoadFromElement(const E: TDOMElement); override;
+    procedure SaveToStream(const Stream: TStream); override;
   public
     function Point(const t: Float): TVector3Single; override;
 
@@ -132,11 +154,11 @@ type
     Note: it is @italic(not) defined in this class any correspondence between
     values of T (argument for Point function) and ControlPoints. }
   TControlPointsCurve = class(TCurve)
-  private
+  strict private
     FBoundingBox: TBox3D;
     FControlPointsColor: TCastleColor;
     FConvexHullColor: TCastleColor;
-  protected
+  strict protected
     { Using these function you can control how Convex Hull (for RenderConvexHull)
       is calculated: CreateConvexHullPoints should return points that must be
       in convex hull (we will run ConvexHull function on those points),
@@ -152,17 +174,21 @@ type
       CreateConvexHullPoints. (and does nothing in DestroyConvexHullPoints) }
     function CreateConvexHullPoints: TVector3SingleList; virtual;
     procedure DestroyConvexHullPoints(Points: TVector3SingleList); virtual;
+  protected
+    procedure LoadFromElement(const E: TDOMElement); override;
+    procedure SaveToStream(const Stream: TStream); override;
   public
     ControlPoints: TVector3SingleList;
 
     property ControlPointsColor: TCastleColor read FControlPointsColor write FControlPointsColor;
+      deprecated 'Do not use this, as you should not use RenderControlPoints method.';
 
     { Render control points, using ControlPointsColor. }
     procedure RenderControlPoints;
+      deprecated 'Do not render stuff directly by this method. Instead create TCastleScene, initialize it''s X3D graph based on ControlPoints, and add it to the SceneManager.Items.';
 
-    { This class provides implementation for BoundingBox: it is simply
-      a BoundingBox of ControlPoints. Subclasses may (but don't have to)
-      override this to calculate better (more accurate) BoundingBox. }
+    { Bounding box of the curve.
+      In this class, it is simply a BoundingBox of ControlPoints. }
     function BoundingBox: TBox3D; override;
 
     { Always after changing ControlPoints or TBegin or TEnd and before calling Point,
@@ -173,25 +199,21 @@ type
       When overriding: always call inherited first. }
     procedure UpdateControlPoints; virtual;
 
-    { Nice class name, with spaces, starts with a capital letter.
-      Much better than ClassName. Especially under FPC 1.0.x where
-      ClassName is always uppercased. }
-    class function NiceClassName: string; virtual; abstract;
-
     property ConvexHullColor: TCastleColor read FConvexHullColor write FConvexHullColor;
+      deprecated 'Do not use this, as you should not use RenderConvexHull method.';
 
     { Render convex hull polygon, using ConvexHullColor.
       Ignores Z-coord of ControlPoints. }
     procedure RenderConvexHull;
+      deprecated 'Do not render stuff directly by this method. Instead create TCastleScene, initialize it''s X3D graph based on ConvexHullPoints, and add it to the SceneManager.Items.';
 
-    { Constructor.
-      It has to be virtual because it's called by CreateDivideCasScriptCurve. }
+    { Constructor. }
     constructor Create(AOwner: TComponent); override;
 
-    { Calculates ControlPoints taking Point(i, ControlPointsCount-1)
-      for i in [0 .. ControlPointsCount-1] from CasScriptCurve.
+    { Calculate initial control points by sampling given TCasScriptCurve,
+      with analytical curve equation.
       TBegin and TEnd are copied from CasScriptCurve. }
-    constructor CreateDivideCasScriptCurve(CasScriptCurve: TCasScriptCurve;
+    constructor CreateFromEquation(CasScriptCurve: TCasScriptCurve;
       ControlPointsCount: Cardinal);
 
     destructor Destroy; override;
@@ -201,217 +223,70 @@ type
 
   TControlPointsCurveList = specialize TFPGObjectList<TControlPointsCurve>;
 
-  { Curve that passes exactly through it's ControlPoints.x
-    I.e. for each ControlPoint[i] there exists some value Ti
-    that Point(Ti) = ControlPoint[i] and
-    TBegin = T0 <= .. Ti-1 <= Ti <= Ti+1 ... <= Tn = TEnd
-    (i.e. Point(TBegin) = ControlPoints[0],
-          Point(TEnd) = ControlPoints[n]
-     and all Ti are ordered,
-     n = ControlPoints.High) }
-  TInterpolatedCurve = class(TControlPointsCurve)
-    { This can be overriden in subclasses.
-      In this class this provides the most common implementation:
-      equally (uniformly) spaced Ti values. }
-    function ControlPointT(i: Integer): Float; virtual;
-  end;
-
-  { Curve defined as [Lx(t), Ly(t), Lz(t)] where
-    L?(t) are Lagrange's interpolation polynomials.
-    Lx(t) crosses points (ti, xi) (i = 0..ControlPoints.Count-1)
-    where ti = TBegin + i/(ControlPoints.Count-1) * (TEnd-TBegin)
-    and xi = ControlPoints[i, 0].
-    Similarly for Ly and Lz.
-
-    Later note: in fact, you can override ControlPointT to define
-    function "ti" as you like. }
-  TLagrangeInterpolatedCurve = class(TInterpolatedCurve)
-  private
-    { Values for Newton's polynomial form of Lx, Ly and Lz.
-      Will be calculated in UpdateControlPoints. }
-    Newton: array[0..2]of TFloatList;
-  public
-    procedure UpdateControlPoints; override;
-    function Point(const t: Float): TVector3Single; override;
-
-    class function NiceClassName: string; override;
-
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-  end deprecated 'Rendering of this is not portable to OpenGLES, and this is not really a useful curve for most practical game uses. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
-
-  { Natural cubic spline (1D).
-    May be periodic or not. }
-  TNaturalCubicSpline = class
-  private
-    FMinX, FMaxX: Float;
-    FOwnsX, FOwnsY: boolean;
-    FPeriodic: boolean;
-    FX, FY: TFloatList;
-    M: TFloatList;
-  public
-    property MinX: Float read FMinX;
-    property MaxX: Float read FMaxX;
-    property Periodic: boolean read FPeriodic;
-
-    { Constructs natural cubic spline such that for every i in [0; X.Count-1]
-      s(X[i]) = Y[i]. Must be X.Count = Y.Count.
-      X must be already sorted.
-      MinX = X[0], MaxX = X[X.Count-1].
-
-      Warning: we will copy references to X and Y ! So make sure that these
-      objects are available for the life of this object.
-      We will free in destructor X if OwnsX and free Y if OwnsY. }
-    constructor Create(X, Y: TFloatList; AOwnsX, AOwnsY, APeriodic: boolean);
-    destructor Destroy; override;
-
-    { Evaluate value of natural cubic spline at x.
-      Must be MinX <= x <= MaxX. }
-    function Evaluate(x: Float): Float;
-  end;
-
-  { 3D curve defined by three 1D natural cubic splines.
-    Works just like TLagrangeInterpolatedCurve, only the interpolation
-    is different now. }
-  TNaturalCubicSplineCurve_Abstract = class(TInterpolatedCurve)
-  protected
-    { Is the curve closed. May depend on ControlPoints,
-      it will be recalculated in UpdateControlPoints. }
-    function Closed: boolean; virtual; abstract;
-  private
-    { Created/Freed in UpdateControlPoints, Freed in Destroy }
-    Spline: array[0..2]of TNaturalCubicSpline;
-  public
-    procedure UpdateControlPoints; override;
-    function Point(const t: Float): TVector3Single; override;
-
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-  end;
-
-  { 3D curve defined by three 1D natural cubic splines, automatically
-    closed if first and last points match. This is the most often suitable
-    non-abstract implementation of TNaturalCubicSplineCurve_Abstract. }
-  TNaturalCubicSplineCurve = class(TNaturalCubicSplineCurve_Abstract)
-  protected
-    function Closed: boolean; override;
-  public
-    class function NiceClassName: string; override;
-  end deprecated 'Rendering of this is not portable to OpenGLES, and this is not really a useful curve for most practical game uses. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
-
-  { 3D curve defined by three 1D natural cubic splines, always treated as closed. }
-  TNaturalCubicSplineCurveAlwaysClosed = class(TNaturalCubicSplineCurve_Abstract)
-  protected
-    function Closed: boolean; override;
-  public
-    class function NiceClassName: string; override;
-  end deprecated 'Rendering of this is not portable to OpenGLES, and this is not really a useful curve for most practical game uses. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
-
-  { 3D curve defined by three 1D natural cubic splines, never treated as closed. }
-  TNaturalCubicSplineCurveNeverClosed = class(TNaturalCubicSplineCurve_Abstract)
-  protected
-    function Closed: boolean; override;
-  public
-    class function NiceClassName: string; override;
-  end deprecated 'Rendering of this is not portable to OpenGLES, and this is not really a useful curve for most practical game uses. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
-
   { Rational Bezier curve (Bezier curve with weights).
     Note: for Bezier Curve ControlPoints.Count MAY be 1.
     (For TControlPointsCurve it must be >= 2) }
   TRationalBezierCurve = class(TControlPointsCurve)
-  public
-    { Splits this curve using Casteljau algorithm.
-
-      Under B1 and B2 returns two new, freshly created, bezier curves,
-      such that if you concatenate them - they will create this curve.
-      Proportion is something from (0; 1).
-      B1 will be equal to Self for T in TBegin .. TMiddle,
-      B2 will be equal to Self for T in TMiddle .. TEnd,
-      where TMiddle = TBegin + Proportion * (TEnd - TBegin).
-
-      B1.ControlPoints.Count = B2.ControlPoints.Count =
-        Self.ControlPoints.Count. }
-    procedure Split(const Proportion: Float; var B1, B2: TRationalBezierCurve);
-
-    function Point(const t: Float): TVector3Single; override;
-    class function NiceClassName: string; override;
+  protected
+    procedure LoadFromElement(const E: TDOMElement); override;
+    procedure SaveToStream(const Stream: TStream); override;
   public
     { Curve weights.
       Must always be Weights.Count = ControlPoints.Count.
       After changing Weights you also have to call UpdateControlPoints.}
     Weights: TFloatList;
 
-    procedure UpdateControlPoints; override;
-
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-  end deprecated 'Rendering of TRationalBezierCurve is not portable to OpenGLES (that is: Android and iOS) and not very efficient. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
+    procedure UpdateControlPoints; override;
+    function Point(const t: Float): TVector3Single; override;
+  end deprecated 'Rendering of TRationalBezierCurve is not portable to OpenGLES (that is: Android and iOS) and not very efficient. Also, this is usually not very useful curve for game purposes, you usually want to use cubic Bezier (CubicBezier3D) or piecewise cubic Bezier (TPiecewiseCubicBezier) instead. For portable and fast general curves use X3D NURBS nodes (wrapped in a TCastleScene) instead.';
 
   {$warnings off} { Consciously using deprecated stuff. }
   TRationalBezierCurveList = specialize TFPGObjectList<TRationalBezierCurve>;
   {$warnings on}
+
+  TCubicBezier2DPoints = array [0..3] of TVector2Single;
+  TCubicBezier3DPoints = array [0..3] of TVector3Single;
 
   { Piecewise (composite) cubic Bezier curve.
     Each segment (ControlPoints[i]..ControlPoints[i+1])
     is a cubic Bezier curve (Bezier with 4 control points,
     2 points in the middle are auto-calculated for max smoothness).
 
-    It is a cubic B-spline. Which is equivalent to C2 continuous
+    This is a cubic B-spline. Which is equivalent to C2 continuous
     composite Bézier curves. See
     https://en.wikipedia.org/wiki/Spline_%28mathematics%29 .
+    Aka Cubic B-Spline (piecewise C2-Smooth Cubic Bezier).
 
     You can also explicitly convert it to a list of bezier curves using
     ToRationalBezierCurves.
 
     ControlPoints.Count may be 1 (in general,
-    for TControlPointsCurve, it must be >= 2). }
-  TPiecewiseCubicBezier = class(TInterpolatedCurve)
-  private
-    BezierCurves: TRationalBezierCurveList;
+    for TControlPointsCurve, it must be >= 2).
+
+    Note that, while using this to calculate points on curve is OK,
+    rendering this, and placing it on SceneManager.Items list, is deprecated.
+    It is not portable to OpenGLES (that is: Android and iOS) and
+    not very efficient. For portable and fast curves consider using
+    X3D NURBS nodes (wrapped in a TCastleScene) instead.
+    Or convert this curve to a TLineSetNode X3D node.
+  }
+  TPiecewiseCubicBezier = class(TControlPointsCurve)
+  strict private
+    BezierCurves: array of TCubicBezier3DPoints;
     ConvexHullPoints: TVector3SingleList;
-  protected
+    FBoundingBox: TBox3D;
+  strict protected
     function CreateConvexHullPoints: TVector3SingleList; override;
     procedure DestroyConvexHullPoints(Points: TVector3SingleList); override;
   public
-    function Point(const t: Float): TVector3Single; override;
-
-    { convert this to a list of TRationalBezierCurve.
-
-      From each line segment ControlPoint[i] ... ControlPoint[i+1]
-      you get one TRationalBezierCurve with 4 control points,
-      where ControlPoint[0] and ControlPoint[3] are taken from
-      ours ControlPoint[i] ... ControlPoint[i+1] and the middle
-      ControlPoint[1], ControlPoint[2] are calculated so that all those
-      bezier curves join smoothly.
-
-      All Weights are set to 1.0 (so actually these are all normal
-      Bezier curves; but I'm treating normal Bezier curves as Rational
-      Bezier curves everywhere here) }
-    function ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurveList;
-
-    procedure UpdateControlPoints; override;
-
-    class function NiceClassName: string; override;
-
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-  end deprecated 'Rendering of TPiecewiseCubicBezier is not portable to OpenGLES (that is: Android and iOS) and not very efficient. For portable and fast curves consider using X3D NURBS nodes (wrapped in a TCastleScene) instead.';
-
-  {$warnings off} { Consciously using deprecated stuff. }
-  TSmoothInterpolatedCurve = TPiecewiseCubicBezier;
-  {$warnings on}
-
-(*TODO: buggy now.
-  TFastPiecewiseCubicBezier = class(TInterpolatedCurve)
-  public
+    procedure UpdateControlPoints; override;
     function Point(const t: Float): TVector3Single; override;
-    class function NiceClassName: string; override;
+    function BoundingBox: TBox3D; override;
   end;
-*)
-
-type
-  TCubicBezier2DPoints = array [0..3] of TVector2Single;
-  TCubicBezier3DPoints = array [0..3] of TVector3Single;
 
 { Cubic (4 control points) Bezier curve (with all weights equal) in 1D. }
 function CubicBezier1D(T: Single; const Points: TVector4Single): Single;
@@ -463,7 +338,8 @@ function HermiteTenseSpline(const X: Single; const Loop: boolean;
 
 implementation
 
-uses SysUtils, Math, CastleGL, CastleConvexHull, CastleGLUtils;
+uses Math,
+  CastleGL, CastleConvexHull, CastleGLUtils, CastleXMLUtils, CastleDownload;
 
 { TCurve ------------------------------------------------------------ }
 
@@ -473,15 +349,20 @@ begin
 end;
 
 procedure TCurve.Render(Segments: Cardinal);
-var i: Integer;
+{$ifndef OpenGLES} //TODO-es
+var
+  i: Integer;
 begin
-  {$ifndef OpenGLES} //TODO-es
+  {$warnings off}
   glColorv(Color);
   glLineWidth(LineWidth);
+  {$warnings on}
   glBegin(GL_LINE_STRIP);
   for i := 0 to Segments do glVertexv(PointOfSegment(i, Segments));
   glEnd;
-  {$endif}
+{$else}
+begin
+{$endif}
 end;
 
 procedure TCurve.Render(const Frustum: TFrustum;
@@ -516,6 +397,101 @@ begin
   FDefaultSegments := 10;
   FLineWidth := 1;
   FColor := White;
+end;
+
+procedure TCurve.LoadFromElement(const E: TDOMElement);
+var
+  ETime: TDOMElement;
+begin
+  ETime := E.ChildElement('time');
+  TBegin := ETime.AttributeSingle('begin');
+  TEnd := ETime.AttributeSingle('end');
+end;
+
+procedure TCurve.SaveToStream(const Stream: TStream);
+begin
+  WritelnStr(Stream, Format('    <time begin="%f" end="%f" />', [TBegin, TEnd]));
+end;
+
+function TCurve.Point2D(const T: Float): TVector2Single;
+var
+  V: TVector3Single;
+begin
+  V := Point(T);
+  Result[0] := V[0];
+  Result[1] := V[1];
+end;
+
+class function TCurve.LoadFromFile(const URL: string): TCurve;
+var
+  List: TCurveList;
+begin
+  List := TCurveList.Create(true);
+  try
+    List.LoadFromFile(URL);
+    if List.Count = 0 then
+      raise ECurveFileInvalid.Create('Empty curve XML file, cannot get first curve');
+    Result := List.Extract(List.First);
+  finally FreeAndNil(List) end;
+end;
+
+{ TCurveList ---------------------------------------------------- }
+
+procedure TCurveList.LoadFromFile(const URL: string);
+var
+  Document: TXMLDocument;
+  I: TXMLElementIterator;
+  CurveTypeStr: string;
+  Curve: TCurve;
+begin
+  Clear;
+
+  Document := URLReadXML(URL);
+  try
+    Check(Document.DocumentElement.TagName = 'curves',
+      'Root node of curves file must be <curves>');
+
+    I := Document.DocumentElement.ChildrenIterator('curve');
+    try
+      while I.GetNext do
+      begin
+        CurveTypeStr := I.Current.AttributeString('type');
+        {$warnings off}
+        { consciously using deprecated }
+        if SameText(CurveTypeStr, TRationalBezierCurve.ClassName) then
+          Curve := TRationalBezierCurve.Create(nil) else
+        {$warnings on}
+        if SameText(CurveTypeStr, TPiecewiseCubicBezier.ClassName) then
+          Curve := TPiecewiseCubicBezier.Create(nil) else
+        if SameText(CurveTypeStr, TCasScriptCurve.ClassName) then
+          Curve := TCasScriptCurve.Create(nil) else
+          raise ECurveFileInvalid.CreateFmt('Curve type "%s" unknown', [CurveTypeStr]);
+        Curve.LoadFromElement(I.Current);
+        if Curve is TControlPointsCurve then
+          TControlPointsCurve(Curve).UpdateControlPoints;
+        Add(Curve);
+      end;
+    finally FreeAndNil(I); end;
+  finally FreeAndNil(Document) end;
+end;
+
+procedure TCurveList.SaveToFile(const URL: string);
+var
+  Stream: TStream;
+  I: Integer;
+begin
+  Stream := URLSaveStream(URL);
+  try
+    WritelnStr(Stream, '<?xml version="1.0"?>');
+    WritelnStr(Stream, '<curves>');
+    for I := 0 to Count - 1 do
+    begin
+      WritelnStr(Stream, '  <curve type="' + Items[I].ClassName + '">');
+      Items[I].SaveToStream(Stream);
+      WritelnStr(Stream, '  </curve>');
+    end;
+    WritelnStr(Stream, '</curves>');
+  finally FreeAndNil(Stream) end;
 end;
 
 { TCasScriptCurve ------------------------------------------------------------ }
@@ -614,18 +590,34 @@ begin
   inherited;
 end;
 
+procedure TCasScriptCurve.LoadFromElement(const E: TDOMElement);
+begin
+  inherited LoadFromElement(E);
+  // TODO: load TCasScriptCurve specifics
+end;
+
+procedure TCasScriptCurve.SaveToStream(const Stream: TStream);
+begin
+  inherited SaveToStream(Stream);
+  // TODO: save TCasScriptCurve specifics
+end;
+
 { TControlPointsCurve ------------------------------------------------ }
 
 procedure TControlPointsCurve.RenderControlPoints;
+{$ifndef OpenGLES} //TODO-es
 var
   i: Integer;
 begin
-  {$ifndef OpenGLES} //TODO-es
+  {$warnings off}
   glColorv(ControlPointsColor);
+  {$warnings on}
   glBegin(GL_POINTS);
   for i := 0 to ControlPoints.Count-1 do glVertexv(ControlPoints.L[i]);
   glEnd;
-  {$endif}
+{$else}
+begin
+{$endif}
 end;
 
 function TControlPointsCurve.BoundingBox: TBox3D;
@@ -649,6 +641,7 @@ begin
 end;
 
 procedure TControlPointsCurve.RenderConvexHull;
+{$ifndef OpenGLES} //TODO-es
 var
   CHPoints: TVector3SingleList;
   CH: TIntegerList;
@@ -658,16 +651,19 @@ begin
   try
     CH := ConvexHull(CHPoints);
     try
-      {$ifndef OpenGLES} //TODO-es
+      {$warnings off}
       glColorv(ConvexHullColor);
+      {$warnings on}
       glBegin(GL_POLYGON);
       try
         for i := 0 to CH.Count-1 do
           glVertexv(CHPoints.L[CH[i]]);
       finally glEnd end;
-      {$endif}
     finally CH.Free end;
   finally DestroyConvexHullPoints(CHPoints) end;
+{$else}
+begin
+{$endif}
 end;
 
 constructor TControlPointsCurve.Create(AOwner: TComponent);
@@ -681,7 +677,7 @@ begin
   FConvexHullColor := White;
 end;
 
-constructor TControlPointsCurve.CreateDivideCasScriptCurve(
+constructor TControlPointsCurve.CreateFromEquation(
   CasScriptCurve: TCasScriptCurve; ControlPointsCount: Cardinal);
 var
   i: Integer;
@@ -701,394 +697,51 @@ begin
   inherited;
 end;
 
-{ TInterpolatedCurve ----------------------------------------------- }
-
-function TInterpolatedCurve.ControlPointT(i: Integer): Float;
-begin
-  Result := TBegin + (i/(ControlPoints.Count-1)) * (TEnd-TBegin);
-end;
-
-{ TLagrangeInterpolatedCurve ----------------------------------------------- }
-
-procedure TLagrangeInterpolatedCurve.UpdateControlPoints;
+procedure TControlPointsCurve.LoadFromElement(const E: TDOMElement);
 var
-  i, j, k, l: Integer;
+  I: TXMLElementIterator;
+  EControlPoints: TDOMElement;
 begin
-  inherited;
+  inherited LoadFromElement(E);
 
-  for i := 0 to 2 do
-  begin
-    Newton[i].Count := ControlPoints.Count;
-    for j := 0 to ControlPoints.Count-1 do
-      Newton[i].L[j] := ControlPoints.L[j, i];
-
-    { licz kolumny tablicy ilorazow roznicowych in place, overriding Newton[i] }
-    for k := 1 to ControlPoints.Count-1 do
-      { licz k-ta kolumne }
-      for l := ControlPoints.Count-1 downto k do
-        { licz l-ty iloraz roznicowy w k-tej kolumnie }
-        Newton[i].L[l]:=
-          (Newton[i].L[l] - Newton[i].L[l-1]) /
-          (ControlPointT(l) - ControlPointT(l-k));
-  end;
-end;
-
-function TLagrangeInterpolatedCurve.Point(const t: Float): TVector3Single;
-var
-  i, k: Integer;
-  f: Float;
-begin
-  for i := 0 to 2 do
-  begin
-    { Oblicz F przy pomocy uogolnionego schematu Hornera z Li(t).
-      Wspolczynniki b_k sa w tablicy Newton[i].L[k],
-      wartosci t_k sa w ControlPointT(k). }
-    F := Newton[i].L[ControlPoints.Count-1];
-    for k := ControlPoints.Count-2 downto 0 do
-      F := F*(t-ControlPointT(k)) + Newton[i].L[k];
-    { Dopiero teraz przepisz F do Result[i]. Dzieki temu obliczenia wykonujemy
-      na Floatach. Tak, to naprawde pomaga -- widac ze kiedy uzywamy tego to
-      musimy miec wiecej ControlPoints zeby dostac Floating Point Overflow. }
-    Result[i] := F;
-  end;
-end;
-
-class function TLagrangeInterpolatedCurve.NiceClassName: string;
-begin
-  Result := 'Lagrange interpolated curve';
-end;
-
-constructor TLagrangeInterpolatedCurve.Create(AOwner: TComponent);
-var
-  i: Integer;
-begin
-  inherited;
-  for i := 0 to 2 do Newton[i] := TFloatList.Create;
-end;
-
-destructor TLagrangeInterpolatedCurve.Destroy;
-var
-  i: Integer;
-begin
-  for i := 0 to 2 do FreeAndNil(Newton[i]);
-  inherited;
-end;
-
-{ TNaturalCubicSpline -------------------------------------------------------- }
-
-constructor TNaturalCubicSpline.Create(X, Y: TFloatList;
-  AOwnsX, AOwnsY, APeriodic: boolean);
-
-{ Based on SLE (== Stanislaw Lewanowicz) notes on ii.uni.wroc.pl lecture. }
-
-var
-  { n = X.High. Integer, not Cardinal, to avoid some overflows in n-2. }
-  n: Integer;
-
-  { [Not]PeriodicDK licza wspolczynnik d_k. k jest na pewno w [1; n-1] }
-  function PeriodicDK(k: Integer): Float;
-  var
-    h_k: Float;
-    h_k1: Float;
-  begin
-    h_k  := X[k] - X[k-1];
-    h_k1 := X[k+1] - X[k];
-    Result := ( 6 / (h_k + h_k1) ) *
-              ( (Y[k+1] - Y[k]) / h_k1 -
-                (Y[k] - Y[k-1]) / h_k
-              );
-  end;
-
-  { special version, works like PeriodicDK(n) should work
-    (but does not, PeriodicDK works only for k < n.) }
-  function PeriodicDN: Float;
-  var
-    h_n: Float;
-    h_n1: Float;
-  begin
-    h_n  := X[n] - X[n-1];
-    h_n1 := X[1] - X[0];
-    Result := ( 6 / (h_n + h_n1) ) *
-              ( (Y[1] - Y[n]) / h_n1 -
-                (Y[n] - Y[n-1]) / h_n
-              );
-  end;
-
-  function IlorazRoznicowy(const Start, Koniec: Cardinal): Float;
-  { liczenie pojedynczego ilorazu roznicowego wzorem rekurencyjnym.
-    Poniewaz do algorytmu bedziemy potrzebowali tylko ilorazow stopnia 3
-    (lub mniej) i to tylko na chwile - wiec taka implementacja
-    (zamiast zabawa w tablice) bedzie prostsza i wystarczajaca. }
-  begin
-    if Start = Koniec then
-      Result := Y[Start] else
-      Result := (IlorazRoznicowy(Start + 1, Koniec) -
-                 IlorazRoznicowy(Start, Koniec - 1))
-                 / (X[Koniec] - X[Start]);
-  end;
-
-  function NotPeriodicDK(k: Integer): Float;
-  begin
-    Result := 6 * IlorazRoznicowy(k-1, k+1);
-  end;
-
-var
-  u, q, s, t, v: TFloatList;
-  hk, dk, pk, delta_k, delta_n, h_n, h_n1: Float;
-  k: Integer;
-begin
-  inherited Create;
-  Assert(X.Count = Y.Count);
-  FMinX := X.First;
-  FMaxX := X.Last;
-  FOwnsX := AOwnsX;
-  FOwnsY := AOwnsY;
-  FX := X;
-  FY := Y;
-  FPeriodic := APeriodic;
-
-  { prepare to calculate M }
-  n := X.Count - 1;
-  M := TFloatList.Create;
-  M.Count := n+1;
-
-  { Algorytm obliczania wartosci M[0..n] z notatek SLE, te same oznaczenia.
-    Sa tutaj polaczone algorytmy na Periodic i not Perdiodic, zeby mozliwie
-    nie duplikowac kodu (i uniknac pomylek z copy&paste).
-    Tracimy przez to troche czasu (wielokrotne testy "if Periodic ..."),
-    ale kod jest prostszy i bardziej elegancki.
-
-    Notka: W notatkach SLE dla Periodic = true w jednym miejscu uzyto
-    M[n+1] ale tak naprawde nie musimy go liczyc ani uzywac. }
-
-  u := nil;
-  q := nil;
-  s := nil;
+  EControlPoints := E.ChildElement('control_points');
+  I := EControlPoints.ChildrenIterator('control_point');
   try
-    u := TFloatList.Create; U.Count := N;
-    q := TFloatList.Create; Q.Count := N;
-    if Periodic then begin s := TFloatList.Create; S.Count := N; end;
-
-    { calculate u[0], q[0], s[0] }
-    u[0] := 0;
-    q[0] := 0;
-    if Periodic then s[0] := 1;
-
-    for k := 1 to n - 1 do
-    begin
-      { calculate u[k], q[k], s[k] }
-
-      hk := X[k] - X[k-1];
-      { delta[k] = h[k] / (h[k] + h[k+1])
-                 = h[k] / (X[k] - X[k-1] + X[k+1] - X[k])
-                 = h[k] / (X[k+1] - X[k-1])
-      }
-      delta_k := hk / (X[k+1] - X[k-1]);
-      pk := delta_k * q[k-1] + 2;
-      q[k]:=(delta_k - 1) / pk;
-      if Periodic then s[k] := - delta_k * s[k-1] / pk;
-      if Periodic then
-        dk := PeriodicDK(k) else
-        dk := NotPeriodicDK(k);
-      u[k]:=(dk - delta_k * u[k-1]) / pk;
-    end;
-
-    { teraz wyliczamy wartosci M[0..n] }
-    if Periodic then
-    begin
-      t := nil;
-      v := nil;
-      try
-        t := TFloatList.Create; T.Count := N + 1;
-        v := TFloatList.Create; V.Count := N + 1;
-
-        t[n] := 1;
-        v[n] := 0;
-
-        { z notatek SLE wynika ze t[0], v[0] nie sa potrzebne (i k moze robic
-          "downto 1" zamiast "downto 0") ale t[0], v[0] MOGA byc potrzebne:
-          przy obliczaniu M[n] dla n = 1. }
-        for k := n-1 downto 0 do
-        begin
-          t[k] := q[k] * t[k+1] + s[k];
-          v[k] := q[k] * v[k+1] + u[k];
-        end;
-
-        h_n  := X[n] - X[n-1];
-        h_n1 := X[1] - X[0];
-        delta_n := h_n / (h_n + h_n1);
-        M[n] := (PeriodicDN - (1-delta_n) * v[1] - delta_n * v[n-1]) /
-                (2          + (1-delta_n) * t[1] + delta_n * t[n-1]);
-        M[0] := M[n];
-        for k := n-1 downto 1 do  M[k] := v[k] + t[k] * M[n];
-      finally
-        t.Free;
-        v.Free;
-      end;
-    end else
-    begin
-      { zawsze M[0] = M[n] = 0, zeby latwo bylo zapisac obliczenia w Evaluate }
-      M[0] := 0;
-      M[n] := 0;
-      M[n-1] := u[n-1];
-      for k := n-2 downto 1 do M[k] := u[k] + q[k] * M[k+1];
-    end;
-  finally
-    u.Free;
-    q.Free;
-    s.Free;
-  end;
+    while I.GetNext do
+      ControlPoints.Add(I.Current.AttributeVector3('value'));
+  finally FreeAndNil(I); end;
 end;
 
-destructor TNaturalCubicSpline.Destroy;
+procedure TControlPointsCurve.SaveToStream(const Stream: TStream);
+var
+  I: Integer;
+  VectorStr: string;
 begin
-  if FOwnsX then FX.Free;
-  if FOwnsY then FY.Free;
-  M.Free;
-  inherited;
-end;
+  inherited SaveToStream(Stream);
 
-function TNaturalCubicSpline.Evaluate(x: Float): Float;
-
-  function Power3rd(const a: Float): Float;
+  WritelnStr(Stream, '    <control_points>');
+  for I := 0 to ControlPoints.Count - 1 do
   begin
-    Result := a * a * a;
+    VectorStr := VectorToRawStr(ControlPoints[I]);
+    WritelnStr(Stream, '      <control_point value="' + VectorStr + '"/>');
   end;
-
-var
-  k, KMin, KMax, KMiddle: Cardinal;
-  hk: Float;
-begin
-  ClampVar(x, MinX, MaxX);
-
-  { calculate k: W ktorym przedziale x[k-1]..x[k] jest argument ?
-    TODO: nalezoloby pomyslec o wykorzystaniu faktu
-    ze czesto wiadomo iz wezly x[i] sa rownoodlegle. }
-  KMin := 1;
-  KMax := FX.Count - 1;
-  repeat
-    KMiddle:=(KMin + KMax) div 2;
-    { jak jest ulozony x w stosunku do przedzialu FX[KMiddle-1]..FX[KMiddle] ? }
-    if x < FX[KMiddle-1] then KMax := KMiddle-1 else
-      if x > FX[KMiddle] then KMin := KMiddle+1 else
-        begin
-          KMin := KMiddle; { set only KMin, KMax is meaningless from now }
-          break;
-        end;
-  until KMin = KMax;
-
-  k := KMin;
-
-  Assert(Between(x, FX[k-1], FX[k]));
-
-  { obliczenia uzywaja tych samych symboli co w notatkach SLE }
-  { teraz obliczam wartosc s(x) gdzie s to postac funkcji sklejanej
-    na przedziale FX[k-1]..FX[k] }
-  hk := FX[k] - FX[k-1];
-  Result := ( ( M[k-1] * Power3rd(FX[k] - x) + M[k] * Power3rd(x - FX[k-1]) )/6 +
-              ( FY[k-1] - M[k-1]*Sqr(hk)/6 )*(FX[k] - x)                        +
-              ( FY[k]   - M[k  ]*Sqr(hk)/6 )*(x - FX[k-1])
-            ) / hk;
-end;
-
-{ TNaturalCubicSplineCurve_Abstract ------------------------------------------- }
-
-procedure TNaturalCubicSplineCurve_Abstract.UpdateControlPoints;
-var
-  i, j: Integer;
-  SplineX, SplineY: TFloatList;
-begin
-  inherited;
-
-  { calculate SplineX.
-    Spline[0] and Spline[1] and Spline[2] will share the same reference to X.
-    Only Spline[2] will own SplineX. (Spline[2] will be always Freed as the
-    last one, so it's safest to set OwnsX in Spline[2]) }
-  SplineX := TFloatList.Create;
-  SplineX.Count := ControlPoints.Count;
-  for i := 0 to ControlPoints.Count-1 do SplineX[i] := ControlPointT(i);
-
-  for i := 0 to 2 do
-  begin
-    FreeAndNil(Spline[i]);
-
-    { calculate SplineY }
-    SplineY := TFloatList.Create;
-    SplineY.Count := ControlPoints.Count;
-    for j := 0 to ControlPoints.Count-1 do SplineY[j] := ControlPoints.L[j, i];
-
-    Spline[i] := TNaturalCubicSpline.Create(SplineX, SplineY, i = 2, true, Closed);
-  end;
-end;
-
-function TNaturalCubicSplineCurve_Abstract.Point(const t: Float): TVector3Single;
-var
-  i: Integer;
-begin
-  for i := 0 to 2 do Result[i] := Spline[i].Evaluate(t);
-end;
-
-constructor TNaturalCubicSplineCurve_Abstract.Create(AOwner: TComponent);
-begin
-  inherited;
-end;
-
-destructor TNaturalCubicSplineCurve_Abstract.Destroy;
-var
-  i: Integer;
-begin
-  for i := 0 to 2 do FreeAndNil(Spline[i]);
-  inherited;
-end;
-
-{ TNaturalCubicSplineCurve -------------------------------------------------- }
-
-class function TNaturalCubicSplineCurve.NiceClassName: string;
-begin
-  Result := 'Natural cubic spline curve';
-end;
-
-function TNaturalCubicSplineCurve.Closed: boolean;
-begin
-  Result := VectorsEqual(ControlPoints.First,
-                         ControlPoints.Last);
-end;
-
-{ TNaturalCubicSplineCurveAlwaysClosed -------------------------------------- }
-
-class function TNaturalCubicSplineCurveAlwaysClosed.NiceClassName: string;
-begin
-  Result := 'Natural cubic spline curve (closed)';
-end;
-
-function TNaturalCubicSplineCurveAlwaysClosed.Closed: boolean;
-begin
-  Result := true;
-end;
-
-{ TNaturalCubicSplineCurveNeverClosed ---------------------------------------- }
-
-class function TNaturalCubicSplineCurveNeverClosed.NiceClassName: string;
-begin
-  Result := 'Natural cubic spline curve (not closed)';
-end;
-
-function TNaturalCubicSplineCurveNeverClosed.Closed: boolean;
-begin
-  Result := false;
+  WritelnStr(Stream, '    </control_points>');
 end;
 
 { TRationalBezierCurve ----------------------------------------------- }
 
-{$define DE_CASTELJAU_DECLARE:=
+function TRationalBezierCurve.Point(const t: Float): TVector3Single;
 var
+  u: Float;
   W: TVector3SingleList;
   Wgh: TFloatList;
-  i, k, n, j: Integer;}
+  i, k, n, j: Integer;
+begin
+  { u := t normalized to [0; 1] }
+  u := (t - TBegin) / (TEnd - TBegin);
 
-{ This initializes W and Wgh (0-th step of de Casteljau algorithm).
-  It uses ControlPoints, Weights. }
-{$define DE_CASTELJAU_BEGIN:=
+  { Initializes W and Wgh (0-th step of de Casteljau algorithm).
+    It uses ControlPoints, Weights. }
   n := ControlPoints.Count - 1;
 
   W := nil;
@@ -1101,90 +754,28 @@ var
     W.Assign(ControlPoints);
     Wgh := TFloatList.Create;
     Wgh.Assign(Weights);
-}
-
-{ This caculates in W and Wgh k-th step of de Casteljau algorithm.
-  This assumes that W and Wgh already contain (k-1)-th step.
-  Uses u as the target point position (in [0; 1]) }
-{$define DE_CASTELJAU_STEP:=
-begin
-  for i := 0 to n - k do
-  begin
-    for j := 0 to 2 do
-      W.L[i][j]:=(1-u) * Wgh[i  ] * W.L[i  ][j] +
-                         u * Wgh[i+1] * W.L[i+1][j];
-    Wgh.L[i]:=(1-u) * Wgh[i] + u * Wgh[i+1];
-    for j := 0 to 2 do
-      W.L[i][j] /= Wgh.L[i];
-  end;
-end;}
-
-{ This frees W and Wgh. }
-{$define DE_CASTELJAU_END:=
-  finally
-    Wgh.Free;
-    W.Free;
-  end;}
-
-procedure TRationalBezierCurve.Split(const Proportion: Float; var B1, B2: TRationalBezierCurve);
-var TMiddle, u: Float;
-DE_CASTELJAU_DECLARE
-begin
-  TMiddle := TBegin + Proportion * (TEnd - TBegin);
-  {$warnings off} { Consciously using deprecated stuff. }
-  B1 := TRationalBezierCurve.Create(nil);
-  B2 := TRationalBezierCurve.Create(nil);
-  {$warnings on}
-  B1.TBegin := TBegin;
-  B1.TEnd := TMiddle;
-  B2.TBegin := TMiddle;
-  B2.TEnd := TEnd;
-  B1.ControlPoints.Count := ControlPoints.Count;
-  B2.ControlPoints.Count := ControlPoints.Count;
-  B1.Weights.Count := Weights.Count;
-  B2.Weights.Count := Weights.Count;
-
-  { now we do Casteljau algorithm, similiar to what we do in Point.
-    But this time our purpose is to update B1.ControlPoints/Weights and
-    B2.ControlPoints/Weights. }
-
-  u := Proportion;
-
-  DE_CASTELJAU_BEGIN
-    B1.ControlPoints.L[0] := ControlPoints.L[0];
-    B1.Weights      .L[0] := Wgh          .L[0];
-    B2.ControlPoints.L[n] := ControlPoints.L[n];
-    B2.Weights      .L[n] := Wgh          .L[n];
 
     for k := 1 to n do
     begin
-      DE_CASTELJAU_STEP
-
-      B1.ControlPoints.L[k]   := W  .L[0];
-      B1.Weights      .L[k]   := Wgh.L[0];
-      B2.ControlPoints.L[n-k] := W  .L[n-k];
-      B2.Weights      .L[n-k] := Wgh.L[n-k];
+      { This caculates in W and Wgh k-th step of de Casteljau algorithm.
+        This assumes that W and Wgh already contain (k-1)-th step.
+        Uses u as the target point position (in [0; 1]) }
+      for i := 0 to n - k do
+      begin
+        for j := 0 to 2 do
+          W.L[i][j]:=(1-u) * Wgh[i  ] * W.L[i  ][j] +
+                             u * Wgh[i+1] * W.L[i+1][j];
+        Wgh.L[i]:=(1-u) * Wgh[i] + u * Wgh[i+1];
+        for j := 0 to 2 do
+          W.L[i][j] /= Wgh.L[i];
+      end;
     end;
-  DE_CASTELJAU_END
-end;
 
-function TRationalBezierCurve.Point(const t: Float): TVector3Single;
-var
-  u: Float;
-DE_CASTELJAU_DECLARE
-begin
-  { u := t normalized to [0; 1] }
-  u := (t - TBegin) / (TEnd - TBegin);
-
-  DE_CASTELJAU_BEGIN
-    for k := 1 to n do DE_CASTELJAU_STEP
     Result := W.L[0];
-  DE_CASTELJAU_END
-end;
-
-class function TRationalBezierCurve.NiceClassName: string;
-begin
-  Result := 'Rational Bezier curve';
+  finally
+    Wgh.Free;
+    W.Free;
+  end;
 end;
 
 procedure TRationalBezierCurve.UpdateControlPoints;
@@ -1206,6 +797,33 @@ begin
   inherited;
 end;
 
+procedure TRationalBezierCurve.LoadFromElement(const E: TDOMElement);
+var
+  I: TXMLElementIterator;
+  EControlPoints: TDOMElement;
+begin
+  inherited LoadFromElement(E);
+
+  EControlPoints := E.ChildElement('weights');
+  I := EControlPoints.ChildrenIterator('weight');
+  try
+    while I.GetNext do
+      Weights.Add(I.Current.AttributeSingle('value'));
+  finally FreeAndNil(I); end;
+end;
+
+procedure TRationalBezierCurve.SaveToStream(const Stream: TStream);
+var
+  I: Integer;
+begin
+  inherited SaveToStream(Stream);
+
+  WritelnStr(Stream, '    <weights>');
+  for I := 0 to Weights.Count - 1 do
+    WritelnStr(Stream, '      <weight value="' + FloatToRawStr(Weights[I]) + '"/>');
+  WritelnStr(Stream, '    </weights>');
+end;
+
 { TPiecewiseCubicBezier --------------------------------------------------- }
 
 function TPiecewiseCubicBezier.CreateConvexHullPoints: TVector3SingleList;
@@ -1219,132 +837,129 @@ end;
 
 function TPiecewiseCubicBezier.Point(const t: Float): TVector3Single;
 var
-  i: Integer;
+  T01: Single;
+  TInsidePiece: Double;
+  IndexBefore: Int64;
+  IndexBeforeChange: Integer;
 begin
+  Assert(ControlPoints.Count >= 1);
   if ControlPoints.Count = 1 then
-    Exit(ControlPoints.L[0]);
+    Exit(ControlPoints.Items[0]);
 
-  for i := 0 to BezierCurves.Count-1 do
-    if t <= BezierCurves[i].TEnd then Break;
+  T01 := MapRange(T, TBegin, TEnd, 0, 1);
+  if ControlPoints.Count = 2 then
+    // super-fast case
+    Exit(Lerp(T01, ControlPoints.Items[0], ControlPoints.Items[1]));
 
-  Result := BezierCurves[i].Point(t);
+  FloatDivMod(T01, 1 / (ControlPoints.Count - 1), IndexBefore, TInsidePiece);
+  TInsidePiece *= ControlPoints.Count - 1; // make TInsidePiece in 0..1 range
+
+  { fix IndexBefore (together with TInsidePiece, synchronized)
+    to be within [0, ControlPoints.Count - 2] range.
+    Necessary so that both IndexBefore and IndexAfter are later in valid
+    control points [0, ControlPoints.Count - 1] range. }
+  IndexBeforeChange := 0;
+  if IndexBefore > ControlPoints.Count - 2 then
+    IndexBeforeChange := -(IndexBefore - (ControlPoints.Count - 2)) else
+  if IndexBefore < 0 then
+    IndexBeforeChange := -IndexBefore;
+  if IndexBeforeChange <> 0 then
+  begin
+    IndexBefore += IndexBeforeChange;
+    TInsidePiece -= IndexBeforeChange;
+  end;
+  Assert(IndexBefore >= 0);
+  Assert(IndexBefore <= ControlPoints.Count - 2);
+
+  // writeln('TPiecewiseCubicBezier got ', IndexBefore, ' ', TInsidePiece:1:2);
+
+  if IndexBefore >= Length(BezierCurves) then
+    raise Exception.Create('Curves data inside PiecewiseCubicBezier not initialized, probably you forgot to call UpdateControlPoints after changing the ControlPoints');
+  Result := CubicBezier3D(TInsidePiece, BezierCurves[IndexBefore]);
 end;
 
-function TPiecewiseCubicBezier.ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurveList;
-var
-  S: TVector3SingleList;
+procedure TPiecewiseCubicBezier.UpdateControlPoints;
 
-  function MiddlePoint(i, Sign: Integer): TVector3Single;
+  procedure UpdateBezierCurves;
+  var
+    S: TVector3SingleList;
+    C: TVector3SingleList;
+    I: Integer;
+    PointBegin, PointEnd: TVector3Single;
   begin
-    Result := ControlPoints.L[i];
-    VectorAddVar(Result,
-      VectorScale(S.L[i], Sign * (ControlPointT(i) - ControlPointT(i-1)) / 3));
-  end;
+    { Normal calculations cannot be done when
+      ControlPoints.Count = 2:
+      C.Count would be 1, S.Count would be 2,
+      S[0] would be calculated based on C[0] and S[1],
+      S[1] would be calculated based on C[0] and S[0].
+      So we can't calculate S[0] and S[1] using given equations when
+      ControlPoints.Count = 2.
 
-var
-  C: TVector3SingleList;
-  i: Integer;
-  {$warnings off} { Consciously using deprecated stuff. }
-  NewCurve: TRationalBezierCurve;
-  {$warnings on}
-begin
-  Result := TRationalBezierCurveList.Create(ResultOwnsCurves);
-  try
-    if ControlPoints.Count <= 1 then Exit;
-
-    if ControlPoints.Count = 2 then
-    begin
-      { Normal calcualtions (based on SLE mmgk notes) cannot be done when
-        ControlPoints.Count = 2:
-        C.Count would be 1, S.Count would be 2,
-        S[0] would be calculated based on C[0] and S[1],
-        S[1] would be calculated based on C[0] and S[0].
-        So I can't calculate S[0] and S[1] using given equations when
-        ControlPoints.Count = 2. So I must implement a special case for
-        ControlPoints.Count = 2. }
-      {$warnings off} { Consciously using deprecated stuff. }
-      NewCurve := TRationalBezierCurve.Create(nil);
-      {$warnings on}
-      NewCurve.TBegin := ControlPointT(0);
-      NewCurve.TEnd := ControlPointT(1);
-      NewCurve.ControlPoints.Add(ControlPoints.L[0]);
-      NewCurve.ControlPoints.Add(Lerp(1/3, ControlPoints.L[0], ControlPoints.L[1]));
-      NewCurve.ControlPoints.Add(Lerp(2/3, ControlPoints.L[0], ControlPoints.L[1]));
-      NewCurve.ControlPoints.Add(ControlPoints.L[1]);
-      NewCurve.Weights.AddArray([1.0, 1.0, 1.0, 1.0]);
-      NewCurve.UpdateControlPoints;
-      Result.Add(NewCurve);
-
+      Point() method implements a special case for ControlPoints.Count = 2,
+      it just does Lerp then. }
+    if ControlPoints.Count <= 2 then
       Exit;
-    end;
 
     { based on SLE mmgk notes, "Krzywe Beziera" page 4 }
     C := nil;
     S := nil;
     try
       C := TVector3SingleList.Create;
-      C.Count := ControlPoints.Count-1;
+      C.Count := ControlPoints.Count - 1;
       { calculate C values }
-      for i := 0 to C.Count-1 do
-      begin
-        C.L[i] := VectorSubtract(ControlPoints.L[i+1], ControlPoints.L[i]);
-        VectorScaleVar(C.L[i],
-          1/(ControlPointT(i+1) - ControlPointT(i)));
-      end;
+      for I := 0 to C.Count - 1 do
+        C[I] := ControlPoints[I + 1] - ControlPoints[I];
 
       S := TVector3SingleList.Create;
       S.Count := ControlPoints.Count;
       { calculate S values }
-      for i := 1 to S.Count-2 do
-        S.L[i] := Lerp( (ControlPointT(i+1) - ControlPointT(i))/
-                            (ControlPointT(i+1) - ControlPointT(i-1)),
-                            C.L[i-1], C.L[i]);
-      S.L[0        ] := VectorSubtract(VectorScale(C.L[0        ], 2), S.L[1        ]);
-      S.L[S.Count-1] := VectorSubtract(VectorScale(C.L[S.Count-2], 2), S.L[S.Count-2]);
+      for I := 1 to S.Count - 2 do
+        S[I] := (C[I-1] + C[I]) / 2;
+      S[0        ] := C[0        ] * 2 - S[1        ];
+      S[S.Count-1] := C[S.Count-2] * 2 - S[S.Count-2];
 
-      for i := 1 to ControlPoints.Count-1 do
+      SetLength(BezierCurves, ControlPoints.Count - 1);
+
+      for I := 1 to ControlPoints.Count - 1 do
       begin
-        {$warnings off} { Consciously using deprecated stuff. }
-        NewCurve := TRationalBezierCurve.Create(nil);
-        {$warnings on}
-        NewCurve.TBegin := ControlPointT(i-1);
-        NewCurve.TEnd := ControlPointT(i);
-        NewCurve.ControlPoints.Add(ControlPoints.L[i-1]);
-        NewCurve.ControlPoints.Add(MiddlePoint(i-1, +1));
-        NewCurve.ControlPoints.Add(MiddlePoint(i  , -1));
-        NewCurve.ControlPoints.Add(ControlPoints.L[i]);
-        NewCurve.Weights.AddArray([1.0, 1.0, 1.0, 1.0]);
-        NewCurve.UpdateControlPoints;
-        Result.Add(NewCurve);
+        PointBegin := ControlPoints.L[I - 1];
+        PointEnd   := ControlPoints.L[I];
+        BezierCurves[I - 1][0] := PointBegin;
+        BezierCurves[I - 1][1] := PointBegin + S[I -1] / 3;
+        BezierCurves[I - 1][2] := PointEnd   - S[I   ] / 3;
+        BezierCurves[I - 1][3] := PointEnd;
       end;
     finally
       C.Free;
       S.Free;
     end;
-  except Result.Free; raise end;
-end;
+  end;
 
-class function TPiecewiseCubicBezier.NiceClassName: string;
-begin
-  Result := 'Cubic B-Spline (piecewise C2-Smooth Cubic Bezier)';
-end;
+  procedure UpdateConvexHullPoints;
+  var
+    I: Integer;
+  begin
+    ConvexHullPoints.Clear;
+    ConvexHullPoints.AddList(ControlPoints);
+    for I := 0 to Length(BezierCurves) - 1 do
+    begin
+      { add also intermediate control points }
+      ConvexHullPoints.Add(BezierCurves[I][1]);
+      ConvexHullPoints.Add(BezierCurves[I][2]);
+    end;
+  end;
 
-procedure TPiecewiseCubicBezier.UpdateControlPoints;
-var
-  i: Integer;
+  procedure UpdateBoundingBox;
+  begin
+    FBoundingBox := CalculateBoundingBox(PVector3Single(ConvexHullPoints.List),
+      ConvexHullPoints.Count, 0);
+  end;
+
 begin
   inherited;
-  FreeAndNil(BezierCurves);
-
-  BezierCurves := ToRationalBezierCurves(true);
-
-  ConvexHullPoints.Clear;
-  ConvexHullPoints.AddList(ControlPoints);
-  for i := 0 to BezierCurves.Count-1 do
-  begin
-    ConvexHullPoints.Add(BezierCurves[i].ControlPoints.L[1]);
-    ConvexHullPoints.Add(BezierCurves[i].ControlPoints.L[2]);
-  end;
+  UpdateBezierCurves;
+  UpdateConvexHullPoints;
+  UpdateBoundingBox;
 end;
 
 constructor TPiecewiseCubicBezier.Create(AOwner: TComponent);
@@ -1355,69 +970,14 @@ end;
 
 destructor TPiecewiseCubicBezier.Destroy;
 begin
-  FreeAndNil(BezierCurves);
   FreeAndNil(ConvexHullPoints);
   inherited;
 end;
 
-{ TFastPiecewiseCubicBezier -------------------------------------------------- }
-
-(*
-TODO: buggy now.
-
-class function TFastPiecewiseCubicBezier.NiceClassName: string;
+function TPiecewiseCubicBezier.BoundingBox: TBox3D;
 begin
-  Result := 'Fast Cubic B-Spline (piecewise C2-Smooth Cubic Bezier)';
+  Result := FBoundingBox;
 end;
-
-function TFastPiecewiseCubicBezier.Point(const T: Float): TVector3Single;
-
-  { This asssumes that I = [0..ControlPoints.Count - 2]. }
-  function C(const I: Integer): TVector3Single;
-  begin
-    Result := ControlPoints.L[I + 1] - ControlPoints.L[I];
-  end;
-
-  { This asssumes that I = [0..ControlPoints.Count - 1],
-    not outside of this range, and that ControlPoints.Count > 2. }
-  function S(const I: Integer): TVector3Single;
-  begin
-    if I = 0 then
-      Exit(C(0) * 2 - S(1)) else
-    if I = ControlPoints.Count - 1 then
-      Exit(C(ControlPoints.Count - 2) * 2 - S(ControlPoints.Count - 2)) else
-      Exit((ControlPoints.L[I - 1] + ControlPoints.L[I]) / 2);
-  end;
-
-var
-  T01: Single;
-  TInsidePiece: Double;
-  IndexBefore: Int64;
-  IndexAfter: Integer;
-  PieceControlPoints: TCubicBezier3DPoints;
-begin
-  Assert(ControlPoints.Count >= 1);
-  if ControlPoints.Count = 1 then
-    Exit(ControlPoints.Items[0]);
-
-  T01 := MapRangeClamped(T, TBegin, TEnd, 0, 1);
-  if ControlPoints.Count = 2 then
-    Exit(Lerp(T01, ControlPoints.Items[0], ControlPoints.Items[1]));
-
-  FloatDivMod(T01, 1 / (ControlPoints.Count - 1), IndexBefore, TInsidePiece);
-  ClampVar(IndexBefore, 0, ControlPoints.Count - 2);
-  IndexAfter := IndexBefore + 1;
-  TInsidePiece *= ControlPoints.Count - 1; // make TInsidePiece in 0..1 range
-
-  PieceControlPoints[0] := ControlPoints[IndexBefore];
-  PieceControlPoints[3] := ControlPoints[IndexAfter];
-
-  PieceControlPoints[1] := PieceControlPoints[0] + S(IndexBefore) / 3;
-  PieceControlPoints[2] := PieceControlPoints[3] - S(IndexAfter) / 3;
-
-  Result := CubicBezier3D(TInsidePiece, PieceControlPoints);
-end;
-*)
 
 { global routines ------------------------------------------------------------ }
 

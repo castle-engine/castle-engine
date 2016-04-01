@@ -17,13 +17,12 @@
   [http://icculus.org/homepages/phaethon/q3a/formats/md3format.html]. }
 unit X3DLoadInternalMD3;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, Classes, CastleUtils, CastleClassUtils, CastleVectors, X3DNodes,
   FGL, CastleGenericLists;
-
-{ Load MD3 animation into a single animated X3D model. }
-function LoadMD3(const URL: string): TX3DRootNode;
 
 { Load MD3 animation as a sequence of static X3D models. }
 procedure LoadMD3Sequence(
@@ -561,18 +560,6 @@ begin
     Texture.FreeIfUnused;
     Texture := nil;
   end;
-end;
-
-function LoadMD3(const URL: string): TX3DRootNode;
-var
-  Md3: TObject3DMD3;
-  BaseUrl: string;
-begin
-  BaseUrl := AbsoluteURI(URL);
-  Md3 := TObject3DMD3.Create(URL);
-  try
-    Result := LoadMD3Frame(Md3, 0, BaseUrl);
-  finally FreeAndNil(Md3) end;
 end;
 
 procedure LoadMD3Sequence(

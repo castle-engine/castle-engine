@@ -16,6 +16,8 @@
 { Generating noise. }
 unit CastleNoise;
 
+{$I castleconf.inc}
+
 interface
 
 { Noise for 2D coords, resulting in float 0..1 range.

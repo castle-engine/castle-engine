@@ -676,7 +676,7 @@ begin
 
      If it's not on the list of allowed classes, try to transform
      it to the most matching class. When doing this, we try to perform
-     the most lossless convertion --- this means that we prefer to
+     the most lossless conversion --- this means that we prefer to
      add image channel or expand grayscale->RGB than the other way around.
      For example, if image file is grayscale+alpha, we prefer to make
      it RGB+alpha (expand grayscale to RGB) than to grayscale (strip alpha).

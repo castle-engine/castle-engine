@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestDDS;
+unit TestCastleCompositeImage;
 
 interface
 
@@ -21,17 +21,17 @@ uses
   fpcunit, testutils, testregistry;
 
 type
-  TTestDDS = class(TTestCase)
+  TTestCastleCompositeImage = class(TTestCase)
   published
-    procedure TestLoadSaveDDS;
+    procedure TestLoadSave;
     procedure TestLoadSaveS3TC;
   end;
 
 implementation
 
-uses SysUtils, CastleVectors, CastleImages, CastleDDS, Classes;
+uses SysUtils, CastleVectors, CastleImages, CastleCompositeImage, Classes;
 
-procedure TTestDDS.TestLoadSaveDDS;
+procedure TTestCastleCompositeImage.TestLoadSave;
 
   procedure AssertImagesEqual(I1, I2: TEncodedImage);
   begin
@@ -47,41 +47,41 @@ procedure TTestDDS.TestLoadSaveDDS;
     end;
   end;
 
-  procedure AssertDDSEqual(DDS, DDS2: TDDSImage);
+  procedure AssertCompositeEqual(Composite, Composite2: TCompositeImage);
   var
     I: Integer;
   begin
-    AssertTrue(DDS.Images.Count = DDS2.Images.Count);
-    for I := 0 to DDS.Images.Count - 1 do
-      AssertImagesEqual(DDS.Images[I], DDS2.Images[I]);
+    AssertTrue(Composite.Images.Count = Composite2.Images.Count);
+    for I := 0 to Composite.Images.Count - 1 do
+      AssertImagesEqual(Composite.Images[I], Composite2.Images[I]);
   end;
 
   procedure TestImage(const FileName: string; const Is3d: boolean);
   var
-    DDS, DDS2: TDDSImage;
+    Composite, Composite2: TCompositeImage;
     StreamNoFlatten, StreamFlatten: TMemoryStream;
     OldImagesCount: Cardinal;
   begin
     StreamNoFlatten := TMemoryStream.Create;
     StreamFlatten := TMemoryStream.Create;
-    DDS := TDDSImage.Create;
-    DDS2 := TDDSImage.Create;
+    Composite := TCompositeImage.Create;
+    Composite2 := TCompositeImage.Create;
 
     try
-      DDS.LoadFromFile(FileName);
+      Composite.LoadFromFile(FileName);
 
       { save to stream without flattening }
-      DDS.SaveToStream(StreamNoFlatten);
+      Composite.SaveToStream(StreamNoFlatten);
 
-      { flatten (making sure it actually did something: changed DDS.Images.Count) }
-      OldImagesCount := DDS.Images.Count;
-      DDS.Flatten3d;
+      { flatten (making sure it actually did something: changed Composite.Images.Count) }
+      OldImagesCount := Composite.Images.Count;
+      Composite.Flatten3d;
       if Is3d then
-        AssertTrue(OldImagesCount < Cardinal(DDS.Images.Count)) else
-        AssertTrue(OldImagesCount = Cardinal(DDS.Images.Count));
+        AssertTrue(OldImagesCount < Cardinal(Composite.Images.Count)) else
+        AssertTrue(OldImagesCount = Cardinal(Composite.Images.Count));
 
       { save to stream with flattening }
-      DDS.SaveToStream(StreamFlatten);
+      Composite.SaveToStream(StreamFlatten);
 
       { compare saved with and without flattening: saved image should
         be exactly the same. }
@@ -97,21 +97,21 @@ procedure TTestDDS.TestLoadSaveDDS;
         StreamNoFlatten.Size));
 
       { read back (to get back to non-flattened version) }
-      DDS.Close;
-      DDS.LoadFromFile(FileName);
+      Composite.Close;
+      Composite.LoadFromFile(FileName);
 
       { compare with what is loaded from StreamNoFlatten and StreamFlatten:
-        they both should be equal to current DDS. }
+        they both should be equal to current Composite. }
       StreamNoFlatten.Position := 0;
-      DDS2.LoadFromStream(StreamNoFlatten);
-      AssertDDSEqual(DDS, DDS2);
+      Composite2.LoadFromStream(StreamNoFlatten);
+      AssertCompositeEqual(Composite, Composite2);
 
       StreamFlatten.Position := 0;
-      DDS2.LoadFromStream(StreamFlatten);
-      AssertDDSEqual(DDS, DDS2);
+      Composite2.LoadFromStream(StreamFlatten);
+      AssertCompositeEqual(Composite, Composite2);
     finally
-      FreeAndNil(DDS);
-      FreeAndNil(DDS2);
+      FreeAndNil(Composite);
+      FreeAndNil(Composite2);
       FreeAndNil(StreamNoFlatten);
       FreeAndNil(StreamFlatten);
     end;
@@ -124,36 +124,36 @@ begin
   TestImage('data/images/random3d_with_mipmaps.dds', true);
 end;
 
-procedure TTestDDS.TestLoadSaveS3TC;
+procedure TTestCastleCompositeImage.TestLoadSaveS3TC;
 
   procedure TestImage(const FileName: string; const Is3d: boolean);
   var
-    DDS: TDDSImage;
+    Composite: TCompositeImage;
     Stream1, Stream2: TMemoryStream;
   begin
     Stream1 := TMemoryStream.Create;
     Stream2 := TMemoryStream.Create;
-    DDS := TDDSImage.Create;
+    Composite := TCompositeImage.Create;
     try
-      { load file into DDS }
-      DDS.LoadFromFile(FileName);
-      AssertTrue(DDS.Images[0] is TGPUCompressedImage);
+      { load file into Composite }
+      Composite.LoadFromFile(FileName);
+      AssertTrue(Composite.Images[0] is TGPUCompressedImage);
 
-      { save DDS into Stream1 }
-      DDS.SaveToStream(Stream1);
+      { save Composite into Stream1 }
+      Composite.SaveToStream(Stream1);
 
-      { load Stream1 into DDS }
+      { load Stream1 into Composite }
       Stream1.Position := 0;
-      DDS.LoadFromStream(Stream1);
-      AssertTrue(DDS.Images[0] is TGPUCompressedImage);
+      Composite.LoadFromStream(Stream1);
+      AssertTrue(Composite.Images[0] is TGPUCompressedImage);
 
-      { save DDS into Stream2 }
-      DDS.SaveToStream(Stream2);
+      { save Composite into Stream2 }
+      Composite.SaveToStream(Stream2);
 
       { Test that both save and load do appropriate vertical flip.
         If only one would do vertical flip, streams would differ.
 
-        Note that we compare two streams obtained from saving DDS.
+        Note that we compare two streams obtained from saving Composite.
         We do *not* compare original FileName stream, as it's not guaranteed
         that we save it to exactly the same binary stream (for example,
         when saving we always add PitchOrLinearSize, while on load it may
@@ -162,7 +162,7 @@ procedure TTestDDS.TestLoadSaveS3TC;
       AssertTrue(Stream1.Size = Stream2.Size);
       AssertTrue(CompareMem(Stream1.Memory, Stream2.Memory, Stream1.Size));
     finally
-      FreeAndNil(DDS);
+      FreeAndNil(Composite);
       FreeAndNil(Stream1);
       FreeAndNil(Stream2);
     end;
@@ -173,5 +173,5 @@ begin
 end;
 
 initialization
- RegisterTest(TTestDDS);
+ RegisterTest(TTestCastleCompositeImage);
 end.

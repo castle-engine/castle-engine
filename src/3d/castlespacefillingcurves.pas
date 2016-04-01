@@ -17,6 +17,8 @@
   These are sequences of points that completely fill some 2D space. }
 unit CastleSpaceFillingCurves;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, CastleVectors;

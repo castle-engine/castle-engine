@@ -315,7 +315,7 @@ procedure TSFBoolEvent.Send(const Value: boolean);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFDoubleEvent ------------------------------------------------------------- }
@@ -340,7 +340,7 @@ procedure TSFDoubleEvent.Send(const Value: Double);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFTimeEvent --------------------------------------------------------------- }
@@ -365,7 +365,7 @@ procedure TSFTimeEvent.Send(const Value: TFloatTime);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFFloatEvent -------------------------------------------------------------- }
@@ -390,7 +390,7 @@ procedure TSFFloatEvent.Send(const Value: Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFImageEvent -------------------------------------------------------------- }
@@ -422,7 +422,7 @@ procedure TSFLongEvent.Send(const Value: LongInt);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFInt32Event -------------------------------------------------------------- }
@@ -447,7 +447,7 @@ procedure TSFInt32Event.Send(const Value: LongInt);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFMatrix3dEvent ----------------------------------------------------------- }
@@ -472,7 +472,7 @@ procedure TSFMatrix3dEvent.Send(const Value: TMatrix3Double);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFMatrix3fEvent ----------------------------------------------------------- }
@@ -497,7 +497,7 @@ procedure TSFMatrix3fEvent.Send(const Value: TMatrix3Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFMatrix4dEvent ----------------------------------------------------------- }
@@ -522,7 +522,7 @@ procedure TSFMatrix4dEvent.Send(const Value: TMatrix4Double);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFMatrix4fEvent ----------------------------------------------------------- }
@@ -547,7 +547,7 @@ procedure TSFMatrix4fEvent.Send(const Value: TMatrix4Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFNodeEvent --------------------------------------------------------------- }
@@ -579,7 +579,7 @@ procedure TSFRotationEvent.Send(const Value: TVector4Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFStringEvent ------------------------------------------------------------- }
@@ -604,7 +604,7 @@ procedure TSFStringEvent.Send(const Value: string);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFVec2dEvent -------------------------------------------------------------- }
@@ -629,7 +629,7 @@ procedure TSFVec2dEvent.Send(const Value: TVector2Double);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFVec2fEvent -------------------------------------------------------------- }
@@ -654,7 +654,7 @@ procedure TSFVec2fEvent.Send(const Value: TVector2Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFVec3dEvent -------------------------------------------------------------- }
@@ -679,7 +679,7 @@ procedure TSFVec3dEvent.Send(const Value: TVector3Double);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFVec3fEvent -------------------------------------------------------------- }
@@ -704,7 +704,7 @@ procedure TSFVec3fEvent.Send(const Value: TVector3Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFVec4dEvent -------------------------------------------------------------- }
@@ -729,7 +729,7 @@ procedure TSFVec4dEvent.Send(const Value: TVector4Double);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFVec4fEvent -------------------------------------------------------------- }
@@ -754,7 +754,7 @@ procedure TSFVec4fEvent.Send(const Value: TVector4Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFColorEvent -------------------------------------------------------------- }
@@ -779,7 +779,7 @@ procedure TSFColorEvent.Send(const Value: TVector3Single);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TSFColorRGBAEvent ---------------------------------------------------------- }
@@ -804,7 +804,7 @@ procedure TSFColorRGBAEvent.Send(const Value: TCastleColor);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
-    Send(Value, TX3DNode(ParentNode).Scene.GetTime);
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { ---------------------------------------------------------------------------- }

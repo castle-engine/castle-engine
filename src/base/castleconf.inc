@@ -24,7 +24,8 @@
   by directives. And specyfying only a subset of them is useless.
   The proper compiler options to compile the engine are in ../../castle-fpc.cfg
   configuration file (used also by fpmake compilation method),
-  and they are replicated in Lazarus packages compilation settings.
+  and they are replicated in Lazarus packages compilation settings,
+  and are replicated once more in castle-engine build tool code.
 }
 
 {$ifndef CASTLE_CONF_INCLUDED}
@@ -71,6 +72,13 @@
 {$ifdef VER2_0} {$fatal FPC 2.0.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
 {$ifdef VER2_2} {$fatal FPC 2.2.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
 {$ifdef VER2_4} {$fatal FPC 2.4.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
+{$ifdef VER2_6_0} {$fatal FPC 2.6.0 is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
+
+{ we use ObjFPC mode with AnsiString everywhere }
+{$mode objfpc}{$H+}
+
+{ we use macros in various parts }
+{$macro on}
 
 {$define TOBJECT_HAS_EQUALS}
 {$ifdef VER2_0}   {$undef TOBJECT_HAS_EQUALS} {$endif}

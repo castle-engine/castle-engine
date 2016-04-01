@@ -17,6 +17,7 @@
 
 unit CastleSceneCore;
 
+{$I castleconf.inc}
 {$I octreeconf.inc}
 
 interface
@@ -30,81 +31,17 @@ uses
   CastleRays;
 
 type
-  TTriangle3SingleList = specialize TGenericStructList<TTriangle3Single>;
-
   { Internal helper type for TCastleSceneCore.
     @exclude }
   TSceneValidity = (fvBoundingBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver,
-    fvTrianglesListShadowCasters,
-    fvManifoldAndBorderEdges,
     fvMainLightForShadows,
     fvShapesActiveCount,
     fvShapesActiveVisibleCount);
 
   { @exclude }
   TSceneValidities = set of TSceneValidity;
-
-  { Scene edge that is between exactly two triangles.
-    It's used by @link(TCastleSceneCore.ManifoldEdges),
-    and this is crucial for rendering silhouette shadow volumes in OpenGL. }
-  TManifoldEdge = record
-    { Index to get vertexes of this edge.
-      The actual edge's vertexes are not recorded here (this would prevent
-      using TCastleSceneCore.ShareManifoldAndBorderEdges with various scenes from
-      the same animation). You should get them as the VertexIndex
-      and (VertexIndex+1) mod 3 vertexes of the first triangle
-      (i.e. Triangles[0]). }
-    VertexIndex: Cardinal;
-
-    { Indexes to TCastleSceneCore.TrianglesListShadowCasters array }
-    Triangles: array [0..1] of Cardinal;
-
-    { These are vertexes at VertexIndex and (VertexIndex+1)mod 3 positions,
-      but @italic(only at generation of manifold edges time).
-      Like said in VertexIndex, keeping here actual vertex info would prevent
-      TCastleSceneCore.ShareManifoldAndBorderEdges. However, using these when generating
-      makes a great speed-up when generating manifold edges.
-
-      Memory cost is acceptable: assume we have model with 10 000 faces,
-      so 15 000 edges (assuming it's correctly closed manifold), so we waste
-      15 000 * 2 * SizeOf(TVector3Single) = 360 000 bytes... that's really nothing
-      to worry (we waste much more on other things).
-
-      Checked with "The Castle": indeed, this costs about 1 MB memory
-      (out of 218 MB...), with really lot of creatures... On the other hand,
-      this causes small speed-up when loading: loading creatures is about
-      5 seconds faster (18 with, 23 without this).
-
-      So memory loss is small, speed gain is noticeable (but still small),
-      implementation code is a little simplified, so I'm keeping this.
-      Also, in the future, maybe it will be sensible
-      to use this for actual shadow quad rendering, in cases when we know that
-      TCastleSceneCore.ShareManifoldAndBorderEdges was not used to make it. }
-    V0, V1: TVector3Single;
-  end;
-  PManifoldEdge = ^TManifoldEdge;
-
-  TManifoldEdgeList = specialize TGenericStructList<TManifoldEdge>;
-
-  { Scene edge that has one neighbor, i.e. border edge.
-    It's used by @link(TCastleSceneCore.BorderEdges),
-    and this is crucial for rendering silhouette shadow volumes in OpenGL. }
-  TBorderEdge = record
-    { Index to get vertex of this edge.
-      The actual edge's vertexes are not recorded here (this would prevent
-      using TCastleSceneCore.ShareManifoldAndBorderEdges with various scenes from
-      the same animation). You should get them as the VertexIndex
-      and (VertexIndex+1) mod 3 vertexes of the triangle TriangleIndex. }
-    VertexIndex: Cardinal;
-
-    { Index to TCastleSceneCore.TrianglesListShadowCasters array. }
-    TriangleIndex: Cardinal;
-  end;
-  PBorderEdge = ^TBorderEdge;
-
-  TBorderEdgeList = specialize TGenericStructList<TBorderEdge>;
 
   { These are various features that may be freed by
     TCastleSceneCore.FreeResources.
@@ -155,18 +92,13 @@ type
       The same comments as for frTextureDataInNodes apply. }
     frBackgroundImageInNodes,
 
-    { Free triangle list created by TrianglesListShadowCasters call.
-      This list is also implicitly created by ManifoldEdges or BorderEdges. }
-    frTrianglesListShadowCasters,
-
-    { Free edges lists in ManifoldEdges and BorderEdges.
-
-      Frees memory, but next call to ManifoldEdges and BorderEdges will
-      need to calculate them again (or you will need to call
-      TCastleSceneCore.ShareManifoldAndBorderEdges again).
-      Note that using this scene as shadow caster for shadow volumes algorithm
-      requires ManifoldEdges and BorderEdges. }
-    frManifoldAndBorderEdges);
+    { Free data created for shadow volumes processing.
+      This frees some memory, but trying to render shadow volumes will
+      need to recreate this data again (at least for all active shapes).
+      So freeing this is useful only if you have used shadow volumes,
+      but you will not need to render with shadow volumes anymore
+      (for some time). }
+    frShadowVolume);
 
   TSceneFreeResources = set of TSceneFreeResource;
 
@@ -357,50 +289,62 @@ type
   PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
   TCompiledScriptHandlerInfoList = specialize TGenericStructList<TCompiledScriptHandlerInfo>;
 
-  { Possible spatial structure types that may be managed by TCastleSceneCore,
+  { Possible spatial structures that may be managed by TCastleSceneCore,
     see TCastleSceneCore.Spatial. }
   TSceneSpatialStructure = (
-    { Create and keep current the TCastleSceneCore.OctreeRendering.
-      This is a dynamic octree containing all visible shapes. }
+    { Create @italic(and keep up-to-date) a spatial structure
+      containing all visible shapes.
+      It's useful for "frustum culling", it will be automatically
+      used by TCastleScene rendering to speed it up.
+
+      This octree will be automatically updated on dynamic scenes
+      (when e.g. animation moves some shape by changing it's transformation). }
     ssRendering,
 
-    { Create and keep current the TCastleSceneCore.OctreeDynamicCollisions.
-      This is a dynamic octree containing all collidable items. }
+    { Create @italic(and keep up-to-date) a spatial structure
+      containing all collidable shapes (and then reaching
+      into collidable triangles for a specifc shape).
+      It is automatically used by the XxxCollision methods in this class.
+
+      This is actually a hierarchy of octrees: scene is partitioned
+      first into Shapes (each instance of VRML/X3D geometry node),
+      and then each Shape has an octree of triangles inside.
+
+      This octree is useful for all kinds of collision detection.
+      Compared to OctreeCollidableTriangles, it is (very slightly on typical scenes)
+      less efficient, but it can also be updated very fast.
+      For example, merely transforming some Shape means that only
+      one item needs to be moved in the top-level shape tree.
+      So this is the most important structure for collision detection on
+      dynamic scenes. }
     ssDynamicCollisions,
 
-    { Create the TCastleSceneCore.OctreeVisibleTriangles.
-      This is an octree containing all visible triangles, suitable only
-      for scenes that stay static. }
+    { Create a spatial structure containing all visible triangles, suitable only
+      for scenes that stay static.
+
+      It's primarily use is for ray-tracers, that make a lot of collision queries
+      to the same scene in the same time. When rendering using OpenGL,
+      this has no use currently.
+
+      This structure is not updated on scene changes. In fact, the scene
+      contents cannot change when this octree is created --- as this octree
+      keeps pointers to some states that may become invalid in dynamic scenes. }
     ssVisibleTriangles,
 
-    { Create the TCastleSceneCore.OctreeCollidableTriangles.
-      This is an octree containing all collidable triangles, suitable only
-      for scenes that stay static. }
+    { Create a spatial structure containing containing all collidable triangles.
+      This is actually unused for now.
+
+      It may be useful to you if you're absolutely sure that you have a static scene
+      (nothing changes, e.g. because ProcessEvents = @false) and
+      you want to have collision detection with the scene.
+
+      For dynamic scenes, using this is a bad idea as
+      this octree is not updated on scene changes. In fact, the scene
+      contents cannot change when this octree is created --- as this octree
+      keeps pointers to some states that may become invalid in dynamic scenes.
+      Use ssDynamicCollisions for dynamic scenes. }
     ssCollidableTriangles);
   TSceneSpatialStructures = set of TSceneSpatialStructure;
-
-  { Triangles array for shadow casting object.
-
-    This guarantees that the whole array has first OpaqueCount opaque triangles,
-    then the rest is transparent.
-    The precise definition between "opaque"
-    and "transparent" is done by TShape.Transparent.
-    This is also used by OpenGL rendering to determine which shapes
-    need blending.
-
-    This separation into opaque and transparent parts
-    (with OpaqueCount marking the border) is useful for shadow volumes
-    algorithm, that must treat transparent shadow casters a little
-    differently. }
-  TTrianglesShadowCastersList = class(TTriangle3SingleList)
-  private
-    FOpaqueCount: Cardinal;
-  public
-    { Numer of opaque triangles on this list. Opaque triangles
-      are guarenteed to be placed before all transparent triangles
-      on this list. }
-    property OpaqueCount: Cardinal read FOpaqueCount;
-  end;
 
   TGeometryChange =
   ( { Everything changed. All octrees must be rebuild, old State pointers
@@ -432,7 +376,7 @@ type
       gcLocalGeometryChangedCoord means that coordinates changed.
       Compared to gcLocalGeometryChanged, this means that model edges
       structure remains the same (this is helpful e.g. to avoid
-      recalculating Manifold/BorderEdges in parent scene).
+      recalculating Manifold/BorderEdges).
 
       In this case, DoGeometryChanged parameter LocalGeometryShape is non-nil
       and indicated the (only) shape that changed.
@@ -518,7 +462,12 @@ type
     ScheduledHumanoidAnimateSkin: TX3DNodeList;
 
     PlayingAnimationNode: TTimeSensorNode;
+    NewPlayingAnimationUse: boolean;
+    NewPlayingAnimationNode: TTimeSensorNode;
+    NewPlayingAnimationLooping: TPlayAnimationLooping;
     FAnimationPrefix: string;
+    FAnimationsList: TStrings;
+    FTimeAtLoad: TFloatTime;
 
     { When this is non-empty, then the transformation change happened,
       and should be processed (for the whole X3D graph inside RootNode).
@@ -567,13 +516,8 @@ type
   var
     FShapesActiveCount: Cardinal;
     FShapesActiveVisibleCount: Cardinal;
-    FTrianglesListShadowCasters: TTrianglesShadowCastersList;
     { For easier access to list of viewpoints in the scene }
     FViewpointsArray: TAbstractViewpointNodeList;
-
-    { Removes fvTrianglesListShadowCasters from Validities,
-      and clears FTrianglesListShadowCasters variable. }
-    procedure InvalidateTrianglesListShadowCasters;
 
     function GetViewpointCore(
       const OnlyPerspective: boolean;
@@ -582,16 +526,6 @@ type
       const ViewpointDescription: string):
       TAbstractViewpointNode;
   private
-    FManifoldEdges: TManifoldEdgeList;
-    FBorderEdges: TBorderEdgeList;
-    FOwnsManifoldAndBorderEdges: boolean;
-
-    { Removes fvManifoldAndBorderEdges from Validities,
-      and clears FManifold/BordEdges variables. }
-    procedure InvalidateManifoldAndBorderEdges;
-
-    procedure CalculateIfNeededManifoldAndBorderEdges;
-
     procedure FreeResources_UnloadTextureData(Node: TX3DNode);
     procedure FreeResources_UnloadTexture3DData(Node: TX3DNode);
   private
@@ -616,11 +550,11 @@ type
     procedure ScriptsInitialize;
     procedure ScriptsFinalize;
   private
-    FTime: TX3DTime;
+    FTimeNow: TX3DTime;
 
     { Internal procedure that handles Time changes. }
     procedure InternalSetTime(
-      const NewValue: TX3DTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
+      const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
 
     procedure ResetLastEventTime(Node: TX3DNode);
   private
@@ -741,6 +675,39 @@ type
     FOctreeCollidableTriangles: TTriangleOctree;
     FSpatial: TSceneSpatialStructures;
 
+    { Properties of created triangle octrees.
+      See TriangleOctree unit comments for description.
+
+      Default value comes from DefTriangleOctreeLimits.
+
+      They are used only when the octree is created, so usually you
+      want to set them right before changing @link(Spatial) from []
+      to something else.
+
+      Note that particular models may override this by
+      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_octree_properties].
+
+      @groupBegin }
+    function TriangleOctreeLimits: POctreeLimits;
+
+    { Properties of created shape octrees.
+      See ShapeOctree unit comments for description.
+
+      Default value comes from DefShapeOctreeLimits.
+
+      If ShapeOctreeProgressTitle <> '', it will be shown during
+      octree creation (through TProgress.Title). Will be shown only
+      if progress is not active already
+      (so we avoid starting "progress bar within progress bar").
+
+      They are used only when the octree is created, so usually you
+      want to set them right before changing @link(Spatial) from []
+      to something else.
+
+      Note that particular models may override this by
+      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_octree_properties]. }
+    function ShapeOctreeLimits: POctreeLimits;
+
     procedure SetSpatial(const Value: TSceneSpatialStructures);
   private
     FMainLightForShadowsExists: boolean;
@@ -818,6 +785,10 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+    function PointCollision2D(const Point: TVector2Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
@@ -1072,22 +1043,22 @@ type
     { @groupEnd }
 
     { Returns short information about the scene.
-      This consists of a few lines, separated by CastleUtils.NL.
-      Last line also ends with CastleUtils.NL.
-
-      Note that AManifoldAndBorderEdges = @true will require calculation
-      of ManifoldEdges and BorderEdges (if they weren't calculated already).
-      If you don't want to actually use them (if you wanted only to
-      report them to user), then you may free them (freeing some memory)
-      with @code(FreeResources([frManifoldAndBorderEdges])). }
+      This consists of a few lines, separated by newlines.
+      Last line also ends with CastleUtils.NL. }
     function Info(
       ATriangleVerticesCounts,
-      ABoundingBox,
-      AManifoldAndBorderEdges: boolean): string;
+      ABoundingBox: boolean;
+      AManifoldAndBorderEdges: boolean): string; deprecated 'do not use this, better to construct a summary string yourself';
 
     function InfoTriangleVerticesCounts: string;
+      deprecated 'better to construct a string yourself, use TrianglesCount, VerticesCount';
     function InfoBoundingBox: string;
+      deprecated 'better to construct a string yourself, use BoundingBox.ToString';
     function InfoManifoldAndBorderEdges: string;
+      deprecated 'better to construct a string yourself, use EdgesCount';
+
+    { Edges count in the scene, for information purposes. }
+    procedure EdgesCount(out ManifoldEdges, BorderEdges: Cardinal);
 
     { Actual VRML/X3D graph defining this scene.
 
@@ -1125,140 +1096,101 @@ type
     { If @true, RootNode will be freed by destructor of this class. }
     property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode default true;
 
-    { The dynamic octree containing all visible shapes.
-      It's useful for "frustum culling", it will be automatically
-      used by TCastleScene.RenderFrustum to speed up the rendering.
+    { A spatial structure containing all visible shapes.
+      Add ssRendering to @link(Spatial) property, otherwise it's @nil.
 
-      This octree will be automatically updated on dynamic scenes
-      (when e.g. animation moves some shape by changing it's transformation).
-
-      Add ssRendering to @link(Spatial) property to have this available,
-      otherwise it's @nil.
+      @bold(You should not usually use this directly.
+      Instead use SceneManager
+      (like @link(TCastleSceneManager) or @link(T2DSceneManager))
+      and then use @code(SceneManager.Items.WorldXxxCollision) methods like
+      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       Note that when VRML/X3D scene contains Collision nodes, this octree
-      contains the @italic(visible (not necessarily collidable)) objects.  }
-    function OctreeRendering: TShapeOctree;
+      contains the @italic(visible (not necessarily collidable)) objects. }
+    function InternalOctreeRendering: TShapeOctree;
 
-    { The dynamic octree containing all collidable items.
+    { A spatial structure containing all collidable shapes.
+      Add ssDynamicCollisions to @link(Spatial) property, otherwise it's @nil.
 
-      This is actually a hierarchy of octrees: scene is partitioned
-      first into Shapes (each instance of VRML/X3D geometry node),
-      and then each Shape has an octree of triangles inside.
-
-      This octree is useful for all kinds of collision detection.
-      Compared to OctreeCollidableTriangles, it is (very slightly on typical scenes)
-      less efficient, but it can also be updated very fast.
-      For example, merely transforming some Shape means that only
-      one item needs to be moved in the top-level shape tree.
-      So this is the most important structure for collision detection on
-      dynamic scenes.
+      @bold(You should not usually use this directly.
+      Instead use SceneManager
+      (like @link(TCastleSceneManager) or @link(T2DSceneManager))
+      and then use @code(SceneManager.Items.WorldXxxCollision) methods like
+      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       You can use OctreeCollisions to get either OctreeDynamicCollisions
       or OctreeCollidableTriangles, whichever is available.
-
-      Add ssDynamicCollisions to @link(Spatial) property to have this available,
-      otherwise it's @nil.
 
       Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(collidable (not necessarily rendered)) objects.
 
       TODO: Temporarily, this is updated simply by rebuilding.
       This is a work in progress. }
-    function OctreeDynamicCollisions: TShapeOctree;
+    function InternalOctreeDynamicCollisions: TShapeOctree;
 
-    { The octree containing all visible triangles.
-      It's mainly useful for ray-tracers. When rendering using OpenGL,
-      this has no use currently.
+    { A spatial structure containing all visible triangles, suitable only
+      for scenes that stay static.
+      Add ssVisibleTriangles to @link(Spatial) property, otherwise it's @nil.
 
-      This octree is not updated on scene changes. In fact, the scene
-      contents cannot change when this octree is created --- as this octree
-      keeps pointers to some states that may become invalid in dynamic scenes.
+      @bold(You should not usually use this directly.
+      Instead use SceneManager
+      (like @link(TCastleSceneManager) or @link(T2DSceneManager))
+      and then use @code(SceneManager.Items.WorldXxxCollision) methods like
+      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
-      Add ssVisibleTriangles to @link(Spatial) property to have this available,
-      otherwise it's @nil.
+      Note that when VRML/X3D scene contains X3D Collision nodes, this octree
+      contains the @italic(visible (not necessarily collidable)) objects. }
+    function InternalOctreeVisibleTriangles: TTriangleOctree;
 
-      Note that when VRML/X3D scene contains Collision nodes, this octree
-      contains the @italic(visible (not necessarily collidable)) objects.  }
-    function OctreeVisibleTriangles: TTriangleOctree;
-
-    { The octree containing all collidable triangles.
+    { A spatial structure containing containing all collidable triangles.
       This is pretty much unused for now.
+      Add ssCollidableTriangles to @link(Spatial) property, otherwise it's @nil.
 
-      It may be useful if you're absolutely sure that you have a static scene
-      (nothing changes, e.g. because ProcessEvents = @false) and
-      you want to have collision detection with the scene.
+      @bold(You should not usually use this directly.
+      Instead use SceneManager
+      (like @link(TCastleSceneManager) or @link(T2DSceneManager))
+      and then use @code(SceneManager.Items.WorldXxxCollision) methods like
+      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
-      For dynamic scenes, using this is a bad idea as
-      this octree is not updated on scene changes. In fact, the scene
-      contents cannot change when this octree is created --- as this octree
-      keeps pointers to some states that may become invalid in dynamic scenes.
-      Use OctreeDynamicCollisions for dynamic scenes.
+      It is automatically used by the XxxCollision methods in this class,
+      if exists, unless OctreeDynamicCollisions exists.
 
-      You can use OctreeCollisions to get either OctreeDynamicCollisions
-      or OctreeCollidableTriangles, whichever is available.
-
-      Add ssCollidableTriangles to @link(Spatial) property to have this available,
-      otherwise it's @nil.
-
-      Note that when VRML/X3D scene contains Collision nodes, this octree
-      contains the @italic(collidable (not necessarily rendered)) objects.  }
-    function OctreeCollidableTriangles: TTriangleOctree;
+      Note that you can use OctreeCollisions to get either OctreeDynamicCollisions
+      or OctreeCollidableTriangles, whichever is available. }
+    function InternalOctreeCollidableTriangles: TTriangleOctree;
 
     { Octree for collisions. This returns either OctreeCollidableTriangles
       or OctreeDynamicCollisions, whichever is available (or @nil if none).
       Be sure to add ssDynamicCollisions or ssCollidableTriangles to have
-      this available. }
-    function OctreeCollisions: TBaseTrianglesOctree;
+      this available.
 
-    { Properties of created triangle octrees.
-      See TriangleOctree unit comments for description.
+      @bold(You should not usually use this directly.
+      Instead use SceneManager
+      (like @link(TCastleSceneManager) or @link(T2DSceneManager))
+      and then use @code(SceneManager.Items.WorldXxxCollision) methods like
+      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).) }
+    function InternalOctreeCollisions: TBaseTrianglesOctree;
 
-      Default value comes from DefTriangleOctreeLimits.
-
-      If TriangleOctreeProgressTitle <> '', it will be shown during
-      octree creation (through TProgress.Title). Will be shown only
-      if progress is not active already
-      ( so we avoid starting "progress bar within progress bar").
-
-      They are used only when the octree is created, so usually you
-      want to set them right before changing @link(Spatial) from []
-      to something else.
-
-      Note that particular models may override this by
-      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_octree_properties].
-
-      @groupBegin }
-    function TriangleOctreeLimits: POctreeLimits;
-
+    { Progress title shown during spatial structure creation
+      (through TProgress.Title). Uses only when not empty,
+      and only if progress was not active already
+      (so we avoid starting "progress bar within a progress bar"). }
     property TriangleOctreeProgressTitle: string
       read  FTriangleOctreeProgressTitle
       write FTriangleOctreeProgressTitle;
-    { @groupEnd }
 
-    { Properties of created shape octrees.
-      See ShapeOctree unit comments for description.
-
-      Default value comes from DefShapeOctreeLimits.
-
-      If ShapeOctreeProgressTitle <> '', it will be shown during
-      octree creation (through TProgress.Title). Will be shown only
-      if progress is not active already
-      (so we avoid starting "progress bar within progress bar").
-
-      They are used only when the octree is created, so usually you
-      want to set them right before changing @link(Spatial) from []
-      to something else.
-
-      Note that particular models may override this by
-      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_octree_properties].
-
-      @groupBegin }
-    function ShapeOctreeLimits: POctreeLimits;
-
+    { Progress title shown during spatial structure creation
+      (through TProgress.Title). Uses only when not empty,
+      and only if progress was not active already
+      (so we avoid starting "progress bar within a progress bar"). }
     property ShapeOctreeProgressTitle: string
       read  FShapeOctreeProgressTitle
       write FShapeOctreeProgressTitle;
-    { @groupEnd }
 
     { Viewpoint defined in the 3D file (or some default camera settings
       if no viewpoint is found).
@@ -1296,83 +1228,6 @@ type
       const ViewpointDescription: string = ''):
       TAbstractViewpointNode;
     { @groupEnd }
-
-    { Returns an array of triangles that should be shadow casters
-      for this scene.
-
-      Additionally, TTrianglesShadowCastersList contains some
-      additional information needed for rendering with shadows:
-      currently, this means TTrianglesShadowCastersList.OpaqueCount.
-
-      Results of these functions are cached, and are also owned by this object.
-      So don't modify it, don't free it. }
-    function TrianglesListShadowCasters: TTrianglesShadowCastersList;
-
-    { ManifoldEdges is a list of edges that have exactly @bold(two) neighbor
-      triangles, and BorderEdges is a list of edges that have exactly @bold(one)
-      neighbor triangle. These are crucial for rendering shadows using shadow
-      volumes.
-
-      Edges with more than two neighbors are allowed. If an edge has an odd
-      number of neighbors, it will be placed in BorderEdges. Every other pair
-      of neighbors will be "paired" and placed as one manifold edge inside
-      ManifoldEdges. So actually edge with exactly 1 neighbor (odd number,
-      so makes one BorderEdges item) and edge with exactly 2 neighbors
-      (even number, one pair of triangles, makes one item in ManifoldEdges)
-      --- they are just a special case of a general rule, that allows any
-      neighbors number.
-
-      Note that vertexes must be consistently ordered in triangles.
-      For two neighboring triangles, if one triangle's edge has
-      order V0, V1, then on the neighbor triangle the order must be reversed
-      (V1, V0). This is true in almost all situations, for example
-      if you have a closed solid object and all outside faces are ordered
-      consistently (all CCW or all CW).
-      Failure to order consistently will result in edges not being "paired",
-      i.e. we will not recognize that some 2 edges are in fact one edge between
-      two neighboring triangles --- and this will result in more edges in
-      BorderEdges.
-
-      Both of these lists are calculated at once, i.e. when you call ManifoldEdges
-      or BorderEdges for the 1st time, actually both ManifoldEdges and
-      BorderEdges are calculated at once. If all edges are in ManifoldEdges,
-      then the scene is a correct closed manifold, or rather it's composed
-      from any number of closed manifolds.
-
-      Results of these functions are cached, and are also owned by this object.
-      So don't modify it, don't free it.
-
-      This uses TrianglesListShadowCasters.
-
-      @groupBegin }
-    function ManifoldEdges: TManifoldEdgeList;
-    function BorderEdges: TBorderEdgeList;
-    { @groupEnd }
-
-    { This allows you to "share" @link(ManifoldEdges) and
-      @link(BorderEdges) values between TCastleSceneCore instances,
-      to conserve memory and preparation time.
-      The values set here will be returned by following ManifoldEdges and
-      BorderEdges calls. The values passed here will @italic(not
-      be owned) by this object --- you gave this, you're responsible for
-      freeing it.
-
-      This is handy if you know that this scene has the same
-      ManifoldEdges and BorderEdges contents as some other scene. In particular,
-      this is extremely handy in cases of animations in TCastlePrecalculatedAnimation,
-      where all scenes actually need only a single instance of TManifoldEdgeList
-      and TBorderEdgeList,
-      this greatly speeds up TCastlePrecalculatedAnimation loading and reduces memory use.
-
-      Note that passing here as values the same references
-      that are already returned by ManifoldEdges / BorderEdges is always
-      guaranteed to be a harmless operation. If ManifoldEdges  / BorderEdges
-      was owned by this object,
-      it will remain owned in this case (while in normal sharing situation,
-      values set here are assumed to be owned by something else). }
-    procedure ShareManifoldAndBorderEdges(
-      ManifoldShared: TManifoldEdgeList;
-      BorderShared: TBorderEdgeList);
 
     { Frees some scene resources, to conserve memory.
       See TSceneFreeResources documentation. }
@@ -1508,20 +1363,38 @@ type
     procedure IncreaseTime(const TimeIncrease: TFloatTime);
     { @groupEnd }
 
-    { Increase @link(Time) by some infinitely small value.
-      This simply increments @code(Time.PlusTicks), which may be sometimes
-      useful: this allows events to pass through the ROUTEs
-      without the fear of being rejected as "recursive (cycle) events". }
-    procedure IncreaseTimeTick; override;
+    procedure IncreaseTimeTick;
+      deprecated 'it should not be necessary to call this, ever; using TX3DEvent.Send(...) or TX3DEvent.Send(..., NextEventTime) will automatically behave Ok.';
 
-    { This is the scene time, that is passed to time-dependent nodes.
-      See X3D specification "Time" component about time-dependent nodes.
-      In short, this "drives" the time passed to TimeSensor, MovieTexture
-      and AudioClip. See SetTime for changing this.
+    { The time within this scene, in seconds.
+      Increasing this "drives" the animations (by increasing
+      time of time-dependent nodes like X3D TimeSensor, which in turn
+      drive the rest of the animation).
 
-      Default value is 0.0 (zero). }
-    property Time: TX3DTime read FTime;
-    function GetTime: TX3DTime; override;
+      You can use @link(SetTime) or @link(IncreasTime) to move time
+      forward manually. But usually there's no need for it:
+      our @link(Update) method takes care of it automatically,
+      you only need to place the scene inside @link(TCastleSceneManager.Items).
+
+      You can start/stop time progress by @link(TimePlaying)
+      and scale it by @link(TimePlayingSpeed). These properties
+      affect how the time is updated by the @link(Update) method
+      (so if you use @link(SetTime) or @link(IncreasTime) methods,
+      you're working around these properties).
+
+      Default time value is 0.0 (zero). However it will be reset
+      at load to a current time (seconds since Unix epoch ---
+      that's what X3D standard says to use, although you can change
+      it by KambiNavigationInfo.timeOriginAtLoad,
+      see http://castle-engine.sourceforge.net/x3d_implementation_navigation_extensions.php#section_ext_time_origin_at_load ).
+      You can perform this "time reset" yourself by @link(ResetTimeAtLoad)
+      or @link(ResetTime). }
+    function Time: TFloatTime; override;
+
+    { Time that should be used for next event.
+      You usually don't need to call this directly, this is automatically
+      used by TX3DEvent.Send when you don't specify explicit time. }
+    function NextEventTime: TX3DTime; override;
 
     { Set @link(Time) to arbitrary value.
 
@@ -1543,6 +1416,9 @@ type
       and our extension
       [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_time_origin_at_load]. }
     procedure ResetTimeAtLoad;
+
+    { Initial world time, set by the last ResetTimeAtLoad call. }
+    property TimeAtLoad: TFloatTime read FTimeAtLoad;
 
     { Stack of background nodes. The node at the top is the current background.
       All nodes on this stack must descend from TAbstractBackgroundNode class. }
@@ -1812,14 +1688,35 @@ type
     { @groupEnd }
 
     { List the names of available animations in this file.
-      Detected in VRML/X3D models as simply TimeSensor nodes with node name
-      starting with "Animation_Xxx" (see @link(AnimationPrefix) property).
-      Caller is responsible for freeing resulting TStringList instance.
+      Animations are detected in VRML/X3D models as simply TimeSensor nodes
+      (if you set @link(AnimationPrefix) property, we additionally
+      filter them to show only the names starting with given prefix).
 
-      Note that the list of animations may change it you rebuild the underlying
+      The resulting TStringList instance is owned by this object,
+      do not free it.
+
+      Note that the list of animations may change if you rebuild the underlying
       X3D nodes graph, for example if you start to delete / add some TimeSensor
       nodes.  }
-    function Animations: TStringList;
+    property AnimationsList: TStrings read FAnimationsList;
+
+    { Does named animation with given name exist.
+      @seealso AnimationsList
+      @seealso PlayAnimation }
+    function HasAnimation(const AnimationName: string): boolean;
+
+    function Animations: TStringList; deprecated 'use AnimationsList (and do not free it''s result)';
+
+    { Forcefully, immediately, set 3D pose from given animation,
+      with given time in animation.
+
+      This avoids the normal passage of time in X3D scenes,
+      it ignores the @link(ProcessEvents) and @link(AnimateOnlyWhenVisible)
+      properties, it ignores the current animation set by @link(PlayAnimation),
+      and forces the current time on TimeSensors by @link(TTimeSensorNode.FakeTime). }
+    function ForceAnimationPose(const AnimationName: string;
+      const TimeInAnimation: TFloatTime;
+      const Looping: TPlayAnimationLooping): boolean;
 
     { Play a named animation (like detected by @link(Animations) method).
       Also stops previously playing named animation, if any.
@@ -1832,12 +1729,17 @@ type
       0 if not found. }
     function AnimationDuration(const AnimationName: string): TFloatTime;
 
-    { The required prefix of a TimeSensor node to be considered a "named animation"
-      by our methods like @link(Animations), @link(PlayAnimation),
-      and @link(AnimationDuration).
-      By default this is DefaultAnimationPrefix.
-      You can set this to an empty string to consider all TimeSensor nodes
-      a possible "named animation". }
+    { The prefix of an X3D TimeSensor node name to treat it as a "named animation".
+      Named animation are used by methods @link(AnimationsList), @link(PlayAnimation),
+      and @link(AnimationDuration), @link(HasAnimation).
+      By default this is empty, which means we consider all TimeSensor nodes
+      a "named animation".
+
+      You can set this to something like 'Anim_' or 'Animation_'
+      or whatever your 3D export software produces. Only the TimeSensor
+      nodes with names starting with this prefix will be available
+      on @link(AnimationsList), and this prefix will be stripped from
+      the names you see when using methods like @link(PlayAnimation). }
     property AnimationPrefix: string
       read FAnimationPrefix write FAnimationPrefix;
   published
@@ -2006,8 +1908,8 @@ procedure TX3DBindableStack.SendIsBound(Node: TAbstractBindableNode;
 begin
   if Node <> nil then
   begin
-    Node.EventIsBound.Send(Value, ParentScene.Time);
-    Node.EventBindTime.Send(ParentScene.Time.Seconds, ParentScene.Time);
+    Node.EventIsBound.Send(Value, ParentScene.NextEventTime);
+    Node.EventBindTime.Send(ParentScene.Time, ParentScene.NextEventTime);
   end;
 end;
 
@@ -2403,6 +2305,8 @@ begin
   ScheduledHumanoidAnimateSkin := TX3DNodeList.Create(false);
   KeyDeviceSensorNodes := TX3DNodeList.Create(false);
   TimeDependentHandlers := TTimeDependentHandlerList.Create(false);
+  FAnimationsList := TStringList.Create;
+  TStringList(FAnimationsList).CaseSensitive := true; // X3D node names are case-sensitive
 
   FTimePlaying := true;
   FTimePlayingSpeed := 1.0;
@@ -2423,12 +2327,6 @@ destructor TCastleSceneCore.Destroy;
 begin
   { This also deinitializes script nodes. }
   ProcessEvents := false;
-
-  { free FTrianglesList* variables }
-  InvalidateTrianglesListShadowCasters;
-
-  { frees FManifoldEdges, FBorderEdges if needed }
-  InvalidateManifoldAndBorderEdges;
 
   FreeAndNil(ScheduledHumanoidAnimateSkin);
   FreeAndNil(ScreenEffectNodes);
@@ -2465,6 +2363,7 @@ begin
   FreeAndNil(FOctreeDynamicCollisions);
   FreeAndNil(FOctreeVisibleTriangles);
   FreeAndNil(FOctreeCollidableTriangles);
+  FreeAndNil(FAnimationsList);
 
   if OwnsRootNode then
     FreeAndNil(FRootNode) else
@@ -2842,8 +2741,8 @@ begin
     if (ssDynamicCollisions in ParentScene.Spatial) and
        Shape.Collidable then
     begin
-      Shape.TriangleOctreeProgressTitle := ParentScene.TriangleOctreeProgressTitle;
-      Shape.Spatial := [ssTriangles];
+      Shape.InternalTriangleOctreeProgressTitle := ParentScene.TriangleOctreeProgressTitle;
+      Shape.InternalSpatial := [ssTriangles];
     end;
   end else
 
@@ -2946,7 +2845,7 @@ begin
        (LODTree.Children.Count <> 0) then
     begin
       LODTree.WasLevel_ChangedSend := true;
-      LODTree.LODNode.EventLevel_Changed.Send(LongInt(NewLevel), Time);
+      LODTree.LODNode.EventLevel_Changed.Send(LongInt(NewLevel), NextEventTime);
     end;
 
     if OldLevel <> NewLevel then
@@ -2979,6 +2878,8 @@ begin
   KeyDeviceSensorNodes.Clear;
   TimeDependentHandlers.Clear;
   PlayingAnimationNode := nil;
+  NewPlayingAnimationNode := nil;
+  NewPlayingAnimationUse := false;
 
   if not InternalChangedAll then
   begin
@@ -3144,18 +3045,13 @@ begin
 
     Validities := [];
 
-    { Clear variables after removing fvTrianglesList* from Validities }
-    InvalidateTrianglesListShadowCasters;
-
-    { Clear variables after removing fvManifoldAndBorderEdges from Validities }
-    InvalidateManifoldAndBorderEdges;
-
     { Clean Shapes and other stuff initialized by traversing }
     FreeAndNil(FShapes);
     FShapes := TShapeTreeGroup.Create(Self);
     ShapeLODs.Clear;
     GlobalLights.Clear;
     FViewpointsArray.Clear;
+    FAnimationsList.Clear;
 
     if RootNode <> nil then
     begin
@@ -3183,6 +3079,11 @@ begin
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
     DoViewpointsChanged;
 
+    { recreate FAnimationsList now }
+    FreeAndNil(FAnimationsList);
+    {$warnings off}
+    FAnimationsList := Animations;
+    {$warnings on}
   finally
     BackgroundStack.EndChangesSchedule;
     FogStack.EndChangesSchedule;
@@ -3900,8 +3801,6 @@ var
       fvBoundingBox,
       fvVerticesCountNotOver, fvVerticesCountOver,
       fvTrianglesCountNotOver, fvTrianglesCountOver,
-      fvTrianglesListShadowCasters,
-      fvManifoldAndBorderEdges
     }
 
     Validities := Validities - [
@@ -4069,7 +3968,7 @@ var
       we would mistakenly interpret resuming (from paused state) just like
       activation (from stopped state), testcase time_sensor_3.x3dv. }
 
-    Handler.SetTime(Time, Time, 0, false);
+    Handler.SetTime(Time, 0, false);
 
     { No need to do VisibleChangeHere.
       Redisplay will be done by next IncreaseTime run, if active now. }
@@ -4114,9 +4013,8 @@ var
   procedure HandleChangeShadowCasters;
   begin
     { When Appearance.shadowCaster field changed, then
-      TrianglesListShadowCasters and Manifold/BorderEdges change. }
-    InvalidateTrianglesListShadowCasters;
-    InvalidateManifoldAndBorderEdges;
+      TrianglesListShadowCasters and Manifold/BorderEdges changed in shapes. }
+    FreeResources([frShadowVolume]);
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 
@@ -4194,7 +4092,7 @@ var
 
     if (not Enabled) and (PointingDeviceActiveSensors.IndexOf(DragSensor) <> -1) then
     begin
-      DragSensor.Deactivate(Time);
+      DragSensor.Deactivate(NextEventTime);
       FPointingDeviceActiveSensors.Remove(DragSensor);
       DoPointingDeviceSensorsChange;
     end;
@@ -4305,57 +4203,16 @@ procedure TCastleSceneCore.DoGeometryChanged(const Change: TGeometryChange;
   LocalGeometryShape: TShape);
 var
   SomeLocalGeometryChanged: boolean;
-  EdgesStructureChanged: boolean;
 begin
   Validities := Validities - [fvBoundingBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
-    fvTrianglesCountNotOver, fvTrianglesCountOver,
-    fvTrianglesListShadowCasters];
+    fvTrianglesCountNotOver, fvTrianglesCountOver];
 
-  { Clear variables after removing fvTrianglesList* }
-  InvalidateTrianglesListShadowCasters;
-
-  { First, call LocalGeometryChanged(true, ...) on shapes when needed.
-
-    By the way, also calculate SomeLocalGeometryChanged (= if any
+  { Calculate SomeLocalGeometryChanged (= if any
     LocalGeometryChanged was called, which means that octree and
-    bounding box/sphere of some shape changed).
-
-    Note that this also creates implication ScheduledGeometryChangedAll
-    => SomeLocalGeometryChanged. In later code, I sometimes check
-    for SomeLocalGeometryChanged, knowing that this also checks for
-    ScheduledGeometryChangedAll.
-
-    By the way, also calculate EdgesStructureChanged. }
-
-  if Change = gcAll then
-  begin
-    SomeLocalGeometryChanged := true;
-    EdgesStructureChanged := true;
-
-    { No need to do here LocalGeometryChanged on all shapes:
-      we know that ChangedAll already did (or will, soon) recreate
-      all the shapes. So their geometry stuff will be correctly reinitialized
-      anyway. }
-  end else
-  begin
-    { Note that if
-      ScheduledLocalGeometryChangedCoord = true, but
-      ScheduledLocalGeometryChanged = false, then
-      EdgesStructureChanged may remain false. This is the very reason
-      for     ScheduledLocalGeometryChangedCoord separation from
-      regular ScheduledLocalGeometryChanged. }
-
-    SomeLocalGeometryChanged := Change in
-      [gcLocalGeometryChanged, gcLocalGeometryChangedCoord];
-    EdgesStructureChanged := Change in
-      [gcActiveShapesChanged, gcLocalGeometryChanged];
-  end;
-
-  { Use EdgesStructureChanged to decide should be invalidate
-    ManifoldAndBorderEdges. }
-  if EdgesStructureChanged then
-    InvalidateManifoldAndBorderEdges;
+    bounding box/sphere of some shape changed). }
+  SomeLocalGeometryChanged := (Change = gcAll) or
+    (Change in [gcLocalGeometryChanged, gcLocalGeometryChangedCoord]);
 
   if (FOctreeRendering <> nil) and
      ((Change in [gcVisibleTransformChanged, gcActiveShapesChanged]) or
@@ -4369,7 +4226,7 @@ begin
 
   if Assigned(OnGeometryChanged) then
     OnGeometryChanged(Self, SomeLocalGeometryChanged,
-      { We know LocalGeometryShape is nil now for Change not in
+      { We know LocalGeometryShape is nil now if Change does not contain
         gcLocalGeometryChanged*. }
       LocalGeometryShape);
 end;
@@ -4430,11 +4287,29 @@ begin
   Result += NL;
 end;
 
-function TCastleSceneCore.InfoManifoldAndBorderEdges: string;
+procedure TCastleSceneCore.EdgesCount(out ManifoldEdges, BorderEdges: Cardinal);
+var
+  SI: TShapeTreeIterator;
 begin
-  Result := Format('Edges detection: all edges split into %d manifold edges and %d border edges. Remember that for shadow volumes perfect manifold (that is, zero border edges) is required, otherwise the scene will not cast shadows.',
-    [ ManifoldEdges.Count,
-      BorderEdges.Count ]) + NL;
+  ManifoldEdges := 0;
+  BorderEdges := 0;
+  SI := TShapeTreeIterator.Create(Shapes, true);
+  try
+    while SI.GetNext do
+    begin
+      ManifoldEdges += SI.Current.InternalShadowVolumes.ManifoldEdges.Count;
+      BorderEdges += SI.Current.InternalShadowVolumes.BorderEdges.Count;
+    end;
+  finally FreeAndNil(SI) end;
+end;
+
+function TCastleSceneCore.InfoManifoldAndBorderEdges: string;
+var
+  ManifoldEdges, BorderEdges: Cardinal;
+begin
+  EdgesCount(ManifoldEdges, BorderEdges);
+  Result := Format('Edges detection: all edges split into %d manifold edges and %d border edges. Remember that for shadow volumes, only the shapes that are perfect manifold (have zero border edges) can cast shadows.',
+    [ManifoldEdges, BorderEdges]) + NL;
 end;
 
 function TCastleSceneCore.Info(
@@ -4446,19 +4321,28 @@ begin
 
   if ATriangleVerticesCounts then
   begin
+    {$warnings off}
+    { deliberately using deprecated function in another deprecated function }
     Result += InfoTriangleVerticesCounts;
+    {$warnings on}
   end;
 
   if ABoundingBox then
   begin
     if Result <> '' then Result += NL;
+    {$warnings off}
+    { deliberately using deprecated function in another deprecated function }
     Result += InfoBoundingBox;
+    {$warnings on}
   end;
 
   if AManifoldAndBorderEdges then
   begin
     if Result <> '' then Result += NL;
+    {$warnings off}
+    { deliberately using deprecated function in another deprecated function }
     Result += InfoManifoldAndBorderEdges;
+    {$warnings on}
   end;
 end;
 
@@ -4525,12 +4409,12 @@ procedure TCastleSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
             [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_octree_properties].
           }
 
-          SI.Current.TriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
-          SI.Current.Spatial := Value;
+          SI.Current.InternalTriangleOctreeProgressTitle := TriangleOctreeProgressTitle;
+          SI.Current.InternalSpatial := Value;
           { prepare OctreeTriangles. Not really needed, but otherwise
             shape's octrees would be updated (even on static scenes!)
             when the model runs. }
-          SI.Current.OctreeTriangles;
+          SI.Current.InternalOctreeTriangles;
         end;
 
     finally FreeAndNil(SI) end;
@@ -4587,7 +4471,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.OctreeRendering: TShapeOctree;
+function TCastleSceneCore.InternalOctreeRendering: TShapeOctree;
 begin
   if (ssRendering in Spatial) and (FOctreeRendering = nil) then
   begin
@@ -4602,7 +4486,7 @@ begin
   Result := FOctreeRendering;
 end;
 
-function TCastleSceneCore.OctreeDynamicCollisions: TShapeOctree;
+function TCastleSceneCore.InternalOctreeDynamicCollisions: TShapeOctree;
 begin
   if (ssDynamicCollisions in Spatial) and (FOctreeDynamicCollisions = nil) then
   begin
@@ -4617,7 +4501,7 @@ begin
   Result := FOctreeDynamicCollisions;
 end;
 
-function TCastleSceneCore.OctreeVisibleTriangles: TTriangleOctree;
+function TCastleSceneCore.InternalOctreeVisibleTriangles: TTriangleOctree;
 begin
   if (ssVisibleTriangles in Spatial) and (FOctreeVisibleTriangles = nil) then
     FOctreeVisibleTriangles := CreateTriangleOctree(
@@ -4627,7 +4511,7 @@ begin
   Result := FOctreeVisibleTriangles;
 end;
 
-function TCastleSceneCore.OctreeCollidableTriangles: TTriangleOctree;
+function TCastleSceneCore.InternalOctreeCollidableTriangles: TTriangleOctree;
 begin
   if (ssCollidableTriangles in Spatial) and (FOctreeCollidableTriangles = nil) then
     FOctreeCollidableTriangles := CreateTriangleOctree(
@@ -4637,12 +4521,12 @@ begin
   Result := FOctreeCollidableTriangles;
 end;
 
-function TCastleSceneCore.OctreeCollisions: TBaseTrianglesOctree;
+function TCastleSceneCore.InternalOctreeCollisions: TBaseTrianglesOctree;
 begin
-  if OctreeCollidableTriangles <> nil then
-    Result := OctreeCollidableTriangles else
-  if OctreeDynamicCollisions <> nil then
-    Result := OctreeDynamicCollisions else
+  if InternalOctreeCollidableTriangles <> nil then
+    Result := InternalOctreeCollidableTriangles else
+  if InternalOctreeDynamicCollisions <> nil then
+    Result := InternalOctreeDynamicCollisions else
     Result := nil;
 end;
 
@@ -4812,328 +4696,6 @@ begin
   Assert(ProjectionType = ptPerspective);
 end;
 
-{ triangles list ------------------------------------------------------------- }
-
-type
-  TTriangleAdder = class
-    TriangleList: TTriangle3SingleList;
-    procedure AddTriangle(Shape: TObject;
-      const Position: TTriangle3Single;
-      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
-      const Face: TFaceIndex);
-  end;
-
-procedure TTriangleAdder.AddTriangle(Shape: TObject;
-  const Position: TTriangle3Single;
-  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
-  const Face: TFaceIndex);
-begin
-  if IsValidTriangle(Position) then
-    TriangleList.Add(Position);
-end;
-
-function TCastleSceneCore.TrianglesListShadowCasters: TTrianglesShadowCastersList;
-
-  function CreateTrianglesListShadowCasters: TTrianglesShadowCastersList;
-
-    function ShadowCaster(AShape: TShape): boolean;
-    var
-      Shape: TAbstractShapeNode;
-    begin
-      Shape := AShape.State.ShapeNode;
-      Result := not (
-        (Shape <> nil) and
-        (Shape.FdAppearance.Value <> nil) and
-        (Shape.FdAppearance.Value is TAppearanceNode) and
-        (not TAppearanceNode(Shape.FdAppearance.Value).FdShadowCaster.Value));
-    end;
-
-  var
-    SI: TShapeTreeIterator;
-    TriangleAdder: TTriangleAdder;
-    WasSomeTransparentShadowCaster: boolean;
-  begin
-    Result := TTrianglesShadowCastersList.Create;
-    try
-      Result.Capacity := TrianglesCount(false);
-      TriangleAdder := TTriangleAdder.Create;
-      try
-        TriangleAdder.TriangleList := Result;
-
-        { This variable allows a small optimization: if there are
-          no transparent triangles for shadow casters,
-          then there's no need to iterate over Shapes
-          second time. }
-        WasSomeTransparentShadowCaster := false;
-
-        { Add all opaque triangles }
-        SI := TShapeTreeIterator.Create(Shapes, true);
-        try
-          while SI.GetNext do
-            if ShadowCaster(SI.Current) then
-            begin
-              if not SI.Current.Transparent then
-                SI.Current.Triangulate(false, @TriangleAdder.AddTriangle) else
-                WasSomeTransparentShadowCaster := true;
-            end;
-        finally FreeAndNil(SI) end;
-
-        { Mark OpaqueCount border }
-        Result.FOpaqueCount := Result.Count;
-
-        { Add all transparent triangles }
-        if WasSomeTransparentShadowCaster then
-        begin
-          SI := TShapeTreeIterator.Create(Shapes, true);
-          try
-            while SI.GetNext do
-              if ShadowCaster(SI.Current) and
-                 SI.Current.Transparent then
-                SI.Current.Triangulate(false, @TriangleAdder.AddTriangle);
-          finally FreeAndNil(SI) end;
-        end;
-
-        if Log and LogShadowVolumes then
-          WritelnLog('Shadow volumes', Format('Shadows casters triangles: %d opaque, %d total',
-            [Result.OpaqueCount, Result.Count]));
-
-      finally FreeAndNil(TriangleAdder) end;
-    except Result.Free; raise end;
-  end;
-
-begin
-  if not (fvTrianglesListShadowCasters in Validities) then
-  begin
-    FreeAndNil(FTrianglesListShadowCasters);
-    FTrianglesListShadowCasters := CreateTrianglesListShadowCasters;
-    Include(Validities, fvTrianglesListShadowCasters);
-  end;
-
-  Result := FTrianglesListShadowCasters;
-end;
-
-procedure TCastleSceneCore.InvalidateTrianglesListShadowCasters;
-begin
-  Exclude(Validities, fvTrianglesListShadowCasters);
-  FreeAndNil(FTrianglesListShadowCasters);
-end;
-
-{ edges lists ------------------------------------------------------------- }
-
-procedure TCastleSceneCore.CalculateIfNeededManifoldAndBorderEdges;
-
-  { Sets FManifoldEdges and FBorderEdges. Assumes that FManifoldEdges and
-    FBorderEdges are @nil on enter. }
-  procedure CalculateManifoldAndBorderEdges;
-
-    { If the counterpart of this edge (edge from neighbor) exists in
-      EdgesSingle, then it adds this edge (along with it's counterpart)
-      to FManifoldEdges.
-
-      Otherwise, it just adds the edge to EdgesSingle. This can happen
-      if it's the 1st time this edge occurs, or maybe the 3d one, 5th...
-      all odd occurrences, assuming that ordering of faces is consistent,
-      so that counterpart edges are properly detected. }
-    procedure AddEdgeCheckManifold(
-      EdgesSingle: TManifoldEdgeList;
-      const TriangleIndex: Cardinal;
-      const V0: TVector3Single;
-      const V1: TVector3Single;
-      const VertexIndex: Cardinal;
-      Triangles: TTriangle3SingleList);
-    var
-      I: Integer;
-      EdgePtr: PManifoldEdge;
-    begin
-      if EdgesSingle.Count <> 0 then
-      begin
-        EdgePtr := PManifoldEdge(EdgesSingle.List);
-        for I := 0 to EdgesSingle.Count - 1 do
-        begin
-          { It would also be possible to get EdgePtr^.V0/1 by code like
-
-            TrianglePtr := @Triangles.L[EdgePtr^.Triangles[0]];
-            EdgeV0 := @TrianglePtr^[EdgePtr^.VertexIndex];
-            EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
-
-            But, see TManifoldEdge.V0/1 comments --- current version is
-            a little faster.
-          }
-
-          { Triangles must be consistently ordered on a manifold,
-            so the second time an edge is present, we know it must
-            be in different order. So we compare V0 with EdgeV1
-            (and V1 with EdgeV0), no need to compare V1 with EdgeV1. }
-          if VectorsPerfectlyEqual(V0, EdgePtr^.V1) and
-             VectorsPerfectlyEqual(V1, EdgePtr^.V0) then
-          begin
-            EdgePtr^.Triangles[1] := TriangleIndex;
-
-            { Move edge to FManifoldEdges: it has 2 neighboring triangles now. }
-            FManifoldEdges.Add^ := EdgePtr^;
-
-            { Remove this from EdgesSingle.
-              Note that we delete from EdgesSingle fast, using assignment and
-              deleting only from the end (normal Delete would want to shift
-              EdgesSingle contents in memory, to preserve order of items;
-              but we don't care about order). }
-            EdgePtr^ := EdgesSingle.L[EdgesSingle.Count - 1];
-            EdgesSingle.Count := EdgesSingle.Count - 1;
-
-            Exit;
-          end;
-          Inc(EdgePtr);
-        end;
-      end;
-
-      { New edge: add new item to EdgesSingle }
-      EdgePtr := EdgesSingle.Add;
-      EdgePtr^.VertexIndex := VertexIndex;
-      EdgePtr^.Triangles[0] := TriangleIndex;
-      EdgePtr^.V0 := V0;
-      EdgePtr^.V1 := V1;
-    end;
-
-  var
-    I: Integer;
-    Triangles: TTriangle3SingleList;
-    TrianglePtr: PTriangle3Single;
-    EdgesSingle: TManifoldEdgeList;
-  begin
-    Assert(FManifoldEdges = nil);
-    Assert(FBorderEdges = nil);
-
-    { It's important here that TrianglesListShadowCasters guarentees that only valid
-      triangles are included. Otherwise degenerate triangles could make
-      shadow volumes rendering result bad. }
-    Triangles := TrianglesListShadowCasters;
-
-    FManifoldEdges := TManifoldEdgeList.Create;
-    { There is a precise relation between number of edges and number of faces
-      on a closed manifold: E = T * 3 / 2. }
-    FManifoldEdges.Capacity := Triangles.Count * 3 div 2;
-
-    { EdgesSingle are edges that have no neighbor,
-      i.e. have only one adjacent triangle. At the end, what's left here
-      will be simply copied to BorderEdges. }
-    EdgesSingle := TManifoldEdgeList.Create;
-    try
-      EdgesSingle.Capacity := Triangles.Count * 3 div 2;
-
-      TrianglePtr := PTriangle3Single(Triangles.List);
-      for I := 0 to Triangles.Count - 1 do
-      begin
-        { TrianglePtr points to Triangles[I] now }
-        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[0], TrianglePtr^[1], 0, Triangles);
-        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[1], TrianglePtr^[2], 1, Triangles);
-        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[2], TrianglePtr^[0], 2, Triangles);
-        Inc(TrianglePtr);
-      end;
-
-      FBorderEdges := TBorderEdgeList.Create;
-
-      if EdgesSingle.Count <> 0 then
-      begin
-        { scene not a perfect manifold: less than 2 faces for some edges
-          (the case with more than 2 is already eliminated above).
-          So we copy EdgesSingle to BorderEdges. }
-        FBorderEdges.Count := EdgesSingle.Count;
-        for I := 0 to EdgesSingle.Count - 1 do
-        begin
-          FBorderEdges.L[I].VertexIndex := EdgesSingle.L[I].VertexIndex;
-          FBorderEdges.L[I].TriangleIndex := EdgesSingle.L[I].Triangles[0];
-        end;
-      end;
-    finally FreeAndNil(EdgesSingle); end;
-
-    if Log and LogShadowVolumes then
-      WritelnLog('Shadow volumes', Format(
-        'Edges: %d manifold, %d border',
-        [FManifoldEdges.Count, FBorderEdges.Count] ));
-  end;
-
-begin
-  if not (fvManifoldAndBorderEdges in Validities) then
-  begin
-    FOwnsManifoldAndBorderEdges := true;
-    CalculateManifoldAndBorderEdges;
-    Include(Validities, fvManifoldAndBorderEdges);
-  end;
-end;
-
-function TCastleSceneCore.ManifoldEdges: TManifoldEdgeList;
-begin
-  CalculateIfNeededManifoldAndBorderEdges;
-  Result := FManifoldEdges;
-end;
-
-function TCastleSceneCore.BorderEdges: TBorderEdgeList;
-begin
-  CalculateIfNeededManifoldAndBorderEdges;
-  Result := FBorderEdges;
-end;
-
-procedure TCastleSceneCore.ShareManifoldAndBorderEdges(
-  ManifoldShared: TManifoldEdgeList;
-  BorderShared: TBorderEdgeList);
-begin
-  Assert(
-    (ManifoldShared = FManifoldEdges) =
-    (BorderShared = FBorderEdges),
-    'For ShareManifoldAndBorderEdges, either both ManifoldShared and ' +
-    'BorderShared should be the same as already owned, or both should ' +
-    'be different. If you have a good reason to break this, report, ' +
-    'implementation of ShareManifoldAndBorderEdges may be improved ' +
-    'if it''s needed');
-
-  if (fvManifoldAndBorderEdges in Validities) and
-    (ManifoldShared = FManifoldEdges) then
-    { No need to do anything in this case.
-
-      If ManifoldShared = FManifoldEdges = nil, then we may leave
-      FOwnsManifoldAndBorderEdges = true
-      while it could be = false (if we let this procedure continue),
-      but this doesn't matter (since FOwnsManifoldAndBorderEdges doesn't matter
-      when FManifoldEdges = nil).
-
-      If ManifoldShared <> nil and old FOwnsManifoldAndBorderEdges is false
-      then this doesn't change anything.
-
-      Finally, the important case: If ManifoldShared <> nil and old
-      FOwnsManifoldAndBorderEdges is true. Then it would be very very bad
-      to continue this method, as we would free FManifoldEdges pointer
-      and right away set FManifoldEdges to the same pointer (that would
-      be invalid now). }
-    Exit;
-
-  if FOwnsManifoldAndBorderEdges then
-  begin
-    FreeAndNil(FManifoldEdges);
-    FreeAndNil(FBorderEdges);
-  end;
-
-  FManifoldEdges := ManifoldShared;
-  FBorderEdges := BorderShared;
-  FOwnsManifoldAndBorderEdges := false;
-  Include(Validities, fvManifoldAndBorderEdges);
-end;
-
-procedure TCastleSceneCore.InvalidateManifoldAndBorderEdges;
-begin
-  Exclude(Validities, fvManifoldAndBorderEdges);
-
-  { Clear variables after removing fvManifoldAndBorderEdges }
-  if FOwnsManifoldAndBorderEdges then
-  begin
-    FreeAndNil(FManifoldEdges);
-    FreeAndNil(FBorderEdges);
-  end else
-  begin
-    FManifoldEdges := nil;
-    FBorderEdges := nil;
-  end;
-end;
-
 { freeing resources ---------------------------------------------------------- }
 
 procedure TCastleSceneCore.FreeResources_UnloadTextureData(Node: TX3DNode);
@@ -5147,6 +4709,18 @@ begin
 end;
 
 procedure TCastleSceneCore.FreeResources(Resources: TSceneFreeResources);
+
+  procedure FreeShadowVolumes;
+  var
+    SI: TShapeTreeIterator;
+  begin
+    SI := TShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        SI.Current.InternalShadowVolumes.FreeResources;
+    finally FreeAndNil(SI) end;
+  end;
+
 begin
   if (frTextureDataInNodes in Resources) and (RootNode <> nil) then
   begin
@@ -5156,11 +4730,8 @@ begin
       @FreeResources_UnloadTexture3DData, false);
   end;
 
-  if frTrianglesListShadowCasters in Resources then
-    InvalidateTrianglesListShadowCasters;
-
-  if frManifoldAndBorderEdges in Resources then
-    InvalidateManifoldAndBorderEdges;
+  if frShadowVolume in Resources then
+    FreeShadowVolumes;
 end;
 
 { events --------------------------------------------------------------------- }
@@ -5215,7 +4786,6 @@ procedure TCastleSceneCore.SetProcessEvents(const Value: boolean);
   var
     I: Integer;
   begin
-    Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
       if CameraViewKnown then
@@ -5280,12 +4850,11 @@ begin
 
   if ProcessEvents then
   begin
-    Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
       for I := 0 to KeyDeviceSensorNodes.Count - 1 do
         (KeyDeviceSensorNodes.Items[I] as TAbstractKeyDeviceSensorNode).
-          KeyDown(Event.Key, Event.KeyCharacter, FTime);
+          KeyDown(Event.Key, Event.KeyCharacter, NextEventTime);
     finally EndChangesSchedule; end;
 
     { Never treat the event as handled here,
@@ -5307,12 +4876,11 @@ begin
 
   if ProcessEvents then
   begin
-    Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
       for I := 0 to KeyDeviceSensorNodes.Count - 1 do
         (KeyDeviceSensorNodes.Items[I] as TAbstractKeyDeviceSensorNode).
-          KeyUp(Event.Key, Event.KeyCharacter, FTime);
+          KeyUp(Event.Key, Event.KeyCharacter, NextEventTime);
     finally EndChangesSchedule; end;
 
     { Never treat the event as handled here,
@@ -5350,7 +4918,6 @@ begin
 
   if ProcessEvents then
   begin
-    Inc(FTime.PlusTicks);
     { Note that using Begin/EndChangesSchedule is not only for efficiency
       here. It's also sometimes needed to keep the code correct: note
       that ChangedAll changes everything, including State pointers.
@@ -5384,11 +4951,10 @@ begin
                   IndexOf(ActiveSensor) <> -1);
 
               NewIsOver := (OverItem <> nil) and
-                (OverItem^.State.PointingDeviceSensors.
-                  IndexOf(ActiveSensor) <> -1);
+                (OverItem^.State.PointingDeviceSensors.IndexOf(ActiveSensor) <> -1);
 
               if OldIsOver <> NewIsOver then
-                ActiveSensor.EventIsOver.Send(NewIsOver, Time);
+                ActiveSensor.EventIsOver.Send(NewIsOver, NextEventTime);
             end;
           end;
         end else
@@ -5426,7 +4992,7 @@ begin
             begin
               if (OldSensors[I] is TAbstractPointingDeviceSensorNode) and
                 TAbstractPointingDeviceSensorNode(OldSensors[I]).FdEnabled.Value then
-                TAbstractPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, Time);
+                TAbstractPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, NextEventTime);
             end;
 
           for I := 0 to NewSensors.Count - 1 do
@@ -5434,7 +5000,7 @@ begin
             begin
               if (NewSensors[I] is TAbstractPointingDeviceSensorNode) and
                 TAbstractPointingDeviceSensorNode(NewSensors[I]).FdEnabled.Value then
-                TAbstractPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, Time);
+                TAbstractPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, NextEventTime);
             end;
         end else
         if PointingDeviceOverItem <> nil then
@@ -5447,7 +5013,7 @@ begin
           for I := 0 to OldSensors.Count - 1 do
             if (OldSensors[I] is TAbstractPointingDeviceSensorNode) and
               TAbstractPointingDeviceSensorNode(OldSensors[I]).FdEnabled.Value then
-              TAbstractPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, Time);
+              TAbstractPointingDeviceSensorNode(OldSensors[I]).EventIsOver.Send(false, NextEventTime);
         end else
         begin
           Assert(OverItem <> nil);
@@ -5460,7 +5026,7 @@ begin
           for I := 0 to NewSensors.Count - 1 do
             if (NewSensors[I] is TAbstractPointingDeviceSensorNode) and
               TAbstractPointingDeviceSensorNode(NewSensors[I]).FdEnabled.Value then
-              TAbstractPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, Time);
+              TAbstractPointingDeviceSensorNode(NewSensors[I]).EventIsOver.Send(true, NextEventTime);
         end;
 
         FPointingDeviceOverItem := OverItem;
@@ -5488,16 +5054,16 @@ begin
               TouchSensor.EventHitPoint_Changed.Send(
                 { hitPoint_changed event wants a point in local coords,
                   we can get this by InverseTransform. }
-                MatrixMultPoint(OverItem^.State.InvertedTransform, Pick.Point), Time);
+                MatrixMultPoint(OverItem^.State.InvertedTransform, Pick.Point), NextEventTime);
 
               {$ifndef CONSERVE_TRIANGLE_MEMORY}
               if TouchSensor.EventHitNormal_Changed.SendNeeded then
                 TouchSensor.EventHitNormal_Changed.Send(
-                  OverItem^.INormal(Pick.Point), Time);
+                  OverItem^.INormal(Pick.Point), NextEventTime);
 
               if TouchSensor.EventHitTexCoord_Changed.SendNeeded then
                 TouchSensor.EventHitTexCoord_Changed.Send(
-                  OverItem^.ITexCoord2D(Pick.Point), Time);
+                  OverItem^.ITexCoord2D(Pick.Point), NextEventTime);
               {$endif not CONSERVE_TRIANGLE_MEMORY}
             end;
           end;
@@ -5510,7 +5076,7 @@ begin
           TAbstractPointingDeviceSensorNode;
         if ActiveSensor is TAbstractDragSensorNode then
           TAbstractDragSensorNode(ActiveSensor).Drag(
-            Time, Pick.RayOrigin, Pick.RayDirection);
+            NextEventTime, Pick.RayOrigin, Pick.RayDirection);
       end;
     finally
       EndChangesSchedule;
@@ -5583,7 +5149,7 @@ function TCastleSceneCore.PointingDeviceActivate(const Active: boolean;
         to false) was not called yet. }
 
       if NewViewpoint <> nil then
-        NewViewpoint.EventSet_Bind.Send(true, Time);
+        NewViewpoint.EventSet_Bind.Send(true, NextEventTime);
     end;
   end;
 
@@ -5601,7 +5167,7 @@ var
       PointingDeviceActiveSensors.Add(Sensor);
       { We do this only when PointingDeviceOverItem <> nil,
         so we know that PointingDeviceOverPoint is meaningful. }
-      Sensor.Activate(Time, Sensors.Transform, Sensors.InvertedTransform,
+      Sensor.Activate(NextEventTime, Sensors.Transform, Sensors.InvertedTransform,
         PointingDeviceOverPoint);
     end;
   end;
@@ -5617,7 +5183,6 @@ begin
 
   if ProcessEvents and (FPointingDeviceActive <> Active) then
   begin
-    Inc(FTime.PlusTicks);
     BeginChangesSchedule;
     try
       ActiveChanged := false;
@@ -5656,7 +5221,7 @@ begin
           begin
             ActiveSensor := PointingDeviceActiveSensors.Items[I]
               as TAbstractPointingDeviceSensorNode;
-            ActiveSensor.Deactivate(Time);
+            ActiveSensor.Deactivate(NextEventTime);
             { If we're still over the sensor, generate touchTime for TouchSensor }
             if (PointingDeviceOverItem <> nil) and
                (PointingDeviceOverItem^.State.PointingDeviceSensors.
@@ -5664,7 +5229,7 @@ begin
                (ActiveSensor is TTouchSensorNode) then
             begin
               TTouchSensorNode(ActiveSensor).
-                EventTouchTime.Send(Time.Seconds, Time);
+                EventTouchTime.Send(Time, NextEventTime);
             end;
           end;
           FPointingDeviceActiveSensors.Count := 0;
@@ -5725,75 +5290,211 @@ end;
 
 { Time stuff ------------------------------------------------------------ }
 
-function TCastleSceneCore.GetTime: TX3DTime;
+function TCastleSceneCore.Time: TFloatTime;
 begin
-  Result := FTime;
+  Result := FTimeNow.Seconds;
+end;
+
+function TCastleSceneCore.NextEventTime: TX3DTime;
+begin
+  { Increase @link(FTime) by some infinitely small value.
+    This allows events to pass through the ROUTEs
+    without the fear of being rejected as "recursive (cycle) events"
+    from previous events. }
+
+  Inc(FTimeNow.PlusTicks);
+  Result := FTimeNow;
 end;
 
 procedure TCastleSceneCore.InternalSetTime(
-  const NewValue: TX3DTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
-var
-  SomethingVisibleChanged: boolean;
-  I: Integer;
-  ChangedSkin: TMFVec3f;
+  const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
+
+  { Apply NewPlayingAnimation* stuff.
+
+    Call outside of AnimateOnlyWhenVisible check, to do it even when object is not visible.
+    Otherwise stop/start time would be shifted to when it becomes visible, which is not perfect
+    (although it would be Ok in practice too?) }
+  procedure UpdateNewPlayingAnimation;
+  var
+    SameAnimation: boolean;
+  begin
+    if NewPlayingAnimationUse then
+    begin
+      NewPlayingAnimationUse := false;
+      SameAnimation := PlayingAnimationNode = NewPlayingAnimationNode;
+      if PlayingAnimationNode <> nil then
+      begin
+        { We want to stop old PlayingAnimationNode from sending any further
+          elapsedTime events (elapsedTime causes also fraction_changed).
+          Sending of further elapsedTime means that two animations try to play
+          at the same time, and modify the same transforms.
+
+          One way to stop animation is to set
+
+            PlayingAnimationNode.StopTime := Time;
+
+          While it works in practice (no reproducible bug with it found),
+          it has 2 problems:
+
+          - There will be 1 additional frame when TimeSensor "finishes of"
+            the animation, by remaining "TimeIncrease - (NewTime - FdStopTime.Value)"
+            duration. This isn't a problem in practice, since it only happens for 1 frame
+            (then the old TimeSensor becomes inactive), but it stil feels dirty/wasteful.
+
+          - In case you will move time backwards, e.g. by ResetTime or ResetTimeAtLoad,
+            you may get into trouble.
+            You may accidentally activate a time sensor that is
+            inactive now, but was active long time ago.
+
+          To overcome the 2nd problem, we tried the trick below.
+          It will work assuming you never reset time to something < 1.
+          (If you do reset time to something very small, then typical TimeSensors will
+          have problems anyway,
+          see http://castle-engine.sourceforge.net/x3d_time_origin_considered_uncomfortable.php ).
+
+            PlayingAnimationNode.StartTime := 0;
+            PlayingAnimationNode.StopTime := 1;
+            PlayingAnimationNode.Loop := false;
+
+          But this:
+          - Still has the "1 additional frame when TimeSensor finishes of" dirtyness.
+          - Also, setting startTime while time-dependent node is active is ignored,
+            X3D spec requires this, see our TSFTimeIgnoreWhenActive implementation.
+            (bug reproduction: escape_universe, meteorite_1 dying).
+          - Also, it's bad to unconditionally set "Loop" value.
+            If user is using paDefault for animation, (s)he expects
+            that PlayAnimation doesn't change it ever.
+
+          So it's simpest and reliable to just set enabled=false on old TimeSensor.
+          TTimeDependentNodeHandler.SetTime then guarantees it will immediately stop
+          sending elapsedTime events. }
+
+        PlayingAnimationNode.Enabled := false;
+      end;
+      PlayingAnimationNode := NewPlayingAnimationNode;
+      if PlayingAnimationNode <> nil then
+      begin
+        case NewPlayingAnimationLooping of
+          paForceLooping   : PlayingAnimationNode.Loop := true;
+          paForceNotLooping: PlayingAnimationNode.Loop := false;
+        end;
+        PlayingAnimationNode.Enabled := true;
+        { Disable the "ignore" mechanism, otherwise
+          setting startTime on a running TimeSensor would be ignored.
+          Testcase: e.g. mana animation on dark_dragon and dragon_squash. }
+        if SameAnimation then
+        begin
+          Inc(PlayingAnimationNode.FdStopTime.NeverIgnore);
+          Inc(PlayingAnimationNode.FdStartTime.NeverIgnore);
+        end;
+        PlayingAnimationNode.StopTime := 0;
+        PlayingAnimationNode.StartTime := Time;
+        { Enable the "ignore" mechanism again, to follow X3D spec. }
+        if SameAnimation then
+        begin
+          Dec(PlayingAnimationNode.FdStopTime.NeverIgnore);
+          Dec(PlayingAnimationNode.FdStartTime.NeverIgnore);
+        end;
+      end;
+    end;
+  end;
+
+  { Call SetTime on all TimeDependentHandlers. }
+  procedure UpdateTimeDependentHandlers(const ExtraTimeIncrease: TFloatTime);
+  var
+    SomethingVisibleChanged: boolean;
+    I: Integer;
+  begin
+    SomethingVisibleChanged := false;
+
+    for I := 0 to TimeDependentHandlers.Count - 1 do
+    begin
+      if TimeDependentHandlers[I].SetTime(Time, TimeIncrease + ExtraTimeIncrease, ResetTime) and
+        (TimeDependentHandlers[I].Node is TMovieTextureNode) then
+        SomethingVisibleChanged := true;
+    end;
+
+    { If SomethingVisibleChanged (in MovieTexture nodes), we have to redisplay. }
+    if SomethingVisibleChanged then
+      VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
+  end;
+
+  { Call UpdateTimeDependentHandlers, but only if AnimateOnlyWhenVisible logic agrees.
+    Note that ResetTime = true forces always an UpdateTimeDependentHandlers(0.0) call. }
+  procedure UpdateTimeDependentHandlersIfVisible;
+  begin
+    if FAnimateOnlyWhenVisible and (not IsVisibleNow) and (not ResetTime) then
+      FAnimateOnlyWhenVisibleGatheredTime += TimeIncrease else
+    begin
+      if ResetTime then
+        FAnimateOnlyWhenVisibleGatheredTime := 0;
+      UpdateTimeDependentHandlers(FAnimateOnlyWhenVisibleGatheredTime);
+      FAnimateOnlyWhenVisibleGatheredTime := 0;
+    end;
+    IsVisibleNow := false;
+  end;
+
+  { Call humanoids AnimateSkin.
+    This could actually be done from anywhere, as long as it gets called
+    fairly soon after every HAnimJoint animation. }
+  procedure UpdateHumanoidSkin;
+  var
+    I: Integer;
+    ChangedSkin: TMFVec3f;
+  begin
+    for I := 0 to ScheduledHumanoidAnimateSkin.Count - 1 do
+    begin
+      ChangedSkin := (ScheduledHumanoidAnimateSkin.Items[I]
+        as THAnimHumanoidNode).AnimateSkin;
+      if ChangedSkin <> nil then
+        ChangedSkin.Changed;
+    end;
+    ScheduledHumanoidAnimateSkin.Count := 0;
+  end;
+
+  { Process TransformationDirty at the end of increasing time, to apply scheduled
+    TransformationDirty in the same Update, as soon as possible
+    (useful e.g. for mana shot animation in dragon_squash). }
+  procedure UpdateTransformationDirty;
+  begin
+    if TransformationDirty <> [] then
+    begin
+      RootTransformationChanged(TransformationDirty);
+      TransformationDirty := [];
+    end;
+  end;
+
 begin
+  FTimeNow.Seconds := NewValue;
+  FTimeNow.PlusTicks := 0; // using InternalSetTime always resets PlusTicks
+
   if ProcessEvents then
   begin
     BeginChangesSchedule;
     try
-      SomethingVisibleChanged := false;
-
-      for I := 0 to TimeDependentHandlers.Count - 1 do
-      begin
-        if TimeDependentHandlers[I].SetTime(Time, NewValue, TimeIncrease, ResetTime) and
-          (TimeDependentHandlers[I].Node is TMovieTextureNode) then
-          SomethingVisibleChanged := true;
-      end;
-
-      { If SomethingVisibleChanged (on MovieTexture nodes),
-        then we have to redisplay. }
-      if SomethingVisibleChanged then
-        VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
-
-      { call humanoids AnimateSkin now.
-        This could actually be done anywhere, as long as it gets called
-        fairly soon after every HAnimJoint animation. }
-      for I := 0 to ScheduledHumanoidAnimateSkin.Count - 1 do
-      begin
-        ChangedSkin := (ScheduledHumanoidAnimateSkin.Items[I]
-          as THAnimHumanoidNode).AnimateSkin;
-        if ChangedSkin <> nil then
-          ChangedSkin.Changed;
-      end;
-      ScheduledHumanoidAnimateSkin.Count := 0;
+      UpdateNewPlayingAnimation;
+      UpdateTimeDependentHandlersIfVisible;
+      UpdateHumanoidSkin;
+      UpdateTransformationDirty;
     finally
       EndChangesSchedule;
     end;
   end;
-
-  FTime := NewValue;
 end;
 
 procedure TCastleSceneCore.SetTime(const NewValue: TFloatTime);
 var
   TimeIncrease: TFloatTime;
-  NewCompleteValue: TX3DTime;
 begin
-  NewCompleteValue.Seconds := NewValue;
-  NewCompleteValue.PlusTicks := 0;
-  TimeIncrease := NewValue - FTime.Seconds;
+  TimeIncrease := NewValue - FTimeNow.Seconds;
   if TimeIncrease > 0 then
-    InternalSetTime(NewCompleteValue, TimeIncrease, false);
+    InternalSetTime(NewValue, TimeIncrease, false);
 end;
 
 procedure TCastleSceneCore.IncreaseTime(const TimeIncrease: TFloatTime);
-var
-  NewCompleteValue: TX3DTime;
 begin
-  NewCompleteValue.Seconds := FTime.Seconds + TimeIncrease;
-  NewCompleteValue.PlusTicks := 0;
   if TimeIncrease > 0 then
-    InternalSetTime(NewCompleteValue, TimeIncrease, false);
+    InternalSetTime(FTimeNow.Seconds + TimeIncrease, TimeIncrease, false);
 end;
 
 procedure TCastleSceneCore.ResetLastEventTime(Node: TX3DNode);
@@ -5807,33 +5508,25 @@ begin
 end;
 
 procedure TCastleSceneCore.ResetTime(const NewValue: TFloatTime);
-var
-  NewCompleteValue: TX3DTime;
 begin
   if RootNode <> nil then
     RootNode.EnumerateNodes(@ResetLastEventTime, false);
-
-  NewCompleteValue.Seconds := NewValue;
-  NewCompleteValue.PlusTicks := 0;
-  InternalSetTime(NewCompleteValue, 0, true);
+  InternalSetTime(NewValue, 0, true);
 end;
 
 procedure TCastleSceneCore.ResetTimeAtLoad;
-var
-  TimeAtLoad: TFloatTime;
 begin
   if (NavigationInfoStack.Top <> nil) and
      (NavigationInfoStack.Top is TKambiNavigationInfoNode) and
-     TKambiNavigationInfoNode(NavigationInfoStack.Top).FdTimeOriginAtLoad.Value
-    then
-    TimeAtLoad := 0.0 else
-    TimeAtLoad := DateTimeToUnix(Now);
+     TKambiNavigationInfoNode(NavigationInfoStack.Top).TimeOriginAtLoad then
+    FTimeAtLoad := 0.0 else
+    FTimeAtLoad := DateTimeToUnix(Now);
   ResetTime(TimeAtLoad);
 end;
 
 procedure TCastleSceneCore.IncreaseTimeTick;
 begin
-  Inc(FTime.PlusTicks);
+  Inc(FTimeNow.PlusTicks);
 end;
 
 procedure TCastleSceneCore.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -5848,35 +5541,20 @@ begin
   if LastUpdateFrameId = TFramesPerSecond.FrameId then Exit;
   LastUpdateFrameId := TFramesPerSecond.FrameId;
 
-  if FAnimateOnlyWhenVisible and not IsVisibleNow then
-    FAnimateOnlyWhenVisibleGatheredTime += SecondsPassed else
-  begin
-    { Ignore Update calls when SecondsPassed is precisely zero
-      (this may happen, and is correct, see TFramesPerSecond.ZeroNextSecondsPassed).
-      In this case, time increase will be zero so the whole code
-      will not do anything anyway.
+  { Most of the "update" job should go to InternalSetTime implementation,
+    because TCastlePrecalculatedAnimation calls only SetTime, not Update. }
 
-      (Well, time dependent nodes like TimeSensor could "realize" that startTime
-      happened *now*, and send initial events to start animation.
-      But actually we take care of it in HandleChangeTimeStopStart.) }
-    SP := SecondsPassed + FAnimateOnlyWhenVisibleGatheredTime;
-    FAnimateOnlyWhenVisibleGatheredTime := 0;
-    if TimePlaying and (SP <> 0) then
-      IncreaseTime(TimePlayingSpeed * SP);
-  end;
+  { Ignore calls when SecondsPassed is precisely zero
+    (this may happen, and is correct, see TFramesPerSecond.ZeroNextSecondsPassed).
+    In this case, time increase will be zero so the whole code
+    will not do anything anyway.
 
-  Inc(FTime.PlusTicks);
-
-  { process TransformationDirty after IncreaseTime, to apply scheduled
-    TransformationDirty in the same Update, as soon as possible
-    (useful e.g. for mana shot animation in dragon_squash). }
-  if TransformationDirty <> [] then
-  begin
-    RootTransformationChanged(TransformationDirty);
-    TransformationDirty := [];
-  end;
-
-  IsVisibleNow := false;
+    (Well, time dependent nodes like TimeSensor could "realize" that startTime
+    happened *now*, and send initial events to start animation.
+    But actually we take care of it in HandleChangeTimeStopStart.) }
+  SP := TimePlayingSpeed * SecondsPassed;
+  if TimePlaying and (SP <> 0) then
+    IncreaseTime(SP);
 end;
 
 { changes schedule ----------------------------------------------------------- }
@@ -5965,10 +5643,10 @@ begin
       if NewIsActive <> PSI.IsActive then
       begin
         PSI.IsActive := NewIsActive;
-        ProxNode.EventIsActive.Send(NewIsActive, Time);
+        ProxNode.EventIsActive.Send(NewIsActive, NextEventTime);
         if NewIsActive then
-          ProxNode.EventEnterTime.Send(Time.Seconds, Time) else
-          ProxNode.EventExitTime.Send(Time.Seconds, Time);
+          ProxNode.EventEnterTime.Send(Time, NextEventTime) else
+          ProxNode.EventExitTime.Send(Time, NextEventTime);
       end;
 
       { Call position_changed, orientation_changed, even if this is just
@@ -5979,13 +5657,13 @@ begin
 
       if NewIsActive then
       begin
-        ProxNode.EventPosition_Changed.Send(Position, Time);
+        ProxNode.EventPosition_Changed.Send(Position, NextEventTime);
         if ProxNode.EventOrientation_Changed.SendNeeded then
         begin
           Direction := MatrixMultDirection(PSI.InvertedTransform, CameraDirection);
           Up        := MatrixMultDirection(PSI.InvertedTransform, CameraUp);
           ProxNode.EventOrientation_Changed.Send(
-            CamDirUp2Orient(Direction, Up), Time);
+            CamDirUp2Orient(Direction, Up), NextEventTime);
         end;
         { TODO: centerOfRotation_changed }
       end;
@@ -6011,11 +5689,9 @@ begin
 
     if ProcessEvents then
     begin
-      Inc(FTime.PlusTicks);
       for I := 0 to ProximitySensors.Count - 1 do
         ProximitySensorUpdate(ProximitySensors[I]);
 
-      Inc(FTime.PlusTicks);
       { Update camera information on all Billboard nodes,
         and retraverse scene from Billboard nodes. So we treat Billboard nodes
         much like Transform nodes, except that their transformation animation
@@ -6038,9 +5714,8 @@ begin
       if WatchForTransitionComplete and not ACamera.Animation then
       begin
         WatchForTransitionComplete := false;
-        Inc(FTime.PlusTicks);
         if NavigationInfoStack.Top <> nil then
-          NavigationInfoStack.Top.EventTransitionComplete.Send(true, Time);
+          NavigationInfoStack.Top.EventTransitionComplete.Send(true, NextEventTime);
       end;
     end;
   finally EndChangesSchedule end;
@@ -6066,7 +5741,7 @@ begin
   for I := 0 to CompiledScriptHandlers.Count - 1 do
     if CompiledScriptHandlers.L[I].Name = HandlerName then
     begin
-      CompiledScriptHandlers.L[I].Handler(ReceivedValue, Time);
+      CompiledScriptHandlers.L[I].Handler(ReceivedValue, NextEventTime);
       Break;
     end;
 end;
@@ -6357,7 +6032,7 @@ begin
   begin
     Camera.SetView(Position, Direction, Up);
     if NavigationInfoStack.Top <> nil then
-      NavigationInfoStack.Top.EventTransitionComplete.Send(true, Time);
+      NavigationInfoStack.Top.EventTransitionComplete.Send(true, NextEventTime);
   end;
 end;
 
@@ -6514,24 +6189,22 @@ begin
   begin
     BeginChangesSchedule;
     try
-      Inc(FTime.PlusTicks);
-
       if Viewpoint.EventCameraMatrix.SendNeeded then
-        Viewpoint.EventCameraMatrix.Send(RenderingCamera.Matrix, Time);
+        Viewpoint.EventCameraMatrix.Send(RenderingCamera.Matrix, NextEventTime);
 
       if Viewpoint.EventCameraInverseMatrix.SendNeeded then
       begin
         RenderingCamera.InverseMatrixNeeded;
-        Viewpoint.EventCameraInverseMatrix.Send(RenderingCamera.InverseMatrix, Time);
+        Viewpoint.EventCameraInverseMatrix.Send(RenderingCamera.InverseMatrix, NextEventTime);
       end;
 
       if Viewpoint.EventCameraRotationMatrix.SendNeeded then
-        Viewpoint.EventCameraRotationMatrix.Send(RenderingCamera.RotationMatrix3, Time);
+        Viewpoint.EventCameraRotationMatrix.Send(RenderingCamera.RotationMatrix3, NextEventTime);
 
       if Viewpoint.EventCameraRotationInverseMatrix.SendNeeded then
       begin
         RenderingCamera.RotationInverseMatrixNeeded;
-        Viewpoint.EventCameraRotationInverseMatrix.Send(RenderingCamera.RotationInverseMatrix3, Time);
+        Viewpoint.EventCameraRotationInverseMatrix.Send(RenderingCamera.RotationInverseMatrix3, NextEventTime);
       end;
     finally EndChangesSchedule end;
   end;
@@ -6540,13 +6213,28 @@ end;
 procedure TCastleSceneCore.PrepareResources(Options: TPrepareResourcesOptions;
   ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
 
+  { PrepareShapesOctrees and PrepareShadowVolumes could be optimized
+    into one run }
+
   procedure PrepareShapesOctrees;
   var
     SI: TShapeTreeIterator;
   begin
     SI := TShapeTreeIterator.Create(Shapes, false);
     try
-      while SI.GetNext do SI.Current.OctreeTriangles;
+      while SI.GetNext do
+        SI.Current.InternalOctreeTriangles;
+    finally FreeAndNil(SI) end;
+  end;
+
+  procedure PrepareShadowVolumes;
+  var
+    SI: TShapeTreeIterator;
+  begin
+    SI := TShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+        SI.Current.InternalShadowVolumes.PrepareResources;
     finally FreeAndNil(SI) end;
   end;
 
@@ -6556,18 +6244,15 @@ begin
   if prBoundingBox in Options then
     BoundingBox { ignore the result };
 
-  if prTrianglesListShadowCasters in Options then
-    TrianglesListShadowCasters;
-
-  if prManifoldAndBorderEdges in Options then
-    ManifoldEdges;
+  if prShadowVolume in Options then
+    PrepareShadowVolumes;
 
   if prSpatial in Options then
   begin
-    OctreeRendering;
-    OctreeDynamicCollisions;
-    OctreeVisibleTriangles;
-    OctreeCollidableTriangles;
+    InternalOctreeRendering;
+    InternalOctreeDynamicCollisions;
+    InternalOctreeVisibleTriangles;
+    InternalOctreeCollidableTriangles;
     PrepareShapesOctrees;
   end;
 end;
@@ -6576,7 +6261,7 @@ function TCastleSceneCore.HeightCollision(const Position, GravityUp: TVector3Sin
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
   begin
     Result := false;
     AboveHeight := MaxSingle;
@@ -6584,7 +6269,7 @@ begin
 
     if GetCollides then
     begin
-      Result := OctreeCollisions.HeightCollision(Position, GravityUp,
+      Result := InternalOctreeCollisions.HeightCollision(Position, GravityUp,
         AboveHeight, PTriangle(AboveGround), nil, TrianglesToIgnoreFunc);
     end;
   end else
@@ -6598,11 +6283,11 @@ function TCastleSceneCore.MoveCollision(
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
   begin
     if GetCollides then
     begin
-      Result := OctreeCollisions.MoveCollision(OldPos, ProposedNewPos, NewPos,
+      Result := InternalOctreeCollisions.MoveCollision(OldPos, ProposedNewPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, nil, TrianglesToIgnoreFunc);
     end else
     begin
@@ -6620,10 +6305,10 @@ function TCastleSceneCore.MoveCollision(
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
   begin
     Result := (not GetCollides) or
-      OctreeCollisions.MoveCollision(OldPos, NewPos,
+      InternalOctreeCollisions.MoveCollision(OldPos, NewPos,
         IsRadius, Radius, OldBox, NewBox, nil, TrianglesToIgnoreFunc);
   end else
     Result := inherited MoveCollision(OldPos, NewPos,
@@ -6634,9 +6319,9 @@ function TCastleSceneCore.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
     Result := (GetCollides or (ALineOfSight and GetExists)) and
-      OctreeCollisions.IsSegmentCollision(
+      InternalOctreeCollisions.IsSegmentCollision(
         Pos1, Pos2,
         nil, false, TrianglesToIgnoreFunc) else
     Result := inherited SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, ALineOfSight);
@@ -6646,19 +6331,39 @@ function TCastleSceneCore.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
     Result := GetCollides and
-      OctreeCollisions.IsSphereCollision(
+      InternalOctreeCollisions.IsSphereCollision(
         Pos, Radius, nil, TrianglesToIgnoreFunc) else
     Result := inherited SphereCollision(Pos, Radius, TrianglesToIgnoreFunc);
+end;
+
+function TCastleSceneCore.SphereCollision2D(
+  const Pos: TVector2Single; const Radius: Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  if InternalOctreeCollisions <> nil then
+    Result := GetCollides and
+      InternalOctreeCollisions.IsSphereCollision2D(Pos, Radius, nil, TrianglesToIgnoreFunc) else
+    Result := inherited SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc);
+end;
+
+function TCastleSceneCore.PointCollision2D(
+  const Point: TVector2Single;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+begin
+  if InternalOctreeCollisions <> nil then
+    Result := GetCollides and
+      InternalOctreeCollisions.IsPointCollision2D(Point, nil, TrianglesToIgnoreFunc) else
+    Result := inherited PointCollision2D(Point, TrianglesToIgnoreFunc);
 end;
 
 function TCastleSceneCore.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
     Result := GetCollides and
-      OctreeCollisions.IsBoxCollision(
+      InternalOctreeCollisions.IsBoxCollision(
         Box,  nil, TrianglesToIgnoreFunc) else
     Result := inherited BoxCollision(Box, TrianglesToIgnoreFunc);
 end;
@@ -6671,12 +6376,12 @@ var
   IntersectionDistance: Single;
   NewNode: PRayCollisionNode;
 begin
-  if OctreeCollisions <> nil then
+  if InternalOctreeCollisions <> nil then
   begin
     Result := nil;
     if GetExists then
     begin
-      Triangle := OctreeCollisions.RayCollision(
+      Triangle := InternalOctreeCollisions.RayCollision(
         Intersection, IntersectionDistance, RayOrigin, RayDirection,
         { ReturnClosestIntersection } true,
         { TriangleToIgnore } nil,
@@ -6795,8 +6500,8 @@ begin
     end;
 
     if FViewpointsArray[Idx] = FViewpointStack.Top then
-      FViewpointsArray[Idx].EventSet_Bind.Send(false, Time);
-    FViewpointsArray[Idx].EventSet_Bind.Send(true, Time);
+      FViewpointsArray[Idx].EventSet_Bind.Send(false, NextEventTime);
+    FViewpointsArray[Idx].EventSet_Bind.Send(true, NextEventTime);
 
     if not Animated then
       ForceTeleportTransitions := OldForceTeleport;
@@ -6902,95 +6607,146 @@ end;
 
 type
   TAnimationsEnumerator = class
+    //Parent: TCastleSceneCore;
     AnimationPrefix: string;
     List: TStringList;
+    procedure EnumerateWithAlias(const Node: TX3DNode; const NodeName: string;
+      const Overwrite: boolean);
     procedure Enumerate(Node: TX3DNode);
   end;
 
 procedure TAnimationsEnumerator.Enumerate(Node: TX3DNode);
+begin
+  EnumerateWithAlias(Node, Node.NodeName, false);
+end;
+
+procedure TAnimationsEnumerator.EnumerateWithAlias(const Node: TX3DNode;
+  const NodeName: string; const Overwrite: boolean);
 var
   AnimationName: string;
+  ExistingIndex: Integer;
 begin
-  if IsPrefix(AnimationPrefix, Node.NodeName, false) then
+  if IsPrefix(AnimationPrefix, NodeName, false) then
   begin
-    AnimationName := PrefixRemove(AnimationPrefix, Node.NodeName, false);
+    AnimationName := PrefixRemove(AnimationPrefix, NodeName, false);
     if AnimationName = '' then
     begin
-      OnWarning(wtMinor, 'Named Animations', Format('TimeSensor node name is exactly "%s", this indicates named animation with empty name, ignoring',
-        [AnimationName]));
+      if AnimationPrefix <> '' then // this is normal with AnimationPrefix = '' on many scenes
+        OnWarning(wtMinor, 'Named Animations', Format('TimeSensor node name is exactly "%s", this indicates named animation with empty name, ignoring',
+          [AnimationName]));
       Exit;
     end;
-    if List.IndexOf(AnimationName) <> -1 then
+    ExistingIndex := List.IndexOf(AnimationName);
+    if ExistingIndex <> -1 then
     begin
-      OnWarning(wtMinor, 'Named Animations', Format('Animation name "%s" occurs multiple times in scene',
-        [AnimationName]));
-      Exit;
+      if not Overwrite then
+        OnWarning(wtMinor, 'Named Animations', Format('Animation name "%s" occurs multiple times in scene',
+          [AnimationName]));
+      List.Objects[ExistingIndex] := Node;
+    end else
+    begin
+      List.AddObject(AnimationName, Node);
     end;
-    List.Add(AnimationName);
   end;
 end;
 
 function TCastleSceneCore.Animations: TStringList;
 var
   Enum: TAnimationsEnumerator;
+  I: Integer;
 begin
   Result := TStringList.Create;
+  Result.CaseSensitive := true; // X3D node names are case-sensitive
   if RootNode <> nil then
   begin
     Enum := TAnimationsEnumerator.Create;
     try
+      //Enum.Parent := Self;
       Enum.List := Result;
       Enum.AnimationPrefix := AnimationPrefix;
       RootNode.EnumerateNodes(TTimeSensorNode, @Enum.Enumerate, true);
+
+      { recognize named animations also from IMPORTed node names.
+        This alllows to import and rename animations, which is useful. }
+      if RootNode.ImportedNames <> nil then
+        for I := 0 to RootNode.ImportedNames.Count - 1 do
+          Enum.EnumerateWithAlias(
+            RootNode.ImportedNames[I].Node,
+            RootNode.ImportedNames[I].Name, true);
     finally FreeAndNil(Enum) end;
+  end;
+end;
+
+function TCastleSceneCore.HasAnimation(const AnimationName: string): boolean;
+begin
+  Result := FAnimationsList.IndexOf(AnimationName) <> -1;
+end;
+
+function TCastleSceneCore.ForceAnimationPose(const AnimationName: string;
+  const TimeInAnimation: TFloatTime;
+  const Looping: TPlayAnimationLooping): boolean;
+var
+  Index: Integer;
+  TimeNode: TTimeSensorNode;
+  Loop: boolean;
+begin
+  Index := FAnimationsList.IndexOf(AnimationName);
+  Result := Index <> -1;
+  if Result then
+  begin
+    TimeNode := FAnimationsList.Objects[Index] as TTimeSensorNode;
+    case Looping of
+      paForceLooping   : Loop := true;
+      paForceNotLooping: Loop := false;
+      else               Loop := TimeNode.Loop;
+    end;
+    TimeNode.FakeTime(TimeInAnimation, Loop, NextEventTime);
   end;
 end;
 
 function TCastleSceneCore.PlayAnimation(const AnimationName: string;
   const Looping: TPlayAnimationLooping): boolean;
 var
-  TimeNode: TTimeSensorNode;
+  Index: Integer;
 begin
-  if RootNode <> nil then
-    TimeNode := RootNode.TryFindNodeByName(TTimeSensorNode,
-      AnimationPrefix + AnimationName, true) as TTimeSensorNode else
-    TimeNode := nil;
-  Result := TimeNode <> nil;
+  Index := FAnimationsList.IndexOf(AnimationName);
+  Result := Index <> -1;
   if Result then
   begin
-    { stop previous animation, if any.
-      Do it only if new AnimationName is found,
-      otherwise animation would be left in weird state left in the middle
-      of previous animation. }
-    if PlayingAnimationNode <> nil then
-    begin
-      PlayingAnimationNode.FdStopTime.Send(Time.Seconds);
-      PlayingAnimationNode := nil;
-    end;
-    Inc(FTime.PlusTicks);
+    { We defer actual sending of stopTime and startTime to Update method.
+      This way multiple calls to PlayAnimation within the same frame
+      behave Ok, only last one matters.
 
-    case Looping of
-      paForceLooping   : TimeNode.FdLoop.Send(true);
-      paForceNotLooping: TimeNode.FdLoop.Send(false);
-    end;
-    { sending stopTime and startTime may affect the same routes,
-      so avoid accidentally triggering the loop detection mechanism by increasing time }
-    Inc(FTime.PlusTicks);
-    TimeNode.FdStartTime.Send(Time.Seconds);
-    PlayingAnimationNode := TimeNode;
+      Otherwise we're left
+      with TimeSensor having equal stopTime and startTime on animations
+      executed by non-last PlayAnimation call within the same frame,
+      and so these animations play (while they should not), simultaneously
+      with desired animations.
+      (reproduction: escape_universe, boss flying + flying_left/right + dying
+      animations.)
+
+      Don't even set TimeNode.Loop here --- setting Loop property
+      on a node, and then not controlling it's startTime / stopTime,
+      means that it will play infinitely (because the default values
+      mean that stopTime is ignored).
+    }
+    NewPlayingAnimationNode := FAnimationsList.Objects[Index] as TTimeSensorNode;
+    NewPlayingAnimationLooping := Looping;
+    NewPlayingAnimationUse := true;
   end;
 end;
 
 function TCastleSceneCore.AnimationDuration(const AnimationName: string): TFloatTime;
 var
+  Index: Integer;
   TimeNode: TTimeSensorNode;
 begin
-  if RootNode <> nil then
-    TimeNode := RootNode.TryFindNodeByName(TTimeSensorNode,
-      AnimationPrefix + AnimationName, true) as TTimeSensorNode else
-    TimeNode := nil;
-  if TimeNode <> nil then
-    Result := TimeNode.CycleInterval else
+  Index := FAnimationsList.IndexOf(AnimationName);
+  if Index <> -1 then
+  begin
+    TimeNode := FAnimationsList.Objects[Index] as TTimeSensorNode;
+    Result := TimeNode.CycleInterval;
+  end else
     Result := 0;
 end;
 

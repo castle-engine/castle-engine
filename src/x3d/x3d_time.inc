@@ -48,15 +48,9 @@
   public
     Node: TX3DNode;
 
-    CurrentTime: TX3DTime;
-
-    { These describe current state of this TimeDependentNode,
-      see X3D specification about "Time" component.
-
-      Their setting causes appropriate events to be generated
-      (with Time = CurrentTime, so be sure to update it before changing
-      these properties. SetTime automatically does this for you.).
-
+    { Current state of this time-dependent node
+      (see X3D specification about "Time" component for exact meaning).
+      Changing them automatically causes appropriate events to be generated.
       @groupBegin }
     property IsActive: boolean read FIsActive write SetIsActive;
     property IsPaused: boolean read FIsPaused write SetIsPaused;
@@ -90,7 +84,7 @@
       This is the most important method of this class, that basically
       implements time-dependent nodes operations.
 
-      OldValue, NewValue and TimeIncrease must match, as produced
+      NewTime and TimeIncrease are produced
       by TCastleSceneCore.SetTime and friends.
 
       When ResetTime = true, this means that "TimeIncrease value is unknown"
@@ -100,15 +94,37 @@
       In other circumstances, TimeIncrease must be >= 0.
       (It's allowed to pass TimeIncrease = 0 and ResetTime = false, this doesn't
       advance the clock, but is a useful trick to force some update,
-      see TVRMScene.ChangedField implementation.)
+      see TCastleSceneCore.ChangedField implementation.)
 
       References: see X3D specification "Time" component,
       8.2 ("concepts") for logic behind all those start/stop/pause/resumeTime,
       cycleInterval, loop properties.
 
-      @returns(If some state of time-dependent node  changed.) }
-    function SetTime(const OldValue, NewValue: TX3DTime;
+      @returns(If some state of time-dependent node changed.) }
+    function SetTime(const NewTime: TFloatTime;
       const TimeIncrease: TFloatTime; const ResetTime: boolean): boolean;
+  end;
+
+  { Time field, that ignores it's input event when parent time-dependent node
+    is active. }
+  TSFTimeIgnoreWhenActive = class(TSFTime)
+  protected
+    class function ExposedEventsFieldClass: TX3DFieldClass; override;
+    procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
+      const Time: TX3DTime); override;
+  public
+    NeverIgnore: Cardinal;
+  end;
+
+  { Time field, that ignores it's input event when parent time-dependent node
+    is active and setting to value <= startTime. }
+  TSFStopTime = class(TSFTime)
+  protected
+    class function ExposedEventsFieldClass: TX3DFieldClass; override;
+    procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
+      const Time: TX3DTime); override;
+  public
+    NeverIgnore: Cardinal;
   end;
 
   TAbstractTimeDependentNode = class(TAbstractChildNode, IAbstractTimeDependentNode)
@@ -132,11 +148,11 @@
     private FFdResumeTime: TSFTime;
     public property FdResumeTime: TSFTime read FFdResumeTime;
 
-    private FFdStartTime: TSFTime;
-    public property FdStartTime: TSFTime read FFdStartTime;
+    private FFdStartTime: TSFTimeIgnoreWhenActive;
+    public property FdStartTime: TSFTimeIgnoreWhenActive read FFdStartTime;
 
-    private FFdStopTime: TSFTime;
-    public property FdStopTime: TSFTime read FFdStopTime;
+    private FFdStopTime: TSFStopTime;
+    public property FdStopTime: TSFStopTime read FFdStopTime;
 
     { Event out } { }
     private FEventElapsedTime: TSFTimeEvent;
@@ -164,6 +180,7 @@
 
   TTimeSensorNode = class(TAbstractTimeDependentNode, IAbstractSensorNode)
   private
+    FakingTime: Integer;
     procedure EventElapsedTimeReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
@@ -172,8 +189,8 @@
     class function ClassNodeTypeName: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdCycleInterval: TSFTime;
-    public property FdCycleInterval: TSFTime read FFdCycleInterval;
+    private FFdCycleInterval: TSFTimeIgnoreWhenActive;
+    public property FdCycleInterval: TSFTimeIgnoreWhenActive read FFdCycleInterval;
 
     { Event out } { }
     private FEventCycleTime: TSFTimeEvent;
@@ -210,9 +227,14 @@
       instead we follow our own Loop parameter.
       We take into account TimeSensor.cycleInterval (FdCycleInterval) and
       TimeSensor.enabled (FdEnabled) fields, just like normal TimeSensor.
-      We send out fraction_changed (EventFraction_changed) and time (EventTime)
-      output events. }
-    procedure FakeTime(const Time: TFloatTime; const Loop: boolean);
+      We send out fraction_changed, elapsedTime and time X3D output events,
+      and they should drive the rest of animation.
+
+      @groupBegin }
+    procedure FakeTime(const TimeInAnimation: TFloatTime; const Loop: boolean);
+    procedure FakeTime(const TimeInAnimation: TFloatTime; const Loop: boolean;
+      const TimeOfEvents: TX3DTime);
+    { @groupEnd }
   end;
 
 {$endif read_interface}
@@ -220,23 +242,6 @@
 {$ifdef read_implementation}
 
 { Field types for startTime/stopTime ----------------------------------------- }
-
-type
-  { SFTime that ignores it's input event when parent time-dependent node
-    is active. }
-  TSFTimeIgnoreWhenActive = class(TSFTime)
-  protected
-    class function ExposedEventsFieldClass: TX3DFieldClass; override;
-    procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
-      const Time: TX3DTime); override;
-  end;
-
-  TSFStopTime = class(TSFTime)
-  protected
-    class function ExposedEventsFieldClass: TX3DFieldClass; override;
-    procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
-      const Time: TX3DTime); override;
-  end;
 
 class function TSFTimeIgnoreWhenActive.ExposedEventsFieldClass: TX3DFieldClass;
 begin
@@ -250,15 +255,31 @@ procedure TSFTimeIgnoreWhenActive.ExposedEventReceive(
 
     Doing this inside local procedure to limit lifetime of IAbstractTimeDependentNode,
     to secure against http://bugs.freepascal.org/view.php?id=10374 }
-  function Active: boolean;
+  function Ignore: boolean;
   begin
-    Result := (ParentNode <> nil) and
+    Result :=
+      (NeverIgnore = 0) and
+      (ParentNode <> nil) and
       Supports(ParentNode, IAbstractTimeDependentNode) and
       (ParentNode as IAbstractTimeDependentNode).TimeDependentNodeHandler.IsActive;
   end;
 
+  procedure LogIgnored;
+  var
+    SceneName: string;
+  begin
+    if TX3DNode(ParentNode).Scene <> nil then
+      SceneName := TX3DNode(ParentNode).Scene.Name else
+      SceneName := '<scene-unknown>';
+    WritelnLog('Change Ignored', 'A change of "' + TX3DNode(ParentNode).NiceName + '.' + Name + '" field (scene "' + SceneName + '") while the time-dependent node is active is ignored (the value remains unchanged), following the X3D specification.');
+  end;
+
 begin
-  if Active then Exit;
+  if Ignore then
+  begin
+    LogIgnored;
+    Exit;
+  end;
   inherited;
 end;
 
@@ -274,11 +295,13 @@ procedure TSFStopTime.ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
 
     Doing this inside local procedure to limit lifetime of IAbstractTimeDependentNode,
     to secure against http://bugs.freepascal.org/view.php?id=10374 }
-  function Active: boolean;
+  function Ignore: boolean;
   var
     H: TTimeDependentNodeHandler;
   begin
-    Result := (ParentNode <> nil) and
+    Result :=
+      (NeverIgnore = 0) and
+      (ParentNode <> nil) and
       Supports(ParentNode, IAbstractTimeDependentNode);
     if Result then
     begin
@@ -288,8 +311,22 @@ procedure TSFStopTime.ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
     end;
   end;
 
+  procedure LogIgnored;
+  var
+    SceneName: string;
+  begin
+    if TX3DNode(ParentNode).Scene <> nil then
+      SceneName := TX3DNode(ParentNode).Scene.Name else
+      SceneName := '<scene-unknown>';
+    WritelnLog('Change Ignored', 'A change of "' + TX3DNode(ParentNode).NiceName + '.' + Name + '" field (scene "' + SceneName + '"), to the value <= startTime, while the time-dependent node is active is ignored (the value remains unchanged), following the X3D specification.');
+  end;
+
 begin
-  if Active then Exit;
+  if Ignore then
+  begin
+    LogIgnored;
+    Exit;
+  end;
   inherited;
 end;
 
@@ -300,7 +337,7 @@ begin
   if Value <> FIsActive then
   begin
     FIsActive := Value;
-    EventIsActive.Send(Value, CurrentTime);
+    EventIsActive.Send(Value, Node.Scene.NextEventTime);
   end;
 end;
 
@@ -309,7 +346,7 @@ begin
   if Value <> FIsPaused then
   begin
     FIsPaused := Value;
-    EventIsPaused.Send(Value, CurrentTime);
+    EventIsPaused.Send(Value, Node.Scene.NextEventTime);
   end;
 end;
 
@@ -318,7 +355,22 @@ begin
   if Value <> FElapsedTime then
   begin
     FElapsedTime := Value;
-    EventElapsedTime.Send(Value, CurrentTime);
+
+    { NextEventTime below will automatically increase time tick
+      of current time, and that's a good thing.
+
+      Otherwise there was a bug when TCastleSceneCore.ResetTime
+      (caused by ResetTimeAtLoad) was calling all time handlers
+      and in effect changing elapsedTime on all TimeSensors to 0
+      (see TTimeDependentNodeHandler.SetTime implementation). This was
+      (and still is) causing elapsedTime and fraction_changed outputs
+      generated even for inactive TimeSensors.
+
+      So it must avoid routes loop warnings by increasing PlusTicks
+      for next elapsedTime send
+      (reproduction: escape_universe game restart.) }
+
+    EventElapsedTime.Send(Value, Node.Scene.NextEventTime);
   end;
 end;
 
@@ -329,7 +381,7 @@ begin
 end;
 
 function TTimeDependentNodeHandler.SetTime(
-  const OldValue, NewValue: TX3DTime;
+  const NewTime: TFloatTime;
   const TimeIncrease: TFloatTime; const ResetTime: boolean): boolean;
 
 var
@@ -350,9 +402,15 @@ var
     and CycleTime value) if the *new* cycle started. This means
     that new ElapsedTime reached the non-zero CycleInterval
     and loop = TRUE. }
-  procedure IncreaseElapsedTime(const Increase: TFloatTime;
-    StopOnNonLoopedEnd: boolean);
+  procedure IncreaseElapsedTime(Increase: TFloatTime; StopOnNonLoopedEnd: boolean);
   begin
+    { In case of time resetting, we can have wild differences
+      between stopTime and NewTime, and Increase could get < 0.
+      Consider for example trick with startTime := 0, stopTime := 1
+      in UpdateNewPlayingAnimation in TCastleSceneCore.InternalSetTime.
+      So make sure Increase here is always >= 0. }
+    MaxVar(Increase, 0);
+
     NewElapsedTime      := NewElapsedTime      + Increase;
     FElapsedTimeInCycle := FElapsedTimeInCycle + Increase;
 
@@ -364,9 +422,9 @@ var
         begin
           FElapsedTimeInCycle := FloatModulo(FElapsedTimeInCycle, CycleInterval);
           { Send the time value when the cycle started, which was
-            a little earlier than CurrentTime: earlier by ElapsedTimeInCycle. }
+            a little earlier than NewTime: earlier by ElapsedTimeInCycle. }
           CycleTimeSend := true;
-          CycleTime := CurrentTime.Seconds - ElapsedTimeInCycle;
+          CycleTime := NewTime - ElapsedTimeInCycle;
         end else
         begin
           if StopOnNonLoopedEnd then
@@ -389,15 +447,15 @@ begin
 
   {$ifdef LOG_TIME_DEPENDENT_NODES}
   if Log then
-    WritelnLog('TimeDependentNodes', Format('%s: time changes from %f (by +%f) to %f. Cycle interval: %f. Before state: active %s, paused %s, loop %s',
+    WritelnLog('TimeDependentNodes', Format('%s: time changes by +%f to %f. Cycle interval: %f. Before state: active %s, paused %s, loop %s',
       [ Node.NodeTypeName,
-        OldValue.Seconds, TimeIncrease, NewValue.Seconds,
+        TimeIncrease, NewTime,
         CycleInterval,
         BoolToStr[IsActive], BoolToStr[IsPaused], BoolToStr[FdLoop.Value]
         ]));
   {$endif}
 
-  CurrentTime := NewValue;
+  Result := false;
 
   if (Fdenabled <> nil) and (not Fdenabled.Value) then
   begin
@@ -405,11 +463,10 @@ begin
     Exit;
   end;
 
-  { Note that each set of IsActive, IsPaused, ElapsedTime may generate events.
-    So we cannot carelessly set them many times in this method,
-    as double events are bad (besides possible unneeded overhead with
-    propagating them, route ignore events at the same timestamp,
-    since they may indicate loops in routes).
+  { Note that each set of IsActive, IsPaused, ElapsedTime may generate
+    an X3D event. So we should not carelessly set them many times in this method,
+    as it would waste time (why send an event that something changes,
+    when right after it you send another event that is changes?).
 
     Solution: below we will operate on local copies of these variables,
     like NewIsActive, NewIsPaused etc.
@@ -436,14 +493,13 @@ begin
 
   if not NewIsActive then
   begin
-    if (NewValue.Seconds >= FdStartTime.Value) and
-       ( (NewValue.Seconds < FdStopTime.Value) or
+    if (NewTime >= FdStartTime.Value) and
+       ( (NewTime < FdStopTime.Value) or
          { stopTime is ignored if it's <= startTime }
          (FdStopTime.Value <= FdStartTime.Value) ) and
-       { avoid starting the movie if it should be stopped according
+       { avoid starting the animation if it should be stopped according
          to loop and cycleInterval }
-       not ( (NewValue.Seconds - FdStartTime.Value >
-             CycleInterval) and
+       not ( (NewTime - FdStartTime.Value > CycleInterval) and
              (not FdLoop.Value) ) then
     begin
       NewIsActive := true;
@@ -453,7 +509,7 @@ begin
 
       { Do not advance by TimeIncrease (time from last Time),
         advance only by the time passed since startTime. }
-      IncreaseElapsedTime(NewValue.Seconds - FdStartTime.Value, true);
+      IncreaseElapsedTime(NewTime - FdStartTime.Value, true);
 
       if not CycleTimeSend then
       begin
@@ -462,7 +518,7 @@ begin
           This should be the "time at the beginning of the current cycle".
 
           Since IncreaseElapsedTime didn't detect a new cycle,
-          so NewElapsedTime = NewValue.Seconds - FdStartTime.Value fits
+          so NewElapsedTime = NewTime - FdStartTime.Value fits
           (is < ) within the CycleInterval. So startTime is the beginning
           of our cycle.
 
@@ -481,36 +537,34 @@ begin
   end else
   if NewIsPaused then
   begin
-    if (NewValue.Seconds >= FdResumeTime.Value) and
+    if (NewTime >= FdResumeTime.Value) and
        (FdResumeTime.Value > FdPauseTime.Value) then
     begin
       NewIsPaused := false;
       { Advance only by the time passed since resumeTime. }
-      IncreaseElapsedTime(NewValue.Seconds - FdResumeTime.Value, true);
+      IncreaseElapsedTime(NewTime - FdResumeTime.Value, true);
       Result := true;
     end;
   end else
   begin
     Result := true;
 
-    if (NewValue.Seconds >= FdStopTime.Value) and
+    if (NewTime >= FdStopTime.Value) and
        { stopTime is ignored if it's <= startTime }
        (FdStopTime.Value > FdStartTime.Value) then
     begin
       NewIsActive := false;
       { advance only to the stopTime }
       if TimeIncrease <> 0 then
-        IncreaseElapsedTime(TimeIncrease -
-          (NewValue.Seconds - FdStopTime.Value), false);
+        IncreaseElapsedTime(TimeIncrease - (NewTime - FdStopTime.Value), false);
     end else
-    if (NewValue.Seconds >= FdPauseTime.Value) and
+    if (NewTime >= FdPauseTime.Value) and
        (FdPauseTime.Value > FdResumeTime.Value) then
     begin
       NewIsPaused := true;
       { advance only to the pauseTime }
       if TimeIncrease <> 0 then
-        IncreaseElapsedTime(TimeIncrease -
-          (NewValue.Seconds - FdPauseTime.Value), false);
+        IncreaseElapsedTime(TimeIncrease - (NewTime - FdPauseTime.Value), false);
     end else
     begin
       { active and not paused movie }
@@ -545,7 +599,7 @@ begin
     end;
 
     if CycleTimeSend and (EventCycleTime <> nil) then
-      EventCycleTime.Send(CycleTime, CurrentTime);
+      EventCycleTime.Send(CycleTime, Node.Scene.NextEventTime);
   end else
   begin
     if not NewIsPaused then
@@ -576,7 +630,7 @@ begin
   {$ifdef LOG_TIME_DEPENDENT_NODES}
   if Log then
     WritelnLog('TimeDependentNodes', Format('%s: after: active %s, paused %s',
-      [ Node.NodeTypeName,
+      [ Node.NiceName,
         BoolToStr[IsActive],
         BoolToStr[IsPaused]]));
   {$endif}
@@ -711,7 +765,7 @@ procedure TTimeSensorNode.EventElapsedTimeReceive(
 var
   Fraction: Single;
 begin
-  if FdEnabled.Value then
+  if (FakingTime = 0) and FdEnabled.Value then
   begin
     Fraction := TimeDependentNodeHandler.ElapsedTimeInCycle / SafeCycleInterval;
     if (Fraction = 0) and (Time.Seconds > FdStartTime.Value) then Fraction := 1;
@@ -724,25 +778,37 @@ end;
 var
   FakeX3DTime: TX3DTime;
 
-procedure TTimeSensorNode.FakeTime(const Time: TFloatTime; const Loop: boolean);
+procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime; const Loop: boolean);
+begin
+  { This method may be called with any TimeInAnimation values sequence,
+    e.g. decreasing.
+
+    So we have to calculate TimeOfEvents independent from Time,
+    and always growing (to avoid the normal VRML/X3D mechanism that prevents
+    passing ROUTEs with an older timestamp (see TX3DRoute.EventReceive).
+    We do this by simply using a fake timestamp that is always growing. }
+  if FakeX3DTime.PlusTicks <> High(FakeX3DTime.PlusTicks) then
+    Inc(FakeX3DTime.PlusTicks) else
+  begin
+    FakeX3DTime.Seconds += 1;
+    FakeX3DTime.PlusTicks := 0;
+  end;
+
+  FakeTime(TimeInAnimation, Loop, FakeX3DTime);
+end;
+
+procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime; const Loop: boolean;
+  const TimeOfEvents: TX3DTime);
 begin
   if FdEnabled.Value then
   begin
-    { This method may be called with any Time values sequence, e.g. decreasing.
-      So we have to avoid the normal VRML/X3D mechanism that prevents
-      passing ROUTEs with an older timestamp (see TX3DRoute.EventReceive).
-      We do this by simply using a fake timestamp that is always growing. }
-    if FakeX3DTime.PlusTicks <> High(FakeX3DTime.PlusTicks) then
-      Inc(FakeX3DTime.PlusTicks) else
-    begin
-      FakeX3DTime.Seconds += 1;
-      FakeX3DTime.PlusTicks := 0;
-    end;
-
+    Inc(FakingTime);
     if Loop then
-      EventFraction_changed.Send(Frac(Time / SafeCycleInterval), FakeX3DTime) else
-      EventFraction_changed.Send(Clamped(Time / SafeCycleInterval, 0, 1), FakeX3DTime);
-    EventTime.Send(Time, FakeX3DTime);
+      EventFraction_changed.Send(Frac(TimeInAnimation / SafeCycleInterval), TimeOfEvents) else
+      EventFraction_changed.Send(Clamped(TimeInAnimation / SafeCycleInterval, 0, 1), TimeOfEvents);
+    EventElapsedTime.Send(TimeInAnimation, TimeOfEvents);
+    EventTime.Send(TimeInAnimation, TimeOfEvents);
+    Dec(FakingTime);
   end;
 end;
 

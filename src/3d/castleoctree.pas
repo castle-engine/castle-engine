@@ -62,6 +62,8 @@ end;
 *)
 unit CastleOctree;
 
+{$I castleconf.inc}
+
 interface
 
 uses SysUtils, CastleVectors, CastleBoxes, CastleUtils, CastleFrustum, Contnrs;
@@ -275,6 +277,10 @@ type
       TOctreeSubnodeIndex; overload;
 
     procedure SubnodesWithBox(const ABox: TBox3D;
+      out SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
+
+    { Ignore Z coords of boxes, like they were infinite in Z. }
+    procedure SubnodesWithBox2D(const ABoxMin, ABoxMax: TVector2Single;
       out SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
 
     { Simple check for frustum collision. }
@@ -599,17 +605,36 @@ end;
 
 procedure TOctreeNode.SubnodesWithBox(const ABox: TBox3D;
   out SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
-var i: Integer;
+var
+  i: Integer;
 begin
- for i := 0 to 2 do
- begin
-  SubnodeLow[i] := false;
-  SubnodeHigh[i] := true;
-  if ABox.Data[0, i] >= MiddlePoint[i] then
-   SubnodeLow[i] := true else
-  if ABox.Data[1, i] < MiddlePoint[i] then
-   SubnodeHigh[i] := false;
- end;
+  for i := 0 to 2 do
+  begin
+    SubnodeLow[i] := false;
+    SubnodeHigh[i] := true;
+    if ABox.Data[0, i] >= MiddlePoint[i] then
+      SubnodeLow[i] := true else
+    if ABox.Data[1, i] < MiddlePoint[i] then
+      SubnodeHigh[i] := false;
+  end;
+end;
+
+procedure TOctreeNode.SubnodesWithBox2D(const ABoxMin, ABoxMax: TVector2Single;
+  out SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
+var
+  i: Integer;
+begin
+  for i := 0 to 1 do
+  begin
+    SubnodeLow[i] := false;
+    SubnodeHigh[i] := true;
+    if ABoxMin[i] >= MiddlePoint[i] then
+      SubnodeLow[i] := true else
+    if ABoxMax[i] < MiddlePoint[i] then
+      SubnodeHigh[i] := false;
+  end;
+  SubnodeLow[2] := false;
+  SubnodeHigh[2] := true;
 end;
 
 procedure TOctreeNode.EnumerateCollidingOctreeItems(

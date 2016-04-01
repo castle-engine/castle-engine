@@ -244,7 +244,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
       so that Switch.whichChoice can work reliably.
       So create an empty node if needed. }
     if Result = nil then
-      Result := TStaticGroupNode.Create('', BaseUrl);
+      Result := TStaticGroupNode.Create('SlotEmptyAttachment_' + ToX3DName(Name), BaseUrl);
   end;
 
 var

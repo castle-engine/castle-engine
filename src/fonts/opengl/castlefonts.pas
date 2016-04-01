@@ -111,13 +111,13 @@ type
     { Print text, aligning within given rectangle.
       Newlines within the text will be automatically honored,
       the text will be rendered as multiple lines.
-      See @link(PrintStrings) for description of parameters Tags,
+      See @link(PrintStrings) for description of parameters Html,
       LineSpacing, TextHorizontalAlignment. }
     procedure PrintRectMultiline(const Rect: TRectangle; const Color: TCastleColor;
       const S: string;
       const HorizontalAlignment: THorizontalPosition;
       const VerticalAlignment: TVerticalPosition;
-      const Tags: boolean;
+      const Html: boolean;
       const LineSpacing: Integer;
       const TextHorizontalAlignment: THorizontalPosition = hpLeft);
 
@@ -190,15 +190,15 @@ type
 
     { Largest width of the line of text in given list.
 
-      @param(Tags Indicates that strings inside SList use HTML-like
-        tags, the same as interpreted by PrintStrings.
-        If your SList uses these tags (for example, you plan to call later
-        PrintStrings with the same SList and Tags = @true) then make
-        sure you pass Tags = @true to this method.
-        Otherwise, MaxTextWidth will treat tags text (like @code(<font ...>))
+      @param(Html Indicates that strings inside SList use a subset of HTML,
+        the same ones as interpreted by PrintStrings.
+        If your SList uses these elements (for example, you plan to call later
+        PrintStrings with the same SList and Html = @true) then make
+        sure you pass Html = @true to this method.
+        Otherwise, MaxTextWidth will treat HTML markup (like @code(<font ...>))
         like a normal text, usually making the width incorrectly large.)
     }
-    function MaxTextWidth(SList: TStrings; const Tags: boolean = false): Integer;
+    function MaxTextWidth(SList: TStrings; const Html: boolean = false): Integer;
 
     { Print all strings from the list.
 
@@ -217,20 +217,18 @@ type
         more text into the available space. Still, make sure that
         (RowHeight + LineSpacing) is > 0.)
 
-      @param(Tags Enable some HTML-like tags to mark font changes inside the text.
-        For now, these can only be used to surround whole lines
-        (so you have to place opening tag at the beginnig of line,
-        and closing tag at the end of line).
-        For now, the only tag handled is @code(<font color="#rrggbb">)
-        that changes line color to specified RGB.
-        Also, we handle @code(<font color="#rrggbbaa">) where the last
-        component is alpha (opacity), and when it's < 1 then we render using blending.
-        Close with @code(</font>).
-
-        This functionality may be enhanced in the future (feature requests
-        and patches welcome). Don't expect full HTML implementation inside,
-        but some small set of useful tags may be doable and comfortable to use.
-        Not necessarily replicating some (old version of) HTML standard.
+      @param(Html Enable a subset of HTML to mark font changes inside the text.
+        See the example examples/fonts/html_text_demo.html for a demo, supported
+        HTML constructs now are:
+        @unorderedList(
+          @item <b> (bold)
+          @item <i> (italic)
+          @item <font color="#rrggbb">, <font color="#rrggbbaa"> (change color, with or without alpha)
+          @item <font size="xxx">, <small> (change size)
+          @item <br> <br/> <br /> <p> (newlines; paragraph makes 2 newlines)
+          @item &amp; &lt; &gt; &apos; &quot; (entities)
+          @item <!-- xxx --> (comments)
+        )
       )
 
       @param(Color The color of the text. Alpha value of the color is honored,
@@ -241,14 +239,14 @@ type
 
       @groupBegin }
     procedure PrintStrings(const X0, Y0: Integer; const Color: TCastleColor;
-      const Strs: TStrings; const Tags: boolean;
+      const Strs: TStrings; const Html: boolean;
       const LineSpacing: Integer;
       const TextHorizontalAlignment: THorizontalPosition = hpLeft); overload;
     procedure PrintStrings(const Strs: TStrings;
-      const Tags: boolean; const LineSpacing: Integer;
+      const Html: boolean; const LineSpacing: Integer;
       const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated;
     procedure PrintStrings(const Strs: array of string;
-      const Tags: boolean; const LineSpacing: Integer;
+      const Html: boolean; const LineSpacing: Integer;
       const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated;
     { @groupEnd }
 
@@ -257,9 +255,7 @@ type
       so the original newlines insides are correctly used,
       and the length of lines fits inside MaxLineWidth.
 
-      The strings are printed on the screen, just like by PrintStrings
-      (with Tags = always false for now, since our string breaking cannot
-      omit tags).
+      The strings are printed on the screen, just like by PrintStrings.
       If PositionsFirst then the X0, Y0 determine
       the position of the first (top) line, otherwise they determine
       the position of the last (bottom) line.
@@ -288,11 +284,13 @@ type
       const S: string;
       const LineSpacing: Integer;
       const AlignHorizontal: THorizontalPosition;
-      const AlignVertical: TVerticalPosition): Integer;
+      const AlignVertical: TVerticalPosition;
+      const Html: boolean = false): Integer;
     function PrintBrokenString(X0, Y0: Integer; const Color: TCastleColor;
       const S: string; const MaxLineWidth: Integer;
       const PositionsFirst: boolean;
-      const LineSpacing: Integer): Integer;
+      const LineSpacing: Integer;
+      const Html: boolean = false): Integer;
     function PrintBrokenString(const S: string;
       const MaxLineWidth, X0, Y0: Integer;
       const PositionsFirst: boolean;
@@ -325,6 +323,11 @@ type
       @link(Outline), @link(OutlineColor), @link(OutlineHighQuality). }
     procedure PushProperties;
     procedure PopProperties;
+
+    { Actual font-size. Usually same thing as @link(Size), but in case of proxy
+      font classes (like TCustomizedFont) it makes sure to never return zero
+      (which, in case of font proxies, means "use underlying font size"). }
+    function RealSize: Single; virtual;
   end;
 
   { @deprecated Deprecated name for TCastleFont. }
@@ -453,7 +456,11 @@ type
 
     The underlying font properties remain unchanged
     (so it can be still used for other purposes,
-    directly or by other TCustomizedFont wrappers). }
+    directly or by other TCustomizedFont wrappers).
+
+    @italic(Do not get / set the @code(Scale) property of this instance),
+    it will not do anything in current implementation and should always
+    stay equal to 1. }
   TCustomizedFont = class(TCastleFont)
   strict private
     FSourceFont: TCastleFont;
@@ -479,85 +486,13 @@ type
     function TextHeight(const S: string): Integer; override;
     function TextHeightBase(const S: string): Integer; override;
     function TextMove(const S: string): TVector2Integer; override;
+    function RealSize: Single; override;
   end;
 
 implementation
 
-uses CastleClassUtils, CastleGLUtils, SysUtils, CastleUtils, Math;
-
-{ HandleTags ----------------------------------------------------------------- }
-
-function HandleTags(const S: string;
-  out ColorChange: boolean; out Color: TCastleColor): string;
-
-  function ExtractColor(const S: string; P: Integer;
-    out Color: TCastleColor; out Length: Integer): boolean;
-  const
-    HexDigits = ['0'..'9', 'a'..'f', 'A'..'F'];
-  begin
-    Result := SCharIs(S, P    , HexDigits) and
-              SCharIs(S, P + 1, HexDigits) and
-              SCharIs(S, P + 2, HexDigits) and
-              SCharIs(S, P + 3, HexDigits) and
-              SCharIs(S, P + 4, HexDigits) and
-              SCharIs(S, P + 5, HexDigits);
-    Length := 6;
-    if Result then
-    begin
-      Color[0] := StrHexToInt(Copy(S, P    , 2)) / 255;
-      Color[1] := StrHexToInt(Copy(S, P + 2, 2)) / 255;
-      Color[2] := StrHexToInt(Copy(S, P + 4, 2)) / 255;
-      if SCharIs(S, P + 6, HexDigits) and
-         SCharIs(S, P + 7, HexDigits) then
-      begin
-        Length += 2;
-        Color[3] := StrHexToInt(Copy(S, P + 6, 2)) / 255;
-      end else
-        Color[3] := 1.0;
-    end;
-  end;
-
-  { Is SubText present inside Text on position P.
-    Secure for all lengths and values of position (that is, will answer
-    false if P is <= 0 or P is too large and some part of SubText would
-    be outside S). }
-  function SubStringMatch(const SubText, Text: string; P: Integer): boolean;
-  var
-    I: Integer;
-  begin
-    Result := (P >= 1) and
-              (P <= { signed } Integer(Length(Text)) - Length(SubText) + 1);
-    if Result then
-      for I := 1 to Length(SubText) do
-      begin
-        if SubText[I] <> Text[P] then Exit(false);
-        Inc(P);
-      end;
-  end;
-
-const
-  SFontColorBegin1 = '<font color="#';
-  SFontColorBegin2 = '">';
-  SFontEnd = '</font>';
-var
-  ColorLength: Integer;
-begin
-  ColorChange :=
-    { first check something most likely to fail, for speed }
-    SCharIs(S, 1, '<') and
-    SubStringMatch(SFontColorBegin1, S, 1) and
-    ExtractColor(S, Length(SFontColorBegin1) + 1, Color, ColorLength) and
-    SubStringMatch(SFontColorBegin2, S, Length(SFontColorBegin1) + ColorLength + 1) and
-    SubStringMatch(SFontEnd, S, Length(S) - Length(SFontEnd) + 1);
-
-  if ColorChange then
-  begin
-    Result := CopyPos(S,
-      Length(SFontColorBegin1) + Length(SFontColorBegin2) + ColorLength + 1,
-      Length(S) - Length(SFontEnd));
-  end else
-    Result := S;
-end;
+uses SysUtils, Math,
+  CastleClassUtils, CastleGLUtils, CastleUtils, CastleFontFamily;
 
 { TCastleFont ------------------------------------------------------}
 
@@ -625,7 +560,7 @@ procedure TCastleFont.PrintRectMultiline(const Rect: TRectangle; const Color: TC
   const S: string;
   const HorizontalAlignment: THorizontalPosition;
   const VerticalAlignment: TVerticalPosition;
-  const Tags: boolean;
+  const Html: boolean;
   const LineSpacing: Integer;
   const TextHorizontalAlignment: THorizontalPosition);
 var
@@ -638,7 +573,7 @@ begin
     Strings.Text := S;
     if Strings.Count <> 0 then
     begin
-      ThisRect := Rectangle(0, 0, MaxTextWidth(Strings, Tags),
+      ThisRect := Rectangle(0, 0, MaxTextWidth(Strings, Html),
         Strings.Count * (LineSpacing + RowHeight) - LineSpacing);
       ThisRect := ThisRect.
         Align(HorizontalAlignment, Rect, HorizontalAlignment).
@@ -650,7 +585,7 @@ begin
         else raise EInternalError.Create('TextHorizontalAlignment? in TCastleFont.PrintRectMultiline');
       end;
       PrintStrings(X, ThisRect.Bottom, Color, Strings,
-        Tags, LineSpacing, TextHorizontalAlignment);
+        Html, LineSpacing, TextHorizontalAlignment);
     end;
   finally FreeAndNil(Strings) end;
 end;
@@ -762,27 +697,29 @@ begin
   end;
 end;
 
-function TCastleFont.MaxTextWidth(SList: TStrings; const Tags: boolean): Integer;
+function TCastleFont.MaxTextWidth(SList: TStrings; const Html: boolean): Integer;
 var
-  I, LineW: Integer;
-  DummyColorChange: boolean;
-  DummyColor: TCastleColor;
-  S: string;
+  I: Integer;
+  Text: TRichText;
 begin
-  result := 0;
-  for I := 0 to slist.Count-1 do
+  if not Html then
   begin
-    S := SList[i];
-    if Tags then
-      S := HandleTags(S, DummyColorChange, DummyColor);
-    LineW := TextWidth(S);
-    if LineW > result then result := LineW;
+    { simple and fast implementation in case TRichText not needed }
+    Result := 0;
+    for I := 0 to SList.Count-1 do
+      MaxVar(Result, TextWidth(SList[I]));
+  end else
+  begin
+    Text := TRichText.Create(Self, SList, Html);
+    try
+      Result := Text.Width;
+    finally FreeAndNil(Text) end;
   end;
 end;
 
 procedure TCastleFont.PrintStrings(const X0, Y0: Integer;
   const Color: TCastleColor; const Strs: TStrings;
-  const Tags: boolean; const LineSpacing: Integer;
+  const Html: boolean; const LineSpacing: Integer;
   const TextHorizontalAlignment: THorizontalPosition);
 
   function XPos(const Line: Integer; const S: string): Integer;
@@ -802,33 +739,35 @@ procedure TCastleFont.PrintStrings(const X0, Y0: Integer;
 
 var
   S: string;
-  ColorChange: boolean;
-  ColorChanged: TCastleColor;
   Line: Integer;
+  Text: TRichText;
 begin
-  for Line := 0 to Strs.Count - 1 do
+  if not Html then
   begin
-    S := Strs[Line];
-    if Tags then
+    { simple and fast implementation in case TRichText not needed }
+    for Line := 0 to Strs.Count - 1 do
     begin
-      S := HandleTags(S, ColorChange, ColorChanged);
-      if ColorChange then
-        Print(XPos(Line, S), YPos(Line), ColorChanged, S) else
-        Print(XPos(Line, S), YPos(Line), Color, S);
-    end else
+      S := Strs[Line];
       Print(XPos(Line, S), YPos(Line), Color, S);
+    end;
+  end else
+  begin
+    Text := TRichText.Create(Self, Strs, Html);
+    try
+      Text.Print(X0, Y0, Color, LineSpacing, TextHorizontalAlignment);
+    finally FreeAndNil(Text) end;
   end;
 end;
 
 procedure TCastleFont.PrintStrings(const Strs: TStrings;
-  const Tags: boolean; const LineSpacing: Integer;
+  const Html: boolean; const LineSpacing: Integer;
   const X0: Integer; const Y0: Integer);
 begin
-  PrintStrings(X0, Y0, CurrentColor, Strs, Tags, LineSpacing);
+  PrintStrings(X0, Y0, CurrentColor, Strs, Html, LineSpacing);
 end;
 
 procedure TCastleFont.PrintStrings(const Strs: array of string;
-  const Tags: boolean; const LineSpacing: Integer; const X0: Integer;
+  const Html: boolean; const LineSpacing: Integer; const X0: Integer;
   const Y0: Integer);
 var
   SList: TStringList;
@@ -836,67 +775,58 @@ begin
   SList := TStringList.Create;
   try
     AddStrArrayToStrings(Strs, SList);
-    PrintStrings(X0, Y0, CurrentColor, SList, Tags, LineSpacing);
+    PrintStrings(X0, Y0, CurrentColor, SList, Html, LineSpacing);
   finally SList.Free end;
 end;
 
 function TCastleFont.PrintBrokenString(X0, Y0: Integer;
   const Color: TCastleColor; const S: string; const MaxLineWidth: Integer;
-  const PositionsFirst: boolean; const LineSpacing: Integer): Integer;
+  const PositionsFirst: boolean; const LineSpacing: Integer;
+  const Html: boolean): Integer;
 var
-  Broken: TStringList;
+  Text: TRichText;
 begin
-  Broken := TStringList.Create;
+  Text := TRichText.Create(Self, S, Html);
   try
-    BreakLines(s, Broken, MaxLineWidth);
+    Text.Wrap(MaxLineWidth);
     if PositionsFirst then
-      Y0 -= (broken.Count-1) * (RowHeight + LineSpacing);
-    PrintStrings(X0, Y0, Color, Broken, false, LineSpacing);
-    Result := Broken.Count;
-  finally FreeAndNil(Broken) end;
+      Y0 -= (Text.Count-1) * (RowHeight + LineSpacing);
+    Text.Print(X0, Y0, Color, LineSpacing);
+    Result := Text.Count;
+  finally FreeAndNil(Text) end;
 end;
 
 function TCastleFont.PrintBrokenString(const Rect: TRectangle;
   const Color: TCastleColor; const S: string;
   const LineSpacing: Integer;
   const AlignHorizontal: THorizontalPosition;
-  const AlignVertical: TVerticalPosition): Integer;
-const
-  Tags = false; // fow now always false, because BreakLines cannot handle tags
+  const AlignVertical: TVerticalPosition;
+  const Html: boolean): Integer;
 var
-  Broken: TStringList;
-
-  { TODO: we could also extract this information, at zero cost, from
-    BreakLines method. }
-  function BrokenWidth: Integer;
-  begin
-    Result := MaxTextWidth(Broken, Tags);
-  end;
-
-var
+  Text: TRichText;
   X0, Y0, BrokenHeight: Integer;
 begin
-  Broken := TStringList.Create;
+  Text := TRichText.Create(Self, S, Html);
   try
-    BreakLines(S, Broken, Rect.Width);
-    { calculate X0 based on Rect and BrokenWidth }
+    Text.Wrap(Rect.Width);
+    { calculate X0 based on Rect and Text.Width }
     case AlignHorizontal of
       hpLeft  : X0 := Rect.Left;
-      hpMiddle: X0 := Rect.Left + (Rect.Width - BrokenWidth) div 2;
-      hpRight : X0 := Rect.Right - BrokenWidth;
+      hpMiddle: X0 := Rect.Left + (Rect.Width - Text.Width) div 2;
+      hpRight : X0 := Rect.Right - Text.Width;
       else raise EInternalError.Create('PrintBrokenString.AlignHorizontal?');
     end;
     { calculate Y0 based on Rect and BrokenHeight }
-    BrokenHeight := Broken.Count * (LineSpacing + RowHeight);
+    BrokenHeight := Text.Count * (LineSpacing + RowHeight);
     case AlignVertical of
       vpBottom: Y0 := Rect.Bottom;
       vpMiddle: Y0 := Rect.Bottom + (Rect.Height - BrokenHeight) div 2;
       vpTop   : Y0 := Rect.Top - BrokenHeight;
       else raise EInternalError.Create('PrintBrokenString.AlignVertical?');
     end;
-    PrintStrings(X0, Y0, Color, Broken, Tags, LineSpacing);
-    Result := Broken.Count;
-  finally FreeAndNil(Broken) end;
+    Text.Print(X0, Y0, Color, LineSpacing);
+    Result := Text.Count;
+  finally FreeAndNil(Text) end;
 end;
 
 function TCastleFont.PrintBrokenString(const S: string;
@@ -985,6 +915,11 @@ begin
   OutlineColor := SavedProperites.OutlineColor;
   OutlineHighQuality := SavedProperites.OutlineHighQuality;
   FPropertiesStack.Delete(FPropertiesStack.Count - 1);
+end;
+
+function TCastleFont.RealSize: Single;
+begin
+  Result := Size;
 end;
 
 { TTextureFont --------------------------------------------------------------- }
@@ -1436,6 +1371,13 @@ begin
   Result := FSourceFont.TextMove(S);
   if Size <> 0 then
     FSourceFont.PopProperties;
+end;
+
+function TCustomizedFont.RealSize: Single;
+begin
+  if Size <> 0 then
+    Result := Size else
+    Result := SourceFont.RealSize;
 end;
 
 end.

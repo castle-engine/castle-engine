@@ -16,6 +16,8 @@
 { Geometry represented as arrays (TGeometryArrays). }
 unit CastleGeometryArrays;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleUtils, CastleVectors, FGL, CastleTriangles;

@@ -599,7 +599,7 @@ type
     function Focused: boolean; override;
     function Pressed: TKeysPressed; override;
     function Fps: TFramesPerSecond; override;
-    procedure SetCursor(const Value: TMouseCursor); override;
+    procedure SetInternalCursor(const Value: TMouseCursor); override;
     function GetTouches(const Index: Integer): TTouch; override;
     function TouchesCount: Integer; override;
   end;
@@ -1826,11 +1826,16 @@ end;
 
     property Closed: boolean read FClosed default true;
 
-    { Sets mouse cursor appearance over this window.
-      See TMouseCursor for a list of possible values and their meanings.
-
-      TODO: for now, mcCustom is not handled anywhere. }
     property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
+      deprecated 'do not set this, engine will override this. Set TUIControl.Cursor of your UI controls to control the Cursor.';
+
+    { Mouse cursor appearance over this window.
+      See TMouseCursor for a list of possible values and their meanings.
+      TODO: for now, mcCustom is not handled anywhere.
+
+      Note that this is for internal usage in the engine. In your applications,
+      you should set TUIControl.Cursor, never set this property directly. }
+    property InternalCursor: TMouseCursor read FCursor write SetCursor default mcDefault;
 
     { Image for cursor, used only when @link(Cursor) = mcCustom.
       We will try hard to use any cursor image as appropriate, but on some platforms
@@ -2221,7 +2226,7 @@ end;
       Right now only meaningful when using NPAPI plugin. }
     property NamedParameters: TCastleStringList read FNamedParameters;
   private
-    LastFpsOutputTick: DWORD;
+    LastFpsOutputTick: TMilisecTime;
     FFpsShowOnCaption: boolean;
     FSwapFullScreen_Key: TKey;
     FClose_CharKey: char;
@@ -2892,9 +2897,9 @@ begin
   Result := Parent.Fps;
 end;
 
-procedure TWindowContainer.SetCursor(const Value: TMouseCursor);
+procedure TWindowContainer.SetInternalCursor(const Value: TMouseCursor);
 begin
-  Parent.Cursor := Value;
+  Parent.InternalCursor := Value;
 end;
 
 function TWindowContainer.GetTouches(const Index: Integer): TTouch;
@@ -3455,9 +3460,9 @@ begin
   { show FPS on caption once FpsCaptionUpdateInterval passed }
   if FpsShowOnCaption and
      ((lastFpsOutputTick = 0) or
-      (TimeTickDiff(lastFpsOutputTick, GetTickCount) >= FpsCaptionUpdateInterval)) then
+      (TimeTickDiff(lastFpsOutputTick, CastleTimeUtils.GetTickCount64) >= FpsCaptionUpdateInterval)) then
   begin
-    LastFpsOutputTick := GetTickCount;
+    LastFpsOutputTick := CastleTimeUtils.GetTickCount64;
     SetCaption(cpFps, Format(' - FPS : %f (real : %f)', [Fps.FrameTime, Fps.RealTime]));
   end;
 end;
@@ -4547,7 +4552,7 @@ procedure TCastleApplication.MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
 var
   Now: TMilisecTime;
 begin
-  Now := GetTickCount;
+  Now := CastleTimeUtils.GetTickCount64;
   if ((ALastDoTimerTime = 0) or
       (MilisecTimesSubtract(Now, ALastDoTimerTime) >= FTimerMilisec)) then
   begin

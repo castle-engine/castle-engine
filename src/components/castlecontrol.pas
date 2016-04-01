@@ -18,7 +18,6 @@
 unit CastleControl;
 
 {$I castleconf.inc}
-{$mode objfpc}{$H+}
 
 interface
 
@@ -85,7 +84,7 @@ type
         function Focused: boolean; override;
         function Pressed: TKeysPressed; override;
         function Fps: TFramesPerSecond; override;
-        procedure SetCursor(const Value: TMouseCursor); override;
+        procedure SetInternalCursor(const Value: TMouseCursor); override;
         function GetTouches(const Index: Integer): TTouch; override;
         function TouchesCount: Integer; override;
 
@@ -674,7 +673,7 @@ begin
   Result := Parent.Fps;
 end;
 
-procedure TCastleControlCustom.TContainer.SetCursor(const Value: TMouseCursor);
+procedure TCastleControlCustom.TContainer.SetInternalCursor(const Value: TMouseCursor);
 var
   NewCursor: TCursor;
 begin

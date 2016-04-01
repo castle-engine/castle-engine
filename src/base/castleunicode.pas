@@ -19,6 +19,8 @@
 { Unicode utilities. }
 unit CastleUnicode;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleUtils, CastleStringUtils;

@@ -1636,7 +1636,7 @@ begin
     FreeAndNil(Node);
 
     { check that loading it back results in 3.0
-      (convertion was done, since this is XML) }
+      (conversion was done, since this is XML) }
     TempStream.Position := 0;
     Node := LoadX3DXml(TempStream, '');
     AssertTrue(Node.HasForceVersion = true);
@@ -1657,7 +1657,7 @@ begin
     FreeAndNil(Node);
 
     { check that loading it back results in 2.0
-      (convertion not done, since this is classic and convertion not forced) }
+      (conversion not done, since this is classic and conversion not forced) }
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
     AssertTrue(Node.HasForceVersion = true);
@@ -1678,7 +1678,7 @@ begin
     FreeAndNil(Node);
 
     { check that loading it back results in 3.0
-      (convertion done, since forced = true) }
+      (conversion done, since forced = true) }
     TempStream.Position := 0;
     Node := LoadX3DClassicStream(TempStream);
     AssertTrue(Node.HasForceVersion = true);
