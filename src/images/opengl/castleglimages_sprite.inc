@@ -416,7 +416,7 @@ begin
     { Note that ARows is not remembered in this instance.
       It's only used to calculate default AFrameHeight below, which can
       be changed later. }
-    { AFrameWidth } Img.Width div FColumns,
+    { AFrameWidth } Img.Width div AColumns,
     { AFrameHeight } Img.Height div ARows,
     ATimeLoop, APlay);
 end;
