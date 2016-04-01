@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TMX files processing unit. Based on Tiled v0.15. }
+{ TMX files processing unit. Based on Tiled v0.16. }
 unit CastleTiledMap;
 
 {$mode objfpc}{$H+}
@@ -30,6 +30,9 @@ type
     Name: string;
     { The value of the property. }
     Value: string;
+    { The type of the property. Can be string (default), int, float or bool.
+      (since 0.16) }
+    _type: string;
   end;
 
   { List of properties. }
@@ -346,8 +349,10 @@ procedure TCastleTiledMap.LoadProperty(Element: TDOMElement;
 begin
   AProperty.Name := Element.GetAttribute('name');
   AProperty.Value := Element.GetAttribute('value');
+  AProperty._type := Element.GetAttribute('type');
   WritelnLog('LoadProperty name', AProperty.Name);
   WritelnLog('LoadProperty value', AProperty.Value);
+  WritelnLog('LoadProperty type', AProperty._type);
 end;
 
 procedure TCastleTiledMap.LoadProperties(Element: TDOMElement;
