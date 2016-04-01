@@ -714,6 +714,8 @@ type
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
     procedure SetAutoSize(const Value: boolean);
+    function GetCaption: string;
+    procedure SetCaption(const Value: string);
   private
     { For internal use by tooltip rendering. In normal circumstances,
       leave this at tiLabel. }
@@ -742,7 +744,28 @@ type
       and so on. }
     property AutoSize: boolean read FAutoSize write SetAutoSize default true;
 
+    { Caption displayed on the label, each line as a string. }
     property Text: TStrings read FText;
+
+    { Caption displayed on the label.
+      This is just a shortcut to get/set @link(Text) as a single string.
+
+      Use LineEnding or NL constant when setting this to indicate a newline.
+      These two examples equivalent. First example:
+
+@longCode(#
+  Label1.Text.Clear;
+  Label1.Text.Add('First line');
+  Label1.Text.Add('Second line');
+#)
+
+      Second (equivalent) example:
+
+@longCode(#
+  Label1.Caption := 'First line' + LineEnding + 'Second line';
+#)
+    }
+    property Caption: string read GetCaption write SetCaption stored false;
 
     { Inside the label rectangle, padding between rect borders and text.
       Total horizontal padding is the sum @code(PaddingHorizontal + Padding),
@@ -3011,6 +3034,16 @@ begin
     FAutoSize := Value;
     if Container <> nil then Container.UpdateFocusAndMouseCursor;
   end;
+end;
+
+function TCastleLabel.GetCaption: string;
+begin
+  Result := Text.Text;
+end;
+
+procedure TCastleLabel.SetCaption(const Value: string);
+begin
+  Text.Text := Value;
 end;
 
 { TCastleProgressBar --------------------------------------------------------- }
