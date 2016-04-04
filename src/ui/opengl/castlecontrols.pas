@@ -263,8 +263,11 @@ type
     property Width: Cardinal read FWidth write SetWidth default 0;
     property Height: Cardinal read FHeight write SetHeight default 0;
 
+    { Horizontal distance between text or @link(Image) and the button border. }
     property PaddingHorizontal: Cardinal
       read FPaddingHorizontal write FPaddingHorizontal default DefaultPaddingHorizontal;
+
+    { Vertical distance between text or @link(Image) and the button border. }
     property PaddingVertical: Cardinal
       read FPaddingVertical write FPaddingVertical default DefaultPaddingVertical;
 
@@ -324,6 +327,7 @@ type
     property ImageAlphaTest: boolean
       read FImageAlphaTest write FImageAlphaTest default false;
 
+    { Distance between text and @link(Image). Unused if @link(Image) not set. }
     property ImageMargin: Cardinal read FImageMargin write SetImageMargin
       default DefaultImageMargin;
 
@@ -569,19 +573,39 @@ type
     property Scale: Single read FScale write SetScale default 1;
   end;
 
-  { Simple background fill. Using OpenGL GLClear, so unconditionally
-    clears things underneath. In simple cases, you don't want to use this:
-    instead you usually have TCastleSceneManager that fills the whole screen,
-    and it provides a background already. }
+  { Fill a rectangle on screen with given color. }
+  TCastleRectangleControl = class(TUIControlSizeable)
+  strict private
+    FColor: TCastleColor;
+    procedure SetColor(const Value: TCastleColor);
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure Render; override;
+    { Rectangle color. By default, opaque white. }
+    property Color: TCastleColor read FColor write SetColor;
+  end;
+
+  { Fill the whole window with a simple color.
+    This is very fast, but it unconditionally clears the whole window,
+    and there is no blending (if your @link(Color) has some alpha, it is
+    just copied to the color buffer). To clear the rectangle with a color,
+    with optional blending, use @link(TCastleRectangleControl) instead.
+
+    Note that @link(TCastleSceneManager) clears the background under itself
+    by default. See TCastleSceneManager.Transparent,
+    TCastleSceneManager.BackgroundColor .
+    So if you use @link(TCastleSceneManager) that fills the whole screen,
+    then there's no need to use this control. }
   TCastleSimpleBackground = class(TUIControl)
   strict private
     FColor: TCastleColor;
+    procedure SetColor(const Value: TCastleColor);
   public
     constructor Create(AOwner: TComponent); override;
     property RenderStyle default rs3D;
     procedure Render; override;
     { Background color. By default, this is black color with opaque alpha. }
-    property Color: TCastleColor read FColor write FColor;
+    property Color: TCastleColor read FColor write SetColor;
   end;
 
   { Dialog box that can display a long text, with automatic vertical scrollbar.
@@ -2438,6 +2462,29 @@ begin
   end;
 end;
 
+{ TCastleRectangleControl ---------------------------------------------------- }
+
+constructor TCastleRectangleControl.Create(AOwner: TComponent);
+begin
+  inherited;
+  FColor := White;
+end;
+
+procedure TCastleRectangleControl.SetColor(const Value: TCastleColor);
+begin
+  if not VectorsPerfectlyEqual(FColor, Value) then
+  begin
+    FColor := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleRectangleControl.Render;
+begin
+  inherited;
+  DrawRectangle(ScreenRect, Color);
+end;
+
 { TCastleSimpleBackground ---------------------------------------------------- }
 
 constructor TCastleSimpleBackground.Create(AOwner: TComponent);
@@ -2446,6 +2493,15 @@ begin
   FColor := Black;
   { 3D, because we want to be drawn before other 3D objects }
   RenderStyle := rs3D;
+end;
+
+procedure TCastleSimpleBackground.SetColor(const Value: TCastleColor);
+begin
+  if not VectorsPerfectlyEqual(FColor, Value) then
+  begin
+    FColor := Value;
+    VisibleChange;
+  end;
 end;
 
 procedure TCastleSimpleBackground.Render;

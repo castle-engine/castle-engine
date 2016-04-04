@@ -181,6 +181,8 @@ type
     function ScaleToHeight(const NewHeight: Cardinal): TRectangle;
     function ScaleAroundMiddle(const Factor: Single): TRectangle;
     function ScaleAround0(const Factor: Single): TRectangle;
+    function ScaleWidthAround0(const Factor: Single): Cardinal;
+    function ScaleHeightAround0(const Factor: Single): Cardinal;
 
     { Scale and align us to fit inside rectangle R, preserving our aspect ratio. }
     function FitInside(const R: TRectangle;
@@ -555,6 +557,18 @@ begin
   ResultTop   := Ceil(Top   * Factor);
   Result.Width  := ResultRight - Result.Left;
   Result.Height := ResultTop   - Result.Bottom;
+end;
+
+function TRectangle.ScaleWidthAround0(const Factor: Single): Cardinal;
+begin
+  if IsEmpty then Exit(0);
+  Result := Ceil(Right * Factor) - Floor(Left * Factor);
+end;
+
+function TRectangle.ScaleHeightAround0(const Factor: Single): Cardinal;
+begin
+  if IsEmpty then Exit(0);
+  Result := Ceil(Top * Factor) - Floor(Bottom * Factor);
 end;
 
 function TRectangle.FitInside(const R: TRectangle;

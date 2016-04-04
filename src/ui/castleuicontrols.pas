@@ -1,6 +1,5 @@
 {
-  Copyright 2009-2014 Michalis Kamburelis,
-            2015 Tomasz Wojtyś.
+  Copyright 2009-2016 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
 
@@ -798,8 +797,9 @@ end;
     procedure SetVerticalAnchorSelf(const Value: TVerticalPosition);
     procedure SetVerticalAnchorParent(const Value: TVerticalPosition);
     procedure SetVerticalAnchorDelta(const Value: Integer);
-    function RectWithAnchors: TRectangle;
     procedure SetEnableUIScaling(const Value: boolean);
+    { Like @link(Rect) but with anchors effect applied. }
+    function RectWithAnchors(const CalculateEvenWithoutContainer: boolean = false): TRectangle;
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure SetContainer(const Value: TUIContainer); override;
@@ -993,13 +993,106 @@ end;
 
     { Position and size of this control, assuming it exists,
       in local coordinates (relative to parent 2D control).
-      This must ignore the current value of the @link(GetExists) method
-      and @link(Exists) property, that is: the result of this function
-      assumes that control does exist.
+
+      @unorderedList(
+        @item(@bold(This must ignore)
+          the current value of the @link(GetExists) method
+          and @link(Exists) property, that is: the result of this function
+          assumes that control does exist.)
+
+        @item(@bold(This must ignore) the anchors. Their effect is applied
+          outside of this method.)
+
+        @item(@bold(This must take into account) UI scaling.
+          This method must calculate a result already multiplied by @link(UIScale).
+          In simple cases, this can be done easily, like this:
+
+@longCode(#
+function TMyControl.Rect: TRectangle;
+begin
+  Result := Rectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
+end;
+#)
+
+          In fact, TUIControlSizeable already provides such implementation
+          for you.)
+      )
 
       In this class, returns empty rectangle (zero width and height) with
-      Left and Bottom correctly set . }
+      Left and Bottom correctly set (scaled by @link(UIScale)).
+
+      @seealso CalculatedRect
+    }
     function Rect: TRectangle; virtual;
+
+    { Final position and size of this control, assuming it exists,
+      in local coordinates (relative to parent 2D control),
+      @italic(without UI scaling).
+      Useful if you want to base other controls size/position on this control
+      calculated size/position.
+
+      This is similar to @link(Rect), but:
+
+      @unorderedList(
+        @item(@bold(This takes into account) the anchors.)
+        @item(@bold(This ignores) the UI scaling.)
+      )
+
+      @bold(If you implement descendants of this class): Note that you
+      cannot override this method. It is implemented by simply taking
+      @code(RectWithAnchors) result (which in turn is derived from @link(Rect) result)
+      and dividing it by UIScale. This should always be correct.
+
+      Maybe in the future overriding this can be possible, but only for the sake
+      of more optimal implementation.
+
+      If you implement descendants, you should rather think about overriding
+      the @link(Rect) method, if your control has special sizing mechanism.
+      The reason why we prefer overriding @link(Rect) (and CalculatedRect is just
+      derived from it), not the other way around:
+      it is because font measurements are already done in scaled coordinates
+      (because UI scaling changes font size for TUIControlFont).
+      So things like TCastleLabel have to calculate size in scaled coordinates
+      anyway, and the unscaled size can only be derived from it by division.
+
+      @seealso Rect }
+    function CalculatedRect: TRectangle;
+
+    { Calculated width of the control, without UI scaling.
+      Useful if you want to base other controls size/position on this control
+      calculated size.
+
+      Unlike various other width properties of descendants (like
+      @link(TUIControlSizeable.Width) or @link(TCastleImageControl.Width)),
+      this is the @italic(calculated) size, not the desired size.
+      So this is already processed by any auto-sizing mechanism
+      (e.g. TCastleImageControl may adjust it's own size to the underlying image,
+      depending on settings).
+
+      Unlike @code(Rect.Width), this does not have UI scaling applied.
+
+      It is always equal to just @code(CalculatedRect.Width).
+
+      @seealso CalculatedRect }
+    function CalculatedWidth: Cardinal;
+
+    { Calculated height of the control, without UI scaling.
+      Useful if you want to base other controls size/position on this control
+      calculated size.
+
+      Unlike various other height properties of descendants (like
+      @link(TUIControlSizeable.Height) or @link(TCastleImageControl.Height)),
+      this is the @italic(calculated) size, not the desired size.
+      So this is already processed by any auto-sizing mechanism
+      (e.g. TCastleImageControl may adjust it's own size to the underlying image,
+      depending on settings).
+
+      Unlike @code(Rect.Height), this does not have UI scaling applied.
+
+      It is always equal to just @code(CalculatedRect.Height).
+
+      @seealso CalculatedRect }
+    function CalculatedHeight: Cardinal;
 
     { Position and size of this control, assuming it exists, in screen (container)
       coordinates. }
@@ -1101,19 +1194,9 @@ end;
 
       All the drawing and measuring inside your control must take this into
       account. The final @link(Rect) result must already take this scaling
-      into account, so that parent controls may depend on it. In the simplest
-      case, your @code(Rect) should return
-
-@longCode(#
-function TMyControl.Rect: TRectangle;
-begin
-  Result := Rectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
-end;
-#)
-
-      This is so simple only when your drawing code 100% adjusts
-      the drawn contents to the passed @link(ScreenRect). It's not always
-      that easy, that's why we don't do it automatically in the engine. }
+      into account, so that parent controls may depend on it.
+      All descendants, like TUIControlSizeable, provide a @link(Rect) implementation
+      that does what is necessary. }
     function UIScale: Single;
   published
     { Not existing control is not visible, it doesn't receive input
@@ -1193,7 +1276,7 @@ end;
 
   { UI control with configurable size.
     By itself, this does not show anything. But it's useful as an ancestor
-    class for new UI classes that want their size to fully configurable,
+    class for new UI classes that want their size to be fully configurable,
     or as a container for UI children. }
   TUIControlSizeable = class(TUIControl)
   strict private
@@ -2863,6 +2946,31 @@ begin
   Result := Rectangle(LeftBottomScaled, 0, 0);
 end;
 
+function TUIControl.CalculatedRect: TRectangle;
+begin
+  Result := RectWithAnchors(true).ScaleAround0(1 / UIScale);
+end;
+
+function TUIControl.CalculatedWidth: Cardinal;
+begin
+  { Naive implementation:
+  Result := CalculatedRect.Width; }
+
+  { Optimized implementation, knowing that RectWithAnchors(true) does not
+    change Rect.Width:
+  Result := Rect.ScaleAround0(1 / UIScale).Width; }
+
+  { Optimized implementation using ScaleWidthAround0: }
+  Result := Rect.ScaleWidthAround0(1 / UIScale);
+  //Assert(Result = CalculatedRect.Width);
+end;
+
+function TUIControl.CalculatedHeight: Cardinal;
+begin
+  Result := Rect.ScaleHeightAround0(1 / UIScale);
+  //Assert(Result = CalculatedRect.Height);
+end;
+
 (*
 function TUIControl.LocalRect: TRectangle;
 begin
@@ -2872,11 +2980,12 @@ begin
 end;
 *)
 
-function TUIControl.RectWithAnchors: TRectangle;
+function TUIControl.RectWithAnchors(const CalculateEvenWithoutContainer: boolean): TRectangle;
 var
   PR: TRectangle;
 begin
-  if not ContainerSizeKnown then
+  if (not ContainerSizeKnown) and
+     (not CalculateEvenWithoutContainer) then
     { Don't call virtual Rect in this state, Rect implementations
       typically assume that ParentRect is sensible.
       This is crucial, various programs will crash without it. }
