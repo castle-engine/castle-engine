@@ -613,6 +613,9 @@ type
     property ScreenSpaceAmbientOcclusion: boolean
       read FScreenSpaceAmbientOcclusion write SetScreenSpaceAmbientOcclusion
       default DefaultScreenSpaceAmbientOcclusion;
+
+    { Viewports are by default full size (fill the parent container completely). }
+    property FullSize default true;
   end;
 
   TCastleAbstractViewportList = class(specialize TFPGObjectList<TCastleAbstractViewport>)
@@ -1197,6 +1200,7 @@ begin
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
   RenderStyle := rs3D;
+  FullSize := true;
 end;
 
 destructor TCastleAbstractViewport.Destroy;

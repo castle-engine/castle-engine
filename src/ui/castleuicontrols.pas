@@ -1285,7 +1285,7 @@ end;
   public
     { Control size.
 
-      When FullSize is @true (the default), the control always fills
+      When FullSize is @true, the control always fills
       the whole parent (like TCastleWindow or TCastleControl,
       if you just placed the control on TCastleWindowCustom.Controls
       or TCastleControlCustom.Controls),
@@ -1295,7 +1295,7 @@ end;
       @seealso TUIControl.Rect
 
       @groupBegin }
-    property FullSize: boolean read FFullSize write FFullSize default true;
+    property FullSize: boolean read FFullSize write FFullSize default false;
     property Width: Cardinal read FWidth write FWidth default 0;
     property Height: Cardinal read FHeight write FHeight default 0;
     { @groupEnd }
@@ -3155,7 +3155,7 @@ end;
 constructor TUIControlSizeable.Create(AOwner: TComponent);
 begin
   inherited;
-  FFullSize := true;
+  FFullSize := false;
 end;
 
 function TUIControlSizeable.Rect: TRectangle;
