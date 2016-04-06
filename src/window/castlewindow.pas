@@ -602,6 +602,7 @@ type
     procedure SetInternalCursor(const Value: TMouseCursor); override;
     function GetTouches(const Index: Integer): TTouch; override;
     function TouchesCount: Integer; override;
+    function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
   end;
 
   {$define read_interface_types}
@@ -1993,7 +1994,9 @@ end;
     { @groupEnd }
 
     { Color buffer where we draw, and from which it makes sense to grab pixels.
-      Use with SaveScreen_NoFlush. }
+      Use only if you save the screen using low-level SaveScreen_NoFlush function.
+      Usually, you should save the screen using the simpler @link(SaveScreen) method,
+      and then the @name is not useful. }
     function SaveScreenBuffer: TColorBuffer;
 
     { Asks and saves current screenshot.
@@ -2912,6 +2915,19 @@ begin
   Result := Parent.TouchesCount;
 end;
 
+function TWindowContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
+begin
+  { In theory, the single-buffer
+    case could be optimized (do not redraw if not needed, that is:
+    if not invalidated), but it's not worth the complication since noone uses
+    single-buffer for normal applications... And also, there is no reliable
+    way to capture screen contents in case of single-buffer. }
+
+  EventBeforeRender;
+  EventRender;
+  Result := SaveScreen_NoFlush(SaveRect, Parent.SaveScreenBuffer);
+end;
+
 { TCastleWindowCustom ---------------------------------------------------------- }
 
 constructor TCastleWindowCustom.Create(AOwner: TComponent);
@@ -3527,7 +3543,7 @@ begin
  end;
 end;
 
-{ SaveScreenXx --------------------------------------------------------------- }
+{ SaveScreenXxx --------------------------------------------------------------- }
 
 function TCastleWindowCustom.SaveScreenBuffer: TColorBuffer;
 begin
@@ -3537,26 +3553,18 @@ begin
 end;
 
 procedure TCastleWindowCustom.SaveScreen(const URL: string);
-var
-  Image: TRGBImage;
 begin
-  Image := SaveScreen;
-  try
-    WritelnLog('SaveScreen', 'Screen saved to ' + URL);
-    SaveImage(Image, URL);
-  finally FreeAndNil(Image) end;
+  Container.SaveScreen(URL);
 end;
 
 function TCastleWindowCustom.SaveScreen: TRGBImage;
 begin
-  Result := SaveScreen(Rect);
+  Result := Container.SaveScreen;
 end;
 
 function TCastleWindowCustom.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
-  Container.EventBeforeRender;
-  Container.EventRender;
-  Result := SaveScreen_NoFlush(SaveRect, SaveScreenBuffer);
+  Result := Container.SaveScreen(SaveRect);
 end;
 
 function TCastleWindowCustom.SaveScreenToGL(const SmoothScaling: boolean): TGLImage;

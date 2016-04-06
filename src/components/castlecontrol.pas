@@ -87,6 +87,7 @@ type
         procedure SetInternalCursor(const Value: TMouseCursor); override;
         function GetTouches(const Index: Integer): TTouch; override;
         function TouchesCount: Integer; override;
+        function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
 
         procedure EventOpen(const OpenWindowsCount: Cardinal); override;
         procedure EventClose(const OpenWindowsCount: Cardinal); override;
@@ -166,14 +167,18 @@ type
 
     property Fps: TFramesPerSecond read FFps;
 
-    { Color buffer where we draw, and from which it makes sense to grab pixels.
-      Use with SaveScreen_NoFlush. }
-    function SaveScreenBuffer: TColorBuffer;
-
     { Capture the current control contents to an image.
-      These functions take care of flushing any pending redraw operations
-      and capturing the screen contents correctly. }
-    function SaveScreen: TRGBImage;
+      @groupBegin }
+    procedure SaveScreen(const URL: string); overload;
+    function SaveScreen: TRGBImage; overload;
+    function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
+    { @groupEnd }
+
+    { Color buffer where we draw, and from which it makes sense to grab pixels.
+      Use only if you save the screen using low-level SaveScreen_NoFlush function.
+      Usually, you should save the screen using the simpler @link(SaveScreen) method,
+      and then the @name is not useful. }
+    function SaveScreenBuffer: TColorBuffer;
 
     { Rectangle representing the inside of this container.
       Always (Left,Bottom) are zero, and (Width,Height) correspond to container
@@ -699,6 +704,16 @@ begin
   Result := 1;
 end;
 
+function TCastleControlCustom.TContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
+begin
+  if Parent.MakeCurrent then
+  begin
+    Container.EventBeforeRender;
+    Container.EventRender;
+  end;
+  Result := SaveScreen_NoFlush(Rect, Parent.SaveScreenBuffer);
+end;
+
 procedure TCastleControlCustom.TContainer.EventOpen(const OpenWindowsCount: Cardinal);
 begin
   inherited;
@@ -1159,14 +1174,19 @@ begin
     Result := cbFront;
 end;
 
+procedure TCastleControlCustom.SaveScreen(const URL: string);
+begin
+  Container.SaveScreen(URL);
+end;
+
 function TCastleControlCustom.SaveScreen: TRGBImage;
 begin
-  if MakeCurrent then
-  begin
-    Container.EventBeforeRender;
-    Container.EventRender;
-  end;
-  Result := SaveScreen_NoFlush(Rect, SaveScreenBuffer);
+  Result := Container.SaveScreen;
+end;
+
+function TCastleControlCustom.SaveScreen(const SaveRect: TRectangle): TRGBImage;
+begin
+  Result := Container.SaveScreen(SaveRect);
 end;
 
 procedure TCastleControlCustom.SetMousePosition(const Value: TVector2Single);
