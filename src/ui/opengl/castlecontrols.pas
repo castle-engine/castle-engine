@@ -37,7 +37,7 @@ type
     FOwnsCustomFont: boolean;
     FLastSeenUIFontXxx: TCastleFont; //< remembered only to call FontChanged
     FFontSize: Single;
-    FCustomizedFont: TCustomizedFont; //< used only when FFontSize <> 0 for now
+    FCustomizedFont: TFontFamily; //< used only when FFontSize <> 0 for now
     FSmallFont: boolean;
     procedure SetCustomFont(const Value: TCastleFont);
     procedure SetFontSize(const Value: Single);
@@ -1267,14 +1267,28 @@ begin
   if (FFontSize <> 0) or (UIScale <> 1) or SmallFont then
   begin
     if FCustomizedFont = nil then
-      FCustomizedFont := TCustomizedFont.Create(nil);
+      FCustomizedFont := TFontFamily.Create(nil);
     if FFontSize <> 0 then
       FCustomizedFont.Size := FFontSize else
       FCustomizedFont.Size := Result.Size; // to have something to multiply in line below
     FCustomizedFont.Size := FCustomizedFont.Size * UIScale;
     if SmallFont then
       FCustomizedFont.Size := FCustomizedFont.Size * 0.5;
-    FCustomizedFont.SourceFont := Result;
+    if Result is TFontFamily then
+    begin
+      { copying Result to FCustomizedFont this way allows to render with HTML
+        when CustomFont and FontSize are used together }
+      FCustomizedFont.RegularFont := TFontFamily(Result).RegularFont;
+      FCustomizedFont.BoldFont := TFontFamily(Result).BoldFont;
+      FCustomizedFont.ItalicFont := TFontFamily(Result).ItalicFont;
+      FCustomizedFont.BoldItalicFont := TFontFamily(Result).BoldItalicFont;
+    end else
+    begin
+      FCustomizedFont.RegularFont := Result;
+      FCustomizedFont.BoldFont := nil;
+      FCustomizedFont.ItalicFont := nil;
+      FCustomizedFont.BoldItalicFont := nil;
+    end;
     Result := FCustomizedFont;
   end;
 end;

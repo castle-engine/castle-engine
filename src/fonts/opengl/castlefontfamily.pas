@@ -699,6 +699,15 @@ begin
     FFont := TFontFamily.Create(nil);
     FFont.RegularFont := AFont;
     FOwnsFont := true;
+    { Do not make this warning by default? Too talkative sometimes,
+      esp. at every Print call,
+      and as HTML may be useful without TFontFamily sometimes.
+
+    if Html then
+      OnWarning(wtMinor, 'HTML', 'Rendering HTML text with simple font (' +
+        AFont.ClassName + ':' + AFont.Name +
+        '), without bold/italic variants. <b> and <i> will not have any effect');
+    }
   end;
 
   if Html then
