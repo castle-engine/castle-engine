@@ -359,6 +359,21 @@ type
     property Touches[Index: Integer]: TTouch read GetTouches;
     function TouchesCount: Integer; virtual; abstract;
 
+    { Capture the current container (window) contents to an image
+      (or straight to an image file, like png).
+
+      Note that only capturing from the double-buffered OpenGL
+      windows (which the default for our TCastleWindow and TCastleControl)
+      is reliable. Internally, these methods may need to redraw the screen
+      to the back buffer, because that's the only guaranteed way to capture
+      OpenGL drawing (you have to capture the back buffer, before swap).
+
+      @groupBegin }
+    procedure SaveScreen(const URL: string);
+    function SaveScreen: TRGBImage;
+    function SaveScreen(const SaveRect: TRectangle): TRGBImage; virtual; abstract;
+    { @groupEnd }
+
     { Called by controls within this container when something could
       change the container focused control (in @link(TUIContainer.Focus))
       (or it's cursor) or @link(TUIContainer.Focused) or MouseLook.
@@ -444,10 +459,7 @@ type
       read FUIExplicitScale write SetUIExplicitScale default 1.0;
   end;
 
-  { Base class for things that listen to user input.
-
-    TODO: this is separate from TInputListener class only to avoid FPC 2.6.4
-    bug Internal error 200610054 when using the stabs debug info. }
+  { Base class for things that listen to user input. }
   TInputListener = class(TComponent)
   private
     FOnVisibleChange: TNotifyEvent;
@@ -2473,6 +2485,22 @@ begin
 
   for I := 0 to Controls.Count - 1 do
     RecursiveUIScaleChanged(Controls[I]);
+end;
+
+procedure TUIContainer.SaveScreen(const URL: string);
+var
+  Image: TRGBImage;
+begin
+  Image := SaveScreen;
+  try
+    WritelnLog('SaveScreen', 'Screen saved to ' + URL);
+    SaveImage(Image, URL);
+  finally FreeAndNil(Image) end;
+end;
+
+function TUIContainer.SaveScreen: TRGBImage;
+begin
+  Result := SaveScreen(Rect);
 end;
 
 { TInputListener ------------------------------------------------------------- }
