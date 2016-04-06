@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo lists all avalaible joysticks/gamepads in the system. It also shows how
-  joystick events work. }
+{ Demo lists all avalaible joysticks/gamepads in the system. Shows also how
+  joystick events works. }
 
 program joystick_demo;
 
@@ -23,27 +23,28 @@ program joystick_demo;
 uses SysUtils,
   CastleVectors, CastleWindow, CastleControls, CastleOnScreenMenu,
   CastleControlsImages, CastleImages, CastleFilesUtils, CastleColors,
-  CastleUIControls, CastleNotifications, CastleLog, CastleJoysticks;
+  CastleUIControls, CastleNotifications, CastleLog, CastleJoysticks,
+  Classes;
+
+const
+  AXIS_NAMES: array[JOY_AXIS_X..JOY_POVY] of string = ('JOY_AXIS_X', 'JOY_AXIS_Y',
+              'JOY_AXIS_Z', 'JOY_AXIS_R', 'JOY_AXIS_U', 'JOY_AXIS_V', 'JOY_POVX', 'JOY_POVY');
 
 var
   Window: TCastleWindowCustom;
   Notifications: TCastleNotifications;
   Background: TCastleSimpleBackground;
-  Button, ButtonDemo: TCastleButton;
-  Image, ImageInsideMenu: TCastleImageControl;
+  btnReinitialize: TCastleButton;
   OnScreenMenu: TCastleOnScreenMenu;
-  JoyAxisBar: TCastleLabel;
+  Title: TCastleLabel;
+  SelectedJoystick: Integer;
+  JoyButtons: array of TCastleButton;
+  JoyAxes: array of TCastleLabel;
 
 type
   TClicksHandler = class
-    procedure ButtonClick(Sender: TObject);
-    procedure ButtonDemoClick(Sender: TObject);
-    procedure UIScalingExplicitTwiceClick(Sender: TObject);
-    procedure UIScalingExplicitHalfClick(Sender: TObject);
-    procedure UIScalingExplicitNormalClick(Sender: TObject);
-    procedure UIScalingEncloseReferenceClick(Sender: TObject);
-    procedure UIScalingFitReferenceClick(Sender: TObject);
-    procedure RotationChange(Sender: TObject);
+    procedure btnReinitializeClick(Sender: TObject);
+    procedure JoyButtonClick(Sender: TObject);
   end;
 
   TEventsHandler = class
@@ -53,72 +54,128 @@ type
     procedure JoyButtonDown(const Joy: PJoy; const Button: Byte);
   end;
 
+function CreateJoyButton(ACaption: string): TCastleButton;
+begin
+  // Create a button for every joystick that has been founded
+  Result := TCastleButton.Create(Window);
+  // In the caption will be the number of the joystick
+  Result.Caption := ACaption;
+  Result.OnClick := @TClicksHandler(nil).JoyButtonClick;
+end;
+
+procedure InitializeJoysticks;
+var
+  i: Integer;
+begin
+  // Initialize joysticks singelton instance
+  EnableJoysticks;
+
+  Title.Caption := Format('Number of joysticks found: %d', [Joysticks.JoyCount]);
+
+  // List all joysticks
+  for i := 0 to Joysticks.JoyCount - 1 do
+  begin
+    OnScreenMenu.Add(Joysticks.GetInfo(i)^.Name,
+      CreateJoyButton(IntToStr(i)));
+  end;
+
+  // Bind joystick events
+  Joysticks.OnAxisMove := @TEventsHandler(nil).JoyAxisMove;
+  Joysticks.OnButtonDown := @TEventsHandler(nil).JoyButtonDown;
+  Joysticks.OnButtonPress := @TEventsHandler(nil).JoyButtonPress;
+  Joysticks.OnButtonUp := @TEventsHandler(nil).JoyButtonUp;
+end;
+
 procedure TEventsHandler.JoyAxisMove(const Joy: PJoy; const Axis: Byte;
   const Value: Single);
 begin
-  JoyAxisBar.Caption := FloatToStr(Value);
+  // We showing axes position only for selected joystick.
+  if not (Joy = Joysticks.GetJoy(SelectedJoystick)) then Exit;
+
+  // If axes labels not initialized yet then exit.
+  if Length(JoyAxes) = 0 then Exit;
+
+  JoyAxes[Axis].Caption := AXIS_NAMES[Axis] + ': ' + FloatToStr(Value);
 end;
 
 procedure TEventsHandler.JoyButtonPress(const Joy: PJoy; const Button: Byte);
 begin
-
+  Notifications.Show(Format('Button press event (b: %d)',
+    [Button]));
 end;
 
 procedure TEventsHandler.JoyButtonUp(const Joy: PJoy; const Button: Byte);
 begin
+  if not (Joy = Joysticks.GetJoy(SelectedJoystick)) then Exit;
+  if Length(JoyButtons) = 0 then Exit;
 
+  JoyButtons[Button].Pressed := False;
 end;
 
 procedure TEventsHandler.JoyButtonDown(const Joy: PJoy; const Button: Byte);
 begin
+  if not (Joy = Joysticks.GetJoy(SelectedJoystick)) then Exit;
+  if Length(JoyButtons) = 0 then Exit;
 
+  JoyButtons[Button].Pressed := True;
 end;
 
-procedure TClicksHandler.ButtonClick(Sender: TObject);
+procedure TClicksHandler.btnReinitializeClick(Sender: TObject);
+var
+  i: Integer;
 begin
-  Notifications.Show('Button clicked');
+  // If any joystick is plugged or unplugged then reinitialize is needed
+  Notifications.Show('Reinitialization...');
+  OnScreenMenu.ClearControls;
+  Joysticks.Free;
+  InitializeJoysticks;
 end;
 
-procedure TClicksHandler.ButtonDemoClick(Sender: TObject);
+procedure TClicksHandler.JoyButtonClick(Sender: TObject);
+var
+  i: Integer;
 begin
-  Notifications.Show('Button in on-screen menu clicked');
-end;
+  // Show selected joystick details
+  SelectedJoystick := StrToInt((Sender as TCastleButton).Caption);
 
-procedure TClicksHandler.UIScalingExplicitTwiceClick(Sender: TObject);
-begin
-  Window.Container.UIExplicitScale := 2.0;
-  Window.Container.UIScaling := usExplicitScale;
-end;
+  // Free previously selected data
+  for i := Low(JoyButtons) to High(JoyButtons) do
+    JoyButtons[i].Free;
+  SetLength(JoyButtons, 0);
+  for i := Low(JoyAxes) to High(JoyAxes) do
+    JoyAxes[i].Free;
+  SetLength(JoyAxes, 0);
 
-procedure TClicksHandler.UIScalingExplicitHalfClick(Sender: TObject);
-begin
-  Window.Container.UIExplicitScale := 0.5;
-  Window.Container.UIScaling := usExplicitScale;
-end;
+  // Create array of buttons
+  SetLength(JoyButtons, Joysticks.GetInfo(SelectedJoystick)^.Count.Buttons);
+  for i := 0 to High(JoyButtons) do
+  begin
+    JoyButtons[i] := TCastleButton.Create(Window);
+    JoyButtons[i].Toggle := True;
+    JoyButtons[i].Enabled := False;
+    JoyButtons[i].Left := 10 + 45 * i;
+    JoyButtons[i].Bottom := 60;
+    JoyButtons[i].AutoSize := False;
+    JoyButtons[i].Width := 40;
+    JoyButtons[i].Height := 40;
+    JoyButtons[i].Caption := IntToStr(i);
+    Window.Controls.InsertFront(JoyButtons[i]);
+  end;
+  Notifications.Show(Format('Founded %d buttons',
+    [Joysticks.GetInfo(SelectedJoystick)^.Count.Buttons]));
 
-procedure TClicksHandler.UIScalingExplicitNormalClick(Sender: TObject);
-begin
-  Window.Container.UIExplicitScale := 1.0;
-  Window.Container.UIScaling := usExplicitScale;
-end;
-
-procedure TClicksHandler.UIScalingEncloseReferenceClick(Sender: TObject);
-begin
-  Window.Container.UIReferenceWidth := 1024;
-  Window.Container.UIReferenceHeight := 768;
-  Window.Container.UIScaling := usEncloseReferenceSize;
-end;
-
-procedure TClicksHandler.UIScalingFitReferenceClick(Sender: TObject);
-begin
-  Window.Container.UIReferenceWidth := 1024;
-  Window.Container.UIReferenceHeight := 768;
-  Window.Container.UIScaling := usFitReferenceSize;
-end;
-
-procedure TClicksHandler.RotationChange(Sender: TObject);
-begin
-
+  // Create axis labels
+  SetLength(JoyAxes, Joysticks.GetInfo(SelectedJoystick)^.Count.Axes);
+  for i := 0 to High(JoyAxes) do
+  begin
+    JoyAxes[i] := TCastleLabel.Create(Window);
+    JoyAxes[i].Left := 10;
+    JoyAxes[i].Bottom := 120 + i * 45;
+    JoyAxes[i].Caption := 'Axis: ' + IntToStr(i);
+    Window.Controls.InsertFront(JoyAxes[i]);
+  end;
+  Notifications.Show(Format('Founded %d axes',
+    [Joysticks.GetInfo(SelectedJoystick)^.Count.Axes]));
 end;
 
 procedure WindowUpdate(Container: TUIContainer);
@@ -148,66 +205,26 @@ begin
   Background.Color := Green;
   Window.Controls.InsertBack(Background);
 
-  Button := TCastleButton.Create(Window);
-  Button.Caption := 'My Button (with a tooltip and icon!)';
-  Button.Tooltip := 'Sample tooltip over my button';
-  Button.Left := 10;
-  Button.Bottom := 10;
-  //Button.Image := LoadImage(ApplicationData('sample_button_icon.png'));
-  Button.OwnsImage := true;
-  Button.OnClick := @TClicksHandler(nil).ButtonClick;
-  Window.Controls.InsertFront(Button);
+  btnReinitialize := TCastleButton.Create(Window);
+  btnReinitialize.Caption := 'Reinitialize joysticks';
+  btnReinitialize.Tooltip := 'Free "Joysticks" instance and enable it again';
+  btnReinitialize.Left := 10;
+  btnReinitialize.Bottom := 10;
+  btnReinitialize.OnClick := @TClicksHandler(nil).btnReinitializeClick;
+  Window.Controls.InsertFront(btnReinitialize);
 
-  {Image := TCastleImageControl.Create(Window);
-  Image.URL := ApplicationData('sample_image_with_alpha.png');
-  Image.Left := 200;
-  Image.Bottom := 150;
-  Window.Controls.InsertFront(Image);   }
-
-  {ImageInsideMenu := TCastleImageControl.Create(Window);
-  ImageInsideMenu.URL := ApplicationData('sample_image_with_alpha.png');
-  ImageInsideMenu.Stretch := true;
-  ImageInsideMenu.Width := 100;
-  ImageInsideMenu.Height := 100;  }
-
-  ButtonDemo := TCastleButton.Create(Window);
-  ButtonDemo.Caption := 'Button inside an on-screen menu';
-  ButtonDemo.OnClick := @TClicksHandler(nil).ButtonDemoClick;
-
-  JoyAxisBar := TCastleLabel.Create(Window);
-  JoyAxisBar.Caption := 'joy axis';
-  Window.Controls.InsertFront(JoyAxisBar);
+  Title := TCastleLabel.Create(Window);
+  Title.Left := 10;
+  Title.Anchor(vpTop, -10);
+  Window.Controls.InsertFront(Title);
 
   OnScreenMenu := TCastleOnScreenMenu.Create(Window);
-  OnScreenMenu.Add('Demo item');
-  OnScreenMenu.Add('Another demo item');
-  OnScreenMenu.Add('Item with button', ButtonDemo);
-  //OnScreenMenu.Add('Progress Bar', JoyAxisBar);
-  OnScreenMenu.Add('UI Scale x2 (UIScaling := usExplicitScale, UIExplicitScale := 2.0)',
-    @TClicksHandler(nil).UIScalingExplicitTwiceClick);
-  OnScreenMenu.Add('UI Scale /2 (UIScaling := usExplicitScale, UIExplicitScale := 0.5)',
-    @TClicksHandler(nil).UIScalingExplicitHalfClick);
-  OnScreenMenu.Add('Do not Scale UI (UIScaling := usExplicitScale, UIExplicitScale := 1.0)',
-    @TClicksHandler(nil).UIScalingExplicitNormalClick);
-  OnScreenMenu.Add('UI Scale adjust to window size (usEncloseReferenceSize);',
-    @TClicksHandler(nil).UIScalingEncloseReferenceClick);
-  OnScreenMenu.Add('UI Scale adjust to window size (usFitReferenceSize);',
-    @TClicksHandler(nil).UIScalingFitReferenceClick);
   OnScreenMenu.Left := 10;
-  OnScreenMenu.Anchor(vpTop, -10);
+  OnScreenMenu.Anchor(vpTop, -40);
   Window.Controls.InsertFront(OnScreenMenu);
 
-  // Initialize joysticks singelton instance
-  EnableJoysticks;
+  InitializeJoysticks;
 
-  // Bind joystick events
-  Joysticks.OnAxisMove := @TEventsHandler(nil).JoyAxisMove;
-  Joysticks.OnButtonDown := @TEventsHandler(nil).JoyButtonDown;
-  Joysticks.OnButtonPress := @TEventsHandler(nil).JoyButtonPress;
-  Joysticks.OnButtonUp := @TEventsHandler(nil).JoyButtonUp;
-
-  // Window.Width := 400;
-  // Window.Height := 500;
   Window.OnUpdate := @WindowUpdate;
   Window.OpenAndRun;
 end.
