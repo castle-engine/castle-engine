@@ -930,6 +930,11 @@ var
     begin
       if SCharIs(S, I + 1, '!') then
         Result := CommentFound(S, I, NextChar) else
+      { simply ignore the </p>, we handle <p> correctly already }
+      if SubstringStartsHere(S, I, '</p>', NextChar) then
+      begin
+        Result := TTextPropertyString.Create; // with empty S
+      end else
         Result := CommandFound(S, I, NextChar);
     end else
       Result := nil;
