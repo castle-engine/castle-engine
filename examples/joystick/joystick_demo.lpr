@@ -106,6 +106,7 @@ end;
 
 procedure TEventsHandler.JoyButtonUp(const Joy: PJoy; const Button: Byte);
 begin
+  Notifications.Show('Joy button up');
   if not (Joy = Joysticks.GetJoy(SelectedJoystick)) then Exit;
   if Length(JoyButtons) = 0 then Exit;
 
@@ -114,6 +115,7 @@ end;
 
 procedure TEventsHandler.JoyButtonDown(const Joy: PJoy; const Button: Byte);
 begin
+  Notifications.Show('Joy button down');
   if not (Joy = Joysticks.GetJoy(SelectedJoystick)) then Exit;
   if Length(JoyButtons) = 0 then Exit;
 
@@ -121,8 +123,6 @@ begin
 end;
 
 procedure TClicksHandler.btnReinitializeClick(Sender: TObject);
-var
-  i: Integer;
 begin
   // If any joystick is plugged or unplugged then reinitialize is needed
   Notifications.Show('Reinitialization...');
