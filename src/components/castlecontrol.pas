@@ -708,8 +708,8 @@ function TCastleControlCustom.TContainer.SaveScreen(const SaveRect: TRectangle):
 begin
   if Parent.MakeCurrent then
   begin
-    Container.EventBeforeRender;
-    Container.EventRender;
+    EventBeforeRender;
+    EventRender;
   end;
   Result := SaveScreen_NoFlush(Rect, Parent.SaveScreenBuffer);
 end;
