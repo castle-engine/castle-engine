@@ -2,6 +2,7 @@
 *.rsj
 *.rst
 *.o
+*.or
 *.ppu
 *.blend1
 *.blend2
