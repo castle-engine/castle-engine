@@ -262,21 +262,17 @@ var
   axis : Integer;
   caps : PLongWord;
 {$ENDIF}
-//const
-//  FILE_ERROR = {$IFNDEF WINDOWS} 0 {$ELSE} Ptr( -1 ) {$ENDIF};
 begin
   FjoyCount := 0;
 
   {$IFDEF LINUX}
   for i := 0 to 15 do
   begin
-    //todo: UTF8string (IntToStr)
-    //todo: test FpOpen return values
     FjoyArray[ FjoyCount ].device := FpOpen( '/dev/input/js' + IntToStr( i ), O_RDONLY or O_NONBLOCK );
-    if FjoyArray[ FjoyCount ].device = {FILE_ERROR} 0 then
+    if FjoyArray[ FjoyCount ].device < 0 then
       FjoyArray[ FjoyCount ].device := FpOpen( '/dev/js' + IntToStr( i ), O_RDONLY or O_NONBLOCK );
 
-    if FjoyArray[ FjoyCount ].device <> {FILE_ERROR} 0 then
+    if FjoyArray[ FjoyCount ].device > -1 then
     begin
       SetLength( FjoyArray[ FjoyCount ].Info.Name, 256 );
       FpIOCtl( FjoyArray[ FjoyCount ].device, JSIOCGNAME,    @FjoyArray[ FjoyCount ].Info.Name[ 1 ] );
