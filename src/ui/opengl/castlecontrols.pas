@@ -392,6 +392,8 @@ type
     FCenterX: Single;
     FCenterY: Single;
     FRotation: Single;
+    FClip: boolean;
+    FClipLine: TVector3Single;
     procedure SetCenterX(const AValue: Single);
     procedure SetCenterY(const AValue: Single);
     procedure SetRotation(const AValue: Single);
@@ -407,6 +409,8 @@ type
     procedure SetProportional(const Value: boolean);
     procedure SetColor(const Value: TCastleColor);
     procedure SetSmoothScaling(const Value: boolean);
+    procedure SetClip(const Value: boolean);
+    procedure SetClipLine(const Value: TVector3Single);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -458,6 +462,16 @@ type
 
     { Rotation in radians. Default value 0. }
     property Rotation: Single read FRotation write SetRotation default 0;
+
+    { Clip the image by an arbitrary 2D line defined in @link(ClipLine). }
+    property Clip: boolean read FClip write SetClip;
+
+    { If @link(Clip), this is the line equation used to determine whether
+      we clip the given pixel. Given a line (A, B, C) and pixel (x, y),
+      the pixel is clipped (rejected) if @code(A * x + B * y + C < 0).
+      This provides a functionality similar to desktop OpenGL glClipPlane
+      for TGLImage (on all platforms). }
+    property ClipLine: TVector3Single read FClipLine write SetClipLine;
   published
     { URL of the image. Setting this also sets @link(Image).
       Set this to '' to clear the image. }
@@ -1990,7 +2004,36 @@ begin
   begin
     FSmoothScaling := Value;
     if FGLImage <> nil then
+    begin
       FGLImage.SmoothScaling := Value;
+      VisibleChange;
+    end;
+  end;
+end;
+
+procedure TCastleImageControl.SetClip(const Value: boolean);
+begin
+  if FClip <> Value then
+  begin
+    FClip := Value;
+    if FGLImage <> nil then
+    begin
+      FGLImage.Clip := Value;
+      VisibleChange;
+    end;
+  end;
+end;
+
+procedure TCastleImageControl.SetClipLine(const Value: TVector3Single);
+begin
+  if not VectorsPerfectlyEqual(FClipLine, Value) then
+  begin
+    FClipLine := Value;
+    if FGLImage <> nil then
+    begin
+      FGLImage.ClipLine := Value;
+      VisibleChange;
+    end;
   end;
 end;
 
@@ -2139,6 +2182,8 @@ begin
         FGLImage.CenterX := FCenterX;
         FGLImage.CenterY := FCenterY;
         FGLImage.Rotation := FRotation;
+        FGLImage.Clip := FClip;
+        FGLImage.ClipLine := FClipLine;
       end;
       if AlphaChannel <> acAuto then
         FGLImage.Alpha := AlphaChannel;

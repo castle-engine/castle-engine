@@ -68,6 +68,8 @@ type
     FCenterX, FCenterY, FRotation: Single;
     ScreenCenterX, ScreenCenterY: Single;
     UseScreenCenter: boolean;
+    FClip: boolean;
+    FClipLine: TVector3Single;
     procedure AlphaBegin;
     procedure AlphaEnd;
     procedure SetSmoothScaling(const Value: boolean);
@@ -324,6 +326,16 @@ type
       into a rotation angle. }
     property Rotation: Single
       read FRotation write FRotation default 0;
+
+    { Clip the image by an arbitrary 2D line defined in @link(ClipLine). }
+    property Clip: boolean read FClip write FClip;
+
+    { If @link(Clip), this is the line equation used to determine whether
+      we clip the given pixel. Given a line (A, B, C) and pixel (x, y),
+      the pixel is clipped (rejected) if @code(A * x + B * y + C < 0).
+      This provides a functionality similar to desktop OpenGL glClipPlane
+      for TGLImage (on all platforms). }
+    property ClipLine: TVector3Single read FClipLine write FClipLine;
   end;
 
   { Image ready to be drawn on 2D screen, with automatically
@@ -781,6 +793,12 @@ begin
     glVertexPointer  (2, GL_SHORT, SizeOf(TPoint), @(Point[0].Position));
     glTexCoordPointer(2, GL_FLOAT, SizeOf(TPoint), @(Point[0].TexCoord));
   end;
+  if Clip then
+  begin
+    glEnable(GL_CLIP_PLANE0);
+    glClipPlane(GL_CLIP_PLANE0, Vector4Double(
+      FClipLine[0], FClipLine[1], 0, FClipLine[2]));
+  end;
   {$endif}
 
   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -792,6 +810,8 @@ begin
   for AttribLocation in AttribEnabled do
     TGLSLProgram.DisableVertexAttribArray(AttribLocation);
   {$else}
+  if Clip then
+    glDisable(GL_CLIP_PLANE0);
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   {$endif}

@@ -93,6 +93,9 @@ begin
   ImageWithBorders.Rotation := SliderRotation.Value;
 end;
 
+const
+  TestClip = false;
+  TestClipLine: TVector3Single = (0.5, -1, 0);
 begin
   Window := TCastleWindowCustom.Create(Application);
 
@@ -108,6 +111,8 @@ begin
   ImageWithBorders.Corners := Vector4Integer(40, 40, 40, 40);
   ImageWithBorders.Stretch := true;
   ImageWithBorders.FullSize := true;
+  ImageWithBorders.Clip := TestClip;
+  ImageWithBorders.ClipLine := TestClipLine;
   Window.Controls.InsertBack(ImageWithBorders);
 
   Notifications := TCastleNotifications.Create(Window);
@@ -136,6 +141,8 @@ begin
   Image.URL := ApplicationData('sample_image_with_alpha.png');
   Image.Left := 200;
   Image.Bottom := 150;
+  Image.Clip := TestClip;
+  Image.ClipLine := TestClipLine;
   Window.Controls.InsertFront(Image);
 
   Image2 := TCastleImageControl.Create(Window);
@@ -146,6 +153,8 @@ begin
   Image2.Height := 200;
   Image2.Anchor(hpRight, -10);
   //Image2.SmoothScaling := false;
+  Image2.Clip := TestClip;
+  Image2.ClipLine := TestClipLine;
   Window.Controls.InsertFront(Image2);
 
   ImageInsideMenu := TCastleImageControl.Create(Window);
