@@ -13,17 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Simple demo of a couple of 2D controls.
-  This is the program code for the standalone version. }
-
-uses CastleWindow, Game;
-
-{$ifdef MSWINDOWS}
-  {$R automatic-windows-resources.res}
-{$endif MSWINDOWS}
-
-begin
-  // Window.Width := 400;
-  // Window.Height := 500;
-  Window.OpenAndRun;
+{ Library to run the game on Android. }
+library controls_demo_android;
+uses CastleAndroidNativeAppGlue, Game;
+exports
+  ANativeActivity_onCreate;
 end.

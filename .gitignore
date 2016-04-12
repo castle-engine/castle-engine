@@ -7,8 +7,10 @@
 *.blend1
 *.blend2
 *~
+*.apk
 castle-game-engine-*.fpm
 examples/2d/controls_demo
+examples/2d/libcontrols_demo_android.so
 examples/2d_dragon_spine_android_game/castle_spine
 examples/3d_rendering_processing/animate_3d_model_by_code
 examples/3d_rendering_processing/animate_3d_model_by_code_2
