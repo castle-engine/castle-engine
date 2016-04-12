@@ -17,6 +17,10 @@ attribute vec2 tex_coord;
 uniform vec2 viewport_size;
 varying vec2 tex_coord_frag;
 
+#ifdef CLIP_LINE
+varying vec2 frag_coord;
+#endif
+
 /* Simple GLSL shader to apply 2D texture.
    Must be suitable also for GLES20, so don't use any deprecated gl_Xxx
    variables. */
@@ -24,5 +28,8 @@ varying vec2 tex_coord_frag;
 void main(void)
 {
   gl_Position = vec4(vertex * 2.0 / viewport_size - vec2(1.0), 0.0, 1.0);
+  #ifdef CLIP_LINE
+  frag_coord = vertex;
+  #endif
   tex_coord_frag = tex_coord;
 }

@@ -55,7 +55,7 @@ type
     Point: array [0..PointCount - 1] of TPoint; static;
     {$ifdef GLImageUseShaders}
     TextureHasOnlyAlpha: boolean;
-    GLSLProgram: array [boolean { alpha test? }, TColorTreatment] of TGLSLProgram; static;
+    GLSLProgram: array [boolean { alpha test? }, boolean { clip? }, TColorTreatment] of TGLSLProgram; static;
     {$endif}
 
     FWidth: Cardinal;
@@ -571,7 +571,7 @@ end;
 class procedure TGLImage.StaticGLContextOpen;
 {$ifdef GLImageUseShaders}
 var
-  AlphaTestShader: boolean;
+  AlphaTestShader, ClipLineShader: boolean;
   ColorTreatment: TColorTreatment;
   NewProgram: TGLSLProgram;
   VS, FS: string;
@@ -584,26 +584,29 @@ begin
   {$ifdef GLImageUseShaders}
   { create GLSLProgram programs }
   for AlphaTestShader in boolean do
-    for ColorTreatment in TColorTreatment do
-      if GLSLProgram[AlphaTestShader, ColorTreatment] = nil then
-      begin
-        VS := {$I image.vs.inc};
-        FS := Iff(AlphaTestShader, '#define ALPHA_TEST' + NL, '') +
-              Iff(ColorTreatment in [ctColorMultipliesTexture, ctColorMultipliesTextureAlpha], '#define COLOR_UNIFORM' + NL, '') +
-              Iff(ColorTreatment = ctColorMultipliesTextureAlpha, '#define TEXTURE_HAS_ONLY_ALPHA' + NL, '') +
-              {$I image.fs.inc};
-        if Log and LogShaders then
+    for ClipLineShader in boolean do
+      for ColorTreatment in TColorTreatment do
+        if GLSLProgram[AlphaTestShader, ClipLineShader, ColorTreatment] = nil then
         begin
-          WritelnLogMultiline('TGLImage GLSL vertex shader', VS);
-          WritelnLogMultiline('TGLImage GLSL fragment shader', FS);
-        end;
+          VS := Iff(ClipLineShader, '#define CLIP_LINE' + NL, '') +
+                {$I image.vs.inc};
+          FS := Iff(AlphaTestShader, '#define ALPHA_TEST' + NL, '') +
+                Iff(ClipLineShader, '#define CLIP_LINE' + NL, '') +
+                Iff(ColorTreatment in [ctColorMultipliesTexture, ctColorMultipliesTextureAlpha], '#define COLOR_UNIFORM' + NL, '') +
+                Iff(ColorTreatment = ctColorMultipliesTextureAlpha, '#define TEXTURE_HAS_ONLY_ALPHA' + NL, '') +
+                {$I image.fs.inc};
+          if Log and LogShaders then
+          begin
+            WritelnLogMultiline('TGLImage GLSL vertex shader', VS);
+            WritelnLogMultiline('TGLImage GLSL fragment shader', FS);
+          end;
 
-        NewProgram := TGLSLProgram.Create;
-        NewProgram.AttachVertexShader(VS);
-        NewProgram.AttachFragmentShader(FS);
-        NewProgram.Link(true);
-        GLSLProgram[AlphaTestShader, ColorTreatment] := NewProgram;
-      end;
+          NewProgram := TGLSLProgram.Create;
+          NewProgram.AttachVertexShader(VS);
+          NewProgram.AttachFragmentShader(FS);
+          NewProgram.Link(true);
+          GLSLProgram[AlphaTestShader, ClipLineShader, ColorTreatment] := NewProgram;
+        end;
   {$endif}
 
   StaticResourcesReady := true;
@@ -612,15 +615,16 @@ end;
 class procedure TGLImage.StaticGLContextClose;
 {$ifdef GLImageUseShaders}
 var
-  AlphaTestShader: boolean;
+  AlphaTestShader, ClipLineShader: boolean;
   ColorTreatment: TGLImage.TColorTreatment;
 {$endif}
 begin
   glFreeBuffer(PointVbo);
   {$ifdef GLImageUseShaders}
   for AlphaTestShader in boolean do
-    for ColorTreatment in TColorTreatment do
-      FreeAndNil(GLSLProgram[AlphaTestShader, ColorTreatment]);
+    for ClipLineShader in boolean do
+      for ColorTreatment in TColorTreatment do
+        FreeAndNil(GLSLProgram[AlphaTestShader, ClipLineShader, ColorTreatment]);
   {$endif}
 
   StaticResourcesReady := false;
@@ -766,7 +770,7 @@ begin
     ColorTreatment := ctColorMultipliesTexture else
     ColorTreatment := ctPureTexture;
 
-  Prog := GLSLProgram[Alpha = acSimpleYesNo, ColorTreatment];
+  Prog := GLSLProgram[Alpha = acSimpleYesNo, Clip, ColorTreatment];
   Prog.Enable;
   AttribEnabled[0] := Prog.VertexAttribPointer('vertex', 0, 2, GL_SHORT, GL_FALSE,
     SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
@@ -775,7 +779,8 @@ begin
   Prog.SetUniform('viewport_size', Viewport2DSize);
   if ColorTreatment <> ctPureTexture then
     Prog.SetUniform('color', Color);
-
+  if Clip then
+    Prog.SetUniform('clip_line', ClipLine);
   {$else}
   glLoadIdentity();
   glColorv(Color);
