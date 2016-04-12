@@ -2041,6 +2041,11 @@ begin
   FreeAndNil(GLUVersion);
   {$endif}
   FreeAndNil(GLFeatures);
+
+  { closing GL context, implicitly resets glClearColor value.
+    We need to make note of it, otherwise next GLClear call could not
+    set glClearColor. }
+  FClearColor := ZeroVector4Single;
 end;
 
 initialization
