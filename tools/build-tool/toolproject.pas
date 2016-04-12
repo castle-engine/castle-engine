@@ -221,6 +221,28 @@ constructor TCastleProject.Create(const APath: string);
               [Name, Value, SReadableForm(Value[I])]);
       end;
 
+      procedure CheckQualifiedNameComponents(const QualifiedName: string);
+      var
+        Components: TStringList;
+        I: Integer;
+      begin
+        if (QualifiedName <> '') and
+           ((QualifiedName[1] = '.') or
+            (QualifiedName[Length(QualifiedName)] = '.')) then
+          raise Exception.CreateFmt('Project qualified_name cannot start or end with a dot: "%s"', [QualifiedName]);
+
+        Components := CreateTokens(QualifiedName, ['.']);
+        try
+          for I := 0 to Components.Count - 1 do
+          begin
+            if Components[I] = '' then
+              raise Exception.CreateFmt('qualified_name must contain a number of non-empty components separated with dots: "%s"', [QualifiedName]);
+            if Components[I][1] in ['0'..'9'] then
+              raise Exception.CreateFmt('qualified_name components must not start with a digit: "%s"', [QualifiedName]);
+          end;
+        finally FreeAndNil(Components) end;
+      end;
+
     begin
       CheckMatches('name', Name                     , AlphaNum + ['_','-']);
       CheckMatches('executable_name', ExecutableName, AlphaNum + ['_','-']);
@@ -228,10 +250,7 @@ constructor TCastleProject.Create(const APath: string);
       { non-filename stuff: allow also dots }
       CheckMatches('version', Version             , AlphaNum + ['_','-','.']);
       CheckMatches('qualified_name', QualifiedName, QualifiedNameAllowedChars);
-      if (QualifiedName <> '') and
-         ((QualifiedName[1] = '.') or
-          (QualifiedName[Length(QualifiedName)] = '.')) then
-        raise Exception.CreateFmt('Project qualified_name cannot start or end with a dot: "%s"', [QualifiedName]);
+      CheckQualifiedNameComponents(QualifiedName);
 
       { more user-visible stuff, where we allow spaces, local characters and so on }
       CheckMatches('caption', Caption, AllChars - ControlChars);
