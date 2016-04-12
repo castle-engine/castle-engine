@@ -1135,12 +1135,24 @@ type
 
 { The 2D fonts used throughout UI interface.
 
-  They work fast. Actually, only the first "create" call does actual work.
-  The font is kept until the GL context is destroyed.
-  (We used to have reference-counting for this, but actually just keeping
-  the resource for the rest of GL context life is 1. easier and 2. better,
-  because we want to keep the resource even if you destroy and then recreate
-  all your controls.)
+  By default, this is a modern sans-serif font hardcoded into the engine.
+  It will be automatically created and freed if needed. This is comfortable
+  for simple applications, you can just start "drawing text"
+  without initializing anything.
+
+  You can assign your own font here, to make this the default
+  font used by all 2D controls.
+
+  Note that assigning font here @italic(does not)
+  make it automatically freed (this would cause more trouble than comfort).
+  To make sure your own fonts are always freed, set the font "owner" at creation,
+  e.g. the example below sets the @code(Application) as owner:
+
+@longCode(#
+  MyFont := TTextureFont.Create(Application);
+  MyFont.Load(TextureFont_Xxxx);
+  UIFont := MyFont;
+#)
 
   @groupBegin }
 function GetUIFont: TCastleFont;
@@ -1173,40 +1185,59 @@ end;
 
 { UIFont --------------------------------------------------------------------- }
 
+type
+  TDefaultUIFont = class(TComponent)
+  public
+    Normal: TCastleFont;
+    Small: TCastleFont;
+  end;
+
 var
-  FUIFont: TCastleFont;
-  FUIFontSmall: TCastleFont;
+  DefaultUIFont: TDefaultUIFont;
+  FUIFont, FUIFontSmall: TCastleFont;
 
 function GetUIFont: TCastleFont;
 begin
   if FUIFont = nil then
-    FUIFont := TTextureFont.Create(TextureFont_DejaVuSans_20);
+  begin
+    if DefaultUIFont = nil then
+      DefaultUIFont := TDefaultUIFont.Create(nil);
+    if DefaultUIFont.Normal = nil then
+    begin
+      DefaultUIFont.Normal := TTextureFont.Create(DefaultUIFont);
+      (DefaultUIFont.Normal as TTextureFont).Load(TextureFont_DejaVuSans_20);
+    end;
+    FUIFont := DefaultUIFont.Normal;
+  end;
+
   Result := FUIFont;
 end;
 
 procedure SetUIFont(const Value: TCastleFont);
 begin
-  if FUIFont <> Value then
-  begin
-    FreeAndNil(FUIFont);
-    FUIFont := Value;
-  end;
+  FUIFont := Value;
 end;
 
 function GetUIFontSmall: TCastleFont;
 begin
   if FUIFontSmall = nil then
-    FUIFontSmall := TTextureFont.Create(TextureFont_DejaVuSans_10);
+  begin
+    if DefaultUIFont = nil then
+      DefaultUIFont := TDefaultUIFont.Create(nil);
+    if DefaultUIFont.Small = nil then
+    begin
+      DefaultUIFont.Small := TTextureFont.Create(DefaultUIFont);
+      (DefaultUIFont.Small as TTextureFont).Load(TextureFont_DejaVuSans_10);
+    end;
+    FUIFontSmall := DefaultUIFont.Small;
+  end;
+
   Result := FUIFontSmall;
 end;
 
 procedure SetUIFontSmall(const Value: TCastleFont);
 begin
-  if FUIFontSmall <> Value then
-  begin
-    FreeAndNil(FUIFontSmall);
-    FUIFontSmall := Value;
-  end;
+  FUIFontSmall := Value;
 end;
 
 { TUIControlFont ---------------------------------------------------------- }
@@ -1323,7 +1354,8 @@ begin
       FCustomFont.FreeNotification(Self);
     { don't call virtual function, that may try to measure the text by accessing Font
       (needlessly using UIFont, possibly even recreating UIFont if "finalization"
-      of this unit already run, possibly even accessing invalid free TextureFontData). }
+      of this unit already run, possibly even accessing invalid freed
+      TextureFontData). }
     if not (csDestroying in ComponentState) then
       FontChanged;
   end;
@@ -3822,6 +3854,14 @@ initialization
   FTheme := TCastleTheme.Create;
 finalization
   FreeAndNil(FTheme);
-  FreeAndNil(FUIFont);
-  FreeAndNil(FUIFontSmall);
+  if DefaultUIFont <> nil then
+  begin
+    if (FUIFont <> nil) and
+       (FUIFont = DefaultUIFont.Normal) then
+      FUIFont := nil;
+    if (FUIFontSmall <> nil) and
+       (FUIFontSmall = DefaultUIFont.Small) then
+      FUIFontSmall := nil;
+    FreeAndNil(DefaultUIFont);
+  end;
 end.
