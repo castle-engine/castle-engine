@@ -1720,7 +1720,9 @@ type
 
     { Play a named animation (like detected by @link(Animations) method).
       Also stops previously playing named animation, if any.
-      Returns whether animation (corresponding TimeSensor node) was found. }
+      Returns whether animation (corresponding TimeSensor node) was found.
+      Playing an already-playing animation is guaranteed to start it from
+      the beginning. }
     function PlayAnimation(const AnimationName: string;
       const Looping: TPlayAnimationLooping): boolean;
 
@@ -1739,7 +1741,7 @@ type
       or whatever your 3D export software produces. Only the TimeSensor
       nodes with names starting with this prefix will be available
       on @link(AnimationsList), and this prefix will be stripped from
-      the names you see when using methods like @link(PlayAnimation). }
+      the names you use with methods like @link(PlayAnimation). }
     property AnimationPrefix: string
       read FAnimationPrefix write FAnimationPrefix;
   published
