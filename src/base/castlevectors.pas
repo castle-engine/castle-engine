@@ -877,8 +877,10 @@ procedure VectorNegateVar(var v: TVector4Double); overload;
 { Scale vector such that it has given length (VecLen).
   Given VecLen may be negative, then we'll additionally negate the vector.
   @groupBegin }
+function VectorAdjustToLength(const v: TVector2Single; VecLen: Single): TVector2Single; overload;
 function VectorAdjustToLength(const v: TVector3Single; VecLen: Single): TVector3Single; overload;
 function VectorAdjustToLength(const v: TVector3Double; VecLen: Double): TVector3Double; overload;
+procedure VectorAdjustToLengthVar(var v: TVector2Single; VecLen: Single); overload;
 procedure VectorAdjustToLengthVar(var v: TVector3Single; VecLen: Single); overload;
 procedure VectorAdjustToLengthVar(var v: TVector3Double; VecLen: Double); overload;
 { @groupEnd }

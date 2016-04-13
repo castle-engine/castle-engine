@@ -494,9 +494,19 @@ begin
   Result := IsMemCharFilled(v, SizeOf(v), #0);
 end;
 
+function VectorAdjustToLength(const v: TVector2; VecLen: TScalar): TVector2;
+begin
+  result := VectorScale(v, VecLen/VectorLen(v));
+end;
+
 function VectorAdjustToLength(const v: TVector3; VecLen: TScalar): TVector3;
 begin
   result := VectorScale(v, VecLen/VectorLen(v));
+end;
+
+procedure VectorAdjustToLengthVar(var v: TVector2; VecLen: TScalar);
+begin
+  VectorScaleVar(v, VecLen/VectorLen(v));
 end;
 
 procedure VectorAdjustToLengthVar(var v: TVector3; VecLen: TScalar);
