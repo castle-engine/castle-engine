@@ -3328,6 +3328,7 @@ begin
         Inverse := IdentityMatrix4Single;
         TransformMatricesMult(Params.RenderTransform, Inverse);
         if IsNan(Inverse[0][0]) then
+          {$ifndef VER3_1}
           OnWarning(wtMajor, 'Transform', Format(
             'Inverse transform matrix has NaN value inside:' + NL +
             '%s' + NL +
@@ -3339,6 +3340,10 @@ begin
              VectorToNiceStr(GetScaleOrientation),
              VectorToNiceStr(GetTranslation)
             ]));
+          {$else}
+          { Workaround FPC 3.1.1 Internal error 200211262 when compiling above }
+          OnWarning(wtMajor, 'Transform', 'Inverse transform matrix has NaN value inside');
+          {$endif}
         inherited Render(Frustum.Transform(Inverse), Params);
       end;
 
