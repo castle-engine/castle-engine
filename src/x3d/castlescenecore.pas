@@ -840,6 +840,22 @@ type
     procedure Load(const AURL: string; AllowStdIn: boolean = false;
       const AResetTime: boolean = true);
 
+    { Save the current 3D model (X3D nodes graph) to the given file (URL).
+
+      The X3D encoding is automatically guessed from the URL extension.
+      By default it is XML, and we suggest using the @code(.x3d) extension.
+      If you specify an extension indicating "classic encoding",
+      we will use such encoding (use @code(.x3dv) for X3D
+      in classic encoding, or @code(.wrl) for older VRML content).
+
+      The file may also be automatically gzip compressed if extension indicates it.
+      Use @code(.x3d.gz) to indicated XML compressed with gzip,
+      or use @code(.x3dv.gz) or @code(.wrl.gz) to indicate classic encoding
+      compressed with gzip.
+
+      The @link(URL) property is also changed. }
+    procedure Save(const AURL: string);
+
     destructor Destroy; override;
 
     { Simple (usually very flat) tree of shapes within this VRML/X3D scene.
@@ -2423,6 +2439,13 @@ begin
 
   Load(Load3D(AURL, AllowStdIn), true, AResetTime);
 
+  FURL := AURL;
+end;
+
+procedure TCastleSceneCore.Save(const AURL: string);
+begin
+  if RootNode <> nil then
+    Save3D(RootNode, AURL, ApplicationName);
   FURL := AURL;
 end;
 
