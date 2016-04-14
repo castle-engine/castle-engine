@@ -1957,7 +1957,9 @@ begin
   begin
     Divisor := M[0, 3] * Dir[0] + M[1, 3] * Dir[1] + M[2, 3] * Dir[2];
     if not Zero(Divisor) then
-      raise ETransformedResultInvalid.Create('3D direction transformed by 4x4 matrix to a point');
+      raise ETransformedResultInvalid.Create(Format(
+        '3D direction transformed by 4x4 matrix to a point, with divisor = %f (%g), with matrix:',
+        [Divisor, Divisor]) + NL + MatrixToRawStr(M, '  '));
   end;
 end;
 

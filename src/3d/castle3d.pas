@@ -3327,6 +3327,18 @@ begin
       begin
         Inverse := IdentityMatrix4Single;
         TransformMatricesMult(Params.RenderTransform, Inverse);
+        if IsNan(Inverse[0][0]) then
+          OnWarning(wtMajor, 'Transform', Format(
+            'Inverse transform matrix has NaN value inside:' + NL +
+            '%s' + NL +
+            '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
+            [MatrixToNiceStr(Inverse, '  '),
+             VectorToNiceStr(GetCenter),
+             VectorToNiceStr(GetRotation),
+             VectorToNiceStr(GetScale),
+             VectorToNiceStr(GetScaleOrientation),
+             VectorToNiceStr(GetTranslation)
+            ]));
         inherited Render(Frustum.Transform(Inverse), Params);
       end;
 
