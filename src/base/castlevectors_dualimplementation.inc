@@ -1376,20 +1376,20 @@ var
 begin
   (*
    wiemy ze wektory result-point i lineVector (albo result-line0) sa prostopadle.
-   (result[0]-point[0])*(lineVector[0]) +
-   (result[1]-point[1])*(lineVector[1]) +
-   (result[2]-point[2])*(lineVector[2]) = 0 czyli
-   result[0]*lineVector[0] +
-   result[1]*lineVector[1] +
-   result[2]*lineVector[2] = point[0]*lineVector[0] +
+   (Result[0]-point[0])*(lineVector[0]) +
+   (Result[1]-point[1])*(lineVector[1]) +
+   (Result[2]-point[2])*(lineVector[2]) = 0 czyli
+   Result[0]*lineVector[0] +
+   Result[1]*lineVector[1] +
+   Result[2]*lineVector[2] = point[0]*lineVector[0] +
                              point[1]*lineVector[1] +
                              point[2]*lineVector[2]
    Wiemy ze result wyraza sie jako line0 + lineVector*d
    result = line0+lineVector*d
    czyli
-   result[0] = line0[0] + lineVector[0]*d
-   result[1] = line0[1] + lineVector[1]*d
-   result[2] = line0[2] + lineVector[2]*d
+   Result[0] = line0[0] + lineVector[0]*d
+   Result[1] = line0[1] + lineVector[1]*d
+   Result[2] = line0[2] + lineVector[2]*d
    a wiec 4 rownania, 4 niewiadome i juz wiemy ze jestesmy w domu.
    Podstawiamy :
    (line0[0] + lineVector[0]*d)*lineVector[0]+
@@ -1540,21 +1540,21 @@ var
   cGood, cOther: integer;
 begin
   (* chcemy zeby Vector2f(result) i p2-p1(=lineVector) byly prostopadle czyli ich
-     iloczyn skalarny = 0 czyli result[0]*lineVector[0] +
-     result[1]*lineVector[1] = 0. Niech cGood to wspolrzedna
+     iloczyn skalarny = 0 czyli Result[0]*lineVector[0] +
+     Result[1]*lineVector[1] = 0. Niech cGood to wspolrzedna
      lineVector rozna od 0, cOther to ta druga.
-     Niech result[cOther] = -1 i zobaczmy ze wtedy mozemy skonstruowac
-     result[cGood] = lineVector[cOther] / lineVector[cGood]. *)
+     Niech Result[cOther] = -1 i zobaczmy ze wtedy mozemy skonstruowac
+     Result[cGood] = lineVector[cOther] / lineVector[cGood]. *)
   lineVector := VectorSubtract(p2, p1);
   if Abs(lineVector[0]) > Abs(lineVector[1]) then
     begin cGood := 0; cOther := 1 end else
     begin cOther := 0; cGood := 1 end;
-  result[cOther] := -1;
-  result[cGood] := lineVector[cOther] / lineVector[cGood];
+  Result[cOther] := -1;
+  Result[cGood] := lineVector[cOther] / lineVector[cGood];
 
-  (* result[0]*p1[0] + result[1]*p1[1] + result[2] = 0 wiec widac jak obliczyc
-     teraz result[2] *)
-  result[2] := -result[0]*p1[0] -result[1]*p1[1];
+  (* Result[0]*p1[0] + Result[1]*p1[1] + Result[2] = 0 wiec widac jak obliczyc
+     teraz Result[2] *)
+  Result[2] := -Result[0]*p1[0] -Result[1]*p1[1];
 end;
 
 function IsSpheresCollision(const Sphere1Center: TVector3; const Sphere1Radius: TScalar;
@@ -1813,7 +1813,7 @@ var
 begin
   for i := 0 to 2 do
     for j := 0 to 2 do
-      result[i, j] := m1[i, j] + m2[i, j];
+      Result[i, j] := m1[i, j] + m2[i, j];
 end;
 
 procedure MatrixAddVar(var m1: TMatrix3; const m2: TMatrix3);
@@ -1831,7 +1831,7 @@ var
 begin
   for i := 0 to 3 do
     for j := 0 to 3 do
-      result[i, j] := m1[i, j] + m2[i, j];
+      Result[i, j] := m1[i, j] + m2[i, j];
 end;
 
 procedure MatrixAddVar(var m1: TMatrix4; const m2: TMatrix4);
@@ -1849,7 +1849,7 @@ var
 begin
   for i := 0 to 2 do
     for j := 0 to 2 do
-      result[i, j] := m1[i, j] - m2[i, j];
+      Result[i, j] := m1[i, j] - m2[i, j];
 end;
 
 procedure MatrixSubtractVar(var m1: TMatrix3; const m2: TMatrix3);
@@ -1867,7 +1867,7 @@ var
 begin
   for i := 0 to 3 do
     for j := 0 to 3 do
-      result[i, j] := m1[i, j] - m2[i, j];
+      Result[i, j] := m1[i, j] - m2[i, j];
 end;
 
 procedure MatrixSubtractVar(var m1: TMatrix4; const m2: TMatrix4);
@@ -1885,7 +1885,7 @@ var
 begin
   for i := 0 to 2 do
     for j := 0 to 2 do
-      result[i, j] := - m1[i, j];
+      Result[i, j] := - m1[i, j];
 end;
 
 function MatrixNegate(const m1: TMatrix4): TMatrix4;
@@ -1894,7 +1894,7 @@ var
 begin
   for i := 0 to 3 do
     for j := 0 to 3 do
-      result[i, j] := - m1[i, j];
+      Result[i, j] := - m1[i, j];
 end;
 
 function MatrixMultScalar(const m: TMatrix3; const s: TScalar): TMatrix3;
@@ -1903,7 +1903,7 @@ var
 begin
   for i := 0 to 2 do
     for j := 0 to 2 do
-      result[i, j] := m[i, j]*s;
+      Result[i, j] := m[i, j]*s;
 end;
 
 function MatrixMultScalar(const m: TMatrix4; const s: TScalar): TMatrix4;
@@ -1912,7 +1912,7 @@ var
 begin
   for i := 0 to 3 do
     for j := 0 to 3 do
-      result[i, j] := m[i, j]*s;
+      Result[i, j] := m[i, j]*s;
 end;
 
 function MatrixMultPoint(const m: TMatrix4;
@@ -2002,8 +2002,8 @@ begin
   {
   for i := 0 to 3 do
   begin
-   result[i] := 0;
-   for j := 0 to 3 do result[i] := result[i] + m[j, i]*v[j];
+   Result[i] := 0;
+   for j := 0 to 3 do Result[i] := Result[i] + m[j, i]*v[j];
   end;
 
   Code expanded for the sake of speed:}
@@ -2035,48 +2035,48 @@ begin
   for i := 0 to 3 do { i = wiersze, j = kolumny }
     for j := 0 to 3 do
       for k := 0 to 3 do
-        result[j, i] += m1[k, i]*m2[j, k];
+        Result[j, i] += m1[k, i]*m2[j, k];
 *)
 
   { This is code above expanded for speed sake
     (code generated by console.testy/genMultMatrix) }
-  result[0, 0] := m1[0, 0] * m2[0, 0] + m1[1, 0] * m2[0, 1] + m1[2, 0] * m2[0, 2] + m1[3, 0] * m2[0, 3];
-  result[1, 0] := m1[0, 0] * m2[1, 0] + m1[1, 0] * m2[1, 1] + m1[2, 0] * m2[1, 2] + m1[3, 0] * m2[1, 3];
-  result[2, 0] := m1[0, 0] * m2[2, 0] + m1[1, 0] * m2[2, 1] + m1[2, 0] * m2[2, 2] + m1[3, 0] * m2[2, 3];
-  result[3, 0] := m1[0, 0] * m2[3, 0] + m1[1, 0] * m2[3, 1] + m1[2, 0] * m2[3, 2] + m1[3, 0] * m2[3, 3];
-  result[0, 1] := m1[0, 1] * m2[0, 0] + m1[1, 1] * m2[0, 1] + m1[2, 1] * m2[0, 2] + m1[3, 1] * m2[0, 3];
-  result[1, 1] := m1[0, 1] * m2[1, 0] + m1[1, 1] * m2[1, 1] + m1[2, 1] * m2[1, 2] + m1[3, 1] * m2[1, 3];
-  result[2, 1] := m1[0, 1] * m2[2, 0] + m1[1, 1] * m2[2, 1] + m1[2, 1] * m2[2, 2] + m1[3, 1] * m2[2, 3];
-  result[3, 1] := m1[0, 1] * m2[3, 0] + m1[1, 1] * m2[3, 1] + m1[2, 1] * m2[3, 2] + m1[3, 1] * m2[3, 3];
-  result[0, 2] := m1[0, 2] * m2[0, 0] + m1[1, 2] * m2[0, 1] + m1[2, 2] * m2[0, 2] + m1[3, 2] * m2[0, 3];
-  result[1, 2] := m1[0, 2] * m2[1, 0] + m1[1, 2] * m2[1, 1] + m1[2, 2] * m2[1, 2] + m1[3, 2] * m2[1, 3];
-  result[2, 2] := m1[0, 2] * m2[2, 0] + m1[1, 2] * m2[2, 1] + m1[2, 2] * m2[2, 2] + m1[3, 2] * m2[2, 3];
-  result[3, 2] := m1[0, 2] * m2[3, 0] + m1[1, 2] * m2[3, 1] + m1[2, 2] * m2[3, 2] + m1[3, 2] * m2[3, 3];
-  result[0, 3] := m1[0, 3] * m2[0, 0] + m1[1, 3] * m2[0, 1] + m1[2, 3] * m2[0, 2] + m1[3, 3] * m2[0, 3];
-  result[1, 3] := m1[0, 3] * m2[1, 0] + m1[1, 3] * m2[1, 1] + m1[2, 3] * m2[1, 2] + m1[3, 3] * m2[1, 3];
-  result[2, 3] := m1[0, 3] * m2[2, 0] + m1[1, 3] * m2[2, 1] + m1[2, 3] * m2[2, 2] + m1[3, 3] * m2[2, 3];
-  result[3, 3] := m1[0, 3] * m2[3, 0] + m1[1, 3] * m2[3, 1] + m1[2, 3] * m2[3, 2] + m1[3, 3] * m2[3, 3];
+  Result[0, 0] := m1[0, 0] * m2[0, 0] + m1[1, 0] * m2[0, 1] + m1[2, 0] * m2[0, 2] + m1[3, 0] * m2[0, 3];
+  Result[1, 0] := m1[0, 0] * m2[1, 0] + m1[1, 0] * m2[1, 1] + m1[2, 0] * m2[1, 2] + m1[3, 0] * m2[1, 3];
+  Result[2, 0] := m1[0, 0] * m2[2, 0] + m1[1, 0] * m2[2, 1] + m1[2, 0] * m2[2, 2] + m1[3, 0] * m2[2, 3];
+  Result[3, 0] := m1[0, 0] * m2[3, 0] + m1[1, 0] * m2[3, 1] + m1[2, 0] * m2[3, 2] + m1[3, 0] * m2[3, 3];
+  Result[0, 1] := m1[0, 1] * m2[0, 0] + m1[1, 1] * m2[0, 1] + m1[2, 1] * m2[0, 2] + m1[3, 1] * m2[0, 3];
+  Result[1, 1] := m1[0, 1] * m2[1, 0] + m1[1, 1] * m2[1, 1] + m1[2, 1] * m2[1, 2] + m1[3, 1] * m2[1, 3];
+  Result[2, 1] := m1[0, 1] * m2[2, 0] + m1[1, 1] * m2[2, 1] + m1[2, 1] * m2[2, 2] + m1[3, 1] * m2[2, 3];
+  Result[3, 1] := m1[0, 1] * m2[3, 0] + m1[1, 1] * m2[3, 1] + m1[2, 1] * m2[3, 2] + m1[3, 1] * m2[3, 3];
+  Result[0, 2] := m1[0, 2] * m2[0, 0] + m1[1, 2] * m2[0, 1] + m1[2, 2] * m2[0, 2] + m1[3, 2] * m2[0, 3];
+  Result[1, 2] := m1[0, 2] * m2[1, 0] + m1[1, 2] * m2[1, 1] + m1[2, 2] * m2[1, 2] + m1[3, 2] * m2[1, 3];
+  Result[2, 2] := m1[0, 2] * m2[2, 0] + m1[1, 2] * m2[2, 1] + m1[2, 2] * m2[2, 2] + m1[3, 2] * m2[2, 3];
+  Result[3, 2] := m1[0, 2] * m2[3, 0] + m1[1, 2] * m2[3, 1] + m1[2, 2] * m2[3, 2] + m1[3, 2] * m2[3, 3];
+  Result[0, 3] := m1[0, 3] * m2[0, 0] + m1[1, 3] * m2[0, 1] + m1[2, 3] * m2[0, 2] + m1[3, 3] * m2[0, 3];
+  Result[1, 3] := m1[0, 3] * m2[1, 0] + m1[1, 3] * m2[1, 1] + m1[2, 3] * m2[1, 2] + m1[3, 3] * m2[1, 3];
+  Result[2, 3] := m1[0, 3] * m2[2, 0] + m1[1, 3] * m2[2, 1] + m1[2, 3] * m2[2, 2] + m1[3, 3] * m2[2, 3];
+  Result[3, 3] := m1[0, 3] * m2[3, 0] + m1[1, 3] * m2[3, 1] + m1[2, 3] * m2[3, 2] + m1[3, 3] * m2[3, 3];
 end;
 
 function MatrixMult(const m1, m2: TMatrix3): TMatrix3;
 begin
-  result[0, 0] := m1[0, 0] * m2[0, 0] + m1[1, 0] * m2[0, 1] + m1[2, 0] * m2[0, 2];
-  result[1, 0] := m1[0, 0] * m2[1, 0] + m1[1, 0] * m2[1, 1] + m1[2, 0] * m2[1, 2];
-  result[2, 0] := m1[0, 0] * m2[2, 0] + m1[1, 0] * m2[2, 1] + m1[2, 0] * m2[2, 2];
-  result[0, 1] := m1[0, 1] * m2[0, 0] + m1[1, 1] * m2[0, 1] + m1[2, 1] * m2[0, 2];
-  result[1, 1] := m1[0, 1] * m2[1, 0] + m1[1, 1] * m2[1, 1] + m1[2, 1] * m2[1, 2];
-  result[2, 1] := m1[0, 1] * m2[2, 0] + m1[1, 1] * m2[2, 1] + m1[2, 1] * m2[2, 2];
-  result[0, 2] := m1[0, 2] * m2[0, 0] + m1[1, 2] * m2[0, 1] + m1[2, 2] * m2[0, 2];
-  result[1, 2] := m1[0, 2] * m2[1, 0] + m1[1, 2] * m2[1, 1] + m1[2, 2] * m2[1, 2];
-  result[2, 2] := m1[0, 2] * m2[2, 0] + m1[1, 2] * m2[2, 1] + m1[2, 2] * m2[2, 2];
+  Result[0, 0] := m1[0, 0] * m2[0, 0] + m1[1, 0] * m2[0, 1] + m1[2, 0] * m2[0, 2];
+  Result[1, 0] := m1[0, 0] * m2[1, 0] + m1[1, 0] * m2[1, 1] + m1[2, 0] * m2[1, 2];
+  Result[2, 0] := m1[0, 0] * m2[2, 0] + m1[1, 0] * m2[2, 1] + m1[2, 0] * m2[2, 2];
+  Result[0, 1] := m1[0, 1] * m2[0, 0] + m1[1, 1] * m2[0, 1] + m1[2, 1] * m2[0, 2];
+  Result[1, 1] := m1[0, 1] * m2[1, 0] + m1[1, 1] * m2[1, 1] + m1[2, 1] * m2[1, 2];
+  Result[2, 1] := m1[0, 1] * m2[2, 0] + m1[1, 1] * m2[2, 1] + m1[2, 1] * m2[2, 2];
+  Result[0, 2] := m1[0, 2] * m2[0, 0] + m1[1, 2] * m2[0, 1] + m1[2, 2] * m2[0, 2];
+  Result[1, 2] := m1[0, 2] * m2[1, 0] + m1[1, 2] * m2[1, 1] + m1[2, 2] * m2[1, 2];
+  Result[2, 2] := m1[0, 2] * m2[2, 0] + m1[1, 2] * m2[2, 1] + m1[2, 2] * m2[2, 2];
 end;
 
 function MatrixMult(const m1, m2: TMatrix2): TMatrix2;
 begin
-  result[0, 0] := m1[0, 0] * m2[0, 0] + m1[1, 0] * m2[0, 1];
-  result[1, 0] := m1[0, 0] * m2[1, 0] + m1[1, 0] * m2[1, 1];
-  result[0, 1] := m1[0, 1] * m2[0, 0] + m1[1, 1] * m2[0, 1];
-  result[1, 1] := m1[0, 1] * m2[1, 0] + m1[1, 1] * m2[1, 1];
+  Result[0, 0] := m1[0, 0] * m2[0, 0] + m1[1, 0] * m2[0, 1];
+  Result[1, 0] := m1[0, 0] * m2[1, 0] + m1[1, 0] * m2[1, 1];
+  Result[0, 1] := m1[0, 1] * m2[0, 0] + m1[1, 1] * m2[0, 1];
+  Result[1, 1] := m1[0, 1] * m2[1, 0] + m1[1, 1] * m2[1, 1];
 end;
 
 { matrix transforms for 3D graphics  ----------------------------------------- }
@@ -2084,17 +2084,17 @@ end;
 function TranslationMatrix(const Transl: TVector3): TMatrix4Single;
 begin
   result := IdentityMatrix4Single;
-  result[3, 0] := Transl[0];
-  result[3, 1] := Transl[1];
-  result[3, 2] := Transl[2];
+  Result[3, 0] := Transl[0];
+  Result[3, 1] := Transl[1];
+  Result[3, 2] := Transl[2];
 end;
 
 function TranslationMatrix(const X, Y, Z: TScalar): TMatrix4Single;
 begin
   result := IdentityMatrix4Single;
-  result[3, 0] := X;
-  result[3, 1] := Y;
-  result[3, 2] := Z;
+  Result[3, 0] := X;
+  Result[3, 1] := Y;
+  Result[3, 2] := Z;
 end;
 
 procedure TranslationMatrices(const X, Y, Z: TScalar;
@@ -2185,16 +2185,16 @@ var
 begin
   for i := 0 to 2 do
   begin
-    result[0, i] := NewX[i];
-    result[1, i] := NewY[i];
-    result[2, i] := NewZ[i];
-    result[3, i] := NewOrigin[i];
+    Result[0, i] := NewX[i];
+    Result[1, i] := NewY[i];
+    Result[2, i] := NewZ[i];
+    Result[3, i] := NewOrigin[i];
   end;
   { bottom row }
-  result[0, 3] := 0;
-  result[1, 3] := 0;
-  result[2, 3] := 0;
-  result[3, 3] := 1;
+  Result[0, 3] := 0;
+  Result[1, 3] := 0;
+  Result[2, 3] := 0;
+  Result[3, 3] := 1;
 end;
 
 function TransformToCoordsMatrix(const NewX, NewY, NewZ: TVector3): TMatrix4Single;
@@ -2203,19 +2203,19 @@ var
 begin
   for i := 0 to 2 do
   begin
-    result[0, i] := NewX[i];
-    result[1, i] := NewY[i];
-    result[2, i] := NewZ[i];
+    Result[0, i] := NewX[i];
+    Result[1, i] := NewY[i];
+    Result[2, i] := NewZ[i];
   end;
   { right column }
-  result[3, 0] := 0;
-  result[3, 1] := 0;
-  result[3, 2] := 0;
+  Result[3, 0] := 0;
+  Result[3, 1] := 0;
+  Result[3, 2] := 0;
   { bottom row }
-  result[0, 3] := 0;
-  result[1, 3] := 0;
-  result[2, 3] := 0;
-  result[3, 3] := 1;
+  Result[0, 3] := 0;
+  Result[1, 3] := 0;
+  Result[2, 3] := 0;
+  Result[3, 3] := 1;
 end;
 
 function TransformToCoordsNoScaleMatrix(const NewOrigin,
@@ -2235,24 +2235,24 @@ begin
     { Difference between TrasformToCoords and TransformFromCoords:
       up-left 3x3 matrix is applied in a transposed manner,
       compared with TrasformToCoords. }
-    result[i, 0] := OldX[i];
-    result[i, 1] := OldY[i];
-    result[i, 2] := OldZ[i];
+    Result[i, 0] := OldX[i];
+    Result[i, 1] := OldY[i];
+    Result[i, 2] := OldZ[i];
   end;
 
   { Another difference between TrasformToCoords and TransformFromCoords:
     - OldOrigin must be negated here
     - OldOrigin must have directions applied
     See e.g. Global Illumination Compendium by Philip Dutre, section (15). }
-  result[3, 0] := -VectorDotProduct(OldOrigin, OldX);
-  result[3, 1] := -VectorDotProduct(OldOrigin, OldY);
-  result[3, 2] := -VectorDotProduct(OldOrigin, OldZ);
+  Result[3, 0] := -VectorDotProduct(OldOrigin, OldX);
+  Result[3, 1] := -VectorDotProduct(OldOrigin, OldY);
+  Result[3, 2] := -VectorDotProduct(OldOrigin, OldZ);
 
   { bottom row }
-  result[0, 3] := 0;
-  result[1, 3] := 0;
-  result[2, 3] := 0;
-  result[3, 3] := 1;
+  Result[0, 3] := 0;
+  Result[1, 3] := 0;
+  Result[2, 3] := 0;
+  Result[3, 3] := 1;
 end;
 
 function TransformFromCoordsMatrix(const OldX, OldY, OldZ: TVector3): TMatrix4Single;
@@ -2264,20 +2264,20 @@ begin
     { Difference between TrasformToCoords and TransformFromCoords:
       up-left 3x3 matrix is applied in a transposed manner,
       compared with TrasformToCoords. }
-    result[i, 0] := OldX[i];
-    result[i, 1] := OldY[i];
-    result[i, 2] := OldZ[i];
+    Result[i, 0] := OldX[i];
+    Result[i, 1] := OldY[i];
+    Result[i, 2] := OldZ[i];
   end;
 
   { right column }
-  result[3, 0] := 0;
-  result[3, 1] := 0;
-  result[3, 2] := 0;
+  Result[3, 0] := 0;
+  Result[3, 1] := 0;
+  Result[3, 2] := 0;
   { bottom row }
-  result[0, 3] := 0;
-  result[1, 3] := 0;
-  result[2, 3] := 0;
-  result[3, 3] := 1;
+  Result[0, 3] := 0;
+  Result[1, 3] := 0;
+  Result[2, 3] := 0;
+  Result[3, 3] := 1;
 end;
 
 function TransformFromCoordsNoScaleMatrix(const OldOrigin,
@@ -2334,21 +2334,21 @@ begin
 
   for i := 0 to 2 do
   begin
-    result[i, 0] := Side[i];
-    result[i, 1] := Up[i];
-    result[i, 2] := -Direction[i]; { negate Direction, since it goes to -Z }
+    Result[i, 0] := Side[i];
+    Result[i, 1] := Up[i];
+    Result[i, 2] := -Direction[i]; { negate Direction, since it goes to -Z }
   end;
 
   { bottom row and right column }
-  result[3, 0] := 0;
-  result[3, 1] := 0;
-  result[3, 2] := 0;
+  Result[3, 0] := 0;
+  Result[3, 1] := 0;
+  Result[3, 2] := 0;
 
-  result[0, 3] := 0;
-  result[1, 3] := 0;
-  result[2, 3] := 0;
+  Result[0, 3] := 0;
+  Result[1, 3] := 0;
+  Result[2, 3] := 0;
 
-  result[3, 3] := 1;
+  Result[3, 3] := 1;
 end;
 
 function InverseFastLookDirMatrix(const Direction, Up: TVector3): TMatrix4Single;
@@ -2363,21 +2363,21 @@ begin
 
   for i := 0 to 2 do
   begin
-    result[0, i] := Side[i];
-    result[1, i] := Up[i];
-    result[2, i] := -Direction[i]; { negate Direction, since it goes to -Z }
+    Result[0, i] := Side[i];
+    Result[1, i] := Up[i];
+    Result[2, i] := -Direction[i]; { negate Direction, since it goes to -Z }
   end;
 
   { bottom row and right column }
-  result[3, 0] := 0;
-  result[3, 1] := 0;
-  result[3, 2] := 0;
+  Result[3, 0] := 0;
+  Result[3, 1] := 0;
+  Result[3, 2] := 0;
 
-  result[0, 3] := 0;
-  result[1, 3] := 0;
-  result[2, 3] := 0;
+  Result[0, 3] := 0;
+  Result[1, 3] := 0;
+  Result[2, 3] := 0;
 
-  result[3, 3] := 1;
+  Result[3, 3] := 1;
 end;
 
 { We're happily using FPC's Matrix unit to trivially implement
