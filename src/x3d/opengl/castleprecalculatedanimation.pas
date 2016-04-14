@@ -14,8 +14,7 @@
 }
 
 { A precalculated 3D animation rendered in OpenGL (TCastlePrecalculatedAnimation). }
-unit CastlePrecalculatedAnimation
-  deprecated 'instead of TCastlePrecalculatedAnimation, use TCastleScene to load animations in any format (X3D, KAnim...) and run them using methods like PlayAnimation';
+unit CastlePrecalculatedAnimation;
 
 {$I castleconf.inc}
 
@@ -660,7 +659,7 @@ type
 
     property InitialViewpointName: string
       read FInitialViewpointName write FInitialViewpointName;
-  end;
+  end deprecated 'instead of TCastlePrecalculatedAnimation, use TCastleScene to load animations in any format (X3D, KAnim...) and run them using methods like PlayAnimation';
 
 const
   DefaultAnimationSmoothness = 1.0;
@@ -679,7 +678,9 @@ uses Math, X3DFields, CastleProgress, X3DLoad, CastleLog, DateUtils,
 
 procedure Register;
 begin
+  {$warnings off}
   RegisterComponents('Castle', [TCastlePrecalculatedAnimation]);
+  {$warnings on}
 end;
 
 { TAnimationScene ------------------------------------------------------ }
@@ -687,7 +688,9 @@ end;
 type
   TAnimationScene = class(TCastleScene)
   private
+    {$warnings off}
     FParentAnimation: TCastlePrecalculatedAnimation;
+    {$warnings on}
   public
     constructor CreateForAnimation(
       ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
