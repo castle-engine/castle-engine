@@ -449,6 +449,12 @@ begin
   V[3] /= len;
 end;
 
+function ZeroVector(const V: TVector2): boolean;
+begin
+  result := (Abs(V[0]) < ScalarEqualityEpsilon) and
+            (Abs(V[1]) < ScalarEqualityEpsilon);
+end;
+
 function ZeroVector(const V: TVector3): boolean;
 begin
   result := (Abs(V[0]) < ScalarEqualityEpsilon) and
@@ -462,6 +468,12 @@ begin
             (Abs(V[1]) < ScalarEqualityEpsilon) and
             (Abs(V[2]) < ScalarEqualityEpsilon) and
             (Abs(V[3]) < ScalarEqualityEpsilon);
+end;
+
+function ZeroVector(const V: TVector2; const EqualityEpsilon: TScalar): boolean;
+begin
+  result := (Abs(V[0]) < EqualityEpsilon) and
+            (Abs(V[1]) < EqualityEpsilon);
 end;
 
 function ZeroVector(const V: TVector3; const EqualityEpsilon: TScalar): boolean;
@@ -1251,17 +1263,29 @@ end;
 
 function AnyOrthogonalVector(const v: TVector3): TVector3;
 begin
+  { This uses a simple trick to make an orthogonal vector:
+    if you take @code(Result := (V[1], -V[0], 0)) then the dot product
+    between the Result and V is zero, so they are orthogonal.
+    There's also a small check needed to use a similar but different version
+    when the only non-zero component of V is V[2]. }
+
   if Zero(v[0]) and Zero(v[1]) then
   begin
-    result[0] := 0;
-    result[1] := v[2];
-    result[2] := -v[1];
+    Result[0] := 0;
+    Result[1] := v[2];
+    Result[2] := -v[1];
   end else
   begin
-    result[0] := v[1];
-    result[1] := -v[0];
-    result[2] := 0;
+    Result[0] := v[1];
+    Result[1] := -v[0];
+    Result[2] := 0;
   end;
+end;
+
+function AnyOrthogonalVector(const v: TVector2): TVector2;
+begin
+  Result[0] :=  V[1];
+  Result[1] := -V[0];
 end;
 
 function IsLineParallelToPlane(const lineVector: TVector3; const plane: TVector4): boolean;
