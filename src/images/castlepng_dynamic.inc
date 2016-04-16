@@ -940,35 +940,39 @@ begin
   FreeAndNil(PngLibrary);
 
   {$ifdef MSWINDOWS}
-  { libpng distributed by gnuwin32.sourceforge.net }
-  PngLibrary := TDynLib.Load('libpng12.dll', false);
-  { Newer version, libpng13.dll, is equally good and seems 100% compatible. }
-  if PngLibrary = nil then
-    PngLibrary := TDynLib.Load('libpng13.dll', false);
-
+  { libpng common names for Windows }
   { libpng for win64 distributed by http://www.gtk.org/download/win64.php }
   if PngLibrary = nil then
     PngLibrary := TDynLib.Load('libpng14-14.dll', false);
+  { libpng distributed by gnuwin32.sourceforge.net }
+  if PngLibrary = nil then
+    PngLibrary := TDynLib.Load('libpng13.dll', false);
+  if PngLibrary = nil then
+    PngLibrary := TDynLib.Load('libpng12.dll', false);
   {$endif}
 
   {$ifdef UNIX}
 
   {$ifdef DARWIN}
-  PngLibrary := TDynLib.Load('libpng.dylib', false);
+  { libpng common names for Mac Os X }
+  if PngLibrary = nil then
+    PngLibrary := TDynLib.Load('libpng.dylib', false);
   if (PngLibrary = nil) and (BundlePath <> '') then
     PngLibrary := TDynLib.Load(BundlePath + 'Contents/MacOS/libpng14.14.dylib', false);
+
   {$else DARWIN}
-  PngLibrary := TDynLib.Load('libpng12.so.0', false);
-  { Alternative libpng library name for Unix. Use the one that comes usually
-    from package like libpng-dev, this allows the system admin to
-    eventually adjust the used libpng using symlink (in case the
-    exact libpng12.so.0 doesn't exist). }
+  { libpng common names for Linux, FreeBSD and other Unixes (except Mac OS X)  }
   if PngLibrary = nil then
-    PngLibrary := TDynLib.Load('libpng.so', false);
+    PngLibrary := TDynLib.Load('libpng16.so.16', false);
+  if PngLibrary = nil then
+    PngLibrary := TDynLib.Load('libpng14.so.14', false);
   if PngLibrary = nil then
     PngLibrary := TDynLib.Load('libpng14.so', false);
   if PngLibrary = nil then
-    PngLibrary := TDynLib.Load('libpng14.so.14', false);
+    PngLibrary := TDynLib.Load('libpng12.so.0', false);
+  { As a final fallback, use the libpng that comes from a package like libpng-dev. }
+  if PngLibrary = nil then
+    PngLibrary := TDynLib.Load('libpng.so', false);
   {$endif DARWIN}
 
   {$endif UNIX}
