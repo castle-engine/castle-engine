@@ -56,7 +56,7 @@ type
 
 function CreateJoyButton(ACaption: string): TCastleButton;
 begin
-  // Create a button for every joystick that has been founded
+  // Create a button for every joystick that has been found
   Result := TCastleButton.Create(Window);
   // In the caption will be the number of the joystick
   Result.Caption := ACaption;
@@ -161,7 +161,7 @@ begin
     JoyButtons[i].Caption := IntToStr(i);
     Window.Controls.InsertFront(JoyButtons[i]);
   end;
-  Notifications.Show(Format('Founded %d buttons',
+  Notifications.Show(Format('Found %d buttons',
     [Joysticks.GetInfo(SelectedJoystick)^.Count.Buttons]));
 
   // Create axis labels
@@ -174,7 +174,7 @@ begin
     JoyAxes[i].Caption := 'Axis: ' + IntToStr(i);
     Window.Controls.InsertFront(JoyAxes[i]);
   end;
-  Notifications.Show(Format('Founded %d axes',
+  Notifications.Show(Format('Found %d axes',
     [Joysticks.GetInfo(SelectedJoystick)^.Count.Axes]));
 end;
 

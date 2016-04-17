@@ -138,6 +138,7 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/image_identify \
   examples/images_videos/image_compare \
   examples/images_videos/simple_video_editor \
+  examples/joystick/joystick_demo \
   examples/fonts/test_font_break \
   examples/fonts/font_from_texture \
   examples/fonts/html_text \
