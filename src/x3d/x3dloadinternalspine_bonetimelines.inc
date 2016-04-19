@@ -269,6 +269,23 @@ end;
 procedure TBoneTimelineScale.BuildNodes(const BaseUrl: string;
   const MaxAnimationTime: Single; const Container: TX3DRootNode;
   const BonesToReset: TBonesAnimated);
+
+  { Combine initial node scale and 2D key scale into a final scale. }
+  function FinalScale(const InitialScale: TVector3Single;
+    const KeyScale: TVector2Single): TVector3Single;
+  begin
+    { multiply setup pose transformation (scale) by key scale,
+      as bone timeline is relative to setup pose }
+    Result[0] := InitialScale[0] * KeyScale[0];
+    Result[1] := InitialScale[1] * KeyScale[1];
+    { don't just set Result[2] to 1, instead set it to average of X and Y scales.
+      This will work better for collisions. At least in case of uniform scale
+      (when scale X and Y are equal), this way Approximate3DScale will return
+      the same value (equal to all X, Y an Z), which will make collision routines
+      work Ok. }
+    Result[2] := (Result[0] + Result[1]) / 2;
+  end;
+
 var
   I: Integer;
   N: TPositionInterpolatorNode;
@@ -281,10 +298,7 @@ begin
     NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_scale_' + ToX3DName(Bone.Name));
     for I := 0 to Vectors.Count - 1 do
     begin
-      NC.FdKeyValue.Items.Add(Vector3Single(
-        { multiple setup pose transform, as bone timeline is relative to setup pose }
-        Bone.Node.FdScale.Value[0] * Vectors[I][0],
-        Bone.Node.FdScale.Value[1] * Vectors[I][1], 1));
+      NC.FdKeyValue.Items.Add(FinalScale(Bone.Node.FdScale.Value, Vectors[I]));
       NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
     end;
     EventValueChanged := NC.EventValue_changed;
@@ -294,10 +308,7 @@ begin
   begin
     N := TPositionInterpolatorNode.Create('BoneTimeline_scale_' + ToX3DName(Bone.Name));
     for I := 0 to Vectors.Count - 1 do
-      N.FdKeyValue.Items.Add(Vector3Single(
-        { multiple setup pose transform, as bone timeline is relative to setup pose }
-        Bone.Node.FdScale.Value[0] * Vectors[I][0],
-        Bone.Node.FdScale.Value[1] * Vectors[I][1], 1));
+      N.FdKeyValue.Items.Add(FinalScale(Bone.Node.FdScale.Value, Vectors[I]));
     EventValueChanged := N.EventValue_changed;
     Node := N;
   end;
