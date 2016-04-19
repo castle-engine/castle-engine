@@ -36,7 +36,7 @@ type
     FNormalMap: string;
     FAlphaChannel: string;
   private
-    procedure LoadFromDOMElement(Element: TDOMElement; const BaseUrl: string);
+    procedure LoadFromDOMElement(Element: TDOMElement; const BaseURL: string);
   public
     { Texture basename to associate this property will all appearances
       using given texture. For now, this is the only way to associate
@@ -116,12 +116,15 @@ type
         IncludePaths: TCastleStringList; // absolute URLs
         IncludePathsRecursive: TBooleanList;
         ExcludePaths: TCastleStringList;
+        { necessary for Exclude with relative dirs, like "entites/*", to work }
+        FBaseURL: string;
         FFormats: TTextureCompressions;
         GatheringResult: TCastleStringList;
         procedure GatherCallback(const FileInfo: TFileInfo; var StopSearch: boolean);
         procedure LoadImageEvent(var URL: string);
+        function IsAbsoluteURLMatchingRelativeMask(const URL, Mask: string): boolean;
       public
-        constructor Create(const Element: TDOMElement; const BaseUrl: string; const AnAutoProcessImageURLs: boolean);
+        constructor Create(const Element: TDOMElement; const BaseURL: string; const AnAutoProcessImageURLs: boolean);
         destructor Destroy; override;
         function AutoCompressedTextures: TCastleStringList;
         class function CompressedTextureURL(const URL: string;
@@ -185,7 +188,7 @@ uses SysUtils, XMLRead, StrUtils,
 
 { TMaterialProperty --------------------------------------------------------- }
 
-procedure TMaterialProperty.LoadFromDOMElement(Element: TDOMElement; const BaseUrl: string);
+procedure TMaterialProperty.LoadFromDOMElement(Element: TDOMElement; const BaseURL: string);
 var
   FootstepsSoundName: string;
   ToxicDamage: TDOMElement;
@@ -201,7 +204,7 @@ begin
     FFootstepsSound := stNone;
 
   if Element.AttributeString('normal_map', FNormalMap) and (FNormalMap <> '') then
-    FNormalMap := CombineURI(BaseUrl, FNormalMap) else
+    FNormalMap := CombineURI(BaseURL, FNormalMap) else
     FNormalMap := '';
 
   if not Element.AttributeString('alpha_channel', FAlphaChannel) then
@@ -229,7 +232,7 @@ end;
 { TMaterialProperties.TAutoCompressedTextures -------------------------------- }
 
 constructor TMaterialProperties.TAutoCompressedTextures.Create(
-  const Element: TDOMElement; const BaseUrl: string;
+  const Element: TDOMElement; const BaseURL: string;
   const AnAutoProcessImageURLs: boolean);
 var
   ChildElements: TXMLElementIterator;
@@ -240,6 +243,7 @@ begin
   IncludePaths := TCastleStringList.Create;
   IncludePathsRecursive := TBooleanList.Create;
   ExcludePaths := TCastleStringList.Create;
+  FBaseURL := BaseURL;
 
   { read from XML }
 
@@ -248,7 +252,7 @@ begin
     while ChildElements.GetNext do
     begin
       ChildElement := ChildElements.Current;
-      IncludePaths.Add(ChildElement.AttributeURL('path', BaseUrl));
+      IncludePaths.Add(ChildElement.AttributeURL('path', BaseURL));
       IncludePathsRecursive.Add(ChildElement.AttributeBooleanDef('recursive', false));
     end;
   finally FreeAndNil(ChildElements) end;
@@ -294,18 +298,29 @@ begin
     GatheringResult.Add(FileInfo.URL);
 end;
 
+function TMaterialProperties.TAutoCompressedTextures.IsAbsoluteURLMatchingRelativeMask(
+  const URL, Mask: string): boolean;
+var
+  U: string;
+begin
+  U := PrefixRemove(ExtractURIPath(FBaseURL), URL, PathsIgnoreCase);
+  Result := IsWild(U, Mask, PathsIgnoreCase);
+end;
+
 function TMaterialProperties.TAutoCompressedTextures.
   AutoCompressedTextures: TCastleStringList;
 
-  procedure Exclude(const PathMask: string; const Files: TCastleStringList);
+  procedure Exclude(const ExcludePathMask: string; const URLs: TCastleStringList);
   var
     I: Integer;
   begin
     I := 0;
-    while I < Files.Count do
+    while I < URLs.Count do
     begin
-      if IsWild(Files[I], PathMask, PathsIgnoreCase) then
-        Files.Delete(I) else
+      // Writeln('Excluding ExcludePathMask ' + ExcludePathMask +
+      //   ' from ' + PrefixRemove(ExtractURIPath(FBaseURL), URLs[I], PathsIgnoreCase));
+      if IsAbsoluteURLMatchingRelativeMask(URLs[I], ExcludePathMask) then
+        URLs.Delete(I) else
         Inc(I);
     end;
   end;
@@ -362,7 +377,7 @@ var
     I: Integer;
   begin
     for I := 0 to ExcludePaths.Count - 1 do
-      if IsWild(URL, ExcludePaths[I], PathsIgnoreCase) then
+      if IsAbsoluteURLMatchingRelativeMask(URL, ExcludePaths[I]) then
         Exit;
     ReplaceURL;
   end;
