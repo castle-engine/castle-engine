@@ -927,9 +927,11 @@ type
     FWidth: Cardinal;
     FHeight: Cardinal;
     FOnChange: TNotifyEvent;
+    FCaption: string;
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
     function IndicatorWidth(const R: TRectangle): Integer;
+    procedure SetCaption(const Value: string);
   private
     { Draw a slider at given Position. If Position is outside 0..1, it is clamped
       to 0..1 (this way we do not show slider at some wild position if it's
@@ -944,7 +946,7 @@ type
     function XCoordToSliderPosition(const XCoord: Single;
       const R: TRectangle): Single;
 
-    procedure DrawSliderText(const R: TRectangle; const Text: string);
+    procedure DrawSliderText(const R: TRectangle; Text: string);
   strict protected
     { React to value change. The default implementation simply calls the OnChange
       event, if assigned. This is called when value is changed by user actions
@@ -963,14 +965,18 @@ type
 
     property SmallFont default true;
 
-    { Display the current value as text on the slider.
-      May be useful, if the exact numbers have some meaning for the user.
+    { Display the current value as text on the slider,
+      right next to the @link(Caption).
+
       The exact method to display is defined by method
       @link(TCastleFloatSlider.ValueToStr) or
       @link(TCastleIntegerSlider.ValueToStr) (depending on descendant),
       so you can further customize it. }
     property DisplayValue: boolean
       read FDisplayValue write FDisplayValue default true;
+
+    { Displayed on the slider. Right before value, if @link(DisplayValue). }
+    property Caption: string read FCaption write SetCaption;
 
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
@@ -980,6 +986,7 @@ type
     FMin: Single;
     FMax: Single;
     FValue: Single;
+    FMultipleOf: Single;
     procedure SetMin(const AMin: Single);
     procedure SetMax(const AMax: Single);
     procedure SetValue(const AValue: Single);
@@ -992,6 +999,9 @@ type
     function Press(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
     function ValueToStr(const AValue: Single): string; virtual;
+    { Round to multiple of @link(MultipleOf), if non-zero, and clamp
+      to @link(Min) and @link(Max) range. }
+    function RoundAndClamp(const AValue: Single): Single;
   published
     property Min: Single read FMin write SetMin default DefaultMin;
     property Max: Single read FMax write SetMax default DefaultMax;
@@ -1000,6 +1010,18 @@ type
       although the general code should be ready for handle any value here
       (to work even during changes to @link(Min) and @link(Max) properties). }
     property Value: Single read FValue write SetValue default DefaultMin;
+
+    { If non-zero, we force the value selected by user to be a multiple
+      of this value (clamped to @link(Min), @link(Max) range).
+      For example, if you set this to 0.25, and slider is between 0..1,
+      then when user clicks around 0.3 --- we will pick 0.25. It user clicks
+      around 0.4 --- we will pick 0.5.
+
+      This only affects values selected by user interactions (clicking,
+      dragging). This does not process the values you set by code to @link(Value)
+      property, though you can use RoundAndClamp method on your values
+      yourself. }
+    property MultipleOf: Single read FMultipleOf write FMultipleOf;
   end;
 
   TCastleIntegerSlider = class(TCastleAbstractSlider)
@@ -3441,8 +3463,11 @@ begin
 end;
 
 procedure TCastleAbstractSlider.DrawSliderText(
-  const R: TRectangle; const Text: string);
+  const R: TRectangle; Text: string);
 begin
+  if (Caption <> '') and (Text <> '') then
+    Text := Caption + ': ' + Text else
+    Text := Caption + Text;
   Font.Print(
     R.Left + (R.Width - Font.TextWidth(Text)) div 2,
     R.Bottom + (R.Height - Font.RowHeight) div 2,
@@ -3469,6 +3494,15 @@ begin
   if FHeight <> Value then
   begin
     FHeight := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleAbstractSlider.SetCaption(const Value: string);
+begin
+  if FCaption <> Value then
+  begin
+    FCaption := Value;
     VisibleChange;
   end;
 end;
@@ -3507,20 +3541,24 @@ begin
 
   if Event.IsKey(K_Right) then
   begin
-    Value := CastleUtils.Min(Max, Value + ValueChange);
+    if MultipleOf <> 0 then
+      Value := CastleUtils.Min(Max, Value + MultipleOf) else
+      Value := CastleUtils.Min(Max, Value + ValueChange);
     DoChange;
     Result := ExclusiveEvents;
   end else
   if Event.IsKey(K_Left) then
   begin
-    Value := CastleUtils.Max(Min, Value - ValueChange);
+    if MultipleOf <> 0 then
+      Value := CastleUtils.Max(Min, Value - MultipleOf) else
+      Value := CastleUtils.Max(Min, Value - ValueChange);
     DoChange;
     Result := ExclusiveEvents;
   end else
   if Event.IsMouseButton(mbLeft) then
   begin
-    Value := MapRange(XCoordToSliderPosition(Event.Position[0], ScreenRect), 0, 1,
-      Min, Max);
+    Value := RoundAndClamp(MapRange(
+      XCoordToSliderPosition(Event.Position[0], ScreenRect), 0, 1, Min, Max));
     DoChange;
     Result := ExclusiveEvents;
   end;
@@ -3533,8 +3571,8 @@ begin
 
   if mbLeft in Event.Pressed then
   begin
-    Value := MapRange(XCoordToSliderPosition(Event.Position[0], ScreenRect), 0, 1,
-      Min, Max);
+    Value := RoundAndClamp(MapRange(
+      XCoordToSliderPosition(Event.Position[0], ScreenRect), 0, 1, Min, Max));
     DoChange;
     Result := ExclusiveEvents;
   end;
@@ -3570,6 +3608,38 @@ begin
     FValue := AValue;
     VisibleChange;
   end;
+end;
+
+function TCastleFloatSlider.RoundAndClamp(const AValue: Single): Single;
+var
+  DivResult: Int64;
+  M, Remainder: Double;
+begin
+  if MultipleOf <> 0 then
+  begin
+    { we use FloatDivMod.
+      We have to secure in case AValue or MultipleOf are < 0.
+      For MultipleOf it's easy, just always use Abs(MultipleOf). }
+    M := Abs(MultipleOf);
+    if AValue >= 0 then
+    begin
+      FloatDivMod(AValue, M, DivResult, Remainder);
+      if Remainder < M / 2 then
+        Result := M * DivResult else
+        Result := M * (DivResult + 1);
+    end else
+    begin
+      FloatDivMod(-AValue, M, DivResult, Remainder);
+      if Remainder < M / 2 then
+        Result := M * DivResult else
+        Result := M * (DivResult + 1);
+      Result := -Result;
+    end;
+  end else
+    Result := AValue;
+
+  { Clamp at the end. If Min, Max are not a multiple of MultipleOf - so be it. }
+  Result := Clamped(Result, Min, Max);
 end;
 
 { TCastleIntegerSlider ------------------------------------------------------- }
