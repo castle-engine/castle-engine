@@ -3114,17 +3114,26 @@ begin
       FreeAndNil(TextToRender);
     end;
   end else
+  if FullSize then
+    Result := ParentRect else
   begin
-    Result := Rectangle(
-      LeftBottomScaled, Round(Width * UIScale), Round(Height * UIScale));
+    Result := Rectangle(Left, Bottom, Width, Height);
+    Result := Result.ScaleAround0(UIScale);
   end;
 end;
 
 procedure TCastleLabel.Render;
+
+  {function TextHeight: Integer;
+  begin
+    Result := TextToRender.Count * (RowHeight + LineSpacingScaled);
+  end;}
+
 var
   SR: TRectangle;
   TextToRender: TRichText;
-  TextX, PaddingHorizontalScaled, PaddingVerticalScaled, LineSpacingScaled: Integer;
+  TextX, TextBottom, PaddingHorizontalScaled,
+    PaddingVerticalScaled, LineSpacingScaled: Integer;
   US: Single;
 begin
   inherited;
@@ -3139,15 +3148,28 @@ begin
     LineSpacingScaled := Round(US * LineSpacing);
     if Frame then
       Theme.Draw(SR, ImageType, UIScale, FrameColor);
+
+    { calculate TextX }
     case Alignment of
       hpLeft  : TextX := SR.Left + PaddingHorizontalScaled;
       hpMiddle: TextX := (SR.Left + SR.Right) div 2;
       hpRight : TextX := SR.Right - PaddingHorizontalScaled;
       else raise EInternalError.Create('TCastleLabel.Render: Alignment?');
     end;
-    TextToRender.Print(TextX,
-      SR.Bottom + PaddingVerticalScaled + Font.Descend, Color,
-      LineSpacingScaled, Alignment);
+
+    { calculate TextBottom }
+    TextBottom := SR.Bottom + PaddingVerticalScaled + Font.Descend;
+
+    { useless, use AutoSize=true and Anchor(vpMiddle) to center text vertically
+      within parent rect.
+    if not AutoSize then
+      case VerticalAlignment of
+        vpMiddle: TextBottom := SR.Bottom + (SR.Height - TextHeight) / div 2;
+        vpTop   : TextBottom := SR.Top - PaddingVerticalScaled - Font.Descend - TextHeight;
+      end;
+    }
+
+    TextToRender.Print(TextX, TextBottom, Color, LineSpacingScaled, Alignment);
   finally
     FreeAndNil(TextToRender);
   end;
