@@ -11,17 +11,31 @@ http://wiki.lazarus.freepascal.org/Profiling
 ------------------------------------------------------------------------------
 Compile for valgrind:
 
-- Make sure you compile with -gv option, this adds stuff necessary for valgrind.
-  Also line info (-gl) is much helpful.
+- Make sure you use proper options when compiling with FPC.
+
+  - If you use our build tool for compilation
+    ( https://github.com/castle-engine/castle-engine/wiki/Build-Tool )
+    then just use --mode=valgrind command-line option.
+    This will pass correct options to FPC underneath.
+
+  - Otherwise, make sure:
+    - You MUST use -gv option, this adds stuff necessary for valgrind.
+    - You SHOULD use -gl (line info) to get line number information.
+    - You SHOULD NOT use -Xs (strip debug info), it would strip useful
+      function info from your exe.
 
   - If you compile from command-line using direct "fpc ..." command
     and "@castle-fpc.cfg", then search in ../castle-fpc.cfg for
     valgrind options and uncomment them.
+    Be sure to also comment out -Xs inside.
 
   - Otherwise, just add
     -gv
     -gl
     to your ~/.fpc.cfg. Remember to remove them later.
+
+  - Be sure that you don't strip symbols.
+    If you use castle-fpc.cfg to compile, comment out -Xs option inside.
 
 - Clean units (to recompile all for valgrind), like
     make clean

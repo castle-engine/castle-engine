@@ -36,7 +36,10 @@ uses SysUtils, Classes,
   ToolEmbeddedImages, ExtInterpolation;
 
 const
-  PackageModeToName: array [TCompilationMode] of string = ('release', 'debug');
+  PackageModeToName: array [TCompilationMode] of string = (
+    'release',
+    'release' { no valgrind support for Android },
+    'debug');
 
 procedure CreateAndroidPackage(const Project: TCastleProject;
   const OS: TOS; const CPU: TCPU; const SuggestedPackageMode: TCompilationMode;
