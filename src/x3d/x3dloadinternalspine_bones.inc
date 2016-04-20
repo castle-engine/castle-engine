@@ -165,7 +165,7 @@ procedure TBone.BuildNodes(const BaseUrl: string;
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(ResetTranslation.EventValue_changed);
     Route.SetDestinationDirectly(Node.FdTranslation.EventIn);
-    Node.Routes.Add(Route);
+    Node.AddRoute(Route);
   end;
 
   procedure AddResetScale;
@@ -182,7 +182,7 @@ procedure TBone.BuildNodes(const BaseUrl: string;
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(ResetScale.EventValue_changed);
     Route.SetDestinationDirectly(Node.FdScale.EventIn);
-    Node.Routes.Add(Route);
+    Node.AddRoute(Route);
   end;
 
   procedure AddResetRotation;
@@ -199,7 +199,7 @@ procedure TBone.BuildNodes(const BaseUrl: string;
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(ResetRotation.EventValue_changed);
     Route.SetDestinationDirectly(Node.FdRotation.EventIn);
-    Node.Routes.Add(Route);
+    Node.AddRoute(Route);
   end;
 
 begin

@@ -98,7 +98,7 @@ begin
   Route := TX3DRoute.Create;
   Route.SetSourceDirectly(Node.EventValue_changed);
   Route.SetDestinationDirectly(Slot.Node.FdTranslation.EventIn);
-  Container.Routes.Add(Route);
+  Container.AddRoute(Route);
 
   if SlotsToReset.DrawOrder.Remove(Slot) = -1 then
     OnWarning(wtMajor, 'Spine', 'Slot draworder offset is affected multiple times: slot ' + Slot.Name);

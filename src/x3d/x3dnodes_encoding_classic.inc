@@ -419,7 +419,7 @@ var
       try
         Route.Parse(Lexer, Reader);
         Route.PositionInParent := PositionInParent;
-        Result.Routes.Add(Route);
+        Result.AddRoute(Route);
       except
         FreeAndNil(Route); { do not add invalid Route, free it }
         raise;
@@ -434,7 +434,7 @@ var
       try
         Import.Parse(Lexer, Reader);
         Import.PositionInParent := PositionInParent;
-        Result.ImportsList.Add(Import);
+        Result.AddImport(Import);
       except
         FreeAndNil(Import); { do not add invalid Import, free it }
         raise;
@@ -449,7 +449,7 @@ var
       try
         Export.Parse(Lexer, Reader);
         Export.PositionInParent := PositionInParent;
-        Result.ExportsList.Add(Export);
+        Result.AddExport(Export);
       except
         FreeAndNil(Export); { do not add invalid Export, free it }
         raise;

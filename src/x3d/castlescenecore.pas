@@ -5526,7 +5526,7 @@ procedure TCastleSceneCore.ResetLastEventTime(Node: TX3DNode);
 var
   I: Integer;
 begin
-  for I := 0 to Node.Routes.Count - 1 do
+  for I := 0 to Node.RoutesCount - 1 do
     Node.Routes[I].ResetLastEventTime;
   if Node is TAbstractScriptNode then
     TAbstractScriptNode(Node).ResetLastEventTimes;
@@ -6620,7 +6620,7 @@ begin
   NewGroupNode := TGroupNode.Create;
   NewGroupNode.FdChildren.Add(NewViewNode);
   NewGroupNode.FdChildren.Add(NewNavigationNode);
-  NewGroupNode.Routes.Add(NewRoute);
+  NewGroupNode.AddRoute(NewRoute);
 
   RootNode.FdChildren.Add(NewGroupNode);
   { The 100% safe version would now call RootNode.FdChildren.Changed,

@@ -234,7 +234,7 @@ begin
   Route := TX3DRoute.Create;
   Route.SetSourceDirectly(EventValueChanged);
   Route.SetDestinationDirectly(Bone.Node.FdTranslation.EventIn);
-  Container.Routes.Add(Route);
+  Container.AddRoute(Route);
 
   if BonesToReset.Translation.Remove(Bone) = -1 then
     OnWarning(wtMajor, 'Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'translation']));
@@ -317,7 +317,7 @@ begin
   Route := TX3DRoute.Create;
   Route.SetSourceDirectly(EventValueChanged);
   Route.SetDestinationDirectly(Bone.Node.FdScale.EventIn);
-  Container.Routes.Add(Route);
+  Container.AddRoute(Route);
 
   if BonesToReset.Scale.Remove(Bone) = -1 then
     OnWarning(wtMajor, 'Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'scale']));
@@ -401,7 +401,7 @@ begin
   Route := TX3DRoute.Create;
   Route.SetSourceDirectly(EventValueChanged);
   Route.SetDestinationDirectly(Bone.Node.FdRotation.EventIn);
-  Container.Routes.Add(Route);
+  Container.AddRoute(Route);
 
   if BonesToReset.Rotation.Remove(Bone) = -1 then
     OnWarning(wtMajor, 'Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'rotation']));

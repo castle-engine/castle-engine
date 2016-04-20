@@ -812,12 +812,12 @@ begin
   Route := TX3DRoute.Create;
   Route.SetSourceDirectly(TimeSensor.EventFraction_changed);
   Route.SetDestinationDirectly(IntSequencer.EventSet_fraction);
-  Result.Routes.Add(Route);
+  Result.AddRoute(Route);
 
   Route := TX3DRoute.Create;
   Route.SetSourceDirectly(IntSequencer.EventValue_changed);
   Route.SetDestinationDirectly(Switch.FdWhichChoice);
-  Result.Routes.Add(Route);
+  Result.AddRoute(Route);
 
   Result.ManuallyExportNode(TimeSensor);
 end;
