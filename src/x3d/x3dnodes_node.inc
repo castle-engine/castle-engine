@@ -935,10 +935,11 @@
       read FInterfaceDeclarations;
     { @groupEnd }
 
-    { Functions registered here will be called when this TX3DNode descendant
-      will be destroyed. }
-    property DestructionNotifications: TNodeDestructionNotificationList
-      read FDestructionNotifications;
+    { Callbacks registered here will be called when this node is destroyed.
+      @groupBegin }
+    procedure AddDestructionNotification(const Event: TNodeDestructionNotification);
+    procedure RemoveDestructionNotification(const Event: TNodeDestructionNotification);
+    { @groupEnd }
 
     { Scene that will be notified about changes to this node.
       This is necessary to allow the scene to properly process VRML/X3D
@@ -1090,8 +1091,6 @@ begin
   FHasInterfaceDeclarations := [];
   FInterfaceDeclarations := nil;
 
-  FDestructionNotifications := TNodeDestructionNotificationList.Create;
-
   CreateNode;
 end;
 
@@ -1104,9 +1103,9 @@ begin
   if AnyNodeDestructionNotifications <> nil then
     AnyNodeDestructionNotifications.ExecuteAll(Self);
 
-  if DestructionNotifications <> nil then
+  if FDestructionNotifications <> nil then
   begin
-    DestructionNotifications.ExecuteAll(Self);
+    FDestructionNotifications.ExecuteAll(Self);
     FreeAndNil(FDestructionNotifications);
   end;
 
@@ -1153,6 +1152,20 @@ begin
   FreeAndNil(FParentFields);
 
   inherited;
+end;
+
+procedure TX3DNode.AddDestructionNotification(const Event: TNodeDestructionNotification);
+begin
+  { create FDestructionNotifications on demand }
+  if FDestructionNotifications = nil then
+    FDestructionNotifications := TNodeDestructionNotificationList.Create;
+  FDestructionNotifications.Add(Event);
+end;
+
+procedure TX3DNode.RemoveDestructionNotification(const Event: TNodeDestructionNotification);
+begin
+  if FDestructionNotifications <> nil then
+    FDestructionNotifications.Remove(Event);
 end;
 
 procedure TX3DNode.FreeIfUnused;

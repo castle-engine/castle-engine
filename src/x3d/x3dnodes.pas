@@ -5173,9 +5173,9 @@ end;
 destructor TX3DRoute.Destroy;
 begin
   { We have to unset, to call
-    DestructionNotifications.DeleteFirstEqual(...) on our nodes before
+    RemoveDestructionNotification(...) on our nodes before
     we get destroyed. Otherwise nodes would have invalid references
-    on DestructionNotifications list. }
+    on TX3DNode.FDestructionNotifications list. }
 
   UnsetEnding(FSourceNode     , FSourceEvent     , false);
   UnsetEnding(FDestinationNode, FDestinationEvent, true);
@@ -5257,7 +5257,7 @@ begin
   if Node <> nil then
   begin
     if RemoveFromDestructionNotification then
-      Node.DestructionNotifications.Remove(@DestructionNotification);
+      Node.RemoveDestructionNotification(@DestructionNotification);
     Node := nil;
   end;
 
@@ -5371,7 +5371,7 @@ begin
         PrototypeInstanceSourceNode. }
     end;
 
-    Node.DestructionNotifications.Add(@DestructionNotification);
+    Node.AddDestructionNotification(@DestructionNotification);
 
     FieldOrEvent := Node.FieldOrEvent(FieldOrEventName);
     if FieldOrEvent = nil then
@@ -5413,7 +5413,7 @@ begin
 
   try
     Node := NewNode;
-    Node.DestructionNotifications.Add(@DestructionNotification);
+    Node.AddDestructionNotification(@DestructionNotification);
 
     SetEndingInternal(Node, FieldOrEvent, Event, DestEnding);
   except
