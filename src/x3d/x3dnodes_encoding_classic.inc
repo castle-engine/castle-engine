@@ -404,7 +404,7 @@ var
       try
         Proto.Parse(Lexer, Reader);
         Proto.PositionInParent := PositionInParent;
-        Result.Prototypes.Add(Proto);
+        Result.AddPrototype(Proto);
       except
         FreeAndNil(Proto); { do not add invalid Proto, free it }
         raise;

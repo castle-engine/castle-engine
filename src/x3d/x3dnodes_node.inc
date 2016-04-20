@@ -93,6 +93,7 @@
     function TryFindNodeTransformTraverse(
       ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+    function GetPrototypes(const Index: Integer): TX3DPrototypeBase;
   protected
 
     { Does actual DeepCopy work. You can override this to copy some
@@ -811,7 +812,10 @@
     function RemoveChildrenWithMatchingName(
       const Wildcard: string; IgnoreCase: Boolean): Cardinal;
 
-    property Prototypes: TX3DPrototypeBaseList read FPrototypes;
+    property Prototypes [Index: Integer]: TX3DPrototypeBase read GetPrototypes;
+    function PrototypesCount: Integer;
+    procedure AddPrototype(const P: TX3DPrototypeBase);
+
     property Routes: TX3DRouteList read FRoutes;
     property ImportsList: TX3DFileItemList read FImportsList;
     property ExportsList: TX3DFileItemList read FExportsList;
@@ -1083,7 +1087,6 @@ begin
 
   FEvents := TX3DEventList.Create(false);
 
-  FPrototypes := TX3DPrototypeBaseList.Create(true);
   FRoutes := TX3DRouteList.Create(true);
   FImportsList := TX3DFileItemList.Create(true);
   FExportsList := TX3DFileItemList.Create(true);
@@ -1774,7 +1777,7 @@ begin
     Result := true;
 
     Proto := TX3DPrototype.Create;
-    Prototypes.Add(Proto);
+    AddPrototype(Proto);
     Proto.Parse(Lexer, Reader);
     Proto.PositionInParent := APositionInParent;
   end else
@@ -1783,7 +1786,7 @@ begin
     Result := true;
 
     Proto := TX3DExternalPrototype.Create;
-    Prototypes.Add(Proto);
+    AddPrototype(Proto);
     Proto.Parse(Lexer, Reader);
     Proto.PositionInParent := APositionInParent;
   end else
@@ -1901,14 +1904,14 @@ var
         begin
           Proto := TX3DPrototype.Create;
           Proto.PositionInParent := Position;
-          Prototypes.Add(Proto);
+          AddPrototype(Proto);
           Proto.ParseXML(I.Current, Reader);
         end else
         if I.Current.TagName = 'ExternProtoDeclare' then
         begin
           ExternProto := TX3DExternalPrototype.Create;
           ExternProto.PositionInParent := Position;
-          Prototypes.Add(ExternProto);
+          AddPrototype(ExternProto);
           ExternProto.ParseXML(I.Current, Reader);
         end else
         if I.Current.TagName = 'field' then
@@ -2445,7 +2448,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
           Result.Add(InterfaceDeclarations[I]);
       end;
 
-      for I := 0 to Prototypes.Count - 1 do
+      for I := 0 to PrototypesCount - 1 do
         Result.Add(Prototypes[I]);
 
       for I := 0 to Fields.Count - 1 do
@@ -3115,6 +3118,28 @@ begin
   Result := NodeTypeName;
   if NodeName <> '' then
     Result += '(' + NodeName + ')';
+end;
+
+function TX3DNode.GetPrototypes(const Index: Integer): TX3DPrototypeBase;
+begin
+  if FPrototypes = nil then
+    raise ERangeError.CreateFmt('Prototypes list is empty, but tried to access index %d', [Index]);
+  Result := FPrototypes[Index];
+end;
+
+function TX3DNode.PrototypesCount: Integer;
+begin
+  if FPrototypes <> nil then
+    Result := FPrototypes.Count else
+    Result := 0;
+end;
+
+procedure TX3DNode.AddPrototype(const P: TX3DPrototypeBase);
+begin
+  { create FPrototypes at demand }
+  if FPrototypes = nil then
+    FPrototypes := TX3DPrototypeBaseList.Create(true);
+  FPrototypes.Add(P);
 end;
 
 { TX3DNodeList ------------------------------------------------------------- }

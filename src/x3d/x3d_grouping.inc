@@ -633,7 +633,7 @@ begin
 
     FileItems := TX3DFileItemList.Create(false);
     try
-      for I := 0 to Prototypes.Count - 1 do
+      for I := 0 to PrototypesCount - 1 do
         FileItems.Add(Prototypes[I]);
 
       Assert(VRML1ChildrenCount = 0);

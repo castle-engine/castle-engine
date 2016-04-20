@@ -708,6 +708,7 @@ type
   TSFNode = class;
   TMFNode = class;
   TX3DPrototypeNode = class;
+  TX3DPrototypeBase = class;
   TX3DPrototypeBaseList = class;
   TX3DRouteList = class;
   TX3DInterfaceDeclaration = class;
@@ -1308,8 +1309,6 @@ type
 { TX3DPrototype ------------------------------------------------------------- }
 
   { }
-  TX3DPrototypeBase = class;
-
   EX3DPrototypeInstantiateError = class(Exception);
 
   { Node with information about a VRML/X3D prototype.

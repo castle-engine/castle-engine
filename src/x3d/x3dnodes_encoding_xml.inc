@@ -419,7 +419,7 @@ var
 
       Proto.PositionInParent := PositionInParent;
 
-      Result.Prototypes.Add(Proto);
+      Result.AddPrototype(Proto);
 
       Proto.ParseXML(Element, Reader);
     end;
