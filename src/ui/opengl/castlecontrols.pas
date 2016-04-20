@@ -334,23 +334,18 @@ type
     property Enabled: boolean read FEnabled write SetEnabled default true;
   end;
 
-  { Panel inside OpenGL context.
+  { Panel frame.
     Use as a comfortable (and with matching colors) background
     for other controls like buttons and such.
     May be used as a toolbar, together with appropriately placed
     TCastleButton over it. }
-  TCastlePanel = class(TUIControl)
+  TCastlePanel = class(TUIControlSizeable)
   strict private
-    FWidth: Cardinal;
-    FHeight: Cardinal;
     FVerticalSeparators: TCardinalList;
-    procedure SetWidth(const Value: Cardinal);
-    procedure SetHeight(const Value: Cardinal);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Render; override;
-    function Rect: TRectangle; override;
 
     { Separator lines drawn on panel. Useful if you want to visually separate
       groups of contols (like a groups of buttons when you use
@@ -360,9 +355,6 @@ type
       to this panel @link(Left)). Width of the separator is in SeparatorSize. }
     property VerticalSeparators: TCardinalList read FVerticalSeparators;
     class function SeparatorSize: Cardinal;
-  published
-    property Width: Cardinal read FWidth write SetWidth default 0;
-    property Height: Cardinal read FHeight write SetHeight default 0;
   end;
 
   { Image control inside OpenGL context.
@@ -748,9 +740,11 @@ type
     FAlignment: THorizontalPosition;
     FAutoSize: boolean;
     FWidth, FHeight: Cardinal;
+    FFullSize: boolean;
     function GetTextToRender: TRichText;
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
+    procedure SetFullSize(const Value: boolean);
     procedure SetAutoSize(const Value: boolean);
     function GetCaption: string;
     procedure SetCaption(const Value: string);
@@ -775,11 +769,15 @@ type
   published
     property Width: Cardinal read FWidth write SetWidth default 0;
     property Height: Cardinal read FHeight write SetHeight default 0;
+    property FullSize: boolean read FFullSize write SetFullSize default false;
 
-    { Should we automatically adjust size to the text size, or not.
+    { Should we automatically adjust size to the text size.
       The size of the label determines where does it display the @link(Frame),
-      where does it catch events, where is it aligned (see @link(Alignment))
-      and so on. }
+      where does it catch events, to what width is it aligned (see @link(Alignment))
+      and so on.
+
+      When this is @true (the default) then
+      @link(Width), @link(Height), @link(FullSize) values are ignored. }
     property AutoSize: boolean read FAutoSize write SetAutoSize default true;
 
     { Caption displayed on the label, each line as a string. }
@@ -1745,7 +1743,7 @@ begin
 
     { We modify FWidth, FHeight directly,
       to avoid causing UpdateFocusAndMouseCursor too many times.
-      We'll call it at the end explicitly. }
+      We'll call it at the end explicitly, with VisibleChange(true). }
     if AutoSizeWidth then FWidth := TextWidth + PaddingHorizontalScaled * 2;
     if AutoSizeHeight then FHeight := TextHeight + PaddingVerticalScaled * 2;
     if (FImage <> nil) or
@@ -1782,8 +1780,8 @@ begin
     if AutoSizeHeight then
       MaxVar(FHeight, MinHeightScaled);
 
-    if (AutoSizeWidth or AutoSizeHeight) and (Container <> nil) then
-      Container.UpdateFocusAndMouseCursor;
+    if AutoSizeWidth or AutoSizeHeight then
+      VisibleChange(true);
   end;
 end;
 
@@ -1910,7 +1908,7 @@ begin
   if FWidth <> Value then
   begin
     FWidth := Value;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+    VisibleChange(true);
   end;
 end;
 
@@ -1919,7 +1917,7 @@ begin
   if FHeight <> Value then
   begin
     FHeight := Value;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+    VisibleChange(true);
   end;
 end;
 
@@ -2005,29 +2003,6 @@ end;
 class function TCastlePanel.SeparatorSize: Cardinal;
 begin
   Result := 2;
-end;
-
-procedure TCastlePanel.SetWidth(const Value: Cardinal);
-begin
-  if FWidth <> Value then
-  begin
-    FWidth := Value;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
-  end;
-end;
-
-procedure TCastlePanel.SetHeight(const Value: Cardinal);
-begin
-  if FHeight <> Value then
-  begin
-    FHeight := Value;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
-  end;
-end;
-
-function TCastlePanel.Rect: TRectangle;
-begin
-  Result := Rectangle(LeftBottomScaled, Width, Height);
 end;
 
 { TCastleImageControl ---------------------------------------------------------------- }
@@ -3183,7 +3158,7 @@ begin
   if FWidth <> Value then
   begin
     FWidth := Value;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+    VisibleChange(true);
   end;
 end;
 
@@ -3192,7 +3167,16 @@ begin
   if FHeight <> Value then
   begin
     FHeight := Value;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+    VisibleChange(true);
+  end;
+end;
+
+procedure TCastleLabel.SetFullSize(const Value: boolean);
+begin
+  if FFullSize <> Value then
+  begin
+    FFullSize := Value;
+    VisibleChange(true);
   end;
 end;
 
@@ -3201,7 +3185,7 @@ begin
   if FAutoSize <> Value then
   begin
     FAutoSize := Value;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+    VisibleChange(true);
   end;
 end;
 

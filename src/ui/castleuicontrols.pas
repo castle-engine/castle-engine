@@ -622,8 +622,12 @@ end;
       changes. In the simplest case, this is used by the controls manager to
       know when we need to redraw the control.
 
-      In this class this simply calls OnVisibleChange (if assigned). }
-    procedure VisibleChange; virtual;
+      In this class this simply calls OnVisibleChange (if assigned).
+
+      @param(RectOrCursorChanged Set to @true if the final control size
+        or position on the screen, or cursor, changed. This simply causes a call
+        to @link(TUIContainer.UpdateFocusAndMouseCursor).) }
+    procedure VisibleChange(const RectOrCursorChanged: boolean = false);
 
     { Called always when some visible part of this control
       changes. In the simplest case, this is used by the controls manager to
@@ -1294,7 +1298,20 @@ end;
   strict private
     FWidth, FHeight: Cardinal;
     FFullSize: boolean;
+    procedure SetWidth(const Value: Cardinal);
+    procedure SetHeight(const Value: Cardinal);
+    procedure SetFullSize(const Value: boolean);
   public
+    constructor Create(AOwner: TComponent); override;
+
+    { Position and size of the control, assuming it exists.
+
+      Looks at @link(FullSize) value, and the parent size
+      (when @link(FullSize) is @true), or at the properties
+      @link(Left), @link(Bottom), @link(Width), @link(Height)
+      (when @link(FullSize) is @false). }
+    function Rect: TRectangle; override;
+  published
     { Control size.
 
       When FullSize is @true, the control always fills
@@ -1307,20 +1324,10 @@ end;
       @seealso TUIControl.Rect
 
       @groupBegin }
-    property FullSize: boolean read FFullSize write FFullSize default false;
-    property Width: Cardinal read FWidth write FWidth default 0;
-    property Height: Cardinal read FHeight write FHeight default 0;
+    property FullSize: boolean read FFullSize write SetFullSize default false;
+    property Width: Cardinal read FWidth write SetWidth default 0;
+    property Height: Cardinal read FHeight write SetHeight default 0;
     { @groupEnd }
-
-    constructor Create(AOwner: TComponent); override;
-
-    { Position and size of the control, assuming it exists.
-
-      Looks at @link(FullSize) value, and the parent size
-      (when @link(FullSize) is @true), or at the properties
-      @link(Left), @link(Bottom), @link(Width), @link(Height)
-      (when @link(FullSize) is @false). }
-    function Rect: TRectangle; override;
   end;
 
   { Simple list of TUIControl instances. }
@@ -2552,10 +2559,12 @@ procedure TInputListener.Update(const SecondsPassed: Single;
 begin
 end;
 
-procedure TInputListener.VisibleChange;
+procedure TInputListener.VisibleChange(const RectOrCursorChanged: boolean = false);
 begin
   if Assigned(OnVisibleChange) then
     OnVisibleChange(Self);
+  if RectOrCursorChanged and (Container <> nil) then
+    Container.UpdateFocusAndMouseCursor;
 end;
 
 function TInputListener.AllowSuspendForInput: boolean;
@@ -2837,8 +2846,7 @@ begin
   if FExists <> Value then
   begin
     FExists := Value;
-    VisibleChange;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+    VisibleChange(true);
   end;
 end;
 
@@ -2914,7 +2922,7 @@ begin
   if FLeft <> Value then
   begin
     FLeft := Value;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+    VisibleChange(true);
   end;
 end;
 
@@ -2923,7 +2931,7 @@ begin
   if FBottom <> Value then
   begin
     FBottom := Value;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+    VisibleChange(true);
   end;
 end;
 
@@ -3194,6 +3202,33 @@ begin
     Result := Rectangle(Left, Bottom, Width, Height);
     // applying UIScale on this is easy...
     Result := Result.ScaleAround0(UIScale);
+  end;
+end;
+
+procedure TUIControlSizeable.SetWidth(const Value: Cardinal);
+begin
+  if FWidth <> Value then
+  begin
+    FWidth := Value;
+    VisibleChange(true);
+  end;
+end;
+
+procedure TUIControlSizeable.SetHeight(const Value: Cardinal);
+begin
+  if FHeight <> Value then
+  begin
+    FHeight := Value;
+    VisibleChange(true);
+  end;
+end;
+
+procedure TUIControlSizeable.SetFullSize(const Value: boolean);
+begin
+  if FFullSize <> Value then
+  begin
+    FFullSize := Value;
+    VisibleChange(true);
   end;
 end;
 
