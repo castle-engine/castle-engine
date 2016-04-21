@@ -205,6 +205,7 @@ type
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single); overload; virtual;
     procedure Draw(const ScreenRectangle: TRectangle); overload;
+    procedure Draw(const ScreenRectangle: TFloatRectangle); overload;
     procedure Draw(const ScreenRectangle: TRectangle;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single); overload;
     procedure Draw(const ScreenRectangle: TRectangle;
@@ -837,6 +838,15 @@ begin
   Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
     ScreenRectangle.Width, ScreenRectangle.Height,
     0, 0, Width, Height);
+end;
+
+procedure TGLImage.Draw(const ScreenRectangle: TFloatRectangle);
+begin
+  Draw(
+    Round(ScreenRectangle.Left),
+    Round(ScreenRectangle.Bottom),
+    Round(ScreenRectangle.Width),
+    Round(ScreenRectangle.Height));
 end;
 
 procedure TGLImage.Draw(const ScreenRectangle: TRectangle;
