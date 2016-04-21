@@ -997,6 +997,7 @@ type
     property Items[I: Integer]: T3D read GetItem write SetItem; default;
     function Count: Integer;
     procedure Clear;
+    procedure Exchange(const Index1, Index2: Integer);
     { @groupEnd }
 
     { Sort based on average Z of 3D item bounding box.
@@ -2551,6 +2552,11 @@ end;
 procedure T3DList.Clear;
 begin
   List.Clear;
+end;
+
+procedure T3DList.Exchange(const Index1, Index2: Integer);
+begin
+  List.Exchange(Index1, Index2);
 end;
 
 function CompareZ(A, B: Pointer): Integer;
