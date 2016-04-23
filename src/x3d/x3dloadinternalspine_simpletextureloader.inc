@@ -28,7 +28,8 @@ type
     constructor Create(const ABaseUrl: string);
     destructor Destroy; override;
     function UseNode(const AttachmentName: string;
-      out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TImageTextureNode; override;
+      out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
+      out TexRotated: boolean): TImageTextureNode; override;
   end;
 
 constructor TSimpleTextureLoader.Create(const ABaseUrl: string);
@@ -45,7 +46,8 @@ begin
 end;
 
 function TSimpleTextureLoader.UseNode(const AttachmentName: string;
-  out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TImageTextureNode;
+  out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
+  out TexRotated: boolean): TImageTextureNode;
 var
   Index: Integer;
 begin
@@ -68,4 +70,6 @@ begin
 
   TexRect[0] := Vector2Single(0, 0);
   TexRect[1] := Vector2Single(1, 1);
+
+  TexRotated := false;
 end;
