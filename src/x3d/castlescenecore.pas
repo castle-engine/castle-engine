@@ -787,7 +787,8 @@ type
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const Details: TCollisionDetails): boolean; override;
     function PointCollision2D(const Point: TVector2Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
@@ -6365,12 +6366,20 @@ end;
 
 function TCastleSceneCore.SphereCollision2D(
   const Pos: TVector2Single; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+  const Details: TCollisionDetails): boolean;
 begin
   if InternalOctreeCollisions <> nil then
+  begin
     Result := GetCollides and
-      InternalOctreeCollisions.IsSphereCollision2D(Pos, Radius, nil, TrianglesToIgnoreFunc) else
-    Result := inherited SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc);
+      InternalOctreeCollisions.IsSphereCollision2D(Pos, Radius, nil, TrianglesToIgnoreFunc);
+    if Result and (Details <> nil) then
+    begin
+      Details.Clear;
+      Details.Add(Self);
+    end;
+  end else
+    Result := inherited SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc, Details);
 end;
 
 function TCastleSceneCore.PointCollision2D(
