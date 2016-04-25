@@ -64,7 +64,8 @@ type
     function Find(const RegionName: string;
       out Page: TAtlasPage; out Region: TAtlasRegion): boolean;
     function UseNode(const RegionName: string;
-      out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TImageTextureNode; override;
+      out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
+      out TexRotated: boolean): TImageTextureNode; override;
   end;
 
 procedure TAtlasRegion.CalculateTexCoord(const ImageWidth, ImageHeight: Integer);
@@ -389,7 +390,8 @@ begin
 end;
 
 function TAtlas.UseNode(const RegionName: string;
-  out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect): TImageTextureNode;
+  out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
+  out TexRotated: boolean): TImageTextureNode;
 var
   AtlasPage: TAtlasPage;
   AtlasRegion: TAtlasRegion;
@@ -399,4 +401,5 @@ begin
   AtlasPage.NodeUsedAsChild := true;
   TexRect := AtlasRegion.TexRect;
   TexCoord := AtlasRegion.TexCoord;
+  TexRotated := AtlasRegion.Rotate;
 end;

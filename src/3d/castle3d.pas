@@ -84,19 +84,24 @@ type
     { Triangle that was hit. This triangle is always a part of @link(Item).
 
       If the ray hit empty space, this is @nil.
-      Note that only MainScene is informed about pointing device events
-      when the ray hit empty space.
+      Note that only TCastleSceneManager.MainScene is informed about pointing
+      device events when the ray hit empty space, so this is an unusual case.
 
-      May also be @nil if RayCollision for the 3D object simply left it @nil.
-      Right now, only TCastleScene sets Triangle at all. }
+      May also be @nil if RayCollision implementation for the 3D object
+      simply left it @nil. Right now, only TCastleScene sets this field. }
     Triangle: P3DTriangle;
 
-    { Ray used to cause the collision. }
+    { Ray used to cause the collision,
+      in local coordinate system of this 3D object. }
     RayOrigin, RayDirection: TVector3Single;
   end;
   PRayCollisionNode = ^TRayCollisionNode;
 
-  { Represents a collision with a 3D objects (T3D descendants) tree.
+  { Represents a @bold(ray) collision with a 3D objects tree.
+    Just access the @code(First) item for the collision information
+    with the final 3D object. The rest of items are containers of this 3D
+    object (a path within @link(TCastleSceManager.Items) hierarchy tree,
+    usually).
 
     This list is a path in the 3D objects tree leading from the
     final colliding 3D object to the root of the tree.
@@ -123,6 +128,50 @@ type
 
     { Index of node with given Item. }
     function IndexOfItem(const Item: T3D): Integer;
+  end;
+
+  { Detailed information about collision with a single 3D object. }
+  TCollisionDetailsItem = object
+  public
+    { Colliding 3D object. }
+    Item: T3D;
+
+    { Triangle that was hit. This triangle is always a part of @link(Item).
+
+      May be @nil if the given collision implementation cannot determine
+      this (not all 3D objects must have a simple array of triangles in memory).
+      In practice, only TCastleSceneCore sets this now, and containers
+      that eventually proxy the collisions to underlying TCastleSceneCore instances.
+
+      If the ray hit empty space, this is @nil.
+      Note that only TCastleSceneManager.MainScene is informed about pointing
+      device events when the ray hit empty space, so this is an unusual case. }
+    // Triangle: P3DTriangle;
+  end;
+  PCollisionDetailsItem = ^TCollisionDetailsItem;
+
+  { Represents a collision with a 3D objects tree.
+    Just access the @code(First) item for the collision information
+    with the final 3D object. The rest of items are containers of this 3D
+    object (a path within @link(TCastleSceManager.Items) hierarchy tree,
+    usually).
+
+    This list is a path in the 3D objects tree leading from the
+    final colliding 3D object to the root of the tree.
+
+    For example, your 3D tree may be a list (like T3DList), and within
+    this list is a transformed list (T3DTransform),
+    and within is your final colliding object (like TCastleScene).
+    We will contain in this case these three items, in reverse order
+    (TCastleScene, T3DTransform, T3DList).
+    This allows you to track the containers that contain given collision.
+
+    This is never an empty list when returned by XxxCollision method. }
+  TCollisionDetails = class(specialize TGenericStructList<TCollisionDetailsItem>)
+  public
+    { Index of node with given Item. }
+    function IndexOfItem(const Item: T3D): Integer;
+    procedure Add(const Item: T3D);
   end;
 
   { Statistics about what was rendered during last frame.
@@ -315,8 +364,18 @@ type
       const ALineOfSight: boolean): boolean; virtual;
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+
+    { Check collision with a sphere in 2D (circle).
+
+      @param(Details If non-nil, these are automatically filled with the details
+        about the collision.
+        If the result is @false, the Details contents are untouched.
+        If the result is @true, the Details contents are set to describe
+        the 3D objects hierarchy that caused this collision.) }
     function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const Details: TCollisionDetails = nil): boolean; virtual;
+
     function PointCollision2D(const Point: TVector2Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
     function BoxCollision(const Box: TBox3D;
@@ -977,7 +1036,8 @@ type
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const Details: TCollisionDetails = nil): boolean; override;
     function PointCollision2D(const Point: TVector2Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
@@ -997,6 +1057,7 @@ type
     property Items[I: Integer]: T3D read GetItem write SetItem; default;
     function Count: Integer;
     procedure Clear;
+    procedure Exchange(const Index1, Index2: Integer);
     { @groupEnd }
 
     { Sort based on average Z of 3D item bounding box.
@@ -1090,7 +1151,8 @@ type
     function WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean; virtual; abstract;
     function WorldRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; virtual; abstract;
     function WorldSphereCollision(const Pos: TVector3Single; const Radius: Single): boolean;
-    function WorldSphereCollision2D(const Pos: TVector2Single; const Radius: Single): boolean;
+    function WorldSphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+      const Details: TCollisionDetails = nil): boolean;
     function WorldPointCollision2D(const Point: TVector2Single): boolean;
     { @groupEnd }
   end;
@@ -1199,7 +1261,8 @@ type
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const Details: TCollisionDetails): boolean; override;
     function PointCollision2D(const Point: TVector2Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
@@ -1962,6 +2025,23 @@ begin
   Result := -1;
 end;
 
+{ TCollisionDetails ------------------------------------------------------------ }
+
+function TCollisionDetails.IndexOfItem(const Item: T3D): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if L[Result].Item = Item then Exit;
+  Result := -1;
+end;
+
+procedure TCollisionDetails.Add(const Item: T3D);
+var
+  NewItem: PCollisionDetailsItem;
+begin
+  NewItem := inherited Add();
+  NewItem^.Item := Item;
+end;
+
 { TRenderParams -------------------------------------------------------------- }
 
 constructor TRenderParams.Create;
@@ -2220,9 +2300,16 @@ begin
 end;
 
 function T3D.SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+  const Details: TCollisionDetails): boolean;
 begin
   Result := GetCollides and BoundingBox.SphereCollision2D(Pos, Radius);
+
+  if Result and (Details <> nil) then
+  begin
+    Details.Clear;
+    Details.Add(Self);
+  end;
 end;
 
 function T3D.PointCollision2D(const Point: TVector2Single;
@@ -2551,6 +2638,11 @@ end;
 procedure T3DList.Clear;
 begin
   List.Clear;
+end;
+
+procedure T3DList.Exchange(const Index1, Index2: Integer);
+begin
+  List.Exchange(Index1, Index2);
 end;
 
 function CompareZ(A, B: Pointer): Integer;
@@ -2939,7 +3031,8 @@ begin
 end;
 
 function T3DList.SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+  const Details: TCollisionDetails): boolean;
 var
   I: Integer;
 begin
@@ -2949,14 +3042,24 @@ begin
   begin
     if GetChild <> nil then
     begin
-      Result := GetChild.SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc);
-      if Result then Exit;
+      Result := GetChild.SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc, Details);
+      if Result then
+      begin
+        if Details <> nil then
+          Details.Add(Self);
+        Exit;
+      end;
     end;
 
     for I := 0 to List.Count - 1 do
     begin
-      Result := List[I].SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc);
-      if Result then Exit;
+      Result := List[I].SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc, Details);
+      if Result then
+      begin
+        if Details <> nil then
+          Details.Add(Self);
+        Exit;
+      end;
     end;
   end;
 end;
@@ -3191,9 +3294,10 @@ begin
 end;
 
 function T3DWorld.WorldSphereCollision2D(const Pos: TVector2Single;
-  const Radius: Single): boolean;
+  const Radius: Single;
+  const Details: TCollisionDetails): boolean;
 begin
-  Result := SphereCollision2D(Pos, Radius, nil);
+  Result := SphereCollision2D(Pos, Radius, nil, Details);
 end;
 
 function T3DWorld.WorldPointCollision2D(const Point: TVector2Single): boolean;
@@ -3528,7 +3632,8 @@ end;
 
 function T3DCustomTransform.SphereCollision2D(
   const Pos: TVector2Single; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+  const Details: TCollisionDetails): boolean;
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
@@ -3536,9 +3641,9 @@ begin
 
   if OnlyTranslation then
     Result := inherited SphereCollision2D(
-      Pos - GetTranslation2D, Radius, TrianglesToIgnoreFunc) else
+      Pos - GetTranslation2D, Radius, TrianglesToIgnoreFunc, Details) else
     Result := inherited SphereCollision2D(
-      MatrixMultPoint(TransformInverse, Pos), Radius / AverageScale, TrianglesToIgnoreFunc);
+      MatrixMultPoint(TransformInverse, Pos), Radius / AverageScale, TrianglesToIgnoreFunc, Details);
 end;
 
 function T3DCustomTransform.PointCollision2D(
