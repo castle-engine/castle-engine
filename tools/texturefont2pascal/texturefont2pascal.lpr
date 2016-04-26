@@ -114,7 +114,9 @@ begin
     try
       OutURL := LowerCase(UnitName) + '.pas';
       Font2Pascal(Font, UnitName, PrecedingComment, FontConstantName, OutURL);
-      Writeln('texturefont2pascal: "' + OutURL + '" generated');
+      Writeln('texturefont2pascal: "' + OutURL + '" generated, texture size ',
+        Font.Image.Width, ' x ',
+        Font.Image.Height);
       if DebugFontImage then
       begin
         OutURL := LowerCase(UnitName) + '.png';
