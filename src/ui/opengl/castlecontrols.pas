@@ -43,14 +43,6 @@ type
     procedure SetFontSize(const Value: Single);
     procedure SetSmallFont(const Value: boolean);
   protected
-    { Font that should be used for rendering and measuring this control.
-
-      Depending on various properties
-      (@(SmallFont), @link(CustomFont), @link(FontSize), @link(TUIControl.UIScale))
-      it may return @link(UIFont), @link(UIFontSmall), or @link(CustomFont),
-      or a TCustomizedFont instances that wraps (and scales) one of the above. }
-    function Font: TCastleFont;
-
     { Called when Font or it's size changed. }
     procedure FontChanged; virtual;
     procedure UIScaleChanged; override;
@@ -61,6 +53,15 @@ type
     function TooltipExists: boolean; override;
     procedure TooltipRender; override;
     procedure Render; override;
+
+    { Font used for rendering and measuring this control.
+
+      Depending on various properties
+      (@(SmallFont), @link(CustomFont), @link(FontSize), @link(TUIControl.UIScale))
+      it may return @link(UIFont), @link(UIFontSmall), or @link(CustomFont),
+      or a TCustomizedFont instances that wraps (and scales) one of the above. }
+    function Font: TCastleFont;
+
     { Check does currently used font (see @link(Font)) changed,
       and eventually call FontChanged method @italic(now).
 
