@@ -87,6 +87,7 @@ type
     procedure TestSolid;
     procedure TestConvex;
     procedure TestX3DXmlString;
+    procedure TestOrthoViewpointFieldOfView;
   end;
 
 implementation
@@ -1861,6 +1862,97 @@ begin
     '    startLight2 := startLight1AndAudio + blink2Start)' + #10 +
     '') =
     '"castlescript:&#xA;function initialize(time)&#xA;  { set up first thunder in the future }&#xA;  startLight1AndAudio :=  time +&#xA;    durationBetweenConst + random() * durationBetweenRandom1;&#xA;  startLight2 := startLight1AndAudio + ' + 'blink2Start&#xA;&#xA;function forceThunderNow(value, time)&#xA;  when (value,&#xA;    startLight1AndAudio := time;&#xA;    startLight2 := startLight1AndAudio + blink2Start)&#xA;&#xA;function light2Active(value, time)&#xA;  when (and(not(value), not(audioActive)),&#xA;    { Once everything finished (2nd light blink and sound) finished,&#xA;      set up next thunder in the future.&#xA;      We can only do it once everything finished, as X3D spec says that&#xA;      &apos;Any set_startTime events to an active time-dependent node are ignored.&apos; }&#xA;    startLight1AndAudio := startLight1AndAudio +&#xA;      durationBetweenConst + random() * durationBetweenRandom2;&#xA;    startLight2 := startLight1AndAudio + blink2Start)&#xA;&#xA;function ' + 'audioActive(value, time)&#xA;  when (and(not(value), not(light2Active)),&#xA;    { Exactly like light2Active. We have to watch for both light2Active&#xA;      and audioActive, as we don&apos;t know which one takes longer: light blinking&#xA;      or audio sound. }&#xA;    startLight1AndAudio := startLight1AndAudio +&#xA;      durationBetweenConst + random() * durationBetweenRandom2;&#xA;    startLight2 := startLight1AndAudio + blink2Start)&#xA;"');
+end;
+
+procedure TTestX3DNodes.TestOrthoViewpointFieldOfView;
+var
+  O: TOrthoViewpointNode;
+begin
+  O := TOrthoViewpointNode.Create;
+  try
+    AssertEquals(4, O.FdFieldOfView.Count);
+    AssertEquals(-1, O.FdFieldOfView.Items[0]);
+    AssertEquals(-1, O.FdFieldOfView.Items[1]);
+    AssertEquals( 1, O.FdFieldOfView.Items[2]);
+    AssertEquals( 1, O.FdFieldOfView.Items[3]);
+
+    AssertEquals(-1, O.FieldOfView[0]);
+    AssertEquals(-1, O.FieldOfView[1]);
+    AssertEquals( 1, O.FieldOfView[2]);
+    AssertEquals( 1, O.FieldOfView[3]);
+
+    AssertEquals(-1, O.FieldOfViewMinX);
+    AssertEquals(-1, O.FieldOfViewMinY);
+    AssertEquals( 1, O.FieldOfViewMaxX);
+    AssertEquals( 1, O.FieldOfViewMaxY);
+
+    O.FdFieldOfView.Items.Clear;
+    AssertEquals(0, O.FdFieldOfView.Count);
+
+    AssertEquals(-1, O.FieldOfView[0]);
+    AssertEquals(-1, O.FieldOfView[1]);
+    AssertEquals( 1, O.FieldOfView[2]);
+    AssertEquals( 1, O.FieldOfView[3]);
+
+    AssertEquals(-1, O.FieldOfViewMinX);
+    AssertEquals(-1, O.FieldOfViewMinY);
+    AssertEquals( 1, O.FieldOfViewMaxX);
+    AssertEquals( 1, O.FieldOfViewMaxY);
+
+    O.FieldOfViewMaxX := 10;
+
+    AssertEquals(-1, O.FieldOfView[0]);
+    AssertEquals(-1, O.FieldOfView[1]);
+    AssertEquals(10, O.FieldOfView[2]);
+    AssertEquals( 1, O.FieldOfView[3]);
+
+    AssertEquals(-1, O.FieldOfViewMinX);
+    AssertEquals(-1, O.FieldOfViewMinY);
+    AssertEquals(10, O.FieldOfViewMaxX);
+    AssertEquals( 1, O.FieldOfViewMaxY);
+
+    AssertEquals(3, O.FdFieldOfView.Count);
+    AssertEquals(-1, O.FdFieldOfView.Items[0]);
+    AssertEquals(-1, O.FdFieldOfView.Items[1]);
+    AssertEquals(10, O.FdFieldOfView.Items[2]);
+
+    O.FieldOfViewMaxY := 20;
+
+    AssertEquals(-1, O.FieldOfView[0]);
+    AssertEquals(-1, O.FieldOfView[1]);
+    AssertEquals(10, O.FieldOfView[2]);
+    AssertEquals(20, O.FieldOfView[3]);
+
+    AssertEquals(-1, O.FieldOfViewMinX);
+    AssertEquals(-1, O.FieldOfViewMinY);
+    AssertEquals(10, O.FieldOfViewMaxX);
+    AssertEquals(20, O.FieldOfViewMaxY);
+
+    AssertEquals(4, O.FdFieldOfView.Count);
+    AssertEquals(-1, O.FdFieldOfView.Items[0]);
+    AssertEquals(-1, O.FdFieldOfView.Items[1]);
+    AssertEquals(10, O.FdFieldOfView.Items[2]);
+    AssertEquals(20, O.FdFieldOfView.Items[3]);
+
+    O.FieldOfViewMinY := -20;
+
+    AssertEquals(-1, O.FieldOfView[0]);
+    AssertEquals(-20, O.FieldOfView[1]);
+    AssertEquals(10, O.FieldOfView[2]);
+    AssertEquals(20, O.FieldOfView[3]);
+
+    AssertEquals(-1, O.FieldOfViewMinX);
+    AssertEquals(-20, O.FieldOfViewMinY);
+    AssertEquals(10, O.FieldOfViewMaxX);
+    AssertEquals(20, O.FieldOfViewMaxY);
+
+    AssertEquals(4, O.FdFieldOfView.Count);
+    AssertEquals(-1, O.FdFieldOfView.Items[0]);
+    AssertEquals(-20, O.FdFieldOfView.Items[1]);
+    AssertEquals(10, O.FdFieldOfView.Items[2]);
+    AssertEquals(20, O.FdFieldOfView.Items[3]);
+
+  finally FreeAndNil(O) end;
 end;
 
 initialization
