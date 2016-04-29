@@ -202,10 +202,8 @@ type
     procedure Draw(const X, Y: Single); overload;
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Single); overload;
     procedure Draw(const Pos: TVector2Integer); overload;
-    procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+    procedure Draw(const X, Y, DrawWidth, DrawHeight: Single;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single); overload; virtual;
-    // procedure Draw(const X, Y, DrawWidth, DrawHeight,
-    //   ImageX, ImageY, ImageWidth, ImageHeight: Single); overload; virtual;
     procedure Draw(const ScreenRectangle: TRectangle); overload;
     procedure Draw(const ScreenRectangle: TFloatRectangle); overload;
     procedure Draw(const ScreenRectangle: TRectangle;
@@ -217,7 +215,7 @@ type
     procedure DrawFlipped(const ScreenRectangle: TRectangle;
       const FlipHorizontal, FlipVertical: boolean);
 
-    { In case of @link(Draw3x3) or @link(Draw3x1), the corners
+    { In case of @link(Draw3x3) the corners
       on screen are scaled by this amount. This is especially useful
       for UI scaling, see @link(TUIContainer.UIScaling)
       and @link(TUIControl.UIScale). }
@@ -241,29 +239,33 @@ type
           Scaled in both dimensions as necessary.)
       )
     }
-    procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
+    procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
       const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer);
-    procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
+    procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
       const Corner: TVector4Integer);
     procedure Draw3x3(const ScreenRectangle: TRectangle;
       const Corner: TVector4Integer);
+
+    (* Commented out for now: using Draw3x3 with
+       CornerTop = CornerBottom = 0 should have the same effect?
 
     { Draw the image on the screen, divided into 3x1 parts:
       unscaled left and right sides, and scaled inside.
 
       Similar to @link(Draw3x3), but image is divided into 3 parts, not 9. }
-    procedure Draw3x1(const X, Y, DrawWidth, DrawHeight: Integer;
+    procedure Draw3x1(const X, Y, DrawWidth, DrawHeight: Single;
       const SideRight, SideLeft: Integer);
-    procedure Draw3x1(const X, Y, DrawWidth, DrawHeight: Integer;
+    procedure Draw3x1(const X, Y, DrawWidth, DrawHeight: Single;
       const Side: TVector2Integer);
     procedure Draw3x1(const ScreenRectangle: TRectangle;
       const Side: TVector2Integer);
+    *)
 
-    { Ignore (do not log to CastleLog) situations when Draw3x3 or Draw3x1
+    { Ignore (do not log to CastleLog) situations when Draw3x3
       cannot work
       because corners are larger than draw area size.
       Set this to @true when it's perfectly possible (you do not want to even
-      see it in log) for Draw3x3 and Draw3x1 calls to fail because corners
+      see it in log) for Draw3x3 calls to fail because corners
       are larger than draw area size. }
     property IgnoreTooLargeCorners: boolean
       read FIgnoreTooLargeCorners write FIgnoreTooLargeCorners default false;
@@ -410,7 +412,7 @@ type
 
     procedure Load(const AImage: TEncodedImage); override;
     procedure PrepareResources; override;
-    procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+    procedure Draw(const X, Y, DrawWidth, DrawHeight: Single;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single); override;
   end;
 
@@ -439,7 +441,7 @@ type
       const ASmoothScaling: boolean = true);
     destructor Destroy; override;
     procedure PrepareResources; override;
-    procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+    procedure Draw(const X, Y, DrawWidth, DrawHeight: Single;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single); override;
   end;
 
@@ -668,27 +670,20 @@ end;
 
 procedure TGLImage.Draw(const X, Y: Single);
 begin
-  Draw(Round(X), Round(Y), Width, Height, 0, 0, Width, Height);
+  Draw(X, Y, Width, Height, 0, 0, Width, Height);
 end;
 
 procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Single);
 begin
-  Draw(Round(X), Round(Y), Round(DrawWidth), Round(DrawHeight), 0, 0, Width, Height);
+  Draw(X, Y, DrawWidth, DrawHeight, 0, 0, Width, Height);
 end;
-
-// procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight,
-//   ImageX, ImageY, ImageWidth, ImageHeight: Single);
-// begin
-//   Draw(Round(X), Round(Y), Round(DrawWidth), Round(DrawHeight),
-//     ImageX, ImageY, ImageWidth, ImageHeight);
-// end;
 
 procedure TGLImage.Draw(const Pos: TVector2Integer);
 begin
   Draw(Pos[0], Pos[1], Width, Height, 0, 0, Width, Height);
 end;
 
-procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Single;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
 var
   ShiftX, ShiftY: Single;
@@ -711,6 +706,7 @@ var
   AttribLocation: TGLuint;
   Prog: TGLSLProgram;
   {$endif}
+  X0, Y0, X1, Y1: Int64;
 begin
   if (DrawWidth = 0) or (DrawHeight = 0) then Exit;
 
@@ -728,24 +724,33 @@ begin
   TexX1 := (ImageX + ImageWidth ) / Width;
   TexY1 := (ImageY + ImageHeight) / Height;
 
+  { We could just pass float values, unrounded, to OpenGL.
+    But this lowers quality (at least without full-screen anti-aliasing),
+    e.g. in case of fonts, since OpenGL can fill only entire pixels anyway,
+    and pixels on the borders would get a little trimmed. }
+  X0 := Round(X);
+  Y0 := Round(Y);
+  X1 := Round(X + DrawWidth);
+  Y1 := Round(Y + DrawHeight);
+
   { Protect from X, Y and sizes going outside of the SmallInt range.
     We want to squeeze X, Y into SmallInt to make it a little more efficient
     to render, and there are no displays with resolution outside of SmallInt
     range anyway. }
-  if (X < Low(SmallInt)) or
-     (Y < Low(SmallInt)) or
-     (X + DrawWidth  > High(SmallInt)) or
-     (X + DrawHeight > High(SmallInt)) then
+  if (X0 < Low(SmallInt)) or
+     (Y0 < Low(SmallInt)) or
+     (X1 > High(SmallInt)) or
+     (Y1 > High(SmallInt)) then
     Exit;
 
   Point[0].TexCoord := Vector2Single(TexX0, TexY0);
-  Point[0].Position := Vector2SmallInt(X            , Y);
+  Point[0].Position := Vector2SmallInt( X0,    Y0);
   Point[1].TexCoord := Vector2Single(TexX1, TexY0);
-  Point[1].Position := Vector2SmallInt(X + DrawWidth, Y);
+  Point[1].Position := Vector2SmallInt( X1,    Y0);
   Point[2].TexCoord := Vector2Single(TexX1, TexY1);
-  Point[2].Position := Vector2SmallInt(X + DrawWidth, Y + DrawHeight);
+  Point[2].Position := Vector2SmallInt( X1,    Y1);
   Point[3].TexCoord := Vector2Single(TexX0, TexY1);
-  Point[3].Position := Vector2SmallInt(X            , Y + DrawHeight);
+  Point[3].Position := Vector2SmallInt( X0,    Y1);
 
   if FRotation <> 0 then
   begin
@@ -851,11 +856,10 @@ end;
 
 procedure TGLImage.Draw(const ScreenRectangle: TFloatRectangle);
 begin
-  Draw(
-    Round(ScreenRectangle.Left),
-    Round(ScreenRectangle.Bottom),
-    Round(ScreenRectangle.Width),
-    Round(ScreenRectangle.Height));
+  Draw(ScreenRectangle.Left,
+       ScreenRectangle.Bottom,
+       ScreenRectangle.Width,
+       ScreenRectangle.Height);
 end;
 
 procedure TGLImage.Draw(const ScreenRectangle: TRectangle;
@@ -903,11 +907,11 @@ begin
     ImageRect.Width, ImageRect.Height);
 end;
 
-procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
+procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
   const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer);
 var
   XScreenLeft, XScreenRight, YScreenBottom, YScreenTop,
-    HorizontalScreenSize, VerticalScreenSize: Integer;
+    HorizontalScreenSize, VerticalScreenSize: Single;
   XImageLeft, XImageRight, YImageBottom, YImageTop,
     HorizontalImageSize, VerticalImageSize: Single;
   OldAlpha: TAlphaChannel;
@@ -915,17 +919,17 @@ var
   OptimizeAlpha: boolean;
   {$endif}
   EpsilonT, EpsilonR, EpsilonB, EpsilonL: Single;
-  DrawCornerTop, DrawCornerRight, DrawCornerBottom, DrawCornerLeft: Integer;
+  DrawCornerTop, DrawCornerRight, DrawCornerBottom, DrawCornerLeft: Single;
 const
   { We tweak texture coordinates a little, to avoid bilinear filtering
     that would cause border colors to "bleed" over the texture inside.
     Something minimally > 0.5 is necessary. }
   Epsilon = 0.51;
 begin
-  DrawCornerTop    := Round(CornerTop    * ScaleCorners);
-  DrawCornerRight  := Round(CornerRight  * ScaleCorners);
-  DrawCornerBottom := Round(CornerBottom * ScaleCorners);
-  DrawCornerLeft   := Round(CornerLeft   * ScaleCorners);
+  DrawCornerTop    := CornerTop    * ScaleCorners;
+  DrawCornerRight  := CornerRight  * ScaleCorners;
+  DrawCornerBottom := CornerBottom * ScaleCorners;
+  DrawCornerLeft   := CornerLeft   * ScaleCorners;
 
   if not ( (    CornerLeft +     CornerRight <     Width) and
            (DrawCornerLeft + DrawCornerRight < DrawWidth) and
@@ -1016,7 +1020,7 @@ begin
   UseScreenCenter := false;
 end;
 
-procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
+procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
   const Corner: TVector4Integer);
 begin
   Draw3x3(X, Y, DrawWidth, DrawHeight,
@@ -1031,11 +1035,14 @@ begin
     Corner[0], Corner[1], Corner[2], Corner[3]);
 end;
 
-procedure TGLImage.Draw3x1(const X, Y, DrawWidth, DrawHeight: Integer;
+(* Commented out for now: using Draw3x3 with
+   CornerTop = CornerBottom = 0 should have the same effect?
+
+procedure TGLImage.Draw3x1(const X, Y, DrawWidth, DrawHeight: Single;
   const SideRight, SideLeft: Integer);
 var
   XScreenLeft, XScreenRight,
-    HorizontalScreenSize: Integer;
+    HorizontalScreenSize: Single;
   XImageLeft, XImageRight,
     HorizontalImageSize: Single;
   OldAlpha: TAlphaChannel;
@@ -1043,14 +1050,18 @@ var
   OptimizeAlpha: boolean;
   {$endif}
   EpsilonR, EpsilonL: Single;
+  DrawSideLeft, DrawSideRight: Single;
 const
   { We tweak texture coordinates a little, to avoid bilinear filtering
     that would cause border colors to "bleed" over the texture inside.
     Something minimally > 0.5 is necessary. }
   Epsilon = 0.51;
 begin
-  if not ( (SideLeft + SideRight < Width) and
-           (SideLeft + SideRight < DrawWidth) ) then
+  DrawSideLeft   := SideLeft  * ScaleCorners;
+  DrawSideRight  := SideRight * ScaleCorners;
+
+  if not ( (    SideLeft +     SideRight <     Width) and
+           (DrawSideLeft + DrawSideRight < DrawWidth) ) then
   begin
     if Log and not IgnoreTooLargeCorners then
       WritelnLog('Draw3x1', 'Image sides are too large to draw it: sides are %d %d, image width is %d, draw area width is %d',
@@ -1061,9 +1072,9 @@ begin
   end;
 
   XScreenLeft := X;
-  XImageLeft := 0;
-  XScreenRight := X + DrawWidth - SideRight;
-  XImageRight := Width - SideRight;
+  XImageLeft  := 0;
+  XScreenRight := X + DrawWidth - DrawSideRight;
+  XImageRight  :=         Width -     SideRight;
 
   { For speed, we only apply AlphaBegin/End once.
     In case of GLImageUseShaders, this optimization is only useful
@@ -1087,13 +1098,13 @@ begin
   end;
 
   { 2 sides }
-  HorizontalScreenSize := DrawWidth - SideLeft - SideRight;
-  HorizontalImageSize  :=     Width - SideLeft - SideRight;
+  HorizontalScreenSize := DrawWidth - DrawSideLeft - DrawSideRight;
+  HorizontalImageSize  :=     Width -     SideLeft -     SideRight;
 
-  Draw(XScreenLeft, Y, SideLeft, DrawHeight,
-        XImageLeft, 0, SideLeft, Height);
-  Draw(XScreenRight, Y, SideRight, DrawHeight,
-        XImageRight, 0, SideRight, Height);
+  Draw(XScreenLeft, Y, DrawSideLeft, DrawHeight,
+        XImageLeft, 0,     SideLeft,     Height);
+  Draw(XScreenRight, Y, DrawSideRight, DrawHeight,
+        XImageRight, 0,     SideRight,     Height);
 
   { inside }
   if SideLeft > 0   then EpsilonL := Epsilon else EpsilonL := 0;
@@ -1112,11 +1123,10 @@ begin
   UseScreenCenter := false;
 end;
 
-procedure TGLImage.Draw3x1(const X, Y, DrawWidth, DrawHeight: Integer;
+procedure TGLImage.Draw3x1(const X, Y, DrawWidth, DrawHeight: Single;
   const Side: TVector2Integer);
 begin
-  Draw3x1(X, Y, DrawWidth, DrawHeight,
-    Side[0], Side[1]);
+  Draw3x1(X, Y, DrawWidth, DrawHeight, Side[0], Side[1]);
 end;
 
 procedure TGLImage.Draw3x1(const ScreenRectangle: TRectangle;
@@ -1126,6 +1136,8 @@ begin
     ScreenRectangle.Width, ScreenRectangle.Height,
     Side[0], Side[1]);
 end;
+
+*)
 
 function TGLImage.CurrentFilter: TTextureFilter;
 begin
@@ -1243,7 +1255,7 @@ begin
     Load(AImage);
 end;
 
-procedure TGLImageManaged.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+procedure TGLImageManaged.Draw(const X, Y, DrawWidth, DrawHeight: Single;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
 begin
   // we load on demand, so do PrepareResources always
@@ -1289,7 +1301,7 @@ begin
   inherited;
 end;
 
-procedure TGLImageOnDemand.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+procedure TGLImageOnDemand.Draw(const X, Y, DrawWidth, DrawHeight: Single;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
 begin
   // we load on demand, so do PrepareResources always

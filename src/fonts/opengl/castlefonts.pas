@@ -1023,10 +1023,10 @@ var
   procedure GlyphDraw(const OutlineMoveX, OutlineMoveY: Integer);
   begin
     GLImage.Draw(
-      Round(ScreenX - G.X * Scale) + OutlineMoveX * Outline,
-      Round(ScreenY - G.Y * Scale) + OutlineMoveY * Outline,
-      Round(G.Width  * Scale),
-      Round(G.Height * Scale),
+      ScreenX - G.X * Scale + OutlineMoveX * Outline,
+      ScreenY - G.Y * Scale + OutlineMoveY * Outline,
+      G.Width  * Scale,
+      G.Height * Scale,
       G.ImageX, G.ImageY, G.Width, G.Height);
   end;
 
