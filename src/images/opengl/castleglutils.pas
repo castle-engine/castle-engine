@@ -1828,7 +1828,10 @@ begin
     '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy +nl+
     '  Query counter bits (for occlusion query): ' + { for occlusion query  GL_SAMPLES_PASSED_ARB }
       GetQueryCounterBits +nl+
-    '  Max renderbuffer size: ' + GetMaxRenderbufferSize;
+    '  Max renderbuffer size: ' + GetMaxRenderbufferSize
+    {$ifdef OpenGLES} +NL+
+    '  Max line width: ' + GetInteger(GL_ALIASED_LINE_WIDTH_RANGE)
+    {$endif};
 
    CheckGLErrors;
 end;
