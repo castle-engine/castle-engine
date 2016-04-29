@@ -204,6 +204,8 @@ type
     procedure Draw(const Pos: TVector2Integer); overload;
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single); overload; virtual;
+    // procedure Draw(const X, Y, DrawWidth, DrawHeight,
+    //   ImageX, ImageY, ImageWidth, ImageHeight: Single); overload; virtual;
     procedure Draw(const ScreenRectangle: TRectangle); overload;
     procedure Draw(const ScreenRectangle: TFloatRectangle); overload;
     procedure Draw(const ScreenRectangle: TRectangle;
@@ -673,6 +675,13 @@ procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Single);
 begin
   Draw(Round(X), Round(Y), Round(DrawWidth), Round(DrawHeight), 0, 0, Width, Height);
 end;
+
+// procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight,
+//   ImageX, ImageY, ImageWidth, ImageHeight: Single);
+// begin
+//   Draw(Round(X), Round(Y), Round(DrawWidth), Round(DrawHeight),
+//     ImageX, ImageY, ImageWidth, ImageHeight);
+// end;
 
 procedure TGLImage.Draw(const Pos: TVector2Integer);
 begin
