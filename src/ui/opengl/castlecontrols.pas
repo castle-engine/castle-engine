@@ -3095,25 +3095,35 @@ end;
 function TCastleLabel.Rect: TRectangle;
 var
   TextToRender: TRichText;
+  TextToRenderWidth, TextToRenderCount: Cardinal;
   PaddingHorizontalScaled, PaddingVerticalScaled, LineSpacingScaled: Integer;
   US: Single;
 begin
   if AutoSize then
   begin
-    TextToRender := GetTextToRender;
-    try
-      US := UIScale;
-      PaddingHorizontalScaled := Round(US * (PaddingHorizontal + Padding));
-      PaddingVerticalScaled := Round(US * (PaddingVertical + Padding));
-      LineSpacingScaled := Round(US * LineSpacing);
-      Result := Rectangle(
-        LeftBottomScaled,
-        TextToRender.Width + 2 * PaddingHorizontalScaled,
-        (Font.RowHeight + LineSpacingScaled) * TextToRender.Count +
-          2 * PaddingVerticalScaled + Font.Descend);
-    finally
-      FreeAndNil(TextToRender);
+    if (not Html) and (MaxWidth = 0) then
+    begin
+      { fast case: no need to use TRichText in this case }
+      TextToRenderWidth := Font.MaxTextWidth(Text);
+      TextToRenderCount := Text.Count;
+    end else
+    begin
+      TextToRender := GetTextToRender;
+      try
+        TextToRenderWidth := TextToRender.Width;
+        TextToRenderCount := TextToRender.Count;
+      finally FreeAndNil(TextToRender) end;
     end;
+
+    US := UIScale;
+    PaddingHorizontalScaled := Round(US * (PaddingHorizontal + Padding));
+    PaddingVerticalScaled := Round(US * (PaddingVertical + Padding));
+    LineSpacingScaled := Round(US * LineSpacing);
+    Result := Rectangle(
+      LeftBottomScaled,
+      TextToRenderWidth + 2 * PaddingHorizontalScaled,
+      (Font.RowHeight + LineSpacingScaled) * TextToRenderCount +
+        2 * PaddingVerticalScaled + Font.Descend);
   end else
   if FullSize then
     Result := ParentRect else
@@ -3140,39 +3150,44 @@ begin
   inherited;
   if Text.Count = 0 then Exit; // early exit in case of easy, fast case
 
-  TextToRender := GetTextToRender;
-  try
-    SR := ScreenRect;
-    US := UIScale;
-    PaddingHorizontalScaled := Round(US * (PaddingHorizontal + Padding));
-    PaddingVerticalScaled := Round(US * (PaddingVertical + Padding));
-    LineSpacingScaled := Round(US * LineSpacing);
-    if Frame then
-      Theme.Draw(SR, ImageType, UIScale, FrameColor);
+  SR := ScreenRect;
+  US := UIScale;
+  PaddingHorizontalScaled := Round(US * (PaddingHorizontal + Padding));
+  PaddingVerticalScaled := Round(US * (PaddingVertical + Padding));
+  LineSpacingScaled := Round(US * LineSpacing);
+  if Frame then
+    Theme.Draw(SR, ImageType, UIScale, FrameColor);
 
-    { calculate TextX }
-    case Alignment of
-      hpLeft  : TextX := SR.Left + PaddingHorizontalScaled;
-      hpMiddle: TextX := (SR.Left + SR.Right) div 2;
-      hpRight : TextX := SR.Right - PaddingHorizontalScaled;
-      else raise EInternalError.Create('TCastleLabel.Render: Alignment?');
+  { calculate TextX }
+  case Alignment of
+    hpLeft  : TextX := SR.Left + PaddingHorizontalScaled;
+    hpMiddle: TextX := (SR.Left + SR.Right) div 2;
+    hpRight : TextX := SR.Right - PaddingHorizontalScaled;
+    else raise EInternalError.Create('TCastleLabel.Render: Alignment?');
+  end;
+
+  { calculate TextBottom }
+  TextBottom := SR.Bottom + PaddingVerticalScaled + Font.Descend;
+
+  { useless, use AutoSize=true and Anchor(vpMiddle) to center text vertically
+    within parent rect.
+  if not AutoSize then
+    case VerticalAlignment of
+      vpMiddle: TextBottom := SR.Bottom + (SR.Height - TextHeight) / div 2;
+      vpTop   : TextBottom := SR.Top - PaddingVerticalScaled - Font.Descend - TextHeight;
     end;
+  }
 
-    { calculate TextBottom }
-    TextBottom := SR.Bottom + PaddingVerticalScaled + Font.Descend;
-
-    { useless, use AutoSize=true and Anchor(vpMiddle) to center text vertically
-      within parent rect.
-    if not AutoSize then
-      case VerticalAlignment of
-        vpMiddle: TextBottom := SR.Bottom + (SR.Height - TextHeight) / div 2;
-        vpTop   : TextBottom := SR.Top - PaddingVerticalScaled - Font.Descend - TextHeight;
-      end;
-    }
-
-    TextToRender.Print(TextX, TextBottom, Color, LineSpacingScaled, Alignment);
-  finally
-    FreeAndNil(TextToRender);
+  if (not Html) and (MaxWidth = 0) then
+  begin
+    { fast case: no need to use TRichText in this case }
+    Font.PrintStrings(TextX, TextBottom, Color, Text, false, LineSpacingScaled, Alignment);
+  end else
+  begin
+    TextToRender := GetTextToRender;
+    try
+      TextToRender.Print(TextX, TextBottom, Color, LineSpacingScaled, Alignment);
+    finally FreeAndNil(TextToRender) end;
   end;
 end;
 
