@@ -111,6 +111,12 @@ WritelnLog('Textures', TextureMemoryProfiler.Summary);
 }
 function TextureMemoryProfiler: TTextureMemoryProfiler;
 
+var
+  { Log (through CastleLog) all texture and image loading to GPU.
+    If additionally @link(TextureMemoryProfiler) is enabled, then we will dump
+    texture memory usage. }
+  LogTextureLoading: boolean = false;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -152,6 +158,13 @@ begin
     if I <> -1 then
       AllocatedTextures[I] := AllocatedTex else
       AllocatedTextures.Add(AllocatedTex);
+  end;
+
+  if LogTextureLoading and Log then
+  begin
+    WritelnLog('Texture Loading', 'Loaded to GPU texture "%s" size %d x %d', [URL, Width, Height]);
+    if FEnabled then
+      WritelnLogMultiline('Texture Loading', Summary);
   end;
 end;
 

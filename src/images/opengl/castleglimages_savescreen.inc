@@ -128,6 +128,7 @@ function SaveScreen_NoFlush(const ImageClass: TCastleImageClass;
 begin
   Result := ImageClass.Create(Rect.Width, Rect.Height);
   try
+    Result.URL := 'save-screen';
     SaveScreen_NoFlush(Result, Rect.Left, Rect.Bottom, ReadBuffer);
   except Result.Free; raise end;
 end;
