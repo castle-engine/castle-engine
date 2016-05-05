@@ -376,13 +376,13 @@ begin
   P := URIProtocol(URL);
 
   if LogAllLoading and Log then
-    WritelnLog('Loading', 'Loading "%s"', [URL]);
+    WritelnLog('Loading', 'Loading "%s"', [URIDisplay(URL)]);
 
   {$ifdef HAS_FP_HTTP_CLIENT}
   { network protocols: get data into a new TMemoryStream using FpHttpClient }
   if EnableNetwork and (P = 'http') then
   begin
-    WritelnLog('Network', 'Downloading "%s"', [URL]);
+    WritelnLog('Network', 'Downloading "%s"', [URIDisplay(URL)]);
     NetworkResult := NetworkDownload(URL, MaxRedirects, MimeType);
     try
       if soGzip in Options then

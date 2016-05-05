@@ -162,7 +162,8 @@ begin
 
   if LogTextureLoading and Log then
   begin
-    WritelnLog('Texture Loading', 'Loaded to GPU texture "%s" size %d x %d', [URL, Width, Height]);
+    WritelnLog('Texture Loading', 'Loaded to GPU texture "%s" size %d x %d',
+      [URIDisplay(URL), Width, Height]);
     if FEnabled then
       WritelnLogMultiline('Texture Loading', Summary);
   end;
