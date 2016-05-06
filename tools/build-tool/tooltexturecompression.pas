@@ -173,7 +173,13 @@ procedure AutoCompressTextures(const Project: TCastleProject);
 
     TempPrefix := GetTempFileNamePrefix;
 
-    InputFlippedFile := TempPrefix + '.png';
+    { Use TGA format in-between (InputFlippedFile has .tga extension), not PNG,
+      this increases chances that ATI compressonator will not destroy
+      the alpha channel (testcase: escape textures of map/laser, pirate_1/2, pirate_boss,
+      bug reproducible when compressing to both "ATITC interpolated alpha"
+      and "ATITC explicit alpha" formats). }
+    InputFlippedFile := TempPrefix + '.tga';
+
     // Image := LoadImage(FilenameToURISafe(InputFile));
     // try
     //   if TextureCompressionInfo[C].DDSFlipped then
@@ -181,9 +187,13 @@ procedure AutoCompressTextures(const Project: TCastleProject);
     //   SaveImage(Image, FilenameToURISafe(InputFlippedFile));
     // finally FreeAndNil(Image) end;
 
-    { this is worse, as it requires ImageMagick.
-      But, ATI Compressonator consistently produces invalid output
-      if we don't use ImageMagick's convert... }
+    { Convert using ImageMagick.
+      - Back when we were using PNG for InputFlippedFile, ImageMagick proved
+        more reliable, ATI Compressonator was consistently producing invalid output
+        if we didn't use ImageMagick's convert.
+      - Now that we use TGA for InputFlippedFile, ImageMagick is the only option
+        anyway. We cannot write to TGA for now.
+    }
     ConvertExe := '';
     TryToolExePath(ConvertExe, 'convert', C);
     if TextureCompressionInfo[C].DDSFlipped then
