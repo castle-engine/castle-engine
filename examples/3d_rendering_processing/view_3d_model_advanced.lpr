@@ -104,7 +104,9 @@ begin
   Window.SceneManager.Camera.Free;
 
   { Output some information about the loaded scene }
-  Writeln(Scene.Info(true, true, false));
+  Writeln('Scene vertexes: ', Scene.VerticesCount(true),
+    ', triangles: ', Scene.TrianglesCount(true),
+    ', bounding box: ', Scene.BoundingBox.ToNiceStr);
 
   { add an "Open" button to the window controls }
   OpenButton := TCastleButton.Create(Application);
