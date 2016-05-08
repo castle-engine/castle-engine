@@ -8,6 +8,7 @@
 *.blend2
 *~
 *.apk
+*.a
 castle-game-engine-*.fpm
 examples/2d/controls_demo
 examples/2d/libcontrols_demo_android.so
@@ -106,6 +107,7 @@ examples/window/window_events
 examples/window/window_gtk_mix
 examples/window/window_menu
 fpmake
+fpmake.exe
 packages/castle_base.pas
 packages/castle_components.pas
 packages/castle_window.pas
