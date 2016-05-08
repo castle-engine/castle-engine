@@ -467,11 +467,14 @@ type
       Both Key and KeyCharacter represent the same action. Sometimes one,
       sometimes the other is useful.
 
-      Not all keyboard keys can be represented as TKey value.
-      For example, key '/' does not have any K_Xxx constant (it will have Key = K_None)
-      for now but can be expressed as char '/'.
-      Also not all keys can be represented as character, for example "up arrow"
-      (K_Up) doesn't have a char code (it will have KeyCharacter = #0).
+      @bold(Not all key presses can be represented as TKey value.)
+      For example, pressing '(' (opening parenthesis), which is done on most
+      keyboards by pressing shift + zero, does not have any TKey value.
+      So it will generate event with Key = K_None, but KeyCharacter = '('.
+
+      @bold(Likewise, not all key presses can be represented as char value.)
+      For example "up arrow" (Key = K_Up) doesn't have a char code
+      (it will have KeyCharacter = #0).
 
       KeyCharacter is influenced by some other keys state,
       like Shift or Ctrl or CapsLock or some key to input localized characters
