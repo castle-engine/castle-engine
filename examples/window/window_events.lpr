@@ -100,9 +100,9 @@ begin
 
   { Cursor tests: }
   case Event.KeyCharacter of
-    'n': Window.Cursor := mcNone;
-    'd': Window.Cursor := mcDefault;
-    'w': Window.Cursor := mcWait;
+    'n': Notifications.Cursor := mcNone;
+    'd': Notifications.Cursor := mcDefault;
+    'w': Notifications.Cursor := mcWait;
     '1': Window.MousePosition := Vector2Single(0           , 0);
     '2': Window.MousePosition := Vector2Single(Window.Width, 0);
     '3': Window.MousePosition := Vector2Single(Window.Width, Window.Height);
