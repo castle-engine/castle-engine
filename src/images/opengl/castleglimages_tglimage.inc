@@ -381,6 +381,21 @@ type
     constructor Create(const AImage: TEncodedImage; const ASmoothScaling: boolean;
       const AOwnsImage: boolean);
 
+    { Prepare image for drawing.
+
+      This constructor is provided only for
+      compatibility with previous TGLImage in CGE <= 5.2.0.
+      It assumes that AImage instance passed here is owned by the caller
+      (we cannot free it), and moreover it may become freed at any point
+      (so we actually have to make a copy of it to be safe).
+
+      It is advised to use one of the other constructors, for example use
+      the constructor with additional parameter "AOwnsImage". Or use TGLImageCore
+      class. }
+    constructor Create(const AImage: TEncodedImage;
+      const ASmoothScaling: boolean);
+      deprecated 'this constructor overload is provided only for compatibility';
+
     { Load image from disk, and prepare for drawing.
 
       @param(LoadAsClass Force a specific image class to load.
@@ -1208,6 +1223,12 @@ begin
   // note that above Create will call virtual Load() which will already set our FImage
   FOwnsImage := AOwnsImage;
   ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
+end;
+
+constructor TGLImage.Create(const AImage: TEncodedImage;
+  const ASmoothScaling: boolean);
+begin
+  Create(AImage.CreateCopy, ASmoothScaling, true);
 end;
 
 constructor TGLImage.Create(const URL: string;
