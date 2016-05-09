@@ -34,13 +34,24 @@ begin
   { window/gtk/castlewindow_gtk.inc uses FileExists and DirectoryExists
     to detect file/dir }
 
-  { FileExists doesn't differ dirs and non-dirs }
+  { FileExists doesn't differ dirs and non-dirs... On non-Windows.
+    On Windows, it does, unfortunately
+    (although I would like to see it consistent one day...).
+    See http://www.freepascal.org/docs-html/rtl/sysutils/fileexists.html
+    http://free-pascal-general.1045716.n5.nabble.com/FileExists-inconsistency-td2813433.html }
+  {$ifdef MSWINDOWS}
+  AssertFalse(FileExists(URIToFilenameSafe(ApplicationData(''))));
+  AssertFalse(FileExists(URIToFilenameSafe(ApplicationData('images/'))));
+  {$else}
   AssertTrue(FileExists(URIToFilenameSafe(ApplicationData(''))));
+  AssertTrue(FileExists(URIToFilenameSafe(ApplicationData('images/'))));
+  {$endif}
   AssertTrue(FileExists(URIToFilenameSafe(ApplicationData('test.xml'))));
   AssertTrue(not FileExists(URIToFilenameSafe(ApplicationData('test-not-existing.xml'))));
 
   { DirectoryExists differs dirs and non-dirs }
   AssertTrue(DirectoryExists(URIToFilenameSafe(ApplicationData(''))));
+  AssertTrue(DirectoryExists(URIToFilenameSafe(ApplicationData('images/'))));
   AssertTrue(not DirectoryExists(URIToFilenameSafe(ApplicationData('test.xml'))));
   AssertTrue(not DirectoryExists(URIToFilenameSafe(ApplicationData('test-not-existing.xml'))));
 end;

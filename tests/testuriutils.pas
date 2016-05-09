@@ -18,10 +18,10 @@ unit TestURIUtils;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
 
 type
-  TTestURIUtils = class(TTestCase)
+  TTestURIUtils = class(TCastleBaseTestCase)
     procedure TestAbsoluteURI;
     procedure TestURIToFilenameSafe;
     procedure PercentEncoding;
@@ -36,9 +36,9 @@ uses CastleURIUtils, URIParser, CastleUtils;
 procedure TTestURIUtils.TestAbsoluteURI;
 begin
   {$ifdef MSWINDOWS}
-  AssertEquals('file:///C:/foo.txt', AbsoluteURI('c:\foo.txt'));
+  AssertFilenamesEqual('file:///C:/foo.txt', AbsoluteURI('c:\foo.txt'));
   { Below ExpandFileName will change /foo.txt on Windows to add drive letter }
-  AssertEquals('file:///C:/foo.txt', AbsoluteURI('/foo.txt'));
+  AssertFilenamesEqual('file:///C:/foo.txt', AbsoluteURI('/foo.txt'));
   {$endif}
 
   {$ifdef UNIX}
@@ -55,9 +55,9 @@ begin
   AssertEquals('file:///foo.txt', AbsoluteURI('/foo.txt'));
   {$endif}
 
-  AssertEquals(FilenameToURISafe(InclPathDelim(GetCurrentDir) + 'foo.txt'), AbsoluteURI('foo.txt'));
+  AssertFilenamesEqual(FilenameToURISafe(InclPathDelim(GetCurrentDir) + 'foo.txt'), AbsoluteURI('foo.txt'));
   AssertEquals('http://foo', AbsoluteURI('http://foo'));
-  AssertEquals(FilenameToURISafe(InclPathDelim(GetCurrentDir)), AbsoluteURI(''));
+  AssertFilenamesEqual(FilenameToURISafe(InclPathDelim(GetCurrentDir)), AbsoluteURI(''));
 end;
 
 procedure TTestURIUtils.TestURIToFilenameSafe;
