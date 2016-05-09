@@ -1275,13 +1275,13 @@ type
     { OpenGL context is created, initialize things that require OpenGL
       context. Often you do not need to use this callback (engine components will
       automatically create/release OpenGL resource when necessary),
-      but sometimes it may be handy (e.g. TGLImage required OpenGL context).
+      unless you deal with lower-level OpenGL resource managing (e.g. using
+      TGLImageCore).
       You usually will also want to implement Window.OnClose callback that
-      releases stuff created here.
+      should release stuff you create here.
 
-      Instead of using this callback, even when you really need to initialize
-      some OpenGL resource, it's usually better to derive new classes from
-      TUIControl class or it's descendants,
+      Often, instead of using this callback, it's cleaner to derive new classes
+      from TUIControl class or it's descendants,
       and override their GLContextOpen / GLContextClose methods to react to
       context being open/closed. Using such TUIControl classes
       is usually easier, as you add/remove them from controls whenever
@@ -1988,9 +1988,9 @@ end;
     procedure SaveScreen(const URL: string); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
-    function SaveScreenToGL(const SmoothScaling: boolean = false): TGLImage; overload;
+    function SaveScreenToGL(const SmoothScaling: boolean = false): TGLImageCore; overload;
     function SaveScreenToGL(const SaveRect: TRectangle;
-      const SmoothScaling: boolean = false): TGLImage; overload;
+      const SmoothScaling: boolean = false): TGLImageCore; overload;
     { @groupEnd }
 
     { Color buffer where we draw, and from which it makes sense to grab pixels.
@@ -3068,7 +3068,7 @@ begin
 
     try
       { make ApplicationProperties.IsGLContextOpen true now, to allow creating
-        TGLImage.Create from Application.OnInitialize work Ok. }
+        TGLImageCore.Create from Application.OnInitialize work Ok. }
       ApplicationProperties._GLContextEarlyOpen;
 
       Application.CastleEngineInitialize;
@@ -3570,14 +3570,14 @@ begin
   Result := Container.SaveScreen(SaveRect);
 end;
 
-function TCastleWindowCustom.SaveScreenToGL(const SmoothScaling: boolean): TGLImage;
+function TCastleWindowCustom.SaveScreenToGL(const SmoothScaling: boolean): TGLImageCore;
 begin
   Result := SaveScreenToGL(Rect, SmoothScaling);
 end;
 
 function TCastleWindowCustom.SaveScreenToGL(
   const SaveRect: TRectangle;
-  const SmoothScaling: boolean): TGLImage;
+  const SmoothScaling: boolean): TGLImageCore;
 begin
   Container.EventBeforeRender;
   Container.EventRender;

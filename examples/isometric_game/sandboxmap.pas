@@ -7,7 +7,7 @@ uses Classes, CastleVectors, CastleImages, CastleGLUtils, CastleGLImages;
 type
   TTile = class
   public
-    GLImage: TGLImageManaged;
+    GLImage: TGLImage;
     { Relative URL vs tiles directory.
       This is read and written from/to a map file. }
     RelativeURL: string;
@@ -106,7 +106,7 @@ begin
     SaveImage(Image, FullURL); }
   end;
 
-  GLImage := TGLImageManaged.Create(Image, false, true);
+  GLImage := TGLImage.Create(Image, false, true);
 end;
 
 { TBonusTile ----------------------------------------------------------------- }
@@ -116,7 +116,7 @@ var
   Image: TCastleImage;
 begin
   Image := LoadImage(FullURL, PixelsImageClasses);
-  GLImage := TGLImageManaged.Create(Image, false, true);
+  GLImage := TGLImage.Create(Image, false, true);
 end;
 
 { TMap ----------------------------------------------------------------------- }

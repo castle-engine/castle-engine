@@ -49,7 +49,7 @@ type
     FCaption: string;
     FImageURL: string;
     FImage: TEncodedImage;
-    FGLImage: TGLImageManaged;
+    FGLImage: TGLImage;
     FBoundingBoxRotated: TBox3D;
   protected
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
@@ -624,7 +624,7 @@ function TItemResource.GLImage: TGLImage;
 begin
   if FGLImage = nil then
     { TODO: this will load the ImageURL 2nd time. }
-    FGLImage := TGLImageManaged.Create(ImageURL);
+    FGLImage := TGLImage.Create(ImageURL);
   Result := FGLImage;
 end;
 

@@ -117,7 +117,7 @@
 {$else}
   {$define CastleGL := GL, GLU, GLExt}
   { It is possible to test GLImageUseShaders also with non-OpenGLES version.
-    All the TGLImage and DrawRectangle rendering will go through shaders. }
+    All the TGLImageCore and DrawRectangle rendering will go through shaders. }
   { $define GLImageUseShaders}
 {$endif}
 

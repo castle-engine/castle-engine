@@ -290,7 +290,7 @@ end;
 procedure ContextClose;
 begin
   TextureMemoryProfiler.CheckLeaks;
-  TGLImage.StaticGLContextClose;
+  TGLImageCore.StaticGLContextClose;
 end;
 
 initialization

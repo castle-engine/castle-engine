@@ -457,10 +457,10 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
 
       This scales the image in almost the same way as standard @link(Resize).
       However, this is aware of the image corners and edges, which is good
-      if you plan to use this image with @link(TGLImage.Draw3x3) drawing.
+      if you plan to use this image with @link(TGLImageCore.Draw3x3) drawing.
 
       The Corners parameter specifies the corners size, in the same
-      clockwise order as for @link(TGLImage.Draw3x3): top, right, bottom, left.
+      clockwise order as for @link(TGLImageCore.Draw3x3): top, right, bottom, left.
       The corners will be scaled (proportially to image scaling),
       and new Corners size returned.
       Additionally it makes sure that filtering (especially bilinear)
@@ -1588,7 +1588,7 @@ type
   various GPU algorithms) in your data.
   Use this procedure to redirect all image loading to use your
   compressed versions, when they are supported by the GPU.
-  By doing it like this we capture all kinds of image loading --- from TGLImage,
+  By doing it like this we capture all kinds of image loading --- from TGLImageCore,
   from TCastleScene and so on.
 
   @longCode(#

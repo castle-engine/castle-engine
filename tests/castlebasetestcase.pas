@@ -179,7 +179,7 @@ end;
 
 procedure TCastleBaseTestCase.AssertFilenamesEqual(const Expected, Actual: string);
 begin
-  AssertTrue(ComparisonMsg(Expected, Actual), AnsiCompareFileName(Expected, Actual) = 0,CallerAddr);
+  AssertTrue(ComparisonMsg(Expected, Actual), AnsiCompareFileName(Expected, Actual) = 0);
 end;
 
 end.

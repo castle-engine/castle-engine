@@ -32,7 +32,7 @@ type
     Moving: boolean;
     MovingSmallMoveX, MovingSmallMoveY: Single;
 
-    GLImage: array [TDirection] of TGLImageManaged;
+    GLImage: array [TDirection] of TGLImage;
 
     constructor Create;
     destructor Destroy; override;
@@ -78,7 +78,7 @@ begin
 
   for Dir := Low(Dir) to High(Dir) do
   begin
-    GLImage[Dir] := TGLImageManaged.Create(ApplicationData(
+    GLImage[Dir] := TGLImage.Create(ApplicationData(
       'tiles/woldforge/sprites/creatures/observer/observer_float_' +
       MoveShortcutNames[Dir] + '_1_hh.png'));
   end;

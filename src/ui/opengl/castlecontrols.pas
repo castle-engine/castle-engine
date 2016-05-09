@@ -132,7 +132,7 @@ type
       FGLCustomBackgroundPressed,
       FGLCustomBackgroundDisabled,
       FGLCustomBackgroundFocused,
-      FGLCustomBackgroundNormal: TGLImage;
+      FGLCustomBackgroundNormal: TGLImageCore;
     FOwnsImage,
       FOwnsCustomBackgroundPressed,
       FOwnsCustomBackgroundDisabled,
@@ -226,7 +226,7 @@ type
         @item @link(CustomBackgroundFocused) (or fallback on @link(CustomBackgroundNormal) if @nil),
         @item @link(CustomBackgroundNormal) (or fallback on transparent background if @nil).
       ).
-      They are rendered as 3x3 images (see TGLImage.Draw3x3) with corners
+      They are rendered as 3x3 images (see TGLImageCore.Draw3x3) with corners
       specified by @link(CustomBackgroundCorners). }
     property CustomBackground: boolean read FCustomBackground write FCustomBackground default false;
 
@@ -365,13 +365,13 @@ type
     or straight TCastleImageControl.Image.
 
     We automatically use alpha test or alpha blending based
-    on loaded image alpha channel (see TGLImage.Alpha).
+    on loaded image alpha channel (see TGLImageCore.Alpha).
     You can influence this by @link(AlphaChannel) property. }
   TCastleImageControl = class(TUIControl)
   strict private
     FURL: string;
     FImage: TCastleImage;
-    FGLImage: TGLImage;
+    FGLImage: TGLImageCore;
     FAlphaChannel: TAutoAlphaChannel;
     FStretch: boolean;
     FProportional: boolean;
@@ -437,13 +437,13 @@ type
     property OwnsImage: boolean read FOwnsImage write FOwnsImage default true;
 
     { Color tint of the image. This simply multiplies the image RGBA components,
-      just like @link(TGLImage.Color). By default this is opaque white,
+      just like @link(TGLImageCore.Color). By default this is opaque white,
       which means that image colors are unchanged. }
     property Color: TCastleColor read FColor write SetColor;
 
     { Corners of the image that are not stretched even
       in case @link(Stretch) is used.
-      See @link(TGLImage.Draw3x3) for the details how drawing image
+      See @link(TGLImageCore.Draw3x3) for the details how drawing image
       with borders work. }
     property Corners: TVector4Integer read FCorners write FCorners;
 
@@ -463,7 +463,7 @@ type
       we clip the given pixel. Given a line (A, B, C) and pixel (x, y),
       the pixel is clipped (rejected) if @code(A * x + B * y + C < 0).
       This provides a functionality similar to desktop OpenGL glClipPlane
-      for TGLImage (on all platforms). }
+      for TGLImageCore (on all platforms). }
     property ClipLine: TVector3Single read FClipLine write SetClipLine;
   published
     { URL of the image. Setting this also sets @link(Image).
@@ -482,7 +482,7 @@ type
 
     { Is the image scaling mode smooth (bilinear filtering)
       or not (nearest-pixel filtering).
-      See @link(TGLImage.SmoothScaling). }
+      See @link(TGLImageCore.SmoothScaling). }
     property SmoothScaling: boolean
       read FSmoothScaling write SetSmoothScaling default true;
 
@@ -662,7 +662,7 @@ type
     { Drawn as window background. @nil means there is no background
       (use only if there is always some other 2D control underneath TCastleDialog).
       When assigned, stretched to cover whole screen. }
-    GLBackground: TGLImage;
+    GLBackground: TGLImageCore;
     Background: TCastleImage;
     TextAlign: THorizontalPosition;
     { Should we display InputText }
@@ -879,7 +879,7 @@ type
   strict private
     { Background image. }
     FBackground: TCastleImage;
-    FGLBackground: TGLImage;
+    FGLBackground: TGLImageCore;
     FYPosition: Single;
     FProgress: TProgress;
     procedure SetBackground(const Value: TCastleImage);
@@ -1058,7 +1058,7 @@ type
   strict private
     FImages: array [TThemeImage] of TCastleImage;
     FCorners: array [TThemeImage] of TVector4Integer;
-    FGLImages: array [TThemeImage] of TGLImage;
+    FGLImages: array [TThemeImage] of TGLImageCore;
     FOwnsImages: array [TThemeImage] of boolean;
     FMessageFont: TCastleFont;
     FOwnsMessageFont: boolean;
@@ -1069,16 +1069,16 @@ type
     procedure SetOwnsImages(const ImageType: TThemeImage; const Value: boolean);
     function GetCorners(const ImageType: TThemeImage): TVector4Integer;
     procedure SetCorners(const ImageType: TThemeImage; const Value: TVector4Integer);
-    function GetGLImages(const ImageType: TThemeImage): TGLImage;
+    function GetGLImages(const ImageType: TThemeImage): TGLImageCore;
     procedure GLContextClose(Sender: TObject);
     procedure SetMessageFont(const Value: TCastleFont);
   private
-    { TGLImage instances for fast and easy drawing of images on 2D screen.
-      Reading them for the 1st time means that the TGLImage instance is created,
+    { TGLImageCore instances for fast and easy drawing of images on 2D screen.
+      Reading them for the 1st time means that the TGLImageCore instance is created,
       so use them only when OpenGL context is already active (window is open etc.).
       Changing the TCastleImage instance will automatically free (and recreate
-      at next access) the corresponding TGLImage instance. }
-    property GLImages[const ImageType: TThemeImage]: TGLImage read GetGLImages;
+      at next access) the corresponding TGLImageCore instance. }
+    property GLImages[const ImageType: TThemeImage]: TGLImageCore read GetGLImages;
   public
     TooltipTextColor: TCastleColor;
     TextColor, DisabledTextColor: TCastleColor;
@@ -1122,7 +1122,7 @@ type
       used.
 
       The alpha channel of the image, if any, is automatically correctly used
-      (for alpha test or alpha blending, see TGLImage). }
+      (for alpha test or alpha blending, see TGLImageCore). }
     property Images[const ImageType: TThemeImage]: TCastleImage read GetImages write SetImages;
 
     property OwnsImages[const ImageType: TThemeImage]: boolean read GetOwnsImages write SetOwnsImages;
@@ -1130,7 +1130,7 @@ type
     { Corners that determine how image on @link(Images) is stretched when
       drawing by @link(TCastleTheme.Draw) method.
       Together with assigning @link(Images), adjust also this property.
-      It is used for images rendered using TGLImage.Draw3x3,
+      It is used for images rendered using TGLImageCore.Draw3x3,
       it determines how the image is stretched.
       The corners are specified as 4D vector, order like in CSS: top, right, down,
       left. }
@@ -1139,7 +1139,7 @@ type
     { Draw the selected theme image on screen.
       If you do not specify a color, white will be used, so image will be displayed
       as-is. Specifying a color means that image will be multiplied by it,
-      just like for @link(TGLImage.Color). }
+      just like for @link(TGLImageCore.Color). }
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
       const UIScale: Single = 1.0);
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
@@ -1489,7 +1489,7 @@ procedure TCastleButton.Render;
 var
   TextLeft, TextBottom, ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight: Integer;
   Background: TThemeImage;
-  CustomBackgroundImage: TGLImage;
+  CustomBackgroundImage: TGLImageCore;
   SR: TRectangle;
   ImageMarginScaled: Cardinal;
   UseImage: boolean;
@@ -1597,15 +1597,15 @@ procedure TCastleButton.GLContextOpen;
 begin
   inherited;
   if (FGLImage = nil) and (FImage <> nil) then
-    FGLImage := TGLImage.Create(FImage, true);
+    FGLImage := TGLImageCore.Create(FImage, true);
   if (FGLCustomBackgroundPressed = nil) and (FCustomBackgroundPressed <> nil) then
-    FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true);
+    FGLCustomBackgroundPressed := TGLImageCore.Create(FCustomBackgroundPressed, true);
   if (FGLCustomBackgroundDisabled = nil) and (FCustomBackgroundDisabled <> nil) then
-    FGLCustomBackgroundDisabled := TGLImage.Create(FCustomBackgroundDisabled, true);
+    FGLCustomBackgroundDisabled := TGLImageCore.Create(FCustomBackgroundDisabled, true);
   if (FGLCustomBackgroundFocused = nil) and (FCustomBackgroundFocused <> nil) then
-    FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true);
+    FGLCustomBackgroundFocused := TGLImageCore.Create(FCustomBackgroundFocused, true);
   if (FGLCustomBackgroundNormal = nil) and (FCustomBackgroundNormal <> nil) then
-    FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal, true);
+    FGLCustomBackgroundNormal := TGLImageCore.Create(FCustomBackgroundNormal, true);
   UpdateTextSize;
 end;
 
@@ -1796,7 +1796,7 @@ begin
     FImage := Value;
 
     if GLInitialized and (FImage <> nil) then
-      FGLImage := TGLImage.Create(FImage, true);
+      FGLImage := TGLImageCore.Create(FImage, true);
 
     UpdateSize;
   end;
@@ -1812,7 +1812,7 @@ begin
     FCustomBackgroundPressed := Value;
 
     if GLInitialized and (FCustomBackgroundPressed <> nil) then
-      FGLCustomBackgroundPressed := TGLImage.Create(FCustomBackgroundPressed, true);
+      FGLCustomBackgroundPressed := TGLImageCore.Create(FCustomBackgroundPressed, true);
 
     UpdateSize;
   end;
@@ -1828,7 +1828,7 @@ begin
     FCustomBackgroundDisabled := Value;
 
     if GLInitialized and (FCustomBackgroundDisabled <> nil) then
-      FGLCustomBackgroundDisabled := TGLImage.Create(FCustomBackgroundDisabled, true);
+      FGLCustomBackgroundDisabled := TGLImageCore.Create(FCustomBackgroundDisabled, true);
 
     UpdateSize;
   end;
@@ -1844,7 +1844,7 @@ begin
     FCustomBackgroundFocused := Value;
 
     if GLInitialized and (FCustomBackgroundFocused <> nil) then
-      FGLCustomBackgroundFocused := TGLImage.Create(FCustomBackgroundFocused, true);
+      FGLCustomBackgroundFocused := TGLImageCore.Create(FCustomBackgroundFocused, true);
 
     UpdateSize;
   end;
@@ -1860,7 +1860,7 @@ begin
     FCustomBackgroundNormal := Value;
 
     if GLInitialized and (FCustomBackgroundNormal <> nil) then
-      FGLCustomBackgroundNormal := TGLImage.Create(FCustomBackgroundNormal, true);
+      FGLCustomBackgroundNormal := TGLImageCore.Create(FCustomBackgroundNormal, true);
 
     UpdateSize;
   end;
@@ -2207,7 +2207,7 @@ begin
       if FGLImage <> nil then
         FGLImage.Load(FImage) else
       begin
-        FGLImage := TGLImage.Create(FImage, FSmoothScaling);
+        FGLImage := TGLImageCore.Create(FImage, FSmoothScaling);
         FGLImage.Color := Color;
         FGLImage.CenterX := FCenterX;
         FGLImage.CenterY := FCenterY;
@@ -2622,7 +2622,7 @@ begin
   Text := TextList;
   Background := ABackground;
   if GLInitialized then
-    GLBackground := TGLImage.Create(Background, true);
+    GLBackground := TGLImageCore.Create(Background, true);
   TextAlign := ATextAlign;
   DrawInputText := ADrawInputText;
   FInputText := AInputText;
@@ -2646,7 +2646,7 @@ procedure TCastleDialog.GLContextOpen;
 begin
   inherited;
   if (GLBackground = nil) and (Background <> nil) then
-    GLBackground := TGLImage.Create(Background, true);
+    GLBackground := TGLImageCore.Create(Background, true);
 end;
 
 procedure TCastleDialog.GLContextClose;
@@ -3404,7 +3404,7 @@ begin
       context is active => FGLBackground is assigned too. }
     FreeAndNil(FGLBackground);
     if GLInitialized and (FBackground <> nil) then
-      FGLBackground := TGLImage.Create(FBackground, true);
+      FGLBackground := TGLImageCore.Create(FBackground, true);
   end;
 end;
 
@@ -3412,7 +3412,7 @@ procedure TCastleProgressBar.GLContextOpen;
 begin
   inherited;
   if (FGLBackground = nil) and (FBackground <> nil) then
-    FGLBackground := TGLImage.Create(FBackground, true);
+    FGLBackground := TGLImageCore.Create(FBackground, true);
 end;
 
 procedure TCastleProgressBar.GLContextClose;
@@ -3884,10 +3884,10 @@ begin
   FCorners[ImageType] := Value;
 end;
 
-function TCastleTheme.GetGLImages(const ImageType: TThemeImage): TGLImage;
+function TCastleTheme.GetGLImages(const ImageType: TThemeImage): TGLImageCore;
 begin
   if FGLImages[ImageType] = nil then
-    FGLImages[ImageType] := TGLImage.Create(FImages[ImageType], true);
+    FGLImages[ImageType] := TGLImageCore.Create(FImages[ImageType], true);
   Result := FGLImages[ImageType];
 end;
 

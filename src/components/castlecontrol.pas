@@ -251,14 +251,13 @@ type
       you can initialize things that require OpenGL context now.
       Often you do not need to use this callback (engine components will
       automatically create/release OpenGL resource when necessary),
-      but sometimes it may be handy (e.g. TGLImage requires OpenGL context).
+      unless you deal with lower-level OpenGL resource managing (e.g. using
+      TGLImageCore).
       You usually will also want to implement OnClose callback that
-      releases stuff created here.
+      should release stuff you create here.
 
-      Even when you really need to initialize
-      some OpenGL resource (like TGLImage), instead of using this callback
-      it's usually better to derive new classes from
-      TUIControl class or it's descendants,
+      Often, instead of using this callback, it's cleaner to derive new classes
+      from TUIControl class or it's descendants,
       and override their GLContextOpen / GLContextClose methods to react to
       context being open/closed. Using such TUIControl classes
       is usually easier, as you add/remove them from controls whenever

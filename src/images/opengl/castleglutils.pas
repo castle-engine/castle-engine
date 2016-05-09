@@ -446,7 +446,7 @@ function OrthoProjection(const left, right, bottom, top: Single;
 { @groupEnd }
 
 var
-  { Viewport size for 2D rendering functions: DrawRectangle and TGLImage.Draw.
+  { Viewport size for 2D rendering functions: DrawRectangle and TGLImageCore.Draw.
     UI container (like TCastleWindowCustom or TCastleControlCustom)
     must take care to set this before rendering. }
   Viewport2DSize: TVector2Single;
@@ -461,13 +461,13 @@ procedure GLSetEnabled(value: TGLenum; isEnabled: boolean);
 { Draw vertical line using OpenGL. Uses current OpenGL color.
 
   Deprecated, do not draw lines directly like this,
-  instead use UI interface drawing like Theme.Draw and TGLImage.Draw. }
+  instead use UI interface drawing like Theme.Draw and TGLImageCore.Draw. }
 procedure GLVerticalLine(x, y1, y2: TGLfloat); deprecated;
 
 { Draw horizontal line using OpenGL. Uses current OpenGL color.
 
   Deprecated, do not draw lines directly like this,
-  instead use UI interface drawing like Theme.Draw and TGLImage.Draw. }
+  instead use UI interface drawing like Theme.Draw and TGLImageCore.Draw. }
 procedure GLHorizontalLine(x1, x2, y: TGLfloat); deprecated;
 
 { Draw arrow shape. Arrow is placed on Z = 0 plane, points to the up,
@@ -649,7 +649,7 @@ procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
 
 { Draw the 2D GUI stuff (like following GUI images and TCastleFont)
   with lower-left corner in the X,Y pixel.
-  It's not adviced to use this, better use TGLImage.Draw(X,Y)
+  It's not adviced to use this, better use TGLImageCore.Draw(X,Y)
   or TCastleFont.Print(X,Y,string) methods.
   @groupBegin }
 procedure SetWindowPos(const X, Y: TGLint);

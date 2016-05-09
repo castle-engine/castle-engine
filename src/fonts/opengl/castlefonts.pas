@@ -356,7 +356,7 @@ type
   strict private
     FFont: TTextureFontData;
     FOwnsFont: boolean;
-    GLImage: TGLImage;
+    GLImage: TGLImageCore;
     function GetSmoothScaling: boolean;
   strict protected
     procedure SetScale(const Value: Single); override;
@@ -430,7 +430,7 @@ type
     http://opengameart.org/content/null-terminator. }
   TSimpleTextureFont = class(TCastleFont)
   strict private
-    GLImage: TGLImage;
+    GLImage: TGLImageCore;
     Image: TCastleImage;
     ImageCols, ImageRows,
       CharMargin, CharDisplayMargin, CharWidth, CharHeight: Integer;
@@ -1005,7 +1005,7 @@ procedure TTextureFont.PrepareResources;
 begin
   inherited;
   if GLImage = nil then
-    GLImage := TGLImage.Create(FFont.Image, GetSmoothScaling);
+    GLImage := TGLImageCore.Create(FFont.Image, GetSmoothScaling);
 end;
 
 procedure TTextureFont.GLContextClose;
@@ -1178,7 +1178,7 @@ procedure TSimpleTextureFont.PrepareResources;
 begin
   inherited;
   if GLImage = nil then
-    GLImage := TGLImage.Create(Image, GetSmoothScaling);
+    GLImage := TGLImageCore.Create(Image, GetSmoothScaling);
 end;
 
 procedure TSimpleTextureFont.GLContextClose;

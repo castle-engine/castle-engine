@@ -21,7 +21,7 @@ type
   { Video as a sequence of OpenGL textures that can be easily played.
     Use TGLVideo3D to have a list of normal OpenGL textures,
     e.g. for rendering video as texture on free 3D objects.
-    Use TGLVideo2D to have a list of GUI textures (TGLImage),
+    Use TGLVideo2D to have a list of GUI textures (TGLImageCore),
     e.g. for rendering video as simple 2D control. }
   TGLVideo = class
   private
@@ -81,10 +81,10 @@ type
     function GLTextureFromTime(const Time: TFloatTime): TGLTextureId;
   end;
 
-  { Video expressed as a series of TGLImage, to play as 2D GUI control. }
+  { Video expressed as a series of TGLImageCore, to play as 2D GUI control. }
   TGLVideo2D = class(TGLVideo)
   private
-    FItems: array of TGLImage;
+    FItems: array of TGLImageCore;
   public
     constructor Create(Video: TVideo;
       const SmoothScaling: boolean = false);
@@ -96,7 +96,7 @@ type
       const Interpolation: TResizeInterpolation = riBilinear);
     destructor Destroy; override;
 
-    function GLImageFromTime(const Time: TFloatTime): TGLImage;
+    function GLImageFromTime(const Time: TFloatTime): TGLImageCore;
   end;
 
 {$endif read_interface}
@@ -171,7 +171,7 @@ begin
 
   SetLength(FItems, Count);
   for I := 0 to High(FItems) do
-    FItems[I] := TGLImage.Create(Video.Items[I], SmoothScaling);
+    FItems[I] := TGLImageCore.Create(Video.Items[I], SmoothScaling);
 end;
 
 constructor TGLVideo2D.Create(const URL: string;
@@ -209,7 +209,7 @@ begin
   inherited;
 end;
 
-function TGLVideo2D.GLImageFromTime(const Time: TFloatTime): TGLImage;
+function TGLVideo2D.GLImageFromTime(const Time: TFloatTime): TGLImageCore;
 begin
   Result := FItems[IndexFromTime(Time)];
 end;
