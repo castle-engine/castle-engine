@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestImages;
+unit TestCastleImages;
 
 interface
 

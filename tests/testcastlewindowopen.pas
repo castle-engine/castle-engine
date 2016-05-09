@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Test TUIContainer. }
-unit TestContainer;
+{ Test doing various stuff from TCastleWindow.OnOpen. }
+unit TestCastleWindowOpen;
 
 interface
 

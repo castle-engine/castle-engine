@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestGenericLists;
+unit TestCastleGenericLists;
 
 interface
 

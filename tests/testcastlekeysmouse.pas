@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestKeysMouse;
+unit TestCastleKeysMouse;
 
 interface
 

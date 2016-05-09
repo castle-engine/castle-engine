@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestVideos;
+unit TestCastleVideos;
 
 interface
 

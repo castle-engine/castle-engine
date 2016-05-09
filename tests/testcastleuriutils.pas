@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestURIUtils;
+unit TestCastleURIUtils;
 
 interface
 
@@ -22,6 +22,7 @@ uses
 
 type
   TTestURIUtils = class(TCastleBaseTestCase)
+    procedure TestURIProtocol;
     procedure TestAbsoluteURI;
     procedure TestURIToFilenameSafe;
     procedure PercentEncoding;
@@ -32,6 +33,27 @@ type
 implementation
 
 uses CastleURIUtils, URIParser, CastleUtils;
+
+procedure TTestURIUtils.TestURIProtocol;
+var
+  Colon: Integer;
+begin
+  AssertTrue(URIProtocol('data:blah:foo') = 'data');
+  AssertTrue(URIProtocolIs('data:blah:foo', 'data', Colon));
+  AssertTrue(not URIProtocolIs('data:blah:foo', 'data1', Colon));
+  AssertTrue(not URIProtocolIs('data:blah:foo', 'dat', Colon));
+  AssertTrue(not URIProtocolIs('data', 'data', Colon));
+  AssertTrue(not URIProtocolIs('', 'data', Colon));
+
+  AssertTrue(URIProtocol('ecmascript:xyz') = 'ecmascript');
+  AssertTrue(URIDeleteProtocol('ecmascript:xyz') = 'xyz');
+
+  AssertTrue(URIProtocol('     ' + NL + '    ecmascript:xyz') = 'ecmascript');
+  AssertTrue(URIDeleteProtocol('     ' + NL + '    ecmascript:xyz') = 'xyz');
+
+  AssertTrue(URIProtocol('void main()' + NL + 'ecmascript:xyz') = '');
+  AssertTrue(URIDeleteProtocol('void main()' + NL + 'ecmascript:xyz') = 'void main()' + NL + 'ecmascript:xyz');
+end;
 
 procedure TTestURIUtils.TestAbsoluteURI;
 begin

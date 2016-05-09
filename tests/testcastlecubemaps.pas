@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestCubeMaps;
+unit TestCastleCubeMaps;
 
 {$mode objfpc}{$H+}
 

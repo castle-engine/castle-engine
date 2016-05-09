@@ -14,7 +14,7 @@
 }
 
 { }
-unit TestScene;
+unit TestCastleScene;
 
 interface
 

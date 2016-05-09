@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestSpaceFillingCurves;
+unit TestCastleSpaceFillingCurves;
 
 interface
 

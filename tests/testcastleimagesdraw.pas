@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestImagesDraw;
+unit TestCastleImagesDraw;
 
 {$include castleconf.inc}
 

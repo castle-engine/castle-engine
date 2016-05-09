@@ -1,4 +1,4 @@
-unit TestSceneCore;
+unit TestCastleSceneCore;
 
 {$I tests.inc}
 

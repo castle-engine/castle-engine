@@ -14,11 +14,11 @@
 }
 
 { Test some OS-specific utilities in castle_game_engine,
-  mostly in CastleUtils unit.
+  mostly in CastleFilesUtils unit.
   Usually the mere purpose of these utilities is to hide some OS-specific
   (UNIX-specific, Windows-specific) things from program. }
 
-unit TestOSSpecific;
+unit TestCastleFilesUtils;
 
 {$mode objfpc}{$H+}
 

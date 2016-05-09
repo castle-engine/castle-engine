@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestCameras;
+unit TestCastleCameras;
 
 interface
 

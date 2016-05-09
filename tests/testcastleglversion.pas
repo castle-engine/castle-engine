@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestGLVersion;
+unit TestCastleGLVersion;
 
 interface
 

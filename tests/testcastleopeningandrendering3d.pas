@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestOpeningAndRendering3D;
+unit TestCastleOpeningAndRendering3D;
 
 {$I tests.inc}
 

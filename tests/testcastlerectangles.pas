@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestRectangles;
+unit TestCastleRectangles;
 
 interface
 

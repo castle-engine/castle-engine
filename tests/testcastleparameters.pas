@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestParsingParameters;
+unit TestCastleParameters;
 
 interface
 
