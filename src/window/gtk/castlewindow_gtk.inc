@@ -1558,8 +1558,6 @@ end;
 { TCastleApplication ------------------------------------------------------------- }
 
 procedure TCastleApplication.ProcessUpdates;
-var
-  WasAnyRendering: boolean;
 begin
   { Render the invalidated windows.
     And call Update and Timer events of Application and all windows.
@@ -1573,7 +1571,7 @@ begin
     Also, we use our own timer mechanism, without depending on GTK timers.
     This makes our code consistent across platforms. }
 
-  UpdateAndRenderEverything(WasAnyRendering);
+  UpdateAndRenderEverything;
 end;
 
 function TCastleApplication.TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowCustom;

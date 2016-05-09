@@ -2476,6 +2476,7 @@ end;
       This allows some backends to easily do everything that typically needs
       to be done continuosly (without the need for any message from the outside). }
     procedure UpdateAndRenderEverything(out WasAnyRendering: boolean);
+    procedure UpdateAndRenderEverything;
 
     { Can we wait (hang) for next message.
       See TCastleWindowCustom.AllowSuspendForInput, this is similar but for
@@ -4635,6 +4636,13 @@ begin
 
     Inc(I);
   end;
+end;
+
+procedure TCastleApplication.UpdateAndRenderEverything;
+var
+  IgnoreWasAnyRendering: boolean;
+begin
+  UpdateAndRenderEverything(IgnoreWasAnyRendering);
 end;
 
 function TCastleApplication.AllowSuspendForInput: boolean;
