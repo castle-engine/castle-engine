@@ -2389,9 +2389,9 @@ end;
   private
     FOnInitialize{, FOnInitializeJavaActivity}: TProcedure;
     Initialized, InitializedJavaActivity: boolean;
-    FOnUpdate :TUpdateFunc;
-    FOnTimer :TProcedure;
-    FTimerMilisec :Cardinal;
+    FOnUpdate: TUpdateFunc;
+    FOnTimer: TProcedure;
+    FTimerMilisec: Cardinal;
     FVideoColorBits: integer;
     FVideoFrequency: Cardinal;
     { Current window with OpenGL context active.
@@ -2402,6 +2402,7 @@ end;
     FMainWindow: TCastleWindowCustom;
     FUserAgent: string;
     FDefaultWindowClass: TCastleWindowCustomClass;
+    LastMaybeDoTimerTime: TMilisecTime;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindowCustom;
@@ -2458,28 +2459,29 @@ end;
         then once. }
     procedure QuitWhenNoOpenWindows;
 
-    { Call OnUpdate, call OnApplicationUpdate. }
+    { Call Application.OnUpdate. }
     procedure DoApplicationUpdate;
 
-    { Call OnTimer. }
+    { Call Application.OnTimer. }
     procedure DoApplicationTimer;
 
-    { Something useful for some CastleWindow backends. This will implement
-      (in a simple way) calling of DoApplicationTimer and OpenWindows.DoTimer.
+    { Call Application.OnTimer, and all window's OnTimer, when the time is right.
+      This allows some backends to easily implement the timer.
+      Simply call this method very often (usually at the same time you're calling
+      DoApplicationUpdate). }
+    procedure MaybeDoTimer;
 
-      Declare in TCastleApplication some variable like
-        LastDoTimerTime: TMilisecTime
-      initialized to 0. Then just call very often (probably at the same time
-      you're calling DoApplicationUpdate)
-        MaybeDoTimer(LastDoTimerTime);
-      This will take care of calling DoApplicationTimer and OpenWindows.DoTimer
-      at the appropriate times. It will use and update LastDoTimerTime,
-      you shouldn't read or write LastDoTimerTime yourself. }
-    procedure MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
+    { Call OnUpdate, OnTimer on Application and all open windows,
+      and call OnRender on all necessary windows.
+      This allows some backends to easily do everything that typically needs
+      to be done continuosly (without the need for any message from the outside). }
+    procedure UpdateAndRenderEverything(out WasAnyRendering: boolean);
 
-    { Just like TCastleWindowCustom.AllowSuspendForInput, except this is for
+    { Can we wait (hang) for next message.
+      See TCastleWindowCustom.AllowSuspendForInput, this is similar but for
       the whole Application. Returns @true only if all open
-      windows allow it, and we do not have OnUpdate and OnTimer. }
+      windows allow it, and application state allows it too
+      (e.g. we do not have OnUpdate and OnTimer). }
     function AllowSuspendForInput: boolean;
 
     procedure DoLimitFPS;
@@ -4556,17 +4558,82 @@ begin
   if Assigned(FOnTimer) then FOnTimer;
 end;
 
-procedure TCastleApplication.MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
+procedure TCastleApplication.MaybeDoTimer;
 var
   Now: TMilisecTime;
 begin
   Now := CastleTimeUtils.GetTickCount64;
-  if ((ALastDoTimerTime = 0) or
-      (MilisecTimesSubtract(Now, ALastDoTimerTime) >= FTimerMilisec)) then
+  if ((LastMaybeDoTimerTime = 0) or
+      (MilisecTimesSubtract(Now, LastMaybeDoTimerTime) >= FTimerMilisec)) then
   begin
-    ALastDoTimerTime := Now;
+    LastMaybeDoTimerTime := Now;
     DoApplicationTimer;
     FOpenWindows.DoTimer;
+  end;
+end;
+
+procedure TCastleApplication.UpdateAndRenderEverything(out WasAnyRendering: boolean);
+var
+  I: integer;
+  Window: TCastleWindowCustom;
+begin
+  WasAnyRendering := false;
+
+  { We call Application.OnUpdate *right before rendering*, because:
+
+     - This makes calls to Application.OnUpdate have similar frequency
+       as calls to window's OnRender callbacks, when the application
+       is under a lot of stress (many messages).
+
+       Otherwise, if we would move this call outside of
+       "if .. not CheckMessage then ..." in castlewindow_winsystem.inc,
+       then doing something
+       that generates a lot of events (like moving the mouse)
+       would make us generate a lot OnUpdate events,
+       without many OnRender between. Which isn't actually prohibited...
+       but it seems useless.
+
+     - Calling OnUpdate later, only if "not WasAnyRendering", would
+       also be bad, because then intensive redrawing (e.g. if you redraw
+       every frame, with AutoRedisplay) would make OnUpdate called less
+       often.
+
+     In effect, we like to have OnUpdate called roughly as often as OnRender,
+     even if we don't really guarantee it. }
+  DoApplicationUpdate;
+  if Terminated then Exit;
+
+  MaybeDoTimer;
+  if Terminated then Exit;
+
+  { Redraw some windows, and call window's OnUpdate.
+
+    Gathering OnUpdate and OnRender of the same window together,
+    we minimize the amount of needed MakeContextCurrent calls in case
+    of applications with multiple windows.
+
+    Remember that every callback may close the window, which also modifies
+    the OpenWindows and OpenWindowsCount. The code below secures from
+    all such changes, e.g. by copying "OpenWindows[I]" at the beginning,
+    and checking "Window.Closed" all the time. }
+  I := 0;
+  while I < OpenWindowsCount do
+  begin
+    Window := OpenWindows[I];
+
+    Window.DoUpdate;
+    if Window.Closed then Continue {don't Inc(I)};
+    if Terminated then Exit;
+
+    if Window.Invalidated then
+    begin
+      WasAnyRendering := true;
+      Window.DoRender;
+      if Window.Closed then Continue {don't Inc(I)};
+      if Terminated then Exit;
+    end;
+
+    Inc(I);
   end;
 end;
 

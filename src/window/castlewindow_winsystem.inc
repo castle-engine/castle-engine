@@ -20,8 +20,6 @@
 
 {$ifdef read_application_interface}
 private
-  LastDoTimerTime: TMilisecTime;
-
   { Same as ProcessMessage(WaitForMessage, WaitToLimitFPS),
     but additionally returns under WasAnyMessage was there any message
     processed.
@@ -195,68 +193,22 @@ function TCastleApplication.ProcessMessage2(WaitForMessage, WaitToLimitFPS: bool
   procedure NoMessageProcessed;
   begin
     {$ifdef CASTLE_WINDOW_XLIB}
-    XFlush(XDisplay)
+    XFlush(XDisplay);
     {$endif}
   end;
 
 var
   WasAnyRendering: boolean;
-  I: integer;
-  Window: TCastleWindowCustom;
 begin
   WasAnyMessage := false;
 
-  if (OpenWindowsCount <> 0) and (not CheckMessage) then
+  if not CheckMessage then
   begin
-    { no messages to us - call DoApplicationUpdate now.
-      Wywolujemy OnUpdate teraz bo :
-       - gbybysmy wywolywali OnUpdate w kazdym wywolaniu ProcessMessage
-         to doprowadzalisbysmy do tego ze np. ruch mysza powoduje
-         pozorne przyspieszenie rysowania - bo gdy user rusza mysza
-         nasza petla jest zajeta przetwarzaniem messagy i w zwiazku z tym
-         nie wykonuje zadnych OnRender ktore sa przeciez najbardziej
-         opozniajaca czescia programu. W rezultacie wykonywanych jest
-         mnostwo razy OnUpdate ktore, mimo ze zmieniaja jakas zmienna
-         i wywoluja Invalidate to jednak czekaja sporo na
-         spowodowane przez siebie redisplay (bo ciagle zamiast redisplay'a
-         przetwarzamy ruchy myszka). Wiec aby OnUpdate byly wywolywane
-         mniej wiecej z taka sama czestotliwoscia co OnRender'y
-         musimy umiescic wywolanie OnUpdate tutaj - tuz przed wywolywaniem
-         samych OnRender'ow.
-       - gdybysmy wywolywali OnUpdate dopiero do ponizszych drawach
-         jezeli not WasAnyRendering to z kolei zdarzenia OnRender
-         (ktore np. same sobie juz wywoluja Invalidate) moglyby
-         hamowac wywolywanie zdarzen OnUpdate.
-         A tego nie chcemy - patrz komentarze w interfejsie,
-         nadrzednym celem jest by OnUpdate bylo wykonywane mniej
-         wiecej tak czesto co OnRender.  }
-    DoApplicationUpdate;
+    { No messages to us, so call update/timer/render on everything. }
+    UpdateAndRenderEverything(WasAnyRendering);
+    if Terminated then Exit;
 
-    { redraw some windows; we do it only if our event queue is empty.
-      Przy okazji robimy DoUpdate okien, majac nadzieje ze gromadzac
-        blisko siebie callbacki tych samych okien zminimalizujemy koszty
-        ciaglego zmieniania aktywnego kontekstu OpenGL'a.
-      Ponizszy kod wydaje sie miec paranoje na punkcie zamykania okna - pamietajmy
-        ze Closed moze zostac wywolane na oknie w kazdym callbacku, takze w OnUpdate
-        i OnRender. A Close usuwa to okno z listy OpenWindows, dlatego kopiujemy sobie
-        na poczatku OpenWindows[i] do Window. }
-    WasAnyRendering := false;
-    I := 0;
-    while I < OpenWindowsCount do
-    begin
-      Window := OpenWindows[I];
-      Window.DoUpdate;
-      if Window.Closed then Continue {don't Inc(I)};
-      if Window.Invalidated then
-      begin
-        Window.DoRender;
-        WasAnyRendering := true;
-      end;
-      if Window.Closed then Continue {don't Inc(I)};
-      Inc(I);
-    end;
-
-    { If we do not do anything in any Update/timer
+    { If we do not do anything in any Application Update/Timer
       (this is checked by AllowSuspendForInput),
       and there's no reason to redisplay,
       and we're not during quit process (started by Application.Quit),
@@ -270,8 +222,6 @@ begin
   end;
 
   if Terminated then Exit(false);
-
-  MaybeDoTimer(LastDoTimerTime);
 
   {$ifndef CASTLE_ENGINE_PLUGIN}
   { Plugin should never just sleep like this, to not block the browser

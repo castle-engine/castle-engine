@@ -79,7 +79,6 @@ private
 
   var
     FScreenWidth, FScreenHeight: Integer;
-    LastDoTimerTime: TMilisecTime;
     AndroidApp: PAndroid_App;
     QEvents: TQueuedEventList;
     TouchChanges: array [0..FingerCount - 1] of TTouchChange;
@@ -534,12 +533,12 @@ end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 
-  { Call Update on Application and all open Windows, call OnTimer on Application }
+  { Call Update and Timer on Application and all open Windows. }
   procedure WindowsUpdateAndTimer;
   begin
     DoApplicationUpdate;
     FOpenWindows.DoUpdate;
-    MaybeDoTimer(LastDoTimerTime);
+    MaybeDoTimer;
   end;
 
   procedure Resize(Width, Height: Integer);

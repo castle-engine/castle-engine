@@ -50,9 +50,6 @@ public
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
-private
-  LastDoTimerTime: TMilisecTime;
-  
 public
   procedure LibraryUpdate;
 {$endif read_application_interface}
@@ -218,7 +215,7 @@ procedure TCastleApplication.LibraryUpdate;
 begin
   DoApplicationUpdate;
   FOpenWindows.DoUpdate;
-  MaybeDoTimer(LastDoTimerTime);
+  MaybeDoTimer;
 end;
 
 { TCastleWindowCustom menu ----------------------------------------------------

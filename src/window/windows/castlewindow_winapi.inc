@@ -650,6 +650,13 @@ begin
         Exit;
       end;
   end;
+
+  { The DefWindowProc may enter a modal loop in some cases, e.g. when
+    WM_NCLBUTTONDOWN initializes window resizing operation.
+    To keep receiving update/timer/redraws, register our timer.
+    See http://stackoverflow.com/questions/3102074/win32-my-application-freezes-while-the-user-resizes-the-window }
+  // TODO: PossibleModalLoop := uMsg = WM_NCLBUTTONDOWN;
+
   Result := DefWindowProc(h_Wnd, uMsg, wParm, lParm);
 end;
 

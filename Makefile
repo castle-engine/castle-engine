@@ -249,6 +249,7 @@ clean: cleanexamples
 			   -iname '*.libimp*.a' -or \
 			   -iname '*.apk' -or \
 	                   -iname '*.dcu' -or -iname '*.dpu' -or \
+	                   -iname '*.log' -or \
 			   -iname 'castleengine.dll' -or -iname 'libcastleengine.so' ')' \
 	     -print \
 	     | xargs rm -f
