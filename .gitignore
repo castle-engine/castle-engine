@@ -9,10 +9,14 @@
 *~
 *.apk
 *.a
+*.log
 castle-game-engine-*.fpm
 examples/2d/controls_demo
 examples/2d/libcontrols_demo_android.so
 examples/2d_dragon_spine_android_game/castle_spine
+examples/2d_dragon_spine_android_game/castle_spine.exe
+examples/2d_dragon_spine_android_game/castle_spine.log
+examples/2d_dragon_spine_android_game/code/lib/
 examples/3d_rendering_processing/animate_3d_model_by_code
 examples/3d_rendering_processing/animate_3d_model_by_code_2
 examples/3d_rendering_processing/build_3d_object_by_code
@@ -118,7 +122,9 @@ src/x3d/nodes_specification/x3d_nodes_spec_to_pascal/x3d_nodes_spec_to_pascal
 src/x3d/teapot/teapot_3d_to_pascal
 src/x3d/teapot/teapot_3d_to_pascal.res
 tests/test_castle_game_engine
+tests/test_castle_game_engine.exe
 tools/build-tool/castle-engine
+tools/build-tool/castle-engine.exe
 tools/build-tool/data/android/integrated-components/chartboost/libs/*.jar
 tools/build-tool/data/android/integrated-components/game_analytics/gameanalytics/*.jar
 tools/build-tool/data/android/integrated-components/game_analytics/libs/*.jar
