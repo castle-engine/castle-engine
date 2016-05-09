@@ -29,8 +29,7 @@ type
     Simply add it to your TCastleOnScreenMenu like
 
 @longCode(#
-  InsertFront(TSoundInfoMenuItem.Create(SomeOwner));
-  RecalculateSize;
+  OnScreenMenu.Add(TSoundInfoMenuItem.Create(OnScreenMenu));
 #)
 
     Also be sure to assign Application.MainWindow, it is used
@@ -53,8 +52,7 @@ type
     Simply add it to your TCastleOnScreenMenu like
 
 @longCode(#
-  InsertFront(TSoundVolumeMenuItem.Create(SomeOwner));
-  RecalculateSize;
+  OnScreenMenu.Add(TSoundVolumeMenuItem.Create(OnScreenMenu));
 #) }
   TSoundVolumeMenuItem = class(TCastleLabel)
   private
@@ -71,8 +69,7 @@ type
     Simply add it to your TCastleOnScreenMenu like
 
 @longCode(#
-  InsertFront(TMusicVolumeMenuItem.Create(SomeOwner));
-  RecalculateSize;
+  OnScreenMenu.Add(TMusicVolumeMenuItem.Create(OnScreenMenu));
 #) }
   TMusicVolumeMenuItem = class(TCastleLabel)
   private

@@ -116,6 +116,7 @@ type
     procedure Add(const S: string);
     procedure Add(const S: string; const Accessory: TUIControl);
     procedure Add(const S: string; const ItemOnClick: TNotifyEvent);
+    procedure Add(const NewItem: TUIControl);
 
     { Currently selected child index.
       When ControlsCount <> 0, this is always some number
@@ -679,28 +680,40 @@ begin
   end;
 end;
 
+procedure TCastleOnScreenMenu.Add(const NewItem: TUIControl);
+begin
+  if NewItem is TUIControlFont then
+  begin
+    TUIControlFont(NewItem).CustomFont := CustomFont;
+    TUIControlFont(NewItem).FontSize := FontSize;
+  end;
+  InsertFront(NewItem);
+
+  if NewItem.ControlsCount <> 0 then
+  begin
+    { Pass our CustomFont / FontSize to NewItem.Controls[0].
+      TODO: this is a poor way, it's not updated later when we change
+      CustomFont/FontSize, it's not recursive.... }
+    if NewItem.Controls[0] is TUIControlFont then
+    begin
+      TUIControlFont(NewItem.Controls[0]).CustomFont := CustomFont;
+      TUIControlFont(NewItem.Controls[0]).FontSize := FontSize;
+    end;
+  end;
+
+  RecalculateSize;
+end;
+
 procedure TCastleOnScreenMenu.Add(const S: string; const Accessory: TUIControl);
 var
   L: TCastleLabel;
 begin
   L := TCastleLabel.Create(Self);
   L.Text.Text := S;
-  L.CustomFont := CustomFont;
-  L.FontSize := FontSize;
-  InsertFront(L);
   if Accessory <> nil then
-  begin
     L.InsertFront(Accessory);
-    { pass our CustomFont / FontSize to children.
-      TODO: this is a poor way, it's not updated later when we change
-      CustomFont/FontSize, it's not recursive.... }
-    if Accessory is TUIControlFont then
-    begin
-      TUIControlFont(Accessory).CustomFont := CustomFont;
-      TUIControlFont(Accessory).FontSize := FontSize;
-    end;
-  end;
-  RecalculateSize;
+
+  Add(L);
 end;
 
 procedure TCastleOnScreenMenu.Add(const S: string);

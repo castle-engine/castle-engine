@@ -237,12 +237,9 @@ begin
   OpenALDeviceArgument.Caption := SoundEngine.DeviceNiceName;
   OpenALDeviceArgument.OnClick := @ClickChangeDevice;
 
-  InsertFront(TSoundInfoMenuItem.Create(Self));
-  RecalculateSize;
-  InsertFront(TSoundVolumeMenuItem.Create(Self));
-  RecalculateSize;
-  InsertFront(TMusicVolumeMenuItem.Create(Self));
-  RecalculateSize;
+  Add(TSoundInfoMenuItem.Create(Self));
+  Add(TSoundVolumeMenuItem.Create(Self));
+  Add(TMusicVolumeMenuItem.Create(Self));
   Add('Sound output device', OpenALDeviceArgument);
   Add('Back to main menu', @ClickBack);
 
