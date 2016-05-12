@@ -46,8 +46,8 @@ type
       @item(load/save to the default config file location (for user preferences),)
       @item(load/save more types (floats, vectors, colors, URLs,
         multiline text...),)
-      @item(PathElement utility, to use powerful DOM functions when needed
-        to process something more complex,)
+      @item(PathElement and MakePathElement utility, to use powerful DOM
+        functions when needed to process something more complex,)
       @item(encrypt/descrypt contents, just use BlowFishKeyPhrase property
         (this is actually built-in in our modified TXMLConfig).)
     )
@@ -264,9 +264,17 @@ ColorRGB := GetColorRGB('example/path/to/myColorRGB', BlackRGB);
       of the same element: XMLConfig will (probably ?) just always ignore
       the second one. Which means that if you use this method to change
       some XML content, you should be careful when accessing this content
-      from regular XMLConfig GetValue / SetValue methods. }
+      from regular XMLConfig GetValue / SetValue methods.
+
+      Note that if you modify the DOM contents this way,
+      you must manually call MarkModified afterwards, to make sure
+      it will get saved later. }
     function PathElement(const APath: string;
       const RaiseExceptionWhenMissing: boolean = false): TDOMElement;
+
+    { Similar to PathElement,
+      but creates the necessary elements along the way as needed. }
+    function MakePathElement(const APath: string): TDOMElement;
 
     { For a given path, return corresponding children elements of a given
       DOM element of XML tree. For example, you have an XML like this:
@@ -357,6 +365,7 @@ end;
     function GetMultilineText(const APath: string): string;
 
     procedure NotModified;
+    procedure MarkModified;
 
     { Listeners, automatically called at the @link(Load) or @link(Save)
       calls.
@@ -867,19 +876,6 @@ end;
 
 function TCastleConfig.PathElement(const APath: string;
   const RaiseExceptionWhenMissing: boolean): TDOMElement;
-
-  { Find a children element, nil if not found. }
-  function FindElementChildren(Element: TDOMElement;
-    const ElementName: string): TDOMElement;
-  var
-    Node: TDOMNode;
-  begin
-    Node := Element.FindNode(ElementName);
-    if (Node <> nil) and (Node.NodeType = ELEMENT_NODE) then
-      Result := Node as TDOMElement else
-      Result := nil;
-  end;
-
 var
   SeekPos: Integer;
   PathComponent: string;
@@ -890,11 +886,35 @@ begin
   begin
     PathComponent := NextToken(APath, SeekPos, ['/']);
     if PathComponent = '' then break;
-    Result := FindElementChildren(Result, PathComponent);
+    Result := Result.ChildElement(PathComponent, false);
   end;
 
   if (Result = nil) and RaiseExceptionWhenMissing then
     raise Exception.CreateFmt('Missing element "%s" in file "%s"', [APath, URL]);
+end;
+
+function TCastleConfig.MakePathElement(const APath: string): TDOMElement;
+var
+  SeekPos: Integer;
+  PathComponent: string;
+  NewResult: TDOMElement;
+begin
+  Result := Doc.DocumentElement;
+  SeekPos := 1;
+  { only exits by break, for consistency with PathElement implementation above }
+  while true do
+  begin
+    PathComponent := NextToken(APath, SeekPos, ['/']);
+    if PathComponent = '' then break;
+    NewResult := Result.ChildElement(PathComponent, false);
+    { create child if necessary }
+    if NewResult = nil then
+    begin
+      NewResult := Doc.CreateElement(PathComponent);
+      Result.AppendChild(NewResult);
+    end;
+    Result := NewResult;
+  end;
 end;
 
 function TCastleConfig.PathChildren(const APath: string;
@@ -949,6 +969,11 @@ end;
 procedure TCastleConfig.NotModified;
 begin
   FModified := false;
+end;
+
+procedure TCastleConfig.MarkModified;
+begin
+  FModified := true;
 end;
 
 procedure TCastleConfig.Load(const AURL: string);
