@@ -1119,7 +1119,9 @@ end;
 
     { Rectangle filling the parent control (or coordinates), in local coordinates.
       Since this is in local coordinates, the returned rectangle Left and Bottom
-      are always zero. }
+      are always zero.
+      This is already scaled by UI scaling, since it's derived from @link(Rect)
+      size that should also be already scaled. }
     function ParentRect: TRectangle;
 
     { Quick way to enable horizontal anchor, to automatically keep this
