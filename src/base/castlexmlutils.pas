@@ -36,7 +36,10 @@ type
       or (of there is no such attribute) returns @false
       and does not modify Value. Value is a "var", not "out" param,
       because in the latter case it's guaranteed that the old Value
-      will not be cleared. }
+      will not be cleared.
+
+      Note that the returned Value may be empty, even when this returns @true,
+      if the value is explicitly set to empty in XML (by @code(xxx="") in XML). }
     function AttributeString(const AttrName: string; var Value: string): boolean;
 
     { Read from Element attribute value as URL and returns @true,
@@ -108,6 +111,14 @@ type
 
     { Retrieves from Element given attribute as a string,
       raises EDOMAttributeMissing if missing.
+
+      Note that the attribute is required, but it's value may still be empty
+      if it's explicitly set to empty in XML (by @code(xxx="") in XML).
+      This is different than TCastleConfig.GetStringNonEmpty method,
+      that serves a similar purpose for TCastleConfig, but it requires
+      @italic(non-empty value) exists. Here, we only require that the value
+      exists, but it may still be empty.
+
       @raises EDOMAttributeMissing }
     function AttributeString(const AttrName: string): string;
 
@@ -174,7 +185,8 @@ type
     { ------------------------------------------------------------------------
       Get an optional attribute, returns attribute or a default value. }
 
-    { Retrieves from Element given attribute as a string, or a default value. }
+    { Retrieves from Element given attribute as a string, or a default value
+      if the attribute was not explicitly given. }
     function AttributeStringDef(const AttrName: string; const DefaultValue: string): string;
 
     { Retrieves from Element given attribute as a Cardinal, or a default value. }
