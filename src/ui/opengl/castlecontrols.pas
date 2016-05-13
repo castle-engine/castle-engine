@@ -622,7 +622,7 @@ type
 
     See CastleMessages for routines that intensively use this dialog underneath,
     giving you easy MessageXxx routines that ask user for confirmation and such. }
-  TCastleDialog = class abstract(TUIControl)
+  TCastleDialog = class abstract(TUIControlFont)
   strict private
     const
       BoxMargin = 10;
@@ -670,6 +670,11 @@ type
     Buttons: array of TCastleButton;
     LifeTime: TFloatTime;
 
+    function BoxMarginScaled: Integer;
+    function WindowMarginScaled: Integer;
+    function ScrollBarWholeWidthScaled: Integer;
+    function ButtonHorizontalMarginScaled: Integer;
+
     procedure SetScroll(Value: Single);
     { How many pixels up should be move the text.
       Kept as a float, to allow smooth time-based changes.
@@ -684,9 +689,8 @@ type
       Returns 0 if there are no Buttons = ''. }
     function ButtonsHeight: Integer;
     procedure UpdateSizes;
-    { If ScrollBarVisible, ScrollBarWholeWidth. Else 0. }
-    function RealScrollBarWholeWidth: Integer;
-    function Font: TCastleFont;
+    { If ScrollBarVisible, ScrollBarWholeWidthScaled. Else 0. }
+    function RealScrollBarWholeWidthScaled: Integer;
   public
     { Set this to @true to signal that modal dialog window should be closed.
       This is not magically handled --- if you implement a modal dialog box,
@@ -1336,7 +1340,7 @@ begin
       FCustomizedFont := TFontFamily.Create(nil);
     if FFontSize <> 0 then
       FCustomizedFont.Size := FFontSize else
-      FCustomizedFont.Size := Result.Size; // to have something to multiply in line below
+      FCustomizedFont.Size := Result.RealSize; // to have something to multiply in line below
     FCustomizedFont.Size := FCustomizedFont.Size * UIScale;
     if SmallFont then
       FCustomizedFont.Size := FCustomizedFont.Size * 0.5;
@@ -2607,9 +2611,13 @@ const
 constructor TCastleDialog.Create(AOwner: TComponent);
 begin
   inherited;
+  { use Theme.MessageFont this way }
+  CustomFont := Theme.MessageFont;
   { Contents of Broken_xxx will be initialized in TCastleDialog.UpdateSizes. }
   Broken_Text := TStringList.Create;
   Broken_InputText := TStringList.Create;
+  Anchor(hpMiddle);
+  Anchor(vpMiddle);
 end;
 
 procedure TCastleDialog.Initialize(const TextList: TStringList;
@@ -2630,7 +2638,7 @@ begin
   for I := 0 to High(AButtons) do
   begin
     Buttons[I] := AButtons[I];
-    Buttons[I].EnableUIScaling := false; // TODO: for now, TCastleDialog does not support UIScaling
+    InsertFront(Buttons[I]);
   end;
 end;
 
@@ -2694,7 +2702,7 @@ var
 begin
   Result := 0;
   for Button in Buttons do
-    MaxVar(Result, Button.Height + 2 * BoxMargin);
+    MaxVar(Result, Round(Button.CalculatedHeight * UIScale) + 2 * BoxMarginScaled);
 end;
 
 procedure TCastleDialog.Resize;
@@ -2708,22 +2716,19 @@ procedure TCastleDialog.UpdateSizes;
   { Reposition Buttons. }
   procedure UpdateButtons;
   var
-    MessageRect: TRectangle;
     X, Y, I: Integer;
     Button: TCastleButton;
   begin
     if Length(Buttons) <> 0 then
     begin
-      MessageRect := Rect;
-      X := MessageRect.Right  - BoxMargin;
-      Y := MessageRect.Bottom + BoxMargin;
+      X := -BoxMargin;
+      Y :=  BoxMargin;
       for I := Length(Buttons) - 1 downto 0 do
       begin
         Button := Buttons[I];
-        X -= Button.Width;
-        Button.Left := X;
-        Button.Bottom := Y;
-        X -= ButtonHorizontalMargin;
+        Button.Anchor(vpBottom, Y);
+        Button.Anchor(hpRight, X);
+        X -= Button.CalculatedWidth + ButtonHorizontalMargin;
       end;
     end;
   end;
@@ -2735,10 +2740,10 @@ var
 begin
   { calculate BreakWidth, which is the width at which we should break
     our string lists Broken_Xxx. We must here always subtract
-    ScrollBarWholeWidth to be on the safe side, because we don't know
+    ScrollBarWholeWidthScaled to be on the safe side, because we don't know
     yet is ScrollBarVisible. }
-  BreakWidth := Max(0, ParentRect.Width - BoxMargin * 2
-    - WindowMargin * 2 - ScrollBarWholeWidth);
+  BreakWidth := Max(0, ParentRect.Width - BoxMarginScaled * 2
+    - WindowMarginScaled * 2 - ScrollBarWholeWidthScaled);
 
   { calculate MaxLineWidth and AllScrolledLinesCount }
 
@@ -2750,9 +2755,9 @@ begin
 
   ButtonsWidth := 0;
   for Button in Buttons do
-    ButtonsWidth += Button.Width + ButtonHorizontalMargin;
+    ButtonsWidth += Round(Button.CalculatedWidth * UIScale) + ButtonHorizontalMarginScaled;
   if ButtonsWidth > 0 then
-    ButtonsWidth -= ButtonHorizontalMargin; // extract margin from last button
+    ButtonsWidth -= ButtonHorizontalMarginScaled; // extract margin from last button
   MaxVar(MaxLineWidth, ButtonsWidth);
 
   if DrawInputText then
@@ -2773,8 +2778,8 @@ begin
 
   { Calculate WindowScrolledHeight --- number of pixels that are controlled
     by the scrollbar. }
-  WindowScrolledHeight := ContainerHeight - BoxMargin * 2
-    - WindowMargin * 2 - ButtonsHeight;
+  WindowScrolledHeight := ContainerHeight - BoxMarginScaled * 2
+    - WindowMarginScaled * 2 - ButtonsHeight;
 
   { calculate VisibleScrolledLinesCount, ScrollBarVisible }
 
@@ -2965,14 +2970,13 @@ var
   InnerRect: TRectangle;
   ScrollBarLength: integer;
   TextX, TextY: Integer;
-const
   { odleglosc paska ScrollBara od krawedzi swojego waskiego recta
     (prawa krawedz jest zarazem krawedzia duzego recta !) }
-  ScrollBarMargin = 2;
-  { szerokosc paska ScrollBara }
-  ScrollBarInternalWidth = ScrollBarWholeWidth - ScrollBarMargin * 2;
+  ScrollBarMargin: Integer;
 begin
   inherited;
+
+  ScrollBarMargin := Round(2 * UIScale);
 
   if GLBackground <> nil then
   begin
@@ -2980,19 +2984,19 @@ begin
     GLBackground.Draw(ParentRect);
   end;
 
-  MessageRect := Rect;
+  MessageRect := ScreenRect;
   Theme.Draw(MessageRect, tiWindow, UIScale);
 
   MessageRect := MessageRect.RemoveBottom(ButtonsHeight);
 
   { calculate InnerRect }
-  InnerRect := MessageRect.Grow(-BoxMargin);
-  InnerRect.Width -= RealScrollBarWholeWidth;
+  InnerRect := MessageRect.Grow(-BoxMarginScaled);
+  InnerRect.Width -= RealScrollBarWholeWidthScaled;
 
   { draw scrollbar, and calculate it's rectangles }
   if ScrollBarVisible then
   begin
-    ScrollbarFrame := MessageRect.RightPart(ScrollBarWholeWidth).
+    ScrollbarFrame := MessageRect.RightPart(ScrollBarWholeWidthScaled).
       RemoveRight(Theme.Corners[tiWindow][1]).
       RemoveTop(Theme.Corners[tiWindow][0]);
     Theme.Draw(ScrollbarFrame, tiScrollbarFrame, UIScale);
@@ -3033,9 +3037,9 @@ begin
   Result := true; // always capture
 end;
 
-function TCastleDialog.RealScrollBarWholeWidth: Integer;
+function TCastleDialog.RealScrollBarWholeWidthScaled: Integer;
 begin
-  Result := Iff(ScrollBarVisible, ScrollBarWholeWidth, 0);
+  Result := Iff(ScrollBarVisible, ScrollBarWholeWidthScaled, 0);
 end;
 
 function TCastleDialog.Rect: TRectangle;
@@ -3043,18 +3047,31 @@ var
   PR: TRectangle;
 begin
   PR := ParentRect;
-  Result := Rectangle(0, 0, PR.Width, PR.Height).Center(
-    Min(MaxLineWidth + BoxMargin * 2 + RealScrollBarWholeWidth,
-      PR.Width  - WindowMargin * 2),
-    Min(AllScrolledLinesCount * Font.RowHeight + BoxMargin * 2 + ButtonsHeight,
-      PR.Height - WindowMargin * 2));
+  Result := Rectangle(0, 0,
+    Min(MaxLineWidth + BoxMarginScaled * 2 + RealScrollBarWholeWidthScaled,
+      PR.Width  - WindowMarginScaled * 2),
+    Min(AllScrolledLinesCount * Font.RowHeight + BoxMarginScaled * 2 + ButtonsHeight,
+      PR.Height - WindowMarginScaled * 2));
 end;
 
-function TCastleDialog.Font: TCastleFont;
+function TCastleDialog.BoxMarginScaled: Integer;
 begin
-  if Theme.MessageFont <> nil then
-    Result := Theme.MessageFont else
-    Result := UIFont;
+  Result := Round(BoxMargin * UIScale);
+end;
+
+function TCastleDialog.WindowMarginScaled: Integer;
+begin
+  Result := Round(WindowMargin * UIScale);
+end;
+
+function TCastleDialog.ScrollBarWholeWidthScaled: Integer;
+begin
+  Result := Round(ScrollBarWholeWidth * UIScale);
+end;
+
+function TCastleDialog.ButtonHorizontalMarginScaled: Integer;
+begin
+  Result := Round(ButtonHorizontalMargin * UIScale);
 end;
 
 { TCastleLabel --------------------------------------------------------------- }

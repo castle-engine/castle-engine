@@ -309,7 +309,6 @@ procedure MessageCore(
 var
   SavedMode: TGLMode;
   Background: TCastleImage;
-  Button: TCastleButton;
   ErrorBackground: TErrorBackground;
 begin
   // if Log then
@@ -333,8 +332,6 @@ begin
     Dialog.Initialize(TextList, TextAlign, AButtons, ADrawInputText, AInputText,
       Background);
 
-    for Button in AButtons do
-      Window.Controls.InsertFront(Button);
     Window.Controls.InsertBack(Dialog);
     if Theme.MessageErrorBackground then
       Window.Controls.InsertBack(ErrorBackground);
