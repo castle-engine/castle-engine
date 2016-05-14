@@ -6673,7 +6673,18 @@ begin
     ExistingIndex := List.IndexOf(AnimationName);
     if ExistingIndex <> -1 then
     begin
-      if not Overwrite then
+      if (not Overwrite) and (AnimationPrefix <> '') then
+        { Warn in case of multiple animation (TimeSensor) names
+          only when AnimationPrefix set.
+          Bacause this is normal on some models, and is valid X3D.
+          - You can repeat the same node name multiple times in X3D (although
+            it's discouraged).
+          - You can use PROTO and DEF with TimeSensor inside, and use it multiple
+            times. Both these usage scenarios result in multiple instances
+            of the animation in scene.
+          - Even our own mechanism for renaming KAnim animations from
+            https://github.com/castle-engine/demo-models/blob/master/kanim/two_animations.x3dv
+            results in multiple "Animation" names in scene. }
         OnWarning(wtMinor, 'Named Animations', Format('Animation name "%s" occurs multiple times in scene',
           [AnimationName]));
       List.Objects[ExistingIndex] := Node;
