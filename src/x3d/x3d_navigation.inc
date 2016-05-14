@@ -635,7 +635,20 @@ begin
         ZeroVector(P2) then
         Exit;
 
-      Angle := RotationAngleRadBetweenVectors(P1, P2, FdAxisOfRotation.Value);
+      { As https://sourceforge.net/p/castle-engine/tickets/38/ shows,
+        the above checks for zero are not enough. The more precise check
+        (because it replicates what happens in CosAngleBetweenVectors)
+        would be to add
+
+          (VectorLenSqr(P1) * VectorLenSqr(P2) < SingleEqualityEpsilon)
+
+        But that's not really a future-proof solution, to repeat this code.
+        It's safer (even if a little slower) to capture exception here. }
+      try
+        Angle := RotationAngleRadBetweenVectors(P1, P2, FdAxisOfRotation.Value);
+      except
+        on EVectorInvalidOp do Exit;
+      end;
 
       RotationMatricesRad(Angle, FdAxisOfRotation.Value, M, IM);
       State.Transform := MatrixMult(State.Transform, M);
