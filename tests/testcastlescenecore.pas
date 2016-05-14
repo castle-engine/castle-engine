@@ -5,10 +5,13 @@ unit TestCastleSceneCore;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry;
+  Classes, SysUtils, fpcunit, testutils, testregistry, X3DNodes;
 
 type
   TTestSceneCore = class(TTestCase)
+  strict private
+    SearchingForDescription: string;
+    function SearchingForDescriptionCallback(Node: TX3DNode): Pointer;
   published
     procedure TestBorderManifoldEdges;
     procedure TestIterator;
@@ -17,12 +20,14 @@ type
     procedure TestIteratorSpeed;
     {$endif ITERATOR_SPEED_TEST}
     procedure TestFind;
+    procedure TestViewpointBillboardTricky;
   end;
 
 implementation
 
-uses X3DNodes, CastleSceneCore, X3DLoad, CastleVectors, CastleShapes,
-  CastleTimeUtils, CastleStringUtils, X3DFields;
+uses CastleSceneCore, X3DLoad, CastleVectors, CastleShapes,
+  CastleTimeUtils, CastleStringUtils, X3DFields, CastleSceneManager,
+  CastleFilesUtils, CastleScene, Castle3D;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var
@@ -197,6 +202,60 @@ begin
       Fail('Should fail with EX3DNotFound');
     except on EX3DNotFound do ; end;
   finally FreeAndNil(Scene) end;
+end;
+
+function TTestSceneCore.SearchingForDescriptionCallback(Node: TX3DNode): Pointer;
+begin
+  if (Node is TAbstractViewpointNode) and
+     (TAbstractViewpointNode(Node).Description = SearchingForDescription) then
+    Result := Node else
+    Result := nil;
+end;
+
+{ Unfortunately, it cannot reproduce bug #38 for some reason...
+  Probably it misses something that triggers it interactively. }
+
+procedure TTestSceneCore.TestViewpointBillboardTricky;
+var
+  Scene: TCastleScene;
+
+  function FindViewpointByDescription(const Description: string): TAbstractViewpointNode;
+  begin
+    SearchingForDescription := Description;
+    AssertTrue(Scene.RootNode <> nil);
+    Result := TAbstractViewpointNode(
+      Scene.RootNode.SearchNodes(@SearchingForDescriptionCallback, true));
+    AssertTrue(Result <> nil);
+  end;
+
+var
+  Viewpoint: TAbstractViewpointNode;
+  SceneManager: TCastleSceneManager;
+  FakeRemoveMe: TRemoveType;
+begin
+  SceneManager := TCastleSceneManager.Create(nil);
+  try
+    Scene := TCastleScene.Create(nil);
+    try
+      Scene.URL := ApplicationData('city_from_bugreport_38.x3dv');
+      Scene.ProcessEvents := true;
+      Scene.Spatial := [ssRendering, ssDynamicCollisions];
+      SceneManager.Items.Add(Scene);
+      SceneManager.MainScene := Scene;
+      SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
+
+      Scene.CameraChanged(SceneManager.Camera);
+      FakeRemoveMe := rtNone;
+      Scene.Update(1, FakeRemoveMe);
+
+      Viewpoint := FindViewpointByDescription('City plan');
+      Viewpoint.EventSet_Bind.Send(true);
+
+      Scene.CameraChanged(SceneManager.Camera);
+      FakeRemoveMe := rtNone;
+      Scene.Update(1, FakeRemoveMe);
+    finally FreeAndNil(Scene) end;
+  finally FreeAndNil(SceneManager) end;
 end;
 
 initialization
