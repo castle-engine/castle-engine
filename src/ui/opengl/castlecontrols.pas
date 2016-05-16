@@ -177,6 +177,7 @@ type
   protected
     procedure FontChanged; override;
     procedure SetPressed(const Value: boolean); virtual;
+    procedure UIScaleChanged; override;
   public
     const
       DefaultImageMargin = 10;
@@ -1790,6 +1791,12 @@ begin
     if AutoSizeWidth or AutoSizeHeight then
       VisibleChange(true);
   end;
+end;
+
+procedure TCastleButton.UIScaleChanged;
+begin
+  inherited;
+  UpdateSize;
 end;
 
 procedure TCastleButton.SetImage(const Value: TCastleImage);
