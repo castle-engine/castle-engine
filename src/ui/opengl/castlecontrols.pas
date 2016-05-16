@@ -634,7 +634,7 @@ type
     FInputText: string;
 
     { Broken Text. }
-    Broken_Text: TStringList;
+    Broken_Text: TRichText;
     { Ignored (not visible) if not DrawInputText.
       Else broken InputText. }
     Broken_InputText: TStringList;
@@ -669,6 +669,7 @@ type
     DrawInputText: boolean;
     Buttons: array of TCastleButton;
     LifeTime: TFloatTime;
+    FHtml: boolean;
 
     function BoxMarginScaled: Integer;
     function WindowMarginScaled: Integer;
@@ -709,6 +710,7 @@ type
       ABackground instance becomes owned by this component. }
     procedure Initialize(
       const TextList: TStringList; const ATextAlign: THorizontalPosition;
+      const AHtml: boolean;
       const AButtons: array of TCastleButton;
       const ADrawInputText: boolean; const AInputText: string;
       const ABackground: TCastleImage);
@@ -2613,15 +2615,15 @@ begin
   inherited;
   { use Theme.MessageFont this way }
   CustomFont := Theme.MessageFont;
-  { Contents of Broken_xxx will be initialized in TCastleDialog.UpdateSizes. }
-  Broken_Text := TStringList.Create;
+  { Contents of Broken_InputText will be initialized in TCastleDialog.UpdateSizes. }
   Broken_InputText := TStringList.Create;
   Anchor(hpMiddle);
   Anchor(vpMiddle);
 end;
 
 procedure TCastleDialog.Initialize(const TextList: TStringList;
-  const ATextAlign: THorizontalPosition; const AButtons: array of TCastleButton;
+  const ATextAlign: THorizontalPosition; const AHtml: boolean;
+  const AButtons: array of TCastleButton;
   const ADrawInputText: boolean; const AInputText: string;
   const ABackground: TCastleImage);
 var
@@ -2632,6 +2634,7 @@ begin
   if GLInitialized then
     GLBackground := TGLImageCore.Create(Background, true);
   TextAlign := ATextAlign;
+  FHtml := AHtml;
   DrawInputText := ADrawInputText;
   FInputText := AInputText;
   SetLength(Buttons, Length(AButtons));
@@ -2748,10 +2751,11 @@ begin
   { calculate MaxLineWidth and AllScrolledLinesCount }
 
   { calculate Broken_Text }
-  Broken_Text.Clear;
-  font.BreakLines(Text, Broken_Text,  BreakWidth);
-  MaxLineWidth := font.MaxTextWidth(Broken_Text);
-  AllScrolledLinesCount := Broken_Text.count;
+  FreeAndNil(Broken_Text);
+  Broken_Text := TRichText.Create(Font, Text, FHtml);
+  Broken_Text.Wrap(BreakWidth);
+  MaxLineWidth := Broken_Text.Width;
+  AllScrolledLinesCount := Broken_Text.Count;
 
   ButtonsWidth := 0;
   for Button in Buttons do
@@ -3027,7 +3031,7 @@ begin
     Order matters, as it's drawn from bottom to top. }
   if DrawInputText then
     DrawStrings(TextX, TextY, Theme.MessageInputTextColor, Broken_InputText, TextAlign, true);
-  DrawStrings(TextX, TextY, Theme.MessageTextColor, Broken_Text, TextAlign, false);
+  Broken_Text.Print(TextX, TextY, Theme.MessageTextColor, 0, TextAlign);
 
   ScissorDisable;
 end;
