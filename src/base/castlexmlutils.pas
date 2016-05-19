@@ -219,6 +219,28 @@ type
       @raises EConvertError If the value exists in XML, but has invalid format. }
     function AttributeVector3Def(const AttrName: string; const DefaultValue: TVector3Single): TVector3Single;
 
+    { Attribute setting ------------------------------------------------------ }
+
+    { Set the attribute as string. Equivalent to standard SetAttribute in DOM unit,
+      but provided here for consistency with other AttributeSet overloads. }
+    procedure AttributeSet(const AttrName: string; const Value: string);
+
+    { Set the attribute as boolean,
+      such that it's readable back by @link(AttributeBoolean) and @link(AttributeBooleanDef). }
+    procedure AttributeSet(const AttrName: string; const Value: boolean);
+
+    { Set the attribute as Integer,
+      such that it's readable back by @link(AttributeInteger) and @link(AttributeIntegerDef). }
+    procedure AttributeSet(const AttrName: string; const Value: Integer);
+
+    { Set the attribute as Cardinal,
+      such that it's readable back by @link(AttributeCardinal) and @link(AttributeCardinalDef). }
+    procedure AttributeSet(const AttrName: string; const Value: Cardinal);
+
+    { Set the attribute as Int64,
+      such that it's readable back by @link(AttributeSingle) and @link(AttributeSingleDef). }
+    procedure AttributeSet(const AttrName: string; const Value: Single);
+
     { Other methods ---------------------------------------------------------- }
 
     { Get child element with given ChildName.
@@ -750,6 +772,33 @@ function TDOMElementHelper.AttributeVector3Def(const AttrName: string; const Def
 begin
   if not AttributeVector3(AttrName, Result) then
     Result := DefaultValue;
+end;
+
+{ TDOMElementHelper: Attribute setting ------------------------------------------------------ }
+
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: string);
+begin
+  SetAttribute(AttrName, Value);
+end;
+
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: boolean);
+begin
+  SetAttribute(AttrName, SysUtils.BoolToStr(Value, true));
+end;
+
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Integer);
+begin
+  SetAttribute(AttrName, IntToStr(Value));
+end;
+
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Cardinal);
+begin
+  SetAttribute(AttrName, IntToStr(Value));
+end;
+
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Single);
+begin
+  SetAttribute(AttrName, FloatToStr(Value));
 end;
 
 { ------------------------------------------------------------------------
