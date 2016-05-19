@@ -339,6 +339,21 @@ type
     function Height: Integer; virtual; abstract;
     function Rect: TRectangle; virtual; abstract;
 
+    { Container width as seen by controls with UI scaling.
+      In other words, this is the real @link(Width) with UI scaling
+      reversed (divided). Suitable to adjust size of your UI controls
+      to container, when UI scaling is used.
+
+      This is equivalent to just @link(Width) when UIScaling is usNone
+      (default).
+
+      @seealso UnscaledHeight }
+    function UnscaledWidth: Cardinal;
+
+    { Container height as seen by controls with UI scaling.
+      @seealso UnscaledWidth }
+    function UnscaledHeight: Cardinal;
+
     property MousePosition: TVector2Single
       read GetMousePosition write SetMousePosition;
 
@@ -2494,6 +2509,16 @@ begin
 
   for I := 0 to Controls.Count - 1 do
     RecursiveUIScaleChanged(Controls[I]);
+end;
+
+function TUIContainer.UnscaledWidth: Cardinal;
+begin
+  Result := Round(Width / FCalculatedUIScale);
+end;
+
+function TUIContainer.UnscaledHeight: Cardinal;
+begin
+  Result := Round(Height / FCalculatedUIScale);
 end;
 
 procedure TUIContainer.SaveScreen(const URL: string);
