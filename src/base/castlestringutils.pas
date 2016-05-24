@@ -736,6 +736,7 @@ function IntToStrZPad(n: integer; minLength: integer): string;
 { Convert integer to string, inserting additional Separator to visually delimit
   thousands, milions etc. }
 function IntToStrThousands(const Value: Int64; const Separator: char): string;
+function IntToStrThousands(const Value: Int64; const Separator: string): string;
 
 { Convert integer to string, in base-Base (like base-16) numeral system.
   For digits above '9', we will use upper letters 'A', 'B'...  etc.
@@ -2060,6 +2061,13 @@ function IntToStrZPad(n: integer; minLength: integer): string;
 begin result := SZeroPad(IntToStr(n), minLength) end;
 
 function IntToStrThousands(const Value: Int64; const Separator: char): string;
+begin
+  if Value > 1000 then
+    Result := IntToStrThousands(Value div 1000, Separator) + Separator + IntToStrZPad(Value mod 1000, 3) else
+    Result := IntToStr(Value);
+end;
+
+function IntToStrThousands(const Value: Int64; const Separator: string): string;
 begin
   if Value > 1000 then
     Result := IntToStrThousands(Value div 1000, Separator) + Separator + IntToStrZPad(Value mod 1000, 3) else
