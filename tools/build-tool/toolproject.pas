@@ -46,6 +46,7 @@ type
     FVersion: string;
     FVersionCode: Cardinal;
     FScreenOrientation: TScreenOrientation;
+    FAndroidTarget: string;
     FAndroidProjectType: TAndroidProjectType;
     FAndroidComponents: TAndroidComponentList;
     // Helpers only for ExtractTemplateFoundFile.
@@ -102,6 +103,7 @@ type
     property PluginSource: string read FPluginSource;
     property AndroidProject: string read FAndroidProject;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
+    property AndroidTarget: string read FAndroidTarget;
     property AndroidProjectType: TAndroidProjectType read FAndroidProjectType;
     property Icons: TIconFileNames read FIcons;
     property SearchPaths: TStringList read FSearchPaths;
@@ -183,6 +185,7 @@ constructor TCastleProject.Create(const APath: string);
   const
     { Google Play requires version code to be >= 1 }
     DefautVersionCode = 1;
+    DefaultAndroidTarget = 'android-19';
 
     { character sets }
     ControlChars = [#0..Chr(Ord(' ')-1)];
@@ -207,6 +210,7 @@ constructor TCastleProject.Create(const APath: string);
       FStandaloneSource := FName + '.lpr';
       FVersionCode := DefautVersionCode;
       Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
+      FAndroidTarget := DefaultAndroidTarget;
     end;
 
     procedure CheckManifestCorrect;
@@ -349,6 +353,8 @@ constructor TCastleProject.Create(const APath: string);
         Element := Doc.DocumentElement.ChildElement('android', false);
         if Element <> nil then
         begin
+          FAndroidTarget := Element.AttributeStringDef('sdk_target', DefaultAndroidTarget);
+
           if Element.AttributeString('project_type', AndroidProjectTypeStr) then
           begin
             if AndroidProjectTypeStr = 'base' then

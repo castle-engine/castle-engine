@@ -46,8 +46,6 @@ procedure CreateAndroidPackage(const Project: TCastleProject;
   const Files: TCastleStringList);
 var
   AndroidProjectPath: string;
-const
-  AndroidTarget = 'android-19';
 
   { Some utility procedures PackageXxx work just like Xxx,
     but target filename should not contain prefix AndroidProjectPath,
@@ -273,7 +271,7 @@ const
       # not standard proguard-project.txt, otherwise proguard-project.txt is overwritten
       # by every "android create project.." call done when packaging.
       #proguard.config=${sdk.dir}/tools/proguard/proguard-android.txt:custom-proguard-project.txt *)
-    S += 'target=' + AndroidTarget + NL;
+    S += 'target=' + Project.AndroidTarget + NL;
     for I := 0 to Subprojects.Count - 1 do
       S += 'android.library.reference.' + IntToStr(I + 1) + '=./' + Subprojects[I] + '/' + NL;
     { overwrite existing file, since Android "update" project always creates
@@ -296,14 +294,14 @@ const
       if not DirectoryExists(Dir) then
         raise Exception.Create('Cannot find directory "' + Dir + '", make sure you installed the components dependencies (see "Requires" sections on ' + WWWComponents + ')');
       RunCommandIndirPassthrough(Dir, AndroidExe,
-        ['update', 'lib-project',                     '--path', '.', '--target', AndroidTarget],
+        ['update', 'lib-project',                     '--path', '.', '--target', Project.AndroidTarget],
         ProcessOutput, ProcessStatus)
     end else
       RunCommandIndirPassthrough(Dir, AndroidExe,
-        ['update', 'project', '--name', Project.Name, '--path', '.', '--target', AndroidTarget],
+        ['update', 'project', '--name', Project.Name, '--path', '.', '--target', Project.AndroidTarget],
         ProcessOutput, ProcessStatus);
     if ProcessStatus <> 0 then
-      raise Exception.Create('"android" call failed, cannot create Android apk. Inspect above error messages, and make sure Android SDK is installed correctly. Make sure that target "' + AndroidTarget + '" is installed.');
+      raise Exception.Create('"android" call failed, cannot create Android apk. Inspect above error messages, and make sure Android SDK is installed correctly. Make sure that target "' + Project.AndroidTarget + '" is installed.');
   end;
 
   { Run "ndk-build", this moves our .so correctly to the final apk. }
