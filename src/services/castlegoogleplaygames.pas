@@ -35,7 +35,14 @@ type
       @item(Create an instance of it (only a single instance allowed).)
       @item(Call @link(TGooglePlayGames.Initialize) at some point.
         Usually from @link(TCastleApplication.OnInitialize).
-        User will be automatically asked to sign-in to Google Play then.)
+        User will be automatically asked to sign-in to Google Play then.
+
+        You can optionally call it later (to avoid performing sign-in
+        (and avoid even connecting to Google) at startup).
+        But be sure to call this before other TGooglePlayGames
+        methods, otherwise most calls (like sending or showing
+        the leaderboars) will be ignored.
+      )
       @item(Use this to manage Google Games achievements, leaderboards and so on.)
       @item(To include the necessary integration code in your Android project,
         declare your Android project type as "integrated" with
@@ -52,7 +59,12 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    { Connect to Google, try to sign-in player for the 1st time.
+      Calling this when already initialized is harmless (will not do anything). }
     procedure Initialize;
+
+    { Was the @link(Initialize) called. }
+    property Initialized: boolean read FInitialized;
 
     property OnBestScoreReceived: TBestScoreEvent read FOnBestScoreReceived write FOnBestScoreReceived;
 

@@ -92,7 +92,9 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
             return;
         }
 
-        mGoogleApiClient.disconnect();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
     }
 
     /**
@@ -264,7 +266,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
     private void signOutClicked()
     {
         /* don't act when inside sign-out process, or not initialized */
-        if (mDuringSignOut || !initialized) {
+        if (mDuringSignOut || !initialized || !mGoogleApiClient.isConnected()) {
             return;
         }
 
