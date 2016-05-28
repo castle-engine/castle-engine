@@ -6,6 +6,7 @@ import android.os.Build;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.widget.Toast;
 
 /**
  * Integration of various Android small stuff with
@@ -83,7 +84,13 @@ public class ComponentMiscellaneous extends ComponentAbstract
         if (parts.length >= 4 && parts[0].equals("intent-send-text")) {
             intentSendText(parts[1], parts[2], glueStringArray(parts, 3, "="));
             return true;
-        } else {
+        } else
+        if (parts.length >= 2 && parts[0].equals("on-screen-notification")) {
+            Toast.makeText(getActivity().getApplicationContext(),
+              glueStringArray(parts, 1, "="), Toast.LENGTH_SHORT).show();
+            return true;
+        } else
+        {
             return false;
         }
     }

@@ -66,6 +66,15 @@ procedure ShareText(const Title, Subject, Content: string);
   See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine . }
 procedure Vibrate(const Miliseconds: Cardinal);
 
+{ Simple on-screen notification using Android "toast" call.
+
+  This is available only on Android right now, ignored elsewhere.
+  To include the necessary integration code in your Android project,
+  declare your Android project type as "integrated" with
+  the "vibrate" component inside CastleEngineManifest.xml.
+  See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine . }
+procedure OnScreenNotification(const Message: string);
+
 implementation
 
 { Copied and adapted from Lazarus LCL unit LCLIntf. The core of our engine
@@ -346,5 +355,11 @@ procedure Vibrate(const Miliseconds: Cardinal);
 begin
   Messaging.Send(['vibrate', IntToStr(Miliseconds)]);
 end;
+
+procedure OnScreenNotification(const Message: string);
+begin
+  Messaging.Send(['on-screen-notification', Message]);
+end;
+
 
 end.
