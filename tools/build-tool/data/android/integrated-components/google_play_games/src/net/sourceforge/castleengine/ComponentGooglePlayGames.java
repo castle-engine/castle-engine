@@ -49,7 +49,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         return "google-play-games";
     }
 
-    private void initialize()
+    private void initialize(boolean autoStartSignInFlow)
     {
         if (initialized) {
             return;
@@ -60,6 +60,8 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
             Log.e(TAG, "You must define Google Play Games id of your game in CastleEngineManifest.xml, like <google_play_services app_id=\"xxxx\" />. You get this id after creating Google Game Services for your game in Google Developer Console. Without this, GooglePlayGames integration cannot be initialized.");
             return;
         }
+
+        mAutoStartSignInFlow = autoStartSignInFlow;
 
         // Create the Google Api Client with access to the Play Game services
         mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
@@ -372,8 +374,8 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if (parts.length == 1 && parts[0].equals("google-play-games-initialize")) {
-            initialize();
+        if (parts.length == 2 && parts[0].equals("google-play-games-initialize")) {
+            initialize(parts[1].equals("true"));
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("get-best-score")) {
