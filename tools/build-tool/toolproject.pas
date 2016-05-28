@@ -350,6 +350,7 @@ constructor TCastleProject.Create(const APath: string);
           finally FreeAndNil(ChildElements) end;
         end;
 
+        FAndroidTarget := DefaultAndroidTarget;
         Element := Doc.DocumentElement.ChildElement('android', false);
         if Element <> nil then
         begin
