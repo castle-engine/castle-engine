@@ -836,14 +836,6 @@ type
     ModelView: TMatrix4Single;
   end;
 
-  { Line types (patterns). For ease of implementation, ordered exactly like
-    VRML/X3D LineProperties.linetype field. }
-  TLineType = (ltSolid,
-    ltDashed,
-    ltDotted,
-    ltDashedDotted,
-    ltDashDotDot);
-
   TGLRenderer = class
   private
     { ---------------------------------------------------------
@@ -2716,8 +2708,7 @@ begin
   if (LP <> nil) and LP.FdApplied.Value then
   begin
     LineWidth := Max(1.0, Attributes.LineWidth * LP.FdLineWidthScaleFactor.Value);
-    LineType := TLineType(
-      Clamped(LP.FdLineType.Value - 1, 0, Integer(High(TLineType))));
+    LineType := LP.LineType;
   end else
   begin
     LineWidth := Attributes.LineWidth;

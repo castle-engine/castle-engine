@@ -2301,13 +2301,10 @@ type
   private
     function GetApplied: boolean;
     procedure SetApplied(const Value: boolean);
-    function GetLinetype: Integer;
-    procedure SetLinetype(const Value: Integer);
     function GetLinewidthScaleFactor: Single;
     procedure SetLinewidthScaleFactor(const Value: Single);
   public
     property Applied: boolean read GetApplied write SetApplied;
-    property Linetype: Integer read GetLinetype write SetLinetype;
     property LinewidthScaleFactor: Single read GetLinewidthScaleFactor write SetLinewidthScaleFactor;
   end;
 
@@ -8464,16 +8461,6 @@ end;
 procedure TLinePropertiesNodeHelper.SetApplied(const Value: boolean);
 begin
   FdApplied.Send(Value);
-end;
-
-function TLinePropertiesNodeHelper.GetLinetype: Integer;
-begin
-  Result := FdLinetype.Value;
-end;
-
-procedure TLinePropertiesNodeHelper.SetLinetype(const Value: Integer);
-begin
-  FdLinetype.Send(Value);
 end;
 
 function TLinePropertiesNodeHelper.GetLinewidthScaleFactor: Single;
