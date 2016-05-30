@@ -193,6 +193,13 @@ type
     procedure Finish; virtual; deprecated 'use Stop';
 
     function Rect: TRectangle; override;
+
+    { State is right now part of the state stack, which means
+      it's between @link(Start) and @link(Stop) calls.
+      The state is added to the stack before the @link(Start) call,
+      and removed after the @link(Stop) call, so this returns @true
+      during all the methods --- @link(Start), @link(Resume), @link(Pause), @link(Stop). }
+    function Active: boolean;
   end;
 
   TUIStateList = class(specialize TFPGObjectList<TUIState>);
@@ -394,6 +401,12 @@ begin
   { 1. always capture events on whole container
     2. make child controls (anchored to us) behave like anchored to whole window. }
   Result := ParentRect;
+end;
+
+function TUIState.Active: boolean;
+begin
+  Result := (FStateStack <> nil) and
+            (FStateStack.IndexOf(Self) <> -1);
 end;
 
 end.
