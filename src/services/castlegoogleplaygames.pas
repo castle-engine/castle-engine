@@ -44,7 +44,7 @@ type
   TGooglePlayGames = class(TComponent)
   private
     FOnBestScoreReceived: TBestScoreEvent;
-    FSignedIn, FInitialized: boolean;
+    FSignedIn, FInitialized, FInitializedAutoStartSignInFlow: boolean;
     function MessageReceived(const Received: TCastleStringList): boolean;
     procedure ReinitializeJavaActivity(Sender: TObject);
   public
@@ -128,7 +128,7 @@ begin
   if FInitialized then
   begin
     FSignedIn := false;
-    Initialize;
+    Initialize(FInitializedAutoStartSignInFlow);
   end;
 end;
 
@@ -163,6 +163,9 @@ end;
 
 procedure TGooglePlayGames.Initialize(const AutoStartSignInFlow: boolean);
 begin
+  { at first Initialize call, remember AutoStartSignInFlow }
+  if not FInitialized then
+    FInitializedAutoStartSignInFlow := AutoStartSignInFlow;
   FInitialized := true;
   Messaging.Send(['google-play-games-initialize', Iff(AutoStartSignInFlow, 'true', 'false')]);
 end;
