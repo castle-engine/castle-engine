@@ -132,7 +132,6 @@ tools/build-tool/data/android/integrated-components/giftiz/GiftizSDKLibrary/
 tools/build-tool/data/android/integrated-components/google_play_services/google-play-services_lib/
 tools/build-tool/data/android/integrated-components/google_play_services/libs/*.jar
 tools/build-tool/data/android/integrated-components/heyzap/libs/*.jar
-tools/build-tool/data/android/integrated-components/heyzap/libs/*.aar
 tools/build-tool/data/android/integrated-components/startapp/libs/*.jar
 tools/castle-curves/castle-curves
 tools/castle-curves/castle-curves.exe
