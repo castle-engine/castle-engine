@@ -18,7 +18,11 @@
         <activity android:name="com.google.android.gms.ads.AdActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" />
 
         <!-- Chartboost -->
-        <activity android:name="com.chartboost.sdk.CBImpressionActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar" android:excludeFromRecents="true" />
+        <activity android:name="com.chartboost.sdk.CBImpressionActivity"
+          android:excludeFromRecents="true"
+          android:hardwareAccelerated="true"
+          android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen"
+          android:configChanges="keyboardHidden|orientation|screenSize" />
 
         <!-- Facebook Audience Network -->
         <activity android:name="com.facebook.ads.InterstitialAdActivity" android:configChanges="keyboardHidden|orientation|screenSize" />
@@ -48,6 +52,9 @@
 
     <!-- Required by AdColony, AdMob, Chartboost, Facebook Audience Network, Heyzap Ad Network, and UnityAds -->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Required by Chartboost -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <!-- Required by AdColony, Chartboost, and UnityAds -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
