@@ -3539,6 +3539,11 @@ var
   I: TXMLElementIterator;
   ContainerFieldDummy: string;
 begin
+  { Clear is necessary because MFNode default value may be non-empty,
+    when it's defined by a prototype.
+    See http://web3d.org/pipermail/x3d-public_web3d.org/2016-May/004771.html }
+  Clear;
+
   I := Element.ChildrenIterator;
   try
     while I.GetNext do
