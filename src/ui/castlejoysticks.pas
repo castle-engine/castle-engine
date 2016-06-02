@@ -256,9 +256,13 @@ end;
 { TJoysticks }
 
 function TJoysticks.Init: Byte;
+{$IFDEF LINUX}
 var
   i, j : Integer;
+{$ENDIF}
 {$IFDEF WINDOWS}
+var
+  i, j : Integer;
   axis : Integer;
   caps : PLongWord;
 {$ENDIF}
@@ -386,14 +390,17 @@ begin
 end;
 
 procedure TJoysticks.Poll;
+{$IFDEF LINUX}
 var
   i : Integer;
   _value: Single;
-{$IFDEF LINUX}
   axis: Byte;
   event : js_event;
 {$ENDIF}
 {$IFDEF WINDOWS}
+var
+  i : Integer;
+  _value: Single;
   j, a  : Integer;
   btn   : Integer;
   state : TJOYINFOEX;
