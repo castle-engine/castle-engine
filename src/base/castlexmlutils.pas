@@ -60,6 +60,11 @@ type
       and does not modify Value. }
     function AttributeInteger(const AttrName: string; var Value: Integer): boolean;
 
+    { Read from Element attribute value as Int64 and returns @true,
+      or (of there is no such attribute) returns @false
+      and does not modify Value. }
+    function AttributeInt64(const AttrName: string; var Value: Int64): boolean;
+
     { Read from Element attribute value as Single and returns @true,
       or (of there is no such attribute) returns @false
       and does not modify Value. }
@@ -139,6 +144,11 @@ type
       @raises EDOMAttributeMissing }
     function AttributeInteger(const AttrName: string): Integer;
 
+    { Retrieves from Element given attribute as an Int64,
+      raises EDOMAttributeMissing if missing.
+      @raises EDOMAttributeMissing }
+    function AttributeInt64(const AttrName: string): Int64;
+
     { Retrieves from Element given attribute as a Single,
       raises EDOMAttributeMissing if missing.
       @raises EDOMAttributeMissing }
@@ -195,6 +205,9 @@ type
     { Retrieves from Element given attribute as an Integer, or a default value. }
     function AttributeIntegerDef(const AttrName: string; const DefaultValue: Integer): Integer;
 
+    { Retrieves from Element given attribute as an Int64, or a default value. }
+    function AttributeInt64Def(const AttrName: string; const DefaultValue: Int64): Int64;
+
     { Retrieves from Element given attribute as a Single, or a default value. }
     function AttributeSingleDef(const AttrName: string; const DefaultValue: Single): Single;
 
@@ -232,6 +245,10 @@ type
     { Set the attribute as Integer,
       such that it's readable back by @link(AttributeInteger) and @link(AttributeIntegerDef). }
     procedure AttributeSet(const AttrName: string; const Value: Integer);
+
+    { Set the attribute as Int64,
+      such that it's readable back by @link(AttributeInt64) and @link(AttributeInt64Def). }
+    procedure AttributeSet(const AttrName: string; const Value: Int64);
 
     { Set the attribute as Cardinal,
       such that it's readable back by @link(AttributeCardinal) and @link(AttributeCardinalDef). }
@@ -564,6 +581,16 @@ begin
     Value := StrToInt(ValueStr);
 end;
 
+function TDOMElementHelper.AttributeInt64(
+  const AttrName: string; var Value: Int64): boolean;
+var
+  ValueStr: string;
+begin
+  Result := AttributeString(AttrName, ValueStr);
+  if Result then
+    Value := StrToInt(ValueStr);
+end;
+
 function TDOMElementHelper.AttributeSingle(
   const AttrName: string; var Value: Single): boolean;
 var
@@ -668,6 +695,12 @@ begin
     raise EDOMAttributeMissing.CreateFmt('Missing required (integer) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
+function TDOMElementHelper.AttributeInt64(const AttrName: string): Int64;
+begin
+  if not AttributeInt64(AttrName, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing required (integer 64-bit) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
 function TDOMElementHelper.AttributeSingle(const AttrName: string): Single;
 begin
   if not AttributeSingle(AttrName, Result) then
@@ -723,6 +756,12 @@ end;
 function TDOMElementHelper.AttributeIntegerDef(const AttrName: string; const DefaultValue: Integer): Integer;
 begin
   if not AttributeInteger(AttrName, Result) then
+    Result := DefaultValue;
+end;
+
+function TDOMElementHelper.AttributeInt64Def(const AttrName: string; const DefaultValue: Int64): Int64;
+begin
+  if not AttributeInt64(AttrName, Result) then
     Result := DefaultValue;
 end;
 
@@ -787,6 +826,11 @@ begin
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Integer);
+begin
+  SetAttribute(AttrName, IntToStr(Value));
+end;
+
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Int64);
 begin
   SetAttribute(AttrName, IntToStr(Value));
 end;
