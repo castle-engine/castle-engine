@@ -63,7 +63,12 @@ type
     destructor Destroy; override;
   end;
 
-  { Read any TStream like a text file.
+  { Read any stream like a text file. You can read an arbitrary TStream
+    instance, or you can read an URL. Reading from URL supports all kinds
+    of URL protocols supportted by @link(Download),
+    including @code(file), @code(http) and Android @code(assets)
+    (see http://castle-engine.sourceforge.net/tutorial_network.php ).
+
     Includes comfortable @link(Readln) routine to read line by line
     (lines may be terminated in any OS convention).
     Includes comfortable @link(Read) to read next non-whitespace
@@ -124,7 +129,13 @@ type
     function Eof: boolean;
   end;
 
-  { Write to a stream like to a text file. }
+  { Write to a stream like to a text file.
+
+    You can write to an arbitrary TStream instance,
+    or you can write to an URL. Writing to an URL supports all
+    URL protocols supportted by @link(URLSaveStream), which for now
+    doesn't include much: only @code(file) protocol. But it will produce
+    a nice exception message in case of unsupprted URL protocol. }
   TTextWriter = class(TTextReaderWriter)
   public
     constructor Create(const URL: string); overload;
