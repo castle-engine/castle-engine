@@ -1200,14 +1200,14 @@ end;
 
 function FirstDelimiter(const Delimiters, S: string): Integer;
 begin
- for result := 1 to Length(s) do
-  if CharPos(S[result], Delimiters) <> 0 then exit;
- result := 0;
+  for result := 1 to Length(s) do
+    if CharPos(S[result], Delimiters) <> 0 then exit;
+  result := 0;
 end;
 
 function SEnding(const S: string; P: integer): string;
 begin
- result := Copy(S, P, MaxInt)
+  result := Copy(S, P, MaxInt)
 end;
 
 function IsPrefix(const Prefix, S: string; IgnoreCase: boolean): boolean;
@@ -1219,35 +1219,36 @@ end;
 
 function IsSuffix(const Suffix, S: string; IgnoreCase: boolean): boolean;
 begin
- if IgnoreCase then
-  result := AnsiCompareText(SRight(S, Length(Suffix)), Suffix) = 0 else
-  result := AnsiCompareStr(SRight(S, Length(Suffix)), Suffix) = 0;
+  if IgnoreCase then
+    result := AnsiCompareText(SRight(S, Length(Suffix)), Suffix) = 0 else
+    result := AnsiCompareStr(SRight(S, Length(Suffix)), Suffix) = 0;
 end;
 
 function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
 begin
- if IsPrefix(Prefix, S, IgnoreCase) then
-  Result := SEnding(S, Length(Prefix) + 1) else
-  Result := S;
+  if IsPrefix(Prefix, S, IgnoreCase) then
+    Result := SEnding(S, Length(Prefix) + 1) else
+    Result := S;
 end;
 
 function SuffixRemove(const Suffix, S: string; IgnoreCase: boolean): string;
 begin
- Result := S;
- if IsSuffix(Suffix, S, IgnoreCase) then
- begin
-  { doing assignment and SetLength should be a little faster
-    than doing Result := Copy(S, 1, ...) }
-  SetLength(Result, Length(s) - Length(Suffix));
- end;
+  Result := S;
+  if IsSuffix(Suffix, S, IgnoreCase) then
+  begin
+    { doing assignment and SetLength should be a little faster
+      than doing Result := Copy(S, 1, ...) }
+    SetLength(Result, Length(s) - Length(Suffix));
+  end;
 end;
 
 procedure SAppendData(var s: string; const Data; DataSize: integer);
-var OldLen: integer;
+var
+  OldLen: integer;
 begin
- OldLen := Length(s);
- SetLength(s, OldLen+DataSize);
- Move(Data, SChar(s, OldLen+1)^ , DataSize);
+  OldLen := Length(s);
+  SetLength(s, OldLen+DataSize);
+  Move(Data, SChar(s, OldLen+1)^ , DataSize);
 end;
 
 {$Include NoRQCheckBegin.inc}

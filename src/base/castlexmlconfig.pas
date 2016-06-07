@@ -103,7 +103,7 @@ type
       Note: for powerful reading of float expressions,
       consider using @code(GetFloatExpression) instead of @code(GetFloat).
       It can read expressions like @code("3.0 * 2.0") or @code("sin(2.0)").
-      Use CastleScriptConfig unit to introduce
+      Use CastleScriptXML unit to introduce
       necessary class helper for this, see @link(TCastleConfigScriptHelper.GetFloatExpression).
 
       @raises(EMissingAttribute Raised by GetFloat(string) (overloaded

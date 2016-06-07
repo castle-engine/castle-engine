@@ -388,8 +388,8 @@
         <Type Value="Include"/>
       </Item87>
       <Item88>
-        <Filename Value="../src/castlescript/castlescriptconfig.pas"/>
-        <UnitName Value="CastleScriptConfig"/>
+        <Filename Value="../src/castlescript/castlescriptxml.pas"/>
+        <UnitName Value="CastleScriptXML"/>
       </Item88>
       <Item89>
         <Filename Value="../src/castlescript/castlescriptcorefunctions.pas"/>

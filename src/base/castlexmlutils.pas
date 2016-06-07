@@ -33,7 +33,7 @@ type
       Get an optional attribute to a "var" parameter, returns if found. }
 
     { Read from Element attribute value and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value. Value is a "var", not "out" param,
       because in the latter case it's guaranteed that the old Value
       will not be cleared.
@@ -43,7 +43,7 @@ type
     function AttributeString(const AttrName: string; var Value: string): boolean;
 
     { Read from Element attribute value as URL and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value.
 
       Returned URL is always absolute. The value in file may be a relative URL,
@@ -51,32 +51,38 @@ type
     function AttributeURL(const AttrName: string; const BaseUrl: string; var URL: string): boolean;
 
     { Read from Element attribute value as Cardinal and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value. }
     function AttributeCardinal(const AttrName: string; var Value: Cardinal): boolean;
 
     { Read from Element attribute value as Integer and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value. }
     function AttributeInteger(const AttrName: string; var Value: Integer): boolean;
 
     { Read from Element attribute value as Int64 and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value. }
     function AttributeInt64(const AttrName: string; var Value: Int64): boolean;
 
     { Read from Element attribute value as Single and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value. }
     function AttributeSingle(const AttrName: string; var Value: Single): boolean;
 
     { Read from Element attribute value as Float and returns @true,
-      or (of there is no such attribute) returns @false
-      and does not modify Value. }
+      or (if there is no such attribute) returns @false
+      and does not modify Value.
+
+      Note: for powerful reading of float expressions,
+      consider using @code(AttributeFloatExpression) instead of @code(AttributeFloat).
+      It can read expressions like @code("3.0 * 2.0") or @code("sin(2.0)").
+      Use CastleScriptXML unit to introduce
+      necessary class helper for this, see @link(TDOMElementScriptHelper.AttributeFloatExpression). }
     function AttributeFloat(const AttrName: string; var Value: Float): boolean;
 
     { Read from Element attribute value as Boolean and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value.
 
       A boolean value is interpreted just like FPC's TXMLConfig
@@ -88,24 +94,24 @@ type
     function AttributeBoolean(const AttrName: string; var Value: boolean): boolean;
 
     { Read from Element attribute value as color and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value. }
     function AttributeColor(const AttrName: string; var Value: TCastleColor): boolean;
 
     { Read from Element attribute value as RGB color and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value. }
     function AttributeColorRGB(const AttrName: string; var Value: TCastleColorRGB): boolean;
 
     { Read from Element attribute as a 2D vector (2 floats), and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value.
 
       @raises EConvertError If the attribute exists in XML, but has invalid format. }
     function AttributeVector2(const AttrName: string; var Value: TVector2Single): boolean;
 
     { Read from Element attribute as a 3D vector (3 floats), and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value.
 
       @raises EConvertError If the attribute exists in XML, but has invalid format. }
@@ -156,6 +162,13 @@ type
 
     { Retrieves from Element given attribute as a Float,
       raises EDOMAttributeMissing if missing.
+
+      Note: for powerful reading of float expressions,
+      consider using @code(AttributeFloatExpression) instead of @code(AttributeFloat).
+      It can read expressions like @code("3.0 * 2.0") or @code("sin(2.0)").
+      Use CastleScriptXML unit to introduce
+      necessary class helper for this, see @link(TDOMElementScriptHelper.AttributeFloatExpression).
+
       @raises EDOMAttributeMissing }
     function AttributeFloat(const AttrName: string): Float;
 
@@ -211,7 +224,13 @@ type
     { Retrieves from Element given attribute as a Single, or a default value. }
     function AttributeSingleDef(const AttrName: string; const DefaultValue: Single): Single;
 
-    { Retrieves from Element given attribute as a Float, or a default value. }
+    { Retrieves from Element given attribute as a Float, or a default value.
+
+      Note: for powerful reading of float expressions,
+      consider using @code(AttributeFloatExpressionDef) instead of @code(AttributeFloatDef).
+      It can read expressions like @code("3.0 * 2.0") or @code("sin(2.0)").
+      Use CastleScriptXML unit to introduce
+      necessary class helper for this, see @link(TDOMElementScriptHelper.AttributeFloatExpressionDef). }
     function AttributeFloatDef(const AttrName: string; const DefaultValue: Float): Float;
 
     { Retrieves from Element given attribute as a boolean,
@@ -425,7 +444,7 @@ end;
   end;
 
 { Retrieves from Element attribute Value and returns @true,
-  or (of there is no such attribute) returns @false
+  or (if there is no such attribute) returns @false
   and does not modify Value. Value is a "var", not "out" param,
   because in the latter case it's guaranteed that the old Value
   will not be cleared.
