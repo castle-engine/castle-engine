@@ -59,6 +59,7 @@ type
     FProjectionHeight, FProjectionWidth: Single;
     FCurrentProjectionWidth, FCurrentProjectionHeight: Single;
     FProjectionSpan: Single;
+    FProjectionOriginCenter: boolean;
   protected
     function CalculateProjection: TProjection; override;
   public
@@ -91,6 +92,12 @@ type
     property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
     property ProjectionSpan: Single
       read FProjectionSpan write FProjectionSpan default DefaultProjectionSpan;
+    { Where is the (0,0) world point with respect to the viewport.
+      If @false, the (0,0) is in the left-bottom corner, which matches
+      the typical 2D drawing coordinates used throughout our engine.
+      If @true, the (0,0) is in the middle of the viewport. }
+    property ProjectionOriginCenter: boolean
+      read FProjectionOriginCenter write FProjectionOriginCenter;
 
     constructor Create(AOwner: TComponent); override;
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
@@ -173,6 +180,13 @@ begin
 
   Result.OrthoDimensions[2] := FCurrentProjectionWidth;
   Result.OrthoDimensions[3] := FCurrentProjectionHeight;
+  if FProjectionOriginCenter then
+  begin
+    Result.OrthoDimensions[2] := Result.OrthoDimensions[2] / 2;
+    Result.OrthoDimensions[3] := Result.OrthoDimensions[3] / 2;
+    Result.OrthoDimensions[0] := -Result.OrthoDimensions[2]; // already divided by /2
+    Result.OrthoDimensions[1] := -Result.OrthoDimensions[3]; // already divided by /2
+  end;
   Result.ProjectionNear := -ProjectionSpan;
   Result.ProjectionFar := ProjectionSpan;
   Result.ProjectionFarFinite := Result.ProjectionFar;
