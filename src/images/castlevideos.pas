@@ -665,7 +665,7 @@ procedure TVideo.SaveToFile(const URL: string);
       { single image file --- suitable only if video has exactly one frame }
       if Count <> 1 then
         raise Exception.CreateFmt('Single image URL detected ("%s"), but saved video doesn''t have exactly one frame (it has %d frames). Cannot save',
-          [URL, Count]);
+          [URIDisplay(URL), Count]);
 
       SaveImage(FItems[0], URL);
     end;
@@ -872,7 +872,7 @@ begin
       AlphaChannel := C.AlphaChannel;
 
       if LogVideosCache and Log then
-        WritelnLog('++', 'Video %s : %d', [URL, C.References]);
+        WritelnLog('++', 'Video %s : %d', [URIDisplay(URL), C.References]);
 
       Exit(C.Video);
     end;
@@ -905,7 +905,7 @@ begin
   if LogVideosCache and Log then
   begin
     S := Format('Video %s : 1. Loading time: %f',
-      [URL, ProcessTimerSeconds(ProcessTimerNow, Start)]);
+      [URIDisplay(URL), ProcessTimerSeconds(ProcessTimerNow, Start)]);
     if AlphaChannel <> acNone then
       S += '. Detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = acSimpleYesNo];
     WritelnLog('++', S);
