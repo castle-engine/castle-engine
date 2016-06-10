@@ -67,6 +67,20 @@
     private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
+    { Whether to render this shape.
+      Extension above X3D standard, compatible with InstantReality
+      http://doc.instantreality.org/documentation/nodetype/Shape/ .
+
+      The same effect can be achieved using a Switch node with Shape inside,
+      but sometimes using this field is just simpler, since you can avoid editing
+      the X3D file (which could be prepared by another tool, and editing them
+      could be unhandy). With our engine, you could always process the X3D graph
+      by code, and "silently" wrap the Shape in a Switch at loading --- but this
+      is still some work, and it uses non-zero memory to add an extra layer in X3D graph.
+      Using this field is just simpler. }
+    private FFdRender: TSFBool;
+    public property FdRender: TSFBool read FFdRender;
+
     private FFdShading: TSFStringEnum;
     public property FdShading: TSFStringEnum read FFdShading;
     property Shading: TShading read GetShading write SetShading;
@@ -475,6 +489,9 @@ begin
    FdBboxSize.Exposed := false;
   Fields.Add(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
+
+  FFdRender := TSFBool.Create(Self, 'render', true);
+  Fields.Add(FFdRender);
 
   FFdShading := TSFStringEnum.Create(Self, 'shading', ShadingNames, Ord(shDefault));
    FdShading.ChangesAlways := [chVisibleNonGeometry];

@@ -2275,9 +2275,12 @@ type
     procedure SetBboxCenter(const Value: TVector3Single);
     function GetBboxSize: TVector3Single;
     procedure SetBboxSize(const Value: TVector3Single);
+    function GetRender: boolean;
+    procedure SetRender(const Value: boolean);
   public
     property BboxCenter: TVector3Single read GetBboxCenter write SetBboxCenter;
     property BboxSize: TVector3Single read GetBboxSize write SetBboxSize;
+    property Render: boolean read GetRender write SetRender;
   end;
 
   TFillPropertiesNodeHelper = class helper for TFillPropertiesNode
@@ -8407,6 +8410,16 @@ end;
 procedure TAbstractShapeNodeHelper.SetBboxSize(const Value: TVector3Single);
 begin
   FdBboxSize.Send(Value);
+end;
+
+function TAbstractShapeNodeHelper.GetRender: boolean;
+begin
+  Result := FdRender.Value;
+end;
+
+procedure TAbstractShapeNodeHelper.SetRender(const Value: boolean);
+begin
+  FdRender.Send(Value);
 end;
 
 { TFillPropertiesNode ----------------------------------------------- }
