@@ -5341,13 +5341,10 @@ procedure TCastleSceneCore.InternalSetTime(
     Otherwise stop/start time would be shifted to when it becomes visible, which is not perfect
     (although it would be Ok in practice too?) }
   procedure UpdateNewPlayingAnimation;
-  var
-    SameAnimation: boolean;
   begin
     if NewPlayingAnimationUse then
     begin
       NewPlayingAnimationUse := false;
-      SameAnimation := PlayingAnimationNode = NewPlayingAnimationNode;
       if PlayingAnimationNode <> nil then
       begin
         { We want to stop old PlayingAnimationNode from sending any further
@@ -5405,22 +5402,19 @@ procedure TCastleSceneCore.InternalSetTime(
           paForceNotLooping: PlayingAnimationNode.Loop := false;
         end;
         PlayingAnimationNode.Enabled := true;
+
         { Disable the "ignore" mechanism, otherwise
           setting startTime on a running TimeSensor would be ignored.
           Testcase: e.g. mana animation on dark_dragon and dragon_squash. }
-        if SameAnimation then
-        begin
-          Inc(PlayingAnimationNode.FdStopTime.NeverIgnore);
-          Inc(PlayingAnimationNode.FdStartTime.NeverIgnore);
-        end;
+        Inc(PlayingAnimationNode.FdStopTime.NeverIgnore);
+        Inc(PlayingAnimationNode.FdStartTime.NeverIgnore);
+
         PlayingAnimationNode.StopTime := 0;
         PlayingAnimationNode.StartTime := Time;
+
         { Enable the "ignore" mechanism again, to follow X3D spec. }
-        if SameAnimation then
-        begin
-          Dec(PlayingAnimationNode.FdStopTime.NeverIgnore);
-          Dec(PlayingAnimationNode.FdStartTime.NeverIgnore);
-        end;
+        Dec(PlayingAnimationNode.FdStopTime.NeverIgnore);
+        Dec(PlayingAnimationNode.FdStartTime.NeverIgnore);
       end;
     end;
   end;
