@@ -152,26 +152,31 @@ begin
 end;
 
 function T2DSceneManager.CalculateProjection: TProjection;
+var
+  ControlWidth, ControlHeight: Integer;
 begin
   Result.ProjectionType := ptOrthographic;
   Result.OrthoDimensions[0] := 0;
   Result.OrthoDimensions[1] := 0;
 
+  ControlWidth := CalculatedWidth;
+  ControlHeight := CalculatedHeight;
+
   if ProjectionAutoSize or
      ((ProjectionWidth = 0) and (ProjectionHeight = 0)) then
   begin
-    FCurrentProjectionWidth := Rect.Width;
-    FCurrentProjectionHeight := Rect.Height;
+    FCurrentProjectionWidth := ControlWidth;
+    FCurrentProjectionHeight := ControlHeight;
   end else
   if ProjectionWidth = 0 then
   begin
-    FCurrentProjectionWidth := ProjectionHeight * Rect.Width / Rect.Height;
+    FCurrentProjectionWidth := ProjectionHeight * ControlWidth / ControlHeight;
     FCurrentProjectionHeight := ProjectionHeight;
   end else
   if ProjectionHeight = 0 then
   begin
     FCurrentProjectionWidth := ProjectionWidth;
-    FCurrentProjectionHeight := ProjectionWidth * Rect.Height / Rect.Width;
+    FCurrentProjectionHeight := ProjectionWidth * ControlHeight / ControlWidth;
   end else
   begin
     FCurrentProjectionWidth := ProjectionWidth;
