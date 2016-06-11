@@ -20,8 +20,9 @@ unit CastleSoundEngine;
 
 interface
 
-uses SysUtils, Classes, CastleOpenAL, CastleSoundAllocator, CastleVectors,
-  CastleTimeUtils, CastleXMLConfig, Math, FGL, CastleClassUtils;
+uses SysUtils, Classes, Math, FGL,
+  CastleOpenAL, CastleSoundAllocator, CastleVectors,
+  CastleTimeUtils, CastleXMLConfig, CastleClassUtils, CastleStringUtils;
 
 type
   TSoundBuffer = CastleSoundAllocator.TSoundBuffer;
@@ -84,6 +85,7 @@ type
     BuffersCache: TSoundBuffersCacheList;
     FDevices: TSoundDeviceList;
     FOnOpenClose: TNotifyEventList;
+    FResumeToInitialized, FPaused: boolean;
 
     { We record listener state regardless of ALActive. This way at the ALContextOpen
       call we can immediately set the good listener parameters. }
@@ -102,6 +104,14 @@ type
     procedure UpdateDistanceModel;
     procedure SetDevice(const Value: string);
     procedure SetEnabled(const Value: boolean);
+    procedure SetPaused(const Value: boolean);
+    procedure ReinitializeJavaActivity(Sender: TObject);
+    procedure ApplicationPause(Sender: TObject);
+    procedure ApplicationResume(Sender: TObject);
+    { Pause the sound engine, useful when Android activity gets inactive.
+      When paused, OpenAL is for sure inactive, and it cannot be activated
+      (calling ALContextOpen, or playing a sound, will @bold(not) activate it). }
+    property Paused: boolean read FPaused write SetPaused;
   public
     const
       DefaultVolume = 1.0;
@@ -616,21 +626,20 @@ type
     { Engine that owns this music player. }
     FEngine: TRepoSoundEngine;
 
-    FSound: TSoundType;
-    procedure SetSound(const Value: TSoundType);
-  private
     { This is nil if we don't play music right now
       (because OpenAL is not initialized, or Sound = stNone,
       or PlayerSound.URL = '' (sound not existing)). }
     FAllocatedSource: TSound;
 
+    FMusicVolume: Single;
+
+    FSound: TSoundType;
+    procedure SetSound(const Value: TSoundType);
     procedure AllocatedSourceRelease(Sender: TSound);
 
     { Called by ALContextOpen. You should check here if
       Sound <> stNone and eventually initialize FAllocatedSource. }
     procedure AllocateSource;
-  private
-    FMusicVolume: Single;
     function GetMusicVolume: Single;
     procedure SetMusicVolume(const Value: Single);
   public
@@ -696,10 +705,11 @@ function SoundEngine: TRepoSoundEngine;
 
 implementation
 
-uses CastleUtils, CastleStringUtils, CastleALUtils, CastleLog, CastleProgress,
-  CastleSoundFile, CastleVorbisFile, CastleEFX, CastleParameters, StrUtils,
-  CastleWarnings, DOM, XMLRead, CastleXMLUtils, CastleFilesUtils, CastleConfig,
-  CastleURIUtils, CastleDownload;
+uses DOM, XMLRead, StrUtils,
+  CastleUtils, CastleALUtils, CastleLog, CastleProgress,
+  CastleSoundFile, CastleVorbisFile, CastleEFX, CastleParameters,
+  CastleWarnings, CastleXMLUtils, CastleFilesUtils, CastleConfig,
+  CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties;
 
 type
   { For alcGetError errors (ALC_xxx constants). }
@@ -761,10 +771,21 @@ begin
   // automatic loading/saving is more troublesome than it's worth
   // Config.AddLoadListener(@LoadFromConfig);
   // Config.AddSaveListener(@SaveToConfig);
+
+  ApplicationProperties.OnInitializeJavaActivity.Add(@ReinitializeJavaActivity);
+  ApplicationProperties.OnPause.Add(@ApplicationPause);
+  ApplicationProperties.OnResume.Add(@ApplicationResume);
 end;
 
 destructor TSoundEngine.Destroy;
 begin
+  if ApplicationProperties(false) <> nil then
+  begin
+    ApplicationProperties(false).OnInitializeJavaActivity.Remove(@ReinitializeJavaActivity);
+    ApplicationProperties(false).OnPause.Remove(@ApplicationPause);
+    ApplicationProperties(false).OnResume.Remove(@ApplicationResume);
+  end;
+
   // automatic loading/saving is more troublesome than it's worth
   // if Config <> nil then
   // begin
@@ -1021,6 +1042,9 @@ procedure TSoundEngine.ALContextOpen;
 var
   ALActivationErrorMessage: string;
 begin
+  if Paused then
+    Exit; // do not even set ALInitialized to true
+
   Assert(not ALActive, 'OpenAL context is already active');
   Assert(not ALInitialized, 'OpenAL context initialization was already attempted');
 
@@ -1500,6 +1524,39 @@ begin
   if EnableSaveToConfig then
     Config.SetDeleteValue('sound/enable', Enabled, DefaultEnabled);
   inherited;
+end;
+
+procedure TSoundEngine.ReinitializeJavaActivity(Sender: TObject);
+begin
+  { in case Java activity got killed and is created again, be sure to resume }
+  Paused := false;
+end;
+
+procedure TSoundEngine.ApplicationPause(Sender: TObject);
+begin
+  Paused := true;
+end;
+
+procedure TSoundEngine.ApplicationResume(Sender: TObject);
+begin
+  Paused := false;
+end;
+
+procedure TSoundEngine.SetPaused(const Value: boolean);
+begin
+  if FPaused <> Value then
+  begin
+    FPaused := Value;
+    if FPaused then
+    begin
+      FResumeToInitialized := ALInitialized;
+      ALContextClose;
+    end else
+    begin
+      if FResumeToInitialized then
+        ALContextOpen;
+    end;
+  end;
 end;
 
 { TRepoSoundEngine ----------------------------------------------------------- }

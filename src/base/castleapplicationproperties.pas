@@ -46,7 +46,8 @@ type
     FIsGLContextOpen: boolean;
     FOnGLContextOpen, FOnGLContextClose: TGLContextEventList;
     FOnUpdate, FOnInitializeJavaActivity,
-      FOnGLContextOpenObject, FOnGLContextCloseObject: TNotifyEventList;
+      FOnGLContextOpenObject, FOnGLContextCloseObject,
+      FOnPause, FOnResume: TNotifyEventList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -113,6 +114,14 @@ type
       once, exactly before calling @link(TCastleApplication.OnInitialize). }
     property OnInitializeJavaActivity: TNotifyEventList read FOnInitializeJavaActivity;
 
+    { Callbacks called when Android Java activity is paused or resumed.
+      @italic(For now) not called on non-Android, but this may change ---
+      consider these events somewhat internal for the time being.
+      @groupBegin }
+    property OnPause: TNotifyEventList read FOnPause;
+    property OnResume: TNotifyEventList read FOnResume;
+    { @groupEnd }
+
     { Internal for Castle Game Engine.
       Called from CastleWindow or CastleControl.
       Don't call these methods yourself.
@@ -127,6 +136,10 @@ type
     procedure _Update;
     { @exclude }
     procedure _InitializeJavaActivity;
+    { @exclude }
+    procedure _Pause;
+    { @exclude }
+    procedure _Resume;
     { @groupEnd }
   end;
 
@@ -176,6 +189,8 @@ begin
   FOnGLContextCloseObject := TNotifyEventList.Create;
   FOnUpdate := TNotifyEventList.Create;
   FOnInitializeJavaActivity := TNotifyEventList.Create;
+  FOnPause := TNotifyEventList.Create;
+  FOnResume := TNotifyEventList.Create;
 end;
 
 destructor TCastleApplicationProperties.Destroy;
@@ -186,6 +201,8 @@ begin
   FreeAndNil(FOnGLContextCloseObject);
   FreeAndNil(FOnUpdate);
   FreeAndNil(FOnInitializeJavaActivity);
+  FreeAndNil(FOnPause);
+  FreeAndNil(FOnResume);
   inherited;
 end;
 
@@ -216,6 +233,16 @@ end;
 procedure TCastleApplicationProperties._InitializeJavaActivity;
 begin
   FOnInitializeJavaActivity.ExecuteAll(Self);
+end;
+
+procedure TCastleApplicationProperties._Pause;
+begin
+  FOnPause.ExecuteAll(Self);
+end;
+
+procedure TCastleApplicationProperties._Resume;
+begin
+  FOnResume.ExecuteAll(Self);
 end;
 
 finalization
