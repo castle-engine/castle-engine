@@ -171,15 +171,15 @@ end;
 procedure TCastleWindowCustom.SwapBuffers;
 begin
   if eglSwapBuffers(Display, Surface) = EGL_FALSE then
-    OnWarning(wtMinor, 'EGL', 'Cannot swap buffers: ' + EGLError);
+    OnWarning(wtMinor, 'EGL', 'Cannot swap buffers (this is normal if app is no longer active): ' + EGLError);
 end;
 
 procedure TCastleWindowCustom.QuerySize(out AWidth, AHeight: EGLint);
 begin
   if eglQuerySurface(Display, Surface, EGL_WIDTH, @AWidth) = EGL_FALSE then
-    OnWarning(wtMinor, 'EGL', 'Cannot query surface width: ' + EGLError);
+    OnWarning(wtMinor, 'EGL', 'Cannot query surface width (this is normal if app is no longer active): ' + EGLError);
   if eglQuerySurface(Display, Surface, EGL_HEIGHT, @AHeight) = EGL_FALSE then
-    OnWarning(wtMinor, 'EGL', 'Cannot query surface height: ' + EGLError);
+    OnWarning(wtMinor, 'EGL', 'Cannot query surface height (this is normal if app is no longer active): ' + EGLError);
 end;
 
 {$ifdef CASTLE_WINDOW_XLIB}
