@@ -152,6 +152,7 @@ begin
       VorbisFileLibrary := TDynLib.Load(BundlePath + 'Contents/MacOS/libvorbisfile.3.dylib', false);
     if (VorbisFileLibrary = nil) and (BundlePath <> '') then
       VorbisFileLibrary := TDynLib.Load(BundlePath + 'Contents/MacOS/libvorbisfile.dylib', false);
+
     {$else}
     TDynLib.Load('libvorbisfile.so.3', false);
     if VorbisFileLibrary = nil then
@@ -159,6 +160,8 @@ begin
     // fallback on Tremolo, necessary for Android, may also work on other OSes
     if VorbisFileLibrary = nil then
       VorbisFileLibrary := TDynLib.Load('libtremolo.so', false);
+    if VorbisFileLibrary = nil then
+      VorbisFileLibrary := TDynLib.Load('libtremolo-low-precision.so', false);
     {$endif}
     {$endif}
 

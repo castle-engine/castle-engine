@@ -5,4 +5,7 @@
 include $(CLEAR_VARS)
 LOCAL_MODULE := libtremolo
 LOCAL_SRC_FILES := libtremolo.so
+# Use these lines for the "low precision" version
+# LOCAL_MODULE := libtremolo-low-precision
+# LOCAL_SRC_FILES := libtremolo-low-precision.so
 include $(PREBUILT_SHARED_LIBRARY)
