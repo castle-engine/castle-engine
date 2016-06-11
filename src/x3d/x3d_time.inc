@@ -42,6 +42,7 @@
     FIsPaused: boolean;
     FElapsedTime: TFloatTime;
     FElapsedTimeInCycle: TFloatTime;
+    NonLoopedStopped: Double; //< same time as in TSFTime
     procedure SetIsActive(const Value: boolean);
     procedure SetIsPaused(const Value: boolean);
     procedure SetElapsedTime(const Value: TFloatTime);
@@ -425,18 +426,18 @@ var
             a little earlier than NewTime: earlier by ElapsedTimeInCycle. }
           CycleTimeSend := true;
           CycleTime := NewTime - ElapsedTimeInCycle;
-        end else
-        begin
-          if StopOnNonLoopedEnd then
-            NewIsActive := false;
         end;
       end else
       begin
         { for cycleInterval = 0 this always remains 0 }
         FElapsedTimeInCycle := 0;
+      end;
 
-        if (not FdLoop.Value) and StopOnNonLoopedEnd then
-          NewIsActive := false;
+      if (not FdLoop.Value) and StopOnNonLoopedEnd then
+      begin
+        NewIsActive := false;
+        // save this to avoid restarting the sensor, see NonLoopedStopped usage below
+        NonLoopedStopped := FdStartTime.Value;
       end;
     end;
   end;
@@ -447,12 +448,13 @@ begin
 
   {$ifdef LOG_TIME_DEPENDENT_NODES}
   if Log then
-    WritelnLog('TimeDependentNodes', Format('%s: time changes by +%f to %f. Cycle interval: %f. Before state: active %s, paused %s, loop %s',
-      [ Node.NodeTypeName,
+    WritelnLog('TimeDependentNodes', Format('%s: time changes by +%f to %f. Cycle interval: %f, loop %s. Before: active %s, paused %s, elapsedTimeInCycle %f',
+      [ Node.NiceName,
         TimeIncrease, NewTime,
-        CycleInterval,
-        BoolToStr[IsActive], BoolToStr[IsPaused], BoolToStr[FdLoop.Value]
-        ]));
+        CycleInterval, BoolToStr[FdLoop.Value],
+        BoolToStr[IsActive], BoolToStr[IsPaused],
+        FElapsedTimeInCycle
+      ]));
   {$endif}
 
   Result := false;
@@ -497,11 +499,42 @@ begin
        ( (NewTime < FdStopTime.Value) or
          { stopTime is ignored if it's <= startTime }
          (FdStopTime.Value <= FdStartTime.Value) ) and
-       { avoid starting the animation if it should be stopped according
-         to loop and cycleInterval }
-       not ( (NewTime - FdStartTime.Value > CycleInterval) and
-             (not FdLoop.Value) ) then
+       { Avoid restarting the animation if it's non-looping animation
+         that should remain stopped.
+
+         One would think that equation "NewTime - FdStartTime.Value > CycleInterval"
+         is enough to do it reliably, but it's not:
+         - Testcase: Escape with ship_upgrades.json
+         - In case the animation is started at the end of some time-consuming
+           OnUpdate (like when TUIState starts), and the next OnUpdate may get large
+           SecondsPassed (like 0.2 of second). This means that in initial SetTime
+           call we get "NewTime - FdStartTime.Value" close to zero,
+           but FElapsedTimeInCycle is set to something significant like 0.2.
+         - This 0.2 difference will be preserved, since we only increase
+           FElapsedTimeInCycle in each SetTime call. So eventually the cycle will
+           end once FElapsedTimeInCycle > CycleInterval, but at this point
+           "NewTime - FdStartTime.Value" will be around CycleInterval - 0.2,
+           and so the check "NewTime - FdStartTime.Value > CycleInterval"
+           will fail.
+         - To workaround this, we use NonLoopedStopped, to clearly mark
+           "this run of TimeSensor was already stopped, do not restart it".
+       }
+       not ( ( (NewTime - FdStartTime.Value > CycleInterval) or
+               ( { does NonLoopedStopped indicate we shouldn't restart }
+                 (NonLoopedStopped <> 0) and
+                 (NonLoopedStopped = FdStartTime.Value)
+               )
+             ) and
+             (not FdLoop.Value)
+           ) then
     begin
+      {$ifdef LOG_TIME_DEPENDENT_NODES}
+      if Log then
+        WritelnLog('TimeDependentNodes', 'Starting sensor %f %f',
+          [NewTime - FdStartTime.Value,
+           CycleInterval]);
+      {$endif}
+
       NewIsActive := true;
       NewIsPaused := false;
       NewElapsedTime := 0;
@@ -629,10 +662,12 @@ begin
 
   {$ifdef LOG_TIME_DEPENDENT_NODES}
   if Log then
-    WritelnLog('TimeDependentNodes', Format('%s: after: active %s, paused %s',
+    WritelnLog('TimeDependentNodes', Format('%s: after: active %s, paused %s, elapsedTimeInCycle %f',
       [ Node.NiceName,
         BoolToStr[IsActive],
-        BoolToStr[IsPaused]]));
+        BoolToStr[IsPaused],
+        FElapsedTimeInCycle
+      ]));
   {$endif}
 end;
 
