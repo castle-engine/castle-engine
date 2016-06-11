@@ -91,7 +91,18 @@ var
   { Generate simple text stuff for Android project from templates. }
   procedure GenerateFromTemplates;
   var
-    TemplatePath, DestinationPath: string;
+    DestinationPath: string;
+
+    procedure ExtractComponent(const ComponentName: string);
+    var
+      TemplatePath: string;
+    begin
+      TemplatePath := 'android/integrated-components/' + ComponentName;
+      Project.ExtractTemplate(TemplatePath, DestinationPath);
+    end;
+
+  var
+    TemplatePath: string;
     I: Integer;
   begin
     { calculate absolute DestinationPath.
@@ -110,20 +121,17 @@ var
 
     if Project.AndroidProjectType = apIntegrated then
     begin
-      { add Android project components }
+      { add declared components }
       for I := 0 to Project.AndroidComponents.Count - 1 do
-      begin
-        TemplatePath := 'android/integrated-components/' + Project.AndroidComponents[I].Name;
-        Project.ExtractTemplate(TemplatePath, DestinationPath);
-      end;
+        ExtractComponent(Project.AndroidComponents[I].Name);
 
-      { add sound component, if sound library is in Dependencies }
+      { add automatic components }
       if (depSound in Project.Dependencies) and
          not Project.AndroidComponents.HasComponent('sound') then
-      begin
-        TemplatePath := 'android/integrated-components/sound';
-        Project.ExtractTemplate(TemplatePath, DestinationPath);
-      end;
+        ExtractComponent('sound');
+      if (depOggVorbis in Project.Dependencies) and
+         not Project.AndroidComponents.HasComponent('ogg_vorbis') then
+        ExtractComponent('ogg_vorbis');
     end;
   end;
 
