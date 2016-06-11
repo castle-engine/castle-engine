@@ -40,7 +40,7 @@ uses CastleUtils, CastleVorbisFile, CastleVorbisCodec, CTypes;
 
   I made my own CastleVorbisFile header, and later realized that actually
   someone already did something similar...
-  But from the first glance, JEDI CastleVorbisFile
+  But from the first glance, JEDI VorbisFile
   header shows some problems --- as usual, the JEDI guys don't have a clue
   about FPC or any OS that isn't Windows. Besides, my CastleVorbisFile will not
   cause exception at initialization if vorbisfile will not be installled ---
