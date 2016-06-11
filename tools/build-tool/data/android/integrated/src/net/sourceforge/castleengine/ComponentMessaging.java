@@ -72,7 +72,13 @@ public class ComponentMessaging extends ComponentAbstract
                     Log.i(TAG, "JNI: Java received message from native code: " + message);
                 }
                 somethingHappened = true;
-                String[] parts = message.split("=");
+                /* Use -1 to avoid cutting off empty trailing strings.
+                   Which are possible in case of e.g. ads-admob-initialize
+                   or analytics-send-event (they very often have last parameter empty).
+                   See http://docs.oracle.com/javase/7/docs/api/java/lang/String.html#split%28java.lang.String%29
+                   http://docs.oracle.com/javase/6/docs/api/java/lang/String.html#split%28java.lang.String,%20int%29
+                */
+                String[] parts = message.split("=", -1);
                 if (!getActivity().messageReceived(parts)) {
                     Log.w(TAG, "Message unhandled: " + message);
                 }
