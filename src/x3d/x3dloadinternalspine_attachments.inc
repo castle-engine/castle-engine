@@ -19,8 +19,10 @@
   TAttachment = class abstract
     { SlotName and AttachmentName are map keys, to detect which TAttachment to use. }
     SlotName, AttachmentName: string;
-    { The real attachment name, unique for a skeleton, for image attachment
-      this refers to texture loader (e.g. atlas) region name. }
+    { The real attachment name, for image attachment
+      this refers to texture loader (e.g. atlas) region name.
+      This is a unique region name, but multiple TAttachment may refer to the same
+      Name (see Escape ship_upgrade.json testcase). }
     Name: string;
     Node: TTransformNode;
     NodeUsedAsChild: boolean;
@@ -186,7 +188,8 @@ begin
   Path := Json.Get('path', '');
 end;
 
-procedure TRegionAttachment.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
+procedure TRegionAttachment.BuildNodes(const BaseUrl: string;
+  const TextureLoader: TTextureLoader);
 var
   TexRect: TQuadTexRect;
   TexCoord: TQuadTexCoord;
@@ -194,7 +197,12 @@ var
   AtlasRegionName: string;
   TexRotated: boolean;
 begin
-  Node := TTransformNode.Create('Attachment_' + ToX3DName(Name), BaseUrl);
+  if Node <> nil then
+    OnWarning(wtMinor, 'Spine', 'TRegionAttachment.BuildNodes multiple times on same node');
+
+  Node := TTransformNode.Create(
+    Format('Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+    BaseUrl);
   Node.FdTranslation.Value := Vector3Single(XY[0], XY[1], 0);
   Node.FdScale.Value := Vector3Single(Scale[0], Scale[1], 1);
   Node.FdRotation.Value := Vector4Single(0, 0, 1, DegToRad(Rotation));
@@ -212,7 +220,9 @@ begin
     Shape.FdGeometry.Value := BuildGeometry(BaseUrl,
       TexCoord, TexRect, TexRotated);
 
-  Shape.Material := TMaterialNode.Create('Material_' + ToX3DName(Name), BaseUrl);
+  Shape.Material := TMaterialNode.Create(
+    Format('Material_Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+    BaseUrl);
   Shape.Material.FdDiffuseColor.Value := ZeroVector3Single;
   Shape.Material.FdSpecularColor.Value := ZeroVector3Single;
   Shape.Material.FdAmbientIntensity.Value := 0;
