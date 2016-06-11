@@ -118,7 +118,8 @@ var
       end;
 
       { add sound component, if sound library is in Dependencies }
-      if depSound in Project.Dependencies then
+      if (depSound in Project.Dependencies) and
+         not Project.AndroidComponents.HasComponent('sound') then
       begin
         TemplatePath := 'android/integrated-components/sound';
         Project.ExtractTemplate(TemplatePath, DestinationPath);
