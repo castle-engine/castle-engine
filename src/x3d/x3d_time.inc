@@ -42,7 +42,7 @@
     FIsPaused: boolean;
     FElapsedTime: TFloatTime;
     FElapsedTimeInCycle: TFloatTime;
-    NonLoopedStopped: Double; //< same time as in TSFTime
+    StartTimeUsed, NonLoopedStopped: Double; //< same type as TSFTime.Value
     procedure SetIsActive(const Value: boolean);
     procedure SetIsPaused(const Value: boolean);
     procedure SetElapsedTime(const Value: TFloatTime);
@@ -65,7 +65,7 @@
     Fdloop: TSFBool;
     FdpauseTime: TSFTime;
     FdresumeTime: TSFTime;
-    FdstartTime: TSFTime;
+    FdStartTime: TSFTime;
     FdstopTime: TSFTime;
     { May be @nil if node doesn't have an "enabled" field. }
     Fdenabled: TSFBool;
@@ -436,8 +436,9 @@ var
       if (not FdLoop.Value) and StopOnNonLoopedEnd then
       begin
         NewIsActive := false;
-        // save this to avoid restarting the sensor, see NonLoopedStopped usage below
-        NonLoopedStopped := FdStartTime.Value;
+        // save NonLoopedStopped to avoid restarting the sensor,
+        // see NonLoopedStopped usage below
+        NonLoopedStopped := StartTimeUsed;
       end;
     end;
   end;
@@ -530,11 +531,13 @@ begin
     begin
       {$ifdef LOG_TIME_DEPENDENT_NODES}
       if Log then
-        WritelnLog('TimeDependentNodes', 'Starting sensor %f %f',
-          [NewTime - FdStartTime.Value,
+        WritelnLog('TimeDependentNodes', 'Starting sensor. Time now %f, start time %f, cycle interval %f',
+          [NewTime,
+           FdStartTime.Value,
            CycleInterval]);
       {$endif}
 
+      StartTimeUsed := FdStartTime.Value; // save, to later used for NonLoopedStopped
       NewIsActive := true;
       NewIsPaused := false;
       NewElapsedTime := 0;
@@ -716,7 +719,7 @@ begin
   FTimeDependentNodeHandler.Fdloop := FdLoop;
   FTimeDependentNodeHandler.FdpauseTime := FdPauseTime;
   FTimeDependentNodeHandler.FdresumeTime := FdResumeTime;
-  FTimeDependentNodeHandler.FdstartTime := FdStartTime;
+  FTimeDependentNodeHandler.FdStartTime := FdStartTime;
   FTimeDependentNodeHandler.FdstopTime := FdStopTime;
   { descendants shoud set FTimeDependentNodeHandler.Fdenabled }
   FTimeDependentNodeHandler.EventisActive:= EventisActive;
