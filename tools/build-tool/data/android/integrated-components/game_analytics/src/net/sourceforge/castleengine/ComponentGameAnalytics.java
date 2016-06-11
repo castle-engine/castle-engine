@@ -16,10 +16,6 @@ import com.gameanalytics.sdk.*;
  */
 public class ComponentGameAnalytics extends ComponentAbstract
 {
-    static {
-        MainActivity.safeLoadLibrary("GameAnalytics");
-    }
-
     private static final String TAG = "${NAME}.castleengine.ComponentGameAnalytics";
 
     private boolean initialized;
