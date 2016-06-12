@@ -79,6 +79,9 @@ var
   Crosshair2: TGrayscaleAlphaImage;
 
 var
+  Loading: TGrayscaleAlphaImage;
+
+var
   PanelSeparator: TGrayscaleImage;
 
 var
@@ -180,6 +183,9 @@ initialization
   Crosshair2 := TGrayscaleAlphaImage.Create(Crosshair2Width, Crosshair2Height, Crosshair2Depth);
   Move(Crosshair2Pixels, Crosshair2.RawPixels^, SizeOf(Crosshair2Pixels));
   Crosshair2.URL := 'embedded-image:/Crosshair2';
+  Loading := TGrayscaleAlphaImage.Create(LoadingWidth, LoadingHeight, LoadingDepth);
+  Move(LoadingPixels, Loading.RawPixels^, SizeOf(LoadingPixels));
+  Loading.URL := 'embedded-image:/Loading';
   PanelSeparator := TGrayscaleImage.Create(PanelSeparatorWidth, PanelSeparatorHeight, PanelSeparatorDepth);
   Move(PanelSeparatorPixels, PanelSeparator.RawPixels^, SizeOf(PanelSeparatorPixels));
   PanelSeparator.URL := 'embedded-image:/PanelSeparator';
@@ -225,6 +231,7 @@ finalization
   FreeAndNil(TouchCtlFlyOuter);
   FreeAndNil(Crosshair1);
   FreeAndNil(Crosshair2);
+  FreeAndNil(Loading);
   FreeAndNil(PanelSeparator);
   FreeAndNil(WindowDark);
   FreeAndNil(WindowGray);

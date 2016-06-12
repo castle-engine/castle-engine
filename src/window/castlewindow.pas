@@ -2994,6 +2994,26 @@ begin
 end;
 
 procedure TCastleWindowCustom.OpenCore;
+
+  {$ifdef ANDROID}
+  procedure RenderLoadingBackground;
+  var
+    WindowRect, TextRect: TRectangle;
+  begin
+    WindowRect := Rect;
+    glViewport(WindowRect);
+    DrawRectangle(WindowRect, Theme.LoadingBackgroundColor);
+
+    TextRect := Theme.Images[tiLoading].Rect.
+      Align(hpMiddle, WindowRect, hpMiddle).
+      Align(vpMiddle, WindowRect, vpMiddle);
+    Theme.Draw(TextRect, tiLoading, 1, Theme.LoadingTextColor);
+
+    // just like TCastleWindowCustom.DoRender
+    if DoubleBuffer then SwapBuffers else glFlush;
+  end;
+  {$endif}
+
 begin
   if not FClosed then Exit;
 
@@ -3070,6 +3090,10 @@ begin
       { make ApplicationProperties.IsGLContextOpen true now, to allow creating
         TGLImageCore.Create from Application.OnInitialize work Ok. }
       ApplicationProperties._GLContextEarlyOpen;
+
+      {$ifdef ANDROID}
+      RenderLoadingBackground;
+      {$endif}
 
       Application.CastleEngineInitialize;
       if Closed then Exit;

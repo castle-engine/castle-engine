@@ -185,7 +185,7 @@ begin
         finally FreeAndNil(ConfigState) end;
       end;
     {$endif CASTLE_PERSISTENT_ANDROID_STATE}
-    APP_CMD_PAUSE: ApplicationProperties._Pause;
+    APP_CMD_PAUSE : ApplicationProperties._Pause;
     APP_CMD_RESUME: ApplicationProperties._Resume;
   end;
 end;

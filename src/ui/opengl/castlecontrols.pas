@@ -732,7 +732,7 @@ type
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip,
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
-    tiCrosshair1, tiCrosshair2, tiErrorBackground);
+    tiCrosshair1, tiCrosshair2, tiErrorBackground, tiLoading);
 
   { Label with possibly multiline text, in an optional box. }
   TCastleLabel = class(TUIControlFont)
@@ -1099,6 +1099,10 @@ type
       Default is (0.25, 0.25, 0.25, 1), which makes background darker,
       which helps dialog to stand out. }
     BackgroundTint: TCastleColor;
+
+    { Colors used when displaying the "Loading..." text when Android application
+      is resuming. Note that you can also customize the tiLoading image. }
+    LoadingBackgroundColor, LoadingTextColor: TCastleColor;
 
     { Undernath various message dialogs show "error background"
       (@link(tiErrorBackground)) image instead of the default behaviour.
@@ -3856,6 +3860,8 @@ begin
   FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
   FImages[tiErrorBackground] := ErrorBackground;
   FCorners[tiErrorBackground] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiLoading] := Loading;
+  FCorners[tiLoading] := Vector4Integer(0, 0, 0, 0);
 
   ApplicationProperties.OnGLContextCloseObject.Add(@GLContextClose);
 end;
