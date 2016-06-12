@@ -177,9 +177,15 @@ end;
 procedure TCastleWindowCustom.QuerySize(out AWidth, AHeight: EGLint);
 begin
   if eglQuerySurface(Display, Surface, EGL_WIDTH, @AWidth) = EGL_FALSE then
+  begin
     OnWarning(wtMinor, 'EGL', 'Cannot query surface width (this is normal if app is no longer active): ' + EGLError);
+    AWidth := 0; // otherwise AWidth would be left undefined
+  end;
   if eglQuerySurface(Display, Surface, EGL_HEIGHT, @AHeight) = EGL_FALSE then
+  begin
     OnWarning(wtMinor, 'EGL', 'Cannot query surface height (this is normal if app is no longer active): ' + EGLError);
+    AHeight := 0; // otherwise AHeight would be left undefined
+  end;
 end;
 
 {$ifdef CASTLE_WINDOW_XLIB}
