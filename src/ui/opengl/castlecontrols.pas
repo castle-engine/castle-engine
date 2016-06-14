@@ -585,12 +585,24 @@ type
   TCastleRectangleControl = class(TUIControlSizeable)
   strict private
     FColor: TCastleColor;
+    FInterceptInput: boolean;
     procedure SetColor(const Value: TCastleColor);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
+
     { Rectangle color. By default, opaque white. }
     property Color: TCastleColor read FColor write SetColor;
+
+    { Prevents passing mouse/keyboard events to the controls underneath.
+      More precisely, when this property is @true, then the
+      @link(Press), @link(Release) and @link(Motion) events are marked as
+      "handled" by this control.  }
+    property InterceptInput: boolean read FInterceptInput write FInterceptInput
+      default false;
   end;
 
   { Fill the whole window with a simple color.
@@ -2585,6 +2597,24 @@ procedure TCastleRectangleControl.Render;
 begin
   inherited;
   DrawRectangle(ScreenRect, Color);
+end;
+
+function TCastleRectangleControl.Press(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  Result := Result or InterceptInput;
+end;
+
+function TCastleRectangleControl.Release(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  Result := Result or InterceptInput;
+end;
+
+function TCastleRectangleControl.Motion(const Event: TInputMotion): boolean;
+begin
+  Result := inherited;
+  Result := Result or InterceptInput;
 end;
 
 { TCastleSimpleBackground ---------------------------------------------------- }
