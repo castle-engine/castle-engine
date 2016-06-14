@@ -3107,7 +3107,7 @@ end;
 
 function TCastleLabel.GetTextToRender: TRichText;
 var
-  PaddingHorizontalScaled, MaxWidthScaled: Integer;
+  PaddingHorizontalScaled, MaxWidthScaled, WrapWidth: Integer;
   US: Single;
 begin
   Result := TRichText.Create(Font, Text, Html);
@@ -3116,7 +3116,9 @@ begin
     US := UIScale;
     PaddingHorizontalScaled := Round(US * PaddingHorizontal);
     MaxWidthScaled := Round(US * MaxWidth);
-    Result.Wrap(MaxWidthScaled - 2 * PaddingHorizontalScaled);
+    WrapWidth := MaxWidthScaled - 2 * PaddingHorizontalScaled;
+    if WrapWidth > 0 then
+      Result.Wrap(WrapWidth);
   end;
 end;
 
