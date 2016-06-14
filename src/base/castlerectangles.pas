@@ -179,9 +179,35 @@ type
 
     function ScaleToWidth(const NewWidth: Cardinal): TRectangle;
     function ScaleToHeight(const NewHeight: Cardinal): TRectangle;
+
+    { Scale rectangle position and size around it's own middle point.
+
+      Since the scaling is independent in each axis,
+      this handles "carefully" a half-empty rectangles
+      (when one size is <= 0, but other is > 0).
+      It scales correctly the positive dimension
+      (not just returns @link(Empty) constant),
+      leaving the other dimension (it's position and size) untouched. }
     function ScaleAroundMiddle(const Factor: Single): TRectangle;
+
+    { Scale rectangle position and size around the (0,0) point.
+
+      Since the scaling is independent in each axis,
+      this handles "carefully" a half-empty rectangles
+      (when one size is <= 0, but other is > 0).
+      It scales correctly the positive dimension
+      (not just returns @link(Empty) constant),
+      leaving the other dimension (it's position and size) untouched.
+
+      These details matter, e.g. when you set TUIControl.Width, but not
+      TUIControl.Height, and then you expect the TUIControl.CalculatedWidth
+      to work.
+    }
     function ScaleAround0(const Factor: Single): TRectangle;
+
+    { Scale @link(Width), in the same manner as ScaleAround0 would do. }
     function ScaleWidthAround0(const Factor: Single): Cardinal;
+    { Scale @link(Height), in the same manner as ScaleAround0 would do. }
     function ScaleHeightAround0(const Factor: Single): Cardinal;
 
     { Scale and align us to fit inside rectangle R, preserving our aspect ratio. }
@@ -537,38 +563,66 @@ end;
 
 function TRectangle.ScaleAroundMiddle(const Factor: Single): TRectangle;
 begin
-  if IsEmpty then Exit(Empty);
-  Result.Width  := Round(Width  * Factor);
-  Result.Height := Round(Height * Factor);
-  Result.Left   := Left   + (Width  - Result.Width ) div 2;
-  Result.Bottom := Bottom + (Height - Result.Height) div 2;
-  // Result.Left := Result.AlignCore(PivotHorizontal, Self, PivotHorizontal);
-  // Result.Bottom := Result.AlignCore(PivotVertical, Self, PivotVertical);
+  if Width > 0 then
+  begin
+    Result.Width  := Round(Width  * Factor);
+    Result.Left   := Left   + (Width  - Result.Width ) div 2;
+  end else
+  begin
+    Result.Width  := Width;
+    Result.Left   := Left;
+  end;
+
+  if Height > 0 then
+  begin
+    Result.Height := Round(Height * Factor);
+    Result.Bottom := Bottom + (Height - Result.Height) div 2;
+  end else
+  begin
+    Result.Height := Height;
+    Result.Bottom := Bottom;
+  end;
 end;
 
 function TRectangle.ScaleAround0(const Factor: Single): TRectangle;
 var
   ResultRight, ResultTop: Integer;
 begin
-  if IsEmpty then Exit(Empty);
-  Result.Left   := Floor(Left   * Factor);
-  Result.Bottom := Floor(Bottom * Factor);
-  ResultRight := Ceil(Right * Factor);
-  ResultTop   := Ceil(Top   * Factor);
-  Result.Width  := ResultRight - Result.Left;
-  Result.Height := ResultTop   - Result.Bottom;
+  if Width > 0 then
+  begin
+    Result.Left   := Floor(Left * Factor);
+    ResultRight := Ceil(Right * Factor);
+    Result.Width  := ResultRight - Result.Left;
+  end else
+  begin
+    Result.Width  := Width;
+    Result.Left   := Left;
+  end;
+
+  if Height > 0 then
+  begin
+    Result.Bottom := Floor(Bottom * Factor);
+    ResultTop   := Ceil(Top * Factor);
+    Result.Height := ResultTop - Result.Bottom;
+  end else
+  begin
+    Result.Height := Height;
+    Result.Bottom := Bottom;
+  end;
 end;
 
 function TRectangle.ScaleWidthAround0(const Factor: Single): Cardinal;
 begin
-  if IsEmpty then Exit(0);
-  Result := Ceil(Right * Factor) - Floor(Left * Factor);
+  if Width > 0 then
+    Result := Ceil(Right * Factor) - Floor(Left * Factor) else
+    Result := Width;
 end;
 
 function TRectangle.ScaleHeightAround0(const Factor: Single): Cardinal;
 begin
-  if IsEmpty then Exit(0);
-  Result := Ceil(Top * Factor) - Floor(Bottom * Factor);
+  if Height > 0 then
+    Result := Ceil(Top * Factor) - Floor(Bottom * Factor) else
+    Result := Height;
 end;
 
 function TRectangle.FitInside(const R: TRectangle;
