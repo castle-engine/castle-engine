@@ -44,6 +44,9 @@ function UTF8CharacterLength(p: PChar): integer;
 function UTF8Length(const s: string): PtrInt;
 function UTF8Length(p: PChar; ByteCount: PtrInt): PtrInt;
 
+function UTF8CharStart(UTF8Str: PChar; Len, CharIndex: PtrInt): PChar;
+function UTF8Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
+
 { Return unicode character pointed by P.
 
   The typical usage of this is to iterate over UTF-8 string char-by-char, like this:
@@ -161,6 +164,46 @@ begin
     CharLen:=UTF8CharacterLength(p);
     inc(p,CharLen);
     dec(ByteCount,CharLen);
+  end;
+end;
+
+{ Len is the length in bytes of UTF8Str
+  CharIndex is the position of the desired char (starting at 0), in chars
+}
+function UTF8CharStart(UTF8Str: PChar; Len, CharIndex: PtrInt): PChar;
+var
+  CharLen: LongInt;
+begin
+  Result:=UTF8Str;
+  if Result<>nil then begin
+    while (CharIndex>0) and (Len>0) do begin
+      CharLen:=UTF8CharacterLength(Result);
+      dec(Len,CharLen);
+      dec(CharIndex);
+      inc(Result,CharLen);
+    end;
+    if (CharIndex<>0) or (Len<0) then
+      Result:=nil;
+  end;
+end;
+
+function UTF8Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
+// returns substring
+var
+  StartBytePos: PChar;
+  EndBytePos: PChar;
+  MaxBytes: PtrInt;
+begin
+  StartBytePos:=UTF8CharStart(PChar(s),length(s),StartCharIndex-1);
+  if StartBytePos=nil then
+    Result:=''
+  else begin
+    MaxBytes:=PtrInt(PChar(s)+length(s)-StartBytePos);
+    EndBytePos:=UTF8CharStart(StartBytePos,MaxBytes,CharCount);
+    if EndBytePos=nil then
+      Result:=copy(s,StartBytePos-PChar(s)+1,MaxBytes)
+    else
+      Result:=copy(s,StartBytePos-PChar(s)+1,EndBytePos-StartBytePos);
   end;
 end;
 

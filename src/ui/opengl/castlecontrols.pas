@@ -758,9 +758,11 @@ type
     FFrameColor: TCastleColor;
     FMaxWidth: Integer;
     FAlignment: THorizontalPosition;
+    FVerticalAlignment: TVerticalPosition;
     FAutoSize: boolean;
     FWidth, FHeight: Cardinal;
     FFullSize: boolean;
+    FMaxDisplayChars: Integer;
     function GetTextToRender: TRichText;
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
@@ -768,6 +770,9 @@ type
     procedure SetAutoSize(const Value: boolean);
     function GetCaption: string;
     procedure SetCaption(const Value: string);
+    procedure SetAlignment(const Value: THorizontalPosition);
+    procedure SetVerticalAlignment(const Value: TVerticalPosition);
+    procedure SetMaxDisplayChars(const Value: Integer);
   private
     { For internal use by tooltip rendering. In normal circumstances,
       leave this at tiLabel. }
@@ -786,6 +791,8 @@ type
 
     { Color tint of the background image, see @link(Frame). By default white. }
     property FrameColor: TCastleColor read FFrameColor write FFrameColor;
+
+    function DisplayChars: Cardinal;
   published
     property Width: Cardinal read FWidth write SetWidth default 0;
     property Height: Cardinal read FHeight write SetHeight default 0;
@@ -866,7 +873,26 @@ type
 
     { Horizontal alignment of the text. }
     property Alignment: THorizontalPosition
-      read FAlignment write FAlignment default hpLeft;
+      read FAlignment write SetAlignment default hpLeft;
+
+    { Vertical alignment of the text. Usually you don't want to use this,
+      instead leave @link(AutoSize) = @true and align the label to the parent
+      using anchors, like @code(MyLabel.Anchor(vpMiddle);)
+      or @code(MyLabel.Anchor(vpTop);).
+
+      This property is useful if you really need to manually control the size.
+      It only matters when @link(AutoSize) is @false.
+      Then it controls where the text is, with respect it's rectangle defined
+      by properties like @link(Height) or @link(FullSize). }
+    property VerticalAlignment: TVerticalPosition
+      read FVerticalAlignment write SetVerticalAlignment default vpBottom;
+
+    { Limit the displayed label text, if not -1.
+      This doesn't affect the label size, only the rendered text.
+      It's nice to show the animation of text "expanding", filling some area.
+      Use DisplayChars as the maximum sensible value for this. }
+    property MaxDisplayChars: Integer
+      read FMaxDisplayChars write SetMaxDisplayChars default -1;
   end;
 
   TCastleCrosshairShape = (csCross, csCrossRect);
@@ -3127,6 +3153,7 @@ begin
   FLineSpacing := DefaultLineSpacing;
   FAutoSize := true;
   ImageType := tiLabel;
+  FMaxDisplayChars := -1;
 end;
 
 destructor TCastleLabel.Destroy;
@@ -3194,17 +3221,19 @@ begin
 end;
 
 procedure TCastleLabel.Render;
+var
+  TextToRender: TRichText;
+  LineSpacingScaled: Integer;
 
-  {function TextHeight: Integer;
+  function TextHeight: Integer;
   begin
-    Result := TextToRender.Count * (RowHeight + LineSpacingScaled);
-  end;}
+    Result := TextToRender.Count * (Font.RowHeight + LineSpacingScaled);
+  end;
 
 var
   SR: TRectangle;
-  TextToRender: TRichText;
   TextX, TextBottom, PaddingHorizontalScaled,
-    PaddingVerticalScaled, LineSpacingScaled: Integer;
+    PaddingVerticalScaled: Integer;
   US: Single;
 begin
   inherited;
@@ -3229,16 +3258,9 @@ begin
   { calculate TextBottom }
   TextBottom := SR.Bottom + PaddingVerticalScaled + Font.Descend;
 
-  { useless, use AutoSize=true and Anchor(vpMiddle) to center text vertically
-    within parent rect.
-  if not AutoSize then
-    case VerticalAlignment of
-      vpMiddle: TextBottom := SR.Bottom + (SR.Height - TextHeight) / div 2;
-      vpTop   : TextBottom := SR.Top - PaddingVerticalScaled - Font.Descend - TextHeight;
-    end;
-  }
-
-  if (not Html) and (MaxWidth = 0) then
+  if (not Html) and (MaxWidth = 0) and
+     (AutoSize or (VerticalAlignment = vpBottom)) and
+     (MaxDisplayChars = -1) then
   begin
     { fast case: no need to use TRichText in this case }
     Font.PrintStrings(TextX, TextBottom, Color, Text, false, LineSpacingScaled, Alignment);
@@ -3246,7 +3268,15 @@ begin
   begin
     TextToRender := GetTextToRender;
     try
-      TextToRender.Print(TextX, TextBottom, Color, LineSpacingScaled, Alignment);
+      { fix TextBottom, in case of non-trivial VerticalAlignment }
+      if not AutoSize then
+        case VerticalAlignment of
+          vpMiddle: TextBottom := SR.Bottom + (SR.Height - TextHeight) div 2;
+          vpTop   : TextBottom := SR.Top - PaddingVerticalScaled - Font.Descend - TextHeight;
+        end;
+
+      TextToRender.Print(TextX, TextBottom, Color, LineSpacingScaled, Alignment,
+        MaxDisplayChars);
     finally FreeAndNil(TextToRender) end;
   end;
 end;
@@ -3295,6 +3325,45 @@ end;
 procedure TCastleLabel.SetCaption(const Value: string);
 begin
   Text.Text := Value;
+end;
+
+procedure TCastleLabel.SetAlignment(const Value: THorizontalPosition);
+begin
+  if FAlignment <> Value then
+  begin
+    FAlignment := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleLabel.SetVerticalAlignment(const Value: TVerticalPosition);
+begin
+  if FVerticalAlignment <> Value then
+  begin
+    FVerticalAlignment := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleLabel.SetMaxDisplayChars(const Value: Integer);
+begin
+  if FMaxDisplayChars <> Value then
+  begin
+    FMaxDisplayChars := Value;
+    VisibleChange;
+  end;
+end;
+
+function TCastleLabel.DisplayChars: Cardinal;
+var
+  TextToRender: TRichText;
+begin
+  if Text.Count = 0 then Exit(0); // early exit in case of easy, fast case
+
+  TextToRender := GetTextToRender;
+  try
+    Result := TextToRender.DisplayChars;
+  finally FreeAndNil(TextToRender) end;
 end;
 
 { TCastleProgressBar --------------------------------------------------------- }
