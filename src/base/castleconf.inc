@@ -16,16 +16,21 @@
 { Common compiler defines and symbols.
   This is a central include file for Castle Game Engine.
 
-  This file is *not* included in 100% of our units (for now),
+  This file is *not* included in 100% of our units,
   it's just included where it's needed.
+  We don't try to set compilation options here (like $H+ or FPC objfpc mode)
+  because:
+  - Not all interesting compiler settings can be set here.
+    For example optimization options can only be specified on the command-line
+    (and they are important for a game engine).
+  - It's error prone, it's too easy to forget to include this file in some unit.
+    Using a consistent compiler options in scripts is easier.
 
-  Note that we don't try to set compilation options here (like $H or FPC
-  ObjFpc mode) because not all interesting compiler settings can be set
-  by directives. And specyfying only a subset of them is useless.
-  The proper compiler options to compile the engine are in ../../castle-fpc.cfg
-  configuration file (used also by fpmake compilation method),
-  and they are replicated in Lazarus packages compilation settings,
-  and are replicated once more in castle-engine build tool code.
+  The proper compiler options to compile the engine are
+  - in the ../../castle-fpc.cfg configuration file (used also by fpmake
+    compilation method),
+  - and they are replicated in Lazarus packages compilation settings,
+  - and are replicated once more in the castle-engine build tool code.
 }
 
 {$ifndef CASTLE_CONF_INCLUDED}
@@ -74,11 +79,16 @@
 {$ifdef VER2_4} {$fatal FPC 2.4.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
 {$ifdef VER2_6_0} {$fatal FPC 2.6.0 is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
 
-{ we use ObjFPC mode with AnsiString everywhere }
-{$mode objfpc}{$H+}
+// This should be set on the command-line always.
+{ We use ObjFPC mode with AnsiString everywhere. }
+{ $mode objfpc}{$H+}
 
-{ we use macros in various parts }
-{$macro on}
+// This should be set on the command-line always.
+{ We use macros. }
+{ $macro on}
+
+{ Unfortunately, it seems that this can only be specified here, not on the command-line. }
+{$writeableconst off}
 
 {$define TOBJECT_HAS_EQUALS}
 {$ifdef VER2_0}   {$undef TOBJECT_HAS_EQUALS} {$endif}
