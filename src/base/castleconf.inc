@@ -79,12 +79,12 @@
 {$ifdef VER2_4} {$fatal FPC 2.4.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
 {$ifdef VER2_6_0} {$fatal FPC 2.6.0 is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
 
-// This should be set on the command-line always.
-{ We use ObjFPC mode with AnsiString everywhere. }
-{ $mode objfpc}{$H+}
-
-// This should be set on the command-line always.
-{ We use macros. }
+{ These should be set on the command-line always.
+  NOT setting them here forces the user to use correct compilation method
+  for the engine (like using castle-fpc.cfg or the build tool or Lazarus package)
+  instead of hacking something, which is GOOD. }
+{ $mode objfpc}
+{ $H+}
 { $macro on}
 
 { Unfortunately, it seems that this can only be specified here, not on the command-line. }
