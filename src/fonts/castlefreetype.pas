@@ -184,18 +184,19 @@ const
 
   DefaultFontExtention : string = '.ttf';
 
+  {$IFDEF MAC}
+  DefaultResolution : integer = 72;
+  {$ELSE}
+  DefaultResolution : integer = 97;
+  {$ENDIF}
+
+var
   // Standard location for fonts in the Operating System
   {$ifdef Darwin}
   DefaultSearchPath : string = '/Library/Fonts/';
   {$else}
   DefaultSearchPath : string = '';
   {$endif}
-
-  {$IFDEF MAC}
-  DefaultResolution : integer = 72;
-  {$ELSE}
-  DefaultResolution : integer = 97;
-  {$ENDIF}
 
 implementation
 
