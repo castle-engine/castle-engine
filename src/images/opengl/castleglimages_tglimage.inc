@@ -72,7 +72,7 @@ type
 
     FWidth: Cardinal;
     FHeight: Cardinal;
-    FAlpha: TAlphaChannel;
+    FAlpha: TAutoAlphaChannel;
     FIgnoreTooLargeCorners: boolean;
     FColor: TCastleColor;
     FSmoothScaling: boolean;
@@ -82,6 +82,14 @@ type
     UseScreenCenter: boolean;
     FClip: boolean;
     FClipLine: TVector3Single;
+    { The detected alpha channel of the loaded image.
+      It influences the drawing mode, if @link(Alpha) is acAuto.
+
+      This property is always acNone before the image is loaded.
+      You cannot change it, you can only change the @link(Alpha) property
+      that actually dictates the alpha drawing mode. }
+    FImageAlpha: TAlphaChannel;
+    function FinalAlpha: TAlphaChannel;
     procedure AlphaBegin;
     procedure AlphaEnd;
     procedure SetSmoothScaling(const Value: boolean);
@@ -153,9 +161,15 @@ type
       sizes. }
     function Rect: TRectangle;
 
-    { How to treat alpha channel of the texture.
+    { How to render the alpha channel of the texture.
 
       @unorderedList(
+        @item(acAuto means to guess correct alpha channel from the loaded image
+          contents, and the current @link(Color). We use @italic(alpha blending)
+          if the loaded image alpha indicates so, or @code(Color[3] < 1).
+          Otherwise we use @italic(alpha testing) if the loaded image
+          alpha indicates so. Otherwise we don't use any alpha,
+          we render image opaque.)
         @item acNone means to ignore it.
         @item acSimpleYesNo means to render with alpha-test.
         @item acFullRange means to render with blending.
@@ -176,7 +190,8 @@ type
       an alpha channel (e.g. use LoadAsClass=[TRGBImage]
       to force RGB image without alpha, use LoadAsClass=[TRGBAlphaImage]
       to force alpha channel). }
-    property Alpha: TAlphaChannel read FAlpha write FAlpha;
+    property Alpha: TAutoAlphaChannel read FAlpha write FAlpha
+      default acAuto;
 
     { Draw the image as 2D on screen.
 
@@ -508,6 +523,8 @@ begin
   FRotation := 0;
   { this sets CurrentFilter, that will be immediately used by Load }
   FSmoothScaling := ASmoothScaling;
+  FImageAlpha := acNone;
+  FAlpha := acAuto;
 
   Load(Image);
 end;
@@ -580,12 +597,12 @@ begin
   begin
     FWidth := AImage.Width;
     FHeight := AImage.Height;
-    FAlpha := AImage.AlphaChannel;
+    FImageAlpha := AImage.AlphaChannel;
   end else
   begin
     FWidth := 0;
     FHeight := 0;
-    FAlpha := acNone;
+    FImageAlpha := acNone;
   end;
 
   {$ifdef GLImageUseShaders}
@@ -668,9 +685,20 @@ begin
   StaticResourcesReady := false;
 end;
 
+function TGLImageCore.FinalAlpha: TAlphaChannel;
+begin
+  if FAlpha = acAuto then
+  begin
+    Result := FImageAlpha;
+    if FColor[3] < 1 then
+      Result := acFullRange;
+  end else
+    Result := FAlpha;
+end;
+
 procedure TGLImageCore.AlphaBegin;
 begin
-  case Alpha of
+  case FinalAlpha of
     {$ifndef GLImageUseShaders}
     acSimpleYesNo:
       begin
@@ -688,7 +716,7 @@ end;
 
 procedure TGLImageCore.AlphaEnd;
 begin
-  case Alpha of
+  case FinalAlpha of
     {$ifndef GLImageUseShaders}
     acSimpleYesNo: glDisable(GL_ALPHA_TEST);
     {$endif}
@@ -818,7 +846,7 @@ begin
     ColorTreatment := ctColorMultipliesTexture else
     ColorTreatment := ctPureTexture;
 
-  Prog := GLSLProgram[Alpha = acSimpleYesNo, Clip, ColorTreatment];
+  Prog := GLSLProgram[FinalAlpha = acSimpleYesNo, Clip, ColorTreatment];
   Prog.Enable;
   AttribEnabled[0] := Prog.VertexAttribPointer('vertex', 0, 2, GL_SHORT, GL_FALSE,
     SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
@@ -947,7 +975,7 @@ var
     HorizontalScreenSize, VerticalScreenSize: Single;
   XImageLeft, XImageRight, YImageBottom, YImageTop,
     HorizontalImageSize, VerticalImageSize: Single;
-  OldAlpha: TAlphaChannel;
+  OldAlpha: TAutoAlphaChannel;
   {$ifdef GLImageUseShaders}
   OptimizeAlpha: boolean;
   {$endif}
@@ -991,7 +1019,7 @@ begin
     In case of GLImageUseShaders, this optimization is only useful
     for acFullRange, and it would actually break the acSimpleYesNo case. }
   {$ifdef GLImageUseShaders}
-  OptimizeAlpha := Alpha = acFullRange;
+  OptimizeAlpha := FinalAlpha = acFullRange;
   if OptimizeAlpha then
   {$endif}
   begin
@@ -1078,7 +1106,7 @@ var
     HorizontalScreenSize: Single;
   XImageLeft, XImageRight,
     HorizontalImageSize: Single;
-  OldAlpha: TAlphaChannel;
+  OldAlpha: TAutoAlphaChannel;
   {$ifdef GLImageUseShaders}
   OptimizeAlpha: boolean;
   {$endif}
@@ -1113,7 +1141,7 @@ begin
     In case of GLImageUseShaders, this optimization is only useful
     for acFullRange, and it would actually break the acSimpleYesNo case. }
   {$ifdef GLImageUseShaders}
-  OptimizeAlpha := Alpha = acFullRange;
+  OptimizeAlpha := FinalAlpha = acFullRange;
   if OptimizeAlpha then
   {$endif}
   begin

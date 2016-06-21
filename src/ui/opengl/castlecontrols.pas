@@ -474,12 +474,13 @@ type
     property FileName: string read FURL write SetURL; deprecated;
     { How to treat alpha channel of the assigned image.
       By default, this is acAuto, which means that image contents
-      determine how the alpha of image is treated (opaque, alpha test,
-      alpha blending). Set this to force specific treatment. }
+      together with current @link(Color) determine how
+      the alpha of image is treated (opaque, alpha test, alpha blending).
+      Set this to force specific treatment. }
     property AlphaChannel: TAutoAlphaChannel
       read FAlphaChannel write SetAlphaChannel default acAuto;
     { Deprecated, use more flexible AlphaChannel instead. }
-    property Blending: boolean read GetBlending write SetBlending stored false; deprecated;
+    property Blending: boolean read GetBlending write SetBlending stored false; deprecated 'use AlphaChannel';
 
     { Is the image scaling mode smooth (bilinear filtering)
       or not (nearest-pixel filtering).
@@ -2265,9 +2266,8 @@ begin
         FGLImage.Rotation := FRotation;
         FGLImage.Clip := FClip;
         FGLImage.ClipLine := FClipLine;
-      end;
-      if AlphaChannel <> acAuto then
         FGLImage.Alpha := AlphaChannel;
+      end;
     end else
       FreeAndNil(FGLImage); // make sure to free FGLImage when FImage is nil
     VisibleChange;
@@ -2281,10 +2281,8 @@ begin
     FAlphaChannel := Value;
     if FGLImage <> nil then
     begin
-      { update FGLImage.Alpha }
-      if AlphaChannel <> acAuto then
-        FGLImage.Alpha := AlphaChannel else
-        FGLImage.Alpha := FImage.AlphaChannel;
+      FGLImage.Alpha := Value;
+      VisibleChange;
     end;
   end;
 end;
@@ -4039,9 +4037,6 @@ procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage
 begin
   GLImages[ImageType].Color := Color;
   GLImages[ImageType].ScaleCorners := UIScale;
-  if Color[3] < 1 then
-    GLImages[ImageType].Alpha := acFullRange else
-    GLImages[ImageType].Alpha := FImages[ImageType].AlphaChannel;
   GLImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
 end;
 
