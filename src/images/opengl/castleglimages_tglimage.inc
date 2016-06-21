@@ -390,8 +390,11 @@ type
       (so we actually have to make a copy of it to be safe).
 
       It is advised to use one of the other constructors, for example use
-      the constructor with additional parameter "AOwnsImage". Or use TGLImageCore
-      class. }
+      the constructor with additional parameter "AOwnsImage". The @code(Image) instance
+      passed there must exist throughout the lifetime of this instance, regardless
+      of "AOwnsImage".
+
+      Or use TGLImageCore class. }
     constructor Create(const AImage: TEncodedImage;
       const ASmoothScaling: boolean);
       deprecated 'this constructor overload is provided only for compatibility';
