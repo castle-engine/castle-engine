@@ -24,6 +24,9 @@ uses X3DNodes;
 
 function LoadSpine(URL: string): TX3DRootNode;
 
+var
+  LogSpineMeshCompressWhitespaceWarning: boolean = true;
+
 implementation
 
 uses SysUtils, Classes, FGL, FpJson, JSONParser, JSONScanner, Math,

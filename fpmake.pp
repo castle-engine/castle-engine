@@ -192,7 +192,7 @@ begin
     P.Targets.AddUnit('castlescriptlexer.pas');
     P.Targets.AddUnit('castlescriptparser.pas');
     P.Targets.AddUnit('castlescriptvectors.pas');
-    P.Targets.AddUnit('castlescriptconfig.pas');
+    P.Targets.AddUnit('castlescriptxml.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'castlescript' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlecurves.pas');

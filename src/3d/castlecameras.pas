@@ -50,7 +50,7 @@ type
   TNavigationType = (ntExamine, ntTurntable, ntWalk, ntFly, ntNone);
 
   { Base class camera.
-  
+
     TODO: this is separate from TInputListener class only to avoid FPC 2.6.4
     bug Internal error 200610054 when using the stabs debug info. }
   TCameraInputListener = class(TComponent)
@@ -386,6 +386,9 @@ end;
       called by the scene manager). }
     procedure SetProjectionMatrix(const Value: TMatrix4Single); virtual;
     procedure SetRadius(const Value: Single); virtual;
+
+    function GetPositionInternal: TVector3Single; virtual; abstract;
+    procedure SetPosition(const Value: TVector3Single); virtual; abstract;
   public
     const
       { Default value for TCamera.Radius.
@@ -475,8 +478,6 @@ end;
       Returned Dir and Up and GravityUp are already normalized. }
     procedure GetView(out APos, ADir, AUp: TVector3Single); virtual; abstract;
     procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); virtual; abstract;
-    function GetPosition: TVector3Single; virtual; abstract;
-    function GetGravityUp: TVector3Single; virtual; abstract;
 
     { Set camera view from vectors: position, direction, up.
 
@@ -492,6 +493,10 @@ end;
       const AdjustUp: boolean = true); virtual; abstract;
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
       const AdjustUp: boolean = true); virtual; abstract;
+
+    property Position: TVector3Single read GetPositionInternal write SetPosition;
+    function GetPosition: TVector3Single; deprecated 'use Position property';
+    function GetGravityUp: TVector3Single; virtual; abstract;
 
     { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
       Uses current Container, which means that you have to add this camera
@@ -701,6 +706,9 @@ end;
 
     function GetMouseNavigation: boolean;
     procedure SetMouseNavigation(const Value: boolean);
+  protected
+    function GetPositionInternal: TVector3Single; override;
+    procedure SetPosition(const Value: TVector3Single); override;
   public
     const
       DefaultRotationAccelerationSpeed = 5.0;
@@ -801,7 +809,6 @@ end;
 
     procedure GetView(out APos, ADir, AUp: TVector3Single); override;
     procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
-    function GetPosition: TVector3Single; override;
     function GetGravityUp: TVector3Single; override;
     procedure SetView(const APos, ADir, AUp: TVector3Single;
       const AdjustUp: boolean = true); override;
@@ -913,7 +920,6 @@ end;
     FMouseLook: boolean;
     FMouseDragMode: TMouseDragMode;
 
-    procedure SetPosition(const Value: TVector3Single);
     procedure SetDirection(const Value: TVector3Single);
     procedure SetUp(const Value: TVector3Single);
     procedure SetMouseLook(const Value: boolean);
@@ -1060,6 +1066,9 @@ end;
     procedure Height(const APosition: TVector3Single;
       out AIsAbove: boolean;
       out AnAboveHeight: Single; out AnAboveGround: P3DTriangle); virtual;
+
+    function GetPositionInternal: TVector3Single; override;
+    procedure SetPosition(const Value: TVector3Single); override;
   public
     const
       DefaultFallSpeedStart = 0.5;
@@ -1674,7 +1683,6 @@ end;
 
     procedure GetView(out APos, ADir, AUp: TVector3Single); override;
     procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
-    function GetPosition: TVector3Single; override;
     function GetGravityUp: TVector3Single; override;
     procedure SetView(const ADir, AUp: TVector3Single;
       const AdjustUp: boolean = true);
@@ -1862,6 +1870,8 @@ end;
     procedure SetProjectionMatrix(const Value: TMatrix4Single); override;
     procedure SetContainer(const Value: TUIContainer); override;
     procedure SetRadius(const Value: Single); override;
+    function GetPositionInternal: TVector3Single; override;
+    procedure SetPosition(const Value: TVector3Single); override;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -1873,7 +1883,6 @@ end;
     function RotationMatrix: TMatrix4Single; override;
     procedure GetView(out APos, ADir, AUp: TVector3Single); override;
     procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
-    function GetPosition: TVector3Single; override;
     function GetGravityUp: TVector3Single; override;
     procedure SetView(const APos, ADir, AUp: TVector3Single;
       const AdjustUp: boolean = true); override;
@@ -2390,6 +2399,11 @@ begin
   Result := inherited;
 end;
 
+function TCamera.GetPosition: TVector3Single;
+begin
+  Result := GetPositionInternal;
+end;
+
 { TExamineCamera ------------------------------------------------------------ }
 
 constructor TExamineCamera.Create(AOwner: TComponent);
@@ -2815,7 +2829,7 @@ begin
     Size := FModelBox.AverageSize;
 
     OldMoveAmount := FMoveAmount;
-    OldPosition := GetPosition;
+    OldPosition := Position;
 
     FMoveAmount[2] += Size * Factor;
 
@@ -2824,7 +2838,7 @@ begin
       so zoomin in/out inside the box is still always allowed.
       See http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=24 }
     if (Factor > 0) and
-       (FModelBox.PointDistance(GetPosition) >
+       (FModelBox.PointDistance(Position) >
         FModelBox.PointDistance(OldPosition)) then
     begin
       FMoveAmount := OldMoveAmount;
@@ -3048,9 +3062,18 @@ begin
   AGravityUp := GetGravityUp;
 end;
 
-function TExamineCamera.GetPosition: TVector3Single;
+function TExamineCamera.GetPositionInternal: TVector3Single;
 begin
   Result := MatrixMultPoint(MatrixInverse, Vector3Single(0, 0, 0));
+end;
+
+procedure TExamineCamera.SetPosition(const Value: TVector3Single);
+begin
+  { a subset of what SetView does }
+  FMoveAmount := -Value;
+  FMoveAmount := FRotations.Rotate(FMoveAmount + FCenterOfRotation)
+    - FCenterOfRotation;
+  ScheduleVisibleChange;
 end;
 
 function TExamineCamera.GetGravityUp: TVector3Single;
@@ -4551,6 +4574,11 @@ begin
  end;
 end;
 
+function TWalkCamera.GetPositionInternal: TVector3Single;
+begin
+  Result := FPosition;
+end;
+
 procedure TWalkCamera.SetPosition(const Value: TVector3Single);
 begin
   FPosition := Value;
@@ -4725,11 +4753,6 @@ begin
   AGravityUp := GravityUp;
 end;
 
-function TWalkCamera.GetPosition: TVector3Single;
-begin
-  Result := FPosition;
-end;
-
 function TWalkCamera.GetGravityUp: TVector3Single;
 begin
   Result := GravityUp;
@@ -4886,9 +4909,14 @@ begin
   Current.GetView(APos, ADir, AUp, AGravityUp);
 end;
 
-function TUniversalCamera.GetPosition: TVector3Single;
+function TUniversalCamera.GetPositionInternal: TVector3Single;
 begin
-  Result := Current.GetPosition;
+  Result := Current.Position;
+end;
+
+procedure TUniversalCamera.SetPosition(const Value: TVector3Single);
+begin
+  Current.Position := Value;
 end;
 
 function TUniversalCamera.GetGravityUp: TVector3Single;
@@ -5060,19 +5088,19 @@ end;
 
 procedure TUniversalCamera.SetNavigationClass(const Value: TNavigationClass);
 var
-  Position, Direction, Up: TVector3Single;
+  Pos, Dir, Up: TVector3Single;
 begin
   if FNavigationClass <> Value then
   begin
-    Current.GetView(Position, Direction, Up);
+    Current.GetView(Pos, Dir, Up);
     FNavigationClass := Value;
 
-    { SetNavigationClass may be called when Direction and Up
+    { SetNavigationClass may be called when Dir and Up
       are both perfectly zero, from TCastleSceneCore.CreateCamera
       that creates a camera and first calls CameraFromNavigationInfo
       (that sets NavigationClass) before calling CameraFromViewpoint
       (that sets sensible view vectors). We protect from it, to not call
-      SetView with Direction and Up zero.
+      SetView with Dir and Up zero.
 
       Although for now this isn't really needed, as all SetView implementations
       behave Ok, because
@@ -5085,8 +5113,8 @@ begin
       But, for the future, protect from it, since the doc for SetView guarantees
       correct behavior only for dir/up non-zero. }
 
-    if not (PerfectlyZeroVector(Direction) and PerfectlyZeroVector(Up)) then
-      Current.SetView(Position, Direction, Up);
+    if not (PerfectlyZeroVector(Dir) and PerfectlyZeroVector(Up)) then
+      Current.SetView(Pos, Dir, Up);
     { our Cursor should always reflect Current.Cursor }
     Cursor := Current.Cursor;
   end;

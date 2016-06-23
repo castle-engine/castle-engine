@@ -602,6 +602,7 @@ type
     procedure SetInternalCursor(const Value: TMouseCursor); override;
     function GetTouches(const Index: Integer): TTouch; override;
     function TouchesCount: Integer; override;
+    function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
   end;
 
   {$define read_interface_types}
@@ -1274,13 +1275,13 @@ type
     { OpenGL context is created, initialize things that require OpenGL
       context. Often you do not need to use this callback (engine components will
       automatically create/release OpenGL resource when necessary),
-      but sometimes it may be handy (e.g. TGLImage required OpenGL context).
+      unless you deal with lower-level OpenGL resource managing (e.g. using
+      TGLImageCore).
       You usually will also want to implement Window.OnClose callback that
-      releases stuff created here.
+      should release stuff you create here.
 
-      Instead of using this callback, even when you really need to initialize
-      some OpenGL resource, it's usually better to derive new classes from
-      TUIControl class or it's descendants,
+      Often, instead of using this callback, it's cleaner to derive new classes
+      from TUIControl class or it's descendants,
       and override their GLContextOpen / GLContextClose methods to react to
       context being open/closed. Using such TUIControl classes
       is usually easier, as you add/remove them from controls whenever
@@ -1987,13 +1988,15 @@ end;
     procedure SaveScreen(const URL: string); overload;
     function SaveScreen: TRGBImage; overload;
     function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload;
-    function SaveScreenToGL(const SmoothScaling: boolean = false): TGLImage; overload;
+    function SaveScreenToGL(const SmoothScaling: boolean = false): TGLImageCore; overload;
     function SaveScreenToGL(const SaveRect: TRectangle;
-      const SmoothScaling: boolean = false): TGLImage; overload;
+      const SmoothScaling: boolean = false): TGLImageCore; overload;
     { @groupEnd }
 
     { Color buffer where we draw, and from which it makes sense to grab pixels.
-      Use with SaveScreen_NoFlush. }
+      Use only if you save the screen using low-level SaveScreen_NoFlush function.
+      Usually, you should save the screen using the simpler @link(SaveScreen) method,
+      and then the @name is not useful. }
     function SaveScreenBuffer: TColorBuffer;
 
     { Asks and saves current screenshot.
@@ -2386,9 +2389,9 @@ end;
   private
     FOnInitialize{, FOnInitializeJavaActivity}: TProcedure;
     Initialized, InitializedJavaActivity: boolean;
-    FOnUpdate :TUpdateFunc;
-    FOnTimer :TProcedure;
-    FTimerMilisec :Cardinal;
+    FOnUpdate: TUpdateFunc;
+    FOnTimer: TProcedure;
+    FTimerMilisec: Cardinal;
     FVideoColorBits: integer;
     FVideoFrequency: Cardinal;
     { Current window with OpenGL context active.
@@ -2399,6 +2402,7 @@ end;
     FMainWindow: TCastleWindowCustom;
     FUserAgent: string;
     FDefaultWindowClass: TCastleWindowCustomClass;
+    LastMaybeDoTimerTime: TMilisecTime;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindowCustom;
@@ -2455,28 +2459,30 @@ end;
         then once. }
     procedure QuitWhenNoOpenWindows;
 
-    { Call OnUpdate, call OnApplicationUpdate. }
+    { Call Application.OnUpdate. }
     procedure DoApplicationUpdate;
 
-    { Call OnTimer. }
+    { Call Application.OnTimer. }
     procedure DoApplicationTimer;
 
-    { Something useful for some CastleWindow backends. This will implement
-      (in a simple way) calling of DoApplicationTimer and OpenWindows.DoTimer.
+    { Call Application.OnTimer, and all window's OnTimer, when the time is right.
+      This allows some backends to easily implement the timer.
+      Simply call this method very often (usually at the same time you're calling
+      DoApplicationUpdate). }
+    procedure MaybeDoTimer;
 
-      Declare in TCastleApplication some variable like
-        LastDoTimerTime: TMilisecTime
-      initialized to 0. Then just call very often (probably at the same time
-      you're calling DoApplicationUpdate)
-        MaybeDoTimer(LastDoTimerTime);
-      This will take care of calling DoApplicationTimer and OpenWindows.DoTimer
-      at the appropriate times. It will use and update LastDoTimerTime,
-      you shouldn't read or write LastDoTimerTime yourself. }
-    procedure MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
+    { Call OnUpdate, OnTimer on Application and all open windows,
+      and call OnRender on all necessary windows.
+      This allows some backends to easily do everything that typically needs
+      to be done continuosly (without the need for any message from the outside). }
+    procedure UpdateAndRenderEverything(out WasAnyRendering: boolean);
+    procedure UpdateAndRenderEverything;
 
-    { Just like TCastleWindowCustom.AllowSuspendForInput, except this is for
+    { Can we wait (hang) for next message.
+      See TCastleWindowCustom.AllowSuspendForInput, this is similar but for
       the whole Application. Returns @true only if all open
-      windows allow it, and we do not have OnUpdate and OnTimer. }
+      windows allow it, and application state allows it too
+      (e.g. we do not have OnUpdate and OnTimer). }
     function AllowSuspendForInput: boolean;
 
     procedure DoLimitFPS;
@@ -2912,6 +2918,19 @@ begin
   Result := Parent.TouchesCount;
 end;
 
+function TWindowContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
+begin
+  { In theory, the single-buffer
+    case could be optimized (do not redraw if not needed, that is:
+    if not invalidated), but it's not worth the complication since noone uses
+    single-buffer for normal applications... And also, there is no reliable
+    way to capture screen contents in case of single-buffer. }
+
+  EventBeforeRender;
+  EventRender;
+  Result := SaveScreen_NoFlush(SaveRect, Parent.SaveScreenBuffer);
+end;
+
 { TCastleWindowCustom ---------------------------------------------------------- }
 
 constructor TCastleWindowCustom.Create(AOwner: TComponent);
@@ -3049,7 +3068,7 @@ begin
 
     try
       { make ApplicationProperties.IsGLContextOpen true now, to allow creating
-        TGLImage.Create from Application.OnInitialize work Ok. }
+        TGLImageCore.Create from Application.OnInitialize work Ok. }
       ApplicationProperties._GLContextEarlyOpen;
 
       Application.CastleEngineInitialize;
@@ -3527,7 +3546,7 @@ begin
  end;
 end;
 
-{ SaveScreenXx --------------------------------------------------------------- }
+{ SaveScreenXxx --------------------------------------------------------------- }
 
 function TCastleWindowCustom.SaveScreenBuffer: TColorBuffer;
 begin
@@ -3537,36 +3556,28 @@ begin
 end;
 
 procedure TCastleWindowCustom.SaveScreen(const URL: string);
-var
-  Image: TRGBImage;
 begin
-  Image := SaveScreen;
-  try
-    WritelnLog('SaveScreen', 'Screen saved to ' + URL);
-    SaveImage(Image, URL);
-  finally FreeAndNil(Image) end;
+  Container.SaveScreen(URL);
 end;
 
 function TCastleWindowCustom.SaveScreen: TRGBImage;
 begin
-  Result := SaveScreen(Rect);
+  Result := Container.SaveScreen;
 end;
 
 function TCastleWindowCustom.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
-  Container.EventBeforeRender;
-  Container.EventRender;
-  Result := SaveScreen_NoFlush(SaveRect, SaveScreenBuffer);
+  Result := Container.SaveScreen(SaveRect);
 end;
 
-function TCastleWindowCustom.SaveScreenToGL(const SmoothScaling: boolean): TGLImage;
+function TCastleWindowCustom.SaveScreenToGL(const SmoothScaling: boolean): TGLImageCore;
 begin
   Result := SaveScreenToGL(Rect, SmoothScaling);
 end;
 
 function TCastleWindowCustom.SaveScreenToGL(
   const SaveRect: TRectangle;
-  const SmoothScaling: boolean): TGLImage;
+  const SmoothScaling: boolean): TGLImageCore;
 begin
   Container.EventBeforeRender;
   Container.EventRender;
@@ -4548,18 +4559,90 @@ begin
   if Assigned(FOnTimer) then FOnTimer;
 end;
 
-procedure TCastleApplication.MaybeDoTimer(var ALastDoTimerTime: TMilisecTime);
+procedure TCastleApplication.MaybeDoTimer;
 var
   Now: TMilisecTime;
 begin
   Now := CastleTimeUtils.GetTickCount64;
-  if ((ALastDoTimerTime = 0) or
-      (MilisecTimesSubtract(Now, ALastDoTimerTime) >= FTimerMilisec)) then
+  if ((LastMaybeDoTimerTime = 0) or
+      (MilisecTimesSubtract(Now, LastMaybeDoTimerTime) >= FTimerMilisec)) then
   begin
-    ALastDoTimerTime := Now;
+    LastMaybeDoTimerTime := Now;
     DoApplicationTimer;
     FOpenWindows.DoTimer;
   end;
+end;
+
+procedure TCastleApplication.UpdateAndRenderEverything(out WasAnyRendering: boolean);
+var
+  I: integer;
+  Window: TCastleWindowCustom;
+begin
+  WasAnyRendering := false;
+
+  { We call Application.OnUpdate *right before rendering*, because:
+
+     - This makes calls to Application.OnUpdate have similar frequency
+       as calls to window's OnRender callbacks, when the application
+       is under a lot of stress (many messages).
+
+       Otherwise, if we would move this call outside of
+       "if .. not CheckMessage then ..." in castlewindow_winsystem.inc,
+       then doing something
+       that generates a lot of events (like moving the mouse)
+       would make us generate a lot OnUpdate events,
+       without many OnRender between. Which isn't actually prohibited...
+       but it seems useless.
+
+     - Calling OnUpdate later, only if "not WasAnyRendering", would
+       also be bad, because then intensive redrawing (e.g. if you redraw
+       every frame, with AutoRedisplay) would make OnUpdate called less
+       often.
+
+     In effect, we like to have OnUpdate called roughly as often as OnRender,
+     even if we don't really guarantee it. }
+  DoApplicationUpdate;
+  if Terminated then Exit;
+
+  MaybeDoTimer;
+  if Terminated then Exit;
+
+  { Redraw some windows, and call window's OnUpdate.
+
+    Gathering OnUpdate and OnRender of the same window together,
+    we minimize the amount of needed MakeContextCurrent calls in case
+    of applications with multiple windows.
+
+    Remember that every callback may close the window, which also modifies
+    the OpenWindows and OpenWindowsCount. The code below secures from
+    all such changes, e.g. by copying "OpenWindows[I]" at the beginning,
+    and checking "Window.Closed" all the time. }
+  I := 0;
+  while I < OpenWindowsCount do
+  begin
+    Window := OpenWindows[I];
+
+    Window.DoUpdate;
+    if Window.Closed then Continue {don't Inc(I)};
+    if Terminated then Exit;
+
+    if Window.Invalidated then
+    begin
+      WasAnyRendering := true;
+      Window.DoRender;
+      if Window.Closed then Continue {don't Inc(I)};
+      if Terminated then Exit;
+    end;
+
+    Inc(I);
+  end;
+end;
+
+procedure TCastleApplication.UpdateAndRenderEverything;
+var
+  IgnoreWasAnyRendering: boolean;
+begin
+  UpdateAndRenderEverything(IgnoreWasAnyRendering);
 end;
 
 function TCastleApplication.AllowSuspendForInput: boolean;

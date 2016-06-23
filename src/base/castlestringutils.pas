@@ -733,6 +733,11 @@ function DigitAsByte(c: char): byte;
 { Convert integer to string, padding string with zeros if needed. }
 function IntToStrZPad(n: integer; minLength: integer): string;
 
+{ Convert integer to string, inserting additional Separator to visually delimit
+  thousands, milions etc. }
+function IntToStrThousands(const Value: Int64; const Separator: char): string;
+function IntToStrThousands(const Value: Int64; const Separator: string): string;
+
 { Convert integer to string, in base-Base (like base-16) numeral system.
   For digits above '9', we will use upper letters 'A', 'B'...  etc.
   That's also why Base cannot be larger than 'Z'-'A' + 1 + 10
@@ -1195,14 +1200,14 @@ end;
 
 function FirstDelimiter(const Delimiters, S: string): Integer;
 begin
- for result := 1 to Length(s) do
-  if CharPos(S[result], Delimiters) <> 0 then exit;
- result := 0;
+  for result := 1 to Length(s) do
+    if CharPos(S[result], Delimiters) <> 0 then exit;
+  result := 0;
 end;
 
 function SEnding(const S: string; P: integer): string;
 begin
- result := Copy(S, P, MaxInt)
+  result := Copy(S, P, MaxInt)
 end;
 
 function IsPrefix(const Prefix, S: string; IgnoreCase: boolean): boolean;
@@ -1214,35 +1219,36 @@ end;
 
 function IsSuffix(const Suffix, S: string; IgnoreCase: boolean): boolean;
 begin
- if IgnoreCase then
-  result := AnsiCompareText(SRight(S, Length(Suffix)), Suffix) = 0 else
-  result := AnsiCompareStr(SRight(S, Length(Suffix)), Suffix) = 0;
+  if IgnoreCase then
+    result := AnsiCompareText(SRight(S, Length(Suffix)), Suffix) = 0 else
+    result := AnsiCompareStr(SRight(S, Length(Suffix)), Suffix) = 0;
 end;
 
 function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
 begin
- if IsPrefix(Prefix, S, IgnoreCase) then
-  Result := SEnding(S, Length(Prefix) + 1) else
-  Result := S;
+  if IsPrefix(Prefix, S, IgnoreCase) then
+    Result := SEnding(S, Length(Prefix) + 1) else
+    Result := S;
 end;
 
 function SuffixRemove(const Suffix, S: string; IgnoreCase: boolean): string;
 begin
- Result := S;
- if IsSuffix(Suffix, S, IgnoreCase) then
- begin
-  { doing assignment and SetLength should be a little faster
-    than doing Result := Copy(S, 1, ...) }
-  SetLength(Result, Length(s) - Length(Suffix));
- end;
+  Result := S;
+  if IsSuffix(Suffix, S, IgnoreCase) then
+  begin
+    { doing assignment and SetLength should be a little faster
+      than doing Result := Copy(S, 1, ...) }
+    SetLength(Result, Length(s) - Length(Suffix));
+  end;
 end;
 
 procedure SAppendData(var s: string; const Data; DataSize: integer);
-var OldLen: integer;
+var
+  OldLen: integer;
 begin
- OldLen := Length(s);
- SetLength(s, OldLen+DataSize);
- Move(Data, SChar(s, OldLen+1)^ , DataSize);
+  OldLen := Length(s);
+  SetLength(s, OldLen+DataSize);
+  Move(Data, SChar(s, OldLen+1)^ , DataSize);
 end;
 
 {$Include NoRQCheckBegin.inc}
@@ -2054,6 +2060,20 @@ begin Result := byte(c)-byte('0') end;
 
 function IntToStrZPad(n: integer; minLength: integer): string;
 begin result := SZeroPad(IntToStr(n), minLength) end;
+
+function IntToStrThousands(const Value: Int64; const Separator: char): string;
+begin
+  if Value > 1000 then
+    Result := IntToStrThousands(Value div 1000, Separator) + Separator + IntToStrZPad(Value mod 1000, 3) else
+    Result := IntToStr(Value);
+end;
+
+function IntToStrThousands(const Value: Int64; const Separator: string): string;
+begin
+  if Value > 1000 then
+    Result := IntToStrThousands(Value div 1000, Separator) + Separator + IntToStrZPad(Value mod 1000, 3) else
+    Result := IntToStr(Value);
+end;
 
 function IntToStrBase(n: QWord; Base: Byte): string;
 

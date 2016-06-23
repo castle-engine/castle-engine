@@ -787,7 +787,8 @@ type
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const Details: TCollisionDetails): boolean; override;
     function PointCollision2D(const Point: TVector2Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
@@ -839,6 +840,22 @@ type
         Currently, this limits the file to be VRML/X3D.) }
     procedure Load(const AURL: string; AllowStdIn: boolean = false;
       const AResetTime: boolean = true);
+
+    { Save the current 3D model (X3D nodes graph) to the given file (URL).
+
+      The X3D encoding is automatically guessed from the URL extension.
+      By default it is XML, and we suggest using the @code(.x3d) extension.
+      If you specify an extension indicating "classic encoding",
+      we will use such encoding (use @code(.x3dv) for X3D
+      in classic encoding, or @code(.wrl) for older VRML content).
+
+      The file may also be automatically gzip compressed if extension indicates it.
+      Use @code(.x3d.gz) to indicated XML compressed with gzip,
+      or use @code(.x3dv.gz) or @code(.wrl.gz) to indicate classic encoding
+      compressed with gzip.
+
+      The @link(URL) property is also changed. }
+    procedure Save(const AURL: string);
 
     destructor Destroy; override;
 
@@ -1691,6 +1708,7 @@ type
       Animations are detected in VRML/X3D models as simply TimeSensor nodes
       (if you set @link(AnimationPrefix) property, we additionally
       filter them to show only the names starting with given prefix).
+      You can even get the time sensor node directly by AnimationTimeSensor.
 
       The resulting TStringList instance is owned by this object,
       do not free it.
@@ -1704,6 +1722,23 @@ type
       @seealso AnimationsList
       @seealso PlayAnimation }
     function HasAnimation(const AnimationName: string): boolean;
+
+    { TimeSensor of this animation. @nil if this name not found.
+      Use this for example to watch when the animation ends playing,
+      like
+
+@longCode(#
+  Scene.AnimationTimeSensor('my_animation').EventIsActive.OnReceive.Add(
+    @AnimationIsActiveChanged);
+#)
+
+
+      See the examples/3d_rendering_processing/listen_on_x3d_events.lpr . }
+    function AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
+
+    { TimeSensor of this animation, by animation index (like index
+      or AnimationsList). @nil if this index not found. }
+    function AnimationTimeSensor(const Index: Integer): TTimeSensorNode;
 
     function Animations: TStringList; deprecated 'use AnimationsList (and do not free it''s result)';
 
@@ -1720,7 +1755,9 @@ type
 
     { Play a named animation (like detected by @link(Animations) method).
       Also stops previously playing named animation, if any.
-      Returns whether animation (corresponding TimeSensor node) was found. }
+      Returns whether animation (corresponding TimeSensor node) was found.
+      Playing an already-playing animation is guaranteed to start it from
+      the beginning. }
     function PlayAnimation(const AnimationName: string;
       const Looping: TPlayAnimationLooping): boolean;
 
@@ -1739,7 +1776,7 @@ type
       or whatever your 3D export software produces. Only the TimeSensor
       nodes with names starting with this prefix will be available
       on @link(AnimationsList), and this prefix will be stripped from
-      the names you see when using methods like @link(PlayAnimation). }
+      the names you use with methods like @link(PlayAnimation). }
     property AnimationPrefix: string
       read FAnimationPrefix write FAnimationPrefix;
   published
@@ -2421,6 +2458,13 @@ begin
 
   Load(Load3D(AURL, AllowStdIn), true, AResetTime);
 
+  FURL := AURL;
+end;
+
+procedure TCastleSceneCore.Save(const AURL: string);
+begin
+  if RootNode <> nil then
+    Save3D(RootNode, AURL, ApplicationName);
   FURL := AURL;
 end;
 
@@ -5315,13 +5359,10 @@ procedure TCastleSceneCore.InternalSetTime(
     Otherwise stop/start time would be shifted to when it becomes visible, which is not perfect
     (although it would be Ok in practice too?) }
   procedure UpdateNewPlayingAnimation;
-  var
-    SameAnimation: boolean;
   begin
     if NewPlayingAnimationUse then
     begin
       NewPlayingAnimationUse := false;
-      SameAnimation := PlayingAnimationNode = NewPlayingAnimationNode;
       if PlayingAnimationNode <> nil then
       begin
         { We want to stop old PlayingAnimationNode from sending any further
@@ -5379,22 +5420,19 @@ procedure TCastleSceneCore.InternalSetTime(
           paForceNotLooping: PlayingAnimationNode.Loop := false;
         end;
         PlayingAnimationNode.Enabled := true;
+
         { Disable the "ignore" mechanism, otherwise
           setting startTime on a running TimeSensor would be ignored.
           Testcase: e.g. mana animation on dark_dragon and dragon_squash. }
-        if SameAnimation then
-        begin
-          Inc(PlayingAnimationNode.FdStopTime.NeverIgnore);
-          Inc(PlayingAnimationNode.FdStartTime.NeverIgnore);
-        end;
+        Inc(PlayingAnimationNode.FdStopTime.NeverIgnore);
+        Inc(PlayingAnimationNode.FdStartTime.NeverIgnore);
+
         PlayingAnimationNode.StopTime := 0;
         PlayingAnimationNode.StartTime := Time;
+
         { Enable the "ignore" mechanism again, to follow X3D spec. }
-        if SameAnimation then
-        begin
-          Dec(PlayingAnimationNode.FdStopTime.NeverIgnore);
-          Dec(PlayingAnimationNode.FdStartTime.NeverIgnore);
-        end;
+        Dec(PlayingAnimationNode.FdStopTime.NeverIgnore);
+        Dec(PlayingAnimationNode.FdStartTime.NeverIgnore);
       end;
     end;
   end;
@@ -5501,7 +5539,7 @@ procedure TCastleSceneCore.ResetLastEventTime(Node: TX3DNode);
 var
   I: Integer;
 begin
-  for I := 0 to Node.Routes.Count - 1 do
+  for I := 0 to Node.RoutesCount - 1 do
     Node.Routes[I].ResetLastEventTime;
   if Node is TAbstractScriptNode then
     TAbstractScriptNode(Node).ResetLastEventTimes;
@@ -6340,12 +6378,20 @@ end;
 
 function TCastleSceneCore.SphereCollision2D(
   const Pos: TVector2Single; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+  const Details: TCollisionDetails): boolean;
 begin
   if InternalOctreeCollisions <> nil then
+  begin
     Result := GetCollides and
-      InternalOctreeCollisions.IsSphereCollision2D(Pos, Radius, nil, TrianglesToIgnoreFunc) else
-    Result := inherited SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc);
+      InternalOctreeCollisions.IsSphereCollision2D(Pos, Radius, nil, TrianglesToIgnoreFunc);
+    if Result and (Details <> nil) then
+    begin
+      Details.Clear;
+      Details.Add(Self);
+    end;
+  end else
+    Result := inherited SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc, Details);
 end;
 
 function TCastleSceneCore.PointCollision2D(
@@ -6595,7 +6641,7 @@ begin
   NewGroupNode := TGroupNode.Create;
   NewGroupNode.FdChildren.Add(NewViewNode);
   NewGroupNode.FdChildren.Add(NewNavigationNode);
-  NewGroupNode.Routes.Add(NewRoute);
+  NewGroupNode.AddRoute(NewRoute);
 
   RootNode.FdChildren.Add(NewGroupNode);
   { The 100% safe version would now call RootNode.FdChildren.Changed,
@@ -6639,7 +6685,18 @@ begin
     ExistingIndex := List.IndexOf(AnimationName);
     if ExistingIndex <> -1 then
     begin
-      if not Overwrite then
+      if (not Overwrite) and (AnimationPrefix <> '') then
+        { Warn in case of multiple animation (TimeSensor) names
+          only when AnimationPrefix set.
+          Bacause this is normal on some models, and is valid X3D.
+          - You can repeat the same node name multiple times in X3D (although
+            it's discouraged).
+          - You can use PROTO and DEF with TimeSensor inside, and use it multiple
+            times. Both these usage scenarios result in multiple instances
+            of the animation in scene.
+          - Even our own mechanism for renaming KAnim animations from
+            https://github.com/castle-engine/demo-models/blob/master/kanim/two_animations.x3dv
+            results in multiple "Animation" names in scene. }
         OnWarning(wtMinor, 'Named Animations', Format('Animation name "%s" occurs multiple times in scene',
           [AnimationName]));
       List.Objects[ExistingIndex] := Node;
@@ -6680,6 +6737,18 @@ end;
 function TCastleSceneCore.HasAnimation(const AnimationName: string): boolean;
 begin
   Result := FAnimationsList.IndexOf(AnimationName) <> -1;
+end;
+
+function TCastleSceneCore.AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
+begin
+  Result := AnimationTimeSensor(FAnimationsList.IndexOf(AnimationName));
+end;
+
+function TCastleSceneCore.AnimationTimeSensor(const Index: Integer): TTimeSensorNode;
+begin
+  if Between(Index, 0, FAnimationsList.Count - 1) then
+    Result := FAnimationsList.Objects[Index] as TTimeSensorNode else
+    Result := nil;
 end;
 
 function TCastleSceneCore.ForceAnimationPose(const AnimationName: string;

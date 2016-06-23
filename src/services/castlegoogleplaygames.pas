@@ -34,8 +34,7 @@ type
     @orderedList(
       @item(Create an instance of it (only a single instance allowed).)
       @item(Call @link(TGooglePlayGames.Initialize) at some point.
-        Usually from @link(TCastleApplication.OnInitialize).
-        User will be automatically asked to sign-in to Google Play then.)
+        Usually from @link(TCastleApplication.OnInitialize).)
       @item(Use this to manage Google Games achievements, leaderboards and so on.)
       @item(To include the necessary integration code in your Android project,
         declare your Android project type as "integrated" with
@@ -45,14 +44,32 @@ type
   TGooglePlayGames = class(TComponent)
   private
     FOnBestScoreReceived: TBestScoreEvent;
-    FSignedIn, FInitialized: boolean;
+    FSignedIn, FInitialized, FInitializedAutoStartSignInFlow: boolean;
     function MessageReceived(const Received: TCastleStringList): boolean;
     procedure ReinitializeJavaActivity(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    procedure Initialize;
+    { Connect to Google, try to sign-in player.
+      If the player already connected this application with Google Play Games,
+      (s)he will be signed-in automatically, without any dialogs.
+      If the player did not connect with Google Play Games,
+      (s)he will be asked to sign-in (accept permissions etc.) only if
+      AutoStartSignInFlow.
+
+      Calling this when already initialized is harmless (will not do anything).
+
+      In theory, you can call this at any point in your application.
+      But you probably want to call it early, e.g. from Application.OnInitialize,
+      otherwise user will not be signed-in automatically.
+      Most calls (like sending or showing the leaderboars) will be ignored until
+      you call this. If you want to avoid the initial Google Games dialog, just
+      pass AutoStartSignInFlow=false. }
+    procedure Initialize(const AutoStartSignInFlow: boolean = true);
+
+    { Was the @link(Initialize) called. }
+    property Initialized: boolean read FInitialized;
 
     property OnBestScoreReceived: TBestScoreEvent read FOnBestScoreReceived write FOnBestScoreReceived;
 
@@ -111,7 +128,7 @@ begin
   if FInitialized then
   begin
     FSignedIn := false;
-    Initialize;
+    Initialize(FInitializedAutoStartSignInFlow);
   end;
 end;
 
@@ -144,10 +161,13 @@ begin
   end;
 end;
 
-procedure TGooglePlayGames.Initialize;
+procedure TGooglePlayGames.Initialize(const AutoStartSignInFlow: boolean);
 begin
+  { at first Initialize call, remember AutoStartSignInFlow }
+  if not FInitialized then
+    FInitializedAutoStartSignInFlow := AutoStartSignInFlow;
   FInitialized := true;
-  Messaging.Send(['google-play-games-initialize']);
+  Messaging.Send(['google-play-games-initialize', Iff(AutoStartSignInFlow, 'true', 'false')]);
 end;
 
 procedure TGooglePlayGames.Achievement(const AchievementId: string);

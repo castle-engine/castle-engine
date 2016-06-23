@@ -15,50 +15,51 @@ uses
 
   CastleWarnings,
 
-  { Test units (their order determines default tests order) }
+  { Test units below. Their order determines default tests order. }
+
+  { Testing (mainly) things inside FPC standard library, not CGE }
   TestSysUtils,
+  TestFGL,
+  TestOldFPCBugs,
+  TestFPImage,
+
+  { Testing CGE units }
   TestCastleUtils,
-  TestRectangles,
-  TestGenericLists,
-  TestOSSpecific,
-  TestBasicLists,
+  TestCastleRectangles,
+  TestCastleGenericLists,
+  TestCastleFilesUtils,
+  TestCastleUtilsLists,
   TestCastleClassUtils,
   TestCastleVectors,
   TestCastleColors,
-  TestKeysMouse,
-  TestFPImage,
-  TestImages,
-  TestImagesDraw,
-  TestOldFPCBugs,
+  TestCastleKeysMouse,
+  TestCastleImages,
+  TestCastleImagesDraw,
   TestCastleBoxes,
   TestCastleFrustum,
   TestCastle3D,
-  TestParsingParameters,
-  TestCameras,
+  TestCastleParameters,
+  TestCastleCameras,
   TestX3DNodes,
   TestX3DNodesOptimizedProxy,
-  TestScene,
-  TestSceneCore,
-  TestVideos,
-  { Not used anymore --- IntRects stuff is internal inside CastleMessages,
-    and honestly not important enough.
-  TestIntRects, }
-  TestSpaceFillingCurves,
-  TestObjectsList,
+  TestCastleScene,
+  TestCastleSceneCore,
+  TestCastleVideos,
+  TestCastleSpaceFillingCurves,
   TestCastleStringUtils,
   TestCastleScript,
   TestCastleScriptVectors,
-  TestCubeMaps,
-  TestShadowFields,
-  TestGLVersion,
-  TestURLUtils,
+  TestCastleCubeMaps,
+  TestShadowFields, // this unit is part of shadow_fields example
+  TestCastleGLVersion,
   TestCastleCompositeImage,
   TestCastleTriangulate,
-  TestGame,
-  TestURIUtils,
+  TestCastleGame,
+  TestCastleURIUtils,
   TestCastleXMLUtils,
   TestCastleCurves,
-  TestCastleTimeUtils
+  TestCastleTimeUtils,
+  TestCastleControls
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
   { These require CastleWindow initializing it's own window. So they
     1. conflict with LCL windows (so only when TEXT_RUNNER)
@@ -66,9 +67,9 @@ uses
        is available (so not when NO_WINDOW_SYSTEM,
        e.g. do not do them when running inside non-X ssh session or cron) }
   TestCastleWindow,
-  TestOpeningAndRendering3D,
+  TestCastleOpeningAndRendering3D,
   TestCastleGLFonts,
-  TestContainer
+  TestCastleWindowOpen
   {$endif} {$endif}
   { Stuff requiring Lazarus LCL. }
   {$ifndef TEXT_RUNNER},

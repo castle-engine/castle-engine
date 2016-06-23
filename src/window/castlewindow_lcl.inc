@@ -104,7 +104,6 @@ private
 
 {$ifdef read_application_interface}
 private
-  LastDoTimerTime: TMilisecTime;
   {$ifdef LCLCarbon}
   FTimer: TCustomTimer;
   procedure ApplicationTimer(Sender: TObject);
@@ -837,13 +836,13 @@ end;
 
 procedure TCastleApplication.ApplicationIdle(Sender: TObject; var Done: Boolean);
 begin
-  { Call Update and timer events of Application and all windows.
+  { Call Update and Timer events of Application and all windows.
     Update events are handled by DoApplicationUpdate and OpenWindows.DoUpdate.
     Timer events are handled by MaybeDoTimer, that in turn will call
     (when needed) DoApplicationTimer and OpenWindows.DoTimer. }
   DoApplicationUpdate;
   FOpenWindows.DoUpdate;
-  MaybeDoTimer(LastDoTimerTime);
+  MaybeDoTimer;
 
   { We need Done := false, otherwise the widgetset will hang waiting
     for next message. See ../components/castlecontrol.pas comments.

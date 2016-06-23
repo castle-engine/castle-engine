@@ -142,9 +142,6 @@ protected
 
 {$ifdef read_application_interface}
 private
-  { used in ProcessUpdates }
-  LastDoTimerTime: TMilisecTime;
-
   { Find in OpenWindows window with WindowGtk = given seekWindowGtk.
     Return nil if no such window is found. }
   function TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowCustom;
@@ -1561,48 +1558,20 @@ end;
 { TCastleApplication ------------------------------------------------------------- }
 
 procedure TCastleApplication.ProcessUpdates;
-
+begin
   { Render the invalidated windows.
+    And call Update and Timer events of Application and all windows.
 
     Note: Right now we do not use normal GTK mechanism for redraws
     (that is, gtk_widget_queue_draw for posting and handling signal "expose"
     to call DoRender). In the past, this caused problems, and in particular
     failed totally when in newer GTK/glib expose signal couldn't be
-    delivered when we were already inside one expose signal handler. }
-  procedure WindowsRender;
-  var
-    I: Integer;
-    Window: TCastleWindowCustom;
-  begin
-    I := 0;
-    while I < OpenWindowsCount do
-    begin
-      Window := OpenWindows[I];
-      if Window.Invalidated then Window.DoRender;
-      if Window.Closed then Continue {don't Inc(I)};
-      Inc(I);
-    end;
-  end;
+    delivered when we were already inside one expose signal handler.
 
-  { Call Update and timer events of Application and all windows.
+    Also, we use our own timer mechanism, without depending on GTK timers.
+    This makes our code consistent across platforms. }
 
-    Update events are handled by DoApplicationUpdate and OpenWindows.DoUpdate.
-
-    Timer events are handled by MaybeDoTimer, that in turn will call
-    (when needed) DoApplicationTimer and OpenWindows.DoTimer. }
-  procedure WindowsUpdateAndTimer;
-  begin
-    DoApplicationUpdate;
-    FOpenWindows.DoUpdate;
-
-    { For simplicity, we're implementing here our own timer mechanism,
-      without using gtk timers. }
-    MaybeDoTimer(LastDoTimerTime);
-  end;
-
-begin
-  WindowsRender;
-  WindowsUpdateAndTimer;
+  UpdateAndRenderEverything;
 end;
 
 function TCastleApplication.TryFindWindowGtk(seekWindowGtk: PGtkWindow): TCastleWindowCustom;

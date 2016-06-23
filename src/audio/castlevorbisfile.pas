@@ -98,11 +98,11 @@ var
   ov_time_seek: function (Vf: POggVorbis_File; pos: Double): CInt; libvorbisfile_decl;
   ov_time_seek_page: function (Vf: POggVorbis_File; pos: Double): CInt; libvorbisfile_decl;
 
-  ov_raw_seek_lap: function (Vf: POggVorbis_File; pos: Int64): CInt; libvorbisfile_decl;
-  ov_pcm_seek_lap: function (Vf: POggVorbis_File; pos: Int64): CInt; libvorbisfile_decl;
-  ov_pcm_seek_page_lap: function (Vf: POggVorbis_File; pos: Int64): CInt; libvorbisfile_decl;
-  ov_time_seek_lap: function (Vf: POggVorbis_File; pos: Double): CInt; libvorbisfile_decl;
-  ov_time_seek_page_lap: function (Vf: POggVorbis_File; pos: Double): CInt; libvorbisfile_decl;
+  // ov_raw_seek_lap: function (Vf: POggVorbis_File; pos: Int64): CInt; libvorbisfile_decl; // not available in libtremolo
+  // ov_pcm_seek_lap: function (Vf: POggVorbis_File; pos: Int64): CInt; libvorbisfile_decl; // not available in libtremolo
+  // ov_pcm_seek_page_lap: function (Vf: POggVorbis_File; pos: Int64): CInt; libvorbisfile_decl; // not available in libtremolo
+  // ov_time_seek_lap: function (Vf: POggVorbis_File; pos: Double): CInt; libvorbisfile_decl; // not available in libtremolo
+  // ov_time_seek_page_lap: function (Vf: POggVorbis_File; pos: Double): CInt; libvorbisfile_decl; // not available in libtremolo
 
   ov_raw_tell: function (Vf: POggVorbis_File): Int64; libvorbisfile_decl;
   ov_pcm_tell: function (Vf: POggVorbis_File): Int64; libvorbisfile_decl;
@@ -152,10 +152,16 @@ begin
       VorbisFileLibrary := TDynLib.Load(BundlePath + 'Contents/MacOS/libvorbisfile.3.dylib', false);
     if (VorbisFileLibrary = nil) and (BundlePath <> '') then
       VorbisFileLibrary := TDynLib.Load(BundlePath + 'Contents/MacOS/libvorbisfile.dylib', false);
+
     {$else}
     TDynLib.Load('libvorbisfile.so.3', false);
     if VorbisFileLibrary = nil then
       VorbisFileLibrary := TDynLib.Load('libvorbisfile.so', false);
+    // fallback on Tremolo, necessary for Android, may also work on other OSes
+    if VorbisFileLibrary = nil then
+      VorbisFileLibrary := TDynLib.Load('libtremolo.so', false);
+    if VorbisFileLibrary = nil then
+      VorbisFileLibrary := TDynLib.Load('libtremolo-low-precision.so', false);
     {$endif}
     {$endif}
 
@@ -189,11 +195,11 @@ begin
     Pointer(ov_time_seek) := VorbisFileLibrary.Symbol('ov_time_seek');
     Pointer(ov_time_seek_page) := VorbisFileLibrary.Symbol('ov_time_seek_page');
 
-    Pointer(ov_raw_seek_lap) := VorbisFileLibrary.Symbol('ov_raw_seek_lap');
-    Pointer(ov_pcm_seek_lap) := VorbisFileLibrary.Symbol('ov_pcm_seek_lap');
-    Pointer(ov_pcm_seek_page_lap) := VorbisFileLibrary.Symbol('ov_pcm_seek_page_lap');
-    Pointer(ov_time_seek_lap) := VorbisFileLibrary.Symbol('ov_time_seek_lap');
-    Pointer(ov_time_seek_page_lap) := VorbisFileLibrary.Symbol('ov_time_seek_page_lap');
+    // Pointer(ov_raw_seek_lap) := VorbisFileLibrary.Symbol('ov_raw_seek_lap'); // not available in libtremolo
+    // Pointer(ov_pcm_seek_lap) := VorbisFileLibrary.Symbol('ov_pcm_seek_lap'); // not available in libtremolo
+    // Pointer(ov_pcm_seek_page_lap) := VorbisFileLibrary.Symbol('ov_pcm_seek_page_lap'); // not available in libtremolo
+    // Pointer(ov_time_seek_lap) := VorbisFileLibrary.Symbol('ov_time_seek_lap'); // not available in libtremolo
+    // Pointer(ov_time_seek_page_lap) := VorbisFileLibrary.Symbol('ov_time_seek_page_lap'); // not available in libtremolo
 
     Pointer(ov_raw_tell) := VorbisFileLibrary.Symbol('ov_raw_tell');
     Pointer(ov_pcm_tell) := VorbisFileLibrary.Symbol('ov_pcm_tell');

@@ -138,6 +138,7 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/image_identify \
   examples/images_videos/image_compare \
   examples/images_videos/simple_video_editor \
+  examples/joystick/joystick_demo \
   examples/fonts/test_font_break \
   examples/fonts/font_from_texture \
   examples/fonts/html_text \
@@ -172,6 +173,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/view_3d_model_basic \
   examples/3d_rendering_processing/build_3d_object_by_code \
   examples/3d_rendering_processing/combine_multiple_x3d_into_one \
+  examples/3d_rendering_processing/listen_on_x3d_events \
   src/x3d/teapot/teapot_3d_to_pascal \
   src/x3d/nodes_specification/x3d_nodes_spec_to_pascal/x3d_nodes_spec_to_pascal \
   src/x3d/nodes_specification/generate_x3d_nodes_helpers/generate_x3d_nodes_to_pascal \
@@ -247,6 +249,7 @@ clean: cleanexamples
 			   -iname '*.libimp*.a' -or \
 			   -iname '*.apk' -or \
 	                   -iname '*.dcu' -or -iname '*.dpu' -or \
+	                   -iname '*.log' -or \
 			   -iname 'castleengine.dll' -or -iname 'libcastleengine.so' ')' \
 	     -print \
 	     | xargs rm -f
@@ -279,6 +282,8 @@ cleanmore: clean
 	       tools/build-tool/data/android/integrated-components/google_play_services/libs/*.jar \
 	       tools/build-tool/data/android/integrated-components/giftiz/GiftizSDKLibrary/ \
 	       tools/build-tool/data/android/integrated-components/chartboost/libs/*.jar \
+	       tools/build-tool/data/android/integrated-components/heyzap/AudienceNetwork/ \
+	       tools/build-tool/data/android/integrated-components/heyzap/unity-ads/ \
 	       tools/build-tool/data/android/integrated-components/heyzap/libs/*.jar \
 	       tools/build-tool/data/android/integrated-components/startapp/libs/*.jar \
 	       tools/build-tool/data/android/integrated-components/game_analytics/libs/*.jar \

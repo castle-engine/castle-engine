@@ -708,8 +708,12 @@ type
   TSFNode = class;
   TMFNode = class;
   TX3DPrototypeNode = class;
+  TX3DPrototypeBase = class;
   TX3DPrototypeBaseList = class;
+  TX3DRoute = class;
   TX3DRouteList = class;
+  TX3DImport = class;
+  TX3DExport = class;
   TX3DInterfaceDeclaration = class;
   TX3DNodeNames = class;
   TX3DReaderNames = class;
@@ -1308,8 +1312,6 @@ type
 { TX3DPrototype ------------------------------------------------------------- }
 
   { }
-  TX3DPrototypeBase = class;
-
   EX3DPrototypeInstantiateError = class(Exception);
 
   { Node with information about a VRML/X3D prototype.
@@ -3537,6 +3539,11 @@ var
   I: TXMLElementIterator;
   ContainerFieldDummy: string;
 begin
+  { Clear is necessary because MFNode default value may be non-empty,
+    when it's defined by a prototype.
+    See http://web3d.org/pipermail/x3d-public_web3d.org/2016-May/004771.html }
+  Clear;
+
   I := Element.ChildrenIterator;
   try
     while I.GetNext do
@@ -4277,7 +4284,7 @@ begin
         Route.SetDestinationDirectly(SourceEvent);
       end;
 
-      Routes.Add(Route);
+      AddRoute(Route);
     except
       FreeAndNil(Route);
       raise;
@@ -5173,9 +5180,9 @@ end;
 destructor TX3DRoute.Destroy;
 begin
   { We have to unset, to call
-    DestructionNotifications.DeleteFirstEqual(...) on our nodes before
+    RemoveDestructionNotification(...) on our nodes before
     we get destroyed. Otherwise nodes would have invalid references
-    on DestructionNotifications list. }
+    on TX3DNode.FDestructionNotifications list. }
 
   UnsetEnding(FSourceNode     , FSourceEvent     , false);
   UnsetEnding(FDestinationNode, FDestinationEvent, true);
@@ -5257,7 +5264,7 @@ begin
   if Node <> nil then
   begin
     if RemoveFromDestructionNotification then
-      Node.DestructionNotifications.Remove(@DestructionNotification);
+      Node.RemoveDestructionNotification(@DestructionNotification);
     Node := nil;
   end;
 
@@ -5371,7 +5378,7 @@ begin
         PrototypeInstanceSourceNode. }
     end;
 
-    Node.DestructionNotifications.Add(@DestructionNotification);
+    Node.AddDestructionNotification(@DestructionNotification);
 
     FieldOrEvent := Node.FieldOrEvent(FieldOrEventName);
     if FieldOrEvent = nil then
@@ -5413,7 +5420,7 @@ begin
 
   try
     Node := NewNode;
-    Node.DestructionNotifications.Add(@DestructionNotification);
+    Node.AddDestructionNotification(@DestructionNotification);
 
     SetEndingInternal(Node, FieldOrEvent, Event, DestEnding);
   except

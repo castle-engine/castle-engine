@@ -79,7 +79,6 @@ private
 
   var
     FScreenWidth, FScreenHeight: Integer;
-    LastDoTimerTime: TMilisecTime;
     AndroidApp: PAndroid_App;
     QEvents: TQueuedEventList;
     TouchChanges: array [0..FingerCount - 1] of TTouchChange;
@@ -115,6 +114,12 @@ begin
   Window.Top := 0;
   Window.Width := Width;
   Window.Height := Height;
+
+  { in case we're getting back to foreground, from sleeping / background,
+    do not treat huge "time passed" as meaningful in next Update.
+    Note: MaxSensibleSecondsPassed would limit this problem anyway,
+    but still it's better to just make it zero. }
+  Window.Fps.ZeroNextSecondsPassed;
 
   { create OpenGL context, run OnOpen events and so on }
   Window.Open;
@@ -180,6 +185,8 @@ begin
         finally FreeAndNil(ConfigState) end;
       end;
     {$endif CASTLE_PERSISTENT_ANDROID_STATE}
+    APP_CMD_PAUSE: ApplicationProperties._Pause;
+    APP_CMD_RESUME: ApplicationProperties._Resume;
   end;
 end;
 
@@ -528,12 +535,12 @@ end;
 
 function TCastleApplication.ProcessMessage(WaitForMessage, WaitToLimitFPS: boolean): boolean;
 
-  { Call Update on Application and all open Windows, call OnTimer on Application }
+  { Call Update and Timer on Application and all open Windows. }
   procedure WindowsUpdateAndTimer;
   begin
     DoApplicationUpdate;
     FOpenWindows.DoUpdate;
-    MaybeDoTimer(LastDoTimerTime);
+    MaybeDoTimer;
   end;
 
   procedure Resize(Width, Height: Integer);

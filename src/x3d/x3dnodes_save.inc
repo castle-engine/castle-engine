@@ -86,6 +86,10 @@ procedure Save3D(Node: TX3DNode;
   const URL, Generator, Source: string;
   const Encoding: TX3DEncoding;
   const ForceConvertingToX3D: boolean = false); overload;
+procedure Save3D(Node: TX3DNode;
+  const URL: string;
+  const Generator: string = '';
+  const Source: string = '');
 { @groupEnd }
 
 function Save3DWillConvertToX3D(Version: TX3DVersion;
@@ -485,6 +489,23 @@ procedure Save3D(Node: TX3DNode;
 begin
   Save3D(Node, URL, Generator, Source, Save3DVersion(Node),
     Encoding, ForceConvertingToX3D);
+end;
+
+procedure Save3D(Node: TX3DNode;
+  const URL: string;
+  const Generator: string = '';
+  const Source: string = '');
+var
+  Mime: string;
+  Encoding: TX3DEncoding;
+begin
+  { guess Encoding from URL }
+  Mime := URIMimeType(URL);
+  if (Mime = 'model/vrml') or
+     (Mime = 'model/x3d+vrml') then
+    Encoding := xeClassic else
+    Encoding := xeXML;
+  Save3D(Node, URL, Generator, Source, Encoding);
 end;
 
 {$endif read_implementation}

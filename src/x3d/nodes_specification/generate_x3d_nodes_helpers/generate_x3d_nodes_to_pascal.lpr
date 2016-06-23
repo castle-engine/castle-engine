@@ -147,7 +147,8 @@ begin
              X3DFieldName := Tokens[2];
              if (X3DFieldName = 'solid') or
                 (X3DFieldName = 'repeatS') or
-                (X3DFieldName = 'repeatT')
+                (X3DFieldName = 'repeatT') or
+                (X3DFieldName = 'linetype')
                 // TODO: bboxCenter and bboxSize should also be removed from here someday,
                 // we should convert them manually to BBox: TBox3D to support our TBox3D type.
                 then

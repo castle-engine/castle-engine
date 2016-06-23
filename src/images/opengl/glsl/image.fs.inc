@@ -11,6 +11,13 @@
 'uniform vec4 color;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
+'#ifdef CLIP_LINE' + LineEnding +
+'uniform vec3 clip_line;' + LineEnding +
+'/* Not using "gl_FragCoord​.xy / gl_FragCoord​.w", for unknown reason it doesn''t' + LineEnding +
+' * compile (tested on Mesa OpenGL ES, and Nexus 5 OpenGL ES). */' + LineEnding +
+'varying vec2 frag_coord;' + LineEnding +
+'#endif' + LineEnding +
+'' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
 '#ifdef COLOR_UNIFORM' + LineEnding +
@@ -26,6 +33,9 @@
 '' + LineEnding +
 '#ifdef ALPHA_TEST' + LineEnding +
 '  if (gl_FragColor.a < 0.5) discard;' + LineEnding +
+'#endif' + LineEnding +
+'#ifdef CLIP_LINE' + LineEnding +
+'  if (dot(clip_line.xy, frag_coord) + clip_line.z < 0.0) discard;' + LineEnding +
 '#endif' + LineEnding +
 '}' + LineEnding +
 ''

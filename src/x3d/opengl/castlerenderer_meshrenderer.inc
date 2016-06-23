@@ -75,6 +75,15 @@ type
     procedure Render; virtual; abstract;
   end;
 
+  { Does the mesh (regardless of material) define some color. }
+  TMeshColor = (
+    mcNone,
+    { Use Arrays.Color, knowing that Arrays.HasColor. }
+    mcColorPerVertex,
+    { Use Arrays.DefaultColor, knowing that Arrays.HasDefaultColor. }
+    mcDefaultColor
+  );
+
   { Base abstract class for rendering nodes with explicit "coord" field.
     (Both IndexedXxx and not indexed). Uses TArraysGenerator
     instance to generate TGeometryArrays contents, then renders them. }
@@ -83,7 +92,7 @@ type
     { Available inside RenderCoordinate* }
     Arrays: TGeometryArrays;
 
-    function HasColor: boolean;
+    function MeshColor: TMeshColor;
   protected
     { Override these to render contents of Arrays.
       These are all called only when Coord is assigned.
@@ -307,15 +316,25 @@ begin
         glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtAttribute]);
 
       {$ifdef OpenGLES}
-      if HasColor then
-      begin
-        if Arrays.HasColor then
-        begin
-          OptionalVertexAttrib('castle_ColorPerVertex', 0,
-            4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.Color);
-        end { TODO-es: else
-        if Arrays.HasDefaultColor then
-          glColorv(Arrays.DefaultColor); }
+      case MeshColor of
+        mcColorPerVertex:
+          begin
+            Assert(Arrays.HasColor);
+            OptionalVertexAttrib('castle_ColorPerVertex', 0,
+              4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.Color);
+          end;
+
+        mcDefaultColor:
+          begin
+            Assert(Arrays.HasDefaultColor);
+            { in this case, we must apply Arrays.DefaultColor as multiplier
+              to Shader.MaterialUnlit, overriding previous castle_UnlitColor setting.
+              This matters for rendering IndexedLineSet with Material that has only
+              emissiveColor (without IndexedLineSet.color per vertex).
+              We cannot pass Arrays.DefaultColor in any other way to shader now. }
+            CurrentProgram.SetUniform('castle_UnlitColor',
+              Shader.MaterialUnlit * Arrays.DefaultColor);
+          end;
       end;
 
       if Arrays.HasFogCoord then
@@ -335,15 +354,18 @@ begin
         end;
       {$else}
 
-      if HasColor then
-      begin
-        if Arrays.HasColor then
-        begin
-          glEnableClientState(GL_COLOR_ARRAY);
-          glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
-        end else
-        if Arrays.HasDefaultColor then
-          glColorv(Arrays.DefaultColor);
+      case MeshColor of
+        mcColorPerVertex:
+          begin
+            Assert(Arrays.HasColor);
+            glEnableClientState(GL_COLOR_ARRAY);
+            glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
+          end;
+        mcDefaultColor:
+          begin
+            Assert(Arrays.HasDefaultColor);
+            glColorv(Arrays.DefaultColor);
+          end;
       end;
 
       if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then
@@ -442,10 +464,16 @@ procedure TBaseCoordinateRenderer.RenderCoordinateEnd;
 begin
 end;
 
-function TBaseCoordinateRenderer.HasColor: boolean;
+function TBaseCoordinateRenderer.MeshColor: TMeshColor;
 begin
-  Result := (Attributes.Mode = rmFull) and
-    (Arrays.HasColor or Arrays.HasDefaultColor);
+  Result := mcNone;
+  if Attributes.Mode = rmFull then
+  begin
+    if Arrays.HasColor then
+      Result := mcColorPerVertex else
+    if Arrays.HasDefaultColor then
+      Result := mcDefaultColor;
+  end;
 end;
 
 { TTextureCoordinateRenderer ----------------------------------------- }
@@ -515,7 +543,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       (*
       Later: remove this log, it spams a lot on some scenes,
       and possibly is incorrect on newer Mesa versions.
-      
+
       if GLVersion.Mesa and Log then
         { Mesa 7.0.4 makes textures strange (like each cube face was
           1-pixel wide?, although I checked --- they are loaded with
@@ -800,13 +828,19 @@ procedure TMaterialFromColorCoordinateRenderer.RenderCoordinateBegin;
 begin
   inherited;
 
-  MaterialFromColorEnabled := HasColor
-    {$ifndef OpenGLES}
-    { For OpenGLES, we must call EnableMaterialFromColor regardless
-      if we have lighting or not, as in fact this activates COLOR_PER_VERTEX
-      feature, which works regardless if we're lit or unlit. }
-    and Lighting
-    {$endif};
+  {$ifdef OpenGLES}
+  { For OpenGLES, we must call EnableMaterialFromColor regardless
+    if we have lighting or not, as in fact this activates COLOR_PER_VERTEX
+    feature, which works regardless if we're lit or unlit.
+
+    However, we can use it only for mcColorPerVertex case (the case
+    of mcDefaultColor is implemented in OpenGLES differently,
+    without default color "pretending" to be a color per vertex,
+    as in fixed-function pipeline case). }
+  MaterialFromColorEnabled := MeshColor = mcColorPerVertex;
+  {$else}
+  MaterialFromColorEnabled := (MeshColor <> mcNone) and Lighting;
+  {$endif}
   if MaterialFromColorEnabled then
     Shader.EnableMaterialFromColor;
 end;

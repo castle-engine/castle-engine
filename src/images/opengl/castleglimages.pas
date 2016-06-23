@@ -133,7 +133,7 @@ implementation
 
 uses Math,
   CastleUtils, CastleLog, CastleGLVersion, CastleWarnings, CastleTextureImages,
-  CastleApplicationProperties, CastleStringUtils;
+  CastleApplicationProperties, CastleStringUtils, CastleURIUtils;
 
 function ImageGLFormat(const Img: TCastleImage): TGLenum;
 begin
@@ -290,7 +290,7 @@ end;
 procedure ContextClose;
 begin
   TextureMemoryProfiler.CheckLeaks;
-  TGLImage.StaticGLContextClose;
+  TGLImageCore.StaticGLContextClose;
 end;
 
 initialization

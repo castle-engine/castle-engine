@@ -1118,6 +1118,9 @@ var
   { Renders Shape, by calling Renderer.RenderShape. }
   procedure RenderShape_NoTests(Shape: TGLShape);
   begin
+    { implement Shape node "render" field here, by a trivial check }
+    if (Shape.Node <> nil) and (not Shape.Node.Render) then Exit;
+
     OcclusionBoxStateEnd;
 
     if Params.Pass = 0 then Inc(Params.Statistics.ShapesRendered);

@@ -21,7 +21,7 @@ interface
 uses Classes, ToolArchitectures;
 
 type
-  TCompilationMode = (cmRelease, cmDebug);
+  TCompilationMode = (cmRelease, cmValgrind, cmDebug);
 
 { Compile with FPC and proper command-line option given file. }
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
@@ -278,6 +278,17 @@ begin
           FpcOptions.Add('-Xs');
           FpcOptions.Add('-dRELEASE');
         end;
+      cmValgrind:
+        begin
+          { Like cmRelease, but
+            - without -Xs
+            - with -gv, -gl
+            See ../../doc/profiling_howto.txt }
+          FpcOptions.Add('-O2');
+          FpcOptions.Add('-dRELEASE');
+          FpcOptions.Add('-gv');
+          FpcOptions.Add('-gl');
+        end;
       cmDebug:
         begin
           FpcOptions.Add('-Cr');
@@ -363,7 +374,7 @@ end;
 
 const
   CompilationModeNames: array [TCompilationMode] of string =
-  ('release', 'debug');
+  ('release', 'valgrind', 'debug');
 
 function ModeToString(const M: TCompilationMode): string;
 begin

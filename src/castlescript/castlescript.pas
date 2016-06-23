@@ -545,11 +545,11 @@ type
       This is the name of the function for use in expressions
       like "function_name(arg_1, arg_2 ... , arg_n)".
 
-      This can be empty string ('') if no such name for this function exists,
-      then the logic to parse this function expressions must be somehow
-      built in the parser (for example, operators use this: they are
-      just normal functions, TCasScriptFunction, with ShortName = ''
-      and special support in the parser). }
+      This can be an empty string ('') if no explicit name for this function
+      exists. This is useful for operators, which are implemented
+      just like normal functions (a descendant of TCasScriptFunction),
+      but with a special support from parser (e.g. to turn "x + b" into
+      a call to the TCasScriptAdd function). }
     class function ShortName: string; virtual; abstract;
 
     { Function name when used as an infix operator.

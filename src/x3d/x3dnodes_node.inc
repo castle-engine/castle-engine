@@ -52,7 +52,7 @@
     FParentFields: TX3DFieldList;
     FPrototypes: TX3DPrototypeBaseList;
     FRoutes: TX3DRouteList;
-    FImportsList, FExportsList: TX3DFileItemList;
+    FImports, FExports: TX3DFileItemList;
     FFields: TX3DFieldList;
     FEvents: TX3DEventList;
     FPrototypeInstance: boolean;
@@ -93,6 +93,10 @@
     function TryFindNodeTransformTraverse(
       ANode: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
+    function GetPrototypes(const Index: Integer): TX3DPrototypeBase;
+    function GetRoutes(const Index: Integer): TX3DRoute;
+    function GetImports(const Index: Integer): TX3DImport;
+    function GetExports(const Index: Integer): TX3DExport;
   protected
 
     { Does actual DeepCopy work. You can override this to copy some
@@ -811,10 +815,21 @@
     function RemoveChildrenWithMatchingName(
       const Wildcard: string; IgnoreCase: Boolean): Cardinal;
 
-    property Prototypes: TX3DPrototypeBaseList read FPrototypes;
-    property Routes: TX3DRouteList read FRoutes;
-    property ImportsList: TX3DFileItemList read FImportsList;
-    property ExportsList: TX3DFileItemList read FExportsList;
+    property Prototypes [Index: Integer]: TX3DPrototypeBase read GetPrototypes;
+    function PrototypesCount: Integer;
+    procedure AddPrototype(const Value: TX3DPrototypeBase);
+
+    property Routes [Index: Integer]: TX3DRoute read GetRoutes;
+    function RoutesCount: Integer;
+    procedure AddRoute(const Value: TX3DRoute);
+
+    property ImportsList [Index: Integer]: TX3DImport read GetImports;
+    function ImportsCount: Integer;
+    procedure AddImport(const Value: TX3DImport);
+
+    property ExportsList [Index: Integer]: TX3DExport read GetExports;
+    function ExportsCount: Integer;
+    procedure AddExport(const Value: TX3DExport);
 
     { Create a deep copy of this node and all it's children.
 
@@ -935,10 +950,11 @@
       read FInterfaceDeclarations;
     { @groupEnd }
 
-    { Functions registered here will be called when this TX3DNode descendant
-      will be destroyed. }
-    property DestructionNotifications: TNodeDestructionNotificationList
-      read FDestructionNotifications;
+    { Callbacks registered here will be called when this node is destroyed.
+      @groupBegin }
+    procedure AddDestructionNotification(const Event: TNodeDestructionNotification);
+    procedure RemoveDestructionNotification(const Event: TNodeDestructionNotification);
+    { @groupEnd }
 
     { Scene that will be notified about changes to this node.
       This is necessary to allow the scene to properly process VRML/X3D
@@ -1082,15 +1098,8 @@ begin
 
   FEvents := TX3DEventList.Create(false);
 
-  FPrototypes := TX3DPrototypeBaseList.Create(true);
-  FRoutes := TX3DRouteList.Create(true);
-  FImportsList := TX3DFileItemList.Create(true);
-  FExportsList := TX3DFileItemList.Create(true);
-
   FHasInterfaceDeclarations := [];
   FInterfaceDeclarations := nil;
-
-  FDestructionNotifications := TNodeDestructionNotificationList.Create;
 
   CreateNode;
 end;
@@ -1104,9 +1113,9 @@ begin
   if AnyNodeDestructionNotifications <> nil then
     AnyNodeDestructionNotifications.ExecuteAll(Self);
 
-  if DestructionNotifications <> nil then
+  if FDestructionNotifications <> nil then
   begin
-    DestructionNotifications.ExecuteAll(Self);
+    FDestructionNotifications.ExecuteAll(Self);
     FreeAndNil(FDestructionNotifications);
   end;
 
@@ -1121,8 +1130,8 @@ begin
 
   FreeAndNil(FPrototypes);
   FreeAndNil(FRoutes);
-  FreeAndNil(FImportsList);
-  FreeAndNil(FExportsList);
+  FreeAndNil(FImports);
+  FreeAndNil(FExports);
 
   { First free Fields and Events, before freeing InterfaceDeclarations.
     Reason: Fields and Events may contains references to InterfaceDeclarations
@@ -1153,6 +1162,20 @@ begin
   FreeAndNil(FParentFields);
 
   inherited;
+end;
+
+procedure TX3DNode.AddDestructionNotification(const Event: TNodeDestructionNotification);
+begin
+  { create FDestructionNotifications on demand }
+  if FDestructionNotifications = nil then
+    FDestructionNotifications := TNodeDestructionNotificationList.Create;
+  FDestructionNotifications.Add(Event);
+end;
+
+procedure TX3DNode.RemoveDestructionNotification(const Event: TNodeDestructionNotification);
+begin
+  if FDestructionNotifications <> nil then
+    FDestructionNotifications.Remove(Event);
 end;
 
 procedure TX3DNode.FreeIfUnused;
@@ -1761,7 +1784,7 @@ begin
     Result := true;
 
     Proto := TX3DPrototype.Create;
-    Prototypes.Add(Proto);
+    AddPrototype(Proto);
     Proto.Parse(Lexer, Reader);
     Proto.PositionInParent := APositionInParent;
   end else
@@ -1770,7 +1793,7 @@ begin
     Result := true;
 
     Proto := TX3DExternalPrototype.Create;
-    Prototypes.Add(Proto);
+    AddPrototype(Proto);
     Proto.Parse(Lexer, Reader);
     Proto.PositionInParent := APositionInParent;
   end else
@@ -1779,7 +1802,7 @@ begin
     Result := true;
 
     Route := TX3DRoute.Create;
-    Routes.Add(Route);
+    AddRoute(Route);
     Route.Parse(Lexer, Reader);
     Route.PositionInParent := APositionInParent;
   end else
@@ -1788,7 +1811,7 @@ begin
     Result := true;
 
     Import := TX3DImport.Create;
-    ImportsList.Add(Import);
+    AddImport(Import);
     Import.Parse(Lexer, Reader);
     Import.PositionInParent := APositionInParent;
   end else
@@ -1797,7 +1820,7 @@ begin
     Result := true;
 
     ExportItem := TX3DExport.Create;
-    ExportsList.Add(ExportItem);
+    AddExport(ExportItem);
     ExportItem.Parse(Lexer, Reader);
     ExportItem.PositionInParent := APositionInParent;
   end;
@@ -1863,7 +1886,7 @@ var
         begin
           Route := TX3DRoute.Create;
           Route.PositionInParent := Position;
-          Routes.Add(Route);
+          AddRoute(Route);
           Route.ParseXML(I.Current, Reader);
         end else
         if I.Current.TagName = 'IS' then
@@ -1874,28 +1897,28 @@ var
         begin
           Import := TX3DImport.Create;
           Import.PositionInParent := Position;
-          ImportsList.Add(Import);
+          AddImport(Import);
           Import.ParseXML(I.Current, Reader);
         end else
         if I.Current.TagName = 'EXPORT' then
         begin
           ExportItem := TX3DExport.Create;
           ExportItem.PositionInParent := Position;
-          ExportsList.Add(ExportItem);
+          AddExport(ExportItem);
           ExportItem.ParseXML(I.Current, Reader);
         end else
         if I.Current.TagName = 'ProtoDeclare' then
         begin
           Proto := TX3DPrototype.Create;
           Proto.PositionInParent := Position;
-          Prototypes.Add(Proto);
+          AddPrototype(Proto);
           Proto.ParseXML(I.Current, Reader);
         end else
         if I.Current.TagName = 'ExternProtoDeclare' then
         begin
           ExternProto := TX3DExternalPrototype.Create;
           ExternProto.PositionInParent := Position;
-          Prototypes.Add(ExternProto);
+          AddPrototype(ExternProto);
           ExternProto.ParseXML(I.Current, Reader);
         end else
         if I.Current.TagName = 'field' then
@@ -2432,7 +2455,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
           Result.Add(InterfaceDeclarations[I]);
       end;
 
-      for I := 0 to Prototypes.Count - 1 do
+      for I := 0 to PrototypesCount - 1 do
         Result.Add(Prototypes[I]);
 
       for I := 0 to Fields.Count - 1 do
@@ -2460,13 +2483,13 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
            (Events[I].ParentInterfaceDeclaration = nil) then
           Result.Add(Events[I]);
 
-      for I := 0 to Routes.Count - 1 do
+      for I := 0 to RoutesCount - 1 do
         Result.Add(Routes[I]);
 
-      for I := 0 to ImportsList.Count - 1 do
+      for I := 0 to ImportsCount - 1 do
         Result.Add(ImportsList[I]);
 
-      for I := 0 to ExportsList.Count - 1 do
+      for I := 0 to ExportsCount - 1 do
         Result.Add(ExportsList[I]);
     except FreeAndNil(Result) end;
   end;
@@ -3035,14 +3058,14 @@ begin
       if Events[I].ParentInterfaceDeclaration = nil then
         EventDeepCopyContents(Result.Events[I], Events[I]);
 
-    for I := 0 to Routes.Count - 1 do
-      Result.Routes.Add(Routes[I].DeepCopy(CopyState));
+    for I := 0 to RoutesCount - 1 do
+      Result.AddRoute(Routes[I].DeepCopy(CopyState));
 
-    for I := 0 to ImportsList.Count - 1 do
-      Result.ImportsList.Add((ImportsList[I] as TX3DImport).DeepCopy(CopyState));
+    for I := 0 to ImportsCount - 1 do
+      Result.AddImport((ImportsList[I] as TX3DImport).DeepCopy(CopyState));
 
-    for I := 0 to ExportsList.Count - 1 do
-      Result.ExportsList.Add((ExportsList[I] as TX3DExport).DeepCopy(CopyState));
+    for I := 0 to ExportsCount - 1 do
+      Result.AddExport((ExportsList[I] as TX3DExport).DeepCopy(CopyState));
 
     if PrototypeInstance then
     begin
@@ -3102,6 +3125,94 @@ begin
   Result := NodeTypeName;
   if NodeName <> '' then
     Result += '(' + NodeName + ')';
+end;
+
+function TX3DNode.GetPrototypes(const Index: Integer): TX3DPrototypeBase;
+begin
+  if FPrototypes = nil then
+    raise ERangeError.CreateFmt('Prototypes list is empty, but tried to access index %d', [Index]);
+  Result := FPrototypes[Index];
+end;
+
+function TX3DNode.PrototypesCount: Integer;
+begin
+  if FPrototypes <> nil then
+    Result := FPrototypes.Count else
+    Result := 0;
+end;
+
+procedure TX3DNode.AddPrototype(const Value: TX3DPrototypeBase);
+begin
+  { create FPrototypes at demand }
+  if FPrototypes = nil then
+    FPrototypes := TX3DPrototypeBaseList.Create(true);
+  FPrototypes.Add(Value);
+end;
+
+function TX3DNode.GetRoutes(const Index: Integer): TX3DRoute;
+begin
+  if FRoutes = nil then
+    raise ERangeError.CreateFmt('Routes list is empty, but tried to access index %d', [Index]);
+  Result := FRoutes[Index];
+end;
+
+function TX3DNode.RoutesCount: Integer;
+begin
+  if FRoutes <> nil then
+    Result := FRoutes.Count else
+    Result := 0;
+end;
+
+procedure TX3DNode.AddRoute(const Value: TX3DRoute);
+begin
+  { create FRoutes at demand }
+  if FRoutes = nil then
+    FRoutes := TX3DRouteList.Create(true);
+  FRoutes.Add(Value);
+end;
+
+function TX3DNode.GetImports(const Index: Integer): TX3DImport;
+begin
+  if FImports = nil then
+    raise ERangeError.CreateFmt('Imports list is empty, but tried to access index %d', [Index]);
+  Result := FImports[Index] as TX3DImport;
+end;
+
+function TX3DNode.ImportsCount: Integer;
+begin
+  if FImports <> nil then
+    Result := FImports.Count else
+    Result := 0;
+end;
+
+procedure TX3DNode.AddImport(const Value: TX3DImport);
+begin
+  { create FImports at demand }
+  if FImports = nil then
+    FImports := TX3DFileItemList.Create(true);
+  FImports.Add(Value);
+end;
+
+function TX3DNode.GetExports(const Index: Integer): TX3DExport;
+begin
+  if FExports = nil then
+    raise ERangeError.CreateFmt('Exports list is empty, but tried to access index %d', [Index]);
+  Result := FExports[Index] as TX3DExport;
+end;
+
+function TX3DNode.ExportsCount: Integer;
+begin
+  if FExports <> nil then
+    Result := FExports.Count else
+    Result := 0;
+end;
+
+procedure TX3DNode.AddExport(const Value: TX3DExport);
+begin
+  { create FExports at demand }
+  if FExports = nil then
+    FExports := TX3DFileItemList.Create(true);
+  FExports.Add(Value);
 end;
 
 { TX3DNodeList ------------------------------------------------------------- }

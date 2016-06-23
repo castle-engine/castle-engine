@@ -93,6 +93,7 @@ type
   TUIState = class(TUIControl)
   private
     FStartContainer: TUIContainer;
+    FInterceptInput: boolean;
     procedure InternalStart;
     procedure InternalStop;
 
@@ -193,6 +194,31 @@ type
     procedure Finish; virtual; deprecated 'use Stop';
 
     function Rect: TRectangle; override;
+
+    { State is right now part of the state stack, which means
+      it's between @link(Start) and @link(Stop) calls.
+      The state is added to the stack before the @link(Start) call,
+      and removed after the @link(Stop) call, so this returns @true
+      during all the methods --- @link(Start), @link(Resume), @link(Pause), @link(Stop). }
+    function Active: boolean;
+
+    { Prevents passing mouse/keyboard events to the UI states underneath.
+
+      More precisely, when this property is @true, then the
+      @link(Press), @link(Release) and @link(Motion) events are marked as
+      "handled" in this UI state. This means that they will not be processed
+      further, by UI controls under this state, in particular by UI states
+      that are underneath this state in @italic(state stack) (created
+      by @link(Push) method). They will also not be passed to final container
+      (TCastleWindowCustom, TCastleControlCustom) callbacks like
+      TCastleWindowCustom.OnPress (as these callbacks are always used at the end,
+      when nothing else handled the event). }
+    property InterceptInput: boolean read FInterceptInput write FInterceptInput
+      default false;
+
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
   end;
 
   TUIStateList = class(specialize TFPGObjectList<TUIState>);
@@ -394,6 +420,30 @@ begin
   { 1. always capture events on whole container
     2. make child controls (anchored to us) behave like anchored to whole window. }
   Result := ParentRect;
+end;
+
+function TUIState.Active: boolean;
+begin
+  Result := (FStateStack <> nil) and
+            (FStateStack.IndexOf(Self) <> -1);
+end;
+
+function TUIState.Press(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  Result := Result or InterceptInput;
+end;
+
+function TUIState.Release(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  Result := Result or InterceptInput;
+end;
+
+function TUIState.Motion(const Event: TInputMotion): boolean;
+begin
+  Result := inherited;
+  Result := Result or InterceptInput;
 end;
 
 end.

@@ -2836,7 +2836,7 @@ begin
       Include(Options, prShadowVolume);
 
     { We need one viewport, to setup it's projection and to setup it's camera.
-      There really no perfect choice, although in practice any viewport
+      There's really no perfect choice, although in practice any viewport
       should do just fine. For now: use the 1st one on the list.
       Maybe in the future we'll need more intelligent method of choosing. }
     ChosenViewport := Viewports[0];

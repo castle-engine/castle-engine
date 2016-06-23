@@ -122,7 +122,7 @@ procedure TGLContainer.EventRender;
 var
   SomeControlHasRenderStyle2D, Dummy: boolean;
 begin
-  { Required to make DrawRectangle and TGLImage.Draw correct. }
+  { Required to make DrawRectangle and TGLImageCore.Draw correct. }
   Viewport2DSize[0] := Width;
   Viewport2DSize[1] := Height;
 

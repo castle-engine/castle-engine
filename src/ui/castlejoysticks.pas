@@ -1,5 +1,5 @@
 {
-  Copyright 2015 Tomasz Wojtyś.
+  Copyright 2015-2016 Tomasz Wojtyś.
   Based on zgl_joystick.pas by Andrey Kemka.
 
   This file is part of "Castle Game Engine".
@@ -17,7 +17,8 @@
   ----------------------------------------------------------------------------
 }
 
-//todo: test wersji windows
+//todo: only partially works on Windows (no support of new features); need to be ported to xinput library
+//todo: on Linux: drop legacy interface /dev/js#; enable /dev/event#
 
 { Receiving input from joysticks and gamepads. }
 unit CastleJoysticks;
@@ -255,26 +256,27 @@ end;
 { TJoysticks }
 
 function TJoysticks.Init: Byte;
+{$IFDEF LINUX}
 var
   i, j : Integer;
+{$ENDIF}
 {$IFDEF WINDOWS}
+var
+  i, j : Integer;
   axis : Integer;
   caps : PLongWord;
 {$ENDIF}
-//const
-//  FILE_ERROR = {$IFNDEF WINDOWS} 0 {$ELSE} Ptr( -1 ) {$ENDIF};
 begin
   FjoyCount := 0;
 
   {$IFDEF LINUX}
   for i := 0 to 15 do
   begin
-    //todo: UTF8string (IntToStr)
     FjoyArray[ FjoyCount ].device := FpOpen( '/dev/input/js' + IntToStr( i ), O_RDONLY or O_NONBLOCK );
-    if FjoyArray[ FjoyCount ].device = {FILE_ERROR} 0 then
+    if FjoyArray[ FjoyCount ].device < 0 then
       FjoyArray[ FjoyCount ].device := FpOpen( '/dev/js' + IntToStr( i ), O_RDONLY or O_NONBLOCK );
 
-    if FjoyArray[ FjoyCount ].device <> {FILE_ERROR} 0 then
+    if FjoyArray[ FjoyCount ].device > -1 then
     begin
       SetLength( FjoyArray[ FjoyCount ].Info.Name, 256 );
       FpIOCtl( FjoyArray[ FjoyCount ].device, JSIOCGNAME,    @FjoyArray[ FjoyCount ].Info.Name[ 1 ] );
@@ -388,14 +390,17 @@ begin
 end;
 
 procedure TJoysticks.Poll;
+{$IFDEF LINUX}
 var
   i : Integer;
-  axis: Byte;
   _value: Single;
-{$IFDEF LINUX}
+  axis: Byte;
   event : js_event;
 {$ENDIF}
 {$IFDEF WINDOWS}
+var
+  i : Integer;
+  _value: Single;
   j, a  : Integer;
   btn   : Integer;
   state : TJOYINFOEX;
@@ -449,7 +454,6 @@ for i := 0 to FjoyCount - 1 do
   end;
 {$ENDIF}
 {$IFDEF WINDOWS}
-//todo: windows events execution (axis move - done)
 state.dwSize := SizeOf( TJOYINFOEX );
 for i := 0 to FjoyCount - 1 do
   begin
@@ -487,14 +491,19 @@ for i := 0 to FjoyCount - 1 do
           begin
             btn := state.wButtons and ( 1 shl j );
             if ( FjoyArray[ i ].State.BtnDown[ j ] ) and ( btn = 0 ) then
+            begin
               FjoyArray[ i ].State.BtnUp[ j ] := True;
+              if Assigned(FOnButtonUp) then FOnButtonUp(@FjoyArray[ i ], j);
+            end;
 
             if ( FjoyArray[ i ].State.BtnCanPress[ j ] ) and ( not FjoyArray[ i ].State.BtnDown[ j ] ) and ( btn <> 0 ) then
               begin
                 FjoyArray[ i ].State.BtnPress   [ j ] := True;
+                if Assigned(FOnButtonPress) then FOnButtonPress(@FjoyArray[ i ], j);
                 FjoyArray[ i ].State.BtnCanPress[ j ] := False;
               end;
             FjoyArray[ i ].State.BtnDown[ j ] := btn <> 0;
+            if Assigned(FOnButtonDown) and (btn <> 0) then FOnButtonDown(@FjoyArray[ i ], j);
           end;
       end;
   end;

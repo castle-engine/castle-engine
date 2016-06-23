@@ -43,6 +43,7 @@ type
     procedure AssertFloatsEqual(const Expected, Actual: Single; const EqualityEpsilon: Single);
     procedure AssertFloatsEqual(const Expected, Actual: Double; const EqualityEpsilon: Double);
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D; const EqualityEpsilon: Double);
+    procedure AssertFilenamesEqual(const Expected, Actual: string);
   end;
 
 implementation
@@ -174,6 +175,11 @@ begin
        (not FloatsEqual(Expected.Data[1][I], Actual.Data[1][I], EqualityEpsilon)) then
       Fail(Format('Boxes are not equal: expected: %s, actual: %s',
         [Expected.ToRawStr, Actual.ToRawStr]));
+end;
+
+procedure TCastleBaseTestCase.AssertFilenamesEqual(const Expected, Actual: string);
+begin
+  AssertTrue(ComparisonMsg(Expected, Actual), AnsiCompareFileName(Expected, Actual) = 0);
 end;
 
 end.

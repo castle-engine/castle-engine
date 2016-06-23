@@ -20,32 +20,25 @@ unit CastleSoundMenu;
 
 interface
 
-uses CastleWindow, CastleOnScreenMenu, CastleSoundEngine, CastleUIControls,
+uses Classes,
+  CastleOnScreenMenu, CastleSoundEngine, CastleUIControls,
   CastleControls;
 
 type
-  { An abstract class for CastleSoundMenu items.
-    In the future maybe such idea will be incorporated into CastleOnScreenMenu unit. }
-  TOnScreenMenuItem = class
-  private
-    FWindow: TCastleWindowCustom;
-  protected
-    property Window: TCastleWindowCustom read FWindow;
-  public
-    { Creates and adds this menu item to Menu. }
-    constructor Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
-    function Title: string; virtual; abstract;
-    function Accessory: TUIControl; virtual;
-    procedure Selected; virtual;
-  end;
+  { On-screen menu item that displays sound information.
+    Simply add it to your TCastleOnScreenMenu like
 
-  TSoundMenuItem = class(TOnScreenMenuItem)
-  end;
+@longCode(#
+  OnScreenMenu.Add(TSoundInfoMenuItem.Create(OnScreenMenu));
+#)
 
-  TSoundInfoMenuItem = class(TSoundMenuItem)
+    Also be sure to assign Application.MainWindow, it is used
+    as the window from which we show modal dialog box with sound information. }
+  TSoundInfoMenuItem = class(TCastleLabel)
+  strict private
+    procedure ButtonClick(Sender: TObject);
   public
-    function Title: string; override;
-    procedure Selected; override;
+    constructor Create(AOwner: TComponent); override;
   end;
 
   { Float slider suitable for volume setting.
@@ -55,66 +48,58 @@ type
     function ValueToStr(const AValue: Single): string; override;
   end;
 
-  TSoundVolumeMenuItem = class(TSoundMenuItem)
+  { On-screen menu item that allows to control sound volume.
+    Simply add it to your TCastleOnScreenMenu like
+
+@longCode(#
+  OnScreenMenu.Add(TSoundVolumeMenuItem.Create(OnScreenMenu));
+#) }
+  TSoundVolumeMenuItem = class(TCastleLabel)
   private
     FSlider: TMenuVolumeSlider;
     property Slider: TMenuVolumeSlider read FSlider;
     procedure SliderValueChanged(Sender: TObject);
   public
-    constructor Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
-
+    constructor Create(AOwner: TComponent); override;
     { Call this if volume changed by something outside of this class. }
     procedure Refresh;
-
-    function Title: string; override;
-    function Accessory: TUIControl; override;
   end;
 
-  TMusicVolumeMenuItem = class(TSoundMenuItem)
+  { On-screen menu item that allows to control music volume.
+    Simply add it to your TCastleOnScreenMenu like
+
+@longCode(#
+  OnScreenMenu.Add(TMusicVolumeMenuItem.Create(OnScreenMenu));
+#) }
+  TMusicVolumeMenuItem = class(TCastleLabel)
   private
     FSlider: TMenuVolumeSlider;
     property Slider: TMenuVolumeSlider read FSlider;
     procedure SliderValueChanged(Sender: TObject);
   public
-    constructor Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
-
+    constructor Create(AOwner: TComponent); override;
     { Call this if volume changed by something outside of this class. }
     procedure Refresh;
-
-    function Title: string; override;
-    function Accessory: TUIControl; override;
   end;
 
 implementation
 
-uses Classes, CastleClassUtils, CastleUtils, CastleMessages;
-
-{ TOnScreenMenuItem ---------------------------------------------------------------- }
-
-constructor TOnScreenMenuItem.Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
-begin
-  inherited Create;
-  Menu.Add(Title, Accessory);
-  FWindow := AWindow;
-end;
-
-function TOnScreenMenuItem.Accessory: TUIControl;
-begin
-  Result := nil;
-end;
-
-procedure TOnScreenMenuItem.Selected;
-begin
-end;
+uses CastleWindow, CastleClassUtils, CastleUtils, CastleMessages;
 
 { TSoundInfoMenuItem ------------------------------------------------------- }
 
-function TSoundInfoMenuItem.Title: string;
+constructor TSoundInfoMenuItem.Create(AOwner: TComponent);
+var
+  Button: TCastleMenuButton;
 begin
-  Result := 'View sound information';
+  inherited;
+  Caption := 'View sound information';
+  Button := TCastleMenuButton.Create(Self);
+  Button.OnClick := @ButtonClick;
+  InsertFront(Button);
 end;
 
-procedure TSoundInfoMenuItem.Selected;
+procedure TSoundInfoMenuItem.ButtonClick(Sender: TObject);
 var
   S: TStringList;
 begin
@@ -124,7 +109,10 @@ begin
     S.Append('');
     Strings_AddSplittedString(S, SoundEngine.SoundInitializationReport, nl);
 
-    MessageOK(Window, S);
+    if Application.MainWindow = nil then
+      raise EInternalError.Create('You must assign Application.MainWindow to make clicks on TSoundInfoMenuItem work');
+
+    MessageOK(Application.MainWindow, S);
   finally S.Free end;
 end;
 
@@ -139,22 +127,15 @@ end;
 
 { TSoundVolumeMenuItem ----------------------------------------------------- }
 
-constructor TSoundVolumeMenuItem.Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
+constructor TSoundVolumeMenuItem.Create(AOwner: TComponent);
 begin
-  FSlider := TMenuVolumeSlider.Create(Menu);
+  inherited;
+  Caption := 'Volume';
+
+  FSlider := TMenuVolumeSlider.Create(Self);
   FSlider.Value := SoundEngine.Volume;
   FSlider.OnChange := @SliderValueChanged;
-  inherited;
-end;
-
-function TSoundVolumeMenuItem.Title: string;
-begin
-  Result := 'Volume';
-end;
-
-function TSoundVolumeMenuItem.Accessory: TUIControl;
-begin
-  Result := FSlider;
+  InsertFront(FSlider);
 end;
 
 procedure TSoundVolumeMenuItem.SliderValueChanged(Sender: TObject);
@@ -169,22 +150,15 @@ end;
 
 { TMusicVolumeMenuItem ----------------------------------------------------- }
 
-constructor TMusicVolumeMenuItem.Create(AWindow: TCastleWindowCustom; Menu: TCastleOnScreenMenu);
+constructor TMusicVolumeMenuItem.Create(AOwner: TComponent);
 begin
-  FSlider := TMenuVolumeSlider.Create(Menu);
+  inherited;
+  Caption := 'Music volume';
+
+  FSlider := TMenuVolumeSlider.Create(Self);
   FSlider.Value := SoundEngine.MusicPlayer.MusicVolume;
   FSlider.OnChange := @SliderValueChanged;
-  inherited;
-end;
-
-function TMusicVolumeMenuItem.Title: string;
-begin
-  Result := 'Music volume';
-end;
-
-function TMusicVolumeMenuItem.Accessory: TUIControl;
-begin
-  Result := FSlider;
+  InsertFront(FSlider);
 end;
 
 procedure TMusicVolumeMenuItem.SliderValueChanged(Sender: TObject);

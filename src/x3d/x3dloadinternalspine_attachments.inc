@@ -19,8 +19,10 @@
   TAttachment = class abstract
     { SlotName and AttachmentName are map keys, to detect which TAttachment to use. }
     SlotName, AttachmentName: string;
-    { The real attachment name, unique for a skeleton, for image attachment
-      this refers to texture loader (e.g. atlas) region name. }
+    { The real attachment name, for image attachment
+      this refers to texture loader (e.g. atlas) region name.
+      This is a unique region name, but multiple TAttachment may refer to the same
+      Name (see Escape ship_upgrade.json testcase). }
     Name: string;
     Node: TTransformNode;
     NodeUsedAsChild: boolean;
@@ -46,7 +48,8 @@
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
     function BuildGeometry(const BaseUrl: string;
-      const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect): TAbstractGeometryNode; virtual;
+      const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
+      const TexRotated: boolean): TAbstractGeometryNode; virtual;
   end;
 
   TAbstractMeshAttachment = class(TRegionAttachment)
@@ -65,7 +68,8 @@
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
     function BuildGeometry(const BaseUrl: string;
-      const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect): TAbstractGeometryNode; override;
+      const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
+      const TexRotated: boolean): TAbstractGeometryNode; override;
   end;
 
   TMeshAttachment = class(TAbstractMeshAttachment)
@@ -184,14 +188,21 @@ begin
   Path := Json.Get('path', '');
 end;
 
-procedure TRegionAttachment.BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
+procedure TRegionAttachment.BuildNodes(const BaseUrl: string;
+  const TextureLoader: TTextureLoader);
 var
   TexRect: TQuadTexRect;
   TexCoord: TQuadTexCoord;
   Shape: TShapeNode;
   AtlasRegionName: string;
+  TexRotated: boolean;
 begin
-  Node := TTransformNode.Create('Attachment_' + ToX3DName(Name), BaseUrl);
+  if Node <> nil then
+    OnWarning(wtMinor, 'Spine', 'TRegionAttachment.BuildNodes multiple times on same node');
+
+  Node := TTransformNode.Create(
+    Format('Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+    BaseUrl);
   Node.FdTranslation.Value := Vector3Single(XY[0], XY[1], 0);
   Node.FdScale.Value := Vector3Single(Scale[0], Scale[1], 1);
   Node.FdRotation.Value := Vector4Single(0, 0, 1, DegToRad(Rotation));
@@ -203,11 +214,15 @@ begin
   AtlasRegionName := Name;
   if Path <> '' then
     AtlasRegionName := Path;
-  Shape.Appearance.Texture := TextureLoader.UseNode(AtlasRegionName, TexCoord, TexRect);
+  Shape.Appearance.Texture := TextureLoader.UseNode(AtlasRegionName,
+    TexCoord, TexRect, TexRotated);
   if Shape.Appearance.Texture <> nil then
-    Shape.FdGeometry.Value := BuildGeometry(BaseUrl, TexCoord, TexRect);
+    Shape.FdGeometry.Value := BuildGeometry(BaseUrl,
+      TexCoord, TexRect, TexRotated);
 
-  Shape.Material := TMaterialNode.Create('Material_' + ToX3DName(Name), BaseUrl);
+  Shape.Material := TMaterialNode.Create(
+    Format('Material_Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
+    BaseUrl);
   Shape.Material.FdDiffuseColor.Value := ZeroVector3Single;
   Shape.Material.FdSpecularColor.Value := ZeroVector3Single;
   Shape.Material.FdAmbientIntensity.Value := 0;
@@ -217,7 +232,8 @@ begin
 end;
 
 function TRegionAttachment.BuildGeometry(const BaseUrl: string;
-  const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect): TAbstractGeometryNode;
+  const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
+  const TexRotated: boolean): TAbstractGeometryNode;
 var
   Coord: TCoordinateNode;
   TexCoordNode: TTextureCoordinateNode;
@@ -290,7 +306,8 @@ begin
 end;
 
 function TAbstractMeshAttachment.BuildGeometry(const BaseUrl: string;
-  const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect): TAbstractGeometryNode;
+  const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
+  const TexRotated: boolean): TAbstractGeometryNode;
 var
   TexCoordNode: TTextureCoordinateNode;
   I: Integer;
@@ -325,12 +342,16 @@ begin
     parts within the non-whitespace region (TexRect). Which is true
     in practice in all the examples. }
 
-  if (TexRect[0][0] <> 0) or
-     (TexRect[1][0] <> 0) or
-     (TexRect[0][1] <> 1) or
-     (TexRect[1][1] <> 1) then
+  if ((TexRect[0][0] <> 0) or
+      (TexRect[1][0] <> 0) or
+      (TexRect[0][1] <> 1) or
+      (TexRect[1][1] <> 1)) and
+     LogSpineMeshCompressWhitespaceWarning then
     WritelnLog('Spine', Format('Slot "%s" with attachment "%s" uses "mesh" attachment type, and you exported atlas with "compress whitespace" option selected. Rendering artifacts may occur if mesh faces use the texture in "whitespace" region --- in such case, export again with "compress whitespace" turned off at atlas generation.',
       [SlotName, Name]));
+
+  if TexRotated then
+    OnWarning(wtMajor, 'Spine', 'Atlas region is rotated, and is used for mesh attachment. This is not supported (texture will most likely be applied incorrectly), export atlas again with "Rotate" turned off.');
 
   TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
   UVRangeX[0] := Min(TexCoord[0][0], TexCoord[2][0]);

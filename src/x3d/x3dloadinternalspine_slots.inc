@@ -162,7 +162,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(ResetAttachment.EventValue_changed);
     Route.SetDestinationDirectly(SwitchNode.FdWhichChoice.EventIn);
-    ContainerForResetNode.Routes.Add(Route);
+    ContainerForResetNode.AddRoute(Route);
   end;
 
   procedure AddResetColor;
@@ -185,7 +185,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(ColInterp.EventValue_changed);
       Route.SetDestinationDirectly(Materials[I].FdEmissiveColor);
-      ContainerForResetNode.Routes.Add(Route);
+      ContainerForResetNode.AddRoute(Route);
 
       ScalarInterp := TScalarInterpolatorNode.Create('SlotReset_alpha_' + ToX3DName(Name));
       ScalarInterp.FdKey.Items.Add(0);
@@ -196,7 +196,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(ScalarInterp.EventValue_changed);
       Route.SetDestinationDirectly(Materials[I].FdTransparency);
-      ContainerForResetNode.Routes.Add(Route);
+      ContainerForResetNode.AddRoute(Route);
     end;
   end;
 
@@ -214,7 +214,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(ResetDrawOrder.EventValue_changed);
     Route.SetDestinationDirectly(Node.FdTranslation.EventIn);
-    ContainerForResetNode.Routes.Add(Route);
+    ContainerForResetNode.AddRoute(Route);
   end;
 
   { Node for a single AttachmentName. Never @nil. }

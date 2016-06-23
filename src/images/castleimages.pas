@@ -197,6 +197,10 @@ type
       Always (Left,Bottom) are zero, and (Width,Height) correspond to image
       sizes. }
     function Rect: TRectangle;
+
+    { Create a new image object that has exactly the same class
+      and the same data (size, pixels) as this image. }
+    function CreateCopy: TEncodedImage; virtual; abstract;
   end;
 
   { Basic resize interpolation modes, fast and available for all image types. }
@@ -428,11 +432,18 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       X, Y coordinates because their correctness is not checked here. }
     procedure SetColorRGB(const X, Y: Integer; const v: TVector3Single); virtual;
 
-    { Create a new object that has exactly the same class
-      and the same contents as this object.
-      (note: no, this function is *not* constructor, because it's implemented
-      in TCastleImage, but it always returns some descendant of TCastleImage). }
+    { Create a new image object that has exactly the same class
+      and the same data (size, pixels) as this image.
+
+      (Design note: this function is *not* a constructor, because it's implemented
+      in TCastleImage, but it always returns some descendant of TCastleImage.) }
     function MakeCopy: TCastleImage;
+
+    { Create a new image object that has exactly the same class
+      and the same data (size, pixels) as this image.
+
+      Equivalent to MakeCopy, but virtual and declared as returning TEncodedImage class. }
+    function CreateCopy: TEncodedImage; override;
 
     { Change Width and Height and appropriately stretch
       image contents.
@@ -457,10 +468,10 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
 
       This scales the image in almost the same way as standard @link(Resize).
       However, this is aware of the image corners and edges, which is good
-      if you plan to use this image with @link(TGLImage.Draw3x3) drawing.
+      if you plan to use this image with @link(TGLImageCore.Draw3x3) drawing.
 
       The Corners parameter specifies the corners size, in the same
-      clockwise order as for @link(TGLImage.Draw3x3): top, right, bottom, left.
+      clockwise order as for @link(TGLImageCore.Draw3x3): top, right, bottom, left.
       The corners will be scaled (proportially to image scaling),
       and new Corners size returned.
       Additionally it makes sure that filtering (especially bilinear)
@@ -478,7 +489,7 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       Class of new instance is the same as our class.
 
       As with @link(Resize), ResizeTo* = 0 means to use current Width/Height.
-      So e.g. using MakeResized(0, 0) is the same thing as using MakeCopy.
+      So e.g. using MakeResized(0, 0) is the same thing as using CreateCopy.
 
       As with @link(Resize),
       if ProgressTitle <> '' this will call Progress.Init/Step/Fini
@@ -607,7 +618,7 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
 
     { Just like ModulateRGB, but this returns new image, not changing initial
       image. This means that if ColorModulator = nil this is
-      equivalent to MakeCopy.
+      equivalent to CreateCopy.
 
       Implemented if and only if ModulateRGB is implemented. }
      function MakeModulatedRGB(
@@ -898,7 +909,15 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
         within decompressor.) }
     function Decompress: TCastleImage;
 
+    { Create a new image object that has exactly the same class
+      and the same data (size, pixels) as this image. }
     function MakeCopy: TGPUCompressedImage;
+
+    { Create a new image object that has exactly the same class
+      and the same data (size, pixels) as this image.
+
+      Equivalent to MakeCopy, but virtual and declared as returning TEncodedImage class. }
+    function CreateCopy: TEncodedImage; override;
   end;
 
   { Deprecated alias for TGPUCompressedImage }
@@ -1588,7 +1607,7 @@ type
   various GPU algorithms) in your data.
   Use this procedure to redirect all image loading to use your
   compressed versions, when they are supported by the GPU.
-  By doing it like this we capture all kinds of image loading --- from TGLImage,
+  By doing it like this we capture all kinds of image loading --- from TGLImageCore,
   from TCastleScene and so on.
 
   @longCode(#
@@ -1765,6 +1784,11 @@ begin
 end;
 
 function TCastleImage.MakeCopy: TCastleImage;
+begin
+  Result := CreateCopy as TCastleImage;
+end;
+
+function TCastleImage.CreateCopy: TEncodedImage;
 begin
   Result := TCastleImageClass(Self.ClassType).Create(Width, Height, Depth);
   Move(RawPixels^, Result.RawPixels^, Size);
@@ -2466,6 +2490,11 @@ begin
 end;
 
 function TGPUCompressedImage.MakeCopy: TGPUCompressedImage;
+begin
+  Result := CreateCopy as TGPUCompressedImage;
+end;
+
+function TGPUCompressedImage.CreateCopy: TEncodedImage;
 begin
   Result := TGPUCompressedImage.Create(Width, Height, Depth, Compression);
   Assert(Result.Size = Size);

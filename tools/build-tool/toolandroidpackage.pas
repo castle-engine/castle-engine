@@ -36,15 +36,16 @@ uses SysUtils, Classes,
   ToolEmbeddedImages, ExtInterpolation;
 
 const
-  PackageModeToName: array [TCompilationMode] of string = ('release', 'debug');
+  PackageModeToName: array [TCompilationMode] of string = (
+    'release',
+    'release' { no valgrind support for Android },
+    'debug');
 
 procedure CreateAndroidPackage(const Project: TCastleProject;
   const OS: TOS; const CPU: TCPU; const SuggestedPackageMode: TCompilationMode;
   const Files: TCastleStringList);
 var
   AndroidProjectPath: string;
-const
-  AndroidTarget = 'android-19';
 
   { Some utility procedures PackageXxx work just like Xxx,
     but target filename should not contain prefix AndroidProjectPath,
@@ -90,7 +91,18 @@ const
   { Generate simple text stuff for Android project from templates. }
   procedure GenerateFromTemplates;
   var
-    TemplatePath, DestinationPath: string;
+    DestinationPath: string;
+
+    procedure ExtractComponent(const ComponentName: string);
+    var
+      TemplatePath: string;
+    begin
+      TemplatePath := 'android/integrated-components/' + ComponentName;
+      Project.ExtractTemplate(TemplatePath, DestinationPath);
+    end;
+
+  var
+    TemplatePath: string;
     I: Integer;
   begin
     { calculate absolute DestinationPath.
@@ -109,19 +121,17 @@ const
 
     if Project.AndroidProjectType = apIntegrated then
     begin
-      { add Android project components }
+      { add declared components }
       for I := 0 to Project.AndroidComponents.Count - 1 do
-      begin
-        TemplatePath := 'android/integrated-components/' + Project.AndroidComponents[I].Name;
-        Project.ExtractTemplate(TemplatePath, DestinationPath);
-      end;
+        ExtractComponent(Project.AndroidComponents[I].Name);
 
-      { add sound component, if sound library is in Dependencies }
-      if depSound in Project.Dependencies then
-      begin
-        TemplatePath := 'android/integrated-components/sound';
-        Project.ExtractTemplate(TemplatePath, DestinationPath);
-      end;
+      { add automatic components }
+      if (depSound in Project.Dependencies) and
+         not Project.AndroidComponents.HasComponent('sound') then
+        ExtractComponent('sound');
+      if (depOggVorbis in Project.Dependencies) and
+         not Project.AndroidComponents.HasComponent('ogg_vorbis') then
+        ExtractComponent('ogg_vorbis');
     end;
   end;
 
@@ -270,7 +280,7 @@ const
       # not standard proguard-project.txt, otherwise proguard-project.txt is overwritten
       # by every "android create project.." call done when packaging.
       #proguard.config=${sdk.dir}/tools/proguard/proguard-android.txt:custom-proguard-project.txt *)
-    S += 'target=' + AndroidTarget + NL;
+    S += 'target=' + Project.AndroidTarget + NL;
     for I := 0 to Subprojects.Count - 1 do
       S += 'android.library.reference.' + IntToStr(I + 1) + '=./' + Subprojects[I] + '/' + NL;
     { overwrite existing file, since Android "update" project always creates
@@ -293,14 +303,14 @@ const
       if not DirectoryExists(Dir) then
         raise Exception.Create('Cannot find directory "' + Dir + '", make sure you installed the components dependencies (see "Requires" sections on ' + WWWComponents + ')');
       RunCommandIndirPassthrough(Dir, AndroidExe,
-        ['update', 'lib-project',                     '--path', '.', '--target', AndroidTarget],
+        ['update', 'lib-project',                     '--path', '.', '--target', Project.AndroidTarget],
         ProcessOutput, ProcessStatus)
     end else
       RunCommandIndirPassthrough(Dir, AndroidExe,
-        ['update', 'project', '--name', Project.Name, '--path', '.', '--target', AndroidTarget],
+        ['update', 'project', '--name', Project.Name, '--path', '.', '--target', Project.AndroidTarget],
         ProcessOutput, ProcessStatus);
     if ProcessStatus <> 0 then
-      raise Exception.Create('"android" call failed, cannot create Android apk. Inspect above error messages, and make sure Android SDK is installed correctly. Make sure that target "' + AndroidTarget + '" is installed.');
+      raise Exception.Create('"android" call failed, cannot create Android apk. Inspect above error messages, and make sure Android SDK is installed correctly. Make sure that target "' + Project.AndroidTarget + '" is installed.');
   end;
 
   { Run "ndk-build", this moves our .so correctly to the final apk. }
@@ -422,7 +432,7 @@ begin
     Writeln('Running "adb logcat | grep ' + Project.Name + '" (we are assuming that your ApplicationName is ''' + Project.Name + ''') to see log output from your application. Just break this process with Ctrl+C to stop.');
     { run through ExecuteProcess, because we don't want to capture output,
       we want to immediately pass it to user }
-    ExecuteProcess(FindExe('bash'), ['-c', 'adb logcat | grep "' + Project.Name + '"']);
+    ExecuteProcess(FindExe('bash'), ['-c', 'adb logcat | grep --text "' + Project.Name + '"']);
   end else
     Writeln('Run "adb logcat | grep ' + Project.Name + '" (we are assuming that your ApplicationName is ''' + Project.Name + ''') to see log output from your application. Install "bash" and "grep" on $PATH (on Windows, you may want to install MinGW or Cygwin) to run it automatically here.');
 end;

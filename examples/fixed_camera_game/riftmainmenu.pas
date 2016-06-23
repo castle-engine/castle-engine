@@ -63,21 +63,22 @@ type
   end;
 
   TRiftMainMenu = class(TRiftMenu)
+  strict private
+    procedure ClickNewGame(Sender: TObject);
+    procedure ClickSoundOptions(Sender: TObject);
+    procedure ClickInspectCreatures(Sender: TObject);
+    procedure ClickQuit(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
-    procedure Click; override;
   end;
 
   TRiftSoundMenu = class(TRiftSubMenu)
+  strict private
+    procedure ClickChangeDevice(Sender: TObject);
+    procedure ClickBack(Sender: TObject);
   public
-    SoundInfo: TSoundInfoMenuItem;
-    SoundVolume: TSoundVolumeMenuItem;
-    MusicVolume: TMusicVolumeMenuItem;
-
-    OpenALDeviceArgument: TCastleLabel;
+    OpenALDeviceArgument: TCastleMenuButton;
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-    procedure Click; override;
   end;
 
   TChangeOpenALDeviceMenu = class(TRiftSubMenu)
@@ -172,31 +173,33 @@ end;
 constructor TRiftMainMenu.Create(AOwner: TComponent);
 begin
   inherited;
-  Add('New game');
-  Add('Sound options');
+  Add('New game', @ClickNewGame);
+  Add('Sound options', @ClickSoundOptions);
   { TODO: this should be more hidden from user, in some debug menu }
-  Add('Debug: inspect creatures');
-  Add('Quit');
+  Add('Debug: inspect creatures', @ClickInspectCreatures);
+  Add('Quit', @ClickQuit);
 end;
 
-procedure TRiftMainMenu.Click;
-
-  procedure NewGame;
-  begin
-    CurrentLocation := StartLocation;
-    WorldTime := 0;
-    Play;
-  end;
-
+procedure TRiftMainMenu.ClickNewGame(Sender: TObject);
 begin
-  inherited;
-  case CurrentItem of
-    0: NewGame;
-    1: SetCurrentMenu(SoundMenu);
-    2: InspectCreatures;
-    3: UserQuit := true;
-    else raise EInternalError.Create('TRiftMainMenu.Click');
-  end;
+  CurrentLocation := StartLocation;
+  WorldTime := 0;
+  Play;
+end;
+
+procedure TRiftMainMenu.ClickSoundOptions(Sender: TObject);
+begin
+  SetCurrentMenu(SoundMenu);
+end;
+
+procedure TRiftMainMenu.ClickInspectCreatures(Sender: TObject);
+begin
+  InspectCreatures;
+end;
+
+procedure TRiftMainMenu.ClickQuit(Sender: TObject);
+begin
+  UserQuit := true;
 end;
 
 { TRiftSubMenu --------------------------------------------------------------- }
@@ -230,38 +233,27 @@ constructor TRiftSoundMenu.Create(AOwner: TComponent);
 begin
   inherited;
 
-  OpenALDeviceArgument := TCastleLabel.Create(Self);
-  OpenALDeviceArgument.Text.Text := SoundEngine.DeviceNiceName;
+  OpenALDeviceArgument := TCastleMenuButton.Create(Self);
+  OpenALDeviceArgument.Caption := SoundEngine.DeviceNiceName;
+  OpenALDeviceArgument.OnClick := @ClickChangeDevice;
 
-  SoundInfo := TSoundInfoMenuItem.Create(Window, Self);
-  SoundVolume := TSoundVolumeMenuItem.Create(Window, Self);
-  MusicVolume := TMusicVolumeMenuItem.Create(Window, Self);
+  Add(TSoundInfoMenuItem.Create(Self));
+  Add(TSoundVolumeMenuItem.Create(Self));
+  Add(TMusicVolumeMenuItem.Create(Self));
   Add('Sound output device', OpenALDeviceArgument);
-  Add('Back to main menu');
+  Add('Back to main menu', @ClickBack);
 
   SubMenuTitle := 'Sound options';
 end;
 
-destructor TRiftSoundMenu.Destroy;
+procedure TRiftSoundMenu.ClickChangeDevice(Sender: TObject);
 begin
-  FreeAndNil(SoundInfo);
-  FreeAndNil(SoundVolume);
-  FreeAndNil(MusicVolume);
-  inherited;
+  SetCurrentMenu(ChangeOpenALDeviceMenu);
 end;
 
-procedure TRiftSoundMenu.Click;
+procedure TRiftSoundMenu.ClickBack(Sender: TObject);
 begin
-  inherited;
-
-  case CurrentItem of
-    0: SoundInfo.Selected;
-    1: ;
-    2: ;
-    3: SetCurrentMenu(ChangeOpenALDeviceMenu);
-    4: SetCurrentMenu(MainMenu);
-    else raise EInternalError.Create('Menu item unknown');
-  end;
+  SetCurrentMenu(MainMenu);
 end;
 
 { TChangeOpenALDeviceMenu ---------------------------------------------------- }
@@ -292,7 +284,7 @@ begin
   begin
     SoundEngine.Device := SoundEngine.Devices[CurrentItem].Name;
     { ALCDevice value changed now to new value. }
-    SoundMenu.OpenALDeviceArgument.Text.Text := SoundEngine.Devices[CurrentItem].NiceName;
+    SoundMenu.OpenALDeviceArgument.Caption := SoundEngine.Devices[CurrentItem].NiceName;
     if not SoundEngine.ALActive then
       MessageOK(Window, SoundEngine.SoundInitializationReport);
   end;

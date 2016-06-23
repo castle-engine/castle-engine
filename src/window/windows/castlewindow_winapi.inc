@@ -46,6 +46,8 @@ private
     Useful -- see at WM_ACTIVATE. }
   InCloseBackend: boolean;
 
+  EnableUpdatesFromWindowProc, DisableUpdatesFromWindowProc: Cardinal;
+
   VK_LeftBracket_Exists,
   VK_RightBracket_Exists,
   VK_Apostrophe_Exists,
@@ -380,6 +382,8 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
 {$ifdef VER2_0} const WM_MOUSEHWHEEL= $020E; {$endif}
 {$ifdef VER2_2} const WM_MOUSEHWHEEL= $020E; {$endif}
 
+var
+  DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: boolean;
 begin
   Result := 0;
 
@@ -650,7 +654,56 @@ begin
         Exit;
       end;
   end;
-  Result := DefWindowProc(h_Wnd, uMsg, wParm, lParm);
+
+  { The DefWindowProc may enter a modal loop in some cases, e.g. when
+    WM_NCLBUTTONDOWN initializes window resizing operation.
+
+    This makes our normal message loop not working (although application
+    is working, but methods like ProcessMessage are not called in a loop anymore,
+    instead we "hang" in a DispatchMessage call in top-level ProcessMessage).
+    WinAPI will directly call WindowProc, creating a recursion.
+    See See http://stackoverflow.com/questions/3102074/win32-my-application-freezes-while-the-user-resizes-the-window
+
+    So to keep receiving update/timer/redraws, we simply call
+    UpdateAndRenderEverything manually here.
+
+    A simple solution was to just call it always when recursion here is detected.
+    But this seems unexpected to WinAPI in many situations, causing
+
+    1. crashes, when this is done from some messages.
+    2. slowdown at initialization (view3dscene main menu blinks for some
+      time, with "busy" cursor, before it becomes responsive).
+
+    So the solution now is to activate it only for certain commands,
+    and moreover deactivate inside certain other commands. }
+  //Writeln('Got message ', uMsg,
+  //  ', UpdatesFromWindowProc: Enable: ', EnableUpdatesFromWindowProc,
+  //  ', Disable: ', DisableUpdatesFromWindowProc);
+
+  if (EnableUpdatesFromWindowProc <> 0) and
+     (DisableUpdatesFromWindowProc = 0) and
+     (not Closed) then
+    Application.UpdateAndRenderEverything;
+
+  DoEnableUpdatesFromWindowProc := uMsg = WM_NCLBUTTONDOWN;
+  DoDisableUpdatesFromWindowProc :=
+    // user closes window by clicking on close button
+    ((uMsg = WM_SYSCOMMAND) and (wParm = SC_CLOSE)) or
+    // we close the window by code
+    (uMsg = WM_NCACTIVATE) or
+    // we recreate the window as fullscreen
+    (uMsg = WM_IME_SETCONTEXT) or
+    // we recreate the window as windowed?
+    (uMsg = WM_ACTIVATE);
+
+  if DoEnableUpdatesFromWindowProc then Inc(EnableUpdatesFromWindowProc);
+  if DoDisableUpdatesFromWindowProc then Inc(DisableUpdatesFromWindowProc);
+  try
+    Result := DefWindowProc(h_Wnd, uMsg, wParm, lParm);
+  finally
+    if DoEnableUpdatesFromWindowProc then Dec(EnableUpdatesFromWindowProc);
+    if DoDisableUpdatesFromWindowProc then Dec(DisableUpdatesFromWindowProc);
+  end;
 end;
 
 function TCastleWindowCustom.RedirectKeyDownToMenuClick: boolean;

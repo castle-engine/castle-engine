@@ -59,6 +59,7 @@ type
     FProjectionHeight, FProjectionWidth: Single;
     FCurrentProjectionWidth, FCurrentProjectionHeight: Single;
     FProjectionSpan: Single;
+    FProjectionOriginCenter: boolean;
   protected
     function CalculateProjection: TProjection; override;
   public
@@ -76,21 +77,25 @@ type
       follow aspect ratio of viewport size.
       If both of them are zero, projection is automatically calculated just as if
       ProjectionAutoSize was @true.
-      @bold(By default, height is 1.0 and width is automatically adjusted
-      to follow aspect ratio.)
 
       In all cases, CurrentProjectionWidth and CurrentProjectionHeight
       can be checked to see actual projection dimensions. }
     property ProjectionAutoSize: boolean
       read FProjectionAutoSize write FProjectionAutoSize default true;
     property ProjectionHeight: Single
-      read FProjectionHeight write FProjectionHeight default 1;
+      read FProjectionHeight write FProjectionHeight default 0;
     property ProjectionWidth: Single
       read FProjectionWidth write FProjectionWidth default 0;
     property CurrentProjectionWidth: Single read FCurrentProjectionWidth;
     property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
     property ProjectionSpan: Single
       read FProjectionSpan write FProjectionSpan default DefaultProjectionSpan;
+    { Where is the (0,0) world point with respect to the viewport.
+      If @false, the (0,0) is in the left-bottom corner, which matches
+      the typical 2D drawing coordinates used throughout our engine.
+      If @true, the (0,0) is in the middle of the viewport. }
+    property ProjectionOriginCenter: boolean
+      read FProjectionOriginCenter write FProjectionOriginCenter;
 
     constructor Create(AOwner: TComponent); override;
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
@@ -125,7 +130,7 @@ begin
   Transparent := true;
   ProjectionAutoSize := true;
   FProjectionSpan := DefaultProjectionSpan;
-  FProjectionHeight := 1;
+  FProjectionHeight := 0;
   FProjectionWidth := 0;
 end;
 
@@ -145,26 +150,31 @@ begin
 end;
 
 function T2DSceneManager.CalculateProjection: TProjection;
+var
+  ControlWidth, ControlHeight: Integer;
 begin
   Result.ProjectionType := ptOrthographic;
   Result.OrthoDimensions[0] := 0;
   Result.OrthoDimensions[1] := 0;
 
+  ControlWidth := CalculatedWidth;
+  ControlHeight := CalculatedHeight;
+
   if ProjectionAutoSize or
      ((ProjectionWidth = 0) and (ProjectionHeight = 0)) then
   begin
-    FCurrentProjectionWidth := Rect.Width;
-    FCurrentProjectionHeight := Rect.Height;
+    FCurrentProjectionWidth := ControlWidth;
+    FCurrentProjectionHeight := ControlHeight;
   end else
   if ProjectionWidth = 0 then
   begin
-    FCurrentProjectionWidth := ProjectionHeight * Rect.Width / Rect.Height;
+    FCurrentProjectionWidth := ProjectionHeight * ControlWidth / ControlHeight;
     FCurrentProjectionHeight := ProjectionHeight;
   end else
   if ProjectionHeight = 0 then
   begin
     FCurrentProjectionWidth := ProjectionWidth;
-    FCurrentProjectionHeight := ProjectionWidth * Rect.Height / Rect.Width;
+    FCurrentProjectionHeight := ProjectionWidth * ControlHeight / ControlWidth;
   end else
   begin
     FCurrentProjectionWidth := ProjectionWidth;
@@ -173,6 +183,13 @@ begin
 
   Result.OrthoDimensions[2] := FCurrentProjectionWidth;
   Result.OrthoDimensions[3] := FCurrentProjectionHeight;
+  if FProjectionOriginCenter then
+  begin
+    Result.OrthoDimensions[2] := Result.OrthoDimensions[2] / 2;
+    Result.OrthoDimensions[3] := Result.OrthoDimensions[3] / 2;
+    Result.OrthoDimensions[0] := -Result.OrthoDimensions[2]; // already divided by /2
+    Result.OrthoDimensions[1] := -Result.OrthoDimensions[3]; // already divided by /2
+  end;
   Result.ProjectionNear := -ProjectionSpan;
   Result.ProjectionFar := ProjectionSpan;
   Result.ProjectionFarFinite := Result.ProjectionFar;

@@ -243,7 +243,7 @@ begin
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
       Route.SetDestinationDirectly(BoneTimelines[I].Node.EventSet_fraction);
-      Container.Routes.Add(Route);
+      Container.AddRoute(Route);
     end;
 
     for I := 0 to BonesToReset.Translation.Count - 1 do
@@ -251,7 +251,7 @@ begin
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
       Route.SetDestinationDirectly(BonesToReset.Translation[I].ResetTranslation.EventSet_fraction);
-      Container.Routes.Add(Route);
+      Container.AddRoute(Route);
     end;
 
     for I := 0 to BonesToReset.Scale.Count - 1 do
@@ -259,7 +259,7 @@ begin
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
       Route.SetDestinationDirectly(BonesToReset.Scale[I].ResetScale.EventSet_fraction);
-      Container.Routes.Add(Route);
+      Container.AddRoute(Route);
     end;
 
     for I := 0 to BonesToReset.Rotation.Count - 1 do
@@ -267,7 +267,7 @@ begin
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
       Route.SetDestinationDirectly(BonesToReset.Rotation[I].ResetRotation.EventSet_fraction);
-      Container.Routes.Add(Route);
+      Container.AddRoute(Route);
     end;
   finally FreeAndNil(BonesToReset) end;
 
@@ -285,7 +285,7 @@ begin
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
       Route.SetDestinationDirectly(SlotTimelines[I].Node1.EventSet_fraction);
-      Container.Routes.Add(Route);
+      Container.AddRoute(Route);
 
       if SlotTimelines[I].HasNode2 then
       begin
@@ -294,7 +294,7 @@ begin
         Route := TX3DRoute.Create;
         Route.SetSourceDirectly(Node.EventFraction_changed);
         Route.SetDestinationDirectly(SlotTimelines[I].Node2.EventSet_fraction);
-        Container.Routes.Add(Route);
+        Container.AddRoute(Route);
       end;
     end;
 
@@ -309,7 +309,7 @@ begin
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
       Route.SetDestinationDirectly(DrawOrderTimelines[I].Node.EventSet_fraction);
-      Container.Routes.Add(Route);
+      Container.AddRoute(Route);
     end;
 
     for I := 0 to SlotsToReset.Attachment.Count - 1 do
@@ -317,7 +317,7 @@ begin
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
       Route.SetDestinationDirectly(SlotsToReset.Attachment[I].ResetAttachment.EventSet_fraction);
-      Container.Routes.Add(Route);
+      Container.AddRoute(Route);
     end;
 
     for I := 0 to SlotsToReset.Color.Count - 1 do
@@ -327,7 +327,7 @@ begin
         Route := TX3DRoute.Create;
         Route.SetSourceDirectly(Node.EventFraction_changed);
         Route.SetDestinationDirectly(SlotsToReset.Color[I].ResetColor1[J].EventSet_fraction);
-        Container.Routes.Add(Route);
+        Container.AddRoute(Route);
       end;
 
       for J := 0 to SlotsToReset.Color[I].ResetColor2.Count - 1 do
@@ -335,7 +335,7 @@ begin
         Route := TX3DRoute.Create;
         Route.SetSourceDirectly(Node.EventFraction_changed);
         Route.SetDestinationDirectly(SlotsToReset.Color[I].ResetColor2[J].EventSet_fraction);
-        Container.Routes.Add(Route);
+        Container.AddRoute(Route);
       end;
     end;
 
@@ -344,7 +344,7 @@ begin
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
       Route.SetDestinationDirectly(SlotsToReset.DrawOrder[I].ResetDrawOrder.EventSet_fraction);
-      Container.Routes.Add(Route);
+      Container.AddRoute(Route);
     end;
   finally FreeAndNil(SlotsToReset) end;
 end;

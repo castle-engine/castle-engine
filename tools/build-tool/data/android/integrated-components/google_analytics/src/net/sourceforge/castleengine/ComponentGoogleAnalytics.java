@@ -78,18 +78,21 @@ public class ComponentGoogleAnalytics extends ComponentAbstract
      * about the meaning of events and such.
      */
     private void sendEvent(String category, String action, String label,
-        long value)
+        long value, int dimensionIndex, String dimensionValue)
     {
         Tracker t = getAppTracker();
         if (t == null) {
             return;
         }
-        t.send(new HitBuilders.EventBuilder()
+        HitBuilders.EventBuilder e = new HitBuilders.EventBuilder()
             .setCategory(category)
             .setAction(action)
             .setLabel(label)
-            .setValue(value)
-            .build());
+            .setValue(value);
+        if (dimensionIndex > 0 && !dimensionValue.equals("")) {
+            e = e.setCustomDimension(dimensionIndex, dimensionValue);
+        }
+        t.send(e.build());
     }
 
 /*
@@ -145,8 +148,8 @@ public class ComponentGoogleAnalytics extends ComponentAbstract
             sendScreenView(parts[1]);
             return true;
         } else
-        if (parts.length == 5 && parts[0].equals("analytics-send-event")) {
-            sendEvent(parts[1], parts[2], parts[3], Long.parseLong(parts[4]));
+        if (parts.length == 7 && parts[0].equals("analytics-send-event")) {
+            sendEvent(parts[1], parts[2], parts[3], Long.parseLong(parts[4]), Integer.parseInt(parts[5]), parts[6]);
             return true;
         } else
         // if (parts.length == 6 && parts[0].equals("analytics-send-event-purchase")) {

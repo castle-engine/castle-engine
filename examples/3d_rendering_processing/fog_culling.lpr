@@ -117,8 +117,6 @@ begin
   SceneManager.MainScene := Scene;
   SceneManager.Items.Add(Scene);
 
-  Writeln(Scene.Info(true, true, false));
-
   { build octrees }
   Progress.UserInterface := ProgressConsoleInterface;
   Scene.TriangleOctreeProgressTitle := 'Building triangle octree';

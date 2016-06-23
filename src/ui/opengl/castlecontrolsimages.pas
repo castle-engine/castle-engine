@@ -7,8 +7,6 @@ unit CastleControlsImages;
 
 interface
 
-{$I castleconf.inc}
-
 uses CastleImages;
 
 var
@@ -27,10 +25,10 @@ var
   TooltipRounded: TRGBAlphaImage;
 
 var
-  ButtonDisabled: TRGBAlphaImage;
+  ButtonPressed: TRGBAlphaImage;
 
 var
-  ButtonPressed: TRGBAlphaImage;
+  ButtonDisabled: TRGBAlphaImage;
 
 var
   ButtonFocused: TRGBAlphaImage;
@@ -128,12 +126,12 @@ initialization
   TooltipRounded := TRGBAlphaImage.Create(TooltipRoundedWidth, TooltipRoundedHeight, TooltipRoundedDepth);
   Move(TooltipRoundedPixels, TooltipRounded.RawPixels^, SizeOf(TooltipRoundedPixels));
   TooltipRounded.URL := 'embedded-image:/TooltipRounded';
-  ButtonDisabled := TRGBAlphaImage.Create(ButtonDisabledWidth, ButtonDisabledHeight, ButtonDisabledDepth);
-  Move(ButtonDisabledPixels, ButtonDisabled.RawPixels^, SizeOf(ButtonDisabledPixels));
-  ButtonDisabled.URL := 'embedded-image:/ButtonDisabled';
   ButtonPressed := TRGBAlphaImage.Create(ButtonPressedWidth, ButtonPressedHeight, ButtonPressedDepth);
   Move(ButtonPressedPixels, ButtonPressed.RawPixels^, SizeOf(ButtonPressedPixels));
   ButtonPressed.URL := 'embedded-image:/ButtonPressed';
+  ButtonDisabled := TRGBAlphaImage.Create(ButtonDisabledWidth, ButtonDisabledHeight, ButtonDisabledDepth);
+  Move(ButtonDisabledPixels, ButtonDisabled.RawPixels^, SizeOf(ButtonDisabledPixels));
+  ButtonDisabled.URL := 'embedded-image:/ButtonDisabled';
   ButtonFocused := TRGBAlphaImage.Create(ButtonFocusedWidth, ButtonFocusedHeight, ButtonFocusedDepth);
   Move(ButtonFocusedPixels, ButtonFocused.RawPixels^, SizeOf(ButtonFocusedPixels));
   ButtonFocused.URL := 'embedded-image:/ButtonFocused';
@@ -209,8 +207,8 @@ finalization
   FreeAndNil(Slider);
   FreeAndNil(Tooltip);
   FreeAndNil(TooltipRounded);
-  FreeAndNil(ButtonDisabled);
   FreeAndNil(ButtonPressed);
+  FreeAndNil(ButtonDisabled);
   FreeAndNil(ButtonFocused);
   FreeAndNil(ButtonNormal);
   FreeAndNil(FrameWhite);

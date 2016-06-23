@@ -66,6 +66,20 @@ type
     { Send to analytics a general event. }
     procedure Event(const Category, Action, ALabel: string; const Value: Int64);
 
+    { Send to analytics a general event, along with a custom dimension.
+      DimensionIndex must be > 0.
+
+      See https://developers.google.com/analytics/devguides/collection/android/v4/customdimsmets#overview
+      about what is a custom dimension for Google Analytics (you need to create
+      the dimension index first in Google Analytics console).
+
+      For Game Analytics, this is just used as an extra subcategory.
+      Do not create too many different DimensionIndex + DimensionValue combinations,
+      as each combination creates a new unique event id,
+      and these are limited, see http://www.gameanalytics.com/docs/custom-events . }
+    procedure Event(const Category, Action, ALabel: string; const Value: Int64;
+      const DimensionIndex: Cardinal; const DimensionValue: string);
+
     { Send to analytics a timing event. }
     procedure Timing(const Category, AVariable, ALabel: string; const Time: TFloatTime);
   end;
@@ -118,7 +132,14 @@ end;
 
 procedure TAnalytics.Event(const Category, Action, ALabel: string; const Value: Int64);
 begin
-  Messaging.Send(['analytics-send-event', Category, Action, ALabel, IntToStr(Value)]);
+  Event(Category, Action, ALabel, Value, 0, '');
+end;
+
+procedure TAnalytics.Event(const Category, Action, ALabel: string; const Value: Int64;
+  const DimensionIndex: Cardinal; const DimensionValue: string);
+begin
+  Messaging.Send(['analytics-send-event', Category, Action, ALabel, IntToStr(Value),
+    IntToStr(DimensionIndex), DimensionValue]);
 end;
 
 procedure TAnalytics.Timing(const Category, AVariable, ALabel: string; const Time: TFloatTime);

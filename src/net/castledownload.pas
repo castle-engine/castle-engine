@@ -104,6 +104,12 @@ function Download(const URL: string; const Options: TStreamOptions;
   it has over manually creating TFileStream is that this accepts URLs. }
 function URLSaveStream(const URL: string; const Options: TStreamOptions = []): TStream;
 
+var
+  { Log (through CastleLog) all loading, that is: all calls to @link(Download).
+    This allows to easily check e.g. whether the engine is not loading something
+    during the game (which usually badly affects the performance). }
+  LogAllLoading: boolean = false;
+
 implementation
 
 uses URIParser, CastleURIUtils, CastleUtils, CastleLog, CastleZStream,
@@ -369,11 +375,14 @@ const
 begin
   P := URIProtocol(URL);
 
+  if LogAllLoading and Log then
+    WritelnLog('Loading', 'Loading "%s"', [URIDisplay(URL)]);
+
   {$ifdef HAS_FP_HTTP_CLIENT}
   { network protocols: get data into a new TMemoryStream using FpHttpClient }
   if EnableNetwork and (P = 'http') then
   begin
-    WritelnLog('Network', 'Downloading "%s"', [URL]);
+    WritelnLog('Network', 'Downloading "%s"', [URIDisplay(URL)]);
     NetworkResult := NetworkDownload(URL, MaxRedirects, MimeType);
     try
       if soGzip in Options then

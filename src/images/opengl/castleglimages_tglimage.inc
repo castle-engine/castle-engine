@@ -13,22 +13,34 @@
   ----------------------------------------------------------------------------
 }
 
-{ Part of CastleGLImages unit: drawing 2D images on screen (TGLImage class). }
+{ Part of CastleGLImages unit: drawing 2D images on screen (TGLImageCore, TGLImage class). }
 
 {$ifdef read_interface}
 
 type
   { Image ready to be drawn on 2D screen.
+    This image can be drawn in various rendering methods and events,
+    e.g. inside overridden @link(TUIControl.Render) or from events
+    @link(TCastleWindowCustom.OnRender) or
+    @link(TCastleControlCustom.OnRender).
+
+    An alternative way to show a 2D image is to use the full-featured
+    2D control @link(TCastleImageControl). This will perform the drawing
+    by itself, you only add it to
+    @link(TCastleWindowCustom.Controls) or
+    @link(TCastleControlCustom.Controls).
 
     @bold(An instance of this class can only exist when the OpenGL context is open.)
-    So usually you want to create it in @link(TUIControl.GLContextOpen)
+    So usually you create this in @link(TUIControl.GLContextOpen)
     and destroy in @link(TUIControl.GLContextClose).
     Or create in @link(TCastleWindowCustom.OnOpen) and destroy
     in @link(TCastleWindowCustom.OnClose).
-
-    If you want more comfort, use @link(TGLImageManaged) or even a full-featured
-    2D control @link(TCastleImageControl). }
-  TGLImage = class
+    @bold(Use the descendant class @link(TGLImage) for more comfort.
+    The @link(TGLImage) instance can be created / destroyed at any moment,
+    regardless of the OpenGL context. This is especially important
+    on platforms when the OpenGL context may get lost at any moment,
+    like on Android.) }
+  TGLImageCore = class
   strict private
     const
       PointCount = 4;
@@ -49,18 +61,18 @@ type
         ctColorMultipliesTextureAlpha);
       {$endif}
     var
-    { Static OpenGL resources, used by all TGLImage instances. }
+    { Static OpenGL resources, used by all TGLImageCore instances. }
     PointVbo: TGLuint; static;
     { Point VBO contents, reused in every Draw. }
     Point: array [0..PointCount - 1] of TPoint; static;
     {$ifdef GLImageUseShaders}
     TextureHasOnlyAlpha: boolean;
-    GLSLProgram: array [boolean { alpha test? }, TColorTreatment] of TGLSLProgram; static;
+    GLSLProgram: array [boolean { alpha test? }, boolean { clip? }, TColorTreatment] of TGLSLProgram; static;
     {$endif}
 
     FWidth: Cardinal;
     FHeight: Cardinal;
-    FAlpha: TAlphaChannel;
+    FAlpha: TAutoAlphaChannel;
     FIgnoreTooLargeCorners: boolean;
     FColor: TCastleColor;
     FSmoothScaling: boolean;
@@ -68,6 +80,16 @@ type
     FCenterX, FCenterY, FRotation: Single;
     ScreenCenterX, ScreenCenterY: Single;
     UseScreenCenter: boolean;
+    FClip: boolean;
+    FClipLine: TVector3Single;
+    { The detected alpha channel of the loaded image.
+      It influences the drawing mode, if @link(Alpha) is acAuto.
+
+      This property is always acNone before the image is loaded.
+      You cannot change it, you can only change the @link(Alpha) property
+      that actually dictates the alpha drawing mode. }
+    FImageAlpha: TAlphaChannel;
+    function FinalAlpha: TAlphaChannel;
     procedure AlphaBegin;
     procedure AlphaEnd;
     procedure SetSmoothScaling(const Value: boolean);
@@ -139,9 +161,15 @@ type
       sizes. }
     function Rect: TRectangle;
 
-    { How to treat alpha channel of the texture.
+    { How to render the alpha channel of the texture.
 
       @unorderedList(
+        @item(acAuto means to guess correct alpha channel from the loaded image
+          contents, and the current @link(Color). We use @italic(alpha blending)
+          if the loaded image alpha indicates so, or @code(Color[3] < 1).
+          Otherwise we use @italic(alpha testing) if the loaded image
+          alpha indicates so. Otherwise we don't use any alpha,
+          we render image opaque.)
         @item acNone means to ignore it.
         @item acSimpleYesNo means to render with alpha-test.
         @item acFullRange means to render with blending.
@@ -158,11 +186,12 @@ type
 
       Remember that you can also change the alpha channel existence
       at loading: use LoadAsClass parameters of LoadImage
-      or TGLImage.Create to force your image to have/don't have
+      or TGLImageCore.Create to force your image to have/don't have
       an alpha channel (e.g. use LoadAsClass=[TRGBImage]
       to force RGB image without alpha, use LoadAsClass=[TRGBAlphaImage]
       to force alpha channel). }
-    property Alpha: TAlphaChannel read FAlpha write FAlpha;
+    property Alpha: TAutoAlphaChannel read FAlpha write FAlpha
+      default acAuto;
 
     { Draw the image as 2D on screen.
 
@@ -200,9 +229,10 @@ type
     procedure Draw(const X, Y: Single); overload;
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Single); overload;
     procedure Draw(const Pos: TVector2Integer); overload;
-    procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+    procedure Draw(const X, Y, DrawWidth, DrawHeight: Single;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single); overload; virtual;
     procedure Draw(const ScreenRectangle: TRectangle); overload;
+    procedure Draw(const ScreenRectangle: TFloatRectangle); overload;
     procedure Draw(const ScreenRectangle: TRectangle;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single); overload;
     procedure Draw(const ScreenRectangle: TRectangle;
@@ -212,7 +242,7 @@ type
     procedure DrawFlipped(const ScreenRectangle: TRectangle;
       const FlipHorizontal, FlipVertical: boolean);
 
-    { In case of @link(Draw3x3) or @link(Draw3x1), the corners
+    { In case of @link(Draw3x3) the corners
       on screen are scaled by this amount. This is especially useful
       for UI scaling, see @link(TUIContainer.UIScaling)
       and @link(TUIControl.UIScale). }
@@ -236,29 +266,33 @@ type
           Scaled in both dimensions as necessary.)
       )
     }
-    procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
+    procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
       const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer);
-    procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
+    procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
       const Corner: TVector4Integer);
     procedure Draw3x3(const ScreenRectangle: TRectangle;
       const Corner: TVector4Integer);
+
+    (* Commented out for now: using Draw3x3 with
+       CornerTop = CornerBottom = 0 should have the same effect?
 
     { Draw the image on the screen, divided into 3x1 parts:
       unscaled left and right sides, and scaled inside.
 
       Similar to @link(Draw3x3), but image is divided into 3 parts, not 9. }
-    procedure Draw3x1(const X, Y, DrawWidth, DrawHeight: Integer;
+    procedure Draw3x1(const X, Y, DrawWidth, DrawHeight: Single;
       const SideRight, SideLeft: Integer);
-    procedure Draw3x1(const X, Y, DrawWidth, DrawHeight: Integer;
+    procedure Draw3x1(const X, Y, DrawWidth, DrawHeight: Single;
       const Side: TVector2Integer);
     procedure Draw3x1(const ScreenRectangle: TRectangle;
       const Side: TVector2Integer);
+    *)
 
-    { Ignore (do not log to CastleLog) situations when Draw3x3 or Draw3x1
+    { Ignore (do not log to CastleLog) situations when Draw3x3
       cannot work
       because corners are larger than draw area size.
       Set this to @true when it's perfectly possible (you do not want to even
-      see it in log) for Draw3x3 and Draw3x1 calls to fail because corners
+      see it in log) for Draw3x3 calls to fail because corners
       are larger than draw area size. }
     property IgnoreTooLargeCorners: boolean
       read FIgnoreTooLargeCorners write FIgnoreTooLargeCorners default false;
@@ -281,14 +315,14 @@ type
     property Color: TCastleColor read FColor write FColor;
 
     { Load the given image contents.
-      Use this to efficiently replace the TGLImage contents on GPU.
+      Use this to efficiently replace the image contents on GPU.
       Updates the @link(Width), @link(Height), @link(Alpha) to correspond
       to new image. }
     procedure Load(const AImage: TEncodedImage); virtual;
 
     { Prepare all the possible resources.
       For descendants that load some stuf on demand
-      (@link(TGLImageOnDemand) and @link(TGLImageManaged))
+      (@link(TGLImageOnDemand) and @link(TGLImage))
       this method can be used to force loading it now (if possible).
       This is only useful if you want to avoid slowdown when loading it later,
       and prefer to do the loading now. }
@@ -324,18 +358,29 @@ type
       into a rotation angle. }
     property Rotation: Single
       read FRotation write FRotation default 0;
+
+    { Clip the image by an arbitrary 2D line defined in @link(ClipLine). }
+    property Clip: boolean read FClip write FClip;
+
+    { If @link(Clip), this is the line equation used to determine whether
+      we clip the given pixel. Given a line (A, B, C) and pixel (x, y),
+      the pixel is clipped (rejected) if @code(A * x + B * y + C < 0).
+      This provides a functionality similar to desktop OpenGL glClipPlane
+      (working on all platforms -- desktop, mobile). }
+    property ClipLine: TVector3Single read FClipLine write FClipLine;
   end;
 
   { Image ready to be drawn on 2D screen, with automatically
     managed OpenGL resources.
 
-    This is a descendant of TGLImage that is easier to use:
+    This is a descendant of TGLImageCore that is easier to use:
     it can be created and destroyed at any moment (no need to worry about
     whether OpenGL context is created), and an instance can survive
     OpenGL context close + open.
 
-    The catch is that this keeps the image pixels in normal memory all the time. }
-  TGLImageManaged = class(TGLImage)
+    The catch is that this keeps the image pixels in normal memory all the time.
+    So it uses a little more memory than TGLImageCore. }
+  TGLImage = class(TGLImageCore)
   strict private
     FImage: TEncodedImage;
     FOwnsImage: boolean;
@@ -350,6 +395,24 @@ type
         by OpenGL.) }
     constructor Create(const AImage: TEncodedImage; const ASmoothScaling: boolean;
       const AOwnsImage: boolean);
+
+    { Prepare image for drawing.
+
+      This constructor is provided only for
+      compatibility with previous TGLImage in CGE <= 5.2.0.
+      It assumes that AImage instance passed here is owned by the caller
+      (we cannot free it), and moreover it may become freed at any point
+      (so we actually have to make a copy of it to be safe).
+
+      It is advised to use one of the other constructors, for example use
+      the constructor with additional parameter "AOwnsImage". The @code(Image) instance
+      passed there must exist throughout the lifetime of this instance, regardless
+      of "AOwnsImage".
+
+      Or use TGLImageCore class. }
+    constructor Create(const AImage: TEncodedImage;
+      const ASmoothScaling: boolean);
+      deprecated 'this constructor overload is provided only for compatibility';
 
     { Load image from disk, and prepare for drawing.
 
@@ -395,9 +458,11 @@ type
 
     procedure Load(const AImage: TEncodedImage); override;
     procedure PrepareResources; override;
-    procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+    procedure Draw(const X, Y, DrawWidth, DrawHeight: Single;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single); override;
   end;
+
+  TGLImageManaged = TGLImage deprecated 'Use TGLImage name, it now equals the previous TGLImageManaged definition';
 
   { Image ready to be drawn on 2D screen, loaded on demand.
 
@@ -408,11 +473,11 @@ type
     will be loaded (which will happen at nearest draw, or when you
     explicitly call @link(PrepareResources)).
 
-    Like TGLImageManaged, this image instance
+    Like @link(TGLImage), this image instance
     can be created and destroyed at any moment (no need to worry about
     whether OpenGL context is created), and an instance can survive
     OpenGL context close + open. }
-  TGLImageOnDemand = class(TGLImage)
+  TGLImageOnDemand = class(TGLImageCore)
   strict private
     FURL: string;
     procedure GLContextCloseEvent(Sender: TObject);
@@ -424,7 +489,7 @@ type
       const ASmoothScaling: boolean = true);
     destructor Destroy; override;
     procedure PrepareResources; override;
-    procedure Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+    procedure Draw(const X, Y, DrawWidth, DrawHeight: Single;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single); override;
   end;
 
@@ -441,9 +506,9 @@ procedure ImageDraw(const Image: TCastleImage); deprecated;
 
 {$ifdef read_implementation}
 
-{ TGLImage ------------------------------------------------------------------- }
+{ TGLImageCore ------------------------------------------------------------------- }
 
-constructor TGLImage.Create(const Image: TEncodedImage;
+constructor TGLImageCore.Create(const Image: TEncodedImage;
   const ASmoothScaling: boolean);
 begin
   inherited Create;
@@ -458,22 +523,24 @@ begin
   FRotation := 0;
   { this sets CurrentFilter, that will be immediately used by Load }
   FSmoothScaling := ASmoothScaling;
+  FImageAlpha := acNone;
+  FAlpha := acAuto;
 
   Load(Image);
 end;
 
-constructor TGLImage.Create(const Image: TEncodedImage);
+constructor TGLImageCore.Create(const Image: TEncodedImage);
 begin
   Create(Image, false);
 end;
 
-constructor TGLImage.Create(const URL: string;
+constructor TGLImageCore.Create(const URL: string;
   const ASmoothScaling: boolean);
 begin
   Create(URL, [], ASmoothScaling);
 end;
 
-constructor TGLImage.Create(const URL: string;
+constructor TGLImageCore.Create(const URL: string;
   const LoadAsClass: array of TEncodedImageClass;
   const ResizeToX, ResizeToY: Cardinal;
   const Interpolation: TResizeInterpolation);
@@ -488,7 +555,7 @@ begin
   finally FreeAndNil(Image) end;
 end;
 
-constructor TGLImage.Create(const URL: string;
+constructor TGLImageCore.Create(const URL: string;
   const LoadAsClass: array of TEncodedImageClass;
   const ASmoothScaling: boolean);
 var
@@ -502,13 +569,13 @@ begin
   finally FreeAndNil(Image) end;
 end;
 
-destructor TGLImage.Destroy;
+destructor TGLImageCore.Destroy;
 begin
   GLContextClose;
   inherited;
 end;
 
-procedure TGLImage.GLContextOpen(const AImage: TEncodedImage);
+procedure TGLImageCore.GLContextOpen(const AImage: TEncodedImage);
 begin
   if AImage <> nil then
   begin
@@ -519,23 +586,23 @@ begin
   end;
 end;
 
-procedure TGLImage.GLContextClose;
+procedure TGLImageCore.GLContextClose;
 begin
   glFreeTexture(Texture);
 end;
 
-procedure TGLImage.Load(const AImage: TEncodedImage);
+procedure TGLImageCore.Load(const AImage: TEncodedImage);
 begin
   if AImage <> nil then
   begin
     FWidth := AImage.Width;
     FHeight := AImage.Height;
-    FAlpha := AImage.AlphaChannel;
+    FImageAlpha := AImage.AlphaChannel;
   end else
   begin
     FWidth := 0;
     FHeight := 0;
-    FAlpha := acNone;
+    FImageAlpha := acNone;
   end;
 
   {$ifdef GLImageUseShaders}
@@ -546,8 +613,8 @@ begin
     (TGrayscaleImage(AImage).TreatAsAlpha);
   {$endif}
 
-  { in case of TGLImage, this is the only way to call GLContextOpen.
-    But in case of TGLImageManaged, GLContextOpen can be called
+  { in case of TGLImageCore, this is the only way to call GLContextOpen.
+    But in case of TGLImage, GLContextOpen can be called
     from other moments too. }
   if ApplicationProperties.IsGLContextOpen then
   begin
@@ -556,10 +623,10 @@ begin
   end;
 end;
 
-class procedure TGLImage.StaticGLContextOpen;
+class procedure TGLImageCore.StaticGLContextOpen;
 {$ifdef GLImageUseShaders}
 var
-  AlphaTestShader: boolean;
+  AlphaTestShader, ClipLineShader: boolean;
   ColorTreatment: TColorTreatment;
   NewProgram: TGLSLProgram;
   VS, FS: string;
@@ -572,51 +639,66 @@ begin
   {$ifdef GLImageUseShaders}
   { create GLSLProgram programs }
   for AlphaTestShader in boolean do
-    for ColorTreatment in TColorTreatment do
-      if GLSLProgram[AlphaTestShader, ColorTreatment] = nil then
-      begin
-        VS := {$I image.vs.inc};
-        FS := Iff(AlphaTestShader, '#define ALPHA_TEST' + NL, '') +
-              Iff(ColorTreatment in [ctColorMultipliesTexture, ctColorMultipliesTextureAlpha], '#define COLOR_UNIFORM' + NL, '') +
-              Iff(ColorTreatment = ctColorMultipliesTextureAlpha, '#define TEXTURE_HAS_ONLY_ALPHA' + NL, '') +
-              {$I image.fs.inc};
-        if Log and LogShaders then
+    for ClipLineShader in boolean do
+      for ColorTreatment in TColorTreatment do
+        if GLSLProgram[AlphaTestShader, ClipLineShader, ColorTreatment] = nil then
         begin
-          WritelnLogMultiline('TGLImage GLSL vertex shader', VS);
-          WritelnLogMultiline('TGLImage GLSL fragment shader', FS);
-        end;
+          VS := Iff(ClipLineShader, '#define CLIP_LINE' + NL, '') +
+                {$I image.vs.inc};
+          FS := Iff(AlphaTestShader, '#define ALPHA_TEST' + NL, '') +
+                Iff(ClipLineShader, '#define CLIP_LINE' + NL, '') +
+                Iff(ColorTreatment in [ctColorMultipliesTexture, ctColorMultipliesTextureAlpha], '#define COLOR_UNIFORM' + NL, '') +
+                Iff(ColorTreatment = ctColorMultipliesTextureAlpha, '#define TEXTURE_HAS_ONLY_ALPHA' + NL, '') +
+                {$I image.fs.inc};
+          if Log and LogShaders then
+          begin
+            WritelnLogMultiline('TGLImageCore GLSL vertex shader', VS);
+            WritelnLogMultiline('TGLImageCore GLSL fragment shader', FS);
+          end;
 
-        NewProgram := TGLSLProgram.Create;
-        NewProgram.AttachVertexShader(VS);
-        NewProgram.AttachFragmentShader(FS);
-        NewProgram.Link(true);
-        GLSLProgram[AlphaTestShader, ColorTreatment] := NewProgram;
-      end;
+          NewProgram := TGLSLProgram.Create;
+          NewProgram.AttachVertexShader(VS);
+          NewProgram.AttachFragmentShader(FS);
+          NewProgram.Link(true);
+          GLSLProgram[AlphaTestShader, ClipLineShader, ColorTreatment] := NewProgram;
+        end;
   {$endif}
 
   StaticResourcesReady := true;
 end;
 
-class procedure TGLImage.StaticGLContextClose;
+class procedure TGLImageCore.StaticGLContextClose;
 {$ifdef GLImageUseShaders}
 var
-  AlphaTestShader: boolean;
-  ColorTreatment: TGLImage.TColorTreatment;
+  AlphaTestShader, ClipLineShader: boolean;
+  ColorTreatment: TGLImageCore.TColorTreatment;
 {$endif}
 begin
   glFreeBuffer(PointVbo);
   {$ifdef GLImageUseShaders}
   for AlphaTestShader in boolean do
-    for ColorTreatment in TColorTreatment do
-      FreeAndNil(GLSLProgram[AlphaTestShader, ColorTreatment]);
+    for ClipLineShader in boolean do
+      for ColorTreatment in TColorTreatment do
+        FreeAndNil(GLSLProgram[AlphaTestShader, ClipLineShader, ColorTreatment]);
   {$endif}
 
   StaticResourcesReady := false;
 end;
 
-procedure TGLImage.AlphaBegin;
+function TGLImageCore.FinalAlpha: TAlphaChannel;
 begin
-  case Alpha of
+  if FAlpha = acAuto then
+  begin
+    Result := FImageAlpha;
+    if FColor[3] < 1 then
+      Result := acFullRange;
+  end else
+    Result := FAlpha;
+end;
+
+procedure TGLImageCore.AlphaBegin;
+begin
+  case FinalAlpha of
     {$ifndef GLImageUseShaders}
     acSimpleYesNo:
       begin
@@ -632,9 +714,9 @@ begin
   end;
 end;
 
-procedure TGLImage.AlphaEnd;
+procedure TGLImageCore.AlphaEnd;
 begin
-  case Alpha of
+  case FinalAlpha of
     {$ifndef GLImageUseShaders}
     acSimpleYesNo: glDisable(GL_ALPHA_TEST);
     {$endif}
@@ -642,27 +724,27 @@ begin
   end;
 end;
 
-procedure TGLImage.Draw;
+procedure TGLImageCore.Draw;
 begin
   Draw(WindowPos[0], WindowPos[1]);
 end;
 
-procedure TGLImage.Draw(const X, Y: Single);
+procedure TGLImageCore.Draw(const X, Y: Single);
 begin
-  Draw(Round(X), Round(Y), Width, Height, 0, 0, Width, Height);
+  Draw(X, Y, Width, Height, 0, 0, Width, Height);
 end;
 
-procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Single);
+procedure TGLImageCore.Draw(const X, Y, DrawWidth, DrawHeight: Single);
 begin
-  Draw(Round(X), Round(Y), Round(DrawWidth), Round(DrawHeight), 0, 0, Width, Height);
+  Draw(X, Y, DrawWidth, DrawHeight, 0, 0, Width, Height);
 end;
 
-procedure TGLImage.Draw(const Pos: TVector2Integer);
+procedure TGLImageCore.Draw(const Pos: TVector2Integer);
 begin
   Draw(Pos[0], Pos[1], Width, Height, 0, 0, Width, Height);
 end;
 
-procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+procedure TGLImageCore.Draw(const X, Y, DrawWidth, DrawHeight: Single;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
 var
   ShiftX, ShiftY: Single;
@@ -685,13 +767,14 @@ var
   AttribLocation: TGLuint;
   Prog: TGLSLProgram;
   {$endif}
+  X0, Y0, X1, Y1: Int64;
 begin
   if (DrawWidth = 0) or (DrawHeight = 0) then Exit;
 
   if Texture = 0 then
-    raise Exception.Create('TGLImage resources are not ready when trying to render. This probably means that you created TGLImage when OpenGL context was not created yet. The simplest solution is to use TGLImageManaged instead');
+    raise Exception.Create('TGLImageCore resources are not ready when trying to render. This probably means that you created TGLImageCore when OpenGL context was not created yet. The simplest solution is to use TGLImage instead');
   if not StaticResourcesReady then
-    raise Exception.Create('TGLImage static resources are not ready when trying to render. This probably means that OpenGL context was freed, but TGLImage was not recreated');
+    raise Exception.Create('TGLImageCore static resources are not ready when trying to render. This probably means that OpenGL context was freed, but TGLImageCore was not recreated');
 
   if GLFeatures.UseMultiTexturing then glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, Texture);
@@ -702,24 +785,33 @@ begin
   TexX1 := (ImageX + ImageWidth ) / Width;
   TexY1 := (ImageY + ImageHeight) / Height;
 
+  { We could just pass float values, unrounded, to OpenGL.
+    But this lowers quality (at least without full-screen anti-aliasing),
+    e.g. in case of fonts, since OpenGL can fill only entire pixels anyway,
+    and pixels on the borders would get a little trimmed. }
+  X0 := Round(X);
+  Y0 := Round(Y);
+  X1 := Round(X + DrawWidth);
+  Y1 := Round(Y + DrawHeight);
+
   { Protect from X, Y and sizes going outside of the SmallInt range.
     We want to squeeze X, Y into SmallInt to make it a little more efficient
     to render, and there are no displays with resolution outside of SmallInt
     range anyway. }
-  if (X < Low(SmallInt)) or
-     (Y < Low(SmallInt)) or
-     (X + DrawWidth  > High(SmallInt)) or
-     (X + DrawHeight > High(SmallInt)) then
+  if (X0 < Low(SmallInt)) or
+     (Y0 < Low(SmallInt)) or
+     (X1 > High(SmallInt)) or
+     (Y1 > High(SmallInt)) then
     Exit;
 
   Point[0].TexCoord := Vector2Single(TexX0, TexY0);
-  Point[0].Position := Vector2SmallInt(X            , Y);
+  Point[0].Position := Vector2SmallInt( X0,    Y0);
   Point[1].TexCoord := Vector2Single(TexX1, TexY0);
-  Point[1].Position := Vector2SmallInt(X + DrawWidth, Y);
+  Point[1].Position := Vector2SmallInt( X1,    Y0);
   Point[2].TexCoord := Vector2Single(TexX1, TexY1);
-  Point[2].Position := Vector2SmallInt(X + DrawWidth, Y + DrawHeight);
+  Point[2].Position := Vector2SmallInt( X1,    Y1);
   Point[3].TexCoord := Vector2Single(TexX0, TexY1);
-  Point[3].Position := Vector2SmallInt(X            , Y + DrawHeight);
+  Point[3].Position := Vector2SmallInt( X0,    Y1);
 
   if FRotation <> 0 then
   begin
@@ -754,7 +846,7 @@ begin
     ColorTreatment := ctColorMultipliesTexture else
     ColorTreatment := ctPureTexture;
 
-  Prog := GLSLProgram[Alpha = acSimpleYesNo, ColorTreatment];
+  Prog := GLSLProgram[FinalAlpha = acSimpleYesNo, Clip, ColorTreatment];
   Prog.Enable;
   AttribEnabled[0] := Prog.VertexAttribPointer('vertex', 0, 2, GL_SHORT, GL_FALSE,
     SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
@@ -763,7 +855,8 @@ begin
   Prog.SetUniform('viewport_size', Viewport2DSize);
   if ColorTreatment <> ctPureTexture then
     Prog.SetUniform('color', Color);
-
+  if Clip then
+    Prog.SetUniform('clip_line', ClipLine);
   {$else}
   glLoadIdentity();
   glColorv(Color);
@@ -781,6 +874,12 @@ begin
     glVertexPointer  (2, GL_SHORT, SizeOf(TPoint), @(Point[0].Position));
     glTexCoordPointer(2, GL_FLOAT, SizeOf(TPoint), @(Point[0].TexCoord));
   end;
+  if Clip then
+  begin
+    glEnable(GL_CLIP_PLANE0);
+    glClipPlane(GL_CLIP_PLANE0, Vector4Double(
+      FClipLine[0], FClipLine[1], 0, FClipLine[2]));
+  end;
   {$endif}
 
   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -792,6 +891,8 @@ begin
   for AttribLocation in AttribEnabled do
     TGLSLProgram.DisableVertexAttribArray(AttribLocation);
   {$else}
+  if Clip then
+    glDisable(GL_CLIP_PLANE0);
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   {$endif}
@@ -807,14 +908,22 @@ begin
   GLEnableTexture(etNone);
 end;
 
-procedure TGLImage.Draw(const ScreenRectangle: TRectangle);
+procedure TGLImageCore.Draw(const ScreenRectangle: TRectangle);
 begin
   Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
     ScreenRectangle.Width, ScreenRectangle.Height,
     0, 0, Width, Height);
 end;
 
-procedure TGLImage.Draw(const ScreenRectangle: TRectangle;
+procedure TGLImageCore.Draw(const ScreenRectangle: TFloatRectangle);
+begin
+  Draw(ScreenRectangle.Left,
+       ScreenRectangle.Bottom,
+       ScreenRectangle.Width,
+       ScreenRectangle.Height);
+end;
+
+procedure TGLImageCore.Draw(const ScreenRectangle: TRectangle;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
 begin
   Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
@@ -822,7 +931,7 @@ begin
     ImageX, ImageY, ImageWidth, ImageHeight);
 end;
 
-procedure TGLImage.DrawFlipped(const ScreenRectangle: TRectangle;
+procedure TGLImageCore.DrawFlipped(const ScreenRectangle: TRectangle;
   const FlipHorizontal, FlipVertical: boolean);
 var
   ImageX, ImageY, ImageWidth, ImageHeight: Single;
@@ -850,7 +959,7 @@ begin
   Draw(ScreenRectangle, ImageX, ImageY, ImageWidth, ImageHeight);
 end;
 
-procedure TGLImage.Draw(const ScreenRectangle: TRectangle;
+procedure TGLImageCore.Draw(const ScreenRectangle: TRectangle;
   const ImageRect: TRectangle);
 begin
   Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
@@ -859,29 +968,29 @@ begin
     ImageRect.Width, ImageRect.Height);
 end;
 
-procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
+procedure TGLImageCore.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
   const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer);
 var
   XScreenLeft, XScreenRight, YScreenBottom, YScreenTop,
-    HorizontalScreenSize, VerticalScreenSize: Integer;
+    HorizontalScreenSize, VerticalScreenSize: Single;
   XImageLeft, XImageRight, YImageBottom, YImageTop,
     HorizontalImageSize, VerticalImageSize: Single;
-  OldAlpha: TAlphaChannel;
+  OldAlpha: TAutoAlphaChannel;
   {$ifdef GLImageUseShaders}
   OptimizeAlpha: boolean;
   {$endif}
   EpsilonT, EpsilonR, EpsilonB, EpsilonL: Single;
-  DrawCornerTop, DrawCornerRight, DrawCornerBottom, DrawCornerLeft: Integer;
+  DrawCornerTop, DrawCornerRight, DrawCornerBottom, DrawCornerLeft: Single;
 const
   { We tweak texture coordinates a little, to avoid bilinear filtering
     that would cause border colors to "bleed" over the texture inside.
     Something minimally > 0.5 is necessary. }
   Epsilon = 0.51;
 begin
-  DrawCornerTop    := Round(CornerTop    * ScaleCorners);
-  DrawCornerRight  := Round(CornerRight  * ScaleCorners);
-  DrawCornerBottom := Round(CornerBottom * ScaleCorners);
-  DrawCornerLeft   := Round(CornerLeft   * ScaleCorners);
+  DrawCornerTop    := CornerTop    * ScaleCorners;
+  DrawCornerRight  := CornerRight  * ScaleCorners;
+  DrawCornerBottom := CornerBottom * ScaleCorners;
+  DrawCornerLeft   := CornerLeft   * ScaleCorners;
 
   if not ( (    CornerLeft +     CornerRight <     Width) and
            (DrawCornerLeft + DrawCornerRight < DrawWidth) and
@@ -889,7 +998,7 @@ begin
            (DrawCornerBottom + DrawCornerTop < DrawHeight)) then
   begin
     if Log and not IgnoreTooLargeCorners then
-      WritelnLog('Draw3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %d %d',
+      WritelnLog('Draw3x3', 'Image corners are too large to draw it: corners are %d %d %d %d, image size is %d %d, draw area size is %f %f',
         [CornerTop, CornerRight, CornerBottom, CornerLeft,
          Width, Height,
          DrawWidth, DrawHeight]);
@@ -910,7 +1019,7 @@ begin
     In case of GLImageUseShaders, this optimization is only useful
     for acFullRange, and it would actually break the acSimpleYesNo case. }
   {$ifdef GLImageUseShaders}
-  OptimizeAlpha := Alpha = acFullRange;
+  OptimizeAlpha := FinalAlpha = acFullRange;
   if OptimizeAlpha then
   {$endif}
   begin
@@ -972,14 +1081,14 @@ begin
   UseScreenCenter := false;
 end;
 
-procedure TGLImage.Draw3x3(const X, Y, DrawWidth, DrawHeight: Integer;
+procedure TGLImageCore.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
   const Corner: TVector4Integer);
 begin
   Draw3x3(X, Y, DrawWidth, DrawHeight,
     Corner[0], Corner[1], Corner[2], Corner[3]);
 end;
 
-procedure TGLImage.Draw3x3(const ScreenRectangle: TRectangle;
+procedure TGLImageCore.Draw3x3(const ScreenRectangle: TRectangle;
   const Corner: TVector4Integer);
 begin
   Draw3x3(ScreenRectangle.Left, ScreenRectangle.Bottom,
@@ -987,26 +1096,33 @@ begin
     Corner[0], Corner[1], Corner[2], Corner[3]);
 end;
 
-procedure TGLImage.Draw3x1(const X, Y, DrawWidth, DrawHeight: Integer;
+(* Commented out for now: using Draw3x3 with
+   CornerTop = CornerBottom = 0 should have the same effect?
+
+procedure TGLImageCore.Draw3x1(const X, Y, DrawWidth, DrawHeight: Single;
   const SideRight, SideLeft: Integer);
 var
   XScreenLeft, XScreenRight,
-    HorizontalScreenSize: Integer;
+    HorizontalScreenSize: Single;
   XImageLeft, XImageRight,
     HorizontalImageSize: Single;
-  OldAlpha: TAlphaChannel;
+  OldAlpha: TAutoAlphaChannel;
   {$ifdef GLImageUseShaders}
   OptimizeAlpha: boolean;
   {$endif}
   EpsilonR, EpsilonL: Single;
+  DrawSideLeft, DrawSideRight: Single;
 const
   { We tweak texture coordinates a little, to avoid bilinear filtering
     that would cause border colors to "bleed" over the texture inside.
     Something minimally > 0.5 is necessary. }
   Epsilon = 0.51;
 begin
-  if not ( (SideLeft + SideRight < Width) and
-           (SideLeft + SideRight < DrawWidth) ) then
+  DrawSideLeft   := SideLeft  * ScaleCorners;
+  DrawSideRight  := SideRight * ScaleCorners;
+
+  if not ( (    SideLeft +     SideRight <     Width) and
+           (DrawSideLeft + DrawSideRight < DrawWidth) ) then
   begin
     if Log and not IgnoreTooLargeCorners then
       WritelnLog('Draw3x1', 'Image sides are too large to draw it: sides are %d %d, image width is %d, draw area width is %d',
@@ -1017,15 +1133,15 @@ begin
   end;
 
   XScreenLeft := X;
-  XImageLeft := 0;
-  XScreenRight := X + DrawWidth - SideRight;
-  XImageRight := Width - SideRight;
+  XImageLeft  := 0;
+  XScreenRight := X + DrawWidth - DrawSideRight;
+  XImageRight  :=         Width -     SideRight;
 
   { For speed, we only apply AlphaBegin/End once.
     In case of GLImageUseShaders, this optimization is only useful
     for acFullRange, and it would actually break the acSimpleYesNo case. }
   {$ifdef GLImageUseShaders}
-  OptimizeAlpha := Alpha = acFullRange;
+  OptimizeAlpha := FinalAlpha = acFullRange;
   if OptimizeAlpha then
   {$endif}
   begin
@@ -1043,13 +1159,13 @@ begin
   end;
 
   { 2 sides }
-  HorizontalScreenSize := DrawWidth - SideLeft - SideRight;
-  HorizontalImageSize  :=     Width - SideLeft - SideRight;
+  HorizontalScreenSize := DrawWidth - DrawSideLeft - DrawSideRight;
+  HorizontalImageSize  :=     Width -     SideLeft -     SideRight;
 
-  Draw(XScreenLeft, Y, SideLeft, DrawHeight,
-        XImageLeft, 0, SideLeft, Height);
-  Draw(XScreenRight, Y, SideRight, DrawHeight,
-        XImageRight, 0, SideRight, Height);
+  Draw(XScreenLeft, Y, DrawSideLeft, DrawHeight,
+        XImageLeft, 0,     SideLeft,     Height);
+  Draw(XScreenRight, Y, DrawSideRight, DrawHeight,
+        XImageRight, 0,     SideRight,     Height);
 
   { inside }
   if SideLeft > 0   then EpsilonL := Epsilon else EpsilonL := 0;
@@ -1068,14 +1184,13 @@ begin
   UseScreenCenter := false;
 end;
 
-procedure TGLImage.Draw3x1(const X, Y, DrawWidth, DrawHeight: Integer;
+procedure TGLImageCore.Draw3x1(const X, Y, DrawWidth, DrawHeight: Single;
   const Side: TVector2Integer);
 begin
-  Draw3x1(X, Y, DrawWidth, DrawHeight,
-    Side[0], Side[1]);
+  Draw3x1(X, Y, DrawWidth, DrawHeight, Side[0], Side[1]);
 end;
 
-procedure TGLImage.Draw3x1(const ScreenRectangle: TRectangle;
+procedure TGLImageCore.Draw3x1(const ScreenRectangle: TRectangle;
   const Side: TVector2Integer);
 begin
   Draw3x1(ScreenRectangle.Left, ScreenRectangle.Bottom,
@@ -1083,7 +1198,9 @@ begin
     Side[0], Side[1]);
 end;
 
-function TGLImage.CurrentFilter: TTextureFilter;
+*)
+
+function TGLImageCore.CurrentFilter: TTextureFilter;
 begin
   if SmoothScaling then
   begin
@@ -1096,12 +1213,12 @@ begin
   end;
 end;
 
-procedure TGLImage.SetSmoothScaling(const Value: boolean);
+procedure TGLImageCore.SetSmoothScaling(const Value: boolean);
 begin
   if FSmoothScaling <> Value then
   begin
     FSmoothScaling := Value;
-    if Texture <> 0 then { if GL resources available now --- this is needed for TGLImageManaged }
+    if Texture <> 0 then { if GL resources available now --- this is needed for TGLImage }
     begin
       glBindTexture(GL_TEXTURE_2D, Texture);
       SetTextureFilter(GL_TEXTURE_2D, CurrentFilter);
@@ -1109,28 +1226,28 @@ begin
   end;
 end;
 
-function TGLImage.Rect: TRectangle;
+function TGLImageCore.Rect: TRectangle;
 begin
   Result := Rectangle(0, 0, Width, Height);
 end;
 
-procedure TGLImage.PrepareResources;
+procedure TGLImageCore.PrepareResources;
 begin
 end;
 
-function TGLImage.GetWidth: Cardinal;
+function TGLImageCore.GetWidth: Cardinal;
 begin
   Result := FWidth;
 end;
 
-function TGLImage.GetHeight: Cardinal;
+function TGLImageCore.GetHeight: Cardinal;
 begin
   Result := FHeight;
 end;
 
-{ TGLImageManaged ------------------------------------------------------------ }
+{ TGLImage ------------------------------------------------------------ }
 
-constructor TGLImageManaged.Create(const AImage: TEncodedImage;
+constructor TGLImage.Create(const AImage: TEncodedImage;
   const ASmoothScaling, AOwnsImage: boolean);
 begin
   inherited Create(AImage, ASmoothScaling);
@@ -1139,13 +1256,19 @@ begin
   ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
 end;
 
-constructor TGLImageManaged.Create(const URL: string;
+constructor TGLImage.Create(const AImage: TEncodedImage;
+  const ASmoothScaling: boolean);
+begin
+  Create(AImage.CreateCopy, ASmoothScaling, true);
+end;
+
+constructor TGLImage.Create(const URL: string;
   const ASmoothScaling: boolean);
 begin
   Create(URL, [], ASmoothScaling);
 end;
 
-constructor TGLImageManaged.Create(const URL: string;
+constructor TGLImage.Create(const URL: string;
   const LoadAsClass: array of TEncodedImageClass;
   const ResizeToX, ResizeToY: Cardinal;
   const Interpolation: TResizeInterpolation);
@@ -1158,7 +1281,7 @@ begin
   Create(NewImage, { ASmoothScaling } false, { AOwnsImage } true);
 end;
 
-constructor TGLImageManaged.Create(const URL: string;
+constructor TGLImage.Create(const URL: string;
   const LoadAsClass: array of TEncodedImageClass;
   const ASmoothScaling: boolean);
 var
@@ -1170,7 +1293,7 @@ begin
   Create(NewImage, ASmoothScaling, { AOwnsImage } true);
 end;
 
-destructor TGLImageManaged.Destroy;
+destructor TGLImage.Destroy;
 begin
   if FOwnsImage then
     FreeAndNil(FImage) else
@@ -1180,7 +1303,7 @@ begin
   inherited;
 end;
 
-procedure TGLImageManaged.Load(const AImage: TEncodedImage);
+procedure TGLImage.Load(const AImage: TEncodedImage);
 begin
   if FOwnsImage then
     FreeAndNil(FImage) else
@@ -1189,7 +1312,7 @@ begin
   FImage := AImage;
 end;
 
-procedure TGLImageManaged.SetImage(const AImage: TEncodedImage);
+procedure TGLImage.SetImage(const AImage: TEncodedImage);
 begin
   { exactly like Load(), but can ignore the call if AImage reference
     is already set.
@@ -1199,7 +1322,7 @@ begin
     Load(AImage);
 end;
 
-procedure TGLImageManaged.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Single;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
 begin
   // we load on demand, so do PrepareResources always
@@ -1209,7 +1332,7 @@ begin
   inherited;
 end;
 
-procedure TGLImageManaged.PrepareResources;
+procedure TGLImage.PrepareResources;
 begin
   inherited;
 
@@ -1223,7 +1346,7 @@ begin
   end;
 end;
 
-procedure TGLImageManaged.GLContextCloseEvent(Sender: TObject);
+procedure TGLImage.GLContextCloseEvent(Sender: TObject);
 begin
   GLContextClose;
 end;
@@ -1245,7 +1368,7 @@ begin
   inherited;
 end;
 
-procedure TGLImageOnDemand.Draw(const X, Y, DrawWidth, DrawHeight: Integer;
+procedure TGLImageOnDemand.Draw(const X, Y, DrawWidth, DrawHeight: Single;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
 begin
   // we load on demand, so do PrepareResources always
@@ -1300,9 +1423,9 @@ end;
 
 procedure ImageDraw(const Image: TCastleImage);
 var
-  GLImage: TGLImage;
+  GLImage: TGLImageCore;
 begin
-  GLImage := TGLImage.Create(Image, false);
+  GLImage := TGLImageCore.Create(Image, false);
   try
     GLImage.Draw(0, 0);
   finally FreeAndNil(GLImage) end;

@@ -143,13 +143,14 @@ procedure OSCheck(TrueValue: boolean; const Place: string); overload;
 
 constructor EInternalError.Create(const s: string);
 begin
-  inherited Create('Internal error: something that should not ever happen... happened. ' +
-    'This indicates a bug in the program''s code (or something related, ' +
-    'like a shared library, that should be workarounded from the program then). ' +
-{   'Don''t panic - if you see this note then at least my code noticed the '+
-    'bug in some way, so it may be something simple and I can probably fix it '+
-    '(or it''s external bug and I am not responsible for this...). '+}
-    'We definitely want you to report this as a bug! Please send this error-specific info: ' + S);
+  inherited Create('Internal error (submit a bugreport!): ' + S);
+//   inherited Create('Internal error: something that should not ever happen... happened. ' +
+//     'This indicates a bug in the program''s code (or something related, ' +
+//     'like a shared library, that should be workarounded from the program then). ' +
+// {   'Don''t panic - if you see this note then at least my code noticed the '+
+//     'bug in some way, so it may be something simple and I can probably fix it '+
+//     '(or it''s external bug and I am not responsible for this...). '+}
+//     'We definitely want you to report this as a bug! Please send this error-specific info: ' + S);
 end;
 
 constructor EInternalError.CreateFmt(const s: string; const Args: array of const);

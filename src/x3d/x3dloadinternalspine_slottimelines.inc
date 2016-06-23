@@ -174,7 +174,7 @@ begin
   Route := TX3DRoute.Create;
   Route.SetSourceDirectly(EventValueChanged);
   Route.SetDestinationDirectly(Slot.SwitchNode.FdWhichChoice.EventIn);
-  Container.Routes.Add(Route);
+  Container.AddRoute(Route);
 
   if SlotsToReset.Attachment.Remove(Slot) = -1 then
     OnWarning(wtMajor, 'Spine', Format(SSpineMultipleTimelinesWarning, ['slot', Slot.Name, 'attachment']));
@@ -289,12 +289,12 @@ begin
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(EventValueChanged1);
     Route.SetDestinationDirectly(Slot.Materials[I].FdEmissiveColor);
-    Container.Routes.Add(Route);
+    Container.AddRoute(Route);
 
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(EventValueChanged2);
     Route.SetDestinationDirectly(Slot.Materials[I].FdTransparency);
-    Container.Routes.Add(Route);
+    Container.AddRoute(Route);
   end;
 
   if SlotsToReset.Color.Remove(Slot) = -1 then

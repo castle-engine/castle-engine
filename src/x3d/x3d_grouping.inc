@@ -633,7 +633,7 @@ begin
 
     FileItems := TX3DFileItemList.Create(false);
     try
-      for I := 0 to Prototypes.Count - 1 do
+      for I := 0 to PrototypesCount - 1 do
         FileItems.Add(Prototypes[I]);
 
       Assert(VRML1ChildrenCount = 0);
@@ -641,13 +641,13 @@ begin
       for i := 0 to FdChildren.Count - 1 do
         FileItems.Add(FdChildren[I]);
 
-      for I := 0 to Routes.Count - 1 do
+      for I := 0 to RoutesCount - 1 do
         FileItems.Add(Routes[I]);
 
-      for I := 0 to ImportsList.Count - 1 do
+      for I := 0 to ImportsCount - 1 do
         FileItems.Add(ImportsList[I]);
 
-      for I := 0 to ExportsList.Count - 1 do
+      for I := 0 to ExportsCount - 1 do
         FileItems.Add(ExportsList[I]);
 
       FileItems.SaveToStream(Writer);
@@ -741,7 +741,7 @@ begin
     raise Exception.Create('You cannot export nodes with empty names');
 
   ExportItem := TX3DExport.Create;
-  ExportsList.Add(ExportItem);
+  AddExport(ExportItem);
   ExportItem.ExportedNodeName := Node.NodeName;
   ExportItem.ExportedNodeAlias := ExportedAlias;
 

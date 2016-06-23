@@ -111,6 +111,12 @@ WritelnLog('Textures', TextureMemoryProfiler.Summary);
 }
 function TextureMemoryProfiler: TTextureMemoryProfiler;
 
+var
+  { Log (through CastleLog) all texture and image loading to GPU.
+    If additionally @link(TextureMemoryProfiler) is enabled, then we will dump
+    texture memory usage. }
+  LogTextureLoading: boolean = false;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -153,6 +159,14 @@ begin
       AllocatedTextures[I] := AllocatedTex else
       AllocatedTextures.Add(AllocatedTex);
   end;
+
+  if LogTextureLoading and Log then
+  begin
+    WritelnLog('Texture Loading', 'Loaded to GPU texture "%s" size %d x %d',
+      [URIDisplay(URL), Width, Height]);
+    if FEnabled then
+      WritelnLogMultiline('Texture Loading', Summary);
+  end;
 end;
 
 procedure TTextureMemoryProfiler.Deallocate(const TextureId: TGLTextureId);
@@ -160,7 +174,7 @@ var
   I: Integer;
 begin
   if not ApplicationProperties.IsGLContextOpen then
-    OnWarning(wtMajor, 'Textures', Format('Releasing texture id %d after OpenGL context is closed. This means that you free some OpenGL resources (like TGLImage) too late, you should move their destruction to an event like TCastleWindow.OnClose or TCastleControl.OnGLContextClose.',
+    OnWarning(wtMajor, 'Textures', Format('Releasing texture id %d after OpenGL context is closed. This means that you free some OpenGL resources (like TGLImageCore) too late, you should move their destruction to an event like TCastleWindow.OnClose or TCastleControl.OnGLContextClose.',
       [TextureId]));
 
   if FEnabled then

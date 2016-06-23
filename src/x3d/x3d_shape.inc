@@ -67,6 +67,11 @@
     private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
+    { Whether to render this shape.
+      See http://castle-engine.sourceforge.net/x3d_implementation_shape_extensions.php }
+    private FFdRender: TSFBool;
+    public property FdRender: TSFBool read FFdRender;
+
     private FFdShading: TSFStringEnum;
     public property FdShading: TSFStringEnum read FFdShading;
     property Shading: TShading read GetShading write SetShading;
@@ -211,7 +216,18 @@
     public property FdHatchStyle: TSFInt32 read FFdHatchStyle;
   end;
 
+  { Supported line types (patterns), for @link(TLinePropertiesNode.LineType). }
+  TLineType = (
+    ltSolid,
+    ltDashed,
+    ltDotted,
+    ltDashedDotted,
+    ltDashDotDot);
+
   TLinePropertiesNode = class(TAbstractAppearanceChildNode)
+  strict private
+    function GetLineType: TLineType;
+    procedure SetLineType(const Value: TLineType);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -222,6 +238,9 @@
 
     private FFdLinetype: TSFInt32;
     public property FdLinetype: TSFInt32 read FFdLinetype;
+
+    { Line type (pattern). }
+    property LineType: TLineType read GetLineType write SetLineType default ltSolid;
 
     private FFdLinewidthScaleFactor: TSFFloat;
     public property FdLinewidthScaleFactor: TSFFloat read FFdLinewidthScaleFactor;
@@ -461,6 +480,9 @@ begin
    FdBboxSize.Exposed := false;
   Fields.Add(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
+
+  FFdRender := TSFBool.Create(Self, 'render', true);
+  Fields.Add(FFdRender);
 
   FFdShading := TSFStringEnum.Create(Self, 'shading', ShadingNames, Ord(shDefault));
    FdShading.ChangesAlways := [chVisibleNonGeometry];
@@ -887,6 +909,30 @@ class function TLinePropertiesNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassNodeTypeName);
+end;
+
+function TLinePropertiesNode.GetLineType: TLineType;
+begin
+  case FdLineType.Value of
+    1: Result := ltSolid;
+    2: Result := ltDashed;
+    3: Result := ltDotted;
+    4: Result := ltDashedDotted;
+    5: Result := ltDashDotDot;
+    else Result := ltSolid; // unsupported FdLineType.Value
+  end;
+end;
+
+procedure TLinePropertiesNode.SetLineType(const Value: TLineType);
+begin
+  case Value of
+    ltSolid       : FdLineType.Send(1);
+    ltDashed      : FdLineType.Send(2);
+    ltDotted      : FdLineType.Send(3);
+    ltDashedDotted: FdLineType.Send(4);
+    ltDashDotDot  : FdLineType.Send(5);
+    else raise EInternalError.Create('TLinePropertiesNode.SetLineType:this Value not implemented');
+  end;
 end;
 
 procedure TMaterialNode.CreateNode;

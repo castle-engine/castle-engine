@@ -33,14 +33,17 @@ type
       Get an optional attribute to a "var" parameter, returns if found. }
 
     { Read from Element attribute value and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value. Value is a "var", not "out" param,
       because in the latter case it's guaranteed that the old Value
-      will not be cleared. }
+      will not be cleared.
+
+      Note that the returned Value may be empty, even when this returns @true,
+      if the value is explicitly set to empty in XML (by @code(xxx="") in XML). }
     function AttributeString(const AttrName: string; var Value: string): boolean;
 
     { Read from Element attribute value as URL and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value.
 
       Returned URL is always absolute. The value in file may be a relative URL,
@@ -48,27 +51,38 @@ type
     function AttributeURL(const AttrName: string; const BaseUrl: string; var URL: string): boolean;
 
     { Read from Element attribute value as Cardinal and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value. }
     function AttributeCardinal(const AttrName: string; var Value: Cardinal): boolean;
 
     { Read from Element attribute value as Integer and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value. }
     function AttributeInteger(const AttrName: string; var Value: Integer): boolean;
 
+    { Read from Element attribute value as Int64 and returns @true,
+      or (if there is no such attribute) returns @false
+      and does not modify Value. }
+    function AttributeInt64(const AttrName: string; var Value: Int64): boolean;
+
     { Read from Element attribute value as Single and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value. }
     function AttributeSingle(const AttrName: string; var Value: Single): boolean;
 
     { Read from Element attribute value as Float and returns @true,
-      or (of there is no such attribute) returns @false
-      and does not modify Value. }
+      or (if there is no such attribute) returns @false
+      and does not modify Value.
+
+      Note: for powerful reading of float expressions,
+      consider using @code(AttributeFloatExpression) instead of @code(AttributeFloat).
+      It can read expressions like @code("3.0 * 2.0") or @code("sin(2.0)").
+      Use CastleScriptXML unit to introduce
+      necessary class helper for this, see @link(TDOMElementScriptHelper.AttributeFloatExpression). }
     function AttributeFloat(const AttrName: string; var Value: Float): boolean;
 
     { Read from Element attribute value as Boolean and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value.
 
       A boolean value is interpreted just like FPC's TXMLConfig
@@ -80,24 +94,24 @@ type
     function AttributeBoolean(const AttrName: string; var Value: boolean): boolean;
 
     { Read from Element attribute value as color and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value. }
     function AttributeColor(const AttrName: string; var Value: TCastleColor): boolean;
 
     { Read from Element attribute value as RGB color and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value. }
     function AttributeColorRGB(const AttrName: string; var Value: TCastleColorRGB): boolean;
 
     { Read from Element attribute as a 2D vector (2 floats), and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value.
 
       @raises EConvertError If the attribute exists in XML, but has invalid format. }
     function AttributeVector2(const AttrName: string; var Value: TVector2Single): boolean;
 
     { Read from Element attribute as a 3D vector (3 floats), and returns @true,
-      or (of there is no such attribute) returns @false
+      or (if there is no such attribute) returns @false
       and does not modify Value.
 
       @raises EConvertError If the attribute exists in XML, but has invalid format. }
@@ -108,6 +122,14 @@ type
 
     { Retrieves from Element given attribute as a string,
       raises EDOMAttributeMissing if missing.
+
+      Note that the attribute is required, but it's value may still be empty
+      if it's explicitly set to empty in XML (by @code(xxx="") in XML).
+      This is different than TCastleConfig.GetStringNonEmpty method,
+      that serves a similar purpose for TCastleConfig, but it requires
+      @italic(non-empty value) exists. Here, we only require that the value
+      exists, but it may still be empty.
+
       @raises EDOMAttributeMissing }
     function AttributeString(const AttrName: string): string;
 
@@ -128,6 +150,11 @@ type
       @raises EDOMAttributeMissing }
     function AttributeInteger(const AttrName: string): Integer;
 
+    { Retrieves from Element given attribute as an Int64,
+      raises EDOMAttributeMissing if missing.
+      @raises EDOMAttributeMissing }
+    function AttributeInt64(const AttrName: string): Int64;
+
     { Retrieves from Element given attribute as a Single,
       raises EDOMAttributeMissing if missing.
       @raises EDOMAttributeMissing }
@@ -135,6 +162,13 @@ type
 
     { Retrieves from Element given attribute as a Float,
       raises EDOMAttributeMissing if missing.
+
+      Note: for powerful reading of float expressions,
+      consider using @code(AttributeFloatExpression) instead of @code(AttributeFloat).
+      It can read expressions like @code("3.0 * 2.0") or @code("sin(2.0)").
+      Use CastleScriptXML unit to introduce
+      necessary class helper for this, see @link(TDOMElementScriptHelper.AttributeFloatExpression).
+
       @raises EDOMAttributeMissing }
     function AttributeFloat(const AttrName: string): Float;
 
@@ -174,7 +208,8 @@ type
     { ------------------------------------------------------------------------
       Get an optional attribute, returns attribute or a default value. }
 
-    { Retrieves from Element given attribute as a string, or a default value. }
+    { Retrieves from Element given attribute as a string, or a default value
+      if the attribute was not explicitly given. }
     function AttributeStringDef(const AttrName: string; const DefaultValue: string): string;
 
     { Retrieves from Element given attribute as a Cardinal, or a default value. }
@@ -183,10 +218,19 @@ type
     { Retrieves from Element given attribute as an Integer, or a default value. }
     function AttributeIntegerDef(const AttrName: string; const DefaultValue: Integer): Integer;
 
+    { Retrieves from Element given attribute as an Int64, or a default value. }
+    function AttributeInt64Def(const AttrName: string; const DefaultValue: Int64): Int64;
+
     { Retrieves from Element given attribute as a Single, or a default value. }
     function AttributeSingleDef(const AttrName: string; const DefaultValue: Single): Single;
 
-    { Retrieves from Element given attribute as a Float, or a default value. }
+    { Retrieves from Element given attribute as a Float, or a default value.
+
+      Note: for powerful reading of float expressions,
+      consider using @code(AttributeFloatExpressionDef) instead of @code(AttributeFloatDef).
+      It can read expressions like @code("3.0 * 2.0") or @code("sin(2.0)").
+      Use CastleScriptXML unit to introduce
+      necessary class helper for this, see @link(TDOMElementScriptHelper.AttributeFloatExpressionDef). }
     function AttributeFloatDef(const AttrName: string; const DefaultValue: Float): Float;
 
     { Retrieves from Element given attribute as a boolean,
@@ -206,6 +250,32 @@ type
     { Retrieves from Element given attribute as a 3D vector (3 floats), or a default value.
       @raises EConvertError If the value exists in XML, but has invalid format. }
     function AttributeVector3Def(const AttrName: string; const DefaultValue: TVector3Single): TVector3Single;
+
+    { Attribute setting ------------------------------------------------------ }
+
+    { Set the attribute as string. Equivalent to standard SetAttribute in DOM unit,
+      but provided here for consistency with other AttributeSet overloads. }
+    procedure AttributeSet(const AttrName: string; const Value: string);
+
+    { Set the attribute as boolean,
+      such that it's readable back by @link(AttributeBoolean) and @link(AttributeBooleanDef). }
+    procedure AttributeSet(const AttrName: string; const Value: boolean);
+
+    { Set the attribute as Integer,
+      such that it's readable back by @link(AttributeInteger) and @link(AttributeIntegerDef). }
+    procedure AttributeSet(const AttrName: string; const Value: Integer);
+
+    { Set the attribute as Int64,
+      such that it's readable back by @link(AttributeInt64) and @link(AttributeInt64Def). }
+    procedure AttributeSet(const AttrName: string; const Value: Int64);
+
+    { Set the attribute as Cardinal,
+      such that it's readable back by @link(AttributeCardinal) and @link(AttributeCardinalDef). }
+    procedure AttributeSet(const AttrName: string; const Value: Cardinal);
+
+    { Set the attribute as Int64,
+      such that it's readable back by @link(AttributeSingle) and @link(AttributeSingleDef). }
+    procedure AttributeSet(const AttrName: string; const Value: Single);
 
     { Other methods ---------------------------------------------------------- }
 
@@ -374,7 +444,7 @@ end;
   end;
 
 { Retrieves from Element attribute Value and returns @true,
-  or (of there is no such attribute) returns @false
+  or (if there is no such attribute) returns @false
   and does not modify Value. Value is a "var", not "out" param,
   because in the latter case it's guaranteed that the old Value
   will not be cleared.
@@ -530,6 +600,16 @@ begin
     Value := StrToInt(ValueStr);
 end;
 
+function TDOMElementHelper.AttributeInt64(
+  const AttrName: string; var Value: Int64): boolean;
+var
+  ValueStr: string;
+begin
+  Result := AttributeString(AttrName, ValueStr);
+  if Result then
+    Value := StrToInt(ValueStr);
+end;
+
 function TDOMElementHelper.AttributeSingle(
   const AttrName: string; var Value: Single): boolean;
 var
@@ -634,6 +714,12 @@ begin
     raise EDOMAttributeMissing.CreateFmt('Missing required (integer) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
+function TDOMElementHelper.AttributeInt64(const AttrName: string): Int64;
+begin
+  if not AttributeInt64(AttrName, Result) then
+    raise EDOMAttributeMissing.CreateFmt('Missing required (integer 64-bit) attribute "%s" on element "%s"', [AttrName, TagName]);
+end;
+
 function TDOMElementHelper.AttributeSingle(const AttrName: string): Single;
 begin
   if not AttributeSingle(AttrName, Result) then
@@ -692,6 +778,12 @@ begin
     Result := DefaultValue;
 end;
 
+function TDOMElementHelper.AttributeInt64Def(const AttrName: string; const DefaultValue: Int64): Int64;
+begin
+  if not AttributeInt64(AttrName, Result) then
+    Result := DefaultValue;
+end;
+
 function TDOMElementHelper.AttributeCardinalDef(const AttrName: string; const DefaultValue: Cardinal): Cardinal;
 begin
   if not AttributeCardinal(AttrName, Result) then
@@ -738,6 +830,38 @@ function TDOMElementHelper.AttributeVector3Def(const AttrName: string; const Def
 begin
   if not AttributeVector3(AttrName, Result) then
     Result := DefaultValue;
+end;
+
+{ TDOMElementHelper: Attribute setting ------------------------------------------------------ }
+
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: string);
+begin
+  SetAttribute(AttrName, Value);
+end;
+
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: boolean);
+begin
+  SetAttribute(AttrName, SysUtils.BoolToStr(Value, true));
+end;
+
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Integer);
+begin
+  SetAttribute(AttrName, IntToStr(Value));
+end;
+
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Int64);
+begin
+  SetAttribute(AttrName, IntToStr(Value));
+end;
+
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Cardinal);
+begin
+  SetAttribute(AttrName, IntToStr(Value));
+end;
+
+procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Single);
+begin
+  SetAttribute(AttrName, FloatToStr(Value));
 end;
 
 { ------------------------------------------------------------------------

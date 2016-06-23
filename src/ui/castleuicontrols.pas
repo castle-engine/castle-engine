@@ -339,6 +339,21 @@ type
     function Height: Integer; virtual; abstract;
     function Rect: TRectangle; virtual; abstract;
 
+    { Container width as seen by controls with UI scaling.
+      In other words, this is the real @link(Width) with UI scaling
+      reversed (divided). Suitable to adjust size of your UI controls
+      to container, when UI scaling is used.
+
+      This is equivalent to just @link(Width) when UIScaling is usNone
+      (default).
+
+      @seealso UnscaledHeight }
+    function UnscaledWidth: Cardinal;
+
+    { Container height as seen by controls with UI scaling.
+      @seealso UnscaledWidth }
+    function UnscaledHeight: Cardinal;
+
     property MousePosition: TVector2Single
       read GetMousePosition write SetMousePosition;
 
@@ -358,6 +373,21 @@ type
 
     property Touches[Index: Integer]: TTouch read GetTouches;
     function TouchesCount: Integer; virtual; abstract;
+
+    { Capture the current container (window) contents to an image
+      (or straight to an image file, like png).
+
+      Note that only capturing from the double-buffered OpenGL
+      windows (which the default for our TCastleWindow and TCastleControl)
+      is reliable. Internally, these methods may need to redraw the screen
+      to the back buffer, because that's the only guaranteed way to capture
+      OpenGL drawing (you have to capture the back buffer, before swap).
+
+      @groupBegin }
+    procedure SaveScreen(const URL: string);
+    function SaveScreen: TRGBImage;
+    function SaveScreen(const SaveRect: TRectangle): TRGBImage; virtual; abstract;
+    { @groupEnd }
 
     { Called by controls within this container when something could
       change the container focused control (in @link(TUIContainer.Focus))
@@ -444,10 +474,7 @@ type
       read FUIExplicitScale write SetUIExplicitScale default 1.0;
   end;
 
-  { Base class for things that listen to user input.
-
-    TODO: this is separate from TInputListener class only to avoid FPC 2.6.4
-    bug Internal error 200610054 when using the stabs debug info. }
+  { Base class for things that listen to user input. }
   TInputListener = class(TComponent)
   private
     FOnVisibleChange: TNotifyEvent;
@@ -610,8 +637,12 @@ end;
       changes. In the simplest case, this is used by the controls manager to
       know when we need to redraw the control.
 
-      In this class this simply calls OnVisibleChange (if assigned). }
-    procedure VisibleChange; virtual;
+      In this class this simply calls OnVisibleChange (if assigned).
+
+      @param(RectOrCursorChanged Set to @true if the final control size
+        or position on the screen, or cursor, changed. This simply causes a call
+        to @link(TUIContainer.UpdateFocusAndMouseCursor).) }
+    procedure VisibleChange(const RectOrCursorChanged: boolean = false);
 
     { Called always when some visible part of this control
       changes. In the simplest case, this is used by the controls manager to
@@ -1103,7 +1134,9 @@ end;
 
     { Rectangle filling the parent control (or coordinates), in local coordinates.
       Since this is in local coordinates, the returned rectangle Left and Bottom
-      are always zero. }
+      are always zero.
+      This is already scaled by UI scaling, since it's derived from @link(Rect)
+      size that should also be already scaled. }
     function ParentRect: TRectangle;
 
     { Quick way to enable horizontal anchor, to automatically keep this
@@ -1282,7 +1315,20 @@ end;
   strict private
     FWidth, FHeight: Cardinal;
     FFullSize: boolean;
+    procedure SetWidth(const Value: Cardinal);
+    procedure SetHeight(const Value: Cardinal);
+    procedure SetFullSize(const Value: boolean);
   public
+    constructor Create(AOwner: TComponent); override;
+
+    { Position and size of the control, assuming it exists.
+
+      Looks at @link(FullSize) value, and the parent size
+      (when @link(FullSize) is @true), or at the properties
+      @link(Left), @link(Bottom), @link(Width), @link(Height)
+      (when @link(FullSize) is @false). }
+    function Rect: TRectangle; override;
+  published
     { Control size.
 
       When FullSize is @true, the control always fills
@@ -1295,20 +1341,10 @@ end;
       @seealso TUIControl.Rect
 
       @groupBegin }
-    property FullSize: boolean read FFullSize write FFullSize default false;
-    property Width: Cardinal read FWidth write FWidth default 0;
-    property Height: Cardinal read FHeight write FHeight default 0;
+    property FullSize: boolean read FFullSize write SetFullSize default false;
+    property Width: Cardinal read FWidth write SetWidth default 0;
+    property Height: Cardinal read FHeight write SetHeight default 0;
     { @groupEnd }
-
-    constructor Create(AOwner: TComponent); override;
-
-    { Position and size of the control, assuming it exists.
-
-      Looks at @link(FullSize) value, and the parent size
-      (when @link(FullSize) is @true), or at the properties
-      @link(Left), @link(Bottom), @link(Width), @link(Height)
-      (when @link(FullSize) is @false). }
-    function Rect: TRectangle; override;
   end;
 
   { Simple list of TUIControl instances. }
@@ -2475,6 +2511,32 @@ begin
     RecursiveUIScaleChanged(Controls[I]);
 end;
 
+function TUIContainer.UnscaledWidth: Cardinal;
+begin
+  Result := Round(Width / FCalculatedUIScale);
+end;
+
+function TUIContainer.UnscaledHeight: Cardinal;
+begin
+  Result := Round(Height / FCalculatedUIScale);
+end;
+
+procedure TUIContainer.SaveScreen(const URL: string);
+var
+  Image: TRGBImage;
+begin
+  Image := SaveScreen;
+  try
+    WritelnLog('SaveScreen', 'Screen saved to ' + URL);
+    SaveImage(Image, URL);
+  finally FreeAndNil(Image) end;
+end;
+
+function TUIContainer.SaveScreen: TRGBImage;
+begin
+  Result := SaveScreen(Rect);
+end;
+
 { TInputListener ------------------------------------------------------------- }
 
 constructor TInputListener.Create(AOwner: TComponent);
@@ -2524,10 +2586,12 @@ procedure TInputListener.Update(const SecondsPassed: Single;
 begin
 end;
 
-procedure TInputListener.VisibleChange;
+procedure TInputListener.VisibleChange(const RectOrCursorChanged: boolean = false);
 begin
   if Assigned(OnVisibleChange) then
     OnVisibleChange(Self);
+  if RectOrCursorChanged and (Container <> nil) then
+    Container.UpdateFocusAndMouseCursor;
 end;
 
 function TInputListener.AllowSuspendForInput: boolean;
@@ -2809,8 +2873,7 @@ begin
   if FExists <> Value then
   begin
     FExists := Value;
-    VisibleChange;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+    VisibleChange(true);
   end;
 end;
 
@@ -2886,7 +2949,7 @@ begin
   if FLeft <> Value then
   begin
     FLeft := Value;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+    VisibleChange(true);
   end;
 end;
 
@@ -2895,7 +2958,7 @@ begin
   if FBottom <> Value then
   begin
     FBottom := Value;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
+    VisibleChange(true);
   end;
 end;
 
@@ -3166,6 +3229,33 @@ begin
     Result := Rectangle(Left, Bottom, Width, Height);
     // applying UIScale on this is easy...
     Result := Result.ScaleAround0(UIScale);
+  end;
+end;
+
+procedure TUIControlSizeable.SetWidth(const Value: Cardinal);
+begin
+  if FWidth <> Value then
+  begin
+    FWidth := Value;
+    VisibleChange(true);
+  end;
+end;
+
+procedure TUIControlSizeable.SetHeight(const Value: Cardinal);
+begin
+  if FHeight <> Value then
+  begin
+    FHeight := Value;
+    VisibleChange(true);
+  end;
+end;
+
+procedure TUIControlSizeable.SetFullSize(const Value: boolean);
+begin
+  if FFullSize <> Value then
+  begin
+    FFullSize := Value;
+    VisibleChange(true);
   end;
 end;
 

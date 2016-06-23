@@ -66,10 +66,10 @@ procedure SaveScreen_NoFlush(const Image: TCastleImage;
   const Left, Bottom: Integer; const ReadBuffer: TColorBuffer); overload;
 { @groupEnd }
 
-{ Captures current screen as a TGLImage instance, ready to be drawn on 2D screen. }
+{ Captures current screen as a TGLImageCore instance, ready to be drawn on 2D screen. }
 function SaveScreenToGL_NoFlush(const Rect: TRectangle;
   const ReadBuffer: TColorBuffer;
-  const SmoothScaling: boolean = false): TGLImage;
+  const SmoothScaling: boolean = false): TGLImageCore;
 
 {$endif read_interface}
 
@@ -128,6 +128,7 @@ function SaveScreen_NoFlush(const ImageClass: TCastleImageClass;
 begin
   Result := ImageClass.Create(Rect.Width, Rect.Height);
   try
+    Result.URL := 'save-screen';
     SaveScreen_NoFlush(Result, Rect.Left, Rect.Bottom, ReadBuffer);
   except Result.Free; raise end;
 end;
@@ -140,13 +141,13 @@ end;
 
 function SaveScreenToGL_NoFlush(const Rect: TRectangle;
   const ReadBuffer: TColorBuffer;
-  const SmoothScaling: boolean): TGLImage;
+  const SmoothScaling: boolean): TGLImageCore;
 var
   ScreenImage: TRGBImage;
 begin
   ScreenImage := SaveScreen_NoFlush(Rect, ReadBuffer);
   try
-    Result := TGLImage.Create(ScreenImage, SmoothScaling);
+    Result := TGLImageCore.Create(ScreenImage, SmoothScaling);
   finally FreeAndNil(ScreenImage) end;
 end;
 

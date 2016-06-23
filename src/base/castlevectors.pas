@@ -614,6 +614,9 @@ function Vector4Integer(const X, Y, Z, W: Integer): TVector4Integer;
   @code((x/w, y/w, z/w)). Make sure the 4th vector component <> 0. }
 function Vector3SinglePoint(const v: TVector4Single): TVector3Single;
 
+{ Convert 3D vector into 2D by simply discarding (ignoring) the last component. }
+function Vector2SingleCut(const v: TVector3Single): TVector2Single;
+
 { Convert 4D vector into 3D by simply discarding (ignoring) the 4th vector
   component. }
 function Vector3SingleCut(const v: TVector4Single): TVector3Single;
@@ -776,11 +779,15 @@ procedure Vector_Normalize(var V: TVector3_Double); overload;
 procedure NormalizePlaneVar(var v: TVector4Single); overload;
 procedure NormalizePlaneVar(var v: TVector4Double); overload;
 
+function ZeroVector(const v: TVector2Single): boolean; overload;
+function ZeroVector(const v: TVector2Double): boolean; overload;
 function ZeroVector(const v: TVector3Single): boolean; overload;
 function ZeroVector(const v: TVector3Double): boolean; overload;
 function ZeroVector(const v: TVector4Single): boolean; overload;
 function ZeroVector(const v: TVector4Double): boolean; overload;
 
+function ZeroVector(const v: TVector2Single; const EqualityEpsilon: Single): boolean; overload;
+function ZeroVector(const v: TVector2Double; const EqualityEpsilon: Double): boolean; overload;
 function ZeroVector(const v: TVector3Single; const EqualityEpsilon: Single): boolean; overload;
 function ZeroVector(const v: TVector3Double; const EqualityEpsilon: Double): boolean; overload;
 function ZeroVector(const v: TVector4Single; const EqualityEpsilon: Single): boolean; overload;
@@ -879,8 +886,10 @@ procedure VectorNegateVar(var v: TVector4Double); overload;
 { Scale vector such that it has given length (VecLen).
   Given VecLen may be negative, then we'll additionally negate the vector.
   @groupBegin }
+function VectorAdjustToLength(const v: TVector2Single; VecLen: Single): TVector2Single; overload;
 function VectorAdjustToLength(const v: TVector3Single; VecLen: Single): TVector3Single; overload;
 function VectorAdjustToLength(const v: TVector3Double; VecLen: Double): TVector3Double; overload;
+procedure VectorAdjustToLengthVar(var v: TVector2Single; VecLen: Single); overload;
 procedure VectorAdjustToLengthVar(var v: TVector3Single; VecLen: Single); overload;
 procedure VectorAdjustToLengthVar(var v: TVector3Double; VecLen: Double); overload;
 { @groupEnd }
@@ -1295,14 +1304,9 @@ procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3Double;
 
 { Return, deterministically, some vector orthogonal to V.
   When V is non-zero, then the result is non-zero.
-
-  This uses a simple trick to make an orthogonal vector:
-  if you take @code(Result := (V[1], -V[0], 0)) then the dot product
-  between the Result and V is zero, so they are orthogonal.
-  There's also a small check needed to use a similar but different version
-  when the only non-zero component of V is V[2].
-
   @groupBegin }
+function AnyOrthogonalVector(const v: TVector2Single): TVector2Single; overload;
+function AnyOrthogonalVector(const v: TVector2Double): TVector2Double; overload;
 function AnyOrthogonalVector(const v: TVector3Single): TVector3Single; overload;
 function AnyOrthogonalVector(const v: TVector3Double): TVector3Double; overload;
 { @groupEnd }
@@ -2879,6 +2883,11 @@ begin
   result[0] := v[0]/v[3];
   result[1] := v[1]/v[3];
   result[2] := v[2]/v[3];
+end;
+
+function Vector2SingleCut(const v: TVector3Single): TVector2Single;
+begin
+  Move(v, Result, SizeOf(Result));
 end;
 
 function Vector3SingleCut(const v: TVector4Single): TVector3Single;

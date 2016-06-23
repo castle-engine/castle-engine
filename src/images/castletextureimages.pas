@@ -148,6 +148,14 @@ type
     function Empty: boolean; override;
   end;
 
+var
+  { Log texture cache events. Allows to see how the cache performs,
+    and also how alpha channel is detected.
+    A @italic(lot) of log messages.
+
+    Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
+  LogTextureCache: boolean = false;
+
 implementation
 
 uses SysUtils, CastleStringUtils, CastleLog, CastleURIUtils;
@@ -182,8 +190,6 @@ end;
 
 { TTexturesVideosCache ------------------------------------------------- }
 
-{ $define DEBUG_CACHE}
-
 constructor TTexturesVideosCache.Create;
 begin
   inherited;
@@ -203,6 +209,14 @@ end;
 
 function TTexturesVideosCache.TextureImage_IncReference(
   const URL: string; out Composite: TCompositeImage; out AlphaChannel: TAlphaChannel): TEncodedImage;
+
+  function AlphaChannelLog(const AC: TAlphaChannel): string;
+  begin
+    if AC <> acNone then
+      Result := '. Detected as simple yes/no alpha channel: ' + BoolToStr[AC = acSimpleYesNo] else
+      Result := '';
+  end;
+
 var
   I: Integer;
   C: TCachedTexture;
@@ -214,9 +228,8 @@ begin
     begin
       Inc(C.References);
 
-      {$ifdef DEBUG_CACHE}
-      Writeln('++ : texture image ', URL, ' : ', C.References);
-      {$endif}
+      if LogTextureCache and Log then
+        WritelnLog('++', 'Texture image %s: %d', [URIDisplay(URL), C.References]);
 
       Composite := C.Composite;
       AlphaChannel := C.AlphaChannel;
@@ -240,12 +253,9 @@ begin
   C.Composite := Composite;
   C.AlphaChannel := AlphaChannel;
 
-  {$ifdef DEBUG_CACHE}
-  Writeln('++ : texture image ', URL, ' : ', 1);
-  {$endif}
-  // if Log and (AlphaChannel <> acNone) then
-  //   WritelnLog('Alpha Detection', 'Texture image ' + URIDisplay(URL) +
-  //     ' detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = acSimpleYesNo]);
+  if LogTextureCache and Log then
+    WritelnLog('++', 'Texture image %s: %d%s',
+      [URIDisplay(URL), 1, AlphaChannelLog(AlphaChannel)]);
 end;
 
 procedure TTexturesVideosCache.TextureImage_DecReference(
@@ -259,9 +269,8 @@ begin
     C := CachedTextures[I];
     if C.Image = Image then
     begin
-      {$ifdef DEBUG_CACHE}
-      Writeln('-- : texture image ', C.URL, ' : ', C.References - 1);
-      {$endif}
+      if LogTextureCache and Log then
+        WritelnLog('--', 'Texture image %s: %d', [URIDisplay(C.URL), C.References - 1]);
 
       { We cannot simply assert
 

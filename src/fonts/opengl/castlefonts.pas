@@ -306,6 +306,19 @@ type
     { Outline size around the normal text.
       Note that the current implementation is very simple, it will only
       look sensible for small outline values (like 1 or 2).
+
+      TOO: Note that outline size, in pixels, is @bold(right now) not scaled by
+      font scale. Which may be sensible (this way you can change font "base size"
+      when generating texture freely, as long as you always set font
+      @link(Size) in your code explicitly, and things will keep looking the same
+      --- bacause Scale only matters as a multiplier of original "base size").
+      It also helps our poor outline implementation --- it may look bad
+      at non-integer values.
+      But it has disadvantages: UI scaling (@link(TUIContainer.UIScaling))
+      doesn't affect outline size now.
+      This will be fixed in the future, please speak up on Castle Game Engine
+      forum if interested.
+
       @seealso OutlineHighQuality }
     property Outline: Cardinal read FOutline write FOutline default 0;
 
@@ -343,7 +356,7 @@ type
   strict private
     FFont: TTextureFontData;
     FOwnsFont: boolean;
-    GLImage: TGLImage;
+    GLImage: TGLImageCore;
     function GetSmoothScaling: boolean;
   strict protected
     procedure SetScale(const Value: Single); override;
@@ -417,7 +430,7 @@ type
     http://opengameart.org/content/null-terminator. }
   TSimpleTextureFont = class(TCastleFont)
   strict private
-    GLImage: TGLImage;
+    GLImage: TGLImageCore;
     Image: TCastleImage;
     ImageCols, ImageRows,
       CharMargin, CharDisplayMargin, CharWidth, CharHeight: Integer;
@@ -992,7 +1005,7 @@ procedure TTextureFont.PrepareResources;
 begin
   inherited;
   if GLImage = nil then
-    GLImage := TGLImage.Create(FFont.Image, GetSmoothScaling);
+    GLImage := TGLImageCore.Create(FFont.Image, GetSmoothScaling);
 end;
 
 procedure TTextureFont.GLContextClose;
@@ -1004,24 +1017,23 @@ end;
 procedure TTextureFont.Print(const X, Y: Integer; const Color: TCastleColor;
   const S: string);
 var
-  C: TUnicodeChar;
-  TextPtr: PChar;
-  CharLen: Integer;
   ScreenX, ScreenY: Single;
-  ScreenXInt, ScreenYInt: Integer;
   G: TTextureFontData.TGlyph;
-  GlyphX, GlyphY, GlyphWidth, GlyphHeight: Integer;
 
-  procedure OutlineDraw(const MoveX, MoveY: Integer);
+  procedure GlyphDraw(const OutlineMoveX, OutlineMoveY: Integer);
   begin
     GLImage.Draw(
-      ScreenXInt - GlyphX + MoveX * Outline,
-      ScreenYInt - GlyphY + MoveY * Outline,
-      GlyphWidth,
-      GlyphHeight,
+      ScreenX - G.X * Scale + OutlineMoveX * Outline,
+      ScreenY - G.Y * Scale + OutlineMoveY * Outline,
+      G.Width  * Scale,
+      G.Height * Scale,
       G.ImageX, G.ImageY, G.Width, G.Height);
   end;
 
+var
+  C: TUnicodeChar;
+  TextPtr: PChar;
+  CharLen: Integer;
 begin
   PrepareResources;
 
@@ -1038,41 +1050,30 @@ begin
     G := FFont.Glyph(C);
     if G <> nil then
     begin
-      ScreenXInt := Round(ScreenX);
-      ScreenYInt := Round(ScreenY);
       if (G.Width <> 0) and (G.Height <> 0) then
       begin
-        GlyphX := Round(G.X * Scale);
-        GlyphY := Round(G.Y * Scale);
-        GlyphWidth := Round(G.Width  * Scale);
-        GlyphHeight := Round(G.Height * Scale);
         if Outline <> 0 then
         begin
           GLImage.Color := OutlineColor;
 
-          OutlineDraw(0, 0);
-          OutlineDraw(0, 2);
-          OutlineDraw(2, 2);
-          OutlineDraw(2, 0);
+          GlyphDraw(0, 0);
+          GlyphDraw(0, 2);
+          GlyphDraw(2, 2);
+          GlyphDraw(2, 0);
 
           if OutlineHighQuality then
           begin
-            OutlineDraw(1, 0);
-            OutlineDraw(1, 2);
+            GlyphDraw(1, 0);
+            GlyphDraw(1, 2);
 
-            OutlineDraw(0, 1);
-            OutlineDraw(2, 1);
+            GlyphDraw(0, 1);
+            GlyphDraw(2, 1);
           end;
 
           GLImage.Color := Color;
-          OutlineDraw(1, 1);
+          GlyphDraw(1, 1);
         end else
-        begin
-          GLImage.Draw(ScreenXInt - GlyphX, ScreenYInt - GlyphY,
-            GlyphWidth,
-            GlyphHeight,
-            G.ImageX, G.ImageY, G.Width, G.Height);
-        end;
+          GlyphDraw(0, 0);
       end;
       ScreenX += G.AdvanceX * Scale + Outline * 2;
       ScreenY += G.AdvanceY * Scale;
@@ -1177,7 +1178,7 @@ procedure TSimpleTextureFont.PrepareResources;
 begin
   inherited;
   if GLImage = nil then
-    GLImage := TGLImage.Create(Image, GetSmoothScaling);
+    GLImage := TGLImageCore.Create(Image, GetSmoothScaling);
 end;
 
 procedure TSimpleTextureFont.GLContextClose;

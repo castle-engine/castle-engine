@@ -276,6 +276,10 @@
   end;
 
   TOrthoViewpointNode = class(TAbstractX3DViewpointNode)
+  strict private
+    function GetFieldOfViewDefault(const Index: Integer): Single;
+    function GetFieldOfView(const Index: Integer): Single;
+    procedure SetFieldOfView(const Index: Integer; const Value: Single);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -283,6 +287,31 @@
 
     private FFdFieldOfView: TMFFloat;
     public property FdFieldOfView: TMFFloat read FFdFieldOfView;
+
+    { Field of view determines how much you see in the camera.
+      Use this e.g. to zoom in/out.
+
+      This property has comfortable getter and setter, you can
+      also get and set the indexes in 0..3 range, where
+
+      @unorderedList(
+        @itemSpacing Compact
+        @item 0 index is "min x" (default value -1)
+        @item 1 index is "min y" (default value -1)
+        @item 2 index is "max x" (default value 1)
+        @item 3 index is "max y" (default value 1)
+      )
+    }
+    property FieldOfView [Index: Integer]: Single read GetFieldOfView write SetFieldOfView;
+
+    { Field of view - minimum X. -1 by default. @seealso FieldOfView }
+    property FieldOfViewMinX: Single index 0 read GetFieldOfView write SetFieldOfView;
+    { Field of view - minimum Y. -1 by default. @seealso FieldOfView }
+    property FieldOfViewMinY: Single index 1 read GetFieldOfView write SetFieldOfView;
+    { Field of view - maximum X. 1 by default. @seealso FieldOfView }
+    property FieldOfViewMaxX: Single index 2 read GetFieldOfView write SetFieldOfView;
+    { Field of view - maximum Y. 1 by default. @seealso FieldOfView }
+    property FieldOfViewMaxY: Single index 3 read GetFieldOfView write SetFieldOfView;
 
     private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
@@ -296,7 +325,7 @@
       extents. Depending on your window aspect ratio, you may need to make
       one extent (vertical or horizontal) larger to adjust. }
     class procedure AspectFieldOfView(
-      var FieldOfView: TVector4Single;
+      var AFieldOfView: TVector4Single;
       const WindowWidthToHeight: Single);
   end;
 
@@ -327,7 +356,7 @@
       and which is vertical, both are treated the same.
 
       This works following VRML spec. So the angle of view for
-      smaller window size is set to fieldOfViee. The other angle
+      smaller window size is set to fieldOfView. The other angle
       can always be calculated by AdjustViewAngleRadToAspectRatio
       (this implements the same equation that is mentioned in VRML spec).
       The larger angle cannot be larger than Pi, and may force the
@@ -606,7 +635,20 @@ begin
         ZeroVector(P2) then
         Exit;
 
-      Angle := RotationAngleRadBetweenVectors(P1, P2, FdAxisOfRotation.Value);
+      { As https://sourceforge.net/p/castle-engine/tickets/38/ shows,
+        the above checks for zero are not enough. The more precise check
+        (because it replicates what happens in CosAngleBetweenVectors)
+        would be to add
+
+          (VectorLenSqr(P1) * VectorLenSqr(P2) < SingleEqualityEpsilon)
+
+        But that's not really a future-proof solution, to repeat this code.
+        It's safer (even if a little slower) to capture exception here. }
+      try
+        Angle := RotationAngleRadBetweenVectors(P1, P2, FdAxisOfRotation.Value);
+      except
+        on EVectorInvalidOp do Exit;
+      end;
 
       RotationMatricesRad(Angle, FdAxisOfRotation.Value, M, IM);
       State.Transform := MatrixMult(State.Transform, M);
@@ -944,10 +986,34 @@ begin
     1, 100); { TODO: near, far projection testing values }
 end;
 
-class procedure TOrthoViewpointNode.AspectFieldOfView(
-  var FieldOfView: TVector4Single; const WindowWidthToHeight: Single);
+function TOrthoViewpointNode.GetFieldOfViewDefault(const Index: Integer): Single;
+begin
+  if Index < 2 then
+    Result := -1 else
+  if Index < 4 then
+    Result := 1 else
+    Result := 0;
+end;
 
-  { Scale the extent. Since AspectFieldOfView should only make FieldOfView
+function TOrthoViewpointNode.GetFieldOfView(const Index: Integer): Single;
+begin
+  if Index < FdFieldOfView.Items.Count then
+    Result := FdFieldOfView.Items[Index] else
+    Result := GetFieldOfViewDefault(Index);
+end;
+
+procedure TOrthoViewpointNode.SetFieldOfView(const Index: Integer; const Value: Single);
+begin
+  while Index >= FdFieldOfView.Items.Count do
+    FdFieldOfView.Items.Add(GetFieldOfViewDefault(FdFieldOfView.Items.Count));
+  FdFieldOfView.Items[Index] := Value;
+  FdFieldOfView.Changed;
+end;
+
+class procedure TOrthoViewpointNode.AspectFieldOfView(
+  var AFieldOfView: TVector4Single; const WindowWidthToHeight: Single);
+
+  { Scale the extent. Since AspectFieldOfView should only make AFieldOfView
     larger (because OrthoViewpoint.fieldOfView gives the minimal extents),
     so given here Scale should always be >= 1. }
   procedure ScaleExtent(const Scale: Single; var Min, Max: Single);
@@ -971,8 +1037,8 @@ class procedure TOrthoViewpointNode.AspectFieldOfView(
 var
   FOVAspect: Single;
 begin
-  if FloatsEqual(FieldOfView[2], FieldOfView[0]) or
-     FloatsEqual(FieldOfView[3], FieldOfView[1]) then
+  if FloatsEqual(AFieldOfView[2], AFieldOfView[0]) or
+     FloatsEqual(AFieldOfView[3], AFieldOfView[1]) then
   begin
     if Log then
       WritelnLog('OrthoViewpoint', 'OrthoViewpoint.fieldOfView extent (max-min) is zero');
@@ -980,8 +1046,8 @@ begin
   end;
 
   FOVAspect :=
-    (FieldOfView[2] - FieldOfView[0]) /
-    (FieldOfView[3] - FieldOfView[1]);
+    (AFieldOfView[2] - AFieldOfView[0]) /
+    (AFieldOfView[3] - AFieldOfView[1]);
 
   { The idea is to change FieldOfView, such that at the end the above
     equation would calculate FOVAspect as equal to WindowWidthToHeight.
@@ -992,11 +1058,11 @@ begin
 
   if FOVAspect > WindowWidthToHeight then
   begin
-    ScaleExtent(FOVAspect / WindowWidthToHeight, FieldOfView[1], FieldOfView[3]);
+    ScaleExtent(FOVAspect / WindowWidthToHeight, AFieldOfView[1], AFieldOfView[3]);
   end else
   if FOVAspect < WindowWidthToHeight then
   begin
-    ScaleExtent(WindowWidthToHeight / FOVAspect, FieldOfView[0], FieldOfView[2]);
+    ScaleExtent(WindowWidthToHeight / FOVAspect, AFieldOfView[0], AFieldOfView[2]);
   end;
 end;
 

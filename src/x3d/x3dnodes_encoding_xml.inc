@@ -419,7 +419,7 @@ var
 
       Proto.PositionInParent := PositionInParent;
 
-      Result.Prototypes.Add(Proto);
+      Result.AddPrototype(Proto);
 
       Proto.ParseXML(Element, Reader);
     end;
@@ -430,7 +430,7 @@ var
     begin
       Route := TX3DRoute.Create;
       Route.PositionInParent := PositionInParent;
-      Result.Routes.Add(Route);
+      Result.AddRoute(Route);
       Route.ParseXML(Element, Reader);
     end;
 
@@ -440,7 +440,7 @@ var
     begin
       Import := TX3DImport.Create;
       Import.PositionInParent := PositionInParent;
-      Result.ImportsList.Add(Import);
+      Result.AddImport(Import);
       Import.ParseXML(Element, Reader);
     end;
 
@@ -450,7 +450,7 @@ var
     begin
       ExportItem := TX3DExport.Create;
       ExportItem.PositionInParent := PositionInParent;
-      Result.ExportsList.Add(ExportItem);
+      Result.AddExport(ExportItem);
       ExportItem.ParseXML(Element, Reader);
     end;
 

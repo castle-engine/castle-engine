@@ -154,13 +154,6 @@ public class ComponentAdMob extends ComponentAbstract
             initialize(parts[1], parts[2], parts[3].split(","));
             return true;
         } else
-        // The standard String.split cuts off trailing strings if empty
-        // (see http://docs.oracle.com/javase/7/docs/api/java/lang/String.html#split%28java.lang.String%29 ).
-        // This means that we may receive less strings if the last param is empty.
-        if (parts.length == 3 && parts[0].equals("ads-admob-initialize")) {
-            initialize(parts[1], parts[2], new String[]{});
-            return true;
-        } else
         if (parts.length == 2 && parts[0].equals("ads-admob-banner-show")) {
             int gravity = Integer.parseInt(parts[1]);
             bannerShow(gravity);

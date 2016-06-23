@@ -20,7 +20,7 @@
 {$I castleconf.inc}
 
 uses SysUtils, Classes, Math,
-  CastleGL, CastleWindow, CastleImages, CastleGLUtils,
+  CastleGL, CastleWindow, CastleImages, CastleGLUtils, CastleWarnings,
   CastleUtils, CastleMessages, CastleCurves, CastleVectors, CastleFonts,
   CastleKeysMouse, CastleParameters, CastleClassUtils,
   CastleFilesUtils, CastleStringUtils, CastleColors, CastleURIUtils,
@@ -63,7 +63,7 @@ var
   ColorCurveNotSelected: TCastleColor;
   ColorPointSelected: TCastleColor;
 
-  BackgroundImage: TGLImageManaged;
+  BackgroundImage: TGLImage;
   BackgroundImageURL: string;
 
   Zoom: Single = 1;
@@ -128,6 +128,47 @@ const
   SErrSelectPiecewiseCubicBezierCurve = 'You must select a Piecewise Cubic Bezier curve.';
   SErrSelectRationalCurvePoint =
     'You must select some point on a Rational Bezier curve.';
+
+procedure LoadCurves(const NewURL: string);
+var
+  ErrMessage: string;
+  NewCurves: TCurveList;
+  I: Integer;
+begin
+  NewCurves := nil;
+  try
+    NewCurves := TCurveList.Create(false);
+    NewCurves.LoadFromFile(NewURL);
+  except
+    on E: Exception do
+    begin
+      ErrMessage := 'Error while loading file "' + NewURL + '" : ' + E.Message;
+      if Window.Closed then
+        OnWarning(wtMajor, 'Loading', ErrMessage) else
+        MessageOK(Window, ErrMessage);
+      FreeAndNil(NewCurves); // avoid memory leaks
+      Exit;
+    end;
+  end;
+
+  { move curve instances from NewCurves to Curves.
+    Potentially, various curve types may be stored in curves file,
+    but right now we support only TControlPointsCurve. }
+  Curves.Clear;
+  for I := 0 to NewCurves.Count - 1 do
+    if NewCurves[I] is TControlPointsCurve then
+      Curves.Add(NewCurves[I] as TControlPointsCurve);
+  FreeAndNil(NewCurves);
+
+  { select stuff after Curves is updated }
+  SetCurvesURL(NewURL);
+  if Curves.Count <> 0 then { select first curve, if available }
+    SetSelectedCurve(0) else
+    SetSelectedCurve(-1);
+  if SelectedCurve = -1 then
+    SetSelectedPoint(-1) else
+    SetSelectedPoint(0);
+end;
 
 { TStatusText ---------------------------------------------------------------- }
 
@@ -479,44 +520,11 @@ procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
   procedure OpenFile;
   var
     S: string;
-    NewCurves: TCurveList;
-    I: Integer;
   begin
     S := CurvesURL;
     if Window.FileDialog('Open curves from XML file', S, true,
       'All Files|*|*XML files|*.xml') then
-    begin
-      NewCurves := nil;
-      try
-        NewCurves := TCurveList.Create(false);
-        NewCurves.LoadFromFile(s);
-      except
-        on E: Exception do
-        begin
-          MessageOK(Window, 'Error while loading file "' +s +'" : ' + E.Message);
-          FreeAndNil(NewCurves); // avoid memory leaks
-          Exit;
-        end;
-      end;
-
-      { move curve instances from NewCurves to Curves.
-        Potentially, various curve types may be stored in curves file,
-        but right now we support only TControlPointsCurve. }
-      Curves.Clear;
-      for I := 0 to NewCurves.Count - 1 do
-        if NewCurves[I] is TControlPointsCurve then
-          Curves.Add(NewCurves[I] as TControlPointsCurve);
-      FreeAndNil(NewCurves);
-
-      { select stuff after Curves is updated }
-      SetCurvesURL(s);
-      if Curves.Count <> 0 then { select first curve, if available }
-        SetSelectedCurve(0) else
-        SetSelectedCurve(-1);
-      if SelectedCurve = -1 then
-        SetSelectedPoint(-1) else
-        SetSelectedPoint(0);
-    end;
+      LoadCurves(S);
   end;
 
   procedure SaveFile;
@@ -601,7 +609,7 @@ begin
            begin
              BackgroundImageURL := S;
              FreeAndNil(BackgroundImage);
-             BackgroundImage := TGLImageManaged.Create(BackgroundImageURL);
+             BackgroundImage := TGLImage.Create(BackgroundImageURL);
            end;
          end;
     202: FreeAndNil(BackgroundImage);
@@ -781,10 +789,13 @@ end;
 { main ------------------------------------------------------------ }
 
 begin
+  OnWarning := @OnWarningWrite;
+
   Window := TCastleWindowCustom.Create(Application);
 
   Window.ParseParameters(StandardParseOptions);
   Parameters.Parse(Options, @OptionProc, nil);
+  Parameters.CheckHighAtMost(1);
 
   { initialize variables }
   ColorConvexHull := Gray;
@@ -796,7 +807,7 @@ begin
   if URIFileExists(ApplicationData('grid.png')) then
   begin
     BackgroundImageURL := ApplicationData('grid.png');
-    BackgroundImage := TGLImageManaged.Create(BackgroundImageURL);
+    BackgroundImage := TGLImage.Create(BackgroundImageURL);
   end;
 
   Curves := TControlPointsCurveList.Create(true);
@@ -814,8 +825,10 @@ begin
     Window.OnMenuClick := @MenuClick;
     Window.MainMenu := CreateMainMenu;
 
-    { This also initializes Window.Caption }
-    SetCurvesURL('my_curves.xml');
+    { SetCurvesURL also initializes Window.Caption }
+    if Parameters.High = 1 then
+      LoadCurves(Parameters[1]) else
+      SetCurvesURL('my_curves.xml');
 
     Window.OnPress := @Press;
     Window.OnRelease := @Release;

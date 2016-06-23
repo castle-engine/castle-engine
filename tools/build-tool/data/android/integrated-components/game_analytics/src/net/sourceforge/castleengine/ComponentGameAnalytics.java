@@ -16,10 +16,6 @@ import com.gameanalytics.sdk.*;
  */
 public class ComponentGameAnalytics extends ComponentAbstract
 {
-    static {
-        MainActivity.safeLoadLibrary("GameAnalytics");
-    }
-
     private static final String TAG = "${NAME}.castleengine.ComponentGameAnalytics";
 
     private boolean initialized;
@@ -113,12 +109,16 @@ public class ComponentGameAnalytics extends ComponentAbstract
     }
 
     private void sendEvent(String category, String action, String label,
-        long value)
+        long value, int dimensionIndex, String dimensionValue)
     {
         if (!initialized) {
             return;
         }
-        GameAnalytics.addDesignEventWithEventId(category + ":" + action + ":" + label, (float)value);
+        String id = category + ":" + action + ":" + label;
+        if (dimensionIndex > 0 && !dimensionValue.equals("")) {
+            id = id + ":dimension" + dimensionIndex + "=" + dimensionValue;
+        }
+        GameAnalytics.addDesignEventWithEventId(id, (float)value);
     }
 
 /*
@@ -164,8 +164,8 @@ public class ComponentGameAnalytics extends ComponentAbstract
             sendScreenView(parts[1]);
             return true;
         } else
-        if (parts.length == 5 && parts[0].equals("analytics-send-event")) {
-            sendEvent(parts[1], parts[2], parts[3], Long.parseLong(parts[4]));
+        if (parts.length == 7 && parts[0].equals("analytics-send-event")) {
+            sendEvent(parts[1], parts[2], parts[3], Long.parseLong(parts[4]), Integer.parseInt(parts[5]), parts[6]);
             return true;
         } else
         // if (parts.length == 6 && parts[0].equals("analytics-send-event-purchase")) {

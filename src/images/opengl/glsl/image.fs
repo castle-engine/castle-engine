@@ -9,6 +9,13 @@ uniform sampler2D texture;
 uniform vec4 color;
 #endif
 
+#ifdef CLIP_LINE
+uniform vec3 clip_line;
+/* Not using "gl_FragCoord​.xy / gl_FragCoord​.w", for unknown reason it doesn't
+ * compile (tested on Mesa OpenGL ES, and Nexus 5 OpenGL ES). */
+varying vec2 frag_coord;
+#endif
+
 void main(void)
 {
 #ifdef COLOR_UNIFORM
@@ -24,5 +31,8 @@ void main(void)
 
 #ifdef ALPHA_TEST
   if (gl_FragColor.a < 0.5) discard;
+#endif
+#ifdef CLIP_LINE
+  if (dot(clip_line.xy, frag_coord) + clip_line.z < 0.0) discard;
 #endif
 }
