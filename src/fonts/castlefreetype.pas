@@ -37,7 +37,8 @@ unit CastleFreeType;
 
 interface
 
-uses sysutils, classes, CastleFreeTypeH, FPImgCmn, CastleUnicode;
+uses sysutils, classes, FPImgCmn,
+  CastleFreeTypeH, CastleUnicode, CastleUtils;
 
 { TODO : take resolution in account to find the size }
 { TODO : speed optimization: search glyphs with a hash-function/tree/binary search/... }
@@ -64,7 +65,9 @@ type
   TFontBitmap = record
     height, width, pitch,
     x,y, advanceX, advanceY : integer;
-    data : PByteArray;
+    { for some reason, default FPC TByteArray has limited length (0..32767).
+      We sometimes need longer (if you try to generate some huge font size, like 300). }
+    data : CastleUtils.PByteArray;
   end;
   PFontBitmap = ^TFontBitmap;
 
@@ -603,7 +606,7 @@ var g : PMgrGlyph;
     uc : TUnicodeChar;
     pc : pchar;
     pre, adv, pos, kern : FT_Vector;
-    buf : PByteArray;
+    buf : CastleUtils.PByteArray;
     reverse : boolean;
     trans : FT_Matrix;
 begin
@@ -670,7 +673,7 @@ begin
           width := bitmap.width;
           x := {(pos.x div 64)} + left;  // transformed bitmap has correct x,y
           y := {(pos.y div 64)} - top;   // not transformed has only a relative correction
-          buf := PByteArray(bitmap.buffer);
+          buf := CastleUtils.PByteArray(bitmap.buffer);
           reverse := (bitmap.pitch < 0);
           if reverse then
             begin
@@ -716,7 +719,7 @@ var g : PMgrGlyph;
     uc : TUnicodeChar;
     pc : pchar;
     pos, kern : FT_Vector;
-    buf : PByteArray;
+    buf : CastleUtils.PByteArray;
     reverse : boolean;
 begin
   CurFont := GetFont(FontID);
@@ -768,7 +771,7 @@ begin
         width := bitmap.width;
         x := (pos.x shr 6) + left;   // transformed bitmap has correct x,y
         y := (pos.y shr 6) - top;    // not transformed has only a relative correction
-        buf := PByteArray(bitmap.buffer);
+        buf := CastleUtils.PByteArray(bitmap.buffer);
         reverse := (bitmap.pitch < 0);
         if reverse then
           begin

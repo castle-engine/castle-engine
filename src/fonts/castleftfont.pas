@@ -31,7 +31,8 @@ unit CastleFtFont;
 
 interface
 
-uses SysUtils, Classes, FPCanvas, fpimgcmn, CastleFreeType, CastleFreeTypeH;
+uses SysUtils, Classes, FPCanvas, fpimgcmn,
+  CastleFreeType, CastleFreeTypeH, CastleUtils;
 
 type
 
@@ -47,8 +48,8 @@ type
     FAngle : real;
     procedure ClearLastText;
   protected
-    procedure DrawChar (x,y:integer; data:PByteArray; pitch, width, height:integer); virtual;
-    procedure DrawCharBW (x,y:integer; data:PByteArray; pitch, width, height:integer); virtual;
+    procedure DrawChar (x,y:integer; data:CastleUtils.PByteArray; pitch, width, height:integer); virtual;
+    procedure DrawCharBW (x,y:integer; data:CastleUtils.PByteArray; pitch, width, height:integer); virtual;
     procedure SetName (AValue:string); override;
     procedure SetIndex (AValue : integer);
     procedure SetSize (AValue : integer); override;
@@ -274,7 +275,7 @@ const
   //bits : array[0..7] of byte = (1,2,4,8,16,32,64,128);
   bits : array[0..7] of byte = (128,64,32,16,8,4,2,1);
 
-procedure TFreeTypeFont.DrawChar (x,y:integer; data:PByteArray; pitch, width, height:integer);
+procedure TFreeTypeFont.DrawChar (x,y:integer; data:CastleUtils.PByteArray; pitch, width, height:integer);
 
   procedure Combine (canv:TFPCustomCanvas; x,y:integer; c : TFPColor; t:longword);
   var
@@ -295,7 +296,7 @@ begin
     end;
 end;
 
-procedure TFreeTypeFont.DrawCharBW (x,y:integer; data:PByteArray; pitch, width, height:integer);
+procedure TFreeTypeFont.DrawCharBW (x,y:integer; data:CastleUtils.PByteArray; pitch, width, height:integer);
 var rb : byte;
     rx,ry,b,l : integer;
 begin
