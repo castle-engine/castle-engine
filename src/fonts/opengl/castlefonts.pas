@@ -484,6 +484,7 @@ type
     function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
     procedure GLContextClose; override;
+    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer); override;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -1379,6 +1380,23 @@ begin
   if Size <> 0 then
     Result := Size else
     Result := SourceFont.RealSize;
+end;
+
+procedure TCustomizedFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
+begin
+  { in usual circumstances, overriding Measure in TCustomizedFont is not needed,
+    the default implementation would work OK. But if the FSourceFont has some custom
+    override fot Measure(), than we need to call it here, otherwise wrapping
+    a font in TCustomizedFont (which is what e.g. TCastleLabel does when it has some
+    size) would not use the user Measure implementation. }
+  FSourceFont.Measure(ARowHeight, ARowHeightBase, ADescend);
+  { our Scale is always 1, to scale the resulting sizes manually now }
+  if Size <> 0 then
+  begin
+    ARowHeight     := Round(ARowHeight     * Size / FSourceFont.Size);
+    ARowHeightBase := Round(ARowHeightBase * Size / FSourceFont.Size);
+    ADescend       := Round(ADescend       * Size / FSourceFont.Size);
+  end;
 end;
 
 end.
