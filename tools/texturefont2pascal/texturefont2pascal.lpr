@@ -27,10 +27,11 @@ var
   Size: Integer = 10;
   AntiAliasing: boolean = true;
   SampleText, ParamUnitName: string;
+  OnlySampleText: boolean = false;
   DebugFontImage: boolean = false;
 
 const
-  Options: array [0..6] of TOption =
+  Options: array [0..7] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: #0; Long: 'size'; Argument: oaRequired),
@@ -38,7 +39,8 @@ const
     (Short: #0; Long: 'sample-text'; Argument: oaRequired),
     (Short: #0; Long: 'unit-name'; Argument: oaRequired),
     (Short: #0; Long: 'debug-log'; Argument: oaNone),
-    (Short: #0; Long: 'debug-font-image'; Argument: oaNone)
+    (Short: #0; Long: 'debug-font-image'; Argument: oaNone),
+    (Short: #0; Long: 'only-sample-text'; Argument: oaNone)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -59,7 +61,10 @@ begin
            '  --size FONT-SIZE' +NL+
            '  --no-anti-alias' +NL+
            '  --sample-text TEXT    Load (if existing) all characters' +NL+
-           '                        listed here, in addition to ASCII chars.' +NL+
+           '                        listed here. We also always add ASCII chars,' +NL+
+           '                        unless --only-sample-text given.' + NL+
+           '  --only-sample-text    Load only characters from --sample-text,' +NL+
+           '                        do not add standard ASCII chars.' +NL+
            '  --unit-name UnitName  Set UnitName, by default we automatically' +NL+
            '                        calculate it based on font name and size.' +NL+
            '  --debug-log           See the log, showing e.g. the font image size.' +NL+
@@ -74,6 +79,7 @@ begin
     4: ParamUnitName := Argument;
     5: InitializeLog;
     6: DebugFontImage := true;
+    7: OnlySampleText := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -88,6 +94,8 @@ begin
   Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHigh(1);
   FontURL := Parameters[1];
+  if OnlySampleText and (SampleText = '') then
+    raise EInvalidParams.Create('Parameter --only-sample-text specified, but --sample-text not given (or has empty argument). No characters would be loaded.');
 
   Progress.UserInterface := ProgressConsoleInterface;
 
@@ -108,7 +116,8 @@ begin
 
   Characters := TUnicodeCharList.Create;
   try
-    Characters.Add(SimpleAsciiCharacters);
+    if not OnlySampleText then
+      Characters.Add(SimpleAsciiCharacters);
     Characters.Add(SampleText);
     Font := TTextureFontData.Create(FontURL, Size, AntiAliasing, Characters);
     try
