@@ -68,6 +68,7 @@ type
     function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
     procedure GLContextClose; override;
+    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer); override;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -433,6 +434,19 @@ begin
   if Size <> 0 then
     Result := Size else
     Result := SubFont.RealSize;
+end;
+
+procedure TFontFamily.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
+begin
+  { Just like TCustomizedFont.Measure comments, this is good to call SubFont.Measure }
+  SubFont.Measure(ARowHeight, ARowHeightBase, ADescend);
+  { our Scale is always 1, to scale the resulting sizes manually now }
+  if Size <> 0 then
+  begin
+    ARowHeight     := Round(ARowHeight     * Size / SubFont.Size);
+    ARowHeightBase := Round(ARowHeightBase * Size / SubFont.Size);
+    ADescend       := Round(ADescend       * Size / SubFont.Size);
+  end;
 end;
 
 { TPrintState ---------------------------------------------------------------- }

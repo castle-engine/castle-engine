@@ -94,6 +94,7 @@ type
   private
     FStartContainer: TUIContainer;
     FInterceptInput: boolean;
+    FFreeAtStop: TComponent;
     procedure InternalStart;
     procedure InternalStop;
 
@@ -112,6 +113,10 @@ type
       By default, state is inserted as the front-most control, so position is equal
       to @code(StateContainer.Controls.Count). }
     function InsertAtPosition: Integer; virtual;
+
+    { Assign this component as owner for your controls,
+      to make them freed during nearest @link(Stop). }
+    function FreeAtStop: TComponent;
   public
     { Current state. In case multiple states are active (only possible
       if you used @link(Push) method), this is the bottom state
@@ -338,6 +343,13 @@ begin
   Result := StateContainer.Controls.Count;
 end;
 
+function TUIState.FreeAtStop: TComponent;
+begin
+  if FFreeAtStop = nil then
+    FFreeAtStop := TComponent.Create(Self);
+  Result := FFreeAtStop;
+end;
+
 procedure TUIState.InternalStart;
 begin
   Start;
@@ -352,6 +364,7 @@ end;
 procedure TUIState.InternalStop;
 begin
   StateContainer.Controls.Remove(Self);
+  FreeAndNil(FFreeAtStop);
   Stop;
 end;
 

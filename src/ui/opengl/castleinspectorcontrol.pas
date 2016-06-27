@@ -144,6 +144,15 @@ begin
 end;
 
 procedure TCastleInspectorControl.Render;
+
+  function InvertColorRGB(const C: TCastleColor): TCastleColor;
+  begin
+    Result := C;
+    Result[0] := 1 - Result[0];
+    Result[1] := 1 - Result[1];
+    Result[2] := 1 - Result[2];
+  end;
+
 var
   US: Single;
   SR: TRectangle;
@@ -169,7 +178,7 @@ begin
       SR := FControlsUnderMouse[I].ScreenRect;
       if SR.IsEmpty then Continue;
       C := ControlColor(FControlsUnderMouse[I]);
-      DrawRectangle(SR, C);
+      DrawRectangle(SR, InvertColorRGB(C));
       C[3] := 1.0;
       Theme.Draw(SR, tiActiveFrame, UIScale, C);
       Font.Print(SR.Left + PaddingScaled,

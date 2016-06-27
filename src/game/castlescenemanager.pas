@@ -319,6 +319,9 @@ type
     function CreateDefaultCamera: TCamera; overload;
     { @groupEnd }
 
+    { Return current camera. Automatically creates it if missing. }
+    function RequiredCamera: TCamera;
+
     { Smoothly animate current @link(Camera) to a default camera settings.
 
       Default camera settings are determined by calling CreateDefaultCamera.
@@ -384,29 +387,24 @@ type
     property BackgroundColor: TCastleColor
       read FBackgroundColor write FBackgroundColor;
   published
-    { Camera used to render.
+    { Camera used to render this viewport.
 
-      Cannot be @nil when rendering. If you don't assign anything here,
-      we'll create a default camera object at the nearest ApplyProjection
-      call (this is the first moment when we really must have some camera).
-      This default camera will be created by CreateDefaultCamera.
+      Note this property may be @nil before rendering.
+      If you don't assign anything here, we'll create a default camera
+      when necessary (usually at the ApplyProjection which
+      happens before the rendering).
+      Use RequiredCamera instead of this property to get a camera
+      that is never @nil.
 
-      This camera @italic(should not) be inside some other container
-      (like on TCastleWindowCustom.Controls or TCastleControlCustom.Controls list).
-      Scene manager / viewport will handle passing events to the camera on it's own,
-      we will also pass our own Container to Camera.Container.
-      This is desired, this way events are correctly passed
-      and interpreted before passing them to 3D objects.
-      And this way we avoid the question whether camera should be before
-      or after the scene manager / viewport on the Controls list (as there's really
-      no perfect ordering for them).
-
-      Scene manager / viewport will "hijack" some Camera events:
+      For many purposes, you can directly operate on this camera,
+      for example you can change it's @link(TCamera.Position Position).
+      An exception to this is assigning events to the camera instance.
+      The scene manager or viewport will "hijack" some Camera events:
       TCamera.OnVisibleChange, TWalkCamera.OnMoveAllowed,
       TWalkCamera.OnHeight, TCamera.OnCursorChange.
-      We will handle them in a proper way.
+      We will handle them in a proper way. Do not assign them yourself.
 
-      @italic(For TCastleViewport only:)
+      @italic(Comments for TCastleViewport only:)
       The TCastleViewport's camera is slightly less important than
       TCastleSceneManager.Camera, because TCastleSceneManager.Camera may be treated
       as a "central" camera. Viewport's camera may not (because you may
@@ -415,13 +413,6 @@ type
       (for mirror textures, there must be one headlight for your 3D world).
       Also VRML/X3D ProximitySensors receive events only from
       TCastleSceneManager.Camera.
-
-      TODO: In the future it should be possible (even encouraged) to assign
-      one of your custom viewport cameras also to TCastleSceneManager.Camera.
-      It should also be possible to share one camera instance among a couple
-      of viewports.
-      For now, it doesn't work (last viewport/scene manager will hijack some
-      camera events making it not working in other ones).
 
       @seealso TCastleSceneManager.OnCameraChanged }
     property Camera: TCamera read FCamera write SetCamera;
@@ -1233,6 +1224,25 @@ end;
 
 procedure TCastleAbstractViewport.SetCamera(const Value: TCamera);
 begin
+  { This camera @italic(cannot) be inside some other container
+    (like on TCastleWindowCustom.Controls or TCastleControlCustom.Controls list),
+    and even cannot be now (TCamera is not a TUIControl anymore).
+
+    Scene manager / viewport will handle passing events to the camera on it's own,
+    we will also pass our own Container to Camera.Container.
+    This is desired, this way events are correctly passed
+    and interpreted before passing them to 3D objects.
+    And this way we avoid the question whether camera should be before
+    or after the scene manager / viewport on the Controls list (as there's really
+    no perfect ordering for them).
+
+    TODO: In the future it should be possible (even encouraged) to assign
+    one of your custom viewport cameras also to TCastleSceneManager.Camera.
+    It should also be possible to share one camera instance among a couple
+    of viewports.
+    For now, it doesn't work (last viewport/scene manager will hijack some
+    camera events making it not working in other ones). }
+
   if FCamera <> Value then
   begin
     { Check csDestroying, as this may be called from Notification,
@@ -1516,8 +1526,8 @@ procedure TCastleAbstractViewport.ApplyProjection;
 var
   Viewport: TRectangle;
 begin
-  if Camera = nil then
-    Camera := CreateDefaultCamera(Self);
+  RequiredCamera; // create Camera if necessary
+
   { We need to know container size now. }
   Assert(ContainerSizeKnown, ClassName + ' did not receive Resize event yet, cannnot apply OpenGL projection');
 
@@ -2385,6 +2395,13 @@ end;
 function TCastleAbstractViewport.CreateDefaultCamera: TCamera;
 begin
   Result := CreateDefaultCamera(Self);
+end;
+
+function TCastleAbstractViewport.RequiredCamera: TCamera;
+begin
+  if Camera = nil then
+    Camera := CreateDefaultCamera(Self);
+  Result := Camera;
 end;
 
 function TCastleAbstractViewport.Statistics: TRenderStatistics;
