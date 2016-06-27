@@ -380,18 +380,21 @@ begin
 end;
 
 procedure TCastleTiledMap.LoadImage(Element: TDOMElement; var AImage: TImage);
+const
+  DEFAULT_TRANS:TCastleColorRGB = ( 1.0, 0.0, 1.0); {Fuchsia}
 begin
   with AImage do
   begin
     Format := Element.GetAttribute('format');
     Source := Element.GetAttribute('source');
-    if Element.hasAttribute('trans') then //todo: if no trans then use some default trans
-      Trans := HexToColorRGB(Element.GetAttribute('trans')); //todo: test convertion
+    if Element.hasAttribute('trans') then
+      Trans := HexToColorRGB(Element.GetAttribute('trans')) else //todo: if color in XML will be with "#" sign then it throws conversion error
+        Trans := DEFAULT_TRANS;
     Width := StrToInt(Element.GetAttribute('width'));
     Height := StrToInt(Element.GetAttribute('height'));
     WritelnLog('LoadImage Format', Format);
     WritelnLog('LoadImage Source', Source);
-    //WritelnLog('LoadImage Trans', ColorRGBToHex(Trans));//todo: ERangeError sometimes
+    WritelnLog('LoadImage Trans', ColorRGBToHex(Trans));
     WritelnLog('LoadImage Width', IntToStr(Width));
     WritelnLog('LoadImage Height', IntToStr(Height));
   end;
@@ -767,7 +770,7 @@ var
 begin
   Doc := nil;
   try
-    ReadXMLFile(Doc, URIDeleteProtocol(AURL));  //todo: check AbsoluteURI
+    ReadXMLFile(Doc, URIDeleteProtocol(AURL));  //todo: what is proper way to open files? (AbsoluteURI ?)
 
     // Parse map attributes
     Check(LowerCase(Doc.DocumentElement.TagName) = 'map',
