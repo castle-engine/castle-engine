@@ -596,12 +596,16 @@ begin
   FrameTimePassed += Timer - RenderStartTime;
 
   NowTime := GetTickCount64;
-  if NowTime - LastRecalculateTime >= TimeToRecalculate then
+  { secure in case NowTime < LastRecalculateTime.
+    It seems that on some weird systems
+    (Android device "Moto X Play", "XT1562", OS version 5.1.1) it can happen. }
+  if (NowTime >= LastRecalculateTime) and
+     (NowTime - LastRecalculateTime >= TimeToRecalculate) then
   begin
     { update FRealTime, FFrameTime once for TimeToRecalculate time.
       This way they don't change rapidly.
 
-      Previosuly we used more elaborate hacks for this (resetting
+      Previously we used more elaborate hacks for this (resetting
       their times after a longer periods, but keeping some previous
       results), but they were complex and bad: when the game speed
       was changing suddenly, FRealTime, FFrameTime should also change
@@ -626,7 +630,10 @@ begin
   { update FUpdateSecondsPassed, DoZeroNextSecondsPassed, FUpdateStartTime }
   NewUpdateStartTime := Timer;
 
-  if DoZeroNextSecondsPassed then
+  { secure "NewUpdateStartTime < FUpdateStartTime",
+    unfortunately we cannot trust some crazy systems to return increasing values here
+    (Android device "Moto X Play", "XT1562", OS version 5.1.1). }
+  if DoZeroNextSecondsPassed or (NewUpdateStartTime <= FUpdateStartTime) then
   begin
     FUpdateSecondsPassed := 0.0;
     DoZeroNextSecondsPassed := false;
