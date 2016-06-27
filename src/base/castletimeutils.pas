@@ -356,6 +356,17 @@ function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTim
 var
   SecondTimeMinusDelay: Int64;
 begin
+  { some crazy systems may decrease time values
+    (Android device "Moto X Play", "XT1562", OS version 5.1.1). }
+  {$ifdef UNIX}
+  if FirstTime > SecondTime then
+  begin
+    WritelnLog('Time', 'FirstTime > SecondTime for TimeTickSecondLater, on UNIX. May indicate a crazy Android OS where time may move back.');
+    { in this case, behave like FirstTime = SecondTime. So it's true only when TimeDelay is zero. }
+    Exit(TimeDelay <= 0);
+  end;
+  {$endif}
+
   if Log and (FirstTime > SecondTime) then
     WritelnLog('Time', 'FirstTime > SecondTime for TimeTickSecondLater. Maybe 32-bit GetTickCount just wrapped (Windows XP? Otherwise, 64-bit GetTickCount64 should always be used), or maybe you swapped arguments for TimeTickSecondLater.');
   { Need 64 bit signed int to hold the result of QWord - QWord }
