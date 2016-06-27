@@ -356,17 +356,6 @@ function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTim
 var
   SecondTimeMinusDelay: Int64;
 begin
-  { some crazy systems may decrease time values
-    (Android device "Moto X Play", "XT1562", OS version 5.1.1). }
-  {$ifdef UNIX}
-  if FirstTime > SecondTime then
-  begin
-    WritelnLog('Time', 'FirstTime > SecondTime for TimeTickSecondLater, on UNIX. May indicate a crazy Android OS where time may move back.');
-    { in this case, behave like FirstTime = SecondTime. So it's true only when TimeDelay is zero. }
-    Exit(TimeDelay <= 0);
-  end;
-  {$endif}
-
   if Log and (FirstTime > SecondTime) then
     WritelnLog('Time', 'FirstTime > SecondTime for TimeTickSecondLater. Maybe 32-bit GetTickCount just wrapped (Windows XP? Otherwise, 64-bit GetTickCount64 should always be used), or maybe you swapped arguments for TimeTickSecondLater.');
   { Need 64 bit signed int to hold the result of QWord - QWord }
@@ -438,6 +427,9 @@ end;
   Not based on, but in fact very similar idea as the one in
   FPC fpc/3.0.0/src/rtl/unix/sysutils.pp }
 
+var
+  LastGetTickCount64: TMilisecTime;
+
 {$I norqcheckbegin.inc}
 function GetTickCount64: TMilisecTime;
 var
@@ -451,6 +443,18 @@ begin
     with tv_usec div 1000 (which must be < 1000, because tv_usec must be < 1 million). }
 
   Result := Int64(timeval.tv_sec) * 1000 + (timeval.tv_usec div 1000);
+
+  { We cannot trust some Android systems to return increasing values here
+    (Android device "Moto X Play", "XT1562", OS version 5.1.1).
+    Maybe they synchronize the time from the Internet, and do not take care
+    to keep it monotonic (unlike https://lwn.net/Articles/23313/ says?) }
+
+  if Result < LastGetTickCount64 then
+  begin
+    WritelnLog('Time', 'Detected gettimeofday() going backwards on Unix, workarounding. This is known to happen on some Android devices');
+    Result := LastGetTickCount64;
+  end else
+    LastGetTickCount64 := Result;
 end;
 {$I norqcheckend.inc}
 {$endif UNIX}
@@ -554,6 +558,9 @@ end;
 {$endif MSWINDOWS}
 
 {$ifdef UNIX}
+var
+  LastTimer: TTimerResult;
+
 function Timer: TTimerResult;
 var
   tv: TTimeval;
@@ -562,6 +569,18 @@ begin
 
   { We can fit whole TTimeval inside Int64, no problem. }
   Result := Int64(tv.tv_sec) * 1000000 + Int64(tv.tv_usec);
+
+  { We cannot trust some Android systems to return increasing values here
+    (Android device "Moto X Play", "XT1562", OS version 5.1.1).
+    Maybe they synchronize the time from the Internet, and do not take care
+    to keep it monotonic (unlike https://lwn.net/Articles/23313/ says?) }
+
+  if Result < LastTimer then
+  begin
+    WritelnLog('Time', 'Detected gettimeofday() going backwards on Unix, workarounding. This is known to happen on some Android devices');
+    Result := LastTimer;
+  end else
+    LastTimer := Result;
 end;
 {$endif UNIX}
 
@@ -607,11 +626,7 @@ begin
   FrameTimePassed += Timer - RenderStartTime;
 
   NowTime := GetTickCount64;
-  { secure in case NowTime < LastRecalculateTime.
-    It seems that on some weird systems
-    (Android device "Moto X Play", "XT1562", OS version 5.1.1) it can happen. }
-  if (NowTime >= LastRecalculateTime) and
-     (NowTime - LastRecalculateTime >= TimeToRecalculate) then
+  if NowTime - LastRecalculateTime >= TimeToRecalculate then
   begin
     { update FRealTime, FFrameTime once for TimeToRecalculate time.
       This way they don't change rapidly.
@@ -641,10 +656,7 @@ begin
   { update FUpdateSecondsPassed, DoZeroNextSecondsPassed, FUpdateStartTime }
   NewUpdateStartTime := Timer;
 
-  { secure "NewUpdateStartTime < FUpdateStartTime",
-    unfortunately we cannot trust some crazy systems to return increasing values here
-    (Android device "Moto X Play", "XT1562", OS version 5.1.1). }
-  if DoZeroNextSecondsPassed or (NewUpdateStartTime <= FUpdateStartTime) then
+  if DoZeroNextSecondsPassed then
   begin
     FUpdateSecondsPassed := 0.0;
     DoZeroNextSecondsPassed := false;
