@@ -922,12 +922,14 @@ end;
         @item(The raster position @italic((for fixed-function pipeline.))
           and (deprecated) WindowPos are set to 0,0.)
 
-        @item(Scissor is off, depth test is off.)
+        @item(Depth test is off.)
 
         @item(@italic((For fixed-function pipeline.))
           Texturing, lighting, fog is off.)
       ) }
     procedure Render; virtual;
+
+    procedure RenderOverChildren; virtual;
 
     { Determines the rendering order.
       All controls with RenderStyle = rs3D are drawn first.
@@ -2836,6 +2838,10 @@ begin
 end;
 
 procedure TUIControl.Render;
+begin
+end;
+
+procedure TUIControl.RenderOverChildren;
 begin
 end;
 

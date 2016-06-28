@@ -47,7 +47,6 @@ procedure TGLContainer.EventRender;
     glDisable(GL_FOG);
     {$endif}
     glDisable(GL_DEPTH_TEST);
-    ScissorDisable;
     GLEnableTexture(CastleGLUtils.etNone);
     glViewport(Rect);
     OrthoProjection(0, Width, 0, Height);
@@ -86,6 +85,12 @@ procedure TGLContainer.EventRender;
 
       for I := 0 to C.ControlsCount - 1 do
         RenderWithChildren(C.Controls[I], SomeControlHasRenderStyle2D, FilterRenderStyle);
+
+      if C.GLInitialized and (C.RenderStyle = FilterRenderStyle) then
+      begin
+        ControlRenderBegin;
+        C.RenderOverChildren;
+      end;
     end;
   end;
 

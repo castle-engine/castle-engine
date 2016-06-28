@@ -22,7 +22,7 @@ interface
 
 uses Classes, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
-  CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily;
+  CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily, CastleGLUtils;
 
 type
   TCastleLabel = class;
@@ -1098,6 +1098,19 @@ type
     property Value: Integer read FValue write SetValue default DefaultMin;
   end;
 
+  TCastleScrollView = class(TUIControlSizeable)
+  strict private
+    FScrollArea: TUIControlSizeable;
+    Scissor: TScissor;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure Render; override;
+    procedure RenderOverChildren; override;
+  published
+    property ScrollArea: TUIControlSizeable read FScrollArea;
+  end;
+
   { Theme for 2D GUI controls.
     Should only be used through the single global instance @link(Theme). }
   TCastleTheme = class
@@ -1241,7 +1254,7 @@ procedure Register;
 implementation
 
 uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
-  CastleTextureFont_DejaVuSans_10, CastleGLUtils,
+  CastleTextureFont_DejaVuSans_10,
   CastleApplicationProperties;
 
 procedure Register;
@@ -3892,6 +3905,40 @@ begin
     FValue := AValue;
     VisibleChange;
   end;
+end;
+
+{ TCastleScrollView ---------------------------------------------------------- }
+
+constructor TCastleScrollView.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  FScrollArea := TUIControlSizeable.Create(Self);
+  FScrollArea.SetSubComponent(true);
+  FScrollArea.Name := 'ScrollArea';
+  FScrollArea.Anchor(vpTop);
+  InsertFront(FScrollArea);
+
+  Scissor := TScissor.Create;
+end;
+
+destructor TCastleScrollView.Destroy;
+begin
+  FreeAndNil(Scissor);
+  inherited;
+end;
+
+procedure TCastleScrollView.Render;
+begin
+  inherited;
+  Scissor.Rect := ScreenRect;
+  Scissor.Enabled := true;
+end;
+
+procedure TCastleScrollView.RenderOverChildren;
+begin
+  Scissor.Enabled := false;
+  inherited;
 end;
 
 { TCastleTheme --------------------------------------------------------------- }

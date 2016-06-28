@@ -702,6 +702,23 @@ type
 procedure GLClear(const Buffers: TClearBuffers;
   const ClearColor: TCastleColor);
 
+type
+  { Scissor to clip displayed things, in addition to the global scissor
+    affected by ScissorEnable / ScissorDisable.
+    Always disable an enabled scissor (destructor does it automatically). }
+  TScissor = class
+  strict private
+    FEnabled: boolean;
+    procedure SetEnabled(const Value: boolean);
+  public
+    { Rectangle to which we clip rendering. Empty by default (will clip everything,
+      if you don't assign this!). Do not change this when scissor is enabled. }
+    Rect: TRectangle;
+    constructor Create;
+    destructor Destroy; override;
+    property Enabled: boolean read FEnabled write SetEnabled;
+  end;
+
 { Enable or disable scissor.
   Always do it using these procedures, do not call glScissor or
   glEnable(GL_SCISSOR_TEST) / glDisable(GL_SCISSOR_TEST) yourself,
@@ -733,7 +750,8 @@ implementation
 
 {$define read_implementation}
 
-uses CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
+uses FGL,
+  CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
   CastleLog, CastleWarnings, CastleApplicationProperties;
 
 {$I castleglutils_mipmaps.inc}
@@ -1985,26 +2003,79 @@ begin
     {$ifndef OpenGLES} GL {$else} CastleGLES20 {$endif}.GLClear(Mask);
 end;
 
+{ scissors ------------------------------------------------------------------- }
+
+type
+  TScissorList = class(specialize TFPGObjectList<TScissor>)
+  public
+    procedure Update;
+  end;
+
 var
-//  FScissor: TRectangle; // not needed now
-  FScissorEnabled: boolean;
+  EnabledScissors: TScissorList;
+
+procedure TScissorList.Update;
+var
+  R: TRectangle;
+  I: Integer;
+begin
+  if Count <> 0 then
+  begin
+    R := Items[0].Rect;
+    for I := 1 to Count - 1 do
+      R := R * Items[I].Rect;
+    glScissor(R.Left, R.Bottom, R.Width, R.Height);
+    glEnable(GL_SCISSOR_TEST);
+  end else
+    glDisable(GL_SCISSOR_TEST);
+end;
+
+constructor TScissor.Create;
+begin
+  inherited;
+  Rect := TRectangle.Empty;
+end;
+
+destructor TScissor.Destroy;
+begin
+  Enabled := false;
+  inherited;
+end;
+
+procedure TScissor.SetEnabled(const Value: boolean);
+begin
+  if FEnabled <> Value then
+  begin
+    FEnabled := Value;
+    if EnabledScissors <> nil then
+    begin
+      if Value then
+        EnabledScissors.Add(Self) else
+        EnabledScissors.Remove(Self);
+      EnabledScissors.Update;
+    end;
+  end;
+end;
+
+var
+  FGlobalScissor: TScissor;
 
 procedure ScissorEnable(const Rect: TRectangle);
 begin
-//  FScissor := Rect;
-  FScissorEnabled := true;
-  glScissor(Rect.Left, Rect.Bottom, Rect.Width, Rect.Height);
-  glEnable(GL_SCISSOR_TEST);
+  if FGlobalScissor = nil then
+    FGlobalScissor := TScissor.Create else
+    FGlobalScissor.Enabled := false; // disable previously enabled scissor, if any
+  FGlobalScissor.Rect := Rect;
+  FGlobalScissor.Enabled := true;
 end;
 
 procedure ScissorDisable;
 begin
-  if FScissorEnabled then
-  begin
-    glDisable(GL_SCISSOR_TEST);
-    FScissorEnabled := false;
-  end;
+  if FGlobalScissor <> nil then // secure in case FGlobalScissor was already fred
+    FGlobalScissor.Enabled := false;
 end;
+
+{ ---------------------------------------------------------------------------- }
 
 var
   FGlobalAmbient: TVector3Single = (0.2, 0.2, 0.2);
@@ -2058,4 +2129,8 @@ initialization
     Every other unit initializion does OnGLContextClose.Add,
     so our initialization will stay as OnGLContextClose[0]. }
   ApplicationProperties.OnGLContextClose.Insert(0, @ContextClose);
+  EnabledScissors := TScissorList.Create(false);
+finalization
+  FreeAndNil(EnabledScissors);
+  FreeAndNil(FGlobalScissor);
 end.
