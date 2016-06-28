@@ -144,6 +144,7 @@ type
     FCustomTextColorUse: boolean;
     FToggle: boolean;
     ClickStarted: boolean;
+    ClickStartedPosition: TVector2Single;
     FMinImageWidth: Cardinal;
     FMinImageHeight: Cardinal;
     FImageLayout: TCastleButtonImageLayout;
@@ -153,6 +154,7 @@ type
     FPaddingHorizontal, FPaddingVertical: Cardinal;
     FTintPressed, FTintDisabled, FTintFocused, FTintNormal: TCastleColor;
     FEnabled: boolean;
+    FEnableParentDragging: boolean;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -191,6 +193,7 @@ type
     procedure GLContextClose; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
     function Rect: TRectangle; override;
 
     { Called when user clicks the button. In this class, simply calls
@@ -334,6 +337,15 @@ type
       default DefaultImageMargin;
 
     property Enabled: boolean read FEnabled write SetEnabled default true;
+
+    { Enable to drag a parent control, for example to drag a TCastleScrollView
+      that contains this button. To do this, you need to turn on
+      TCastleScrollView.EnableDragging, and set EnableParentDragging=@true
+      on all buttons inside. In effect, buttons will cancel the click operation
+      once you start dragging, which allows the parent to handle
+      all the motion events for dragging. }
+    property EnableParentDragging: boolean
+      read FEnableParentDragging write FEnableParentDragging default false;
   end;
 
   { Panel frame.
@@ -1098,6 +1110,7 @@ type
     ScrollBarDragging: boolean;
     FKeyScrollSpeed, FWheelScrollSpeed: Single;
     FScrollBarWidth: Cardinal;
+    FEnableDragging: boolean;
 
     { Min and max sensible values for @link(Scroll). }
     function ScrollMin: Single;
@@ -1135,6 +1148,11 @@ type
     property WheelScrollSpeed: Single read FWheelScrollSpeed write FWheelScrollSpeed default DefaultWheelScrollSpeed;
     { Width of the scroll bar. }
     property ScrollBarWidth: Cardinal read FScrollBarWidth write FScrollBarWidth default DefaultScrollBarWidth;
+    { Enable scrolling by dragging @italic(anywhere) in the scroll area.
+      This is usually suitable for mobile devices.
+      Note that this doesn't affect the dragging directly by the scrollbar,
+      which is always enabled. }
+    property EnableDragging: boolean read FEnableDragging write FEnableDragging default false;
   end;
 
   { Theme for 2D GUI controls.
@@ -1720,6 +1738,7 @@ begin
     end;
     // regardless of Toggle value, set ClickStarted, to be able to reach OnClick.
     ClickStarted := true;
+    ClickStartedPosition := Event.Position;
   end;
 end;
 
@@ -1752,6 +1771,31 @@ begin
     if Enabled and ScreenRect.Contains(Event.Position) then
       DoClick;
   end;
+end;
+
+function TCastleButton.Motion(const Event: TInputMotion): boolean;
+
+  { Similar to Release implementation, but never calls DoClick. }
+  procedure CancelDragging;
+  begin
+    if not Toggle then FPressed := false;
+    ClickStarted := false;
+    { We base our Render on Pressed value. }
+    VisibleChange;
+    { Without ReleaseCapture, the parent (like TCastleScrollView) would still
+      not receive the following motion events. }
+    Container.ReleaseCapture(Self);
+  end;
+
+const
+  DistanceToHijackDragging = 2;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if ClickStarted and EnableParentDragging and
+    (PointsDistanceSqr(ClickStartedPosition, Event.Position) > Sqr(DistanceToHijackDragging)) then
+    CancelDragging;
 end;
 
 procedure TCastleButton.DoClick;
@@ -3882,10 +3926,10 @@ begin
     case Event.EventType of
       itKey:
         case Event.Key of
-          K_PageUp:   begin Scroll := Scroll - Height; Result := true; end;
-          K_PageDown: begin Scroll := Scroll + Height; Result := true; end;
-          K_Home:     begin Scroll := ScrollMin; Result := true; end;
-          K_End:      begin Scroll := ScrollMax; Result := true; end;
+          K_PageUp:   begin Scroll := Scroll - Height; Result := ExclusiveEvents; end;
+          K_PageDown: begin Scroll := Scroll + Height; Result := ExclusiveEvents; end;
+          K_Home:     begin Scroll := ScrollMin; Result := ExclusiveEvents; end;
+          K_End:      begin Scroll := ScrollMax; Result := ExclusiveEvents; end;
         end;
       itMouseButton:
         begin
@@ -3897,14 +3941,14 @@ begin
             if Container.MousePosition[1] >= ScrollbarSlider.Top then
               Scroll := Scroll - Height else
               ScrollBarDragging := true;
-            Result := true;
+            Result := ExclusiveEvents;
           end;
         end;
       itMouseWheel:
         if Event.MouseWheelVertical then
         begin
           Scroll := Scroll - Event.MouseWheelScroll * WheelScrollSpeed;
-          Result := true;
+          Result := ExclusiveEvents;
         end;
     end;
 end;
@@ -3917,7 +3961,7 @@ begin
   if Event.IsMouseButton(mbLeft) then
   begin
     ScrollBarDragging := false;
-    Result := true;
+    Result := ExclusiveEvents;
   end;
 end;
 
@@ -3926,10 +3970,17 @@ begin
   Result := inherited;
   if Result then Exit;
 
-  Result := ScrollBarDragging;
-  if Result then
+  if ScrollBarDragging then
+  begin
     Scroll := Scroll + (Event.OldPosition[1] - Event.Position[1]) /
       ScrollbarFrame.Height * ScrollArea.ScreenRect.Height;
+    Result := ExclusiveEvents;
+  end else
+  if EnableDragging and (mbLeft in Event.Pressed) then
+  begin
+    Scroll := Scroll + ((Event.Position[1] - Event.OldPosition[1]) / UIScale);
+    Result := ExclusiveEvents;
+  end;
 end;
 
 function TCastleScrollView.ScrollMin: Single;

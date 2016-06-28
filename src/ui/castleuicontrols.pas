@@ -423,6 +423,15 @@ type
       and that this control has focus (to keep mouse cursor hidden). }
     property ForceCaptureInput: TUIControl
       read FForceCaptureInput write SetForceCaptureInput;
+
+    { When the control accepts the "press" event, it automatically captures
+      the following motion and release events, hijacking them from other controls,
+      regardless of the mouse cursor position. This is usually desirable,
+      to allow the control to handle the dragging.
+      But sometimes you want to cancel the dragging, and allow other controls
+      to handle the following motion and release events, in which case calling this
+      method helps. }
+    procedure ReleaseCapture(const C: TUIControl);
   published
     { How OnRender callback fits within various Render methods of our
       @link(Controls).
@@ -2169,6 +2178,19 @@ begin
   begin
     OnRelease(Self, Event);
     Result := true;
+  end;
+end;
+
+procedure TUIContainer.ReleaseCapture(const C: TUIControl);
+var
+  I: Integer;
+begin
+  I := 0;
+  while I < FCaptureInput.Count do
+  begin
+    if FCaptureInput.Data[I] = C then
+      FCaptureInput.Delete(I) else
+      Inc(I);
   end;
 end;
 
