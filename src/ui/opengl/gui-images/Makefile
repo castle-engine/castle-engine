@@ -24,8 +24,8 @@ clean:
 	  FrameWhite.png FrameWhiteBlack.png FrameYellow.png FrameYellowBlack.png \
 	  FrameThickWhite.png FrameThickYellow.png ProgressBar.png ProgressFill.png \
 	  TouchCtlInner.png TouchCtlOuter.png TouchCtlFlyInner.png TouchCtlFlyOuter.png \
-	  Crosshair1.png Crosshair2.png \
+	  Crosshair1.png Crosshair2.png ScrollbarSlider.png \
 	  @alpha=strip \
 	  PanelSeparator.png WindowDark.png WindowGray.png \
-	  ScrollbarFrame.png ScrollbarSlider.png \
+	  ScrollbarFrame.png \
 	  SliderPosition.png ErrorBackground.png
