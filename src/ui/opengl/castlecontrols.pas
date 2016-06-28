@@ -3851,7 +3851,10 @@ begin
   if ScrollBarVisible then
     ScrollbarSlider.Bottom += Round(MapRange(Scroll, ScrollMin, ScrollMax,
       ScrollbarFrame.Height - ScrollbarSlider.Height, 0)) else
+  begin
     ScrollBarDragging := false;
+    Scroll := ScrollMin; // make sure to shift to ScrollMin if scroll suddenly disappears
+  end;
 
   if ScrollBarVisible and HandleInput then
   begin
@@ -3936,7 +3939,7 @@ end;
 
 function TCastleScrollView.ScrollMax: Single;
 begin
-  Result := ScrollArea.CalculatedHeight - CalculatedHeight;
+  Result := Max(0, ScrollArea.CalculatedHeight - CalculatedHeight);
 end;
 
 function TCastleScrollView.ScrollBarWidthScaled: Integer;
