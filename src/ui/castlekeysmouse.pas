@@ -562,9 +562,13 @@ type
     function Description: string; deprecated;
   end;
 
-  { Motion (movement) of mouse or a finger on a touch device. }
+  { TInputMotion represents a current mouse or a finger touch state. Most convenient way to initialize TInputMotion to current state is by using TCastleWindow.OnMotion event that points to TInputMotionEvent procedure. See examples\window\window_events.lpr for more information. }
   TInputMotion = object
-    OldPosition, Position: TVector2Single;
+    {Represents previous known position of pointing device. 0 is x, and 1 is y (counting from bottom of Window). Both values are in pixels.}
+    OldPosition: TVector2Single;
+    {Represents current position of pointing device. 0 is x, and 1 is y (counting from bottom of Window). Both values are in pixels.}
+    Position: TVector2Single;
+    {In case mouse buttons were pressed, they can be found in this variable.}
     Pressed: TMouseButtons;
     FingerIndex: TFingerIndex;
   end;

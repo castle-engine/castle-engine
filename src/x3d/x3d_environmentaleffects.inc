@@ -86,6 +86,15 @@
     function FogType: TFogType;
   end;
 
+{ This class describes a SkyBox of the scene. It's visible only in case this scene is SceneManager's main scene.  The skybox is defined by adding items (Items.add) for each Fd*Url field. In Y-up orientation they will correspond to back, bottom, front, left, right and top sides of the skybox.
+Pay attention, that in case of Z-up, Y-forward they will be:
+Back -> top rotated 180 deg.
+Bottom -> back rotated 180 deg.
+Front -> bottom
+Left -> left rotated 90 deg. CCW
+Right -> right  rotated 90 CW
+Top -> front }
+
   TBackgroundNode = class(TAbstractBackgroundNode)
   public
     procedure CreateNode; override;
@@ -95,21 +104,27 @@
     function Texture(const Side: TBackgroundSide): TAbstractTextureNode; override;
 
     private FFdBackUrl: TMFString;
+    { Defines image to be used for "back" Skybox face. }
     public property FdBackUrl: TMFString read FFdBackUrl;
 
     private FFdBottomUrl: TMFString;
+    { Defines image to be used for "bottom" Skybox face. }
     public property FdBottomUrl: TMFString read FFdBottomUrl;
 
     private FFdFrontUrl: TMFString;
+    { Defines image to be used for "front" Skybox face. }
     public property FdFrontUrl: TMFString read FFdFrontUrl;
 
     private FFdLeftUrl: TMFString;
+    { Defines image to be used for "left" Skybox face. }
     public property FdLeftUrl: TMFString read FFdLeftUrl;
 
     private FFdRightUrl: TMFString;
+    { Defines image to be used for "right" Skybox face. }
     public property FdRightUrl: TMFString read FFdRightUrl;
 
     private FFdTopUrl: TMFString;
+    { Defines image to be used for "top" Skybox face. }
     public property FdTopUrl: TMFString read FFdTopUrl;
   end;
 
