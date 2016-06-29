@@ -1111,6 +1111,7 @@ type
     FKeyScrollSpeed, FWheelScrollSpeed: Single;
     FScrollBarWidth: Cardinal;
     FEnableDragging: boolean;
+    DragSinceLastUpdate, DragSpeed, TimeSinceDraggingStopped: Double;
 
     { Min and max sensible values for @link(Scroll). }
     function ScrollMin: Single;
@@ -3879,6 +3880,49 @@ end;
 
 procedure TCastleScrollView.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
+
+  { Make the illusion of "inertial force" when dragging, by gradually
+    decelerating dragging speed once user stops dragging. }
+  procedure DraggingInertialForce;
+  const
+    DragDecelerationDuration = 0.5;
+  var
+    CurrentDragSpeed: Single;
+  begin
+    if ScrollbarVisible then
+    begin
+      if mbLeft in Container.MousePressed then
+      begin
+        { note that we update DragSpeed even when DragSinceLastUpdate = 0,
+          which means user keeps pressing but doesn't drag }
+        if not Zero(SecondsPassed) then
+          DragSpeed := DragSinceLastUpdate / SecondsPassed else
+          DragSpeed := 0; // whatever sensible value
+        TimeSinceDraggingStopped := 0;
+      end else
+      begin
+        TimeSinceDraggingStopped += SecondsPassed;
+        if (DragSpeed <> 0) and
+           (TimeSinceDraggingStopped < DragDecelerationDuration) then
+        begin
+          CurrentDragSpeed := MapRange(
+            TimeSinceDraggingStopped, 0, DragDecelerationDuration,
+            DragSpeed, 0);
+          Scroll := Scroll + CurrentDragSpeed * SecondsPassed;
+          { stop inertial force if you reached the border of scroll }
+          if CurrentDragSpeed > 0 then
+          begin
+            if Scroll = ScrollMax then TimeSinceDraggingStopped := DragDecelerationDuration;
+          end else
+          begin
+            if Scroll = ScrollMin then TimeSinceDraggingStopped := DragDecelerationDuration;
+          end;
+        end;
+      end;
+      DragSinceLastUpdate := 0;
+    end;
+  end;
+
 var
   SR: TRectangle;
 begin
@@ -3901,6 +3945,8 @@ begin
   begin
     ScrollBarDragging := false;
     Scroll := ScrollMin; // make sure to shift to ScrollMin if scroll suddenly disappears
+    DragSpeed := 0;
+    TimeSinceDraggingStopped := 0;
   end;
 
   if ScrollBarVisible and HandleInput then
@@ -3909,6 +3955,8 @@ begin
     if Container.Pressed[K_Down] then Scroll := Scroll + KeyScrollSpeed * SecondsPassed;
     HandleInput := not ExclusiveEvents;
   end;
+
+  DraggingInertialForce;
 end;
 
 function TCastleScrollView.Press(const Event: TInputPressRelease): boolean;
@@ -3969,6 +4017,8 @@ begin
 end;
 
 function TCastleScrollView.Motion(const Event: TInputMotion): boolean;
+var
+  Drag: Single;
 begin
   Result := inherited;
   if Result then Exit;
@@ -3981,7 +4031,9 @@ begin
   end else
   if EnableDragging and (mbLeft in Event.Pressed) then
   begin
-    Scroll := Scroll + ((Event.Position[1] - Event.OldPosition[1]) / UIScale);
+    Drag := ((Event.Position[1] - Event.OldPosition[1]) / UIScale);
+    Scroll := Scroll + Drag;
+    DragSinceLastUpdate += Drag;
     Result := ExclusiveEvents;
   end;
 end;
