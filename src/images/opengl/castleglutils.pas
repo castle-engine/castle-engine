@@ -750,7 +750,14 @@ implementation
 
 {$define read_implementation}
 
-uses FGL,
+uses
+  { Because of FPC 2.6.4 bugs (not present in FPC >= 3.0.0) we cannot use here
+    the FGL unit. It breaks compilation of Lazarus packages, as compiling
+    castle_window.lpk then accidentally wants to recompile CastleGLShaders too.
+    In consequence, we use TFPObjectList instead of generic TFPGObjectList below.
+    It works cool with FPC 3.0.0, so this will be remedied once we drop FPC 2.6.4
+    compatibility. }
+  Contnrs,
   CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
   CastleLog, CastleWarnings, CastleApplicationProperties;
 
@@ -2006,7 +2013,8 @@ end;
 { scissors ------------------------------------------------------------------- }
 
 type
-  TScissorList = class(specialize TFPGObjectList<TScissor>)
+  TScissorList = class(TFPObjectList)
+  //class(specialize TFPGObjectList<TScissor>) // see comments in "uses" clause -- we cannot use FGL unit here
   public
     procedure Update;
   end;
@@ -2021,9 +2029,9 @@ var
 begin
   if Count <> 0 then
   begin
-    R := Items[0].Rect;
+    R := TScissor(Items[0]).Rect;
     for I := 1 to Count - 1 do
-      R := R * Items[I].Rect;
+      R := R * TScissor(Items[I]).Rect;
     glScissor(R.Left, R.Bottom, R.Width, R.Height);
     glEnable(GL_SCISSOR_TEST);
   end else
