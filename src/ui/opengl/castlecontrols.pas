@@ -1111,7 +1111,9 @@ type
     FKeyScrollSpeed, FWheelScrollSpeed: Single;
     FScrollBarWidth: Cardinal;
     FEnableDragging: boolean;
-    DragSinceLastUpdate, DragSpeed, TimeSinceDraggingStopped: Double;
+    DragSinceLastUpdate, DragSpeed, TimeSinceDraggingStopped, TimeSinceDraggingStarted: Double;
+    ScrollbarActive: Single;
+    FTintScrollBarInactive: TCastleColor;
 
     { Min and max sensible values for @link(Scroll). }
     function ScrollMin: Single;
@@ -1140,6 +1142,12 @@ type
     function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
+
+    { Color and alpha tint to use when scrollbar is not used.
+      May have some alpha, which makes scrollbar "make itself more opaque",
+      and thus noticeable, when you start dragging.
+      By default it's opaque white, which means that no tint is shown. }
+    property TintScrollBarInactive: TCastleColor read FTintScrollBarInactive write FTintScrollBarInactive;
   published
     { Children you add here will be scrolled. }
     property ScrollArea: TUIControlSizeable read FScrollArea;
@@ -3833,6 +3841,7 @@ begin
   FKeyScrollSpeed := DefaultKeyScrollSpeed;
   FWheelScrollSpeed := DefaultWheelScrollSpeed;
   FScrollBarWidth := DefaultScrollBarWidth;
+  FTintScrollBarInactive := White;
 
   FScrollArea := TUIControlSizeable.Create(Self);
   FScrollArea.SetSubComponent(true);
@@ -3857,13 +3866,16 @@ begin
 end;
 
 procedure TCastleScrollView.RenderOverChildren;
+var
+  Color: TCastleColor;
 begin
   Scissor.Enabled := false;
 
   if ScrollBarVisible then
   begin
-    Theme.Draw(ScrollbarFrame, tiScrollbarFrame, UIScale);
-    Theme.Draw(ScrollbarSlider, tiScrollbarSlider, UIScale);
+    Color := Lerp(ScrollbarActive, TintScrollBarInactive, White);
+    Theme.Draw(ScrollbarFrame, tiScrollbarFrame, UIScale, Color);
+    Theme.Draw(ScrollbarSlider, tiScrollbarSlider, UIScale, Color);
   end;
   inherited;
 end;
@@ -3881,8 +3893,54 @@ end;
 procedure TCastleScrollView.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 
+  { Calculate ScrollBarVisible, ScrollbarFrame, ScrollbarFrame }
+  procedure UpdateScrollBarVisibleAndRects;
+  var
+    SR: TRectangle;
+  begin
+    SR := ScreenRect;
+
+    ScrollbarFrame := SR.RightPart(ScrollBarWidthScaled);
+
+    ScrollbarSlider := ScrollbarFrame;
+    ScrollbarSlider.Height := CalculatedHeight * SR.Height div ScrollArea.CalculatedHeight;
+    ScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height;
+    { equivalent would be to set
+        ScrollBarVisible := CalculatedHeight < ScrollArea.CalculatedHeight
+      But this way makes it clear that MapRange below is valid, will not divide by zero. }
+    if ScrollBarVisible then
+      ScrollbarSlider.Bottom += Round(MapRange(Scroll, ScrollMin, ScrollMax,
+        ScrollbarFrame.Height - ScrollbarSlider.Height, 0)) else
+    begin
+      ScrollBarDragging := false;
+      Scroll := ScrollMin; // make sure to shift to ScrollMin if scroll suddenly disappears
+      DragSpeed := 0;
+      TimeSinceDraggingStopped := 0;
+      ScrollbarActive := 0;
+    end;
+  end;
+
+  procedure HandleKeys;
+  begin
+    if ScrollBarVisible and HandleInput then
+    begin
+      if Container.Pressed[K_Up  ] then
+      begin
+        Scroll := Scroll - KeyScrollSpeed * SecondsPassed;
+        TimeSinceDraggingStopped := 0;
+      end;
+      if Container.Pressed[K_Down] then
+      begin
+        Scroll := Scroll + KeyScrollSpeed * SecondsPassed;
+        TimeSinceDraggingStopped := 0;
+      end;
+      HandleInput := not ExclusiveEvents;
+    end;
+  end;
+
   { Make the illusion of "inertial force" when dragging, by gradually
-    decelerating dragging speed once user stops dragging. }
+    decelerating dragging speed once user stops dragging.
+    Also updates TimeSinceDraggingStopped. }
   procedure DraggingInertialForce;
   const
     DragDecelerationDuration = 0.5;
@@ -3923,40 +3981,43 @@ procedure TCastleScrollView.Update(const SecondsPassed: Single;
     end;
   end;
 
-var
-  SR: TRectangle;
+  { Update ScrollbarActive, TimeSinceDraggingStarted }
+  procedure UpdateScrollBarActive;
+  const
+    AppearTime = 0.5;
+    DisappearTime = 0.5;
+  var
+    NewScrollbarActive: Single;
+  begin
+    { update TimeSinceDragginStarted }
+    if TimeSinceDraggingStopped = 0 then
+    begin
+      { dragging now }
+      TimeSinceDraggingStarted += SecondsPassed;
+      if TimeSinceDraggingStarted > AppearTime then
+        NewScrollbarActive := 1 else
+        NewScrollbarActive := TimeSinceDraggingStarted / AppearTime;
+    end else
+    begin
+      { not dragging now }
+      TimeSinceDraggingStarted := 0;
+      if TimeSinceDraggingStopped > DisappearTime then
+        NewScrollbarActive := 0 else
+        NewScrollbarActive := 1 - TimeSinceDraggingStopped / DisappearTime;
+    end;
+    if ScrollbarActive <> NewScrollbarActive then
+    begin
+      ScrollbarActive := NewScrollbarActive;
+      VisibleChange;
+    end;
+  end;
+
 begin
   inherited;
-
-  { calculate ScrollBarVisible and scrollbar rectangles }
-  SR := ScreenRect;
-
-  ScrollbarFrame := SR.RightPart(ScrollBarWidthScaled);
-
-  ScrollbarSlider := ScrollbarFrame;
-  ScrollbarSlider.Height := CalculatedHeight * SR.Height div ScrollArea.CalculatedHeight;
-  ScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height;
-  { equivalent would be to set
-      ScrollBarVisible := CalculatedHeight < ScrollArea.CalculatedHeight
-    But this way makes it clear that MapRange below is valid, will not divide by zero. }
-  if ScrollBarVisible then
-    ScrollbarSlider.Bottom += Round(MapRange(Scroll, ScrollMin, ScrollMax,
-      ScrollbarFrame.Height - ScrollbarSlider.Height, 0)) else
-  begin
-    ScrollBarDragging := false;
-    Scroll := ScrollMin; // make sure to shift to ScrollMin if scroll suddenly disappears
-    DragSpeed := 0;
-    TimeSinceDraggingStopped := 0;
-  end;
-
-  if ScrollBarVisible and HandleInput then
-  begin
-    if Container.Pressed[K_Up  ] then Scroll := Scroll - KeyScrollSpeed * SecondsPassed;
-    if Container.Pressed[K_Down] then Scroll := Scroll + KeyScrollSpeed * SecondsPassed;
-    HandleInput := not ExclusiveEvents;
-  end;
-
+  UpdateScrollBarVisibleAndRects;
+  HandleKeys;
   DraggingInertialForce;
+  UpdateScrollBarActive;
 end;
 
 function TCastleScrollView.Press(const Event: TInputPressRelease): boolean;
@@ -3988,9 +4049,15 @@ begin
             ScrollbarFrame.Contains(Container.MousePosition) then
           begin
             if Container.MousePosition[1] < ScrollbarSlider.Bottom then
-              Scroll := Scroll + Height else
+            begin
+              Scroll := Scroll + Height;
+              TimeSinceDraggingStopped := 0;
+            end else
             if Container.MousePosition[1] >= ScrollbarSlider.Top then
-              Scroll := Scroll - Height else
+            begin
+              Scroll := Scroll - Height;
+              TimeSinceDraggingStopped := 0;
+            end else
               ScrollBarDragging := true;
             Result := ExclusiveEvents;
           end;
@@ -3999,6 +4066,7 @@ begin
         if Event.MouseWheelVertical then
         begin
           Scroll := Scroll - Event.MouseWheelScroll * WheelScrollSpeed;
+          TimeSinceDraggingStopped := 0;
           Result := ExclusiveEvents;
         end;
     end;
@@ -4027,6 +4095,7 @@ begin
   begin
     Scroll := Scroll + (Event.OldPosition[1] - Event.Position[1]) /
       ScrollbarFrame.Height * ScrollArea.ScreenRect.Height;
+    TimeSinceDraggingStopped := 0;
     Result := ExclusiveEvents;
   end else
   if EnableDragging and (mbLeft in Event.Pressed) then
