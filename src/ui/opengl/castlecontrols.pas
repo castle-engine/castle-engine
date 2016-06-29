@@ -1788,13 +1788,16 @@ function TCastleButton.Motion(const Event: TInputMotion): boolean;
   end;
 
 const
-  DistanceToHijackDragging = 2;
+  DistanceToHijackDragging = 20;
 begin
   Result := inherited;
   if Result then Exit;
 
   if ClickStarted and EnableParentDragging and
-    (PointsDistanceSqr(ClickStartedPosition, Event.Position) > Sqr(DistanceToHijackDragging)) then
+    (PointsDistanceSqr(ClickStartedPosition, Event.Position) >
+     { scaling with UIScale is helpful. Scaling with physical size
+       would probably be even better, for mobiles. }
+     Sqr(DistanceToHijackDragging * UIScale)) then
     CancelDragging;
 end;
 
