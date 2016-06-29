@@ -2853,6 +2853,7 @@ begin
 
   ScrollView := TCastleScrollView.Create(Self);
   ScrollView.ScrollArea.InsertFront(TDialogScrollArea.Create(Self));
+  ScrollView.EnableDragging := true;
   InsertFront(ScrollView);
 end;
 
