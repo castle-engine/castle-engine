@@ -84,6 +84,11 @@ type
     { Report type mismatch by raising EGLSLUniformTypeMismatch. }
     utException);
 
+  TGLSLUniform = object
+    Name: string;
+    Location: TGLint;
+  end;
+
   { Easily handle program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
   private
@@ -101,6 +106,7 @@ type
     FUniformNotFoundAction: TUniformNotFoundAction;
     FUniformTypeMismatchAction: TUniformTypeMismatchAction;
     procedure UniformNotFound(const Name: string; const ForceException: boolean);
+    procedure SetUniformBegin(const ForceException: boolean);
     procedure SetUniformEnd(const UniformName: string; const ForceException: boolean);
 
     { Wrapper over glGetAttribLocationARB (use only if gsExtension) }
@@ -235,6 +241,8 @@ type
 
     { What to do when GLSL uniform variable is set (SetUniform)
       but is declared with an incompatible type in the shader source.
+      Note that the default (utGLError) is fastest (other options will need
+      to check OpenGL error state often).
       @seealso TUniformTypeMismatchAction }
     property UniformTypeMismatchAction: TUniformTypeMismatchAction
       read FUniformTypeMismatchAction write FUniformTypeMismatchAction
@@ -301,6 +309,58 @@ type
     procedure SetUniform(const Name: string; const Value: TVector4SingleList; const ForceException: boolean = false);
     procedure SetUniform(const Name: string; const Value: TMatrix3SingleList; const ForceException: boolean = false);
     procedure SetUniform(const Name: string; const Value: TMatrix4SingleList; const ForceException: boolean = false);
+    { @groupEnd }
+
+    { Get the uniform information, that can be used to make repeated @link(SetUniform) calls.
+      This should be combined with @link(SetUniform) that takes @code(Uniform: TGLSLUniform).
+
+      All the rules "when can I call this" of @link(SetUniform) overload with @code(Name: string)
+      apply also here. So be sure to link the program, and enable it, before calling this method.
+
+      @raises(EGLSLUniformNotFound If the variable is not found within
+        the program and UniformNotFoundAction = uaException (default)
+        or ForceException.) }
+    function Uniform(const Name: string; const ForceException: boolean = false): TGLSLUniform;
+
+    { Set appropriate uniform variable value, given a uniform as TGLSLUniform.
+      You should get the uniform information first using the @link(Uniform) call.
+      All the documentation for @link(SetUniform) overload with @code(Name: string)
+      parameter applies also here, except in this case, you cannot get EGLSLUniformNotFound
+      exception.
+
+      The TGLSLUniform information about a given uniform stays constant while the program is linked.
+      Using the @link(Uniform) one time, and then repeatedly calling
+      SetUniform  with a @code(Uniform: TGLSLUniform) parameter, is faster than repeatedly
+      calling SetUniform with a @code(Name: string) parameter. Because the latter will
+      effectively call @link(Uniform) every time, which may have non-zero cost.
+
+      Actually, the uniform location (TGLSLUniform.Location) is constant for a given program,
+      and you can even predict the location in some cases without calling @link(Uniform)
+      method (see GLSL reference). So it can be even faster, as you can prepare
+      correct TGLSLUniform value in your own code.
+
+      @groupBegin }
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: boolean        ; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TGLint         ; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TVector2Integer; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TVector3Integer; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TVector4Integer; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TGLfloat       ; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TVector2Single ; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TVector3Single ; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TVector4Single ; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TMatrix2Single ; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TMatrix3Single ; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TMatrix4Single ; const ForceException: boolean = false);
+
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TBooleanList      ; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TLongIntList      ; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TSingleList       ; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TVector2SingleList; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TVector3SingleList; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TVector4SingleList; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TMatrix3SingleList; const ForceException: boolean = false);
+    procedure SetUniform(const AUniform: TGLSLUniform; const Value: TMatrix4SingleList; const ForceException: boolean = false);
     { @groupEnd }
 
     { Load and enable vertex attribute data.
@@ -1058,36 +1118,35 @@ begin
   end;
 end;
 
-{$ifndef OpenGLES}
-{ Wrapper over glGetUniformLocationARB (use only if gsExtension) }
-{$define GetLocationCheckARB :=
+function TGLSLProgram.Uniform(const Name: string; const ForceException: boolean): TGLSLUniform;
+begin
+  Result.Name := Name;
 
-  Location := glGetUniformLocationARB(GLhandleARB(ProgramId), PCharOrNil(Name));
-  if Location = -1 then
-  begin
-    UniformNotFound(Name, ForceException);
-    Exit;
+  case Support of
+    {$ifndef OpenGLES}
+    gsExtension: Result.Location := glGetUniformLocationARB(GLhandleARB(ProgramId), PCharOrNil(Name));
+    {$endif}
+    gsStandard : Result.Location := glGetUniformLocation   (ProgramId, PCharOrNil(Name));
+    else Result.Location := -1; // whatever, should not be used
   end;
 
-  if (UniformTypeMismatchAction in [utWarning, utException]) or
-     ForceException then
-    CheckGLErrors('Cleaning GL errors before setting GLSL uniform:');
-}
-{$endif}
+  if Result.Location = -1 then
+    UniformNotFound(Name, ForceException);
+end;
 
-{ Wrapper over glGetUniformLocation (use only if gsStandard) }
 {$define GetLocationCheck :=
-  Location := glGetUniformLocation   (ProgramId, PCharOrNil(Name));
-  if Location = -1 then
-  begin
-    UniformNotFound(Name, ForceException);
-    Exit;
-  end;
+  AUniform := Uniform(Name, ForceException);
+  if AUniform.Location = -1 then
+    Exit; // proper warning or error was already done inside UniformLocation
+  SetUniformBegin(ForceException);
+}
 
+procedure TGLSLProgram.SetUniformBegin(const ForceException: boolean);
+begin
   if (UniformTypeMismatchAction in [utWarning, utException]) or
      ForceException then
     CheckGLErrors('Cleaning GL errors before setting GLSL uniform:');
-}
+end;
 
 procedure TGLSLProgram.SetUniformEnd(const UniformName: string; const ForceException: boolean);
 var
@@ -1124,7 +1183,145 @@ end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: boolean; const ForceException: boolean);
 var
-  Location: TGLint;
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLint; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Integer; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Integer; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Integer; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLfloat; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Single; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Single; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Single; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix2Single; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3Single; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4Single; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TBooleanList; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TLongIntList; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TSingleList; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2SingleList; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3SingleList; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4SingleList; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3SingleList; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4SingleList; const ForceException: boolean);
+var
+  AUniform: TGLSLUniform;
+begin
+  GetLocationCheck SetUniform(AUniform, Value, ForceException);
+end;
+
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: boolean; const ForceException: boolean);
 begin
   { GLSL "bool" types are set using the "i" version. From manpage:
 
@@ -1137,149 +1334,150 @@ begin
 
     Which means that I can simply call glUniform1i, with Ord(Value). }
 
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniform1iARB(Location, Ord(Value)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniform1iARB(AUniform.Location, Ord(Value));
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniform1i   (Location, Ord(Value)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniform1i   (AUniform.Location, Ord(Value));
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLint; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TGLint; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniform1iARB(Location, Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniform1iARB(AUniform.Location, Value);
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniform1i   (Location, Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniform1i   (AUniform.Location, Value);
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Integer; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TVector2Integer; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniform2ivARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniform2ivARB(AUniform.Location, 1, @Value);
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniform2iv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniform2iv   (AUniform.Location, 1, @Value);
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Integer; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TVector3Integer; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniform3ivARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniform3ivARB(AUniform.Location, 1, @Value);
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniform3iv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniform3iv   (AUniform.Location, 1, @Value);
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Integer; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TVector4Integer; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniform4ivARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniform4ivARB(AUniform.Location, 1, @Value);
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniform4iv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniform4iv   (AUniform.Location, 1, @Value);
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLfloat; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TGLfloat; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniform1fARB(Location, Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniform1fARB(AUniform.Location, Value);
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniform1f   (Location, Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniform1f   (AUniform.Location, Value);
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Single; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TVector2Single; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniform2fvARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniform2fvARB(AUniform.Location, 1, @Value);
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniform2fv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniform2fv   (AUniform.Location, 1, @Value);
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Single; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TVector3Single; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniform3fvARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniform3fvARB(AUniform.Location, 1, @Value);
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniform3fv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniform3fv   (AUniform.Location, 1, @Value);
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Single; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TVector4Single; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniform4fvARB(Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniform4fvARB(AUniform.Location, 1, @Value);
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniform4fv   (Location, 1, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniform4fv   (AUniform.Location, 1, @Value);
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix2Single; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TMatrix2Single; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniformMatrix2fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniformMatrix2fvARB(AUniform.Location, 1, GL_FALSE, @Value);
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniformMatrix2fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniformMatrix2fv   (AUniform.Location, 1, GL_FALSE, @Value);
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3Single; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TMatrix3Single; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniformMatrix3fvARB(AUniform.Location, 1, GL_FALSE, @Value);
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniformMatrix3fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniformMatrix3fv   (AUniform.Location, 1, GL_FALSE, @Value);
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4Single; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TMatrix4Single; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniformMatrix4fvARB(AUniform.Location, 1, GL_FALSE, @Value);
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniformMatrix4fv   (Location, 1, GL_FALSE, @Value); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniformMatrix4fv   (AUniform.Location, 1, GL_FALSE, @Value);
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TBooleanList; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TBooleanList; const ForceException: boolean);
 var
-  Location: TGLint;
   Ints: TLongIntList;
 begin
   { We cannot pass Value.List, as Pascal booleans do not have 4 bytes
@@ -1292,98 +1490,100 @@ begin
     So convert to longints. }
   Ints := Value.ToLongInt;
   try
+    SetUniformBegin(ForceException);
     case Support of
       {$ifndef OpenGLES}
-      gsExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Ints.List)); SetUniformEnd(Name, ForceException); end;
+      gsExtension: glUniform1ivARB(AUniform.Location, Value.Count, PGLint(Ints.List));
       {$endif}
-      gsStandard : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Ints.List)); SetUniformEnd(Name, ForceException); end;
+      gsStandard : glUniform1iv   (AUniform.Location, Value.Count, PGLint(Ints.List));
     end;
+    SetUniformEnd(AUniform.Name, ForceException);
   finally FreeAndNil(Ints) end;
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TLongIntList; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TLongIntList; const ForceException: boolean);
 begin
   Assert(SizeOf(LongInt) = SizeOf(TGLint));
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniform1ivARB(Location, Value.Count, PGLint(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniform1ivARB(AUniform.Location, Value.Count, PGLint(Value.List));
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniform1iv   (Location, Value.Count, PGLint(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniform1iv   (AUniform.Location, Value.Count, PGLint(Value.List));
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TSingleList; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TSingleList; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniform1fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniform1fvARB(AUniform.Location, Value.Count, PGLfloat(Value.List));
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniform1fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniform1fv   (AUniform.Location, Value.Count, PGLfloat(Value.List));
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2SingleList; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TVector2SingleList; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniform2fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniform2fvARB(AUniform.Location, Value.Count, PGLfloat(Value.List));
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniform2fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniform2fv   (AUniform.Location, Value.Count, PGLfloat(Value.List));
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3SingleList; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TVector3SingleList; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniform3fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniform3fvARB(AUniform.Location, Value.Count, PGLfloat(Value.List));
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniform3fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniform3fv   (AUniform.Location, Value.Count, PGLfloat(Value.List));
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4SingleList; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TVector4SingleList; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniform4fvARB(Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniform4fvARB(AUniform.Location, Value.Count, PGLfloat(Value.List));
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniform4fv   (Location, Value.Count, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniform4fv   (AUniform.Location, Value.Count, PGLfloat(Value.List));
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3SingleList; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TMatrix3SingleList; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniformMatrix3fvARB(AUniform.Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniformMatrix3fv   (AUniform.Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4SingleList; const ForceException: boolean);
-var
-  Location: TGLint;
+procedure TGLSLProgram.SetUniform(const AUniform: TGLSLUniform; const Value: TMatrix4SingleList; const ForceException: boolean);
 begin
+  SetUniformBegin(ForceException);
   case Support of
     {$ifndef OpenGLES}
-    gsExtension: begin GetLocationCheckARB glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsExtension: glUniformMatrix4fvARB(AUniform.Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
     {$endif}
-    gsStandard : begin GetLocationCheck    glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List)); SetUniformEnd(Name, ForceException); end;
+    gsStandard : glUniformMatrix4fv   (AUniform.Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
   end;
+  SetUniformEnd(AUniform.Name, ForceException);
 end;
 
 {$ifndef OpenGLES}
