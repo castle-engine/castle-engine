@@ -305,6 +305,8 @@ type
     function Collides(const R: TFloatRectangle): boolean;
   end;
 
+  PFloatRectangle = ^TFloatRectangle;
+
   TRectangleList = class(specialize TGenericStructList<TRectangle>)
   public
     { Index of the first rectangle that contains point (X, Y).
@@ -312,6 +314,8 @@ type
     function FindRectangle(const X, Y: Integer): Integer;
     function FindRectangle(const Point: TVector2Single): Integer;
   end;
+
+  TFloatRectangleList = specialize TGenericStructList<TFloatRectangle>;
 
 function Rectangle(const Left, Bottom: Integer;
   const Width, Height: Cardinal): TRectangle;
