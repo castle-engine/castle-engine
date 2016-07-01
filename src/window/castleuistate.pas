@@ -118,6 +118,9 @@ type
       to make them freed during nearest @link(Stop). }
     function FreeAtStop: TComponent;
   public
+    { When @true, state operations will send a log to CastleLog. }
+    class var Log: boolean;
+
     { Current state. In case multiple states are active (only possible
       if you used @link(Push) method), this is the bottom state
       (use @link(CurrentTop) to get top state).
@@ -352,6 +355,8 @@ end;
 
 procedure TUIState.InternalStart;
 begin
+  if CastleLog.Log and Log then
+    WritelnLog('UIState', 'Starting state ' + Name + ':' + ClassName);
   Start;
   { actually insert, this will also call GLContextOpen and Resize.
     However, check first that we're still the current state,
@@ -366,6 +371,8 @@ begin
   StateContainer.Controls.Remove(Self);
   FreeAndNil(FFreeAtStop);
   Stop;
+  if CastleLog.Log and Log then
+    WritelnLog('UIState', 'Stopped state ' + Name + ':' + ClassName);
 end;
 
 function TUIState.StateContainer: TUIContainer;
@@ -404,10 +411,14 @@ end;
 
 procedure TUIState.Resume;
 begin
+  if CastleLog.Log and Log then
+    WritelnLog('UIState', 'Resuming state ' + Name + ':' + ClassName);
 end;
 
 procedure TUIState.Pause;
 begin
+  if CastleLog.Log and Log then
+    WritelnLog('UIState', 'Paused state ' + Name + ':' + ClassName);
 end;
 
 procedure TUIState.Start;

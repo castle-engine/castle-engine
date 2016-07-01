@@ -89,6 +89,7 @@
 
 { Unfortunately, it seems that this can only be specified here, not on the command-line. }
 {$writeableconst off}
+{$modeswitch advancedrecords}
 
 {$define TOBJECT_HAS_EQUALS}
 {$ifdef VER2_0}   {$undef TOBJECT_HAS_EQUALS} {$endif}

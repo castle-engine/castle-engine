@@ -305,6 +305,8 @@ type
     function Collides(const R: TFloatRectangle): boolean;
   end;
 
+  PFloatRectangle = ^TFloatRectangle;
+
   TRectangleList = class(specialize TGenericStructList<TRectangle>)
   public
     { Index of the first rectangle that contains point (X, Y).
@@ -313,6 +315,8 @@ type
     function FindRectangle(const Point: TVector2Single): Integer;
   end;
 
+  TFloatRectangleList = specialize TGenericStructList<TFloatRectangle>;
+
 function Rectangle(const Left, Bottom: Integer;
   const Width, Height: Cardinal): TRectangle;
 function Rectangle(const LeftBottom: TVector2Integer;
@@ -320,8 +324,14 @@ function Rectangle(const LeftBottom: TVector2Integer;
 function FloatRectangle(const Left, Bottom, Width, Height: Single): TFloatRectangle;
 function FloatRectangle(const R: TRectangle): TFloatRectangle;
 
+{ Sum of the two rectangles is a bounding rectangle -
+  a smallest rectangle that contains them both. }
 operator+ (const R1, R2: TRectangle): TRectangle;
 operator+ (const R1, R2: TFloatRectangle): TFloatRectangle;
+
+{ Common part of the two rectangles. }
+operator* (const R1, R2: TRectangle): TRectangle;
+operator* (const R1, R2: TFloatRectangle): TFloatRectangle;
 
 implementation
 
@@ -878,6 +888,52 @@ begin
     Top   := Max(R1.Top     , R2.Top);
     Result.Width  := Right - Result.Left;
     Result.Height := Top   - Result.Bottom;
+  end;
+end;
+
+operator* (const R1, R2: TRectangle): TRectangle;
+var
+  Right, Top: Integer;
+begin
+  if R1.IsEmpty or R2.IsEmpty then
+    Result := TRectangle.Empty else
+  begin
+    Result.Left   := Max(R1.Left  , R2.Left);
+    Result.Bottom := Max(R1.Bottom, R2.Bottom);
+    Right := Min(R1.Right   , R2.Right);
+    Top   := Min(R1.Top     , R2.Top);
+    if (Right > Result.Left) and (Top > Result.Bottom) then
+    begin
+      Result.Width  := Right - Result.Left;
+      Result.Height := Top   - Result.Bottom;
+    end else
+      Result := TRectangle.Empty;
+  end;
+end;
+
+operator* (const R1, R2: TFloatRectangle): TFloatRectangle;
+var
+  Right, Top: Single;
+begin
+  if R1.IsEmpty or R2.IsEmpty then
+    Result := TFloatRectangle.Empty else
+  begin
+    Result.Left   := Max(R1.Left  , R2.Left);
+    Result.Bottom := Max(R1.Bottom, R2.Bottom);
+    Right := Min(R1.Right   , R2.Right);
+    Top   := Min(R1.Top     , R2.Top);
+    { ">=" unline the int version that checks ">".
+      For TFloatRectangle, having zero size makes sense. }
+    if (Right >= Result.Left) and (Top >= Result.Bottom) then
+    begin
+      { use Max(0, ..) to secure from floating point errors in case equations above
+        are true but subtraction yields < 0 due to floating point inaccuracy.
+        Not sure is this possible (A >= B and still A - B < 0), probably not,
+        but better stay safe when dealing with floating point numbers. }
+      Result.Width  := Max(0, Right - Result.Left);
+      Result.Height := Max(0, Top   - Result.Bottom);
+    end else
+      Result := TFloatRectangle.Empty;
   end;
 end;
 

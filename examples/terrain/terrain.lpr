@@ -421,7 +421,7 @@ begin
 
         if Shader and (GLSLProgram <> nil) then
         begin
-          GLSLProgram.Enable;
+          CurrentProgram := GLSLProgram;
 
           glActiveTexture(GL_TEXTURE0);
           glBindTexture(GL_TEXTURE_2D, GLTexSand);
@@ -453,13 +453,11 @@ begin
             GLSLProgram.SetUniform('fog_end', VisibilityEnd);
             GLSLProgram.SetUniform('fog_color', Vector3SingleCut(BackgroundColor));
           end;
-        end;
+        end else
+          CurrentProgram := nil;
 
         DrawTerrain(CurrentTerrain, Subdivision,
           WalkCamera.Position[0], WalkCamera.Position[1], BaseSize, LayersCount);
-
-        if Shader and (GLSLProgram <> nil) then
-          GLSLProgram.Disable;
       glPopAttrib;
     end;
 

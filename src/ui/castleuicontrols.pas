@@ -423,6 +423,15 @@ type
       and that this control has focus (to keep mouse cursor hidden). }
     property ForceCaptureInput: TUIControl
       read FForceCaptureInput write SetForceCaptureInput;
+
+    { When the control accepts the "press" event, it automatically captures
+      the following motion and release events, hijacking them from other controls,
+      regardless of the mouse cursor position. This is usually desirable,
+      to allow the control to handle the dragging.
+      But sometimes you want to cancel the dragging, and allow other controls
+      to handle the following motion and release events, in which case calling this
+      method helps. }
+    procedure ReleaseCapture(const C: TUIControl);
   published
     { How OnRender callback fits within various Render methods of our
       @link(Controls).
@@ -922,12 +931,19 @@ end;
         @item(The raster position @italic((for fixed-function pipeline.))
           and (deprecated) WindowPos are set to 0,0.)
 
-        @item(Scissor is off, depth test is off.)
+        @item(Depth test is off.)
 
         @item(@italic((For fixed-function pipeline.))
           Texturing, lighting, fog is off.)
-      ) }
+      )
+
+      Beware that GLSL @link(CurrentProgram) has undefined value when this is called.
+      You should always set it, before making direct OpenGL drawing calls
+      (all the engine drawing routines of course do it already, this is only a concern
+      if you make direct OpenGL / OpenGLES calls). }
     procedure Render; virtual;
+
+    procedure RenderOverChildren; virtual;
 
     { Determines the rendering order.
       All controls with RenderStyle = rs3D are drawn first.
@@ -2170,6 +2186,19 @@ begin
   end;
 end;
 
+procedure TUIContainer.ReleaseCapture(const C: TUIControl);
+var
+  I: Integer;
+begin
+  I := 0;
+  while I < FCaptureInput.Count do
+  begin
+    if FCaptureInput.Data[I] = C then
+      FCaptureInput.Delete(I) else
+      Inc(I);
+  end;
+end;
+
 procedure TUIContainer.EventOpen(const OpenWindowsCount: Cardinal);
 
   procedure RecursiveGLContextOpen(const C: TUIControl);
@@ -2836,6 +2865,10 @@ begin
 end;
 
 procedure TUIControl.Render;
+begin
+end;
+
+procedure TUIControl.RenderOverChildren;
 begin
 end;
 

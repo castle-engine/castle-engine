@@ -1934,8 +1934,7 @@ procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
   procedure RenderOneEffect(Shader: TGLSLProgram);
   var
     BoundTextureUnits: Cardinal;
-    AttribEnabled: array [0..1] of TGLuint;
-    AttribLocation: TGLuint;
+    AttribVertex, AttribTexCoord: TGLSLAttribute;
   begin
     if ScreenPointVbo = 0 then
     begin
@@ -1966,51 +1965,50 @@ procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
       Inc(BoundTextureUnits);
     end;
 
-    Shader.Enable;
-      Shader.SetUniform('screen', 0);
-      if CurrentScreenEffectsNeedDepth then
-        Shader.SetUniform('screen_depth', 1);
-      Shader.SetUniform('screen_width', TGLint(ScreenEffectTextureWidth));
-      Shader.SetUniform('screen_height', TGLint(ScreenEffectTextureHeight));
+    CurrentProgram := Shader;
+    Shader.Uniform('screen').SetValue(0);
+    if CurrentScreenEffectsNeedDepth then
+      Shader.Uniform('screen_depth').SetValue(1);
+    Shader.Uniform('screen_width').SetValue(TGLint(ScreenEffectTextureWidth));
+    Shader.Uniform('screen_height').SetValue(TGLint(ScreenEffectTextureHeight));
 
-      { set special uniforms for SSAO shader }
-      if Shader = SSAOShader then
-      begin
-       { TODO: use actual projection near/far values, instead of hardcoded ones.
-         Assignment below works, but it seems that effect is much less noticeable
-         then?
+    { set special uniforms for SSAO shader }
+    if Shader = SSAOShader then
+    begin
+      { TODO: use actual projection near/far values, instead of hardcoded ones.
+        Assignment below works, but it seems that effect is much less noticeable
+        then?
 
-        Writeln('setting near to ', ProjectionNear:0:10); // testing
-        Writeln('setting far to ', ProjectionFarFinite:0:10); // testing
-        Shader.SetUniform('near', ProjectionNear);
-        Shader.SetUniform('far', ProjectionFarFinite);
-        }
+      Writeln('setting near to ', ProjectionNear:0:10); // testing
+      Writeln('setting far to ', ProjectionFarFinite:0:10); // testing
+      Shader.Uniform('near').SetValue(ProjectionNear);
+      Shader.Uniform('far').SetValue(ProjectionFarFinite);
+      }
 
-        Shader.SetUniform('near', 1.0);
-        Shader.SetUniform('far', 1000.0);
-      end;
+      Shader.Uniform('near').SetValue(1.0);
+      Shader.Uniform('far').SetValue(1000.0);
+    end;
 
-      { Note that we ignore SetupUniforms result --- if some texture
-        could not be bound, it will be undefined for shader.
-        I don't see anything much better to do now. }
-      Shader.SetupUniforms(BoundTextureUnits);
+    { Note that we ignore SetupUniforms result --- if some texture
+      could not be bound, it will be undefined for shader.
+      I don't see anything much better to do now. }
+    Shader.SetupUniforms(BoundTextureUnits);
 
-      { Note that there's no need to worry about Rect.Left or Rect.Bottom,
-        here or inside RenderWithScreenEffectsCore, because we're already within
-        glViewport that takes care of this. }
+    { Note that there's no need to worry about Rect.Left or Rect.Bottom,
+      here or inside RenderWithScreenEffectsCore, because we're already within
+      glViewport that takes care of this. }
 
-      AttribEnabled[0] := Shader.VertexAttribPointer(
-        'vertex'   , 0, 2, GL_FLOAT, GL_FALSE, SizeOf(TScreenPoint),
-        Offset(ScreenPoint[0].Position, ScreenPoint[0]));
-      AttribEnabled[1] := Shader.VertexAttribPointer(
-        'tex_coord', 0, 2, GL_FLOAT, GL_FALSE, SizeOf(TScreenPoint),
-        Offset(ScreenPoint[0].TexCoord, ScreenPoint[0]));
+    AttribVertex := Shader.Attribute('vertex');
+    AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TScreenPoint),
+      Offset(ScreenPoint[0].Position, ScreenPoint[0]));
+    AttribTexCoord := Shader.Attribute('tex_coord');
+    AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TScreenPoint),
+      Offset(ScreenPoint[0].TexCoord, ScreenPoint[0]));
 
-      glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-    Shader.Disable;
-    for AttribLocation in AttribEnabled do
-      TGLSLProgram.DisableVertexAttribArray(AttribLocation);
+    AttribVertex.DisableArray;
+    AttribTexCoord.DisableArray;
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   end;

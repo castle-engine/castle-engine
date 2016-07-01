@@ -42,13 +42,13 @@ type
     like on Android.) }
   TGLImageCore = class
   strict private
-    const
-      PointCount = 4;
     type
       TPoint = packed record
         Position: TVector2SmallInt;
         TexCoord: TVector2Single;
       end;
+      PPoint = ^TPoint;
+
       {$ifdef GLImageUseShaders}
       TColorTreatment = (
         { Use texture color to draw. }
@@ -59,15 +59,22 @@ type
           for alpha use constant color.a * texture.
           Useful when texture has no alpha information. }
         ctColorMultipliesTextureAlpha);
+
+      TImageProgram = record
+        Prog: TGLSLProgram;
+        UniformViewportSize, UniformColor, UniformClipLine: TGLSLUniform;
+        AttribVertex, AttribTexCoord: TGLSLAttribute;
+      end;
       {$endif}
     var
     { Static OpenGL resources, used by all TGLImageCore instances. }
-    PointVbo: TGLuint; static;
+    PointsVbo, IndexesVbo: TGLuint; static;
     { Point VBO contents, reused in every Draw. }
-    Point: array [0..PointCount - 1] of TPoint; static;
+    Points: array of TPoint; static;
+    Indexes: array of LongInt; static;
     {$ifdef GLImageUseShaders}
     TextureHasOnlyAlpha: boolean;
-    GLSLProgram: array [boolean { alpha test? }, boolean { clip? }, TColorTreatment] of TGLSLProgram; static;
+    Programs: array [boolean { alpha test? }, boolean { clip? }, TColorTreatment] of TImageProgram; static;
     {$endif}
 
     FWidth: Cardinal;
@@ -226,20 +233,27 @@ type
 
       @groupBegin }
     procedure Draw; overload;
+
     procedure Draw(const X, Y: Single); overload;
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Single); overload;
-    procedure Draw(const Pos: TVector2Integer); overload;
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Single;
-      const ImageX, ImageY, ImageWidth, ImageHeight: Single); overload; virtual;
-    procedure Draw(const ScreenRectangle: TRectangle); overload;
-    procedure Draw(const ScreenRectangle: TFloatRectangle); overload;
-    procedure Draw(const ScreenRectangle: TRectangle;
       const ImageX, ImageY, ImageWidth, ImageHeight: Single); overload;
-    procedure Draw(const ScreenRectangle: TRectangle;
-      const ImageRect: TRectangle); overload;
+
+    procedure Draw(const Pos: TVector2Integer); overload;
+
+    procedure Draw(const ScreenRect: TFloatRectangle); overload;
+    procedure Draw(const ScreenRect, ImageRect: TFloatRectangle); overload;
+
+    procedure Draw(const ScreenRect: TRectangle); overload;
+    procedure Draw(const ScreenRect: TRectangle;
+      const ImageX, ImageY, ImageWidth, ImageHeight: Single); overload;
+    procedure Draw(const ScreenRect, ImageRect: TRectangle); overload;
+
+    procedure Draw(ScreenRects, ImageRects: PFloatRectangle;
+      const Count: Integer); overload; virtual;
     { @groupEnd }
 
-    procedure DrawFlipped(const ScreenRectangle: TRectangle;
+    procedure DrawFlipped(const ScreenRect: TRectangle;
       const FlipHorizontal, FlipVertical: boolean);
 
     { In case of @link(Draw3x3) the corners
@@ -270,7 +284,7 @@ type
       const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer);
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
       const Corner: TVector4Integer);
-    procedure Draw3x3(const ScreenRectangle: TRectangle;
+    procedure Draw3x3(const ScreenRect: TRectangle;
       const Corner: TVector4Integer);
 
     (* Commented out for now: using Draw3x3 with
@@ -284,7 +298,7 @@ type
       const SideRight, SideLeft: Integer);
     procedure Draw3x1(const X, Y, DrawWidth, DrawHeight: Single;
       const Side: TVector2Integer);
-    procedure Draw3x1(const ScreenRectangle: TRectangle;
+    procedure Draw3x1(const ScreenRect: TRectangle;
       const Side: TVector2Integer);
     *)
 
@@ -458,8 +472,8 @@ type
 
     procedure Load(const AImage: TEncodedImage); override;
     procedure PrepareResources; override;
-    procedure Draw(const X, Y, DrawWidth, DrawHeight: Single;
-      const ImageX, ImageY, ImageWidth, ImageHeight: Single); override;
+    procedure Draw(ScreenRects, ImageRects: PFloatRectangle;
+      const Count: Integer); override;
   end;
 
   TGLImageManaged = TGLImage deprecated 'Use TGLImage name, it now equals the previous TGLImageManaged definition';
@@ -489,8 +503,8 @@ type
       const ASmoothScaling: boolean = true);
     destructor Destroy; override;
     procedure PrepareResources; override;
-    procedure Draw(const X, Y, DrawWidth, DrawHeight: Single;
-      const ImageX, ImageY, ImageWidth, ImageHeight: Single); override;
+    procedure Draw(ScreenRects, ImageRects: PFloatRectangle;
+      const Count: Integer); override;
   end;
 
 { Draw the image on 2D screen. Note that if you want to use this
@@ -628,20 +642,25 @@ class procedure TGLImageCore.StaticGLContextOpen;
 var
   AlphaTestShader, ClipLineShader: boolean;
   ColorTreatment: TColorTreatment;
-  NewProgram: TGLSLProgram;
+  NewProgram: TImageProgram;
   VS, FS: string;
 {$endif}
 begin
   // Some Intel GPUs may not support VBO
-  if (PointVbo = 0) and GLFeatures.VertexBufferObject then
-    glGenBuffers(1, @PointVbo);
+  if GLFeatures.VertexBufferObject then
+  begin
+    if (PointsVbo = 0) then
+      glGenBuffers(1, @PointsVbo);
+    if (IndexesVbo = 0) then
+      glGenBuffers(1, @IndexesVbo);
+  end;
 
   {$ifdef GLImageUseShaders}
-  { create GLSLProgram programs }
+  { create programs }
   for AlphaTestShader in boolean do
     for ClipLineShader in boolean do
       for ColorTreatment in TColorTreatment do
-        if GLSLProgram[AlphaTestShader, ClipLineShader, ColorTreatment] = nil then
+        if Programs[AlphaTestShader, ClipLineShader, ColorTreatment].Prog = nil then
         begin
           VS := Iff(ClipLineShader, '#define CLIP_LINE' + NL, '') +
                 {$I image.vs.inc};
@@ -656,11 +675,23 @@ begin
             WritelnLogMultiline('TGLImageCore GLSL fragment shader', FS);
           end;
 
-          NewProgram := TGLSLProgram.Create;
-          NewProgram.AttachVertexShader(VS);
-          NewProgram.AttachFragmentShader(FS);
-          NewProgram.Link(true);
-          GLSLProgram[AlphaTestShader, ClipLineShader, ColorTreatment] := NewProgram;
+          NewProgram.Prog := TGLSLProgram.Create;
+          NewProgram.Prog.AttachVertexShader(VS);
+          NewProgram.Prog.AttachFragmentShader(FS);
+          NewProgram.Prog.Link(true);
+
+          NewProgram.UniformViewportSize := NewProgram.Prog.Uniform('viewport_size');
+          if ColorTreatment <> ctPureTexture then
+            NewProgram.UniformColor := NewProgram.Prog.Uniform('color') else
+            NewProgram.UniformColor := TGLSLUniform.NotExisting;
+          if ClipLineShader then
+            NewProgram.UniformClipLine := NewProgram.Prog.Uniform('clip_line') else
+            NewProgram.UniformClipLine := TGLSLUniform.NotExisting;
+
+          NewProgram.AttribVertex := NewProgram.Prog.Attribute('vertex');
+          NewProgram.AttribTexCoord := NewProgram.Prog.Attribute('tex_coord');
+
+          Programs[AlphaTestShader, ClipLineShader, ColorTreatment] := NewProgram;
         end;
   {$endif}
 
@@ -674,12 +705,13 @@ var
   ColorTreatment: TGLImageCore.TColorTreatment;
 {$endif}
 begin
-  glFreeBuffer(PointVbo);
+  glFreeBuffer(PointsVbo);
+  glFreeBuffer(IndexesVbo);
   {$ifdef GLImageUseShaders}
   for AlphaTestShader in boolean do
     for ClipLineShader in boolean do
       for ColorTreatment in TColorTreatment do
-        FreeAndNil(GLSLProgram[AlphaTestShader, ClipLineShader, ColorTreatment]);
+        FreeAndNil(Programs[AlphaTestShader, ClipLineShader, ColorTreatment].Prog);
   {$endif}
 
   StaticResourcesReady := false;
@@ -726,26 +758,77 @@ end;
 
 procedure TGLImageCore.Draw;
 begin
-  Draw(WindowPos[0], WindowPos[1]);
+  Draw(
+    FloatRectangle(WindowPos[0], WindowPos[1], Width, Height),
+    FloatRectangle(0, 0, Width, Height));
 end;
 
 procedure TGLImageCore.Draw(const X, Y: Single);
 begin
-  Draw(X, Y, Width, Height, 0, 0, Width, Height);
+  Draw(
+    FloatRectangle(X, Y, Width, Height),
+    FloatRectangle(0, 0, Width, Height));
 end;
 
 procedure TGLImageCore.Draw(const X, Y, DrawWidth, DrawHeight: Single);
 begin
-  Draw(X, Y, DrawWidth, DrawHeight, 0, 0, Width, Height);
+  Draw(
+    FloatRectangle(X, Y, DrawWidth, DrawHeight),
+    FloatRectangle(0, 0, Width, Height));
 end;
 
 procedure TGLImageCore.Draw(const Pos: TVector2Integer);
 begin
-  Draw(Pos[0], Pos[1], Width, Height, 0, 0, Width, Height);
+  Draw(
+    FloatRectangle(Pos[0], Pos[1], Width, Height),
+    FloatRectangle(0, 0, Width, Height));
 end;
 
 procedure TGLImageCore.Draw(const X, Y, DrawWidth, DrawHeight: Single;
   const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+begin
+  Draw(
+    FloatRectangle(X, Y, DrawWidth, DrawHeight),
+    FloatRectangle(ImageX, ImageY, ImageWidth, ImageHeight));
+end;
+
+
+procedure TGLImageCore.Draw(const ScreenRect: TRectangle);
+begin
+  Draw(
+    FloatRectangle(ScreenRect),
+    FloatRectangle(0, 0, Width, Height));
+end;
+
+procedure TGLImageCore.Draw(const ScreenRect: TFloatRectangle);
+begin
+  Draw(
+    ScreenRect,
+    FloatRectangle(0, 0, Width, Height));
+end;
+
+procedure TGLImageCore.Draw(const ScreenRect: TRectangle;
+  const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+begin
+  Draw(
+    FloatRectangle(ScreenRect),
+    FloatRectangle(ImageX, ImageY, ImageWidth, ImageHeight));
+end;
+
+procedure TGLImageCore.Draw(const ScreenRect, ImageRect: TRectangle);
+begin
+  Draw(
+    FloatRectangle(ScreenRect),
+    FloatRectangle(ImageRect));
+end;
+
+procedure TGLImageCore.Draw(const ScreenRect, ImageRect: TFloatRectangle);
+begin
+  Draw(@ScreenRect, @ImageRect, 1);
+end;
+
+procedure TGLImageCore.Draw(
+  ScreenRects, ImageRects: PFloatRectangle; const Count: Integer);
 var
   ShiftX, ShiftY: Single;
 
@@ -759,17 +842,75 @@ var
     Result := Vector2SmallInt(Round(ResultSingle[0] + ShiftX), Round(ResultSingle[1] + ShiftY));
   end;
 
+  procedure SetupQuadPoints(const ScreenRect, ImageRect: TFloatRectangle;
+    QuadPoints: PPoint);
+  var
+    TexX0, TexY0, TexX1, TexY1: Single;
+    X0, Y0, X1, Y1: Int64;
+  begin
+    TexX0 := ImageRect.Left   / Width;
+    TexY0 := ImageRect.Bottom / Height;
+    TexX1 := (ImageRect.Left   + ImageRect.Width ) / Width;
+    TexY1 := (ImageRect.Bottom + ImageRect.Height) / Height;
+
+    { We could just pass float values, unrounded, to OpenGL.
+      But this lowers quality (at least without full-screen anti-aliasing),
+      e.g. in case of fonts, since OpenGL can fill only entire pixels anyway,
+      and pixels on the borders would get a little trimmed. }
+    X0 := Round(ScreenRect.Left);
+    Y0 := Round(ScreenRect.Bottom);
+    X1 := Round(ScreenRect.Left   + ScreenRect.Width);
+    Y1 := Round(ScreenRect.Bottom + ScreenRect.Height);
+
+    { Protect from X, Y and sizes going outside of the SmallInt range.
+      We want to squeeze X, Y into SmallInt to make it a little more efficient
+      to render, and there are no displays with resolution outside of SmallInt
+      range anyway. }
+    if (X0 < Low(SmallInt)) or
+       (Y0 < Low(SmallInt)) or
+       (X1 > High(SmallInt)) or
+       (Y1 > High(SmallInt)) then
+      Exit;
+
+    QuadPoints[0].TexCoord := Vector2Single(TexX0, TexY0);
+    QuadPoints[0].Position := Vector2SmallInt( X0,    Y0);
+    QuadPoints[1].TexCoord := Vector2Single(TexX1, TexY0);
+    QuadPoints[1].Position := Vector2SmallInt( X1,    Y0);
+    QuadPoints[2].TexCoord := Vector2Single(TexX1, TexY1);
+    QuadPoints[2].Position := Vector2SmallInt( X1,    Y1);
+    QuadPoints[3].TexCoord := Vector2Single(TexX0, TexY1);
+    QuadPoints[3].Position := Vector2SmallInt( X0,    Y1);
+
+    if FRotation <> 0 then
+    begin
+      if UseScreenCenter then
+      begin
+        ShiftX := ScreenCenterX;
+        ShiftY := ScreenCenterY;
+      end else
+      begin
+        ShiftX := ScreenRect.Left   + FCenterX * ScreenRect.Width;
+        ShiftY := ScreenRect.Bottom + FCenterY * ScreenRect.Height;
+      end;
+      QuadPoints[0].Position := RotatePoint2DAroundShift(QuadPoints[0].Position);
+      QuadPoints[1].Position := RotatePoint2DAroundShift(QuadPoints[1].Position);
+      QuadPoints[2].Position := RotatePoint2DAroundShift(QuadPoints[2].Position);
+      QuadPoints[3].Position := RotatePoint2DAroundShift(QuadPoints[3].Position);
+    end;
+  end;
+
 var
-  TexX0, TexY0, TexX1, TexY1: Single;
   {$ifdef GLImageUseShaders}
   ColorTreatment: TColorTreatment;
-  AttribEnabled: array [0..1] of TGLuint;
-  AttribLocation: TGLuint;
-  Prog: TGLSLProgram;
+  Prog: TImageProgram;
   {$endif}
-  X0, Y0, X1, Y1: Int64;
+  I: Integer;
 begin
-  if (DrawWidth = 0) or (DrawHeight = 0) then Exit;
+  if (Count = 0) or
+     ((Count = 1) and
+      ((ScreenRects[0].Width = 0) or
+       (ScreenRects[0].Height = 0))) then
+    Exit;
 
   if Texture = 0 then
     raise Exception.Create('TGLImageCore resources are not ready when trying to render. This probably means that you created TGLImageCore when OpenGL context was not created yet. The simplest solution is to use TGLImage instead');
@@ -780,61 +921,44 @@ begin
   glBindTexture(GL_TEXTURE_2D, Texture);
   GLEnableTexture(et2D);
 
-  TexX0 := ImageX / Width;
-  TexY0 := ImageY / Height;
-  TexX1 := (ImageX + ImageWidth ) / Width;
-  TexY1 := (ImageY + ImageHeight) / Height;
-
-  { We could just pass float values, unrounded, to OpenGL.
-    But this lowers quality (at least without full-screen anti-aliasing),
-    e.g. in case of fonts, since OpenGL can fill only entire pixels anyway,
-    and pixels on the borders would get a little trimmed. }
-  X0 := Round(X);
-  Y0 := Round(Y);
-  X1 := Round(X + DrawWidth);
-  Y1 := Round(Y + DrawHeight);
-
-  { Protect from X, Y and sizes going outside of the SmallInt range.
-    We want to squeeze X, Y into SmallInt to make it a little more efficient
-    to render, and there are no displays with resolution outside of SmallInt
-    range anyway. }
-  if (X0 < Low(SmallInt)) or
-     (Y0 < Low(SmallInt)) or
-     (X1 > High(SmallInt)) or
-     (Y1 > High(SmallInt)) then
-    Exit;
-
-  Point[0].TexCoord := Vector2Single(TexX0, TexY0);
-  Point[0].Position := Vector2SmallInt( X0,    Y0);
-  Point[1].TexCoord := Vector2Single(TexX1, TexY0);
-  Point[1].Position := Vector2SmallInt( X1,    Y0);
-  Point[2].TexCoord := Vector2Single(TexX1, TexY1);
-  Point[2].Position := Vector2SmallInt( X1,    Y1);
-  Point[3].TexCoord := Vector2Single(TexX0, TexY1);
-  Point[3].Position := Vector2SmallInt( X0,    Y1);
-
-  if FRotation <> 0 then
+  { calculate Indexes contents, only used when Count <> 1 }
+  if Count <> 1 then
   begin
-    if UseScreenCenter then
+    SetLength(Indexes, Count * 6);
+    for I := 0 to Count - 1 do
     begin
-      ShiftX := ScreenCenterX;
-      ShiftY := ScreenCenterY;
-    end else
-    begin
-      ShiftX := X + FCenterX * DrawWidth;
-      ShiftY := Y + FCenterY * DrawHeight;
+      { 1st triangle of quad }
+      Indexes[I * 6    ] := I * 4;
+      Indexes[I * 6 + 1] := I * 4 + 1;
+      Indexes[I * 6 + 2] := I * 4 + 2;
+      { 2nd triangle of quad }
+      Indexes[I * 6 + 3] := I * 4;
+      Indexes[I * 6 + 4] := I * 4 + 2;
+      Indexes[I * 6 + 5] := I * 4 + 3;
     end;
-    Point[0].Position := RotatePoint2DAroundShift(Point[0].Position);
-    Point[1].Position := RotatePoint2DAroundShift(Point[1].Position);
-    Point[2].Position := RotatePoint2DAroundShift(Point[2].Position);
-    Point[3].Position := RotatePoint2DAroundShift(Point[3].Position);
+  end;
+
+  { calculate Point contents }
+  SetLength(Points, Count * 4);
+  for I := 0 to Count - 1 do
+  begin
+    SetupQuadPoints(ScreenRects^, ImageRects^, @Points[I * 4]);
+    Inc(ScreenRects);
+    Inc(ImageRects);
   end;
 
   if GLFeatures.VertexBufferObject then
   begin
-    glBindBuffer(GL_ARRAY_BUFFER, PointVbo);
-    glBufferData(GL_ARRAY_BUFFER, PointCount * SizeOf(TPoint),
-      @Point[0], GL_STREAM_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, PointsVbo);
+    glBufferData(GL_ARRAY_BUFFER, Length(Points) * SizeOf(TPoint),
+      @Points[0], GL_STREAM_DRAW);
+
+    if Count <> 1 then
+    begin
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexesVbo);
+      glBufferData(GL_ELEMENT_ARRAY_BUFFER, Length(Indexes) * SizeOf(LongInt),
+        @Indexes[0], GL_STREAM_DRAW);
+    end;
   end;
 
   AlphaBegin;
@@ -846,18 +970,19 @@ begin
     ColorTreatment := ctColorMultipliesTexture else
     ColorTreatment := ctPureTexture;
 
-  Prog := GLSLProgram[FinalAlpha = acSimpleYesNo, Clip, ColorTreatment];
-  Prog.Enable;
-  AttribEnabled[0] := Prog.VertexAttribPointer('vertex', 0, 2, GL_SHORT, GL_FALSE,
-    SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
-  AttribEnabled[1] := Prog.VertexAttribPointer('tex_coord', 0, 2, GL_FLOAT, GL_FALSE,
-    SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
-  Prog.SetUniform('viewport_size', Viewport2DSize);
+  Prog := Programs[FinalAlpha = acSimpleYesNo, Clip, ColorTreatment];
+  CurrentProgram := Prog.Prog;
+  Prog.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE,
+    SizeOf(TPoint), Offset(Points[0].Position, Points[0]));
+  Prog.AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
+    SizeOf(TPoint), Offset(Points[0].TexCoord, Points[0]));
+  Prog.UniformViewportSize.SetValue(Viewport2DSize);
   if ColorTreatment <> ctPureTexture then
-    Prog.SetUniform('color', Color);
+    Prog.UniformColor.SetValue(Color);
   if Clip then
-    Prog.SetUniform('clip_line', ClipLine);
+    Prog.UniformClipLine.SetValue(ClipLine);
   {$else}
+  CurrentProgram := nil;
   glLoadIdentity();
   glColorv(Color);
 
@@ -866,13 +991,13 @@ begin
   if GLFeatures.VertexBufferObject then
   begin
     glVertexPointer(2, GL_SHORT,
-      SizeOf(TPoint), Offset(Point[0].Position, Point[0]));
+      SizeOf(TPoint), Offset(Points[0].Position, Points[0]));
     glTexCoordPointer(2, GL_FLOAT,
-      SizeOf(TPoint), Offset(Point[0].TexCoord, Point[0]));
+      SizeOf(TPoint), Offset(Points[0].TexCoord, Points[0]));
   end else
   begin
-    glVertexPointer  (2, GL_SHORT, SizeOf(TPoint), @(Point[0].Position));
-    glTexCoordPointer(2, GL_FLOAT, SizeOf(TPoint), @(Point[0].TexCoord));
+    glVertexPointer  (2, GL_SHORT, SizeOf(TPoint), @(Points[0].Position));
+    glTexCoordPointer(2, GL_FLOAT, SizeOf(TPoint), @(Points[0].TexCoord));
   end;
   if Clip then
   begin
@@ -882,14 +1007,23 @@ begin
   end;
   {$endif}
 
-  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+  if Count <> 1 then
+  begin
+    if GLFeatures.VertexBufferObject then
+    begin
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexesVbo);
+      glDrawElements(GL_TRIANGLES, Length(Indexes), GL_UNSIGNED_INT, nil);
+    end else
+      glDrawElements(GL_TRIANGLES, Length(Indexes), GL_UNSIGNED_INT, @Indexes[0]);
+  end else
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
   {$ifdef GLImageUseShaders}
-  Prog.Disable;
+  // Prog.Prog.Disable; // not necessary, and may give some speed gain if the next drawing call will also use TGLImage
   { attribute arrays are enabled independent from GLSL program, so we need
     to disable them separately }
-  for AttribLocation in AttribEnabled do
-    TGLSLProgram.DisableVertexAttribArray(AttribLocation);
+  Prog.AttribVertex.DisableArray;
+  Prog.AttribTexCoord.DisableArray;
   {$else}
   if Clip then
     glDisable(GL_CLIP_PLANE0);
@@ -908,30 +1042,7 @@ begin
   GLEnableTexture(etNone);
 end;
 
-procedure TGLImageCore.Draw(const ScreenRectangle: TRectangle);
-begin
-  Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
-    ScreenRectangle.Width, ScreenRectangle.Height,
-    0, 0, Width, Height);
-end;
-
-procedure TGLImageCore.Draw(const ScreenRectangle: TFloatRectangle);
-begin
-  Draw(ScreenRectangle.Left,
-       ScreenRectangle.Bottom,
-       ScreenRectangle.Width,
-       ScreenRectangle.Height);
-end;
-
-procedure TGLImageCore.Draw(const ScreenRectangle: TRectangle;
-  const ImageX, ImageY, ImageWidth, ImageHeight: Single);
-begin
-  Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
-    ScreenRectangle.Width, ScreenRectangle.Height,
-    ImageX, ImageY, ImageWidth, ImageHeight);
-end;
-
-procedure TGLImageCore.DrawFlipped(const ScreenRectangle: TRectangle;
+procedure TGLImageCore.DrawFlipped(const ScreenRect: TRectangle;
   const FlipHorizontal, FlipVertical: boolean);
 var
   ImageX, ImageY, ImageWidth, ImageHeight: Single;
@@ -956,16 +1067,7 @@ begin
     ImageHeight := Height;
   end;
 
-  Draw(ScreenRectangle, ImageX, ImageY, ImageWidth, ImageHeight);
-end;
-
-procedure TGLImageCore.Draw(const ScreenRectangle: TRectangle;
-  const ImageRect: TRectangle);
-begin
-  Draw(ScreenRectangle.Left, ScreenRectangle.Bottom,
-    ScreenRectangle.Width, ScreenRectangle.Height,
-    ImageRect.Left, ImageRect.Bottom,
-    ImageRect.Width, ImageRect.Height);
+  Draw(ScreenRect, ImageX, ImageY, ImageWidth, ImageHeight);
 end;
 
 procedure TGLImageCore.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
@@ -1088,11 +1190,11 @@ begin
     Corner[0], Corner[1], Corner[2], Corner[3]);
 end;
 
-procedure TGLImageCore.Draw3x3(const ScreenRectangle: TRectangle;
+procedure TGLImageCore.Draw3x3(const ScreenRect: TRectangle;
   const Corner: TVector4Integer);
 begin
-  Draw3x3(ScreenRectangle.Left, ScreenRectangle.Bottom,
-    ScreenRectangle.Width, ScreenRectangle.Height,
+  Draw3x3(ScreenRect.Left, ScreenRect.Bottom,
+    ScreenRect.Width, ScreenRect.Height,
     Corner[0], Corner[1], Corner[2], Corner[3]);
 end;
 
@@ -1190,11 +1292,11 @@ begin
   Draw3x1(X, Y, DrawWidth, DrawHeight, Side[0], Side[1]);
 end;
 
-procedure TGLImageCore.Draw3x1(const ScreenRectangle: TRectangle;
+procedure TGLImageCore.Draw3x1(const ScreenRect: TRectangle;
   const Side: TVector2Integer);
 begin
-  Draw3x1(ScreenRectangle.Left, ScreenRectangle.Bottom,
-    ScreenRectangle.Width, ScreenRectangle.Height,
+  Draw3x1(ScreenRect.Left, ScreenRect.Bottom,
+    ScreenRect.Width, ScreenRect.Height,
     Side[0], Side[1]);
 end;
 
@@ -1322,8 +1424,8 @@ begin
     Load(AImage);
 end;
 
-procedure TGLImage.Draw(const X, Y, DrawWidth, DrawHeight: Single;
-  const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+procedure TGLImage.Draw(ScreenRects, ImageRects: PFloatRectangle;
+  const Count: Integer);
 begin
   // we load on demand, so do PrepareResources always
   PrepareResources;
@@ -1368,8 +1470,8 @@ begin
   inherited;
 end;
 
-procedure TGLImageOnDemand.Draw(const X, Y, DrawWidth, DrawHeight: Single;
-  const ImageX, ImageY, ImageWidth, ImageHeight: Single);
+procedure TGLImageOnDemand.Draw(ScreenRects, ImageRects: PFloatRectangle;
+  const Count: Integer);
 begin
   // we load on demand, so do PrepareResources always
   PrepareResources;

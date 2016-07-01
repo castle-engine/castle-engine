@@ -48,6 +48,7 @@ function UTF8CharStart(UTF8Str: PChar; Len, CharIndex: PtrInt): PChar;
 function UTF8Copy(const s: string; StartCharIndex, CharCount: PtrInt): string;
 
 { Return unicode character pointed by P.
+  CharLen is set to 0 only when pointer P is @nil, otherwise it's always > 0.
 
   The typical usage of this is to iterate over UTF-8 string char-by-char, like this:
 
