@@ -63,6 +63,7 @@ type
       TImageProgram = record
         Prog: TGLSLProgram;
         UniformViewportSize, UniformColor, UniformClipLine: TGLSLUniform;
+        AttribVertex, AttribTexCoord: TGLSLAttribute;
       end;
       {$endif}
     var
@@ -687,6 +688,9 @@ begin
             NewProgram.UniformClipLine := NewProgram.Prog.Uniform('clip_line') else
             NewProgram.UniformClipLine := TGLSLUniform.NotExisting;
 
+          NewProgram.AttribVertex := NewProgram.Prog.Attribute('vertex');
+          NewProgram.AttribTexCoord := NewProgram.Prog.Attribute('tex_coord');
+
           Programs[AlphaTestShader, ClipLineShader, ColorTreatment] := NewProgram;
         end;
   {$endif}
@@ -898,8 +902,6 @@ var
 var
   {$ifdef GLImageUseShaders}
   ColorTreatment: TColorTreatment;
-  AttribEnabled: array [0..1] of TGLuint;
-  AttribLocation: TGLuint;
   Prog: TImageProgram;
   {$endif}
   I: Integer;
@@ -970,9 +972,9 @@ begin
 
   Prog := Programs[FinalAlpha = acSimpleYesNo, Clip, ColorTreatment];
   CurrentProgram := Prog.Prog;
-  AttribEnabled[0] := Prog.Prog.VertexAttribPointer('vertex', 0, 2, GL_SHORT, GL_FALSE,
+  Prog.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE,
     SizeOf(TPoint), Offset(Points[0].Position, Points[0]));
-  AttribEnabled[1] := Prog.Prog.VertexAttribPointer('tex_coord', 0, 2, GL_FLOAT, GL_FALSE,
+  Prog.AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
     SizeOf(TPoint), Offset(Points[0].TexCoord, Points[0]));
   Prog.UniformViewportSize.SetValue(Viewport2DSize);
   if ColorTreatment <> ctPureTexture then
@@ -1020,8 +1022,8 @@ begin
   // Prog.Prog.Disable; // not necessary, and may give some speed gain if the next drawing call will also use TGLImage
   { attribute arrays are enabled independent from GLSL program, so we need
     to disable them separately }
-  for AttribLocation in AttribEnabled do
-    TGLSLProgram.DisableVertexAttribArray(AttribLocation);
+  Prog.AttribVertex.DisableArray;
+  Prog.AttribTexCoord.DisableArray;
   {$else}
   if Clip then
     glDisable(GL_CLIP_PLANE0);

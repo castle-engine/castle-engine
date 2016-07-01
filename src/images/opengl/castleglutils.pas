@@ -1520,6 +1520,8 @@ const
 var
   {$ifdef GLImageUseShaders}
   GLRectangleProgram: TGLSLProgram;
+  GLRectangleUniformViewportSize, GLRectangleUniformColor: TGLSLUniform;
+  GLRectangleAttribVertex: TGLSLAttribute;
   {$endif}
   RectanglePointVbo: TGLuint;
   RectanglePoint: packed array [0..3] of TVector2SmallInt;
@@ -1529,10 +1531,6 @@ procedure DrawRectangleGL(const R: TRectangle; const Color: TCastleColor;
   const ForceBlending: boolean);
 var
   Blending: boolean;
-{$ifdef GLImageUseShaders}
-  AttribEnabled: array [0..0] of TGLuint;
-  AttribLocation: TGLuint;
-{$endif}
 begin
   {$ifdef GLImageUseShaders}
   if GLRectangleProgram = nil then
@@ -1541,6 +1539,10 @@ begin
     GLRectangleProgram.AttachVertexShader({$I rectangle.vs.inc});
     GLRectangleProgram.AttachFragmentShader({$I rectangle.fs.inc});
     GLRectangleProgram.Link(true);
+
+    GLRectangleUniformViewportSize := GLRectangleProgram.Uniform('viewport_size');
+    GLRectangleUniformColor := GLRectangleProgram.Uniform('color');
+    GLRectangleAttribVertex := GLRectangleProgram.Attribute('vertex');
   end;
   {$endif}
 
@@ -1568,10 +1570,9 @@ begin
 
   {$ifdef GLImageUseShaders}
   CurrentProgram := GLRectangleProgram;
-  AttribEnabled[0] := GLRectangleProgram.VertexAttribPointer(
-    'vertex', 0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), nil);
-  GLRectangleProgram.SetUniform('viewport_size', Viewport2DSize);
-  GLRectangleProgram.SetUniform('color', Color);
+  GLRectangleAttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), nil);
+  GLRectangleUniformViewportSize.SetValue(Viewport2DSize);
+  GLRectangleUniformColor.SetValue(Color);
 
   {$else}
   CurrentProgram := nil;
@@ -1587,11 +1588,10 @@ begin
   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
   {$ifdef GLImageUseShaders}
-  GLRectangleProgram.Disable;
+  // GLRectangleProgram.Disable; // no need to disable, keep it enabled to save speed
   { attribute arrays are enabled independent from GLSL program, so we need
     to disable them separately }
-  for AttribLocation in AttribEnabled do
-    TGLSLProgram.DisableVertexAttribArray(AttribLocation);
+  GLRectangleAttribVertex.DisableArray;
   {$else}
   glDisableClientState(GL_VERTEX_ARRAY);
   {$endif}
