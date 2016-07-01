@@ -1053,9 +1053,12 @@ const
 
   function AndroidActivityLoadLibraries: string;
   begin
+    { some Android devices work without this clause, some don't }
     Result := '';
     if depSound in Dependencies then
       Result += 'safeLoadLibrary("openal");' + NL;
+    if depOggVorbis in Dependencies then
+      Result += 'safeLoadLibrary("tremolo");' + NL;
   end;
 
   { Make CamelCase with only safe characters (digits and letters). }
