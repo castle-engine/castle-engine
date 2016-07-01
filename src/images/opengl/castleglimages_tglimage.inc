@@ -969,7 +969,7 @@ begin
     ColorTreatment := ctPureTexture;
 
   Prog := Programs[FinalAlpha = acSimpleYesNo, Clip, ColorTreatment];
-  Prog.Prog.Enable;
+  CurrentProgram := Prog.Prog;
   AttribEnabled[0] := Prog.Prog.VertexAttribPointer('vertex', 0, 2, GL_SHORT, GL_FALSE,
     SizeOf(TPoint), Offset(Points[0].Position, Points[0]));
   AttribEnabled[1] := Prog.Prog.VertexAttribPointer('tex_coord', 0, 2, GL_FLOAT, GL_FALSE,
@@ -980,6 +980,7 @@ begin
   if Clip then
     Prog.UniformClipLine.SetValue(ClipLine);
   {$else}
+  CurrentProgram := nil;
   glLoadIdentity();
   glColorv(Color);
 
@@ -1016,7 +1017,7 @@ begin
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
   {$ifdef GLImageUseShaders}
-  Prog.Prog.Disable;
+  // Prog.Prog.Disable; // not necessary, and may give some speed gain if the next drawing call will also use TGLImage
   { attribute arrays are enabled independent from GLSL program, so we need
     to disable them separately }
   for AttribLocation in AttribEnabled do

@@ -113,25 +113,9 @@ type
 
       Using these points you can easily draw given frustum on screen.
       Use FrustumPointsQuadsIndexes to obtain indexes to FrustumPoints.
-      E.g. using OpenGL use code like this:
 
-@longCode(#
-  glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(4, GL_FLOAT / GL_DOUBLE, 0, @@FrustumPoints);
-
-    glDrawElements(GL_QUADS,
-      SizeOf(FrustumPointsQuadsIndexes) div SizeOf(LongWord),
-      GL_UNSIGNED_INT, @@FrustumPointsQuadsIndexes);
-    // or
-    glDrawElements(GL_LINES,
-      SizeOf(FrustumPointsLinesIndexes) div SizeOf(LongWord),
-      GL_UNSIGNED_INT, @@FrustumPointsLinesIndexes);
-
-  glDisableClientState(GL_VERTEX_ARRAY);
-#)
-
-      This example rendering code will even work Ok with far plane in infinity.
-      Then the 4 points of the far plane will be "in infinity",
+      Note that when the far plane is in infinity,
+      the 4 points of the far plane will be "in infinity",
       that is will have 4th component set to zero. Or, equivalently,
       they will be directions. Homogeneous coordinates allow us for this,
       and in fact you can just render such points without any problems
@@ -245,7 +229,7 @@ type
 
       @raises(ETransformedResultInvalid In some cases when matrix is not sane.) }
     function Transform(const M: TMatrix4Single): TFrustum;
-    
+
     function ToNiceStr(const Indent: string): string;
   end;
   PFrustum = ^TFrustum;

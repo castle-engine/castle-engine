@@ -1567,13 +1567,14 @@ begin
   end;
 
   {$ifdef GLImageUseShaders}
-  GLRectangleProgram.Enable;
+  CurrentProgram := GLRectangleProgram;
   AttribEnabled[0] := GLRectangleProgram.VertexAttribPointer(
     'vertex', 0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), nil);
   GLRectangleProgram.SetUniform('viewport_size', Viewport2DSize);
   GLRectangleProgram.SetUniform('color', Color);
 
   {$else}
+  CurrentProgram := nil;
   glLoadIdentity();
   glColorv(Color);
 
