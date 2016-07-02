@@ -26,9 +26,12 @@ type
     procedure RenderHexagonal;
     procedure RenderIsometric;
   public
+    { If using this constructor then you have to use LoadFromFile procedure after. }
     constructor Create(AOwner: TComponent); override; overload;
     constructor Create(AOwner: TComponent; AURL: string); overload;
     destructor Destroy; override;
+    { Load given TMX file to memory and creates structures. }
+    procedure LoadFromFile(AURL: string);
     procedure Render; override;
   end;
 
@@ -68,9 +71,17 @@ begin
   inherited Destroy;
 end;
 
+procedure TCastleTiledMapControl.LoadFromFile(AURL: string);
+begin
+  if not (FTiledMap = nil) then FTiledMap.Free;
+  FTiledMap := TTiledMap.Create(AURL);
+end;
+
 procedure TCastleTiledMapControl.Render;
 begin
   inherited Render;
+  if FTiledMap = nil then Exit;
+
   case FTiledMap.Orientation of
     MO_Orthogonal: RenderOrthogonal;
     MO_Isometric: RenderIsometric;
