@@ -78,10 +78,17 @@ var
     (texture area is 1/4), value = 3 means that each size is 1/4 and so on.
 
     Note that textures used for GUI, by TGLImageCore
-    (more precisely: all non-power-of-2 textures) avoid this scaling entirely. }
+    (more precisely: all non-power-of-2 textures) avoid this scaling entirely.
+
+    This allows to scale the textures at runtime.
+    For an independent mechanism that allows to @bold(load) already
+    downscaled textures (and scale them as a preprocessing step when
+    packaging your game), see @link(TextureLoadingScale).
+    The documentation of @link(TextureLoadingScale) lists all the differences
+    between these two approaches to scaling. }
   GLTextureScale: Cardinal = 1;
 
-  { Contraints the scaling done by GLTextureScale.
+  { Constraints the scaling done by GLTextureScale.
     Scaling caused by GLTextureScale cannot scale texture to something
     less than GLTextureMinSize. If texture size was already < GLTextureMinSize,
     it is not scaled at all by GLTextureScale.
@@ -207,8 +214,8 @@ begin
   NewHeight := ResizeToTextureSize(R.Height, Sizing);
 
   if Log then
-    WritelnLog('Textures', Format('Resizing 2D texture from %dx%d to %dx%d',
-      [R.Width, R.Height, NewWidth, NewHeight]));
+    WritelnLog('Textures', Format('Resizing 2D texture "%s" from %dx%d to %dx%d',
+      [URIDisplay(R.URL), R.Width, R.Height, NewWidth, NewHeight]));
 
   result := r.MakeResized(NewWidth, NewHeight, riBilinear);
 end;
