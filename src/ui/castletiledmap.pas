@@ -240,7 +240,7 @@ type
 
   { Loading and manipulating "Tiled" map files (http://mapeditor.org).
     Based on Tiled version 0.14. }
-  TCastleTiledMap = class
+  TTiledMap = class
   private
     { Map stuff. }
     { The TMX format version, generally 1.0. }
@@ -279,6 +279,7 @@ type
     FLayers: TLayers;
     procedure LoadTMXFile(AURL: string);
   public
+    property Orientation: TMapOrientation read FOrientation write FOrientation;
     { @param(AURL) - URL to TMX file. }
     constructor Create(AURL: string);
     destructor Destroy; override;
@@ -286,7 +287,7 @@ type
 
 implementation
 
-procedure TCastleTiledMap.LoadTileset(Element: TDOMElement);
+procedure TTiledMap.LoadTileset(Element: TDOMElement);
 var
   I: TXMLElementIterator;
   NewTileset: TTileset;
@@ -344,7 +345,7 @@ begin
   FTilesets.Add(NewTileset);
 end;
 
-procedure TCastleTiledMap.LoadProperty(Element: TDOMElement;
+procedure TTiledMap.LoadProperty(Element: TDOMElement;
   var AProperty: TProperty);
 begin
   AProperty.Name := Element.GetAttribute('name');
@@ -355,7 +356,7 @@ begin
   WritelnLog('LoadProperty type', AProperty._type);
 end;
 
-procedure TCastleTiledMap.LoadProperties(Element: TDOMElement;
+procedure TTiledMap.LoadProperties(Element: TDOMElement;
   var AProperties: TProperties);
 var
   I: TXMLElementIterator;
@@ -379,7 +380,7 @@ begin
   finally FreeAndNil(I) end;
 end;
 
-procedure TCastleTiledMap.LoadImage(Element: TDOMElement; var AImage: TImage);
+procedure TTiledMap.LoadImage(Element: TDOMElement; var AImage: TImage);
 const
   DEFAULT_TRANS:TCastleColorRGB = ( 1.0, 0.0, 1.0); {Fuchsia}
 begin
@@ -401,7 +402,7 @@ begin
   //todo: loading data element
 end;
 
-procedure TCastleTiledMap.LoadLayer(Element: TDOMElement);
+procedure TTiledMap.LoadLayer(Element: TDOMElement);
 var
   I: TXMLElementIterator;
   NewLayer: TLayer;
@@ -446,7 +447,7 @@ begin
   FLayers.Add(NewLayer);
 end;
 
-procedure TCastleTiledMap.LoadObjectGroup(Element: TDOMElement);
+procedure TTiledMap.LoadObjectGroup(Element: TDOMElement);
 var
   I: TXMLElementIterator;
   NewLayer: TLayer;
@@ -504,7 +505,7 @@ begin
   FLayers.Add(NewLayer);
 end;
 
-procedure TCastleTiledMap.LoadTiledObject(Element: TDOMElement;
+procedure TTiledMap.LoadTiledObject(Element: TDOMElement;
   var ATiledObject: TTiledObject);
 var
   I: TXMLElementIterator;
@@ -595,7 +596,7 @@ begin
   end;
 end;
 
-procedure TCastleTiledMap.LoadImageLayer(Element: TDOMElement);
+procedure TTiledMap.LoadImageLayer(Element: TDOMElement);
 var
   I: TXMLElementIterator;
   NewLayer: TLayer;
@@ -646,7 +647,7 @@ begin
   FLayers.Add(NewLayer);
 end;
 
-procedure TCastleTiledMap.LoadData(Element: TDOMElement; var AData: TData);
+procedure TTiledMap.LoadData(Element: TDOMElement; var AData: TData);
 const
   BufferSize = 16;
   CSVDataSeparator = Char(',');
@@ -762,7 +763,7 @@ begin
   end;
 end;
 
-procedure TCastleTiledMap.LoadTMXFile(AURL: string);
+procedure TTiledMap.LoadTMXFile(AURL: string);
 var
   Doc: TXMLDocument;
   TmpStr: string;
@@ -820,7 +821,7 @@ begin
   end;
 end;
 
-constructor TCastleTiledMap.Create(AURL: string);
+constructor TTiledMap.Create(AURL: string);
 begin
   FTilesets := TTilesets.Create;
   FProperties := TProperties.Create;
@@ -830,7 +831,7 @@ begin
   LoadTMXFile(AURL);
 end;
 
-destructor TCastleTiledMap.Destroy;
+destructor TTiledMap.Destroy;
 begin
   FreeAndNil(FTilesets);
   FreeAndNil(FProperties);

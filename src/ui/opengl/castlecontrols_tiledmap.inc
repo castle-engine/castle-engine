@@ -21,9 +21,14 @@
 type
   TCastleTiledMapControl = class(TUIControl)
   private
-    FTiledMap: TCastleTiledMap;
+    FTiledMap: TTiledMap;
+    procedure RenderOrthogonal;
+    procedure RenderHexagonal;
+    procedure RenderIsometric;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent); override; overload;
+    constructor Create(AOwner: TComponent; AURL: string); overload;
+    destructor Destroy; override;
     procedure Render; override;
   end;
 
@@ -31,14 +36,46 @@ type
 
 {$ifdef read_implementation}
 
+procedure TCastleTiledMapControl.RenderOrthogonal;
+begin
+  //todo: implement me
+end;
+
+procedure TCastleTiledMapControl.RenderHexagonal;
+begin
+  //todo: implement me
+end;
+
+procedure TCastleTiledMapControl.RenderIsometric;
+begin
+  //todo: implement me
+end;
+
 constructor TCastleTiledMapControl.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 end;
 
+constructor TCastleTiledMapControl.Create(AOwner: TComponent; AURL: string);
+begin
+  Create(AOwner);
+  FTiledMap := TTiledMap.Create(AURL);
+end;
+
+destructor TCastleTiledMapControl.Destroy;
+begin
+  FTiledMap.Free;
+  inherited Destroy;
+end;
+
 procedure TCastleTiledMapControl.Render;
 begin
   inherited Render;
+  case FTiledMap.Orientation of
+    MO_Orthogonal: RenderOrthogonal;
+    MO_Isometric: RenderIsometric;
+    MO_Staggered: RenderHexagonal;
+  end;
 end;
 
 {$endif read_implementation}
