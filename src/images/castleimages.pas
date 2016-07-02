@@ -505,9 +505,7 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       As with @link(Resize), ResizeTo* = 0 means to use current Width/Height.
 
       This uses slow but (potentially) pretty interpolation mode
-      expressed as TResizeNiceInterpolation.
-      It is implemented only for some descendants --- currently, TRGBImage
-      and TRGBAlphaImage. }
+      expressed as TResizeNiceInterpolation. }
     function MakeResized(ResizeWidth, ResizeHeight: Cardinal;
       const Interpolation: TResizeNiceInterpolation): TCastleImage;
 
