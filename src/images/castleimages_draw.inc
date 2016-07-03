@@ -136,6 +136,25 @@ begin
   Result := W;
 end;
 
+function MultiplyBytes(const Dest, Source: Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+var
+  W: Word;
+begin
+  W := Dest * Word(Source) div 255;
+  if W > 255 then W := 255;
+  Result := W;
+end;
+
+function MultiplyBytesOpaque(const Dest, Source, Opacity: Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+var
+  W: Word;
+begin
+  W := Dest * (255 - Opacity) div 255 + Dest * Word(Source) div 255 * Opacity div 255;
+  if W > 255 then W := 255;
+  Result := W;
+end;
+
+
 { Drawing when TRGBAlphaImage is a destination ------------------------------- }
 
 procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
@@ -161,6 +180,22 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             Inc(PDest);
           end;
         end;
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := MultiplyBytes(PDest^[0],PSource^[0]);
+              PDest^[1] := MultiplyBytes(PDest^[1],PSource^[1]);
+              PDest^[2] := MultiplyBytes(PDest^[2],PSource^[2]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         for DestY := Y to Y + SourceHeight - 1 do
         begin
@@ -175,7 +210,7 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             Inc(PDest);
           end;
         end;
-      else raise EImageDrawError.Create('Blend mode not implemented (TRGBAlphaImage.DrawFromCore)');
+      else raise EImageDrawError.CreateFmt(SErrBlendModeNotImplemented, [Source.ClassName, ClassName]);
     end;
   end;
 
@@ -187,7 +222,6 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
 
     //variables for smart-blending mode
     alpha1,alpha2,alpha1d,alphaSum:single;
-    j: integer;
   begin
     case Mode of
       dmBlend:
@@ -211,7 +245,7 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
           PDest := PixelPtr(X, DestY);
           for DestX := X to X + SourceWidth - 1 do
           begin
-            //get single alpha
+            //get alpha in 0..1 range
             alpha1 := PDest^[3]/255;
             alpha2 := PSource^[3]/255;
             //calculate alpha-sums according to https://en.wikipedia.org/wiki/Alpha_compositing
@@ -220,12 +254,30 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             // if alpha sum >0 then do the pixel colors and alpha summation according to the formula
             if alphaSum > 0 then
             begin
-              for j := 0 to 2 do
-                PDest^[j] := Round((PDest^[j]*alpha1d + PSource^[j]*alpha2)/alphaSum);
+              PDest^[0] := Round((PDest^[0]*alpha1d + PSource^[0]*alpha2)/alphaSum);
+              PDest^[1] := Round((PDest^[1]*alpha1d + PSource^[1]*alpha2)/alphaSum);
+              PDest^[2] := Round((PDest^[2]*alpha1d + PSource^[2]*alpha2)/alphaSum);
               PDest^[3] := Round(255*alphaSum);
             end;
             Inc(PSource);
             Inc(PDest);
+          end;
+        end;
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := MultiplyBytes(PDest^[0],PSource^[0]);
+              PDest^[1] := MultiplyBytes(PDest^[1],PSource^[1]);
+              PDest^[2] := MultiplyBytes(PDest^[2],PSource^[2]);
+              PDest^[3] := MultiplyBytes(PDest^[3],PSource^[3]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
           end;
         end;
       dmAdd:
@@ -269,6 +321,9 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
     PSource: PVector2Byte;
     PDest: PVector4Byte;
     DestX, DestY: Integer;
+
+    //variables for smart-blending mode
+    alpha1,alpha2,alpha1d,alphaSum:single;
   begin
     case Mode of
       dmBlend:
@@ -283,6 +338,48 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest^[2] := BlendBytes(PDest^[2], PSource^[0], PSource^[1]);
             Inc(PSource);
             Inc(PDest);
+          end;
+        end;
+      dmBlendSmart:
+        for DestY := Y to Y + SourceHeight - 1 do
+        begin
+          PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+          PDest := PixelPtr(X, DestY);
+          for DestX := X to X + SourceWidth - 1 do
+          begin
+            //get alpha in 0..1 range
+            alpha1 := PDest^[3]/255;
+            alpha2 := PSource^[1]/255;
+            //calculate alpha-sums according to https://en.wikipedia.org/wiki/Alpha_compositing
+            alpha1d := alpha1*(1-alpha2);
+            alphasum := alpha1+(1-alpha1)*alpha2;
+            // if alpha sum >0 then do the pixel colors and alpha summation according to the formula
+            if alphaSum > 0 then
+            begin
+              PDest^[0] := Round((PDest^[0]*alpha1d + PSource^[0]*alpha2)/alphaSum);
+              PDest^[1] := Round((PDest^[1]*alpha1d + PSource^[0]*alpha2)/alphaSum);
+              PDest^[2] := Round((PDest^[2]*alpha1d + PSource^[0]*alpha2)/alphaSum);
+              PDest^[3] := Round(255*alphaSum);
+            end;
+            Inc(PSource);
+            Inc(PDest);
+          end;
+        end;
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := MultiplyBytes(PDest^[0],PSource^[0]);
+              PDest^[1] := MultiplyBytes(PDest^[1],PSource^[0]);
+              PDest^[2] := MultiplyBytes(PDest^[2],PSource^[0]);
+              PDest^[3] := MultiplyBytes(PDest^[3],PSource^[1]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
           end;
         end;
       dmAdd:
@@ -340,6 +437,22 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest^[2] := PSource^;
             Inc(PSource);
             Inc(PDest);
+          end;
+        end;
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := MultiplyBytes(PDest^[0],PSource^);
+              PDest^[1] := MultiplyBytes(PDest^[1],PSource^);
+              PDest^[2] := MultiplyBytes(PDest^[2],PSource^);
+              Inc(PSource);
+              Inc(PDest);
+            end;
           end;
         end;
       dmAdd:
@@ -386,6 +499,22 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
   begin
     case Mode of
       { dmBlend is handled by inherited }
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := MultiplyBytes(PDest^[0],PSource^[0]);
+              PDest^[1] := MultiplyBytes(PDest^[1],PSource^[1]);
+              PDest^[2] := MultiplyBytes(PDest^[2],PSource^[2]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         for DestY := Y to Y + SourceHeight - 1 do
         begin
@@ -411,7 +540,7 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
     DestX, DestY: Integer;
   begin
     case Mode of
-      dmBlend:
+      dmBlend,dmBlendSmart:
         for DestY := Y to Y + SourceHeight - 1 do
         begin
           PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
@@ -423,6 +552,22 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             PDest^[2] := BlendBytes(PDest^[2], PSource^[2], PSource^[3]);
             Inc(PSource);
             Inc(PDest);
+          end;
+        end;
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := MultiplyBytesOpaque(PDest^[0],PSource^[0],PSource^[3]);
+              PDest^[1] := MultiplyBytesOpaque(PDest^[1],PSource^[1],PSource^[3]);
+              PDest^[2] := MultiplyBytesOpaque(PDest^[2],PSource^[2],PSource^[3]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
           end;
         end;
       dmAdd:
@@ -468,7 +613,7 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
     DestX, DestY: Integer;
   begin
     case Mode of
-      dmBlend:
+      dmBlend,dmBlendSmart:
         for DestY := Y to Y + SourceHeight - 1 do
         begin
           PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
@@ -480,6 +625,22 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             PDest^[2] := BlendBytes(PDest^[2], PSource^[0], PSource^[1]);
             Inc(PSource);
             Inc(PDest);
+          end;
+        end;
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := MultiplyBytesOpaque(PDest^[0],PSource^[0],PSource^[1]);
+              PDest^[1] := MultiplyBytesOpaque(PDest^[1],PSource^[0],PSource^[1]);
+              PDest^[2] := MultiplyBytesOpaque(PDest^[2],PSource^[0],PSource^[1]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
           end;
         end;
       dmAdd:
@@ -539,6 +700,22 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             Inc(PDest);
           end;
         end;
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := MultiplyBytes(PDest^[0],PSource^);
+              PDest^[1] := MultiplyBytes(PDest^[1],PSource^);
+              PDest^[2] := MultiplyBytes(PDest^[2],PSource^);
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         for DestY := Y to Y + SourceHeight - 1 do
         begin
@@ -558,7 +735,7 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
   end;
 
 begin
-  if (Source is TRGBImage) and (Mode = dmAdd) then
+  if (Source is TRGBImage) and ((Mode = dmAdd) or (Mode = dmMultiply)) then
     SourceRGB(TRGBImage(Source)) else
   if Source is TRGBAlphaImage then
     SourceRGBAlpha(TRGBAlphaImage(Source)) else
@@ -582,7 +759,7 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
     DestX, DestY: Integer;
   begin
     case Mode of
-      dmBlend:
+      dmBlend,dmBlendSmart:
         for DestY := Y to Y + SourceHeight - 1 do
         begin
           PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
@@ -592,6 +769,20 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             PDest^ := BlendBytes(PDest^, GrayscaleValue(PSource^), PSource^[3]);
             Inc(PSource);
             Inc(PDest);
+          end;
+        end;
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^ := MultiplyBytesOpaque(PDest^,GrayscaleValue(PSource^),PSource^[3]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
           end;
         end;
       dmAdd:
@@ -633,7 +824,7 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
     DestX, DestY: Integer;
   begin
     case Mode of
-      dmBlend:
+      dmBlend,dmBlendSmart:
         for DestY := Y to Y + SourceHeight - 1 do
         begin
           PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
@@ -643,6 +834,20 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             PDest^ := BlendBytes(PDest^, PSource^[0], PSource^[1]);
             Inc(PSource);
             Inc(PDest);
+          end;
+        end;
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^ := MultiplyBytesOpaque(PDest^,PSource^[0],PSource^[1]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
           end;
         end;
       dmAdd:
@@ -685,6 +890,20 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
   begin
     case Mode of
       { dmBlend handled by inherited }
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^ := MultiplyBytes(PDest^,PSource^);
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         {if Source.PremultipliedAlpha then
         begin
@@ -736,6 +955,20 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             Inc(PDest);
           end;
         end;
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^ := MultiplyBytes(PDest^,GrayscaleValue(PSource^));
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         for DestY := Y to Y + SourceHeight - 1 do
         begin
@@ -755,7 +988,7 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
 begin
   if Source is TRGBAlphaImage then
     SourceRGBAlpha(TRGBAlphaImage(Source)) else
-  if (Source is TGrayscaleImage) and (Mode = dmAdd) then
+  if (Source is TGrayscaleImage) and ((Mode = dmAdd) or (Mode = dmMultiply)) then
     SourceGrayscale(TGrayscaleImage(Source)) else
   if Source is TGrayscaleAlphaImage then
     SourceGrayscaleAlpha(TGrayscaleAlphaImage(Source)) else
@@ -789,6 +1022,20 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             Inc(PDest);
           end;
         end;
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := MultiplyBytes(PDest^[0],GrayscaleValue(PSource^));
+              Inc(PSource);
+              Inc(PDest);
+            end;
+          end;
+        end;
       dmAdd:
         for DestY := Y to Y + SourceHeight - 1 do
         begin
@@ -810,6 +1057,9 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
     PSource: PVector4Byte;
     PDest: PVector2Byte;
     DestX, DestY: Integer;
+
+    //variables for smart-blending mode
+    alpha1,alpha2,alpha1d,alphaSum:single;
   begin
     case Mode of
       dmBlend:
@@ -822,6 +1072,44 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest^[0] := BlendBytes(PDest^[0], GrayscaleValue(PSource^), PSource^[3]);
             Inc(PSource);
             Inc(PDest);
+          end;
+        end;
+      dmBlendSmart:
+        for DestY := Y to Y + SourceHeight - 1 do
+        begin
+          PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+          PDest := PixelPtr(X, DestY);
+          for DestX := X to X + SourceWidth - 1 do
+          begin
+            //get alpha in 0..1 range
+            alpha1 := PDest^[1]/255;
+            alpha2 := PSource^[3]/255;
+            //calculate alpha-sums according to https://en.wikipedia.org/wiki/Alpha_compositing
+            alpha1d := alpha1*(1-alpha2);
+            alphasum := alpha1+(1-alpha1)*alpha2;
+            // if alpha sum >0 then do the pixel colors and alpha summation according to the formula
+            if alphaSum > 0 then
+            begin
+              PDest^[0] := Round((PDest^[0]*alpha1d + GrayscaleValue(PSource^)*alpha2)/alphaSum);
+              PDest^[1] := Round(255*alphaSum);
+            end;
+            Inc(PSource);
+            Inc(PDest);
+          end;
+        end;
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := MultiplyBytes(PDest^[0],GrayscaleValue(PSource^));
+              PDest^[1] := MultiplyBytes(PDest^[1],PSource^[3]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
           end;
         end;
       dmAdd:
@@ -861,6 +1149,9 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
     PSource: PVector2Byte;
     PDest: PVector2Byte;
     DestX, DestY: Integer;
+
+    //variables for smart-blending mode
+    alpha1,alpha2,alpha1d,alphaSum:single;
   begin
     case Mode of
       dmBlend:
@@ -873,6 +1164,44 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest^[0] := BlendBytes(PDest^[0], PSource^[0], PSource^[1]);
             Inc(PSource);
             Inc(PDest);
+          end;
+        end;
+      dmBlendSmart:
+        for DestY := Y to Y + SourceHeight - 1 do
+        begin
+          PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+          PDest := PixelPtr(X, DestY);
+          for DestX := X to X + SourceWidth - 1 do
+          begin
+            //get alpha in 0..1 range
+            alpha1 := PDest^[1]/255;
+            alpha2 := PSource^[1]/255;
+            //calculate alpha-sums according to https://en.wikipedia.org/wiki/Alpha_compositing
+            alpha1d := alpha1*(1-alpha2);
+            alphasum := alpha1+(1-alpha1)*alpha2;
+            // if alpha sum >0 then do the pixel colors and alpha summation according to the formula
+            if alphaSum > 0 then
+            begin
+              PDest^[0] := Round((PDest^[0]*alpha1d + PSource^[0]*alpha2)/alphaSum);
+              PDest^[1] := Round(255*alphaSum);
+            end;
+            Inc(PSource);
+            Inc(PDest);
+          end;
+        end;
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := MultiplyBytes(PDest^[0],PSource^[0]);
+              PDest^[1] := MultiplyBytes(PDest^[1],PSource^[1]);
+              Inc(PSource);
+              Inc(PDest);
+            end;
           end;
         end;
       dmAdd:
@@ -924,6 +1253,20 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest^[0] := PSource^;
             Inc(PSource);
             Inc(PDest);
+          end;
+        end;
+      dmMultiply:
+        begin
+          for DestY := Y to Y + SourceHeight - 1 do
+          begin
+            PSource := Source.PixelPtr(SourceX, SourceY + DestY - Y);
+            PDest := PixelPtr(X, DestY);
+            for DestX := X to X + SourceWidth - 1 do
+            begin
+              PDest^[0] := MultiplyBytes(PDest^[0],PSource^);
+              Inc(PSource);
+              Inc(PDest);
+            end;
           end;
         end;
       dmAdd:

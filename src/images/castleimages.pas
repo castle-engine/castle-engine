@@ -253,11 +253,16 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
     dmBlend,
 
     { An advanced blending mode capable of blending 2 images with alpha channel.
-      Based on https://en.wikipedia.org/wiki/Alpha_compositing formula for alpha-blending.
-      This one is much less efficient than dmBlend and should be used only in case
-      several layers of semi-transparent images should overlay one another and it
-      matters to accurately account for both images alpha channel. }
+    Based on https://en.wikipedia.org/wiki/Alpha_compositing formula for alpha-blending.
+    This one is much less efficient than dmBlend and should be used only in case
+    several layers of semi-transparent images should overlay one another and it
+    matters to accurately account for both images alpha channel. Implemented for
+    all @link(TRGBAlphaImage) and @link(TGrayscaleAlphaImage) combinations.
+    }
     dmBlendSmart,
+    { Simple implementation of 'multiply' filter. I.e. bytes of one image are just
+    multiplied by bytes of another image.}
+    dmMultiply,
 
     { Additive drawing mode, where the image contents of source image
       are added to the existing destination image. That is,
