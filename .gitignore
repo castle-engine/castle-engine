@@ -79,6 +79,8 @@ examples/images_videos/image_compare
 examples/images_videos/image_convert
 examples/images_videos/image_identify
 examples/images_videos/simple_video_editor
+examples/images_videos/drawing_modes_test
+examples/images_videos/drawing_modes_test.exe
 examples/isometric_game/sandbox
 examples/joystick/joystick_demo
 examples/lazarus/load_model_and_camera_manually/lib/
