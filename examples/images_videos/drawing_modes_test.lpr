@@ -20,7 +20,8 @@ program drawing_modes_test;
 {$Apptype GUI}
 
 uses Classes, SysUtils,
-  CastleWindow, CastleImages, CastleFilesUtils, CastleControls;
+  CastleWindow, CastleImages, CastleFilesUtils, CastleControls, CastleUIControls,
+  CastleColors;
 
 type
   TSetOfImages = class(TComponent)
@@ -82,10 +83,40 @@ begin
   for i := 0 to 4 do
     for j := 0 to 4 do
     begin
-      data[i,j].Bottom := Window.height - (y + data[i,j].image.height * (j + 1));
-      data[i,j].left := x + data[i,j].image.width * i;
+      data[i,j].Anchor(vpTop, - (y + data[i,j].image.height * j));
+      data[i,j].Anchor(hpLeft, x + data[i,j].image.width * i);
       Window.Controls.InsertFront(data[i,j]);
     end;
+end;
+
+const
+  ImageSize = 128;
+
+procedure AddLabels(const Horizontal: boolean);
+var
+  Labels: array [0..3] of TCastleLabel;
+  I: Integer;
+begin
+  for I := 0 to 3 do
+  begin
+    Labels[I] := TCastleLabel.Create(Application);
+    Labels[I].Color := White;
+    Labels[I].Alignment := hpMiddle;
+    if Horizontal then
+    begin
+      Labels[I].Anchor(hpMiddle, hpLeft, ImageSize * (I + 1) + ImageSize div 2);
+      Labels[I].Anchor(vpMiddle, vpTop, - ImageSize div 2);
+    end else
+    begin
+      Labels[I].Anchor(hpMiddle, hpLeft, ImageSize div 2);
+      Labels[I].Anchor(vpMiddle, vpTop, - ImageSize * (I + 1) - ImageSize div 2);
+    end;
+    Window.Controls.InsertFront(Labels[I]);
+  end;
+  Labels[0].Caption := 'RGB' + LineEnding + '+ Alpha';
+  Labels[1].Caption := 'Grayscale' + LineEnding + '+ Alpha';
+  Labels[2].Caption := 'RGB';
+  Labels[3].Caption := 'Grayscale';
 end;
 
 begin
@@ -102,10 +133,15 @@ begin
   Legend := LoadImage(ApplicationData('Legend.png'), [TGrayscaleImage]) as TGrayscaleImage;
   NotApplicable := LoadImage(ApplicationData('na.png'), [TGrayscaleImage]) as TGrayscaleImage;
 
-  Window.Height := 128 * 5;
-  Window.Width := 128 * 5;
+  Window.Height := ImageSize * 5;
+  Window.Width := ImageSize * 5;
   SetOfImages := TSetOfImages.Create(Application);
   SetOfImages.Reset(0, 0, dmBlend);
+
+  UIFont.Outline := 1;
+  UIFont.OutlineColor := Black;
+  AddLabels(false);
+  AddLabels(true);
 
   Window.Open;
   Application.Run;
