@@ -149,11 +149,11 @@ function MultiplyBytesOpaque(const Dest, Source, Opacity: Byte): Byte; {$ifdef S
 var
   W: Word;
 begin
-  W := Dest * (255 - Opacity) div 255 + Dest * Word(Source) div 255 * Opacity div 255;
+  W := Word(Dest) *                  (255 - Opacity) div 255 +
+       Word(Dest) * Source div 255 *        Opacity  div 255;
   if W > 255 then W := 255;
   Result := W;
 end;
-
 
 { Drawing when TRGBAlphaImage is a destination ------------------------------- }
 
@@ -188,9 +188,9 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^[0] := MultiplyBytes(PDest^[0],PSource^[0]);
-              PDest^[1] := MultiplyBytes(PDest^[1],PSource^[1]);
-              PDest^[2] := MultiplyBytes(PDest^[2],PSource^[2]);
+              PDest^[0] := MultiplyBytes(PDest^[0], PSource^[0]);
+              PDest^[1] := MultiplyBytes(PDest^[1], PSource^[1]);
+              PDest^[2] := MultiplyBytes(PDest^[2], PSource^[2]);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -271,10 +271,10 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^[0] := MultiplyBytes(PDest^[0],PSource^[0]);
-              PDest^[1] := MultiplyBytes(PDest^[1],PSource^[1]);
-              PDest^[2] := MultiplyBytes(PDest^[2],PSource^[2]);
-              PDest^[3] := MultiplyBytes(PDest^[3],PSource^[3]);
+              PDest^[0] := MultiplyBytes(PDest^[0], PSource^[0]);
+              PDest^[1] := MultiplyBytes(PDest^[1], PSource^[1]);
+              PDest^[2] := MultiplyBytes(PDest^[2], PSource^[2]);
+              PDest^[3] := MultiplyBytes(PDest^[3], PSource^[3]);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -373,10 +373,10 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^[0] := MultiplyBytes(PDest^[0],PSource^[0]);
-              PDest^[1] := MultiplyBytes(PDest^[1],PSource^[0]);
-              PDest^[2] := MultiplyBytes(PDest^[2],PSource^[0]);
-              PDest^[3] := MultiplyBytes(PDest^[3],PSource^[1]);
+              PDest^[0] := MultiplyBytes(PDest^[0], PSource^[0]);
+              PDest^[1] := MultiplyBytes(PDest^[1], PSource^[0]);
+              PDest^[2] := MultiplyBytes(PDest^[2], PSource^[0]);
+              PDest^[3] := MultiplyBytes(PDest^[3], PSource^[1]);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -447,9 +447,9 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^[0] := MultiplyBytes(PDest^[0],PSource^);
-              PDest^[1] := MultiplyBytes(PDest^[1],PSource^);
-              PDest^[2] := MultiplyBytes(PDest^[2],PSource^);
+              PDest^[0] := MultiplyBytes(PDest^[0], PSource^);
+              PDest^[1] := MultiplyBytes(PDest^[1], PSource^);
+              PDest^[2] := MultiplyBytes(PDest^[2], PSource^);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -507,9 +507,9 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^[0] := MultiplyBytes(PDest^[0],PSource^[0]);
-              PDest^[1] := MultiplyBytes(PDest^[1],PSource^[1]);
-              PDest^[2] := MultiplyBytes(PDest^[2],PSource^[2]);
+              PDest^[0] := MultiplyBytes(PDest^[0], PSource^[0]);
+              PDest^[1] := MultiplyBytes(PDest^[1], PSource^[1]);
+              PDest^[2] := MultiplyBytes(PDest^[2], PSource^[2]);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -562,9 +562,9 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^[0] := MultiplyBytesOpaque(PDest^[0],PSource^[0],PSource^[3]);
-              PDest^[1] := MultiplyBytesOpaque(PDest^[1],PSource^[1],PSource^[3]);
-              PDest^[2] := MultiplyBytesOpaque(PDest^[2],PSource^[2],PSource^[3]);
+              PDest^[0] := MultiplyBytesOpaque(PDest^[0], PSource^[0], PSource^[3]);
+              PDest^[1] := MultiplyBytesOpaque(PDest^[1], PSource^[1], PSource^[3]);
+              PDest^[2] := MultiplyBytesOpaque(PDest^[2], PSource^[2], PSource^[3]);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -635,9 +635,9 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^[0] := MultiplyBytesOpaque(PDest^[0],PSource^[0],PSource^[1]);
-              PDest^[1] := MultiplyBytesOpaque(PDest^[1],PSource^[0],PSource^[1]);
-              PDest^[2] := MultiplyBytesOpaque(PDest^[2],PSource^[0],PSource^[1]);
+              PDest^[0] := MultiplyBytesOpaque(PDest^[0], PSource^[0], PSource^[1]);
+              PDest^[1] := MultiplyBytesOpaque(PDest^[1], PSource^[0], PSource^[1]);
+              PDest^[2] := MultiplyBytesOpaque(PDest^[2], PSource^[0], PSource^[1]);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -708,9 +708,9 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^[0] := MultiplyBytes(PDest^[0],PSource^);
-              PDest^[1] := MultiplyBytes(PDest^[1],PSource^);
-              PDest^[2] := MultiplyBytes(PDest^[2],PSource^);
+              PDest^[0] := MultiplyBytes(PDest^[0], PSource^);
+              PDest^[1] := MultiplyBytes(PDest^[1], PSource^);
+              PDest^[2] := MultiplyBytes(PDest^[2], PSource^);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -779,7 +779,7 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^ := MultiplyBytesOpaque(PDest^,GrayscaleValue(PSource^),PSource^[3]);
+              PDest^ := MultiplyBytesOpaque(PDest^, GrayscaleValue(PSource^), PSource^[3]);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -844,7 +844,7 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^ := MultiplyBytesOpaque(PDest^,PSource^[0],PSource^[1]);
+              PDest^ := MultiplyBytesOpaque(PDest^, PSource^[0], PSource^[1]);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -898,7 +898,7 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^ := MultiplyBytes(PDest^,PSource^);
+              PDest^ := MultiplyBytes(PDest^, PSource^);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -963,7 +963,7 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^ := MultiplyBytes(PDest^,GrayscaleValue(PSource^));
+              PDest^ := MultiplyBytes(PDest^, GrayscaleValue(PSource^));
               Inc(PSource);
               Inc(PDest);
             end;
@@ -1030,7 +1030,7 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^[0] := MultiplyBytes(PDest^[0],GrayscaleValue(PSource^));
+              PDest^[0] := MultiplyBytes(PDest^[0], GrayscaleValue(PSource^));
               Inc(PSource);
               Inc(PDest);
             end;
@@ -1105,8 +1105,8 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^[0] := MultiplyBytes(PDest^[0],GrayscaleValue(PSource^));
-              PDest^[1] := MultiplyBytes(PDest^[1],PSource^[3]);
+              PDest^[0] := MultiplyBytes(PDest^[0], GrayscaleValue(PSource^));
+              PDest^[1] := MultiplyBytes(PDest^[1], PSource^[3]);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -1197,8 +1197,8 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^[0] := MultiplyBytes(PDest^[0],PSource^[0]);
-              PDest^[1] := MultiplyBytes(PDest^[1],PSource^[1]);
+              PDest^[0] := MultiplyBytes(PDest^[0], PSource^[0]);
+              PDest^[1] := MultiplyBytes(PDest^[1], PSource^[1]);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -1263,7 +1263,7 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^[0] := MultiplyBytes(PDest^[0],PSource^);
+              PDest^[0] := MultiplyBytes(PDest^[0], PSource^);
               Inc(PSource);
               Inc(PDest);
             end;
