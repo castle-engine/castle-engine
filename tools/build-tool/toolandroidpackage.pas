@@ -185,7 +185,7 @@ var
       R: TCastleImage;
       Dir: string;
     begin
-      R := Icon.MakeResized(Size, Size, rniLanczos);
+      R := Icon.MakeResized(Size, Size, riLanczos);
       try
         Dir := 'res' + PathDelim + 'drawable-' + S + 'dpi';
         PackageSaveImage(R, Dir + PathDelim + 'ic_launcher.png');

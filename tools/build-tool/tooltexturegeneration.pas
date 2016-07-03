@@ -325,7 +325,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     TextureMinSize = 16;
   var
     InputFile, OutputFile: string;
-    Image, NewImage: TCastleImage;
+    Image: TCastleImage;
     NewWidth, NewHeight: Integer;
   begin
     if CheckNeedsUpdate(InputURL, OutputURL, InputFile, OutputFile) then
@@ -341,10 +341,8 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
         if Verbose then
           Writeln(Format('Resizing "%s" from %dx%d to %dx%d',
             [InputURL, Image.Width, Image.Height, NewWidth, NewHeight]));
-        NewImage := Image.MakeResized(NewWidth, NewHeight, rniLanczos);
-        try
-          SaveImage(NewImage, OutputURL);
-        finally FreeAndNil(NewImage) end;
+        Image.Resize(NewWidth, NewHeight, riLanczos);
+        SaveImage(Image, OutputURL);
       finally FreeAndNil(Image) end;
     end;
   end;

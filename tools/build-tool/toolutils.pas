@@ -98,8 +98,7 @@ type
     { Find image with given extension, or '' if not found. }
     function FindExtension(const Extensions: array of string): string;
     { Find and read an image format that we can process with our CastleImages.
-      Try to read it to a class that supports nice-quality resizing
-      (TResizeNiceInterpolation).
+      Try to read it to a class that supports nice-quality resizing (TResizeInterpolationFpImage).
       @nil if not found. }
     function FindReadable: TCastleImage;
   end;
