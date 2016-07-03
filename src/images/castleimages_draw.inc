@@ -145,12 +145,16 @@ begin
   Result := W;
 end;
 
-function MultiplyBytesOpaque(const Dest, Source, Opacity: Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+{ Used by dmMultiply when source image has alpha, but destination doesn't.
+  If SourceOpacity = 255, the result must be equal to MultiplyBytes(Dest, Source)
+  result (following the rule "image without alpha always works like image with opaque alpha"),
+  but we can do something more useful in case SourceOpacity < 255. }
+function MultiplyBytesOpaque(const Dest, Source, SourceOpacity: Byte): Byte; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 var
   W: Word;
 begin
-  W := Word(Dest) *                  (255 - Opacity) div 255 +
-       Word(Dest) * Source div 255 *        Opacity  div 255;
+  W := Word(Dest) *                  (255 - SourceOpacity) div 255 +
+       Word(Dest) * Source div 255 *        SourceOpacity  div 255;
   if W > 255 then W := 255;
   Result := W;
 end;

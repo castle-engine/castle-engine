@@ -262,7 +262,26 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
     }
     dmBlendSmart,
 
-    { Multiply bytes of source image with destination. }
+    { Multiply two images. Simply multiply source with destination, channel by channel:
+
+      @preformatted(
+destination.rgba := destination.rgba * source.rgba;
+)
+
+      The exception is when the source image has alpha channel,
+      but destination does not. For example, when source is TRGBAlphaImage
+      or TGrayscaleAlphaImage and destination is TRGBImage or TGrayscaleImage.
+      In this case the multiplication is followed by a simple blending,
+      to apply the effects of source alpha:
+
+      @preformatted(
+destination.rgb :=
+  source.rgb * destination.rgb * source.alpha +
+               destination.rgb * (1 - source.alpha);
+)
+
+      Note that if source.alpha = 1 (source is opaque) that this is equivalent
+      to the previous simple multiply equation. }
     dmMultiply,
 
     { Additive drawing mode, where the image contents of source image
