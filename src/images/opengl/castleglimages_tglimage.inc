@@ -426,7 +426,7 @@ type
       Or use TGLImageCore class. }
     constructor Create(const AImage: TEncodedImage;
       const ASmoothScaling: boolean);
-      deprecated 'this constructor overload is provided only for compatibility';
+      deprecated 'this constructor overload is provided only for compatibility, better keep the image instance lifetime guaranteed and use the constructor with AOwnsImage parameter';
 
     { Load image from disk, and prepare for drawing.
 

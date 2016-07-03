@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Image loaders using FPImage.
+{ Image oparations using FPImage.
 
   FPImage docs:
   http://lazarus-ccr.sourceforge.net/docs/fcl/fpimage/index.html
@@ -29,95 +29,97 @@
 
 { TFPMemoryImage -> TEncodedImage --------------------------------------------- }
 
-class function TRGBImage.FromFpImage(const FPImage: TFPMemoryImage): TRGBImage;
+procedure TEncodedImage.FromFpImage(const FPImage: TFPMemoryImage);
+begin
+  NotImplemented('FromFpImage');
+end;
+
+procedure TRGBImage.FromFpImage(const FPImage: TFPMemoryImage);
 var
   X, Y: Integer;
   ResultPixels: PVector3Byte;
   Color: TFPColor;
 begin
-  Result := TRGBImage.Create(FPImage.Width, FPImage.Height);
-  try
-    ResultPixels := Result.RGBPixels;
-    for Y := FPImage.Height - 1 downto 0 do
-      for X := 0 to FPImage.Width - 1 do
-      begin
-        Color := FPImage.Colors[X, Y];
-        ResultPixels^[0] := Color.Red shr 8;
-        ResultPixels^[1] := Color.Green shr 8;
-        ResultPixels^[2] := Color.Blue shr 8;
-        Inc(ResultPixels);
-      end;
-  except FreeAndNil(Result); raise end;
+  SetSize(FPImage.Width, FPImage.Height);
+
+  ResultPixels := RGBPixels;
+  for Y := FPImage.Height - 1 downto 0 do
+    for X := 0 to FPImage.Width - 1 do
+    begin
+      Color := FPImage.Colors[X, Y];
+      ResultPixels^[0] := Color.Red shr 8;
+      ResultPixels^[1] := Color.Green shr 8;
+      ResultPixels^[2] := Color.Blue shr 8;
+      Inc(ResultPixels);
+    end;
 end;
 
-class function TRGBAlphaImage.FromFpImage(const FPImage: TFPMemoryImage): TRGBAlphaImage;
+procedure TRGBAlphaImage.FromFpImage(const FPImage: TFPMemoryImage);
 var
   X, Y: Integer;
   ResultPixels: PVector4Byte;
   Color: TFPColor;
 begin
-  Result := TRGBAlphaImage.Create(FPImage.Width, FPImage.Height);
-  try
-    ResultPixels := Result.AlphaPixels;
-    for Y := FPImage.Height - 1 downto 0 do
-      for X := 0 to FPImage.Width - 1 do
-      begin
-        Color := FPImage.Colors[X, Y];
-        ResultPixels^[0] := Color.Red shr 8;
-        ResultPixels^[1] := Color.Green shr 8;
-        ResultPixels^[2] := Color.Blue shr 8;
-        ResultPixels^[3] := Color.Alpha shr 8;
-        Inc(ResultPixels);
-      end;
-  except FreeAndNil(Result); raise end;
+  SetSize(FPImage.Width, FPImage.Height);
+
+  ResultPixels := AlphaPixels;
+  for Y := FPImage.Height - 1 downto 0 do
+    for X := 0 to FPImage.Width - 1 do
+    begin
+      Color := FPImage.Colors[X, Y];
+      ResultPixels^[0] := Color.Red shr 8;
+      ResultPixels^[1] := Color.Green shr 8;
+      ResultPixels^[2] := Color.Blue shr 8;
+      ResultPixels^[3] := Color.Alpha shr 8;
+      Inc(ResultPixels);
+    end;
 end;
 
-class function TGrayscaleImage.FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleImage;
+procedure TGrayscaleImage.FromFpImage(const FPImage: TFPMemoryImage);
 var
   X, Y: Integer;
   ResultPixels: PByte;
   Color: TFPColor;
 begin
-  Result := TGrayscaleImage.Create(FPImage.Width, FPImage.Height);
-  try
-    ResultPixels := Result.GrayscalePixels;
-    for Y := FPImage.Height - 1 downto 0 do
-      for X := 0 to FPImage.Width - 1 do
-      begin
-        Color := FPImage.Colors[X, Y];
-        ResultPixels^ := GrayscaleValue(Vector3Byte(
-          Color.Red shr 8,
-          Color.Green shr 8,
-          Color.Blue shr 8));
-        Inc(ResultPixels);
-      end;
-  except FreeAndNil(Result); raise end;
+  SetSize(FPImage.Width, FPImage.Height);
+
+  ResultPixels := GrayscalePixels;
+  for Y := FPImage.Height - 1 downto 0 do
+    for X := 0 to FPImage.Width - 1 do
+    begin
+      Color := FPImage.Colors[X, Y];
+      ResultPixels^ := GrayscaleValue(Vector3Byte(
+        Color.Red shr 8,
+        Color.Green shr 8,
+        Color.Blue shr 8));
+      Inc(ResultPixels);
+    end;
 end;
 
-class function TGrayscaleAlphaImage.FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleAlphaImage;
+procedure TGrayscaleAlphaImage.FromFpImage(const FPImage: TFPMemoryImage);
 var
   X, Y: Integer;
   ResultPixels: PVector2Byte;
   Color: TFPColor;
 begin
-  Result := TGrayscaleAlphaImage.Create(FPImage.Width, FPImage.Height);
-  try
-    ResultPixels := Result.GrayscaleAlphaPixels;
-    for Y := FPImage.Height - 1 downto 0 do
-      for X := 0 to FPImage.Width - 1 do
-      begin
-        Color := FPImage.Colors[X, Y];
-        ResultPixels^[0] := GrayscaleValue(Vector3Byte(
-          Color.Red shr 8,
-          Color.Green shr 8,
-          Color.Blue shr 8));
-        ResultPixels^[1] := Color.Alpha shr 8;
-        Inc(ResultPixels);
-      end;
-  except FreeAndNil(Result); raise end;
+  SetSize(FPImage.Width, FPImage.Height);
+
+  ResultPixels := GrayscaleAlphaPixels;
+  for Y := FPImage.Height - 1 downto 0 do
+    for X := 0 to FPImage.Width - 1 do
+    begin
+      Color := FPImage.Colors[X, Y];
+      ResultPixels^[0] := GrayscaleValue(Vector3Byte(
+        Color.Red shr 8,
+        Color.Green shr 8,
+        Color.Blue shr 8));
+      ResultPixels^[1] := Color.Alpha shr 8;
+      Inc(ResultPixels);
+    end;
 end;
 
-function FromFpImage(const FPImage: TFPMemoryImage;
+{ Convert TFPMemoryImage to the best TCastleImage class. }
+function CreateFromFpImage(const FPImage: TFPMemoryImage;
   const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
 
   { FPImage doesn't provide us any information does the image contain useful
@@ -154,47 +156,68 @@ var
 begin
   Detect(Alpha, Grayscale);
 
-  { first try to return the best class for given Alpha/Grayscale combination }
+  Result := nil;
+  try
+    { first try to return the best class for given Alpha/Grayscale combination }
 
-  if not Grayscale then
-  begin
-    if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) and Alpha then
-      Exit(TRGBAlphaImage.FromFpImage(FPImage)) else
-    if ClassAllowed(TRGBImage, AllowedImageClasses) and not Alpha then
-      Exit(TRGBImage.FromFpImage(FPImage));
-  end else
-  begin
-    if ClassAllowed(TGrayscaleAlphaImage, AllowedImageClasses) and Alpha then
-      Exit(TGrayscaleAlphaImage.FromFpImage(FPImage)) else
-    if ClassAllowed(TGrayscaleImage, AllowedImageClasses) and not Alpha then
-      Exit(TGrayscaleImage.FromFpImage(FPImage));
-  end;
+    if not Grayscale then
+    begin
+      if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) and Alpha then
+      begin
+        Result := TRGBAlphaImage.Create;
+        Result.FromFpImage(FPImage);
+        Exit;
+      end else
+      if ClassAllowed(TRGBImage, AllowedImageClasses) and not Alpha then
+      begin
+        Result := TRGBImage.Create;
+        Result.FromFpImage(FPImage);
+        Exit;
+      end;
+    end else
+    begin
+      if ClassAllowed(TGrayscaleAlphaImage, AllowedImageClasses) and Alpha then
+      begin
+        Result := TGrayscaleAlphaImage.Create;
+        Result.FromFpImage(FPImage);
+        Exit;
+      end else
+      if ClassAllowed(TGrayscaleImage, AllowedImageClasses) and not Alpha then
+      begin
+        Result := TGrayscaleImage.Create;
+        Result.FromFpImage(FPImage);
+        Exit;
+      end;
+    end;
 
-  { otherwise, load RGBA and eventually strip some information to satisfy
-    ClassAllowed conditions }
+    { otherwise, load RGBA and eventually strip some information to satisfy
+      ClassAllowed conditions }
 
-  RGBA := TRGBAlphaImage.FromFpImage(FPImage);
-  if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) then
-    Result := RGBA else
-  if ClassAllowed(TRGBImage, AllowedImageClasses) then
-  begin
-    Result := RGBA.ToRGBImage;
-    FreeAndNil(RGBA);
-  end else
-  if ClassAllowed(TGrayscaleImage, AllowedImageClasses) then
-  begin
-    Result := RGBA.ToGrayscaleImage;
-    FreeAndNil(RGBA);
-  end else
-  if ClassAllowed(TGrayscaleAlphaImage, AllowedImageClasses) then
-  begin
-    Result := RGBA.ToGrayscaleAlphaImage;
-    FreeAndNil(RGBA);
-  end else
-  begin
-    FreeAndNil(RGBA);
-    raise Exception.Create('Cannot convert FPImage to any of formats allowed by LoadImage AllowedImageClasses');
-  end;
+    RGBA := TRGBAlphaImage.Create;
+    RGBA.FromFpImage(FPImage);
+    if ClassAllowed(TRGBAlphaImage, AllowedImageClasses) then
+      Result := RGBA else
+    if ClassAllowed(TRGBImage, AllowedImageClasses) then
+    begin
+      Result := RGBA.ToRGBImage;
+      FreeAndNil(RGBA);
+    end else
+    if ClassAllowed(TGrayscaleImage, AllowedImageClasses) then
+    begin
+      Result := RGBA.ToGrayscaleImage;
+      FreeAndNil(RGBA);
+    end else
+    if ClassAllowed(TGrayscaleAlphaImage, AllowedImageClasses) then
+    begin
+      Result := RGBA.ToGrayscaleAlphaImage;
+      FreeAndNil(RGBA);
+    end else
+    begin
+      FreeAndNil(RGBA);
+      raise Exception.Create('Cannot convert FPImage to any of formats allowed by LoadImage AllowedImageClasses');
+    end;
+
+  except FreeAndNil(Result); raise end;
 end;
 
 function LoadFpImage(Stream: TStream;
@@ -212,7 +235,7 @@ begin
         in case of invalid JPEG header it just raises generic Exception class).
         Catch it and convert to our EImageLoadError. }
     except on E: Exception do raise EImageLoadError.Create(E.Message) end;
-    Result := FromFpImage(FPImage, AllowedImageClasses);
+    Result := CreateFromFpImage(FPImage, AllowedImageClasses);
   finally
     FreeAndNil(FPImage);
     FreeAndNil(Reader);
@@ -223,7 +246,7 @@ end;
 
 function TEncodedImage.ToFpImage: TFPMemoryImage;
 begin
-  raise EImageSaveError.Create('Cannot convert to FPImage, and cannot use resize with TResizeNiceInterpolation mode, on images of class ' + ClassName);
+  raise EImageSaveError.Create('Cannot convert to FPImage the images of class ' + ClassName);
   Result := nil; // avoid warning
 end;
 
@@ -344,6 +367,8 @@ begin
   end;
 end;
 
+{ LoadXxx, SaveXxx for particular image file formats ------------------------- }
+
 function LoadGIF(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
@@ -433,33 +458,33 @@ end;
 
 { resizing ------------------------------------------------------------------- }
 
-function TCastleImage.MakeResized(ResizeWidth, ResizeHeight: Cardinal;
-  const Interpolation: TResizeNiceInterpolation): TCastleImage;
+function TCastleImage.MakeResizedToFpImage(ResizeWidth, ResizeHeight: Cardinal;
+  const Interpolation: TResizeInterpolation): TFPMemoryImage;
 
-  function CreateInterpolation(const I: TResizeNiceInterpolation): TFPBaseInterpolation;
+  function CreateInterpolation(const I: TResizeInterpolation): TFPBaseInterpolation;
   begin
     case I of
-      rniNearest        : Result := TBoxInterpolation.Create;
-      rniBilinear       : Result := TBilineairInterpolation.Create;
-      rniMitchel        : Result := TMitchelInterpolation.Create;
-      rniBlackman       : Result := TBlackmanInterpolation.Create;
-      rniBlackmanSinc   : Result := TBlackmanSincInterpolation.Create;
-      rniBlackmanBessel : Result := TBlackmanBesselInterpolation.Create;
-      rniGaussian       : Result := TGaussianInterpolation.Create;
-      rniHermite        : Result := THermiteInterpolation.Create;
-      rniLanczos        : Result := TLanczosInterpolation.Create;
-      rniQuadratic      : Result := TQuadraticInterpolation.Create;
-      rniCubic          : Result := TCubicInterpolation.Create;
-      rniCatrom         : Result := TCatromInterpolation.Create;
-      rniHanning        : Result := THanningInterpolation.Create;
-      rniHamming        : Result := THammingInterpolation.Create;
+      riNearest        : Result := TBoxInterpolation.Create;
+      riBilinear       : Result := TBilineairInterpolation.Create;
+      riMitchel        : Result := TMitchelInterpolation.Create;
+      riBlackman       : Result := TBlackmanInterpolation.Create;
+      riBlackmanSinc   : Result := TBlackmanSincInterpolation.Create;
+      riBlackmanBessel : Result := TBlackmanBesselInterpolation.Create;
+      riGaussian       : Result := TGaussianInterpolation.Create;
+      riHermite        : Result := THermiteInterpolation.Create;
+      riLanczos        : Result := TLanczosInterpolation.Create;
+      riQuadratic      : Result := TQuadraticInterpolation.Create;
+      riCubic          : Result := TCubicInterpolation.Create;
+      riCatrom         : Result := TCatromInterpolation.Create;
+      riHanning        : Result := THanningInterpolation.Create;
+      riHamming        : Result := THammingInterpolation.Create;
       else EInternalError.Create('CreateInterpolation:I?');
     end;
   end;
 
 var
   Interpolator: TFPBaseInterpolation;
-  FPImageSource, FPImageDestination: TFPMemoryImage;
+  FPImageSource: TFPMemoryImage;
   CanvasDestination: TFPImageCanvas;
 begin
   if ResizeWidth = 0 then ResizeWidth := Width;
@@ -469,16 +494,15 @@ begin
   try
     Interpolator := CreateInterpolation(Interpolation);
     try
-      FPImageDestination := TFPMemoryImage.Create(ResizeWidth, ResizeHeight);
+      Result := TFPMemoryImage.Create(ResizeWidth, ResizeHeight);
       try
         {$warnings off} // contains some abstract methods (FCL bug?)
-        CanvasDestination := TFPImageCanvas.Create(FPImageDestination);
+        CanvasDestination := TFPImageCanvas.Create(Result);
         {$warnings on}
         try
           CanvasDestination.StretchDraw(0, 0, ResizeWidth, ResizeHeight, FPImageSource);
         finally FreeAndNil(CanvasDestination) end;
-        Result := FromFpImage(FPImageDestination, [TCastleImageClass(ClassType)]);
-      finally FreeAndNil(FPImageDestination) end;
+      except FreeAndNil(Result); raise end;
     finally FreeAndNil(Interpolator) end;
   finally FreeAndNil(FPImageSource) end;
 end;

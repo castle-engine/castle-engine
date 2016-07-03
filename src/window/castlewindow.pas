@@ -3562,11 +3562,15 @@ end;
 
 function TCastleWindowCustom.SaveScreen: TRGBImage;
 begin
+  if Closed then
+    raise Exception.Create('Cannot save the screen when the TCastleWindow is closed');
   Result := Container.SaveScreen;
 end;
 
 function TCastleWindowCustom.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
+  if Closed then
+    raise Exception.Create('Cannot save the screen when the TCastleWindow is closed');
   Result := Container.SaveScreen(SaveRect);
 end;
 
@@ -3579,6 +3583,8 @@ function TCastleWindowCustom.SaveScreenToGL(
   const SaveRect: TRectangle;
   const SmoothScaling: boolean): TGLImageCore;
 begin
+  if Closed then
+    raise Exception.Create('Cannot save the screen when the TCastleWindow is closed');
   Container.EventBeforeRender;
   Container.EventRender;
   Result := SaveScreenToGL_NoFlush(SaveRect, SaveScreenBuffer, SmoothScaling);
@@ -4114,7 +4120,9 @@ end;
 
 function TCastleWindowCustom.Rect: TRectangle;
 begin
-  Result := Rectangle(0, 0, Width, Height);
+  if Closed then
+    Result := TRectangle.Empty else
+    Result := Rectangle(0, 0, Width, Height);
 end;
 
 function TCastleWindowCustom.GLInitialized: boolean;
