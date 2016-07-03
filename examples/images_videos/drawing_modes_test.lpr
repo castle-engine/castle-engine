@@ -19,15 +19,16 @@ program drawing_modes_test;
 
 {$Apptype GUI}
 
-uses Classes, SysUtils,
+uses Classes, SysUtils, TypInfo,
   CastleWindow, CastleImages, CastleFilesUtils, CastleControls, CastleUIControls,
-  CastleColors;
+  CastleColors, CastleStringUtils;
 
 type
   TSetOfImages = class(TComponent)
   public
     data: array[0..4, 0..4] of TCastleImageControl;
-    procedure Reset(x, y: integer; blendMode: TDrawMode);
+    procedure Reset(const DrawMode: TDrawMode);
+    procedure ChangeModeClick(Sender: TObject);
   end;
 
 var
@@ -43,24 +44,28 @@ var
 
 {$R+}{$Q+}
 
-procedure TSetOfImages.Reset(x, y: integer; blendMode: TDrawMode);
+procedure TSetOfImages.Reset(const DrawMode: TDrawMode);
 var
   i, j: integer;
   source, dest: TCastleImage;
 begin
   for i := 0 to 4 do
     for j := 0 to 4 do
+    begin
+      FreeAndNil(data[i,j]);
       data[i,j] := TCastleImageControl.Create(self);
+    end;
 
-  data[0,0].image := Legend;
-  data[1,0].image := RGBA1;
-  data[2,0].image := GA1;
-  data[3,0].image := RGB1;
-  data[4,0].image := G1;
-  data[0,1].image := RGBA2;
-  data[0,2].image := GA2;
-  data[0,3].image := RGB2;
-  data[0,4].image := G2;
+  data[0,0].image := Legend; data[0,0].OwnsImage := false;
+  data[1,0].image := RGBA1;  data[1,0].OwnsImage := false;
+  data[2,0].image := GA1;    data[2,0].OwnsImage := false;
+  data[3,0].image := RGB1;   data[3,0].OwnsImage := false;
+  data[4,0].image := G1;     data[4,0].OwnsImage := false;
+  data[0,1].image := RGBA2;  data[0,1].OwnsImage := false;
+  data[0,2].image := GA2;    data[0,2].OwnsImage := false;
+  data[0,3].image := RGB2;   data[0,3].OwnsImage := false;
+  data[0,4].image := G2;     data[0,4].OwnsImage := false;
+
   for i := 1 to 4 do
     for j := 1 to 4 do
     begin
@@ -68,10 +73,8 @@ begin
         data[i,j].image := data[i,0].image.MakeCopy;
         Dest := data[i,j].image;
         Source := data[0,j].image;
-        Dest.DrawFrom(Source, 0, 0, 0, 0, Source.width, Source.height, blendMode);
+        Dest.DrawFrom(Source, 0, 0, 0, 0, Source.width, Source.height, DrawMode);
       except
-        freeandnil(data[i,j]);
-        data[i,j] := TCastleImageControl.Create(Self);
         data[i,j].image := NotApplicable;
         { We will free NotApplicable image at the end of program, this is better than
           relying on TCastleImageControl.OwnsImage mechanism,
@@ -83,10 +86,15 @@ begin
   for i := 0 to 4 do
     for j := 0 to 4 do
     begin
-      data[i,j].Anchor(vpTop, - (y + data[i,j].image.height * j));
-      data[i,j].Anchor(hpLeft, x + data[i,j].image.width * i);
+      data[i,j].Anchor(vpTop, -data[i,j].image.height * j);
+      data[i,j].Anchor(hpLeft, data[i,j].image.width * i);
       Window.Controls.InsertFront(data[i,j]);
     end;
+end;
+
+procedure TSetOfImages.ChangeModeClick(Sender: TObject);
+begin
+  Reset(TDrawMode((Sender as TCastleButton).Tag));
 end;
 
 const
@@ -119,6 +127,28 @@ begin
   Labels[3].Caption := 'Grayscale';
 end;
 
+procedure AddButtons;
+var
+  DrawMode: TDrawMode;
+  DrawModeName: string;
+  B: TCastleButton;
+begin
+  for DrawMode := Low(DrawMode) to High(DrawMode) do
+  begin
+    B := TCastleButton.Create(Application);
+    { convert enum to string using GetEnumName }
+    DrawModeName := SEnding(GetEnumName(TypeInfo(TDrawMode), Ord(DrawMode)), 3);
+    B.Caption := DrawModeName;
+    B.AutoSizeWidth := false;
+    B.Width := 200;
+    B.Anchor(hpRight, -20);
+    B.Anchor(vpBottom, 20 + Ord(DrawMode) * 50);
+    B.Tag := Ord(DrawMode); // pass DrawMode to ChangeModeClick in the Tag
+    B.OnClick := @SetOfImages.ChangeModeClick;
+    Window.Controls.InsertFront(B);
+  end;
+end;
+
 begin
   Window := TCastleWindow.Create(Application);
 
@@ -134,17 +164,31 @@ begin
   NotApplicable := LoadImage(ApplicationData('na.png'), [TGrayscaleImage]) as TGrayscaleImage;
 
   Window.Height := ImageSize * 5;
-  Window.Width := ImageSize * 5;
+  Window.Width := ImageSize * 5 + 240;
   SetOfImages := TSetOfImages.Create(Application);
-  SetOfImages.Reset(0, 0, dmBlend);
+  SetOfImages.Reset(dmBlend);
 
+  // TODO: it would be better to set "Outline := 1" only on labels,
+  // but not on buttons (it looks ugly on buttons, but helps labels...).
+  // But it's not implemented yet in TCustomizedFont.
   UIFont.Outline := 1;
   UIFont.OutlineColor := Black;
+
   AddLabels(false);
   AddLabels(true);
+  AddButtons;
 
   Window.Open;
   Application.Run;
 
+  FreeAndNil(RGBA1);
+  FreeAndNil(RGBA2);
+  FreeAndNil(GA1);
+  FreeAndNil(GA2);
+  FreeAndNil(RGB1);
+  FreeAndNil(RGB2);
+  FreeAndNil(G1);
+  FreeAndNil(G2);
+  FreeAndNil(Legend);
   FreeAndNil(NotApplicable);
 end.
