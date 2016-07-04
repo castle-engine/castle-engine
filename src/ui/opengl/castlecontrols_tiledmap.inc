@@ -19,13 +19,21 @@
 {$ifdef read_interface}
 
 type
+
+  TSpriteList = specialize TFPGObjectList<TSprite>;
+
   TCastleTiledMapControl = class(TUIControl)
   private
     FTiledMap: TTiledMap;
+    { Tilesets images. }
+    FImages: TSpriteList;
+    FDoRenderObjects: Boolean;
     procedure RenderOrthogonal;
     procedure RenderHexagonal;
     procedure RenderIsometric;
+    procedure RenderObjects;
   public
+    property DoRenderObjects: Boolean read FDoRenderObjects write FDoRenderObjects;
     { If using this constructor then you have to use LoadFromFile procedure after. }
     constructor Create(AOwner: TComponent); override; overload;
     constructor Create(AOwner: TComponent; AURL: string); overload;
@@ -54,27 +62,37 @@ begin
   //todo: implement me
 end;
 
+procedure TCastleTiledMapControl.RenderObjects;
+begin
+  //todo: implement me
+end;
+
 constructor TCastleTiledMapControl.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FDoRenderObjects := False;
 end;
 
 constructor TCastleTiledMapControl.Create(AOwner: TComponent; AURL: string);
 begin
   Create(AOwner);
-  FTiledMap := TTiledMap.Create(AURL);
+  LoadFromFile(AURL);
 end;
 
 destructor TCastleTiledMapControl.Destroy;
 begin
+  FImages.Free;
   FTiledMap.Free;
   inherited Destroy;
 end;
 
 procedure TCastleTiledMapControl.LoadFromFile(AURL: string);
 begin
+  if not (FImages = nil) then FImages.Free;
   if not (FTiledMap = nil) then FTiledMap.Free;
   FTiledMap := TTiledMap.Create(AURL);
+  FImages := TSpriteList.Create(True);
+  //todo: foreach tileset load the proper sprite and add to list
 end;
 
 procedure TCastleTiledMapControl.Render;
@@ -87,6 +105,8 @@ begin
     MO_Isometric: RenderIsometric;
     MO_Staggered: RenderHexagonal;
   end;
+
+  if FDoRenderObjects then RenderObjects;
 end;
 
 {$endif read_implementation}
