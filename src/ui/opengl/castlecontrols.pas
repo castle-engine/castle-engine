@@ -27,7 +27,7 @@ uses Classes, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontDat
 type
   TCastleLabel = class;
 
-  { Base class for all controls inside an OpenGL context using a font.
+  { Base class for all user interface controls using a font.
     Allows to customize font and font size per-control, or use defaults. }
   TUIControlFont = class(TUIControl)
   strict private
@@ -107,7 +107,7 @@ type
 
   TCastleButtonImageLayout = (ilTop, ilBottom, ilLeft, ilRight);
 
-  { Button inside OpenGL context.
+  { Clickable button.
 
     This is TUIControl descendant, so to use it just add it to
     the TCastleWindowCustom.Controls or TCastleControlCustom.Controls list.
@@ -276,23 +276,31 @@ type
     property PaddingVertical: Cardinal
       read FPaddingVertical write FPaddingVertical default DefaultPaddingVertical;
 
-    { When AutoSize is @true (the default) then Width/Height are automatically
+    { When AutoSize is @true (the default) then button sizes are automatically
       adjusted when you change the Caption and @link(Image).
-      They take into account
-      Caption width/height with current font, @link(Image) width/height,
-      and add some margin to make it look good.
+      The calculated size takes into account the Caption text size (with current font),
+      and @link(Image) size, plus some margin to make it look nice.
 
-      To be more precise, Width is adjusted only when AutoSize and AutoSizeWidth.
+      Width is adjusted only when AutoSize and AutoSizeWidth.
       And Height is adjusted only when AutoSize and AutoSizeHeight.
       This way you can turn off auto-sizing in only one dimension if you
       want (and when you don't need such flexibility, leave
       AutoSizeWidth = AutoSizeHeight = @true and control both by simple
       AutoSize).
 
-      Note that this adjustment happens only when OpenGL context is initialized
-      (because only then we actually know the font used).
-      So don't depend on Width/Height values calculated correctly before
-      OpenGL context is ready. }
+      If needed, you can query the resulting button size with the standard
+      TUIControl methods like @link(TUIControl.CalculatedWidth) and
+      @link(TUIControl.CalculatedHeight). Note that they may not be available
+      before the button is actually added to the container,
+      and the container size is initialized (we need to know the size of container,
+      for UI scaling to determine the font size).
+
+      @italic(Right now) the auto-sizing also updates the
+      values of @link(Width) and @link(Height) properties, but don't depend on it
+      in new code. In the future, it may be changed, and then @link(Width) and
+      @link(Height) properties will stay unmodified by the auto-sizing mechanism.
+      Always use @link(TUIControl.CalculatedWidth) and @link(TUIControl.CalculatedHeight)
+      to read the resulting control size. }
     property AutoSize: boolean read FAutoSize write SetAutoSize default true;
     property AutoSizeWidth: boolean read FAutoSizeWidth write SetAutoSizeWidth default true;
     property AutoSizeHeight: boolean read FAutoSizeHeight write SetAutoSizeHeight default true;
@@ -348,11 +356,9 @@ type
       read FEnableParentDragging write FEnableParentDragging default false;
   end;
 
-  { Panel frame.
-    Use as a comfortable (and with matching colors) background
-    for other controls like buttons and such.
-    May be used as a toolbar, together with appropriately placed
-    TCastleButton over it. }
+  { Panel or a toolbar control.
+    Use as a background for other controls like buttons.
+    You can add vertical separators to separate groups of controls on the panel. }
   TCastlePanel = class(TUIControlSizeable)
   strict private
     FVerticalSeparators: TCardinalList;
@@ -371,7 +377,7 @@ type
     class function SeparatorSize: Cardinal;
   end;
 
-  { Image control inside OpenGL context.
+  { Image control.
     Size is automatically adjusted to the image size, if Stretch is @false (default).
     You should set TCastleImageControl.Left, TCastleImageControl.Bottom properties,
     and load your image by setting TCastleImageControl.URL property
@@ -475,8 +481,10 @@ type
     { If @link(Clip), this is the line equation used to determine whether
       we clip the given pixel. Given a line (A, B, C) and pixel (x, y),
       the pixel is clipped (rejected) if @code(A * x + B * y + C < 0).
-      This provides a functionality similar to desktop OpenGL glClipPlane
-      for TGLImageCore (on all platforms). }
+
+      The equation is calculated in the final scaled screen coordinates
+      (not in the local, unscaled pixels). Adjust it to match the ScreenRect
+      if necessary, to make it work with UI scaling. }
     property ClipLine: TVector3Single read FClipLine write SetClipLine;
   published
     { URL of the image. Setting this also sets @link(Image).
@@ -550,8 +558,13 @@ type
                          ctcmFlyUpdown, ctcmPanXY);
   TCastleTouchPosition = (tpManual, tpLeft, tpRight);
 
-  { Control for touch interfaces. Shows one "lever", that can be moved
-    up/down/left/right, and controls the movement while Walking or Flying. }
+  { Touch user interface to navigate in a 3D world.
+    Shows one "lever", that can be moved up/down/left/right,
+    and controls the movement while Walking or Flying.
+
+    Usually, this control is created and used through the @link(TCastleWindowTouch)
+    properties. There is no need to directly create TCastleTouchControl instance
+    in this case. }
   TCastleTouchControl = class(TUIControl)
   strict private
     FTouchMode: TCastleTouchCtlMode;
@@ -894,6 +907,7 @@ type
 
   TCastleCrosshairShape = (csCross, csCrossRect);
 
+  { Display a simple crosshair in the middle of the parent control. }
   TCastleCrosshair = class(TUIControl)
   strict private
     FShape: TCastleCrosshairShape;
@@ -917,6 +931,10 @@ type
     property VerticalAnchorParent default vpMiddle;
   end;
 
+  { Progress bar user interface.
+    This is usually used through the CastleWindowProgress and CastleProgress
+    features. There is no need to directly create and access the TCastleProgressBar
+    instance in this case. }
   TCastleProgressBar = class(TUIControlFont)
   strict private
     { Background image. }
@@ -957,11 +975,14 @@ type
       default TProgressUserInterface.DefaultBarYPosition;
   end;
 
-  { Error background, for various error handlers. }
+  { Error background, for various error handlers.
+    This is notably used by the CastleWindow exception handler. }
   TErrorBackground = class(TUIControl)
     procedure Render; override;
   end;
 
+  { An abstract slider user interface. Usually you want to use of its descendants,
+    like @link(TCastleFloatSlider) or @link(TCastleIntegerSlider). }
   TCastleAbstractSlider = class(TUIControlFont)
   strict private
     FDisplayValue: boolean;
@@ -1022,6 +1043,7 @@ type
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
+  { Slider to change a float value within a given range. }
   TCastleFloatSlider = class(TCastleAbstractSlider)
   strict private
     FMin: Single;
@@ -1065,6 +1087,7 @@ type
     property MultipleOf: Single read FMultipleOf write FMultipleOf;
   end;
 
+  { Slider to change an integer value within a given range. }
   TCastleIntegerSlider = class(TCastleAbstractSlider)
   strict private
     FMin: Integer;
@@ -1095,9 +1118,10 @@ type
   end;
 
   { Children added to @link(ScrollArea) can be scrolled vertically.
-    We automatically show a scrollbar, and handle various scrolling input
-    (keys, mouse wheel, dragging by scrollbar, dragging the whole area)
-    in a way nice for both desktops and mobile. }
+    We automatically show a scrollbar, and handle various scrolling inputs
+    to be functional on both desktops and mobile
+    (we handle scrolling by keys, mouse wheel, dragging by scrollbar,
+    dragging the whole area - see @link(EnableDragging)). }
   TCastleScrollView = class(TUIControlSizeable)
   strict private
     FScrollArea: TUIControlSizeable;
@@ -1312,8 +1336,10 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
 
 procedure Register;
 begin
-  RegisterComponents('Castle', [TCastleButton, TCastleImageControl,
-    TCastleIntegerSlider, TCastleFloatSlider]);
+  RegisterComponents('Castle', [
+    TCastleButton, TCastleImageControl, TCastleRectangleControl,
+    TCastleLabel, TCastleCrosshair, TCastleIntegerSlider, TCastleFloatSlider,
+    TCastleScrollView]);
 end;
 
 { UIFont --------------------------------------------------------------------- }
@@ -2136,15 +2162,20 @@ procedure TCastlePanel.Render;
 const
   SeparatorMargin = 8;
 var
-  I: Integer;
+  I, SeparatorMarginScaled: Integer;
+  SR: TRectangle;
 begin
   inherited;
-  Theme.Draw(Rect, tiPanel, UIScale);
 
+  SR := ScreenRect;
+  Theme.Draw(SR, tiPanel, UIScale);
+
+  SeparatorMarginScaled := Round(SeparatorMargin * UIScale);
   for I := 0 to VerticalSeparators.Count - 1 do
     Theme.Draw(Rectangle(
-      Left + VerticalSeparators[I], Bottom + SeparatorMargin,
-      Theme.Images[tiPanelSeparator].Width, Height - 2 * SeparatorMargin),
+      SR.Left + Round(VerticalSeparators[I] * UIScale),
+      SR.Bottom + SeparatorMarginScaled,
+      Theme.Images[tiPanelSeparator].Width, Height - 2 * SeparatorMarginScaled),
       tiPanelSeparator, UIScale);
 end;
 
