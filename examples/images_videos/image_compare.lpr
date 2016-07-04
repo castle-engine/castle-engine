@@ -1,3 +1,18 @@
+{
+  Copyright 2016-2016 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
 { Compare sizes and RGB colors of two images.
   Designed to be a command-line tool usable from scripts, like
 
@@ -7,15 +22,15 @@
   if succcess (images are the same), or exit code 1 (and desciption
   of difference on error output) if images differ.
 
-  The images are considered different if have different size,
+  The images are considered different if they have different size,
   or if any component of any pixel differs > Tolerance (constant
   in this program).
 
-  It doesn't handle images with different sizes, that is it simply
+  It doesn't handle images with different sizes. That is it simply
   detects them as "different", not bothering to check if maybe one
   image is a shifted, or subset, version of another. It also doesn't
-  bother showing visual differences between images. See ImageMagick's
-  "compare" tool for such fun (http://www.imagemagick.org/script/compare.php).
+  bother showing visual differences between images. Try ImageMagick's
+  "compare" tool if you want these features (http://www.imagemagick.org/script/compare.php).
 }
 uses SysUtils, CastleUtils, CastleVectors, CastleImages, CastleParameters;
 const
