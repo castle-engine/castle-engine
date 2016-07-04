@@ -42,6 +42,7 @@ type
     Similar to TCustomizedFont, it can also change the subfont size.
     Simply set the @code(Size) property of this instance to non-zero
     to force the specific size of all the underlying subfonts.
+    You can also change the subfont outline, if CustomizeOutline is used.
     The underlying font properties remain unchanged for subfonts
     (so they can be still used for other purposes,
     directly or by other TCustomizedFont or TFontFamily wrappers).
@@ -57,10 +58,13 @@ type
     // Note that we leave inherited Scale at == 1, always.
     FSize: Single;
     FBold, FItalic: boolean;
+    FCustomizeOutline: boolean;
     procedure SetRegularFont(const Value: TCastleFont);
     procedure SetBoldFont(const Value: TCastleFont);
     procedure SetItalicFont(const Value: TCastleFont);
     procedure SetBoldItalicFont(const Value: TCastleFont);
+    procedure SubFontCustomizeBegin;
+    procedure SubFontCustomizeEnd;
   private
     function SubFont(const ABold, AItalic: boolean): TCastleFont;
     function SubFont: TCastleFont;
@@ -91,6 +95,9 @@ type
     function TextHeightBase(const S: string): Integer; override;
     function TextMove(const S: string): TVector2Integer; override;
     function RealSize: Single; override;
+
+    { Should we customize the outline of the underlying font. }
+    property CustomizeOutline: boolean read FCustomizeOutline write FCustomizeOutline default false;
   end;
 
   { @exclude Internal type for TRichText }
@@ -350,65 +357,62 @@ begin
     FBoldItalicFont.GLContextClose;
 end;
 
+procedure TFontFamily.SubFontCustomizeBegin;
+begin
+  if (Size <> 0) or CustomizeOutline then
+  begin
+    SubFont.PushProperties;
+    if Size <> 0 then
+      SubFont.Size := Size;
+    if CustomizeOutline then
+    begin
+      SubFont.Outline := Outline;
+      SubFont.OutlineColor := OutlineColor;
+      SubFont.OutlineHighQuality := OutlineHighQuality;
+    end;
+  end;
+end;
+
+procedure TFontFamily.SubFontCustomizeEnd;
+begin
+  if Size <> 0 then
+    SubFont.PopProperties;
+end;
+
 procedure TFontFamily.Print(const X, Y: Integer; const Color: TCastleColor;
   const S: string);
 begin
-  if Size <> 0 then
-  begin
-    SubFont.PushProperties;
-    SubFont.Size := Size;
-  end;
+  SubFontCustomizeBegin;
   SubFont.Print(X, Y, Color, S);
-  if Size <> 0 then
-    SubFont.PopProperties;
+  SubFontCustomizeEnd;
 end;
 
 function TFontFamily.TextWidth(const S: string): Integer;
 begin
-  if Size <> 0 then
-  begin
-    SubFont.PushProperties;
-    SubFont.Size := Size;
-  end;
+  SubFontCustomizeBegin;
   Result := SubFont.TextWidth(S);
-  if Size <> 0 then
-    SubFont.PopProperties;
+  SubFontCustomizeEnd;
 end;
 
 function TFontFamily.TextHeight(const S: string): Integer;
 begin
-  if Size <> 0 then
-  begin
-    SubFont.PushProperties;
-    SubFont.Size := Size;
-  end;
+  SubFontCustomizeBegin;
   Result := SubFont.TextHeight(S);
-  if Size <> 0 then
-    SubFont.PopProperties;
+  SubFontCustomizeEnd;
 end;
 
 function TFontFamily.TextHeightBase(const S: string): Integer;
 begin
-  if Size <> 0 then
-  begin
-    SubFont.PushProperties;
-    SubFont.Size := Size;
-  end;
+  SubFontCustomizeBegin;
   Result := SubFont.TextHeightBase(S);
-  if Size <> 0 then
-    SubFont.PopProperties;
+  SubFontCustomizeEnd;
 end;
 
 function TFontFamily.TextMove(const S: string): TVector2Integer;
 begin
-  if Size <> 0 then
-  begin
-    SubFont.PushProperties;
-    SubFont.Size := Size;
-  end;
+  SubFontCustomizeBegin;
   Result := SubFont.TextMove(S);
-  if Size <> 0 then
-    SubFont.PopProperties;
+  SubFontCustomizeEnd;
 end;
 
 function TFontFamily.SubFont(const ABold, AItalic: boolean): TCastleFont;
@@ -440,7 +444,10 @@ procedure TFontFamily.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer)
 begin
   { Just like TCustomizedFont.Measure comments, this is good to call SubFont.Measure }
   SubFont.Measure(ARowHeight, ARowHeightBase, ADescend);
-  { our Scale is always 1, to scale the resulting sizes manually now }
+  { our Scale is always 1, so scale the resulting sizes manually now }
+  { TODO: should we add Outline *2 here maybe, if CustomizeOutline?
+    If yes, then changing CustomizeOutline should also cause InvalidateMeasure.
+    Changing the Outline* props in base font class should also cause InvalidateMeasure. }
   if Size <> 0 then
   begin
     ARowHeight     := Round(ARowHeight     * Size / SubFont.Size);

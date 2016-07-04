@@ -116,6 +116,8 @@ begin
     Labels[I] := TCastleLabel.Create(Application);
     Labels[I].Color := White;
     Labels[I].Alignment := hpMiddle;
+    Labels[I].Outline := 1;
+    Labels[I].OutlineColor := Black;
     if Horizontal then
     begin
       Labels[I].Anchor(hpMiddle, hpLeft, ImageSize * (I + 1) + ImageSize div 2);
@@ -173,12 +175,6 @@ begin
   Window.Width := ImageSize * 5 + 240;
   SetOfImages := TSetOfImages.Create(Application);
   SetOfImages.Reset(dmBlend);
-
-  // TODO: it would be better to set "Outline := 1" only on labels,
-  // but not on buttons (it looks ugly on buttons, but helps labels...).
-  // But it's not implemented yet in TCustomizedFont.
-  UIFont.Outline := 1;
-  UIFont.OutlineColor := Black;
 
   AddLabels(false);
   AddLabels(true);

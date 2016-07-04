@@ -37,11 +37,17 @@ type
     FOwnsCustomFont: boolean;
     FLastSeenUIFontXxx: TCastleFont; //< remembered only to call FontChanged
     FFontSize: Single;
-    FCustomizedFont: TFontFamily; //< used only when FFontSize <> 0 for now
+    FCustomizedFont: TFontFamily; //< used only when some properties make it necessary
     FSmallFont: boolean;
+    FOutline: Cardinal;
+    FOutlineColor: TCastleColor;
+    FOutlineHighQuality: boolean;
     procedure SetCustomFont(const Value: TCastleFont);
     procedure SetFontSize(const Value: Single);
     procedure SetSmallFont(const Value: boolean);
+    procedure SetOutline(const Value: Cardinal);
+    procedure SetOutlineColor(const Value: TCastleColor);
+    procedure SetOutlineHighQuality(const Value: boolean);
   protected
     { Called when Font or it's size changed. }
     procedure FontChanged; virtual;
@@ -73,6 +79,10 @@ type
       to be immediately valid). Without calling this,
       it could be updated only at next Render call. }
     procedure CheckFontChanged;
+
+    { Outline color, used only if Outline <> 0. Default is black.
+      @seealso Outline }
+    property OutlineColor: TCastleColor read FOutlineColor write SetOutlineColor;
   published
     { Tooltip string, displayed when user hovers the mouse over a control.
 
@@ -103,6 +113,24 @@ type
       @link(UIFontSmall) instead of @link(UIFont).
       If @link(CustomFont) is assigned, this says to scale it's size by 2. }
     property SmallFont: boolean read FSmallFont write SetSmallFont default false;
+
+    { Outline size around the font.
+      Note that the current implementation is very simple, it will only
+      look sensible for small outline values (like 1 or 2).
+
+      See TCastleFont.Outline for more details.
+
+      Specifying a non-zero outline for a label overrides the default outline
+      settings for the current font. By default, fonts do not have an outline.
+
+      @seealso OutlineHighQuality }
+    property Outline: Cardinal read FOutline write SetOutline default 0;
+
+    { Optionally force better outline quality. Used only if Outline <> 0.
+      High quality outline looks better, but is about 2x more expensive to draw.
+      @seealso Outline }
+    property OutlineHighQuality: boolean
+      read FOutlineHighQuality write SetOutlineHighQuality default false;
   end;
 
   TCastleButtonImageLayout = (ilTop, ilBottom, ilLeft, ilRight);
@@ -1468,7 +1496,7 @@ begin
 
   { if FontSize or UIScale are non-trivial,
     wrap Result in TCustomizedFont instance }
-  if (FFontSize <> 0) or (UIScale <> 1) or SmallFont then
+  if (FFontSize <> 0) or (UIScale <> 1) or SmallFont or (Outline <> 0) then
   begin
     if FCustomizedFont = nil then
       FCustomizedFont := TFontFamily.Create(nil);
@@ -1492,6 +1520,13 @@ begin
       FCustomizedFont.BoldFont := nil;
       FCustomizedFont.ItalicFont := nil;
       FCustomizedFont.BoldItalicFont := nil;
+    end;
+    if Outline <> 0 then
+    begin
+      FCustomizedFont.CustomizeOutline := true;
+      FCustomizedFont.Outline := Outline;
+      FCustomizedFont.OutlineHighQuality := OutlineHighQuality;
+      FCustomizedFont.OutlineColor := OutlineColor;
     end;
     Result := FCustomizedFont;
   end;
@@ -1550,6 +1585,33 @@ begin
   if FSmallFont <> Value then
   begin
     FSmallFont := Value;
+    FontChanged;
+  end;
+end;
+
+procedure TUIControlFont.SetOutline(const Value: Cardinal);
+begin
+  if FOutline <> Value then
+  begin
+    FOutline := Value;
+    FontChanged;
+  end;
+end;
+
+procedure TUIControlFont.SetOutlineColor(const Value: TCastleColor);
+begin
+  if not VectorsPerfectlyEqual(FOutlineColor, Value) then
+  begin
+    FOutlineColor := Value;
+    FontChanged;
+  end;
+end;
+
+procedure TUIControlFont.SetOutlineHighQuality(const Value: boolean);
+begin
+  if FOutlineHighQuality <> Value then
+  begin
+    FOutlineHighQuality := Value;
     FontChanged;
   end;
 end;
