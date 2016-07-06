@@ -73,12 +73,6 @@ var
   TouchCtlFlyOuter: TGrayscaleAlphaImage;
 
 var
-  Crosshair1: TGrayscaleAlphaImage;
-
-var
-  Crosshair2: TGrayscaleAlphaImage;
-
-var
   Loading: TGrayscaleAlphaImage;
 
 var
@@ -183,12 +177,6 @@ initialization
   TouchCtlFlyOuter := TGrayscaleAlphaImage.Create(TouchCtlFlyOuterWidth, TouchCtlFlyOuterHeight, TouchCtlFlyOuterDepth);
   Move(TouchCtlFlyOuterPixels, TouchCtlFlyOuter.RawPixels^, SizeOf(TouchCtlFlyOuterPixels));
   TouchCtlFlyOuter.URL := 'embedded-image:/TouchCtlFlyOuter';
-  Crosshair1 := TGrayscaleAlphaImage.Create(Crosshair1Width, Crosshair1Height, Crosshair1Depth);
-  Move(Crosshair1Pixels, Crosshair1.RawPixels^, SizeOf(Crosshair1Pixels));
-  Crosshair1.URL := 'embedded-image:/Crosshair1';
-  Crosshair2 := TGrayscaleAlphaImage.Create(Crosshair2Width, Crosshair2Height, Crosshair2Depth);
-  Move(Crosshair2Pixels, Crosshair2.RawPixels^, SizeOf(Crosshair2Pixels));
-  Crosshair2.URL := 'embedded-image:/Crosshair2';
   Loading := TGrayscaleAlphaImage.Create(LoadingWidth, LoadingHeight, LoadingDepth);
   Move(LoadingPixels, Loading.RawPixels^, SizeOf(LoadingPixels));
   Loading.URL := 'embedded-image:/Loading';
@@ -241,8 +229,6 @@ finalization
   FreeAndNil(TouchCtlOuter);
   FreeAndNil(TouchCtlFlyInner);
   FreeAndNil(TouchCtlFlyOuter);
-  FreeAndNil(Crosshair1);
-  FreeAndNil(Crosshair2);
   FreeAndNil(Loading);
   FreeAndNil(Crosshair1);
   FreeAndNil(Crosshair2);
