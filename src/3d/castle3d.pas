@@ -385,7 +385,9 @@ type
 
       Note that PointCollision2D and SphereCollision2D @italic(do not work
       reliably on objects that have 3D rotations), that is: rotations that change
-      the direction of Z axis!
+      the direction of Z axis! This applies to all ways of rotating --
+      using the T3DCustomTransform descendants (like T3DTransform)
+      or using the X3D node TTransformNode (within a TCastleSce).
 
       @orderedList(
         @iteam(@italic(The reason): we transform the point (or sphere center)
@@ -409,7 +411,7 @@ type
           (actually this part is easy, you can detect it by looking at the matrix
           even, so check whether appropriate numbers are zero).
           And then then PointCollision2D will change to LineCollision,
-          and SphereCollision2D will change to something like InfiniteTunnelCollision,
+          and SphereCollision2D will change to something like ExtrudedCirleCollision,
           @italic(only when necessary).
       )
     }
