@@ -42,6 +42,7 @@ type
     Similar to TCustomizedFont, it can also change the subfont size.
     Simply set the @code(Size) property of this instance to non-zero
     to force the specific size of all the underlying subfonts.
+    You can also change the subfont outline, if CustomizeOutline is used.
     The underlying font properties remain unchanged for subfonts
     (so they can be still used for other purposes,
     directly or by other TCustomizedFont or TFontFamily wrappers).
@@ -57,10 +58,13 @@ type
     // Note that we leave inherited Scale at == 1, always.
     FSize: Single;
     FBold, FItalic: boolean;
+    FCustomizeOutline: boolean;
     procedure SetRegularFont(const Value: TCastleFont);
     procedure SetBoldFont(const Value: TCastleFont);
     procedure SetItalicFont(const Value: TCastleFont);
     procedure SetBoldItalicFont(const Value: TCastleFont);
+    procedure SubFontCustomizeBegin;
+    procedure SubFontCustomizeEnd;
   private
     function SubFont(const ABold, AItalic: boolean): TCastleFont;
     function SubFont: TCastleFont;
@@ -68,6 +72,7 @@ type
     function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
     procedure GLContextClose; override;
+    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer); override;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -90,6 +95,9 @@ type
     function TextHeightBase(const S: string): Integer; override;
     function TextMove(const S: string): TVector2Integer; override;
     function RealSize: Single; override;
+
+    { Should we customize the outline of the underlying font. }
+    property CustomizeOutline: boolean read FCustomizeOutline write FCustomizeOutline default false;
   end;
 
   { @exclude Internal type for TRichText }
@@ -133,26 +141,31 @@ type
 
     constructor Create(const AFont: TFontFamily);
     function Width(const State: TPrintState): Cardinal;
+    function DisplayChars(const State: TPrintState): Cardinal;
     function KnownWidth: Cardinal;
     { Render line of text at given position. }
-    procedure Print(const State: TPrintState; X0, Y0: Integer);
+    procedure Print(const State: TPrintState; X0, Y0: Integer;
+      var MaxDisplayChars: Integer);
   end;
 
   { @exclude Internal type for TRichText }
   TTextProperty = class abstract
     procedure Print(const Font: TFontFamily;
-      const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer); virtual; abstract;
+      const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer;
+      var MaxDisplayChars: Integer); virtual; abstract;
     function Wrap(const Font: TFontFamily; const State: TTextLine.TPrintState;
       var CurrentWidth: Integer; const MaxWidth: Integer;
       const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine; virtual; abstract;
     function Width(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal; virtual; abstract;
+    function DisplayChars(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal; virtual; abstract;
   end;
 
   { @exclude Internal type for TRichText }
   TTextPropertyString = class(TTextProperty)
     S: string;
     procedure Print(const Font: TFontFamily;
-      const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer); override;
+      const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer;
+      var MaxDisplayChars: Integer); override;
     { If there's a need to break, then:
       - this property is modified (cut),
       - CurrentLine is modified (cut),
@@ -163,6 +176,7 @@ type
       var CurrentWidth: Integer; const MaxWidth: Integer;
       const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine; override;
     function Width(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal; override;
+    function DisplayChars(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal; override;
   end;
 
   { @exclude Internal type for TRichText }
@@ -175,11 +189,13 @@ type
     Color: TCastleColor;
     Size: Integer;
     procedure Print(const Font: TFontFamily;
-      const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer); override;
+      const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer;
+      var MaxDisplayChars: Integer); override;
     function Wrap(const Font: TFontFamily; const State: TTextLine.TPrintState;
       var CurrentWidth: Integer; const MaxWidth: Integer;
       const CurrentLine: TTextLine; const CurrentPropertyIndex: Integer): TTextLine; override;
     function Width(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal; override;
+    function DisplayChars(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal; override;
   end;
 
   { Multi-line text with processing commands
@@ -213,7 +229,9 @@ type
     procedure Wrap(const MaxWidth: Cardinal);
     procedure Print(const X0, Y0: Integer; const Color: TCastleColor;
       const LineSpacing: Integer;
-      const TextHorizontalAlignment: THorizontalPosition = hpLeft);
+      const TextHorizontalAlignment: THorizontalPosition = hpLeft;
+      MaxDisplayChars: Integer = -1);
+    function DisplayChars: Cardinal;
   end;
 
 implementation
@@ -339,65 +357,62 @@ begin
     FBoldItalicFont.GLContextClose;
 end;
 
+procedure TFontFamily.SubFontCustomizeBegin;
+begin
+  if (Size <> 0) or CustomizeOutline then
+  begin
+    SubFont.PushProperties;
+    if Size <> 0 then
+      SubFont.Size := Size;
+    if CustomizeOutline then
+    begin
+      SubFont.Outline := Outline;
+      SubFont.OutlineColor := OutlineColor;
+      SubFont.OutlineHighQuality := OutlineHighQuality;
+    end;
+  end;
+end;
+
+procedure TFontFamily.SubFontCustomizeEnd;
+begin
+  if Size <> 0 then
+    SubFont.PopProperties;
+end;
+
 procedure TFontFamily.Print(const X, Y: Integer; const Color: TCastleColor;
   const S: string);
 begin
-  if Size <> 0 then
-  begin
-    SubFont.PushProperties;
-    SubFont.Size := Size;
-  end;
+  SubFontCustomizeBegin;
   SubFont.Print(X, Y, Color, S);
-  if Size <> 0 then
-    SubFont.PopProperties;
+  SubFontCustomizeEnd;
 end;
 
 function TFontFamily.TextWidth(const S: string): Integer;
 begin
-  if Size <> 0 then
-  begin
-    SubFont.PushProperties;
-    SubFont.Size := Size;
-  end;
+  SubFontCustomizeBegin;
   Result := SubFont.TextWidth(S);
-  if Size <> 0 then
-    SubFont.PopProperties;
+  SubFontCustomizeEnd;
 end;
 
 function TFontFamily.TextHeight(const S: string): Integer;
 begin
-  if Size <> 0 then
-  begin
-    SubFont.PushProperties;
-    SubFont.Size := Size;
-  end;
+  SubFontCustomizeBegin;
   Result := SubFont.TextHeight(S);
-  if Size <> 0 then
-    SubFont.PopProperties;
+  SubFontCustomizeEnd;
 end;
 
 function TFontFamily.TextHeightBase(const S: string): Integer;
 begin
-  if Size <> 0 then
-  begin
-    SubFont.PushProperties;
-    SubFont.Size := Size;
-  end;
+  SubFontCustomizeBegin;
   Result := SubFont.TextHeightBase(S);
-  if Size <> 0 then
-    SubFont.PopProperties;
+  SubFontCustomizeEnd;
 end;
 
 function TFontFamily.TextMove(const S: string): TVector2Integer;
 begin
-  if Size <> 0 then
-  begin
-    SubFont.PushProperties;
-    SubFont.Size := Size;
-  end;
+  SubFontCustomizeBegin;
   Result := SubFont.TextMove(S);
-  if Size <> 0 then
-    SubFont.PopProperties;
+  SubFontCustomizeEnd;
 end;
 
 function TFontFamily.SubFont(const ABold, AItalic: boolean): TCastleFont;
@@ -425,6 +440,22 @@ begin
     Result := SubFont.RealSize;
 end;
 
+procedure TFontFamily.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
+begin
+  { Just like TCustomizedFont.Measure comments, this is good to call SubFont.Measure }
+  SubFont.Measure(ARowHeight, ARowHeightBase, ADescend);
+  { our Scale is always 1, so scale the resulting sizes manually now }
+  { TODO: should we add Outline *2 here maybe, if CustomizeOutline?
+    If yes, then changing CustomizeOutline should also cause InvalidateMeasure.
+    Changing the Outline* props in base font class should also cause InvalidateMeasure. }
+  if Size <> 0 then
+  begin
+    ARowHeight     := Round(ARowHeight     * Size / SubFont.Size);
+    ARowHeightBase := Round(ARowHeightBase * Size / SubFont.Size);
+    ADescend       := Round(ADescend       * Size / SubFont.Size);
+  end;
+end;
+
 { TPrintState ---------------------------------------------------------------- }
 
 destructor TTextLine.TPrintState.Destroy;
@@ -436,9 +467,25 @@ end;
 { TTextPropertyString -------------------------------------------------------- }
 
 procedure TTextPropertyString.Print(const Font: TFontFamily;
-  const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer);
+  const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer;
+  var MaxDisplayChars: Integer);
+var
+  L: Integer;
 begin
-  Font.Print(X0, Y0, State.Color, S);
+  if MaxDisplayChars <> -1 then
+  begin
+    L := UTF8Length(S);
+    if MaxDisplayChars >= L then
+    begin
+      MaxDisplayChars -= L;
+      Font.Print(X0, Y0, State.Color, S);
+    end else
+    begin
+      Font.Print(X0, Y0, State.Color, UTF8Copy(S, 1, MaxDisplayChars));
+      MaxDisplayChars := 0;
+    end;
+  end else
+    Font.Print(X0, Y0, State.Color, S);
   X0 += Font.TextWidth(S);
 end;
 
@@ -531,10 +578,16 @@ begin
   Result := Font.TextWidth(S);
 end;
 
+function TTextPropertyString.DisplayChars(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal;
+begin
+  Result := UTF8Length(S);
+end;
+
 { TTextPropertyCommand -------------------------------------------------------- }
 
 procedure TTextPropertyCommand.Print(const Font: TFontFamily;
-  const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer);
+  const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer;
+  var MaxDisplayChars: Integer);
 begin
   UpdateState(Font, State);
 end;
@@ -548,6 +601,12 @@ begin
 end;
 
 function TTextPropertyCommand.Width(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal;
+begin
+  UpdateState(Font, State);
+  Result := 0;
+end;
+
+function TTextPropertyCommand.DisplayChars(const Font: TFontFamily; const State: TTextLine.TPrintState): Cardinal;
 begin
   UpdateState(Font, State);
   Result := 0;
@@ -668,6 +727,15 @@ begin
   Result := FWidth;
 end;
 
+function TTextLine.DisplayChars(const State: TPrintState): Cardinal;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to Count - 1 do
+    Result += Items[I].DisplayChars(FFont, State);
+end;
+
 function TTextLine.KnownWidth: Cardinal;
 begin
   if not FWidthKnown then
@@ -675,12 +743,13 @@ begin
   Result := FWidth;
 end;
 
-procedure TTextLine.Print(const State: TPrintState; X0, Y0: Integer);
+procedure TTextLine.Print(const State: TPrintState; X0, Y0: Integer;
+  var MaxDisplayChars: Integer);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I].Print(FFont, State, X0, Y0);
+    Items[I].Print(FFont, State, X0, Y0, MaxDisplayChars);
 end;
 
 { TRichText ------------------------------------------------------------------ }
@@ -1044,7 +1113,8 @@ end;
 
 procedure TRichText.Print(const X0, Y0: Integer; const Color: TCastleColor;
   const LineSpacing: Integer;
-  const TextHorizontalAlignment: THorizontalPosition = hpLeft);
+  const TextHorizontalAlignment: THorizontalPosition;
+  MaxDisplayChars: Integer);
 
   function XPos(const Line: Integer): Integer;
   begin
@@ -1076,7 +1146,7 @@ begin
   try
     RowHeight := FFont.RowHeight;
     for I := 0 to Count - 1 do
-      Items[I].Print(State, XPos(I), YPos(I));
+      Items[I].Print(State, XPos(I), YPos(I), MaxDisplayChars);
   finally EndProcessing(State) end;
 end;
 
@@ -1096,6 +1166,19 @@ begin
     finally EndProcessing(State) end;
   end;
   Result := FWidth;
+end;
+
+function TRichText.DisplayChars: Cardinal;
+var
+  I: Integer;
+  State: TTextLine.TPrintState;
+begin
+  Result := 0;
+  State := BeginProcessing(Black { any color });
+  try
+    for I := 0 to Count - 1 do
+      Result += Items[I].DisplayChars(State);
+  finally EndProcessing(State) end;
 end;
 
 procedure TRichText.Wrap(const MaxWidth: Cardinal);

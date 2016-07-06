@@ -319,6 +319,9 @@ type
     function CreateDefaultCamera: TCamera; overload;
     { @groupEnd }
 
+    { Return current camera. Automatically creates it if missing. }
+    function RequiredCamera: TCamera;
+
     { Smoothly animate current @link(Camera) to a default camera settings.
 
       Default camera settings are determined by calling CreateDefaultCamera.
@@ -384,29 +387,24 @@ type
     property BackgroundColor: TCastleColor
       read FBackgroundColor write FBackgroundColor;
   published
-    { Camera used to render.
+    { Camera used to render this viewport.
 
-      Cannot be @nil when rendering. If you don't assign anything here,
-      we'll create a default camera object at the nearest ApplyProjection
-      call (this is the first moment when we really must have some camera).
-      This default camera will be created by CreateDefaultCamera.
+      Note this property may be @nil before rendering.
+      If you don't assign anything here, we'll create a default camera
+      when necessary (usually at the ApplyProjection which
+      happens before the rendering).
+      Use RequiredCamera instead of this property to get a camera
+      that is never @nil.
 
-      This camera @italic(should not) be inside some other container
-      (like on TCastleWindowCustom.Controls or TCastleControlCustom.Controls list).
-      Scene manager / viewport will handle passing events to the camera on it's own,
-      we will also pass our own Container to Camera.Container.
-      This is desired, this way events are correctly passed
-      and interpreted before passing them to 3D objects.
-      And this way we avoid the question whether camera should be before
-      or after the scene manager / viewport on the Controls list (as there's really
-      no perfect ordering for them).
-
-      Scene manager / viewport will "hijack" some Camera events:
+      For many purposes, you can directly operate on this camera,
+      for example you can change it's @link(TCamera.Position Position).
+      An exception to this is assigning events to the camera instance.
+      The scene manager or viewport will "hijack" some Camera events:
       TCamera.OnVisibleChange, TWalkCamera.OnMoveAllowed,
       TWalkCamera.OnHeight, TCamera.OnCursorChange.
-      We will handle them in a proper way.
+      We will handle them in a proper way. Do not assign them yourself.
 
-      @italic(For TCastleViewport only:)
+      @italic(Comments for TCastleViewport only:)
       The TCastleViewport's camera is slightly less important than
       TCastleSceneManager.Camera, because TCastleSceneManager.Camera may be treated
       as a "central" camera. Viewport's camera may not (because you may
@@ -415,13 +413,6 @@ type
       (for mirror textures, there must be one headlight for your 3D world).
       Also VRML/X3D ProximitySensors receive events only from
       TCastleSceneManager.Camera.
-
-      TODO: In the future it should be possible (even encouraged) to assign
-      one of your custom viewport cameras also to TCastleSceneManager.Camera.
-      It should also be possible to share one camera instance among a couple
-      of viewports.
-      For now, it doesn't work (last viewport/scene manager will hijack some
-      camera events making it not working in other ones).
 
       @seealso TCastleSceneManager.OnCameraChanged }
     property Camera: TCamera read FCamera write SetCamera;
@@ -1233,6 +1224,25 @@ end;
 
 procedure TCastleAbstractViewport.SetCamera(const Value: TCamera);
 begin
+  { This camera @italic(cannot) be inside some other container
+    (like on TCastleWindowCustom.Controls or TCastleControlCustom.Controls list),
+    and even cannot be now (TCamera is not a TUIControl anymore).
+
+    Scene manager / viewport will handle passing events to the camera on it's own,
+    we will also pass our own Container to Camera.Container.
+    This is desired, this way events are correctly passed
+    and interpreted before passing them to 3D objects.
+    And this way we avoid the question whether camera should be before
+    or after the scene manager / viewport on the Controls list (as there's really
+    no perfect ordering for them).
+
+    TODO: In the future it should be possible (even encouraged) to assign
+    one of your custom viewport cameras also to TCastleSceneManager.Camera.
+    It should also be possible to share one camera instance among a couple
+    of viewports.
+    For now, it doesn't work (last viewport/scene manager will hijack some
+    camera events making it not working in other ones). }
+
   if FCamera <> Value then
   begin
     { Check csDestroying, as this may be called from Notification,
@@ -1516,8 +1526,8 @@ procedure TCastleAbstractViewport.ApplyProjection;
 var
   Viewport: TRectangle;
 begin
-  if Camera = nil then
-    Camera := CreateDefaultCamera(Self);
+  RequiredCamera; // create Camera if necessary
+
   { We need to know container size now. }
   Assert(ContainerSizeKnown, ClassName + ' did not receive Resize event yet, cannnot apply OpenGL projection');
 
@@ -1924,8 +1934,7 @@ procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
   procedure RenderOneEffect(Shader: TGLSLProgram);
   var
     BoundTextureUnits: Cardinal;
-    AttribEnabled: array [0..1] of TGLuint;
-    AttribLocation: TGLuint;
+    AttribVertex, AttribTexCoord: TGLSLAttribute;
   begin
     if ScreenPointVbo = 0 then
     begin
@@ -1956,51 +1965,50 @@ procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
       Inc(BoundTextureUnits);
     end;
 
-    Shader.Enable;
-      Shader.SetUniform('screen', 0);
-      if CurrentScreenEffectsNeedDepth then
-        Shader.SetUniform('screen_depth', 1);
-      Shader.SetUniform('screen_width', TGLint(ScreenEffectTextureWidth));
-      Shader.SetUniform('screen_height', TGLint(ScreenEffectTextureHeight));
+    CurrentProgram := Shader;
+    Shader.Uniform('screen').SetValue(0);
+    if CurrentScreenEffectsNeedDepth then
+      Shader.Uniform('screen_depth').SetValue(1);
+    Shader.Uniform('screen_width').SetValue(TGLint(ScreenEffectTextureWidth));
+    Shader.Uniform('screen_height').SetValue(TGLint(ScreenEffectTextureHeight));
 
-      { set special uniforms for SSAO shader }
-      if Shader = SSAOShader then
-      begin
-       { TODO: use actual projection near/far values, instead of hardcoded ones.
-         Assignment below works, but it seems that effect is much less noticeable
-         then?
+    { set special uniforms for SSAO shader }
+    if Shader = SSAOShader then
+    begin
+      { TODO: use actual projection near/far values, instead of hardcoded ones.
+        Assignment below works, but it seems that effect is much less noticeable
+        then?
 
-        Writeln('setting near to ', ProjectionNear:0:10); // testing
-        Writeln('setting far to ', ProjectionFarFinite:0:10); // testing
-        Shader.SetUniform('near', ProjectionNear);
-        Shader.SetUniform('far', ProjectionFarFinite);
-        }
+      Writeln('setting near to ', ProjectionNear:0:10); // testing
+      Writeln('setting far to ', ProjectionFarFinite:0:10); // testing
+      Shader.Uniform('near').SetValue(ProjectionNear);
+      Shader.Uniform('far').SetValue(ProjectionFarFinite);
+      }
 
-        Shader.SetUniform('near', 1.0);
-        Shader.SetUniform('far', 1000.0);
-      end;
+      Shader.Uniform('near').SetValue(1.0);
+      Shader.Uniform('far').SetValue(1000.0);
+    end;
 
-      { Note that we ignore SetupUniforms result --- if some texture
-        could not be bound, it will be undefined for shader.
-        I don't see anything much better to do now. }
-      Shader.SetupUniforms(BoundTextureUnits);
+    { Note that we ignore SetupUniforms result --- if some texture
+      could not be bound, it will be undefined for shader.
+      I don't see anything much better to do now. }
+    Shader.SetupUniforms(BoundTextureUnits);
 
-      { Note that there's no need to worry about Rect.Left or Rect.Bottom,
-        here or inside RenderWithScreenEffectsCore, because we're already within
-        glViewport that takes care of this. }
+    { Note that there's no need to worry about Rect.Left or Rect.Bottom,
+      here or inside RenderWithScreenEffectsCore, because we're already within
+      glViewport that takes care of this. }
 
-      AttribEnabled[0] := Shader.VertexAttribPointer(
-        'vertex'   , 0, 2, GL_FLOAT, GL_FALSE, SizeOf(TScreenPoint),
-        Offset(ScreenPoint[0].Position, ScreenPoint[0]));
-      AttribEnabled[1] := Shader.VertexAttribPointer(
-        'tex_coord', 0, 2, GL_FLOAT, GL_FALSE, SizeOf(TScreenPoint),
-        Offset(ScreenPoint[0].TexCoord, ScreenPoint[0]));
+    AttribVertex := Shader.Attribute('vertex');
+    AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TScreenPoint),
+      Offset(ScreenPoint[0].Position, ScreenPoint[0]));
+    AttribTexCoord := Shader.Attribute('tex_coord');
+    AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TScreenPoint),
+      Offset(ScreenPoint[0].TexCoord, ScreenPoint[0]));
 
-      glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-    Shader.Disable;
-    for AttribLocation in AttribEnabled do
-      TGLSLProgram.DisableVertexAttribArray(AttribLocation);
+    AttribVertex.DisableArray;
+    AttribTexCoord.DisableArray;
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   end;
@@ -2385,6 +2393,13 @@ end;
 function TCastleAbstractViewport.CreateDefaultCamera: TCamera;
 begin
   Result := CreateDefaultCamera(Self);
+end;
+
+function TCastleAbstractViewport.RequiredCamera: TCamera;
+begin
+  if Camera = nil then
+    Camera := CreateDefaultCamera(Self);
+  Result := Camera;
 end;
 
 function TCastleAbstractViewport.Statistics: TRenderStatistics;
@@ -2836,7 +2851,7 @@ begin
       Include(Options, prShadowVolume);
 
     { We need one viewport, to setup it's projection and to setup it's camera.
-      There really no perfect choice, although in practice any viewport
+      There's really no perfect choice, although in practice any viewport
       should do just fine. For now: use the 1st one on the list.
       Maybe in the future we'll need more intelligent method of choosing. }
     ChosenViewport := Viewports[0];

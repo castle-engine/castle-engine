@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Compressing textures. }
-unit ToolTextureCompression;
+{ Compressing and downscaling textures. }
+unit ToolTextureGeneration;
 
 { Unfortunately, AMDCompressCLI output is broken now.
   See http://castle-engine.sourceforge.net/creating_data_material_properties.php . }
@@ -25,8 +25,8 @@ interface
 uses CastleUtils, CastleStringUtils,
   ToolProject;
 
-procedure AutoCompressTextures(const Project: TCastleProject);
-procedure AutoCompressClean(const Project: TCastleProject);
+procedure AutoGenerateTextures(const Project: TCastleProject);
+procedure AutoGenerateClean(const Project: TCastleProject);
 
 implementation
 
@@ -52,7 +52,7 @@ begin
     [ToolName, TextureCompressionToString(C)]);
 end;
 
-procedure AutoCompressTextures(const Project: TCastleProject);
+procedure AutoGenerateTextures(const Project: TCastleProject);
 
   procedure TryToolExe(var ToolExe: string; const ToolExeAbsolutePath: string);
   begin
@@ -298,11 +298,119 @@ procedure AutoCompressTextures(const Project: TCastleProject);
        '-o', OutputFile]);
   end;
 
+  { Convert both URLs to filenames and check, looking at file modification times
+    on disk, whether output should be updated.
+    In any case, makes appropriate message to user.
+    If the file needs to be updated, makes sure it's output directory exists. }
+  function CheckNeedsUpdate(const InputURL, OutputURL: string; out InputFile, OutputFile: string): boolean;
+  begin
+    InputFile := URIToFilenameSafe(InputURL);
+    OutputFile := URIToFilenameSafe(OutputURL);
+
+    Result := (not FileExists(OutputFile)) or (FileAge(OutputFile) < FileAge(InputFile));
+    if Result then
+    begin
+      Writeln(Format('Updating "%s" from input "%s"', [OutputFile, InputFile]));
+      CheckForceDirectories(ExtractFilePath(OutputFile));
+    end else
+    begin
+      if Verbose then
+        Writeln(Format('Not need to update "%s", it is already newer than input', [OutputFile]));
+    end;
+  end;
+
+  procedure UpdateTextureScale(const InputURL, OutputURL: string; const Scale: Cardinal);
+  const
+    // equivalent of GLTextureMinSize, but for TextureLoadingScale, not for GLTextureScale
+    TextureMinSize = 16;
+  var
+    InputFile, OutputFile: string;
+    Image: TCastleImage;
+    NewWidth, NewHeight: Integer;
+  begin
+    if CheckNeedsUpdate(InputURL, OutputURL, InputFile, OutputFile) then
+    begin
+      Image := LoadImage(InputURL);
+      try
+        if Image.Width < TextureMinSize then
+          NewWidth := Image.Width else
+          NewWidth := Image.Width shr (Scale - 1);
+        if Image.Height < TextureMinSize then
+          NewHeight := Image.Height else
+          NewHeight := Image.Height shr (Scale - 1);
+        if Verbose then
+          Writeln(Format('Resizing "%s" from %dx%d to %dx%d',
+            [InputURL, Image.Width, Image.Height, NewWidth, NewHeight]));
+        Image.Resize(NewWidth, NewHeight, riLanczos);
+        SaveImage(Image, OutputURL);
+      finally FreeAndNil(Image) end;
+    end;
+  end;
+
+  procedure UpdateTextureCompress(const InputURL, OutputURL: string; const C: TTextureCompression);
+  var
+    InputFile, OutputFile: string;
+  begin
+    if CheckNeedsUpdate(InputURL, OutputURL, InputFile, OutputFile) then
+    begin
+      case C of
+        { For ATICompressonator DXT1:
+          tcDxt1_RGB and tcDxt1_RGBA result in the same output file,
+          DXT1 is the same compression in both cases, and there's no option
+          how to differentiate between this in DDS file. }
+        tcDxt1_RGB : AMDCompressFallbackATICompressonator(InputFile, OutputFile, C, 'DXT1', 'DXT1');
+        tcDxt1_RGBA: AMDCompressFallbackATICompressonator(InputFile, OutputFile, C, 'DXT1', 'DXT1');
+        tcDxt3     : AMDCompressFallbackATICompressonator(InputFile, OutputFile, C, 'DXT3', 'DXT3');
+        tcDxt5     : AMDCompressFallbackATICompressonator(InputFile, OutputFile, C, 'DXT5', 'DXT5');
+
+        tcATITC_RGB                   : AMDCompressFallbackATICompressonator(InputFile, OutputFile, C, 'ATC_RGB'              , 'ATC ');
+        tcATITC_RGBA_InterpolatedAlpha: AMDCompressFallbackATICompressonator(InputFile, OutputFile, C, 'ATC_RGBA_Interpolated', 'ATCI');
+        tcATITC_RGBA_ExplicitAlpha    : AMDCompressFallbackATICompressonator(InputFile, OutputFile, C, 'ATC_RGBA_Explicit'    , 'ATCA');
+
+        tcPvrtc1_4bpp_RGB:  PVRTexTool(InputFile, OutputFile, C, 'PVRTC1_4_RGB');
+        tcPvrtc1_2bpp_RGB:  PVRTexTool(InputFile, OutputFile, C, 'PVRTC1_2_RGB');
+        tcPvrtc1_4bpp_RGBA: PVRTexTool(InputFile, OutputFile, C, 'PVRTC1_4');
+        tcPvrtc1_2bpp_RGBA: PVRTexTool(InputFile, OutputFile, C, 'PVRTC1_2');
+        tcPvrtc2_4bpp:      PVRTexTool(InputFile, OutputFile, C, 'PVRTC2_4');
+        tcPvrtc2_2bpp:      PVRTexTool(InputFile, OutputFile, C, 'PVRTC2_2');
+
+        tcETC1:             PVRTexTool(InputFile, OutputFile, C, 'ETC1');
+                      // or AMDCompress(InputFile, OutputFile, C, 'ETC_RGB');
+
+        else OnWarning(wtMajor, 'GPUCompression', Format('Compressing to GPU format %s not implemented (to update "%s")',
+          [TextureCompressionToString(C), OutputFile]));
+      end;
+    end;
+  end;
+
+  procedure UpdateTexture(const MatProps: TMaterialProperties; const OriginalTextureURL: string);
+  var
+    UncompressedURL, CompressedURL: string;
+    C: TTextureCompression;
+    Scale: Cardinal;
+  begin
+    for Scale := 1 to MatProps.AutoScale do
+    begin
+      if Scale <> 1 then
+      begin
+        UncompressedURL := MatProps.AutoGeneratedTextureURL(OriginalTextureURL, false, Low(TTextureCompression), Scale);
+        UpdateTextureScale(OriginalTextureURL, UncompressedURL, Scale);
+      end else
+        UncompressedURL := OriginalTextureURL;
+
+      for C in MatProps.AutoCompressedTextureFormats do
+      begin
+        CompressedURL := MatProps.AutoGeneratedTextureURL(OriginalTextureURL, true, C, Scale);
+        { we use the UncompressedURL that was updated previously.
+          This way there's no need to scale the texture here. }
+        UpdateTextureCompress(UncompressedURL, CompressedURL, C);
+      end;
+    end;
+  end;
+
 var
   Textures: TCastleStringList;
   I: Integer;
-  C: TTextureCompression;
-  TextureFile, TextureURL, OutputFile, OutputURL, OutputPath: string;
   MatPropsURL: string;
   MatProps: TMaterialProperties;
 begin
@@ -315,56 +423,10 @@ begin
   MatProps := TMaterialProperties.Create(false);
   try
     MatProps.URL := MatPropsURL;
-    Textures := MatProps.AutoCompressedTextures;
+    Textures := MatProps.AutoGeneratedTextures;
     try
       for I := 0 to Textures.Count - 1 do
-      begin
-        TextureURL := Textures[I];
-        TextureFile := URIToFilenameSafe(TextureURL);
-        for C in MatProps.AutoCompressedTextureFormats do
-        begin
-          OutputURL := MatProps.AutoCompressedTextureURL(TextureURL, C);
-          OutputFile := URIToFilenameSafe(OutputURL);
-          if (not FileExists(OutputFile)) or
-             (FileAge(OutputFile) < FileAge(TextureFile)) then
-          begin
-            Writeln(Format('Updating "%s" from input "%s"', [OutputFile, TextureFile]));
-            OutputPath := ExtractFilePath(OutputFile);
-            CheckForceDirectories(OutputPath);
-            case C of
-              { For ATICompressonator DXT1:
-                tcDxt1_RGB and tcDxt1_RGBA result in the same output file,
-                DXT1 is the same compression in both cases, and there's no option
-                how to differentiate between this in DDS file. }
-              tcDxt1_RGB : AMDCompressFallbackATICompressonator(TextureFile, OutputFile, C, 'DXT1', 'DXT1');
-              tcDxt1_RGBA: AMDCompressFallbackATICompressonator(TextureFile, OutputFile, C, 'DXT1', 'DXT1');
-              tcDxt3     : AMDCompressFallbackATICompressonator(TextureFile, OutputFile, C, 'DXT3', 'DXT3');
-              tcDxt5     : AMDCompressFallbackATICompressonator(TextureFile, OutputFile, C, 'DXT5', 'DXT5');
-
-              tcATITC_RGB                   : AMDCompressFallbackATICompressonator(TextureFile, OutputFile, C, 'ATC_RGB'              , 'ATC ');
-              tcATITC_RGBA_InterpolatedAlpha: AMDCompressFallbackATICompressonator(TextureFile, OutputFile, C, 'ATC_RGBA_Interpolated', 'ATCI');
-              tcATITC_RGBA_ExplicitAlpha    : AMDCompressFallbackATICompressonator(TextureFile, OutputFile, C, 'ATC_RGBA_Explicit'    , 'ATCA');
-
-              tcPvrtc1_4bpp_RGB:  PVRTexTool(TextureFile, OutputFile, C, 'PVRTC1_4_RGB');
-              tcPvrtc1_2bpp_RGB:  PVRTexTool(TextureFile, OutputFile, C, 'PVRTC1_2_RGB');
-              tcPvrtc1_4bpp_RGBA: PVRTexTool(TextureFile, OutputFile, C, 'PVRTC1_4');
-              tcPvrtc1_2bpp_RGBA: PVRTexTool(TextureFile, OutputFile, C, 'PVRTC1_2');
-              tcPvrtc2_4bpp:      PVRTexTool(TextureFile, OutputFile, C, 'PVRTC2_4');
-              tcPvrtc2_2bpp:      PVRTexTool(TextureFile, OutputFile, C, 'PVRTC2_2');
-
-              tcETC1:             PVRTexTool(TextureFile, OutputFile, C, 'ETC1');
-                            // or AMDCompress(TextureFile, OutputFile, C, 'ETC_RGB');
-
-              else OnWarning(wtMajor, 'GPUCompression', Format('Compressing to GPU format %s not implemented (to update "%s")',
-                [TextureCompressionToString(C), OutputFile]));
-            end;
-          end else
-          begin
-            if Verbose then
-              Writeln(Format('Not need to update "%s", it is already newer than input', [OutputFile]));
-          end;
-        end;
-      end;
+        UpdateTexture(MatProps, Textures[I]);
     finally FreeAndNil(Textures) end;
   finally FreeAndNil(MatProps) end;
 end;
@@ -376,9 +438,9 @@ begin
   RemoveNonEmptyDir(FileInfo.AbsoluteName);
 end;
 
-procedure AutoCompressClean(const Project: TCastleProject);
+procedure AutoGenerateClean(const Project: TCastleProject);
 begin
-  FindFiles(Project.DataPath, TMaterialProperties.AutoCompressedDirName, true,
+  FindFiles(Project.DataPath, TMaterialProperties.AutoGeneratedDirName, true,
     @CleanDir, nil, [ffRecursive]);
 end;
 

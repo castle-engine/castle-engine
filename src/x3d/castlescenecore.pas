@@ -1708,6 +1708,7 @@ type
       Animations are detected in VRML/X3D models as simply TimeSensor nodes
       (if you set @link(AnimationPrefix) property, we additionally
       filter them to show only the names starting with given prefix).
+      You can even get the time sensor node directly by AnimationTimeSensor.
 
       The resulting TStringList instance is owned by this object,
       do not free it.
@@ -1721,6 +1722,23 @@ type
       @seealso AnimationsList
       @seealso PlayAnimation }
     function HasAnimation(const AnimationName: string): boolean;
+
+    { TimeSensor of this animation. @nil if this name not found.
+      Use this for example to watch when the animation ends playing,
+      like
+
+@longCode(#
+  Scene.AnimationTimeSensor('my_animation').EventIsActive.OnReceive.Add(
+    @AnimationIsActiveChanged);
+#)
+
+
+      See the examples/3d_rendering_processing/listen_on_x3d_events.lpr . }
+    function AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
+
+    { TimeSensor of this animation, by animation index (like index
+      or AnimationsList). @nil if this index not found. }
+    function AnimationTimeSensor(const Index: Integer): TTimeSensorNode;
 
     function Animations: TStringList; deprecated 'use AnimationsList (and do not free it''s result)';
 
@@ -6719,6 +6737,18 @@ end;
 function TCastleSceneCore.HasAnimation(const AnimationName: string): boolean;
 begin
   Result := FAnimationsList.IndexOf(AnimationName) <> -1;
+end;
+
+function TCastleSceneCore.AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
+begin
+  Result := AnimationTimeSensor(FAnimationsList.IndexOf(AnimationName));
+end;
+
+function TCastleSceneCore.AnimationTimeSensor(const Index: Integer): TTimeSensorNode;
+begin
+  if Between(Index, 0, FAnimationsList.Count - 1) then
+    Result := FAnimationsList.Objects[Index] as TTimeSensorNode else
+    Result := nil;
 end;
 
 function TCastleSceneCore.ForceAnimationPose(const AnimationName: string;

@@ -82,6 +82,15 @@ var
   Loading: TGrayscaleAlphaImage;
 
 var
+  Crosshair1: TGrayscaleAlphaImage;
+
+var
+  Crosshair2: TGrayscaleAlphaImage;
+
+var
+  ScrollbarSlider: TRGBAlphaImage;
+
+var
   PanelSeparator: TGrayscaleImage;
 
 var
@@ -92,9 +101,6 @@ var
 
 var
   ScrollbarFrame: TRGBImage;
-
-var
-  ScrollbarSlider: TRGBImage;
 
 var
   SliderPosition: TRGBImage;
@@ -186,6 +192,15 @@ initialization
   Loading := TGrayscaleAlphaImage.Create(LoadingWidth, LoadingHeight, LoadingDepth);
   Move(LoadingPixels, Loading.RawPixels^, SizeOf(LoadingPixels));
   Loading.URL := 'embedded-image:/Loading';
+  Crosshair1 := TGrayscaleAlphaImage.Create(Crosshair1Width, Crosshair1Height, Crosshair1Depth);
+  Move(Crosshair1Pixels, Crosshair1.RawPixels^, SizeOf(Crosshair1Pixels));
+  Crosshair1.URL := 'embedded-image:/Crosshair1';
+  Crosshair2 := TGrayscaleAlphaImage.Create(Crosshair2Width, Crosshair2Height, Crosshair2Depth);
+  Move(Crosshair2Pixels, Crosshair2.RawPixels^, SizeOf(Crosshair2Pixels));
+  Crosshair2.URL := 'embedded-image:/Crosshair2';
+  ScrollbarSlider := TRGBAlphaImage.Create(ScrollbarSliderWidth, ScrollbarSliderHeight, ScrollbarSliderDepth);
+  Move(ScrollbarSliderPixels, ScrollbarSlider.RawPixels^, SizeOf(ScrollbarSliderPixels));
+  ScrollbarSlider.URL := 'embedded-image:/ScrollbarSlider';
   PanelSeparator := TGrayscaleImage.Create(PanelSeparatorWidth, PanelSeparatorHeight, PanelSeparatorDepth);
   Move(PanelSeparatorPixels, PanelSeparator.RawPixels^, SizeOf(PanelSeparatorPixels));
   PanelSeparator.URL := 'embedded-image:/PanelSeparator';
@@ -198,9 +213,6 @@ initialization
   ScrollbarFrame := TRGBImage.Create(ScrollbarFrameWidth, ScrollbarFrameHeight, ScrollbarFrameDepth);
   Move(ScrollbarFramePixels, ScrollbarFrame.RawPixels^, SizeOf(ScrollbarFramePixels));
   ScrollbarFrame.URL := 'embedded-image:/ScrollbarFrame';
-  ScrollbarSlider := TRGBImage.Create(ScrollbarSliderWidth, ScrollbarSliderHeight, ScrollbarSliderDepth);
-  Move(ScrollbarSliderPixels, ScrollbarSlider.RawPixels^, SizeOf(ScrollbarSliderPixels));
-  ScrollbarSlider.URL := 'embedded-image:/ScrollbarSlider';
   SliderPosition := TRGBImage.Create(SliderPositionWidth, SliderPositionHeight, SliderPositionDepth);
   Move(SliderPositionPixels, SliderPosition.RawPixels^, SizeOf(SliderPositionPixels));
   SliderPosition.URL := 'embedded-image:/SliderPosition';
@@ -232,11 +244,13 @@ finalization
   FreeAndNil(Crosshair1);
   FreeAndNil(Crosshair2);
   FreeAndNil(Loading);
+  FreeAndNil(Crosshair1);
+  FreeAndNil(Crosshair2);
+  FreeAndNil(ScrollbarSlider);
   FreeAndNil(PanelSeparator);
   FreeAndNil(WindowDark);
   FreeAndNil(WindowGray);
   FreeAndNil(ScrollbarFrame);
-  FreeAndNil(ScrollbarSlider);
   FreeAndNil(SliderPosition);
   FreeAndNil(ErrorBackground);
 end.

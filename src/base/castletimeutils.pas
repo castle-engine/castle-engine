@@ -427,6 +427,9 @@ end;
   Not based on, but in fact very similar idea as the one in
   FPC fpc/3.0.0/src/rtl/unix/sysutils.pp }
 
+var
+  LastGetTickCount64: TMilisecTime;
+
 {$I norqcheckbegin.inc}
 function GetTickCount64: TMilisecTime;
 var
@@ -440,6 +443,18 @@ begin
     with tv_usec div 1000 (which must be < 1000, because tv_usec must be < 1 million). }
 
   Result := Int64(timeval.tv_sec) * 1000 + (timeval.tv_usec div 1000);
+
+  { We cannot trust some Android systems to return increasing values here
+    (Android device "Moto X Play", "XT1562", OS version 5.1.1).
+    Maybe they synchronize the time from the Internet, and do not take care
+    to keep it monotonic (unlike https://lwn.net/Articles/23313/ says?) }
+
+  if Result < LastGetTickCount64 then
+  begin
+    WritelnLog('Time', 'Detected gettimeofday() going backwards on Unix, workarounding. This is known to happen on some Android devices');
+    Result := LastGetTickCount64;
+  end else
+    LastGetTickCount64 := Result;
 end;
 {$I norqcheckend.inc}
 {$endif UNIX}
@@ -543,6 +558,9 @@ end;
 {$endif MSWINDOWS}
 
 {$ifdef UNIX}
+var
+  LastTimer: TTimerResult;
+
 function Timer: TTimerResult;
 var
   tv: TTimeval;
@@ -551,6 +569,18 @@ begin
 
   { We can fit whole TTimeval inside Int64, no problem. }
   Result := Int64(tv.tv_sec) * 1000000 + Int64(tv.tv_usec);
+
+  { We cannot trust some Android systems to return increasing values here
+    (Android device "Moto X Play", "XT1562", OS version 5.1.1).
+    Maybe they synchronize the time from the Internet, and do not take care
+    to keep it monotonic (unlike https://lwn.net/Articles/23313/ says?) }
+
+  if Result < LastTimer then
+  begin
+    WritelnLog('Time', 'Detected gettimeofday() going backwards on Unix, workarounding. This is known to happen on some Android devices');
+    Result := LastTimer;
+  end else
+    LastTimer := Result;
 end;
 {$endif UNIX}
 
@@ -601,7 +631,7 @@ begin
     { update FRealTime, FFrameTime once for TimeToRecalculate time.
       This way they don't change rapidly.
 
-      Previosuly we used more elaborate hacks for this (resetting
+      Previously we used more elaborate hacks for this (resetting
       their times after a longer periods, but keeping some previous
       results), but they were complex and bad: when the game speed
       was changing suddenly, FRealTime, FFrameTime should also change

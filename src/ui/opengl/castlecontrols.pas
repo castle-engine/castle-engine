@@ -22,12 +22,12 @@ interface
 
 uses Classes, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
-  CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily;
+  CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily, CastleGLUtils;
 
 type
   TCastleLabel = class;
 
-  { Base class for all controls inside an OpenGL context using a font.
+  { Base class for all user interface controls using a font.
     Allows to customize font and font size per-control, or use defaults. }
   TUIControlFont = class(TUIControl)
   strict private
@@ -37,11 +37,17 @@ type
     FOwnsCustomFont: boolean;
     FLastSeenUIFontXxx: TCastleFont; //< remembered only to call FontChanged
     FFontSize: Single;
-    FCustomizedFont: TFontFamily; //< used only when FFontSize <> 0 for now
+    FCustomizedFont: TFontFamily; //< used only when some properties make it necessary
     FSmallFont: boolean;
+    FOutline: Cardinal;
+    FOutlineColor: TCastleColor;
+    FOutlineHighQuality: boolean;
     procedure SetCustomFont(const Value: TCastleFont);
     procedure SetFontSize(const Value: Single);
     procedure SetSmallFont(const Value: boolean);
+    procedure SetOutline(const Value: Cardinal);
+    procedure SetOutlineColor(const Value: TCastleColor);
+    procedure SetOutlineHighQuality(const Value: boolean);
   protected
     { Called when Font or it's size changed. }
     procedure FontChanged; virtual;
@@ -73,6 +79,10 @@ type
       to be immediately valid). Without calling this,
       it could be updated only at next Render call. }
     procedure CheckFontChanged;
+
+    { Outline color, used only if Outline <> 0. Default is black.
+      @seealso Outline }
+    property OutlineColor: TCastleColor read FOutlineColor write SetOutlineColor;
   published
     { Tooltip string, displayed when user hovers the mouse over a control.
 
@@ -103,11 +113,29 @@ type
       @link(UIFontSmall) instead of @link(UIFont).
       If @link(CustomFont) is assigned, this says to scale it's size by 2. }
     property SmallFont: boolean read FSmallFont write SetSmallFont default false;
+
+    { Outline size around the font.
+      Note that the current implementation is very simple, it will only
+      look sensible for small outline values (like 1 or 2).
+
+      See TCastleFont.Outline for more details.
+
+      Specifying a non-zero outline for a label overrides the default outline
+      settings for the current font. By default, fonts do not have an outline.
+
+      @seealso OutlineHighQuality }
+    property Outline: Cardinal read FOutline write SetOutline default 0;
+
+    { Optionally force better outline quality. Used only if Outline <> 0.
+      High quality outline looks better, but is about 2x more expensive to draw.
+      @seealso Outline }
+    property OutlineHighQuality: boolean
+      read FOutlineHighQuality write SetOutlineHighQuality default false;
   end;
 
   TCastleButtonImageLayout = (ilTop, ilBottom, ilLeft, ilRight);
 
-  { Button inside OpenGL context.
+  { Clickable button.
 
     This is TUIControl descendant, so to use it just add it to
     the TCastleWindowCustom.Controls or TCastleControlCustom.Controls list.
@@ -144,6 +172,7 @@ type
     FCustomTextColorUse: boolean;
     FToggle: boolean;
     ClickStarted: boolean;
+    ClickStartedPosition: TVector2Single;
     FMinImageWidth: Cardinal;
     FMinImageHeight: Cardinal;
     FImageLayout: TCastleButtonImageLayout;
@@ -153,6 +182,7 @@ type
     FPaddingHorizontal, FPaddingVertical: Cardinal;
     FTintPressed, FTintDisabled, FTintFocused, FTintNormal: TCastleColor;
     FEnabled: boolean;
+    FEnableParentDragging: boolean;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -191,6 +221,7 @@ type
     procedure GLContextClose; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
     function Rect: TRectangle; override;
 
     { Called when user clicks the button. In this class, simply calls
@@ -273,23 +304,31 @@ type
     property PaddingVertical: Cardinal
       read FPaddingVertical write FPaddingVertical default DefaultPaddingVertical;
 
-    { When AutoSize is @true (the default) then Width/Height are automatically
+    { When AutoSize is @true (the default) then button sizes are automatically
       adjusted when you change the Caption and @link(Image).
-      They take into account
-      Caption width/height with current font, @link(Image) width/height,
-      and add some margin to make it look good.
+      The calculated size takes into account the Caption text size (with current font),
+      and @link(Image) size, plus some margin to make it look nice.
 
-      To be more precise, Width is adjusted only when AutoSize and AutoSizeWidth.
+      Width is adjusted only when AutoSize and AutoSizeWidth.
       And Height is adjusted only when AutoSize and AutoSizeHeight.
       This way you can turn off auto-sizing in only one dimension if you
       want (and when you don't need such flexibility, leave
       AutoSizeWidth = AutoSizeHeight = @true and control both by simple
       AutoSize).
 
-      Note that this adjustment happens only when OpenGL context is initialized
-      (because only then we actually know the font used).
-      So don't depend on Width/Height values calculated correctly before
-      OpenGL context is ready. }
+      If needed, you can query the resulting button size with the standard
+      TUIControl methods like @link(TUIControl.CalculatedWidth) and
+      @link(TUIControl.CalculatedHeight). Note that they may not be available
+      before the button is actually added to the container,
+      and the container size is initialized (we need to know the size of container,
+      for UI scaling to determine the font size).
+
+      @italic(Right now) the auto-sizing also updates the
+      values of @link(Width) and @link(Height) properties, but don't depend on it
+      in new code. In the future, it may be changed, and then @link(Width) and
+      @link(Height) properties will stay unmodified by the auto-sizing mechanism.
+      Always use @link(TUIControl.CalculatedWidth) and @link(TUIControl.CalculatedHeight)
+      to read the resulting control size. }
     property AutoSize: boolean read FAutoSize write SetAutoSize default true;
     property AutoSizeWidth: boolean read FAutoSizeWidth write SetAutoSizeWidth default true;
     property AutoSizeHeight: boolean read FAutoSizeHeight write SetAutoSizeHeight default true;
@@ -334,13 +373,20 @@ type
       default DefaultImageMargin;
 
     property Enabled: boolean read FEnabled write SetEnabled default true;
+
+    { Enable to drag a parent control, for example to drag a TCastleScrollView
+      that contains this button. To do this, you need to turn on
+      TCastleScrollView.EnableDragging, and set EnableParentDragging=@true
+      on all buttons inside. In effect, buttons will cancel the click operation
+      once you start dragging, which allows the parent to handle
+      all the motion events for dragging. }
+    property EnableParentDragging: boolean
+      read FEnableParentDragging write FEnableParentDragging default false;
   end;
 
-  { Panel frame.
-    Use as a comfortable (and with matching colors) background
-    for other controls like buttons and such.
-    May be used as a toolbar, together with appropriately placed
-    TCastleButton over it. }
+  { Panel or a toolbar control.
+    Use as a background for other controls like buttons.
+    You can add vertical separators to separate groups of controls on the panel. }
   TCastlePanel = class(TUIControlSizeable)
   strict private
     FVerticalSeparators: TCardinalList;
@@ -359,7 +405,7 @@ type
     class function SeparatorSize: Cardinal;
   end;
 
-  { Image control inside OpenGL context.
+  { Image control.
     Size is automatically adjusted to the image size, if Stretch is @false (default).
     You should set TCastleImageControl.Left, TCastleImageControl.Bottom properties,
     and load your image by setting TCastleImageControl.URL property
@@ -463,8 +509,10 @@ type
     { If @link(Clip), this is the line equation used to determine whether
       we clip the given pixel. Given a line (A, B, C) and pixel (x, y),
       the pixel is clipped (rejected) if @code(A * x + B * y + C < 0).
-      This provides a functionality similar to desktop OpenGL glClipPlane
-      for TGLImageCore (on all platforms). }
+
+      The equation is calculated in the final scaled screen coordinates
+      (not in the local, unscaled pixels). Adjust it to match the ScreenRect
+      if necessary, to make it work with UI scaling. }
     property ClipLine: TVector3Single read FClipLine write SetClipLine;
   published
     { URL of the image. Setting this also sets @link(Image).
@@ -474,12 +522,13 @@ type
     property FileName: string read FURL write SetURL; deprecated;
     { How to treat alpha channel of the assigned image.
       By default, this is acAuto, which means that image contents
-      determine how the alpha of image is treated (opaque, alpha test,
-      alpha blending). Set this to force specific treatment. }
+      together with current @link(Color) determine how
+      the alpha of image is treated (opaque, alpha test, alpha blending).
+      Set this to force specific treatment. }
     property AlphaChannel: TAutoAlphaChannel
       read FAlphaChannel write SetAlphaChannel default acAuto;
     { Deprecated, use more flexible AlphaChannel instead. }
-    property Blending: boolean read GetBlending write SetBlending stored false; deprecated;
+    property Blending: boolean read GetBlending write SetBlending stored false; deprecated 'use AlphaChannel';
 
     { Is the image scaling mode smooth (bilinear filtering)
       or not (nearest-pixel filtering).
@@ -537,8 +586,13 @@ type
                          ctcmFlyUpdown, ctcmPanXY);
   TCastleTouchPosition = (tpManual, tpLeft, tpRight);
 
-  { Control for touch interfaces. Shows one "lever", that can be moved
-    up/down/left/right, and controls the movement while Walking or Flying. }
+  { Touch user interface to navigate in a 3D world.
+    Shows one "lever", that can be moved up/down/left/right,
+    and controls the movement while Walking or Flying.
+
+    Usually, this control is created and used through the @link(TCastleWindowTouch)
+    properties. There is no need to directly create TCastleTouchControl instance
+    in this case. }
   TCastleTouchControl = class(TUIControl)
   strict private
     FTouchMode: TCastleTouchCtlMode;
@@ -585,12 +639,24 @@ type
   TCastleRectangleControl = class(TUIControlSizeable)
   strict private
     FColor: TCastleColor;
+    FInterceptInput: boolean;
     procedure SetColor(const Value: TCastleColor);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
+
     { Rectangle color. By default, opaque white. }
     property Color: TCastleColor read FColor write SetColor;
+
+    { Prevents passing mouse/keyboard events to the controls underneath.
+      More precisely, when this property is @true, then the
+      @link(Press), @link(Release) and @link(Motion) events are marked as
+      "handled" by this control.  }
+    property InterceptInput: boolean read FInterceptInput write FInterceptInput
+      default false;
   end;
 
   { Fill the whole window with a simple color.
@@ -616,6 +682,8 @@ type
     property Color: TCastleColor read FColor write SetColor;
   end;
 
+  TCastleScrollView = class;
+
   { Dialog box that can display a long text, with automatic vertical scrollbar.
     You can also add buttons at the bottom.
     You can also have an input text area.
@@ -628,10 +696,16 @@ type
     const
       BoxMargin = 10;
       WindowMargin = 10;
-      ScrollBarWholeWidth = 20;
       ButtonHorizontalMargin = 10;
+    type
+      TDialogScrollArea = class(TUIControl)
+      strict private
+        Dialog: TCastleDialog;
+      public
+        constructor Create(AOwner: TComponent); override;
+        procedure Render; override;
+      end;
     var
-    FScroll: Single;
     FInputText: string;
 
     { Broken Text. }
@@ -644,18 +718,6 @@ type
     { Sum of all Broken_Text.Count + Broken_InputText.Count.
       In other words, all lines that are scrolled by the scrollbar. }
     AllScrolledLinesCount: integer;
-    VisibleScrolledLinesCount: integer;
-
-    { Min and max sensible values for @link(Scroll). }
-    ScrollMin, ScrollMax: integer;
-    ScrollInitialized: boolean;
-
-    ScrollMaxForScrollbar: integer;
-
-    ScrollbarVisible: boolean;
-    ScrollbarFrame: TRectangle;
-    ScrollbarSlider: TRectangle;
-    ScrollBarDragging: boolean;
 
     { Things below set in MessageCore, readonly afterwards. }
     { Main text to display. Read-only contents. }
@@ -671,28 +733,19 @@ type
     Buttons: array of TCastleButton;
     LifeTime: TFloatTime;
     FHtml: boolean;
+    ScrollView: TCastleScrollView;
 
     function BoxMarginScaled: Integer;
     function WindowMarginScaled: Integer;
-    function ScrollBarWholeWidthScaled: Integer;
     function ButtonHorizontalMarginScaled: Integer;
-
-    procedure SetScroll(Value: Single);
-    { How many pixels up should be move the text.
-      Kept as a float, to allow smooth time-based changes.
-      Note that setting Scroll always clamps the value to sensible range. }
-    property Scroll: Single read FScroll write SetScroll;
-    procedure ScrollPageDown;
-    procedure ScrollPageUp;
 
     procedure SetInputText(const value: string);
 
     { Calculate height in pixels needed to draw Buttons.
-      Returns 0 if there are no Buttons = ''. }
+      Returns 0 if there are no Buttons. }
+    function ButtonsHeightScaled: Integer;
     function ButtonsHeight: Integer;
     procedure UpdateSizes;
-    { If ScrollBarVisible, ScrollBarWholeWidthScaled. Else 0. }
-    function RealScrollBarWholeWidthScaled: Integer;
   public
     { Set this to @true to signal that modal dialog window should be closed.
       This is not magically handled --- if you implement a modal dialog box,
@@ -718,9 +771,6 @@ type
     procedure Resize; override;
     procedure GLContextOpen; override;
     procedure GLContextClose; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
-    function Motion(const Event: TInputMotion): boolean; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
     procedure Render; override;
     function CapturesEventsAtPosition(const Position: TVector2Single): boolean; override;
@@ -746,9 +796,11 @@ type
     FFrameColor: TCastleColor;
     FMaxWidth: Integer;
     FAlignment: THorizontalPosition;
+    FVerticalAlignment: TVerticalPosition;
     FAutoSize: boolean;
     FWidth, FHeight: Cardinal;
     FFullSize: boolean;
+    FMaxDisplayChars: Integer;
     function GetTextToRender: TRichText;
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
@@ -756,6 +808,9 @@ type
     procedure SetAutoSize(const Value: boolean);
     function GetCaption: string;
     procedure SetCaption(const Value: string);
+    procedure SetAlignment(const Value: THorizontalPosition);
+    procedure SetVerticalAlignment(const Value: TVerticalPosition);
+    procedure SetMaxDisplayChars(const Value: Integer);
   private
     { For internal use by tooltip rendering. In normal circumstances,
       leave this at tiLabel. }
@@ -774,6 +829,8 @@ type
 
     { Color tint of the background image, see @link(Frame). By default white. }
     property FrameColor: TCastleColor read FFrameColor write FFrameColor;
+
+    function DisplayChars: Cardinal;
   published
     property Width: Cardinal read FWidth write SetWidth default 0;
     property Height: Cardinal read FHeight write SetHeight default 0;
@@ -854,11 +911,31 @@ type
 
     { Horizontal alignment of the text. }
     property Alignment: THorizontalPosition
-      read FAlignment write FAlignment default hpLeft;
+      read FAlignment write SetAlignment default hpLeft;
+
+    { Vertical alignment of the text. Usually you don't want to use this,
+      instead leave @link(AutoSize) = @true and align the label to the parent
+      using anchors, like @code(MyLabel.Anchor(vpMiddle);)
+      or @code(MyLabel.Anchor(vpTop);).
+
+      This property is useful if you really need to manually control the size.
+      It only matters when @link(AutoSize) is @false.
+      Then it controls where the text is, with respect it's rectangle defined
+      by properties like @link(Height) or @link(FullSize). }
+    property VerticalAlignment: TVerticalPosition
+      read FVerticalAlignment write SetVerticalAlignment default vpBottom;
+
+    { Limit the displayed label text, if not -1.
+      This doesn't affect the label size, only the rendered text.
+      It's nice to show the animation of text "expanding", filling some area.
+      Use DisplayChars as the maximum sensible value for this. }
+    property MaxDisplayChars: Integer
+      read FMaxDisplayChars write SetMaxDisplayChars default -1;
   end;
 
   TCastleCrosshairShape = (csCross, csCrossRect);
 
+  { Display a simple crosshair in the middle of the parent control. }
   TCastleCrosshair = class(TUIControl)
   strict private
     FShape: TCastleCrosshairShape;
@@ -882,6 +959,10 @@ type
     property VerticalAnchorParent default vpMiddle;
   end;
 
+  { Progress bar user interface.
+    This is usually used through the CastleWindowProgress and CastleProgress
+    features. There is no need to directly create and access the TCastleProgressBar
+    instance in this case. }
   TCastleProgressBar = class(TUIControlFont)
   strict private
     { Background image. }
@@ -922,11 +1003,14 @@ type
       default TProgressUserInterface.DefaultBarYPosition;
   end;
 
-  { Error background, for various error handlers. }
+  { Error background, for various error handlers.
+    This is notably used by the CastleWindow exception handler. }
   TErrorBackground = class(TUIControl)
     procedure Render; override;
   end;
 
+  { An abstract slider user interface. Usually you want to use of its descendants,
+    like @link(TCastleFloatSlider) or @link(TCastleIntegerSlider). }
   TCastleAbstractSlider = class(TUIControlFont)
   strict private
     FDisplayValue: boolean;
@@ -987,6 +1071,7 @@ type
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
+  { Slider to change a float value within a given range. }
   TCastleFloatSlider = class(TCastleAbstractSlider)
   strict private
     FMin: Single;
@@ -1030,6 +1115,7 @@ type
     property MultipleOf: Single read FMultipleOf write FMultipleOf;
   end;
 
+  { Slider to change an integer value within a given range. }
   TCastleIntegerSlider = class(TCastleAbstractSlider)
   strict private
     FMin: Integer;
@@ -1057,6 +1143,77 @@ type
       although the general code should be ready for handle any value here
       (to work even during changes to @link(Min) and @link(Max) properties). }
     property Value: Integer read FValue write SetValue default DefaultMin;
+  end;
+
+  { Children added to @link(ScrollArea) can be scrolled vertically.
+    We automatically show a scrollbar, and handle various scrolling inputs
+    to be functional on both desktops and mobile
+    (we handle scrolling by keys, mouse wheel, dragging by scrollbar,
+    dragging the whole area - see @link(EnableDragging)). }
+  TCastleScrollView = class(TUIControlSizeable)
+  strict private
+    FScrollArea: TUIControlSizeable;
+    Scissor: TScissor;
+
+    FScroll: Single;
+    ScrollbarVisible: boolean;
+    { Rects in screen coordinates (like ScreenRect, after UI scaling and anchors. }
+    ScrollbarFrame, ScrollbarSlider: TRectangle;
+    ScrollBarDragging: boolean;
+    FKeyScrollSpeed, FWheelScrollSpeed: Single;
+    FScrollBarWidth: Cardinal;
+    FEnableDragging: boolean;
+    DragSinceLastUpdate, DragSpeed, TimeSinceDraggingStopped, TimeSinceDraggingStarted: Double;
+    ScrollbarActive: Single;
+    FTintScrollBarInactive: TCastleColor;
+
+    { Min and max sensible values for @link(Scroll). }
+    function ScrollMin: Single;
+    function ScrollMax: Single;
+
+    procedure SetScroll(Value: Single);
+
+    { How many pixels do we scroll. This corresponds to ScrollArea vertical anchor,
+      so it's in unscaled pixels. Kept as a float, to allow smooth time-based changes.
+      Note that setting it always clamps the value to a sensible range. }
+    property Scroll: Single read FScroll write SetScroll;
+  private
+    function ScrollBarWidthScaled: Integer;
+  public
+    const
+      DefaultKeyScrollSpeed = 200.0;
+      DefaultWheelScrollSpeed = 20.0;
+      DefaultScrollBarWidth = 20;
+
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure Render; override;
+    procedure RenderOverChildren; override;
+    function Press(const Event: TInputPressRelease): boolean; override;
+    function Release(const Event: TInputPressRelease): boolean; override;
+    function Motion(const Event: TInputMotion): boolean; override;
+    procedure Update(const SecondsPassed: Single;
+      var HandleInput: boolean); override;
+
+    { Color and alpha tint to use when scrollbar is not used.
+      May have some alpha, which makes scrollbar "make itself more opaque",
+      and thus noticeable, when you start dragging.
+      By default it's opaque white, which means that no tint is shown. }
+    property TintScrollBarInactive: TCastleColor read FTintScrollBarInactive write FTintScrollBarInactive;
+  published
+    { Children you add here will be scrolled. }
+    property ScrollArea: TUIControlSizeable read FScrollArea;
+    { Speed of scrolling by keys, in pixels (before UI scaling) per second. }
+    property KeyScrollSpeed: Single read FKeyScrollSpeed write FKeyScrollSpeed default DefaultKeyScrollSpeed;
+    { Speed of scrolling by mouse wheel, in pixels (before UI scaling) per event. }
+    property WheelScrollSpeed: Single read FWheelScrollSpeed write FWheelScrollSpeed default DefaultWheelScrollSpeed;
+    { Width of the scroll bar. }
+    property ScrollBarWidth: Cardinal read FScrollBarWidth write FScrollBarWidth default DefaultScrollBarWidth;
+    { Enable scrolling by dragging @italic(anywhere) in the scroll area.
+      This is usually suitable for mobile devices.
+      Note that this doesn't affect the dragging directly by the scrollbar,
+      which is always enabled. }
+    property EnableDragging: boolean read FEnableDragging write FEnableDragging default false;
   end;
 
   { Theme for 2D GUI controls.
@@ -1206,13 +1363,15 @@ procedure Register;
 implementation
 
 uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
-  CastleTextureFont_DejaVuSans_10, CastleGLUtils,
+  CastleTextureFont_DejaVuSans_10,
   CastleApplicationProperties;
 
 procedure Register;
 begin
-  RegisterComponents('Castle', [TCastleButton, TCastleImageControl,
-    TCastleIntegerSlider, TCastleFloatSlider]);
+  RegisterComponents('Castle', [
+    TCastleButton, TCastleImageControl, TCastleRectangleControl,
+    TCastleLabel, TCastleCrosshair, TCastleIntegerSlider, TCastleFloatSlider,
+    TCastleScrollView]);
 end;
 
 { UIFont --------------------------------------------------------------------- }
@@ -1341,7 +1500,7 @@ begin
 
   { if FontSize or UIScale are non-trivial,
     wrap Result in TCustomizedFont instance }
-  if (FFontSize <> 0) or (UIScale <> 1) or SmallFont then
+  if (FFontSize <> 0) or (UIScale <> 1) or SmallFont or (Outline <> 0) then
   begin
     if FCustomizedFont = nil then
       FCustomizedFont := TFontFamily.Create(nil);
@@ -1365,6 +1524,13 @@ begin
       FCustomizedFont.BoldFont := nil;
       FCustomizedFont.ItalicFont := nil;
       FCustomizedFont.BoldItalicFont := nil;
+    end;
+    if Outline <> 0 then
+    begin
+      FCustomizedFont.CustomizeOutline := true;
+      FCustomizedFont.Outline := Outline;
+      FCustomizedFont.OutlineHighQuality := OutlineHighQuality;
+      FCustomizedFont.OutlineColor := OutlineColor;
     end;
     Result := FCustomizedFont;
   end;
@@ -1423,6 +1589,33 @@ begin
   if FSmallFont <> Value then
   begin
     FSmallFont := Value;
+    FontChanged;
+  end;
+end;
+
+procedure TUIControlFont.SetOutline(const Value: Cardinal);
+begin
+  if FOutline <> Value then
+  begin
+    FOutline := Value;
+    FontChanged;
+  end;
+end;
+
+procedure TUIControlFont.SetOutlineColor(const Value: TCastleColor);
+begin
+  if not VectorsPerfectlyEqual(FOutlineColor, Value) then
+  begin
+    FOutlineColor := Value;
+    FontChanged;
+  end;
+end;
+
+procedure TUIControlFont.SetOutlineHighQuality(const Value: boolean);
+begin
+  if FOutlineHighQuality <> Value then
+  begin
+    FOutlineHighQuality := Value;
     FontChanged;
   end;
 end;
@@ -1646,6 +1839,7 @@ begin
     end;
     // regardless of Toggle value, set ClickStarted, to be able to reach OnClick.
     ClickStarted := true;
+    ClickStartedPosition := Event.Position;
   end;
 end;
 
@@ -1678,6 +1872,34 @@ begin
     if Enabled and ScreenRect.Contains(Event.Position) then
       DoClick;
   end;
+end;
+
+function TCastleButton.Motion(const Event: TInputMotion): boolean;
+
+  { Similar to Release implementation, but never calls DoClick. }
+  procedure CancelDragging;
+  begin
+    if not Toggle then FPressed := false;
+    ClickStarted := false;
+    { We base our Render on Pressed value. }
+    VisibleChange;
+    { Without ReleaseCapture, the parent (like TCastleScrollView) would still
+      not receive the following motion events. }
+    Container.ReleaseCapture(Self);
+  end;
+
+const
+  DistanceToHijackDragging = 20;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if ClickStarted and EnableParentDragging and
+    (PointsDistanceSqr(ClickStartedPosition, Event.Position) >
+     { scaling with UIScale is helpful. Scaling with physical size
+       would probably be even better, for mobiles. }
+     Sqr(DistanceToHijackDragging * UIScale)) then
+    CancelDragging;
 end;
 
 procedure TCastleButton.DoClick;
@@ -2006,15 +2228,20 @@ procedure TCastlePanel.Render;
 const
   SeparatorMargin = 8;
 var
-  I: Integer;
+  I, SeparatorMarginScaled: Integer;
+  SR: TRectangle;
 begin
   inherited;
-  Theme.Draw(Rect, tiPanel, UIScale);
 
+  SR := ScreenRect;
+  Theme.Draw(SR, tiPanel, UIScale);
+
+  SeparatorMarginScaled := Round(SeparatorMargin * UIScale);
   for I := 0 to VerticalSeparators.Count - 1 do
     Theme.Draw(Rectangle(
-      Left + VerticalSeparators[I], Bottom + SeparatorMargin,
-      Theme.Images[tiPanelSeparator].Width, Height - 2 * SeparatorMargin),
+      SR.Left + Round(VerticalSeparators[I] * UIScale),
+      SR.Bottom + SeparatorMarginScaled,
+      Theme.Images[tiPanelSeparator].Width, Height - 2 * SeparatorMarginScaled),
       tiPanelSeparator, UIScale);
 end;
 
@@ -2231,9 +2458,8 @@ begin
         FGLImage.Rotation := FRotation;
         FGLImage.Clip := FClip;
         FGLImage.ClipLine := FClipLine;
-      end;
-      if AlphaChannel <> acAuto then
         FGLImage.Alpha := AlphaChannel;
+      end;
     end else
       FreeAndNil(FGLImage); // make sure to free FGLImage when FImage is nil
     VisibleChange;
@@ -2247,10 +2473,8 @@ begin
     FAlphaChannel := Value;
     if FGLImage <> nil then
     begin
-      { update FGLImage.Alpha }
-      if AlphaChannel <> acAuto then
-        FGLImage.Alpha := AlphaChannel else
-        FGLImage.Alpha := FImage.AlphaChannel;
+      FGLImage.Alpha := Value;
+      VisibleChange;
     end;
   end;
 end;
@@ -2591,6 +2815,24 @@ begin
   DrawRectangle(ScreenRect, Color);
 end;
 
+function TCastleRectangleControl.Press(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  Result := Result or InterceptInput;
+end;
+
+function TCastleRectangleControl.Release(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  Result := Result or InterceptInput;
+end;
+
+function TCastleRectangleControl.Motion(const Event: TInputMotion): boolean;
+begin
+  Result := inherited;
+  Result := Result or InterceptInput;
+end;
+
 { TCastleSimpleBackground ---------------------------------------------------- }
 
 constructor TCastleSimpleBackground.Create(AOwner: TComponent);
@@ -2616,10 +2858,85 @@ begin
   GLClear([cbColor], Color);
 end;
 
-{ TCastleDialog -------------------------------------------------------------- }
+{ TDialogScrollArea -------------------------------------------------------------- }
 
 const
   CaretChar = '|';
+
+constructor TCastleDialog.TDialogScrollArea.Create(AOwner: TComponent);
+begin
+  inherited;
+  Dialog := AOwner as TCastleDialog;
+end;
+
+procedure TCastleDialog.TDialogScrollArea.Render;
+type
+  TCaretMode = (cmNone, cmVisible, cmInvisible);
+
+  { Render a Text line, and move Y up to the line above. }
+  procedure DrawString(X: Integer; var Y: Integer; const Color: TCastleColor;
+    Text: string; const TextAlign: THorizontalPosition;
+    const Caret: TCaretMode);
+  var
+    CaretWidth: Integer;
+  begin
+    if Caret <> cmNone then
+      CaretWidth := Dialog.Font.TextWidth(CaretChar) else
+      CaretWidth := 0;
+    { change X only locally, to take TextAlign into account }
+    case TextAlign of
+      hpMiddle: X += (Dialog.MaxLineWidth - (Dialog.Font.TextWidth(Text) + CaretWidth)) div 2;
+      hpRight : X +=  Dialog.MaxLineWidth - (Dialog.Font.TextWidth(Text) + CaretWidth);
+    end;
+    if Caret = cmVisible then
+      Text := Text + CaretChar;
+    Dialog.Font.Print(X, Y, Color, Text);
+    { change Y for caller, to print next line higher }
+    Y += Dialog.Font.RowHeight;
+  end;
+
+  { Render all lines in S, and move Y up to the line above. }
+  procedure DrawStrings(const X: Integer; var Y: Integer;
+    const Color: TCastleColor; const s: TStrings; TextAlign: THorizontalPosition;
+    const AddCaret: boolean);
+  const
+    CaretSpeed = 1; //< how many blinks per second
+  var
+    I: Integer;
+    Caret: TCaretMode;
+  begin
+    for i := S.Count - 1 downto 0 do
+    begin
+      if AddCaret and (I = S.Count - 1) then
+      begin
+        if FloatModulo(Dialog.LifeTime * CaretSpeed, 1.0) < 0.5 then
+          Caret := cmVisible else
+          Caret := cmInvisible;
+      end else
+        Caret := cmNone;
+      { each DrawString call will move Y up }
+      DrawString(X, Y, Color, s[i], TextAlign, Caret);
+    end;
+  end;
+
+var
+  TextX, TextY: Integer;
+  SR: TRectangle;
+begin
+  inherited;
+
+  SR := ScreenRect; // screen rectangle of ScrollView.ScrollArea
+  TextX := SR.Left   + Dialog.BoxMarginScaled;
+  TextY := SR.Bottom + Dialog.BoxMarginScaled;
+
+  { draw Broken_InputText and Broken_Text.
+    Order matters, as it's drawn from bottom to top. }
+  if Dialog.DrawInputText then
+    DrawStrings(TextX, TextY, Theme.MessageInputTextColor, Dialog.Broken_InputText, Dialog.TextAlign, true);
+  Dialog.Broken_Text.Print(TextX, TextY, Theme.MessageTextColor, 0, Dialog.TextAlign);
+end;
+
+{ TCastleDialog -------------------------------------------------------------- }
 
 constructor TCastleDialog.Create(AOwner: TComponent);
 begin
@@ -2630,6 +2947,11 @@ begin
   Broken_InputText := TStringList.Create;
   Anchor(hpMiddle);
   Anchor(vpMiddle);
+
+  ScrollView := TCastleScrollView.Create(Self);
+  ScrollView.ScrollArea.InsertFront(TDialogScrollArea.Create(Self));
+  ScrollView.EnableDragging := true;
+  InsertFront(ScrollView);
 end;
 
 procedure TCastleDialog.Initialize(const TextList: TStringList;
@@ -2677,37 +2999,20 @@ begin
   inherited;
 end;
 
-procedure TCastleDialog.SetScroll(Value: Single);
-begin
-  ClampVar(Value, ScrollMin, ScrollMax);
-  if Value <> Scroll then
-  begin
-    FScroll := Value;
-    VisibleChange;
-  end;
-end;
-
-procedure TCastleDialog.ScrollPageDown;
-var
-  PageHeight: Single;
-begin
-  PageHeight := VisibleScrolledLinesCount * Font.RowHeight;
-  Scroll := Scroll + PageHeight;
-end;
-
-procedure TCastleDialog.ScrollPageUp;
-var
-  PageHeight: Single;
-begin
-  PageHeight := VisibleScrolledLinesCount * Font.RowHeight;
-  Scroll := Scroll - PageHeight;
-end;
-
 procedure TCastleDialog.SetInputText(const value: string);
 begin
   FInputText := value;
   VisibleChange;
   UpdateSizes;
+end;
+
+function TCastleDialog.ButtonsHeightScaled: Integer;
+var
+  Button: TCastleButton;
+begin
+  Result := 0;
+  for Button in Buttons do
+    MaxVar(Result, Round(Button.CalculatedHeight * UIScale) + 2 * BoxMarginScaled);
 end;
 
 function TCastleDialog.ButtonsHeight: Integer;
@@ -2716,7 +3021,7 @@ var
 begin
   Result := 0;
   for Button in Buttons do
-    MaxVar(Result, Round(Button.CalculatedHeight * UIScale) + 2 * BoxMarginScaled);
+    MaxVar(Result, Button.CalculatedHeight + 2 * BoxMargin);
 end;
 
 procedure TCastleDialog.Resize;
@@ -2749,15 +3054,14 @@ procedure TCastleDialog.UpdateSizes;
 
 var
   BreakWidth, ButtonsWidth: integer;
-  WindowScrolledHeight: Integer;
   Button: TCastleButton;
 begin
   { calculate BreakWidth, which is the width at which we should break
     our string lists Broken_Xxx. We must here always subtract
-    ScrollBarWholeWidthScaled to be on the safe side, because we don't know
+    ScrollBarWidthScaled to be on the safe side, because we don't know
     yet is ScrollBarVisible. }
   BreakWidth := Max(0, ParentRect.Width - BoxMarginScaled * 2
-    - WindowMarginScaled * 2 - ScrollBarWholeWidthScaled);
+    - WindowMarginScaled * 2 - ScrollView.ScrollBarWidthScaled);
 
   { calculate MaxLineWidth and AllScrolledLinesCount }
 
@@ -2789,138 +3093,26 @@ begin
     AllScrolledLinesCount += Broken_InputText.count;
   end;
 
-  { Now we have MaxLineWidth and AllScrolledLinesCount calculated }
+  { Now we have MaxLineWidth and AllScrolledLinesCount calculated,
+    so our Rect and ScreenRect return valid values. }
 
-  { Calculate WindowScrolledHeight --- number of pixels that are controlled
-    by the scrollbar. }
-  WindowScrolledHeight := ContainerHeight - BoxMarginScaled * 2
-    - WindowMarginScaled * 2 - ButtonsHeight;
+  ScrollView.Left := 0;
+  ScrollView.Bottom := ButtonsHeight;
+  ScrollView.Width := CalculatedWidth;
+  ScrollView.Height := CalculatedHeight - ButtonsHeight;
 
-  { calculate VisibleScrolledLinesCount, ScrollBarVisible }
-
-  VisibleScrolledLinesCount := Clamped(WindowScrolledHeight div Font.RowHeight,
-    0, AllScrolledLinesCount);
-  ScrollBarVisible := VisibleScrolledLinesCount < AllScrolledLinesCount;
-  { if ScrollBarVisible changed from true to false then we must make
-    sure that ScrollBarDragging is false. }
-  if not ScrollBarVisible then
-    ScrollBarDragging := false;
-
-  { Note that when not ScrollBarVisible,
-    then VisibleScrolledLinesCount = AllScrolledLinesCount,
-    then ScrollMin = 0
-    so ScrollMin = ScrollMax,
-    so Scroll will always be 0. }
-  ScrollMin := -Font.RowHeight *
-    (AllScrolledLinesCount - VisibleScrolledLinesCount);
-  { ScrollMax jest stale ale to nic; wszystko bedziemy pisac
-    tak jakby ScrollMax tez moglo sie zmieniac - byc moze kiedys zrobimy
-    z tej mozliwosci uzytek. }
-  ScrollMax := 0;
-  ScrollMaxForScrollbar := ScrollMin + Font.RowHeight * AllScrolledLinesCount;
-
-  if ScrollInitialized then
-    { This clamps Scroll to proper range }
-    Scroll := Scroll else
-  begin
-    { Need to initalize Scroll, otherwise default Scroll = 0 means were
-      at the bottom of the text. }
-    Scroll := ScrollMin;
-    ScrollInitialized := true;
-  end;
+  { add Font.Descend, to be able to see the descend of the bottom line when Scroll is ScrollMax. }
+  ScrollView.ScrollArea.Height :=
+    Round((Font.RowHeight * AllScrolledLinesCount + Font.Descend) / UIScale) + 2 * BoxMargin;
+  ScrollView.ScrollArea.Width := CalculatedWidth;
 
   UpdateButtons;
 end;
 
-function TCastleDialog.Press(const Event: TInputPressRelease): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  { if not ScrollBarVisible then there is no point in changing Scroll
-    (because always ScrollMin = ScrollMax = Scroll = 0).
-
-    This way we allow descendants like TCastleKeyMouseDialog
-    to handle K_PageDown, K_PageUp, K_Home and K_End keys
-    and mouse wheel. And this is very good for MessageKey,
-    when it's used e.g. to allow user to choose any TKey.
-    Otherwise MessageKey would not be able to return
-    K_PageDown, K_PageUp, etc. keys. }
-
-  if ScrollBarVisible then
-    case Event.EventType of
-      itKey:
-        case Event.Key of
-          K_PageUp:   begin ScrollPageUp;        Result := true; end;
-          K_PageDown: begin ScrollPageDown;      Result := true; end;
-          K_Home:     begin Scroll := ScrollMin; Result := true; end;
-          K_End:      begin Scroll := ScrollMax; Result := true; end;
-        end;
-      itMouseButton:
-        begin
-          if (Event.MouseButton = mbLeft) and ScrollBarVisible and
-            ScrollbarFrame.Contains(Container.MousePosition) then
-          begin
-            if Container.MousePosition[1] < ScrollbarSlider.Bottom then
-              ScrollPageDown else
-            if Container.MousePosition[1] >= ScrollbarSlider.Top then
-              ScrollPageUp else
-              ScrollBarDragging := true;
-            Result := true;
-          end;
-        end;
-      itMouseWheel:
-        if Event.MouseWheelVertical then
-        begin
-          Scroll := Scroll - Event.MouseWheelScroll * Font.RowHeight;
-          Result := true;
-        end;
-    end;
-end;
-
-function TCastleDialog.Release(const Event: TInputPressRelease): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  if Event.IsMouseButton(mbLeft) then
-  begin
-    ScrollBarDragging := false;
-    Result := true;
-  end;
-end;
-
-function TCastleDialog.Motion(const Event: TInputMotion): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  Result := ScrollBarDragging;
-  if Result then
-    Scroll := Scroll + (Event.OldPosition[1] - Event.Position[1]) /
-      ScrollbarFrame.Height *
-      (ScrollMaxForScrollbar - ScrollMin);
-end;
-
 procedure TCastleDialog.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
-
-  function Factor: Single;
-  begin
-    result := 200.0 * SecondsPassed;
-    if mkCtrl in Container.Pressed.Modifiers then result *= 6;
-  end;
-
 begin
   inherited;
-
-  if HandleInput then
-  begin
-    if Container.Pressed[K_Up  ] then Scroll := Scroll - Factor;
-    if Container.Pressed[K_Down] then Scroll := Scroll + Factor;
-    HandleInput := not ExclusiveEvents;
-  end;
-
   LifeTime += SecondsPassed;
   { when we have input text, we display blinking caret, so keep redrawing }
   if DrawInputText then
@@ -2928,70 +3120,8 @@ begin
 end;
 
 procedure TCastleDialog.Render;
-type
-  TCaretMode = (cmNone, cmVisible, cmInvisible);
-
-  { Render a Text line, and move Y up to the line above. }
-  procedure DrawString(X: Integer; var Y: Integer; const Color: TCastleColor;
-    Text: string; const TextAlign: THorizontalPosition;
-    const Caret: TCaretMode);
-  var
-    CaretWidth: Integer;
-  begin
-    if Caret <> cmNone then
-      CaretWidth := Font.TextWidth(CaretChar) else
-      CaretWidth := 0;
-    { change X only locally, to take TextAlign into account }
-    case TextAlign of
-      hpMiddle: X += (MaxLineWidth - (Font.TextWidth(Text) + CaretWidth)) div 2;
-      hpRight : X +=  MaxLineWidth - (Font.TextWidth(Text) + CaretWidth);
-    end;
-    if Caret = cmVisible then
-      Text := Text + CaretChar;
-    Font.Print(X, Y, Color, Text);
-    { change Y for caller, to print next line higher }
-    Y += Font.RowHeight;
-  end;
-
-  { Render all lines in S, and move Y up to the line above. }
-  procedure DrawStrings(const X: Integer; var Y: Integer;
-    const Color: TCastleColor; const s: TStrings; TextAlign: THorizontalPosition;
-    const AddCaret: boolean);
-  const
-    CaretSpeed = 1; //< how many blinks per second
-  var
-    I: Integer;
-    Caret: TCaretMode;
-  begin
-    for i := S.Count - 1 downto 0 do
-    begin
-      if AddCaret and (I = S.Count - 1) then
-      begin
-        if FloatModulo(LifeTime * CaretSpeed, 1.0) < 0.5 then
-          Caret := cmVisible else
-          Caret := cmInvisible;
-      end else
-        Caret := cmNone;
-      { each DrawString call will move Y up }
-      DrawString(X, Y, Color, s[i], TextAlign, Caret);
-    end;
-  end;
-
-var
-  MessageRect: TRectangle;
-  { InnerRect to okienko w ktorym mieszcza sie napisy,
-    a wiec Rect zmniejszony o BoxMargin we wszystkich kierunkach
-    i z ew. obcieta prawa czescia przeznaczona na ScrollbarFrame. }
-  InnerRect: TRectangle;
-  ScrollBarLength: integer;
-  TextX, TextY: Integer;
-  { odleglosc paska ScrollBara od krawedzi swojego waskiego recta
-    (prawa krawedz jest zarazem krawedzia duzego recta !) }
-  ScrollBarMargin: Integer;
 begin
   inherited;
-
-  ScrollBarMargin := Round(2 * UIScale);
 
   if GLBackground <> nil then
   begin
@@ -2999,62 +3129,12 @@ begin
     GLBackground.Draw(ParentRect);
   end;
 
-  MessageRect := ScreenRect;
-  Theme.Draw(MessageRect, tiWindow, UIScale);
-
-  MessageRect := MessageRect.RemoveBottom(ButtonsHeight);
-
-  { calculate InnerRect }
-  InnerRect := MessageRect.Grow(-BoxMarginScaled);
-  InnerRect.Width -= RealScrollBarWholeWidthScaled;
-
-  { draw scrollbar, and calculate it's rectangles }
-  if ScrollBarVisible then
-  begin
-    ScrollbarFrame := MessageRect.RightPart(ScrollBarWholeWidthScaled).
-      RemoveRight(Theme.Corners[tiWindow][1]).
-      RemoveTop(Theme.Corners[tiWindow][0]);
-    Theme.Draw(ScrollbarFrame, tiScrollbarFrame, UIScale);
-
-    ScrollBarLength := MessageRect.Height - ScrollBarMargin*2;
-    ScrollbarSlider := ScrollbarFrame;
-    ScrollbarSlider.Height := VisibleScrolledLinesCount * ScrollBarLength
-      div AllScrolledLinesCount;
-    ScrollbarSlider.Bottom += Round(MapRange(Scroll,
-      ScrollMin, ScrollMax, ScrollbarFrame.Height - ScrollbarSlider.Height, 0));
-    Theme.Draw(ScrollbarSlider, tiScrollbarSlider, UIScale);
-  end else
-  begin
-    ScrollbarFrame := TRectangle.Empty;
-    ScrollbarSlider := TRectangle.Empty;
-  end;
-
-  { Make scissor to cut off text that is too far up/down.
-    We add bottom height Font.Descend, to see the descend of
-    the bottom line (which is below InnerRect.Bottom, and would not be
-    ever visible otherwise). }
-  ScissorEnable(InnerRect.GrowBottom(Font.Descend));
-
-  TextX := InnerRect.Left;
-  TextY := InnerRect.Bottom + Round(Scroll);
-
-  { draw Broken_InputText and Broken_Text.
-    Order matters, as it's drawn from bottom to top. }
-  if DrawInputText then
-    DrawStrings(TextX, TextY, Theme.MessageInputTextColor, Broken_InputText, TextAlign, true);
-  Broken_Text.Print(TextX, TextY, Theme.MessageTextColor, 0, TextAlign);
-
-  ScissorDisable;
+  Theme.Draw(ScreenRect, tiWindow, UIScale);
 end;
 
 function TCastleDialog.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
 begin
   Result := true; // always capture
-end;
-
-function TCastleDialog.RealScrollBarWholeWidthScaled: Integer;
-begin
-  Result := Iff(ScrollBarVisible, ScrollBarWholeWidthScaled, 0);
 end;
 
 function TCastleDialog.Rect: TRectangle;
@@ -3063,9 +3143,20 @@ var
 begin
   PR := ParentRect;
   Result := Rectangle(0, 0,
-    Min(MaxLineWidth + BoxMarginScaled * 2 + RealScrollBarWholeWidthScaled,
+    Min(MaxLineWidth + BoxMarginScaled * 2 + ScrollView.ScrollBarWidthScaled,
       PR.Width  - WindowMarginScaled * 2),
-    Min(AllScrolledLinesCount * Font.RowHeight + BoxMarginScaled * 2 + ButtonsHeight,
+    Min(Font.RowHeight * AllScrolledLinesCount + Font.Descend + BoxMarginScaled * 2 + ButtonsHeightScaled
+      { adding here + 2 is a hack to make sure that TCastleScrollView will
+        not show scrollbars when not necessary. That's because we set
+        ScrollView.ScrollArea.Height using a similar equation as above
+        "Font.RowHeight * AllScrolledLinesCount + Font.Descend...",
+        but it's in unscaled size (/ UIScale), and sometimes (with wild UIScale
+        values) it seems like scrollbars are needed (CalculatedHeight < ScrollArea.CalculatedHeight)
+        even though they actually are not.
+
+        Reproducible if you try to resize to small sizes the demo on
+        /home/michalis/sources/castle-engine/castle-engine/examples/android/android_demo/game.pas . }
+      + 2,
       PR.Height - WindowMarginScaled * 2));
 end;
 
@@ -3077,11 +3168,6 @@ end;
 function TCastleDialog.WindowMarginScaled: Integer;
 begin
   Result := Round(WindowMargin * UIScale);
-end;
-
-function TCastleDialog.ScrollBarWholeWidthScaled: Integer;
-begin
-  Result := Round(ScrollBarWholeWidth * UIScale);
 end;
 
 function TCastleDialog.ButtonHorizontalMarginScaled: Integer;
@@ -3101,6 +3187,7 @@ begin
   FLineSpacing := DefaultLineSpacing;
   FAutoSize := true;
   ImageType := tiLabel;
+  FMaxDisplayChars := -1;
 end;
 
 destructor TCastleLabel.Destroy;
@@ -3111,7 +3198,7 @@ end;
 
 function TCastleLabel.GetTextToRender: TRichText;
 var
-  PaddingHorizontalScaled, MaxWidthScaled: Integer;
+  PaddingHorizontalScaled, MaxWidthScaled, WrapWidth: Integer;
   US: Single;
 begin
   Result := TRichText.Create(Font, Text, Html);
@@ -3120,7 +3207,9 @@ begin
     US := UIScale;
     PaddingHorizontalScaled := Round(US * PaddingHorizontal);
     MaxWidthScaled := Round(US * MaxWidth);
-    Result.Wrap(MaxWidthScaled - 2 * PaddingHorizontalScaled);
+    WrapWidth := MaxWidthScaled - 2 * PaddingHorizontalScaled;
+    if WrapWidth > 0 then
+      Result.Wrap(WrapWidth);
   end;
 end;
 
@@ -3166,17 +3255,19 @@ begin
 end;
 
 procedure TCastleLabel.Render;
+var
+  TextToRender: TRichText;
+  LineSpacingScaled: Integer;
 
-  {function TextHeight: Integer;
+  function TextHeight: Integer;
   begin
-    Result := TextToRender.Count * (RowHeight + LineSpacingScaled);
-  end;}
+    Result := TextToRender.Count * (Font.RowHeight + LineSpacingScaled);
+  end;
 
 var
   SR: TRectangle;
-  TextToRender: TRichText;
   TextX, TextBottom, PaddingHorizontalScaled,
-    PaddingVerticalScaled, LineSpacingScaled: Integer;
+    PaddingVerticalScaled: Integer;
   US: Single;
 begin
   inherited;
@@ -3201,16 +3292,9 @@ begin
   { calculate TextBottom }
   TextBottom := SR.Bottom + PaddingVerticalScaled + Font.Descend;
 
-  { useless, use AutoSize=true and Anchor(vpMiddle) to center text vertically
-    within parent rect.
-  if not AutoSize then
-    case VerticalAlignment of
-      vpMiddle: TextBottom := SR.Bottom + (SR.Height - TextHeight) / div 2;
-      vpTop   : TextBottom := SR.Top - PaddingVerticalScaled - Font.Descend - TextHeight;
-    end;
-  }
-
-  if (not Html) and (MaxWidth = 0) then
+  if (not Html) and (MaxWidth = 0) and
+     (AutoSize or (VerticalAlignment = vpBottom)) and
+     (MaxDisplayChars = -1) then
   begin
     { fast case: no need to use TRichText in this case }
     Font.PrintStrings(TextX, TextBottom, Color, Text, false, LineSpacingScaled, Alignment);
@@ -3218,7 +3302,15 @@ begin
   begin
     TextToRender := GetTextToRender;
     try
-      TextToRender.Print(TextX, TextBottom, Color, LineSpacingScaled, Alignment);
+      { fix TextBottom, in case of non-trivial VerticalAlignment }
+      if not AutoSize then
+        case VerticalAlignment of
+          vpMiddle: TextBottom := SR.Bottom + (SR.Height - TextHeight) div 2;
+          vpTop   : TextBottom := SR.Top - PaddingVerticalScaled - Font.Descend - TextHeight;
+        end;
+
+      TextToRender.Print(TextX, TextBottom, Color, LineSpacingScaled, Alignment,
+        MaxDisplayChars);
     finally FreeAndNil(TextToRender) end;
   end;
 end;
@@ -3267,6 +3359,45 @@ end;
 procedure TCastleLabel.SetCaption(const Value: string);
 begin
   Text.Text := Value;
+end;
+
+procedure TCastleLabel.SetAlignment(const Value: THorizontalPosition);
+begin
+  if FAlignment <> Value then
+  begin
+    FAlignment := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleLabel.SetVerticalAlignment(const Value: TVerticalPosition);
+begin
+  if FVerticalAlignment <> Value then
+  begin
+    FVerticalAlignment := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleLabel.SetMaxDisplayChars(const Value: Integer);
+begin
+  if FMaxDisplayChars <> Value then
+  begin
+    FMaxDisplayChars := Value;
+    VisibleChange;
+  end;
+end;
+
+function TCastleLabel.DisplayChars: Cardinal;
+var
+  TextToRender: TRichText;
+begin
+  if Text.Count = 0 then Exit(0); // early exit in case of easy, fast case
+
+  TextToRender := GetTextToRender;
+  try
+    Result := TextToRender.DisplayChars;
+  finally FreeAndNil(TextToRender) end;
 end;
 
 { TCastleProgressBar --------------------------------------------------------- }
@@ -3799,6 +3930,296 @@ begin
   end;
 end;
 
+{ TCastleScrollView ---------------------------------------------------------- }
+
+constructor TCastleScrollView.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  FKeyScrollSpeed := DefaultKeyScrollSpeed;
+  FWheelScrollSpeed := DefaultWheelScrollSpeed;
+  FScrollBarWidth := DefaultScrollBarWidth;
+  FTintScrollBarInactive := White;
+
+  FScrollArea := TUIControlSizeable.Create(Self);
+  FScrollArea.SetSubComponent(true);
+  FScrollArea.Name := 'ScrollArea';
+  FScrollArea.Anchor(vpTop);
+  InsertFront(FScrollArea);
+
+  Scissor := TScissor.Create;
+end;
+
+destructor TCastleScrollView.Destroy;
+begin
+  FreeAndNil(Scissor);
+  inherited;
+end;
+
+procedure TCastleScrollView.Render;
+begin
+  inherited;
+  Scissor.Rect := ScreenRect;
+  Scissor.Enabled := true;
+end;
+
+procedure TCastleScrollView.RenderOverChildren;
+var
+  Color: TCastleColor;
+begin
+  Scissor.Enabled := false;
+
+  if ScrollBarVisible then
+  begin
+    Color := Lerp(ScrollbarActive, TintScrollBarInactive, White);
+    Theme.Draw(ScrollbarFrame, tiScrollbarFrame, UIScale, Color);
+    Theme.Draw(ScrollbarSlider, tiScrollbarSlider, UIScale, Color);
+  end;
+  inherited;
+end;
+
+procedure TCastleScrollView.SetScroll(Value: Single);
+begin
+  ClampVar(Value, ScrollMin, ScrollMax);
+  if FScroll <> Value then
+  begin
+    FScroll := Value;
+    FScrollArea.Anchor(vpTop, Round(FScroll));
+  end;
+end;
+
+procedure TCastleScrollView.Update(const SecondsPassed: Single;
+  var HandleInput: boolean);
+
+  { Calculate ScrollBarVisible, ScrollbarFrame, ScrollbarFrame }
+  procedure UpdateScrollBarVisibleAndRects;
+  var
+    SR: TRectangle;
+  begin
+    SR := ScreenRect;
+
+    ScrollbarFrame := SR.RightPart(ScrollBarWidthScaled);
+
+    ScrollbarSlider := ScrollbarFrame;
+    ScrollbarSlider.Height := CalculatedHeight * SR.Height div ScrollArea.CalculatedHeight;
+    ScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height;
+    { equivalent would be to set
+        ScrollBarVisible := CalculatedHeight < ScrollArea.CalculatedHeight
+      But this way makes it clear that MapRange below is valid, will not divide by zero. }
+    if ScrollBarVisible then
+      ScrollbarSlider.Bottom += Round(MapRange(Scroll, ScrollMin, ScrollMax,
+        ScrollbarFrame.Height - ScrollbarSlider.Height, 0)) else
+    begin
+      ScrollBarDragging := false;
+      Scroll := ScrollMin; // make sure to shift to ScrollMin if scroll suddenly disappears
+      DragSpeed := 0;
+      TimeSinceDraggingStopped := 0;
+      ScrollbarActive := 0;
+    end;
+  end;
+
+  procedure HandleKeys;
+  begin
+    if ScrollBarVisible and HandleInput then
+    begin
+      if Container.Pressed[K_Up  ] then
+      begin
+        Scroll := Scroll - KeyScrollSpeed * SecondsPassed;
+        TimeSinceDraggingStopped := 0;
+      end;
+      if Container.Pressed[K_Down] then
+      begin
+        Scroll := Scroll + KeyScrollSpeed * SecondsPassed;
+        TimeSinceDraggingStopped := 0;
+      end;
+      HandleInput := not ExclusiveEvents;
+    end;
+  end;
+
+  { Make the illusion of "inertial force" when dragging, by gradually
+    decelerating dragging speed once user stops dragging.
+    Also updates TimeSinceDraggingStopped. }
+  procedure DraggingInertialForce;
+  const
+    DragDecelerationDuration = 0.5;
+  var
+    CurrentDragSpeed: Single;
+  begin
+    if ScrollbarVisible then
+    begin
+      if mbLeft in Container.MousePressed then
+      begin
+        { note that we update DragSpeed even when DragSinceLastUpdate = 0,
+          which means user keeps pressing but doesn't drag }
+        if not Zero(SecondsPassed) then
+          DragSpeed := DragSinceLastUpdate / SecondsPassed else
+          DragSpeed := 0; // whatever sensible value
+        TimeSinceDraggingStopped := 0;
+      end else
+      begin
+        TimeSinceDraggingStopped += SecondsPassed;
+        if (DragSpeed <> 0) and
+           (TimeSinceDraggingStopped < DragDecelerationDuration) then
+        begin
+          CurrentDragSpeed := MapRange(
+            TimeSinceDraggingStopped, 0, DragDecelerationDuration,
+            DragSpeed, 0);
+          Scroll := Scroll + CurrentDragSpeed * SecondsPassed;
+          { stop inertial force if you reached the border of scroll }
+          if CurrentDragSpeed > 0 then
+          begin
+            if Scroll = ScrollMax then TimeSinceDraggingStopped := DragDecelerationDuration;
+          end else
+          begin
+            if Scroll = ScrollMin then TimeSinceDraggingStopped := DragDecelerationDuration;
+          end;
+        end;
+      end;
+      DragSinceLastUpdate := 0;
+    end;
+  end;
+
+  { Update ScrollbarActive, TimeSinceDraggingStarted }
+  procedure UpdateScrollBarActive;
+  const
+    AppearTime = 0.5;
+    DisappearTime = 0.5;
+  var
+    NewScrollbarActive: Single;
+  begin
+    { update TimeSinceDragginStarted }
+    if TimeSinceDraggingStopped = 0 then
+    begin
+      { dragging now }
+      TimeSinceDraggingStarted += SecondsPassed;
+      if TimeSinceDraggingStarted > AppearTime then
+        NewScrollbarActive := 1 else
+        NewScrollbarActive := TimeSinceDraggingStarted / AppearTime;
+    end else
+    begin
+      { not dragging now }
+      TimeSinceDraggingStarted := 0;
+      if TimeSinceDraggingStopped > DisappearTime then
+        NewScrollbarActive := 0 else
+        NewScrollbarActive := 1 - TimeSinceDraggingStopped / DisappearTime;
+    end;
+    if ScrollbarActive <> NewScrollbarActive then
+    begin
+      ScrollbarActive := NewScrollbarActive;
+      VisibleChange;
+    end;
+  end;
+
+begin
+  inherited;
+  UpdateScrollBarVisibleAndRects;
+  HandleKeys;
+  DraggingInertialForce;
+  UpdateScrollBarActive;
+end;
+
+function TCastleScrollView.Press(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  { if not ScrollBarVisible then there is no point in changing Scroll.
+
+    This way we allow TCastleDialog (that uses TCastleScrollView) descendants
+    like TCastleKeyMouseDialog to handle K_PageDown, K_PageUp, K_Home and K_End keys
+    and mouse wheel. And this is very good for MessageKey,
+    when it's used e.g. to allow user to choose any TKey.
+    Otherwise MessageKey would not be able to return
+    K_PageDown, K_PageUp, etc. keys. }
+
+  if ScrollBarVisible then
+    case Event.EventType of
+      itKey:
+        case Event.Key of
+          K_PageUp:   begin Scroll := Scroll - Height; Result := ExclusiveEvents; end;
+          K_PageDown: begin Scroll := Scroll + Height; Result := ExclusiveEvents; end;
+          K_Home:     begin Scroll := ScrollMin; Result := ExclusiveEvents; end;
+          K_End:      begin Scroll := ScrollMax; Result := ExclusiveEvents; end;
+        end;
+      itMouseButton:
+        begin
+          if (Event.MouseButton = mbLeft) and ScrollBarVisible and
+            ScrollbarFrame.Contains(Container.MousePosition) then
+          begin
+            if Container.MousePosition[1] < ScrollbarSlider.Bottom then
+            begin
+              Scroll := Scroll + Height;
+              TimeSinceDraggingStopped := 0;
+            end else
+            if Container.MousePosition[1] >= ScrollbarSlider.Top then
+            begin
+              Scroll := Scroll - Height;
+              TimeSinceDraggingStopped := 0;
+            end else
+              ScrollBarDragging := true;
+            Result := ExclusiveEvents;
+          end;
+        end;
+      itMouseWheel:
+        if Event.MouseWheelVertical then
+        begin
+          Scroll := Scroll - Event.MouseWheelScroll * WheelScrollSpeed;
+          TimeSinceDraggingStopped := 0;
+          Result := ExclusiveEvents;
+        end;
+    end;
+end;
+
+function TCastleScrollView.Release(const Event: TInputPressRelease): boolean;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if Event.IsMouseButton(mbLeft) then
+  begin
+    ScrollBarDragging := false;
+    Result := ExclusiveEvents;
+  end;
+end;
+
+function TCastleScrollView.Motion(const Event: TInputMotion): boolean;
+var
+  Drag: Single;
+begin
+  Result := inherited;
+  if Result then Exit;
+
+  if ScrollBarDragging then
+  begin
+    Scroll := Scroll + (Event.OldPosition[1] - Event.Position[1]) /
+      ScrollbarFrame.Height * ScrollArea.ScreenRect.Height;
+    TimeSinceDraggingStopped := 0;
+    Result := ExclusiveEvents;
+  end else
+  if EnableDragging and (mbLeft in Event.Pressed) then
+  begin
+    Drag := ((Event.Position[1] - Event.OldPosition[1]) / UIScale);
+    Scroll := Scroll + Drag;
+    DragSinceLastUpdate += Drag;
+    Result := ExclusiveEvents;
+  end;
+end;
+
+function TCastleScrollView.ScrollMin: Single;
+begin
+  Result := 0;
+end;
+
+function TCastleScrollView.ScrollMax: Single;
+begin
+  Result := Max(0, ScrollArea.CalculatedHeight - CalculatedHeight);
+end;
+
+function TCastleScrollView.ScrollBarWidthScaled: Integer;
+begin
+  Result := Round(ScrollBarWidth * UIScale);
+end;
+
 { TCastleTheme --------------------------------------------------------------- }
 
 constructor TCastleTheme.Create;
@@ -3835,7 +4256,7 @@ begin
   FImages[tiScrollbarFrame] := ScrollbarFrame;
   FCorners[tiScrollbarFrame] := Vector4Integer(1, 1, 1, 1);
   FImages[tiScrollbarSlider] := ScrollbarSlider;
-  FCorners[tiScrollbarSlider] := Vector4Integer(2, 2, 2, 2);
+  FCorners[tiScrollbarSlider] := Vector4Integer(3, 3, 3, 3);
   FImages[tiSlider] := Slider;
   FCorners[tiSlider] := Vector4Integer(4, 7, 4, 7);
   FImages[tiSliderPosition] := SliderPosition;
@@ -3944,9 +4365,6 @@ procedure TCastleTheme.Draw(const Rect: TRectangle; const ImageType: TThemeImage
 begin
   GLImages[ImageType].Color := Color;
   GLImages[ImageType].ScaleCorners := UIScale;
-  if Color[3] < 1 then
-    GLImages[ImageType].Alpha := acFullRange else
-    GLImages[ImageType].Alpha := FImages[ImageType].AlphaChannel;
   GLImages[ImageType].Draw3x3(Rect, Corners[ImageType]);
 end;
 

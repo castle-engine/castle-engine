@@ -94,6 +94,7 @@ type
   private
     FStartContainer: TUIContainer;
     FInterceptInput: boolean;
+    FFreeAtStop: TComponent;
     procedure InternalStart;
     procedure InternalStop;
 
@@ -112,7 +113,14 @@ type
       By default, state is inserted as the front-most control, so position is equal
       to @code(StateContainer.Controls.Count). }
     function InsertAtPosition: Integer; virtual;
+
+    { Assign this component as owner for your controls,
+      to make them freed during nearest @link(Stop). }
+    function FreeAtStop: TComponent;
   public
+    { When @true, state operations will send a log to CastleLog. }
+    class var Log: boolean;
+
     { Current state. In case multiple states are active (only possible
       if you used @link(Push) method), this is the bottom state
       (use @link(CurrentTop) to get top state).
@@ -338,8 +346,17 @@ begin
   Result := StateContainer.Controls.Count;
 end;
 
+function TUIState.FreeAtStop: TComponent;
+begin
+  if FFreeAtStop = nil then
+    FFreeAtStop := TComponent.Create(Self);
+  Result := FFreeAtStop;
+end;
+
 procedure TUIState.InternalStart;
 begin
+  if CastleLog.Log and Log then
+    WritelnLog('UIState', 'Starting state ' + Name + ':' + ClassName);
   Start;
   { actually insert, this will also call GLContextOpen and Resize.
     However, check first that we're still the current state,
@@ -352,7 +369,10 @@ end;
 procedure TUIState.InternalStop;
 begin
   StateContainer.Controls.Remove(Self);
+  FreeAndNil(FFreeAtStop);
   Stop;
+  if CastleLog.Log and Log then
+    WritelnLog('UIState', 'Stopped state ' + Name + ':' + ClassName);
 end;
 
 function TUIState.StateContainer: TUIContainer;
@@ -391,10 +411,14 @@ end;
 
 procedure TUIState.Resume;
 begin
+  if CastleLog.Log and Log then
+    WritelnLog('UIState', 'Resuming state ' + Name + ':' + ClassName);
 end;
 
 procedure TUIState.Pause;
 begin
+  if CastleLog.Log and Log then
+    WritelnLog('UIState', 'Paused state ' + Name + ':' + ClassName);
 end;
 
 procedure TUIState.Start;

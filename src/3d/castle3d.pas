@@ -365,7 +365,11 @@ type
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
 
-    { Check collision with a sphere in 2D (circle).
+    { Check collision with a sphere in 2D (a circle, extruded to infinity along the Z axis).
+
+      Note that PointCollision2D and SphereCollision2D @italic(do not work
+      reliably on objects that have 3D rotations). See @link(PointCollision2D)
+      for details.
 
       @param(Details If non-nil, these are automatically filled with the details
         about the collision.
@@ -376,8 +380,44 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const Details: TCollisionDetails = nil): boolean; virtual;
 
+    { Check collision with a point in 2D (which is an infinite line along the Z axis
+      in 3D).
+
+      Note that PointCollision2D and SphereCollision2D @italic(do not work
+      reliably on objects that have 3D rotations), that is: rotations that change
+      the direction of Z axis! This applies to all ways of rotating --
+      using the T3DCustomTransform descendants (like T3DTransform)
+      or using the X3D node TTransformNode (within a TCastleSce).
+
+      @orderedList(
+        @iteam(@italic(The reason): we transform the point (or sphere center)
+          to the local coordinates, and we should also transform the Z axis to
+          the local coordinates, to be always correct. Right now, we don't do
+          the latter.)
+
+        @item(And we don't want to do it (at least not in all cases)!
+          The simple 2D point collision check would then actually perform
+          a 3D line collision check, thus PointCollision2D would lose all the speed
+          benefits over LineCollision. PointCollision2D would become
+          a simple shortcut to perform @italic(LineCollision with
+          a line parallel to Z axis).
+
+          And in case of 2D games, or mostly 2D games, this speed loss
+          would not be justified. Often you @italic(know) that your objects
+          have no 3D rotations, for example if your animations are done in Spine.)
+
+        @item(In the future, we may overcome this limitation.
+          To do this, we will detect whether the transformation is "only 2D"
+          (actually this part is easy, you can detect it by looking at the matrix
+          even, so check whether appropriate numbers are zero).
+          And then then PointCollision2D will change to LineCollision,
+          and SphereCollision2D will change to something like ExtrudedCirleCollision,
+          @italic(only when necessary).
+      )
+    }
     function PointCollision2D(const Point: TVector2Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
 

@@ -179,9 +179,35 @@ type
 
     function ScaleToWidth(const NewWidth: Cardinal): TRectangle;
     function ScaleToHeight(const NewHeight: Cardinal): TRectangle;
+
+    { Scale rectangle position and size around it's own middle point.
+
+      Since the scaling is independent in each axis,
+      this handles "carefully" a half-empty rectangles
+      (when one size is <= 0, but other is > 0).
+      It scales correctly the positive dimension
+      (not just returns @link(Empty) constant),
+      leaving the other dimension (it's position and size) untouched. }
     function ScaleAroundMiddle(const Factor: Single): TRectangle;
+
+    { Scale rectangle position and size around the (0,0) point.
+
+      Since the scaling is independent in each axis,
+      this handles "carefully" a half-empty rectangles
+      (when one size is <= 0, but other is > 0).
+      It scales correctly the positive dimension
+      (not just returns @link(Empty) constant),
+      leaving the other dimension (it's position and size) untouched.
+
+      These details matter, e.g. when you set TUIControl.Width, but not
+      TUIControl.Height, and then you expect the TUIControl.CalculatedWidth
+      to work.
+    }
     function ScaleAround0(const Factor: Single): TRectangle;
+
+    { Scale @link(Width), in the same manner as ScaleAround0 would do. }
     function ScaleWidthAround0(const Factor: Single): Cardinal;
+    { Scale @link(Height), in the same manner as ScaleAround0 would do. }
     function ScaleHeightAround0(const Factor: Single): Cardinal;
 
     { Scale and align us to fit inside rectangle R, preserving our aspect ratio. }
@@ -279,6 +305,8 @@ type
     function Collides(const R: TFloatRectangle): boolean;
   end;
 
+  PFloatRectangle = ^TFloatRectangle;
+
   TRectangleList = class(specialize TGenericStructList<TRectangle>)
   public
     { Index of the first rectangle that contains point (X, Y).
@@ -287,6 +315,8 @@ type
     function FindRectangle(const Point: TVector2Single): Integer;
   end;
 
+  TFloatRectangleList = specialize TGenericStructList<TFloatRectangle>;
+
 function Rectangle(const Left, Bottom: Integer;
   const Width, Height: Cardinal): TRectangle;
 function Rectangle(const LeftBottom: TVector2Integer;
@@ -294,8 +324,14 @@ function Rectangle(const LeftBottom: TVector2Integer;
 function FloatRectangle(const Left, Bottom, Width, Height: Single): TFloatRectangle;
 function FloatRectangle(const R: TRectangle): TFloatRectangle;
 
+{ Sum of the two rectangles is a bounding rectangle -
+  a smallest rectangle that contains them both. }
 operator+ (const R1, R2: TRectangle): TRectangle;
 operator+ (const R1, R2: TFloatRectangle): TFloatRectangle;
+
+{ Common part of the two rectangles. }
+operator* (const R1, R2: TRectangle): TRectangle;
+operator* (const R1, R2: TFloatRectangle): TFloatRectangle;
 
 implementation
 
@@ -537,38 +573,66 @@ end;
 
 function TRectangle.ScaleAroundMiddle(const Factor: Single): TRectangle;
 begin
-  if IsEmpty then Exit(Empty);
-  Result.Width  := Round(Width  * Factor);
-  Result.Height := Round(Height * Factor);
-  Result.Left   := Left   + (Width  - Result.Width ) div 2;
-  Result.Bottom := Bottom + (Height - Result.Height) div 2;
-  // Result.Left := Result.AlignCore(PivotHorizontal, Self, PivotHorizontal);
-  // Result.Bottom := Result.AlignCore(PivotVertical, Self, PivotVertical);
+  if Width > 0 then
+  begin
+    Result.Width  := Round(Width  * Factor);
+    Result.Left   := Left   + (Width  - Result.Width ) div 2;
+  end else
+  begin
+    Result.Width  := Width;
+    Result.Left   := Left;
+  end;
+
+  if Height > 0 then
+  begin
+    Result.Height := Round(Height * Factor);
+    Result.Bottom := Bottom + (Height - Result.Height) div 2;
+  end else
+  begin
+    Result.Height := Height;
+    Result.Bottom := Bottom;
+  end;
 end;
 
 function TRectangle.ScaleAround0(const Factor: Single): TRectangle;
 var
   ResultRight, ResultTop: Integer;
 begin
-  if IsEmpty then Exit(Empty);
-  Result.Left   := Floor(Left   * Factor);
-  Result.Bottom := Floor(Bottom * Factor);
-  ResultRight := Ceil(Right * Factor);
-  ResultTop   := Ceil(Top   * Factor);
-  Result.Width  := ResultRight - Result.Left;
-  Result.Height := ResultTop   - Result.Bottom;
+  if Width > 0 then
+  begin
+    Result.Left   := Floor(Left * Factor);
+    ResultRight := Ceil(Right * Factor);
+    Result.Width  := ResultRight - Result.Left;
+  end else
+  begin
+    Result.Width  := Width;
+    Result.Left   := Left;
+  end;
+
+  if Height > 0 then
+  begin
+    Result.Bottom := Floor(Bottom * Factor);
+    ResultTop   := Ceil(Top * Factor);
+    Result.Height := ResultTop - Result.Bottom;
+  end else
+  begin
+    Result.Height := Height;
+    Result.Bottom := Bottom;
+  end;
 end;
 
 function TRectangle.ScaleWidthAround0(const Factor: Single): Cardinal;
 begin
-  if IsEmpty then Exit(0);
-  Result := Ceil(Right * Factor) - Floor(Left * Factor);
+  if Width > 0 then
+    Result := Ceil(Right * Factor) - Floor(Left * Factor) else
+    Result := Width;
 end;
 
 function TRectangle.ScaleHeightAround0(const Factor: Single): Cardinal;
 begin
-  if IsEmpty then Exit(0);
-  Result := Ceil(Top * Factor) - Floor(Bottom * Factor);
+  if Height > 0 then
+    Result := Ceil(Top * Factor) - Floor(Bottom * Factor) else
+    Result := Height;
 end;
 
 function TRectangle.FitInside(const R: TRectangle;
@@ -824,6 +888,52 @@ begin
     Top   := Max(R1.Top     , R2.Top);
     Result.Width  := Right - Result.Left;
     Result.Height := Top   - Result.Bottom;
+  end;
+end;
+
+operator* (const R1, R2: TRectangle): TRectangle;
+var
+  Right, Top: Integer;
+begin
+  if R1.IsEmpty or R2.IsEmpty then
+    Result := TRectangle.Empty else
+  begin
+    Result.Left   := Max(R1.Left  , R2.Left);
+    Result.Bottom := Max(R1.Bottom, R2.Bottom);
+    Right := Min(R1.Right   , R2.Right);
+    Top   := Min(R1.Top     , R2.Top);
+    if (Right > Result.Left) and (Top > Result.Bottom) then
+    begin
+      Result.Width  := Right - Result.Left;
+      Result.Height := Top   - Result.Bottom;
+    end else
+      Result := TRectangle.Empty;
+  end;
+end;
+
+operator* (const R1, R2: TFloatRectangle): TFloatRectangle;
+var
+  Right, Top: Single;
+begin
+  if R1.IsEmpty or R2.IsEmpty then
+    Result := TFloatRectangle.Empty else
+  begin
+    Result.Left   := Max(R1.Left  , R2.Left);
+    Result.Bottom := Max(R1.Bottom, R2.Bottom);
+    Right := Min(R1.Right   , R2.Right);
+    Top   := Min(R1.Top     , R2.Top);
+    { ">=" unline the int version that checks ">".
+      For TFloatRectangle, having zero size makes sense. }
+    if (Right >= Result.Left) and (Top >= Result.Bottom) then
+    begin
+      { use Max(0, ..) to secure from floating point errors in case equations above
+        are true but subtraction yields < 0 due to floating point inaccuracy.
+        Not sure is this possible (A >= B and still A - B < 0), probably not,
+        but better stay safe when dealing with floating point numbers. }
+      Result.Width  := Max(0, Right - Result.Left);
+      Result.Height := Max(0, Top   - Result.Bottom);
+    end else
+      Result := TFloatRectangle.Empty;
   end;
 end;
 

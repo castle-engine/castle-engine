@@ -702,6 +702,23 @@ type
 procedure GLClear(const Buffers: TClearBuffers;
   const ClearColor: TCastleColor);
 
+type
+  { Scissor to clip displayed things, in addition to the global scissor
+    affected by ScissorEnable / ScissorDisable.
+    Always disable an enabled scissor (destructor does it automatically). }
+  TScissor = class
+  strict private
+    FEnabled: boolean;
+    procedure SetEnabled(const Value: boolean);
+  public
+    { Rectangle to which we clip rendering. Empty by default (will clip everything,
+      if you don't assign this!). Do not change this when scissor is enabled. }
+    Rect: TRectangle;
+    constructor Create;
+    destructor Destroy; override;
+    property Enabled: boolean read FEnabled write SetEnabled;
+  end;
+
 { Enable or disable scissor.
   Always do it using these procedures, do not call glScissor or
   glEnable(GL_SCISSOR_TEST) / glDisable(GL_SCISSOR_TEST) yourself,
@@ -733,7 +750,15 @@ implementation
 
 {$define read_implementation}
 
-uses CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
+uses
+  { Because of FPC 2.6.4 bugs (not present in FPC >= 3.0.0) we cannot use here
+    the FGL unit. It breaks compilation of Lazarus packages, as compiling
+    castle_window.lpk then accidentally wants to recompile CastleGLShaders too.
+    In consequence, we use TFPObjectList instead of generic TFPGObjectList below.
+    It works cool with FPC 3.0.0, so this will be remedied once we drop FPC 2.6.4
+    compatibility. }
+  Contnrs,
+  CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
   CastleLog, CastleWarnings, CastleApplicationProperties;
 
 {$I castleglutils_mipmaps.inc}
@@ -1495,6 +1520,8 @@ const
 var
   {$ifdef GLImageUseShaders}
   GLRectangleProgram: TGLSLProgram;
+  GLRectangleUniformViewportSize, GLRectangleUniformColor: TGLSLUniform;
+  GLRectangleAttribVertex: TGLSLAttribute;
   {$endif}
   RectanglePointVbo: TGLuint;
   RectanglePoint: packed array [0..3] of TVector2SmallInt;
@@ -1504,10 +1531,6 @@ procedure DrawRectangleGL(const R: TRectangle; const Color: TCastleColor;
   const ForceBlending: boolean);
 var
   Blending: boolean;
-{$ifdef GLImageUseShaders}
-  AttribEnabled: array [0..0] of TGLuint;
-  AttribLocation: TGLuint;
-{$endif}
 begin
   {$ifdef GLImageUseShaders}
   if GLRectangleProgram = nil then
@@ -1516,6 +1539,10 @@ begin
     GLRectangleProgram.AttachVertexShader({$I rectangle.vs.inc});
     GLRectangleProgram.AttachFragmentShader({$I rectangle.fs.inc});
     GLRectangleProgram.Link(true);
+
+    GLRectangleUniformViewportSize := GLRectangleProgram.Uniform('viewport_size');
+    GLRectangleUniformColor := GLRectangleProgram.Uniform('color');
+    GLRectangleAttribVertex := GLRectangleProgram.Attribute('vertex');
   end;
   {$endif}
 
@@ -1542,13 +1569,13 @@ begin
   end;
 
   {$ifdef GLImageUseShaders}
-  GLRectangleProgram.Enable;
-  AttribEnabled[0] := GLRectangleProgram.VertexAttribPointer(
-    'vertex', 0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), nil);
-  GLRectangleProgram.SetUniform('viewport_size', Viewport2DSize);
-  GLRectangleProgram.SetUniform('color', Color);
+  CurrentProgram := GLRectangleProgram;
+  GLRectangleAttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), nil);
+  GLRectangleUniformViewportSize.SetValue(Viewport2DSize);
+  GLRectangleUniformColor.SetValue(Color);
 
   {$else}
+  CurrentProgram := nil;
   glLoadIdentity();
   glColorv(Color);
 
@@ -1561,11 +1588,10 @@ begin
   glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
   {$ifdef GLImageUseShaders}
-  GLRectangleProgram.Disable;
+  // GLRectangleProgram.Disable; // no need to disable, keep it enabled to save speed
   { attribute arrays are enabled independent from GLSL program, so we need
     to disable them separately }
-  for AttribLocation in AttribEnabled do
-    TGLSLProgram.DisableVertexAttribArray(AttribLocation);
+  GLRectangleAttribVertex.DisableArray;
   {$else}
   glDisableClientState(GL_VERTEX_ARRAY);
   {$endif}
@@ -1985,26 +2011,80 @@ begin
     {$ifndef OpenGLES} GL {$else} CastleGLES20 {$endif}.GLClear(Mask);
 end;
 
+{ scissors ------------------------------------------------------------------- }
+
+type
+  TScissorList = class(TFPObjectList)
+  //class(specialize TFPGObjectList<TScissor>) // see comments in "uses" clause -- we cannot use FGL unit here
+  public
+    procedure Update;
+  end;
+
 var
-//  FScissor: TRectangle; // not needed now
-  FScissorEnabled: boolean;
+  EnabledScissors: TScissorList;
+
+procedure TScissorList.Update;
+var
+  R: TRectangle;
+  I: Integer;
+begin
+  if Count <> 0 then
+  begin
+    R := TScissor(Items[0]).Rect;
+    for I := 1 to Count - 1 do
+      R := R * TScissor(Items[I]).Rect;
+    glScissor(R.Left, R.Bottom, R.Width, R.Height);
+    glEnable(GL_SCISSOR_TEST);
+  end else
+    glDisable(GL_SCISSOR_TEST);
+end;
+
+constructor TScissor.Create;
+begin
+  inherited;
+  Rect := TRectangle.Empty;
+end;
+
+destructor TScissor.Destroy;
+begin
+  Enabled := false;
+  inherited;
+end;
+
+procedure TScissor.SetEnabled(const Value: boolean);
+begin
+  if FEnabled <> Value then
+  begin
+    FEnabled := Value;
+    if EnabledScissors <> nil then
+    begin
+      if Value then
+        EnabledScissors.Add(Self) else
+        EnabledScissors.Remove(Self);
+      EnabledScissors.Update;
+    end;
+  end;
+end;
+
+var
+  FGlobalScissor: TScissor;
 
 procedure ScissorEnable(const Rect: TRectangle);
 begin
-//  FScissor := Rect;
-  FScissorEnabled := true;
-  glScissor(Rect.Left, Rect.Bottom, Rect.Width, Rect.Height);
-  glEnable(GL_SCISSOR_TEST);
+  if FGlobalScissor = nil then
+    FGlobalScissor := TScissor.Create else
+    FGlobalScissor.Enabled := false; // disable previously enabled scissor, if any
+  FGlobalScissor.Rect := Rect;
+  FGlobalScissor.Enabled := true;
 end;
 
 procedure ScissorDisable;
 begin
-  if FScissorEnabled then
-  begin
-    glDisable(GL_SCISSOR_TEST);
-    FScissorEnabled := false;
-  end;
+  if FGlobalScissor <> nil then // secure in case FGlobalScissor was already fred
+    FGlobalScissor.Enabled := false;
 end;
+
+{ ---------------------------------------------------------------------------- }
 
 var
   FGlobalAmbient: TVector3Single = (0.2, 0.2, 0.2);
@@ -2058,4 +2138,8 @@ initialization
     Every other unit initializion does OnGLContextClose.Add,
     so our initialization will stay as OnGLContextClose[0]. }
   ApplicationProperties.OnGLContextClose.Insert(0, @ContextClose);
+  EnabledScissors := TScissorList.Create(false);
+finalization
+  FreeAndNil(EnabledScissors);
+  FreeAndNil(FGlobalScissor);
 end.

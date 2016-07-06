@@ -77,15 +77,13 @@ type
       follow aspect ratio of viewport size.
       If both of them are zero, projection is automatically calculated just as if
       ProjectionAutoSize was @true.
-      @bold(By default, height is 1.0 and width is automatically adjusted
-      to follow aspect ratio.)
 
       In all cases, CurrentProjectionWidth and CurrentProjectionHeight
       can be checked to see actual projection dimensions. }
     property ProjectionAutoSize: boolean
       read FProjectionAutoSize write FProjectionAutoSize default true;
     property ProjectionHeight: Single
-      read FProjectionHeight write FProjectionHeight default 1;
+      read FProjectionHeight write FProjectionHeight default 0;
     property ProjectionWidth: Single
       read FProjectionWidth write FProjectionWidth default 0;
     property CurrentProjectionWidth: Single read FCurrentProjectionWidth;
@@ -132,7 +130,7 @@ begin
   Transparent := true;
   ProjectionAutoSize := true;
   FProjectionSpan := DefaultProjectionSpan;
-  FProjectionHeight := 1;
+  FProjectionHeight := 0;
   FProjectionWidth := 0;
 end;
 

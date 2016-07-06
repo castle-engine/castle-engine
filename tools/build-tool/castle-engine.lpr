@@ -262,10 +262,10 @@ begin
       end else
       if Command = 'clean' then
         Project.DoClean else
-      if Command = 'auto-compress-textures' then
-        Project.DoAutoCompressTextures else
-      if Command = 'auto-compress-clean' then
-        Project.DoAutoCompressClean else
+      if Command = 'auto-generate-textures' then
+        Project.DoAutoGenerateTextures else
+      if Command = 'auto-generate-clean' then
+        Project.DoAutoGenerateClean else
         raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
     finally FreeAndNil(Project) end;
   end;

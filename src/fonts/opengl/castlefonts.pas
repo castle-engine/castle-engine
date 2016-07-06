@@ -96,6 +96,7 @@ type
       const S: string); overload; virtual; abstract;
     procedure Print(const Pos: TVector2Integer; const Color: TCastleColor;
       const S: string); overload;
+
     procedure Print(const X, Y: Integer; const S: string); overload; deprecated;
     procedure Print(const s: string); overload; deprecated;
 
@@ -322,13 +323,14 @@ type
       @seealso OutlineHighQuality }
     property Outline: Cardinal read FOutline write FOutline default 0;
 
-    { Optionally force better outline quality.
-      High quality outline looks better, but is almost 2x more expensive to draw.
-      @seealso Outline. }
+    { Optionally force better outline quality. Used only if Outline <> 0.
+      High quality outline looks better, but is about 2x more expensive to draw.
+      @seealso Outline }
     property OutlineHighQuality: boolean
       read FOutlineHighQuality write FOutlineHighQuality default false;
 
-    { Outline color, used only if Outline <> 0. Default is black. }
+    { Outline color, used only if Outline <> 0. Default is black.
+      @seealso Outline }
     property OutlineColor: TCastleColor read FOutlineColor write FOutlineColor;
 
     { Save draw properties to a stack. Saves:
@@ -357,6 +359,7 @@ type
     FFont: TTextureFontData;
     FOwnsFont: boolean;
     GLImage: TGLImageCore;
+    GlyphsScreenRects, GlyphsImageRects: TFloatRectangleList;
     function GetSmoothScaling: boolean;
   strict protected
     procedure SetScale(const Value: Single); override;
@@ -368,6 +371,7 @@ type
       this way, @bold(you must call @link(Load) before doing anything else
       with the font). }
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     {$ifdef HAS_FREE_TYPE}
     { Create by reading a FreeType font file, like ttf.
@@ -401,7 +405,6 @@ type
       const OwnsData: boolean = false); reintroduce;
     procedure Load(const Data: TTextureFontData;
       const OwnsData: boolean = false);
-    destructor Destroy; override;
     procedure PrepareResources; override;
     procedure Print(const X, Y: Integer; const Color: TCastleColor;
       const S: string); override;
@@ -434,6 +437,7 @@ type
     Image: TCastleImage;
     ImageCols, ImageRows,
       CharMargin, CharDisplayMargin, CharWidth, CharHeight: Integer;
+    GlyphsScreenRects, GlyphsImageRects: TFloatRectangleList;
     function ScaledCharWidth: Integer;
     function ScaledCharHeight: Integer;
     function ScaledCharDisplayMargin: Integer;
@@ -484,6 +488,7 @@ type
     function GetSize: Single; override;
     procedure SetSize(const Value: Single); override;
     procedure GLContextClose; override;
+    procedure Measure(out ARowHeight, ARowHeightBase, ADescend: Integer); override;
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -940,6 +945,16 @@ end;
 constructor TTextureFont.Create(AOwner: TComponent);
 begin
   inherited;
+  GlyphsScreenRects := TFloatRectangleList.Create;
+  GlyphsImageRects  := TFloatRectangleList.Create;
+end;
+
+destructor TTextureFont.Destroy;
+begin
+  Load(nil); // free previous FFont data
+  FreeAndNil(GlyphsScreenRects);
+  FreeAndNil(GlyphsImageRects);
+  inherited;
 end;
 
 {$ifdef HAS_FREE_TYPE}
@@ -990,12 +1005,6 @@ begin
   FFont := Data;
 end;
 
-destructor TTextureFont.Destroy;
-begin
-  Load(nil); // free previous FFont data
-  inherited;
-end;
-
 function TTextureFont.GetSmoothScaling: boolean;
 begin
   Result := Scale <> 1;
@@ -1014,30 +1023,112 @@ begin
   inherited;
 end;
 
+const
+  { These many glyphs will be allocated always.
+    This avoids reallocating memory if you just render strings shorter than this.
+
+    This affects 2 arrays, and SizeOf(TFloatRectangle) should be 4 * 4.
+    So it costs 32 bytes per item. }
+  MinimumGlyphsAllocated = 100;
+
 procedure TTextureFont.Print(const X, Y: Integer; const Color: TCastleColor;
   const S: string);
 var
   ScreenX, ScreenY: Single;
   G: TTextureFontData.TGlyph;
+  GlyphsToRender: Integer;
 
   procedure GlyphDraw(const OutlineMoveX, OutlineMoveY: Integer);
+  var
+    ScreenRect, ImageRect: PFloatRectangle;
   begin
-    GLImage.Draw(
-      ScreenX - G.X * Scale + OutlineMoveX * Outline,
-      ScreenY - G.Y * Scale + OutlineMoveY * Outline,
-      G.Width  * Scale,
-      G.Height * Scale,
-      G.ImageX, G.ImageY, G.Width, G.Height);
+    Assert(GlyphsToRender < GlyphsScreenRects.Count);
+
+    ScreenRect := GlyphsScreenRects.Ptr(GlyphsToRender);
+    ScreenRect^.Left   := ScreenX - G.X * Scale + OutlineMoveX * Outline;
+    ScreenRect^.Bottom := ScreenY - G.Y * Scale + OutlineMoveY * Outline;
+    ScreenRect^.Width  := G.Width  * Scale;
+    ScreenRect^.Height := G.Height * Scale;
+
+    ImageRect := GlyphsImageRects.Ptr(GlyphsToRender);
+    ImageRect^.Left   := G.ImageX;
+    ImageRect^.Bottom := G.ImageY;
+    ImageRect^.Width  := G.Width;
+    ImageRect^.Height := G.Height;
+
+    Inc(GlyphsToRender);
   end;
 
 var
   C: TUnicodeChar;
   TextPtr: PChar;
-  CharLen: Integer;
+  CharLen, GlyphsPerChar: Integer;
 begin
   PrepareResources;
 
-  GLImage.Color := Color;
+  { allocate the necessary glyphs at start.
+    This allows to quickly fill them later.
+    Note that we possibly allocate too much, because Length(S) may be > UTF8Length(S)
+    (because of multi-byte characters), and also because some characters do not have glyphs.
+    That's OK, we'll calculate real GlyphsToRender when iterating. }
+  if Outline = 0 then
+    GlyphsPerChar := 1 else
+  if OutlineHighQuality then
+    GlyphsPerChar := 8 else
+    GlyphsPerChar := 4;
+  GlyphsScreenRects.Count := Max(MinimumGlyphsAllocated, GlyphsPerChar * Length(S));
+  GlyphsImageRects .Count := Max(MinimumGlyphsAllocated, GlyphsPerChar * Length(S));
+
+  { first pass, to render Outline.
+
+    This could be done better by being done together with non-outline pass,
+    by filling the alternative place in Glyph arrays, such that outline and non-outline data
+    don't collide.
+    It would be 1. faster (don't iterate over S two times), 2. less code duplication. }
+  if Outline <> 0 then
+  begin
+    GlyphsToRender := 0;
+    ScreenX := X;
+    ScreenY := Y;
+
+    TextPtr := PChar(S);
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
+    while (C > 0) and (CharLen > 0) do
+    begin
+      Inc(TextPtr, CharLen);
+
+      G := FFont.Glyph(C);
+      if G <> nil then
+      begin
+        if (G.Width <> 0) and (G.Height <> 0) then
+        begin
+          GlyphDraw(0, 0);
+          GlyphDraw(0, 2);
+          GlyphDraw(2, 2);
+          GlyphDraw(2, 0);
+
+          if OutlineHighQuality then
+          begin
+            GlyphDraw(1, 0);
+            GlyphDraw(1, 2);
+            GlyphDraw(0, 1);
+            GlyphDraw(2, 1);
+          end;
+        end;
+        ScreenX += G.AdvanceX * Scale + Outline * 2;
+        ScreenY += G.AdvanceY * Scale;
+      end;
+
+      C := UTF8CharacterToUnicode(TextPtr, CharLen);
+    end;
+
+    GLImage.Color := OutlineColor;
+    GLImage.Draw(
+      PFloatRectangle(GlyphsScreenRects.List),
+      PFloatRectangle(GlyphsImageRects.List), GlyphsToRender);
+  end;
+
+  GlyphsToRender := 0;
   ScreenX := X;
   ScreenY := Y;
 
@@ -1051,36 +1142,20 @@ begin
     if G <> nil then
     begin
       if (G.Width <> 0) and (G.Height <> 0) then
-      begin
         if Outline <> 0 then
-        begin
-          GLImage.Color := OutlineColor;
-
+          GlyphDraw(1, 1) else
           GlyphDraw(0, 0);
-          GlyphDraw(0, 2);
-          GlyphDraw(2, 2);
-          GlyphDraw(2, 0);
-
-          if OutlineHighQuality then
-          begin
-            GlyphDraw(1, 0);
-            GlyphDraw(1, 2);
-
-            GlyphDraw(0, 1);
-            GlyphDraw(2, 1);
-          end;
-
-          GLImage.Color := Color;
-          GlyphDraw(1, 1);
-        end else
-          GlyphDraw(0, 0);
-      end;
       ScreenX += G.AdvanceX * Scale + Outline * 2;
       ScreenY += G.AdvanceY * Scale;
     end;
 
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
+
+  GLImage.Color := Color;
+  GLImage.Draw(
+    PFloatRectangle(GlyphsScreenRects.List),
+    PFloatRectangle(GlyphsImageRects.List), GlyphsToRender);
 end;
 
 function TTextureFont.TextWidth(const S: string): Integer;
@@ -1131,6 +1206,16 @@ end;
 constructor TSimpleTextureFont.Create(AOwner: TComponent);
 begin
   inherited;
+  GlyphsScreenRects := TFloatRectangleList.Create;
+  GlyphsImageRects  := TFloatRectangleList.Create;
+end;
+
+destructor TSimpleTextureFont.Destroy;
+begin
+  FreeAndNil(GlyphsScreenRects);
+  FreeAndNil(GlyphsImageRects);
+  FreeAndNil(Image);
+  inherited;
 end;
 
 procedure TSimpleTextureFont.Load(AImage: TCastleImage;
@@ -1146,12 +1231,6 @@ begin
   CharWidth := Image.Width div ImageCols - CharMargin;
   CharHeight := Image.Height div ImageRows - CharMargin;
   CharDisplayMargin := ACharDisplayMargin;
-end;
-
-destructor TSimpleTextureFont.Destroy;
-begin
-  FreeAndNil(Image);
-  inherited;
 end;
 
 function TSimpleTextureFont.ScaledCharWidth: Integer;
@@ -1191,27 +1270,55 @@ procedure TSimpleTextureFont.Print(const X, Y: Integer; const Color: TCastleColo
   const S: string);
 var
   ImageX, ImageY: Single;
-  I, CharIndex, ScreenX, ScreenY: Integer;
+  CharIndex, ScreenX, ScreenY: Integer;
+  C: TUnicodeChar;
+  TextPtr: PChar;
+  I, CharLen, GlyphsToRender: Integer;
 begin
   PrepareResources;
 
+  GlyphsScreenRects.Count := Max(MinimumGlyphsAllocated, Length(S));
+  GlyphsImageRects .Count := Max(MinimumGlyphsAllocated, Length(S));
+
+  GlyphsToRender := 0;
+
   GLImage.Color := Color;
-  for I := 1 to Length(S) do
+
+  TextPtr := PChar(S);
+  C := UTF8CharacterToUnicode(TextPtr, CharLen);
+  I := 0;
+  while (C > 0) and (CharLen > 0) do
   begin
-    CharIndex := Ord(S[I]) - Ord(' ');
+    Inc(TextPtr, CharLen);
+
+    CharIndex := C - Ord(' ');
     ImageX := CharIndex mod ImageCols;
     ImageY := CharIndex div ImageCols;
     if ImageY < ImageRows then
     begin
       ImageX := ImageX * (CharWidth + CharMargin);
       ImageY := GLImage.Height - (ImageY + 1) * (CharHeight + CharMargin);
-      ScreenX := ScaledCharDisplayMargin div 2 + X + (I - 1) * (ScaledCharWidth + ScaledCharDisplayMargin);
+      ScreenX := ScaledCharDisplayMargin div 2 + X + I * (ScaledCharWidth + ScaledCharDisplayMargin);
       ScreenY := ScaledCharDisplayMargin div 2 + Y;
+      Inc(I);
+
       { TODO: render with Outline }
-      GLImage.Draw(ScreenX, ScreenY, ScaledCharWidth, ScaledCharHeight,
-        ImageX, ImageY, CharWidth, CharHeight);
+
+      Assert(GlyphsToRender < GlyphsScreenRects.Count);
+      GlyphsScreenRects.List^[GlyphsToRender] :=
+        FloatRectangle(ScreenX, ScreenY, ScaledCharWidth, ScaledCharHeight);
+      GlyphsImageRects.List^[GlyphsToRender] :=
+        FloatRectangle(ImageX, ImageY, CharWidth, CharHeight);
+      Inc(GlyphsToRender);
     end;
+
+    C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
+
+  GLImage.Color := Color;
+  GLImage.Draw(
+    PFloatRectangle(GlyphsScreenRects.List),
+    PFloatRectangle(GlyphsImageRects.List), GlyphsToRender);
 end;
 
 function TSimpleTextureFont.TextWidth(const S: string): Integer;
@@ -1379,6 +1486,23 @@ begin
   if Size <> 0 then
     Result := Size else
     Result := SourceFont.RealSize;
+end;
+
+procedure TCustomizedFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
+begin
+  { in usual circumstances, overriding Measure in TCustomizedFont is not needed,
+    the default implementation would work OK. But if the FSourceFont has some custom
+    override fot Measure(), than we need to call it here, otherwise wrapping
+    a font in TCustomizedFont (which is what e.g. TCastleLabel does when it has some
+    size) would not use the user Measure implementation. }
+  FSourceFont.Measure(ARowHeight, ARowHeightBase, ADescend);
+  { our Scale is always 1, to scale the resulting sizes manually now }
+  if Size <> 0 then
+  begin
+    ARowHeight     := Round(ARowHeight     * Size / FSourceFont.Size);
+    ARowHeightBase := Round(ARowHeightBase * Size / FSourceFont.Size);
+    ADescend       := Round(ADescend       * Size / FSourceFont.Size);
+  end;
 end;
 
 end.

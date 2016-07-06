@@ -119,6 +119,8 @@ type
   private
     FWidth, FHeight, FDepth: Cardinal;
     FURL: string;
+    procedure NotImplemented(const AMethodName: string);
+    procedure FromFpImage(const FPImage: TFPMemoryImage); virtual;
     function ToFpImage: TFPMemoryImage; virtual;
   protected
     { Operate on this by Get/Realloc/FreeMem.
@@ -203,29 +205,34 @@ type
     function CreateCopy: TEncodedImage; virtual; abstract;
   end;
 
-  { Basic resize interpolation modes, fast and available for all image types. }
-  TResizeInterpolation = (riNearest, riBilinear);
-
-  { Resize interpolation modes for MakeResized with TResizeNiceInterpolation
-    parameters. These are much slower than our TResizeInterpolation,
-    as they are implemented by conversion to FpImage.
-    However, they offer some extra quality. }
-  TResizeNiceInterpolation = (
-    rniNearest,
-    rniBilinear,
-    rniMitchel,
-    rniBlackman,
-    rniBlackmanSinc,
-    rniBlackmanBessel,
-    rniGaussian,
-    rniHermite,
-    rniLanczos,
-    rniQuadratic,
-    rniCubic,
-    rniCatrom,
-    rniHanning,
-    rniHamming
+  { Resize interpolation modes, see TCastleImage.Resize and TCastleImage.MakeResized. }
+  TResizeInterpolation = (
+    { Fastest interpolation mode. }
+    riNearest,
+    { Bilinear interpolation mode, quite fast. }
+    riBilinear,
+    { Slower but prettier interpolation modes.
+      All the following interpolation modes are slower,
+      not only because their equations are more complicated (and using more inputs),
+      but also because their current implementation involves round-trip to FpImage
+      format.
+      Use these if speed is not a concern, but quality is crucial. }
+    riMitchel,
+    riBlackman,
+    riBlackmanSinc,
+    riBlackmanBessel,
+    riGaussian,
+    riHermite,
+    riLanczos,
+    riQuadratic,
+    riCubic,
+    riCatrom,
+    riHanning,
+    riHamming
   );
+
+  TResizeInterpolationInternal = Low(TResizeInterpolation) .. riBilinear;
+  TResizeInterpolationFpImage = Succ(riBilinear) .. High(TResizeInterpolation);
 
   { Drawing mode used by image-on-image drawing methods
     (@link(TCastleImage.DrawFrom) and @link(TCastleImage.DrawTo)). }
@@ -245,12 +252,37 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       simply replace the destination RGB contents. }
     dmBlend,
 
-    { An advanced blending mode capable of blending 2 images with alpha channel.
+    { An advanced blending mode, capable of blending 2 images with alpha channel
+      better than dmBlend.
       Based on https://en.wikipedia.org/wiki/Alpha_compositing formula for alpha-blending.
       This one is much less efficient than dmBlend and should be used only in case
       several layers of semi-transparent images should overlay one another and it
-      matters to accurately account for both images alpha channel. }
+      matters to accurately account for both images alpha channel. Implemented for
+      all @link(TRGBAlphaImage) and @link(TGrayscaleAlphaImage) combinations.
+    }
     dmBlendSmart,
+
+    { Multiply two images. Simply multiply source with destination, channel by channel:
+
+      @preformatted(
+destination.rgba := destination.rgba * source.rgba;
+)
+
+      The exception is when the source image has alpha channel,
+      but destination does not. For example, when source is TRGBAlphaImage
+      or TGrayscaleAlphaImage and destination is TRGBImage or TGrayscaleImage.
+      In this case the multiplication is followed by a simple blending,
+      to apply the effects of source alpha:
+
+      @preformatted(
+destination.rgb :=
+  source.rgb * destination.rgb * source.alpha +
+               destination.rgb * (1 - source.alpha);
+)
+
+      Note that if source.alpha = 1 (source is opaque) that this is equivalent
+      to the previous simple multiply equation. }
+    dmMultiply,
 
     { Additive drawing mode, where the image contents of source image
       are added to the existing destination image. That is,
@@ -325,8 +357,6 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
     )
   }
   TCastleImage = class(TEncodedImage)
-  private
-    procedure NotImplemented(const AMethodName: string);
   protected
     { Check that both images have the same sizes and Second image class
       descends from First image class. If not, raise appropriate ELerpXxx
@@ -345,6 +375,9 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); virtual;
+
+    function MakeResizedToFpImage(ResizeWidth, ResizeHeight: Cardinal;
+      const Interpolation: TResizeInterpolation): TFPMemoryImage;
   public
     { Constructor without parameters creates image with Width = Height = Depth = 0
       and RawPixels = nil, so IsEmpty will return @true.
@@ -479,16 +512,20 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       Effectively, the image is scaled like a 9 separate parts,
       and colors cannot bleed from one part to another.
 
-      Both ResizeWidth, ResizeHeight parameters must be provided and non-zero. }
+      Both ResizeWidth, ResizeHeight parameters must be provided and non-zero.
+
+      For now, only a subset of TResizeInterpolation values
+      are supported by this method, namely the ones in TResizeInterpolationInternal. }
     procedure Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
       var Corners: TVector4Integer;
-      const Interpolation: TResizeInterpolation);
+      const Interpolation: TResizeInterpolationInternal);
 
     { Create a new TCastleImage instance with size ResizeWidth, ResizeHeight
-      and pixels copied from us and appropriately stretched.
-      Class of new instance is the same as our class.
+      and pixels copied from the input and appropriately stretched.
+      The exact class of the new instance is the same as our class.
 
-      As with @link(Resize), ResizeTo* = 0 means to use current Width/Height.
+      As with @link(Resize) method, when the parameter ResizeTo* is 0
+      it means to use current Width/Height.
       So e.g. using MakeResized(0, 0) is the same thing as using CreateCopy.
 
       As with @link(Resize),
@@ -497,19 +534,6 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
     function MakeResized(ResizeWidth, ResizeHeight: Cardinal;
       const Interpolation: TResizeInterpolation = riNearest;
       const ProgressTitle: string = ''): TCastleImage;
-
-    { Create a new TCastleImage instance with size ResizeWidth, ResizeHeight
-      and pixels copied from us and appropriately stretched.
-      It is not guaranteed that class of new instance is the same as our class.
-
-      As with @link(Resize), ResizeTo* = 0 means to use current Width/Height.
-
-      This uses slow but (potentially) pretty interpolation mode
-      expressed as TResizeNiceInterpolation.
-      It is implemented only for some descendants --- currently, TRGBImage
-      and TRGBAlphaImage. }
-    function MakeResized(ResizeWidth, ResizeHeight: Cardinal;
-      const Interpolation: TResizeNiceInterpolation): TCastleImage;
 
     { Mirror image horizotally (that is right edge is swapped with left edge). }
     procedure FlipHorizontal;
@@ -992,7 +1016,7 @@ type
   TRGBImage = class(TCastleImage)
   private
     function GetRGBPixels: PVector3Byte;
-    class function FromFpImage(const FPImage: TFPMemoryImage): TRGBImage;
+    procedure FromFpImage(const FPImage: TFPMemoryImage); override;
     function ToFpImage: TFPMemoryImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
@@ -1087,7 +1111,7 @@ type
   private
     FPremultipliedAlpha: boolean;
     function GetAlphaPixels: PVector4Byte;
-    class function FromFpImage(const FPImage: TFPMemoryImage): TRGBAlphaImage;
+    procedure FromFpImage(const FPImage: TFPMemoryImage); override;
     function ToFpImage: TFPMemoryImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
@@ -1210,7 +1234,7 @@ type
   private
     FTreatAsAlpha: boolean;
     function GetGrayscalePixels: PByte;
-    class function FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleImage;
+    procedure FromFpImage(const FPImage: TFPMemoryImage); override;
     function ToFpImage: TFPMemoryImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
@@ -1270,7 +1294,7 @@ type
   TGrayscaleAlphaImage = class(TCastleImage)
   private
     function GetGrayscaleAlphaPixels: PVector2Byte;
-    class function FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleAlphaImage;
+    procedure FromFpImage(const FPImage: TFPMemoryImage); override;
     function ToFpImage: TFPMemoryImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
@@ -1702,12 +1726,18 @@ begin
   Result := Rectangle(0, 0, Width, Height);
 end;
 
+procedure TEncodedImage.NotImplemented(const AMethodName: string);
+begin
+  raise EInternalError.Create(AMethodName +
+    ' method not implemented for the image class ' + ClassName);
+end;
+
 { TCastleImage --------------------------------------------------------------- }
 
 constructor TCastleImage.Create;
 begin
   inherited;
-  { Everything is already inited to nil and 0. }
+  { Everything is already initialized to nil and 0. }
 end;
 
 constructor TCastleImage.Create(
@@ -1757,12 +1787,6 @@ begin
   Result := PointerAdd(RawPixels, PixelSize * (Width * (Height * Z + Y)));
 end;
 
-procedure TCastleImage.NotImplemented(const AMethodName: string);
-begin
-  raise EInternalError.Create(AMethodName +
-    ' method not implemented for this TCastleImage descendant');
-end;
-
 procedure TCastleImage.InvertColors;
 begin
   NotImplemented('InvertColors');
@@ -1805,7 +1829,7 @@ type
 procedure InternalResize(PixelSize: Cardinal;
   const SourceData: Pointer; const SourceRect: TRectangle; const SourceWidth, SourceHeight: Cardinal;
   const DestinData: Pointer; const DestinRect: TRectangle; const DestinWidth, DestinHeight: Cardinal;
-  const Interpolation: TResizeInterpolation;
+  const Interpolation: TResizeInterpolationInternal;
   const MixColors: TMixColorsFunction;
   const ProgressTitle: string);
 var
@@ -1913,49 +1937,74 @@ procedure TCastleImage.Resize(ResizeWidth, ResizeHeight: Cardinal;
   const ProgressTitle: string);
 var
   NewPixels: Pointer;
+  NewFpImage: TFPMemoryImage;
 begin
-  if ((ResizeWidth <> 0) and (ResizeWidth <> Width)) or
-     ((ResizeHeight <> 0) and (ResizeHeight <> Height)) then
+  if (Interpolation >= Low(TResizeInterpolationFpImage)) and
+     (Interpolation <= High(TResizeInterpolationFpImage)) then
   begin
-    { Make both ResizeTo* non-zero. }
-    if ResizeWidth = 0 then ResizeWidth := Width;
-    if ResizeHeight = 0 then ResizeHeight := Height;
+    // TODO; ProgressTitle not supported for this
+    NewFpImage := MakeResizedToFpImage(ResizeWidth, ResizeHeight, Interpolation);
+    try
+      FromFpImage(NewFpImage);
+    finally FreeAndNil(NewFpImage) end;
+  end else
+  begin
+    if ((ResizeWidth <> 0) and (ResizeWidth <> Width)) or
+       ((ResizeHeight <> 0) and (ResizeHeight <> Height)) then
+    begin
+      { Make both ResizeTo* non-zero. }
+      if ResizeWidth = 0 then ResizeWidth := Width;
+      if ResizeHeight = 0 then ResizeHeight := Height;
 
-    NewPixels := GetMem(ResizeWidth * ResizeHeight * PixelSize);
-    InternalResize(PixelSize,
-      RawPixels, Rect, Width, Height,
-      NewPixels, Rectangle(0, 0, ResizeWidth, ResizeHeight), ResizeWidth, ResizeHeight,
-      Interpolation, @MixColors, ProgressTitle);
-    FreeMemNiling(FRawPixels);
+      NewPixels := GetMem(ResizeWidth * ResizeHeight * PixelSize);
+      InternalResize(PixelSize,
+        RawPixels, Rect, Width, Height,
+        NewPixels, Rectangle(0, 0, ResizeWidth, ResizeHeight), ResizeWidth, ResizeHeight,
+        Interpolation, @MixColors, ProgressTitle);
+      FreeMemNiling(FRawPixels);
 
-    FRawPixels := NewPixels;
-    FWidth := ResizeWidth;
-    FHeight := ResizeHeight;
+      FRawPixels := NewPixels;
+      FWidth := ResizeWidth;
+      FHeight := ResizeHeight;
+    end;
   end;
 end;
 
 function TCastleImage.MakeResized(ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation;
   const ProgressTitle: string): TCastleImage;
+var
+  NewFpImage: TFPMemoryImage;
 begin
-  { Make both ResizeTo* non-zero. }
-  if ResizeWidth = 0 then ResizeWidth := Width;
-  if ResizeHeight = 0 then ResizeHeight := Height;
+  if (Interpolation >= Low(TResizeInterpolationFpImage)) and
+     (Interpolation <= High(TResizeInterpolationFpImage)) then
+  begin
+    // TODO; ProgressTitle not supported for this
+    NewFpImage := MakeResizedToFpImage(ResizeWidth, ResizeHeight, Interpolation);
+    try
+      Result := CreateFromFpImage(NewFpImage, [TCastleImageClass(ClassType)]);
+    finally FreeAndNil(NewFpImage) end;
+  end else
+  begin
+    { Make both ResizeTo* non-zero. }
+    if ResizeWidth = 0 then ResizeWidth := Width;
+    if ResizeHeight = 0 then ResizeHeight := Height;
 
-  Result := TCastleImageClass(ClassType).Create(ResizeWidth, ResizeHeight);
-  try
-    Result.FURL := URL;
-    if not IsEmpty then
-      InternalResize(PixelSize,
-               RawPixels,        Rect,        Width,        Height,
-        Result.RawPixels, Result.Rect, Result.Width, Result.Height,
-        Interpolation, @MixColors, ProgressTitle);
-  except Result.Free; raise end;
+    Result := TCastleImageClass(ClassType).Create(ResizeWidth, ResizeHeight);
+    try
+      Result.FURL := URL;
+      if not IsEmpty then
+        InternalResize(PixelSize,
+                 RawPixels,        Rect,        Width,        Height,
+          Result.RawPixels, Result.Rect, Result.Width, Result.Height,
+          Interpolation, @MixColors, ProgressTitle);
+    except Result.Free; raise end;
+  end;
 end;
 
 procedure TCastleImage.Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
   var Corners: TVector4Integer;
-  const Interpolation: TResizeInterpolation);
+  const Interpolation: TResizeInterpolationInternal);
 var
   NewPixels: Pointer;
   NewCorners: TVector4Integer;

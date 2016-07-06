@@ -80,8 +80,8 @@ type
     procedure DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Params: TCastleStringList);
     procedure DoPackageSource;
     procedure DoClean;
-    procedure DoAutoCompressTextures;
-    procedure DoAutoCompressClean;
+    procedure DoAutoGenerateTextures;
+    procedure DoAutoGenerateClean;
 
     { Detailed information about the project, read-only and useful for
       various project operations. }
@@ -144,7 +144,7 @@ implementation
 uses StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleWarnings, CastleFilesUtils,
   ToolPackage, ToolWindowsResources, ToolAndroidPackage, ToolWindowsRegistry,
-  ToolTextureCompression;
+  ToolTextureGeneration;
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.';
@@ -1031,14 +1031,14 @@ begin
   Writeln('Deleted ', DeletedFiles, ' files');
 end;
 
-procedure TCastleProject.DoAutoCompressTextures;
+procedure TCastleProject.DoAutoGenerateTextures;
 begin
-  AutoCompressTextures(Self);
+  AutoGenerateTextures(Self);
 end;
 
-procedure TCastleProject.DoAutoCompressClean;
+procedure TCastleProject.DoAutoGenerateClean;
 begin
-  AutoCompressClean(Self);
+  AutoGenerateClean(Self);
 end;
 
 function TCastleProject.ReplaceMacros(const Source: string): string;
@@ -1053,9 +1053,12 @@ const
 
   function AndroidActivityLoadLibraries: string;
   begin
+    { some Android devices work without this clause, some don't }
     Result := '';
     if depSound in Dependencies then
       Result += 'safeLoadLibrary("openal");' + NL;
+    if depOggVorbis in Dependencies then
+      Result += 'safeLoadLibrary("tremolo");' + NL;
   end;
 
   { Make CamelCase with only safe characters (digits and letters). }
