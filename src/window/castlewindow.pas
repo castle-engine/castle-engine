@@ -2999,6 +2999,7 @@ procedure TCastleWindowCustom.OpenCore;
   procedure RenderLoadingBackground;
   var
     WindowRect, TextRect: TRectangle;
+    UIScale: Single;
   begin
     WindowRect := Rect;
 
@@ -3014,10 +3015,12 @@ procedure TCastleWindowCustom.OpenCore;
       the whole screen area anyway. }
     GLClear([cbColor], Theme.LoadingBackgroundColor);
 
+    UIScale := Container.DefaultUIScale;
     TextRect := Theme.Images[tiLoading].Rect.
+      ScaleAroundMiddle(UIScale).
       Align(hpMiddle, WindowRect, hpMiddle).
       Align(vpMiddle, WindowRect, vpMiddle);
-    Theme.Draw(TextRect, tiLoading, 1, Theme.LoadingTextColor);
+    Theme.Draw(TextRect, tiLoading, UIScale, Theme.LoadingTextColor);
 
     // just like TCastleWindowCustom.DoRender
     if DoubleBuffer then SwapBuffers else glFlush;

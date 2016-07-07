@@ -1306,9 +1306,16 @@ type
     property Corners[const ImageType: TThemeImage]: TVector4Integer read GetCorners write SetCorners;
 
     { Draw the selected theme image on screen.
-      If you do not specify a color, white will be used, so image will be displayed
-      as-is. Specifying a color means that image will be multiplied by it,
-      just like for @link(TGLImageCore.Color). }
+
+      @param(Color Color tint of the image.
+        If you do not specify a color, white will be used, so image will be displayed
+        as-is. Specifying a color means that image will be multiplied by it,
+        just like for @link(TGLImageCore.Color).)
+
+      @param(UIScale Used to properly scale corners, passed to @link(TGLImageCore.ScaleCorners).
+        This parameter does @italic(not) scale the place where image is displayed,
+        to do this just scale the given Rect parameter yourself.)
+    }
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
       const UIScale: Single = 1.0);
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
