@@ -1258,7 +1258,8 @@ type
     BackgroundTint: TCastleColor;
 
     { Colors used when displaying the "Loading..." text when Android application
-      is resuming. Note that you can also customize the tiLoading image. }
+      is resuming. Note that you can also customize the tiLoading image.
+      By default, LoadingBackgroundColor is black, and LoadingTextColor is white. }
     LoadingBackgroundColor, LoadingTextColor: TCastleColor;
 
     { Undernath various message dialogs show "error background"
@@ -4225,12 +4226,14 @@ end;
 constructor TCastleTheme.Create;
 begin
   inherited;
-  TooltipTextColor      := Vector4Single(0   , 0, 0, 1);
-  TextColor             := Vector4Single(0   , 0, 0, 1);
-  DisabledTextColor     := Vector4Single(0.33, 0.33, 0.33, 1);
-  MessageInputTextColor := Vector4Single(0.33, 1, 1, 1);
-  MessageTextColor      := Vector4Single(1   , 1, 1, 1);
-  BackgroundTint        := Vector4Single(0.25, 0.25, 0.25, 1);
+  TooltipTextColor       := Vector4Single(0   , 0, 0, 1);
+  TextColor              := Vector4Single(0   , 0, 0, 1);
+  DisabledTextColor      := Vector4Single(0.33, 0.33, 0.33, 1);
+  MessageInputTextColor  := Vector4Single(0.33, 1, 1, 1);
+  MessageTextColor       := Vector4Single(1   , 1, 1, 1);
+  BackgroundTint         := Vector4Single(0.25, 0.25, 0.25, 1);
+  LoadingBackgroundColor := Black;
+  LoadingTextColor       := White;
 
   FOwnsMessageFont := true;
   FMessageErrorBackground := false;
