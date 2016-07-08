@@ -363,7 +363,8 @@ function GlueStrings(const Strings: TStrings; const Delimiter: char): string;
   ) }
 function FindPos(const SubText, Text: string; StartPosition, Count: integer;
   const Options: TSearchOptions;
-  const WordBorders: TSetOfChars = DefaultWordBorders): integer; overload;
+  const WordBorders: TSetOfChars = DefaultWordBorders): integer;
+  deprecated 'use various StrUtils routines to search in string instead of this (slow, not much useful) routine';
 
 { Return rightmost RPart characters from S.
   If RPart > Length(S) then returns S. }
@@ -1650,86 +1651,93 @@ begin
 end;
 
 procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
-var p, SeekPos: integer;
-    ExtsStr, filemask: string;
+var
+  p, SeekPos: integer;
+  ExtsStr, filemask: string;
 begin
- Extensions.Clear;
- ExtsStr := GetFileFilterExtsStr(FileFilter);
- SeekPos := 1;
- repeat
-  filemask := NextToken(ExtsStr, SeekPos,[';']);
-  if filemask = '' then break;
-  p := CharPos('.', filemask);
-  if p > 0 then
-   Delete(filemask, 1, p-1) else { delete name from filemask }
-   filemask := '.'+filemask; { it means there was no name and dot in filemask. So prepend dot. }
-  Extensions.Add(filemask);
- until false;
+  Extensions.Clear;
+  ExtsStr := GetFileFilterExtsStr(FileFilter);
+  SeekPos := 1;
+  repeat
+    filemask := NextToken(ExtsStr, SeekPos,[';']);
+    if filemask = '' then break;
+    p := CharPos('.', filemask);
+    if p > 0 then
+      Delete(filemask, 1, p-1) else { delete name from filemask }
+      filemask := '.'+filemask; { it means there was no name and dot in filemask. So prepend dot. }
+    Extensions.Add(filemask);
+  until false;
 end;
 
 function GetFileFilterName(const FileFilter: string): string;
-var ffLeft, ffRight: string;
-    p, len: integer;
+var
+  Left, Right: string;
+  LeftUpperCase, RightUpperCase: string;
+  p, len: integer;
 begin
- p := CharPos('|', FileFilter);
- if p = 0 then result := Trim(FileFilter) else
- begin
-  ffLeft := Trim(Copy(FileFilter, 1, p-1));
-  ffRight := Trim(SEnding(FileFilter, p+1));
-  if ffRight = '' then
+  p := CharPos('|', FileFilter);
+  if p = 0 then result := Trim(FileFilter) else
   begin
-   result := ffLeft;
-   { if FileFilter = 'xxx()|' then it matches to pattern 'xxx(exts)|exts'
-     so we should return 'xxx', not 'xxx()'.
-     This is often really useful when FileFilter was constructed in an
-     automatic way (e.g. as in mine edytorek). }
-   if IsSuffix('()', Result) then
-   begin
-    SetLength(Result, Length(Result)-2);
-    { trim once again to delete rightmost whitespace (as in 'xxx ()|') }
-    Result := TrimRight(Result);
-   end;
-  end else
-  begin
-   p := FindPos(ffRight, ffLeft, 1, Length(ffLeft), [soBackwards]);
-   if p = 0 then
-    p := FindPos(SReplaceChars(ffRight, ';', ','), ffLeft, 1, Length(ffLeft), [soBackwards]);
-   if p = 0 then result := ffLeft else
-   begin
-    len := Length(ffRight);
-    {zwieksz len tak zeby objelo biale znaki az do ')'}
-    while p+len <= Length(ffLeft) do
+    Left := Trim(Copy(FileFilter, 1, p-1));
+    Right := Trim(SEnding(FileFilter, p+1));
+    if Right = '' then
     begin
-     if ffLeft[p+len] = ')' then
-      begin Inc(len); break end else
-     if ffLeft[p+len] in WhiteSpaces then
-      Inc(len) else
-      break;
-    end;
-    {zmniejsz p tak zeby objelo biale znaki az do '('}
-    while p-1 >= 1 do
+      result := Left;
+      { if FileFilter = 'xxx()|' then it matches to pattern 'xxx(exts)|exts'
+        so we should return 'xxx', not 'xxx()'.
+        This is often really useful when FileFilter was constructed in an
+        automatic way (e.g. as in mine edytorek). }
+      if IsSuffix('()', Result) then
+      begin
+        SetLength(Result, Length(Result)-2);
+        { trim once again to delete rightmost whitespace (as in 'xxx ()|') }
+        Result := TrimRight(Result);
+      end;
+    end else
     begin
-     if ffLeft[p-1] = '(' then
-      begin Dec(p); Inc(len); break end else
-     if ffLeft[p-1] in WhiteSpaces then
-      begin Dec(p); Inc(len) end else
-      break;
+      // convert to uppercase to search ignoring case with RPos below
+      LeftUpperCase := AnsiUpperCase(Left);
+      RightUpperCase := AnsiUpperCase(Right);
+      p := RPos(RightUpperCase, LeftUpperCase);
+      if p = 0 then
+        p := RPos(SReplaceChars(RightUpperCase, ';', ','), LeftUpperCase);
+      if p = 0 then result := Left else
+      begin
+        len := Length(Right);
+        {zwieksz len tak zeby objelo biale znaki az do ')'}
+        while p+len <= Length(Left) do
+        begin
+          if Left[p+len] = ')' then
+            begin Inc(len); break end else
+          if Left[p+len] in WhiteSpaces then
+            Inc(len) else
+            break;
+        end;
+        {zmniejsz p tak zeby objelo biale znaki az do '('}
+        while p-1 >= 1 do
+        begin
+          if Left[p-1] = '(' then
+            begin Dec(p); Inc(len); break end else
+          if Left[p-1] in WhiteSpaces then
+            begin Dec(p); Inc(len) end else
+            break;
+        end;
+        {koniec; wypieprz p, len}
+        Delete(Left, p, len);
+        result := Trim(Left);
+      end;
     end;
-    {koniec; wypieprz p, len}
-    Delete(ffLeft, p, len);
-    result := Trim(ffLeft);
-   end;
   end;
- end;
 end;
 
 function GetFileFilterExtsStr(const FileFilter: string): string;
-var p: integer;
+var
+  p: integer;
 begin
- p := CharPos('|', FileFilter);
- if p > 0 then
-  result := SEnding(FileFilter, p+1) else
-  result := '';
+  p := CharPos('|', FileFilter);
+  if p > 0 then
+    result := SEnding(FileFilter, p+1) else
+    result := '';
 end;
 
 function SReplacePatterns(const S: string;
@@ -1764,42 +1772,45 @@ begin
 end;
 
 function SCharsCount(const S: string; C: char): Cardinal;
-var i: Integer;
+var
+  i: Integer;
 begin
- Result := 0;
- for I := 1 to Length(s) do if S[I] = C then Inc(Result);
+  Result := 0;
+  for I := 1 to Length(s) do if S[I] = C then Inc(Result);
 end;
 
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal;
-var i: Integer;
+var
+  i: Integer;
 begin
- Result := 0;
- for I := 1 to Length(s) do if S[I] in Chars then Inc(Result);
+  Result := 0;
+  for I := 1 to Length(s) do if S[I] in Chars then Inc(Result);
 end;
 
 function STruncateHash(const s: string): string;
-var p: integer;
+var
+  p: integer;
 begin
- p := CharPos('#', s);
- result := s;
- if p > 0 then SetLength(result, p-1);
+  p := CharPos('#', s);
+  result := s;
+  if p > 0 then SetLength(result, p-1);
 end;
 
 function SUnformattable(const s: string): string;
 begin
- result := StringReplace(s, '%', '%%', [rfReplaceAll]);
+  result := StringReplace(s, '%', '%%', [rfReplaceAll]);
 end;
 
 function SAnsiCompare(const s1, s2: string; IgnoreCase: boolean): Integer;
 begin
- if IgnoreCase then
-  result := AnsiCompareText(s1, s2) else
-  result := AnsiCompareStr(s1, s2);
+  if IgnoreCase then
+    result := AnsiCompareText(s1, s2) else
+    result := AnsiCompareStr(s1, s2);
 end;
 
 function SAnsiSame(const s1, s2: string; IgnoreCase: boolean): boolean;
 begin
- result := SAnsiCompare(s1, s2, IgnoreCase) = 0;
+  result := SAnsiCompare(s1, s2, IgnoreCase) = 0;
 end;
 
 function SPercentReplace(const InitialFormat: string;

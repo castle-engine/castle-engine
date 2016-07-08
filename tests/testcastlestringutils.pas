@@ -35,6 +35,7 @@ type
     procedure TestCastleStringList;
     procedure TestCastleStringListNewlinesInside;
     procedure TestSReplacePatterns;
+    procedure TestGetFileFilter;
   end;
 
 implementation
@@ -357,6 +358,39 @@ begin
     SMap['cat'] := 'dog';
     AssertEquals('bladogbla dog dog', SReplacePatterns('blacatbla dog cat', SMap, false));
   finally FreeAndNil(SMap) end;
+end;
+
+procedure TTestCastleStringUtils.TestGetFileFilter;
+var
+  Exts: TStringList;
+begin
+  Exts := TStringList.Create;
+  try
+    GetFileFilterExts('xxxx|name1.ext1;name2.ext2', Exts);
+    AssertEquals(2, Exts.Count);
+    AssertEquals('.ext1', Exts[0]);
+    AssertEquals('.ext2', Exts[1]);
+
+    GetFileFilterExts('name1.ext1;name2.ext2', Exts);
+    AssertEquals(0, Exts.Count);
+
+    GetFileFilterExts('some name|*.ext1;*.ext2', Exts);
+    AssertEquals(2, Exts.Count);
+    AssertEquals('.ext1', Exts[0]);
+    AssertEquals('.ext2', Exts[1]);
+
+    GetFileFilterExts('some name|ext1;*.ext2', Exts);
+    AssertEquals(2, Exts.Count);
+    AssertEquals('.ext1', Exts[0]);
+    AssertEquals('.ext2', Exts[1]);
+  finally FreeAndNil(Exts) end;
+
+  AssertEquals('Pascal files', GetFileFilterName('Pascal files (*.pas)|*.pas'));
+  AssertEquals('Pascal files', GetFileFilterName('Pascal files (*.pas;*.inc)|*.pas;*.inc'));
+  AssertEquals('Pascal files', GetFileFilterName('Pascal files (*.pas,*.inc)|*.pas;*.inc'));
+  AssertEquals('Pascal files', GetFileFilterName('Pascal files|*.pas;*.inc'));
+  AssertEquals('Pascal files', GetFileFilterName('Pascal files'));
+  AssertEquals('Pascal files', GetFileFilterName('Pascal files ()|'));
 end;
 
 initialization
