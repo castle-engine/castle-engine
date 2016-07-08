@@ -1130,7 +1130,7 @@ begin
       //debug: Writeln(Macros.Keys[I], '->', Macros.Data[I]);
       Macros.Add('${CamelCase(' + P + ')}', MakeCamelCase(Macros.Data[I]));
     end;
-    Result := SReplacePatterns(Source, Macros, []);
+    Result := SReplacePatterns(Source, Macros, true);
   finally FreeAndNil(Macros) end;
 end;
 

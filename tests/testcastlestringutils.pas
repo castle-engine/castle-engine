@@ -34,6 +34,7 @@ type
     procedure TestIntToStr64;
     procedure TestCastleStringList;
     procedure TestCastleStringListNewlinesInside;
+    procedure TestSReplacePatterns;
   end;
 
 implementation
@@ -311,6 +312,51 @@ begin
     AssertTrue(SL[0] = NL + 'foo' + NL + 'bar' + NL);
     AssertTrue(SL.IndexOf(NL + 'foo' + NL + 'bar' + NL) = 0);
   finally FreeAndNil(SL) end;
+end;
+
+procedure TTestCastleStringUtils.TestSReplacePatterns;
+var
+  S1, S2: TCastleStringList;
+  SMap: TStringStringMap;
+begin
+  AssertEquals('bladogbla dog dog', SReplacePatterns('blacatbla dog cat', ['cat'], ['dog'], false));
+  { test case matching works }
+  AssertEquals('bladogbla dog cAt', SReplacePatterns('blacatbla dog cAt', ['cat'], ['dog'], false));
+  AssertEquals('blacatbla dog dog', SReplacePatterns('blacatbla dog cAt', ['cAt'], ['dog'], false));
+
+  AssertEquals('bladogbla dog dog', SReplacePatterns('blacatbla dog cat', ['cat'], ['dog'], true));
+  { test case ignoring works }
+  AssertEquals('bladogbla dog dog', SReplacePatterns('blacatbla dog cAt', ['cat'], ['dog'], true));
+  AssertEquals('bladogbla dog dog', SReplacePatterns('blacatbla dog cAt', ['cAt'], ['dog'], true));
+  AssertEquals('blaDogbla dog Dog', SReplacePatterns('blacatbla dog cAt', ['cat'], ['Dog'], true));
+  AssertEquals('blaDogbla dog Dog', SReplacePatterns('blacatbla dog cAt', ['cAt'], ['Dog'], true));
+
+  { test pattern inside pattern }
+  AssertEquals('12 is 1', SReplacePatterns('foobar is foo', ['foo', 'bar', 'foobar'], ['1', '2', '3'], false));
+  AssertEquals('foobar is foo', SReplacePatterns('foobar is foo', ['foo', 'bar', 'foobar'], ['foo', 'bar', '3'], false));
+  AssertEquals('3 is 1', SReplacePatterns('foobar is foo', ['foobar', 'foo', 'bar'], ['3', '1', '2'], false));
+  AssertEquals('3 is foo', SReplacePatterns('foobar is foo', ['foobar', 'foo', 'bar'], ['3', 'foo', 'bar'], false));
+  AssertEquals('3 is f1', SReplacePatterns('foobar is foo', ['foobar', 'oo'], ['3', '1'], false));
+  AssertEquals('3oo is f1oo', SReplacePatterns('foobar is foo', ['foobar', 'oo'], ['3oo', '1oo'], false));
+
+  { test overloaded version on TCastleStringList }
+  S1 := TCastleStringList.Create;
+  S2 := TCastleStringList.Create;
+  try
+    S1.Append('cat');
+    S2.Append('dog');
+    AssertEquals('bladogbla dog dog', SReplacePatterns('blacatbla dog cat', S1, S2, false));
+  finally
+    FreeAndNil(S1);
+    FreeAndNil(S2);
+  end;
+
+  { test overloaded version on TStringStringMap }
+  SMap := TStringStringMap.Create;
+  try
+    SMap['cat'] := 'dog';
+    AssertEquals('bladogbla dog dog', SReplacePatterns('blacatbla dog cat', SMap, false));
+  finally FreeAndNil(SMap) end;
 end;
 
 initialization

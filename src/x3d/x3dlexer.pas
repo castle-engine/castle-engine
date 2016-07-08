@@ -1125,8 +1125,8 @@ const
 begin
   { use soMatchCase for speed }
   if SurroundWithQuotes then
-    Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"' else
-    Result :=       SReplacePatterns(s, Patterns, PatValues, [soMatchCase]);
+    Result := '"' + SReplacePatterns(s, Patterns, PatValues, false) + '"' else
+    Result :=       SReplacePatterns(s, Patterns, PatValues, false);
 end;
 
 function StringToX3DXml(const s: string): string;
@@ -1135,7 +1135,7 @@ const
   PatValues: array [0..6] of string = ('&amp;', '&quot;', '&apos;', '&lt;', '&gt;', '&#xA;', '&#xD;');
 begin
   { use soMatchCase for speed }
-  Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"';
+  Result := '"' + SReplacePatterns(s, Patterns, PatValues, false) + '"';
 end;
 
 function StringToX3DXmlMulti(const s: string): string;
@@ -1144,7 +1144,7 @@ const
   PatValues: array [0..7] of string = ('&amp;', '\&quot;', '&apos;', '&lt;', '&gt;', '&#xA;', '&#xD;', '\\');
 begin
   { use soMatchCase for speed }
-  Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"';
+  Result := '"' + SReplacePatterns(s, Patterns, PatValues, false) + '"';
 end;
 
 end.

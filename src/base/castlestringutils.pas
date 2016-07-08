@@ -49,6 +49,11 @@ uses SysUtils, Classes, FGL,
 type
   TDynamicStringArray = array of string;
 
+  TStringsHelper = class helper for TStrings
+    { Convert TStrings to a dynamic string array. }
+    function ToArray: TDynamicStringArray;
+  end;
+
   { List of strings. This is a slightly extended version of standard TStringList.
     The default CaseSensitive value is @true. }
   TCastleStringList = class(TStringList)
@@ -75,8 +80,6 @@ type
       TStringList.Strings property, and is useful only for implementing macros
       to work for both TGenericStructList and for TCastleStringList. }
     property L[Index: Integer]: string read GetL write SetL;
-
-    function ToArray: TDynamicStringArray;
   end;
 
   { String-to-string map. Note that in simple cases you can also
@@ -508,7 +511,7 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
 
 { Replace all strings in Patterns with corresponding strings in Values.
   This is similar to standard StringReplace, but this does many
-  replaces at once.
+  replacements at once. This is just like StrUtils.StringsReplace nowadays.
 
   Patterns and Values arrays must have equal length.
   Patterns[0] will be replaced with Values[0], Patterns[1] with Values[0] etc.
@@ -535,12 +538,10 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
   a pattern detected later. This means that you could replace the same
   content many times, which is usually not what you want.
 
-  That's why you should instead use this function for such situations.
-
-  Options cannot contain soBackwards flag. }
-function SReplacePatterns(const s: string; const patterns, values: array of string; const Options: TSearchOptions): string;
-function SReplacePatterns(const s: string; const patterns, values: TStrings; const Options: TSearchOptions): string;
-function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const Options: TSearchOptions): string;
+  That's why you should instead use this function for such situations. }
+function SReplacePatterns(const s: string; const patterns, values: array of string; const IgnoreCase: boolean): string;
+function SReplacePatterns(const s: string; const patterns, values: TStrings; const IgnoreCase: boolean): string;
+function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const IgnoreCase: boolean): string;
 
 function SCharsCount(const s: string; c: char): Cardinal; overload;
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal; overload;
@@ -865,7 +866,19 @@ const
 
 implementation
 
-uses CastleFilesUtils, CastleClassUtils, CastleDownload, Regexpr;
+uses Regexpr, StrUtils,
+  CastleFilesUtils, CastleClassUtils, CastleDownload;
+
+{ TStringsHelper ------------------------------------------------------------- }
+
+function TStringsHelper.ToArray: TDynamicStringArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, Count);
+  for I := 0 to Count - 1 do
+    Result[I] := Strings[I];
+end;
 
 { TCastleStringList ------------------------------------------------------------- }
 
@@ -951,15 +964,6 @@ end;
 procedure TCastleStringList.SetL(const Index: Integer; const S: string);
 begin
   Strings[Index] := S;
-end;
-
-function TCastleStringList.ToArray: TDynamicStringArray;
-var
-  I: Integer;
-begin
-  SetLength(Result, Count);
-  for I := 0 to Count - 1 do
-    Result[I] := Strings[I];
 end;
 
 { TStringStringMap ----------------------------------------------------------- }
@@ -1729,83 +1733,34 @@ begin
 end;
 
 function SReplacePatterns(const S: string;
-  const Patterns, Values: array of string; const Options: TSearchOptions): string;
-var
-  PatternsList, ValuesList: TCastleStringList;
+  const Patterns, Values: array of string; const IgnoreCase: boolean): string;
 begin
-  PatternsList := nil;
-  ValuesList := nil;
-  try
-    PatternsList := TCastleStringList.Create;
-    PatternsList.AssignArray(Patterns);
-    ValuesList := TCastleStringList.Create;
-    ValuesList.AssignArray(Values);
-    Result := SReplacePatterns(S, PatternsList, ValuesList, Options);
-  finally
-    FreeAndNil(PatternsList);
-    FreeAndNil(ValuesList);
-  end;
+  if IgnoreCase then
+    Result := StringsReplace(S, Patterns, Values, [rfReplaceAll, rfIgnoreCase]) else
+    Result := StringsReplace(S, Patterns, Values, [rfReplaceAll]);
 end;
 
 function SReplacePatterns(const s: string; const Parameters: TStringStringMap;
-  const Options: TSearchOptions): string;
+  const IgnoreCase: boolean): string;
 var
-  PatternsList, ValuesList: TCastleStringList;
+  PatternsArray, ValuesArray: TDynamicStringArray;
   I: Integer;
 begin
-  PatternsList := nil;
-  ValuesList := nil;
-  try
-    PatternsList := TCastleStringList.Create;
-    ValuesList := TCastleStringList.Create;
-    for I := 0 to Parameters.Count - 1 do
-    begin
-      PatternsList.Add(Parameters.Keys[I]);
-      ValuesList.Add(Parameters.Data[I]);
-    end;
-    Result := SReplacePatterns(S, PatternsList, ValuesList, Options);
-  finally
-    FreeAndNil(PatternsList);
-    FreeAndNil(ValuesList);
+  { calculate PatternsArray and ValuesArray from Parameters }
+  SetLength(PatternsArray, Parameters.Count);
+  SetLength(ValuesArray, Parameters.Count);
+  for I := 0 to Parameters.Count - 1 do
+  begin
+    PatternsArray[I] := Parameters.Keys[I];
+    ValuesArray[I] := Parameters.Data[I];
   end;
+  Result := SReplacePatterns(S, PatternsArray, ValuesArray, IgnoreCase);
 end;
 
 function SReplacePatterns(const S: string;
-  const Patterns, Values: TStrings; const Options: TSearchOptions): string;
-var
-  i, poz, minpoz, minind, Processed: integer;
+  const Patterns, Values: TStrings; const IgnoreCase: boolean): string;
 begin
-  Result := '';
-
-  Assert(Patterns.Count = Values.Count);
-  Assert(not (soBackwards in Options));
-  Processed := 0; { how many characters from S was already processed, and are in
-    Result? }
-
-  repeat
-    { calculate earliest occurence of some pattern within the remaining of S }
-    minind := -1;
-    minpoz := 0;
-    for i := 0 to Patterns.Count - 1 do
-    begin
-      poz := FindPos(patterns[i], s, Processed+1, Length(s), Options);
-      if (poz > 0) and ((minind = -1) or (poz < minpoz)) then
-      begin
-        minind := i;
-        minpoz := poz;
-      end;
-    end;
-    if minind = -1 then break; { all poz = 0, so everything is already done }
-
-    { copy to Result everything from S before a pattern occurence }
-    result := result + CopyPos(s, Processed+1, minpoz-1);
-    Processed := minpoz-1;
-    { omit pattern[] in S, append corresponding value[] to Result }
-    Processed := Processed + Length(patterns[minind]);
-    result := result + values[minind];
-  until false;
-
-  result := result + SEnding(s, Processed+1);
+  Result := SReplacePatterns(S, Patterns.ToArray, Values.ToArray, IgnoreCase);
 end;
 
 function SCharsCount(const S: string; C: char): Cardinal;
