@@ -2995,7 +2995,6 @@ end;
 
 procedure TCastleWindowCustom.OpenCore;
 
-  {$ifdef ANDROID}
   procedure RenderLoadingBackground;
   var
     WindowRect, TextRect: TRectangle;
@@ -3025,7 +3024,6 @@ procedure TCastleWindowCustom.OpenCore;
     // just like TCastleWindowCustom.DoRender
     if DoubleBuffer then SwapBuffers else glFlush;
   end;
-  {$endif}
 
 begin
   if not FClosed then Exit;
@@ -3104,9 +3102,7 @@ begin
         TGLImageCore.Create from Application.OnInitialize work Ok. }
       ApplicationProperties._GLContextEarlyOpen;
 
-      {$ifdef ANDROID}
       RenderLoadingBackground;
-      {$endif}
 
       Application.CastleEngineInitialize;
       if Closed then Exit;
