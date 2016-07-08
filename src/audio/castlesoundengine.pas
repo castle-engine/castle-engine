@@ -1035,7 +1035,7 @@ procedure TSoundEngine.ALContextOpen;
         alGetString(AL_EXTENSIONS),
         MinAllocatedSources, MaxAllocatedSources,
         TSoundOggVorbis.VorbisMethod,
-        BoolToStr[VorbisFileInited]
+        BoolToStr(VorbisFileInited, true)
       ]);
   end;
 

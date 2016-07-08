@@ -628,7 +628,7 @@ begin
         [Name, AttribTypeName[A.AType], AttribTypeName[AType]]);
     if A.Internal <> Internal then
       raise Exception.CreateFmt('GLSL attribute "%s" is already allocated but for different internal (%s) than currently requested (%s)',
-        [Name, BoolToStr[A.Internal], BoolToStr[Internal]]);
+        [Name, BoolToStr(A.Internal, true), BoolToStr(Internal, true)]);
   end else
   begin
     A := TGeometryAttrib.Create;

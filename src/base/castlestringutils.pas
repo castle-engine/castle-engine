@@ -696,34 +696,6 @@ function FormatNameCounter(const NamePattern: string;
 
 { conversions ------------------------------------------------------------ }
 
-const
-  { I should restrain from adding more similiar BoolToStrXxx constants
-    below, since there are *so* many possibilities here (on/off, ON/OFF,
-    On/Off, yes/no, YES/NO etc.) that it's quite useless trying to
-    gather them all here. }
-
-  { Convert boolean to string, using a simple table lookup.
-
-    I don't use BoolToStr function from SysUtils unit,
-    since there are differences in FPC implementations:
-    @unorderedList(
-      @item(In FPC <= 2.0.4, BoolToStr takes one param
-        and returns 'FALSE' or 'TRUE' string.)
-      @item(In FPC > 2.0.4 (trunk (2.3.1 currently), and fixes_2_2 (2,1.3)),
-        BoolToStr was changed for Delphi compat. Now when passed only 1 param
-        it returns 0 or -1 (who the hell needs such BoolToStr interpretation ?).
-
-        You have to pass 2nd param to BoolToStr as @true
-        to get strings 'False' and 'True'. But this makes it non-compileable
-        in FPC <= 2.0.4. So to call BoolToStr like I want to, I would have
-        to use ugly $ifdefs...))
-
-    So I decided to use my BoolToStr table throughout my units.
-    When I'll switch fully to FPC > 2.0.4, I'll drop this and use
-    BoolToStr function from SysUtils unit. }
-  BoolToStr: array[boolean] of string=('FALSE','TRUE');
-  BoolToStrYesNo: array[boolean]of string = ('No','Yes');
-
 { Convert digit (like number 0) to character (like '0').
   Use only for arguments within 0..9 range. }
 function DigitAsChar(b: byte): char;

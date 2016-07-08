@@ -892,8 +892,8 @@ begin
         if Log and LogRenderer then
           WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, lights outside VRML/X3D: %d, pass: %d)',
             [Shape.NiceName,
-             BoolToStr[(Shape.ProgramCache[Renderer.Pass] = nil) or
-                       (Shape.ProgramCache[Renderer.Pass].ShaderProgram = nil)],
+             BoolToStr((Shape.ProgramCache[Renderer.Pass] = nil) or
+                       (Shape.ProgramCache[Renderer.Pass].ShaderProgram = nil), true),
              Renderer.BaseLights.Count,
              Renderer.Pass]);
 

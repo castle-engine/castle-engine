@@ -2203,7 +2203,7 @@ begin
         WritelnLog('Screen effects', Format('Created texture for screen effects, with size %d x %d, with depth texture: %s',
           [ ScreenEffectTextureWidth,
             ScreenEffectTextureHeight,
-            BoolToStr[CurrentScreenEffectsNeedDepth] ]));
+            BoolToStr(CurrentScreenEffectsNeedDepth, true) ]));
     end;
 
     { We have to adjust glViewport.

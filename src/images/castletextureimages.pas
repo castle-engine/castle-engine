@@ -213,7 +213,7 @@ function TTexturesVideosCache.TextureImage_IncReference(
   function AlphaChannelLog(const AC: TAlphaChannel): string;
   begin
     if AC <> acNone then
-      Result := '. Detected as simple yes/no alpha channel: ' + BoolToStr[AC = acSimpleYesNo] else
+      Result := '. Detected as simple yes/no alpha channel: ' + BoolToStr(AC = acSimpleYesNo, true) else
       Result := '';
   end;
 

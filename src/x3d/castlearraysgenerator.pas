@@ -786,7 +786,7 @@ begin
     try
       if Log and LogShapes then
         WritelnLog('Renderer', Format('Shape %s is rendered with indexes: %s',
-          [Shape.NiceName, BoolToStr[AllowIndexed]]));
+          [Shape.NiceName, BoolToStr(AllowIndexed, true)]));
 
       if AllowIndexed or (IndexesFromCoordIndex = nil) then
       begin

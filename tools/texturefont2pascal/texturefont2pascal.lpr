@@ -112,7 +112,7 @@ begin
     '    Name         : %s' +NL+
     '    Size         : %d' +NL+
     '    AntiAliasing : %s' +nl,
-    [ FontName, Size, BoolToStr[AntiAliasing] ]);
+    [ FontName, Size, BoolToStr(AntiAliasing, true) ]);
 
   Characters := TUnicodeCharList.Create;
   try

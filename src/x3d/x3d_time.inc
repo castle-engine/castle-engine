@@ -452,8 +452,10 @@ begin
     WritelnLog('TimeDependentNodes', Format('%s: time changes by +%f to %f. Cycle interval: %f, loop %s. Before: active %s, paused %s, elapsedTimeInCycle %f',
       [ Node.NiceName,
         TimeIncrease, NewTime,
-        CycleInterval, BoolToStr[FdLoop.Value],
-        BoolToStr[IsActive], BoolToStr[IsPaused],
+        CycleInterval,
+        BoolToStr(FdLoop.Value, true),
+        BoolToStr(IsActive, true),
+        BoolToStr(IsPaused, true),
         FElapsedTimeInCycle
       ]));
   {$endif}
@@ -667,8 +669,8 @@ begin
   if Log then
     WritelnLog('TimeDependentNodes', Format('%s: after: active %s, paused %s, elapsedTimeInCycle %f',
       [ Node.NiceName,
-        BoolToStr[IsActive],
-        BoolToStr[IsPaused],
+        BoolToStr(IsActive, true),
+        BoolToStr(IsPaused, true),
         FElapsedTimeInCycle
       ]));
   {$endif}

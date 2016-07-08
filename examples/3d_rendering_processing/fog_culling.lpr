@@ -80,7 +80,7 @@ begin
   inherited;
   Writeln(Format('Rendered Shapes: %d / %d (fog culling: %s)',
     [ Statistics.ShapesRendered, Statistics.ShapesVisible,
-      BoolToStr[FogCulling] ]));
+      BoolToStr(FogCulling, true) ]));
 end;
 
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);

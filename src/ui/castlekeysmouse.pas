@@ -1016,7 +1016,7 @@ begin
     itMouseWheel: Result := Format('mouse wheel %s (amount %f, vertical: %s)',
       [ MouseWheelDirectionStr[MouseWheel],
         MouseWheelScroll,
-        CastleStringUtils.BoolToStr[MouseWheelVertical] ]);
+        BoolToStr(MouseWheelVertical, true) ]);
     else raise EInternalError.Create('TInputPressRelease.Description: EventType?');
   end;
 end;

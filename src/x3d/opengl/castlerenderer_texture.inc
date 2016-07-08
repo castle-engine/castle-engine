@@ -1910,10 +1910,10 @@ begin
 
   if Log then
     WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: Attributes.Shadow sampling = %s, GLSL support = %s, texture_float support = %s)',
-      [ BoolToStr[VarianceShadowMaps],
+      [ BoolToStr(VarianceShadowMaps, true),
         ShadowSamplingNames[Renderer.Attributes.ShadowSampling],
         GLSupportNames[TGLSLProgram.ClassSupport],
-        BoolToStr[GLFeatures.TextureFloat] ]));
+        BoolToStr(GLFeatures.TextureFloat, true) ]));
 
   { TODO: fix TextureNode.FdSize.Value if needed }
   Size := TextureNode.FdSize.Value;

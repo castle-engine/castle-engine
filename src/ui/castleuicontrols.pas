@@ -2451,7 +2451,7 @@ begin
   WritelnLog('ml', Format('Mouse Position is %f,%f. Good for mouse look? %s. Setting pos to %f,%f if needed',
     [MousePosition[0],
      MousePosition[1],
-     BoolToStr[IsMousePositionForMouseLook],
+     BoolToStr(IsMousePositionForMouseLook, true),
      Single(Width div 2),
      Single(Height div 2)]));
 }

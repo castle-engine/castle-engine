@@ -276,7 +276,7 @@ begin
       [AllocatedTex.Size / Used, AllocatedTex.URL,
        AllocatedTex.Size, AllocatedTex.ImageFormat,
        AllocatedTex.Width, AllocatedTex.Height, AllocatedTex.Depth,
-       BoolToStr[AllocatedTex.Mipmaps]]) + NL;
+       BoolToStr(AllocatedTex.Mipmaps, true)]) + NL;
   end;
   Result := S;
 end;

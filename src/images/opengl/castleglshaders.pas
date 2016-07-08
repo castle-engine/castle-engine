@@ -1435,7 +1435,7 @@ begin
   Result += NL + 'Program info log:' + NL + ProgramInfoLog;
 
   Result += NL + 'Program detected as running in hardware: ' +
-    BoolToStr[RunningInHardware];
+    BoolToStr(RunningInHardware, true);
 end;
 
 procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType; const S: string);

@@ -257,7 +257,7 @@ begin
     for I := 0 to List.Count - 1 do
       LogStr += 'Product ' + List[I].Name +
         ', price ' + List[I].Price +
-        ', owned ' + CastleStringUtils.BoolToStr[List[I].Owns] + NL;
+        ', owned ' + BoolToStr(List[I].Owns, true) + NL;
     WritelnLogMultiline('InAppPurchases', LogStr);
   end;
 end;
