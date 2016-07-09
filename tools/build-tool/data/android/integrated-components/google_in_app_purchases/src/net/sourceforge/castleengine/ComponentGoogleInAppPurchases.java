@@ -496,14 +496,35 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                 return;
             }
             purchaseToken = jo.getString("purchaseToken");
-            purchaseTokens.put(productName, purchaseToken);
+
+            /* Use purchaseTokens to avoid sending multiple "in-app-purchases-owns"
+             * for the same item, when no new purchase occured.
+             * While this is not really prohibited (our CastleInAppPurchases documentation
+             * talks about this, and insists that you depend on SuccessfullyConsumed
+             * for consumables), we try to avoid it in the common case.
+             *
+             * And it would occur almost always after buying (if not for this safeguard).
+             * We refresh purchases after onResume, which happens also when returning
+             * from "buy" dialog. In this case, OperationPurchase and then OperationRefreshPurchased
+             * notify about owning the same item (unless the OperationConsume
+             * will happen between, but it may not have a chance).
+             * So you would always get two "in-app-purchases-owns" messages,
+             * which in some cases means getting two consume() calls,
+             * which means you get 1 error
+             *
+             *   Cannot consume item " + productName + ", purchaseToken unknown (it seems item is not purchased yet)"
+             *
+             * for every purchase.
+             */
+            String knownPurchaseToken = purchaseTokens.get(productName);
+            if (purchaseToken == null || !purchaseToken.equals(knownPurchaseToken)) {
+                purchaseTokens.put(productName, purchaseToken);
+                messageSend(new String[]{"in-app-purchases-owns", productName});
+            }
         } catch (JSONException e) {
             Log.e(TAG, "Failed to parse purchaseData in owns.");
             e.printStackTrace();
-            return;
         }
-
-        messageSend(new String[]{"in-app-purchases-owns", productName});
     }
 
     @Override
