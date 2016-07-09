@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="tiled_demo"
+  standalone_source="tiled_demo_standalone.lpr"
+  android_source="tiled_demo_android.lpr">
+</project>
