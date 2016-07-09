@@ -14,6 +14,8 @@ import android.content.Intent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.IntentSender.SendIntentException;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import android.os.IBinder;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -63,15 +65,37 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mBilingService = IInAppBillingService.Stub.asInterface(service);
-
-            /* refresh available and purchased stuff.
-             * If availableProducts == null, this is deferred for later. */
-            if (availableProducts != null) {
-                refreshAvailableForPurchase();
-                refreshPurchased();
-            }
+            refreshAvailableForPurchaseAndPurchased();
         }
     };
+
+    private boolean duringRefreshAvailableForPurchaseAndPurchased = false;
+
+    /* Refresh available for purchase and purchased stuff.
+     *
+     * Secured (silently ignored) if availableProducts or mBilingService are null.
+     * So e.g. onServiceConnected can safely call if (even though availableProducts
+     * may be unset yet) and setAvailableProducts may safely call it (even though
+     * mBilingService be unset yet).
+     *
+     * Secured to exit if already refreshing. So e.g. onServiceConnected
+     * and onResume may safely call it, it doesn't matter if previous one is already
+     * in progress.
+     */
+    private void refreshAvailableForPurchaseAndPurchased()
+    {
+        if (!duringRefreshAvailableForPurchaseAndPurchased) {
+            duringRefreshAvailableForPurchaseAndPurchased = true;
+            try {
+                if (availableProducts != null && mBilingService != null) {
+                    refreshAvailableForPurchase();
+                    refreshPurchased();
+                }
+            } finally {
+                duringRefreshAvailableForPurchaseAndPurchased = false;
+            }
+        }
+    }
 
     @Override
     public void onCreate()
@@ -83,6 +107,8 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
         mPayLoad = randomString.nextString();
         //Log.i(TAG, "Biling payload: " + mPayLoad);
 
+        myPromoReceiver = new MyPromoReceiver();
+
         Intent serviceIntent = new Intent("com.android.vending.billing.InAppBillingService.BIND");
         serviceIntent.setPackage("com.android.vending");
         getActivity().bindService(serviceIntent, mBilingConnection, Context.BIND_AUTO_CREATE);
@@ -93,6 +119,37 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
         if (mBilingService != null) {
             getActivity().unbindService(mBilingConnection);
         }
+    }
+
+    private class MyPromoReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i(TAG, "PURCHASES_UPDATED received, possibly user redeemed promo code now, refreshing.");
+            refreshAvailableForPurchaseAndPurchased();
+        }
+    }
+    private MyPromoReceiver myPromoReceiver;
+
+    @Override
+    public void onResume()
+    {
+        /* Get purchases on resume, if user bought something while we were paused.
+           Follows
+           https://developer.android.com/google/play/billing/billing_promotions.html */
+        refreshAvailableForPurchaseAndPurchased();
+
+        /* Listen for promo code redeeming while app is running, following
+           https://developer.android.com/google/play/billing/billing_promotions.html */
+        IntentFilter promoFilter = new IntentFilter("com.android.vending.billing.PURCHASES_UPDATED");
+        getActivity().registerReceiver(myPromoReceiver, promoFilter);
+    }
+
+    @Override
+    public void onPause()
+    {
+        /* Stop listening for promo code redeeming while app is running, following
+           https://developer.android.com/google/play/billing/billing_promotions.html */
+        getActivity().unregisterReceiver(myPromoReceiver);
     }
 
     /* Class to pass skuList to RefreshAvailableForPurchaseTask.
@@ -153,6 +210,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
     /**
      * Get the list of prices for availableProducts.
      * Call only when availableProducts != null.
+     * SHOULD ONLY BE CALLED by refreshAvailableForPurchaseAndPurchased() now.
      */
     private void refreshAvailableForPurchase()
     {
@@ -340,6 +398,10 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
         }
     }
 
+    /**
+     * Get the list of currently owned products.
+     * SHOULD ONLY BE CALLED by refreshAvailableForPurchaseAndPurchased() now.
+     */
     private void refreshPurchased()
     {
         if (mBilingService == null) {
@@ -359,10 +421,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
     private void setAvailableProducts(String[] products)
     {
         availableProducts = new ArrayList<String>(Arrays.asList(products));
-        if (mBilingService != null) {
-            refreshAvailableForPurchase();
-            refreshPurchased();
-        }
+        refreshAvailableForPurchaseAndPurchased();
     }
 
     @Override
