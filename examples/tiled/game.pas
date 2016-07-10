@@ -13,23 +13,24 @@ var
 implementation
 
 uses SysUtils, CastleWindow, CastleScene, CastleControls,
-  CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors;
+  CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors, CastleLog;
 
 var
-  ExampleImage: TCastleImageControl;
-  ExampleScene: TCastleScene;
+  TiledMap: TCastleTiledMapControl;
 
 { routines ------------------------------------------------------------------- }
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 begin
-  
+  { Load the desert map. }
+  TiledMap := TCastleTiledMapControl.Create(Window, ApplicationData('desert.tmx'));
+  Window.Controls.InsertFront(TiledMap);
 end;
 
 procedure WindowRender(Container: TUIContainer);
 begin
-  // ... custom rendering code
+  //TiledMap.Render; // potrzebne?
   UIFont.Print(10, 10, Yellow, Format('FPS: %f', [Container.Fps.RealTime]));
 end;
 
@@ -49,6 +50,8 @@ begin
 end;
 
 initialization
+  // ifdef debug
+  InitializeLog;
   { This sets SysUtils.ApplicationName.
     It is useful to make sure it is correct (as early as possible)
     as our log routines use it. }
