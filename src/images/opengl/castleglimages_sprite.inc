@@ -241,6 +241,9 @@ type
     function Duration: Single;
   end;
 
+  { List of sprites. }
+  TSpriteList = specialize TFPGObjectList<TSprite>;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
