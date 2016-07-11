@@ -26,7 +26,7 @@ public class ComponentMessaging extends ComponentAbstract
      * for cheaters to fake their achievements/scores by guessing what JNI
      * messages to send.
      */
-    private final boolean debug = true;
+    private final boolean debug = false;
 
     public ComponentMessaging(MainActivity activity)
     {
