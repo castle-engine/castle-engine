@@ -19,6 +19,9 @@
 {$ifdef read_interface}
 
 type
+
+	{ TCastleTiledMapControl }
+
   TCastleTiledMapControl = class(TUIControl)
   private
     FTiledMap: TTiledMap;
@@ -29,6 +32,7 @@ type
     procedure RenderHexagonal;
     procedure RenderIsometric;
     procedure RenderObjects;
+    procedure LoadTilesetsImages;
   public
     property DoRenderObjects: Boolean read FDoRenderObjects write FDoRenderObjects;
     { If using this constructor then you have to use LoadFromFile procedure after. }
@@ -62,6 +66,21 @@ end;
 procedure TCastleTiledMapControl.RenderObjects;
 begin
   //todo: implement me
+end;
+
+procedure TCastleTiledMapControl.LoadTilesetsImages;
+var
+  i: Integer;
+  _ts: TTileset;
+  _spr: TSprite;
+begin
+
+  for i := 0 to FTiledMap.Tilesets.Count - 1 do
+  begin
+    _ts := FTiledMap.Tilesets.Items[i];
+    //todo: columns rows
+    _spr := TSprite.Create(_ts.Source, _ts.TileCount, 1{}, 1{}, True, False);
+	end;
 end;
 
 constructor TCastleTiledMapControl.Create(AOwner: TComponent);
