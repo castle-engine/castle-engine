@@ -241,6 +241,9 @@ type
 
   { Loading and manipulating "Tiled" map files (http://mapeditor.org).
     Based on Tiled version 0.14. }
+
+	{ TTiledMap }
+
   TTiledMap = class
   private
     { Map stuff. }
@@ -290,6 +293,8 @@ type
     { @param(AURL) - URL to TMX file. }
     constructor Create(AURL: string);
     destructor Destroy; override;
+    { Returns the pointer to tileset that contain the global ID. }
+    function GIDToTileset(const AGID: Cardinal): PTileSet;
   end;
 
 implementation
@@ -844,6 +849,19 @@ begin
   FreeAndNil(FProperties);
   FreeAndNil(FLayers);
   inherited Destroy;
+end;
+
+function TTiledMap.GIDToTileset(const AGID: Cardinal): PTileSet;
+var
+  i: Integer;
+begin
+  for i := 0 to FTilesets.Count - 1 do
+    if FTilesets.Items[i].FirstGID > AGID then
+    begin
+      Result := FTilesets.Ptr(i-1);
+      Break;
+      //todo: test gidtotileset
+		end;
 end;
 
 
