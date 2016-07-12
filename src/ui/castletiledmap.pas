@@ -154,6 +154,8 @@ type
     Image: TImage;
     Tiles: TTiles; // todo: Tiles loading
     TerrainTypes: TTerrainTypes; //todo: loading TerrainTypes
+    { Pointer to image of tileset. Used by renderer. Not a part of file format. }
+    ImageData: Pointer;
   end;
 
   { List of tilesets. }
