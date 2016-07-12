@@ -19,8 +19,6 @@
 {$ifdef read_interface}
 
 type
-  TSpriteList = specialize TFPGObjectList<TSprite>;
-
   TCastleTiledMapControl = class(TUIControl)
   private
     FTiledMap: TTiledMap;

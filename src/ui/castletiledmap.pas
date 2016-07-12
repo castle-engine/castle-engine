@@ -130,7 +130,7 @@ type
       <tileset> element described here. (There is the firstgid attribute missing
       and this source attribute is also not there. These two attributes
       are kept in the TMX map, since they are map specific.) }
-    Source: string; //todo: convert the path to some relative
+    Source: string; //todo: convert the path to some relative; loading of TSX
     { The name of this tileset. }
     Name: string;
     { The (maximum) width of the tiles in this tileset. }
@@ -279,7 +279,10 @@ type
     FLayers: TLayers;
     procedure LoadTMXFile(AURL: string);
   public
-    property Orientation: TMapOrientation read FOrientation write FOrientation;
+    property Layers: TLayers read FLayers;
+    property Orientation: TMapOrientation read FOrientation;
+    property Properties: TProperties read FProperties;
+    property Tilesets: TTilesets read FTilesets;
     { @param(AURL) - URL to TMX file. }
     constructor Create(AURL: string);
     destructor Destroy; override;
