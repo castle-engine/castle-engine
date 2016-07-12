@@ -28,6 +28,7 @@ type
   { Custom animation of a sprite. Animation is defined as array of used frames. }
   TSpriteAnimation = array of TSpriteAnimationFrame;
 
+  PSprite = ^TSprite;
   { Sprite is an animation composed from frames arranged
     in rows and columns inside a single image.
     Frames are read from left to right and from top to bottom.

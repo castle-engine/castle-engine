@@ -28,6 +28,7 @@ type
     { Tilesets images. }
     FImages: TSpriteList;
     FDoRenderObjects: Boolean;
+    FDataPath: string;
     procedure RenderOrthogonal;
     procedure RenderHexagonal;
     procedure RenderIsometric;
@@ -50,8 +51,11 @@ type
 
 procedure TCastleTiledMapControl.RenderOrthogonal;
 var
-  i, j, k: Integer;
+  i, j, k, l: Integer;
   _lay: PLayer;
+  _ts: PTileset;
+  _spr: PSprite;
+  _GID: Cardinal;
 begin
   { Layers. }
   for i := 0 to FTiledMap.Layers.Count - 1 do
@@ -61,10 +65,16 @@ begin
     //todo: use opacity
     //todo: use offset
     //todo: use map render order
-    for j := 0 to FTiledMap.Height do
-      for k := FTiledMap.Width downto 0 do
+    l := 0;
+    for j := 0 to FTiledMap.Height - 1 do
+      for k := 0 downto FTiledMap.Width - 1 do
       begin
-
+        _GID := _lay^.Data.Data[l];
+        _ts := FTiledMap.GIDToTileset(_GID);
+        _spr := _ts^.ImageData;
+        //todo: _spr^.X:=;
+        _spr^.Frame := _GID - _ts^.FirstGID;
+        Inc(l);
 			end;
 	end;
 
@@ -102,9 +112,12 @@ begin
   for i := 0 to FTiledMap.Tilesets.Count - 1 do
   begin
     _ts := FTiledMap.Tilesets.Ptr(i);
-    _spr := TSprite.Create(_ts^.Image.Source, _ts^.TileCount, _ts^.Columns,
-                           _ts^.TileCount div _ts^.Columns, True, False);
-    FImages.Add(_spr);
+    _spr := TSprite.Create(FDataPath + _ts^.Image.Source, _ts^.TileCount,
+                           _ts^.Columns, _ts^.TileCount div _ts^.Columns,
+                           True, False);
+    WritelnLog('LoadTlesetsImages path', FDataPath + _ts^.Image.Source);
+    _ts^.ImageData := @_spr;
+    FImages.Add(_spr); //todo: do usunięcia bo pointer w tileset?
 	end;
 end;
 
@@ -135,6 +148,7 @@ begin
   if not (FImages = nil) then FImages.Free;
   if not (FTiledMap = nil) then FTiledMap.Free;
   FTiledMap := TTiledMap.Create(AURL);
+  FDataPath := ExtractURIPath(AURL);
   FImages := TSpriteList.Create(True);
   LoadTilesetsImages;
   { ereasing flipping data }

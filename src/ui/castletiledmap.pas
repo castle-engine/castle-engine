@@ -857,13 +857,14 @@ function TTiledMap.GIDToTileset(const AGID: Cardinal): PTileSet;
 var
   i: Integer;
 begin
+  //todo: test gidtotileset
   for i := 0 to FTilesets.Count - 1 do
     if FTilesets.Items[i].FirstGID > AGID then
     begin
       Result := FTilesets.Ptr(i-1);
       Break;
-      //todo: test gidtotileset
 		end;
+  Result := FTilesets.Ptr(FTilesets.Count - 1);
 end;
 
 
