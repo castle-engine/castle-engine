@@ -21,7 +21,7 @@ unit CastleGooglePlayGames;
 interface
 
 uses Classes,
-  CastleStringUtils;
+  CastleStringUtils, CastleTimeUtils;
 
 type
   TBestScoreEvent = procedure (const LeaderboardId: string; const Score: Int64) of object;
@@ -44,7 +44,9 @@ type
   TGooglePlayGames = class(TComponent)
   private
     FOnBestScoreReceived: TBestScoreEvent;
-    FSignedIn, FInitialized, FInitializedAutoStartSignInFlow: boolean;
+    FSignedIn, FInitialized,
+      FInitializedAutoStartSignInFlow,
+      FInitializedSaveGames: boolean;
     function MessageReceived(const Received: TCastleStringList): boolean;
     procedure ReinitializeJavaActivity(Sender: TObject);
   public
@@ -65,8 +67,14 @@ type
       otherwise user will not be signed-in automatically.
       Most calls (like sending or showing the leaderboars) will be ignored until
       you call this. If you want to avoid the initial Google Games dialog, just
-      pass AutoStartSignInFlow=false. }
-    procedure Initialize(const AutoStartSignInFlow: boolean = true);
+      pass AutoStartSignInFlow=false.
+
+      @param(SaveGames Indicates whether you want to use save games feature.
+        You can then use @link(ShowSaveGames), @link(SaveGameSave), @link(SaveGameLoad)
+        methods. See also the description of this feature in Google:
+        https://developers.google.com/games/services/common/concepts/savedgames.) }
+    procedure Initialize(const AutoStartSignInFlow: boolean = true;
+      const SaveGames: boolean = false);
 
     { Was the @link(Initialize) called. }
     property Initialized: boolean read FInitialized;
@@ -96,9 +104,86 @@ type
       the @link(SignedIn) value. }
     procedure RequestSignedIn(const Value: boolean);
 
+    { Show the user achievements, using the default UI.
+      Automatically connects player to Google Play Games,
+      if not connected yet. }
     procedure ShowAchievements;
 
+    { Show the given leaderboard, using the default UI.
+      The leaderboard should be created in the Games configuration
+      in the Google Play Developer Console.
+      Automatically connects player to Google Play Games,
+      if not connected yet. }
     procedure ShowLeaderboard(const LeaderboardId: string);
+
+    { Show the existing @italic(saved games) stored in Google Play Games
+      for this user. Requires being logged to Google Play Games,
+      and the @link(Initialize) method must have been called
+      with @code(SaveGames) parameter set to @true.
+
+      The user may choose an existing savegame, or indicate creation
+      of a new savegame.
+      In response to these events, the callback OnSaveGameChosen will be called.
+      It will either indicate the name of an existing savegame user
+      has chosen, or that user wants to create a new savegame.
+
+      User can also cancel this dialog, no callback is fired in this case.
+      (For now. Report if this is a problem for you, we can improve this.)
+
+      Just like @link(ShowAchievements) and @link(ShowLeaderboars),
+      this method automatically connects player to Google Play Games,
+      if not connected yet.
+
+      Note that it's not necessary to use this method to manage savegames.
+      If you want, you can just choose a constant savegame name for your game,
+      and use SaveGameSave and SaveGameLoad with it. This would mean
+      that each Google user has only one savegame in the cloud for your game. }
+    procedure ShowSaveGames;
+
+    { Save a savegame identified by the given name.
+      See the SaveGameLoad documentation about the conflict resolution
+      and valid savegame names.
+
+      The Contents should be valid UTF-8 string.
+
+      Description and PlayedTime are shown to player in ShowSaveGames.
+      PlayedTime may also be used for conflict resolution (if the savegame
+      on the server was modified in the meantime, without loading it in this game).
+
+      No callback is called in response, the game is saved in the background.
+
+      This does not connect player to Google Play Games, if it's not connected
+      already. An error when saving is not reported back to Pascal, for now.
+      (The assumption here is that you will keep a local savegame anyway,
+      in case user does not connect to Google Play Games. So inability to save
+      the savegame to the cloud is not alarming, and does not require any special
+      reaction. Please submit a request if you'd like to have a callback
+      about it.)  }
+    procedure SaveGameSave(const SaveGameName, Contents, Description: string;
+      const PlayedTime: TFloatTime);
+
+    { Load a savegame identified by the given name.
+      If the savegame does not exist, it will be automatically created.
+
+      If the server requires conflict resolution,
+      the savegame with longest playtime is used (internally: we use
+      RESOLUTION_POLICY_LONGEST_PLAYTIME flag with Google Play Games).
+      For this to work, you must provide a proper PlayedTime parameter
+      when saving all your savegames through @link(SaveGameSave).
+
+      Valid savegame names are defined by Google Play Games:
+      Must be between 1 and 100 non-URL-reserved characters (a-z, A-Z, 0-9, or the symbols "-", ".", "_", or "~").
+      (See https://developers.google.com/android/reference/com/google/android/gms/games/snapshot/Snapshots.html .)
+
+      In response, the callback OnSaveGameLoaded will be @italic(always) called,
+      with the loaded savegame contents (as a string),
+      or the error message.
+
+      This does not connect player to Google Play Games, if it's not connected
+      already. An error will be reported to OnSaveGameLoaded callback
+      if trying to load a savegame before being connected to Google Play Games.
+    }
+    procedure SaveGameLoad(const SaveGameName: string);
   end;
 
 implementation
@@ -128,7 +213,7 @@ begin
   if FInitialized then
   begin
     FSignedIn := false;
-    Initialize(FInitializedAutoStartSignInFlow);
+    Initialize(FInitializedAutoStartSignInFlow, FInitializedSaveGames);
   end;
 end;
 
@@ -161,13 +246,20 @@ begin
   end;
 end;
 
-procedure TGooglePlayGames.Initialize(const AutoStartSignInFlow: boolean);
+procedure TGooglePlayGames.Initialize(const AutoStartSignInFlow: boolean;
+  const SaveGames: boolean);
 begin
   { at first Initialize call, remember AutoStartSignInFlow }
   if not FInitialized then
+  begin
     FInitializedAutoStartSignInFlow := AutoStartSignInFlow;
+    FInitializedSaveGames := SaveGames;
+  end;
   FInitialized := true;
-  Messaging.Send(['google-play-games-initialize', Iff(AutoStartSignInFlow, 'true', 'false')]);
+  Messaging.Send(['google-play-games-initialize',
+    BoolToStr(AutoStartSignInFlow, 'true', 'false'),
+    BoolToStr(SaveGames, 'true', 'false')
+  ]);
 end;
 
 procedure TGooglePlayGames.Achievement(const AchievementId: string);
@@ -198,6 +290,25 @@ end;
 procedure TGooglePlayGames.ShowLeaderboard(const LeaderboardId: string);
 begin
   Messaging.Send(['show', 'leaderboard', LeaderboardId]);
+end;
+
+procedure TGooglePlayGames.ShowSaveGames;
+begin
+  Messaging.Send(['show', 'save-games']);
+end;
+
+procedure TGooglePlayGames.SaveGameLoad(const SaveGameName: string);
+begin
+  Messaging.Send(['save-game-load', SaveGameName]);
+end;
+
+procedure TGooglePlayGames.SaveGameSave(const SaveGameName, Contents, Description: string;
+  const PlayedTime: TFloatTime);
+begin
+  { The order of parameters is changed, because contents have
+    to be passed as a last parameter right now, to avoid the limit
+    of "=" delimiter in the message. }
+  Messaging.Send(['save-game-save', SaveGameName, Description, IntToStr(Trunc(PlayedTime * 1000)), Contents]);
 end;
 
 end.

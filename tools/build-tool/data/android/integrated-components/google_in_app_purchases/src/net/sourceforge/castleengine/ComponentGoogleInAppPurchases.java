@@ -342,6 +342,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
 
             private String mProductName;
 
+            @Override
             protected Integer doInBackground(ConsumeInput... consumeInputs) {
                 ConsumeInput consumeInput = consumeInputs[0]; // just take 1st param
                 mProductName = consumeInput.productName;
