@@ -119,7 +119,7 @@ type
     the terrain attribute of the tile element. }
   TTerrainTypes = specialize TGenericStructList<TTerrain>;
 
-  //PTileset = ^TTileset;
+  PTileset = ^TTileset;
   { Tileset definition. }
   TTileset = record
     { The first global tile ID of this tileset (this global ID maps to the first
@@ -197,6 +197,7 @@ type
   TTiledObjects = specialize TGenericStructList<TTiledObject>;
   TLayerType = (LT_Layer, LT_ObjectGroup, LT_ImageLayer);
 
+  PLayer = ^TLayer;
   { Layer definition. Internally we treat "object group" as normal layer. }
   TLayer = record
     { The name of the layer. }
@@ -245,12 +246,8 @@ type
     { Map stuff. }
     { The TMX format version, generally 1.0. }
     FVersion: string;
-    { Map orientation. Tiled supports "orthogonal", "isometric" and "staggered"
-      (since 0.9) at the moment. }
     FOrientation: TMapOrientation;
-    { The map width in tiles. }
     FWidth: Cardinal;
-    { The map height in tiles. }
     FHeight: Cardinal;
     { The width of a tile. }
     FTileWidth: Cardinal;
@@ -258,10 +255,6 @@ type
     FTileHeight: Cardinal;
     { The background color of the map. (since 0.9, optional) }
     FBackgroundColor: TCastleColorRGB;
-    { The order in which tiles on tile layers are rendered. Valid values are
-      right-down (the default), right-up, left-down and left-up. In all cases,
-      the map is drawn row-by-row. (since 0.10, but only supported for orthogonal
-      maps at the moment) }
     FRenderOrder: TMapRenderOrder;
 
     procedure LoadTileset(Element: TDOMElement);
@@ -280,9 +273,20 @@ type
     procedure LoadTMXFile(AURL: string);
   public
     property Layers: TLayers read FLayers;
+    { Map orientation. Tiled supports "orthogonal", "isometric" and "staggered"
+      (since 0.9) at the moment. }
     property Orientation: TMapOrientation read FOrientation;
     property Properties: TProperties read FProperties;
     property Tilesets: TTilesets read FTilesets;
+    { The map width in tiles. }
+    property Width: Cardinal read FWidth;
+    { The map height in tiles. }
+    property Height: Cardinal read FHeight;
+    { The order in which tiles on tile layers are rendered. Valid values are
+      right-down (the default), right-up, left-down and left-up. In all cases,
+      the map is drawn row-by-row. (since 0.10, but only supported for orthogonal
+      maps at the moment) }
+    property RenderOrder: TMapRenderOrder read FRenderOrder;
     { @param(AURL) - URL to TMX file. }
     constructor Create(AURL: string);
     destructor Destroy; override;
@@ -729,6 +733,8 @@ begin
               if DataCount > 0 then // becouse if DataCount=0 then ERangeCheck error
                 Move(Buffer, Data[DataLength], DataCount);
             until DataCount < SizeOf(Buffer);
+            //todo: flipping feature
+
           finally
             Decompressor.Free;
           end;
@@ -745,8 +751,6 @@ begin
             until DataCount < SizeOf(Buffer);
         end;
       end;
-
-      //todo: tile flipping
     end;
 
     I := TXMLElementIterator.Create(Element);

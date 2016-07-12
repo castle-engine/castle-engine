@@ -41,7 +41,7 @@ type
     corresponding frames duration. Frames can be in any order. It is valid
     to use some particural frame many times with different
     duration time. }
-  TSprite = class
+  TSprite = class               //todo: add transparent color
   private
     type
       TSpriteAnimations = specialize TFPGList<TSpriteAnimation>;

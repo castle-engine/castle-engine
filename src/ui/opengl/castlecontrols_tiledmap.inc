@@ -49,8 +49,30 @@ type
 {$ifdef read_implementation}
 
 procedure TCastleTiledMapControl.RenderOrthogonal;
+var
+  i, j, k: Integer;
+  _lay: PLayer;
 begin
-  //todo: implement me
+  { Layers. }
+  for i := 0 to FTiledMap.Layers.Count - 1 do
+  begin
+    _lay := FTiledMap.Layers. Ptr(i);
+    if not _lay^.Visible then Continue;
+    //todo: use opacity
+    //todo: use offset
+    //todo: use map render order
+    for j := 0 to FTiledMap.Height do
+      for k := FTiledMap.Width downto 0 do
+      begin
+
+			end;
+	end;
+
+  { Object groups. }
+  {case _lay^.DrawOrder of
+      ODO_Index:;
+      ODO_TopDown:;
+		end;  }
 end;
 
 procedure TCastleTiledMapControl.RenderHexagonal;
@@ -71,15 +93,18 @@ end;
 procedure TCastleTiledMapControl.LoadTilesetsImages;
 var
   i: Integer;
-  _ts: TTileset;
+  _ts: PTileset;
   _spr: TSprite;
 begin
+  // todo: IF TSX:
 
+  // IF NOT TSX:
   for i := 0 to FTiledMap.Tilesets.Count - 1 do
   begin
-    _ts := FTiledMap.Tilesets.Items[i];
-    //todo: columns rows
-    _spr := TSprite.Create(_ts.Source, _ts.TileCount, 1{}, 1{}, True, False);
+    _ts := FTiledMap.Tilesets.Ptr(i);
+    _spr := TSprite.Create(_ts^.Image.Source, _ts^.TileCount, _ts^.Columns,
+                           _ts^.TileCount div _ts^.Columns, True, False);
+    FImages.Add(_spr);
 	end;
 end;
 
@@ -103,12 +128,24 @@ begin
 end;
 
 procedure TCastleTiledMapControl.LoadFromFile(AURL: string);
+var
+  i, j: Integer;
+  _lay: PLayer;
 begin
   if not (FImages = nil) then FImages.Free;
   if not (FTiledMap = nil) then FTiledMap.Free;
   FTiledMap := TTiledMap.Create(AURL);
   FImages := TSpriteList.Create(True);
-  //todo: foreach tileset load the proper sprite and add to list
+  LoadTilesetsImages;
+  { ereasing flipping data }
+  for i := 0 to FTiledMap.Layers.Count - 1 do
+  begin
+    _lay := FTiledMap.Layers. Ptr(i);
+    for j := 0 to High(_lay^.Data.Data) do
+      _lay^.Data.Data[j] := _lay^.Data.Data[j] and $3FFFFFFF;
+    //todo: tile flipping feature in rendering
+	end;
+
 end;
 
 procedure TCastleTiledMapControl.Render;

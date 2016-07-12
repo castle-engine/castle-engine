@@ -23,8 +23,8 @@ var
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 begin
-  { Load the desert map. }
-  TiledMap := TCastleTiledMapControl.Create(Window, ApplicationData('desert.tmx'));
+  { Load the default map. }
+  TiledMap := TCastleTiledMapControl.Create(Window, ApplicationData('orthogonal-outside.tmx'));
   Window.Controls.InsertFront(TiledMap);
 end;
 
