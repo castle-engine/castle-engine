@@ -224,13 +224,13 @@ var
   procedure InitializeNode(NodeClass: TX3DNodeClass; GoodNodeClass: TX3DNodeClass);
   begin
     FinalizeNode;
-    NastyGeometry := (NodeClass.Create('', '')) as TAbstractGeometryNode;
+    NastyGeometry := (NodeClass.Create) as TAbstractGeometryNode;
     NastyShape := TShape.Create(nil, NastyGeometry, TX3DGraphTraverseState.CreateCopy(State), nil);
 
     { create also proxy, inside it's own shape.
       This can be used to test that proxy results, *if* they would be used,
       would be the same. }
-    GoodGeometry := (GoodNodeClass.Create('', '')) as TAbstractGeometryNode;
+    GoodGeometry := (GoodNodeClass.Create) as TAbstractGeometryNode;
 
     ProxyStateO := State;
     ProxyGeometryO := GoodGeometry.Proxy(ProxyStateO, true);

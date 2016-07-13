@@ -5886,7 +5886,7 @@ var
   SN: TVRML1StateNode;
 begin
   for SN := Low(SN) to High(SN) do
-    StateNodes.Nodes[SN] := TraverseStateLastNodesClasses[SN].Create('', '');
+    StateNodes.Nodes[SN] := TraverseStateLastNodesClasses[SN].Create;
 end;
 
 procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes);

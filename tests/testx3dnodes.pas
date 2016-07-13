@@ -293,7 +293,7 @@ var
   var
     N: TX3DNode;
   begin
-    N := C.Create('', '');
+    N := C.Create;
     try
       Result := L.IndexOfAnyAncestor(N) <> -1;
     finally FreeAndNil(N) end;
@@ -332,7 +332,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '');
+    N := NodesManager.Registered[I].Create;
     try
 
       { Writeln(N.NodeTypeName, ' ', Supports(N, IAbstractChildNode)); }
@@ -568,7 +568,7 @@ begin
 
       { Just to make sure, check also the created class
         (I don't trust FPC interfaces for now...) }
-      N := AllowedChildrenNodes[I].Create('', '');
+      N := AllowedChildrenNodes[I].Create;
       try
         AssertTrue(Supports(N, IAbstractChildNode));
       finally FreeAndNil(N) end;
@@ -845,7 +845,7 @@ begin
 
     for I := 0 to NodesManager.RegisteredCount - 1 do
     begin
-      N := NodesManager.Registered[I].Create('', '');
+      N := NodesManager.Registered[I].Create;
       try
         Index := ContainerFieldList.IndexOfName(N.NodeTypeName);
         if (Index <> -1) and
@@ -874,7 +874,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '');
+    N := NodesManager.Registered[I].Create;
     try
       if (N is TAbstractGeometryNode) and
          { TContour2DNode_2 is an exception, it has containerField=trimmingContour.
@@ -943,7 +943,7 @@ begin
   try
     for I := 0 to NodesManager.RegisteredCount - 1 do
     begin
-      N := NodesManager.Registered[I].Create('', '');
+      N := NodesManager.Registered[I].Create;
       try
         if N is TAbstractGeometryNode then
         try
@@ -983,7 +983,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '');
+    N := NodesManager.Registered[I].Create;
     try
       if N is TAbstractGeometryNode then
       begin
@@ -1018,7 +1018,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '');
+    N := NodesManager.Registered[I].Create;
     try
       if N.VRML1StateNode(VRML1StateNode) and
          (VRML1StateNode <> vsCoordinate3) then
@@ -1058,7 +1058,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '');
+    N := NodesManager.Registered[I].Create;
     try
       if N is TAbstractColorNode then
       begin
@@ -1092,7 +1092,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '');
+    N := NodesManager.Registered[I].Create;
     try
       if N is TAbstractTextureCoordinateNode then
       begin
@@ -1293,7 +1293,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '');
+    N := NodesManager.Registered[I].Create;
     try
       for J := 0 to N.Fields.Count - 1 do
       try
@@ -1335,7 +1335,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '');
+    N := NodesManager.Registered[I].Create;
     try
       CheckTimeDependentNodeHandler(N);
     except
@@ -1364,7 +1364,7 @@ var
 begin
   for I := 0 to NodesManager.RegisteredCount - 1 do
   begin
-    N := NodesManager.Registered[I].Create('', '');
+    N := NodesManager.Registered[I].Create;
     try
       { if a node has field with chTransform, it must support ITransformNode.
         TCastleSceneCore.HandleChangeTransform assumes this. }
@@ -1397,13 +1397,13 @@ begin
   I5 := nil;
   List := nil;
   try
-    I0 := TTimeSensorNode.Create('', '');
-    I1 := TTimeSensorNode.Create('', '');
-    I2 := TTimeSensorNode.Create('', '');
-    I3 := TTimeSensorNode.Create('', '');
-    I4 := TTimeSensorNode.Create('', '');
+    I0 := TTimeSensorNode.Create;
+    I1 := TTimeSensorNode.Create;
+    I2 := TTimeSensorNode.Create;
+    I3 := TTimeSensorNode.Create;
+    I4 := TTimeSensorNode.Create;
     I4.PositionInParent := -10;
-    I5 := TTimeSensorNode.Create('', '');
+    I5 := TTimeSensorNode.Create;
     I5.PositionInParent := 10;
     List := TX3DFileItemList.Create(false);
 
@@ -1704,17 +1704,17 @@ const
     Shape: TShapeNode;
     Touch: TTouchSensorNode;
   begin
-    Text := TTextNode.Create('', '');
+    Text := TTextNode.Create;
     Text.FdString.Items.Add(ValidString);
     Text.FdString.Items.Add(ValidString2);
 
-    Shape := TShapeNode.Create('', '');
+    Shape := TShapeNode.Create;
     Shape.FdGeometry.Value := Text;
 
-    Touch := TTouchSensorNode.Create('', '');
+    Touch := TTouchSensorNode.Create;
     Touch.FdDescription.Value := ValidString;
 
-    Result := TX3DRootNode.Create('', '');
+    Result := TX3DRootNode.Create;
     Result.FdChildren.Add(Shape);
     Result.FdChildren.Add(Touch);
   end;
@@ -1771,7 +1771,7 @@ var
   IFS: TIndexedFaceSetNode;
   LineSet: TLineSetNode;
 begin
-  IFS := TIndexedFaceSetNode.Create('', '');
+  IFS := TIndexedFaceSetNode.Create;
   try
     AssertTrue(IFS.FdSolid.Value);
     AssertTrue(IFS.SolidField.Value);
@@ -1784,7 +1784,7 @@ begin
   finally FreeAndNil(IFS) end;
 
   // LineSet doesn't have FdSolid field, but still Solid property should exist
-  LineSet := TLineSetNode.Create('', '');
+  LineSet := TLineSetNode.Create;
   try
     //AssertTrue(LineSet.FdSolid.Value);
     AssertTrue(LineSet.SolidField = nil);
@@ -1802,7 +1802,7 @@ var
   IFS: TIndexedFaceSetNode;
   LineSet: TLineSetNode;
 begin
-  IFS := TIndexedFaceSetNode.Create('', '');
+  IFS := TIndexedFaceSetNode.Create;
   try
     AssertTrue(IFS.FdConvex.Value);
     AssertTrue(IFS.ConvexField.Value);
@@ -1815,7 +1815,7 @@ begin
   finally FreeAndNil(IFS) end;
 
   // LineSet doesn't have FdConvex field, but still Convex property should exist
-  LineSet := TLineSetNode.Create('', '');
+  LineSet := TLineSetNode.Create;
   try
     //AssertTrue(LineSet.FdConvex.Value);
     AssertTrue(LineSet.ConvexField = nil);

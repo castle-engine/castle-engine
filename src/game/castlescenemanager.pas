@@ -3303,7 +3303,7 @@ begin
       if DefaultHeadlightNode = nil then
         { Nothing more needed, all DirectionalLight default properties
           are suitable for default headlight. }
-        DefaultHeadlightNode := TDirectionalLightNode.Create('', '');;
+        DefaultHeadlightNode := TDirectionalLightNode.Create;
       Result := DefaultHeadlightNode;
     end;
     Assert(Result <> nil);

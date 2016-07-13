@@ -654,7 +654,7 @@ begin
     SceneForShadow.Attributes.Mode := rmPureGeometry;
 
     { init light that we'll control }
-    LightNode := TPointLightNode.Create('', '');
+    LightNode := TPointLightNode.Create;
     LightNode.FdLocation.Value := Vector3SingleCut(LightPosition);
 
     LightInstance.Node := LightNode;

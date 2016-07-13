@@ -401,15 +401,15 @@ constructor TPlayer.Create(AKind: TCreatureKind);
     Shape: TShapeNode;
     Sphere: TSphereNode;
   begin
-    Sphere := TSphereNode.Create('', '');
+    Sphere := TSphereNode.Create;
     Sphere.FdRadius.Value := 0.1;
 
-    Shape := TShapeNode.Create('', '');
-    Shape.Material := TMaterialNode.Create('', '');
+    Shape := TShapeNode.Create;
+    Shape.Material := TMaterialNode.Create;
     Shape.Material.DiffuseColor := RedRGB;
     Shape.FdGeometry.Value := Sphere;
 
-    Root := TX3DRootNode.Create('', '');
+    Root := TX3DRootNode.Create;
     Root.FdChildren.Add(Shape);
 
     Result := TCastleScene.Create(nil);

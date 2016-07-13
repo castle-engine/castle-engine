@@ -776,7 +776,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
     if not MatricesPerfectlyEqual(Matrix, IdentityMatrix4Single) then
     begin
       FreeIfUnusedAndNil(Group);
-      MatrixTransform := TMatrixTransformNode.Create('', '');
+      MatrixTransform := TMatrixTransformNode.Create;
       MatrixTransform.FdMatrix.Value := Matrix;
       Group := MatrixTransform;
     end;

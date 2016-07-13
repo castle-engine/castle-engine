@@ -156,7 +156,7 @@ begin
     Light.DefaultShadowMapSave(Result^.ShadowMap);
   end else
   begin
-    Result^.ShadowMap := TGeneratedShadowMapNode.Create('', '');
+    Result^.ShadowMap := TGeneratedShadowMapNode.Create;
     if not Light.DefaultShadowMapLoad(Result^.ShadowMap) then
     begin
       Result^.ShadowMap.FdUpdate.Value := upAlways;
@@ -176,7 +176,7 @@ begin
 
   { create new ProjectedTextureCoordinate node }
 
-  Result^.TexGen := TProjectedTextureCoordinateNode.Create('', '');
+  Result^.TexGen := TProjectedTextureCoordinateNode.Create;
   Result^.TexGen.NodeName := LightUniqueName + '_TexGen' + NodeNameSuffix;
   Result^.TexGen.FdProjector.Value := Light;
 end;
@@ -246,7 +246,7 @@ procedure TLightList.ShapeAdd(Shape: TShape);
       MTexture := TMultiTextureNode(Texture);
     end else
     begin
-      MTexture := TMultiTextureNode.Create('', '');
+      MTexture := TMultiTextureNode.Create;
       if Texture <> nil then
       begin
         { set position in parent only for more deterministic output
@@ -302,7 +302,7 @@ procedure TLightList.ShapeAdd(Shape: TShape);
 
       for I := OldCount to NewCount - 1 do
       begin
-        NewTexCoordGen := TTextureCoordinateGeneratorNode.Create('', '');
+        NewTexCoordGen := TTextureCoordinateGeneratorNode.Create;
         NewTexCoordGen.FdMode.Value := 'BOUNDS';
         Coords.Replace(I, NewTexCoordGen);
       end;
@@ -319,7 +319,7 @@ procedure TLightList.ShapeAdd(Shape: TShape);
       MTexCoord := TMultiTextureCoordinateNode(TexCoord);
     end else
     begin
-      MTexCoord := TMultiTextureCoordinateNode.Create('', '');
+      MTexCoord := TMultiTextureCoordinateNode.Create;
       if TexCoord <> nil then
       begin
         { set position in parent only for more deterministic output
@@ -366,7 +366,7 @@ procedure TLightList.ShapeAdd(Shape: TShape);
     if (TextureTransform <> nil) and
        (TextureTransform is TTextureTransformNode) then
     begin
-      MultiTT := TMultiTextureTransformNode.Create('', '');
+      MultiTT := TMultiTextureTransformNode.Create;
       { set position in parent only for more deterministic output
 	(new "texture" field on the same position) }
       MultiTT.PositionInParent := TextureTransform.PositionInParent;

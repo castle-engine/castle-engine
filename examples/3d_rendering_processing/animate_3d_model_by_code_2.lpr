@@ -61,20 +61,20 @@ var
   Mat: TMaterialNode;
   I, J: Integer;
 begin
-  Result := TX3DRootNode.Create('', '');
+  Result := TX3DRootNode.Create;
 
-  Mat := TMaterialNode.Create('', '');
+  Mat := TMaterialNode.Create;
   Mat.FdDiffuseColor.Value := Vector3Single(1, 1, 0);
 
-  Shape := TShapeNode.Create('', '');
-  Shape.FdAppearance.Value := TAppearanceNode.Create('', '');
+  Shape := TShapeNode.Create;
+  Shape.FdAppearance.Value := TAppearanceNode.Create;
   Shape.Appearance.FdMaterial.Value := Mat;
-  Shape.FdGeometry.Value := TBoxNode.Create('', '');
+  Shape.FdGeometry.Value := TBoxNode.Create;
 
   for I := 0 to XCount - 1 do
     for J := 0 to YCount - 1 do
     begin
-      Transform[I, J] := TTransformNode.Create('', '');
+      Transform[I, J] := TTransformNode.Create;
       Transform[I, J].FdTranslation.Value := Vector3Single(I * 2, J * 2, 0);
       Transform[I, J].FdChildren.Add(Shape);
 

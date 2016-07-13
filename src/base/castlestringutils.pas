@@ -1048,7 +1048,7 @@ begin
             Result := Result + CopyPos(s, Done+1, Brk-1) + BreakingStr;
             Done := brk; { we left the rest : s[brk+1..i] to be done }
             Break;
-            BrokenSuccess := true;;
+            BrokenSuccess := true;
           end;
         if not BrokenSuccess then
         begin
