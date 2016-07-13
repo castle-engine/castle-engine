@@ -15,6 +15,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.leaderboard.LeaderboardVariant;
@@ -437,19 +438,25 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
                             String saveGameStr = new String(saveGameBytes, saveGameEncoding);
                             messageSend(new String[]{"save-game-loaded", "ok", saveGameStr});
                         } catch (IOException e) {
-                            Log.e(TAG, "Error while reading snapshot." + e);
-                            messageSend(new String[]{"save-game-loaded", "error", "Google Play Games error while reading snapshot: " + e.getMessage()});
+                            String errorStr = "Google Play Games error when reading snapshot: " + e.getMessage();
+                            Log.e(TAG, errorStr);
+                            messageSend(new String[]{"save-game-loaded", "error", errorStr});
                         }
-                    } else{
-                        Log.e(TAG, "Error while loading save game: " + result.getStatus().getStatusCode());
-                        messageSend(new String[]{"save-game-loaded", "error", "Google Play Games error: " + result.getStatus().getStatusCode()});
+                    } else {
+                        String errorStr = "Google Play Games error when loading save game (" +
+                          result.getStatus().getStatusCode() + "): " +
+                          result.getStatus().getStatusMessage();
+                        Log.e(TAG, errorStr);
+                        messageSend(new String[]{"save-game-loaded", "error", errorStr});
                     }
                 }
             };
 
             task.execute();
         } else {
-            messageSend(new String[]{"save-game-loaded", "error", "Not connected to Google Play Games"});
+            String errorStr = "Not connected to Google Play Games";
+            Log.e(TAG, errorStr);
+            messageSend(new String[]{"save-game-loaded", "error", errorStr});
         }
     }
 
@@ -457,19 +464,17 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
     {
 
         if (checkGamesConnection()) {
-            AsyncTask<Void, Void, Snapshots.OpenSnapshotResult> task =
-                new AsyncTask<Void, Void, Snapshots.OpenSnapshotResult> ()
+            AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void> ()
             {
                 @Override
-                protected Snapshots.OpenSnapshotResult doInBackground(Void... params) {
+                protected Void doInBackground(Void... params) {
                     boolean createIfNotFound = true;
-                    // Open the saved game using its name.
-                    return Games.Snapshots.open(mGoogleApiClient,
-                        saveGameName, createIfNotFound, conflictResolution).await();
-                }
 
-                @Override
-                protected void onPostExecute(Snapshots.OpenSnapshotResult result) {
+                    // Open the saved game using its name.
+                    // This is the *1st* operation that takes time, and should therefore be in a thread!!
+                    Snapshots.OpenSnapshotResult result = Games.Snapshots.open(mGoogleApiClient,
+                        saveGameName, createIfNotFound, conflictResolution).await();
+
                     // Check the result of the open operation
                     if (result.getStatus().isSuccess()) {
                         Snapshot snapshot = result.getSnapshot();
@@ -486,11 +491,33 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
                                 .build();
 
                         // Commit the operation
-                        Games.Snapshots.commitAndClose(mGoogleApiClient, snapshot, metadataChange);
-                        // TODO: get status from this
+                        commitAndCloseWatchingResult(snapshot, metadataChange);
                     } else{
                         Log.e(TAG, "Error while opening a save game for writing: " + result.getStatus().getStatusCode());
                     }
+
+                    return null;
+                }
+
+                private void commitAndCloseWatchingResult(Snapshot snapshot, SnapshotMetadataChange metadataChange)
+                {
+                    PendingResult<Snapshots.CommitSnapshotResult> pending =
+                      Games.Snapshots.commitAndClose(mGoogleApiClient, snapshot, metadataChange);
+
+                    // This is the *2nd* operation that takes time, and should therefore be in a thread!!
+                    Snapshots.CommitSnapshotResult result = pending.await();
+
+                    if (!result.getStatus().isSuccess()) {
+                        Log.e(TAG, "Google Play Games error when saving the game (" +
+                            result.getStatus().getStatusCode() + "): " +
+                            result.getStatus().getStatusMessage());
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(Void result) {
+                    // Nothing. Right now, we don't communicate to main thread
+                    // (or native code) whether save succeeded or not.
                 }
             };
 
