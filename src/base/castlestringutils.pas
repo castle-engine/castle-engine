@@ -329,6 +329,7 @@ function CreateTokens(const s: string;
   const TokenDelims: TSetOfChars = WhiteSpaces): TCastleStringList;
 
 function GlueStrings(const Strings: array of string; const Delimiter: char): string;
+function GlueStrings(const Strings: array of string; const Delimiter: string): string;
 function GlueStrings(const Strings: TStrings; const Delimiter: char): string;
 
 { Find substring SubText within Text. Returns 0 if not found.
@@ -1309,6 +1310,17 @@ begin
 end;
 
 function GlueStrings(const Strings: array of string; const Delimiter: char): string;
+var
+  I: Integer;
+begin
+  if High(Strings) = -1 then
+    Exit('');
+  Result := Strings[0];
+  for I := 1 to High(Strings) do
+    Result += Delimiter + Strings[I];
+end;
+
+function GlueStrings(const Strings: array of string; const Delimiter: string): string;
 var
   I: Integer;
 begin
