@@ -277,7 +277,7 @@ begin
       );
     except
       on EConvertError do
-        OnWarning(wtMajor, 'Ads', 'Cannot process banner size from ' + GlueStrings(Received, '='));
+        OnWarning(wtMajor, 'Ads', 'Cannot process banner size from ' + GlueStrings(Received, NL));
     end;
   end;
 end;

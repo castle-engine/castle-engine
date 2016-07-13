@@ -148,8 +148,16 @@ type
       Note that it's not necessary to use this method to manage savegames.
       If you want, you can just choose a constant savegame name for your game,
       and use SaveGameSave and SaveGameLoad with it. This would mean
-      that each Google user has only one savegame in the cloud for your game. }
-    procedure ShowSaveGames;
+      that each Google user has only one savegame in the cloud for your game.
+
+      @param(Title Dialog title to display.)
+      @param(AllowAddButton Enable user to choose "new save game".)
+      @param(AllowDelete Enable user to delete savegames from the dialog.)
+      @param(MaxNumberOfSaveGamesToShow Maximum number of savegames to show.
+        Use -1 to not show all savegames.)
+    }
+    procedure ShowSaveGames(const Title: string; const AllowAddButton, AllowDelete: boolean;
+      const MaxNumberOfSaveGamesToShow: Integer);
 
     { Save a savegame identified by the given name.
       See the SaveGameLoad documentation about the conflict resolution
@@ -268,8 +276,8 @@ begin
   end;
   FInitialized := true;
   Messaging.Send(['google-play-games-initialize',
-    BoolToStr(AutoStartSignInFlow, 'true', 'false'),
-    BoolToStr(SaveGames, 'true', 'false')
+    TMessaging.BoolToStr(AutoStartSignInFlow),
+    TMessaging.BoolToStr(SaveGames)
   ]);
 end;
 
@@ -290,7 +298,7 @@ end;
 
 procedure TGooglePlayGames.RequestSignedIn(const Value: boolean);
 begin
-  Messaging.Send(['google-sign-in', Iff(Value, 'true', 'false')]);
+  Messaging.Send(['google-sign-in', TMessaging.BoolToStr(Value)]);
 end;
 
 procedure TGooglePlayGames.ShowAchievements;
@@ -303,9 +311,14 @@ begin
   Messaging.Send(['show', 'leaderboard', LeaderboardId]);
 end;
 
-procedure TGooglePlayGames.ShowSaveGames;
+procedure TGooglePlayGames.ShowSaveGames(const Title: string; const AllowAddButton, AllowDelete: boolean;
+  const MaxNumberOfSaveGamesToShow: Integer);
 begin
-  Messaging.Send(['show', 'save-games']);
+  Messaging.Send(['show', 'save-games', Title,
+    TMessaging.BoolToStr(AllowAddButton),
+    TMessaging.BoolToStr(AllowDelete),
+    IntToStr(MaxNumberOfSaveGamesToShow)
+  ]);
 end;
 
 procedure TGooglePlayGames.SaveGameLoad(const SaveGameName: string);
@@ -316,10 +329,7 @@ end;
 procedure TGooglePlayGames.SaveGameSave(const SaveGameName, Contents, Description: string;
   const PlayedTime: TFloatTime);
 begin
-  { The order of parameters is changed, because contents have
-    to be passed as a last parameter right now, to avoid the limit
-    of "=" delimiter in the message. }
-  Messaging.Send(['save-game-save', SaveGameName, Description, IntToStr(Trunc(PlayedTime * 1000)), Contents]);
+  Messaging.Send(['save-game-save', SaveGameName, Contents, Description, TMessaging.TimeToStr(PlayedTime)]);
 end;
 
 end.

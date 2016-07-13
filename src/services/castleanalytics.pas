@@ -144,7 +144,7 @@ end;
 
 procedure TAnalytics.Timing(const Category, AVariable, ALabel: string; const Time: TFloatTime);
 begin
-  Messaging.Send(['analytics-send-timing', Category, AVariable, ALabel, IntToStr(Trunc(Time * 1000))]);
+  Messaging.Send(['analytics-send-timing', Category, AVariable, ALabel, TMessaging.TimeToStr(Time)]);
 end;
 
 end.

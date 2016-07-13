@@ -378,22 +378,28 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         }
     }
 
-    private void showSaveGames()
+    private void showSaveGames(final String title, final boolean allowAddButton, final boolean allowDelete, final int maxNumberOfSaveGamesToShow)
     {
         if (checkGamesConnection()) {
-            /* TODO: allow configuring of it all by params from Pascal */
-            String title = "See My Saves";
-            boolean allowAddButton = true;
-            boolean allowDelete = true;
-            int maxNumberOfSaveGamesToShow = 5;
-            //Snapshots.DISPLAY_LIMIT_NONE; //5; // note: for some reason (bug?), Google Play dialog to choose the saved game *does not* show "new game" when you use DISPLAY_LIMIT_NONE...
+            int realMaxNumberOfSaveGamesToShow;
+            if (maxNumberOfSaveGamesToShow < 0) {
+                /* For some reason (bug?), Google Play Games dialog to choose
+                   the saved game @italic(does not) show "new save game" buton
+                   when this is Snapshots.DISPLAY_LIMIT_NONE.
+                   It behaves then like AllowAddButton is always @false.
+                   So instead, we use some ridiculously large number for
+                   MaxNumberOfSaveGamesToShow. */
+                realMaxNumberOfSaveGamesToShow = 1000;
+            } else {
+                realMaxNumberOfSaveGamesToShow = maxNumberOfSaveGamesToShow;
+            }
             Intent savedGamesIntent = Games.Snapshots.getSelectSnapshotIntent(mGoogleApiClient,
-                title, allowAddButton, allowDelete, maxNumberOfSaveGamesToShow);
+                title, allowAddButton, allowDelete, realMaxNumberOfSaveGamesToShow);
             getActivity().startActivityForResult(savedGamesIntent, REQUEST_SAVED_GAMES);
         } else {
             Log.i(TAG, "Not connected to Google Games -> connecting, in response to showSaveGames");
             signInClicked(new OnConnectedFinish () {
-                public void run() { showSaveGames(); }
+                public void run() { showSaveGames(title, allowAddButton, allowDelete, maxNumberOfSaveGamesToShow); }
             });
         }
     }
@@ -551,7 +557,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
     public boolean messageReceived(String[] parts)
     {
         if (parts.length == 3 && parts[0].equals("google-play-games-initialize")) {
-            initialize(parts[1].equals("true"), parts[2].equals("true"));
+            initialize(stringToBoolean(parts[1]), stringToBoolean(parts[2]));
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("get-best-score")) {
@@ -578,26 +584,23 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
             showLeaderboard(parts[2]);
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("show") && parts[1].equals("save-games")) {
-            showSaveGames();
+        if (parts.length == 6 && parts[0].equals("show") && parts[1].equals("save-games")) {
+            showSaveGames(parts[2], stringToBoolean(parts[3]), stringToBoolean(parts[4]), Integer.parseInt(parts[5]));
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("save-game-load")) {
             saveGameLoad(parts[1]);
             return true;
         } else
-        if (parts.length >= 5 && parts[0].equals("save-game-save")) {
-            /* The order of parameters is changed, because contents have
-               to be passed as a last parameter right now, to avoid the limit
-               of "=" delimiter in the message. */
-            saveGameSave(parts[1], glueStringArray(parts, 4, "="), parts[2], Long.parseLong(parts[3]));
+        if (parts.length == 5 && parts[0].equals("save-game-save")) {
+            saveGameSave(parts[1], parts[2], parts[3], Long.parseLong(parts[4]));
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("google-sign-in") && parts[1].equals("true")) {
+        if (parts.length == 2 && parts[0].equals("google-sign-in") && stringToBoolean(parts[1])) {
             signInClicked(null);
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("google-sign-in") && parts[1].equals("false")) {
+        if (parts.length == 2 && parts[0].equals("google-sign-in") && !stringToBoolean(parts[1])) {
             signOutClicked();
             return true;
         } else {
