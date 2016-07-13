@@ -331,6 +331,7 @@ function CreateTokens(const s: string;
 function GlueStrings(const Strings: array of string; const Delimiter: char): string;
 function GlueStrings(const Strings: array of string; const Delimiter: string): string;
 function GlueStrings(const Strings: TStrings; const Delimiter: char): string;
+function GlueStrings(const Strings: TStrings; const Delimiter: string): string;
 
 { Find substring SubText within Text. Returns 0 if not found.
   Similar to a standard Pos function, with some improvements.
@@ -1332,6 +1333,17 @@ begin
 end;
 
 function GlueStrings(const Strings: TStrings; const Delimiter: char): string;
+var
+  I: Integer;
+begin
+  if Strings.Count = 0 then
+    Exit('');
+  Result := Strings[0];
+  for I := 1 to Strings.Count - 1 do
+    Result += Delimiter + Strings[I];
+end;
+
+function GlueStrings(const Strings: TStrings; const Delimiter: string): string;
 var
   I: Integer;
 begin
