@@ -153,8 +153,9 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         Log.i(TAG, "onConnected (Google Games connected OK!)");
 
         // The player is signed in.
-        // We can now e.g. hide the sign-in button and/or allow the player to proceed.
+        // We can now hide the sign-in button.
         setGoogleSignedIn(true);
+
         if (mDefaultLeaderboardToRefresh != null) {
             refreshCurrentScore(mDefaultLeaderboardToRefresh);
         }
@@ -170,9 +171,14 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
                 Log.e(TAG, "Cannot submit scheduled score, we are not connected inside onConnected - weird, unless the connection broke immediately");
             }
         }
+
+        if (mOnConnectedFinish != null) {
+            mOnConnectedFinish.run();
+            mOnConnectedFinish = null;
+        }
     }
 
-    private abstract class SignInFinish {
+    private abstract class OnConnectedFinish {
         public abstract void run();
     }
 
@@ -181,7 +187,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
     private boolean mSignInClicked = false;
     /* When mSignInClicked, this may be non-null to indicate an action to make
      * when sign-in succeeds. */
-    private SignInFinish mSignInFinish = null;
+    private OnConnectedFinish mOnConnectedFinish = null;
     private boolean mDuringSignOut = false;
 
     /**
@@ -234,14 +240,14 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         if (mSignInClicked || mAutoStartSignInFlow) {
             mAutoStartSignInFlow = false;
             mSignInClicked = false;
-            // leave mSignInFinish non-null, we may yet sign-in
+            // leave mOnConnectedFinish non-null, we may yet sign-in
             mResolvingConnectionFailure = true;
 
             // Attempt to resolve the connection failure.
             if (!resolveConnectionFailure(getActivity(),
                     mGoogleApiClient, connectionResult, REQUEST_SIGN_IN)) {
                 mResolvingConnectionFailure = false;
-                mSignInFinish = null;
+                mOnConnectedFinish = null;
             }
         }
 
@@ -266,11 +272,6 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
             mResolvingConnectionFailure = false;
             if (resultCode == Activity.RESULT_OK) {
                 mGoogleApiClient.connect();
-                /* run mSignInFinish now, if set */
-                if (mSignInFinish != null) {
-                    mSignInFinish.run();
-                    mSignInFinish = null;
-                }
             } else {
                 Log.w(TAG, "Unable to sign in to Google Games.");
             }
@@ -278,21 +279,32 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
 
         if (requestCode == REQUEST_SAVED_GAMES) {
             /* adapted from https://developers.google.com/games/services/android/savedgames */
-            if (intent != null) {
-                if (intent.hasExtra(Snapshots.EXTRA_SNAPSHOT_METADATA)) {
-                    // Load a snapshot.
-                    SnapshotMetadata snapshotMetadata = (SnapshotMetadata)
-                            intent.getParcelableExtra(Snapshots.EXTRA_SNAPSHOT_METADATA);
-                    String currentSaveName = snapshotMetadata.getUniqueName();
-                    messageSend(new String[]{"chosen-save-game", currentSaveName});
-                } else if (intent.hasExtra(Snapshots.EXTRA_SNAPSHOT_NEW)) {
-                    messageSend(new String[]{"chosen-new-save-game"});
+            if (resultCode == Activity.RESULT_OK) {
+                if (intent != null) {
+                    if (intent.hasExtra(Snapshots.EXTRA_SNAPSHOT_METADATA)) {
+                        // Load a snapshot.
+                        SnapshotMetadata snapshotMetadata = (SnapshotMetadata)
+                                intent.getParcelableExtra(Snapshots.EXTRA_SNAPSHOT_METADATA);
+                        String currentSaveName = snapshotMetadata.getUniqueName();
+                        messageSend(new String[]{"chosen-save-game", currentSaveName});
+                    } else
+                    if (intent.hasExtra(Snapshots.EXTRA_SNAPSHOT_NEW)) {
+                        messageSend(new String[]{"chosen-save-game-new"});
+                    } else {
+                        Log.w(TAG, "Received REQUEST_SAVED_GAMES, with RESULT_OK, but intent has no extra");
+                        messageSend(new String[]{"chosen-save-game-abort"});
+                    }
+                } else {
+                    Log.w(TAG, "Received REQUEST_SAVED_GAMES, with RESULT_OK, but intent is null");
+                    messageSend(new String[]{"chosen-save-game-abort"});
                 }
+            } else {
+                messageSend(new String[]{"chosen-save-game-abort"});
             }
         }
     }
 
-    private void signInClicked(SignInFinish signInFinish)
+    private void signInClicked(OnConnectedFinish onConnectedFinish)
     {
         /* don't act when inside sign-out process, or not initialized */
         if (mDuringSignOut || !initialized) {
@@ -300,7 +312,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         }
 
         mSignInClicked = true;
-        mSignInFinish = signInFinish;
+        mOnConnectedFinish = onConnectedFinish;
         // It is Ok to call it while connecting, as docs
         // https://developer.android.com/reference/com/google/android/gms/common/api/GoogleApiClient.html#connect()
         // say:
@@ -316,7 +328,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         }
 
         mSignInClicked = false;
-        mSignInFinish = null;
+        mOnConnectedFinish = null;
         // According to docs,
         // https://developer.android.com/reference/com/google/android/gms/games/Games.html#signOut(com.google.android.gms.common.api.GoogleApiClient)
         // this does not actually call mGoogleApiClient.disconnect().
@@ -347,7 +359,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
                 mGoogleApiClient), REQUEST_ACHIEVEMENTS);
         } else {
             Log.i(TAG, "Not connected to Google Games -> connecting, in response to showAchievements");
-            signInClicked(new SignInFinish () {
+            signInClicked(new OnConnectedFinish () {
                 public void run() { showAchievements(); }
             });
         }
@@ -374,12 +386,13 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
             boolean allowAddButton = true;
             boolean allowDelete = true;
             int maxNumberOfSaveGamesToShow = 5;
+            //Snapshots.DISPLAY_LIMIT_NONE; //5; // note: for some reason (bug?), Google Play dialog to choose the saved game *does not* show "new game" when you use DISPLAY_LIMIT_NONE...
             Intent savedGamesIntent = Games.Snapshots.getSelectSnapshotIntent(mGoogleApiClient,
                 title, allowAddButton, allowDelete, maxNumberOfSaveGamesToShow);
             getActivity().startActivityForResult(savedGamesIntent, REQUEST_SAVED_GAMES);
         } else {
             Log.i(TAG, "Not connected to Google Games -> connecting, in response to showSaveGames");
-            signInClicked(new SignInFinish () {
+            signInClicked(new OnConnectedFinish () {
                 public void run() { showSaveGames(); }
             });
         }
@@ -488,7 +501,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
                 mGoogleApiClient, leaderboardId), REQUEST_LEADERBOARD);
         } else {
             Log.i(TAG, "Not connected to Google Games -> connecting, in response to showLeaderboard");
-            signInClicked(new SignInFinish () {
+            signInClicked(new OnConnectedFinish () {
                 public void run() { showLeaderboard(leaderboardId); }
             });
         }

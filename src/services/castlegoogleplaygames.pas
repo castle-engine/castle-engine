@@ -122,17 +122,28 @@ type
       with @code(SaveGames) parameter set to @true.
 
       The user may choose an existing savegame, or indicate creation
-      of a new savegame.
-      In response to these events, the callback OnSaveGameChosen will be called.
-      It will either indicate the name of an existing savegame user
-      has chosen, or that user wants to create a new savegame.
+      of a new savegame. In response, the callback OnSaveGameChosen will be called.
+      It will either
 
-      User can also cancel this dialog, no callback is fired in this case.
-      (For now. Report if this is a problem for you, we can improve this.)
+      @orderedList(
+        @item(indicate the name of an existing savegame user has chosen,)
+        @item(or that user wants to create a new savegame,)
+        @item(or that user cancelled the dialog.)
+      )
 
-      Just like @link(ShowAchievements) and @link(ShowLeaderboars),
+      Just like @link(ShowAchievements) and @link(ShowLeaderboard),
       this method automatically connects player to Google Play Games,
       if not connected yet.
+
+      Note that @italic(the OnSaveGameChosen callback
+      is not called if the user cancels the sign-in operation), and therefore
+      cancels the savegame choice this way. The same remark applies to all
+      reasons why sign-in may fail (network problems etc.).
+      If this is a problem for your logic (e.g. if you want to "wait"
+      until OnSaveGameChosen is called), then never call ShowSaveGames
+      when SignedIn is @false. Instead, call RequestSignedIn, wait until
+      SignedIn changed to @true (which may be "never", in case of network problems
+      or user cancelling!), and only then call ShowSaveGames.
 
       Note that it's not necessary to use this method to manage savegames.
       If you want, you can just choose a constant savegame name for your game,
