@@ -28,36 +28,18 @@ uses
 type
   { Time in seconds. This is used throughout my engine to represent time
     as a floating-point value with good accuracy in seconds.
-    In particular, for VRML / X3D time-dependent nodes.
 
-    Implementation notes, about the choice of precision:
+    Using the "double" precision (not just "single") is good to guarantee
+    good accuracy. It is also the precision required for storing time in X3D.
+    See also:
+    https://randomascii.wordpress.com/2012/02/13/dont-store-that-in-a-float/
+    https://twitter.com/ID_AA_Carmack/status/418158611664097280
 
-    @unorderedList(
-      @item("Single" precision is sometimes @italic(not) enough for this.
-        Proof: open rotate.kanim (from demo_models).
-        Change "on display" time pass to 1000, wait a couple seconds
-        (world time will reach a couple of thousands),
-        change "on display" time pass back to 1.
-        Result: with time as Single, animation becomes jagged.
-        Reason: the precision loss of Single time, and the fact that
-        Render is not called all the time (because AutoRedisplay is false,
-        and model is in Examine mode and is still (not rotating)),
-        so incrementation steps of AnimationTime are very very small.
-
-        Setting AutoRedisplay to true workarounds the problem too, but that's
-        1. unacceptable to eat 100% CPU without a reason for utility like
-        view3dscene 2. that's asking for trouble, after all even with
-        AutoRedisplay = true the precision loss is there, it's just not
-        noticeable... using better precision feels much safer.)
-
-      @item(For X3D, SFTime has "Double" precision.
-        Also "The Castle" and "The Rift" prooved it's enough in practice.
-
-        I could have choosen Extended here,
-        but for X3D sake (to avoid unnecessary floating-point conversions
-        all around), let's stick to Double for now.)
-    )
-  }
+    To test that "single" is not enough, open some animation in
+    view3dscene, and change "on display" time pass to 1000.
+    It goes even better if AutoRedisplay is @false, and LimitFPS is 0.0,
+    and model is still for some time --- then we do many OnUpdate calls with
+    very small SecondsPassed values. }
   TFloatTime = Double;
 
 const
@@ -183,7 +165,7 @@ function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
 
   @groupBegin }
 procedure ProcessTimerBegin;
-function ProcessTimerEnd: Double;
+function ProcessTimerEnd: TFloatTime;
 { @groupEnd }
 
 { -----------------------------------------------------------------------------
@@ -233,9 +215,9 @@ type
     controlled by the user of TCastleWindowCustom / TCastleControlCustom. }
   TFramesPerSecond = class
   private
-    FFrameTime: Double;
-    FRealTime: Double;
-    FUpdateSecondsPassed: Single;
+    FFrameTime: TFloatTime;
+    FRealTime: TFloatTime;
+    FUpdateSecondsPassed: TFloatTime;
     DoZeroNextSecondsPassed: boolean;
     FUpdateStartTime: TTimerResult;
     LastRecalculateTime: TMilisecTime;
@@ -244,7 +226,7 @@ type
     FramesRendered: Int64;
     { how much time passed inside frame rendering }
     FrameTimePassed: TTimerResult;
-    FMaxSensibleSecondsPassed: Single;
+    FMaxSensibleSecondsPassed: TFloatTime;
   public
     const
       DefaultMaxSensibleSecondsPassed = 0.5;
@@ -271,7 +253,7 @@ type
       frames seldom, because there's no need to do it more often).
 
       @seealso RealTime }
-    property FrameTime: Double read FFrameTime;
+    property FrameTime: TFloatTime read FFrameTime;
 
     { How many frames per second were rendered. This is a real number
       of EventRender (OnRender) calls per second. This means that it's actual
@@ -281,7 +263,7 @@ type
       just don't need to render frames continously.
 
       @seealso FrameTime }
-    property RealTime: Double read FRealTime;
+    property RealTime: TFloatTime read FRealTime;
 
     { Track how much time passed since last Update call, using _UpdateBegin.
 
@@ -298,15 +280,15 @@ type
       that measured only EventRender (OnRender) speed).
 
       You can sanely use this only within EventUpdate (OnUpdate). }
-    property UpdateSecondsPassed: Single read FUpdateSecondsPassed;
+    property UpdateSecondsPassed: TFloatTime read FUpdateSecondsPassed;
 
     { Limit the UpdateSecondsPassed variable, to avoid increasing time in game
       a lot when a game was hanging or otherwise waiting for some exceptional
       event from OS.
-      Used only when non-zero. }
-    property MaxSensibleSecondsPassed: Single
-      read FMaxSensibleSecondsPassed write FMaxSensibleSecondsPassed
-      default DefaultMaxSensibleSecondsPassed;
+      Used only when non-zero.
+      By default it's DefaultMaxSensibleSecondsPassed. }
+    property MaxSensibleSecondsPassed: TFloatTime
+      read FMaxSensibleSecondsPassed write FMaxSensibleSecondsPassed;
 
     { Forces UpdateSecondsPassed for the next Update call (using _UpdateBegin)
       to be zero.
@@ -511,7 +493,7 @@ begin
   LastProcessTimerBegin := ProcessTimerNow
 end;
 
-function ProcessTimerEnd: Double;
+function ProcessTimerEnd: TFloatTime;
 begin
   Result := ProcessTimerSeconds(ProcessTimerNow, LastProcessTimerBegin);
 end;
