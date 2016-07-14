@@ -24,9 +24,22 @@ uses Classes,
   CastleStringUtils, CastleTimeUtils;
 
 type
-  TBestScoreEvent = procedure (const LeaderboardId: string; const Score: Int64) of object;
+  { Event for @link(TGooglePlayGames.OnPlayerBestScoreReceived). }
+  TPlayerBestScoreEvent = procedure (Sender: TObject; const LeaderboardId: string; const Score: Int64) of object;
 
-  { Google Play Game Services (achievements, leaderboards) integration.
+  { User choice at "save game" dialog displayed by @link(TGooglePlayGames.ShowSaveGames).
+    Used as a parameter for @link(TGooglePlayGames.OnSaveGameChosen) event. }
+  TSaveGameChoice = (sgCancel, sgNew, sgExisting);
+
+  { Event for @link(TGooglePlayGames.OnSaveGameChosen). }
+  TSaveGameChosenEvent = procedure (Sender: TObject; const Choice: TSaveGameChoice; const SaveGameName: string) of object;
+
+  { Event for @link(TGooglePlayGames.OnSaveGameLoaded).
+    @param Success Whether we loaded the savegame successfully.
+    @param Content The savegame content, if Success. If not Success, this is the error message. }
+  TSaveGameLoadedEvent = procedure (Sender: TObject; const Success: boolean; const Content: string) of object;
+
+  { Google Play Games integration (achievements, leaderboards, save games).
     Right now only on Android (will simply do nothing on other platforms).
 
     Usage:
@@ -43,12 +56,20 @@ type
     ) }
   TGooglePlayGames = class(TComponent)
   private
-    FOnBestScoreReceived: TBestScoreEvent;
+    FOnPlayerBestScoreReceived: TPlayerBestScoreEvent;
     FSignedIn, FInitialized,
       FInitializedAutoStartSignInFlow,
       FInitializedSaveGames: boolean;
+    FOnSaveGameChosen: TSaveGameChosenEvent;
+    FOnSaveGameLoaded: TSaveGameLoadedEvent;
+    FOnSignedInChanged: TNotifyEvent;
     function MessageReceived(const Received: TCastleStringList): boolean;
     procedure ReinitializeJavaActivity(Sender: TObject);
+  protected
+    procedure DoSignedInChanged; virtual;
+    procedure DoPlayerBestScoreReceived(const LeaderboardId: string; const Score: Int64); virtual;
+    procedure DoSaveGameChosen(const Choice: TSaveGameChoice; const SaveGameName: string); virtual;
+    procedure DoSaveGameLoaded(const Success: boolean; const Content: string); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -79,8 +100,6 @@ type
     { Was the @link(Initialize) called. }
     property Initialized: boolean read FInitialized;
 
-    property OnBestScoreReceived: TBestScoreEvent read FOnBestScoreReceived write FOnBestScoreReceived;
-
     { Is user currently signed-in. }
     property SignedIn: boolean read FSignedIn;
 
@@ -95,13 +114,18 @@ type
     procedure SubmitScore(const LeaderboardId: string; const Score: Int64);
 
     { Get the best score, if available, for given leaderboard.
-      This will (may) eventually (after some network delay) call
-      OnBestScoreReceived event. }
-    procedure RequestBestScore(const LeaderboardId: string);
+      This will (may) eventually (after some unspecified time) call
+      OnPlayerBestScoreReceived event with this score.
+
+      Note that no error is signalled if loading the score fails for any reason.
+      This includes failing to load because user is not connected
+      to Google Play Games (this method doesn't connect automatically;
+      wait for OnSignedInChanged before calling this, if you need). }
+    procedure RequestPlayerBestScore(const LeaderboardId: string);
 
     { Request sign-in or sign-out.
       This will (may) eventually (after some network delay) change
-      the @link(SignedIn) value. }
+      the @link(SignedIn) value, also calling OnSignedInChanged event. }
     procedure RequestSignedIn(const Value: boolean);
 
     { Show the user achievements, using the default UI.
@@ -117,12 +141,21 @@ type
     procedure ShowLeaderboard(const LeaderboardId: string);
 
     { Show the existing @italic(saved games) stored in Google Play Games
-      for this user. Requires being logged to Google Play Games,
+      for this user. This can be used to offer user a choice in which slot
+      to save the game, or from which slot to load the game.
+
+      Note that it's not necessary to use this method to manage savegames.
+      E.g. if you want, you can just choose a constant savegame name for your game,
+      and use SaveGameSave and SaveGameLoad with this name. This would mean
+      that each Google user has only one savegame in the cloud for your game.
+
+      Using this requires being logged to Google Play Games,
       and the @link(Initialize) method must have been called
       with @code(SaveGames) parameter set to @true.
 
       The user may choose an existing savegame, or indicate creation
-      of a new savegame. In response, the callback OnSaveGameChosen will be called.
+      of a new savegame (if parameter AllowAddButton is @true). In response,
+      the callback OnSaveGameChosen will be called.
       It will either
 
       @orderedList(
@@ -143,18 +176,14 @@ type
       until OnSaveGameChosen is called), then never call ShowSaveGames
       when SignedIn is @false. Instead, call RequestSignedIn, wait until
       SignedIn changed to @true (which may be "never", in case of network problems
-      or user cancelling!), and only then call ShowSaveGames.
-
-      Note that it's not necessary to use this method to manage savegames.
-      If you want, you can just choose a constant savegame name for your game,
-      and use SaveGameSave and SaveGameLoad with it. This would mean
-      that each Google user has only one savegame in the cloud for your game.
+      or user cancelling!), for example using OnSignedInChanged event,
+      and only then call ShowSaveGames.
 
       @param(Title Dialog title to display.)
       @param(AllowAddButton Enable user to choose "new save game".)
       @param(AllowDelete Enable user to delete savegames from the dialog.)
       @param(MaxNumberOfSaveGamesToShow Maximum number of savegames to show.
-        Use -1 to not show all savegames.)
+        Use -1 to just show all savegames.)
     }
     procedure ShowSaveGames(const Title: string; const AllowAddButton, AllowDelete: boolean;
       const MaxNumberOfSaveGamesToShow: Integer);
@@ -163,7 +192,10 @@ type
       See the SaveGameLoad documentation about the conflict resolution
       and valid savegame names.
 
-      The Contents should be valid UTF-8 string.
+      The Contents should be a valid UTF-8 string. For implementation
+      reasons, you should not save arbitrary binary data this way, for now
+      (or it could result in exceptions about being unable to encode/decode UTF-8
+      sequences).
 
       Description and PlayedTime are shown to player in ShowSaveGames.
       PlayedTime may also be used for conflict resolution (if the savegame
@@ -177,7 +209,7 @@ type
       in case user does not connect to Google Play Games. So inability to save
       the savegame to the cloud is not alarming, and does not require any special
       reaction. Please submit a request if you'd like to have a callback
-      about it.)  }
+      about it.) }
     procedure SaveGameSave(const SaveGameName, Contents, Description: string;
       const PlayedTime: TFloatTime);
 
@@ -191,18 +223,36 @@ type
       when saving all your savegames through @link(SaveGameSave).
 
       Valid savegame names are defined by Google Play Games:
-      Must be between 1 and 100 non-URL-reserved characters (a-z, A-Z, 0-9, or the symbols "-", ".", "_", or "~").
-      (See https://developers.google.com/android/reference/com/google/android/gms/games/snapshot/Snapshots.html .)
+      Must be between 1 and 100 non-URL-reserved characters (a-z, A-Z, 0-9,
+      or the symbols "-", ".", "_", or "~").
 
       In response, the callback OnSaveGameLoaded will be @italic(always) called,
       with the loaded savegame contents (as a string),
       or the error message.
 
       This does not connect player to Google Play Games, if it's not connected
-      already. An error will be reported to OnSaveGameLoaded callback
-      if trying to load a savegame before being connected to Google Play Games.
-    }
+      already.
+
+      An error will be reported to OnSaveGameLoaded callback
+      if trying to load fails for any reason.
+      This includes the case when loading fails because user is not connected
+      to Google Play Games yet (this method @italic(does not) connect user
+      automatically; wait for OnSignedInChanged before calling this method,
+      if you need it). }
     procedure SaveGameLoad(const SaveGameName: string);
+  published
+    { Event called when @link(SignedIn) changed, for example because
+      @link(RequestSignedIn) was called, or because user signs-in automatically
+      (which may happen if you used AutoStartSignInFlow with @link(Initialize),
+      or if user was signed-in in this application previously). }
+    property OnSignedInChanged: TNotifyEvent read FOnSignedInChanged write FOnSignedInChanged;
+    { Event received in response to @link(RequestPlayerBestScore). }
+    property OnPlayerBestScoreReceived: TPlayerBestScoreEvent read FOnPlayerBestScoreReceived write FOnPlayerBestScoreReceived;
+    { Event received in response to @link(ShowSaveGames). }
+    property OnSaveGameChosen: TSaveGameChosenEvent read FOnSaveGameChosen write FOnSaveGameChosen;
+    { Event received in response to @link(SaveGameLoad).
+      See TSaveGameLoadedEvent for documentation of parameters. }
+    property OnSaveGameLoaded: TSaveGameLoadedEvent read FOnSaveGameLoaded write FOnSaveGameLoaded;
   end;
 
 implementation
@@ -236,6 +286,30 @@ begin
   end;
 end;
 
+procedure TGooglePlayGames.DoSignedInChanged;
+begin
+  if Assigned(OnSignedInChanged) then
+    OnSignedInChanged(Self);
+end;
+
+procedure TGooglePlayGames.DoPlayerBestScoreReceived(const LeaderboardId: string; const Score: Int64);
+begin
+  if Assigned(OnPlayerBestScoreReceived) then
+    OnPlayerBestScoreReceived(Self, LeaderboardId, Score);
+end;
+
+procedure TGooglePlayGames.DoSaveGameChosen(const Choice: TSaveGameChoice; const SaveGameName: string);
+begin
+  if Assigned(OnSaveGameChosen) then
+    OnSaveGameChosen(Self, Choice, SaveGameName);
+end;
+
+procedure TGooglePlayGames.DoSaveGameLoaded(const Success: boolean; const Content: string);
+begin
+  if Assigned(OnSaveGameLoaded) then
+    OnSaveGameLoaded(Self, Success, Content);
+end;
+
 function TGooglePlayGames.MessageReceived(const Received: TCastleStringList): boolean;
 begin
   Result := false;
@@ -243,8 +317,7 @@ begin
   if (Received.Count = 3) and
      (Received[0] = 'best-score') then
   begin
-    if Assigned(OnBestScoreReceived) then
-      OnBestScoreReceived(Received[1], StrToInt64(Received[2]));
+    DoPlayerBestScoreReceived(Received[1], StrToInt64(Received[2]));
     Result := true;
   end else
 
@@ -252,7 +325,11 @@ begin
      (Received[0] = 'google-sign-in-status') and
      (Received[1] = 'true') then
   begin
-    FSignedIn := true;
+    if not FSignedIn then
+    begin
+      FSignedIn := true;
+      DoSignedInChanged;
+    end;
     Result := true;
   end else
 
@@ -260,7 +337,39 @@ begin
      (Received[0] = 'google-sign-in-status') and
      (Received[1] = 'false') then
   begin
-    FSignedIn := false;
+    if FSignedIn then
+    begin
+      FSignedIn := false;
+      DoSignedInChanged;
+    end;
+    Result := true;
+  end;
+
+  if (Received.Count = 2) and
+     (Received[0] = 'chosen-save-game') then
+  begin
+    DoSaveGameChosen(sgExisting, Received[1]);
+    Result := true;
+  end;
+
+  if (Received.Count = 1) and
+     (Received[0] = 'chosen-save-game-new') then
+  begin
+    DoSaveGameChosen(sgNew, '');
+    Result := true;
+  end;
+
+  if (Received.Count = 1) and
+     (Received[0] = 'chosen-save-game-cancel') then
+  begin
+    DoSaveGameChosen(sgCancel, '');
+    Result := true;
+  end;
+
+  if (Received.Count = 3) and
+     (Received[0] = 'save-game-loaded') then
+  begin
+    DoSaveGameLoaded(StrToBool(Received[1]), Received[2]);
     Result := true;
   end;
 end;
@@ -291,9 +400,9 @@ begin
   Messaging.Send(['submit-score', LeaderboardId, IntToStr(Score)]);
 end;
 
-procedure TGooglePlayGames.RequestBestScore(const LeaderboardId: string);
+procedure TGooglePlayGames.RequestPlayerBestScore(const LeaderboardId: string);
 begin
-  Messaging.Send(['get-best-score', LeaderboardId]);
+  Messaging.Send(['request-best-score', LeaderboardId]);
 end;
 
 procedure TGooglePlayGames.RequestSignedIn(const Value: boolean);

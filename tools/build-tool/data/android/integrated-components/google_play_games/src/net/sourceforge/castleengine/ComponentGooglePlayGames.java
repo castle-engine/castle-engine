@@ -45,11 +45,6 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
 
     private GoogleApiClient mGoogleApiClient;
 
-    /**
-     * Once connected, query for this leaderboard best score.
-     */
-    private String mDefaultLeaderboardToRefresh;
-
     public ComponentGooglePlayGames(MainActivity activity)
     {
         super(activity);
@@ -156,10 +151,6 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         // The player is signed in.
         // We can now hide the sign-in button.
         setGoogleSignedIn(true);
-
-        if (mDefaultLeaderboardToRefresh != null) {
-            refreshCurrentScore(mDefaultLeaderboardToRefresh);
-        }
 
         if (mScoreToSendWhenConnected > 0) {
             if (checkGamesConnection()) {
@@ -293,14 +284,14 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
                         messageSend(new String[]{"chosen-save-game-new"});
                     } else {
                         Log.w(TAG, "Received REQUEST_SAVED_GAMES, with RESULT_OK, but intent has no extra");
-                        messageSend(new String[]{"chosen-save-game-abort"});
+                        messageSend(new String[]{"chosen-save-game-cancel"});
                     }
                 } else {
                     Log.w(TAG, "Received REQUEST_SAVED_GAMES, with RESULT_OK, but intent is null");
-                    messageSend(new String[]{"chosen-save-game-abort"});
+                    messageSend(new String[]{"chosen-save-game-cancel"});
                 }
             } else {
-                messageSend(new String[]{"chosen-save-game-abort"});
+                messageSend(new String[]{"chosen-save-game-cancel"});
             }
         }
     }
@@ -436,18 +427,18 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
                             byte[] saveGameBytes;
                             saveGameBytes = snapshot.getSnapshotContents().readFully();
                             String saveGameStr = new String(saveGameBytes, saveGameEncoding);
-                            messageSend(new String[]{"save-game-loaded", "ok", saveGameStr});
+                            messageSend(new String[]{"save-game-loaded", "true", saveGameStr});
                         } catch (IOException e) {
                             String errorStr = "Google Play Games error when reading snapshot: " + e.getMessage();
                             Log.e(TAG, errorStr);
-                            messageSend(new String[]{"save-game-loaded", "error", errorStr});
+                            messageSend(new String[]{"save-game-loaded", "false", errorStr});
                         }
                     } else {
                         String errorStr = "Google Play Games error when loading save game (" +
                           result.getStatus().getStatusCode() + "): " +
                           result.getStatus().getStatusMessage();
                         Log.e(TAG, errorStr);
-                        messageSend(new String[]{"save-game-loaded", "error", errorStr});
+                        messageSend(new String[]{"save-game-loaded", "false", errorStr});
                     }
                 }
             };
@@ -456,7 +447,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         } else {
             String errorStr = "Not connected to Google Play Games";
             Log.e(TAG, errorStr);
-            messageSend(new String[]{"save-game-loaded", "error", errorStr});
+            messageSend(new String[]{"save-game-loaded", "false", errorStr});
         }
     }
 
@@ -554,7 +545,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         }
     }
 
-    private void refreshCurrentScore(String leaderboardId)
+    private void requestPlayerBestScore(String leaderboardId)
     {
         if (checkGamesConnection()) {
             final String saveLeaderboardId = leaderboardId;
@@ -587,12 +578,8 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
             initialize(stringToBoolean(parts[1]), stringToBoolean(parts[2]));
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("get-best-score")) {
-            mDefaultLeaderboardToRefresh = parts[1];
-            /* refresh score now, if possible */
-            if (checkGamesConnection()) {
-                refreshCurrentScore(mDefaultLeaderboardToRefresh);
-            }
+        if (parts.length == 2 && parts[0].equals("request-player-best-score")) {
+            requestPlayerBestScore(parts[1]);
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("achievement")) {
