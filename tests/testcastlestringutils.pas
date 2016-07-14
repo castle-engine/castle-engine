@@ -36,6 +36,7 @@ type
     procedure TestCastleStringListNewlinesInside;
     procedure TestSReplacePatterns;
     procedure TestGetFileFilter;
+    procedure TestSplitString;
   end;
 
 implementation
@@ -391,6 +392,38 @@ begin
   AssertEquals('Pascal files', GetFileFilterName('Pascal files|*.pas;*.inc'));
   AssertEquals('Pascal files', GetFileFilterName('Pascal files'));
   AssertEquals('Pascal files', GetFileFilterName('Pascal files ()|'));
+end;
+
+procedure TTestCastleStringUtils.TestSplitString;
+
+  procedure AssertStringListEquals(const A: array of string; const List: TCastleStringList);
+  var
+    I: Integer;
+  begin
+    AssertEquals(High(A) + 1, List.Count);
+    for I := 0 to List.Count - 1 do
+      AssertEquals(A[I], List[I]);
+  end;
+
+  procedure TestSplitAndGlue(const CorrectParts: array of string;
+    const S: string; const Delimiter: char);
+  var
+    List: TCastleStringList;
+  begin
+    List := SplitString(S, Delimiter);
+    try
+      AssertStringListEquals(CorrectParts, List); // check SplitString correctness
+      AssertEquals(S, GlueStrings(List, Delimiter)); // check GlueStrings is reverse
+    finally FreeAndNil(List) end;
+  end;
+
+begin
+  TestSplitAndGlue(['foo', 'bar'], 'foo|bar', '|');
+  TestSplitAndGlue(['foo'], 'foo', '|');
+  TestSplitAndGlue([''], '', '|');
+  TestSplitAndGlue(['foo', '', 'bar'], 'foo||bar', '|');
+  TestSplitAndGlue(['foo', '', '', 'bar'], 'foo|||bar', '|');
+  TestSplitAndGlue(['foo', '', 'bar', ''], 'foo||bar|', '|');
 end;
 
 initialization

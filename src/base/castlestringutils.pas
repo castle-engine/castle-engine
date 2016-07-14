@@ -328,10 +328,62 @@ function NextTokenOnce(const s: string; SeekPos: integer = 1;
 function CreateTokens(const s: string;
   const TokenDelims: TSetOfChars = WhiteSpaces): TCastleStringList;
 
+{ Split a string by a character delimiter.
+  For example, @code(SplitString('foo|bar', '|')) returns a list with 2 parts:
+  @code('foo') and @code('bar').
+
+  The splitting is done "strictly", which means that we always return exactly
+  one more part than the occurences of delimiter in the source string.
+
+  In particular, this means that:
+  @unorderedList(
+    @item(If the Delimiter does not occur in the source string,
+      then the result is a list with a single part. This applies
+      even if the source string is empty.
+
+      @unorderedList(
+        @itemSpacing Compact
+        @item @code(SplitString('foo', '|') = ['foo'])
+        @item @code(SplitString('', '|') = [''])
+      )
+    )
+
+    @item(If the Delimiter occurs two or more times in a row within the source string,
+      then the we will have one or more empty parts in the resulting list.
+
+      @unorderedList(
+        @itemSpacing Compact
+        @item @code(SplitString('foo||bar', '|') = ['foo', '', 'bar])
+        @item @code(SplitString('foo|||bar', '|') = ['foo', '', '', 'bar])
+      )
+    )
+
+    @item(f the Delimiter occurs at the very end of the source string,
+      then the very last part of the resulting list will be an empty string.
+
+      @unorderedList(
+        @itemSpacing Compact
+        @item @code(SplitString('foo||bar|', '|') = ['foo', '', 'bar, ''])
+      )
+    )
+  )
+
+  The reverse of this operation is GlueStrings.
+
+  See also CreateTokens, for a different way to split, that treats any sequence
+  of delimiters like a single delimiter, and is more suitable e.g. to extract
+  words separated by whitespace.
+  See also standard TStringList.Delimiter feature. }
+function SplitString(const S: string; const Delimiter: char): TCastleStringList;
+
+{ Concatenate the string list with a given Delimiter.
+  This is the reverse of SplitString.
+  @groupBegin }
 function GlueStrings(const Strings: array of string; const Delimiter: char): string;
 function GlueStrings(const Strings: array of string; const Delimiter: string): string;
 function GlueStrings(const Strings: TStrings; const Delimiter: char): string;
 function GlueStrings(const Strings: TStrings; const Delimiter: string): string;
+{ @groupEnd }
 
 { Find substring SubText within Text. Returns 0 if not found.
   Similar to a standard Pos function, with some improvements.
@@ -1259,12 +1311,12 @@ end;
 
 function CopyPos(const s: string; StartPosition, EndPosition: integer): string;
 begin
- result := Copy(s, StartPosition, EndPosition - StartPosition + 1);
+  result := Copy(s, StartPosition, EndPosition - StartPosition + 1);
 end;
 
 procedure DeletePos(var S: string; StartPosition, EndPosition: Integer);
 begin
- Delete(S, StartPosition, EndPosition - StartPosition + 1);
+  Delete(S, StartPosition, EndPosition - StartPosition + 1);
 end;
 
 function NextToken(const S: string; var SeekPos: Integer;
@@ -1291,23 +1343,62 @@ end;
 function NextTokenOnce(const s: string; SeekPos: integer;
   const TokenDelims: TSetOfChars): string;
 begin
- result := Nexttoken(S, SeekPos, TokenDelims);
+  result := Nexttoken(S, SeekPos, TokenDelims);
 end;
 
 function CreateTokens(const s: string;
   const TokenDelims: TSetOfChars): TCastleStringList;
-var SeekPos: Integer;
-    Token: string;
+var
+  SeekPos: Integer;
+  Token: string;
 begin
- Result := TCastleStringList.Create;
- try
-  SeekPos := 1;
-  repeat
-   Token := NextToken(s, SeekPos, TokenDelims);
-   if Token = '' then break;
-   Result.Add(Token);
-  until false;
- except Result.Free; raise end;
+  Result := TCastleStringList.Create;
+  try
+    SeekPos := 1;
+    repeat
+      Token := NextToken(s, SeekPos, TokenDelims);
+      if Token = '' then break;
+      Result.Add(Token);
+    until false;
+  except Result.Free; raise end;
+end;
+
+function SplitString(const S: string; const Delimiter: char): TCastleStringList;
+{ Note that implementation doesn't use TStringList.Delimiter.
+
+  Besides guaranteeing the "strictness", it's also faster than
+  TStringList.Delimiter and DelimitedText, since it's always case-sensitive,
+  and doesn't deal with any TStringList.QuoteChar and TStringList.StrictDelimiter
+  special cases. }
+var
+  NextChar, NextDelimiter: Integer;
+begin
+  Result := TCastleStringList.Create;
+  try
+    NextChar := 1;
+    while NextChar <= Length(S) + 1 do
+    begin
+      if NextChar = Length(S) + 1 then
+      begin
+        { this handles the situation when the delimiter is at the end of S,
+          or when S is empty }
+        Result.Add('');
+        Break;
+      end else
+      begin
+        NextDelimiter := PosEx(Delimiter, S, NextChar);
+        if NextDelimiter = 0 then
+        begin
+          Result.Add(SEnding(S, NextChar));
+          Break;
+        end else
+        begin
+          Result.Add(CopyPos(S, NextChar, NextDelimiter - 1));
+          NextChar := NextDelimiter + 1;
+        end;
+      end;
+    end;
+  except Result.Free; raise end;
 end;
 
 function GlueStrings(const Strings: array of string; const Delimiter: char): string;

@@ -220,7 +220,7 @@ var
 begin
   S := ReceiveStr;
   if S <> '' then
-    Result := CreateTokens(S, [MessageDelimiter]) else
+    Result := SplitString(S, MessageDelimiter) else
     Result := nil;
 end;
 
