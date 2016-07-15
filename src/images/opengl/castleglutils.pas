@@ -1570,7 +1570,7 @@ begin
 
   {$ifdef GLImageUseShaders}
   CurrentProgram := GLRectangleProgram;
-  GLRectangleAttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), nil);
+  GLRectangleAttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), 0);
   GLRectangleUniformViewportSize.SetValue(Viewport2DSize);
   GLRectangleUniformColor.SetValue(Color);
 

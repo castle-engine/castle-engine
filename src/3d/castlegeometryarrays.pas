@@ -152,7 +152,7 @@ type
     procedure AddGLSLAttribute(const AType: TGeometryAttribType;
       const Name: string; const Internal: boolean);
     function GLSLAttribute(const AType: TGeometryAttribType;
-      const Name: string; const Index: Cardinal): Pointer;
+      const Name: string; const Index: Cardinal): PtrUInt;
   public
     constructor Create;
     destructor Destroy; override;
@@ -180,11 +180,11 @@ type
 
     { Information about Indexes.
 
-      You coulc as well use the @link(Indexes) property to get the same
-      information. You can use Indexes[Index], Indexes <> nil, Indexes.Count
-      and such. However, FreeData call (that you may use to conserve memory
-      usage after loading arrays to VBO) releases Indexes property,
-      while these properties stay the same.
+      Before using FreeData, you could as well use the @link(Indexes) property
+      to get the same information. You can use Indexes[Index], Indexes <> nil,
+      Indexes.Count and such. However, FreeData call (that you should use
+      to conserve memory usage after loading arrays to VBO)
+      releases the Indexes property, while these properties stay the same.
       @groupBegin }
     function IndexesPtr(const Index: Cardinal): PLongInt;
     property IndexesCount: Cardinal read FIndexesCount;
@@ -299,7 +299,7 @@ type
     procedure AddGLSLAttributeMatrix3(const Name: string; const Internal: boolean);
     procedure AddGLSLAttributeMatrix4(const Name: string; const Internal: boolean);
 
-    function GLSLAttribute(A: TGeometryAttrib; const Offset: PtrUInt = 0): Pointer;
+    function GLSLAttribute(A: TGeometryAttrib; const Offset: PtrUInt = 0): PtrUInt;
 
     function GLSLAttributeFloat(const Name: string; const Index: Cardinal = 0): PSingle;
     function GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2Single;
@@ -334,9 +334,9 @@ type
     { Release the allocated memory for arrays (CoordinateArray, AttributeArray,
       Indexes). Further calls to IndexesPtr, Normal, Color and such will
       return only an offset relative to the original arrays pointer.
-      This is very useful if you loaded arrays data into GPU memory
-      (like Vertex Buffer Object of OpenGL), and you will not need
-      the data anymore. }
+      This is necessary if you loaded arrays data into GPU memory
+      (like Vertex Buffer Object of OpenGL), and it is also optimal
+      -- you should not need the data anymore, once loaded to VBO. }
     procedure FreeData;
 
     { Was FreeData called. }
@@ -673,7 +673,7 @@ begin
 end;
 
 function TGeometryArrays.GLSLAttribute(const AType: TGeometryAttribType;
-  const Name: string; const Index: Cardinal): Pointer;
+  const Name: string; const Index: Cardinal): PtrUInt;
 var
   A: TGeometryAttrib;
 begin
@@ -685,49 +685,47 @@ begin
       raise Exception.CreateFmt('GLSL attribute "%s" is allocated but for different type (%s) than currently requested (%s)',
         [Name, AttribTypeName[A.AType], AttribTypeName[AType]]);
     { When DataFreed, FAttributeArray is already nil }
-    Result := Pointer(PtrUInt(PtrUInt(FAttributeArray) +
-      A.Offset + Index * AttributeSize));
+    Result := PtrUInt(FAttributeArray) + A.Offset + Index * AttributeSize;
     Exit;
   end;
 
   raise Exception.CreateFmt('GLSL attribute "%s" is not allocated', [Name]);
 end;
 
-function TGeometryArrays.GLSLAttribute(A: TGeometryAttrib;
-  const Offset: PtrUInt): Pointer;
+function TGeometryArrays.GLSLAttribute(A: TGeometryAttrib; const Offset: PtrUInt): PtrUInt;
 begin
   { When DataFreed, FAttributeArray is already nil }
-  Result := Pointer(PtrUInt(PtrUInt(FAttributeArray) + A.Offset + Offset));
+  Result := PtrUInt(FAttributeArray) + A.Offset + Offset;
 end;
 
 function TGeometryArrays.GLSLAttributeFloat(const Name: string; const Index: Cardinal = 0): PSingle;
 begin
-  Result := GLSLAttribute(atFloat, Name, Index);
+  Result := PSingle(GLSLAttribute(atFloat, Name, Index));
 end;
 
 function TGeometryArrays.GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2Single;
 begin
-  Result := GLSLAttribute(atVector2, Name, Index);
+  Result := PVector2Single(GLSLAttribute(atVector2, Name, Index));
 end;
 
 function TGeometryArrays.GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3Single;
 begin
-  Result := GLSLAttribute(atVector3, Name, Index);
+  Result := PVector3Single(GLSLAttribute(atVector3, Name, Index));
 end;
 
 function TGeometryArrays.GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4Single;
 begin
-  Result := GLSLAttribute(atVector4, Name, Index);
+  Result := PVector4Single(GLSLAttribute(atVector4, Name, Index));
 end;
 
 function TGeometryArrays.GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3Single;
 begin
-  Result := GLSLAttribute(atMatrix3, Name, Index);
+  Result := PMatrix3Single(GLSLAttribute(atMatrix3, Name, Index));
 end;
 
 function TGeometryArrays.GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4Single;
 begin
-  Result := GLSLAttribute(atMatrix4, Name, Index);
+  Result := PMatrix4Single(GLSLAttribute(atMatrix4, Name, Index));
 end;
 
 procedure TGeometryArrays.FreeData;

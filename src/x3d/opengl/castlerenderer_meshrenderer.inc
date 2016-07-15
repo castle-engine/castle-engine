@@ -176,38 +176,52 @@ var
   procedure EnableVertexAttrib(GLSLProgram: TGLSLProgram);
   var
     I: Integer;
+    A: TGLSLAttribute;
   begin
     if Locations = nil then
       Locations := TLongIntList.Create;
     for I := 0 to Arrays.Attribs.Count - 1 do
-    try
-      case Arrays.Attribs[I].AType of
-        atFloat  : Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 1, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
-        atVector2: Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 2, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
-        atVector3: Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
-        atVector4: Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
-        atMatrix3:
-          begin
-            Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
-            Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 1, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector3Single))));
-            Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 2, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector3Single) * 2)));
-          end;
-        atMatrix4:
-          begin
-            Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
-            Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 1, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single))));
-            Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 2, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single) * 2)));
-            Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 3, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single) * 3)));
-          end;
-        else raise EInternalError.Create('Arrays.Attribs[I].AType?');
-      end;
-    except
-      on E: EGLSLAttributeNotFound do
+    begin
+      // TODO: would be faster to not query GLSLProgram.Attribute every frame,
+      // but save it in GLSLProgram.
+      A := GLSLProgram.AttributeOptional(Arrays.Attribs[I].Name);
+      if A.Location = -1 then
+      begin
         { Do not make warnings about missing internal attributes
           (for the same reason as uniform values, see GLRendererShader). }
         if not Arrays.Attribs[I].Internal then
-          OnWarning(wtMajor, 'VRML/X3D', E.Message);
+          OnWarning(wtMajor, 'VRML/X3D', 'Shader attribute "' + Arrays.Attribs[I].Name + '" not found (or not used)');
+        Continue;
+      end;
+      case Arrays.Attribs[I].AType of
+        atFloat  : A.EnableArraySingle       (Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+
+        atVector2: A.EnableArrayVector2Single(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector3: A.EnableArrayVector3Single(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector4: A.EnableArrayVector4Single(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+
+        atMatrix3: A.EnableArrayMatrix3Single(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atMatrix4: A.EnableArrayMatrix4Single(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+
+        else raise EInternalError.Create('Arrays.Attribs[I].AType?');
+      end;
+      Locations.Add(A.Location);
     end;
+  end;
+
+  { Add vertex attribute to shader.
+    @raises EGLSLAttributeNotFound If attribute is not found (or not used). }
+  procedure VertexAttrib(const Name: string; LocationOffset: TGLint;
+    Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
+    Ptr: PtrUInt);
+  var
+    A: TGLSLAttribute;
+  begin
+    // TODO: would be faster to not query GLSLProgram.Attribute every frame,
+    // but save it in GLSLProgram.
+    A := CurrentProgram.Attribute(Name);
+    A.EnableArray(LocationOffset, Size, AType, Normalized, Stride, Ptr);
+    Locations.Add(A.Location);
   end;
 
   { Add vertex attribute to shader, ignoring if the attribute
@@ -215,15 +229,16 @@ var
     e.g. castle_Normal is unused if not lit). }
   procedure OptionalVertexAttrib(const Name: string; LocationOffset: TGLint;
     Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
-    Ptr: Pointer);
+    Ptr: PtrUInt);
+  var
+    A: TGLSLAttribute;
   begin
-    try
-      Locations.Add(CurrentProgram.VertexAttribPointer(
-        Name, LocationOffset, Size, AType, Normalized, Stride, Ptr));
-    except
-      on E: EGLSLAttributeNotFound do
-        { WritelnLog('OpenGLES', E.Message) };
-    end;
+    // TODO: would be faster to not query GLSLProgram.Attribute every frame,
+    // but save it in GLSLProgram.
+    A := CurrentProgram.AttributeOptional(Name);
+    if A.Location = -1 then Exit;
+    A.EnableArray(LocationOffset, Size, AType, Normalized, Stride, Ptr);
+    Locations.Add(A.Location);
   end;
 
   procedure DisableArrays;
@@ -300,10 +315,10 @@ begin
       CurrentProgram.SetUniform('castle_UnlitColor', Shader.MaterialUnlit);
 
       Locations := TLongIntList.Create;
-      Locations.Add(CurrentProgram.VertexAttribPointer(
-        'castle_Vertex', 0, 3, GL_FLOAT, GL_FALSE, Arrays.CoordinateSize, Arrays.Position));
-      OptionalVertexAttrib(
-        'castle_Normal', 0, 3, GL_FLOAT, GL_FALSE, Arrays.CoordinateSize, Arrays.Normal);
+      VertexAttrib('castle_Vertex', 0, 3, GL_FLOAT, GL_FALSE,
+        Arrays.CoordinateSize, PtrUInt(Arrays.Position));
+      OptionalVertexAttrib('castle_Normal', 0, 3, GL_FLOAT, GL_FALSE,
+        Arrays.CoordinateSize, PtrUInt(Arrays.Normal));
       {$else}
       glEnableClientState(GL_VERTEX_ARRAY);
       glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
@@ -320,8 +335,8 @@ begin
         mcColorPerVertex:
           begin
             Assert(Arrays.HasColor);
-            OptionalVertexAttrib('castle_ColorPerVertex', 0,
-              4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.Color);
+            OptionalVertexAttrib('castle_ColorPerVertex', 0, 4, GL_FLOAT, GL_FALSE,
+              Arrays.AttributeSize, PtrUInt(Arrays.Color));
           end;
 
         mcDefaultColor:
@@ -339,8 +354,8 @@ begin
 
       if Arrays.HasFogCoord then
       begin
-        OptionalVertexAttrib('castle_FogCoord', 0,
-          1, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.FogCoord);
+        OptionalVertexAttrib('castle_FogCoord', 0, 1, GL_FLOAT, GL_FALSE,
+          Arrays.AttributeSize, PtrUInt(Arrays.FogCoord));
       end;
 
       for I := 0 to Arrays.TexCoords.Count - 1 do
@@ -350,7 +365,7 @@ begin
           OptionalVertexAttrib(
             Format('castle_MultiTexCoord%d', [I]),
             0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE,
-            Arrays.AttributeSize, Arrays.TexCoord(I, 0));
+            Arrays.AttributeSize, PtrUInt(Arrays.TexCoord(I, 0)));
         end;
       {$else}
 

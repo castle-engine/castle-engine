@@ -973,9 +973,9 @@ begin
   Prog := Programs[FinalAlpha = acSimpleYesNo, Clip, ColorTreatment];
   CurrentProgram := Prog.Prog;
   Prog.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE,
-    SizeOf(TPoint), Offset(Points[0].Position, Points[0]));
+    SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
   Prog.AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
-    SizeOf(TPoint), Offset(Points[0].TexCoord, Points[0]));
+    SizeOf(TPoint), OffsetUInt(Points[0].TexCoord, Points[0]));
   Prog.UniformViewportSize.SetValue(Viewport2DSize);
   if ColorTreatment <> ctPureTexture then
     Prog.UniformColor.SetValue(Color);

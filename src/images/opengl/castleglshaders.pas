@@ -151,9 +151,34 @@ type
     Name: string;
     Location: TGLint;
 
+    { Enable an array of arbitary OpenGL type.
+      See the OpenGL documentation of glVertexAttribPointer for meaning of the
+      parameters.
+
+      Note that Ptr is usually an offset relative to the currently bound VBO
+      (Vertex Buffer Object), not a regular pointer to a memory content.
+      That is why is has a type PtrUInt (not Pointer), since usually you calculate
+      it as an integer.
+
+      Note that the array size is not specified anywhere. The way you access
+      the array (what indexes you use) determines the minimum count of the array
+      you should have (and uploaded to VBO). }
     procedure EnableArray(LocationOffset: TGLint;
       Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
-      Ptr: Pointer);
+      Ptr: PtrUInt);
+    { Shortcut to enable an array of floats (Single in Pascal). }
+    procedure EnableArraySingle(Stride: TGLsizei; Ptr: PtrUInt);
+    { Shortcut to enable an array of TVector2Single. }
+    procedure EnableArrayVector2Single(Stride: TGLsizei; Ptr: PtrUInt);
+    { Shortcut to enable an array of TVector3Single. }
+    procedure EnableArrayVector3Single(Stride: TGLsizei; Ptr: PtrUInt);
+    { Shortcut to enable an array of TVector4Single. }
+    procedure EnableArrayVector4Single(Stride: TGLsizei; Ptr: PtrUInt);
+    { Shortcut to enable an array of TMatrix3Single. }
+    procedure EnableArrayMatrix3Single(Stride: TGLsizei; Ptr: PtrUInt);
+    { Shortcut to enable an array of TMatrix4Single. }
+    procedure EnableArrayMatrix4Single(Stride: TGLsizei; Ptr: PtrUInt);
+
     procedure DisableArray;
 
     { Set attribute variable value.
@@ -421,6 +446,15 @@ type
         instead OpenGL sets it's error state and you probably want to
         call CheckGLErrors from time to time to catch them.) }
     function Attribute(const Name: string): TGLSLAttribute;
+
+    { Get the attribute instance. It can be used to make repeated
+      @link(TGLSLAttribute.SetValue) and @link(TGLSLAttribute.EnableArray).
+
+      Returned attribute has @link(TGLSLAttribute.Location) equal to -1.
+      All the calls to @link(TGLSLAttribute.SetValue)
+      or @link(TGLSLAttribute.EnableArray) or @link(TGLSLAttribute.DisableArray)
+      methods are silently ignored. }
+    function AttributeOptional(const Name: string): TGLSLAttribute;
 
     { Load and enable vertex attribute data.
       This calls glVertexAttribPointer and enables it by
@@ -939,6 +973,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TGLfloat);
 begin
+  if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
     {$ifndef OpenGLES}
@@ -950,6 +985,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TVector2Single);
 begin
+  if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
     {$ifndef OpenGLES}
@@ -961,6 +997,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TVector3Single);
 begin
+  if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
     {$ifndef OpenGLES}
@@ -972,6 +1009,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TVector4Single);
 begin
+  if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
     {$ifndef OpenGLES}
@@ -983,6 +1021,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TMatrix3Single);
 begin
+  if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
     {$ifndef OpenGLES}
@@ -1004,6 +1043,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TMatrix4Single);
 begin
+  if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
     {$ifndef OpenGLES}
@@ -1028,6 +1068,7 @@ end;
 {$ifndef OpenGLES}
 procedure TGLSLAttribute.SetValue(const Value: TVector4Integer);
 begin
+  if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
     gsExtension: glVertexAttrib4ivARB(Location, @Value);
@@ -1037,6 +1078,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TVector4Byte);
 begin
+  if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
     gsExtension: glVertexAttrib4ubvARB(Location, @Value);
@@ -1046,6 +1088,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TGLdouble);
 begin
+  if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
     gsExtension: glVertexAttrib1dARB(Location, Value);
@@ -1055,6 +1098,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TVector2Double);
 begin
+  if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
     gsExtension: glVertexAttrib2dvARB(Location, @Value);
@@ -1064,6 +1108,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TVector3Double);
 begin
+  if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
     gsExtension: glVertexAttrib3dvARB(Location, @Value);
@@ -1073,6 +1118,7 @@ end;
 
 procedure TGLSLAttribute.SetValue(const Value: TVector4Double);
 begin
+  if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
     gsExtension: glVertexAttrib4dvARB(Location, @Value);
@@ -1083,27 +1129,64 @@ end;
 
 procedure TGLSLAttribute.EnableArray(LocationOffset: TGLint;
   Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
-  Ptr: Pointer);
+  Ptr: PtrUInt);
 begin
+  if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
     {$ifndef OpenGLES}
     gsExtension:
       begin
         glEnableVertexAttribArrayARB(Location);
-        glVertexAttribPointerARB(Location, Size, AType, Normalized, Stride, Ptr);
+        glVertexAttribPointerARB(Location, Size, AType, Normalized, Stride, Pointer(Ptr));
       end;
     {$endif}
     gsStandard    :
       begin
         glEnableVertexAttribArray   (Location);
-        glVertexAttribPointer   (Location, Size, AType, Normalized, Stride, Ptr);
+        glVertexAttribPointer   (Location, Size, AType, Normalized, Stride, Pointer(Ptr));
       end;
   end;
 end;
 
+procedure TGLSLAttribute.EnableArraySingle(Stride: TGLsizei; Ptr: PtrUInt);
+begin
+  EnableArray(0, 1, GL_FLOAT, GL_FALSE, Stride, Ptr);
+end;
+
+procedure TGLSLAttribute.EnableArrayVector2Single(Stride: TGLsizei; Ptr: PtrUInt);
+begin
+  EnableArray(0, 2, GL_FLOAT, GL_FALSE, Stride, Ptr);
+end;
+
+procedure TGLSLAttribute.EnableArrayVector3Single(Stride: TGLsizei; Ptr: PtrUInt);
+begin
+  EnableArray(0, 3, GL_FLOAT, GL_FALSE, Stride, Ptr);
+end;
+
+procedure TGLSLAttribute.EnableArrayVector4Single(Stride: TGLsizei; Ptr: PtrUInt);
+begin
+  EnableArray(0, 4, GL_FLOAT, GL_FALSE, Stride, Ptr);
+end;
+
+procedure TGLSLAttribute.EnableArrayMatrix3Single(Stride: TGLsizei; Ptr: PtrUInt);
+begin
+  EnableArray(0, 3, GL_FLOAT, GL_FALSE, Stride, Ptr);
+  EnableArray(1, 3, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector3Single));
+  EnableArray(2, 3, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector3Single) * 2);
+end;
+
+procedure TGLSLAttribute.EnableArrayMatrix4Single(Stride: TGLsizei; Ptr: PtrUInt);
+begin
+  EnableArray(0, 4, GL_FLOAT, GL_FALSE, Stride, Ptr);
+  EnableArray(1, 4, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector4Single));
+  EnableArray(2, 4, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector4Single) * 2);
+  EnableArray(3, 4, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector4Single) * 3);
+end;
+
 procedure TGLSLAttribute.DisableArray;
 begin
+  if Location = -1 then Exit; // ignore non-existing attribute here
   case Owner.Support of
     {$ifndef OpenGLES}
     gsExtension: glDisableVertexAttribArrayARB(Location);
@@ -1810,7 +1893,7 @@ begin
   Uniform(Name, ForceException).SetValue(Value, ForceException);
 end;
 
-function TGLSLProgram.Attribute(const Name: string): TGLSLAttribute;
+function TGLSLProgram.AttributeOptional(const Name: string): TGLSLAttribute;
 begin
   Result.Owner := Self;
   Result.Name := Name;
@@ -1822,7 +1905,11 @@ begin
     gsStandard: Result.Location := glGetAttribLocation(ProgramId, PCharOrNil(Name));
     else Result.Location := -1;
   end;
+end;
 
+function TGLSLProgram.Attribute(const Name: string): TGLSLAttribute;
+begin
+  Result := AttributeOptional(Name);
   if Result.Location = -1 then
     raise EGLSLAttributeNotFound.CreateFmt('Attribute variable "%s" not found', [Name]);
 end;
@@ -1897,18 +1984,19 @@ var
   A: TGLSLAttribute;
 begin
   A := Attribute(Name);
-  A.EnableArray(LocationOffset, Size, AType, Normalized, Stride, Ptr);
+  A.EnableArray(LocationOffset, Size, AType, Normalized, Stride, PtrUInt(Ptr));
   Result := A.Location;
 end;
 
 class procedure TGLSLProgram.DisableVertexAttribArray(Location: TGLint);
 begin
-  case ClassSupport of
-    {$ifndef OpenGLES}
-    gsExtension: glDisableVertexAttribArrayARB(Location);
-    {$endif}
-    gsStandard : glDisableVertexAttribArray   (Location);
-  end;
+  if Location <> -1 then
+    case ClassSupport of
+      {$ifndef OpenGLES}
+      gsExtension: glDisableVertexAttribArrayARB(Location);
+      {$endif}
+      gsStandard : glDisableVertexAttribArray   (Location);
+    end;
 end;
 
 end.
