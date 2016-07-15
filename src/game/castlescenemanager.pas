@@ -1999,10 +1999,10 @@ procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
       glViewport that takes care of this. }
 
     AttribVertex := Shader.Attribute('vertex');
-    AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TScreenPoint),
+    AttribVertex.EnableArrayVector2Single(SizeOf(TScreenPoint),
       OffsetUInt(ScreenPoint[0].Position, ScreenPoint[0]));
     AttribTexCoord := Shader.Attribute('tex_coord');
-    AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TScreenPoint),
+    AttribTexCoord.EnableArrayVector2Single(SizeOf(TScreenPoint),
       OffsetUInt(ScreenPoint[0].TexCoord, ScreenPoint[0]));
 
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
