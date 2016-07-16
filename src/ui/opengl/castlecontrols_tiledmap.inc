@@ -54,7 +54,7 @@ var
   i, j, k, l: Integer;
   _lay: PLayer;
   _ts: PTileset;
-  _spr: PSprite;
+  _spr: TSprite;
   _GID: Cardinal;
 begin
   { Layers. }
@@ -62,18 +62,23 @@ begin
   begin
     _lay := FTiledMap.Layers. Ptr(i);
     if not _lay^.Visible then Continue;
+    if (_lay^.LayerType = LT_ObjectGroup) or (_lay^.LayerType = LT_ImageLayer) then
+      Continue;
     //todo: use opacity
     //todo: use offset
     //todo: use map render order
     l := 0;
-    for j := 0 to FTiledMap.Height - 1 do
-      for k := 0 downto FTiledMap.Width - 1 do
-      begin
-        _GID := _lay^.Data.Data[l];
+    for j := FTiledMap.Height - 1 downto 0 do
+      for k := 0 to FTiledMap.Width - 1 do
+      begin     // writelnlog('tiled control','data high:%d',[High(_lay^.Data.Data)]);
+        _GID := _lay^.Data.Data[l];  //writelnlog('tiled control', 'render ortho 0; gid:%d',[_GID]);
         _ts := FTiledMap.GIDToTileset(_GID);
-        _spr := _ts^.ImageData;
-        //todo: _spr^.X:=;
-        _spr^.Frame := _GID - _ts^.FirstGID;
+        _spr := TSprite(_ts^.ImageData);
+        _spr.X := k * FTiledMap.TileWidth;
+        _spr.Y := j * FTiledMap.TileHeight;
+        _spr.Frame := _GID - _ts^.FirstGID;
+        //writelnlog('tiled control', 'render ortho 1: gid:%d, firstgid:%d',[_GID,_ts^.FirstGID]);//todo:delete
+        _spr.Draw;
         Inc(l);
 			end;
 	end;
@@ -115,9 +120,12 @@ begin
     _spr := TSprite.Create(FDataPath + _ts^.Image.Source, _ts^.TileCount,
                            _ts^.Columns, _ts^.TileCount div _ts^.Columns,
                            True, False);
-    WritelnLog('LoadTlesetsImages path', FDataPath + _ts^.Image.Source);
-    _ts^.ImageData := @_spr;
-    FImages.Add(_spr); //todo: do usunięcia bo pointer w tileset?
+    _spr.DrawingWidth := FTiledMap.TileWidth;
+    _spr.DrawingHeight := FTiledMap.TileHeight;
+    writelnlog('LoadTlesetsImages', 'columns:%d',[_ts^.Columns]);
+    //WritelnLog('LoadTlesetsImages path', FDataPath + _ts^.Image.Source);
+    _ts^.ImageData := _spr;
+    //FImages.Add(_spr); //todo: do usunięcia bo pointer w tileset?
 	end;
 end;
 

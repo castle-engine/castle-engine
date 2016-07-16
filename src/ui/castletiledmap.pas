@@ -254,9 +254,7 @@ type
     FOrientation: TMapOrientation;
     FWidth: Cardinal;
     FHeight: Cardinal;
-    { The width of a tile. }
     FTileWidth: Cardinal;
-    { The height of a tile. }
     FTileHeight: Cardinal;
     { The background color of the map. (since 0.9, optional) }
     FBackgroundColor: TCastleColorRGB;
@@ -291,6 +289,10 @@ type
       right-down (the default), right-up, left-down and left-up. In all cases,
       the map is drawn row-by-row. (since 0.10, but only supported for orthogonal
       maps at the moment) }
+    { The width of a tile. }
+    property TileWidth: Cardinal read FTileWidth;
+    { The height of a tile. }
+    property TileHeight: Cardinal read FTileHeight;
     property RenderOrder: TMapRenderOrder read FRenderOrder;
     { @param(AURL) - URL to TMX file. }
     constructor Create(AURL: string);

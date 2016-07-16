@@ -30,7 +30,7 @@ end;
 
 procedure WindowRender(Container: TUIContainer);
 begin
-  //TiledMap.Render; // potrzebne?
+  TiledMap.Render; // potrzebne?
   UIFont.Print(10, 10, Yellow, Format('FPS: %f', [Container.Fps.RealTime]));
 end;
 
@@ -66,4 +66,5 @@ initialization
   Window.OnRender := @WindowRender;
   Window.OnUpdate := @WindowUpdate;
   Window.OnPress := @WindowPress;
+  Window.AutoRedisplay := True;;
 end.
