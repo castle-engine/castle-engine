@@ -55,6 +55,8 @@ type
       per-shape resources for fast rendering (arrays and vbos). }
     PrepareRenderShape: Cardinal;
 
+    CurrentMeshShader: TX3DShaderProgramBase;
+
     constructor Create(ARenderer: TGLRenderer; AShape: TX3DRendererShape);
 
     { Render the whole geometry.
@@ -171,15 +173,15 @@ end;
 
 procedure TBaseCoordinateRenderer.Render;
 var
-  Locations: TLongIntList;
+  Attribs: TGLSLAttributeList;
 
   procedure EnableVertexAttrib(GLSLProgram: TGLSLProgram);
   var
     I: Integer;
     A: TGLSLAttribute;
   begin
-    if Locations = nil then
-      Locations := TLongIntList.Create;
+    if Attribs = nil then
+      Attribs := TGLSLAttributeList.Create;
     for I := 0 to Arrays.Attribs.Count - 1 do
     begin
       // TODO: would be faster to not query GLSLProgram.Attribute every frame,
@@ -205,40 +207,8 @@ var
 
         else raise EInternalError.Create('Arrays.Attribs[I].AType?');
       end;
-      Locations.Add(A.Location);
+      Attribs.Add(A);
     end;
-  end;
-
-  { Add vertex attribute to shader.
-    @raises EGLSLAttributeNotFound If attribute is not found (or not used). }
-  procedure VertexAttrib(const Name: string; LocationOffset: TGLint;
-    Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
-    Ptr: PtrUInt);
-  var
-    A: TGLSLAttribute;
-  begin
-    // TODO: would be faster to not query GLSLProgram.Attribute every frame,
-    // but save it in GLSLProgram.
-    A := CurrentProgram.Attribute(Name);
-    A.EnableArray(LocationOffset, Size, AType, Normalized, Stride, Ptr);
-    Locations.Add(A.Location);
-  end;
-
-  { Add vertex attribute to shader, ignoring if the attribute
-    does not exist (which may happen in case shader doesn't use it,
-    e.g. castle_Normal is unused if not lit). }
-  procedure OptionalVertexAttrib(const Name: string; LocationOffset: TGLint;
-    Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
-    Ptr: PtrUInt);
-  var
-    A: TGLSLAttribute;
-  begin
-    // TODO: would be faster to not query GLSLProgram.Attribute every frame,
-    // but save it in GLSLProgram.
-    A := CurrentProgram.AttributeOptional(Name);
-    if A.Location = -1 then Exit;
-    A.EnableArray(LocationOffset, Size, AType, Normalized, Stride, Ptr);
-    Locations.Add(A.Location);
   end;
 
   procedure DisableArrays;
@@ -273,11 +243,11 @@ var
     end;
     {$endif}
 
-    if Locations <> nil then
+    if Attribs <> nil then
     begin
-      for I := 0 to Locations.Count - 1 do
-        TGLSLProgram.DisableVertexAttribArray(Locations[I]);
-      FreeAndNil(Locations);
+      for I := 0 to Attribs.Count - 1 do
+        Attribs[I].DisableArray;
+      FreeAndNil(Attribs);
     end;
   end;
 
@@ -290,8 +260,11 @@ var
   I: Integer;
   First: Cardinal;
   Mode: TGLenum;
+  {$ifdef OpenGLES}
+  TexCoordAttrib: TGLSLAttribute;
+  {$endif}
 begin
-  Locations := nil;
+  Attribs := nil;
 
   RenderCoordinateBegin;
   try
@@ -302,23 +275,24 @@ begin
         glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtCoordinate]);
 
       {$ifdef OpenGLES}
-      Assert(CurrentProgram <> nil, 'OpenGL ES 2.0 rendering must go through shaders');
+      Assert(CurrentMeshShader <> nil, 'OpenGL ES 2.0 rendering must go through shaders');
 
-      CurrentProgram.SetUniform('castle_ModelViewMatrix', Shape.ModelView);
-      CurrentProgram.SetUniform('castle_ProjectionMatrix', ProjectionMatrix);
-      CurrentProgram.SetUniform('castle_NormalMatrix', ModelViewToNormalMatrix(Shape.ModelView));
-      CurrentProgram.SetUniform('castle_MaterialDiffuseAlpha', Shader.MaterialDiffuse[3]);
-      CurrentProgram.SetUniform('castle_MaterialShininess', Shader.MaterialShininessExp);
-      CurrentProgram.SetUniform('castle_SceneColor',
-        Vector3SingleCut(Shader.MaterialEmission) +
+      CurrentMeshShader.UniformCastle_ModelViewMatrix.SetValue(Shape.ModelView);
+      CurrentMeshShader.UniformCastle_ProjectionMatrix.SetValue(ProjectionMatrix);
+      CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ModelView));
+      CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Shader.MaterialDiffuse[3]);
+      CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(Shader.MaterialShininessExp);
+      CurrentMeshShader.UniformCastle_SceneColor.SetValue(Vector3SingleCut(Shader.MaterialEmission) +
         GlobalAmbient * Vector3SingleCut(Shader.MaterialAmbient));
-      CurrentProgram.SetUniform('castle_UnlitColor', Shader.MaterialUnlit);
+      CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Shader.MaterialUnlit);
 
-      Locations := TLongIntList.Create;
-      VertexAttrib('castle_Vertex', 0, 3, GL_FLOAT, GL_FALSE,
-        Arrays.CoordinateSize, PtrUInt(Arrays.Position));
-      OptionalVertexAttrib('castle_Normal', 0, 3, GL_FLOAT, GL_FALSE,
-        Arrays.CoordinateSize, PtrUInt(Arrays.Normal));
+      Attribs := TGLSLAttributeList.Create;
+
+      CurrentMeshShader.AttributeCastle_Vertex.EnableArrayVector3Single(Arrays.CoordinateSize, PtrUInt(Arrays.Position));
+      Attribs.Add(CurrentMeshShader.AttributeCastle_Vertex);
+
+      CurrentMeshShader.AttributeCastle_Normal.EnableArrayVector3Single(Arrays.CoordinateSize, PtrUInt(Arrays.Normal));
+      Attribs.Add(CurrentMeshShader.AttributeCastle_Normal);
       {$else}
       glEnableClientState(GL_VERTEX_ARRAY);
       glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
@@ -335,8 +309,8 @@ begin
         mcColorPerVertex:
           begin
             Assert(Arrays.HasColor);
-            OptionalVertexAttrib('castle_ColorPerVertex', 0, 4, GL_FLOAT, GL_FALSE,
-              Arrays.AttributeSize, PtrUInt(Arrays.Color));
+            CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4Single(Arrays.AttributeSize, PtrUInt(Arrays.Color));
+            Attribs.Add(CurrentMeshShader.AttributeCastle_ColorPerVertex);
           end;
 
         mcDefaultColor:
@@ -347,25 +321,27 @@ begin
               This matters for rendering IndexedLineSet with Material that has only
               emissiveColor (without IndexedLineSet.color per vertex).
               We cannot pass Arrays.DefaultColor in any other way to shader now. }
-            CurrentProgram.SetUniform('castle_UnlitColor',
-              Shader.MaterialUnlit * Arrays.DefaultColor);
+            CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Shader.MaterialUnlit * Arrays.DefaultColor);
           end;
       end;
 
       if Arrays.HasFogCoord then
       begin
-        OptionalVertexAttrib('castle_FogCoord', 0, 1, GL_FLOAT, GL_FALSE,
-          Arrays.AttributeSize, PtrUInt(Arrays.FogCoord));
+        CurrentMeshShader.AttributeCastle_FogCoord.EnableArraySingle(Arrays.AttributeSize, PtrUInt(Arrays.FogCoord));
+        Attribs.Add(CurrentMeshShader.AttributeCastle_FogCoord);
       end;
 
       for I := 0 to Arrays.TexCoords.Count - 1 do
         if (Arrays.TexCoords[I] <> nil) and
            (Arrays.TexCoords[I].Generation = tgExplicit) then
         begin
-          OptionalVertexAttrib(
-            Format('castle_MultiTexCoord%d', [I]),
-            0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE,
+          // TODO: would be faster to not query GLSLProgram.Attribute every frame,
+          // but save it in GLSLProgram.
+          TexCoordAttrib := CurrentMeshShader.AttributeOptional('castle_MultiTexCoord' + IntToStr(I));
+          if TexCoordAttrib.Location = -1 then Continue;
+          TexCoordAttrib.EnableArray(0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE,
             Arrays.AttributeSize, PtrUInt(Arrays.TexCoord(I, 0)));
+          Attribs.Add(TexCoordAttrib);
         end;
       {$else}
 
@@ -411,10 +387,10 @@ begin
       end;
       {$endif}
 
-      { We know now that CurrentProgram is the program set by
+      { We know now that CurrentMeshShader is the program set by
         TShaderCoordinateRenderer.RenderCoordinateBegin }
-      if (Arrays.Attribs.Count <> 0) and (CurrentProgram <> nil) then
-        EnableVertexAttrib(CurrentProgram);
+      if (Arrays.Attribs.Count <> 0) and (CurrentMeshShader <> nil) then
+        EnableVertexAttrib(CurrentMeshShader);
 
       // Disable warning about QUADS, because a single quad works,
       // and it's actually used often: by Background with textures.
@@ -882,8 +858,8 @@ begin
   begin
     if (Attributes.CustomShaderAlphaTest <> nil) and
        Renderer.FixedFunctionAlphaTest then
-      CurrentProgram := Attributes.CustomShaderAlphaTest else
-      CurrentProgram := Attributes.CustomShader;
+      CurrentMeshShader := Attributes.CustomShaderAlphaTest else
+      CurrentMeshShader := Attributes.CustomShader;
   end else
   begin
     if (Shape.Node <> nil) and
@@ -921,12 +897,15 @@ begin
 
       Assert(Shape.ProgramCache[Renderer.Pass] <> nil);
       CurrentX3DProgram := Shape.ProgramCache[Renderer.Pass].ShaderProgram;
-      CurrentProgram := CurrentX3DProgram;
+      CurrentMeshShader := CurrentX3DProgram;
+      Assert(CurrentX3DProgram <> nil, 'Shader is not initialized, but it has to be (creation of fallback shaders failed on OpenGLES?)');
       Shader.SetDynamicUniforms(CurrentX3DProgram);
     end else
-      CurrentProgram := nil;
+      CurrentMeshShader := nil;
   end;
 
-  if CurrentProgram <> nil then
-    CurrentProgram.SetupUniforms(BoundTextureUnits);
+  if CurrentMeshShader <> nil then
+    CurrentMeshShader.SetupUniforms(BoundTextureUnits);
+
+  CurrentProgram := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
 end;

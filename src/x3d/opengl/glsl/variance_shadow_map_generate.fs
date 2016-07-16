@@ -7,7 +7,7 @@ void main(void)
 
 #ifdef ALPHA_TEST
   /* work with alpha test textures.
-     For now we ssume the texture is only in 0th channel. */
+     For now we assume the texture is only in 0th channel. */
   if (texture2D(tex, gl_TexCoord[0].st).a < 0.5)
     discard;
 #endif

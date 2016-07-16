@@ -40,7 +40,7 @@ unit CastleGLShaders;
 interface
 
 uses SysUtils, Classes, CastleGL, CastleGLUtils, CastleUtils, CastleVectors,
-  FGL, CastleShaders;
+  FGL, CastleShaders, CastleGenericLists;
 
 type
   { Common class for exceptions related to GLSL programs. }
@@ -211,6 +211,8 @@ type
     { @groupEnd }
   end;
 
+  TGLSLAttributeList = specialize TGenericStructList<TGLSLAttribute>;
+
   { Easily handle program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
   private
@@ -336,21 +338,27 @@ type
       This is much like @link(Support), but it's a class function. }
     class function ClassSupport: TGLSupport;
 
-    { What to do when GLSL uniform variable is set (SetUniform)
-      but doesn't exist in the shader.
-      Note that OpenGL aggresively removes
-      unused code and variables from the shader when compiling/linking,
-      so this also happens for "declared but detected to not used" variables.
+    { What to do when GLSL uniform variable is accessed (by @link(SetUniform)
+      or @link(Uniform)) but doesn't exist in the shader.
+      Note that OpenGL aggresively removes unused code and variables
+      from the shader when compiling/linking, so this also happens for
+      "declared but unused" variables.
+
+      This is only the default value, each @link(Uniform) method call
+      may explicitly use other TUniformNotFoundAction.
 
       @seealso TUniformNotFoundAction }
     property UniformNotFoundAction: TUniformNotFoundAction
       read FUniformNotFoundAction write FUniformNotFoundAction
       default uaException;
 
-    { What to do when GLSL uniform variable is set (SetUniform)
+    { What to do when GLSL uniform variable is set
+      (by @link(TGLSLUniform.SetValue) or @link(SetUniform))
       but is declared with an incompatible type in the shader source.
-      Note that the default (utGLError) is fastest (other options will need
-      to check OpenGL error state often).
+
+      Note that the default (utGLError) is fastest. Other options will need
+      to check OpenGL error state often, which may cause performance drop.
+
       @seealso TUniformTypeMismatchAction }
     property UniformTypeMismatchAction: TUniformTypeMismatchAction
       read FUniformTypeMismatchAction write FUniformTypeMismatchAction
@@ -359,10 +367,21 @@ type
     { Get the uniform instance. It can be used to make repeated
       @link(TGLSLUniform.SetValue) calls. You must link the program first.
 
+      If the uniform doesn't exist (or is unused), the action
+      we take depends on @link(AUniformNotFoundAction) property
+      (by default -- uaException).
+      The overloaded version with extra @code(AUniformNotFoundAction)
+      parameter follows this parameter value.
+
       @raises(EGLSLUniformNotFound If the variable is not found within
-        the program and UniformNotFoundAction = uaException (default)
-        or ForceException.) }
-    function Uniform(const Name: string; const ForceException: boolean = false): TGLSLUniform;
+        the program and we the behaviour (determined
+        by AUniformTypeMismatchAction parameter or UniformTypeMismatchAction
+        property) is uaException.)
+
+      @groupBegin }
+    function Uniform(const Name: string): TGLSLUniform;
+    function Uniform(const Name: string; const AUniformNotFoundAction: TUniformNotFoundAction): TGLSLUniform;
+    { @groupEnd }
 
     { Set appropriate uniform variable value.
       The used type must match the type of this variable in GLSL program.
@@ -1754,7 +1773,12 @@ begin
   Result := true;
 end;
 
-function TGLSLProgram.Uniform(const Name: string; const ForceException: boolean): TGLSLUniform;
+function TGLSLProgram.Uniform(const Name: string): TGLSLUniform;
+begin
+  Result := Uniform(Name, UniformNotFoundAction);
+end;
+
+function TGLSLProgram.Uniform(const Name: string; const AUniformNotFoundAction: TUniformNotFoundAction): TGLSLUniform;
 
   procedure ReportUniformNotFound;
 
@@ -1764,12 +1788,11 @@ function TGLSLProgram.Uniform(const Name: string; const ForceException: boolean)
     end;
 
   begin
-    if (UniformNotFoundAction = uaException) or ForceException then
-      raise EGLSLUniformNotFound.Create(ErrMessage) else
-    case UniformNotFoundAction of
-      uaWarning: OnWarning(wtMinor, 'GLSL', ErrMessage);
-      uaIgnore: ;
-      else raise EInternalError.Create('UniformNotFoundAction? in TGLSLProgram.UniformNotFound');
+    case AUniformNotFoundAction of
+      uaWarning  : OnWarning(wtMinor, 'GLSL', ErrMessage);
+      uaException: raise EGLSLUniformNotFound.Create(ErrMessage);
+      uaIgnore   : ;
+      else raise EInternalError.Create('AUniformNotFoundAction? in TGLSLProgram.UniformNotFound');
     end;
   end;
 
@@ -1791,102 +1814,142 @@ end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: boolean; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLint; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Integer; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Integer; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Integer; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TGLfloat; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Single; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Single; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Single; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix2Single; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3Single; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4Single; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TBooleanList; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TLongIntList; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TSingleList; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2SingleList; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3SingleList; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4SingleList; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3SingleList; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4SingleList; const ForceException: boolean);
 begin
-  Uniform(Name, ForceException).SetValue(Value, ForceException);
+  if ForceException then
+    Uniform(Name, uaException).SetValue(Value, ForceException) else
+    Uniform(Name).SetValue(Value);
 end;
 
 function TGLSLProgram.AttributeOptional(const Name: string): TGLSLAttribute;

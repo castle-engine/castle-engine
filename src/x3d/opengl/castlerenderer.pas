@@ -201,14 +201,13 @@ unit CastleRenderer;
 
 interface
 
-uses
-  Classes, SysUtils, CastleUtils, CastleVectors, CastleGL,
-  X3DFields, X3DNodes, X3DLexer, CastleImages,
+uses Classes, SysUtils, FGL, CastleGL,
+  CastleUtils, CastleVectors, X3DFields, X3DNodes, X3DLexer, CastleImages,
   CastleGLUtils, CastleRendererInternalLights,
   CastleGLShaders, CastleGLImages, CastleVideos, X3DTime, CastleShapes,
-  CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D, FGL,
-  CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader, X3DShadowMaps,
-  CastleRendererInternalTextureEnv;
+  CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,
+  CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader,
+  X3DShadowMaps, CastleRendererInternalTextureEnv;
 
 {$define read_interface}
 
@@ -286,7 +285,7 @@ type
     FLineWidth: TGLFloat;
     FBumpMapping: TBumpMapping;
     FShaders: TShadersRendering;
-    FCustomShader, FCustomShaderAlphaTest: TGLSLProgram;
+    FCustomShader, FCustomShaderAlphaTest: TX3DShaderProgramBase;
     FMode: TRenderingMode;
     FVertexBufferObject: boolean;
     FShadowSampling: TShadowSampling;
@@ -474,15 +473,20 @@ type
       default DefaultShaders;
 
     { Custom GLSL shader to use for the whole scene.
-      When this is assigned, @link(Shaders) value is ignored. }
-    property CustomShader: TGLSLProgram read FCustomShader write FCustomShader;
+      When this is assigned, @link(Shaders) value is ignored.
+
+      @italic(Avoid using this.) It's not easy to create portable shaders,
+      that work both with OpenGL and OpenGLES. Try using "compositing shaders" instead
+      http://castle-engine.sourceforge.net/compositing_shaders.php which still allow you
+      to write GLSL effects, but they are integrated into standard shader code. }
+    property CustomShader: TX3DShaderProgramBase read FCustomShader write FCustomShader;
 
     { Alternative custom GLSL shader used when alpha test is necessary.
       Relevant only if CustomShader <> nil.
 
       @italic(Do not use this.) This is a temporary hack to enable VSM working
       with alpha test. It's not clean, and should not be used for anything else. }
-    property CustomShaderAlphaTest: TGLSLProgram read FCustomShaderAlphaTest write FCustomShaderAlphaTest;
+    property CustomShaderAlphaTest: TX3DShaderProgramBase read FCustomShaderAlphaTest write FCustomShaderAlphaTest;
 
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;

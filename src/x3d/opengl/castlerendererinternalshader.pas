@@ -49,12 +49,39 @@ type
     procedure Clear;
   end;
 
+  { GLSL program that may be used by the X3D renderer.
+    Provides some extra features, above the standard TGLSLProgram,
+    but does not require to link the shader using TShader algorithm. }
+  TX3DShaderProgramBase = class(TGLSLProgram)
+  public
+    {$ifdef OpenGLES}
+    { Uniforms initialized after linking.
+      Initializing them only once after linking allows the mesh renderer to go fast. }
+    UniformCastle_ModelViewMatrix,
+    UniformCastle_ProjectionMatrix,
+    UniformCastle_NormalMatrix,
+    UniformCastle_MaterialDiffuseAlpha,
+    UniformCastle_MaterialShininess,
+    UniformCastle_SceneColor,
+    UniformCastle_UnlitColor: TGLSLUniform;
+
+    { Attributes initialized after linking.
+      Initializing them only once after linking allows the mesh renderer to go fast. }
+    AttributeCastle_Vertex,
+    AttributeCastle_Normal,
+    AttributeCastle_ColorPerVertex,
+    AttributeCastle_FogCoord: TGLSLAttribute;
+
+    procedure Link; override;
+    {$endif}
+  end;
+
   { GLSL program integrated with VRML/X3D and TShader.
     Allows to bind uniform values from VRML/X3D fields,
     and to observe VRML/X3D events and automatically update uniform values.
     Also allows to initialize and check program by TShader.LinkProgram,
     and get a hash of it by TShader.CodeHash. }
-  TX3DShaderProgram = class(TGLSLProgram)
+  TX3DShaderProgram = class(TX3DShaderProgramBase)
   private
     { Events where we registered our EventReceive method. }
     EventsObserved: TX3DEventList;
@@ -101,7 +128,7 @@ type
     { Set and observe uniform variables from given Node.InterfaceDeclarations.
 
       Non-texture fields are set immediately.
-      Non-texture fields and events are then observed by this shader,
+      Non-texture fields, and also events, become observed by this shader,
       and automatically updated when changed.
 
       Texture fields have to be updated by descendant (like TX3DGLSLProgram),
@@ -903,6 +930,26 @@ begin
     end;
   Shader := nil;
   Result := false;
+end;
+
+{ TX3DShaderProgramBase ------------------------------------------------------ }
+
+procedure TX3DShaderProgramBase.Link;
+begin
+  inherited;
+
+  UniformCastle_ModelViewMatrix      := Uniform('castle_ModelViewMatrix'     , uaIgnore);
+  UniformCastle_ProjectionMatrix     := Uniform('castle_ProjectionMatrix'    , uaIgnore);
+  UniformCastle_NormalMatrix         := Uniform('castle_NormalMatrix'        , uaIgnore);
+  UniformCastle_MaterialDiffuseAlpha := Uniform('castle_MaterialDiffuseAlpha', uaIgnore);
+  UniformCastle_MaterialShininess    := Uniform('castle_MaterialShininess'   , uaIgnore);
+  UniformCastle_SceneColor           := Uniform('castle_SceneColor'          , uaIgnore);
+  UniformCastle_UnlitColor           := Uniform('castle_UnlitColor'          , uaIgnore);
+
+  AttributeCastle_Vertex         := AttributeOptional('castle_Vertex');
+  AttributeCastle_Normal         := AttributeOptional('castle_Normal');
+  AttributeCastle_ColorPerVertex := AttributeOptional('castle_ColorPerVertex');
+  AttributeCastle_FogCoord       := AttributeOptional('castle_FogCoord');
 end;
 
 { TX3DShaderProgram ------------------------------------------------------- }
@@ -2454,9 +2501,11 @@ begin
       under Linux), on ATI (tested proprietary OpenGL drivers under Linux and Windows)
       this doesn't seem needed (less aggressive removal of unused vars).
 
-    - Invalid types should always be reported (in debug mode, as OpenGL errors,
-      this is fastest). We carefully code to always specify correct types
-      for our uniform variables. }
+    - Invalid types should always be reported in debug mode, as OpenGL errors.
+      This is the fastest option (other values for UniformTypeMismatchAction
+      are not good for performance, causing glGetError around every
+      TGLSLUniform.SetValue call, very very slow). We carefully code to
+      always specify correct types for our uniform variables. }
   AProgram.UniformNotFoundAction := uaIgnore;
   AProgram.UniformTypeMismatchAction := utGLError;
 
