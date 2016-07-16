@@ -750,7 +750,9 @@ begin
 
   if GLVersion.Fglrx then
   begin
-    ShaderString := '#define FGLRX' + NL + ShaderString;
+    StringReplaceAllVar(ShaderString,
+      '/*$defines*/',
+      '/*$defines*/' + NL + '#define FGLRX');
   end else
   begin
     { Integer constants are really constant for the shader.
@@ -765,7 +767,7 @@ begin
   GLSLProgram[0].AttachFragmentShader(ShaderString);
   { For this test program, we eventually allow shader to run in software.
     We display debug info, so user should know what's going on. }
-  GLSLProgram[0].Link(false);
+  GLSLProgram[0].Link;
   { Only warn on non-used uniforms. This is more comfortable for shader
     development, you can easily comment shader parts. }
   GLSLProgram[0].UniformNotFoundAction := uaWarning;
@@ -774,11 +776,13 @@ begin
 
   { Analogously, load GLSLProgram[1] (for 2nd pass). The only difference
     is that we #define PASS_2 this time. }
-  ShaderString := '#define PASS_2' + NL + ShaderString;
+  StringReplaceAllVar(ShaderString,
+    '/*$defines*/',
+    '/*$defines*/' + NL + '#define PASS_2');
   GLSLProgram[1] := TGLSLProgram.Create;
   GLSLProgram[1].AttachFragmentShader(ShaderString);
   GLSLProgram[1].UniformNotFoundAction := uaWarning;
-  GLSLProgram[1].Link(false);
+  GLSLProgram[1].Link;
   Writeln('----------------------------- Shader for 2nd pass:');
   Writeln(GLSLProgram[1].DebugInfo);
 
