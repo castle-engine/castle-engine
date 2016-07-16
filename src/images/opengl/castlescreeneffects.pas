@@ -47,7 +47,7 @@ function ScreenEffectVertex: string;
   Shader.AttachFragmentShader(
     ScreenEffectFragment(false { or true if you use depth }) +
     '... my custom screen effect GLSL code ...');
-  Shader.Link(true);
+  Shader.Link;
   { uaIgnore is a good idea here, in case some uniform variable
     from ScreenEffectFragment code may be left unused. }
   Shader.UniformNotFoundAction := uaIgnore;

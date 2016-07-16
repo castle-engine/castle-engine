@@ -497,7 +497,7 @@ begin
   GLSLProgram.AttachFragmentShader(Prefix + FileToString(ApplicationData('terrain.fs')));
   { For this test program, we eventually allow shader to run in software.
     We display debug info, so user should know what's going on. }
-  GLSLProgram.Link(false);
+  GLSLProgram.Link;
   { Only warn on non-used uniforms. This is more comfortable for shader
     development, you can easily comment shader parts. }
   GLSLProgram.UniformNotFoundAction := uaWarning;

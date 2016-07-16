@@ -678,7 +678,7 @@ begin
           NewProgram.Prog := TGLSLProgram.Create;
           NewProgram.Prog.AttachVertexShader(VS);
           NewProgram.Prog.AttachFragmentShader(FS);
-          NewProgram.Prog.Link(true);
+          NewProgram.Prog.Link;
 
           NewProgram.UniformViewportSize := NewProgram.Prog.Uniform('viewport_size');
           if ColorTreatment <> ctPureTexture then

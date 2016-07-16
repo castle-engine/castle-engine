@@ -1583,7 +1583,7 @@ procedure TCastleScene.Render(
       begin
         VarianceShadowMapsProgram[false] := TGLSLProgram.Create;
         VarianceShadowMapsProgram[false].AttachFragmentShader({$I variance_shadow_map_generate.fs.inc});
-        VarianceShadowMapsProgram[false].Link(true);
+        VarianceShadowMapsProgram[false].Link;
       end;
 
       if VarianceShadowMapsProgram[true] = nil then
@@ -1591,7 +1591,7 @@ procedure TCastleScene.Render(
         VarianceShadowMapsProgram[true] := TGLSLProgram.Create;
         VarianceShadowMapsProgram[true].AttachFragmentShader(
           '#define ALPHA_TEST' + NL + {$I variance_shadow_map_generate.fs.inc});
-        VarianceShadowMapsProgram[true].Link(true);
+        VarianceShadowMapsProgram[true].Link;
       end;
 
       SavedCustomShader          := Attributes.CustomShader;

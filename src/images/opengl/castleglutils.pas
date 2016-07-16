@@ -1538,7 +1538,7 @@ begin
     GLRectangleProgram := TGLSLProgram.Create;
     GLRectangleProgram.AttachVertexShader({$I rectangle.vs.inc});
     GLRectangleProgram.AttachFragmentShader({$I rectangle.fs.inc});
-    GLRectangleProgram.Link(true);
+    GLRectangleProgram.Link;
 
     GLRectangleUniformViewportSize := GLRectangleProgram.Uniform('viewport_size');
     GLRectangleUniformColor := GLRectangleProgram.Uniform('color');
