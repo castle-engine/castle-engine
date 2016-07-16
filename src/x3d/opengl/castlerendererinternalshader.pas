@@ -934,6 +934,7 @@ end;
 
 { TX3DShaderProgramBase ------------------------------------------------------ }
 
+{$ifdef OpenGLES}
 procedure TX3DShaderProgramBase.Link;
 begin
   inherited;
@@ -951,6 +952,7 @@ begin
   AttributeCastle_ColorPerVertex := AttributeOptional('castle_ColorPerVertex');
   AttributeCastle_FogCoord       := AttributeOptional('castle_FogCoord');
 end;
+{$endif}
 
 { TX3DShaderProgram ------------------------------------------------------- }
 
