@@ -2428,7 +2428,7 @@ begin
 
     for ShaderType := Low(ShaderType) to High(ShaderType) do
       AProgram.AttachShader(ShaderType, Source[ShaderType]);
-    AProgram.Link(true);
+    AProgram.Link;
 
     if SelectedNode <> nil then
       SelectedNode.EventIsValid.Send(true);
@@ -2475,7 +2475,7 @@ begin
       'Fallback fragment shader:' + NL + FS);
   AProgram.AttachShader(stVertex, VS);
   AProgram.AttachShader(stFragment, FS);
-  AProgram.Link(true);
+  AProgram.Link;
 
   AProgram.UniformNotFoundAction := uaIgnore;
   AProgram.UniformTypeMismatchAction := utGLError;

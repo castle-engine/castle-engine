@@ -48,7 +48,6 @@ type
 
   EGLSLShaderCompileError = class(EGLSLError);
   EGLSLProgramLinkError = class(EGLSLError);
-  EGLSLRunningInSoftware = class(EGLSLError);
   EGLSLAttributeNotFound = class(EGLSLError);
 
   EGLSLUniformInvalid = class(EGLSLError);
@@ -275,12 +274,9 @@ type
 
       @raises(EGLSLProgramLinkError If the program cannot be linked,
         exception message contains precise description from OpenGL where
-        the error is.)
-
-      @raises(EGLSLRunningInSoftware If the program will be linked
-        successfully, but RequireRunningInHardware = @true and the program
-        will be detected to be running in software.) }
-    procedure Link(RequireRunningInHardware: boolean);
+        the error is.) }
+    procedure Link; virtual;
+    procedure Link(Ignored: boolean); deprecated 'use parameterless Link method';
 
     { Enable (use) this program. Shortcut for @code(CurrentProgram := Self). }
     procedure Enable;
@@ -1701,7 +1697,7 @@ begin
   ShaderIds.Count := 0;
 end;
 
-procedure TGLSLProgram.Link(RequireRunningInHardware: boolean);
+procedure TGLSLProgram.Link;
 var
   Linked: TGLuint;
 begin
@@ -1726,13 +1722,13 @@ begin
       end;
   end;
 
-  if RequireRunningInHardware and (not RunningInHardware) then
-    raise EGLSLRunningInSoftware.CreateFmt(
-      'GLSL shader linked but rejected, as it seems it will run in software.' +
-      'Program info log is "%s"', [ProgramInfoLog]);
-
   if Log and LogShaders then
     WritelnLogMultiline('GLSL', 'GLSL program successfully linked. Information:' + NL + DebugInfo);
+end;
+
+procedure TGLSLProgram.Link(Ignored: boolean);
+begin
+  Link;
 end;
 
 function TGLSLProgram.RunningInHardware: boolean;

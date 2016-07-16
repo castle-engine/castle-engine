@@ -25,7 +25,7 @@ uses Classes, CastleVectors, X3DNodes, CastleScene, CastleSceneCore, CastleCamer
   CastleKeysMouse, CastleBoxes, CastleBackground, CastleUtils, CastleClassUtils,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, FGL, CastleSectors,
   CastleInputs, CastlePlayer, CastleRectangles, CastleColors, CastleGL,
-  CastleRays;
+  CastleRays, CastleScreenEffects;
 
 type
   TCastleAbstractViewport = class;
@@ -99,7 +99,7 @@ type
     FTransparent: boolean;
 
     FScreenSpaceAmbientOcclusion: boolean;
-    SSAOShader: TGLSLProgram;
+    SSAOShader: TGLSLScreenEffect;
 
     { Set these to non-1 to deliberately distort field of view / aspect ratio.
       This is useful for special effects when you want to create unrealistic
@@ -1139,7 +1139,7 @@ implementation
 
 uses SysUtils, CastleRenderingCamera, CastleGLUtils, CastleProgress,
   CastleLog, CastleStringUtils, CastleSoundEngine, Math,
-  X3DTriangles, CastleGLVersion, CastleShapes, CastleScreenEffects;
+  X3DTriangles, CastleGLVersion, CastleShapes;
 
 procedure Register;
 begin
@@ -2316,8 +2316,6 @@ begin
 end;
 
 procedure TCastleAbstractViewport.GLContextOpen;
-var
-  VS, FS: string;
 begin
   inherited;
 
@@ -2326,17 +2324,10 @@ begin
     if TGLSLProgram.ClassSupport <> gsNone then
     begin
       try
-        SSAOShader := TGLSLProgram.Create;
-        VS := ScreenEffectVertex;
-        FS := ScreenEffectFragment(true) + {$I ssao.glsl.inc};
-        if Log and LogShaders then
-          WritelnLogMultiline('GLSL SSAO shader',
-            'SSAO vertex shader:' + NL +  VS + NL +
-            'SSAO fragment shader:' + NL + FS);
-        SSAOShader.AttachVertexShader(VS);
-        SSAOShader.AttachFragmentShader(FS);
-        SSAOShader.Link(true);
-        SSAOShader.UniformNotFoundAction := uaIgnore;
+        SSAOShader := TGLSLScreenEffect.Create;
+        SSAOShader.NeedsDepth := true;
+        SSAOShader.ScreenEffectShader := {$I ssao.glsl.inc};
+        SSAOShader.Link;
       except
         on E: EGLSLError do
         begin

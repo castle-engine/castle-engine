@@ -13,19 +13,26 @@
   ----------------------------------------------------------------------------
 }
 
-{ Utilities for creating custom screen effects. }
+{ Custom screen effects (TGLSLScreenEffect). }
 unit CastleScreenEffects;
 
 {$I castleconf.inc}
 
 interface
 
-{ Standard GLSL vertex shader for screen effect. }
+uses CastleGLShaders;
+
+{ Standard GLSL vertex shader for screen effect.
+  @bold(In your own programs, it's usually easier to use TGLSLScreenEffect,
+  and then this function is not necessary). }
 function ScreenEffectVertex: string;
 
 (*Library of GLSL fragment shader functions useful for screen effects.
   This looks at current OpenGL context multi-sampling capabilities
   to return the correct shader code.
+
+  @bold(In your own programs, it's usually easier to use TGLSLScreenEffect,
+  and then this function is not necessary).
 
   Note that to work with OpenGLES, we have to glue all fragment shaders,
   and ScreenEffectFragment must be before the actual shader code.
@@ -48,6 +55,37 @@ function ScreenEffectVertex: string;
 
 *)
 function ScreenEffectFragment(const Depth: boolean): string;
+
+type
+  { GLSL shader program specialized for rendering screen effects.
+    See http://castle-engine.sourceforge.net/x3d_extensions_screen_effects.php
+    about screen effects.
+
+    Do not use the ancestor AttachVertexShader and AttachFragmentShader
+    methods, instead set the @link(ScreenEffectShader).
+    This way, the standard GLSL functionality of screen effects
+    will be attached to the vertex and fragment shader code automatically.
+    At link time, this looks at current OpenGL context multi-sampling capabilities,
+    and the @link(NeedsDepth) value, to link the correct shader code. }
+  TGLSLScreenEffect = class(TGLSLProgram)
+  private
+    FScreenEffectShader: string;
+    FNeedsDepth: boolean;
+  public
+    constructor Create;
+
+    property NeedsDepth: boolean read FNeedsDepth write FNeedsDepth default false;
+
+    { In this class, UniformNotFoundAction is by default uaIgnore, since it's
+      normal that screen effect doesn't use some of it's uniform variables. }
+    property UniformNotFoundAction default uaIgnore;
+
+    { Attach GLSL code for the screen effect (executed as part of fragment shader).
+      See http://castle-engine.sourceforge.net/x3d_extensions_screen_effects.php . }
+    property ScreenEffectShader: string read FScreenEffectShader write FScreenEffectShader;
+
+    procedure Link; override;
+  end;
 
 implementation
 
@@ -74,6 +112,23 @@ begin
         [GLFeatures.CurrentMultiSampling]));
   end;
   Result += {$I screen_effect_library.glsl.inc} + NL;
+end;
+
+{ TGLSLScreenEffect ---------------------------------------------------------- }
+
+constructor TGLSLScreenEffect.Create;
+begin
+  inherited;
+  UniformNotFoundAction := uaIgnore;
+end;
+
+procedure TGLSLScreenEffect.Link;
+begin
+  if FScreenEffectShader = '' then
+    raise Exception.Create('TGLSLScreenEffect shader not assigned by AttachScreenEffectShader method');
+  AttachVertexShader(ScreenEffectVertex);
+  AttachFragmentShader(ScreenEffectFragment(NeedsDepth) + FScreenEffectShader);
+  inherited;
 end;
 
 end.
