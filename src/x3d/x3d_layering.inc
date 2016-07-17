@@ -83,10 +83,10 @@ begin
   inherited;
 
   FFdIsPickable := TSFBool.Create(Self, 'isPickable', true);
-  Fields.Add(FFdIsPickable);
+  AddField(FFdIsPickable);
 
   FFdViewport := TSFNode.Create(Self, 'viewport', [TAbstractViewportNode]);
-  Fields.Add(FFdViewport);
+  AddField(FFdViewport);
 
   DefaultContainerField := 'layers';
 end;
@@ -101,13 +101,13 @@ begin
   inherited;
 
   FEventAddChildren := TMFNodeEvent.Create(Self, 'addChildren', true);
-  Events.Add(FEventAddChildren);
+  AddEvent(FEventAddChildren);
 
   FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
-  Events.Add(FEventRemoveChildren);
+  AddEvent(FEventRemoveChildren);
 
   FFdChildren := TMFNode.Create(Self, 'children', [TAbstractChildNode]);
-  Fields.Add(FFdChildren);
+  AddField(FFdChildren);
 end;
 
 class function TLayerNode.ClassNodeTypeName: string;
@@ -126,14 +126,14 @@ begin
   inherited;
 
   FFdActiveLayer := TSFInt32.Create(Self, 'activeLayer', 0);
-  Fields.Add(FFdActiveLayer);
+  AddField(FFdActiveLayer);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdLayers := TMFNode.Create(Self, 'layers', [TAbstractLayerNode]);
-  Fields.Add(FFdLayers);
+  AddField(FFdLayers);
 
   FFdOrder := TMFInt32.Create(Self, 'order', [0]);
-  Fields.Add(FFdOrder);
+  AddField(FFdOrder);
   { X3D specification comment: (0,Inf) }
 
   DefaultContainerField := 'children';
@@ -155,7 +155,7 @@ begin
   inherited;
 
   FFdClipBoundary := TMFFloat.Create(Self, 'clipBoundary', [0.0]);
-  Fields.Add(FFdClipBoundary);
+  AddField(FFdClipBoundary);
   { X3D specification comment: 1 0 1  [0,1] }
 end;
 

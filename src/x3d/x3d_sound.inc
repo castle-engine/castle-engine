@@ -137,14 +137,14 @@ begin
   inherited;
 
   FFdDescription := TSFString.Create(Self, 'description', '');
-  Fields.Add(FFdDescription);
+  AddField(FFdDescription);
 
   FFdPitch := TSFFloat.Create(Self, 'pitch', 1.0);
-  Fields.Add(FFdPitch);
+  AddField(FFdPitch);
   { X3D specification comment: (0,Inf) }
 
   FEventDuration_changed := TSFTimeEvent.Create(Self, 'duration_changed', false);
-  Events.Add(FEventDuration_changed);
+  AddEvent(FEventDuration_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -161,7 +161,7 @@ begin
   inherited;
 
   FFdUrl := TMFString.Create(Self, 'url', []);
-  Fields.Add(FFdUrl);
+  AddField(FFdUrl);
   { X3D specification comment: [urn] }
 
   EventIsActive.OnReceive.Add(@UpdatePlayingEvent);
@@ -377,44 +377,44 @@ begin
   inherited;
 
   FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, 1));
-  Fields.Add(FFdDirection);
+  AddField(FFdDirection);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdIntensity := TSFFloat.Create(Self, 'intensity', 1);
-  Fields.Add(FFdIntensity);
+  AddField(FFdIntensity);
   { X3D specification comment: [0,1] }
 
   FFdLocation := TSFVec3f.Create(Self, 'location', Vector3Single(0, 0, 0));
    FdLocation.OnReceive.Add(@EventLocationReceive);
-  Fields.Add(FFdLocation);
+  AddField(FFdLocation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdMaxBack := TSFFloat.Create(Self, 'maxBack', 10);
-  Fields.Add(FFdMaxBack);
+  AddField(FFdMaxBack);
   { X3D specification comment: [0,Inf) }
 
   FFdMaxFront := TSFFloat.Create(Self, 'maxFront', 10);
-  Fields.Add(FFdMaxFront);
+  AddField(FFdMaxFront);
   { X3D specification comment: [0,Inf) }
 
   FFdMinBack := TSFFloat.Create(Self, 'minBack', 1);
-  Fields.Add(FFdMinBack);
+  AddField(FFdMinBack);
   { X3D specification comment: [0,Inf) }
 
   FFdMinFront := TSFFloat.Create(Self, 'minFront', 1);
-  Fields.Add(FFdMinFront);
+  AddField(FFdMinFront);
   { X3D specification comment: [0,Inf) }
 
   FFdPriority := TSFFloat.Create(Self, 'priority', 0);
-  Fields.Add(FFdPriority);
+  AddField(FFdPriority);
   { X3D specification comment: [0,1] }
 
   FFdSource := TSFNode.Create(Self, 'source', IAbstractSoundSourceNode);
-  Fields.Add(FFdSource);
+  AddField(FFdSource);
 
   FFdSpatialize := TSFBool.Create(Self, 'spatialize', true);
   FFdSpatialize.Exposed := false;
-  Fields.Add(FFdSpatialize);
+  AddField(FFdSpatialize);
 
   DefaultContainerField := 'children';
 

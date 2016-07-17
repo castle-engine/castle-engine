@@ -181,7 +181,7 @@ function ParseXMLNode(Element: TDOMElement;
               Continue;
             end;
 
-            FieldIndex := Result.Fields.IndexOf(FieldName);
+            FieldIndex := Result.IndexOfField(FieldName);
             if FieldIndex = -1 then
             begin
               OnWarning(wtMajor, 'VRML/X3D', Format('X3D XML: <fieldValue> element references unknown field name "%s"', [FieldName]));

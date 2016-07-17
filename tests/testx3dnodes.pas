@@ -345,21 +345,21 @@ begin
 
         Also, doesn't check the implicitly exposed events for now. }
 
-      for J := 0 to N.Fields.Count - 1 do
+      for J := 0 to N.FieldsCount - 1 do
       begin
         CurrentName := N.Fields[J].Name;
-        for K := 0 to N.Fields.Count - 1 do
+        for K := 0 to N.FieldsCount - 1 do
           AssertTrue((K = J) or (not N.Fields[K].IsName(CurrentName)));
-        for K := 0 to N.Events.Count - 1 do
+        for K := 0 to N.EventsCount - 1 do
           AssertTrue(not N.Events[K].IsName(CurrentName));
       end;
 
-      for J := 0 to N.Events.Count - 1 do
+      for J := 0 to N.EventsCount - 1 do
       begin
         CurrentName := N.Events[J].Name;
-        for K := 0 to N.Fields.Count - 1 do
+        for K := 0 to N.FieldsCount - 1 do
           AssertTrue(not N.Fields[K].IsName(CurrentName));
-        for K := 0 to N.Events.Count - 1 do
+        for K := 0 to N.EventsCount - 1 do
           AssertTrue((K = J) or (not N.Events[K].IsName(CurrentName)));
       end;
     finally FreeAndNil(N) end;
@@ -987,7 +987,7 @@ begin
     try
       if N is TAbstractGeometryNode then
       begin
-        for J := 0 to N.Fields.Count - 1 do
+        for J := 0 to N.FieldsCount - 1 do
           if N.Fields[J].Name <> 'metadata' then
           try
             AssertTrue(N.Fields[J].ExecuteChanges = [chGeometry]);
@@ -997,7 +997,7 @@ begin
           end;
       end else
       begin
-        for J := 0 to N.Fields.Count - 1 do
+        for J := 0 to N.FieldsCount - 1 do
         try
           AssertTrue(not (chGeometry in N.Fields[J].ExecuteChanges));
         except
@@ -1023,7 +1023,7 @@ begin
       if N.VRML1StateNode(VRML1StateNode) and
          (VRML1StateNode <> vsCoordinate3) then
       begin
-        for J := 0 to N.Fields.Count - 1 do
+        for J := 0 to N.FieldsCount - 1 do
           if (N.Fields[J].Name <> 'metadata') and
              (N.Fields[J].Name <> 'effects') then
           try
@@ -1035,7 +1035,7 @@ begin
           end;
       end else
       begin
-        for J := 0 to N.Fields.Count - 1 do
+        for J := 0 to N.FieldsCount - 1 do
           { alphaChannel field is allowed exception }
           if N.Fields[J].Name <> 'alphaChannel' then
           try
@@ -1062,7 +1062,7 @@ begin
     try
       if N is TAbstractColorNode then
       begin
-        for J := 0 to N.Fields.Count - 1 do
+        for J := 0 to N.FieldsCount - 1 do
           if N.Fields[J].Name <> 'metadata' then
           try
             AssertTrue(N.Fields[J].ExecuteChanges = [chColorNode]);
@@ -1072,7 +1072,7 @@ begin
           end;
       end else
       begin
-        for J := 0 to N.Fields.Count - 1 do
+        for J := 0 to N.FieldsCount - 1 do
         try
           AssertTrue(not (chColorNode in N.Fields[J].ExecuteChanges));
         except
@@ -1096,7 +1096,7 @@ begin
     try
       if N is TAbstractTextureCoordinateNode then
       begin
-        for J := 0 to N.Fields.Count - 1 do
+        for J := 0 to N.FieldsCount - 1 do
           if N.Fields[J].Name <> 'metadata' then
           try
             AssertTrue(N.Fields[J].ExecuteChanges = [chTextureCoordinate]);
@@ -1106,7 +1106,7 @@ begin
           end;
       end else
       begin
-        for J := 0 to N.Fields.Count - 1 do
+        for J := 0 to N.FieldsCount - 1 do
         try
           AssertTrue(not (chTextureCoordinate in N.Fields[J].ExecuteChanges));
         except
@@ -1295,7 +1295,7 @@ begin
   begin
     N := NodesManager.Registered[I].Create;
     try
-      for J := 0 to N.Fields.Count - 1 do
+      for J := 0 to N.FieldsCount - 1 do
       try
         Changes := N.Fields[J].ExecuteChanges;
         AssertTrue((Changes <> []) or ConfirmedEmptyChanges(N.Fields[J]));
@@ -1352,7 +1352,7 @@ procedure TTestX3DNodes.TestITransformNode;
   var
     I: Integer;
   begin
-    for I := 0 to N.Fields.Count - 1 do
+    for I := 0 to N.FieldsCount - 1 do
       if chTransform in N.Fields[I].ExecuteChanges then
         Exit(true);
     Result := false;

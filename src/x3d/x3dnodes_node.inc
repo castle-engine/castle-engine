@@ -97,6 +97,8 @@
     function GetRoutes(const Index: Integer): TX3DRoute;
     function GetImports(const Index: Integer): TX3DImport;
     function GetExports(const Index: Integer): TX3DExport;
+    function GetFields(const Index: Integer): TX3DField;
+    function GetEvents(const Index: Integer): TX3DEvent;
   protected
 
     { Does actual DeepCopy work. You can override this to copy some
@@ -265,12 +267,12 @@
   public
     { Node fields.
 
-      For normal nodes, all Fields are created and added
-      to Fields list in constructor. Fields default values are set,
-      and of course current field values are set to these defaults.
+      For normal nodes, all fields are created and added
+      using AddField from the constructor. Fields default values are set,
+      and current field values are set to these defaults.
       Later, we only modify these fields current values (e.g. when parsing).
 
-      However, there are special node classes that set their Fields differently.
+      However, there are special node classes that set their fields differently.
       TX3DPrototypeNode has their fields set according to it's VRML 2.0 prototype.
       TX3DUnknownNode may have it's fields set by VRML 1.0 "fields" feature
       (so it's Fields are initialized by parsing it).
@@ -278,12 +280,22 @@
       Nodes with HasInterfaceDeclarations have some Fields and Events
       added when reading node.
 
-      All fields on this list are owned by this object. }
-    property Fields: TX3DFieldList read FFields;
+      All fields on this list are owned by this instance.
+      @groupBegin }
+    property Fields [Index: Integer]: TX3DField read GetFields;
+    function FieldsCount: Integer;
+    procedure AddField(const Value: TX3DField);
+    function IndexOfField(const AName: string): Integer;
+    { @groupEnd }
 
     { Explicit events (that is, not exposed by some field) of this node.
-      For exposed events, see each field's property ExposedEvents. }
-    property Events: TX3DEventList read FEvents;
+      For exposed events, see each field's property ExposedEvents.
+      @groupBegin }
+    property Events [Index: Integer]: TX3DEvent read GetEvents;
+    function EventsCount: Integer;
+    procedure AddEvent(const Value: TX3DEvent);
+    function IndexOfEvent(const AName: string): Integer;
+    { @groupEnd }
 
     { Search by name for given field or event (exposed by some field or not).
 
@@ -358,7 +370,7 @@
       it is not freed. It's always returned. }
     function VRML1ChildExtract(I: Integer): TX3DNode;
 
-    { VRML 1.0 parent nodes. VRML1Parents is a reverse of
+    { All VRML 1.0 parent nodes. VRML1Parents is a reverse of
       VRML1Children --- it lists all the nodes where we are on VRML1Children
       list.
 
@@ -367,7 +379,7 @@
     function VRML1ParentsCount: integer;
     { @groupEnd }
 
-    { This lists all SFNode and MFNode fields where this node is referenced.
+    { All SFNode and MFNode fields where this node is referenced.
       This is somewhat analogous for VRML1Parents, but for VRML 2.0.
 
       ParentFieldsNode is just for your comfort, it returns always
@@ -1387,9 +1399,9 @@ begin
     if Result <> nil then Exit;
   end;
 
-  for I := 0 to Fields.Count - 1 do
+  for I := 0 to FFields.Count - 1 do
   begin
-    F := Fields[I];
+    F := FFields[I];
     if F is TSFNode then
     begin
       SF := TSFNode(F);
@@ -1721,7 +1733,7 @@ begin
     all VRML versions allow to define your own nodes and fields. }
   if Lexer.Token = vtName then
   begin
-    I := Fields.IndexOf(Lexer.TokenName);
+    I := IndexOfField(Lexer.TokenName);
     if I >= 0 then
     begin
       Result := true;
@@ -1847,7 +1859,7 @@ var
          (Attr.Name = SAttrDEF) then
         Continue;
 
-      Index := Fields.IndexOf(Attr.Name);
+      Index := IndexOfField(Attr.Name);
       if Index >= 0 then
       begin
         Fields[Index].ParseXMLAttribute(Attr.Value, Reader);
@@ -1944,7 +1956,7 @@ var
           if Child <> nil then
           try
             Child.PositionInParent := Position;
-            FieldIndex := Fields.IndexOf(ContainerField);
+            FieldIndex := IndexOfField(ContainerField);
 
             if (FieldIndex = -1) and
                (ContainerField <> Child.DefaultContainerField) and
@@ -1952,7 +1964,7 @@ var
             begin
               { Retry with DefaultContainerField value, since it exists
                 and is different than current ContainerField. }
-              FieldIndex := Fields.IndexOf(Child.DefaultContainerField);
+              FieldIndex := IndexOfField(Child.DefaultContainerField);
               if FieldIndex >= 0 then
                 OnWarning(wtMajor, 'VRML/X3D', 'X3D XML: containerField indicated unknown field name ("' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + NodeTypeName + '"), using the default containerField value "' + Child.DefaultContainerField + '" succeded');
             end;
@@ -2456,7 +2468,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
       for I := 0 to PrototypesCount - 1 do
         Result.Add(Prototypes[I]);
 
-      for I := 0 to Fields.Count - 1 do
+      for I := 0 to FieldsCount - 1 do
       begin
         { Saving InterfaceDeclarations already handled saving fields
           with ParentInterfaceDeclaration <> nil, so no need to save them again. }
@@ -2475,7 +2487,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
         for I := 0 to VRML1ChildrenCount - 1 do
           Result.Add(VRML1Children[I]);
 
-      for I := 0 to Events.Count - 1 do
+      for I := 0 to EventsCount - 1 do
         if { Saving InterfaceDeclarations already handled saving events
              with ParentInterfaceDeclaration <> nil, so no need to save them again. }
            (Events[I].ParentInterfaceDeclaration = nil) then
@@ -2518,7 +2530,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
     NodeFields := TCastleStringList.Create;
     ProtoFields := TCastleStringList.Create;
 
-    for I := 0 to Fields.Count - 1 do
+    for I := 0 to FieldsCount - 1 do
     begin
       if (Writer.Encoding <> xeClassic) or
          (Fields[I].ParentInterfaceDeclaration = nil) then
@@ -2532,7 +2544,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
       end;
     end;
 
-    for I := 0 to Events.Count - 1 do
+    for I := 0 to EventsCount - 1 do
       if (Writer.Encoding <> xeClassic) or
          (Events[I].ParentInterfaceDeclaration = nil) then
         AddIsClauses(Events[I]);
@@ -2807,9 +2819,9 @@ begin
     end;
   end;
 
-  for I := 0 to Fields.Count - 1 do
+  for I := 0 to FFields.Count - 1 do
   begin
-    if Fields[I] is TSFNode then
+    if FFields[I] is TSFNode then
     begin
       SF := TSFNode(Fields[I]);
       if SF.Value <> nil then
@@ -2826,7 +2838,7 @@ begin
         end;
       end;
     end else
-    if Fields[I] is TMFNode then
+    if FFields[I] is TMFNode then
     begin
       MF := TMFNode(Fields[I]);
       J := 0;
@@ -2890,7 +2902,7 @@ var
   I: Integer;
   ResultEvent: TX3DEvent;
 begin
-  I := Fields.IndexOf(Name);
+  I := FFields.IndexOf(Name);
   if I <> -1 then
     Exit(Fields[I]);
 
@@ -2901,11 +2913,11 @@ begin
       view3dscene www.web3d.org/x3d/content/examples/Basic/CAD/CADGeometryPrototypes.x3d
   }
 
-  I := Fields.IndexOfExposedEvent(Name, ResultEvent);
+  I := FFields.IndexOfExposedEvent(Name, ResultEvent);
   if I <> -1 then
     Exit(ResultEvent);
 
-  I := Events.IndexOf(Name);
+  I := FEvents.IndexOf(Name);
   if I <> -1 then
     Exit(Events[I]);
 
@@ -2916,11 +2928,11 @@ function TX3DNode.AnyEvent(const Name: string): TX3DEvent;
 var
   I: Integer;
 begin
-  I := Fields.IndexOfExposedEvent(Name, Result);
+  I := FFields.IndexOfExposedEvent(Name, Result);
   if I <> -1 then
     Exit; { Result is already set }
 
-  I := Events.IndexOf(Name);
+  I := FEvents.IndexOf(Name);
   if I <> -1 then
     Exit(Events[I]);
 
@@ -3035,10 +3047,10 @@ begin
         ...(Prototypes[I]);
     }
 
-    Assert(Fields.Count = Result.Fields.Count);
-    Assert(Events.Count = Result.Events.Count);
+    Assert(FieldsCount = Result.FieldsCount);
+    Assert(EventsCount = Result.EventsCount);
 
-    for I := 0 to Fields.Count - 1 do
+    for I := 0 to FieldsCount - 1 do
       { Copying InterfaceDeclarations field/event already handled. }
       if Fields[I].ParentInterfaceDeclaration = nil then
       begin
@@ -3051,7 +3063,7 @@ begin
         end;
       end;
 
-    for I := 0 to Events.Count - 1 do
+    for I := 0 to EventsCount - 1 do
       { Copying InterfaceDeclarations field/event already handled. }
       if Events[I].ParentInterfaceDeclaration = nil then
         EventDeepCopyContents(Result.Events[I], Events[I]);
@@ -3123,6 +3135,46 @@ begin
   Result := NodeTypeName;
   if NodeName <> '' then
     Result += '(' + NodeName + ')';
+end;
+
+function TX3DNode.GetFields(const Index: Integer): TX3DField;
+begin
+  Result := FFields[Index];
+end;
+
+function TX3DNode.FieldsCount: Integer;
+begin
+  Result := FFields.Count;
+end;
+
+procedure TX3DNode.AddField(const Value: TX3DField);
+begin
+  FFields.Add(Value);
+end;
+
+function TX3DNode.IndexOfField(const AName: string): Integer;
+begin
+  Result := FFields.IndexOf(AName);
+end;
+
+function TX3DNode.GetEvents(const Index: Integer): TX3DEvent;
+begin
+  Result := FEvents[Index];
+end;
+
+function TX3DNode.EventsCount: Integer;
+begin
+  Result := FEvents.Count;
+end;
+
+procedure TX3DNode.AddEvent(const Value: TX3DEvent);
+begin
+  FEvents.Add(Value);
+end;
+
+function TX3DNode.IndexOfEvent(const AName: string): Integer;
+begin
+  Result := FEvents.IndexOf(AName);
 end;
 
 function TX3DNode.GetPrototypes(const Index: Integer): TX3DPrototypeBase;

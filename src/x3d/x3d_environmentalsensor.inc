@@ -95,19 +95,19 @@ begin
 
   FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
    FdCenter.ChangesAlways := [chEnvironmentalSensorBounds];
-  Fields.Add(FFdCenter);
+  AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdSize := TSFVec3f.Create(Self, 'size', Vector3Single(0, 0, 0));
    FdSize.ChangesAlways := [chEnvironmentalSensorBounds];
-  Fields.Add(FFdSize);
+  AddField(FFdSize);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventEnterTime := TSFTimeEvent.Create(Self, 'enterTime', false);
-  Events.Add(FEventEnterTime);
+  AddEvent(FEventEnterTime);
 
   FEventExitTime := TSFTimeEvent.Create(Self, 'exitTime', false);
-  Events.Add(FEventExitTime);
+  AddEvent(FEventExitTime);
 
   DefaultContainerField := 'children';
 end;
@@ -117,13 +117,13 @@ begin
   inherited;
 
   FEventCenterOfRotation_changed := TSFVec3fEvent.Create(Self, 'centerOfRotation_changed', false);
-  Events.Add(FEventCenterOfRotation_changed);
+  AddEvent(FEventCenterOfRotation_changed);
 
   FEventOrientation_changed := TSFRotationEvent.Create(Self, 'orientation_changed', false);
-  Events.Add(FEventOrientation_changed);
+  AddEvent(FEventOrientation_changed);
 
   FEventPosition_changed := TSFVec3fEvent.Create(Self, 'position_changed', false);
-  Events.Add(FEventPosition_changed);
+  AddEvent(FEventPosition_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -150,13 +150,13 @@ begin
   inherited;
 
   FFdTargetObject := TSFNode.Create(Self, 'targetObject', [TAbstractX3DGroupingNode, TAbstractShapeNode]);
-  Fields.Add(FFdTargetObject);
+  AddField(FFdTargetObject);
 
   FEventOrientation_changed := TSFRotationEvent.Create(Self, 'orientation_changed', false);
-  Events.Add(FEventOrientation_changed);
+  AddEvent(FEventOrientation_changed);
 
   FEventPosition_changed := TSFVec3fEvent.Create(Self, 'position_changed', false);
-  Events.Add(FEventPosition_changed);
+  AddEvent(FEventPosition_changed);
 
   DefaultContainerField := 'children';
 end;

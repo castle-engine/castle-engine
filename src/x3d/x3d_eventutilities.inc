@@ -224,23 +224,23 @@ begin
   FCurrentKeyRange := -1;
 
   FEventNext := TSFBoolEvent.Create(Self, 'next', true);
-  Events.Add(FEventNext);
+  AddEvent(FEventNext);
   EventNext.OnReceive.Add(@EventNextReceive);
 
   FEventPrevious := TSFBoolEvent.Create(Self, 'previous', true);
-  Events.Add(FEventPrevious);
+  AddEvent(FEventPrevious);
   EventPrevious.OnReceive.Add(@EventPreviousReceive);
 
   FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
-  Events.Add(FEventSet_fraction);
+  AddEvent(FEventSet_fraction);
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 
   FFdKey := TMFFloat.Create(Self, 'key', []);
-  Fields.Add(FFdKey);
+  AddField(FFdKey);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdForceContinousValue_Changed := TSFBool.Create(Self, 'forceContinousValue_changed', false);
-  Fields.Add(FFdForceContinousValue_Changed);
+  AddField(FFdForceContinousValue_Changed);
 
   DefaultContainerField := 'children';
 end;
@@ -352,17 +352,17 @@ begin
   inherited;
 
   FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
-  Events.Add(FEventSet_boolean);
+  AddEvent(FEventSet_boolean);
   FEventSet_boolean.OnReceive.Add(@EventSet_BooleanReceive);
 
   FEventInputFalse := TSFBoolEvent.Create(Self, 'inputFalse', false);
-  Events.Add(FEventInputFalse);
+  AddEvent(FEventInputFalse);
 
   FEventInputNegate := TSFBoolEvent.Create(Self, 'inputNegate', false);
-  Events.Add(FEventInputNegate);
+  AddEvent(FEventInputNegate);
 
   FEventInputTrue := TSFBoolEvent.Create(Self, 'inputTrue', false);
-  Events.Add(FEventInputTrue);
+  AddEvent(FEventInputTrue);
 
   DefaultContainerField := 'children';
 end;
@@ -395,10 +395,10 @@ begin
   inherited;
 
   FFdKeyValue := TMFBool.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
 
   FEventValue_changed := TSFBoolEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -428,11 +428,11 @@ begin
   inherited;
 
   FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
-  Events.Add(FEventSet_boolean);
+  AddEvent(FEventSet_boolean);
   FEventSet_boolean.OnReceive.Add(@EventSet_BooleanReceive);
 
   FFdToggle := TSFBool.Create(Self, 'toggle', false);
-  Fields.Add(FFdToggle);
+  AddField(FFdToggle);
 
   DefaultContainerField := 'children';
 end;
@@ -463,11 +463,11 @@ begin
   inherited;
 
   FEventSet_triggerTime := TSFTimeEvent.Create(Self, 'set_triggerTime', true);
-  Events.Add(FEventSet_triggerTime);
+  AddEvent(FEventSet_triggerTime);
   FEventSet_triggerTime.OnReceive.Add(@EventSet_triggerTimeReceive);
 
   FEventTriggerTrue := TSFBoolEvent.Create(Self, 'triggerTrue', false);
-  Events.Add(FEventTriggerTrue);
+  AddEvent(FEventTriggerTrue);
 
   DefaultContainerField := 'children';
 end;
@@ -494,11 +494,11 @@ begin
   inherited;
 
   FFdKeyValue := TMFInt32.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventValue_changed := TSFInt32Event.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -528,17 +528,17 @@ begin
   inherited;
 
   FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
-  Events.Add(FEventSet_boolean);
+  AddEvent(FEventSet_boolean);
   FEventSet_boolean.OnReceive.Add(@EventSet_booleanReceive);
 
   { X3D specification mistakenly omitted default value for this field...
     I guess it's 0? }
   FFdIntegerKey := TSFInt32.Create(Self, 'integerKey', 0);
-  Fields.Add(FFdIntegerKey);
+  AddField(FFdIntegerKey);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventTriggerValue := TSFInt32Event.Create(Self, 'triggerValue', false);
-  Events.Add(FEventTriggerValue);
+  AddEvent(FEventTriggerValue);
 
   DefaultContainerField := 'children';
 end;
@@ -565,11 +565,11 @@ begin
   inherited;
 
   FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
-  Events.Add(FEventSet_boolean);
+  AddEvent(FEventSet_boolean);
   FEventSet_boolean.OnReceive.Add(@EventSet_BooleanReceive);
 
   FEventTriggerTime := TSFTimeEvent.Create(Self, 'triggerTime', false);
-  Events.Add(FEventTriggerTime);
+  AddEvent(FEventTriggerTime);
 
   DefaultContainerField := 'children';
 end;

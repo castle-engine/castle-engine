@@ -429,10 +429,10 @@ begin
   inherited;
 
   FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
-  Events.Add(FEventSet_fraction);
+  AddEvent(FEventSet_fraction);
 
   FFdKey := TMFFloat.Create(Self, 'key', []);
-  Fields.Add(FFdKey);
+  AddField(FFdKey);
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
@@ -449,11 +449,11 @@ begin
   inherited;
 
   FFdKeyValue := TMFColor.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: [0,1] }
 
   FEventValue_changed := TSFColorEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 
@@ -484,11 +484,11 @@ begin
   inherited;
 
   FFdKeyValue := TMFColor.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventValue_changed := TMFColorEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 
@@ -520,11 +520,11 @@ begin
   inherited;
 
   FFdKeyValue := TMFVec3f.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventValue_changed := TMFVec3fEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 
@@ -554,11 +554,11 @@ begin
   inherited;
 
   FFdKeyValue := TMFVec2f.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventValue_changed := TMFVec2fEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 
@@ -587,18 +587,18 @@ begin
   inherited;
 
   FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
-  Events.Add(FEventSet_fraction);
+  AddEvent(FEventSet_fraction);
 
   FFdEaseInEaseOut := TMFVec2f.Create(Self, 'easeInEaseOut', []);
-  Fields.Add(FFdEaseInEaseOut);
+  AddField(FFdEaseInEaseOut);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdKey := TMFFloat.Create(Self, 'key', []);
-  Fields.Add(FFdKey);
+  AddField(FFdKey);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventModifiedFraction_changed := TSFFloatEvent.Create(Self, 'modifiedFraction_changed', false);
-  Events.Add(FEventModifiedFraction_changed);
+  AddEvent(FEventModifiedFraction_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -619,11 +619,11 @@ begin
   inherited;
 
   FFdKeyValue := TMFVec3f.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventValue_changed := TMFVec3fEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 
@@ -653,11 +653,11 @@ begin
   inherited;
 
   FFdKeyValue := TMFRotation.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
   FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 
@@ -694,11 +694,11 @@ begin
   inherited;
 
   FFdKeyValue := TMFVec3f.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 
@@ -729,11 +729,11 @@ begin
   inherited;
 
   FFdKeyValue := TMFVec2f.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventValue_changed := TSFVec2fEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 
@@ -763,11 +763,11 @@ begin
   inherited;
 
   FFdKeyValue := TMFFloat.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventValue_changed := TSFFloatEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 
@@ -798,21 +798,21 @@ begin
   inherited;
 
   FFdClosed := TSFBool.Create(Self, 'closed', false);
-  Fields.Add(FFdClosed);
+  AddField(FFdClosed);
 
   FFdKeyValue := TMFVec3f.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdKeyVelocity := TMFVec3f.Create(Self, 'keyVelocity', []);
-  Fields.Add(FFdKeyVelocity);
+  AddField(FFdKeyVelocity);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
-  Fields.Add(FFdNormalizeVelocity);
+  AddField(FFdNormalizeVelocity);
 
   FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -833,21 +833,21 @@ begin
   inherited;
 
   FFdClosed := TSFBool.Create(Self, 'closed', false);
-  Fields.Add(FFdClosed);
+  AddField(FFdClosed);
 
   FFdKeyValue := TMFVec2f.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdKeyVelocity := TMFVec2f.Create(Self, 'keyVelocity', []);
-  Fields.Add(FFdKeyVelocity);
+  AddField(FFdKeyVelocity);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
-  Fields.Add(FFdNormalizeVelocity);
+  AddField(FFdNormalizeVelocity);
 
   FEventValue_changed := TSFVec2fEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -868,21 +868,21 @@ begin
   inherited;
 
   FFdClosed := TSFBool.Create(Self, 'closed', false);
-  Fields.Add(FFdClosed);
+  AddField(FFdClosed);
 
   FFdKeyValue := TMFFloat.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdKeyVelocity := TMFFloat.Create(Self, 'keyVelocity', []);
-  Fields.Add(FFdKeyVelocity);
+  AddField(FFdKeyVelocity);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
-  Fields.Add(FFdNormalizeVelocity);
+  AddField(FFdNormalizeVelocity);
 
   FEventValue_changed := TSFFloatEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -903,14 +903,14 @@ begin
   inherited;
 
   FFdKeyValue := TMFRotation.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
-  Fields.Add(FFdNormalizeVelocity);
+  AddField(FFdNormalizeVelocity);
 
   FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -931,11 +931,11 @@ begin
   inherited;
 
   FFdKeyValue := TMFFloat.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventValue_changed := TMFFloatEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 

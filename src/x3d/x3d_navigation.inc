@@ -413,38 +413,38 @@ begin
     inheriting "orientation" field this way. }
   FFdOrientation := TSFRotation.Create(Self, 'orientation', Vector3Single(0, 0, 1), 0);
    FdOrientation.ChangesAlways := [chViewpointVectors];
-  Fields.Add(FFdOrientation);
+  AddField(FFdOrientation);
   { X3D specification comment: [-1,1],(-Inf,Inf) }
 
   FFdDirection := TMFVec3f.Create(Self, 'direction', []);
    FdDirection.ChangesAlways := [chViewpointVectors];
-  Fields.Add(FFdDirection);
+  AddField(FFdDirection);
 
   FFdUp := TMFVec3f.Create(Self, 'up', []);
    FdUp.ChangesAlways := [chViewpointVectors];
-  Fields.Add(FFdUp);
+  AddField(FFdUp);
 
   FFdGravityUp := TSFVec3f.Create(Self, 'gravityUp', DefaultX3DGravityUp);
    FdGravityUp.ChangesAlways := [chViewpointVectors];
-  Fields.Add(FFdGravityUp);
+  AddField(FFdGravityUp);
 
   FEventCameraMatrix := TSFMatrix4fEvent.Create(Self, 'cameraMatrix', false);
-  Events.Add(FEventCameraMatrix);
+  AddEvent(FEventCameraMatrix);
 
   FEventCameraInverseMatrix := TSFMatrix4fEvent.Create(Self, 'cameraInverseMatrix', false);
-  Events.Add(FEventCameraInverseMatrix);
+  AddEvent(FEventCameraInverseMatrix);
 
   FEventCameraRotationMatrix := TSFMatrix3fEvent.Create(Self, 'cameraRotationMatrix', false);
-  Events.Add(FEventCameraRotationMatrix);
+  AddEvent(FEventCameraRotationMatrix);
 
   FEventCameraRotationInverseMatrix := TSFMatrix3fEvent.Create(Self, 'cameraRotationInverseMatrix', false);
-  Events.Add(FEventCameraRotationInverseMatrix);
+  AddEvent(FEventCameraRotationInverseMatrix);
 
   FFdCameraMatrixSendAlsoOnOffscreenRendering := TSFBool.Create(Self, 'cameraMatrixSendAlsoOnOffscreenRendering', false);
-  Fields.Add(FFdCameraMatrixSendAlsoOnOffscreenRendering);
+  AddField(FFdCameraMatrixSendAlsoOnOffscreenRendering);
 
   FFdDescription := TSFString.Create(Self, 'description', '');
-  Fields.Add(FFdDescription);
+  AddField(FFdDescription);
 
   Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
 end;
@@ -521,14 +521,14 @@ begin
   inherited;
 
   FFdCenterOfRotation := TSFVec3f.Create(Self, 'centerOfRotation', Vector3Single(0, 0, 0));
-  Fields.Add(FFdCenterOfRotation);
+  AddField(FFdCenterOfRotation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdJump := TSFBool.Create(Self, 'jump', true);
-  Fields.Add(FFdJump);
+  AddField(FFdJump);
 
   FFdRetainUserOffsets := TSFBool.Create(Self, 'retainUserOffsets', false);
-  Fields.Add(FFdRetainUserOffsets);
+  AddField(FFdRetainUserOffsets);
 
   DefaultContainerField := 'children';
 end;
@@ -556,7 +556,7 @@ begin
   inherited;
 
   FFdAxisOfRotation := TSFVec3f.Create(Self, 'axisOfRotation', Vector3Single(0, 1, 0));
-  Fields.Add(FFdAxisOfRotation);
+  AddField(FFdAxisOfRotation);
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
@@ -681,18 +681,18 @@ begin
     same purpose. }
    FdEnabled.AddAlternativeName('collide', 2);
    FdEnabled.ChangesAlways := [chEverything];
-  Fields.Add(FFdEnabled);
+  AddField(FFdEnabled);
 
   FEventCollideTime := TSFTimeEvent.Create(Self, 'collideTime', false);
-  Events.Add(FEventCollideTime);
+  AddEvent(FEventCollideTime);
 
   FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
-  Events.Add(FEventIsActive);
+  AddEvent(FEventIsActive);
 
   FFdProxy := TSFNode.Create(Self, 'proxy', IAbstractChildNode);
    FdProxy.Exposed := false;
    FdProxy.ChangesAlways := [chEverything];
-  Fields.Add(FFdProxy);
+  AddField(FFdProxy);
 
   DefaultContainerField := 'children';
 end;
@@ -768,21 +768,21 @@ begin
    FdCenter.Exposed := false;
    { Just redisplay, and new appropriate LOD children will be displayed. }
    FdCenter.ChangesAlways := [chRedisplay];
-  Fields.Add(FFdCenter);
+  AddField(FFdCenter);
 
   FFdRange := TMFFloat.Create(Self, 'range', []);
    FdRange.Exposed := false;
    { Just redisplay, and new appropriate LOD children will be displayed. }
    FdRange.ChangesAlways := [chRedisplay];
-  Fields.Add(FFdRange);
+  AddField(FFdRange);
   { X3D specification comment: [0,Inf) or -1 }
 
   FFdForceTransitions := TSFBool.Create(Self, 'forceTransitions', false);
   FFdForceTransitions.Exposed := false;
-  Fields.Add(FFdForceTransitions);
+  AddField(FFdForceTransitions);
 
   FEventLevel_changed := TSFInt32Event.Create(Self, 'level_changed', false);
-  Events.Add(FEventLevel_changed);
+  AddEvent(FEventLevel_changed);
 
   DefaultContainerField := 'children';
 end;
@@ -847,43 +847,43 @@ begin
 
   FFdAvatarSize := TMFFloat.Create(Self, 'avatarSize', [0.25, 1.6, 0.75]);
    FdAvatarSize.ChangesAlways := [chNavigationInfo];
-  Fields.Add(FFdAvatarSize);
+  AddField(FFdAvatarSize);
   { X3D specification comment: [0,Inf) }
 
   FFdHeadlight := TSFBool.Create(Self, 'headlight', true);
    FdHeadlight.ChangesAlways := [chHeadLightOn];
-  Fields.Add(FFdHeadlight);
+  AddField(FFdHeadlight);
 
   FFdSpeed := TSFFloat.Create(Self, 'speed', 1.0);
    FdSpeed.ChangesAlways := [chNavigationInfo];
-  Fields.Add(FFdSpeed);
+  AddField(FFdSpeed);
   { X3D specification comment: [0,Inf) }
 
   FFdTransitionTime := TSFTime.Create(Self, 'transitionTime', 1.0);
-  Fields.Add(FFdTransitionTime);
+  AddField(FFdTransitionTime);
   { X3D specification comment: [0, Inf) }
 
   FFdTransitionType := TMFString.Create(Self, 'transitionType', ['LINEAR']);
-  Fields.Add(FFdTransitionType);
+  AddField(FFdTransitionType);
   { X3D specification comment: ["TELEPORT","LINEAR","ANIMATE",...] }
 
   { TODO: default value was ["WALK", "ANY"] in VRML 97.
     X3D changed default value. }
   FFdType := TMFString.Create(Self, 'type', ['EXAMINE', 'ANY']);
    FdType.ChangesAlways := [chNavigationInfo];
-  Fields.Add(FFdType);
+  AddField(FFdType);
   { X3D specification comment: ["ANY","WALK","EXAMINE","FLY","LOOKAT","NONE",...] }
 
   FFdVisibilityLimit := TSFFloat.Create(Self, 'visibilityLimit', 0.0);
-  Fields.Add(FFdVisibilityLimit);
+  AddField(FFdVisibilityLimit);
   { X3D specification comment: [0,Inf) }
 
   FEventTransitionComplete := TSFBoolEvent.Create(Self, 'transitionComplete', false);
-  Events.Add(FEventTransitionComplete);
+  AddEvent(FEventTransitionComplete);
 
   FFdBlendingSort := TSFStringEnum.Create(Self, 'blendingSort', BlendingSortNames, Ord(obsDefault));
    FdBlendingSort.ChangesAlways := [];
-  Fields.Add(FFdBlendingSort);
+  AddField(FFdBlendingSort);
 
   DefaultContainerField := 'children';
 
@@ -925,12 +925,12 @@ begin
 
   FFdFieldOfView := TMFFloat.Create(Self, 'fieldOfView', [-1, -1, 1, 1]);
    FdFieldOfView.ChangesAlways := [chViewpointProjection];
-  Fields.Add(FFdFieldOfView);
+  AddField(FFdFieldOfView);
   { X3D specification comment:  (-Inf,Inf) }
 
   FFdPosition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 10));
    FdPosition.ChangesAlways := [chViewpointVectors];
-  Fields.Add(FFdPosition);
+  AddField(FFdPosition);
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
@@ -1072,12 +1072,12 @@ begin
 
   FFdFieldOfView := TSFFloat.Create(Self, 'fieldOfView', DefaultViewpointFieldOfView);
    FdFieldOfView.ChangesAlways := [chViewpointProjection];
-  Fields.Add(FFdFieldOfView);
+  AddField(FFdFieldOfView);
   { X3D specification comment: (0,Pi) }
 
   FFdPosition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 10));
    FdPosition.ChangesAlways := [chViewpointVectors];
-  Fields.Add(FFdPosition);
+  AddField(FFdPosition);
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
@@ -1152,23 +1152,23 @@ begin
   inherited;
 
   FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
-  Fields.Add(FFdCenter);
+  AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdChildren := TMFNode.Create(Self, 'children', [TAbstractX3DViewpointNode, TViewpointGroupNode]);
-  Fields.Add(FFdChildren);
+  AddField(FFdChildren);
 
   FFdDescription := TSFString.Create(Self, 'description', '');
-  Fields.Add(FFdDescription);
+  AddField(FFdDescription);
 
   FFdDisplayed := TSFBool.Create(Self, 'displayed', true);
-  Fields.Add(FFdDisplayed);
+  AddField(FFdDisplayed);
 
   FFdRetainUserOffsets := TSFBool.Create(Self, 'retainUserOffsets', false);
-  Fields.Add(FFdRetainUserOffsets);
+  AddField(FFdRetainUserOffsets);
 
   FFdSize := TSFVec3f.Create(Self, 'size', Vector3Single(0, 0, 0));
-  Fields.Add(FFdSize);
+  AddField(FFdSize);
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';

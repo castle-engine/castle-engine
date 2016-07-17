@@ -868,19 +868,19 @@ begin
 
   FFdString := TMFString.Create(Self, 'string', ['']);
    FdString.ChangesAlways := [chGeometry];
-  Fields.Add(FFdString);
+  AddField(FFdString);
 
   FFdSpacing := TSFFloat.Create(Self, 'spacing', 1);
    FdSpacing.ChangesAlways := [chGeometry];
-  Fields.Add(FFdSpacing);
+  AddField(FFdSpacing);
 
   FFdJustification := TSFEnum.Create(Self, 'justification', ['LEFT', 'CENTER', 'RIGHT'], JUSTIFICATION_LEFT);
    FdJustification.ChangesAlways := [chGeometry];
-  Fields.Add(FFdJustification);
+  AddField(FFdJustification);
 
   FFdWidth := TMFFloat.Create(Self, 'width', [0]);
    FdWidth.ChangesAlways := [chGeometry];
-  Fields.Add(FFdWidth);
+  AddField(FFdWidth);
 end;
 
 destructor TAsciiTextNode_1.Destroy;
@@ -966,15 +966,15 @@ begin
 
   FFdParts := TSFBitMask.Create(Self, 'parts', ['SIDES', 'BOTTOM'], 'NONE', 'ALL', [true, true]);
    FdParts.ChangesAlways := [chGeometry];
-  Fields.Add(FFdParts);
+  AddField(FFdParts);
 
   FFdBottomRadius := TSFFloat.Create(Self, 'bottomRadius', 1, true);
    FdBottomRadius.ChangesAlways := [chGeometry];
-  Fields.Add(FFdBottomRadius);
+  AddField(FFdBottomRadius);
 
   FFdHeight := TSFFloat.Create(Self, 'height', 2, true);
    FdHeight.ChangesAlways := [chGeometry];
-  Fields.Add(FFdHeight);
+  AddField(FFdHeight);
 end;
 
 class function TConeNode_1.ClassNodeTypeName: string;
@@ -993,15 +993,15 @@ begin
 
   FFdWidth := TSFFloat.Create(Self, 'width', 2, true);
    FdWidth.ChangesAlways := [chGeometry];
-  Fields.Add(FFdWidth);
+  AddField(FFdWidth);
 
   FFdHeight := TSFFloat.Create(Self, 'height', 2, true);
    FdHeight.ChangesAlways := [chGeometry];
-  Fields.Add(FFdHeight);
+  AddField(FFdHeight);
 
   FFdDepth := TSFFloat.Create(Self, 'depth', 2, true);
    FdDepth.ChangesAlways := [chGeometry];
-  Fields.Add(FFdDepth);
+  AddField(FFdDepth);
 end;
 
 class function TCubeNode_1.ClassNodeTypeName: string;
@@ -1020,15 +1020,15 @@ begin
 
   FFdParts := TSFBitMask.Create(Self, 'parts', ['SIDES', 'TOP', 'BOTTOM'], 'NONE', 'ALL', [true, true, true]);
    FdParts.ChangesAlways := [chGeometry];
-  Fields.Add(FFdParts);
+  AddField(FFdParts);
 
   FFdRadius := TSFFloat.Create(Self, 'radius', 1, true);
    FdRadius.ChangesAlways := [chGeometry];
-  Fields.Add(FFdRadius);
+  AddField(FFdRadius);
 
   FFdHeight := TSFFloat.Create(Self, 'height', 2, true);
    FdHeight.ChangesAlways := [chGeometry];
-  Fields.Add(FFdHeight);
+  AddField(FFdHeight);
 end;
 
 class function TCylinderNode_1.ClassNodeTypeName: string;
@@ -1048,20 +1048,20 @@ begin
   FFdCoordIndex := TMFLong.Create(Self, 'coordIndex', [0]);
    FdCoordIndex.SaveToStreamLineUptoNegative := true;
    FdCoordIndex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdCoordIndex);
+  AddField(FFdCoordIndex);
 
   FFdMaterialIndex := TMFLong.Create(Self, 'materialIndex', [-1]);
    FdMaterialIndex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdMaterialIndex);
+  AddField(FFdMaterialIndex);
 
   FFdNormalIndex := TMFLong.Create(Self, 'normalIndex', [-1]);
    FdNormalIndex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdNormalIndex);
+  AddField(FFdNormalIndex);
 
   FFdTextureCoordIndex := TMFLong.Create(Self, 'textureCoordIndex', [-1]);
    FdTextureCoordIndex.SaveToStreamLineUptoNegative := true;
    FdTextureCoordIndex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdTextureCoordIndex);
+  AddField(FFdTextureCoordIndex);
 end;
 
 function TAbstractIndexedNode_1.Coord(State: TX3DGraphTraverseState;
@@ -1082,7 +1082,7 @@ begin
 
   FFdRadianceTransfer := TMFVec3f.Create(Self, 'radianceTransfer', []);
    FdRadianceTransfer.ChangesAlways := [chGeometry];
-  Fields.Add(FFdRadianceTransfer);
+  AddField(FFdRadianceTransfer);
 end;
 
 class function TIndexedFaceSetNode_1.ClassNodeTypeName: string;
@@ -1138,11 +1138,11 @@ begin
 
   FFdStartIndex := TSFLong.Create(Self, 'startIndex', 0);
    FdStartIndex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdStartIndex);
+  AddField(FFdStartIndex);
 
   FFdNumPoints := TSFLong.Create(Self, 'numPoints', -1);
    FdNumPoints.ChangesAlways := [chGeometry];
-  Fields.Add(FFdNumPoints);
+  AddField(FFdNumPoints);
 
   CoordSubrange := TMFVec3f.Create(Self, '', []);
 end;
@@ -1224,7 +1224,7 @@ begin
 
   FFdRadius := TSFFloat.Create(Self, 'radius', 1, true);
    FdRadius.ChangesAlways := [chGeometry];
-  Fields.Add(FFdRadius);
+  AddField(FFdRadius);
 end;
 
 class function TSphereNode_1.ClassNodeTypeName: string;
@@ -1243,7 +1243,7 @@ begin
 
   FFdPoint := TMFVec3f.Create(Self, 'point', [Vector3Single(0, 0, 0)]);
    FdPoint.ChangesAlways := [chCoordinate];
-  Fields.Add(FFdPoint);
+  AddField(FFdPoint);
 end;
 
 class function TCoordinate3Node_1.ClassNodeTypeName: string;
@@ -1257,19 +1257,19 @@ begin
 
   FFdSize := TSFFloat.Create(Self, 'size', 10, true);
    FdSize.ChangesAlways := [chGeometryVRML1State];
-  Fields.Add(FFdSize);
+  AddField(FFdSize);
 
   FFdFamily := TSFEnum.Create(Self, 'family', ['SERIF', 'SANS', 'TYPEWRITER'], FSFAMILY_SERIF);
    FdFamily.ChangesAlways := [chGeometryVRML1State];
-  Fields.Add(FFdFamily);
+  AddField(FFdFamily);
 
   FFdStyle := TSFBitMask.Create(Self, 'style', ['BOLD', 'ITALIC'], 'NONE', '', [false, false]);
    FdStyle.ChangesAlways := [chGeometryVRML1State];
-  Fields.Add(FFdStyle);
+  AddField(FFdStyle);
 
   FFdBlending := TSFBool.Create(Self, 'blending', true);
    FdBlending.ChangesAlways := [chGeometryVRML1State];
-  Fields.Add(FFdBlending);
+  AddField(FFdBlending);
 end;
 
 class function TFontStyleNode_1.ClassNodeTypeName: string;
@@ -1320,7 +1320,7 @@ begin
   inherited;
 
   FFdString := TSFString.Create(Self, 'string', '<Undefined info>');
-  Fields.Add(FFdString);
+  AddField(FFdString);
 end;
 
 class function TInfoNode_1.ClassNodeTypeName: string;
@@ -1333,10 +1333,10 @@ begin
   inherited;
 
   FFdRange := TMFFloat.Create(Self, 'range',[]);
-  Fields.Add(FFdRange);
+  AddField(FFdRange);
 
   FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
-  Fields.Add(FFdCenter);
+  AddField(FFdCenter);
 
   VRML1ChildrenAllowed := true;
   VRML1ChildrenParsingAllowed := true;
@@ -1369,59 +1369,59 @@ begin
 
   FFdAmbientColor := TMFColor.Create(Self, 'ambientColor', [DefaultMaterial_1AmbientColor]);
    FdAmbientColor.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdAmbientColor);
+  AddField(FFdAmbientColor);
 
   FFdDiffuseColor := TMFColor.Create(Self, 'diffuseColor', [DefaultMaterialDiffuseColor]);
    FdDiffuseColor.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdDiffuseColor);
+  AddField(FFdDiffuseColor);
 
   FFdSpecularColor := TMFColor.Create(Self, 'specularColor', [DefaultMaterialSpecularColor]);
    FdSpecularColor.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdSpecularColor);
+  AddField(FFdSpecularColor);
 
   FFdEmissiveColor := TMFColor.Create(Self, 'emissiveColor', [DefaultMaterialEmissiveColor]);
    FdEmissiveColor.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdEmissiveColor);
+  AddField(FFdEmissiveColor);
 
   FFdShininess := TMFFloat.Create(Self, 'shininess', [DefaultMaterialShininess]);
    FdShininess.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdShininess);
+  AddField(FFdShininess);
 
   FFdTransparency := TMFFloat.Create(Self, 'transparency', [DefaultMaterialTransparency]);
    FdTransparency.ChangesAlways := [chVisibleVRML1State, chUseBlending];
-  Fields.Add(FFdTransparency);
+  AddField(FFdTransparency);
 
   FFdMirror := TMFFloat.Create(Self, 'mirror', [DefaultMaterialMirror]);
    FdMirror.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdMirror);
+  AddField(FFdMirror);
 
   FFdReflSpecular := TMFColor.Create(Self, 'reflSpecular', []);
    FdReflSpecular.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdReflSpecular);
+  AddField(FFdReflSpecular);
 
   FFdReflDiffuse := TMFColor.Create(Self, 'reflDiffuse', []);
    FdReflDiffuse.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdReflDiffuse);
+  AddField(FFdReflDiffuse);
 
   FFdTransSpecular := TMFColor.Create(Self, 'transSpecular', []);
    FdTransSpecular.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdTransSpecular);
+  AddField(FFdTransSpecular);
 
   FFdTransDiffuse := TMFColor.Create(Self, 'transDiffuse', []);
    FdTransDiffuse.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdTransDiffuse);
+  AddField(FFdTransDiffuse);
 
   FFdReflSpecularExp := TMFFloat.Create(Self, 'reflSpecularExp', [DefaultMaterialReflSpecularExp]);
    FdReflSpecularExp.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdReflSpecularExp);
+  AddField(FFdReflSpecularExp);
 
   FFdTransSpecularExp := TMFFloat.Create(Self, 'transSpecularExp', [DefaultMaterialTransSpecularExp]);
    FdTransSpecularExp.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdTransSpecularExp);
+  AddField(FFdTransSpecularExp);
 
   FFdFogImmune := TSFBool.Create(Self, 'fogImmune', false);
    FdFogImmune.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdFogImmune);
+  AddField(FFdFogImmune);
 end;
 
 class function TMaterialNode_1.ClassNodeTypeName: string;
@@ -1660,7 +1660,7 @@ begin
 
   FFdValue := TSFEnum.Create(Self, 'value', ['DEFAULT', 'OVERALL', 'PER_PART', 'PER_PART_INDEXED', 'PER_FACE', 'PER_FACE_INDEXED', 'PER_VERTEX', 'PER_VERTEX_INDEXED'], 1);
    FdValue.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdValue);
+  AddField(FFdValue);
 end;
 
 class function TMaterialBindingNode_1.ClassNodeTypeName: string;
@@ -1674,7 +1674,7 @@ begin
 
   FFdValue := TSFEnum.Create(Self, 'value', ['DEFAULT', 'OVERALL', 'PER_PART', 'PER_PART_INDEXED', 'PER_FACE', 'PER_FACE_INDEXED', 'PER_VERTEX', 'PER_VERTEX_INDEXED'], 0);
    FdValue.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdValue);
+  AddField(FFdValue);
 end;
 
 class function TNormalBindingNode_1.ClassNodeTypeName: string;
@@ -1688,27 +1688,27 @@ begin
 
   FFdFilename := TSFString.Create(Self, 'filename', '');
    FdFilename.ChangesAlways := [chVisibleVRML1State, chTextureImage];
-  Fields.Add(FFdFilename);
+  AddField(FFdFilename);
 
   FFdImage := TSFImage.Create(Self, 'image', nil);
    FdImage.ChangesAlways := [chVisibleVRML1State, chTextureImage];
-  Fields.Add(FFdImage);
+  AddField(FFdImage);
 
   FFdWrapS := TSFEnum.Create(Self, 'wrapS', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
    FdWrapS.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdWrapS);
+  AddField(FFdWrapS);
 
   FFdWrapT := TSFEnum.Create(Self, 'wrapT', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
    FdWrapT.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdWrapT);
+  AddField(FFdWrapT);
 
   FFdModel := TSFEnum.Create(Self, 'model', ['DECAL'], 0);
    FdModel.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdModel);
+  AddField(FFdModel);
 
   FFdBlendColor := TSFVec3f.Create(Self, 'blendColor', Vector3Single(0, 0, 0));
    FdBlendColor.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdBlendColor);
+  AddField(FFdBlendColor);
 end;
 
 class function TTexture2Node_1.ClassNodeTypeName: string;
@@ -1795,19 +1795,19 @@ begin
 
   FFdTranslation := TSFVec2f.Create(Self, 'translation', Vector2Single(0, 0));
    FdTranslation.ChangesAlways := [chEverything];
-  Fields.Add(FFdTranslation);
+  AddField(FFdTranslation);
 
   FFdRotation := TSFFloat.Create(Self, 'rotation', 0);
    FdRotation.ChangesAlways := [chEverything];
-  Fields.Add(FFdRotation);
+  AddField(FFdRotation);
 
   FFdScaleFactor := TSFVec2f.Create(Self, 'scaleFactor', Vector2Single(1, 1));
    FdScaleFactor.ChangesAlways := [chEverything];
-  Fields.Add(FFdScaleFactor);
+  AddField(FFdScaleFactor);
 
   FFdCenter := TSFVec2f.Create(Self, 'center', Vector2Single(0, 0));
    FdCenter.ChangesAlways := [chEverything];
-  Fields.Add(FFdCenter);
+  AddField(FFdCenter);
 end;
 
 class function TTexture2TransformNode_1.ClassNodeTypeName: string;
@@ -1839,7 +1839,7 @@ begin
 
   FFdPoint := TMFVec2f.Create(Self, 'point', [Vector2Single(0, 0)]);
    FdPoint.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdPoint);
+  AddField(FFdPoint);
 end;
 
 class function TTextureCoordinate2Node_1.ClassNodeTypeName: string;
@@ -1853,20 +1853,20 @@ begin
 
   FFdVertexOrdering := TSFEnum.Create(Self, 'vertexOrdering', ['UNKNOWN_ORDERING', 'CLOCKWISE', 'COUNTERCLOCKWISE'], VERTORDER_UNKNOWN);
    FdVertexOrdering.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdVertexOrdering);
+  AddField(FFdVertexOrdering);
 
   FFdShapeType := TSFEnum.Create(Self, 'shapeType', ['UNKNOWN_SHAPE_TYPE', 'SOLID'], SHTYPE_UNKNOWN);
    FdShapeType.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdShapeType);
+  AddField(FFdShapeType);
 
   FFdFaceType := TSFEnum.Create(Self, 'faceType', ['UNKNOWN_FACE_TYPE', 'CONVEX'], FACETYPE_CONVEX);
    FdFaceType.ChangesAlways := [chGeometryVRML1State];
-  Fields.Add(FFdFaceType);
+  AddField(FFdFaceType);
 
   FFdCreaseAngle := TSFFloat.Create(Self, 'creaseAngle', DefaultVRML1CreaseAngle);
    FdCreaseAngle.Angle := true;
    FdCreaseAngle.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdCreaseAngle);
+  AddField(FFdCreaseAngle);
 end;
 
 class function TShapeHintsNode_1.ClassNodeTypeName: string;
@@ -1927,7 +1927,7 @@ begin
 
   FFdMatrix := TSFMatrix.Create(Self, 'matrix', IdentityMatrix4Single);
    FdMatrix.ChangesAlways := [chEverything];
-  Fields.Add(FFdMatrix);
+  AddField(FFdMatrix);
 end;
 
 class function TMatrixTransformNode_1.ClassNodeTypeName: string;
@@ -1965,7 +1965,7 @@ begin
 
   FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chEverything];
-  Fields.Add(FFdRotation);
+  AddField(FFdRotation);
 end;
 
 class function TRotationNode_1.ClassNodeTypeName: string;
@@ -1993,7 +1993,7 @@ begin
 
   FFdScaleFactor := TSFVec3f.Create(Self, 'scaleFactor', Vector3Single(1, 1, 1));
    FdScaleFactor.ChangesAlways := [chEverything];
-  Fields.Add(FFdScaleFactor);
+  AddField(FFdScaleFactor);
 end;
 
 class function TScaleNode_1.ClassNodeTypeName: string;
@@ -2017,23 +2017,23 @@ begin
 
   FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
    FdTranslation.ChangesAlways := [chEverything];
-  Fields.Add(FFdTranslation);
+  AddField(FFdTranslation);
 
   FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chEverything];
-  Fields.Add(FFdRotation);
+  AddField(FFdRotation);
 
   FFdScaleFactor := TSFVec3f.Create(Self, 'scaleFactor', Vector3Single(1, 1, 1));
    FdScaleFactor.ChangesAlways := [chEverything];
-  Fields.Add(FFdScaleFactor);
+  AddField(FFdScaleFactor);
 
   FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
    FdScaleOrientation.ChangesAlways := [chEverything];
-  Fields.Add(FFdScaleOrientation);
+  AddField(FFdScaleOrientation);
 
   FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
    FdCenter.ChangesAlways := [chEverything];
-  Fields.Add(FFdCenter);
+  AddField(FFdCenter);
 end;
 
 class function TTransformNode_1.ClassNodeTypeName: string;
@@ -2098,7 +2098,7 @@ begin
 
   FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
    FdTranslation.ChangesAlways := [chEverything];
-  Fields.Add(FFdTranslation);
+  AddField(FFdTranslation);
 end;
 
 class function TTranslationNode_1.ClassNodeTypeName: string;
@@ -2125,18 +2125,18 @@ begin
     than for VRML >= 2.0 (where is (0, 0, 10)). }
   FFdPosition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 1));
    FdPosition.ChangesAlways := [chViewpointVectors];
-  Fields.Add(FFdPosition);
+  AddField(FFdPosition);
 
   FFdFocalDistance := TSFFloat.Create(Self, 'focalDistance', 5, true);
-  Fields.Add(FFdFocalDistance);
+  AddField(FFdFocalDistance);
 
   FFdNearDistance := TSFFloat.Create(Self, 'nearDistance', 0);
    FdNearDistance.ChangesAlways := [chViewpointProjection];
-  Fields.Add(FFdNearDistance);
+  AddField(FFdNearDistance);
 
   FFdFarDistance := TSFFloat.Create(Self, 'farDistance', 0);
    FdFarDistance.ChangesAlways := [chViewpointProjection];
-  Fields.Add(FFdFarDistance);
+  AddField(FFdFarDistance);
 end;
 
 function TAbstractCameraNode_1.Position: TSFVec3f;
@@ -2149,7 +2149,7 @@ begin
   inherited;
 
   FFdHeight := TSFFloat.Create(Self, 'height', 2, true);
-  Fields.Add(FFdHeight);
+  AddField(FFdHeight);
 end;
 
 class function TOrthographicCameraNode_1.ClassNodeTypeName: string;
@@ -2167,7 +2167,7 @@ begin
   inherited;
 
   FFdHeightAngle := TSFFloat.Create(Self, 'heightAngle', Pi / 4, true);
-  Fields.Add(FFdHeightAngle);
+  AddField(FFdHeightAngle);
 end;
 
 class function TPerspectiveCameraNode_1.ClassNodeTypeName: string;
@@ -2248,15 +2248,15 @@ begin
 
   FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
    FdDirection.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
-  Fields.Add(FFdDirection);
+  AddField(FFdDirection);
 
   FFdDropOffRate := TSFFloat.Create(Self, 'dropOffRate', 0);
    FdDropOffRate.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdDropOffRate);
+  AddField(FFdDropOffRate);
 
   FFdCutOffAngle := TSFFloat.Create(Self, 'cutOffAngle', Pi / 4);
    FdCutOffAngle.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdCutOffAngle);
+  AddField(FFdCutOffAngle);
 end;
 
 class function TSpotLightNode_1.ClassNodeTypeName: string;
@@ -2422,7 +2422,7 @@ begin
   inherited;
 
   FFdRenderCulling := TSFEnum.Create(Self, 'renderCulling', ['ON', 'OFF', 'AUTO'], 2);
-  Fields.Add(FFdRenderCulling);
+  AddField(FFdRenderCulling);
 end;
 
 class function TSeparatorNode_1.ClassNodeTypeName: string;
@@ -2436,7 +2436,7 @@ begin
 
   FFdWhichChild := TSFLong.Create(Self, 'whichChild', -1);
    FdWhichChild.ChangesAlways := [chEverything];
-  Fields.Add(FFdWhichChild);
+  AddField(FFdWhichChild);
 
   VRML1ChildrenAllowed := true;
   VRML1ChildrenParsingAllowed := true;
@@ -2514,13 +2514,13 @@ begin
   inherited;
 
   FFdName := TSFString.Create(Self, 'name', '');
-  Fields.Add(FFdName);
+  AddField(FFdName);
 
   FFdDescription := TSFString.Create(Self, 'description', '');
-  Fields.Add(FFdDescription);
+  AddField(FFdDescription);
 
   FFdMap := TSFEnum.Create(Self, 'map', ['NONE', 'POINT'], 0);
-  Fields.Add(FFdMap);
+  AddField(FFdMap);
 end;
 
 class function TWWWAnchorNode_1.ClassNodeTypeName: string;
@@ -2543,7 +2543,7 @@ begin
 
   FFdSeparate := TSFBool.Create(Self, 'separate', true);
    FdSeparate.ChangesAlways := [chEverything];
-  Fields.Add(FFdSeparate);
+  AddField(FFdSeparate);
 end;
 
 class function TWWWInlineNode_1.ClassNodeTypeName: string;

@@ -251,13 +251,13 @@ begin
   inherited;
 
   FFdDescription := TSFString.Create(Self, 'description', '');
-  Fields.Add(FFdDescription);
+  AddField(FFdDescription);
 
   FFdParameter := TMFString.Create(Self, 'parameter', []);
-  Fields.Add(FFdParameter);
+  AddField(FFdParameter);
 
   FFdUrl := TMFString.Create(Self, 'url', []);
-  Fields.Add(FFdUrl);
+  AddField(FFdUrl);
   { X3D specification comment: [url or urn] }
 
   DefaultContainerField := 'children';
@@ -400,21 +400,21 @@ begin
 
   FFdLoad := TSFBool.Create(Self, 'load', true);
    FdLoad.OnReceive.Add(@EventLoadReceive);
-  Fields.Add(FFdLoad);
+  AddField(FFdLoad);
 
   FFdUrl := TMFString.Create(Self, 'url', []);
    FdUrl.OnReceive.Add(@EventUrlReceive);
-  Fields.Add(FFdUrl);
+  AddField(FFdUrl);
   { X3D specification comment: [url or urn] }
 
   FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
    FdBboxCenter.Exposed := false;
-  Fields.Add(FFdBboxCenter);
+  AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
    FdBboxSize.Exposed := false;
-  Fields.Add(FFdBboxSize);
+  AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
   DefaultContainerField := 'children';
@@ -653,7 +653,7 @@ begin
   inherited;
 
   FEventChildren := TMFNodeEvent.Create(Self, 'children', false);
-  Events.Add(FEventChildren);
+  AddEvent(FEventChildren);
 
   FInlined := nil;
 end;
@@ -695,19 +695,19 @@ begin
   inherited;
 
   FFdTimeOut := TSFTime.Create(Self, 'timeOut', 0);
-  Fields.Add(FFdTimeOut);
+  AddField(FFdTimeOut);
 
   FFdWatchList := TMFNode.Create(Self, 'watchList', IAbstractUrlObject);
-  Fields.Add(FFdWatchList);
+  AddField(FFdWatchList);
 
   FEventIsLoaded := TSFBoolEvent.Create(Self, 'isLoaded', false);
-  Events.Add(FEventIsLoaded);
+  AddEvent(FEventIsLoaded);
 
   FEventLoadTime := TSFTimeEvent.Create(Self, 'loadTime', false);
-  Events.Add(FEventLoadTime);
+  AddEvent(FEventLoadTime);
 
   FEventProgress := TSFFloatEvent.Create(Self, 'progress', false);
-  Events.Add(FEventProgress);
+  AddEvent(FEventProgress);
 
   DefaultContainerField := 'children';
 end;

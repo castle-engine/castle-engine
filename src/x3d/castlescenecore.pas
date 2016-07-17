@@ -6492,19 +6492,27 @@ begin
 end;
 
 function TCastleSceneCore.Field(const NodeName, FieldName: string): TX3DField;
+var
+  N: TX3DNode;
+  Index: Integer;
 begin
-  if RootNode = nil then
-    raise EX3DNotFound.CreateFmt('Cannot find node "%s"', [NodeName]) else
-    Result := RootNode.FindNodeByName(TX3DNode, NodeName, false).
-      Fields.ByName[FieldName];
+  N := Node(NodeName);
+  Index := N.IndexOfField(FieldName);
+  if Index = - 1 then
+    raise EX3DNotFound.CreateFmt('Field name "%s" not found', [FieldName]);
+  Result := N.Fields[Index];
 end;
 
 function TCastleSceneCore.Event(const NodeName, EventName: string): TX3DEvent;
+var
+  N: TX3DNode;
+  Index: Integer;
 begin
-  if RootNode = nil then
-    raise EX3DNotFound.CreateFmt('Cannot find node "%s"', [NodeName]) else
-    Result := RootNode.FindNodeByName(TX3DNode, NodeName, false).
-      Events.ByName[EventName];
+  N := Node(NodeName);
+  Index := N.IndexOfEvent(EventName);
+  if Index = - 1 then
+    raise EX3DNotFound.CreateFmt('Event name "%s" not found', [EventName]);
+  Result := N.Events[Index];
 end;
 
 procedure TCastleSceneCore.InvalidateBackground;

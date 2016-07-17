@@ -3920,10 +3920,10 @@ procedure TX3DInterfaceDeclaration.AddFieldOrEvent(
   Node: TX3DNode);
 begin
   if Field <> nil then
-    Node.Fields.Add(Field) else
+    Node.AddField(Field) else
   begin
     Assert(Event <> nil);
-    Node.Events.Add(Event);
+    Node.AddEvent(Event);
   end;
 end;
 
@@ -3934,10 +3934,10 @@ var
 begin
   Copy := CopyFieldOrEvent(Node);
   if Copy is TX3DField then
-    Node.Fields.Add(TX3DField(Copy)) else
+    Node.AddField(TX3DField(Copy)) else
   begin
     Assert(Copy is TX3DEvent);
-    Node.Events.Add(TX3DEvent(Copy));
+    Node.AddEvent(TX3DEvent(Copy));
   end;
 end;
 
@@ -4321,7 +4321,7 @@ function TX3DPrototypeNode.InstantiateIsClauses(Node, Child: TX3DNode): Pointer;
         for I := 0 to InstanceField.IsClauseNamesCount - 1 do
         begin
           IsClauseName := InstanceField.IsClauseNames[I];
-          OurFieldIndex := Fields.IndexOf(IsClauseName);
+          OurFieldIndex := IndexOfField(IsClauseName);
           if OurFieldIndex <> -1 then
           begin
             OurField := Fields[OurFieldIndex];
@@ -4431,7 +4431,7 @@ function TX3DPrototypeNode.InstantiateIsClauses(Node, Child: TX3DNode): Pointer;
             This also means that searching below by Events.IndexOf is Ok,
             no need to use AnyEvent to search. }
 
-          OurEventIndex := Events.IndexOf(IsClauseName);
+          OurEventIndex := IndexOfEvent(IsClauseName);
           if OurEventIndex <> -1 then
           begin
             OurEvent := Events[OurEventIndex];
@@ -4473,10 +4473,10 @@ begin
   if not Child.NeedsInstantiateIsClause then Exit;
   Child.NeedsInstantiateIsClause := false;
 
-  for I := 0 to Child.Fields.Count - 1 do
+  for I := 0 to Child.FieldsCount - 1 do
     ExpandField(Child.Fields[I]);
 
-  for I := 0 to Child.Events.Count - 1 do
+  for I := 0 to Child.EventsCount - 1 do
     ExpandEvent(Child.Events[I]);
 
   Child.DirectEnumerateAll(@Self.InstantiateIsClauses);

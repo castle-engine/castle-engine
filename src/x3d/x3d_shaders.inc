@@ -159,18 +159,18 @@ begin
   inherited;
 
   FEventActivate := TSFBoolEvent.Create(Self, 'activate', true);
-  Events.Add(FEventActivate);
+  AddEvent(FEventActivate);
 
   FEventIsSelected := TSFBoolEvent.Create(Self, 'isSelected', false);
-  Events.Add(FEventIsSelected);
+  AddEvent(FEventIsSelected);
 
   FEventIsValid := TSFBoolEvent.Create(Self, 'isValid', false);
-  Events.Add(FEventIsValid);
+  AddEvent(FEventIsValid);
 
   FFdLanguage := TSFString.Create(Self, 'language', '');
    FdLanguage.Exposed := false;
    FdLanguage.ChangesAlways := [chEverything];
-  Fields.Add(FFdLanguage);
+  AddField(FFdLanguage);
   { X3D specification comment: ["CG"|"GLSL"|"HLSL"|...] }
 
   DefaultContainerField := 'shaders';
@@ -182,7 +182,7 @@ begin
 
   FFdName := TSFString.Create(Self, 'name', '');
   FFdName.Exposed := false;
-  Fields.Add(FFdName);
+  AddField(FFdName);
 
   DefaultContainerField := 'attrib';
 end;
@@ -193,7 +193,7 @@ begin
 
   FFdParts := TMFNode.Create(Self, 'parts', [TShaderPartNode]);
    FdParts.ChangesAlways := [chEverything];
-  Fields.Add(FFdParts);
+  AddField(FFdParts);
 
   { Note that additional ComposedShader fields should have
       ChangesAlways := [chVisibleGeometry, chVisibleNonGeometry]
@@ -225,12 +225,12 @@ begin
   inherited;
 
   FFdValue := TMFFloat.Create(Self, 'value', []);
-  Fields.Add(FFdValue);
+  AddField(FFdValue);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdNumComponents := TSFInt32.Create(Self, 'numComponents', 4);
   FFdNumComponents.Exposed := false;
-  Fields.Add(FFdNumComponents);
+  AddField(FFdNumComponents);
   { X3D specification comment: [1..4] }
 end;
 
@@ -250,7 +250,7 @@ begin
   inherited;
 
   FFdValue := TMFMatrix3f.Create(Self, 'value', []);
-  Fields.Add(FFdValue);
+  AddField(FFdValue);
   { X3D specification comment: (-Inf,Inf) }
 end;
 
@@ -270,7 +270,7 @@ begin
   inherited;
 
   FFdValue := TMFMatrix4f.Create(Self, 'value', []);
-  Fields.Add(FFdValue);
+  AddField(FFdValue);
   { X3D specification comment: (-Inf,Inf) }
 end;
 
@@ -290,7 +290,7 @@ begin
   inherited;
 
   FFdUrl := TMFString.Create(Self, 'url', []);
-  Fields.Add(FFdUrl);
+  AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
   HasInterfaceDeclarations := AllAccessTypes;
@@ -313,7 +313,7 @@ begin
   inherited;
 
   FFdPrograms := TMFNode.Create(Self, 'programs', [TShaderProgramNode]);
-  Fields.Add(FFdPrograms);
+  AddField(FFdPrograms);
 end;
 
 class function TProgramShaderNode.ClassNodeTypeName: string;
@@ -334,13 +334,13 @@ begin
   FFdUrl := TMFString.Create(Self, 'url', []);
    FdUrl.ChangesAlways := [chEverything]; { TODO - something more optimized }
    FdUrl.OnReceive.Add(@EventUrlReceive);
-  Fields.Add(FFdUrl);
+  AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
   FFdType := TSFStringEnum.Create(Self, 'type', ShaderTypeNameX3D, Ord(stVertex));
    FdType.Exposed := false;
    FdType.ChangesAlways := [chEverything];
-  Fields.Add(FFdType);
+  AddField(FFdType);
   { X3D specification comment: ["VERTEX"|"FRAGMENT"] }
 
   DefaultContainerField := 'parts';
@@ -431,12 +431,12 @@ begin
   inherited;
 
   FFdUrl := TMFString.Create(Self, 'url', []);
-  Fields.Add(FFdUrl);
+  AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
   FFdType := TSFStringEnum.Create(Self, 'type', ShaderTypeNameX3D, Ord(stVertex));
   FFdType.Exposed := false;
-  Fields.Add(FFdType);
+  AddField(FFdType);
   { X3D specification comment: ["VERTEX"|"FRAGMENT"] }
 
   DefaultContainerField := 'programs';

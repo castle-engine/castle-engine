@@ -146,34 +146,34 @@ begin
 
   FFdBack := TSFNode.Create(Self, 'back', [TAbstractX3DTexture2DNode]);
    FdBack.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdBack);
+  AddField(FFdBack);
 
   FFdBottom := TSFNode.Create(Self, 'bottom', [TAbstractX3DTexture2DNode]);
    FdBottom.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdBottom);
+  AddField(FFdBottom);
 
   FFdFront := TSFNode.Create(Self, 'front', [TAbstractX3DTexture2DNode]);
    FdFront.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdFront);
+  AddField(FFdFront);
 
   FFdLeft := TSFNode.Create(Self, 'left', [TAbstractX3DTexture2DNode]);
    FdLeft.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdLeft);
+  AddField(FFdLeft);
 
   FFdRight := TSFNode.Create(Self, 'right', [TAbstractX3DTexture2DNode]);
    FdRight.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdRight);
+  AddField(FFdRight);
 
   FFdTop := TSFNode.Create(Self, 'top', [TAbstractX3DTexture2DNode]);
    FdTop.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdTop);
+  AddField(FFdTop);
 
   { X3D spec 3.2 doesn't specify this, but it's natural,
     instantreality also uses this. }
   FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdTextureProperties);
+  AddField(FFdTextureProperties);
 end;
 
 class function TComposedCubeMapTextureNode.ClassNodeTypeName: string;
@@ -235,22 +235,22 @@ begin
   inherited;
 
   FFdUpdate := TSFTextureUpdate.Create(Self, 'update', upNone);
-  Fields.Add(FFdUpdate);
+  AddField(FFdUpdate);
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 
   FFdSize := TSFInt32.Create(Self, 'size', 128, { MustBeNonnegative } true);
    FdSize.Exposed := false;
    FdSize.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdSize);
+  AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
 
   FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdTextureProperties);
+  AddField(FFdTextureProperties);
 
   FFdBias := TSFVec3f.Create(Self, 'bias', ZeroVector3Single);
-  Fields.Add(FFdBias);
+  AddField(FFdBias);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
   FGeneratedTextureHandler.FUpdate := FdUpdate;
@@ -292,13 +292,13 @@ begin
     So we don't need chTextureImage in case of change,
     instead just let renderer load the texture again. }
    FdUrl.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdUrl);
+  AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
   FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdTextureProperties);
+  AddField(FFdTextureProperties);
 end;
 
 class function TImageCubeMapTextureNode.ClassNodeTypeName: string;

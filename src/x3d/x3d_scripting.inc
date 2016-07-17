@@ -90,7 +90,7 @@ begin
   inherited;
 
   FFdUrl := TMFString.Create(Self, 'url', []);
-  Fields.Add(FFdUrl);
+  AddField(FFdUrl);
   Fdurl.OnReceive.Add(@EventUrlReceive);
   { X3D specification comment: [URI] }
 
@@ -217,11 +217,11 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
     { Add fields and output events (coming from interface decl,
       not normal Script fields/events) to CastleScriptVariables. }
 
-    for I := 0 to Fields.Count - 1 do
+    for I := 0 to FieldsCount - 1 do
       if Fields[I].ParentInterfaceDeclaration <> nil then
         CastleScriptVariables.Add(Fields[I]);
 
-    for I := 0 to Events.Count - 1 do
+    for I := 0 to EventsCount - 1 do
       if (not Events[I].InEvent) and
          (Events[I].ParentInterfaceDeclaration <> nil) then
         CastleScriptVariables.Add(Events[I]);
@@ -345,11 +345,11 @@ begin
 
   FFdDirectOutput := TSFBool.Create(Self, 'directOutput', false);
   FFdDirectOutput.Exposed := false;
-  Fields.Add(FFdDirectOutput);
+  AddField(FFdDirectOutput);
 
   FFdMustEvaluate := TSFBool.Create(Self, 'mustEvaluate', false);
   FFdMustEvaluate.Exposed := false;
-  Fields.Add(FFdMustEvaluate);
+  AddField(FFdMustEvaluate);
 
   DefaultContainerField := 'children';
 end;
