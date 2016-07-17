@@ -161,7 +161,7 @@ end;
 
 function TWordList.Max: Word;
 var
-  I: Word;
+  I: Integer;
 begin
   Result := Low(Word);
   for I := 0 to Count - 1 do
@@ -214,7 +214,7 @@ end;
 
 function TLongWordList.Max: LongWord;
 var
-  I: Word;
+  I: Integer;
 begin
   Result := Low(LongWord);
   for I := 0 to Count - 1 do
