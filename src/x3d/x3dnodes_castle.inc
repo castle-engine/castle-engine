@@ -19,7 +19,7 @@
 {$ifdef read_interface}
   TKambiTriangulationNode = class(TAbstractChildNode)
   private
-    function GetDetailValue(Field: TSFLong; const GlobalValue, MinValue: Cardinal): Cardinal;
+    function GetDetailValue(AField: TSFLong; const GlobalValue, MinValue: Cardinal): Cardinal;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -397,18 +397,18 @@ begin
 end;
 
 function TKambiTriangulationNode.GetDetailValue(
-  Field: TSFLong; const GlobalValue, MinValue: Cardinal): Cardinal;
+  AField: TSFLong; const GlobalValue, MinValue: Cardinal): Cardinal;
 begin
-  if Field.Value = TriangulationUseDef then
+  if AField.Value = TriangulationUseDef then
     Result := GlobalValue else
-  if Int64(Field.Value) < Int64(MinValue) then
+  if Int64(AField.Value) < Int64(MinValue) then
   begin
     OnWarning(wtMajor, 'VRML/X3D', Format('Node "KambiTriangulation" field "%s" value is %d but must be >= %d (or = -1)',
-      [Field.Name, Field.Value, MinValue]));
-    Field.Value := TriangulationUseDef;
+      [AField.Name, AField.Value, MinValue]));
+    AField.Value := TriangulationUseDef;
     Result := GlobalValue;
   end else
-    Result := Field.Value;
+    Result := AField.Value;
 end;
 
 function TKambiTriangulationNode.CalculateQuadricSlices: Cardinal;

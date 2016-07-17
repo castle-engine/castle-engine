@@ -297,13 +297,15 @@
     function IndexOfEvent(const AName: string): Integer;
     { @groupEnd }
 
-    { Search by name for given field or event (exposed by some field or not).
+    { Search by name for given field.
+      @nil if not found. }
+    function Field(const Name: string): TX3DField;
 
+    { Search by name for given field or event (exposed by some field or not).
       @nil if not found. }
     function FieldOrEvent(const Name: string): TX3DFieldOrEvent;
 
     { Search by name for given event (exposed by some field or not).
-
       @nil if not found. }
     function AnyEvent(const Name: string): TX3DEvent;
 
@@ -1013,7 +1015,7 @@
       Sets the field's exposed to given Exposed parameter, for comfort.
       This should only be used with nodes having
       HasInterfaceDeclarations = @true, like Script or ComposedShader. }
-    procedure AddCustomField(Field: TX3DField; const Exposed: boolean = false);
+    procedure AddCustomField(AField: TX3DField; const Exposed: boolean = false);
 
     { Add to node InterfaceDeclarations given field or event.
       This should only be used with nodes having
@@ -2896,6 +2898,16 @@ begin
   Result := false;
 end;
 
+function TX3DNode.Field(const Name: string): TX3DField;
+var
+  I: Integer;
+begin
+  I := FFields.IndexOf(Name);
+  if I <> -1 then
+    Result := FFields[I] else
+    Result := nil; { not found }
+end;
+
 function TX3DNode.FieldOrEvent(const Name: string): TX3DFieldOrEvent;
 var
   I: Integer;
@@ -2903,7 +2915,7 @@ var
 begin
   I := FFields.IndexOf(Name);
   if I <> -1 then
-    Exit(Fields[I]);
+    Exit(FFields[I]);
 
   { I use helper ResultEvent below, instead of passing
     "TX3DEvent(Result)" as last param: don't know why,
@@ -3118,10 +3130,10 @@ begin
   PostAddInterfaceDeclaration(IDecl);
 end;
 
-procedure TX3DNode.AddCustomField(Field: TX3DField; const Exposed: boolean);
+procedure TX3DNode.AddCustomField(AField: TX3DField; const Exposed: boolean);
 begin
-  Field.Exposed := Exposed;
-  AddCustomFieldOrEvent(Field);
+  AField.Exposed := Exposed;
+  AddCustomFieldOrEvent(AField);
 end;
 
 function TX3DNode.TransformationChange: TNodeTransformationChange;

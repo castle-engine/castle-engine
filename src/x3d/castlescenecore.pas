@@ -1689,8 +1689,8 @@ type
       other 3D objects with lights defined inside this scene. }
     property GlobalLights: TLightInstancesList read FGlobalLights;
 
-    { Simple methods to find a named X3D node (and a field or event
-      within this node) in a current node graph. They search all nodes
+    { Find a named X3D node (and a field or event within this node)
+      in the current node graph. They search all nodes
       (in active or not) graph parts.
 
       For more flexible and extensive search methods, use RootNode property
@@ -6492,27 +6492,17 @@ begin
 end;
 
 function TCastleSceneCore.Field(const NodeName, FieldName: string): TX3DField;
-var
-  N: TX3DNode;
-  Index: Integer;
 begin
-  N := Node(NodeName);
-  Index := N.IndexOfField(FieldName);
-  if Index = - 1 then
+  Result := Node(NodeName).Field(FieldName);
+  if Result = nil then
     raise EX3DNotFound.CreateFmt('Field name "%s" not found', [FieldName]);
-  Result := N.Fields[Index];
 end;
 
 function TCastleSceneCore.Event(const NodeName, EventName: string): TX3DEvent;
-var
-  N: TX3DNode;
-  Index: Integer;
 begin
-  N := Node(NodeName);
-  Index := N.IndexOfEvent(EventName);
-  if Index = - 1 then
+  Result := Node(NodeName).AnyEvent(EventName);
+  if Result = nil then
     raise EX3DNotFound.CreateFmt('Event name "%s" not found', [EventName]);
-  Result := N.Events[Index];
 end;
 
 procedure TCastleSceneCore.InvalidateBackground;
