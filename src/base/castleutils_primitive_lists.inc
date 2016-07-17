@@ -22,11 +22,22 @@ type
   TDoubleList = class;
   TLongIntList = class;
 
+  TWordList = class(specialize TFPGList<Word>)
+  public
+    procedure AddList(Source: TWordList);
+    procedure AddArray(const A: array of Word);
+    function L: PWord;
+    function Max: Word;
+    procedure Assign(Source: TLongIntList);
+  end;
+
   TLongWordList = class(specialize TFPGList<LongWord>)
   public
     procedure AddList(Source: TLongWordList);
     procedure AddArray(const A: array of LongWord);
     function L: PLongWord;
+    function Max: LongWord;
+    procedure Assign(Source: TLongIntList);
   end;
 
   TFloatList = class(specialize TFPGList<Float>)
@@ -121,6 +132,59 @@ type
 
 {$ifdef read_implementation}
 
+{ TWordList ------------------------------------------------------------ }
+
+procedure TWordList.AddList(Source: TWordList);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + Source.Count;
+  if Source.Count <> 0 then
+    System.Move(Source.L[0], L[OldCount], SizeOf(Word) * Source.Count);
+end;
+
+procedure TWordList.AddArray(const A: array of Word);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + High(A) + 1;
+  if High(A) <> -1 then
+    System.Move(A[0], L[OldCount], SizeOf(Word) * (High(A) + 1));
+end;
+
+function TWordList.L: PWord;
+begin
+  Result := PWord(FList);
+end;
+
+function TWordList.Max: Word;
+var
+  I: Word;
+begin
+  Result := Low(Word);
+  for I := 0 to Count - 1 do
+    MaxVar(Result, Items[I]);
+end;
+
+procedure TWordList.Assign(Source: TLongIntList);
+var
+  I: Integer;
+  Src: PLongInt;
+  Dest: PWord;
+begin
+  Count := Source.Count;
+  Src := PLongInt(Source.List);
+  Dest := PWord(List);
+  for I := 0 to Count - 1 do
+  begin
+    Dest^ := Src^;
+    Inc(Src);
+    Inc(Dest);
+  end;
+end;
+
 { TLongWordList ------------------------------------------------------------ }
 
 procedure TLongWordList.AddList(Source: TLongWordList);
@@ -146,6 +210,25 @@ end;
 function TLongWordList.L: PLongWord;
 begin
   Result := PLongWord(FList);
+end;
+
+function TLongWordList.Max: LongWord;
+var
+  I: Word;
+begin
+  Result := Low(LongWord);
+  for I := 0 to Count - 1 do
+    MaxVar(Result, Items[I]);
+end;
+
+procedure TLongWordList.Assign(Source: TLongIntList);
+begin
+  { Copy memory directly.
+    This implicitly converts LongInt to LongWord values, without range checking.
+    But, in exchange, it's fast. }
+  Count := Source.Count;
+  if Count <> 0 then
+    System.Move(Source.L[0], L[0], SizeOf(LongWord) * Count);
 end;
 
 { TFloatList ------------------------------------------------------------ }

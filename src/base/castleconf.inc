@@ -125,6 +125,25 @@
 {$ifdef OpenGLES}
   {$define CastleGL := CastleGLES20}
   {$define GLImageUseShaders}
+
+  { This is necessary to workaround buggy OpenGLES on Android EMUI 3.1
+    (Renderer = "Mali-450 MP", Vendor = "ARM", Version string "OpenGL ES 2.0").
+    It does not accept GL_UNSIGNED_INT as index type for glDrawElements
+    (yeah, pretty horrible...).
+
+    Workaround means that we render using 16-bit indexes, which may also be useful
+    to gain a little performance, *but* it means we cannot render large X3D shapes.
+    The more long-term solution would be to detect the need for 32-bit indexes
+    at runtime, and switch between 16-bit and 32-bit indexes as needed.
+    This would allow performance gain on both desktops and mobiles (but I did not
+    check whether this gain is noticeable!), while still allowing to render large
+    shapes. Unless this specific buggy Android EMUI 3.1 device is detected,
+    in which case we can
+    - raise an exception
+    - or force AllowIndexed := false in X3D renderer
+    - or split the shapes (but this would complicate the rendering code)
+  }
+  {$define GLIndexesShort}
 {$else}
   {$define CastleGL := GL, GLU, GLExt}
   { It is possible to test GLImageUseShaders also with non-OpenGLES version.

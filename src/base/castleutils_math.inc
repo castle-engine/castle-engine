@@ -102,6 +102,8 @@ function max(const a, b, c: Extended): Extended; overload; {$ifdef SUPPORTS_INLI
   Works like @code(A := Min(A, B)), but is marginally faster,
   since you don't have to do anything when A is already smaller.
   @groupBegin }
+procedure MinVar(var a: Word    ; const b: Word    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+//procedure MinVar(var a: LongWord; const b: LongWord); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} // same as Cardinal
 procedure MinVar(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MinVar(var a: Integer ; const b: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MinVar(var a: Cardinal; const b: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -116,6 +118,8 @@ procedure MinVar(var a: Extended; const b: Extended); overload; {$ifdef SUPPORTS
   Works like @code(A := Max(A, B)), but is marginally faster,
   since you don't have to do anything when A is already larger.
   @groupBegin }
+procedure MaxVar(var a: Word    ; const b: Word    ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+//procedure MaxVar(var a: LongWord; const b: LongWord); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif} // same as Cardinal
 procedure MaxVar(var a: Int64   ; const b: Int64   ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MaxVar(var a: Integer ; const b: Integer ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 procedure MaxVar(var a: Cardinal; const b: Cardinal); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
@@ -451,6 +455,8 @@ function Max(const a, b, c: Double): Double;     begin if A > B then begin if C 
 function Max(const a, b, c: Extended): Extended; begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
 {$endif}
 
+procedure MinVar(var a: Word    ; const b: Word    ); begin if B < A then A := B end;
+//procedure MinVar(var a: LongWord; const b: LongWord); begin if B < A then A := B end; // same as Cardinal
 procedure MinVar(var a: Int64   ; const b: Int64   ); begin if B < A then A := B end;
 procedure MinVar(var a: Integer ; const b: Integer ); begin if B < A then A := B end;
 procedure MinVar(var a: Cardinal; const b: Cardinal); begin if B < A then A := B end;
@@ -460,6 +466,8 @@ procedure MinVar(var a: Double  ; const b: Double  ); begin if B < A then A := B
 procedure MinVar(var a: Extended; const b: Extended); begin if B < A then A := B end;
 {$endif}
 
+procedure MaxVar(var a: Word    ; const b: Word    ); begin if B > A then A := B end;
+//procedure MaxVar(var a: LongWord; const b: LongWord); begin if B > A then A := B end; // same as Cardinal
 procedure MaxVar(var a: Int64   ; const b: Int64   ); begin if B > A then A := B end;
 procedure MaxVar(var a: Integer ; const b: Integer ); begin if B > A then A := B end;
 procedure MaxVar(var a: Cardinal; const b: Cardinal); begin if B > A then A := B end;

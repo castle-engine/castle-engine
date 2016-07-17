@@ -341,7 +341,7 @@ begin
     { indexes are just directly from CoordIndex in this case.
       Only make sure we have only full triangles (although nothing really
       requires or promises that, but for the future). }
-    IndexesFromCoordIndex := TLongIntList.Create;
+    IndexesFromCoordIndex := TGeometryIndexList.Create;
     IndexesFromCoordIndex.Assign(CoordIndex.Items);
     IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
 
@@ -481,7 +481,7 @@ begin
   Arrays.Primitive := gpTriangleFan;
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
-    IndexesFromCoordIndex := TLongIntList.Create;
+    IndexesFromCoordIndex := TGeometryIndexList.Create;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 
@@ -705,7 +705,7 @@ begin
   Arrays.Primitive := gpTriangleStrip;
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
-    IndexesFromCoordIndex := TLongIntList.Create;
+    IndexesFromCoordIndex := TGeometryIndexList.Create;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 
@@ -887,7 +887,7 @@ begin
     { indexes are just directly from CoordIndex in this case.
       Only make sure we have only full quads (although nothing really
       requires or promises that, but for the future). }
-    IndexesFromCoordIndex := TLongIntList.Create;
+    IndexesFromCoordIndex := TGeometryIndexList.Create;
     IndexesFromCoordIndex.Assign(CoordIndex.Items);
     IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 4) * 4;
   end;
@@ -956,7 +956,7 @@ begin
   Arrays.Primitive := gpLineStrip;
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
-    IndexesFromCoordIndex := TLongIntList.Create;
+    IndexesFromCoordIndex := TGeometryIndexList.Create;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 

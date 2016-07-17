@@ -57,7 +57,7 @@ type
     OverTriangulate: boolean;
   protected
     { Indexes, only when Arrays.Indexes = nil but original node was indexed. }
-    IndexesFromCoordIndex: TLongIntList;
+    IndexesFromCoordIndex: TGeometryIndexList;
 
     { Index to Arrays. Suitable always to index Arrays.Position / Color / Normal
       and other Arrays attribute arrays. Calculated in
@@ -267,7 +267,7 @@ procedure AssignToInterleaved(Source: TFPSList; Target: Pointer;
   @raises(EAssignInterleavedRangeError When Indexes.Count < CopyCount,
     or some index points outside of array.) }
 procedure AssignToInterleavedIndexed(Source: TFPSList; Target: Pointer;
-  const Stride, CopyCount: Cardinal; Indexes: TLongIntList); forward;
+  const Stride, CopyCount: Cardinal; Indexes: TGeometryIndexList); forward;
 
 procedure AssignToInterleaved(Source: TFPSList; Target: Pointer;
   const Stride, CopyCount: Cardinal);
@@ -289,10 +289,10 @@ begin
 end;
 
 procedure AssignToInterleavedIndexed(Source: TFPSList; Target: Pointer;
-  const Stride, CopyCount: Cardinal; Indexes: TLongIntList);
+  const Stride, CopyCount: Cardinal; Indexes: TGeometryIndexList);
 var
   I: Integer;
-  Index: LongInt;
+  Index: TGeometryIndex;
 begin
   if Indexes.Count < CopyCount then
     raise EAssignInterleavedRangeError.CreateFmt('Not enough items: %d, but at least %d required',
@@ -301,8 +301,7 @@ begin
   for I := 0 to CopyCount - 1 do
   begin
     Index := Indexes.L[I];
-    if (Index < 0) or
-       (Index >= Source.Count) then
+    if Index >= Source.Count then
       raise EAssignInterleavedRangeError.CreateFmt('Invalid index: %d, but we have %d items',
         [Index, Source.Count]);
 
@@ -739,7 +738,7 @@ end;
 function TArraysGenerator.GenerateArrays: TGeometryArrays;
 var
   AllowIndexed: boolean;
-  MaxIndex: Integer;
+  MaxIndex: TGeometryIndex;
 begin
   Arrays := TGeometryArrays.Create;
   Result := Arrays;

@@ -99,6 +99,9 @@ type
     function Find(const Name: string): TGeometryAttrib;
   end;
 
+  TGeometryIndex = {$ifdef GLIndexesShort} Word {$else} LongWord {$endif};
+  TGeometryIndexList = {$ifdef GLIndexesShort} TWordList {$else} TLongWordList {$endif};
+
   { Geometry represented as arrays of indexes, vertex positions,
     texture coordinates and such. Many (eventually, all) geometry nodes
     (TVRMLGeometryNode) can be processed into an instance of this class.
@@ -113,7 +116,7 @@ type
     and still allowing fast dynamic updates in common cases. }
   TGeometryArrays = class
   private
-    FIndexes: TLongIntList;
+    FIndexes: TGeometryIndexList;
     FIndexesCount: Cardinal;
     FHasIndexes: boolean;
     FPrimitive: TGeometryPrimitive;
@@ -176,17 +179,20 @@ type
       this vertex position will just have to be duplicated (which is OK,
       as the calculation results couldn't be shared anyway,
       since normal/color are different). }
-    property Indexes: TLongIntList read FIndexes write FIndexes;
+    property Indexes: TGeometryIndexList read FIndexes write FIndexes;
 
-    { Information about Indexes.
+    (*Information about Indexes.
 
       Before using FreeData, you could as well use the @link(Indexes) property
       to get the same information. You can use Indexes[Index], Indexes <> nil,
       Indexes.Count and such. However, FreeData call (that you should use
       to conserve memory usage after loading arrays to VBO)
       releases the Indexes property, while these properties stay the same.
-      @groupBegin }
-    function IndexesPtr(const Index: Cardinal): PLongInt;
+
+      IndexesPtr may be casted to "^TGeometryIndex", before the FreeData call.
+
+      @groupBegin *)
+    function IndexesPtr(const Index: Cardinal): PtrUInt;
     property IndexesCount: Cardinal read FIndexesCount;
     property HasIndexes: boolean read FHasIndexes;
     { @groupEnd }
@@ -406,9 +412,9 @@ begin
   end;
 end;
 
-function TGeometryArrays.IndexesPtr(const Index: Cardinal): PLongInt;
+function TGeometryArrays.IndexesPtr(const Index: Cardinal): PtrUInt;
 begin
-  Result := PLongInt(PtrUInt(Index * SizeOf(LongInt)));
+  Result := Index * SizeOf(TGeometryIndex);
   if not DataFreed then
     PtrUInt(Result) += PtrUInt(FIndexes.List);
 end;

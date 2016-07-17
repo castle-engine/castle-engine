@@ -407,10 +407,12 @@ begin
           glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo[vtIndex]);
 
         if Arrays.Counts = nil then
-          glDrawElements(Mode, Arrays.IndexesCount, GL_UNSIGNED_INT, Arrays.IndexesPtr(First)) else
+          glDrawElements(Mode, Arrays.IndexesCount,
+            {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, Pointer(Arrays.IndexesPtr(First))) else
           for I := 0 to Arrays.Counts.Count - 1 do
           begin
-            glDrawElements(Mode, Arrays.Counts[I], GL_UNSIGNED_INT, Arrays.IndexesPtr(First));
+            glDrawElements(Mode, Arrays.Counts[I],
+              {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, Pointer(Arrays.IndexesPtr(First)));
             First += Arrays.Counts[I];
           end;
       end else
