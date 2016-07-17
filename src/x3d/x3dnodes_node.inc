@@ -143,18 +143,16 @@
 
     { Enumerate all active child nodes of given node.
 
-      "Active nodes" are the ones affecting current VRML graph look
-      or collisions, e.g. from Switch
-      node only one child will be enumerated.
+      "Active nodes" are the ones affecting current look or collisions,
+      e.g. from Switch node only one child will be enumerated.
       See @link(Traverse) for more precise definition.
 
-      "Direct" means that this enumerates only direct
-      descendants, i.e. this is not recursive.
-      See methods like Traverse or EnumerateNodes if you
-      want recursive behavior.
+      "Direct" means that this enumerates only direct descendants,
+      i.e. this is not recursive. See methods like Traverse or EnumerateNodes
+      if you want recursive behavior.
 
       This can enumerate both @link(VRML1Children) nodes
-      nodes within TSFNode and TMFNode fields.
+      and nodes within TSFNode and TMFNode fields.
 
       Default implementation in this class enumerates all Children
       nodes of VRML 1.0. If you need to remove some children
