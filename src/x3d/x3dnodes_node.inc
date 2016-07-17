@@ -53,7 +53,7 @@
     FPrototypes: TX3DPrototypeBaseList;
     FRoutes: TX3DRouteList;
     FImports, FExports: TX3DFileItemList;
-    FFields: TX3DFieldList;
+    FFields, FFieldsSFNode, FFieldsMFNode: TX3DFieldList;
     FEvents: TX3DEventList;
     FPrototypeInstance: boolean;
     FPrototypeInstanceSourceNode: TX3DPrototypeNode;
@@ -1105,7 +1105,6 @@ begin
   FVRML1Parents := TX3DNodeList.Create(false);
   FParentFields := TX3DFieldList.Create(false);
   FFields := TX3DFieldList.Create(false);
-
   FEvents := TX3DEventList.Create(false);
 
   FHasInterfaceDeclarations := [];
@@ -1142,6 +1141,8 @@ begin
   FreeAndNil(FRoutes);
   FreeAndNil(FImports);
   FreeAndNil(FExports);
+  FreeAndNil(FFieldsSFNode);
+  FreeAndNil(FFieldsMFNode);
 
   { First free Fields and Events, before freeing InterfaceDeclarations.
     Reason: Fields and Events may contains references to InterfaceDeclarations
@@ -1387,7 +1388,6 @@ function TX3DNode.DirectEnumerateAll(
   Func: TEnumerateChildrenFunction): Pointer;
 var
   I, J: Integer;
-  F: TX3DField;
   SF: TSFNode;
   MF: TMFNode;
 begin
@@ -1399,28 +1399,27 @@ begin
     if Result <> nil then Exit;
   end;
 
-  for I := 0 to FFields.Count - 1 do
-  begin
-    F := FFields[I];
-    if F is TSFNode then
+  if FFieldsSFNode <> nil then
+    for I := 0 to FFieldsSFNode.Count - 1 do
     begin
-      SF := TSFNode(F);
+      SF := TSFNode(FFieldsSFNode[I]);
       if SF.Value <> nil then
       begin
         Result := Func(Self, SF.Value);
         if Result <> nil then Exit;
       end;
-    end else
-    if F is TMFNode then
+    end;
+
+  if FFieldsMFNode <> nil then
+    for I := 0 to FFieldsMFNode.Count - 1 do
     begin
-      MF := TMFNode(F);
+      MF := TMFNode(FFieldsMFNode[I]);
       for J := 0 to MF.Items.Count - 1 do
       begin
         Result := Func(Self, MF.Items[J]);
         if Result <> nil then Exit;
       end;
     end;
-  end;
 
   if PrototypeInstance then
   begin
@@ -2819,11 +2818,10 @@ begin
     end;
   end;
 
-  for I := 0 to FFields.Count - 1 do
-  begin
-    if FFields[I] is TSFNode then
+  if FFieldsSFNode <> nil then
+    for I := 0 to FFieldsSFNode.Count - 1 do
     begin
-      SF := TSFNode(Fields[I]);
+      SF := TSFNode(FFieldsSFNode[I]);
       if SF.Value <> nil then
       begin
         NewNode := SF.Value;
@@ -2837,10 +2835,12 @@ begin
           Result += SF.Value.EnumerateReplaceChildren(Func);
         end;
       end;
-    end else
-    if FFields[I] is TMFNode then
+    end;
+
+  if FFieldsMFNode <> nil then
+    for I := 0 to FFieldsMFNode.Count - 1 do
     begin
-      MF := TMFNode(Fields[I]);
+      MF := TMFNode(FFieldsMFNode[I]);
       J := 0;
       while J < MF.Items.Count do
       begin
@@ -2862,7 +2862,6 @@ begin
         end;
       end;
     end;
-  end;
 end;
 
   type
@@ -3150,6 +3149,20 @@ end;
 procedure TX3DNode.AddField(const Value: TX3DField);
 begin
   FFields.Add(Value);
+
+  { add the field also to FFieldsSFNode or FFieldsMFNode }
+  if Value is TSFNode then
+  begin
+    if FFieldsSFNode = nil then
+      FFieldsSFNode := TX3DFieldList.Create(false);
+    FFieldsSFNode.Add(Value);
+  end else
+  if Value is TMFNode then
+  begin
+    if FFieldsMFNode = nil then
+      FFieldsMFNode := TX3DFieldList.Create(false);
+    FFieldsMFNode.Add(Value);
+  end;
 end;
 
 function TX3DNode.IndexOfField(const AName: string): Integer;
