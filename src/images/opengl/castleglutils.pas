@@ -983,7 +983,7 @@ begin
   end else
     CurrentMultiSampling := 1;
 
-  SupportedExtensions := Pchar(glGetString(GL_EXTENSIONS));
+  SupportedExtensions := PChar(glGetString(GL_EXTENSIONS));
 
   PackedDepthStencil :=
     {$ifdef OpenGLES} glext_ExtensionSupported('GL_OES_packed_depth_stencil', SupportedExtensions)
