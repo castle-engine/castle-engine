@@ -684,6 +684,9 @@ type
     LastSoundRefresh: TMilisecTime;
     DefaultHeadlightNode: TDirectionalLightNode;
 
+    ScheduledVisibleChangeNotification: boolean;
+    ScheduledVisibleChangeNotificationChanges: TVisibleChanges;
+
     { Call at the beginning of Render (from both scene manager and custom viewport),
       to make sure UpdateGeneratedTextures was done before actual drawing.
       It *can* carelessly change the OpenGL projection matrix (but not viewport). }
@@ -2618,10 +2621,12 @@ end;
 
 procedure TCastleSceneManager.ItemsVisibleChange(const Sender: T3D; const Changes: TVisibleChanges);
 begin
-  { pass visible change notification "upward" (as a TUIControl, to container) }
-  VisibleChange;
-  { pass visible change notification "downward", to all children T3D }
-  Items.VisibleChangeNotification(Changes);
+  { merely schedule broadcasting this change to a later time.
+    This way e.g. animating a lot of transformations doesn't cause a lot of
+    "visible change notifications" repeatedly on the same 3D object within
+    the same frame. }
+  ScheduledVisibleChangeNotification := true;
+  ScheduledVisibleChangeNotificationChanges += Changes;
 end;
 
 procedure TCastleSceneManager.GLContextOpen;
@@ -3083,6 +3088,26 @@ end;
 
 procedure TCastleSceneManager.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
+
+  procedure DoScheduledVisibleChangeNotification;
+  var
+    Changes: TVisibleChanges;
+  begin
+    if ScheduledVisibleChangeNotification then
+    begin
+      { reset state first, in case some VisibleChangeNotification will post again
+        another visible change. }
+      ScheduledVisibleChangeNotification := false;
+      Changes := ScheduledVisibleChangeNotificationChanges;
+      ScheduledVisibleChangeNotificationChanges := [];
+
+      { pass visible change notification "upward" (as a TUIControl, to container) }
+      VisibleChange;
+      { pass visible change notification "downward", to all children T3D }
+      Items.VisibleChangeNotification(Changes);
+    end;
+  end;
+
 const
   { Delay between calling SoundEngine.Refresh, in miliseconds. }
   SoundRefreshDelay = 100;
@@ -3117,6 +3142,8 @@ begin
       end;
     end;
   end;
+
+  DoScheduledVisibleChangeNotification;
 end;
 
 procedure TCastleSceneManager.CameraVisibleChange(ACamera: TObject);
