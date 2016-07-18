@@ -692,7 +692,7 @@ type
     procedure SetMainScene(const Value: TCastleScene);
     procedure SetDefaultViewport(const Value: boolean);
 
-    procedure ItemsVisibleChange(const Changes: TVisibleChanges);
+    procedure ItemsVisibleChange(const Sender: T3D; const Changes: TVisibleChanges);
 
     { scene callbacks }
     procedure SceneBoundViewpointChanged(Scene: TCastleSceneCore);
@@ -1446,6 +1446,11 @@ end;
 
 procedure TCastleAbstractViewport.ItemsAndCameraCursorChange(Sender: TObject);
 begin
+  { this may be called from T3DListCore.Notify when removing stuff owned by other
+    stuff, in particular during our own destructor when FItems is freed
+    and we're in half-destructed state. }
+  if csDestroying in GetItems.ComponentState then Exit;
+
   { We have to treat Camera.Cursor specially:
     - mcForceNone because of mouse look means result is unconditionally mcForceNone.
       Other Items.Cursor, MainScene.Cursor etc. is ignored then.
@@ -2434,9 +2439,8 @@ type
     Owner is always non-nil, always a TCastleSceneManager. }
   T3DWorldConcrete = class(T3DWorld)
   public
+    procedure SetWorld(const Value: T3DWorld); override;
     function Owner: TCastleSceneManager;
-    procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
-    procedure CursorChange; override;
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: P3DTriangle): boolean; override;
     function GravityUp: TVector3Single; override;
@@ -2460,19 +2464,15 @@ type
     function WorldRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
   end;
 
+procedure T3DWorldConcrete.SetWorld(const Value: T3DWorld);
+begin
+  // this is overridden just to make it public
+  inherited SetWorld(Value);
+end;
+
 function T3DWorldConcrete.Owner: TCastleSceneManager;
 begin
   Result := TCastleSceneManager(inherited Owner);
-end;
-
-procedure T3DWorldConcrete.VisibleChangeHere(const Changes: TVisibleChanges);
-begin
-  Owner.ItemsVisibleChange(Changes);
-end;
-
-procedure T3DWorldConcrete.CursorChange;
-begin
-  Owner.ItemsAndCameraCursorChange(Self { Sender is ignored now anyway });
 end;
 
 function T3DWorldConcrete.CollisionIgnoreItem(const Sender: TObject;
@@ -2568,6 +2568,9 @@ begin
     so make it a correct sub-component. }
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
+  FItems.OnCursorChange := @ItemsAndCameraCursorChange;
+  FItems.OnVisibleChange := @ItemsVisibleChange;
+  T3DWorldConcrete(FItems).SetWorld(FItems);
 
   FMoveLimit := EmptyBox3D;
   FWater := EmptyBox3D;
@@ -2613,7 +2616,7 @@ begin
   inherited;
 end;
 
-procedure TCastleSceneManager.ItemsVisibleChange(const Changes: TVisibleChanges);
+procedure TCastleSceneManager.ItemsVisibleChange(const Sender: T3D; const Changes: TVisibleChanges);
 begin
   { pass visible change notification "upward" (as a TUIControl, to container) }
   VisibleChange;
@@ -2717,7 +2720,7 @@ begin
       if Camera <> nil then
       begin
         MainScene.CameraChanged(Camera);
-        ItemsVisibleChange(CameraToChanges);
+        ItemsVisibleChange(MainScene, CameraToChanges);
       end;
     end;
   end;
@@ -2786,7 +2789,7 @@ begin
       { Call initial CameraChanged (this allows ProximitySensors to work
         as soon as ProcessEvents becomes true). }
       Items.CameraChanged(Camera);
-      ItemsVisibleChange(CameraToChanges);
+      ItemsVisibleChange(Items, CameraToChanges);
     end;
 
     { Changing camera changes also the view rapidly. }
@@ -3129,7 +3132,7 @@ begin
       to work in all 3D scenes, not just in MainScene. }
     Items.CameraChanged(Camera);
     { ItemsVisibleChange will also cause our own VisibleChange. }
-    ItemsVisibleChange(CameraToChanges);
+    ItemsVisibleChange(Items, CameraToChanges);
   end else
     VisibleChange;
 

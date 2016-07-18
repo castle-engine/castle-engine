@@ -49,7 +49,7 @@ type
     vcVisibleNonGeometry);
   TVisibleChanges = set of TVisibleChange;
 
-  TVisibleChangeEvent = procedure (Sender: T3D; Changes: TVisibleChanges) of object;
+  TVisibleChangeEvent = procedure (const Sender: T3D; const Changes: TVisibleChanges) of object;
 
   { Various things that T3D.PrepareResources may prepare. }
   TPrepareResourcesOption = (prRender, prBackground, prBoundingBox,
@@ -282,15 +282,14 @@ type
     FExists: boolean;
     FCollides: boolean;
     FPickable: boolean;
-    FParent: T3DList;
     FCursor: TMouseCursor;
     FCollidesWithMoving: boolean;
     Disabled: Cardinal;
     FExcludeFromGlobalLights: boolean;
+    FWorld: T3DWorld;
     procedure SetCursor(const Value: TMouseCursor);
   protected
-    { In T3D class, just calls Parent.CursorChange. }
-    procedure CursorChange; virtual;
+    procedure SetWorld(const Value: T3DWorld); virtual;
 
     { Height of a point above the 3D model.
       This checks ray collision, from Position along the negated GravityUp vector.
@@ -735,13 +734,15 @@ type
       so be prepared to handle this at every time. }
     procedure VisibleChangeHere(const Changes: TVisibleChanges); virtual;
 
-    { Containing 3D list. }
-    property Parent: T3DList read FParent;
-
     { World containing this 3D object. In other words, the root of 3D objects
-      tree containing this object. @nil if we are not part of a hierarchy rooted
-      in T3DWorld. }
-    function World: T3DWorld; virtual;
+      tree containing this object. In practice, the world instance
+      is always 1-1 corresponding to a particular TCastleSceneManager instance
+      (each scene manager has it's world instance in @link(TCastleSceneManager.Items)).
+
+      @nil if we are not part of a hierarchy rooted in T3DWorld.
+      In pratice, this happens if we're not yet part of a @link(TCastleSceneManager.Items)
+      hierarchy. }
+    property World: T3DWorld read FWorld;
 
     { Something visible changed in the 3D world.
       This is usually called by our container (like TCastleSceneManager),
@@ -1045,6 +1046,8 @@ type
     function GetItem(const I: Integer): T3D;
     procedure SetItem(const I: Integer; const Item: T3D);
   protected
+    procedure SetWorld(const Value: T3DWorld); override;
+
     { Additional child inside the list, always processed before all children
       on the @link(Items) list. By default this method returns @nil,
       indicating no additional child exists.
@@ -1136,7 +1139,9 @@ type
   { 3D world. List of 3D objects, with some central properties. }
   T3DWorld = class(T3DList)
   public
-    function World: T3DWorld; override;
+    OnCursorChange: TNotifyEvent;
+    OnVisibleChange: TVisibleChangeEvent;
+
     { See TCastleSceneManager.CollisionIgnoreItem. }
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: P3DTriangle): boolean; virtual; abstract;
@@ -2158,8 +2163,8 @@ end;
 
 procedure T3D.VisibleChangeHere(const Changes: TVisibleChanges);
 begin
-  if Parent <> nil then
-    Parent.VisibleChangeHere(Changes);
+  if (World <> nil) and Assigned(World.OnVisibleChange) then
+    World.OnVisibleChange(Self, Changes);
 end;
 
 procedure T3D.VisibleChangeNotification(const Changes: TVisibleChanges);
@@ -2175,15 +2180,9 @@ begin
   if FCursor <> Value then
   begin
     FCursor := Value;
-    CursorChange;
+    if (World <> nil) and Assigned(World.OnCursorChange) then
+      World.OnCursorChange(Self);
   end;
-end;
-
-procedure T3D.CursorChange;
-begin
-  { pass CursorChange event up the tree (eventually, to the scenemanager, that will
-    pass it by TUIControl similar OnCursorChange mechanism to the container). }
-  if Parent <> nil then Parent.CursorChange;
 end;
 
 procedure T3D.GLContextClose;
@@ -2448,11 +2447,9 @@ begin
   Dec(Disabled);
 end;
 
-function T3D.World: T3DWorld;
+procedure T3D.SetWorld(const Value: T3DWorld);
 begin
-  if Parent <> nil then
-    Result := Parent.World else
-    Result := nil;
+  FWorld := Value;
 end;
 
 function T3D.Height(const MyPosition: TVector3Single;
@@ -2583,26 +2580,20 @@ begin
     case Action of
       lnAdded:
         begin
-          if B.FParent = nil then
-            B.FParent := Owner;
+          B.SetWorld(Owner.World);
           { Register Owner to be notified of item destruction. }
           B.FreeNotification(Owner);
         end;
       lnExtracted, lnDeleted:
         begin
-          if B.FParent = Owner then
-            B.FParent := nil;
+          B.SetWorld(nil);
           B.RemoveFreeNotification(Owner);
         end;
       else raise EInternalError.Create('T3DListCore.Notify action?');
     end;
 
-    { This notification may get called during FreeAndNil(FList)
-      in T3DList.Destroy. Then FList is already nil (as FreeAndNil
-      first sets object to nil), and Owner.CursorChange
-      may not be ready for this. }
-    if Owner.FList <> nil then
-      Owner.CursorChange;
+    if (Owner.World <> nil) and Assigned(Owner.World.OnCursorChange) then
+      Owner.World.OnCursorChange(Owner);
   end;
 end;
 
@@ -2638,6 +2629,21 @@ destructor T3DList.Destroy;
 begin
   FreeAndNil(FList);
   inherited;
+end;
+
+procedure T3DList.SetWorld(const Value: T3DWorld);
+var
+  I: Integer;
+begin
+  if FWorld <> Value then
+  begin
+    inherited;
+    if GetChild <> nil then
+      GetChild.SetWorld(Value);
+    if FList <> nil then // when one list is within another, this may be called during own own destruction by T3DListCore.Notify
+      for I := 0 to List.Count - 1 do
+        List[I].SetWorld(Value);
+  end;
 end;
 
 function T3DList.GetChild: T3D;
@@ -3316,11 +3322,6 @@ begin
 end;
 
 { T3DWorld ------------------------------------------------------------------- }
-
-function T3DWorld.World: T3DWorld;
-begin
-  Result := Self;
-end;
 
 function T3DWorld.GravityCoordinate: Integer;
 begin

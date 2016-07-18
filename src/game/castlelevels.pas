@@ -443,7 +443,6 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
   TLevelLogic = class(T3D)
   private
     FTime: TFloatTime;
-    FWorld: T3DWorld;
   protected
     { Load 3D precalculated animation from (*.kanim) file, doing common tasks.
       @unorderedList(
@@ -520,7 +519,6 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
     constructor Create(AOwner: TComponent; AWorld: T3DWorld;
       MainScene: TCastleScene; DOMElement: TDOMElement); reintroduce; virtual;
     function BoundingBox: TBox3D; override;
-    function World: T3DWorld; override;
 
     { Called when new player starts new game on this level.
       This may be used to equip the player with some basic weapon / items.
@@ -1032,21 +1030,12 @@ constructor TLevelLogic.Create(AOwner: TComponent; AWorld: T3DWorld;
   MainScene: TCastleScene; DOMElement: TDOMElement);
 begin
   inherited Create(AOwner);
-  FWorld := AWorld;
+  SetWorld(AWorld);
+  Assert(AWorld <> nil, 'TLevelLogic.World should never be nil, you have to provide World at TLevelLogic constructor');
   { Actually, the fact that our BoundingBox is empty also prevents collisions.
     But for some methods, knowing that Collides = false allows them to exit
     faster. }
   Collides := false;
-end;
-
-function TLevelLogic.World: T3DWorld;
-begin
-  Result := FWorld;
-
-  Assert(Result <> nil,
-    'TLevelLogic.World should never be nil, you have to provide World at TLevelLogic constructor');
-  Assert( ((inherited World) = nil) or ((inherited World) = Result),
-    'World specified at TLevelLogic constructor must be the same world where TLevelLogic instance is added');
 end;
 
 function TLevelLogic.BoundingBox: TBox3D;
