@@ -1212,22 +1212,22 @@ end;
 
 function TAbstractComposedGeometryNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := Fdattrib.SearchValid(Func);
+  Result := Fdattrib.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := Fdcolor.SearchValid(Func);
+  Result := Fdcolor.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := Fdcoord.SearchValid(Func);
+  Result := Fdcoord.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdfogCoord.SearchValid(Func);
+  Result := FdfogCoord.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := Fdnormal.SearchValid(Func);
+  Result := Fdnormal.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdtexCoord.SearchValid(Func);
+  Result := FdtexCoord.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -1649,16 +1649,16 @@ end;
 
 function TLineSetNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := Fdattrib.SearchValid(Func);
+  Result := Fdattrib.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := Fdcolor.SearchValid(Func);
+  Result := Fdcolor.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := Fdcoord.SearchValid(Func);
+  Result := Fdcoord.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdfogCoord.SearchValid(Func);
+  Result := FdfogCoord.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -1760,16 +1760,16 @@ end;
 
 function TPointSetNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := Fdattrib.SearchValid(Func);
+  Result := Fdattrib.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := Fdcolor.SearchValid(Func);
+  Result := Fdcolor.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := Fdcoord.SearchValid(Func);
+  Result := Fdcoord.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdfogCoord.SearchValid(Func);
+  Result := FdfogCoord.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 

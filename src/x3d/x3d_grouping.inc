@@ -594,7 +594,7 @@ begin
   Result := inherited;
   if Result <> nil then Exit;
 
-  Result := FdChildren.SearchValid(Func);
+  Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -792,7 +792,7 @@ end;
 
 function TStaticGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdChildren.SearchValid(Func);
+  Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -893,7 +893,7 @@ end;
 
 function TTransformNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdChildren.SearchValid(Func);
+  Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 

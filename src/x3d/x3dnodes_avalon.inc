@@ -436,7 +436,7 @@ begin
   Result := inherited;
   if Result <> nil then Exit;
 
-  Result := FdtexCoord.SearchValid(Func);
+  Result := FdtexCoord.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 

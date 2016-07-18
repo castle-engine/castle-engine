@@ -934,12 +934,10 @@ type
     function ChildAllowed(Child: TX3DNode): boolean;
     function CurrentChildAllowed: boolean;
 
-    { Calls Func for our @link(Value), assuming it's set (non-nil) and valid
-      (allowed by ChildAllowed).
-
+    { Calls Func for our @link(Value), assuming it's set (non-nil).
       The main use for this is to simplify implementation of
       TX3DNode.DirectEnumerateActive overrides in TX3DNode descendants. }
-    function SearchValid(Func: TEnumerateChildrenFunction): Pointer;
+    function Enumerate(Func: TEnumerateChildrenFunction): Pointer;
   end;
 
   { VRML/X3D field holding a list of nodes.
@@ -1077,8 +1075,7 @@ type
       could break reference-counting of nodes by ParentFields). }
     property DefaultItems: TX3DNodeList read FDefaultItems;
 
-    { Operate on DefaultItems, just like analogous AssignItems and
-      Clear.
+    { Operate on DefaultItems, just like analogous AssignItems and @link(Clear).
       @groupBegin }
     procedure AssignDefaultItems(SourceItems: TX3DNodeList);
     procedure ClearDefault;
@@ -1087,12 +1084,11 @@ type
     property DefaultValueExists: boolean
       read FDefaultValueExists write FDefaultValueExists default false;
 
-    { Calls Func for all current children that are valid
-      (allowed by ChildAllowed). Stops if Func returns something non-nil.
-
+    { Calls Func for all current children.
+      Stops if Func returns something non-nil.
       The main use for this is to simplify implementation of
       TX3DNode.DirectEnumerateActive overrides in TX3DNode descendants. }
-    function SearchValid(Func: TEnumerateChildrenFunction): Pointer;
+    function Enumerate(Func: TEnumerateChildrenFunction): Pointer;
   end;
 
 { Specific VRML/X3D nodes ---------------------------------------------------- }
@@ -3220,9 +3216,12 @@ begin
   Result := 'SFNode';
 end;
 
-function TSFNode.SearchValid(Func: TEnumerateChildrenFunction): Pointer;
+function TSFNode.Enumerate(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  if (Value <> nil) and CurrentChildAllowed then
+  { checking CurrentChildAllowed is not really necessary here,
+    and costs time, because it may do a slow Supports() call }
+  //if (Value <> nil) and CurrentChildAllowed then
+  if Value <> nil then
     Result := Func(ParentNode, Value) else
     Result := nil;
 end;
@@ -3606,17 +3605,19 @@ begin
   Result := 'MFNode';
 end;
 
-function TMFNode.SearchValid(Func: TEnumerateChildrenFunction): Pointer;
+function TMFNode.Enumerate(Func: TEnumerateChildrenFunction): Pointer;
 var
   I: Integer;
 begin
   Result := nil;
   for I := 0 to Count - 1 do
-    if ChildAllowed(Items[I]) then
-    begin
-      Result := Func(ParentNode, Items[I]);
-      if Result <> nil then Exit;
-    end;
+  { checking ChildAllowed is not really necessary here,
+    and costs time, because it may do a slow Supports() call }
+  //if ChildAllowed(Items[I]) then
+  begin
+    Result := Func(ParentNode, Items[I]);
+    if Result <> nil then Exit;
+  end;
 end;
 
 function TMFNode.GetItems(const Index: Integer): TX3DNode;

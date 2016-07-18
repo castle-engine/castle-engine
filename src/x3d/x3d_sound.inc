@@ -429,7 +429,7 @@ begin
 
   { Necessary in order to call TAudioClipNode.BeforeTraverse,
     testcase: thunder.x3dv. }
-  Result := FdSource.SearchValid(Func);
+  Result := FdSource.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 

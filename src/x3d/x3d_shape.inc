@@ -504,10 +504,10 @@ begin
   if FdGeometry.CurrentChildAllowed and
      (FdGeometry.Value <> nil) then
   begin
-    Result := FdAppearance.SearchValid(Func);
+    Result := FdAppearance.Enumerate(Func);
     if Result <> nil then Exit;
 
-    Result := FdGeometry.SearchValid(Func);
+    Result := FdGeometry.Enumerate(Func);
     if Result <> nil then Exit;
   end;
 end;
@@ -768,22 +768,22 @@ end;
 
 function TAppearanceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FFdFillProperties.SearchValid(Func);
+  Result := FFdFillProperties.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FFdLineProperties.SearchValid(Func);
+  Result := FFdLineProperties.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FFdMaterial.SearchValid(Func);
+  Result := FFdMaterial.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FFdShaders.SearchValid(Func);
+  Result := FFdShaders.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FFdTexture.SearchValid(Func);
+  Result := FFdTexture.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FFdTextureTransform.SearchValid(Func);
+  Result := FFdTextureTransform.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 

@@ -427,17 +427,17 @@ begin
     field but root Joint is just simply placed directly in VRML file.
     This means that I should simply render Joint node like a Transform,
     both inside "skeleton" field and outside, and both versions will be happy. }
-  Result := FdSkeleton.SearchValid(Func);
+  Result := FdSkeleton.Enumerate(Func);
   if Result <> nil then Exit;
 
   { To support skinned body, pass skin as an active node too
     (if not nil, then it will be rendered.)
     Note that SkinCoord and SkinNormal are not passed as active
     (they should be referenced inside Skin object). }
-  Result := FdSkin.SearchValid(Func);
+  Result := FdSkin.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdViewpoints.SearchValid(Func);
+  Result := FdViewpoints.Enumerate(Func);
   if Result <> nil then Exit;
 
   { Note that joints, segments and sites is not passed to Func --- they
@@ -646,7 +646,7 @@ end;
 
 function THAnimJointNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdChildren.SearchValid(Func);
+  Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -793,7 +793,7 @@ end;
 
 function THAnimSegmentNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdChildren.SearchValid(Func);
+  Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -857,7 +857,7 @@ end;
 
 function THAnimSiteNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdChildren.SearchValid(Func);
+  Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 

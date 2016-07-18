@@ -311,7 +311,7 @@ begin
   Result := inherited;
   if Result <> nil then Exit;
 
-  Result := FFdShaders.SearchValid(Func);
+  Result := FFdShaders.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 

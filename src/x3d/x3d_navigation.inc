@@ -576,7 +576,7 @@ end;
 
 function TBillboardNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdChildren.SearchValid(Func);
+  Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -711,10 +711,10 @@ end;
 
 function TCollisionNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdProxy.SearchValid(Func);
+  Result := FdProxy.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdChildren.SearchValid(Func);
+  Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -729,7 +729,7 @@ begin
     begin
       { Collision node doesn't do anything in this trivial case,
         children are treated just like by Group. }
-      Result := FdChildren.SearchValid(Func);
+      Result := FdChildren.Enumerate(Func);
       if Result <> nil then Exit;
     end else
     begin
@@ -739,13 +739,13 @@ begin
 
       Inc(StateStack.Top.InsideInvisible);
       try
-        Result := FdProxy.SearchValid(Func);
+        Result := FdProxy.Enumerate(Func);
         if Result <> nil then Exit;
       finally Dec(StateStack.Top.InsideInvisible) end;
 
       Inc(StateStack.Top.InsideIgnoreCollision);
       try
-        Result := FdChildren.SearchValid(Func);
+        Result := FdChildren.Enumerate(Func);
         if Result <> nil then Exit;
       finally Dec(StateStack.Top.InsideIgnoreCollision) end;
     end;
@@ -754,7 +754,7 @@ begin
     { Nothing is collidable in this case. So proxy is just ignored. }
     Inc(StateStack.Top.InsideIgnoreCollision);
     try
-      Result := FdChildren.SearchValid(Func);
+      Result := FdChildren.Enumerate(Func);
       if Result <> nil then Exit;
     finally Dec(StateStack.Top.InsideIgnoreCollision) end;
   end;
@@ -1190,7 +1190,7 @@ begin
   Result := inherited;
   if Result <> nil then Exit;
 
-  Result := FdChildren.SearchValid(Func);
+  Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 

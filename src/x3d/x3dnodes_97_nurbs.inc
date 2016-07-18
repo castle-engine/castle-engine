@@ -872,7 +872,7 @@ end;
 
 function TContour2DNode_2.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := Fdchildren.SearchValid(Func);
+  Result := Fdchildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 

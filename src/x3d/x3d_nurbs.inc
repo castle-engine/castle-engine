@@ -564,10 +564,10 @@ end;
 
 function TAbstractNurbsSurfaceGeometryNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdcontrolPoint.SearchValid(Func);
+  Result := FdcontrolPoint.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdtexCoord.SearchValid(Func);
+  Result := FdtexCoord.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -606,7 +606,7 @@ end;
 
 function TContour2DNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := Fdchildren.SearchValid(Func);
+  Result := Fdchildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -709,7 +709,7 @@ end;
 
 function TNurbsCurveNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdcontrolPoint.SearchValid(Func);
+  Result := FdcontrolPoint.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -914,7 +914,7 @@ end;
 
 function TNurbsOrientationInterpolatorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdcontrolPoint.SearchValid(Func);
+  Result := FdcontrolPoint.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -1358,7 +1358,7 @@ end;
 
 function TNurbsPositionInterpolatorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdcontrolPoint.SearchValid(Func);
+  Result := FdcontrolPoint.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -1510,7 +1510,7 @@ end;
 
 function TNurbsSurfaceInterpolatorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdcontrolPoint.SearchValid(Func);
+  Result := FdcontrolPoint.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -1627,10 +1627,10 @@ end;
 
 function TNurbsSweptSurfaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdcrossSectionCurve.SearchValid(Func);
+  Result := FdcrossSectionCurve.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdtrajectoryCurve.SearchValid(Func);
+  Result := FdtrajectoryCurve.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -1678,10 +1678,10 @@ end;
 
 function TNurbsSwungSurfaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdprofileCurve.SearchValid(Func);
+  Result := FdprofileCurve.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdtrajectoryCurve.SearchValid(Func);
+  Result := FdtrajectoryCurve.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -1777,7 +1777,7 @@ end;
 
 function TNurbsTrimmedSurfaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdtrimmingContour.SearchValid(Func);
+  Result := FdtrimmingContour.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 

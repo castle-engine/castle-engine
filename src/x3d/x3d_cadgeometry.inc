@@ -176,7 +176,7 @@ end;
 
 function TCADAssemblyNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdChildren.SearchValid(Func);
+  Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -213,7 +213,7 @@ end;
 
 function TCADFaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdShape.SearchValid(Func);
+  Result := FdShape.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -304,7 +304,7 @@ end;
 
 function TCADPartNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdChildren.SearchValid(Func);
+  Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
