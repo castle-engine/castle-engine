@@ -725,7 +725,11 @@ type
     FHeadlightOn: boolean;
     FOnHeadlightOnChanged: TNotifyEvent;
     FAnimateOnlyWhenVisible: boolean;
-    FAnimateOnlyWhenVisibleGatheredTime: TFloatTime;
+    FAnimateGatheredTime: TFloatTime;
+    FAnimateSkipTicks: Cardinal;
+    AnimateSkipNextTicks: Cardinal;
+
+    procedure SetAnimateSkipTicks(const Value: Cardinal);
 
     procedure RenderingCameraChanged(const RenderingCamera: TRenderingCamera;
       Viewpoint: TAbstractViewpointNode);
@@ -1911,6 +1915,33 @@ type
       for something else than just visual effect. }
     property AnimateOnlyWhenVisible: boolean
       read FAnimateOnlyWhenVisible write FAnimateOnlyWhenVisible default false;
+
+    { Non-zero values optimize the animation processing, by not updating
+      the animation every frame. After updating the animation in one
+      @link(Update) call, the next AnimateSkipTicks number of @link(Update)
+      calls will go very quickly, as they will not actually change the scene
+      at all.
+
+      This is an effective optimization if the scene is usually not large on
+      the screen.
+
+      @unorderedList(
+        @item(The animation is less smooth. For example, if AnimateSkipTicks = 1,
+          then every other @link(Update) call does not change the scene.
+          For example, if you have 60 FPS, and @link(Update) is called 60 times
+          per second, then we will actually change the scene only 30 times per second.
+
+          The "skip" within every scene has a little random shift,
+          to avoid synchronizing this skip across many created scenes.
+          This makes this a little harder to notice.)
+
+        @item(In exchange, the speedup is substantial.
+          For example, if AnimateSkipTicks = 1, then the animation on CPU effectively
+          costs 2x less. In general, AnimateSkipTicks = N means that the cost
+          drops to @code(1 / (1 + N)).)
+      ) }
+    property AnimateSkipTicks: Cardinal read FAnimateSkipTicks write SetAnimateSkipTicks
+      default 0;
   end;
 
 var
@@ -5350,6 +5381,17 @@ begin
   Result := FTimeNow;
 end;
 
+procedure TCastleSceneCore.SetAnimateSkipTicks(const Value: Cardinal);
+begin
+  if FAnimateSkipTicks <> Value then
+  begin
+    FAnimateSkipTicks := Value;
+    { randomizing it now desynchronizes the skipped frames across many scenes
+      created in a single frame }
+    AnimateSkipNextTicks := Random(FAnimateSkipTicks + 1);
+  end;
+end;
+
 procedure TCastleSceneCore.InternalSetTime(
   const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
 
@@ -5462,12 +5504,18 @@ procedure TCastleSceneCore.InternalSetTime(
   procedure UpdateTimeDependentHandlersIfVisible;
   begin
     if FAnimateOnlyWhenVisible and (not IsVisibleNow) and (not ResetTime) then
-      FAnimateOnlyWhenVisibleGatheredTime += TimeIncrease else
+      FAnimateGatheredTime += TimeIncrease else
+    if (AnimateSkipNextTicks <> 0) and (not ResetTime) then
+    begin
+      Dec(AnimateSkipNextTicks);
+      FAnimateGatheredTime += TimeIncrease;
+    end else
     begin
       if ResetTime then
-        FAnimateOnlyWhenVisibleGatheredTime := 0;
-      UpdateTimeDependentHandlers(FAnimateOnlyWhenVisibleGatheredTime);
-      FAnimateOnlyWhenVisibleGatheredTime := 0;
+        FAnimateGatheredTime := 0;
+      UpdateTimeDependentHandlers(FAnimateGatheredTime);
+      AnimateSkipNextTicks := AnimateSkipTicks;
+      FAnimateGatheredTime := 0;
     end;
     IsVisibleNow := false;
   end;
