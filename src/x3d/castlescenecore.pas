@@ -19,6 +19,7 @@ unit CastleSceneCore;
 
 {$I castleconf.inc}
 {$I octreeconf.inc}
+{$modeswitch nestedprocvars}{$H+}
 
 interface
 
@@ -3767,17 +3768,18 @@ var
   end;
 
   procedure HandleChangeMaterial;
-  var
-    SI: TShapeTreeIterator;
+
+    procedure HandleShape(Shape: TShape);
+    begin
+      if (Shape.State.ShapeNode <> nil) and
+         (Shape.State.ShapeNode.Material = ANode) then
+        Shape.Changed(false, Changes);
+    end;
+
   begin
     { VRML 2.0 Material affects only shapes where it's
       placed inside Appearance.material field. }
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if SI.Current.State.ShapeNode.Material = ANode then
-          SI.Current.Changed(false, Changes);
-    finally FreeAndNil(SI) end;
+    Shapes.Traverse(@HandleShape, false);
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 
