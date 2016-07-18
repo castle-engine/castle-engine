@@ -3326,9 +3326,9 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
         since it has smartly calculated AlphaChannel based on children. }
       TexturesAlphaChannel := acNone;
       if TextureNode <> nil then
-        AlphaMaxVar(TexturesAlphaChannel, TextureNode.AlphaChannel);
+        AlphaMaxVar(TexturesAlphaChannel, TextureNode.AlphaChannelFinal);
       if FontTextureNode <> nil then
-        AlphaMaxVar(TexturesAlphaChannel, FontTextureNode.AlphaChannel);
+        AlphaMaxVar(TexturesAlphaChannel, FontTextureNode.AlphaChannelFinal);
       AlphaTest := TexturesAlphaChannel = acSimpleYesNo;
 
       if GLFontTextureNode <> nil then

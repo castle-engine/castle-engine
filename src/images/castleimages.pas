@@ -4088,22 +4088,16 @@ end;
 function StringToAlpha(S: string; var WarningDone: boolean): TAutoAlphaChannel;
 begin
   S := UpperCase(S);
-  if S = 'AUTO' then
-    Result := acAuto else
-  if S = 'NONE' then
-    Result := acNone else
-  if S = 'SIMPLE_YES_NO' then
-    Result := acSimpleYesNo else
-  if S = 'FULL_RANGE' then
-    Result := acFullRange else
+  for Result := Low(Result) to High(Result) do
+    if S = AlphaToString[Result] then
+      Exit;
+
+  if not WarningDone then
   begin
-    if not WarningDone then
-    begin
-      OnWarning(wtMajor, 'VRML/X3D', Format('Invalid "alphaChannel" field value "%s"', [S]));
-      WarningDone := true;
-    end;
-    Result := acAuto;
+    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid "alphaChannel" field value "%s"', [S]));
+    WarningDone := true;
   end;
+  Result := acAuto;
 end;
 
 function TextureCompressionToString(const TextureCompression: TTextureCompression): string;

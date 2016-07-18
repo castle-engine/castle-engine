@@ -1532,11 +1532,11 @@ begin
     it has AlphaChannel = atFullRange
     if any child has atFullRange. So it automatically works Ok too. }
   Tex := State.Texture;
-  if (Tex <> nil) and (Tex.AlphaChannel = acFullRange) then
+  if (Tex <> nil) and (Tex.AlphaChannelFinal = acFullRange) then
     Result := true;
 
   Tex := OriginalGeometry.FontTextureNode;
-  if (Tex <> nil) and (Tex.AlphaChannel = acFullRange) then
+  if (Tex <> nil) and (Tex.AlphaChannelFinal = acFullRange) then
     Result := true;
 end;
 

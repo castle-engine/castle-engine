@@ -22,7 +22,8 @@
 
   TAbstractTextureNode = class(TAbstractAppearanceChildNode)
   private
-    AlphaChannelWarningDone: boolean;
+    function GetAlphaChannelField: TAutoAlphaChannel;
+    procedure SetAlphaChannelField(const Value: TAutoAlphaChannel);
   protected
     { Alpha channel detected from image contents (or children nodes),
       ignoring our FdAlphaChannel field.
@@ -51,10 +52,11 @@
     { Alpha channel of the loaded texture data.
       Looks at loaded texture data, and at alphaChannel field
       (see http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_alpha_channel_detection ) }
-    function AlphaChannel: TAlphaChannel;
+    function AlphaChannelFinal: TAlphaChannel;
 
-    private FFdAlphaChannel: TSFString;
-    public property FdAlphaChannel: TSFString read FFdAlphaChannel;
+    private FFdAlphaChannel: TSFStringEnum;
+    public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
+    property AlphaChannelField: TAutoAlphaChannel read GetAlphaChannelField write SetAlphaChannelField;
   end;
 
   TTexturePropertiesNode = class;
@@ -537,7 +539,7 @@ begin
    FdEffects.ChangesAlways := [chEverything];
   AddField(FFdEffects);
 
-  FFdAlphaChannel := TSFString.Create(Self, 'alphaChannel', 'AUTO');
+  FFdAlphaChannel := TSFStringEnum.Create(Self, 'alphaChannel', AlphaToString, Ord(acAuto));
    FdAlphaChannel.Exposed := false;
    FdAlphaChannel.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdAlphaChannel);
@@ -555,14 +557,24 @@ begin
   Result := acNone;
 end;
 
-function TAbstractTextureNode.AlphaChannel: TAlphaChannel;
+function TAbstractTextureNode.AlphaChannelFinal: TAlphaChannel;
 var
   Res: TAutoAlphaChannel;
 begin
-  Res := StringToAlpha(FdAlphaChannel.Value, AlphaChannelWarningDone);
+  Res := AlphaChannelField;
   if Res = acAuto then
     Result := AlphaChannelData else
     Result := Res;
+end;
+
+function TAbstractTextureNode.GetAlphaChannelField: TAutoAlphaChannel;
+begin
+  Result := TAutoAlphaChannel(FdAlphaChannel.EnumValue);
+end;
+
+procedure TAbstractTextureNode.SetAlphaChannelField(const Value: TAutoAlphaChannel);
+begin
+  FdAlphaChannel.SendEnumValue(Ord(Value));
 end;
 
 { TAbstractTexture2DNode ----------------------------------------------------------- }
@@ -1005,7 +1017,7 @@ begin
     ChildTex := FdTexture[I];
     if (ChildTex <> nil) and
        (ChildTex is TAbstractTextureNode) then
-      AlphaMaxVar(Result, TAbstractTextureNode(ChildTex).AlphaChannel);
+      AlphaMaxVar(Result, TAbstractTextureNode(ChildTex).AlphaChannelFinal);
   end;
 end;
 
