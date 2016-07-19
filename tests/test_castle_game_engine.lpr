@@ -82,15 +82,15 @@ var
 {$endif}
 
 {var
-  T: TTestCastleTriangulate;}
+  T: TTestCastle3D;}
 begin
   OnWarning := @OnWarningWrite;
 
 { Sometimes it's comfortable to just run the test directly, to get
   full backtrace from FPC.
 
-  T := TTestCastleTriangulate.Create;
-  T.TestTriangulateFace;
+  T := TTestCastle3D.Create;
+  T.TestListNotification;
   T.Free;
   Exit;}
 

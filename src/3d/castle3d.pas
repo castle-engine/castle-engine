@@ -289,7 +289,13 @@ type
     FWorld: T3DWorld;
     procedure SetCursor(const Value: TMouseCursor);
   protected
+    { Make this 3D object assigned to given 3D world.
+      Each 3D object can only be part of one T3DWorld at a time.
+      Always remove 3D object from previous world (scene manager)
+      before adding it to new one. }
     procedure SetWorld(const Value: T3DWorld); virtual;
+
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     { Height of a point above the 3D model.
       This checks ray collision, from Position along the negated GravityUp vector.
@@ -1141,6 +1147,8 @@ type
   public
     OnCursorChange: TNotifyEvent;
     OnVisibleChange: TVisibleChangeEvent;
+
+    constructor Create(AOwner: TComponent); override;
 
     { See TCastleSceneManager.CollisionIgnoreItem. }
     function CollisionIgnoreItem(const Sender: TObject;
@@ -2110,6 +2118,8 @@ end;
 
 destructor T3D.Destroy;
 begin
+  { set to nil, to detach free notification }
+  SetWorld(nil);
   GLContextClose;
   inherited;
 end;
@@ -2449,7 +2459,29 @@ end;
 
 procedure T3D.SetWorld(const Value: T3DWorld);
 begin
-  FWorld := Value;
+  if FWorld <> Value then
+  begin
+    if FWorld <> nil then
+    begin
+      { Do not call RemoveFreeNotification when FWorld is also our list owner,
+        this would prevent getting notification in T3DList.Notification. }
+      if (FWorld.List = nil) or (FWorld.List.IndexOf(Self) = -1) then
+        FWorld.RemoveFreeNotification(Self);
+    end;
+    FWorld := Value;
+    if FWorld <> nil then
+      // Ignore FWorld = Self case, when this is done by T3DWorld.Create? No need to.
+      //and (FWorld <> Self) then
+      FWorld.FreeNotification(Self);
+  end;
+end;
+
+procedure T3D.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  { make sure to nil FWorld reference }
+  if (Operation = opRemove) and (AComponent = FWorld) then
+    SetWorld(nil);
 end;
 
 function T3D.Height(const MyPosition: TVector3Single;
@@ -2586,8 +2618,22 @@ begin
         end;
       lnExtracted, lnDeleted:
         begin
-          B.SetWorld(nil);
-          B.RemoveFreeNotification(Owner);
+          { We don't change B.World here (we don't set it to
+            "previous World", or nil, or anything).
+            The 3D object may be present in the same World multiple times,
+            so it's better to leave World unchanged here.
+
+            This way T3D.World points to "last world you were part of",
+            instead of "current world you are part in", but that's not
+            a problem in practice -- as the World is only used to call
+            World.OnXxx notifications, and it's harmless to call them
+            when the object is not actually part of world. }
+
+          { Do not call RemoveFreeNotification when Owner is equal to B.World,
+            this would prevent getting notification when to nil FWorld in
+            T3D.Notification. }
+          if B.World <> Owner then
+            B.RemoveFreeNotification(Owner);
         end;
       else raise EInternalError.Create('T3DListCore.Notify action?');
     end;
@@ -2640,7 +2686,7 @@ begin
     inherited;
     if GetChild <> nil then
       GetChild.SetWorld(Value);
-    if FList <> nil then // when one list is within another, this may be called during own own destruction by T3DListCore.Notify
+    if FList <> nil then // when one list is within another, this may be called during own destruction by T3DListCore.Notify
       for I := 0 to List.Count - 1 do
         List[I].SetWorld(Value);
   end;
@@ -3322,6 +3368,13 @@ begin
 end;
 
 { T3DWorld ------------------------------------------------------------------- }
+
+constructor T3DWorld.Create(AOwner: TComponent);
+begin
+  inherited;
+  { everything inside is part of this world }
+  SetWorld(Self);
+end;
 
 function T3DWorld.GravityCoordinate: Integer;
 begin

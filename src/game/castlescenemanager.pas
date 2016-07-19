@@ -2441,8 +2441,6 @@ type
   { Root of T3D hierarchy lists.
     Owner is always non-nil, always a TCastleSceneManager. }
   T3DWorldConcrete = class(T3DWorld)
-  public
-    procedure SetWorld(const Value: T3DWorld); override;
     function Owner: TCastleSceneManager;
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: P3DTriangle): boolean; override;
@@ -2466,12 +2464,6 @@ type
     function WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean; override;
     function WorldRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
   end;
-
-procedure T3DWorldConcrete.SetWorld(const Value: T3DWorld);
-begin
-  // this is overridden just to make it public
-  inherited SetWorld(Value);
-end;
 
 function T3DWorldConcrete.Owner: TCastleSceneManager;
 begin
@@ -2573,7 +2565,6 @@ begin
   FItems.Name := 'Items';
   FItems.OnCursorChange := @ItemsAndCameraCursorChange;
   FItems.OnVisibleChange := @ItemsVisibleChange;
-  T3DWorldConcrete(FItems).SetWorld(FItems);
 
   FMoveLimit := EmptyBox3D;
   FWater := EmptyBox3D;

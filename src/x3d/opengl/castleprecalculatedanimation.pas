@@ -694,7 +694,6 @@ type
     FParentAnimation: TCastlePrecalculatedAnimation;
     {$warnings on}
   public
-    procedure SetWorld(const Value: T3DWorld); override;
     constructor CreateForAnimation(
       ARootNode: TX3DRootNode; AOwnsRootNode: boolean;
       ACustomRenderer: TGLRenderer;
@@ -728,12 +727,6 @@ begin
   Static := AStatic;
 
   Load(ARootNode, AOwnsRootNode);
-end;
-
-procedure TAnimationScene.SetWorld(const Value: T3DWorld);
-begin
-  // this is overridden just to make it public
-  inherited SetWorld(Value);
 end;
 
 function TAnimationScene.Shared: TCastleScene;
