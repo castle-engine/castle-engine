@@ -2938,7 +2938,7 @@ end;
 
 function TRGBAlphaImage.IsClear(const Pixel: TVector4Byte): boolean;
 begin
-  Result := IsMemDWordFilled(RawPixels^, Width*Height, LongWord(Pixel));
+  Result := IsMemDWordFilled(RawPixels^, Width * Height * Depth, LongWord(Pixel));
 end;
 
 procedure TRGBAlphaImage.TransformRGB(const Matrix: TMatrix3Single);
