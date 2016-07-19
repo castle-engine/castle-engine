@@ -187,7 +187,8 @@ type
   public
     Command: TTextCommand;
     Color: TCastleColor;
-    Size: Integer;
+    HtmlSize: Integer;
+    PercentSize: Single;
     procedure Print(const Font: TFontFamily;
       const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer;
       var MaxDisplayChars: Integer); override;
@@ -680,7 +681,9 @@ begin
         FontState.Size := Font.RealSize;
         State.FontStack.Add(FontState);
 
-        Font.Size := HtmlSizeToMySize(Size, State.DefaultSize);
+        if HtmlSize <> 0 then
+          Font.Size := HtmlSizeToMySize(HtmlSize, State.DefaultSize) else
+          Font.Size := PercentSize * State.DefaultSize;
       end;
     tcSmall:
       begin
@@ -906,25 +909,33 @@ var
   end;
 
   function ReadFontSize(const S: string; const I: Integer;
-    out NextChar: Integer; out Size: Integer): boolean;
+    out NextChar: Integer; out HtmlSize: Integer; out PercentSize: Single): boolean;
   var
     EndPos: Integer;
     SizeRead: Int64;
+    NumStr: string;
   begin
     EndPos := PosEx('">', S, I);
     NextChar := EndPos + 2;
     Result := EndPos <> 0;
+    SizeRead := 0;
+    PercentSize := 0;
+
+    NumStr := Copy(S, I, EndPos - I);
     try
-      SizeRead := StrToInt(Copy(S, I, EndPos - I));
+      if IsSuffix('%', NumStr, false) then
+        PercentSize := StrToFloat(SuffixRemove('%', NumStr, false)) / 100 else
+      begin
+        SizeRead := StrToInt(NumStr);
+        if S[I] in ['+', '-'] then
+          { size is relative to 3.
+            See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/font }
+          HtmlSize := Clamped(3 + SizeRead, 1, 7) else
+          HtmlSize := Clamped(SizeRead, 1, 7);
+      end;
     except
       on EConvertError do Exit(false);
     end;
-
-    if S[I] in ['+', '-'] then
-      { size is relative to 3.
-        See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/font }
-      Size := Clamped(3 + SizeRead, 1, 7) else
-      Size := Clamped(SizeRead, 1, 7);
   end;
 
   function CommandFound(const S: string; const I: Integer;
@@ -961,7 +972,7 @@ var
     begin
       Result := TTextPropertyCommand.Create;
       Result.Command := tcFontSize;
-      if not ReadFontSize(S, NextChar, NextChar, Result.Size) then
+      if not ReadFontSize(S, NextChar, NextChar, Result.HtmlSize, Result.PercentSize) then
         FreeAndNil(Result); // resign, not correct
     end else
     if SubstringStartsHere(S, I, '</font>', NextChar) then
