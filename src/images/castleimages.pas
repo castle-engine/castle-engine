@@ -803,6 +803,24 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
     procedure SaveToPascalCode(const ImageName: string;
       const ShowProgress: boolean;
       var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string);
+
+    { Set the RGB colors for transparent pixels to the nearest non-transparent
+      colors. This fixes problems with black/white borders around the texture
+      regions, when the texture is scaled down (by any means --
+      on CPU, during rendering on GPU...).
+
+      @bold(The algorithm implemented here, for now, is really slow
+      (but also really correct).)
+      It should only be used as a last resort, when your normal tool
+      (like Spine atlas packer) cannot do a decent job on a given image.
+      You should use this when creating assets, and save the resulting
+      image to disk (avoid doing this at runtime during the game,
+      since it's really really slow).
+
+      @groupBegin }
+    procedure AlphaBleed(const ProgressTitle: string); virtual;
+    function MakeAlphaBleed(const ProgressTitle: string): TCastleImage; virtual;
+    { @groupEnd }
   end;
 
   TCastleImageList = specialize TFPGObjectList<TCastleImage>;
@@ -1186,6 +1204,9 @@ type
       premultiplying, but faster. }
     procedure PremultiplyAlpha;
     property PremultipliedAlpha: boolean read FPremultipliedAlpha;
+
+    procedure AlphaBleed(const ProgressTitle: string); override;
+    function MakeAlphaBleed(const ProgressTitle: string): TCastleImage; override;
   end;
 
   { Image with high-precision RGB colors encoded as 3 floats. }
@@ -1325,6 +1346,10 @@ type
        const Weights: TVector4Single; const Colors: TVector4Pointer); override;
 
     procedure Assign(const Source: TCastleImage); override;
+
+    // TODO: this should be implemented, just like for TRGBAlphaImage
+    //procedure AlphaBleed(const ProgressTitle: string); override;
+    //function MakeAlphaBleed(const ProgressTitle: string): TCastleImage; override;
   end;
 
 { RGBE <-> 3 Single color conversion --------------------------------- }
@@ -2440,6 +2465,19 @@ begin
     '  FreeAndNil(' +ImageName+ ');' +nl;
 end;
 
+procedure TCastleImage.AlphaBleed(const ProgressTitle: string);
+begin
+  { default implementation does nothing.
+    This is OK for images without alpha channel. }
+end;
+
+function TCastleImage.MakeAlphaBleed(const ProgressTitle: string): TCastleImage;
+begin
+  { default implementation returns a copy.
+    This is OK for images without alpha channel. }
+  Result := MakeCopy;
+end;
+
 { TGPUCompressedImage ----------------------------------------------------------------- }
 
 constructor TGPUCompressedImage.Create(
@@ -3084,6 +3122,89 @@ begin
       P^[2] := Clamped(Round(P^[2] * P^[3] / 255), 0, 255);
       Inc(P);
     end;
+  end;
+end;
+
+procedure TRGBAlphaImage.AlphaBleed(const ProgressTitle: string);
+var
+  Copy: TCastleImage;
+begin
+  Copy := MakeAlphaBleed(ProgressTitle);
+  try
+    Assert(Size = Copy.Size);
+    Move(Copy.RawPixels^, RawPixels^, Size);
+  finally FreeAndNil(Copy) end;
+end;
+
+function TRGBAlphaImage.MakeAlphaBleed(const ProgressTitle: string): TCastleImage;
+
+  function FindNearestNonTransparentPixel(X, Y, Z: Integer): PVector4Byte;
+
+    function TryPixelOpaque(const DX, DY: Integer;
+      var SomePixelWithinImage: boolean): PVector4Byte;
+    var
+      NX, NY, GX, GY: Integer;
+    begin
+      NX := X + DX;
+      NY := Y + DY;
+      GX := Clamped(NX, 0, Width - 1);
+      GY := Clamped(NY, 0, Height - 1);
+      { does not search in Z.
+        This is faster for 2D images.
+        Also this way we do not look if we're outside Z range below,
+        which would stop the search too quickly for 2D images. }
+      if (NX = GX) and (NY = GY) then
+        SomePixelWithinImage := true;
+      Result := PixelPtr(GX, GY, Z);
+      if Result^[3] <> High(Byte) then
+        Result := nil; // nope, tried pixel is not opaque
+    end;
+
+  var
+    Distance: Cardinal;
+    SomePixelWithinImage: boolean;
+  begin
+    Distance := 1;
+    Result := nil;
+    repeat
+      SomePixelWithinImage := false;
+      Result := TryPixelOpaque(-Distance,         0, SomePixelWithinImage); if Result <> nil then Exit;
+      Result := TryPixelOpaque( Distance,         0, SomePixelWithinImage); if Result <> nil then Exit;
+      Result := TryPixelOpaque(        0, -Distance, SomePixelWithinImage); if Result <> nil then Exit;
+      Result := TryPixelOpaque(        0,  Distance, SomePixelWithinImage); if Result <> nil then Exit;
+      Result := TryPixelOpaque(-Distance, -Distance, SomePixelWithinImage); if Result <> nil then Exit;
+      Result := TryPixelOpaque(-Distance,  Distance, SomePixelWithinImage); if Result <> nil then Exit;
+      Result := TryPixelOpaque( Distance, -Distance, SomePixelWithinImage); if Result <> nil then Exit;
+      Result := TryPixelOpaque( Distance,  Distance, SomePixelWithinImage); if Result <> nil then Exit;
+      Inc(Distance);
+    until not SomePixelWithinImage;
+  end;
+
+var
+  P, NewP: PVector4Byte;
+  X, Y, Z: Integer;
+begin
+  Result := MakeCopy;
+  if ProgressTitle <> '' then
+    Progress.Init(Width * Height * Depth, ProgressTitle);
+  try
+    for X := 0 to Width - 1 do
+      for Y := 0 to Height - 1 do
+        for Z := 0 to Depth - 1 do
+        begin
+          P := Result.PixelPtr(X, Y, Z);
+          if P^[3] <> High(Byte) then
+          begin
+            NewP := FindNearestNonTransparentPixel(X, Y, Z);
+            if NewP <> nil then
+              Move(NewP^, P^, SizeOf(TVector3Byte));
+          end;
+          if ProgressTitle <> '' then
+            Progress.Step;
+        end;
+  finally
+    if ProgressTitle <> '' then
+      Progress.Fini;
   end;
 end;
 
