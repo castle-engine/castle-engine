@@ -2792,7 +2792,7 @@ end;
 initialization
   {$ifdef WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
   {$if defined(cpui386) or defined(cpux86_64)}
-  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,exOverflow, exUnderflow, exPrecision]);
+  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
   {$endif}
   {$endif}
 
