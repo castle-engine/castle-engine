@@ -355,6 +355,10 @@ end;
 
 procedure TUIState.InternalStart;
 begin
+  { typically, the Start method will initialize some stuff,
+    making the 1st SecondsPassed non-representatively large. }
+  StateContainer.Fps.ZeroNextSecondsPassed;
+
   if CastleLog.Log and Log then
     WritelnLog('UIState', 'Starting state ' + Name + ':' + ClassName);
   Start;
