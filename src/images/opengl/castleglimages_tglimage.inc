@@ -960,7 +960,7 @@ begin
     if Count <> 1 then
     begin
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexesVbo);
-      glBufferData(GL_ELEMENT_ARRAY_BUFFER, Length(Indexes) * SizeOf(TGeometryIndex),
+      glBufferData(GL_ELEMENT_ARRAY_BUFFER, Length(Indexes) * SizeOf(Indexes[0]),
         @Indexes[0], GL_STREAM_DRAW);
     end;
   end;
