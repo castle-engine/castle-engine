@@ -148,6 +148,8 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
     {
         Log.i(TAG, "onConnected (Google Games connected OK!)");
 
+        Games.setViewForPopups(mGoogleApiClient, getActivity().findViewById(android.R.id.content));
+
         // The player is signed in.
         // We can now hide the sign-in button.
         setGoogleSignedIn(true);
