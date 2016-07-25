@@ -60,6 +60,7 @@ var
   RemovePlayer: TRemoveType;
   SoundType: TSoundType;
   C: TWalkAttackCreatureResource;
+  MatProp: TMaterialProperty;
 begin
   SoundEngine.RepositoryURL := 'data/game/sounds.xml';
 
@@ -160,23 +161,25 @@ begin
 
   MaterialProperties.URL := 'data/game/material_properties.xml';
 
-  AssertTrue(MaterialProperties.Count = 2);
+  // not exposed anymore
+  //AssertTrue(MaterialProperties.Count = 2);
 
-  AssertTrue(MaterialProperties[0].TextureBaseName = 'test_texture');
-  AssertSound(MaterialProperties[0].FootstepsSound, 'test_sound_4');
-  AssertTrue(MaterialProperties[0].Toxic = true);
-  AssertFloat(MaterialProperties[0].ToxicDamageConst, 1.2);
-  AssertFloat(MaterialProperties[0].ToxicDamageRandom, 3.4);
-  AssertFloat(MaterialProperties[0].ToxicDamageTime, 5.6);
-  AssertURL(MaterialProperties[0].NormalMap, '');
+  MatProp := MaterialProperties.FindTextureBaseName('test_texture');
+  AssertSound(MatProp.FootstepsSound, 'test_sound_4');
+  AssertTrue(MatProp.Toxic = true);
+  AssertFloat(MatProp.ToxicDamageConst, 1.2);
+  AssertFloat(MatProp.ToxicDamageRandom, 3.4);
+  AssertFloat(MatProp.ToxicDamageTime, 5.6);
+  AssertURL(MatProp.NormalMap, '');
 
-  AssertTrue(MaterialProperties[1].TextureBaseName = 'test_texture_2');
-  AssertTrue(MaterialProperties[1].FootstepsSound = stNone);
-  AssertTrue(MaterialProperties[1].Toxic = false);
-  AssertFloat(MaterialProperties[1].ToxicDamageConst, 0.0);
-  AssertFloat(MaterialProperties[1].ToxicDamageRandom, 0.0);
-  AssertFloat(MaterialProperties[1].ToxicDamageTime, 0.0);
-  AssertURL(MaterialProperties[1].NormalMap, 'test_normal_map.png');
+  MatProp := MaterialProperties.FindTextureBaseName('test_texture_2');
+  AssertTrue(MatProp.TextureBaseName = 'test_texture_2');
+  AssertTrue(MatProp.FootstepsSound = stNone);
+  AssertTrue(MatProp.Toxic = false);
+  AssertFloat(MatProp.ToxicDamageConst, 0.0);
+  AssertFloat(MatProp.ToxicDamageRandom, 0.0);
+  AssertFloat(MatProp.ToxicDamageTime, 0.0);
+  AssertURL(MatProp.NormalMap, 'test_normal_map.png');
 
   Player := TPlayer.Create(nil);
   try
