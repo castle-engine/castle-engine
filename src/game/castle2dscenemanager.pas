@@ -28,10 +28,12 @@ type
 
     Features:
     @unorderedList(
-      @item(By default creates camera looks down in -Z,
-        good when your world spans in XY plane.
-        And TUniversalCamera.NavigationType is ntNone, which means that no
-        automatic way to move camera in the world is possible,
+      @item(By default creates a camera positioned at (0, 0, 500),
+        looking along the -Z direction, with "up" vector in +Y.
+        This is nice when your world is (mostly) flat and positioned on the Z = 0 plane.)
+
+      @item(The camera TUniversalCamera.NavigationType is ntNone,
+        which means that no automatic way to move camera in the world is possible,
         you want to program your own movement for 2D.)
 
       @item(Sets 2D projection. By default (see CalculateProjection)
@@ -65,6 +67,7 @@ type
   public
     const
       DefaultProjectionSpan = 1000.0;
+      DefaultCameraZ = DefaultProjectionSpan / 2;
     property RenderStyle default rs2D;
 
     { When ProjectionAutoSize is @true, the size of the world visible
@@ -141,7 +144,7 @@ begin
   UCamera := TUniversalCamera.Create(AOwner);
   UCamera.NavigationType := ntNone;
   UCamera.SetInitialView(
-    { pos } Vector3Single(0, 0, 0),
+    { pos } Vector3Single(0, 0, DefaultCameraZ),
     { dir } Vector3Single(0, 0, -1),
     { up } Vector3Single(0, 1, 0), false);
   UCamera.GoToInitial;
