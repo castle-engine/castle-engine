@@ -37,7 +37,7 @@ library castleengine;
 uses CTypes, Math, SysUtils, CastleWindow, CastleWindowTouch, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
   CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, X3DFields, CastleLog,
-  CastleBoxes, CastleControls, CastleLog;
+  CastleBoxes, CastleControls, CastleApplicationProperties;
 
 type
   TCrosshairManager = class(TObject)
@@ -60,7 +60,7 @@ var
   Window: TCastleWindowTouch;
   Crosshair: TCrosshairManager;
 
-procedure TWarningManager.cgeWarning(Sender: TObject; const Category, S: string);
+class procedure TWarningManager.cgeWarning(Sender: TObject; const Category, S: string);
 var
   sMsg: string;
   szBuffer: PChar;
