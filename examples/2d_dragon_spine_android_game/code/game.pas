@@ -134,7 +134,7 @@ procedure ApplicationInitialize;
 const
   ButtonPadding = 30;
 begin
-  Messaging.Log := true; // useful to debug what is communicated to Google Play Games
+  // Messaging.Log := true; // useful to debug what is communicated to Google Play Games
 
   GooglePlayGames := TGooglePlayGames.Create(nil);
   GooglePlayGames.Initialize;
