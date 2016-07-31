@@ -918,17 +918,17 @@ type
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Checks is the Child allowed as a value of this SFNode,
-      and makes OnWarning if not.
+      and makes WritelnWarning if not.
 
       Check is allowed is done looking at AllowedChildrenAll
       and AllowedChildren properties.
 
       Child must not be @nil.
 
-      OnWarning message will suggest that this Child is used as value
+      WritelnWarning message will suggest that this Child is used as value
       of this node. In other words, you should only pass as Child
       a node that you want to assign as Value to this field,
-      otherwise OnWarning message will be a little unsensible. }
+      otherwise WritelnWarning message will be a little unsensible. }
     procedure WarningIfChildNotAllowed(Child: TX3DNode);
 
     function ChildAllowed(Child: TX3DNode): boolean;
@@ -1052,17 +1052,17 @@ type
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Checks is Child allowed on the list of nodes of this MFNode,
-      and makes OnWarning if not.
+      and makes WritelnWarning if not.
 
       Check is allowed is done looking at AllowedChildrenAll
       and AllowedChildren properties.
 
       Child must not be @nil.
 
-      OnWarning message will suggest that this Child is added to
+      WritelnWarning message will suggest that this Child is added to
       this node. In other words, you should only pass as Child
       a node that you want to add (e.g. by @link(Add)) to this field,
-      otherwise OnWarning message will be a little unsensible. }
+      otherwise WritelnWarning message will be a little unsensible. }
     procedure WarningIfChildNotAllowed(Child: TX3DNode);
 
     function ChildAllowed(Child: TX3DNode): boolean;
@@ -1372,7 +1372,7 @@ type
       from Source.
 
       For fields basically does Destination.AssignValue(Source).
-      In case of EX3DFieldAssign, make OnWarning with clear message.
+      In case of EX3DFieldAssign, make WritelnWarning with clear message.
 
       For events establishes internal route.
 
@@ -1452,7 +1452,7 @@ type
 
       @raises(EX3DPrototypeInstantiateError if for some reason
         the prototype cannot be instantiated.
-        You can catch this and replace with OnWarning, if possible.)
+        Outside code should catch this and replace with ApplicationProperties.OnWarning, if possible.)
     }
     function Instantiate: TX3DNode;
   end;
@@ -1634,7 +1634,7 @@ type
       then it looks for field/event within this node,
       and if everything is successfull --- sets route properties.
 
-      If something goes wrong, OnWarning is generated
+      If something goes wrong, WritelnWarning is generated
       and route ending is left unset.
 
       @groupBegin }
@@ -1685,7 +1685,7 @@ type
 
     { Save a ROUTE to VRML file.
 
-      Will generate OnWarning when route cannot be saved.
+      Will generate WritelnWarning when route cannot be saved.
       This can happen when SourceNode or SourceEvent
       or DestinationNode or DestinationEvent are @nil.
       Also, if SourceNode and DestinationNode are without a name,
@@ -1917,7 +1917,7 @@ var
     in this unit's initialization / finalization. }
   NodesManager: TNodesManager;
 
-  { Should be make a warning (using OnWarning) when loading data from
+  { Should be make a warning (using WritelnWarning) when loading data from
     an URI with absolute path. This is quite useful if you want to
     be able to move/copy the files to some other system/location,
     as absolute paths prevent it. }
@@ -2178,7 +2178,7 @@ uses
   CastleTextureFont_DjvSerifBI_20,
   {$endif CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
 
-  Math, X3DLoad, CastleZStream, X3DCameraUtils, CastleWarnings,
+  Math, X3DLoad, CastleZStream, X3DCameraUtils,
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode,
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument;
@@ -3027,7 +3027,7 @@ procedure TSFNode.WarningIfChildNotAllowed(Child: TX3DNode);
       [Child.NodeTypeName, Name]);
     if ParentNode <> nil then
       S += Format(' of the node "%s"', [ParentNode.NodeTypeName]);
-    OnWarning(wtMajor, 'VRML/X3D', S);
+    WritelnWarning('VRML/X3D', S);
   end;
 
 begin
@@ -3065,7 +3065,7 @@ begin
   V := (Reader as TX3DReaderNames).Nodes.Bound(AttributeValue, UsedNodeFinished);
   if (V <> nil) and (not UsedNodeFinished) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Cycles in VRML/X3D graph: SFNode value inside node "%s" refers to the same name', [AttributeValue]));
+    WritelnWarning('VRML/X3D', Format('Cycles in VRML/X3D graph: SFNode value inside node "%s" refers to the same name', [AttributeValue]));
     Value := nil;
     Exit;
   end;
@@ -3074,7 +3074,7 @@ begin
   if Value = nil then
   begin
     if AttributeValue <> SNull then
-      OnWarning(wtMajor, 'VRML/X3D', Format('Invalid node name for SFNode field: "%s"', [AttributeValue]));
+      WritelnWarning('VRML/X3D', Format('Invalid node name for SFNode field: "%s"', [AttributeValue]));
   end else
   begin
     WarningIfChildNotAllowed(Value);
@@ -3100,7 +3100,7 @@ begin
       end;
 
       if I.GetNext then
-        OnWarning(wtMajor, 'VRML/X3D', Format('X3D field "%s" is SFNode, but it contains more than one XML element (2nd element is "%s")',
+        WritelnWarning('VRML/X3D', Format('X3D field "%s" is SFNode, but it contains more than one XML element (2nd element is "%s")',
           [Name, I.Current.TagName]));
     end;
   finally FreeAndNil(I) end;
@@ -3473,7 +3473,7 @@ procedure TMFNode.WarningIfChildNotAllowed(Child: TX3DNode);
       [Child.NodeTypeName, Name]);
     if ParentNode <> nil then
       S += Format(' of the node "%s"', [ParentNode.NodeTypeName]);
-    OnWarning(wtMajor, 'VRML/X3D', S);
+    WritelnWarning('VRML/X3D', S);
   end;
 
 begin
@@ -3520,11 +3520,11 @@ begin
   if Node = nil then
   begin
     { NULL not allowed for MFNode, unlike the SFNode }
-    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid node name for MFNode field: "%s"', [AttributeValue]));
+    WritelnWarning('VRML/X3D', Format('Invalid node name for MFNode field: "%s"', [AttributeValue]));
   end else
   if not UsedNodeFinished then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Cycles in VRML/X3D graph: MFNode value inside node "%s" refers to the same name', [AttributeValue]));
+    WritelnWarning('VRML/X3D', Format('Cycles in VRML/X3D graph: MFNode value inside node "%s" refers to the same name', [AttributeValue]));
   end else
   begin
     Add(Node);
@@ -3674,7 +3674,7 @@ begin
 
   FBaseUrl := Reader.BaseUrl;
 
-  OnWarning(wtMajor, 'VRML/X3D', 'Unknown VRML node of type '''+NodeTypeName+
+  WritelnWarning('VRML/X3D', 'Unknown VRML node of type '''+NodeTypeName+
     ''' (named '''+NodeName+''')');
 end;
 
@@ -4172,7 +4172,7 @@ begin
 
       If ReferencedPrototype = nil (e.g. because couldn't
       be loaded) then Instantiate will not be able to instantiate
-      it anyway (and will produce appropriate OnWarning). }
+      it anyway (and will produce appropriate WritelnWarning). }
     ProtoInitial := TX3DExternalPrototype(ProtoInitial).ReferencedPrototype;
 
   for Index := 0 to ProtoInitial.InterfaceDeclarations.Count - 1 do
@@ -4231,7 +4231,7 @@ begin
     except
       on E: EX3DFieldAssignInvalidClass do
       begin
-        OnWarning(wtMajor, 'VRML/X3D', Format('Within prototype "%s", ' +
+        WritelnWarning('VRML/X3D', Format('Within prototype "%s", ' +
           'field of type %s (named "%s") references ' +
           '(by "IS" clause) field of different type %s (named "%s")',
           [Prototype.Name,
@@ -4242,7 +4242,7 @@ begin
       end;
       on E: EX3DFieldAssign do
       begin
-        OnWarning(wtMajor, 'VRML/X3D', Format('Error when expanding prototype "%s": ',
+        WritelnWarning('VRML/X3D', Format('Error when expanding prototype "%s": ',
           [Prototype.Name]) + E.Message);
       end;
     end;
@@ -4255,7 +4255,7 @@ begin
 
     if SourceEvent.InEvent <> DestinationEvent.InEvent then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
+      WritelnWarning('VRML/X3D', Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
         [ Prototype.Name,
           InEventName[DestinationEvent.InEvent],
           InEventName[SourceEvent.InEvent] ]));
@@ -4264,7 +4264,7 @@ begin
 
     if SourceEvent.FieldClass <> DestinationEvent.FieldClass then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
+      WritelnWarning('VRML/X3D', Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
         [ Prototype.Name,
           DestinationEvent.FieldClass.TypeName,
           SourceEvent.FieldClass.TypeName ]));
@@ -4378,10 +4378,10 @@ function TX3DPrototypeNode.InstantiateIsClauses(Node, Child: TX3DNode): Pointer;
                 FieldOrEventHandleIsClause(InstanceField.EventIn , OurEvent, NewIsClauseNames) else
                 FieldOrEventHandleIsClause(InstanceField.EventOut, OurEvent, NewIsClauseNames);
             end else
-              OnWarning(wtMajor, 'VRML/X3D', Format('Within prototype "%s", exposed field "%s" references (by "IS" clause) non-existing field/event name "%s"',
+              WritelnWarning('VRML/X3D', Format('Within prototype "%s", exposed field "%s" references (by "IS" clause) non-existing field/event name "%s"',
                 [Prototype.Name, InstanceField.Name, IsClauseName]));
           end else
-            OnWarning(wtMajor, 'VRML/X3D', Format('Within prototype "%s", field "%s" references (by "IS" clause) non-existing field "%s"',
+            WritelnWarning('VRML/X3D', Format('Within prototype "%s", field "%s" references (by "IS" clause) non-existing field "%s"',
               [Prototype.Name, InstanceField.Name, IsClauseName]));
         end;
 
@@ -4438,7 +4438,7 @@ function TX3DPrototypeNode.InstantiateIsClauses(Node, Child: TX3DNode): Pointer;
             OurEvent := Events[OurEventIndex];
             FieldOrEventHandleIsClause(InstanceEvent, OurEvent, NewIsClauseNames);
           end else
-            OnWarning(wtMajor, 'VRML/X3D', Format('Within prototype "%s", event "%s" references (by "IS" clause) non-existing event "%s"',
+            WritelnWarning('VRML/X3D', Format('Within prototype "%s", event "%s" references (by "IS" clause) non-existing event "%s"',
               [Prototype.Name, InstanceEvent.Name, IsClauseName]));
         end;
 
@@ -4689,7 +4689,7 @@ begin
         InterfaceDeclarations.Add(I);
         I.ParseXML(Iter.Current, Reader, not ExternalProto);
       end else
-        OnWarning(wtMajor, 'VRML/X3D', 'X3D XML: only <field> elements expected in prototype interface');
+        WritelnWarning('VRML/X3D', 'X3D XML: only <field> elements expected in prototype interface');
     end;
   finally FreeAndNil(Iter) end;
 end;
@@ -4969,13 +4969,13 @@ procedure TX3DExternalPrototype.LoadReferenced;
           except
             on E: EX3DFieldAssign do
             begin
-              OnWarning(wtMajor, 'VRML/X3D', Format(
+              WritelnWarning('VRML/X3D', Format(
                 'Error when linking external prototype "%s" with prototype "%s": ',
                 [Name, ReferencedPrototype.Name]) + E.Message);
             end;
           end;
         end else
-          OnWarning(wtMajor, 'VRML/X3D', Format('Prototype "%s" referenced by external ' +
+          WritelnWarning('VRML/X3D', Format('Prototype "%s" referenced by external ' +
             'prototype "%s" doesn''t have field "%s"',
             [ReferencedPrototype.Name, Name, I.Field.Name]));
       end;
@@ -4989,7 +4989,7 @@ procedure TX3DExternalPrototype.LoadReferenced;
 
     procedure ProtoWarning(const S: string);
     begin
-      OnWarning(wtMinor, 'VRML/X3D', Format('Cannot load external prototype from URL "%s": ',
+      WritelnWarning('VRML/X3D', Format('Cannot load external prototype from URL "%s": ',
         [URL]) + S);
     end;
 
@@ -5049,7 +5049,7 @@ procedure TX3DExternalPrototype.LoadReferenced;
     FReferencedClass := NodesManager.URNToClass(URN);
     Result := ReferencedClass <> nil;
     if not Result then
-      OnWarning(wtMajor, 'VRML/X3D', Format('Unknown node URN "%s"', [URN]));
+      WritelnWarning('VRML/X3D', Format('Unknown node URN "%s"', [URN]));
   end;
 
 var
@@ -5236,7 +5236,7 @@ procedure TX3DRoute.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
   begin
     if not Element.AttributeString(AttrName, Result) then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', 'Missing ROUTE ' + AttrName + ' attribute');
+      WritelnWarning('VRML/X3D', 'Missing ROUTE ' + AttrName + ' attribute');
       Result := '';
     end;
   end;
@@ -5391,7 +5391,7 @@ begin
     on E: ERouteSetEndingError do
     begin
       UnsetEnding(Node, Event, DestEnding);
-      OnWarning(wtMajor, 'VRML/X3D', E.Message);
+      WritelnWarning('VRML/X3D', E.Message);
     end;
   end;
 end;
@@ -5428,7 +5428,7 @@ begin
     on E: ERouteSetEndingError do
     begin
       UnsetEnding(Node, Event, DestEnding);
-      OnWarning(wtMajor, 'VRML/X3D', E.Message);
+      WritelnWarning('VRML/X3D', E.Message);
     end;
   end;
 end;
@@ -5525,7 +5525,7 @@ begin
     end;
   except
     on E: EX3DRouteSaveError do
-      OnWarning(wtMajor, 'VRML/X3D', E.Message);
+      WritelnWarning('VRML/X3D', E.Message);
   end;
 end;
 
@@ -5613,16 +5613,16 @@ procedure TX3DImport.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 begin
   if not Element.AttributeString('inlineDEF', InlineNodeName) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'Missing IMPORT "inlineDEF" attribute');
+    WritelnWarning('VRML/X3D', 'Missing IMPORT "inlineDEF" attribute');
     Exit;
   end;
 
   if not Element.AttributeString('importedDEF', ImportedNodeName) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'Missing IMPORT "importedDEF" attribute, looking for older "exportedDEF"');
+    WritelnWarning('VRML/X3D', 'Missing IMPORT "importedDEF" attribute, looking for older "exportedDEF"');
     if not Element.AttributeString('exportedDEF', ImportedNodeName) then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', 'Missing IMPORT attribute: neighter "importedDEF" nor older "exportedDEF" found');
+      WritelnWarning('VRML/X3D', 'Missing IMPORT attribute: neighter "importedDEF" nor older "exportedDEF" found');
       Exit;
     end;
   end;
@@ -5690,7 +5690,7 @@ procedure TX3DExport.ParseXML(Element: TDOMElement; Reader: TX3DReaderNames);
 begin
   if not Element.AttributeString('localDEF', ExportedNodeName) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'Missing EXPORT "localDEF" attribute');
+    WritelnWarning('VRML/X3D', 'Missing EXPORT "localDEF" attribute');
     Exit;
   end;
 

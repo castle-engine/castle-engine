@@ -238,7 +238,7 @@ type
 implementation
 
 uses SysUtils, StrUtils, Math,
-  CastleUtils, CastleStringUtils, CastleWarnings, CastleUnicode;
+  CastleUtils, CastleStringUtils, CastleLog, CastleUnicode;
 
 { TFontFamily ------------------------------------------------------------ }
 
@@ -644,7 +644,7 @@ begin
       end;
     tcBoldEnd:
       if State.Bold = 0 then
-        OnWarning(wtMinor, 'HTML', 'Mismatched </b>') else
+        WritelnWarning('HTML', 'Mismatched </b>') else
       begin
         Dec(State.Bold);
         Font.Bold := State.Bold <> 0;
@@ -656,7 +656,7 @@ begin
       end;
     tcItalicEnd:
       if State.Italic = 0 then
-        OnWarning(wtMinor, 'HTML', 'Mismatched </i>') else
+        WritelnWarning('HTML', 'Mismatched </i>') else
       begin
         Dec(State.Italic);
         Font.Italic := State.Italic <> 0;
@@ -698,7 +698,7 @@ begin
       end;
     tcFontEnd, tcSmallEnd:
       if (State.FontStack = nil) or (State.FontStack.Count = 0) then
-        OnWarning(wtMinor, 'HTML', 'Mismatched </font> or </small>') else
+        WritelnWarning('HTML', 'Mismatched </font> or </small>') else
       begin
         FontState := State.FontStack.Last;
         State.Color := FontState.Color;
@@ -776,7 +776,7 @@ begin
       and as HTML may be useful without TFontFamily sometimes.
 
     if Html then
-      OnWarning(wtMinor, 'HTML', 'Rendering HTML text with simple font (' +
+      WritelnWarning('HTML', 'Rendering HTML text with simple font (' +
         AFont.ClassName + ':' + AFont.Name +
         '), without bold/italic variants. <b> and <i> will not have any effect');
     }

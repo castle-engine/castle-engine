@@ -175,7 +175,7 @@ begin
     for I := 0 to Regions.Count - 1 do
       Regions[I].CalculateTexCoord(ReferenceImageWidth, ReferenceImageHeight);
   end else
-    OnWarning(wtMajor, 'Spine', SysUtils.Format('Cannot load texture "%s", texture coordinates cannot be correctly calculated based on Spine atlas information',
+    WritelnWarning('Spine', SysUtils.Format('Cannot load texture "%s", texture coordinates cannot be correctly calculated based on Spine atlas information',
       [TextureURL]));
 end;
 
@@ -385,7 +385,7 @@ begin
     end;
   end;
 
-  OnWarning(wtMinor, 'Spine', Format('Region name "%s" not found in atlas', [RegionName]));
+  WritelnWarning('Spine', Format('Region name "%s" not found in atlas', [RegionName]));
   Result := false;
 end;
 

@@ -250,7 +250,7 @@ const
 
 implementation
 
-uses SysUtils, CastleUtils, CastleClassUtils, CastleWarnings, CastleStringUtils,
+uses SysUtils, CastleUtils, CastleClassUtils, CastleLog, CastleStringUtils,
   CastleVectors, CastleDownload, CastleURIUtils;
 
 { ----------------------------------------------------------------------------
@@ -727,7 +727,7 @@ procedure TCompositeImage.LoadFromStream(Stream: TStream; const URL: string);
   procedure CheckWarn(const Check: boolean; const Message: string);
   begin
     if not Check then
-      OnWarning(wtMajor, 'DDS image', Message);
+      WritelnWarning('DDS image', Message);
   end;
 
 var
@@ -1198,7 +1198,7 @@ var
                 tcPvrtc2_4bpp,
                 tcPvrtc2_2bpp]) and not FMipmaps)
             ) then
-            OnWarning(wtMinor, 'DDS', Format('Incorrect size for GPU compressed texture (DDS says %d, calculated should be %d, compression is %s)',
+            WritelnWarning('DDS', Format('Incorrect size for GPU compressed texture (DDS says %d, calculated should be %d, compression is %s)',
               [Header.PitchOrLinearSize, Result.Size,
                TextureCompressionInfo[Compression].Name]));
 

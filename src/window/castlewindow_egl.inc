@@ -144,7 +144,7 @@ begin
   if Surface <> EGL_NO_SURFACE { nil } then
   begin
     if eglDestroySurface(Display, Surface) = EGL_FALSE then
-      OnWarning(wtMinor, 'EGL', 'Cannot destroy surface: ' + EGLError);
+      WritelnWarning('EGL', 'Cannot destroy surface: ' + EGLError);
     Surface := EGL_NO_SURFACE;
   end;
 
@@ -154,9 +154,9 @@ begin
       This allows on Android to reopen OpenGL context from the application
       (like android_demo ReopenContextButton). }
     if eglMakeCurrent(Display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT) = EGL_FALSE then
-      OnWarning(wtMinor, 'EGL', 'Cannot release current context: ' + EGLError);
+      WritelnWarning('EGL', 'Cannot release current context: ' + EGLError);
     if eglTerminate(Display) = EGL_FALSE then
-      OnWarning(wtMinor, 'EGL', 'Cannot terminate display connection: ' + EGLError);
+      WritelnWarning('EGL', 'Cannot terminate display connection: ' + EGLError);
     Display := EGL_NO_DISPLAY;
   end;
 end;
@@ -165,25 +165,25 @@ procedure TCastleWindowCustom.BackendMakeCurrent;
 begin
   Assert(not Closed);
   if eglMakeCurrent(Display, Surface, Surface, Context) = EGL_FALSE then
-    OnWarning(wtMinor, 'EGL', 'Cannot make context current: ' + EGLError);
+    WritelnWarning('EGL', 'Cannot make context current: ' + EGLError);
 end;
 
 procedure TCastleWindowCustom.SwapBuffers;
 begin
   if eglSwapBuffers(Display, Surface) = EGL_FALSE then
-    OnWarning(wtMinor, 'EGL', 'Cannot swap buffers (this is normal if app is no longer active): ' + EGLError);
+    WritelnWarning('EGL', 'Cannot swap buffers (this is normal if app is no longer active): ' + EGLError);
 end;
 
 procedure TCastleWindowCustom.QuerySize(out AWidth, AHeight: EGLint);
 begin
   if eglQuerySurface(Display, Surface, EGL_WIDTH, @AWidth) = EGL_FALSE then
   begin
-    OnWarning(wtMinor, 'EGL', 'Cannot query surface width (this is normal if app is no longer active): ' + EGLError);
+    WritelnWarning('EGL', 'Cannot query surface width (this is normal if app is no longer active): ' + EGLError);
     AWidth := 0; // otherwise AWidth would be left undefined
   end;
   if eglQuerySurface(Display, Surface, EGL_HEIGHT, @AHeight) = EGL_FALSE then
   begin
-    OnWarning(wtMinor, 'EGL', 'Cannot query surface height (this is normal if app is no longer active): ' + EGLError);
+    WritelnWarning('EGL', 'Cannot query surface height (this is normal if app is no longer active): ' + EGLError);
     AHeight := 0; // otherwise AHeight would be left undefined
   end;
 end;

@@ -714,7 +714,7 @@ begin
   }
 
   if not (Supports(Child, IAbstractChildNode) or (Child is TLayerSetNode)) then
-    OnWarning(wtMajor, 'VRML/X3D', Format('Node "%s" is not allowed at the top level of the VRML/X3D file',
+    WritelnWarning('VRML/X3D', Format('Node "%s" is not allowed at the top level of the VRML/X3D file',
       [Child.NodeTypeName]));
 end;
 

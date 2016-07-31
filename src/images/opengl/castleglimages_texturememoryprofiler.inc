@@ -174,14 +174,14 @@ var
   I: Integer;
 begin
   if not ApplicationProperties.IsGLContextOpen then
-    OnWarning(wtMajor, 'Textures', Format('Releasing texture id %d after OpenGL context is closed. This means that you free some OpenGL resources (like TGLImageCore) too late, you should move their destruction to an event like TCastleWindow.OnClose or TCastleControl.OnGLContextClose.',
+    WritelnWarning('Textures', Format('Releasing texture id %d after OpenGL context is closed. This means that you free some OpenGL resources (like TGLImageCore) too late, you should move their destruction to an event like TCastleWindow.OnClose or TCastleControl.OnGLContextClose.',
       [TextureId]));
 
   if FEnabled then
   begin
     I := FindTextureId(TextureId);
     if I = -1 then
-      OnWarning(wtMinor, 'Textures', Format('Texture id %d is released, but was not reported as allocated to TextureMemoryProfiler. Probably TextureMemoryProfiler was not enabled when the texture was created, which may mean TextureMemoryProfiler was enabled too late to accurately capture everything.',
+      WritelnWarning('Textures', Format('Texture id %d is released, but was not reported as allocated to TextureMemoryProfiler. Probably TextureMemoryProfiler was not enabled when the texture was created, which may mean TextureMemoryProfiler was enabled too late to accurately capture everything.',
         [TextureId])) else
       AllocatedTextures.Delete(I);
   end;
@@ -194,7 +194,7 @@ begin
       { texture id 0 may be allocated, but never released }
       (AllocatedTextures[0].TextureId = 0)) then
   begin
-    OnWarning(wtMinor, 'Textures', Format('TextureMemoryProfiler contains some textures when closing GL context. Possibly we have texture memory leak (textures will be freed anyway when closing GL context, but possibly we could free them earlier). Or TextureMemoryProfiler was only enabled for part of program''s code. We have %d textures, 1st one is "%s"',
+    WritelnWarning('Textures', Format('TextureMemoryProfiler contains some textures when closing GL context. Possibly we have texture memory leak (textures will be freed anyway when closing GL context, but possibly we could free them earlier). Or TextureMemoryProfiler was only enabled for part of program''s code. We have %d textures, 1st one is "%s"',
       [AllocatedTextures.Count,
        AllocatedTextures[0].URL]));
   end;

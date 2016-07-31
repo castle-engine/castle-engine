@@ -89,7 +89,7 @@ type
 
 implementation
 
-uses SysUtils, CastleUtils, CastleGLUtils, CastleWarnings;
+uses SysUtils, CastleUtils, CastleGLUtils, CastleLog;
 
 function ScreenEffectVertex: string;
 begin
@@ -108,7 +108,7 @@ begin
         '#define MULTI_SAMPLING' +NL +
         '#define MULTI_SAMPLING_' + IntToStr(GLFeatures.CurrentMultiSampling) +NL;
     if not (GLFeatures.CurrentMultiSampling in [1, 2, 4, 8, 16]) then
-      OnWarning(wtMajor, 'Screen Effects', Format('Our GLSL library for screen effects is not prepared for your number of samples (anti-aliasing): %d. This may indicate that your GPU is very new or very weird. Please submit this as a bug (see http://castle-engine.sourceforge.net/forum.php for links to forum, bug tracker and more), citing this message. For now, screen effects will not work.',
+      WritelnWarning('Screen Effects', Format('Our GLSL library for screen effects is not prepared for your number of samples (anti-aliasing): %d. This may indicate that your GPU is very new or very weird. Please submit this as a bug (see http://castle-engine.sourceforge.net/forum.php for links to forum, bug tracker and more), citing this message. For now, screen effects will not work.',
         [GLFeatures.CurrentMultiSampling]));
   end;
   Result += {$I screen_effect_library.glsl.inc} + NL;

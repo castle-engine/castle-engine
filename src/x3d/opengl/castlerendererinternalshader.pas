@@ -96,7 +96,7 @@ type
       @raises(EGLSLUniformInvalid When uniform variable name
         or type are invalid.
 
-        Caller should always catch this and change into OnWarning.
+        Caller should always catch this and change into WritelnWarning.
 
         X3D spec "OpenGL shading language (GLSL) binding" says
         "If the name is not available as a uniform variable in the
@@ -493,7 +493,7 @@ operator = (const A, B: TShaderCodeHash): boolean;
 
 implementation
 
-uses SysUtils, CastleGL, CastleGLUtils, CastleWarnings,
+uses SysUtils, CastleGL, CastleGLUtils,
   CastleLog, StrUtils, Castle3D, CastleGLVersion, CastleRenderingCamera,
   CastleScreenEffects, X3DLexer;
 
@@ -997,11 +997,11 @@ begin
       So set GLSL uniform variable from this field. }
     SetUniformFromField(UniformField.Name, UniformField, EnableDisable);
   except
-    { We capture EGLSLUniformInvalid, converting it to OnWarning and exit.
+    { We capture EGLSLUniformInvalid, converting it to WritelnWarning and exit.
       This way we will not add this field to EventsObserved. }
     on E: EGLSLUniformInvalid do
     begin
-      OnWarning(wtMinor, 'VRML/X3D', E.Message);
+      WritelnWarning('VRML/X3D', E.Message);
       Exit;
     end;
   end;
@@ -1170,7 +1170,7 @@ begin
       "OpenGL shading language (GLSL) binding".
       Remaining:
       SF/MFImage }
-    OnWarning(wtMajor, 'VRML/X3D', 'Setting uniform GLSL variable from X3D field type "' + UniformValue.TypeName + '" not supported');
+    WritelnWarning('VRML/X3D', 'Setting uniform GLSL variable from X3D field type "' + UniformValue.TypeName + '" not supported');
 
   if EnableDisable then
     { TODO: this should restore previously bound program }
@@ -1190,11 +1190,11 @@ begin
   try
     SetUniformFromField(UniformName, Value, true);
   except
-    { We capture EGLSLUniformInvalid, converting it to OnWarning.
+    { We capture EGLSLUniformInvalid, converting it to WritelnWarning.
       This way we remove this event from OnReceive list. }
     on E: EGLSLUniformInvalid do
     begin
-      OnWarning(wtMinor, 'VRML/X3D', E.Message);
+      WritelnWarning('VRML/X3D', E.Message);
       Event.RemoveHandler(@EventReceive);
       EventsObserved.Remove(Event);
       Exit;
@@ -1692,7 +1692,7 @@ const
       PEnd := PosEx('*/', Code, PBegin + Length(CommentBegin));
       Result :=  PEnd <> 0;
       if not Result then
-        OnWarning(wtMinor, 'VRML/X3D', Format('Plug comment "%s" not properly closed, treating like not declared',
+        WritelnWarning('VRML/X3D', Format('Plug comment "%s" not properly closed, treating like not declared',
           [CommentBegin]));
     end;
   end;
@@ -1793,7 +1793,7 @@ begin
       AnyOccurrences := LookForPlugDeclaration(Source[EffectPartType]);
 
     if (not AnyOccurrences) and WarnMissingPlugs then
-      OnWarning(wtMinor, 'VRML/X3D', Format('Plug name "%s" not declared', [PlugName]));
+      WritelnWarning('VRML/X3D', Format('Plug name "%s" not declared', [PlugName]));
   until false;
 
   { regardless if any (and how many) plug points were found,
@@ -1826,7 +1826,7 @@ begin
   end;
 
   if (not Result) and WarnMissingPlugs then
-    OnWarning(wtMinor, 'VRML/X3D', Format('Plug point "%s" not found', [PlugName]));
+    WritelnWarning('VRML/X3D', Format('Plug point "%s" not found', [PlugName]));
 end;
 
 procedure TShader.EnableEffects(Effects: TMFNode;
@@ -1864,7 +1864,7 @@ procedure TShader.EnableEffects(Effects: TX3DNodeList;
 
     if Effect.FdLanguage.Value <> 'GLSL' then
     begin
-      OnWarning(wtMinor, 'VRML/X3D', Format('Unknown shading language "%s" for Effect node',
+      WritelnWarning('VRML/X3D', Format('Unknown shading language "%s" for Effect node',
         [Effect.FdLanguage.Value]));
       Exit;
     end;

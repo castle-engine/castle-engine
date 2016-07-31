@@ -201,7 +201,7 @@ begin
      (FdSize.Value[1] < 0) or
      (FdSize.Value[2] < 0) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'All VisibilitySensor.size components must be >= 0');
+    WritelnWarning('VRML/X3D', 'All VisibilitySensor.size components must be >= 0');
     Exit(EmptyBox3D);
   end;
 

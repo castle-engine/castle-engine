@@ -130,7 +130,7 @@ type
 implementation
 
 uses SysUtils, {$ifdef HAS_FREE_TYPE} CastleFreeType, CastleFtFont, {$endif}
-  CastleLog, CastleUtils, CastleURIUtils, CastleWarnings;
+  CastleLog, CastleUtils, CastleURIUtils;
 
 { TTextureFontData.TGlyphDictionary ------------------------------------------ }
 
@@ -173,18 +173,18 @@ var
     try
       if Bitmaps.Count = 0 then
       begin
-        OnWarning(wtMajor, 'Font', Format('Font "%s" does not contain glyph for character "%s" (index %d)',
+        WritelnWarning('Font', Format('Font "%s" does not contain glyph for character "%s" (index %d)',
           [URL, C, Ord(C)]));
         Exit(nil);
       end;
 
       Bitmap := Bitmaps.Bitmaps[0];
       if Bitmaps.Count > 1 then
-        OnWarning(wtMajor, 'Font', Format('Font "%s" contains a sequence of glyphs (more than a single glyph) for a single character "%s" (index %d)',
+        WritelnWarning('Font', Format('Font "%s" contains a sequence of glyphs (more than a single glyph) for a single character "%s" (index %d)',
           [URL, C, Ord(C)]));
       if (Bitmap^.Width < 0) or (Bitmap^.Height < 0) then
       begin
-        OnWarning(wtMajor, 'Font', Format('Font "%s" contains a glyphs with Width or Height < 0 for character "%s" (index %d)',
+        WritelnWarning('Font', Format('Font "%s" contains a glyphs with Width or Height < 0 for character "%s" (index %d)',
           [URL, C, Ord(C)]));
         Exit(nil);
       end;
@@ -252,7 +252,7 @@ var
       Bitmap := Bitmaps.Bitmaps[0];
       if (Bitmap^.Pitch < 0) then
       begin
-        OnWarning(wtMajor, 'Font', Format('Font "%s" contains a glyphs with Pitch < 0 for character "%s" (index %d)',
+        WritelnWarning('Font', Format('Font "%s" contains a glyphs with Pitch < 0 for character "%s" (index %d)',
           [URL, C, Ord(C)]));
         Exit;
       end;

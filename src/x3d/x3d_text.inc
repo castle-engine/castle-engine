@@ -244,7 +244,7 @@ begin
       Exit(ffSans) else
     if FdFamily.Items[I] = 'TYPEWRITER' then
       Exit(ffTypeWriter) else
-      OnWarning(wtMajor, 'VRML/X3D', 'Font family "' + FdFamily.Items[I] + '" not supported');
+      WritelnWarning('VRML/X3D', 'Font family "' + FdFamily.Items[I] + '" not supported');
 
   { If no supported values on FdFamily.Items then fall back to serif }
   Result := ffSerif;
@@ -272,7 +272,7 @@ begin
       (FdStyle.Value = StyleItalic) or
       (FdStyle.Value = StylePlain) or
       (FdStyle.Value = '')) then
-      OnWarning(wtMajor, 'VRML/X3D', 'Font style "' + FdStyle.Value + '" not supported');
+      WritelnWarning('VRML/X3D', 'Font style "' + FdStyle.Value + '" not supported');
   end;
 end;
 
@@ -292,7 +292,7 @@ begin
       (FdStyle.Value = StyleBold) or
       (FdStyle.Value = StylePlain) or
       (FdStyle.Value = '')) then
-      OnWarning(wtMajor, 'VRML/X3D', 'Font style "' + FdStyle.Value + '" not supported');
+      WritelnWarning('VRML/X3D', 'Font style "' + FdStyle.Value + '" not supported');
   end;
 end;
 
@@ -308,7 +308,7 @@ begin
   J := UpperCase(S);
   if (J <> S) and not JustifyWarningUppercaseDone then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Font justify value "%s" should be specified in uppercase',
+    WritelnWarning('VRML/X3D', Format('Font justify value "%s" should be specified in uppercase',
       [S]));
     JustifyWarningUppercaseDone := true;
   end;
@@ -324,7 +324,7 @@ begin
   begin
     if not JustifyWarningObsoleteDone then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', Format(SJustifyObsolete, ['LEFT', 'BEGIN']));
+      WritelnWarning('VRML/X3D', Format(SJustifyObsolete, ['LEFT', 'BEGIN']));
       JustifyWarningObsoleteDone := true;
     end;
     Result := fjBegin;
@@ -333,7 +333,7 @@ begin
   begin
     if not JustifyWarningObsoleteDone then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', Format(SJustifyObsolete, ['CENTER', 'MIDDLE']));
+      WritelnWarning('VRML/X3D', Format(SJustifyObsolete, ['CENTER', 'MIDDLE']));
       JustifyWarningObsoleteDone := true;
     end;
     Result := fjMiddle;
@@ -342,7 +342,7 @@ begin
   begin
     if not JustifyWarningObsoleteDone then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', Format(SJustifyObsolete, ['RIGHT', 'END']));
+      WritelnWarning('VRML/X3D', Format(SJustifyObsolete, ['RIGHT', 'END']));
       JustifyWarningObsoleteDone := true;
     end;
     Result := fjEnd;
@@ -352,7 +352,7 @@ begin
     Result := DefaultValue;
     if not JustifyWarningNotSupportedDone then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', 'Font justify "' + S + '" not supported');
+      WritelnWarning('VRML/X3D', 'Font justify "' + S + '" not supported');
       JustifyWarningNotSupportedDone := true;
     end;
   end;

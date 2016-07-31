@@ -540,7 +540,7 @@ begin
   if FdFogType.Value = 'EXPONENTIAL' then
     Result := ftExp else
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'Unknown fog type "' + FdFogType.Value + '"');
+    WritelnWarning('VRML/X3D', 'Unknown fog type "' + FdFogType.Value + '"');
     Result := ftLinear;
   end;
 end;
@@ -739,7 +739,7 @@ begin
   if FdFogType.Value = 'EXPONENTIAL' then
     Result := ftExp else
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'Unknown fog type "' + FdFogType.Value + '"');
+    WritelnWarning('VRML/X3D', 'Unknown fog type "' + FdFogType.Value + '"');
     Result := ftLinear;
   end;
 end;

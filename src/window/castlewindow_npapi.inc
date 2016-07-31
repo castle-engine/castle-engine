@@ -115,7 +115,7 @@ begin
   except
     on E: TObject do
     begin
-      OnWarning(wtMajor, 'Plugin', 'Exception in NP_GetPluginVersion: ' + ExceptMessage(E));
+      WritelnWarning('Plugin', 'Exception in NP_GetPluginVersion: ' + ExceptMessage(E));
       Result := nil;
     end;
   end;
@@ -129,7 +129,7 @@ begin
   except
     on E: TObject do
     begin
-      OnWarning(wtMajor, 'Plugin', 'Exception in NP_GetMIMEDescription: ' + ExceptMessage(E));
+      WritelnWarning('Plugin', 'Exception in NP_GetMIMEDescription: ' + ExceptMessage(E));
       Result := nil;
     end;
   end;
@@ -151,7 +151,7 @@ begin
   except
     on E: TObject do
     begin
-      OnWarning(wtMajor, 'Plugin', 'Exception in NP_GetValue: ' + ExceptMessage(E));
+      WritelnWarning('Plugin', 'Exception in NP_GetValue: ' + ExceptMessage(E));
       Result := NPERR_GENERIC_ERROR;
     end;
   end;
@@ -165,7 +165,7 @@ begin
   except
     on E: TObject do
     begin
-      OnWarning(wtMajor, 'Plugin', 'Exception in NP_Shutdown: ' + ExceptMessage(E));
+      WritelnWarning('Plugin', 'Exception in NP_Shutdown: ' + ExceptMessage(E));
       Result := NPERR_GENERIC_ERROR;
     end;
   end;
@@ -181,7 +181,7 @@ begin
   Err := sBrowserFuncs.getvalue(instance, NPNVSupportsXEmbedBool, @supportsXEmbed);
   if (err <> NPERR_NO_ERROR) or (supportsXEmbed = 0) then
   begin
-    OnWarning(wtMajor, 'Plugin', 'Browser does not support XEmbed');
+    WritelnWarning('Plugin', 'Browser does not support XEmbed');
     Exit(false);
   end;
   WritelnLog('Plugin', 'XEmbed supported');
@@ -190,7 +190,7 @@ begin
   // Err := sBrowserFuncs.getvalue(instance, NPNVToolkit, @toolkit);
   // if (err <> NPERR_NO_ERROR) or (toolkit <> NPNVGtk2) then
   // begin
-  //   OnWarning(wtMajor, 'Plugin', Format('Browser toolkit is not GTK2 (%d) or error when getting toolkit (%d)',
+  //   WritelnWarning('Plugin', Format('Browser toolkit is not GTK2 (%d) or error when getting toolkit (%d)',
   //     [Toolkit, Err]));
   //   Exit(false);
   // end;
@@ -203,13 +203,13 @@ function InstanceDataCheck(instance: PNPP): PInstanceData;
 begin
   if Instance  = nil then
   begin
-    OnWarning(wtMajor, 'Plugin', 'NPAPI plugin instance not assigned');
+    WritelnWarning('Plugin', 'NPAPI plugin instance not assigned');
     Exit(nil);
   end;
 
   Result := PInstanceData(instance^.pdata);
   if Result  = nil then
-    OnWarning(wtMajor, 'Plugin', 'NPAPI plugin instance data not assigned');
+    WritelnWarning('Plugin', 'NPAPI plugin instance data not assigned');
 end;
 
 {$ifndef DEBUG_WINDOWLESS}
@@ -250,7 +250,7 @@ begin
       for J := 1 to ProcessCount do
         Application.ProcessAllMessages;
     except
-      on E: TObject do OnWarning(wtMajor, 'Plugin', 'Exception in EventCheckTimer: ' + ExceptMessage(E));
+      on E: TObject do WritelnWarning('Plugin', 'Exception in EventCheckTimer: ' + ExceptMessage(E));
     end;
   finally InsideTimer := false end;
 end;
@@ -278,7 +278,7 @@ begin
     sBrowserFuncs.getvalue(instance, NPNVSupportsWindowless, @browserSupportsWindowless);
     if browserSupportsWindowless = 0 then
     begin
-      OnWarning(wtMajor, 'Plugin', 'Windowless mode not supported by the browser');
+      WritelnWarning('Plugin', 'Windowless mode not supported by the browser');
       Exit(NPERR_GENERIC_ERROR);
     end;
 
@@ -329,7 +329,7 @@ begin
   except
     on E: TObject do
     begin
-      OnWarning(wtMajor, 'Plugin', 'Exception in NPP_New: ' + ExceptMessage(E));
+      WritelnWarning('Plugin', 'Exception in NPP_New: ' + ExceptMessage(E));
       Result := NPERR_GENERIC_ERROR;
     end;
   end;
@@ -370,7 +370,7 @@ begin
   except
     on E: TObject do
     begin
-      OnWarning(wtMajor, 'Plugin', 'Exception in NPP_Destroy: ' + ExceptMessage(E));
+      WritelnWarning('Plugin', 'Exception in NPP_Destroy: ' + ExceptMessage(E));
       Result := NPERR_GENERIC_ERROR;
     end;
   end;
@@ -389,13 +389,13 @@ begin
 
     if (window = nil) {$ifdef MOZ_X11} or (window^.ws_info = nil) {$endif} then
     begin
-      OnWarning(wtMajor, 'Plugin', 'window or window^.ws_info is NULL, ignoring NPP_SetWindow');
+      WritelnWarning('Plugin', 'window or window^.ws_info is NULL, ignoring NPP_SetWindow');
       Exit(NPERR_GENERIC_ERROR);
     end;
 
     if Window^.aType <> {$ifdef DEBUG_WINDOWLESS} NPWindowTypeDrawable {$else} NPWindowTypeWindow {$endif} then
     begin
-      OnWarning(wtMajor, 'Plugin', Format('Window type is %d, unsupported', [Window^.aType]));
+      WritelnWarning('Plugin', Format('Window type is %d, unsupported', [Window^.aType]));
       Exit(NPERR_GENERIC_ERROR);
     end;
 
@@ -456,7 +456,7 @@ begin
   except
     on E: TObject do
     begin
-      OnWarning(wtMajor, 'Plugin', 'Exception in NPP_SetWindow: ' + ExceptMessage(E));
+      WritelnWarning('Plugin', 'Exception in NPP_SetWindow: ' + ExceptMessage(E));
       Result := NPERR_GENERIC_ERROR;
     end;
   end;
@@ -468,7 +468,7 @@ begin
     WritelnLog('Plugin', Format('NPP_NewStream', []));
     Result := NPERR_GENERIC_ERROR;
   except
-    on E: TObject do OnWarning(wtMajor, 'Plugin', 'Exception in NPP_NewStream: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Plugin', 'Exception in NPP_NewStream: ' + ExceptMessage(E));
   end;
 end;
 
@@ -478,7 +478,7 @@ begin
     WritelnLog('Plugin', Format('NPP_DestroyStream', []));
     Result := NPERR_GENERIC_ERROR;
   except
-    on E: TObject do OnWarning(wtMajor, 'Plugin', 'Exception in NPP_DestroyStream: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Plugin', 'Exception in NPP_DestroyStream: ' + ExceptMessage(E));
   end;
 end;
 
@@ -487,7 +487,7 @@ begin
   try
     Result := 0;
   except
-    on E: TObject do OnWarning(wtMajor, 'Plugin', 'Exception in NPP_WriteReady: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Plugin', 'Exception in NPP_WriteReady: ' + ExceptMessage(E));
   end;
 end;
 
@@ -496,7 +496,7 @@ begin
   try
     Result := 0;
   except
-    on E: TObject do OnWarning(wtMajor, 'Plugin', 'Exception in NPP_Write: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Plugin', 'Exception in NPP_Write: ' + ExceptMessage(E));
   end;
 end;
 
@@ -504,7 +504,7 @@ procedure NPP_StreamAsFile(instance: PNPP; stream: PNPStream; fname: PChar); ext
 begin
   try
   except
-    on E: TObject do OnWarning(wtMajor, 'Plugin', 'Exception in NPP_StreamAsFile: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Plugin', 'Exception in NPP_StreamAsFile: ' + ExceptMessage(E));
   end;
 end;
 
@@ -512,7 +512,7 @@ procedure NPP_Print(instance: PNPP; platformPrint: PNPPrint); extdecl;
 begin
   try
   except
-    on E: TObject do OnWarning(wtMajor, 'Plugin', 'Exception in NPP_Print: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Plugin', 'Exception in NPP_Print: ' + ExceptMessage(E));
   end;
 end;
 
@@ -544,7 +544,7 @@ begin
       Result := 1 else
       Result := 0;
   except
-    on E: TObject do OnWarning(wtMajor, 'Plugin', 'Exception in NPP_HandleEvent: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Plugin', 'Exception in NPP_HandleEvent: ' + ExceptMessage(E));
   end;
 {$else}
 begin
@@ -553,7 +553,7 @@ begin
     // TODO: not even trying to make windowless plugin work for non-Unix now
     Result := 0;
   except
-    on E: TObject do OnWarning(wtMajor, 'Plugin', 'Exception in NPP_HandleEvent: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Plugin', 'Exception in NPP_HandleEvent: ' + ExceptMessage(E));
   end;
 {$endif}
 end;
@@ -563,7 +563,7 @@ procedure NPP_URLNotify(instance: PNPP; URL: PChar; reason: TNPReason; notifyDat
 begin
   try
   except
-    on E: TObject do OnWarning(wtMajor, 'Plugin', 'Exception in NPP_URLNotify: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Plugin', 'Exception in NPP_URLNotify: ' + ExceptMessage(E));
   end;
 end;
 
@@ -586,7 +586,7 @@ begin
 
     Result := NPERR_GENERIC_ERROR;
   except
-    on E: TObject do OnWarning(wtMajor, 'Plugin', 'Exception in NPP_GetValue: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Plugin', 'Exception in NPP_GetValue: ' + ExceptMessage(E));
   end;
 end;
 
@@ -596,7 +596,7 @@ begin
     WritelnLog('Plugin', Format('NPP_SetValue %d', [Ord(variable)]));
     Result := NPERR_GENERIC_ERROR;
   except
-    on E: TObject do OnWarning(wtMajor, 'Plugin', 'Exception in NPP_SetValue: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Plugin', 'Exception in NPP_SetValue: ' + ExceptMessage(E));
   end;
 end;
 
@@ -618,7 +618,7 @@ begin
     WritelnLog('Plugin', Format('Min size of NPPluginFuncs struct %d', [MinSize]));
     if pFuncs^.size < MinSize then
     begin
-      OnWarning(wtMajor, 'Plugin', Format('Too old implementation of NPAPI in your browser (because NPPluginFuncs struct is too small: %d). Upgrade your browser.', [pFuncs^.size]));
+      WritelnWarning('Plugin', Format('Too old implementation of NPAPI in your browser (because NPPluginFuncs struct is too small: %d). Upgrade your browser.', [pFuncs^.size]));
       Exit(NPERR_INVALID_FUNCTABLE_ERROR);
     end;
 
@@ -640,7 +640,7 @@ begin
 
     Result := NPERR_NO_ERROR;
   except
-    on E: TObject do OnWarning(wtMajor, 'Plugin', 'Exception in NP_GetEntryPoints: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Plugin', 'Exception in NP_GetEntryPoints: ' + ExceptMessage(E));
   end;
 end;
 
@@ -667,7 +667,7 @@ begin
   end;
   if IsMultiThread then
     WritelnLog('Plugin', 'OK: prepared for multi-threading') else
-    OnWarning(wtMajor, 'Plugin', 'NOT prepared for multi-threading');
+    WritelnWarning('Plugin', 'NOT prepared for multi-threading');
 end;
 {$endif}
 
@@ -690,7 +690,7 @@ begin
     WritelnLog('Plugin', Format('Min size of NPNetscapeFuncs struct %d', [MinSize]));
     if bFuncs^.size < MinSize then
     begin
-      OnWarning(wtMajor, 'Plugin', Format('Too old implementation of NPAPI in your browser (because PNPNetscapeFuncs struct is too small: %d). Upgrade your browser.', [bFuncs^.size]));
+      WritelnWarning('Plugin', Format('Too old implementation of NPAPI in your browser (because PNPNetscapeFuncs struct is too small: %d). Upgrade your browser.', [bFuncs^.size]));
       Exit(NPERR_INVALID_FUNCTABLE_ERROR);
     end;
 
@@ -704,7 +704,7 @@ begin
 
     Result := NPERR_NO_ERROR;
   except
-    on E: TObject do OnWarning(wtMajor, 'Plugin', 'Exception in NP_Initialize: ' + ExceptMessage(E));
+    on E: TObject do WritelnWarning('Plugin', 'Exception in NP_Initialize: ' + ExceptMessage(E));
   end;
 
   WritelnLog('Plugin', 'NP_Initialize finished');

@@ -294,7 +294,7 @@ function TAnchorNode.LoadAnchor(
 
   procedure ViewpointNameInvalid(const NewViewpointName: string);
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Viewpoint "%s" specified by Anchor not found',
+    WritelnWarning('VRML/X3D', Format('Viewpoint "%s" specified by Anchor not found',
       [NewViewpointName]));
   end;
 
@@ -356,7 +356,7 @@ begin
             Exit(true);
           end else
           begin
-            OnWarning(wtMinor, 'VRML/X3D', Format('Cannot open browser to handle document on this URL: %s',
+            WritelnWarning('VRML/X3D', Format('Cannot open browser to handle document on this URL: %s',
               [PathFromBaseUrl(Url)]));
             Continue;
           end;
@@ -365,8 +365,8 @@ begin
       except
         on E: Exception do
         begin
-          { Catch exception and produce OnWarning, go to next URL }
-          OnWarning(wtMajor, 'VRML/X3D', Format('Loading world from Anchor URL "%s" failed: %s',
+          { Catch exception and produce WritelnWarning, go to next URL }
+          WritelnWarning('VRML/X3D', Format('Loading world from Anchor URL "%s" failed: %s',
             [UrlWithoutViewpoint, E.Message]));
           Continue;
         end;
@@ -512,8 +512,8 @@ begin
         Break;
       except
         on E: Exception do
-          { Careful here, as OnWarning may also raise exception. }
-          OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
+          { Careful here, as WritelnWarning may also raise exception. }
+          WritelnWarning('VRML/X3D', Format(SLoadError,
             [E.ClassName, 'inline file', URIDisplay(FullUrl), E.Message]));
       end;
     end;
@@ -547,7 +547,7 @@ begin
   { Whether or not we successfully got FInlined <> nil, we always set
     Loaded to true here. This way we will not try to reload this inline
     at next LoadInlined(false) (this would be bad, as we already did
-    OnWarning in case loading failed and such). }
+    WritelnWarning in case loading failed and such). }
   Loaded := true;
 end;
 

@@ -73,28 +73,48 @@ procedure InitializeLog(const ProgramVersion: string = '';
 
   Although we check @link(Log) here, you can also check it yourself
   before even calling this procedure. This way you can avoid spending time
-  on constructing LogMessage. }
-procedure WritelnLog(const Title: string; const LogMessage: string);
+  on constructing Message. }
+procedure WritelnLog(const Category: string; const Message: string);
 
 { Format and log message.
   Ignored when log is not initialized (@link(Log) is @false).
 
-  This is a shortcut for @code(WritelnLog(Title, Format(LogMessageBase, Args))). }
-procedure WritelnLog(const Title: string; const LogMessageBase: string;
+  This is a shortcut for @code(WritelnLog(Category, Format(MessageBase, Args))). }
+procedure WritelnLog(const Category: string; const MessageBase: string;
   const Args: array of const);
 
-{ Log message, without appending newline at the end (given LogMessage
+{ Log message, without appending newline at the end (given Message
   should already contain a final newline). }
-procedure WriteLog(const Title: string; const LogMessage: string);
+procedure WriteLog(const Category: string; const Message: string);
 
 { Log multiline message.
-  LogMessage may be multiline and must be terminated by final newline. }
-procedure WriteLogMultiline(const Title: string; const LogMessage: string);
+  Message may be multiline and must be terminated by final newline. }
+procedure WriteLogMultiline(const Category: string; const Message: string);
 
 { Log multiline message.
-  LogMessage may be multiline and must @italic(not) be terminated by
+  Message may be multiline and must @italic(not) be terminated by
   a final newline, because we will add final newline ourselves. }
-procedure WritelnLogMultiline(const Title: string; const LogMessage: string);
+procedure WritelnLogMultiline(const Category: string; const Message: string);
+
+{ Log a warning, and call
+  @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning)
+  event.
+
+  This outputs a log message, if the log is initialized by @link(InitializeLog).
+  We simply append the word "warning" to the Category, and pass arguments
+  to WritelnLog.
+
+  Then, @italic(regardless if the log is initialized or not),
+  we also call @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning).
+  This allows to react to warnings e.g. by displaying a message dialog
+  (like @code(ShowMessage) in Lazarus, or @link(MessageOK) in CastleMessages,
+  or @link(TCastleWindowCustom.MessageOK)).
+  Or by raising an exception, if you want to be strict about warnings. }
+procedure WritelnWarning(const Category: string; const Message: string);
+
+{ A shortcut for @code(WritelnWarning(Category, Format(MessageBase, Args))). }
+procedure WritelnWarning(const Category: string; const MessageBase: string;
+  const Args: array of const);
 
 var
   { Dump backtrace (call stack) with each log.
@@ -103,9 +123,10 @@ var
 
 implementation
 
-uses CastleUtils, CastleClassUtils, CastleTimeUtils, CastleWarnings,
-  CastleFilesUtils, CastleURIUtils,
-  SysUtils {$ifdef ANDROID}, CastleAndroidInternalLog {$endif};
+uses SysUtils,
+  CastleUtils, CastleClassUtils, CastleTimeUtils,
+  CastleFilesUtils, CastleURIUtils, CastleApplicationProperties
+  {$ifdef ANDROID}, CastleAndroidInternalLog {$endif};
 
 var
   FLog: boolean = false;
@@ -133,7 +154,7 @@ var
         { Special message when LogFileName non-empty (usual case on Windows).
           Merely warn when creating log file not possible.
           Normal in many "production" cases when the directory of exe/plugin may not be writeable. }
-        OnWarning(wtMajor, 'Log', 'Cannot create log file "' + LogFileName + '". To dump log of GUI application on Windows, you have to run the application in a directory where you have write access, for example your user or Desktop directory.');
+        WritelnWarning('Log', 'Cannot create log file "' + LogFileName + '". To dump log of GUI application on Windows, you have to run the application in a directory where you have write access, for example your user or Desktop directory.');
         Exit(false);
       end;
     end;
@@ -209,35 +230,47 @@ begin
   end;
 end;
 
-procedure WriteLog(const Title: string; const LogMessage: string);
+procedure WriteLog(const Category: string; const Message: string);
 begin
   if Log then
-    WriteLogRaw(Title + ': ' + LogMessage);
+    WriteLogRaw(Category + ': ' + Message);
 end;
 
-procedure WritelnLog(const Title: string; const LogMessage: string);
+procedure WritelnLog(const Category: string; const Message: string);
 begin
-  WriteLog(Title, LogMessage + NL);
+  WriteLog(Category, Message + NL);
 end;
 
-procedure WritelnLog(const Title: string; const LogMessageBase: string;
+procedure WritelnLog(const Category: string; const MessageBase: string;
   const Args: array of const);
 begin
-  WritelnLog(Title, Format(LogMessageBase, Args));
+  WritelnLog(Category, Format(MessageBase, Args));
 end;
 
-procedure WriteLogMultiline(const Title: string; const LogMessage: string);
+procedure WriteLogMultiline(const Category: string; const Message: string);
 begin
   if Log then
     WriteLogRaw(
-      '-------------------- ' + Title + ' begin' + NL +
-      LogMessage +
-      '-------------------- ' + Title + ' end' + NL);
+      '-------------------- ' + Category + ' begin' + NL +
+      Message +
+      '-------------------- ' + Category + ' end' + NL);
 end;
 
-procedure WritelnLogMultiline(const Title: string; const LogMessage: string);
+procedure WritelnLogMultiline(const Category: string; const Message: string);
 begin
-  WriteLogMultiline(Title, LogMessage + NL);
+  WriteLogMultiline(Category, Message + NL);
+end;
+
+procedure WritelnWarning(const Category: string; const Message: string);
+begin
+  WritelnLog('Warning: ' + Category, Message);
+  ApplicationProperties._Warning(Category, Message);
+end;
+
+procedure WritelnWarning(const Category: string; const MessageBase: string;
+  const Args: array of const);
+begin
+  WritelnWarning(Category, Format(MessageBase, Args));
 end;
 
 finalization

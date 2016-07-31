@@ -1961,7 +1961,7 @@ var
 
 implementation
 
-uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils, CastleWarnings,
+uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils,
   X3DLoad, CastleURIUtils, CastleTimeUtils;
 
 { TX3DBindableStack ----------------------------------------------------- }
@@ -2252,7 +2252,7 @@ begin
 
       if (Tex is TGeneratedCubeMapTextureNode) and
          (Shape <> GenTex^.Shape) then
-        OnWarning(wtMajor, 'VRML/X3D', 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different VRML shapes. This is bad, as we don''t know from which shape should environment be captured');
+        WritelnWarning('VRML/X3D', 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different VRML shapes. This is bad, as we don''t know from which shape should environment be captured');
     end else
     begin
       GenTex := Add;
@@ -3622,7 +3622,7 @@ begin
   if RootNode = nil then Exit;
   if not (Shapes is TShapeTreeGroup) then
   begin
-    OnWarning(wtMajor, 'X3D changes', 'Root node did not create corresponding TShapeTreeGroup, transformation will not be applied correctly. Submit a bug');
+    WritelnWarning('X3D changes', 'Root node did not create corresponding TShapeTreeGroup, transformation will not be applied correctly. Submit a bug');
     Exit;
   end;
 
@@ -5880,7 +5880,7 @@ var
     if (NavigationType = 'EXAMINE') or (NavigationType = 'LOOKAT') then
     begin
       if NavigationType = 'LOOKAT' then
-        OnWarning(wtMinor, 'VRML/X3D', 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
+        WritelnWarning('VRML/X3D', 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
       NavigationTypeInitialized := true;
       if Universal <> nil then Universal.NavigationClass := ncExamine;
       if Examine <> nil then Examine.Turntable := false;
@@ -5896,7 +5896,7 @@ var
     begin
       { Do nothing, also do not report this NavigationInfo.type as unknown. }
     end else
-      OnWarning(wtMajor, 'VRML/X3D', Format('Unknown NavigationInfo.type "%s"',
+      WritelnWarning('VRML/X3D', Format('Unknown NavigationInfo.type "%s"',
         [NavigationType]));
   end;
 
@@ -6100,7 +6100,7 @@ begin
       if (TransitionType = 'LINEAR') or (TransitionType = 'ANIMATE') then
         { Leave TransitionAnimate as true }
         Break else
-        OnWarning(wtMinor, 'VRML/X3D', Format('Unrecognized transitionType "%s"', [TransitionType]));
+        WritelnWarning('VRML/X3D', Format('Unrecognized transitionType "%s"', [TransitionType]));
     end;
 
   { calculate TransitionTime }
@@ -6726,7 +6726,7 @@ begin
     if AnimationName = '' then
     begin
       if AnimationPrefix <> '' then // this is normal with AnimationPrefix = '' on many scenes
-        OnWarning(wtMinor, 'Named Animations', Format('TimeSensor node name is exactly "%s", this indicates named animation with empty name, ignoring',
+        WritelnWarning('Named Animations', Format('TimeSensor node name is exactly "%s", this indicates named animation with empty name, ignoring',
           [AnimationName]));
       Exit;
     end;
@@ -6745,7 +6745,7 @@ begin
           - Even our own mechanism for renaming KAnim animations from
             https://github.com/castle-engine/demo-models/blob/master/kanim/two_animations.x3dv
             results in multiple "Animation" names in scene. }
-        OnWarning(wtMinor, 'Named Animations', Format('Animation name "%s" occurs multiple times in scene',
+        WritelnWarning('Named Animations', Format('Animation name "%s" occurs multiple times in scene',
           [AnimationName]));
       List.Objects[ExistingIndex] := Node;
     end else

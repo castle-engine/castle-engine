@@ -28,13 +28,14 @@ program dynamic_ambient_occlusion;
 
 {$I castleconf.inc}
 
-uses CastleVectors, CastleGL, CastleWindow, CastleTriangles,
-  CastleClassUtils, CastleUtils, SysUtils, Classes, CastleKeysMouse,
+uses SysUtils, Classes, Math,
+  CastleVectors, CastleGL, CastleWindow, CastleTriangles,
+  CastleClassUtils, CastleUtils, CastleKeysMouse,
   CastleGLUtils, CastleSceneCore, CastleScene, Castle3D, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleGLShaders, CastleShapes,
-  X3DFields, CastleImages, CastleGLImages, CastleMessages, CastleWarnings,
-  CastleGLVersion, Math, CastleSceneManager, CastleRenderingCamera,
-  CastleGenericLists, CastleRectangles;
+  X3DFields, CastleImages, CastleGLImages, CastleMessages, CastleLog,
+  CastleGLVersion, CastleSceneManager, CastleRenderingCamera,
+  CastleGenericLists, CastleRectangles, CastleApplicationProperties;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
@@ -897,7 +898,7 @@ begin
     ModelFileName := Parameters[1];
 
   try
-    OnWarning := @OnWarningWrite;
+    ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
     Scene := TCastleScene.Create(Window);
     Scene.Load(ModelFileName);

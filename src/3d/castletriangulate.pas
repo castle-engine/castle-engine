@@ -111,7 +111,7 @@ var
 
 implementation
 
-uses CastleLog, CastleStringUtils, CastleWarnings;
+uses CastleLog, CastleStringUtils;
 
 { Do additional operations (normalize some vectors etc.)
   that in theory should improve numerical stability of this algorithm.
@@ -477,7 +477,7 @@ begin
               WritelnLog('Triangulation', 'Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated.');
             if not FailureWarningDone then
             begin
-              OnWarning(wtMinor, 'Triangulator', 'Triangulation of concave polygon failed. Polygon is probably self-intersecting (not allowed by VRML / X3D). You can use Castle Game Engine tool in castle_game_engine/examples/visualize_triangulation/ to easily observe the polygon vertexes and triangulation process.');
+              WritelnWarning('Triangulator', 'Triangulation of concave polygon failed. Polygon is probably self-intersecting (not allowed by VRML / X3D). You can use Castle Game Engine tool in castle_game_engine/examples/visualize_triangulation/ to easily observe the polygon vertexes and triangulation process.');
               FailureWarningDone := true;
             end;
             Break;

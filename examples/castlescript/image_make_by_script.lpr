@@ -23,7 +23,7 @@
 uses SysUtils, CastleUtils, CastleFilesUtils, CastleStringUtils, CastleImages,
   CastleClassUtils, CastleParameters, CastleURIUtils,
   CastleScript, CastleScriptParser, CastleScriptVectors, CastleScriptImages,
-  CastleWarnings;
+  CastleLog, CastleApplicationProperties;
 
 var
   Vars: TCasScriptValueList;
@@ -31,7 +31,7 @@ var
 begin
   Parameters.CheckHigh(2);
 
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   Vars := TCasScriptValueList.Create(true);
   try

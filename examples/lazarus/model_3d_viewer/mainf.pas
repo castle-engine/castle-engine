@@ -21,7 +21,7 @@ unit mainf;
 interface
 
 uses Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs,
-  OpenGLContext, Menus, CastleScene, CastleCameras, CastleControl, CastleWarnings,
+  OpenGLContext, Menus, CastleScene, CastleCameras, CastleControl, CastleLog,
   CastleLCLRecentFiles, CastleConfig, Buttons, ExtCtrls, StdCtrls, CastleRecentFiles,
   CastleSceneManager, CastleDialogs, CastleControls;
 
@@ -312,7 +312,7 @@ begin
   MenuFocusGLControl.ShortCut := ShortCut(VK_Escape, []);
 
   Console := TConsole.Create(Application);
-  OnWarning := @OnWarningVrmlConsole;
+  ApplicationProperties.OnWarning.Add(@Console.WarningToConsole);
 
   ButtonsNavigationType[ntExamine] := ButtonExamine;
   ButtonsNavigationType[ntWalk] := ButtonWalk;

@@ -342,8 +342,8 @@ begin
           Break;
         except
           on E: Exception do
-            { Remember that OnWarning *may* raise an exception. }
-            OnWarning(wtMinor, 'Audio', Format(SLoadError,
+            { Remember that WritelnWarning *may* raise an exception. }
+            WritelnWarning('Audio', Format(SLoadError,
               [E.ClassName, 'sound file', URIDisplay(FullUrl), E.Message]));
         end;
       end;

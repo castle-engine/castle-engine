@@ -142,7 +142,7 @@ function StringToScreenOrientation(const S: string): TScreenOrientation;
 implementation
 
 uses StrUtils, DOM, Process,
-  CastleURIUtils, CastleXMLUtils, CastleWarnings, CastleFilesUtils,
+  CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
   ToolPackage, ToolWindowsResources, ToolAndroidPackage, ToolWindowsRegistry,
   ToolTextureGeneration;
 
@@ -779,7 +779,7 @@ begin
       win64:
         begin
           if depFreetype in Dependencies then
-            OnWarning(wtMajor, 'Libraries', 'We do not know how to satisfy freetype dependency on win64');
+            WritelnWarning('Libraries', 'We do not know how to satisfy freetype dependency on win64');
           if depZlib in Dependencies then
             AddExternalLibrary('zlib1.dll');
           if depPng in Dependencies then

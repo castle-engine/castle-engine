@@ -106,7 +106,7 @@ type
 
 implementation
 
-uses SysUtils, CastleStringUtils, CastleWarnings;
+uses SysUtils, CastleStringUtils, CastleLog;
 
 { Simple type constructors, for ease of coding.
   Versions with only 1 argument set both channel (rgb and alpha) to the same. }
@@ -242,7 +242,7 @@ procedure ModeFromString(const S: string;
       Combine := coModulate;
       CurrentTextureArgument := ta0;
       SourceArgument := ta1;
-      OnWarning(wtMajor, 'VRML/X3D', Format('Not supported multi-texturing mode "%s" for channels "%s"', [LS, Channels]));
+      WritelnWarning('VRML/X3D', Format('Not supported multi-texturing mode "%s" for channels "%s"', [LS, Channels]));
     end;
   end;
 
@@ -391,7 +391,7 @@ procedure SourceFromString(const S: string; out Source: TSourcePerChannel;
     end else
     begin
       Source := csPreviousTexture;
-      OnWarning(wtMajor, 'VRML/X3D', Format('Not supported multi-texturing source "%s"', [LS]))
+      WritelnWarning('VRML/X3D', Format('Not supported multi-texturing source "%s"', [LS]))
     end;
   end;
 
@@ -425,7 +425,7 @@ begin
     Result := tfAlphaReplicate else
   begin
     Result := tfNone;
-    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid multi-texturing function "%s"', [S]));
+    WritelnWarning('VRML/X3D', Format('Invalid multi-texturing function "%s"', [S]));
   end;
 end;
 

@@ -922,12 +922,12 @@ procedure CreateValueIfNeeded(var Value: TCasScriptValue;
 
 var
   { Global method to output messages done by CastleScript @code(writeln())
-    function. If not assigned, we will use OnWarning. }
+    function. If not assigned, we will use CastleLog.WritelnLog. }
   OnScriptMessage: TCasScriptMessage;
 
 implementation
 
-uses CastleScriptCoreFunctions, CastleWarnings;
+uses CastleScriptCoreFunctions, CastleLog;
 
 { FPC 2.2.2 has bug http://bugs.freepascal.org/view.php?id=12214
   that strongly hits calculating invalid expressions.
@@ -1013,7 +1013,7 @@ begin
   except
     on E: ECasScriptError do
     begin
-      OnWarning(wtMajor, 'CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
+      WritelnWarning('CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
       Result := ADefaultValue;
       Exit;
     end;
@@ -1022,7 +1022,7 @@ begin
   if Res is TCasScriptFloat then
     Result := TCasScriptFloat(Res).Value else
   begin
-    OnWarning(wtMajor, 'CastleScript', 'CastleScript expression result is not float');
+    WritelnWarning('CastleScript', 'CastleScript expression result is not float');
     Result := ADefaultValue;
   end;
 end;
@@ -1036,7 +1036,7 @@ begin
   except
     on E: ECasScriptError do
     begin
-      OnWarning(wtMajor, 'CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
+      WritelnWarning('CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
       Result := ADefaultValue;
       Exit;
     end;
@@ -1045,7 +1045,7 @@ begin
   if Res is TCasScriptInteger then
     Result := TCasScriptInteger(Res).Value else
   begin
-    OnWarning(wtMajor, 'CastleScript', 'CastleScript expression result is not int');
+    WritelnWarning('CastleScript', 'CastleScript expression result is not int');
     Result := ADefaultValue;
   end;
 end;
@@ -1059,7 +1059,7 @@ begin
   except
     on E: ECasScriptError do
     begin
-      OnWarning(wtMajor, 'CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
+      WritelnWarning('CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
       Result := ADefaultValue;
       Exit;
     end;
@@ -1068,7 +1068,7 @@ begin
   if Res is TCasScriptString then
     Result := TCasScriptString(Res).Value else
   begin
-    OnWarning(wtMajor, 'CastleScript', 'CastleScript expression result is not string');
+    WritelnWarning('CastleScript', 'CastleScript expression result is not string');
     Result := ADefaultValue;
   end;
 end;
@@ -1082,7 +1082,7 @@ begin
   except
     on E: ECasScriptError do
     begin
-      OnWarning(wtMajor, 'CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
+      WritelnWarning('CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
       Result := ADefaultValue;
       Exit;
     end;
@@ -1091,7 +1091,7 @@ begin
   if Res is TCasScriptBoolean then
     Result := TCasScriptBoolean(Res).Value else
   begin
-    OnWarning(wtMajor, 'CastleScript', 'CastleScript expression result is not boolean');
+    WritelnWarning('CastleScript', 'CastleScript expression result is not boolean');
     Result := ADefaultValue;
   end;
 end;
@@ -2067,7 +2067,7 @@ begin
 
   if Assigned(OnScriptMessage) then
     OnScriptMessage(S) else
-    OnWarning(wtMinor, 'CastleScript', 'Writeln: '+ S);
+    WritelnLog('CastleScript', 'Writeln: '+ S);
 end;
 
 class procedure TCasScriptString.HandleCharacterFromCode(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);

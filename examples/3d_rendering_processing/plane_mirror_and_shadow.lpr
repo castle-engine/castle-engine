@@ -52,11 +52,12 @@ program plane_mirror_and_shadow;
 
 {$I castleconf.inc}
 
-uses CastleVectors, CastleBoxes, X3DNodes, CastleGL, CastleWindow, CastleRenderer,
-  CastleClassUtils, CastleUtils, SysUtils, Classes, X3DLoad, CastleWarnings,
+uses SysUtils, Classes,
+  CastleVectors, CastleBoxes, X3DNodes, CastleGL, CastleWindow, CastleRenderer,
+  CastleClassUtils, CastleUtils, X3DLoad, CastleLog,
   CastleGLUtils, CastleScene, CastleCameras, CastleRenderingCamera, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleKeysMouse, CastleSceneManager,
-  CastleColors, CastleURIUtils;
+  CastleColors, CastleURIUtils, CastleApplicationProperties;
 
 var
   Window: TCastleWindowCustom;
@@ -635,7 +636,7 @@ begin
   SceneManager.DefaultVisibilityLimit := 100;
   Window.Controls.InsertFront(SceneManager);
 
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   { calculate RootNode }
   if SceneURL <> '' then

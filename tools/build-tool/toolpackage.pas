@@ -53,7 +53,7 @@ type
 implementation
 
 uses SysUtils, Process, {$ifdef UNIX} BaseUnix, {$endif}
-  CastleUtils, CastleFilesUtils, CastleWarnings,
+  CastleUtils, CastleFilesUtils, CastleLog,
   ToolUtils;
 
 constructor TPackageDirectory.Create(const ATopDirectoryName: string);
@@ -133,7 +133,7 @@ begin
     S_IRGRP or            S_IXGRP or
     S_IROTH or            S_IXOTH);
   {$else}
-  OnWarning(wtMajor, 'Package', 'Packaging for a platform where UNIX permissions matter, but we cannot set "chmod" on this platform. This usually means that you package for Unix from Windows, and means that "executable" bit inside binary in tar.gz archive may not be set --- archive may not be 100% comfortable for Unix users');
+  WritelnWarning('Package', 'Packaging for a platform where UNIX permissions matter, but we cannot set "chmod" on this platform. This usually means that you package for Unix from Windows, and means that "executable" bit inside binary in tar.gz archive may not be set --- archive may not be 100% comfortable for Unix users');
   {$endif}
 end;
 

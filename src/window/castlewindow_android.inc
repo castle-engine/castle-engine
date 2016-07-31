@@ -385,7 +385,7 @@ begin
 
   {$ifdef CASTLE_PERSISTENT_ANDROID_STATE}
   { Use SavedState as XML contents that should be loaded to global Config.
-    Note that we directly use AndroidLog below, not WritelnLog or OnWarning,
+    Note that we directly use AndroidLog below, not WritelnLog or WritelnWarning,
     because user code had no chance to call InitializeLog yet. }
   if App^.SavedState <> nil then
   begin

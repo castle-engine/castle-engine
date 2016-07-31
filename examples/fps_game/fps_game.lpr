@@ -16,13 +16,13 @@
 { Example of a fully-working 3D FPS game. }
 program fps_game;
 
-uses SysUtils, Classes, CastleWindow, CastleWarnings, CastleConfig, CastleLevels,
+uses SysUtils, Classes, CastleWindow, CastleLog, CastleConfig, CastleLevels,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   Castle3D, CastleFilesUtils, CastleGameNotifications,
   CastleSceneManager, CastleVectors, CastleUIControls, CastleGLUtils,
   CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
-  CastleCreatures, CastleRectangles, CastleImages, CastleLog;
+  CastleCreatures, CastleRectangles, CastleImages, CastleApplicationProperties;
 
 var
   Window: TCastleWindow;
@@ -410,7 +410,7 @@ begin
 
   { Write warnings on standard output (console).
     By default, warnings are only written to log, and log by default goes nowhere. }
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   { optionally, enable log.
     See http://castle-engine.sourceforge.net/tutorial_log.php
     to know where it's going. }

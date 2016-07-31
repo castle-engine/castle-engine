@@ -150,7 +150,7 @@ begin
   ExportedNode := Nodes.Bound(E.ExportedNodeName, IgnoreNodeFinished);
   if ExportedNode = nil then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Exported node name "%s" not found', [E.ExportedNodeName]));
+    WritelnWarning('VRML/X3D', Format('Exported node name "%s" not found', [E.ExportedNodeName]));
     Exit;
   end;
 
@@ -167,7 +167,7 @@ begin
   ImportedNamesIndex := Importable.IndexOf(I.InlineNodeName);
   if ImportedNamesIndex = -1 then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Inline node name "%s" not found (or nothing was EXPORTed from it), cannot IMPORT', [I.InlineNodeName]));
+    WritelnWarning('VRML/X3D', Format('Inline node name "%s" not found (or nothing was EXPORTed from it), cannot IMPORT', [I.InlineNodeName]));
     Exit;
   end;
 
@@ -176,7 +176,7 @@ begin
   ImportedNode := ImportedNames.Bound(I.ImportedNodeName, IgnoreNodeFinished);
   if ImportedNode = nil then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Imported node name "%s" not found in inline "%s"', [I.ImportedNodeName, I.InlineNodeName]));
+    WritelnWarning('VRML/X3D', Format('Imported node name "%s" not found in inline "%s"', [I.ImportedNodeName, I.InlineNodeName]));
     Exit;
   end;
 

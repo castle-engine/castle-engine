@@ -326,17 +326,17 @@ var
 
     if Composite.CompositeType <> ctCubeMap then
     begin
-      OnWarning(wtMinor, 'Texture', 'Composite (DDS, KTX...) image contains mipmaps, but not for CubeMap texture');
+      WritelnWarning('Texture', 'Composite (DDS, KTX...) image contains mipmaps, but not for CubeMap texture');
       Exit(false);
     end;
 
     {$ifdef OpenGLES}
-    OnWarning(wtMinor, 'Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
+    WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
     Exit(false);
     {$else}
     if not GLFeatures.Version_1_2 then
     begin
-      OnWarning(wtMinor, 'Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
       Exit(false);
     end;
     {$endif}

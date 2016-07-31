@@ -31,10 +31,11 @@
 program fog_culling;
 
 uses SysUtils, CastleVectors, CastleWindow, CastleStringUtils,
-  CastleClassUtils, CastleUtils, Classes, CastleWarnings,
+  CastleClassUtils, CastleUtils, Classes, CastleLog,
   CastleGLUtils, X3DNodes, CastleSceneCore, CastleScene, CastleShapes,
   CastleProgress, CastleProgressConsole, CastleFilesUtils, Castle3D,
-  CastleSceneManager, CastleParameters, CastleRenderingCamera, CastleKeysMouse;
+  CastleSceneManager, CastleParameters, CastleRenderingCamera, CastleKeysMouse,
+  CastleApplicationProperties;
 
 var
   Window: TCastleWindowCustom;
@@ -59,7 +60,7 @@ begin
     2nd is the sphere around current camera position,
       with the radius taken from fog scaled visibilityRadius.
     If there is no collision than we don't have to render given Shape. }
-  Result := PointsDistanceSqr(Shape.BoundingSphereCenter, Camera.GetPosition) <=
+  Result := PointsDistanceSqr(Shape.BoundingSphereCenter, Camera.Position) <=
       Sqr(Scene.FogStack.Top.FdVisibilityRange.Value * 
           Scene.FogStack.Top.TransformScale +
         Sqrt(Shape.BoundingSphereRadiusSqr));
@@ -112,7 +113,7 @@ begin
   Window.Controls.InsertFront(SceneManager);
 
   Scene := TCastleScene.Create(Application);
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   Scene.Load('models/fog_culling_final.x3dv');
   SceneManager.MainScene := Scene;
   SceneManager.Items.Add(Scene);

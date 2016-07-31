@@ -232,7 +232,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleMessaging, CastleWarnings, CastleApplicationProperties;
+  CastleUtils, CastleMessaging, CastleLog, CastleApplicationProperties;
 
 { TAdNetworkHandler ---------------------------------------------------------- }
 
@@ -277,7 +277,7 @@ begin
       );
     except
       on EConvertError do
-        OnWarning(wtMajor, 'Ads', 'Cannot process banner size from ' + GlueStrings(Received, NL));
+        WritelnWarning('Ads', 'Cannot process banner size from ' + GlueStrings(Received, NL));
     end;
   end;
 end;

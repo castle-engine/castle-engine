@@ -1870,7 +1870,7 @@ var
         Fields[Index].PositionInParent := Position;
         Inc(Position);
       end else
-        OnWarning(wtMajor, 'VRML/X3D', 'Unknown X3D field name (unhandled X3D XML attribute) "' + Attr.Name + '" in node "' + NodeTypeName + '"');
+        WritelnWarning('VRML/X3D', 'Unknown X3D field name (unhandled X3D XML attribute) "' + Attr.Name + '" in node "' + NodeTypeName + '"');
     end;
   end;
 
@@ -1945,7 +1945,7 @@ var
             end else
             begin
               FreeAndNil(IDecl);
-              OnWarning(wtMajor, 'VRML/X3D', 'X3D XML: specified <field> inside node, but this node doesn''t allow interface declaration with such accessType');
+              WritelnWarning('VRML/X3D', 'X3D XML: specified <field> inside node, but this node doesn''t allow interface declaration with such accessType');
             end;
           except
             FreeAndNil(IDecl);
@@ -1967,7 +1967,7 @@ var
                 and is different than current ContainerField. }
               FieldIndex := IndexOfField(Child.DefaultContainerField);
               if FieldIndex >= 0 then
-                OnWarning(wtMajor, 'VRML/X3D', 'X3D XML: containerField indicated unknown field name ("' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + NodeTypeName + '"), using the default containerField value "' + Child.DefaultContainerField + '" succeded');
+                WritelnWarning('VRML/X3D', 'X3D XML: containerField indicated unknown field name ("' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + NodeTypeName + '"), using the default containerField value "' + Child.DefaultContainerField + '" succeded');
             end;
 
             if FieldIndex >= 0 then
@@ -1977,7 +1977,7 @@ var
                 SF := Fields[FieldIndex] as TSFNode;
 
                 if SF.Value <> nil then
-                  OnWarning(wtMajor, 'VRML/X3D', 'X3D XML: More than one value specified for SFNode field ' + SF.NiceName);
+                  WritelnWarning('VRML/X3D', 'X3D XML: More than one value specified for SFNode field ' + SF.NiceName);
 
                 { Although field doesn't have a set position in XML X3D
                   encoding, when saving later in classic encoding we
@@ -2007,12 +2007,12 @@ var
                 MF.Add(Child);
                 MF.WarningIfChildNotAllowed(Child);
               end else
-                OnWarning(wtMajor, 'VRML/X3D', 'X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
+                WritelnWarning('VRML/X3D', 'X3D field "' + ContainerField + '" is not SFNode or MFNode, but a node value (XML element) is specified');
             end else
-              OnWarning(wtMajor, 'VRML/X3D', 'Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + NodeTypeName + '"');
+              WritelnWarning('VRML/X3D', 'Unknown X3D field name (indicated by containerField value) "' + ContainerField + '" by node "' + Child.NodeTypeName + '" inside node "' + NodeTypeName + '"');
           finally
-            { Any OnWarning above makes the Child unused.
-              Note that OnWarning may, but doesn't have, raise an exception. }
+            { Any WritelnWarning above makes the Child unused.
+              Note that WritelnWarning may, but doesn't have, raise an exception. }
             Child.FreeIfUnused;
             Child := nil;
           end;
@@ -2045,7 +2045,7 @@ var
     if CDataExists then
       if CDataField <> nil then
         CDataField.Items.Add(CData) else
-        OnWarning(wtMajor, 'VRML/X3D', Format('VRML/X3D node %s doesn''t allow CDATA section, but it''s specified',
+        WritelnWarning('VRML/X3D', Format('VRML/X3D node %s doesn''t allow CDATA section, but it''s specified',
           [NodeTypeName]));
   end;
 

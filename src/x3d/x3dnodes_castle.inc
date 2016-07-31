@@ -35,7 +35,7 @@
 
     { Return appropriate field value, or (when it's -1) return global value
       (from Detail_Xxx variables). In case of incorrect field value,
-      they also take care of calling OnWarning and correcting this value.
+      they also take care of calling WritelnWarning and correcting this value.
       @groupBegin }
     function CalculateQuadricStacks: Cardinal;
     function CalculateQuadricSlices: Cardinal;
@@ -354,7 +354,7 @@
     { Load shader code from node's URLs.
       In X3D XML encoding, also loads node's XML CDATA as a last resort.
       Will return '' if no valid URLs are present,
-      loading errors are reported to OnWarning. }
+      loading errors are reported to WritelnWarning. }
     function Contents: string;
   end;
 
@@ -403,7 +403,7 @@ begin
     Result := GlobalValue else
   if Int64(AField.Value) < Int64(MinValue) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Node "KambiTriangulation" field "%s" value is %d but must be >= %d (or = -1)',
+    WritelnWarning('VRML/X3D', Format('Node "KambiTriangulation" field "%s" value is %d but must be >= %d (or = -1)',
       [AField.Name, AField.Value, MinValue]));
     AField.Value := TriangulationUseDef;
     Result := GlobalValue;
@@ -587,7 +587,7 @@ begin
   ReplaceCount := Min(FdreplaceNames.Count, FdreplaceNodes.Count);
   if (FdreplaceNames.Count <> ReplaceCount) or
      (FdreplaceNodes.Count <> ReplaceCount) then
-    OnWarning(wtMajor, 'VRML/X3D', 'replaceNames and replaceNodes for KambiInline node should have the same number of items');
+    WritelnWarning('VRML/X3D', 'replaceNames and replaceNodes for KambiInline node should have the same number of items');
 
   { After successfull loading, there's always exactly one child. }
   Assert(VRML1ChildrenCount = 1);
@@ -715,12 +715,12 @@ begin
   if FdMaxDepth.Value >= 0 then
     Limits.MaxDepth := FdMaxDepth.Value else
   if FdMaxDepth.Value <> -1 then
-    OnWarning(wtMajor, 'VRML/X3D', 'KambiOctreeProperties.maxDepth must be >= -1');
+    WritelnWarning('VRML/X3D', 'KambiOctreeProperties.maxDepth must be >= -1');
 
   if FdLeafCapacity.Value >= 0 then
     Limits.LeafCapacity := FdLeafCapacity.Value else
   if FdLeafCapacity.Value <> -1 then
-    OnWarning(wtMajor, 'VRML/X3D', 'KambiOctreeProperties.leafCapacity must be >= -1');
+    WritelnWarning('VRML/X3D', 'KambiOctreeProperties.leafCapacity must be >= -1');
 end;
 
 procedure TGeneratedShadowMapNode.CreateNode;

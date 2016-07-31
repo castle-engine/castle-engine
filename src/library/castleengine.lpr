@@ -37,7 +37,7 @@ library castleengine;
 uses CTypes, Math, SysUtils, CastleWindow, CastleWindowTouch, CastleUtils,
   Classes, CastleKeysMouse, CastleCameras, CastleVectors, CastleGLUtils,
   CastleImages, CastleSceneCore, CastleUIControls, X3DNodes, X3DFields, CastleLog,
-  CastleBoxes, CastleControls, CastleWarnings;
+  CastleBoxes, CastleControls, CastleLog;
 
 type
   TCrosshairManager = class(TObject)
@@ -52,11 +52,15 @@ type
     procedure OnPointingDeviceSensorsChange(Sender: TObject);
   end;
 
+  TWarningManager = class
+    class procedure cgeWarning(Sender: TObject; const Category, S: string);
+  end;
+
 var
   Window: TCastleWindowTouch;
   Crosshair: TCrosshairManager;
 
-procedure cge_OnWarning(const WarningType: TWarningType; const Category, S: string);
+procedure TWarningManager.cgeWarning(Sender: TObject; const Category, S: string);
 var
   sMsg: string;
   szBuffer: PChar;
@@ -78,7 +82,7 @@ begin
   Result := (Window <> nil) and (Window.SceneManager <> nil) and (Window.MainScene <> nil);
   if not Result then
   begin
-    cge_OnWarning(wtMajor, 'LibWnd', 'Not initialized');
+    TWarningManager.cgeWarning(nil, 'LibWnd', 'Not initialized');
   end;
 end;
 
@@ -96,7 +100,7 @@ begin
 
     Window := TCastleWindowTouch.Create(nil);
     Window.Open;
-    OnWarning := @cge_OnWarning;
+    ApplicationProperties.OnWarning.Add(@TWarningManager(nil).cgeWarning);
 
     Crosshair := TCrosshairManager.Create;
   except

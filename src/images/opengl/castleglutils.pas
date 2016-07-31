@@ -296,7 +296,7 @@ function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: string
 
 { Check are any OpenGL errors recorded (in glGetError).
   If there are errors, our behavior depends on whether we were compiled
-  with -dRELEASE. With -dRELEASE, we make OnWarning. This way eventual
+  with -dRELEASE. With -dRELEASE, we make WritelnWarning. This way eventual
   errors in release builds don't completely abort your program.
 
   Note that the behavior on GL_OUT_OF_MEMORY is different.
@@ -759,7 +759,7 @@ uses
     compatibility. }
   Contnrs,
   CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
-  CastleLog, CastleWarnings, CastleApplicationProperties;
+  CastleLog, CastleApplicationProperties;
 
 {$I castleglutils_mipmaps.inc}
 
@@ -976,7 +976,7 @@ begin
     CurrentMultiSampling := glGetInteger({$ifdef OpenGLES} GL_SAMPLES {$else} GL_SAMPLES_ARB {$endif});
     if CurrentMultiSampling <= 1 then
     begin
-      OnWarning(wtMinor, 'MultiSampling', Format('We successfully got multi-sampling buffer, but only %d samples per pixel. This doesn''t make much sense, assuming buggy OpenGL implementation, and anti-aliasing may not work.',
+      WritelnWarning('MultiSampling', Format('We successfully got multi-sampling buffer, but only %d samples per pixel. This doesn''t make much sense, assuming buggy OpenGL implementation, and anti-aliasing may not work.',
         [CurrentMultiSampling]));
       CurrentMultiSampling := 1;
     end;
@@ -1096,7 +1096,7 @@ const
 begin
   if GLOutOfMemoryError then
     raise EOpenGLOutOfMemoryError.Create(ErrorCode, AdditionalComment) else
-    OnWarning(wtMajor, 'OpenGL', GLErrorString(ErrorCode, AdditionalComment));
+    WritelnWarning('OpenGL', GLErrorString(ErrorCode, AdditionalComment));
 end;
 
 procedure CheckGLErrors(const AdditionalComment: string);
@@ -1109,7 +1109,7 @@ begin
     if ErrorCode = GL_OUT_OF_MEMORY then
       GLOutOfMemory(AdditionalComment) else
       {$ifdef RELEASE}
-      OnWarning(wtMajor, 'OpenGL', GLErrorString(ErrorCode, AdditionalComment));
+      WritelnWarning('OpenGL', GLErrorString(ErrorCode, AdditionalComment));
       {$else}
       raise EOpenGLError.Create(ErrorCode, AdditionalComment);
       {$endif}

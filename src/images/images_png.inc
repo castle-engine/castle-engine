@@ -566,7 +566,7 @@ end;
 procedure our_png_warning_fn(png_ptr : png_structp; s : png_const_charp);
   {$ifndef LIBPNG_CDECL} stdcall {$else} cdecl {$endif};
 begin
-  OnWarning(wtMinor, 'PNG', S);
+  WritelnWarning('PNG', S);
 end;
 
 { read / write functions -----------------------------------------------------

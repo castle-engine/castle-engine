@@ -29,6 +29,7 @@ type
     Vertexes: PVector3Single;
     CountVertexes: Integer;
     procedure Face(const Tri: TVector3Longint);
+    procedure OnWarningRaiseException(Sender: TObject; const Category, S: string);
   published
     procedure TestIndexedConcavePolygonNormal;
     procedure TestTriangulateFace;
@@ -36,9 +37,9 @@ type
 
 implementation
 
-uses CastleStringUtils, CastleUtils, CastleWarnings;
+uses CastleStringUtils, CastleUtils, CastleLog, CastleApplicationProperties;
 
-procedure OnWarningRaiseException(const AType: TWarningType; const Category, S: string);
+procedure TTestCastleTriangulate.OnWarningRaiseException(Sender: TObject; const Category, S: string);
 begin
   raise Exception.CreateFmt('CastleTriangulate made warning: %s: %s', [Category, S]);
 end;
@@ -468,29 +469,29 @@ const
   );
 var
   RevertOrder: boolean;
-  PreviousOnWarning: TWarningProc;
   Polygon_Circle: TVector3SingleArray;
 begin
   { Warnings from CastleTriangulate mean that polygon cannot be triangulated.
     They mean errors for tests below, that *must* pass. }
-  PreviousOnWarning := OnWarning;
-  OnWarning := @OnWarningRaiseException;
+  ApplicationProperties.OnWarning.Add(@OnWarningRaiseException);
+  try
+    GenerateCircle(16, Polygon_Circle);
 
-  GenerateCircle(16, Polygon_Circle);
+    for RevertOrder := false to true do
+    begin
+      DoPolygon(Polygon_Circle, 'Circle', RevertOrder);
+      DoPolygon(Polygon_3_5, 'polygon_3_5', RevertOrder);
+      DoPolygon(Polygon_R3D_cs, 'R3D_cs', RevertOrder);
+      DoPolygon(Polygon_R3D_cs_full, 'R3D_cs_full', RevertOrder);
+      DoPolygon(Polygon_RoomArranger_Cave, 'RoomArranger_Cave', RevertOrder);
+      DoPolygon(Polygon_Bug13, 'Bug13', RevertOrder);
+    end;
 
-  for RevertOrder := false to true do
-  begin
-    DoPolygon(Polygon_Circle, 'Circle', RevertOrder);
-    DoPolygon(Polygon_3_5, 'polygon_3_5', RevertOrder);
-    DoPolygon(Polygon_R3D_cs, 'R3D_cs', RevertOrder);
-    DoPolygon(Polygon_R3D_cs_full, 'R3D_cs_full', RevertOrder);
-    DoPolygon(Polygon_RoomArranger_Cave, 'RoomArranger_Cave', RevertOrder);
-    DoPolygon(Polygon_Bug13, 'Bug13', RevertOrder);
+    { TODO: test that results are same as hardcoded results? }
+
+  finally
+    ApplicationProperties.OnWarning.Remove(@OnWarningRaiseException);
   end;
-
-  { TODO: test that results are same as hardcoded results? }
-
-  OnWarning := PreviousOnWarning;
 end;
 
 initialization

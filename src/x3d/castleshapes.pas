@@ -903,7 +903,7 @@ var
 
 implementation
 
-uses CastleProgress, CastleSceneCore, CastleInternalNormals, CastleLog, CastleWarnings,
+uses CastleProgress, CastleSceneCore, CastleInternalNormals, CastleLog,
   CastleStringUtils, CastleArraysGenerator, CastleImages, CastleURIUtils;
 
 const
@@ -2338,7 +2338,7 @@ begin
     except
       on E: ETransformedResultInvalid do
       begin
-        OnWarning(wtMajor, 'VRML/X3D', Format('Cannot transform camera position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
+        WritelnWarning('VRML/X3D', Format('Cannot transform camera position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
           [ VectorToRawStr(CameraPosition), E.Message ]));
         Result := 0;
       end;

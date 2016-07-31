@@ -730,7 +730,7 @@ begin
 
   if Order < 2 then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'NURBS order must be >= 2');
+    WritelnWarning('VRML/X3D', 'NURBS order must be >= 2');
     Exit;
   end;
 
@@ -938,7 +938,7 @@ begin
 
   if FdOrder.Value < 2 then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'NURBS order must be >= 2');
+    WritelnWarning('VRML/X3D', 'NURBS order must be >= 2');
     Exit;
   end;
 
@@ -1069,7 +1069,7 @@ begin
   if UDimension * VDimension <>
      Integer(ControlPoint.Count) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Number of coordinates in Nurbs[Patch]Surface.controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)',
+    WritelnWarning('VRML/X3D', Format('Number of coordinates in Nurbs[Patch]Surface.controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)',
       [ ControlPoint.Count,
         UDimension,  VDimension,
         UDimension * VDimension ]));
@@ -1079,14 +1079,14 @@ begin
   if (UDimension < 0) or
      (VDimension < 0) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'Nurbs[Patch]Surface.u/vDimension is < 0');
+    WritelnWarning('VRML/X3D', 'Nurbs[Patch]Surface.u/vDimension is < 0');
     Exit;
   end;
 
   if (UOrder < 2) or
      (VOrder < 2) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'NURBS order must be >= 2');
+    WritelnWarning('VRML/X3D', 'NURBS order must be >= 2');
     Exit;
   end;
 
@@ -1380,7 +1380,7 @@ begin
 
   if FdOrder.Value < 2 then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'NURBS order must be >= 2');
+    WritelnWarning('VRML/X3D', 'NURBS order must be >= 2');
     Exit;
   end;
 
@@ -1536,7 +1536,7 @@ begin
   if FdUDimension.Value * FdVDimension.Value <>
      Integer(ControlPoint.Count) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Number of coordinates in NurbsSurfaceInterpolator.controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)',
+    WritelnWarning('VRML/X3D', Format('Number of coordinates in NurbsSurfaceInterpolator.controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)',
       [ ControlPoint.Count,
         FdUDimension.Value,  FdVDimension.Value,
         FdUDimension.Value * FdVDimension.Value ]));
@@ -1546,14 +1546,14 @@ begin
   if (FdUDimension.Value < 0) or
      (FdVDimension.Value < 0) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'NurbsSurfaceInterpolator.u/vDimension is < 0');
+    WritelnWarning('VRML/X3D', 'NurbsSurfaceInterpolator.u/vDimension is < 0');
     Exit;
   end;
 
   if (FdUOrder.Value < 2) or
      (FdVOrder.Value < 2) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'NURBS order must be >= 2');
+    WritelnWarning('VRML/X3D', 'NURBS order must be >= 2');
     Exit;
   end;
 
@@ -1786,7 +1786,7 @@ function TNurbsTrimmedSurfaceNode.Proxy(var State: TX3DGraphTraverseState;
 begin
   Result := inherited;
   if FdTrimmingContour.Count <> 0 then
-    OnWarning(wtMajor, 'VRML/X3D', 'NurbsTrimmedSurface.trimmingContour is not implemented yet (that is, NurbsTrimmedSurface is rendered just like NurbsPatchSurface)');
+    WritelnWarning('VRML/X3D', 'NurbsTrimmedSurface.trimmingContour is not implemented yet (that is, NurbsTrimmedSurface is rendered just like NurbsPatchSurface)');
 end;
 
 procedure RegisterNURBSNodes;

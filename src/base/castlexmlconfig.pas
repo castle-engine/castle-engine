@@ -461,8 +461,7 @@ procedure Register;
 implementation
 
 uses //Base64,
-  CastleStringUtils, CastleFilesUtils, CastleLog, CastleURIUtils,
-  CastleWarnings;
+  CastleStringUtils, CastleFilesUtils, CastleLog, CastleURIUtils;
 
 procedure Register;
 begin
@@ -1012,7 +1011,7 @@ begin
   except
     on E: Exception do
     begin
-      OnWarning(wtMajor, 'UserConfig', 'User config in "' + AURL + '" corrupted (will load defaults): ' + E.Message);
+      WritelnWarning('UserConfig', 'User config in "' + AURL + '" corrupted (will load defaults): ' + E.Message);
       LoadEmpty(AURL);
       Exit;
     end;
@@ -1033,7 +1032,7 @@ begin
   except
     on E: Exception do
     begin
-      OnWarning(wtMajor, 'UserConfig', 'User config in stream corrupted (will load defaults): ' + E.Message);
+      WritelnWarning('UserConfig', 'User config in stream corrupted (will load defaults): ' + E.Message);
       LoadEmpty(PretendURL);
       Exit;
     end;

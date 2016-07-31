@@ -58,7 +58,7 @@ begin
   except
     on E: EConvertError do
     begin
-      OnWarning(wtMajor, 'Collada', 'Invalid integer: ' + E.Message);
+      WritelnWarning('Collada', 'Invalid integer: ' + E.Message);
       Ended := true; { don't read further }
       Result := false;
     end;

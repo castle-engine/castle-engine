@@ -804,7 +804,7 @@ var
 
 implementation
 
-uses CastleGLVersion, CastleImages, CastleLog, CastleWarnings,
+uses CastleGLVersion, CastleImages, CastleLog,
   CastleStringUtils, CastleRenderingCamera, CastleApplicationProperties,
   CastleShapeInternalRenderShadowVolumes;
 

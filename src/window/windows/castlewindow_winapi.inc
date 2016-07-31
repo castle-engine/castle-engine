@@ -958,11 +958,11 @@ begin
     ContextDestroy;
 
     if (h_Dc <> 0) and (ReleaseDC(h_Wnd, h_Dc) = 0) then
-      OnWarning(wtMajor, 'WinAPI', 'Releasing device context (ReleaseDC) failed.');
+      WritelnWarning('WinAPI', 'Releasing device context (ReleaseDC) failed.');
     h_Dc := 0;
     {$ifndef CASTLE_ENGINE_PLUGIN}
     if (h_Wnd <> 0) and (not DestroyWindow(h_Wnd))then
-      OnWarning(wtMajor, 'WinAPI', 'Destroying window (DestroyWindow) failed.');
+      WritelnWarning('WinAPI', 'Destroying window (DestroyWindow) failed.');
     {$endif}
     h_Wnd := 0;
   finally InCloseBackend := false; end;

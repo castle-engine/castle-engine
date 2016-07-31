@@ -552,7 +552,7 @@ implementation
 
 uses SysUtils, CastleGLUtils, CastleFilesUtils, CastleStringUtils,
   CastleGLImages, CastleUIControls, XMLRead, CastleInputs, CastleXMLUtils,
-  CastleRenderingCamera, Math, CastleWarnings, X3DCameraUtils,
+  CastleRenderingCamera, Math, CastleLog, X3DCameraUtils,
   CastleGLVersion, CastleURIUtils, CastleDownload;
 
 { globals -------------------------------------------------------------------- }
@@ -626,8 +626,8 @@ const
 
     Resource := Resources.FindName(ResourceName);
     if not Resource.Prepared then
-      OnWarning(wtMajor, 'Resource', Format('Resource "%s" is initially present on the level, but was not prepared yet --- which probably means you did not add it to <resources> inside level level.xml file. This causes loading on-demand, which is less comfortable for player.',
-        [Resource.Name]));
+      WritelnWarning('Resource', 'Resource "%s" is initially present on the level, but was not prepared yet --- which probably means you did not add it to <resources> inside level level.xml file. This causes loading on-demand, which is less comfortable for player.',
+        [Resource.Name]);
 
     Box := Shape.BoundingBox;
     Position := Box.Middle;

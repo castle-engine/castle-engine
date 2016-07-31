@@ -428,7 +428,7 @@ type
 
 implementation
 
-uses CastleScriptCoreFunctions, CastleUtils, CastleWarnings, CastleCameras, CastleQuaternions,
+uses CastleScriptCoreFunctions, CastleUtils, CastleLog, CastleCameras, CastleQuaternions,
   CastleColors;
 
 { Single-precision vectors --------------------------------------------------- }
@@ -498,7 +498,7 @@ begin
       results (actually, Result would be filled with Nan values).
       VRML/X3D specs says that SFRotation should always specify a normalized vector. }
     TCasScriptVec3f(AResult).Value := Point;
-    OnWarning(wtMajor, 'CastleScript', 'Rotation around zero vector');
+    WritelnWarning('CastleScript', 'Rotation around zero vector');
   end;
 end;
 

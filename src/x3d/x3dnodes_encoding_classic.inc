@@ -115,7 +115,7 @@ end;
   However, this is a particular parsing error, because we can probably
   pretty safely continue parsing, ignoring this error.
   So if you pass NilIfUnresolvedUSE = @true, this function will do
-  OnWarning and simply return @nil.
+  WritelnWarning and simply return @nil.
 
   @raises(EX3DParserError On various parsing errors.)
 *)
@@ -178,7 +178,7 @@ function ParseNode(Lexer: TX3DLexer; Reader: TX3DReaderNames;
       on E: EX3DPrototypeInstantiateError do
         { Just write E.Message and silence the exception.
           Result will simply remain as TX3DPrototypeNode instance in this case. }
-        OnWarning(wtMajor, 'VRML/X3D', E.Message);
+        WritelnWarning('VRML/X3D', E.Message);
     end;
 
     { Cycles in VRML graph are bad:
@@ -223,7 +223,7 @@ function ParseNode(Lexer: TX3DLexer; Reader: TX3DReaderNames;
       And events like addChildren can create cycles easily.
 
       For now, NilIfUnresolvedUSE successfully changes there special
-      cycles in Script into mere OnWarning, so they don't stop
+      cycles in Script into mere WritelnWarning, so they don't stop
       us from reading the rest of VRML file. And since we don't handle
       any scripting, this is not a problem in practice. But some day it'll
       have to be fixed... }
@@ -269,7 +269,7 @@ begin
                Result := nil; { return nil in case of cycles }
              end;
              if NilIfUnresolvedUSE then
-               OnWarning(wtMajor, 'VRML/X3D', S) else
+               WritelnWarning('VRML/X3D', S) else
                raise EX3DParserError.Create(Lexer, S);
            end;
 
@@ -316,7 +316,7 @@ var
     end else
       { We allow PROFILE to be omitted, which is not really allowed by
         X3D spec. }
-      OnWarning(wtMajor, 'VRML/X3D', 'X3D PROFILE statement missing');
+      WritelnWarning('VRML/X3D', 'X3D PROFILE statement missing');
   end;
 
   procedure ParseComponents;
@@ -374,7 +374,7 @@ var
   begin
     if Lexer.TokenIsKeyword(vkMETA) and
        (Reader.Version.Major < 3) then
-      OnWarning(wtMinor, 'VRML/X3D', 'META is not allowed in VRML, you should use X3D instead');
+      WritelnWarning('VRML/X3D', 'META is not allowed in VRML, you should use X3D instead');
 
     while Lexer.TokenIsKeyword(vkMETA) do
     begin
@@ -530,7 +530,7 @@ begin
     begin
       { Somewhat more involved version of the loop, the idea is to catch
         EX3DClassicReadError happening in the ParseStatement
-        and convert it to OnWarning (then merely stop reading VRML file,
+        and convert it to WritelnWarning (then merely stop reading VRML file,
         but the file contents read so far are Ok). }
       while Lexer.Token <> EndToken do
       try
@@ -539,7 +539,7 @@ begin
       except
         on E: EX3DClassicReadError do
         begin
-          OnWarning(wtMajor, 'VRML/X3D', Format('Error when reading, will skip the rest of VRML/X3D file: %s', [E.Message]));
+          WritelnWarning('VRML/X3D', Format('Error when reading, will skip the rest of VRML/X3D file: %s', [E.Message]));
           Break;
         end;
       end;

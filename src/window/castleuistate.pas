@@ -234,8 +234,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleWarnings, CastleFilesUtils, CastleUtils,
-  CastleTimeUtils, CastleLog;
+  CastleWindow, CastleFilesUtils, CastleUtils, CastleTimeUtils, CastleLog;
 
 { TUIState --------------------------------------------------------------------- }
 
@@ -302,7 +301,7 @@ begin
   TopState.InternalStop;
   if TopState = FStateStack.Last then
     FStateStack.Delete(FStateStack.Count - 1) else
-    OnWarning(wtMinor, 'State', 'Topmost state is no longer topmost after its Stop method. Do not change state stack from state Stop methods.');
+    WritelnWarning('State', 'Topmost state is no longer topmost after its Stop method. Do not change state stack from state Stop methods.');
 
   { resume new top-most state }
   if (FStateStack <> nil) and
@@ -314,12 +313,12 @@ class procedure TUIState.Pop(const CurrentTopMostState: TUIState);
 begin
   if (FStateStack = nil) or (FStateStack.Count = 0) then
   begin
-    OnWarning(wtMinor, 'State', 'Cannot pop UI state, that stack is empty');
+    WritelnWarning('State', 'Cannot pop UI state, that stack is empty');
     Exit;
   end;
   if FStateStack.Last <> CurrentTopMostState then
   begin
-    OnWarning(wtMinor, 'State', 'Cannot pop UI state, top-most state is expected to be ' + CurrentTopMostState.ClassName + ', but is ' + FStateStack.Last.ClassName);
+    WritelnWarning('State', 'Cannot pop UI state, top-most state is expected to be ' + CurrentTopMostState.ClassName + ', but is ' + FStateStack.Last.ClassName);
     Exit;
   end;
 

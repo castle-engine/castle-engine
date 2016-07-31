@@ -275,7 +275,7 @@ function ExpandHomePath(const FileName: string): string;
 
 { Call SysUtils.DeleteFile and check result.
   When Warn = @false (default) raises an exception on failure,
-  otherwise (when Warn = @true) makes only OnWarning on failure.
+  otherwise (when Warn = @true) makes only WritelnWarning on failure.
   @raises Exception If delete failed, and Warn = @false. }
 procedure CheckDeleteFile(const FileName: string; const Warn: boolean = false);
 
@@ -385,7 +385,7 @@ function BundlePath: string;
 implementation
 
 uses {$ifdef DARWIN} MacOSAll, {$endif} Classes, CastleStringUtils,
-  {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog, CastleWarnings,
+  {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog,
   CastleURIUtils, CastleFindFiles;
 
 var
@@ -613,7 +613,7 @@ begin
   if not SysUtils.DeleteFile(FileName) then
   begin
     if Warn then
-      OnWarning(wtMinor, 'File', Format('Cannot delete file "%s"', [FileName])) else
+      WritelnWarning('File', Format('Cannot delete file "%s"', [FileName])) else
       raise Exception.Create(Format('Cannot delete file "%s"', [FileName]));
   end;
 end;

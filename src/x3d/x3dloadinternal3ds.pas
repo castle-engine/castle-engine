@@ -28,7 +28,7 @@ function Load3DS(const URL: string): TX3DRootNode;
 implementation
 
 uses CastleUtils, Classes, CastleClassUtils, SysUtils, CastleVectors, X3DCameraUtils,
-  FGL, X3DLoadInternalUtils, CastleWarnings, CastleDownload, CastleURIUtils,
+  FGL, X3DLoadInternalUtils, CastleLog, CastleDownload, CastleURIUtils,
   CastleStreamUtils;
 
 { 3DS reading mostly based on spec from
@@ -783,7 +783,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
 
     if Stream.Position <> ChunkEnd then
     begin
-      OnWarning(wtMajor, '3DS', 'CHUNK_TRMATRIX should contain only 4x3 floats');
+      WritelnWarning('3DS', 'CHUNK_TRMATRIX should contain only 4x3 floats');
       Stream.Position := ChunkEnd;
     end;
   end;
@@ -1052,7 +1052,7 @@ var
         if not VectorsEqual(
             Material.TextureMap1.Scale,
             Material.TextureMapBump.Scale) then
-          OnWarning(wtMinor, 'VRML/X3D', 'Texture scale for diffuse and normal (bump) maps is different in the 3DS file. Currently this is not correctly handled when converting to VRML/X3D');
+          WritelnWarning('VRML/X3D', 'Texture scale for diffuse and normal (bump) maps is different in the 3DS file. Currently this is not correctly handled when converting to VRML/X3D');
       end;
     end;
   end;

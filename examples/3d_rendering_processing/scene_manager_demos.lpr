@@ -26,8 +26,8 @@ program scene_manager_demos;
 
 {$apptype CONSOLE}
 
-uses CastleUtils, CastleWindow, CastleVectors, CastleWarnings, Castle3D,
-  CastleSceneCore, CastleScene, X3DFields, X3DNodes;
+uses CastleUtils, CastleWindow, CastleVectors, CastleLog, Castle3D,
+  CastleSceneCore, CastleScene, X3DFields, X3DNodes, CastleApplicationProperties;
 
 var
   Window: TCastleWindow;
@@ -36,7 +36,7 @@ var
 begin
   Window := TCastleWindow.Create(Application);
 
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   { initialize first Scene }
   Scene := TCastleScene.Create(Application);

@@ -27,11 +27,13 @@ program radiance_transfer;
 
 {$I castleconf.inc}
 
-uses CastleVectors, X3DNodes, CastleGL, CastleWindow,
-  CastleClassUtils, CastleUtils, SysUtils, Classes, CastleRenderingCamera,
+uses SysUtils, Classes, Math,
+  CastleVectors, X3DNodes, CastleGL, CastleWindow,
+  CastleClassUtils, CastleUtils, CastleRenderingCamera,
   CastleGLUtils, CastleScene, CastleKeysMouse, CastleSceneManager,
-  CastleFilesUtils, CastleWarnings, CastleSphericalHarmonics, Math, CastleImages,
-  CastleGLCubeMaps, CastleStringUtils, CastleParameters, CastleColors;
+  CastleFilesUtils, CastleLog, CastleSphericalHarmonics, CastleImages,
+  CastleGLCubeMaps, CastleStringUtils, CastleParameters, CastleColors,
+  CastleApplicationProperties;
 
 type
   TViewMode = (vmNormal, vmSimpleOcclusion, vmFull);
@@ -273,7 +275,7 @@ begin
   RenderParams := TBasicRenderParams.Create;
 
   Scene := TCastleScene.Create(Application);
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   Scene.Load(URL);
 
   if Scene.BoundingBox.IsEmpty then

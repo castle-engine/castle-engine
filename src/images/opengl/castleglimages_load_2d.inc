@@ -120,7 +120,7 @@ var
       We will try using GenerateMipmap functionality to generate mipmaps on GPU.
       If not available, for uncompressed textures, we will generate mipmaps on CPU.
       For compressed textures, we will change minification filter to simple
-      minLinear and make OnWarning.)
+      minLinear and make WritelnWarning.)
   )
 
   @param(GUITexture If @true, the texture is not forced to have sizes
@@ -394,17 +394,17 @@ var
 
     if Composite.CompositeType <> ctTexture then
     begin
-      OnWarning(wtMinor, 'Texture', 'Composite (DDS, KTX...) image contains mipmaps, but not for 2D texture');
+      WritelnWarning('Texture', 'Composite (DDS, KTX...) image contains mipmaps, but not for 2D texture');
       Exit(false);
     end;
 
     {$ifdef OpenGLES}
-    OnWarning(wtMinor, 'Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
+    WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
     Exit(false);
     {$else}
     if not GLFeatures.Version_1_2 then
     begin
-      OnWarning(wtMinor, 'Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
       Exit(false);
     end;
 
@@ -554,7 +554,7 @@ begin
           Without doing anything, using compressed textures will be inconsistent
           with uncompressed, since the analogous code will succeed in creating
           mipmaps from uncompressed texture data. }
-        OnWarning(wtMinor, 'Texture', 'Generating mipmaps for compressed textures not possible. Turning off mipmaps for ' + Image.URL);
+        WritelnWarning('Texture', 'Generating mipmaps for compressed textures not possible. Turning off mipmaps for ' + Image.URL);
       end;
     end;
 

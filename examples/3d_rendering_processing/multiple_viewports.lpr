@@ -27,9 +27,10 @@
 
 uses SysUtils, CastleGL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene,
   CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
-  CastleControls, CastleWarnings, CastleScreenEffects, CastleSceneManager,
+  CastleControls, CastleLog, CastleScreenEffects, CastleSceneManager,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
-  CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages
+  CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages,
+  CastleApplicationProperties
   {$ifdef ADD_GL_ANIMATION} , Castle3D {$endif};
 
 { TMyViewport ---------------------------------------------------------------- }
@@ -244,7 +245,7 @@ begin
   if Parameters.High = 1 then
     URL := Parameters[1];
 
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   Scene := TCastleScene.Create(Application);
   Scene.Load(URL);

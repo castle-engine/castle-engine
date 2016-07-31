@@ -1514,7 +1514,7 @@ const
 
 implementation
 
-uses CastleLog, CastleWarnings;
+uses CastleLog;
 
 { TTouchList ----------------------------------------------------------------- }
 
@@ -3455,7 +3455,7 @@ begin
       begin
         if ((C.FContainer <> nil) or (C.FParent <> nil)) and
            ((Container <> nil) or (FParent <> nil)) then
-          OnWarning(wtMajor, 'UI', 'Inserting to the UI list (InsertFront, InsertBack) an item that is already a part of other UI list: ' + C.Name + ' (' + C.ClassName + '). The result is undefined, you cannot insert the same TUIControl instance multiple times.');
+          WritelnWarning('UI', 'Inserting to the UI list (InsertFront, InsertBack) an item that is already a part of other UI list: ' + C.Name + ' (' + C.ClassName + '). The result is undefined, you cannot insert the same TUIControl instance multiple times.');
         C.FreeNotification(FCaptureFreeNotifications);
         if Container <> nil then RegisterContainer(C, FContainer);
         C.FParent := FParent;

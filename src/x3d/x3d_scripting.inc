@@ -177,7 +177,7 @@ begin
             except
               on E: ECasScriptError do
               begin
-                OnWarning(wtMajor, 'VRML/X3D', 'Error when executing CastleScript: ' + E.Message);
+                WritelnWarning('VRML/X3D', 'Error when executing CastleScript: ' + E.Message);
                 Exit;
               end;
             end;
@@ -249,7 +249,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
              http://stackoverflow.com/questions/189850/what-is-the-javascript-mime-type-what-belongs-in-the-type-attribute-of-a-script
              http://annevankesteren.nl/2005/02/javascript-mime-type }
         begin
-          OnWarning(wtMinor, 'VRML/X3D', Format(
+          WritelnWarning('VRML/X3D', Format(
             'ECMAScript is not yet implemented, ignoring URL "%s"',
             [URIDisplay(URL)]));
         end else
@@ -276,7 +276,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
         end else
 
         begin
-          OnWarning(wtMinor, 'VRML/X3D', Format(
+          WritelnWarning('VRML/X3D', Format(
             'Script MIME type not recognized in URL "%s": %s',
             [URIDisplay(URL), MimeType]));
         end;
@@ -285,7 +285,7 @@ procedure TAbstractScriptNode.SetInitialized(const Value: boolean);
     except
       { Catch exceptions from Download and CastleScriptInitialize }
       on E: Exception do
-        OnWarning(wtMinor, 'VRML/X3D', Format(
+        WritelnWarning('VRML/X3D', Format(
           'Exception %s when loading Script from URL "%s": %s',
             [E.ClassName, URIDisplay(URL), E.Message ]));
     end;
@@ -323,7 +323,7 @@ begin
       begin
         if FailedUrlsLog <> '' then
           FailedUrlsLog := ' (' + FailedUrlsLog + ')';
-        OnWarning(wtMinor, 'VRML/X3D', 'Script node ignored: no supported protocol found' + FailedUrlsLog);
+        WritelnWarning('VRML/X3D', 'Script node ignored: no supported protocol found' + FailedUrlsLog);
       end;
     end else
     begin

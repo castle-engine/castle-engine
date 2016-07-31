@@ -117,7 +117,7 @@
 
     { Load cube environment map from a composite (DDS, KTX...) image.
 
-      In case of problems, will make OnWarning.
+      In case of problems, will make WritelnWarning.
       This includes situations when url cannot be loaded for whatever reason.
       Also problems when url contains valid Composite image,
       but not describing cube map with all 6 sides.
@@ -205,7 +205,7 @@ function TComposedCubeMapTextureNode.LoadSides: boolean;
 
       if Result and not (SideTex.TextureImage is TCastleImage) then
       begin
-        OnWarning(wtMinor, 'VRML/X3D', 'ComposedCubeMapTexture cannot contain images compressed GPU-compression algorithms, as we have to rotate images within, and we cannot do this (fast) with compressed textures');
+        WritelnWarning('VRML/X3D', 'ComposedCubeMapTexture cannot contain images compressed GPU-compression algorithms, as we have to rotate images within, and we cannot do this (fast) with compressed textures');
         Result := false;
       end;
     end;
@@ -325,7 +325,7 @@ begin
 
       if not TCompositeImage.MatchesURL(FullUrl) then
       begin
-        OnWarning(wtMinor, 'VRML/X3D', Format('Only composite (DDS, KTX...) format is supported for ImageCubeMapTexture node, but URL is "%s"', [FullUrl]));
+        WritelnWarning('VRML/X3D', Format('Only composite (DDS, KTX...) format is supported for ImageCubeMapTexture node, but URL is "%s"', [FullUrl]));
         Continue;
       end;
 
@@ -335,7 +335,7 @@ begin
         on E: Exception do
         begin
           Result.Close;
-          OnWarning(wtMinor, 'VRML/X3D', Format('Error when loading composite file "%s": %s', [FullUrl, E.Message]));
+          WritelnWarning('VRML/X3D', Format('Error when loading composite file "%s": %s', [FullUrl, E.Message]));
           Continue;
         end;
       end;
@@ -345,14 +345,14 @@ begin
       if Result.CompositeType <> ctCubeMap then
       begin
         Result.Close;
-        OnWarning(wtMinor, 'VRML/X3D', Format('Composite image "%s" given for ImageCubeMapTexture doesn''t describe a cube map texture', [FullUrl]));
+        WritelnWarning('VRML/X3D', Format('Composite image "%s" given for ImageCubeMapTexture doesn''t describe a cube map texture', [FullUrl]));
         Continue;
       end;
 
       if Result.CubeMapSides <> AllCubeMapSides then
       begin
         Result.Close;
-        OnWarning(wtMinor, 'VRML/X3D', Format('Composite image "%s" given for ImageCubeMapTexture doesn''t contain all cube map sides', [FullUrl]));
+        WritelnWarning('VRML/X3D', Format('Composite image "%s" given for ImageCubeMapTexture doesn''t contain all cube map sides', [FullUrl]));
         Continue;
       end;
 

@@ -40,9 +40,8 @@ implementation
 
 uses SysUtils, Classes, DOM, XMLRead, FGL, Math, URIParser,
   CastleUtils, CastleStringUtils, CastleVectors, CastleColors,
-  CastleXMLUtils, CastleWarnings, CastleClassUtils,
-  X3DLoadInternalUtils, CastleDownload, CastleURIUtils,
-  CastleGenericLists;
+  CastleXMLUtils, CastleLog, CastleClassUtils, X3DLoadInternalUtils,
+  CastleDownload, CastleURIUtils, CastleGenericLists;
 
 { Large missing stuff:
 
@@ -200,7 +199,7 @@ begin
       begin
         Version := '';
         Version14 := false;
-        OnWarning(wtMinor, 'Collada', '<COLLADA> element misses "version" attribute');
+        WritelnWarning('Collada', '<COLLADA> element misses "version" attribute');
       end else
       begin
         { TODO: uhm, terrible hack... I should move my lazy ass and tokenize

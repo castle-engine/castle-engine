@@ -59,7 +59,7 @@ type
   { What to do when GLSL uniform variable is set (TGLSLProgram.SetUniform)
     but doesn't exist in the shader. }
   TUniformNotFoundAction = (
-    { Report that uniform variable not found to OnWarning. }
+    { Report that uniform variable not found to WritelnWarning. }
     uaWarning,
     { Report that uniform variable not found by raising EGLSLUniformNotFound. }
     uaException,
@@ -78,7 +78,7 @@ type
       Other options have to detect invalid types, which means
       checking the OpenGL error state each time you set uniform value. }
     utGLError,
-    { Report type mismatch to OnWarning. }
+    { Report type mismatch to WritelnWarning. }
     utWarning,
     { Report type mismatch by raising EGLSLUniformTypeMismatch. }
     utException);
@@ -555,7 +555,7 @@ property CurrentProgram: TGLSLProgram
 
 implementation
 
-uses CastleStringUtils, CastleWarnings, CastleLog, CastleGLVersion;
+uses CastleStringUtils, CastleLog, CastleGLVersion;
 
 { Wrapper around glGetShaderInfoLog.
   Based on Dean Ellis BasicShader.dpr, but somewhat fixed ? <> 0 not > 1. }
@@ -692,7 +692,7 @@ begin
           [Name])) else
       if ForceException or (Owner.UniformTypeMismatchAction = utException) then
         raise EGLSLUniformNotFound.Create(ErrMessage) else
-        OnWarning(wtMinor, 'GLSL', ErrMessage);
+        WritelnWarning('GLSL', ErrMessage);
     end;
   end;
 end;
@@ -1789,7 +1789,7 @@ function TGLSLProgram.Uniform(const Name: string; const AUniformNotFoundAction: 
 
   begin
     case AUniformNotFoundAction of
-      uaWarning  : OnWarning(wtMinor, 'GLSL', ErrMessage);
+      uaWarning  : WritelnWarning('GLSL', ErrMessage);
       uaException: raise EGLSLUniformNotFound.Create(ErrMessage);
       uaIgnore   : ;
       else raise EInternalError.Create('AUniformNotFoundAction? in TGLSLProgram.UniformNotFound');

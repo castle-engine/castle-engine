@@ -32,7 +32,7 @@ implementation
 
 uses SysUtils,
   CastleURIUtils, CastleMaterialProperties, CastleImages, CastleFilesUtils,
-  CastleWarnings, CastleFindFiles, CastleSoundEngine,
+  CastleLog, CastleFindFiles, CastleSoundEngine,
   ToolUtils;
 
 type
@@ -377,7 +377,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
         tcETC1:             PVRTexTool(InputFile, OutputFile, C, 'ETC1');
                       // or AMDCompress(InputFile, OutputFile, C, 'ETC_RGB');
 
-        else OnWarning(wtMajor, 'GPUCompression', Format('Compressing to GPU format %s not implemented (to update "%s")',
+        else WritelnWarning('GPUCompression', Format('Compressing to GPU format %s not implemented (to update "%s")',
           [TextureCompressionToString(C), OutputFile]));
       end;
     end;

@@ -2067,7 +2067,7 @@ var
 
 implementation
 
-uses CastleWarnings;
+uses CastleLog;
 
 { TRayCollision --------------------------------------------------------------- }
 
@@ -3527,7 +3527,7 @@ begin
         TransformMatricesMult(Params.RenderTransform, Inverse);
         if IsNan(Inverse[0][0]) then
           {$ifndef VER3_1}
-          OnWarning(wtMajor, 'Transform', Format(
+          WritelnWarning('Transform', Format(
             'Inverse transform matrix has NaN value inside:' + NL +
             '%s' + NL +
             '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
@@ -3540,7 +3540,7 @@ begin
             ]));
           {$else}
           { Workaround FPC 3.1.1 Internal error 200211262 when compiling above }
-          OnWarning(wtMajor, 'Transform', 'Inverse transform matrix has NaN value inside');
+          WritelnWarning('Transform', 'Inverse transform matrix has NaN value inside');
           {$endif}
         inherited Render(Frustum.Transform(Inverse), Params);
       end;
@@ -3874,7 +3874,7 @@ begin
   {$ifdef CHECK_HEIGHT_VS_RADIUS}
   if Sphere(R) and (R > Result) then
   begin
-    OnWarning(wtMajor, '3D Radius',
+    WritelnWarning('3D Radius',
       Format('PreferredHeight %f is smaller than radius %f. Gravity may work weird for this 3D object.',
       [Result, R]));
   end;

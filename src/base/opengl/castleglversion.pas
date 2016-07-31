@@ -218,7 +218,7 @@ var
 
 implementation
 
-uses SysUtils, CastleStringUtils, CastleUtils, CastleWarnings;
+uses SysUtils, CastleStringUtils, CastleUtils, CastleLog;
 
 { Skip whitespace. Moves I to next index after whitespace. }
 procedure ParseWhiteSpaces(const S: string; var I: Integer);
@@ -278,11 +278,11 @@ begin
 
     {$ifdef OpenGLES}
     if ParseString(VersionString, I) <> 'OpenGL' then
-      OnWarning(wtMinor, 'OpenGL', 'OpenGL ES version string 1st component must be "OpenGL"');
+      WritelnWarning('OpenGL', 'OpenGL ES version string 1st component must be "OpenGL"');
     ParseWhiteSpaces(VersionString, I);
 
     if not IsPrefix('ES', ParseString(VersionString, I)) then
-      OnWarning(wtMinor, 'OpenGL', 'OpenGL ES version string 2nd component must start with "ES"');
+      WritelnWarning('OpenGL', 'OpenGL ES version string 2nd component must start with "ES"');
     ParseWhiteSpaces(VersionString, I);
     {$endif}
 

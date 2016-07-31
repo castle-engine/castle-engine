@@ -126,7 +126,7 @@ function Messaging: TMessaging;
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleLog, CastleWarnings, CastleApplicationProperties;
+  CastleUtils, CastleLog, CastleApplicationProperties;
 
 var
   JavaCommunicationCS: TCriticalSection;
@@ -142,7 +142,7 @@ begin
   for I := 0 to Count - 1 do
     Handled := Items[I](Received) or Handled;
   if not Handled then
-    OnWarning(wtMajor, 'JNI', 'Unhandled message from Java:' + NL + Received.Text);
+    WritelnWarning('JNI', 'Unhandled message from Java:' + NL + Received.Text);
 end;
 
 { TMessaging ----------------------------------------------------------------- }

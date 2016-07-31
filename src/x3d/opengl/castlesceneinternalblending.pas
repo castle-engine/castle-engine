@@ -50,7 +50,7 @@ procedure ShapesFilterBlending(
 
 implementation
 
-uses SysUtils, CastleGL, CastleLog, CastleWarnings, X3DNodes, CastleScene;
+uses SysUtils, CastleGL, CastleLog, X3DNodes, CastleScene;
 
 function BlendingFactorNameToStr(S: string;
   out Factor: TBlendingSourceFactor;
@@ -120,7 +120,7 @@ begin
       Exit(true);
     end;
 
-  OnWarning(wtMajor, 'VRML/X3D', Format('Unknown blending source factor name "%s"', [S]));
+  WritelnWarning('VRML/X3D', Format('Unknown blending source factor name "%s"', [S]));
 end;
 
 function BlendingFactorNameToStr(S: string;
@@ -191,7 +191,7 @@ begin
       Exit(true);
     end;
 
-  OnWarning(wtMajor, 'VRML/X3D', Format('Unknown blending destination factor name "%s"', [S]));
+  WritelnWarning('VRML/X3D', Format('Unknown blending destination factor name "%s"', [S]));
 end;
 
 { TBlendingRenderer ---------------------------------------------------------- }

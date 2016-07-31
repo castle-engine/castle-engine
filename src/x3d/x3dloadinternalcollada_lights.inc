@@ -90,12 +90,12 @@ begin
                   Point.FdAmbientIntensity.Value := 1;
                   Light := Point;
                 end else
-                  OnWarning(wtMinor, 'Collada', 'No supported light inside <technique_common>');
+                  WritelnWarning('Collada', 'No supported light inside <technique_common>');
               end;
             end;
           end;
         end else
-          OnWarning(wtMinor, 'Collada', 'No supported technique inside <light>');
+          WritelnWarning('Collada', 'No supported technique inside <light>');
 
         if Light <> nil then
         begin

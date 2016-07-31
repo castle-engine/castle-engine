@@ -108,7 +108,7 @@
       (don't care here about the previous value of these fields --- it's for
       sure @nil). If FTextureImage is set, you can also set FTextureComposite.
       If you leave them as @nil, this means that loading failed
-      (and OnWarning didn't cause an exception).
+      (and WritelnWarning didn't cause an exception).
       You should also set FAlphaChannelData.
 
       You do not care in this method about things like
@@ -116,9 +116,9 @@
       unconditionally, make everything it can do to load texture data from
       file(s).
 
-      You can use OnWarning inside,
+      You can use WritelnWarning inside,
       so we're prepared that this may even exit with exception
-      (since OnWarning can raise exception).
+      (since WritelnWarning can raise exception).
 
       If you set FTextureImage, you have to set it to something
       returned by LoadTextureImage. See TextureImage docs.
@@ -129,7 +129,7 @@
 
       Also, set FTextureUsedFullUrl here.
 
-      In this class, this simply produces OnWarning with
+      In this class, this simply produces WritelnWarning with
       "not implemented" message and returns @nil. It's not declared
       as abstract, because there may be classes descending from this,
       and we want to at least be able to parse them
@@ -158,7 +158,7 @@
 
       Note that either one of TextureImage or TextureVideo may be @nil,
       if the other one is loaded. Or when loading failed
-      (warning will be reported by OnWarning).
+      (warning will be reported by WritelnWarning).
       IsTextureImage checks that TextureImage is non-nil (so it's successfully
       loaded) and additionally that texture size is not zero.
       Similar for IsTextureVideo.
@@ -196,7 +196,7 @@
       This is deliberate --- it means that each call to TextureImage etc.
       will not unnecessarily read the disk (or even connect to internet)
       when the file does not exist. Also, the loading errors reported
-      by OnWarning will not be repeated --- they will
+      by WritelnWarning will not be repeated --- they will
       occur only once, when IsTextureLoaded changes from @false to @true. }
     property IsTextureLoaded: boolean
       read FIsTextureLoaded write SetIsTextureLoaded;
@@ -691,7 +691,7 @@ begin
   WasCacheUsed := false;
   FTextureUsedFullUrl := '';
 
-  OnWarning(wtMajor, 'VRML/X3D', Format('Loading textures from "%s" node not implemented', [NodeTypeName]));
+  WritelnWarning('VRML/X3D', Format('Loading textures from "%s" node not implemented', [NodeTypeName]));
 end;
 
 function TAbstractTexture2DNode.TextureProperties: TTexturePropertiesNode;
@@ -798,7 +798,7 @@ begin
     begin
       { Empty URL would be expanded by PathFromBaseUrl to directory
         and produce unclear error message. }
-      OnWarning(wtMinor, 'VRML/X3D', Format('Empty URL for %s ignored', [NodeTypeName]));
+      WritelnWarning('VRML/X3D', Format('Empty URL for %s ignored', [NodeTypeName]));
     end else
     begin
       FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
@@ -811,14 +811,14 @@ begin
            { AbsoluteFileURI mistakes Blender relative paths '//xxx' as absolute,
              so eliminate them below. }
            not BlenderRelativePath(FdUrl.Items[I]) then
-          OnWarning(wtMinor, 'VRML/X3D', Format('Loaded data from an absolute filename "%s", this makes the data possibly unportable (it will probably not work on other systems/locations). Always use relative paths.',
+          WritelnWarning('VRML/X3D', Format('Loaded data from an absolute filename "%s", this makes the data possibly unportable (it will probably not work on other systems/locations). Always use relative paths.',
             [FdUrl.Items[I]]));
         FTextureUsedFullUrl := URIDisplay(FullUrl);
         Break;
       except
         on E: Exception do
-          { Remember that OnWarning *may* raise an exception. }
-          OnWarning(wtMinor, 'Texture', Format(SLoadError,
+          { Remember that WritelnWarning *may* raise an exception. }
+          WritelnWarning('Texture', Format(SLoadError,
             [E.ClassName, 'texture', URIDisplay(FullUrl), E.Message]));
       end;
     end;
@@ -943,8 +943,8 @@ begin
       Break;
     except
       on E: Exception do
-        { Remember that OnWarning *may* raise an exception. }
-        OnWarning(wtMinor, 'Video', Format(SLoadError,
+        { Remember that WritelnWarning *may* raise an exception. }
+        WritelnWarning('Video', Format(SLoadError,
           [E.ClassName, 'video', URIDisplay(FullUrl), E.Message]));
     end;
   end;

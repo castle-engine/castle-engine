@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  CastleWarnings;
+  CastleLog;
 
 type
 
@@ -18,29 +18,25 @@ type
     procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
   private
-
   public
     WasWarnings: boolean;
+    procedure WarningToConsole(Sender: TObject; const Category, S: string);
   end;
 
 var
   Console: TConsole;
 
-procedure OnWarningVrmlConsole(
-  const WarningType: TWarningType; const Category, S: string);
-
 implementation
 
 uses MainF;
 
-procedure OnWarningVrmlConsole(
-  const WarningType: TWarningType; const Category, S: string);
-begin
-  Console.Memo1.Lines.Append(Category + ': ' + S);
-  Console.WasWarnings := true;
-end;
-
 { TConsole }
+
+procedure TConsole.WarningToConsole(Sender: TObject; const Category, S: string);
+begin
+  Memo1.Lines.Append(Category + ': ' + S);
+  WasWarnings := true;
+end;
 
 procedure TConsole.Button1Click(Sender: TObject);
 begin

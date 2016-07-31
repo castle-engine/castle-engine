@@ -43,7 +43,7 @@ begin
         end;
       end;
     if Vec2Index <> 0 then
-      OnWarning(wtMajor, 'Spine', 'Vector2 list (like uvs or vertices) ends in the middle of the vector');
+      WritelnWarning('Spine', 'Vector2 list (like uvs or vertices) ends in the middle of the vector');
   end;
 end;
 

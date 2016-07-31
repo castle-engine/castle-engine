@@ -708,7 +708,7 @@ implementation
 uses DOM, XMLRead, StrUtils,
   CastleUtils, CastleALUtils, CastleLog, CastleProgress,
   CastleSoundFile, CastleVorbisFile, CastleEFX, CastleParameters,
-  CastleWarnings, CastleXMLUtils, CastleFilesUtils, CastleConfig,
+  CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties;
 
 type
@@ -1630,7 +1630,7 @@ begin
           on E: Exception do
           begin
             Sounds[ST].FBuffer := 0;
-            OnWarning(wtMinor, 'Sound', Format('Sound file "%s" cannot be loaded: %s',
+            WritelnWarning('Sound', Format('Sound file "%s" cannot be loaded: %s',
               [Sounds[ST].URL, E.Message]));
           end;
         end;
@@ -1838,7 +1838,7 @@ begin
       Exit;
 
   if Required then
-    OnWarning(wtMinor, 'Sound', Format('Unknown sound name "%s"', [SoundName]));
+    WritelnWarning('Sound', Format('Unknown sound name "%s"', [SoundName]));
   Result := stNone;
 end;
 

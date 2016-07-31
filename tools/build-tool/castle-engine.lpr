@@ -22,8 +22,9 @@
 {$endif MSWINDOWS}
 
 uses SysUtils,
-  CastleUtils, CastleParameters, CastleFindFiles, CastleWarnings,
+  CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
+  CastleApplicationProperties,
   ToolArchitectures, ToolProject, ToolCompile, ToolUtils;
 
 var
@@ -193,7 +194,7 @@ var
   RestOfParameters: TCastleStringList;
 begin
   OnGetApplicationName := @MyGetApplicationName;
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   OS := DefaultOS;
   CPU := DefaultCPU;

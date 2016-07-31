@@ -750,7 +750,7 @@ type
 
       No need to call OpenWindowsRemove here, it's done by universal Close already.
       It's advised (although not totally required) that all errors during
-      CloseBackend should be caught and cause only OnWarning.
+      CloseBackend should be caught and cause only WritelnWarning.
       Reasoning: Close should, regardless of trouble, try to finalize as much
       as possible. }
     procedure CloseBackend;
@@ -2823,7 +2823,7 @@ function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModif
 
 implementation
 
-uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils, CastleWarnings,
+uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils,
   CastleControls, CastleApplicationProperties,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
@@ -4840,9 +4840,9 @@ procedure TCastleApplication.HandleException(Sender: TObject);
       except
         on E: TObject do
         begin
-          OnWarning(wtMajor, 'Exception', 'Exception ' + E.ClassName + ' occured in the error handler itself. This means we cannot report the exception by a nice dialog box. The *original* exception report follows.');
+          WritelnWarning('Exception', 'Exception ' + E.ClassName + ' occured in the error handler itself. This means we cannot report the exception by a nice dialog box. The *original* exception report follows.');
           ExceptProc(OriginalObj, OriginalAddr, OriginalFrameCount, OriginalFrame);
-          OnWarning(wtMajor, 'Exception', 'And below is a report about the exception within exception handler.');
+          WritelnWarning('Exception', 'And below is a report about the exception within exception handler.');
           ExceptProc(SysUtils.ExceptObject, SysUtils.ExceptAddr, SysUtils.ExceptFrameCount, SysUtils.ExceptFrames);
           Halt(1);
         end;

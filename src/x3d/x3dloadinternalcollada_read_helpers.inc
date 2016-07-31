@@ -114,11 +114,11 @@ begin
     Delete(Id, 1, 1);
     Node := List.FindName(Id);
     if Node = nil then
-      OnWarning(wtMinor, 'Collada', Format('<node> instantiates non-existing element "%s"',
+      WritelnWarning('Collada', Format('<node> instantiates non-existing element "%s"',
         [Id])) else
       ParentGroup.FdChildren.Add(Node);
   end else
-    OnWarning(wtMajor, 'Collada', Format('Element <%s> missing url attribute (that has to start with #)',
+    WritelnWarning('Collada', Format('Element <%s> missing url attribute (that has to start with #)',
       [InstantiatingElement.TagName]));
 end;
 

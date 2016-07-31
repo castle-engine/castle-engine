@@ -1734,8 +1734,8 @@ begin
     Exit;
   except
     on E: Exception do
-      { Remember that OnWarning *may* raise an exception. }
-      OnWarning(wtMinor, 'Texture', Format(SLoadError,
+      { Remember that WritelnWarning *may* raise an exception. }
+      WritelnWarning('Texture', Format(SLoadError,
         [E.ClassName, 'texture', URIDisplay(FullUrl), E.Message]));
   end;
 

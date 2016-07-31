@@ -68,7 +68,7 @@ procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
 
 implementation
 
-uses SysUtils, CastleUtils, CastleStringUtils, CastleWarnings,
+uses SysUtils, CastleUtils, CastleStringUtils,
   CastleBoxes, CastleLog, CastleVectors, CastleGenericLists;
 
 const
@@ -495,7 +495,7 @@ begin
     Better check it here, before we start changing anything. }
   if Shape.Geometry.TexCoordField = nil then
   begin
-    OnWarning(wtMinor, 'VRML/X3D', 'Geometry node "' + Shape.Geometry.NodeTypeName + '" does not have a texCoord, cannot be shadow maps receiver.');
+    WritelnWarning('VRML/X3D', 'Geometry node "' + Shape.Geometry.NodeTypeName + '" does not have a texCoord, cannot be shadow maps receiver.');
     Exit;
   end;
 
@@ -643,7 +643,7 @@ begin
         { Although we try to construct things only when they will be actually
           used (so no unused nodes should remain now for free), actually
           there is a chance something remained unused if HandleLight failed
-          with OnWarning after FindLight. }
+          with WritelnWarning after FindLight. }
         L^.ShadowMap.FreeIfUnused;
         L^.ShadowMap := nil;
         L^.TexGen.FreeIfUnused;

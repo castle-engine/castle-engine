@@ -21,10 +21,10 @@
 
 program animate_3d_model_by_code_2;
 
-uses CastleVectors, X3DNodes, CastleWindow, CastleWarnings,
+uses CastleVectors, X3DNodes, CastleWindow, CastleLog,
   CastleUtils, SysUtils, CastleGLUtils, CastleScene, CastleCameras,
   CastleFilesUtils, CastleQuaternions {$ifdef LOG} ,CastleLog {$endif}, CastleParameters,
-  CastleStringUtils, CastleKeysMouse;
+  CastleStringUtils, CastleKeysMouse, CastleApplicationProperties;
 
 var
   Window: TCastleWindow;
@@ -86,7 +86,7 @@ begin
   Window := TCastleWindow.Create(Application);
 
   Parameters.CheckHigh(0);
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   { We use a lot of boxes, so make their rendering fastest. }
   Detail_RectDivisions := 0;

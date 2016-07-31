@@ -1661,14 +1661,14 @@ type
 
   @longCode(#
 uses ..., CastleURIUtils, CastleGLUtils, CastleLog, CastleStringUtils,
-  CastleFilesUtils, CastleWarnings;
+  CastleFilesUtils;
 
 procedure TTextureUtils.GPUTextureAlternative(var ImageUrl: string);
 begin
   if IsPrefix(ApplicationData('animation/dragon/'), ImageUrl) then
   begin
     if GLFeatures = nil then
-      OnWarning(wtMinor, 'TextureCompression', 'Cannot determine whether to use GPU compressed version for ' + ImageUrl + ' because the image is loaded before GPU capabilities are known') else
+      WritelnWarning('TextureCompression', 'Cannot determine whether to use GPU compressed version for ' + ImageUrl + ' because the image is loaded before GPU capabilities are known') else
     if tcPvrtc1_4bpp_RGBA in GLFeatures.TextureCompression then
     begin
       ImageUrl := ExtractURIPath(ImageUrl) + 'compressed/pvrtc1_4bpp_rgba/' +
@@ -1695,7 +1695,7 @@ procedure RemoveLoadImageListener(const Event: TLoadImageEvent);
 implementation
 
 uses ExtInterpolation, FPCanvas, FPImgCanv,
-  CastleProgress, CastleStringUtils, CastleFilesUtils, CastleWarnings,
+  CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
   CastleCompositeImage, CastleDownload, CastleURIUtils;
 
 { parts ---------------------------------------------------------------------- }
@@ -4215,7 +4215,7 @@ begin
 
   if not WarningDone then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid "alphaChannel" field value "%s"', [S]));
+    WritelnWarning('alphaChannel', Format('Invalid "alphaChannel" value "%s"', [S]));
     WarningDone := true;
   end;
   Result := acAuto;

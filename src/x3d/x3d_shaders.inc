@@ -135,7 +135,7 @@
     { Load shader code from node's URLs.
       In X3D XML encoding, also loads node's XML CDATA as a last resort.
       Will return '' if no valid URLs are present,
-      loading errors are reported to OnWarning. }
+      loading errors are reported to WritelnWarning. }
     function Contents: string;
   end;
 
@@ -382,12 +382,12 @@ begin
         Result := FileToString(FullUrl, false, MimeType);
         if (MimeType <> '') and
            (MimeType <> 'text/plain') then
-          OnWarning(wtMajor, 'VRML/X3D', Format('MIME type "%s" not recognized as shader source. Using anyway. If this is a valid shader source mime type that should be recognized, please submit a feature request.', [MimeType]));
+          WritelnWarning('VRML/X3D', Format('MIME type "%s" not recognized as shader source. Using anyway. If this is a valid shader source mime type that should be recognized, please submit a feature request.', [MimeType]));
         Exit;
       except
         on E: Exception do
-          { Remember that OnWarning *may* raise an exception. }
-          OnWarning(wtMinor, 'VRML/X3D', Format(SLoadError,
+          { Remember that WritelnWarning *may* raise an exception. }
+          WritelnWarning('VRML/X3D', Format(SLoadError,
             [E.ClassName, 'shader source', URIDisplay(FullUrl), E.Message]));
       end;
     end;
