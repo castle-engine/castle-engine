@@ -108,6 +108,7 @@ implementation
 uses LCLType, LCLIntf, CastleVectors, CastleBoxes, X3DNodes, CastleRenderer,
   CastleClassUtils, CastleUtils, X3DLoad, CastleURIUtils,
   CastleGLUtils, CastleSceneCore, CastleFilesUtils, CastleParameters,
+  CastleApplicationProperties,
   OpenGLInformation, CastleLCLUtils, ConsoleF, CastleImages, CastleSoundEngine;
 
 procedure TMain.OpenScene(const URL: string);
