@@ -793,8 +793,9 @@ begin
   if World <> Value then
   begin
     inherited;
-    for I := 0 to FScenes.Count - 1 do
-      TAnimationScene(FScenes[I]).SetWorld(Value);
+    if FScenes <> nil then
+      for I := 0 to FScenes.Count - 1 do
+        TAnimationScene(FScenes[I]).SetWorld(Value);
   end;
 end;
 
