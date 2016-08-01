@@ -37,6 +37,18 @@ unit CastleGLShaders;
 
 {$I castleconf.inc}
 
+{$ifdef OpenGLES}
+  {$define ForceStandardGLSLApi}
+{$endif}
+{$ifdef DARWIN}
+  {$ifdef CPU64}
+    { A bug in MacOS X for 64 bits version of FPC 2.6.4 causes GLhandleARB to be
+      8-byte sized there, like a pointer, which is not correct for OpenGL API. }
+    { TODO: check other FPC versions? submit? }
+    {$define ForceStandardGLSLApi}
+  {$endif}
+{$endif}
+
 interface
 
 uses SysUtils, Classes, CastleGL, CastleGLUtils, CastleUtils, CastleVectors,
@@ -590,7 +602,7 @@ begin
     Result := '';
 end;
 
-{$ifndef OpenGLES}
+{$ifndef ForceStandardGLSLApi}
 { Wrapper around glGetInfoLogARB (this is for both shaders and programs). }
 function GetInfoLogARB(ObjectId: TGLuint): String;
 var
@@ -625,7 +637,7 @@ begin
     if Value <> nil then
     begin
       case TGLSLProgram.ClassSupport of
-        {$ifndef OpenGLES}
+        {$ifndef ForceStandardGLSLApi}
         gsExtension: glUseProgramObjectARB(GLhandleARB(Value.ProgramId));
         {$endif}
         gsStandard : glUseProgram         (Value.ProgramId);
@@ -633,7 +645,7 @@ begin
     end else
     begin
       case TGLSLProgram.ClassSupport of
-        {$ifndef OpenGLES}
+        {$ifndef ForceStandardGLSLApi}
         gsExtension:
           begin
             glUseProgramObjectARB(GLhandleARB(0));
@@ -714,7 +726,7 @@ begin
 
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform1iARB(Location, Ord(Value));
     {$endif}
     gsStandard : glUniform1i   (Location, Ord(Value));
@@ -727,7 +739,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform1iARB(Location, Value);
     {$endif}
     gsStandard : glUniform1i   (Location, Value);
@@ -740,7 +752,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform2ivARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform2iv   (Location, 1, @Value);
@@ -753,7 +765,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform3ivARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform3iv   (Location, 1, @Value);
@@ -766,7 +778,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform4ivARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform4iv   (Location, 1, @Value);
@@ -779,7 +791,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform1fARB(Location, Value);
     {$endif}
     gsStandard : glUniform1f   (Location, Value);
@@ -792,7 +804,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform2fvARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform2fv   (Location, 1, @Value);
@@ -805,7 +817,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform3fvARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform3fv   (Location, 1, @Value);
@@ -818,7 +830,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform4fvARB(Location, 1, @Value);
     {$endif}
     gsStandard : glUniform4fv   (Location, 1, @Value);
@@ -831,7 +843,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniformMatrix2fvARB(Location, 1, GL_FALSE, @Value);
     {$endif}
     gsStandard : glUniformMatrix2fv   (Location, 1, GL_FALSE, @Value);
@@ -844,7 +856,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniformMatrix3fvARB(Location, 1, GL_FALSE, @Value);
     {$endif}
     gsStandard : glUniformMatrix3fv   (Location, 1, GL_FALSE, @Value);
@@ -857,7 +869,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniformMatrix4fvARB(Location, 1, GL_FALSE, @Value);
     {$endif}
     gsStandard : glUniformMatrix4fv   (Location, 1, GL_FALSE, @Value);
@@ -883,7 +895,7 @@ begin
   try
     SetValueBegin(ForceException);
     case Owner.Support of
-      {$ifndef OpenGLES}
+      {$ifndef ForceStandardGLSLApi}
       gsExtension: glUniform1ivARB(Location, Value.Count, PGLint(Ints.List));
       {$endif}
       gsStandard : glUniform1iv   (Location, Value.Count, PGLint(Ints.List));
@@ -898,7 +910,7 @@ begin
   Assert(SizeOf(LongInt) = SizeOf(TGLint));
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform1ivARB(Location, Value.Count, PGLint(Value.List));
     {$endif}
     gsStandard : glUniform1iv   (Location, Value.Count, PGLint(Value.List));
@@ -911,7 +923,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform1fvARB(Location, Value.Count, PGLfloat(Value.List));
     {$endif}
     gsStandard : glUniform1fv   (Location, Value.Count, PGLfloat(Value.List));
@@ -924,7 +936,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform2fvARB(Location, Value.Count, PGLfloat(Value.List));
     {$endif}
     gsStandard : glUniform2fv   (Location, Value.Count, PGLfloat(Value.List));
@@ -937,7 +949,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform3fvARB(Location, Value.Count, PGLfloat(Value.List));
     {$endif}
     gsStandard : glUniform3fv   (Location, Value.Count, PGLfloat(Value.List));
@@ -950,7 +962,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniform4fvARB(Location, Value.Count, PGLfloat(Value.List));
     {$endif}
     gsStandard : glUniform4fv   (Location, Value.Count, PGLfloat(Value.List));
@@ -963,7 +975,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
     {$endif}
     gsStandard : glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
@@ -976,7 +988,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
     {$endif}
     gsStandard : glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
@@ -991,7 +1003,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glVertexAttrib1fARB(Location, Value);
     {$endif}
     gsStandard : glVertexAttrib1f   (Location, Value);
@@ -1003,7 +1015,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glVertexAttrib2fvARB(Location, @Value);
     {$endif}
     gsStandard : glVertexAttrib2fv   (Location, @Value);
@@ -1015,7 +1027,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glVertexAttrib3fvARB(Location, @Value);
     {$endif}
     gsStandard : glVertexAttrib3fv   (Location, @Value);
@@ -1027,7 +1039,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glVertexAttrib4fvARB(Location, @Value);
     {$endif}
     gsStandard : glVertexAttrib4fv   (Location, @Value);
@@ -1039,7 +1051,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension:
       begin
         glVertexAttrib3fvARB(Location    , @Value[0]);
@@ -1061,7 +1073,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension:
       begin
         glVertexAttrib4fvARB(Location    , @Value[0]);
@@ -1149,7 +1161,7 @@ begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension:
       begin
         glEnableVertexAttribArrayARB(Location);
@@ -1203,7 +1215,7 @@ procedure TGLSLAttribute.DisableArray;
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   case Owner.Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glDisableVertexAttribArrayARB(Location);
     {$endif}
     gsStandard : glDisableVertexAttribArray   (Location);
@@ -1219,7 +1231,7 @@ begin
   FSupport := ClassSupport;
 
   case Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: GLhandleARB(ProgramId) := glCreateProgramObjectARB();
     {$endif}
     gsStandard :             ProgramId  := glCreateProgram         ();
@@ -1259,7 +1271,7 @@ begin
     DetachAllShaders;
 
   case Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: glDeleteObjectARB(GLhandleARB(ProgramId));
     {$endif}
     gsStandard : glDeleteProgram  (ProgramId);
@@ -1277,11 +1289,13 @@ begin
   {$else}
   if GLFeatures.Version_2_0 then
     Result := gsStandard else
+  {$ifndef ForceStandardGLSLApi}
   if Load_GL_ARB_shader_objects and
      Load_GL_ARB_vertex_shader and
      Load_GL_ARB_fragment_shader and
      Load_GL_ARB_shading_language_100 then
     Result := gsExtension else
+  {$endif not ForceStandardGLSLApi}
     Result := gsNone;
   {$endif}
 end;
@@ -1289,7 +1303,7 @@ end;
 function TGLSLProgram.ProgramInfoLog: string;
 begin
   case Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: Result := GetInfoLogARB(ProgramId);
     {$endif}
     gsStandard : Result := GetProgramInfoLog(ProgramId);
@@ -1371,7 +1385,7 @@ function TGLSLProgram.DebugInfo: string;
     ErrorCode: TGLenum;
   begin
     case Support of
-      {$ifndef OpenGLES}
+      {$ifndef ForceStandardGLSLApi}
       gsExtension:
         begin
           glGetProgramivARB(ProgramId, GL_OBJECT_ACTIVE_UNIFORMS_ARB, @UniformsCount);
@@ -1439,7 +1453,7 @@ function TGLSLProgram.DebugInfo: string;
     ErrorCode: TGLenum;
   begin
     case Support of
-      {$ifndef OpenGLES}
+      {$ifndef ForceStandardGLSLApi}
       gsExtension:
         begin
           glGetProgramivARB(ProgramId, GL_OBJECT_ACTIVE_ATTRIBUTES_ARB, @AttribsCount);
@@ -1498,7 +1512,7 @@ function TGLSLProgram.DebugInfo: string;
   function ShaderInfoLog(ShaderId: TGLuint): string;
   begin
     case Support of
-      {$ifndef OpenGLES}
+      {$ifndef ForceStandardGLSLApi}
       gsExtension: Result := GetInfoLogARB(ShaderId);
       {$endif}
       gsStandard : Result := GetShaderInfoLog(ShaderId);
@@ -1556,7 +1570,7 @@ var
       [ShaderTypeName[ShaderType]]);
   end;
 
-  {$ifndef OpenGLES}
+  {$ifndef ForceStandardGLSLApi}
   function CreateShaderARB(const S: string): TGLuint;
   var
     SrcPtr: PChar;
@@ -1615,7 +1629,7 @@ begin
   case ShaderType of
     stVertex:
       case Support of
-        {$ifndef OpenGLES}
+        {$ifndef ForceStandardGLSLApi}
         gsExtension: AType := GL_VERTEX_SHADER_ARB;
         {$endif}
         gsStandard : AType := GL_VERTEX_SHADER    ;
@@ -1631,7 +1645,7 @@ begin
         Exit;
     stFragment:
       case Support of
-        {$ifndef OpenGLES}
+        {$ifndef ForceStandardGLSLApi}
         gsExtension: AType := GL_FRAGMENT_SHADER_ARB;
         {$endif}
         gsStandard : AType := GL_FRAGMENT_SHADER    ;
@@ -1641,7 +1655,7 @@ begin
   end;
 
   case Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension:
       begin
         ShaderId := CreateShaderARB(S);
@@ -1698,7 +1712,7 @@ var
   I: Integer;
 begin
   case Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension:
       for I := 0 to ShaderIds.Count - 1 do
       begin
@@ -1721,7 +1735,7 @@ var
   Linked: TGLuint;
 begin
   case Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension:
       begin
         glLinkProgramARB(GLhandleARB(ProgramId));
@@ -1801,7 +1815,7 @@ begin
   Result.Name := Name;
 
   case Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: Result.Location := glGetUniformLocationARB(GLhandleARB(ProgramId), PCharOrNil(Name));
     {$endif}
     gsStandard : Result.Location := glGetUniformLocation   (ProgramId, PCharOrNil(Name));
@@ -1958,7 +1972,7 @@ begin
   Result.Name := Name;
 
   case Support of
-    {$ifndef OpenGLES}
+    {$ifndef ForceStandardGLSLApi}
     gsExtension: Result.Location := glGetAttribLocationARB(GLhandleARB(ProgramId), PCharOrNil(Name));
     {$endif}
     gsStandard: Result.Location := glGetAttribLocation(ProgramId, PCharOrNil(Name));
