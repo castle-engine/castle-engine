@@ -42,9 +42,35 @@ unit CastleGLShaders;
 {$endif}
 {$ifdef DARWIN}
   {$ifdef CPU64}
-    { A bug in MacOS X for 64 bits version of FPC 2.6.4 causes GLhandleARB to be
-      8-byte sized there, like a pointer, which is not correct for OpenGL API. }
-    { TODO: check other FPC versions? submit? }
+    (*Apple did something really weird, and defined GLhandleARB to be
+      a pointer-size (not an GLint-size) type.
+
+      See the (correct) definition in fpc/trunk/packages/opengl/src/glext.pp:
+        {$ifdef DARWIN}
+        GLHandleARB = Pointer;              // defined as void * in OpenGL.framework/glext.h
+        {$else}
+        GLhandleARB = Cardinal;
+        {$endif}
+      This is correct, i.e. this is consistent with C OpenGL header,
+      and (apparently, if you believe the Internet) with what binary code expects:
+      on Mac OS X 64-bit, GLhandleARB is 8 bytes, not 4.
+
+      To confuse matters more, some GLExt functions do not take GLhandleARB as they should,
+      for example glGetProgramivARB (that takes GLEnum).
+      So I'm unsure whether everything will really work correctly then -- one has to be extra
+      careful when the GLhandleARB and GLint are (binary) different things *only on this one
+      specific OS + architecture*.
+
+      See others being baffled by this:
+      - https://www.opengl.org/discussion_boards/showthread.php/175353-Scared-of-ARB-s-glext-h
+      - http://irrlicht.sourceforge.net/forum/viewtopic.php?t=44069
+      - http://trac.wildfiregames.com/ticket/1197
+
+      This makes things uncomfortable here, as we cannot cast "ProgramId: TGLuint"
+      to GLhandleARB safely. For simplicity, we just avoid using GLhandleARB,
+      and whole family of ARB functions, on Mac OS X 64-bit.
+      They should not be needed in practice --- modern OpenGL versions
+      don't need the ARB extensions to access the shaders. *)
     {$define ForceStandardGLSLApi}
   {$endif}
 {$endif}
@@ -230,10 +256,9 @@ type
   private
     FSupport: TGLSupport;
 
-    { Note that for GLSL using ARB extension, the right type is GLhandleARB
-      that is a Pointer (not int) *only since FPC 2.6.4 and only for Darwin*...
-      To confuse matters more, some GLExt functions do not take GLhandleARB as they should,
-      for example glGetProgramivARB (that takes GLEnum).
+    { Note that for GLSL using ARB extension, the right type is GLhandleARB.
+      But is has equal size as TGLuint (except on Mac OS X 64-bit, see comments
+      at ForceStandardGLSLApi).
       It's simplest to leave ProgramId and ShaderIds as ints, and eventually
       typecast them where necessary. }
     ProgramId: TGLuint;
