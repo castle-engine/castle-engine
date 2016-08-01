@@ -45,6 +45,11 @@ public abstract class ComponentAbstract
         }
     }
 
+    protected static String booleanToString(boolean value)
+    {
+        return value ? "true" : "false";
+    }
+
     /**
      * Called only by MainActivity to allow this component to process this message.
      * Return is it processed.

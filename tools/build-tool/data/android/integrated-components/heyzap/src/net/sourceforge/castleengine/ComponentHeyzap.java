@@ -57,13 +57,13 @@ public class ComponentHeyzap extends ComponentAbstract
             @Override
             public void onHide(String tag) {
                 // Ad was closed. The user has returned to your application.
-                fullScreenAdClosed();
+                fullScreenAdClosed(true);
             }
 
             @Override
             public void onFailedToShow(String tag) {
                 // Display was called but there was no ad to show
-                fullScreenAdClosed();
+                fullScreenAdClosed(false);
             }
 
             @Override
@@ -74,7 +74,7 @@ public class ComponentHeyzap extends ComponentAbstract
             @Override
             public void onFailedToFetch(String tag) {
                 // No ad was able to be fetched
-                fullScreenAdClosed();
+                fullScreenAdClosed(false);
             }
 
             @Override
@@ -103,13 +103,13 @@ public class ComponentHeyzap extends ComponentAbstract
             @Override
             public void onHide(String tag) {
                 // Ad was closed. The user has returned to your application.
-                fullScreenAdClosed();
+                fullScreenAdClosed(true);
             }
 
             @Override
             public void onFailedToShow(String tag) {
                 // Display was called but there was no ad to show
-                fullScreenAdClosed();
+                fullScreenAdClosed(false);
             }
 
             @Override
@@ -124,7 +124,7 @@ public class ComponentHeyzap extends ComponentAbstract
                 // Do not react to onFailedToFetch for videos,
                 // as we handle their fetching failure manually by checking
                 // VideoAd.isAvailable
-                // fullScreenAdClosed();
+                // fullScreenAdClosed(false);
             }
 
             @Override
@@ -225,10 +225,10 @@ public class ComponentHeyzap extends ComponentAbstract
         return HeyzapAds.onBackPressed();
     }
 
-    private void fullScreenAdClosed()
+    private void fullScreenAdClosed(boolean watched)
     {
         if (fullScreenAdVisible) {
-            messageSend(new String[]{"ads-heyzap-full-screen-ad-closed"});
+            messageSend(new String[]{"ads-heyzap-full-screen-ad-closed", booleanToString(watched)});
             fullScreenAdVisible = false;
         }
     }
@@ -241,7 +241,7 @@ public class ComponentHeyzap extends ComponentAbstract
             Log.i(TAG, "Interstitial showing");
         } else {
             // pretend that ad was displayed, in case native app waits for it
-            fullScreenAdClosed();
+            fullScreenAdClosed(false);
         }
     }
 
@@ -256,11 +256,11 @@ public class ComponentHeyzap extends ComponentAbstract
             } else {
                 Log.i(TAG, "Video not in cache yet, just skip it");
                 // pretend that ad was displayed, in case native app waits for it
-                fullScreenAdClosed();
+                fullScreenAdClosed(false);
             }
         } else {
             // pretend that ad was displayed, in case native app waits for it
-            fullScreenAdClosed();
+            fullScreenAdClosed(false);
         }
     }
 
@@ -275,11 +275,11 @@ public class ComponentHeyzap extends ComponentAbstract
             } else {
                 Log.i(TAG, "Incentivized not in cache yet, just skip it");
                 // pretend that ad was displayed, in case native app waits for it
-                fullScreenAdClosed();
+                fullScreenAdClosed(false);
             }
         } else {
             // pretend that ad was displayed, in case native app waits for it
-            fullScreenAdClosed();
+            fullScreenAdClosed(false);
         }
     }
 

@@ -41,6 +41,8 @@ type
 
   TFullScreenAdType = (atInterstitialStatic, atInterstitialVideo, atReward);
 
+  TAdClosedEvent = procedure (const Sender: TObject; const Watched: boolean) of object;
+
   { Advertisements in game.
     Right now only on Android (does nothing on other platforms,
     as CastleMessaging does nothing on non-Android platforms).
@@ -73,7 +75,7 @@ type
         FBannerShowing: boolean;
         FBannerGravity: Integer;
         function MessageReceived(const Received: TCastleStringList): boolean;
-        procedure FullScreenAdClosed;
+        procedure FullScreenAdClosed(const Watched: boolean);
       strict protected
         FFullScreenAdVisible: boolean;
         procedure ReinitializeJavaActivity(Sender: TObject); virtual;
@@ -149,9 +151,9 @@ type
     var
     FBannerSize: TRectangle;
     FNetworks: array [TAdNetwork] of TAdNetworkHandler;
-    FOnFullScreenAdClosed: TNotifyEvent;
+    FOnFullScreenAdClosed: TAdClosedEvent;
   protected
-    procedure FullScreenAdClosed; virtual;
+    procedure FullScreenAdClosed(const Watched: boolean); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -223,7 +225,7 @@ type
       This is for now supported only by anHeyzap. }
     procedure StartTestActivity(const AdNetwork: TAdNetwork);
 
-    property OnFullScreenAdClosed: TNotifyEvent
+    property OnFullScreenAdClosed: TAdClosedEvent
       read FOnFullScreenAdClosed write FOnFullScreenAdClosed;
 
     property BannerSize: TRectangle read FBannerSize;
@@ -257,10 +259,10 @@ function TAds.TAdNetworkHandler.MessageReceived(const Received: TCastleStringLis
 begin
   Result := false;
 
-  if (Received.Count = 1) and
+  if (Received.Count = 2) and
      (Received[0] = 'ads-' + Name + '-full-screen-ad-closed') then
   begin
-    FullScreenAdClosed;
+    FullScreenAdClosed(StrToBool(Received[1]));
     Result := true;
   end else
 
@@ -298,7 +300,7 @@ procedure TAds.TAdNetworkHandler.ShowFullScreenAd(const AdType: TFullScreenAdTyp
 begin
   { if the network doesn't support showing full-screen ads, pretend it's shown,
     in case user code waits for OnFullScreenAdClosed. }
-  FullScreenAdClosed;
+  FullScreenAdClosed(false);
 end;
 
 procedure TAds.TAdNetworkHandler.StartTestActivity;
@@ -311,17 +313,17 @@ begin
     while waiting for ad to finish. Reproduce: turn on "kill app when sending to bg"
     in Android debug options, then use "watch ad" and return to game. }
   if FFullScreenAdVisible then
-    FullScreenAdClosed;
+    FullScreenAdClosed(false);
   Parent.FBannerSize := TRectangle.Empty;
   { reshow banner, if necessary }
   if FBannerShowing then
     ShowBanner(FBannerGravity);
 end;
 
-procedure TAds.TAdNetworkHandler.FullScreenAdClosed;
+procedure TAds.TAdNetworkHandler.FullScreenAdClosed(const Watched: boolean);
 begin
   FFullScreenAdVisible := false;
-  Parent.FullScreenAdClosed;
+  Parent.FullScreenAdClosed(Watched);
 end;
 
 { TAdMobHandler -------------------------------------------------------------- }
@@ -523,20 +525,27 @@ begin
   FNetworks[anHeyzap] := THeyzapHandler.Create(Self, PublisherId);
 end;
 
-procedure TAds.FullScreenAdClosed;
+procedure TAds.FullScreenAdClosed(const Watched: boolean);
 begin
   if Assigned(OnFullScreenAdClosed) then
-    OnFullScreenAdClosed(Self);
+    OnFullScreenAdClosed(Self, Watched);
 end;
 
 procedure TAds.ShowFullScreenAd(const AdNetwork: TAdNetwork;
   const AdType: TFullScreenAdType; const WaitUntilLoaded: boolean);
 begin
+  {$ifdef ANDROID}
   if FNetworks[AdNetwork] <> nil then
     FNetworks[AdNetwork].ShowFullScreenAd(AdType, WaitUntilLoaded) else
   { if the network is not initialized, pretend it's shown,
     in case user code waits for OnFullScreenAdClosed. }
-    FullScreenAdClosed;
+    FullScreenAdClosed(false);
+  {$else}
+  { since this is not supported on non-Android now, just make
+    FullScreenAdClosed(false) immediately, to avoid the app waiting
+    for OnFullScreenAdClosed forever. }
+  FullScreenAdClosed(false);
+  {$endif}
 end;
 
 procedure TAds.ShowBanner(const AdNetwork: TAdNetwork;

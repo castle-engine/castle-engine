@@ -133,8 +133,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
     {
         if (mGoogleSignedIn != value) {
             mGoogleSignedIn = value;
-            messageSend(new String[]{"google-sign-in-status",
-                (mGoogleSignedIn ? "true" : "false")});
+            messageSend(new String[]{"google-sign-in-status", booleanToString(mGoogleSignedIn)});
         }
     }
 
