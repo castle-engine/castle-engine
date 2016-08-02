@@ -264,7 +264,15 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
             mSignInClicked = false;
             mResolvingConnectionFailure = false;
             if (resultCode == Activity.RESULT_OK) {
-                mGoogleApiClient.connect();
+                if (mGoogleApiClient != null) {
+                    mGoogleApiClient.connect();
+                } else {
+                    /* reproducible on Sony phone C5305 (from P) with old Android Os
+                       and new Google Play Services. The services do some wild things
+                       there anyway: OpenSnapshotResult result code is sometimes 16
+                       (which is not documented as valid result code). */
+                    Log.w(TAG, "mGoogleApiClient == null when we received Google Play Games sign in. Indicates that connection to Google Play Games was reached after Java activity died and was recreated.");
+                }
             } else {
                 Log.w(TAG, "Unable to sign in to Google Games.");
             }
@@ -485,7 +493,9 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
                         // Commit the operation
                         commitAndCloseWatchingResult(snapshot, metadataChange);
                     } else{
-                        Log.e(TAG, "Error while opening a save game for writing: " + result.getStatus().getStatusCode());
+                        Log.e(TAG, "Error while opening a save game for writing (" +
+                          result.getStatus().getStatusCode() + "): " +
+                          result.getStatus().getStatusMessage());
                     }
 
                     return null;
