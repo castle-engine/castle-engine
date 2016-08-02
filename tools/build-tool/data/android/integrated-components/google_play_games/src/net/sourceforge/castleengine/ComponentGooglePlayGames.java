@@ -267,7 +267,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
                 if (mGoogleApiClient != null) {
                     mGoogleApiClient.connect();
                 } else {
-                    /* reproducible on Sony phone C5305 (from P) with old Android Os
+                    /* reproducible on Sony Xperia phone C5305 (from P) with old Android Os
                        and new Google Play Services. The services do some wild things
                        there anyway: OpenSnapshotResult result code is sometimes 16
                        (which is not documented as valid result code). */
