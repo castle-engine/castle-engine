@@ -2127,7 +2127,12 @@ begin
 
   { closing GL context, implicitly resets glClearColor value.
     We need to make note of it, otherwise next GLClear call could not
-    set glClearColor. }
+    set glClearColor.
+
+    TODO: it is not really correct if you use multiple OpenGL contexts.
+    Each has it's own state of "clear color" (these are not shared,
+    https://www.opengl.org/wiki/OpenGL_Object#Object_Sharing ).
+    We should track FClearColor per-context, not globally. }
   FClearColor := ZeroVector4Single;
 end;
 

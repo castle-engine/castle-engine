@@ -105,10 +105,8 @@ var
     { This is like glTexImage3DImage, but it doesn't take care
       of Image size. }
     procedure Core(Image: TCastleImage);
-    var
-      UnpackData: TUnpackNotAlignedData;
     begin
-      BeforeUnpackImage(UnpackData, Image);
+      BeforeUnpackImage(Image);
       try
         case GLFeatures.Texture3D of
           gsExtension:
@@ -121,7 +119,7 @@ var
               Image.RawPixels);
         end;
         LoadedSize += Image.Size;
-      finally AfterUnpackImage(UnpackData, Image) end;
+      finally AfterUnpackImage(Image) end;
     end;
 
   begin

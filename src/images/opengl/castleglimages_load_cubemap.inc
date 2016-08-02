@@ -225,8 +225,6 @@ var
     { This is like glTexImage2DImage, but it doesn't take care
       of Image size. }
     procedure Core(Image: TCastleImage);
-    var
-      UnpackData: TUnpackNotAlignedData;
     begin
       { Nawet jesli ladujemy obrazek o ktorym wiemy ze ma wymiary dobre
         dla glTexImage2d, musimy zadbac o jego aligment : bo co by bylo
@@ -234,13 +232,13 @@ var
         Poza tym, planuje dodac tutaj robienie borderow dla tekstury, a wtedy
         wymiar dobry dla glTexImage2d to rownie dobrze 2^n+2 (a wiec prawie zawsze
         niepodzielne na 4). }
-      BeforeUnpackImage(UnpackData, Image);
+      BeforeUnpackImage(Image);
       try
         glTexImage2D(Target, Level, ImageInternalFormat,
           Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
           Image.RawPixels);
         LoadedSize += Image.Size;
-      finally AfterUnpackImage(UnpackData, Image) end;
+      finally AfterUnpackImage(Image) end;
     end;
 
   var
@@ -262,15 +260,13 @@ var
     gluBuild2DMipmaps doesn't require size to be a power of 2, so no problems
     here. }
   procedure gluBuild2DMipmapsImage(Image: TCastleImage);
-  var
-    UnpackData: TUnpackNotAlignedData;
   begin
-    BeforeUnpackImage(UnpackData, Image);
+    BeforeUnpackImage(Image);
     try
       gluBuild2DMipmaps(Target, ImageInternalFormat,
         Image.Width, Image.Height, ImageFormat, ImageGLType(Image),
         Image.RawPixels);
-    finally AfterUnpackImage(UnpackData, Image) end;
+    finally AfterUnpackImage(Image) end;
   end;
   {$endif}
 

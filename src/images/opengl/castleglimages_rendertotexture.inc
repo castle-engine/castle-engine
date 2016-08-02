@@ -697,16 +697,15 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_COLOR}
   procedure SaveColor(const URL: string);
   var
-    PackData: TPackNotAlignedData;
     Image: TCastleImage;
   begin
     Image := TRGBImage.Create(Width, Height);
     try
-      BeforePackImage(PackData, Image);
+      BeforePackImage(Image);
       try
         glReadPixels(0, 0, Width, Height, ImageGLFormat(Image),
           ImageGLType(Image), Image.RawPixels);
-      finally AfterPackImage(PackData, Image) end;
+      finally AfterPackImage(Image) end;
 
       SaveImage(Image, URL);
     finally FreeAndNil(Image) end;
@@ -716,16 +715,15 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_DEPTH}
   procedure SaveDepth(const URL: string);
   var
-    PackData: TPackNotAlignedData;
     Image: TGrayscaleImage;
   begin
     Image := TGrayscaleImage.Create(Width, Height);
     try
-      BeforePackImage(PackData, Image);
+      BeforePackImage(Image);
       try
         glReadPixels(0, 0, Width, Height, GL_DEPTH_COMPONENT,
           ImageGLType(Image), Image.RawPixels);
-      finally AfterPackImage(PackData, Image) end;
+      finally AfterPackImage(Image) end;
 
       SaveImage(Image, URL);
     finally FreeAndNil(Image) end;
