@@ -72,6 +72,10 @@ begin
       for k := 0 to FTiledMap.Width - 1 do
       begin     // writelnlog('tiled control','data high:%d',[High(_lay^.Data.Data)]);
         _GID := _lay^.Data.Data[l];  //writelnlog('tiled control', 'render ortho 0; gid:%d',[_GID]);
+        Inc(l);
+        if _GID = 0 then Continue;
+        //todo: flipping feature
+
         _ts := FTiledMap.GIDToTileset(_GID);
         _spr := TSprite(_ts^.ImageData);
         _spr.X := k * FTiledMap.TileWidth;
@@ -79,7 +83,6 @@ begin
         _spr.Frame := _GID - _ts^.FirstGID;
         //writelnlog('tiled control', 'render ortho 1: gid:%d, firstgid:%d',[_GID,_ts^.FirstGID]);//todo:delete
         _spr.Draw;
-        Inc(l);
 			end;
 	end;
 

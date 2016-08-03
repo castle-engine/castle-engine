@@ -677,6 +677,7 @@ var
   tmpChar, p: PChar;
   CSVDataCount: Cardinal;
   UsePlainXML: Boolean;
+  j: Integer;
 begin
   UsePlainXML := False;
   with AData do
@@ -742,7 +743,10 @@ begin
               if DataCount > 0 then // becouse if DataCount=0 then ERangeCheck error
                 Move(Buffer, Data[DataLength], DataCount);
             until DataCount < SizeOf(Buffer);
-            //todo: flipping feature
+            {TmpStr := '';
+            for j := Low(Data) to High(Data) do
+              TmpStr := TmpStr + ',' + IntToStr(Data[j]);
+            WriteLnLog('LoadData Data', TmpStr);  }
 
           finally
             Decompressor.Free;
