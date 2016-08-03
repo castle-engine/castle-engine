@@ -404,8 +404,8 @@ const
 implementation
 
 uses Classes, CastleClassUtils, CastleUtils, Math, CastleStringUtils,
-  CastleWarnings, CastleFilesUtils, CastleProgress, CastleTextureImages,
-  CastleLog, CastleDownload, CastleURIUtils, CastleFindFiles;
+  CastleLog, CastleFilesUtils, CastleProgress, CastleTextureImages,
+  CastleDownload, CastleURIUtils, CastleFindFiles;
 
 { TVideo --------------------------------------------------------------------- }
 
@@ -684,12 +684,12 @@ procedure TVideo.SaveToFile(const URL: string);
       begin
         S := FormatNameCounter(FileName, Index, true);
         if not DeleteFile(S) then
-          OnWarning(wtMinor, 'Video', Format('Cannot delete temporary file "%s"', [S]));
+          WritelnWarning('Video', Format('Cannot delete temporary file "%s"', [S]));
       end;
     end else
     begin
       if not DeleteFile(FileName) then
-        OnWarning(wtMinor, 'Video', Format('Cannot delete temporary file "%s"', [FileName]));
+        WritelnWarning('Video', Format('Cannot delete temporary file "%s"', [FileName]));
     end;
     Writeln('done.');
   end;
@@ -907,7 +907,7 @@ begin
     S := Format('Video %s : 1. Loading time: %f',
       [URIDisplay(URL), ProcessTimerSeconds(ProcessTimerNow, Start)]);
     if AlphaChannel <> acNone then
-      S += '. Detected as simple yes/no alpha channel: ' + BoolToStr[AlphaChannel = acSimpleYesNo];
+      S += '. Detected as simple yes/no alpha channel: ' + BoolToStr(AlphaChannel = acSimpleYesNo, true);
     WritelnLog('++', S);
   end;
 end;

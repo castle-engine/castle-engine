@@ -135,7 +135,7 @@ begin
   WriteStr(Stream,
     '  FFont := TTextureFontData.CreateFromData(Glyphs, FontImage, ' +
       IntToStr(Font.Size) + ', ' +
-      LowerCase(BoolToStr[Font.AntiAliased]) + ');' +NL+
+      LowerCase(BoolToStr(Font.AntiAliased, true)) + ');' +NL+
     'end;' +NL+
     NL+
     'initialization' +NL+

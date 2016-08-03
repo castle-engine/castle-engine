@@ -54,7 +54,7 @@ function FixRelativeUrl(const URL: string): string;
 
 implementation
 
-uses SysUtils, CastleStringUtils, CastleFindFiles, CastleWarnings,
+uses SysUtils, CastleStringUtils, CastleFindFiles, CastleLog,
   URIParser, CastleURIUtils;
 
 function ToX3DName(const s: string): string;
@@ -137,7 +137,7 @@ begin
   finally
     if Result <> Base then
       { Texture file found, but not under original name }
-      OnWarning(wtMinor, 'Texture', Format('Exact texture URL "%s" not found, using instead "%s"',
+      WritelnWarning('Texture', Format('Exact texture URL "%s" not found, using instead "%s"',
         [Base, Result]));
   end;
 

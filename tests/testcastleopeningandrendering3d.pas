@@ -51,7 +51,7 @@ type
 
 implementation
 
-uses SysUtils, CastleUtils, CastleGLUtils, CastleGLVersion, CastleWarnings;
+uses SysUtils, CastleUtils, CastleGLUtils, CastleGLVersion, CastleLog;
 
 procedure TTestOpeningAndRendering3D.TestScene(const FileName: string);
 begin
@@ -138,8 +138,6 @@ procedure TTestOpeningAndRendering3D.TestOpenAndRender(const ARecreateSceneEachT
   end;
 
 begin
-  OnWarning := @OnWarningLog;
-
   RecreateSceneEachTime := ARecreateSceneEachTime;
 
   Window := TCastleWindowCustom.Create(nil);

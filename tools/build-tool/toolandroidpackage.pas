@@ -32,7 +32,7 @@ procedure RunAndroidPackage(const Project: TCastleProject);
 implementation
 
 uses SysUtils, Classes,
-  CastleURIUtils, CastleWarnings, CastleFilesUtils, CastleImages,
+  CastleURIUtils, CastleLog, CastleFilesUtils, CastleImages,
   ToolEmbeddedImages, ExtInterpolation;
 
 const
@@ -196,7 +196,7 @@ var
     Icon := Project.Icons.FindReadable;
     if Icon = nil then
     begin
-      OnWarning(wtMinor, 'Icon', 'No icon in a format readable by our engine (for example, png or jpg) is specified in CastleEngineManifest.xml. Using default icon.');
+      WritelnWarning('Icon', 'No icon in a format readable by our engine (for example, png or jpg) is specified in CastleEngineManifest.xml. Using default icon.');
       Icon := DefaultIcon;
     end;
     try
@@ -252,7 +252,7 @@ var
             (S.IndexOfName('key.alias.password') = -1)) then
         if PackageMode <> cmDebug then
         begin
-          OnWarning(wtMajor, 'Android', 'Key information (key.store, key.alias, key.store.password, key.alias.password) to sign release Android package not found inside ' + SourceAntProperties + ' file. See ' + WWW + ' for documentation how to create and use keys to sign release Android apk. Falling back to creating debug apk.');
+          WritelnWarning('Android', 'Key information (key.store, key.alias, key.store.password, key.alias.password) to sign release Android package not found inside ' + SourceAntProperties + ' file. See ' + WWW + ' for documentation how to create and use keys to sign release Android apk. Falling back to creating debug apk.');
           PackageMode := cmDebug;
         end;
       finally FreeAndNil(S) end;
@@ -262,7 +262,7 @@ var
     begin
       if PackageMode <> cmDebug then
       begin
-        OnWarning(wtMajor, 'Android', 'Key to sign release Android package not found, because ' + SourceAntProperties + ' not found. See ' + WWW + ' for documentation how to create and use keys to sign release Android apk. Falling back to creating debug apk.');
+        WritelnWarning('Android', 'Key to sign release Android package not found, because ' + SourceAntProperties + ' not found. See ' + WWW + ' for documentation how to create and use keys to sign release Android apk. Falling back to creating debug apk.');
         PackageMode := cmDebug;
       end;
     end;
@@ -284,7 +284,8 @@ var
     for I := 0 to Subprojects.Count - 1 do
       S += 'android.library.reference.' + IntToStr(I + 1) + '=./' + Subprojects[I] + '/' + NL;
     { overwrite existing file, since Android "update" project always creates
-      (and overwrites, if something existed earlier...) it }
+      (and overwrites, if something existed earlier...) it anyway.
+      Later: hmmm, is the previous sentence really true? Not sure. }
     StringToFile(AndroidProjectPath + 'project.properties', S);
   end;
 
@@ -330,11 +331,19 @@ var
 
   { Run "ant debug/release" to actually build the final apk. }
   procedure RunAnt(const PackageMode: TCompilationMode);
+  var
+    Args: TCastleStringList;
   begin
-    RunCommandSimple(AndroidProjectPath, 'ant',
-      [ { enable extra warnings, following http://stackoverflow.com/questions/7682150/use-xlintdeprecation-with-android }
-        '-Djava.compilerargs=-Xlint:unchecked -Xlint:deprecation',
-        PackageModeToName[PackageMode], '-noinput', '-quiet']);
+    Args := TCastleStringList.Create;
+    try
+      { enable extra warnings, following http://stackoverflow.com/questions/7682150/use-xlintdeprecation-with-android }
+      Args.Add('-Djava.compilerargs=-Xlint:unchecked -Xlint:deprecation');
+      Args.Add(PackageModeToName[PackageMode]);
+      Args.Add('-noinput');
+      if not Verbose then
+        Args.Add('-quiet');
+      RunCommandSimple(AndroidProjectPath, 'ant', Args.ToArray);
+    finally FreeAndNil(Args) end;
   end;
 
 var

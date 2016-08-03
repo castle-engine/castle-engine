@@ -58,6 +58,13 @@ type
   private
     FOnLoad, FOnSave: TCastleConfigEventList;
     FLoaded: boolean;
+    { Load empty config. This loads a clear content, without any saved
+      settings, but it takes care to set @link(Loaded) to @true,
+      run OnLoad listeners and so on. Useful if your default config
+      is broken for some reason (e.g. file corruption),
+      but you want to override it and just get into a state
+      where config is considered loaded.  }
+    procedure LoadEmpty(const PretendURL: string);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -383,13 +390,23 @@ end;
     procedure RemoveSaveListener(const Listener: TCastleConfigEvent);
     { @groupEnd }
 
+    property Loaded: boolean read FLoaded;
+
     { Load the current persistent data (user preferences, savegames etc.).
-      All the versions load the appropriate file,
-      and call all the listeners (from AddLoadListener)
-      to allow the engine (and your own) components to read our settings.
+
+      All these methods call the listeners (from AddLoadListener).
+      All these methods update the @link(Loaded) property and the URL property.
+      All these methods are secured to never raise exception in case of a currupted
+      config file -- in this case, they silently load an empty config
+      (but keep the new URL, so that following
+      @link(Save) call with overwrite the config location with a good save.)
+
+      @italic(Never call the ancestor load / save methods,
+      like TXMLConfig.LoadFromStream and TXMLConfig.SaveToStream, to be on the safe side.
+      Use the methods below to load / save user config.)
 
       @unorderedList(
-        @item(The overloaded parameter-less version chooses
+        @item(The overloaded @code(Load) parameter-less version chooses
           a default filename for storing application user preferences.
 
           It uses ApplicationName to pick a filename that is unique
@@ -397,46 +414,30 @@ end;
           callback to set your name, unless you're fine with default determination
           that looks at stuff like ParamStr(0)).
           See FPC OnGetApplicationName docs.
-          It uses @link(ApplicationConfig) to determine location of this file.
+          It uses @link(ApplicationConfig) to determine location of this file.)
 
-          In case the default config is corrupted, it automatically
-          catches the exception and loads an empty config.
-          It also stores the URL in this case to make sure that following
-          @link(Save) call with overwrite the default config location with a good one.
-          This is useful in case user somehow corrupted the config file on disk.)
-
-        @item(The overloaded version with URL parameter
+        @item(The overloaded @code(Load) version with URL
           sets @code(TXMLConfig.URL), loading the file from given URL.
           As always, URL may be just a simple filename,
-          or an URL with 'file://' protocol, to just load a file from
-          the local filesystem.)
+          to just load a file from the local filesystem.
+          It can also be a full-blown URL, with a 'file://' protocol,
+          or 'http://', or other supported protocols, see
+          http://castle-engine.sourceforge.net/tutorial_network.php )
 
-        @item(The overloaded version with TStream parameter loads from a stream.
+        @item(The overloaded @code(Load) version with TStream loads from a stream.
           URL is set to PretendURL (just pass empty string if you don't
-          want to be able to save it back).)
+          need to be able to save it back).)
       )
 
       @groupBegin }
-    procedure Load(const AURL: string);
     procedure Load;
+    procedure Load(const AURL: string);
     procedure Load(const Stream: TStream; const PretendURL: string);
     procedure LoadFromString(const Data: string; const PretendURL: string);
-    //procedure LoadFromBase64(const Base64Contents: string);
     { @groupEnd }
 
-    { Load empty config. This loads a clear content, without any saved
-      settings, but it takes care to set @link(Loaded) to @true,
-      run OnLoad listeners and so on. Useful if your default config
-      is broken for some reason (e.g. file corruption),
-      but you want to override it and just get into a state
-      where config is considered loaded.  }
-    procedure LoadEmpty(const PretendURL: string);
-
-    property Loaded: boolean read FLoaded;
-
-    { Save the configuration of all engine components.
-      Calls the OnSave callbacks to allow all engine components
-      to store their settings in our properties.
+    { Save the user persistent configuration.
+      Calls all the listeners (registered by AddSaveListener).
 
       @unorderedList(
         @item(The overloaded parameter-less version flushes
@@ -452,7 +453,6 @@ end;
     procedure Save;
     procedure Save(const Stream: TStream);
     function SaveToString: string;
-    //function SaveToBase64: string;
     { @groupEnd }
   end;
 
@@ -461,8 +461,7 @@ procedure Register;
 implementation
 
 uses //Base64,
-  CastleStringUtils, CastleFilesUtils, CastleLog, CastleURIUtils,
-  CastleWarnings;
+  CastleStringUtils, CastleFilesUtils, CastleLog, CastleURIUtils;
 
 procedure Register;
 begin
@@ -976,56 +975,7 @@ begin
   FModified := true;
 end;
 
-procedure TCastleConfig.Load(const AURL: string);
-begin
-  URL := AURL;
-  FOnLoad.ExecuteAll(Self);
-  FLoaded := true;
-
-  { This is used for various files (not just user preferences,
-    also resource.xml files). Logging this may get talkative, but it's also
-    useful for now... }
-  WritelnLog('Config', 'Loading configuration from "%s"', [AURL]);
-end;
-
-procedure TCastleConfig.Load;
-var
-  LoadURL: string;
-begin
-  LoadURL := ApplicationConfig(ApplicationName + '.conf');
-  try
-    Load(LoadURL);
-  except
-    on E: Exception do
-    begin
-      OnWarning(wtMajor, 'UserConfig', 'User config corrupted (will load defaults): ' + E.Message);
-      LoadEmpty(LoadURL);
-    end;
-  end;
-end;
-
-procedure TCastleConfig.Save;
-begin
-  FOnSave.ExecuteAll(Self);
-  Flush;
-  if Log and (URL <> '') then
-    WritelnLog('Config', 'Saving configuration to "%s"', [URL]);
-end;
-
-procedure TCastleConfig.Load(const Stream: TStream; const PretendURL: string);
-begin
-  WritelnLog('Config', 'Loading configuration from stream');
-  LoadFromStream(Stream, PretendURL);
-  FOnLoad.ExecuteAll(Self);
-  FLoaded := true;
-end;
-
-procedure TCastleConfig.Save(const Stream: TStream);
-begin
-  FOnSave.ExecuteAll(Self);
-  SaveToStream(Stream);
-  WritelnLog('Config', 'Saving configuration to stream');
-end;
+{ loading and saving --------------------------------------------------------- }
 
 procedure TCastleConfig.AddLoadListener(const Listener: TCastleConfigEvent);
 begin
@@ -1049,21 +999,49 @@ begin
   FOnSave.Remove(Listener);
 end;
 
-{ // Should work, but was never tested
-procedure TCastleConfig.LoadFromBase64(const Base64Contents: string);
-var
-  Base64Decode: TBase64DecodingStream;
-  InputStream: TStringStream;
+procedure TCastleConfig.Load;
 begin
-  InputStream := TStringStream.Create(Base64Contents);
-  try
-    Base64Decode := TBase64DecodingStream.Create(InputStream, bdmMIME);
-    try
-      Load(Base64Decode);
-    finally FreeAndNil(Base64Decode) end;
-  finally FreeAndNil(InputStream) end;
+  Load(ApplicationConfig(ApplicationName + '.conf'));
 end;
-}
+
+procedure TCastleConfig.Load(const AURL: string);
+begin
+  try
+    URL := AURL; // use ancestor method to load
+  except
+    on E: Exception do
+    begin
+      WritelnWarning('UserConfig', 'User config in "' + AURL + '" corrupted (will load defaults): ' + E.Message);
+      LoadEmpty(AURL);
+      Exit;
+    end;
+  end;
+
+  FOnLoad.ExecuteAll(Self);
+  FLoaded := true;
+  { This is used for various files (not just user preferences,
+    also resource.xml files). Logging this may get talkative, but it's also
+    useful for now... }
+  WritelnLog('Config', 'Loaded configuration from "%s"', [AURL]);
+end;
+
+procedure TCastleConfig.Load(const Stream: TStream; const PretendURL: string);
+begin
+  try
+    LoadFromStream(Stream, PretendURL); // use ancestor method to load
+  except
+    on E: Exception do
+    begin
+      WritelnWarning('UserConfig', 'User config in stream corrupted (will load defaults): ' + E.Message);
+      LoadEmpty(PretendURL);
+      Exit;
+    end;
+  end;
+
+  FOnLoad.ExecuteAll(Self);
+  FLoaded := true;
+  WritelnLog('Config', 'Loaded configuration from stream, pretending the URL is "%s"', [PretendURL]);
+end;
 
 procedure TCastleConfig.LoadFromString(const Data: string; const PretendURL: string);
 var
@@ -1084,22 +1062,20 @@ begin
   LoadFromString(EmptyConfig, PretendURL);
 end;
 
-{ // Should work, but was never tested
-function TCastleConfig.SaveToBase64: string;
-var
-  Base64Encode: TBase64EncodingStream;
-  ResultStream: TStringStream;
+procedure TCastleConfig.Save;
 begin
-  ResultStream := TStringStream.Create('');
-  try
-    Base64Encode := TBase64EncodingStream.Create(ResultStream);
-    try
-      Save(Base64Encode);
-      Result := ResultStream.DataString;
-    finally FreeAndNil(Base64Encode) end;
-  finally FreeAndNil(ResultStream) end;
+  FOnSave.ExecuteAll(Self);
+  Flush; // use ancestor method to save
+  if Log and (URL <> '') then
+    WritelnLog('Config', 'Saving configuration to "%s"', [URL]);
 end;
-}
+
+procedure TCastleConfig.Save(const Stream: TStream);
+begin
+  FOnSave.ExecuteAll(Self);
+  SaveToStream(Stream); // use ancestor method to save
+  WritelnLog('Config', 'Saving configuration to stream');
+end;
 
 function TCastleConfig.SaveToString: string;
 var

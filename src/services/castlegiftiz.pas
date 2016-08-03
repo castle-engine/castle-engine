@@ -71,7 +71,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleColors, CastleUtils, CastleMessaging, CastleFilesUtils, CastleWarnings,
+  CastleColors, CastleUtils, CastleMessaging, CastleFilesUtils, CastleLog,
   CastleUIControls;
 
 { TGiftiz -------------------------------------------------------------------- }
@@ -144,7 +144,7 @@ begin
       GiftizStatusVisible := true;
       CustomBackgroundNormal := ImageWarning;
     end else
-      OnWarning(wtMajor, 'Giftiz', 'Invalid button state ' + Received[1]);
+      WritelnWarning('Giftiz', 'Invalid button state ' + Received[1]);
     VisibleChange;
   end;
 end;

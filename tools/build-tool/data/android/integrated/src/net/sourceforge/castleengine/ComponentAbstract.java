@@ -1,6 +1,7 @@
 /* -*- tab-width: 4 -*- */
 package net.sourceforge.castleengine;
 
+import android.util.Log;
 import android.content.Intent;
 
 import android.app.Activity;
@@ -10,6 +11,8 @@ import android.app.Activity;
  */
 public abstract class ComponentAbstract
 {
+    private static final String TAG = "${NAME}.castleengine.ComponentAbstract";
+
     private MainActivity mActivity;
 
     public ComponentAbstract(MainActivity activity)
@@ -29,17 +32,22 @@ public abstract class ComponentAbstract
         getActivity().messageSend(s);
     }
 
-    /**
-     * Helper utility to glue string array.
-     */
-    protected static String glueStringArray(String[] input, int startIndex,
-        String separator)
+    protected static boolean stringToBoolean(String value)
     {
-        StringBuilder builder = new StringBuilder(input[startIndex]);
-        for (int i = startIndex + 1; i < input.length; i++) {
-            builder.append(separator + input[i]);
+        if (value.equals("true")) {
+            return true;
+        } else
+        if (value.equals("false")) {
+            return false;
+        } else {
+            Log.w(TAG, "Invalid boolean value in message: " + value);
+            return false;
         }
-        return builder.toString();
+    }
+
+    protected static String booleanToString(boolean value)
+    {
+        return value ? "true" : "false";
     }
 
     /**

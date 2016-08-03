@@ -101,7 +101,7 @@ begin
   Container.AddRoute(Route);
 
   if SlotsToReset.DrawOrder.Remove(Slot) = -1 then
-    OnWarning(wtMajor, 'Spine', 'Slot draworder offset is affected multiple times: slot ' + Slot.Name);
+    WritelnWarning('Spine', 'Slot draworder offset is affected multiple times: slot ' + Slot.Name);
 end;
 
 { TDrawOrderTimelineList ----------------------------------------------------- }
@@ -274,12 +274,12 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
               if (DrawOrder < 0) or
                  (DrawOrder >= Slots.Count) then
               begin
-                OnWarning(wtMajor, 'Spine', Format('Animated draworder offset incorrect, goes outside draw order range: slot "%s" with draw order %d',
+                WritelnWarning('Spine', Format('Animated draworder offset incorrect, goes outside draw order range: slot "%s" with draw order %d',
                   [Slot.Name, DrawOrder]));
                 Continue;
               end;
               if SlotsByDrawOrder.IndexOf(DrawOrder) <> -1 then
-                OnWarning(wtMajor, 'Spine', Format('Animated draworder offset incorrect, multiple slots try to take the same draw order: "%s" and "%s"',
+                WritelnWarning('Spine', Format('Animated draworder offset incorrect, multiple slots try to take the same draw order: "%s" and "%s"',
                   [SlotsByDrawOrder[DrawOrder].Name, Slot.Name]));
 
               { in case of warning above, just overwrite previous slot
@@ -298,7 +298,7 @@ procedure TDrawOrderTimelineList.Parse(const Json: TJSONArray;
               Timeline := FindSlot(Slot);
               Assert(Timeline <> nil, 'We failed to add slot timeline in AddTimelines');
               if Timeline.DrawOrder.Count <> Time.Count - 1 then
-                OnWarning(wtMajor, 'Spine', 'draworder timeline count incorrect, it seems that the same slot name was specified multiple times for an offset during the same time for slot: ' +
+                WritelnWarning('Spine', 'draworder timeline count incorrect, it seems that the same slot name was specified multiple times for an offset during the same time for slot: ' +
                   Slot.Name);
               Timeline.DrawOrder.Add(SlotsToFloatDrawOrder.Data[J]);
             end;

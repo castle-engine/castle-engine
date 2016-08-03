@@ -477,7 +477,7 @@ begin
   inherited;
 
   FFdControlPoint := TMFVec2d.Create(Self, 'controlPoint', []);
-  Fields.Add(FFdControlPoint);
+  AddField(FFdControlPoint);
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
@@ -489,85 +489,85 @@ begin
 
   FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
    FdControlPoint.ChangesAlways := [chGeometry];
-  Fields.Add(FFdControlPoint);
+  AddField(FFdControlPoint);
 
   FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TAbstractTextureCoordinateNode, TNurbsTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdTexCoord);
+  AddField(FFdTexCoord);
 
   FFdUTessellation := TSFInt32.Create(Self, 'uTessellation', 0);
    FdUTessellation.ChangesAlways := [chGeometry];
-  Fields.Add(FFdUTessellation);
+  AddField(FFdUTessellation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdVTessellation := TSFInt32.Create(Self, 'vTessellation', 0);
    FdVTessellation.ChangesAlways := [chGeometry];
-  Fields.Add(FFdVTessellation);
+  AddField(FFdVTessellation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdWeight := TMFDouble.Create(Self, 'weight', []);
    FdWeight.ChangesAlways := [chGeometry];
-  Fields.Add(FFdWeight);
+  AddField(FFdWeight);
   { X3D specification comment: (0,Inf) }
 
   FFdSolid := TSFBool.Create(Self, 'solid', true);
    FdSolid.Exposed := false;
    FdSolid.ChangesAlways := [chGeometry];
-  Fields.Add(FFdSolid);
+  AddField(FFdSolid);
 
   FFdUClosed := TSFBool.Create(Self, 'uClosed', false);
    FdUClosed.Exposed := false;
    FdUClosed.ChangesAlways := [chGeometry];
-  Fields.Add(FFdUClosed);
+  AddField(FFdUClosed);
 
   FFdUDimension := TSFInt32.Create(Self, 'uDimension', 0);
    FdUDimension.Exposed := false;
    FdUDimension.ChangesAlways := [chGeometry];
-  Fields.Add(FFdUDimension);
+  AddField(FFdUDimension);
   { X3D specification comment: [0,Inf) }
 
   FFdUKnot := TMFDouble.Create(Self, 'uKnot', []);
    FdUKnot.Exposed := false;
    FdUKnot.ChangesAlways := [chGeometry];
-  Fields.Add(FFdUKnot);
+  AddField(FFdUKnot);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdUOrder := TSFInt32.Create(Self, 'uOrder', 3);
    FdUOrder.Exposed := false;
    FdUOrder.ChangesAlways := [chGeometry];
-  Fields.Add(FFdUOrder);
+  AddField(FFdUOrder);
   { X3D specification comment: [2,Inf) }
 
   FFdVClosed := TSFBool.Create(Self, 'vClosed', false);
    FdVClosed.Exposed := false;
    FdVClosed.ChangesAlways := [chGeometry];
-  Fields.Add(FFdVClosed);
+  AddField(FFdVClosed);
 
   FFdVDimension := TSFInt32.Create(Self, 'vDimension', 0);
    FdVDimension.Exposed := false;
    FdVDimension.ChangesAlways := [chGeometry];
-  Fields.Add(FFdVDimension);
+  AddField(FFdVDimension);
   { X3D specification comment: [0,Inf) }
 
   FFdVKnot := TMFDouble.Create(Self, 'vKnot', []);
    FdVKnot.Exposed := false;
    FdVKnot.ChangesAlways := [chGeometry];
-  Fields.Add(FFdVKnot);
+  AddField(FFdVKnot);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdVOrder := TSFInt32.Create(Self, 'vOrder', 3);
    FdVOrder.Exposed := false;
    FdVOrder.ChangesAlways := [chGeometry];
-  Fields.Add(FFdVOrder);
+  AddField(FFdVOrder);
   { X3D specification comment: [2,Inf) }
 end;
 
 function TAbstractNurbsSurfaceGeometryNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdcontrolPoint.SearchValid(Func);
+  Result := FdcontrolPoint.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdtexCoord.SearchValid(Func);
+  Result := FdtexCoord.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -576,14 +576,14 @@ begin
   inherited;
 
   FEventAddChildren := TMFNodeEvent.Create(Self, 'addChildren', true);
-  Events.Add(FEventAddChildren);
+  AddEvent(FEventAddChildren);
 
   FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
-  Events.Add(FEventRemoveChildren);
+  AddEvent(FEventRemoveChildren);
 
   FFdChildren := TMFNode.Create(Self, 'children', [TNurbsCurve2DNode, TContourPolyline2DNode]);
    FdChildren.ChangesAlways := [chEverything];
-  Fields.Add(FFdChildren);
+  AddField(FFdChildren);
 
   DefaultContainerField := 'trimmingContour';
 end;
@@ -606,7 +606,7 @@ end;
 
 function TContour2DNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := Fdchildren.SearchValid(Func);
+  Result := Fdchildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -635,7 +635,7 @@ begin
   FFdPoint := TMFVec3d.Create(Self, 'point', []);
    { Not really handled for now }
    FdPoint.ChangesAlways := [chCoordinate];
-  Fields.Add(FFdPoint);
+  AddField(FFdPoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
 
@@ -661,33 +661,33 @@ begin
 
   FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
    FdControlPoint.ChangesAlways := [chGeometry];
-  Fields.Add(FFdControlPoint);
+  AddField(FFdControlPoint);
 
   FFdTessellation := TSFInt32.Create(Self, 'tessellation', 0);
    FdTessellation.ChangesAlways := [chGeometry];
-  Fields.Add(FFdTessellation);
+  AddField(FFdTessellation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdWeight := TMFDouble.Create(Self, 'weight', []);
    FdWeight.ChangesAlways := [chGeometry];
-  Fields.Add(FFdWeight);
+  AddField(FFdWeight);
   { X3D specification comment: (0,Inf) }
 
   FFdClosed := TSFBool.Create(Self, 'closed', false);
    FdClosed.Exposed := false;
    FdClosed.ChangesAlways := [chGeometry];
-  Fields.Add(FFdClosed);
+  AddField(FFdClosed);
 
   FFdKnot := TMFDouble.Create(Self, 'knot', []);
    FdKnot.Exposed := false;
    FdKnot.ChangesAlways := [chGeometry];
-  Fields.Add(FFdKnot);
+  AddField(FFdKnot);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdOrder := TSFInt32.Create(Self, 'order', 3);
    FdOrder.Exposed := false;
    FdOrder.ChangesAlways := [chGeometry];
-  Fields.Add(FFdOrder);
+  AddField(FFdOrder);
   { X3D specification comment: [2,Inf) }
 end;
 
@@ -709,7 +709,7 @@ end;
 
 function TNurbsCurveNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdcontrolPoint.SearchValid(Func);
+  Result := FdcontrolPoint.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -730,7 +730,7 @@ begin
 
   if Order < 2 then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'NURBS order must be >= 2');
+    WritelnWarning('VRML/X3D', 'NURBS order must be >= 2');
     Exit;
   end;
 
@@ -835,25 +835,25 @@ begin
   inherited;
 
   FFdTessellation := TSFInt32.Create(Self, 'tessellation', 0);
-  Fields.Add(FFdTessellation);
+  AddField(FFdTessellation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdWeight := TMFDouble.Create(Self, 'weight', []);
-  Fields.Add(FFdWeight);
+  AddField(FFdWeight);
   { X3D specification comment: (0,Inf) }
 
   FFdClosed := TSFBool.Create(Self, 'closed', false);
    FdClosed.Exposed := false;
-  Fields.Add(FFdClosed);
+  AddField(FFdClosed);
 
   FFdKnot := TMFDouble.Create(Self, 'knot', []);
    FdKnot.Exposed := false;
-  Fields.Add(FFdKnot);
+  AddField(FFdKnot);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdOrder := TSFInt32.Create(Self, 'order', 3);
    FdOrder.Exposed := false;
-  Fields.Add(FFdOrder);
+  AddField(FFdOrder);
   { X3D specification comment: [2,Inf) }
 
   DefaultContainerField := 'children';
@@ -876,25 +876,25 @@ begin
   inherited;
 
   FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
-  Events.Add(FEventSet_fraction);
+  AddEvent(FEventSet_fraction);
 
   FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
-  Fields.Add(FFdControlPoint);
+  AddField(FFdControlPoint);
 
   FFdKnot := TMFDouble.Create(Self, 'knot', []);
-  Fields.Add(FFdKnot);
+  AddField(FFdKnot);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdOrder := TSFInt32.Create(Self, 'order', 3);
-  Fields.Add(FFdOrder);
+  AddField(FFdOrder);
   { X3D specification comment: (2,Inf) }
 
   FFdWeight := TMFDouble.Create(Self, 'weight', []);
-  Fields.Add(FFdWeight);
+  AddField(FFdWeight);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 
@@ -914,7 +914,7 @@ end;
 
 function TNurbsOrientationInterpolatorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdcontrolPoint.SearchValid(Func);
+  Result := FdcontrolPoint.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -938,7 +938,7 @@ begin
 
   if FdOrder.Value < 2 then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'NURBS order must be >= 2');
+    WritelnWarning('VRML/X3D', 'NURBS order must be >= 2');
     Exit;
   end;
 
@@ -1069,7 +1069,7 @@ begin
   if UDimension * VDimension <>
      Integer(ControlPoint.Count) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Number of coordinates in Nurbs[Patch]Surface.controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)',
+    WritelnWarning('VRML/X3D', Format('Number of coordinates in Nurbs[Patch]Surface.controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)',
       [ ControlPoint.Count,
         UDimension,  VDimension,
         UDimension * VDimension ]));
@@ -1079,14 +1079,14 @@ begin
   if (UDimension < 0) or
      (VDimension < 0) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'Nurbs[Patch]Surface.u/vDimension is < 0');
+    WritelnWarning('VRML/X3D', 'Nurbs[Patch]Surface.u/vDimension is < 0');
     Exit;
   end;
 
   if (UOrder < 2) or
      (VOrder < 2) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'NURBS order must be >= 2');
+    WritelnWarning('VRML/X3D', 'NURBS order must be >= 2');
     Exit;
   end;
 
@@ -1315,25 +1315,25 @@ begin
   inherited;
 
   FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
-  Events.Add(FEventSet_fraction);
+  AddEvent(FEventSet_fraction);
 
   FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
-  Fields.Add(FFdControlPoint);
+  AddField(FFdControlPoint);
 
   FFdKnot := TMFDouble.Create(Self, 'knot', []);
-  Fields.Add(FFdKnot);
+  AddField(FFdKnot);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdOrder := TSFInt32.Create(Self, 'order', 3);
-  Fields.Add(FFdOrder);
+  AddField(FFdOrder);
   { X3D specification comment: (2,Inf) }
 
   FFdWeight := TMFDouble.Create(Self, 'weight', []);
-  Fields.Add(FFdWeight);
+  AddField(FFdWeight);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 
@@ -1358,7 +1358,7 @@ end;
 
 function TNurbsPositionInterpolatorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdcontrolPoint.SearchValid(Func);
+  Result := FdcontrolPoint.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -1380,7 +1380,7 @@ begin
 
   if FdOrder.Value < 2 then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'NURBS order must be >= 2');
+    WritelnWarning('VRML/X3D', 'NURBS order must be >= 2');
     Exit;
   end;
 
@@ -1406,26 +1406,26 @@ begin
   inherited;
 
   FEventAddGeometry := TMFNodeEvent.Create(Self, 'addGeometry', true);
-  Events.Add(FEventAddGeometry);
+  AddEvent(FEventAddGeometry);
 
   FEventRemoveGeometry := TMFNodeEvent.Create(Self, 'removeGeometry', true);
-  Events.Add(FEventRemoveGeometry);
+  AddEvent(FEventRemoveGeometry);
 
   FFdGeometry := TMFNode.Create(Self, 'geometry', [TAbstractParametricGeometryNode]);
-  Fields.Add(FFdGeometry);
+  AddField(FFdGeometry);
 
   FFdTessellationScale := TSFFloat.Create(Self, 'tessellationScale', 1.0);
-  Fields.Add(FFdTessellationScale);
+  AddField(FFdTessellationScale);
   { X3D specification comment: (0,Inf) }
 
   FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
   FFdBboxCenter.Exposed := false;
-  Fields.Add(FFdBboxCenter);
+  AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
   FFdBboxSize.Exposed := false;
-  Fields.Add(FFdBboxSize);
+  AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
   DefaultContainerField := 'children';
@@ -1447,49 +1447,49 @@ begin
   inherited;
 
   FEventSet_fraction := TSFVec2fEvent.Create(Self, 'set_fraction', true);
-  Events.Add(FEventSet_fraction);
+  AddEvent(FEventSet_fraction);
 
   FFdControlPoint := TSFNode.Create(Self, 'controlPoint', [TAbstractCoordinateNode]);
-  Fields.Add(FFdControlPoint);
+  AddField(FFdControlPoint);
 
   FFdWeight := TMFDouble.Create(Self, 'weight', []);
-  Fields.Add(FFdWeight);
+  AddField(FFdWeight);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventPosition_changed := TSFVec3fEvent.Create(Self, 'position_changed', false);
-  Events.Add(FEventPosition_changed);
+  AddEvent(FEventPosition_changed);
 
   FEventNormal_changed := TSFVec3fEvent.Create(Self, 'normal_changed', false);
-  Events.Add(FEventNormal_changed);
+  AddEvent(FEventNormal_changed);
 
   FFdUDimension := TSFInt32.Create(Self, 'uDimension', 0);
   FFdUDimension.Exposed := false;
-  Fields.Add(FFdUDimension);
+  AddField(FFdUDimension);
   { X3D specification comment: [0,Inf) }
 
   FFdUKnot := TMFDouble.Create(Self, 'uKnot', []);
   FFdUKnot.Exposed := false;
-  Fields.Add(FFdUKnot);
+  AddField(FFdUKnot);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdUOrder := TSFInt32.Create(Self, 'uOrder', 3);
   FFdUOrder.Exposed := false;
-  Fields.Add(FFdUOrder);
+  AddField(FFdUOrder);
   { X3D specification comment: [2,Inf) }
 
   FFdVDimension := TSFInt32.Create(Self, 'vDimension', 0);
   FFdVDimension.Exposed := false;
-  Fields.Add(FFdVDimension);
+  AddField(FFdVDimension);
   { X3D specification comment: [0,Inf) }
 
   FFdVKnot := TMFDouble.Create(Self, 'vKnot', []);
   FFdVKnot.Exposed := false;
-  Fields.Add(FFdVKnot);
+  AddField(FFdVKnot);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdVOrder := TSFInt32.Create(Self, 'vOrder', 3);
   FFdVOrder.Exposed := false;
-  Fields.Add(FFdVOrder);
+  AddField(FFdVOrder);
   { X3D specification comment: [2,Inf) }
 
   DefaultContainerField := 'children';
@@ -1510,7 +1510,7 @@ end;
 
 function TNurbsSurfaceInterpolatorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdcontrolPoint.SearchValid(Func);
+  Result := FdcontrolPoint.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -1536,7 +1536,7 @@ begin
   if FdUDimension.Value * FdVDimension.Value <>
      Integer(ControlPoint.Count) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Number of coordinates in NurbsSurfaceInterpolator.controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)',
+    WritelnWarning('VRML/X3D', Format('Number of coordinates in NurbsSurfaceInterpolator.controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)',
       [ ControlPoint.Count,
         FdUDimension.Value,  FdVDimension.Value,
         FdUDimension.Value * FdVDimension.Value ]));
@@ -1546,14 +1546,14 @@ begin
   if (FdUDimension.Value < 0) or
      (FdVDimension.Value < 0) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'NurbsSurfaceInterpolator.u/vDimension is < 0');
+    WritelnWarning('VRML/X3D', 'NurbsSurfaceInterpolator.u/vDimension is < 0');
     Exit;
   end;
 
   if (FdUOrder.Value < 2) or
      (FdVOrder.Value < 2) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'NURBS order must be >= 2');
+    WritelnWarning('VRML/X3D', 'NURBS order must be >= 2');
     Exit;
   end;
 
@@ -1597,21 +1597,21 @@ begin
 
   FFdCrossSectionCurve := TSFNode.Create(Self, 'crossSectionCurve', [TAbstractNurbsControlCurveNode]);
    FdCrossSectionCurve.ChangesAlways := [chGeometry];
-  Fields.Add(FFdCrossSectionCurve);
+  AddField(FFdCrossSectionCurve);
 
   FFdTrajectoryCurve := TSFNode.Create(Self, 'trajectoryCurve', [TNurbsCurveNode]);
    FdTrajectoryCurve.ChangesAlways := [chGeometry];
-  Fields.Add(FFdTrajectoryCurve);
+  AddField(FFdTrajectoryCurve);
 
   FFdCcw := TSFBool.Create(Self, 'ccw', true);
    FdCcw.Exposed := false;
    FdCcw.ChangesAlways := [chGeometry];
-  Fields.Add(FFdCcw);
+  AddField(FFdCcw);
 
   FFdSolid := TSFBool.Create(Self, 'solid', true);
    FdSolid.Exposed := false;
    FdSolid.ChangesAlways := [chGeometry];
-  Fields.Add(FFdSolid);
+  AddField(FFdSolid);
 end;
 
 class function TNurbsSweptSurfaceNode.ClassNodeTypeName: string;
@@ -1627,10 +1627,10 @@ end;
 
 function TNurbsSweptSurfaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdcrossSectionCurve.SearchValid(Func);
+  Result := FdcrossSectionCurve.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdtrajectoryCurve.SearchValid(Func);
+  Result := FdtrajectoryCurve.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -1648,21 +1648,21 @@ begin
 
   FFdProfileCurve := TSFNode.Create(Self, 'profileCurve', [TAbstractNurbsControlCurveNode]);
    FdProfileCurve.ChangesAlways := [chGeometry];
-  Fields.Add(FFdProfileCurve);
+  AddField(FFdProfileCurve);
 
   FFdTrajectoryCurve := TSFNode.Create(Self, 'trajectoryCurve', [TAbstractNurbsControlCurveNode]);
    FdTrajectoryCurve.ChangesAlways := [chGeometry];
-  Fields.Add(FFdTrajectoryCurve);
+  AddField(FFdTrajectoryCurve);
 
   FFdCcw := TSFBool.Create(Self, 'ccw', true);
    FdCcw.Exposed := false;
    FdCcw.ChangesAlways := [chGeometry];
-  Fields.Add(FFdCcw);
+  AddField(FFdCcw);
 
   FFdSolid := TSFBool.Create(Self, 'solid', true);
    FdSolid.Exposed := false;
    FdSolid.ChangesAlways := [chGeometry];
-  Fields.Add(FFdSolid);
+  AddField(FFdSolid);
 end;
 
 class function TNurbsSwungSurfaceNode.ClassNodeTypeName: string;
@@ -1678,10 +1678,10 @@ end;
 
 function TNurbsSwungSurfaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdprofileCurve.SearchValid(Func);
+  Result := FdprofileCurve.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdtrajectoryCurve.SearchValid(Func);
+  Result := FdtrajectoryCurve.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -1698,41 +1698,41 @@ begin
   inherited;
 
   FFdControlPoint := TMFVec2f.Create(Self, 'controlPoint', []);
-  Fields.Add(FFdControlPoint);
+  AddField(FFdControlPoint);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdWeight := TMFFloat.Create(Self, 'weight', []);
-  Fields.Add(FFdWeight);
+  AddField(FFdWeight);
   { X3D specification comment: (0,Inf) }
 
   FFdUDimension := TSFInt32.Create(Self, 'uDimension', 0);
   FFdUDimension.Exposed := false;
-  Fields.Add(FFdUDimension);
+  AddField(FFdUDimension);
   { X3D specification comment: [0,Inf) }
 
   FFdUKnot := TMFDouble.Create(Self, 'uKnot', []);
   FFdUKnot.Exposed := false;
-  Fields.Add(FFdUKnot);
+  AddField(FFdUKnot);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdUOrder := TSFInt32.Create(Self, 'uOrder', 3);
   FFdUOrder.Exposed := false;
-  Fields.Add(FFdUOrder);
+  AddField(FFdUOrder);
   { X3D specification comment: [2,Inf) }
 
   FFdVDimension := TSFInt32.Create(Self, 'vDimension', 0);
   FFdVDimension.Exposed := false;
-  Fields.Add(FFdVDimension);
+  AddField(FFdVDimension);
   { X3D specification comment: [0,Inf) }
 
   FFdVKnot := TMFDouble.Create(Self, 'vKnot', []);
   FFdVKnot.Exposed := false;
-  Fields.Add(FFdVKnot);
+  AddField(FFdVKnot);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdVOrder := TSFInt32.Create(Self, 'vOrder', 3);
   FFdVOrder.Exposed := false;
-  Fields.Add(FFdVOrder);
+  AddField(FFdVOrder);
   { X3D specification comment: [2,Inf) }
 
   DefaultContainerField := 'texCoord';
@@ -1754,14 +1754,14 @@ begin
   inherited;
 
   FEventAddTrimmingContour := TMFNodeEvent.Create(Self, 'addTrimmingContour', true);
-  Events.Add(FEventAddTrimmingContour);
+  AddEvent(FEventAddTrimmingContour);
 
   FEventRemoveTrimmingContour := TMFNodeEvent.Create(Self, 'removeTrimmingContour', true);
-  Events.Add(FEventRemoveTrimmingContour);
+  AddEvent(FEventRemoveTrimmingContour);
 
   FFdTrimmingContour := TMFNode.Create(Self, 'trimmingContour', [TContour2DNode]);
    FdTrimmingContour.ChangesAlways := [chGeometry];
-  Fields.Add(FFdTrimmingContour);
+  AddField(FFdTrimmingContour);
 end;
 
 class function TNurbsTrimmedSurfaceNode.ClassNodeTypeName: string;
@@ -1777,7 +1777,7 @@ end;
 
 function TNurbsTrimmedSurfaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdtrimmingContour.SearchValid(Func);
+  Result := FdtrimmingContour.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -1786,7 +1786,7 @@ function TNurbsTrimmedSurfaceNode.Proxy(var State: TX3DGraphTraverseState;
 begin
   Result := inherited;
   if FdTrimmingContour.Count <> 0 then
-    OnWarning(wtMajor, 'VRML/X3D', 'NurbsTrimmedSurface.trimmingContour is not implemented yet (that is, NurbsTrimmedSurface is rendered just like NurbsPatchSurface)');
+    WritelnWarning('VRML/X3D', 'NurbsTrimmedSurface.trimmingContour is not implemented yet (that is, NurbsTrimmedSurface is rendered just like NurbsPatchSurface)');
 end;
 
 procedure RegisterNURBSNodes;

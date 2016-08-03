@@ -39,9 +39,10 @@
 
 program animate_3d_model_by_code;
 
-uses CastleVectors, X3DNodes, CastleWindow, CastleWarnings,
+uses CastleVectors, X3DNodes, CastleWindow, CastleLog,
   CastleUtils, SysUtils, CastleGLUtils, CastleScene, CastleCameras,
-  CastleFilesUtils, CastleParameters, CastleStringUtils, CastleKeysMouse;
+  CastleFilesUtils, CastleParameters, CastleStringUtils, CastleKeysMouse,
+  CastleApplicationProperties;
 
 var
   Window: TCastleWindow;
@@ -72,7 +73,7 @@ begin
   Window := TCastleWindow.Create(Application);
 
   Parameters.CheckHigh(0);
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   Scene := TCastleScene.Create(nil);
   try

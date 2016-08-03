@@ -1011,7 +1011,7 @@ type
   public
     { Access field by name.
       Raises EX3DNotFound if the given Name doesn't exist. }
-    property ByName[const AName: string]:TX3DField read GetByName;
+    property ByName[const AName: string]: TX3DField read GetByName;
 
     { Searches for a field with given Name, returns it's index or -1 if not found. }
     function IndexOf(const AName: string): integer;
@@ -1105,7 +1105,7 @@ type
       may be freed soon, so copy contents, not only some reference). }
     procedure RawItemsAdd(Item: TX3DSingleField); virtual abstract;
 
-    procedure OnWarning_InvalidIndex(const Index, ACount: Integer);
+    procedure WritelnWarning_InvalidIndex(const Index, ACount: Integer);
   protected
     { SaveToStreamValue overriden for MF fields. This class handles
       SaveToStreamValue fully, no need to override it again in
@@ -1999,7 +1999,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return false, Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: boolean
       read GetItemsSafe write SetItemsSafe;
 
@@ -2047,18 +2047,18 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero, Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: LongInt
       read GetItemsSafe write SetItemsSafe;
 
-    { Call OnWarning reporting that an invalid vertex index
-      is caused from this field. This simply calls OnWarning
+    { Call WritelnWarning reporting that an invalid vertex index
+      is caused from this field. This simply calls WritelnWarning
       formatting appropriate message.
 
       Additionally this guards
       us against producing too many warnings from the same field.
       When a given threshold will be reached, further
-      OnWarning_WrongVertexIndex calls for this field instance
+      WritelnWarning_WrongVertexIndex calls for this field instance
       will be simply ignored. This is a good thing, as some invalid models
       have really an incredible amount of invalid indexes, and the very
       amount of lines printed on console makes viewing these invalid files
@@ -2069,7 +2069,7 @@ type
       and
       content/examples/Basic/HumanoidAnimation/NancyDiving.x3dv
       from http://www.web3d.org/ example models. }
-    procedure OnWarning_WrongVertexIndex(
+    procedure WritelnWarning_WrongVertexIndex(
       const GeometryNodeTypeName: string;
       const VertexNum: Integer; const CoordCount: Integer);
 
@@ -2116,7 +2116,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return identity matrix, Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: TMatrix3Single
       read GetItemsSafe write SetItemsSafe;
 
@@ -2156,7 +2156,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return identity matrix, Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: TMatrix3Double
       read GetItemsSafe write SetItemsSafe;
 
@@ -2196,7 +2196,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return identity matrix, Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: TMatrix4Single
       read GetItemsSafe write SetItemsSafe;
 
@@ -2236,7 +2236,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return identity matrix, Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: TMatrix4Double
       read GetItemsSafe write SetItemsSafe;
 
@@ -2276,7 +2276,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: TVector2Single
       read GetItemsSafe write SetItemsSafe;
 
@@ -2316,7 +2316,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: TVector3Single
       read GetItemsSafe write SetItemsSafe;
 
@@ -2363,7 +2363,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return (0, 0, 0, 1) vector, Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: TVector4Single
       read GetItemsSafe write SetItemsSafe;
 
@@ -2410,7 +2410,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: TVector2Double
       read GetItemsSafe write SetItemsSafe;
 
@@ -2450,7 +2450,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero vector, Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: TVector3Double
       read GetItemsSafe write SetItemsSafe;
 
@@ -2490,7 +2490,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return (0, 0, 0, 1), Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: TVector4Double
       read GetItemsSafe write SetItemsSafe;
 
@@ -2531,7 +2531,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return DefaultRotation, Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: TVector4Single
       read GetItemsSafe write SetItemsSafe;
 
@@ -2580,7 +2580,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero, Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: Single
       read GetItemsSafe write SetItemsSafe;
 
@@ -2622,7 +2622,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return zero, Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: Double
       read GetItemsSafe write SetItemsSafe;
 
@@ -2670,7 +2670,7 @@ type
 
     { Access Items[] checking for range errors.
       In case of errors, Get will return '', Set will do nothing,
-      and both will produce clear OnWarning. }
+      and both will produce clear WritelnWarning. }
     property ItemsSafe[Index: Integer]: string
       read GetItemsSafe write SetItemsSafe;
 
@@ -2756,7 +2756,7 @@ function X3DChangesToStr(const Changes: TX3DChanges): string;
 
 implementation
 
-uses Math, X3DNodes, CastleXMLUtils, CastleWarnings;
+uses Math, X3DNodes, CastleXMLUtils, CastleLog;
 
 {$define read_implementation}
 
@@ -2859,7 +2859,7 @@ begin
   if (Version.Major < 3) or
      ( (Version.Major = 3) and
        (Version.Minor < 3) ) then
-    OnWarning(wtMajor, 'X3D', 'UNIT declaration found, but X3D version is < 3.3');
+    WritelnWarning('X3D', 'UNIT declaration found, but X3D version is < 3.3');
 
   { store UNIT inside Reader }
   if Category = 'angle' then
@@ -2870,7 +2870,7 @@ begin
     LengthConversionFactor := ConversionFactor else
   if Category = 'mass' then
     { TODO } else
-    OnWarning(wtMajor, 'X3D', Format('UNIT category "%s" unknown. Only the categories listed in X3D specification as base units are allowed',
+    WritelnWarning('X3D', Format('UNIT category "%s" unknown. Only the categories listed in X3D specification as base units are allowed',
       [Category]));
 end;
 
@@ -3330,7 +3330,7 @@ begin
       ParseXMLAttributeLexer(Lexer, Reader);
     except
       on E: EX3DClassicReadError do
-        OnWarning(wtMajor, 'VRML/X3D', 'Error when reading field "' + Name + '" value: ' + E.Message);
+        WritelnWarning('VRML/X3D', 'Error when reading field "' + Name + '" value: ' + E.Message);
     end;
   finally FreeAndNil(Lexer) end;
 end;
@@ -3342,7 +3342,7 @@ begin
   I := Element.ChildrenIterator;
   try
     if I.GetNext then
-      OnWarning(wtMajor, 'VRML/X3D', Format('X3D field "%s" is not SFNode or MFNode, but a node value (XML element "%s") is specified',
+      WritelnWarning('VRML/X3D', Format('X3D field "%s" is not SFNode or MFNode, but a node value (XML element "%s") is specified',
         [Name, I.Current.TagName]));
   finally FreeAndNil(I) end;
 end;
@@ -3711,16 +3711,16 @@ begin
     (TX3DSimpleMultField(SecondValue).ItemClass = ItemClass);
 end;
 
-procedure TX3DSimpleMultField.OnWarning_InvalidIndex(
+procedure TX3DSimpleMultField.WritelnWarning_InvalidIndex(
   const Index, ACount: Integer);
 const
   MaxInvalidIndexWarnings = 10;
 begin
   Inc(InvalidIndexWarnings);
   if InvalidIndexWarnings < MaxInvalidIndexWarnings then
-    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid index for field %s (%s): index is %d, but we have only %d items', [NiceName, TypeName, Index, ACount])) else
+    WritelnWarning('VRML/X3D', Format('Invalid index for field %s (%s): index is %d, but we have only %d items', [NiceName, TypeName, Index, ACount])) else
   if InvalidIndexWarnings = MaxInvalidIndexWarnings then
-    OnWarning(wtMajor, 'VRML/X3D', Format('Invalid index for field %s (%s) reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
+    WritelnWarning('VRML/X3D', Format('Invalid index for field %s (%s) reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
       [NiceName, TypeName, InvalidIndexWarnings]));
 end;
 
@@ -3773,7 +3773,7 @@ procedure TSFBool.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
   procedure VRML2BooleanIntegerWarning;
   begin
     if Lexer.Version.Major >= 2 then
-      OnWarning(wtMajor, 'VRML/X3D', 'In VRML >= 2.0 you cannot express boolean values ' +
+      WritelnWarning('VRML/X3D', 'In VRML >= 2.0 you cannot express boolean values ' +
         'as 0 (instead of FALSE) or 1 (instead of TRUE)');
   end;
 
@@ -4418,7 +4418,7 @@ begin
     Value := Lexer.TokenInteger;
   end else
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Integer in the file is out of 32-bit range: %d',
+    WritelnWarning('VRML/X3D', Format('Integer in the file is out of 32-bit range: %d',
       [Lexer.TokenInteger]));
     Value := -1;
   end;
@@ -4801,7 +4801,7 @@ begin
       results (actually, Result would be filled with Nan values).
       VRML spec says that SFRotation should always specify a normalized vector. }
     Result := Pt;
-    OnWarning(wtMajor, 'VRML/X3D', Format('SFRotation field (%s) specifies rotation around zero vector', [NiceName]));
+    WritelnWarning('VRML/X3D', Format('SFRotation field (%s) specifies rotation around zero vector', [NiceName]));
   end;
 end;
 
@@ -4986,7 +4986,7 @@ begin
      (AttributeValue[1] = '"') and
      (AttributeValue[Length(AttributeValue)] = '"') then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'X3D XML: found extra quotes around SFString value. Assuming this is a mistake, and stripping quotes from ''' + AttributeValue + '''. Fix your model: SFString field values should not be enclosed in extra quotes!');
+    WritelnWarning('VRML/X3D', 'X3D XML: found extra quotes around SFString value. Assuming this is a mistake, and stripping quotes from ''' + AttributeValue + '''. Fix your model: SFString field values should not be enclosed in extra quotes!');
     Value := Copy(AttributeValue, 2, Length(AttributeValue) - 2);
   end else
     Value := AttributeValue;
@@ -5057,14 +5057,14 @@ begin
 
   UpperValue := UpperCase(NewValue);
   if UpperValue <> NewValue then
-    OnWarning(wtMajor, 'VRML/X3D', Format('Field "%s" should be uppercase, but is not: "%s"',
+    WritelnWarning('VRML/X3D', Format('Field "%s" should be uppercase, but is not: "%s"',
       [Name, NewValue]));
 
   FEnumValue := FEnumNames.IndexOf(UpperValue);
   if FEnumValue = -1 then
   begin
     FEnumValue := DefaultEnumValue;
-    OnWarning(wtMajor, 'VRML/X3D', Format('Unknown "%s" field value: "%s"',
+    WritelnWarning('VRML/X3D', Format('Unknown "%s" field value: "%s"',
       [Name, NewValue]));
   end;
 end;
@@ -5089,14 +5089,14 @@ begin
 
   UpperDefaultValue := UpperCase(NewDefaultValue);
   if UpperDefaultValue <> NewDefaultValue then
-    OnWarning(wtMajor, 'VRML/X3D', Format('Field default value "%s" should be uppercase, but is not: "%s"',
+    WritelnWarning('VRML/X3D', Format('Field default value "%s" should be uppercase, but is not: "%s"',
       [Name, NewDefaultValue]));
 
   FDefaultEnumValue := FEnumNames.IndexOf(UpperDefaultValue);
   if FDefaultEnumValue = -1 then
   begin
     FDefaultEnumValue := 0;
-    OnWarning(wtMajor, 'VRML/X3D', Format('Unknown "%s" field default value: "%s"',
+    WritelnWarning('VRML/X3D', Format('Unknown "%s" field default value: "%s"',
       [Name, NewDefaultValue]));
   end;
 end;
@@ -5709,7 +5709,7 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Result := Items.L[Index] else
   begin
-    OnWarning_InvalidIndex(Index, Count);
+    WritelnWarning_InvalidIndex(Index, Count);
     Result := TMF_DYN_DEFAULT_SAFE_VALUE;
   end;
 end;
@@ -5719,7 +5719,7 @@ begin
   if (Index >= 0) and (Index < Items.Count) then
     Items.L[Index] := Value else
   begin
-    OnWarning_InvalidIndex(Index, Count);
+    WritelnWarning_InvalidIndex(Index, Count);
   end;
 end;
 
@@ -6086,7 +6086,7 @@ begin
   Result := 'MFLong';
 end;
 
-procedure TMFLong.OnWarning_WrongVertexIndex(
+procedure TMFLong.WritelnWarning_WrongVertexIndex(
   const GeometryNodeTypeName: string;
   const VertexNum: Integer; const CoordCount: Integer);
 const
@@ -6094,10 +6094,10 @@ const
 begin
   Inc(WrongVertexIndexWarnings);
   if WrongVertexIndexWarnings < MaxWrongVertexIndexWarnings then
-    OnWarning(wtMajor, 'VRML/X3D', Format('Wrong vertex index in indexed node %s (not enouch points in Coordinate node defined: index is %d, we have only %d vertices)',
+    WritelnWarning('VRML/X3D', Format('Wrong vertex index in indexed node %s (not enouch points in Coordinate node defined: index is %d, we have only %d vertices)',
       [GeometryNodeTypeName, VertexNum, CoordCount])) else
   if WrongVertexIndexWarnings = MaxWrongVertexIndexWarnings then
-    OnWarning(wtMajor, 'VRML/X3D', Format('Wrong vertex index in indexed node %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
+    WritelnWarning('VRML/X3D', Format('Wrong vertex index in indexed node %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
       [GeometryNodeTypeName, WrongVertexIndexWarnings]));
 end;
 
@@ -6374,7 +6374,7 @@ begin
     except
       on E: EX3DClassicReadError do
       begin
-        OnWarning(wtMajor, 'VRML/X3D', 'Error when reading MFString field "' + Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
+        WritelnWarning('VRML/X3D', 'Error when reading MFString field "' + Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
         Items.Count := 0;
         Items.Add(AttributeValue);
       end;

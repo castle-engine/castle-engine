@@ -49,7 +49,7 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
           end else
             SetupUniforms := false;
         end else
-          OnWarning(wtMinor, 'VRML/X3D', 'Not enough free texture units to bind all textures for this GLSL shader');
+          WritelnWarning('VRML/X3D', 'Not enough free texture units to bind all textures for this GLSL shader');
       end;
     end;
 
@@ -87,12 +87,12 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
       end;
       Result := true;
     except
-      { We capture EGLSLUniformInvalid, converting it to OnWarning.
+      { We capture EGLSLUniformInvalid, converting it to WritelnWarning.
         This way we can set Result := false, which will prevent
         from wasting time and repeating the same warning on every frame. }
       on E: EGLSLUniformInvalid do
       begin
-        OnWarning(wtMinor, 'VRML/X3D', E.Message);
+        WritelnWarning('VRML/X3D', E.Message);
         Result := false;
       end;
     end;

@@ -56,12 +56,12 @@ begin
   GroundIFS := (MeshBasePlaneNode.VRML1Children[4] as TIndexedFaceSetNode_1);
 
   { add Texture2ForMeshBasePlane }
-  Texture2ForMeshBasePlane := TTexture2Node_1.Create('', '');
+  Texture2ForMeshBasePlane := TTexture2Node_1.Create;
   Texture2ForMeshBasePlane.FdFileName.Value := 'textures/base_shadowed.png';
   MeshBasePlaneNode.VRML1ChildAdd(0, Texture2ForMeshBasePlane);
 
   { add TextureCoordinate2ForMeshBasePlane }
-  TextureCoordinate2ForMeshBasePlane := TTextureCoordinate2Node_1.Create('', '');
+  TextureCoordinate2ForMeshBasePlane := TTextureCoordinate2Node_1.Create;
   TextureCoordinate2ForMeshBasePlane.FdPoint.Items.Count :=
     Coordinate3ForMeshBasePlane.FdPoint.Items.Count;
   for i := 0 to Coordinate3ForMeshBasePlane.FdPoint.Items.Count - 1 do

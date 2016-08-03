@@ -203,7 +203,7 @@ begin
     Color := TColorNode(Node.FdColor.Value).FdColor;
     if (Coord <> nil) and (Color.Count < Coord.Count) then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', 'Not enough colors specified for PointSet');
+      WritelnWarning('VRML/X3D', 'Not enough colors specified for PointSet');
       Color := nil;
     end;
   end;
@@ -214,7 +214,7 @@ begin
     ColorRGBA := TColorRGBANode(Node.FdColor.Value).FdColor;
     if (Coord <> nil) and (ColorRGBA.Count < Coord.Count) then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', 'Not enough colors specified for PointSet');
+      WritelnWarning('VRML/X3D', 'Not enough colors specified for PointSet');
       ColorRGBA := nil;
     end;
   end;
@@ -234,7 +234,7 @@ begin
     Arrays.HasDefaultColor := true;
     if State.ShapeNode = nil then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', 'PointSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
+      WritelnWarning('VRML/X3D', 'PointSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
       Arrays.DefaultColor := Vector4Single(WhiteRGB, MaterialOpacity);
     end else
     begin
@@ -341,7 +341,7 @@ begin
     { indexes are just directly from CoordIndex in this case.
       Only make sure we have only full triangles (although nothing really
       requires or promises that, but for the future). }
-    IndexesFromCoordIndex := TLongIntList.Create;
+    IndexesFromCoordIndex := TGeometryIndexList.Create;
     IndexesFromCoordIndex.Assign(CoordIndex.Items);
     IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 3) * 3;
 
@@ -481,7 +481,7 @@ begin
   Arrays.Primitive := gpTriangleFan;
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
-    IndexesFromCoordIndex := TLongIntList.Create;
+    IndexesFromCoordIndex := TGeometryIndexList.Create;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 
@@ -572,7 +572,7 @@ begin
       cause bad rendering of remaining stuff, as we will not add
       count = 1 or 2 (necessary for omitting these vertexes).
       This is invalid according to X3D spec, so no promise of valid rendering. }
-    OnWarning(wtMajor, 'VRML/X3D', 'Triangle fan has less than 3 vertexes.')
+    WritelnWarning('VRML/X3D', 'Triangle fan has less than 3 vertexes.')
 end;
 
 { TTriangleStripSetGenerator -------------------------------------------------- }
@@ -705,7 +705,7 @@ begin
   Arrays.Primitive := gpTriangleStrip;
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
-    IndexesFromCoordIndex := TLongIntList.Create;
+    IndexesFromCoordIndex := TGeometryIndexList.Create;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 
@@ -801,7 +801,7 @@ begin
       cause bad rendering of remaining stuff, as we will not add
       count = 1 or 2 (necessary for omitting these vertexes).
       This is invalid according to X3D spec, so no promise of valid rendering. }
-    OnWarning(wtMajor, 'VRML/X3D', 'Triangle strip has less than 3 vertexes.');
+    WritelnWarning('VRML/X3D', 'Triangle strip has less than 3 vertexes.');
 end;
 
 { TQuadSetGenerator ------------------------------------------------------- }
@@ -887,7 +887,7 @@ begin
     { indexes are just directly from CoordIndex in this case.
       Only make sure we have only full quads (although nothing really
       requires or promises that, but for the future). }
-    IndexesFromCoordIndex := TLongIntList.Create;
+    IndexesFromCoordIndex := TGeometryIndexList.Create;
     IndexesFromCoordIndex.Assign(CoordIndex.Items);
     IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 4) * 4;
   end;
@@ -956,7 +956,7 @@ begin
   Arrays.Primitive := gpLineStrip;
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
-    IndexesFromCoordIndex := TLongIntList.Create;
+    IndexesFromCoordIndex := TGeometryIndexList.Create;
   Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 
@@ -1046,7 +1046,7 @@ begin
     Arrays.HasDefaultColor := true;
     if State.ShapeNode = nil then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', 'LineSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
+      WritelnWarning('VRML/X3D', 'LineSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
       Arrays.DefaultColor := Vector4Single(WhiteRGB, MaterialOpacity)
     end else
     begin

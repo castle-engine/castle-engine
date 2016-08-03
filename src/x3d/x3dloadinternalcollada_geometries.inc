@@ -116,7 +116,7 @@ procedure AddGeometryInstance(Group: TAbstractX3DGroupingNode;
     Effect := Materials.Find(MaterialId);
     if Effect = nil then
     begin
-      OnWarning(wtMinor, 'Collada', Format('Referencing non-existing material name "%s"',
+      WritelnWarning('Collada', Format('Referencing non-existing material name "%s"',
         [MaterialId]));
       Result := nil;
     end else
@@ -154,11 +154,11 @@ begin
     Delete(GeometryId, 1, 1);
     Geometry := Geometries.Find(GeometryId);
     if Geometry = nil then
-      OnWarning(wtMinor, 'Collada', Format('<node> instantiates non-existing <geometry> element "%s"',
+      WritelnWarning('Collada', Format('<node> instantiates non-existing <geometry> element "%s"',
         [GeometryId])) else
       AddGeometryInstance(ParentGroup, Geometry, InstantiatingElement);
   end else
-    OnWarning(wtMajor, 'Collada', Format('Element <%s> missing url attribute (that has to start with #)',
+    WritelnWarning('Collada', Format('Element <%s> missing url attribute (that has to start with #)',
       [InstantiatingElement.TagName]));
 end;
 
@@ -220,7 +220,7 @@ var
       if not FloatArray.AttributeInteger('count', FloatArrayCount) then
       begin
         FloatArrayCount := 0;
-        OnWarning(wtMinor, 'Collada', '<float_array> without a count attribute');
+        WritelnWarning('Collada', '<float_array> without a count attribute');
       end;
 
       if not FloatArray.AttributeString('id', FloatArrayId) then
@@ -235,7 +235,7 @@ var
         Token := NextToken(FloatArrayContents, SeekPos);
         if Token = '' then
         begin
-          OnWarning(wtMinor, 'Collada', 'Actual number of tokens in <float_array>' +
+          WritelnWarning('Collada', 'Actual number of tokens in <float_array>' +
             ' less than declated in the count attribute');
           Break;
         end;
@@ -258,7 +258,7 @@ var
 
         if not Accessor.AttributeInteger('count', Source.Count) then
         begin
-          OnWarning(wtMinor, 'Collada', '<accessor> has no count attribute');
+          WritelnWarning('Collada', '<accessor> has no count attribute');
           Source.Count := 0;
         end;
 
@@ -272,13 +272,13 @@ var
 
         if not Accessor.AttributeString('source', AccessorSource) then
         begin
-          OnWarning(wtMinor, 'Collada', '<accessor> has no source attribute');
+          WritelnWarning('Collada', '<accessor> has no source attribute');
           AccessorSource := '';
         end;
 
         { We read AccessorSource only to check here }
         if AccessorSource <> '#' + FloatArrayId then
-          OnWarning(wtMajor, 'Collada', '<accessor> source does not refer to <float_array> in the same <source>, this is not supported');
+          WritelnWarning('Collada', '<accessor> source does not refer to <float_array> in the same <source>, this is not supported');
 
         It := Accessor.ChildrenIterator('param');
         try
@@ -286,20 +286,20 @@ var
           begin
             if not It.Current.AttributeString('name', ParamName) then
             begin
-              OnWarning(wtMajor, 'Collada', 'Missing "name" of <param>');
+              WritelnWarning('Collada', 'Missing "name" of <param>');
               { TODO: this should not be required? }
               Continue;
             end;
 
             if not It.Current.AttributeString('type', ParamType) then
             begin
-              OnWarning(wtMajor, 'Collada', 'Missing "type" of <param>');
+              WritelnWarning('Collada', 'Missing "type" of <param>');
               Continue;
             end;
 
             if ParamType <> 'float' then
             begin
-              OnWarning(wtMajor, 'Collada', Format('<param> type "%s" is not supported',
+              WritelnWarning('Collada', Format('<param> type "%s" is not supported',
                 [ParamType]));
               Continue;
             end;
@@ -346,7 +346,7 @@ var
   begin
     if Coord <> nil then
     begin
-      OnWarning(wtMajor, 'Collada', '<vertices> specified multiple times within a geometry');
+      WritelnWarning('Collada', '<vertices> specified multiple times within a geometry');
       FreeIfUnusedAndNil(Coord);
     end;
 
@@ -372,14 +372,14 @@ var
             Exit;
           end else
           begin
-            OnWarning(wtMinor, 'Collada', Format('Source attribute ' +
+            WritelnWarning('Collada', Format('Source attribute ' +
               '(of <input> element within <vertices>) ' +
               'references non-existing source "%s"', [InputSourceName]));
           end;
         end;
     finally FreeAndNil(I) end;
 
-    OnWarning(wtMinor, 'Collada', '<vertices> element has no <input> child' +
+    WritelnWarning('Collada', '<vertices> element has no <input> child' +
       ' with semantic="POSITION" and some source attribute');
   end;
 
@@ -454,7 +454,7 @@ var
             if not (I.Current.AttributeString('source', InputSourceId) and
                     (Coord <> nil) and
                     (InputSourceId = '#' + Coord.NodeName))  then
-              OnWarning(wtMinor, 'Collada', '<input> with semantic="VERTEX" (of primitive element within <mesh>) does not reference <vertices> element within the same <mesh>');
+              WritelnWarning('Collada', '<input> with semantic="VERTEX" (of primitive element within <mesh>) does not reference <vertices> element within the same <mesh>');
 
             { Collada requires offset in this case.
               For us, if there's no offset, just leave CoordIndexOffset default. }
@@ -487,11 +487,11 @@ var
                   InputSource.AssignToVectorST(LastTexCoord.FdPoint.Items);
                   IndexedFaceSet.FdTexCoord.Value := LastTexCoord;
                 end else
-                  OnWarning(wtMinor, 'Collada', Format('<source> with id "%s" for texture coordinates not found',
+                  WritelnWarning('Collada', Format('<source> with id "%s" for texture coordinates not found',
                     [InputSourceId]));
               end;
             end else
-              OnWarning(wtMinor, 'Collada', 'Missing source for <input> with semantic="TEXCOORD". We have texture coord indexes, but they will be ignored, since we have no actual texture coords');
+              WritelnWarning('Collada', 'Missing source for <input> with semantic="TEXCOORD". We have texture coord indexes, but they will be ignored, since we have no actual texture coords');
           end else
           if InputSemantic = 'NORMAL' then
           begin
@@ -520,11 +520,11 @@ var
                   InputSource.AssignToVectorXYZ(LastNormal.FdVector.Items);
                   IndexedFaceSet.FdNormal.Value := LastNormal;
                 end else
-                  OnWarning(wtMinor, 'Collada', Format('<source> with id "%s" for normals not found',
+                  WritelnWarning('Collada', Format('<source> with id "%s" for normals not found',
                     [InputSourceId]));
               end;
             end else
-              OnWarning(wtMinor, 'Collada', 'Missing source for <input> with semantic="NORMAL". We have normal indexes, but they will be ignored, since we have no actual normals');
+              WritelnWarning('Collada', 'Missing source for <input> with semantic="NORMAL". We have normal indexes, but they will be ignored, since we have no actual normals');
           end;
         end;
       end;
@@ -578,7 +578,7 @@ var
             for I := 0 to VCount.Current - 1 do
               if not Indexes.ReadAddVertex then
               begin
-                OnWarning(wtMinor, 'Collada', 'Unexpected end of <p> data in <polylist>');
+                WritelnWarning('Collada', 'Unexpected end of <p> data in <polylist>');
                 Exit;
               end;
             Indexes.PolygonEnd;
@@ -772,7 +772,7 @@ begin
             ReadLines(I.Current) else
           if I.Current.TagName = 'linestrips' then
             ReadLineStrips(I.Current) else
-            OnWarning(wtMajor, 'Collada', Format('Element "%s" within <mesh> not supported',
+            WritelnWarning('Collada', Format('Element "%s" within <mesh> not supported',
               [I.Current.TagName]));
       finally FreeAndNil(I) end;
     finally

@@ -22,6 +22,8 @@ uses
 
 type
   TTestCastle3D = class(TCastleBaseTestCase)
+  strict private
+    procedure DoTestWorld(const PrematureFree: boolean);
   published
     procedure TestMy3D;
     procedure TestMy3DNotExists;
@@ -35,6 +37,10 @@ type
     procedure TestList;
     procedure TestViewVectorsOrthogonal1;
     procedure TestViewVectorsOrthogonal2;
+    procedure TestListNotification;
+    procedure TestWorldFull;
+    procedure TestWorldPrematureFree;
+    procedure TestWorldFreeBeforeItem;
   end;
 
 implementation
@@ -826,6 +832,187 @@ begin
   AssertVectorsEqual(AnyOrthogonalVector(Vector3Single(1, 0, 0)), O.Up, 0.1);
 
   FreeAndNil(O);
+end;
+
+procedure TTestCastle3D.TestListNotification;
+var
+  O1List: T3DList;
+  O1: T3D;
+begin
+  {$warnings off} { don't warn about creating with abstract methods here }
+  O1 := T3D.Create(nil); O1.Name := 'O1';
+  {$warnings on}
+  O1List := T3DList.Create(nil); O1List.Name := 'O1List';
+
+  AssertTrue(O1List.Count = 0);
+  O1List.Add(O1);
+  AssertTrue(O1List.Count = 1);
+  FreeAndNil(O1); // freeing O1 should also remove it from O1List automatically
+  AssertTrue(O1List.Count = 0);
+  FreeAndNil(O1List);
+end;
+
+procedure TTestCastle3D.TestWorldFull;
+begin
+  DoTestWorld(false);
+end;
+
+procedure TTestCastle3D.TestWorldPrematureFree;
+begin
+  DoTestWorld(true);
+end;
+
+procedure TTestCastle3D.DoTestWorld(const PrematureFree: boolean);
+var
+  World1, World2: T3DWorld;
+  O1List, O2List: T3DList;
+  O1, O2: T3D;
+begin
+  World1 := nil;
+  World2 := nil;
+  try
+    {$warnings off} { don't warn about creating with abstract methods here }
+    World1 := T3DWorld.Create(nil); World1.Name := 'World1';
+    World2 := T3DWorld.Create(nil); World2.Name := 'World2';
+    O1 := T3D.Create(World1); O1.Name := 'O1';
+    O2 := T3D.Create(World1); O2.Name := 'O2';
+    {$warnings on}
+
+    O1List := T3DList.Create(World1); O1List.Name := 'O1List';
+    O2List := T3DList.Create(World1); O2List.Name := 'O2List';
+
+    AssertTrue(World1 = World1.World);
+    AssertTrue(World2 = World2.World);
+    AssertTrue(nil = O1.World);
+    AssertTrue(nil = O2.World);
+    AssertTrue(nil = O1List.World);
+    AssertTrue(nil = O2List.World);
+
+    World1.Add(O1List);
+    World1.Add(O1); // now O1 is present in World1 1 time
+    AssertTrue(World1.Count = 2);
+
+    AssertTrue(World1 = O1.World);
+    AssertTrue(nil = O2.World);
+    AssertTrue(World1 = O1List.World);
+    AssertTrue(nil = O2List.World);
+
+    O1List.Add(O1); // now O1 is present in World1 2 times
+
+    AssertTrue(World1 = O1.World);
+    AssertTrue(nil = O2.World);
+    AssertTrue(World1 = O1List.World);
+    AssertTrue(nil = O2List.World);
+
+    O1List.Add(O1); // now O1 is present in World1 3 times
+
+    AssertTrue(World1 = O1.World);
+    AssertTrue(nil = O2.World);
+    AssertTrue(World1 = O1List.World);
+    AssertTrue(nil = O2List.World);
+
+    O1List.Remove(O1); // now O1 is present in World1 2 times
+
+    AssertTrue(World1 = O1.World);
+    AssertTrue(nil = O2.World);
+    AssertTrue(World1 = O1List.World);
+    AssertTrue(nil = O2List.World);
+
+    if PrematureFree then
+      Exit; // test freeing now
+
+    World1.Remove(O1); // now O1 is present in World1 1 time
+    AssertTrue(World1.Count = 1);
+
+    AssertTrue(World1 = O1.World);
+    AssertTrue(nil = O2.World);
+    AssertTrue(World1 = O1List.World);
+    AssertTrue(nil = O2List.World);
+
+    O1List.Remove(O1); // now O1 is not present in World1
+
+    //AssertTrue(nil = O1.World); // for now, we don't unassign O1.World yet
+    AssertTrue(World1 = O1.World);
+    AssertTrue(nil = O2.World);
+    AssertTrue(World1 = O1List.World);
+    AssertTrue(nil = O2List.World);
+
+    World2.Add(O1);
+    AssertTrue(World2.Count = 1);
+
+    AssertTrue(World2 = O1.World);
+    AssertTrue(nil = O2.World);
+    AssertTrue(World1 = O1List.World);
+    AssertTrue(nil = O2List.World);
+
+    { these are incorrect (you should remove object from previous world first),
+      but are harmless in practice now. }
+
+    // try
+      World1.Add(O1);
+      AssertTrue(World1.Count = 2);
+    //   raise Exception.Create('Adding T3D to different World should not be possible');
+    // except on E: ECannotAddToAnotherWorld do ; end;
+
+    // try
+      World2.Add(O1List);
+      AssertTrue(World2.Count = 2);
+    //   raise Exception.Create('Adding T3D to different World should not be possible');
+    // except on E: ECannotAddToAnotherWorld do ; end;
+  finally
+    FreeAndNil(World1);
+    { freeing World1 also frees the things it owned -- which includes
+      O1 and O1List within World2. }
+    AssertTrue('World2.Count = 0 at the end', World2.Count = 0);
+    FreeAndNil(World2);
+  end;
+end;
+
+procedure TTestCastle3D.TestWorldFreeBeforeItem;
+var
+  World1: T3DWorld;
+  O1List: T3DList;
+  O1: T3D;
+begin
+  {$warnings off} { don't warn about creating with abstract methods here }
+  World1 := T3DWorld.Create(nil); World1.Name := 'World1';
+  O1 := T3D.Create(nil); O1.Name := 'O1';
+  {$warnings on}
+  O1List := T3DList.Create(nil); O1List.Name := 'O1List';
+
+  Assert(World1 = World1.World);
+  Assert(nil = O1.World);
+  Assert(nil = O1List.World);
+
+  World1.Add(O1List);
+  O1List.Add(O1);
+
+  Assert(World1 = World1.World);
+  Assert(World1 = O1.World);
+  Assert(World1 = O1List.World);
+  Assert(World1.Count = 1);
+  Assert(O1List.Count = 1);
+
+  World1.Add(O1); // now O1 is present in World1 2 times
+
+  Assert(World1 = World1.World);
+  Assert(World1 = O1.World);
+  Assert(World1 = O1List.World);
+  Assert(World1.Count = 2);
+  Assert(O1List.Count = 1);
+
+  FreeAndNil(World1);
+
+  Assert(nil = O1.World);
+  Assert(nil = O1List.World);
+  Assert(O1List.Count = 1);
+
+  FreeAndNil(O1);
+
+  Assert(nil = O1List.World);
+  Assert(O1List.Count = 0);
+
+  FreeAndNil(O1List);
 end;
 
 initialization

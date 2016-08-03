@@ -73,6 +73,9 @@ var
   TouchCtlFlyOuter: TGrayscaleAlphaImage;
 
 var
+  Loading: TGrayscaleAlphaImage;
+
+var
   Crosshair1: TGrayscaleAlphaImage;
 
 var
@@ -174,6 +177,9 @@ initialization
   TouchCtlFlyOuter := TGrayscaleAlphaImage.Create(TouchCtlFlyOuterWidth, TouchCtlFlyOuterHeight, TouchCtlFlyOuterDepth);
   Move(TouchCtlFlyOuterPixels, TouchCtlFlyOuter.RawPixels^, SizeOf(TouchCtlFlyOuterPixels));
   TouchCtlFlyOuter.URL := 'embedded-image:/TouchCtlFlyOuter';
+  Loading := TGrayscaleAlphaImage.Create(LoadingWidth, LoadingHeight, LoadingDepth);
+  Move(LoadingPixels, Loading.RawPixels^, SizeOf(LoadingPixels));
+  Loading.URL := 'embedded-image:/Loading';
   Crosshair1 := TGrayscaleAlphaImage.Create(Crosshair1Width, Crosshair1Height, Crosshair1Depth);
   Move(Crosshair1Pixels, Crosshair1.RawPixels^, SizeOf(Crosshair1Pixels));
   Crosshair1.URL := 'embedded-image:/Crosshair1';
@@ -223,6 +229,7 @@ finalization
   FreeAndNil(TouchCtlOuter);
   FreeAndNil(TouchCtlFlyInner);
   FreeAndNil(TouchCtlFlyOuter);
+  FreeAndNil(Loading);
   FreeAndNil(Crosshair1);
   FreeAndNil(Crosshair2);
   FreeAndNil(ScrollbarSlider);

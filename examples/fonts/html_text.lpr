@@ -24,8 +24,10 @@ uses SysUtils, Classes,
 const
   Margin = 10;
 var
+  Window: TCastleWindowCustom;
   Label1: TCastleLabel;
   ButtonHtml, ButtonWrap, ButtonAlignLeft, ButtonAlignMiddle, ButtonAlignRight: TCastleButton;
+  ScrollView: TCastleScrollView;
 
 type
   TButtonHandler = class
@@ -40,6 +42,7 @@ class procedure TButtonHandler.ClickHtml(Sender: TObject);
 begin
   ButtonHtml.Pressed := not ButtonHtml.Pressed;
   Label1.Html := ButtonHtml.Pressed;
+  Window.Container.EventResize; // cause WindowResize now, since Label1 sizes changed
 end;
 
 class procedure TButtonHandler.ClickWrap(Sender: TObject);
@@ -48,6 +51,7 @@ begin
   if ButtonWrap.Pressed then
     Label1.MaxWidth := Label1.Container.Width - Margin * 2 else
     Label1.MaxWidth := 0;
+  Window.Container.EventResize; // cause WindowResize now, since Label1 sizes changed
 end;
 
 class procedure TButtonHandler.ClickAlignLeft(Sender: TObject);
@@ -77,11 +81,15 @@ end;
 procedure WindowResize(Container: TUIContainer);
 begin
   if ButtonWrap.Pressed then
-    Label1.MaxWidth := Container.Width - Margin * 2;
+    Label1.MaxWidth := Container.UnscaledWidth - Margin * 2 - ScrollView.ScrollBarWidth;
+
+  ScrollView.Width := Container.UnscaledWidth;
+  ScrollView.Height := Container.UnscaledHeight - 2 * Margin - ButtonHtml.Height;
+  ScrollView.ScrollArea.Width := Label1.CalculatedWidth;
+  ScrollView.ScrollArea.Height := Label1.CalculatedHeight;
 end;
 
 var
-  Window: TCastleWindowCustom;
   Background: TCastleSimpleBackground;
   Font: TFontFamily;
 begin
@@ -145,14 +153,18 @@ begin
   ButtonAlignLeft.Pressed := true;
   Window.Controls.InsertFront(ButtonAlignLeft);
 
+  ScrollView := TCastleScrollView.Create(Window);
+  ScrollView.Anchor(vpTop);
+  ScrollView.EnableDragging := true;
+  Window.Controls.InsertFront(ScrollView);
+
   Label1 := TCastleLabel.Create(Window);
   Label1.Text.Text := {$I html_text_demo.html.inc};
   Label1.CustomFont := Font;
   Label1.Left := Margin;
-  Label1.Bottom := 2 * Margin + ButtonHtml.Height;
   Label1.Html := ButtonHtml.Pressed;
   Label1.Color := Black;
-  Window.Controls.InsertFront(Label1);
+  ScrollView.ScrollArea.InsertFront(Label1);
 
   Window.OnResize := @WindowResize;
   Window.OpenAndRun;

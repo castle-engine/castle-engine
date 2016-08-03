@@ -45,6 +45,7 @@ examples/android/android_demo/android/bin/
 examples/android/android_demo/android/libs/
 examples/android/android_demo/androiddemo
 examples/android/android_demo/androiddemo_standalone
+examples/android/android_demo/libandroiddemo.so
 examples/android/drawing_toy/android/assets/
 examples/android/drawing_toy/android/bin/
 examples/android/drawing_toy/android/build.xml
@@ -53,6 +54,7 @@ examples/android/drawing_toy/android/libs/
 examples/android/drawing_toy/android/local.properties
 examples/android/drawing_toy/android/obj/
 examples/android/drawing_toy/drawing_toy
+examples/android/drawing_toy/libdrawing_toy.so
 examples/audio/algets
 examples/audio/alplay
 examples/audio/doppler_demo
@@ -137,6 +139,12 @@ tools/build-tool/data/android/integrated-components/heyzap/AudienceNetwork/
 tools/build-tool/data/android/integrated-components/heyzap/unity-ads/
 tools/build-tool/data/android/integrated-components/heyzap/libs/*.jar
 tools/build-tool/data/android/integrated-components/startapp/libs/*.jar
+tools/build-tool/data/android/integrated-components/helpshift/appcompat/
+tools/build-tool/data/android/integrated-components/helpshift/assets/
+tools/build-tool/data/android/integrated-components/helpshift/cardview/
+tools/build-tool/data/android/integrated-components/helpshift/design/
+tools/build-tool/data/android/integrated-components/helpshift/helpshift-sdk-android/
+tools/build-tool/data/android/integrated-components/helpshift/recyclerview/
 tools/castle-curves/castle-curves
 tools/castle-curves/castle-curves.exe
 examples/curves_surfaces/simplest_curve_read

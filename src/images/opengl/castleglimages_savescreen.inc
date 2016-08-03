@@ -87,15 +87,13 @@ procedure SaveScreen_NoFlush(const Image: TCastleImage;
   const Left, Bottom: Integer; const ReadBuffer: TColorBuffer);
 
   procedure ReadPixels(const Image: TCastleImage);
-  var
-    PackData: TPackNotAlignedData;
   begin
-    BeforePackImage(PackData, Image);
+    BeforePackImage(Image);
     try
       SetReadBuffer(ColorBufferGL[ReadBuffer]);
       glReadPixels(Left, Bottom, Image.Width, Image.Height, ImageGLFormat(Image),
         ImageGLType(Image), Image.RawPixels);
-    finally AfterPackImage(PackData, Image) end;
+    finally AfterPackImage(Image) end;
   end;
 
 {$ifdef OpenGLES}

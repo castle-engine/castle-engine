@@ -28,13 +28,14 @@ program dynamic_ambient_occlusion;
 
 {$I castleconf.inc}
 
-uses CastleVectors, CastleGL, CastleWindow, CastleTriangles,
-  CastleClassUtils, CastleUtils, SysUtils, Classes, CastleKeysMouse,
+uses SysUtils, Classes, Math,
+  CastleVectors, CastleGL, CastleWindow, CastleTriangles,
+  CastleClassUtils, CastleUtils, CastleKeysMouse,
   CastleGLUtils, CastleSceneCore, CastleScene, Castle3D, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleGLShaders, CastleShapes,
-  X3DFields, CastleImages, CastleGLImages, CastleMessages, CastleWarnings,
-  CastleGLVersion, Math, CastleSceneManager, CastleRenderingCamera,
-  CastleGenericLists, CastleRectangles;
+  X3DFields, CastleImages, CastleGLImages, CastleMessages, CastleLog,
+  CastleGLVersion, CastleSceneManager, CastleRenderingCamera,
+  CastleGenericLists, CastleRectangles, CastleApplicationProperties;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
@@ -750,7 +751,9 @@ begin
 
   if GLVersion.Fglrx then
   begin
-    ShaderString := '#define FGLRX' + NL + ShaderString;
+    StringReplaceAllVar(ShaderString,
+      '/*$defines*/',
+      '/*$defines*/' + NL + '#define FGLRX');
   end else
   begin
     { Integer constants are really constant for the shader.
@@ -765,7 +768,7 @@ begin
   GLSLProgram[0].AttachFragmentShader(ShaderString);
   { For this test program, we eventually allow shader to run in software.
     We display debug info, so user should know what's going on. }
-  GLSLProgram[0].Link(false);
+  GLSLProgram[0].Link;
   { Only warn on non-used uniforms. This is more comfortable for shader
     development, you can easily comment shader parts. }
   GLSLProgram[0].UniformNotFoundAction := uaWarning;
@@ -774,11 +777,13 @@ begin
 
   { Analogously, load GLSLProgram[1] (for 2nd pass). The only difference
     is that we #define PASS_2 this time. }
-  ShaderString := '#define PASS_2' + NL + ShaderString;
+  StringReplaceAllVar(ShaderString,
+    '/*$defines*/',
+    '/*$defines*/' + NL + '#define PASS_2');
   GLSLProgram[1] := TGLSLProgram.Create;
   GLSLProgram[1].AttachFragmentShader(ShaderString);
   GLSLProgram[1].UniformNotFoundAction := uaWarning;
-  GLSLProgram[1].Link(false);
+  GLSLProgram[1].Link;
   Writeln('----------------------------- Shader for 2nd pass:');
   Writeln(GLSLProgram[1].DebugInfo);
 
@@ -893,7 +898,7 @@ begin
     ModelFileName := Parameters[1];
 
   try
-    OnWarning := @OnWarningWrite;
+    ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
     Scene := TCastleScene.Create(Window);
     Scene.Load(ModelFileName);

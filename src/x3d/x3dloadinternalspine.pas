@@ -32,7 +32,7 @@ implementation
 uses SysUtils, Classes, FGL, FpJson, JSONParser, JSONScanner, Math,
   CastleVectors, CastleUtils, CastleLog, CastleURIUtils, CastleDownload,
   CastleStringUtils, CastleClassUtils, CastleColors,
-  X3DLoadInternalUtils, CastleWarnings, X3DFields, CastleGenericLists;
+  X3DLoadInternalUtils, X3DFields, CastleGenericLists;
 
 type
   ESpineReadError = class(Exception);

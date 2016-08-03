@@ -255,6 +255,11 @@ type
     function GetMousePosition: TVector2Single; virtual; abstract;
     procedure SetMousePosition(const Value: TVector2Single); virtual; abstract;
     function GetTouches(const Index: Integer): TTouch; virtual; abstract;
+
+    { Get the default UI scale of controls.
+      Useful only when GLInitialized, when we know that our size is sensible.
+      Most UI code should rather be placed in TUIControl, and use TUIControl.UIScale. }
+    function DefaultUIScale: Single;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1509,7 +1514,7 @@ const
 
 implementation
 
-uses CastleLog, CastleWarnings;
+uses CastleLog;
 
 { TTouchList ----------------------------------------------------------------- }
 
@@ -2446,7 +2451,7 @@ begin
   WritelnLog('ml', Format('Mouse Position is %f,%f. Good for mouse look? %s. Setting pos to %f,%f if needed',
     [MousePosition[0],
      MousePosition[1],
-     BoolToStr[IsMousePositionForMouseLook],
+     BoolToStr(IsMousePositionForMouseLook, true),
      Single(Width div 2),
      Single(Height div 2)]));
 }
@@ -2494,6 +2499,37 @@ begin
   end;
 end;
 
+function TUIContainer.DefaultUIScale: Single;
+begin
+  case UIScaling of
+    usNone         : Result := 1;
+    usExplicitScale: Result := UIExplicitScale;
+    usEncloseReferenceSize, usFitReferenceSize:
+      begin
+        Result := 1;
+
+        { don't do adjustment before our Width/Height are sensible }
+        if not GLInitialized then Exit;
+
+        if (UIReferenceWidth <> 0) and (Width > 0) then
+        begin
+          Result := Width / UIReferenceWidth;
+          if (UIReferenceHeight <> 0) and (Height > 0) then
+            if UIScaling = usEncloseReferenceSize then
+              MinVar(Result, Height / UIReferenceHeight) else
+              MaxVar(Result, Height / UIReferenceHeight);
+        end else
+        if (UIReferenceHeight <> 0) and (Height > 0) then
+          Result := Height / UIReferenceHeight;
+        WritelnLog('Scaling', 'Automatic scaling to reference sizes %dx%d in effect. Actual window size is %dx%d. Calculated scale is %f, which simulates surface of size %dx%d.',
+          [UIReferenceWidth, UIReferenceHeight,
+           Width, Height,
+           Result, Round(Width / Result), Round(Height / Result)]);
+      end;
+    else raise EInternalError.Create('UIScaling unknown');
+  end;
+end;
+
 procedure TUIContainer.UpdateUIScale;
 
   procedure RecursiveUIScaleChanged(const C: TUIControl);
@@ -2506,36 +2542,9 @@ procedure TUIContainer.UpdateUIScale;
   end;
 
 var
-  S: Single;
   I: Integer;
 begin
-  case UIScaling of
-    usNone         : S := 1;
-    usExplicitScale: S := UIExplicitScale;
-    usEncloseReferenceSize, usFitReferenceSize:
-      begin
-        { don't do this before our Width/Height are sensible }
-        if not GLInitialized then Exit;
-
-        S := 1;
-        if (UIReferenceWidth <> 0) and (Width > 0) then
-        begin
-          S := Width / UIReferenceWidth;
-          if (UIReferenceHeight <> 0) and (Height > 0) then
-            if UIScaling = usEncloseReferenceSize then
-              MinVar(S, Height / UIReferenceHeight) else
-              MaxVar(S, Height / UIReferenceHeight);
-        end else
-        if (UIReferenceHeight <> 0) and (Height > 0) then
-          S := Height / UIReferenceHeight;
-        WritelnLog('Scaling', 'Automatic scaling to reference sizes %dx%d in effect. Calculated scale is %f, which simulates surface of size %dx%d',
-          [UIReferenceWidth, UIReferenceHeight, S, Round(Width / S), Round(Height / S)]);
-      end;
-    else raise EInternalError.Create('UIScaling unknown');
-  end;
-
-  FCalculatedUIScale := S;
-
+  FCalculatedUIScale := DefaultUIScale;
   for I := 0 to Controls.Count - 1 do
     RecursiveUIScaleChanged(Controls[I]);
 end;
@@ -3446,7 +3455,7 @@ begin
       begin
         if ((C.FContainer <> nil) or (C.FParent <> nil)) and
            ((Container <> nil) or (FParent <> nil)) then
-          OnWarning(wtMajor, 'UI', 'Inserting to the UI list (InsertFront, InsertBack) an item that is already a part of other UI list: ' + C.Name + ' (' + C.ClassName + '). The result is undefined, you cannot insert the same TUIControl instance multiple times.');
+          WritelnWarning('UI', 'Inserting to the UI list (InsertFront, InsertBack) an item that is already a part of other UI list: ' + C.Name + ' (' + C.ClassName + '). The result is undefined, you cannot insert the same TUIControl instance multiple times.');
         C.FreeNotification(FCaptureFreeNotifications);
         if Container <> nil then RegisterContainer(C, FContainer);
         C.FParent := FParent;

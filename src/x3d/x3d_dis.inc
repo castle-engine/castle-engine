@@ -685,28 +685,28 @@ begin
   inherited;
 
   FFdAddress := TSFString.Create(Self, 'address', 'localhost');
-  Fields.Add(FFdAddress);
+  AddField(FFdAddress);
 
   FFdApplicationID := TSFInt32.Create(Self, 'applicationID', 1);
-  Fields.Add(FFdApplicationID);
+  AddField(FFdApplicationID);
   { X3D specification comment: [0,65535] }
 
   FFdMapping := TMFNode.Create(Self, 'mapping', [TDISEntityTypeMappingNode]);
-  Fields.Add(FFdMapping);
+  AddField(FFdMapping);
 
   FFdPort := TSFInt32.Create(Self, 'port', 0);
-  Fields.Add(FFdPort);
+  AddField(FFdPort);
   { X3D specification comment: [0,65535] }
 
   FFdSiteID := TSFInt32.Create(Self, 'siteID', 0);
-  Fields.Add(FFdSiteID);
+  AddField(FFdSiteID);
   { X3D specification comment: [0,65535] }
 
   FEventAddedEntities := TMFNodeEvent.Create(Self, 'addedEntities', false);
-  Events.Add(FEventAddedEntities);
+  AddEvent(FEventAddedEntities);
 
   FEventRemovedEntities := TMFNodeEvent.Create(Self, 'removedEntities', false);
-  Events.Add(FEventRemovedEntities);
+  AddEvent(FEventRemovedEntities);
 
   DefaultContainerField := 'children';
 end;
@@ -727,42 +727,42 @@ begin
   inherited;
 
   FFdUrl := TMFString.Create(Self, 'url', []);
-  Fields.Add(FFdUrl);
+  AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
   FFdCategory := TSFInt32.Create(Self, 'category', 0);
   FFdCategory.Exposed := false;
-  Fields.Add(FFdCategory);
+  AddField(FFdCategory);
   { X3D specification comment: [0,255] }
 
   FFdCountry := TSFInt32.Create(Self, 'country', 0);
   FFdCountry.Exposed := false;
-  Fields.Add(FFdCountry);
+  AddField(FFdCountry);
   { X3D specification comment: [0,65535] }
 
   FFdDomain := TSFInt32.Create(Self, 'domain', 0);
   FFdDomain.Exposed := false;
-  Fields.Add(FFdDomain);
+  AddField(FFdDomain);
   { X3D specification comment: [0,255] }
 
   FFdExtra := TSFInt32.Create(Self, 'extra', 0);
   FFdExtra.Exposed := false;
-  Fields.Add(FFdExtra);
+  AddField(FFdExtra);
   { X3D specification comment: [0,255] }
 
   FFdKind := TSFInt32.Create(Self, 'kind', 0);
   FFdKind.Exposed := false;
-  Fields.Add(FFdKind);
+  AddField(FFdKind);
   { X3D specification comment: [0,255] }
 
   FFdSpecific := TSFInt32.Create(Self, 'specific', 0);
   FFdSpecific.Exposed := false;
-  Fields.Add(FFdSpecific);
+  AddField(FFdSpecific);
   { X3D specification comment: [0,255] }
 
   FFdSubcategory := TSFInt32.Create(Self, 'subcategory', 0);
   FFdSubcategory.Exposed := false;
-  Fields.Add(FFdSubcategory);
+  AddField(FFdSubcategory);
   { X3D specification comment: [0,255] }
 
   DefaultContainerField := 'children';
@@ -784,301 +784,301 @@ begin
   inherited;
 
   FEventSet_articulationParameterValue0 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue0', true);
-  Events.Add(FEventSet_articulationParameterValue0);
+  AddEvent(FEventSet_articulationParameterValue0);
 
   FEventSet_articulationParameterValue1 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue1', true);
-  Events.Add(FEventSet_articulationParameterValue1);
+  AddEvent(FEventSet_articulationParameterValue1);
 
   FEventSet_articulationParameterValue2 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue2', true);
-  Events.Add(FEventSet_articulationParameterValue2);
+  AddEvent(FEventSet_articulationParameterValue2);
 
   FEventSet_articulationParameterValue3 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue3', true);
-  Events.Add(FEventSet_articulationParameterValue3);
+  AddEvent(FEventSet_articulationParameterValue3);
 
   FEventSet_articulationParameterValue4 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue4', true);
-  Events.Add(FEventSet_articulationParameterValue4);
+  AddEvent(FEventSet_articulationParameterValue4);
 
   FEventSet_articulationParameterValue5 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue5', true);
-  Events.Add(FEventSet_articulationParameterValue5);
+  AddEvent(FEventSet_articulationParameterValue5);
 
   FEventSet_articulationParameterValue6 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue6', true);
-  Events.Add(FEventSet_articulationParameterValue6);
+  AddEvent(FEventSet_articulationParameterValue6);
 
   FEventSet_articulationParameterValue7 := TSFFloatEvent.Create(Self, 'set_articulationParameterValue7', true);
-  Events.Add(FEventSet_articulationParameterValue7);
+  AddEvent(FEventSet_articulationParameterValue7);
 
   FFdAddress := TSFString.Create(Self, 'address', 'localhost');
-  Fields.Add(FFdAddress);
+  AddField(FFdAddress);
 
   FFdApplicationID := TSFInt32.Create(Self, 'applicationID', 1);
-  Fields.Add(FFdApplicationID);
+  AddField(FFdApplicationID);
   { X3D specification comment: [0,65535] }
 
   FFdArticulationParameterCount := TSFInt32.Create(Self, 'articulationParameterCount', 0);
-  Fields.Add(FFdArticulationParameterCount);
+  AddField(FFdArticulationParameterCount);
   { X3D specification comment: [0,78] }
 
   FFdArticulationParameterDesignatorArray := TMFInt32.Create(Self, 'articulationParameterDesignatorArray', []);
-  Fields.Add(FFdArticulationParameterDesignatorArray);
+  AddField(FFdArticulationParameterDesignatorArray);
   { X3D specification comment: [0,255] }
 
   FFdArticulationParameterChangeIndicatorArray := TMFInt32.Create(Self, 'articulationParameterChangeIndicatorArray', []);
-  Fields.Add(FFdArticulationParameterChangeIndicatorArray);
+  AddField(FFdArticulationParameterChangeIndicatorArray);
   { X3D specification comment: [0,255] }
 
   FFdArticulationParameterIdPartAttachedToArray := TMFInt32.Create(Self, 'articulationParameterIdPartAttachedToArray', []);
-  Fields.Add(FFdArticulationParameterIdPartAttachedToArray);
+  AddField(FFdArticulationParameterIdPartAttachedToArray);
   { X3D specification comment: [0,65535] }
 
   FFdArticulationParameterTypeArray := TMFInt32.Create(Self, 'articulationParameterTypeArray', []);
-  Fields.Add(FFdArticulationParameterTypeArray);
+  AddField(FFdArticulationParameterTypeArray);
 
   FFdArticulationParameterArray := TMFFloat.Create(Self, 'articulationParameterArray', []);
-  Fields.Add(FFdArticulationParameterArray);
+  AddField(FFdArticulationParameterArray);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
-  Fields.Add(FFdCenter);
+  AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdCollisionType := TSFInt32.Create(Self, 'collisionType', 0);
-  Fields.Add(FFdCollisionType);
+  AddField(FFdCollisionType);
   { X3D specification comment: [0,255] }
 
   FFdDeadReckoning := TSFInt32.Create(Self, 'deadReckoning', 0);
-  Fields.Add(FFdDeadReckoning);
+  AddField(FFdDeadReckoning);
   { X3D specification comment: [0,255] }
 
   FFdDetonationLocation := TSFVec3f.Create(Self, 'detonationLocation', Vector3Single(0, 0, 0));
-  Fields.Add(FFdDetonationLocation);
+  AddField(FFdDetonationLocation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdDetonationRelativeLocation := TSFVec3f.Create(Self, 'detonationRelativeLocation', Vector3Single(0, 0, 0));
-  Fields.Add(FFdDetonationRelativeLocation);
+  AddField(FFdDetonationRelativeLocation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdDetonationResult := TSFInt32.Create(Self, 'detonationResult', 0);
-  Fields.Add(FFdDetonationResult);
+  AddField(FFdDetonationResult);
   { X3D specification comment: [0,255] }
 
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
-  Fields.Add(FFdEnabled);
+  AddField(FFdEnabled);
 
   FFdEntityCategory := TSFInt32.Create(Self, 'entityCategory', 0);
-  Fields.Add(FFdEntityCategory);
+  AddField(FFdEntityCategory);
   { X3D specification comment: [0,255] }
 
   FFdEntityCountry := TSFInt32.Create(Self, 'entityCountry', 0);
-  Fields.Add(FFdEntityCountry);
+  AddField(FFdEntityCountry);
   { X3D specification comment: [0,65535] }
 
   FFdEntityDomain := TSFInt32.Create(Self, 'entityDomain', 0);
-  Fields.Add(FFdEntityDomain);
+  AddField(FFdEntityDomain);
   { X3D specification comment: [0,255] }
 
   FFdEntityExtra := TSFInt32.Create(Self, 'entityExtra', 0);
-  Fields.Add(FFdEntityExtra);
+  AddField(FFdEntityExtra);
   { X3D specification comment: [0,255] }
 
   FFdEntityID := TSFInt32.Create(Self, 'entityID', 0);
-  Fields.Add(FFdEntityID);
+  AddField(FFdEntityID);
   { X3D specification comment: [0,65535] }
 
   FFdEntityKind := TSFInt32.Create(Self, 'entityKind', 0);
-  Fields.Add(FFdEntityKind);
+  AddField(FFdEntityKind);
   { X3D specification comment: [0,255] }
 
   FFdEntitySpecific := TSFInt32.Create(Self, 'entitySpecific', 0);
-  Fields.Add(FFdEntitySpecific);
+  AddField(FFdEntitySpecific);
   { X3D specification comment: [0,255] }
 
   FFdEntitySubCategory := TSFInt32.Create(Self, 'entitySubCategory', 0);
-  Fields.Add(FFdEntitySubCategory);
+  AddField(FFdEntitySubCategory);
   { X3D specification comment: [0,255] }
 
   FFdEventApplicationID := TSFInt32.Create(Self, 'eventApplicationID', 1);
-  Fields.Add(FFdEventApplicationID);
+  AddField(FFdEventApplicationID);
   { X3D specification comment: [0,65535] }
 
   FFdEventEntityID := TSFInt32.Create(Self, 'eventEntityID', 0);
-  Fields.Add(FFdEventEntityID);
+  AddField(FFdEventEntityID);
   { X3D specification comment: [0,65535] }
 
   FFdEventNumber := TSFInt32.Create(Self, 'eventNumber', 0);
-  Fields.Add(FFdEventNumber);
+  AddField(FFdEventNumber);
   { X3D specification comment: [0,65355] }
 
   FFdEventSiteID := TSFInt32.Create(Self, 'eventSiteID', 0);
-  Fields.Add(FFdEventSiteID);
+  AddField(FFdEventSiteID);
   { X3D specification comment: [0,65535] }
 
   FFdFired1 := TSFBool.Create(Self, 'fired1', false);
-  Fields.Add(FFdFired1);
+  AddField(FFdFired1);
 
   FFdFired2 := TSFBool.Create(Self, 'fired2', false);
-  Fields.Add(FFdFired2);
+  AddField(FFdFired2);
 
   FFdFireMissionIndex := TSFInt32.Create(Self, 'fireMissionIndex', 0);
-  Fields.Add(FFdFireMissionIndex);
+  AddField(FFdFireMissionIndex);
   { X3D specification comment: [0,65535] }
 
   FFdFiringRange := TSFFloat.Create(Self, 'firingRange', 0.0);
-  Fields.Add(FFdFiringRange);
+  AddField(FFdFiringRange);
   { X3D specification comment: (0,Inf) }
 
   FFdFiringRate := TSFInt32.Create(Self, 'firingRate', 0);
-  Fields.Add(FFdFiringRate);
+  AddField(FFdFiringRate);
   { X3D specification comment: [0,65535] }
 
   FFdForceID := TSFInt32.Create(Self, 'forceID', 0);
-  Fields.Add(FFdForceID);
+  AddField(FFdForceID);
   { X3D specification comment: [0,255] }
 
   FFdFuse := TSFInt32.Create(Self, 'fuse', 0);
-  Fields.Add(FFdFuse);
+  AddField(FFdFuse);
   { X3D specification comment: [0,65535] }
 
   FFdLinearVelocity := TSFVec3f.Create(Self, 'linearVelocity', Vector3Single(0, 0, 0));
-  Fields.Add(FFdLinearVelocity);
+  AddField(FFdLinearVelocity);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdLinearAcceleration := TSFVec3f.Create(Self, 'linearAcceleration', Vector3Single(0, 0, 0));
-  Fields.Add(FFdLinearAcceleration);
+  AddField(FFdLinearAcceleration);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdMarking := TSFString.Create(Self, 'marking', '');
-  Fields.Add(FFdMarking);
+  AddField(FFdMarking);
 
   FFdMulticastRelayHost := TSFString.Create(Self, 'multicastRelayHost', '');
-  Fields.Add(FFdMulticastRelayHost);
+  AddField(FFdMulticastRelayHost);
 
   FFdMulticastRelayPort := TSFInt32.Create(Self, 'multicastRelayPort', 0);
-  Fields.Add(FFdMulticastRelayPort);
+  AddField(FFdMulticastRelayPort);
 
   FFdMunitionApplicationID := TSFInt32.Create(Self, 'munitionApplicationID', 1);
-  Fields.Add(FFdMunitionApplicationID);
+  AddField(FFdMunitionApplicationID);
   { X3D specification comment: [0,65535] }
 
   FFdMunitionEndPoint := TSFVec3f.Create(Self, 'munitionEndPoint', Vector3Single(0, 0, 0));
-  Fields.Add(FFdMunitionEndPoint);
+  AddField(FFdMunitionEndPoint);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdMunitionEntityID := TSFInt32.Create(Self, 'munitionEntityID', 0);
-  Fields.Add(FFdMunitionEntityID);
+  AddField(FFdMunitionEntityID);
   { X3D specification comment: [0,65535] }
 
   FFdMunitionQuantity := TSFInt32.Create(Self, 'munitionQuantity', 0);
-  Fields.Add(FFdMunitionQuantity);
+  AddField(FFdMunitionQuantity);
   { X3D specification comment: [0,65535] }
 
   FFdMunitionSiteID := TSFInt32.Create(Self, 'munitionSiteID', 0);
-  Fields.Add(FFdMunitionSiteID);
+  AddField(FFdMunitionSiteID);
   { X3D specification comment: [0,65535] }
 
   FFdMunitionStartPoint := TSFVec3f.Create(Self, 'munitionStartPoint', Vector3Single(0, 0, 0));
-  Fields.Add(FFdMunitionStartPoint);
+  AddField(FFdMunitionStartPoint);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdNetworkMode := TSFString.Create(Self, 'networkMode', 'standAlone');
-  Fields.Add(FFdNetworkMode);
+  AddField(FFdNetworkMode);
   { X3D specification comment: ["standAlone"|"networkReader"|"networkWriter"] }
 
   FFdPort := TSFInt32.Create(Self, 'port', 0);
-  Fields.Add(FFdPort);
+  AddField(FFdPort);
   { X3D specification comment: [0,65535] }
 
   FFdReadInterval := TSFTime.Create(Self, 'readInterval', 0.1);
-  Fields.Add(FFdReadInterval);
+  AddField(FFdReadInterval);
   { X3D specification comment: [0,Inf) }
 
   FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
-  Fields.Add(FFdRotation);
+  AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdScale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
-  Fields.Add(FFdScale);
+  AddField(FFdScale);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
-  Fields.Add(FFdScaleOrientation);
+  AddField(FFdScaleOrientation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
   FFdSiteID := TSFInt32.Create(Self, 'siteID', 0);
-  Fields.Add(FFdSiteID);
+  AddField(FFdSiteID);
   { X3D specification comment: [0,65535] }
 
   FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
-  Fields.Add(FFdTranslation);
+  AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdWarhead := TSFInt32.Create(Self, 'warhead', 0);
-  Fields.Add(FFdWarhead);
+  AddField(FFdWarhead);
   { X3D specification comment: [0,65535] }
 
   FFdWriteInterval := TSFTime.Create(Self, 'writeInterval', 1.0);
-  Fields.Add(FFdWriteInterval);
+  AddField(FFdWriteInterval);
   { X3D specification comment: [0,Inf) }
 
   FEventArticulationParameterValue0_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue0_changed', false);
-  Events.Add(FEventArticulationParameterValue0_changed);
+  AddEvent(FEventArticulationParameterValue0_changed);
 
   FEventArticulationParameterValue1_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue1_changed', false);
-  Events.Add(FEventArticulationParameterValue1_changed);
+  AddEvent(FEventArticulationParameterValue1_changed);
 
   FEventArticulationParameterValue2_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue2_changed', false);
-  Events.Add(FEventArticulationParameterValue2_changed);
+  AddEvent(FEventArticulationParameterValue2_changed);
 
   FEventArticulationParameterValue3_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue3_changed', false);
-  Events.Add(FEventArticulationParameterValue3_changed);
+  AddEvent(FEventArticulationParameterValue3_changed);
 
   FEventArticulationParameterValue4_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue4_changed', false);
-  Events.Add(FEventArticulationParameterValue4_changed);
+  AddEvent(FEventArticulationParameterValue4_changed);
 
   FEventArticulationParameterValue5_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue5_changed', false);
-  Events.Add(FEventArticulationParameterValue5_changed);
+  AddEvent(FEventArticulationParameterValue5_changed);
 
   FEventArticulationParameterValue6_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue6_changed', false);
-  Events.Add(FEventArticulationParameterValue6_changed);
+  AddEvent(FEventArticulationParameterValue6_changed);
 
   FEventArticulationParameterValue7_changed := TSFFloatEvent.Create(Self, 'articulationParameterValue7_changed', false);
-  Events.Add(FEventArticulationParameterValue7_changed);
+  AddEvent(FEventArticulationParameterValue7_changed);
 
   FEventCollideTime := TSFTimeEvent.Create(Self, 'collideTime', false);
-  Events.Add(FEventCollideTime);
+  AddEvent(FEventCollideTime);
 
   FEventDetonateTime := TSFTimeEvent.Create(Self, 'detonateTime', false);
-  Events.Add(FEventDetonateTime);
+  AddEvent(FEventDetonateTime);
 
   FEventFiredTime := TSFTimeEvent.Create(Self, 'firedTime', false);
-  Events.Add(FEventFiredTime);
+  AddEvent(FEventFiredTime);
 
   FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
-  Events.Add(FEventIsActive);
+  AddEvent(FEventIsActive);
 
   FEventIsCollided := TSFBoolEvent.Create(Self, 'isCollided', false);
-  Events.Add(FEventIsCollided);
+  AddEvent(FEventIsCollided);
 
   FEventIsDetonated := TSFBoolEvent.Create(Self, 'isDetonated', false);
-  Events.Add(FEventIsDetonated);
+  AddEvent(FEventIsDetonated);
 
   FEventIsNetworkReader := TSFBoolEvent.Create(Self, 'isNetworkReader', false);
-  Events.Add(FEventIsNetworkReader);
+  AddEvent(FEventIsNetworkReader);
 
   FEventIsNetworkWriter := TSFBoolEvent.Create(Self, 'isNetworkWriter', false);
-  Events.Add(FEventIsNetworkWriter);
+  AddEvent(FEventIsNetworkWriter);
 
   FEventIsRtpHeaderHeard := TSFBoolEvent.Create(Self, 'isRtpHeaderHeard', false);
-  Events.Add(FEventIsRtpHeaderHeard);
+  AddEvent(FEventIsRtpHeaderHeard);
 
   FEventIsStandAlone := TSFBoolEvent.Create(Self, 'isStandAlone', false);
-  Events.Add(FEventIsStandAlone);
+  AddEvent(FEventIsStandAlone);
 
   FEventTimestamp := TSFTimeEvent.Create(Self, 'timestamp', false);
-  Events.Add(FEventTimestamp);
+  AddEvent(FEventTimestamp);
 
   FFdRtpHeaderExpected := TSFBool.Create(Self, 'rtpHeaderExpected', false);
   FFdRtpHeaderExpected.Exposed := false;
-  Fields.Add(FFdRtpHeaderExpected);
+  AddField(FFdRtpHeaderExpected);
 
   DefaultContainerField := 'children';
 end;
@@ -1099,100 +1099,100 @@ begin
   inherited;
 
   FFdAddress := TSFString.Create(Self, 'address', 'localhost');
-  Fields.Add(FFdAddress);
+  AddField(FFdAddress);
 
   FFdApplicationID := TSFInt32.Create(Self, 'applicationID', 1);
-  Fields.Add(FFdApplicationID);
+  AddField(FFdApplicationID);
   { X3D specification comment: [0,65535] }
 
   FFdEntityID := TSFInt32.Create(Self, 'entityID', 0);
-  Fields.Add(FFdEntityID);
+  AddField(FFdEntityID);
   { X3D specification comment: [0,65535] }
 
   FFdMulticastRelayHost := TSFString.Create(Self, 'multicastRelayHost', '');
-  Fields.Add(FFdMulticastRelayHost);
+  AddField(FFdMulticastRelayHost);
 
   FFdMulticastRelayPort := TSFInt32.Create(Self, 'multicastRelayPort', 0);
-  Fields.Add(FFdMulticastRelayPort);
+  AddField(FFdMulticastRelayPort);
 
   FFdNetworkMode := TSFString.Create(Self, 'networkMode', 'standAlone');
-  Fields.Add(FFdNetworkMode);
+  AddField(FFdNetworkMode);
   { X3D specification comment: ["standAlone"|"networkReader"|"networkWriter"] }
 
   FFdPort := TSFInt32.Create(Self, 'port', 0);
-  Fields.Add(FFdPort);
+  AddField(FFdPort);
   { X3D specification comment: [0,65535] }
 
   FFdRadioID := TSFInt32.Create(Self, 'radioID', 0);
-  Fields.Add(FFdRadioID);
+  AddField(FFdRadioID);
   { X3D specification comment: [0,65535] }
 
   FFdReadInterval := TSFFloat.Create(Self, 'readInterval', 0.1);
-  Fields.Add(FFdReadInterval);
+  AddField(FFdReadInterval);
   { X3D specification comment: [0,Inf) }
 
   FFdReceivedPower := TSFFloat.Create(Self, 'receivedPower', 0.0);
-  Fields.Add(FFdReceivedPower);
+  AddField(FFdReceivedPower);
   { X3D specification comment: [0,Inf) }
 
   FFdReceiverState := TSFInt32.Create(Self, 'receiverState', 0);
-  Fields.Add(FFdReceiverState);
+  AddField(FFdReceiverState);
   { X3D specification comment: [0,65535] }
 
   FFdRtpHeaderExpected := TSFBool.Create(Self, 'rtpHeaderExpected', false);
-  Fields.Add(FFdRtpHeaderExpected);
+  AddField(FFdRtpHeaderExpected);
 
   FFdSiteID := TSFInt32.Create(Self, 'siteID', 0);
-  Fields.Add(FFdSiteID);
+  AddField(FFdSiteID);
   { X3D specification comment: [0,65535] }
 
   FFdTransmitterApplicationID := TSFInt32.Create(Self, 'transmitterApplicationID', 1);
-  Fields.Add(FFdTransmitterApplicationID);
+  AddField(FFdTransmitterApplicationID);
   { X3D specification comment: [0,65535] }
 
   FFdTransmitterEntityID := TSFInt32.Create(Self, 'transmitterEntityID', 0);
-  Fields.Add(FFdTransmitterEntityID);
+  AddField(FFdTransmitterEntityID);
   { X3D specification comment: [0,65535] }
 
   FFdTransmitterRadioID := TSFInt32.Create(Self, 'transmitterRadioID', 0);
-  Fields.Add(FFdTransmitterRadioID);
+  AddField(FFdTransmitterRadioID);
   { X3D specification comment: [0,65535] }
 
   FFdTransmitterSiteID := TSFInt32.Create(Self, 'transmitterSiteID', 0);
-  Fields.Add(FFdTransmitterSiteID);
+  AddField(FFdTransmitterSiteID);
   { X3D specification comment: [0,65535] }
 
   FFdWhichGeometry := TSFInt32.Create(Self, 'whichGeometry', 1);
-  Fields.Add(FFdWhichGeometry);
+  AddField(FFdWhichGeometry);
   { X3D specification comment: [-1,Inf) }
 
   FFdWriteInterval := TSFFloat.Create(Self, 'writeInterval', 1.0);
-  Fields.Add(FFdWriteInterval);
+  AddField(FFdWriteInterval);
   { X3D specification comment: [0,Inf) }
 
   FEventIsNetworkReader := TSFBoolEvent.Create(Self, 'isNetworkReader', false);
-  Events.Add(FEventIsNetworkReader);
+  AddEvent(FEventIsNetworkReader);
 
   FEventIsNetworkWriter := TSFBoolEvent.Create(Self, 'isNetworkWriter', false);
-  Events.Add(FEventIsNetworkWriter);
+  AddEvent(FEventIsNetworkWriter);
 
   FEventIsRtpHeaderHeard := TSFBoolEvent.Create(Self, 'isRtpHeaderHeard', false);
-  Events.Add(FEventIsRtpHeaderHeard);
+  AddEvent(FEventIsRtpHeaderHeard);
 
   FEventIsStandAlone := TSFBoolEvent.Create(Self, 'isStandAlone', false);
-  Events.Add(FEventIsStandAlone);
+  AddEvent(FEventIsStandAlone);
 
   FEventTimestamp := TSFTimeEvent.Create(Self, 'timestamp', false);
-  Events.Add(FEventTimestamp);
+  AddEvent(FEventTimestamp);
 
   FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
   FFdBboxCenter.Exposed := false;
-  Fields.Add(FFdBboxCenter);
+  AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
   FFdBboxSize.Exposed := false;
-  Fields.Add(FFdBboxSize);
+  AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) [0,Inf) [0,Inf) or -1 -1 -1 }
 
   DefaultContainerField := 'children';
@@ -1214,100 +1214,100 @@ begin
   inherited;
 
   FFdAddress := TSFString.Create(Self, 'address', 'localhost');
-  Fields.Add(FFdAddress);
+  AddField(FFdAddress);
 
   FFdApplicationID := TSFInt32.Create(Self, 'applicationID', 1);
-  Fields.Add(FFdApplicationID);
+  AddField(FFdApplicationID);
   { X3D specification comment: [0,65535] }
 
   FFdData := TMFInt32.Create(Self, 'data', []);
-  Fields.Add(FFdData);
+  AddField(FFdData);
   { X3D specification comment: [0,255] }
 
   FFdDataLength := TSFInt32.Create(Self, 'dataLength', 0);
-  Fields.Add(FFdDataLength);
+  AddField(FFdDataLength);
   { X3D specification comment: [0,65535] }
 
   FFdEncodingScheme := TSFInt32.Create(Self, 'encodingScheme', 0);
-  Fields.Add(FFdEncodingScheme);
+  AddField(FFdEncodingScheme);
   { X3D specification comment: [0,65535] }
 
   FFdEntityID := TSFInt32.Create(Self, 'entityID', 0);
-  Fields.Add(FFdEntityID);
+  AddField(FFdEntityID);
   { X3D specification comment: [0,65535] }
 
   FFdMulticastRelayHost := TSFString.Create(Self, 'multicastRelayHost', '');
-  Fields.Add(FFdMulticastRelayHost);
+  AddField(FFdMulticastRelayHost);
 
   FFdMulticastRelayPort := TSFInt32.Create(Self, 'multicastRelayPort', 0);
-  Fields.Add(FFdMulticastRelayPort);
+  AddField(FFdMulticastRelayPort);
 
   FFdNetworkMode := TSFString.Create(Self, 'networkMode', 'standAlone');
-  Fields.Add(FFdNetworkMode);
+  AddField(FFdNetworkMode);
   { X3D specification comment: ["standAlone"|"networkReader"|"networkWriter"] }
 
   FFdPort := TSFInt32.Create(Self, 'port', 0);
-  Fields.Add(FFdPort);
+  AddField(FFdPort);
   { X3D specification comment: [0,65535] }
 
   FFdRadioID := TSFInt32.Create(Self, 'radioID', 0);
-  Fields.Add(FFdRadioID);
+  AddField(FFdRadioID);
   { X3D specification comment: [0,65535] }
 
   FFdReadInterval := TSFFloat.Create(Self, 'readInterval', 0.1);
-  Fields.Add(FFdReadInterval);
+  AddField(FFdReadInterval);
   { X3D specification comment: [0,Inf) }
 
   FFdRtpHeaderExpected := TSFBool.Create(Self, 'rtpHeaderExpected', false);
-  Fields.Add(FFdRtpHeaderExpected);
+  AddField(FFdRtpHeaderExpected);
 
   FFdSampleRate := TSFInt32.Create(Self, 'sampleRate', 0);
-  Fields.Add(FFdSampleRate);
+  AddField(FFdSampleRate);
   { X3D specification comment: [0,65535] }
 
   FFdSamples := TSFInt32.Create(Self, 'samples', 0);
-  Fields.Add(FFdSamples);
+  AddField(FFdSamples);
   { X3D specification comment: [0,65535] }
 
   FFdSiteID := TSFInt32.Create(Self, 'siteID', 0);
-  Fields.Add(FFdSiteID);
+  AddField(FFdSiteID);
   { X3D specification comment: [0,65535] }
 
   FFdTdlType := TSFInt32.Create(Self, 'tdlType', 0);
-  Fields.Add(FFdTdlType);
+  AddField(FFdTdlType);
   { X3D specification comment: [0,65535] }
 
   FFdWhichGeometry := TSFInt32.Create(Self, 'whichGeometry', 1);
-  Fields.Add(FFdWhichGeometry);
+  AddField(FFdWhichGeometry);
   { X3D specification comment: [-1,Inf) }
 
   FFdWriteInterval := TSFFloat.Create(Self, 'writeInterval', 1.0);
-  Fields.Add(FFdWriteInterval);
+  AddField(FFdWriteInterval);
   { X3D specification comment: [0,Inf) }
 
   FEventIsNetworkReader := TSFBoolEvent.Create(Self, 'isNetworkReader', false);
-  Events.Add(FEventIsNetworkReader);
+  AddEvent(FEventIsNetworkReader);
 
   FEventIsNetworkWriter := TSFBoolEvent.Create(Self, 'isNetworkWriter', false);
-  Events.Add(FEventIsNetworkWriter);
+  AddEvent(FEventIsNetworkWriter);
 
   FEventIsRtpHeaderHeard := TSFBoolEvent.Create(Self, 'isRtpHeaderHeard', false);
-  Events.Add(FEventIsRtpHeaderHeard);
+  AddEvent(FEventIsRtpHeaderHeard);
 
   FEventIsStandAlone := TSFBoolEvent.Create(Self, 'isStandAlone', false);
-  Events.Add(FEventIsStandAlone);
+  AddEvent(FEventIsStandAlone);
 
   FEventTimestamp := TSFTimeEvent.Create(Self, 'timestamp', false);
-  Events.Add(FEventTimestamp);
+  AddEvent(FEventTimestamp);
 
   FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
   FFdBboxCenter.Exposed := false;
-  Fields.Add(FFdBboxCenter);
+  AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
   FFdBboxSize.Exposed := false;
-  Fields.Add(FFdBboxSize);
+  AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
   DefaultContainerField := 'children';
@@ -1329,163 +1329,163 @@ begin
   inherited;
 
   FFdAddress := TSFString.Create(Self, 'address', 'localhost');
-  Fields.Add(FFdAddress);
+  AddField(FFdAddress);
 
   FFdAntennaLocation := TSFVec3f.Create(Self, 'antennaLocation', Vector3Single(0, 0, 0));
-  Fields.Add(FFdAntennaLocation);
+  AddField(FFdAntennaLocation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdAntennaPatternLength := TSFInt32.Create(Self, 'antennaPatternLength', 0);
-  Fields.Add(FFdAntennaPatternLength);
+  AddField(FFdAntennaPatternLength);
   { X3D specification comment: [0,65535] }
 
   FFdAntennaPatternType := TSFInt32.Create(Self, 'antennaPatternType', 0);
-  Fields.Add(FFdAntennaPatternType);
+  AddField(FFdAntennaPatternType);
   { X3D specification comment: [0,65535] }
 
   FFdApplicationID := TSFInt32.Create(Self, 'applicationID', 1);
-  Fields.Add(FFdApplicationID);
+  AddField(FFdApplicationID);
   { X3D specification comment: [0,65535] }
 
   FFdCryptoKeyID := TSFInt32.Create(Self, 'cryptoKeyID', 0);
-  Fields.Add(FFdCryptoKeyID);
+  AddField(FFdCryptoKeyID);
   { X3D specification comment: [0,65535] }
 
   FFdCryptoSystem := TSFInt32.Create(Self, 'cryptoSystem', 0);
-  Fields.Add(FFdCryptoSystem);
+  AddField(FFdCryptoSystem);
   { X3D specification comment: [0,65535] }
 
   FFdEntityID := TSFInt32.Create(Self, 'entityID', 0);
-  Fields.Add(FFdEntityID);
+  AddField(FFdEntityID);
   { X3D specification comment: [0,65535] }
 
   FFdFrequency := TSFInt32.Create(Self, 'frequency', 0);
-  Fields.Add(FFdFrequency);
+  AddField(FFdFrequency);
 
   FFdInputSource := TSFInt32.Create(Self, 'inputSource', 0);
-  Fields.Add(FFdInputSource);
+  AddField(FFdInputSource);
   { X3D specification comment: [0,255] }
 
   FFdLengthOfModulationParameters := TSFInt32.Create(Self, 'lengthOfModulationParameters', 0);
-  Fields.Add(FFdLengthOfModulationParameters);
+  AddField(FFdLengthOfModulationParameters);
   { X3D specification comment: [0,255] }
 
   FFdModulationTypeDetail := TSFInt32.Create(Self, 'modulationTypeDetail', 0);
-  Fields.Add(FFdModulationTypeDetail);
+  AddField(FFdModulationTypeDetail);
   { X3D specification comment: [0,65535] }
 
   FFdModulationTypeMajor := TSFInt32.Create(Self, 'modulationTypeMajor', 0);
-  Fields.Add(FFdModulationTypeMajor);
+  AddField(FFdModulationTypeMajor);
   { X3D specification comment: [0,65535] }
 
   FFdModulationTypeSpreadSpectrum := TSFInt32.Create(Self, 'modulationTypeSpreadSpectrum', 0);
-  Fields.Add(FFdModulationTypeSpreadSpectrum);
+  AddField(FFdModulationTypeSpreadSpectrum);
   { X3D specification comment: [0,65535] }
 
   FFdModulationTypeSystem := TSFInt32.Create(Self, 'modulationTypeSystem', 0);
-  Fields.Add(FFdModulationTypeSystem);
+  AddField(FFdModulationTypeSystem);
   { X3D specification comment: [0,65535] }
 
   FFdMulticastRelayHost := TSFString.Create(Self, 'multicastRelayHost', '');
-  Fields.Add(FFdMulticastRelayHost);
+  AddField(FFdMulticastRelayHost);
 
   FFdMulticastRelayPort := TSFInt32.Create(Self, 'multicastRelayPort', 0);
-  Fields.Add(FFdMulticastRelayPort);
+  AddField(FFdMulticastRelayPort);
 
   FFdNetworkMode := TSFString.Create(Self, 'networkMode', 'standAlone');
-  Fields.Add(FFdNetworkMode);
+  AddField(FFdNetworkMode);
   { X3D specification comment: ["standAlone"|"networkReader"|"networkWriter"] }
 
   FFdPort := TSFInt32.Create(Self, 'port', 0);
-  Fields.Add(FFdPort);
+  AddField(FFdPort);
   { X3D specification comment: [0,65535] }
 
   FFdPower := TSFFloat.Create(Self, 'power', 0.0);
-  Fields.Add(FFdPower);
+  AddField(FFdPower);
   { X3D specification comment: [0,Inf) }
 
   FFdRadioEntityTypeCategory := TSFInt32.Create(Self, 'radioEntityTypeCategory', 0);
-  Fields.Add(FFdRadioEntityTypeCategory);
+  AddField(FFdRadioEntityTypeCategory);
   { X3D specification comment: [0,255] }
 
   FFdRadioEntityTypeCountry := TSFInt32.Create(Self, 'radioEntityTypeCountry', 0);
-  Fields.Add(FFdRadioEntityTypeCountry);
+  AddField(FFdRadioEntityTypeCountry);
   { X3D specification comment: [0,65535] }
 
   FFdRadioEntityTypeDomain := TSFInt32.Create(Self, 'radioEntityTypeDomain', 0);
-  Fields.Add(FFdRadioEntityTypeDomain);
+  AddField(FFdRadioEntityTypeDomain);
   { X3D specification comment: [0,255] }
 
   FFdRadioEntityTypeKind := TSFInt32.Create(Self, 'radioEntityTypeKind', 0);
-  Fields.Add(FFdRadioEntityTypeKind);
+  AddField(FFdRadioEntityTypeKind);
   { X3D specification comment: [0,255] }
 
   FFdRadioEntityTypeNomenclature := TSFInt32.Create(Self, 'radioEntityTypeNomenclature', 0);
-  Fields.Add(FFdRadioEntityTypeNomenclature);
+  AddField(FFdRadioEntityTypeNomenclature);
   { X3D specification comment: [0,255] }
 
   FFdRadioEntityTypeNomenclatureVersion := TSFInt32.Create(Self, 'radioEntityTypeNomenclatureVersion', 0);
-  Fields.Add(FFdRadioEntityTypeNomenclatureVersion);
+  AddField(FFdRadioEntityTypeNomenclatureVersion);
   { X3D specification comment: [0,65535] }
 
   FFdRadioID := TSFInt32.Create(Self, 'radioID', 0);
-  Fields.Add(FFdRadioID);
+  AddField(FFdRadioID);
   { X3D specification comment: [0,255] }
 
   FFdReadInterval := TSFFloat.Create(Self, 'readInterval', 0.1);
-  Fields.Add(FFdReadInterval);
+  AddField(FFdReadInterval);
   { X3D specification comment: [0,Inf) }
 
   FFdRelativeAntennaLocation := TSFVec3f.Create(Self, 'relativeAntennaLocation', Vector3Single(0, 0, 0));
-  Fields.Add(FFdRelativeAntennaLocation);
+  AddField(FFdRelativeAntennaLocation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdRtpHeaderExpected := TSFBool.Create(Self, 'rtpHeaderExpected', false);
-  Fields.Add(FFdRtpHeaderExpected);
+  AddField(FFdRtpHeaderExpected);
 
   FFdSiteID := TSFInt32.Create(Self, 'siteID', 0);
-  Fields.Add(FFdSiteID);
+  AddField(FFdSiteID);
   { X3D specification comment: [0,65535] }
 
   FFdTransmitFrequencyBandwidth := TSFFloat.Create(Self, 'transmitFrequencyBandwidth', 0.0);
-  Fields.Add(FFdTransmitFrequencyBandwidth);
+  AddField(FFdTransmitFrequencyBandwidth);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdTransmitState := TSFInt32.Create(Self, 'transmitState', 0);
-  Fields.Add(FFdTransmitState);
+  AddField(FFdTransmitState);
   { X3D specification comment: [0,255] }
 
   FFdWhichGeometry := TSFInt32.Create(Self, 'whichGeometry', 1);
-  Fields.Add(FFdWhichGeometry);
+  AddField(FFdWhichGeometry);
   { X3D specification comment: [-1,Inf) }
 
   FFdWriteInterval := TSFFloat.Create(Self, 'writeInterval', 1.0);
-  Fields.Add(FFdWriteInterval);
+  AddField(FFdWriteInterval);
   { X3D specification comment: [0,Inf) }
 
   FEventIsNetworkReader := TSFBoolEvent.Create(Self, 'isNetworkReader', false);
-  Events.Add(FEventIsNetworkReader);
+  AddEvent(FEventIsNetworkReader);
 
   FEventIsNetworkWriter := TSFBoolEvent.Create(Self, 'isNetworkWriter', false);
-  Events.Add(FEventIsNetworkWriter);
+  AddEvent(FEventIsNetworkWriter);
 
   FEventIsRtpHeaderHeard := TSFBoolEvent.Create(Self, 'isRtpHeaderHeard', false);
-  Events.Add(FEventIsRtpHeaderHeard);
+  AddEvent(FEventIsRtpHeaderHeard);
 
   FEventIsStandAlone := TSFBoolEvent.Create(Self, 'isStandAlone', false);
-  Events.Add(FEventIsStandAlone);
+  AddEvent(FEventIsStandAlone);
 
   FEventTimestamp := TSFTimeEvent.Create(Self, 'timestamp', false);
-  Events.Add(FEventTimestamp);
+  AddEvent(FEventTimestamp);
 
   FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
   FFdBboxCenter.Exposed := false;
-  Fields.Add(FFdBboxCenter);
+  AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
   FFdBboxSize.Exposed := false;
-  Fields.Add(FFdBboxSize);
+  AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) [0,Inf) [0,Inf) or -1 -1 -1 }
 
   DefaultContainerField := 'children';

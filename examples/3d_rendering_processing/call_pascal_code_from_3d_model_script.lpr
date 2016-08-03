@@ -35,9 +35,9 @@ program call_pascal_code_from_3d_model_script;
 
 {$apptype CONSOLE}
 
-uses CastleUtils, CastleProgress, CastleProgressConsole, CastleWarnings,
+uses CastleUtils, CastleProgress, CastleProgressConsole, CastleLog,
   CastleSceneCore, X3DFields, X3DTime, SysUtils, CastleParameters, CastleStringUtils,
-  CastleWindow, CastleKeysMouse;
+  CastleWindow, CastleKeysMouse, CastleApplicationProperties;
 
 var
   Window: TCastleWindow;
@@ -66,7 +66,7 @@ begin
   if Parameters.High = 1 then
     URL := Parameters[1];
 
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   Progress.UserInterface := ProgressConsoleInterface;
 
   Window := TCastleWindow.Create(nil);

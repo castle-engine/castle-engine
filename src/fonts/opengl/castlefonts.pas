@@ -323,13 +323,14 @@ type
       @seealso OutlineHighQuality }
     property Outline: Cardinal read FOutline write FOutline default 0;
 
-    { Optionally force better outline quality.
-      High quality outline looks better, but is almost 2x more expensive to draw.
-      @seealso Outline. }
+    { Optionally force better outline quality. Used only if Outline <> 0.
+      High quality outline looks better, but is about 2x more expensive to draw.
+      @seealso Outline }
     property OutlineHighQuality: boolean
       read FOutlineHighQuality write FOutlineHighQuality default false;
 
-    { Outline color, used only if Outline <> 0. Default is black. }
+    { Outline color, used only if Outline <> 0. Default is black.
+      @seealso Outline }
     property OutlineColor: TCastleColor read FOutlineColor write FOutlineColor;
 
     { Save draw properties to a stack. Saves:

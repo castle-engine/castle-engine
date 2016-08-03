@@ -49,7 +49,7 @@ type
     vcVisibleNonGeometry);
   TVisibleChanges = set of TVisibleChange;
 
-  TVisibleChangeEvent = procedure (Sender: T3D; Changes: TVisibleChanges) of object;
+  TVisibleChangeEvent = procedure (const Sender: T3D; const Changes: TVisibleChanges) of object;
 
   { Various things that T3D.PrepareResources may prepare. }
   TPrepareResourcesOption = (prRender, prBackground, prBoundingBox,
@@ -282,15 +282,20 @@ type
     FExists: boolean;
     FCollides: boolean;
     FPickable: boolean;
-    FParent: T3DList;
     FCursor: TMouseCursor;
     FCollidesWithMoving: boolean;
     Disabled: Cardinal;
     FExcludeFromGlobalLights: boolean;
+    FWorld: T3DWorld;
     procedure SetCursor(const Value: TMouseCursor);
   protected
-    { In T3D class, just calls Parent.CursorChange. }
-    procedure CursorChange; virtual;
+    { Make this 3D object assigned to given 3D world.
+      Each 3D object can only be part of one T3DWorld at a time.
+      Always remove 3D object from previous world (scene manager)
+      before adding it to new one. }
+    procedure SetWorld(const Value: T3DWorld); virtual;
+
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     { Height of a point above the 3D model.
       This checks ray collision, from Position along the negated GravityUp vector.
@@ -365,7 +370,11 @@ type
     function SphereCollision(const Pos: TVector3Single; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
 
-    { Check collision with a sphere in 2D (circle).
+    { Check collision with a sphere in 2D (a circle, extruded to infinity along the Z axis).
+
+      Note that PointCollision2D and SphereCollision2D @italic(do not work
+      reliably on objects that have 3D rotations). See @link(PointCollision2D)
+      for details.
 
       @param(Details If non-nil, these are automatically filled with the details
         about the collision.
@@ -376,8 +385,44 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const Details: TCollisionDetails = nil): boolean; virtual;
 
+    { Check collision with a point in 2D (which is an infinite line along the Z axis
+      in 3D).
+
+      Note that PointCollision2D and SphereCollision2D @italic(do not work
+      reliably on objects that have 3D rotations), that is: rotations that change
+      the direction of Z axis! This applies to all ways of rotating --
+      using the T3DCustomTransform descendants (like T3DTransform)
+      or using the X3D node TTransformNode (within a TCastleSce).
+
+      @orderedList(
+        @iteam(@italic(The reason): we transform the point (or sphere center)
+          to the local coordinates, and we should also transform the Z axis to
+          the local coordinates, to be always correct. Right now, we don't do
+          the latter.)
+
+        @item(And we don't want to do it (at least not in all cases)!
+          The simple 2D point collision check would then actually perform
+          a 3D line collision check, thus PointCollision2D would lose all the speed
+          benefits over LineCollision. PointCollision2D would become
+          a simple shortcut to perform @italic(LineCollision with
+          a line parallel to Z axis).
+
+          And in case of 2D games, or mostly 2D games, this speed loss
+          would not be justified. Often you @italic(know) that your objects
+          have no 3D rotations, for example if your animations are done in Spine.)
+
+        @item(In the future, we may overcome this limitation.
+          To do this, we will detect whether the transformation is "only 2D"
+          (actually this part is easy, you can detect it by looking at the matrix
+          even, so check whether appropriate numbers are zero).
+          And then then PointCollision2D will change to LineCollision,
+          and SphereCollision2D will change to something like ExtrudedCirleCollision,
+          @italic(only when necessary).
+      )
+    }
     function PointCollision2D(const Point: TVector2Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
 
@@ -695,13 +740,15 @@ type
       so be prepared to handle this at every time. }
     procedure VisibleChangeHere(const Changes: TVisibleChanges); virtual;
 
-    { Containing 3D list. }
-    property Parent: T3DList read FParent;
-
     { World containing this 3D object. In other words, the root of 3D objects
-      tree containing this object. @nil if we are not part of a hierarchy rooted
-      in T3DWorld. }
-    function World: T3DWorld; virtual;
+      tree containing this object. In practice, the world instance
+      is always 1-1 corresponding to a particular TCastleSceneManager instance
+      (each scene manager has it's world instance in @link(TCastleSceneManager.Items)).
+
+      @nil if we are not part of a hierarchy rooted in T3DWorld.
+      In pratice, this happens if we're not yet part of a @link(TCastleSceneManager.Items)
+      hierarchy. }
+    property World: T3DWorld read FWorld;
 
     { Something visible changed in the 3D world.
       This is usually called by our container (like TCastleSceneManager),
@@ -1005,6 +1052,8 @@ type
     function GetItem(const I: Integer): T3D;
     procedure SetItem(const I: Integer; const Item: T3D);
   protected
+    procedure SetWorld(const Value: T3DWorld); override;
+
     { Additional child inside the list, always processed before all children
       on the @link(Items) list. By default this method returns @nil,
       indicating no additional child exists.
@@ -1096,7 +1145,11 @@ type
   { 3D world. List of 3D objects, with some central properties. }
   T3DWorld = class(T3DList)
   public
-    function World: T3DWorld; override;
+    OnCursorChange: TNotifyEvent;
+    OnVisibleChange: TVisibleChangeEvent;
+
+    constructor Create(AOwner: TComponent); override;
+
     { See TCastleSceneManager.CollisionIgnoreItem. }
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: P3DTriangle): boolean; virtual; abstract;
@@ -2014,7 +2067,7 @@ var
 
 implementation
 
-uses CastleWarnings;
+uses CastleLog;
 
 { TRayCollision --------------------------------------------------------------- }
 
@@ -2065,6 +2118,8 @@ end;
 
 destructor T3D.Destroy;
 begin
+  { set to nil, to detach free notification }
+  SetWorld(nil);
   GLContextClose;
   inherited;
 end;
@@ -2118,8 +2173,8 @@ end;
 
 procedure T3D.VisibleChangeHere(const Changes: TVisibleChanges);
 begin
-  if Parent <> nil then
-    Parent.VisibleChangeHere(Changes);
+  if (World <> nil) and Assigned(World.OnVisibleChange) then
+    World.OnVisibleChange(Self, Changes);
 end;
 
 procedure T3D.VisibleChangeNotification(const Changes: TVisibleChanges);
@@ -2135,15 +2190,9 @@ begin
   if FCursor <> Value then
   begin
     FCursor := Value;
-    CursorChange;
+    if (World <> nil) and Assigned(World.OnCursorChange) then
+      World.OnCursorChange(Self);
   end;
-end;
-
-procedure T3D.CursorChange;
-begin
-  { pass CursorChange event up the tree (eventually, to the scenemanager, that will
-    pass it by TUIControl similar OnCursorChange mechanism to the container). }
-  if Parent <> nil then Parent.CursorChange;
 end;
 
 procedure T3D.GLContextClose;
@@ -2408,11 +2457,31 @@ begin
   Dec(Disabled);
 end;
 
-function T3D.World: T3DWorld;
+procedure T3D.SetWorld(const Value: T3DWorld);
 begin
-  if Parent <> nil then
-    Result := Parent.World else
-    Result := nil;
+  if FWorld <> Value then
+  begin
+    if FWorld <> nil then
+    begin
+      { Do not call RemoveFreeNotification when FWorld is also our list owner,
+        this would prevent getting notification in T3DList.Notification. }
+      if (FWorld.List = nil) or (FWorld.List.IndexOf(Self) = -1) then
+        FWorld.RemoveFreeNotification(Self);
+    end;
+    FWorld := Value;
+    if FWorld <> nil then
+      // Ignore FWorld = Self case, when this is done by T3DWorld.Create? No need to.
+      //and (FWorld <> Self) then
+      FWorld.FreeNotification(Self);
+  end;
+end;
+
+procedure T3D.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  { make sure to nil FWorld reference }
+  if (Operation = opRemove) and (AComponent = FWorld) then
+    SetWorld(nil);
 end;
 
 function T3D.Height(const MyPosition: TVector3Single;
@@ -2543,26 +2612,34 @@ begin
     case Action of
       lnAdded:
         begin
-          if B.FParent = nil then
-            B.FParent := Owner;
+          B.SetWorld(Owner.World);
           { Register Owner to be notified of item destruction. }
           B.FreeNotification(Owner);
         end;
       lnExtracted, lnDeleted:
         begin
-          if B.FParent = Owner then
-            B.FParent := nil;
-          B.RemoveFreeNotification(Owner);
+          { We don't change B.World here (we don't set it to
+            "previous World", or nil, or anything).
+            The 3D object may be present in the same World multiple times,
+            so it's better to leave World unchanged here.
+
+            This way T3D.World points to "last world you were part of",
+            instead of "current world you are part in", but that's not
+            a problem in practice -- as the World is only used to call
+            World.OnXxx notifications, and it's harmless to call them
+            when the object is not actually part of world. }
+
+          { Do not call RemoveFreeNotification when Owner is equal to B.World,
+            this would prevent getting notification when to nil FWorld in
+            T3D.Notification. }
+          if B.World <> Owner then
+            B.RemoveFreeNotification(Owner);
         end;
       else raise EInternalError.Create('T3DListCore.Notify action?');
     end;
 
-    { This notification may get called during FreeAndNil(FList)
-      in T3DList.Destroy. Then FList is already nil (as FreeAndNil
-      first sets object to nil), and Owner.CursorChange
-      may not be ready for this. }
-    if Owner.FList <> nil then
-      Owner.CursorChange;
+    if (Owner.World <> nil) and Assigned(Owner.World.OnCursorChange) then
+      Owner.World.OnCursorChange(Owner);
   end;
 end;
 
@@ -2598,6 +2675,21 @@ destructor T3DList.Destroy;
 begin
   FreeAndNil(FList);
   inherited;
+end;
+
+procedure T3DList.SetWorld(const Value: T3DWorld);
+var
+  I: Integer;
+begin
+  if FWorld <> Value then
+  begin
+    inherited;
+    if GetChild <> nil then
+      GetChild.SetWorld(Value);
+    if FList <> nil then // when one list is within another, this may be called during own destruction by T3DListCore.Notify
+      for I := 0 to List.Count - 1 do
+        List[I].SetWorld(Value);
+  end;
 end;
 
 function T3DList.GetChild: T3D;
@@ -3277,9 +3369,11 @@ end;
 
 { T3DWorld ------------------------------------------------------------------- }
 
-function T3DWorld.World: T3DWorld;
+constructor T3DWorld.Create(AOwner: TComponent);
 begin
-  Result := Self;
+  inherited;
+  { everything inside is part of this world }
+  SetWorld(Self);
 end;
 
 function T3DWorld.GravityCoordinate: Integer;
@@ -3433,7 +3527,7 @@ begin
         TransformMatricesMult(Params.RenderTransform, Inverse);
         if IsNan(Inverse[0][0]) then
           {$ifndef VER3_1}
-          OnWarning(wtMajor, 'Transform', Format(
+          WritelnWarning('Transform', Format(
             'Inverse transform matrix has NaN value inside:' + NL +
             '%s' + NL +
             '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
@@ -3446,7 +3540,7 @@ begin
             ]));
           {$else}
           { Workaround FPC 3.1.1 Internal error 200211262 when compiling above }
-          OnWarning(wtMajor, 'Transform', 'Inverse transform matrix has NaN value inside');
+          WritelnWarning('Transform', 'Inverse transform matrix has NaN value inside');
           {$endif}
         inherited Render(Frustum.Transform(Inverse), Params);
       end;
@@ -3780,7 +3874,7 @@ begin
   {$ifdef CHECK_HEIGHT_VS_RADIUS}
   if Sphere(R) and (R > Result) then
   begin
-    OnWarning(wtMajor, '3D Radius',
+    WritelnWarning('3D Radius',
       Format('PreferredHeight %f is smaller than radius %f. Gravity may work weird for this 3D object.',
       [Result, R]));
   end;

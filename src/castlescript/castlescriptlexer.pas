@@ -409,7 +409,7 @@ begin
   case Token of
     tokInteger: Result += Format(' %d', [TokenInteger]);
     tokFloat: Result += Format(' %g', [TokenFloat]);
-    tokBoolean: Result += Format(' %s', [BoolToStr[TokenBoolean]]);
+    tokBoolean: Result += Format(' %s', [BoolToStr(TokenBoolean, true)]);
     tokString: Result += Format(' ''%s''', [TokenString]);
     tokIdentifier: Result += Format(' %s', [TokenString]);
     tokFuncName: Result += Format(' %s', [TokenFunctionClass.Name]);

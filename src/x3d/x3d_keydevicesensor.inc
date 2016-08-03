@@ -144,25 +144,25 @@ begin
   inherited;
 
   FEventActionKeyPress := TSFInt32Event.Create(Self, 'actionKeyPress', false);
-  Events.Add(FEventActionKeyPress);
+  AddEvent(FEventActionKeyPress);
 
   FEventActionKeyRelease := TSFInt32Event.Create(Self, 'actionKeyRelease', false);
-  Events.Add(FEventActionKeyRelease);
+  AddEvent(FEventActionKeyRelease);
 
   FEventAltKey := TSFBoolEvent.Create(Self, 'altKey', false);
-  Events.Add(FEventAltKey);
+  AddEvent(FEventAltKey);
 
   FEventControlKey := TSFBoolEvent.Create(Self, 'controlKey', false);
-  Events.Add(FEventControlKey);
+  AddEvent(FEventControlKey);
 
   FEventKeyPress := TSFStringEvent.Create(Self, 'keyPress', false);
-  Events.Add(FEventKeyPress);
+  AddEvent(FEventKeyPress);
 
   FEventKeyRelease := TSFStringEvent.Create(Self, 'keyRelease', false);
-  Events.Add(FEventKeyRelease);
+  AddEvent(FEventKeyRelease);
 
   FEventShiftKey := TSFBoolEvent.Create(Self, 'shiftKey', false);
-  Events.Add(FEventShiftKey);
+  AddEvent(FEventShiftKey);
 
   DefaultContainerField := 'children';
 end;
@@ -264,13 +264,13 @@ begin
   inherited;
 
   FFdDeletionAllowed := TSFBool.Create(Self, 'deletionAllowed', true);
-  Fields.Add(FFdDeletionAllowed);
+  AddField(FFdDeletionAllowed);
 
   FEventEnteredText := TSFStringEvent.Create(Self, 'enteredText', false);
-  Events.Add(FEventEnteredText);
+  AddEvent(FEventEnteredText);
 
   FEventFinalText := TSFStringEvent.Create(Self, 'finalText', false);
-  Events.Add(FEventFinalText);
+  AddEvent(FEventFinalText);
 
   DefaultContainerField := 'children';
 end;

@@ -71,7 +71,7 @@ type
     PointsVbo, IndexesVbo: TGLuint; static;
     { Point VBO contents, reused in every Draw. }
     Points: array of TPoint; static;
-    Indexes: array of LongInt; static;
+    Indexes: array of {$ifdef GLIndexesShort} Word {$else} LongWord {$endif}; static;
     {$ifdef GLImageUseShaders}
     TextureHasOnlyAlpha: boolean;
     Programs: array [boolean { alpha test? }, boolean { clip? }, TColorTreatment] of TImageProgram; static;
@@ -678,7 +678,7 @@ begin
           NewProgram.Prog := TGLSLProgram.Create;
           NewProgram.Prog.AttachVertexShader(VS);
           NewProgram.Prog.AttachFragmentShader(FS);
-          NewProgram.Prog.Link(true);
+          NewProgram.Prog.Link;
 
           NewProgram.UniformViewportSize := NewProgram.Prog.Uniform('viewport_size');
           if ColorTreatment <> ctPureTexture then
@@ -924,6 +924,10 @@ begin
   { calculate Indexes contents, only used when Count <> 1 }
   if Count <> 1 then
   begin
+    {$ifdef GLIndexesShort}
+    if Integer(Count - 1) * 4 + 3 > High(Word) then
+      raise Exception.CreateFmt('Maximum index value is larger than %d (max 16-bit unsigned integer). Split your rendering into more shapes (draw calls). Or undefine GLIndexesShort in castleconf.inc to be able to render your data (but beware that it may fail on some buggy Android devices).', [High(Word)]);
+    {$endif}
     SetLength(Indexes, Count * 6);
     for I := 0 to Count - 1 do
     begin
@@ -956,7 +960,7 @@ begin
     if Count <> 1 then
     begin
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexesVbo);
-      glBufferData(GL_ELEMENT_ARRAY_BUFFER, Length(Indexes) * SizeOf(LongInt),
+      glBufferData(GL_ELEMENT_ARRAY_BUFFER, Length(Indexes) * SizeOf(Indexes[0]),
         @Indexes[0], GL_STREAM_DRAW);
     end;
   end;
@@ -973,9 +977,9 @@ begin
   Prog := Programs[FinalAlpha = acSimpleYesNo, Clip, ColorTreatment];
   CurrentProgram := Prog.Prog;
   Prog.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE,
-    SizeOf(TPoint), Offset(Points[0].Position, Points[0]));
+    SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
   Prog.AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
-    SizeOf(TPoint), Offset(Points[0].TexCoord, Points[0]));
+    SizeOf(TPoint), OffsetUInt(Points[0].TexCoord, Points[0]));
   Prog.UniformViewportSize.SetValue(Viewport2DSize);
   if ColorTreatment <> ctPureTexture then
     Prog.UniformColor.SetValue(Color);
@@ -1012,9 +1016,11 @@ begin
     if GLFeatures.VertexBufferObject then
     begin
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexesVbo);
-      glDrawElements(GL_TRIANGLES, Length(Indexes), GL_UNSIGNED_INT, nil);
+      glDrawElements(GL_TRIANGLES, Length(Indexes),
+        {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, nil);
     end else
-      glDrawElements(GL_TRIANGLES, Length(Indexes), GL_UNSIGNED_INT, @Indexes[0]);
+      glDrawElements(GL_TRIANGLES, Length(Indexes),
+        {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, @Indexes[0]);
   end else
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 

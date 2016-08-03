@@ -750,7 +750,7 @@ type
 
       No need to call OpenWindowsRemove here, it's done by universal Close already.
       It's advised (although not totally required) that all errors during
-      CloseBackend should be caught and cause only OnWarning.
+      CloseBackend should be caught and cause only WritelnWarning.
       Reasoning: Close should, regardless of trouble, try to finalize as much
       as possible. }
     procedure CloseBackend;
@@ -2823,7 +2823,7 @@ function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModif
 
 implementation
 
-uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils, CastleWarnings,
+uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils,
   CastleControls, CastleApplicationProperties,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
@@ -2994,6 +2994,37 @@ begin
 end;
 
 procedure TCastleWindowCustom.OpenCore;
+
+  procedure RenderLoadingBackground;
+  var
+    WindowRect, TextRect: TRectangle;
+    UIScale: Single;
+  begin
+    WindowRect := Rect;
+
+    glViewport(WindowRect);
+    Viewport2DSize[0] := WindowRect.Width;
+    Viewport2DSize[1] := WindowRect.Height;
+    OrthoProjection(0, WindowRect.Width, 0, WindowRect.Height);
+
+    { Not only is GLClear faster than DrawRectangle(WindowRect,...).
+      In this case, it is also more reliable: in case of Android immersive
+      mode, we may not have yet our desired size (our width or height is smaller
+      than device screen). For some reason, GLClear manages to clear
+      the whole screen area anyway. }
+    GLClear([cbColor], Theme.LoadingBackgroundColor);
+
+    UIScale := Container.DefaultUIScale;
+    TextRect := Theme.Images[tiLoading].Rect.
+      ScaleAroundMiddle(UIScale).
+      Align(hpMiddle, WindowRect, hpMiddle).
+      Align(vpMiddle, WindowRect, vpMiddle);
+    Theme.Draw(TextRect, tiLoading, UIScale, Theme.LoadingTextColor);
+
+    // just like TCastleWindowCustom.DoRender
+    if DoubleBuffer then SwapBuffers else glFlush;
+  end;
+
 begin
   if not FClosed then Exit;
 
@@ -3070,6 +3101,8 @@ begin
       { make ApplicationProperties.IsGLContextOpen true now, to allow creating
         TGLImageCore.Create from Application.OnInitialize work Ok. }
       ApplicationProperties._GLContextEarlyOpen;
+
+      RenderLoadingBackground;
 
       Application.CastleEngineInitialize;
       if Closed then Exit;
@@ -4807,9 +4840,9 @@ procedure TCastleApplication.HandleException(Sender: TObject);
       except
         on E: TObject do
         begin
-          OnWarning(wtMajor, 'Exception', 'Exception ' + E.ClassName + ' occured in the error handler itself. This means we cannot report the exception by a nice dialog box. The *original* exception report follows.');
+          WritelnWarning('Exception', 'Exception ' + E.ClassName + ' occured in the error handler itself. This means we cannot report the exception by a nice dialog box. The *original* exception report follows.');
           ExceptProc(OriginalObj, OriginalAddr, OriginalFrameCount, OriginalFrame);
-          OnWarning(wtMajor, 'Exception', 'And below is a report about the exception within exception handler.');
+          WritelnWarning('Exception', 'And below is a report about the exception within exception handler.');
           ExceptProc(SysUtils.ExceptObject, SysUtils.ExceptAddr, SysUtils.ExceptFrameCount, SysUtils.ExceptFrames);
           Halt(1);
         end;

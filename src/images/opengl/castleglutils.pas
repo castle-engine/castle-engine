@@ -296,7 +296,7 @@ function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: string
 
 { Check are any OpenGL errors recorded (in glGetError).
   If there are errors, our behavior depends on whether we were compiled
-  with -dRELEASE. With -dRELEASE, we make OnWarning. This way eventual
+  with -dRELEASE. With -dRELEASE, we make WritelnWarning. This way eventual
   errors in release builds don't completely abort your program.
 
   Note that the behavior on GL_OUT_OF_MEMORY is different.
@@ -759,7 +759,7 @@ uses
     compatibility. }
   Contnrs,
   CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
-  CastleLog, CastleWarnings, CastleApplicationProperties;
+  CastleLog, CastleApplicationProperties;
 
 {$I castleglutils_mipmaps.inc}
 
@@ -976,14 +976,14 @@ begin
     CurrentMultiSampling := glGetInteger({$ifdef OpenGLES} GL_SAMPLES {$else} GL_SAMPLES_ARB {$endif});
     if CurrentMultiSampling <= 1 then
     begin
-      OnWarning(wtMinor, 'MultiSampling', Format('We successfully got multi-sampling buffer, but only %d samples per pixel. This doesn''t make much sense, assuming buggy OpenGL implementation, and anti-aliasing may not work.',
+      WritelnWarning('MultiSampling', Format('We successfully got multi-sampling buffer, but only %d samples per pixel. This doesn''t make much sense, assuming buggy OpenGL implementation, and anti-aliasing may not work.',
         [CurrentMultiSampling]));
       CurrentMultiSampling := 1;
     end;
   end else
     CurrentMultiSampling := 1;
 
-  SupportedExtensions := Pchar(glGetString(GL_EXTENSIONS));
+  SupportedExtensions := PChar(glGetString(GL_EXTENSIONS));
 
   PackedDepthStencil :=
     {$ifdef OpenGLES} glext_ExtensionSupported('GL_OES_packed_depth_stencil', SupportedExtensions)
@@ -1096,7 +1096,7 @@ const
 begin
   if GLOutOfMemoryError then
     raise EOpenGLOutOfMemoryError.Create(ErrorCode, AdditionalComment) else
-    OnWarning(wtMajor, 'OpenGL', GLErrorString(ErrorCode, AdditionalComment));
+    WritelnWarning('OpenGL', GLErrorString(ErrorCode, AdditionalComment));
 end;
 
 procedure CheckGLErrors(const AdditionalComment: string);
@@ -1109,7 +1109,7 @@ begin
     if ErrorCode = GL_OUT_OF_MEMORY then
       GLOutOfMemory(AdditionalComment) else
       {$ifdef RELEASE}
-      OnWarning(wtMajor, 'OpenGL', GLErrorString(ErrorCode, AdditionalComment));
+      WritelnWarning('OpenGL', GLErrorString(ErrorCode, AdditionalComment));
       {$else}
       raise EOpenGLError.Create(ErrorCode, AdditionalComment);
       {$endif}
@@ -1538,7 +1538,7 @@ begin
     GLRectangleProgram := TGLSLProgram.Create;
     GLRectangleProgram.AttachVertexShader({$I rectangle.vs.inc});
     GLRectangleProgram.AttachFragmentShader({$I rectangle.fs.inc});
-    GLRectangleProgram.Link(true);
+    GLRectangleProgram.Link;
 
     GLRectangleUniformViewportSize := GLRectangleProgram.Uniform('viewport_size');
     GLRectangleUniformColor := GLRectangleProgram.Uniform('color');
@@ -1570,7 +1570,7 @@ begin
 
   {$ifdef GLImageUseShaders}
   CurrentProgram := GLRectangleProgram;
-  GLRectangleAttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), nil);
+  GLRectangleAttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), 0);
   GLRectangleUniformViewportSize.SetValue(Viewport2DSize);
   GLRectangleUniformColor.SetValue(Color);
 
@@ -1638,14 +1638,14 @@ const
 
   function GetBoolean(param: TGLenum): string;
   begin
-    Result := BoolToStr[glGetInteger(Param) = GL_TRUE];
+    Result := BoolToStr(glGetInteger(Param) = GL_TRUE, true);
   end;
 
   function VersionReport(Version: TGenericGLVersion): string;
   begin
     Result := Format('  Version parsed: major: %d, minor: %d, release exists: %s, ' +
       'release: %d, vendor-specific information: "%s"',
-      [ Version.Major, Version.Minor, BoolToStr[Version.ReleaseExists],
+      [ Version.Major, Version.Minor, BoolToStr(Version.ReleaseExists, true),
         Version.Release, Version.VendorInfo ]);
   end;
 
@@ -1673,22 +1673,22 @@ const
         '  Buggy 32-bit depth buffer: %s' +nl+
         '  Buggy GLSL gl_FrontFacing: %s',
         [ Version.VendorMajor, Version.VendorMinor, Version.VendorRelease,
-          BoolToStr[Version.VendorNVidia],
-          BoolToStr[Version.VendorATI],
-          BoolToStr[Version.Fglrx],
-          BoolToStr[Version.VendorIntel],
-          BoolToStr[Version.Mesa],
+          BoolToStr(Version.VendorNVidia, true),
+          BoolToStr(Version.VendorATI, true),
+          BoolToStr(Version.Fglrx, true),
+          BoolToStr(Version.VendorIntel, true),
+          BoolToStr(Version.Mesa, true),
 
-          BoolToStr[Version.BuggyGenerateMipmap],
-          BoolToStr[Version.BuggyLightModelTwoSide],
-          BoolToStr[Version.BuggyVBO],
-          BoolToStr[Version.BuggyShaderShadowMap],
-          BoolToStr[Version.BuggyGLSLConstStruct],
-          BoolToStr[Version.BuggyFBOMultiSampling],
-          BoolToStr[Version.BuggyFBOCubeMap],
-          BoolToStr[Version.BuggySwapNonStandardViewport],
-          BoolToStr[Version.BuggyDepth32],
-          BoolToStr[Version.BuggyGLSLFrontFacing]
+          BoolToStr(Version.BuggyGenerateMipmap, true),
+          BoolToStr(Version.BuggyLightModelTwoSide, true),
+          BoolToStr(Version.BuggyVBO, true),
+          BoolToStr(Version.BuggyShaderShadowMap, true),
+          BoolToStr(Version.BuggyGLSLConstStruct, true),
+          BoolToStr(Version.BuggyFBOMultiSampling, true),
+          BoolToStr(Version.BuggyFBOCubeMap, true),
+          BoolToStr(Version.BuggySwapNonStandardViewport, true),
+          BoolToStr(Version.BuggyDepth32, true),
+          BoolToStr(Version.BuggyGLSLFrontFacing, true)
         ]);
   end;
 
@@ -1758,36 +1758,36 @@ begin
     'Real versions available:' +nl+
     '(checks both version string and actual functions availability in GL library, to secure from buggy OpenGL implementations)' +nl+
     nl+
-    '  1.2: ' + BoolToStr[GLFeatures.Version_1_2] +nl+
-    '  1.3: ' + BoolToStr[GLFeatures.Version_1_3] +nl+
-    '  1.4: ' + BoolToStr[GLFeatures.Version_1_4] +nl+
-    '  1.5: ' + BoolToStr[GLFeatures.Version_1_5] +nl+
-    '  2.0: ' + BoolToStr[GLFeatures.Version_2_0] +nl+
-    '  2.1: ' + BoolToStr[GLFeatures.Version_2_1] +nl+
-    '  3.0: ' + BoolToStr[GLFeatures.Version_3_0] +nl+
-    '  3.1: ' + BoolToStr[GLFeatures.Version_3_1] +nl+
-    '  3.2: ' + BoolToStr[GLFeatures.Version_3_2] +nl+
-    '  3.3: ' + BoolToStr[GLFeatures.Version_3_3] +nl+
-    '  4.0: ' + BoolToStr[GLFeatures.Version_4_0] +nl+
+    '  1.2: ' + BoolToStr(GLFeatures.Version_1_2, true) +nl+
+    '  1.3: ' + BoolToStr(GLFeatures.Version_1_3, true) +nl+
+    '  1.4: ' + BoolToStr(GLFeatures.Version_1_4, true) +nl+
+    '  1.5: ' + BoolToStr(GLFeatures.Version_1_5, true) +nl+
+    '  2.0: ' + BoolToStr(GLFeatures.Version_2_0, true) +nl+
+    '  2.1: ' + BoolToStr(GLFeatures.Version_2_1, true) +nl+
+    '  3.0: ' + BoolToStr(GLFeatures.Version_3_0, true) +nl+
+    '  3.1: ' + BoolToStr(GLFeatures.Version_3_1, true) +nl+
+    '  3.2: ' + BoolToStr(GLFeatures.Version_3_2, true) +nl+
+    '  3.3: ' + BoolToStr(GLFeatures.Version_3_3, true) +nl+
+    '  4.0: ' + BoolToStr(GLFeatures.Version_4_0, true) +nl+
     nl+
     {$endif}
 
     '---------' +nl+
     'Features:' +nl+
     '  GLSL shaders support: ' + GLSupportNames[TGLSLProgram.ClassSupport] +nl+
-    '  Multi-texturing: ' + BoolToStr[GLFeatures.UseMultiTexturing] +nl+
+    '  Multi-texturing: ' + BoolToStr(GLFeatures.UseMultiTexturing, true) +nl+
     '  Framebuffer Object: ' + GLSupportNamesFBO[GLFeatures.Framebuffer] +nl+
-    '  Multi-sampling for FBO buffers and textures: ' + BoolToStr[GLFeatures.FBOMultiSampling] +nl+
-    '  Vertex Buffer Object: ' + BoolToStr[GLFeatures.VertexBufferObject] +nl+
-    '  GenerateMipmap available (and reliable): ' + BoolToStr[HasGenerateMipmap] +nl+
+    '  Multi-sampling for FBO buffers and textures: ' + BoolToStr(GLFeatures.FBOMultiSampling, true) +nl+
+    '  Vertex Buffer Object: ' + BoolToStr(GLFeatures.VertexBufferObject, true) +nl+
+    '  GenerateMipmap available (and reliable): ' + BoolToStr(HasGenerateMipmap, true) +nl+
     '  Cube map textures: ' + GLSupportNames[GLFeatures.TextureCubeMap] +nl+
     '  Compressed textures supported: ' + TextureCompressionsToString(GLFeatures.TextureCompression) +nl+
     '  3D textures: ' + GLSupportNames[GLFeatures.Texture3D] +nl+
-    '  Textures non-power-of-2: ' + BoolToStr[GLFeatures.TextureNonPowerOfTwo] +nl+
-    '  Blend constant parameter: ' + BoolToStr[GLFeatures.BlendConstant] +nl+
-    '  Float textures: ' + BoolToStr[GLFeatures.TextureFloat] +nl+
-    '  Depth textures: ' + BoolToStr[GLFeatures.TextureDepth] +nl+
-    '  Packed depth + stencil: ' + BoolToStr[GLFeatures.PackedDepthStencil] +nl+
+    '  Textures non-power-of-2: ' + BoolToStr(GLFeatures.TextureNonPowerOfTwo, true) +nl+
+    '  Blend constant parameter: ' + BoolToStr(GLFeatures.BlendConstant, true) +nl+
+    '  Float textures: ' + BoolToStr(GLFeatures.TextureFloat, true) +nl+
+    '  Depth textures: ' + BoolToStr(GLFeatures.TextureDepth, true) +nl+
+    '  Packed depth + stencil: ' + BoolToStr(GLFeatures.PackedDepthStencil, true) +nl+
     nl+
     '  All extensions: ' +PChar(glGetString(GL_EXTENSIONS)) +nl+
     nl+
@@ -1821,7 +1821,7 @@ begin
       +GetInteger(GL_ACCUM_ALPHA_BITS) +nl+
     '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) +nl+
     {$endif}
-    '  Multisampling (full-screen antialiasing): ' + BoolToStr[GLFeatures.Multisample] +nl+
+    '  Multisampling (full-screen antialiasing): ' + BoolToStr(GLFeatures.Multisample, true) +nl+
     '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' +nl+
     nl+
 
@@ -2127,7 +2127,12 @@ begin
 
   { closing GL context, implicitly resets glClearColor value.
     We need to make note of it, otherwise next GLClear call could not
-    set glClearColor. }
+    set glClearColor.
+
+    TODO: it is not really correct if you use multiple OpenGL contexts.
+    Each has it's own state of "clear color" (these are not shared,
+    https://www.opengl.org/wiki/OpenGL_Object#Object_Sharing ).
+    We should track FClearColor per-context, not globally. }
   FClearColor := ZeroVector4Single;
 end;
 

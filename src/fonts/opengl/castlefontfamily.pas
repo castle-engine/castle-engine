@@ -42,6 +42,7 @@ type
     Similar to TCustomizedFont, it can also change the subfont size.
     Simply set the @code(Size) property of this instance to non-zero
     to force the specific size of all the underlying subfonts.
+    You can also change the subfont outline, if CustomizeOutline is used.
     The underlying font properties remain unchanged for subfonts
     (so they can be still used for other purposes,
     directly or by other TCustomizedFont or TFontFamily wrappers).
@@ -57,10 +58,13 @@ type
     // Note that we leave inherited Scale at == 1, always.
     FSize: Single;
     FBold, FItalic: boolean;
+    FCustomizeOutline: boolean;
     procedure SetRegularFont(const Value: TCastleFont);
     procedure SetBoldFont(const Value: TCastleFont);
     procedure SetItalicFont(const Value: TCastleFont);
     procedure SetBoldItalicFont(const Value: TCastleFont);
+    procedure SubFontCustomizeBegin;
+    procedure SubFontCustomizeEnd;
   private
     function SubFont(const ABold, AItalic: boolean): TCastleFont;
     function SubFont: TCastleFont;
@@ -91,6 +95,9 @@ type
     function TextHeightBase(const S: string): Integer; override;
     function TextMove(const S: string): TVector2Integer; override;
     function RealSize: Single; override;
+
+    { Should we customize the outline of the underlying font. }
+    property CustomizeOutline: boolean read FCustomizeOutline write FCustomizeOutline default false;
   end;
 
   { @exclude Internal type for TRichText }
@@ -180,7 +187,8 @@ type
   public
     Command: TTextCommand;
     Color: TCastleColor;
-    Size: Integer;
+    HtmlSize: Integer;
+    PercentSize: Single;
     procedure Print(const Font: TFontFamily;
       const State: TTextLine.TPrintState; var X0: Integer; const Y0: Integer;
       var MaxDisplayChars: Integer); override;
@@ -230,7 +238,7 @@ type
 implementation
 
 uses SysUtils, StrUtils, Math,
-  CastleUtils, CastleStringUtils, CastleWarnings, CastleUnicode;
+  CastleUtils, CastleStringUtils, CastleLog, CastleUnicode;
 
 { TFontFamily ------------------------------------------------------------ }
 
@@ -350,65 +358,62 @@ begin
     FBoldItalicFont.GLContextClose;
 end;
 
+procedure TFontFamily.SubFontCustomizeBegin;
+begin
+  if (Size <> 0) or CustomizeOutline then
+  begin
+    SubFont.PushProperties;
+    if Size <> 0 then
+      SubFont.Size := Size;
+    if CustomizeOutline then
+    begin
+      SubFont.Outline := Outline;
+      SubFont.OutlineColor := OutlineColor;
+      SubFont.OutlineHighQuality := OutlineHighQuality;
+    end;
+  end;
+end;
+
+procedure TFontFamily.SubFontCustomizeEnd;
+begin
+  if Size <> 0 then
+    SubFont.PopProperties;
+end;
+
 procedure TFontFamily.Print(const X, Y: Integer; const Color: TCastleColor;
   const S: string);
 begin
-  if Size <> 0 then
-  begin
-    SubFont.PushProperties;
-    SubFont.Size := Size;
-  end;
+  SubFontCustomizeBegin;
   SubFont.Print(X, Y, Color, S);
-  if Size <> 0 then
-    SubFont.PopProperties;
+  SubFontCustomizeEnd;
 end;
 
 function TFontFamily.TextWidth(const S: string): Integer;
 begin
-  if Size <> 0 then
-  begin
-    SubFont.PushProperties;
-    SubFont.Size := Size;
-  end;
+  SubFontCustomizeBegin;
   Result := SubFont.TextWidth(S);
-  if Size <> 0 then
-    SubFont.PopProperties;
+  SubFontCustomizeEnd;
 end;
 
 function TFontFamily.TextHeight(const S: string): Integer;
 begin
-  if Size <> 0 then
-  begin
-    SubFont.PushProperties;
-    SubFont.Size := Size;
-  end;
+  SubFontCustomizeBegin;
   Result := SubFont.TextHeight(S);
-  if Size <> 0 then
-    SubFont.PopProperties;
+  SubFontCustomizeEnd;
 end;
 
 function TFontFamily.TextHeightBase(const S: string): Integer;
 begin
-  if Size <> 0 then
-  begin
-    SubFont.PushProperties;
-    SubFont.Size := Size;
-  end;
+  SubFontCustomizeBegin;
   Result := SubFont.TextHeightBase(S);
-  if Size <> 0 then
-    SubFont.PopProperties;
+  SubFontCustomizeEnd;
 end;
 
 function TFontFamily.TextMove(const S: string): TVector2Integer;
 begin
-  if Size <> 0 then
-  begin
-    SubFont.PushProperties;
-    SubFont.Size := Size;
-  end;
+  SubFontCustomizeBegin;
   Result := SubFont.TextMove(S);
-  if Size <> 0 then
-    SubFont.PopProperties;
+  SubFontCustomizeEnd;
 end;
 
 function TFontFamily.SubFont(const ABold, AItalic: boolean): TCastleFont;
@@ -440,7 +445,10 @@ procedure TFontFamily.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer)
 begin
   { Just like TCustomizedFont.Measure comments, this is good to call SubFont.Measure }
   SubFont.Measure(ARowHeight, ARowHeightBase, ADescend);
-  { our Scale is always 1, to scale the resulting sizes manually now }
+  { our Scale is always 1, so scale the resulting sizes manually now }
+  { TODO: should we add Outline *2 here maybe, if CustomizeOutline?
+    If yes, then changing CustomizeOutline should also cause InvalidateMeasure.
+    Changing the Outline* props in base font class should also cause InvalidateMeasure. }
   if Size <> 0 then
   begin
     ARowHeight     := Round(ARowHeight     * Size / SubFont.Size);
@@ -636,7 +644,7 @@ begin
       end;
     tcBoldEnd:
       if State.Bold = 0 then
-        OnWarning(wtMinor, 'HTML', 'Mismatched </b>') else
+        WritelnWarning('HTML', 'Mismatched </b>') else
       begin
         Dec(State.Bold);
         Font.Bold := State.Bold <> 0;
@@ -648,7 +656,7 @@ begin
       end;
     tcItalicEnd:
       if State.Italic = 0 then
-        OnWarning(wtMinor, 'HTML', 'Mismatched </i>') else
+        WritelnWarning('HTML', 'Mismatched </i>') else
       begin
         Dec(State.Italic);
         Font.Italic := State.Italic <> 0;
@@ -673,7 +681,9 @@ begin
         FontState.Size := Font.RealSize;
         State.FontStack.Add(FontState);
 
-        Font.Size := HtmlSizeToMySize(Size, State.DefaultSize);
+        if HtmlSize <> 0 then
+          Font.Size := HtmlSizeToMySize(HtmlSize, State.DefaultSize) else
+          Font.Size := PercentSize * State.DefaultSize;
       end;
     tcSmall:
       begin
@@ -688,7 +698,7 @@ begin
       end;
     tcFontEnd, tcSmallEnd:
       if (State.FontStack = nil) or (State.FontStack.Count = 0) then
-        OnWarning(wtMinor, 'HTML', 'Mismatched </font> or </small>') else
+        WritelnWarning('HTML', 'Mismatched </font> or </small>') else
       begin
         FontState := State.FontStack.Last;
         State.Color := FontState.Color;
@@ -766,7 +776,7 @@ begin
       and as HTML may be useful without TFontFamily sometimes.
 
     if Html then
-      OnWarning(wtMinor, 'HTML', 'Rendering HTML text with simple font (' +
+      WritelnWarning('HTML', 'Rendering HTML text with simple font (' +
         AFont.ClassName + ':' + AFont.Name +
         '), without bold/italic variants. <b> and <i> will not have any effect');
     }
@@ -899,25 +909,33 @@ var
   end;
 
   function ReadFontSize(const S: string; const I: Integer;
-    out NextChar: Integer; out Size: Integer): boolean;
+    out NextChar: Integer; out HtmlSize: Integer; out PercentSize: Single): boolean;
   var
     EndPos: Integer;
     SizeRead: Int64;
+    NumStr: string;
   begin
     EndPos := PosEx('">', S, I);
     NextChar := EndPos + 2;
     Result := EndPos <> 0;
+    SizeRead := 0;
+    PercentSize := 0;
+
+    NumStr := Copy(S, I, EndPos - I);
     try
-      SizeRead := StrToInt(Copy(S, I, EndPos - I));
+      if IsSuffix('%', NumStr, false) then
+        PercentSize := StrToFloat(SuffixRemove('%', NumStr, false)) / 100 else
+      begin
+        SizeRead := StrToInt(NumStr);
+        if S[I] in ['+', '-'] then
+          { size is relative to 3.
+            See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/font }
+          HtmlSize := Clamped(3 + SizeRead, 1, 7) else
+          HtmlSize := Clamped(SizeRead, 1, 7);
+      end;
     except
       on EConvertError do Exit(false);
     end;
-
-    if S[I] in ['+', '-'] then
-      { size is relative to 3.
-        See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/font }
-      Size := Clamped(3 + SizeRead, 1, 7) else
-      Size := Clamped(SizeRead, 1, 7);
   end;
 
   function CommandFound(const S: string; const I: Integer;
@@ -954,7 +972,7 @@ var
     begin
       Result := TTextPropertyCommand.Create;
       Result.Command := tcFontSize;
-      if not ReadFontSize(S, NextChar, NextChar, Result.Size) then
+      if not ReadFontSize(S, NextChar, NextChar, Result.HtmlSize, Result.PercentSize) then
         FreeAndNil(Result); // resign, not correct
     end else
     if SubstringStartsHere(S, I, '</font>', NextChar) then

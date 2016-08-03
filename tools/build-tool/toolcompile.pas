@@ -34,8 +34,7 @@ function StringToMode(const S: string): TCompilationMode;
 implementation
 
 uses SysUtils, Process,
-  CastleUtils, CastleStringUtils, CastleWarnings, CastleFilesUtils,
-  CastleFindFiles,
+  CastleUtils, CastleStringUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
   ToolUtils;
 
 type
@@ -73,7 +72,7 @@ begin
   Token := NextToken(FpcOutput, SeekPos, ['.', '-']);
   if Token = '' then
   begin
-    OnWarning(wtMajor, 'FPC', Format('Failed to query FPC version: no release version in response "%s", assuming 0', [FpcOutput]));
+    WritelnWarning('FPC', 'Invalid FPC version: Failed to query FPC version: no release version in response "%s", assuming 0', [FpcOutput]);
     Result.Release := 0;
   end else
     Result.Release := StrToInt(Token);
@@ -129,7 +128,7 @@ var
   begin
     Path := CastleEngineSrc + Path;
     if not DirectoryExists(Path) then
-      OnWarning(wtMajor, 'Path', Format('Path "%s" does not exist. Make sure that $CASTLE_ENGINE_PATH points to the directory containing Castle Game Engine sources (the castle_game_engine/ or castle-engine/ directory)', [Path]));
+      WritelnWarning('Path', 'Path "%s" does not exist. Make sure that $CASTLE_ENGINE_PATH points to the directory containing Castle Game Engine sources (the castle_game_engine/ or castle-engine/ directory)', [Path]);
     FpcOptions.Add('-Fu' + Path);
     FpcOptions.Add('-Fi' + Path);
   end;

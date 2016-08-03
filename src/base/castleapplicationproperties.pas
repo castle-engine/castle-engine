@@ -34,6 +34,13 @@ type
     procedure ExecuteBackward;
   end;
 
+  TWarningEvent = procedure (Sender: TObject; const Category, Message: string) of object;
+
+  TWarningEventList = class(specialize TGenericStructList<TWarningEvent>)
+  public
+    procedure ExecuteAll(Sender: TObject; const Category, Message: string);
+  end;
+
   { Events and properties of the Castle Game Engine application,
     usually accessed through the @link(ApplicationProperties) singleton.
 
@@ -48,6 +55,7 @@ type
     FOnUpdate, FOnInitializeJavaActivity,
       FOnGLContextOpenObject, FOnGLContextCloseObject,
       FOnPause, FOnResume: TNotifyEventList;
+    FOnWarning: TWarningEventList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -122,6 +130,13 @@ type
     property OnResume: TNotifyEventList read FOnResume;
     { @groupEnd }
 
+    property OnWarning: TWarningEventList read FOnWarning;
+
+    { Add this to OnWarning to output warnings to standard output (usually, console).
+      Eventually, on GUI Windows programs, it will make a dialog box.
+      This is handled by @link(WarningWrite) procedure. }
+    procedure WriteWarningOnConsole(Sender: TObject; const Category, Message: string);
+
     { Internal for Castle Game Engine.
       Called from CastleWindow or CastleControl.
       Don't call these methods yourself.
@@ -141,6 +156,8 @@ type
     { @exclude }
     procedure _Resume;
     { @groupEnd }
+    procedure _Warning(const Category, Message: string);
+    { @groupEnd }
   end;
 
 function ApplicationProperties(
@@ -148,7 +165,8 @@ function ApplicationProperties(
 
 implementation
 
-uses SysUtils;
+uses SysUtils,
+  CastleUtils;
 
 { TGLContextEventList -------------------------------------------------------- }
 
@@ -166,6 +184,16 @@ var
 begin
   for I := Count - 1 downto 0 do
     Items[I]();
+end;
+
+{ TWarningEventList ---------------------------------------------------------- }
+
+procedure TWarningEventList.ExecuteAll(Sender: TObject; const Category, Message: string);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I](Sender, Category, Message);
 end;
 
 { TCastleApplicationProperties ----------------------------------------------- }
@@ -191,6 +219,7 @@ begin
   FOnInitializeJavaActivity := TNotifyEventList.Create;
   FOnPause := TNotifyEventList.Create;
   FOnResume := TNotifyEventList.Create;
+  FOnWarning := TWarningEventList.Create;
 end;
 
 destructor TCastleApplicationProperties.Destroy;
@@ -203,6 +232,7 @@ begin
   FreeAndNil(FOnInitializeJavaActivity);
   FreeAndNil(FOnPause);
   FreeAndNil(FOnResume);
+  FreeAndNil(FOnWarning);
   inherited;
 end;
 
@@ -243,6 +273,17 @@ end;
 procedure TCastleApplicationProperties._Resume;
 begin
   FOnResume.ExecuteAll(Self);
+end;
+
+procedure TCastleApplicationProperties._Warning(const Category, Message: string);
+begin
+  FOnWarning.ExecuteAll(Self, Category, Message);
+end;
+
+procedure TCastleApplicationProperties.WriteWarningOnConsole(
+  Sender: TObject; const Category, Message: string);
+begin
+  WarningWrite(ApplicationName + ': ' + Category + ' warning: ' + Message);
 end;
 
 finalization

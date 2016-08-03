@@ -246,7 +246,7 @@ procedure TCastleWindowCustom.MenuUpdateCaption(Entry: TMenuEntryWithCaption);
       Double underscore should be converted to single underscore.
       Only unpaired single underscore should be converted to &.
       Our SReplacePatterns guarantees correct behavior. }
-    Result := SReplacePatterns(S, ['__', '_'], ['_', '&'], [soMatchCase]);
+    Result := SReplacePatterns(S, ['__', '_'], ['_', '&'], false);
   end;
 
 var

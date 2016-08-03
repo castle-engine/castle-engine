@@ -2,7 +2,6 @@
 package net.sourceforge.castleengine;
 
 import android.util.Log;
-import android.widget.Toast;
 
 import com.chartboost.sdk.CBLocation;
 import com.chartboost.sdk.Chartboost;
@@ -19,7 +18,6 @@ public class ComponentChartboost extends ComponentAbstract
     private static final String TAG = "${NAME}.castleengine.ComponentChartboost";
 
     private boolean initialized, scheduledStart, scheduledResume;
-    private boolean fullScreenAdVisible;
 
     public ComponentChartboost(MainActivity activity)
     {
@@ -31,14 +29,13 @@ public class ComponentChartboost extends ComponentAbstract
         return "chartboost";
     }
 
-    private void fullScreenAdClosed(boolean cacheNext)
+    private void fullScreenAdClosed(boolean watched, boolean cacheNext)
     {
-        messageSend(new String[]{"ads-chartboost-full-screen-ad-closed"});
-        fullScreenAdVisible = false;
+        messageSend(new String[]{"ads-chartboost-full-screen-ad-closed", booleanToString(watched)});
         if (cacheNext) {
             // cache next interstitial.
             // Don't do this in case loading of previous one failed,
-            // as we would spam console (and Toast notifications) with failures.
+            // as we would spam console with failures.
             Chartboost.cacheInterstitial(CBLocation.LOCATION_DEFAULT);
         }
     }
@@ -51,7 +48,7 @@ public class ComponentChartboost extends ComponentAbstract
         {
             super.didCloseInterstitial(location);
             Log.i(TAG, "Chartbooost Interstitial Close, location: "+ (location != null ? location : "null"));
-            fullScreenAdClosed(true);
+            fullScreenAdClosed(true, true);
         }
 
         @Override
@@ -62,20 +59,14 @@ public class ComponentChartboost extends ComponentAbstract
             // it's when user switches out of our app).
             // Needed, since we don't get Closed callback
             // when user presses on the app.
-            fullScreenAdClosed(true);
+            fullScreenAdClosed(true, true);
         }
 
         @Override
         public void didFailToLoadInterstitial(String location, CBImpressionError error) {
             Log.i(TAG, "Chartbooost Interstitial FAIL TO LOAD, location: " +
                 (location != null ? location : "null") + ", error: " + error.name());
-            // do not show Toast outside of show cycle
-            // (e.g. when cacheInterstitial from onStart fails)
-            if (fullScreenAdVisible) {
-                Toast.makeText(getActivity().getApplicationContext(),
-                    "No ads available, continuing without ad.", Toast.LENGTH_SHORT).show();
-            }
-            fullScreenAdClosed(false);
+            fullScreenAdClosed(false, false);
         }
 
         @Override
@@ -187,7 +178,6 @@ public class ComponentChartboost extends ComponentAbstract
 
     private void showInterstitial()
     {
-        fullScreenAdVisible = true;
         if (initialized) {
             if (!Chartboost.hasInterstitial(CBLocation.LOCATION_DEFAULT)) {
                 Log.i(TAG, "Interstitial not in cache yet, will wait for it");
@@ -196,7 +186,7 @@ public class ComponentChartboost extends ComponentAbstract
             Chartboost.showInterstitial(CBLocation.LOCATION_DEFAULT);
         } else {
             // pretend that ad was displayed, in case native app waits for it
-            fullScreenAdClosed(false);
+            fullScreenAdClosed(false, false);
         }
     }
 

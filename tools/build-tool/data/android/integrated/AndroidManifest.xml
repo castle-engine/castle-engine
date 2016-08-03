@@ -49,7 +49,9 @@
           E AndroidRuntime: java.lang.RuntimeException: Unable to start activity ComponentInfo{...}: java.lang.IllegalArgumentException: Unable to load native library: ....
           E AndroidRuntime: Caused by: java.lang.IllegalArgumentException: Unable to load native library: .....so
     -->
-    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="18" />
+    <uses-sdk
+        android:minSdkVersion="${ANDROID_MIN_SDK_VERSION}"
+        android:targetSdkVersion="${ANDROID_TARGET_SDK_VERSION}" />
     <uses-feature android:glEsVersion="0x00020000"/>
 
     ${ANDROID_SCREEN_ORIENTATION_FEATURE}

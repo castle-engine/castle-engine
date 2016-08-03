@@ -25,7 +25,7 @@ uses Classes, CastleVectors, X3DNodes, CastleScene, CastleSceneCore, CastleCamer
   CastleKeysMouse, CastleBoxes, CastleBackground, CastleUtils, CastleClassUtils,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, FGL, CastleSectors,
   CastleInputs, CastlePlayer, CastleRectangles, CastleColors, CastleGL,
-  CastleRays;
+  CastleRays, CastleScreenEffects;
 
 type
   TCastleAbstractViewport = class;
@@ -99,7 +99,7 @@ type
     FTransparent: boolean;
 
     FScreenSpaceAmbientOcclusion: boolean;
-    SSAOShader: TGLSLProgram;
+    SSAOShader: TGLSLScreenEffect;
 
     { Set these to non-1 to deliberately distort field of view / aspect ratio.
       This is useful for special effects when you want to create unrealistic
@@ -684,6 +684,9 @@ type
     LastSoundRefresh: TMilisecTime;
     DefaultHeadlightNode: TDirectionalLightNode;
 
+    ScheduledVisibleChangeNotification: boolean;
+    ScheduledVisibleChangeNotificationChanges: TVisibleChanges;
+
     { Call at the beginning of Render (from both scene manager and custom viewport),
       to make sure UpdateGeneratedTextures was done before actual drawing.
       It *can* carelessly change the OpenGL projection matrix (but not viewport). }
@@ -692,7 +695,7 @@ type
     procedure SetMainScene(const Value: TCastleScene);
     procedure SetDefaultViewport(const Value: boolean);
 
-    procedure ItemsVisibleChange(const Changes: TVisibleChanges);
+    procedure ItemsVisibleChange(const Sender: T3D; const Changes: TVisibleChanges);
 
     { scene callbacks }
     procedure SceneBoundViewpointChanged(Scene: TCastleSceneCore);
@@ -1139,7 +1142,7 @@ implementation
 
 uses SysUtils, CastleRenderingCamera, CastleGLUtils, CastleProgress,
   CastleLog, CastleStringUtils, CastleSoundEngine, Math,
-  X3DTriangles, CastleGLVersion, CastleShapes, CastleScreenEffects;
+  X3DTriangles, CastleGLVersion, CastleShapes;
 
 procedure Register;
 begin
@@ -1446,6 +1449,11 @@ end;
 
 procedure TCastleAbstractViewport.ItemsAndCameraCursorChange(Sender: TObject);
 begin
+  { this may be called from T3DListCore.Notify when removing stuff owned by other
+    stuff, in particular during our own destructor when FItems is freed
+    and we're in half-destructed state. }
+  if csDestroying in GetItems.ComponentState then Exit;
+
   { We have to treat Camera.Cursor specially:
     - mcForceNone because of mouse look means result is unconditionally mcForceNone.
       Other Items.Cursor, MainScene.Cursor etc. is ignored then.
@@ -1999,11 +2007,11 @@ procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
       glViewport that takes care of this. }
 
     AttribVertex := Shader.Attribute('vertex');
-    AttribVertex.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TScreenPoint),
-      Offset(ScreenPoint[0].Position, ScreenPoint[0]));
+    AttribVertex.EnableArrayVector2Single(SizeOf(TScreenPoint),
+      OffsetUInt(ScreenPoint[0].Position, ScreenPoint[0]));
     AttribTexCoord := Shader.Attribute('tex_coord');
-    AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE, SizeOf(TScreenPoint),
-      Offset(ScreenPoint[0].TexCoord, ScreenPoint[0]));
+    AttribTexCoord.EnableArrayVector2Single(SizeOf(TScreenPoint),
+      OffsetUInt(ScreenPoint[0].TexCoord, ScreenPoint[0]));
 
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
@@ -2203,7 +2211,7 @@ begin
         WritelnLog('Screen effects', Format('Created texture for screen effects, with size %d x %d, with depth texture: %s',
           [ ScreenEffectTextureWidth,
             ScreenEffectTextureHeight,
-            BoolToStr[CurrentScreenEffectsNeedDepth] ]));
+            BoolToStr(CurrentScreenEffectsNeedDepth, true) ]));
     end;
 
     { We have to adjust glViewport.
@@ -2316,8 +2324,6 @@ begin
 end;
 
 procedure TCastleAbstractViewport.GLContextOpen;
-var
-  VS, FS: string;
 begin
   inherited;
 
@@ -2326,17 +2332,10 @@ begin
     if TGLSLProgram.ClassSupport <> gsNone then
     begin
       try
-        SSAOShader := TGLSLProgram.Create;
-        VS := ScreenEffectVertex;
-        FS := ScreenEffectFragment(true) + {$I ssao.glsl.inc};
-        if Log and LogShaders then
-          WritelnLogMultiline('GLSL SSAO shader',
-            'SSAO vertex shader:' + NL +  VS + NL +
-            'SSAO fragment shader:' + NL + FS);
-        SSAOShader.AttachVertexShader(VS);
-        SSAOShader.AttachFragmentShader(FS);
-        SSAOShader.Link(true);
-        SSAOShader.UniformNotFoundAction := uaIgnore;
+        SSAOShader := TGLSLScreenEffect.Create;
+        SSAOShader.NeedsDepth := true;
+        SSAOShader.ScreenEffectShader := {$I ssao.glsl.inc};
+        SSAOShader.Link;
       except
         on E: EGLSLError do
         begin
@@ -2442,10 +2441,7 @@ type
   { Root of T3D hierarchy lists.
     Owner is always non-nil, always a TCastleSceneManager. }
   T3DWorldConcrete = class(T3DWorld)
-  public
     function Owner: TCastleSceneManager;
-    procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
-    procedure CursorChange; override;
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: P3DTriangle): boolean; override;
     function GravityUp: TVector3Single; override;
@@ -2472,16 +2468,6 @@ type
 function T3DWorldConcrete.Owner: TCastleSceneManager;
 begin
   Result := TCastleSceneManager(inherited Owner);
-end;
-
-procedure T3DWorldConcrete.VisibleChangeHere(const Changes: TVisibleChanges);
-begin
-  Owner.ItemsVisibleChange(Changes);
-end;
-
-procedure T3DWorldConcrete.CursorChange;
-begin
-  Owner.ItemsAndCameraCursorChange(Self { Sender is ignored now anyway });
 end;
 
 function T3DWorldConcrete.CollisionIgnoreItem(const Sender: TObject;
@@ -2577,6 +2563,8 @@ begin
     so make it a correct sub-component. }
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
+  FItems.OnCursorChange := @ItemsAndCameraCursorChange;
+  FItems.OnVisibleChange := @ItemsVisibleChange;
 
   FMoveLimit := EmptyBox3D;
   FWater := EmptyBox3D;
@@ -2622,12 +2610,14 @@ begin
   inherited;
 end;
 
-procedure TCastleSceneManager.ItemsVisibleChange(const Changes: TVisibleChanges);
+procedure TCastleSceneManager.ItemsVisibleChange(const Sender: T3D; const Changes: TVisibleChanges);
 begin
-  { pass visible change notification "upward" (as a TUIControl, to container) }
-  VisibleChange;
-  { pass visible change notification "downward", to all children T3D }
-  Items.VisibleChangeNotification(Changes);
+  { merely schedule broadcasting this change to a later time.
+    This way e.g. animating a lot of transformations doesn't cause a lot of
+    "visible change notifications" repeatedly on the same 3D object within
+    the same frame. }
+  ScheduledVisibleChangeNotification := true;
+  ScheduledVisibleChangeNotificationChanges += Changes;
 end;
 
 procedure TCastleSceneManager.GLContextOpen;
@@ -2726,7 +2716,7 @@ begin
       if Camera <> nil then
       begin
         MainScene.CameraChanged(Camera);
-        ItemsVisibleChange(CameraToChanges);
+        ItemsVisibleChange(MainScene, CameraToChanges);
       end;
     end;
   end;
@@ -2795,7 +2785,7 @@ begin
       { Call initial CameraChanged (this allows ProximitySensors to work
         as soon as ProcessEvents becomes true). }
       Items.CameraChanged(Camera);
-      ItemsVisibleChange(CameraToChanges);
+      ItemsVisibleChange(Items, CameraToChanges);
     end;
 
     { Changing camera changes also the view rapidly. }
@@ -3089,6 +3079,26 @@ end;
 
 procedure TCastleSceneManager.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
+
+  procedure DoScheduledVisibleChangeNotification;
+  var
+    Changes: TVisibleChanges;
+  begin
+    if ScheduledVisibleChangeNotification then
+    begin
+      { reset state first, in case some VisibleChangeNotification will post again
+        another visible change. }
+      ScheduledVisibleChangeNotification := false;
+      Changes := ScheduledVisibleChangeNotificationChanges;
+      ScheduledVisibleChangeNotificationChanges := [];
+
+      { pass visible change notification "upward" (as a TUIControl, to container) }
+      VisibleChange;
+      { pass visible change notification "downward", to all children T3D }
+      Items.VisibleChangeNotification(Changes);
+    end;
+  end;
+
 const
   { Delay between calling SoundEngine.Refresh, in miliseconds. }
   SoundRefreshDelay = 100;
@@ -3123,6 +3133,8 @@ begin
       end;
     end;
   end;
+
+  DoScheduledVisibleChangeNotification;
 end;
 
 procedure TCastleSceneManager.CameraVisibleChange(ACamera: TObject);
@@ -3138,7 +3150,7 @@ begin
       to work in all 3D scenes, not just in MainScene. }
     Items.CameraChanged(Camera);
     { ItemsVisibleChange will also cause our own VisibleChange. }
-    ItemsVisibleChange(CameraToChanges);
+    ItemsVisibleChange(Items, CameraToChanges);
   end else
     VisibleChange;
 
@@ -3303,7 +3315,7 @@ begin
       if DefaultHeadlightNode = nil then
         { Nothing more needed, all DirectionalLight default properties
           are suitable for default headlight. }
-        DefaultHeadlightNode := TDirectionalLightNode.Create('', '');;
+        DefaultHeadlightNode := TDirectionalLightNode.Create;
       Result := DefaultHeadlightNode;
     end;
     Assert(Result <> nil);

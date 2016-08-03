@@ -164,56 +164,56 @@ begin
   FFdFamily := TMFString.Create(Self, 'family', ['SERIF']);
    FdFamily.Exposed := false;
    FdFamily.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdFamily);
+  AddField(FFdFamily);
 
   FFdHorizontal := TSFBool.Create(Self, 'horizontal', true);
    FdHorizontal.Exposed := false;
    FdHorizontal.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdHorizontal);
+  AddField(FFdHorizontal);
 
   FFdJustify := TMFString.Create(Self, 'justify', ['BEGIN']);
    FdJustify.Exposed := false;
    FdJustify.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdJustify);
+  AddField(FFdJustify);
   { X3D specification comment: ["BEGIN","END","FIRST","MIDDLE",""] }
 
   FFdLanguage := TSFString.Create(Self, 'language', '');
    FdLanguage.Exposed := false;
    FdLanguage.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdLanguage);
+  AddField(FFdLanguage);
 
   FFdLeftToRight := TSFBool.Create(Self, 'leftToRight', true);
    FdLeftToRight.Exposed := false;
    FdLeftToRight.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdLeftToRight);
+  AddField(FFdLeftToRight);
 
   FFdSize := TSFFloat.Create(Self, 'size', DefaultSize);
    FdSize.Exposed := false;
    FdSize.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdSize);
+  AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
 
   FFdSpacing := TSFFloat.Create(Self, 'spacing', DefaultSpacing);
    FdSpacing.Exposed := false;
    FdSpacing.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdSpacing);
+  AddField(FFdSpacing);
   { X3D specification comment: [0,Inf) }
 
   FFdStyle := TSFString.Create(Self, 'style', 'PLAIN');
    FdStyle.Exposed := false;
    FdStyle.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdStyle);
+  AddField(FFdStyle);
   { X3D specification comment: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""] }
 
   FFdTopToBottom := TSFBool.Create(Self, 'topToBottom', true);
    FdTopToBottom.Exposed := false;
    FdTopToBottom.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdTopToBottom);
+  AddField(FFdTopToBottom);
 
   FFdBlending := TSFBool.Create(Self, 'blending', DefaultBlending);
    FdBlending.Exposed := false;
    FdBlending.ChangesAlways := [chFontStyle];
-  Fields.Add(FFdBlending);
+  AddField(FFdBlending);
 end;
 
 class function TFontStyleNode.ClassNodeTypeName: string;
@@ -244,7 +244,7 @@ begin
       Exit(ffSans) else
     if FdFamily.Items[I] = 'TYPEWRITER' then
       Exit(ffTypeWriter) else
-      OnWarning(wtMajor, 'VRML/X3D', 'Font family "' + FdFamily.Items[I] + '" not supported');
+      WritelnWarning('VRML/X3D', 'Font family "' + FdFamily.Items[I] + '" not supported');
 
   { If no supported values on FdFamily.Items then fall back to serif }
   Result := ffSerif;
@@ -272,7 +272,7 @@ begin
       (FdStyle.Value = StyleItalic) or
       (FdStyle.Value = StylePlain) or
       (FdStyle.Value = '')) then
-      OnWarning(wtMajor, 'VRML/X3D', 'Font style "' + FdStyle.Value + '" not supported');
+      WritelnWarning('VRML/X3D', 'Font style "' + FdStyle.Value + '" not supported');
   end;
 end;
 
@@ -292,7 +292,7 @@ begin
       (FdStyle.Value = StyleBold) or
       (FdStyle.Value = StylePlain) or
       (FdStyle.Value = '')) then
-      OnWarning(wtMajor, 'VRML/X3D', 'Font style "' + FdStyle.Value + '" not supported');
+      WritelnWarning('VRML/X3D', 'Font style "' + FdStyle.Value + '" not supported');
   end;
 end;
 
@@ -308,7 +308,7 @@ begin
   J := UpperCase(S);
   if (J <> S) and not JustifyWarningUppercaseDone then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Font justify value "%s" should be specified in uppercase',
+    WritelnWarning('VRML/X3D', Format('Font justify value "%s" should be specified in uppercase',
       [S]));
     JustifyWarningUppercaseDone := true;
   end;
@@ -324,7 +324,7 @@ begin
   begin
     if not JustifyWarningObsoleteDone then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', Format(SJustifyObsolete, ['LEFT', 'BEGIN']));
+      WritelnWarning('VRML/X3D', Format(SJustifyObsolete, ['LEFT', 'BEGIN']));
       JustifyWarningObsoleteDone := true;
     end;
     Result := fjBegin;
@@ -333,7 +333,7 @@ begin
   begin
     if not JustifyWarningObsoleteDone then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', Format(SJustifyObsolete, ['CENTER', 'MIDDLE']));
+      WritelnWarning('VRML/X3D', Format(SJustifyObsolete, ['CENTER', 'MIDDLE']));
       JustifyWarningObsoleteDone := true;
     end;
     Result := fjMiddle;
@@ -342,7 +342,7 @@ begin
   begin
     if not JustifyWarningObsoleteDone then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', Format(SJustifyObsolete, ['RIGHT', 'END']));
+      WritelnWarning('VRML/X3D', Format(SJustifyObsolete, ['RIGHT', 'END']));
       JustifyWarningObsoleteDone := true;
     end;
     Result := fjEnd;
@@ -352,7 +352,7 @@ begin
     Result := DefaultValue;
     if not JustifyWarningNotSupportedDone then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', 'Font justify "' + S + '" not supported');
+      WritelnWarning('VRML/X3D', 'Font justify "' + S + '" not supported');
       JustifyWarningNotSupportedDone := true;
     end;
   end;
@@ -388,39 +388,39 @@ begin
 
   FFdFontStyle := TSFNode.Create(Self, 'fontStyle', [TAbstractFontStyleNode]);
    FdFontStyle.ChangesAlways := [chGeometry];
-  Fields.Add(FFdFontStyle);
+  AddField(FFdFontStyle);
 
   FFdLength := TMFFloat.Create(Self, 'length', []);
    FdLength.ChangesAlways := [chGeometry];
-  Fields.Add(FFdLength);
+  AddField(FFdLength);
   { X3D specification comment: [0,Inf) }
 
   FFdMaxExtent := TSFFloat.Create(Self, 'maxExtent', 0.0);
    FdMaxExtent.ChangesAlways := [chGeometry];
-  Fields.Add(FFdMaxExtent);
+  AddField(FFdMaxExtent);
   { X3D specification comment: [0,Inf) }
 
   FFdString := TMFString.Create(Self, 'string', []);
    FdString.ChangesAlways := [chGeometry];
-  Fields.Add(FFdString);
+  AddField(FFdString);
 
   FEventLineBounds := TMFVec2fEvent.Create(Self, 'lineBounds', false);
-  Events.Add(FEventLineBounds);
+  AddEvent(FEventLineBounds);
 
   FEventOrigin := TSFVec3fEvent.Create(Self, 'origin', false);
-  Events.Add(FEventOrigin);
+  AddEvent(FEventOrigin);
 
   FEventTextBounds := TSFVec2fEvent.Create(Self, 'textBounds', false);
-  Events.Add(FEventTextBounds);
+  AddEvent(FEventTextBounds);
 
   FFdSolid := TSFBool.Create(Self, 'solid', false);
    FdSolid.Exposed := false;
    FdSolid.ChangesAlways := [chGeometry];
-  Fields.Add(FFdSolid);
+  AddField(FFdSolid);
 
   FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdTexCoord);
+  AddField(FFdTexCoord);
 end;
 
 destructor TTextNode.Destroy;
@@ -862,7 +862,7 @@ end;
 function CreateFontTextureNode(const Font: TTextureFontData;
   const Blending: boolean): TPixelTextureNode;
 begin
-  Result := TPixelTextureNode.Create('', '');
+  Result := TPixelTextureNode.Create;
   FreeAndNil(Result.FdImage.Value);
   { although repeat=TRUE seems counter-intuitive, in fact:
     - We *can* use it, since CastleTextureFontData surrounds each glyph from

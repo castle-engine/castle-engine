@@ -452,8 +452,10 @@ begin
     WritelnLog('TimeDependentNodes', Format('%s: time changes by +%f to %f. Cycle interval: %f, loop %s. Before: active %s, paused %s, elapsedTimeInCycle %f',
       [ Node.NiceName,
         TimeIncrease, NewTime,
-        CycleInterval, BoolToStr[FdLoop.Value],
-        BoolToStr[IsActive], BoolToStr[IsPaused],
+        CycleInterval,
+        BoolToStr(FdLoop.Value, true),
+        BoolToStr(IsActive, true),
+        BoolToStr(IsPaused, true),
         FElapsedTimeInCycle
       ]));
   {$endif}
@@ -667,8 +669,8 @@ begin
   if Log then
     WritelnLog('TimeDependentNodes', Format('%s: after: active %s, paused %s, elapsedTimeInCycle %f',
       [ Node.NiceName,
-        BoolToStr[IsActive],
-        BoolToStr[IsPaused],
+        BoolToStr(IsActive, true),
+        BoolToStr(IsPaused, true),
         FElapsedTimeInCycle
       ]));
   {$endif}
@@ -681,36 +683,36 @@ begin
   inherited;
 
   FFdLoop := TSFBool.Create(Self, 'loop', false);
-  Fields.Add(FFdLoop);
+  AddField(FFdLoop);
 
   FFdPauseTime := TSFTime.Create(Self, 'pauseTime', 0);
    FdPauseTime.ChangesAlways := [chTimeStopStart];
-  Fields.Add(FFdPauseTime);
+  AddField(FFdPauseTime);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdResumeTime := TSFTime.Create(Self, 'resumeTime', 0);
    FdResumeTime.ChangesAlways := [chTimeStopStart];
-  Fields.Add(FFdResumeTime);
+  AddField(FFdResumeTime);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdStartTime := TSFTimeIgnoreWhenActive.Create(Self, 'startTime', 0);
    FdStartTime.ChangesAlways := [chTimeStopStart];
-  Fields.Add(FFdStartTime);
+  AddField(FFdStartTime);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdStopTime := TSFStopTime.Create(Self, 'stopTime', 0);
    FdStopTime.ChangesAlways := [chTimeStopStart];
-  Fields.Add(FFdStopTime);
+  AddField(FFdStopTime);
   { X3D specification comment: (-Inf,Inf) }
 
   FEventElapsedTime := TSFTimeEvent.Create(Self, 'elapsedTime', false);
-  Events.Add(FEventElapsedTime);
+  AddEvent(FEventElapsedTime);
 
   FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
-  Events.Add(FEventIsActive);
+  AddEvent(FEventIsActive);
 
   FEventIsPaused := TSFBoolEvent.Create(Self, 'isPaused', false);
-  Events.Add(FEventIsPaused);
+  AddEvent(FEventIsPaused);
 
   DefaultContainerField := 'children';
 
@@ -753,23 +755,23 @@ begin
   inherited;
 
   FFdCycleInterval := TSFTimeIgnoreWhenActive.Create(Self, 'cycleInterval', 1);
-  Fields.Add(FFdCycleInterval);
+  AddField(FFdCycleInterval);
   { X3D specification comment: (0,Inf) }
 
   FEventCycleTime := TSFTimeEvent.Create(Self, 'cycleTime', false);
-  Events.Add(FEventCycleTime);
+  AddEvent(FEventCycleTime);
   { cycleTime_changed name is used e.g. by
     www.web3d.org/x3d/content/examples/Basic/StudentProjects/WallClock.x3d }
   FEventCycleTime.AddAlternativeName('cycleTime_changed', 0);
 
   FEventFraction_changed := TSFFloatEvent.Create(Self, 'fraction_changed', false);
-  Events.Add(FEventFraction_changed);
+  AddEvent(FEventFraction_changed);
 
   FEventTime := TSFTimeEvent.Create(Self, 'time', false);
-  Events.Add(FEventTime);
+  AddEvent(FEventTime);
 
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
-  Fields.Add(FFdEnabled);
+  AddField(FFdEnabled);
 
   DefaultContainerField := 'children';
 

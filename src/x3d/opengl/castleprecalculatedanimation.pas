@@ -124,6 +124,8 @@ type
 
     procedure SetOwnsFirstRootNode(const Value: boolean);
   protected
+    procedure SetWorld(const Value: T3DWorld); override;
+
     { Internal version of @link(Load) routines, feasible to load
       from both ready KeyNodes array and to automatically generate KeyNodes
       on the fly.
@@ -700,8 +702,6 @@ type
     property ParentAnimation: TCastlePrecalculatedAnimation read FParentAnimation;
     procedure DoGeometryChanged(const Change: TGeometryChange;
       LocalGeometryShape: TShape); override;
-    procedure VisibleChangeHere(const Changes: TVisibleChanges); override;
-    procedure CursorChange; override;
     function Shared: TCastleScene; override;
   end;
 
@@ -722,6 +722,7 @@ begin
   ShadowMapsDefaultSize := FParentAnimation.ShadowMapsDefaultSize;
   InitialViewpointIndex := FParentAnimation.InitialViewpointIndex;
   InitialViewpointName := FParentAnimation.InitialViewpointName;
+  SetWorld(FParentAnimation.World);
 
   Static := AStatic;
 
@@ -738,22 +739,6 @@ procedure TAnimationScene.DoGeometryChanged(const Change: TGeometryChange;
 begin
   inherited;
   ParentAnimation.ValidBoundingBox := false;
-end;
-
-procedure TAnimationScene.VisibleChangeHere(const Changes: TVisibleChanges);
-begin
-  inherited;
-  ParentAnimation.VisibleChangeHere(Changes);
-end;
-
-procedure TAnimationScene.CursorChange;
-begin
-  inherited;
-
-  { Maybe in the future we will update here our own cursor, for now: no need.
-    See T3DList.ListCursorChange implementation comments. }
-
-  ParentAnimation.CursorChange;
 end;
 
 { TCastlePrecalculatedAnimation ------------------------------------------------------------ }
@@ -799,6 +784,19 @@ begin
   FreeAndNil(Renderer);
   FCache := nil; // just to be safe
   inherited;
+end;
+
+procedure TCastlePrecalculatedAnimation.SetWorld(const Value: T3DWorld);
+var
+  I: Integer;
+begin
+  if World <> Value then
+  begin
+    inherited;
+    if FScenes <> nil then
+      for I := 0 to FScenes.Count - 1 do
+        TAnimationScene(FScenes[I]).SetWorld(Value);
+  end;
 end;
 
 procedure TCastlePrecalculatedAnimation.LoadCore(

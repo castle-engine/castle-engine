@@ -14,7 +14,8 @@
 }
 
 { Reporting warnings (OnWarning). }
-unit CastleWarnings;
+unit CastleWarnings
+  deprecated 'this interface to warnings is overcomplicated; better use WritelnWarning from CastleLog unit instead';
 
 {$I castleconf.inc}
 

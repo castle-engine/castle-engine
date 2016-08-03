@@ -47,9 +47,9 @@ public class ComponentAdMob extends ComponentAbstract
         Log.i(TAG, "AdMob initialized");
     }
 
-    private void fullScreenAdClosed()
+    private void fullScreenAdClosed(boolean watched)
     {
-        messageSend(new String[]{"ads-admob-full-screen-ad-closed"});
+        messageSend(new String[]{"ads-admob-full-screen-ad-closed", booleanToString(watched)});
     }
 
     private void interstitialInitialize()
@@ -67,7 +67,7 @@ public class ComponentAdMob extends ComponentAbstract
             @Override
             public void onAdClosed() {
                 Log.i(TAG, "Ad Closed");
-                fullScreenAdClosed();
+                fullScreenAdClosed(true);
             }
         });
 
@@ -139,11 +139,11 @@ public class ComponentAdMob extends ComponentAbstract
                 interstitialInitialize(); // load next interstitial ad
             } else {
                 // pretend that ad was displayed, in case native app waits for it
-                fullScreenAdClosed();
+                fullScreenAdClosed(false);
             }
         } else {
             // pretend that ad was displayed, in case native app waits for it
-            fullScreenAdClosed();
+            fullScreenAdClosed(false);
         }
     }
 

@@ -82,6 +82,7 @@ private
     AndroidApp: PAndroid_App;
     QEvents: TQueuedEventList;
     TouchChanges: array [0..FingerCount - 1] of TTouchChange;
+    ResumeScheduled: boolean;
 
   function HandleInput(App: PAndroid_app; Event: PAInputEvent): boolean;
   procedure HandleCommand(App: PAndroid_app; Command: Integer);
@@ -123,6 +124,16 @@ begin
 
   { create OpenGL context, run OnOpen events and so on }
   Window.Open;
+
+  { call ApplicationProperties._Resume now, after Window.Open,
+    to allow RenderLoadingBackground to happen before doing this.
+    It's important, since ApplicationProperties._Resume may e.g. reload
+    music files, which takes a while. }
+  if Application.ResumeScheduled then
+  begin
+    ApplicationProperties._Resume;
+    Application.ResumeScheduled := false;
+  end;
 end;
 
 { Whenever the context is lost, this is called.
@@ -185,8 +196,8 @@ begin
         finally FreeAndNil(ConfigState) end;
       end;
     {$endif CASTLE_PERSISTENT_ANDROID_STATE}
-    APP_CMD_PAUSE: ApplicationProperties._Pause;
-    APP_CMD_RESUME: ApplicationProperties._Resume;
+    APP_CMD_PAUSE : ApplicationProperties._Pause;
+    APP_CMD_RESUME: ResumeScheduled := true;
   end;
 end;
 
@@ -374,7 +385,7 @@ begin
 
   {$ifdef CASTLE_PERSISTENT_ANDROID_STATE}
   { Use SavedState as XML contents that should be loaded to global Config.
-    Note that we directly use AndroidLog below, not WritelnLog or OnWarning,
+    Note that we directly use AndroidLog below, not WritelnLog or WritelnWarning,
     because user code had no chance to call InitializeLog yet. }
   if App^.SavedState <> nil then
   begin

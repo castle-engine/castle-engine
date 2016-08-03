@@ -390,7 +390,7 @@ function StringToX3DXmlMulti(const s: string): string;
 
 implementation
 
-uses CastleLog, CastleWarnings;
+uses CastleLog;
 
 const
   { utf8 specific constants below }
@@ -737,8 +737,8 @@ begin
         'Unexpected end of file in the middle of string token');
     if not (Chr(NextChar) in ['"', '\']) then
     begin
-      OnWarning(wtMajor, 'X3D', Format('Invalid sequence in a string: "\%s". Backslash must be followed by another backslash or double quote, for SFString and MFString (in X3D classic (VRML) encoding) and for MFString (in X3D XML encoding).',
-        [Chr(NextChar)]));
+      WritelnWarning('X3D', 'Invalid X3D file: Invalid sequence in a string: "\%s". Backslash must be followed by another backslash or double quote, for SFString and MFString (in X3D classic (VRML) encoding) and for MFString (in X3D XML encoding).',
+        [Chr(NextChar)]);
       FTokenString += '\';
     end;
     FTokenString += Chr(NextChar);
@@ -1125,8 +1125,8 @@ const
 begin
   { use soMatchCase for speed }
   if SurroundWithQuotes then
-    Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"' else
-    Result :=       SReplacePatterns(s, Patterns, PatValues, [soMatchCase]);
+    Result := '"' + SReplacePatterns(s, Patterns, PatValues, false) + '"' else
+    Result :=       SReplacePatterns(s, Patterns, PatValues, false);
 end;
 
 function StringToX3DXml(const s: string): string;
@@ -1135,7 +1135,7 @@ const
   PatValues: array [0..6] of string = ('&amp;', '&quot;', '&apos;', '&lt;', '&gt;', '&#xA;', '&#xD;');
 begin
   { use soMatchCase for speed }
-  Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"';
+  Result := '"' + SReplacePatterns(s, Patterns, PatValues, false) + '"';
 end;
 
 function StringToX3DXmlMulti(const s: string): string;
@@ -1144,7 +1144,7 @@ const
   PatValues: array [0..7] of string = ('&amp;', '\&quot;', '&apos;', '&lt;', '&gt;', '&#xA;', '&#xD;', '\\');
 begin
   { use soMatchCase for speed }
-  Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"';
+  Result := '"' + SReplacePatterns(s, Patterns, PatValues, false) + '"';
 end;
 
 end.

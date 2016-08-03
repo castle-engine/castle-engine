@@ -52,8 +52,13 @@ begin
   for i := 0 to 4 do
     for j := 0 to 4 do
     begin
+      { In case this method is called for the 2nd time
+        (because the button to change drawing mode was pressed),
+        we need to free the previous TCastleImageControl.
+        Otherwise, it would remain visible in Window.Controls
+        (there would be no memory leak though, as it's owned by Self). }
       FreeAndNil(data[i,j]);
-      data[i,j] := TCastleImageControl.Create(self);
+      data[i,j] := TCastleImageControl.Create(Self);
     end;
 
   data[0,0].image := Legend; data[0,0].OwnsImage := false;
@@ -88,7 +93,8 @@ begin
     begin
       data[i,j].Anchor(vpTop, -data[i,j].image.height * j);
       data[i,j].Anchor(hpLeft, data[i,j].image.width * i);
-      Window.Controls.InsertFront(data[i,j]);
+      { InsertBack, not InsertFront, to be behind the labels and buttons. }
+      Window.Controls.InsertBack(data[i,j]);
     end;
 end;
 
@@ -110,6 +116,8 @@ begin
     Labels[I] := TCastleLabel.Create(Application);
     Labels[I].Color := White;
     Labels[I].Alignment := hpMiddle;
+    Labels[I].Outline := 1;
+    Labels[I].OutlineColor := Black;
     if Horizontal then
     begin
       Labels[I].Anchor(hpMiddle, hpLeft, ImageSize * (I + 1) + ImageSize div 2);
@@ -167,12 +175,6 @@ begin
   Window.Width := ImageSize * 5 + 240;
   SetOfImages := TSetOfImages.Create(Application);
   SetOfImages.Reset(dmBlend);
-
-  // TODO: it would be better to set "Outline := 1" only on labels,
-  // but not on buttons (it looks ugly on buttons, but helps labels...).
-  // But it's not implemented yet in TCustomizedFont.
-  UIFont.Outline := 1;
-  UIFont.OutlineColor := Black;
 
   AddLabels(false);
   AddLabels(true);

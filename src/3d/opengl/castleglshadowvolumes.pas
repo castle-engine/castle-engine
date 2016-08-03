@@ -288,8 +288,8 @@ begin
     WritelnLogMultiline('Shadow volumes',
       Format('GL_INCR/DECR_WRAP_EXT available: %s' + nl +
              'Two-sided stencil test available: %s',
-            [ BoolToStr[WrapAvailable],
-              BoolToStr[StencilTwoSided] ]));
+            [ BoolToStr(WrapAvailable, true),
+              BoolToStr(StencilTwoSided, true) ]));
 end;
 
 procedure TGLShadowVolumeRenderer.InitFrustumAndLight(

@@ -76,8 +76,9 @@ type
   protected
     { Called when the knowledge about what do we own is complete. }
     procedure KnownCompletely; virtual;
+
     { Called when the product is successfully consumed,
-      in response to @link(Consume) call.
+      in response to the @link(Consume) call.
 
       In this class, this simply
       sets @code(Product.SuccessfullyConsumed) flag to @true,
@@ -85,8 +86,35 @@ type
       implementation, maybe something else) will handle it and reset
       the @code(Product.SuccessfullyConsumed) flag to @false. }
     procedure SuccessfullyConsumed(const AProduct: TInAppProduct); virtual;
-    { Called when the product becomes owned, in particular when it's
-      successfully bought. }
+
+    { Called when we know the product is owned, in particular when it's
+      successfully bought.
+
+      If the product is a @bold(consumable), which means it has a one-time use
+      (and should disappear afterwards, until user will buy it again), then:
+
+      @orderedList(
+        @item(@bold(Call the @link(Consume) method) once you know the item is
+          owned. You can call @link(Consume) directly from the overridden
+          implementation of @name, this is often the simplest approach.)
+
+        @item(@bold(Actually perform the consumption) (bump the player gold,
+          grant extra life and so on) @item(@bold(only when the item
+          is successfully consumed). You are notified about this by the
+          @link(SuccessfullyConsumed) call (you can override it),
+          or you can watch if the @link(TInAppProduct.SuccessfullyConsumed)
+          flag is set.)
+
+          @bold(Do not give any one-time gain as a response to the @name
+          call.) Always wait for @link(SuccessfullyConsumed) call.
+
+          This protects you from the scenario when you're notified that
+          you own the item multiple times (which
+          may happen, since purchases may be resumed asynchronously while
+          other code is executing), and you call @link(Consume) twice.
+          The @link(SuccessfullyConsumed) will only fire once, if user
+          bought item once.)
+      ) }
     procedure Owns(const AProduct: TInAppProduct); virtual;
   public
     constructor Create(AOwner: TComponent); override;
@@ -137,7 +165,7 @@ begin
     }
     [' ', 'r̀', 'r̂', 'r̃', 'r̈', 'ʼ' , 'ŕ', 'ř', 't̀', 't̂', 'ẗ', 'ţ', 'ỳ', 'ỹ', 'ẙ', 'ʼ' , 'y̎', 'ý', 'ÿ', 'ŷ', 'p̂', 'p̈', 's̀', 's̃', 's̈', 's̊', 'ʼ' , 's̸', 'ś', 'ŝ', 'Ş', 'ş', 'š', 'd̂', 'd̃', 'd̈', 'ď', 'ʼ' , 'ḑ', 'f̈', 'f̸', 'g̀', 'g̃', 'g̈', 'ʼ̧', '‌', '​', '‌', '​', '́', 'ĝ', 'ǧ', 'ḧ', 'ĥ', 'j̈', 'j', 'ʼ' , 'ḱ', 'k̂', 'k̈', 'k̸', 'ǩ', 'l̂', 'l̃', 'l̈', 'Ł', 'ł', 'ẅ', 'ẍ', 'c̃', 'c̈', 'c̊', 'c', 'ʼ' , 'c̸', 'Ç', 'ç', 'ç', 'ć', 'ĉ', 'č', 'v̂', 'v̈', 'v', 'ʼ' , 'v̸', 'b́', 'b̧', 'ǹ', 'n̂', 'n̈', 'n̊', 'n', 'ʼ' , 'ń', 'ņ', 'ň', 'ñ', 'm̀', 'm̂', 'm̃', '‌', '​', 'm̈', '‌', '​', 'm̊', 'm̌', 'ǵ', 'ß', '€', '£'],
     [' ', 'r', 'r', 'r', 'r', '''', 'r', 'r', 't', 't', 't', 't', 'y', 'y', 'y', '''', 'y', 'y', 'y', 'y', 'p', 'p', 's', 's', 's', 's', '''', 's', 's', 's', 'S', 's', 's', 'd', 'd', 'd', 'd', '''', 'd', 'f', 'f', 'g', 'g', 'g', '' , '', '', '', '', '', 'g', 'g', 'h', 'h', 'j', 'j', '''', 'k', 'k', 'k', 'K', 'k', 'l', 'l', 'l', 'L', 'l', 'w', 'x', 'c', 'c', 'c', 'c', '''', 'c', 'C', 'c', 'c', 'c', 'c', 'c', 'v', 'v', 'v', '''', 'v', 'b', 'b', 'n', 'n', 'n', 'n', 'n', '''', 'n', 'n', 'n', 'n', 'm', 'm', 'm', '', '', 'm', '', '', 'm', 'm', 'g', 'B', 'EUR', 'L'],
-    [soMatchCase]);
+    false);
 end;
 
 { TInAppProduct -------------------------------------------------------------- }
@@ -257,7 +285,7 @@ begin
     for I := 0 to List.Count - 1 do
       LogStr += 'Product ' + List[I].Name +
         ', price ' + List[I].Price +
-        ', owned ' + CastleStringUtils.BoolToStr[List[I].Owns] + NL;
+        ', owned ' + BoolToStr(List[I].Owns, true) + NL;
     WritelnLogMultiline('InAppPurchases', LogStr);
   end;
 end;

@@ -128,7 +128,7 @@ begin
         if CurveTypeJson is TJSONArray then
         begin
           if TJSONArray(CurveTypeJson).Count <> 4 then
-            OnWarning(wtMinor, 'Spine', 'Curve type interpolation is an array, but does not have 4 elements (required for Bezier curve array)') else
+            WritelnWarning('Spine', 'Curve type interpolation is an array, but does not have 4 elements (required for Bezier curve array)') else
           begin
             Curve := true;
             ControlPoints[0] := TJSONArray(CurveTypeJson).Floats[0];
@@ -145,7 +145,7 @@ begin
           models are handled Ok since 'stepped' is only for optimization). }
         { else
         if CurveTypeJson.AsString <> 'linear' then
-          OnWarning(wtMinor, 'Spine', 'Found "' + CurveTypeJson.AsString + '" interpolation type on bone timeline of bone ' + Bone.Name + ', we do not support this interpolation type');
+          WritelnWarning('Spine', 'Found "' + CurveTypeJson.AsString + '" interpolation type on bone timeline of bone ' + Bone.Name + ', we do not support this interpolation type');
         }
       end;
       CurveControlPoints.Add(ControlPoints);
@@ -237,14 +237,14 @@ begin
   Container.AddRoute(Route);
 
   if BonesToReset.Translation.Remove(Bone) = -1 then
-    OnWarning(wtMajor, 'Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'translation']));
+    WritelnWarning('Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'translation']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
     then it's visibly ignored). }
   if Time.Count = 1 then
-    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['bone', Bone.Name, 'translation']));
+    WritelnWarning('Spine', Format(SSpine1KeyFrameWarning, ['bone', Bone.Name, 'translation']));
 end;
 
 function TBoneTimelineTranslate.DoingSomething: boolean;
@@ -320,14 +320,14 @@ begin
   Container.AddRoute(Route);
 
   if BonesToReset.Scale.Remove(Bone) = -1 then
-    OnWarning(wtMajor, 'Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'scale']));
+    WritelnWarning('Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'scale']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
     then it's visibly ignored). }
   if Time.Count = 1 then
-    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['bone', Bone.Name, 'scale']));
+    WritelnWarning('Spine', Format(SSpine1KeyFrameWarning, ['bone', Bone.Name, 'scale']));
 end;
 
 function TBoneTimelineScale.DoingSomething: boolean;
@@ -404,14 +404,14 @@ begin
   Container.AddRoute(Route);
 
   if BonesToReset.Rotation.Remove(Bone) = -1 then
-    OnWarning(wtMajor, 'Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'rotation']));
+    WritelnWarning('Spine', Format(SSpineMultipleTimelinesWarning, ['bone', Bone.Name, 'rotation']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
     then it's visibly ignored). }
   if Time.Count = 1 then
-    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['bone', Bone.Name, 'rotation']));
+    WritelnWarning('Spine', Format(SSpine1KeyFrameWarning, ['bone', Bone.Name, 'rotation']));
 end;
 
 function TBoneTimelineRotate.DoingSomething: boolean;

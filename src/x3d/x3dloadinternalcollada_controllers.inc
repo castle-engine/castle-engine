@@ -69,14 +69,14 @@ begin
     Controller := Controllers.Find(ControllerId);
     if Controller = nil then
     begin
-      OnWarning(wtMinor, 'Collada', Format('<node> instantiates non-existing ' +
+      WritelnWarning('Collada', Format('<node> instantiates non-existing ' +
         '<controller> element "%s"', [ControllerId]));
     end else
     begin
       Geometry := Geometries.Find(Controller.Source);
       if Geometry = nil then
       begin
-        OnWarning(wtMinor, 'Collada', Format('<controller> references non-existing ' +
+        WritelnWarning('Collada', Format('<controller> references non-existing ' +
           '<geometry> element "%s"', [Controller.Source]));
       end else
       begin
@@ -93,7 +93,7 @@ begin
       end;
     end;
   end else
-    OnWarning(wtMajor, 'Collada', Format('Element <%s> missing url attribute (that has to start with #)',
+    WritelnWarning('Collada', Format('Element <%s> missing url attribute (that has to start with #)',
       [InstantiatingElement.TagName]));
 end;
 

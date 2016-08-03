@@ -22,7 +22,7 @@ unit CastleMessaging;
 interface
 
 uses {$ifdef ANDROID} JNI, {$endif} SyncObjs,
-  CastleStringUtils, CastleGenericLists;
+  CastleStringUtils, CastleGenericLists, CastleTimeUtils;
 
 type
   { Called by TMessaging when a new message from Java is received.
@@ -104,6 +104,13 @@ end.
       to easier debug what happens in your game (e.g. how to fake getting
       some achievement), so in general don't leave it "on" in production. }
     property Log: boolean read FLog write FLog default false;
+
+    { Convert boolean to 'true' or 'false' string, which will be understood correctly
+      by the Java components receiving the messages. }
+    class function BoolToStr(const Value: boolean): string;
+    { Convert float time (in seconds) to integer miliseconds, which are understood correctly
+      by the Java components receiving the messages. }
+    class function TimeToStr(const Value: TFloatTime): string;
   end;
 
 {$ifdef ANDROID}
@@ -119,7 +126,7 @@ function Messaging: TMessaging;
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleLog, CastleWarnings, CastleApplicationProperties;
+  CastleUtils, CastleLog, CastleApplicationProperties;
 
 var
   JavaCommunicationCS: TCriticalSection;
@@ -135,7 +142,7 @@ begin
   for I := 0 to Count - 1 do
     Handled := Items[I](Received) or Handled;
   if not Handled then
-    OnWarning(wtMajor, 'JNI', 'Unhandled message from Java:' + NL + Received.Text);
+    WritelnWarning('JNI', 'Unhandled message from Java:' + NL + Received.Text);
 end;
 
 { TMessaging ----------------------------------------------------------------- }
@@ -165,7 +172,14 @@ begin
 end;
 
 const
-  MessageDelimiter = '=';
+  { This is a nice separator, as it has really low chance of occuring in non-binary data.
+    - It's also not 0, so it will not be confused with "end of string" (Pascal is invulnerable
+      to this, and can have #0 in the middle of AnsiString freely
+      but I'm not so sure about Java).
+    - It's also within ASCII range, so it will not occur within any UTF-8 multibyte sequence
+      (UTF-8 treats specially only stuff > 128, and you can search for ASCII substrings disregaring
+      the UTF-8 multibyte stuff, as far as I know). }
+  MessageDelimiter = #1;
 
 procedure TMessaging.SendStr(const S: string);
 begin
@@ -174,21 +188,15 @@ begin
   JavaCommunicationCS.Acquire;
   try
     if CastleLog.Log and Log then
-      WritelnLog('JNI', 'Native code posting message to Java: ' + S);
+      WritelnLog('JNI', 'Native code posting message to Java: ' + SReadableForm(S));
     ToJava.Add(S);
   finally JavaCommunicationCS.Release end;
 end;
 
 procedure TMessaging.Send(const Strings: array of string);
-var
-  I: Integer;
-  S: string;
 begin
   if High(Strings) = -1 then Exit; // exit in case of empty list
-  S := Strings[0];
-  for I := 1 to High(Strings) do
-    S += MessageDelimiter + Strings[I];
-  SendStr(S);
+  SendStr(GlueStrings(Strings, MessageDelimiter));
 end;
 
 function TMessaging.ReceiveStr: string;
@@ -199,7 +207,7 @@ begin
     begin
       Result := FromJava[0];
       if CastleLog.Log and Log then
-        WritelnLog('JNI', 'Native code received a message from Java: ' + Result);
+        WritelnLog('JNI', 'Native code received a message from Java: ' + SReadableForm(Result));
       FromJava.Delete(0);
     end else
       Result := '';
@@ -212,7 +220,7 @@ var
 begin
   S := ReceiveStr;
   if S <> '' then
-    Result := CreateTokens(S, [MessageDelimiter]) else
+    Result := SplitString(S, MessageDelimiter) else
     Result := nil;
 end;
 
@@ -228,6 +236,16 @@ begin
     finally FreeAndNil(Received) end;
     Received := Receive;
   end;
+end;
+
+class function TMessaging.BoolToStr(const Value: boolean): string;
+begin
+  Result := SysUtils.BoolToStr(Value, 'true', 'false');
+end;
+
+class function TMessaging.TimeToStr(const Value: TFloatTime): string;
+begin
+  Result := IntToStr(Trunc(Value * 1000));
 end;
 
 { globals -------------------------------------------------------------------- }

@@ -28,7 +28,7 @@ uses Classes, FGL, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFo
 type
   TCastleLabel = class;
 
-  { Base class for all controls inside an OpenGL context using a font.
+  { Base class for all user interface controls using a font.
     Allows to customize font and font size per-control, or use defaults. }
   TUIControlFont = class(TUIControl)
   strict private
@@ -38,11 +38,17 @@ type
     FOwnsCustomFont: boolean;
     FLastSeenUIFontXxx: TCastleFont; //< remembered only to call FontChanged
     FFontSize: Single;
-    FCustomizedFont: TFontFamily; //< used only when FFontSize <> 0 for now
+    FCustomizedFont: TFontFamily; //< used only when some properties make it necessary
     FSmallFont: boolean;
+    FOutline: Cardinal;
+    FOutlineColor: TCastleColor;
+    FOutlineHighQuality: boolean;
     procedure SetCustomFont(const Value: TCastleFont);
     procedure SetFontSize(const Value: Single);
     procedure SetSmallFont(const Value: boolean);
+    procedure SetOutline(const Value: Cardinal);
+    procedure SetOutlineColor(const Value: TCastleColor);
+    procedure SetOutlineHighQuality(const Value: boolean);
   protected
     { Called when Font or it's size changed. }
     procedure FontChanged; virtual;
@@ -74,6 +80,10 @@ type
       to be immediately valid). Without calling this,
       it could be updated only at next Render call. }
     procedure CheckFontChanged;
+
+    { Outline color, used only if Outline <> 0. Default is black.
+      @seealso Outline }
+    property OutlineColor: TCastleColor read FOutlineColor write SetOutlineColor;
   published
     { Tooltip string, displayed when user hovers the mouse over a control.
 
@@ -104,11 +114,29 @@ type
       @link(UIFontSmall) instead of @link(UIFont).
       If @link(CustomFont) is assigned, this says to scale it's size by 2. }
     property SmallFont: boolean read FSmallFont write SetSmallFont default false;
+
+    { Outline size around the font.
+      Note that the current implementation is very simple, it will only
+      look sensible for small outline values (like 1 or 2).
+
+      See TCastleFont.Outline for more details.
+
+      Specifying a non-zero outline for a label overrides the default outline
+      settings for the current font. By default, fonts do not have an outline.
+
+      @seealso OutlineHighQuality }
+    property Outline: Cardinal read FOutline write SetOutline default 0;
+
+    { Optionally force better outline quality. Used only if Outline <> 0.
+      High quality outline looks better, but is about 2x more expensive to draw.
+      @seealso Outline }
+    property OutlineHighQuality: boolean
+      read FOutlineHighQuality write SetOutlineHighQuality default false;
   end;
 
   TCastleButtonImageLayout = (ilTop, ilBottom, ilLeft, ilRight);
 
-  { Button inside OpenGL context.
+  { Clickable button.
 
     This is TUIControl descendant, so to use it just add it to
     the TCastleWindowCustom.Controls or TCastleControlCustom.Controls list.
@@ -277,23 +305,31 @@ type
     property PaddingVertical: Cardinal
       read FPaddingVertical write FPaddingVertical default DefaultPaddingVertical;
 
-    { When AutoSize is @true (the default) then Width/Height are automatically
+    { When AutoSize is @true (the default) then button sizes are automatically
       adjusted when you change the Caption and @link(Image).
-      They take into account
-      Caption width/height with current font, @link(Image) width/height,
-      and add some margin to make it look good.
+      The calculated size takes into account the Caption text size (with current font),
+      and @link(Image) size, plus some margin to make it look nice.
 
-      To be more precise, Width is adjusted only when AutoSize and AutoSizeWidth.
+      Width is adjusted only when AutoSize and AutoSizeWidth.
       And Height is adjusted only when AutoSize and AutoSizeHeight.
       This way you can turn off auto-sizing in only one dimension if you
       want (and when you don't need such flexibility, leave
       AutoSizeWidth = AutoSizeHeight = @true and control both by simple
       AutoSize).
 
-      Note that this adjustment happens only when OpenGL context is initialized
-      (because only then we actually know the font used).
-      So don't depend on Width/Height values calculated correctly before
-      OpenGL context is ready. }
+      If needed, you can query the resulting button size with the standard
+      TUIControl methods like @link(TUIControl.CalculatedWidth) and
+      @link(TUIControl.CalculatedHeight). Note that they may not be available
+      before the button is actually added to the container,
+      and the container size is initialized (we need to know the size of container,
+      for UI scaling to determine the font size).
+
+      @italic(Right now) the auto-sizing also updates the
+      values of @link(Width) and @link(Height) properties, but don't depend on it
+      in new code. In the future, it may be changed, and then @link(Width) and
+      @link(Height) properties will stay unmodified by the auto-sizing mechanism.
+      Always use @link(TUIControl.CalculatedWidth) and @link(TUIControl.CalculatedHeight)
+      to read the resulting control size. }
     property AutoSize: boolean read FAutoSize write SetAutoSize default true;
     property AutoSizeWidth: boolean read FAutoSizeWidth write SetAutoSizeWidth default true;
     property AutoSizeHeight: boolean read FAutoSizeHeight write SetAutoSizeHeight default true;
@@ -349,11 +385,9 @@ type
       read FEnableParentDragging write FEnableParentDragging default false;
   end;
 
-  { Panel frame.
-    Use as a comfortable (and with matching colors) background
-    for other controls like buttons and such.
-    May be used as a toolbar, together with appropriately placed
-    TCastleButton over it. }
+  { Panel or a toolbar control.
+    Use as a background for other controls like buttons.
+    You can add vertical separators to separate groups of controls on the panel. }
   TCastlePanel = class(TUIControlSizeable)
   strict private
     FVerticalSeparators: TCardinalList;
@@ -372,7 +406,7 @@ type
     class function SeparatorSize: Cardinal;
   end;
 
-  { Image control inside OpenGL context.
+  { Image control.
     Size is automatically adjusted to the image size, if Stretch is @false (default).
     You should set TCastleImageControl.Left, TCastleImageControl.Bottom properties,
     and load your image by setting TCastleImageControl.URL property
@@ -476,8 +510,10 @@ type
     { If @link(Clip), this is the line equation used to determine whether
       we clip the given pixel. Given a line (A, B, C) and pixel (x, y),
       the pixel is clipped (rejected) if @code(A * x + B * y + C < 0).
-      This provides a functionality similar to desktop OpenGL glClipPlane
-      for TGLImageCore (on all platforms). }
+
+      The equation is calculated in the final scaled screen coordinates
+      (not in the local, unscaled pixels). Adjust it to match the ScreenRect
+      if necessary, to make it work with UI scaling. }
     property ClipLine: TVector3Single read FClipLine write SetClipLine;
   published
     { URL of the image. Setting this also sets @link(Image).
@@ -551,8 +587,13 @@ type
                          ctcmFlyUpdown, ctcmPanXY);
   TCastleTouchPosition = (tpManual, tpLeft, tpRight);
 
-  { Control for touch interfaces. Shows one "lever", that can be moved
-    up/down/left/right, and controls the movement while Walking or Flying. }
+  { Touch user interface to navigate in a 3D world.
+    Shows one "lever", that can be moved up/down/left/right,
+    and controls the movement while Walking or Flying.
+
+    Usually, this control is created and used through the @link(TCastleWindowTouch)
+    properties. There is no need to directly create TCastleTouchControl instance
+    in this case. }
   TCastleTouchControl = class(TUIControl)
   strict private
     FTouchMode: TCastleTouchCtlMode;
@@ -742,7 +783,7 @@ type
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip,
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
-    tiCrosshair1, tiCrosshair2, tiErrorBackground);
+    tiCrosshair1, tiCrosshair2, tiErrorBackground, tiLoading);
 
   { Label with possibly multiline text, in an optional box. }
   TCastleLabel = class(TUIControlFont)
@@ -895,6 +936,7 @@ type
 
   TCastleCrosshairShape = (csCross, csCrossRect);
 
+  { Display a simple crosshair in the middle of the parent control. }
   TCastleCrosshair = class(TUIControl)
   strict private
     FShape: TCastleCrosshairShape;
@@ -918,6 +960,10 @@ type
     property VerticalAnchorParent default vpMiddle;
   end;
 
+  { Progress bar user interface.
+    This is usually used through the CastleWindowProgress and CastleProgress
+    features. There is no need to directly create and access the TCastleProgressBar
+    instance in this case. }
   TCastleProgressBar = class(TUIControlFont)
   strict private
     { Background image. }
@@ -958,11 +1004,14 @@ type
       default TProgressUserInterface.DefaultBarYPosition;
   end;
 
-  { Error background, for various error handlers. }
+  { Error background, for various error handlers.
+    This is notably used by the CastleWindow exception handler. }
   TErrorBackground = class(TUIControl)
     procedure Render; override;
   end;
 
+  { An abstract slider user interface. Usually you want to use of its descendants,
+    like @link(TCastleFloatSlider) or @link(TCastleIntegerSlider). }
   TCastleAbstractSlider = class(TUIControlFont)
   strict private
     FDisplayValue: boolean;
@@ -1023,6 +1072,7 @@ type
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
+  { Slider to change a float value within a given range. }
   TCastleFloatSlider = class(TCastleAbstractSlider)
   strict private
     FMin: Single;
@@ -1066,6 +1116,7 @@ type
     property MultipleOf: Single read FMultipleOf write FMultipleOf;
   end;
 
+  { Slider to change an integer value within a given range. }
   TCastleIntegerSlider = class(TCastleAbstractSlider)
   strict private
     FMin: Integer;
@@ -1096,9 +1147,10 @@ type
   end;
 
   { Children added to @link(ScrollArea) can be scrolled vertically.
-    We automatically show a scrollbar, and handle various scrolling input
-    (keys, mouse wheel, dragging by scrollbar, dragging the whole area)
-    in a way nice for both desktops and mobile. }
+    We automatically show a scrollbar, and handle various scrolling inputs
+    to be functional on both desktops and mobile
+    (we handle scrolling by keys, mouse wheel, dragging by scrollbar,
+    dragging the whole area - see @link(EnableDragging)). }
   TCastleScrollView = class(TUIControlSizeable)
   strict private
     FScrollArea: TUIControlSizeable;
@@ -1206,6 +1258,11 @@ type
       which helps dialog to stand out. }
     BackgroundTint: TCastleColor;
 
+    { Colors used when displaying the "Loading..." text when Android application
+      is resuming. Note that you can also customize the tiLoading image.
+      By default, LoadingBackgroundColor is black, and LoadingTextColor is white. }
+    LoadingBackgroundColor, LoadingTextColor: TCastleColor;
+
     { Undernath various message dialogs show "error background"
       (@link(tiErrorBackground)) image instead of the default behaviour.
       @italic(This is automatically used by CastleWindow exception handler,
@@ -1250,9 +1307,16 @@ type
     property Corners[const ImageType: TThemeImage]: TVector4Integer read GetCorners write SetCorners;
 
     { Draw the selected theme image on screen.
-      If you do not specify a color, white will be used, so image will be displayed
-      as-is. Specifying a color means that image will be multiplied by it,
-      just like for @link(TGLImageCore.Color). }
+
+      @param(Color Color tint of the image.
+        If you do not specify a color, white will be used, so image will be displayed
+        as-is. Specifying a color means that image will be multiplied by it,
+        just like for @link(TGLImageCore.Color).)
+
+      @param(UIScale Used to properly scale corners, passed to @link(TGLImageCore.ScaleCorners).
+        This parameter does @italic(not) scale the place where image is displayed,
+        to do this just scale the given Rect parameter yourself.)
+    }
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
       const UIScale: Single = 1.0);
     procedure Draw(const Rect: TRectangle; const ImageType: TThemeImage;
@@ -1317,8 +1381,10 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
 
 procedure Register;
 begin
-  RegisterComponents('Castle', [TCastleButton, TCastleImageControl,
-    TCastleIntegerSlider, TCastleFloatSlider]);
+  RegisterComponents('Castle', [
+    TCastleButton, TCastleImageControl, TCastleRectangleControl,
+    TCastleLabel, TCastleCrosshair, TCastleIntegerSlider, TCastleFloatSlider,
+    TCastleScrollView]);
 end;
 
 { UIFont --------------------------------------------------------------------- }
@@ -1447,7 +1513,7 @@ begin
 
   { if FontSize or UIScale are non-trivial,
     wrap Result in TCustomizedFont instance }
-  if (FFontSize <> 0) or (UIScale <> 1) or SmallFont then
+  if (FFontSize <> 0) or (UIScale <> 1) or SmallFont or (Outline <> 0) then
   begin
     if FCustomizedFont = nil then
       FCustomizedFont := TFontFamily.Create(nil);
@@ -1471,6 +1537,13 @@ begin
       FCustomizedFont.BoldFont := nil;
       FCustomizedFont.ItalicFont := nil;
       FCustomizedFont.BoldItalicFont := nil;
+    end;
+    if Outline <> 0 then
+    begin
+      FCustomizedFont.CustomizeOutline := true;
+      FCustomizedFont.Outline := Outline;
+      FCustomizedFont.OutlineHighQuality := OutlineHighQuality;
+      FCustomizedFont.OutlineColor := OutlineColor;
     end;
     Result := FCustomizedFont;
   end;
@@ -1529,6 +1602,33 @@ begin
   if FSmallFont <> Value then
   begin
     FSmallFont := Value;
+    FontChanged;
+  end;
+end;
+
+procedure TUIControlFont.SetOutline(const Value: Cardinal);
+begin
+  if FOutline <> Value then
+  begin
+    FOutline := Value;
+    FontChanged;
+  end;
+end;
+
+procedure TUIControlFont.SetOutlineColor(const Value: TCastleColor);
+begin
+  if not VectorsPerfectlyEqual(FOutlineColor, Value) then
+  begin
+    FOutlineColor := Value;
+    FontChanged;
+  end;
+end;
+
+procedure TUIControlFont.SetOutlineHighQuality(const Value: boolean);
+begin
+  if FOutlineHighQuality <> Value then
+  begin
+    FOutlineHighQuality := Value;
     FontChanged;
   end;
 end;
@@ -2141,15 +2241,20 @@ procedure TCastlePanel.Render;
 const
   SeparatorMargin = 8;
 var
-  I: Integer;
+  I, SeparatorMarginScaled: Integer;
+  SR: TRectangle;
 begin
   inherited;
-  Theme.Draw(Rect, tiPanel, UIScale);
 
+  SR := ScreenRect;
+  Theme.Draw(SR, tiPanel, UIScale);
+
+  SeparatorMarginScaled := Round(SeparatorMargin * UIScale);
   for I := 0 to VerticalSeparators.Count - 1 do
     Theme.Draw(Rectangle(
-      Left + VerticalSeparators[I], Bottom + SeparatorMargin,
-      Theme.Images[tiPanelSeparator].Width, Height - 2 * SeparatorMargin),
+      SR.Left + Round(VerticalSeparators[I] * UIScale),
+      SR.Bottom + SeparatorMarginScaled,
+      Theme.Images[tiPanelSeparator].Width, Height - 2 * SeparatorMarginScaled),
       tiPanelSeparator, UIScale);
 end;
 
@@ -4133,12 +4238,14 @@ end;
 constructor TCastleTheme.Create;
 begin
   inherited;
-  TooltipTextColor      := Vector4Single(0   , 0, 0, 1);
-  TextColor             := Vector4Single(0   , 0, 0, 1);
-  DisabledTextColor     := Vector4Single(0.33, 0.33, 0.33, 1);
-  MessageInputTextColor := Vector4Single(0.33, 1, 1, 1);
-  MessageTextColor      := Vector4Single(1   , 1, 1, 1);
-  BackgroundTint        := Vector4Single(0.25, 0.25, 0.25, 1);
+  TooltipTextColor       := Vector4Single(0   , 0, 0, 1);
+  TextColor              := Vector4Single(0   , 0, 0, 1);
+  DisabledTextColor      := Vector4Single(0.33, 0.33, 0.33, 1);
+  MessageInputTextColor  := Vector4Single(0.33, 1, 1, 1);
+  MessageTextColor       := Vector4Single(1   , 1, 1, 1);
+  BackgroundTint         := Vector4Single(0.25, 0.25, 0.25, 1);
+  LoadingBackgroundColor := Black;
+  LoadingTextColor       := White;
 
   FOwnsMessageFont := true;
   FMessageErrorBackground := false;
@@ -4189,6 +4296,8 @@ begin
   FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
   FImages[tiErrorBackground] := ErrorBackground;
   FCorners[tiErrorBackground] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiLoading] := Loading;
+  FCorners[tiLoading] := Vector4Integer(0, 0, 0, 0);
 
   ApplicationProperties.OnGLContextCloseObject.Add(@GLContextClose);
 end;

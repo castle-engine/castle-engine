@@ -116,12 +116,12 @@ begin
 
                 InitializeNavigationInfo(OrthographicE);
               end else
-                OnWarning(wtMinor, 'Collada', 'No supported camera inside <technique_common>');
+                WritelnWarning('Collada', 'No supported camera inside <technique_common>');
             end;
           end else
-            OnWarning(wtMinor, 'Collada', 'No supported camera technique inside <optics>');
+            WritelnWarning('Collada', 'No supported camera technique inside <optics>');
         end else
-          OnWarning(wtMinor, 'Collada', 'No <optics> inside camera');
+          WritelnWarning('Collada', 'No <optics> inside camera');
       end;
   finally FreeAndNil(I) end;
 end;

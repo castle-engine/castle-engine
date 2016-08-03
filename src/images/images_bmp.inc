@@ -161,9 +161,8 @@ begin
      - and GIMP
      all fail trying to open them.) }
    if biSize <> SizeOf(TBitmapInfoHeader) then
-      OnWarning(wtMajor, 'BMP', Format(
-        'Wrong size of a bitmap header --- should be %d, is %d',
-        [SizeOf(TBitmapInfoHeader), biSize]));
+      WritelnWarning('BMP', 'Invalid BMP: Wrong size of a bitmap header --- should be %d, is %d',
+        [SizeOf(TBitmapInfoHeader), biSize]);
 
    { height can be negative - it means rows are written from up to down }
    rowsGoingUp := biHeight > 0;

@@ -79,8 +79,8 @@ var
      'VELOCITY : '+ VectorToNiceStr(alGetSource3f(SampleSource, AL_VELOCITY)) +nl+
      {$endif}
      'GAIN : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_GAIN)) +nl+
-     'RELATIVE : '+ BoolToStr[alGetSource1bool(SampleSource, AL_SOURCE_RELATIVE)] +nl+
-     'LOOPING : '+ BoolToStr[alGetSource1bool(SampleSource, AL_LOOPING)] +nl+
+     'RELATIVE : '+ BoolToStr(alGetSource1bool(SampleSource, AL_SOURCE_RELATIVE), true) +nl+
+     'LOOPING : '+ BoolToStr(alGetSource1bool(SampleSource, AL_LOOPING), true) +nl+
      'BUFFER : '+ IntToStr(alGetSource1ui(SampleSource, AL_BUFFER)) +nl+
      'BUFFERS_QUEUED : '+ IntToStr(alGetSource1ui(SampleSource, AL_BUFFERS_QUEUED)) +nl+
      'BUFFERS_PROCESSED : '+ IntToStr(alGetSource1ui(SampleSource, AL_BUFFERS_PROCESSED)) +nl+

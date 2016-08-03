@@ -57,13 +57,13 @@ begin
     This is fully supported and valid.
   }
 
-  MainRoot := TX3DRootNode.Create('', '');
+  MainRoot := TX3DRootNode.Create;
 
   { add ModelBoxes and TransformBoxes }
 
   ModelBoxes := Load3D(ApplicationData('models/boxes.x3dv'));
 
-  TransformBoxes := TTransformNode.Create('', '');
+  TransformBoxes := TTransformNode.Create;
   TransformBoxes.Translation := Vector3Single(-5, 0, 0);
   TransformBoxes.FdChildren.Add(ModelBoxes);
 
@@ -75,7 +75,7 @@ begin
 
   for I := 0 to 2 do
   begin
-    TransformRaptor[I] := TTransformNode.Create('', '');
+    TransformRaptor[I] := TTransformNode.Create;
     TransformRaptor[I].Translation := Vector3Single(8, (I -1)  * 5, 0);
     TransformRaptor[I].FdChildren.Add(ModelRaptor);
 

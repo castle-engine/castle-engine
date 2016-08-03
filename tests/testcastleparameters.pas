@@ -115,7 +115,7 @@ procedure TTestParsingParameters.TestParsingParameters;
     result += Format('  [%d] OptionNum %d, HasArg %s, Argument "%s"',
       [ i,
         v.L[i].OptionNum,
-        BoolToStr[v.L[i].HasArgument],
+        BoolToStr(v.L[i].HasArgument, true),
         v.L[i].Argument]) + nl;
   end;
 

@@ -51,7 +51,7 @@ begin
     Result := Coord.Items.L[Index];
   end else
   begin
-    CoordIndex.OnWarning_WrongVertexIndex(
+    CoordIndex.WritelnWarning_WrongVertexIndex(
       Geometry.NodeTypeName, Index, Coord.Count);
     Result := ZeroVector3Single;
   end;

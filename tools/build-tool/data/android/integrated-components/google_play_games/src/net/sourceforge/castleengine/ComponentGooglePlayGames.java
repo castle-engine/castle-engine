@@ -1,19 +1,29 @@
 /* -*- tab-width: 4 -*- */
 package net.sourceforge.castleengine;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
 import android.content.Intent;
 import android.content.IntentSender;
 import android.util.Log;
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.AsyncTask;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.drive.Drive;
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.leaderboard.LeaderboardVariant;
 import com.google.android.gms.games.leaderboard.Leaderboards.LoadPlayerScoreResult;
+import com.google.android.gms.games.snapshot.Snapshot;
+import com.google.android.gms.games.snapshot.SnapshotMetadata;
+import com.google.android.gms.games.snapshot.Snapshots;
+import com.google.android.gms.games.snapshot.SnapshotMetadataChange;
 
 import ${QUALIFIED_NAME}.R;
 
@@ -26,18 +36,14 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
     GoogleApiClient.OnConnectionFailedListener
 {
     private static final String TAG = "${NAME}.castleengine.ComponentGooglePlayGames";
-    private static int REQUEST_SIGN_IN = 9001;
-    private static int REQUEST_ACHIEVEMENTS = 9101;
-    private static int REQUEST_LEADERBOARD = 9102;
+    private static final int REQUEST_SIGN_IN = 9001;
+    private static final int REQUEST_ACHIEVEMENTS = 9101;
+    private static final int REQUEST_LEADERBOARD = 9102;
+    private static final int REQUEST_SAVED_GAMES = 9103;
 
     private boolean initialized, scheduledStart;
 
     private GoogleApiClient mGoogleApiClient;
-
-    /**
-     * Once connected, query for this leaderboard best score.
-     */
-    private String mDefaultLeaderboardToRefresh;
 
     public ComponentGooglePlayGames(MainActivity activity)
     {
@@ -49,7 +55,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         return "google-play-games";
     }
 
-    private void initialize(boolean autoStartSignInFlow)
+    private void initialize(boolean autoStartSignInFlow, boolean saveGames)
     {
         if (initialized) {
             return;
@@ -64,11 +70,14 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         mAutoStartSignInFlow = autoStartSignInFlow;
 
         // Create the Google Api Client with access to the Play Game services
-        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
+        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(getActivity())
             .addConnectionCallbacks(this)
             .addOnConnectionFailedListener(this)
-            .addApi(Games.API).addScope(Games.SCOPE_GAMES)
-            .build();
+            .addApi(Games.API).addScope(Games.SCOPE_GAMES);
+        if (saveGames) {
+            builder = builder.addApi(Drive.API).addScope(Drive.SCOPE_APPFOLDER);
+        }
+        mGoogleApiClient = builder.build();
         initialized = true;
 
         if (scheduledStart) {
@@ -124,8 +133,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
     {
         if (mGoogleSignedIn != value) {
             mGoogleSignedIn = value;
-            messageSend(new String[]{"google-sign-in-status",
-                (mGoogleSignedIn ? "true" : "false")});
+            messageSend(new String[]{"google-sign-in-status", booleanToString(mGoogleSignedIn)});
         }
     }
 
@@ -139,12 +147,11 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
     {
         Log.i(TAG, "onConnected (Google Games connected OK!)");
 
+        Games.setViewForPopups(mGoogleApiClient, getActivity().findViewById(android.R.id.content));
+
         // The player is signed in.
-        // We can now e.g. hide the sign-in button and/or allow the player to proceed.
+        // We can now hide the sign-in button.
         setGoogleSignedIn(true);
-        if (mDefaultLeaderboardToRefresh != null) {
-            refreshCurrentScore(mDefaultLeaderboardToRefresh);
-        }
 
         if (mScoreToSendWhenConnected > 0) {
             if (checkGamesConnection()) {
@@ -157,11 +164,23 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
                 Log.e(TAG, "Cannot submit scheduled score, we are not connected inside onConnected - weird, unless the connection broke immediately");
             }
         }
+
+        if (mOnConnectedFinish != null) {
+            mOnConnectedFinish.run();
+            mOnConnectedFinish = null;
+        }
+    }
+
+    private abstract class OnConnectedFinish {
+        public abstract void run();
     }
 
     private boolean mResolvingConnectionFailure = false;
     private boolean mAutoStartSignInFlow = true;
     private boolean mSignInClicked = false;
+    /* When mSignInClicked, this may be non-null to indicate an action to make
+     * when sign-in succeeds. */
+    private OnConnectedFinish mOnConnectedFinish = null;
     private boolean mDuringSignOut = false;
 
     /**
@@ -214,12 +233,14 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         if (mSignInClicked || mAutoStartSignInFlow) {
             mAutoStartSignInFlow = false;
             mSignInClicked = false;
+            // leave mOnConnectedFinish non-null, we may yet sign-in
             mResolvingConnectionFailure = true;
 
             // Attempt to resolve the connection failure.
             if (!resolveConnectionFailure(getActivity(),
                     mGoogleApiClient, connectionResult, REQUEST_SIGN_IN)) {
                 mResolvingConnectionFailure = false;
+                mOnConnectedFinish = null;
             }
         }
 
@@ -239,18 +260,52 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         if (requestCode == REQUEST_SIGN_IN) {
-            Log.i(TAG, "onActivityResult - REQUEST_SIGN_IN");
+            Log.i(TAG, "Received activity result: Google Play Games SIGN_IN");
             mSignInClicked = false;
             mResolvingConnectionFailure = false;
             if (resultCode == Activity.RESULT_OK) {
-                mGoogleApiClient.connect();
+                if (mGoogleApiClient != null) {
+                    mGoogleApiClient.connect();
+                } else {
+                    /* reproducible on Sony Xperia phone C5305 (from P) with old Android Os
+                       and new Google Play Services. The services do some wild things
+                       there anyway: OpenSnapshotResult result code is sometimes 16
+                       (which is not documented as valid result code). */
+                    Log.w(TAG, "mGoogleApiClient == null when we received Google Play Games sign in. Indicates that connection to Google Play Games was reached after Java activity died and was recreated.");
+                }
             } else {
                 Log.w(TAG, "Unable to sign in to Google Games.");
             }
         }
+
+        if (requestCode == REQUEST_SAVED_GAMES) {
+            /* adapted from https://developers.google.com/games/services/android/savedgames */
+            if (resultCode == Activity.RESULT_OK) {
+                if (intent != null) {
+                    if (intent.hasExtra(Snapshots.EXTRA_SNAPSHOT_METADATA)) {
+                        // Load a snapshot.
+                        SnapshotMetadata snapshotMetadata = (SnapshotMetadata)
+                                intent.getParcelableExtra(Snapshots.EXTRA_SNAPSHOT_METADATA);
+                        String currentSaveName = snapshotMetadata.getUniqueName();
+                        messageSend(new String[]{"chosen-save-game", currentSaveName});
+                    } else
+                    if (intent.hasExtra(Snapshots.EXTRA_SNAPSHOT_NEW)) {
+                        messageSend(new String[]{"chosen-save-game-new"});
+                    } else {
+                        Log.w(TAG, "Received REQUEST_SAVED_GAMES, with RESULT_OK, but intent has no extra");
+                        messageSend(new String[]{"chosen-save-game-cancel"});
+                    }
+                } else {
+                    Log.w(TAG, "Received REQUEST_SAVED_GAMES, with RESULT_OK, but intent is null");
+                    messageSend(new String[]{"chosen-save-game-cancel"});
+                }
+            } else {
+                messageSend(new String[]{"chosen-save-game-cancel"});
+            }
+        }
     }
 
-    private void signInClicked()
+    private void signInClicked(OnConnectedFinish onConnectedFinish)
     {
         /* don't act when inside sign-out process, or not initialized */
         if (mDuringSignOut || !initialized) {
@@ -258,6 +313,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         }
 
         mSignInClicked = true;
+        mOnConnectedFinish = onConnectedFinish;
         // It is Ok to call it while connecting, as docs
         // https://developer.android.com/reference/com/google/android/gms/common/api/GoogleApiClient.html#connect()
         // say:
@@ -273,6 +329,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         }
 
         mSignInClicked = false;
+        mOnConnectedFinish = null;
         // According to docs,
         // https://developer.android.com/reference/com/google/android/gms/games/Games.html#signOut(com.google.android.gms.common.api.GoogleApiClient)
         // this does not actually call mGoogleApiClient.disconnect().
@@ -303,7 +360,9 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
                 mGoogleApiClient), REQUEST_ACHIEVEMENTS);
         } else {
             Log.i(TAG, "Not connected to Google Games -> connecting, in response to showAchievements");
-            signInClicked();
+            signInClicked(new OnConnectedFinish () {
+                public void run() { showAchievements(); }
+            });
         }
     }
 
@@ -320,14 +379,166 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         }
     }
 
-    private void showLeaderboard(String leaderboardId)
+    private void showSaveGames(final String title, final boolean allowAddButton, final boolean allowDelete, final int maxNumberOfSaveGamesToShow)
+    {
+        if (checkGamesConnection()) {
+            int realMaxNumberOfSaveGamesToShow;
+            if (maxNumberOfSaveGamesToShow < 0) {
+                /* For some reason (bug?), Google Play Games dialog to choose
+                   the saved game @italic(does not) show "new save game" buton
+                   when this is Snapshots.DISPLAY_LIMIT_NONE.
+                   It behaves then like AllowAddButton is always @false.
+                   So instead, we use some ridiculously large number for
+                   MaxNumberOfSaveGamesToShow. */
+                realMaxNumberOfSaveGamesToShow = 1000;
+            } else {
+                realMaxNumberOfSaveGamesToShow = maxNumberOfSaveGamesToShow;
+            }
+            Intent savedGamesIntent = Games.Snapshots.getSelectSnapshotIntent(mGoogleApiClient,
+                title, allowAddButton, allowDelete, realMaxNumberOfSaveGamesToShow);
+            getActivity().startActivityForResult(savedGamesIntent, REQUEST_SAVED_GAMES);
+        } else {
+            Log.i(TAG, "Not connected to Google Games -> connecting, in response to showSaveGames");
+            signInClicked(new OnConnectedFinish () {
+                public void run() { showSaveGames(title, allowAddButton, allowDelete, maxNumberOfSaveGamesToShow); }
+            });
+        }
+    }
+
+    // Not configurable from Pascal *for now*.
+    private static final int conflictResolution = Snapshots.RESOLUTION_POLICY_LONGEST_PLAYTIME;
+
+    // The savegame contents is converted from/to a string using this encoding.
+    // Not configurable from Pascal *for now*.
+    private static final String saveGameEncoding = "UTF-8";
+
+    private void saveGameLoad(final String saveGameName)
+    {
+        if (checkGamesConnection()) {
+            AsyncTask<Void, Void, Snapshots.OpenSnapshotResult> task =
+                new AsyncTask<Void, Void, Snapshots.OpenSnapshotResult> ()
+            {
+                @Override
+                protected Snapshots.OpenSnapshotResult doInBackground(Void... params) {
+                    boolean createIfNotFound = true; // not configurable from Pascal for now
+                    // Open the saved game using its name.
+                    return Games.Snapshots.open(mGoogleApiClient,
+                        saveGameName, createIfNotFound, conflictResolution).await();
+                }
+
+                @Override
+                protected void onPostExecute(Snapshots.OpenSnapshotResult result) {
+                    // Check the result of the open operation
+                    if (result.getStatus().isSuccess()) {
+                        Snapshot snapshot = result.getSnapshot();
+                        // Read the byte content of the saved game.
+                        try {
+                            byte[] saveGameBytes;
+                            saveGameBytes = snapshot.getSnapshotContents().readFully();
+                            String saveGameStr = new String(saveGameBytes, saveGameEncoding);
+                            messageSend(new String[]{"save-game-loaded", "true", saveGameStr});
+                        } catch (IOException e) {
+                            String errorStr = "Google Play Games error when reading snapshot: " + e.getMessage();
+                            Log.e(TAG, errorStr);
+                            messageSend(new String[]{"save-game-loaded", "false", errorStr});
+                        }
+                    } else {
+                        String errorStr = "Google Play Games error when loading save game (" +
+                          result.getStatus().getStatusCode() + "): " +
+                          result.getStatus().getStatusMessage();
+                        Log.e(TAG, errorStr);
+                        messageSend(new String[]{"save-game-loaded", "false", errorStr});
+                    }
+                }
+            };
+
+            task.execute();
+        } else {
+            String errorStr = "Not connected to Google Play Games";
+            Log.e(TAG, errorStr);
+            messageSend(new String[]{"save-game-loaded", "false", errorStr});
+        }
+    }
+
+    private void saveGameSave(final String saveGameName, final String saveGameContents, final String description, final long playedTimeMillis)
+    {
+
+        if (checkGamesConnection()) {
+            AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void> ()
+            {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    boolean createIfNotFound = true;
+
+                    // Open the saved game using its name.
+                    // This is the *1st* operation that takes time, and should therefore be in a thread!!
+                    Snapshots.OpenSnapshotResult result = Games.Snapshots.open(mGoogleApiClient,
+                        saveGameName, createIfNotFound, conflictResolution).await();
+
+                    // Check the result of the open operation
+                    if (result.getStatus().isSuccess()) {
+                        Snapshot snapshot = result.getSnapshot();
+                        try {
+                            snapshot.getSnapshotContents().writeBytes(saveGameContents.getBytes(saveGameEncoding));
+                        } catch (UnsupportedEncodingException e) {
+                            Log.e(TAG, "Error while saving a save game, encoding " + saveGameEncoding + " unsupported: " + e.getMessage());
+                        }
+
+                        // Create the change operation
+                        SnapshotMetadataChange metadataChange = new SnapshotMetadataChange.Builder()
+                                .setDescription(description)
+                                .setPlayedTimeMillis(playedTimeMillis)
+                                .build();
+
+                        // Commit the operation
+                        commitAndCloseWatchingResult(snapshot, metadataChange);
+                    } else{
+                        Log.e(TAG, "Error while opening a save game for writing (" +
+                          result.getStatus().getStatusCode() + "): " +
+                          result.getStatus().getStatusMessage());
+                    }
+
+                    return null;
+                }
+
+                private void commitAndCloseWatchingResult(Snapshot snapshot, SnapshotMetadataChange metadataChange)
+                {
+                    PendingResult<Snapshots.CommitSnapshotResult> pending =
+                      Games.Snapshots.commitAndClose(mGoogleApiClient, snapshot, metadataChange);
+
+                    // This is the *2nd* operation that takes time, and should therefore be in a thread!!
+                    Snapshots.CommitSnapshotResult result = pending.await();
+
+                    if (!result.getStatus().isSuccess()) {
+                        Log.e(TAG, "Google Play Games error when saving the game (" +
+                            result.getStatus().getStatusCode() + "): " +
+                            result.getStatus().getStatusMessage());
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(Void result) {
+                    // Nothing. Right now, we don't communicate to main thread
+                    // (or native code) whether save succeeded or not.
+                }
+            };
+
+            task.execute();
+        } else {
+            Log.e(TAG, "Not connected to Google Play Games, cannot save savegame.");
+        }
+    }
+
+    private void showLeaderboard(final String leaderboardId)
     {
         if (checkGamesConnection()) {
             getActivity().startActivityForResult(Games.Leaderboards.getLeaderboardIntent(
                 mGoogleApiClient, leaderboardId), REQUEST_LEADERBOARD);
         } else {
             Log.i(TAG, "Not connected to Google Games -> connecting, in response to showLeaderboard");
-            signInClicked();
+            signInClicked(new OnConnectedFinish () {
+                public void run() { showLeaderboard(leaderboardId); }
+            });
         }
     }
 
@@ -345,7 +556,7 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
         }
     }
 
-    private void refreshCurrentScore(String leaderboardId)
+    private void requestPlayerBestScore(String leaderboardId)
     {
         if (checkGamesConnection()) {
             final String saveLeaderboardId = leaderboardId;
@@ -374,16 +585,12 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if (parts.length == 2 && parts[0].equals("google-play-games-initialize")) {
-            initialize(parts[1].equals("true"));
+        if (parts.length == 3 && parts[0].equals("google-play-games-initialize")) {
+            initialize(stringToBoolean(parts[1]), stringToBoolean(parts[2]));
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("get-best-score")) {
-            mDefaultLeaderboardToRefresh = parts[1];
-            /* refresh score now, if possible */
-            if (checkGamesConnection()) {
-                refreshCurrentScore(mDefaultLeaderboardToRefresh);
-            }
+        if (parts.length == 2 && parts[0].equals("request-player-best-score")) {
+            requestPlayerBestScore(parts[1]);
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("achievement")) {
@@ -402,11 +609,23 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
             showLeaderboard(parts[2]);
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("google-sign-in") && parts[1].equals("true")) {
-            signInClicked();
+        if (parts.length == 6 && parts[0].equals("show") && parts[1].equals("save-games")) {
+            showSaveGames(parts[2], stringToBoolean(parts[3]), stringToBoolean(parts[4]), Integer.parseInt(parts[5]));
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("google-sign-in") && parts[1].equals("false")) {
+        if (parts.length == 2 && parts[0].equals("save-game-load")) {
+            saveGameLoad(parts[1]);
+            return true;
+        } else
+        if (parts.length == 5 && parts[0].equals("save-game-save")) {
+            saveGameSave(parts[1], parts[2], parts[3], Long.parseLong(parts[4]));
+            return true;
+        } else
+        if (parts.length == 2 && parts[0].equals("google-sign-in") && stringToBoolean(parts[1])) {
+            signInClicked(null);
+            return true;
+        } else
+        if (parts.length == 2 && parts[0].equals("google-sign-in") && !stringToBoolean(parts[1])) {
             signOutClicked();
             return true;
         } else {

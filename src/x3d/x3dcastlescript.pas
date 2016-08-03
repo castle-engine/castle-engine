@@ -98,7 +98,7 @@ procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
 
 implementation
 
-uses SysUtils, X3DNodes, CastleLog, CastleScriptVectors, CastleWarnings,
+uses SysUtils, X3DNodes, CastleLog, CastleScriptVectors,
   CastleVectors, CastleScriptImages, CastleScriptArrays;
 
 {$define read_implementation}
@@ -187,7 +187,7 @@ begin
      FieldClass.InheritsFrom(TMFImage) }then
     Result := TCasScriptImage.Create(true) else
   begin
-    OnWarning(wtMajor, 'VRML/X3D', 'Note that CastleScript is not yet suitable to process values of type ' + FieldClass.TypeName);
+    WritelnWarning('VRML/X3D', 'Note that CastleScript is not yet suitable to process values of type ' + FieldClass.TypeName);
     Result := TCasScriptFloat.Create(true);
   end;
 

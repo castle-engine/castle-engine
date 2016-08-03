@@ -177,14 +177,14 @@ begin
   Container.AddRoute(Route);
 
   if SlotsToReset.Attachment.Remove(Slot) = -1 then
-    OnWarning(wtMajor, 'Spine', Format(SSpineMultipleTimelinesWarning, ['slot', Slot.Name, 'attachment']));
+    WritelnWarning('Spine', Format(SSpineMultipleTimelinesWarning, ['slot', Slot.Name, 'attachment']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
     then it's visibly ignored). }
   if Time.Count = 1 then
-    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name, 'attachment']));
+    WritelnWarning('Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name, 'attachment']));
 end;
 
 { TSlotTimelineColor --------------------------------------------------------- }
@@ -215,7 +215,7 @@ begin
     if CurveTypeJson is TJSONArray then
     begin
       if TJSONArray(CurveTypeJson).Count <> 4 then
-        OnWarning(wtMinor, 'Spine', 'Curve type interpolation is an array, but does not have 4 elements (required for Bezier curve array)') else
+        WritelnWarning('Spine', 'Curve type interpolation is an array, but does not have 4 elements (required for Bezier curve array)') else
       begin
         Curve := true;
         ControlPoints[0] := TJSONArray(CurveTypeJson).Floats[0];
@@ -232,7 +232,7 @@ begin
       models are handled Ok since 'stepped' is only for optimization). }
     { else
     if CurveTypeJson.AsString <> 'linear' then
-      OnWarning(wtMinor, 'Spine', 'Found "' + CurveTypeJson.AsString + '" interpolation type on slot timeline of slot ' + Slot.Name + ', we do not support this interpolation type');
+      WritelnWarning('Spine', 'Found "' + CurveTypeJson.AsString + '" interpolation type on slot timeline of slot ' + Slot.Name + ', we do not support this interpolation type');
     }
   end;
   CurveControlPoints.Add(ControlPoints);
@@ -298,14 +298,14 @@ begin
   end;
 
   if SlotsToReset.Color.Remove(Slot) = -1 then
-    OnWarning(wtMajor, 'Spine', Format(SSpineMultipleTimelinesWarning, ['slot', Slot.Name, 'color']));
+    WritelnWarning('Spine', Format(SSpineMultipleTimelinesWarning, ['slot', Slot.Name, 'color']));
 
   { When there's only 1 keyframe, Spine does something weird: instead of smooth
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
     then it's visibly ignored). }
   if Time.Count = 1 then
-    OnWarning(wtMajor, 'Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name, 'color']));
+    WritelnWarning('Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name, 'color']));
 end;
 
 {$endif}

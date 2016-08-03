@@ -26,18 +26,17 @@ program scene_manager_demos;
 
 {$apptype CONSOLE}
 
-uses CastleUtils, CastleWindow, CastleVectors, CastleWarnings, Castle3D,
-  CastleSceneCore, CastleScene, X3DFields, X3DNodes;
+uses CastleUtils, CastleWindow, CastleVectors, CastleLog, Castle3D,
+  CastleSceneCore, CastleScene, X3DFields, X3DNodes, CastleApplicationProperties;
 
 var
   Window: TCastleWindow;
   Scene, ParticlesScene, DinoScene: TCastleScene;
   ParticlesTransform, DinoTransform: T3DTransform;
-  ParticleScript: TScriptNode;
 begin
   Window := TCastleWindow.Create(Application);
 
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   { initialize first Scene }
   Scene := TCastleScene.Create(Application);
@@ -86,9 +85,7 @@ begin
     We find a node called ParticleScript, and change it's "count" field.
     This affects the number of particles generated.
     We change it before the animation even starts (before activating ProcessEvents). }
-  ParticleScript := ParticlesScene.RootNode.FindNodeByName(
-    TScriptNode, 'ParticleScript', true) as TScriptNode;
-  (ParticleScript.Fields.ByName['count'] as TSFInt32).Send(100);
+  (ParticlesScene.Field('ParticleScript', 'count') as TSFInt32).Send(100);
   ParticlesScene.ProcessEvents := true;
   ParticlesTransform.Add(ParticlesScene);
 

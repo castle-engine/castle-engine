@@ -27,9 +27,10 @@
 
 uses SysUtils, CastleGL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene,
   CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
-  CastleControls, CastleWarnings, CastleScreenEffects, CastleSceneManager,
+  CastleControls, CastleLog, CastleScreenEffects, CastleSceneManager,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
-  CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages
+  CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages,
+  CastleApplicationProperties
   {$ifdef ADD_GL_ANIMATION} , Castle3D {$endif};
 
 { TMyViewport ---------------------------------------------------------------- }
@@ -39,34 +40,7 @@ type
   TMyViewport = class(TCastleViewport)
   public
     Caption: string;
-    procedure SetFocused(const Value: boolean); override;
   end;
-
-procedure TMyViewport.SetFocused(const Value: boolean);
-begin
-  if Value <> Focused then
-    { The TMyViewportFrame.Render is based on Focused value. }
-    VisibleChange;
-
-  inherited;
-end;
-
-{ TMyViewportFrame -------------------------------------------------------------- }
-
-type
-  { 2D controls over the viewport. For this we need TUIControl instance
-    with RenderStyle 2D. }
-  TMyViewportFrame = class(TUIControl)
-  public
-    Viewport: TMyViewport;
-    procedure Render; override;
-  end;
-
-procedure TMyViewportFrame.Render;
-begin
-  if Viewport.Focused then
-    Theme.Draw(Viewport.Rect, tiActiveFrame);
-end;
 
 { TWireViewport -------------------------------------------------------------- }
 
@@ -93,7 +67,7 @@ end;
 type
   TScreenEffectDemoViewport = class(TMyViewport)
   private
-    GLSLProgram: TGLSLProgram;
+    GLSLProgram: TGLSLScreenEffect;
   protected
     function GetScreenEffects(const Index: Integer): TGLSLProgram; override;
   public
@@ -119,20 +93,16 @@ begin
   inherited;
   if TGLSLProgram.ClassSupport <> gsNone then
   begin
-    GLSLProgram := TGLSLProgram.Create;
-    GLSLProgram.AttachVertexShader(ScreenEffectVertex);
-    GLSLProgram.AttachFragmentShader(
-      ScreenEffectFragment(false) +
+    GLSLProgram := TGLSLScreenEffect.Create;
+    GLSLProgram.ScreenEffectShader :=
       'void main (void)' +NL+
       '{' +NL+
       '  gl_FragColor = (' +NL+
       '    screen_get_color(ivec2(screen_x() - 1, screen_y())) -' +NL+
       '    screen_get_color(ivec2(screen_x() + 1, screen_y()))' +NL+
       '  ) + vec4(1.0) / 2.0;' +NL+
-      '}');
-    { For this test program, we eventually allow shader to run in software }
-    GLSLProgram.Link(false);
-    GLSLProgram.UniformNotFoundAction := uaIgnore;
+      '}';
+    GLSLProgram.Link;
     Writeln(GLSLProgram.DebugInfo);
   end;
 end;
@@ -143,25 +113,51 @@ begin
   inherited;
 end;
 
+{ TFocusedFrame -------------------------------------------------------------- }
+
+type
+  { Draw frame around the control's rectangle, if focused (under cursor). }
+  TFocusedFrame = class(TUIControlSizeable)
+  public
+    procedure Render; override;
+    procedure SetFocused(const Value: boolean); override;
+  end;
+
+procedure TFocusedFrame.Render;
+begin
+  if Focused then
+    Theme.Draw(ScreenRect, tiActiveFrame);
+end;
+
+procedure TFocusedFrame.SetFocused(const Value: boolean);
+begin
+  if Value <> Focused then
+    { The TFocusedFrame.Render is based on Focused value. }
+    VisibleChange;
+
+  inherited;
+end;
+
 { ---------------------------------------------------------------------------- }
 
 var
   Window: TCastleWindow;
   Scene: TCastleScene;
   Viewports: array [0..3] of TMyViewport;
-  ViewportFrames: array [0..3] of TMyViewportFrame;
+  ViewportFrames: array [0..3] of TFocusedFrame;
   ViewportsLabels: array [0..3] of TCastleLabel;
   OpenButton, QuitButton: TCastleButton;
 
-procedure Resize(Container: TUIContainer);
 const
   Margin = 5;
+
+procedure Resize(Container: TUIContainer);
 var
-  W, H, ButtonHeight, I: Integer;
+  W, H, TopMargin: Integer;
 begin
-  ButtonHeight := OpenButton.Height + 2*Margin;
+  TopMargin := OpenButton.CalculatedHeight + 2 * Margin;
   W := Window.Width div 2;
-  H := (Window.Height - ButtonHeight) div 2;
+  H := (Window.Height - TopMargin) div 2;
 
   Viewports[0].Left   :=       Margin;
   Viewports[0].Bottom :=       Margin;
@@ -182,18 +178,6 @@ begin
   Viewports[3].Bottom := H +   Margin;
   Viewports[3].Width  := W - 2*Margin;
   Viewports[3].Height := H - 2*Margin;
-
-  OpenButton.Left := Margin;
-  OpenButton.Bottom := Window.Height - ButtonHeight + Margin;
-
-  QuitButton.Left := Window.Width - Margin - QuitButton.Width;
-  QuitButton.Bottom := OpenButton.Bottom;
-
-  for I := Low(ViewportsLabels) to High(ViewportsLabels) do
-  begin
-    ViewportsLabels[I].Left := Viewports[I].Left + 10;
-    ViewportsLabels[I].Bottom := Viewports[I].Bottom + 10;
-  end;
 end;
 
 procedure CameraReinitialize;
@@ -261,7 +245,7 @@ begin
   if Parameters.High = 1 then
     URL := Parameters[1];
 
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   Scene := TCastleScene.Create(Application);
   Scene.Load(URL);
@@ -314,15 +298,16 @@ begin
     { The initial Resize event will position viewports correctly }
     Window.Controls.InsertFront(Viewports[I]);
 
-    ViewportFrames[I] := TMyViewportFrame.Create(Application);
-    ViewportFrames[I].Viewport := Viewports[I];
-    Window.Controls.InsertFront(ViewportFrames[I]);
+    ViewportFrames[I] := TFocusedFrame.Create(Application);
+    ViewportFrames[I].FullSize := true; // fill parent control, which is the viewport
+    Viewports[I].InsertFront(ViewportFrames[I]);
 
     ViewportsLabels[I] := TCastleLabel.Create(Application);
     ViewportsLabels[I].Text.Text := Viewports[I].Caption;
     ViewportsLabels[I].Color := Yellow;
-    ViewportsLabels[I].Padding := 5;
-    Window.Controls.InsertFront(ViewportsLabels[I]);
+    ViewportsLabels[I].Anchor(hpLeft, 15);
+    ViewportsLabels[I].Anchor(vpBottom, 15);
+    Viewports[I].InsertFront(ViewportsLabels[I]);
   end;
   Assert(Window.SceneManager.Viewports.Count = High(Viewports) + 1);
 
@@ -331,11 +316,15 @@ begin
   OpenButton := TCastleButton.Create(Application);
   OpenButton.Caption := 'Open 3D file';
   OpenButton.OnClick := @TDummy(nil).OpenButtonClick;
+  OpenButton.Anchor(hpLeft, Margin);
+  OpenButton.Anchor(vpTop, -Margin);
   Window.Controls.InsertFront(OpenButton);
 
   QuitButton := TCastleButton.Create(Application);
   QuitButton.Caption := 'Quit';
   QuitButton.OnClick := @TDummy(nil).QuitButtonClick;
+  QuitButton.Anchor(hpRight, -Margin);
+  QuitButton.Anchor(vpTop, -Margin);
   Window.Controls.InsertFront(QuitButton);
 
   { add a background, since our viewports (deliberately, for demo)

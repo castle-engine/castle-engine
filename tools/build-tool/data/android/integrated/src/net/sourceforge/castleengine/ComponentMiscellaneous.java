@@ -77,17 +77,16 @@ public class ComponentMiscellaneous extends ComponentAbstract
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if (parts.length >= 2 && parts[0].equals("intent-view-uri")) {
-            intentViewUri(glueStringArray(parts, 1, "="));
+        if (parts.length == 2 && parts[0].equals("intent-view-uri")) {
+            intentViewUri(parts[1]);
             return true;
         } else
-        if (parts.length >= 4 && parts[0].equals("intent-send-text")) {
-            intentSendText(parts[1], parts[2], glueStringArray(parts, 3, "="));
+        if (parts.length == 4 && parts[0].equals("intent-send-text")) {
+            intentSendText(parts[1], parts[2], parts[3]);
             return true;
         } else
-        if (parts.length >= 2 && parts[0].equals("on-screen-notification")) {
-            Toast.makeText(getActivity().getApplicationContext(),
-              glueStringArray(parts, 1, "="), Toast.LENGTH_SHORT).show();
+        if (parts.length == 2 && parts[0].equals("on-screen-notification")) {
+            Toast.makeText(getActivity().getApplicationContext(), parts[1], Toast.LENGTH_SHORT).show();
             return true;
         } else
         {

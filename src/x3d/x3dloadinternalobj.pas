@@ -29,7 +29,7 @@ function LoadWavefrontOBJ(const URL: string): TX3DRootNode;
 
 implementation
 
-uses CastleStringUtils, CastleFilesUtils, CastleWarnings,
+uses CastleStringUtils, CastleFilesUtils, CastleLog,
   CastleVectors, CastleUtils, Classes, CastleClassUtils, SysUtils,
   FGL, X3DLoadInternalUtils, CastleGenericLists, CastleURIUtils,
   CastleDownload;
@@ -333,7 +333,7 @@ var
     except
       on E: Exception do
       begin
-        OnWarning(wtMinor, 'Wavefront OBJ Material', E.Message);
+        WritelnWarning('Wavefront OBJ Material', E.Message);
         Exit;
       end;
     end;
@@ -442,7 +442,7 @@ begin
              begin
                UsedMaterial := Materials.TryFindName(LineAfterMarker);
                if UsedMaterial = nil then
-                 OnWarning(wtMinor, 'Wavefront OBJ', Format('Unknown material name "%s"',
+                 WritelnWarning('Wavefront OBJ', Format('Unknown material name "%s"',
                    [LineAfterMarker]));
              end;
            end;

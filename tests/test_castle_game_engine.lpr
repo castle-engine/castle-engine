@@ -13,7 +13,7 @@ uses
   Interfaces, Forms, GuiTestRunner, castle_base,
   {$endif}
 
-  CastleWarnings,
+  CastleLog, CastleApplicationProperties,
 
   { Test units below. Their order determines default tests order. }
 
@@ -82,15 +82,15 @@ var
 {$endif}
 
 {var
-  T: TTestCastleTriangulate;}
+  T: TTestCastle3D;}
 begin
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
 { Sometimes it's comfortable to just run the test directly, to get
   full backtrace from FPC.
 
-  T := TTestCastleTriangulate.Create;
-  T.TestTriangulateFace;
+  T := TTestCastle3D.Create;
+  T.TestListNotification;
   T.Free;
   Exit;}
 

@@ -37,12 +37,12 @@ procedure ReadMaterial(MatElement: TDOMElement);
   begin
     if not Element.AttributeString('type', AType) then
     begin
-      OnWarning(wtMinor, 'Collada', '<param> has no type attribute');
+      WritelnWarning('Collada', '<param> has no type attribute');
       Result := ZeroVector3Single;
     end else
     if AType <> 'float3' then
     begin
-      OnWarning(wtMinor, 'Collada', 'Expected <param> with type "float3"');
+      WritelnWarning('Collada', 'Expected <param> with type "float3"');
       Result := ZeroVector3Single;
     end else
        Result := Vector3SingleFromStr(Element.TextData);
@@ -54,12 +54,12 @@ procedure ReadMaterial(MatElement: TDOMElement);
    begin
      if not Element.AttributeString('type', AType) then
      begin
-       OnWarning(wtMinor, 'Collada', '<param> has no type attribute');
+       WritelnWarning('Collada', '<param> has no type attribute');
        Result := 0;
      end else
      if AType <> 'float' then
      begin
-       OnWarning(wtMinor, 'Collada', 'Expected <param> with type "float"');
+       WritelnWarning('Collada', 'Expected <param> with type "float"');
        Result := 0;
      end else
        Result := StrToFloat(Element.TextData);
@@ -170,7 +170,7 @@ var
         Effect := Effects.Find(EffectId);
         if Effect <> nil then
           Materials[MatId] := Effect else
-          OnWarning(wtMinor, 'Collada', Format('Material "%s" references ' +
+          WritelnWarning('Collada', Format('Material "%s" references ' +
             'non-existing effect "%s"', [MatId, EffectId]));
       end;
     end;

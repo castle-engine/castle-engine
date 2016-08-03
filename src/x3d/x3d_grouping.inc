@@ -491,29 +491,29 @@ begin
   inherited;
 
   FEventAddChildren := TMFNodeEvent.Create(Self, 'addChildren', true);
-  Events.Add(FEventAddChildren);
+  AddEvent(FEventAddChildren);
   EventaddChildren.OnReceive.Add(@EventAddChildrenReceive);
 
   FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
-  Events.Add(FEventRemoveChildren);
+  AddEvent(FEventRemoveChildren);
   EventRemoveChildren.OnReceive.Add(@EventRemoveChildrenReceive);
 
   FFdChildren := TMFNode.Create(Self, 'children', IAbstractChildNode);
    FdChildren.ChangesAlways := [chEverything];
-  Fields.Add(FFdChildren);
+  AddField(FFdChildren);
 
   FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', ZeroVector3Single);
   FFdBboxCenter.Exposed := false;
-  Fields.Add(FFdBboxCenter);
+  AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
   FFdBboxSize.Exposed := false;
-  Fields.Add(FFdBboxSize);
+  AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
   FFdRender := TSFBool.Create(Self, 'render', true);
-  Fields.Add(FFdRender);
+  AddField(FFdRender);
 
   DefaultContainerField := 'children';
 end;
@@ -594,7 +594,7 @@ begin
   Result := inherited;
   if Result <> nil then Exit;
 
-  Result := FdChildren.SearchValid(Func);
+  Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -714,7 +714,7 @@ begin
   }
 
   if not (Supports(Child, IAbstractChildNode) or (Child is TLayerSetNode)) then
-    OnWarning(wtMajor, 'VRML/X3D', Format('Node "%s" is not allowed at the top level of the VRML/X3D file',
+    WritelnWarning('VRML/X3D', Format('Node "%s" is not allowed at the top level of the VRML/X3D file',
       [Child.NodeTypeName]));
 end;
 
@@ -764,16 +764,16 @@ begin
   FFdChildren := TMFNode.Create(Self, 'children', IAbstractChildNode);
    FdChildren.Exposed := false;
    FdChildren.ChangesAlways := [chEverything];
-  Fields.Add(FFdChildren);
+  AddField(FFdChildren);
 
   FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
   FFdBboxCenter.Exposed := false;
-  Fields.Add(FFdBboxCenter);
+  AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
   FFdBboxSize.Exposed := false;
-  Fields.Add(FFdBboxSize);
+  AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
   DefaultContainerField := 'children';
@@ -792,7 +792,7 @@ end;
 
 function TStaticGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdChildren.SearchValid(Func);
+  Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -804,7 +804,7 @@ begin
 
   FFdWhichChoice := TSFInt32.Create(Self, 'whichChoice', -1);
    FdWhichChoice.ChangesAlways := [chSwitch2];
-  Fields.Add(FFdWhichChoice);
+  AddField(FFdWhichChoice);
   { X3D specification comment: [-1,Inf) }
 
   DefaultContainerField := 'children';
@@ -848,27 +848,27 @@ begin
 
   FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
    FdCenter.ChangesAlways := [chTransform];
-  Fields.Add(FFdCenter);
+  AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chTransform];
-  Fields.Add(FFdRotation);
+  AddField(FFdRotation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
   FFdScale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
    FdScale.ChangesAlways := [chTransform];
-  Fields.Add(FFdScale);
+  AddField(FFdScale);
   { X3D specification comment: (-Inf, Inf) }
 
   FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
    FdScaleOrientation.ChangesAlways := [chTransform];
-  Fields.Add(FFdScaleOrientation);
+  AddField(FFdScaleOrientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
   FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
    FdTranslation.ChangesAlways := [chTransform];
-  Fields.Add(FFdTranslation);
+  AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
   DefaultContainerField := 'children';
@@ -893,7 +893,7 @@ end;
 
 function TTransformNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := FdChildren.SearchValid(Func);
+  Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 

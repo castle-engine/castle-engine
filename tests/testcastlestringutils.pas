@@ -34,6 +34,9 @@ type
     procedure TestIntToStr64;
     procedure TestCastleStringList;
     procedure TestCastleStringListNewlinesInside;
+    procedure TestSReplacePatterns;
+    procedure TestGetFileFilter;
+    procedure TestSplitString;
   end;
 
 implementation
@@ -311,6 +314,116 @@ begin
     AssertTrue(SL[0] = NL + 'foo' + NL + 'bar' + NL);
     AssertTrue(SL.IndexOf(NL + 'foo' + NL + 'bar' + NL) = 0);
   finally FreeAndNil(SL) end;
+end;
+
+procedure TTestCastleStringUtils.TestSReplacePatterns;
+var
+  S1, S2: TCastleStringList;
+  SMap: TStringStringMap;
+begin
+  AssertEquals('bladogbla dog dog', SReplacePatterns('blacatbla dog cat', ['cat'], ['dog'], false));
+  { test case matching works }
+  AssertEquals('bladogbla dog cAt', SReplacePatterns('blacatbla dog cAt', ['cat'], ['dog'], false));
+  AssertEquals('blacatbla dog dog', SReplacePatterns('blacatbla dog cAt', ['cAt'], ['dog'], false));
+
+  AssertEquals('bladogbla dog dog', SReplacePatterns('blacatbla dog cat', ['cat'], ['dog'], true));
+  { test case ignoring works }
+  AssertEquals('bladogbla dog dog', SReplacePatterns('blacatbla dog cAt', ['cat'], ['dog'], true));
+  AssertEquals('bladogbla dog dog', SReplacePatterns('blacatbla dog cAt', ['cAt'], ['dog'], true));
+  AssertEquals('blaDogbla dog Dog', SReplacePatterns('blacatbla dog cAt', ['cat'], ['Dog'], true));
+  AssertEquals('blaDogbla dog Dog', SReplacePatterns('blacatbla dog cAt', ['cAt'], ['Dog'], true));
+
+  { test pattern inside pattern }
+  AssertEquals('12 is 1', SReplacePatterns('foobar is foo', ['foo', 'bar', 'foobar'], ['1', '2', '3'], false));
+  AssertEquals('foobar is foo', SReplacePatterns('foobar is foo', ['foo', 'bar', 'foobar'], ['foo', 'bar', '3'], false));
+  AssertEquals('3 is 1', SReplacePatterns('foobar is foo', ['foobar', 'foo', 'bar'], ['3', '1', '2'], false));
+  AssertEquals('3 is foo', SReplacePatterns('foobar is foo', ['foobar', 'foo', 'bar'], ['3', 'foo', 'bar'], false));
+  AssertEquals('3 is f1', SReplacePatterns('foobar is foo', ['foobar', 'oo'], ['3', '1'], false));
+  AssertEquals('3oo is f1oo', SReplacePatterns('foobar is foo', ['foobar', 'oo'], ['3oo', '1oo'], false));
+
+  { test overloaded version on TCastleStringList }
+  S1 := TCastleStringList.Create;
+  S2 := TCastleStringList.Create;
+  try
+    S1.Append('cat');
+    S2.Append('dog');
+    AssertEquals('bladogbla dog dog', SReplacePatterns('blacatbla dog cat', S1, S2, false));
+  finally
+    FreeAndNil(S1);
+    FreeAndNil(S2);
+  end;
+
+  { test overloaded version on TStringStringMap }
+  SMap := TStringStringMap.Create;
+  try
+    SMap['cat'] := 'dog';
+    AssertEquals('bladogbla dog dog', SReplacePatterns('blacatbla dog cat', SMap, false));
+  finally FreeAndNil(SMap) end;
+end;
+
+procedure TTestCastleStringUtils.TestGetFileFilter;
+var
+  Exts: TStringList;
+begin
+  Exts := TStringList.Create;
+  try
+    GetFileFilterExts('xxxx|name1.ext1;name2.ext2', Exts);
+    AssertEquals(2, Exts.Count);
+    AssertEquals('.ext1', Exts[0]);
+    AssertEquals('.ext2', Exts[1]);
+
+    GetFileFilterExts('name1.ext1;name2.ext2', Exts);
+    AssertEquals(0, Exts.Count);
+
+    GetFileFilterExts('some name|*.ext1;*.ext2', Exts);
+    AssertEquals(2, Exts.Count);
+    AssertEquals('.ext1', Exts[0]);
+    AssertEquals('.ext2', Exts[1]);
+
+    GetFileFilterExts('some name|ext1;*.ext2', Exts);
+    AssertEquals(2, Exts.Count);
+    AssertEquals('.ext1', Exts[0]);
+    AssertEquals('.ext2', Exts[1]);
+  finally FreeAndNil(Exts) end;
+
+  AssertEquals('Pascal files', GetFileFilterName('Pascal files (*.pas)|*.pas'));
+  AssertEquals('Pascal files', GetFileFilterName('Pascal files (*.pas;*.inc)|*.pas;*.inc'));
+  AssertEquals('Pascal files', GetFileFilterName('Pascal files (*.pas,*.inc)|*.pas;*.inc'));
+  AssertEquals('Pascal files', GetFileFilterName('Pascal files|*.pas;*.inc'));
+  AssertEquals('Pascal files', GetFileFilterName('Pascal files'));
+  AssertEquals('Pascal files', GetFileFilterName('Pascal files ()|'));
+end;
+
+procedure TTestCastleStringUtils.TestSplitString;
+
+  procedure AssertStringListEquals(const A: array of string; const List: TCastleStringList);
+  var
+    I: Integer;
+  begin
+    AssertEquals(High(A) + 1, List.Count);
+    for I := 0 to List.Count - 1 do
+      AssertEquals(A[I], List[I]);
+  end;
+
+  procedure TestSplitAndGlue(const CorrectParts: array of string;
+    const S: string; const Delimiter: char);
+  var
+    List: TCastleStringList;
+  begin
+    List := SplitString(S, Delimiter);
+    try
+      AssertStringListEquals(CorrectParts, List); // check SplitString correctness
+      AssertEquals(S, GlueStrings(List, Delimiter)); // check GlueStrings is reverse
+    finally FreeAndNil(List) end;
+  end;
+
+begin
+  TestSplitAndGlue(['foo', 'bar'], 'foo|bar', '|');
+  TestSplitAndGlue(['foo'], 'foo', '|');
+  TestSplitAndGlue([''], '', '|');
+  TestSplitAndGlue(['foo', '', 'bar'], 'foo||bar', '|');
+  TestSplitAndGlue(['foo', '', '', 'bar'], 'foo|||bar', '|');
+  TestSplitAndGlue(['foo', '', 'bar', ''], 'foo||bar|', '|');
 end;
 
 initialization

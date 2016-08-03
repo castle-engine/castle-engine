@@ -39,7 +39,7 @@
 
       GenerateMipmap functionality will be required for this.
       When it is not available on this OpenGL implementation,
-      we will change minification filter to simple linear and make OnWarning.
+      we will change minification filter to simple linear and make WritelnWarning.
       So usually you just don't have to worry about this.)
   )
 
@@ -105,10 +105,8 @@ var
     { This is like glTexImage3DImage, but it doesn't take care
       of Image size. }
     procedure Core(Image: TCastleImage);
-    var
-      UnpackData: TUnpackNotAlignedData;
     begin
-      BeforeUnpackImage(UnpackData, Image);
+      BeforeUnpackImage(Image);
       try
         case GLFeatures.Texture3D of
           gsExtension:
@@ -121,7 +119,7 @@ var
               Image.RawPixels);
         end;
         LoadedSize += Image.Size;
-      finally AfterUnpackImage(UnpackData, Image) end;
+      finally AfterUnpackImage(Image) end;
     end;
 
   begin
@@ -140,13 +138,13 @@ var
     Result := (Composite <> nil) and Composite.Mipmaps;
     if Result and (Composite.CompositeType <> ctVolume) then
     begin
-      OnWarning(wtMinor, 'Texture', 'Composite image contains mipmaps, but not for 3D (volume) texture');
+      WritelnWarning('Texture', 'Composite image contains mipmaps, but not for 3D (volume) texture');
       Result := false;
     end;
 
     if Result and (not GLFeatures.Version_1_2) then
     begin
-      OnWarning(wtMinor, 'Texture', 'Cannot load Composite image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      WritelnWarning('Texture', 'Cannot load Composite image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
       Result := false;
     end;
 
@@ -182,7 +180,7 @@ begin
       on E: EGenerateMipmapNotAvailable do
       begin
         Filter.Minification := minLinear;
-        OnWarning(wtMinor, 'Texture', 'Creating mipmaps for 3D textures requires GenerateMipmap functionality, will fallback to GL_LINEAR minification: ' + E.Message);
+        WritelnWarning('Texture', 'Creating mipmaps for 3D textures requires GenerateMipmap functionality, will fallback to GL_LINEAR minification: ' + E.Message);
       end;
     end;
   end;

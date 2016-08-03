@@ -143,16 +143,16 @@ begin
   inherited;
 
   FFdTranslation := TSFVec2f.Create(Self, 'translation', ZeroVector2Single);
-  Fields.Add(FFdTranslation);
+  AddField(FFdTranslation);
 
   FFdSize := TSFVec2f.Create(Self, 'size', Vector2Single(-1, -1));
-  Fields.Add(FFdSize);
+  AddField(FFdSize);
 
   FFdBackground := TSFNode.Create(Self, 'background', [TAbstractBackgroundNode]);
-  Fields.Add(FFdBackground);
+  AddField(FFdBackground);
 
   FFdViewport := TSFNode.Create(Self, 'viewport', [TAbstractViewportNode]);
-  Fields.Add(FFdViewport);
+  AddField(FFdViewport);
 end;
 
 class function TLayer2DNode.ClassNodeTypeName: string;
@@ -171,34 +171,34 @@ begin
   inherited;
 
   FEventAddChildrenLayer := TMFNodeEvent.Create(Self, 'addChildrenLayer', true);
-  Events.Add(FEventAddChildrenLayer);
+  AddEvent(FEventAddChildrenLayer);
 
   FEventRemoveChildrenLayer := TMFNodeEvent.Create(Self, 'removeChildrenLayer', true);
-  Events.Add(FEventRemoveChildrenLayer);
+  AddEvent(FEventRemoveChildrenLayer);
 
   FFdChildrenLayer := TMFNode.Create(Self, 'childrenLayer', [TLayer3DNode]);
-  Fields.Add(FFdChildrenLayer);
+  AddField(FFdChildrenLayer);
 
   FFdTranslation := TSFVec2f.Create(Self, 'translation', ZeroVector2Single);
-  Fields.Add(FFdTranslation);
+  AddField(FFdTranslation);
 
   FFdDepth := TSFInt32.Create(Self, 'depth', 0);
-  Fields.Add(FFdDepth);
+  AddField(FFdDepth);
 
   FFdSize := TSFVec2f.Create(Self, 'size', Vector2Single(-1, -1));
-  Fields.Add(FFdSize);
+  AddField(FFdSize);
 
   FFdBackground := TSFNode.Create(Self, 'background', [TAbstractBackgroundNode]);
-  Fields.Add(FFdBackground);
+  AddField(FFdBackground);
 
   FFdFog := TSFNode.Create(Self, 'fog', [TFogNode]);
-  Fields.Add(FFdFog);
+  AddField(FFdFog);
 
   FFdNavigationInfo := TSFNode.Create(Self, 'navigationInfo', [TNavigationInfoNode]);
-  Fields.Add(FFdNavigationInfo);
+  AddField(FFdNavigationInfo);
 
   FFdViewpoint := TSFNode.Create(Self, 'viewpoint', [TAbstractViewpointNode]);
-  Fields.Add(FFdViewpoint);
+  AddField(FFdViewpoint);
 end;
 
 class function TLayer3DNode.ClassNodeTypeName: string;
@@ -217,25 +217,25 @@ begin
   inherited;
 
   FFdEventsProcessed := TSFBool.Create(Self, 'eventsProcessed', true);
-  Fields.Add(FFdEventsProcessed);
+  AddField(FFdEventsProcessed);
 
   FEventClient := TSFVec2fEvent.Create(Self, 'client', false);
-  Events.Add(FEventClient);
+  AddEvent(FEventClient);
 
   FEventPosition := TSFVec2fEvent.Create(Self, 'position', false);
-  Events.Add(FEventPosition);
+  AddEvent(FEventPosition);
 
   FEventLButton := TSFBoolEvent.Create(Self, 'lButton', false);
-  Events.Add(FEventLButton);
+  AddEvent(FEventLButton);
 
   FEventMButton := TSFBoolEvent.Create(Self, 'mButton', false);
-  Events.Add(FEventMButton);
+  AddEvent(FEventMButton);
 
   FEventRButton := TSFBoolEvent.Create(Self, 'rButton', false);
-  Events.Add(FEventRButton);
+  AddEvent(FEventRButton);
 
   FEventMouseWheel := TSFFloatEvent.Create(Self, 'mouseWheel', false);
-  Events.Add(FEventMouseWheel);
+  AddEvent(FEventMouseWheel);
 end;
 
 class function TMouseSensorNode.ClassNodeTypeName: string;

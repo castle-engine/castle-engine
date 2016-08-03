@@ -117,7 +117,7 @@
 
     { Load cube environment map from a composite (DDS, KTX...) image.
 
-      In case of problems, will make OnWarning.
+      In case of problems, will make WritelnWarning.
       This includes situations when url cannot be loaded for whatever reason.
       Also problems when url contains valid Composite image,
       but not describing cube map with all 6 sides.
@@ -146,34 +146,34 @@ begin
 
   FFdBack := TSFNode.Create(Self, 'back', [TAbstractX3DTexture2DNode]);
    FdBack.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdBack);
+  AddField(FFdBack);
 
   FFdBottom := TSFNode.Create(Self, 'bottom', [TAbstractX3DTexture2DNode]);
    FdBottom.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdBottom);
+  AddField(FFdBottom);
 
   FFdFront := TSFNode.Create(Self, 'front', [TAbstractX3DTexture2DNode]);
    FdFront.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdFront);
+  AddField(FFdFront);
 
   FFdLeft := TSFNode.Create(Self, 'left', [TAbstractX3DTexture2DNode]);
    FdLeft.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdLeft);
+  AddField(FFdLeft);
 
   FFdRight := TSFNode.Create(Self, 'right', [TAbstractX3DTexture2DNode]);
    FdRight.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdRight);
+  AddField(FFdRight);
 
   FFdTop := TSFNode.Create(Self, 'top', [TAbstractX3DTexture2DNode]);
    FdTop.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdTop);
+  AddField(FFdTop);
 
   { X3D spec 3.2 doesn't specify this, but it's natural,
     instantreality also uses this. }
   FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdTextureProperties);
+  AddField(FFdTextureProperties);
 end;
 
 class function TComposedCubeMapTextureNode.ClassNodeTypeName: string;
@@ -205,13 +205,13 @@ function TComposedCubeMapTextureNode.LoadSides: boolean;
 
       if Result and not (SideTex.TextureImage is TCastleImage) then
       begin
-        OnWarning(wtMinor, 'VRML/X3D', 'ComposedCubeMapTexture cannot contain images compressed GPU-compression algorithms, as we have to rotate images within, and we cannot do this (fast) with compressed textures');
+        WritelnWarning('VRML/X3D', 'ComposedCubeMapTexture cannot contain images compressed GPU-compression algorithms, as we have to rotate images within, and we cannot do this (fast) with compressed textures');
         Result := false;
       end;
     end;
 
     { If any slice has full-range alpha, then assume whole texture does. }
-    AlphaMaxVar(FAlphaChannelData, SideTex.AlphaChannel);
+    AlphaMaxVar(FAlphaChannelData, SideTex.AlphaChannelFinal);
   end;
 
 begin
@@ -235,22 +235,22 @@ begin
   inherited;
 
   FFdUpdate := TSFTextureUpdate.Create(Self, 'update', upNone);
-  Fields.Add(FFdUpdate);
+  AddField(FFdUpdate);
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 
   FFdSize := TSFInt32.Create(Self, 'size', 128, { MustBeNonnegative } true);
    FdSize.Exposed := false;
    FdSize.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdSize);
+  AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
 
   FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdTextureProperties);
+  AddField(FFdTextureProperties);
 
   FFdBias := TSFVec3f.Create(Self, 'bias', ZeroVector3Single);
-  Fields.Add(FFdBias);
+  AddField(FFdBias);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
   FGeneratedTextureHandler.FUpdate := FdUpdate;
@@ -292,13 +292,13 @@ begin
     So we don't need chTextureImage in case of change,
     instead just let renderer load the texture again. }
    FdUrl.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdUrl);
+  AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
   FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdTextureProperties);
+  AddField(FFdTextureProperties);
 end;
 
 class function TImageCubeMapTextureNode.ClassNodeTypeName: string;
@@ -325,7 +325,7 @@ begin
 
       if not TCompositeImage.MatchesURL(FullUrl) then
       begin
-        OnWarning(wtMinor, 'VRML/X3D', Format('Only composite (DDS, KTX...) format is supported for ImageCubeMapTexture node, but URL is "%s"', [FullUrl]));
+        WritelnWarning('VRML/X3D', Format('Only composite (DDS, KTX...) format is supported for ImageCubeMapTexture node, but URL is "%s"', [FullUrl]));
         Continue;
       end;
 
@@ -335,7 +335,7 @@ begin
         on E: Exception do
         begin
           Result.Close;
-          OnWarning(wtMinor, 'VRML/X3D', Format('Error when loading composite file "%s": %s', [FullUrl, E.Message]));
+          WritelnWarning('VRML/X3D', Format('Error when loading composite file "%s": %s', [FullUrl, E.Message]));
           Continue;
         end;
       end;
@@ -345,14 +345,14 @@ begin
       if Result.CompositeType <> ctCubeMap then
       begin
         Result.Close;
-        OnWarning(wtMinor, 'VRML/X3D', Format('Composite image "%s" given for ImageCubeMapTexture doesn''t describe a cube map texture', [FullUrl]));
+        WritelnWarning('VRML/X3D', Format('Composite image "%s" given for ImageCubeMapTexture doesn''t describe a cube map texture', [FullUrl]));
         Continue;
       end;
 
       if Result.CubeMapSides <> AllCubeMapSides then
       begin
         Result.Close;
-        OnWarning(wtMinor, 'VRML/X3D', Format('Composite image "%s" given for ImageCubeMapTexture doesn''t contain all cube map sides', [FullUrl]));
+        WritelnWarning('VRML/X3D', Format('Composite image "%s" given for ImageCubeMapTexture doesn''t contain all cube map sides', [FullUrl]));
         Continue;
       end;
 
