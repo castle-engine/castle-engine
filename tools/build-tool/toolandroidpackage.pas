@@ -284,7 +284,8 @@ var
     for I := 0 to Subprojects.Count - 1 do
       S += 'android.library.reference.' + IntToStr(I + 1) + '=./' + Subprojects[I] + '/' + NL;
     { overwrite existing file, since Android "update" project always creates
-      (and overwrites, if something existed earlier...) it }
+      (and overwrites, if something existed earlier...) it anyway.
+      Later: hmmm, is the previous sentence really true? Not sure. }
     StringToFile(AndroidProjectPath + 'project.properties', S);
   end;
 
@@ -330,11 +331,19 @@ var
 
   { Run "ant debug/release" to actually build the final apk. }
   procedure RunAnt(const PackageMode: TCompilationMode);
+  var
+    Args: TCastleStringList;
   begin
-    RunCommandSimple(AndroidProjectPath, 'ant',
-      [ { enable extra warnings, following http://stackoverflow.com/questions/7682150/use-xlintdeprecation-with-android }
-        '-Djava.compilerargs=-Xlint:unchecked -Xlint:deprecation',
-        PackageModeToName[PackageMode], '-noinput', '-quiet']);
+    Args := TCastleStringList.Create;
+    try
+      { enable extra warnings, following http://stackoverflow.com/questions/7682150/use-xlintdeprecation-with-android }
+      Args.Add('-Djava.compilerargs=-Xlint:unchecked -Xlint:deprecation');
+      Args.Add(PackageModeToName[PackageMode]);
+      Args.Add('-noinput');
+      if not Verbose then
+        Args.Add('-quiet');
+      RunCommandSimple(AndroidProjectPath, 'ant', Args.ToArray);
+    finally FreeAndNil(Args) end;
   end;
 
 var
