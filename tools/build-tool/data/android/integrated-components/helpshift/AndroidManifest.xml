@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This manifest will be merged with main integrated/AndroidManifest.xml
+     by the build tool. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:name="net.sourceforge.castleengine.HelpshiftApplication" />
+
+    <!-- Below copied from helpshift-sdk-android/AndroidManifest.xml.
+
+         We do not use the manifestmerger.enabled=true in project.properties
+         for now (because not all packages are ready for it,
+         with the exception of unity-ads, that would in turn conflict
+         with our hand-made AndroidManifest.xml for heyzap).
+    -->
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <application>
+        <activity
+            android:name="com.helpshift.support.activities.ParentActivity"
+            android:theme="@style/Helpshift.Theme.Activity" />
+        <activity
+            android:name="com.helpshift.support.HSReview"
+            android:configChanges="orientation|screenSize"
+            android:theme="@style/Helpshift.Theme.Dialog" />
+
+        <service
+            android:name="com.helpshift.support.HSService"
+            android:label="Helpshift Service" >
+        </service>
+        <service
+            android:name="com.helpshift.support.HSRetryService"
+            android:label="Helpshift Service" >
+        </service>
+
+        <activity
+            android:name="com.helpshift.campaigns.activities.ParentActivity"
+            android:theme="@style/Helpshift.Theme.Activity" >
+        </activity>
+        <activity
+            android:name="com.helpshift.supportCampaigns.NotificationActivity"
+            android:configChanges="orientation|screenSize|locale|layoutDirection"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <service
+            android:name="com.helpshift.supportCampaigns.util.NotificationService"
+            android:exported="false" />
+    </application>
+
+</manifest>

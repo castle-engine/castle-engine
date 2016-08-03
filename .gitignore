@@ -139,6 +139,12 @@ tools/build-tool/data/android/integrated-components/heyzap/AudienceNetwork/
 tools/build-tool/data/android/integrated-components/heyzap/unity-ads/
 tools/build-tool/data/android/integrated-components/heyzap/libs/*.jar
 tools/build-tool/data/android/integrated-components/startapp/libs/*.jar
+tools/build-tool/data/android/integrated-components/helpshift/appcompat/
+tools/build-tool/data/android/integrated-components/helpshift/assets/
+tools/build-tool/data/android/integrated-components/helpshift/cardview/
+tools/build-tool/data/android/integrated-components/helpshift/design/
+tools/build-tool/data/android/integrated-components/helpshift/helpshift-sdk-android/
+tools/build-tool/data/android/integrated-components/helpshift/recyclerview/
 tools/castle-curves/castle-curves
 tools/castle-curves/castle-curves.exe
 examples/curves_surfaces/simplest_curve_read
