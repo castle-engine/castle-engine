@@ -47,6 +47,7 @@ type
     FVersionCode: Cardinal;
     FScreenOrientation: TScreenOrientation;
     FAndroidTarget: string;
+    FAndroidMinSdkVersion, FAndroidTargetSdkVersion: Cardinal;
     FAndroidProjectType: TAndroidProjectType;
     FAndroidComponents: TAndroidComponentList;
     // Helpers only for ExtractTemplateFoundFile.
@@ -104,6 +105,8 @@ type
     property AndroidProject: string read FAndroidProject;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property AndroidTarget: string read FAndroidTarget;
+    property AndroidMinSdkVersion: Cardinal read FAndroidMinSdkVersion;
+    property AndroidTargetSdkVersion: Cardinal read FAndroidTargetSdkVersion;
     property AndroidProjectType: TAndroidProjectType read FAndroidProjectType;
     property Icons: TIconFileNames read FIcons;
     property SearchPaths: TStringList read FSearchPaths;
@@ -186,6 +189,8 @@ constructor TCastleProject.Create(const APath: string);
     { Google Play requires version code to be >= 1 }
     DefautVersionCode = 1;
     DefaultAndroidTarget = 'android-19';
+    DefaultAndroidMinSdkVersion = 9;
+    DefaultAndroidTargetSdkVersion = 18;
 
     { character sets }
     ControlChars = [#0..Chr(Ord(' ')-1)];
@@ -211,6 +216,8 @@ constructor TCastleProject.Create(const APath: string);
       FVersionCode := DefautVersionCode;
       Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
       FAndroidTarget := DefaultAndroidTarget;
+      FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
+      FAndroidTargetSdkVersion := DefaultAndroidTargetSdkVersion;
     end;
 
     procedure CheckManifestCorrect;
@@ -259,6 +266,10 @@ constructor TCastleProject.Create(const APath: string);
       { more user-visible stuff, where we allow spaces, local characters and so on }
       CheckMatches('caption', Caption, AllChars - ControlChars);
       CheckMatches('author', Author  , AllChars - ControlChars);
+
+      if AndroidMinSdkVersion > AndroidTargetSdkVersion then
+        raise Exception.CreateFmt('Android min_sdk_version %d is larger than target_sdk_version %d, this is incorrect',
+          [AndroidMinSdkVersion, AndroidTargetSdkVersion]);
     end;
 
   var
@@ -351,10 +362,14 @@ constructor TCastleProject.Create(const APath: string);
         end;
 
         FAndroidTarget := DefaultAndroidTarget;
+        FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
+        FAndroidTargetSdkVersion := DefaultAndroidTargetSdkVersion;
         Element := Doc.DocumentElement.ChildElement('android', false);
         if Element <> nil then
         begin
           FAndroidTarget := Element.AttributeStringDef('sdk_target', DefaultAndroidTarget);
+          FAndroidMinSdkVersion := Element.AttributeCardinalDef('min_sdk_version', DefaultAndroidMinSdkVersion);
+          FAndroidTargetSdkVersion := Element.AttributeCardinalDef('target_sdk_version', DefaultAndroidTargetSdkVersion);
 
           if Element.AttributeString('project_type', AndroidProjectTypeStr) then
           begin
@@ -1115,6 +1130,8 @@ begin
     Macros.Add('ANDROID_SCREEN_ORIENTATION'          , AndroidScreenOrientation[ScreenOrientation]);
     Macros.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'  , AndroidScreenOrientationFeature[ScreenOrientation]);
     Macros.Add('ANDROID_ACTIVITY_LOAD_LIBRARIES'     , AndroidActivityLoadLibraries);
+    Macros.Add('ANDROID_MIN_SDK_VERSION'             , IntToStr(AndroidMinSdkVersion));
+    Macros.Add('ANDROID_TARGET_SDK_VERSION'          , IntToStr(AndroidTargetSdkVersion));
     for I := 0 to AndroidComponents.Count - 1 do
       for J := 0 to AndroidComponents[I].Parameters.Count - 1 do
         Macros.Add('ANDROID.' +
