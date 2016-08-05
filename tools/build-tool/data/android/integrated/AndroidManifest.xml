@@ -13,6 +13,8 @@
 
     <!-- See http://developer.android.com/reference/android/app/NativeActivity.html
       for example manifest using NativeActivity.
+      See https://guides.gameanalytics.com/content/sdk?page=android&step=2
+      about android:configChanges notes.
     -->
     <application
         android:label="@string/app_name"
@@ -21,7 +23,7 @@
         <activity android:name="net.sourceforge.castleengine.MainActivity"
                 android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
                 android:launchMode="singleTask"
-                android:configChanges="orientation|keyboardHidden"
+                android:configChanges="orientation|screenSize|keyboardHidden"
                 android:screenOrientation="${ANDROID_SCREEN_ORIENTATION}">
             <!-- NativeActivity must know the name of our library with JNI callbacks. -->
             <meta-data android:name="android.app.lib_name"
