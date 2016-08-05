@@ -856,6 +856,19 @@ function PCharOrNil(const s: string): PChar;
   "sanitizes" whitespace inside such string. }
 function SCompressWhiteSpace(const S: string): string;
 
+type
+  EInvalidChar = class(Exception);
+
+{ Check that all characters are within a given set.
+  Raise exception otherwise (if RaiseExceptionOnError, default)
+  or make a warning.
+  @raise(EInvalidChar If string contains an invalid character
+    and RaiseExceptionOnError = @true.
+    The exception string is informative, containing the string value,
+    character, character position.) }
+procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;
+  const RaiseExceptionOnError: boolean = true);
+
 const
   { }
   CtrlA = Chr(Ord('a') - Ord('a') + 1); { = #1 } { }
@@ -894,7 +907,7 @@ const
 implementation
 
 uses Regexpr, StrUtils,
-  CastleFilesUtils, CastleClassUtils, CastleDownload;
+  CastleFilesUtils, CastleClassUtils, CastleDownload, CastleLog;
 
 { TStringsHelper ------------------------------------------------------------- }
 
@@ -2374,6 +2387,31 @@ begin
   Assert(ResultPos - 1 <= Length(Result));
 
   SetLength(Result, ResultPos - 1);
+end;
+
+procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;
+  const RaiseExceptionOnError: boolean);
+var
+  I: Integer;
+  C: char;
+
+  procedure ReportInvalid;
+  var
+    SError: string;
+  begin
+    SError := Format('Invalid charater "%s" at position %d in string "%s"', [C, I, S]);
+    if RaiseExceptionOnError then
+      raise EInvalidChar.Create(SError) else
+      WritelnWarning('SCheckChars', SError);
+  end;
+
+begin
+  for I := 1 to Length(S) do
+  begin
+    C := S[I];
+    if not (C in ValidChars) then
+      ReportInvalid;
+  end;
 end;
 
 end.

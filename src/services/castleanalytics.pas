@@ -47,6 +47,7 @@ type
     FLastGoogleAnalyticsPropertyId: string;
     FLastGameAnalyticsGameKey, FLastGameAnalyticsSecretKey: string;
     procedure ReinitializeJavaActivity(Sender: TObject);
+    procedure CheckValidName(const S: string);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -60,10 +61,17 @@ type
     procedure InitializeGameAnalytics(const GameKey, SecretKey: string);
 
     { Send to analytics view of the screen, e.g. when user switches
-      between UI states. }
+      between UI states.
+
+      @raises(EInvalidChar If the screen name contains invalid characters.
+        Use only ASCII letters, digits, hyphens, underscores.) }
     procedure ScreenView(const ScreenName: string);
 
-    { Send to analytics a general event. }
+    { Send to analytics a general event.
+
+      @raises(EInvalidChar If some string contains invalid characters.
+        Use only ASCII letters, digits, hyphens, underscores for the category
+        and other strings.) }
     procedure Event(const Category, Action, ALabel: string; const Value: Int64);
 
     { Send to analytics a general event, along with a custom dimension.
@@ -76,18 +84,26 @@ type
       For Game Analytics, this is just used as an extra subcategory.
       Do not create too many different DimensionIndex + DimensionValue combinations,
       as each combination creates a new unique event id,
-      and these are limited, see http://www.gameanalytics.com/docs/custom-events . }
+      and these are limited, see http://www.gameanalytics.com/docs/custom-events .
+
+      @raises(EInvalidChar If some string contains invalid characters.
+        Use only ASCII letters, digits, hyphens, underscores for the category
+        and other strings.) }
     procedure Event(const Category, Action, ALabel: string; const Value: Int64;
       const DimensionIndex: Cardinal; const DimensionValue: string);
 
-    { Send to analytics a timing event. }
+    { Send to analytics a timing event.
+
+      @raises(EInvalidChar If some string contains invalid characters.
+        Use only ASCII letters, digits, hyphens, underscores for the category
+        and other strings.) }
     procedure Timing(const Category, AVariable, ALabel: string; const Time: TFloatTime);
   end;
 
 implementation
 
 uses SysUtils,
-  CastleMessaging, CastleApplicationProperties;
+  CastleMessaging, CastleApplicationProperties, CastleStringUtils;
 
 constructor TAnalytics.Create(AOwner: TComponent);
 begin
@@ -135,15 +151,31 @@ begin
   Event(Category, Action, ALabel, Value, 0, '');
 end;
 
+
+procedure TAnalytics.CheckValidName(const S: string);
+begin
+  // TODO: for now, merely warning
+  SCheckChars(S, ['a'..'z', 'A'..'Z', '0'..'9', '-', '_'], false);
+  // GameAnalytics allows also ., ()!?
+  // not sure what GoogleAnalytics allows
+end;
+
 procedure TAnalytics.Event(const Category, Action, ALabel: string; const Value: Int64;
   const DimensionIndex: Cardinal; const DimensionValue: string);
 begin
+  CheckValidName(Category);
+  CheckValidName(Action);
+  CheckValidName(ALabel);
+  CheckValidName(DimensionValue);
   Messaging.Send(['analytics-send-event', Category, Action, ALabel, IntToStr(Value),
     IntToStr(DimensionIndex), DimensionValue]);
 end;
 
 procedure TAnalytics.Timing(const Category, AVariable, ALabel: string; const Time: TFloatTime);
 begin
+  CheckValidName(Category);
+  CheckValidName(AVariable);
+  CheckValidName(ALabel);
   Messaging.Send(['analytics-send-timing', Category, AVariable, ALabel, TMessaging.TimeToStr(Time)]);
 end;
 
