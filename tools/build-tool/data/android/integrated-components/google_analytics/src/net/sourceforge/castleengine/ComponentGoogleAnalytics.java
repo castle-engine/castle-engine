@@ -16,6 +16,11 @@ import com.google.android.gms.analytics.ecommerce.ProductAction;
 public class ComponentGoogleAnalytics extends ComponentAbstract
 {
     private static final String TAG = "${NAME}.castleengine.ComponentGoogleAnalytics";
+    /* To enable debug logging on a device run:
+       adb shell setprop log.tag.GAv4 DEBUG
+       adb logcat -s GAv4
+    */
+    private final boolean debug = false;
 
     private Tracker mTracker;
 
@@ -35,7 +40,9 @@ public class ComponentGoogleAnalytics extends ComponentAbstract
         if (mTracker == null && mAnalyticsPropertyId != null) {
             GoogleAnalytics analytics = GoogleAnalytics.getInstance(
                 getActivity().getApplication());
-            // analytics.getLogger().setLogLevel(Logger.LogLevel.VERBOSE);
+            if (debug) {
+                analytics.getLogger().setLogLevel(Logger.LogLevel.VERBOSE);
+            }
             mTracker = analytics.newTracker(mAnalyticsPropertyId);
             mTracker.enableAdvertisingIdCollection(true);
             Log.i(TAG, "Created Google Analytics tracker with tracking id " + mAnalyticsPropertyId);
@@ -137,6 +144,20 @@ public class ComponentGoogleAnalytics extends ComponentAbstract
             .build());
     }
 
+    private void sendProgress(int status, String world, String level, String phase, int score)
+    {
+        String strStatus;
+        switch (status) {
+            case 0: strStatus = "start"; break;
+            case 1: strStatus = "fail"; break;
+            case 2: strStatus = "complete"; break;
+            default:
+                Log.w(TAG, "Invalid sendProgress status " + status);
+                return;
+        }
+        sendEvent("progress", strStatus, world + "-" + level + "-" + phase, score, 0, "");
+    }
+
     @Override
     public boolean messageReceived(String[] parts)
     {
@@ -159,7 +180,12 @@ public class ComponentGoogleAnalytics extends ComponentAbstract
         if (parts.length == 5 && parts[0].equals("analytics-send-timing")) {
             sendTiming(parts[1], parts[2], parts[3], Long.parseLong(parts[4]));
             return true;
-        } else {
+        } else
+        if (parts.length == 6 && parts[0].equals("analytics-send-progress")) {
+            sendProgress(Integer.parseInt(parts[1]), parts[2], parts[3], parts[4], Integer.parseInt(parts[5]));
+            return true;
+        } else
+        {
             return false;
         }
     }

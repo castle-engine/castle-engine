@@ -23,6 +23,13 @@ interface
 uses Classes, CastleTimeUtils;
 
 type
+  { Status for @link(TAnalytics.Progress). }
+  TAnalyticsProgress = (
+    apStart,
+    apFail,
+    apComplete
+  );
+
   { Gathering analytics through Google Analytics https://www.google.com/analytics/
     and/or Game Analytics http://www.gameanalytics.com/ .
     Right now they only work on Android, through Java APIs.
@@ -98,6 +105,15 @@ type
         Use only ASCII letters, digits, hyphens, underscores for the category
         and other strings.) }
     procedure Timing(const Category, AVariable, ALabel: string; const Time: TFloatTime);
+
+    { Send to analytics a progress event.
+
+      @raises(EInvalidChar If some string contains invalid characters.
+        Use only ASCII letters, digits, hyphens, underscores for the world
+        and other strings.) }
+    procedure Progress(const Status: TAnalyticsProgress;
+      const World: string;
+      const Level: string = ''; const Phase: string = ''; const Score: Integer = 0);
   end;
 
 implementation
@@ -167,8 +183,8 @@ begin
   CheckValidName(Action);
   CheckValidName(ALabel);
   CheckValidName(DimensionValue);
-  Messaging.Send(['analytics-send-event', Category, Action, ALabel, IntToStr(Value),
-    IntToStr(DimensionIndex), DimensionValue]);
+  Messaging.Send(['analytics-send-event', Category, Action, ALabel,
+    IntToStr(Value), IntToStr(DimensionIndex), DimensionValue]);
 end;
 
 procedure TAnalytics.Timing(const Category, AVariable, ALabel: string; const Time: TFloatTime);
@@ -176,7 +192,20 @@ begin
   CheckValidName(Category);
   CheckValidName(AVariable);
   CheckValidName(ALabel);
-  Messaging.Send(['analytics-send-timing', Category, AVariable, ALabel, TMessaging.TimeToStr(Time)]);
+  Messaging.Send(['analytics-send-timing',
+    Category, AVariable, ALabel, TMessaging.TimeToStr(Time)]);
+end;
+
+procedure TAnalytics.Progress(const Status: TAnalyticsProgress;
+  const World, Level, Phase: string; const Score: Integer);
+begin
+  CheckValidName(World);
+  if World = '' then
+    raise EInvalidChar.Create('World cannot be empty for TAnalytics.Progress call');
+  CheckValidName(Level);
+  CheckValidName(Phase);
+  Messaging.Send(['analytics-send-progress',
+    IntToStr(Ord(Status)), World, Level, Phase, IntToStr(Score)]);
 end;
 
 end.

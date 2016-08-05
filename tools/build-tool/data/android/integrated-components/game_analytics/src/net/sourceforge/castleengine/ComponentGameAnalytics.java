@@ -17,6 +17,9 @@ import com.gameanalytics.sdk.*;
 public class ComponentGameAnalytics extends ComponentAbstract
 {
     private static final String TAG = "${NAME}.castleengine.ComponentGameAnalytics";
+    // Enable log when implementing the SDK - remember to turn it off in production!
+    // Watch by "adb logcat | grep --text -i gameanalytics"
+    private final boolean debug = false;
 
     private boolean initialized;
 
@@ -51,10 +54,10 @@ public class ComponentGameAnalytics extends ComponentAbstract
         GameAnalytics.configureBuild(version);
 
         // Enable log
-        // Enable info log when implementing the SDK - remember to turn it off in production!
-        // watch by adb logcat | grep -i gameanalytics
-        // GameAnalytics.setEnabledInfoLog(true);
-        // GameAnalytics.setEnabledVerboseLog(true);
+        if (debug) {
+            GameAnalytics.setEnabledInfoLog(true);
+            GameAnalytics.setEnabledVerboseLog(true);
+        }
 
         // Initialize
         GameAnalytics.initializeWithGameKey(getActivity(), gameKey, secretKey);
@@ -153,6 +156,23 @@ public class ComponentGameAnalytics extends ComponentAbstract
             "timing:" + category + ":" + variable + ":" + label, (float)timeMiliseconds);
     }
 
+    private void sendProgress(int status, String world, String level, String phase, int score)
+    {
+        if (!initialized) {
+            return;
+        }
+        GAProgressionStatus gaStatus;
+        switch (status) {
+            case 0: gaStatus = GAProgressionStatus.Start; break;
+			case 1: gaStatus = GAProgressionStatus.Fail; break;
+			case 2: gaStatus = GAProgressionStatus.Complete; break;
+            default:
+                Log.w(TAG, "Invalid sendProgress status " + status);
+                return;
+        }
+        GameAnalytics.addProgressionEventWithProgressionStatus(gaStatus, world, level, phase, score);
+    }
+
     @Override
     public boolean messageReceived(String[] parts)
     {
@@ -175,7 +195,12 @@ public class ComponentGameAnalytics extends ComponentAbstract
         if (parts.length == 5 && parts[0].equals("analytics-send-timing")) {
             sendTiming(parts[1], parts[2], parts[3], Long.parseLong(parts[4]));
             return true;
-        } else {
+        } else
+        if (parts.length == 6 && parts[0].equals("analytics-send-progress")) {
+            sendProgress(Integer.parseInt(parts[1]), parts[2], parts[3], parts[4], Integer.parseInt(parts[5]));
+            return true;
+        } else
+        {
             return false;
         }
     }
