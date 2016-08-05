@@ -55,7 +55,12 @@ var
   _lay: PLayer;
   _ts: PTileset;
   _spr: TSprite;
-  _GID: Cardinal;
+  _GID, _dat: Cardinal;
+const
+  HorizontalFlag = $80000000;
+  VerticalFlag   = $40000000;
+  DiagonalFlag   = $20000000;
+  ClearFlag      = $1FFFFFFF;
 begin
   { Layers. }
   for i := 0 to FTiledMap.Layers.Count - 1 do
@@ -71,17 +76,19 @@ begin
     for j := FTiledMap.Height - 1 downto 0 do
       for k := 0 to FTiledMap.Width - 1 do
       begin     // writelnlog('tiled control','data high:%d',[High(_lay^.Data.Data)]);
-        _GID := _lay^.Data.Data[l];  //writelnlog('tiled control', 'render ortho 0; gid:%d',[_GID]);
+        _dat := _lay^.Data.Data[l];  //writelnlog('tiled control', 'render ortho 0; gid:%d',[_GID]);
+        _GID := _dat and ClearFlag;
         Inc(l);
         if _GID = 0 then Continue;
-        //todo: flipping feature
-
         _ts := FTiledMap.GIDToTileset(_GID);
         _spr := TSprite(_ts^.ImageData);
         _spr.X := k * FTiledMap.TileWidth;
         _spr.Y := j * FTiledMap.TileHeight;
         _spr.Frame := _GID - _ts^.FirstGID;
-        //writelnlog('tiled control', 'render ortho 1: gid:%d, firstgid:%d',[_GID,_ts^.FirstGID]);//todo:delete
+        _spr.HorizontalFlip := _dat and HorizontalFlag > 0;
+        _spr.VerticalFlip := _dat and VerticalFlag > 0;
+        //todo: flipping diagonally
+        //_spr.DiagonalFlip := _dat and DiagonalFlag > 0;
         _spr.Draw;
 			end;
 	end;
@@ -162,15 +169,6 @@ begin
   FDataPath := ExtractURIPath(AURL);
   FImages := TSpriteList.Create(True);
   LoadTilesetsImages;
-  { ereasing flipping data }
-  for i := 0 to FTiledMap.Layers.Count - 1 do
-  begin
-    _lay := FTiledMap.Layers. Ptr(i);
-    for j := 0 to High(_lay^.Data.Data) do
-      _lay^.Data.Data[j] := _lay^.Data.Data[j] and $3FFFFFFF;
-    //todo: tile flipping feature in rendering
-	end;
-
 end;
 
 procedure TCastleTiledMapControl.Render;

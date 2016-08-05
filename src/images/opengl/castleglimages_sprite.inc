@@ -62,9 +62,11 @@ type
     FUseCustomAnimations: Boolean;
     FCurrentAnimation: Integer;
     FCustomAnimTimestamp: TFloatTime;
+    FHorizontalFlip, FVerticalFlip: Boolean;
     function GetCenterX: Single;
     function GetCenterY: Single;
     function GetFrameRect: TRectangle;
+    function GetFloatFrameRect: TFloatRectangle;
     function GetDrawRect: TRectangle;
     function GetCenter: TVector2Single;
     function GetPosition: TVector2Integer;
@@ -78,6 +80,7 @@ type
     procedure SetFrame(AValue: Cardinal);
     procedure SetPosition(APosition: TVector2Integer);
     procedure SetRotation(AValue: Single);
+    procedure UniversalDraw(const ScreenRect: TRectangle);
   public
     { Constructor.
       @param(URL URL of source image.)
@@ -224,6 +227,12 @@ type
     { Is custom animations feature in use? }
     property UseCustomAnimations: Boolean read FUseCustomAnimations write FUseCustomAnimations default False;
 
+    { Is sprite horizontal flipped? }
+    property HorizontalFlip: Boolean read FHorizontalFlip write FHorizontalFlip default False;
+
+    { Is sprite vertical flipped? }
+    property VerticalFlip: Boolean read FVerticalFlip write FVerticalFlip default False;
+
     { Adding an animation to internal list.
       @param(AAnimation The animation to add.)
       @returns(the animation index). }
@@ -299,6 +308,25 @@ begin
   Result.Height := FFrameHeight;
 end;
 
+function TSprite.GetFloatFrameRect: TFloatRectangle;
+begin
+  Result.Left := FFrame mod FColumns * FFrameWidth + FLeftMarginOffset;
+  Result.Bottom := (FImage.Height - FFrameHeight) - FFrame div FColumns * FFrameHeight - FTopMarginOffset;
+  Result.Width := FFrameWidth;
+  Result.Height := FFrameHeight;
+
+  if FHorizontalFlip then
+  begin
+    Result.Left := Result.Right;
+    Result.Width := -Result.Width;
+  end;
+  if FVerticalFlip then
+  begin
+    Result.Bottom := Result.Top;
+    Result.Height := -Result.Height;
+  end;
+end;
+
 function TSprite.GetCenterX: Single;
 begin
   Result := FImage.CenterX;
@@ -370,6 +398,15 @@ begin
   FImage.Rotation := AValue;
 end;
 
+procedure TSprite.UniversalDraw(const ScreenRect: TRectangle);
+begin
+  if FHorizontalFlip or FVerticalFlip then
+    FImage.Draw(FloatRectangle(ScreenRect.Left, ScreenRect.Bottom, ScreenRect.Width,
+                               ScreenRect.Height), GetFloatFrameRect)
+  else
+    FImage.Draw(ScreenRect, GetFrameRect);
+end;
+
 constructor TSprite.CreateFrameSize(const AImage: TGLImage;
   const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
   const ATimeLoop: Boolean = True; const APlay: Boolean = False);
@@ -393,6 +430,8 @@ begin
   FUseCustomAnimations := False;
   FAnimations := TSpriteAnimations.Create;
   FCustomFrame := 0;
+  FHorizontalFlip := False;
+  FVerticalFlip := False;
 end;
 
 constructor TSprite.CreateFrameSize(const URL: string;
@@ -457,26 +496,24 @@ end;
 
 procedure TSprite.Draw;
 begin
-  FImage.Draw(GetDrawRect, GetFrameRect);
+  UniversalDraw(GetDrawRect);
 end;
 
 procedure TSprite.Draw(const AX, AY: Single);
 begin
-  FImage.Draw(
-    Rectangle(Round(AX), Round(AY), DrawingWidth, DrawingHeight),
-    GetFrameRect);
+  UniversalDraw(
+    Rectangle(Round(AX), Round(AY), DrawingWidth, DrawingHeight));
 end;
 
 procedure TSprite.Draw(const AX, AY, DrawWidth, DrawHeight: Single);
 begin
-  FImage.Draw(
-    Rectangle(Round(AX), Round(AY), Round(DrawWidth), Round(DrawHeight)),
-    GetFrameRect);
+  UniversalDraw(
+    Rectangle(Round(AX), Round(AY), Round(DrawWidth), Round(DrawHeight)));
 end;
 
 procedure TSprite.Draw(const ScreenRectangle: TRectangle);
 begin
-  FImage.Draw(ScreenRectangle, GetFrameRect);
+  UniversalDraw(ScreenRectangle);
 end;
 
 procedure TSprite.Move(AX, AY: Integer; ARot: Single);
