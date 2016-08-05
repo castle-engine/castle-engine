@@ -87,8 +87,8 @@ begin
         _spr.Frame := _GID - _ts^.FirstGID;
         _spr.HorizontalFlip := _dat and HorizontalFlag > 0;
         _spr.VerticalFlip := _dat and VerticalFlag > 0;
-        //todo: flipping diagonally
-        //_spr.DiagonalFlip := _dat and DiagonalFlag > 0;
+        //todo: test flipping diagonally
+        _spr.DiagonalFlip := _dat and DiagonalFlag > 0;
         _spr.Draw;
 			end;
 	end;

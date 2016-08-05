@@ -62,7 +62,7 @@ type
     FUseCustomAnimations: Boolean;
     FCurrentAnimation: Integer;
     FCustomAnimTimestamp: TFloatTime;
-    FHorizontalFlip, FVerticalFlip: Boolean;
+    FHorizontalFlip, FVerticalFlip, FDiagonalFlip: Boolean;
     function GetCenterX: Single;
     function GetCenterY: Single;
     function GetFrameRect: TRectangle;
@@ -233,6 +233,9 @@ type
     { Is sprite vertical flipped? }
     property VerticalFlip: Boolean read FVerticalFlip write FVerticalFlip default False;
 
+    { Is sprite diagonal flipped? }
+    property DiagonalFlip: Boolean read FDiagonalFlip write FDiagonalFlip default False;
+
     { Adding an animation to internal list.
       @param(AAnimation The animation to add.)
       @returns(the animation index). }
@@ -325,6 +328,13 @@ begin
     Result.Bottom := Result.Top;
     Result.Height := -Result.Height;
   end;
+  if FDiagonalFlip then
+  begin
+    Result.Left := Result.Right;
+    Result.Width := -Result.Width;
+    Result.Bottom := Result.Top;
+    Result.Height := -Result.Height;
+  end;
 end;
 
 function TSprite.GetCenterX: Single;
@@ -400,7 +410,7 @@ end;
 
 procedure TSprite.UniversalDraw(const ScreenRect: TRectangle);
 begin
-  if FHorizontalFlip or FVerticalFlip then
+  if FHorizontalFlip or FVerticalFlip or FDiagonalFlip then
     FImage.Draw(FloatRectangle(ScreenRect.Left, ScreenRect.Bottom, ScreenRect.Width,
                                ScreenRect.Height), GetFloatFrameRect)
   else
