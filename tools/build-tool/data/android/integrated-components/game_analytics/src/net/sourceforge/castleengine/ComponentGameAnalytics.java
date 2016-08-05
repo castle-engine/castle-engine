@@ -116,7 +116,7 @@ public class ComponentGameAnalytics extends ComponentAbstract
         }
         String id = category + ":" + action + ":" + label;
         if (dimensionIndex > 0 && !dimensionValue.equals("")) {
-            id = id + ":dimension" + dimensionIndex + "=" + dimensionValue;
+            id = id + ":dimension" + dimensionIndex + "." + dimensionValue;
         }
         GameAnalytics.addDesignEventWithEventId(id, (float)value);
     }
