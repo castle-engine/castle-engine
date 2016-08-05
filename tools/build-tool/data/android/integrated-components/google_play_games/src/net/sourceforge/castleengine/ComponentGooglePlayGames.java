@@ -3,6 +3,7 @@ package net.sourceforge.castleengine;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.IllegalStateException;
 
 import android.content.Intent;
 import android.content.IntentSender;
@@ -412,6 +413,13 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
     // Not configurable from Pascal *for now*.
     private static final String saveGameEncoding = "UTF-8";
 
+    /* Make a log, and messageSend, that loading savegame failed. */
+    private final void saveGameLoadingError(String errorStr)
+    {
+        Log.e(TAG, errorStr);
+        messageSend(new String[]{"save-game-loaded", "false", errorStr});
+    }
+
     private void saveGameLoad(final String saveGameName)
     {
         if (checkGamesConnection()) {
@@ -422,41 +430,45 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
                 protected Snapshots.OpenSnapshotResult doInBackground(Void... params) {
                     boolean createIfNotFound = true; // not configurable from Pascal for now
                     // Open the saved game using its name.
-                    return Games.Snapshots.open(mGoogleApiClient,
-                        saveGameName, createIfNotFound, conflictResolution).await();
+                    try {
+                        return Games.Snapshots.open(mGoogleApiClient,
+                            saveGameName, createIfNotFound, conflictResolution).await();
+                    } catch (IllegalStateException e) {
+                        /* Snapshots.open() can always fail with
+                           "GoogleApiClient is not connected yet." */
+                        return null;
+                    }
                 }
 
                 @Override
                 protected void onPostExecute(Snapshots.OpenSnapshotResult result) {
-                    // Check the result of the open operation
-                    if (result.getStatus().isSuccess()) {
-                        Snapshot snapshot = result.getSnapshot();
-                        // Read the byte content of the saved game.
-                        try {
-                            byte[] saveGameBytes;
-                            saveGameBytes = snapshot.getSnapshotContents().readFully();
-                            String saveGameStr = new String(saveGameBytes, saveGameEncoding);
-                            messageSend(new String[]{"save-game-loaded", "true", saveGameStr});
-                        } catch (IOException e) {
-                            String errorStr = "Google Play Games error when reading snapshot: " + e.getMessage();
-                            Log.e(TAG, errorStr);
-                            messageSend(new String[]{"save-game-loaded", "false", errorStr});
+                    if (result != null) {
+                        // Check the result of the open operation
+                        if (result.getStatus().isSuccess()) {
+                            Snapshot snapshot = result.getSnapshot();
+                            // Read the byte content of the saved game.
+                            try {
+                                byte[] saveGameBytes;
+                                saveGameBytes = snapshot.getSnapshotContents().readFully();
+                                String saveGameStr = new String(saveGameBytes, saveGameEncoding);
+                                messageSend(new String[]{"save-game-loaded", "true", saveGameStr});
+                            } catch (IOException e) {
+                                saveGameLoadingError("Google Play Games error when reading snapshot: " + e.getMessage());
+                            }
+                        } else {
+                            saveGameLoadingError("Google Play Games error when loading save game (" +
+                              result.getStatus().getStatusCode() + "): " +
+                              result.getStatus().getStatusMessage());
                         }
                     } else {
-                        String errorStr = "Google Play Games error when loading save game (" +
-                          result.getStatus().getStatusCode() + "): " +
-                          result.getStatus().getStatusMessage();
-                        Log.e(TAG, errorStr);
-                        messageSend(new String[]{"save-game-loaded", "false", errorStr});
+                        saveGameLoadingError("Google Play Games disconneted while trying to load savegame");
                     }
                 }
             };
 
             task.execute();
         } else {
-            String errorStr = "Not connected to Google Play Games";
-            Log.e(TAG, errorStr);
-            messageSend(new String[]{"save-game-loaded", "false", errorStr});
+            saveGameLoadingError("Not connected to Google Play Games");
         }
     }
 
@@ -472,30 +484,41 @@ public class ComponentGooglePlayGames extends ComponentAbstract implements
 
                     // Open the saved game using its name.
                     // This is the *1st* operation that takes time, and should therefore be in a thread!!
-                    Snapshots.OpenSnapshotResult result = Games.Snapshots.open(mGoogleApiClient,
-                        saveGameName, createIfNotFound, conflictResolution).await();
+                    Snapshots.OpenSnapshotResult result;
+                    try {
+                        result = Games.Snapshots.open(mGoogleApiClient,
+                            saveGameName, createIfNotFound, conflictResolution).await();
+                    } catch (IllegalStateException e) {
+                        /* Snapshots.open() can always fail with
+                           "GoogleApiClient is not connected yet." */
+                        result = null;
+                    }
 
                     // Check the result of the open operation
-                    if (result.getStatus().isSuccess()) {
-                        Snapshot snapshot = result.getSnapshot();
-                        try {
-                            snapshot.getSnapshotContents().writeBytes(saveGameContents.getBytes(saveGameEncoding));
-                        } catch (UnsupportedEncodingException e) {
-                            Log.e(TAG, "Error while saving a save game, encoding " + saveGameEncoding + " unsupported: " + e.getMessage());
+                    if (result != null) {
+                        if (result.getStatus().isSuccess()) {
+                            Snapshot snapshot = result.getSnapshot();
+                            try {
+                                snapshot.getSnapshotContents().writeBytes(saveGameContents.getBytes(saveGameEncoding));
+                            } catch (UnsupportedEncodingException e) {
+                                Log.e(TAG, "Error while saving a save game, encoding " + saveGameEncoding + " unsupported: " + e.getMessage());
+                            }
+
+                            // Create the change operation
+                            SnapshotMetadataChange metadataChange = new SnapshotMetadataChange.Builder()
+                                    .setDescription(description)
+                                    .setPlayedTimeMillis(playedTimeMillis)
+                                    .build();
+
+                            // Commit the operation
+                            commitAndCloseWatchingResult(snapshot, metadataChange);
+                        } else {
+                            Log.e(TAG, "Error while opening a save game for writing (" +
+                              result.getStatus().getStatusCode() + "): " +
+                              result.getStatus().getStatusMessage());
                         }
-
-                        // Create the change operation
-                        SnapshotMetadataChange metadataChange = new SnapshotMetadataChange.Builder()
-                                .setDescription(description)
-                                .setPlayedTimeMillis(playedTimeMillis)
-                                .build();
-
-                        // Commit the operation
-                        commitAndCloseWatchingResult(snapshot, metadataChange);
-                    } else{
-                        Log.e(TAG, "Error while opening a save game for writing (" +
-                          result.getStatus().getStatusCode() + "): " +
-                          result.getStatus().getStatusMessage());
+                    } else {
+                        Log.e(TAG, "Google Play Games disconneted while trying to save savegame");
                     }
 
                     return null;
