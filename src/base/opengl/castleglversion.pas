@@ -91,7 +91,6 @@ type
     FBuggySwapNonStandardViewport: boolean;
     FBuggyDepth32: boolean;
     FBuggyGLSLFrontFacing: boolean;
-    FBuggyPvrtcCompression: boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
 
@@ -208,9 +207,6 @@ type
       So enable backface culling, or just be prepared that backfaces may be
       incorrectly light. }
     property BuggyGLSLFrontFacing: boolean read FBuggyGLSLFrontFacing;
-
-    { Don't trust when GPU claims it supports PVRTC compression. }
-    property BuggyPvrtcCompression: boolean read FBuggyPvrtcCompression;
   end;
 
 var
@@ -566,22 +562,6 @@ begin
       Renderer: Gallium 0.4 on AMD RV710
   }
   FBuggyGLSLFrontFacing := Mesa and (VendorMajor = 10) and (Major = 3);
-
-  { observed on Android on
-
-      Version string: OpenGL ES 2.0 build 1.9.RC2@2130229
-      Version parsed: major: 2, minor: 0, release exists: False, release: 0, vendor-specific information: "build 1.9.RC2@2130229"
-      Vendor-specific version parsed: major: 1, minor: 9, release: 0
-      Vendor: Imagination Technologies
-      Renderer: PowerVR SGX 540
-  }
-  FBuggyPvrtcCompression :=
-    {$ifdef ANDROID}
-    (VendorType = gvImaginationTechnologies) and
-    (Renderer = 'PowerVR SGX 540') and
-    (Major = 2)
-    {$else} false
-    {$endif};
 end;
 
 const
