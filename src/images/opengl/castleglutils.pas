@@ -1019,7 +1019,8 @@ begin
     if glext_ExtensionSupported('GL_EXT_texture_compression_dxt5', SupportedExtensions) then
       TextureCompression += [tcDxt5];
 
-    if glext_ExtensionSupported('GL_IMG_texture_compression_pvrtc', SupportedExtensions) then
+    if glext_ExtensionSupported('GL_IMG_texture_compression_pvrtc', SupportedExtensions) and
+       not GLVersion.BuggyPvrtcCompression then
       TextureCompression += [
         tcPvrtc1_4bpp_RGB,
         tcPvrtc1_2bpp_RGB,
@@ -1654,12 +1655,11 @@ const
     Result :=
       Format(
         '  Vendor-specific version parsed: major: %d, minor: %d, release: %d' +nl+
-        '  Vendor: ' +PChar(glGetString(GL_VENDOR)) +nl+
-        '  Renderer: ' +PChar(glGetString(GL_RENDERER)) +nl+
+        '  Vendor: %s' +nl+
+        '  Vendor type: %s' +nl+
         nl+
-        '  NVidia: %s' +nl+
-        '  ATI: %s (fglrx: %s)' +nl+
-        '  Intel: %s' +nl+
+        '  Renderer: %s' +nl+
+        '  Fglrx (ATI on Linux): %s' +nl+
         '  Mesa: %s' +nl+
         nl+
         '  Buggy glGenerateMipmap(EXT): %s' +nl+
@@ -1671,12 +1671,13 @@ const
         '  Buggy FBO rendering to cube map texture: %s' +nl+
         '  Buggy swap buffers with non-standard glViewport: %s' +nl+
         '  Buggy 32-bit depth buffer: %s' +nl+
-        '  Buggy GLSL gl_FrontFacing: %s',
+        '  Buggy GLSL gl_FrontFacing: %s' +NL+
+        '  Buggy PVRTC Compression: %s',
         [ Version.VendorMajor, Version.VendorMinor, Version.VendorRelease,
-          BoolToStr(Version.VendorNVidia, true),
-          BoolToStr(Version.VendorATI, true),
+          PChar(glGetString(GL_VENDOR)),
+          VendorTypeToStr(Version.VendorType),
+          PChar(glGetString(GL_RENDERER)),
           BoolToStr(Version.Fglrx, true),
-          BoolToStr(Version.VendorIntel, true),
           BoolToStr(Version.Mesa, true),
 
           BoolToStr(Version.BuggyGenerateMipmap, true),
@@ -1688,7 +1689,8 @@ const
           BoolToStr(Version.BuggyFBOCubeMap, true),
           BoolToStr(Version.BuggySwapNonStandardViewport, true),
           BoolToStr(Version.BuggyDepth32, true),
-          BoolToStr(Version.BuggyGLSLFrontFacing, true)
+          BoolToStr(Version.BuggyGLSLFrontFacing, true),
+          BoolToStr(Version.BuggyPvrtcCompression, true)
         ]);
   end;
 

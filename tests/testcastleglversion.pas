@@ -106,9 +106,7 @@ begin
     AssertEquals(0, G.VendorRelease);
 
     AssertTrue(not G.Mesa);
-    AssertTrue(not G.VendorATI);
-    AssertTrue(not G.VendorIntel);
-    AssertTrue(G.VendorNVidia);
+    AssertTrue(G.VendorType = gvNvidia);
   finally FreeAndNil(G) end;
 end;
 

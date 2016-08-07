@@ -1764,7 +1764,7 @@ begin
     Line below fixes it at negligible cost (we'll generate mipmaps at loading
     one more time than necessary). Other fix that works is to move
     RenderToTexture.GLContextOpen to first Update call, but this obfuscates code. }
-  if GLVersion.VendorNvidia and NeedsMipmaps then
+  if (GLVersion.VendorType = gvNvidia) and NeedsMipmaps then
   begin
     RenderToTexture.CompleteTextureTarget := GL_TEXTURE_CUBE_MAP;
     RenderToTexture.GenerateMipmap;
