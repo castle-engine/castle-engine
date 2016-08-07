@@ -32,6 +32,17 @@ void main(void)
   /* PLUG: vertex_object_space_change (vertex_object, normal_object) */
   /* PLUG: vertex_object_space (vertex_object, normal_object) */
 
+  #ifdef CASTLE_BUGGY_GLSL_READ_VARYING
+  /* use local variables, instead of reading + writing to varying variables,
+     when VARYING_NOT_READABLE */
+  vec4 temp_castle_vertex_eye;
+  vec3 temp_castle_normal_eye;
+  vec4 temp_castle_Color;
+  #define castle_vertex_eye temp_castle_vertex_eye
+  #define castle_normal_eye temp_castle_normal_eye
+  #define castle_Color      temp_castle_Color
+  #endif
+
   castle_vertex_eye = castle_ModelViewMatrix * vertex_object;
   castle_normal_eye = normalize(castle_NormalMatrix * normal_object);
 
@@ -53,4 +64,13 @@ void main(void)
 #endif
 
   gl_Position = castle_ProjectionMatrix * castle_vertex_eye;
+
+  #ifdef CASTLE_BUGGY_GLSL_READ_VARYING
+  #undef castle_vertex_eye
+  #undef castle_normal_eye
+  #undef castle_Color
+  castle_vertex_eye = temp_castle_vertex_eye;
+  castle_normal_eye = temp_castle_normal_eye;
+  castle_Color      = temp_castle_Color;
+  #endif
 }

@@ -1670,7 +1670,8 @@ const
         '  Buggy FBO rendering to cube map texture: %s' +nl+
         '  Buggy swap buffers with non-standard glViewport: %s' +nl+
         '  Buggy 32-bit depth buffer: %s' +nl+
-        '  Buggy GLSL gl_FrontFacing: %s',
+        '  Buggy GLSL gl_FrontFacing: %s' +nl+
+        '  Buggy GLSL read varying: %s',
         [ Version.VendorMajor, Version.VendorMinor, Version.VendorRelease,
           PChar(glGetString(GL_VENDOR)),
           VendorTypeToStr(Version.VendorType),
@@ -1687,7 +1688,8 @@ const
           BoolToStr(Version.BuggyFBOCubeMap, true),
           BoolToStr(Version.BuggySwapNonStandardViewport, true),
           BoolToStr(Version.BuggyDepth32, true),
-          BoolToStr(Version.BuggyGLSLFrontFacing, true)
+          BoolToStr(Version.BuggyGLSLFrontFacing, true),
+          BoolToStr(Version.BuggyGLSLReadVarying, true)
         ]);
   end;
 
