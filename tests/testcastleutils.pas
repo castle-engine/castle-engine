@@ -42,6 +42,7 @@ type
     procedure TestSort;
     procedure TestFileExt;
     procedure TestFloatModulo;
+    procedure TestRandomIntRange;
   end;
 
 implementation
@@ -452,6 +453,34 @@ begin
   AssertFloatsEqual(1.5, FloatModulo(-0.5, 2));
   AssertFloatsEqual(1.5, FloatModulo(-2.5, 2));
   AssertFloatsEqual(0.5, FloatModulo(-3.5, 2));
+end;
+
+procedure TTestCastleUtils.TestRandomIntRange;
+
+  procedure TestRange(const R1, R2: Integer);
+  var
+    I: Integer;
+    MinRes, MaxRes, V: Integer;
+  begin
+    AssertTrue(R1 < R2);
+    MinRes := High(Integer);
+    MaxRes := Low(Integer);
+    for I := 1 to 1000 do
+    begin
+      V := RandomIntRange(R1, R2);
+      MinVar(MinRes, V);
+      MaxVar(MaxRes, V);
+    end;
+    AssertTrue(MinRes <= MaxRes);
+    AssertTrue(MinRes >= R1);
+    AssertTrue(MaxRes < R2);
+    // Writeln('For range [', R1, ',', R2 - 1, '], the random numbers were within [', MinRes, ',', MaxRes, ']. Should be usually equal, for large test count');
+  end;
+
+begin
+  TestRange(10, 100);
+  TestRange(-100, -13);
+  TestRange(-5, 5);
 end;
 
 initialization
