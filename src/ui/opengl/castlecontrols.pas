@@ -920,7 +920,7 @@ type
 
       This property is useful if you really need to manually control the size.
       It only matters when @link(AutoSize) is @false.
-      Then it controls where the text is, with respect it's rectangle defined
+      Then it controls where the text is, with respect to it's rectangle defined
       by properties like @link(Height) or @link(FullSize). }
     property VerticalAlignment: TVerticalPosition
       read FVerticalAlignment write SetVerticalAlignment default vpBottom;
