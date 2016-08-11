@@ -28,23 +28,20 @@ import android.app.Activity;
 import com.android.vending.billing.IInAppBillingService;
 
 /**
- * Integration of Google Biling API with Castle Game Engine.
+ * Integration of Google Billing API with Castle Game Engine.
  */
 public class ComponentGoogleInAppPurchases extends ComponentAbstract
 {
     private static final String TAG = "${NAME}.castleengine.ComponentGoogleInAppPurchases";
     private static int REQUEST_PURCHASE = 9200;
 
-    IInAppBillingService mBilingService;
+    IInAppBillingService mBillingService;
     String mPayLoad;
     // Purchase tokens for known owns skus, saved on this list to allow consuming items.
     Map<String, String> purchaseTokens;
     // Product names available, according to native code. Used to query product info.
     // null if not initialized yet.
     ArrayList<String> availableProducts;
-
-    // Billing response codes
-    public static final int BILLING_RESPONSE_RESULT_OK = 0;
 
     /* operationQueue stuff -------------------------------------------------- */
 
@@ -58,7 +55,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
      *   is going (e.g. because onResume occured), which could result in getting
      *   owns() notifications twice, causing consume() calls twice.
      *
-     * - Some biling operations are executed in background threads,
+     * - Some billing operations are executed in background threads,
      *   otherwise they would block the main thread. This is completely hidden here.
      */
     LinkedList<Operation> operationQueue;
@@ -108,10 +105,10 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
     /* Refresh available for purchase stuff.
      * Get the list of prices for availableProducts.
      *
-     * Secured (silently ignored) if availableProducts or mBilingService are null.
+     * Secured (silently ignored) if availableProducts or mBillingService are null.
      * So e.g. onServiceConnected can safely call if (even though availableProducts
      * may be unset yet) and setAvailableProducts may safely call it (even though
-     * mBilingService be unset yet).
+     * mBillingService be unset yet).
      */
     private class OperationRefreshAvailableForPurchase extends Operation {
 
@@ -134,7 +131,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                 Bundle querySkus = new Bundle();
                 querySkus.putStringArrayList("ITEM_ID_LIST", skuList);
                 try {
-                    return mBilingService.getSkuDetails(3, getActivity().getPackageName(), "inapp", querySkus);
+                    return mBillingService.getSkuDetails(3, getActivity().getPackageName(), "inapp", querySkus);
                 } catch (RemoteException e) {
                     Log.e(TAG, "RemoteException at getSkuDetails.");
                     e.printStackTrace();
@@ -149,7 +146,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                     }
                     try {
                         int response = skuDetails.getInt("RESPONSE_CODE");
-                        if (response == 0) {
+                        if (response == InAppPurchasesHelper.BILLING_RESPONSE_RESULT_OK) {
                            ArrayList<String> responseList
                               = skuDetails.getStringArrayList("DETAILS_LIST");
 
@@ -162,7 +159,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                               // Log.i(TAG, "You can buy " + sku + " for " + price);
                            }
                         } else {
-                            Log.w(TAG, "Response when getting list of stuff available for purchase: " + response);
+                            Log.w(TAG, "Error response when getting list of stuff available for purchase: " + InAppPurchasesHelper.billingResponseToStr(response));
                         }
                     } catch (JSONException e) {
                         Log.e(TAG, "Failed to parse getSkuDetails data.");
@@ -176,11 +173,11 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
 
         public final void run()
         {
-            if (availableProducts != null && mBilingService != null) {
+            if (availableProducts != null && mBillingService != null) {
                 RefreshAvailableForPurchaseInput input = new RefreshAvailableForPurchaseInput();
                 input.skuList = availableProducts;
 
-                /* We use AsyncTask to avoid using synchronous biling methods on the main
+                /* We use AsyncTask to avoid using synchronous billing methods on the main
                    UI thread. See
                    http://developer.android.com/reference/android/os/AsyncTask.html
                    http://stackoverflow.com/questions/24768070/where-do-i-put-code-to-pass-a-request-to-the-in-app-billing-service-in-android-i
@@ -197,14 +194,14 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
     /* Refresh currently purchased (owned) stuff.
      *
      * Like OperationRefreshAvailableForPurchase, secured (silently ignored)
-     * if availableProducts or mBilingService are null.
+     * if availableProducts or mBillingService are null.
      */
     private class OperationRefreshPurchased extends Operation {
 
         private class RefreshPurchasedTask extends AsyncTask<Void, Void, Bundle> {
             protected Bundle doInBackground(Void... input) {
                 try {
-                    return mBilingService.getPurchases(3, getActivity().getPackageName(), "inapp", null);
+                    return mBillingService.getPurchases(3, getActivity().getPackageName(), "inapp", null);
                 } catch (RemoteException e) {
                     Log.e(TAG, "RemoteException when getting purchased stuff.");
                     e.printStackTrace();
@@ -218,7 +215,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                         return; // exit in case there was a RemoteException
                     }
                     int response = ownedItems.getInt("RESPONSE_CODE");
-                    if (response == BILLING_RESPONSE_RESULT_OK) {
+                    if (response == InAppPurchasesHelper.BILLING_RESPONSE_RESULT_OK) {
                         ArrayList<String> ownedSkus =
                             ownedItems.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
                         ArrayList<String>  purchaseDataList =
@@ -241,7 +238,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                             Log.e(TAG, "getPurchases returned continuationToken != null, not supported now");
                         }
                     } else {
-                        Log.w(TAG, "Getting owned items result not OK " + response);
+                        Log.w(TAG, "Error when getting owned items: " + InAppPurchasesHelper.billingResponseToStr(response));
                     }
                 } finally {
                     currentOperationFinished();
@@ -251,7 +248,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
 
         public final void run()
         {
-            if (availableProducts != null && mBilingService != null) {
+            if (availableProducts != null && mBillingService != null) {
                 new RefreshPurchasedTask().execute();
             } else {
                 currentOperationFinished();
@@ -299,14 +296,20 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
 
         public final void run()
         {
-            if (mBilingService == null) {
+            if (mBillingService == null) {
                 currentOperationFinished();
                 return;
             }
 
             try {
-                Bundle buyIntentBundle = mBilingService.getBuyIntent(3, getActivity().getPackageName(),
-                    productName, "inapp", mPayLoad);
+                Bundle buyIntentBundle = mBillingService.getBuyIntent(
+                    3, getActivity().getPackageName(), productName, "inapp", mPayLoad);
+                int responseCode = buyIntentBundle.getInt("RESPONSE_CODE");
+                if (responseCode != InAppPurchasesHelper.BILLING_RESPONSE_RESULT_OK) {
+                    Log.e(TAG, "Error when starting buy intent: " + InAppPurchasesHelper.billingResponseToStr(responseCode));
+                    currentOperationFinished();
+                    return;
+                }
                 PendingIntent pendingIntent = buyIntentBundle.getParcelable("BUY_INTENT");
                 if (pendingIntent == null) {
                     Log.e(TAG, "pendingIntent == null, this should not happen");
@@ -336,7 +339,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
 
         private class ConsumePurchaseTask extends AsyncTask<ConsumeInput, Void, Integer> {
             // Exit code when consumePurchase throws RemoteException,
-            // Different than existing responses of biling API,
+            // Different than existing responses of billing API,
             // see http://developer.android.com/google/play/billing/billing_reference.html
             private final int REMOTE_EXCEPTION_ERROR = 100;
 
@@ -347,7 +350,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                 ConsumeInput consumeInput = consumeInputs[0]; // just take 1st param
                 mProductName = consumeInput.productName;
                 try {
-                    return mBilingService.consumePurchase(3, getActivity().getPackageName(),
+                    return mBillingService.consumePurchase(3, getActivity().getPackageName(),
                         consumeInput.purchaseToken);
                 } catch (RemoteException e) {
                     Log.e(TAG, "RemoteException when getting purchased stuff.");
@@ -358,7 +361,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
 
             protected void onPostExecute(Integer response) {
                 try {
-                    if (response == BILLING_RESPONSE_RESULT_OK) {
+                    if (response == InAppPurchasesHelper.BILLING_RESPONSE_RESULT_OK) {
                         Log.i(TAG, "Consumed item " + mProductName);
                         messageSend(new String[]{"in-app-purchases-consumed", mProductName});
                     } else {
@@ -401,15 +404,15 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
         return "google-in-app-purchases";
     }
 
-    ServiceConnection mBilingConnection = new ServiceConnection() {
+    ServiceConnection mBillingConnection = new ServiceConnection() {
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            mBilingService = null;
+            mBillingService = null;
         }
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            mBilingService = IInAppBillingService.Stub.asInterface(service);
+            mBillingService = IInAppBillingService.Stub.asInterface(service);
             addOperation(new OperationRefreshAvailableForPurchase());
             addOperation(new OperationRefreshPurchased());
         }
@@ -423,19 +426,19 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
         // This avoids thinking what happens when user initiated 2 purchases
         // in a short time.
         mPayLoad = randomString.nextString();
-        //Log.i(TAG, "Biling payload: " + mPayLoad);
+        //Log.i(TAG, "Billing payload: " + mPayLoad);
 
         myPromoReceiver = new MyPromoReceiver();
 
         Intent serviceIntent = new Intent("com.android.vending.billing.InAppBillingService.BIND");
         serviceIntent.setPackage("com.android.vending");
-        getActivity().bindService(serviceIntent, mBilingConnection, Context.BIND_AUTO_CREATE);
+        getActivity().bindService(serviceIntent, mBillingConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
     public void onDestroy() {
-        if (mBilingService != null) {
-            getActivity().unbindService(mBilingConnection);
+        if (mBillingService != null) {
+            getActivity().unbindService(mBillingConnection);
         }
     }
 
