@@ -37,7 +37,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
 
     IInAppBillingService mBillingService;
     String mPayLoad;
-    // Purchase tokens for known owns skus, saved on this list to allow consuming items.
+    // Purchase tokens for known owns products, saved on this list to allow consuming items.
     Map<String, String> purchaseTokens;
     // Product names available, according to native code. Used to query product info.
     // null if not initialized yet.
@@ -112,7 +112,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
      */
     private class OperationRefreshAvailableForPurchase extends Operation {
 
-        /* Class to pass skuList to RefreshAvailableForPurchaseTask.
+        /* Class to pass productList to RefreshAvailableForPurchaseTask.
          *
          * Reason: Passing ArrayList<String> makes Java warnings about unsafe code:
          * warning: [unchecked] unchecked generic array creation for varargs parameter of type ArrayList<String>[]
@@ -122,16 +122,16 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
          * to see it, see http://stackoverflow.com/questions/7682150/use-xlintdeprecation-with-android ).
          */
         private class RefreshAvailableForPurchaseInput {
-            ArrayList<String> skuList;
+            ArrayList<String> productList;
         }
 
         private class RefreshAvailableForPurchaseTask extends AsyncTask<RefreshAvailableForPurchaseInput, Void, Bundle> {
             protected Bundle doInBackground(RefreshAvailableForPurchaseInput... inputs) {
-                ArrayList<String> skuList = inputs[0].skuList;
-                Bundle querySkus = new Bundle();
-                querySkus.putStringArrayList("ITEM_ID_LIST", skuList);
+                ArrayList<String> productList = inputs[0].productList;
+                Bundle queryProducts = new Bundle();
+                queryProducts.putStringArrayList("ITEM_ID_LIST", productList);
                 try {
-                    return mBillingService.getSkuDetails(3, getActivity().getPackageName(), "inapp", querySkus);
+                    return mBillingService.getSkuDetails(3, getActivity().getPackageName(), "inapp", queryProducts);
                 } catch (RemoteException e) {
                     Log.e(TAG, "RemoteException at getSkuDetails.");
                     e.printStackTrace();
@@ -139,24 +139,24 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                 }
             }
 
-            protected void onPostExecute(Bundle skuDetails) {
+            protected void onPostExecute(Bundle productDetails) {
                 try {
-                    if (skuDetails == null) {
+                    if (productDetails == null) {
                         return; // exit in case there was a RemoteException
                     }
                     try {
-                        int response = skuDetails.getInt("RESPONSE_CODE");
+                        int response = productDetails.getInt("RESPONSE_CODE");
                         if (response == InAppPurchasesHelper.BILLING_RESPONSE_RESULT_OK) {
                            ArrayList<String> responseList
-                              = skuDetails.getStringArrayList("DETAILS_LIST");
+                              = productDetails.getStringArrayList("DETAILS_LIST");
 
                            Log.i(TAG, responseList.size() + " items available for purchase.");
                            for (String thisResponse : responseList) {
                               JSONObject object = new JSONObject(thisResponse);
-                              String sku = object.getString("productId");
+                              String productId = object.getString("productId");
                               String price = object.getString("price");
-                              messageSend(new String[]{"in-app-purchases-can-purchase", sku, price});
-                              // Log.i(TAG, "You can buy " + sku + " for " + price);
+                              messageSend(new String[]{"in-app-purchases-can-purchase", productId, price});
+                              // Log.i(TAG, "You can buy " + productId + " for " + price);
                            }
                         } else {
                             Log.w(TAG, "Error response when getting list of stuff available for purchase: " + InAppPurchasesHelper.billingResponseToStr(response));
@@ -175,7 +175,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
         {
             if (availableProducts != null && mBillingService != null) {
                 RefreshAvailableForPurchaseInput input = new RefreshAvailableForPurchaseInput();
-                input.skuList = availableProducts;
+                input.productList = availableProducts;
 
                 /* We use AsyncTask to avoid using synchronous billing methods on the main
                    UI thread. See
@@ -216,20 +216,29 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                     }
                     int response = ownedItems.getInt("RESPONSE_CODE");
                     if (response == InAppPurchasesHelper.BILLING_RESPONSE_RESULT_OK) {
-                        ArrayList<String> ownedSkus =
+                        ArrayList<String> ownedProducts =
                             ownedItems.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
                         ArrayList<String>  purchaseDataList =
                             ownedItems.getStringArrayList("INAPP_PURCHASE_DATA_LIST");
-                        /*ArrayList<String>  signatureList =
-                            ownedItems.getStringArrayList("INAPP_DATA_SIGNATURE"); */
+                        // Not available, it seems.
+                        // ArrayList<String>  signatureList =
+                        //     ownedItems.getStringArrayList("INAPP_DATA_SIGNATURE");
                         String continuationToken =
                             ownedItems.getString("INAPP_CONTINUATION_TOKEN");
+                        // if (signatureList == null) {
+                        //     Log.w(TAG, "Missing INAPP_DATA_SIGNATURE");
+                        // }
 
                         for (int i = 0; i < purchaseDataList.size(); ++i) {
                             String purchaseData = purchaseDataList.get(i);
-                            // String signature = signatureList.get(i);
-                            String sku = ownedSkus.get(i);
-                            owns(sku, purchaseData /*, signature*/);
+                            // String signature;
+                            // if (signatureList != null) {
+                            //     signature = signatureList.get(i);
+                            // } else {
+                            //     signature = null;
+                            // }
+                            String productId = ownedProducts.get(i);
+                            owns(productId, purchaseData);
                         }
 
                         messageSend(new String[]{"in-app-purchases-known-completely"});
@@ -266,18 +275,20 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                 if (resultCode == Activity.RESULT_OK) {
                     //int responseCode = data.getIntExtra("RESPONSE_CODE", 0);
                     String purchaseData = data.getStringExtra("INAPP_PURCHASE_DATA");
-                    // Do not look at signature --- is null for our stuff,
-                    // on Pawel Android 4.3? Nevermind, it is unused anyway.
-                    //String signature = data.getStringExtra("INAPP_DATA_SIGNATURE");
+                    // Watch out, signature may be null, tested on Pawel Android 4.3.
+                    String signature = data.getStringExtra("INAPP_DATA_SIGNATURE");
+                    if (signature == null) {
+                        Log.w(TAG, "Missing INAPP_DATA_SIGNATURE");
+                    }
 
                     try {
                         JSONObject jo = new JSONObject(purchaseData);
-                        String sku = jo.getString("productId");
+                        String productId = jo.getString("productId");
                         String payLoadReceived = jo.getString("developerPayload");
                         if (payLoadReceived.equals(mPayLoad)) {
-                            owns(sku, purchaseData/*, signature*/);
+                            owns(productId, purchaseData);
                         } else {
-                            Log.e(TAG, "Rejecting buying the " + sku + " because received payload (" + payLoadReceived + ")  does not match send payload");
+                            Log.e(TAG, "Rejecting buying the " + productId + " because received payload (" + payLoadReceived + ")  does not match send payload");
                         }
                     }
                     catch (JSONException e) {
@@ -488,7 +499,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
         addOperation(o);
     }
 
-    private void owns(String productName, String purchaseData/*, String signature*/)
+    private void owns(String productName, String purchaseData)
     {
         String purchaseToken;
 
