@@ -259,8 +259,11 @@ type
     { The background color of the map. (since 0.9, optional) }
     FBackgroundColor: TCastleColorRGB;
     FRenderOrder: TMapRenderOrder;
+    FDataPath: string;
 
     procedure LoadTileset(Element: TDOMElement);
+    { TSX file loading. }
+    procedure LoadTilesetFromFile(const AFileName: string);
     procedure LoadProperty(Element: TDOMElement; var AProperty: TProperty);
     procedure LoadProperties(Element: TDOMElement; var AProperties: TProperties);
     procedure LoadImage(Element: TDOMElement; var AImage: TImage);
@@ -317,9 +320,15 @@ begin
     TileOffset := ZeroVector2Integer;
     Properties := nil;
     if Element.AttributeString('firstgid', TmpStr) then
-      FirstGID := StrToInt(TmpStr);
+      FirstGID := StrToInt(TmpStr) else
+        FirstGID := 1;
     if Element.AttributeString('source', TmpStr) then
+    begin
       Source := TmpStr;
+      WritelnLog('LoadTileset source', Source);
+      LoadTilesetFromFile(Source);
+      Exit;
+    end;
     if Element.AttributeString('name', TmpStr) then
       Name := TmpStr;
     if Element.AttributeString('tilewidth', TmpStr) then
@@ -331,11 +340,12 @@ begin
     if Element.AttributeString('margin', TmpStr) then
       Margin := StrToInt(TmpStr);
     if Element.AttributeString('tilecount', TmpStr) then
-      TileCount := StrToInt(TmpStr);
+      TileCount := StrToInt(TmpStr) else
+        TileCount := 0;
     if Element.AttributeString('columns', TmpStr) then
-      Columns := StrToInt(TmpStr);
+      Columns := StrToInt(TmpStr) else
+        Columns := 0;
     WritelnLog('LoadTileset firstgid', IntToStr(FirstGID));
-    WritelnLog('LoadTileset source', Source);
     WritelnLog('LoadTileset Name', Name);
     WritelnLog('LoadTileset TileWidth', IntToStr(TileWidth));
     WritelnLog('LoadTileset TileHeight', IntToStr(TileHeight));
@@ -362,6 +372,23 @@ begin
   end;
 
   FTilesets.Add(NewTileset);
+end;
+
+procedure TTiledMap.LoadTilesetFromFile(const AFileName: string);
+var
+  Doc: TXMLDocument;
+begin
+  Doc := nil;
+  try
+    ReadXMLFile(Doc, Download(FDataPath + AFileName));
+
+    Check(LowerCase(Doc.DocumentElement.TagName) = 'tileset',
+      'Root element of TSX file must be <tileset>');
+    LoadTileset(Doc.DocumentElement);
+
+  finally
+    FreeAndNil(Doc);
+  end;
 end;
 
 procedure TTiledMap.LoadProperty(Element: TDOMElement;
@@ -849,6 +876,7 @@ begin
   FTilesets := TTilesets.Create;
   FProperties := TProperties.Create;
   FLayers := TLayers.Create;
+  FDataPath := ExtractURIPath(AURL);
 
   //Load TMX
   LoadTMXFile(AURL);

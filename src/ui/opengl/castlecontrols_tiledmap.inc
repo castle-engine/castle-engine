@@ -121,21 +121,21 @@ var
   _ts: PTileset;
   _spr: TSprite;
 begin
-  // todo: IF TSX:
-
-  // IF NOT TSX:
+  //todo: use tileset spacing and margin parameters; add spacing to TSprite
   for i := 0 to FTiledMap.Tilesets.Count - 1 do
   begin
     _ts := FTiledMap.Tilesets.Ptr(i);
+    if _ts^.Columns = 0 then
+      _ts^.Columns := _ts^.Image.Width div _ts^.TileWidth;
+    if _ts^.TileCount = 0 then
+      _ts^.TileCount := (_ts^.Image.Height div _ts^.TileHeight) * _ts^.Columns;
     _spr := TSprite.Create(FDataPath + _ts^.Image.Source, _ts^.TileCount,
                            _ts^.Columns, _ts^.TileCount div _ts^.Columns,
                            True, False);
     _spr.DrawingWidth := FTiledMap.TileWidth;
     _spr.DrawingHeight := FTiledMap.TileHeight;
     writelnlog('LoadTlesetsImages', 'columns:%d',[_ts^.Columns]);
-    //WritelnLog('LoadTlesetsImages path', FDataPath + _ts^.Image.Source);
     _ts^.ImageData := _spr;
-    //FImages.Add(_spr); //todo: do usunięcia bo pointer w tileset?
 	end;
 end;
 

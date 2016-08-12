@@ -24,7 +24,7 @@ var
 procedure ApplicationInitialize;
 begin
   { Load the default map. }
-  TiledMap := TCastleTiledMapControl.Create(Window, ApplicationData('orthogonal-outside.tmx'));
+  TiledMap := TCastleTiledMapControl.Create(Window, ApplicationData('desert.tmx'));
   Window.Controls.InsertFront(TiledMap);
 end;
 
