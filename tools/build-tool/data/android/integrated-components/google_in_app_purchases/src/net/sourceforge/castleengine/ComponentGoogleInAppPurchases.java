@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.json.JSONObject;
 import org.json.JSONException;
@@ -39,9 +41,9 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
     String mPayLoad;
     // Purchase tokens for known owns products, saved on this list to allow consuming items.
     Map<String, String> purchaseTokens;
-    // Product names available, according to native code. Used to query product info.
+    // Products available, according to native code. Used to query product info.
     // null if not initialized yet.
-    ArrayList<String> availableProducts;
+    Map<String, AvailableProduct> availableProducts;
 
     /* operationQueue stuff -------------------------------------------------- */
 
@@ -174,8 +176,12 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
         public final void run()
         {
             if (availableProducts != null && mBillingService != null) {
+                // calculate input
                 RefreshAvailableForPurchaseInput input = new RefreshAvailableForPurchaseInput();
-                input.productList = availableProducts;
+                input.productList = new ArrayList<String>();
+                for (Entry<String, AvailableProduct> entry : availableProducts.entrySet()) {
+                    input.productList.add(entry.getKey());
+                }
 
                 /* We use AsyncTask to avoid using synchronous billing methods on the main
                    UI thread. See
@@ -286,6 +292,13 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                         String productId = jo.getString("productId");
                         String payLoadReceived = jo.getString("developerPayload");
                         if (payLoadReceived.equals(mPayLoad)) {
+                            AvailableProduct product;
+                            if (availableProducts.containsKey(productId)) {
+                                product = availableProducts.get(productId);
+                            } else {
+                                product = new AvailableProduct(productId);
+                            }
+                            getActivity().onPurchase(product, purchaseData, signature);
                             owns(productId, purchaseData);
                         } else {
                             Log.e(TAG, "Rejecting buying the " + productId + " because received payload (" + payLoadReceived + ")  does not match send payload");
@@ -554,9 +567,23 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
         }
     }
 
-    private void setAvailableProducts(String[] products)
+    private void setAvailableProducts(String productsListStr)
     {
-        availableProducts = new ArrayList<String>(Arrays.asList(products));
+        availableProducts = new HashMap<String, AvailableProduct>();
+        String[] productsList = splitString(productsListStr, 2);
+        for (String productStr : productsList) {
+            String[] productInfo = splitString(productStr, 3);
+            if (productInfo.length != 4) {
+                Log.e(TAG, "Product info invalid: " + productStr);
+                continue;
+            }
+            AvailableProduct product = new AvailableProduct(productInfo[0]);
+            product.category = productInfo[1];
+            product.analyticsCurrency = productInfo[2];
+            product.analyticsPrice = Integer.parseInt(productInfo[3]);
+            availableProducts.put(product.id, product);
+        }
+
         addOperation(new OperationRefreshAvailableForPurchase());
         addOperation(new OperationRefreshPurchased());
     }
@@ -565,7 +592,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
     public boolean messageReceived(String[] parts)
     {
         if (parts.length == 2 && parts[0].equals("in-app-purchases-set-available-products")) {
-            setAvailableProducts(parts[1].split(","));
+            setAvailableProducts(parts[1]);
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("in-app-purchases-purchase")) {

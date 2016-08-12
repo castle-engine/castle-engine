@@ -3,7 +3,6 @@ package net.sourceforge.castleengine;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import android.os.Handler;
 import android.util.Log;
@@ -34,7 +33,8 @@ public class ComponentMessaging extends ComponentAbstract
         super(activity);
     }
 
-    private final String MESSAGE_DELIMITER = Character.toString ((char) 1);
+    private final int MESSAGE_DELIMITER_CODE = 1;
+    private final String MESSAGE_DELIMITER = Character.toString ((char) MESSAGE_DELIMITER_CODE);
 
     /**
      * Helper utility to glue string array.
@@ -86,18 +86,7 @@ public class ComponentMessaging extends ComponentAbstract
                     Log.i(TAG, "JNI: Java received message from native code: " + message);
                 }
                 somethingHappened = true;
-                /* Use -1 to avoid cutting off empty trailing strings.
-                   Which are possible in case of e.g. ads-admob-initialize
-                   or analytics-send-event (they very often have last parameter empty).
-                   See http://docs.oracle.com/javase/7/docs/api/java/lang/String.html#split%28java.lang.String%29
-                   http://docs.oracle.com/javase/6/docs/api/java/lang/String.html#split%28java.lang.String,%20int%29
-
-                   Use Pattern.compile with Pattern.LITERAL to (hopefully) take advantage
-                   underneath of the fact that our delimiter is not a regular expression.
-                */
-                Pattern p = Pattern.compile(MESSAGE_DELIMITER, Pattern.LITERAL);
-                String[] parts = p.split(message, -1);
-                //String[] parts = message.split(MESSAGE_DELIMITER, -1);
+                String[] parts = splitString(message, MESSAGE_DELIMITER_CODE);
                 if (!getActivity().messageReceived(parts)) {
                     Log.w(TAG, "Message unhandled: " + glueStringArray(parts, 0, "\n"));
                 }

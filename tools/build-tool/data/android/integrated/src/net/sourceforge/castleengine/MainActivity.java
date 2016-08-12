@@ -143,6 +143,14 @@ public class MainActivity extends NativeActivity
         return result;
     }
 
+    public void onPurchase(AvailableProduct product, String purchaseData, String signature)
+    {
+        Log.i(TAG, "purchase " + product.id);
+        for (ComponentAbstract component : components) {
+            component.onPurchase(product, purchaseData, signature);
+        }
+    }
+
     /* JNI ------------------------------------------------------------------- */
 
     public native String jniMessage(String javaToNative);

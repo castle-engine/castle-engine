@@ -174,6 +174,36 @@ public class ComponentGameAnalytics extends ComponentAbstract
     }
 
     @Override
+    public void onPurchase(AvailableProduct product, String purchaseData, String signature)
+    {
+        if (!initialized) {
+            return;
+        }
+        // https://github.com/GameAnalytics/GA-SDK-ANDROID/wiki/Business-Event
+        // http://www.gameanalytics.com/docs/ga-data
+
+        // for GameAnalytics, currency must be valid
+        String currency = product.analyticsCurrency;
+        if (currency == null || currency.equals("")) {
+            currency = "USD";
+        }
+
+        // for GameAnalytics, category must be valid:
+        // Cannot be (null), empty or above 64 characters
+        String category = product.category;
+        if (category == null || category.equals("")) {
+            category = "defaultProductCategory";
+        }
+        if (category.length() > 64) {
+            category = category.substring(0, 64);
+        }
+
+        GameAnalytics.addBusinessEventWithCurrency(
+            currency, product.analyticsPrice, category,
+            product.id, "defaultCart", purchaseData, "google_play", signature);
+    }
+
+    @Override
     public boolean messageReceived(String[] parts)
     {
         if (parts.length == 3 && parts[0].equals("game-analytics-initialize")) {

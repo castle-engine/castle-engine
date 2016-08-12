@@ -102,33 +102,6 @@ public class ComponentGoogleAnalytics extends ComponentAbstract
         t.send(e.build());
     }
 
-/*
-    This is the wrong place to do it. It should be called
-    by ComponentGoogleBiling when transaction is successfully finished.
-
-    private void sendEventPurchase(String category, String action, String label,
-        long value, String productName)
-    {
-        Tracker t = getAppTracker();
-        if (t == null) {
-            return;
-        }
-
-        Product product = new Product()
-            .setName(productName)
-            .setPrice(1);
-        ProductAction productAction = new ProductAction(ProductAction.ACTION_PURCHASE);
-        t.send(new HitBuilders.EventBuilder()
-            .setCategory(category)
-            .setAction(action)
-            .setLabel(label)
-            .setValue(value)
-            .addProduct(product)
-            .setProductAction(productAction)
-            .build());
-    }
-*/
-
     private void sendTiming(String category, String variable,
         String label, long timeMiliseconds)
     {
@@ -156,6 +129,35 @@ public class ComponentGoogleAnalytics extends ComponentAbstract
                 return;
         }
         sendEvent("progress", strStatus, world + "-" + level + "-" + phase, score, 0, "");
+    }
+
+    @Override
+    public void onPurchase(AvailableProduct availableProduct, String purchaseData, String signature)
+    {
+        Tracker t = getAppTracker();
+        if (t == null) {
+            return;
+        }
+
+        // https://developers.google.com/analytics/devguides/collection/android/v4/mobile-implementation-guide#ecommerce
+        // https://developers.google.com/android/reference/com/google/android/gms/analytics/ecommerce/Product
+
+        Product product = new Product()
+            .setId(availableProduct.id)
+            .setCategory(availableProduct.category)
+            .setPrice(availableProduct.analyticsPrice);
+
+        ProductAction productAction = new ProductAction(ProductAction.ACTION_PURCHASE);
+
+        // Add the transaction data to the event.
+        HitBuilders.EventBuilder builder = new HitBuilders.EventBuilder()
+            .setCategory("defaultCart")
+            .setAction("purchase")
+            .addProduct(product)
+            .setProductAction(productAction);
+
+        // Send the transaction data with the event.
+        t.send(builder.build());
     }
 
     @Override

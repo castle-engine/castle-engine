@@ -46,6 +46,44 @@ type
     property SuccessfullyConsumed: boolean read FSuccessfullyConsumed write FSuccessfullyConsumed;
   end;
 
+  TAvailableProduct = record
+    Name: string;
+
+    { Category. For now used only for analytics. }
+    Category: string;
+
+    { When reporting purchase to analytics, we may report the price of the product.
+
+      @bold(This is not necessarily the price user paid for the item!)
+      The real price of the product is only known by Google Play,
+      and it's not reported in an analytics-friendly format to our application.
+      (Google Play only provides us a textual description of the price,
+      which you have in @link(TInAppProduct.PriceRaw), but trying to parse it back
+      into amount + currency would be very difficult to implement reliably.)
+
+      So it's @italic(your responsibility to provide here prices equal to what
+      you set in the Google Play console). Nothing terrible will happen if you
+      make a mistake --- just your analytics will not reflect correct earnings.
+      In fact, you cannot provide exact prices if you use Google Play "automatic
+      rounding to country conversions". E.g. even if you provide here correct
+      prices in USD in United States, you will not have perfect analytics anyway,
+      since the price in other countries is not a straight conversion from USD ->
+      local currency by multiplying.
+
+      Currency is in ISO 4217 format. Currently ignored by Google Analytics,
+      that records prices as a number with unspecified currency (see
+      https://developers.google.com/android/reference/com/google/android/gms/analytics/ecommerce/Product ).
+      Used by Game Analytics (see
+      https://github.com/GameAnalytics/GA-SDK-ANDROID/wiki/Business-Event ).
+
+      Price is the price, in cents. E.g. for 0.99$ product price,
+      set currency = 'USD' and price = 99.
+
+      Leave currency = '', price = 0 if not known. }
+    AnalyticsCurrency: string;
+    AnalyticsPrice: Integer;
+  end;
+
   { Manage in-app purchases in your game.
 
     Usage: simply construct an instance of this class (or a subclass --
@@ -120,9 +158,13 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    { Initialize a list of product names for which to query prices
-      from server. }
-    procedure SetAvailableProducts(const Strings: array of string);
+    { Initialize a list of products for which to query prices from server.
+      The overloaded version with TAvailableProduct allows to provide additional
+      information to the in-app payment system, see @link(TAvailableProduct) docs.
+      @groupBegin }
+    procedure SetAvailableProducts(const Names: array of string);
+    procedure SetAvailableProducts(const Products: array of TAvailableProduct);
+    { @groupEnd }
 
     { Initiate a purchase of given item. }
     procedure Purchase(const AProduct: TInAppProduct);
@@ -290,9 +332,37 @@ begin
   end;
 end;
 
-procedure TInAppPurchases.SetAvailableProducts(const Strings: array of string);
+procedure TInAppPurchases.SetAvailableProducts(const Names: array of string);
+var
+  Products: array of TAvailableProduct;
+  I: Integer;
 begin
-  FLastAvailableProducts := GlueStrings(Strings, ',');
+  SetLength(Products, Length(Names));
+  for I := 0 to High(Names) do
+  begin
+    Products[I].Name := Names[I];
+    Products[I].Category := '';
+    Products[I].AnalyticsCurrency := '';
+    Products[I].AnalyticsPrice := 0;
+  end;
+  SetAvailableProducts(Products);
+end;
+
+procedure TInAppPurchases.SetAvailableProducts(const Products: array of TAvailableProduct);
+var
+  I: Integer;
+begin
+  FLastAvailableProducts := '';
+  for I := 0 to High(Products) do
+  begin
+    FLastAvailableProducts +=
+      Products[I].Name + Chr(3) +
+      Products[I].Category + Chr(3) +
+      Products[I].AnalyticsCurrency + Chr(3) +
+      IntToStr(Products[I].AnalyticsPrice);
+    if I < High(Products) then
+      FLastAvailableProducts += Chr(2);
+  end;
   Messaging.Send(['in-app-purchases-set-available-products', FLastAvailableProducts]);
 end;
 
