@@ -303,6 +303,9 @@ type
 
 implementation
 
+uses
+  CastleDownload;
+
 procedure TTiledMap.LoadTileset(Element: TDOMElement);
 var
   I: TXMLElementIterator;
@@ -791,7 +794,7 @@ var
 begin
   Doc := nil;
   try
-    ReadXMLFile(Doc, URIDeleteProtocol(AURL));  //todo: what is proper way to open files? (AbsoluteURI ?)
+    ReadXMLFile(Doc, Download(AURL));
 
     // Parse map attributes
     Check(LowerCase(Doc.DocumentElement.TagName) = 'map',
