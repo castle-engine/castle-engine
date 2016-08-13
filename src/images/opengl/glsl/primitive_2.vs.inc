@@ -1,9 +1,9 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "rectangle.vs" }
+{ DON'T EDIT -- this file was automatically generated from "primitive_2.vs" }
 'attribute vec2 vertex;' + LineEnding +
 'uniform vec2 viewport_size;' + LineEnding +
 '' + LineEnding +
-'/* Simple GLSL shader to draw 2D rectangle. */' + LineEnding +
+'/* Simple GLSL shader to draw 2D primitive (like a rectangle). */' + LineEnding +
 '' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +

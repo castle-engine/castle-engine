@@ -1,7 +1,7 @@
 attribute vec2 vertex;
 uniform vec2 viewport_size;
 
-/* Simple GLSL shader to draw 2D rectangle. */
+/* Simple GLSL shader to draw 2D primitive (like a rectangle). */
 
 void main(void)
 {

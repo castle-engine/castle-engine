@@ -513,6 +513,19 @@ procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); depr
 {$endif}
 
 type
+  { Primitive to draw using DrawPrimitive2D.
+    The modes correspond to OpenGL drawing modes, see
+    https://www.opengl.org/wiki/Primitive
+    https://www.opengl.org/sdk/docs/man2/xhtml/glBegin.xml }
+  TPrimitiveMode = (
+    pmPoints,
+    pmLineStrip,
+    pmLineLoop,
+    pmLines,
+    pmTriangleStrip,
+    pmTriangleFan,
+    pmTriangles
+  );
   TBlendingSourceFactor = (
     bsSrcAlpha,
     bsOneMinusSrcAlpha,
@@ -597,6 +610,19 @@ procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
   const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
   const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
   const ForceBlending: boolean = false);
+
+{ Draw a simple 2D primitive with a given color.
+  This can be used to draw a series of points, lines or triangles,
+  depending on the @code(Mode) parameter.
+
+  Blending is automatically used if Color alpha < 1.
+  ForceBlending forces the usage of blending. When it is @false,
+  we use blending only if Color[3] (alpha) < 1.  }
+procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
+  const Points: array of TVector2SmallInt;
+  const Color: TCastleColor;
+  const BlendingSourceFactor, BlendingDestinationFactor: TGLEnum;
+  const ForceBlending: boolean);
 
 { Multiline string describing attributes of current OpenGL
   library. This simply queries OpenGL using glGet* functions
@@ -1473,7 +1499,7 @@ begin
   end;
 end;
 
-{ DrawRectangle ---------------------------------------------------------------- }
+{ DrawPrimitive2D ---------------------------------------------------------------- }
 
 const
   BlendingSourceFactorToGL: array [TBlendingSourceFactor] of TGLEnum = (
@@ -1516,33 +1542,45 @@ const
     GL_CONSTANT_ALPHA,
     GL_ONE_MINUS_CONSTANT_ALPHA
   );
+  PrimitiveModeToGL: array [TPrimitiveMode] of TGLEnum = (
+    GL_POINTS,
+    GL_LINE_STRIP,
+    GL_LINE_LOOP,
+    GL_LINES,
+    GL_TRIANGLE_STRIP,
+    GL_TRIANGLE_FAN,
+    GL_TRIANGLES
+  );
 
 var
   {$ifdef GLImageUseShaders}
-  GLRectangleProgram: TGLSLProgram;
-  GLRectangleUniformViewportSize, GLRectangleUniformColor: TGLSLUniform;
-  GLRectangleAttribVertex: TGLSLAttribute;
+  Primitive2DProgram: TGLSLProgram;
+  Primitive2DUniformViewportSize, Primitive2DUniformColor: TGLSLUniform;
+  Primitive2DAttribVertex: TGLSLAttribute;
   {$endif}
-  RectanglePointVbo: TGLuint;
-  RectanglePoint: packed array [0..3] of TVector2SmallInt;
+  Primitive2DVbo: TGLuint;
+  Primitive2DPointPtr: Pointer;
+  Primitive2DPointPtrSize: Integer;
 
-procedure DrawRectangleGL(const R: TRectangle; const Color: TCastleColor;
+procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
+  const Points: array of TVector2SmallInt; const Color: TCastleColor;
   const BlendingSourceFactor, BlendingDestinationFactor: TGLEnum;
   const ForceBlending: boolean);
 var
   Blending: boolean;
+  I, RequiredPrimitive2DPointPtrSize: Integer;
 begin
   {$ifdef GLImageUseShaders}
-  if GLRectangleProgram = nil then
+  if Primitive2DProgram = nil then
   begin
-    GLRectangleProgram := TGLSLProgram.Create;
-    GLRectangleProgram.AttachVertexShader({$I rectangle.vs.inc});
-    GLRectangleProgram.AttachFragmentShader({$I rectangle.fs.inc});
-    GLRectangleProgram.Link;
+    Primitive2DProgram := TGLSLProgram.Create;
+    Primitive2DProgram.AttachVertexShader({$I primitive_2.vs.inc});
+    Primitive2DProgram.AttachFragmentShader({$I primitive_2.fs.inc});
+    Primitive2DProgram.Link;
 
-    GLRectangleUniformViewportSize := GLRectangleProgram.Uniform('viewport_size');
-    GLRectangleUniformColor := GLRectangleProgram.Uniform('color');
-    GLRectangleAttribVertex := GLRectangleProgram.Attribute('vertex');
+    Primitive2DUniformViewportSize := Primitive2DProgram.Uniform('viewport_size');
+    Primitive2DUniformColor := Primitive2DProgram.Uniform('color');
+    Primitive2DAttribVertex := Primitive2DProgram.Attribute('vertex');
   end;
   {$endif}
 
@@ -1553,26 +1591,36 @@ begin
     glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
   end;
 
-  if (RectanglePointVbo = 0) and GLFeatures.VertexBufferObject then
-    glGenBuffers(1, @RectanglePointVbo);
+  if (Primitive2DVbo = 0) and GLFeatures.VertexBufferObject then
+    glGenBuffers(1, @Primitive2DVbo);
 
-  RectanglePoint[0] := Vector2SmallInt(R.Left          , R.Bottom);
-  RectanglePoint[1] := Vector2SmallInt(R.Left + R.Width, R.Bottom);
-  RectanglePoint[2] := Vector2SmallInt(R.Left + R.Width, R.Bottom + R.Height);
-  RectanglePoint[3] := Vector2SmallInt(R.Left          , R.Bottom + R.Height);
+  { make Primitive2DPointPtr have necessary size }
+  RequiredPrimitive2DPointPtrSize := SizeOf(TVector2SmallInt) * (High(Points) + 1);
+  if Primitive2DPointPtrSize <> RequiredPrimitive2DPointPtrSize then
+  begin
+    if Primitive2DPointPtr <> nil then
+      FreeMem(Primitive2DPointPtr);
+    Primitive2DPointPtr := GetMem(RequiredPrimitive2DPointPtrSize);
+    Primitive2DPointPtrSize := RequiredPrimitive2DPointPtrSize;
+  end;
+
+  { copy Points to Primitive2DPointPtr }
+  for I := 0 to High(Points) do
+    Move(Points[I],
+      PVector2SmallInt(PtrUInt(Primitive2DPointPtr) + SizeOf(TVector2SmallInt) * I)^,
+      SizeOf(TVector2SmallInt));
 
   if GLFeatures.VertexBufferObject then
   begin
-    glBindBuffer(GL_ARRAY_BUFFER, RectanglePointVbo);
-    glBufferData(GL_ARRAY_BUFFER, SizeOf(RectanglePoint),
-      @(RectanglePoint[0]), GL_STREAM_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, Primitive2DVbo);
+    glBufferData(GL_ARRAY_BUFFER, Primitive2DPointPtrSize, Primitive2DPointPtr, GL_STREAM_DRAW);
   end;
 
   {$ifdef GLImageUseShaders}
-  CurrentProgram := GLRectangleProgram;
-  GLRectangleAttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), 0);
-  GLRectangleUniformViewportSize.SetValue(Viewport2DSize);
-  GLRectangleUniformColor.SetValue(Color);
+  CurrentProgram := Primitive2DProgram;
+  Primitive2DAttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), 0);
+  Primitive2DUniformViewportSize.SetValue(Viewport2DSize);
+  Primitive2DUniformColor.SetValue(Color);
 
   {$else}
   CurrentProgram := nil;
@@ -1582,16 +1630,16 @@ begin
   glEnableClientState(GL_VERTEX_ARRAY);
   if GLFeatures.VertexBufferObject then
     glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), nil) else
-    glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), @(RectanglePoint[0]));
+    glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), Primitive2DPointPtr);
   {$endif}
 
-  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+  glDrawArrays(PrimitiveModeToGL[Mode], 0, High(Points) + 1);
 
   {$ifdef GLImageUseShaders}
-  // GLRectangleProgram.Disable; // no need to disable, keep it enabled to save speed
+  // Primitive2DProgram.Disable; // no need to disable, keep it enabled to save speed
   { attribute arrays are enabled independent from GLSL program, so we need
     to disable them separately }
-  GLRectangleAttribVertex.DisableArray;
+  Primitive2DAttribVertex.DisableArray;
   {$else}
   glDisableClientState(GL_VERTEX_ARRAY);
   {$endif}
@@ -1604,6 +1652,23 @@ begin
 
   if Blending then
     glDisable(GL_BLEND);
+end;
+
+{ DrawRectangle ---------------------------------------------------------------- }
+
+procedure DrawRectangleGL(const R: TRectangle; const Color: TCastleColor;
+  const BlendingSourceFactor, BlendingDestinationFactor: TGLEnum;
+  const ForceBlending: boolean);
+var
+  RectanglePoint: array [0..3] of TVector2SmallInt;
+begin
+  RectanglePoint[0] := Vector2SmallInt(R.Left          , R.Bottom);
+  RectanglePoint[1] := Vector2SmallInt(R.Left + R.Width, R.Bottom);
+  RectanglePoint[2] := Vector2SmallInt(R.Left + R.Width, R.Bottom + R.Height);
+  RectanglePoint[3] := Vector2SmallInt(R.Left          , R.Bottom + R.Height);
+
+  DrawPrimitive2D(pmTriangleFan, RectanglePoint,
+    Color, BlendingSourceFactor, BlendingDestinationFactor, ForceBlending);
 end;
 
 procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
@@ -2114,10 +2179,12 @@ end;
 
 procedure ContextClose;
 begin
-  glFreeBuffer(RectanglePointVbo);
+  glFreeBuffer(Primitive2DVbo);
   {$ifdef GLImageUseShaders}
-  FreeAndNil(GLRectangleProgram);
+  FreeAndNil(Primitive2DProgram);
   {$endif}
+  FreeMem(Primitive2DPointPtr); // not really tied to OpenGL
+  Primitive2DPointPtrSize := 0;
 
   { free things created by GLInformationInitialize }
   FreeAndNil(GLVersion);
