@@ -152,6 +152,9 @@ function HexToColor(const S: string): TCastleColor;
   @raises EConvertError In case of invalid color as string. }
 function HexToColorRGB(const S: string): TCastleColorRGB;
 
+{ Change color opacity (alpha). }
+function ColorOpacity(const Color: TCastleColor; const Opacity: Single): TCastleColor;
+
 implementation
 
 uses SysUtils, CastleUtils, CastleStringUtils;
@@ -453,6 +456,12 @@ begin
       StrHexToInt(Copy(S, 3, 2)) / 255,
       StrHexToInt(Copy(S, 5, 2)) / 255) else
     raise EConvertError.CreateFmt('Invalid color hex string: "%s"', [S]);
+end;
+
+function ColorOpacity(const Color: TCastleColor; const Opacity: Single): TCastleColor;
+begin
+  Result := Color;
+  Result[3] := Opacity;
 end;
 
 end.
