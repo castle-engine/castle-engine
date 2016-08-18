@@ -135,14 +135,24 @@ procedure DrawCircleOutline(const Middle: TVector2Integer;
   ForceBlending forces the usage of blending. When it is @false,
   we use blending only if Color[3] (alpha) < 1.
 
-  The LineWidth is only used when Mode indicates lines.
-  The PointSize is only used when Mode indicates points,
-  and only on desktop OpenGL (not available on mobile OpenGLES).
-  Moreover, their interpretation may be limited by the implementation
-  if anti-aliasing is enabled (and may be even limited to 1,
-  which is common on OpenGLES).
-  See https://www.opengl.org/sdk/docs/man2/xhtml/glPointSize.xml ,
-  https://www.opengl.org/sdk/docs/man/html/glLineWidth.xhtml . }
+  @param(LineWidth Line width, only used when Mode indicates lines.
+
+    Note that @bold(values other than 1 are not guaranteed to be supported.)
+    While it's a fast method to have thick lines, it is implementation-limited in case of
+    @orderedList(
+      @item(desktop OpenGL with anti-aliasing, see
+        https://www.opengl.org/sdk/docs/man/html/glLineWidth.xhtml )
+      @item(mobile OpenGLES, with or without anti-aliasing, see
+        https://www.khronos.org/opengles/sdk/docs/man/xhtml/glLineWidth.xml )
+    ))
+
+  @param(PointSize Point size, only used when Mode indicates points.
+
+    Note that @bold(values other than 1 are not guaranteed to be supported.)
+    Mobile OpenGLES does not support setting point size like this.
+    And desktop OpenGL limits point size in case anti-aliasing is used,
+    see https://www.opengl.org/sdk/docs/man2/xhtml/glPointSize.xml .)
+}
 procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const Points: array of TVector2SmallInt;
   const Color: TCastleColor;

@@ -681,12 +681,23 @@ type
     property ShapeType: TShapeType read FShapeType write SetShapeType default stRectangle;
 
     property Filled: boolean read FFilled write SetFilled default true;
+
     { The fill color, used if @link(Filled). By default, opaque white. }
     property Color: TCastleColor read FColor write SetColor;
 
     property Outline: boolean read FOutline write SetOutline default false;
+
     { The outline color, used if @link(Outline). By default, opaque black. }
     property OutlineColor: TCastleColor read FOutlineColor write SetOutlineColor;
+
+    { The outline width, used if @link(Outline).
+
+      @bold(Outline widths thicker than 1 pixel are not guaranteed
+      to be supported. In particular they will almost never work on mobile (OpenGLES).)
+      See the LineWidth comments at DrawPrimitive2D procedure.
+      Consider using other methods if you need to draw a thick shape outline
+      in a reliable manner. To draw a rectangle with frame, it's usually better
+      to use Draw3x3 call, with a special texture with a frame and insides. }
     property OutlineWidth: Single read FOutlineWidth write SetOutlineWidth default 1.0;
   end;
 
