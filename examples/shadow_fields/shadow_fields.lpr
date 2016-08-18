@@ -177,7 +177,7 @@ procedure TMySceneManager.RenderFromViewEverything;
 var
   H: TLightInstance;
 begin
-  GLClear([cbColor, cbDepth], Black);
+  RenderContext.Clear([cbColor, cbDepth], Black);
   glLoadMatrix(Camera.Matrix);
 
   if UseEnvLight and (not SceneReceiver.BoundingBox.IsEmpty) then

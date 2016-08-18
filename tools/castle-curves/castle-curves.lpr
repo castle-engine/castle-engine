@@ -222,7 +222,7 @@ var
 begin
   glLoadIdentity;
 
-  GLClear([cbColor], Black);
+  RenderContext.Clear([cbColor], Black);
   if BackgroundImage <> nil then
     BackgroundImage.Draw(BackgroundImage.Rect.ScaleAround0(Zoom));
 

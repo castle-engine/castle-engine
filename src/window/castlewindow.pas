@@ -3009,10 +3009,10 @@ procedure TCastleWindowCustom.OpenCore;
     Viewport2DSize[1] := WindowRect.Height;
     OrthoProjection(0, WindowRect.Width, 0, WindowRect.Height);
 
-    { Not only is GLClear faster than DrawRectangle(WindowRect,...).
+    { Not only is RenderContext.Clear faster than DrawRectangle(WindowRect,...).
       In this case, it is also more reliable: in case of Android immersive
       mode, we may not have yet our desired size (our width or height is smaller
-      than device screen). For some reason, GLClear manages to clear
+      than device screen). For some reason, RenderContext.Clear manages to clear
       the whole screen area anyway. }
     RenderContext.Clear([cbColor], Theme.LoadingBackgroundColor);
 

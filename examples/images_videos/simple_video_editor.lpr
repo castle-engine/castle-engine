@@ -82,7 +82,7 @@ const
   end;
 
 begin
-  GLClear([cbColor], Black);
+  RenderContext.Clear([cbColor], Black);
 
   if Video.Loaded then
   begin

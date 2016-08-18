@@ -2863,7 +2863,7 @@ end;
 procedure TCastleSimpleBackground.Render;
 begin
   inherited;
-  GLClear([cbColor], Color);
+  RenderContext.Clear([cbColor], Color);
 end;
 
 { TDialogScrollArea -------------------------------------------------------------- }
