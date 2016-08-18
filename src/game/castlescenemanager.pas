@@ -2282,12 +2282,12 @@ begin
     { Rendering directly to the screen, when no screen effects are used. }
     if not FullSize then
       { Use Scissor to limit what RenderContext.Clear clears. }
-      ScissorEnable(ScreenRect);
+      RenderContext.ScissorEnable(ScreenRect);
 
     RenderFromViewEverything;
 
     if not FullSize then
-      ScissorDisable;
+      RenderContext.ScissorDisable;
   end;
 end;
 

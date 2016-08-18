@@ -19,7 +19,27 @@
 
 type
   TClearBuffer = (cbColor, cbDepth, cbStencil);
+
   TClearBuffers = set of TClearBuffer;
+
+  { Scissor to clip displayed things, in addition to the global scissor
+    affected by TRenderContext.ScissorEnable / TRenderContext.ScissorDisable.
+    Always disable an enabled scissor (destructor does it automatically).
+
+    Use this (create, enable, disable, destroy) always when the same OpenGL context
+    is current (same context is set as @link(RenderContext) value). }
+  TScissor = class
+  strict private
+    FEnabled: boolean;
+    procedure SetEnabled(const Value: boolean);
+  public
+    { Rectangle to which we clip rendering. Empty by default (will clip everything,
+      if you don't assign this!). Do not change this when scissor is enabled. }
+    Rect: TRectangle;
+    constructor Create;
+    destructor Destroy; override;
+    property Enabled: boolean read FEnabled write SetEnabled;
+  end;
 
   { The OpenGL / OpenGLES context state.
     We try hard to make this a @bold(very, very) small class,
@@ -28,15 +48,32 @@ type
     instance. }
   TRenderContext = class
   strict private
+    type
+      TScissorList = class(TFPObjectList)
+      //class(specialize TFPGObjectList<TScissor>) // see comments in "uses" clause -- we cannot use FGL unit here
+      public
+        procedure Update;
+      end;
+
+    var
     FClearColor: TCastleColor;
     FLineWidth, FPointSize: Single;
+    FGlobalAmbient: TCastleColor;
+    FGlobalScissor: TScissor;
     procedure SetLineWidth(const Value: Single);
     procedure SetPointSize(const Value: Single);
+    procedure SetGlobalAmbient(const Value: TCastleColor);
+  private
+    FEnabledScissors: TScissorList;
   public
     constructor Create;
+    destructor Destroy; override;
 
     { Clear the whole buffer contents.
-      Never call OpenGL glClear or glClearColor, always use this method. }
+
+      Never call OpenGL glClear or glClearColor, always use this method.
+
+      Use this only when this context is @italic(current), which means it's set as @link(RenderContext) value. }
     procedure Clear(const Buffers: TClearBuffers; const ClearColor: TCastleColor);
 
     { The rendered line width.
@@ -44,7 +81,9 @@ type
 
       Do not access this property directly, unless you make direct
       OpenGL/OpenGLES calls. In normal circumstances, engine API
-      (like DrawPrimitive2D or TCastleScene) set this automatically. }
+      (like DrawPrimitive2D or TCastleScene) set this automatically.
+
+      Use this only when this context is @italic(current), which means it's set as @link(RenderContext) value. }
     property LineWidth: Single read FLineWidth write SetLineWidth default 1;
 
     { The rendered point size.
@@ -52,8 +91,30 @@ type
 
       Do not access this property directly, unless you make direct
       OpenGL/OpenGLES calls. In normal circumstances, engine API
-      (like DrawPrimitive2D or TCastleScene) set this automatically. }
+      (like DrawPrimitive2D or TCastleScene) set this automatically.
+
+      Use this only when this context is @italic(current), which means it's set as @link(RenderContext) value. }
     property PointSize: Single read FPointSize write SetPointSize default 1;
+
+    { Global ambient lighting. This is added to every 3D object color,
+      multiplied by material ambient.
+
+      The default value is (0.2, 0.2, 0.2). It matches default
+      GL_LIGHT_MODEL_AMBIENT in fixed-function OpenGL.
+      It also matches the required value of VRML 1.0 specification.
+      For VRML 2.0 / X3D, lighting equations suggest that it should be zero. }
+    property GlobalAmbient: TCastleColor read FGlobalAmbient write SetGlobalAmbient;
+
+     { Enable or disable scissor.
+
+       Never call OpenGL glScissor or glEnable(GL_SCISSOR_TEST) / glDisable(GL_SCISSOR_TEST)
+       directly, or push/pop the related attrib (in case of fixed-function pipeline).
+
+       Use this only when this context is @italic(current), which means it's set as @link(RenderContext) value.
+       @groupBegin }
+     procedure ScissorEnable(const Rect: TRectangle);
+     procedure ScissorDisable;
+     { @groupEnd }
   end;
 
 var
@@ -73,6 +134,15 @@ begin
   inherited;
   FLineWidth := 1;
   FPointSize := 1;
+  FGlobalAmbient := Vector4Single(0.2, 0.2, 0.2, 1.0);
+  FEnabledScissors := TScissorList.Create(false);
+end;
+
+destructor TRenderContext.Destroy;
+begin
+  FreeAndNil(FEnabledScissors);
+  FreeAndNil(FGlobalScissor);
+  inherited;
 end;
 
 procedure TRenderContext.Clear(const Buffers: TClearBuffers;
@@ -123,6 +193,82 @@ begin
     {$endif}
   end;
 end;
+
+procedure TRenderContext.SetGlobalAmbient(const Value: TCastleColor);
+begin
+  if not VectorsPerfectlyEqual(FGlobalAmbient, Value) then
+  begin
+    FGlobalAmbient := Value;
+
+    {$ifndef OpenGLES}
+    glLightModelv(GL_LIGHT_MODEL_AMBIENT, FGlobalAmbient);
+    {$endif}
+  end;
+end;
+
+procedure TRenderContext.ScissorEnable(const Rect: TRectangle);
+begin
+  if FGlobalScissor = nil then
+    FGlobalScissor := TScissor.Create else
+    FGlobalScissor.Enabled := false; // disable previously enabled scissor, if any
+  FGlobalScissor.Rect := Rect;
+  FGlobalScissor.Enabled := true;
+end;
+
+procedure TRenderContext.ScissorDisable;
+begin
+  if FGlobalScissor <> nil then // secure in case FGlobalScissor was already fred
+    FGlobalScissor.Enabled := false;
+end;
+
+{ TRenderContext.TScissorList ------------------------------------------------------------------- }
+
+procedure TRenderContext.TScissorList.Update;
+var
+  R: TRectangle;
+  I: Integer;
+begin
+  if Count <> 0 then
+  begin
+    R := TScissor(Items[0]).Rect;
+    for I := 1 to Count - 1 do
+      R := R * TScissor(Items[I]).Rect;
+    glScissor(R.Left, R.Bottom, R.Width, R.Height);
+    glEnable(GL_SCISSOR_TEST);
+  end else
+    glDisable(GL_SCISSOR_TEST);
+end;
+
+{ TScissor ------------------------------------------------------------------- }
+
+constructor TScissor.Create;
+begin
+  inherited;
+  Rect := TRectangle.Empty;
+end;
+
+destructor TScissor.Destroy;
+begin
+  Enabled := false;
+  inherited;
+end;
+
+procedure TScissor.SetEnabled(const Value: boolean);
+begin
+  if FEnabled <> Value then
+  begin
+    FEnabled := Value;
+    if RenderContext.FEnabledScissors <> nil then
+    begin
+      if Value then
+        RenderContext.FEnabledScissors.Add(Self) else
+        RenderContext.FEnabledScissors.Remove(Self);
+      RenderContext.FEnabledScissors.Update;
+    end;
+  end;
+end;
+
+{ globals -------------------------------------------------------------------- }
 
 procedure GLClear(const Buffers: TClearBuffers; const ClearColor: TCastleColor);
 begin
