@@ -276,6 +276,7 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
 var
   Blending: boolean;
   I, RequiredPrimitive2DPointPtrSize: Integer;
+  TargetPointPtr: PVector2SmallInt;
 begin
   {$ifdef GLImageUseShaders}
   if Primitive2DProgram = nil then
@@ -318,10 +319,12 @@ begin
   end;
 
   { copy Points to Primitive2DPointPtr }
+  TargetPointPtr := Primitive2DPointPtr;
   for I := 0 to High(Points) do
-    Move(Points[I],
-      PVector2SmallInt(PtrUInt(Primitive2DPointPtr) + SizeOf(TVector2SmallInt) * I)^,
-      SizeOf(TVector2SmallInt));
+  begin
+    Move(Points[I], TargetPointPtr^, SizeOf(TVector2SmallInt));
+    Inc(TargetPointPtr);
+  end;
 
   if GLFeatures.VertexBufferObject then
   begin
