@@ -215,7 +215,7 @@ begin
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_COLOR_MATERIAL);
-    glPointSize(10);
+    RenderContext.PointSize := 10;
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
     case SurfaceShow of

@@ -20,7 +20,8 @@ unit CastleGLContainer;
 
 interface
 
-uses CastleUIControls;
+uses Classes,
+  CastleUIControls, CastleGLUtils;
 
 type
   { Container for controls providing an OpenGL rendering.
@@ -28,13 +29,33 @@ type
     It is not useful from the outside, unless you want to implement
     your own container provider similar to TCastleWindowCustom / TCastleControlCustom. }
   TGLContainer = class abstract(TUIContainer)
+  strict private
+    FContext: TRenderContext;
   public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    property Context: TRenderContext read FContext;
     procedure EventRender; override;
   end;
 
 implementation
 
-uses CastleVectors, CastleGL, CastleGLUtils;
+uses SysUtils,
+  CastleVectors, CastleGL;
+
+constructor TGLContainer.Create(AOwner: TComponent);
+begin
+  inherited;
+  FContext := TRenderContext.Create;
+end;
+
+destructor TGLContainer.Destroy;
+begin
+  if RenderContext = FContext then
+    RenderContext := nil;
+  FreeAndNil(FContext);
+  inherited;
+end;
 
 procedure TGLContainer.EventRender;
 
@@ -48,7 +69,7 @@ procedure TGLContainer.EventRender;
     {$endif}
     glDisable(GL_DEPTH_TEST);
     GLEnableTexture(CastleGLUtils.etNone);
-    glViewport(Rect);
+    CastleGLUtils.glViewport(Rect);
     OrthoProjection(0, Width, 0, Height);
 
     { Set OpenGL state that may be changed carelessly, and has some

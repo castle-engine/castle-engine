@@ -931,10 +931,10 @@ end;
 
         @item(@italic((For fixed-function pipeline.))
           The modelview matrix is set to identity. The matrix mode
-          is always identity.)
+          is always modelview.)
 
-        @item(The raster position @italic((for fixed-function pipeline.))
-          and (deprecated) WindowPos are set to 0,0.)
+        @item(The raster position @italic((for fixed-function pipeline))
+          is set to (0,0). The (deprecated) WindowPos is also set to (0,0).)
 
         @item(Depth test is off.)
 

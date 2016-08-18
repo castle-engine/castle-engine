@@ -228,7 +228,7 @@ begin
 
   glEnable(GL_DEPTH_TEST);
     glColorv(Blue);
-    glPointSize(10); { CastleRenderer will reset point size }
+    RenderContext.PointSize := 10; { CastleRenderer will reset point size }
     glBegin(GL_POINTS);
       glVertexv(NavigatorData[ntSFExplorer].Pos);
     glEnd;

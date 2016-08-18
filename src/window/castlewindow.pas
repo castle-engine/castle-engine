@@ -1965,8 +1965,10 @@ end;
     { See TUIContainer.Invalidate. }
     procedure Invalidate;
 
-    { Make the OpenGL context of this window "current" (following OpenGL
-      commands will apply to this). When the window is opened, and right
+    { Make the OpenGL context of this window @italic(current). Following OpenGL
+      commands will apply to this context, and the @link(CastleGLUtils.RenderContext)
+      will also refer to this.
+      When the window is opened, and right
       before calling any window callback, we always automatically call
       this, so you should not need to call this method yourself
       in normal circumstances. }
@@ -3012,7 +3014,7 @@ procedure TCastleWindowCustom.OpenCore;
       mode, we may not have yet our desired size (our width or height is smaller
       than device screen). For some reason, GLClear manages to clear
       the whole screen area anyway. }
-    GLClear([cbColor], Theme.LoadingBackgroundColor);
+    RenderContext.Clear([cbColor], Theme.LoadingBackgroundColor);
 
     UIScale := Container.DefaultUIScale;
     TextRect := Theme.Images[tiLoading].Rect.
@@ -3214,6 +3216,7 @@ begin
   if Application.Current <> Self then
   begin
     BackendMakeCurrent;
+    RenderContext := Container.Context;
     Application.Current := Self;
   end;
 end;

@@ -355,7 +355,7 @@ var
 begin
   {$warnings off}
   glColorv(Color);
-  glLineWidth(LineWidth);
+  RenderContext.LineWidth := LineWidth;
   {$warnings on}
   glBegin(GL_LINE_STRIP);
   for i := 0 to Segments do glVertexv(PointOfSegment(i, Segments));

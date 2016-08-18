@@ -421,7 +421,7 @@ end;
 
 procedure Open(Container: TUIContainer);
 begin
-  glPointSize(10);
+  RenderContext.PointSize := 10;
 end;
 
 procedure Update(Container: TUIContainer);

@@ -544,7 +544,7 @@ begin
     and no need to even clear color buffer before.
     We lose this optimization now, since we don't know now which cube sides
     are successfully loaded and which have alpha. }
-  GLClear([cbColor], ClearColor);
+  RenderContext.Clear([cbColor], ClearColor);
 
   { Note: the Frustum is useless now, as it contains a shifted camera,
     not just rotated. We pass it, but it will be ignored. }
