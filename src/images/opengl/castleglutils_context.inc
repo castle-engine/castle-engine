@@ -58,11 +58,11 @@ type
     var
     FClearColor: TCastleColor;
     FLineWidth, FPointSize: Single;
-    FGlobalAmbient: TCastleColor;
+    FGlobalAmbient: TCastleColorRGB;
     FGlobalScissor: TScissor;
     procedure SetLineWidth(const Value: Single);
     procedure SetPointSize(const Value: Single);
-    procedure SetGlobalAmbient(const Value: TCastleColor);
+    procedure SetGlobalAmbient(const Value: TCastleColorRGB);
   private
     FEnabledScissors: TScissorList;
   public
@@ -103,7 +103,7 @@ type
       GL_LIGHT_MODEL_AMBIENT in fixed-function OpenGL.
       It also matches the required value of VRML 1.0 specification.
       For VRML 2.0 / X3D, lighting equations suggest that it should be zero. }
-    property GlobalAmbient: TCastleColor read FGlobalAmbient write SetGlobalAmbient;
+    property GlobalAmbient: TCastleColorRGB read FGlobalAmbient write SetGlobalAmbient;
 
      { Enable or disable scissor.
 
@@ -134,7 +134,7 @@ begin
   inherited;
   FLineWidth := 1;
   FPointSize := 1;
-  FGlobalAmbient := Vector4Single(0.2, 0.2, 0.2, 1.0);
+  FGlobalAmbient := Vector3Single(0.2, 0.2, 0.2);
   FEnabledScissors := TScissorList.Create(false);
 end;
 
@@ -194,14 +194,17 @@ begin
   end;
 end;
 
-procedure TRenderContext.SetGlobalAmbient(const Value: TCastleColor);
+procedure TRenderContext.SetGlobalAmbient(const Value: TCastleColorRGB);
 begin
   if not VectorsPerfectlyEqual(FGlobalAmbient, Value) then
   begin
     FGlobalAmbient := Value;
 
     {$ifndef OpenGLES}
-    glLightModelv(GL_LIGHT_MODEL_AMBIENT, FGlobalAmbient);
+    { We always set "1" as global ambient alpha.
+      This alpha does not have any useful interpretation, it seems,
+      so don't let it change. }
+    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(FGlobalAmbient, 1));
     {$endif}
   end;
 end;

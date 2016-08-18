@@ -283,7 +283,7 @@ begin
       CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Shader.MaterialDiffuse[3]);
       CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(Shader.MaterialShininessExp);
       CurrentMeshShader.UniformCastle_SceneColor.SetValue(Vector3SingleCut(Shader.MaterialEmission) +
-        GlobalAmbient * Vector3SingleCut(Shader.MaterialAmbient));
+        RenderContext.GlobalAmbient * Vector3SingleCut(Shader.MaterialAmbient));
       CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Shader.MaterialUnlit);
 
       Attribs := TGLSLAttributeList.Create;
