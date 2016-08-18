@@ -39,6 +39,7 @@ var
   OnScreenMenu: TCastleOnScreenMenu;
   Touch: TCastleTouchControl;
   SliderRotation: TCastleFloatSlider;
+  Rect1, Rect2, Circle1, Circle2: TCastleShape;
 
 type
   TClicksHandler = class
@@ -203,6 +204,50 @@ begin
   Touch.Left := 10;
   Touch.Bottom := 150;
   Window.Controls.InsertFront(Touch);
+
+  Rect1 := TCastleShape.Create(Window);
+  Rect1.Width := 50;
+  Rect1.Height := 100;
+  Rect1.Anchor(vpBottom, 10);
+  Rect1.Anchor(hpRight, -10);
+  Rect1.Outline := true;
+  Rect1.OutlineWidth := 4;
+  Window.Controls.InsertFront(Rect1);
+
+  Rect2 := TCastleShape.Create(Window);
+  Rect2.Width := 50;
+  Rect2.Height := 100;
+  Rect2.Anchor(vpBottom, 10);
+  Rect2.Anchor(hpRight, -10 * 2 - 50);
+  Rect2.Filled := false;
+  Rect2.Outline := true;
+  Rect2.OutlineWidth := 2;
+  Rect2.OutlineColor := Red;
+  Window.Controls.InsertFront(Rect2);
+
+  Circle1 := TCastleShape.Create(Window);
+  Circle1.ShapeType := stCircle;
+  Circle1.Width := 50;
+  Circle1.Height := 100;
+  Circle1.Anchor(vpBottom, 10);
+  Circle1.Anchor(hpRight, -10 * 3 - 50 * 2);
+  Circle1.Color := Yellow;
+  Circle1.Outline := true;
+  Circle1.OutlineWidth := 4;
+  Circle1.OutlineColor := Blue;
+  Window.Controls.InsertFront(Circle1);
+
+  Circle2 := TCastleShape.Create(Window);
+  Circle2.ShapeType := stCircle;
+  Circle2.Width := 50;
+  Circle2.Height := 100;
+  Circle2.Anchor(vpBottom, 10);
+  Circle2.Anchor(hpRight, -10 * 4 - 50 * 3);
+  Circle2.Filled := false;
+  Circle2.Color := Yellow;
+  Circle2.Outline := true;
+  Circle2.OutlineWidth := 1;
+  Window.Controls.InsertFront(Circle2);
 end;
 
 function MyGetApplicationName: string;

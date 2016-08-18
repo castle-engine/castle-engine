@@ -659,6 +659,37 @@ type
       default false;
   end;
 
+  TShapeType = (stRectangle, stCircle);
+
+  { Draw a simple shape (rectangle, circle) with given color and optional outline. }
+  TCastleShape = class(TUIControlSizeable)
+  strict private
+    FFilled, FOutline: boolean;
+    FColor, FOutlineColor: TCastleColor;
+    FOutlineWidth: Single;
+    FShapeType: TShapeType;
+    procedure SetShapeType(const Value: TShapeType);
+    procedure SetFilled(const Value: boolean);
+    procedure SetColor(const Value: TCastleColor);
+    procedure SetOutline(const Value: boolean);
+    procedure SetOutlineColor(const Value: TCastleColor);
+    procedure SetOutlineWidth(const Value: Single);
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure Render; override;
+
+    property ShapeType: TShapeType read FShapeType write SetShapeType default stRectangle;
+
+    property Filled: boolean read FFilled write SetFilled default true;
+    { The fill color, used if @link(Filled). By default, opaque white. }
+    property Color: TCastleColor read FColor write SetColor;
+
+    property Outline: boolean read FOutline write SetOutline default false;
+    { The outline color, used if @link(Outline). By default, opaque black. }
+    property OutlineColor: TCastleColor read FOutlineColor write SetOutlineColor;
+    property OutlineWidth: Single read FOutlineWidth write SetOutlineWidth default 1.0;
+  end;
+
   { Fill the whole window with a simple color.
     This is very fast, but it unconditionally clears the whole window,
     and there is no blending (if your @link(Color) has some alpha, it is
@@ -2839,6 +2870,95 @@ function TCastleRectangleControl.Motion(const Event: TInputMotion): boolean;
 begin
   Result := inherited;
   Result := Result or InterceptInput;
+end;
+
+{ TCastleShape --------------------------------------------------------------- }
+
+constructor TCastleShape.Create(AOwner: TComponent);
+begin
+  inherited;
+  FShapeType := stRectangle;
+  FFilled := true;
+  FColor := White;
+  FOutline := false;
+  FOutlineWidth := 1.0;
+  FOutlineColor := Black;
+end;
+
+procedure TCastleShape.SetShapeType(const Value: TShapeType);
+begin
+  if FShapeType <> Value then
+  begin
+    FShapeType := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleShape.SetFilled(const Value: boolean);
+begin
+  if FFilled <> Value then
+  begin
+    FFilled := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleShape.SetColor(const Value: TCastleColor);
+begin
+  if not VectorsPerfectlyEqual(FColor, Value) then
+  begin
+    FColor := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleShape.SetOutline(const Value: boolean);
+begin
+  if FOutline <> Value then
+  begin
+    FOutline := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleShape.SetOutlineColor(const Value: TCastleColor);
+begin
+  if not VectorsPerfectlyEqual(FOutlineColor, Value) then
+  begin
+    FOutlineColor := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleShape.SetOutlineWidth(const Value: Single);
+begin
+  if FOutlineWidth <> Value then
+  begin
+    FOutlineWidth := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleShape.Render;
+var
+  SR: TRectangle;
+begin
+  inherited;
+  SR := ScreenRect;
+
+  if Filled then
+    case ShapeType of
+      stRectangle: DrawRectangle(SR, Color);
+      stCircle   : DrawCircle(SR.Middle, SR.Width div 2, SR.Height div 2, Color);
+      else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
+    end;
+
+  if Outline then
+    case ShapeType of
+      stRectangle: DrawRectangleOutline(SR, OutlineColor, UIScale * OutlineWidth);
+      stCircle   : DrawCircleOutline(SR.Middle, SR.Width div 2, SR.Height div 2, OutlineColor, UIScale * OutlineWidth);
+      else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
+    end;
 end;
 
 { TCastleSimpleBackground ---------------------------------------------------- }
