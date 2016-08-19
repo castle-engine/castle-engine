@@ -256,15 +256,35 @@ const
     GL_TRIANGLES
   );
 
-var
+type
+  { OpenGL resources for DrawPrimitive2D.
+    Shared across OpenGL contexts, must be freed before last OpenGL context is freed. }
+  TPrimitive2DResources = class
+    {$ifdef GLImageUseShaders}
+    Prog: TGLSLProgram;
+    UniformViewportSize, UniformColor: TGLSLUniform;
+    AttribVertex: TGLSLAttribute;
+    {$endif}
+    Vbo: TGLuint;
+    PointPtr: Pointer;
+    PointPtrAllocated: Integer;
+    destructor Destroy; override;
+  end;
+
+destructor TPrimitive2DResources.Destroy;
+begin
+  glFreeBuffer(Vbo);
   {$ifdef GLImageUseShaders}
-  Primitive2DProgram: TGLSLProgram;
-  Primitive2DUniformViewportSize, Primitive2DUniformColor: TGLSLUniform;
-  Primitive2DAttribVertex: TGLSLAttribute;
+  FreeAndNil(Prog);
   {$endif}
-  Primitive2DVbo: TGLuint;
-  Primitive2DPointPtr: Pointer;
-  Primitive2DPointPtrSize: Integer;
+  FreeMem(PointPtr); // not tied to OpenGL, but freed together anyway
+  PointPtr := nil;
+  PointPtrAllocated := 0;
+  inherited;
+end;
+
+var
+  Primitive2DRes: TPrimitive2DResources;
 
 procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const Points: array of TVector2SmallInt; const Color: TCastleColor;
@@ -275,20 +295,23 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   const PointSize: Cardinal);
 var
   Blending: boolean;
-  I, RequiredPrimitive2DPointPtrSize: Integer;
+  I, RequiredPointPtrSize: Integer;
   TargetPointPtr: PVector2SmallInt;
 begin
-  {$ifdef GLImageUseShaders}
-  if Primitive2DProgram = nil then
-  begin
-    Primitive2DProgram := TGLSLProgram.Create;
-    Primitive2DProgram.AttachVertexShader({$I primitive_2.vs.inc});
-    Primitive2DProgram.AttachFragmentShader({$I primitive_2.fs.inc});
-    Primitive2DProgram.Link;
+  if Primitive2DRes = nil then
+    Primitive2DRes := TPrimitive2DResources.Create;
 
-    Primitive2DUniformViewportSize := Primitive2DProgram.Uniform('viewport_size');
-    Primitive2DUniformColor := Primitive2DProgram.Uniform('color');
-    Primitive2DAttribVertex := Primitive2DProgram.Attribute('vertex');
+  {$ifdef GLImageUseShaders}
+  if Primitive2DRes.Prog = nil then
+  begin
+    Primitive2DRes.Prog := TGLSLProgram.Create;
+    Primitive2DRes.Prog.AttachVertexShader({$I primitive_2.vs.inc});
+    Primitive2DRes.Prog.AttachFragmentShader({$I primitive_2.fs.inc});
+    Primitive2DRes.Prog.Link;
+
+    Primitive2DRes.UniformViewportSize := Primitive2DRes.Prog.Uniform('viewport_size');
+    Primitive2DRes.UniformColor := Primitive2DRes.Prog.Uniform('color');
+    Primitive2DRes.AttribVertex := Primitive2DRes.Prog.Attribute('vertex');
   end;
   {$endif}
 
@@ -305,21 +328,23 @@ begin
     glEnable(GL_BLEND);
   end;
 
-  if (Primitive2DVbo = 0) and GLFeatures.VertexBufferObject then
-    glGenBuffers(1, @Primitive2DVbo);
+  if (Primitive2DRes.Vbo = 0) and GLFeatures.VertexBufferObject then
+    glGenBuffers(1, @Primitive2DRes.Vbo);
 
-  { make Primitive2DPointPtr have necessary size }
-  RequiredPrimitive2DPointPtrSize := SizeOf(TVector2SmallInt) * (High(Points) + 1);
-  if Primitive2DPointPtrSize <> RequiredPrimitive2DPointPtrSize then
+  { make Primitive2DRes.PointPtr have necessary size }
+  RequiredPointPtrSize := SizeOf(TVector2SmallInt) * (High(Points) + 1);
+  if Primitive2DRes.PointPtrAllocated < RequiredPointPtrSize then
   begin
-    if Primitive2DPointPtr <> nil then
-      FreeMem(Primitive2DPointPtr);
-    Primitive2DPointPtr := GetMem(RequiredPrimitive2DPointPtrSize);
-    Primitive2DPointPtrSize := RequiredPrimitive2DPointPtrSize;
+    { FreeMem + GetMem, not ReallocMem,
+      because we don't care about preserving previous memory contents }
+    if Primitive2DRes.PointPtr <> nil then
+      FreeMem(Primitive2DRes.PointPtr);
+    Primitive2DRes.PointPtr := GetMem(RequiredPointPtrSize);
+    Primitive2DRes.PointPtrAllocated := RequiredPointPtrSize;
   end;
 
-  { copy Points to Primitive2DPointPtr }
-  TargetPointPtr := Primitive2DPointPtr;
+  { copy Points to Primitive2DRes.PointPtr }
+  TargetPointPtr := Primitive2DRes.PointPtr;
   for I := 0 to High(Points) do
   begin
     Move(Points[I], TargetPointPtr^, SizeOf(TVector2SmallInt));
@@ -328,15 +353,17 @@ begin
 
   if GLFeatures.VertexBufferObject then
   begin
-    glBindBuffer(GL_ARRAY_BUFFER, Primitive2DVbo);
-    glBufferData(GL_ARRAY_BUFFER, Primitive2DPointPtrSize, Primitive2DPointPtr, GL_STREAM_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, Primitive2DRes.Vbo);
+    { load only RequiredPointPtrSize, not Primitive2DRes.PointPtrAllocated which may be larger }
+    Assert(Primitive2DRes.PointPtrAllocated >= RequiredPointPtrSize);
+    glBufferData(GL_ARRAY_BUFFER, RequiredPointPtrSize, Primitive2DRes.PointPtr, GL_STREAM_DRAW);
   end;
 
   {$ifdef GLImageUseShaders}
-  CurrentProgram := Primitive2DProgram;
-  Primitive2DAttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), 0);
-  Primitive2DUniformViewportSize.SetValue(Viewport2DSize);
-  Primitive2DUniformColor.SetValue(Color);
+  CurrentProgram := Primitive2DRes.Prog;
+  Primitive2DRes.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), 0);
+  Primitive2DRes.UniformViewportSize.SetValue(Viewport2DSize);
+  Primitive2DRes.UniformColor.SetValue(Color);
 
   {$else}
   CurrentProgram := nil;
@@ -346,16 +373,16 @@ begin
   glEnableClientState(GL_VERTEX_ARRAY);
   if GLFeatures.VertexBufferObject then
     glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), nil) else
-    glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), Primitive2DPointPtr);
+    glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), Primitive2DRes.PointPtr);
   {$endif}
 
   glDrawArrays(PrimitiveModeToGL[Mode], 0, High(Points) + 1);
 
   {$ifdef GLImageUseShaders}
-  // Primitive2DProgram.Disable; // no need to disable, keep it enabled to save speed
+  // Primitive2DRes.Prog.Disable; // no need to disable, keep it enabled to save speed
   { attribute arrays are enabled independent from GLSL program, so we need
     to disable them separately }
-  Primitive2DAttribVertex.DisableArray;
+  Primitive2DRes.AttribVertex.DisableArray;
   {$else}
   glDisableClientState(GL_VERTEX_ARRAY);
   {$endif}

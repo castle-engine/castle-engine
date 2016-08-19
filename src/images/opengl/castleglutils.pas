@@ -944,12 +944,7 @@ end;
 
 procedure ContextClose;
 begin
-  glFreeBuffer(Primitive2DVbo);
-  {$ifdef GLImageUseShaders}
-  FreeAndNil(Primitive2DProgram);
-  {$endif}
-  FreeMem(Primitive2DPointPtr); // not really tied to OpenGL
-  Primitive2DPointPtrSize := 0;
+  FreeAndNil(Primitive2DRes);
 
   { free things created by GLInformationInitialize }
   FreeAndNil(GLVersion);
