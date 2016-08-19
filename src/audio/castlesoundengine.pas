@@ -1611,12 +1611,15 @@ end;
 procedure TRepoSoundEngine.LoadSoundsBuffers;
 var
   ST: TSoundType;
+  ProgressActive: boolean;
 begin
   { load sound buffers and allocate sound for music. Only if we have any sound
     (other than stNone). }
   if ALActive and (Sounds.Count > 1) then
   begin
-    Progress.Init(Sounds.Count - 1, 'Loading sounds');
+    ProgressActive := Progress.Active;
+    if not ProgressActive then
+      Progress.Init(Sounds.Count - 1, 'Loading sounds');
     try
       { We do progress to "Sounds.Count - 1" because we start
         iterating from ST = 1 because ST = 0 = stNone never exists. }
@@ -1634,9 +1637,13 @@ begin
               [Sounds[ST].URL, E.Message]));
           end;
         end;
-        Progress.Step;
+        if not ProgressActive then
+          Progress.Step;
       end;
-    finally Progress.Fini; end;
+    finally
+      if not ProgressActive then
+        Progress.Fini;
+    end;
 
     MusicPlayer.AllocateSource;
   end;
