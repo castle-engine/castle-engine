@@ -664,7 +664,7 @@ type
   { Draw a simple shape (rectangle, circle) with given color and optional outline. }
   TCastleShape = class(TUIControlSizeable)
   strict private
-    FFilled, FOutline: boolean;
+    FFilled, FOutline, FOutlineThick: boolean;
     FColor, FOutlineColor: TCastleColor;
     FOutlineWidth: Single;
     FShapeType: TShapeType;
@@ -674,6 +674,7 @@ type
     procedure SetOutline(const Value: boolean);
     procedure SetOutlineColor(const Value: TCastleColor);
     procedure SetOutlineWidth(const Value: Single);
+    procedure SetOutlineThick(const Value: boolean);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
@@ -690,14 +691,51 @@ type
     { The outline color, used if @link(Outline). By default, opaque black. }
     property OutlineColor: TCastleColor read FOutlineColor write SetOutlineColor;
 
-    { The outline width, used if @link(Outline).
+    { Determines the drawing method of the outline, used if @link(Outline).
 
-      @bold(Outline widths thicker than 1 pixel are not guaranteed
+      @definitionList(
+        @itemLabel(@false (default))
+        @item(Draw the outline using lines, and apply OutlineWidth by changing
+          line width.
+
+          Disadvantage:
+          @bold(outline widths thicker than 1 pixel are not guaranteed
+          to be supported. In particular they will almost never work on mobile
+          (OpenGLES).)
+          See the LineWidth comments at DrawPrimitive2D procedure.
+
+          Consider using other methods if you need to draw a thick shape outline
+          in a reliable manner. To draw a rectangle with frame, it's usually better
+          to use Draw3x3 call, with a special texture with a frame and insides.)
+
+        @itemLabel(@true)
+        @item(Draw the outline by first drawing a larger shape with OutlineColor
+          underneath the smaller shape with Color.
+
+          Disadvantages:
+          @unorderedList(
+            @item(Cannot work sensibly if @link(Filled) is @false,
+              so it's disabled then. When @link(Filled) is @false,
+              it's like OutlineThick was always also @false.)
+            @item(The alpha blending may not be exactly what you want,
+              since the pixels inside are overdrawn with both OutlineColor
+              and then with Color.)
+            @item(May look a little worse in case of small OutlineWidth
+              and non-rectangular shapes.)
+          )
+
+          Advantage: thick OutlineWidth works reliably.)
+      )
+    }
+    property OutlineThick: boolean read FOutlineThick write SetOutlineThick;
+
+    { The outline width, used if @link(Outline).
+      It is affected by UI scaling.
+
+      If OutlineThick is @false, then
+      @bold(outline widths thicker than 1 pixel are not guaranteed
       to be supported. In particular they will almost never work on mobile (OpenGLES).)
-      See the LineWidth comments at DrawPrimitive2D procedure.
-      Consider using other methods if you need to draw a thick shape outline
-      in a reliable manner. To draw a rectangle with frame, it's usually better
-      to use Draw3x3 call, with a special texture with a frame and insides. }
+      Change OutlineThick to @true to have reliable thick outlines. }
     property OutlineWidth: Single read FOutlineWidth write SetOutlineWidth default 1.0;
   end;
 
@@ -2950,26 +2988,60 @@ begin
   end;
 end;
 
+procedure TCastleShape.SetOutlineThick(const Value: boolean);
+begin
+  if FOutlineThick <> Value then
+  begin
+    FOutlineThick := Value;
+    VisibleChange;
+  end;
+end;
+
 procedure TCastleShape.Render;
 var
   SR: TRectangle;
+  OutlineW, OutlineIn, OutlineOut: Integer;
 begin
   inherited;
   SR := ScreenRect;
 
-  if Filled then
-    case ShapeType of
-      stRectangle: DrawRectangle(SR, Color);
-      stCircle   : DrawCircle(SR.Middle, SR.Width div 2, SR.Height div 2, Color);
-      else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
-    end;
+  if Filled and Outline and OutlineThick then
+  begin
+    { special case when we use OutlineThick drawing mode }
 
-  if Outline then
+    OutlineW := Ceil(UIScale * OutlineWidth);
+    OutlineIn := - OutlineW div 2;
+    OutlineOut := OutlineW + OutlineIn;
+
     case ShapeType of
-      stRectangle: DrawRectangleOutline(SR, OutlineColor, UIScale * OutlineWidth);
-      stCircle   : DrawCircleOutline(SR.Middle, SR.Width div 2, SR.Height div 2, OutlineColor, UIScale * OutlineWidth);
+      stRectangle:
+        begin
+          DrawRectangle(SR.Grow(OutlineOut), OutlineColor);
+          DrawRectangle(SR.Grow(OutlineIn ), Color);
+        end;
+      stCircle   :
+        begin
+          DrawCircle(SR.Middle, SR.Width div 2 + OutlineOut, SR.Height div 2 + OutlineOut, OutlineColor);
+          DrawCircle(SR.Middle, SR.Width div 2 + OutlineIn , SR.Height div 2 + OutlineIn , Color);
+        end;
       else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
     end;
+  end else
+  begin
+    if Filled then
+      case ShapeType of
+        stRectangle: DrawRectangle(SR, Color);
+        stCircle   : DrawCircle(SR.Middle, SR.Width div 2, SR.Height div 2, Color);
+        else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
+      end;
+
+    if Outline then
+      case ShapeType of
+        stRectangle: DrawRectangleOutline(SR, OutlineColor, UIScale * OutlineWidth);
+        stCircle   : DrawCircleOutline(SR.Middle, SR.Width div 2, SR.Height div 2, OutlineColor, UIScale * OutlineWidth);
+        else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
+      end;
+  end;
 end;
 
 { TCastleSimpleBackground ---------------------------------------------------- }
