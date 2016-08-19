@@ -145,7 +145,9 @@ public class ComponentGoogleAnalytics extends ComponentAbstract
         Product product = new Product()
             .setId(availableProduct.id)
             .setCategory(availableProduct.category)
-            .setPrice(availableProduct.analyticsPrice);
+            // analyticsPrice is in cents.
+            // Google Analytics interprets this as cents in USD always, it seems.
+            .setPrice(availableProduct.analyticsPrice / 100.0);
 
         ProductAction productAction = new ProductAction(ProductAction.ACTION_PURCHASE);
 
