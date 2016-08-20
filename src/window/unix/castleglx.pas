@@ -596,7 +596,12 @@ begin
 {$ifndef darwin}
   OurLibGL := libGl;
 {$else darwin}
+  // Do not load glX stuff from GL library on Mac OS X, it is not there.
+  // Try standard Apple X11:
   OurLibGL := LoadLibrary('/usr/X11R6/lib/libGL.dylib');
+  // Try X11 from MacPorts:
+  if OurLibGL = 0 then
+    OurLibGL := LoadLibrary('/opt/local/lib/libGL.dylib');
 {$endif darwin}
 
   if OurLibGL = 0 then
