@@ -26,8 +26,9 @@ type
     affected by TRenderContext.ScissorEnable / TRenderContext.ScissorDisable.
     Always disable an enabled scissor (destructor does it automatically).
 
-    Use this (create, enable, disable, destroy) always when the same OpenGL context
-    is current (same context is set as @link(RenderContext) value). }
+    Make sure to enable and disable the scissor when the same OpenGL context
+    is current. In practice, the only reliable way to do this is to enable
+    and then disable the scissor within the same OnRender event. }
   TScissor = class
   strict private
     FEnabled: boolean;
@@ -45,7 +46,18 @@ type
     We try hard to make this a @bold(very, very) small class,
     because usually it's better to introduce a clean higher-level API
     than to track the OpenGL context state in a simple global @link(Context)
-    instance. }
+    instance.
+
+    Use the methods and properties of this class
+    only when this context is @italic(current),
+    which means it's set as @link(RenderContext) value.
+
+    Do not depend on the context state being persistent.
+    The @link(RenderContext) is constant during a single TUIControl.OnRender
+    method, and that's all we guarantee. On desktops, you control the context
+    creation / destruction explicitly (by opening / closing the TCastleWindow),
+    but on mobile devices -- the context may get destroyed and created at almost
+    any moment. }
   TRenderContext = class
   strict private
     type
@@ -63,6 +75,7 @@ type
     procedure SetLineWidth(const Value: Single);
     procedure SetPointSize(const Value: Single);
     procedure SetGlobalAmbient(const Value: TCastleColorRGB);
+    procedure WarnContextNotCurrent;
   private
     FEnabledScissors: TScissorList;
   public
@@ -71,9 +84,7 @@ type
 
     { Clear the whole buffer contents.
 
-      Never call OpenGL glClear or glClearColor, always use this method.
-
-      Use this only when this context is @italic(current), which means it's set as @link(RenderContext) value. }
+      Never call OpenGL glClear or glClearColor, always use this method. }
     procedure Clear(const Buffers: TClearBuffers; const ClearColor: TCastleColor);
 
     { The rendered line width.
@@ -81,9 +92,7 @@ type
 
       Do not access this property directly, unless you make direct
       OpenGL/OpenGLES calls. In normal circumstances, engine API
-      (like DrawPrimitive2D or TCastleScene) set this automatically.
-
-      Use this only when this context is @italic(current), which means it's set as @link(RenderContext) value. }
+      (like DrawPrimitive2D or TCastleScene) set this automatically. }
     property LineWidth: Single read FLineWidth write SetLineWidth default 1;
 
     { The rendered point size.
@@ -91,9 +100,7 @@ type
 
       Do not access this property directly, unless you make direct
       OpenGL/OpenGLES calls. In normal circumstances, engine API
-      (like DrawPrimitive2D or TCastleScene) set this automatically.
-
-      Use this only when this context is @italic(current), which means it's set as @link(RenderContext) value. }
+      (like DrawPrimitive2D or TCastleScene) set this automatically. }
     property PointSize: Single read FPointSize write SetPointSize default 1;
 
     { Global ambient lighting. This is added to every 3D object color,
@@ -109,8 +116,6 @@ type
 
        Never call OpenGL glScissor or glEnable(GL_SCISSOR_TEST) / glDisable(GL_SCISSOR_TEST)
        directly, or push/pop the related attrib (in case of fixed-function pipeline).
-
-       Use this only when this context is @italic(current), which means it's set as @link(RenderContext) value.
        @groupBegin }
      procedure ScissorEnable(const Rect: TRectangle);
      procedure ScissorDisable;
@@ -145,6 +150,11 @@ begin
   inherited;
 end;
 
+procedure TRenderContext.WarnContextNotCurrent;
+begin
+  WritelnWarning('RenderContext', 'Do not access TRenderContext properties and methods when this context is not the "current" one. Always access the properties and methods through the RenderContext singleton to avoid this warning.');
+end;
+
 procedure TRenderContext.Clear(const Buffers: TClearBuffers;
   const ClearColor: TCastleColor);
 const
@@ -156,6 +166,9 @@ var
   Mask: TGLbitfield;
   B: TClearBuffer;
 begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
   if not VectorsPerfectlyEqual(FClearColor, ClearColor) then
   begin
     FClearColor := ClearColor;
@@ -170,6 +183,9 @@ end;
 
 procedure TRenderContext.SetLineWidth(const Value: Single);
 begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
   if FLineWidth <> Value then
   begin
     FLineWidth := Value;
@@ -179,6 +195,9 @@ end;
 
 procedure TRenderContext.SetPointSize(const Value: Single);
 begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
   if FPointSize <> Value then
   begin
     FPointSize := Value;
@@ -196,6 +215,9 @@ end;
 
 procedure TRenderContext.SetGlobalAmbient(const Value: TCastleColorRGB);
 begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
   if not VectorsPerfectlyEqual(FGlobalAmbient, Value) then
   begin
     FGlobalAmbient := Value;
@@ -211,6 +233,9 @@ end;
 
 procedure TRenderContext.ScissorEnable(const Rect: TRectangle);
 begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
   if FGlobalScissor = nil then
     FGlobalScissor := TScissor.Create else
     FGlobalScissor.Enabled := false; // disable previously enabled scissor, if any
@@ -220,6 +245,9 @@ end;
 
 procedure TRenderContext.ScissorDisable;
 begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
   if FGlobalScissor <> nil then // secure in case FGlobalScissor was already fred
     FGlobalScissor.Enabled := false;
 end;

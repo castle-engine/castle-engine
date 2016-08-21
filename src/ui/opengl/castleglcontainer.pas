@@ -36,6 +36,7 @@ type
     destructor Destroy; override;
     property Context: TRenderContext read FContext;
     procedure EventRender; override;
+    procedure EventClose(const OpenWindowsCount: Cardinal); override;
   end;
 
 implementation
@@ -155,6 +156,19 @@ begin
   RenderEverything(rs3D, SomeControlHasRenderStyle2D);
   if SomeControlHasRenderStyle2D then
     RenderEverything(rs2D, Dummy);
+end;
+
+procedure TGLContainer.EventClose(const OpenWindowsCount: Cardinal);
+begin
+  inherited;
+  if OpenWindowsCount = 1 then
+  begin
+    { recreate FContext instance, to reset every variable when context is closed }
+    if RenderContext = FContext then
+      RenderContext := nil;
+    FreeAndNil(FContext);
+    FContext := TRenderContext.Create;
+  end;
 end;
 
 end.
