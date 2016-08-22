@@ -124,28 +124,6 @@ public class ComponentGameAnalytics extends ComponentAbstract
         GameAnalytics.addDesignEventWithEventId(id, (float)value);
     }
 
-/*
-    This is the wrong place to do it. It should be called
-    by ComponentGoogleBiling when transaction is successfully finished.
-
-    private void sendEventPurchase(String category, String action, String label,
-        long value, String productName)
-    {
-        if (!initialized) {
-            return;
-        }
-        // For now, we use productName as "currency".
-        // This will need to change once we start to experiment with different
-        // prices for the same item.
-        GameAnalytics.addBusinessEventWithCurrency(productName, 1,
-          "items", productName, category + ":" + action + ":" + label,
-          // careful: contrary to docs, you cannot put here null as receipt/signature, it will crash with
-          // E/AndroidRuntime(15299): java.lang.NullPointerException: null string
-          // E/AndroidRuntime(15299): 	at com.gameanalytics.sdk.GameAnalyticsSDKJNI.CppWrapper_addBusinessEventWithCurrency__SWIG_1(Native Method)
-          "", "google_play", "");
-    }
-*/
-
     private void sendTiming(String category, String variable,
         String label, long timeMiliseconds)
     {
@@ -218,10 +196,6 @@ public class ComponentGameAnalytics extends ComponentAbstract
             sendEvent(parts[1], parts[2], parts[3], Long.parseLong(parts[4]), Integer.parseInt(parts[5]), parts[6]);
             return true;
         } else
-        // if (parts.length == 6 && parts[0].equals("analytics-send-event-purchase")) {
-        //     sendEventPurchase(parts[1], parts[2], parts[3], Long.parseLong(parts[4]), parts[5]);
-        //     return true;
-        // } else
         if (parts.length == 5 && parts[0].equals("analytics-send-timing")) {
             sendTiming(parts[1], parts[2], parts[3], Long.parseLong(parts[4]));
             return true;

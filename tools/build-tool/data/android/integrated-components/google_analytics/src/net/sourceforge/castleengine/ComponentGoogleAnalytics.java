@@ -177,10 +177,6 @@ public class ComponentGoogleAnalytics extends ComponentAbstract
             sendEvent(parts[1], parts[2], parts[3], Long.parseLong(parts[4]), Integer.parseInt(parts[5]), parts[6]);
             return true;
         } else
-        // if (parts.length == 6 && parts[0].equals("analytics-send-event-purchase")) {
-        //     sendEventPurchase(parts[1], parts[2], parts[3], Long.parseLong(parts[4]), parts[5]);
-        //     return true;
-        // } else
         if (parts.length == 5 && parts[0].equals("analytics-send-timing")) {
             sendTiming(parts[1], parts[2], parts[3], Long.parseLong(parts[4]));
             return true;
