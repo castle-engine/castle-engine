@@ -17,20 +17,28 @@ public class AvailableProduct
     /* Product category. Used only by analytics for now. */
     String category;
 
-    /* When reporting purchase to analytics, we may report the price of the product.
-       *This is not necessarily the price user paid for the item!!*
-       You have to provide the information about item prices using the
-       in-app-purchases-set-available-products message ComponentGoogleInAppPurchases.
-       It's *your responsibility to provide prices equal to what you set in
-       the Google Play console*.
+    /* Price, as a string in local user currency.
+     * As defined in the store.
+     * null if not known yet
+     */
+    String price;
 
-       Currency is in ISO 4217 format.
-       Integer price is in cents.
-       Just like for GameAnalytics (although it's used for all analytics implementations):
-       https://github.com/GameAnalytics/GA-SDK-ANDROID/wiki/Business-Event .
+    /* Title and description of the product, as defined in the store.
+     * May be translated to current user language.
+     *
+     * null if not known yet (not received from the store yet).
+     */
+    String title, description;
 
-       Leave currency = null, price = 0 if not known.
-    */
-    String analyticsCurrency;
-    int analyticsPrice;
+    /* Price in micro-units, where 1,000,000 micro-units equal one unit of the currency.
+     * 0 if not known yet.
+     * See https://developer.android.com/google/play/billing/billing_reference.html
+     */
+    long priceAmountMicros;
+
+    /* ISO 4217 currency code for price.
+     * null if not known yet.
+     * See https://developer.android.com/google/play/billing/billing_reference.html
+     */
+    String priceCurrencyCode;
 }

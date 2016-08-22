@@ -36,13 +36,19 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
 {
     private static final String TAG = "${NAME}.castleengine.ComponentGoogleInAppPurchases";
     private static int REQUEST_PURCHASE = 9200;
+    // Log some internal information.
+    private final boolean debug = false;
 
     IInAppBillingService mBillingService;
     String mPayLoad;
     // Purchase tokens for known owns products, saved on this list to allow consuming items.
     Map<String, String> purchaseTokens;
-    // Products available, according to native code. Used to query product info.
-    // null if not initialized yet.
+    /* Products available. For now, their list (count and ids)
+     * must be initialized by the native code, although this assumption should
+     * not affect much logic. The remaining information is filled when the store
+     * answers.
+     *
+     * null if not initialized yet. */
     Map<String, AvailableProduct> availableProducts;
 
     /* operationQueue stuff -------------------------------------------------- */
@@ -149,17 +155,40 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                     try {
                         int response = productDetails.getInt("RESPONSE_CODE");
                         if (response == InAppPurchasesHelper.BILLING_RESPONSE_RESULT_OK) {
-                           ArrayList<String> responseList
+                            ArrayList<String> responseList
                               = productDetails.getStringArrayList("DETAILS_LIST");
 
-                           Log.i(TAG, responseList.size() + " items available for purchase.");
-                           for (String thisResponse : responseList) {
-                              JSONObject object = new JSONObject(thisResponse);
-                              String productId = object.getString("productId");
-                              String price = object.getString("price");
-                              messageSend(new String[]{"in-app-purchases-can-purchase", productId, price});
-                              // Log.i(TAG, "You can buy " + productId + " for " + price);
-                           }
+                            Log.i(TAG, responseList.size() + " items available for purchase.");
+                            for (String thisResponse : responseList) {
+                                JSONObject object = new JSONObject(thisResponse);
+                                String productId = object.getString("productId");
+
+                                AvailableProduct product;
+                                if (availableProducts.containsKey(productId)) {
+                                    product = availableProducts.get(productId);
+                                } else {
+                                    Log.w(TAG, "Product " + productId + " reported by getSkuDetails, but not in availableProducts");
+                                    product = new AvailableProduct(productId);
+                                    availableProducts.put(product.id, product);
+                                }
+
+                                product.price = object.getString("price");
+                                product.title = object.getString("title");
+                                product.description = object.getString("description");
+                                product.priceAmountMicros = Long.parseLong(object.getString("price_amount_micros"));
+                                product.priceCurrencyCode = object.getString("price_currency_code");
+                                messageSend(new String[]{"in-app-purchases-can-purchase",
+                                    product.id,
+                                    product.price,
+                                    product.title,
+                                    product.description,
+                                    Long.toString(product.priceAmountMicros),
+                                    product.priceCurrencyCode
+                                });
+                                if (debug) {
+                                    Log.i(TAG, "Product " + productId + " available for purchase, details: " + thisResponse);
+                                }
+                            }
                         } else {
                             Log.w(TAG, "Error response when getting list of stuff available for purchase: " + InAppPurchasesHelper.billingResponseToStr(response));
                         }
@@ -291,6 +320,9 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                         JSONObject jo = new JSONObject(purchaseData);
                         String productId = jo.getString("productId");
                         String payLoadReceived = jo.getString("developerPayload");
+                        if (debug) {
+                            Log.i(TAG, "Product " + productId + " purchased, details: " + purchaseData);
+                        }
                         if (payLoadReceived.equals(mPayLoad)) {
                             AvailableProduct product;
                             if (availableProducts.containsKey(productId)) {
@@ -573,14 +605,12 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
         String[] productsList = splitString(productsListStr, 2);
         for (String productStr : productsList) {
             String[] productInfo = splitString(productStr, 3);
-            if (productInfo.length != 4) {
+            if (productInfo.length != 2) {
                 Log.e(TAG, "Product info invalid: " + productStr);
                 continue;
             }
             AvailableProduct product = new AvailableProduct(productInfo[0]);
             product.category = productInfo[1];
-            product.analyticsCurrency = productInfo[2];
-            product.analyticsPrice = Integer.parseInt(productInfo[3]);
             availableProducts.put(product.id, product);
         }
 

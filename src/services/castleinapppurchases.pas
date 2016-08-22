@@ -28,17 +28,57 @@ type
   TInAppProduct = class
   private
     FName: string;
-    FPriceRaw: string;
+    FPriceRaw, FTitle, FDescription, FPriceCurrencyCode: string;
+    FPriceAmountMicros: Int64;
     FOwns: boolean;
     FSuccessfullyConsumed: boolean;
   public
+    { Short product identifier, uniquely identifying it in the store. }
     property Name: string read FName;
-    { Price, as received from Google.
-      May be empty before receiving, may contain various weird chars unsupported
-      by many fonts. Usually use @link(Price) to display the price as a string. }
+
+    { Price, as a string in local user currency.
+      Empty before receiving information about the product from the store.
+      This may contain various UTF-8 local characters used to describe currency,
+      which do not have to be supported in all fonts.
+
+      Use @link(Price) to display the price as a "safe" string, with most unusual
+      characters replaced with ASCII (so it should work reliably with any font),
+      and with special value if not received yet. }
     property PriceRaw: string read FPriceRaw;
+
+    { The price, as a string in local user currency,
+      with most unusual characters replaced with ASCII
+      (so it should work reliably with any font),
+      and with special value if not received yet.
+      @seealso PriceRaw }
     function Price(const ValueWhenUnknown: string = 'loading...'): string;
+
+    { Title of the product, as defined in the store.
+      Empty if not known yet.
+      May be translated to current user language. }
+    property Title: string read FTitle;
+
+    { Description of the product, as defined in the store.
+      Empty if not known yet.
+      May be translated to current user language. }
+    property Description: string read FDescription;
+
+    { Price in micro-units, where 1,000,000 micro-units equal one unit of the currency.
+      0 if not known yet. }
+    property PriceAmountMicros: Int64 read FPriceAmountMicros;
+
+    { ISO 4217 currency code for price.
+      Empty if not known yet. }
+    property PriceCurrencyCode: string read FPriceCurrencyCode;
+
+    { Is the product owned now. Use this for non-consumable items
+      (things that user buys, and then "owns" for the rest of his life).
+
+      Do not depend on this for consumables (use SuccessfullyConsumed
+      for them, and be sure to call @link(TInAppPurchases.SuccessfullyConsumed)
+      from @link(TInAppPurchases.Owns) for them). }
     property Owns: boolean read FOwns;
+
     { Item was consumable, and was just consumed. We should "provision"
       it now, which means that we should set @code(SuccessfullyConsumed:=false),
       and perform whatever is necessary upon consuming --- e.g. continue
@@ -51,37 +91,6 @@ type
 
     { Category. For now used only for analytics. }
     Category: string;
-
-    { When reporting purchase to analytics, we may report the price of the product.
-
-      @bold(This is not necessarily the price user paid for the item!)
-      The real price of the product is only known by Google Play,
-      and it's not reported in an analytics-friendly format to our application.
-      (Google Play only provides us a textual description of the price,
-      which you have in @link(TInAppProduct.PriceRaw), but trying to parse it back
-      into amount + currency would be very difficult to implement reliably.)
-
-      So it's @italic(your responsibility to provide here prices equal to what
-      you set in the Google Play console). Nothing terrible will happen if you
-      make a mistake --- just your analytics will not reflect correct earnings.
-      In fact, you cannot provide exact prices if you use Google Play "automatic
-      rounding to country conversions". E.g. even if you provide here correct
-      prices in USD in United States, you will not have perfect analytics anyway,
-      since the price in other countries is not a straight conversion from USD ->
-      local currency by multiplying.
-
-      Currency is in ISO 4217 format. Currently ignored by Google Analytics,
-      that records prices as a number with unspecified currency (see
-      https://developers.google.com/android/reference/com/google/android/gms/analytics/ecommerce/Product ).
-      Used by Game Analytics (see
-      https://github.com/GameAnalytics/GA-SDK-ANDROID/wiki/Business-Event ).
-
-      Price is the price, in cents. E.g. for 0.99$ product price,
-      set currency = 'USD' and price = 99.
-
-      Leave currency = '', price = 0 if not known. }
-    AnalyticsCurrency: string;
-    AnalyticsPrice: Integer;
   end;
 
   { Manage in-app purchases in your game.
@@ -248,12 +257,19 @@ begin
 end;
 
 function TInAppPurchases.MessageReceived(const Received: TCastleStringList): boolean;
+var
+  P: TInAppProduct;
 begin
   Result := false;
-  if (Received.Count = 3) and
+  if (Received.Count = 7) and
      (Received[0] = 'in-app-purchases-can-purchase') then
   begin
-    Product(Received[1]).FPriceRaw := Received[2];
+    P := Product(Received[1]);
+    P.FPriceRaw := Received[2];
+    P.FTitle := Received[3];
+    P.FDescription := Received[4];
+    P.FPriceAmountMicros := StrToInt(Received[5]);
+    P.FPriceCurrencyCode := Received[6];
     Result := true;
   end else
   if (Received.Count = 2) and
@@ -326,8 +342,13 @@ begin
     LogStr := 'Product details known completely:' + NL;
     for I := 0 to List.Count - 1 do
       LogStr += 'Product ' + List[I].Name +
-        ', price ' + List[I].Price +
-        ', owned ' + BoolToStr(List[I].Owns, true) + NL;
+        ', price: ' + List[I].Price +
+        ', owned: ' + BoolToStr(List[I].Owns, true) +
+        ', title: ' + List[I].Title +
+        ', description: ' + List[I].Description +
+        ', price amount micros: ' + IntToStr(List[I].PriceAmountMicros) +
+        ', price currency code: ' + List[I].PriceCurrencyCode +
+        NL;
     WritelnLogMultiline('InAppPurchases', LogStr);
   end;
 end;
@@ -342,8 +363,6 @@ begin
   begin
     Products[I].Name := Names[I];
     Products[I].Category := '';
-    Products[I].AnalyticsCurrency := '';
-    Products[I].AnalyticsPrice := 0;
   end;
   SetAvailableProducts(Products);
 end;
@@ -355,11 +374,7 @@ begin
   FLastAvailableProducts := '';
   for I := 0 to High(Products) do
   begin
-    FLastAvailableProducts +=
-      Products[I].Name + Chr(3) +
-      Products[I].Category + Chr(3) +
-      Products[I].AnalyticsCurrency + Chr(3) +
-      IntToStr(Products[I].AnalyticsPrice);
+    FLastAvailableProducts += Products[I].Name + Chr(3) + Products[I].Category;
     if I < High(Products) then
       FLastAvailableProducts += Chr(2);
   end;

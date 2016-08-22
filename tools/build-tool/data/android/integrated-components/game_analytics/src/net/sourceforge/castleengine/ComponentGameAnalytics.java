@@ -161,7 +161,7 @@ public class ComponentGameAnalytics extends ComponentAbstract
         // http://www.gameanalytics.com/docs/ga-data
 
         // for GameAnalytics, currency must be valid
-        String currency = product.analyticsCurrency;
+        String currency = product.priceCurrencyCode;
         if (currency == null || currency.equals("")) {
             currency = "USD";
         }
@@ -176,8 +176,10 @@ public class ComponentGameAnalytics extends ComponentAbstract
             category = category.substring(0, 64);
         }
 
+        int priceAmountCents = (int) (product.priceAmountMicros / 10000.0);
+
         GameAnalytics.addBusinessEventWithCurrency(
-            currency, product.analyticsPrice, category,
+            currency, priceAmountCents, category,
             product.id, "defaultCart", purchaseData, "google_play", signature);
     }
 

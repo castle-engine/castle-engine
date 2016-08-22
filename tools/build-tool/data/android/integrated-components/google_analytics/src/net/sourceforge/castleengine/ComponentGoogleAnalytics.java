@@ -143,11 +143,10 @@ public class ComponentGoogleAnalytics extends ComponentAbstract
         // https://developers.google.com/android/reference/com/google/android/gms/analytics/ecommerce/Product
 
         Product product = new Product()
+            // .setName(availableProduct.title) // would not make much sense, as it's translated?
             .setId(availableProduct.id)
             .setCategory(availableProduct.category)
-            // analyticsPrice is in cents.
-            // Google Analytics interprets this as cents in USD always, it seems.
-            .setPrice(availableProduct.analyticsPrice / 100.0);
+            .setPrice(availableProduct.priceAmountMicros / 1000000.0);
 
         ProductAction productAction = new ProductAction(ProductAction.ACTION_PURCHASE);
 
@@ -155,8 +154,22 @@ public class ComponentGoogleAnalytics extends ComponentAbstract
         HitBuilders.EventBuilder builder = new HitBuilders.EventBuilder()
             .setCategory("defaultCart")
             .setAction("purchase")
-            .addProduct(product)
-            .setProductAction(productAction);
+            /* not sure, but possibly setProductAction should be done before addProduct,
+               at least all examples do it like this. */
+            .setProductAction(productAction)
+            .addProduct(product);
+
+        /* Crazy Google did not give normal API to set currency code at ProductAction.
+         *
+         * Below should work, according to
+         * https://developers.google.com/analytics/devguides/collection/android/v4/enhanced-ecommerce
+         * at "Specifying Currency".
+         * In older API versions, this was saner:
+         * https://developers.google.com/analytics/devguides/collection/android/v2/ecommerce#specifying
+         * but in new API, there is no Transaction class:
+         * https://developers.google.com/android/reference/com/google/android/gms/analytics/ecommerce/ProductAction
+         */
+        t.set("&cu", availableProduct.priceCurrencyCode);
 
         // Send the transaction data with the event.
         t.send(builder.build());
