@@ -306,9 +306,6 @@ type
 
 implementation
 
-uses
-  CastleDownload;
-
 procedure TTiledMap.LoadTileset(Element: TDOMElement);
 var
   I: TXMLElementIterator;
@@ -378,9 +375,8 @@ procedure TTiledMap.LoadTilesetFromFile(const AFileName: string);
 var
   Doc: TXMLDocument;
 begin
-  Doc := nil;
   try
-    ReadXMLFile(Doc, Download(FDataPath + AFileName));
+    URLReadXML(Doc, FDataPath + AFileName);
 
     Check(LowerCase(Doc.DocumentElement.TagName) = 'tileset',
       'Root element of TSX file must be <tileset>');
@@ -819,9 +815,8 @@ var
   TmpStr: string;
   I: TXMLElementIterator;
 begin
-  Doc := nil;
   try
-    ReadXMLFile(Doc, Download(AURL));
+    URLReadXML(Doc, AURL);
 
     // Parse map attributes
     Check(LowerCase(Doc.DocumentElement.TagName) = 'map',

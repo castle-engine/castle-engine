@@ -24,13 +24,13 @@ var
 procedure ApplicationInitialize;
 begin
   { Load the default map. }
+  //todo: load map from run parameters
   TiledMap := TCastleTiledMapControl.Create(Window, ApplicationData('desert.tmx'));
   Window.Controls.InsertFront(TiledMap);
 end;
 
 procedure WindowRender(Container: TUIContainer);
 begin
-  TiledMap.Render; // potrzebne?
   UIFont.Print(10, 10, Yellow, Format('FPS: %f', [Container.Fps.RealTime]));
 end;
 
