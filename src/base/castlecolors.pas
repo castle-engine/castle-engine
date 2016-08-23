@@ -57,6 +57,7 @@ const
   WhiteRGB  : TCastleColorRGB = ( 1.0 , 1.0 , 1.0);
   BlackRGB  : TCastleColorRGB = ( 0.0 , 0.0 , 0.0);
   RedRGB    : TCastleColorRGB = ( 1.0 , 0.0 , 0.0);
+  YellowRGB : TCastleColorRGB = ( 1.0 , 1.0 , 0.0);
   GreenRGB  : TCastleColorRGB = ( 0.0 , 0.5 , 0.0);
   BlueRGB   : TCastleColorRGB = ( 0.0 , 0.0 , 1.0);
 
