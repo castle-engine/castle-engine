@@ -3698,7 +3698,9 @@ var
   var
     Instances: TShapeTreeList;
   begin
-    if OptimizeExtensiveTransformations then
+    { the OptimizeExtensiveTransformations only works for scene with ProcessEvents,
+      otherwise TransformationDirty would never be processed }
+    if OptimizeExtensiveTransformations and ProcessEvents then
       TransformationDirty := TransformationDirty + Changes else
     begin
       Check(Supports(ANode, ITransformNode),
