@@ -109,6 +109,13 @@ end;
 
 procedure TCastleFlashEffect.SetImage(const Value: TCastleImage);
 
+  { For FadeLightColor, the image should be
+    - white opaque where the effect IS applied
+    - white transparent where the effect IS NOT applied.
+    For FadeDarkColor, the image should be
+    - black opaque where the effect IS applied
+      (hm, is this really correct? black is only when Color = black)
+    - white opaque where the effect IS NOT applied. }
   function CreateGrayscaleFromAlpha(const Img: TCastleImage): TGrayscaleImage;
   var
     X, Y, Z: Integer;
@@ -117,7 +124,7 @@ procedure TCastleFlashEffect.SetImage(const Value: TCastleImage);
     for X := 0 to Img.Width - 1 do
       for Y := 0 to Img.Height - 1 do
         for Z := 0 to Img.Depth - 1 do
-          Result.PixelPtr(X, Y, Z)^ :=
+          Result.PixelPtr(X, Y, Z)^ := High(Byte) -
             Clamped(Round(Img.Colors[X, Y, Z][3] * 255), Low(Byte), High(Byte));
   end;
 
