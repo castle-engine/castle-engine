@@ -1488,7 +1488,9 @@ procedure TCastleScene.Render(
     RenderScene(TestShapeVisibility, Frustum, Params);
   end;
 
-  {$ifndef OpenGLES} //TODO-es
+  {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
+  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
+  {$warnings off}
   procedure RenderWireframe(UseWireframeColor: boolean);
   var
     SavedMode: TRenderingMode;
@@ -1511,11 +1513,15 @@ procedure TCastleScene.Render(
         Attributes.Mode := SavedMode;
     glPopAttrib;
   end;
+  {$warnings on}
   {$endif}
 
   { Render taking Attributes.WireframeEffect into account. }
   procedure RenderWithWireframeEffect;
+  // TODO-es For OpenGLES, wireframe must be done differently
   {$ifndef OpenGLES}
+  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
+  {$warnings off}
   begin
     case Attributes.WireframeEffect of
       weNormal: RenderNormal;
@@ -1554,6 +1560,7 @@ procedure TCastleScene.Render(
         end;
       else raise EInternalError.Create('Render: Attributes.WireframeEffect ?');
     end;
+  {$warnings on}
   {$else}
   begin
     RenderNormal;

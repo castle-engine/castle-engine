@@ -350,16 +350,17 @@ end;
 
 procedure TCurve.Render(Segments: Cardinal);
 {$ifndef OpenGLES} //TODO-es
+{ Using deprecated stuff within deprecated stuff. }
+{$warnings off}
 var
   i: Integer;
 begin
-  {$warnings off}
   glColorv(Color);
   RenderContext.LineWidth := LineWidth;
-  {$warnings on}
   glBegin(GL_LINE_STRIP);
   for i := 0 to Segments do glVertexv(PointOfSegment(i, Segments));
   glEnd;
+{$warnings on}
 {$else}
 begin
 {$endif}

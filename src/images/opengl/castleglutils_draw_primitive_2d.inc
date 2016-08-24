@@ -368,7 +368,9 @@ begin
   {$else}
   CurrentProgram := nil;
   glLoadIdentity();
-  glColorv(Color);
+  {$warnings off}
+  glColorv(Color); // consciously using deprecated stuff; this should be internal in this unit
+  {$warnings on}
 
   glEnableClientState(GL_VERTEX_ARRAY);
   if GLFeatures.VertexBufferObject then

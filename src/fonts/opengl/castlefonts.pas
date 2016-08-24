@@ -74,7 +74,7 @@ type
       May require 1 free slot on the attributes stack.
       May only be called when current matrix is modelview.
       Doesn't modify any OpenGL state or matrix, except it moves raster position. }
-    procedure PrintAndMove(const s: string); deprecated;
+    procedure PrintAndMove(const s: string); deprecated 'use Print(X, Y, ...), and move the (X, Y) yourself based on TextMove, instead of this';
 
     { Draw text at the given position with given color.
       If the last Color component is not 1, the text is rendered
@@ -97,8 +97,8 @@ type
     procedure Print(const Pos: TVector2Integer; const Color: TCastleColor;
       const S: string); overload;
 
-    procedure Print(const X, Y: Integer; const S: string); overload; deprecated;
-    procedure Print(const s: string); overload; deprecated;
+    procedure Print(const X, Y: Integer; const S: string); overload; deprecated 'instead of this, use Print overload that takes explicit X,Y,Color parameters';
+    procedure Print(const s: string); overload; deprecated 'instead of this, use Print overload that takes explicit X,Y,Color parameters';
 
     { Print text, aligning within given rectangle.
 
@@ -245,10 +245,10 @@ type
       const TextHorizontalAlignment: THorizontalPosition = hpLeft); overload;
     procedure PrintStrings(const Strs: TStrings;
       const Html: boolean; const LineSpacing: Integer;
-      const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated;
+      const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
     procedure PrintStrings(const Strs: array of string;
       const Html: boolean; const LineSpacing: Integer;
-      const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated;
+      const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
     { @groupEnd }
 
     { Print the string, broken such that it fits within MaxLineWidth.
@@ -295,7 +295,7 @@ type
     function PrintBrokenString(const S: string;
       const MaxLineWidth, X0, Y0: Integer;
       const PositionsFirst: boolean;
-      const LineSpacing: Integer): Integer; deprecated;
+      const LineSpacing: Integer): Integer; deprecated 'instead of this, use PrintBrokenString that takes explicit Color parameter';
     { @groupEnd }
 
     property Scale: Single read FScale write SetScale;
@@ -557,7 +557,10 @@ end;
 
 procedure TCastleFont.Print(const s: string);
 begin
+  { Deprecated method uses other deprecated method here, don't warn }
+  {$warnings off}
   Print(WindowPos[0], WindowPos[1], CurrentColor, S);
+  {$warnings on}
 end;
 
 procedure TCastleFont.PrintAndMove(const s: string);
@@ -565,13 +568,16 @@ begin
   { Deprecated method uses other deprecated method here, don't warn }
   {$warnings off}
   Print(S);
-  {$warnings on}
   WindowPos := WindowPos + TextMove(S);
+  {$warnings on}
 end;
 
 procedure TCastleFont.Print(const X, Y: Integer; const S: string);
 begin
+  { Deprecated method uses other deprecated method here, don't warn }
+  {$warnings off}
   Print(X, Y, CurrentColor, S);
+  {$warnings on}
 end;
 
 procedure TCastleFont.PrintRectMultiline(const Rect: TRectangle; const Color: TCastleColor;
@@ -781,7 +787,10 @@ procedure TCastleFont.PrintStrings(const Strs: TStrings;
   const Html: boolean; const LineSpacing: Integer;
   const X0: Integer; const Y0: Integer);
 begin
+  { Deprecated stuff uses other deprecated stuff here, don't warn }
+  {$warnings off}
   PrintStrings(X0, Y0, CurrentColor, Strs, Html, LineSpacing);
+  {$warnings on}
 end;
 
 procedure TCastleFont.PrintStrings(const Strs: array of string;
@@ -790,11 +799,14 @@ procedure TCastleFont.PrintStrings(const Strs: array of string;
 var
   SList: TStringList;
 begin
+  { Deprecated stuff uses other deprecated stuff here, don't warn }
+  {$warnings off}
   SList := TStringList.Create;
   try
     AddStrArrayToStrings(Strs, SList);
     PrintStrings(X0, Y0, CurrentColor, SList, Html, LineSpacing);
   finally SList.Free end;
+  {$warnings on}
 end;
 
 function TCastleFont.PrintBrokenString(X0, Y0: Integer;
@@ -852,8 +864,11 @@ function TCastleFont.PrintBrokenString(const S: string;
   const PositionsFirst: boolean;
   const LineSpacing: Integer): Integer; deprecated;
 begin
+  { Deprecated stuff uses other deprecated stuff here, don't warn }
+  {$warnings off}
   Result := PrintBrokenString(X0, Y0, CurrentColor, S, MaxLineWidth,
     PositionsFirst, LineSpacing);
+  {$warnings on}
 end;
 
 procedure TCastleFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);

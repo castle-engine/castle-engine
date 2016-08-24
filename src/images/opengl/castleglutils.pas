@@ -167,26 +167,34 @@ function glGetBoolean(pname: TGLEnum): TGLboolean;
   However, speeding these functions is just not needed at all anymore
   (especially with new VBO renderer that passes everything through arrays).
 
-  TODO: almost all these functions belong to deprecated fixed-function
-  and do immediate operations. They should be just removed, and everything
-  using them fixed to use VBO.
+  TODO: Some of these functions should be treated as internal.
+  A subset of these internal functions are only available in fixed-function pipeline.
+  The rest of these functions are just deprecated -- because they
+  are only for fixed-function pipeline, in immediate mode (and all modern code
+  should use VBO).
 }
 
 {$ifndef OpenGLES}
+
+// Do not mark glColorv as "deprecated" for now. These have valid (although internal) usage.
 { }
-procedure glColorv(const v: TVector3ub); overload;
-procedure glColorv(const v: TVector4ub); overload;
-procedure glColorv(const v: TVector3f); overload;
-procedure glColorv(const v: TVector4f); overload;
+procedure glColorv(const v: TVector3ub); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+{ }
+procedure glColorv(const v: TVector4ub); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+{ }
+procedure glColorv(const v: TVector3f); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+{ }
+procedure glColorv(const v: TVector4f); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
 
-procedure glTranslatev(const V: TVector3f); overload;
-procedure glTranslatev(const V: TVector3_Single); overload;
+{ }
+procedure glTranslatev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
+procedure glTranslatev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
 
-procedure glScalev(const V: Single); overload;
-procedure glScalev(const V: TVector3f); overload;
-procedure glScalev(const V: TVector3_Single); overload;
+procedure glScalev(const V: Single); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
+procedure glScalev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
+procedure glScalev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
 
-procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload;
+procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
 
 procedure glClipPlane(plane: GLenum; const V: TVector4d); overload;
 
@@ -218,24 +226,31 @@ procedure glLightModelv(pname: TGLenum; const params: TVector4f); overload;
 
 procedure glFogv(pname: TGLEnum; const params: TVector4f); overload;
 
-procedure glMultMatrix(const m: TMatrix4f); overload;
-procedure glLoadMatrix(const m: TMatrix4f); overload;
+// Do not mark as "deprecated" for now. These have valid (although internal) usage.
+{ }
+procedure glMultMatrix(const m: TMatrix4f); overload; //deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
+{ }
+procedure glLoadMatrix(const m: TMatrix4f); overload; //deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
 
+{ }
 procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); overload;
 
 {$endif}
 
 procedure GLViewport(const Rect: TRectangle);
 
-function GetCurrentColor: TCastleColor;
-procedure SetCurrentColor(const Value: TCastleColor);
+function GetCurrentColor: TCastleColor; deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+procedure SetCurrentColor(const Value: TCastleColor); deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
 
 { Current color, set by glColorv and used for TCastleFont font printing
   (in case you use deprecated TCastleFont.Print overloads without
   explicit colors).
-  You should not depend on this in new programs, rather use TCastleFont.Print
-  with explicit Color parameter. }
+
+  @deprecated Instead of this, use drawing routines that take
+  Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...)
+  or TGLImage.Color. }
 property CurrentColor: TCastleColor read GetCurrentColor write SetCurrentColor;
+  // deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
 
 { Projection matrix -------------------------------------------------------- }
 
@@ -327,14 +342,12 @@ procedure glDrawAxisWire(const Position: TVector3Single; Size: Single); deprecat
   Deprecated, do not use colors like that, instead pass TCastleColor
   to appropriate routines like TCastleFont.Print.
   @groupBegin }
-procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single); deprecated;
-procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); deprecated;
+procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single); deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
 { @groupEnd }
 {$endif}
 
 { Utilities for display lists ---------------------------------------- }
-{ Deprecated: all display list usage will be removed, since it doesn't
-  exist in modern OpenGL and OpenGL ES. }
 
 {$ifndef OpenGLES}
 
@@ -349,7 +362,7 @@ type
     When glGenLists(Range) returned zero for non-zero Range.
     The exception's Message shows Place, which may describe
     where this is called --- makes it easier to debug.) }
-function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint;
+function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint; deprecated 'do not use display lists; they are not available on OpenGLES and modern OpenGL';
 
 { If List <> 0 then it does glDeleteList on List and sets List to 0.
   In other words this is simply glDeleteList but
@@ -357,7 +370,7 @@ function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint;
     @item only if List really should be deleted
     @item sets List to 0 after deletion
   ) }
-procedure glFreeDisplayList(var list: TGLuint);
+procedure glFreeDisplayList(var list: TGLuint); deprecated 'do not use display lists; they are not available on OpenGLES and modern OpenGL';
 
 {$endif}
 
@@ -374,19 +387,24 @@ procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
 
 { Draw the 2D GUI stuff (like following GUI images and TCastleFont)
   with lower-left corner in the X,Y pixel.
-  It's not adviced to use this, better use TGLImageCore.Draw(X,Y)
-  or TCastleFont.Print(X,Y,string) methods.
   @groupBegin }
-procedure SetWindowPos(const X, Y: TGLint);
-procedure SetWindowPos(const Value: TVector2i);
-procedure SetWindowPosF(const X, Y: TGLfloat); deprecated;
-procedure SetWindowPosZero; deprecated;
+procedure SetWindowPos(const X, Y: TGLint); deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
+procedure SetWindowPos(const Value: TVector2i); deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
+procedure SetWindowPosF(const X, Y: TGLfloat); deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
+procedure SetWindowPosZero; deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
 { @groupEnd }
 
-function GetWindowPos: TVector2i;
+function GetWindowPos: TVector2i; deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
+
+{ Global position for drawing 2D stuff.
+  @deprecated Do this use this.
+  Instead of this, use drawing routines that take position as parameters,
+  like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...). }
 property WindowPos: TVector2i read GetWindowPos write SetWindowPos;
+  // deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
 
 type
+  { Possible values of @link(DepthRange). }
   TDepthRange = (drFull, drNear, drFar);
 
 function GetDepthRange: TDepthRange;
@@ -653,7 +671,9 @@ begin
 
   {$ifndef OpenGLES}
   glMatrixMode(GL_PROJECTION);
-  glLoadMatrix(Value);
+  {$warnings off}
+  glLoadMatrix(Value); // consciously using deprecated stuff; this should be internal in this unit
+  {$warnings on}
   glMatrixMode(GL_MODELVIEW);
   {$endif}
 end;
@@ -872,12 +892,18 @@ end;
 
 procedure SetWindowPos(const Value: TVector2i);
 begin
+  { Deprecated stuff uses other deprecated stuff here, don't warn }
+  {$warnings off}
   SetWindowPos(Value[0], Value[1]);
+  {$warnings on}
 end;
 
 procedure SetWindowPosZero;
 begin
+  { Deprecated stuff uses other deprecated stuff here, don't warn }
+  {$warnings off}
   SetWindowPos(0, 0);
+  {$warnings on}
 end;
 
 function GetWindowPos: TVector2i;

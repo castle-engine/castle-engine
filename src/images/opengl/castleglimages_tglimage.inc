@@ -250,7 +250,7 @@ type
       image horizontally.
 
       @groupBegin }
-    procedure Draw; overload;
+    procedure Draw; overload; deprecated 'use the Draw overload that takes position as explicit parameter';
 
     procedure Draw(const X, Y: Single); overload;
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Single); overload;
@@ -778,9 +778,12 @@ end;
 
 procedure TGLImageCore.Draw;
 begin
+  { Deprecated stuff uses other deprecated stuff here, don't warn }
+  {$warnings off}
   Draw(
     FloatRectangle(WindowPos[0], WindowPos[1], Width, Height),
     FloatRectangle(0, 0, Width, Height));
+  {$warnings on}
 end;
 
 procedure TGLImageCore.Draw(const X, Y: Single);

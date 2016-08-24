@@ -76,7 +76,9 @@ procedure TGLContainer.EventRender;
     { Set OpenGL state that may be changed carelessly, and has some
       guaranteed value, for Render2d calls. }
     {$ifndef OpenGLES} glLoadIdentity; {$endif}
+    {$warnings off}
     CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
+    {$warnings on}
   end;
 
   procedure RenderWithChildren(const C: TUIControl;
