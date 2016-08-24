@@ -96,6 +96,8 @@ type
       You cannot change it, you can only change the @link(Alpha) property
       that actually dictates the alpha drawing mode. }
     FImageAlpha: TAlphaChannel;
+    FBlendingSourceFactor: TBlendingSourceFactor;
+    FBlendingDestinationFactor: TBlendingDestinationFactor;
     function FinalAlpha: TAlphaChannel;
     procedure AlphaBegin;
     procedure AlphaEnd;
@@ -113,6 +115,10 @@ type
     function GetWidth: Cardinal; virtual;
     function GetHeight: Cardinal; virtual;
   public
+    const
+      DefaultBlendingSourceFactor = bsSrcAlpha;
+      DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
+
     { Prepare image for drawing.
 
       @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
@@ -199,6 +205,18 @@ type
       to force alpha channel). }
     property Alpha: TAutoAlphaChannel read FAlpha write FAlpha
       default acAuto;
+
+    { Blending source factor, if we use blending (see @link(Alpha)). }
+    property BlendingSourceFactor: TBlendingSourceFactor
+      read FBlendingSourceFactor
+      write FBlendingSourceFactor
+      default DefaultBlendingSourceFactor;
+
+    { Blending destination factor, if we use blending (see @link(Alpha)). }
+    property BlendingDestinationFactor: TBlendingDestinationFactor
+      read FBlendingDestinationFactor
+      write FBlendingDestinationFactor
+      default DefaultBlendingDestinationFactor;
 
     { Draw the image as 2D on screen.
 
@@ -539,6 +557,8 @@ begin
   FSmoothScaling := ASmoothScaling;
   FImageAlpha := acNone;
   FAlpha := acAuto;
+  FBlendingSourceFactor := DefaultBlendingSourceFactor;
+  FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
 
   Load(Image);
 end;
@@ -734,14 +754,14 @@ begin
     {$ifndef GLImageUseShaders}
     acSimpleYesNo:
       begin
-        glAlphaFunc(GL_GEQUAL, 0.5); // saved by GL_COLOR_BUFFER_BIT
-        glEnable(GL_ALPHA_TEST); // saved by GL_COLOR_BUFFER_BIT
+        glAlphaFunc(GL_GEQUAL, 0.5);
+        glEnable(GL_ALPHA_TEST);
       end;
     {$endif}
     acFullRange:
       begin
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
-        glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
+        GLBlendFunction(BlendingSourceFactor, BlendingDestinationFactor);
+        glEnable(GL_BLEND);
       end;
   end;
 end;
