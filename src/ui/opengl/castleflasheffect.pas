@@ -104,17 +104,24 @@ begin
     FImage := nil;
   FreeAndNil(FImageAsGrayscale);
   FreeAndNil(FGLImage);
+  FreeAndNil(FGLImageAsGrayscale);
   inherited;
 end;
 
 procedure TCastleFlashEffect.SetImage(const Value: TCastleImage);
 
-  { For FadeLightColor, the image should be
+  { For FadeColor, the image should be
     - white opaque where the effect IS applied
     - white transparent where the effect IS NOT applied.
     For FadeDarkColor, the image should be
     - black opaque where the effect IS applied
-      (hm, is this really correct? black is only when Color = black)
+      (This is only an approximation.
+       Only really correct if Color is exactly black.
+       There's no correct value here otherwise, that would work equally
+       to what DrawRectangle(FinalColor, ...) does when Image = nil.
+       We would need to render image with different shader, e.g. doing
+       lerp inside shader.
+       This is the drawback of "Dark" flash mode.)
     - white opaque where the effect IS NOT applied. }
   function CreateGrayscaleFromAlpha(const Img: TCastleImage): TGrayscaleImage;
   var
@@ -145,13 +152,13 @@ end;
 procedure TCastleFlashEffect.GLContextOpen;
 begin
   inherited;
-  if FGLImage = nil then
-    ImageChanged;
+  ImageChanged;
 end;
 
 procedure TCastleFlashEffect.GLContextClose;
 begin
   FreeAndNil(FGLImage);
+  FreeAndNil(FGLImageAsGrayscale);
   inherited;
 end;
 
@@ -221,9 +228,9 @@ begin
     begin
       FinalImage := FGLImageAsGrayscale;
       FinalColor := FadeDarkColor(FColor, FIntensity);
-      { Constants below make resulting screen color = glColor * previous screen color.
-        Note that as long as all components of FadeColor are <= 1,
-        then all components of our glColor are also always <= 1,
+      { Constants below make resulting screen color = FinalColor * previous screen color.
+        Note that as long as all components of Color are <= 1,
+        then all components of our FinalColor are also always <= 1,
         and this means that we will always make the screen darker (or equal,
         but never brighter). }
       SourceFactor := bsZero;
@@ -231,7 +238,7 @@ begin
     end else
     begin
       FinalImage := FGLImage;
-      FinalColor := FadeLightColor(FColor, FIntensity);
+      FinalColor := FadeColor(FColor, FIntensity);
       SourceFactor := bsSrcAlpha;
       DestinationFactor := bdOneMinusSrcAlpha;
     end;
