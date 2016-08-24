@@ -156,6 +156,11 @@ function HexToColorRGB(const S: string): TCastleColorRGB;
 { Change color opacity (alpha). }
 function ColorOpacity(const Color: TCastleColor; const Opacity: Single): TCastleColor;
 
+function FadeDarkColor(const FadeColor: TCastleColor;
+  const FadeIntensity: Single): TCastleColor;
+function FadeLightColor(const FadeColor: TCastleColor;
+  const FadeIntensity: Single): TCastleColor;
+
 implementation
 
 uses SysUtils, CastleUtils, CastleStringUtils;
@@ -463,6 +468,57 @@ function ColorOpacity(const Color: TCastleColor; const Opacity: Single): TCastle
 begin
   Result := Color;
   Result[3] := Opacity;
+end;
+
+function FadeDarkColor(const FadeColor: TCastleColor;
+  const FadeIntensity: Single): TCastleColor;
+const
+  FullWhiteEnd = 0.9;
+  FullBlack = 0.3;
+  { We assume that MinScale is small enough that difference between
+    "FadeColor * MinScale * screen color" and
+    "MinScale * screen color" is not noticeable. }
+  MinScale = 0.1;
+begin
+  if FadeIntensity > 0 then
+  begin
+    { for FadeIntensity in 1...FullWhiteEnd (going down):
+      screen color := FadeColor * original screen color }
+    if FadeIntensity > FullWhiteEnd then
+      Result := FadeColor else
+    { for FadeIntensity in FullWhiteEnd...FullBlack (going down):
+      final screen color changes:
+      - from screen color := FadeColor * original screen color
+      - to   screen color := FadeColor * MinScale * original screen color }
+    if FadeIntensity > FullBlack then
+      Result := FadeColor * MapRange(FadeIntensity, FullWhiteEnd, FullBlack, 1, MinScale) else
+    { for FadeIntensity in FullBlack...0 (going down):
+      final screen color changes:
+      - from screen color := MinScale * original screen color
+      - to   screen color := original screen color }
+      Result := White * MapRange(FadeIntensity, FullBlack, 0, MinScale, 1);
+
+    Result[3] := 1.0; { alpha always 1.0 in this case }
+  end else
+    Result := ZeroVector4Single;
+end;
+
+function FadeLightColor(const FadeColor: TCastleColor;
+  const FadeIntensity: Single): TCastleColor;
+const
+  FullTime = 0.9;
+var
+  Intensity: Single;
+begin
+  if FadeIntensity > 0 then
+  begin
+    if FadeIntensity < FullTime then
+      Intensity := MapRange(FadeIntensity, 0, FullTime, 0, 1) else
+      Intensity := MapRange(FadeIntensity, FullTime, 1, 1, 0);
+    Result := FadeColor;
+    Result[3] := Intensity;
+  end else
+    Result := ZeroVector4Single;
 end;
 
 end.

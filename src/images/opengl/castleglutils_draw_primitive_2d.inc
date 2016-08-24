@@ -509,63 +509,24 @@ end;
 
 procedure GLFadeRectangle(const Rect: TRectangle;
   const FadeColor: TCastleColor; const FadeIntensity: Single);
-const
-  FullWhiteEnd = 0.9;
-  FullBlack = 0.3;
-  { We assume that MinScale is small enough that difference between
-    "FadeColor * MinScale * screen color" and
-    "MinScale * screen color" is not noticeable. }
-  MinScale = 0.1;
-  { Constants below make resulting screen color = glColor * previous screen color.
-    Note that as long as all components of FadeColor are <= 1,
-    then all components of our glColor are also always <= 1,
-    and this means that we will always make the screen darker (or equal,
-    but never brighter). }
-  SourceFactor = bsZero;
-  DestinationFactor = bdSrcColor;
 var
   Color: TCastleColor;
 begin
   if FadeIntensity > 0 then
   begin
-    { for FadeIntensity in 1...FullWhiteEnd (going down):
-      screen color := FadeColor * original screen color }
-    if FadeIntensity > FullWhiteEnd then
-      Color := FadeColor else
-    { for FadeIntensity in FullWhiteEnd...FullBlack (going down):
-      final screen color changes:
-      - from screen color := FadeColor * original screen color
-      - to   screen color := FadeColor * MinScale * original screen color }
-    if FadeIntensity > FullBlack then
-      Color := FadeColor * MapRange(FadeIntensity, FullWhiteEnd, FullBlack, 1, MinScale) else
-    { for FadeIntensity in FullBlack...0 (going down):
-      final screen color changes:
-      - from screen color := MinScale * original screen color
-      - to   screen color := original screen color }
-      Color := White * MapRange(FadeIntensity, FullBlack, 0, MinScale, 1);
-
-    Color[3] := 1.0; { alpha always 1.0 in this case }
-    DrawRectangle(Rect, Color, SourceFactor, DestinationFactor, true);
+    Color := FadeDarkColor(FadeColor, FadeIntensity);
+    DrawRectangle(Rect, Color, bsZero, bdSrcColor, true);
   end;
 end;
 
 procedure GLFadeRectangleLight(const Rect: TRectangle;
   const FadeColor: TCastleColor; const FadeIntensity: Single);
-const
-  FullTime = 0.9;
-  SourceFactor = bsZero;
-  DestinationFactor = bdSrcColor;
 var
   Color: TCastleColor;
-  Intensity: Single;
 begin
   if FadeIntensity > 0 then
   begin
-    if FadeIntensity < FullTime then
-      Intensity := MapRange(FadeIntensity, 0, FullTime, 0, 1) else
-      Intensity := MapRange(FadeIntensity, FullTime, 1, 1, 0);
-    Color := FadeColor;
-    Color[3] := Intensity; { alpha always 1.0 in this case }
+    Color := FadeLightColor(FadeColor, FadeIntensity);
     DrawRectangle(Rect, Color, bsSrcAlpha, bdOneMinusSrcAlpha, true);
   end;
 end;
