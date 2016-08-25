@@ -98,7 +98,7 @@ type
       the typical 2D drawing coordinates used throughout our engine.
       If @true, the (0,0) is in the middle of the viewport. }
     property ProjectionOriginCenter: boolean
-      read FProjectionOriginCenter write FProjectionOriginCenter;
+      read FProjectionOriginCenter write FProjectionOriginCenter default false;
 
     constructor Create(AOwner: TComponent); override;
     function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
