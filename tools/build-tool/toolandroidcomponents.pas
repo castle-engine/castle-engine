@@ -18,11 +18,13 @@ unit ToolAndroidComponents;
 
 interface
 
-uses FGL, DOM,
+uses SysUtils, FGL, DOM,
   CastleUtils, CastleStringUtils,
   ToolUtils;
 
 type
+  ECannotMergeManifest = class(Exception);
+
   TAndroidComponent = class
   private
     FParameters: TStringStringMap;
@@ -50,7 +52,7 @@ procedure MergeAndroidMainActivity(const Source, Destination: string;
 
 implementation
 
-uses SysUtils, Classes, XMLRead, XMLWrite,
+uses Classes, XMLRead, XMLWrite,
   CastleXMLUtils, CastleURIUtils;
 
 { TAndroidComponent ---------------------------------------------------------- }
@@ -157,7 +159,7 @@ var
     for I := 0 to SourceAttribs.Length - 1 do
     begin
       if SourceAttribs[I].NodeType <> ATTRIBUTE_NODE then
-        raise Exception.Create('Attribute node does not have NodeType = ATTRIBUTE_NODE: ' +
+        raise ECannotMergeManifest.Create('Attribute node does not have NodeType = ATTRIBUTE_NODE: ' +
           SourceAttribs[I].NodeName);
       // if Verbose then
       //   Writeln('Appending attribute ', SourceAttribs[I].NodeName);
@@ -192,6 +194,14 @@ var
       SourceUsesPermission.CloneNode(true, DestinationXml));
   end;
 
+  procedure MergeSupportsScreens(const SourceElement: TDOMElement);
+  begin
+    if DestinationXml.DocumentElement.ChildElement(SourceElement.TagName, false) <> nil then
+      raise ECannotMergeManifest.Create(
+        'Cannot merge AndroidManifest.xml, only one <' + SourceElement.TagName + '> is allowed');
+    DestinationXml.DocumentElement.AppendChild(SourceElement.CloneNode(true, DestinationXml));
+  end;
+
 var
   I: TXMLElementIterator;
 begin
@@ -215,7 +225,9 @@ begin
           if (I.Current.TagName = 'uses-permission') and
              I.Current.HasAttribute('android:name') then
             MergeUsesPermission(I.Current) else
-            raise Exception.Create('Cannot merge AndroidManifest.xml element <' + I.Current.TagName + '>');
+          if I.Current.TagName = 'supports-screens' then
+            MergeSupportsScreens(I.Current) else
+            raise ECannotMergeManifest.Create('Cannot merge AndroidManifest.xml element <' + I.Current.TagName + '>');
         end;
       finally FreeAndNil(I) end;
 
@@ -253,7 +265,7 @@ begin
   DestinationContents := FileToString(FilenameToURISafe(Destination));
   MarkerPos := Pos(InsertMarker, DestinationContents);
   if MarkerPos = 0 then
-    raise Exception.CreateFmt('Cannot find marker "%s" in MainActivity.java', [InsertMarker]);
+    raise ECannotMergeManifest.CreateFmt('Cannot find marker "%s" in MainActivity.java', [InsertMarker]);
   Insert(SourceContents, DestinationContents, MarkerPos);
   StringToFile(Destination, DestinationContents);
 end;
