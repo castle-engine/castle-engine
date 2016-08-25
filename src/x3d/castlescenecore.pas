@@ -469,6 +469,7 @@ type
     FAnimationPrefix: string;
     FAnimationsList: TStrings;
     FTimeAtLoad: TFloatTime;
+    ForceImmediateProcessing: Integer;
 
     { When this is non-empty, then the transformation change happened,
       and should be processed (for the whole X3D graph inside RootNode).
@@ -3700,7 +3701,9 @@ var
   begin
     { the OptimizeExtensiveTransformations only works for scene with ProcessEvents,
       otherwise TransformationDirty would never be processed }
-    if OptimizeExtensiveTransformations and ProcessEvents then
+    if OptimizeExtensiveTransformations and
+       ProcessEvents and
+       (ForceImmediateProcessing = 0) then
       TransformationDirty := TransformationDirty + Changes else
     begin
       Check(Supports(ANode, ITransformNode),
@@ -6819,7 +6822,12 @@ begin
       paForceNotLooping: Loop := false;
       else               Loop := TimeNode.Loop;
     end;
-    TimeNode.FakeTime(TimeInAnimation, Loop, NextEventTime);
+    Inc(ForceImmediateProcessing);
+    try
+      TimeNode.FakeTime(TimeInAnimation, Loop, NextEventTime);
+    finally
+      Dec(ForceImmediateProcessing);
+    end;
   end;
 end;
 
