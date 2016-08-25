@@ -246,7 +246,7 @@ end;
 
 procedure WritelnLog(const Message: string);
 begin
-  WriteLog(ApplicationName, Message);
+  WritelnLog(ApplicationName, Message);
 end;
 
 procedure WritelnLog(const Category: string; const MessageBase: string;
