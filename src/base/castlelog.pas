@@ -85,6 +85,8 @@ procedure WritelnLog(const Message: string);
   This is a shortcut for @code(WritelnLog(Category, Format(MessageBase, Args))). }
 procedure WritelnLog(const Category: string; const MessageBase: string;
   const Args: array of const);
+procedure WritelnLog(const MessageBase: string;
+  const Args: array of const);
 
 { Log message, without appending newline at the end (given Message
   should already contain a final newline). }
@@ -253,6 +255,12 @@ procedure WritelnLog(const Category: string; const MessageBase: string;
   const Args: array of const);
 begin
   WritelnLog(Category, Format(MessageBase, Args));
+end;
+
+procedure WritelnLog(const MessageBase: string;
+  const Args: array of const);
+begin
+  WritelnLog(ApplicationName, Format(MessageBase, Args));
 end;
 
 procedure WriteLogMultiline(const Category: string; const Message: string);
