@@ -245,9 +245,10 @@ var
       'jniLibs' + PathDelim + 'armeabi-v7a' + PathDelim + Project.AndroidLibraryFile(false));
   end;
 
-  procedure GenerateAntProperties(var PackageMode: TCompilationMode);
-  var
-    KeyStore, KeyAlias, KeyStorePassword, KeyAliasPassword: string;
+var
+  KeyStore, KeyAlias, KeyStorePassword, KeyAliasPassword: string;
+
+  procedure CalculateSigningProperties(var PackageMode: TCompilationMode);
   const
     WWW = 'https://github.com/castle-engine/castle-engine/wiki/Android';
 
@@ -273,6 +274,38 @@ var
           KeyAlias := S.Values['key.alias'];
           KeyStorePassword := S.Values['key.store.password'];
           KeyAliasPassword := S.Values['key.alias.password'];
+
+          (*
+          Project.AndroidSigningConfig :=
+            'signingConfigs {' + NL +
+            '    release {' + NL +
+            '        storeFile file("' + KeyStore + '")' + NL +
+            '        storePassword "' + KeyStorePassword + '"' + NL +
+            '        keyAlias "' + KeyAlias + '"' + NL +
+            '        keyPassword "' + KeyAliasPassword + '"' + NL +
+            '    }' + NL +
+            '}' + NL;
+          Project.AndroidSigningConfigDeclare := 'signingConfig signingConfigs.release';
+
+          This fails with gradle error
+          (as of 'com.android.tools.build:gradle-experimental:0.7.0' ; did not try with later versions)
+
+            * Where:
+            Build file '/tmp/castle-engine157085/app/build.gradle' line: 26
+            * What went wrong:
+            A problem occurred configuring project ':app'.
+            > Exception thrown while executing model rule: android { ... } @ app/build.gradle line 4, column 5 > named(release)
+               > Attempt to read a write only view of model of type 'org.gradle.model.ModelMap<com.android.build.gradle.managed.BuildType>' given to rule 'android { ... } @ app/build.gradle line 4, column 5'
+
+          See
+          https://code.google.com/p/android/issues/detail?id=182249
+          http://stackoverflow.com/questions/32109501/adding-release-keys-in-the-experimental-gradle-plugin-for-android
+
+          We use simpler solution now, from the bottom of
+          https://plus.googleapis.com/+JoakimEngstr%C3%B6mJ/posts/NY3JUkz5dPP
+          See also
+          http://www.tinmith.net/wayne/blog/2014/08/gradle-sign-command-line.htm
+          *)
         end;
       finally FreeAndNil(S) end;
     end;
@@ -285,7 +318,6 @@ var
     KeyAlias := '';
     KeyStorePassword := '';
     KeyAliasPassword := '';
-
     if FileExists(Project.Path + SourceAntProperties) then
     begin
       LoadSigningProperties(Project.Path + SourceAntProperties);
@@ -300,12 +332,6 @@ var
       WritelnWarning('Android', 'Information about the keys to sign release Android package not found, because "' + SourceAntProperties + '" file does not exist. See ' + WWW + ' for documentation how to create and use keys to sign release Android apk. Falling back to creating debug apk.');
       PackageMode := cmDebug;
     end;
-
-    // TODO: use these with new gradle build system
-    // KeyStore := '';
-    // KeyAlias := '';
-    // KeyStorePassword := '';
-    // KeyAliasPassword := '';
   end;
 
   { Run "gradlew" to actually build the final apk. }
@@ -319,6 +345,13 @@ var
       // TODO
       // if not Verbose then
       //   Args.Add('-quiet');
+      if PackageMode <> cmDebug then
+      begin
+        Args.Add('-Pandroid.injected.signing.store.file=' + KeyStore);
+        Args.Add('-Pandroid.injected.signing.store.password=' + KeyStorePassword);
+        Args.Add('-Pandroid.injected.signing.key.alias=' + KeyAlias);
+        Args.Add('-Pandroid.injected.signing.key.password=' + KeyAliasPassword);
+      end;
       {$ifdef MSWINDOWS}
       RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
       {$else}
@@ -347,6 +380,8 @@ begin
     AndroidProjectPath := InclPathDelim(CreateTemporaryDir);
   PackageMode := SuggestedPackageMode;
 
+  CalculateSigningProperties(PackageMode);
+
   GenerateFromTemplates;
 
   Subprojects := FindSubprojects; // subprojects are only found once we did GenerateFromTemplates
@@ -354,7 +389,6 @@ begin
     GenerateIcons;
     GenerateAssets;
     GenerateLibrary;
-    GenerateAntProperties(PackageMode);
 
     for I := 0 to Subprojects.Count - 1 do
     begin
@@ -372,7 +406,7 @@ begin
   ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
   CheckRenameFile(AndroidProjectPath + 'app' + PathDelim + 'build' +
     PathDelim + 'outputs' + PathDelim + 'apk' + PathDelim +
-    'app-arm7-' + PackageModeToName[PackageMode] + '.apk',
+    'app-' + PackageModeToName[PackageMode] + '.apk',
     Project.Path + ApkName);
 
   Writeln('Build ' + ApkName);
