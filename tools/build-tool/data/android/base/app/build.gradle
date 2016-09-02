@@ -1,0 +1,27 @@
+apply plugin: 'com.android.model.application'
+
+model {
+    android {
+        compileSdkVersion = ${ANDROID_COMPILE_SDK_VERSION}
+        buildToolsVersion = '${ANDROID_BUILD_TOOLS_VERSION}'
+
+        defaultConfig {
+            applicationId = '${QUALIFIED_NAME}'
+            minSdkVersion.apiLevel    = ${ANDROID_MIN_SDK_VERSION}
+            targetSdkVersion.apiLevel = ${ANDROID_TARGET_SDK_VERSION}
+        }
+        buildTypes {
+            release {
+                minifyEnabled = false
+                proguardFiles.add(file('proguard-rules.txt'))
+            }
+        }
+        productFlavors {
+            // for detailed abiFilter descriptions, refer to "Supported ABIs" @
+            // https://developer.android.com/ndk/guides/abis.html#sa
+            create("arm7") {
+                ndk.abiFilters.add("armeabi-v7a")
+            }
+	}
+    }
+}
