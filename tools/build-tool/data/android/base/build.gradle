@@ -1,11 +1,14 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
-// Just like in android-ndk-samples/hello-gl2/build.gradle
 buildscript {
     repositories {
        jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle-experimental:0.7.0'
+        // Use latest gradle version, as created by default for new Android Studio projects,
+        // and as mentioned on
+        // http://tools.android.com/tech-docs/new-build-system/version-compatibility
+        // https://developer.android.com/studio/releases/gradle-plugin.html
+        classpath 'com.android.tools.build:gradle:2.1.3'
     }
 }
 
