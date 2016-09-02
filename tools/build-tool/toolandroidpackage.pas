@@ -406,7 +406,7 @@ begin
   ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
   CheckRenameFile(AndroidProjectPath + 'app' + PathDelim + 'build' +
     PathDelim + 'outputs' + PathDelim + 'apk' + PathDelim +
-    'app-' + PackageModeToName[PackageMode] + '.apk',
+    'app-defaultFlavour-' + PackageModeToName[PackageMode] + '.apk',
     Project.Path + ApkName);
 
   Writeln('Build ' + ApkName);
