@@ -8,6 +8,12 @@ android {
         applicationId = '${QUALIFIED_NAME}'
         minSdkVersion    = ${ANDROID_MIN_SDK_VERSION}
         targetSdkVersion = ${ANDROID_TARGET_SDK_VERSION}
+        ndk{
+            // For detailed abiFilter descriptions, refer to "Supported ABIs" @
+            // https://developer.android.com/ndk/guides/abis.html#s
+            // See also https://code.google.com/p/android/issues/detail?id=220615
+            abiFilters "armeabi-v7a"
+        }
     }
     buildTypes {
         release {
@@ -15,11 +21,5 @@ android {
             // Not using proguard now
             // proguardFiles.add(file('proguard-rules.txt'))
         }
-    }
-    productFlavors {
-        // For detailed abiFilter descriptions, refer to "Supported ABIs" @
-        // https://developer.android.com/ndk/guides/abis.html#s
-        // See also https://code.google.com/p/android/issues/detail?id=220615
-        defaultFlavour { ndk { abiFilters 'armeabi-v7a' } }
     }
 }
