@@ -329,6 +329,7 @@ begin
         raise ECannotMergeBuildGradle.Create('The source file from which to merge build.gradle must be XML with root <build_gradle_merge>');
       MergeItems('dependencies', 'dependency', '// MERGE-DEPENDENCIES');
       MergeItems('plugins', 'plugin', '// MERGE-PLUGINS');
+      MergeItems('repositories', 'repository', '// MERGE-REPOSITORIES');
     finally FreeAndNil(Doc) end;
   finally FreeAndNil(SStream) end;
 

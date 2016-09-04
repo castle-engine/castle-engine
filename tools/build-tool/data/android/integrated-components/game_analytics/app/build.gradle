@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<build_gradle_merge>
+  <!-- https://github.com/GameAnalytics/GA-SDK-Android/wiki/Download%20&%20Installation -->
+  <dependencies>
+    <dependency>compile 'com.gameanalytics.sdk:gameanalytics-android:3.4.0'</dependency>
+  </dependencies>
+</build_gradle_merge>
