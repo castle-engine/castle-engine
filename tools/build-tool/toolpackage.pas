@@ -70,7 +70,7 @@ end;
 
 destructor TPackageDirectory.Destroy;
 begin
-  RemoveNonEmptyDir(TemporaryDir);
+  RemoveNonEmptyDir(TemporaryDir, true);
   inherited;
 end;
 

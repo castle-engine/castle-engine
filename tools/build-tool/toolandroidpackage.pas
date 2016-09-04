@@ -412,7 +412,7 @@ begin
   Writeln('Build ' + ApkName);
 
   if TemporaryAndroidProjectPath and not LeaveTemp then
-    RemoveNonEmptyDir(AndroidProjectPath);
+    RemoveNonEmptyDir(AndroidProjectPath, true);
 end;
 
 procedure InstallAndroidPackage(const Name, QualifiedName: string);

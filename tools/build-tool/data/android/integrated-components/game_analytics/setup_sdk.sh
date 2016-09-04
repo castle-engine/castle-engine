@@ -5,7 +5,7 @@ BASE_URL='https://github.com/GameAnalytics/GA-SDK-ANDROID/blob/master/GA/'
 URL_SUFFIX='?raw=true'
 
 wget "${BASE_URL}"jar/libs/gameanalytics.jar"${URL_SUFFIX}" \
---output-document libs/gameanalytics.jar
+--output-document app/src/main/libs/gameanalytics.jar
 
 # Unused tests of using aar below.
 #
