@@ -24,6 +24,7 @@ uses SysUtils, FGL, DOM,
 
 type
   ECannotMergeManifest = class(Exception);
+  ECannotMergeBuildGradle = class(Exception);
 
   TAndroidComponent = class
   private
@@ -48,6 +49,8 @@ procedure MergeAndroidManifest(const Source, Destination: string;
 procedure MergeAppend(const Source, Destination: string;
   const ReplaceMacros: TReplaceMacros);
 procedure MergeAndroidMainActivity(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
+procedure MergeBuildGradle(const Source, Destination: string;
   const ReplaceMacros: TReplaceMacros);
 
 implementation
@@ -267,6 +270,52 @@ begin
   if MarkerPos = 0 then
     raise ECannotMergeManifest.CreateFmt('Cannot find marker "%s" in MainActivity.java', [InsertMarker]);
   Insert(SourceContents, DestinationContents, MarkerPos);
+  StringToFile(Destination, DestinationContents);
+end;
+
+procedure MergeBuildGradle(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
+const
+  MergeDependenciesMarker = '// MERGE-DEPENDENCIES';
+var
+  SourceContents, DestinationContents: string;
+  Doc: TXMLDocument;
+  SStream: TStringStream;
+  I: TXMLElementIterator;
+  E: TDOMElement;
+  MergeDependenciesPos: Integer;
+begin
+  SourceContents      := ReplaceMacros(FileToString(FilenameToURISafe(Source)));
+  DestinationContents := ReplaceMacros(FileToString(FilenameToURISafe(Destination)));
+
+  SStream := TStringStream.Create(SourceContents);
+  try
+    try
+      ReadXMLFile(Doc, SStream); // ReadXMLFile within "try" clause, as it initializes Doc always
+
+      if Doc.DocumentElement.TagName <> 'build_gradle_merge' then
+        raise ECannotMergeBuildGradle.Create('The source file from which to merge build.gradle must be XML with root <build_gradle_merge>');
+
+      E := Doc.DocumentElement.ChildElement('dependencies', false);
+      if E <> nil then
+      begin
+        MergeDependenciesPos := Pos(MergeDependenciesMarker, DestinationContents);
+        if MergeDependenciesPos = 0 then
+          raise ECannotMergeBuildGradle.CreateFmt('The destination build.gradle does not contain "%s" marker.',
+            [MergeDependenciesMarker]);
+        MergeDependenciesPos += Length(MergeDependenciesMarker);
+
+        I := E.ChildrenIterator('dependency');
+        try
+          while I.GetNext do
+          begin
+            Insert(NL + '    ' + I.Current.TextData, DestinationContents, MergeDependenciesPos);
+          end;
+        finally FreeAndNil(I) end;
+      end;
+    finally FreeAndNil(Doc) end;
+  finally FreeAndNil(SStream) end;
+
   StringToFile(Destination, DestinationContents);
 end;
 

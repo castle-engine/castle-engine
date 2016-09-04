@@ -26,3 +26,8 @@ android {
         }
     }
 }
+
+dependencies {
+    // Do not change the line below, it is necessary for build.gradle merging to work.
+    // MERGE-DEPENDENCIES
+}
