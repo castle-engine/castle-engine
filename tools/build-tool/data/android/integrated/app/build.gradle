@@ -31,3 +31,6 @@ dependencies {
     // Do not change the line below, it is necessary for build.gradle merging to work.
     // MERGE-DEPENDENCIES
 }
+
+// Do not change the line below, it is necessary for build.gradle merging to work.
+// MERGE-PLUGINS

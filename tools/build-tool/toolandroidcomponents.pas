@@ -76,6 +76,7 @@ procedure TAndroidComponent.ReadCastleEngineManifest(const Element: TDOMElement)
 var
   ChildElements: TXMLElementIterator;
   ChildElement: TDOMElement;
+  Key, Value: string;
 begin
   FName := Element.AttributeString('name');
 
@@ -84,9 +85,17 @@ begin
     while ChildElements.GetNext do
     begin
       ChildElement := ChildElements.Current;
-      FParameters.Add(
-        ChildElement.AttributeString('key'),
-        ChildElement.AttributeString('value'));
+      Key := ChildElement.AttributeString('key');
+      if ChildElement.HasAttribute('value') then
+        Value := ChildElement.AttributeString('value')
+      else
+      begin
+        Value := ChildElement.TextData;
+        { value cannot be empty in this case }
+        if Value = '' then
+          raise Exception.CreateFmt('No value for key "%s" specified in CastleEngineManifest.xml', [Key]);
+      end;
+      FParameters.Add(Key, Value);
     end;
   finally FreeAndNil(ChildElements) end;
 end;
@@ -275,15 +284,39 @@ end;
 
 procedure MergeBuildGradle(const Source, Destination: string;
   const ReplaceMacros: TReplaceMacros);
-const
-  MergeDependenciesMarker = '// MERGE-DEPENDENCIES';
 var
-  SourceContents, DestinationContents: string;
+  DestinationContents: string;
   Doc: TXMLDocument;
+
+  { Modify DestinationContents to add information specified in source XML file. }
+  procedure MergeItems(const ListElement, ChildElement, Marker: string);
+  var
+    I: TXMLElementIterator;
+    E: TDOMElement;
+    MarkerPos: Integer;
+  begin
+    E := Doc.DocumentElement.ChildElement(ListElement, false);
+    if E <> nil then
+    begin
+      MarkerPos := Pos(Marker, DestinationContents);
+      if MarkerPos = 0 then
+        raise ECannotMergeBuildGradle.CreateFmt('The destination build.gradle does not contain "%s" marker.',
+          [Marker]);
+      MarkerPos += Length(Marker);
+
+      I := E.ChildrenIterator(ChildElement);
+      try
+        while I.GetNext do
+        begin
+          Insert(NL + '    ' + I.Current.TextData, DestinationContents, MarkerPos);
+        end;
+      finally FreeAndNil(I) end;
+    end;
+  end;
+
+var
+  SourceContents: string;
   SStream: TStringStream;
-  I: TXMLElementIterator;
-  E: TDOMElement;
-  MergeDependenciesPos: Integer;
 begin
   SourceContents      := ReplaceMacros(FileToString(FilenameToURISafe(Source)));
   DestinationContents := ReplaceMacros(FileToString(FilenameToURISafe(Destination)));
@@ -292,27 +325,10 @@ begin
   try
     try
       ReadXMLFile(Doc, SStream); // ReadXMLFile within "try" clause, as it initializes Doc always
-
       if Doc.DocumentElement.TagName <> 'build_gradle_merge' then
         raise ECannotMergeBuildGradle.Create('The source file from which to merge build.gradle must be XML with root <build_gradle_merge>');
-
-      E := Doc.DocumentElement.ChildElement('dependencies', false);
-      if E <> nil then
-      begin
-        MergeDependenciesPos := Pos(MergeDependenciesMarker, DestinationContents);
-        if MergeDependenciesPos = 0 then
-          raise ECannotMergeBuildGradle.CreateFmt('The destination build.gradle does not contain "%s" marker.',
-            [MergeDependenciesMarker]);
-        MergeDependenciesPos += Length(MergeDependenciesMarker);
-
-        I := E.ChildrenIterator('dependency');
-        try
-          while I.GetNext do
-          begin
-            Insert(NL + '    ' + I.Current.TextData, DestinationContents, MergeDependenciesPos);
-          end;
-        finally FreeAndNil(I) end;
-      end;
+      MergeItems('dependencies', 'dependency', '// MERGE-DEPENDENCIES');
+      MergeItems('plugins', 'plugin', '// MERGE-PLUGINS');
     finally FreeAndNil(Doc) end;
   finally FreeAndNil(SStream) end;
 

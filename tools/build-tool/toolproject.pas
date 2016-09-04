@@ -1225,6 +1225,8 @@ begin
       MergeAppend(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
     if SameText(DestinationRelativeFileNameSlashes, 'app/build.gradle') then
       MergeBuildGradle(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
+    if SameText(DestinationRelativeFileNameSlashes, 'build.gradle') then
+      MergeBuildGradle(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
     if Verbose then
       Writeln('Not overwriting custom ' + DestinationRelativeFileName);
     Exit;
