@@ -134,13 +134,13 @@ tests/test_castle_game_engine
 tests/test_castle_game_engine.exe
 tools/build-tool/castle-engine
 tools/build-tool/castle-engine.exe
-tools/build-tool/data/android/integrated-components/chartboost/app/src/main/libs/*.jar
-tools/build-tool/data/android/integrated-components/game_analytics/app/src/main/libs/*.jar
+tools/build-tool/data/android/integrated-components/chartboost/app/libs/*.jar
+tools/build-tool/data/android/integrated-components/game_analytics/app/libs/*.jar
 tools/build-tool/data/android/integrated-components/giftiz/app/src/main/GiftizSDKLibrary/
 tools/build-tool/data/android/integrated-components/heyzap/app/src/main/AudienceNetwork/
-tools/build-tool/data/android/integrated-components/heyzap/app/src/main/libs/*.jar
+tools/build-tool/data/android/integrated-components/heyzap/app/libs/*.jar
 tools/build-tool/data/android/integrated-components/heyzap/app/src/main/unity-ads/
-tools/build-tool/data/android/integrated-components/startapp/app/src/main/libs/*.jar
+tools/build-tool/data/android/integrated-components/startapp/app/libs/*.jar
 tools/castle-curves/castle-curves
 tools/castle-curves/castle-curves.exe
 tools/castle-engine

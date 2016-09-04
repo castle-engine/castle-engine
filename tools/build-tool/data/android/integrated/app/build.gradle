@@ -28,6 +28,8 @@ android {
 }
 
 dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
     // Do not change the line below, it is necessary for build.gradle merging to work.
     // MERGE-DEPENDENCIES
 }
