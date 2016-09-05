@@ -10,8 +10,8 @@ buildscript {
         // https://developer.android.com/studio/releases/gradle-plugin.html
         classpath 'com.android.tools.build:gradle:2.1.3'
 
-	// Do not change the line below, it is necessary for build.gradle merging to work.
-	// MERGE-DEPENDENCIES
+        // Do not change the line below, it is necessary for build.gradle merging to work.
+        // MERGE-DEPENDENCIES
     }
 }
 
@@ -27,7 +27,13 @@ allprojects {
     repositories {
         jcenter()
 
-	// Do not change the line below, it is necessary for build.gradle merging to work.
-	// MERGE-REPOSITORIES
+        // To be able to compile aar in libs/ , following
+        // http://stackoverflow.com/questions/16682847/how-to-manually-include-external-aar-package-using-new-gradle-android-build-syst
+        flatDir {
+            dirs 'libs'
+        }
+
+        // Do not change the line below, it is necessary for build.gradle merging to work.
+        // MERGE-REPOSITORIES
     }
 }
