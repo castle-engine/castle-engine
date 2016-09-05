@@ -23,11 +23,18 @@ public class ComponentHelpshift extends ComponentAbstract
         super(activity);
     }
 
+    private boolean getHelpshiftInitialized()
+    {
+        return ((HelpshiftApplication) getActivity().getApplication()).getHelpshiftInitialized();
+    }
+
     @Override
     public boolean messageReceived(String[] parts)
     {
         if (parts.length == 1 && parts[0].equals("helpshift-show-conversation")) {
-            Support.showConversation(getActivity());
+            if (getHelpshiftInitialized()) {
+                Support.showConversation(getActivity());
+            }
             return true;
         } else {
             return false;
