@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">${CAPTION}</string>
+    <!-- Application name.
+
+        Use translatable="false" to avoid errors "MissingTranslation" when
+        combining with other components with translated resources (like giftiz).
+    -->
+    <string name="app_name" translatable="false">${CAPTION}</string>
 </resources>

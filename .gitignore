@@ -136,7 +136,8 @@ tools/build-tool/castle-engine
 tools/build-tool/castle-engine.exe
 tools/build-tool/data/android/integrated-components/chartboost/app/libs/*.jar
 tools/build-tool/data/android/integrated-components/game_analytics/app/libs/*.jar
-tools/build-tool/data/android/integrated-components/giftiz/app/src/main/GiftizSDKLibrary/
+tools/build-tool/data/android/integrated-components/giftiz/app/libs/
+tools/build-tool/data/android/integrated-components/giftiz/app/src/main/res/
 tools/build-tool/data/android/integrated-components/heyzap/app/src/main/AudienceNetwork/
 tools/build-tool/data/android/integrated-components/heyzap/app/libs/*.jar
 tools/build-tool/data/android/integrated-components/heyzap/app/src/main/unity-ads/
