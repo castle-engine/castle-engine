@@ -36,7 +36,14 @@ public class ComponentHelpshift extends ComponentAbstract
                 Support.showConversation(getActivity());
             }
             return true;
-        } else {
+        } else
+        if (parts.length == 1 && parts[0].equals("helpshift-show-faqs")) {
+            if (getHelpshiftInitialized()) {
+                Support.showFAQs(getActivity());
+            }
+            return true;
+        } else
+        {
             return false;
         }
     }

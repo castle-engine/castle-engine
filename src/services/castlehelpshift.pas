@@ -29,6 +29,7 @@ type
   THelpshift = class(TComponent)
   public
     class procedure ShowConversation;
+    class procedure ShowFAQs;
   end;
 
 implementation
@@ -38,6 +39,11 @@ uses CastleMessaging;
 class procedure THelpshift.ShowConversation;
 begin
   Messaging.Send(['helpshift-show-conversation']);
+end;
+
+class procedure THelpshift.ShowFAQs;
+begin
+  Messaging.Send(['helpshift-show-faqs']);
 end;
 
 end.
