@@ -141,8 +141,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                 try {
                     return mBillingService.getSkuDetails(3, getActivity().getPackageName(), "inapp", queryProducts);
                 } catch (RemoteException e) {
-                    Log.e(TAG, "RemoteException at getSkuDetails.");
-                    e.printStackTrace();
+                    Log.e(TAG, "RemoteException at getSkuDetails: " + e.getMessage());
                     return null;
                 }
             }
@@ -193,8 +192,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                             Log.w(TAG, "Error response when getting list of stuff available for purchase: " + InAppPurchasesHelper.billingResponseToStr(response));
                         }
                     } catch (JSONException e) {
-                        Log.e(TAG, "Failed to parse getSkuDetails data.");
-                        e.printStackTrace();
+                        Log.e(TAG, "Failed to parse getSkuDetails data:  " + e.getMessage());
                     }
                 } finally {
                     currentOperationFinished();
@@ -238,8 +236,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                 try {
                     return mBillingService.getPurchases(3, getActivity().getPackageName(), "inapp", null);
                 } catch (RemoteException e) {
-                    Log.e(TAG, "RemoteException when getting purchased stuff.");
-                    e.printStackTrace();
+                    Log.e(TAG, "RemoteException when getting purchased stuff: " + e.getMessage());
                     return null;
                 }
             }
@@ -337,8 +334,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                         }
                     }
                     catch (JSONException e) {
-                        Log.e(TAG, "Failed to parse purchase data.");
-                        e.printStackTrace();
+                        Log.e(TAG, "Failed to parse purchase data: " + e.getMessage());
                     }
                 } else {
                     Log.w(TAG, "Purchase result not OK: " +resultCode);
@@ -376,11 +372,9 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                     REQUEST_PURCHASE, new Intent(), Integer.valueOf(0), Integer.valueOf(0),
                     Integer.valueOf(0));
             } catch (SendIntentException e) {
-                Log.e(TAG, "SendIntentException when sending buy intent.");
-                e.printStackTrace();
+                Log.e(TAG, "SendIntentException when sending buy intent: " + e.getMessage());
             } catch (RemoteException e) {
-                Log.e(TAG, "RemoteException when sending buy intent.");
-                e.printStackTrace();
+                Log.e(TAG, "RemoteException when sending buy intent: " + e.getMessage());
             }
         }
     }
@@ -409,8 +403,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                     return mBillingService.consumePurchase(3, getActivity().getPackageName(),
                         consumeInput.purchaseToken);
                 } catch (RemoteException e) {
-                    Log.e(TAG, "RemoteException when getting purchased stuff.");
-                    e.printStackTrace();
+                    Log.e(TAG, "RemoteException when getting purchased stuff: " + e.getMessage());
                     return REMOTE_EXCEPTION_ERROR;
                 }
             }
@@ -582,8 +575,7 @@ public class ComponentGoogleInAppPurchases extends ComponentAbstract
                 messageSend(new String[]{"in-app-purchases-owns", productName});
             }
         } catch (JSONException e) {
-            Log.e(TAG, "Failed to parse purchaseData in owns.");
-            e.printStackTrace();
+            Log.e(TAG, "Failed to parse purchaseData in owns: " + e.getMessage());
         }
     }
 

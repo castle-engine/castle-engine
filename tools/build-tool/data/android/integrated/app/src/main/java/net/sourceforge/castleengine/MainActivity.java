@@ -160,9 +160,8 @@ public class MainActivity extends NativeActivity
         try {
             System.loadLibrary(libName);
             Log.i(TAG, "JNI: Successfully loaded lib" + libName + ".so");
-        } catch(UnsatisfiedLinkError ule) {
-            Log.e(TAG, "JNI: Could not load lib" + libName + ".so");
-            ule.printStackTrace();
+        } catch(UnsatisfiedLinkError e) {
+            Log.e(TAG, "JNI: Could not load lib" + libName + ".so, exception UnsatisfiedLinkError: " + e.getMessage());
         }
     }
 
