@@ -3,7 +3,6 @@ package net.sourceforge.castleengine;
 
 import android.util.Log;
 
-import com.google.android.gms.analytics.Logger;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
@@ -19,8 +18,9 @@ public class ComponentGoogleAnalytics extends ComponentAbstract
     /* To enable debug logging on a device run:
        adb shell setprop log.tag.GAv4 DEBUG
        adb logcat -s GAv4
+       (no need for the variable below)
     */
-    private final boolean debug = false;
+    // private final boolean debug = false;
 
     private Tracker mTracker;
 
@@ -40,9 +40,6 @@ public class ComponentGoogleAnalytics extends ComponentAbstract
         if (mTracker == null && mAnalyticsPropertyId != null) {
             GoogleAnalytics analytics = GoogleAnalytics.getInstance(
                 getActivity().getApplication());
-            if (debug) {
-                analytics.getLogger().setLogLevel(Logger.LogLevel.VERBOSE);
-            }
             mTracker = analytics.newTracker(mAnalyticsPropertyId);
             mTracker.enableAdvertisingIdCollection(true);
             Log.i(TAG, "Created Google Analytics tracker with tracking id " + mAnalyticsPropertyId);

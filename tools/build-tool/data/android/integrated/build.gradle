@@ -16,6 +16,14 @@ buildscript {
 }
 
 allprojects {
+    // Enable extra warnings, following
+    // http://stackoverflow.com/questions/18689365/how-to-add-xlintunchecked-to-my-android-gradle-based-project
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
+    }
+
     repositories {
         jcenter()
 

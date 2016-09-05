@@ -53,7 +53,10 @@ public class ActivityPopup implements View.OnLayoutChangeListener
         //
         // on https://developers.google.com/admob/android/banner?hl=en
 
-        popup.setWindowLayoutMode(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+        //popup.setWindowLayoutMode(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+        // above deprecated in API >= 23
+        popup.setWidth(LayoutParams.MATCH_PARENT);
+        popup.setHeight(LayoutParams.WRAP_CONTENT);
         popup.setClippingEnabled(false);
         //popup.setBackgroundDrawable(null);
 
