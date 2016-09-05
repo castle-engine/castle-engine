@@ -342,9 +342,8 @@ var
     Args := TCastleStringList.Create;
     try
       Args.Add('assemble' + Capitalize(PackageModeToName[PackageMode]));
-      // TODO
-      // if not Verbose then
-      //   Args.Add('-quiet');
+      if not Verbose then
+        Args.Add('--quiet');
       if PackageMode <> cmDebug then
       begin
         Args.Add('-Pandroid.injected.signing.store.file=' + KeyStore);
@@ -366,7 +365,6 @@ var
   PackageMode: TCompilationMode;
   TemporaryAndroidProjectPath: boolean;
   Subprojects: TCastleStringList;
-  I: Integer;
 begin
   { use the AndroidProject value (just make it safer) for AndroidProjectPath,
     if set }
@@ -389,17 +387,6 @@ begin
     GenerateIcons;
     GenerateAssets;
     GenerateLibrary;
-
-    for I := 0 to Subprojects.Count - 1 do
-    begin
-      // TODO: what to do? nothing, subprojects have to be done differently now, as gradle subprojects?
-      // RunAndroidUpdateProject(Subprojects[I]);
-      { some subprojects, like Gitfiz SDK, do not redistribute "src" subdirectory,
-        but it's required. }
-      // TODO: no longer necessary?
-      //PackageCheckForceDirectories(Subprojects[I] + PathDelim + 'src');
-    end;
-
     RunGradle(PackageMode);
   finally FreeAndNil(Subprojects) end;
 
