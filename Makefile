@@ -39,6 +39,10 @@
 #     Intention is to remove *everything* that can be manually recreated,
 #     even if somewhat hard, and clean editor backup.
 
+# Hack for Cygwin, to avoid using Windows built-in "find" program.
+#FIND:=/bin/find
+FIND:=find
+
 # compile ------------------------------------------------------------
 
 .PHONY: all
@@ -91,7 +95,7 @@ install:
 	install tools/build-tool/castle-engine $(BINDIR)
 #	cp -R tools/build-tool/data $(DATADIR)/castle-engine
 	cd tools/build-tool/data/ && \
-	  find . -type f -exec install -D '{}' $(DATADIR)/castle-engine/'{}' ';'
+	  $(FIND) . -type f -exec install -D '{}' $(DATADIR)/castle-engine/'{}' ';'
 
 .PHONY: uninstall
 uninstall:
@@ -218,7 +222,7 @@ EXAMPLES_RES_FILES := $(addsuffix .res,$(EXAMPLES_BASE_NAMES)) \
 examples:
 	$(foreach NAME,$(EXAMPLES_BASE_NAMES),$(NAME)_compile.sh && ) true
 # compile all examples with CastleEngineManifest.xml inside
-	find . -iname CastleEngineManifest.xml -execdir castle-engine $(CASTLE_ENGINE_TOOL_OPTIONS) compile ';'
+	$(FIND) . -iname CastleEngineManifest.xml -execdir castle-engine $(CASTLE_ENGINE_TOOL_OPTIONS) compile ';'
 
 .PHONY: examples-ignore-errors
 examples-ignore-errors:
@@ -241,7 +245,7 @@ examples-laz:
 .PHONY: clean cleanmore cleanall
 
 clean: cleanexamples
-	find . -type f '(' -iname '*.ow'  -or -iname '*.ppw' -or -iname '*.aw' -or \
+	$(FIND) . -type f '(' -iname '*.ow'  -or -iname '*.ppw' -or -iname '*.aw' -or \
 	                   -iname '*.o'   -or -iname '*.ppu' -or -iname '*.a' -or \
 			   -iname '*.or'  -or \
 			   -iname '*.rsj' -or \
@@ -254,7 +258,7 @@ clean: cleanexamples
 			   -iname 'castleengine.dll' -or -iname 'libcastleengine.so' ')' \
 	     -print \
 	     | xargs rm -f
-	find . -type d -name lib -exec rm -Rf '{}' ';' -prune
+	$(FIND) . -type d -name lib -exec rm -Rf '{}' ';' -prune
 	rm -Rf packages/castle_base.pas \
 	  packages/castle_window.pas \
 	  packages/castle_components.pas \
@@ -268,12 +272,12 @@ clean: cleanexamples
 # fpmake binary, and units/ produced by fpmake compilation
 	rm -Rf fpmake fpmake.exe units/ *.fpm
 # lazarus produces lib/ subdirectories during compilation
-	find examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
+	$(FIND) examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
 # clean every project with CastleEngineManifest.xml
-	find . -iname CastleEngineManifest.xml -execdir castle-engine clean ';'
+	$(FIND) . -iname CastleEngineManifest.xml -execdir castle-engine clean ';'
 
 cleanmore: clean
-	find . -type f '(' -iname '*~' -or \
+	$(FIND) . -type f '(' -iname '*~' -or \
 	                   -iname '*.bak' -or \
 	                   -iname '*.~???' -or \
 			   -iname '*.blend1' \

@@ -57,6 +57,7 @@ examples/android/drawing_toy/android/libs/
 examples/android/drawing_toy/android/local.properties
 examples/android/drawing_toy/android/obj/
 examples/android/drawing_toy/drawing_toy
+examples/android/drawing_toy/drawing_toy.exe
 examples/android/drawing_toy/libdrawing_toy.so
 examples/audio/algets
 examples/audio/alplay
