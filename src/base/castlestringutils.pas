@@ -862,7 +862,7 @@ type
 { Check that all characters are within a given set.
   Raise exception otherwise (if RaiseExceptionOnError, default)
   or make a warning.
-  @raise(EInvalidChar If string contains an invalid character
+  @raises(EInvalidChar If string contains an invalid character
     and RaiseExceptionOnError = @true.
     The exception string is informative, containing the string value,
     character, character position.) }

@@ -178,7 +178,7 @@ type
     procedure Resize(const ResizeToX, ResizeToY: Cardinal;
       const Interpolation: TResizeInterpolation = riNearest);
 
-    { Release all resources allocated by @link(Load) (or @link(LoadFromFile)).
+    { Release all resources allocated by @link(LoadFromFile).
       @link(Loaded) property changes to @false after calling this.
 
       It's safe to call this even if @link(Loaded) is already @false --- then

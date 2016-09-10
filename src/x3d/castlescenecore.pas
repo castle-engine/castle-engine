@@ -1394,7 +1394,7 @@ type
       time of time-dependent nodes like X3D TimeSensor, which in turn
       drive the rest of the animation).
 
-      You can use @link(SetTime) or @link(IncreasTime) to move time
+      You can use @link(SetTime) or @link(IncreaseTime) to move time
       forward manually. But usually there's no need for it:
       our @link(Update) method takes care of it automatically,
       you only need to place the scene inside @link(TCastleSceneManager.Items).
@@ -1402,7 +1402,7 @@ type
       You can start/stop time progress by @link(TimePlaying)
       and scale it by @link(TimePlayingSpeed). These properties
       affect how the time is updated by the @link(Update) method
-      (so if you use @link(SetTime) or @link(IncreasTime) methods,
+      (so if you use @link(SetTime) or @link(IncreaseTime) methods,
       you're working around these properties).
 
       Default time value is 0.0 (zero). However it will be reset

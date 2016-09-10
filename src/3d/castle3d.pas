@@ -100,7 +100,7 @@ type
   { Represents a @bold(ray) collision with a 3D objects tree.
     Just access the @code(First) item for the collision information
     with the final 3D object. The rest of items are containers of this 3D
-    object (a path within @link(TCastleSceManager.Items) hierarchy tree,
+    object (a path within @link(TCastleSceneManager.Items) hierarchy tree,
     usually).
 
     This list is a path in the 3D objects tree leading from the
@@ -153,7 +153,7 @@ type
   { Represents a collision with a 3D objects tree.
     Just access the @code(First) item for the collision information
     with the final 3D object. The rest of items are containers of this 3D
-    object (a path within @link(TCastleSceManager.Items) hierarchy tree,
+    object (a path within @link(TCastleSceneManager.Items) hierarchy tree,
     usually).
 
     This list is a path in the 3D objects tree leading from the
@@ -395,7 +395,7 @@ type
       or using the X3D node TTransformNode (within a TCastleSce).
 
       @orderedList(
-        @iteam(@italic(The reason): we transform the point (or sphere center)
+        @item(@italic(The reason): we transform the point (or sphere center)
           to the local coordinates, and we should also transform the Z axis to
           the local coordinates, to be always correct. Right now, we don't do
           the latter.)
@@ -415,9 +415,9 @@ type
           To do this, we will detect whether the transformation is "only 2D"
           (actually this part is easy, you can detect it by looking at the matrix
           even, so check whether appropriate numbers are zero).
-          And then then PointCollision2D will change to LineCollision,
+          And then PointCollision2D will change to LineCollision,
           and SphereCollision2D will change to something like ExtrudedCirleCollision,
-          @italic(only when necessary).
+          @italic(only when necessary).)
       )
     }
     function PointCollision2D(const Point: TVector2Single;
@@ -468,7 +468,7 @@ type
       Setting this to @false pretty much turns everything of this 3D object
       to "off". This is useful for objects that disappear completely from
       the level when something happens. You could just as well remove
-      this object from TCastleSceneManager.Items tree, but sometimes it's more
+      this object from @link(TCastleSceneManager.Items) tree, but sometimes it's more
       comfortable to simply turn this property to @false.
 
       Descendants may also override GetExists method.
@@ -1538,8 +1538,7 @@ type
     procedure Translate(const T: TVector3Single); override;
 
     { Make the transform do nothing --- zero @link(Translation), zero @link(Rotation),
-      @link(Scale) to one. Also resets @link(Orientation) and
-      @link(ScaleOrientation). }
+      @link(Scale) to one. Also resets @link(ScaleOrientation). }
     procedure Identity;
   end;
 

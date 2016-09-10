@@ -398,10 +398,10 @@ type
       by parent TCastleSceneCore. You usually don't need to know about this
       octree from outside.
 
-      To initialize this, add ssTriangles to @link(Spatial) property,
+      To initialize this, add ssTriangles to @link(InternalSpatial) property,
       otherwise it's @nil. Parent TCastleSceneCore will take care of this
       (when parent TCastleSceneCore.Spatial contains ssDynamicCollisions, then
-      all shapes contain ssTriangles within their Spatial).
+      all shapes contain ssTriangles within their InternalSpatial).
 
       Parent TCastleSceneCore will take care to keep this octree always updated.
 
@@ -424,7 +424,7 @@ type
       Default value comes from DefLocalTriangleOctreeLimits.
 
       They are used only when the octree is created, so usually you
-      want to set them right before changing @link(Spatial) from []
+      want to set them right before changing @link(InternalSpatial) from []
       to something else. }
     function InternalTriangleOctreeLimits: POctreeLimits;
 
