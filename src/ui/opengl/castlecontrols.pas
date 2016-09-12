@@ -183,6 +183,9 @@ type
     FTintPressed, FTintDisabled, FTintFocused, FTintNormal: TCastleColor;
     FEnabled: boolean;
     FEnableParentDragging: boolean;
+    FTextAlignment: THorizontalPosition;
+    FLineSpacing: Integer;
+    FHtml: boolean;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -204,6 +207,10 @@ type
     procedure SetMinHeight(const Value: Cardinal);
     procedure SetImageMargin(const Value: Cardinal);
     procedure SetEnabled(const Value: boolean);
+    procedure SetTextAlignment(const Value: THorizontalPosition);
+    procedure SetLineSpacing(const Value: Integer);
+    procedure SetHtml(const Value: boolean);
+    function GetTextToRender: TRichText;
   protected
     procedure FontChanged; override;
     procedure SetPressed(const Value: boolean); virtual;
@@ -213,6 +220,8 @@ type
       DefaultImageMargin = 10;
       DefaultPaddingHorizontal = 10;
       DefaultPaddingVertical = 10;
+      DefaultLineSpacing = 2;
+      DefaultTextAlignment = hpMiddle;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -292,6 +301,28 @@ type
     { Text color to use if @link(CustomTextColorUse) is @true.
       Black by default, just like @code(Theme.TextColor). }
     property CustomTextColor: TCastleColor read FCustomTextColor write FCustomTextColor;
+
+    { For multi-line @link(Caption), the horizontal alignment of the lines. }
+    property TextAlignment: THorizontalPosition
+      read FTextAlignment write SetTextAlignment default DefaultTextAlignment;
+
+    { For multi-line @link(Caption), the extra spacing between lines.
+      May also be negative to squeeze lines tighter. }
+    property LineSpacing: Integer read FLineSpacing write SetLineSpacing
+      default DefaultLineSpacing;
+
+    { Enable HTML tags in the @link(Caption).
+      This allows to easily change colors or use bold, italic text.
+
+      See the example examples/fonts/html_text.lpr and
+      examples/fonts/html_text_demo.html for a demo of what HTML tags can do.
+      See @link(TCastleFont.PrintStrings) documentation for a list of support HTML markup.
+
+      Note that to see the bold/italic font variants in the HTML markup,
+      you need to set the font to be TFontFamily with bold/italic variants.
+      See the example mentioned above, examples/fonts/html_text.lpr,
+      for a code how to do it. }
+    property Html: boolean read FHtml write SetHtml default false;
   published
     property Width: Cardinal read FWidth write SetWidth default 0;
     property Height: Cardinal read FHeight write SetHeight default 0;
@@ -341,6 +372,9 @@ type
     property MinHeight: Cardinal read FMinHeight write SetMinHeight default 0;
 
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
+
+    { Caption to display on the button.
+      The text may be multiline (use the LineEnding or NL constants to mark newlines). }
     property Caption: string read FCaption write SetCaption;
 
     { Can the button be permanently pressed. Good for making a button
@@ -960,15 +994,15 @@ type
       read FPadding write FPadding default 0;
     { @groupEnd }
 
-    { Extra spacing between lines (may also be negative to squeeze lines
-      tighter). }
+    { Extra spacing between lines.
+      May be negative to squeeze lines tighter together. }
     property LineSpacing: Integer read FLineSpacing write FLineSpacing default DefaultLineSpacing;
 
     { Does the text use HTML markup.
-      This allows to easily change colors or use bold, italic text for demo.
+      This allows to easily change colors or use bold, italic text.
 
       See the example examples/fonts/html_text.lpr and
-      examples/fonts/html_text_demo.html for a demo.
+      examples/fonts/html_text_demo.html for a demo of what HTML tags can do.
       See @link(TCastleFont.PrintStrings) documentation for a list of support HTML markup.
 
       Note that to see the bold/italic font variants in the HTML markup,
@@ -1452,7 +1486,7 @@ implementation
 
 uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
   CastleTextureFont_DejaVuSans_10,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleStringUtils;
 
 procedure Register;
 begin
@@ -1757,6 +1791,8 @@ begin
   FTintFocused := White;
   FTintNormal := White;
   FEnabled := true;
+  FLineSpacing := DefaultLineSpacing;
+  FTextAlignment := DefaultTextAlignment;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 end;
 
@@ -1779,13 +1815,50 @@ end;
 
 procedure TCastleButton.Render;
 var
-  TextLeft, TextBottom, ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight: Integer;
+  TextLeft, TextBottom: Integer;
+
+  procedure RenderText;
+  var
+    TextColor: TCastleColor;
+    TextX, LineSpacingScaled: Integer;
+    TextToRender: TRichText;
+  begin
+    if Enabled then
+      TextColor := Theme.TextColor else
+      TextColor := Theme.DisabledTextColor;
+    if CustomTextColorUse then
+      TextColor := CustomTextColor;
+
+    if (not Html) and (CharsPos([#10, #13], Caption) = 0) then
+    begin
+      { fast case: single line, and no need to use TRichText in this case }
+      Font.Print(TextLeft, TextBottom, TextColor, Caption);
+    end else
+    begin
+      { calculate TextX }
+      case TextAlignment of
+        hpLeft  : TextX := TextLeft;
+        hpMiddle: TextX := TextLeft + TextWidth div 2;
+        hpRight : TextX := TextLeft + TextWidth;
+        else raise EInternalError.Create('TCastleButton.Render: Alignment?');
+      end;
+
+      LineSpacingScaled := Round(UIScale * LineSpacing);
+      TextToRender := GetTextToRender;
+      try
+        TextToRender.Print(TextX, TextBottom, TextColor, LineSpacingScaled, TextAlignment);
+      finally FreeAndNil(TextToRender) end;
+    end;
+  end;
+
+var
+  ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight: Integer;
   Background: TThemeImage;
   CustomBackgroundImage: TGLImageCore;
   SR: TRectangle;
   ImageMarginScaled: Cardinal;
   UseImage: boolean;
-  Tint, TextColor: TCastleColor;
+  Tint: TCastleColor;
 begin
   inherited;
 
@@ -1855,12 +1928,7 @@ begin
     TextBottom -= (ImgScreenHeight + ImageMarginScaled) div 2;
   TextBottom += Font.Descend;
 
-  if Enabled then
-    TextColor := Theme.TextColor else
-    TextColor := Theme.DisabledTextColor;
-  if CustomTextColorUse then
-    TextColor := CustomTextColor;
-  Font.Print(TextLeft, TextBottom, TextColor, Caption);
+  RenderText;
 
   if UseImage then
   begin
@@ -2038,12 +2106,33 @@ begin
   UpdateTextSize;
 end;
 
+function TCastleButton.GetTextToRender: TRichText;
+begin
+  Result := TRichText.Create(Font, Caption, Html);
+end;
+
 procedure TCastleButton.UpdateTextSize;
+var
+  LineSpacingScaled: Integer;
+  TextToRender: TRichText;
 begin
   if Font <> nil then
   begin
-    TextWidth := Font.TextWidth(Caption);
-    TextHeight := Font.RowHeight;
+    if (not Html) and (CharsPos([#10, #13], Caption) = 0) then
+    begin
+      { fast case: single line, and no need to use TRichText in this case }
+      TextWidth := Font.TextWidth(Caption);
+      TextHeight := Font.RowHeight;
+    end else
+    begin
+      LineSpacingScaled := Round(UIScale * LineSpacing);
+      TextToRender := GetTextToRender;
+      try
+        TextWidth := TextToRender.Width;
+        TextHeight := TextToRender.Count * (Font.RowHeight + LineSpacingScaled);
+      finally FreeAndNil(TextToRender) end;
+    end;
+
     UpdateSize;
   end;
 end;
@@ -2208,6 +2297,33 @@ begin
   end;
 
   inherited;
+end;
+
+procedure TCastleButton.SetTextAlignment(const Value: THorizontalPosition);
+begin
+  if FTextAlignment <> Value then
+  begin
+    FTextAlignment := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleButton.SetLineSpacing(const Value: Integer);
+begin
+  if FLineSpacing <> Value then
+  begin
+    FLineSpacing := Value;
+    UpdateTextSize;
+  end;
+end;
+
+procedure TCastleButton.SetHtml(const Value: boolean);
+begin
+  if FHtml <> Value then
+  begin
+    FHtml := Value;
+    UpdateTextSize;
+  end;
 end;
 
 procedure TCastleButton.SetPressed(const Value: boolean);
