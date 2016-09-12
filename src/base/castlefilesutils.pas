@@ -175,7 +175,7 @@ function ApplicationConfig(const Path: string): string;
   Given Path specifies a path under the data directory,
   with possible subdirectories, with possible filename at the end.
   The Path is a relative URL, so you should
-  always use slashes (regardless of OS), and you can escape characters by %xx.
+  always use slashes "/" (regardless of OS), and you can escape characters by %xx.
   You can use Path = '' to get the URL to whole data directory.
   Note that files there may be read-only, do not try to write there.
 
@@ -532,6 +532,9 @@ function ApplicationData(const Path: string): string;
 begin
   if ApplicationDataOverride <> '' then
     Exit(ApplicationDataOverride + Path);
+
+  if Pos('\', Path) <> 0 then
+    WritelnWarning('ApplicationData', 'Do not use backslashes (or a PathDelim constant) in the ApplicationData parameter. The ApplicationData parameter should be a relative URL, with components separated by slash ("/"), regardless of the OS. Path given was: ' + Path);
 
   { Cache directory of ApplicationData. This has two reasons:
     1. On Unix GetApplicationDataPath makes three DirectoryExists calls,
