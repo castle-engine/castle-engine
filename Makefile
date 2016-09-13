@@ -267,7 +267,8 @@ clean: cleanexamples
 	  examples/android/drawing_toy/drawing_toy \
 	  examples/android/drawing_toy/drawing_toy.exe \
 	  examples/portable_game_skeleton/my_fantastic_game \
-	  examples/portable_game_skeleton/my_fantastic_game.exe
+	  examples/portable_game_skeleton/my_fantastic_game.exe \
+	  examples/fonts/font_draw_over_image_output.png
 # fpmake binary, and units/ produced by fpmake compilation
 	rm -Rf fpmake fpmake.exe units/ *.fpm
 # lazarus produces lib/ subdirectories during compilation

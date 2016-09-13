@@ -565,30 +565,16 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       X0 and Y0 are start position (lower-left corner),
       ExtractWidth, ExtractHeight specify size of area.
 
-      This checks parameters for correctness -- if start position in not
-      good or ExtractWidth/Height are too large exception
+      This checks parameters for correctness -- if start position is not
+      correct or ExtractWidth/Height are too large then exception
       @link(EImagePosOutOfRange) is raised. }
     function MakeExtracted(X0, Y0, ExtractWidth, ExtractHeight: Cardinal): TCastleImage;
 
-    { Set all image pixels to the same value.
-      This is implemented only in descendants that represent a pixel
-      as a TVector4Byte (e.g. TRGBAlphaImage) or TVector3Byte
-      (e.g. TRGBImage, 4th component is ignored in this case).
-
-      In this class this simply raises EInternalError to say 'not implemented'.
-      This also means that you must not call inherited in
-      descendants when overriding this method. }
+    { Set all image pixels to the same color. }
     procedure Clear(const Pixel: TVector4Byte); overload; virtual;
     procedure Clear(const Pixel: TCastleColor); overload;
 
-    { Check do all image pixels have the same value Pixel.
-      This is implemented only in descendants that represent a pixel
-      as TVector4Byte or TVector3Byte (4th component is ignored in this
-      case), just like method @link(Clear).
-
-      In this class this simply raises EInternalError to say 'not implemented'.
-      This also means that you must not call inherited in
-      descendants when overriding this method. }
+    { Check do all image pixels have the same color. }
     function IsClear(const Pixel: TVector4Byte): boolean; virtual;
 
     { Multiply each RGB color by a matrix.
@@ -1232,6 +1218,9 @@ type
 
     procedure InvertColors; override;
 
+    procedure Clear(const Pixel: TVector4Byte); override;
+    function IsClear(const Pixel: TVector4Byte): boolean; override;
+
     procedure Clear(const Pixel: TVector3Single); reintroduce;
     function IsClear(const Pixel: TVector3Single): boolean; reintroduce;
 
@@ -1260,6 +1249,7 @@ type
   TGrayscaleImage = class(TCastleImage)
   private
     FTreatAsAlpha: boolean;
+    FColorWhenTreatedAsAlpha: TVector3Byte;
     function GetGrayscalePixels: PByte;
     procedure FromFpImage(const FPImage: TFPMemoryImage); override;
     function ToFpImage: TFPMemoryImage; override;
@@ -1280,6 +1270,9 @@ type
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PByteArray;
 
     procedure InvertColors; override;
+
+    procedure Clear(const Pixel: TVector4Byte); override;
+    function IsClear(const Pixel: TVector4Byte): boolean; override;
 
     procedure Clear(const Pixel: Byte); reintroduce;
     function IsClear(const Pixel: Byte): boolean; reintroduce;
@@ -1302,15 +1295,29 @@ type
     { Should we treat grayscale image as pure alpha channel (without any color
       information) when using this as a texture.
 
-      This property is meaningful only for a small subset of operations,
-      right now: only when creating OpenGL texture from this image.
-      If @true, then the grayscale pixel data will be loaded as alpha channel
-      contents (GL_ALPHA texture for OpenGL,
-      it modifies only the fragments alpha value,
-      it doesn't have any "color" in the normal sense).
-      It is also the only way for TGrayscaleImage to return AlphaChannel <> acNone. }
+      This property is meaningful only for a small subset of operations.
+
+      @orderedList(
+        @item(
+          When creating OpenGL texture from this image.
+          If @true, then the grayscale pixel data will be loaded as alpha channel
+          contents (GL_ALPHA texture for OpenGL,
+          it modifies only the fragments alpha value,
+          it doesn't have any "color" in the normal sense).
+          It is also the only way for TGrayscaleImage to return AlphaChannel <> acNone.)
+
+        @item(
+          When using @link(DrawFrom) / @link(DrawTo) methods.
+          If @true, this image is drawn like an RGBA image,
+          with constant RGB color ColorWhenTreatedAsAlpha, and alpha channel
+          taken from contents of this image.)
+      )
+    }
     property TreatAsAlpha: boolean
       read FTreatAsAlpha write FTreatAsAlpha;
+
+    property ColorWhenTreatedAsAlpha: TVector3Byte
+      read FColorWhenTreatedAsAlpha write FColorWhenTreatedAsAlpha;
 
     function AlphaChannel(
       const AlphaTolerance: Byte): TAlphaChannel; override;
@@ -1342,6 +1349,9 @@ type
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector2Byte;
 
     procedure InvertColors; override;
+
+    procedure Clear(const Pixel: TVector4Byte); override;
+    function IsClear(const Pixel: TVector4Byte): boolean; override;
 
     procedure Clear(const Pixel: TVector2Byte); reintroduce;
     function IsClear(const Pixel: TVector2Byte): boolean; reintroduce;
@@ -3310,6 +3320,22 @@ begin
   Pixel^[2] := C[2];
 end;
 
+procedure TRGBFloatImage.Clear(const Pixel: TVector4Byte);
+begin
+  Clear(Vector3Single(
+    Pixel[0] * 255,
+    Pixel[1] * 255,
+    Pixel[2] * 255));
+end;
+
+function TRGBFloatImage.IsClear(const Pixel: TVector4Byte): boolean;
+begin
+  Result := IsClear(Vector3Single(
+    Pixel[0] * 255,
+    Pixel[1] * 255,
+    Pixel[2] * 255));
+end;
+
 procedure TRGBFloatImage.Clear(const Pixel: TVector3Single);
 var
   P: PVector3Single;
@@ -3442,6 +3468,16 @@ end;
 function TGrayscaleImage.RowPtr(const Y, Z: Cardinal): PByteArray;
 begin
   Result := PByteArray(inherited RowPtr(Y, Z));
+end;
+
+procedure TGrayscaleImage.Clear(const Pixel: TVector4Byte);
+begin
+  Clear(GrayscaleValue(Pixel));
+end;
+
+function TGrayscaleImage.IsClear(const Pixel: TVector4Byte): boolean;
+begin
+  Result := IsClear(GrayscaleValue(Pixel));
 end;
 
 procedure TGrayscaleImage.Clear(const Pixel: Byte);
@@ -3630,6 +3666,16 @@ end;
 function TGrayscaleAlphaImage.RowPtr(const Y, Z: Cardinal): PArray_Vector2Byte;
 begin
   Result := PArray_Vector2Byte(inherited RowPtr(Y, Z));
+end;
+
+procedure TGrayscaleAlphaImage.Clear(const Pixel: TVector4Byte);
+begin
+  Clear(Vector2Byte(GrayscaleValue(Pixel), Pixel[3]));
+end;
+
+function TGrayscaleAlphaImage.IsClear(const Pixel: TVector4Byte): boolean;
+begin
+  Result := IsClear(Vector2Byte(GrayscaleValue(Pixel), Pixel[3]));
 end;
 
 procedure TGrayscaleAlphaImage.Clear(const Pixel: TVector2Byte);

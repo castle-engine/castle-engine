@@ -80,6 +80,9 @@ examples/fonts/html_text.exe
 examples/fonts/test_font_break
 examples/fonts/test_font_break.exe
 examples/fonts/texturefont2pascal
+examples/fonts/font_draw_over_image
+examples/fonts/font_draw_over_image.exe
+examples/fonts/font_draw_over_image_output.png
 examples/fps_game/fps_game
 examples/images_videos/dds_decompose
 examples/images_videos/drawing_modes_test
