@@ -184,7 +184,6 @@ EXAMPLES_BASE_NAMES := \
   src/x3d/nodes_specification/generate_x3d_nodes_helpers/generate_x3d_nodes_to_pascal \
   examples/fixed_camera_game/rift \
   examples/isometric_game/sandbox \
-  examples/images_videos/gaussian_write \
   examples/3d_sound_game/lets_take_a_walk \
   examples/3d_sound_game/data/levels/base/devel/process_base_b \
   examples/resource_animations/resource_animations \
