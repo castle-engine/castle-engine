@@ -1090,7 +1090,11 @@ procedure TGrayscaleImage.DrawFromCore(Source: TCastleImage;
     DestX, DestY: Integer;
   begin
     case Mode of
-      dmBlend, dmBlendSmart: inherited;
+      dmBlend, dmBlendSmart:
+        inherited DrawFromCore(Source, X, Y, SourceX, SourceY, SourceWidth, SourceHeight, Mode);
+        { For some reason, simply stating "inherited;" does something different?
+          Uncovered by tests/testcastleimagesdraw.pas . }
+        //inherited;
       dmMultiply:
         begin
           for DestY := Y to Y + SourceHeight - 1 do
