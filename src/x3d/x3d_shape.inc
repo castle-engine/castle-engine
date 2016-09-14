@@ -136,6 +136,8 @@
   private
     function GetTexture: TAbstractTextureNode;
     procedure SetTexture(const Value: TAbstractTextureNode);
+    function GetMaterial: TMaterialNode;
+    procedure SetMaterial(const Value: TMaterialNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
@@ -193,6 +195,11 @@
       This is a shortcut for accessing "texture" field,
       checking whether nodes are set to appropriate types. }
     property Texture: TAbstractTextureNode read GetTexture write SetTexture;
+
+    { The material of this appearance. This only sets the simple, one-sided material node.
+      This is a shortcut for accessing "material" field,
+      checking whether nodes are set to appropriate types. }
+    property Material: TMaterialNode read GetMaterial write SetMaterial;
 
     function MaterialProperty: TMaterialProperty;
   end;
@@ -805,6 +812,19 @@ end;
 procedure TAppearanceNode.SetTexture(const Value: TAbstractTextureNode);
 begin
   FdTexture.Value := Value;
+end;
+
+function TAppearanceNode.GetMaterial: TMaterialNode;
+begin
+  if (FdMaterial.Value <> nil) and
+     (FdMaterial.Value is TMaterialNode) then
+    Result := TMaterialNode(FdMaterial.Value) else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetMaterial(const Value: TMaterialNode);
+begin
+  FdMaterial.Value := Value;
 end;
 
 function TAppearanceNode.MaterialProperty: TMaterialProperty;
