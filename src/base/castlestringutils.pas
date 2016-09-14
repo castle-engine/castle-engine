@@ -580,10 +580,10 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
   is like
 
 @longCode(#
-  Result := S;
-  Result := StringReplace(Result, Patterns[0], Values[0], [rfReplaceAll]);
-  Result := StringReplace(Result, Patterns[1], Values[1], [rfReplaceAll]);
-  etc.
+Result := S;
+Result := StringReplace(Result, Patterns[0], Values[0], [rfReplaceAll]);
+Result := StringReplace(Result, Patterns[1], Values[1], [rfReplaceAll]);
+// etc.
 #)
 
   But the above fails badly when inserting some Values[] creates

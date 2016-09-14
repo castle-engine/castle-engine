@@ -83,24 +83,24 @@
   So the simplest example of using this unit can look like this:
 
 @longcode(#
-  uses CastleWindow;
+uses CastleWindow;
 
-  var
-    Window: TCastleWindowCustom;
+var
+  Window: TCastleWindowCustom;
 
-  procedure Render(Sender: TUIContainer);
-  begin  ...  end;
+procedure Render(Sender: TUIContainer);
+begin  ...  end;
 
-  procedure Resize(Sender: TUIContainer);
-  begin  ...  end;
+procedure Resize(Sender: TUIContainer);
+begin  ...  end;
 
-  begin
-    Window := TCastleWindowCustom.Create(Application);
-    Window.OnResize := @Resize;
-    Window.OnRender := @Render;
-    Window.Caption := 'Simplest CastleWindow example';
-    Window.OpenAndRun;
-  end.
+begin
+  Window := TCastleWindowCustom.Create(Application);
+  Window.OnResize := @Resize;
+  Window.OnRender := @Render;
+  Window.Caption := 'Simplest CastleWindow example';
+  Window.OpenAndRun;
+end.
 #)
 
   @italic(More component-like approach):
@@ -1424,10 +1424,12 @@ type
       try typical values 2 or 4.
 
       You can enable/disable anti-aliasing in your program by code like
+
       @longCode(#
-        if GLFeatures.Multisample then glEnable(GL_MULTISAMPLE_ARB);
-        if GLFeatures.Multisample then glDisable(GL_MULTISAMPLE_ARB);
+if GLFeatures.Multisample then glEnable(GL_MULTISAMPLE_ARB);
+if GLFeatures.Multisample then glDisable(GL_MULTISAMPLE_ARB);
       #)
+
       But usually that's not needed, as it is "on" by default
       (GL_ARB_multisample spec says so) if you requested multi-sampling context
       (that is, if this property is > 1). See GL_ARB_multisample spec for details:
