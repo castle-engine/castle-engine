@@ -51,7 +51,7 @@ procedure Render(Container: TUIContainer);
   end;
 
 begin
-  GLClear([cbColor], Black);
+  RenderContext.Clear([cbColor], Black);
   DrawPoint(ListenerPosition, Yellow);
   DrawPoint(SoundPosition, White);
 end;

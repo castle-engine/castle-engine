@@ -51,10 +51,12 @@ type
 
 procedure TWireViewport.Render;
 begin
-  {$ifndef OpenGLES} //TODO-es
+  { TODO: There is no way to make this trick work on OpenGLES.
+    Wireframe rendering must be done then by really rendering different
+    primitives, not by switching some PolygonMode. }
+  {$ifndef OpenGLES}
   glPushAttrib(GL_POLYGON_BIT or GL_LINE_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
-    glLineWidth(1); { saved by GL_LINE_BIT }
   {$endif}
     inherited;
   {$ifndef OpenGLES}

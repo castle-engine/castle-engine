@@ -119,7 +119,7 @@ begin
   ImgR.Clear(Vector4Byte(22, 33, 44, 55));
   AssertTrue(ImgR.IsClear(Vector4Byte(22, 33, 44, 66)));
 
-  ImgR.SetColorRGB(0, 0, Vector3Single(0.5, 0.6, 0.7));
+  ImgR.Colors[0, 0, 0] := Vector4Single(0.5, 0.6, 0.7, 1.0);
   AssertTrue(not ImgR.IsClear(Vector4Byte(22, 33, 44, 66)));
  finally FreeAndNil(ImgR) end;
 
@@ -130,7 +130,7 @@ begin
   AssertTrue(not ImgA.IsClear(Vector4Byte(22, 33, 44, 66)));
   AssertTrue(ImgA.IsClear(Vector4Byte(22, 33, 44, 55)));
 
-  ImgA.SetColorRGB(0, 0, Vector3Single(0.5, 0.6, 0.7));
+  ImgA.Colors[0, 0, 0] := Vector4Single(0.5, 0.6, 0.7, 1.0);
   AssertTrue(not ImgA.IsClear(Vector4Byte(22, 33, 44, 55)));
  finally FreeAndNil(ImgA) end;
 end;

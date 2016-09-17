@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<build_gradle_merge>
+  <dependencies>
+    <!-- See https://developers.google.com/android/guides/setup#split -->
+    <dependency>compile 'com.google.android.gms:play-services-games:9.4.0'</dependency>
+    <!-- for savegames, the drive API is also needed -->
+    <dependency>compile 'com.google.android.gms:play-services-drive:9.4.0'</dependency>
+  </dependencies>
+</build_gradle_merge>

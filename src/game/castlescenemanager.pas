@@ -508,7 +508,7 @@ type
       under this viewport, that actually draws something predictable underneath.
 
       The normal background, derived from @link(Background) will be ignored.
-      We will also not do any GLClear on color buffer.
+      We will also not do any RenderContext.Clear on color buffer.
       Also BackgroundWireframe and BackgroundColor doesn't matter in this case. }
     property Transparent: boolean read FTransparent write FTransparent default false;
 
@@ -1907,7 +1907,7 @@ begin
      MainLightForShadows(MainLightPosition) then
     Include(ClearBuffers, cbStencil);
 
-  GLClear(ClearBuffers, ClearColor);
+  RenderContext.Clear(ClearBuffers, ClearColor);
 
   {$ifndef OpenGLES}
   glLoadMatrix(RenderingCamera.Matrix);
@@ -2281,13 +2281,13 @@ begin
   begin
     { Rendering directly to the screen, when no screen effects are used. }
     if not FullSize then
-      { Use Scissor to limit what glClear clears. }
-      ScissorEnable(ScreenRect);
+      { Use Scissor to limit what RenderContext.Clear clears. }
+      RenderContext.ScissorEnable(ScreenRect);
 
     RenderFromViewEverything;
 
     if not FullSize then
-      ScissorDisable;
+      RenderContext.ScissorDisable;
   end;
 end;
 

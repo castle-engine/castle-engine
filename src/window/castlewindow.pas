@@ -83,24 +83,24 @@
   So the simplest example of using this unit can look like this:
 
 @longcode(#
-  uses CastleWindow;
+uses CastleWindow;
 
-  var
-    Window: TCastleWindowCustom;
+var
+  Window: TCastleWindowCustom;
 
-  procedure Render(Sender: TUIContainer);
-  begin  ...  end;
+procedure Render(Sender: TUIContainer);
+begin  ...  end;
 
-  procedure Resize(Sender: TUIContainer);
-  begin  ...  end;
+procedure Resize(Sender: TUIContainer);
+begin  ...  end;
 
-  begin
-    Window := TCastleWindowCustom.Create(Application);
-    Window.OnResize := @Resize;
-    Window.OnRender := @Render;
-    Window.Caption := 'Simplest CastleWindow example';
-    Window.OpenAndRun;
-  end.
+begin
+  Window := TCastleWindowCustom.Create(Application);
+  Window.OnResize := @Resize;
+  Window.OnRender := @Render;
+  Window.Caption := 'Simplest CastleWindow example';
+  Window.OpenAndRun;
+end.
 #)
 
   @italic(More component-like approach):
@@ -1424,10 +1424,12 @@ type
       try typical values 2 or 4.
 
       You can enable/disable anti-aliasing in your program by code like
+
       @longCode(#
-        if GLFeatures.Multisample then glEnable(GL_MULTISAMPLE_ARB);
-        if GLFeatures.Multisample then glDisable(GL_MULTISAMPLE_ARB);
+if GLFeatures.Multisample then glEnable(GL_MULTISAMPLE_ARB);
+if GLFeatures.Multisample then glDisable(GL_MULTISAMPLE_ARB);
       #)
+
       But usually that's not needed, as it is "on" by default
       (GL_ARB_multisample spec says so) if you requested multi-sampling context
       (that is, if this property is > 1). See GL_ARB_multisample spec for details:
@@ -1965,8 +1967,10 @@ end;
     { See TUIContainer.Invalidate. }
     procedure Invalidate;
 
-    { Make the OpenGL context of this window "current" (following OpenGL
-      commands will apply to this). When the window is opened, and right
+    { Make the OpenGL context of this window @italic(current). Following OpenGL
+      commands will apply to this context, and the @link(CastleGLUtils.RenderContext)
+      will also refer to this.
+      When the window is opened, and right
       before calling any window callback, we always automatically call
       this, so you should not need to call this method yourself
       in normal circumstances. }
@@ -3007,12 +3011,12 @@ procedure TCastleWindowCustom.OpenCore;
     Viewport2DSize[1] := WindowRect.Height;
     OrthoProjection(0, WindowRect.Width, 0, WindowRect.Height);
 
-    { Not only is GLClear faster than DrawRectangle(WindowRect,...).
+    { Not only is RenderContext.Clear faster than DrawRectangle(WindowRect,...).
       In this case, it is also more reliable: in case of Android immersive
       mode, we may not have yet our desired size (our width or height is smaller
-      than device screen). For some reason, GLClear manages to clear
+      than device screen). For some reason, RenderContext.Clear manages to clear
       the whole screen area anyway. }
-    GLClear([cbColor], Theme.LoadingBackgroundColor);
+    RenderContext.Clear([cbColor], Theme.LoadingBackgroundColor);
 
     UIScale := Container.DefaultUIScale;
     TextRect := Theme.Images[tiLoading].Rect.
@@ -3214,6 +3218,7 @@ begin
   if Application.Current <> Self then
   begin
     BackendMakeCurrent;
+    RenderContext := Container.Context;
     Application.Current := Self;
   end;
 end;

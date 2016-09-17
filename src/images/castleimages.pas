@@ -378,6 +378,9 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
 
     function MakeResizedToFpImage(ResizeWidth, ResizeHeight: Cardinal;
       const Interpolation: TResizeInterpolation): TFPMemoryImage;
+
+    function GetColors(const X, Y, Z: Integer): TCastleColor; virtual;
+    procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); virtual;
   public
     { Constructor without parameters creates image with Width = Height = Depth = 0
       and RawPixels = nil, so IsEmpty will return @true.
@@ -449,21 +452,22 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       will raise EInternalError. }
     procedure InvertColors; virtual;
 
-    { Set the RGB color portion of the pixel.
+    { Get or set the color of the pixel.
 
-      In case of descendants that have more then RGB components,
-      other color components are not touched (e.g. in case of TRGBAlphaImage
-      alpha value of given pixel is not changed).
+      In case of descendants without alpha, we may drop this information.
 
-      In case of descendants that don't have anything like RGB encoded
-      inside (e.g. TGrayscaleImage), this should not be overriden and then
-      default implementation of this method in this class
-      will raise EInternalError. This also means that you must not
-      call inherited in descendants when overriding this method.
+      In case of grayscale descendants, when getting or setting we convert
+      the color to/from grayscale as necessary. This means that setting
+      RGB color on a grayscale image may lose information -- we will convert
+      your color to grayscale.
 
-      As usual, you are responsible for guaranting correctness of given
-      X, Y coordinates because their correctness is not checked here. }
-    procedure SetColorRGB(const X, Y: Integer; const v: TVector3Single); virtual;
+      Caller is responsible for checking the correctness of given
+      X, Y, Z coordinates. For speed, we may not check them inside (so nasty
+      memory errors will occur in case of invalid coordinates). }
+    property Colors [X, Y, Z: Integer]: TCastleColor read GetColors write SetColors;
+
+    procedure SetColorRGB(const X, Y: Integer; const v: TVector3Single);
+      deprecated 'use Colors[X, Y, 0] to get or set colors';
 
     { Create a new image object that has exactly the same class
       and the same data (size, pixels) as this image.
@@ -561,30 +565,16 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       X0 and Y0 are start position (lower-left corner),
       ExtractWidth, ExtractHeight specify size of area.
 
-      This checks parameters for correctness -- if start position in not
-      good or ExtractWidth/Height are too large exception
+      This checks parameters for correctness -- if start position is not
+      correct or ExtractWidth/Height are too large then exception
       @link(EImagePosOutOfRange) is raised. }
     function MakeExtracted(X0, Y0, ExtractWidth, ExtractHeight: Cardinal): TCastleImage;
 
-    { Set all image pixels to the same value.
-      This is implemented only in descendants that represent a pixel
-      as a TVector4Byte (e.g. TRGBAlphaImage) or TVector3Byte
-      (e.g. TRGBImage, 4th component is ignored in this case).
-
-      In this class this simply raises EInternalError to say 'not implemented'.
-      This also means that you must not call inherited in
-      descendants when overriding this method. }
+    { Set all image pixels to the same color. }
     procedure Clear(const Pixel: TVector4Byte); overload; virtual;
     procedure Clear(const Pixel: TCastleColor); overload;
 
-    { Check do all image pixels have the same value Pixel.
-      This is implemented only in descendants that represent a pixel
-      as TVector4Byte or TVector3Byte (4th component is ignored in this
-      case), just like method @link(Clear).
-
-      In this class this simply raises EInternalError to say 'not implemented'.
-      This also means that you must not call inherited in
-      descendants when overriding this method. }
+    { Check do all image pixels have the same color. }
     function IsClear(const Pixel: TVector4Byte): boolean; virtual;
 
     { Multiply each RGB color by a matrix.
@@ -779,7 +769,7 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       @raises(EImageLerpInvalidClasses When mixing is not implemented
         for this image class.) }
     class procedure MixColors(const OutputColor: Pointer;
-       const Weights: TVector4Single; const Colors: TVector4Pointer); virtual;
+       const Weights: TVector4Single; const AColors: TVector4Pointer); virtual;
 
     { Copy size and contents from Source.
       This sets our size (Width, Height and Depth)
@@ -1040,6 +1030,8 @@ type
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); override;
+    function GetColors(const X, Y, Z: Integer): TCastleColor; override;
+    procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector3Byte }
     property RGBPixels: PVector3Byte read GetRGBPixels;
@@ -1051,8 +1043,6 @@ type
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector3Byte;
 
     procedure InvertColors; override;
-
-    procedure SetColorRGB(const x, y: Integer; const v: TVector3Single); override;
 
     procedure Clear(const Pixel: TVector4Byte); override;
     function IsClear(const Pixel: TVector4Byte): boolean; override;
@@ -1120,7 +1110,7 @@ type
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
-       const Weights: TVector4Single; const Colors: TVector4Pointer); override;
+       const Weights: TVector4Single; const AColors: TVector4Pointer); override;
 
     procedure Assign(const Source: TCastleImage); override;
   end;
@@ -1135,6 +1125,8 @@ type
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); override;
+    function GetColors(const X, Y, Z: Integer): TCastleColor; override;
+    procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector4Byte }
     property AlphaPixels: PVector4Byte read GetAlphaPixels;
@@ -1146,8 +1138,6 @@ type
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector4Byte;
 
     procedure InvertColors; override;
-
-    procedure SetColorRGB(const x, y: Integer; const v: TVector3Single); override;
 
     procedure Clear(const Pixel: TVector4Byte); override;
     function IsClear(const Pixel: TVector4Byte): boolean; override;
@@ -1178,7 +1168,7 @@ type
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
-       const Weights: TVector4Single; const Colors: TVector4Pointer); override;
+       const Weights: TVector4Single; const AColors: TVector4Pointer); override;
 
     { Remove alpha channel. }
     function ToRGBImage: TRGBImage;
@@ -1213,6 +1203,9 @@ type
   TRGBFloatImage = class(TCastleImage)
   private
     function GetRGBFloatPixels: PVector3Single;
+  protected
+    function GetColors(const X, Y, Z: Integer): TCastleColor; override;
+    procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector3Single }
     property RGBFloatPixels: PVector3Single read GetRGBFloatPixels;
@@ -1223,8 +1216,10 @@ type
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector3Single;
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector3Single;
 
-    procedure SetColorRGB(const x, y: Integer; const v: TVector3Single); override;
     procedure InvertColors; override;
+
+    procedure Clear(const Pixel: TVector4Byte); override;
+    function IsClear(const Pixel: TVector4Byte): boolean; override;
 
     procedure Clear(const Pixel: TVector3Single); reintroduce;
     function IsClear(const Pixel: TVector3Single): boolean; reintroduce;
@@ -1247,13 +1242,14 @@ type
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
-       const Weights: TVector4Single; const Colors: TVector4Pointer); override;
+       const Weights: TVector4Single; const AColors: TVector4Pointer); override;
   end;
 
   { Grayscale image. Color is a simple Byte value. }
   TGrayscaleImage = class(TCastleImage)
   private
     FTreatAsAlpha: boolean;
+    FColorWhenTreatedAsAlpha: TVector3Byte;
     function GetGrayscalePixels: PByte;
     procedure FromFpImage(const FPImage: TFPMemoryImage); override;
     function ToFpImage: TFPMemoryImage; override;
@@ -1261,6 +1257,8 @@ type
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); override;
+    function GetColors(const X, Y, Z: Integer): TCastleColor; override;
+    procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PByte }
     property GrayscalePixels: PByte read GetGrayscalePixels;
@@ -1272,6 +1270,9 @@ type
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PByteArray;
 
     procedure InvertColors; override;
+
+    procedure Clear(const Pixel: TVector4Byte); override;
+    function IsClear(const Pixel: TVector4Byte): boolean; override;
 
     procedure Clear(const Pixel: Byte); reintroduce;
     function IsClear(const Pixel: Byte): boolean; reintroduce;
@@ -1289,20 +1290,34 @@ type
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
-       const Weights: TVector4Single; const Colors: TVector4Pointer); override;
+       const Weights: TVector4Single; const AColors: TVector4Pointer); override;
 
     { Should we treat grayscale image as pure alpha channel (without any color
       information) when using this as a texture.
 
-      This property is meaningful only for a small subset of operations,
-      right now: only when creating OpenGL texture from this image.
-      If @true, then the grayscale pixel data will be loaded as alpha channel
-      contents (GL_ALPHA texture for OpenGL,
-      it modifies only the fragments alpha value,
-      it doesn't have any "color" in the normal sense).
-      It is also the only way for TGrayscaleImage to return AlphaChannel <> acNone. }
+      This property is meaningful only for a small subset of operations.
+
+      @orderedList(
+        @item(
+          When creating OpenGL texture from this image.
+          If @true, then the grayscale pixel data will be loaded as alpha channel
+          contents (GL_ALPHA texture for OpenGL,
+          it modifies only the fragments alpha value,
+          it doesn't have any "color" in the normal sense).
+          It is also the only way for TGrayscaleImage to return AlphaChannel <> acNone.)
+
+        @item(
+          When using @link(DrawFrom) / @link(DrawTo) methods.
+          If @true, this image is drawn like an RGBA image,
+          with constant RGB color ColorWhenTreatedAsAlpha, and alpha channel
+          taken from contents of this image.)
+      )
+    }
     property TreatAsAlpha: boolean
       read FTreatAsAlpha write FTreatAsAlpha;
+
+    property ColorWhenTreatedAsAlpha: TVector3Byte
+      read FColorWhenTreatedAsAlpha write FColorWhenTreatedAsAlpha;
 
     function AlphaChannel(
       const AlphaTolerance: Byte): TAlphaChannel; override;
@@ -1321,6 +1336,8 @@ type
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); override;
+    function GetColors(const X, Y, Z: Integer): TCastleColor; override;
+    procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector2Byte }
     property GrayscaleAlphaPixels: PVector2Byte read GetGrayscaleAlphaPixels;
@@ -1333,6 +1350,9 @@ type
 
     procedure InvertColors; override;
 
+    procedure Clear(const Pixel: TVector4Byte); override;
+    function IsClear(const Pixel: TVector4Byte): boolean; override;
+
     procedure Clear(const Pixel: TVector2Byte); reintroduce;
     function IsClear(const Pixel: TVector2Byte): boolean; reintroduce;
 
@@ -1343,7 +1363,7 @@ type
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
-       const Weights: TVector4Single; const Colors: TVector4Pointer); override;
+       const Weights: TVector4Single; const AColors: TVector4Pointer); override;
 
     procedure Assign(const Source: TCastleImage); override;
 
@@ -1817,9 +1837,20 @@ begin
   NotImplemented('InvertColors');
 end;
 
-procedure TCastleImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
+procedure TCastleImage.SetColorRGB(const X, Y: Integer; const V: TVector3Single);
 begin
-  NotImplemented('SetColorRGB');
+  SetColors(X, Y, 0, Vector4Single(V, 1));
+end;
+
+function TCastleImage.GetColors(const X, Y, Z: Integer): TCastleColor;
+begin
+  NotImplemented('GetColor');
+  Result := ZeroVector4Single; // silence warning
+end;
+
+procedure TCastleImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
+begin
+  NotImplemented('SetColor');
 end;
 
 function TCastleImage.Size: Cardinal;
@@ -1846,7 +1877,7 @@ end;
 
 type
   TMixColorsFunction = procedure (const OutputColor: Pointer;
-    const Weights: TVector4Single; const Colors: TVector4Pointer) of object;
+    const Weights: TVector4Single; const AColors: TVector4Pointer) of object;
 
 { This does the real resizing work.
   It assumes that SourceData and DestinData pointers are already allocated.
@@ -2386,7 +2417,7 @@ begin
 end;
 
 class procedure TCastleImage.MixColors(const OutputColor: Pointer;
-  const Weights: TVector4Single; const Colors: TVector4Pointer);
+  const Weights: TVector4Single; const AColors: TVector4Pointer);
 begin
   raise EImageLerpInvalidClasses.Create('Mixing colors (TCastleImage.MixColors) not possible with the base TCastleImage class');
 end;
@@ -2703,9 +2734,25 @@ begin
   end;
 end;
 
-procedure TRGBImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
+function TRGBImage.GetColors(const X, Y, Z: Integer): TCastleColor;
+var
+  Pixel: PVector3Byte;
 begin
-  PVector3Byte(PixelPtr(x, y))^ := Vector3Byte(v);
+  Pixel := PixelPtr(X, Y, Z);
+  Result[0] := Pixel^[0] / 255;
+  Result[1] := Pixel^[1] / 255;
+  Result[2] := Pixel^[2] / 255;
+  Result[3] := 1.0;
+end;
+
+procedure TRGBImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
+var
+  Pixel: PVector3Byte;
+begin
+  Pixel := PixelPtr(X, Y, Z);
+  Pixel^[0] := Clamped(Round(C[0] * 255), Low(Byte), High(Byte));
+  Pixel^[1] := Clamped(Round(C[1] * 255), Low(Byte), High(Byte));
+  Pixel^[2] := Clamped(Round(C[2] * 255), Low(Byte), High(Byte));
 end;
 
 procedure TRGBImage.Clear(const Pixel: TVector4Byte);
@@ -2859,10 +2906,10 @@ end;
 { $define FAST_UNSAFE_MIX_COLORS}
 
 class procedure TRGBImage.MixColors(const OutputColor: Pointer;
-  const Weights: TVector4Single; const Colors: TVector4Pointer);
+  const Weights: TVector4Single; const AColors: TVector4Pointer);
 var
   OutputCol: PVector3Byte absolute OutputColor;
-  Cols: array [0..3] of PVector3Byte absolute Colors;
+  Cols: array [0..3] of PVector3Byte absolute AColors;
 begin
   {$I norqcheckbegin.inc}
   OutputCol^[0] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
@@ -2951,9 +2998,26 @@ begin
   end;
 end;
 
-procedure TRGBAlphaImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
+function TRGBAlphaImage.GetColors(const X, Y, Z: Integer): TCastleColor;
+var
+  Pixel: PVector4Byte;
 begin
-  PVector3Byte(PixelPtr(x, y))^ := Vector3Byte(v);
+  Pixel := PixelPtr(X, Y, Z);
+  Result[0] := Pixel^[0] / 255;
+  Result[1] := Pixel^[1] / 255;
+  Result[2] := Pixel^[2] / 255;
+  Result[3] := Pixel^[3] / 255;
+end;
+
+procedure TRGBAlphaImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
+var
+  Pixel: PVector4Byte;
+begin
+  Pixel := PixelPtr(X, Y, Z);
+  Pixel^[0] := Clamped(Round(C[0] * 255), Low(Byte), High(Byte));
+  Pixel^[1] := Clamped(Round(C[1] * 255), Low(Byte), High(Byte));
+  Pixel^[2] := Clamped(Round(C[2] * 255), Low(Byte), High(Byte));
+  Pixel^[3] := Clamped(Round(C[3] * 255), Low(Byte), High(Byte));
 end;
 
 procedure TRGBAlphaImage.Clear(const Pixel: TVector4Byte);
@@ -3075,10 +3139,10 @@ begin
 end;
 
 class procedure TRGBAlphaImage.MixColors(const OutputColor: Pointer;
-  const Weights: TVector4Single; const Colors: TVector4Pointer);
+  const Weights: TVector4Single; const AColors: TVector4Pointer);
 var
   OutputCol: PVector4Byte absolute OutputColor;
-  Cols: array [0..3] of PVector4Byte absolute Colors;
+  Cols: array [0..3] of PVector4Byte absolute AColors;
 begin
   {$I norqcheckbegin.inc}
   OutputCol^[0] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
@@ -3235,9 +3299,41 @@ begin
   Result := PArray_Vector3Single(inherited RowPtr(Y, Z));
 end;
 
-procedure TRGBFloatImage.SetColorRGB(const x, y: Integer; const V: TVector3Single);
+function TRGBFloatImage.GetColors(const X, Y, Z: Integer): TCastleColor;
+var
+  Pixel: PVector3Single;
 begin
-  PVector3Single(PixelPtr(x, y))^ := V;
+  Pixel := PixelPtr(X, Y, Z);
+  Result[0] := Pixel^[0];
+  Result[1] := Pixel^[1];
+  Result[2] := Pixel^[2];
+  Result[3] := 1.0;
+end;
+
+procedure TRGBFloatImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
+var
+  Pixel: PVector3Single;
+begin
+  Pixel := PixelPtr(X, Y, Z);
+  Pixel^[0] := C[0];
+  Pixel^[1] := C[1];
+  Pixel^[2] := C[2];
+end;
+
+procedure TRGBFloatImage.Clear(const Pixel: TVector4Byte);
+begin
+  Clear(Vector3Single(
+    Pixel[0] * 255,
+    Pixel[1] * 255,
+    Pixel[2] * 255));
+end;
+
+function TRGBFloatImage.IsClear(const Pixel: TVector4Byte): boolean;
+begin
+  Result := IsClear(Vector3Single(
+    Pixel[0] * 255,
+    Pixel[1] * 255,
+    Pixel[2] * 255));
 end;
 
 procedure TRGBFloatImage.Clear(const Pixel: TVector3Single);
@@ -3322,10 +3418,10 @@ begin
 end;
 
 class procedure TRGBFloatImage.MixColors(const OutputColor: Pointer;
-  const Weights: TVector4Single; const Colors: TVector4Pointer);
+  const Weights: TVector4Single; const AColors: TVector4Pointer);
 var
   OutputCol: PVector3Single absolute OutputColor;
-  Cols: array [0..3] of PVector3Single absolute Colors;
+  Cols: array [0..3] of PVector3Single absolute AColors;
 begin
   OutputCol^[0] := Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0];
   OutputCol^[1] := Weights[0] * Cols[0]^[1] + Weights[1] * Cols[1]^[1] + Weights[2] * Cols[2]^[1] + Weights[3] * Cols[3]^[1];
@@ -3374,6 +3470,16 @@ begin
   Result := PByteArray(inherited RowPtr(Y, Z));
 end;
 
+procedure TGrayscaleImage.Clear(const Pixel: TVector4Byte);
+begin
+  Clear(GrayscaleValue(Pixel));
+end;
+
+function TGrayscaleImage.IsClear(const Pixel: TVector4Byte): boolean;
+begin
+  Result := IsClear(GrayscaleValue(Pixel));
+end;
+
 procedure TGrayscaleImage.Clear(const Pixel: Byte);
 begin
   FillChar(RawPixels^, Size, Pixel);
@@ -3416,10 +3522,10 @@ begin
 end;
 
 class procedure TGrayscaleImage.MixColors(const OutputColor: Pointer;
-  const Weights: TVector4Single; const Colors: TVector4Pointer);
+  const Weights: TVector4Single; const AColors: TVector4Pointer);
 var
   OutputCol: PByte absolute OutputColor;
-  Cols: array [0..3] of PByte absolute Colors;
+  Cols: array [0..3] of PByte absolute AColors;
 begin
   {$I norqcheckbegin.inc}
   OutputCol^ := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^ + Weights[1] * Cols[1]^ + Weights[2] * Cols[2]^ + Weights[3] * Cols[3]^) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
@@ -3516,6 +3622,25 @@ begin
   end;
 end;
 
+function TGrayscaleImage.GetColors(const X, Y, Z: Integer): TCastleColor;
+var
+  Pixel: PByte;
+begin
+  Pixel := PixelPtr(X, Y, Z);
+  Result[0] := Pixel^;
+  Result[1] := Pixel^;
+  Result[2] := Pixel^;
+  Result[3] := 1.0;
+end;
+
+procedure TGrayscaleImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
+var
+  Pixel: PByte;
+begin
+  Pixel := PixelPtr(X, Y, Z);
+  Pixel^ := Clamped(Round(GrayscaleValue(C) * 255), Low(Byte), High(Byte));
+end;
+
 { TGrayscaleAlphaImage ------------------------------------------------------------ }
 
 function TGrayscaleAlphaImage.GetGrayscaleAlphaPixels: PVector2Byte;
@@ -3541,6 +3666,16 @@ end;
 function TGrayscaleAlphaImage.RowPtr(const Y, Z: Cardinal): PArray_Vector2Byte;
 begin
   Result := PArray_Vector2Byte(inherited RowPtr(Y, Z));
+end;
+
+procedure TGrayscaleAlphaImage.Clear(const Pixel: TVector4Byte);
+begin
+  Clear(Vector2Byte(GrayscaleValue(Pixel), Pixel[3]));
+end;
+
+function TGrayscaleAlphaImage.IsClear(const Pixel: TVector4Byte): boolean;
+begin
+  Result := IsClear(Vector2Byte(GrayscaleValue(Pixel), Pixel[3]));
 end;
 
 procedure TGrayscaleAlphaImage.Clear(const Pixel: TVector2Byte);
@@ -3617,10 +3752,10 @@ begin
 end;
 
 class procedure TGrayscaleAlphaImage.MixColors(const OutputColor: Pointer;
-  const Weights: TVector4Single; const Colors: TVector4Pointer);
+  const Weights: TVector4Single; const AColors: TVector4Pointer);
 var
   OutputCol: PVector2Byte absolute OutputColor;
-  Cols: array [0..3] of PVector2Byte absolute Colors;
+  Cols: array [0..3] of PVector2Byte absolute AColors;
 begin
   {$I norqcheckbegin.inc}
   OutputCol^[0] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
@@ -3664,6 +3799,26 @@ begin
     P^[0] := High(Byte)-P^[0];
     Inc(P);
   end;
+end;
+
+function TGrayscaleAlphaImage.GetColors(const X, Y, Z: Integer): TCastleColor;
+var
+  Pixel: PVector2Byte;
+begin
+  Pixel := PixelPtr(X, Y, Z);
+  Result[0] := Pixel^[0] / 255;
+  Result[1] := Pixel^[0] / 255;
+  Result[2] := Pixel^[0] / 255;
+  Result[3] := Pixel^[1] / 255;
+end;
+
+procedure TGrayscaleAlphaImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
+var
+  Pixel: PVector2Byte;
+begin
+  Pixel := PixelPtr(X, Y, Z);
+  Pixel^[0] := Clamped(Round(GrayscaleValue(C) * 255), Low(Byte), High(Byte));
+  Pixel^[1] := Clamped(Round(C[3]              * 255), Low(Byte), High(Byte));
 end;
 
 { RGBE <-> 3 Single color conversion --------------------------------- }

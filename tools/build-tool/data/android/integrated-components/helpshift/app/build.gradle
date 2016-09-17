@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<build_gradle_merge>
+  <dependencies>
+    <!-- See https://developers.helpshift.com/android/getting-started/ -->
+    <dependency>compile 'com.android.support:design:23.1.1'</dependency>
+    <dependency>compile 'com.android.support:recyclerview-v7:23.1.1'</dependency>
+    <dependency>compile 'com.android.support:cardview-v7:23.1.1'</dependency>
+    <dependency>compile 'com.helpshift:android-helpshift-en-aar:4.6.0'</dependency>
+  </dependencies>
+</build_gradle_merge>

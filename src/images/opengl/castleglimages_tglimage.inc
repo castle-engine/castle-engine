@@ -96,6 +96,8 @@ type
       You cannot change it, you can only change the @link(Alpha) property
       that actually dictates the alpha drawing mode. }
     FImageAlpha: TAlphaChannel;
+    FBlendingSourceFactor: TBlendingSourceFactor;
+    FBlendingDestinationFactor: TBlendingDestinationFactor;
     function FinalAlpha: TAlphaChannel;
     procedure AlphaBegin;
     procedure AlphaEnd;
@@ -113,17 +115,65 @@ type
     function GetWidth: Cardinal; virtual;
     function GetHeight: Cardinal; virtual;
   public
+    const
+      DefaultBlendingSourceFactor = bsSrcAlpha;
+      DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
+
     { Prepare image for drawing.
+
+      @param(Image Initial image contents.
+        The TGLImageCore class loads it immediately,
+        so you can freely free the Image instance later.
+        Be careful -- TGLImage descendant has a different approach,
+        it needs the TEncodedImage instance to exist throuout the whole
+        TGLImage lifetime.)
+
+      @param(ASmoothScaling The initial value of @link(SmoothScaling),
+        determines whether the image scaling is smooth (bilinear filtering)
+        or not (nearest-pixel filtering).
+        You can always change it later through the @link(SmoothScaling)
+        property. But each change has a small cost, so it's more efficient
+        to just set the initial value correctly.)
 
       @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
         by OpenGL.) }
     constructor Create(const Image: TEncodedImage;
       const ASmoothScaling: boolean);
+
     constructor Create(const Image: TEncodedImage); deprecated 'use Create(Image, ASmoothScaling) and specify ASmoothScaling explicitly';
 
     { Load image from disk, and prepare for drawing.
 
-      @param(LoadAsClass Force a specific image class to load.
+      @param(URL URL (or filename) from which to load the image.
+        Often you want to pass here the result ot ApplicationData
+        function, like:
+
+        @longCode(# Image := TGLImageCore.Create(ApplicationData('textures/my_image.png'), ...); #)
+      )
+
+      @param(ASmoothScaling The initial value of @link(SmoothScaling),
+        determines whether the image scaling is smooth (bilinear filtering)
+        or not (nearest-pixel filtering).
+        You can always change it later through the @link(SmoothScaling)
+        property. But each change has a small cost, so it's more efficient
+        to just set the initial value correctly.)
+    }
+    constructor Create(const URL: string;
+      const ASmoothScaling: boolean = true);
+
+    { Load image from disk, and prepare for drawing.
+
+      @param(URL URL (or filename) from which to load the image.
+        Often you want to pass here the result ot ApplicationData
+        function, like:
+
+        @longCode(# Image := TGLImageCore.Create(ApplicationData('textures/my_image.png'), ...); #)
+      )
+
+      @param(LoadAsClass Constrain the possible image classes to load into.
+        This can force removing (or adding) an alpha channel,
+        or converting contents to grayscale or RGB, regardless of the preferred
+        image file format.
         Must be a subset of PixelsImageClasses, as other classes cannot
         be loaded into OpenGL 2D images, otherwise you may get
         EImageClassNotSupportedForOpenGL exception.
@@ -148,12 +198,40 @@ type
         by OpenGL.)
     }
     constructor Create(const URL: string;
-      const ASmoothScaling: boolean = true);
-    constructor Create(const URL: string;
       const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
       const Interpolation: TResizeInterpolation = riNearest);
+
+    { Load image from disk, and prepare for drawing.
+
+      @param(URL URL (or filename) from which to load the image.
+        Often you want to pass here the result ot ApplicationData
+        function, like:
+
+        @longCode(# Image := TGLImageCore.Create(ApplicationData('textures/my_image.png'), ...); #)
+      )
+
+      @param(LoadAsClass Constrain the possible image classes to load into.
+        This can force removing (or adding) an alpha channel,
+        or converting contents to grayscale or RGB, regardless of the preferred
+        image file format.
+        Must be a subset of PixelsImageClasses, as other classes cannot
+        be loaded into OpenGL 2D images, otherwise you may get
+        EImageClassNotSupportedForOpenGL exception.
+        Pass empty set [] to load into any allowed class
+        (it's equivalent to passing LoadAsClass = PixelsImageClasses).
+
+        You can pass e.g. [TRGBImage] to force loading into an RGB image without
+        an alpha channel (it will be stripped from the image if necessary).)
+
+      @param(ASmoothScaling The initial value of @link(SmoothScaling),
+        determines whether the image scaling is smooth (bilinear filtering)
+        or not (nearest-pixel filtering).
+        You can always change it later through the @link(SmoothScaling)
+        property. But each change has a small cost, so it's more efficient
+        to just set the initial value correctly.)
+    }
     constructor Create(const URL: string;
       const LoadAsClass: array of TEncodedImageClass;
       const ASmoothScaling: boolean);
@@ -200,6 +278,18 @@ type
     property Alpha: TAutoAlphaChannel read FAlpha write FAlpha
       default acAuto;
 
+    { Blending source factor, if we use blending (see @link(Alpha)). }
+    property BlendingSourceFactor: TBlendingSourceFactor
+      read FBlendingSourceFactor
+      write FBlendingSourceFactor
+      default DefaultBlendingSourceFactor;
+
+    { Blending destination factor, if we use blending (see @link(Alpha)). }
+    property BlendingDestinationFactor: TBlendingDestinationFactor
+      read FBlendingDestinationFactor
+      write FBlendingDestinationFactor
+      default DefaultBlendingDestinationFactor;
+
     { Draw the image as 2D on screen.
 
       The X, Y parameters determine where the left-bottom
@@ -232,7 +322,7 @@ type
       image horizontally.
 
       @groupBegin }
-    procedure Draw; overload;
+    procedure Draw; overload; deprecated 'use the Draw overload that takes position as explicit parameter';
 
     procedure Draw(const X, Y: Single); overload;
     procedure Draw(const X, Y, DrawWidth, DrawHeight: Single); overload;
@@ -401,9 +491,12 @@ type
     procedure SetImage(const AImage: TEncodedImage);
     procedure GLContextCloseEvent(Sender: TObject);
   public
-    { Prepare image for drawing. The @code(Image) instance passed here must
-      exist throughout the lifetime of this instance. It can be automatically freed
-      if OwnsImage = @true.
+    { Prepare image for drawing.
+
+      @param(Image Initial image contents.
+        The @code(Image) instance passed here must exist throughout the whole lifetime
+        of this TGLImage instance (so don't free it earlier). It can be automatically
+        freed by us, if OwnsImage = @true.)
 
       @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
         by OpenGL.) }
@@ -430,7 +523,36 @@ type
 
     { Load image from disk, and prepare for drawing.
 
-      @param(LoadAsClass Force a specific image class to load.
+      @param(URL URL (or filename) from which to load the image.
+        Often you want to pass here the result ot ApplicationData
+        function, like:
+
+        @longCode(# Image := TGLImage.Create(ApplicationData('textures/my_image.png'), ...); #)
+      )
+
+      @param(ASmoothScaling The initial value of @link(SmoothScaling),
+        determines whether the image scaling is smooth (bilinear filtering)
+        or not (nearest-pixel filtering).
+        You can always change it later through the @link(SmoothScaling)
+        property. But each change has a small cost, so it's more efficient
+        to just set the initial value correctly.)
+    }
+    constructor Create(const URL: string;
+      const ASmoothScaling: boolean = true);
+
+    { Load image from disk, and prepare for drawing.
+
+      @param(URL URL (or filename) from which to load the image.
+        Often you want to pass here the result ot ApplicationData
+        function, like:
+
+        @longCode(# Image := TGLImage.Create(ApplicationData('textures/my_image.png'), ...); #)
+      )
+
+      @param(LoadAsClass Constrain the possible image classes to load into.
+        This can force removing (or adding) an alpha channel,
+        or converting contents to grayscale or RGB, regardless of the preferred
+        image file format.
         Must be a subset of PixelsImageClasses, as other classes cannot
         be loaded into OpenGL 2D images, otherwise you may get
         EImageClassNotSupportedForOpenGL exception.
@@ -455,12 +577,40 @@ type
         by OpenGL.)
     }
     constructor Create(const URL: string;
-      const ASmoothScaling: boolean = true);
-    constructor Create(const URL: string;
       const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
       const Interpolation: TResizeInterpolation = riNearest);
+
+    { Load image from disk, and prepare for drawing.
+
+      @param(URL URL (or filename) from which to load the image.
+        Often you want to pass here the result ot ApplicationData
+        function, like:
+
+        @longCode(# Image := TGLImage.Create(ApplicationData('textures/my_image.png'), ...); #)
+      )
+
+      @param(LoadAsClass Constrain the possible image classes to load into.
+        This can force removing (or adding) an alpha channel,
+        or converting contents to grayscale or RGB, regardless of the preferred
+        image file format.
+        Must be a subset of PixelsImageClasses, as other classes cannot
+        be loaded into OpenGL 2D images, otherwise you may get
+        EImageClassNotSupportedForOpenGL exception.
+        Pass empty set [] to load into any allowed class
+        (it's equivalent to passing LoadAsClass = PixelsImageClasses).
+
+        You can pass e.g. [TRGBImage] to force loading into an RGB image without
+        an alpha channel (it will be stripped from the image if necessary).)
+
+      @param(ASmoothScaling The initial value of @link(SmoothScaling),
+        determines whether the image scaling is smooth (bilinear filtering)
+        or not (nearest-pixel filtering).
+        You can always change it later through the @link(SmoothScaling)
+        property. But each change has a small cost, so it's more efficient
+        to just set the initial value correctly.)
+    }
     constructor Create(const URL: string;
       const LoadAsClass: array of TEncodedImageClass;
       const ASmoothScaling: boolean);
@@ -539,6 +689,8 @@ begin
   FSmoothScaling := ASmoothScaling;
   FImageAlpha := acNone;
   FAlpha := acAuto;
+  FBlendingSourceFactor := DefaultBlendingSourceFactor;
+  FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
 
   Load(Image);
 end;
@@ -734,14 +886,14 @@ begin
     {$ifndef GLImageUseShaders}
     acSimpleYesNo:
       begin
-        glAlphaFunc(GL_GEQUAL, 0.5); // saved by GL_COLOR_BUFFER_BIT
-        glEnable(GL_ALPHA_TEST); // saved by GL_COLOR_BUFFER_BIT
+        glAlphaFunc(GL_GEQUAL, 0.5);
+        glEnable(GL_ALPHA_TEST);
       end;
     {$endif}
     acFullRange:
       begin
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // saved by GL_COLOR_BUFFER_BIT
-        glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
+        GLBlendFunction(BlendingSourceFactor, BlendingDestinationFactor);
+        glEnable(GL_BLEND);
       end;
   end;
 end;
@@ -758,9 +910,12 @@ end;
 
 procedure TGLImageCore.Draw;
 begin
+  { Deprecated stuff uses other deprecated stuff here, don't warn }
+  {$warnings off}
   Draw(
     FloatRectangle(WindowPos[0], WindowPos[1], Width, Height),
     FloatRectangle(0, 0, Width, Height));
+  {$warnings on}
 end;
 
 procedure TGLImageCore.Draw(const X, Y: Single);

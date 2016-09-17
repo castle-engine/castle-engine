@@ -46,8 +46,8 @@ type
     FVersion: string;
     FVersionCode: Cardinal;
     FScreenOrientation: TScreenOrientation;
-    FAndroidTarget: string;
-    FAndroidMinSdkVersion, FAndroidTargetSdkVersion: Cardinal;
+    FAndroidBuildToolsVersion: string;
+    FAndroidCompileSdkVersion, FAndroidMinSdkVersion, FAndroidTargetSdkVersion: Cardinal;
     FAndroidProjectType: TAndroidProjectType;
     FAndroidComponents: TAndroidComponentList;
     // Helpers only for ExtractTemplateFoundFile.
@@ -104,7 +104,8 @@ type
     property PluginSource: string read FPluginSource;
     property AndroidProject: string read FAndroidProject;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
-    property AndroidTarget: string read FAndroidTarget;
+    property AndroidCompileSdkVersion: Cardinal read FAndroidCompileSdkVersion;
+    property AndroidBuildToolsVersion: string read FAndroidBuildToolsVersion;
     property AndroidMinSdkVersion: Cardinal read FAndroidMinSdkVersion;
     property AndroidTargetSdkVersion: Cardinal read FAndroidTargetSdkVersion;
     property AndroidProjectType: TAndroidProjectType read FAndroidProjectType;
@@ -188,8 +189,26 @@ constructor TCastleProject.Create(const APath: string);
   const
     { Google Play requires version code to be >= 1 }
     DefautVersionCode = 1;
-    DefaultAndroidTarget = 'android-19';
+    DefaultAndroidCompileSdkVersion = 23;
+    DefaultAndroidBuildToolsVersion = '23.0.2';
+    { We need OpenGL ES 2.0, which means Android 2.0 (API Level 5) and higher.
+      We want also NativeActivity and EGL, which require API level 9 or higher. }
+    ReallyMinSdkVersion = 9;
     DefaultAndroidMinSdkVersion = 9;
+    (* Note that with earlier FPC versions, you cannot increase targetSdkVersion
+       above 22:
+
+        http://lists.freepascal.org/pipermail/fpc-devel/2015-September/035948.html
+        http://fpc-devel.freepascal.narkive.com/tMJHK2Hw/fpc-app-crash-with-has-text-relocations-android-6-0
+
+      (compiling with -fPIC doesn't help). Your app will crash then with
+
+        E AndroidRuntime: java.lang.RuntimeException: Unable to start activity ComponentInfo{...}: java.lang.IllegalArgumentException: Unable to load native library: ....
+        E AndroidRuntime: Caused by: java.lang.IllegalArgumentException: Unable to load native library: .....so
+
+      This is fixed is latest FPC 3.1.1, that supports -fPIC on Android.
+      TODO: We should pass -fPIC when FPC version is > 3.1.1 on Android, then?
+    *)
     DefaultAndroidTargetSdkVersion = 18;
 
     { character sets }
@@ -215,7 +234,8 @@ constructor TCastleProject.Create(const APath: string);
       FStandaloneSource := FName + '.lpr';
       FVersionCode := DefautVersionCode;
       Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
-      FAndroidTarget := DefaultAndroidTarget;
+      FAndroidCompileSdkVersion := DefaultAndroidCompileSdkVersion;
+      FAndroidBuildToolsVersion := DefaultAndroidBuildToolsVersion;
       FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
       FAndroidTargetSdkVersion := DefaultAndroidTargetSdkVersion;
     end;
@@ -270,6 +290,10 @@ constructor TCastleProject.Create(const APath: string);
       if AndroidMinSdkVersion > AndroidTargetSdkVersion then
         raise Exception.CreateFmt('Android min_sdk_version %d is larger than target_sdk_version %d, this is incorrect',
           [AndroidMinSdkVersion, AndroidTargetSdkVersion]);
+
+      if AndroidMinSdkVersion < ReallyMinSdkVersion then
+        raise Exception.CreateFmt('Android min_sdk_version %d is too small. It must be >= %d for Castle Game Engine applications',
+          [AndroidMinSdkVersion, ReallyMinSdkVersion]);
     end;
 
   var
@@ -361,13 +385,15 @@ constructor TCastleProject.Create(const APath: string);
           finally FreeAndNil(ChildElements) end;
         end;
 
-        FAndroidTarget := DefaultAndroidTarget;
+        FAndroidCompileSdkVersion := DefaultAndroidCompileSdkVersion;
+        FAndroidBuildToolsVersion := DefaultAndroidBuildToolsVersion;
         FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
         FAndroidTargetSdkVersion := DefaultAndroidTargetSdkVersion;
         Element := Doc.DocumentElement.ChildElement('android', false);
         if Element <> nil then
         begin
-          FAndroidTarget := Element.AttributeStringDef('sdk_target', DefaultAndroidTarget);
+          FAndroidCompileSdkVersion := Element.AttributeCardinalDef('compile_sdk_version', DefaultAndroidCompileSdkVersion);
+          FAndroidBuildToolsVersion := Element.AttributeStringDef('build_tools_version', DefaultAndroidBuildToolsVersion);
           FAndroidMinSdkVersion := Element.AttributeCardinalDef('min_sdk_version', DefaultAndroidMinSdkVersion);
           FAndroidTargetSdkVersion := Element.AttributeCardinalDef('target_sdk_version', DefaultAndroidTargetSdkVersion);
 
@@ -1130,6 +1156,8 @@ begin
     Macros.Add('ANDROID_SCREEN_ORIENTATION'          , AndroidScreenOrientation[ScreenOrientation]);
     Macros.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'  , AndroidScreenOrientationFeature[ScreenOrientation]);
     Macros.Add('ANDROID_ACTIVITY_LOAD_LIBRARIES'     , AndroidActivityLoadLibraries);
+    Macros.Add('ANDROID_COMPILE_SDK_VERSION'         , IntToStr(AndroidCompileSdkVersion));
+    Macros.Add('ANDROID_BUILD_TOOLS_VERSION'         , AndroidBuildToolsVersion);
     Macros.Add('ANDROID_MIN_SDK_VERSION'             , IntToStr(AndroidMinSdkVersion));
     Macros.Add('ANDROID_TARGET_SDK_VERSION'          , IntToStr(AndroidTargetSdkVersion));
     for I := 0 to AndroidComponents.Count - 1 do
@@ -1189,14 +1217,16 @@ begin
   begin
     DestinationRelativeFileNameSlashes := StringReplace(
       DestinationRelativeFileName, '\', '/', [rfReplaceAll]);
-    if SameText(DestinationRelativeFileNameSlashes, 'AndroidManifest.xml') then
+    if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/AndroidManifest.xml') then
       MergeAndroidManifest(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
-    if SameText(DestinationRelativeFileNameSlashes, 'src/net/sourceforge/castleengine/MainActivity.java') then
+    if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/java/net/sourceforge/castleengine/MainActivity.java') then
       MergeAndroidMainActivity(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
-    if SameText(DestinationRelativeFileNameSlashes, 'jni/Android.mk') or
-       SameText(DestinationRelativeFileNameSlashes, 'custom-proguard-project.txt') or
-       SameText(DestinationRelativeFileNameSlashes, 'project.properties') then
+    if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/custom-proguard-project.txt') then
       MergeAppend(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
+    if SameText(DestinationRelativeFileNameSlashes, 'app/build.gradle') then
+      MergeBuildGradle(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
+    if SameText(DestinationRelativeFileNameSlashes, 'build.gradle') then
+      MergeBuildGradle(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
     if Verbose then
       Writeln('Not overwriting custom ' + DestinationRelativeFileName);
     Exit;

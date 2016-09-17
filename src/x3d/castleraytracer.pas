@@ -59,10 +59,8 @@ type
       before calling this method.
 
       For every pixel, we calculate it's color and store it by
-      TCastleImage.SetColorRGB method. So make sure SetColorRGB is implemented
-      for your image class (it's implemented in all 3 classes
-      TRGBImage, TRGBAlphaImage, TRGBFloatImage, so usually just
-      don't worry about that). We don't modify alpha channel of the image.
+      @code(TCastleImage.Color[X, Y, 0] := xxx) method.
+      We don't modify alpha channel of the image.
 
       Using TRGBFloatImage class is advised if you want the full color
       information. Otherwise color precision is lost beyond 8 bits, and values
@@ -227,7 +225,7 @@ type
 
 implementation
 
-uses SysUtils, CastleSphereSampling, CastleTimeUtils;
+uses SysUtils, CastleSphereSampling, CastleTimeUtils, CastleColors;
 
 { RayDirection calculations ----------------------------------------------------- }
 
@@ -510,9 +508,13 @@ var
   procedure DoPixel(const x, y: Cardinal);
   var
     RayOrigin, RayDirection: TVector3Single;
+    C: TCastleColor;
+    ColRGB: TCastleColorRGB absolute C;
   begin
     RaysWindow.PrimaryRay(x, y, Image.Width, Image.Height, RayOrigin, RayDirection);
-    Image.SetColorRGB(x, y, Trace(RayOrigin, RayDirection, InitialDepth, nil, false));
+    C := Image.Colors[X, Y, 0];
+    ColRGB := Trace(RayOrigin, RayDirection, InitialDepth, nil, false);
+    Image.Colors[X, Y, 0] := C;
   end;
 
 var
@@ -1096,6 +1098,8 @@ var
   var
     PixColor, PrimaryRayOrigin, PrimaryRayDirection: TVector3Single;
     SampleNum: Integer;
+    C: TCastleColor;
+    ColRGB: TCastleColorRGB absolute C;
   begin
     { generuj pixel x, y. calculate PixColor }
     if PrimarySamplesCount = 1 then
@@ -1119,7 +1123,9 @@ var
     end;
 
     { zapisz PixColor do Image }
-    Image.SetColorRGB(x, y, PixColor);
+    C := Image.Colors[X, Y, 0];
+    ColRGB := PixColor;
+    Image.Colors[X, Y, 0] := C;
   end;
 
 var

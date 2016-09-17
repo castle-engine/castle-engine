@@ -283,7 +283,7 @@ begin
       CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Shader.MaterialDiffuse[3]);
       CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(Shader.MaterialShininessExp);
       CurrentMeshShader.UniformCastle_SceneColor.SetValue(Vector3SingleCut(Shader.MaterialEmission) +
-        GlobalAmbient * Vector3SingleCut(Shader.MaterialAmbient));
+        RenderContext.GlobalAmbient * Vector3SingleCut(Shader.MaterialAmbient));
       CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Shader.MaterialUnlit);
 
       Attribs := TGLSLAttributeList.Create;
@@ -900,8 +900,11 @@ begin
       Assert(Shape.ProgramCache[Renderer.Pass] <> nil);
       CurrentX3DProgram := Shape.ProgramCache[Renderer.Pass].ShaderProgram;
       CurrentMeshShader := CurrentX3DProgram;
+      {$ifdef OpenGLES}
       Assert(CurrentX3DProgram <> nil, 'Shader is not initialized, but it has to be (creation of fallback shaders failed on OpenGLES?)');
-      Shader.SetDynamicUniforms(CurrentX3DProgram);
+      {$endif}
+      if CurrentX3DProgram <> nil then // may be nil on desktops
+        Shader.SetDynamicUniforms(CurrentX3DProgram);
     end else
       CurrentMeshShader := nil;
   end;

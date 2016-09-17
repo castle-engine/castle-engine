@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Google Games id. Used by AndroidManifest.xml.
+
+        Use translatable="false" to avoid errors "MissingTranslation" when
+        combining with other components with translated resources (like giftiz).
+    -->
+    <string name="app_id" translatable="false">${ANDROID.GOOGLE_PLAY_GAMES.APP_ID}</string>
+</resources>

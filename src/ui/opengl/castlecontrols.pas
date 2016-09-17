@@ -184,6 +184,9 @@ type
     FTintPressed, FTintDisabled, FTintFocused, FTintNormal: TCastleColor;
     FEnabled: boolean;
     FEnableParentDragging: boolean;
+    FTextAlignment: THorizontalPosition;
+    FLineSpacing: Integer;
+    FHtml: boolean;
     procedure SetCaption(const Value: string);
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
@@ -205,6 +208,10 @@ type
     procedure SetMinHeight(const Value: Cardinal);
     procedure SetImageMargin(const Value: Cardinal);
     procedure SetEnabled(const Value: boolean);
+    procedure SetTextAlignment(const Value: THorizontalPosition);
+    procedure SetLineSpacing(const Value: Integer);
+    procedure SetHtml(const Value: boolean);
+    function GetTextToRender: TRichText;
   protected
     procedure FontChanged; override;
     procedure SetPressed(const Value: boolean); virtual;
@@ -214,6 +221,8 @@ type
       DefaultImageMargin = 10;
       DefaultPaddingHorizontal = 10;
       DefaultPaddingVertical = 10;
+      DefaultLineSpacing = 2;
+      DefaultTextAlignment = hpMiddle;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -293,6 +302,28 @@ type
     { Text color to use if @link(CustomTextColorUse) is @true.
       Black by default, just like @code(Theme.TextColor). }
     property CustomTextColor: TCastleColor read FCustomTextColor write FCustomTextColor;
+
+    { For multi-line @link(Caption), the horizontal alignment of the lines. }
+    property TextAlignment: THorizontalPosition
+      read FTextAlignment write SetTextAlignment default DefaultTextAlignment;
+
+    { For multi-line @link(Caption), the extra spacing between lines.
+      May also be negative to squeeze lines tighter. }
+    property LineSpacing: Integer read FLineSpacing write SetLineSpacing
+      default DefaultLineSpacing;
+
+    { Enable HTML tags in the @link(Caption).
+      This allows to easily change colors or use bold, italic text.
+
+      See the example examples/fonts/html_text.lpr and
+      examples/fonts/html_text_demo.html for a demo of what HTML tags can do.
+      See @link(TCastleFont.PrintStrings) documentation for a list of support HTML markup.
+
+      Note that to see the bold/italic font variants in the HTML markup,
+      you need to set the font to be TFontFamily with bold/italic variants.
+      See the example mentioned above, examples/fonts/html_text.lpr,
+      for a code how to do it. }
+    property Html: boolean read FHtml write SetHtml default false;
   published
     property Width: Cardinal read FWidth write SetWidth default 0;
     property Height: Cardinal read FHeight write SetHeight default 0;
@@ -342,6 +373,9 @@ type
     property MinHeight: Cardinal read FMinHeight write SetMinHeight default 0;
 
     property OnClick: TNotifyEvent read FOnClick write FOnClick;
+
+    { Caption to display on the button.
+      The text may be multiline (use the LineEnding or NL constants to mark newlines). }
     property Caption: string read FCaption write SetCaption;
 
     { Can the button be permanently pressed. Good for making a button
@@ -660,6 +694,86 @@ type
       default false;
   end;
 
+  TShapeType = (stRectangle, stCircle);
+
+  { Draw a simple shape (rectangle, circle) with given color and optional outline. }
+  TCastleShape = class(TUIControlSizeable)
+  strict private
+    FFilled, FOutline, FOutlineThick: boolean;
+    FColor, FOutlineColor: TCastleColor;
+    FOutlineWidth: Single;
+    FShapeType: TShapeType;
+    procedure SetShapeType(const Value: TShapeType);
+    procedure SetFilled(const Value: boolean);
+    procedure SetColor(const Value: TCastleColor);
+    procedure SetOutline(const Value: boolean);
+    procedure SetOutlineColor(const Value: TCastleColor);
+    procedure SetOutlineWidth(const Value: Single);
+    procedure SetOutlineThick(const Value: boolean);
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure Render; override;
+
+    property ShapeType: TShapeType read FShapeType write SetShapeType default stRectangle;
+
+    property Filled: boolean read FFilled write SetFilled default true;
+
+    { The fill color, used if @link(Filled). By default, opaque white. }
+    property Color: TCastleColor read FColor write SetColor;
+
+    property Outline: boolean read FOutline write SetOutline default false;
+
+    { The outline color, used if @link(Outline). By default, opaque black. }
+    property OutlineColor: TCastleColor read FOutlineColor write SetOutlineColor;
+
+    { Determines the drawing method of the outline, used if @link(Outline).
+
+      @definitionList(
+        @itemLabel(@false (default))
+        @item(Draw the outline using lines, and apply OutlineWidth by changing
+          line width.
+
+          Disadvantage:
+          @bold(outline widths thicker than 1 pixel are not guaranteed
+          to be supported. In particular they will almost never work on mobile
+          (OpenGLES).)
+          See the LineWidth comments at DrawPrimitive2D procedure.
+
+          Consider using other methods if you need to draw a thick shape outline
+          in a reliable manner. To draw a rectangle with frame, it's usually better
+          to use Draw3x3 call, with a special texture with a frame and insides.)
+
+        @itemLabel(@true)
+        @item(Draw the outline by first drawing a larger shape with OutlineColor
+          underneath the smaller shape with Color.
+
+          Disadvantages:
+          @unorderedList(
+            @item(Cannot work sensibly if @link(Filled) is @false,
+              so it's disabled then. When @link(Filled) is @false,
+              it's like OutlineThick was always also @false.)
+            @item(The alpha blending may not be exactly what you want,
+              since the pixels inside are overdrawn with both OutlineColor
+              and then with Color.)
+            @item(May look a little worse in case of small OutlineWidth
+              and non-rectangular shapes.)
+          )
+
+          Advantage: thick OutlineWidth works reliably.)
+      )
+    }
+    property OutlineThick: boolean read FOutlineThick write SetOutlineThick;
+
+    { The outline width, used if @link(Outline).
+      It is affected by UI scaling.
+
+      If OutlineThick is @false, then
+      @bold(outline widths thicker than 1 pixel are not guaranteed
+      to be supported. In particular they will almost never work on mobile (OpenGLES).)
+      Change OutlineThick to @true to have reliable thick outlines. }
+    property OutlineWidth: Single read FOutlineWidth write SetOutlineWidth default 1.0;
+  end;
+
   { Fill the whole window with a simple color.
     This is very fast, but it unconditionally clears the whole window,
     and there is no blending (if your @link(Color) has some alpha, it is
@@ -881,15 +995,15 @@ type
       read FPadding write FPadding default 0;
     { @groupEnd }
 
-    { Extra spacing between lines (may also be negative to squeeze lines
-      tighter). }
+    { Extra spacing between lines.
+      May be negative to squeeze lines tighter together. }
     property LineSpacing: Integer read FLineSpacing write FLineSpacing default DefaultLineSpacing;
 
     { Does the text use HTML markup.
-      This allows to easily change colors or use bold, italic text for demo.
+      This allows to easily change colors or use bold, italic text.
 
       See the example examples/fonts/html_text.lpr and
-      examples/fonts/html_text_demo.html for a demo.
+      examples/fonts/html_text_demo.html for a demo of what HTML tags can do.
       See @link(TCastleFont.PrintStrings) documentation for a list of support HTML markup.
 
       Note that to see the bold/italic font variants in the HTML markup,
@@ -921,7 +1035,7 @@ type
 
       This property is useful if you really need to manually control the size.
       It only matters when @link(AutoSize) is @false.
-      Then it controls where the text is, with respect it's rectangle defined
+      Then it controls where the text is, with respect to it's rectangle defined
       by properties like @link(Height) or @link(FullSize). }
     property VerticalAlignment: TVerticalPosition
       read FVerticalAlignment write SetVerticalAlignment default vpBottom;
@@ -1377,7 +1491,7 @@ implementation
 
 uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
   CastleTextureFont_DejaVuSans_10,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleStringUtils;
 
 procedure Register;
 begin
@@ -1682,6 +1796,8 @@ begin
   FTintFocused := White;
   FTintNormal := White;
   FEnabled := true;
+  FLineSpacing := DefaultLineSpacing;
+  FTextAlignment := DefaultTextAlignment;
   { no need to UpdateTextSize here yet, since Font is for sure not ready yet. }
 end;
 
@@ -1704,13 +1820,50 @@ end;
 
 procedure TCastleButton.Render;
 var
-  TextLeft, TextBottom, ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight: Integer;
+  TextLeft, TextBottom: Integer;
+
+  procedure RenderText;
+  var
+    TextColor: TCastleColor;
+    TextX, LineSpacingScaled: Integer;
+    TextToRender: TRichText;
+  begin
+    if Enabled then
+      TextColor := Theme.TextColor else
+      TextColor := Theme.DisabledTextColor;
+    if CustomTextColorUse then
+      TextColor := CustomTextColor;
+
+    if (not Html) and (CharsPos([#10, #13], Caption) = 0) then
+    begin
+      { fast case: single line, and no need to use TRichText in this case }
+      Font.Print(TextLeft, TextBottom, TextColor, Caption);
+    end else
+    begin
+      { calculate TextX }
+      case TextAlignment of
+        hpLeft  : TextX := TextLeft;
+        hpMiddle: TextX := TextLeft + TextWidth div 2;
+        hpRight : TextX := TextLeft + TextWidth;
+        else raise EInternalError.Create('TCastleButton.Render: Alignment?');
+      end;
+
+      LineSpacingScaled := Round(UIScale * LineSpacing);
+      TextToRender := GetTextToRender;
+      try
+        TextToRender.Print(TextX, TextBottom, TextColor, LineSpacingScaled, TextAlignment);
+      finally FreeAndNil(TextToRender) end;
+    end;
+  end;
+
+var
+  ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight: Integer;
   Background: TThemeImage;
   CustomBackgroundImage: TGLImageCore;
   SR: TRectangle;
   ImageMarginScaled: Cardinal;
   UseImage: boolean;
-  Tint, TextColor: TCastleColor;
+  Tint: TCastleColor;
 begin
   inherited;
 
@@ -1780,12 +1933,7 @@ begin
     TextBottom -= (ImgScreenHeight + ImageMarginScaled) div 2;
   TextBottom += Font.Descend;
 
-  if Enabled then
-    TextColor := Theme.TextColor else
-    TextColor := Theme.DisabledTextColor;
-  if CustomTextColorUse then
-    TextColor := CustomTextColor;
-  Font.Print(TextLeft, TextBottom, TextColor, Caption);
+  RenderText;
 
   if UseImage then
   begin
@@ -1963,12 +2111,33 @@ begin
   UpdateTextSize;
 end;
 
+function TCastleButton.GetTextToRender: TRichText;
+begin
+  Result := TRichText.Create(Font, Caption, Html);
+end;
+
 procedure TCastleButton.UpdateTextSize;
+var
+  LineSpacingScaled: Integer;
+  TextToRender: TRichText;
 begin
   if Font <> nil then
   begin
-    TextWidth := Font.TextWidth(Caption);
-    TextHeight := Font.RowHeight;
+    if (not Html) and (CharsPos([#10, #13], Caption) = 0) then
+    begin
+      { fast case: single line, and no need to use TRichText in this case }
+      TextWidth := Font.TextWidth(Caption);
+      TextHeight := Font.RowHeight;
+    end else
+    begin
+      LineSpacingScaled := Round(UIScale * LineSpacing);
+      TextToRender := GetTextToRender;
+      try
+        TextWidth := TextToRender.Width;
+        TextHeight := TextToRender.Count * (Font.RowHeight + LineSpacingScaled);
+      finally FreeAndNil(TextToRender) end;
+    end;
+
     UpdateSize;
   end;
 end;
@@ -2133,6 +2302,33 @@ begin
   end;
 
   inherited;
+end;
+
+procedure TCastleButton.SetTextAlignment(const Value: THorizontalPosition);
+begin
+  if FTextAlignment <> Value then
+  begin
+    FTextAlignment := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleButton.SetLineSpacing(const Value: Integer);
+begin
+  if FLineSpacing <> Value then
+  begin
+    FLineSpacing := Value;
+    UpdateTextSize;
+  end;
+end;
+
+procedure TCastleButton.SetHtml(const Value: boolean);
+begin
+  if FHtml <> Value then
+  begin
+    FHtml := Value;
+    UpdateTextSize;
+  end;
 end;
 
 procedure TCastleButton.SetPressed(const Value: boolean);
@@ -2846,6 +3042,129 @@ begin
   Result := Result or InterceptInput;
 end;
 
+{ TCastleShape --------------------------------------------------------------- }
+
+constructor TCastleShape.Create(AOwner: TComponent);
+begin
+  inherited;
+  FShapeType := stRectangle;
+  FFilled := true;
+  FColor := White;
+  FOutline := false;
+  FOutlineWidth := 1.0;
+  FOutlineColor := Black;
+end;
+
+procedure TCastleShape.SetShapeType(const Value: TShapeType);
+begin
+  if FShapeType <> Value then
+  begin
+    FShapeType := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleShape.SetFilled(const Value: boolean);
+begin
+  if FFilled <> Value then
+  begin
+    FFilled := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleShape.SetColor(const Value: TCastleColor);
+begin
+  if not VectorsPerfectlyEqual(FColor, Value) then
+  begin
+    FColor := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleShape.SetOutline(const Value: boolean);
+begin
+  if FOutline <> Value then
+  begin
+    FOutline := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleShape.SetOutlineColor(const Value: TCastleColor);
+begin
+  if not VectorsPerfectlyEqual(FOutlineColor, Value) then
+  begin
+    FOutlineColor := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleShape.SetOutlineWidth(const Value: Single);
+begin
+  if FOutlineWidth <> Value then
+  begin
+    FOutlineWidth := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleShape.SetOutlineThick(const Value: boolean);
+begin
+  if FOutlineThick <> Value then
+  begin
+    FOutlineThick := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleShape.Render;
+var
+  SR: TRectangle;
+  OutlineW, OutlineIn, OutlineOut: Integer;
+begin
+  inherited;
+  SR := ScreenRect;
+
+  if Filled and Outline and OutlineThick then
+  begin
+    { special case when we use OutlineThick drawing mode }
+
+    OutlineW := Ceil(UIScale * OutlineWidth);
+    OutlineIn := - OutlineW div 2;
+    OutlineOut := OutlineW + OutlineIn;
+
+    case ShapeType of
+      stRectangle:
+        begin
+          DrawRectangle(SR.Grow(OutlineOut), OutlineColor);
+          DrawRectangle(SR.Grow(OutlineIn ), Color);
+        end;
+      stCircle   :
+        begin
+          DrawCircle(SR.Middle, SR.Width div 2 + OutlineOut, SR.Height div 2 + OutlineOut, OutlineColor);
+          DrawCircle(SR.Middle, SR.Width div 2 + OutlineIn , SR.Height div 2 + OutlineIn , Color);
+        end;
+      else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
+    end;
+  end else
+  begin
+    if Filled then
+      case ShapeType of
+        stRectangle: DrawRectangle(SR, Color);
+        stCircle   : DrawCircle(SR.Middle, SR.Width div 2, SR.Height div 2, Color);
+        else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
+      end;
+
+    if Outline then
+      case ShapeType of
+        stRectangle: DrawRectangleOutline(SR, OutlineColor, UIScale * OutlineWidth);
+        stCircle   : DrawCircleOutline(SR.Middle, SR.Width div 2, SR.Height div 2, OutlineColor, UIScale * OutlineWidth);
+        else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
+      end;
+  end;
+end;
+
 { TCastleSimpleBackground ---------------------------------------------------- }
 
 constructor TCastleSimpleBackground.Create(AOwner: TComponent);
@@ -2868,7 +3187,7 @@ end;
 procedure TCastleSimpleBackground.Render;
 begin
   inherited;
-  GLClear([cbColor], Color);
+  RenderContext.Clear([cbColor], Color);
 end;
 
 { TDialogScrollArea -------------------------------------------------------------- }

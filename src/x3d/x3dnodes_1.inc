@@ -400,14 +400,18 @@
     function TransSpecularExp(MatNum: integer): Single;
     { @groupEnd }
 
-    { Only the emissive field is not empty.
+    { Only the emissive color is not black (zero).
       This detects a special case described in VRML 1.0 specification:
       when ambient, diffuse and specular are all empty (no values),
       then emissiveColor should be used at the final color and shape
       should be unlit.
 
       You should use the EmissiveColor4Single in this case. }
-    function OnlyEmissiveMaterial: boolean;
+    function PureEmissive: boolean;
+
+    { Force the material pure emissive (see @link(PureEmissive)) by setting
+      other colors to black. }
+    procedure ForcePureEmissive;
 
     { All the "transparency" field values are greater than zero.
       So the blending should be used when rendering.
@@ -1553,11 +1557,19 @@ begin
     result := Clamped(result * 128.0, 0.0, 128.0);
 end;
 
-function TMaterialNode_1.OnlyEmissiveMaterial: boolean;
+function TMaterialNode_1.PureEmissive: boolean;
 begin
   Result := (FdAmbientColor.Count = 0) and
             (FdDiffuseColor.Count = 0) and
             (FdSpecularColor.Count = 0);
+end;
+
+procedure TMaterialNode_1.ForcePureEmissive;
+begin
+  FdAmbientColor .Count := 0; FdAmbientColor .Changed;
+  FdDiffuseColor .Count := 0; FdDiffuseColor .Changed;
+  FdSpecularColor.Count := 0; FdSpecularColor.Changed;
+  Assert(PureEmissive);
 end;
 
 function TMaterialNode_1.AllMaterialsTransparent: boolean;

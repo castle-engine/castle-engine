@@ -204,8 +204,6 @@ var
   end;
 
 begin
-  InitializeLog('1.0.0');
-
   Progress.UserInterface := WindowProgressInterface;
 
   Window.Container.UIScaling := usEncloseReferenceSize;
@@ -343,6 +341,8 @@ end;
 initialization
   { This should be done as early as possible to mark our log lines correctly. }
   OnGetApplicationName := @MyGetApplicationName;
+
+  InitializeLog;
 
   { initialize Application callbacks }
   Application.OnInitialize := @ApplicationInitialize;

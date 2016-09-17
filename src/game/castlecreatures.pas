@@ -1395,14 +1395,14 @@ end;
 procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
 
   {$ifndef OpenGLES} // TODO-es
+  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
+  {$warnings off}
   procedure DebugBoundingVolumes;
   var
     R: Single;
   begin
     glColorv(Gray);
-    {$warnings off} { this is already marked with TODO above }
     glDrawBox3DWire(BoundingBox);
-    {$warnings on}
 
     if Sphere(R) then
     begin
@@ -1460,6 +1460,7 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
       }
     glPopMatrix;
   end;
+  {$warnings on}
   {$endif}
 
 begin
@@ -2484,6 +2485,8 @@ begin
   inherited;
 
   {$ifndef OpenGLES} // TODO-es
+  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
+  {$warnings off}
   if RenderDebug3D and GetExists and
      (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
@@ -2500,6 +2503,7 @@ begin
       glDrawAxisWire(LastSensedEnemy, AxisSize);
     end;
   end;
+  {$warnings on}
   {$endif}
 end;
 

@@ -39,7 +39,7 @@ type
   normal after calling this.
 
   The maps will be drawn in the color buffer (from positions MapScreenX, Y),
-  so will actually be visible (call this before GLClear or such if you
+  so will actually be visible (call this before RenderContext.Clear or such if you
   want to hide them). }
 procedure SHVectorGLCapture(
   var SHVector: array of Single;

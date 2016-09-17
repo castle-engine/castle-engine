@@ -2433,7 +2433,7 @@ begin
   begin
     for I := 0 to Source[stFragment].Count - 1 do
       PlugDirectly(Source[stFragment], I, '/* PLUG-DECLARATIONS */', '#define HAS_GEOMETRY_SHADER', true);
-    if GLVersion.VendorATI then
+    if GLVersion.VendorType = gvATI then
       GeometryInputSize := 'gl_in.length()' else
       GeometryInputSize := '';
     { Replace CASTLE_GEOMETRY_INPUT_SIZE }
@@ -2446,6 +2446,27 @@ begin
   if GLVersion.BuggyGLSLFrontFacing then
     for I := 0 to Source[stFragment].Count - 1 do
       PlugDirectly(Source[stFragment], I, '/* PLUG-DECLARATIONS */', '#define CASTLE_BUGGY_FRONT_FACING', true);
+
+  if GLVersion.BuggyGLSLReadVarying then
+  begin
+    {$ifdef OpenGLES}
+    { On OpenGLES, replace only 1st one, otherwise PowerVR complains
+        Syntax error, 'CASTLE_BUGGY_GLSL_READ_VARYING' macro redefinition
+      Observed on phone (from O of M):
+        Version string: OpenGL ES 2.0 build 1.9.RC2@2130229
+        Version parsed: major: 2, minor: 0, release exists: False, release: 0, vendor-specific information: "build 1.9.RC2@2130229"
+        Vendor-specific version parsed: major: 1, minor: 9, release: 0
+        Vendor: Imagination Technologies
+        Vendor type: Imagination Technologies
+        Renderer: PowerVR SGX 540
+    }
+    if Source[stVertex].Count > 0 then
+      PlugDirectly(Source[stVertex], 0, '/* PLUG-DECLARATIONS */', '#define CASTLE_BUGGY_GLSL_READ_VARYING', true);
+    {$else}
+    for I := 0 to Source[stVertex].Count - 1 do
+      PlugDirectly(Source[stVertex], I, '/* PLUG-DECLARATIONS */', '#define CASTLE_BUGGY_GLSL_READ_VARYING', true);
+    {$endif}
+  end;
 
   if Log and LogShaders then
   begin

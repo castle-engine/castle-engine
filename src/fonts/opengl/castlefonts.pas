@@ -34,6 +34,7 @@ type
       Outline: Cardinal;
       OutlineColor: TCastleColor;
       OutlineHighQuality: boolean;
+      TargetImage: TCastleImage;
     end;
     TSavedPropertiesList = specialize TFPGObjectList<TSavedProperties>;
   var
@@ -43,6 +44,7 @@ type
     FOutline: Cardinal;
     FOutlineColor: TCastleColor;
     FOutlineHighQuality: boolean;
+    FTargetImage: TCastleImage;
     FPropertiesStack: TSavedPropertiesList;
     procedure MakeMeasure;
     procedure GLContextCloseEvent(Sender: TObject);
@@ -74,7 +76,7 @@ type
       May require 1 free slot on the attributes stack.
       May only be called when current matrix is modelview.
       Doesn't modify any OpenGL state or matrix, except it moves raster position. }
-    procedure PrintAndMove(const s: string); deprecated;
+    procedure PrintAndMove(const s: string); deprecated 'use Print(X, Y, ...), and move the (X, Y) yourself based on TextMove, instead of this';
 
     { Draw text at the given position with given color.
       If the last Color component is not 1, the text is rendered
@@ -97,8 +99,8 @@ type
     procedure Print(const Pos: TVector2Integer; const Color: TCastleColor;
       const S: string); overload;
 
-    procedure Print(const X, Y: Integer; const S: string); overload; deprecated;
-    procedure Print(const s: string); overload; deprecated;
+    procedure Print(const X, Y: Integer; const S: string); overload; deprecated 'instead of this, use Print overload that takes explicit X,Y,Color parameters';
+    procedure Print(const s: string); overload; deprecated 'instead of this, use Print overload that takes explicit X,Y,Color parameters';
 
     { Print text, aligning within given rectangle.
 
@@ -209,14 +211,14 @@ type
       @param(Y0 The bottom position of the whole text block.
         That is, this is the bottom position of the last string.)
 
-      @param(LineSpacing Extra space between lines.
-        Distance between each line is determined by RowHeight + LineSpacing
-        pixels.
+      @param(Color The color of the text. Alpha value of the color is honored,
+        value < 1 renders partially-transparent text.
 
-        Note that LineSpacing can be < 0 (as well as > 0),
-        this may be sometimes useful if you really want to squeeze
-        more text into the available space. Still, make sure that
-        (RowHeight + LineSpacing) is > 0.)
+        Overloaded and deprecated versions without
+        explicit Color parameter use CurrentColor.)
+
+      @param(Strs The text to display. Can be given as either TStringList,
+        or a simple array of strings.)
 
       @param(Html Enable a subset of HTML to mark font changes inside the text.
         See the example examples/fonts/html_text_demo.html for a demo, supported
@@ -232,23 +234,30 @@ type
         )
       )
 
-      @param(Color The color of the text. Alpha value of the color is honored,
-        value < 1 renders partially-transparent text.
+      @param(LineSpacing Extra space between lines.
+        Distance between each line is determined by RowHeight + LineSpacing
+        pixels.
 
-        Overloaded and deprecated versions without
-        explicit Color parameter use CurrentColor.)
+        Note that LineSpacing can be < 0 (as well as > 0),
+        this may be sometimes useful if you really want to squeeze
+        more text into the available space. Still, make sure that
+        (RowHeight + LineSpacing) is > 0.)
 
       @groupBegin }
     procedure PrintStrings(const X0, Y0: Integer; const Color: TCastleColor;
       const Strs: TStrings; const Html: boolean;
       const LineSpacing: Integer;
       const TextHorizontalAlignment: THorizontalPosition = hpLeft); overload;
+    procedure PrintStrings(const X0, Y0: Integer; const Color: TCastleColor;
+      const Strs: array of string; const Html: boolean;
+      const LineSpacing: Integer;
+      const TextHorizontalAlignment: THorizontalPosition = hpLeft); overload;
     procedure PrintStrings(const Strs: TStrings;
       const Html: boolean; const LineSpacing: Integer;
-      const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated;
+      const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
     procedure PrintStrings(const Strs: array of string;
       const Html: boolean; const LineSpacing: Integer;
-      const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated;
+      const X0: Integer = 0; const Y0: Integer = 0); overload; deprecated 'instead of this, use PrintStrings version that takes explicit Color parameter';
     { @groupEnd }
 
     { Print the string, broken such that it fits within MaxLineWidth.
@@ -295,7 +304,7 @@ type
     function PrintBrokenString(const S: string;
       const MaxLineWidth, X0, Y0: Integer;
       const PositionsFirst: boolean;
-      const LineSpacing: Integer): Integer; deprecated;
+      const LineSpacing: Integer): Integer; deprecated 'instead of this, use PrintBrokenString that takes explicit Color parameter';
     { @groupEnd }
 
     property Scale: Single read FScale write SetScale;
@@ -335,7 +344,8 @@ type
 
     { Save draw properties to a stack. Saves:
       @link(Scale) (synchronized with @link(Size)),
-      @link(Outline), @link(OutlineColor), @link(OutlineHighQuality). }
+      @link(Outline), @link(OutlineColor), @link(OutlineHighQuality),
+      @link(TargetImage). }
     procedure PushProperties;
     procedure PopProperties;
 
@@ -343,6 +353,25 @@ type
       font classes (like TCustomizedFont) it makes sure to never return zero
       (which, in case of font proxies, means "use underlying font size"). }
     function RealSize: Single; virtual;
+
+    { The image where we render the font.
+      Usually (when this is @nil) our rendering routines render to the screen
+      (or the current FBO, if you use @link(TGLRenderToTexture)).
+      By setting this to non-nil, you make the rendering by done on CPU
+      (without libraries like OpenGL/OpenGLES), and the text is drawn on the given image.
+
+      The PushProperties and PopProperties methods save/restore this.
+
+      @bold(TODO: Font scaling is not done when drawing font to an image.)
+      So leave the @link(Scale) at 1 and don't touch the @link(Size)
+      if you plan on rendering to image. Also, when using HTML tags,
+      do not change the font size by them.
+      Otherwise TextWidth / TextHeight will be unsynchronized
+      with what @link(Print) actually does --- so not only your font will
+      remain constant size, also it will overlap with itself.
+      This may get fixed one day --- TCastleImage.Draw just needs to support scaling.
+    }
+    property TargetImage: TCastleImage read FTargetImage write FTargetImage;
   end;
 
   { @deprecated Deprecated name for TCastleFont. }
@@ -557,7 +586,10 @@ end;
 
 procedure TCastleFont.Print(const s: string);
 begin
+  { Deprecated method uses other deprecated method here, don't warn }
+  {$warnings off}
   Print(WindowPos[0], WindowPos[1], CurrentColor, S);
+  {$warnings on}
 end;
 
 procedure TCastleFont.PrintAndMove(const s: string);
@@ -565,13 +597,16 @@ begin
   { Deprecated method uses other deprecated method here, don't warn }
   {$warnings off}
   Print(S);
-  {$warnings on}
   WindowPos := WindowPos + TextMove(S);
+  {$warnings on}
 end;
 
 procedure TCastleFont.Print(const X, Y: Integer; const S: string);
 begin
+  { Deprecated method uses other deprecated method here, don't warn }
+  {$warnings off}
   Print(X, Y, CurrentColor, S);
+  {$warnings on}
 end;
 
 procedure TCastleFont.PrintRectMultiline(const Rect: TRectangle; const Color: TCastleColor;
@@ -777,11 +812,28 @@ begin
   end;
 end;
 
+procedure TCastleFont.PrintStrings(const X0, Y0: Integer;
+  const Color: TCastleColor; const Strs: array of string;
+  const Html: boolean; const LineSpacing: Integer;
+  const TextHorizontalAlignment: THorizontalPosition);
+var
+  SList: TStringList;
+begin
+  SList := TStringList.Create;
+  try
+    AddStrArrayToStrings(Strs, SList);
+    PrintStrings(X0, Y0, Color, SList, Html, LineSpacing, TextHorizontalAlignment);
+  finally FreeAndNil(SList) end;
+end;
+
 procedure TCastleFont.PrintStrings(const Strs: TStrings;
   const Html: boolean; const LineSpacing: Integer;
   const X0: Integer; const Y0: Integer);
 begin
+  { Deprecated stuff uses other deprecated stuff here, don't warn }
+  {$warnings off}
   PrintStrings(X0, Y0, CurrentColor, Strs, Html, LineSpacing);
+  {$warnings on}
 end;
 
 procedure TCastleFont.PrintStrings(const Strs: array of string;
@@ -790,11 +842,14 @@ procedure TCastleFont.PrintStrings(const Strs: array of string;
 var
   SList: TStringList;
 begin
+  { Deprecated stuff uses other deprecated stuff here, don't warn }
+  {$warnings off}
   SList := TStringList.Create;
   try
     AddStrArrayToStrings(Strs, SList);
     PrintStrings(X0, Y0, CurrentColor, SList, Html, LineSpacing);
   finally SList.Free end;
+  {$warnings on}
 end;
 
 function TCastleFont.PrintBrokenString(X0, Y0: Integer;
@@ -852,8 +907,11 @@ function TCastleFont.PrintBrokenString(const S: string;
   const PositionsFirst: boolean;
   const LineSpacing: Integer): Integer; deprecated;
 begin
+  { Deprecated stuff uses other deprecated stuff here, don't warn }
+  {$warnings off}
   Result := PrintBrokenString(X0, Y0, CurrentColor, S, MaxLineWidth,
     PositionsFirst, LineSpacing);
+  {$warnings on}
 end;
 
 procedure TCastleFont.Measure(out ARowHeight, ARowHeightBase, ADescend: Integer);
@@ -917,6 +975,7 @@ begin
   SavedProperites.Outline := Outline;
   SavedProperites.OutlineColor := OutlineColor;
   SavedProperites.OutlineHighQuality := OutlineHighQuality;
+  SavedProperites.TargetImage := TargetImage;
   FPropertiesStack.Add(SavedProperites);
 end;
 
@@ -932,6 +991,7 @@ begin
   Outline      := SavedProperites.Outline;
   OutlineColor := SavedProperites.OutlineColor;
   OutlineHighQuality := SavedProperites.OutlineHighQuality;
+  TargetImage  := SavedProperites.TargetImage;
   FPropertiesStack.Delete(FPropertiesStack.Count - 1);
 end;
 
@@ -1042,21 +1102,33 @@ var
   var
     ScreenRect, ImageRect: PFloatRectangle;
   begin
-    Assert(GlyphsToRender < GlyphsScreenRects.Count);
+    if TargetImage <> nil then
+    begin
+      TargetImage.DrawFrom(FFont.Image,
+        Round(ScreenX - G.X * Scale + OutlineMoveX * Outline),
+        Round(ScreenY - G.Y * Scale + OutlineMoveY * Outline),
+        G.ImageX,
+        G.ImageY,
+        G.Width,
+        G.Height);
+    end else
+    begin
+      Assert(GlyphsToRender < GlyphsScreenRects.Count);
 
-    ScreenRect := GlyphsScreenRects.Ptr(GlyphsToRender);
-    ScreenRect^.Left   := ScreenX - G.X * Scale + OutlineMoveX * Outline;
-    ScreenRect^.Bottom := ScreenY - G.Y * Scale + OutlineMoveY * Outline;
-    ScreenRect^.Width  := G.Width  * Scale;
-    ScreenRect^.Height := G.Height * Scale;
+      ScreenRect := GlyphsScreenRects.Ptr(GlyphsToRender);
+      ScreenRect^.Left   := ScreenX - G.X * Scale + OutlineMoveX * Outline;
+      ScreenRect^.Bottom := ScreenY - G.Y * Scale + OutlineMoveY * Outline;
+      ScreenRect^.Width  := G.Width  * Scale;
+      ScreenRect^.Height := G.Height * Scale;
 
-    ImageRect := GlyphsImageRects.Ptr(GlyphsToRender);
-    ImageRect^.Left   := G.ImageX;
-    ImageRect^.Bottom := G.ImageY;
-    ImageRect^.Width  := G.Width;
-    ImageRect^.Height := G.Height;
+      ImageRect := GlyphsImageRects.Ptr(GlyphsToRender);
+      ImageRect^.Left   := G.ImageX;
+      ImageRect^.Bottom := G.ImageY;
+      ImageRect^.Width  := G.Width;
+      ImageRect^.Height := G.Height;
 
-    Inc(GlyphsToRender);
+      Inc(GlyphsToRender);
+    end;
   end;
 
 var
@@ -1064,20 +1136,23 @@ var
   TextPtr: PChar;
   CharLen, GlyphsPerChar: Integer;
 begin
-  PrepareResources;
+  if TargetImage = nil then
+  begin
+    PrepareResources;
 
-  { allocate the necessary glyphs at start.
-    This allows to quickly fill them later.
-    Note that we possibly allocate too much, because Length(S) may be > UTF8Length(S)
-    (because of multi-byte characters), and also because some characters do not have glyphs.
-    That's OK, we'll calculate real GlyphsToRender when iterating. }
-  if Outline = 0 then
-    GlyphsPerChar := 1 else
-  if OutlineHighQuality then
-    GlyphsPerChar := 8 else
-    GlyphsPerChar := 4;
-  GlyphsScreenRects.Count := Max(MinimumGlyphsAllocated, GlyphsPerChar * Length(S));
-  GlyphsImageRects .Count := Max(MinimumGlyphsAllocated, GlyphsPerChar * Length(S));
+    { allocate the necessary glyphs at start.
+      This allows to quickly fill them later.
+      Note that we possibly allocate too much, because Length(S) may be > UTF8Length(S)
+      (because of multi-byte characters), and also because some characters do not have glyphs.
+      That's OK, we'll calculate real GlyphsToRender when iterating. }
+    if Outline = 0 then
+      GlyphsPerChar := 1 else
+    if OutlineHighQuality then
+      GlyphsPerChar := 8 else
+      GlyphsPerChar := 4;
+    GlyphsScreenRects.Count := Max(MinimumGlyphsAllocated, GlyphsPerChar * Length(S));
+    GlyphsImageRects .Count := Max(MinimumGlyphsAllocated, GlyphsPerChar * Length(S));
+  end;
 
   { first pass, to render Outline.
 
@@ -1090,6 +1165,8 @@ begin
     GlyphsToRender := 0;
     ScreenX := X;
     ScreenY := Y;
+    if TargetImage <> nil then
+      FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(Vector3SingleCut(OutlineColor)); // ignore Color[3] for now
 
     TextPtr := PChar(S);
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
@@ -1122,15 +1199,20 @@ begin
       C := UTF8CharacterToUnicode(TextPtr, CharLen);
     end;
 
-    GLImage.Color := OutlineColor;
-    GLImage.Draw(
-      PFloatRectangle(GlyphsScreenRects.List),
-      PFloatRectangle(GlyphsImageRects.List), GlyphsToRender);
+    if TargetImage = nil then
+    begin
+      GLImage.Color := OutlineColor;
+      GLImage.Draw(
+        PFloatRectangle(GlyphsScreenRects.List),
+        PFloatRectangle(GlyphsImageRects.List), GlyphsToRender);
+    end;
   end;
 
   GlyphsToRender := 0;
   ScreenX := X;
   ScreenY := Y;
+  if TargetImage <> nil then
+    FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(Vector3SingleCut(Color)); // ignore Color[3] for now
 
   TextPtr := PChar(S);
   C := UTF8CharacterToUnicode(TextPtr, CharLen);
@@ -1152,10 +1234,13 @@ begin
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
 
-  GLImage.Color := Color;
-  GLImage.Draw(
-    PFloatRectangle(GlyphsScreenRects.List),
-    PFloatRectangle(GlyphsImageRects.List), GlyphsToRender);
+  if TargetImage = nil then
+  begin
+    GLImage.Color := Color;
+    GLImage.Draw(
+      PFloatRectangle(GlyphsScreenRects.List),
+      PFloatRectangle(GlyphsImageRects.List), GlyphsToRender);
+  end;
 end;
 
 function TTextureFont.TextWidth(const S: string): Integer;
@@ -1269,20 +1354,44 @@ end;
 procedure TSimpleTextureFont.Print(const X, Y: Integer; const Color: TCastleColor;
   const S: string);
 var
+  GlyphsToRender: Integer;
+
+  procedure GlyphDraw(const ScreenRect, ImageRect: TFloatRectangle);
+  begin
+    if TargetImage = nil then
+    begin
+      Assert(GlyphsToRender < GlyphsScreenRects.Count);
+      GlyphsScreenRects.List^[GlyphsToRender] := ScreenRect;
+      GlyphsImageRects .List^[GlyphsToRender] := ImageRect;
+      Inc(GlyphsToRender);
+    end else
+    begin
+      TargetImage.DrawFrom(Image,
+        Round(ScreenRect.Left),
+        Round(ScreenRect.Bottom),
+        Round(ImageRect.Left),
+        Round(ImageRect.Bottom),
+        Round(ImageRect.Width),
+        Round(ImageRect.Height));
+    end;
+  end;
+
+var
   ImageX, ImageY: Single;
   CharIndex, ScreenX, ScreenY: Integer;
   C: TUnicodeChar;
   TextPtr: PChar;
-  I, CharLen, GlyphsToRender: Integer;
+  I, CharLen: Integer;
 begin
-  PrepareResources;
-
-  GlyphsScreenRects.Count := Max(MinimumGlyphsAllocated, Length(S));
-  GlyphsImageRects .Count := Max(MinimumGlyphsAllocated, Length(S));
+  if TargetImage = nil then
+  begin
+    PrepareResources;
+    GlyphsScreenRects.Count := Max(MinimumGlyphsAllocated, Length(S));
+    GlyphsImageRects .Count := Max(MinimumGlyphsAllocated, Length(S));
+    GLImage.Color := Color;
+  end;
 
   GlyphsToRender := 0;
-
-  GLImage.Color := Color;
 
   TextPtr := PChar(S);
   C := UTF8CharacterToUnicode(TextPtr, CharLen);
@@ -1297,28 +1406,28 @@ begin
     if ImageY < ImageRows then
     begin
       ImageX := ImageX * (CharWidth + CharMargin);
-      ImageY := GLImage.Height - (ImageY + 1) * (CharHeight + CharMargin);
+      ImageY := Image.Height - (ImageY + 1) * (CharHeight + CharMargin);
       ScreenX := ScaledCharDisplayMargin div 2 + X + I * (ScaledCharWidth + ScaledCharDisplayMargin);
       ScreenY := ScaledCharDisplayMargin div 2 + Y;
       Inc(I);
 
-      { TODO: render with Outline }
+      { TODO: this ignores Outline and related properties now, always renders like Outline = 0. }
 
-      Assert(GlyphsToRender < GlyphsScreenRects.Count);
-      GlyphsScreenRects.List^[GlyphsToRender] :=
-        FloatRectangle(ScreenX, ScreenY, ScaledCharWidth, ScaledCharHeight);
-      GlyphsImageRects.List^[GlyphsToRender] :=
-        FloatRectangle(ImageX, ImageY, CharWidth, CharHeight);
-      Inc(GlyphsToRender);
+      GlyphDraw(
+        FloatRectangle(ScreenX, ScreenY, ScaledCharWidth, ScaledCharHeight),
+        FloatRectangle(ImageX, ImageY, CharWidth, CharHeight));
     end;
 
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
 
-  GLImage.Color := Color;
-  GLImage.Draw(
-    PFloatRectangle(GlyphsScreenRects.List),
-    PFloatRectangle(GlyphsImageRects.List), GlyphsToRender);
+  if TargetImage = nil then
+  begin
+    GLImage.Color := Color;
+    GLImage.Draw(
+      PFloatRectangle(GlyphsScreenRects.List),
+      PFloatRectangle(GlyphsImageRects.List), GlyphsToRender);
+  end;
 end;
 
 function TSimpleTextureFont.TextWidth(const S: string): Integer;

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<build_gradle_merge>
+  <!-- https://github.com/GameAnalytics/GA-SDK-Android/wiki/Download%20&%20Installation -->
+  <repositories>
+    <repository>maven { url 'http://maven.gameanalytics.com/release' }</repository>
+  </repositories>
+</build_gradle_merge>

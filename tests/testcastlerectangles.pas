@@ -25,9 +25,12 @@ type
   published
     procedure TestRectangles;
     procedure TestScaleEmpty;
+    procedure TestCollidesDisc;
   end;
 
 implementation
+
+uses CastleVectors;
 
 procedure TTestRectangles.TestRectangles;
 var
@@ -89,6 +92,64 @@ begin
   AssertEquals(10, R.ScaleAroundMiddle(2).Left); // untouched by ScaleAroundMiddle, since R.Width = 0
   AssertEquals(10, R.ScaleAroundMiddle(123).Left); // untouched by ScaleAroundMiddle, since R.Width = 0
   AssertEquals(-5, R.ScaleAroundMiddle(2).Bottom); // correctly scaled, even though R.Width = 0
+end;
+
+procedure TTestRectangles.TestCollidesDisc;
+var
+  R: TFloatRectangle;
+begin
+  R := FloatRectangle(10, 20, 30, 40);
+  // left = 10, right = 40, bottom = 20, top = 60
+
+  { circles far outside }
+
+  AssertFalse(R.CollidesDisc(Vector2Single(0 , 0), 1));
+  AssertFalse(R.CollidesDisc(Vector2Single(20, 0), 1));
+  AssertFalse(R.CollidesDisc(Vector2Single(50, 0), 1));
+
+  AssertFalse(R.CollidesDisc(Vector2Single(0,  100), 1));
+  AssertFalse(R.CollidesDisc(Vector2Single(20, 100), 1));
+  AssertFalse(R.CollidesDisc(Vector2Single(50, 100), 1));
+
+  AssertFalse(R.CollidesDisc(Vector2Single(0, 10), 1));
+  AssertFalse(R.CollidesDisc(Vector2Single(0, 40), 1));
+  AssertFalse(R.CollidesDisc(Vector2Single(0, 70), 1));
+
+  AssertFalse(R.CollidesDisc(Vector2Single(100, 10), 1));
+  AssertFalse(R.CollidesDisc(Vector2Single(100, 40), 1));
+  AssertFalse(R.CollidesDisc(Vector2Single(100, 70), 1));
+
+  { circles collide, when one range inside }
+
+  AssertFalse(R.CollidesDisc(Vector2Single(-10, 10), 15));
+  AssertTrue(R.CollidesDisc(Vector2Single(20, 10), 15));
+  AssertFalse(R.CollidesDisc(Vector2Single(60, 10), 15));
+
+  AssertFalse(R.CollidesDisc(Vector2Single(-10, 70), 15));
+  AssertTrue(R.CollidesDisc(Vector2Single(20, 70), 15));
+  AssertFalse(R.CollidesDisc(Vector2Single(60, 70), 15));
+
+  AssertFalse(R.CollidesDisc(Vector2Single(0, 0), 15));
+  AssertTrue(R.CollidesDisc(Vector2Single(0, 40), 15));
+  AssertFalse(R.CollidesDisc(Vector2Single(0, 80), 15));
+
+  AssertFalse(R.CollidesDisc(Vector2Single(50, 0), 15));
+  AssertTrue(R.CollidesDisc(Vector2Single(50, 40), 15));
+  AssertFalse(R.CollidesDisc(Vector2Single(50, 80), 15));
+
+  { circles collide, both ranges inside }
+
+  AssertTrue(R.CollidesDisc(Vector2Single(20, 40), 1));
+
+  R := FloatRectangle(0, 0, 10, 10);
+
+  AssertFalse(R.CollidesDisc(Vector2Single(-1, -1), 0.9));
+  AssertFalse(R.CollidesDisc(Vector2Single(-1,  5), 0.9));
+  AssertFalse(R.CollidesDisc(Vector2Single(-1, 11), 0.9));
+
+  AssertFalse(R.CollidesDisc(Vector2Single(-1, -1), 1.1));
+  AssertTrue(R.CollidesDisc(Vector2Single(-1,  5), 1.1));
+  AssertFalse(R.CollidesDisc(Vector2Single(-1, 11), 1.1));
 end;
 
 initialization

@@ -902,7 +902,6 @@ type
     FSmoothShading: boolean;
     FFixedFunctionLighting: boolean;
     FFixedFunctionAlphaTest: boolean;
-    FLineWidth: Single;
     FLineType: TLineType;
 
     {$ifndef OpenGLES}
@@ -929,7 +928,6 @@ type
     procedure SetSmoothShading(const Value: boolean);
     procedure SetFixedFunctionLighting(const Value: boolean);
     procedure SetFixedFunctionAlphaTest(const Value: boolean);
-    procedure SetLineWidth(const Value: Single);
     procedure SetLineType(const Value: TLineType);
 
     { Change glCullFace and GL_CULL_FACE enabled by this property.
@@ -941,7 +939,6 @@ type
     property FixedFunctionLighting: boolean read FFixedFunctionLighting write SetFixedFunctionLighting;
     { Change GL_ALPHA_TEST enabled by this property. }
     property FixedFunctionAlphaTest: boolean read FFixedFunctionAlphaTest write SetFixedFunctionAlphaTest;
-    property LineWidth: Single read FLineWidth write SetLineWidth;
     property LineType: TLineType read FLineType write SetLineType;
   private
     { ----------------------------------------------------------------- }
@@ -2507,19 +2504,14 @@ begin
   {$ifndef OpenGLES}
   glMatrixMode(GL_MODELVIEW);
 
-  glPointSize(Attributes.PointSize); // TODO-es How to achieve glPointSize in OpenGLES?
+  RenderContext.PointSize := Attributes.PointSize;
 
   { Reset GL_TEXTURE_ENV, otherwise it may be left GL_COMBINE
     after rendering X3D model using MultiTexture. }
   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
   {$endif}
 
-  if Beginning then
-  begin
-    FLineWidth := Attributes.LineWidth;
-    glLineWidth(FLineWidth);
-  end else
-    LineWidth := Attributes.LineWidth;
+  RenderContext.LineWidth := Attributes.LineWidth;
 
   if Beginning then
   begin
@@ -2711,11 +2703,11 @@ begin
     LP := nil;
   if (LP <> nil) and LP.FdApplied.Value then
   begin
-    LineWidth := Max(1.0, Attributes.LineWidth * LP.FdLineWidthScaleFactor.Value);
+    RenderContext.LineWidth := Max(1.0, Attributes.LineWidth * LP.FdLineWidthScaleFactor.Value);
     LineType := LP.LineType;
   end else
   begin
-    LineWidth := Attributes.LineWidth;
+    RenderContext.LineWidth := Attributes.LineWidth;
     LineType := ltSolid;
   end;
 
@@ -3678,15 +3670,6 @@ begin
     {$ifndef OpenGLES}
     GLSetEnabled(GL_ALPHA_TEST, FixedFunctionAlphaTest);
     {$endif}
-  end;
-end;
-
-procedure TGLRenderer.SetLineWidth(const Value: Single);
-begin
-  if FLineWidth <> Value then
-  begin
-    FLineWidth := Value;
-    glLineWidth(LineWidth);
   end;
 end;
 

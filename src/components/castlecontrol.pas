@@ -872,6 +872,8 @@ function TCastleControlCustom.MakeCurrent(SaveOldToStack: boolean): boolean;
 begin
   Result := inherited MakeCurrent(SaveOldToStack);
 
+  RenderContext := Container.Context;
+
   if not GLInitialized then
   begin
     FGLInitialized := true;

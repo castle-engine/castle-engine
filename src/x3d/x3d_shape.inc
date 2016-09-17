@@ -136,6 +136,8 @@
   private
     function GetTexture: TAbstractTextureNode;
     procedure SetTexture(const Value: TAbstractTextureNode);
+    function GetMaterial: TMaterialNode;
+    procedure SetMaterial(const Value: TMaterialNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
@@ -193,6 +195,11 @@
       This is a shortcut for accessing "texture" field,
       checking whether nodes are set to appropriate types. }
     property Texture: TAbstractTextureNode read GetTexture write SetTexture;
+
+    { The material of this appearance. This only sets the simple, one-sided material node.
+      This is a shortcut for accessing "material" field,
+      checking whether nodes are set to appropriate types. }
+    property Material: TMaterialNode read GetMaterial write SetMaterial;
 
     function MaterialProperty: TMaterialProperty;
   end;
@@ -300,14 +307,21 @@
       Returned TX3DMaterialInfo is valid only as long as this node instance. }
     function MaterialInfo: TX3DMaterialInfo;
 
-    { Only emissiveColor is non-zero, which means that the material behaves like unlit.
-      When ambient and diffuse and specular colors are all zero, then this material
-      is similar to unlit material (in X3D: "Appearance.material=NULL" case),
-      but it's color/transparency is still
+    { Only the emissiveColor is not black (zero),
+      which means that the material behaves like unlit.
+
+      This checks that ambient and diffuse and specular colors are all zero.
+      It's an important information about the material sometimes.
+      It is similar to the NULL material situation (when "Appearance.material=NULL"
+      case), but the color and transparency are still
       configurable (using FdEmissiveColor and FdTransparency fields).
 
       We can optimize this case when rendering. }
-    function OnlyEmissiveMaterial: boolean;
+    function PureEmissive: boolean;
+
+    { Force the material pure emissive (see @link(PureEmissive)) by setting
+      other colors to black. }
+    procedure ForcePureEmissive;
 
     private FFdReflSpecular: TMFColor;
     public property FdReflSpecular: TMFColor read FFdReflSpecular;
@@ -800,6 +814,19 @@ begin
   FdTexture.Value := Value;
 end;
 
+function TAppearanceNode.GetMaterial: TMaterialNode;
+begin
+  if (FdMaterial.Value <> nil) and
+     (FdMaterial.Value is TMaterialNode) then
+    Result := TMaterialNode(FdMaterial.Value) else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetMaterial(const Value: TMaterialNode);
+begin
+  FdMaterial.Value := Value;
+end;
+
 function TAppearanceNode.MaterialProperty: TMaterialProperty;
 
   function TryUrl(const Url: TMFString): TMaterialProperty;
@@ -1034,11 +1061,19 @@ begin
   Result := TX3DMaterialInfo.Create(Self);
 end;
 
-function TMaterialNode.OnlyEmissiveMaterial: boolean;
+function TMaterialNode.PureEmissive: boolean;
 begin
   Result := (FdAmbientIntensity.Value = 0) and
             PerfectlyZeroVector(FdDiffuseColor.Value) and
             PerfectlyZeroVector(FdSpecularColor.Value);
+end;
+
+procedure TMaterialNode.ForcePureEmissive;
+begin
+  FdDiffuseColor.Send(ZeroVector3Single);
+  FdSpecularColor.Send(ZeroVector3Single);
+  FdAmbientIntensity.Send(0);
+  Assert(PureEmissive);
 end;
 
 { TX3DMaterialInfoAbstract ---------------------------------------------------------- }

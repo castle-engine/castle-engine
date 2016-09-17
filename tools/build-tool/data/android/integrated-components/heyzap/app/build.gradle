@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<build_gradle_merge>
+  <dependencies>
+    <!-- See https://developers.google.com/android/guides/setup#split
+      and https://developers.heyzap.com/docs/android_sdk_setup_and_requirements# -->
+    <dependency>compile 'com.google.android.gms:play-services-ads:9.4.0'</dependency>
+    <dependency>compile 'com.google.android.gms:play-services-location:9.4.0'</dependency>
+    <dependency>compile(name:'AudienceNetwork', ext:'aar')</dependency>
+    <dependency>compile(name:'unity-ads', ext:'aar')</dependency>
+  </dependencies>
+</build_gradle_merge>

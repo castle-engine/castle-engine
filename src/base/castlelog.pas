@@ -73,14 +73,19 @@ procedure InitializeLog(const ProgramVersion: string = '';
 
   Although we check @link(Log) here, you can also check it yourself
   before even calling this procedure. This way you can avoid spending time
-  on constructing Message. }
+  on constructing Message.
+
+  When no Category, we use ApplicationName as a category. }
 procedure WritelnLog(const Category: string; const Message: string);
+procedure WritelnLog(const Message: string);
 
 { Format and log message.
   Ignored when log is not initialized (@link(Log) is @false).
 
   This is a shortcut for @code(WritelnLog(Category, Format(MessageBase, Args))). }
 procedure WritelnLog(const Category: string; const MessageBase: string;
+  const Args: array of const);
+procedure WritelnLog(const MessageBase: string;
   const Args: array of const);
 
 { Log message, without appending newline at the end (given Message
@@ -241,10 +246,21 @@ begin
   WriteLog(Category, Message + NL);
 end;
 
+procedure WritelnLog(const Message: string);
+begin
+  WritelnLog(ApplicationName, Message);
+end;
+
 procedure WritelnLog(const Category: string; const MessageBase: string;
   const Args: array of const);
 begin
   WritelnLog(Category, Format(MessageBase, Args));
+end;
+
+procedure WritelnLog(const MessageBase: string;
+  const Args: array of const);
+begin
+  WritelnLog(ApplicationName, Format(MessageBase, Args));
 end;
 
 procedure WriteLogMultiline(const Category: string; const Message: string);

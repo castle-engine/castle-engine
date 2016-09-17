@@ -469,6 +469,7 @@ type
     FAnimationPrefix: string;
     FAnimationsList: TStrings;
     FTimeAtLoad: TFloatTime;
+    ForceImmediateProcessing: Integer;
 
     { When this is non-empty, then the transformation change happened,
       and should be processed (for the whole X3D graph inside RootNode).
@@ -1393,7 +1394,7 @@ type
       time of time-dependent nodes like X3D TimeSensor, which in turn
       drive the rest of the animation).
 
-      You can use @link(SetTime) or @link(IncreasTime) to move time
+      You can use @link(SetTime) or @link(IncreaseTime) to move time
       forward manually. But usually there's no need for it:
       our @link(Update) method takes care of it automatically,
       you only need to place the scene inside @link(TCastleSceneManager.Items).
@@ -1401,7 +1402,7 @@ type
       You can start/stop time progress by @link(TimePlaying)
       and scale it by @link(TimePlayingSpeed). These properties
       affect how the time is updated by the @link(Update) method
-      (so if you use @link(SetTime) or @link(IncreasTime) methods,
+      (so if you use @link(SetTime) or @link(IncreaseTime) methods,
       you're working around these properties).
 
       Default time value is 0.0 (zero). However it will be reset
@@ -3698,7 +3699,11 @@ var
   var
     Instances: TShapeTreeList;
   begin
-    if OptimizeExtensiveTransformations then
+    { the OptimizeExtensiveTransformations only works for scene with ProcessEvents,
+      otherwise TransformationDirty would never be processed }
+    if OptimizeExtensiveTransformations and
+       ProcessEvents and
+       (ForceImmediateProcessing = 0) then
       TransformationDirty := TransformationDirty + Changes else
     begin
       Check(Supports(ANode, ITransformNode),
@@ -6817,7 +6822,12 @@ begin
       paForceNotLooping: Loop := false;
       else               Loop := TimeNode.Loop;
     end;
-    TimeNode.FakeTime(TimeInAnimation, Loop, NextEventTime);
+    Inc(ForceImmediateProcessing);
+    try
+      TimeNode.FakeTime(TimeInAnimation, Loop, NextEventTime);
+    finally
+      Dec(ForceImmediateProcessing);
+    end;
   end;
 end;
 

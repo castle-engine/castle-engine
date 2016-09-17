@@ -1110,6 +1110,8 @@ begin
   inherited;
 
   {$ifndef OpenGLES} // TODO-es
+  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
+  {$warnings off}
   if RenderDebug3D and GetExists and
     (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
@@ -1120,15 +1122,14 @@ begin
         glDisable(GL_LIGHTING);
         glEnable(GL_DEPTH_TEST);
         glColorv(Gray);
-        {$warnings off} { this is already marked with TODO above }
         glDrawBox3DWire(BoundingBox);
         glDrawBox3DWire(BoxRotated);
-        {$warnings on}
         glColorv(Yellow);
         glDrawAxisWire(Middle, BoxRotated.AverageSize(true, 0));
       glPopAttrib;
     end;
   end;
+  {$warnings on}
   {$endif}
 end;
 

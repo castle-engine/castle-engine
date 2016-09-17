@@ -26,15 +26,17 @@ type
   TTestCastleClassUtils = class(TTestCase)
   private
     BufferSize: LongWord;
-    procedure TestIndirectReadStream(
-      StreamFromStreamFunc: TStreamFromStreamFunc);
-    function StreamPeekCharFromStream(Stream: TStream): TPeekCharStream;
+    function SimplePeekCharFromStream(Stream: TStream): TPeekCharStream;
     function BufferedReadStreamFromStream(Stream: TStream): TPeekCharStream;
+    procedure TestIndirectReadStream(StreamFromStreamFunc: TStreamFromStreamFunc);
+    procedure TestLineColumnStreamCore(StreamFromStreamFunc: TStreamFromStreamFunc);
   published
     procedure TestStreamPeekChar;
     procedure TestBufferedReadStream;
     procedure TestObjectsListSort;
     procedure TestNotifyEventArray;
+    procedure TestLineColumn_SimplePeekCharStream;
+    procedure TestLineColumn_BufferedReadStream;
   end;
 
   TFoo = class
@@ -117,7 +119,7 @@ begin
  finally SStream.Free end;
 end;
 
-function TTestCastleClassUtils.StreamPeekCharFromStream(Stream: TStream):
+function TTestCastleClassUtils.SimplePeekCharFromStream(Stream: TStream):
   TPeekCharStream;
 begin
  Result := TSimplePeekCharStream.Create(Stream, false);
@@ -125,7 +127,7 @@ end;
 
 procedure TTestCastleClassUtils.TestStreamPeekChar;
 begin
- TestIndirectReadStream(@StreamPeekCharFromStream);
+ TestIndirectReadStream(@SimplePeekCharFromStream);
 end;
 
 function TTestCastleClassUtils.BufferedReadStreamFromStream(Stream: TStream):
@@ -210,6 +212,97 @@ begin
   finally FreeAndNil(A) end;
 end;
 
+procedure TTestCastleClassUtils.TestLineColumnStreamCore(StreamFromStreamFunc: TStreamFromStreamFunc);
+var
+  S: TStringStream;
+  PS: TPeekCharStream;
+  B: array [0..1000] of char;
+  I: Integer;
+begin
+  { ReadBuffer (using Read underneath) advances the Line and Column values correctly }
+  S := TStringStream.Create('blabla' + #13#10 + 'foobar');
+  try
+    PS := StreamFromStreamFunc(S);
+    try
+      PS.ReadBuffer(B, 10);
+      AssertEquals(2, PS.Line);
+      AssertEquals(3, PS.Column);
+    finally FreeAndNil(PS) end;
+  finally FreeAndNil(S) end;
+
+  { 2 * ReadBuffer(5,..) is the same thing as 1 * ReadBuffer(10,..) }
+  S := TStringStream.Create('blabla' + #13#10 + 'foobar');
+  try
+    PS := StreamFromStreamFunc(S);
+    try
+      PS.ReadBuffer(B, 5);
+      PS.ReadBuffer(B, 5);
+      AssertEquals(2, PS.Line);
+      AssertEquals(3, PS.Column);
+    finally FreeAndNil(PS) end;
+  finally FreeAndNil(S) end;
+
+  { works with Unix line endings too, they are 1 char shorter }
+  S := TStringStream.Create('blabla' + #10 + 'foobar');
+  try
+    PS := StreamFromStreamFunc(S);
+    try
+      PS.ReadBuffer(B, 10);
+      AssertEquals(2, PS.Line);
+      AssertEquals(4, PS.Column);
+    finally FreeAndNil(PS) end;
+  finally FreeAndNil(S) end;
+
+  { 10 * ReadChar is the same thing as 1 * ReadBuffer(10,..) }
+  S := TStringStream.Create('blabla' + #10 + 'foobar');
+  try
+    PS := StreamFromStreamFunc(S);
+    try
+      for I := 1 to 10 do
+        PS.ReadChar;
+      AssertEquals(2, PS.Line);
+      AssertEquals(4, PS.Column);
+    finally FreeAndNil(PS) end;
+  finally FreeAndNil(S) end;
+
+  { PeekChar doesn't affect it }
+  S := TStringStream.Create('blabla' + #10 + 'foobar');
+  try
+    PS := StreamFromStreamFunc(S);
+    try
+      for I := 1 to 10 do
+        PS.ReadChar;
+      PS.PeekChar; // does not change state compared to previous test
+      AssertEquals(2, PS.Line);
+      AssertEquals(4, PS.Column);
+    finally FreeAndNil(PS) end;
+  finally FreeAndNil(S) end;
+
+  { ReadUpto works too }
+  S := TStringStream.Create('blabla' + #13#10 + 'foobar');
+  try
+    PS := StreamFromStreamFunc(S);
+    try
+      PS.ReadUpto(['o']);
+      AssertEquals(2, PS.Line);
+      AssertEquals(2, PS.Column);
+    finally FreeAndNil(PS) end;
+  finally FreeAndNil(S) end;
+end;
+
+procedure TTestCastleClassUtils.TestLineColumn_SimplePeekCharStream;
+begin
+  TestLineColumnStreamCore(@SimplePeekCharFromStream);
+end;
+
+procedure TTestCastleClassUtils.TestLineColumn_BufferedReadStream;
+begin
+  BufferSize := DefaultReadBufferSize; // assign before using BufferedReadStreamFromStream
+  TestLineColumnStreamCore(@BufferedReadStreamFromStream);
+  BufferSize := 1; // assign before using BufferedReadStreamFromStream
+  TestLineColumnStreamCore(@BufferedReadStreamFromStream);
+end;
+
 initialization
- RegisterTest(TTestCastleClassUtils);
+  RegisterTest(TTestCastleClassUtils);
 end.
