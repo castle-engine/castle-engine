@@ -92,12 +92,6 @@ begin
         _spr.Draw;
 			end;
 	end;
-
-  { Object groups. }
-  {case _lay^.DrawOrder of
-      ODO_Index:;
-      ODO_TopDown:;
-		end;  }
 end;
 
 procedure TCastleTiledMapControl.RenderHexagonal;
@@ -111,8 +105,23 @@ begin
 end;
 
 procedure TCastleTiledMapControl.RenderObjects;
+var
+  i: Integer;
+  _lay: PLayer;
 begin
-  //todo: implement me
+  { Object groups. }
+  for i := 0 to FTiledMap.Layers.Count - 1 do
+  begin
+    if (_lay^.LayerType = LT_Layer) or (_lay^.LayerType = LT_ImageLayer) then
+      Continue;
+    //todo: draw objects
+    //todo: draw image layer here?
+    {case _lay^.DrawOrder of
+        ODO_Index:;
+        ODO_TopDown:;
+		  end;  }
+
+  end;
 end;
 
 procedure TCastleTiledMapControl.LoadTilesetsImages;
