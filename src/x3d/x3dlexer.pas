@@ -316,8 +316,6 @@ type
 
   { Error when reading VRML/X3D classic encoding. }
   EX3DClassicReadError = class(EX3DError)
-  protected
-    function MessagePositionPrefix(Lexer: TX3DLexer): string; virtual; abstract;
   public
     { Standard constructor.
 
@@ -332,15 +330,8 @@ type
     Problems in other encodings (XML) are for now always turned into warnings. }
   EX3DReadError = EX3DClassicReadError;
 
-  EX3DLexerError = class(EX3DClassicReadError)
-  protected
-    function MessagePositionPrefix(Lexer: TX3DLexer): string; override;
-  end;
-
-  EX3DParserError = class(EX3DClassicReadError)
-  protected
-    function MessagePositionPrefix(Lexer: TX3DLexer): string; override;
-  end;
+  EX3DLexerError = class(EX3DClassicReadError);
+  EX3DParserError = class(EX3DClassicReadError);
 
 const
   X3DKeywordsName: array [TX3DKeyword] of string = (
@@ -1102,17 +1093,8 @@ end;
 
 constructor EX3DClassicReadError.Create(Lexer: TX3DLexer; const s: string);
 begin
-  inherited Create(MessagePositionPrefix(Lexer) + S);
-end;
-
-function EX3DLexerError.MessagePositionPrefix(Lexer: TX3DLexer): string;
-begin
-  Result := Format('VRML/X3D lexical error at position %d: ', [Lexer.Stream.Position]);
-end;
-
-function EX3DParserError.MessagePositionPrefix(Lexer: TX3DLexer): string;
-begin
-  Result := Format('VRML/X3D parse error at position %d: ', [Lexer.Stream.Position]);
+  inherited Create(Format('Error at line %d column %d: ',
+    [Lexer.Stream.Line, Lexer.Stream.Column]) + S);
 end;
 
 { global funcs  ------------------------------------------------------------------ }
