@@ -29,7 +29,7 @@ type
   Effectively, this generates a texture with lighting, shadows and such
   already calculated inside.
 
-  @param(Image The resulting image. We store colors by TCastleImage.SetColorRGB,
+  @param(Image The resulting image. We store colors by TCastleImage.Colors,
     see also TClassicRayTracer.Image comments.)
 
   @param(LeftDownImagePart If @true, then the lower-left image triangle
@@ -131,7 +131,10 @@ var RayNormVector: TVector3Single;
      0, Image.Width-1);
   end;
 
-var x, y: Integer;
+var
+  x, y: Integer;
+  C: TCastleColor;
+  ColRGB: TCastleColorRGB absolute C;
 begin
  { RayNormVector bedzie caly czas taki sam, bedzie to wektor normalny
    TrianglePos w kierunku RenderDir }
@@ -148,12 +151,20 @@ begin
  begin
   for y := 0 to Image.Height-1 do
    for x := 0 to PrzekatnaXFromY(y) do
-    Image.SetColorRGB(x, y, Color(y/(Image.Height-1), x/(Image.Width-1)));
+   begin
+    C := Image.Colors[X, Y, 0];
+    ColRGB := Color(y/(Image.Height-1), x/(Image.Width-1));
+    Image.Colors[X, Y, 0] := C;
+   end;
  end else
  begin
   for y := 0 to Image.Height-1 do
    for x := PrzekatnaXFromY(y) to Image.Width-1 do
-    Image.SetColorRGB(x, y, Color(1-y/(Image.Height-1), 1-x/(Image.Width-1)));
+   begin
+    C := Image.Colors[X, Y, 0];
+    ColRGB := Color(1-y/(Image.Height-1), 1-x/(Image.Width-1));
+    Image.Colors[X, Y, 0] := C;
+   end;
  end;
 end;
 
@@ -184,8 +195,13 @@ var RayNormVector: TVector3Single;
   end;
 
   procedure DoPixel(x, y: Integer);
+  var
+    C: TCastleColor;
+    ColRGB: TCastleColorRGB absolute C;
   begin
-   Image.SetColorRGB(x, y, Color(x/(Image.Width-1), y/(Image.Height-1)));
+    C := Image.Colors[X, Y, 0];
+    ColRGB := Color(x/(Image.Width-1), y/(Image.Height-1));
+    Image.Colors[X, Y, 0] := C;
   end;
 
 var x, y: Integer;
