@@ -1207,13 +1207,14 @@ end;
 
 procedure TPeekCharStream.UpdateLineColumn(const C: char);
 begin
-  // Capture both Unix and Windows line ending
-  if C = #10 then
-    Inc(FLine);
   if (C = #13) or
      (C = #10) then
-    FColumn  := 1
-  else
+  begin
+    // This way we increase FLine correctly for both Unix and Windows line ending
+    if C = #10 then
+      Inc(FLine);
+    FColumn  := 1;
+  end else
     Inc(FColumn);
 end;
 
