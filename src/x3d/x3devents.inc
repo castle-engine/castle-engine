@@ -38,14 +38,16 @@
 
     SendLevel: Cardinal;
     HandlersToRemove: TX3DEventReceiveList;
-
-    function CreateTemp: TX3DField;
-    procedure FreeTemp(const Field: TX3DField);
   public
     constructor Create(AParentNode: TX3DFileItem;
       const AName: string;
       const AFieldClass: TX3DFieldClass; const AInEvent: boolean);
     destructor Destroy; override;
+
+    { Internal helper utility for SendXxx implementations. }
+    function CreateTemp: TX3DField;
+    { Internal helper utility for SendXxx implementations. }
+    procedure FreeTemp(const Field: TX3DField);
 
     property FieldClass: TX3DFieldClass read FFieldClass;
 

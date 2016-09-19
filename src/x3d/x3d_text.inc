@@ -97,6 +97,8 @@
   strict private
     FFontTextureNode: TPixelTextureNode;
     function Font: TTextureFontData;
+    function GetFontStyle: TFontStyleNode;
+    procedure SetFontStyle(const Value: TFontStyleNode);
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -140,9 +142,10 @@
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
 
-    { This returns FdFontStyle.Value. Returns nil if FdFontStyle.Value
-      is nil or if it's not TFontStyleNode. }
-    function FontStyle: TFontStyleNode;
+    { The font rendering style. Returns @nil if not assigned,
+      or if the underlying X3D field has invalid node type assigned. }
+    property FontStyle: TFontStyleNode read GetFontStyle write SetFontStyle;
+
     function SolidField: TSFBool; override;
     function FontTextureNode: TAbstractTexture2DNode; override;
   end;
@@ -448,12 +451,17 @@ begin
   Result := FdTexCoord;
 end;
 
-function TTextNode.FontStyle: TFontStyleNode;
+function TTextNode.GetFontStyle: TFontStyleNode;
 begin
   if (FdFontStyle.Value <> nil) and
      (FdFontStyle.Value is TFontStyleNode) then
     Result := TFontStyleNode(FdFontStyle.Value) else
     Result := nil;
+end;
+
+procedure TTextNode.SetFontStyle(const Value: TFontStyleNode);
+begin
+  FdFontStyle.Send(Value);
 end;
 
 function TTextNode.SolidField: TSFBool;
