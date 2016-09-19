@@ -254,7 +254,7 @@ var
         The downscaled image versions are generated from original (uncompressed,
         unscaled) images, and are then compressed.)
 
-      @link(The GLTextureScale scaling is usually of worse quality, since it's
+      @item(The GLTextureScale scaling is usually of worse quality, since it's
         done at runtime.
 
         In contrast, the downscaled textures used by TextureLoadingScale

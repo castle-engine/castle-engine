@@ -146,13 +146,13 @@ type
       (it will be raised earlier, at @link(TGLSLProgram.Uniform)).
 
       The TGLSLUniform information about a given uniform stays constant while
-      the program is linked. Using the @link(Uniform) one time, and then
+      the program is linked. Using the @link(TGLSLProgram.Uniform) one time, and then
       repeatedly calling @link(TGLSLUniform.SetValue), is faster than repeatedly
       calling @link(TGLSLProgram.SetUniform). Because the latter will
-      effectively call @link(Uniform) every time, which may have non-zero cost.
+      effectively call @link(TGLSLProgram.Uniform) every time, which may have non-zero cost.
 
       Actually, the uniform location (TGLSLUniform.Location) is constant for a given program,
-      and you can even predict the location in some cases without calling @link(Uniform)
+      and you can even predict the location in some cases without calling @link(TGLSLProgram.Uniform)
       method (see GLSL reference). So it can be even faster, as you can prepare
       correct TGLSLUniform instance in your own code, without calling
       @link(TGLSLProgram.Uniform).
@@ -405,7 +405,7 @@ type
       @link(TGLSLUniform.SetValue) calls. You must link the program first.
 
       If the uniform doesn't exist (or is unused), the action
-      we take depends on @link(AUniformNotFoundAction) property
+      we take depends on @link(UniformNotFoundAction) property
       (by default -- uaException).
       The overloaded version with extra @code(AUniformNotFoundAction)
       parameter follows this parameter value.
