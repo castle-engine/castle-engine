@@ -2149,7 +2149,6 @@ begin
   FContainer := Value;
 end;
 
-
 { TCamera ------------------------------------------------------------ }
 
 constructor TCamera.Create(AOwner: TComponent);
@@ -4830,6 +4829,7 @@ end;
 
 procedure TExamineCameraInUniversal.DoCursorChange;
 begin
+  inherited;
   { update Universal.Cursor, in case we're the current camera }
   Universal.Cursor := Universal.Current.Cursor;
 end;
@@ -4862,6 +4862,7 @@ end;
 
 procedure TWalkCameraInUniversal.DoCursorChange;
 begin
+  inherited;
   { update Universal.Cursor, in case we're the current camera }
   Universal.Cursor := Universal.Current.Cursor;
 end;
