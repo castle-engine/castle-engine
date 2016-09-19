@@ -753,6 +753,11 @@ type
     UsedSounds: TSoundList;
     FSoundDieEnabled: boolean;
 
+    FDebugCaptions: TCastleScene;
+    FDebugCaptionsText: TTextNode;
+    FDebugCaptionsFontStyle: TFontStyleNode;
+    FDebugCaptionsTransform: TMatrixTransformNode;
+
     procedure SoundRelease(Sender: TSound);
   protected
     procedure SetLife(const Value: Single); override;
@@ -770,7 +775,7 @@ type
     { Hurt given enemy. HurtEnemy may be @nil, in this case we do nothing. }
     procedure AttackHurt(const HurtEnemy: T3DAlive);
 
-    function DebugCaption: TCastleStringList; virtual;
+    procedure UpdateDebugCaption(const Lines: TCastleStringList); virtual;
   public
     constructor Create(AOwner: TComponent; const AMaxLife: Single); virtual; reintroduce;
     destructor Destroy; override;
@@ -862,7 +867,7 @@ type
 
     procedure SetState(Value: TCreatureState); virtual;
     procedure SetLife(const Value: Single); override;
-    function DebugCaption: TCastleStringList; override;
+    procedure UpdateDebugCaption(const Lines: TCastleStringList); override;
 
     { Enemy of this creature. In this class, this always returns global
       World.Player (if it exists and is still alive).
@@ -1422,44 +1427,6 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
     glColorv(Yellow);
     glDrawAxisWire(Middle, BoundingBox.AverageSize(true, 0));
   end;
-
-  procedure DebugCaptions;
-  var
-    H{, FontSize}: Single;
-    {
-    S: TCastleStringList;
-    I: Integer;
-    }
-  begin
-    glPushMatrix;
-      glMultMatrix(Transform);
-
-      H := GetChild.BoundingBox.Data[1, World.GravityCoordinate];
-      glMultMatrix(TransformToCoordsMatrix(
-        { move the caption to be at the top }
-        World.GravityUp * H,
-        { By default, Font3d renders text in XY plane.
-          Adjust it to our Orientation. }
-        VectorProduct(UpFromOrientation[Orientation], DirectionFromOrientation[Orientation]),
-        UpFromOrientation[Orientation],
-        DirectionFromOrientation[Orientation]));
-
-      { TODO: font should be output using X3D Text now.
-      FontSize := H / 8;
-      glScalef(FontSize / Font3d.RowHeight, FontSize / Font3d.RowHeight, 1);
-
-      glColorv(WhiteRGB);
-      S := DebugCaption;
-      try
-        for I := S.Count - 1 downto 0 do
-        begin
-          Font3d.Print(S[I]);
-          glTranslatef(0, Font3d.RowHeight, 0);
-        end;
-      finally FreeAndNil(S) end;
-      }
-    glPopMatrix;
-  end;
   {$warnings on}
   {$endif}
 
@@ -1474,8 +1441,6 @@ begin
     glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_LIGHTING);
       glEnable(GL_DEPTH_TEST);
-      if RenderDebugCaptions then
-        DebugCaptions;
       if RenderDebug3D then
         DebugBoundingVolumes;
     glPopAttrib;
@@ -1483,10 +1448,9 @@ begin
   {$endif}
 end;
 
-function TCreature.DebugCaption: TCastleStringList;
+procedure TCreature.UpdateDebugCaption(const Lines: TCastleStringList);
 begin
-  Result := TCastleStringList.Create;
-  Result.Add(Format('%s [%s / %s]',
+  Lines.Add(Format('%s [%s / %s]',
     [Resource.Name, FloatToNiceStr(Life), FloatToNiceStr(MaxLife)]));
 end;
 
@@ -1520,6 +1484,59 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
     end;
   end;
 
+  procedure UpdateDebugCaptions;
+  var
+    Shape: TShapeNode;
+    Root: TX3DRootNode;
+    H: Single;
+  begin
+    if RenderDebugCaptions and (FDebugCaptions = nil) then
+    begin
+      { create FDebugCaptions on demand }
+
+      FDebugCaptionsFontStyle := TFontStyleNode.Create;
+
+      FDebugCaptionsText := TTextNode.Create;
+      FDebugCaptionsText.FontStyle := FDebugCaptionsFontStyle;
+      FDebugCaptionsText.Solid := false;
+
+      Shape := TShapeNode.Create;
+      Shape.Geometry := FDebugCaptionsText;
+
+      FDebugCaptionsTransform := TMatrixTransformNode.Create;
+      FDebugCaptionsTransform.FdChildren.Add(Shape);
+
+      Root := TX3DRootNode.Create;
+      Root.FdChildren.Add(FDebugCaptionsTransform);
+
+      FDebugCaptions := TCastleScene.Create(Self);
+      FDebugCaptions.Load(Root, true);
+
+      Add(FDebugCaptions);
+    end;
+
+    if FDebugCaptions <> nil then
+      FDebugCaptions.Exists := RenderDebugCaptions;
+
+    if RenderDebugCaptions then
+    begin
+      H := GetChild.BoundingBox.Data[1, World.GravityCoordinate];
+      FDebugCaptionsFontStyle.Size := H / 8;
+      FDebugCaptionsTransform.Matrix := TransformToCoordsMatrix(
+        { move the caption to be at the top }
+        World.GravityUp * H,
+        { By default, Text is in XY plane.
+          Adjust it to our Orientation. }
+        VectorProduct(UpFromOrientation[Orientation], DirectionFromOrientation[Orientation]),
+        UpFromOrientation[Orientation],
+        DirectionFromOrientation[Orientation]);
+
+      FDebugCaptionsText.FdString.Items.Clear;
+      UpdateDebugCaption(FDebugCaptionsText.FdString.Items);
+      FDebugCaptionsText.FdString.Changed;
+    end;
+  end;
+
 begin
   inherited;
   if not GetExists then Exit;
@@ -1532,6 +1549,7 @@ begin
   VisibleChangeHere([vcVisibleGeometry]);
 
   UpdateUsedSounds;
+  UpdateDebugCaptions;
 end;
 
 procedure TCreature.SetLife(const Value: Single);
@@ -2435,11 +2453,11 @@ begin
   end;
 end;
 
-function TWalkAttackCreature.DebugCaption: TCastleStringList;
+procedure TWalkAttackCreature.UpdateDebugCaption(const Lines: TCastleStringList);
 var
   StateName: string;
 begin
-  Result := inherited DebugCaption;
+  inherited;
 
   case State of
     csIdle       : StateName := 'Idle';
@@ -2451,10 +2469,10 @@ begin
     csHurt       : StateName := 'Hurt';
     else StateName := Format('Custom State %d', [State]);
   end;
-  Result.Add(StateName);
+  Lines.Add(StateName);
 
   if HasLastSensedEnemy then
-    Result.Add(Format('Enemy sensed distance: %f',
+    Lines.Add(Format('Enemy sensed distance: %f',
       [PointsDistance(LastSensedEnemy, Middle)]));
 end;
 
