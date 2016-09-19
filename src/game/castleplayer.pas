@@ -409,7 +409,7 @@ type
       ciMouseDragging in TCamera.Input (when player is not
       @link(Dead) or @link(Blocked)). }
     property EnableCameraDragging: boolean
-      read FEnableCameraDragging write SetEnableCameraDragging default false;
+      read FEnableCameraDragging write SetEnableCameraDragging default true;
   end;
 
 const
@@ -520,6 +520,7 @@ begin
   FDrownDamageRandom := DefaultDrownDamageRandom;
   FSwimSoundPause := DefaultSwimSoundPause;
   FFallingEffect := true;
+  FEnableCameraDragging := true;
 
   Add(TPlayerBox.Create(Self));
 
