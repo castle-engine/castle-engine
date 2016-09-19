@@ -181,11 +181,11 @@ const
 
     For GrayscaleByte, they should be used like
 
-  @longCode(#
-    (R * GrayscaleValuesByte[0] +
-     G * GrayscaleValuesByte[1] +
-     B * GrayscaleValuesByte[2]) div 256
-  #)
+    @longCode(#
+      (R * GrayscaleValuesByte[0] +
+       G * GrayscaleValuesByte[1] +
+       B * GrayscaleValuesByte[2]) div 256
+    #)
 
     GrayscaleValuesByte[] are declared as Word type to force implicit conversion
     in above expression from Byte to Word, since you have to use Word range

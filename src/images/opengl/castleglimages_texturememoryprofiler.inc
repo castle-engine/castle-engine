@@ -72,16 +72,16 @@ type
   (for example in the main unit initialization clause), like this:
 
   @longCode(#
-TextureMemoryProfiler.Enabled := true
-#)
+    TextureMemoryProfiler.Enabled := true
+  #)
 
   Then at any point during the game you can query texture usage by
   @link(TTextureMemoryProfiler.Summary) method.
   For example dump it to the log like this:
 
-@longCode(#
-WritelnLog('Textures', TextureMemoryProfiler.Summary);
-#)
+  @longCode(#
+    WritelnLog('Textures', TextureMemoryProfiler.Summary);
+  #)
 
   The resulting output lists the currently allocated textures,
   in descending order of their size.

@@ -81,9 +81,9 @@
       could argue that URL is valid, only viewpoint name is wrong and
       so it should be ignored...). Consider url field like
 
-@preformatted(
-  [ "#NotExistingViewpoint", "#ExistingViewpoint" ]
-)
+      @preformatted(
+        [ "#NotExistingViewpoint", "#ExistingViewpoint" ]
+      )
 
       It seems sensible that we detect "#NotExistingViewpoint" as invalid,
       and move on to the next URL (which may be local or not).

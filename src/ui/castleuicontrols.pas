@@ -520,12 +520,12 @@ type
       in descendants you should override it like
 
       @longCode(#
-  Result := inherited;
-  if Result then Exit;
-  { ... And do the job here.
-    In other words, the handling of events in inherited
-    class should have a priority. }
-#)
+        Result := inherited;
+        if Result then Exit;
+        { ... And do the job here.
+          In other words, the handling of events in inherited
+          class should have a priority. }
+      #)
 
       Note that releasing of mouse wheel is not implemented for now,
       neither by CastleWindow or Lazarus CastleControl.
@@ -585,14 +585,14 @@ type
       For example, if holding some key should move some 3D object,
       you should do something like:
 
-@longCode(#
-if HandleInput then
-begin
-  if Container.Pressed[K_Right] then
-    Transform.Position += Vector3Single(SecondsPassed * 10, 0, 0);
-  HandleInput := not ExclusiveEvents;
-end;
-#)
+      @longCode(#
+        if HandleInput then
+        begin
+          if Container.Pressed[K_Right] then
+            Transform.Position += Vector3Single(SecondsPassed * 10, 0, 0);
+          HandleInput := not ExclusiveEvents;
+        end;
+      #)
 
       Instead of directly using a key code, consider also
       using TInputShortcut that makes the input key nicely configurable.
@@ -890,9 +890,9 @@ end;
       implementation (so setting the @code(Exists := false) will always work),
       like
 
-@longCode(#
-  Result := (inherited GetExists) and MyComplicatedConditionForExists;
-#) }
+      @longCode(#
+        Result := (inherited GetExists) and MyComplicatedConditionForExists;
+      #) }
     function GetExists: boolean; virtual;
 
     { Does this control capture events under this screen position.
@@ -1059,12 +1059,12 @@ end;
           This method must calculate a result already multiplied by @link(UIScale).
           In simple cases, this can be done easily, like this:
 
-@longCode(#
-function TMyControl.Rect: TRectangle;
-begin
-  Result := Rectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
-end;
-#)
+          @longCode(#
+            function TMyControl.Rect: TRectangle;
+            begin
+              Result := Rectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
+            end;
+          #)
 
           In fact, TUIControlSizeable already provides such implementation
           for you.)

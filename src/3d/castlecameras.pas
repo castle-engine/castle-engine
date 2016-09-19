@@ -87,12 +87,12 @@ type
       in descendants you should override it like
 
       @longCode(#
-  Result := inherited;
-  if Result then Exit;
-  { ... And do the job here.
-    In other words, the handling of events in inherited
-    class should have a priority. }
-#)
+        Result := inherited;
+        if Result then Exit;
+        { ... And do the job here.
+          In other words, the handling of events in inherited
+          class should have a priority. }
+      #)
 
       Note that releasing of mouse wheel is not implemented for now,
       neither by CastleWindow or Lazarus CastleControl.
@@ -152,14 +152,14 @@ type
       For example, if holding some key should move some 3D object,
       you should do something like:
 
-@longCode(#
-if HandleInput then
-begin
-  if Container.Pressed[K_Right] then
-    Transform.Position += Vector3Single(SecondsPassed * 10, 0, 0);
-  HandleInput := not ExclusiveEvents;
-end;
-#)
+      @longCode(#
+      if HandleInput then
+      begin
+        if Container.Pressed[K_Right] then
+          Transform.Position += Vector3Single(SecondsPassed * 10, 0, 0);
+        HandleInput := not ExclusiveEvents;
+      end;
+      #)
 
       Instead of directly using a key code, consider also
       using TInputShortcut that makes the input key nicely configurable.
@@ -1441,14 +1441,17 @@ end;
       or when head bobbing forces camera to go down.
 
       Exactly, the required equation is
-@preformatted(
-  MinimumRealPreferredHeight :=
-    PreferredHeight * CrouchHeight * (1 - HeadBobbing);
-)
+
+      @preformatted(
+        MinimumRealPreferredHeight :=
+          PreferredHeight * CrouchHeight * (1 - HeadBobbing);
+      )
+
       and always must be
-@preformatted(
-  MinimumRealPreferredHeight >= RealPreferredHeight
-)
+
+      @preformatted(
+        MinimumRealPreferredHeight >= RealPreferredHeight
+      )
 
       Reasoning: otherwise this class would "want camera to fall down"
       (because we will always be higher than RealPreferredHeight)

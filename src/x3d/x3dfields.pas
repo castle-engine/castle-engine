@@ -756,11 +756,11 @@ type
       All descendants (that add some property that should be compared)
       should override this like
 
-@longCode(#
-  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
-    (SecondValue is TMyType) and
-    (TMyType(SecondValue).MyProperty = MyProperty);
-#)
+      @longCode(#
+        Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+          (SecondValue is TMyType) and
+          (TMyType(SecondValue).MyProperty = MyProperty);
+      #)
 
       For varius floating-point fields in this unit:
       we compare each float using EqualityEpsilon,

@@ -70,11 +70,11 @@
       Note that you can always represent the same plane using a more
       general plane 3D equation, just take
 
-@preformatted(
-  Plane[0..2 / PlaneConstCoord] = 0,
-  Plane[PlaneConstCoord] = -1,
-  Plane[3] = PlaneConstValue.
-)
+      @preformatted(
+        Plane[0..2 / PlaneConstCoord] = 0,
+        Plane[PlaneConstCoord] = -1,
+        Plane[3] = PlaneConstValue.
+      )
 
       On such "simple plane" we can perform many calculations
       much faster.)
@@ -136,9 +136,10 @@
   to define a sphere (like @code(SphereCenter: vector; SphereRadius: scalar;))
   Why not wrap all the geometric objects (spheres, lines, rays, tunnels etc.)
   inside some records ? For example, define a sphere as
-@longcode(#
-  TSphere = record Center: vector; Radius: scalar; end;
-#)
+
+  @longcode(#
+    TSphere = record Center: vector; Radius: scalar; end;
+  #)
 
   The answer: this is not so good idea, because it would create
   a lot of such types into unit, and I would have to implement
@@ -1039,10 +1040,10 @@ function RotationAngleRadBetweenVectors(const V1, V2, Cross: TVector3Double): Do
   Note that this is equivalent to constructing a rotation matrix
   and then using it, like
 
-@longCode(#
-  M := RotationMatrixDeg(Angle, Axis);
-  Result := MatrixMultPoint(M, Point);
-#)
+  @longCode(#
+    M := RotationMatrixDeg(Angle, Axis);
+    Result := MatrixMultPoint(M, Point);
+  #)
 
   Except this will be a little faster. So rotations are done in the
   same direction as RotationMatrixDeg, and as OpenGL.
@@ -1800,10 +1801,10 @@ const
   For example, function RotationMatrices returns two matrices that you
   could calculate separately by
 
-@longCode(#
-        Matrix: = RotationMatrix( Angle, Axis);
-InvertedMatrix: = RotationMatrix(-Angle, Axis);
-#)
+  @longCode(#
+          Matrix: = RotationMatrix( Angle, Axis);
+  InvertedMatrix: = RotationMatrix(-Angle, Axis);
+  #)
 
   This is useful sometimes, and generating them both at the same time
   allows for some speedup (for example, calling RotationMatrix twice will
@@ -1865,10 +1866,11 @@ function PerspectiveProjMatrixRad(const fovyRad, aspect, zNear, zFar: Single): T
 
   MultMatricesTranslation is analogous to calculating both
   TranslationMatrix(Transl) and it's inverse, and then
-@longCode(#
-  M := MatrixMult(M, translation);
-  MInvert := MatrixMult(inverted translation, MInvert);
-#)
+
+  @longCode(#
+    M := MatrixMult(M, translation);
+    MInvert := MatrixMult(inverted translation, MInvert);
+  #)
 
   The idea is that if M represented some translation, and MInvert it's
   inverse, then after MultMatricesTranslation this will still hold.

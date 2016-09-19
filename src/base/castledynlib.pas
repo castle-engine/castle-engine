@@ -66,16 +66,16 @@ type
 
     Typical usage:
 
-@longCode(#
-  var
-    ALLibrary: TDynLib = nil;
-  initialization
-    ALLibrary := TDynLib.Load('libopenal.so');
-    { ... some calls to ALLibrary.Symbol() ... }
-  finalization
-    FreeAndNil(ALLibrary);
-  end.
-#)
+    @longCode(#
+      var
+        ALLibrary: TDynLib = nil;
+      initialization
+        ALLibrary := TDynLib.Load('libopenal.so');
+        { ... some calls to ALLibrary.Symbol() ... }
+      finalization
+        FreeAndNil(ALLibrary);
+      end.
+    #)
 
     It is important that ALLibrary is initialized to nil (actually, writing
     " = nil" is not necessary for a global variable) and that in finalization

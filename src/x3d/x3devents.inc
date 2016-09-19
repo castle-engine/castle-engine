@@ -94,20 +94,20 @@
       For example, here's how handling TimeSensor.elapsedTime_receive event
       sends fraction_changed event:
 
-@longCode(#
-procedure TTimeSensorNode.EventElapsedTimeReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-var
-  Fraction: Single;
-begin
-  if FdEnabled.Value then
-  begin
-    Fraction := ...; // doesn't matter here how this is calculated
-    // Pass "Time" parameter further by a call below
-    Eventfraction_changed.Send(Fraction, Time);
-  end;
-end;
-#)
+      @longCode(#
+        procedure TTimeSensorNode.EventElapsedTimeReceive(
+          Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+        var
+          Fraction: Single;
+        begin
+          if FdEnabled.Value then
+          begin
+            Fraction := ...; // doesn't matter here how this is calculated
+            // Pass "Time" parameter further by a call below
+            Eventfraction_changed.Send(Fraction, Time);
+          end;
+        end;
+      #)
 
       All callbacks here are simply called by @link(Send) method. }
     property OnReceive: TX3DEventReceiveList read FOnReceive;

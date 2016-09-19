@@ -108,17 +108,17 @@ type
     Usage example:
 
     @longcode(#
-Progress.UserInterface := ... some TProgressUserInterface instance ...;
-...
-Progress.Init(100, 'Doing something time-consuming, please wait');
-try
-  for i := 1 to 100 do
-  begin
-    ... do something ...
-    Progress.Step;
-  end;
-finally Progress.Fini; end;
-#)
+      Progress.UserInterface := ... some TProgressUserInterface instance ...;
+      ...
+      Progress.Init(100, 'Doing something time-consuming, please wait');
+      try
+        for i := 1 to 100 do
+        begin
+          ... do something ...
+          Progress.Step;
+        end;
+      finally Progress.Fini; end;
+    #)
 
     Using @code("try ... finally ... end") above is not strictly required,
     but is strongly suggested. Rule of thumb says to always call

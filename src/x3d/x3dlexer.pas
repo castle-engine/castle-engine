@@ -270,10 +270,12 @@ type
     { Read the next token, knowing that it @italic(must) be vtString token.
 
       Similiar to NextTokenForceVTName: use this like a shortcut for
-@longCode(#
-  NextToken;
-  CheckTokenIs(vtString);
-#)
+
+      @longCode(#
+        NextToken;
+        CheckTokenIs(vtString);
+      #)
+
       but it is not equivalent to such instructions. This is because
       VRML 1.0 allowed rather strange thing: string may be not enclosed
       in double quotes if it does not contain a space. This "feature"
@@ -351,10 +353,10 @@ const
   in any special way for VRML/X3D.
   For example:
 
-@longCode(#
-  StringToX3DClassic('foo') = '"foo"'
-  StringToX3DClassic('say "yes"') = '"say \"yes\""'
-#) }
+  @longCode(#
+    StringToX3DClassic('foo') = '"foo"'
+    StringToX3DClassic('say "yes"') = '"say \"yes\""'
+  #) }
 function StringToX3DClassic(const s: string;
   const SurroundWithQuotes: boolean = true): string;
 
@@ -788,6 +790,7 @@ function TX3DLexer.NextToken: TX3DToken;
   {
     VRML float token corresponds to Pascal Float type,
     in VRML it's expressed in the followin form:
+
     @preformatted(
       [("-"|"+")]
       (digit+ [ "." digit+ ] | "." digit+)
@@ -795,7 +798,8 @@ function TX3DLexer.NextToken: TX3DToken;
     )
 
     VRML integer token corresponds to Pascal Int64 type,
-    in VRML it's expressed in the followin form:
+    in VRML it's expressed in the following form:
+
     @preformatted(
       (form : [("-"|"+")] ("0x" digit_hex+ | [1-9]digit_decimal* | 0 digit_octal+) )
     )

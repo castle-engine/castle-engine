@@ -56,11 +56,12 @@ type
     First point has always all the smaller coords, second point has all
     the larger coords. I.e. always
 
-@preformatted(
-  Data[0, 0] <= Data[1, 0] and
-  Data[0, 1] <= Data[1, 1] and
-  Data[0, 2] <= Data[1, 2]
-)
+    @preformatted(
+      Data[0, 0] <= Data[1, 0] and
+      Data[0, 1] <= Data[1, 1] and
+      Data[0, 2] <= Data[1, 2]
+    )
+
     The only exception is the special value EmptyBox3D.
 
     Note that the box may still have all sizes equal 0. Consider a 3D model with

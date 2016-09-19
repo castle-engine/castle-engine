@@ -25,11 +25,11 @@ interface
 
   Parses these options:
 
-@preformatted(
-  --detail-quadric-slices VALUE
-  --detail-quadric-stacks VALUE
-  --detail-rect-divisions VALUE
-)
+  @preformatted(
+    --detail-quadric-slices VALUE
+    --detail-quadric-stacks VALUE
+    --detail-rect-divisions VALUE
+  )
 
   and sets Detail_QuadricSlices, Detail_QuadricStacks and Detail_RectDivisions
   variables.

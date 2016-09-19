@@ -1348,17 +1348,17 @@ type
       as they may have "IS" clauses that refer to our fields.
       Consider part of key_sensor.x3dv test:
 
-@preformatted(
-         PROTO SimpleText [
-           inputOutput MFString onestring ""
-         ] { Shape { geometry Text { string IS onestring } } }
+      @preformatted(
+        PROTO SimpleText [
+          inputOutput MFString onestring ""
+        ] { Shape { geometry Text { string IS onestring } } }
 
-         PROTO PressedText [
-           inputOutput MFString againstring ""
-         ] { SimpleText { onestring IS againstring } }
+        PROTO PressedText [
+          inputOutput MFString againstring ""
+        ] { SimpleText { onestring IS againstring } }
 
-         PressedText { againstring "zero" }
-)
+        PressedText { againstring "zero" }
+      )
 
       After expanding SimpleText within PressedText, we have
       @code(Shape { geometry Text { string IS againstring } }),

@@ -522,14 +522,14 @@ type
       (like the @link(Sound) and @link(Sound3D) methods) you have to set this
       property. For example like this:
 
-@longCode(#
-  SoundEngine.RepositoryURL := ApplicationData('sounds.xml');
-  stMySound1 := SoundEngine.SoundFromName('my_sound_1');
-  stMySound2 := SoundEngine.SoundFromName('my_sound_2');
-  // ... and later in your game you can do stuff like this:
-  SoundEngine.Sound(stMySound1);
-  SoundEngine.Sound3D(stMySound1, Vector3Single(0, 0, 10));
-#)
+      @longCode(#
+        SoundEngine.RepositoryURL := ApplicationData('sounds.xml');
+        stMySound1 := SoundEngine.SoundFromName('my_sound_1');
+        stMySound2 := SoundEngine.SoundFromName('my_sound_2');
+        // ... and later in your game you can do stuff like this:
+        SoundEngine.Sound(stMySound1);
+        SoundEngine.Sound3D(stMySound1, Vector3Single(0, 0, 10));
+      #)
 
       See CastleFilesUtils unit for docs of ApplicationData function.
     }

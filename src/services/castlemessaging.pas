@@ -54,24 +54,24 @@ type
         defined in this unit.
         So change your xxx_android.lpr file from
 
-@longCode(#
-library xxx;
-uses CastleAndroidNativeAppGlue, Game;
-exports
-  ANativeActivity_onCreate;
-end.
-#)
+        @longCode(#
+          library xxx;
+          uses CastleAndroidNativeAppGlue, Game;
+          exports
+            ANativeActivity_onCreate;
+          end.
+        #)
 
         to this:
 
-@longCode(#
-library xxx;
-uses CastleAndroidNativeAppGlue, Game, CastleMessaging;
-exports
-  Java_net_sourceforge_castleengine_MainActivity_jniMessage,
-  ANativeActivity_onCreate;
-end.
-#)
+        @longCode(#
+          library xxx;
+          uses CastleAndroidNativeAppGlue, Game, CastleMessaging;
+          exports
+            Java_net_sourceforge_castleengine_MainActivity_jniMessage,
+            ANativeActivity_onCreate;
+          end.
+        #)
 
       )
     )

@@ -295,14 +295,14 @@ procedure DeletePos(var S: string; StartPosition, EndPosition: Integer);
 
   Typical use scenario (iterate over all tokens in the string) :
 
-@longCode(#
-  SeekPos := 1;
-  repeat
-    Token := NextToken(S, SeekPos);
-    if Token = '' then break;
-    { ... process_next_token (Token) ... }
-  until false;
-#)
+  @longCode(#
+    SeekPos := 1;
+    repeat
+      Token := NextToken(S, SeekPos);
+      if Token = '' then break;
+      { ... process_next_token (Token) ... }
+    until false;
+  #)
 
   The above example will split the string into parts separated by whitespace.
 
@@ -579,12 +579,12 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
   A naive implementation of doing many search-replace over the same string
   is like
 
-@longCode(#
-Result := S;
-Result := StringReplace(Result, Patterns[0], Values[0], [rfReplaceAll]);
-Result := StringReplace(Result, Patterns[1], Values[1], [rfReplaceAll]);
-// etc.
-#)
+  @longCode(#
+    Result := S;
+    Result := StringReplace(Result, Patterns[0], Values[0], [rfReplaceAll]);
+    Result := StringReplace(Result, Patterns[1], Values[1], [rfReplaceAll]);
+    // etc.
+  #)
 
   But the above fails badly when inserting some Values[] creates
   an occurrence of Pattern checked later. For example, when Values[0]

@@ -37,13 +37,13 @@ const
   LM determines a pair (L, M) in the natural order: for each L,
   take for each M from -L to L.
   That is, LM = (0, 1, 2, 3, ...) indicate
-@preformatted(
-    (L, M) =
-  ( (0, 0),
-    (1, -1), (1, 0), (1, 1),
-    (2, -2), (2, -1), (2, 0), (2, 1), (2, 2),
-    ... )
-) ) }
+  @preformatted(
+      (L, M) =
+    ( (0, 0),
+      (1, -1), (1, 0), (1, 1),
+      (2, -2), (2, -1), (2, 0), (2, 1), (2, 2),
+      ... )
+  ) ) }
 function SHBasis(const LM: Cardinal; const PhiTheta: TVector2Single): Float;
 
 procedure LMDecode(const LM: Cardinal; out L: Cardinal; out M: Integer);
