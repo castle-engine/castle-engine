@@ -123,6 +123,7 @@ fini
 finish
 first
 flags
+flash
 float
 flying
 focused
