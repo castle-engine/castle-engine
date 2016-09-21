@@ -345,6 +345,8 @@ type
 
     procedure DrawFlipped(const ScreenRect: TRectangle;
       const FlipHorizontal, FlipVertical: boolean);
+    procedure DrawFlipped(const ScreenRect: TFloatRectangle;
+      const FlipHorizontal, FlipVertical: boolean);
 
     { In case of @link(Draw3x3) the corners
       on screen are scaled by this amount. This is especially useful
@@ -1205,6 +1207,12 @@ end;
 
 procedure TGLImageCore.DrawFlipped(const ScreenRect: TRectangle;
   const FlipHorizontal, FlipVertical: boolean);
+begin
+  DrawFlipped(FloatRectangle(ScreenRect), FlipHorizontal, FlipVertical);
+end;
+
+procedure TGLImageCore.DrawFlipped(const ScreenRect: TFloatRectangle;
+  const FlipHorizontal, FlipVertical: boolean);
 var
   ImageX, ImageY, ImageWidth, ImageHeight: Single;
 begin
@@ -1228,7 +1236,7 @@ begin
     ImageHeight := Height;
   end;
 
-  Draw(ScreenRect, ImageX, ImageY, ImageWidth, ImageHeight);
+  Draw(ScreenRect, FloatRectangle(ImageX, ImageY, ImageWidth, ImageHeight));
 end;
 
 procedure TGLImageCore.Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
