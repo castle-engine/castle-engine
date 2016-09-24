@@ -68,7 +68,8 @@ type
     FFrame, FCustomFrame: Cardinal;
     FPlaying: Boolean;
     FTimeLoop: Boolean;
-    FLeftMarginOffset, FTopMarginOffset: Cardinal;
+    FLeftMargin, FTopMargin: Cardinal;
+    FFrameHorizontalMargin, FFrameVerticalMargin: Cardinal;
     FTimeBackwards: Boolean;
     FCustomAnimations: TSpriteAnimations;
     FCurrentAnimation: Integer;
@@ -241,13 +242,27 @@ type
     { Height of a single frame. Initial value is set by the constructor. }
     property FrameHeight: Cardinal read FFrameHeight write FFrameHeight;
 
-    { X offset for frame position on the underlying image.
+    { X margin for frame position on the underlying image.
       Useful if the first frame doesn't start at X=0. }
-    property LeftMarginOffset: Cardinal read FLeftMarginOffset write FLeftMarginOffset default 0;
+    property LeftMargin: Cardinal read FLeftMargin write FLeftMargin default 0;
 
-    { Y offset for frame position on the underlying image.
+    { Y margin for frame position on the underlying image.
       Useful if the first frame doesn't start at Y=0. }
-    property TopMarginOffset: Cardinal read FTopMarginOffset write FTopMarginOffset default 0;
+    property TopMargin: Cardinal read FTopMargin write FTopMargin default 0;
+
+    { Horizontal margin between frames.
+      Use this if you have an empty space at the @bold(right) of every frame
+      in your spritesheet. This is useful to avoid frames "bleeding"
+      into each other (due to smooth scaling). }
+    property FrameHorizontalMargin: Cardinal
+      read FFrameHorizontalMargin write FFrameHorizontalMargin default 0;
+
+    { Vertical margin between frames.
+      Use this if you have an empty space at the @bold(top) of every frame
+      in your spritesheet. This is useful to avoid frames "bleeding"
+      into each other (due to smooth scaling). }
+    property FrameVerticalMargin: Cardinal
+      read FFrameVerticalMargin write FFrameVerticalMargin default 0;
 
     { Should we play the animation backwards after playing it forward.
       See TVideo.TimeBackwards. }
@@ -371,9 +386,15 @@ begin
 end;
 
 function TSprite.GetFrameRect: TRectangle;
+var
+  FullFrameWidth, FullFrameHeight: Cardinal;
 begin
-  Result.Left := FFrame mod FColumns * FFrameWidth + FLeftMarginOffset;
-  Result.Bottom := (FImage.Height - FFrameHeight) - FFrame div FColumns * FFrameHeight - FTopMarginOffset;
+  FullFrameWidth := FFrameWidth + FFrameHorizontalMargin;
+  FullFrameHeight := FFrameHeight + FFrameVerticalMargin;
+  Result.Left :=
+    FFrame mod FColumns * FullFrameWidth + FLeftMargin;
+  Result.Bottom := (FImage.Height - FullFrameHeight) -
+    FFrame div FColumns * FullFrameHeight - FTopMargin;
   Result.Width := FFrameWidth;
   Result.Height := FFrameHeight;
 end;
@@ -466,8 +487,8 @@ begin
   FTime := 0;
   SetFramesPerSecond(DefaultFramesPerSecond);
   FTimeLoop := ATimeLoop;
-  FLeftMarginOffset := 0;
-  FTopMarginOffset := 0;
+  FLeftMargin := 0;
+  FTopMargin := 0;
   FTimeBackwards := False;
   FCurrentAnimation := -1;
   FCustomAnimations := TSpriteAnimations.Create(true);
