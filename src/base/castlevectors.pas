@@ -724,20 +724,20 @@ function Approximate3DScale(const V: TVector3Single): Single;
   interpolated.
 
   @groupBegin }
-function Lerp(const a: Single; const V1, V2: TVector2Byte): TVector2Byte; overload;
-function Lerp(const a: Single; const V1, V2: TVector3Byte): TVector3Byte; overload;
-function Lerp(const a: Single; const V1, V2: TVector4Byte): TVector4Byte; overload;
-function Lerp(const a: Single; const V1, V2: TVector2Integer): TVector2Single; overload;
-function Lerp(const a: Single; const V1, V2: TVector2Single): TVector2Single; overload;
-function Lerp(const a: Single; const V1, V2: TVector3Single): TVector3Single; overload;
-function Lerp(const a: Single; const V1, V2: TVector4Single): TVector4Single; overload;
-function Lerp(const a: Double; const V1, V2: TVector2Double): TVector2Double; overload;
-function Lerp(const a: Double; const V1, V2: TVector3Double): TVector3Double; overload;
-function Lerp(const a: Double; const V1, V2: TVector4Double): TVector4Double; overload;
-function Lerp(const a: Single; const M1, M2: TMatrix3Single): TMatrix3Single; overload;
-function Lerp(const a: Single; const M1, M2: TMatrix4Single): TMatrix4Single; overload;
-function Lerp(const a: Double; const M1, M2: TMatrix3Double): TMatrix3Double; overload;
-function Lerp(const a: Double; const M1, M2: TMatrix4Double): TMatrix4Double; overload;
+function Lerp(const A: Single; const V1, V2: TVector2Byte): TVector2Byte; overload;
+function Lerp(const A: Single; const V1, V2: TVector3Byte): TVector3Byte; overload;
+function Lerp(const A: Single; const V1, V2: TVector4Byte): TVector4Byte; overload;
+function Lerp(const A: Single; const V1, V2: TVector2Integer): TVector2Single; overload;
+function Lerp(const A: Single; const V1, V2: TVector2Single): TVector2Single; overload;
+function Lerp(const A: Single; const V1, V2: TVector3Single): TVector3Single; overload;
+function Lerp(const A: Single; const V1, V2: TVector4Single): TVector4Single; overload;
+function Lerp(const A: Double; const V1, V2: TVector2Double): TVector2Double; overload;
+function Lerp(const A: Double; const V1, V2: TVector3Double): TVector3Double; overload;
+function Lerp(const A: Double; const V1, V2: TVector4Double): TVector4Double; overload;
+function Lerp(const A: Single; const M1, M2: TMatrix3Single): TMatrix3Single; overload;
+function Lerp(const A: Single; const M1, M2: TMatrix4Single): TMatrix4Single; overload;
+function Lerp(const A: Double; const M1, M2: TMatrix3Double): TMatrix3Double; overload;
+function Lerp(const A: Double; const M1, M2: TMatrix4Double): TMatrix4Double; overload;
 { @groupEnd }
 
 function Vector_Init_Lerp(const A: Single; const V1, V2: TVector3_Single): TVector3_Single; overload;
@@ -3069,20 +3069,20 @@ begin
             (V1[3] = V2[3]);
 end;
 
-function Lerp(const a: Single; const V1, V2: TVector2Byte): TVector2Byte;
+function Lerp(const A: Single; const V1, V2: TVector2Byte): TVector2Byte;
 begin
   Result[0] := Clamped(Round(V1[0] + A * (V2[0] - V1[0])), 0, High(Byte));
   Result[1] := Clamped(Round(V1[1] + A * (V2[1] - V1[1])), 0, High(Byte));
 end;
 
-function Lerp(const a: Single; const V1, V2: TVector3Byte): TVector3Byte;
+function Lerp(const A: Single; const V1, V2: TVector3Byte): TVector3Byte;
 begin
   Result[0] := Clamped(Round(V1[0] + A * (V2[0] - V1[0])), 0, High(Byte));
   Result[1] := Clamped(Round(V1[1] + A * (V2[1] - V1[1])), 0, High(Byte));
   Result[2] := Clamped(Round(V1[2] + A * (V2[2] - V1[2])), 0, High(Byte));
 end;
 
-function Lerp(const a: Single; const V1, V2: TVector4Byte): TVector4Byte;
+function Lerp(const A: Single; const V1, V2: TVector4Byte): TVector4Byte;
 begin
   Result[0] := Clamped(Round(V1[0] + A * (V2[0] - V1[0])), 0, High(Byte));
   Result[1] := Clamped(Round(V1[1] + A * (V2[1] - V1[1])), 0, High(Byte));
@@ -3090,52 +3090,10 @@ begin
   Result[3] := Clamped(Round(V1[3] + A * (V2[3] - V1[3])), 0, High(Byte));
 end;
 
-function Lerp(const a: Single; const V1, V2: TVector2Integer): TVector2Single;
+function Lerp(const A: Single; const V1, V2: TVector2Integer): TVector2Single;
 begin
  result[0] := V1[0] + a*(V2[0]-V1[0]);
  result[1] := V1[1] + a*(V2[1]-V1[1]);
-end;
-
-function Lerp(const a: Single; const V1, V2: TVector2Single): TVector2Single;
-begin
- result[0] := V1[0] + a*(V2[0]-V1[0]);
- result[1] := V1[1] + a*(V2[1]-V1[1]);
-end;
-
-function Lerp(const a: Single; const V1, V2: TVector3Single): TVector3Single;
-begin
- result[0] := V1[0] + a*(V2[0]-V1[0]);
- result[1] := V1[1] + a*(V2[1]-V1[1]);
- result[2] := V1[2] + a*(V2[2]-V1[2]);
-end;
-
-function Lerp(const a: Single; const V1, V2: TVector4Single): TVector4Single;
-begin
- result[0] := V1[0] + a*(V2[0]-V1[0]);
- result[1] := V1[1] + a*(V2[1]-V1[1]);
- result[2] := V1[2] + a*(V2[2]-V1[2]);
- result[3] := V1[3] + a*(V2[3]-V1[3]);
-end;
-
-function Lerp(const a: Double; const V1, V2: TVector2Double): TVector2Double;
-begin
- result[0] := V1[0] + a*(V2[0]-V1[0]);
- result[1] := V1[1] + a*(V2[1]-V1[1]);
-end;
-
-function Lerp(const a: Double; const V1, V2: TVector3Double): TVector3Double;
-begin
- result[0] := V1[0] + a*(V2[0]-V1[0]);
- result[1] := V1[1] + a*(V2[1]-V1[1]);
- result[2] := V1[2] + a*(V2[2]-V1[2]);
-end;
-
-function Lerp(const a: Double; const V1, V2: TVector4Double): TVector4Double;
-begin
- result[0] := V1[0] + a*(V2[0]-V1[0]);
- result[1] := V1[1] + a*(V2[1]-V1[1]);
- result[2] := V1[2] + a*(V2[2]-V1[2]);
- result[3] := V1[3] + a*(V2[3]-V1[3]);
 end;
 
 function Vector_Init_Lerp(const A: Single; const V1, V2: TVector3_Single): TVector3_Single;

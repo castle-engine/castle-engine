@@ -1208,6 +1208,27 @@ begin
   Result[3, 3] := M1[3, 3] + A * (M2[3, 3] - M1[3, 3]);
 end;
 
+function Lerp(const A: TScalar; const V1, V2: TVector2): TVector2;
+begin
+  Result[0] := V1[0] + a*(V2[0]-V1[0]);
+  Result[1] := V1[1] + a*(V2[1]-V1[1]);
+end;
+
+function Lerp(const A: TScalar; const V1, V2: TVector3): TVector3;
+begin
+  Result[0] := V1[0] + a*(V2[0]-V1[0]);
+  Result[1] := V1[1] + a*(V2[1]-V1[1]);
+  Result[2] := V1[2] + a*(V2[2]-V1[2]);
+end;
+
+function Lerp(const A: TScalar; const V1, V2: TVector4): TVector4;
+begin
+  Result[0] := V1[0] + a*(V2[0]-V1[0]);
+  Result[1] := V1[1] + a*(V2[1]-V1[1]);
+  Result[2] := V1[2] + a*(V2[2]-V1[2]);
+  Result[3] := V1[3] + a*(V2[3]-V1[3]);
+end;
+
 function MatricesPerfectlyEqual(const M1, M2: TMatrix3): boolean;
 begin
   Result := CompareMem(@M1, @M2, SizeOf(M1));
