@@ -245,10 +245,12 @@ type
     { X margin for frame position on the underlying image.
       Useful if the first frame doesn't start at X=0. }
     property LeftMargin: Cardinal read FLeftMargin write FLeftMargin default 0;
+    property LeftMarginOffset: Cardinal read FLeftMargin write FLeftMargin default 0; deprecated 'use LeftMargin';
 
     { Y margin for frame position on the underlying image.
       Useful if the first frame doesn't start at Y=0. }
     property TopMargin: Cardinal read FTopMargin write FTopMargin default 0;
+    property TopMarginOffset: Cardinal read FTopMargin write FTopMargin default 0; deprecated 'use TopMargin';
 
     { Horizontal margin between frames.
       Use this if you have an empty space at the @bold(right) of every frame
