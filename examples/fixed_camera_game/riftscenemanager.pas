@@ -21,7 +21,7 @@ uses SysUtils;
 function TRiftSceneManager.Headlight: TAbstractLightNode;
 begin
   if DefaultHeadlightNode = nil then
-    DefaultHeadlightNode := TDirectionalLightNode.Create('', '');;
+    DefaultHeadlightNode := TDirectionalLightNode.Create;
   Result := DefaultHeadlightNode;
 end;
 

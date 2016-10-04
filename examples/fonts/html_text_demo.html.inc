@@ -6,6 +6,8 @@
 '' + LineEnding +
 'Font sizes also work. Text <small>smaller <small>even smaller <small>even more smaller</small> back</small> back</small> back. This is done by &lt;small&gt; element. You can also use &lt;font size="+/-number"&gt; or &lt;font size="1..7"&gt;: small: <font size="-1">one small <font size="-2">two small <font size="-3">three small</font> back</font> back</font>, large: <font size="+1">one large <font size="+2">two large <font size="+3">three large <font size="+4">four large</font></font> back</font> back</font>.' + LineEnding +
 '' + LineEnding +
+'You can also use percentages to specify font size relative to base size (this is not possible in HTML). Nesting these tags does not make their percentages relative. <font size="50%">Two times smaller than normal <font size="200%">Two times larger.</font></font>' + LineEnding +
+'' + LineEnding +
 'Note that embedded &lt;small&gt; element makes the text smaller and smaller, but embedded &lt;font size="-1"&gt; does not. This is consistent with HTML (&lt;font size="-1"&gt; is not relative to parent).' + LineEnding +
 '' + LineEnding +
 'You can use entities &amp;amp;, &amp;lt;, &amp;gt; &amp;apos; &amp;quot; as expected, to escape special HTML/XML sequences: &amp;, &lt;, &gt; &apos; &quot;.' + LineEnding +

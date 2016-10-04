@@ -273,13 +273,13 @@ constructor TCastleMenuToggle.Create(AOwner: TComponent);
 begin
   inherited;
   Toggle := true;
-  Caption := BoolToStrYesNo[Pressed];
+  Caption := BoolToStr(Pressed, 'Yes', 'No');
 end;
 
 procedure TCastleMenuToggle.SetPressed(const Value: boolean);
 begin
   inherited;
-  Caption := BoolToStrYesNo[Pressed];
+  Caption := BoolToStr(Pressed, 'Yes', 'No');
 end;
 
 procedure TCastleMenuToggle.DoClick;

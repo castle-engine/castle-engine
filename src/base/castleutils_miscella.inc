@@ -74,13 +74,13 @@ procedure Check(TrueValue: boolean; const ErrMessage: string = 'Check failed');
 
   Useful for writing case as:
 
-@longCode(#
-  case ArrayPosStr(variable, [val1, val2]) of
-    0 : Something1;
-    1 : Something2;
-    else SomethingElse;
-  end;
-#) }
+  @longCode(#
+    case ArrayPosStr(variable, [val1, val2]) of
+      0 : Something1;
+      1 : Something2;
+      else SomethingElse;
+    end;
+  #) }
 function ArrayPosStr(const A: string; const Arr: array of string): Integer; overload;
 
 function ArrayPosText(const A: string; const Arr: array of string;

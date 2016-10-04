@@ -49,12 +49,39 @@ type
     procedure Clear;
   end;
 
+  { GLSL program that may be used by the X3D renderer.
+    Provides some extra features, above the standard TGLSLProgram,
+    but does not require to link the shader using TShader algorithm. }
+  TX3DShaderProgramBase = class(TGLSLProgram)
+  public
+    {$ifdef OpenGLES}
+    { Uniforms initialized after linking.
+      Initializing them only once after linking allows the mesh renderer to go fast. }
+    UniformCastle_ModelViewMatrix,
+    UniformCastle_ProjectionMatrix,
+    UniformCastle_NormalMatrix,
+    UniformCastle_MaterialDiffuseAlpha,
+    UniformCastle_MaterialShininess,
+    UniformCastle_SceneColor,
+    UniformCastle_UnlitColor: TGLSLUniform;
+
+    { Attributes initialized after linking.
+      Initializing them only once after linking allows the mesh renderer to go fast. }
+    AttributeCastle_Vertex,
+    AttributeCastle_Normal,
+    AttributeCastle_ColorPerVertex,
+    AttributeCastle_FogCoord: TGLSLAttribute;
+
+    procedure Link; override;
+    {$endif}
+  end;
+
   { GLSL program integrated with VRML/X3D and TShader.
     Allows to bind uniform values from VRML/X3D fields,
     and to observe VRML/X3D events and automatically update uniform values.
     Also allows to initialize and check program by TShader.LinkProgram,
     and get a hash of it by TShader.CodeHash. }
-  TX3DShaderProgram = class(TGLSLProgram)
+  TX3DShaderProgram = class(TX3DShaderProgramBase)
   private
     { Events where we registered our EventReceive method. }
     EventsObserved: TX3DEventList;
@@ -69,7 +96,7 @@ type
       @raises(EGLSLUniformInvalid When uniform variable name
         or type are invalid.
 
-        Caller should always catch this and change into OnWarning.
+        Caller should always catch this and change into WritelnWarning.
 
         X3D spec "OpenGL shading language (GLSL) binding" says
         "If the name is not available as a uniform variable in the
@@ -101,7 +128,7 @@ type
     { Set and observe uniform variables from given Node.InterfaceDeclarations.
 
       Non-texture fields are set immediately.
-      Non-texture fields and events are then observed by this shader,
+      Non-texture fields, and also events, become observed by this shader,
       and automatically updated when changed.
 
       Texture fields have to be updated by descendant (like TX3DGLSLProgram),
@@ -466,7 +493,7 @@ operator = (const A, B: TShaderCodeHash): boolean;
 
 implementation
 
-uses SysUtils, CastleGL, CastleGLUtils, CastleWarnings,
+uses SysUtils, CastleGL, CastleGLUtils,
   CastleLog, StrUtils, Castle3D, CastleGLVersion, CastleRenderingCamera,
   CastleScreenEffects, X3DLexer;
 
@@ -905,6 +932,28 @@ begin
   Result := false;
 end;
 
+{ TX3DShaderProgramBase ------------------------------------------------------ }
+
+{$ifdef OpenGLES}
+procedure TX3DShaderProgramBase.Link;
+begin
+  inherited;
+
+  UniformCastle_ModelViewMatrix      := Uniform('castle_ModelViewMatrix'     , uaIgnore);
+  UniformCastle_ProjectionMatrix     := Uniform('castle_ProjectionMatrix'    , uaIgnore);
+  UniformCastle_NormalMatrix         := Uniform('castle_NormalMatrix'        , uaIgnore);
+  UniformCastle_MaterialDiffuseAlpha := Uniform('castle_MaterialDiffuseAlpha', uaIgnore);
+  UniformCastle_MaterialShininess    := Uniform('castle_MaterialShininess'   , uaIgnore);
+  UniformCastle_SceneColor           := Uniform('castle_SceneColor'          , uaIgnore);
+  UniformCastle_UnlitColor           := Uniform('castle_UnlitColor'          , uaIgnore);
+
+  AttributeCastle_Vertex         := AttributeOptional('castle_Vertex');
+  AttributeCastle_Normal         := AttributeOptional('castle_Normal');
+  AttributeCastle_ColorPerVertex := AttributeOptional('castle_ColorPerVertex');
+  AttributeCastle_FogCoord       := AttributeOptional('castle_FogCoord');
+end;
+{$endif}
+
 { TX3DShaderProgram ------------------------------------------------------- }
 
 constructor TX3DShaderProgram.Create;
@@ -948,11 +997,11 @@ begin
       So set GLSL uniform variable from this field. }
     SetUniformFromField(UniformField.Name, UniformField, EnableDisable);
   except
-    { We capture EGLSLUniformInvalid, converting it to OnWarning and exit.
+    { We capture EGLSLUniformInvalid, converting it to WritelnWarning and exit.
       This way we will not add this field to EventsObserved. }
     on E: EGLSLUniformInvalid do
     begin
-      OnWarning(wtMinor, 'VRML/X3D', E.Message);
+      WritelnWarning('VRML/X3D', E.Message);
       Exit;
     end;
   end;
@@ -1121,7 +1170,7 @@ begin
       "OpenGL shading language (GLSL) binding".
       Remaining:
       SF/MFImage }
-    OnWarning(wtMajor, 'VRML/X3D', 'Setting uniform GLSL variable from X3D field type "' + UniformValue.TypeName + '" not supported');
+    WritelnWarning('VRML/X3D', 'Setting uniform GLSL variable from X3D field type "' + UniformValue.TypeName + '" not supported');
 
   if EnableDisable then
     { TODO: this should restore previously bound program }
@@ -1141,11 +1190,11 @@ begin
   try
     SetUniformFromField(UniformName, Value, true);
   except
-    { We capture EGLSLUniformInvalid, converting it to OnWarning.
+    { We capture EGLSLUniformInvalid, converting it to WritelnWarning.
       This way we remove this event from OnReceive list. }
     on E: EGLSLUniformInvalid do
     begin
-      OnWarning(wtMinor, 'VRML/X3D', E.Message);
+      WritelnWarning('VRML/X3D', E.Message);
       Event.RemoveHandler(@EventReceive);
       EventsObserved.Remove(Event);
       Exit;
@@ -1643,7 +1692,7 @@ const
       PEnd := PosEx('*/', Code, PBegin + Length(CommentBegin));
       Result :=  PEnd <> 0;
       if not Result then
-        OnWarning(wtMinor, 'VRML/X3D', Format('Plug comment "%s" not properly closed, treating like not declared',
+        WritelnWarning('VRML/X3D', Format('Plug comment "%s" not properly closed, treating like not declared',
           [CommentBegin]));
     end;
   end;
@@ -1744,7 +1793,7 @@ begin
       AnyOccurrences := LookForPlugDeclaration(Source[EffectPartType]);
 
     if (not AnyOccurrences) and WarnMissingPlugs then
-      OnWarning(wtMinor, 'VRML/X3D', Format('Plug name "%s" not declared', [PlugName]));
+      WritelnWarning('VRML/X3D', Format('Plug name "%s" not declared', [PlugName]));
   until false;
 
   { regardless if any (and how many) plug points were found,
@@ -1777,7 +1826,7 @@ begin
   end;
 
   if (not Result) and WarnMissingPlugs then
-    OnWarning(wtMinor, 'VRML/X3D', Format('Plug point "%s" not found', [PlugName]));
+    WritelnWarning('VRML/X3D', Format('Plug point "%s" not found', [PlugName]));
 end;
 
 procedure TShader.EnableEffects(Effects: TMFNode;
@@ -1815,7 +1864,7 @@ procedure TShader.EnableEffects(Effects: TX3DNodeList;
 
     if Effect.FdLanguage.Value <> 'GLSL' then
     begin
-      OnWarning(wtMinor, 'VRML/X3D', Format('Unknown shading language "%s" for Effect node',
+      WritelnWarning('VRML/X3D', Format('Unknown shading language "%s" for Effect node',
         [Effect.FdLanguage.Value]));
       Exit;
     end;
@@ -2384,7 +2433,7 @@ begin
   begin
     for I := 0 to Source[stFragment].Count - 1 do
       PlugDirectly(Source[stFragment], I, '/* PLUG-DECLARATIONS */', '#define HAS_GEOMETRY_SHADER', true);
-    if GLVersion.VendorATI then
+    if GLVersion.VendorType = gvATI then
       GeometryInputSize := 'gl_in.length()' else
       GeometryInputSize := '';
     { Replace CASTLE_GEOMETRY_INPUT_SIZE }
@@ -2397,6 +2446,27 @@ begin
   if GLVersion.BuggyGLSLFrontFacing then
     for I := 0 to Source[stFragment].Count - 1 do
       PlugDirectly(Source[stFragment], I, '/* PLUG-DECLARATIONS */', '#define CASTLE_BUGGY_FRONT_FACING', true);
+
+  if GLVersion.BuggyGLSLReadVarying then
+  begin
+    {$ifdef OpenGLES}
+    { On OpenGLES, replace only 1st one, otherwise PowerVR complains
+        Syntax error, 'CASTLE_BUGGY_GLSL_READ_VARYING' macro redefinition
+      Observed on phone (from O of M):
+        Version string: OpenGL ES 2.0 build 1.9.RC2@2130229
+        Version parsed: major: 2, minor: 0, release exists: False, release: 0, vendor-specific information: "build 1.9.RC2@2130229"
+        Vendor-specific version parsed: major: 1, minor: 9, release: 0
+        Vendor: Imagination Technologies
+        Vendor type: Imagination Technologies
+        Renderer: PowerVR SGX 540
+    }
+    if Source[stVertex].Count > 0 then
+      PlugDirectly(Source[stVertex], 0, '/* PLUG-DECLARATIONS */', '#define CASTLE_BUGGY_GLSL_READ_VARYING', true);
+    {$else}
+    for I := 0 to Source[stVertex].Count - 1 do
+      PlugDirectly(Source[stVertex], I, '/* PLUG-DECLARATIONS */', '#define CASTLE_BUGGY_GLSL_READ_VARYING', true);
+    {$endif}
+  end;
 
   if Log and LogShaders then
   begin
@@ -2428,7 +2498,7 @@ begin
 
     for ShaderType := Low(ShaderType) to High(ShaderType) do
       AProgram.AttachShader(ShaderType, Source[ShaderType]);
-    AProgram.Link(true);
+    AProgram.Link;
 
     if SelectedNode <> nil then
       SelectedNode.EventIsValid.Send(true);
@@ -2454,9 +2524,11 @@ begin
       under Linux), on ATI (tested proprietary OpenGL drivers under Linux and Windows)
       this doesn't seem needed (less aggressive removal of unused vars).
 
-    - Invalid types should always be reported (in debug mode, as OpenGL errors,
-      this is fastest). We carefully code to always specify correct types
-      for our uniform variables. }
+    - Invalid types should always be reported in debug mode, as OpenGL errors.
+      This is the fastest option (other values for UniformTypeMismatchAction
+      are not good for performance, causing glGetError around every
+      TGLSLUniform.SetValue call, very very slow). We carefully code to
+      always specify correct types for our uniform variables. }
   AProgram.UniformNotFoundAction := uaIgnore;
   AProgram.UniformTypeMismatchAction := utGLError;
 
@@ -2475,7 +2547,7 @@ begin
       'Fallback fragment shader:' + NL + FS);
   AProgram.AttachShader(stVertex, VS);
   AProgram.AttachShader(stFragment, FS);
-  AProgram.Link(true);
+  AProgram.Link;
 
   AProgram.UniformNotFoundAction := uaIgnore;
   AProgram.UniformTypeMismatchAction := utGLError;

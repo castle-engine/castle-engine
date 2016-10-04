@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<build_gradle_merge>
+  <!-- See https://developers.google.com/analytics/devguides/collection/android/v4/ -->
+  <dependencies>
+    <!-- See https://developers.google.com/android/guides/setup#split -->
+    <dependency>compile 'com.google.android.gms:play-services-analytics:9.4.0'</dependency>
+  </dependencies>
+  <plugins>
+    <plugin>apply plugin: 'com.google.gms.google-services'</plugin>
+  </plugins>
+</build_gradle_merge>

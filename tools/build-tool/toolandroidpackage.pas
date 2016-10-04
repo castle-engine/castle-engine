@@ -32,7 +32,7 @@ procedure RunAndroidPackage(const Project: TCastleProject);
 implementation
 
 uses SysUtils, Classes,
-  CastleURIUtils, CastleWarnings, CastleFilesUtils, CastleImages,
+  CastleURIUtils, CastleLog, CastleFilesUtils, CastleImages,
   ToolEmbeddedImages, ExtInterpolation;
 
 const
@@ -40,6 +40,13 @@ const
     'release',
     'release' { no valgrind support for Android },
     'debug');
+
+function Capitalize(const S: string): string;
+begin
+  Result := S;
+  if Result <> '' then
+    Result := AnsiUpperCase(Result[1]) + SEnding(Result, 2);
+end;
 
 procedure CreateAndroidPackage(const Project: TCastleProject;
   const OS: TOS; const CPU: TCPU; const SuggestedPackageMode: TCompilationMode;
@@ -185,9 +192,10 @@ var
       R: TCastleImage;
       Dir: string;
     begin
-      R := Icon.MakeResized(Size, Size, rniLanczos);
+      R := Icon.MakeResized(Size, Size, riLanczos);
       try
-        Dir := 'res' + PathDelim + 'drawable-' + S + 'dpi';
+        Dir := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
+               'res' + PathDelim + 'mipmap-' + S + 'dpi';
         PackageSaveImage(R, Dir + PathDelim + 'ic_launcher.png');
       finally FreeAndNil(R) end;
     end;
@@ -196,11 +204,10 @@ var
     Icon := Project.Icons.FindReadable;
     if Icon = nil then
     begin
-      OnWarning(wtMinor, 'Icon', 'No icon in a format readable by our engine (for example, png or jpg) is specified in CastleEngineManifest.xml. Using default icon.');
+      WritelnWarning('Icon', 'No icon in a format readable by our engine (for example, png or jpg) is specified in CastleEngineManifest.xml. Using default icon.');
       Icon := DefaultIcon;
     end;
     try
-      SaveResized(36, 'l');
       SaveResized(48, 'm');
       SaveResized(72, 'h');
       SaveResized(96, 'xh');
@@ -220,7 +227,8 @@ var
     for I := 0 to Files.Count - 1 do
     begin
       FileFrom := Project.DataPath + Files[I];
-      FileTo := 'assets' + PathDelim + Files[I];
+      FileTo := 'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
+                'assets' + PathDelim + Files[I];
       PackageSmartCopyFile(FileFrom, FileTo);
       if Verbose then
         Writeln('Package file: ' + Files[I]);
@@ -230,111 +238,126 @@ var
   procedure GenerateLibrary;
   begin
     PackageSmartCopyFile(Project.Path + Project.AndroidLibraryFile(true),
-      'jni' + PathDelim + Project.AndroidLibraryFile(false));
+      'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
+      { place precompiled .so files in jniLibs, not jni, to make them picked up by Gradle.
+        See http://stackoverflow.com/questions/27532062/include-pre-compiled-static-library-using-ndk
+        http://stackoverflow.com/a/28430178 }
+      'jniLibs' + PathDelim + 'armeabi-v7a' + PathDelim + Project.AndroidLibraryFile(false));
   end;
 
-  procedure GenerateAntProperties(var PackageMode: TCompilationMode);
+var
+  KeyStore, KeyAlias, KeyStorePassword, KeyAliasPassword: string;
+
+  procedure CalculateSigningProperties(var PackageMode: TCompilationMode);
   const
-    SourceAntProperties = 'AndroidAntProperties.txt';
     WWW = 'https://github.com/castle-engine/castle-engine/wiki/Android';
-  var
-    S: TStringList;
-  begin
-    if FileExists(Project.Path + SourceAntProperties) then
+
+    procedure LoadSigningProperties(const FileName: string);
+    var
+      S: TStringList;
     begin
       S := TStringList.Create;
       try
-        S.LoadFromFile(Project.Path + SourceAntProperties);
+        S.LoadFromFile(FileName);
         if (PackageMode <> cmDebug) and (
             (S.IndexOfName('key.store') = -1) or
             (S.IndexOfName('key.alias') = -1) or
             (S.IndexOfName('key.store.password') = -1) or
             (S.IndexOfName('key.alias.password') = -1)) then
-        if PackageMode <> cmDebug then
         begin
-          OnWarning(wtMajor, 'Android', 'Key information (key.store, key.alias, key.store.password, key.alias.password) to sign release Android package not found inside ' + SourceAntProperties + ' file. See ' + WWW + ' for documentation how to create and use keys to sign release Android apk. Falling back to creating debug apk.');
+          WritelnWarning('Android', 'Key information (key.store, key.alias, key.store.password, key.alias.password) to sign release Android package not found inside "' + FileName + '" file. See ' + WWW + ' for documentation how to create and use keys to sign release Android apk. Falling back to creating debug apk.');
           PackageMode := cmDebug;
         end;
-      finally FreeAndNil(S) end;
+        if PackageMode <> cmDebug then
+        begin
+          KeyStore := S.Values['key.store'];
+          KeyAlias := S.Values['key.alias'];
+          KeyStorePassword := S.Values['key.store.password'];
+          KeyAliasPassword := S.Values['key.alias.password'];
 
-      PackageSmartCopyFile(Project.Path + SourceAntProperties, 'ant.properties');
-    end else
+          (*
+          Project.AndroidSigningConfig :=
+            'signingConfigs {' + NL +
+            '    release {' + NL +
+            '        storeFile file("' + KeyStore + '")' + NL +
+            '        storePassword "' + KeyStorePassword + '"' + NL +
+            '        keyAlias "' + KeyAlias + '"' + NL +
+            '        keyPassword "' + KeyAliasPassword + '"' + NL +
+            '    }' + NL +
+            '}' + NL;
+          Project.AndroidSigningConfigDeclare := 'signingConfig signingConfigs.release';
+
+          This fails with gradle error
+          (as of 'com.android.tools.build:gradle-experimental:0.7.0' ; did not try with later versions)
+
+            * Where:
+            Build file '/tmp/castle-engine157085/app/build.gradle' line: 26
+            * What went wrong:
+            A problem occurred configuring project ':app'.
+            > Exception thrown while executing model rule: android { ... } @ app/build.gradle line 4, column 5 > named(release)
+               > Attempt to read a write only view of model of type 'org.gradle.model.ModelMap<com.android.build.gradle.managed.BuildType>' given to rule 'android { ... } @ app/build.gradle line 4, column 5'
+
+          See
+          https://code.google.com/p/android/issues/detail?id=182249
+          http://stackoverflow.com/questions/32109501/adding-release-keys-in-the-experimental-gradle-plugin-for-android
+
+          We use simpler solution now, from the bottom of
+          https://plus.googleapis.com/+JoakimEngstr%C3%B6mJ/posts/NY3JUkz5dPP
+          See also
+          http://www.tinmith.net/wayne/blog/2014/08/gradle-sign-command-line.htm
+          *)
+        end;
+      finally FreeAndNil(S) end;
+    end;
+
+  const
+    SourceAntPropertiesOld = 'AndroidAntProperties.txt';
+    SourceAntProperties = 'AndroidSigningProperties.txt';
+  begin
+    KeyStore := '';
+    KeyAlias := '';
+    KeyStorePassword := '';
+    KeyAliasPassword := '';
+    if FileExists(Project.Path + SourceAntProperties) then
     begin
+      LoadSigningProperties(Project.Path + SourceAntProperties);
+    end else
+    if FileExists(Project.Path + SourceAntPropertiesOld) then
+    begin
+      LoadSigningProperties(Project.Path + SourceAntPropertiesOld);
+      WritelnWarning('Deprecated', 'Using deprecated configuration file name "' + SourceAntPropertiesOld + '". Rename it to "' + SourceAntProperties + '".');
+    end else
+    if PackageMode <> cmDebug then
+    begin
+      WritelnWarning('Android', 'Information about the keys to sign release Android package not found, because "' + SourceAntProperties + '" file does not exist. See ' + WWW + ' for documentation how to create and use keys to sign release Android apk. Falling back to creating debug apk.');
+      PackageMode := cmDebug;
+    end;
+  end;
+
+  { Run "gradlew" to actually build the final apk. }
+  procedure RunGradle(const PackageMode: TCompilationMode);
+  var
+    Args: TCastleStringList;
+  begin
+    Args := TCastleStringList.Create;
+    try
+      Args.Add('assemble' + Capitalize(PackageModeToName[PackageMode]));
+      if not Verbose then
+        Args.Add('--quiet');
       if PackageMode <> cmDebug then
       begin
-        OnWarning(wtMajor, 'Android', 'Key to sign release Android package not found, because ' + SourceAntProperties + ' not found. See ' + WWW + ' for documentation how to create and use keys to sign release Android apk. Falling back to creating debug apk.');
-        PackageMode := cmDebug;
+        Args.Add('-Pandroid.injected.signing.store.file=' + KeyStore);
+        Args.Add('-Pandroid.injected.signing.store.password=' + KeyStorePassword);
+        Args.Add('-Pandroid.injected.signing.key.alias=' + KeyAlias);
+        Args.Add('-Pandroid.injected.signing.key.password=' + KeyAliasPassword);
       end;
-    end;
-  end;
-
-  procedure GenerateProjectProperties(const Subprojects: TCastleStringList);
-  var
-    S: string;
-    I: Integer;
-  begin
-    S := '# Automatically generated by Castle Game Engine build tool.' + NL;
-    (*# To enable ProGuard to shrink and obfuscate your code, uncomment this
-      # (available properties: sdk.dir, user.home):
-      # (Castle Game Engine notes: we use custom-proguard-project.txt name,
-      # not standard proguard-project.txt, otherwise proguard-project.txt is overwritten
-      # by every "android create project.." call done when packaging.
-      #proguard.config=${sdk.dir}/tools/proguard/proguard-android.txt:custom-proguard-project.txt *)
-    S += 'target=' + Project.AndroidTarget + NL;
-    for I := 0 to Subprojects.Count - 1 do
-      S += 'android.library.reference.' + IntToStr(I + 1) + '=./' + Subprojects[I] + '/' + NL;
-    { overwrite existing file, since Android "update" project always creates
-      (and overwrites, if something existed earlier...) it }
-    StringToFile(AndroidProjectPath + 'project.properties', S);
-  end;
-
-  { Run "android update project",
-    this creates a proper Android project files (build.xml, local.properties). }
-  procedure RunAndroidUpdateProject(const LibrarySubdirectory: string = '');
-  const
-    WWWComponents = 'https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine';
-  var
-    Dir, ProcessOutput: string;
-    ProcessStatus: Integer;
-  begin
-    Dir := AndroidProjectPath + LibrarySubdirectory;
-    if LibrarySubdirectory <> '' then
-    begin
-      if not DirectoryExists(Dir) then
-        raise Exception.Create('Cannot find directory "' + Dir + '", make sure you installed the components dependencies (see "Requires" sections on ' + WWWComponents + ')');
-      RunCommandIndirPassthrough(Dir, AndroidExe,
-        ['update', 'lib-project',                     '--path', '.', '--target', Project.AndroidTarget],
-        ProcessOutput, ProcessStatus)
-    end else
-      RunCommandIndirPassthrough(Dir, AndroidExe,
-        ['update', 'project', '--name', Project.Name, '--path', '.', '--target', Project.AndroidTarget],
-        ProcessOutput, ProcessStatus);
-    if ProcessStatus <> 0 then
-      raise Exception.Create('"android" call failed, cannot create Android apk. Inspect above error messages, and make sure Android SDK is installed correctly. Make sure that target "' + Project.AndroidTarget + '" is installed.');
-  end;
-
-  { Run "ndk-build", this moves our .so correctly to the final apk. }
-  procedure RunNdkBuild(const PackageMode: TCompilationMode);
-  var
-    NdkOverrideName, NdkOverrideValue: string;
-  begin
-    NdkOverrideName := '';
-    NdkOverrideValue := '';
-    if PackageMode = cmDebug then
-    begin
-      NdkOverrideName := 'NDK_DEBUG';
-      NdkOverrideValue := '1';
-    end;
-    RunCommandSimple(AndroidProjectPath, 'ndk-build', ['--silent'], NdkOverrideName, NdkOverrideValue);
-  end;
-
-  { Run "ant debug/release" to actually build the final apk. }
-  procedure RunAnt(const PackageMode: TCompilationMode);
-  begin
-    RunCommandSimple(AndroidProjectPath, 'ant',
-      [ { enable extra warnings, following http://stackoverflow.com/questions/7682150/use-xlintdeprecation-with-android }
-        '-Djava.compilerargs=-Xlint:unchecked -Xlint:deprecation',
-        PackageModeToName[PackageMode], '-noinput', '-quiet']);
+      {$ifdef MSWINDOWS}
+      RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
+      {$else}
+      Args.Insert(0, './gradlew');
+      RunCommandSimple(AndroidProjectPath, 'bash', Args.ToArray);
+      {$endif}
+    finally FreeAndNil(Args) end;
   end;
 
 var
@@ -342,7 +365,6 @@ var
   PackageMode: TCompilationMode;
   TemporaryAndroidProjectPath: boolean;
   Subprojects: TCastleStringList;
-  I: Integer;
 begin
   { use the AndroidProject value (just make it safer) for AndroidProjectPath,
     if set }
@@ -356,6 +378,8 @@ begin
     AndroidProjectPath := InclPathDelim(CreateTemporaryDir);
   PackageMode := SuggestedPackageMode;
 
+  CalculateSigningProperties(PackageMode);
+
   GenerateFromTemplates;
 
   Subprojects := FindSubprojects; // subprojects are only found once we did GenerateFromTemplates
@@ -363,31 +387,19 @@ begin
     GenerateIcons;
     GenerateAssets;
     GenerateLibrary;
-    GenerateAntProperties(PackageMode);
-
-    for I := 0 to Subprojects.Count - 1 do
-    begin
-      RunAndroidUpdateProject(Subprojects[I]);
-      { some subprojects, like Gitfiz SDK, do not redistribute "src" subdirectory,
-        but it's required. }
-      PackageCheckForceDirectories(Subprojects[I] + PathDelim + 'src');
-    end;
-
-    RunAndroidUpdateProject;
-    RunNdkBuild(PackageMode);
-    GenerateProjectProperties(Subprojects);
-
-    RunAnt(PackageMode);
+    RunGradle(PackageMode);
   finally FreeAndNil(Subprojects) end;
 
   ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
-  CheckRenameFile(AndroidProjectPath + 'bin' + PathDelim + ApkName,
+  CheckRenameFile(AndroidProjectPath + 'app' + PathDelim + 'build' +
+    PathDelim + 'outputs' + PathDelim + 'apk' + PathDelim +
+    'app-' + PackageModeToName[PackageMode] + '.apk',
     Project.Path + ApkName);
 
   Writeln('Build ' + ApkName);
 
   if TemporaryAndroidProjectPath and not LeaveTemp then
-    RemoveNonEmptyDir(AndroidProjectPath);
+    RemoveNonEmptyDir(AndroidProjectPath, true);
 end;
 
 procedure InstallAndroidPackage(const Name, QualifiedName: string);

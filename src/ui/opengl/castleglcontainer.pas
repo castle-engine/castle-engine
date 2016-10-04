@@ -20,7 +20,8 @@ unit CastleGLContainer;
 
 interface
 
-uses CastleUIControls;
+uses Classes,
+  CastleUIControls, CastleGLUtils;
 
 type
   { Container for controls providing an OpenGL rendering.
@@ -28,13 +29,34 @@ type
     It is not useful from the outside, unless you want to implement
     your own container provider similar to TCastleWindowCustom / TCastleControlCustom. }
   TGLContainer = class abstract(TUIContainer)
+  strict private
+    FContext: TRenderContext;
   public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    property Context: TRenderContext read FContext;
     procedure EventRender; override;
+    procedure EventClose(const OpenWindowsCount: Cardinal); override;
   end;
 
 implementation
 
-uses CastleVectors, CastleGL, CastleGLUtils;
+uses SysUtils,
+  CastleVectors, CastleGL;
+
+constructor TGLContainer.Create(AOwner: TComponent);
+begin
+  inherited;
+  FContext := TRenderContext.Create;
+end;
+
+destructor TGLContainer.Destroy;
+begin
+  if RenderContext = FContext then
+    RenderContext := nil;
+  FreeAndNil(FContext);
+  inherited;
+end;
 
 procedure TGLContainer.EventRender;
 
@@ -48,13 +70,15 @@ procedure TGLContainer.EventRender;
     {$endif}
     glDisable(GL_DEPTH_TEST);
     GLEnableTexture(CastleGLUtils.etNone);
-    glViewport(Rect);
+    CastleGLUtils.glViewport(Rect);
     OrthoProjection(0, Width, 0, Height);
 
     { Set OpenGL state that may be changed carelessly, and has some
       guaranteed value, for Render2d calls. }
     {$ifndef OpenGLES} glLoadIdentity; {$endif}
+    {$warnings off}
     CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
+    {$warnings on}
   end;
 
   procedure RenderWithChildren(const C: TUIControl;
@@ -134,6 +158,19 @@ begin
   RenderEverything(rs3D, SomeControlHasRenderStyle2D);
   if SomeControlHasRenderStyle2D then
     RenderEverything(rs2D, Dummy);
+end;
+
+procedure TGLContainer.EventClose(const OpenWindowsCount: Cardinal);
+begin
+  inherited;
+  if OpenWindowsCount = 1 then
+  begin
+    { recreate FContext instance, to reset every variable when context is closed }
+    if RenderContext = FContext then
+      RenderContext := nil;
+    FreeAndNil(FContext);
+    FContext := TRenderContext.Create;
+  end;
 end;
 
 end.

@@ -111,7 +111,7 @@ var
 
 implementation
 
-uses CastleLog, CastleStringUtils, CastleWarnings;
+uses CastleLog, CastleStringUtils;
 
 { Do additional operations (normalize some vectors etc.)
   that in theory should improve numerical stability of this algorithm.
@@ -378,7 +378,7 @@ var
 
     if Log and LogTriangulation then
       WritelnLog('Triangulation', Format('Border vertex %d (part of %d - %d - %d) considered inside triangle? %s.',
-        [Border, BorderPrevious, Border, BorderNext, BoolToStr[Result]]));
+        [Border, BorderPrevious, Border, BorderNext, BoolToStr(Result, true)]));
   end;
 
 var
@@ -477,7 +477,7 @@ begin
               WritelnLog('Triangulation', 'Impossible to find an "ear" to cut off, this concave polygon cannot be triangulated.');
             if not FailureWarningDone then
             begin
-              OnWarning(wtMinor, 'Triangulator', 'Triangulation of concave polygon failed. Polygon is probably self-intersecting (not allowed by VRML / X3D). You can use Castle Game Engine tool in castle_game_engine/examples/visualize_triangulation/ to easily observe the polygon vertexes and triangulation process.');
+              WritelnWarning('Triangulator', 'Triangulation of concave polygon failed. Polygon is probably self-intersecting (not allowed by VRML / X3D). You can use Castle Game Engine tool in castle_game_engine/examples/visualize_triangulation/ to easily observe the polygon vertexes and triangulation process.');
               FailureWarningDone := true;
             end;
             Break;
@@ -504,7 +504,7 @@ begin
           EarFound := DistanceSqr <= 1.0;
           if Log and LogTriangulation then
             WritelnLog('Triangulation', Format('Does the ear %d - %d - %d have the same orientation as polygon? %s. (Ear normal: %s, distance to polygon normal: %f.)' ,
-              [P0, P1, P2, BoolToStr[EarFound],
+              [P0, P1, P2, BoolToStr(EarFound, true),
                VectorToNiceStr(EarNormal), Sqrt(DistanceSqr)]));
 
           { check is the ear triangle non-empty }

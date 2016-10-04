@@ -87,7 +87,7 @@ var
         Delete(VisualSceneId, 1, 1);
         VisualScene := VisualScenes.FindName(VisualSceneId);
         if VisualScene = nil then
-          OnWarning(wtMinor, 'Collada', Format('<instance_visual_scene> instantiates non-existing ' +
+          WritelnWarning('Collada', Format('<instance_visual_scene> instantiates non-existing ' +
             '<visual_scene> element "%s"', [VisualSceneId])) else
           ResultModel.FdChildren.Add(VisualScene);
       end;

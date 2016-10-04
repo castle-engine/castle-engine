@@ -13,23 +13,18 @@
   ----------------------------------------------------------------------------
 }
 
-{ Octrees for fast 3D seaching in VRML/X3D shapes (TShapeOctree).
+{ Octree for fast 3D collision detection in VRML/X3D shapes (TShapeOctree).
 
-  Don't confuse it with @link(TTriangleOctree):
+  Contrast this with @link(TTriangleOctree):
   @link(TTriangleOctree) is an octree based on scene triangles,
-  while @link(TShapeOctree) is an octree based on scene
-  Shapes. A scene usually has much more (e.g. 100 000, but this
-  is really only an example) triangles than Shapes (e.g. 100-1000,
-  but this is really only an example).
+  while @link(TShapeOctree) is an octree based on scene shapes.
+  A scene usually has much more triangles than shapes.
 
-  If you want to work on triangle-by-triangle basis,
-  use @link(TTriangleOctree). But if you want to work with higher-level
-  objects, Shapes, use this class, @link(TShapeOctree).
-
-  This octree is the key structure to do scene culling
-  (e.g. to camera frustum) on a Shape-basis, as used
-  by @link(TCastleScene). }
-
+  This octree is the key structure to do scene culling on a per-shape-basis,
+  e.g. to camera frustum, as used by @link(TCastleScene).
+  It can also be used to perform collision detection that starts working per-shape,
+  to choose the shapes that potentially collide, and then run per-triangle collision
+  detection within the shape, using @link(TShape.InternalOctreeTriangles). }
 unit CastleShapeOctree;
 
 {$I castleconf.inc}

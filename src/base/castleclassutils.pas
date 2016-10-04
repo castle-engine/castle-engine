@@ -344,11 +344,14 @@ type
     without reading it (i.e. next time you will call Read or ReadBuffer
     you will still get that char). And it works for all source streams,
     including the ones where seeking is not allowed (so Seek(-1, soCurrent)
-    would not work). }
+    would not work).
+
+    Another advantage is the @link(Line) and @link(Column) information. }
   TPeekCharStream = class(TStream)
   private
     FSourceStream: TStream;
     FOwnsSourceStream: boolean;
+    FLine, FColumn: Int64;
   protected
     { @returns(SourceStream.Size). }
     function GetSize: Int64; override;
@@ -361,7 +364,12 @@ type
     {$ifndef FPC}
     function GetPosition: Int64; virtual; abstract;
     {$endif}
+    procedure UpdateLineColumn(const C: char);
+    procedure UpdateLineColumn(const Buffer; const BufferCount: Integer);
   public
+    constructor Create(ASourceStream: TStream; AOwnsSourceStream: boolean);
+    destructor Destroy; override;
+
     { This stream doesn't support seeking.
       (SetPosition and all other versions of Seek also call this.)
       @raises(EStreamNotImplementedSeek Always.) }
@@ -399,14 +407,17 @@ type
     { Read characters, until one of EndingChars (or end of stream) is found.
       The ending character is not "consumed" from the stream.
       The Result is guaranteed to not contain any char from EndingChars. }
-    function ReadUpto(const EndingChars: TSetOfChars): string; virtual; abstract;
+    function ReadUpto(const EndingChars: TSetOfChars): string; virtual;
 
     {$ifndef FPC}
     property Position: Int64 read GetPosition;
     {$endif}
 
-    constructor Create(ASourceStream: TStream; AOwnsSourceStream: boolean);
-    destructor Destroy; override;
+    { Line number in the file (counting from 1). }
+    property Line: Int64 read FLine;
+
+    { Column number in the file (counting from 1). }
+    property Column: Int64 read FColumn;
   end;
 
   { Read another stream, sequentially, always being able to back one character.
@@ -423,7 +434,6 @@ type
     function Read(var Buffer; Count: Longint): Longint; override;
     function PeekChar: Integer; override;
     function ReadChar: Integer; override;
-    function ReadUpto(const EndingChars: TSetOfChars): string; override;
   end;
 
 const
@@ -464,16 +474,16 @@ type
   protected
     function GetPosition: Int64; override;
   public
+    constructor Create(ASourceStream: TStream; AOwnsSourceStream: boolean;
+      ABufferSize: LongWord = DefaultReadBufferSize);
+    destructor Destroy; override;
+
     function Read(var LocalBuffer; Count: Longint): Longint; override;
     function PeekChar: Integer; override;
     function ReadChar: Integer; override;
     function ReadUpto(const EndingChars: TSetOfChars): string; override;
 
     property BufferSize: LongWord read FBufferSize;
-
-    constructor Create(ASourceStream: TStream; AOwnsSourceStream: boolean;
-      ABufferSize: LongWord = DefaultReadBufferSize);
-    destructor Destroy; override;
   end;
 
 { ---------------------------------------------------------------------------- }
@@ -1156,6 +1166,22 @@ end;
 
 { TPeekCharStream -------------------------------------------------- }
 
+constructor TPeekCharStream.Create(ASourceStream: TStream;
+  AOwnsSourceStream: boolean);
+begin
+  inherited Create;
+  FOwnsSourceStream := AOwnsSourceStream;
+  FSourceStream := ASourceStream;
+  FLine := 1;
+  FColumn := 1;
+end;
+
+destructor TPeekCharStream.Destroy;
+begin
+  if OwnsSourceStream then FreeAndNil(FSourceStream);
+  inherited;
+end;
+
 function TPeekCharStream.GetSize: Int64;
 begin
   Result := SourceStream.Size;
@@ -1179,18 +1205,40 @@ begin
   Result := 0; { just to get rid of dummy fpc warning }
 end;
 
-constructor TPeekCharStream.Create(ASourceStream: TStream;
-  AOwnsSourceStream: boolean);
+procedure TPeekCharStream.UpdateLineColumn(const C: char);
 begin
-  inherited Create;
-  FOwnsSourceStream := AOwnsSourceStream;
-  FSourceStream := ASourceStream;
+  if (C = #13) or
+     (C = #10) then
+  begin
+    // This way we increase FLine correctly for both Unix and Windows line ending
+    if C = #10 then
+      Inc(FLine);
+    FColumn  := 1;
+  end else
+    Inc(FColumn);
 end;
 
-destructor TPeekCharStream.Destroy;
+procedure TPeekCharStream.UpdateLineColumn(const Buffer; const BufferCount: Integer);
+var
+  I: Integer;
 begin
-  if OwnsSourceStream then FreeAndNil(FSourceStream);
-  inherited;
+  for I := 0 to BufferCount - 1 do
+    UpdateLineColumn(PChar(@Buffer)[I]);
+end;
+
+function TPeekCharStream.ReadUpto(const EndingChars: TSetOfChars): string;
+var
+  Peeked: Integer;
+begin
+  Result := '';
+  while true do
+  begin
+    Peeked := PeekChar;
+    if (Peeked = -1) or (Chr(Peeked) in EndingChars) then
+      Exit;
+    { ReadChar will return same thing as Peeked now }
+    Result := Result + Chr(ReadChar);
+  end;
 end;
 
 { Notes about TPeekCharStream.Read overriding:
@@ -1224,8 +1272,9 @@ begin
     IsPeekedChar := false;
   end else
     Result := SourceStream.Read(Buffer, Count);
-
   FPosition := FPosition + Result;
+
+  UpdateLineColumn(Buffer, Result);
 end;
 
 function TSimplePeekCharStream.PeekChar: Integer;
@@ -1263,29 +1312,29 @@ begin
       Inc(FPosition);
     end;
   end;
-end;
 
-function TSimplePeekCharStream.ReadUpto(const EndingChars: TSetOfChars): string;
-var
-  Peeked: Integer;
-begin
-  Result := '';
-  while true do
-  begin
-    Peeked := PeekChar;
-    if (Peeked = -1) or (Chr(Peeked) in EndingChars) then
-      Exit;
-    Result := Result + Chr(Peeked);
-    { I could call above "Result := Result + Chr(ReadChar);"
-      to make implementation of ReadUpto cleaner (not dealing
-      with private fields of TStreamPeekChar).
-      But doing like I'm doing now works a little faster. }
-    IsPeekedChar := false;
-    Inc(FPosition);
-  end;
+  if Result <> -1 then
+    UpdateLineColumn(Chr(Result));
 end;
 
 { TBufferedReadStream ----------------------------------------------------- }
+
+constructor TBufferedReadStream.Create(ASourceStream: TStream;
+  AOwnsSourceStream: boolean; ABufferSize: LongWord);
+begin
+  inherited Create(ASourceStream, AOwnsSourceStream);
+
+  FBufferSize := ABufferSize;
+  Buffer := GetMem(BufferSize);
+  BufferPos := 0;
+  BufferEnd := 0;
+end;
+
+destructor TBufferedReadStream.Destroy;
+begin
+  FreeMemNiling(Pointer(Buffer));
+  inherited;
+end;
 
 function TBufferedReadStream.GetPosition: Int64;
 begin
@@ -1334,8 +1383,9 @@ begin
       Result := Result + SourceStream.Read(PChar(@LocalBuffer)[Result], Count);
     end;
   end;
-
   FPosition := FPosition + Result;
+
+  UpdateLineColumn(LocalBuffer, Result);
 end;
 
 function TBufferedReadStream.PeekChar: Integer;
@@ -1368,12 +1418,16 @@ begin
     end else
       Result := -1;
   end;
+
+  if Result <> -1 then
+    UpdateLineColumn(Chr(Result));
 end;
 
 function TBufferedReadStream.ReadUpto(const EndingChars: TSetOfChars): string;
 var
   Peeked: Integer;
   BufferBeginPos, OldResultLength, ReadCount: LongWord;
+  ConsumingChar: char;
 begin
   Result := '';
   while true do
@@ -1402,6 +1456,8 @@ begin
       chunk from the buffer, and copy it to Result at once.
     *)
 
+    UpdateLineColumn(Chr(Peeked));
+
     { Increase BufferPos as much as you can. We know that we can increase
       at least by one, since we just called PeekChar and it returned character
       <> -1 and not in EndingChars, so we use repeat...until instead of
@@ -1409,7 +1465,17 @@ begin
     BufferBeginPos := BufferPos;
     repeat
       Inc(BufferPos);
-    until (BufferPos >= BufferEnd) or (Chr(Buffer^[BufferPos]) in EndingChars);
+      if BufferPos >= BufferEnd then
+        Break
+      else
+      begin
+        ConsumingChar := Chr(Buffer^[BufferPos]);
+        if ConsumingChar in EndingChars then
+          Break
+        else
+          UpdateLineColumn(ConsumingChar);
+      end;
+    until false;
 
     ReadCount := BufferPos - BufferBeginPos;
 
@@ -1421,23 +1487,6 @@ begin
     SetLength(Result, OldResultLength + ReadCount);
     Move(Buffer^[BufferBeginPos], Result[OldResultLength + 1], ReadCount);
   end;
-end;
-
-constructor TBufferedReadStream.Create(ASourceStream: TStream;
-  AOwnsSourceStream: boolean; ABufferSize: LongWord);
-begin
-  inherited Create(ASourceStream, AOwnsSourceStream);
-
-  FBufferSize := ABufferSize;
-  Buffer := GetMem(BufferSize);
-  BufferPos := 0;
-  BufferEnd := 0;
-end;
-
-destructor TBufferedReadStream.Destroy;
-begin
-  FreeMemNiling(Pointer(Buffer));
-  inherited;
 end;
 
 { TComponent helpers --------------------------------------------------- }

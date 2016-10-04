@@ -283,8 +283,8 @@ begin
     { Nothing to do }
   end else
   begin
-    OnWarning(wtMajor, 'S3TC', Format('Cannot flip image compressed with S3TC when image height is not a multiple of 4 (or 1, 2, 3). Image height is %d',
-      [Height]));
+    WritelnWarning('S3TC', 'Cannot flip image compressed with S3TC when image height is not a multiple of 4 (or 1, 2, 3). Image height is %d',
+      [Height]);
     Exit;
   end;
 end;

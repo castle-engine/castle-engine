@@ -190,10 +190,10 @@ var
                   Appearance.FdTexture.Value := Image;
                   { Happens e.g. on "Private Section/Faerie_Forrest_DAY/Faerie_Forrest_DAY.dae"
                     from collada.org/owl models. }
-                  OnWarning(wtMajor, 'Collada', Format('<diffuse> texture refers to missing sampler2D name "%s". Found <image> with the same id, will use it',
+                  WritelnWarning('Collada', Format('<diffuse> texture refers to missing sampler2D name "%s". Found <image> with the same id, will use it',
                     [DiffuseTextureName]));
                 end else
-                  OnWarning(wtMajor, 'Collada', Format('<diffuse> texture refers to missing sampler2D name "%s"',
+                  WritelnWarning('Collada', Format('<diffuse> texture refers to missing sampler2D name "%s"',
                     [DiffuseTextureName]));
               end;
             end;
@@ -247,7 +247,7 @@ var
         Image := Images.FindName(RefersTo) as TAbstractTextureNode;
         if Image <> nil then
           Surfaces[Name] := Image else
-          OnWarning(wtMajor, 'Collada', Format('<surface> refers to missing image name "%s"',
+          WritelnWarning('Collada', Format('<surface> refers to missing image name "%s"',
             [RefersTo]));
       end else
       begin
@@ -259,7 +259,7 @@ var
           Image := Surfaces.Find(RefersTo);
           if Image <> nil then
             Samplers2D[Name] := Image else
-            OnWarning(wtMajor, 'Collada', Format('<sampler2D> refers to missing surface name "%s"',
+            WritelnWarning('Collada', Format('<sampler2D> refers to missing surface name "%s"',
               [RefersTo]));
         end; { else not handled <newparam> }
       end;

@@ -49,6 +49,11 @@ uses SysUtils, Classes, FGL,
 type
   TDynamicStringArray = array of string;
 
+  TStringsHelper = class helper for TStrings
+    { Convert TStrings to a dynamic string array. }
+    function ToArray: TDynamicStringArray;
+  end;
+
   { List of strings. This is a slightly extended version of standard TStringList.
     The default CaseSensitive value is @true. }
   TCastleStringList = class(TStringList)
@@ -75,8 +80,6 @@ type
       TStringList.Strings property, and is useful only for implementing macros
       to work for both TGenericStructList and for TCastleStringList. }
     property L[Index: Integer]: string read GetL write SetL;
-
-    function ToArray: TDynamicStringArray;
   end;
 
   { String-to-string map. Note that in simple cases you can also
@@ -292,14 +295,14 @@ procedure DeletePos(var S: string; StartPosition, EndPosition: Integer);
 
   Typical use scenario (iterate over all tokens in the string) :
 
-@longCode(#
-  SeekPos := 1;
-  repeat
-    Token := NextToken(S, SeekPos);
-    if Token = '' then break;
-    { ... process_next_token (Token) ... }
-  until false;
-#)
+  @longCode(#
+    SeekPos := 1;
+    repeat
+      Token := NextToken(S, SeekPos);
+      if Token = '' then break;
+      { ... process_next_token (Token) ... }
+    until false;
+  #)
 
   The above example will split the string into parts separated by whitespace.
 
@@ -325,8 +328,62 @@ function NextTokenOnce(const s: string; SeekPos: integer = 1;
 function CreateTokens(const s: string;
   const TokenDelims: TSetOfChars = WhiteSpaces): TCastleStringList;
 
+{ Split a string by a character delimiter.
+  For example, @code(SplitString('foo|bar', '|')) returns a list with 2 parts:
+  @code('foo') and @code('bar').
+
+  The splitting is done "strictly", which means that we always return exactly
+  one more part than the occurences of delimiter in the source string.
+
+  In particular, this means that:
+  @unorderedList(
+    @item(If the Delimiter does not occur in the source string,
+      then the result is a list with a single part. This applies
+      even if the source string is empty.
+
+      @unorderedList(
+        @itemSpacing Compact
+        @item @code(SplitString('foo', '|') = ['foo'])
+        @item @code(SplitString('', '|') = [''])
+      )
+    )
+
+    @item(If the Delimiter occurs two or more times in a row within the source string,
+      then the we will have one or more empty parts in the resulting list.
+
+      @unorderedList(
+        @itemSpacing Compact
+        @item @code(SplitString('foo||bar', '|') = ['foo', '', 'bar])
+        @item @code(SplitString('foo|||bar', '|') = ['foo', '', '', 'bar])
+      )
+    )
+
+    @item(f the Delimiter occurs at the very end of the source string,
+      then the very last part of the resulting list will be an empty string.
+
+      @unorderedList(
+        @itemSpacing Compact
+        @item @code(SplitString('foo||bar|', '|') = ['foo', '', 'bar, ''])
+      )
+    )
+  )
+
+  The reverse of this operation is GlueStrings.
+
+  See also CreateTokens, for a different way to split, that treats any sequence
+  of delimiters like a single delimiter, and is more suitable e.g. to extract
+  words separated by whitespace.
+  See also standard TStringList.Delimiter feature. }
+function SplitString(const S: string; const Delimiter: char): TCastleStringList;
+
+{ Concatenate the string list with a given Delimiter.
+  This is the reverse of SplitString.
+  @groupBegin }
 function GlueStrings(const Strings: array of string; const Delimiter: char): string;
+function GlueStrings(const Strings: array of string; const Delimiter: string): string;
 function GlueStrings(const Strings: TStrings; const Delimiter: char): string;
+function GlueStrings(const Strings: TStrings; const Delimiter: string): string;
+{ @groupEnd }
 
 { Find substring SubText within Text. Returns 0 if not found.
   Similar to a standard Pos function, with some improvements.
@@ -360,7 +417,8 @@ function GlueStrings(const Strings: TStrings; const Delimiter: char): string;
   ) }
 function FindPos(const SubText, Text: string; StartPosition, Count: integer;
   const Options: TSearchOptions;
-  const WordBorders: TSetOfChars = DefaultWordBorders): integer; overload;
+  const WordBorders: TSetOfChars = DefaultWordBorders): integer;
+  deprecated 'use various StrUtils routines to search in string instead of this (slow, not much useful) routine';
 
 { Return rightmost RPart characters from S.
   If RPart > Length(S) then returns S. }
@@ -508,7 +566,7 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
 
 { Replace all strings in Patterns with corresponding strings in Values.
   This is similar to standard StringReplace, but this does many
-  replaces at once.
+  replacements at once. This is just like StrUtils.StringsReplace nowadays.
 
   Patterns and Values arrays must have equal length.
   Patterns[0] will be replaced with Values[0], Patterns[1] with Values[0] etc.
@@ -521,12 +579,12 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
   A naive implementation of doing many search-replace over the same string
   is like
 
-@longCode(#
-  Result := S;
-  Result := StringReplace(Result, Patterns[0], Values[0], [rfReplaceAll]);
-  Result := StringReplace(Result, Patterns[1], Values[1], [rfReplaceAll]);
-  etc.
-#)
+  @longCode(#
+    Result := S;
+    Result := StringReplace(Result, Patterns[0], Values[0], [rfReplaceAll]);
+    Result := StringReplace(Result, Patterns[1], Values[1], [rfReplaceAll]);
+    // etc.
+  #)
 
   But the above fails badly when inserting some Values[] creates
   an occurrence of Pattern checked later. For example, when Values[0]
@@ -535,12 +593,10 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
   a pattern detected later. This means that you could replace the same
   content many times, which is usually not what you want.
 
-  That's why you should instead use this function for such situations.
-
-  Options cannot contain soBackwards flag. }
-function SReplacePatterns(const s: string; const patterns, values: array of string; const Options: TSearchOptions): string;
-function SReplacePatterns(const s: string; const patterns, values: TStrings; const Options: TSearchOptions): string;
-function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const Options: TSearchOptions): string;
+  That's why you should instead use this function for such situations. }
+function SReplacePatterns(const s: string; const patterns, values: array of string; const IgnoreCase: boolean): string;
+function SReplacePatterns(const s: string; const patterns, values: TStrings; const IgnoreCase: boolean): string;
+function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const IgnoreCase: boolean): string;
 
 function SCharsCount(const s: string; c: char): Cardinal; overload;
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal; overload;
@@ -694,34 +750,6 @@ function FormatNameCounter(const NamePattern: string;
 
 { conversions ------------------------------------------------------------ }
 
-const
-  { I should restrain from adding more similiar BoolToStrXxx constants
-    below, since there are *so* many possibilities here (on/off, ON/OFF,
-    On/Off, yes/no, YES/NO etc.) that it's quite useless trying to
-    gather them all here. }
-
-  { Convert boolean to string, using a simple table lookup.
-
-    I don't use BoolToStr function from SysUtils unit,
-    since there are differences in FPC implementations:
-    @unorderedList(
-      @item(In FPC <= 2.0.4, BoolToStr takes one param
-        and returns 'FALSE' or 'TRUE' string.)
-      @item(In FPC > 2.0.4 (trunk (2.3.1 currently), and fixes_2_2 (2,1.3)),
-        BoolToStr was changed for Delphi compat. Now when passed only 1 param
-        it returns 0 or -1 (who the hell needs such BoolToStr interpretation ?).
-
-        You have to pass 2nd param to BoolToStr as @true
-        to get strings 'False' and 'True'. But this makes it non-compileable
-        in FPC <= 2.0.4. So to call BoolToStr like I want to, I would have
-        to use ugly $ifdefs...))
-
-    So I decided to use my BoolToStr table throughout my units.
-    When I'll switch fully to FPC > 2.0.4, I'll drop this and use
-    BoolToStr function from SysUtils unit. }
-  BoolToStr: array[boolean] of string=('FALSE','TRUE');
-  BoolToStrYesNo: array[boolean]of string = ('No','Yes');
-
 { Convert digit (like number 0) to character (like '0').
   Use only for arguments within 0..9 range. }
 function DigitAsChar(b: byte): char;
@@ -828,6 +856,19 @@ function PCharOrNil(const s: string): PChar;
   "sanitizes" whitespace inside such string. }
 function SCompressWhiteSpace(const S: string): string;
 
+type
+  EInvalidChar = class(Exception);
+
+{ Check that all characters are within a given set.
+  Raise exception otherwise (if RaiseExceptionOnError, default)
+  or make a warning.
+  @raises(EInvalidChar If string contains an invalid character
+    and RaiseExceptionOnError = @true.
+    The exception string is informative, containing the string value,
+    character, character position.) }
+procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;
+  const RaiseExceptionOnError: boolean = true);
+
 const
   { }
   CtrlA = Chr(Ord('a') - Ord('a') + 1); { = #1 } { }
@@ -865,7 +906,19 @@ const
 
 implementation
 
-uses CastleFilesUtils, CastleClassUtils, CastleDownload, Regexpr;
+uses Regexpr, StrUtils,
+  CastleFilesUtils, CastleClassUtils, CastleDownload, CastleLog;
+
+{ TStringsHelper ------------------------------------------------------------- }
+
+function TStringsHelper.ToArray: TDynamicStringArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, Count);
+  for I := 0 to Count - 1 do
+    Result[I] := Strings[I];
+end;
 
 { TCastleStringList ------------------------------------------------------------- }
 
@@ -951,15 +1004,6 @@ end;
 procedure TCastleStringList.SetL(const Index: Integer; const S: string);
 begin
   Strings[Index] := S;
-end;
-
-function TCastleStringList.ToArray: TDynamicStringArray;
-var
-  I: Integer;
-begin
-  SetLength(Result, Count);
-  for I := 0 to Count - 1 do
-    Result[I] := Strings[I];
 end;
 
 { TStringStringMap ----------------------------------------------------------- }
@@ -1071,7 +1115,7 @@ begin
             Result := Result + CopyPos(s, Done+1, Brk-1) + BreakingStr;
             Done := brk; { we left the rest : s[brk+1..i] to be done }
             Break;
-            BrokenSuccess := true;;
+            BrokenSuccess := true;
           end;
         if not BrokenSuccess then
         begin
@@ -1280,12 +1324,12 @@ end;
 
 function CopyPos(const s: string; StartPosition, EndPosition: integer): string;
 begin
- result := Copy(s, StartPosition, EndPosition - StartPosition + 1);
+  result := Copy(s, StartPosition, EndPosition - StartPosition + 1);
 end;
 
 procedure DeletePos(var S: string; StartPosition, EndPosition: Integer);
 begin
- Delete(S, StartPosition, EndPosition - StartPosition + 1);
+  Delete(S, StartPosition, EndPosition - StartPosition + 1);
 end;
 
 function NextToken(const S: string; var SeekPos: Integer;
@@ -1312,23 +1356,62 @@ end;
 function NextTokenOnce(const s: string; SeekPos: integer;
   const TokenDelims: TSetOfChars): string;
 begin
- result := Nexttoken(S, SeekPos, TokenDelims);
+  result := Nexttoken(S, SeekPos, TokenDelims);
 end;
 
 function CreateTokens(const s: string;
   const TokenDelims: TSetOfChars): TCastleStringList;
-var SeekPos: Integer;
-    Token: string;
+var
+  SeekPos: Integer;
+  Token: string;
 begin
- Result := TCastleStringList.Create;
- try
-  SeekPos := 1;
-  repeat
-   Token := NextToken(s, SeekPos, TokenDelims);
-   if Token = '' then break;
-   Result.Add(Token);
-  until false;
- except Result.Free; raise end;
+  Result := TCastleStringList.Create;
+  try
+    SeekPos := 1;
+    repeat
+      Token := NextToken(s, SeekPos, TokenDelims);
+      if Token = '' then break;
+      Result.Add(Token);
+    until false;
+  except Result.Free; raise end;
+end;
+
+function SplitString(const S: string; const Delimiter: char): TCastleStringList;
+{ Note that implementation doesn't use TStringList.Delimiter.
+
+  Besides guaranteeing the "strictness", it's also faster than
+  TStringList.Delimiter and DelimitedText, since it's always case-sensitive,
+  and doesn't deal with any TStringList.QuoteChar and TStringList.StrictDelimiter
+  special cases. }
+var
+  NextChar, NextDelimiter: Integer;
+begin
+  Result := TCastleStringList.Create;
+  try
+    NextChar := 1;
+    while NextChar <= Length(S) + 1 do
+    begin
+      if NextChar = Length(S) + 1 then
+      begin
+        { this handles the situation when the delimiter is at the end of S,
+          or when S is empty }
+        Result.Add('');
+        Break;
+      end else
+      begin
+        NextDelimiter := PosEx(Delimiter, S, NextChar);
+        if NextDelimiter = 0 then
+        begin
+          Result.Add(SEnding(S, NextChar));
+          Break;
+        end else
+        begin
+          Result.Add(CopyPos(S, NextChar, NextDelimiter - 1));
+          NextChar := NextDelimiter + 1;
+        end;
+      end;
+    end;
+  except Result.Free; raise end;
 end;
 
 function GlueStrings(const Strings: array of string; const Delimiter: char): string;
@@ -1342,7 +1425,29 @@ begin
     Result += Delimiter + Strings[I];
 end;
 
+function GlueStrings(const Strings: array of string; const Delimiter: string): string;
+var
+  I: Integer;
+begin
+  if High(Strings) = -1 then
+    Exit('');
+  Result := Strings[0];
+  for I := 1 to High(Strings) do
+    Result += Delimiter + Strings[I];
+end;
+
 function GlueStrings(const Strings: TStrings; const Delimiter: char): string;
+var
+  I: Integer;
+begin
+  if Strings.Count = 0 then
+    Exit('');
+  Result := Strings[0];
+  for I := 1 to Strings.Count - 1 do
+    Result += Delimiter + Strings[I];
+end;
+
+function GlueStrings(const Strings: TStrings; const Delimiter: string): string;
 var
   I: Integer;
 begin
@@ -1646,205 +1751,166 @@ begin
 end;
 
 procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
-var p, SeekPos: integer;
-    ExtsStr, filemask: string;
+var
+  p, SeekPos: integer;
+  ExtsStr, filemask: string;
 begin
- Extensions.Clear;
- ExtsStr := GetFileFilterExtsStr(FileFilter);
- SeekPos := 1;
- repeat
-  filemask := NextToken(ExtsStr, SeekPos,[';']);
-  if filemask = '' then break;
-  p := CharPos('.', filemask);
-  if p > 0 then
-   Delete(filemask, 1, p-1) else { delete name from filemask }
-   filemask := '.'+filemask; { it means there was no name and dot in filemask. So prepend dot. }
-  Extensions.Add(filemask);
- until false;
+  Extensions.Clear;
+  ExtsStr := GetFileFilterExtsStr(FileFilter);
+  SeekPos := 1;
+  repeat
+    filemask := NextToken(ExtsStr, SeekPos,[';']);
+    if filemask = '' then break;
+    p := CharPos('.', filemask);
+    if p > 0 then
+      Delete(filemask, 1, p-1) else { delete name from filemask }
+      filemask := '.'+filemask; { it means there was no name and dot in filemask. So prepend dot. }
+    Extensions.Add(filemask);
+  until false;
 end;
 
 function GetFileFilterName(const FileFilter: string): string;
-var ffLeft, ffRight: string;
-    p, len: integer;
+var
+  Left, Right: string;
+  LeftUpperCase, RightUpperCase: string;
+  p, len: integer;
 begin
- p := CharPos('|', FileFilter);
- if p = 0 then result := Trim(FileFilter) else
- begin
-  ffLeft := Trim(Copy(FileFilter, 1, p-1));
-  ffRight := Trim(SEnding(FileFilter, p+1));
-  if ffRight = '' then
+  p := CharPos('|', FileFilter);
+  if p = 0 then result := Trim(FileFilter) else
   begin
-   result := ffLeft;
-   { if FileFilter = 'xxx()|' then it matches to pattern 'xxx(exts)|exts'
-     so we should return 'xxx', not 'xxx()'.
-     This is often really useful when FileFilter was constructed in an
-     automatic way (e.g. as in mine edytorek). }
-   if IsSuffix('()', Result) then
-   begin
-    SetLength(Result, Length(Result)-2);
-    { trim once again to delete rightmost whitespace (as in 'xxx ()|') }
-    Result := TrimRight(Result);
-   end;
-  end else
-  begin
-   p := FindPos(ffRight, ffLeft, 1, Length(ffLeft), [soBackwards]);
-   if p = 0 then
-    p := FindPos(SReplaceChars(ffRight, ';', ','), ffLeft, 1, Length(ffLeft), [soBackwards]);
-   if p = 0 then result := ffLeft else
-   begin
-    len := Length(ffRight);
-    {zwieksz len tak zeby objelo biale znaki az do ')'}
-    while p+len <= Length(ffLeft) do
+    Left := Trim(Copy(FileFilter, 1, p-1));
+    Right := Trim(SEnding(FileFilter, p+1));
+    if Right = '' then
     begin
-     if ffLeft[p+len] = ')' then
-      begin Inc(len); break end else
-     if ffLeft[p+len] in WhiteSpaces then
-      Inc(len) else
-      break;
-    end;
-    {zmniejsz p tak zeby objelo biale znaki az do '('}
-    while p-1 >= 1 do
+      result := Left;
+      { if FileFilter = 'xxx()|' then it matches to pattern 'xxx(exts)|exts'
+        so we should return 'xxx', not 'xxx()'.
+        This is often really useful when FileFilter was constructed in an
+        automatic way (e.g. as in mine edytorek). }
+      if IsSuffix('()', Result) then
+      begin
+        SetLength(Result, Length(Result)-2);
+        { trim once again to delete rightmost whitespace (as in 'xxx ()|') }
+        Result := TrimRight(Result);
+      end;
+    end else
     begin
-     if ffLeft[p-1] = '(' then
-      begin Dec(p); Inc(len); break end else
-     if ffLeft[p-1] in WhiteSpaces then
-      begin Dec(p); Inc(len) end else
-      break;
+      // convert to uppercase to search ignoring case with RPos below
+      LeftUpperCase := AnsiUpperCase(Left);
+      RightUpperCase := AnsiUpperCase(Right);
+      p := RPos(RightUpperCase, LeftUpperCase);
+      if p = 0 then
+        p := RPos(SReplaceChars(RightUpperCase, ';', ','), LeftUpperCase);
+      if p = 0 then result := Left else
+      begin
+        len := Length(Right);
+        {zwieksz len tak zeby objelo biale znaki az do ')'}
+        while p+len <= Length(Left) do
+        begin
+          if Left[p+len] = ')' then
+            begin Inc(len); break end else
+          if Left[p+len] in WhiteSpaces then
+            Inc(len) else
+            break;
+        end;
+        {zmniejsz p tak zeby objelo biale znaki az do '('}
+        while p-1 >= 1 do
+        begin
+          if Left[p-1] = '(' then
+            begin Dec(p); Inc(len); break end else
+          if Left[p-1] in WhiteSpaces then
+            begin Dec(p); Inc(len) end else
+            break;
+        end;
+        {koniec; wypieprz p, len}
+        Delete(Left, p, len);
+        result := Trim(Left);
+      end;
     end;
-    {koniec; wypieprz p, len}
-    Delete(ffLeft, p, len);
-    result := Trim(ffLeft);
-   end;
   end;
- end;
 end;
 
 function GetFileFilterExtsStr(const FileFilter: string): string;
-var p: integer;
+var
+  p: integer;
 begin
- p := CharPos('|', FileFilter);
- if p > 0 then
-  result := SEnding(FileFilter, p+1) else
-  result := '';
+  p := CharPos('|', FileFilter);
+  if p > 0 then
+    result := SEnding(FileFilter, p+1) else
+    result := '';
 end;
 
 function SReplacePatterns(const S: string;
-  const Patterns, Values: array of string; const Options: TSearchOptions): string;
-var
-  PatternsList, ValuesList: TCastleStringList;
+  const Patterns, Values: array of string; const IgnoreCase: boolean): string;
 begin
-  PatternsList := nil;
-  ValuesList := nil;
-  try
-    PatternsList := TCastleStringList.Create;
-    PatternsList.AssignArray(Patterns);
-    ValuesList := TCastleStringList.Create;
-    ValuesList.AssignArray(Values);
-    Result := SReplacePatterns(S, PatternsList, ValuesList, Options);
-  finally
-    FreeAndNil(PatternsList);
-    FreeAndNil(ValuesList);
-  end;
+  if IgnoreCase then
+    Result := StringsReplace(S, Patterns, Values, [rfReplaceAll, rfIgnoreCase]) else
+    Result := StringsReplace(S, Patterns, Values, [rfReplaceAll]);
 end;
 
 function SReplacePatterns(const s: string; const Parameters: TStringStringMap;
-  const Options: TSearchOptions): string;
+  const IgnoreCase: boolean): string;
 var
-  PatternsList, ValuesList: TCastleStringList;
+  PatternsArray, ValuesArray: TDynamicStringArray;
   I: Integer;
 begin
-  PatternsList := nil;
-  ValuesList := nil;
-  try
-    PatternsList := TCastleStringList.Create;
-    ValuesList := TCastleStringList.Create;
-    for I := 0 to Parameters.Count - 1 do
-    begin
-      PatternsList.Add(Parameters.Keys[I]);
-      ValuesList.Add(Parameters.Data[I]);
-    end;
-    Result := SReplacePatterns(S, PatternsList, ValuesList, Options);
-  finally
-    FreeAndNil(PatternsList);
-    FreeAndNil(ValuesList);
+  { calculate PatternsArray and ValuesArray from Parameters }
+  SetLength(PatternsArray, Parameters.Count);
+  SetLength(ValuesArray, Parameters.Count);
+  for I := 0 to Parameters.Count - 1 do
+  begin
+    PatternsArray[I] := Parameters.Keys[I];
+    ValuesArray[I] := Parameters.Data[I];
   end;
+  Result := SReplacePatterns(S, PatternsArray, ValuesArray, IgnoreCase);
 end;
 
 function SReplacePatterns(const S: string;
-  const Patterns, Values: TStrings; const Options: TSearchOptions): string;
-var
-  i, poz, minpoz, minind, Processed: integer;
+  const Patterns, Values: TStrings; const IgnoreCase: boolean): string;
 begin
-  Result := '';
-
-  Assert(Patterns.Count = Values.Count);
-  Assert(not (soBackwards in Options));
-  Processed := 0; { how many characters from S was already processed, and are in
-    Result? }
-
-  repeat
-    { calculate earliest occurence of some pattern within the remaining of S }
-    minind := -1;
-    minpoz := 0;
-    for i := 0 to Patterns.Count - 1 do
-    begin
-      poz := FindPos(patterns[i], s, Processed+1, Length(s), Options);
-      if (poz > 0) and ((minind = -1) or (poz < minpoz)) then
-      begin
-        minind := i;
-        minpoz := poz;
-      end;
-    end;
-    if minind = -1 then break; { all poz = 0, so everything is already done }
-
-    { copy to Result everything from S before a pattern occurence }
-    result := result + CopyPos(s, Processed+1, minpoz-1);
-    Processed := minpoz-1;
-    { omit pattern[] in S, append corresponding value[] to Result }
-    Processed := Processed + Length(patterns[minind]);
-    result := result + values[minind];
-  until false;
-
-  result := result + SEnding(s, Processed+1);
+  Result := SReplacePatterns(S, Patterns.ToArray, Values.ToArray, IgnoreCase);
 end;
 
 function SCharsCount(const S: string; C: char): Cardinal;
-var i: Integer;
+var
+  i: Integer;
 begin
- Result := 0;
- for I := 1 to Length(s) do if S[I] = C then Inc(Result);
+  Result := 0;
+  for I := 1 to Length(s) do if S[I] = C then Inc(Result);
 end;
 
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal;
-var i: Integer;
+var
+  i: Integer;
 begin
- Result := 0;
- for I := 1 to Length(s) do if S[I] in Chars then Inc(Result);
+  Result := 0;
+  for I := 1 to Length(s) do if S[I] in Chars then Inc(Result);
 end;
 
 function STruncateHash(const s: string): string;
-var p: integer;
+var
+  p: integer;
 begin
- p := CharPos('#', s);
- result := s;
- if p > 0 then SetLength(result, p-1);
+  p := CharPos('#', s);
+  result := s;
+  if p > 0 then SetLength(result, p-1);
 end;
 
 function SUnformattable(const s: string): string;
 begin
- result := StringReplace(s, '%', '%%', [rfReplaceAll]);
+  result := StringReplace(s, '%', '%%', [rfReplaceAll]);
 end;
 
 function SAnsiCompare(const s1, s2: string; IgnoreCase: boolean): Integer;
 begin
- if IgnoreCase then
-  result := AnsiCompareText(s1, s2) else
-  result := AnsiCompareStr(s1, s2);
+  if IgnoreCase then
+    result := AnsiCompareText(s1, s2) else
+    result := AnsiCompareStr(s1, s2);
 end;
 
 function SAnsiSame(const s1, s2: string; IgnoreCase: boolean): boolean;
 begin
- result := SAnsiCompare(s1, s2, IgnoreCase) = 0;
+  result := SAnsiCompare(s1, s2, IgnoreCase) = 0;
 end;
 
 function SPercentReplace(const InitialFormat: string;
@@ -2321,6 +2387,31 @@ begin
   Assert(ResultPos - 1 <= Length(Result));
 
   SetLength(Result, ResultPos - 1);
+end;
+
+procedure SCheckChars(const S: string; const ValidChars: TSetOfChars;
+  const RaiseExceptionOnError: boolean);
+var
+  I: Integer;
+  C: char;
+
+  procedure ReportInvalid;
+  var
+    SError: string;
+  begin
+    SError := Format('Invalid charater "%s" at position %d in string "%s"', [C, I, S]);
+    if RaiseExceptionOnError then
+      raise EInvalidChar.Create(SError) else
+      WritelnWarning('SCheckChars', SError);
+  end;
+
+begin
+  for I := 1 to Length(S) do
+  begin
+    C := S[I];
+    if not (C in ValidChars) then
+      ReportInvalid;
+  end;
 end;
 
 end.

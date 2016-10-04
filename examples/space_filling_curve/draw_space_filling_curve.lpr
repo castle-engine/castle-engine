@@ -55,7 +55,7 @@ var
 begin
   { If DoubleBuffer available, then use it.
     This program should work perfectly with and without DoubleBuffer. }
-  if Window.DoubleBuffer then GLClear([cbColor], Gray);
+  if Window.DoubleBuffer then RenderContext.Clear([cbColor], Gray);
 
   GLImage := TGLImage.Create(CurveImage, false);
   try

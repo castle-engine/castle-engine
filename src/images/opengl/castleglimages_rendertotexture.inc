@@ -600,7 +600,7 @@ begin
       end;
       case Status of
         GL_FRAMEBUFFER_COMPLETE: Success := true;
-        GL_FRAMEBUFFER_UNSUPPORTED: OnWarning(wtMinor, 'FBO', 'Unsupported framebuffer configuration, will fallback to glCopyTexSubImage2D approach. If your window is invisible (like for "view3dscene --screenshot"), you may get only a black screen.');
+        GL_FRAMEBUFFER_UNSUPPORTED: WritelnWarning('FBO', 'Unsupported framebuffer configuration, will fallback to glCopyTexSubImage2D approach. If your window is invisible (like for "view3dscene --screenshot"), you may get only a black screen.');
         else raise EFramebufferInvalid.CreateFmt('Framebuffer check failed: %s (FBO error number %d)',
           [ FramebufferStatusToString(Status), Status]);
       end;
@@ -697,16 +697,15 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_COLOR}
   procedure SaveColor(const URL: string);
   var
-    PackData: TPackNotAlignedData;
     Image: TCastleImage;
   begin
     Image := TRGBImage.Create(Width, Height);
     try
-      BeforePackImage(PackData, Image);
+      BeforePackImage(Image);
       try
         glReadPixels(0, 0, Width, Height, ImageGLFormat(Image),
           ImageGLType(Image), Image.RawPixels);
-      finally AfterPackImage(PackData, Image) end;
+      finally AfterPackImage(Image) end;
 
       SaveImage(Image, URL);
     finally FreeAndNil(Image) end;
@@ -716,16 +715,15 @@ procedure TGLRenderToTexture.RenderEnd(const RenderBeginFollows: boolean);
 {$ifdef DEBUG_SAVE_FRAMEBUFFER_DEPTH}
   procedure SaveDepth(const URL: string);
   var
-    PackData: TPackNotAlignedData;
     Image: TGrayscaleImage;
   begin
     Image := TGrayscaleImage.Create(Width, Height);
     try
-      BeforePackImage(PackData, Image);
+      BeforePackImage(Image);
       try
         glReadPixels(0, 0, Width, Height, GL_DEPTH_COMPONENT,
           ImageGLType(Image), Image.RawPixels);
-      finally AfterPackImage(PackData, Image) end;
+      finally AfterPackImage(Image) end;
 
       SaveImage(Image, URL);
     finally FreeAndNil(Image) end;

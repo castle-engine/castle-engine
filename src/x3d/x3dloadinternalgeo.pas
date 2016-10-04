@@ -28,7 +28,7 @@ function LoadGEO(const URL: string): TX3DRootNode;
 
 implementation
 
-uses CastleVectors, CastleUtils, Classes, SysUtils, CastleWarnings,
+uses CastleVectors, CastleUtils, Classes, SysUtils, CastleLog,
   CastleClassUtils, CastleDownload, CastleURIUtils,
   CastleFilesUtils, CastleStringUtils, X3DLoadInternalUtils;
 
@@ -71,20 +71,20 @@ var
     try
       if LineTokens.Count = 0 then
       begin
-        OnWarning(wtMajor, 'GEO', 'Empty line');
+        WritelnWarning('GEO', 'Empty line');
         Exit;
       end;
 
       ThisPolyCount := StrToInt(LineTokens[0]);
       if ThisPolyCount < 3 then
       begin
-        OnWarning(wtMajor, 'GEO', 'Polygon with less than 3 vertexes');
+        WritelnWarning('GEO', 'Polygon with less than 3 vertexes');
         Exit;
       end;
 
       if LineTokens.Count < ThisPolyCount + 1 then
       begin
-        OnWarning(wtMajor, 'GEO', 'Not enough vertex indexes on line');
+        WritelnWarning('GEO', 'Not enough vertex indexes on line');
         Exit;
       end;
 

@@ -48,10 +48,10 @@ function TextureFilter(const Minification: TMinificationFilter;
 { Set current texture minification and magnification filter.
 
   This is just a thin wrapper for calling
-@longCode(#
-  glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, ...);
-  glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, ...);
-#) }
+  @longCode(#
+    glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, ...);
+    glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, ...);
+  #) }
 procedure SetTextureFilter(const Target: TGLenum; const Filter: TTextureFilter);
 
 {$endif read_interface}

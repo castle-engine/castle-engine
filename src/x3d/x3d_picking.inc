@@ -110,11 +110,11 @@ begin
   inherited;
 
   FFdObjectType := TMFString.Create(Self, 'objectType', ['ALL']);
-  Fields.Add(FFdObjectType);
+  AddField(FFdObjectType);
   { X3D specification comment: ["ALL","NONE","TERRAIN",...] }
 
   FFdPickingGeometry := TSFNode.Create(Self, 'pickingGeometry', [TAbstractX3DGeometryNode]);
-  Fields.Add(FFdPickingGeometry);
+  AddField(FFdPickingGeometry);
 
   { X3D specification (edition 2) specifies X3DInlineNode as 3rd value on
     the list of allowed classes for "pickTarget". But there is no X3DInlineNode
@@ -122,19 +122,19 @@ begin
     Inline node for X3D anyway. }
 
   FFdPickTarget := TMFNode.Create(Self, 'pickTarget', [TAbstractX3DGroupingNode, TAbstractShapeNode, TInlineNode]);
-  Fields.Add(FFdPickTarget);
+  AddField(FFdPickTarget);
 
   FEventPickedGeometry := TMFNodeEvent.Create(Self, 'pickedGeometry', false);
-  Events.Add(FEventPickedGeometry);
+  AddEvent(FEventPickedGeometry);
 
   FFdIntersectionType := TSFString.Create(Self, 'intersectionType', 'BOUNDS');
   FFdIntersectionType.Exposed := false;
-  Fields.Add(FFdIntersectionType);
+  AddField(FFdIntersectionType);
   { X3D specification comment: ["GEOMETRY"|"BOUNDS"] }
 
   FFdSortOrder := TSFString.Create(Self, 'sortOrder', 'CLOSEST');
   FFdSortOrder.Exposed := false;
-  Fields.Add(FFdSortOrder);
+  AddField(FFdSortOrder);
   { X3D specification comment: ["ANY"|"CLOSEST"|"ALL"|"ALL_SORTED"] }
 
   DefaultContainerField := 'children';
@@ -145,13 +145,13 @@ begin
   inherited;
 
   FEventPickedNormal := TMFVec3fEvent.Create(Self, 'pickedNormal', false);
-  Events.Add(FEventPickedNormal);
+  AddEvent(FEventPickedNormal);
 
   FEventPickedPoint := TMFVec3fEvent.Create(Self, 'pickedPoint', false);
-  Events.Add(FEventPickedPoint);
+  AddEvent(FEventPickedPoint);
 
   FEventPickedTextureCoordinate := TMFVec3fEvent.Create(Self, 'pickedTextureCoordinate', false);
-  Events.Add(FEventPickedTextureCoordinate);
+  AddEvent(FEventPickedTextureCoordinate);
 
   DefaultContainerField := 'children';
 end;
@@ -172,11 +172,11 @@ begin
   inherited;
 
   FFdObjectType := TMFString.Create(Self, 'objectType', ['ALL']);
-  Fields.Add(FFdObjectType);
+  AddField(FFdObjectType);
   { X3D specification comment: ["ALL","NONE","TERRAIN",...] }
 
   FFdPickable := TSFBool.Create(Self, 'pickable', true);
-  Fields.Add(FFdPickable);
+  AddField(FFdPickable);
 
   DefaultContainerField := 'children';
 end;
@@ -197,7 +197,7 @@ begin
   inherited;
 
   FEventPickedPoint := TMFVec3fEvent.Create(Self, 'pickedPoint', false);
-  Events.Add(FEventPickedPoint);
+  AddEvent(FEventPickedPoint);
 
   DefaultContainerField := 'children';
 end;

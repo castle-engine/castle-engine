@@ -45,10 +45,11 @@ program shadow_fields;
 {$I castleconf.inc}
 
 uses SysUtils, CastleGL, CastleGLUtils, CastleVectors, CastleBoxes, CastleColors,
-  CastleWindow, CastleScene, CastleCameras, CastleWarnings, CastleParameters,
+  CastleWindow, CastleScene, CastleCameras, CastleLog, CastleParameters,
   ShadowFields, CastleUtils, CastleCubeMaps, X3DNodes, CastleSceneManager,
   CastleSphericalHarmonics, CastleGLCubeMaps, CastleMessages, CastleShapes,
-  CastleStringUtils, CastleRenderingCamera, CastleKeysMouse, CastleURIUtils;
+  CastleStringUtils, CastleRenderingCamera, CastleKeysMouse, CastleURIUtils,
+  CastleApplicationProperties;
 
 var
   Window: TCastleWindowCustom;
@@ -176,7 +177,7 @@ procedure TMySceneManager.RenderFromViewEverything;
 var
   H: TLightInstance;
 begin
-  GLClear([cbColor, cbDepth], Black);
+  RenderContext.Clear([cbColor, cbDepth], Black);
   glLoadMatrix(Camera.Matrix);
 
   if UseEnvLight and (not SceneReceiver.BoundingBox.IsEmpty) then
@@ -227,7 +228,7 @@ begin
 
   glEnable(GL_DEPTH_TEST);
     glColorv(Blue);
-    glPointSize(10); { CastleRenderer will reset point size }
+    RenderContext.PointSize := 10; { CastleRenderer will reset point size }
     glBegin(GL_POINTS);
       glVertexv(NavigatorData[ntSFExplorer].Pos);
     glEnd;
@@ -239,7 +240,7 @@ end;
 function TMySceneManager.Headlight: TAbstractLightNode;
 begin
   if DefaultHeadlightNode = nil then
-    DefaultHeadlightNode := TDirectionalLightNode.Create('', '');;
+    DefaultHeadlightNode := TDirectionalLightNode.Create;
   Result := DefaultHeadlightNode;
 end;
 
@@ -585,7 +586,7 @@ begin
     LocalLightURL := Parameters[3];
 
   try
-    OnWarning := @OnWarningWrite;
+    ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
     RenderParams := TBasicRenderParams.Create;
 

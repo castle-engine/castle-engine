@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- BEGIN_INCLUDE(manifest) -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="${QUALIFIED_NAME}"
+    android:installLocation="auto">
+
+    <!-- See http://developer.android.com/reference/android/app/NativeActivity.html
+      for example manifest using NativeActivity.
+      This project does not have any Java code.  -->
+    <application
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:hasCode="false">
+        <activity android:name="android.app.NativeActivity"
+                android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+                android:launchMode="singleTask"
+                android:configChanges="orientation|screenSize|keyboardHidden"
+                android:screenOrientation="${ANDROID_SCREEN_ORIENTATION}">
+            <!-- NativeActivity must know the name of our library with JNI callbacks. -->
+            <meta-data android:name="android.app.lib_name"
+                       android:value="${ANDROID_LIBRARY_NAME}" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+    <uses-feature android:glEsVersion="0x00020000"/>
+
+    ${ANDROID_SCREEN_ORIENTATION_FEATURE}
+</manifest>
+<!-- END_INCLUDE(manifest) -->

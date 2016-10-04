@@ -333,8 +333,8 @@
       the State reference. Simply speaking, do
 
       @longcode(#
-  State := TX3DGraphTraverseState.CreateCopy(State);)
-#)
+        State := TX3DGraphTraverseState.CreateCopy(State);)
+      #)
 
       You should @italic(not) just modify the fields
       of the provided State instance. (Reasoning: some proxy methods
@@ -912,13 +912,13 @@ begin
           as EndIndex is not taken into account by CoordRangeHandler. }
         if EndIndex > C.Count then
         begin
-          OnWarning(wtMajor, 'VRML/X3D', Format('Too much %s (not enough coordinates) in %s',
+          WritelnWarning('VRML/X3D', Format('Too much %s (not enough coordinates) in %s',
             [SRanges, NodeTypeName]));
           Break;
         end;
         if Cardinal(EndIndex - BeginIndex) >= RangeMinimumCount then
           CoordRangeHandler(RangeNumber, BeginIndex, EndIndex) else
-          OnWarning(wtMajor, 'VRML/X3D', Format('%s is less than %d in %s',
+          WritelnWarning('VRML/X3D', Format('%s is less than %d in %s',
             [SRangeName, RangeMinimumCount, NodeTypeName]));
       end;
   end;
@@ -1109,51 +1109,51 @@ begin
 
   FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
-  Fields.Add(FFdAttrib);
+  AddField(FFdAttrib);
 
   FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
-  Fields.Add(FFdColor);
+  AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdCoord);
+  AddField(FFdCoord);
 
   FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdFogCoord);
+  AddField(FFdFogCoord);
 
   FFdNormal := TSFNode.Create(Self, 'normal', [TAbstractNormalNode]);
    FdNormal.ChangesAlways := [chGeometry];
-  Fields.Add(FFdNormal);
+  AddField(FFdNormal);
 
   FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TAbstractTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdTexCoord);
+  AddField(FFdTexCoord);
 
   FFdCcw := TSFBool.Create(Self, 'ccw', true);
    FdCcw.Exposed := false;
    FdCcw.ChangesAlways := [chGeometry];
-  Fields.Add(FFdCcw);
+  AddField(FFdCcw);
 
   FFdColorPerVertex := TSFBool.Create(Self, 'colorPerVertex', true);
    FdColorPerVertex.Exposed := false;
    FdColorPerVertex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdColorPerVertex);
+  AddField(FFdColorPerVertex);
 
   FFdNormalPerVertex := TSFBool.Create(Self, 'normalPerVertex', true);
    FdNormalPerVertex.Exposed := false;
    FdNormalPerVertex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdNormalPerVertex);
+  AddField(FFdNormalPerVertex);
 
   FFdSolid := TSFBool.Create(Self, 'solid', true);
    FdSolid.Exposed := false;
    FdSolid.ChangesAlways := [chGeometry];
-  Fields.Add(FFdSolid);
+  AddField(FFdSolid);
 
   FFdRadianceTransfer := TMFVec3f.Create(Self, 'radianceTransfer', []);
    FdRadianceTransfer.ChangesAlways := [chGeometry];
-  Fields.Add(FFdRadianceTransfer);
+  AddField(FFdRadianceTransfer);
 end;
 
 function TAbstractComposedGeometryNode.Coord(State: TX3DGraphTraverseState;
@@ -1212,22 +1212,22 @@ end;
 
 function TAbstractComposedGeometryNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := Fdattrib.SearchValid(Func);
+  Result := Fdattrib.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := Fdcolor.SearchValid(Func);
+  Result := Fdcolor.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := Fdcoord.SearchValid(Func);
+  Result := Fdcoord.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdfogCoord.SearchValid(Func);
+  Result := FdfogCoord.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := Fdnormal.SearchValid(Func);
+  Result := Fdnormal.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdtexCoord.SearchValid(Func);
+  Result := FdtexCoord.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -1244,11 +1244,11 @@ begin
 
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
    FdEnabled.ChangesAlways := [chClipPlane];
-  Fields.Add(FFdEnabled);
+  AddField(FFdEnabled);
 
   FFdPlane := TSFVec4f.Create(Self, 'plane', Vector4Single(0, 1, 0, 0));
    FdPlane.ChangesAlways := [chClipPlane];
-  Fields.Add(FFdPlane);
+  AddField(FFdPlane);
   { X3D specification comment: [0,1] }
 
   { X3D specification (XML encoding, edition 2)
@@ -1274,7 +1274,7 @@ begin
 
   FFdColor := TMFColor.Create(Self, 'color', []);
    FdColor.ChangesAlways := [chColorNode];
-  Fields.Add(FFdColor);
+  AddField(FFdColor);
   { X3D specification comment: [0,1] }
 end;
 
@@ -1296,7 +1296,7 @@ begin
 
   FFdColor := TMFColorRGBA.Create(Self, 'color', []);
    FdColor.ChangesAlways := [chColorNode];
-  Fields.Add(FFdColor);
+  AddField(FFdColor);
   { X3D specification comment: [0,1] }
 end;
 
@@ -1317,7 +1317,7 @@ begin
 
   FFdPoint := TMFVec3f.Create(Self, 'point', []);
    FdPoint.ChangesAlways := [chCoordinate];
-  Fields.Add(FFdPoint);
+  AddField(FFdPoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
 
@@ -1343,46 +1343,46 @@ begin
   inherited;
 
   FEventSet_colorIndex := TMFInt32Event.Create(Self, 'set_colorIndex', true);
-  Events.Add(FEventSet_colorIndex);
+  AddEvent(FEventSet_colorIndex);
   Eventset_colorIndex.OnReceive.Add(@EventSet_ColorIndexReceive);
 
   FEventSet_coordIndex := TMFInt32Event.Create(Self, 'set_coordIndex', true);
-  Events.Add(FEventSet_coordIndex);
+  AddEvent(FEventSet_coordIndex);
   Eventset_coordIndex.OnReceive.Add(@EventSet_CoordIndexReceive);
 
   FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
-  Fields.Add(FFdAttrib);
+  AddField(FFdAttrib);
 
   FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
-  Fields.Add(FFdColor);
+  AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdCoord);
+  AddField(FFdCoord);
 
   FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdFogCoord);
+  AddField(FFdFogCoord);
 
   FFdColorIndex := TMFInt32.Create(Self, 'colorIndex', []);
    FdColorIndex.Exposed := false;
    FdColorIndex.SaveToStreamLineUptoNegative := true;
    FdColorIndex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdColorIndex);
+  AddField(FFdColorIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
   FFdColorPerVertex := TSFBool.Create(Self, 'colorPerVertex', true);
    FdColorPerVertex.Exposed := false;
    FdColorPerVertex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdColorPerVertex);
+  AddField(FFdColorPerVertex);
 
   FFdCoordIndex := TMFInt32.Create(Self, 'coordIndex', []);
    FdCoordIndex.Exposed := false;
    FdCoordIndex.SaveToStreamLineUptoNegative := true;
    FdCoordIndex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdCoordIndex);
+  AddField(FFdCoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
@@ -1461,13 +1461,13 @@ begin
   inherited;
 
   FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
-  Events.Add(FEventSet_index);
+  AddEvent(FEventSet_index);
   Eventset_index.OnReceive.Add(@EventSet_IndexReceive);
 
   FFdIndex := TMFInt32.Create(Self, 'index', []);
    FdIndex.Exposed := false;
    FdIndex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdIndex);
+  AddField(FFdIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
@@ -1499,13 +1499,13 @@ begin
   inherited;
 
   FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
-  Events.Add(FEventSet_index);
+  AddEvent(FEventSet_index);
   Eventset_index.OnReceive.Add(@EventSet_IndexReceive);
 
   FFdIndex := TMFInt32.Create(Self, 'index', []);
    FdIndex.Exposed := false;
    FdIndex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdIndex);
+  AddField(FFdIndex);
   { X3D specification comment: [0,Inf) }
 end;
 
@@ -1537,13 +1537,13 @@ begin
   inherited;
 
   FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
-  Events.Add(FEventSet_index);
+  AddEvent(FEventSet_index);
   Eventset_index.OnReceive.Add(@EventSet_IndexReceive);
 
   FFdIndex := TMFInt32.Create(Self, 'index', []);
    FdIndex.Exposed := false;
    FdIndex.ChangesAlways := [chGeometry];
-  Fields.Add(FFdIndex);
+  AddField(FFdIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
@@ -1576,23 +1576,23 @@ begin
 
   FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
-  Fields.Add(FFdAttrib);
+  AddField(FFdAttrib);
 
   FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
-  Fields.Add(FFdColor);
+  AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdCoord);
+  AddField(FFdCoord);
 
   FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdFogCoord);
+  AddField(FFdFogCoord);
 
   FFdVertexCount := TMFInt32.Create(Self, 'vertexCount', []);
    FdVertexCount.ChangesAlways := [chGeometry];
-  Fields.Add(FFdVertexCount);
+  AddField(FFdVertexCount);
   { X3D specification comment: [2,Inf) }
 end;
 
@@ -1649,16 +1649,16 @@ end;
 
 function TLineSetNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := Fdattrib.SearchValid(Func);
+  Result := Fdattrib.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := Fdcolor.SearchValid(Func);
+  Result := Fdcolor.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := Fdcoord.SearchValid(Func);
+  Result := Fdcoord.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdfogCoord.SearchValid(Func);
+  Result := FdfogCoord.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -1674,7 +1674,7 @@ begin
 
   FFdVector := TMFVec3f.Create(Self, 'vector', []);
    FdVector.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdVector);
+  AddField(FFdVector);
   { X3D specification comment: [-1,1] }
 
   DefaultContainerField := 'normal';
@@ -1698,19 +1698,19 @@ begin
 
   FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
-  Fields.Add(FFdAttrib);
+  AddField(FFdAttrib);
 
   FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
-  Fields.Add(FFdColor);
+  AddField(FFdColor);
 
   FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdCoord);
+  AddField(FFdCoord);
 
   FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
-  Fields.Add(FFdFogCoord);
+  AddField(FFdFogCoord);
 end;
 
 class function TPointSetNode.ClassNodeTypeName: string;
@@ -1760,16 +1760,16 @@ end;
 
 function TPointSetNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
 begin
-  Result := Fdattrib.SearchValid(Func);
+  Result := Fdattrib.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := Fdcolor.SearchValid(Func);
+  Result := Fdcolor.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := Fdcoord.SearchValid(Func);
+  Result := Fdcoord.Enumerate(Func);
   if Result <> nil then Exit;
 
-  Result := FdfogCoord.SearchValid(Func);
+  Result := FdfogCoord.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -1784,7 +1784,7 @@ begin
 
   FFdFanCount := TMFInt32.Create(Self, 'fanCount', []);
    FdFanCount.ChangesAlways := [chGeometry];
-  Fields.Add(FFdFanCount);
+  AddField(FFdFanCount);
   { X3D specification comment: [3,Inf) }
 end;
 
@@ -1833,7 +1833,7 @@ begin
 
   FFdStripCount := TMFInt32.Create(Self, 'stripCount', []);
    FdStripCount.ChangesAlways := [chGeometry];
-  Fields.Add(FFdStripCount);
+  AddField(FFdStripCount);
   { X3D specification comment: [3,Inf) }
 end;
 

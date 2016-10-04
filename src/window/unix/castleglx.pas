@@ -357,7 +357,7 @@ function GLX_SGIS_multisample(Display: PDisplay; Screen: Integer): boolean;
 
 implementation
 
-uses GL, dynlibs, GLExt { for glext_ExtensionSupported utility }, CastleWarnings;
+uses GL, dynlibs, GLExt { for glext_ExtensionSupported utility }, CastleLog;
 
 {$LINKLIB m}
 
@@ -584,7 +584,7 @@ function GetProc(handle: PtrInt; name: PChar): Pointer;
 begin
   Result := GetProcAddress(handle, name);
   if (Result = nil) and GLXDumpUnresolvedFunctions then
-    OnWarning(wtMajor, 'GLX', 'Unresolved: ' + name);
+    WritelnWarning('GLX', 'Unresolved: ' + name);
 end;
 
 function InitGLX: Boolean;
@@ -596,7 +596,12 @@ begin
 {$ifndef darwin}
   OurLibGL := libGl;
 {$else darwin}
+  // Do not load glX stuff from GL library on Mac OS X, it is not there.
+  // Try standard Apple X11:
   OurLibGL := LoadLibrary('/usr/X11R6/lib/libGL.dylib');
+  // Try X11 from MacPorts:
+  if OurLibGL = 0 then
+    OurLibGL := LoadLibrary('/opt/local/lib/libGL.dylib');
 {$endif darwin}
 
   if OurLibGL = 0 then

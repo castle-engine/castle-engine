@@ -63,7 +63,11 @@
       @link(TCastleApplication.OnUpdate Application.OnUpdate).
 
       For more advanced needs you can use something like
-        @longCode(#  while Application.ProcessMessage do <something>;#)
+
+      @longCode(#
+        while Application.ProcessMessage do <something>;
+      #)
+
       instead of Application.Run.
 
       You can also call @link(TCastleWindowCustom.OpenAndRun Window.OpenAndRun),
@@ -82,26 +86,26 @@
 
   So the simplest example of using this unit can look like this:
 
-@longcode(#
-  uses CastleWindow;
+  @longcode(#
+    uses CastleWindow;
 
-  var
-    Window: TCastleWindowCustom;
+    var
+      Window: TCastleWindowCustom;
 
-  procedure Render(Sender: TUIContainer);
-  begin  ...  end;
+    procedure Render(Sender: TUIContainer);
+    begin  ...  end;
 
-  procedure Resize(Sender: TUIContainer);
-  begin  ...  end;
+    procedure Resize(Sender: TUIContainer);
+    begin  ...  end;
 
-  begin
-    Window := TCastleWindowCustom.Create(Application);
-    Window.OnResize := @Resize;
-    Window.OnRender := @Render;
-    Window.Caption := 'Simplest CastleWindow example';
-    Window.OpenAndRun;
-  end.
-#)
+    begin
+      Window := TCastleWindowCustom.Create(Application);
+      Window.OnResize := @Resize;
+      Window.OnRender := @Render;
+      Window.Caption := 'Simplest CastleWindow example';
+      Window.OpenAndRun;
+    end.
+  #)
 
   @italic(More component-like approach):
   For larger programs, it makes more sense to divide functionality into
@@ -750,7 +754,7 @@ type
 
       No need to call OpenWindowsRemove here, it's done by universal Close already.
       It's advised (although not totally required) that all errors during
-      CloseBackend should be caught and cause only OnWarning.
+      CloseBackend should be caught and cause only WritelnWarning.
       Reasoning: Close should, regardless of trouble, try to finalize as much
       as possible. }
     procedure CloseBackend;
@@ -1033,12 +1037,13 @@ type
     { Check do given OpenGL buffers configuration satisfies the
       requested configuration.
 
-      So it checks do
+      So it checks does
 
-@preformatted(
-  ProvidedStencilBits >= StencilBits and
-  ProvidedDepthBits >= DepthBits ...
-)
+      @preformatted(
+        ProvidedStencilBits >= StencilBits and
+        ProvidedDepthBits >= DepthBits ...
+      )
+
       and so on. If not, EGLContextNotPossible is raised with detailed
       description (which buffer constraint is not satisfied -- e.g. maybe
       the stencil buffer is not available).
@@ -1329,10 +1334,10 @@ type
 
     { Minimum and maximum window sizes. Always
 
-@preformatted(
-  0 < MinWidth <= MaxWidth and
-  0 < MinHeight <= MaxHeight
-)
+      @preformatted(
+        0 < MinWidth <= MaxWidth and
+        0 < MinHeight <= MaxHeight
+      )
 
       We do not allow user to resize the window outside of these constraints.
 
@@ -1424,10 +1429,12 @@ type
       try typical values 2 or 4.
 
       You can enable/disable anti-aliasing in your program by code like
+
       @longCode(#
         if GLFeatures.Multisample then glEnable(GL_MULTISAMPLE_ARB);
         if GLFeatures.Multisample then glDisable(GL_MULTISAMPLE_ARB);
       #)
+
       But usually that's not needed, as it is "on" by default
       (GL_ARB_multisample spec says so) if you requested multi-sampling context
       (that is, if this property is > 1). See GL_ARB_multisample spec for details:
@@ -1524,32 +1531,32 @@ type
       on OS and GPU). However, you can create Framebuffer Object
       on modern GPUs, and capture it's contents. An example code snippet:
 
-@longCode(#
-{ add CastleGLImages, CastleImages to your uses clause }
+      @longCode(#
+        { add CastleGLImages, CastleImages to your uses clause }
 
-var
-  ScreenshotRender: TGLRenderToTexture;
-  Image: TRGBImage;
-begin
-  ScreenshotRender := TGLRenderToTexture.Create(Width, Height);
-  try
-    ScreenshotRender.Buffer := tbNone;
-    ScreenshotRender.GLContextOpen;
-    ScreenshotRender.RenderBegin;
+        var
+          ScreenshotRender: TGLRenderToTexture;
+          Image: TRGBImage;
+        begin
+          ScreenshotRender := TGLRenderToTexture.Create(Width, Height);
+          try
+            ScreenshotRender.Buffer := tbNone;
+            ScreenshotRender.GLContextOpen;
+            ScreenshotRender.RenderBegin;
 
-    { render your stuff here }
+            { render your stuff here }
 
-    { capture the screen }
-    Image := SaveScreen_NoFlush(Rectangle(0, 0, Width, Height),
-      ScreenshotRender.ColorBuffer);
-    try
-      SaveImage(Image, 'aaa.png');
-    finally FreeAndNil(Image) end;
+            { capture the screen }
+            Image := SaveScreen_NoFlush(Rectangle(0, 0, Width, Height),
+              ScreenshotRender.ColorBuffer);
+            try
+              SaveImage(Image, 'aaa.png');
+            finally FreeAndNil(Image) end;
 
-    ScreenshotRender.RenderEnd;
-  finally FreeAndNil(ScreenshotRender) end;
-end;
-#)
+            ScreenshotRender.RenderEnd;
+          finally FreeAndNil(ScreenshotRender) end;
+        end;
+      #)
     *)
     property Visible: boolean read FVisible write FVisible default true;
 
@@ -1965,8 +1972,10 @@ end;
     { See TUIContainer.Invalidate. }
     procedure Invalidate;
 
-    { Make the OpenGL context of this window "current" (following OpenGL
-      commands will apply to this). When the window is opened, and right
+    { Make the OpenGL context of this window @italic(current). Following OpenGL
+      commands will apply to this context, and the @link(CastleGLUtils.RenderContext)
+      will also refer to this.
+      When the window is opened, and right
       before calling any window callback, we always automatically call
       this, so you should not need to call this method yourself
       in normal circumstances. }
@@ -2645,10 +2654,10 @@ end;
       modal dialog boxes (generally any kind of "display something
       until something happens" behavior). Make your own event loop like this:
 
-@longCode(#
-  while not SomethingHappened do
-    Application.ProcessMessages(...);
-#)
+      @longCode(#
+        while not SomethingHappened do
+          Application.ProcessMessages(...);
+      #)
 
       Often this is used together with TGLMode, TGLModeFrozenScreen
       and similar utilities from CastleWindowModes unit.
@@ -2663,11 +2672,11 @@ end;
       allow the user at all to close the application during modal box or such)
       you can do:
 
-@longCode(#
-  while not SomethingHappened do
-    if not Application.ProcessMessage(...) then
-      Break;
-#)
+      @longCode(#
+        while not SomethingHappened do
+          if not Application.ProcessMessage(...) then
+            Break;
+      #)
 
       Do not assume too much about message processing internals.
       For example, not all ProcessMessage calls cause redraw, even if redraw
@@ -2794,10 +2803,10 @@ function Clipboard: TCastleClipboard;
   it directly from your OnResize callback.
 
   It does
-@longCode(#
-  glViewport(Window.Rect);
-  OrthoProjection(0, Window.Width, 0, Window.Height);
-#) }
+  @longCode(#
+    glViewport(Window.Rect);
+    OrthoProjection(0, Window.Width, 0, Window.Height);
+  #) }
 procedure Resize2D(Container: TUIContainer);
 
 { Describe given key. Key is given as combination of character code (may be #0)
@@ -2823,7 +2832,7 @@ function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModif
 
 implementation
 
-uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils, CastleWarnings,
+uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils,
   CastleControls, CastleApplicationProperties,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
@@ -2994,6 +3003,37 @@ begin
 end;
 
 procedure TCastleWindowCustom.OpenCore;
+
+  procedure RenderLoadingBackground;
+  var
+    WindowRect, TextRect: TRectangle;
+    UIScale: Single;
+  begin
+    WindowRect := Rect;
+
+    glViewport(WindowRect);
+    Viewport2DSize[0] := WindowRect.Width;
+    Viewport2DSize[1] := WindowRect.Height;
+    OrthoProjection(0, WindowRect.Width, 0, WindowRect.Height);
+
+    { Not only is RenderContext.Clear faster than DrawRectangle(WindowRect,...).
+      In this case, it is also more reliable: in case of Android immersive
+      mode, we may not have yet our desired size (our width or height is smaller
+      than device screen). For some reason, RenderContext.Clear manages to clear
+      the whole screen area anyway. }
+    RenderContext.Clear([cbColor], Theme.LoadingBackgroundColor);
+
+    UIScale := Container.DefaultUIScale;
+    TextRect := Theme.Images[tiLoading].Rect.
+      ScaleAroundMiddle(UIScale).
+      Align(hpMiddle, WindowRect, hpMiddle).
+      Align(vpMiddle, WindowRect, vpMiddle);
+    Theme.Draw(TextRect, tiLoading, UIScale, Theme.LoadingTextColor);
+
+    // just like TCastleWindowCustom.DoRender
+    if DoubleBuffer then SwapBuffers else glFlush;
+  end;
+
 begin
   if not FClosed then Exit;
 
@@ -3070,6 +3110,8 @@ begin
       { make ApplicationProperties.IsGLContextOpen true now, to allow creating
         TGLImageCore.Create from Application.OnInitialize work Ok. }
       ApplicationProperties._GLContextEarlyOpen;
+
+      RenderLoadingBackground;
 
       Application.CastleEngineInitialize;
       if Closed then Exit;
@@ -3181,6 +3223,7 @@ begin
   if Application.Current <> Self then
   begin
     BackendMakeCurrent;
+    RenderContext := Container.Context;
     Application.Current := Self;
   end;
 end;
@@ -3562,11 +3605,15 @@ end;
 
 function TCastleWindowCustom.SaveScreen: TRGBImage;
 begin
+  if Closed then
+    raise Exception.Create('Cannot save the screen when the TCastleWindow is closed');
   Result := Container.SaveScreen;
 end;
 
 function TCastleWindowCustom.SaveScreen(const SaveRect: TRectangle): TRGBImage;
 begin
+  if Closed then
+    raise Exception.Create('Cannot save the screen when the TCastleWindow is closed');
   Result := Container.SaveScreen(SaveRect);
 end;
 
@@ -3579,6 +3626,8 @@ function TCastleWindowCustom.SaveScreenToGL(
   const SaveRect: TRectangle;
   const SmoothScaling: boolean): TGLImageCore;
 begin
+  if Closed then
+    raise Exception.Create('Cannot save the screen when the TCastleWindow is closed');
   Container.EventBeforeRender;
   Container.EventRender;
   Result := SaveScreenToGL_NoFlush(SaveRect, SaveScreenBuffer, SmoothScaling);
@@ -4114,7 +4163,9 @@ end;
 
 function TCastleWindowCustom.Rect: TRectangle;
 begin
-  Result := Rectangle(0, 0, Width, Height);
+  if Closed then
+    Result := TRectangle.Empty else
+    Result := Rectangle(0, 0, Width, Height);
 end;
 
 function TCastleWindowCustom.GLInitialized: boolean;
@@ -4799,9 +4850,9 @@ procedure TCastleApplication.HandleException(Sender: TObject);
       except
         on E: TObject do
         begin
-          OnWarning(wtMajor, 'Exception', 'Exception ' + E.ClassName + ' occured in the error handler itself. This means we cannot report the exception by a nice dialog box. The *original* exception report follows.');
+          WritelnWarning('Exception', 'Exception ' + E.ClassName + ' occured in the error handler itself. This means we cannot report the exception by a nice dialog box. The *original* exception report follows.');
           ExceptProc(OriginalObj, OriginalAddr, OriginalFrameCount, OriginalFrame);
-          OnWarning(wtMajor, 'Exception', 'And below is a report about the exception within exception handler.');
+          WritelnWarning('Exception', 'And below is a report about the exception within exception handler.');
           ExceptProc(SysUtils.ExceptObject, SysUtils.ExceptAddr, SysUtils.ExceptFrameCount, SysUtils.ExceptFrames);
           Halt(1);
         end;

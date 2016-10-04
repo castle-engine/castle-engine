@@ -266,11 +266,11 @@ function SampleTrianglePoint(const Tri: TTriangle3Single): TVector3Single;
   The resulting Barycentric coordinates can be used for linearly
   interpolating values along the triangle, as they satisfy the equation:
 
-@preformatted(
-  Result[0] * Triangle[0] +
-  Result[1] * Triangle[1] +
-  Result[2] * Triangle[2] = Point
-)
+  @preformatted(
+    Result[0] * Triangle[0] +
+    Result[1] * Triangle[1] +
+    Result[2] * Triangle[2] = Point
+  )
 
   See also [http://en.wikipedia.org/wiki/Barycentric_coordinate_system_%28mathematics%29] }
 function Barycentric(const Triangle: TTriangle3Single;

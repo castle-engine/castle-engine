@@ -242,7 +242,7 @@ begin
   inherited;
 
   FFdMetadata := TSFNode.Create(Self, 'metadata', IAbstractMetadataObject);
-  Fields.Add(FFdMetadata);
+  AddField(FFdMetadata);
 end;
 
 procedure TAbstractChildNode.CreateNode;
@@ -261,13 +261,13 @@ begin
   inherited;
 
   FEventSet_bind := TSFBoolEvent.Create(Self, 'set_bind', true);
-  Events.Add(FEventSet_bind);
+  AddEvent(FEventSet_bind);
 
   FEventBindTime := TSFTimeEvent.Create(Self, 'bindTime', false);
-  Events.Add(FEventBindTime);
+  AddEvent(FEventBindTime);
 
   FEventIsBound := TSFBoolEvent.Create(Self, 'isBound', false);
-  Events.Add(FEventIsBound);
+  AddEvent(FEventIsBound);
 
   FTransform := IdentityMatrix4Single;
   FTransformScale := 1;
@@ -287,10 +287,10 @@ begin
   inherited;
 
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
-  Fields.Add(FFdEnabled);
+  AddField(FFdEnabled);
 
   FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
-  Events.Add(FEventIsActive);
+  AddEvent(FEventIsActive);
 end;
 
 procedure TMetadataBooleanNode.CreateNode;
@@ -298,13 +298,13 @@ begin
   inherited;
 
   FFdName := TSFString.Create(Self, 'name', '');
-  Fields.Add(FFdName);
+  AddField(FFdName);
 
   FFdReference := TSFString.Create(Self, 'reference', '');
-  Fields.Add(FFdReference);
+  AddField(FFdReference);
 
   FFdValue := TMFBool.Create(Self, 'value', []);
-  Fields.Add(FFdValue);
+  AddField(FFdValue);
 
   DefaultContainerField := 'metadata';
 end;
@@ -325,13 +325,13 @@ begin
   inherited;
 
   FFdName := TSFString.Create(Self, 'name', '');
-  Fields.Add(FFdName);
+  AddField(FFdName);
 
   FFdReference := TSFString.Create(Self, 'reference', '');
-  Fields.Add(FFdReference);
+  AddField(FFdReference);
 
   FFdValue := TMFDouble.Create(Self, 'value', []);
-  Fields.Add(FFdValue);
+  AddField(FFdValue);
 
   DefaultContainerField := 'metadata';
 end;
@@ -352,13 +352,13 @@ begin
   inherited;
 
   FFdName := TSFString.Create(Self, 'name', '');
-  Fields.Add(FFdName);
+  AddField(FFdName);
 
   FFdReference := TSFString.Create(Self, 'reference', '');
-  Fields.Add(FFdReference);
+  AddField(FFdReference);
 
   FFdValue := TMFFloat.Create(Self, 'value', []);
-  Fields.Add(FFdValue);
+  AddField(FFdValue);
 
   DefaultContainerField := 'metadata';
 end;
@@ -379,13 +379,13 @@ begin
   inherited;
 
   FFdName := TSFString.Create(Self, 'name', '');
-  Fields.Add(FFdName);
+  AddField(FFdName);
 
   FFdReference := TSFString.Create(Self, 'reference', '');
-  Fields.Add(FFdReference);
+  AddField(FFdReference);
 
   FFdValue := TMFInt32.Create(Self, 'value', []);
-  Fields.Add(FFdValue);
+  AddField(FFdValue);
 
   DefaultContainerField := 'metadata';
 end;
@@ -406,13 +406,13 @@ begin
   inherited;
 
   FFdName := TSFString.Create(Self, 'name', '');
-  Fields.Add(FFdName);
+  AddField(FFdName);
 
   FFdReference := TSFString.Create(Self, 'reference', '');
-  Fields.Add(FFdReference);
+  AddField(FFdReference);
 
   FFdValue := TMFNode.Create(Self, 'value', IAbstractMetadataObject);
-  Fields.Add(FFdValue);
+  AddField(FFdValue);
 
   DefaultContainerField := 'metadata';
 end;
@@ -433,13 +433,13 @@ begin
   inherited;
 
   FFdName := TSFString.Create(Self, 'name', '');
-  Fields.Add(FFdName);
+  AddField(FFdName);
 
   FFdReference := TSFString.Create(Self, 'reference', '');
-  Fields.Add(FFdReference);
+  AddField(FFdReference);
 
   FFdValue := TMFString.Create(Self, 'value', []);
-  Fields.Add(FFdValue);
+  AddField(FFdValue);
 
   DefaultContainerField := 'metadata';
 end;
@@ -461,11 +461,11 @@ begin
 
   FFdInfo := TMFString.Create(Self, 'info', []);
   FFdInfo.Exposed := false;
-  Fields.Add(FFdInfo);
+  AddField(FFdInfo);
 
   FFdTitle := TSFString.Create(Self, 'title', '');
   FFdTitle.Exposed := false;
-  Fields.Add(FFdTitle);
+  AddField(FFdTitle);
 end;
 
 class function TWorldInfoNode.ClassNodeTypeName: string;

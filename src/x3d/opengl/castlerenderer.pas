@@ -201,14 +201,13 @@ unit CastleRenderer;
 
 interface
 
-uses
-  Classes, SysUtils, CastleUtils, CastleVectors, CastleGL,
-  X3DFields, X3DNodes, X3DLexer, CastleImages,
+uses Classes, SysUtils, FGL, CastleGL,
+  CastleUtils, CastleVectors, X3DFields, X3DNodes, X3DLexer, CastleImages,
   CastleGLUtils, CastleRendererInternalLights,
   CastleGLShaders, CastleGLImages, CastleVideos, X3DTime, CastleShapes,
-  CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D, FGL,
-  CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader, X3DShadowMaps,
-  CastleRendererInternalTextureEnv;
+  CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,
+  CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader,
+  X3DShadowMaps, CastleRendererInternalTextureEnv;
 
 {$define read_interface}
 
@@ -286,7 +285,7 @@ type
     FLineWidth: TGLFloat;
     FBumpMapping: TBumpMapping;
     FShaders: TShadersRendering;
-    FCustomShader, FCustomShaderAlphaTest: TGLSLProgram;
+    FCustomShader, FCustomShaderAlphaTest: TX3DShaderProgramBase;
     FMode: TRenderingMode;
     FVertexBufferObject: boolean;
     FShadowSampling: TShadowSampling;
@@ -474,15 +473,20 @@ type
       default DefaultShaders;
 
     { Custom GLSL shader to use for the whole scene.
-      When this is assigned, @link(Shaders) value is ignored. }
-    property CustomShader: TGLSLProgram read FCustomShader write FCustomShader;
+      When this is assigned, @link(Shaders) value is ignored.
+
+      @italic(Avoid using this.) It's not easy to create portable shaders,
+      that work both with OpenGL and OpenGLES. Try using "compositing shaders" instead
+      http://castle-engine.sourceforge.net/compositing_shaders.php which still allow you
+      to write GLSL effects, but they are integrated into standard shader code. }
+    property CustomShader: TX3DShaderProgramBase read FCustomShader write FCustomShader;
 
     { Alternative custom GLSL shader used when alpha test is necessary.
       Relevant only if CustomShader <> nil.
 
       @italic(Do not use this.) This is a temporary hack to enable VSM working
       with alpha test. It's not clean, and should not be used for anything else. }
-    property CustomShaderAlphaTest: TGLSLProgram read FCustomShaderAlphaTest write FCustomShaderAlphaTest;
+    property CustomShaderAlphaTest: TX3DShaderProgramBase read FCustomShaderAlphaTest write FCustomShaderAlphaTest;
 
     { Rendering mode, can be used to disable many rendering features at once. }
     property Mode: TRenderingMode read FMode write SetMode default rmFull;
@@ -898,7 +902,6 @@ type
     FSmoothShading: boolean;
     FFixedFunctionLighting: boolean;
     FFixedFunctionAlphaTest: boolean;
-    FLineWidth: Single;
     FLineType: TLineType;
 
     {$ifndef OpenGLES}
@@ -925,7 +928,6 @@ type
     procedure SetSmoothShading(const Value: boolean);
     procedure SetFixedFunctionLighting(const Value: boolean);
     procedure SetFixedFunctionAlphaTest(const Value: boolean);
-    procedure SetLineWidth(const Value: Single);
     procedure SetLineType(const Value: TLineType);
 
     { Change glCullFace and GL_CULL_FACE enabled by this property.
@@ -937,7 +939,6 @@ type
     property FixedFunctionLighting: boolean read FFixedFunctionLighting write SetFixedFunctionLighting;
     { Change GL_ALPHA_TEST enabled by this property. }
     property FixedFunctionAlphaTest: boolean read FFixedFunctionAlphaTest write SetFixedFunctionAlphaTest;
-    property LineWidth: Single read FLineWidth write SetLineWidth;
     property LineType: TLineType read FLineType write SetLineType;
   private
     { ----------------------------------------------------------------- }
@@ -1134,7 +1135,7 @@ var
 
 implementation
 
-uses Math, CastleStringUtils, CastleGLVersion, CastleLog, CastleWarnings,
+uses Math, CastleStringUtils, CastleGLVersion, CastleLog,
   CastleRenderingCamera, X3DCameraUtils, CastleRays, CastleColors, CastleRectangles;
 
 {$define read_implementation}
@@ -1167,7 +1168,7 @@ destructor TGLRendererContextCache.Destroy;
   procedure Assert(const B: boolean; const S: string = '');
   begin
     if not B then
-      OnWarning(wtMinor, 'VRML/X3D', 'GLRendererContextCache warning: ' + S);
+      WritelnWarning('VRML/X3D', 'GLRendererContextCache warning: ' + S);
   end;
 {$endif}
 
@@ -1637,13 +1638,13 @@ begin
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_GEQUAL);
       end else
-        OnWarning(wtMajor, 'VRML/X3D', Format('Invalid value for GeneratedShadowMode.compareMode: "%s"', [DepthCompareField.Value]));
+        WritelnWarning('VRML/X3D', Format('Invalid value for GeneratedShadowMode.compareMode: "%s"', [DepthCompareField.Value]));
     end else
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_NONE);
 
     glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_LUMINANCE);
   end else
-    OnWarning(wtMinor, 'VRML/X3D', 'OpenGL doesn''t support ARB_shadow, we cannot set depth comparison for depth texture');
+    WritelnWarning('VRML/X3D', 'OpenGL doesn''t support ARB_shadow, we cannot set depth comparison for depth texture');
 
   {$endif}
 
@@ -1904,7 +1905,7 @@ begin
       FreeAndNil(Result.ShaderProgram);
       { Note: leave Result assigned and Result.Hash set,
         to avoid reinitializing this shader next time. }
-      OnWarning(wtMinor, 'VRML/X3D', Format('Cannot use GLSL shader for shape "%s": %s',
+      WritelnWarning('VRML/X3D', Format('Cannot use GLSL shader for shape "%s": %s',
         [ShapeNiceName, E.Message]));
     end;
   end;
@@ -1921,7 +1922,7 @@ begin
         { We try to behave nicely when LinkFallbackProgram fails, although in practice
           Android's OpenGLES implementation may just crash... }
         FreeAndNil(Result.ShaderProgram);
-        OnWarning(wtMinor, 'VRML/X3D', Format('Cannot use even fallback GLSL shader for shape "%s": %s',
+        WritelnWarning('VRML/X3D', Format('Cannot use even fallback GLSL shader for shape "%s": %s',
           [ShapeNiceName, E.Message]));
       end;
     end;
@@ -2268,7 +2269,7 @@ begin
 
   if Arrays.Indexes <> nil then
     BufferData(vtIndex, GL_ELEMENT_ARRAY_BUFFER,
-      Arrays.Indexes.Count * SizeOf(LongInt), Arrays.Indexes.List);
+      Arrays.Indexes.Count * SizeOf(TGeometryIndex), Arrays.Indexes.List);
 
   VboAllocatedUsage := DataUsage;
 
@@ -2394,7 +2395,7 @@ begin
         except on E: EGLSLError do
           begin
             FreeAndNil(ShaderProgram);
-            OnWarning(wtMinor, 'VRML/X3D', Format('Cannot use GLSL shader for ScreenEffect: %s',
+            WritelnWarning('VRML/X3D', Format('Cannot use GLSL shader for ScreenEffect: %s',
               [E.Message]));
           end;
         end;
@@ -2503,19 +2504,14 @@ begin
   {$ifndef OpenGLES}
   glMatrixMode(GL_MODELVIEW);
 
-  glPointSize(Attributes.PointSize); // TODO-es How to achieve glPointSize in OpenGLES?
+  RenderContext.PointSize := Attributes.PointSize;
 
   { Reset GL_TEXTURE_ENV, otherwise it may be left GL_COMBINE
     after rendering X3D model using MultiTexture. }
   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
   {$endif}
 
-  if Beginning then
-  begin
-    FLineWidth := Attributes.LineWidth;
-    glLineWidth(FLineWidth);
-  end else
-    LineWidth := Attributes.LineWidth;
+  RenderContext.LineWidth := Attributes.LineWidth;
 
   if Beginning then
   begin
@@ -2707,11 +2703,11 @@ begin
     LP := nil;
   if (LP <> nil) and LP.FdApplied.Value then
   begin
-    LineWidth := Max(1.0, Attributes.LineWidth * LP.FdLineWidthScaleFactor.Value);
+    RenderContext.LineWidth := Max(1.0, Attributes.LineWidth * LP.FdLineWidthScaleFactor.Value);
     LineType := LP.LineType;
   end else
   begin
-    LineWidth := Attributes.LineWidth;
+    RenderContext.LineWidth := Attributes.LineWidth;
     LineType := ltSolid;
   end;
 
@@ -2794,7 +2790,7 @@ const
           but it's not a real problem --- EXT_fog_coord is supported
           on all sensible GPUs nowadays. Increasing VisibilityRangeScaled
           seems enough. }
-        OnWarning(wtMinor, 'VRML/X3D', 'Volumetric fog not supported, your graphic card (OpenGL) doesn''t support EXT_fog_coord');
+        WritelnWarning('VRML/X3D', 'Volumetric fog not supported, your graphic card (OpenGL) doesn''t support EXT_fog_coord');
         VisibilityRangeScaled *= 5;
       end;
 
@@ -2952,7 +2948,7 @@ begin
                (Child is TAbstractTextureTransformNode) then
             begin
               if Child is TMultiTextureTransformNode then
-                OnWarning(wtMajor, 'VRML/X3D', 'MultiTextureTransform.textureTransform list cannot contain another MultiTextureTransform instance') else
+                WritelnWarning('VRML/X3D', 'MultiTextureTransform.textureTransform list cannot contain another MultiTextureTransform instance') else
               begin
                 Matrix := TAbstractTextureTransformNode(Child).TransformMatrix;
                 {$ifndef OpenGLES}
@@ -3147,7 +3143,7 @@ begin
   { Initalize MeshRenderer to something non-nil. }
   if not InitMeshRenderer then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Rendering of node kind "%s" not implemented',
+    WritelnWarning('VRML/X3D', Format('Rendering of node kind "%s" not implemented',
       [Shape.NiceName]));
     Exit;
   end;
@@ -3322,9 +3318,9 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
         since it has smartly calculated AlphaChannel based on children. }
       TexturesAlphaChannel := acNone;
       if TextureNode <> nil then
-        AlphaMaxVar(TexturesAlphaChannel, TextureNode.AlphaChannel);
+        AlphaMaxVar(TexturesAlphaChannel, TextureNode.AlphaChannelFinal);
       if FontTextureNode <> nil then
-        AlphaMaxVar(TexturesAlphaChannel, FontTextureNode.AlphaChannel);
+        AlphaMaxVar(TexturesAlphaChannel, FontTextureNode.AlphaChannelFinal);
       AlphaTest := TexturesAlphaChannel = acSimpleYesNo;
 
       if GLFontTextureNode <> nil then
@@ -3587,7 +3583,7 @@ var
             WritelnLog('GeneratedShadowMap', TexNode.NiceName + ' texture regenerated');
         end;
       end else
-        OnWarning(wtMajor, 'VRML/X3D', TexNode.NiceName + ' needs updating, but light = NULL or incorrect');
+        WritelnWarning('VRML/X3D', TexNode.NiceName + ' needs updating, but light = NULL or incorrect');
     end;
   end;
 
@@ -3674,15 +3670,6 @@ begin
     {$ifndef OpenGLES}
     GLSetEnabled(GL_ALPHA_TEST, FixedFunctionAlphaTest);
     {$endif}
-  end;
-end;
-
-procedure TGLRenderer.SetLineWidth(const Value: Single);
-begin
-  if FLineWidth <> Value then
-  begin
-    FLineWidth := Value;
-    glLineWidth(LineWidth);
   end;
 end;
 

@@ -89,21 +89,21 @@ begin
   XIndex := Params.IndexOf('X');
   if XIndex = -1 then
   begin
-    OnWarning(wtMajor, 'Collada', 'Missing "X" parameter (for 3D vector) in this <source>');
+    WritelnWarning('Collada', 'Missing "X" parameter (for 3D vector) in this <source>');
     Exit(false);
   end;
 
   YIndex := Params.IndexOf('Y');
   if YIndex = -1 then
   begin
-    OnWarning(wtMajor, 'Collada', 'Missing "Y" parameter (for 3D vector) in this <source>');
+    WritelnWarning('Collada', 'Missing "Y" parameter (for 3D vector) in this <source>');
     Exit(false);
   end;
 
   ZIndex := Params.IndexOf('Z');
   if ZIndex = -1 then
   begin
-    OnWarning(wtMajor, 'Collada', 'Missing "Z" parameter (for 3D vector) in this <source>');
+    WritelnWarning('Collada', 'Missing "Z" parameter (for 3D vector) in this <source>');
     Exit(false);
   end;
 
@@ -111,7 +111,7 @@ begin
   Result := Floats.Count >= MinCount;
   if not Result then
   begin
-    OnWarning(wtMinor, 'Collada', Format('<accessor> count requires at least %d float values in <float_array>, but only %d are avilable',
+    WritelnWarning('Collada', Format('<accessor> count requires at least %d float values in <float_array>, but only %d are avilable',
       [MinCount, Floats.Count]));
     { force Count smaller, also force other params to common values }
     Stride := Max(Stride, 1);
@@ -146,7 +146,7 @@ begin
     SIndex := Params.IndexOf('U');
     if SIndex = -1 then
     begin
-      OnWarning(wtMajor, 'Collada', 'Missing "S" or "U" parameter (1st component of 2D tex coord) in this <source>');
+      WritelnWarning('Collada', 'Missing "S" or "U" parameter (1st component of 2D tex coord) in this <source>');
       Exit(false);
     end;
   end;
@@ -157,7 +157,7 @@ begin
     TIndex := Params.IndexOf('V');
     if TIndex = -1 then
     begin
-      OnWarning(wtMajor, 'Collada', 'Missing "T" or "V" parameter (2nd component of 2D tex coord) in this <source>');
+      WritelnWarning('Collada', 'Missing "T" or "V" parameter (2nd component of 2D tex coord) in this <source>');
       Exit(false);
     end;
   end;
@@ -166,7 +166,7 @@ begin
   Result := Floats.Count >= MinCount;
   if not Result then
   begin
-    OnWarning(wtMinor, 'Collada', Format('<accessor> count requires at least %d float values in <float_array>, but only %d are avilable',
+    WritelnWarning('Collada', Format('<accessor> count requires at least %d float values in <float_array>, but only %d are avilable',
       [MinCount, Floats.Count]));
     { force Count smaller, also force other params to common values }
     Stride := Max(Stride, 1);

@@ -30,7 +30,10 @@ uses CastleVectors, CastleTerrain;
   BaseSize * 2 is the size of the first (most detailed) square layer around
   the (MiddleX, MiddleY). Eeach successive layer has the same subdivision
   (although with middle square removed, as it's already done by
-  previous layer) and 2 times larger size. }
+  previous layer) and 2 times larger size.
+
+  Uses currently enabled GLSL program (or none), so be sure
+  to assign CurrentProgram before calling this. }
 procedure DrawTerrain(Terrain: TTerrain;
   const Subdivision: Cardinal;
   MiddleX, MiddleY: Single; BaseSize: Single;

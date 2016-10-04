@@ -180,14 +180,14 @@ function MessageInputQuery(Window: TCastleWindowCustom; TextList: TStringList;
   Example usage:
 
   @longCode(#
-case MessageChoice(Window, 'Which fruit to you want to eat?',
-  ['Apple', 'Banana', 'Cancel'],
-  ['a', 'b', CharEscape]) of
-  'a': // ... user pressed "Apple" button or "A" key -> likes apples
-  'b': // ... user pressed "Banana" button or "B" key -> likes bananas
-  CharEscape: // ... user pressed "Cancel" button or "Escape" key -> cancelled
-end;
-#)
+    case MessageChoice(Window, 'Which fruit to you want to eat?',
+      ['Apple', 'Banana', 'Cancel'],
+      ['a', 'b', CharEscape]) of
+      'a': // ... user pressed "Apple" button or "A" key -> likes apples
+      'b': // ... user pressed "Banana" button or "B" key -> likes bananas
+      CharEscape: // ... user pressed "Cancel" button or "Escape" key -> cancelled
+    end;
+  #)
 
   @groupBegin }
 function MessageChoice(Window: TCastleWindowCustom; const s: string;

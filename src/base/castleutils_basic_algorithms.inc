@@ -26,19 +26,19 @@ const
 
     Tests: all for testSort compiled with -dRELEASE:
 
-@preformatted(
-  CountToUseSimpleSort     `testSort 2 100000 100'  `testSort 2 1000000 100'
-  0:                       0.29   1.33              3.60   19.37
-  5:                       0.27   1.44              3.23   20.16
-  10:                      0.27   1.26              3.05   18.57
-  15:                      0.32   1.63              3.21   19.05
-  20:                      0.24   1.31              3.04   19.05
-  30:                      0.36   2.17              4.26   18.14
-  40:                      0.24   1.25              2.87   17.90
-  50:                      0.28   1.58              3.40   22.13
-  100:                     0.35   1.95              4.08   26.31
-  1000:                    1.80   12.44             18.97  140.50
-)
+    @preformatted(
+      CountToUseSimpleSort     `testSort 2 100000 100'  `testSort 2 1000000 100'
+      0:                       0.29   1.33              3.60   19.37
+      5:                       0.27   1.44              3.23   20.16
+      10:                      0.27   1.26              3.05   18.57
+      15:                      0.32   1.63              3.21   19.05
+      20:                      0.24   1.31              3.04   19.05
+      30:                      0.36   2.17              4.26   18.14
+      40:                      0.24   1.25              2.87   17.90
+      50:                      0.28   1.58              3.40   22.13
+      100:                     0.35   1.95              4.08   26.31
+      1000:                    1.80   12.44             18.97  140.50
+    )
 
     Hmm. Tests above seem poor --- actually it's not clear what value
     of DefaultCountToUseSimpleSort is best, it's only clear that such

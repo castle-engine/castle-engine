@@ -117,7 +117,7 @@ type
 
 implementation
 
-uses SysUtils, CastleUtils, CastleWarnings, CastleScriptVectors, CastleURIUtils;
+uses SysUtils, CastleUtils, CastleLog, CastleScriptVectors, CastleURIUtils;
 
 { TCasScriptImage ------------------------------------------------------------ }
 
@@ -174,7 +174,7 @@ begin
   Components := TCasScriptInteger(Arguments[2]).Value;
   if not Between(Components, 1, 4) then
   begin
-    OnWarning(wtMajor, 'CastleScript', '"image" function 3rd parameter (components) must be between 1 and 4');
+    WritelnWarning('CastleScript', '"image" function 3rd parameter (components) must be between 1 and 4');
     { We have to return something... Assume any valid Components value. }
     Components := Clamped(Components, 1, 4);
   end;
@@ -392,7 +392,7 @@ begin
 
   case TCasScriptImage(Arguments[0]).Value.ColorComponentsCount of
     1, 3: begin
-         OnWarning(wtMajor, 'CastleScript', '"image_get_alpha" not allowed on image without alpha channel');
+         WritelnWarning('CastleScript', '"image_get_alpha" not allowed on image without alpha channel');
        end;
     2: begin
          GA := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
@@ -519,7 +519,7 @@ begin
 
   case TCasScriptImage(Arguments[0]).Value.ColorComponentsCount of
     1, 3: begin
-         OnWarning(wtMajor, 'CastleScript', '"image_set_alpha" not allowed on image without alpha channel');
+         WritelnWarning('CastleScript', '"image_set_alpha" not allowed on image without alpha channel');
        end;
     2: begin
          GA := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);

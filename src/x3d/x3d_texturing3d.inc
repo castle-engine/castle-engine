@@ -27,7 +27,7 @@
 
       You can assume here that texture is not loaded now,
       UsedCache, FTextureImage, FTextureComposite are all nil.
-      Try to load the texture data, making OnWarning as appropriate,
+      Try to load the texture data, making WritelnWarning as appropriate,
       and set all UsedCache, FTextureImage, FTextureComposite, FAlphaChannelData. }
     procedure LoadTextureData; virtual; abstract;
   public
@@ -58,10 +58,10 @@
       TextureLoaded value still changes to @true. This is good --- it makes
       assignment @code(TextureLoaded := true) always work, and (more important)
       it prevents trying to load (and displaying uselessly the same
-      OnWarning) again at successful @code(TextureLoaded := true).
+      WritelnWarning) again at successful @code(TextureLoaded := true).
 
       In case of problems (for example when some URL cannot be loaded),
-      we will make OnWarning. }
+      we will make WritelnWarning. }
     property TextureLoaded: boolean
       read FTextureLoaded write SetTextureLoaded;
 
@@ -180,22 +180,22 @@ begin
   FFdRepeatS := TSFBool.Create(Self, 'repeatS', false);
    FdRepeatS.Exposed := false;
    FdRepeatS.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdRepeatS);
+  AddField(FFdRepeatS);
 
   FFdRepeatT := TSFBool.Create(Self, 'repeatT', false);
    FdRepeatT.Exposed := false;
    FdRepeatT.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdRepeatT);
+  AddField(FFdRepeatT);
 
   FFdRepeatR := TSFBool.Create(Self, 'repeatR', false);
    FdRepeatR.Exposed := false;
    FdRepeatR.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdRepeatR);
+  AddField(FFdRepeatR);
 
   FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdTextureProperties);
+  AddField(FFdTextureProperties);
 end;
 
 destructor TAbstractTexture3DNode.Destroy;
@@ -233,7 +233,7 @@ begin
 
   FFdTexture := TMFNode.Create(Self, 'texture', [TAbstractX3DTexture2DNode]);
    FdTexture.ChangesAlways := [chTextureImage];
-  Fields.Add(FFdTexture);
+  AddField(FFdTexture);
 end;
 
 class function TComposedTexture3DNode.ClassNodeTypeName: string;
@@ -249,7 +249,7 @@ end;
 
 procedure TComposedTexture3DNode.LoadTextureData;
 
-  { Load one slice (child texture). Returns @nil and makes OnWarning if failed. }
+  { Load one slice (child texture). Returns @nil and makes WritelnWarning if failed. }
   function LoadOneSlice(const Index: Integer): TCastleImage;
   var
     Tex: TAbstractTexture2DNode;
@@ -257,7 +257,7 @@ procedure TComposedTexture3DNode.LoadTextureData;
     if not ((FdTexture[Index] <> nil) and
             (FdTexture[Index] is TAbstractTexture2DNode)) then
     begin
-      OnWarning(wtMinor, 'VRML/X3D', Format('ComposedTexture3D slice %d is not a valid 2D texture node',
+      WritelnWarning('VRML/X3D', Format('ComposedTexture3D slice %d is not a valid 2D texture node',
         [Index]));
       Exit(nil);
     end;
@@ -265,12 +265,12 @@ procedure TComposedTexture3DNode.LoadTextureData;
     Tex := TAbstractTexture2DNode(FdTexture[Index]);
     if not Tex.IsTextureImage then
     begin
-      Exit(nil); { Tex.IsTextureImage already did proper OnWarning }
+      Exit(nil); { Tex.IsTextureImage already did proper WritelnWarning }
     end;
 
     if not (Tex.TextureImage is TCastleImage) then
     begin
-      OnWarning(wtMinor, 'VRML/X3D', Format('ComposedTexture3D slice %d is a GPU-compressed texture, not allowed (we need to be able to glue 2D textures for 3D texture)',
+      WritelnWarning('VRML/X3D', Format('ComposedTexture3D slice %d is a GPU-compressed texture, not allowed (we need to be able to glue 2D textures for 3D texture)',
         [Index]));
       Exit(nil);
     end;
@@ -278,7 +278,7 @@ procedure TComposedTexture3DNode.LoadTextureData;
     Result := TCastleImage(Tex.TextureImage);
 
     { If any slice has full-range alpha, then assume whole texture does. }
-    AlphaMaxVar(FAlphaChannelData, Tex.AlphaChannel);
+    AlphaMaxVar(FAlphaChannelData, Tex.AlphaChannelFinal);
   end;
 
 var
@@ -287,7 +287,7 @@ var
 begin
   if FdTexture.Items.Count = 0 then
   begin
-    OnWarning(wtMinor, 'VRML/X3D', 'ComposedTexture3D has no textures');
+    WritelnWarning('VRML/X3D', 'ComposedTexture3D has no textures');
     Exit;
   end;
 
@@ -319,7 +319,7 @@ begin
          (Slice.Height <> FTextureImage.Height) or
          (Slice.ClassType <> FTextureImage.ClassType) then
       begin
-        OnWarning(wtMinor, 'VRML/X3D', Format('ComposedTexture3D slice %d doesn''t have matching size/type (%d x %d of %s), all slices must have the same size/type (first slice had %d x %d of %s)',
+        WritelnWarning('VRML/X3D', Format('ComposedTexture3D slice %d doesn''t have matching size/type (%d x %d of %s), all slices must have the same size/type (first slice had %d x %d of %s)',
           [I, Slice        .Width, Slice        .Height, Slice        .ClassName,
               FTextureImage.Width, FTextureImage.Height, FTextureImage.ClassName]));
         FreeAndNil(FTextureImage);
@@ -346,7 +346,7 @@ begin
 
   FFdUrl := TMFString.Create(Self, 'url', []);
    FdUrl.ChangesAlways := [chTextureImage];
-  Fields.Add(FFdUrl);
+  AddField(FFdUrl);
   { X3D specification comment: [URI] }
 end;
 
@@ -377,7 +377,7 @@ begin
       on E: Exception do
       begin
         FTextureComposite := nil;
-        OnWarning(wtMinor, 'VRML/X3D', Format('Error when loading ImageTexture3D file "%s": %s', [FullUrl, E.Message]));
+        WritelnWarning('VRML/X3D', Format('Error when loading ImageTexture3D file "%s": %s', [FullUrl, E.Message]));
         Continue;
       end;
     end;
@@ -385,14 +385,14 @@ begin
     if FTextureComposite = nil then
     begin
       X3DCache.TextureImage_DecReference(FTextureImage, FTextureComposite);
-      OnWarning(wtMinor, 'VRML/X3D', Format('Only composite formats (DDS, KTX...) are supported for ImageTexture3D node, but URL is "%s"', [FullUrl]));
+      WritelnWarning('VRML/X3D', Format('Only composite formats (DDS, KTX...) are supported for ImageTexture3D node, but URL is "%s"', [FullUrl]));
       Continue;
     end;
 
     if FTextureComposite.CompositeType <> ctVolume then
     begin
       X3DCache.TextureImage_DecReference(FTextureImage, FTextureComposite);
-      OnWarning(wtMinor, 'VRML/X3D', Format('Composite image "%s" given for ImageTexture3D doesn''t describe a volume (3d) texture', [FullUrl]));
+      WritelnWarning('VRML/X3D', Format('Composite image "%s" given for ImageTexture3D doesn''t describe a volume (3d) texture', [FullUrl]));
       Continue;
     end;
 
@@ -413,7 +413,7 @@ begin
 
   FFdImage := TMFInt32.Create(Self, 'image', [0, 0, 0, 0]);
    FdImage.ChangesAlways := [chTextureImage];
-  Fields.Add(FFdImage);
+  AddField(FFdImage);
 end;
 
 class function TPixelTexture3DNode.ClassNodeTypeName: string;
@@ -438,7 +438,7 @@ var
 begin
   if FdImage.Count < 4 then
   begin
-    OnWarning(wtMinor, 'VRML/X3D', 'PixelTexture3D.image has too few items (must have at least 4)');
+    WritelnWarning('VRML/X3D', 'PixelTexture3D.image has too few items (must have at least 4)');
     Exit;
   end;
 
@@ -449,7 +449,7 @@ begin
 
   if Cardinal(FdImage.Count) < 4 + Width * Height * Depth then
   begin
-    OnWarning(wtMinor, 'VRML/X3D', Format('PixelTexture3D.image has too few items, must have at least %d (= 4 + Width * Height * Depth = 4 + %d * %d * %d)',
+    WritelnWarning('VRML/X3D', Format('PixelTexture3D.image has too few items, must have at least %d (= 4 + Width * Height * Depth = 4 + %d * %d * %d)',
       [ 4 + Width * Height * Depth,  Width, Height, Depth ]));
     Exit;
   end;
@@ -494,7 +494,7 @@ begin
        end;
     else
     begin
-      OnWarning(wtMinor, 'VRML/X3D', 'PixelTexture3D.image has invalid components count (must be between 0..4)');
+      WritelnWarning('VRML/X3D', 'PixelTexture3D.image has invalid components count (must be between 0..4)');
       Exit;
     end;
   end;
@@ -513,7 +513,7 @@ begin
 
   FFdPoint := TMFVec3f.Create(Self, 'point', []);
    FdPoint.ChangesAlways := [chTextureCoordinate];
-  Fields.Add(FFdPoint);
+  AddField(FFdPoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
 
@@ -534,7 +534,7 @@ begin
 
   FFdPoint := TMFVec4f.Create(Self, 'point', []);
    FdPoint.ChangesAlways := [chTextureCoordinate];
-  Fields.Add(FFdPoint);
+  AddField(FFdPoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
 
@@ -555,7 +555,7 @@ begin
 
   FFdMatrix := TSFMatrix4f.Create(Self, 'matrix', IdentityMatrix4Single);
    FdMatrix.ChangesAlways := [chTextureTransform];
-  Fields.Add(FFdMatrix);
+  AddField(FFdMatrix);
   { X3D specification comment: (-Inf,Inf) }
 end;
 
@@ -581,22 +581,22 @@ begin
 
   FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
    FdCenter.ChangesAlways := [chTextureTransform];
-  Fields.Add(FFdCenter);
+  AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chTextureTransform];
-  Fields.Add(FFdRotation);
+  AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdScale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
    FdScale.ChangesAlways := [chTextureTransform];
-  Fields.Add(FFdScale);
+  AddField(FFdScale);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
    FdTranslation.ChangesAlways := [chTextureTransform];
-  Fields.Add(FFdTranslation);
+  AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 end;
 

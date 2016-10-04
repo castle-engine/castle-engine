@@ -270,10 +270,12 @@ type
     { Read the next token, knowing that it @italic(must) be vtString token.
 
       Similiar to NextTokenForceVTName: use this like a shortcut for
-@longCode(#
-  NextToken;
-  CheckTokenIs(vtString);
-#)
+
+      @longCode(#
+        NextToken;
+        CheckTokenIs(vtString);
+      #)
+
       but it is not equivalent to such instructions. This is because
       VRML 1.0 allowed rather strange thing: string may be not enclosed
       in double quotes if it does not contain a space. This "feature"
@@ -316,8 +318,6 @@ type
 
   { Error when reading VRML/X3D classic encoding. }
   EX3DClassicReadError = class(EX3DError)
-  protected
-    function MessagePositionPrefix(Lexer: TX3DLexer): string; virtual; abstract;
   public
     { Standard constructor.
 
@@ -332,15 +332,8 @@ type
     Problems in other encodings (XML) are for now always turned into warnings. }
   EX3DReadError = EX3DClassicReadError;
 
-  EX3DLexerError = class(EX3DClassicReadError)
-  protected
-    function MessagePositionPrefix(Lexer: TX3DLexer): string; override;
-  end;
-
-  EX3DParserError = class(EX3DClassicReadError)
-  protected
-    function MessagePositionPrefix(Lexer: TX3DLexer): string; override;
-  end;
+  EX3DLexerError = class(EX3DClassicReadError);
+  EX3DParserError = class(EX3DClassicReadError);
 
 const
   X3DKeywordsName: array [TX3DKeyword] of string = (
@@ -360,10 +353,10 @@ const
   in any special way for VRML/X3D.
   For example:
 
-@longCode(#
-  StringToX3DClassic('foo') = '"foo"'
-  StringToX3DClassic('say "yes"') = '"say \"yes\""'
-#) }
+  @longCode(#
+    StringToX3DClassic('foo') = '"foo"'
+    StringToX3DClassic('say "yes"') = '"say \"yes\""'
+  #) }
 function StringToX3DClassic(const s: string;
   const SurroundWithQuotes: boolean = true): string;
 
@@ -390,7 +383,7 @@ function StringToX3DXmlMulti(const s: string): string;
 
 implementation
 
-uses CastleLog, CastleWarnings;
+uses CastleLog;
 
 const
   { utf8 specific constants below }
@@ -737,8 +730,8 @@ begin
         'Unexpected end of file in the middle of string token');
     if not (Chr(NextChar) in ['"', '\']) then
     begin
-      OnWarning(wtMajor, 'X3D', Format('Invalid sequence in a string: "\%s". Backslash must be followed by another backslash or double quote, for SFString and MFString (in X3D classic (VRML) encoding) and for MFString (in X3D XML encoding).',
-        [Chr(NextChar)]));
+      WritelnWarning('X3D', 'Invalid X3D file: Invalid sequence in a string: "\%s". Backslash must be followed by another backslash or double quote, for SFString and MFString (in X3D classic (VRML) encoding) and for MFString (in X3D XML encoding).',
+        [Chr(NextChar)]);
       FTokenString += '\';
     end;
     FTokenString += Chr(NextChar);
@@ -797,6 +790,7 @@ function TX3DLexer.NextToken: TX3DToken;
   {
     VRML float token corresponds to Pascal Float type,
     in VRML it's expressed in the followin form:
+
     @preformatted(
       [("-"|"+")]
       (digit+ [ "." digit+ ] | "." digit+)
@@ -804,7 +798,8 @@ function TX3DLexer.NextToken: TX3DToken;
     )
 
     VRML integer token corresponds to Pascal Int64 type,
-    in VRML it's expressed in the followin form:
+    in VRML it's expressed in the following form:
+
     @preformatted(
       (form : [("-"|"+")] ("0x" digit_hex+ | [1-9]digit_decimal* | 0 digit_octal+) )
     )
@@ -1102,17 +1097,8 @@ end;
 
 constructor EX3DClassicReadError.Create(Lexer: TX3DLexer; const s: string);
 begin
-  inherited Create(MessagePositionPrefix(Lexer) + S);
-end;
-
-function EX3DLexerError.MessagePositionPrefix(Lexer: TX3DLexer): string;
-begin
-  Result := Format('VRML/X3D lexical error at position %d: ', [Lexer.Stream.Position]);
-end;
-
-function EX3DParserError.MessagePositionPrefix(Lexer: TX3DLexer): string;
-begin
-  Result := Format('VRML/X3D parse error at position %d: ', [Lexer.Stream.Position]);
+  inherited Create(Format('Error at line %d column %d: ',
+    [Lexer.Stream.Line, Lexer.Stream.Column]) + S);
 end;
 
 { global funcs  ------------------------------------------------------------------ }
@@ -1125,8 +1111,8 @@ const
 begin
   { use soMatchCase for speed }
   if SurroundWithQuotes then
-    Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"' else
-    Result :=       SReplacePatterns(s, Patterns, PatValues, [soMatchCase]);
+    Result := '"' + SReplacePatterns(s, Patterns, PatValues, false) + '"' else
+    Result :=       SReplacePatterns(s, Patterns, PatValues, false);
 end;
 
 function StringToX3DXml(const s: string): string;
@@ -1135,7 +1121,7 @@ const
   PatValues: array [0..6] of string = ('&amp;', '&quot;', '&apos;', '&lt;', '&gt;', '&#xA;', '&#xD;');
 begin
   { use soMatchCase for speed }
-  Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"';
+  Result := '"' + SReplacePatterns(s, Patterns, PatValues, false) + '"';
 end;
 
 function StringToX3DXmlMulti(const s: string): string;
@@ -1144,7 +1130,7 @@ const
   PatValues: array [0..7] of string = ('&amp;', '\&quot;', '&apos;', '&lt;', '&gt;', '&#xA;', '&#xD;', '\\');
 begin
   { use soMatchCase for speed }
-  Result := '"' + SReplacePatterns(s, Patterns, PatValues, [soMatchCase]) + '"';
+  Result := '"' + SReplacePatterns(s, Patterns, PatValues, false) + '"';
 end;
 
 end.

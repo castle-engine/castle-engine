@@ -21,8 +21,8 @@ program view_3d_model_advanced;
 {$apptype CONSOLE}
 
 uses SysUtils, CastleUtils, CastleWindow, CastleProgress, CastleWindowProgress,
-  CastleSceneCore, CastleWarnings, CastleParameters, CastleScene, X3DLoad,
-  CastleControls, CastleURIUtils;
+  CastleSceneCore, CastleLog, CastleParameters, CastleScene, X3DLoad,
+  CastleControls, CastleURIUtils, CastleApplicationProperties;
 
 var
   Window: TCastleWindow;
@@ -62,7 +62,7 @@ begin
     URL := Parameters[1];
 
   { Output warnings on a console. }
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   Window := TCastleWindow.Create(Application);
 

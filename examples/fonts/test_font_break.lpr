@@ -28,7 +28,7 @@ program test_font_break;
 uses CastleWindow, CastleGLUtils, SysUtils, Classes, CastleParameters,
   CastleUtils, CastleFonts, CastleVectors, CastleStringUtils, CastleColors,
   CastleControls, CastleKeysMouse, CastleRectangles, CastleControlsImages,
-  CastleWarnings, CastleFreeType;
+  CastleLog, CastleFreeType, CastleApplicationProperties;
 
 var
   Window: TCastleWindowCustom;
@@ -38,7 +38,7 @@ procedure Render(Container: TUIContainer);
 var
   X1: Integer;
 begin
-  GLClear([cbColor], Black);
+  RenderContext.Clear([cbColor], Black);
   X1 := (Window.Width - BoxWidth) div 2;
   Theme.Draw(Rectangle(X1, 0, BoxWidth, Window.Height), tiActiveFrame);
   UIFont.PrintBrokenString(x1, UIFont.Descend, White,
@@ -74,7 +74,7 @@ begin
 end;
 
 begin
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   Window := TCastleWindowCustom.Create(Application);
 
   Window.ParseParameters(StandardParseOptions);
@@ -89,7 +89,7 @@ begin
     { in case FreeType library is not available:
       make a warning, leave UIFont unchanged, and just continue }
     on E: EFreeTypeLibraryNotFound do
-      OnWarning(wtMinor, 'Font', 'FreeType library not found, cannot use custom font');
+      WritelnWarning('Font', 'FreeType library not found, cannot use custom font');
   end;
 
   Window.OnResize := @Resize;

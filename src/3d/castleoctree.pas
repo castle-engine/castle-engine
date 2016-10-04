@@ -17,48 +17,49 @@
   Used by actual octrees in units like CastleTriangleOctree and CastleShapeOctree.
 
   Typical way to derive actual (non-abstract) octrees goes like this;
+
   @longcode(#
-type
-  TMyOctree = class;
+  type
+    TMyOctree = class;
 
-  TMyOctreeNode = class(TOctreeNode)
-  protected
-    procedure PutItemIntoSubNodes(ItemIndex: integer); override;
-  public
-    function ParentTree: TMyOctree;
- end;
+    TMyOctreeNode = class(TOctreeNode)
+    protected
+      procedure PutItemIntoSubNodes(ItemIndex: integer); override;
+    public
+      function ParentTree: TMyOctree;
+   end;
 
-  TMyOctree = class(TOctree)
-  public
-    constructor Create(AMaxDepth, ALeafCapacity: Integer;
-      const ARootBox: TBox3D);
-    function TreeRoot: TMyOctreeNode;
+    TMyOctree = class(TOctree)
+    public
+      constructor Create(AMaxDepth, ALeafCapacity: Integer;
+        const ARootBox: TBox3D);
+      function TreeRoot: TMyOctreeNode;
+    end;
+
+  { implementation }
+
+  procedure TMyOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
+  begin
+    { See comments at @link(TOctreeNode.PutItemIntoSubNodes)
+      to know how you should implement this. }
   end;
 
-{ implementation }
+  function TMyOctreeNode.ParentTree: TMyOctree;
+  begin
+    Result := TMyOctree(InternalParentTree);
+  end;
 
-procedure TMyOctreeNode.PutItemIntoSubNodes(ItemIndex: integer);
-begin
-  { See comments at @link(TOctreeNode.PutItemIntoSubNodes)
-    to know how you should implement this. }
-end;
+  constructor TMyOctree.Create(AMaxDepth, ALeafCapacity: Integer;
+    const ARootBox: TBox3D);
+  begin
+    inherited Create(AMaxDepth, ALeafCapacity, ARootBox, TMyOctreeNode);
+  end;
 
-function TMyOctreeNode.ParentTree: TMyOctree;
-begin
-  Result := TMyOctree(InternalParentTree);
-end;
-
-constructor TMyOctree.Create(AMaxDepth, ALeafCapacity: Integer;
-  const ARootBox: TBox3D);
-begin
-  inherited Create(AMaxDepth, ALeafCapacity, ARootBox, TMyOctreeNode);
-end;
-
-function TMyOctree.TreeRoot: TMyOctreeNode;
-begin
-  Result := TMyOctreeNode(InternalTreeRoot);
-end;
-#)
+  function TMyOctree.TreeRoot: TMyOctreeNode;
+  begin
+    Result := TMyOctreeNode(InternalTreeRoot);
+  end;
+  #)
 *)
 unit CastleOctree;
 
@@ -936,7 +937,10 @@ end;
 
 function OctreeSubnodeIndexToNiceStr(const SI: TOctreeSubnodeIndex): string;
 begin
- result := BoolToStr[SI[0]]+'-'+BoolToStr[SI[1]]+'-'+BoolToStr[SI[2]];
+ result :=
+   BoolToStr(SI[0], true) +'-'+
+   BoolToStr(SI[1], true) +'-'+
+   BoolToStr(SI[2], true);
 end;
 
 function OctreeSubnodeIndexesEqual(const SI1, SI2: TOctreeSubnodeIndex): boolean;

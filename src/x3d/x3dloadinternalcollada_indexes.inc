@@ -84,7 +84,7 @@ begin
     if not Ints.GetNext then
     begin
       if I <> 0 then
-        OnWarning(wtMajor, 'Collada', 'Indexes in <p> suddenly end, in the middle of a vertex');
+        WritelnWarning('Collada', 'Indexes in <p> suddenly end, in the middle of a vertex');
       Exit(false);
     end;
 

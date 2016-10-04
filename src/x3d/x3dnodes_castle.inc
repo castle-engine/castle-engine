@@ -19,7 +19,7 @@
 {$ifdef read_interface}
   TKambiTriangulationNode = class(TAbstractChildNode)
   private
-    function GetDetailValue(Field: TSFLong; const GlobalValue, MinValue: Cardinal): Cardinal;
+    function GetDetailValue(AField: TSFLong; const GlobalValue, MinValue: Cardinal): Cardinal;
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -35,7 +35,7 @@
 
     { Return appropriate field value, or (when it's -1) return global value
       (from Detail_Xxx variables). In case of incorrect field value,
-      they also take care of calling OnWarning and correcting this value.
+      they also take care of calling WritelnWarning and correcting this value.
       @groupBegin }
     function CalculateQuadricStacks: Cardinal;
     function CalculateQuadricSlices: Cardinal;
@@ -354,7 +354,7 @@
     { Load shader code from node's URLs.
       In X3D XML encoding, also loads node's XML CDATA as a last resort.
       Will return '' if no valid URLs are present,
-      loading errors are reported to OnWarning. }
+      loading errors are reported to WritelnWarning. }
     function Contents: string;
   end;
 
@@ -380,15 +380,15 @@ begin
 
   FFdQuadricSlices := TSFLong.Create(Self, 'quadricSlices', TriangulationUseDef);
    FdQuadricSlices.ChangesAlways := [chGeometryVRML1State];
-  Fields.Add(FFdQuadricSlices);
+  AddField(FFdQuadricSlices);
 
   FFdQuadricStacks := TSFLong.Create(Self, 'quadricStacks', TriangulationUseDef);
    FdQuadricStacks.ChangesAlways := [chGeometryVRML1State];
-  Fields.Add(FFdQuadricStacks);
+  AddField(FFdQuadricStacks);
 
   FFdRectDivisions := TSFLong.Create(Self, 'rectDivisions', TriangulationUseDef);
    FdRectDivisions.ChangesAlways := [chGeometryVRML1State];
-  Fields.Add(FFdRectDivisions);
+  AddField(FFdRectDivisions);
 end;
 
 class function TKambiTriangulationNode.ClassNodeTypeName: string;
@@ -397,18 +397,18 @@ begin
 end;
 
 function TKambiTriangulationNode.GetDetailValue(
-  Field: TSFLong; const GlobalValue, MinValue: Cardinal): Cardinal;
+  AField: TSFLong; const GlobalValue, MinValue: Cardinal): Cardinal;
 begin
-  if Field.Value = TriangulationUseDef then
+  if AField.Value = TriangulationUseDef then
     Result := GlobalValue else
-  if Int64(Field.Value) < Int64(MinValue) then
+  if Int64(AField.Value) < Int64(MinValue) then
   begin
-    OnWarning(wtMajor, 'VRML/X3D', Format('Node "KambiTriangulation" field "%s" value is %d but must be >= %d (or = -1)',
-      [Field.Name, Field.Value, MinValue]));
-    Field.Value := TriangulationUseDef;
+    WritelnWarning('VRML/X3D', Format('Node "KambiTriangulation" field "%s" value is %d but must be >= %d (or = -1)',
+      [AField.Name, AField.Value, MinValue]));
+    AField.Value := TriangulationUseDef;
     Result := GlobalValue;
   end else
-    Result := Field.Value;
+    Result := AField.Value;
 end;
 
 function TKambiTriangulationNode.CalculateQuadricSlices: Cardinal;
@@ -451,25 +451,25 @@ begin
   inherited;
 
   FFdAmbientIntensity := TSFFloat.Create(Self, 'ambientIntensity', HeadLightDefaultAmbientIntensity);
-  Fields.Add(FFdAmbientIntensity);
+  AddField(FFdAmbientIntensity);
 
   FFdAttenuation := TSFVec3f.Create(Self, 'attenuation', HeadLightDefaultAttenuation);
-  Fields.Add(FFdAttenuation);
+  AddField(FFdAttenuation);
 
   FFdColor := TSFColor.Create(Self, 'color', HeadLightDefaultColor);
-  Fields.Add(FFdColor);
+  AddField(FFdColor);
 
   FFdIntensity := TSFFloat.Create(Self, 'intensity', HeadLightDefaultIntensity);
-  Fields.Add(FFdIntensity);
+  AddField(FFdIntensity);
 
   FFdSpot := TSFBool.Create(Self, 'spot', HeadLightDefaultSpot);
-  Fields.Add(FFdSpot);
+  AddField(FFdSpot);
 
   FFdSpotCutOffAngle := TSFFloat.Create(Self, 'spotCutOffAngle', HeadLightDefaultSpotCutOffAngle);
-  Fields.Add(FFdSpotCutOffAngle);
+  AddField(FFdSpotCutOffAngle);
 
   FFdSpotDropOffRate := TSFFloat.Create(Self, 'spotDropOffRate', HeadLightDefaultSpotDropOffRate);
-  Fields.Add(FFdSpotDropOffRate);
+  AddField(FFdSpotDropOffRate);
 end;
 
 class function TKambiHeadLightNode.URNMatching(const URN: string): boolean;
@@ -498,7 +498,7 @@ begin
 
   FFdDepth := TSFFloat.Create(Self, 'depth', 0.1, true);
    FdDepth.ChangesAlways := [chGeometry];
-  Fields.Add(FFdDepth);
+  AddField(FFdDepth);
 end;
 
 { TBlendModeNode ------------------------------------------------------------- }
@@ -521,19 +521,19 @@ begin
 
   FFdSrcFactor := TSFString.Create(Self, 'srcFactor', 'src_alpha');
    FdSrcFactor.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdSrcFactor);
+  AddField(FFdSrcFactor);
 
   FFdDestFactor := TSFString.Create(Self, 'destFactor', 'one_minus_src_alpha');
    FdDestFactor.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdDestFactor);
+  AddField(FFdDestFactor);
 
   FFdColor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
    FdColor.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdColor);
+  AddField(FFdColor);
 
   FFdColorTransparency := TSFFloat.Create(Self, 'colorTransparency', 0.0);
    FdColorTransparency.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdColorTransparency);
+  AddField(FFdColorTransparency);
 
   DefaultContainerField := 'blendMode';
 end;
@@ -561,10 +561,10 @@ begin
   inherited;
 
   FFdReplaceNames := TMFString.Create(Self, 'replaceNames', []);
-  Fields.Add(FFdReplaceNames);
+  AddField(FFdReplaceNames);
 
   FFdReplaceNodes := TMFNode.Create(Self, 'replaceNodes', [TX3DNode]);
-  Fields.Add(FFdReplaceNodes);
+  AddField(FFdReplaceNodes);
 end;
 
 class function TKambiInlineNode.ClassNodeTypeName: string;
@@ -587,7 +587,7 @@ begin
   ReplaceCount := Min(FdreplaceNames.Count, FdreplaceNodes.Count);
   if (FdreplaceNames.Count <> ReplaceCount) or
      (FdreplaceNodes.Count <> ReplaceCount) then
-    OnWarning(wtMajor, 'VRML/X3D', 'replaceNames and replaceNodes for KambiInline node should have the same number of items');
+    WritelnWarning('VRML/X3D', 'replaceNames and replaceNodes for KambiInline node should have the same number of items');
 
   { After successfull loading, there's always exactly one child. }
   Assert(VRML1ChildrenCount = 1);
@@ -628,34 +628,34 @@ begin
 
   FFdTimeOriginAtLoad := TSFBool.Create(Self, 'timeOriginAtLoad', false);
   FFdTimeOriginAtLoad.Exposed := false;
-  Fields.Add(FFdTimeOriginAtLoad);
+  AddField(FFdTimeOriginAtLoad);
 
   FFdOctreeRendering := TSFNode.Create(Self, 'octreeRendering', [TKambiOctreePropertiesNode]);
   FFdOctreeRendering.Exposed := false;
-  Fields.Add(FFdOctreeRendering);
+  AddField(FFdOctreeRendering);
 
   FFdOctreeDynamicCollisions := TSFNode.Create(Self, 'octreeDynamicCollisions', [TKambiOctreePropertiesNode]);
   FFdOctreeDynamicCollisions.Exposed := false;
-  Fields.Add(FFdOctreeDynamicCollisions);
+  AddField(FFdOctreeDynamicCollisions);
 
   FFdOctreeVisibleTriangles := TSFNode.Create(Self, 'octreeVisibleTriangles', [TKambiOctreePropertiesNode]);
   FFdOctreeVisibleTriangles.Exposed := false;
-  Fields.Add(FFdOctreeVisibleTriangles);
+  AddField(FFdOctreeVisibleTriangles);
 
   FFdOctreeCollidableTriangles := TSFNode.Create(Self, 'octreeCollidableTriangles', [TKambiOctreePropertiesNode]);
   FFdOctreeCollidableTriangles.Exposed := false;
-  Fields.Add(FFdOctreeCollidableTriangles);
+  AddField(FFdOctreeCollidableTriangles);
 
   FFdHeadBobbing := TSFFloat.Create(Self, 'headBobbing', TWalkCamera.DefaultHeadBobbing, true);
    FdHeadBobbing.ChangesAlways := [chNavigationInfo];
-  Fields.Add(FFdHeadBobbing);
+  AddField(FFdHeadBobbing);
 
   FFdHeadBobbingTime := TSFFloat.Create(Self, 'headBobbingTime', TWalkCamera.DefaultHeadBobbingTime, true);
    FdHeadBobbingTime.ChangesAlways := [chNavigationInfo];
-  Fields.Add(FdHeadBobbingTime);
+  AddField(FdHeadBobbingTime);
 
   FFdHeadlightNode := TSFNode.Create(Self, 'headlightNode', [TAbstractLightNode]);
-  Fields.Add(FFdHeadlightNode);
+  AddField(FFdHeadlightNode);
 end;
 
 class function TKambiNavigationInfoNode.ClassNodeTypeName: string;
@@ -692,11 +692,11 @@ begin
 
   FFdMaxDepth := TSFInt32.Create(Self, 'maxDepth', -1);
    FdMaxDepth.ChangesAlways := [chEverything];
-  Fields.Add(FFdMaxDepth);
+  AddField(FFdMaxDepth);
 
   FFdLeafCapacity := TSFInt32.Create(Self, 'leafCapacity', -1);
    FdLeafCapacity.ChangesAlways := [chEverything];
-  Fields.Add(FFdLeafCapacity);
+  AddField(FFdLeafCapacity);
 end;
 
 class function TKambiOctreePropertiesNode.ClassNodeTypeName: string;
@@ -715,12 +715,12 @@ begin
   if FdMaxDepth.Value >= 0 then
     Limits.MaxDepth := FdMaxDepth.Value else
   if FdMaxDepth.Value <> -1 then
-    OnWarning(wtMajor, 'VRML/X3D', 'KambiOctreeProperties.maxDepth must be >= -1');
+    WritelnWarning('VRML/X3D', 'KambiOctreeProperties.maxDepth must be >= -1');
 
   if FdLeafCapacity.Value >= 0 then
     Limits.LeafCapacity := FdLeafCapacity.Value else
   if FdLeafCapacity.Value <> -1 then
-    OnWarning(wtMajor, 'VRML/X3D', 'KambiOctreeProperties.leafCapacity must be >= -1');
+    WritelnWarning('VRML/X3D', 'KambiOctreeProperties.leafCapacity must be >= -1');
 end;
 
 procedure TGeneratedShadowMapNode.CreateNode;
@@ -728,13 +728,13 @@ begin
   inherited;
 
   FFdUpdate := TSFTextureUpdate.Create(Self, 'update', upNone);
-  Fields.Add(FFdUpdate);
+  AddField(FFdUpdate);
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 
   FFdSize := TSFInt32.Create(Self, 'size', 128, { MustBeNonnegative } true);
    FdSize.Exposed := false;
    FdSize.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdSize);
+  AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
 
   { Note that light node is not enumerated as an active node
@@ -744,19 +744,19 @@ begin
     GeneratedShadowMap. }
   FFdLight := TSFNode.Create(Self, 'light', [TAbstractLightNode]);
    FdLight.ChangesAlways := [chGeneratedTextureUpdateNeeded];
-  Fields.Add(FFdLight);
+  AddField(FFdLight);
 
   FFdScale := TSFFloat.Create(Self, 'scale', DefaultShadowMapScale, { MustBeNonnegative } true);
    FdScale.ChangesAlways := [chGeneratedTextureUpdateNeeded];
-  Fields.Add(FFdScale);
+  AddField(FFdScale);
 
   FFdBias := TSFFloat.Create(Self, 'bias', DefaultShadowMapBias, { MustBeNonnegative } true);
    FdBias.ChangesAlways := [chGeneratedTextureUpdateNeeded];
-  Fields.Add(FFdBias);
+  AddField(FFdBias);
 
   FFdCompareMode := TSFString.Create(Self, 'compareMode', 'COMPARE_R_LEQUAL');
    FdCompareMode.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdCompareMode);
+  AddField(FFdCompareMode);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
   FGeneratedTextureHandler.FUpdate := FdUpdate;
@@ -800,7 +800,7 @@ begin
      TSpotLightNode  , TDirectionalLightNode  ,
      TAbstractX3DViewpointNode]);
    FFdprojector.ChangesAlways := [chTextureCoordinate];
-  Fields.Add(FFdProjector);
+  AddField(FFdProjector);
 end;
 
 class function TProjectedTextureCoordinateNode.ClassNodeTypeName: string;
@@ -820,17 +820,17 @@ begin
 
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
    FdEnabled.ChangesAlways := [chScreenEffectEnabled];
-  Fields.Add(FFdEnabled);
+  AddField(FFdEnabled);
 
   FFdShaders := TMFNodeShaders.Create(Self, 'shaders', [TAbstractShaderNode]);
    FdShaders.ChangesAlways := [chEverything];
-  Fields.Add(FFdShaders);
+  AddField(FFdShaders);
 
   FFdNeedsDepth := TSFBool.Create(Self, 'needsDepth', false);
    { no change needed, TCastleScene recalculates NeedsDepth every time
      when ScreenEffectsNeedDepth is called by scene manager. }
    FdNeedsDepth.ChangesAlways := [];
-  Fields.Add(FFdNeedsDepth);
+  AddField(FFdNeedsDepth);
 
   FStateForShaderPrepare := TX3DGraphTraverseState.Create;
 end;
@@ -857,7 +857,7 @@ begin
   Result := inherited;
   if Result <> nil then Exit;
 
-  Result := FFdShaders.SearchValid(Func);
+  Result := FFdShaders.Enumerate(Func);
   if Result <> nil then Exit;
 end;
 
@@ -889,16 +889,16 @@ begin
   FFdLanguage := TSFString.Create(Self, 'language', '');
    FdLanguage.Exposed := false;
    FdLanguage.ChangesAlways := [chEverything];
-  Fields.Add(FFdLanguage);
+  AddField(FFdLanguage);
 
   FFdParts := TMFNode.Create(Self, 'parts', [TEffectPartNode]);
    FdParts.Exposed := false;
    FdParts.ChangesAlways := [chEverything];
-  Fields.Add(FFdParts);
+  AddField(FFdParts);
 
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
    FdEnabled.ChangesAlways := [chVisibleNonGeometry];
-  Fields.Add(FFdEnabled);
+  AddField(FFdEnabled);
 
   HasInterfaceDeclarations := AllAccessTypes;
 end;
@@ -931,12 +931,12 @@ begin
   FFdType := TSFStringEnum.Create(Self, 'type', ShaderTypeNameX3D, Ord(stVertex));
    FdType.Exposed := false;
    FdType.ChangesAlways := [chEverything];
-  Fields.Add(FFdType);
+  AddField(FFdType);
 
   FFdUrl := TMFString.Create(Self, 'url', []);
    FdUrl.ChangesAlways := [chEverything];
    FdUrl.OnReceive.Add(@EventUrlReceive);
-  Fields.Add(FFdUrl);
+  AddField(FFdUrl);
 
   DefaultContainerField := 'parts';
 end;
@@ -985,7 +985,7 @@ begin
   FFdDefaultTexCoord := TSFString.Create(Self, 'defaultTexCoord', 'BOUNDS2D');
    FdDefaultTexCoord.Exposed := false;
    FdDefaultTexCoord.ChangesAlways := [chEverything];
-  Fields.Add(FFdDefaultTexCoord);
+  AddField(FFdDefaultTexCoord);
 end;
 
 class function TShaderTextureNode.ClassNodeTypeName: string;

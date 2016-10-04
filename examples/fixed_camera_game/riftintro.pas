@@ -84,7 +84,7 @@ begin
   { Are we on the way to exit intro }
   if IntroPart > High(IntroParts) then Exit;
 
-  GLClear([cbColor], Black);
+  RenderContext.Clear([cbColor], Black);
 
   if (IntroPartTime >= IntroParts[IntroPart].CorrodeDuration) or
      not GLFeatures.BlendConstant then

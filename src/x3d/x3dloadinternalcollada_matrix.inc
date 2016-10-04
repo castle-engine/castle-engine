@@ -40,7 +40,7 @@ begin
       Token := NextToken(Content, SeekPos);
       if Token = '' then
       begin
-        OnWarning(wtMinor, 'Collada', 'Matrix (<matrix> or <bind_shape_matrix> ' +
+        WritelnWarning('Collada', 'Matrix (<matrix> or <bind_shape_matrix> ' +
           'element) has not enough items');
         Break;
       end;
@@ -66,7 +66,7 @@ var
       Token := NextToken(Content, SeekPos);
       if Token = '' then
       begin
-        OnWarning(wtMinor, 'Collada', 'Unexpected end of data of <lookat>');
+        WritelnWarning('Collada', 'Unexpected end of data of <lookat>');
         Exit(false);
       end;
       Vector[I] := StrToFloat(Token);

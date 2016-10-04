@@ -83,12 +83,12 @@ begin
 
   Attributes.OnVertexColor := @VertexColor;
 
-  SphereNode := TSphereNode.Create('', '');
+  SphereNode := TSphereNode.Create;
 
-  Shape := TShapeNode.Create('', '');
+  Shape := TShapeNode.Create;
   Shape.FdGeometry.Value := SphereNode;
 
-  Root := TX3DRootNode.Create('', '');
+  Root := TX3DRootNode.Create;
   Root.FdChildren.Add(Shape);
 
   Load(Root, true);

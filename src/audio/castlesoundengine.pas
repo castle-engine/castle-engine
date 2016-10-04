@@ -522,14 +522,14 @@ type
       (like the @link(Sound) and @link(Sound3D) methods) you have to set this
       property. For example like this:
 
-@longCode(#
-  SoundEngine.RepositoryURL := ApplicationData('sounds.xml');
-  stMySound1 := SoundEngine.SoundFromName('my_sound_1');
-  stMySound2 := SoundEngine.SoundFromName('my_sound_2');
-  // ... and later in your game you can do stuff like this:
-  SoundEngine.Sound(stMySound1);
-  SoundEngine.Sound3D(stMySound1, Vector3Single(0, 0, 10));
-#)
+      @longCode(#
+        SoundEngine.RepositoryURL := ApplicationData('sounds.xml');
+        stMySound1 := SoundEngine.SoundFromName('my_sound_1');
+        stMySound2 := SoundEngine.SoundFromName('my_sound_2');
+        // ... and later in your game you can do stuff like this:
+        SoundEngine.Sound(stMySound1);
+        SoundEngine.Sound3D(stMySound1, Vector3Single(0, 0, 10));
+      #)
 
       See CastleFilesUtils unit for docs of ApplicationData function.
     }
@@ -708,7 +708,7 @@ implementation
 uses DOM, XMLRead, StrUtils,
   CastleUtils, CastleALUtils, CastleLog, CastleProgress,
   CastleSoundFile, CastleVorbisFile, CastleEFX, CastleParameters,
-  CastleWarnings, CastleXMLUtils, CastleFilesUtils, CastleConfig,
+  CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties;
 
 type
@@ -1035,7 +1035,7 @@ procedure TSoundEngine.ALContextOpen;
         alGetString(AL_EXTENSIONS),
         MinAllocatedSources, MaxAllocatedSources,
         TSoundOggVorbis.VorbisMethod,
-        BoolToStr[VorbisFileInited]
+        BoolToStr(VorbisFileInited, true)
       ]);
   end;
 
@@ -1611,12 +1611,15 @@ end;
 procedure TRepoSoundEngine.LoadSoundsBuffers;
 var
   ST: TSoundType;
+  ProgressActive: boolean;
 begin
   { load sound buffers and allocate sound for music. Only if we have any sound
     (other than stNone). }
   if ALActive and (Sounds.Count > 1) then
   begin
-    Progress.Init(Sounds.Count - 1, 'Loading sounds');
+    ProgressActive := Progress.Active;
+    if not ProgressActive then
+      Progress.Init(Sounds.Count - 1, 'Loading sounds');
     try
       { We do progress to "Sounds.Count - 1" because we start
         iterating from ST = 1 because ST = 0 = stNone never exists. }
@@ -1630,13 +1633,17 @@ begin
           on E: Exception do
           begin
             Sounds[ST].FBuffer := 0;
-            OnWarning(wtMinor, 'Sound', Format('Sound file "%s" cannot be loaded: %s',
+            WritelnWarning('Sound', Format('Sound file "%s" cannot be loaded: %s',
               [Sounds[ST].URL, E.Message]));
           end;
         end;
-        Progress.Step;
+        if not ProgressActive then
+          Progress.Step;
       end;
-    finally Progress.Fini; end;
+    finally
+      if not ProgressActive then
+        Progress.Fini;
+    end;
 
     MusicPlayer.AllocateSource;
   end;
@@ -1838,7 +1845,7 @@ begin
       Exit;
 
   if Required then
-    OnWarning(wtMinor, 'Sound', Format('Unknown sound name "%s"', [SoundName]));
+    WritelnWarning('Sound', Format('Unknown sound name "%s"', [SoundName]));
   Result := stNone;
 end;
 

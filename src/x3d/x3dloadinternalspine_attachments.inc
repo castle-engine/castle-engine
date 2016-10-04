@@ -131,7 +131,7 @@ begin
   end else
   if TypeName = 'skinnedmesh' then
   begin
-    OnWarning(wtMinor, 'Spine', Format('Spine region type "skinnedmesh" is for now not deformed during animation, for attachment "%s"',
+    WritelnWarning('Spine', Format('Spine region type "skinnedmesh" is for now not deformed during animation, for attachment "%s"',
       [AnAttachmentName]));
     Result := TSkinnedMeshAttachment.Create;
     Result.SlotName := ASlotName;
@@ -142,7 +142,7 @@ begin
      (TypeName = 'regionsequence') then
   begin
     if TypeName = 'regionsequence' then
-      OnWarning(wtMinor, 'Spine', 'Spine region type "regionsequence" is for now rendered just like normal "region"');
+      WritelnWarning('Spine', 'Spine region type "regionsequence" is for now rendered just like normal "region"');
     Result := TRegionAttachment.Create;
     Result.SlotName := ASlotName;
     Result.AttachmentName := AnAttachmentName;
@@ -150,7 +150,7 @@ begin
   end else
   if TypeName = 'boundingbox' then
   begin
-    OnWarning(wtMinor, 'Spine', 'Spine region type "boundingbox" is ignored for now');
+    WritelnWarning('Spine', 'Spine region type "boundingbox" is ignored for now');
     Result := nil;
   end else
     raise ESpineReadError.CreateFmt('Attachment type "%s" not supported', [TypeName]);
@@ -198,7 +198,7 @@ var
   TexRotated: boolean;
 begin
   if Node <> nil then
-    OnWarning(wtMinor, 'Spine', 'TRegionAttachment.BuildNodes multiple times on same node');
+    WritelnWarning('Spine', 'TRegionAttachment.BuildNodes multiple times on same node');
 
   Node := TTransformNode.Create(
     Format('Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
@@ -223,10 +223,7 @@ begin
   Shape.Material := TMaterialNode.Create(
     Format('Material_Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
     BaseUrl);
-  Shape.Material.FdDiffuseColor.Value := ZeroVector3Single;
-  Shape.Material.FdSpecularColor.Value := ZeroVector3Single;
-  Shape.Material.FdAmbientIntensity.Value := 0;
-  Assert(Shape.Material.OnlyEmissiveMaterial);
+  Shape.Material.ForcePureEmissive;
   Shape.Material.FdEmissiveColor.Value := Vector3Single(1, 1, 1);
   Material := Shape.Material;
 end;
@@ -297,9 +294,9 @@ begin
 
   ReadLongIntList(Json, 'triangles', Triangles);
   if Triangles.Count mod 3 <> 0 then
-    OnWarning(wtMajor, 'Spine', 'Triangles list ends in the middle of the triangle');
+    WritelnWarning('Spine', 'Triangles list ends in the middle of the triangle');
   if Triangles.Count = 0 then
-    OnWarning(wtMajor, 'Spine', 'Triangles empty, mesh is empty');
+    WritelnWarning('Spine', 'Triangles empty, mesh is empty');
 
   ReadLongIntList(Json, 'edges', Edges);
   Hull := Json.Get('hull', 0);
@@ -351,7 +348,7 @@ begin
       [SlotName, Name]));
 
   if TexRotated then
-    OnWarning(wtMajor, 'Spine', 'Atlas region is rotated, and is used for mesh attachment. This is not supported (texture will most likely be applied incorrectly), export atlas again with "Rotate" turned off.');
+    WritelnWarning('Spine', 'Atlas region is rotated, and is used for mesh attachment. This is not supported (texture will most likely be applied incorrectly), export atlas again with "Rotate" turned off.');
 
   TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
   UVRangeX[0] := Min(TexCoord[0][0], TexCoord[2][0]);
@@ -374,7 +371,7 @@ begin
   ReadVector2SingleList(Json, 'vertices', Vertices);
   if UVs.Count <> Vertices.Count then
   begin
-    OnWarning(wtMajor, 'Spine', Format('uvs and vertices lists have different number of items, respectively %d and %d, for mesh attachment %s',
+    WritelnWarning('Spine', Format('uvs and vertices lists have different number of items, respectively %d and %d, for mesh attachment %s',
       [UVs.Count, Vertices.Count, Name]));
     Vertices.Count := UVs.Count;
   end;
@@ -429,13 +426,13 @@ begin
     if I + BonesCount * 4 < JsonArray.Count then
     begin
       if BonesCount = 0 then
-        OnWarning(wtMajor, 'Spine', 'skinnedmesh bonesCount is <= 0');
+        WritelnWarning('Spine', 'skinnedmesh bonesCount is <= 0');
       V := TSkinnedMeshVertex.Create;
       V.Parse(JsonArray, I + 1, BonesCount, Bones);
       Add(V);
     end else
     begin
-      OnWarning(wtMajor, 'Spine', Format('skinnedmesh weights (called "vertices" in JSON) do not have enough items (last bonesCount = %d, but array does not have enough floats)',
+      WritelnWarning('Spine', Format('skinnedmesh weights (called "vertices" in JSON) do not have enough items (last bonesCount = %d, but array does not have enough floats)',
         [BonesCount]));
       Break;
     end;
@@ -472,7 +469,7 @@ begin
 
   if UVs.Count <> Weights.Count then
   begin
-    OnWarning(wtMajor, 'Spine', Format('skinnedmesh weights (called "vertices" in JSON) and uvs have different number of items, respectively %d and %d, for skinnedmesh attachment %s',
+    WritelnWarning('Spine', Format('skinnedmesh weights (called "vertices" in JSON) and uvs have different number of items, respectively %d and %d, for skinnedmesh attachment %s',
       [UVs.Count, Vertices.Count, Name]));
     Exit;
   end;

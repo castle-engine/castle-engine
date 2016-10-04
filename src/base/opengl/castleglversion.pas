@@ -57,14 +57,24 @@ type
     function AtLeast(AMajor, AMinor: Integer): boolean;
   end;
 
+  TGLVendorType = (
+    gvUnknown,
+    { ATI GPU with ATI drivers. }
+    gvATI,
+    { NVidia GPU with NVidia drivers. }
+    gvNvidia,
+    { Intel GPU with Intel drivers. }
+    gvIntel,
+    { Imagination Technologies (PowerVR) GPU, common on mobile devices. }
+    gvImaginationTechnologies
+  );
+
   TGLVersion = class(TGenericGLVersion)
   private
     FVendor: string;
+    FVendorType: TGLVendorType;
     FRenderer: string;
-    FVendorATI: boolean;
     FFglrx: boolean;
-    FVendorNVidia: boolean;
-    FVendorIntel: boolean;
     FMesa: boolean;
     FVendorMajor: Integer;
     FVendorMinor: Integer;
@@ -81,12 +91,16 @@ type
     FBuggySwapNonStandardViewport: boolean;
     FBuggyDepth32: boolean;
     FBuggyGLSLFrontFacing: boolean;
+    FBuggyGLSLReadVarying: boolean;
   public
     constructor Create(const VersionString, AVendor, ARenderer: string);
 
     { Vendor that created the OpenGL implemenetation.
       This is just glGetString(GL_VENDOR). }
     property Vendor: string read FVendor;
+
+    { Vendor type, derived from @link(Vendor) string. }
+    property VendorType: TGLVendorType read FVendorType;
 
     { Renderer (GPU model, or software method used for rendering) of the OpenGL.
       This is just glGetString(GL_RENDERER). }
@@ -104,17 +118,8 @@ type
     property VendorRelease: Integer read FVendorRelease;
     { @groupEnd }
 
-    { ATI GPU with ATI drivers. }
-    property VendorATI: boolean read FVendorATI;
-
     { ATI GPU with ATI drivers on Linux. }
     property Fglrx: boolean read FFglrx;
-
-    { NVidia GPU with NVidia drivers. }
-    property VendorNVidia: boolean read FVendorNVidia;
-
-    { Intel GPU with Intel drivers. }
-    property VendorIntel: boolean read FVendorIntel;
 
     { Buggy glGenerateMipmapEXT (Mesa and Intel(Windows) bug).
 
@@ -203,6 +208,9 @@ type
       So enable backface culling, or just be prepared that backfaces may be
       incorrectly light. }
     property BuggyGLSLFrontFacing: boolean read FBuggyGLSLFrontFacing;
+
+    { Do not read varying values in vertex shader, treat them as write-only. }
+    property BuggyGLSLReadVarying: boolean read FBuggyGLSLReadVarying;
   end;
 
 var
@@ -216,9 +224,11 @@ var
   GLUVersion: TGenericGLVersion;
   {$endif}
 
+function VendorTypeToStr(const VendorType: TGLVendorType): string;
+
 implementation
 
-uses SysUtils, CastleStringUtils, CastleUtils, CastleWarnings;
+uses SysUtils, CastleStringUtils, CastleUtils, CastleLog;
 
 { Skip whitespace. Moves I to next index after whitespace. }
 procedure ParseWhiteSpaces(const S: string; var I: Integer);
@@ -278,11 +288,11 @@ begin
 
     {$ifdef OpenGLES}
     if ParseString(VersionString, I) <> 'OpenGL' then
-      OnWarning(wtMinor, 'OpenGL', 'OpenGL ES version string 1st component must be "OpenGL"');
+      WritelnWarning('OpenGL', 'OpenGL ES version string 1st component must be "OpenGL"');
     ParseWhiteSpaces(VersionString, I);
 
     if not IsPrefix('ES', ParseString(VersionString, I)) then
-      OnWarning(wtMinor, 'OpenGL', 'OpenGL ES version string 2nd component must start with "ES"');
+      WritelnWarning('OpenGL', 'OpenGL ES version string 2nd component must start with "ES"');
     ParseWhiteSpaces(VersionString, I);
     {$endif}
 
@@ -432,23 +442,28 @@ begin
   FVendor := AVendor;
   FRenderer := ARenderer;
 
-  { Actually seen possible values here: 'NVIDIA Corporation'. }
-  FVendorNVidia := IsPrefix('NVIDIA', Vendor);
-
+  { calculate FVendorType }
+  if IsPrefix('NVIDIA', Vendor) then // Actually seen possible values here: 'NVIDIA Corporation'.
+    FVendorType := gvNvidia else
   { Although "ATI Technologies Inc." is usually found,
     according to http://delphi3d.net/hardware/listreports.php
     also just "ATI" is possible. }
-  FVendorATI := (Vendor = 'ATI Technologies Inc.') or (Vendor = 'ATI');
-  FFglrx := {$ifdef LINUX} VendorATI {$else} false {$endif};
+  if (Vendor = 'ATI Technologies Inc.') or (Vendor = 'ATI') then
+    FVendorType := gvATI else
+  if IsPrefix('Intel', Vendor) then
+    FVendorType := gvIntel else
+  if (Vendor = 'Imagination Technologies') then
+    FVendorType := gvImaginationTechnologies else
+    FVendorType := gvUnknown;
 
-  FVendorIntel := IsPrefix('Intel', Vendor);
+  FFglrx := {$ifdef LINUX} VendorType = gvATI {$else} false {$endif};
 
   FBuggyGenerateMipmap := (Mesa and (not VendorVersionAtLeast(7, 5, 0)))
-                          {$ifdef WINDOWS} or VendorIntel {$endif};
+                          {$ifdef WINDOWS} or (VendorType = gvIntel) {$endif};
 
-  FBuggyFBOCubeMap := {$ifdef WINDOWS} VendorIntel {$else} false {$endif};
+  FBuggyFBOCubeMap := {$ifdef WINDOWS} VendorType = gvIntel {$else} false {$endif};
 
-  FBuggyGenerateCubeMap := {$ifdef WINDOWS} (VendorIntel and SameText(Renderer, 'Intel(R) HD Graphics 4000')) {$else} false {$endif};
+  FBuggyGenerateCubeMap := {$ifdef WINDOWS} ((VendorType = gvIntel) and SameText(Renderer, 'Intel(R) HD Graphics 4000')) {$else} false {$endif};
   { On which fglrx versions does this occur?
 
     - On Catalyst 8.12 (fglrx 8.561) all seems to work fine
@@ -496,14 +511,14 @@ begin
       since Ubuntu 10.04, which is fglrx >= 8.723). }
     Fglrx and ReleaseExists and (Release >= 8723);
 
-  FBuggyGLSLConstStruct := {$ifdef LINUX} VendorNvidia {$else} false {$endif};
+  FBuggyGLSLConstStruct := {$ifdef LINUX} VendorType = gvNvidia {$else} false {$endif};
 
    { Reported on Radeon 6600, 6850 - looks like wireframe
      Also on Intel cards - querying multisampled depth buffer returns bad data. }
   FBuggyFBOMultiSampling :=
-    {$ifdef WINDOWS} (VendorATI and
+    {$ifdef WINDOWS} ((VendorType = gvATI) and
       (IsPrefix('AMD Radeon HD 6', Renderer) or IsPrefix('AMD Radeon HD6', Renderer)))
-    or (VendorIntel and (not VendorVersionAtLeast(9, 18, 10)))
+    or ((VendorType = gvIntel) and (not VendorVersionAtLeast(9, 18, 10)))
     {$else} false {$endif};
 
   { Observed on fglrx (ATI proprietary OpenGL driver under Linux,
@@ -550,9 +565,36 @@ begin
       Vendor: X.Org
       Renderer: Gallium 0.4 on AMD RV710
   }
-  // TODO: force false temporary for
-  // https://sourceforge.net/p/castle-engine/tickets/36/
-  FBuggyGLSLFrontFacing := false;//Mesa and (VendorMajor = 10) and (Major = 3);
+  FBuggyGLSLFrontFacing := Mesa and (VendorMajor = 10) and (Major = 3);
+
+  { observed on Android on
+
+      Version string: OpenGL ES 2.0 build 1.9.RC2@2130229
+      Version parsed: major: 2, minor: 0, release exists: False, release: 0, vendor-specific information: "build 1.9.RC2@2130229"
+      Vendor-specific version parsed: major: 1, minor: 9, release: 0
+      Vendor: Imagination Technologies
+      Renderer: PowerVR SGX 540
+  }
+  FBuggyGLSLReadVarying :=
+    {$ifdef ANDROID}
+    (VendorType = gvImaginationTechnologies) and
+    (Major = 2)
+    {$else} false
+    {$endif};
+end;
+
+const
+  VendorTypeNames: array [TGLVendorType] of string =
+  ( 'Unknown',
+    'ATI',
+    'Nvidia',
+    'Intel',
+    'Imagination Technologies'
+  );
+
+function VendorTypeToStr(const VendorType: TGLVendorType): string;
+begin
+  Result := VendorTypeNames[VendorType];
 end;
 
 end.

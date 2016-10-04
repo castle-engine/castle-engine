@@ -210,12 +210,12 @@ begin
     However, for TX3DUnknownNode, it's not that easy. Two different instances
     of TX3DUnknownNode class may have completely different fields,
     so we must safeguard against this. }
-  if Model1.Fields.Count <> Model2.Fields.Count then
+  if Model1.FieldsCount <> Model2.FieldsCount then
     raise EModelsStructureDifferent.CreateFmt(
       'Different number of fields in nodes: "%d" and "%d"',
-      [Model1.Fields.Count, Model2.Fields.Count]);
+      [Model1.FieldsCount, Model2.FieldsCount]);
 
-  for I := 0 to Model1.Fields.Count - 1 do
+  for I := 0 to Model1.FieldsCount - 1 do
   begin
     if Model1.Fields[I].ClassType <> Model2.Fields[I].ClassType then
       raise EModelsStructureDifferent.CreateFmt(
@@ -375,7 +375,7 @@ begin
 
   if not Result then Exit;
 
-  for I := 0 to Model1.Fields.Count - 1 do
+  for I := 0 to Model1.FieldsCount - 1 do
   begin
     if Model1.Fields[I] is TSFNode then
     begin
@@ -464,7 +464,7 @@ begin
     { TODO: for TX3DUnknownNode, we should fill here Result.Fields.
       Also for TX3DPrototypeNode. }
 
-    for I := 0 to Model1.Fields.Count - 1 do
+    for I := 0 to Model1.FieldsCount - 1 do
     begin
       if Model1.Fields[I] is TSFNode then
       begin

@@ -18,10 +18,10 @@
 {$apptype CONSOLE}
 
 uses Classes, SysUtils,
-  CastleFont2Pascal, CastleUtils, CastleClassUtils, CastleWarnings,
-  CastleParameters, CastleTextureFontData, CastleStringUtils, CastleLog,
+  CastleFont2Pascal, CastleUtils, CastleClassUtils, CastleLog,
+  CastleParameters, CastleTextureFontData, CastleStringUtils,
   CastleURIUtils, CastleProgress, CastleProgressConsole, CastleUnicode,
-  CastleImages;
+  CastleImages, CastleApplicationProperties;
 
 var
   Size: Integer = 10;
@@ -89,7 +89,7 @@ var
   PrecedingComment, UnitName, FontConstantName, OutURL, FontURL, FontName: string;
   Characters: TUnicodeCharList;
 begin
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHigh(1);
@@ -112,7 +112,7 @@ begin
     '    Name         : %s' +NL+
     '    Size         : %d' +NL+
     '    AntiAliasing : %s' +nl,
-    [ FontName, Size, BoolToStr[AntiAliasing] ]);
+    [ FontName, Size, BoolToStr(AntiAliasing, true) ]);
 
   Characters := TUnicodeCharList.Create;
   try

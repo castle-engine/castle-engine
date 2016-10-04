@@ -18,7 +18,7 @@
   Simply set @code(WindowProgressInterface.Window) to your TCastleWindowCustom
   instance, and assign
 
-@longCode(#  Progress.UserInterface := WindowProgressInterface;#)
+  @longCode(#  Progress.UserInterface := WindowProgressInterface;#)
 
   Between Progress.Init and Fini you shouldn't do anything with
   window set as @code(WindowProgressInterface.Window).
@@ -30,7 +30,7 @@
   state of your window. Usually it's best and safest to use try..finally
   block like
 
-@longCode(#  Progress.Init; try.....finally Progress.Fini; end; #) }
+  @longCode(#  Progress.Init; try.....finally Progress.Fini; end; #) }
 
 
 unit CastleWindowProgress;

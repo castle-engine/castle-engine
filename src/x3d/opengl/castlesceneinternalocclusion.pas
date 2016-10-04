@@ -50,7 +50,7 @@ procedure SimpleOcclusionQueryRender(const Shape: TGLShape;
 implementation
 
 uses SysUtils, CastleClassUtils, CastleShapeOctree, CastleBoxes,
-  CastleGLUtils, CastleGL, CastleVectors;
+  CastleGLUtils, CastleGL, CastleVectors, CastleGLShaders;
 
 {$ifndef OpenGLES} // TODO-es this whole unit
 
@@ -81,6 +81,8 @@ const
   );
 begin
   if Box.IsEmpty then Exit;
+
+  CurrentProgram := nil;
 
   { Verts index in octal notation indicates which of 8 vertexes it is. }
   Verts[0] := Box.Data[0];

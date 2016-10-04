@@ -1,5 +1,5 @@
 {
-  Copyright 2015 Tomasz Wojtyś
+  Copyright 2015-2016 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,15 +18,28 @@
 {$ifdef read_interface}
 
 type
-
-  { Single frame individual duration time (in seconds). }
+  { A frame of a custom animation. Part of the TSpriteAnimation. }
   TSpriteAnimationFrame = record
+    { Frame number from the sprite. }
     Frame: Cardinal;
+    { This frame individual duration time (in seconds). }
     Duration: Single;
   end;
 
-  { Custom animation of a sprite. Animation is defined as array of used frames. }
-  TSpriteAnimation = array of TSpriteAnimationFrame;
+  { Custom animation of a sprite.
+    Used by TSprite.AddAnimation and TSprite.PlayAnimation.
+    Animation is defined as an array of frames. }
+  TSpriteAnimation = class
+  strict private
+    FDuration: TFloatTime;
+  private
+    Frames: array of TSpriteAnimationFrame;
+  public
+    constructor Create(const AFrames: array of Cardinal; const FramesPerSecond: Single);
+    constructor Create(const AFrames: array of TSpriteAnimationFrame);
+    { Duration, in seconds, of this animation. }
+    property Duration: TFloatTime read FDuration;
+  end;
 
   { Sprite is an animation composed from frames arranged
     in rows and columns inside a single image.
@@ -44,21 +57,21 @@ type
   TSprite = class
   private
     type
-      TSpriteAnimations = specialize TFPGList<TSpriteAnimation>;
+      TSpriteAnimations = specialize TFPGObjectList<TSpriteAnimation>;
     var
     FImage: TGLImage;
     FX, FY: Integer;
     FDrawingWidth, FDrawingHeight: Cardinal;
     FFrames, FFrameWidth, FFrameHeight, FColumns: Cardinal;
     FFramesPerSecond: Single;
-    FAnimTime: TFloatTime;
+    FTime: TFloatTime;
     FFrame, FCustomFrame: Cardinal;
     FPlaying: Boolean;
     FTimeLoop: Boolean;
-    FLeftMarginOffset, FTopMarginOffset: Cardinal;
+    FLeftMargin, FTopMargin: Cardinal;
+    FFrameHorizontalMargin, FFrameVerticalMargin: Cardinal;
     FTimeBackwards: Boolean;
-    FAnimations: TSpriteAnimations;
-    FUseCustomAnimations: Boolean;
+    FCustomAnimations: TSpriteAnimations;
     FCurrentAnimation: Integer;
     FCustomAnimTimestamp: TFloatTime;
     function GetCenterX: Single;
@@ -68,7 +81,7 @@ type
     function GetCenter: TVector2Single;
     function GetPosition: TVector2Integer;
     function GetRotation: Single;
-    procedure SetAnimTime(AValue: TFloatTime);
+    procedure SetTime(AValue: TFloatTime);
     procedure SetCenter(AValue: TVector2Single);
     procedure SetCenterX(AValue: Single);
     procedure SetCenterY(AValue: Single);
@@ -123,13 +136,18 @@ type
 
     { Update current frame.
       @param(SecondsPassed Time from previous update.) }
-    procedure Update(SecondsPassed: Single);
+    procedure Update(const SecondsPassed: TFloatTime);
 
-    { Play animation. }
+    { Play playing animation.,
+      When playing, the @link(Time) will move forward when you call @link(Update). }
     procedure Play;
 
-    { Pause animation. }
-    procedure Pause;
+    { Stop playing animation.
+      When stopped, the @link(Time) will not move forward, regardless
+      if you call @link(Update). }
+    procedure Stop;
+
+    procedure Pause; deprecated 'use Stop';
 
     { Draw the sprite.
 
@@ -145,11 +163,22 @@ type
       This is the rotation of the frame on screen.
 
       The overloaded versions deliberately look and work
-      similar to @link(TGLImageCore.Draw) versions. }
+      similar to @link(TGLImageCore.Draw) versions.
+      @groupBegin }
     procedure Draw;
     procedure Draw(const AX, AY: Single);
     procedure Draw(const AX, AY, DrawWidth, DrawHeight: Single);
     procedure Draw(const ScreenRectangle: TRectangle);
+    procedure Draw(const ScreenRectangle: TFloatRectangle);
+    { @groupEnd }
+
+    { Draw the sprite, optionally flipped horizontally and/or vertically.
+      @groupBegin }
+    procedure DrawFlipped(const ScreenRect: TRectangle;
+      const FlipHorizontal, FlipVertical: boolean);
+    procedure DrawFlipped(const ScreenRect: TFloatRectangle;
+      const FlipHorizontal, FlipVertical: boolean);
+    { @groupEnd }
 
     { Move sprite to position and rotation. }
     procedure Move(AX, AY: Integer; ARot: Single=0);
@@ -183,8 +212,13 @@ type
     { Total number of frames. Readonly. Defined at creation. }
     property Frames: Cardinal read FFrames;
 
-    { How many frames per second to play. }
-    property FramesPerSecond: Single read FFramesPerSecond write SetFramesPerSecond default DefaultFramesPerSecond;
+    { How many frames per second to play.
+      This is used only for the default sprite animation (spanning all frames).
+      For the custom animations (added by AddAnimation), each frame
+      has an explicit (possibly different) duration. }
+    property FramesPerSecond: Single
+      read FFramesPerSecond write SetFramesPerSecond
+      default DefaultFramesPerSecond;
 
     { Current frame. }
     property Frame: Cardinal read FFrame write SetFrame;
@@ -200,7 +234,7 @@ type
       Yoy can set this explicity. Alternatively, you can call the @link(Update)
       method continously while the animation is @link(Playing), and then
       the time will increase automatically. }
-    property Time: TFloatTime read FAnimTime write SetAnimTime;
+    property Time: TFloatTime read FTime write SetTime;
 
     { Width of a single frame. Initial value is set by the constructor. }
     property FrameWidth: Cardinal read FFrameWidth write FFrameWidth;
@@ -208,42 +242,111 @@ type
     { Height of a single frame. Initial value is set by the constructor. }
     property FrameHeight: Cardinal read FFrameHeight write FFrameHeight;
 
-    { X offset for frame position on the underlying image.
+    { X margin for frame position on the underlying image.
       Useful if the first frame doesn't start at X=0. }
-    property LeftMarginOffset: Cardinal read FLeftMarginOffset write FLeftMarginOffset default 0;
+    property LeftMargin: Cardinal read FLeftMargin write FLeftMargin default 0;
+    property LeftMarginOffset: Cardinal read FLeftMargin write FLeftMargin default 0; deprecated 'use LeftMargin';
 
-    { Y offset for frame position on the underlying image.
+    { Y margin for frame position on the underlying image.
       Useful if the first frame doesn't start at Y=0. }
-    property TopMarginOffset: Cardinal read FTopMarginOffset write FTopMarginOffset default 0;
+    property TopMargin: Cardinal read FTopMargin write FTopMargin default 0;
+    property TopMarginOffset: Cardinal read FTopMargin write FTopMargin default 0; deprecated 'use TopMargin';
+
+    { Horizontal margin between frames.
+      Use this if you have an empty space at the @bold(right) of every frame
+      in your spritesheet. This is useful to avoid frames "bleeding"
+      into each other (due to smooth scaling). }
+    property FrameHorizontalMargin: Cardinal
+      read FFrameHorizontalMargin write FFrameHorizontalMargin default 0;
+
+    { Vertical margin between frames.
+      Use this if you have an empty space at the @bold(top) of every frame
+      in your spritesheet. This is useful to avoid frames "bleeding"
+      into each other (due to smooth scaling). }
+    property FrameVerticalMargin: Cardinal
+      read FFrameVerticalMargin write FFrameVerticalMargin default 0;
 
     { Should we play the animation backwards after playing it forward.
       See TVideo.TimeBackwards. }
     property TimeBackwards: Boolean read FTimeBackwards write FTimeBackwards default False;
 
-    { Is custom animations feature in use? }
-    property UseCustomAnimations: Boolean read FUseCustomAnimations write FUseCustomAnimations default False;
+    { Currently used animation.
+      Equal to -1 when we're using the default animation
+      spanning all sprite frames.
+      Otherwise, indicates a custom animation index
+      (added by AddAnimation and used by SwitchToAnimation).
 
-    { Adding an animation to internal list.
-      @param(AAnimation The animation to add.)
-      @returns(the animation index). }
-    function AddSpriteAnimation(const AAnimation: TSpriteAnimation): Integer;
+      Call SwitchToAnimation to change this. }
+    property CurrentAnimation: Integer read FCurrentAnimation default -1;
 
-    { Switch to animation with index AAnimIndex.
-      @returns(@true on success, @false if AAnimIndex is out of bound) }
-    function SwitchToAnimation(const AAnimIndex: Integer; const ACustomFrame: Cardinal=0): Boolean;
+    { Add a custom animation (using an explicit sequence of frames),
+      that can be later used by SwitchToAnimation.
+      @param(AAnimation The animation information. The animation instance
+        (TSpriteAnimation) becomes owned by this object, so don't free
+        it yourself.)
+      @param(AnimationFrames The animation information can also be given
+        as a simple list of frame indexes. In this case,
+        all frames are assumed to take the same time: @code(1 / FramesPerSecond).)
+      @returns(The animation index, that can be used with SwitchToAnimation.)
+      @groupBegin }
+    function AddAnimation(const AAnimation: TSpriteAnimation): Integer;
+    function AddAnimation(const AnimationFrames: array of Cardinal): Integer;
+    function AddSpriteAnimation(const AnimationFrames: array of TSpriteAnimationFrame): Integer;
+      deprecated 'use AddAnimation';
+    { @groupEnd }
 
-    { Duration, in seconds. Assuming no custom animations are
-      used. See @link(AddSpriteAnimation), @link(UseCustomAnimations)
-      about custom animations -- in that case, each custom animation
-      has it's own duration.
+    { Switch to the animation with index AAnimIndex.
+      Use animation index obtained from AddAnimation to use a custom animation,
+      or use -1 to use the default animation (spanning all sprite frames).
 
-      This is just the number of @link(Frames) divided by @link(FramesPerSecond). }
-    function Duration: Single;
+      @returns(@true on success, @false if AAnimIndex is out of bounds.) }
+    function SwitchToAnimation(const AAnimIndex: Integer; const ACustomFrame: Cardinal = 0): Boolean;
+
+    { Duration, in seconds, of the currently used animation.
+      See @link(CurrentAnimation) to know what the current animation is. }
+    function Duration: TFloatTime;
   end;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ TSpriteAnimation ----------------------------------------------------------- }
+
+constructor TSpriteAnimation.Create(const AFrames: array of Cardinal; const FramesPerSecond: Single);
+var
+  I: Integer;
+  FrameDuration: Single;
+begin
+  inherited Create;
+  FrameDuration := 1 / FramesPerSecond;
+  { calculate Frames }
+  SetLength(Frames, High(AFrames) + 1);
+  for I := 0 to High(AFrames) do
+  begin
+    Frames[I].Frame := AFrames[I];
+    Frames[I].Duration := FrameDuration;
+  end;
+  { calculate FDuration }
+  FDuration := FrameDuration * Length(AFrames);
+end;
+
+constructor TSpriteAnimation.Create(const AFrames: array of TSpriteAnimationFrame);
+var
+  I: Integer;
+begin
+  inherited Create;
+  { calculate Frames and FDuration }
+  FDuration := 0;
+  SetLength(Frames, High(AFrames) + 1);
+  for I := 0 to High(AFrames) do
+  begin
+    Frames[I] := AFrames[I];
+    FDuration += Frames[I].Duration;
+  end;
+end;
+
+{ TSprite -------------------------------------------------------------------- }
 
 function TSprite.GetPosition: TVector2Integer;
 begin
@@ -256,41 +359,44 @@ begin
   Result := FImage.Rotation;
 end;
 
-procedure TSprite.SetAnimTime(AValue: TFloatTime);
+procedure TSprite.SetTime(AValue: TFloatTime);
 var
   Anim: TSpriteAnimation;
 begin
-  if FAnimTime = AValue then Exit;
-  FAnimTime := AValue;
-  if FUseCustomAnimations then
+  if FTime = AValue then Exit;
+  FTime := AValue;
+  if FCurrentAnimation <> -1 then
   begin
-    if FAnimations.Count = 0 then Exit;
-    Anim := FAnimations.Items[FCurrentAnimation];
-    while (FAnimTime - FCustomAnimTimestamp) >= Anim[FCustomFrame].Duration do
+    Assert(FCurrentAnimation < FCustomAnimations.Count);
+    Anim := FCustomAnimations.Items[FCurrentAnimation];
+    while (FTime - FCustomAnimTimestamp) >= Anim.Frames[FCustomFrame].Duration do
     begin
       // todo: custom animation loops
-      if FCustomFrame = High(Anim) then
+      if FCustomFrame = High(Anim.Frames) then
       begin
         if FTimeLoop then
-        begin
-          FCustomFrame := 0;
-        end else
-        begin
-          Pause;
-        end;
+          FCustomFrame := 0
+        else
+          Stop;
       end else
         Inc(FCustomFrame);
-      FCustomAnimTimestamp += Anim[FCustomFrame].Duration;
-      FFrame := Anim[FCustomFrame].Frame;
+      FCustomAnimTimestamp += Anim.Frames[FCustomFrame].Duration;
+      FFrame := Anim.Frames[FCustomFrame].Frame;
     end;
   end else
-    FFrame := TVideo.FrameIndexFromTime(FAnimTime, FFrames, FFramesPerSecond, FTimeLoop, FTimeBackwards);
+    FFrame := TVideo.FrameIndexFromTime(FTime, FFrames, FFramesPerSecond, FTimeLoop, FTimeBackwards);
 end;
 
 function TSprite.GetFrameRect: TRectangle;
+var
+  FullFrameWidth, FullFrameHeight: Cardinal;
 begin
-  Result.Left := FFrame mod FColumns * FFrameWidth + FLeftMarginOffset;
-  Result.Bottom := (FImage.Height - FFrameHeight) - FFrame div FColumns * FFrameHeight - FTopMarginOffset;
+  FullFrameWidth := FFrameWidth + FFrameHorizontalMargin;
+  FullFrameHeight := FFrameHeight + FFrameVerticalMargin;
+  Result.Left :=
+    FFrame mod FColumns * FullFrameWidth + FLeftMargin;
+  Result.Bottom := (FImage.Height - FullFrameHeight) -
+    FFrame div FColumns * FullFrameHeight - FTopMargin;
   Result.Width := FFrameWidth;
   Result.Height := FFrameHeight;
 end;
@@ -380,14 +486,14 @@ begin
   FDrawingHeight := FFrameHeight;
   FPlaying := APlay;
   FFrame := 0;
-  FAnimTime := 0;
+  FTime := 0;
   SetFramesPerSecond(DefaultFramesPerSecond);
   FTimeLoop := ATimeLoop;
-  FLeftMarginOffset := 0;
-  FTopMarginOffset := 0;
+  FLeftMargin := 0;
+  FTopMargin := 0;
   FTimeBackwards := False;
-  FUseCustomAnimations := False;
-  FAnimations := TSpriteAnimations.Create;
+  FCurrentAnimation := -1;
+  FCustomAnimations := TSpriteAnimations.Create(true);
   FCustomFrame := 0;
 end;
 
@@ -423,22 +529,14 @@ end;
 destructor TSprite.Destroy;
 begin
   FreeAndNil(FImage);
-  FreeAndNil(FAnimations);
+  FreeAndNil(FCustomAnimations);
   inherited;
 end;
 
-procedure TSprite.Update(SecondsPassed: Single);
+procedure TSprite.Update(const SecondsPassed: TFloatTime);
 begin
   if not FPlaying then Exit;
-
   Time := Time + SecondsPassed;
-
-  // looping implemented in SetAnimTime
-  {if (FFrame >= FFrames) and (not FTimeLoop) then
-  begin
-    Pause;
-    Exit;
-  end;}
 end;
 
 procedure TSprite.Play;
@@ -446,9 +544,14 @@ begin
   FPlaying := True;
 end;
 
-procedure TSprite.Pause;
+procedure TSprite.Stop;
 begin
   FPlaying := False;
+end;
+
+procedure TSprite.Pause;
+begin
+  Stop;
 end;
 
 procedure TSprite.Draw;
@@ -475,6 +578,39 @@ begin
   FImage.Draw(ScreenRectangle, GetFrameRect);
 end;
 
+procedure TSprite.Draw(const ScreenRectangle: TFloatRectangle);
+begin
+  FImage.Draw(ScreenRectangle, FloatRectangle(GetFrameRect));
+end;
+
+procedure TSprite.DrawFlipped(const ScreenRect: TRectangle;
+  const FlipHorizontal, FlipVertical: boolean);
+begin
+  DrawFlipped(FloatRectangle(ScreenRect), FlipHorizontal, FlipVertical);
+end;
+
+procedure TSprite.DrawFlipped(const ScreenRect: TFloatRectangle;
+  const FlipHorizontal, FlipVertical: boolean);
+var
+  FrameRect: TFloatRectangle;
+begin
+  FrameRect := FloatRectangle(GetFrameRect);
+
+  if FlipHorizontal then
+  begin
+    FrameRect.Left := FrameRect.Left + FrameRect.Width;
+    FrameRect.Width := -FrameRect.Width;
+  end;
+
+  if FlipVertical then
+  begin
+    FrameRect.Bottom := FrameRect.Bottom + FrameRect.Height;
+    FrameRect.Height := -FrameRect.Height;
+  end;
+
+  FImage.Draw(ScreenRect, FrameRect);
+end;
+
 procedure TSprite.Move(AX, AY: Integer; ARot: Single);
 begin
   FX := AX;
@@ -482,30 +618,46 @@ begin
   Rotation := ARot;
 end;
 
-function TSprite.AddSpriteAnimation(const AAnimation: TSpriteAnimation
-  ): Integer;
+function TSprite.AddAnimation(const AAnimation: TSpriteAnimation): Integer;
 begin
-  Result := FAnimations.Add(AAnimation);
+  Result := FCustomAnimations.Add(AAnimation);
+end;
+
+function TSprite.AddAnimation(
+  const AnimationFrames: array of Cardinal): Integer;
+begin
+  Result := AddAnimation(TSpriteAnimation.Create(AnimationFrames, FramesPerSecond));
+end;
+
+function TSprite.AddSpriteAnimation(
+  const AnimationFrames: array of TSpriteAnimationFrame): Integer;
+begin
+  Result := AddAnimation(TSpriteAnimation.Create(AnimationFrames));
 end;
 
 function TSprite.SwitchToAnimation(const AAnimIndex: Integer;
   const ACustomFrame: Cardinal): Boolean;
 begin
-  if (AAnimIndex >= FAnimations.Count) or (AAnimIndex < 0) then
+  if (AAnimIndex >= FCustomAnimations.Count) or (AAnimIndex < -1) then
   begin
     Result := False;
     Exit;
   end;
   FCurrentAnimation := AAnimIndex;
-  if ACustomFrame > High(FAnimations.Items[AAnimIndex]) then
-    FCustomFrame := 0 else
-      FCustomFrame := ACustomFrame;
+  if FCurrentAnimation <> -1 then
+  begin
+    FCustomFrame := Clamped(ACustomFrame, 0, High(FCustomAnimations.Items[AAnimIndex].Frames));
+  end else
+    FCustomFrame := 0; // ACustomFrame, FCustomFrame unused in this case
   Result := True;
 end;
 
-function TSprite.Duration: Single;
+function TSprite.Duration: TFloatTime;
 begin
-  Result := Frames / FramesPerSecond;
+  if FCurrentAnimation <> -1 then
+    Result := FCustomAnimations[FCurrentAnimation].Duration
+  else
+    Result := Frames / FramesPerSecond;
 end;
 
 {$endif read_implementation}

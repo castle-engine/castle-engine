@@ -48,16 +48,16 @@
   The basic loading and saving procedures are LoadImage and SaveImage.
   Example usage:
 
-@longCode(#
-var
-  Image: TCastleImage;
-begin
-  Image := LoadImage('image.png');
-  { scale the image to be 2x smaller }
-  Image.Resize(Image.Width div 2, Image.Height div 2);
-  SaveImage(Image, 'newimage.png');
-end;
-#)
+  @longCode(#
+    var
+      Image: TCastleImage;
+    begin
+      Image := LoadImage('image.png');
+      { scale the image to be 2x smaller }
+      Image.Resize(Image.Width div 2, Image.Height div 2);
+      SaveImage(Image, 'newimage.png');
+    end;
+  #)
 
   This unit is not dependent on OpenGL or any other rendering
   library. See @link(CastleGLImages) for OpenGL image operations
@@ -119,6 +119,8 @@ type
   private
     FWidth, FHeight, FDepth: Cardinal;
     FURL: string;
+    procedure NotImplemented(const AMethodName: string);
+    procedure FromFpImage(const FPImage: TFPMemoryImage); virtual;
     function ToFpImage: TFPMemoryImage; virtual;
   protected
     { Operate on this by Get/Realloc/FreeMem.
@@ -203,29 +205,34 @@ type
     function CreateCopy: TEncodedImage; virtual; abstract;
   end;
 
-  { Basic resize interpolation modes, fast and available for all image types. }
-  TResizeInterpolation = (riNearest, riBilinear);
-
-  { Resize interpolation modes for MakeResized with TResizeNiceInterpolation
-    parameters. These are much slower than our TResizeInterpolation,
-    as they are implemented by conversion to FpImage.
-    However, they offer some extra quality. }
-  TResizeNiceInterpolation = (
-    rniNearest,
-    rniBilinear,
-    rniMitchel,
-    rniBlackman,
-    rniBlackmanSinc,
-    rniBlackmanBessel,
-    rniGaussian,
-    rniHermite,
-    rniLanczos,
-    rniQuadratic,
-    rniCubic,
-    rniCatrom,
-    rniHanning,
-    rniHamming
+  { Resize interpolation modes, see TCastleImage.Resize and TCastleImage.MakeResized. }
+  TResizeInterpolation = (
+    { Fastest interpolation mode. }
+    riNearest,
+    { Bilinear interpolation mode, quite fast. }
+    riBilinear,
+    { Slower but prettier interpolation modes.
+      All the following interpolation modes are slower,
+      not only because their equations are more complicated (and using more inputs),
+      but also because their current implementation involves round-trip to FpImage
+      format.
+      Use these if speed is not a concern, but quality is crucial. }
+    riMitchel,
+    riBlackman,
+    riBlackmanSinc,
+    riBlackmanBessel,
+    riGaussian,
+    riHermite,
+    riLanczos,
+    riQuadratic,
+    riCubic,
+    riCatrom,
+    riHanning,
+    riHamming
   );
+
+  TResizeInterpolationInternal = Low(TResizeInterpolation) .. riBilinear;
+  TResizeInterpolationFpImage = Succ(riBilinear) .. High(TResizeInterpolation);
 
   { Drawing mode used by image-on-image drawing methods
     (@link(TCastleImage.DrawFrom) and @link(TCastleImage.DrawTo)). }
@@ -234,9 +241,9 @@ type
       the opacity (alpha) of the source image. That is,
 
       @preformatted(
-destination.rgb := destination.rgb * (1 - source.alpha) + source.rgb * source.alpha;
-destination.alpha := destination.alpha; // never changed by this drawing mode
-)
+        destination.rgb := destination.rgb * (1 - source.alpha) + source.rgb * source.alpha;
+        destination.alpha := destination.alpha; // never changed by this drawing mode
+      )
 
       An image type without alpha (like TRGBImage or TGrayscaleImage)
       is always treated like it has alpha = 1.0 (fully opaque) everywhere.
@@ -245,25 +252,45 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       simply replace the destination RGB contents. }
     dmBlend,
 
-    { An advanced blending mode capable of blending 2 images with alpha channel.
-    Based on https://en.wikipedia.org/wiki/Alpha_compositing formula for alpha-blending.
-    This one is much less efficient than dmBlend and should be used only in case
-    several layers of semi-transparent images should overlay one another and it
-    matters to accurately account for both images alpha channel. Implemented for
-    all @link(TRGBAlphaImage) and @link(TGrayscaleAlphaImage) combinations.
+    { An advanced blending mode, capable of blending 2 images with alpha channel
+      better than dmBlend.
+      Based on https://en.wikipedia.org/wiki/Alpha_compositing formula for alpha-blending.
+      This one is much less efficient than dmBlend and should be used only in case
+      several layers of semi-transparent images should overlay one another and it
+      matters to accurately account for both images alpha channel. Implemented for
+      all @link(TRGBAlphaImage) and @link(TGrayscaleAlphaImage) combinations.
     }
     dmBlendSmart,
-    { Simple implementation of 'multiply' filter. I.e. bytes of one image are just
-    multiplied by bytes of another image.}
+
+    { Multiply two images. Simply multiply source with destination, channel by channel:
+
+      @preformatted(
+        destination.rgba := destination.rgba * source.rgba;
+      )
+
+      The exception is when the source image has alpha channel,
+      but destination does not. For example, when source is TRGBAlphaImage
+      or TGrayscaleAlphaImage and destination is TRGBImage or TGrayscaleImage.
+      In this case the multiplication is followed by a simple blending,
+      to apply the effects of source alpha:
+
+      @preformatted(
+        destination.rgb :=
+          source.rgb * destination.rgb * source.alpha +
+                       destination.rgb * (1 - source.alpha);
+      )
+
+      Note that if source.alpha = 1 (source is opaque) that this is equivalent
+      to the previous simple multiply equation. }
     dmMultiply,
 
     { Additive drawing mode, where the image contents of source image
       are added to the existing destination image. That is,
 
       @preformatted(
-destination.rgb := destination.rgb + source.rgb * source.alpha;
-destination.alpha := destination.alpha; // never changed by this drawing mode
-)
+        destination.rgb := destination.rgb + source.rgb * source.alpha;
+        destination.alpha := destination.alpha; // never changed by this drawing mode
+      )
 
       So when drawing @italic(an image with alpha over an image without alpha),
       the colors will be added according to the above equation, only source
@@ -293,9 +320,9 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
     from left to right, rows are specified starting from lower row to upper.
     This means that you can think of RawPixels as
 
-@longCode(#
-  ^(packed array[0..Depth - 1, 0..Height - 1, 0..Width - 1] of TPixel)
-#)
+    @longCode(#
+      ^(packed array[0..Depth - 1, 0..Height - 1, 0..Width - 1] of TPixel)
+    #)
 
     Assuming the above definition, RawPixels^[z, y, x]
     is color of pixel at position z, x, y.
@@ -330,8 +357,6 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
     )
   }
   TCastleImage = class(TEncodedImage)
-  private
-    procedure NotImplemented(const AMethodName: string);
   protected
     { Check that both images have the same sizes and Second image class
       descends from First image class. If not, raise appropriate ELerpXxx
@@ -350,6 +375,12 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); virtual;
+
+    function MakeResizedToFpImage(ResizeWidth, ResizeHeight: Cardinal;
+      const Interpolation: TResizeInterpolation): TFPMemoryImage;
+
+    function GetColors(const X, Y, Z: Integer): TCastleColor; virtual;
+    procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); virtual;
   public
     { Constructor without parameters creates image with Width = Height = Depth = 0
       and RawPixels = nil, so IsEmpty will return @true.
@@ -421,21 +452,22 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       will raise EInternalError. }
     procedure InvertColors; virtual;
 
-    { Set the RGB color portion of the pixel.
+    { Get or set the color of the pixel.
 
-      In case of descendants that have more then RGB components,
-      other color components are not touched (e.g. in case of TRGBAlphaImage
-      alpha value of given pixel is not changed).
+      In case of descendants without alpha, we may drop this information.
 
-      In case of descendants that don't have anything like RGB encoded
-      inside (e.g. TGrayscaleImage), this should not be overriden and then
-      default implementation of this method in this class
-      will raise EInternalError. This also means that you must not
-      call inherited in descendants when overriding this method.
+      In case of grayscale descendants, when getting or setting we convert
+      the color to/from grayscale as necessary. This means that setting
+      RGB color on a grayscale image may lose information -- we will convert
+      your color to grayscale.
 
-      As usual, you are responsible for guaranting correctness of given
-      X, Y coordinates because their correctness is not checked here. }
-    procedure SetColorRGB(const X, Y: Integer; const v: TVector3Single); virtual;
+      Caller is responsible for checking the correctness of given
+      X, Y, Z coordinates. For speed, we may not check them inside (so nasty
+      memory errors will occur in case of invalid coordinates). }
+    property Colors [X, Y, Z: Integer]: TCastleColor read GetColors write SetColors;
+
+    procedure SetColorRGB(const X, Y: Integer; const v: TVector3Single);
+      deprecated 'use Colors[X, Y, 0] to get or set colors';
 
     { Create a new image object that has exactly the same class
       and the same data (size, pixels) as this image.
@@ -484,16 +516,20 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       Effectively, the image is scaled like a 9 separate parts,
       and colors cannot bleed from one part to another.
 
-      Both ResizeWidth, ResizeHeight parameters must be provided and non-zero. }
+      Both ResizeWidth, ResizeHeight parameters must be provided and non-zero.
+
+      For now, only a subset of TResizeInterpolation values
+      are supported by this method, namely the ones in TResizeInterpolationInternal. }
     procedure Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
       var Corners: TVector4Integer;
-      const Interpolation: TResizeInterpolation);
+      const Interpolation: TResizeInterpolationInternal);
 
     { Create a new TCastleImage instance with size ResizeWidth, ResizeHeight
-      and pixels copied from us and appropriately stretched.
-      Class of new instance is the same as our class.
+      and pixels copied from the input and appropriately stretched.
+      The exact class of the new instance is the same as our class.
 
-      As with @link(Resize), ResizeTo* = 0 means to use current Width/Height.
+      As with @link(Resize) method, when the parameter ResizeTo* is 0
+      it means to use current Width/Height.
       So e.g. using MakeResized(0, 0) is the same thing as using CreateCopy.
 
       As with @link(Resize),
@@ -502,19 +538,6 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
     function MakeResized(ResizeWidth, ResizeHeight: Cardinal;
       const Interpolation: TResizeInterpolation = riNearest;
       const ProgressTitle: string = ''): TCastleImage;
-
-    { Create a new TCastleImage instance with size ResizeWidth, ResizeHeight
-      and pixels copied from us and appropriately stretched.
-      It is not guaranteed that class of new instance is the same as our class.
-
-      As with @link(Resize), ResizeTo* = 0 means to use current Width/Height.
-
-      This uses slow but (potentially) pretty interpolation mode
-      expressed as TResizeNiceInterpolation.
-      It is implemented only for some descendants --- currently, TRGBImage
-      and TRGBAlphaImage. }
-    function MakeResized(ResizeWidth, ResizeHeight: Cardinal;
-      const Interpolation: TResizeNiceInterpolation): TCastleImage;
 
     { Mirror image horizotally (that is right edge is swapped with left edge). }
     procedure FlipHorizontal;
@@ -542,30 +565,16 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       X0 and Y0 are start position (lower-left corner),
       ExtractWidth, ExtractHeight specify size of area.
 
-      This checks parameters for correctness -- if start position in not
-      good or ExtractWidth/Height are too large exception
+      This checks parameters for correctness -- if start position is not
+      correct or ExtractWidth/Height are too large then exception
       @link(EImagePosOutOfRange) is raised. }
     function MakeExtracted(X0, Y0, ExtractWidth, ExtractHeight: Cardinal): TCastleImage;
 
-    { Set all image pixels to the same value.
-      This is implemented only in descendants that represent a pixel
-      as a TVector4Byte (e.g. TRGBAlphaImage) or TVector3Byte
-      (e.g. TRGBImage, 4th component is ignored in this case).
-
-      In this class this simply raises EInternalError to say 'not implemented'.
-      This also means that you must not call inherited in
-      descendants when overriding this method. }
+    { Set all image pixels to the same color. }
     procedure Clear(const Pixel: TVector4Byte); overload; virtual;
     procedure Clear(const Pixel: TCastleColor); overload;
 
-    { Check do all image pixels have the same value Pixel.
-      This is implemented only in descendants that represent a pixel
-      as TVector4Byte or TVector3Byte (4th component is ignored in this
-      case), just like method @link(Clear).
-
-      In this class this simply raises EInternalError to say 'not implemented'.
-      This also means that you must not call inherited in
-      descendants when overriding this method. }
+    { Check do all image pixels have the same color. }
     function IsClear(const Pixel: TVector4Byte): boolean; virtual;
 
     { Multiply each RGB color by a matrix.
@@ -730,9 +739,9 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
     { Makes linear interpolation of colors from this image and the SecondImage.
       Intuitively, every pixel in new image is set to
 
-@preformatted(
-  (1 - Value) * Self[pixel] + Value * SecondImage[pixel]
-)
+      @preformatted(
+        (1 - Value) * Self[pixel] + Value * SecondImage[pixel]
+      )
 
       Both images need to have the exact same size.
       If they are not, EImageLerpDifferentSizes is raised.
@@ -760,7 +769,7 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
       @raises(EImageLerpInvalidClasses When mixing is not implemented
         for this image class.) }
     class procedure MixColors(const OutputColor: Pointer;
-       const Weights: TVector4Single; const Colors: TVector4Pointer); virtual;
+       const Weights: TVector4Single; const AColors: TVector4Pointer); virtual;
 
     { Copy size and contents from Source.
       This sets our size (Width, Height and Depth)
@@ -784,6 +793,24 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
     procedure SaveToPascalCode(const ImageName: string;
       const ShowProgress: boolean;
       var CodeInterface, CodeImplementation, CodeInitialization, CodeFinalization: string);
+
+    { Set the RGB colors for transparent pixels to the nearest non-transparent
+      colors. This fixes problems with black/white borders around the texture
+      regions, when the texture is scaled down (by any means --
+      on CPU, during rendering on GPU...).
+
+      @bold(The algorithm implemented here, for now, is really slow
+      (but also really correct).)
+      It should only be used as a last resort, when your normal tool
+      (like Spine atlas packer) cannot do a decent job on a given image.
+      You should use this when creating assets, and save the resulting
+      image to disk (avoid doing this at runtime during the game,
+      since it's really really slow).
+
+      @groupBegin }
+    procedure AlphaBleed(const ProgressTitle: string); virtual;
+    function MakeAlphaBleed(const ProgressTitle: string): TCastleImage; virtual;
+    { @groupEnd }
   end;
 
   TCastleImageList = specialize TFPGObjectList<TCastleImage>;
@@ -965,18 +992,19 @@ function InImageClasses(Image: TEncodedImage;
   So the intention is that you should treat both arrays as sets
   (i.e. order of elements is ignored).
 
-  The problem is that this function should be lighting fast
-  (as the main purpose of it is to use it in constructions like
+  The problem is that this function should be lighting fast.
+  As the main purpose of it is to use it in constructions like
   setting property values, e.g.
 
-@longCode(#
-  if ImageClassesArraysEqual(Value, SomeProperty) then
-  begin
-    SomeProperty := Value;
-    { ... do some lengthy operations to update new value of SomeProperty ... }
-  end;
-#)
-  ), and doing smarter checks may cost us a little time.
+  @longCode(#
+    if ImageClassesArraysEqual(Value, SomeProperty) then
+    begin
+      SomeProperty := Value;
+      { ... do some lengthy operations to update new value of SomeProperty ... }
+    end;
+  #)
+
+  Doing smarter checks may cost us a little time.
 
   So for now this function returns
   @unorderedList(
@@ -997,12 +1025,14 @@ type
   TRGBImage = class(TCastleImage)
   private
     function GetRGBPixels: PVector3Byte;
-    class function FromFpImage(const FPImage: TFPMemoryImage): TRGBImage;
+    procedure FromFpImage(const FPImage: TFPMemoryImage); override;
     function ToFpImage: TFPMemoryImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); override;
+    function GetColors(const X, Y, Z: Integer): TCastleColor; override;
+    procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector3Byte }
     property RGBPixels: PVector3Byte read GetRGBPixels;
@@ -1014,8 +1044,6 @@ type
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector3Byte;
 
     procedure InvertColors; override;
-
-    procedure SetColorRGB(const x, y: Integer; const v: TVector3Single); override;
 
     procedure Clear(const Pixel: TVector4Byte); override;
     function IsClear(const Pixel: TVector4Byte): boolean; override;
@@ -1068,10 +1096,10 @@ type
       combined colors of two pixels on the same coordinates from
       ReplaceWhiteImage, ReplaceBlackImage, something like
 
-@preformatted(
-  Pixel[x, y] := ReplaceWhiteImage[x, y] * S +
-                 ReplaceBlackImage[x, y] * (S-1);
-)
+      @preformatted(
+        Pixel[x, y] := ReplaceWhiteImage[x, y] * S +
+                       ReplaceBlackImage[x, y] * (S-1);
+      )
 
       where S = average of red, gree, blue of color MapImage[x, y].
 
@@ -1083,7 +1111,7 @@ type
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
-       const Weights: TVector4Single; const Colors: TVector4Pointer); override;
+       const Weights: TVector4Single; const AColors: TVector4Pointer); override;
 
     procedure Assign(const Source: TCastleImage); override;
   end;
@@ -1092,12 +1120,14 @@ type
   private
     FPremultipliedAlpha: boolean;
     function GetAlphaPixels: PVector4Byte;
-    class function FromFpImage(const FPImage: TFPMemoryImage): TRGBAlphaImage;
+    procedure FromFpImage(const FPImage: TFPMemoryImage); override;
     function ToFpImage: TFPMemoryImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); override;
+    function GetColors(const X, Y, Z: Integer): TCastleColor; override;
+    procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector4Byte }
     property AlphaPixels: PVector4Byte read GetAlphaPixels;
@@ -1109,8 +1139,6 @@ type
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector4Byte;
 
     procedure InvertColors; override;
-
-    procedure SetColorRGB(const x, y: Integer; const v: TVector3Single); override;
 
     procedure Clear(const Pixel: TVector4Byte); override;
     function IsClear(const Pixel: TVector4Byte): boolean; override;
@@ -1141,7 +1169,7 @@ type
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
-       const Weights: TVector4Single; const Colors: TVector4Pointer); override;
+       const Weights: TVector4Single; const AColors: TVector4Pointer); override;
 
     { Remove alpha channel. }
     function ToRGBImage: TRGBImage;
@@ -1167,12 +1195,18 @@ type
       premultiplying, but faster. }
     procedure PremultiplyAlpha;
     property PremultipliedAlpha: boolean read FPremultipliedAlpha;
+
+    procedure AlphaBleed(const ProgressTitle: string); override;
+    function MakeAlphaBleed(const ProgressTitle: string): TCastleImage; override;
   end;
 
   { Image with high-precision RGB colors encoded as 3 floats. }
   TRGBFloatImage = class(TCastleImage)
   private
     function GetRGBFloatPixels: PVector3Single;
+  protected
+    function GetColors(const X, Y, Z: Integer): TCastleColor; override;
+    procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector3Single }
     property RGBFloatPixels: PVector3Single read GetRGBFloatPixels;
@@ -1183,8 +1217,10 @@ type
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector3Single;
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector3Single;
 
-    procedure SetColorRGB(const x, y: Integer; const v: TVector3Single); override;
     procedure InvertColors; override;
+
+    procedure Clear(const Pixel: TVector4Byte); override;
+    function IsClear(const Pixel: TVector4Byte): boolean; override;
 
     procedure Clear(const Pixel: TVector3Single); reintroduce;
     function IsClear(const Pixel: TVector3Single): boolean; reintroduce;
@@ -1207,20 +1243,23 @@ type
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
-       const Weights: TVector4Single; const Colors: TVector4Pointer); override;
+       const Weights: TVector4Single; const AColors: TVector4Pointer); override;
   end;
 
   { Grayscale image. Color is a simple Byte value. }
   TGrayscaleImage = class(TCastleImage)
   private
     FTreatAsAlpha: boolean;
+    FColorWhenTreatedAsAlpha: TVector3Byte;
     function GetGrayscalePixels: PByte;
-    class function FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleImage;
+    procedure FromFpImage(const FPImage: TFPMemoryImage); override;
     function ToFpImage: TFPMemoryImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); override;
+    function GetColors(const X, Y, Z: Integer): TCastleColor; override;
+    procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PByte }
     property GrayscalePixels: PByte read GetGrayscalePixels;
@@ -1232,6 +1271,9 @@ type
     function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PByteArray;
 
     procedure InvertColors; override;
+
+    procedure Clear(const Pixel: TVector4Byte); override;
+    function IsClear(const Pixel: TVector4Byte): boolean; override;
 
     procedure Clear(const Pixel: Byte); reintroduce;
     function IsClear(const Pixel: Byte): boolean; reintroduce;
@@ -1249,20 +1291,34 @@ type
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
-       const Weights: TVector4Single; const Colors: TVector4Pointer); override;
+       const Weights: TVector4Single; const AColors: TVector4Pointer); override;
 
     { Should we treat grayscale image as pure alpha channel (without any color
       information) when using this as a texture.
 
-      This property is meaningful only for a small subset of operations,
-      right now: only when creating OpenGL texture from this image.
-      If @true, then the grayscale pixel data will be loaded as alpha channel
-      contents (GL_ALPHA texture for OpenGL,
-      it modifies only the fragments alpha value,
-      it doesn't have any "color" in the normal sense).
-      It is also the only way for TGrayscaleImage to return AlphaChannel <> acNone. }
+      This property is meaningful only for a small subset of operations.
+
+      @orderedList(
+        @item(
+          When creating OpenGL texture from this image.
+          If @true, then the grayscale pixel data will be loaded as alpha channel
+          contents (GL_ALPHA texture for OpenGL,
+          it modifies only the fragments alpha value,
+          it doesn't have any "color" in the normal sense).
+          It is also the only way for TGrayscaleImage to return AlphaChannel <> acNone.)
+
+        @item(
+          When using @link(DrawFrom) / @link(DrawTo) methods.
+          If @true, this image is drawn like an RGBA image,
+          with constant RGB color ColorWhenTreatedAsAlpha, and alpha channel
+          taken from contents of this image.)
+      )
+    }
     property TreatAsAlpha: boolean
       read FTreatAsAlpha write FTreatAsAlpha;
+
+    property ColorWhenTreatedAsAlpha: TVector3Byte
+      read FColorWhenTreatedAsAlpha write FColorWhenTreatedAsAlpha;
 
     function AlphaChannel(
       const AlphaTolerance: Byte): TAlphaChannel; override;
@@ -1275,12 +1331,14 @@ type
   TGrayscaleAlphaImage = class(TCastleImage)
   private
     function GetGrayscaleAlphaPixels: PVector2Byte;
-    class function FromFpImage(const FPImage: TFPMemoryImage): TGrayscaleAlphaImage;
+    procedure FromFpImage(const FPImage: TFPMemoryImage); override;
     function ToFpImage: TFPMemoryImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
       const Mode: TDrawMode); override;
+    function GetColors(const X, Y, Z: Integer): TCastleColor; override;
+    procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
     { This is the same pointer as RawPixels, only typecasted to PVector2Byte }
     property GrayscaleAlphaPixels: PVector2Byte read GetGrayscaleAlphaPixels;
@@ -1293,6 +1351,9 @@ type
 
     procedure InvertColors; override;
 
+    procedure Clear(const Pixel: TVector4Byte); override;
+    function IsClear(const Pixel: TVector4Byte): boolean; override;
+
     procedure Clear(const Pixel: TVector2Byte); reintroduce;
     function IsClear(const Pixel: TVector2Byte): boolean; reintroduce;
 
@@ -1303,9 +1364,13 @@ type
 
     procedure LerpWith(const Value: Single; SecondImage: TCastleImage); override;
     class procedure MixColors(const OutputColor: Pointer;
-       const Weights: TVector4Single; const Colors: TVector4Pointer); override;
+       const Weights: TVector4Single; const AColors: TVector4Pointer); override;
 
     procedure Assign(const Source: TCastleImage); override;
+
+    // TODO: this should be implemented, just like for TRGBAlphaImage
+    //procedure AlphaBleed(const ProgressTitle: string); override;
+    //function MakeAlphaBleed(const ProgressTitle: string): TCastleImage; override;
   end;
 
 { RGBE <-> 3 Single color conversion --------------------------------- }
@@ -1374,14 +1439,14 @@ type
 
   Simple examples:
 
-@longCode(#
-  { When you don't care what TCastleImage descendant you get: }
-  Image := LoadImage('image.png');
+  @longCode(#
+    { When you don't care what TCastleImage descendant you get: }
+    Image := LoadImage('image.png');
 
-  { When you insist on getting TRGBImage, that is 8-bit color image
-    without an alpha channel. }
-  ImageRGB := LoadImage('image.png', [TRGBImage]) as TRGBImage;
-#)
+    { When you insist on getting TRGBImage, that is 8-bit color image
+      without an alpha channel. }
+    ImageRGB := LoadImage('image.png', [TRGBImage]) as TRGBImage;
+  #)
 
   Image file format may be given explicitly (overloaded version with
   Format parameter), or guessed based on URL extension
@@ -1616,30 +1681,30 @@ type
   from TCastleScene and so on.
 
   @longCode(#
-uses ..., CastleURIUtils, CastleGLUtils, CastleLog, CastleStringUtils,
-  CastleFilesUtils, CastleWarnings;
+    uses ..., CastleURIUtils, CastleGLUtils, CastleLog, CastleStringUtils,
+      CastleFilesUtils;
 
-procedure TTextureUtils.GPUTextureAlternative(var ImageUrl: string);
-begin
-  if IsPrefix(ApplicationData('animation/dragon/'), ImageUrl) then
-  begin
-    if GLFeatures = nil then
-      OnWarning(wtMinor, 'TextureCompression', 'Cannot determine whether to use GPU compressed version for ' + ImageUrl + ' because the image is loaded before GPU capabilities are known') else
-    if tcPvrtc1_4bpp_RGBA in GLFeatures.TextureCompression then
+    procedure TTextureUtils.GPUTextureAlternative(var ImageUrl: string);
     begin
-      ImageUrl := ExtractURIPath(ImageUrl) + 'compressed/pvrtc1_4bpp_rgba/' +
-        ExtractURIName(ImageUrl) + '.dds';
-      WritelnLog('TextureCompression', 'Using compressed alternative ' + ImageUrl);
+      if IsPrefix(ApplicationData('animation/dragon/'), ImageUrl) then
+      begin
+        if GLFeatures = nil then
+          WritelnWarning('TextureCompression', 'Cannot determine whether to use GPU compressed version for ' + ImageUrl + ' because the image is loaded before GPU capabilities are known') else
+        if tcPvrtc1_4bpp_RGBA in GLFeatures.TextureCompression then
+        begin
+          ImageUrl := ExtractURIPath(ImageUrl) + 'compressed/pvrtc1_4bpp_rgba/' +
+            ExtractURIName(ImageUrl) + '.dds';
+          WritelnLog('TextureCompression', 'Using compressed alternative ' + ImageUrl);
+        end;
+      end;
     end;
-  end;
-end;
 
-initialization
-  AddLoadImageListener(@TTextureUtils(nil).GPUTextureAlternative);
-finalization
-  RemoveLoadImageListener(@GPUTextureAlternative);
-end.
-#)
+    initialization
+      AddLoadImageListener(@TTextureUtils(nil).GPUTextureAlternative);
+    finalization
+      RemoveLoadImageListener(@GPUTextureAlternative);
+    end.
+  #)
 }
 procedure AddLoadImageListener(const Event: TLoadImageEvent);
 
@@ -1651,7 +1716,7 @@ procedure RemoveLoadImageListener(const Event: TLoadImageEvent);
 implementation
 
 uses ExtInterpolation, FPCanvas, FPImgCanv,
-  CastleProgress, CastleStringUtils, CastleFilesUtils, CastleWarnings,
+  CastleProgress, CastleStringUtils, CastleFilesUtils, CastleLog,
   CastleCompositeImage, CastleDownload, CastleURIUtils;
 
 { parts ---------------------------------------------------------------------- }
@@ -1707,12 +1772,18 @@ begin
   Result := Rectangle(0, 0, Width, Height);
 end;
 
+procedure TEncodedImage.NotImplemented(const AMethodName: string);
+begin
+  raise EInternalError.Create(AMethodName +
+    ' method not implemented for the image class ' + ClassName);
+end;
+
 { TCastleImage --------------------------------------------------------------- }
 
 constructor TCastleImage.Create;
 begin
   inherited;
-  { Everything is already inited to nil and 0. }
+  { Everything is already initialized to nil and 0. }
 end;
 
 constructor TCastleImage.Create(
@@ -1762,20 +1833,25 @@ begin
   Result := PointerAdd(RawPixels, PixelSize * (Width * (Height * Z + Y)));
 end;
 
-procedure TCastleImage.NotImplemented(const AMethodName: string);
-begin
-  raise EInternalError.Create(AMethodName +
-    ' method not implemented for this TCastleImage descendant');
-end;
-
 procedure TCastleImage.InvertColors;
 begin
   NotImplemented('InvertColors');
 end;
 
-procedure TCastleImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
+procedure TCastleImage.SetColorRGB(const X, Y: Integer; const V: TVector3Single);
 begin
-  NotImplemented('SetColorRGB');
+  SetColors(X, Y, 0, Vector4Single(V, 1));
+end;
+
+function TCastleImage.GetColors(const X, Y, Z: Integer): TCastleColor;
+begin
+  NotImplemented('GetColor');
+  Result := ZeroVector4Single; // silence warning
+end;
+
+procedure TCastleImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
+begin
+  NotImplemented('SetColor');
 end;
 
 function TCastleImage.Size: Cardinal;
@@ -1802,7 +1878,7 @@ end;
 
 type
   TMixColorsFunction = procedure (const OutputColor: Pointer;
-    const Weights: TVector4Single; const Colors: TVector4Pointer) of object;
+    const Weights: TVector4Single; const AColors: TVector4Pointer) of object;
 
 { This does the real resizing work.
   It assumes that SourceData and DestinData pointers are already allocated.
@@ -1810,7 +1886,7 @@ type
 procedure InternalResize(PixelSize: Cardinal;
   const SourceData: Pointer; const SourceRect: TRectangle; const SourceWidth, SourceHeight: Cardinal;
   const DestinData: Pointer; const DestinRect: TRectangle; const DestinWidth, DestinHeight: Cardinal;
-  const Interpolation: TResizeInterpolation;
+  const Interpolation: TResizeInterpolationInternal;
   const MixColors: TMixColorsFunction;
   const ProgressTitle: string);
 var
@@ -1918,49 +1994,74 @@ procedure TCastleImage.Resize(ResizeWidth, ResizeHeight: Cardinal;
   const ProgressTitle: string);
 var
   NewPixels: Pointer;
+  NewFpImage: TFPMemoryImage;
 begin
-  if ((ResizeWidth <> 0) and (ResizeWidth <> Width)) or
-     ((ResizeHeight <> 0) and (ResizeHeight <> Height)) then
+  if (Interpolation >= Low(TResizeInterpolationFpImage)) and
+     (Interpolation <= High(TResizeInterpolationFpImage)) then
   begin
-    { Make both ResizeTo* non-zero. }
-    if ResizeWidth = 0 then ResizeWidth := Width;
-    if ResizeHeight = 0 then ResizeHeight := Height;
+    // TODO; ProgressTitle not supported for this
+    NewFpImage := MakeResizedToFpImage(ResizeWidth, ResizeHeight, Interpolation);
+    try
+      FromFpImage(NewFpImage);
+    finally FreeAndNil(NewFpImage) end;
+  end else
+  begin
+    if ((ResizeWidth <> 0) and (ResizeWidth <> Width)) or
+       ((ResizeHeight <> 0) and (ResizeHeight <> Height)) then
+    begin
+      { Make both ResizeTo* non-zero. }
+      if ResizeWidth = 0 then ResizeWidth := Width;
+      if ResizeHeight = 0 then ResizeHeight := Height;
 
-    NewPixels := GetMem(ResizeWidth * ResizeHeight * PixelSize);
-    InternalResize(PixelSize,
-      RawPixels, Rect, Width, Height,
-      NewPixels, Rectangle(0, 0, ResizeWidth, ResizeHeight), ResizeWidth, ResizeHeight,
-      Interpolation, @MixColors, ProgressTitle);
-    FreeMemNiling(FRawPixels);
+      NewPixels := GetMem(ResizeWidth * ResizeHeight * PixelSize);
+      InternalResize(PixelSize,
+        RawPixels, Rect, Width, Height,
+        NewPixels, Rectangle(0, 0, ResizeWidth, ResizeHeight), ResizeWidth, ResizeHeight,
+        Interpolation, @MixColors, ProgressTitle);
+      FreeMemNiling(FRawPixels);
 
-    FRawPixels := NewPixels;
-    FWidth := ResizeWidth;
-    FHeight := ResizeHeight;
+      FRawPixels := NewPixels;
+      FWidth := ResizeWidth;
+      FHeight := ResizeHeight;
+    end;
   end;
 end;
 
 function TCastleImage.MakeResized(ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation;
   const ProgressTitle: string): TCastleImage;
+var
+  NewFpImage: TFPMemoryImage;
 begin
-  { Make both ResizeTo* non-zero. }
-  if ResizeWidth = 0 then ResizeWidth := Width;
-  if ResizeHeight = 0 then ResizeHeight := Height;
+  if (Interpolation >= Low(TResizeInterpolationFpImage)) and
+     (Interpolation <= High(TResizeInterpolationFpImage)) then
+  begin
+    // TODO; ProgressTitle not supported for this
+    NewFpImage := MakeResizedToFpImage(ResizeWidth, ResizeHeight, Interpolation);
+    try
+      Result := CreateFromFpImage(NewFpImage, [TCastleImageClass(ClassType)]);
+    finally FreeAndNil(NewFpImage) end;
+  end else
+  begin
+    { Make both ResizeTo* non-zero. }
+    if ResizeWidth = 0 then ResizeWidth := Width;
+    if ResizeHeight = 0 then ResizeHeight := Height;
 
-  Result := TCastleImageClass(ClassType).Create(ResizeWidth, ResizeHeight);
-  try
-    Result.FURL := URL;
-    if not IsEmpty then
-      InternalResize(PixelSize,
-               RawPixels,        Rect,        Width,        Height,
-        Result.RawPixels, Result.Rect, Result.Width, Result.Height,
-        Interpolation, @MixColors, ProgressTitle);
-  except Result.Free; raise end;
+    Result := TCastleImageClass(ClassType).Create(ResizeWidth, ResizeHeight);
+    try
+      Result.FURL := URL;
+      if not IsEmpty then
+        InternalResize(PixelSize,
+                 RawPixels,        Rect,        Width,        Height,
+          Result.RawPixels, Result.Rect, Result.Width, Result.Height,
+          Interpolation, @MixColors, ProgressTitle);
+    except Result.Free; raise end;
+  end;
 end;
 
 procedure TCastleImage.Resize3x3(const ResizeWidth, ResizeHeight: Cardinal;
   var Corners: TVector4Integer;
-  const Interpolation: TResizeInterpolation);
+  const Interpolation: TResizeInterpolationInternal);
 var
   NewPixels: Pointer;
   NewCorners: TVector4Integer;
@@ -2317,7 +2418,7 @@ begin
 end;
 
 class procedure TCastleImage.MixColors(const OutputColor: Pointer;
-  const Weights: TVector4Single; const Colors: TVector4Pointer);
+  const Weights: TVector4Single; const AColors: TVector4Pointer);
 begin
   raise EImageLerpInvalidClasses.Create('Mixing colors (TCastleImage.MixColors) not possible with the base TCastleImage class');
 end;
@@ -2394,6 +2495,19 @@ begin
 
   CodeFinalization +=
     '  FreeAndNil(' +ImageName+ ');' +nl;
+end;
+
+procedure TCastleImage.AlphaBleed(const ProgressTitle: string);
+begin
+  { default implementation does nothing.
+    This is OK for images without alpha channel. }
+end;
+
+function TCastleImage.MakeAlphaBleed(const ProgressTitle: string): TCastleImage;
+begin
+  { default implementation returns a copy.
+    This is OK for images without alpha channel. }
+  Result := MakeCopy;
 end;
 
 { TGPUCompressedImage ----------------------------------------------------------------- }
@@ -2621,9 +2735,25 @@ begin
   end;
 end;
 
-procedure TRGBImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
+function TRGBImage.GetColors(const X, Y, Z: Integer): TCastleColor;
+var
+  Pixel: PVector3Byte;
 begin
-  PVector3Byte(PixelPtr(x, y))^ := Vector3Byte(v);
+  Pixel := PixelPtr(X, Y, Z);
+  Result[0] := Pixel^[0] / 255;
+  Result[1] := Pixel^[1] / 255;
+  Result[2] := Pixel^[2] / 255;
+  Result[3] := 1.0;
+end;
+
+procedure TRGBImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
+var
+  Pixel: PVector3Byte;
+begin
+  Pixel := PixelPtr(X, Y, Z);
+  Pixel^[0] := Clamped(Round(C[0] * 255), Low(Byte), High(Byte));
+  Pixel^[1] := Clamped(Round(C[1] * 255), Low(Byte), High(Byte));
+  Pixel^[2] := Clamped(Round(C[2] * 255), Low(Byte), High(Byte));
 end;
 
 procedure TRGBImage.Clear(const Pixel: TVector4Byte);
@@ -2777,10 +2907,10 @@ end;
 { $define FAST_UNSAFE_MIX_COLORS}
 
 class procedure TRGBImage.MixColors(const OutputColor: Pointer;
-  const Weights: TVector4Single; const Colors: TVector4Pointer);
+  const Weights: TVector4Single; const AColors: TVector4Pointer);
 var
   OutputCol: PVector3Byte absolute OutputColor;
-  Cols: array [0..3] of PVector3Byte absolute Colors;
+  Cols: array [0..3] of PVector3Byte absolute AColors;
 begin
   {$I norqcheckbegin.inc}
   OutputCol^[0] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
@@ -2869,9 +2999,26 @@ begin
   end;
 end;
 
-procedure TRGBAlphaImage.SetColorRGB(const x, y: Integer; const v: TVector3Single);
+function TRGBAlphaImage.GetColors(const X, Y, Z: Integer): TCastleColor;
+var
+  Pixel: PVector4Byte;
 begin
-  PVector3Byte(PixelPtr(x, y))^ := Vector3Byte(v);
+  Pixel := PixelPtr(X, Y, Z);
+  Result[0] := Pixel^[0] / 255;
+  Result[1] := Pixel^[1] / 255;
+  Result[2] := Pixel^[2] / 255;
+  Result[3] := Pixel^[3] / 255;
+end;
+
+procedure TRGBAlphaImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
+var
+  Pixel: PVector4Byte;
+begin
+  Pixel := PixelPtr(X, Y, Z);
+  Pixel^[0] := Clamped(Round(C[0] * 255), Low(Byte), High(Byte));
+  Pixel^[1] := Clamped(Round(C[1] * 255), Low(Byte), High(Byte));
+  Pixel^[2] := Clamped(Round(C[2] * 255), Low(Byte), High(Byte));
+  Pixel^[3] := Clamped(Round(C[3] * 255), Low(Byte), High(Byte));
 end;
 
 procedure TRGBAlphaImage.Clear(const Pixel: TVector4Byte);
@@ -2894,7 +3041,7 @@ end;
 
 function TRGBAlphaImage.IsClear(const Pixel: TVector4Byte): boolean;
 begin
-  Result := IsMemDWordFilled(RawPixels^, Width*Height, LongWord(Pixel));
+  Result := IsMemDWordFilled(RawPixels^, Width * Height * Depth, LongWord(Pixel));
 end;
 
 procedure TRGBAlphaImage.TransformRGB(const Matrix: TMatrix3Single);
@@ -2993,10 +3140,10 @@ begin
 end;
 
 class procedure TRGBAlphaImage.MixColors(const OutputColor: Pointer;
-  const Weights: TVector4Single; const Colors: TVector4Pointer);
+  const Weights: TVector4Single; const AColors: TVector4Pointer);
 var
   OutputCol: PVector4Byte absolute OutputColor;
-  Cols: array [0..3] of PVector4Byte absolute Colors;
+  Cols: array [0..3] of PVector4Byte absolute AColors;
 begin
   {$I norqcheckbegin.inc}
   OutputCol^[0] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
@@ -3043,6 +3190,89 @@ begin
   end;
 end;
 
+procedure TRGBAlphaImage.AlphaBleed(const ProgressTitle: string);
+var
+  Copy: TCastleImage;
+begin
+  Copy := MakeAlphaBleed(ProgressTitle);
+  try
+    Assert(Size = Copy.Size);
+    Move(Copy.RawPixels^, RawPixels^, Size);
+  finally FreeAndNil(Copy) end;
+end;
+
+function TRGBAlphaImage.MakeAlphaBleed(const ProgressTitle: string): TCastleImage;
+
+  function FindNearestNonTransparentPixel(X, Y, Z: Integer): PVector4Byte;
+
+    function TryPixelOpaque(const DX, DY: Integer;
+      var SomePixelWithinImage: boolean): PVector4Byte;
+    var
+      NX, NY, GX, GY: Integer;
+    begin
+      NX := X + DX;
+      NY := Y + DY;
+      GX := Clamped(NX, 0, Width - 1);
+      GY := Clamped(NY, 0, Height - 1);
+      { does not search in Z.
+        This is faster for 2D images.
+        Also this way we do not look if we're outside Z range below,
+        which would stop the search too quickly for 2D images. }
+      if (NX = GX) and (NY = GY) then
+        SomePixelWithinImage := true;
+      Result := PixelPtr(GX, GY, Z);
+      if Result^[3] <> High(Byte) then
+        Result := nil; // nope, tried pixel is not opaque
+    end;
+
+  var
+    Distance: Cardinal;
+    SomePixelWithinImage: boolean;
+  begin
+    Distance := 1;
+    Result := nil;
+    repeat
+      SomePixelWithinImage := false;
+      Result := TryPixelOpaque(-Distance,         0, SomePixelWithinImage); if Result <> nil then Exit;
+      Result := TryPixelOpaque( Distance,         0, SomePixelWithinImage); if Result <> nil then Exit;
+      Result := TryPixelOpaque(        0, -Distance, SomePixelWithinImage); if Result <> nil then Exit;
+      Result := TryPixelOpaque(        0,  Distance, SomePixelWithinImage); if Result <> nil then Exit;
+      Result := TryPixelOpaque(-Distance, -Distance, SomePixelWithinImage); if Result <> nil then Exit;
+      Result := TryPixelOpaque(-Distance,  Distance, SomePixelWithinImage); if Result <> nil then Exit;
+      Result := TryPixelOpaque( Distance, -Distance, SomePixelWithinImage); if Result <> nil then Exit;
+      Result := TryPixelOpaque( Distance,  Distance, SomePixelWithinImage); if Result <> nil then Exit;
+      Inc(Distance);
+    until not SomePixelWithinImage;
+  end;
+
+var
+  P, NewP: PVector4Byte;
+  X, Y, Z: Integer;
+begin
+  Result := MakeCopy;
+  if ProgressTitle <> '' then
+    Progress.Init(Width * Height * Depth, ProgressTitle);
+  try
+    for X := 0 to Width - 1 do
+      for Y := 0 to Height - 1 do
+        for Z := 0 to Depth - 1 do
+        begin
+          P := Result.PixelPtr(X, Y, Z);
+          if P^[3] <> High(Byte) then
+          begin
+            NewP := FindNearestNonTransparentPixel(X, Y, Z);
+            if NewP <> nil then
+              Move(NewP^, P^, SizeOf(TVector3Byte));
+          end;
+          if ProgressTitle <> '' then
+            Progress.Step;
+        end;
+  finally
+    if ProgressTitle <> '' then
+      Progress.Fini;
+  end;
+end;
+
 { TRGBFloatImage ------------------------------------------------------------ }
 
 function TRGBFloatImage.GetRGBFloatPixels: PVector3Single;
@@ -3070,9 +3300,41 @@ begin
   Result := PArray_Vector3Single(inherited RowPtr(Y, Z));
 end;
 
-procedure TRGBFloatImage.SetColorRGB(const x, y: Integer; const V: TVector3Single);
+function TRGBFloatImage.GetColors(const X, Y, Z: Integer): TCastleColor;
+var
+  Pixel: PVector3Single;
 begin
-  PVector3Single(PixelPtr(x, y))^ := V;
+  Pixel := PixelPtr(X, Y, Z);
+  Result[0] := Pixel^[0];
+  Result[1] := Pixel^[1];
+  Result[2] := Pixel^[2];
+  Result[3] := 1.0;
+end;
+
+procedure TRGBFloatImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
+var
+  Pixel: PVector3Single;
+begin
+  Pixel := PixelPtr(X, Y, Z);
+  Pixel^[0] := C[0];
+  Pixel^[1] := C[1];
+  Pixel^[2] := C[2];
+end;
+
+procedure TRGBFloatImage.Clear(const Pixel: TVector4Byte);
+begin
+  Clear(Vector3Single(
+    Pixel[0] * 255,
+    Pixel[1] * 255,
+    Pixel[2] * 255));
+end;
+
+function TRGBFloatImage.IsClear(const Pixel: TVector4Byte): boolean;
+begin
+  Result := IsClear(Vector3Single(
+    Pixel[0] * 255,
+    Pixel[1] * 255,
+    Pixel[2] * 255));
 end;
 
 procedure TRGBFloatImage.Clear(const Pixel: TVector3Single);
@@ -3157,10 +3419,10 @@ begin
 end;
 
 class procedure TRGBFloatImage.MixColors(const OutputColor: Pointer;
-  const Weights: TVector4Single; const Colors: TVector4Pointer);
+  const Weights: TVector4Single; const AColors: TVector4Pointer);
 var
   OutputCol: PVector3Single absolute OutputColor;
-  Cols: array [0..3] of PVector3Single absolute Colors;
+  Cols: array [0..3] of PVector3Single absolute AColors;
 begin
   OutputCol^[0] := Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0];
   OutputCol^[1] := Weights[0] * Cols[0]^[1] + Weights[1] * Cols[1]^[1] + Weights[2] * Cols[2]^[1] + Weights[3] * Cols[3]^[1];
@@ -3209,6 +3471,16 @@ begin
   Result := PByteArray(inherited RowPtr(Y, Z));
 end;
 
+procedure TGrayscaleImage.Clear(const Pixel: TVector4Byte);
+begin
+  Clear(GrayscaleValue(Pixel));
+end;
+
+function TGrayscaleImage.IsClear(const Pixel: TVector4Byte): boolean;
+begin
+  Result := IsClear(GrayscaleValue(Pixel));
+end;
+
 procedure TGrayscaleImage.Clear(const Pixel: Byte);
 begin
   FillChar(RawPixels^, Size, Pixel);
@@ -3251,10 +3523,10 @@ begin
 end;
 
 class procedure TGrayscaleImage.MixColors(const OutputColor: Pointer;
-  const Weights: TVector4Single; const Colors: TVector4Pointer);
+  const Weights: TVector4Single; const AColors: TVector4Pointer);
 var
   OutputCol: PByte absolute OutputColor;
-  Cols: array [0..3] of PByte absolute Colors;
+  Cols: array [0..3] of PByte absolute AColors;
 begin
   {$I norqcheckbegin.inc}
   OutputCol^ := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^ + Weights[1] * Cols[1]^ + Weights[2] * Cols[2]^ + Weights[3] * Cols[3]^) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
@@ -3351,6 +3623,25 @@ begin
   end;
 end;
 
+function TGrayscaleImage.GetColors(const X, Y, Z: Integer): TCastleColor;
+var
+  Pixel: PByte;
+begin
+  Pixel := PixelPtr(X, Y, Z);
+  Result[0] := Pixel^;
+  Result[1] := Pixel^;
+  Result[2] := Pixel^;
+  Result[3] := 1.0;
+end;
+
+procedure TGrayscaleImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
+var
+  Pixel: PByte;
+begin
+  Pixel := PixelPtr(X, Y, Z);
+  Pixel^ := Clamped(Round(GrayscaleValue(C) * 255), Low(Byte), High(Byte));
+end;
+
 { TGrayscaleAlphaImage ------------------------------------------------------------ }
 
 function TGrayscaleAlphaImage.GetGrayscaleAlphaPixels: PVector2Byte;
@@ -3376,6 +3667,16 @@ end;
 function TGrayscaleAlphaImage.RowPtr(const Y, Z: Cardinal): PArray_Vector2Byte;
 begin
   Result := PArray_Vector2Byte(inherited RowPtr(Y, Z));
+end;
+
+procedure TGrayscaleAlphaImage.Clear(const Pixel: TVector4Byte);
+begin
+  Clear(Vector2Byte(GrayscaleValue(Pixel), Pixel[3]));
+end;
+
+function TGrayscaleAlphaImage.IsClear(const Pixel: TVector4Byte): boolean;
+begin
+  Result := IsClear(Vector2Byte(GrayscaleValue(Pixel), Pixel[3]));
 end;
 
 procedure TGrayscaleAlphaImage.Clear(const Pixel: TVector2Byte);
@@ -3452,10 +3753,10 @@ begin
 end;
 
 class procedure TGrayscaleAlphaImage.MixColors(const OutputColor: Pointer;
-  const Weights: TVector4Single; const Colors: TVector4Pointer);
+  const Weights: TVector4Single; const AColors: TVector4Pointer);
 var
   OutputCol: PVector2Byte absolute OutputColor;
-  Cols: array [0..3] of PVector2Byte absolute Colors;
+  Cols: array [0..3] of PVector2Byte absolute AColors;
 begin
   {$I norqcheckbegin.inc}
   OutputCol^[0] := {$ifndef FAST_UNSAFE_MIX_COLORS} Clamped( {$endif} Round(Weights[0] * Cols[0]^[0] + Weights[1] * Cols[1]^[0] + Weights[2] * Cols[2]^[0] + Weights[3] * Cols[3]^[0]) {$ifndef FAST_UNSAFE_MIX_COLORS} , 0, High(Byte)) {$endif};
@@ -3499,6 +3800,26 @@ begin
     P^[0] := High(Byte)-P^[0];
     Inc(P);
   end;
+end;
+
+function TGrayscaleAlphaImage.GetColors(const X, Y, Z: Integer): TCastleColor;
+var
+  Pixel: PVector2Byte;
+begin
+  Pixel := PixelPtr(X, Y, Z);
+  Result[0] := Pixel^[0] / 255;
+  Result[1] := Pixel^[0] / 255;
+  Result[2] := Pixel^[0] / 255;
+  Result[3] := Pixel^[1] / 255;
+end;
+
+procedure TGrayscaleAlphaImage.SetColors(const X, Y, Z: Integer; const C: TCastleColor);
+var
+  Pixel: PVector2Byte;
+begin
+  Pixel := PixelPtr(X, Y, Z);
+  Pixel^[0] := Clamped(Round(GrayscaleValue(C) * 255), Low(Byte), High(Byte));
+  Pixel^[1] := Clamped(Round(C[3]              * 255), Low(Byte), High(Byte));
 end;
 
 { RGBE <-> 3 Single color conversion --------------------------------- }
@@ -4044,22 +4365,16 @@ end;
 function StringToAlpha(S: string; var WarningDone: boolean): TAutoAlphaChannel;
 begin
   S := UpperCase(S);
-  if S = 'AUTO' then
-    Result := acAuto else
-  if S = 'NONE' then
-    Result := acNone else
-  if S = 'SIMPLE_YES_NO' then
-    Result := acSimpleYesNo else
-  if S = 'FULL_RANGE' then
-    Result := acFullRange else
+  for Result := Low(Result) to High(Result) do
+    if S = AlphaToString[Result] then
+      Exit;
+
+  if not WarningDone then
   begin
-    if not WarningDone then
-    begin
-      OnWarning(wtMajor, 'VRML/X3D', Format('Invalid "alphaChannel" field value "%s"', [S]));
-      WarningDone := true;
-    end;
-    Result := acAuto;
+    WritelnWarning('alphaChannel', Format('Invalid "alphaChannel" value "%s"', [S]));
+    WarningDone := true;
   end;
+  Result := acAuto;
 end;
 
 function TextureCompressionToString(const TextureCompression: TTextureCompression): string;

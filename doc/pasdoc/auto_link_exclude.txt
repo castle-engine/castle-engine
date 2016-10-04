@@ -12,6 +12,7 @@ areas
 args
 assign
 attenuation
+attribute
 attributes
 background
 barycentric
@@ -122,6 +123,7 @@ fini
 finish
 first
 flags
+flash
 float
 flying
 focused
@@ -336,6 +338,8 @@ transparent
 traverse
 triangle
 triangles
+uniform
+uniforms
 unprepare
 up
 update

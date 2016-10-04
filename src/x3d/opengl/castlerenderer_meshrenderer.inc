@@ -55,6 +55,8 @@ type
       per-shape resources for fast rendering (arrays and vbos). }
     PrepareRenderShape: Cardinal;
 
+    CurrentMeshShader: TX3DShaderProgramBase;
+
     constructor Create(ARenderer: TGLRenderer; AShape: TX3DRendererShape);
 
     { Render the whole geometry.
@@ -171,58 +173,41 @@ end;
 
 procedure TBaseCoordinateRenderer.Render;
 var
-  Locations: TLongIntList;
+  Attribs: TGLSLAttributeList;
 
   procedure EnableVertexAttrib(GLSLProgram: TGLSLProgram);
   var
     I: Integer;
+    A: TGLSLAttribute;
   begin
-    if Locations = nil then
-      Locations := TLongIntList.Create;
+    if Attribs = nil then
+      Attribs := TGLSLAttributeList.Create;
     for I := 0 to Arrays.Attribs.Count - 1 do
-    try
-      case Arrays.Attribs[I].AType of
-        atFloat  : Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 1, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
-        atVector2: Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 2, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
-        atVector3: Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
-        atVector4: Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
-        atMatrix3:
-          begin
-            Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
-            Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 1, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector3Single))));
-            Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 2, 3, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector3Single) * 2)));
-          end;
-        atMatrix4:
-          begin
-            Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 0, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I])));
-            Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 1, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single))));
-            Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 2, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single) * 2)));
-            Locations.Add(GLSLProgram.VertexAttribPointer(Arrays.Attribs[I].Name, 3, 4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I], SizeOf(TVector4Single) * 3)));
-          end;
-        else raise EInternalError.Create('Arrays.Attribs[I].AType?');
-      end;
-    except
-      on E: EGLSLAttributeNotFound do
+    begin
+      // TODO: would be faster to not query GLSLProgram.Attribute every frame,
+      // but save it in GLSLProgram.
+      A := GLSLProgram.AttributeOptional(Arrays.Attribs[I].Name);
+      if A.Location = -1 then
+      begin
         { Do not make warnings about missing internal attributes
           (for the same reason as uniform values, see GLRendererShader). }
         if not Arrays.Attribs[I].Internal then
-          OnWarning(wtMajor, 'VRML/X3D', E.Message);
-    end;
-  end;
+          WritelnWarning('VRML/X3D', 'Shader attribute "' + Arrays.Attribs[I].Name + '" not found (or not used)');
+        Continue;
+      end;
+      case Arrays.Attribs[I].AType of
+        atFloat  : A.EnableArraySingle       (Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
 
-  { Add vertex attribute to shader, ignoring if the attribute
-    does not exist (which may happen in case shader doesn't use it,
-    e.g. castle_Normal is unused if not lit). }
-  procedure OptionalVertexAttrib(const Name: string; LocationOffset: TGLint;
-    Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
-    Ptr: Pointer);
-  begin
-    try
-      Locations.Add(CurrentProgram.VertexAttribPointer(
-        Name, LocationOffset, Size, AType, Normalized, Stride, Ptr));
-    except
-      on E: EGLSLAttributeNotFound do
-        { WritelnLog('OpenGLES', E.Message) };
+        atVector2: A.EnableArrayVector2Single(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector3: A.EnableArrayVector3Single(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector4: A.EnableArrayVector4Single(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+
+        atMatrix3: A.EnableArrayMatrix3Single(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atMatrix4: A.EnableArrayMatrix4Single(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+
+        else raise EInternalError.Create('Arrays.Attribs[I].AType?');
+      end;
+      Attribs.Add(A);
     end;
   end;
 
@@ -258,11 +243,11 @@ var
     end;
     {$endif}
 
-    if Locations <> nil then
+    if Attribs <> nil then
     begin
-      for I := 0 to Locations.Count - 1 do
-        TGLSLProgram.DisableVertexAttribArray(Locations[I]);
-      FreeAndNil(Locations);
+      for I := 0 to Attribs.Count - 1 do
+        Attribs[I].DisableArray;
+      FreeAndNil(Attribs);
     end;
   end;
 
@@ -275,8 +260,11 @@ var
   I: Integer;
   First: Cardinal;
   Mode: TGLenum;
+  {$ifdef OpenGLES}
+  TexCoordAttrib: TGLSLAttribute;
+  {$endif}
 begin
-  Locations := nil;
+  Attribs := nil;
 
   RenderCoordinateBegin;
   try
@@ -287,23 +275,24 @@ begin
         glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtCoordinate]);
 
       {$ifdef OpenGLES}
-      Assert(CurrentProgram <> nil, 'OpenGL ES 2.0 rendering must go through shaders');
+      Assert(CurrentMeshShader <> nil, 'OpenGL ES 2.0 rendering must go through shaders');
 
-      CurrentProgram.SetUniform('castle_ModelViewMatrix', Shape.ModelView);
-      CurrentProgram.SetUniform('castle_ProjectionMatrix', ProjectionMatrix);
-      CurrentProgram.SetUniform('castle_NormalMatrix', ModelViewToNormalMatrix(Shape.ModelView));
-      CurrentProgram.SetUniform('castle_MaterialDiffuseAlpha', Shader.MaterialDiffuse[3]);
-      CurrentProgram.SetUniform('castle_MaterialShininess', Shader.MaterialShininessExp);
-      CurrentProgram.SetUniform('castle_SceneColor',
-        Vector3SingleCut(Shader.MaterialEmission) +
-        GlobalAmbient * Vector3SingleCut(Shader.MaterialAmbient));
-      CurrentProgram.SetUniform('castle_UnlitColor', Shader.MaterialUnlit);
+      CurrentMeshShader.UniformCastle_ModelViewMatrix.SetValue(Shape.ModelView);
+      CurrentMeshShader.UniformCastle_ProjectionMatrix.SetValue(ProjectionMatrix);
+      CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ModelView));
+      CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Shader.MaterialDiffuse[3]);
+      CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(Shader.MaterialShininessExp);
+      CurrentMeshShader.UniformCastle_SceneColor.SetValue(Vector3SingleCut(Shader.MaterialEmission) +
+        RenderContext.GlobalAmbient * Vector3SingleCut(Shader.MaterialAmbient));
+      CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Shader.MaterialUnlit);
 
-      Locations := TLongIntList.Create;
-      Locations.Add(CurrentProgram.VertexAttribPointer(
-        'castle_Vertex', 0, 3, GL_FLOAT, GL_FALSE, Arrays.CoordinateSize, Arrays.Position));
-      OptionalVertexAttrib(
-        'castle_Normal', 0, 3, GL_FLOAT, GL_FALSE, Arrays.CoordinateSize, Arrays.Normal);
+      Attribs := TGLSLAttributeList.Create;
+
+      CurrentMeshShader.AttributeCastle_Vertex.EnableArrayVector3Single(Arrays.CoordinateSize, PtrUInt(Arrays.Position));
+      Attribs.Add(CurrentMeshShader.AttributeCastle_Vertex);
+
+      CurrentMeshShader.AttributeCastle_Normal.EnableArrayVector3Single(Arrays.CoordinateSize, PtrUInt(Arrays.Normal));
+      Attribs.Add(CurrentMeshShader.AttributeCastle_Normal);
       {$else}
       glEnableClientState(GL_VERTEX_ARRAY);
       glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
@@ -320,8 +309,8 @@ begin
         mcColorPerVertex:
           begin
             Assert(Arrays.HasColor);
-            OptionalVertexAttrib('castle_ColorPerVertex', 0,
-              4, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.Color);
+            CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4Single(Arrays.AttributeSize, PtrUInt(Arrays.Color));
+            Attribs.Add(CurrentMeshShader.AttributeCastle_ColorPerVertex);
           end;
 
         mcDefaultColor:
@@ -332,25 +321,27 @@ begin
               This matters for rendering IndexedLineSet with Material that has only
               emissiveColor (without IndexedLineSet.color per vertex).
               We cannot pass Arrays.DefaultColor in any other way to shader now. }
-            CurrentProgram.SetUniform('castle_UnlitColor',
-              Shader.MaterialUnlit * Arrays.DefaultColor);
+            CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Shader.MaterialUnlit * Arrays.DefaultColor);
           end;
       end;
 
       if Arrays.HasFogCoord then
       begin
-        OptionalVertexAttrib('castle_FogCoord', 0,
-          1, GL_FLOAT, GL_FALSE, Arrays.AttributeSize, Arrays.FogCoord);
+        CurrentMeshShader.AttributeCastle_FogCoord.EnableArraySingle(Arrays.AttributeSize, PtrUInt(Arrays.FogCoord));
+        Attribs.Add(CurrentMeshShader.AttributeCastle_FogCoord);
       end;
 
       for I := 0 to Arrays.TexCoords.Count - 1 do
         if (Arrays.TexCoords[I] <> nil) and
            (Arrays.TexCoords[I].Generation = tgExplicit) then
         begin
-          OptionalVertexAttrib(
-            Format('castle_MultiTexCoord%d', [I]),
-            0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE,
-            Arrays.AttributeSize, Arrays.TexCoord(I, 0));
+          // TODO: would be faster to not query GLSLProgram.Attribute every frame,
+          // but save it in GLSLProgram.
+          TexCoordAttrib := CurrentMeshShader.AttributeOptional('castle_MultiTexCoord' + IntToStr(I));
+          if TexCoordAttrib.Location = -1 then Continue;
+          TexCoordAttrib.EnableArray(0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE,
+            Arrays.AttributeSize, PtrUInt(Arrays.TexCoord(I, 0)));
+          Attribs.Add(TexCoordAttrib);
         end;
       {$else}
 
@@ -396,16 +387,16 @@ begin
       end;
       {$endif}
 
-      { We know now that CurrentProgram is the program set by
+      { We know now that CurrentMeshShader is the program set by
         TShaderCoordinateRenderer.RenderCoordinateBegin }
-      if (Arrays.Attribs.Count <> 0) and (CurrentProgram <> nil) then
-        EnableVertexAttrib(CurrentProgram);
+      if (Arrays.Attribs.Count <> 0) and (CurrentMeshShader <> nil) then
+        EnableVertexAttrib(CurrentMeshShader);
 
       // Disable warning about QUADS, because a single quad works,
       // and it's actually used often: by Background with textures.
       // {$ifdef OpenGLES}
       // if Arrays.Primitive = gpQuads then
-      //   OnWarning(wtMajor, 'Renderer', 'We cannot render QUADS on OpenGL ES. TODO: in the future this should be automatically hidden internally, for now do not use ths geometry');
+      //   WritelnWarning('Renderer', 'We cannot render QUADS on OpenGL ES. TODO: in the future this should be automatically hidden internally, for now do not use ths geometry');
       // {$endif}
 
       Mode := ToMode[Arrays.Primitive];
@@ -416,10 +407,12 @@ begin
           glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Vbo[vtIndex]);
 
         if Arrays.Counts = nil then
-          glDrawElements(Mode, Arrays.IndexesCount, GL_UNSIGNED_INT, Arrays.IndexesPtr(First)) else
+          glDrawElements(Mode, Arrays.IndexesCount,
+            {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, Pointer(Arrays.IndexesPtr(First))) else
           for I := 0 to Arrays.Counts.Count - 1 do
           begin
-            glDrawElements(Mode, Arrays.Counts[I], GL_UNSIGNED_INT, Arrays.IndexesPtr(First));
+            glDrawElements(Mode, Arrays.Counts[I],
+              {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, Pointer(Arrays.IndexesPtr(First)));
             First += Arrays.Counts[I];
           end;
       end else
@@ -629,7 +622,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           {$else}
           if GLFeatures.TextureCubeMap = gsNone then
           begin
-            OnWarning(wtMajor, 'VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
+            WritelnWarning('VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
             glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
             glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -658,7 +651,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           {$else}
           if GLFeatures.TextureCubeMap = gsNone then
           begin
-            OnWarning(wtMajor, 'VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
+            WritelnWarning('VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
             glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
             glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -867,8 +860,8 @@ begin
   begin
     if (Attributes.CustomShaderAlphaTest <> nil) and
        Renderer.FixedFunctionAlphaTest then
-      CurrentProgram := Attributes.CustomShaderAlphaTest else
-      CurrentProgram := Attributes.CustomShader;
+      CurrentMeshShader := Attributes.CustomShaderAlphaTest else
+      CurrentMeshShader := Attributes.CustomShader;
   end else
   begin
     if (Shape.Node <> nil) and
@@ -892,8 +885,8 @@ begin
         if Log and LogRenderer then
           WritelnLog('GLSL', 'Creating shaders for shape "%s" (new: %s, lights outside VRML/X3D: %d, pass: %d)',
             [Shape.NiceName,
-             BoolToStr[(Shape.ProgramCache[Renderer.Pass] = nil) or
-                       (Shape.ProgramCache[Renderer.Pass].ShaderProgram = nil)],
+             BoolToStr((Shape.ProgramCache[Renderer.Pass] = nil) or
+                       (Shape.ProgramCache[Renderer.Pass].ShaderProgram = nil), true),
              Renderer.BaseLights.Count,
              Renderer.Pass]);
 
@@ -906,12 +899,18 @@ begin
 
       Assert(Shape.ProgramCache[Renderer.Pass] <> nil);
       CurrentX3DProgram := Shape.ProgramCache[Renderer.Pass].ShaderProgram;
-      CurrentProgram := CurrentX3DProgram;
-      Shader.SetDynamicUniforms(CurrentX3DProgram);
+      CurrentMeshShader := CurrentX3DProgram;
+      {$ifdef OpenGLES}
+      Assert(CurrentX3DProgram <> nil, 'Shader is not initialized, but it has to be (creation of fallback shaders failed on OpenGLES?)');
+      {$endif}
+      if CurrentX3DProgram <> nil then // may be nil on desktops
+        Shader.SetDynamicUniforms(CurrentX3DProgram);
     end else
-      CurrentProgram := nil;
+      CurrentMeshShader := nil;
   end;
 
-  if CurrentProgram <> nil then
-    CurrentProgram.SetupUniforms(BoundTextureUnits);
+  if CurrentMeshShader <> nil then
+    CurrentMeshShader.SetupUniforms(BoundTextureUnits);
+
+  CurrentProgram := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
 end;

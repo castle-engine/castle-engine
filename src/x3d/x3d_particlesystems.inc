@@ -236,21 +236,21 @@ begin
   inherited;
 
   FFdSpeed := TSFFloat.Create(Self, 'speed', 0);
-  Fields.Add(FFdSpeed);
+  AddField(FFdSpeed);
   { X3D specification comment: [0,Inf) }
 
   FFdVariation := TSFFloat.Create(Self, 'variation', 0.25);
-  Fields.Add(FFdVariation);
+  AddField(FFdVariation);
   { X3D specification comment: [0,Inf) }
 
   FFdMass := TSFFloat.Create(Self, 'mass', 0);
   FFdMass.Exposed := false;
-  Fields.Add(FFdMass);
+  AddField(FFdMass);
   { X3D specification comment: [0,Inf) }
 
   FFdSurfaceArea := TSFFloat.Create(Self, 'surfaceArea', 0);
   FFdSurfaceArea.Exposed := false;
-  Fields.Add(FFdSurfaceArea);
+  AddField(FFdSurfaceArea);
   { X3D specification comment: [0,Inf) }
 
   DefaultContainerField := 'emitter';
@@ -261,7 +261,7 @@ begin
   inherited;
 
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
-  Fields.Add(FFdEnabled);
+  AddField(FFdEnabled);
 
   DefaultContainerField := 'physics';
 end;
@@ -271,7 +271,7 @@ begin
   inherited;
 
   FFdGeometry := TSFNode.Create(Self, 'geometry', [TAbstractX3DGeometryNode]);
-  Fields.Add(FFdGeometry);
+  AddField(FFdGeometry);
 end;
 
 class function TBoundedPhysicsModelNode.ClassNodeTypeName: string;
@@ -290,14 +290,14 @@ begin
   inherited;
 
   FFdAngle := TSFFloat.Create(Self, 'angle', Pi/4);
-  Fields.Add(FFdAngle);
+  AddField(FFdAngle);
   { X3D specification comment: [0,Pi] }
 
   FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));
-  Fields.Add(FFdDirection);
+  AddField(FFdDirection);
 
   FFdPosition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 0));
-  Fields.Add(FFdPosition);
+  AddField(FFdPosition);
 end;
 
 class function TConeEmitterNode.ClassNodeTypeName: string;
@@ -316,7 +316,7 @@ begin
   inherited;
 
   FFdPosition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 0));
-  Fields.Add(FFdPosition);
+  AddField(FFdPosition);
 end;
 
 class function TExplosionEmitterNode.ClassNodeTypeName: string;
@@ -335,7 +335,7 @@ begin
   inherited;
 
   FFdForce := TSFVec3f.Create(Self, 'force', Vector3Single(0, -9.8, 0));
-  Fields.Add(FFdForce);
+  AddField(FFdForce);
   { X3D specification comment: (Inf,Inf) }
 end;
 
@@ -355,59 +355,59 @@ begin
   inherited;
 
   FFdCreateParticles := TSFBool.Create(Self, 'createParticles', true);
-  Fields.Add(FFdCreateParticles);
+  AddField(FFdCreateParticles);
 
   FFdEnabled := TSFBool.Create(Self, 'enabled', true);
-  Fields.Add(FFdEnabled);
+  AddField(FFdEnabled);
 
   FFdLifetimeVariation := TSFFloat.Create(Self, 'lifetimeVariation', 0.25);
-  Fields.Add(FFdLifetimeVariation);
+  AddField(FFdLifetimeVariation);
   { X3D specification comment: [0,1] }
 
   FFdMaxParticles := TSFInt32.Create(Self, 'maxParticles', 200);
-  Fields.Add(FFdMaxParticles);
+  AddField(FFdMaxParticles);
   { X3D specification comment: [0,Inf) }
 
   FFdParticleLifetime := TSFFloat.Create(Self, 'particleLifetime', 5);
-  Fields.Add(FFdParticleLifetime);
+  AddField(FFdParticleLifetime);
   { X3D specification comment: [0,Inf) }
 
   FFdParticleSize := TSFVec2f.Create(Self, 'particleSize', Vector2Single(0.02, 0.02));
-  Fields.Add(FFdParticleSize);
+  AddField(FFdParticleSize);
   { X3D specification comment: [0,Inf) }
 
   FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
-  Events.Add(FEventIsActive);
+  AddEvent(FEventIsActive);
 
   FFdColorRamp := TSFNode.Create(Self, 'colorRamp', [TAbstractColorNode]);
   FFdColorRamp.Exposed := false;
-  Fields.Add(FFdColorRamp);
+  AddField(FFdColorRamp);
 
   FFdColorKey := TMFFloat.Create(Self, 'colorKey', []);
   FFdColorKey.Exposed := false;
-  Fields.Add(FFdColorKey);
+  AddField(FFdColorKey);
   { X3D specification comment: [0,Inf) }
 
   FFdEmitter := TSFNode.Create(Self, 'emitter', [TAbstractParticleEmitterNode]);
   FFdEmitter.Exposed := false;
-  Fields.Add(FFdEmitter);
+  AddField(FFdEmitter);
 
   FFdGeometryType := TSFString.Create(Self, 'geometryType', 'QUAD');
   FFdGeometryType.Exposed := false;
-  Fields.Add(FFdGeometryType);
+  AddField(FFdGeometryType);
   { X3D specification comment: ["LINE"|"POINT"|"QUAD"|"SPRITE"|"TRIANGLE"|"GEOMETRY"|...] }
 
   FFdPhysics := TMFNode.Create(Self, 'physics', [TAbstractParticlePhysicsModelNode]);
   FFdPhysics.Exposed := false;
-  Fields.Add(FFdPhysics);
+  AddField(FFdPhysics);
 
   FFdTexCoordRamp := TSFNode.Create(Self, 'texCoordRamp', [TTextureCoordinateNode]);
   FFdTexCoordRamp.Exposed := false;
-  Fields.Add(FFdTexCoordRamp);
+  AddField(FFdTexCoordRamp);
 
   FFdTexCoordKey := TMFFloat.Create(Self, 'texCoordKey', []);
   FFdTexCoordKey.Exposed := false;
-  Fields.Add(FFdTexCoordKey);
+  AddField(FFdTexCoordKey);
   { X3D specification comment: [0,Inf) }
 end;
 
@@ -427,10 +427,10 @@ begin
   inherited;
 
   FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));
-  Fields.Add(FFdDirection);
+  AddField(FFdDirection);
 
   FFdPosition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 0));
-  Fields.Add(FFdPosition);
+  AddField(FFdPosition);
 end;
 
 class function TPointEmitterNode.ClassNodeTypeName: string;
@@ -449,18 +449,18 @@ begin
   inherited;
 
   FEventSet_coordinate := TSFInt32Event.Create(Self, 'set_coordinate', true);
-  Events.Add(FEventSet_coordinate);
+  AddEvent(FEventSet_coordinate);
 
   FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
-  Fields.Add(FFdCoord);
+  AddField(FFdCoord);
 
   FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));
-  Fields.Add(FFdDirection);
+  AddField(FFdDirection);
   { X3D specification comment: [-1,1] }
 
   FFdCoordIndex := TMFInt32.Create(Self, 'coordIndex', [-1]);
   FFdCoordIndex.Exposed := false;
-  Fields.Add(FFdCoordIndex);
+  AddField(FFdCoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
@@ -480,16 +480,16 @@ begin
   inherited;
 
   FEventSet_coordinate := TSFInt32Event.Create(Self, 'set_coordinate', true);
-  Events.Add(FEventSet_coordinate);
+  AddEvent(FEventSet_coordinate);
 
   FFdCoordIndex := TMFInt32.Create(Self, 'coordIndex', [-1]);
   FFdCoordIndex.Exposed := false;
-  Fields.Add(FFdCoordIndex);
+  AddField(FFdCoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
   FFdSurface := TSFNode.Create(Self, 'surface', [TAbstractX3DGeometryNode]);
   FFdSurface.Exposed := false;
-  Fields.Add(FFdSurface);
+  AddField(FFdSurface);
 end;
 
 class function TSurfaceEmitterNode.ClassNodeTypeName: string;
@@ -508,23 +508,23 @@ begin
   inherited;
 
   FEventSet_coordinate := TSFInt32Event.Create(Self, 'set_coordinate', true);
-  Events.Add(FEventSet_coordinate);
+  AddEvent(FEventSet_coordinate);
 
   FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
-  Fields.Add(FFdCoord);
+  AddField(FFdCoord);
 
   FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));
-  Fields.Add(FFdDirection);
+  AddField(FFdDirection);
   { X3D specification comment: [-1,1] }
 
   FFdCoordIndex := TMFInt32.Create(Self, 'coordIndex', [-1]);
   FFdCoordIndex.Exposed := false;
-  Fields.Add(FFdCoordIndex);
+  AddField(FFdCoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
   FFdInternal := TSFBool.Create(Self, 'internal', true);
   FFdInternal.Exposed := false;
-  Fields.Add(FFdInternal);
+  AddField(FFdInternal);
 end;
 
 class function TVolumeEmitterNode.ClassNodeTypeName: string;
@@ -543,19 +543,19 @@ begin
   inherited;
 
   FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, 0));
-  Fields.Add(FFdDirection);
+  AddField(FFdDirection);
   { X3D specification comment: (Inf,Inf) }
 
   FFdGustiness := TSFFloat.Create(Self, 'gustiness', 0.1);
-  Fields.Add(FFdGustiness);
+  AddField(FFdGustiness);
   { X3D specification comment: [0,Inf) }
 
   FFdSpeed := TSFFloat.Create(Self, 'speed', 0.1);
-  Fields.Add(FFdSpeed);
+  AddField(FFdSpeed);
   { X3D specification comment: [0,Inf) }
 
   FFdTurbulence := TSFFloat.Create(Self, 'turbulence', 0);
-  Fields.Add(FFdTurbulence);
+  AddField(FFdTurbulence);
   { X3D specification comment: [0,1] }
 end;
 

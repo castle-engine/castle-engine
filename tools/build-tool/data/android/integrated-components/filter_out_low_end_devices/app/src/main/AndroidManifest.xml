@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Trick from
+      http://stackoverflow.com/questions/12234221/specifying-android-market-ram-in-the-manifest
+      http://stackoverflow.com/questions/19663188/how-to-exclude-devices-with-low-ram-in-google-play-store
+    -->
+    <supports-screens
+        android:resizeable="true"
+        android:smallScreens="false"
+        android:normalScreens="true"
+        android:largeScreens="true"
+        android:xlargeScreens="true"
+        android:anyDensity="true" />
+</manifest>

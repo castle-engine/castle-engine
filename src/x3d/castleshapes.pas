@@ -398,10 +398,10 @@ type
       by parent TCastleSceneCore. You usually don't need to know about this
       octree from outside.
 
-      To initialize this, add ssTriangles to @link(Spatial) property,
+      To initialize this, add ssTriangles to @link(InternalSpatial) property,
       otherwise it's @nil. Parent TCastleSceneCore will take care of this
       (when parent TCastleSceneCore.Spatial contains ssDynamicCollisions, then
-      all shapes contain ssTriangles within their Spatial).
+      all shapes contain ssTriangles within their InternalSpatial).
 
       Parent TCastleSceneCore will take care to keep this octree always updated.
 
@@ -424,7 +424,7 @@ type
       Default value comes from DefLocalTriangleOctreeLimits.
 
       They are used only when the octree is created, so usually you
-      want to set them right before changing @link(Spatial) from []
+      want to set them right before changing @link(InternalSpatial) from []
       to something else. }
     function InternalTriangleOctreeLimits: POctreeLimits;
 
@@ -903,7 +903,7 @@ var
 
 implementation
 
-uses CastleProgress, CastleSceneCore, CastleInternalNormals, CastleLog, CastleWarnings,
+uses CastleProgress, CastleSceneCore, CastleInternalNormals, CastleLog,
   CastleStringUtils, CastleArraysGenerator, CastleImages, CastleURIUtils;
 
 const
@@ -1532,11 +1532,11 @@ begin
     it has AlphaChannel = atFullRange
     if any child has atFullRange. So it automatically works Ok too. }
   Tex := State.Texture;
-  if (Tex <> nil) and (Tex.AlphaChannel = acFullRange) then
+  if (Tex <> nil) and (Tex.AlphaChannelFinal = acFullRange) then
     Result := true;
 
   Tex := OriginalGeometry.FontTextureNode;
-  if (Tex <> nil) and (Tex.AlphaChannel = acFullRange) then
+  if (Tex <> nil) and (Tex.AlphaChannelFinal = acFullRange) then
     Result := true;
 end;
 
@@ -2338,7 +2338,7 @@ begin
     except
       on E: ETransformedResultInvalid do
       begin
-        OnWarning(wtMajor, 'VRML/X3D', Format('Cannot transform camera position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
+        WritelnWarning('VRML/X3D', Format('Cannot transform camera position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
           [ VectorToRawStr(CameraPosition), E.Message ]));
         Result := 0;
       end;

@@ -20,11 +20,12 @@
 {$I castleconf.inc}
 
 uses SysUtils, Classes, Math,
-  CastleGL, CastleWindow, CastleImages, CastleGLUtils, CastleWarnings,
+  CastleGL, CastleWindow, CastleImages, CastleGLUtils, CastleLog,
   CastleUtils, CastleMessages, CastleCurves, CastleVectors, CastleFonts,
   CastleKeysMouse, CastleParameters, CastleClassUtils,
   CastleFilesUtils, CastleStringUtils, CastleColors, CastleURIUtils,
-  CastleUIControls, CastleControls, CastleGLImages, CastleOpenDocument;
+  CastleUIControls, CastleControls, CastleGLImages, CastleOpenDocument,
+  CastleApplicationProperties;
 
 var
   Window: TCastleWindowCustom;
@@ -144,7 +145,7 @@ begin
     begin
       ErrMessage := 'Error while loading file "' + NewURL + '" : ' + E.Message;
       if Window.Closed then
-        OnWarning(wtMajor, 'Loading', ErrMessage) else
+        WritelnWarning('Loading', ErrMessage) else
         MessageOK(Window, ErrMessage);
       FreeAndNil(NewCurves); // avoid memory leaks
       Exit;
@@ -221,7 +222,7 @@ var
 begin
   glLoadIdentity;
 
-  GLClear([cbColor], Black);
+  RenderContext.Clear([cbColor], Black);
   if BackgroundImage <> nil then
     BackgroundImage.Draw(BackgroundImage.Rect.ScaleAround0(Zoom));
 
@@ -420,7 +421,7 @@ end;
 
 procedure Open(Container: TUIContainer);
 begin
-  glPointSize(10);
+  RenderContext.PointSize := 10;
 end;
 
 procedure Update(Container: TUIContainer);
@@ -789,7 +790,7 @@ end;
 { main ------------------------------------------------------------ }
 
 begin
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   Window := TCastleWindowCustom.Create(Application);
 

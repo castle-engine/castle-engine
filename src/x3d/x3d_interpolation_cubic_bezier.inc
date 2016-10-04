@@ -110,16 +110,16 @@ begin
   inherited;
 
   FFdKeyValue := TMFFloat.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
 
   FFdControlPoints := TMFVec4f.Create(Self, 'controlPoints', []);
-  Fields.Add(FFdControlPoints);
+  AddField(FFdControlPoints);
 
   FFdAxis := TSFVec3f.Create(Self, 'axis', Vector3Single(0, 0, 1));
-  Fields.Add(FFdAxis);
+  AddField(FFdAxis);
 
   FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 
@@ -182,14 +182,14 @@ begin
   inherited;
 
   FFdKeyValue := TMFVec3f.Create(Self, 'keyValue', []);
-  Fields.Add(FFdKeyValue);
+  AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdControlPoints := TMFVec4f.Create(Self, 'controlPoints', []);
-  Fields.Add(FFdControlPoints);
+  AddField(FFdControlPoints);
 
   FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
-  Events.Add(FEventValue_changed);
+  AddEvent(FEventValue_changed);
 
   DefaultContainerField := 'children';
 

@@ -421,7 +421,7 @@ begin
 
         if Shader and (GLSLProgram <> nil) then
         begin
-          GLSLProgram.Enable;
+          CurrentProgram := GLSLProgram;
 
           glActiveTexture(GL_TEXTURE0);
           glBindTexture(GL_TEXTURE_2D, GLTexSand);
@@ -453,13 +453,11 @@ begin
             GLSLProgram.SetUniform('fog_end', VisibilityEnd);
             GLSLProgram.SetUniform('fog_color', Vector3SingleCut(BackgroundColor));
           end;
-        end;
+        end else
+          CurrentProgram := nil;
 
         DrawTerrain(CurrentTerrain, Subdivision,
           WalkCamera.Position[0], WalkCamera.Position[1], BaseSize, LayersCount);
-
-        if Shader and (GLSLProgram <> nil) then
-          GLSLProgram.Disable;
       glPopAttrib;
     end;
 
@@ -499,7 +497,7 @@ begin
   GLSLProgram.AttachFragmentShader(Prefix + FileToString(ApplicationData('terrain.fs')));
   { For this test program, we eventually allow shader to run in software.
     We display debug info, so user should know what's going on. }
-  GLSLProgram.Link(false);
+  GLSLProgram.Link;
   { Only warn on non-used uniforms. This is more comfortable for shader
     development, you can easily comment shader parts. }
   GLSLProgram.UniformNotFoundAction := uaWarning;
@@ -579,7 +577,7 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
     XRange[1] := WalkCamera.Position[0] + Size/2;
     ZRange[1] := WalkCamera.Position[1] - Size/2; // Z direction is inverted
 
-    Root := TX3DRootNode.Create('', '');
+    Root := TX3DRootNode.Create;
     try
       Shape := CurrentTerrain.CreateNode(CountSteps, Size, XRange, ZRange,
         @ColorFromHeight);
@@ -587,16 +585,16 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 
       if AddShadersTextures then
       begin
-        Shader := TComposedShaderNode.Create('', '');
+        Shader := TComposedShaderNode.Create;
         Shape.Appearance.FdShaders.Add(Shader);
         Shader.FdLanguage.Value := 'GLSL';
 
         { Add shader. Setup everything, like for rendering (without fog). }
-        TexSand := TImageTextureNode.Create('', '');
+        TexSand := TImageTextureNode.Create;
         TexSand.FdUrl.Items.Add('textures/sand.png');
-        TexBread := TImageTextureNode.Create('', '');
+        TexBread := TImageTextureNode.Create;
         TexBread.FdUrl.Items.Add('textures/bread.png');
-        TexRock := TImageTextureNode.Create('', '');
+        TexRock := TImageTextureNode.Create;
         TexRock.FdUrl.Items.Add('textures/rock_d01.png');
         Shader.AddCustomField(TSFNode.Create(Shader, 'tex_sand', [], TexSand));
         Shader.AddCustomField(TSFNode.Create(Shader, 'tex_bread', [], TexBread));
@@ -608,12 +606,12 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
         Shader.AddCustomField(TSFFloat.Create(Shader, 'color_scale', 0.2));
         Shader.AddCustomField(TSFFloat.Create(Shader, 'tex_scale', 0.8));
 
-        Part := TShaderPartNode.Create('', '');
+        Part := TShaderPartNode.Create;
         Shader.FdParts.Add(Part);
         Part.FdType.Value := 'FRAGMENT';
         Part.FdUrl.Items.Add('terrain.fs');
 
-        Part := TShaderPartNode.Create('', '');
+        Part := TShaderPartNode.Create;
         Shader.FdParts.Add(Part);
         Part.FdType.Value := 'VERTEX';
         Part.FdUrl.Items.Add('terrain.vs');

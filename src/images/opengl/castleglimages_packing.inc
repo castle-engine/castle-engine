@@ -17,54 +17,55 @@
 
 {$ifdef read_interface}
 
-type
-  TUnpackNotAlignedData = record
-    Alignment: Cardinal;
-  end;
-  TPackNotAlignedData = TUnpackNotAlignedData;
-
-{ Save/restore OpenGL pixel store for unpacking / packing given TCastleImage.
+{ Save / restore OpenGL pixel store for unpacking / packing given TCastleImage.
   Before you pass this image to some OpenGL procedures
   (like glDrawPixels for unpacking, glReadPixels for packing),
   call BeforeXxx, and later call AfterXxx to restore original state.
-  These will take care of setting/restoring pixel alignment.
+  These will take care of setting / restoring pixel alignment.
   @groupBegin }
-procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TCastleImage);
-procedure AfterUnpackImage(const unpackData: TUnpackNotAlignedData; image: TCastleImage);
-procedure BeforePackImage(out packdata: TPackNotAlignedData; image: TCastleImage);
-procedure AfterPackImage(const packData: TPackNotAlignedData; image: TCastleImage);
+procedure BeforeUnpackImage(const Image: TCastleImage);
+procedure AfterUnpackImage(const Image: TCastleImage);
+procedure BeforePackImage(const Image: TCastleImage);
+procedure AfterPackImage(const Image: TCastleImage);
 { @groupEnd }
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-procedure BeforeUnpackImage(out unpackdata: TUnpackNotAlignedData; image: TCastleImage);
+const
+  DefaultGLUnpackAlignment = 4;
+
+{ We assume here that nothing else changes glPixelStorei,
+  so it's always Default*Alignment at start.
+  We can avoid querying it with glGetInteger,
+  or storing in per-context or global variable, this way. }
+
+procedure BeforeUnpackImage(const Image: TCastleImage);
 begin
-  unpackData.Alignment := glGetInteger(GL_UNPACK_ALIGNMENT);
-  if unpackData.Alignment = 0 then
-    raise Exception.Create('OpenGL context is probably not initialized yet: glGetInteger(GL_UNPACK_ALIGNMENT) returned 0');
-  if (image.Width * Image.PixelSize mod unpackData.Alignment) <> 0 then
+  if (Image.Width * Image.PixelSize mod DefaultGLUnpackAlignment) <> 0 then
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 end;
 
-procedure AfterUnpackImage(const unpackData: TUnpackNotAlignedData; image: TCastleImage);
+procedure AfterUnpackImage(const Image: TCastleImage);
 begin
-  if (image.Width * Image.PixelSize mod unpackData.Alignment) <> 0 then
-    glPixelStorei(GL_UNPACK_ALIGNMENT, unpackData.Alignment);
+  if (Image.Width * Image.PixelSize mod DefaultGLUnpackAlignment) <> 0 then
+    glPixelStorei(GL_UNPACK_ALIGNMENT, DefaultGLUnpackAlignment);
 end;
 
-procedure BeforePackImage(out packdata: TPackNotAlignedData; image: TCastleImage);
+const
+  DefaultGLPackAlignment = 4;
+
+procedure BeforePackImage(const Image: TCastleImage);
 begin
-  packData.Alignment := glGetInteger(GL_PACK_ALIGNMENT);
-  if (image.Width * Image.PixelSize mod packData.Alignment) <> 0 then
+  if (Image.Width * Image.PixelSize mod DefaultGLPackAlignment) <> 0 then
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
 end;
 
-procedure AfterPackImage(const packData: TPackNotAlignedData; image: TCastleImage);
+procedure AfterPackImage(const Image: TCastleImage);
 begin
-  if (image.Width * Image.PixelSize mod packData.Alignment) <> 0 then
-    glPixelStorei(GL_PACK_ALIGNMENT, packData.Alignment);
+  if (Image.Width * Image.PixelSize mod DefaultGLPackAlignment) <> 0 then
+    glPixelStorei(GL_PACK_ALIGNMENT, DefaultGLPackAlignment);
 end;
 
 {$endif read_implementation}

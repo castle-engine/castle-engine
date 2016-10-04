@@ -65,7 +65,6 @@ type
         OldCustomCursor: TRGBAlphaImage;
         OldSwapFullScreen_Key: TKey;
         OldClose_charkey: char;
-        OldFpsShowOnCaption: boolean;
         OldControls: TChildrenControls;
         OldAutomaticTouchControl: boolean;
         procedure WindowOpen(Container: TUIContainer);
@@ -205,7 +204,6 @@ type
 
         @item(TCastleWindowDemo.SwapFullScreen_Key will be reset to K_None.)
         @item(TCastleWindowDemo.Close_charkey will be reset to #0.)
-        @item(TCastleWindowDemo.FpsShowOnCaption will be reset to false.)
 
         @item(All TCastleWindowCustom.Controls are temporarily removed.)
       )
@@ -280,7 +278,6 @@ begin
   OldCustomCursor := Window.CustomCursor;
   oldSwapFullScreen_Key := Window.SwapFullScreen_Key;
   oldClose_charkey := Window.Close_charkey;
-  oldFpsShowOnCaption := Window.FpsShowOnCaption;
 
   OldControls := TChildrenControls.Create(nil);
   OldControls.Assign(Window.Controls);
@@ -321,7 +318,6 @@ begin
   Window.CustomCursor := OldCustomCursor;
   Window.SwapFullScreen_Key := oldSwapFullScreen_Key;
   Window.Close_charkey := oldClose_charkey;
-  Window.FpsShowOnCaption := oldFpsShowOnCaption;
 
   if OldControls <> nil then
   begin
@@ -403,7 +399,6 @@ begin
   Window.InternalCursor := mcDefault;
   Window.SwapFullScreen_Key := K_None;
   Window.Close_charkey := #0;
-  Window.FpsShowOnCaption := false;
   if Window is TCastleWindowTouch then
     TCastleWindowTouch(Window).AutomaticTouchInterface := false;
   Window.Controls.Clear;

@@ -21,6 +21,14 @@
 {$ifdef read_interface}
 
 type
+  TMatrixTransformNodeHelper = class helper for TMatrixTransformNode
+  private
+    function GetMatrix: TMatrix4Single;
+    procedure SetMatrix(const Value: TMatrix4Single);
+  public
+    property Matrix: TMatrix4Single read GetMatrix write SetMatrix;
+  end;
+
   TAbstractProductStructureChildNodeHelper = class helper for TAbstractProductStructureChildNode
   private
     function GetName: string;
@@ -2097,6 +2105,8 @@ type
     procedure SetFiniteRotationAxis(const Value: TVector3Single);
     function GetFixed: boolean;
     procedure SetFixed(const Value: boolean);
+    function GetInertia: TMatrix3Single;
+    procedure SetInertia(const Value: TMatrix3Single);
     function GetLinearDampingFactor: Single;
     procedure SetLinearDampingFactor(const Value: Single);
     function GetLinearVelocity: TVector3Single;
@@ -2123,6 +2133,7 @@ type
     property Enabled: boolean read GetEnabled write SetEnabled;
     property FiniteRotationAxis: TVector3Single read GetFiniteRotationAxis write SetFiniteRotationAxis;
     property Fixed: boolean read GetFixed write SetFixed;
+    property Inertia: TMatrix3Single read GetInertia write SetInertia;
     property LinearDampingFactor: Single read GetLinearDampingFactor write SetLinearDampingFactor;
     property LinearVelocity: TVector3Single read GetLinearVelocity write SetLinearVelocity;
     property Mass: Single read GetMass write SetMass;
@@ -2469,6 +2480,14 @@ type
     property RepeatR: boolean read GetRepeatR write SetRepeatR;
   end;
 
+  TTextureTransformMatrix3DNodeHelper = class helper for TTextureTransformMatrix3DNode
+  private
+    function GetMatrix: TMatrix4Single;
+    procedure SetMatrix(const Value: TMatrix4Single);
+  public
+    property Matrix: TMatrix4Single read GetMatrix write SetMatrix;
+  end;
+
   TTextureTransform3DNodeHelper = class helper for TTextureTransform3DNode
   private
     function GetCenter: TVector3Single;
@@ -2773,6 +2792,18 @@ type
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ TMatrixTransformNode ----------------------------------------------- }
+
+function TMatrixTransformNodeHelper.GetMatrix: TMatrix4Single;
+begin
+  Result := FdMatrix.Value;
+end;
+
+procedure TMatrixTransformNodeHelper.SetMatrix(const Value: TMatrix4Single);
+begin
+  FdMatrix.Send(Value);
+end;
 
 { TAbstractProductStructureChildNode ----------------------------------------------- }
 
@@ -7966,6 +7997,16 @@ begin
   FdFixed.Send(Value);
 end;
 
+function TRigidBodyNodeHelper.GetInertia: TMatrix3Single;
+begin
+  Result := FdInertia.Value;
+end;
+
+procedure TRigidBodyNodeHelper.SetInertia(const Value: TMatrix3Single);
+begin
+  FdInertia.Send(Value);
+end;
+
 function TRigidBodyNodeHelper.GetLinearDampingFactor: Single;
 begin
   Result := FdLinearDampingFactor.Value;
@@ -8908,6 +8949,18 @@ end;
 procedure TAbstractTexture3DNodeHelper.SetRepeatR(const Value: boolean);
 begin
   FdRepeatR.Send(Value);
+end;
+
+{ TTextureTransformMatrix3DNode ----------------------------------------------- }
+
+function TTextureTransformMatrix3DNodeHelper.GetMatrix: TMatrix4Single;
+begin
+  Result := FdMatrix.Value;
+end;
+
+procedure TTextureTransformMatrix3DNodeHelper.SetMatrix(const Value: TMatrix4Single);
+begin
+  FdMatrix.Send(Value);
 end;
 
 { TTextureTransform3DNode ----------------------------------------------- }

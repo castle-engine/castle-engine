@@ -18,11 +18,14 @@ unit ToolAndroidComponents;
 
 interface
 
-uses FGL, DOM,
+uses SysUtils, FGL, DOM,
   CastleUtils, CastleStringUtils,
   ToolUtils;
 
 type
+  ECannotMergeManifest = class(Exception);
+  ECannotMergeBuildGradle = class(Exception);
+
   TAndroidComponent = class
   private
     FParameters: TStringStringMap;
@@ -47,10 +50,12 @@ procedure MergeAppend(const Source, Destination: string;
   const ReplaceMacros: TReplaceMacros);
 procedure MergeAndroidMainActivity(const Source, Destination: string;
   const ReplaceMacros: TReplaceMacros);
+procedure MergeBuildGradle(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
 
 implementation
 
-uses SysUtils, Classes, XMLRead, XMLWrite,
+uses Classes, XMLRead, XMLWrite,
   CastleXMLUtils, CastleURIUtils;
 
 { TAndroidComponent ---------------------------------------------------------- }
@@ -71,6 +76,7 @@ procedure TAndroidComponent.ReadCastleEngineManifest(const Element: TDOMElement)
 var
   ChildElements: TXMLElementIterator;
   ChildElement: TDOMElement;
+  Key, Value: string;
 begin
   FName := Element.AttributeString('name');
 
@@ -79,9 +85,17 @@ begin
     while ChildElements.GetNext do
     begin
       ChildElement := ChildElements.Current;
-      FParameters.Add(
-        ChildElement.AttributeString('key'),
-        ChildElement.AttributeString('value'));
+      Key := ChildElement.AttributeString('key');
+      if ChildElement.HasAttribute('value') then
+        Value := ChildElement.AttributeString('value')
+      else
+      begin
+        Value := ChildElement.TextData;
+        { value cannot be empty in this case }
+        if Value = '' then
+          raise Exception.CreateFmt('No value for key "%s" specified in CastleEngineManifest.xml', [Key]);
+      end;
+      FParameters.Add(Key, Value);
     end;
   finally FreeAndNil(ChildElements) end;
 end;
@@ -157,7 +171,7 @@ var
     for I := 0 to SourceAttribs.Length - 1 do
     begin
       if SourceAttribs[I].NodeType <> ATTRIBUTE_NODE then
-        raise Exception.Create('Attribute node does not have NodeType = ATTRIBUTE_NODE: ' +
+        raise ECannotMergeManifest.Create('Attribute node does not have NodeType = ATTRIBUTE_NODE: ' +
           SourceAttribs[I].NodeName);
       // if Verbose then
       //   Writeln('Appending attribute ', SourceAttribs[I].NodeName);
@@ -192,6 +206,14 @@ var
       SourceUsesPermission.CloneNode(true, DestinationXml));
   end;
 
+  procedure MergeSupportsScreens(const SourceElement: TDOMElement);
+  begin
+    if DestinationXml.DocumentElement.ChildElement(SourceElement.TagName, false) <> nil then
+      raise ECannotMergeManifest.Create(
+        'Cannot merge AndroidManifest.xml, only one <' + SourceElement.TagName + '> is allowed');
+    DestinationXml.DocumentElement.AppendChild(SourceElement.CloneNode(true, DestinationXml));
+  end;
+
 var
   I: TXMLElementIterator;
 begin
@@ -215,7 +237,9 @@ begin
           if (I.Current.TagName = 'uses-permission') and
              I.Current.HasAttribute('android:name') then
             MergeUsesPermission(I.Current) else
-            raise Exception.Create('Cannot merge AndroidManifest.xml element <' + I.Current.TagName + '>');
+          if I.Current.TagName = 'supports-screens' then
+            MergeSupportsScreens(I.Current) else
+            raise ECannotMergeManifest.Create('Cannot merge AndroidManifest.xml element <' + I.Current.TagName + '>');
         end;
       finally FreeAndNil(I) end;
 
@@ -253,8 +277,62 @@ begin
   DestinationContents := FileToString(FilenameToURISafe(Destination));
   MarkerPos := Pos(InsertMarker, DestinationContents);
   if MarkerPos = 0 then
-    raise Exception.CreateFmt('Cannot find marker "%s" in MainActivity.java', [InsertMarker]);
+    raise ECannotMergeManifest.CreateFmt('Cannot find marker "%s" in MainActivity.java', [InsertMarker]);
   Insert(SourceContents, DestinationContents, MarkerPos);
+  StringToFile(Destination, DestinationContents);
+end;
+
+procedure MergeBuildGradle(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
+var
+  DestinationContents: string;
+  Doc: TXMLDocument;
+
+  { Modify DestinationContents to add information specified in source XML file. }
+  procedure MergeItems(const ListElement, ChildElement, Marker: string);
+  var
+    I: TXMLElementIterator;
+    E: TDOMElement;
+    MarkerPos: Integer;
+  begin
+    E := Doc.DocumentElement.ChildElement(ListElement, false);
+    if E <> nil then
+    begin
+      MarkerPos := Pos(Marker, DestinationContents);
+      if MarkerPos = 0 then
+        raise ECannotMergeBuildGradle.CreateFmt('The destination build.gradle does not contain "%s" marker.',
+          [Marker]);
+      MarkerPos += Length(Marker);
+
+      I := E.ChildrenIterator(ChildElement);
+      try
+        while I.GetNext do
+        begin
+          Insert(NL + '    ' + I.Current.TextData, DestinationContents, MarkerPos);
+        end;
+      finally FreeAndNil(I) end;
+    end;
+  end;
+
+var
+  SourceContents: string;
+  SStream: TStringStream;
+begin
+  SourceContents      := ReplaceMacros(FileToString(FilenameToURISafe(Source)));
+  DestinationContents := ReplaceMacros(FileToString(FilenameToURISafe(Destination)));
+
+  SStream := TStringStream.Create(SourceContents);
+  try
+    try
+      ReadXMLFile(Doc, SStream); // ReadXMLFile within "try" clause, as it initializes Doc always
+      if Doc.DocumentElement.TagName <> 'build_gradle_merge' then
+        raise ECannotMergeBuildGradle.Create('The source file from which to merge build.gradle must be XML with root <build_gradle_merge>');
+      MergeItems('dependencies', 'dependency', '// MERGE-DEPENDENCIES');
+      MergeItems('plugins', 'plugin', '// MERGE-PLUGINS');
+      MergeItems('repositories', 'repository', '// MERGE-REPOSITORIES');
+    finally FreeAndNil(Doc) end;
+  finally FreeAndNil(SStream) end;
+
   StringToFile(Destination, DestinationContents);
 end;
 

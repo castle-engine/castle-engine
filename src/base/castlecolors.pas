@@ -57,6 +57,7 @@ const
   WhiteRGB  : TCastleColorRGB = ( 1.0 , 1.0 , 1.0);
   BlackRGB  : TCastleColorRGB = ( 0.0 , 0.0 , 0.0);
   RedRGB    : TCastleColorRGB = ( 1.0 , 0.0 , 0.0);
+  YellowRGB : TCastleColorRGB = ( 1.0 , 1.0 , 0.0);
   GreenRGB  : TCastleColorRGB = ( 0.0 , 0.5 , 0.0);
   BlueRGB   : TCastleColorRGB = ( 0.0 , 0.0 , 1.0);
 
@@ -152,6 +153,14 @@ function HexToColor(const S: string): TCastleColor;
   @raises EConvertError In case of invalid color as string. }
 function HexToColorRGB(const S: string): TCastleColorRGB;
 
+{ Change color opacity (alpha). }
+function ColorOpacity(const Color: TCastleColor; const Opacity: Single): TCastleColor;
+
+function FadeDarkColor(const Color: TCastleColor;
+  const FadeIntensity: Single): TCastleColor;
+function FadeColor(const Color: TCastleColor;
+  const FadeIntensity: Single): TCastleColor;
+
 implementation
 
 uses SysUtils, CastleUtils, CastleStringUtils;
@@ -172,11 +181,11 @@ const
 
     For GrayscaleByte, they should be used like
 
-  @longCode(#
-    (R * GrayscaleValuesByte[0] +
-     G * GrayscaleValuesByte[1] +
-     B * GrayscaleValuesByte[2]) div 256
-  #)
+    @longCode(#
+      (R * GrayscaleValuesByte[0] +
+       G * GrayscaleValuesByte[1] +
+       B * GrayscaleValuesByte[2]) div 256
+    #)
 
     GrayscaleValuesByte[] are declared as Word type to force implicit conversion
     in above expression from Byte to Word, since you have to use Word range
@@ -453,6 +462,63 @@ begin
       StrHexToInt(Copy(S, 3, 2)) / 255,
       StrHexToInt(Copy(S, 5, 2)) / 255) else
     raise EConvertError.CreateFmt('Invalid color hex string: "%s"', [S]);
+end;
+
+function ColorOpacity(const Color: TCastleColor; const Opacity: Single): TCastleColor;
+begin
+  Result := Color;
+  Result[3] := Opacity;
+end;
+
+function FadeDarkColor(const Color: TCastleColor;
+  const FadeIntensity: Single): TCastleColor;
+const
+  FullWhiteEnd = 0.9;
+  FullBlack = 0.3;
+  { We assume that MinScale is small enough that difference between
+    "Color * MinScale * screen color" and
+    "MinScale * screen color" is not noticeable. }
+  MinScale = 0.1;
+begin
+  if FadeIntensity > 0 then
+  begin
+    { for FadeIntensity in 1...FullWhiteEnd (going down):
+      screen color := Color * original screen color }
+    if FadeIntensity > FullWhiteEnd then
+      Result := Color else
+    { for FadeIntensity in FullWhiteEnd...FullBlack (going down):
+      final screen color changes:
+      - from screen color := Color * original screen color
+      - to   screen color := Color * MinScale * original screen color }
+    if FadeIntensity > FullBlack then
+      Result := Color * MapRange(FadeIntensity, FullWhiteEnd, FullBlack, 1, MinScale) else
+    { for FadeIntensity in FullBlack...0 (going down):
+      final screen color changes:
+      - from screen color := MinScale * original screen color
+      - to   screen color := original screen color }
+      Result := White * MapRange(FadeIntensity, FullBlack, 0, MinScale, 1);
+
+    Result[3] := 1.0; { alpha always 1.0 in this case }
+  end else
+    Result := ZeroVector4Single;
+end;
+
+function FadeColor(const Color: TCastleColor;
+  const FadeIntensity: Single): TCastleColor;
+const
+  FullTime = 0.9;
+var
+  Intensity: Single;
+begin
+  if FadeIntensity > 0 then
+  begin
+    if FadeIntensity < FullTime then
+      Intensity := MapRange(FadeIntensity, 0, FullTime, 0, 1) else
+      Intensity := MapRange(FadeIntensity, FullTime, 1, 1, 0);
+    Result := Color;
+    Result[3] := Intensity;
+  end else
+    Result := ZeroVector4Single;
 end;
 
 end.

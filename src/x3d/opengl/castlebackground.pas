@@ -83,7 +83,7 @@ type
 
 implementation
 
-uses CastleWarnings, CastleScene, X3DFields, Math, CastleSceneCore;
+uses CastleLog, CastleScene, X3DFields, Math, CastleSceneCore;
 
 const
   { Relation of a cube size and a radius of it's bounding sphere.
@@ -436,12 +436,12 @@ const
 
     if ColorCount <= 0 then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', 'Background node incorrect: Sky must have at least one color');
+      WritelnWarning('VRML/X3D', 'Background node incorrect: Sky must have at least one color');
       Exit;
     end else
     if AngleCount + 1 <> ColorCount then
     begin
-      OnWarning(wtMajor, 'VRML/X3D', 'Background node incorrect: Sky must have exactly one more Color than Angles');
+      WritelnWarning('VRML/X3D', 'Background node incorrect: Sky must have exactly one more Color than Angles');
       { We know now that ColorCount >= 1, and of course AngleCount >= 0
         (since array always has >= 0 items). So we correct one of them to be
         smaller. }
@@ -495,7 +495,7 @@ const
     begin
       if AngleCount + 1 <> ColorCount then
       begin
-        OnWarning(wtMajor, 'VRML/X3D', 'Background node incorrect: Ground must have exactly one more Color than Angles');
+        WritelnWarning('VRML/X3D', 'Background node incorrect: Ground must have exactly one more Color than Angles');
         if AngleCount + 1 > ColorCount then
           AngleCount := ColorCount - 1 else
           ColorCount := AngleCount + 1;
@@ -544,7 +544,7 @@ begin
     and no need to even clear color buffer before.
     We lose this optimization now, since we don't know now which cube sides
     are successfully loaded and which have alpha. }
-  GLClear([cbColor], ClearColor);
+  RenderContext.Clear([cbColor], ClearColor);
 
   { Note: the Frustum is useless now, as it contains a shifted camera,
     not just rotated. We pass it, but it will be ignored. }

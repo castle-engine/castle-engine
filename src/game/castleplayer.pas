@@ -409,7 +409,7 @@ type
       ciMouseDragging in TCamera.Input (when player is not
       @link(Dead) or @link(Blocked)). }
     property EnableCameraDragging: boolean
-      read FEnableCameraDragging write SetEnableCameraDragging default false;
+      read FEnableCameraDragging write SetEnableCameraDragging default true;
   end;
 
 const
@@ -479,17 +479,18 @@ begin
     Frustum.Box3DCollisionPossibleSimple(BoundingBox) and
     (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
+    { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
+    {$warnings off}
     glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_LIGHTING);
       glEnable(GL_DEPTH_TEST);
       glPushMatrix;
         glMultMatrix(Params.RenderTransform);
         glColorv(Gray);
-        {$warnings off} { this is already marked with TODO above }
         glDrawBox3DWire(BoundingBox);
-        {$warnings on}
       glPopMatrix;
     glPopAttrib;
+    {$warnings on}
   end;
   {$endif}
 end;
@@ -519,6 +520,7 @@ begin
   FDrownDamageRandom := DefaultDrownDamageRandom;
   FSwimSoundPause := DefaultSwimSoundPause;
   FFallingEffect := true;
+  FEnableCameraDragging := true;
 
   Add(TPlayerBox.Create(Self));
 

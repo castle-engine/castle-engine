@@ -118,6 +118,9 @@ type
       to make them freed during nearest @link(Stop). }
     function FreeAtStop: TComponent;
   public
+    { When @true, state operations will send a log to CastleLog. }
+    class var Log: boolean;
+
     { Current state. In case multiple states are active (only possible
       if you used @link(Push) method), this is the bottom state
       (use @link(CurrentTop) to get top state).
@@ -231,8 +234,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleWindow, CastleWarnings, CastleFilesUtils, CastleUtils,
-  CastleTimeUtils, CastleLog;
+  CastleWindow, CastleFilesUtils, CastleUtils, CastleTimeUtils, CastleLog;
 
 { TUIState --------------------------------------------------------------------- }
 
@@ -299,7 +301,7 @@ begin
   TopState.InternalStop;
   if TopState = FStateStack.Last then
     FStateStack.Delete(FStateStack.Count - 1) else
-    OnWarning(wtMinor, 'State', 'Topmost state is no longer topmost after its Stop method. Do not change state stack from state Stop methods.');
+    WritelnWarning('State', 'Topmost state is no longer topmost after its Stop method. Do not change state stack from state Stop methods.');
 
   { resume new top-most state }
   if (FStateStack <> nil) and
@@ -311,12 +313,12 @@ class procedure TUIState.Pop(const CurrentTopMostState: TUIState);
 begin
   if (FStateStack = nil) or (FStateStack.Count = 0) then
   begin
-    OnWarning(wtMinor, 'State', 'Cannot pop UI state, that stack is empty');
+    WritelnWarning('State', 'Cannot pop UI state, that stack is empty');
     Exit;
   end;
   if FStateStack.Last <> CurrentTopMostState then
   begin
-    OnWarning(wtMinor, 'State', 'Cannot pop UI state, top-most state is expected to be ' + CurrentTopMostState.ClassName + ', but is ' + FStateStack.Last.ClassName);
+    WritelnWarning('State', 'Cannot pop UI state, top-most state is expected to be ' + CurrentTopMostState.ClassName + ', but is ' + FStateStack.Last.ClassName);
     Exit;
   end;
 
@@ -352,6 +354,12 @@ end;
 
 procedure TUIState.InternalStart;
 begin
+  { typically, the Start method will initialize some stuff,
+    making the 1st SecondsPassed non-representatively large. }
+  StateContainer.Fps.ZeroNextSecondsPassed;
+
+  if CastleLog.Log and Log then
+    WritelnLog('UIState', 'Starting state ' + Name + ':' + ClassName);
   Start;
   { actually insert, this will also call GLContextOpen and Resize.
     However, check first that we're still the current state,
@@ -366,6 +374,8 @@ begin
   StateContainer.Controls.Remove(Self);
   FreeAndNil(FFreeAtStop);
   Stop;
+  if CastleLog.Log and Log then
+    WritelnLog('UIState', 'Stopped state ' + Name + ':' + ClassName);
 end;
 
 function TUIState.StateContainer: TUIContainer;
@@ -404,10 +414,14 @@ end;
 
 procedure TUIState.Resume;
 begin
+  if CastleLog.Log and Log then
+    WritelnLog('UIState', 'Resuming state ' + Name + ':' + ClassName);
 end;
 
 procedure TUIState.Pause;
 begin
+  if CastleLog.Log and Log then
+    WritelnLog('UIState', 'Paused state ' + Name + ':' + ClassName);
 end;
 
 procedure TUIState.Start;

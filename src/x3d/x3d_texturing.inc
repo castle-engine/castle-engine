@@ -22,7 +22,8 @@
 
   TAbstractTextureNode = class(TAbstractAppearanceChildNode)
   private
-    AlphaChannelWarningDone: boolean;
+    function GetAlphaChannelField: TAutoAlphaChannel;
+    procedure SetAlphaChannelField(const Value: TAutoAlphaChannel);
   protected
     { Alpha channel detected from image contents (or children nodes),
       ignoring our FdAlphaChannel field.
@@ -51,10 +52,11 @@
     { Alpha channel of the loaded texture data.
       Looks at loaded texture data, and at alphaChannel field
       (see http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_alpha_channel_detection ) }
-    function AlphaChannel: TAlphaChannel;
+    function AlphaChannelFinal: TAlphaChannel;
 
-    private FFdAlphaChannel: TSFString;
-    public property FdAlphaChannel: TSFString read FFdAlphaChannel;
+    private FFdAlphaChannel: TSFStringEnum;
+    public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
+    property AlphaChannelField: TAutoAlphaChannel read GetAlphaChannelField write SetAlphaChannelField;
   end;
 
   TTexturePropertiesNode = class;
@@ -106,7 +108,7 @@
       (don't care here about the previous value of these fields --- it's for
       sure @nil). If FTextureImage is set, you can also set FTextureComposite.
       If you leave them as @nil, this means that loading failed
-      (and OnWarning didn't cause an exception).
+      (and WritelnWarning didn't cause an exception).
       You should also set FAlphaChannelData.
 
       You do not care in this method about things like
@@ -114,9 +116,9 @@
       unconditionally, make everything it can do to load texture data from
       file(s).
 
-      You can use OnWarning inside,
+      You can use WritelnWarning inside,
       so we're prepared that this may even exit with exception
-      (since OnWarning can raise exception).
+      (since WritelnWarning can raise exception).
 
       If you set FTextureImage, you have to set it to something
       returned by LoadTextureImage. See TextureImage docs.
@@ -127,7 +129,7 @@
 
       Also, set FTextureUsedFullUrl here.
 
-      In this class, this simply produces OnWarning with
+      In this class, this simply produces WritelnWarning with
       "not implemented" message and returns @nil. It's not declared
       as abstract, because there may be classes descending from this,
       and we want to at least be able to parse them
@@ -156,7 +158,7 @@
 
       Note that either one of TextureImage or TextureVideo may be @nil,
       if the other one is loaded. Or when loading failed
-      (warning will be reported by OnWarning).
+      (warning will be reported by WritelnWarning).
       IsTextureImage checks that TextureImage is non-nil (so it's successfully
       loaded) and additionally that texture size is not zero.
       Similar for IsTextureVideo.
@@ -194,7 +196,7 @@
       This is deliberate --- it means that each call to TextureImage etc.
       will not unnecessarily read the disk (or even connect to internet)
       when the file does not exist. Also, the loading errors reported
-      by OnWarning will not be repeated --- they will
+      by WritelnWarning will not be repeated --- they will
       occur only once, when IsTextureLoaded changes from @false to @true. }
     property IsTextureLoaded: boolean
       read FIsTextureLoaded write SetIsTextureLoaded;
@@ -535,12 +537,12 @@ begin
   FFdEffects := TMFNode.Create(Self, 'effects', [TEffectNode]);
    FdEffects.Exposed := false;
    FdEffects.ChangesAlways := [chEverything];
-  Fields.Add(FFdEffects);
+  AddField(FFdEffects);
 
-  FFdAlphaChannel := TSFString.Create(Self, 'alphaChannel', 'AUTO');
+  FFdAlphaChannel := TSFStringEnum.Create(Self, 'alphaChannel', AlphaToString, Ord(acAuto));
    FdAlphaChannel.Exposed := false;
    FdAlphaChannel.ChangesAlways := [chVisibleVRML1State];
-  Fields.Add(FFdAlphaChannel);
+  AddField(FFdAlphaChannel);
 
   DefaultContainerField := 'texture';
 end;
@@ -555,14 +557,24 @@ begin
   Result := acNone;
 end;
 
-function TAbstractTextureNode.AlphaChannel: TAlphaChannel;
+function TAbstractTextureNode.AlphaChannelFinal: TAlphaChannel;
 var
   Res: TAutoAlphaChannel;
 begin
-  Res := StringToAlpha(FdAlphaChannel.Value, AlphaChannelWarningDone);
+  Res := AlphaChannelField;
   if Res = acAuto then
     Result := AlphaChannelData else
     Result := Res;
+end;
+
+function TAbstractTextureNode.GetAlphaChannelField: TAutoAlphaChannel;
+begin
+  Result := TAutoAlphaChannel(FdAlphaChannel.EnumValue);
+end;
+
+procedure TAbstractTextureNode.SetAlphaChannelField(const Value: TAutoAlphaChannel);
+begin
+  FdAlphaChannel.SendEnumValue(Ord(Value));
 end;
 
 { TAbstractTexture2DNode ----------------------------------------------------------- }
@@ -679,7 +691,7 @@ begin
   WasCacheUsed := false;
   FTextureUsedFullUrl := '';
 
-  OnWarning(wtMajor, 'VRML/X3D', Format('Loading textures from "%s" node not implemented', [NodeTypeName]));
+  WritelnWarning('VRML/X3D', Format('Loading textures from "%s" node not implemented', [NodeTypeName]));
 end;
 
 function TAbstractTexture2DNode.TextureProperties: TTexturePropertiesNode;
@@ -701,17 +713,17 @@ begin
   FFdRepeatS := TSFBool.Create(Self, 'repeatS', true);
    FdRepeatS.Exposed := false;
    FdRepeatS.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdRepeatS);
+  AddField(FFdRepeatS);
 
   FFdRepeatT := TSFBool.Create(Self, 'repeatT', true);
    FdRepeatT.Exposed := false;
    FdRepeatT.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdRepeatT);
+  AddField(FFdRepeatT);
 
   FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdTextureProperties);
+  AddField(FFdTextureProperties);
 end;
 
 function TAbstractX3DTexture2DNode.GetRepeatS: boolean;
@@ -755,7 +767,7 @@ begin
 
   FFdUrl := TMFString.Create(Self, 'url', []);
    FdUrl.ChangesAlways := [chTextureImage];
-  Fields.Add(FFdUrl);
+  AddField(FFdUrl);
   { X3D specification comment: [URI] }
 end;
 
@@ -786,7 +798,7 @@ begin
     begin
       { Empty URL would be expanded by PathFromBaseUrl to directory
         and produce unclear error message. }
-      OnWarning(wtMinor, 'VRML/X3D', Format('Empty URL for %s ignored', [NodeTypeName]));
+      WritelnWarning('VRML/X3D', Format('Empty URL for %s ignored', [NodeTypeName]));
     end else
     begin
       FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
@@ -799,14 +811,14 @@ begin
            { AbsoluteFileURI mistakes Blender relative paths '//xxx' as absolute,
              so eliminate them below. }
            not BlenderRelativePath(FdUrl.Items[I]) then
-          OnWarning(wtMinor, 'VRML/X3D', Format('Loaded data from an absolute filename "%s", this makes the data possibly unportable (it will probably not work on other systems/locations). Always use relative paths.',
+          WritelnWarning('VRML/X3D', Format('Loaded data from an absolute filename "%s", this makes the data possibly unportable (it will probably not work on other systems/locations). Always use relative paths.',
             [FdUrl.Items[I]]));
         FTextureUsedFullUrl := URIDisplay(FullUrl);
         Break;
       except
         on E: Exception do
-          { Remember that OnWarning *may* raise an exception. }
-          OnWarning(wtMinor, 'Texture', Format(SLoadError,
+          { Remember that WritelnWarning *may* raise an exception. }
+          WritelnWarning('Texture', Format(SLoadError,
             [E.ClassName, 'texture', URIDisplay(FullUrl), E.Message]));
       end;
     end;
@@ -824,51 +836,51 @@ begin
   inherited;
 
   FFdDescription := TSFString.Create(Self, 'description', '');
-  Fields.Add(FFdDescription);
+  AddField(FFdDescription);
 
   FFdLoop := TSFBool.Create(Self, 'loop', false);
-  Fields.Add(FFdLoop);
+  AddField(FFdLoop);
 
   FFdPauseTime := TSFTime.Create(Self, 'pauseTime', 0);
    FdPauseTime.ChangesAlways := [chTimeStopStart];
-  Fields.Add(FFdPauseTime);
+  AddField(FFdPauseTime);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdResumeTime := TSFTime.Create(Self, 'resumeTime', 0);
    FdResumeTime.ChangesAlways := [chTimeStopStart];
-  Fields.Add(FFdResumeTime);
+  AddField(FFdResumeTime);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdSpeed := TSFFloat.Create(Self, 'speed', 1.0);
-  Fields.Add(FFdSpeed);
+  AddField(FFdSpeed);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdStartTime := TSFTimeIgnoreWhenActive.Create(Self, 'startTime', 0);
    FdStartTime.ChangesAlways := [chTimeStopStart];
-  Fields.Add(FFdStartTime);
+  AddField(FFdStartTime);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdStopTime := TSFStopTime.Create(Self, 'stopTime', 0);
    FdStopTime.ChangesAlways := [chTimeStopStart];
-  Fields.Add(FFdStopTime);
+  AddField(FFdStopTime);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdUrl := TMFString.Create(Self, 'url', []);
    FdUrl.ChangesAlways := [chTextureImage];
-  Fields.Add(FFdUrl);
+  AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
   FEventDuration_changed := TSFTimeEvent.Create(Self, 'duration_changed', false);
-  Events.Add(FEventDuration_changed);
+  AddEvent(FEventDuration_changed);
 
   FEventElapsedTime := TSFTimeEvent.Create(Self, 'elapsedTime', false);
-  Events.Add(FEventElapsedTime);
+  AddEvent(FEventElapsedTime);
 
   FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
-  Events.Add(FEventIsActive);
+  AddEvent(FEventIsActive);
 
   FEventIsPaused := TSFBoolEvent.Create(Self, 'isPaused', false);
-  Events.Add(FEventIsPaused);
+  AddEvent(FEventIsPaused);
 
   FDuration := -1;
 
@@ -931,8 +943,8 @@ begin
       Break;
     except
       on E: Exception do
-        { Remember that OnWarning *may* raise an exception. }
-        OnWarning(wtMinor, 'Video', Format(SLoadError,
+        { Remember that WritelnWarning *may* raise an exception. }
+        WritelnWarning('Video', Format(SLoadError,
           [E.ClassName, 'video', URIDisplay(FullUrl), E.Message]));
     end;
   end;
@@ -958,29 +970,29 @@ begin
 
   FFdAlpha := TSFFloat.Create(Self, 'alpha', 1);
    FdAlpha.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdAlpha);
+  AddField(FFdAlpha);
   { X3D specification comment: [0,1] }
 
   FFdColor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
    FdColor.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdColor);
+  AddField(FFdColor);
   { X3D specification comment: [0,1] }
 
   FFdFunction := TMFString.Create(Self, 'function', []);
    FdFunction.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdFunction);
+  AddField(FFdFunction);
 
   FFdMode := TMFString.Create(Self, 'mode', []);
    FdMode.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdMode);
+  AddField(FFdMode);
 
   FFdSource := TMFString.Create(Self, 'source', []);
    FdSource.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdSource);
+  AddField(FFdSource);
 
   FFdTexture := TMFNode.Create(Self, 'texture', [TAbstractTextureNode]);
    FdTexture.ChangesAlways := [chTextureRendererProperties];
-  Fields.Add(FFdTexture);
+  AddField(FFdTexture);
 end;
 
 class function TMultiTextureNode.ClassNodeTypeName: string;
@@ -1005,7 +1017,7 @@ begin
     ChildTex := FdTexture[I];
     if (ChildTex <> nil) and
        (ChildTex is TAbstractTextureNode) then
-      AlphaMaxVar(Result, TAbstractTextureNode(ChildTex).AlphaChannel);
+      AlphaMaxVar(Result, TAbstractTextureNode(ChildTex).AlphaChannelFinal);
   end;
 end;
 
@@ -1015,7 +1027,7 @@ begin
 
   FFdTexCoord := TMFNode.Create(Self, 'texCoord', [TAbstractTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chTextureCoordinate];
-  Fields.Add(FFdTexCoord);
+  AddField(FFdTexCoord);
 end;
 
 class function TMultiTextureCoordinateNode.ClassNodeTypeName: string;
@@ -1035,7 +1047,7 @@ begin
 
   FFdTextureTransform := TMFNode.Create(Self, 'textureTransform', [TAbstractTextureTransformNode]);
    FdTextureTransform.ChangesAlways := [chEverything];
-  Fields.Add(FFdTextureTransform);
+  AddField(FFdTextureTransform);
 end;
 
 class function TMultiTextureTransformNode.ClassNodeTypeName: string;
@@ -1061,7 +1073,7 @@ begin
 
   FFdImage := TSFImage.Create(Self, 'image', nil);
    FdImage.ChangesAlways := [chTextureImage];
-  Fields.Add(FFdImage);
+  AddField(FFdImage);
   { X3D specification comment: 0 0 }
   end;
 
@@ -1093,7 +1105,7 @@ begin
   if not FdImage.Value.IsEmpty then
     result := Format('inlined image (width = %d; height = %d; with alpha = %s)',
       [ FdImage.Value.Width, FdImage.Value.Height,
-        BoolToStr[FdImage.Value.HasAlpha] ]) else
+        BoolToStr(FdImage.Value.HasAlpha, true) ]) else
     result := 'none';
 end;
 
@@ -1103,7 +1115,7 @@ begin
 
   FFdPoint := TMFVec2f.Create(Self, 'point', []);
    FdPoint.ChangesAlways := [chTextureCoordinate];
-  Fields.Add(FFdPoint);
+  AddField(FFdPoint);
   { X3D specification comment: (-Inf,Inf) }
 end;
 
@@ -1125,12 +1137,12 @@ begin
 
   FFdMode := TSFString.Create(Self, 'mode', 'SPHERE');
    FdMode.ChangesAlways := [chTextureCoordinate];
-  Fields.Add(FFdMode);
+  AddField(FFdMode);
   { X3D specification comment: [see Table 18.6] }
 
   FFdParameter := TMFFloat.Create(Self, 'parameter', []);
    FdParameter.ChangesAlways := [chTextureCoordinate];
-  Fields.Add(FFdParameter);
+  AddField(FFdParameter);
   { X3D specification comment: [see Table 18.6] }
 
   { Note that projectedLight node is not enumerated as an active node
@@ -1142,7 +1154,7 @@ begin
     [TSpotLightNode_1, TDirectionalLightNode_1,
      TSpotLightNode  , TDirectionalLightNode  ]);
    FdProjectedLight.ChangesAlways := [chTextureCoordinate];
-  Fields.Add(FFdProjectedLight);
+  AddField(FFdProjectedLight);
 end;
 
 class function TTextureCoordinateGeneratorNode.ClassNodeTypeName: string;
@@ -1167,63 +1179,63 @@ begin
 
   FFdAnisotropicDegree := TSFFloat.Create(Self, 'anisotropicDegree', 1.0);
    FdAnisotropicDegree.ChangesAlways := [chTexturePropertiesNode];
-  Fields.Add(FFdAnisotropicDegree);
+  AddField(FFdAnisotropicDegree);
   { X3D specification comment: [1,Inf) }
 
   FFdBorderColor := TSFColorRGBA.Create(Self, 'borderColor', Vector4Single(0, 0, 0, 0));
    FdBorderColor.ChangesAlways := [chTexturePropertiesNode];
-  Fields.Add(FFdBorderColor);
+  AddField(FFdBorderColor);
   { X3D specification comment: [0,1] }
 
   FFdBorderWidth := TSFInt32.Create(Self, 'borderWidth', 0);
    FdBorderWidth.ChangesAlways := [chTexturePropertiesNode];
-  Fields.Add(FFdBorderWidth);
+  AddField(FFdBorderWidth);
   { X3D specification comment: [0,1] }
 
   FFdBoundaryModeS := TSFString.Create(Self, 'boundaryModeS', 'REPEAT');
    FdBoundaryModeS.ChangesAlways := [chTexturePropertiesNode];
-  Fields.Add(FFdBoundaryModeS);
+  AddField(FFdBoundaryModeS);
   { X3D specification comment: [see Table 18.7] }
 
   FFdBoundaryModeT := TSFString.Create(Self, 'boundaryModeT', 'REPEAT');
    FdBoundaryModeT.ChangesAlways := [chTexturePropertiesNode];
-  Fields.Add(FFdBoundaryModeT);
+  AddField(FFdBoundaryModeT);
   { X3D specification comment: [see Table 18.7] }
 
   FFdBoundaryModeR := TSFString.Create(Self, 'boundaryModeR', 'REPEAT');
    FdBoundaryModeR.ChangesAlways := [chTexturePropertiesNode];
-  Fields.Add(FFdBoundaryModeR);
+  AddField(FFdBoundaryModeR);
   { X3D specification comment: [see Table 18.7] }
 
   FFdMagnificationFilter := TSFString.Create(Self, 'magnificationFilter', 'FASTEST');
    FdMagnificationFilter.ChangesAlways := [chTexturePropertiesNode];
-  Fields.Add(FFdMagnificationFilter);
+  AddField(FFdMagnificationFilter);
   { X3D specification comment: [see Table 18.8] }
 
   FFdMinificationFilter := TSFString.Create(Self, 'minificationFilter', 'FASTEST');
    FdMinificationFilter.ChangesAlways := [chTexturePropertiesNode];
-  Fields.Add(FFdMinificationFilter);
+  AddField(FFdMinificationFilter);
   { X3D specification comment: [see Table 18.9] }
 
   FFdTextureCompression := TSFString.Create(Self, 'textureCompression', 'FASTEST');
    FdTextureCompression.ChangesAlways := [chTexturePropertiesNode];
-  Fields.Add(FFdTextureCompression);
+  AddField(FFdTextureCompression);
   { X3D specification comment: [see Table 18.10] }
 
   FFdTexturePriority := TSFFloat.Create(Self, 'texturePriority', 0);
    FdTexturePriority.ChangesAlways := [chTexturePropertiesNode];
-  Fields.Add(FFdTexturePriority);
+  AddField(FFdTexturePriority);
   { X3D specification comment: [0,1] }
 
   FFdGenerateMipMaps := TSFBool.Create(Self, 'generateMipMaps', false);
    FdGenerateMipMaps.Exposed := false;
    FdGenerateMipMaps.ChangesAlways := [chTexturePropertiesNode];
-  Fields.Add(FFdGenerateMipMaps);
+  AddField(FFdGenerateMipMaps);
 
   FFdGUITexture := TSFBool.Create(Self, 'guiTexture', false);
    FdGUITexture.Exposed := false;
    FdGUITexture.ChangesAlways := [chTexturePropertiesNode];
-  Fields.Add(FFdGUITexture);
+  AddField(FFdGUITexture);
 
   { X3D XML spec (edition 2) mistakenly claims it should be
     "lineProperties", which is nonsense... I set this to "textureProperties". }
@@ -1247,23 +1259,23 @@ begin
 
   FFdCenter := TSFVec2f.Create(Self, 'center', Vector2Single(0, 0));
    FdCenter.ChangesAlways := [chTextureTransform];
-  Fields.Add(FFdCenter);
+  AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdRotation := TSFFloat.Create(Self, 'rotation', 0);
    FFdrotation.Angle := true;
    FFdrotation.ChangesAlways := [chTextureTransform];
-  Fields.Add(FFdRotation);
+  AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdScale := TSFVec2f.Create(Self, 'scale', Vector2Single(1, 1));
    FdScale.ChangesAlways := [chTextureTransform];
-  Fields.Add(FFdScale);
+  AddField(FFdScale);
   { X3D specification comment: (-Inf,Inf) }
 
   FFdTranslation := TSFVec2f.Create(Self, 'translation', Vector2Single(0, 0));
    FdTranslation.ChangesAlways := [chTextureTransform];
-  Fields.Add(FFdTranslation);
+  AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 end;
 

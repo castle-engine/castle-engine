@@ -1,0 +1,39 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        // Use latest gradle version, as created by default for new Android Studio projects,
+        // and as mentioned on
+        // http://tools.android.com/tech-docs/new-build-system/version-compatibility
+        // https://developer.android.com/studio/releases/gradle-plugin.html
+        classpath 'com.android.tools.build:gradle:2.1.3'
+
+        // Do not change the line below, it is necessary for build.gradle merging to work.
+        // MERGE-DEPENDENCIES
+    }
+}
+
+allprojects {
+    // Enable extra warnings, following
+    // http://stackoverflow.com/questions/18689365/how-to-add-xlintunchecked-to-my-android-gradle-based-project
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
+    }
+
+    repositories {
+        jcenter()
+
+        // To be able to compile aar in libs/ , following
+        // http://stackoverflow.com/questions/16682847/how-to-manually-include-external-aar-package-using-new-gradle-android-build-syst
+        flatDir {
+            dirs 'libs'
+        }
+
+        // Do not change the line below, it is necessary for build.gradle merging to work.
+        // MERGE-REPOSITORIES
+    }
+}

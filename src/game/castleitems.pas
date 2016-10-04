@@ -110,13 +110,13 @@ type
       and engine tutorial for examples how to do this. Then you load the item
       resources with
 
-@longCode(#
-var
-  Sword: TItemResource;
-...
-  Resources.LoadFromFiles;
-  Sword := Resources.FindName('Sword') as TItemResource;
-#)
+      @longCode(#
+      var
+        Sword: TItemResource;
+      ...
+        Resources.LoadFromFiles;
+        Sword := Resources.FindName('Sword') as TItemResource;
+      #)
 
       where 'Sword' is just our example item resource, assuming that one of your
       resource.xml files has resource with name="Sword".
@@ -127,9 +127,9 @@ var
       owned (freed) by the 3D world or inventory that contains it, a simplest
       example how to add an item to your 3D world is this:
 
-@longCode(#
-  Sword.CreateItem(1).PutOnWorld(SceneManager.World, Vector3Single(2, 3, 4));
-#)
+      @longCode(#
+        Sword.CreateItem(1).PutOnWorld(SceneManager.World, Vector3Single(2, 3, 4));
+      #)
 
       This adds 1 item of the MyItemResource to the 3D world,
       on position (2, 3, 4). In simple cases you can get SceneManager
@@ -138,9 +138,9 @@ var
       If you want to instead add sword to the inventory of Player,
       you can call
 
-@longCode(#
-  SceneManager.Player.PickItem(Sword.CreateItem(1));
-#)
+      @longCode(#
+        SceneManager.Player.PickItem(Sword.CreateItem(1));
+      #)
 
       This assumes that you use SceneManager.Player property. It's not really
       obligatory, but it's the simplest way to have player with an inventory.
@@ -1110,6 +1110,8 @@ begin
   inherited;
 
   {$ifndef OpenGLES} // TODO-es
+  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
+  {$warnings off}
   if RenderDebug3D and GetExists and
     (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
@@ -1120,15 +1122,14 @@ begin
         glDisable(GL_LIGHTING);
         glEnable(GL_DEPTH_TEST);
         glColorv(Gray);
-        {$warnings off} { this is already marked with TODO above }
         glDrawBox3DWire(BoundingBox);
         glDrawBox3DWire(BoxRotated);
-        {$warnings on}
         glColorv(Yellow);
         glDrawAxisWire(Middle, BoxRotated.AverageSize(true, 0));
       glPopAttrib;
     end;
   end;
+  {$warnings on}
   {$endif}
 end;
 

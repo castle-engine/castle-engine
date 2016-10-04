@@ -80,11 +80,11 @@ procedure RenderMaterialsBegin;
       However, IndexedLineSet in VRML 1.0 is an exception.
       MaterialAndShapeLit result for it is determined by whether it has normals
       (this is contrary to other nodes, that are always lit or unlit;
-      well, forgetting about the "OnlyEmissiveMaterial" exceptional situation
+      well, forgetting about the "PureEmissive" exceptional situation
       for the moment).
 
       If it's determined to be unlit by TIndexedLineSetNode_1.Lit
-      (that is, it has not enough normals), but OnlyEmissiveMaterial is @false
+      (that is, it has not enough normals), but PureEmissive is @false
       (we have usable material diffuse), we want the unlit color to be the same
       as when it was lit but we were watching with GL_LIGHTING off.
       RenderMaterial uses DiffuseColor in such case.
@@ -92,7 +92,7 @@ procedure RenderMaterialsBegin;
       Admittedly, I'm doing it all by just guessing what user may want...
       VRML 1.0 spec doesn't specify here what should really be done, i.e. what
       unlit color should be used. }
-    if (Shape.Geometry is TIndexedLineSetNode_1) and (not M.OnlyEmissiveMaterial) then
+    if (Shape.Geometry is TIndexedLineSetNode_1) and (not M.PureEmissive) then
       UnlitColor := M.DiffuseColor3Single(0) else
       UnlitColor := M.EmissiveColor3Single(0);
 
@@ -110,7 +110,7 @@ procedure RenderMaterialsBegin;
     Material may be nil. }
   procedure Material_2(Material: TMaterialNode);
   begin
-    if (Material <> nil) and not Material.OnlyEmissiveMaterial then
+    if (Material <> nil) and not Material.PureEmissive then
     begin
       RenderMaterial(
         VectorScale(Material.FdDiffuseColor.Value,
@@ -124,7 +124,7 @@ procedure RenderMaterialsBegin;
     end else
     if Material <> nil then
     begin
-      { in this case we know that Material.OnlyEmissiveMaterial = true,
+      { in this case we know that Material.PureEmissive = true,
         so this can be rendered like unlit material with color = emissiveColor. }
       RenderMaterial(
         WhiteRGB, WhiteRGB, WhiteRGB, WhiteRGB,
@@ -158,16 +158,16 @@ begin
     { VRML 1.0 specification states that this is a special case
       and we should treat EmissiveColor as precalculated color,
       and turn lighting off to improve speed. }
-    MaterialLit := not M1.OnlyEmissiveMaterial;
+    MaterialLit := not M1.PureEmissive;
   end else
   begin
     { VRML >= 2.0 }
     if Shape.Node <> nil then
       M2 := Shape.Node.Material else
-      OnWarning(wtMajor, 'VRML/X3D', 'VRML node "' + Shape.Geometry.NodeTypeName +
+      WritelnWarning('VRML/X3D', 'VRML node "' + Shape.Geometry.NodeTypeName +
         '" can be specified only in a "geometry" field of "Shape" node');
     { VRML 2.0 spec says that when Material is not assigned, shape is unlit. }
-    MaterialLit := (M2 <> nil) and not M2.OnlyEmissiveMaterial;
+    MaterialLit := (M2 <> nil) and not M2.PureEmissive;
   end;
 
   { calculate MaterialAndShapeLit (like Lighting, but ignores things

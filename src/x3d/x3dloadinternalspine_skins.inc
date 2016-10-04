@@ -94,7 +94,7 @@ begin
       Exit(Items[I]);
   if NilOnError then
   begin
-    OnWarning(wtMinor, 'Spine', Format('Skin name "%s" not found', [Name]));
+    WritelnWarning('Spine', Format('Skin name "%s" not found', [Name]));
     Result := nil;
   end else
     raise ESpineReadError.CreateFmt('Skin name "%s" not found', [Name]);

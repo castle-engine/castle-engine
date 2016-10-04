@@ -156,6 +156,7 @@ begin
     P.Targets.AddUnit('castleanalytics.pas');
     P.Targets.AddUnit('castlegiftiz.pas');
     P.Targets.AddUnit('castlegoogleplaygames.pas');
+    P.Targets.AddUnit('castlehelpshift.pas');
     P.Targets.AddUnit('castleinapppurchases.pas');
     P.Targets.AddUnit('castlemessaging.pas');
     P.Targets.AddUnit('castleopendocument.pas');

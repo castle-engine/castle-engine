@@ -173,7 +173,7 @@ function ALDataFormatToStr(DataFormat: TALuint): string;
 
 implementation
 
-uses CastleStringUtils, CastleVorbisDecoder, CastleVorbisFile, CastleWarnings,
+uses CastleStringUtils, CastleVorbisDecoder, CastleVorbisFile, CastleLog,
   CastleDownload, CastleURIUtils;
 
 { TSoundFile ----------------------------------------------------------------- }
@@ -193,7 +193,7 @@ begin
       if MimeType = 'audio/ogg'   then C := TSoundOggVorbis else
       if MimeType = 'audio/mpeg'  then C := TSoundMP3 else
       begin
-        OnWarning(wtMinor, 'Audio', Format('Not recognized MIME type "%s" for sound file "%s", trying to load it as wav', [MimeType, URL]));
+        WritelnWarning('Audio', Format('Not recognized MIME type "%s" for sound file "%s", trying to load it as wav', [MimeType, URL]));
         C := TSoundWAV;
       end;
 
@@ -441,9 +441,7 @@ begin
   if Riff.Header.Len = Stream.Size then
   begin
     Riff.Header.Len -= SizeOf(TWavChunkHeader);
-    OnWarning(wtMajor, 'WAV', 'WAV file is invalid ' +
-      '(Riff.Header.Len equals Stream.Size, but it should be ' +
-      '<= Stream.Size - SizeOf(TWavChunkHeader)). Reading anyway.');
+    WritelnWarning('WAV', 'Invalid WAV file: Riff.Header.Len equals Stream.Size, but it should be <= Stream.Size - SizeOf(TWavChunkHeader). Reading anyway.');
   end;
 
   while Stream.Position < Int64(Riff.Header.Len + SizeOf(TWavChunkHeader)) do

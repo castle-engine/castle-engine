@@ -303,7 +303,11 @@ type
 
     { Does it have any common part with another rectangle. }
     function Collides(const R: TFloatRectangle): boolean;
+
+    function CollidesDisc(const Center: TVector2Single; const Radius: Single): boolean;
   end;
+
+  PFloatRectangle = ^TFloatRectangle;
 
   TRectangleList = class(specialize TGenericStructList<TRectangle>)
   public
@@ -312,6 +316,8 @@ type
     function FindRectangle(const X, Y: Integer): Integer;
     function FindRectangle(const Point: TVector2Single): Integer;
   end;
+
+  TFloatRectangleList = specialize TGenericStructList<TFloatRectangle>;
 
 function Rectangle(const Left, Bottom: Integer;
   const Width, Height: Cardinal): TRectangle;
@@ -829,6 +835,73 @@ begin
           (R.Right <   Left))) and
     (not ((  Top   < R.Bottom) or
           (R.Top   <   Bottom)));
+end;
+
+function TFloatRectangle.CollidesDisc(const Center: TVector2Single;
+  const Radius: Single): boolean;
+var
+  ARight, ATop, ClosestCornerX, ClosestCornerY: Single;
+  InsideX, InsideY: boolean;
+begin
+  if IsEmpty then
+    Exit(false);
+
+  ARight := Left + Width;
+  ATop   := Bottom + Height;
+
+  if Center[0] < Left then
+  begin
+    InsideX := false;
+    ClosestCornerX := Left;
+    if Left - Center[0] > Radius then Exit(false);
+  end else
+  if Center[0] > ARight then
+  begin
+    InsideX := false;
+    ClosestCornerX := ARight;
+    if Center[0] - ARight > Radius then Exit(false);
+  end else
+  begin
+    InsideX := true;
+    if Center[0] < (Left + ARight) / 2 then
+      ClosestCornerX := Left
+    else
+      ClosestCornerX := ARight;
+  end;
+
+  if Center[1] < Bottom then
+  begin
+    InsideY := false;
+    ClosestCornerY := Bottom;
+    if Bottom - Center[1] > Radius then Exit(false);
+  end else
+  if Center[1] > ATop then
+  begin
+    InsideY := false;
+    ClosestCornerY := ATop;
+    if Center[1] - ATop > Radius then Exit(false);
+  end else
+  begin
+    InsideY := true;
+    if Center[1] < (Bottom + ATop) / 2 then
+      ClosestCornerY := Bottom
+    else
+      ClosestCornerY := ATop;
+  end;
+
+  { If we get here, then Center is within a Radius margin from the rectangle.
+    In other words, the bounding rect of the cirle for sure collides with
+    this rectangle.
+    The only way for the circle not to collide, is to be at the very corner
+    of such "rectangle enlarged by Radius". }
+
+  if InsideX or InsideY then
+    Exit(true);
+
+  Result :=
+    Sqr(Center[0] - ClosestCornerX) +
+    Sqr(Center[1] - ClosestCornerY) <=
+    Sqr(Radius);
 end;
 
 { TRectangleList -------------------------------------------------------------- }

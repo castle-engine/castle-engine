@@ -52,11 +52,12 @@ program plane_mirror_and_shadow;
 
 {$I castleconf.inc}
 
-uses CastleVectors, CastleBoxes, X3DNodes, CastleGL, CastleWindow, CastleRenderer,
-  CastleClassUtils, CastleUtils, SysUtils, Classes, X3DLoad, CastleWarnings,
+uses SysUtils, Classes,
+  CastleVectors, CastleBoxes, X3DNodes, CastleGL, CastleWindow, CastleRenderer,
+  CastleClassUtils, CastleUtils, X3DLoad, CastleLog,
   CastleGLUtils, CastleScene, CastleCameras, CastleRenderingCamera, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleKeysMouse, CastleSceneManager,
-  CastleColors, CastleURIUtils;
+  CastleColors, CastleURIUtils, CastleApplicationProperties;
 
 var
   Window: TCastleWindowCustom;
@@ -225,7 +226,7 @@ var
   procedure DoMirror;
 
     { Clears depth buffer (sets it's values to 1, i.e. maximum).
-      Contrary to GLClear([cbDepth]...) this honours stencil test,
+      Contrary to RenderContext.Clear([cbDepth]...) this honours stencil test,
       since it does the job by rasterizing a rectangle over the screen.
 
       Assumes that current matrix mode is modelview
@@ -376,7 +377,7 @@ var
   end;
 
 begin
-  GLClear([cbColor, cbDepth, cbStencil], ClearColor);
+  RenderContext.Clear([cbColor, cbDepth, cbStencil], ClearColor);
   glLoadMatrix(RenderingCamera.Matrix);
 
   { set light position for Scene (by LightInstance and LightNode) }
@@ -388,7 +389,7 @@ begin
     glDisable(GL_LIGHTING);
 
     glColorv(Yellow);
-    glPointSize(10); { VRML renderer will reset it }
+    RenderContext.PointSize := 10; { VRML renderer will reset it }
     glBegin(GL_POINTS);
       glVertexv(LightPosition);
     glEnd;
@@ -635,7 +636,7 @@ begin
   SceneManager.DefaultVisibilityLimit := 100;
   Window.Controls.InsertFront(SceneManager);
 
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   { calculate RootNode }
   if SceneURL <> '' then
@@ -654,7 +655,7 @@ begin
     SceneForShadow.Attributes.Mode := rmPureGeometry;
 
     { init light that we'll control }
-    LightNode := TPointLightNode.Create('', '');
+    LightNode := TPointLightNode.Create;
     LightNode.FdLocation.Value := Vector3SingleCut(LightPosition);
 
     LightInstance.Node := LightNode;

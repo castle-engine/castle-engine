@@ -66,7 +66,7 @@ begin
 
  EmptyScene := TCastleScene.Create(nil);
  try
-  EmptyScene.Load(TX3DRootNode.Create('', ''), true);
+  EmptyScene.Load(TX3DRootNode.Create, true);
   EmptySceneAsserts(EmptyScene);
   EmptyScene.ChangedAll;
   EmptySceneAsserts(EmptyScene);

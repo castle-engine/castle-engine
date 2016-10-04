@@ -1,3 +1,6 @@
+.PHONY: all
+all: *.png castleicons.lrs
+
 tcastle2dcontrol.png: tcastle2dcontrol.xcf
 	xcf2png $< $@
 

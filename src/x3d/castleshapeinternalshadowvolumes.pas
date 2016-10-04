@@ -23,7 +23,7 @@ uses CastleGenericLists, CastleVectors, CastleTriangles;
 
 type
   { Edge that is between exactly two triangles.
-    It's used by @link(ManifoldEdges),
+    It's used by @link(TShapeShadowVolumes.ManifoldEdges),
     and this is crucial for rendering silhouette shadow volumes in OpenGL. }
   TManifoldEdge = record
     { Index to get vertexes of this edge.
@@ -65,7 +65,7 @@ type
   TManifoldEdgeList = specialize TGenericStructList<TManifoldEdge>;
 
   { Edge that has one neighbor, i.e. border edge.
-    It's used by @link(BorderEdges),
+    It's used by @link(TShapeShadowVolumes.BorderEdges),
     and this is crucial for rendering silhouette shadow volumes in OpenGL. }
   TBorderEdge = record
     { Index to get vertex of this edge.

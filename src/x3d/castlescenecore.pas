@@ -19,6 +19,7 @@ unit CastleSceneCore;
 
 {$I castleconf.inc}
 {$I octreeconf.inc}
+{$modeswitch nestedprocvars}{$H+}
 
 interface
 
@@ -468,6 +469,7 @@ type
     FAnimationPrefix: string;
     FAnimationsList: TStrings;
     FTimeAtLoad: TFloatTime;
+    ForceImmediateProcessing: Integer;
 
     { When this is non-empty, then the transformation change happened,
       and should be processed (for the whole X3D graph inside RootNode).
@@ -725,7 +727,11 @@ type
     FHeadlightOn: boolean;
     FOnHeadlightOnChanged: TNotifyEvent;
     FAnimateOnlyWhenVisible: boolean;
-    FAnimateOnlyWhenVisibleGatheredTime: TFloatTime;
+    FAnimateGatheredTime: TFloatTime;
+    FAnimateSkipTicks: Cardinal;
+    AnimateSkipNextTicks: Cardinal;
+
+    procedure SetAnimateSkipTicks(const Value: Cardinal);
 
     procedure RenderingCameraChanged(const RenderingCamera: TRenderingCamera;
       Viewpoint: TAbstractViewpointNode);
@@ -1388,7 +1394,7 @@ type
       time of time-dependent nodes like X3D TimeSensor, which in turn
       drive the rest of the animation).
 
-      You can use @link(SetTime) or @link(IncreasTime) to move time
+      You can use @link(SetTime) or @link(IncreaseTime) to move time
       forward manually. But usually there's no need for it:
       our @link(Update) method takes care of it automatically,
       you only need to place the scene inside @link(TCastleSceneManager.Items).
@@ -1396,7 +1402,7 @@ type
       You can start/stop time progress by @link(TimePlaying)
       and scale it by @link(TimePlayingSpeed). These properties
       affect how the time is updated by the @link(Update) method
-      (so if you use @link(SetTime) or @link(IncreasTime) methods,
+      (so if you use @link(SetTime) or @link(IncreaseTime) methods,
       you're working around these properties).
 
       Default time value is 0.0 (zero). However it will be reset
@@ -1689,8 +1695,8 @@ type
       other 3D objects with lights defined inside this scene. }
     property GlobalLights: TLightInstancesList read FGlobalLights;
 
-    { Simple methods to find a named X3D node (and a field or event
-      within this node) in a current node graph. They search all nodes
+    { Find a named X3D node (and a field or event within this node)
+      in the current node graph. They search all nodes
       (in active or not) graph parts.
 
       For more flexible and extensive search methods, use RootNode property
@@ -1727,11 +1733,10 @@ type
       Use this for example to watch when the animation ends playing,
       like
 
-@longCode(#
-  Scene.AnimationTimeSensor('my_animation').EventIsActive.OnReceive.Add(
-    @AnimationIsActiveChanged);
-#)
-
+      @longCode(#
+        Scene.AnimationTimeSensor('my_animation').EventIsActive.OnReceive.Add(
+          @AnimationIsActiveChanged);
+      #)
 
       See the examples/3d_rendering_processing/listen_on_x3d_events.lpr . }
     function AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
@@ -1911,6 +1916,33 @@ type
       for something else than just visual effect. }
     property AnimateOnlyWhenVisible: boolean
       read FAnimateOnlyWhenVisible write FAnimateOnlyWhenVisible default false;
+
+    { Non-zero values optimize the animation processing, by not updating
+      the animation every frame. After updating the animation in one
+      @link(Update) call, the next AnimateSkipTicks number of @link(Update)
+      calls will go very quickly, as they will not actually change the scene
+      at all.
+
+      This is an effective optimization if the scene is usually not large on
+      the screen.
+
+      @unorderedList(
+        @item(The animation is less smooth. For example, if AnimateSkipTicks = 1,
+          then every other @link(Update) call does not change the scene.
+          For example, if you have 60 FPS, and @link(Update) is called 60 times
+          per second, then we will actually change the scene only 30 times per second.
+
+          The "skip" within every scene has a little random shift,
+          to avoid synchronizing this skip across many created scenes.
+          This makes this a little harder to notice.)
+
+        @item(In exchange, the speedup is substantial.
+          For example, if AnimateSkipTicks = 1, then the animation on CPU effectively
+          costs 2x less. In general, AnimateSkipTicks = N means that the cost
+          drops to @code(1 / (1 + N)).)
+      ) }
+    property AnimateSkipTicks: Cardinal read FAnimateSkipTicks write SetAnimateSkipTicks
+      default 0;
   end;
 
 var
@@ -1929,7 +1961,7 @@ var
 
 implementation
 
-uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils, CastleWarnings,
+uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils,
   X3DLoad, CastleURIUtils, CastleTimeUtils;
 
 { TX3DBindableStack ----------------------------------------------------- }
@@ -2220,7 +2252,7 @@ begin
 
       if (Tex is TGeneratedCubeMapTextureNode) and
          (Shape <> GenTex^.Shape) then
-        OnWarning(wtMajor, 'VRML/X3D', 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different VRML shapes. This is bad, as we don''t know from which shape should environment be captured');
+        WritelnWarning('VRML/X3D', 'The same GeneratedCubeMapTexture node is used (instanced) within at least two different VRML shapes. This is bad, as we don''t know from which shape should environment be captured');
     end else
     begin
       GenTex := Add;
@@ -3590,7 +3622,7 @@ begin
   if RootNode = nil then Exit;
   if not (Shapes is TShapeTreeGroup) then
   begin
-    OnWarning(wtMajor, 'X3D changes', 'Root node did not create corresponding TShapeTreeGroup, transformation will not be applied correctly. Submit a bug');
+    WritelnWarning('X3D changes', 'Root node did not create corresponding TShapeTreeGroup, transformation will not be applied correctly. Submit a bug');
     Exit;
   end;
 
@@ -3666,7 +3698,11 @@ var
   var
     Instances: TShapeTreeList;
   begin
-    if OptimizeExtensiveTransformations then
+    { the OptimizeExtensiveTransformations only works for scene with ProcessEvents,
+      otherwise TransformationDirty would never be processed }
+    if OptimizeExtensiveTransformations and
+       ProcessEvents and
+       (ForceImmediateProcessing = 0) then
       TransformationDirty := TransformationDirty + Changes else
     begin
       Check(Supports(ANode, ITransformNode),
@@ -3736,17 +3772,18 @@ var
   end;
 
   procedure HandleChangeMaterial;
-  var
-    SI: TShapeTreeIterator;
+
+    procedure HandleShape(Shape: TShape);
+    begin
+      if (Shape.State.ShapeNode <> nil) and
+         (Shape.State.ShapeNode.Material = ANode) then
+        Shape.Changed(false, Changes);
+    end;
+
   begin
     { VRML 2.0 Material affects only shapes where it's
       placed inside Appearance.material field. }
-    SI := TShapeTreeIterator.Create(Shapes, false);
-    try
-      while SI.GetNext do
-        if SI.Current.State.ShapeNode.Material = ANode then
-          SI.Current.Changed(false, Changes);
-    finally FreeAndNil(SI) end;
+    Shapes.Traverse(@HandleShape, false);
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
   end;
 
@@ -5350,6 +5387,17 @@ begin
   Result := FTimeNow;
 end;
 
+procedure TCastleSceneCore.SetAnimateSkipTicks(const Value: Cardinal);
+begin
+  if FAnimateSkipTicks <> Value then
+  begin
+    FAnimateSkipTicks := Value;
+    { randomizing it now desynchronizes the skipped frames across many scenes
+      created in a single frame }
+    AnimateSkipNextTicks := Random(FAnimateSkipTicks + 1);
+  end;
+end;
+
 procedure TCastleSceneCore.InternalSetTime(
   const NewValue: TFloatTime; const TimeIncrease: TFloatTime; const ResetTime: boolean);
 
@@ -5462,12 +5510,18 @@ procedure TCastleSceneCore.InternalSetTime(
   procedure UpdateTimeDependentHandlersIfVisible;
   begin
     if FAnimateOnlyWhenVisible and (not IsVisibleNow) and (not ResetTime) then
-      FAnimateOnlyWhenVisibleGatheredTime += TimeIncrease else
+      FAnimateGatheredTime += TimeIncrease else
+    if (AnimateSkipNextTicks <> 0) and (not ResetTime) then
+    begin
+      Dec(AnimateSkipNextTicks);
+      FAnimateGatheredTime += TimeIncrease;
+    end else
     begin
       if ResetTime then
-        FAnimateOnlyWhenVisibleGatheredTime := 0;
-      UpdateTimeDependentHandlers(FAnimateOnlyWhenVisibleGatheredTime);
-      FAnimateOnlyWhenVisibleGatheredTime := 0;
+        FAnimateGatheredTime := 0;
+      UpdateTimeDependentHandlers(FAnimateGatheredTime);
+      AnimateSkipNextTicks := AnimateSkipTicks;
+      FAnimateGatheredTime := 0;
     end;
     IsVisibleNow := false;
   end;
@@ -5830,7 +5884,7 @@ var
     if (NavigationType = 'EXAMINE') or (NavigationType = 'LOOKAT') then
     begin
       if NavigationType = 'LOOKAT' then
-        OnWarning(wtMinor, 'VRML/X3D', 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
+        WritelnWarning('VRML/X3D', 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
       NavigationTypeInitialized := true;
       if Universal <> nil then Universal.NavigationClass := ncExamine;
       if Examine <> nil then Examine.Turntable := false;
@@ -5846,7 +5900,7 @@ var
     begin
       { Do nothing, also do not report this NavigationInfo.type as unknown. }
     end else
-      OnWarning(wtMajor, 'VRML/X3D', Format('Unknown NavigationInfo.type "%s"',
+      WritelnWarning('VRML/X3D', Format('Unknown NavigationInfo.type "%s"',
         [NavigationType]));
   end;
 
@@ -6050,7 +6104,7 @@ begin
       if (TransitionType = 'LINEAR') or (TransitionType = 'ANIMATE') then
         { Leave TransitionAnimate as true }
         Break else
-        OnWarning(wtMinor, 'VRML/X3D', Format('Unrecognized transitionType "%s"', [TransitionType]));
+        WritelnWarning('VRML/X3D', Format('Unrecognized transitionType "%s"', [TransitionType]));
     end;
 
   { calculate TransitionTime }
@@ -6493,18 +6547,16 @@ end;
 
 function TCastleSceneCore.Field(const NodeName, FieldName: string): TX3DField;
 begin
-  if RootNode = nil then
-    raise EX3DNotFound.CreateFmt('Cannot find node "%s"', [NodeName]) else
-    Result := RootNode.FindNodeByName(TX3DNode, NodeName, false).
-      Fields.ByName[FieldName];
+  Result := Node(NodeName).Field(FieldName);
+  if Result = nil then
+    raise EX3DNotFound.CreateFmt('Field name "%s" not found', [FieldName]);
 end;
 
 function TCastleSceneCore.Event(const NodeName, EventName: string): TX3DEvent;
 begin
-  if RootNode = nil then
-    raise EX3DNotFound.CreateFmt('Cannot find node "%s"', [NodeName]) else
-    Result := RootNode.FindNodeByName(TX3DNode, NodeName, false).
-      Events.ByName[EventName];
+  Result := Node(NodeName).AnyEvent(EventName);
+  if Result = nil then
+    raise EX3DNotFound.CreateFmt('Event name "%s" not found', [EventName]);
 end;
 
 procedure TCastleSceneCore.InvalidateBackground;
@@ -6678,7 +6730,7 @@ begin
     if AnimationName = '' then
     begin
       if AnimationPrefix <> '' then // this is normal with AnimationPrefix = '' on many scenes
-        OnWarning(wtMinor, 'Named Animations', Format('TimeSensor node name is exactly "%s", this indicates named animation with empty name, ignoring',
+        WritelnWarning('Named Animations', Format('TimeSensor node name is exactly "%s", this indicates named animation with empty name, ignoring',
           [AnimationName]));
       Exit;
     end;
@@ -6697,7 +6749,7 @@ begin
           - Even our own mechanism for renaming KAnim animations from
             https://github.com/castle-engine/demo-models/blob/master/kanim/two_animations.x3dv
             results in multiple "Animation" names in scene. }
-        OnWarning(wtMinor, 'Named Animations', Format('Animation name "%s" occurs multiple times in scene',
+        WritelnWarning('Named Animations', Format('Animation name "%s" occurs multiple times in scene',
           [AnimationName]));
       List.Objects[ExistingIndex] := Node;
     end else
@@ -6769,7 +6821,12 @@ begin
       paForceNotLooping: Loop := false;
       else               Loop := TimeNode.Loop;
     end;
-    TimeNode.FakeTime(TimeInAnimation, Loop, NextEventTime);
+    Inc(ForceImmediateProcessing);
+    try
+      TimeNode.FakeTime(TimeInAnimation, Loop, NextEventTime);
+    finally
+      Dec(ForceImmediateProcessing);
+    end;
   end;
 end;
 

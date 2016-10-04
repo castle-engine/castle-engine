@@ -30,7 +30,7 @@ procedure GenerateWindowsResources(const ReplaceMacros: TReplaceMacros;
 implementation
 
 uses SysUtils,
-  CastleURIUtils, CastleWarnings, CastleFilesUtils;
+  CastleURIUtils, CastleLog, CastleFilesUtils;
 
 procedure GenerateWindowsResources(const ReplaceMacros: TReplaceMacros;
   const Path: string; const Icons: TIconFileNames; const CPU: TCpu;
@@ -55,7 +55,7 @@ begin
   IcoPath := Icons.FindExtension(['.ico']);
   if IcoPath <> '' then
     OutputRc := 'MainIcon ICON "' + IcoPath + '"' + NL + OutputRc else
-    OnWarning(wtMinor, 'Windows Resources', 'Icon in format suitable for Windows (.ico) not found. Exe file will not have icon.');
+    WritelnWarning('Windows Resources', 'Icon in format suitable for Windows (.ico) not found. Exe file will not have icon.');
 
   RcFilename := InclPathDelim(Path) + RcName[Plugin];
   StringToFile(RcFilename, OutputRc);

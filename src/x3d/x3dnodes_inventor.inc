@@ -65,11 +65,11 @@ begin
 
   FFdAxis := TSFEnum.Create(Self, 'axis' , ['X', 'Y', 'Z'], 0);
    FdAxis.ChangesAlways := [chEverything];
-  Fields.Add(FFdAxis);
+  AddField(FFdAxis);
 
   FFdAngle := TSFFloat.Create(Self, 'angle', 0);
    FdAngle.ChangesAlways := [chEverything];
-  Fields.Add(FFdAngle);
+  AddField(FFdAngle);
 end;
 
 class function TRotationXYZNode.ClassNodeTypeName: string;

@@ -21,17 +21,16 @@ unit CastleGLUtils;
 
 interface
 
-uses Math, CastleImages, CastleGL, SysUtils, CastleUtils, CastleVectors,
-  Matrix, CastleRectangles, CastleColors;
+uses SysUtils, Math, Matrix,
+  { Because of FPC 2.6.4 bugs (not present in FPC >= 3.0.0) we cannot use here
+    the FGL unit. It breaks compilation of Lazarus packages, as compiling
+    castle_window.lpk then accidentally wants to recompile CastleGLShaders too.
+    In consequence, we use TFPObjectList instead of generic TFPGObjectList for scissor stuff.
+    This will be remedied once we drop FPC 2.6.4 compatibility. }
+  Contnrs,
+  CastleImages, CastleGL, CastleUtils, CastleVectors, CastleRectangles, CastleColors;
 
 {$define read_interface}
-
-type
-  TGLSupport = (gsNone, gsExtension, gsStandard);
-
-const
-  GLSupportNames: array [TGLSupport] of string =
-  ( 'None', 'Extension', 'Standard' );
 
 type
   { Types with leading "T" } { }
@@ -51,185 +50,6 @@ type
   TGLdouble   = GLdouble;
   TGLclampd   = GLclampd;
   {$endif not OpenGLES}
-
-type
-  { OpenGL features, analyzed based on OpenGL extensions and version.
-    A single instance of this class is assigned to @link(GLFeatures)
-    after the first OpenGL context was created.
-
-    If you have multiple OpenGL contexts, our engine assumes they share resources
-    and have equal features. }
-  TGLFeatures = class
-  public
-    {$ifndef OpenGLES}
-    { OpenGL versions supported. Checked by looking at GL version string
-      @italic(and) by checking whether actual entry points are available.
-
-      This is important because bad OpenGL implementations
-      (like the horrible ATI Linux closed drivers) sometimes lie,
-      claiming support in the GL version string but actually lacking proper
-      function entry points.
-      We check the actual presence of entry points (GLExt.Load_GL_version_x_x
-      do that).
-
-      We *also* check version string (TGLVersion.AtLeast),
-      since OpenGL may have some buggy entry point in case of work-in-progress
-      features (not yet advertised in GL version string),
-      e.g. Mesa 6.x had such buggy glStencilOpSeparate. This is correct OpenGL
-      behavior AFAIK, and we handle it. }
-    Version_1_2: boolean;
-    Version_1_3: boolean;
-    Version_1_4: boolean;
-    Version_1_5: boolean;
-    Version_2_0: boolean;
-    Version_2_1: boolean;
-    Version_3_0: boolean;
-    Version_3_1: boolean;
-    Version_3_2: boolean;
-    Version_3_3: boolean;
-    Version_4_0: boolean;
-    {$endif}
-
-    { Is the extension below loaded.
-      Note: we prefer to avoid exposing directly each extension presence
-      like below.
-      Instead most interesting extensions are wrapped in "features"
-      like @link(UseMultiTexturing), see lower. }
-    ARB_shadow: boolean;
-    EXT_texture_filter_anisotropic: boolean;
-    NV_multisample_filter_hint: boolean;
-    ARB_occlusion_query: boolean;
-    {$ifndef OpenGLES}
-    EXT_fog_coord: boolean;
-    ARB_window_pos: boolean;
-    MESA_window_pos: boolean;
-    {$endif}
-
-    { GL_CLAMP_TO_EDGE, if available in current OpenGL version.
-      Otherwise GL_CLAMP.
-
-      Use this (insteaf of direct GL_CLAMP_TO_EDGE)
-      to work with @italic(really ancient) OpenGL versions before 1.2.
-      Note that our engine officially supports only OpenGL >= 1.2,
-      so don't expect everything to work smootly with such ancient OpenGL anyway! }
-    CLAMP_TO_EDGE: TGLenum;
-
-    { Constant (for given context) OpenGL limits.
-      Initialized to 0 if appropriate OpenGL functionality is not available.
-      @groupBegin }
-    MaxTextureSize: Cardinal;
-    MaxLights: Cardinal;
-    MaxCubeMapTextureSize: Cardinal;
-    MaxTexture3DSize: Cardinal;
-    MaxTextureMaxAnisotropyEXT: Single;
-    QueryCounterBits: TGLint;
-    MaxRenderbufferSize: TGLuint;
-    MaxClipPlanes: Cardinal;
-    { @groupEnd }
-
-    Multisample: boolean;
-
-    { Number of texture units available.
-      Equal to glGetInteger(GL_MAX_TEXTURE_UNITS), if multi-texturing
-      available. Equal to 1 (OpenGL supports always 1 texture) otherwise. }
-    MaxTextureUnits: Cardinal;
-
-    { Are all OpenGL multi-texturing extensions for
-      VRML/X3D MultiTexture support available.
-
-      This used to check a couple of multitexturing extensions,
-      like ARB_multitexture. Right now, it simply checks for OpenGL 1.3 version.
-      It is supported by virtually all existing GPUs.
-      So it's acceptable to just check it, and write your code for 1.3,
-      and eventual fallback code (when this is false) write only for really
-      ancient GPUs. }
-    UseMultiTexturing: boolean;
-
-    { Are 3D textures supported by OpenGL.
-      If they are, note that GL_TEXTURE_3D and GL_TEXTURE_3D_EXT are equal,
-      so often both Texture3D = gsStandard and Texture3D = gsExtension
-      cases may be handled by the same code. }
-    Texture3D: TGLSupport;
-
-    { Is Framebuffer supported. Value gsExtension means that EXT_framebuffer_object
-      is used, gsStandard means that ARB_framebuffer_object (which is
-      a "core extesion", present the same way in OpenGL 3 core,
-      also in OpenGL ES >= 2.0 core) is available. }
-    Framebuffer: TGLSupport;
-
-    { Is multisampling possible for FBO buffers and textures.
-      Although these are two orthogonal features of OpenGL,
-      in practice you want to use multisample for both FBO buffers and textures,
-      or for none --- otherwise, FBO can not be initialized correctly
-      when you mix various multisample settings. }
-    FBOMultiSampling: boolean;
-
-    { How multi-sampling was initialized for this OpenGL context.
-      Value = 1 means that no multi-sampling is initialized.
-      Values > 1 mean that you have multi-sampling, with given number of samples
-      per pixel.
-      Contrast this with TCastleWindowCustom.MultiSampling or TOpenGLControl.MultiSampling,
-      that say @italic(how many samples you wanted to get). }
-    CurrentMultiSampling: Cardinal;
-
-    { Does OpenGL context have depth buffer packed with stencil buffer.
-      See EXT_packed_depth_stencil extension for explanation.
-
-      This is important for FBOs, as the depth/stencil have to be set up differently
-      depending on PackedDepthStencil value.
-      This is also important for all code using TGLRenderToTexture
-      with TGLRenderToTexture.Buffer equal tbDepth or tbColorAndDepth:
-      your depth texture must be prepared differently, to include both depth+stencil
-      data, to work.
-
-      For now, this is simply equal to GL_EXT_packed_depth_stencil.
-      (TODO: for core OpenGL 3, how to detect should we use packed version?
-      http://www.opengl.org/registry/specs/ARB/framebuffer_object.txt
-      incorporates EXT_packed_depth_stencil, so forward-compatible contexts
-      do not need to declare it.
-      Should we assume that forward-compatible gl 3 contexts always have
-      depth/stencil packed?) }
-    PackedDepthStencil: boolean;
-
-    { Does OpenGL context support shadow volumes.
-      This simply checks do we have stencil buffer with at least 4 bits for now. }
-    ShadowVolumesPossible: boolean;
-
-    { Are non-power-of-2 textures supported. }
-    TextureNonPowerOfTwo: boolean;
-
-    { Are cubemaps supported.
-
-      gsExtension means GL_ARB_texture_cube_map on core OpenGL.
-      gsStandard means standard feature of OpenGL or OpenGL ES.
-      Since the constants defined by ARB_texture_cube_map were promoted
-      to core with the same values, the distinction between gsExtension
-      and gsStandard in practice doesn't exist. }
-    TextureCubeMap: TGLSupport;
-
-    { Which texture compression formats are supported. }
-    TextureCompression: TTextureCompressions;
-
-    { VBO support (in OpenGL (ES) core). }
-    VertexBufferObject: boolean;
-
-    { glBlendColor and GL_CONSTANT_ALPHA support. }
-    BlendConstant: boolean;
-
-    { Support for float texture formats for glTexImage2d. }
-    TextureFloat: boolean;
-
-    { Support for depth texture formats for glTexImage2d. }
-    TextureDepth: boolean;
-
-    constructor Create;
-  end;
-
-{ Initialize GLVersion and GLUVersion and GLFeatures. }
-procedure GLInformationInitialize;
-
-var
-  GLFeatures: TGLFeatures;
 
 { OpenGL vector/matrix types ------------------------------------------------- }
 
@@ -296,7 +116,7 @@ function GLErrorString(const ErrorCode: TGLenum; const AdditionalComment: string
 
 { Check are any OpenGL errors recorded (in glGetError).
   If there are errors, our behavior depends on whether we were compiled
-  with -dRELEASE. With -dRELEASE, we make OnWarning. This way eventual
+  with -dRELEASE. With -dRELEASE, we make WritelnWarning. This way eventual
   errors in release builds don't completely abort your program.
 
   Note that the behavior on GL_OUT_OF_MEMORY is different.
@@ -347,26 +167,34 @@ function glGetBoolean(pname: TGLEnum): TGLboolean;
   However, speeding these functions is just not needed at all anymore
   (especially with new VBO renderer that passes everything through arrays).
 
-  TODO: almost all these functions belong to deprecated fixed-function
-  and do immediate operations. They should be just removed, and everything
-  using them fixed to use VBO.
+  TODO: Some of these functions should be treated as internal.
+  A subset of these internal functions are only available in fixed-function pipeline.
+  The rest of these functions are just deprecated -- because they
+  are only for fixed-function pipeline, in immediate mode (and all modern code
+  should use VBO).
 }
 
 {$ifndef OpenGLES}
+
+// Do not mark glColorv as "deprecated" for now. These have valid (although internal) usage.
 { }
-procedure glColorv(const v: TVector3ub); overload;
-procedure glColorv(const v: TVector4ub); overload;
-procedure glColorv(const v: TVector3f); overload;
-procedure glColorv(const v: TVector4f); overload;
+procedure glColorv(const v: TVector3ub); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+{ }
+procedure glColorv(const v: TVector4ub); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+{ }
+procedure glColorv(const v: TVector3f); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+{ }
+procedure glColorv(const v: TVector4f); overload; //deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
 
-procedure glTranslatev(const V: TVector3f); overload;
-procedure glTranslatev(const V: TVector3_Single); overload;
+{ }
+procedure glTranslatev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
+procedure glTranslatev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
 
-procedure glScalev(const V: Single); overload;
-procedure glScalev(const V: TVector3f); overload;
-procedure glScalev(const V: TVector3_Single); overload;
+procedure glScalev(const V: Single); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
+procedure glScalev(const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
+procedure glScalev(const V: TVector3_Single); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
 
-procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload;
+procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
 
 procedure glClipPlane(plane: GLenum; const V: TVector4d); overload;
 
@@ -398,24 +226,31 @@ procedure glLightModelv(pname: TGLenum; const params: TVector4f); overload;
 
 procedure glFogv(pname: TGLEnum; const params: TVector4f); overload;
 
-procedure glMultMatrix(const m: TMatrix4f); overload;
-procedure glLoadMatrix(const m: TMatrix4f); overload;
+// Do not mark as "deprecated" for now. These have valid (although internal) usage.
+{ }
+procedure glMultMatrix(const m: TMatrix4f); overload; //deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
+{ }
+procedure glLoadMatrix(const m: TMatrix4f); overload; //deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
 
+{ }
 procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); overload;
 
 {$endif}
 
 procedure GLViewport(const Rect: TRectangle);
 
-function GetCurrentColor: TCastleColor;
-procedure SetCurrentColor(const Value: TCastleColor);
+function GetCurrentColor: TCastleColor; deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+procedure SetCurrentColor(const Value: TCastleColor); deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
 
 { Current color, set by glColorv and used for TCastleFont font printing
   (in case you use deprecated TCastleFont.Print overloads without
   explicit colors).
-  You should not depend on this in new programs, rather use TCastleFont.Print
-  with explicit Color parameter. }
+
+  @deprecated Instead of this, use drawing routines that take
+  Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...)
+  or TGLImage.Color. }
 property CurrentColor: TCastleColor read GetCurrentColor write SetCurrentColor;
+  // deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
 
 { Projection matrix -------------------------------------------------------- }
 
@@ -461,14 +296,14 @@ procedure GLSetEnabled(value: TGLenum; isEnabled: boolean);
 { Draw vertical line using OpenGL. Uses current OpenGL color.
 
   Deprecated, do not draw lines directly like this,
-  instead use UI interface drawing like Theme.Draw and TGLImageCore.Draw. }
-procedure GLVerticalLine(x, y1, y2: TGLfloat); deprecated;
+  instead use DrawPrimitive2D or UI interface drawing like Theme.Draw and TGLImageCore.Draw. }
+procedure GLVerticalLine(x, y1, y2: TGLfloat); deprecated 'use DrawPrimitive2D';
 
 { Draw horizontal line using OpenGL. Uses current OpenGL color.
 
   Deprecated, do not draw lines directly like this,
-  instead use UI interface drawing like Theme.Draw and TGLImageCore.Draw. }
-procedure GLHorizontalLine(x1, x2, y: TGLfloat); deprecated;
+  instead use DrawPrimitive2D or UI interface drawing like Theme.Draw and TGLImageCore.Draw. }
+procedure GLHorizontalLine(x1, x2, y: TGLfloat); deprecated 'use DrawPrimitive2D';
 
 { Draw arrow shape. Arrow is placed on Z = 0 plane, points to the up,
   has height = 2 (from y = 0 to y = 2) and width 1 (from x = -0.5 to 0.5).
@@ -476,7 +311,7 @@ procedure GLHorizontalLine(x1, x2, y: TGLfloat); deprecated;
   Everything is drawn CCW when seen from standard view (x grows right, y up).
   Uses current OpenGL color. }
 procedure GLDrawArrow(HeadThickness: TGLfloat = 0.4;
-  HeadLength: TGLfloat = 0.5);
+  HeadLength: TGLfloat = 0.5); deprecated 'use DrawPrimitive2D to draw shapes';
 
 { Comfortable wrapper for gluNewQuadric. Sets all quadric parameters.
   Sets also the GLU_ERROR callback to ReportGLerror.
@@ -485,7 +320,7 @@ function NewGLUQuadric(
   Texture: boolean = true;
   Normals: TGLenum = GLU_NONE;
   Orientation: TGLenum = GLU_OUTSIDE;
-  DrawStyle: TGLenum = GLU_FILL): PGLUQuadric; overload;
+  DrawStyle: TGLenum = GLU_FILL): PGLUQuadric; deprecated 'use TCastleScene to draw 3D stuff';
 
 { Render sphere in OpenGL. Radius, Slices, Stacks have the same meaning
   as for gluSphere (in case they are not self-explanatory...).
@@ -496,120 +331,23 @@ procedure CastleGluSphere(
   Texture: boolean = true;
   Normals: TGLenum = GLU_NONE;
   Orientation: TGLenum = GLU_OUTSIDE;
-  DrawStyle: TGLenum = GLU_FILL);
+  DrawStyle: TGLenum = GLU_FILL); deprecated 'use TCastleScene to draw 3D stuff';
 
 { Draw axis (3 lines) around given position.
   Nothing is generated besides vertex positions ---
   no normal vectors, no texture coords, nothing. }
-procedure glDrawAxisWire(const Position: TVector3Single; Size: Single);
+procedure glDrawAxisWire(const Position: TVector3Single; Size: Single); deprecated 'use TCastleScene to draw 3D stuff';
 
 { Call glColor, taking Opacity as separate Single argument.
   Deprecated, do not use colors like that, instead pass TCastleColor
   to appropriate routines like TCastleFont.Print.
   @groupBegin }
-procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single); deprecated;
-procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); deprecated;
+procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single); deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
 { @groupEnd }
 {$endif}
 
-type
-  TBlendingSourceFactor = (
-    bsSrcAlpha,
-    bsOneMinusSrcAlpha,
-    bsZero,
-    bsOne,
-
-    bsDstColor,
-    bsSrcColor, //< As a source factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
-    bsDstAlpha,
-    bsOneMinusDstColor,
-    bsOneMinusSrcColor, //< As a source factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
-    bsOneMinusDstAlpha,
-
-    bsSrcAlphaSaturate,
-
-    bsConstantColor,
-    bsOneMinusConstantColor,
-    bsConstantAlpha,
-    bsOneMinusConstantAlpha
-  );
-  TBlendingDestinationFactor = (
-    bdSrcAlpha,
-    bdOneMinusSrcAlpha,
-    bdZero,
-    bdOne,
-
-    bdDstColor, //< As a destination factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
-    bdSrcColor,
-    bdDstAlpha,
-    bdOneMinusDstColor, //< As a destination factor only since GL 1.4, check @code(GLFeatures.Version_1_4)
-    bdOneMinusSrcColor,
-    bdOneMinusDstAlpha,
-
-    // not supported by OpenGL for destination factor: bsSrcAlphaSaturate
-    { }
-    bdConstantColor,
-    bdOneMinusConstantColor,
-    bdConstantAlpha,
-    bdOneMinusConstantAlpha
-  );
-
-{ Draw a rectangle that modulates colors underneath,
-  making nice animation to FadeColor while FadeIntensity changes from 1.0
-  down to 0.0.
-
-  The GLFadeRectangleLight version makes a flash to FadeColor,
-  then goes back to normal.
-  The GLFadeRectangle version makes additional flash to blackness
-  in the middle (so it goes from no modulation, to FadeColor,
-  to pure black, and then back to normal).
-  So it's a little more impressive when you're flashing with a dark color.
-
-  These are nice as a screen effect, to flash some color (e.g. flash
-  red color when the player is hurt).
-
-  Only RGB portion of FadeColor is used. }
-procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
-  const FadeColor: TVector3Single;
-  const FadeIntensity: Single); deprecated 'use TFlashEffect';
-procedure GLFadeRectangle(const Rect: TRectangle;
-  const FadeColor: TCastleColor;
-  const FadeIntensity: Single); deprecated 'use TFlashEffect';
-procedure GLFadeRectangleLight(const Rect: TRectangle;
-  const FadeColor: TCastleColor;
-  const FadeIntensity: Single); deprecated 'use TFlashEffect';
-
-{ Draw a rectangle with blending.
-  @deprecated Deprecated, use DrawRectangle instead. }
-procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
-  const SourceFactor: TBlendingSourceFactor;
-  const DestinationFactor: TBlendingDestinationFactor;
-  const Color: TVector4Single); deprecated;
-procedure GLBlendRectangle(const Rect: TRectangle;
-  const Color: TVector4Single); deprecated;
-
-{ Draw a simple rectangle filled with a color.
-  Blending is automatically used if Color alpha < 1.
-
-  ForceBlending forces the usage of blending. When it is @false,
-  we use blending only if Color[3] (alpha) < 1.  }
-procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
-  const BlendingSourceFactor: TBlendingSourceFactor = bsSrcAlpha;
-  const BlendingDestinationFactor: TBlendingDestinationFactor = bdOneMinusSrcAlpha;
-  const ForceBlending: boolean = false);
-
-{ Multiline string describing attributes of current OpenGL
-  library. This simply queries OpenGL using glGet* functions
-  about many things. Does not change OpenGL state in any way.
-
-  Note that the last line of returned string does not terminate
-  with a newline character (so e.g. you may want to do
-  Writeln(GLInformationString) instead of just Write(GLInformationString)). }
-function GLInformationString: string;
-
 { Utilities for display lists ---------------------------------------- }
-{ Deprecated: all display list usage will be removed, since it doesn't
-  exist in modern OpenGL and OpenGL ES. }
 
 {$ifndef OpenGLES}
 
@@ -624,7 +362,7 @@ type
     When glGenLists(Range) returned zero for non-zero Range.
     The exception's Message shows Place, which may describe
     where this is called --- makes it easier to debug.) }
-function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint;
+function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint; deprecated 'do not use display lists; they are not available on OpenGLES and modern OpenGL';
 
 { If List <> 0 then it does glDeleteList on List and sets List to 0.
   In other words this is simply glDeleteList but
@@ -632,7 +370,7 @@ function glGenListsCheck(range: TGLsizei; const Place: string): TGLuint;
     @item only if List really should be deleted
     @item sets List to 0 after deletion
   ) }
-procedure glFreeDisplayList(var list: TGLuint);
+procedure glFreeDisplayList(var list: TGLuint); deprecated 'do not use display lists; they are not available on OpenGLES and modern OpenGL';
 
 {$endif}
 
@@ -649,19 +387,24 @@ procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
 
 { Draw the 2D GUI stuff (like following GUI images and TCastleFont)
   with lower-left corner in the X,Y pixel.
-  It's not adviced to use this, better use TGLImageCore.Draw(X,Y)
-  or TCastleFont.Print(X,Y,string) methods.
   @groupBegin }
-procedure SetWindowPos(const X, Y: TGLint);
-procedure SetWindowPos(const Value: TVector2i);
-procedure SetWindowPosF(const X, Y: TGLfloat); deprecated;
-procedure SetWindowPosZero; deprecated;
+procedure SetWindowPos(const X, Y: TGLint); deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
+procedure SetWindowPos(const Value: TVector2i); deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
+procedure SetWindowPosF(const X, Y: TGLfloat); deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
+procedure SetWindowPosZero; deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
 { @groupEnd }
 
-function GetWindowPos: TVector2i;
+function GetWindowPos: TVector2i; deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
+
+{ Global position for drawing 2D stuff.
+  @deprecated Do this use this.
+  Instead of this, use drawing routines that take position as parameters,
+  like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...). }
 property WindowPos: TVector2i read GetWindowPos write SetWindowPos;
+  // deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
 
 type
+  { Possible values of @link(DepthRange). }
   TDepthRange = (drFull, drNear, drFar);
 
 function GetDepthRange: TDepthRange;
@@ -693,56 +436,11 @@ type
   Shader pipeline completely ignores the enabled state of texture units. }
 function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
 
-type
-  TClearBuffer = (cbColor, cbDepth, cbStencil);
-  TClearBuffers = set of TClearBuffer;
-
-{ Clear OpenGL buffer contents.
-  Never call OpenGL glClear or glClearColor, always use this procedure. }
-procedure GLClear(const Buffers: TClearBuffers;
-  const ClearColor: TCastleColor);
-
-type
-  { Scissor to clip displayed things, in addition to the global scissor
-    affected by ScissorEnable / ScissorDisable.
-    Always disable an enabled scissor (destructor does it automatically). }
-  TScissor = class
-  strict private
-    FEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
-  public
-    { Rectangle to which we clip rendering. Empty by default (will clip everything,
-      if you don't assign this!). Do not change this when scissor is enabled. }
-    Rect: TRectangle;
-    constructor Create;
-    destructor Destroy; override;
-    property Enabled: boolean read FEnabled write SetEnabled;
-  end;
-
-{ Enable or disable scissor.
-  Always do it using these procedures, do not call glScissor or
-  glEnable(GL_SCISSOR_TEST) / glDisable(GL_SCISSOR_TEST) yourself,
-  or push/pop attrib. }
-procedure ScissorEnable(const Rect: TRectangle);
-procedure ScissorDisable;
-
-function GetGlobalAmbient: TVector3Single;
-procedure SetGlobalAmbient(const Value: TVector3Single);
-
-{ Global ambient lighting. This is added to every 3D object color,
-  multiplied by material ambient.
-
-  The default value is (0.2, 0.2, 0.2). It matches default
-  GL_LIGHT_MODEL_AMBIENT in fixed-function OpenGL.
-  It also matches the required value of VRML 1.0 specification.
-  For VRML 2.0 / X3D, lighting equations suggest that it should be zero. }
-property GlobalAmbient: TVector3Single
-  read GetGlobalAmbient write SetGlobalAmbient;
-
-procedure GLBlendFunction(const SourceFactor: TBlendingSourceFactor;
-  const DestinationFactor: TBlendingDestinationFactor);
-
+{$I castleglutils_features.inc}
+{$I castleglutils_draw_primitive_2d.inc}
+{$I castleglutils_information.inc}
 {$I castleglutils_mipmaps.inc}
+{$I castleglutils_context.inc}
 
 {$undef read_interface}
 
@@ -750,307 +448,15 @@ implementation
 
 {$define read_implementation}
 
-uses FGL,
+uses
   CastleFilesUtils, CastleStringUtils, CastleGLVersion, CastleGLShaders,
-  CastleLog, CastleWarnings, CastleApplicationProperties;
+  CastleLog, CastleApplicationProperties;
 
+{$I castleglutils_features.inc}
+{$I castleglutils_draw_primitive_2d.inc}
+{$I castleglutils_information.inc}
 {$I castleglutils_mipmaps.inc}
-
-procedure GLInformationInitialize;
-begin
-  FreeAndNil(GLVersion);
-  GLVersion := TGLVersion.Create(PChar(glGetString(GL_VERSION)),
-    PChar(glGetString(GL_VENDOR)), PChar(glGetString(GL_RENDERER)));
-
-  {$ifndef OpenGLES}
-  FreeAndNil(GLUVersion);
-  { gluGetString is valid for version 1.1 or later }
-  if Assigned(gluGetString) then
-    GLUVersion := TGenericGLVersion.Create(gluGetString(GLU_VERSION)) else
-    GLUVersion := TGenericGLVersion.Create('1.0');
-  {$endif}
-
-  FreeAndNil(GLFeatures);
-  GLFeatures := TGLFeatures.Create;
-end;
-
-{$ifdef OpenGLES}
-{ Based on GLExt unit in FPC. This function is missing from GLES header,
-  which does not check for extensions presence at all. }
-function glext_ExtensionSupported(const extension: String;
-  const searchIn: String): Boolean;
-var
-  extensions: PChar;
-  start: PChar;
-  where, terminator: PChar;
-begin
-  if (Pos(' ', extension) <> 0) or (extension = '') then
-  begin
-    Result := FALSE;
-    Exit;
-  end;
-
-  if searchIn = '' then extensions := PChar(glGetString(GL_EXTENSIONS))
-  else extensions := PChar(searchIn);
-  start := extensions;
-  while TRUE do
-  begin
-    where := StrPos(start, PChar(extension));
-    if where = nil then Break;
-    terminator := Pointer(PtrUInt(where) + PtrUInt(Length(extension)));
-    {$warnings off} { Stop warning about unportable PtrUInt conversions }
-    if (where = start) or (PChar(Pointer(PtrUInt(where) - PtrUInt(1)))^ = ' ') then
-    {$warnings on}
-    begin
-      if (terminator^ = ' ') or (terminator^ = #0) then
-      begin
-        Result := TRUE;
-        Exit;
-      end;
-    end;
-    start := terminator;
-  end;
-  Result := FALSE;
-end;
-{$endif}
-
-constructor TGLFeatures.Create;
-var
-  SupportedExtensions: string;
-begin
-  inherited;
-
-  {$ifndef OpenGLES}
-  Version_1_2 := GLVersion.AtLeast(1, 2) and Load_GL_version_1_2;
-  Version_1_3 := GLVersion.AtLeast(1, 3) and Load_GL_version_1_3;
-  Version_1_4 := GLVersion.AtLeast(1, 4) and Load_GL_version_1_4;
-  Version_1_5 := GLVersion.AtLeast(1, 5) and Load_GL_version_1_5;
-  Version_2_0 := GLVersion.AtLeast(2, 0) and Load_GL_version_2_0;
-  Version_2_1 := GLVersion.AtLeast(2, 1) and Load_GL_version_2_1;
-  Version_3_0 := GLVersion.AtLeast(3, 0) and Load_GL_version_3_0;
-  Version_3_1 := GLVersion.AtLeast(3, 1) and Load_GL_version_3_1;
-  Version_3_2 := GLVersion.AtLeast(3, 2) and Load_GL_version_3_2;
-  Version_3_3 := GLVersion.AtLeast(3, 3) and Load_GL_version_3_3;
-  Version_4_0 := GLVersion.AtLeast(4, 0) and Load_GL_version_4_0;
-
-  ARB_window_pos := Load_GL_ARB_window_pos;
-  MESA_window_pos := Load_GL_MESA_window_pos;
-
-  ARB_shadow := Load_GL_ARB_shadow;
-  EXT_fog_coord := Load_GL_EXT_fog_coord;
-  NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
-
-  { We want to be able to render any scene --- so we have to be prepared
-    that fog interpolation has to be corrected for perspective.
-    TODO: this should be moved elsewhere, but where? }
-  glHint(GL_FOG_HINT, GL_NICEST);
-  {$endif}
-
-  {$ifdef OpenGLES}
-  CLAMP_TO_EDGE := GL_CLAMP_TO_EDGE;
-  {$else}
-  if Version_1_2 then
-    CLAMP_TO_EDGE := GL_CLAMP_TO_EDGE else
-    CLAMP_TO_EDGE := GL_CLAMP;
-  {$endif}
-
-  MaxTextureSize := glGetInteger(GL_MAX_TEXTURE_SIZE);
-
-  { TODO: for OpenGLES, as well as non-shader pipeline, this can be actually
-    infinite (in theory, of course even 8 lights at the same shape is slow).
-    Make it configurable somewhere, e.g. at Attribtes.MaxLightsPerShape ? }
-  MaxLights := {$ifdef OpenGLES} 8 {$else} glGetInteger(GL_MAX_LIGHTS) {$endif};
-
-  {$ifdef OpenGLES}
-  MaxTextureUnits := Max(
-    glGetInteger(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS),
-    glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS));
-  {$else}
-  if Version_1_3 then
-    MaxTextureUnits := glGetInteger(GL_MAX_TEXTURE_UNITS) else
-    MaxTextureUnits := 1;
-  {$endif}
-
-  MaxCubeMapTextureSize := 0;
-  {$ifdef OpenGLES}
-  TextureCubeMap := gsStandard;
-  {$else}
-  if Version_1_3 then
-    TextureCubeMap := gsStandard else
-  if Load_GL_ARB_texture_cube_map then
-    TextureCubeMap := gsExtension else
-    TextureCubeMap := gsNone;
-  {$endif}
-  if TextureCubeMap <> gsNone then
-    MaxCubeMapTextureSize := glGetInteger(GL_MAX_CUBE_MAP_TEXTURE_SIZE);
-
-  {$ifndef OpenGLES}
-  if Version_1_2 then
-    Texture3D := gsStandard else
-  if Load_GL_EXT_texture3D then
-    Texture3D := gsExtension else
-  {$endif}
-    Texture3D := gsNone;
-
-  { calculate MaxTexture3DSize, eventually correct Texture3D if buggy }
-  case Texture3D of
-    {$ifndef OpenGLES}
-    gsExtension: MaxTexture3DSize := glGetInteger(GL_MAX_3D_TEXTURE_SIZE_EXT);
-    gsStandard : MaxTexture3DSize := glGetInteger(GL_MAX_3D_TEXTURE_SIZE);
-    {$endif}
-    gsNone     : MaxTexture3DSize := 0;
-  end;
-  if (MaxTexture3DSize = 0) and (Texture3D <> gsNone) then
-  begin
-    Texture3D := gsNone;
-    if Log then WritelnLog('OpenGL', 'Buggy OpenGL 3D texture support: reported as supported, but GL_MAX_3D_TEXTURE_SIZE[_EXT] is zero. (Bug may be found on Mesa 7.0.4.)');
-  end;
-
-  // TODO: there is also such extension for OpenGL ES
-  EXT_texture_filter_anisotropic := {$ifdef OpenGLES} false {$else}
-    Load_GL_EXT_texture_filter_anisotropic {$endif};
-  if EXT_texture_filter_anisotropic then
-    MaxTextureMaxAnisotropyEXT := glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT) else
-    MaxTextureMaxAnisotropyEXT := 0.0;
-
-  ARB_occlusion_query := false;
-  QueryCounterBits := 0;
-  {$ifndef OpenGLES}
-  ARB_occlusion_query := Load_GL_ARB_occlusion_query;
-  if ARB_occlusion_query then
-    glGetQueryivARB(GL_SAMPLES_PASSED_ARB, GL_QUERY_COUNTER_BITS_ARB, @QueryCounterBits);
-  {$endif}
-
-  { calculate GLFramebuffer }
-  {$ifdef OpenGLES}
-  Framebuffer := gsStandard;
-  {$else}
-  if Version_3_0 or Load_GL_ARB_framebuffer_object then
-    Framebuffer := gsStandard else
-  if Load_GL_EXT_framebuffer_object then
-    Framebuffer := gsExtension else
-    Framebuffer := gsNone;
-  {$endif}
-
-  if Framebuffer <> gsNone then
-  begin
-    MaxRenderbufferSize := glGetInteger(GL_MAX_RENDERBUFFER_SIZE { equal to GL_MAX_RENDERBUFFER_SIZE_EXT });
-    if MaxRenderbufferSize = 0 then
-    begin
-      Framebuffer := gsNone;
-      if Log then WritelnLog('OpenGL', 'Buggy OpenGL Framebuffer: reported as supported, but GL_MAX_RENDERBUFFER_SIZE[_EXT] is zero. (Bug may be found on Mesa 7.0.4.)');
-    end;
-  end else
-    MaxRenderbufferSize := 0;
-
-  { TODO: this should be completely configurable in shader pipeline.
-    Make it configurable at Attributes.MaxClipPlanes? }
-  MaxClipPlanes := {$ifdef OpenGLES} 8 {$else} glGetInteger(GL_MAX_CLIP_PLANES) {$endif};
-
-  { calculate UseMultiTexturing: check extensions required for multitexturing.
-
-    We used to require a couple of extensions for this:
-    - EXT_texture_env_combine
-    - ARB_multitexture
-    - ARB_texture_env_dot3
-    But GL version >= 1.3 is actually required for GL_subtract,
-    and includes all above extensions in core. }
-  UseMultiTexturing := {$ifdef OpenGLES} true {$else} Version_1_3 {$endif};
-
-  FBOMultiSampling := {$ifdef OpenGLES} false {$else}
-    { Is GL_ARB_framebuffer_object available? }
-    (Framebuffer = gsStandard) and
-    Load_GL_ARB_texture_multisample and
-    (not GLVersion.BuggyFBOMultiSampling) {$endif};
-
-  Multisample := {$ifdef OpenGLES} true {$else} Load_GL_ARB_multisample {$endif};
-  if Multisample and (glGetInteger({$ifdef OpenGLES} GL_SAMPLE_BUFFERS {$else} GL_SAMPLE_BUFFERS_ARB {$endif}) <> 0) then
-  begin
-    CurrentMultiSampling := glGetInteger({$ifdef OpenGLES} GL_SAMPLES {$else} GL_SAMPLES_ARB {$endif});
-    if CurrentMultiSampling <= 1 then
-    begin
-      OnWarning(wtMinor, 'MultiSampling', Format('We successfully got multi-sampling buffer, but only %d samples per pixel. This doesn''t make much sense, assuming buggy OpenGL implementation, and anti-aliasing may not work.',
-        [CurrentMultiSampling]));
-      CurrentMultiSampling := 1;
-    end;
-  end else
-    CurrentMultiSampling := 1;
-
-  SupportedExtensions := Pchar(glGetString(GL_EXTENSIONS));
-
-  PackedDepthStencil :=
-    {$ifdef OpenGLES} glext_ExtensionSupported('GL_OES_packed_depth_stencil', SupportedExtensions)
-    {$else} Load_GL_EXT_packed_depth_stencil
-    {$endif};
-
-  ShadowVolumesPossible := glGetInteger(GL_STENCIL_BITS) >= 4;
-
-  TextureNonPowerOfTwo := {$ifdef OpenGLES} true {$else}
-    Load_GL_ARB_texture_non_power_of_two or Version_2_0 {$endif};
-
-  TextureCompression := [];
-
-  {$ifndef OpenGLES}
-  { on non-OpenGLES, we require ARB_texture_compression for *any* compression
-    format, to have the necessary glCompressedTexImage2DARB call available }
-  if Load_GL_ARB_texture_compression then
-  {$endif}
-  begin
-    { See http://stackoverflow.com/questions/9148795/android-opengl-texture-compression
-      and http://developer.android.com/guide/topics/graphics/opengl.html
-      for possible GPU extensions for compression formats. }
-
-    if glext_ExtensionSupported('GL_OES_texture_compression_S3TC', SupportedExtensions) or
-       glext_ExtensionSupported('GL_EXT_texture_compression_s3tc', SupportedExtensions) or
-       glext_ExtensionSupported('GL_NV_texture_compression_s3tc', SupportedExtensions) then
-      TextureCompression += [tcDxt1_RGB, tcDxt1_RGBA, tcDxt3, tcDxt5];
-
-    if glext_ExtensionSupported('GL_EXT_texture_compression_dxt1', SupportedExtensions) then
-      TextureCompression += [tcDxt1_RGB, tcDxt1_RGBA];
-    if glext_ExtensionSupported('GL_EXT_texture_compression_dxt3', SupportedExtensions) then
-      TextureCompression += [tcDxt3];
-    if glext_ExtensionSupported('GL_EXT_texture_compression_dxt5', SupportedExtensions) then
-      TextureCompression += [tcDxt5];
-
-    if glext_ExtensionSupported('GL_IMG_texture_compression_pvrtc', SupportedExtensions) then
-      TextureCompression += [
-        tcPvrtc1_4bpp_RGB,
-        tcPvrtc1_2bpp_RGB,
-        tcPvrtc1_4bpp_RGBA,
-        tcPvrtc1_2bpp_RGBA];
-
-    if glext_ExtensionSupported('GL_IMG_texture_compression_pvrtc2', SupportedExtensions) then
-      TextureCompression += [
-        tcPvrtc2_4bpp,
-        tcPvrtc2_2bpp];
-
-    if glext_ExtensionSupported('GL_AMD_compressed_ATC_texture', SupportedExtensions) or
-       glext_ExtensionSupported('GL_ATI_texture_compression_atitc', SupportedExtensions) then
-      TextureCompression += [tcATITC_RGB,
-        tcATITC_RGBA_ExplicitAlpha, tcATITC_RGBA_InterpolatedAlpha];
-
-    if glext_ExtensionSupported('GL_OES_compressed_ETC1_RGB8_texture', SupportedExtensions) then
-      TextureCompression += [tcETC1];
-  end;
-
-  VertexBufferObject := {$ifdef OpenGLES} true {$else}
-    Version_1_5 and not GLVersion.BuggyVBO {$endif};
-
-  BlendConstant := {$ifdef OpenGLES} true {$else}
-    { GL_CONSTANT_ALPHA is available as part of ARB_imaging, since GL 1.4
-      as standard. glBlendColor is available since 1.2 as standard. }
-    ((Version_1_2 and Load_GL_ARB_imaging) or Version_1_4) and not GLVersion.Fglrx {$endif};
-
-  TextureFloat :=
-    {$ifdef OpenGLES} false
-    {$else} Load_GL_ATI_texture_float or Load_GL_ARB_texture_float
-    {$endif};
-
-  TextureDepth :=
-    {$ifdef OpenGLES} glext_ExtensionSupported('GL_OES_depth_texture', SupportedExtensions)
-    {$else} Load_GL_ARB_depth_texture
-    {$endif};
-end;
+{$I castleglutils_context.inc}
 
 { EOpenGLError, CheckGLErrors ------------------------------------------------ }
 
@@ -1059,7 +465,7 @@ var
   S: string;
 begin
   { Do not use gluErrorString, not available in OpenGL ES.
-    Error decriptions below from
+    Error descriptions below from
     http://www.khronos.org/opengles/sdk/docs/man/xhtml/glGetError.xml }
   case ErrorCode of
     GL_NO_ERROR: S := 'No error has been recorded.';
@@ -1089,7 +495,7 @@ const
 begin
   if GLOutOfMemoryError then
     raise EOpenGLOutOfMemoryError.Create(ErrorCode, AdditionalComment) else
-    OnWarning(wtMajor, 'OpenGL', GLErrorString(ErrorCode, AdditionalComment));
+    WritelnWarning('OpenGL', GLErrorString(ErrorCode, AdditionalComment));
 end;
 
 procedure CheckGLErrors(const AdditionalComment: string);
@@ -1102,7 +508,7 @@ begin
     if ErrorCode = GL_OUT_OF_MEMORY then
       GLOutOfMemory(AdditionalComment) else
       {$ifdef RELEASE}
-      OnWarning(wtMajor, 'OpenGL', GLErrorString(ErrorCode, AdditionalComment));
+      WritelnWarning('OpenGL', GLErrorString(ErrorCode, AdditionalComment));
       {$else}
       raise EOpenGLError.Create(ErrorCode, AdditionalComment);
       {$endif}
@@ -1146,7 +552,7 @@ begin
   glGetBooleanv(pname, @result)
 end;
 
-{ ---------------------------------------------------- }
+{ ---------------------------------------------------------------------------- }
 
 var
   FCurrentColor: TCastleColor;
@@ -1265,7 +671,9 @@ begin
 
   {$ifndef OpenGLES}
   glMatrixMode(GL_PROJECTION);
-  glLoadMatrix(Value);
+  {$warnings off}
+  glLoadMatrix(Value); // consciously using deprecated stuff; this should be internal in this unit
+  {$warnings on}
   glMatrixMode(GL_MODELVIEW);
   {$endif}
 end;
@@ -1328,6 +736,54 @@ begin
   glEnd;
 end;
 
+(* // These versions would work with OpenGLES. But they ignore OpenGL matrix state like glTransform etc.
+
+procedure GLVerticalLine(x, y1, y2: TGLfloat);
+begin
+  DrawPrimitive2D(pmLines,
+    [Vector2SmallInt(Round(x), Round(y1)),
+     Vector2SmallInt(Round(x), Round(y2))],
+    CurrentColor);
+end;
+
+procedure GLHorizontalLine(x1, x2, y: TGLfloat);
+begin
+  DrawPrimitive2D(pmLines,
+    [Vector2SmallInt(Round(x1), Round(y)),
+     Vector2SmallInt(Round(x2), Round(y))],
+    CurrentColor);
+end;
+
+procedure GLDrawArrow(HeadThickness, HeadLength: TGLfloat);
+begin
+  HeadLength := 2*HeadLength; { mapuj HeadLength na zakres 0..2 }
+
+  DrawPrimitive2D(pmTriangles,
+    [Vector2SmallInt(0, 2),
+     Vector2SmallInt(-1, Round(HeadLength)),
+     Vector2SmallInt(-Round(HeadThickness), Round(HeadLength)),
+
+     Vector2SmallInt(0, 2),
+     Vector2SmallInt(-Round(HeadThickness), Round(HeadLength)),
+     Vector2SmallInt(Round(HeadThickness), Round(HeadLength)),
+
+     Vector2SmallInt(0, 2),
+     Vector2SmallInt(Round(HeadThickness), Round(HeadLength)),
+     Vector2SmallInt(1, Round(HeadLength)),
+
+     // quad
+     Vector2SmallInt(-Round(HeadThickness), Round(HeadLength)),
+     Vector2SmallInt(-Round(HeadThickness), 0),
+     Vector2SmallInt(Round(HeadThickness), 0),
+
+     Vector2SmallInt(-Round(HeadThickness), Round(HeadLength)),
+     Vector2SmallInt(Round(HeadThickness), 0),
+     Vector2SmallInt(Round(HeadThickness), Round(HeadLength))
+    ],
+    CurrentColor);
+end;
+*)
+
 function NewGLUQuadric(texture: boolean; normals: TGLenum;
   orientation: TGLenum; drawStyle: TGLenum): PGLUQuadric;
 begin
@@ -1349,7 +805,9 @@ procedure CastleGluSphere(
 var
   Q: PGLUQuadric;
 begin
+  {$warnings off} { deliberately using deprecated stuff inside another deprecated }
   Q := NewGLUQuadric(Texture, Normals, Orientation, DrawStyle);
+  {$warnings on}
   try
     gluSphere(Q, Radius, Slices, Stacks);
   finally gluDeleteQuadric(Q); end;
@@ -1378,481 +836,6 @@ begin
   glColor4f(Color[0] / 255, Color[1] / 255, Color[2] / 255, Opacity);
 end;
 {$endif}
-
-procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
-  const SourceFactor: TBlendingSourceFactor;
-  const DestinationFactor: TBlendingDestinationFactor;
-  const Color: TVector4Single);
-begin
-  DrawRectangle(Rectangle(X1, Y1, X2 - X1, Y2 - Y1), Color,
-    SourceFactor, DestinationFactor, true);
-end;
-
-procedure GLBlendRectangle(const Rect: TRectangle;
-  const Color: TVector4Single);
-begin
-  DrawRectangle(Rect, Color, bsOne, bdSrcAlpha, true);
-end;
-
-procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
-  const FadeColor: TVector3Single; const FadeIntensity: Single);
-begin
-  {$warnings off}
-  GLFadeRectangle(Rectangle(X1, Y1, X2 - X1, Y2 - Y1),
-    Vector4Single(FadeColor, 1.0), FadeIntensity);
-  {$warnings on}
-end;
-
-procedure GLFadeRectangle(const Rect: TRectangle;
-  const FadeColor: TCastleColor; const FadeIntensity: Single);
-const
-  FullWhiteEnd = 0.9;
-  FullBlack = 0.3;
-  { We assume that MinScale is small enough that difference between
-    "FadeColor * MinScale * screen color" and
-    "MinScale * screen color" is not noticeable. }
-  MinScale = 0.1;
-  { Constants below make resulting screen color = glColor * previous screen color.
-    Note that as long as all components of FadeColor are <= 1,
-    then all components of our glColor are also always <= 1,
-    and this means that we will always make the screen darker (or equal,
-    but never brighter). }
-  SourceFactor = bsZero;
-  DestinationFactor = bdSrcColor;
-var
-  Color: TCastleColor;
-begin
-  if FadeIntensity > 0 then
-  begin
-    { for FadeIntensity in 1...FullWhiteEnd (going down):
-      screen color := FadeColor * original screen color }
-    if FadeIntensity > FullWhiteEnd then
-      Color := FadeColor else
-    { for FadeIntensity in FullWhiteEnd...FullBlack (going down):
-      final screen color changes:
-      - from screen color := FadeColor * original screen color
-      - to   screen color := FadeColor * MinScale * original screen color }
-    if FadeIntensity > FullBlack then
-      Color := FadeColor * MapRange(FadeIntensity, FullWhiteEnd, FullBlack, 1, MinScale) else
-    { for FadeIntensity in FullBlack...0 (going down):
-      final screen color changes:
-      - from screen color := MinScale * original screen color
-      - to   screen color := original screen color }
-      Color := White * MapRange(FadeIntensity, FullBlack, 0, MinScale, 1);
-
-    Color[3] := 1.0; { alpha always 1.0 in this case }
-    DrawRectangle(Rect, Color, SourceFactor, DestinationFactor, true);
-  end;
-end;
-
-procedure GLFadeRectangleLight(const Rect: TRectangle;
-  const FadeColor: TCastleColor; const FadeIntensity: Single);
-const
-  FullTime = 0.9;
-  SourceFactor = bsZero;
-  DestinationFactor = bdSrcColor;
-var
-  Color: TCastleColor;
-  Intensity: Single;
-begin
-  if FadeIntensity > 0 then
-  begin
-    if FadeIntensity < FullTime then
-      Intensity := MapRange(FadeIntensity, 0, FullTime, 0, 1) else
-      Intensity := MapRange(FadeIntensity, FullTime, 1, 1, 0);
-    Color := FadeColor;
-    Color[3] := Intensity; { alpha always 1.0 in this case }
-    DrawRectangle(Rect, Color, bsSrcAlpha, bdOneMinusSrcAlpha, true);
-  end;
-end;
-
-{ DrawRectangle ---------------------------------------------------------------- }
-
-const
-  BlendingSourceFactorToGL: array [TBlendingSourceFactor] of TGLEnum = (
-    GL_SRC_ALPHA,
-    GL_ONE_MINUS_SRC_ALPHA,
-    GL_ZERO,
-    GL_ONE,
-
-    GL_DST_COLOR,
-    GL_SRC_COLOR,
-    GL_DST_ALPHA,
-    GL_ONE_MINUS_DST_COLOR,
-    GL_ONE_MINUS_SRC_COLOR,
-    GL_ONE_MINUS_DST_ALPHA,
-
-    GL_SRC_ALPHA_SATURATE,
-
-    GL_CONSTANT_COLOR,
-    GL_ONE_MINUS_CONSTANT_COLOR,
-    GL_CONSTANT_ALPHA,
-    GL_ONE_MINUS_CONSTANT_ALPHA
-  );
-  BlendingDestinationFactorToGL: array [TBlendingDestinationFactor] of TGLEnum = (
-    GL_SRC_ALPHA,
-    GL_ONE_MINUS_SRC_ALPHA,
-    GL_ZERO,
-    GL_ONE,
-
-    GL_DST_COLOR,
-    GL_SRC_COLOR,
-    GL_DST_ALPHA,
-    GL_ONE_MINUS_DST_COLOR,
-    GL_ONE_MINUS_SRC_COLOR,
-    GL_ONE_MINUS_DST_ALPHA,
-
-    // GL_SRC_ALPHA_SATURATE, // not supported as destination factor
-
-    GL_CONSTANT_COLOR,
-    GL_ONE_MINUS_CONSTANT_COLOR,
-    GL_CONSTANT_ALPHA,
-    GL_ONE_MINUS_CONSTANT_ALPHA
-  );
-
-var
-  {$ifdef GLImageUseShaders}
-  GLRectangleProgram: TGLSLProgram;
-  {$endif}
-  RectanglePointVbo: TGLuint;
-  RectanglePoint: packed array [0..3] of TVector2SmallInt;
-
-procedure DrawRectangleGL(const R: TRectangle; const Color: TCastleColor;
-  const BlendingSourceFactor, BlendingDestinationFactor: TGLEnum;
-  const ForceBlending: boolean);
-var
-  Blending: boolean;
-{$ifdef GLImageUseShaders}
-  AttribEnabled: array [0..0] of TGLuint;
-  AttribLocation: TGLuint;
-{$endif}
-begin
-  {$ifdef GLImageUseShaders}
-  if GLRectangleProgram = nil then
-  begin
-    GLRectangleProgram := TGLSLProgram.Create;
-    GLRectangleProgram.AttachVertexShader({$I rectangle.vs.inc});
-    GLRectangleProgram.AttachFragmentShader({$I rectangle.fs.inc});
-    GLRectangleProgram.Link(true);
-  end;
-  {$endif}
-
-  Blending := ForceBlending or (Color[3] < 1);
-  if Blending then
-  begin
-    glBlendFunc(BlendingSourceFactor, BlendingDestinationFactor); // saved by GL_COLOR_BUFFER_BIT
-    glEnable(GL_BLEND); // saved by GL_COLOR_BUFFER_BIT
-  end;
-
-  if (RectanglePointVbo = 0) and GLFeatures.VertexBufferObject then
-    glGenBuffers(1, @RectanglePointVbo);
-
-  RectanglePoint[0] := Vector2SmallInt(R.Left          , R.Bottom);
-  RectanglePoint[1] := Vector2SmallInt(R.Left + R.Width, R.Bottom);
-  RectanglePoint[2] := Vector2SmallInt(R.Left + R.Width, R.Bottom + R.Height);
-  RectanglePoint[3] := Vector2SmallInt(R.Left          , R.Bottom + R.Height);
-
-  if GLFeatures.VertexBufferObject then
-  begin
-    glBindBuffer(GL_ARRAY_BUFFER, RectanglePointVbo);
-    glBufferData(GL_ARRAY_BUFFER, SizeOf(RectanglePoint),
-      @(RectanglePoint[0]), GL_STREAM_DRAW);
-  end;
-
-  {$ifdef GLImageUseShaders}
-  GLRectangleProgram.Enable;
-  AttribEnabled[0] := GLRectangleProgram.VertexAttribPointer(
-    'vertex', 0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), nil);
-  GLRectangleProgram.SetUniform('viewport_size', Viewport2DSize);
-  GLRectangleProgram.SetUniform('color', Color);
-
-  {$else}
-  glLoadIdentity();
-  glColorv(Color);
-
-  glEnableClientState(GL_VERTEX_ARRAY);
-  if GLFeatures.VertexBufferObject then
-    glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), nil) else
-    glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), @(RectanglePoint[0]));
-  {$endif}
-
-  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-  {$ifdef GLImageUseShaders}
-  GLRectangleProgram.Disable;
-  { attribute arrays are enabled independent from GLSL program, so we need
-    to disable them separately }
-  for AttribLocation in AttribEnabled do
-    TGLSLProgram.DisableVertexAttribArray(AttribLocation);
-  {$else}
-  glDisableClientState(GL_VERTEX_ARRAY);
-  {$endif}
-
-  if GLFeatures.VertexBufferObject then
-  begin
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  end;
-
-  if Blending then
-    glDisable(GL_BLEND);
-end;
-
-procedure DrawRectangle(const R: TRectangle; const Color: TCastleColor;
-  const BlendingSourceFactor: TBlendingSourceFactor;
-  const BlendingDestinationFactor: TBlendingDestinationFactor;
-  const ForceBlending: boolean);
-begin
-  DrawRectangleGL(R, Color,
-    BlendingSourceFactorToGL[BlendingSourceFactor],
-    BlendingDestinationFactorToGL[BlendingDestinationFactor], ForceBlending);
-end;
-
-{ GLInformationString -------------------------------------------------------- }
-
-function GLInformationString: string;
-const
-  GLSupportNamesFBO: array [TGLSupport] of string =
-  ( 'None', 'Extension', 'Standard (or ARB "core extension")' );
-
-  function GetInteger(param: TGLenum): string;
-  begin
-    Result := IntToStr(glGetInteger(param));
-  end;
-
-  function GetInteger2(param: TGLenum; const form: string): string;
-  var
-    v: packed array [0..1] of TGLint;
-  begin
-    glGetIntegerv(param, @v);
-    result := Format(form, [v[0], v[1]]);
-  end;
-
-  function GetBoolean(param: TGLenum): string;
-  begin
-    Result := BoolToStr[glGetInteger(Param) = GL_TRUE];
-  end;
-
-  function VersionReport(Version: TGenericGLVersion): string;
-  begin
-    Result := Format('  Version parsed: major: %d, minor: %d, release exists: %s, ' +
-      'release: %d, vendor-specific information: "%s"',
-      [ Version.Major, Version.Minor, BoolToStr[Version.ReleaseExists],
-        Version.Release, Version.VendorInfo ]);
-  end;
-
-  function VendorReport(Version: TGLVersion): string;
-  begin
-    Result :=
-      Format(
-        '  Vendor-specific version parsed: major: %d, minor: %d, release: %d' +nl+
-        '  Vendor: ' +PChar(glGetString(GL_VENDOR)) +nl+
-        '  Renderer: ' +PChar(glGetString(GL_RENDERER)) +nl+
-        nl+
-        '  NVidia: %s' +nl+
-        '  ATI: %s (fglrx: %s)' +nl+
-        '  Intel: %s' +nl+
-        '  Mesa: %s' +nl+
-        nl+
-        '  Buggy glGenerateMipmap(EXT): %s' +nl+
-        '  Buggy GL_LIGHT_MODEL_TWO_SIDE: %s' +nl+
-        '  Buggy VBO: %s' +nl+
-        '  Buggy shader shadow map: %s' +nl+
-        '  Buggy GLSL "const in gl_XxxParameters" declaration: %s' +nl+
-        '  Buggy FBO rendering to multi-sampling texture: %s' +nl+
-        '  Buggy FBO rendering to cube map texture: %s' +nl+
-        '  Buggy swap buffers with non-standard glViewport: %s' +nl+
-        '  Buggy 32-bit depth buffer: %s' +nl+
-        '  Buggy GLSL gl_FrontFacing: %s',
-        [ Version.VendorMajor, Version.VendorMinor, Version.VendorRelease,
-          BoolToStr[Version.VendorNVidia],
-          BoolToStr[Version.VendorATI],
-          BoolToStr[Version.Fglrx],
-          BoolToStr[Version.VendorIntel],
-          BoolToStr[Version.Mesa],
-
-          BoolToStr[Version.BuggyGenerateMipmap],
-          BoolToStr[Version.BuggyLightModelTwoSide],
-          BoolToStr[Version.BuggyVBO],
-          BoolToStr[Version.BuggyShaderShadowMap],
-          BoolToStr[Version.BuggyGLSLConstStruct],
-          BoolToStr[Version.BuggyFBOMultiSampling],
-          BoolToStr[Version.BuggyFBOCubeMap],
-          BoolToStr[Version.BuggySwapNonStandardViewport],
-          BoolToStr[Version.BuggyDepth32],
-          BoolToStr[Version.BuggyGLSLFrontFacing]
-        ]);
-  end;
-
-  function GetMaxCubeMapTextureSize: string;
-  begin
-    if GLFeatures.TextureCubeMap <> gsNone then
-      Result := IntToStr(GLFeatures.MaxCubeMapTextureSize) else
-      Result := 'Cube maps not available';
-  end;
-
-  function GetMaxTexture3DSize: string;
-  begin
-    if GLFeatures.Texture3D <> gsNone then
-      Result := IntToStr(GLFeatures.MaxTexture3DSize) else
-      Result := '3D textures not available';
-  end;
-
-  function GetMaxTextureMaxAnisotropy: string;
-  begin
-    if GLFeatures.EXT_texture_filter_anisotropic then
-      Result := FloatToStr(GLFeatures.MaxTextureMaxAnisotropyEXT) else
-      Result := 'EXT_texture_filter_anisotropic not available';
-  end;
-
-  function GetQueryCounterBits: string;
-  begin
-    if GLFeatures.ARB_occlusion_query then
-      Result := IntToStr(GLFeatures.QueryCounterBits) else
-      Result := 'ARB_occlusion_query not available';
-  end;
-
-  function GetMaxRenderbufferSize: string;
-  begin
-    if GLFeatures.Framebuffer <> gsNone then
-      Result := IntToStr(GLFeatures.MaxRenderbufferSize) else
-      Result := 'Framebuffer not available';
-  end;
-
-  function TextureCompressionsToString(const Compressions: TTextureCompressions): string;
-  var
-    C: TTextureCompression;
-  begin
-    Result := '';
-    for C := Low(C) to High(C) do
-      if C in Compressions then
-      begin
-        if Result <> '' then Result += ', ';
-        Result += TextureCompressionInfo[C].Name;
-      end;
-    Result := '[' + Result + ']';
-  end;
-
-begin
-  Result:=
-    'OpenGL information (detected by ' + ApplicationName +'):' +nl+
-    nl+
-
-    '--------' +nl+
-    'Version:' +nl+
-    '  Version string: ' +PChar(glGetString(GL_VERSION)) +nl+
-    VersionReport(GLVersion) +nl+
-    VendorReport(GLVersion) +nl+
-    nl+
-
-    {$ifndef OpenGLES}
-    '------------------------' +nl+
-    'Real versions available:' +nl+
-    '(checks both version string and actual functions availability in GL library, to secure from buggy OpenGL implementations)' +nl+
-    nl+
-    '  1.2: ' + BoolToStr[GLFeatures.Version_1_2] +nl+
-    '  1.3: ' + BoolToStr[GLFeatures.Version_1_3] +nl+
-    '  1.4: ' + BoolToStr[GLFeatures.Version_1_4] +nl+
-    '  1.5: ' + BoolToStr[GLFeatures.Version_1_5] +nl+
-    '  2.0: ' + BoolToStr[GLFeatures.Version_2_0] +nl+
-    '  2.1: ' + BoolToStr[GLFeatures.Version_2_1] +nl+
-    '  3.0: ' + BoolToStr[GLFeatures.Version_3_0] +nl+
-    '  3.1: ' + BoolToStr[GLFeatures.Version_3_1] +nl+
-    '  3.2: ' + BoolToStr[GLFeatures.Version_3_2] +nl+
-    '  3.3: ' + BoolToStr[GLFeatures.Version_3_3] +nl+
-    '  4.0: ' + BoolToStr[GLFeatures.Version_4_0] +nl+
-    nl+
-    {$endif}
-
-    '---------' +nl+
-    'Features:' +nl+
-    '  GLSL shaders support: ' + GLSupportNames[TGLSLProgram.ClassSupport] +nl+
-    '  Multi-texturing: ' + BoolToStr[GLFeatures.UseMultiTexturing] +nl+
-    '  Framebuffer Object: ' + GLSupportNamesFBO[GLFeatures.Framebuffer] +nl+
-    '  Multi-sampling for FBO buffers and textures: ' + BoolToStr[GLFeatures.FBOMultiSampling] +nl+
-    '  Vertex Buffer Object: ' + BoolToStr[GLFeatures.VertexBufferObject] +nl+
-    '  GenerateMipmap available (and reliable): ' + BoolToStr[HasGenerateMipmap] +nl+
-    '  Cube map textures: ' + GLSupportNames[GLFeatures.TextureCubeMap] +nl+
-    '  Compressed textures supported: ' + TextureCompressionsToString(GLFeatures.TextureCompression) +nl+
-    '  3D textures: ' + GLSupportNames[GLFeatures.Texture3D] +nl+
-    '  Textures non-power-of-2: ' + BoolToStr[GLFeatures.TextureNonPowerOfTwo] +nl+
-    '  Blend constant parameter: ' + BoolToStr[GLFeatures.BlendConstant] +nl+
-    '  Float textures: ' + BoolToStr[GLFeatures.TextureFloat] +nl+
-    '  Depth textures: ' + BoolToStr[GLFeatures.TextureDepth] +nl+
-    '  Packed depth + stencil: ' + BoolToStr[GLFeatures.PackedDepthStencil] +nl+
-    nl+
-    '  All extensions: ' +PChar(glGetString(GL_EXTENSIONS)) +nl+
-    nl+
-
-    {$ifndef OpenGLES}
-    '-----------------------------' +nl+
-    'OpenGL utility (GLU) version:' +nl+
-    '  Version string: ' +gluGetString(GLU_VERSION) +nl+
-    VersionReport(GLUVersion) +nl+
-    '  Extensions: '+gluGetString(GLU_EXTENSIONS) +nl+
-    nl+
-    {$endif}
-
-    '---------------------------' +nl+
-    'Current buffers bit depths:' +nl+
-    '  Color (red / greeen / blue / alpha): '
-      +GetInteger(GL_RED_BITS) +' / '
-      +GetInteger(GL_GREEN_BITS) +' / '
-      +GetInteger(GL_BLUE_BITS) +' / '
-      +GetInteger(GL_ALPHA_BITS) +nl+
-    '  Depth: ' +GetInteger(GL_DEPTH_BITS) +nl+
-    {$ifndef OpenGLES}
-    '  Index: ' +GetInteger(GL_INDEX_BITS) +nl+
-    {$endif}
-    '  Stencil: ' +GetInteger(GL_STENCIL_BITS) +nl+
-    {$ifndef OpenGLES}
-    '  Accumulation (red / greeen / blue / alpha): '
-      +GetInteger(GL_ACCUM_RED_BITS) +' / '
-      +GetInteger(GL_ACCUM_GREEN_BITS) +' / '
-      +GetInteger(GL_ACCUM_BLUE_BITS) +' / '
-      +GetInteger(GL_ACCUM_ALPHA_BITS) +nl+
-    '  Double buffer: ' + GetBoolean(GL_DOUBLEBUFFER) +nl+
-    {$endif}
-    '  Multisampling (full-screen antialiasing): ' + BoolToStr[GLFeatures.Multisample] +nl+
-    '    Current: ' + IntToStr(GLFeatures.CurrentMultiSampling) + ' samples per pixel' +nl+
-    nl+
-
-    {$ifndef OpenGLES}
-    '-------------' +nl+
-    'Stack depths:' +nl+
-    '  Attributes: ' +GetInteger(GL_MAX_ATTRIB_STACK_DEPTH) +nl+
-    '  Client attributes: ' +GetInteger(GL_MAX_CLIENT_ATTRIB_STACK_DEPTH) +nl+
-    '  Modelview: ' +GetInteger(GL_MAX_MODELVIEW_STACK_DEPTH) +nl+
-    '  Projection: ' +GetInteger(GL_MAX_PROJECTION_STACK_DEPTH) +nl+
-    '  Texture: ' +GetInteger(GL_MAX_TEXTURE_STACK_DEPTH) +nl+
-    '  Name: ' +GetInteger(GL_MAX_NAME_STACK_DEPTH) +nl+
-    nl+
-    {$endif}
-
-    '-------' +nl+
-    'Limits:' +nl+
-    '  Max clip planes: ' + IntToStr(GLFeatures.MaxClipPlanes) +nl+
-    '  Max lights: ' + IntToStr(GLFeatures.MaxLights) +nl+
-    {$ifndef OpenGLES}
-    '  Max eval order: ' +GetInteger(GL_MAX_EVAL_ORDER) +nl+
-    '  Max list nesting: ' +GetInteger(GL_MAX_LIST_NESTING) +nl+
-    '  Max pixel map table: ' +GetInteger(GL_MAX_PIXEL_MAP_TABLE) +nl+
-    {$endif}
-    '  Max texture size: ' + IntToStr(GLFeatures.MaxTextureSize) +nl+
-    '  Max viewport dims: ' +GetInteger2(GL_MAX_VIEWPORT_DIMS, 'width %d / height %d') +nl+
-    '  Max texture units: ' + IntToStr(GLFeatures.MaxTextureUnits) +nl+
-    '  Max cube map texture size: ' + GetMaxCubeMapTextureSize +nl+
-    '  Max 3d texture size: ' + GetMaxTexture3DSize +nl+
-    '  Max texture max anisotropy: ' + GetMaxTextureMaxAnisotropy +nl+
-    '  Query counter bits (for occlusion query): ' + { for occlusion query  GL_SAMPLES_PASSED_ARB }
-      GetQueryCounterBits +nl+
-    '  Max renderbuffer size: ' + GetMaxRenderbufferSize
-    {$ifdef OpenGLES} +NL+
-    '  Max line width: ' + GetInteger(GL_ALIASED_LINE_WIDTH_RANGE)
-    {$endif};
-
-   CheckGLErrors;
-end;
 
 {$ifndef OpenGLES}
 
@@ -1909,12 +892,18 @@ end;
 
 procedure SetWindowPos(const Value: TVector2i);
 begin
+  { Deprecated stuff uses other deprecated stuff here, don't warn }
+  {$warnings off}
   SetWindowPos(Value[0], Value[1]);
+  {$warnings on}
 end;
 
 procedure SetWindowPosZero;
 begin
+  { Deprecated stuff uses other deprecated stuff here, don't warn }
+  {$warnings off}
   SetWindowPos(0, 0);
+  {$warnings on}
 end;
 
 function GetWindowPos: TVector2i;
@@ -1977,137 +966,11 @@ begin
   {$endif}
 end;
 
-var
-  FClearColor: TCastleColor;
-
-procedure GLClear(const Buffers: TClearBuffers;
-  const ClearColor: TCastleColor);
-const
-  ClearBufferMask: array [TClearBuffer] of TGLbitfield =
-  ( GL_COLOR_BUFFER_BIT,
-    GL_DEPTH_BUFFER_BIT,
-    GL_STENCIL_BUFFER_BIT );
-var
-  Mask: TGLbitfield;
-  B: TClearBuffer;
-begin
-  if not VectorsPerfectlyEqual(FClearColor, ClearColor) then
-  begin
-    FClearColor := ClearColor;
-    glClearColor(FClearColor[0], FClearColor[1], FClearColor[2], FClearColor[3]);
-  end;
-  Mask := 0;
-  for B in Buffers do
-    Mask := Mask or ClearBufferMask[B];
-  if Mask <> 0 then
-    {$ifndef OpenGLES} GL {$else} CastleGLES20 {$endif}.GLClear(Mask);
-end;
-
-{ scissors ------------------------------------------------------------------- }
-
-type
-  TScissorList = class(specialize TFPGObjectList<TScissor>)
-  public
-    procedure Update;
-  end;
-
-var
-  EnabledScissors: TScissorList;
-
-procedure TScissorList.Update;
-var
-  R: TRectangle;
-  I: Integer;
-begin
-  if Count <> 0 then
-  begin
-    R := Items[0].Rect;
-    for I := 1 to Count - 1 do
-      R := R * Items[I].Rect;
-    glScissor(R.Left, R.Bottom, R.Width, R.Height);
-    glEnable(GL_SCISSOR_TEST);
-  end else
-    glDisable(GL_SCISSOR_TEST);
-end;
-
-constructor TScissor.Create;
-begin
-  inherited;
-  Rect := TRectangle.Empty;
-end;
-
-destructor TScissor.Destroy;
-begin
-  Enabled := false;
-  inherited;
-end;
-
-procedure TScissor.SetEnabled(const Value: boolean);
-begin
-  if FEnabled <> Value then
-  begin
-    FEnabled := Value;
-    if EnabledScissors <> nil then
-    begin
-      if Value then
-        EnabledScissors.Add(Self) else
-        EnabledScissors.Remove(Self);
-      EnabledScissors.Update;
-    end;
-  end;
-end;
-
-var
-  FGlobalScissor: TScissor;
-
-procedure ScissorEnable(const Rect: TRectangle);
-begin
-  if FGlobalScissor = nil then
-    FGlobalScissor := TScissor.Create else
-    FGlobalScissor.Enabled := false; // disable previously enabled scissor, if any
-  FGlobalScissor.Rect := Rect;
-  FGlobalScissor.Enabled := true;
-end;
-
-procedure ScissorDisable;
-begin
-  if FGlobalScissor <> nil then // secure in case FGlobalScissor was already fred
-    FGlobalScissor.Enabled := false;
-end;
-
 { ---------------------------------------------------------------------------- }
-
-var
-  FGlobalAmbient: TVector3Single = (0.2, 0.2, 0.2);
-
-function GetGlobalAmbient: TVector3Single;
-begin
-  Result := FGlobalAmbient;
-end;
-
-procedure SetGlobalAmbient(const Value: TVector3Single);
-begin
-  FGlobalAmbient := Value;
-
-  {$ifndef OpenGLES}
-  glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(FGlobalAmbient, 1.0));
-  {$endif}
-end;
-
-procedure GLBlendFunction(const SourceFactor: TBlendingSourceFactor;
-  const DestinationFactor: TBlendingDestinationFactor);
-begin
-  glBlendFunc(
-    BlendingSourceFactorToGL[SourceFactor],
-    BlendingDestinationFactorToGL[DestinationFactor]);
-end;
 
 procedure ContextClose;
 begin
-  glFreeBuffer(RectanglePointVbo);
-  {$ifdef GLImageUseShaders}
-  FreeAndNil(GLRectangleProgram);
-  {$endif}
+  FreeAndNil(Primitive2DRes);
 
   { free things created by GLInformationInitialize }
   FreeAndNil(GLVersion);
@@ -2115,22 +978,13 @@ begin
   FreeAndNil(GLUVersion);
   {$endif}
   FreeAndNil(GLFeatures);
-
-  { closing GL context, implicitly resets glClearColor value.
-    We need to make note of it, otherwise next GLClear call could not
-    set glClearColor. }
-  FClearColor := ZeroVector4Single;
 end;
 
 initialization
-  { Our GLVersion, GLFeatures should be freed at the every end,
+  { Our GLVersion, GLFeatures should be freed at the very end,
     as a lot of code uses them. So place ContextClose to be called last,
     OnGLContextClose[0].
     Every other unit initializion does OnGLContextClose.Add,
     so our initialization will stay as OnGLContextClose[0]. }
   ApplicationProperties.OnGLContextClose.Insert(0, @ContextClose);
-  EnabledScissors := TScissorList.Create(false);
-finalization
-  FreeAndNil(EnabledScissors);
-  FreeAndNil(FGlobalScissor);
 end.

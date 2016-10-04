@@ -78,10 +78,17 @@ var
     (texture area is 1/4), value = 3 means that each size is 1/4 and so on.
 
     Note that textures used for GUI, by TGLImageCore
-    (more precisely: all non-power-of-2 textures) avoid this scaling entirely. }
+    (more precisely: all non-power-of-2 textures) avoid this scaling entirely.
+
+    This allows to scale the textures at runtime.
+    For an independent mechanism that allows to @bold(load) already
+    downscaled textures (and scale them as a preprocessing step when
+    packaging your game), see @link(TextureLoadingScale).
+    The documentation of @link(TextureLoadingScale) lists all the differences
+    between these two approaches to scaling. }
   GLTextureScale: Cardinal = 1;
 
-  { Contraints the scaling done by GLTextureScale.
+  { Constraints the scaling done by GLTextureScale.
     Scaling caused by GLTextureScale cannot scale texture to something
     less than GLTextureMinSize. If texture size was already < GLTextureMinSize,
     it is not scaled at all by GLTextureScale.
@@ -113,7 +120,7 @@ var
       We will try using GenerateMipmap functionality to generate mipmaps on GPU.
       If not available, for uncompressed textures, we will generate mipmaps on CPU.
       For compressed textures, we will change minification filter to simple
-      minLinear and make OnWarning.)
+      minLinear and make WritelnWarning.)
   )
 
   @param(GUITexture If @true, the texture is not forced to have sizes
@@ -207,8 +214,8 @@ begin
   NewHeight := ResizeToTextureSize(R.Height, Sizing);
 
   if Log then
-    WritelnLog('Textures', Format('Resizing 2D texture from %dx%d to %dx%d',
-      [R.Width, R.Height, NewWidth, NewHeight]));
+    WritelnLog('Textures', Format('Resizing 2D texture "%s" from %dx%d to %dx%d',
+      [URIDisplay(R.URL), R.Width, R.Height, NewWidth, NewHeight]));
 
   result := r.MakeResized(NewWidth, NewHeight, riBilinear);
 end;
@@ -325,8 +332,6 @@ var
     (power of 2, within OpenGL required sizes).
     Level = 0 for base (not a mipmap sublevel) image. }
   procedure glTexImage2DImage(Image: TCastleImage; Level: TGLint);
-  var
-    UnpackData: TUnpackNotAlignedData;
   begin
     { Nawet jesli ladujemy obrazek o ktorym wiemy ze ma wymiary dobre
       dla glTexImage2d, musimy zadbac o jego aligment : bo co by bylo
@@ -334,7 +339,7 @@ var
       Poza tym, planuje dodac tutaj robienie borderow dla tekstury, a wtedy
       wymiar dobry dla glTexImage2d to rownie dobrze 2^n+2 (a wiec prawie zawsze
       niepodzielne na 4). }
-    BeforeUnpackImage(UnpackData, Image);
+    BeforeUnpackImage(Image);
     try
       {$ifndef OpenGLES}
       { Workaround Mesa 7.9-devel bug (at least with Intel DRI,
@@ -351,7 +356,7 @@ var
       {$ifndef OpenGLES}
       if GLVersion.Mesa then glPopAttrib;
       {$endif}
-    finally AfterUnpackImage(UnpackData, Image) end;
+    finally AfterUnpackImage(Image) end;
   end;
 
   procedure LoadNormal(const image: TCastleImage);
@@ -387,17 +392,17 @@ var
 
     if Composite.CompositeType <> ctTexture then
     begin
-      OnWarning(wtMinor, 'Texture', 'Composite (DDS, KTX...) image contains mipmaps, but not for 2D texture');
+      WritelnWarning('Texture', 'Composite (DDS, KTX...) image contains mipmaps, but not for 2D texture');
       Exit(false);
     end;
 
     {$ifdef OpenGLES}
-    OnWarning(wtMinor, 'Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
+    WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because GL_TEXTURE_MAX_LEVEL not available on OpenGLES');
     Exit(false);
     {$else}
     if not GLFeatures.Version_1_2 then
     begin
-      OnWarning(wtMinor, 'Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
+      WritelnWarning('Texture', 'Cannot load composite (DDS, KTX...) image containing mipmaps, because OpenGL 1.2 not available (GL_TEXTURE_MAX_LEVEL not available)');
       Exit(false);
     end;
 
@@ -430,16 +435,14 @@ var
     gluBuild2DMipmaps doesn't require size to be a power of 2, so no problems
     here. }
   procedure gluBuild2DMipmapsImage(Image: TCastleImage);
-  var
-    UnpackData: TUnpackNotAlignedData;
   begin
-    BeforeUnpackImage(UnpackData, Image);
+    BeforeUnpackImage(Image);
     try
       gluBuild2DMipmaps(GL_TEXTURE_2D, ImageInternalFormat,
         Image.Width, Image.Height, ImageFormat, ImageGLType(Image),
         Image.RawPixels);
       LoadedSize += TTextureMemoryProfiler.MipmapsSize(Image);
-    finally AfterUnpackImage(UnpackData, Image) end;
+    finally AfterUnpackImage(Image) end;
   end;
   {$endif}
 
@@ -547,7 +550,7 @@ begin
           Without doing anything, using compressed textures will be inconsistent
           with uncompressed, since the analogous code will succeed in creating
           mipmaps from uncompressed texture data. }
-        OnWarning(wtMinor, 'Texture', 'Generating mipmaps for compressed textures not possible. Turning off mipmaps for ' + Image.URL);
+        WritelnWarning('Texture', 'Generating mipmaps for compressed textures not possible. Turning off mipmaps for ' + Image.URL);
       end;
     end;
 
@@ -564,7 +567,6 @@ function GLDecompressTexture(Image: TGPUCompressedImage): TCastleImage;
 {$ifndef OpenGLES}
 var
   Tex: TGLTextureId;
-  PackData: TPackNotAlignedData;
   LoadedSize: Int64;
 begin
   glGenTextures(1, @Tex);
@@ -595,11 +597,11 @@ begin
     Result := TRGBAlphaImage.Create(Image.Width, Image.Height, Image.Depth) else
     Result := TRGBImage.Create(Image.Width, Image.Height, Image.Depth);
 
-  BeforePackImage(PackData, Result);
+  BeforePackImage(Result);
   try
     glGetTexImage(GL_TEXTURE_2D, 0,
       ImageGLFormat(Result), ImageGLType(Result), Result.RawPixels);
-  finally AfterPackImage(PackData, Result) end;
+  finally AfterPackImage(Result) end;
 
   glFreeTexture(Tex);
 end;

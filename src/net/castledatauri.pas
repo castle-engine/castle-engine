@@ -62,7 +62,7 @@ type
       @link(Stream) if you want to read actual contents.
 
       If this is not a valid data URI, then we set @link(Valid) to @false,
-      make appropriate warning through OnWarning,
+      make appropriate warning through WritelnWarning,
       and reset MimeType, Base64, Charset, URIPrefix to some default values. }
     property URI: string read FURI write SetURI;
     property Valid: boolean read FValid;
@@ -98,7 +98,7 @@ type
 implementation
 
 uses Base64,
-  CastleURIUtils, CastleWarnings, CastleStringUtils, CastleClassUtils;
+  CastleURIUtils, CastleStringUtils, CastleClassUtils, CastleLog;
 
 { TODO: We treat non-base64 data verbatim, not interpreting %xx hex encoding
   inside. }
@@ -146,7 +146,7 @@ begin
 
   if not IsDataURI(URI, Colon) then
   begin
-    OnWarning(wtMajor, 'Data URI', 'Not a data URI scheme');
+    WritelnWarning('Data URI', 'Not a data URI scheme');
     Exit;
   end;
 
@@ -179,7 +179,7 @@ begin
 
     if PosNow > Length(Value) then
     begin
-      OnWarning(wtMajor, 'Data URI', 'Unexpected end (expected ",")');
+      WritelnWarning('Data URI', 'Unexpected end (expected ",")');
       Exit;
     end else
     if Value[PosNow] = ';' then
@@ -197,12 +197,12 @@ begin
         ValidBase64 := true else
       if IsPrefix('charset=', Part) then
         ValidCharset := SEnding(Part, Length('charset=') + 1) else
-        OnWarning(wtMajor, 'Data URI', Format('Invalid part "%s" (expected "base64" or "charset=...")', [Part]));
+        WritelnWarning('Data URI', Format('Invalid part "%s" (expected "base64" or "charset=...")', [Part]));
     end else
     if Value[PosNow] in [',', ' '] then
     begin
       if Value[PosNow] = ' ' then
-        OnWarning(wtMajor, 'Data URI', 'Header terminated by space, which is invalid (you should terminate with a comma)');
+        WritelnWarning('Data URI', 'Header terminated by space, which is invalid (you should terminate with a comma)');
       Break;
     end;
   until false;

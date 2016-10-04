@@ -23,13 +23,13 @@
   by Pascal code (that is, you don't have to parse them). For example
   this is an expression that calculates @code(sin(3) + 10 + 1):
 
-@longcode(#
-  Expr := TCasScriptAdd.Create([
-      TCasScriptSin.Create([TCasScriptFloat.Create(false, 3)]),
-      TCasScriptFloat.Create(false, 10),
-      TCasScriptFloat.Create(false, 1)
-    ]);
-#)
+  @longcode(#
+    Expr := TCasScriptAdd.Create([
+        TCasScriptSin.Create([TCasScriptFloat.Create(false, 3)]),
+        TCasScriptFloat.Create(false, 10),
+        TCasScriptFloat.Create(false, 1)
+      ]);
+  #)
 
   You can then call @code(Expr.Execute) to calculate such expression.
 
@@ -37,22 +37,22 @@
   TCasScriptFloat instance first, and then change it's value freely between
   @code(Expr.Execute) calls. For example
 
-@longcode(#
-  MyVariable := TCasScriptFloat.Create(false, 3);
-  Expr := TCasScriptAdd.Create([
-      TCasScriptSin.Create([MyVariable]),
-      TCasScriptFloat.Create(false, 10),
-      TCasScriptFloat.Create(false, 1)
-    ]);
+  @longcode(#
+    MyVariable := TCasScriptFloat.Create(false, 3);
+    Expr := TCasScriptAdd.Create([
+        TCasScriptSin.Create([MyVariable]),
+        TCasScriptFloat.Create(false, 10),
+        TCasScriptFloat.Create(false, 1)
+      ]);
 
-  Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(3) + 10 + 1"
+    Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(3) + 10 + 1"
 
-  MyVariable.Value := 4;
-  Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(4) + 10 + 1"
+    MyVariable.Value := 4;
+    Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(4) + 10 + 1"
 
-  MyVariable.Value := 5;
-  Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(5) + 10 + 1"
-#)
+    MyVariable.Value := 5;
+    Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(5) + 10 + 1"
+  #)
 
   Note that generally each TCasScriptExpression owns it's children
   expressions, so they will be automatically freed when parent is freed.
@@ -126,12 +126,12 @@ type
       execute result for longer, you have to copy it somewhere.
       For example you can do
 
-@longCode(#
-  { This will always work, thanks to virtual TCasScriptValue.Create
-    and AssignValue methods. }
-  Copy := TCasScriptValue(ReturnedValue.ClassType).Create;
-  Copy.AssignValue(ReturnedValue);
-#)
+      @longCode(#
+        { This will always work, thanks to virtual TCasScriptValue.Create
+          and AssignValue methods. }
+        Copy := TCasScriptValue(ReturnedValue.ClassType).Create;
+        Copy.AssignValue(ReturnedValue);
+      #)
 
       @raises(ECasScriptError
 
@@ -922,12 +922,12 @@ procedure CreateValueIfNeeded(var Value: TCasScriptValue;
 
 var
   { Global method to output messages done by CastleScript @code(writeln())
-    function. If not assigned, we will use OnWarning. }
+    function. If not assigned, we will use CastleLog.WritelnLog. }
   OnScriptMessage: TCasScriptMessage;
 
 implementation
 
-uses CastleScriptCoreFunctions, CastleWarnings;
+uses CastleScriptCoreFunctions, CastleLog;
 
 { FPC 2.2.2 has bug http://bugs.freepascal.org/view.php?id=12214
   that strongly hits calculating invalid expressions.
@@ -1013,7 +1013,7 @@ begin
   except
     on E: ECasScriptError do
     begin
-      OnWarning(wtMajor, 'CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
+      WritelnWarning('CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
       Result := ADefaultValue;
       Exit;
     end;
@@ -1022,7 +1022,7 @@ begin
   if Res is TCasScriptFloat then
     Result := TCasScriptFloat(Res).Value else
   begin
-    OnWarning(wtMajor, 'CastleScript', 'CastleScript expression result is not float');
+    WritelnWarning('CastleScript', 'CastleScript expression result is not float');
     Result := ADefaultValue;
   end;
 end;
@@ -1036,7 +1036,7 @@ begin
   except
     on E: ECasScriptError do
     begin
-      OnWarning(wtMajor, 'CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
+      WritelnWarning('CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
       Result := ADefaultValue;
       Exit;
     end;
@@ -1045,7 +1045,7 @@ begin
   if Res is TCasScriptInteger then
     Result := TCasScriptInteger(Res).Value else
   begin
-    OnWarning(wtMajor, 'CastleScript', 'CastleScript expression result is not int');
+    WritelnWarning('CastleScript', 'CastleScript expression result is not int');
     Result := ADefaultValue;
   end;
 end;
@@ -1059,7 +1059,7 @@ begin
   except
     on E: ECasScriptError do
     begin
-      OnWarning(wtMajor, 'CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
+      WritelnWarning('CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
       Result := ADefaultValue;
       Exit;
     end;
@@ -1068,7 +1068,7 @@ begin
   if Res is TCasScriptString then
     Result := TCasScriptString(Res).Value else
   begin
-    OnWarning(wtMajor, 'CastleScript', 'CastleScript expression result is not string');
+    WritelnWarning('CastleScript', 'CastleScript expression result is not string');
     Result := ADefaultValue;
   end;
 end;
@@ -1082,7 +1082,7 @@ begin
   except
     on E: ECasScriptError do
     begin
-      OnWarning(wtMajor, 'CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
+      WritelnWarning('CastleScript', 'Error when executing CastleScript expression: ' + E.Message);
       Result := ADefaultValue;
       Exit;
     end;
@@ -1091,7 +1091,7 @@ begin
   if Res is TCasScriptBoolean then
     Result := TCasScriptBoolean(Res).Value else
   begin
-    OnWarning(wtMajor, 'CastleScript', 'CastleScript expression result is not boolean');
+    WritelnWarning('CastleScript', 'CastleScript expression result is not boolean');
     Result := ADefaultValue;
   end;
 end;
@@ -2067,7 +2067,7 @@ begin
 
   if Assigned(OnScriptMessage) then
     OnScriptMessage(S) else
-    OnWarning(wtMinor, 'CastleScript', 'Writeln: '+ S);
+    WritelnLog('CastleScript', 'Writeln: '+ S);
 end;
 
 class procedure TCasScriptString.HandleCharacterFromCode(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -2792,7 +2792,7 @@ end;
 initialization
   {$ifdef WORKAROUND_EXCEPTIONS_FOR_SCRIPT_EXPRESSIONS}
   {$if defined(cpui386) or defined(cpux86_64)}
-  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,exOverflow, exUnderflow, exPrecision]);
+  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
   {$endif}
   {$endif}
 

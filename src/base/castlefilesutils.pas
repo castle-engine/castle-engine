@@ -62,6 +62,7 @@ uses {$ifdef MSWINDOWS} Windows, {$endif}
 
 type
   EExeNameNotAvailable = class(Exception);
+  ERemoveFailed = class(Exception);
 
 { Full (absolute) filename to executable file of this program.
   If it's impossible to obtain, raises exception @link(EExeNameNotAvailable).
@@ -174,7 +175,7 @@ function ApplicationConfig(const Path: string): string;
   Given Path specifies a path under the data directory,
   with possible subdirectories, with possible filename at the end.
   The Path is a relative URL, so you should
-  always use slashes (regardless of OS), and you can escape characters by %xx.
+  always use slashes "/" (regardless of OS), and you can escape characters by %xx.
   You can use Path = '' to get the URL to whole data directory.
   Note that files there may be read-only, do not try to write there.
 
@@ -274,14 +275,18 @@ function HomePath: string;
 function ExpandHomePath(const FileName: string): string;
 
 { Call SysUtils.DeleteFile and check result.
+
   When Warn = @false (default) raises an exception on failure,
-  otherwise (when Warn = @true) makes only OnWarning on failure.
-  @raises Exception If delete failed, and Warn = @false. }
+  otherwise (when Warn = @true) makes only WritelnWarning on failure.
+  @raises ERemoveFailed If delete failed, and Warn = @false. }
 procedure CheckDeleteFile(const FileName: string; const Warn: boolean = false);
 
 { Call RemoveDir and check result.
-  @raises Exception If delete failed. }
-procedure CheckRemoveDir(const DirFileName: string);
+
+  When Warn = @false (default) raises an exception on failure,
+  otherwise (when Warn = @true) makes only WritelnWarning on failure.
+  @raises ERemoveFailed If delete failed, and Warn = @false. }
+procedure CheckRemoveDir(const DirFileName: string; const Warn: boolean = false);
 
 { Make sure directory exists, eventually creating it, recursively, checking result. }
 procedure CheckForceDirectories(const Dir: string);
@@ -292,8 +297,12 @@ procedure CheckRenameFile(const Source, Dest: string);
 
 { Remove the directory DirName, @italic(recursively, unconditionally,
   with all the files and subdirectories inside).
-  DirName may but doesn't have to end with PathDelim. }
-procedure RemoveNonEmptyDir(const DirName: string);
+  DirName may but doesn't have to end with PathDelim.
+
+  When Warn = @false (default) raises an exception on failure,
+  otherwise (when Warn = @true) makes only WritelnWarning on failure.
+  @raises ERemoveFailed If delete failed, and Warn = @false. }
+procedure RemoveNonEmptyDir(const DirName: string; const Warn: boolean = false);
 
 { Substitute %d in given filename pattern with successive numbers,
   until the filename doesn't exist.
@@ -385,7 +394,7 @@ function BundlePath: string;
 implementation
 
 uses {$ifdef DARWIN} MacOSAll, {$endif} Classes, CastleStringUtils,
-  {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog, CastleWarnings,
+  {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog,
   CastleURIUtils, CastleFindFiles;
 
 var
@@ -524,6 +533,9 @@ begin
   if ApplicationDataOverride <> '' then
     Exit(ApplicationDataOverride + Path);
 
+  if Pos('\', Path) <> 0 then
+    WritelnWarning('ApplicationData', 'Do not use backslashes (or a PathDelim constant) in the ApplicationData parameter. The ApplicationData parameter should be a relative URL, with components separated by slash ("/"), regardless of the OS. Path given was: ' + Path);
+
   { Cache directory of ApplicationData. This has two reasons:
     1. On Unix GetApplicationDataPath makes three DirectoryExists calls,
        so it's not too fast, avoid calling it often.
@@ -613,15 +625,19 @@ begin
   if not SysUtils.DeleteFile(FileName) then
   begin
     if Warn then
-      OnWarning(wtMinor, 'File', Format('Cannot delete file "%s"', [FileName])) else
-      raise Exception.Create(Format('Cannot delete file "%s"', [FileName]));
+      WritelnWarning('File', Format('Cannot delete file "%s"', [FileName])) else
+      raise ERemoveFailed.Create(Format('Cannot delete file "%s"', [FileName]));
   end;
 end;
 
-procedure CheckRemoveDir(const DirFileName:  string);
+procedure CheckRemoveDir(const DirFileName:  string; const Warn: boolean = false);
 begin
   if not RemoveDir(DirFileName) then
-    raise Exception.Create('Cannot remove directory "' +DirFileName+ '"');
+  begin
+    if Warn then
+      WritelnWarning('File', Format('Cannot remove directory "%s"', [DirFileName])) else
+      raise ERemoveFailed.Create(Format('Cannot remove directory "%s"', [DirFileName]));
+  end;
 end;
 
 procedure CheckForceDirectories(const Dir: string);
@@ -663,19 +679,23 @@ begin
 end;
 
 procedure RemoveNonEmptyDir_Internal(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
+var
+  Warn: boolean;
 begin
   if SpecialDirName(FileInfo.Name) then Exit;
 
+  Warn := PBoolean(Data)^;
+
   if FileInfo.Directory then
-    CheckRemoveDir(FileInfo.AbsoluteName) else
-    CheckDeleteFile(FileInfo.AbsoluteName);
+    CheckRemoveDir(FileInfo.AbsoluteName, Warn) else
+    CheckDeleteFile(FileInfo.AbsoluteName, Warn);
 end;
 
-procedure RemoveNonEmptyDir(const DirName: string);
+procedure RemoveNonEmptyDir(const DirName: string; const Warn: boolean = false);
 begin
   FindFiles(DirName, '*', true,
-    @RemoveNonEmptyDir_Internal, nil, [ffRecursive, ffDirContentsLast]);
-  CheckRemoveDir(Dirname);
+    @RemoveNonEmptyDir_Internal, @Warn, [ffRecursive, ffDirContentsLast]);
+  CheckRemoveDir(Dirname, Warn);
 end;
 
 { dir handling -------------------------------------------------------- }

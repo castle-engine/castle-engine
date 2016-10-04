@@ -260,7 +260,7 @@ var
       different between VRML 2 and X3D, these will be dealt with TVRMLToX3DConverter).
       This will not really work for VRML 1. }
     if Version.Major <= 1 then
-      OnWarning(wtMajor, 'VRML/X3D', 'Converting VRML 1.0 or Inventor to X3D is not implemented. You will get VRML 1.0/Inventor nodes encoded like for X3D, which probably is not much useful.');
+      WritelnWarning('VRML/X3D', 'Converting VRML 1.0 or Inventor to X3D is not implemented. You will get VRML 1.0/Inventor nodes encoded like for X3D, which probably is not much useful.');
     Version.Major := 3;
     Version.Minor := 0;
 

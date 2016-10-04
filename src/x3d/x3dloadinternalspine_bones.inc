@@ -118,7 +118,7 @@ begin
   InheritRotation := Json.Get('inheritRotation', true);
 
   if (not InheritScale) or (not InheritRotation) then
-    OnWarning(wtMinor, 'Spine', 'bone inheritRotation=false or inheritScale=false is only partially supported');
+    WritelnWarning('Spine', 'bone inheritRotation=false or inheritScale=false is only partially supported');
 
   ParentName := Json.Get('parent', '');
   if ParentName <> '' then

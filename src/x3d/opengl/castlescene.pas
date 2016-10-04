@@ -26,7 +26,7 @@ uses SysUtils, Classes, FGL,
   CastleUtils, CastleSceneCore, CastleRenderer, CastleGL, CastleBackground,
   CastleGLUtils, CastleShapeOctree, CastleGLShadowVolumes, X3DFields, CastleTriangles,
   CastleShapes, CastleFrustum, Castle3D, CastleGLShaders,
-  CastleGenericLists, CastleRectangles, CastleCameras,
+  CastleGenericLists, CastleRectangles, CastleCameras, CastleRendererInternalShader,
   CastleSceneInternalShape, CastleSceneInternalOcclusion, CastleSceneInternalBlending;
 
 {$define read_interface}
@@ -470,7 +470,7 @@ type
     AvoidNonShadowCasterRendering: boolean;
 
     PreparedShapesResources, PreparedRender: boolean;
-    VarianceShadowMapsProgram: array [boolean] of TGLSLProgram;
+    VarianceShadowMapsProgram: array [boolean] of TX3DShaderProgramBase;
     FDistanceCulling: Single;
 
     { Private things for RenderFrustum --------------------------------------- }
@@ -804,7 +804,7 @@ var
 
 implementation
 
-uses CastleGLVersion, CastleImages, CastleLog, CastleWarnings,
+uses CastleGLVersion, CastleImages, CastleLog,
   CastleStringUtils, CastleRenderingCamera, CastleApplicationProperties,
   CastleShapeInternalRenderShadowVolumes;
 
@@ -1488,7 +1488,9 @@ procedure TCastleScene.Render(
     RenderScene(TestShapeVisibility, Frustum, Params);
   end;
 
-  {$ifndef OpenGLES} //TODO-es
+  {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
+  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
+  {$warnings off}
   procedure RenderWireframe(UseWireframeColor: boolean);
   var
     SavedMode: TRenderingMode;
@@ -1511,11 +1513,15 @@ procedure TCastleScene.Render(
         Attributes.Mode := SavedMode;
     glPopAttrib;
   end;
+  {$warnings on}
   {$endif}
 
   { Render taking Attributes.WireframeEffect into account. }
   procedure RenderWithWireframeEffect;
+  // TODO-es For OpenGLES, wireframe must be done differently
   {$ifndef OpenGLES}
+  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
+  {$warnings off}
   begin
     case Attributes.WireframeEffect of
       weNormal: RenderNormal;
@@ -1554,6 +1560,7 @@ procedure TCastleScene.Render(
         end;
       else raise EInternalError.Create('Render: Attributes.WireframeEffect ?');
     end;
+  {$warnings on}
   {$else}
   begin
     RenderNormal;
@@ -1564,7 +1571,7 @@ procedure TCastleScene.Render(
   procedure RenderWithShadowMaps;
   var
     SavedMode: TRenderingMode;
-    SavedCustomShader, SavedCustomShaderAlphaTest: TGLSLProgram;
+    SavedCustomShader, SavedCustomShaderAlphaTest: TX3DShaderProgramBase;
   begin
     { For shadow maps, speed up rendering by using only features that affect
       depth output. This also disables user shaders (for both classic
@@ -1581,17 +1588,17 @@ procedure TCastleScene.Render(
       { create VarianceShadowMapsProgram if needed }
       if VarianceShadowMapsProgram[false] = nil then
       begin
-        VarianceShadowMapsProgram[false] := TGLSLProgram.Create;
+        VarianceShadowMapsProgram[false] := TX3DShaderProgramBase.Create;
         VarianceShadowMapsProgram[false].AttachFragmentShader({$I variance_shadow_map_generate.fs.inc});
-        VarianceShadowMapsProgram[false].Link(true);
+        VarianceShadowMapsProgram[false].Link;
       end;
 
       if VarianceShadowMapsProgram[true] = nil then
       begin
-        VarianceShadowMapsProgram[true] := TGLSLProgram.Create;
+        VarianceShadowMapsProgram[true] := TX3DShaderProgramBase.Create;
         VarianceShadowMapsProgram[true].AttachFragmentShader(
           '#define ALPHA_TEST' + NL + {$I variance_shadow_map_generate.fs.inc});
-        VarianceShadowMapsProgram[true].Link(true);
+        VarianceShadowMapsProgram[true].Link;
       end;
 
       SavedCustomShader          := Attributes.CustomShader;

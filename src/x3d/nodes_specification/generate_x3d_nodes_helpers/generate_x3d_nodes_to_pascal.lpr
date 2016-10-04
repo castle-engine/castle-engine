@@ -1,7 +1,8 @@
 program generate_x3d_nodes_to_pascal;
 
 uses SysUtils, CastleParameters, CastleClassUtils, CastleStringUtils,
-  CastleTimeUtils, CastleWarnings, CastleColors, CastleUtils;
+  CastleTimeUtils, CastleLog, CastleColors, CastleUtils,
+  CastleApplicationProperties;
 
 function FieldTypeX3DToPascal(const X3DName: string): string;
 begin
@@ -37,6 +38,10 @@ begin
   // in ObjectPascal. We capture enums outside of this function.
   if X3DName = 'SFString' then
     Result := 'string' else
+  if X3DName = 'SFMatrix3f' then
+    Result := 'TMatrix3Single' else
+  if X3DName = 'SFMatrix4f' then
+    Result := 'TMatrix4Single' else
 //  if X3DName = 'SFNode' then // nope, because these should be typed accordingly in ObjectPascal
 //    Result := 'TXxx' else
     Result := '';
@@ -53,7 +58,7 @@ begin
     (Pos('["', Line) <> 0) and
    ((Pos('"]', Line) <> 0) or (Pos('...]', Line) <> 0));
   if Result then
-    OnWarning(wtMinor, 'Input', 'Detected as enum, not converting ' + Line);
+    WritelnWarning('Input', 'Detected as enum, not converting ' + Line);
 end;
 
 function NodeTypeX3DToPascal(const X3DName: string): string;
@@ -176,12 +181,12 @@ begin
              if (Tokens[1] <> '[in,out]') and
                 (Tokens[1] <> '[]') then
              begin
-               OnWarning(wtMinor, 'Input', 'Only fields (inputOutput or initializeOnly) are supported now: ' + X3DFieldName);
+               WritelnWarning('Input', 'Only fields (inputOutput or initializeOnly) are supported now: ' + X3DFieldName);
                Continue;
              end;
              if X3DNodeType = '' then
              begin
-               OnWarning(wtMajor, 'Input', 'Field found, but not inside a node: ' + X3DFieldName);
+               WritelnWarning('Input', 'Field found, but not inside a node: ' + X3DFieldName);
                Continue;
              end;
              NodePrivateInterface +=
@@ -202,7 +207,7 @@ begin
                NL;
            end else
            begin
-             OnWarning(wtMajor, 'Input', 'Line not understood, possibly field type not handled: ' + Line);
+             WritelnWarning('Input', 'Line not understood, possibly field type not handled: ' + Line);
              Continue;
            end;
         finally FreeAndNil(Tokens) end;
@@ -214,7 +219,7 @@ end;
 var
   I: Integer;
 begin
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   NodePrivateInterface := '';
   NodePublicInterface := '';

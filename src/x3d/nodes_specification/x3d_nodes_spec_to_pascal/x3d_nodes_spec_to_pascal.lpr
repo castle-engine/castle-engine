@@ -278,7 +278,7 @@ begin
       WritelnStr(ImplementationLines,
         NL +
         '  FEvent' + FieldName + ' := TX3DEvent.Create(''' + FieldName + ''', T' + FieldType + ', ' + BoolToStrLowerCase[AccessType = atInputOnly] + ');' + NL +
-        '  Events.Add(FEvent' + FieldName + ');');
+        '  AddEvent(FEvent' + FieldName + ');');
     end;
   end else
   begin
@@ -313,14 +313,14 @@ begin
           NL +
           '  FFd' + FieldName + ' := T' + FieldType + '.Create(Self, ''' + FieldName + ''', [' + NodeFieldAllowedChildren + ']);' + NL +
           FieldExposedLine +
-          '  Fields.Add(FFd' + FieldName + ');');
+          '  AddField(FFd' + FieldName + ');');
       end else
       begin
         WritelnStr(ImplementationLines,
           NL +
           '  FFd' + FieldName + ' := T' + FieldType + '.Create(''' + FieldName + ''', ' + FieldDefaultValue + ');' + NL +
           FieldExposedLine +
-          '  Fields.Add(FFd' + FieldName + ');');
+          '  AddField(FFd' + FieldName + ');');
         if FieldComment <> '' then
           WritelnStr(ImplementationLines,
             '  { X3D specification comment: ' + FieldComment + ' }');

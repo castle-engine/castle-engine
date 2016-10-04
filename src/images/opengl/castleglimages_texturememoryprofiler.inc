@@ -72,16 +72,16 @@ type
   (for example in the main unit initialization clause), like this:
 
   @longCode(#
-TextureMemoryProfiler.Enabled := true
-#)
+    TextureMemoryProfiler.Enabled := true
+  #)
 
   Then at any point during the game you can query texture usage by
   @link(TTextureMemoryProfiler.Summary) method.
   For example dump it to the log like this:
 
-@longCode(#
-WritelnLog('Textures', TextureMemoryProfiler.Summary);
-#)
+  @longCode(#
+    WritelnLog('Textures', TextureMemoryProfiler.Summary);
+  #)
 
   The resulting output lists the currently allocated textures,
   in descending order of their size.
@@ -174,14 +174,14 @@ var
   I: Integer;
 begin
   if not ApplicationProperties.IsGLContextOpen then
-    OnWarning(wtMajor, 'Textures', Format('Releasing texture id %d after OpenGL context is closed. This means that you free some OpenGL resources (like TGLImageCore) too late, you should move their destruction to an event like TCastleWindow.OnClose or TCastleControl.OnGLContextClose.',
+    WritelnWarning('Textures', Format('Releasing texture id %d after OpenGL context is closed. This means that you free some OpenGL resources (like TGLImageCore) too late, you should move their destruction to an event like TCastleWindow.OnClose or TCastleControl.OnGLContextClose.',
       [TextureId]));
 
   if FEnabled then
   begin
     I := FindTextureId(TextureId);
     if I = -1 then
-      OnWarning(wtMinor, 'Textures', Format('Texture id %d is released, but was not reported as allocated to TextureMemoryProfiler. Probably TextureMemoryProfiler was not enabled when the texture was created, which may mean TextureMemoryProfiler was enabled too late to accurately capture everything.',
+      WritelnWarning('Textures', Format('Texture id %d is released, but was not reported as allocated to TextureMemoryProfiler. Probably TextureMemoryProfiler was not enabled when the texture was created, which may mean TextureMemoryProfiler was enabled too late to accurately capture everything.',
         [TextureId])) else
       AllocatedTextures.Delete(I);
   end;
@@ -194,7 +194,7 @@ begin
       { texture id 0 may be allocated, but never released }
       (AllocatedTextures[0].TextureId = 0)) then
   begin
-    OnWarning(wtMinor, 'Textures', Format('TextureMemoryProfiler contains some textures when closing GL context. Possibly we have texture memory leak (textures will be freed anyway when closing GL context, but possibly we could free them earlier). Or TextureMemoryProfiler was only enabled for part of program''s code. We have %d textures, 1st one is "%s"',
+    WritelnWarning('Textures', Format('TextureMemoryProfiler contains some textures when closing GL context. Possibly we have texture memory leak (textures will be freed anyway when closing GL context, but possibly we could free them earlier). Or TextureMemoryProfiler was only enabled for part of program''s code. We have %d textures, 1st one is "%s"',
       [AllocatedTextures.Count,
        AllocatedTextures[0].URL]));
   end;
@@ -276,7 +276,7 @@ begin
       [AllocatedTex.Size / Used, AllocatedTex.URL,
        AllocatedTex.Size, AllocatedTex.ImageFormat,
        AllocatedTex.Width, AllocatedTex.Height, AllocatedTex.Depth,
-       BoolToStr[AllocatedTex.Mipmaps]]) + NL;
+       BoolToStr(AllocatedTex.Mipmaps, true)]) + NL;
   end;
   Result := S;
 end;

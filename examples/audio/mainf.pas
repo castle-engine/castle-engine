@@ -131,7 +131,7 @@ begin
     S := Format('%d: AL source: %4d, used: %5s',
       [ I,
         SoundEngine.AllocatedSources[I].ALSource,
-        BoolToStrYesNo[SoundEngine.AllocatedSources[I].Used] ]);
+        BoolToStr(SoundEngine.AllocatedSources[I].Used, true) ]);
     if SoundEngine.AllocatedSources[I].Used then
       S += Format(', started on %s, importance: %d, filename: %s',
         [ FormatDateTime('tt', TSoundData(

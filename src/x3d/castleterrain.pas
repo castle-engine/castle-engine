@@ -313,9 +313,9 @@ var
   Appearance: TAppearanceNode;
   Color: TColorNode;
 begin
-  Result := TShapeNode.Create('', '');
+  Result := TShapeNode.Create;
 
-  Grid := TElevationGridNode.Create('', '');
+  Grid := TElevationGridNode.Create;
   Result.FdGeometry.Value := Grid;
   Grid.FdCreaseAngle.Value := 4; { > pi, to be perfectly smooth }
   Grid.FdXDimension.Value := Dimensions;
@@ -324,7 +324,7 @@ begin
   Grid.FdZSpacing.Value := Size / (Dimensions - 1);
   Grid.FdHeight.Items.Count := Dimensions * Dimensions;
 
-  Color := TColorNode.Create('', '');
+  Color := TColorNode.Create;
   Grid.FdColor.Value := Color;
   Color.FdColor.Items.Count := Dimensions * Dimensions;
 
@@ -339,11 +339,11 @@ begin
         ColorFromHeight(Self, Grid.FdHeight.Items.L[X + Z * Dimensions]);
     end;
 
-  Appearance := TAppearanceNode.Create('', '');
+  Appearance := TAppearanceNode.Create;
   Result.Appearance := Appearance;
 
   { add any material, to be lit (even without shaders) }
-  Appearance.FdMaterial.Value := TMaterialNode.Create('', '');
+  Appearance.FdMaterial.Value := TMaterialNode.Create;
 end;
 
 { TTerrainImage ------------------------------------------------------------ }

@@ -17,14 +17,15 @@
 program alplay;
 
 uses SysUtils, CastleUtils, CastleOpenAL,
-  CastleWarnings, CastleSoundEngine, CastleParameters, CastleTimeUtils, CastleVectors;
+  CastleLog, CastleSoundEngine, CastleParameters, CastleTimeUtils, CastleVectors,
+  CastleApplicationProperties;
 
 var
   Buffer: TSoundBuffer;
   URL: string;
   Duration: TFloatTime;
 begin
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   { add here InitializeLog('1.0') (from CastleLog unit) to see various info
     about OpenAL and sound loading }

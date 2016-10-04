@@ -22,8 +22,8 @@
   and the files are saved in $1 directory). }
 program dds_decompose;
 
-uses SysUtils, CastleUtils, CastleImages, CastleCompositeImage, CastleWarnings,
-  CastleStringUtils, CastleParameters, CastleURIUtils;
+uses SysUtils, CastleUtils, CastleImages, CastleCompositeImage, CastleLog,
+  CastleStringUtils, CastleParameters, CastleURIUtils, CastleApplicationProperties;
 
 var
   SaveDecomposed: boolean = true;
@@ -46,7 +46,7 @@ var
   OutputName, OutputBaseName: string;
   I: Integer;
 begin
-  OnWarning := @OnWarningWrite;
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHigh(1);
   Composite := TCompositeImage.Create;
