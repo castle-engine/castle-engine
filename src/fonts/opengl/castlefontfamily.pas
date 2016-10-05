@@ -888,6 +888,7 @@ var
       Result := nil;
   end;
 
+  { @raises EConvertError In case of invalid color hexadecimal value. }
   function ReadFontColor(const S: string; const I: Integer;
     out NextChar: Integer; out Color: TCastleColor): boolean;
   var

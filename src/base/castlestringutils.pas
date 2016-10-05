@@ -2252,6 +2252,7 @@ function IntToStr16(const n: QWord; const minLength: Cardinal): string;
 begin result := IntToStrBase(n, 16, minLength) end;
 
 function Str2ToInt(const s: string): integer;
+
   function BinInt(c: char): integer;
   begin
    case c of
@@ -2264,11 +2265,11 @@ function Str2ToInt(const s: string): integer;
 var NextChar: integer;
 begin
  if s = '' then
-  raise EConvertError.Create('Invalid StrBinToInt argument: empty string');
+  raise EConvertError.Create('Invalid Str2ToInt argument: empty string');
  if s[1] = '-' then
  begin
   if Length(s) = 1 then
-   raise EConvertError.Create('Invalid StrBinToInt argument: cannot convert single dash ''-'' to integer.');
+   raise EConvertError.Create('Invalid Str2ToInt argument: cannot convert single dash ''-'' to integer.');
   result := -BinInt(s[2]);
   NextChar := 3;
  end else
@@ -2291,7 +2292,7 @@ var ScanStart: integer;
       i: integer;
   begin
    if ScanStart > Length(s) then
-    raise EConvertError.Create('Unexpected end of string : no digits');
+    raise EConvertError.Create('StrHexToInt found unexpected end of string: no digits');
    result := 0;
    for i := ScanStart to Length(s) do
    begin
