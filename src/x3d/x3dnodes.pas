@@ -938,6 +938,13 @@ type
       The main use for this is to simplify implementation of
       TX3DNode.DirectEnumerateActive overrides in TX3DNode descendants. }
     function Enumerate(Func: TEnumerateChildrenFunction): Pointer;
+
+    procedure Send(const AValue: TX3DNode); overload;
+  end;
+
+  TSFNodeEventHelper = class helper for TSFNodeEvent
+    procedure Send(const Value: TX3DNode; const Time: TX3DTime); overload;
+    procedure Send(const Value: TX3DNode); overload;
   end;
 
   { VRML/X3D field holding a list of nodes.
@@ -1348,17 +1355,17 @@ type
       as they may have "IS" clauses that refer to our fields.
       Consider part of key_sensor.x3dv test:
 
-@preformatted(
-         PROTO SimpleText [
-           inputOutput MFString onestring ""
-         ] { Shape { geometry Text { string IS onestring } } }
+      @preformatted(
+        PROTO SimpleText [
+          inputOutput MFString onestring ""
+        ] { Shape { geometry Text { string IS onestring } } }
 
-         PROTO PressedText [
-           inputOutput MFString againstring ""
-         ] { SimpleText { onestring IS againstring } }
+        PROTO PressedText [
+          inputOutput MFString againstring ""
+        ] { SimpleText { onestring IS againstring } }
 
-         PressedText { againstring "zero" }
-)
+        PressedText { againstring "zero" }
+      )
 
       After expanding SimpleText within PressedText, we have
       @code(Shape { geometry Text { string IS againstring } }),
@@ -3229,6 +3236,40 @@ end;
 class function TSFNode.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TSFNodeEvent.Create(AParentNode, AName, AInEvent);
+end;
+
+procedure TSFNode.Send(const AValue: TX3DNode);
+var
+  FieldValue: TSFNode;
+begin
+  { We construct using CreateUndefined constructor,
+    to have AllowedChildren = acAll }
+  FieldValue := TSFNode.CreateUndefined(ParentNode, Name,
+    false { Exposed = false, because no need to be true });
+  try
+    FieldValue.Value := AValue;
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
+{ TSFNodeEventHelper --------------------------------------------------------- }
+
+procedure TSFNodeEventHelper.Send(const Value: TX3DNode; const Time: TX3DTime);
+var
+  Field: TX3DField;
+begin
+  Field := CreateTemp;
+  (Field as TSFNode).Value := Value;
+  try
+    Self.Send(Field, Time);
+  finally FreeTemp(Field) end;
+end;
+
+procedure TSFNodeEventHelper.Send(const Value: TX3DNode);
+begin
+  if (ParentNode <> nil) and
+     (TX3DNode(ParentNode).Scene <> nil) then
+    Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
 end;
 
 { TMFNode -------------------------------------------------------------------- }

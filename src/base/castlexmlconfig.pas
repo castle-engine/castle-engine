@@ -207,24 +207,24 @@ type
 
       They should be expressed in XML like
 
-@preformatted(
-<myColor red="1" green="0.5" blue="0.25" alpha="1" />
-<myColorRGB red="1" green="0.5" blue="0.25" />
-)
+      @preformatted(
+        <myColor red="1" green="0.5" blue="0.25" alpha="1" />
+        <myColorRGB red="1" green="0.5" blue="0.25" />
+      )
 
       or as hex colors (see @link(HexToColor)) like
 
-@preformatted(
-<myColor hex="ff804011" />
-<myColorRGB hex="ff8040" />
-)
+      @preformatted(
+        <myColor hex="ff804011" />
+        <myColorRGB hex="ff8040" />
+      )
 
       You can read such colors by
 
-@longCode(#
-Color := GetColor('example/path/to/myColor', Black);
-ColorRGB := GetColorRGB('example/path/to/myColorRGB', BlackRGB);
-#)
+      @longCode(#
+        Color := GetColor('example/path/to/myColor', Black);
+        ColorRGB := GetColorRGB('example/path/to/myColorRGB', BlackRGB);
+      #)
 
       @groupBegin }
     function GetColorRGB(const APath: string;
@@ -286,17 +286,17 @@ ColorRGB := GetColorRGB('example/path/to/myColorRGB', BlackRGB);
     { For a given path, return corresponding children elements of a given
       DOM element of XML tree. For example, you have an XML like this:
 
-@preformatted(
-<?xml version="1.0" encoding="UTF-8"?>
-<CONFIG>
-  <game_configuration>
-    <locations>
-      <location name="location_1st">...</location>
-      <location name="location_2nd">...</location>
-    </locations>
-  </game_configuration>
-</CONFIG>
-)
+      @preformatted(
+      <?xml version="1.0" encoding="UTF-8"?>
+      <CONFIG>
+        <game_configuration>
+          <locations>
+            <location name="location_1st">...</location>
+            <location name="location_2nd">...</location>
+          </locations>
+        </game_configuration>
+      </CONFIG>
+      )
 
       You could use @code(PathElement('game_configuration/locations'))
       to get the @code(<locations>) DOM element.
@@ -313,33 +313,33 @@ ColorRGB := GetColorRGB('example/path/to/myColorRGB', BlackRGB);
 
       For example, assume you have an XML like this:
 
-@preformatted(
-<?xml version="1.0" encoding="UTF-8"?>
-<CONFIG>
-  <game_configuration>
-    <locations>
-      <location name="location_1st">...</location>
-      <location name="location_2nd">...</location>
-    </locations>
-  </game_configuration>
-</CONFIG>
-)
+      @preformatted(
+      <?xml version="1.0" encoding="UTF-8"?>
+      <CONFIG>
+        <game_configuration>
+          <locations>
+            <location name="location_1st">...</location>
+            <location name="location_2nd">...</location>
+          </locations>
+        </game_configuration>
+      </CONFIG>
+      )
 
       You can process it like this:
 
-@longCode(#
-var
-  I: TXMLElementIterator;
-begin
-  I := PathChildrenIterator('game_configuration/locations', 'location');
-  try
-    while I.GetNext do
-    begin
-      // ... here goes your code to process I.Current ...
-    end;
-  finally FreeAndNil(I) end;
-end;
-#)
+      @longCode(#
+      var
+        I: TXMLElementIterator;
+      begin
+        I := PathChildrenIterator('game_configuration/locations', 'location');
+        try
+          while I.GetNext do
+          begin
+            // ... here goes your code to process I.Current ...
+          end;
+        finally FreeAndNil(I) end;
+      end;
+      #)
 
       Raises exception if element indicated by APath does not exist.
       (But it is OK if it is empty.)

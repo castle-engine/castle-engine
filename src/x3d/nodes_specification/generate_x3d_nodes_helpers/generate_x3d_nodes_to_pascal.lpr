@@ -38,6 +38,10 @@ begin
   // in ObjectPascal. We capture enums outside of this function.
   if X3DName = 'SFString' then
     Result := 'string' else
+  if X3DName = 'SFMatrix3f' then
+    Result := 'TMatrix3Single' else
+  if X3DName = 'SFMatrix4f' then
+    Result := 'TMatrix4Single' else
 //  if X3DName = 'SFNode' then // nope, because these should be typed accordingly in ObjectPascal
 //    Result := 'TXxx' else
     Result := '';

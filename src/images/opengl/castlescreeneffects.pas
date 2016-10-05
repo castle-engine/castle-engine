@@ -41,17 +41,17 @@ function ScreenEffectVertex: string;
 
   So you usually want to create screen effect shaders like this:
 
-@longCode(#
-  Shader := TGLSLProgram.Create;
-  Shader.AttachVertexShader(ScreenEffectVertex);
-  Shader.AttachFragmentShader(
-    ScreenEffectFragment(false { or true if you use depth }) +
-    '... my custom screen effect GLSL code ...');
-  Shader.Link;
-  { uaIgnore is a good idea here, in case some uniform variable
-    from ScreenEffectFragment code may be left unused. }
-  Shader.UniformNotFoundAction := uaIgnore;
-#)
+  @longCode(#
+    Shader := TGLSLProgram.Create;
+    Shader.AttachVertexShader(ScreenEffectVertex);
+    Shader.AttachFragmentShader(
+      ScreenEffectFragment(false { or true if you use depth }) +
+      '... my custom screen effect GLSL code ...');
+    Shader.Link;
+    { uaIgnore is a good idea here, in case some uniform variable
+      from ScreenEffectFragment code may be left unused. }
+    Shader.UniformNotFoundAction := uaIgnore;
+  #)
 
 *)
 function ScreenEffectFragment(const Depth: boolean): string;

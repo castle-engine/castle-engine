@@ -39,7 +39,10 @@ type
 
     { Mouse and touch dragging. Both TExamineCamera and TWalkCamera implement their own,
       special reactions to mouse dragging, that allows to navigate / rotate
-      while pressing specific mouse buttons. }
+      while pressing specific mouse buttons.
+
+      Note that mouse dragging is automatically disabled when
+      @link(TWalkCamera.MouseLook) is used. }
     ciMouseDragging,
 
     { Navigation using 3D mouse devices, like the ones from 3dconnexion. }
@@ -84,12 +87,12 @@ type
       in descendants you should override it like
 
       @longCode(#
-  Result := inherited;
-  if Result then Exit;
-  { ... And do the job here.
-    In other words, the handling of events in inherited
-    class should have a priority. }
-#)
+        Result := inherited;
+        if Result then Exit;
+        { ... And do the job here.
+          In other words, the handling of events in inherited
+          class should have a priority. }
+      #)
 
       Note that releasing of mouse wheel is not implemented for now,
       neither by CastleWindow or Lazarus CastleControl.
@@ -149,14 +152,14 @@ type
       For example, if holding some key should move some 3D object,
       you should do something like:
 
-@longCode(#
-if HandleInput then
-begin
-  if Container.Pressed[K_Right] then
-    Transform.Position += Vector3Single(SecondsPassed * 10, 0, 0);
-  HandleInput := not ExclusiveEvents;
-end;
-#)
+      @longCode(#
+      if HandleInput then
+      begin
+        if Container.Pressed[K_Right] then
+          Transform.Position += Vector3Single(SecondsPassed * 10, 0, 0);
+        HandleInput := not ExclusiveEvents;
+      end;
+      #)
 
       Instead of directly using a key code, consider also
       using TInputShortcut that makes the input key nicely configurable.
@@ -389,6 +392,8 @@ end;
 
     function GetPositionInternal: TVector3Single; virtual; abstract;
     procedure SetPosition(const Value: TVector3Single); virtual; abstract;
+
+    function ReallyEnableMouseDragging: boolean; virtual;
   public
     const
       { Default value for TCamera.Radius.
@@ -1069,6 +1074,8 @@ end;
 
     function GetPositionInternal: TVector3Single; override;
     procedure SetPosition(const Value: TVector3Single); override;
+
+    function ReallyEnableMouseDragging: boolean; override;
   public
     const
       DefaultFallSpeedStart = 0.5;
@@ -1434,14 +1441,17 @@ end;
       or when head bobbing forces camera to go down.
 
       Exactly, the required equation is
-@preformatted(
-  MinimumRealPreferredHeight :=
-    PreferredHeight * CrouchHeight * (1 - HeadBobbing);
-)
+
+      @preformatted(
+        MinimumRealPreferredHeight :=
+          PreferredHeight * CrouchHeight * (1 - HeadBobbing);
+      )
+
       and always must be
-@preformatted(
-  MinimumRealPreferredHeight >= RealPreferredHeight
-)
+
+      @preformatted(
+        MinimumRealPreferredHeight >= RealPreferredHeight
+      )
 
       Reasoning: otherwise this class would "want camera to fall down"
       (because we will always be higher than RealPreferredHeight)
@@ -2149,7 +2159,6 @@ begin
   FContainer := Value;
 end;
 
-
 { TCamera ------------------------------------------------------------ }
 
 constructor TCamera.Create(AOwner: TComponent);
@@ -2378,14 +2387,18 @@ begin
     Input := DefaultInput;
 end;
 
+function TCamera.ReallyEnableMouseDragging: boolean;
+begin
+  Result := (ciMouseDragging in Input) and EnableDragging;
+end;
+
 function TCamera.Press(const Event: TInputPressRelease): boolean;
 begin
   Result := inherited;
   if Result then Exit;
 
   if (Event.EventType = itMouseButton) and
-     (ciMouseDragging in Input) and
-     EnableDragging then
+     ReallyEnableMouseDragging then
   begin
     MouseDraggingStart := Container.MousePosition;
     MouseDraggingStarted := Event.FingerIndex;
@@ -2965,8 +2978,7 @@ begin
   { When dragging should be ignored, or (it's an optimization to check it
     here early, Motion occurs very often) when nothing pressed, do nothing. }
   if (Container.MousePressed = []) or
-     (not (ciMouseDragging in Input)) or
-     (not EnableDragging) or
+     (not ReallyEnableMouseDragging) or
      (MouseDraggingStarted <> Event.FingerIndex) or
      Animation then
     Exit;
@@ -3633,6 +3645,11 @@ begin
   if PreferGravityUpForMoving then
     RotateAroundGravityUp(AngleDeg) else
     RotateAroundUp(AngleDeg);
+end;
+
+function TWalkCamera.ReallyEnableMouseDragging: boolean;
+begin
+  Result := (inherited ReallyEnableMouseDragging) and not MouseLook;
 end;
 
 procedure TWalkCamera.Update(const SecondsPassed: Single;
@@ -4376,14 +4393,14 @@ begin
 
       { mouse dragging navigation }
       if (MouseDraggingStarted <> -1) and
-         (ciMouseDragging in Input) and EnableDragging and
+         ReallyEnableMouseDragging and
          ((mbLeft in Container.MousePressed) or (mbRight in Container.MousePressed)) and
          { Enable dragging only when no modifiers (except Input_Run,
            which must be allowed to enable running) are pressed.
            This allows application to handle e.g. ctrl + dragging
            in some custom ways (like view3dscene selecting a triangle). }
          (Container.Pressed.Modifiers - Input_Run.Modifiers = []) and
-         (not MouseLook) and (MouseDragMode = mdWalk) then
+         (MouseDragMode = mdWalk) then
       begin
         HandleInput := not ExclusiveEvents;
         MoveViaMouseDragging(Container.MousePosition - MouseDraggingStart);
@@ -4445,7 +4462,7 @@ begin
     Exit;
 
   if (Event.EventType = itMouseButton) and
-     (ciMouseDragging in Input) and
+     ReallyEnableMouseDragging and
      (MouseDragMode = mdNone) then
   begin
     MouseDraggingStarted := -1;
@@ -4454,8 +4471,8 @@ begin
   end;
 
   if (Event.EventType = itMouseWheel) and
-     (ciMouseDragging in Input) and
-     EnableDragging and (not MouseLook) and (MouseDragMode <> mdRotate) and
+     ReallyEnableMouseDragging and
+     (MouseDragMode <> mdRotate) and
      Event.MouseWheelVertical then
   begin
     RotateVertical(-Event.MouseWheelScroll * 3);
@@ -4830,6 +4847,7 @@ end;
 
 procedure TExamineCameraInUniversal.DoCursorChange;
 begin
+  inherited;
   { update Universal.Cursor, in case we're the current camera }
   Universal.Cursor := Universal.Current.Cursor;
 end;
@@ -4862,6 +4880,7 @@ end;
 
 procedure TWalkCameraInUniversal.DoCursorChange;
 begin
+  inherited;
   { update Universal.Cursor, in case we're the current camera }
   Universal.Cursor := Universal.Current.Cursor;
 end;

@@ -63,7 +63,11 @@
       @link(TCastleApplication.OnUpdate Application.OnUpdate).
 
       For more advanced needs you can use something like
-        @longCode(#  while Application.ProcessMessage do <something>;#)
+
+      @longCode(#
+        while Application.ProcessMessage do <something>;
+      #)
+
       instead of Application.Run.
 
       You can also call @link(TCastleWindowCustom.OpenAndRun Window.OpenAndRun),
@@ -82,26 +86,26 @@
 
   So the simplest example of using this unit can look like this:
 
-@longcode(#
-uses CastleWindow;
+  @longcode(#
+    uses CastleWindow;
 
-var
-  Window: TCastleWindowCustom;
+    var
+      Window: TCastleWindowCustom;
 
-procedure Render(Sender: TUIContainer);
-begin  ...  end;
+    procedure Render(Sender: TUIContainer);
+    begin  ...  end;
 
-procedure Resize(Sender: TUIContainer);
-begin  ...  end;
+    procedure Resize(Sender: TUIContainer);
+    begin  ...  end;
 
-begin
-  Window := TCastleWindowCustom.Create(Application);
-  Window.OnResize := @Resize;
-  Window.OnRender := @Render;
-  Window.Caption := 'Simplest CastleWindow example';
-  Window.OpenAndRun;
-end.
-#)
+    begin
+      Window := TCastleWindowCustom.Create(Application);
+      Window.OnResize := @Resize;
+      Window.OnRender := @Render;
+      Window.Caption := 'Simplest CastleWindow example';
+      Window.OpenAndRun;
+    end.
+  #)
 
   @italic(More component-like approach):
   For larger programs, it makes more sense to divide functionality into
@@ -1033,12 +1037,13 @@ type
     { Check do given OpenGL buffers configuration satisfies the
       requested configuration.
 
-      So it checks do
+      So it checks does
 
-@preformatted(
-  ProvidedStencilBits >= StencilBits and
-  ProvidedDepthBits >= DepthBits ...
-)
+      @preformatted(
+        ProvidedStencilBits >= StencilBits and
+        ProvidedDepthBits >= DepthBits ...
+      )
+
       and so on. If not, EGLContextNotPossible is raised with detailed
       description (which buffer constraint is not satisfied -- e.g. maybe
       the stencil buffer is not available).
@@ -1329,10 +1334,10 @@ type
 
     { Minimum and maximum window sizes. Always
 
-@preformatted(
-  0 < MinWidth <= MaxWidth and
-  0 < MinHeight <= MaxHeight
-)
+      @preformatted(
+        0 < MinWidth <= MaxWidth and
+        0 < MinHeight <= MaxHeight
+      )
 
       We do not allow user to resize the window outside of these constraints.
 
@@ -1426,8 +1431,8 @@ type
       You can enable/disable anti-aliasing in your program by code like
 
       @longCode(#
-if GLFeatures.Multisample then glEnable(GL_MULTISAMPLE_ARB);
-if GLFeatures.Multisample then glDisable(GL_MULTISAMPLE_ARB);
+        if GLFeatures.Multisample then glEnable(GL_MULTISAMPLE_ARB);
+        if GLFeatures.Multisample then glDisable(GL_MULTISAMPLE_ARB);
       #)
 
       But usually that's not needed, as it is "on" by default
@@ -1526,32 +1531,32 @@ if GLFeatures.Multisample then glDisable(GL_MULTISAMPLE_ARB);
       on OS and GPU). However, you can create Framebuffer Object
       on modern GPUs, and capture it's contents. An example code snippet:
 
-@longCode(#
-{ add CastleGLImages, CastleImages to your uses clause }
+      @longCode(#
+        { add CastleGLImages, CastleImages to your uses clause }
 
-var
-  ScreenshotRender: TGLRenderToTexture;
-  Image: TRGBImage;
-begin
-  ScreenshotRender := TGLRenderToTexture.Create(Width, Height);
-  try
-    ScreenshotRender.Buffer := tbNone;
-    ScreenshotRender.GLContextOpen;
-    ScreenshotRender.RenderBegin;
+        var
+          ScreenshotRender: TGLRenderToTexture;
+          Image: TRGBImage;
+        begin
+          ScreenshotRender := TGLRenderToTexture.Create(Width, Height);
+          try
+            ScreenshotRender.Buffer := tbNone;
+            ScreenshotRender.GLContextOpen;
+            ScreenshotRender.RenderBegin;
 
-    { render your stuff here }
+            { render your stuff here }
 
-    { capture the screen }
-    Image := SaveScreen_NoFlush(Rectangle(0, 0, Width, Height),
-      ScreenshotRender.ColorBuffer);
-    try
-      SaveImage(Image, 'aaa.png');
-    finally FreeAndNil(Image) end;
+            { capture the screen }
+            Image := SaveScreen_NoFlush(Rectangle(0, 0, Width, Height),
+              ScreenshotRender.ColorBuffer);
+            try
+              SaveImage(Image, 'aaa.png');
+            finally FreeAndNil(Image) end;
 
-    ScreenshotRender.RenderEnd;
-  finally FreeAndNil(ScreenshotRender) end;
-end;
-#)
+            ScreenshotRender.RenderEnd;
+          finally FreeAndNil(ScreenshotRender) end;
+        end;
+      #)
     *)
     property Visible: boolean read FVisible write FVisible default true;
 
@@ -2649,10 +2654,10 @@ end;
       modal dialog boxes (generally any kind of "display something
       until something happens" behavior). Make your own event loop like this:
 
-@longCode(#
-  while not SomethingHappened do
-    Application.ProcessMessages(...);
-#)
+      @longCode(#
+        while not SomethingHappened do
+          Application.ProcessMessages(...);
+      #)
 
       Often this is used together with TGLMode, TGLModeFrozenScreen
       and similar utilities from CastleWindowModes unit.
@@ -2667,11 +2672,11 @@ end;
       allow the user at all to close the application during modal box or such)
       you can do:
 
-@longCode(#
-  while not SomethingHappened do
-    if not Application.ProcessMessage(...) then
-      Break;
-#)
+      @longCode(#
+        while not SomethingHappened do
+          if not Application.ProcessMessage(...) then
+            Break;
+      #)
 
       Do not assume too much about message processing internals.
       For example, not all ProcessMessage calls cause redraw, even if redraw
@@ -2798,10 +2803,10 @@ function Clipboard: TCastleClipboard;
   it directly from your OnResize callback.
 
   It does
-@longCode(#
-  glViewport(Window.Rect);
-  OrthoProjection(0, Window.Width, 0, Window.Height);
-#) }
+  @longCode(#
+    glViewport(Window.Rect);
+    OrthoProjection(0, Window.Width, 0, Window.Height);
+  #) }
 procedure Resize2D(Container: TUIContainer);
 
 { Describe given key. Key is given as combination of character code (may be #0)

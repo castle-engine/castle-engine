@@ -969,17 +969,17 @@ type
       Use LineEnding or NL constant when setting this to indicate a newline.
       These two examples equivalent. First example:
 
-@longCode(#
-  Label1.Text.Clear;
-  Label1.Text.Add('First line');
-  Label1.Text.Add('Second line');
-#)
+      @longCode(#
+        Label1.Text.Clear;
+        Label1.Text.Add('First line');
+        Label1.Text.Add('Second line');
+      #)
 
       Second (equivalent) example:
 
-@longCode(#
-  Label1.Caption := 'First line' + LineEnding + 'Second line';
-#)
+      @longCode(#
+        Label1.Caption := 'First line' + LineEnding + 'Second line';
+      #)
     }
     property Caption: string read GetCaption write SetCaption stored false;
 
@@ -1460,11 +1460,11 @@ type
   To make sure your own fonts are always freed, set the font "owner" at creation,
   e.g. the example below sets the @code(Application) as owner:
 
-@longCode(#
-  MyFont := TTextureFont.Create(Application);
-  MyFont.Load(TextureFont_Xxxx);
-  UIFont := MyFont;
-#)
+  @longCode(#
+    MyFont := TTextureFont.Create(Application);
+    MyFont.Load(TextureFont_Xxxx);
+    UIFont := MyFont;
+  #)
 
   @groupBegin }
 function GetUIFont: TCastleFont;

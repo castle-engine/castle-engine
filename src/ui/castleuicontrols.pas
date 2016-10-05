@@ -404,7 +404,7 @@ type
       This recalculates the focused control and the final cursor of
       the container, looking at Container's Controls,
       testing @link(TUIControl.CapturesEventsAtPosition) with current mouse position,
-      and looking at Cursor property of the focused control.
+      and looking at Cursor property of various controls.
 
       When you add / remove some control
       from the Controls list, or when you move mouse (focused changes)
@@ -520,12 +520,12 @@ type
       in descendants you should override it like
 
       @longCode(#
-  Result := inherited;
-  if Result then Exit;
-  { ... And do the job here.
-    In other words, the handling of events in inherited
-    class should have a priority. }
-#)
+        Result := inherited;
+        if Result then Exit;
+        { ... And do the job here.
+          In other words, the handling of events in inherited
+          class should have a priority. }
+      #)
 
       Note that releasing of mouse wheel is not implemented for now,
       neither by CastleWindow or Lazarus CastleControl.
@@ -585,14 +585,14 @@ type
       For example, if holding some key should move some 3D object,
       you should do something like:
 
-@longCode(#
-if HandleInput then
-begin
-  if Container.Pressed[K_Right] then
-    Transform.Position += Vector3Single(SecondsPassed * 10, 0, 0);
-  HandleInput := not ExclusiveEvents;
-end;
-#)
+      @longCode(#
+        if HandleInput then
+        begin
+          if Container.Pressed[K_Right] then
+            Transform.Position += Vector3Single(SecondsPassed * 10, 0, 0);
+          HandleInput := not ExclusiveEvents;
+        end;
+      #)
 
       Instead of directly using a key code, consider also
       using TInputShortcut that makes the input key nicely configurable.
@@ -890,9 +890,9 @@ end;
       implementation (so setting the @code(Exists := false) will always work),
       like
 
-@longCode(#
-  Result := (inherited GetExists) and MyComplicatedConditionForExists;
-#) }
+      @longCode(#
+        Result := (inherited GetExists) and MyComplicatedConditionForExists;
+      #) }
     function GetExists: boolean; virtual;
 
     { Does this control capture events under this screen position.
@@ -1059,12 +1059,12 @@ end;
           This method must calculate a result already multiplied by @link(UIScale).
           In simple cases, this can be done easily, like this:
 
-@longCode(#
-function TMyControl.Rect: TRectangle;
-begin
-  Result := Rectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
-end;
-#)
+          @longCode(#
+            function TMyControl.Rect: TRectangle;
+            begin
+              Result := Rectangle(Left, Bottom, Width, Height).ScaleAround0(UIScale);
+            end;
+          #)
 
           In fact, TUIControlSizeable already provides such implementation
           for you.)
@@ -1659,71 +1659,80 @@ begin
 end;
 
 procedure TUIContainer.UpdateFocusAndMouseCursor;
+var
+  AnythingForcesNoneCursor: boolean;
 
+  { Scan all Controls, recursively.
+    Update (add) to FNewFocus, update (set to true) AnythingForcesNoneCursor. }
   procedure CalculateNewFocus;
 
-    function RecursiveCalculateNewFocus(const C: TUIControl): boolean;
+    { AllowAddingToFocus is used to keep track whether we should
+      do FNewFocus.Add on new controls. This way when one control obscures
+      another, the obscured control does not land on the FNewFocus list.
+      However, the obscured control can still affect the AnythingForcesNoneCursor
+      value. }
+    procedure RecursiveCalculateNewFocus(const C: TUIControl; var AllowAddingToFocus: boolean);
     var
       I: Integer;
+      ChildAllowAddingToFocus: boolean;
     begin
-      Result := false;
-
       if (not (csDestroying in C.ComponentState)) and
          C.GetExists and
          C.CapturesEventsAtPosition(MousePosition) then
       begin
-        FNewFocus.Add(C);
-        Result := true;
+        if C.Cursor = mcForceNone then
+          AnythingForcesNoneCursor := true;
 
+        if AllowAddingToFocus then
+        begin
+          FNewFocus.Add(C);
+          // siblings to C, obscured by C, will not be added to FNewFocus
+          AllowAddingToFocus := false;
+        end;
+
+        // our children can be added to FNewFocus
+        ChildAllowAddingToFocus := true;
         for I := C.ControlsCount - 1 downto 0 do
-          if RecursiveCalculateNewFocus(C.Controls[I]) then
-            Exit;
+          RecursiveCalculateNewFocus(C.Controls[I], ChildAllowAddingToFocus);
       end;
     end;
 
   var
     I: Integer;
+    AllowAddingToFocus: boolean;
   begin
+    AllowAddingToFocus := true;
     for I := Controls.Count - 1 downto 0 do
-      if RecursiveCalculateNewFocus(Controls[I]) then
-        Exit;
+      RecursiveCalculateNewFocus(Controls[I], AllowAddingToFocus);
   end;
 
-  function CalculateMouseCursor: TMouseCursor;
-  var
-    I: Integer;
-    C: TUIControl;
-  begin
-    if Focus.Count <> 0 then
-    begin
-      Result := Focus.Last.Cursor;
-
-      for I := Focus.Count - 1 downto 0 do
-      begin
-        C := Focus[I];
-        if (not (csDestroying in C.ComponentState)) and
-           C.GetExists and
-           (C.Cursor = mcForceNone) and
-           C.CapturesEventsAtPosition(MousePosition) then
-        begin
-          Result := mcForceNone;
-          Break;
-        end;
-      end;
-
-      { do not hide when container is not focused (mouse look doesn't work
-        then too, so better to not hide mouse) }
-      if (not Focused) and (Result in [mcNone, mcForceNone]) then
-        Result := mcDefault;
-    end else
-      Result := mcDefault;
-  end;
-
+  { Possibly adds the control to FNewFocus and
+    updates the AnythingForcesNoneCursor if needed. }
   procedure AddInFrontOfNewFocus(const C: TUIControl);
   begin
     if (not (csDestroying in C.ComponentState)) and
        (FNewFocus.IndexOf(C) = -1) then
+    begin
       FNewFocus.Add(C);
+      if C.Cursor = mcForceNone then
+        AnythingForcesNoneCursor := true;
+    end;
+  end;
+
+  function CalculateMouseCursor: TMouseCursor;
+  begin
+    Result := mcDefault;
+
+    if Focus.Count <> 0 then
+      Result := Focus.Last.Cursor;
+
+    if AnythingForcesNoneCursor then
+      Result := mcForceNone;
+
+    { do not hide when container is not focused (mouse look doesn't work
+      then too, so better to not hide mouse) }
+    if (not Focused) and (Result in [mcNone, mcForceNone]) then
+      Result := mcDefault;
   end;
 
 var
@@ -1737,12 +1746,14 @@ begin
     to avoid constructing/destructing it in every TUIContainer.UpdateFocusAndMouseCursor
     call. }
   FNewFocus.Clear;
+  AnythingForcesNoneCursor := false;
 
-  { calculate new FNewFocus value }
+  { calculate new FNewFocus value, update AnythingForcesNoneCursor }
   CalculateNewFocus;
   { add controls capturing the input (since they should have Focused = true to
-    show them as receiving input) on top of other controls (so that e.g. TCastleOnScreenMenu
-    underneath pressed-down button is also still focused) }
+    show them as receiving input) on top of other controls
+    (so that e.g. TCastleOnScreenMenu underneath pressed-down button is
+    also still focused) }
   if UseForceCaptureInput then
     AddInFrontOfNewFocus(ForceCaptureInput) else
   if (FCaptureInput.IndexOf(0) <> -1) then

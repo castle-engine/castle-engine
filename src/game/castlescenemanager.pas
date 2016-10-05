@@ -1021,9 +1021,9 @@ type
           but keep other movement unlimited, like
 
           @longCode(#
-  { Allow movement everywhere, but limit gravity to a box. }
-  Allowed := (not BecauseOfGravity) or MyGravityBox.PointInside(NewPos);
-#)
+            { Allow movement everywhere, but limit gravity to a box. }
+            Allowed := (not BecauseOfGravity) or MyGravityBox.PointInside(NewPos);
+          #)
         )
       ) *)
     property OnMoveAllowed: TWorldMoveAllowedEvent

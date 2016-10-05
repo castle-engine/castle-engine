@@ -48,16 +48,16 @@
   The basic loading and saving procedures are LoadImage and SaveImage.
   Example usage:
 
-@longCode(#
-var
-  Image: TCastleImage;
-begin
-  Image := LoadImage('image.png');
-  { scale the image to be 2x smaller }
-  Image.Resize(Image.Width div 2, Image.Height div 2);
-  SaveImage(Image, 'newimage.png');
-end;
-#)
+  @longCode(#
+    var
+      Image: TCastleImage;
+    begin
+      Image := LoadImage('image.png');
+      { scale the image to be 2x smaller }
+      Image.Resize(Image.Width div 2, Image.Height div 2);
+      SaveImage(Image, 'newimage.png');
+    end;
+  #)
 
   This unit is not dependent on OpenGL or any other rendering
   library. See @link(CastleGLImages) for OpenGL image operations
@@ -241,9 +241,9 @@ type
       the opacity (alpha) of the source image. That is,
 
       @preformatted(
-destination.rgb := destination.rgb * (1 - source.alpha) + source.rgb * source.alpha;
-destination.alpha := destination.alpha; // never changed by this drawing mode
-)
+        destination.rgb := destination.rgb * (1 - source.alpha) + source.rgb * source.alpha;
+        destination.alpha := destination.alpha; // never changed by this drawing mode
+      )
 
       An image type without alpha (like TRGBImage or TGrayscaleImage)
       is always treated like it has alpha = 1.0 (fully opaque) everywhere.
@@ -265,8 +265,8 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
     { Multiply two images. Simply multiply source with destination, channel by channel:
 
       @preformatted(
-destination.rgba := destination.rgba * source.rgba;
-)
+        destination.rgba := destination.rgba * source.rgba;
+      )
 
       The exception is when the source image has alpha channel,
       but destination does not. For example, when source is TRGBAlphaImage
@@ -275,10 +275,10 @@ destination.rgba := destination.rgba * source.rgba;
       to apply the effects of source alpha:
 
       @preformatted(
-destination.rgb :=
-  source.rgb * destination.rgb * source.alpha +
-               destination.rgb * (1 - source.alpha);
-)
+        destination.rgb :=
+          source.rgb * destination.rgb * source.alpha +
+                       destination.rgb * (1 - source.alpha);
+      )
 
       Note that if source.alpha = 1 (source is opaque) that this is equivalent
       to the previous simple multiply equation. }
@@ -288,9 +288,9 @@ destination.rgb :=
       are added to the existing destination image. That is,
 
       @preformatted(
-destination.rgb := destination.rgb + source.rgb * source.alpha;
-destination.alpha := destination.alpha; // never changed by this drawing mode
-)
+        destination.rgb := destination.rgb + source.rgb * source.alpha;
+        destination.alpha := destination.alpha; // never changed by this drawing mode
+      )
 
       So when drawing @italic(an image with alpha over an image without alpha),
       the colors will be added according to the above equation, only source
@@ -320,9 +320,9 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
     from left to right, rows are specified starting from lower row to upper.
     This means that you can think of RawPixels as
 
-@longCode(#
-  ^(packed array[0..Depth - 1, 0..Height - 1, 0..Width - 1] of TPixel)
-#)
+    @longCode(#
+      ^(packed array[0..Depth - 1, 0..Height - 1, 0..Width - 1] of TPixel)
+    #)
 
     Assuming the above definition, RawPixels^[z, y, x]
     is color of pixel at position z, x, y.
@@ -739,9 +739,9 @@ destination.alpha := destination.alpha; // never changed by this drawing mode
     { Makes linear interpolation of colors from this image and the SecondImage.
       Intuitively, every pixel in new image is set to
 
-@preformatted(
-  (1 - Value) * Self[pixel] + Value * SecondImage[pixel]
-)
+      @preformatted(
+        (1 - Value) * Self[pixel] + Value * SecondImage[pixel]
+      )
 
       Both images need to have the exact same size.
       If they are not, EImageLerpDifferentSizes is raised.
@@ -992,18 +992,19 @@ function InImageClasses(Image: TEncodedImage;
   So the intention is that you should treat both arrays as sets
   (i.e. order of elements is ignored).
 
-  The problem is that this function should be lighting fast
-  (as the main purpose of it is to use it in constructions like
+  The problem is that this function should be lighting fast.
+  As the main purpose of it is to use it in constructions like
   setting property values, e.g.
 
-@longCode(#
-  if ImageClassesArraysEqual(Value, SomeProperty) then
-  begin
-    SomeProperty := Value;
-    { ... do some lengthy operations to update new value of SomeProperty ... }
-  end;
-#)
-  ), and doing smarter checks may cost us a little time.
+  @longCode(#
+    if ImageClassesArraysEqual(Value, SomeProperty) then
+    begin
+      SomeProperty := Value;
+      { ... do some lengthy operations to update new value of SomeProperty ... }
+    end;
+  #)
+
+  Doing smarter checks may cost us a little time.
 
   So for now this function returns
   @unorderedList(
@@ -1095,10 +1096,10 @@ type
       combined colors of two pixels on the same coordinates from
       ReplaceWhiteImage, ReplaceBlackImage, something like
 
-@preformatted(
-  Pixel[x, y] := ReplaceWhiteImage[x, y] * S +
-                 ReplaceBlackImage[x, y] * (S-1);
-)
+      @preformatted(
+        Pixel[x, y] := ReplaceWhiteImage[x, y] * S +
+                       ReplaceBlackImage[x, y] * (S-1);
+      )
 
       where S = average of red, gree, blue of color MapImage[x, y].
 
@@ -1438,14 +1439,14 @@ type
 
   Simple examples:
 
-@longCode(#
-  { When you don't care what TCastleImage descendant you get: }
-  Image := LoadImage('image.png');
+  @longCode(#
+    { When you don't care what TCastleImage descendant you get: }
+    Image := LoadImage('image.png');
 
-  { When you insist on getting TRGBImage, that is 8-bit color image
-    without an alpha channel. }
-  ImageRGB := LoadImage('image.png', [TRGBImage]) as TRGBImage;
-#)
+    { When you insist on getting TRGBImage, that is 8-bit color image
+      without an alpha channel. }
+    ImageRGB := LoadImage('image.png', [TRGBImage]) as TRGBImage;
+  #)
 
   Image file format may be given explicitly (overloaded version with
   Format parameter), or guessed based on URL extension
@@ -1680,30 +1681,30 @@ type
   from TCastleScene and so on.
 
   @longCode(#
-uses ..., CastleURIUtils, CastleGLUtils, CastleLog, CastleStringUtils,
-  CastleFilesUtils;
+    uses ..., CastleURIUtils, CastleGLUtils, CastleLog, CastleStringUtils,
+      CastleFilesUtils;
 
-procedure TTextureUtils.GPUTextureAlternative(var ImageUrl: string);
-begin
-  if IsPrefix(ApplicationData('animation/dragon/'), ImageUrl) then
-  begin
-    if GLFeatures = nil then
-      WritelnWarning('TextureCompression', 'Cannot determine whether to use GPU compressed version for ' + ImageUrl + ' because the image is loaded before GPU capabilities are known') else
-    if tcPvrtc1_4bpp_RGBA in GLFeatures.TextureCompression then
+    procedure TTextureUtils.GPUTextureAlternative(var ImageUrl: string);
     begin
-      ImageUrl := ExtractURIPath(ImageUrl) + 'compressed/pvrtc1_4bpp_rgba/' +
-        ExtractURIName(ImageUrl) + '.dds';
-      WritelnLog('TextureCompression', 'Using compressed alternative ' + ImageUrl);
+      if IsPrefix(ApplicationData('animation/dragon/'), ImageUrl) then
+      begin
+        if GLFeatures = nil then
+          WritelnWarning('TextureCompression', 'Cannot determine whether to use GPU compressed version for ' + ImageUrl + ' because the image is loaded before GPU capabilities are known') else
+        if tcPvrtc1_4bpp_RGBA in GLFeatures.TextureCompression then
+        begin
+          ImageUrl := ExtractURIPath(ImageUrl) + 'compressed/pvrtc1_4bpp_rgba/' +
+            ExtractURIName(ImageUrl) + '.dds';
+          WritelnLog('TextureCompression', 'Using compressed alternative ' + ImageUrl);
+        end;
+      end;
     end;
-  end;
-end;
 
-initialization
-  AddLoadImageListener(@TTextureUtils(nil).GPUTextureAlternative);
-finalization
-  RemoveLoadImageListener(@GPUTextureAlternative);
-end.
-#)
+    initialization
+      AddLoadImageListener(@TTextureUtils(nil).GPUTextureAlternative);
+    finalization
+      RemoveLoadImageListener(@GPUTextureAlternative);
+    end.
+  #)
 }
 procedure AddLoadImageListener(const Event: TLoadImageEvent);
 

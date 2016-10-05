@@ -75,15 +75,15 @@ type
       You can create your own TLevelLogic descendants and register them
       like
 
-@longCode(#
-type
-  TMyLevelLogic = class(TLevelLogic)
-    { ... override whatever you want ... }
-  end;
+      @longCode(#
+      type
+        TMyLevelLogic = class(TLevelLogic)
+          { ... override whatever you want ... }
+        end;
 
-...
-LevelLogicClasses['MyLevel'] := TMyLevelLogic;
-#)
+      ...
+      LevelLogicClasses['MyLevel'] := TMyLevelLogic;
+      #)
 
       And then you can use @code(type="MyLevel") inside level.xml
       to use your class.
@@ -510,10 +510,10 @@ LevelLogicClasses['MyLevel'] := TMyLevelLogic;
         and add a handful of simple comfortable routines in CastleXMLUtils unit,
         for example you can use this to read a string attribute:
 
-@longCode(#
-  MyAttribute := DOMElement.AttributeStringDef('my_attribute', 'default value');
-  MyRequiredAttribute := DOMElement.AttributeString('my_required_attribute');
-#)
+        @longCode(#
+          MyAttribute := DOMElement.AttributeStringDef('my_attribute', 'default value');
+          MyRequiredAttribute := DOMElement.AttributeString('my_required_attribute');
+        #)
       )
     }
     constructor Create(AOwner: TComponent; AWorld: T3DWorld;

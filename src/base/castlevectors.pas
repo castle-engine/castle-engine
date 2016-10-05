@@ -70,11 +70,11 @@
       Note that you can always represent the same plane using a more
       general plane 3D equation, just take
 
-@preformatted(
-  Plane[0..2 / PlaneConstCoord] = 0,
-  Plane[PlaneConstCoord] = -1,
-  Plane[3] = PlaneConstValue.
-)
+      @preformatted(
+        Plane[0..2 / PlaneConstCoord] = 0,
+        Plane[PlaneConstCoord] = -1,
+        Plane[3] = PlaneConstValue.
+      )
 
       On such "simple plane" we can perform many calculations
       much faster.)
@@ -136,9 +136,10 @@
   to define a sphere (like @code(SphereCenter: vector; SphereRadius: scalar;))
   Why not wrap all the geometric objects (spheres, lines, rays, tunnels etc.)
   inside some records ? For example, define a sphere as
-@longcode(#
-  TSphere = record Center: vector; Radius: scalar; end;
-#)
+
+  @longcode(#
+    TSphere = record Center: vector; Radius: scalar; end;
+  #)
 
   The answer: this is not so good idea, because it would create
   a lot of such types into unit, and I would have to implement
@@ -725,20 +726,20 @@ function Approximate3DScale(const V: TVector3Single): Single;
   interpolated.
 
   @groupBegin }
-function Lerp(const a: Single; const V1, V2: TVector2Byte): TVector2Byte; overload;
-function Lerp(const a: Single; const V1, V2: TVector3Byte): TVector3Byte; overload;
-function Lerp(const a: Single; const V1, V2: TVector4Byte): TVector4Byte; overload;
-function Lerp(const a: Single; const V1, V2: TVector2Integer): TVector2Single; overload;
-function Lerp(const a: Single; const V1, V2: TVector2Single): TVector2Single; overload;
-function Lerp(const a: Single; const V1, V2: TVector3Single): TVector3Single; overload;
-function Lerp(const a: Single; const V1, V2: TVector4Single): TVector4Single; overload;
-function Lerp(const a: Double; const V1, V2: TVector2Double): TVector2Double; overload;
-function Lerp(const a: Double; const V1, V2: TVector3Double): TVector3Double; overload;
-function Lerp(const a: Double; const V1, V2: TVector4Double): TVector4Double; overload;
-function Lerp(const a: Single; const M1, M2: TMatrix3Single): TMatrix3Single; overload;
-function Lerp(const a: Single; const M1, M2: TMatrix4Single): TMatrix4Single; overload;
-function Lerp(const a: Double; const M1, M2: TMatrix3Double): TMatrix3Double; overload;
-function Lerp(const a: Double; const M1, M2: TMatrix4Double): TMatrix4Double; overload;
+function Lerp(const A: Single; const V1, V2: TVector2Byte): TVector2Byte; overload;
+function Lerp(const A: Single; const V1, V2: TVector3Byte): TVector3Byte; overload;
+function Lerp(const A: Single; const V1, V2: TVector4Byte): TVector4Byte; overload;
+function Lerp(const A: Single; const V1, V2: TVector2Integer): TVector2Single; overload;
+function Lerp(const A: Single; const V1, V2: TVector2Single): TVector2Single; overload;
+function Lerp(const A: Single; const V1, V2: TVector3Single): TVector3Single; overload;
+function Lerp(const A: Single; const V1, V2: TVector4Single): TVector4Single; overload;
+function Lerp(const A: Double; const V1, V2: TVector2Double): TVector2Double; overload;
+function Lerp(const A: Double; const V1, V2: TVector3Double): TVector3Double; overload;
+function Lerp(const A: Double; const V1, V2: TVector4Double): TVector4Double; overload;
+function Lerp(const A: Single; const M1, M2: TMatrix3Single): TMatrix3Single; overload;
+function Lerp(const A: Single; const M1, M2: TMatrix4Single): TMatrix4Single; overload;
+function Lerp(const A: Double; const M1, M2: TMatrix3Double): TMatrix3Double; overload;
+function Lerp(const A: Double; const M1, M2: TMatrix4Double): TMatrix4Double; overload;
 { @groupEnd }
 
 function Vector_Init_Lerp(const A: Single; const V1, V2: TVector3_Single): TVector3_Single; overload;
@@ -1041,10 +1042,10 @@ function RotationAngleRadBetweenVectors(const V1, V2, Cross: TVector3Double): Do
   Note that this is equivalent to constructing a rotation matrix
   and then using it, like
 
-@longCode(#
-  M := RotationMatrixDeg(Angle, Axis);
-  Result := MatrixMultPoint(M, Point);
-#)
+  @longCode(#
+    M := RotationMatrixDeg(Angle, Axis);
+    Result := MatrixMultPoint(M, Point);
+  #)
 
   Except this will be a little faster. So rotations are done in the
   same direction as RotationMatrixDeg, and as OpenGL.
@@ -1802,10 +1803,10 @@ const
   For example, function RotationMatrices returns two matrices that you
   could calculate separately by
 
-@longCode(#
-        Matrix: = RotationMatrix( Angle, Axis);
-InvertedMatrix: = RotationMatrix(-Angle, Axis);
-#)
+  @longCode(#
+          Matrix: = RotationMatrix( Angle, Axis);
+  InvertedMatrix: = RotationMatrix(-Angle, Axis);
+  #)
 
   This is useful sometimes, and generating them both at the same time
   allows for some speedup (for example, calling RotationMatrix twice will
@@ -1867,10 +1868,11 @@ function PerspectiveProjMatrixRad(const fovyRad, aspect, zNear, zFar: Single): T
 
   MultMatricesTranslation is analogous to calculating both
   TranslationMatrix(Transl) and it's inverse, and then
-@longCode(#
-  M := MatrixMult(M, translation);
-  MInvert := MatrixMult(inverted translation, MInvert);
-#)
+
+  @longCode(#
+    M := MatrixMult(M, translation);
+    MInvert := MatrixMult(inverted translation, MInvert);
+  #)
 
   The idea is that if M represented some translation, and MInvert it's
   inverse, then after MultMatricesTranslation this will still hold.
@@ -3069,20 +3071,20 @@ begin
             (V1[3] = V2[3]);
 end;
 
-function Lerp(const a: Single; const V1, V2: TVector2Byte): TVector2Byte;
+function Lerp(const A: Single; const V1, V2: TVector2Byte): TVector2Byte;
 begin
   Result[0] := Clamped(Round(V1[0] + A * (V2[0] - V1[0])), 0, High(Byte));
   Result[1] := Clamped(Round(V1[1] + A * (V2[1] - V1[1])), 0, High(Byte));
 end;
 
-function Lerp(const a: Single; const V1, V2: TVector3Byte): TVector3Byte;
+function Lerp(const A: Single; const V1, V2: TVector3Byte): TVector3Byte;
 begin
   Result[0] := Clamped(Round(V1[0] + A * (V2[0] - V1[0])), 0, High(Byte));
   Result[1] := Clamped(Round(V1[1] + A * (V2[1] - V1[1])), 0, High(Byte));
   Result[2] := Clamped(Round(V1[2] + A * (V2[2] - V1[2])), 0, High(Byte));
 end;
 
-function Lerp(const a: Single; const V1, V2: TVector4Byte): TVector4Byte;
+function Lerp(const A: Single; const V1, V2: TVector4Byte): TVector4Byte;
 begin
   Result[0] := Clamped(Round(V1[0] + A * (V2[0] - V1[0])), 0, High(Byte));
   Result[1] := Clamped(Round(V1[1] + A * (V2[1] - V1[1])), 0, High(Byte));
@@ -3090,52 +3092,10 @@ begin
   Result[3] := Clamped(Round(V1[3] + A * (V2[3] - V1[3])), 0, High(Byte));
 end;
 
-function Lerp(const a: Single; const V1, V2: TVector2Integer): TVector2Single;
+function Lerp(const A: Single; const V1, V2: TVector2Integer): TVector2Single;
 begin
  result[0] := V1[0] + a*(V2[0]-V1[0]);
  result[1] := V1[1] + a*(V2[1]-V1[1]);
-end;
-
-function Lerp(const a: Single; const V1, V2: TVector2Single): TVector2Single;
-begin
- result[0] := V1[0] + a*(V2[0]-V1[0]);
- result[1] := V1[1] + a*(V2[1]-V1[1]);
-end;
-
-function Lerp(const a: Single; const V1, V2: TVector3Single): TVector3Single;
-begin
- result[0] := V1[0] + a*(V2[0]-V1[0]);
- result[1] := V1[1] + a*(V2[1]-V1[1]);
- result[2] := V1[2] + a*(V2[2]-V1[2]);
-end;
-
-function Lerp(const a: Single; const V1, V2: TVector4Single): TVector4Single;
-begin
- result[0] := V1[0] + a*(V2[0]-V1[0]);
- result[1] := V1[1] + a*(V2[1]-V1[1]);
- result[2] := V1[2] + a*(V2[2]-V1[2]);
- result[3] := V1[3] + a*(V2[3]-V1[3]);
-end;
-
-function Lerp(const a: Double; const V1, V2: TVector2Double): TVector2Double;
-begin
- result[0] := V1[0] + a*(V2[0]-V1[0]);
- result[1] := V1[1] + a*(V2[1]-V1[1]);
-end;
-
-function Lerp(const a: Double; const V1, V2: TVector3Double): TVector3Double;
-begin
- result[0] := V1[0] + a*(V2[0]-V1[0]);
- result[1] := V1[1] + a*(V2[1]-V1[1]);
- result[2] := V1[2] + a*(V2[2]-V1[2]);
-end;
-
-function Lerp(const a: Double; const V1, V2: TVector4Double): TVector4Double;
-begin
- result[0] := V1[0] + a*(V2[0]-V1[0]);
- result[1] := V1[1] + a*(V2[1]-V1[1]);
- result[2] := V1[2] + a*(V2[2]-V1[2]);
- result[3] := V1[3] + a*(V2[3]-V1[3]);
 end;
 
 function Vector_Init_Lerp(const A: Single; const V1, V2: TVector3_Single): TVector3_Single;

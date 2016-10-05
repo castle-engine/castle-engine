@@ -115,3 +115,16 @@ Background {
 #   # shadowVolumesMain TRUE
 #   # shadowVolumes TRUE
 # }
+
+# Just a test that VRML/X3D events, touch sensors, and CastleScript work fine inside a level.
+# Transform {
+#   translation 0 10 0
+#   scale 0.5 0.5 0.5
+#   children Inline { url "../../../../../demo-models/sensors_pointing_device/touch_sensor_tests.x3dv" }
+# }
+# Transform {
+#   rotation 1 0 0 -1.5707963705062866
+#   translation 10 10 0
+#   scale 0.5 0.5 0.5
+#   children Inline { url "../../../../../demo-models/castle_script/particles.x3dv" }
+# }

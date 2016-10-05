@@ -284,16 +284,16 @@ type
       For example use @code(LevelElement.ChildElement('items'))
       to get the <items> element within <level> element, as in example below.
 
-@preformatted(
-  <level>
-    <creatures>
-      ...
-    </creatures>
-    <items>
-      ...
-    </items>
-  </level>
-)
+      @preformatted(
+        <level>
+          <creatures>
+            ...
+          </creatures>
+          <items>
+            ...
+          </items>
+        </level>
+      )
 
       There must be @bold(one and only one child element with this name).
       In case there's zero, or more than one such element,
@@ -306,36 +306,36 @@ type
 
     { Iterator over all children elements. Use like this:
 
-@longCode(#
-var
-  I: TXMLElementIterator;
-begin
-  I := Element.ChildrenIterator;
-  try
-    while I.GetNext do
-    begin
-      // ... here goes your code to process I.Current ...
-    end;
-  finally FreeAndNil(I) end;
-end;
-#) }
+      @longCode(#
+      var
+        I: TXMLElementIterator;
+      begin
+        I := Element.ChildrenIterator;
+        try
+          while I.GetNext do
+          begin
+            // ... here goes your code to process I.Current ...
+          end;
+        finally FreeAndNil(I) end;
+      end;
+      #) }
     function ChildrenIterator: TXMLElementIterator;
 
     { Iterator over all children elements named ChildName. Use like this:
 
-@longCode(#
-var
-  I: TXMLElementIterator;
-begin
-  I := Element.ChildrenIterator('item');
-  try
-    while I.GetNext do
-    begin
-      // ... here goes your code to process I.Current ...
-    end;
-  finally FreeAndNil(I) end;
-end;
-#) }
+      @longCode(#
+      var
+        I: TXMLElementIterator;
+      begin
+        I := Element.ChildrenIterator('item');
+        try
+          while I.GetNext do
+          begin
+            // ... here goes your code to process I.Current ...
+          end;
+        finally FreeAndNil(I) end;
+      end;
+      #) }
     function ChildrenIterator(const ChildName: string): TXMLElementIterator;
 
     { The text data contained in this element.
@@ -353,45 +353,45 @@ end;
 
     Without this, typical iteration looks like
 
-@longCode(#
-var
-  Index: Integer;
-  ChildrenList: TDOMNodeList;
-  ChildNode: TDOMNode;
-  ChildElement: TDOMElement;
-begin
-  ChildrenList := Element.ChildNodes;
-
-  for Index := 0 to ChildrenList.Count - 1 do
-  begin
-    ChildNode := ChildrenList.Item[Index];
-    if ChildNode.NodeType = ELEMENT_NODE then
+    @longCode(#
+    var
+      Index: Integer;
+      ChildrenList: TDOMNodeList;
+      ChildNode: TDOMNode;
+      ChildElement: TDOMElement;
     begin
-      ChildElement := ChildNode as TDOMElement;
-      ... here goes your code to process ChildElement ...
+      ChildrenList := Element.ChildNodes;
+
+      for Index := 0 to ChildrenList.Count - 1 do
+      begin
+        ChildNode := ChildrenList.Item[Index];
+        if ChildNode.NodeType = ELEMENT_NODE then
+        begin
+          ChildElement := ChildNode as TDOMElement;
+          ... here goes your code to process ChildElement ...
+        end;
+      end;
     end;
-  end;
-end;
-#)
+    #)
 
     ... which is an easy code, but it becomes tiresome
     to write this over and over again, especially
     for units that heavily process XML (like X3D XML or Collada readers).
     So this class allows you to write instead
 
-@longCode(#
-var
-  I: TXMLElementIterator;
-begin
-  I := Element.ChildrenIterator;
-  try
-    while I.GetNext do
+    @longCode(#
+    var
+      I: TXMLElementIterator;
     begin
-      ... here goes your code to process I.Current ...
+      I := Element.ChildrenIterator;
+      try
+        while I.GetNext do
+        begin
+          ... here goes your code to process I.Current ...
+        end;
+      finally FreeAndNil(I) end;
     end;
-  finally FreeAndNil(I) end;
-end;
-#) }
+    #) }
   TXMLElementIterator = class
   private
     ChildNodes: TDOMNodeList;
@@ -418,19 +418,19 @@ end;
 
     Simple usage:
 
-@longCode(#
-var
-  I: TXMLCDataIterator;
-begin
-  I := TXMLCDataIterator.Create(Element);
-  try
-    while I.GetNext do
+    @longCode(#
+    var
+      I: TXMLCDataIterator;
     begin
-      ... here goes your code to process I.Current ...
+      I := TXMLCDataIterator.Create(Element);
+      try
+        while I.GetNext do
+        begin
+          ... here goes your code to process I.Current ...
+        end;
+      finally FreeAndNil(I) end;
     end;
-  finally FreeAndNil(I) end;
-end;
-#) }
+    #) }
   TXMLCDataIterator = class
   private
     ChildNodes: TDOMNodeList;

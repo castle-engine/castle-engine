@@ -50,8 +50,8 @@ var i: Integer;
 begin
  for i := 1 to 100 do
  begin
-  { przetestowalbym tez na ujemnych ale Format('%x', [l]) z FPC nie dziala
-    na nich tak jak trzeba. Ech. No to dobrze ze zrobilem wlasne IntToStr16. }
+  { Format('%x', [l]) from FPC fails to work correctly for negative numbers.
+    That's an advantage of my IntToStr16. }
   l := Random(High(Integer)){ - High(Integer) div 2};
   s1 := IntToStr16(l);
   s2 := Format('%x', [l]);

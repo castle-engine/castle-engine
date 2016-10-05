@@ -45,7 +45,7 @@ type
   { The OpenGL / OpenGLES context state.
     We try hard to make this a @bold(very, very) small class,
     because usually it's better to introduce a clean higher-level API
-    than to track the OpenGL context state in a simple global @link(Context)
+    than to track the OpenGL context state in a simple global @link(RenderContext)
     instance.
 
     Use the methods and properties of this class

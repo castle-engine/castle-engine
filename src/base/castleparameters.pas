@@ -50,21 +50,21 @@ type
       following parameter must be an argument). So the following versions
       are possible:
 
-@preformatted(
-  --option=argument # long form, as one parameter
-  --option argument # long form, as two parameters
-  -o=argument # short form, as one parameter
-  -o argument # short form, as two parameters
-) }
+      @preformatted(
+        --option=argument # long form, as one parameter
+        --option argument # long form, as two parameters
+        -o=argument # short form, as one parameter
+        -o argument # short form, as two parameters
+      ) }
     oaRequired,
 
     { We require a specified (more than one) argument.
       All of the arguments must be specified as separate parameters, like
 
-@preformatted(
-  --option Argument1 Argument2
-  -o Argument1 Argument2
-) }
+      @preformatted(
+        --option Argument1 Argument2
+        -o Argument1 Argument2
+      ) }
     oaRequired2Separate,
     oaRequired3Separate,
     oaRequired4Separate,

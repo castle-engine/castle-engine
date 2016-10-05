@@ -557,23 +557,23 @@
 
       The scheme of how Traverse works:
 
-@preformatted(
-  BeforeTraverse;
+      @preformatted(
+        BeforeTraverse;
 
-  TraverseIntoChildren := true;
-  if Self is NodeClass then TraversingFunc (Self, State, TraverseIntoChildren);
+        TraverseIntoChildren := true;
+        if Self is NodeClass then TraversingFunc (Self, State, TraverseIntoChildren);
 
-  MiddleTraverse;
+        MiddleTraverse;
 
-  if TraverseIntoChildren is still true then
-    for all children returned by DirectEnumerateActive
-      call their Traverse(State);
+        if TraverseIntoChildren is still true then
+          for all children returned by DirectEnumerateActive
+            call their Traverse(State);
 
-  AfterTraverse;
+        AfterTraverse;
 
-  Add Self to State.LastNodes (for VRML 1.0 state nodes, see
-    TraverseStateLastNodesClasses);
-)
+        Add Self to State.LastNodes (for VRML 1.0 state nodes, see
+          TraverseStateLastNodesClasses);
+      )
 
       Note: setting TraverseIntoChildren to false means that some
       part of the tree is explicitly omitted from traversing.
@@ -900,10 +900,9 @@
       a list of other nodes duplicated along with the main prototype node.
       From VRML spec:
 
-      @preformatted(
-        Any other nodes and accompanying scene graphs
-        are not part of the transformation hierarchy, but may be referenced
-        by ROUTE statements or Script nodes in the prototype definition.)
+      @italic(Any other nodes and accompanying scene graphs
+      are not part of the transformation hierarchy, but may be referenced
+      by ROUTE statements or Script nodes in the prototype definition.)
 
       Note that for TX3DPrototypeNode (within PrototypeInstanceSourceNode)
       these have a little different meaning: they describe the
@@ -937,13 +936,13 @@
 
       In X3D specification this is marked like
 
-@preformatted(
-  # And any number of:
-  fieldType [in]     fieldName
-  fieldType [in,out] fieldName    initialValue
-  fieldType [out]    fieldName
-  fieldType []       fieldName    initialValue
-)
+      @preformatted(
+        # And any number of:
+        fieldType [in]     fieldName
+        fieldType [in,out] fieldName    initialValue
+        fieldType [out]    fieldName
+        fieldType []       fieldName    initialValue
+      )
 
       If HasInterfaceDeclarations is not [], then InterfaceDeclarations
       will be non-nil and parser (classic VRML parser in this unit,

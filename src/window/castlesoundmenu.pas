@@ -28,9 +28,9 @@ type
   { On-screen menu item that displays sound information.
     Simply add it to your TCastleOnScreenMenu like
 
-@longCode(#
-  OnScreenMenu.Add(TSoundInfoMenuItem.Create(OnScreenMenu));
-#)
+    @longCode(#
+      OnScreenMenu.Add(TSoundInfoMenuItem.Create(OnScreenMenu));
+    #)
 
     Also be sure to assign Application.MainWindow, it is used
     as the window from which we show modal dialog box with sound information. }
@@ -51,9 +51,9 @@ type
   { On-screen menu item that allows to control sound volume.
     Simply add it to your TCastleOnScreenMenu like
 
-@longCode(#
-  OnScreenMenu.Add(TSoundVolumeMenuItem.Create(OnScreenMenu));
-#) }
+    @longCode(#
+      OnScreenMenu.Add(TSoundVolumeMenuItem.Create(OnScreenMenu));
+    #) }
   TSoundVolumeMenuItem = class(TCastleLabel)
   private
     FSlider: TMenuVolumeSlider;
@@ -68,9 +68,9 @@ type
   { On-screen menu item that allows to control music volume.
     Simply add it to your TCastleOnScreenMenu like
 
-@longCode(#
-  OnScreenMenu.Add(TMusicVolumeMenuItem.Create(OnScreenMenu));
-#) }
+    @longCode(#
+      OnScreenMenu.Add(TMusicVolumeMenuItem.Create(OnScreenMenu));
+    #) }
   TMusicVolumeMenuItem = class(TCastleLabel)
   private
     FSlider: TMenuVolumeSlider;

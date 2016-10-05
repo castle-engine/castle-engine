@@ -1733,11 +1733,10 @@ type
       Use this for example to watch when the animation ends playing,
       like
 
-@longCode(#
-  Scene.AnimationTimeSensor('my_animation').EventIsActive.OnReceive.Add(
-    @AnimationIsActiveChanged);
-#)
-
+      @longCode(#
+        Scene.AnimationTimeSensor('my_animation').EventIsActive.OnReceive.Add(
+          @AnimationIsActiveChanged);
+      #)
 
       See the examples/3d_rendering_processing/listen_on_x3d_events.lpr . }
     function AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;

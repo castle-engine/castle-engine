@@ -284,8 +284,8 @@ begin
   if Player.Swimming = psUnderWater then
     DrawRectangle(ParentRect, Vector4Single(0, 0, 0.1, 0.5));
   if Player.Dead then
-    GLFadeRectangle(ParentRect, Red, 1.0) else
-    GLFadeRectangle(ParentRect, Player.FadeOutColor, Player.FadeOutIntensity);
+    GLFadeRectangleDark(ParentRect, Red, 1.0) else
+    GLFadeRectangleDark(ParentRect, Player.FadeOutColor, Player.FadeOutIntensity);
 end;
 
 var

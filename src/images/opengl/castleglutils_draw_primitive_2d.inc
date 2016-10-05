@@ -167,25 +167,33 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   down to 0.0.
 
   The GLFadeRectangleLight version makes a flash to AFadeColor,
-  then goes back to normal.
-  The GLFadeRectangle version makes additional flash to blackness
+  then goes back to normal. It works reasonably with any color (light or dark).
+
+  The GLFadeRectangleDark version makes additional flash to blackness
   in the middle (so it goes from no modulation, to AFadeColor,
   to pure black, and then back to normal).
-  So it's a little more impressive when you're flashing with a dark color.
+  So the "Dark" version is a little more impressive when you're
+  flashing with a dark color.
 
   These are nice as a screen effect, to flash some color (e.g. flash
   red color when the player is hurt).
 
   Only RGB portion of AFadeColor is used. }
-procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
+procedure GLFadeRectangleDark(const X1, Y1, X2, Y2: Integer;
   const AFadeColor: TVector3Single;
-  const FadeIntensity: Single); deprecated 'use TFlashEffect';
-procedure GLFadeRectangle(const Rect: TRectangle;
+  const FadeIntensity: Single);
+procedure GLFadeRectangleDark(const Rect: TRectangle;
   const AFadeColor: TCastleColor;
-  const FadeIntensity: Single); deprecated 'use TFlashEffect';
+  const FadeIntensity: Single);
 procedure GLFadeRectangleLight(const Rect: TRectangle;
   const AFadeColor: TCastleColor;
-  const FadeIntensity: Single); deprecated 'use TFlashEffect';
+  const FadeIntensity: Single);
+procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
+  const AFadeColor: TVector3Single;
+  const FadeIntensity: Single); deprecated 'use GLFadeRectangleDark, or TCastleFlashEffect with Dark = true';
+procedure GLFadeRectangle(const Rect: TRectangle;
+  const AFadeColor: TCastleColor;
+  const FadeIntensity: Single); deprecated 'use GLFadeRectangleDark, or TCastleFlashEffect with Dark = true';
 
 { Draw a rectangle with blending.
   @deprecated Deprecated, use DrawRectangle instead. }
@@ -500,10 +508,29 @@ end;
 
 { GLFadeRectangle ------------------------------------------------------------ }
 
+procedure GLFadeRectangleDark(const X1, Y1, X2, Y2: Integer;
+  const AFadeColor: TVector3Single; const FadeIntensity: Single);
+begin
+  GLFadeRectangleDark(Rectangle(X1, Y1, X2 - X1, Y2 - Y1),
+    Vector4Single(AFadeColor, 1.0), FadeIntensity);
+end;
+
+procedure GLFadeRectangleDark(const Rect: TRectangle;
+  const AFadeColor: TCastleColor; const FadeIntensity: Single);
+var
+  Color: TCastleColor;
+begin
+  if FadeIntensity > 0 then
+  begin
+    Color := FadeDarkColor(AFadeColor, FadeIntensity);
+    DrawRectangle(Rect, Color, bsZero, bdSrcColor, true);
+  end;
+end;
+
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
   const AFadeColor: TVector3Single; const FadeIntensity: Single);
 begin
-  {$warnings off}
+  {$warnings off} // using deprecated in deprecated
   GLFadeRectangle(Rectangle(X1, Y1, X2 - X1, Y2 - Y1),
     Vector4Single(AFadeColor, 1.0), FadeIntensity);
   {$warnings on}

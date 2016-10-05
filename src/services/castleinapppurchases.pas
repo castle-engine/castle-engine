@@ -146,11 +146,11 @@ type
           implementation of @name, this is often the simplest approach.)
 
         @item(@bold(Actually perform the consumption) (bump the player gold,
-          grant extra life and so on) @item(@bold(only when the item
+          grant extra life and so on) @bold(only when the item
           is successfully consumed). You are notified about this by the
           @link(SuccessfullyConsumed) call (you can override it),
           or you can watch if the @link(TInAppProduct.SuccessfullyConsumed)
-          flag is set.)
+          flag is set.
 
           @bold(Do not give any one-time gain as a response to the @name
           call.) Always wait for @link(SuccessfullyConsumed) call.

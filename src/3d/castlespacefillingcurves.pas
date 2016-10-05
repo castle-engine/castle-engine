@@ -70,7 +70,7 @@ type
     To process (exactly once) each point of your 2D space, you can use
     something like
 
-    @longCode# while not SFCurve.EndOfPixels do DoSomethingOnPixel(SFCurve.NextPixel); #
+    @longCode(# while not SFCurve.EndOfPixels do DoSomethingOnPixel(SFCurve.NextPixel); #)
 
     We try to make NextPixel and EndOfPixels work instantly fast,
     preferably making some preprocessing at construction time. }

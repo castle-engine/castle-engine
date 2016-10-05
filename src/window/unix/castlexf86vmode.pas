@@ -24,32 +24,33 @@
   Original C header is in @code(X11/include/extensions/xf86vmode.h) .
   Translation done by Kambi by hand and using some regexps.
   Primitive types translation:
-@preformatted(
-  short = SmallInt;
-  unsigned short = Word;
-  int = long = LongInt;
-  unsigned int = unsigned long = LongWord;
-  float = Single;
-  double = Double;
-  Bool = LongBool;
-)
 
-@preformatted(
- ------------------------------------------------------------------------
+  @preformatted(
+    short = SmallInt;
+    unsigned short = Word;
+    int = long = LongInt;
+    unsigned int = unsigned long = LongWord;
+    float = Single;
+    double = Double;
+    Bool = LongBool;
+  )
 
- $Xorg: xf86vmode.h,v 1.3 2000/08/18 04:05:46 coskrey Exp $
- $XFree86: xc/include/extensions/xf86vmode.h,v 3.29 2001/05/06 00:47:35 mvojkovi Exp $
+  @preformatted(
+    ------------------------------------------------------------------------
 
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT SHALL Kaleb S. KEITHLEY BE LIABLE FOR ANY CLAIM, DAMAGES
- OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- OTHER DEALINGS IN THE SOFTWARE.
+    $Xorg: xf86vmode.h,v 1.3 2000/08/18 04:05:46 coskrey Exp $
+    $XFree86: xc/include/extensions/xf86vmode.h,v 3.29 2001/05/06 00:47:35 mvojkovi Exp $
 
- THIS IS NOT AN X CONSORTIUM STANDARD OR AN X PROJECT TEAM SPECIFICATION
-)
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL Kaleb S. KEITHLEY BE LIABLE FOR ANY CLAIM, DAMAGES
+    OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+    ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+    OTHER DEALINGS IN THE SOFTWARE.
+
+    THIS IS NOT AN X CONSORTIUM STANDARD OR AN X PROJECT TEAM SPECIFICATION
+  )
 
   @exclude (This is only a C header translation --- no nice PasDoc docs.)
 }

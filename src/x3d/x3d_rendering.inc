@@ -333,8 +333,8 @@
       the State reference. Simply speaking, do
 
       @longcode(#
-  State := TX3DGraphTraverseState.CreateCopy(State);)
-#)
+        State := TX3DGraphTraverseState.CreateCopy(State);)
+      #)
 
       You should @italic(not) just modify the fields
       of the provided State instance. (Reasoning: some proxy methods

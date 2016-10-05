@@ -295,14 +295,14 @@ procedure DeletePos(var S: string; StartPosition, EndPosition: Integer);
 
   Typical use scenario (iterate over all tokens in the string) :
 
-@longCode(#
-  SeekPos := 1;
-  repeat
-    Token := NextToken(S, SeekPos);
-    if Token = '' then break;
-    { ... process_next_token (Token) ... }
-  until false;
-#)
+  @longCode(#
+    SeekPos := 1;
+    repeat
+      Token := NextToken(S, SeekPos);
+      if Token = '' then break;
+      { ... process_next_token (Token) ... }
+    until false;
+  #)
 
   The above example will split the string into parts separated by whitespace.
 
@@ -579,12 +579,12 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
   A naive implementation of doing many search-replace over the same string
   is like
 
-@longCode(#
-Result := S;
-Result := StringReplace(Result, Patterns[0], Values[0], [rfReplaceAll]);
-Result := StringReplace(Result, Patterns[1], Values[1], [rfReplaceAll]);
-// etc.
-#)
+  @longCode(#
+    Result := S;
+    Result := StringReplace(Result, Patterns[0], Values[0], [rfReplaceAll]);
+    Result := StringReplace(Result, Patterns[1], Values[1], [rfReplaceAll]);
+    // etc.
+  #)
 
   But the above fails badly when inserting some Values[] creates
   an occurrence of Pattern checked later. For example, when Values[0]
@@ -686,22 +686,19 @@ type
   @raises(EUnknownPercentFormat In case of error in InitialFormat string,
     if ErrorOnUnknownPercentFormat is @true.)
 
-  @deprecated Do not use. Use standard StrUtils.StringsReplace instead.
-  This procedure has no place in a game engine...
-
   @groupBegin }
 function SPercentReplace(const InitialFormat: string;
   const Replaces: array of TPercentReplace;
   out ReplacementsDone: Cardinal;
   ErrorOnUnknownPercentFormat: boolean = true;
   PercentChar: char ='%';
-  IgnoreCase: boolean = false): string; overload;
+  IgnoreCase: boolean = false): string; overload; deprecated 'use standard StrUtils.StringsReplace instead';
 
 function SPercentReplace(const InitialFormat: string;
   const Replaces: array of TPercentReplace;
   ErrorOnUnknownPercentFormat: boolean = true;
   PercentChar: char ='%';
-  IgnoreCase: boolean = false): string; overload;
+  IgnoreCase: boolean = false): string; overload; deprecated 'use standard StrUtils.StringsReplace instead';
 { @groupEnd }
 
 { Replace sequences @code(@@counter(<padding>)) in the NamePattern with Index.
@@ -774,6 +771,10 @@ function IntToStrThousands(const Value: Int64; const Separator: string): string;
   Overloaded versions with MinLength pad result with zeros to have
   at least MinLength.
 
+  This is similar to the standard StrUtils.Dec2Numb,
+  but it can handle negative numbers without any problems (adds a minus
+  sign at the beginning then).
+
   @groupBegin }
 function IntToStrBase(const n: Int64; Base: Byte): string; overload;
 function IntToStrBase(      n: QWord; Base: Byte): string; overload;
@@ -782,14 +783,27 @@ function IntToStrBase(const n: QWord; Base: Byte; minLength: Cardinal): string; 
 { @groupEnd }
 
 { Convert integer to binary (base-2 numeral system).
-  MinLength means to left-pad result with zeros if necessary. }
+  MinLength means to left-pad result with zeros if necessary.
+
+  This is similar to the standard StrUtils.IntToBin function,
+  but this works in an obvious way for negative numbers
+  (adds a minus sign at the beginning). }
 function IntToStr2(n: Int64;
   const MinLength: Cardinal = 1;
   const ZeroDigit: char = '0';
   const OneDigit: char = '1';
   const MinusSign: char = '-'): string; overload;
 
-{ Convert integer to hexadecimal (base-16 numeral system).
+{ Convert integer to hexadecimal (base-16 numeric system).
+
+  This is similar to the standard SysUtils.IntToHex function,
+  but this works in an obvious way for negative numbers
+  (adds a minus sign at the beginning).
+  Contrast this with SysUtils.IntToHex, that instead shows the value
+  of negative integer typecasted as unsigned (so it's in 2-completent).
+  So IntToHex(-1, 1) = 'FFFFFFFF', while
+  IntToStr16(-1) = '-1'.
+
   @groupBegin }
 function IntToStr16(const n: Int64; const minLength: Cardinal = 1): string; overload;
 function IntToStr16(const n: QWord; const minLength: Cardinal = 1): string; overload;
@@ -803,13 +817,22 @@ function PointerToStr(Ptr: Pointer): string;
 { Convert string representing binary number to an integer.
   String must contain only '0', '1' (digits) and start with an optional sign
   (+ or -).
-  @raises EConvertError On problems with conversion. }
+
+  This is similar to the standard StrUtils.Numb2Dec (with Base = 2) function,
+  but this reliably raises EConvertError in case of trouble.
+
+  @raises EConvertError In case of invalid string. }
 function Str2ToInt(const s: string): integer;
 
 { Convert string with hexadecimal number to an integer.
   String must contain only digits (0-9, a-z, A-Z), and with an optional
   sign (+ or -).
-  @raises EConvertError On problems with conversion. }
+
+  This is similar to the standard StrUtils.Hex2Dec function,
+  but it returns an Int64 value. So this is safer and more consistent
+  with standard StrToInt.
+
+  @raises EConvertError In case of invalid string. }
 function StrHexToInt(const s: string): Int64;
 
 function StrToFloatDef(const s: string; DefValue: Extended): Extended;
@@ -835,7 +858,7 @@ function StrToFloatDef(const s: string; DefValue: Extended): Extended;
   a warning that SetToStr is not really reliable, and you may need to experiment
   a little with NumStart / NumEnd values to get sensible results.
   Although if your set is like "set of [0 ... something]", this should usually
-  work OK,
+  work OK.
 
   Still: @italic(this function should be used only for debug purposes.
   Don't depend on it working 100% correctly always --- it can't, because we
@@ -1999,9 +2022,11 @@ function SPercentReplace(const InitialFormat: string;
 var
   ReplacementsDone: Cardinal;
 begin
+  {$warnings off} { using deprecated inside deprecated }
   Result := SPercentReplace(InitialFormat, Replaces, ReplacementsDone,
     ErrorOnUnknownPercentFormat, PercentChar, IgnoreCase);
   { returned ReplacementsDone will simply be ignored }
+  {$warnings on}
 end;
 
 function FormatIndexedName(const NamePattern: string;
@@ -2227,23 +2252,24 @@ function IntToStr16(const n: QWord; const minLength: Cardinal): string;
 begin result := IntToStrBase(n, 16, minLength) end;
 
 function Str2ToInt(const s: string): integer;
+
   function BinInt(c: char): integer;
   begin
    case c of
     '0': result := 0;
     '1': result := 1;
-    else raise EConvertError.Create('Nieprawidlowy argument dla StrBinToInt : '+s);
+    else raise EConvertError.Create('Invalid Str2ToInt argument, contains invalid chars: ' + s);
    end;
   end;
 
 var NextChar: integer;
 begin
  if s = '' then
-  raise EConvertError.Create('Argument StrBinToInt ma zerowa length.');
+  raise EConvertError.Create('Invalid Str2ToInt argument: empty string');
  if s[1] = '-' then
  begin
   if Length(s) = 1 then
-   raise EConvertError.Create('StrBinToInt cannot convert ''-'' to int.');
+   raise EConvertError.Create('Invalid Str2ToInt argument: cannot convert single dash ''-'' to integer.');
   result := -BinInt(s[2]);
   NextChar := 3;
  end else
@@ -2266,7 +2292,7 @@ var ScanStart: integer;
       i: integer;
   begin
    if ScanStart > Length(s) then
-    raise EConvertError.Create('Unexpected end of string : no digits');
+    raise EConvertError.Create('StrHexToInt found unexpected end of string: no digits');
    result := 0;
    for i := ScanStart to Length(s) do
    begin

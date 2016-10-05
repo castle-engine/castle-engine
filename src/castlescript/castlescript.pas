@@ -23,13 +23,13 @@
   by Pascal code (that is, you don't have to parse them). For example
   this is an expression that calculates @code(sin(3) + 10 + 1):
 
-@longcode(#
-  Expr := TCasScriptAdd.Create([
-      TCasScriptSin.Create([TCasScriptFloat.Create(false, 3)]),
-      TCasScriptFloat.Create(false, 10),
-      TCasScriptFloat.Create(false, 1)
-    ]);
-#)
+  @longcode(#
+    Expr := TCasScriptAdd.Create([
+        TCasScriptSin.Create([TCasScriptFloat.Create(false, 3)]),
+        TCasScriptFloat.Create(false, 10),
+        TCasScriptFloat.Create(false, 1)
+      ]);
+  #)
 
   You can then call @code(Expr.Execute) to calculate such expression.
 
@@ -37,22 +37,22 @@
   TCasScriptFloat instance first, and then change it's value freely between
   @code(Expr.Execute) calls. For example
 
-@longcode(#
-  MyVariable := TCasScriptFloat.Create(false, 3);
-  Expr := TCasScriptAdd.Create([
-      TCasScriptSin.Create([MyVariable]),
-      TCasScriptFloat.Create(false, 10),
-      TCasScriptFloat.Create(false, 1)
-    ]);
+  @longcode(#
+    MyVariable := TCasScriptFloat.Create(false, 3);
+    Expr := TCasScriptAdd.Create([
+        TCasScriptSin.Create([MyVariable]),
+        TCasScriptFloat.Create(false, 10),
+        TCasScriptFloat.Create(false, 1)
+      ]);
 
-  Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(3) + 10 + 1"
+    Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(3) + 10 + 1"
 
-  MyVariable.Value := 4;
-  Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(4) + 10 + 1"
+    MyVariable.Value := 4;
+    Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(4) + 10 + 1"
 
-  MyVariable.Value := 5;
-  Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(5) + 10 + 1"
-#)
+    MyVariable.Value := 5;
+    Writeln((Expr.Execute as TKamStringFloat).Value); // calculate "sin(5) + 10 + 1"
+  #)
 
   Note that generally each TCasScriptExpression owns it's children
   expressions, so they will be automatically freed when parent is freed.
@@ -126,12 +126,12 @@ type
       execute result for longer, you have to copy it somewhere.
       For example you can do
 
-@longCode(#
-  { This will always work, thanks to virtual TCasScriptValue.Create
-    and AssignValue methods. }
-  Copy := TCasScriptValue(ReturnedValue.ClassType).Create;
-  Copy.AssignValue(ReturnedValue);
-#)
+      @longCode(#
+        { This will always work, thanks to virtual TCasScriptValue.Create
+          and AssignValue methods. }
+        Copy := TCasScriptValue(ReturnedValue.ClassType).Create;
+        Copy.AssignValue(ReturnedValue);
+      #)
 
       @raises(ECasScriptError
 
