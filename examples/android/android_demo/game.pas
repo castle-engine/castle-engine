@@ -347,6 +347,11 @@ initialization
   { initialize Application callbacks }
   Application.OnInitialize := @ApplicationInitialize;
 
+  { test: this is forbidden on Android.
+    You cannot open files before Application.OnInitialize happened.
+  LoadImage(ApplicationData('sample_texture.ppm')).Free;
+  }
+
   { create Window and initialize Window callbacks }
   Window := TCastleWindowTouch.Create(Application);
   Application.MainWindow := Window;
