@@ -190,20 +190,6 @@ constructor TCastleProject.Create(const APath: string);
       We want also NativeActivity and EGL, which require API level 9 or higher. }
     ReallyMinSdkVersion = 9;
     DefaultAndroidMinSdkVersion = 9;
-    (* Note that with earlier FPC versions, you cannot increase targetSdkVersion
-       above 22:
-
-        http://lists.freepascal.org/pipermail/fpc-devel/2015-September/035948.html
-        http://fpc-devel.freepascal.narkive.com/tMJHK2Hw/fpc-app-crash-with-has-text-relocations-android-6-0
-
-      (compiling with -fPIC doesn't help). Your app will crash then with
-
-        E AndroidRuntime: java.lang.RuntimeException: Unable to start activity ComponentInfo{...}: java.lang.IllegalArgumentException: Unable to load native library: ....
-        E AndroidRuntime: Caused by: java.lang.IllegalArgumentException: Unable to load native library: .....so
-
-      This is fixed is latest FPC 3.1.1, that supports -fPIC on Android.
-      TODO: We should pass -fPIC when FPC version is > 3.1.1 on Android, then?
-    *)
     DefaultAndroidTargetSdkVersion = 18;
 
     { character sets }
