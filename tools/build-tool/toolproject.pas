@@ -41,7 +41,7 @@ type
     FIcons: TIconFileNames;
     FSearchPaths: TStringList;
     IncludePathsRecursive: TBooleanList;
-    FStandaloneSource, FAndroidSource, FPluginSource, FAndroidProject: string;
+    FStandaloneSource, FAndroidSource, FPluginSource: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
     FVersion: string;
     FVersionCode: Cardinal;
@@ -102,7 +102,6 @@ type
     property StandaloneSource: string read FStandaloneSource;
     property AndroidSource: string read FAndroidSource;
     property PluginSource: string read FPluginSource;
-    property AndroidProject: string read FAndroidProject;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property AndroidCompileSdkVersion: Cardinal read FAndroidCompileSdkVersion;
     property AndroidBuildToolsVersion: string read FAndroidBuildToolsVersion;
@@ -123,11 +122,7 @@ type
       to the build tool data) to the DestinationPath (this should be an absolute
       existing directory name).
 
-      Each file is processed by the ReplaceMacros method.
-
-      The existing files in destination are @bold(not) overwritten (this allows
-      to preserve custom user code, in case the android_project attribute
-      in CastleEngineManifest.xml was used). }
+      Each file is processed by the ReplaceMacros method. }
     procedure ExtractTemplate(const TemplatePath, DestinationPath: string);
 
     { Output Android library resulting from compilation.
@@ -322,7 +317,6 @@ constructor TCastleProject.Create(const APath: string);
         FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
         FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
         FPluginSource := Doc.DocumentElement.AttributeStringDef('plugin_source', '');
-        FAndroidProject := Doc.DocumentElement.AttributeStringDef('android_project', '');
         FAuthor := Doc.DocumentElement.AttributeStringDef('author', '');
         FScreenOrientation := StringToScreenOrientation(
           Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
