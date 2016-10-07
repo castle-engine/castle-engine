@@ -2798,6 +2798,7 @@ initialization
 
   FunctionHandlers := TCasScriptFunctionHandlers.Create;
 
+  {$ifndef VER3_1} // avoid http://bugs.freepascal.org/view.php?id=30706
   FunctionHandlers.RegisterHandler(@TCasScriptSequence(nil).HandleSequence, TCasScriptSequence, [TCasScriptValue], true);
   FunctionHandlers.RegisterHandler(@TCasScriptAssignment(nil).HandleAssignment, TCasScriptAssignment, [TCasScriptValue, TCasScriptValue], false);
 
@@ -2923,6 +2924,7 @@ initialization
   FunctionHandlers.RegisterHandler(@TCasScriptString(nil).HandleCharacterFromCode, TCasScriptCharacterFromCode, [TCasScriptInteger], false);
 
   FunctionHandlers.RegisterHandler(@TCasScriptShortcut(nil).Handle, TCasScriptShortcut, [TCasScriptString], false);
+  {$endif}
 finalization
   FreeAndNil(FunctionHandlers);
 end.

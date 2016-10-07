@@ -705,6 +705,7 @@ end;
 { unit init/fini ------------------------------------------------------------- }
 
 initialization
+  {$ifndef VER3_1} // avoid http://bugs.freepascal.org/view.php?id=30706
   RegisterVec2fFunctions;
   RegisterVec3fFunctions;
   RegisterVec4fFunctions;
@@ -728,4 +729,5 @@ initialization
   RegisterMatrix4fFunctions;
   RegisterMatrix3dFunctions;
   RegisterMatrix4dFunctions;
+  {$endif}
 end.

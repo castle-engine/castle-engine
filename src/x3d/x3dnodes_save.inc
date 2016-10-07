@@ -273,7 +273,11 @@ var
     (Node as TX3DRootNode).HasForceVersion := true;
     (Node as TX3DRootNode).ForceVersion := Version;
 
+    {$ifndef VER3_1} // avoid http://bugs.freepascal.org/view.php?id=30706
     Node.EnumerateReplaceChildren(@TVRMLToX3DConverter(nil).Convert);
+    {$else}
+    WritelnWarning('X3D', 'Saving X3D does not work with FPC 3.1.1, see http://bugs.freepascal.org/view.php?id=30706');
+    {$endif}
   end;
 
   procedure Classic;

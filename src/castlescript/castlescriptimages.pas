@@ -619,6 +619,7 @@ end;
 { unit init/fini ------------------------------------------------------------- }
 
 initialization
+  {$ifndef VER3_1} // avoid http://bugs.freepascal.org/view.php?id=30706
   FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImage, TCasScriptImageFun, [TCasScriptInteger, TCasScriptInteger, TCasScriptInteger], false);
   FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImageLoad, TCasScriptImageLoad, [TCasScriptString], false);
 
@@ -633,4 +634,5 @@ initialization
   FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImageSet     , TCasScriptImageSet     , [TCasScriptImage, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
   FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImageSetColor, TCasScriptImageSetColor, [TCasScriptImage, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
   FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImageSetAlpha, TCasScriptImageSetAlpha, [TCasScriptImage, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
+  {$endif}
 end.
