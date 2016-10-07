@@ -12,7 +12,7 @@ var
 
 implementation
 
-uses SysUtils, CastleWindow, CastleScene, CastleControls,
+uses SysUtils, CastleWindow, CastleScene, CastleControls, CastleLog,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors;
 
 var
@@ -67,6 +67,8 @@ initialization
     It is useful to make sure it is correct (as early as possible)
     as our log routines use it. }
   OnGetApplicationName := @MyGetApplicationName;
+
+  InitializeLog;
 
   { initialize Application callbacks }
   Application.OnInitialize := @ApplicationInitialize;
