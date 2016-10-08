@@ -808,9 +808,7 @@ begin
   if (not (csDesigning in ComponentState)) and (not ApplicationIdleSet) then
   begin
     ApplicationIdleSet := true;
-    {$ifndef VER3_1} // avoid http://bugs.freepascal.org/view.php?id=30706
     Application.AddOnIdleHandler(@(TCastleApplicationIdle(nil).ApplicationIdle));
-    {$endif}
   end;
 end;
 
@@ -828,9 +826,7 @@ begin
      (CastleControls[0] = Self) then
   begin
     ApplicationIdleSet := false;
-    {$ifndef VER3_1} // avoid http://bugs.freepascal.org/view.php?id=30706
     Application.RemoveOnIdleHandler(@(TCastleApplicationIdle(nil).ApplicationIdle));
-    {$endif}
   end;
 
   FreeAndNil(FPressed);

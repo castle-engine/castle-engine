@@ -699,7 +699,6 @@ begin
 end;
 
 initialization
-  {$ifndef VER3_1} // avoid http://bugs.freepascal.org/view.php?id=30706
   RegisterLongIntFunctions;
   RegisterSingleFunctions;
   RegisterDoubleFunctions;
@@ -723,5 +722,4 @@ initialization
   RegisterMatrix4dFunctions;
 
   RegisterCharacterFunctions;
-  {$endif}
 end.
