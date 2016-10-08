@@ -41,7 +41,7 @@ type
     FIcons: TIconFileNames;
     FSearchPaths: TStringList;
     IncludePathsRecursive: TBooleanList;
-    FStandaloneSource, FAndroidSource, FPluginSource, FAndroidProject: string;
+    FStandaloneSource, FAndroidSource, FPluginSource: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
     FVersion: string;
     FVersionCode: Cardinal;
@@ -102,7 +102,6 @@ type
     property StandaloneSource: string read FStandaloneSource;
     property AndroidSource: string read FAndroidSource;
     property PluginSource: string read FPluginSource;
-    property AndroidProject: string read FAndroidProject;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property AndroidCompileSdkVersion: Cardinal read FAndroidCompileSdkVersion;
     property AndroidBuildToolsVersion: string read FAndroidBuildToolsVersion;
@@ -123,11 +122,7 @@ type
       to the build tool data) to the DestinationPath (this should be an absolute
       existing directory name).
 
-      Each file is processed by the ReplaceMacros method.
-
-      The existing files in destination are @bold(not) overwritten (this allows
-      to preserve custom user code, in case the android_project attribute
-      in CastleEngineManifest.xml was used). }
+      Each file is processed by the ReplaceMacros method. }
     procedure ExtractTemplate(const TemplatePath, DestinationPath: string);
 
     { Output Android library resulting from compilation.
@@ -195,20 +190,6 @@ constructor TCastleProject.Create(const APath: string);
       We want also NativeActivity and EGL, which require API level 9 or higher. }
     ReallyMinSdkVersion = 9;
     DefaultAndroidMinSdkVersion = 9;
-    (* Note that with earlier FPC versions, you cannot increase targetSdkVersion
-       above 22:
-
-        http://lists.freepascal.org/pipermail/fpc-devel/2015-September/035948.html
-        http://fpc-devel.freepascal.narkive.com/tMJHK2Hw/fpc-app-crash-with-has-text-relocations-android-6-0
-
-      (compiling with -fPIC doesn't help). Your app will crash then with
-
-        E AndroidRuntime: java.lang.RuntimeException: Unable to start activity ComponentInfo{...}: java.lang.IllegalArgumentException: Unable to load native library: ....
-        E AndroidRuntime: Caused by: java.lang.IllegalArgumentException: Unable to load native library: .....so
-
-      This is fixed is latest FPC 3.1.1, that supports -fPIC on Android.
-      TODO: We should pass -fPIC when FPC version is > 3.1.1 on Android, then?
-    *)
     DefaultAndroidTargetSdkVersion = 18;
 
     { character sets }
@@ -322,7 +303,6 @@ constructor TCastleProject.Create(const APath: string);
         FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
         FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
         FPluginSource := Doc.DocumentElement.AttributeStringDef('plugin_source', '');
-        FAndroidProject := Doc.DocumentElement.AttributeStringDef('android_project', '');
         FAuthor := Doc.DocumentElement.AttributeStringDef('author', '');
         FScreenOrientation := StringToScreenOrientation(
           Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));

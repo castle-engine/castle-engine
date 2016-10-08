@@ -144,12 +144,14 @@ function ColorRGBToHex(const V: TCastleColorRGB): string;
 { Convert hexadecimal color notation (like in HTML) into an RGBA color.
   Handles 8 or 6 digit color (RGB or RGBA with 2 letters per component;
   for 6 digits, alpha is assumed to be 1.0 (opaque)).
+
   @raises EConvertError In case of invalid color as string. }
 function HexToColor(const S: string): TCastleColor;
 
 { Convert hexadecimal color notation (like in HTML) into an RGB color.
   Handles 8 or 6 digit color (RGB or RGBA with 2 letters per component;
   for 8 digits, alpha is ignored).
+
   @raises EConvertError In case of invalid color as string. }
 function HexToColorRGB(const S: string): TCastleColorRGB;
 

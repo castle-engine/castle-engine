@@ -695,6 +695,18 @@ type
       specifications, and can be dynamic.
       The scene manager should use this to render background.
 
+      You should not access the background this way in your own code.
+      This is public only because our own TCastleSceneManager needs to access it.
+      And this is not marked "internal" because you may want to implement custom
+      TCastleScene descendants that override this.
+
+      @bold(If you simply use TCastleScene to render 3D stuff,
+      and want to change background properties,
+      then do not use this method.) To change the background,
+      find (or add) an X3D @code(Background) node (@link(TBackgroundNode) instance)
+      in the X3D graph in @link(RootNode), and change it's properties
+      or "bind" to change current backround.
+
       We use the current value of BackgroundSkySphereRadius.
 
       Returns @nil if there is no currently bound background node

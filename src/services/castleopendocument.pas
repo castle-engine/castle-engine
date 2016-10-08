@@ -70,8 +70,7 @@ procedure Vibrate(const Miliseconds: Cardinal);
 
   This is available only on Android right now, ignored elsewhere.
   To include the necessary integration code in your Android project,
-  declare your Android project type as "integrated" with
-  the "vibrate" component inside CastleEngineManifest.xml.
+  you must declare your Android project type as "integrated".
   See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine . }
 procedure OnScreenNotification(const Message: string);
 

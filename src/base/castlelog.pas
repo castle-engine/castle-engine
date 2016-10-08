@@ -27,14 +27,15 @@ uses Classes;
 { Is logging active. Initially no. Activate by InitializeLog. }
 function Log: boolean;
 
-{ Log date&time prefix style. }
-type TLogDateTimePrefixStyle=(
-{ Default: no DateTime prefix is added. }
-  ldNone,
-{ Add time prefix to each log record. }
-  ldTime,
-{ Add date&time prefix to each log record. }
-  ldDateTime);
+type
+  { Log date&time prefix style. }
+  TLogTimePrefix = (
+    { Default: no DateTime prefix is added. }
+    ltNone,
+    { Add time prefix to each log record. }
+    ltTime,
+    { Add date&time prefix to each log record. }
+    ltDateTime);
 
 { Initialize logging.
 
@@ -75,11 +76,11 @@ type TLogDateTimePrefixStyle=(
     )
   )
 
-  @param(DateTimeStyle optionally adds date&time prefix to each log record.)
+  @param(ALogTimePrefix optionally adds date&time prefix to each log record.)
 }
 procedure InitializeLog(const ProgramVersion: string = '';
   const ALogStream: TStream = nil;
-  const DateTimeStyle : TLogDateTimePrefixStyle = ldNone);
+  const ALogTimePrefix: TLogTimePrefix = ltNone);
 
 { Log message. Ignored when log is not initialized (@link(Log) is @false).
 
@@ -137,8 +138,9 @@ var
   { Dump backtrace (call stack) with each log.
     Displaying line info requires compiling your program with -gl. }
   BacktraceOnLog: boolean = false;
+
   { Current log date&time prefix style. Can be changed runtime. }
-  CurrentLogDateTimePrefixStyle : TLogDateTimePrefixStyle;
+  LogTimePrefix: TLogTimePrefix;
 
 implementation
 
@@ -159,7 +161,7 @@ end;
 
 procedure InitializeLog(const ProgramVersion: string;
   const ALogStream: TStream;
-  const DateTimeStyle : TLogDateTimePrefixStyle);
+  const ALogTimePrefix: TLogTimePrefix);
 var
   FirstLine: string;
 
@@ -183,7 +185,7 @@ var
   end;
 
 begin
-  CurrentLogDateTimePrefixStyle:=DateTimeStyle;
+  LogTimePrefix := ALogTimePrefix;
 
   if Log then Exit; { ignore 2nd call to InitializeLog }
 
@@ -252,19 +254,19 @@ begin
   end;
 end;
 
-function LogDateTimePrefix:string;
+function LogTimePrefixStr: string;
 begin
-  case CurrentLogDateTimePrefixStyle of
-    ldNone: result:='';
-    ldTime: result:=FormatDateTime('tt', Now)+'> ';
-    ldDateTime: result:=FormatDateTime('yyyy"-"mm"-"dd" "tt', Now)+'> ';
+  case LogTimePrefix of
+    ltNone: Result := '';
+    ltTime: Result := FormatDateTime('tt', Now) + '> ';
+    ltDateTime: Result := FormatDateTime('yyyy"-"mm"-"dd" "tt', Now) + '> ';
   end;
 end;
 
 procedure WriteLog(const Category: string; const Message: string);
 begin
   if Log then
-    WriteLogRaw(LogDateTimePrefix+Category + ': ' + Message);
+    WriteLogRaw(LogTimePrefixStr + Category + ': ' + Message);
 end;
 
 procedure WritelnLog(const Category: string; const Message: string);
@@ -293,13 +295,13 @@ procedure WriteLogMultiline(const Category: string; const Message: string);
 begin
   if Log then
   begin
-    if CurrentLogDateTimePrefixStyle=ldnone then
+    if LogTimePrefix = ltNone then
       WriteLogRaw(
           '-------------------- ' + Category + ' begin' + NL +
           Message +
           '-------------------- ' + Category + ' end' + NL)
     else
-      WriteLogRaw(LogDateTimePrefix + NL + //add date&time line only if needed
+      WriteLogRaw(LogTimePrefixStr + NL + //add date&time line only if needed
           '-------------------- ' + Category + ' begin' + NL +
           Message +
           '-------------------- ' + Category + ' end' + NL)
