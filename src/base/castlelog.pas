@@ -298,7 +298,7 @@ begin
     if LogTimePrefix <> ltNone then WriteLogRaw(LogTimePrefixStr + NL);
     WriteLogRaw(
         '-------------------- ' + Category + ' begin' + NL +
-        Message + NL +
+        Message +
         '-------------------- ' + Category + ' end' + NL)
   end;
 end;
