@@ -295,16 +295,11 @@ procedure WriteLogMultiline(const Category: string; const Message: string);
 begin
   if Log then
   begin
-    if LogTimePrefix = ltNone then
-      WriteLogRaw(
-          '-------------------- ' + Category + ' begin' + NL +
-          Message +
-          '-------------------- ' + Category + ' end' + NL)
-    else
-      WriteLogRaw(LogTimePrefixStr + NL + //add date&time line only if needed
-          '-------------------- ' + Category + ' begin' + NL +
-          Message +
-          '-------------------- ' + Category + ' end' + NL)
+    if LogTimePrefix <> ltNone then WriteLogRaw(LogTimePrefixStr + NL);
+    WriteLogRaw(
+        '-------------------- ' + Category + ' begin' + NL +
+        Message + NL +
+        '-------------------- ' + Category + ' end' + NL)
   end;
 end;
 
