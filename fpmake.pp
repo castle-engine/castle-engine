@@ -88,6 +88,7 @@ begin
     P.Targets.AddUnit('castleconvexhull.pas');
     P.Targets.AddUnit('castlefrustum.pas');
     P.Targets.AddUnit('castleoctree.pas');
+    P.Targets.AddUnit('castlerandom.pas');
     P.Targets.AddUnit('castletriangles.pas');
     P.Targets.AddUnit('castletriangulate.pas');
     P.Targets.AddUnit('castlecubemaps.pas');

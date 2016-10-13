@@ -25,6 +25,8 @@ var
 
 implementation
 
+uses SysUtils;
+
 {$R *.lfm}
 
 { TForm1 }
@@ -34,12 +36,16 @@ var ix, iy: integer;
     RND: TCastleRandom;
 begin
   RND := TCastleRandom.create;
-  for ix := 0 to image1.width do
-    for iy := 0 to image1.height do
-      with Image1.canvas do begin
-        brush.color := round(RND.random(255))+256*round(RND.random(255))+65536*round(RND.random(255));
-        fillrect(ix,iy,ix+1,iy+1);
-      end;
+  try
+    for ix := 0 to image1.width do
+      for iy := 0 to image1.height do
+        with Image1.canvas do begin
+          brush.color := round(RND.random(255))+256*round(RND.random(255))+65536*round(RND.random(255));
+          fillrect(ix,iy,ix+1,iy+1);
+        end;
+  finally
+    FreeAndNil(RND);
+  end;
 end;
 
 end.

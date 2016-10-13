@@ -2,8 +2,8 @@ unit CastleRandom;
 
 interface
 
-{$DEFINE SUPPORTS_INLINE}
-{$R-}{$Q-}
+{$I castleconf.inc}
+{$I norqcheckbegin.inc} // the whole unit should be used without overflow checking, for speed
 
 type
   { Implementation of XorShift algorithm for random numbers generation. It works
@@ -21,7 +21,7 @@ type
     function Random: single;
     { Returns random number in 0..N-1 range }
     function Random(N: LongInt): LongInt;
-    function Random(N: int64): int64;
+    function RandomInt64(N: int64): int64;
     { A simple Yes/No function that with 50% chance returns true or false.
       Something like throwing a coin... }
     function RandomBoolean: boolean;
@@ -35,6 +35,7 @@ type
   end;
 
 implementation
+
 uses SysUtils; // required only for randomization based on "now" function
 
 constructor TCastleRandom.Create(RandomSeed: LongWord);
@@ -108,7 +109,7 @@ end;
 { Works much slower comparing to 32 bit version. And even slower than float version.
   Another problem is that it cycles the seed twice which might cause
   strange results if exact reproduction of the random sequence is required }
-function TCastleRandom.Random(N: int64): int64;
+function TCastleRandom.RandomInt64(N: int64): int64;
 begin
   // this line is copied from FPC system.inc
   result := int64((qword(Random32bit) or (qword(Random32bit) shl 32)) and $7fffffffffffffff);
@@ -130,6 +131,6 @@ begin
   result := LongInt((int64(LongWord(seed))*3) shr 32)-1
 end;
 
+{$I norqcheckend.inc}
 
 end.
-

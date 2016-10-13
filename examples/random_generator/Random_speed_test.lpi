@@ -30,16 +30,16 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <Units Count="2">
+    <RequiredPackages Count="1">
+      <Item1>
+        <PackageName Value="castle_base"/>
+      </Item1>
+    </RequiredPackages>
+    <Units Count="1">
       <Unit0>
         <Filename Value="Random_speed_test.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
-      <Unit1>
-        <Filename Value="castlerandom.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="CastleRandom"/>
-      </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

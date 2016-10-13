@@ -27,12 +27,15 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="1">
+    <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="LCL"/>
+        <PackageName Value="castle_base"/>
       </Item1>
+      <Item2>
+        <PackageName Value="LCL"/>
+      </Item2>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="2">
       <Unit0>
         <Filename Value="GraphicsTest.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -41,14 +44,10 @@
         <Filename Value="graphicstestunit.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Form1"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="GraphicsTestUnit"/>
       </Unit1>
-      <Unit2>
-        <Filename Value="castlerandom.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="CastleRandom"/>
-      </Unit2>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
