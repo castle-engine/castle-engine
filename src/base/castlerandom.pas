@@ -45,24 +45,24 @@ end;
 
 procedure TCastleRandom.Initialize(RandomSeed: LongWord);
 begin
- if RandomSeed = 0 then
- begin
-   { I am not exacly sure how accurate such seed is? Should be 1/1000 of ms i.e.
-     we should cover 2*MaxInt with 20 times excess. So we should have no "gaps"
-     in initial Seed. But much can depend on specific implementation on different
-     systems. I hope nothing can go wrong here. The interval of getting a new
-     seed is ~50 microseconds, so it is practically impossible to accidently
-     trigger equal seeds unless the program is run strictly on schedule.}
-   Seed := LongInt(round(frac(now)*MaxInt*2));
+  if RandomSeed = 0 then
+  begin
+    { I am not exacly sure how accurate such seed is? Should be 1/1000 of ms i.e.
+      we should cover 2*MaxInt with 20 times excess. So we should have no "gaps"
+      in initial Seed. But much can depend on specific implementation on different
+      systems. I hope nothing can go wrong here. The interval of getting a new
+      seed is ~50 microseconds, so it is practically impossible to accidently
+      trigger equal seeds unless the program is run strictly on schedule.}
+    Seed := LongInt(round(frac(now)*MaxInt*2));
 
-   { Such approach is simpler and more reliable, but, it re-initializes
-     SysUtils.Random function seed. I try to avoid that. It could be a surprise
-     for a user that uses SysUtils and XorShift random in parallel and would
-     get a hidden change of RandSeed }
-   {Randomize;
-   seed := RandSeed;}
- end
- else seed := LongInt(RandomSeed);
+    { Such approach is simpler and more reliable, but, it re-initializes
+      SysUtils.Random function seed. I try to avoid that. It could be a surprise
+      for a user that uses SysUtils and XorShift random in parallel and would
+      get a hidden change of RandSeed }
+    {Randomize;
+    seed := RandSeed;}
+  end
+  else seed := LongInt(RandomSeed);
 end;
 
 procedure TCastleRandom.XorShiftCycle; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
