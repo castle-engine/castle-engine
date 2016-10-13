@@ -195,7 +195,7 @@ var
   Broken: TStringList;
 begin
   if Log then
-    WriteLog('Notification', S.Text);
+    WritelnLog('Notification', S.Text);
 
   { before Notifications are part of some Controls list,
     we don't know about Parent or Container size. }

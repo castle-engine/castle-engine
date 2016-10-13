@@ -998,7 +998,7 @@ begin
     end;
   end;
 
-  if LogTokens then WriteLog('X3D lexer', DescribeToken);
+  if LogTokens then WritelnLog('X3D lexer', DescribeToken);
 
   result := Token;
 end;
@@ -1020,7 +1020,7 @@ begin
   fToken := vtName;
  end;
 
-  if LogTokens then WriteLog('X3D lexer', DescribeToken);
+  if LogTokens then WritelnLog('X3D lexer', DescribeToken);
 
  CheckTokenIs(vtName);
 end;
@@ -1039,7 +1039,7 @@ begin
   fToken := vtString;
  end;
 
- if LogTokens then WriteLog('X3D lexer', DescribeToken);
+ if LogTokens then WritelnLog('X3D lexer', DescribeToken);
 
  CheckTokenIs(vtString);
 end;

@@ -3195,7 +3195,7 @@ begin
   ForceTeleportTransitions := false;
 
   if Log and LogShapes then
-    WriteLogMultiline('Shapes tree', Shapes.DebugInfo);
+    WritelnLogMultiline('Shapes tree', Shapes.DebugInfo);
 
   finally Dec(Dirty) end;
 end;
