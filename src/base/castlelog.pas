@@ -105,14 +105,14 @@ procedure WritelnLog(const MessageBase: string;
   should already contain a final newline). }
 procedure WriteLog(const Category: string; const Message: string);
 
-{ Log multiline message.
-  Message may be multiline and must be terminated by final newline. }
+{ Log multiline message. }
 procedure WriteLogMultiline(const Category: string; const Message: string);
 
 { Log multiline message.
   Message may be multiline and must @italic(not) be terminated by
-  a final newline, because we will add final newline ourselves. }
-procedure WritelnLogMultiline(const Category: string; const Message: string);
+  a final newline, because we will add final newline ourselves.
+  deprecated: WriteLogMultiline automatically adds a newline. }
+procedure WritelnLogMultiline(const Category: string; const Message: string); deprecated;
 
 { Log a warning, and call
   @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning)
@@ -298,7 +298,7 @@ begin
     if LogTimePrefix <> ltNone then WriteLogRaw(LogTimePrefixStr + NL);
     WriteLogRaw(
         '-------------------- ' + Category + ' begin' + NL +
-        Message +
+        trim(Message) + NL +
         '-------------------- ' + Category + ' end' + NL)
   end;
 end;
