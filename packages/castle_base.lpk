@@ -754,7 +754,7 @@
         <UnitName Value="CastleInAppPurchases"/>
       </Item178>
       <Item179>
-        <Filename Value="../src/services/castlemessaging.pas"/>
+        <Filename Value="../src/base/castlemessaging.pas"/>
         <UnitName Value="CastleMessaging"/>
       </Item179>
       <Item180>

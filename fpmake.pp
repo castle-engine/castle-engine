@@ -127,6 +127,7 @@ begin
     P.Targets.AddUnit('castlegziointernal.pas');
     P.Targets.AddUnit('castleinterfaces.pas');
     P.Targets.AddUnit('castlelog.pas');
+    P.Targets.AddUnit('castlemessaging.pas');
     P.Targets.AddUnit('castleparameters.pas');
     P.Targets.AddUnit('castleprogress.pas');
     P.Targets.AddUnit('castlerectangles.pas');
@@ -158,7 +159,6 @@ begin
     P.Targets.AddUnit('castlegoogleplaygames.pas');
     P.Targets.AddUnit('castlehelpshift.pas');
     P.Targets.AddUnit('castleinapppurchases.pas');
-    P.Targets.AddUnit('castlemessaging.pas');
     P.Targets.AddUnit('castleopendocument.pas');
 
     {$ifdef ANDROID_POSSIBLE}
