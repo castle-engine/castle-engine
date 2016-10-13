@@ -110,8 +110,9 @@ procedure WriteLogMultiline(const Category: string; const Message: string);
 
 { Log multiline message.
   Message may be multiline and must @italic(not) be terminated by
-  a final newline, because we will add final newline ourselves. }
-procedure WritelnLogMultiline(const Category: string; const Message: string);
+  a final newline, because we will add final newline ourselves.
+  deprecated: WriteLogMultiline automatically adds a newline. }
+procedure WritelnLogMultiline(const Category: string; const Message: string); deprecated;
 
 { Log a warning, and call
   @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning)
@@ -291,17 +292,13 @@ begin
 end;
 
 procedure WriteLogMultiline(const Category: string; const Message: string);
-var MessageNL:string;
 begin
   if Log then
   begin
     if LogTimePrefix <> ltNone then WriteLogRaw(LogTimePrefixStr + NL);
-    MessageNL := trim(Message);
-    if copy(MessageNL,length(MessageNL)-length(NL),length(NL)) <> NL then
-      MessageNL += NL;
     WriteLogRaw(
         '-------------------- ' + Category + ' begin' + NL +
-        MessageNL +
+        trim(Message) + NL +
         '-------------------- ' + Category + ' end' + NL)
   end;
 end;
