@@ -210,10 +210,27 @@ var
   begin
     PackageSmartCopyFile(Project.Path + Project.AndroidLibraryFile(true),
       'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
-      { place precompiled .so files in jniLibs, not jni, to make them picked up by Gradle.
-        See http://stackoverflow.com/questions/27532062/include-pre-compiled-static-library-using-ndk
-        http://stackoverflow.com/a/28430178 }
-      'jniLibs' + PathDelim + 'armeabi-v7a' + PathDelim + Project.AndroidLibraryFile(false));
+      { Place precompiled libs in jni/ , ndk-build will find them there. }
+      'jni' + PathDelim + 'armeabi-v7a' + PathDelim + Project.AndroidLibraryFile(false));
+  end;
+
+  { Run "ndk-build", this moves our .so to the final location in jniLibs,
+    also setting up debug stuff for ndk-gdb to work. }
+  procedure RunNdkBuild;
+  begin
+    { Place precompiled .so files in jniLibs/ to make them picked up by Gradle.
+      See http://stackoverflow.com/questions/27532062/include-pre-compiled-static-library-using-ndk
+      http://stackoverflow.com/a/28430178
+
+      Possibly we could also let the ndk-build to place them in libs/,
+      as it does by default.
+
+      We know we should not let them be only in jni/ subdir,
+      as they would not be picked by Gradle from there. But that's
+      what ndk-build does: it copies them from jni/ to another directory. }
+
+    RunCommandSimple(AndroidProjectPath + 'app' + PathDelim + 'src' + PathDelim + 'main',
+      'ndk-build', ['--silent', 'NDK_LIBS_OUT=./jniLibs']);
   end;
 
 var
@@ -344,6 +361,7 @@ begin
   GenerateIcons;
   GenerateAssets;
   GenerateLibrary;
+  RunNdkBuild;
   RunGradle(PackageMode);
 
   ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';

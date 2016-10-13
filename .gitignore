@@ -10,6 +10,7 @@
 *.apk
 *.a
 *.log
+*.lps
 castle-game-engine-*.fpm
 doc/pasdoc/cache/
 doc/pasdoc/html/
@@ -109,6 +110,10 @@ examples/portable_game_skeleton/my_fantastic_game
 examples/radiance_transfer/precompute_radiance_transfer
 examples/radiance_transfer/radiance_transfer
 examples/radiance_transfer/show_sh
+examples/random_generator/lib
+examples/random_generator/GraphicsTest
+examples/random_generator/GraphicsTest.res
+examples/random_generator/Random_speed_test
 examples/resource_animations/resource_animations
 examples/shadow_fields/precompute_shadow_field
 examples/shadow_fields/shadow_fields

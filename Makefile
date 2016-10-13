@@ -203,7 +203,9 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/lazarus/two_controls/two_controls \
   tests/test_castle_game_engine \
   src/library/castleengine \
-  examples/library/lcl_dynlib_tester/cge_dynlib_tester
+  examples/library/lcl_dynlib_tester/cge_dynlib_tester \
+  examples/random_generator/GraphicsTest \
+  examples/random_generator/Random_speed_test
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   $(EXAMPLES_LAZARUS_BASE_NAMES)

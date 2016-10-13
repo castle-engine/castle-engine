@@ -88,6 +88,7 @@ begin
     P.Targets.AddUnit('castleconvexhull.pas');
     P.Targets.AddUnit('castlefrustum.pas');
     P.Targets.AddUnit('castleoctree.pas');
+    P.Targets.AddUnit('castlerandom.pas');
     P.Targets.AddUnit('castletriangles.pas');
     P.Targets.AddUnit('castletriangulate.pas');
     P.Targets.AddUnit('castlecubemaps.pas');
@@ -127,6 +128,7 @@ begin
     P.Targets.AddUnit('castlegziointernal.pas');
     P.Targets.AddUnit('castleinterfaces.pas');
     P.Targets.AddUnit('castlelog.pas');
+    P.Targets.AddUnit('castlemessaging.pas');
     P.Targets.AddUnit('castleparameters.pas');
     P.Targets.AddUnit('castleprogress.pas');
     P.Targets.AddUnit('castlerectangles.pas');
@@ -158,7 +160,6 @@ begin
     P.Targets.AddUnit('castlegoogleplaygames.pas');
     P.Targets.AddUnit('castlehelpshift.pas');
     P.Targets.AddUnit('castleinapppurchases.pas');
-    P.Targets.AddUnit('castlemessaging.pas');
     P.Targets.AddUnit('castleopendocument.pas');
 
     {$ifdef ANDROID_POSSIBLE}

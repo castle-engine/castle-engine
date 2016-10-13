@@ -109,7 +109,7 @@ type
 
     FProjection: TProjection;
 
-    procedure ItemsAndCameraCursorChange(Sender: TObject);
+    procedure RecalculateCursor(Sender: TObject);
     function PlayerNotBlocked: boolean;
     procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
 
@@ -141,6 +141,8 @@ type
       In turn, this expects Camera.Radius to be already properly set
       (usually by CreateDefaultCamera). }
     procedure ApplyProjection;
+
+    procedure SetPaused(const Value: boolean);
   protected
     { The projection parameters. Determines if the view is perspective
       or orthogonal and exact field of view parameters.
@@ -457,7 +459,7 @@ type
         @item(For cameras, you can set @code(TCamera.Input := []) to ignore
           key / mouse clicks.)
       ) }
-    property Paused: boolean read FPaused write FPaused default false;
+    property Paused: boolean read FPaused write SetPaused default false;
 
     { See Render3D method. }
     property OnRender3D: TRender3DEvent read FOnRender3D write FOnRender3D;
@@ -1278,7 +1280,7 @@ begin
         to override TCastleWindowCustom / TCastleControlCustom that also try
         to "hijack" this camera's event. }
       FCamera.OnVisibleChange := @CameraVisibleChange;
-      FCamera.OnCursorChange := @ItemsAndCameraCursorChange;
+      FCamera.OnCursorChange := @RecalculateCursor;
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
@@ -1441,18 +1443,38 @@ begin
     Accidentaly, this also workarounds the problem of TCastleViewport:
     when the 3D object stayed the same but it's Cursor value changed,
     Items.CursorChange notify only TCastleSceneManager (not custom viewport).
-    But thanks to doing ItemsAndCameraCursorChange below, this isn't
+    But thanks to doing RecalculateCursor below, this isn't
     a problem for now, as we'll update cursor anyway, as long as it changes
     only during mouse move. }
-  ItemsAndCameraCursorChange(Self);
+  RecalculateCursor(Self);
 end;
 
-procedure TCastleAbstractViewport.ItemsAndCameraCursorChange(Sender: TObject);
+procedure TCastleAbstractViewport.SetPaused(const Value: boolean);
 begin
-  { this may be called from T3DListCore.Notify when removing stuff owned by other
-    stuff, in particular during our own destructor when FItems is freed
-    and we're in half-destructed state. }
-  if csDestroying in GetItems.ComponentState then Exit;
+  if FPaused <> Value then
+  begin
+    FPaused := Value;
+    { update the cursor when Paused changed. }
+    RecalculateCursor(Self);
+  end;
+end;
+
+procedure TCastleAbstractViewport.RecalculateCursor(Sender: TObject);
+begin
+  if { This may be called from T3DListCore.Notify when removing stuff owned by other
+       stuff, in particular during our own destructor when FItems is freed
+       and we're in half-destructed state. }
+     (csDestroying in GetItems.ComponentState) or
+     { When Paused, then Press and Motion events are not passed to Camera,
+       or to Items inside. So it's sensible that they also don't control the cursor
+       anymore.
+       In particular, it means cursor is no longer hidden by Camera.MouseLook
+       when the Paused is switched to true. }
+     Paused then
+  begin
+    Cursor := mcDefault;
+    Exit;
+  end;
 
   { We have to treat Camera.Cursor specially:
     - mcForceNone because of mouse look means result is unconditionally mcForceNone.
@@ -2563,7 +2585,7 @@ begin
     so make it a correct sub-component. }
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
-  FItems.OnCursorChange := @ItemsAndCameraCursorChange;
+  FItems.OnCursorChange := @RecalculateCursor;
   FItems.OnVisibleChange := @ItemsVisibleChange;
 
   FMoveLimit := EmptyBox3D;
@@ -2730,7 +2752,7 @@ begin
   begin
     { Always keep FreeNotification on every 3D item inside MouseRayHit.
       When it's destroyed, our MouseRayHit must be freed too,
-      it cannot be used in subsequent ItemsAndCameraCursorChange. }
+      it cannot be used in subsequent RecalculateCursor. }
 
     if FMouseRayHit <> nil then
     begin
@@ -2813,7 +2835,7 @@ begin
 
     if (AComponent is T3D) and MouseRayHitContains(T3D(AComponent)) then
     begin
-      { MouseRayHit cannot be used in subsequent ItemsAndCameraCursorChange. }
+      { MouseRayHit cannot be used in subsequent RecalculateCursor. }
       SetMouseRayHit(nil);
     end;
 
