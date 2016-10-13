@@ -105,8 +105,7 @@ procedure WritelnLog(const MessageBase: string;
   should already contain a final newline). }
 procedure WriteLog(const Category: string; const Message: string);
 
-{ Log multiline message.
-  Message may be multiline and must be terminated by final newline. }
+{ Log multiline message. }
 procedure WriteLogMultiline(const Category: string; const Message: string);
 
 { Log multiline message.
@@ -292,13 +291,17 @@ begin
 end;
 
 procedure WriteLogMultiline(const Category: string; const Message: string);
+var MessageNL:string;
 begin
   if Log then
   begin
     if LogTimePrefix <> ltNone then WriteLogRaw(LogTimePrefixStr + NL);
+    MessageNL := trim(Message);
+    if copy(MessageNL,length(MessageNL)-length(NL),length(NL)) <> NL then
+      MessageNL += NL;
     WriteLogRaw(
         '-------------------- ' + Category + ' begin' + NL +
-        Message +
+        MessageNL +
         '-------------------- ' + Category + ' end' + NL)
   end;
 end;
