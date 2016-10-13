@@ -21,6 +21,7 @@ type
     function Random: single;
     { Returns random number in 0..N-1 range }
     function Random(N: LongInt): LongInt;
+    { A relatively slow procedure to get a 64 bit integer random number. }
     function RandomInt64(N: int64): int64;
     { A simple Yes/No function that with 50% chance returns true or false.
       Something like throwing a coin... }
