@@ -144,8 +144,8 @@ type
     and assign TCastleButton.OnClick (or ovevrride TCastleButton.DoClick). }
   TCastleButton = class(TUIControlFont)
   strict private
-    FWidth: Cardinal;
-    FHeight: Cardinal;
+    FWidth, FHeight: Cardinal;
+    FFinalScaledWidth, FFinalScaledHeight: Cardinal;
     FOnClick: TNotifyEvent;
     FCaption: string;
     FAutoSize, FAutoSizeWidth, FAutoSizeHeight: boolean;
@@ -340,8 +340,8 @@ type
       The calculated size takes into account the Caption text size (with current font),
       and @link(Image) size, plus some margin to make it look nice.
 
-      Width is adjusted only when AutoSize and AutoSizeWidth.
-      And Height is adjusted only when AutoSize and AutoSizeHeight.
+      @link(Width) is adjusted only when AutoSize and AutoSizeWidth.
+      And @link(Height) is adjusted only when AutoSize and AutoSizeHeight.
       This way you can turn off auto-sizing in only one dimension if you
       want (and when you don't need such flexibility, leave
       AutoSizeWidth = AutoSizeHeight = @true and control both by simple
@@ -352,14 +352,7 @@ type
       @link(TUIControl.CalculatedHeight). Note that they may not be available
       before the button is actually added to the container,
       and the container size is initialized (we need to know the size of container,
-      for UI scaling to determine the font size).
-
-      @italic(Right now) the auto-sizing also updates the
-      values of @link(Width) and @link(Height) properties, but don't depend on it
-      in new code. In the future, it may be changed, and then @link(Width) and
-      @link(Height) properties will stay unmodified by the auto-sizing mechanism.
-      Always use @link(TUIControl.CalculatedWidth) and @link(TUIControl.CalculatedHeight)
-      to read the resulting control size. }
+      for UI scaling to determine the font size). }
     property AutoSize: boolean read FAutoSize write SetAutoSize default true;
     property AutoSizeWidth: boolean read FAutoSizeWidth write SetAutoSizeWidth default true;
     property AutoSizeHeight: boolean read FAutoSizeHeight write SetAutoSizeHeight default true;
@@ -2144,6 +2137,9 @@ var
     ImageMarginScaled,
     PaddingHorizontalScaled, PaddingVerticalScaled: Cardinal;
 begin
+  FFinalScaledWidth  := Round(FWidth  * UIScale);
+  FFinalScaledHeight := Round(FHeight * UIScale);
+
   if AutoSize then
   begin
     PaddingHorizontalScaled := Round(PaddingHorizontal * UIScale);
@@ -2152,11 +2148,11 @@ begin
     MinWidthScaled          := Round(MinWidth          * UIScale);
     MinHeightScaled         := Round(MinHeight         * UIScale);
 
-    { We modify FWidth, FHeight directly,
-      to avoid causing UpdateFocusAndMouseCursor too many times.
+    { We modify FFinalScaledWidth, FFinalScaledHeight,
+      and avoid causing UpdateFocusAndMouseCursor too many times.
       We'll call it at the end explicitly, with VisibleChange(true). }
-    if AutoSizeWidth then FWidth := TextWidth + PaddingHorizontalScaled * 2;
-    if AutoSizeHeight then FHeight := TextHeight + PaddingVerticalScaled * 2;
+    if AutoSizeWidth  then FFinalScaledWidth  := TextWidth  + PaddingHorizontalScaled * 2;
+    if AutoSizeHeight then FFinalScaledHeight := TextHeight + PaddingVerticalScaled * 2;
     if (FImage <> nil) or
        (MinImageWidth <> 0) or
        (MinImageHeight <> 0) then
@@ -2168,8 +2164,8 @@ begin
           ImgSize := MinImageWidth;
         ImgSize := Round(ImgSize * UIScale);
         case ImageLayout of
-          ilLeft, ilRight: FWidth := Width + ImgSize + ImageMarginScaled;
-          ilTop, ilBottom: FWidth := Max(Width, ImgSize + PaddingHorizontalScaled * 2);
+          ilLeft, ilRight: FFinalScaledWidth := FFinalScaledWidth + ImgSize + ImageMarginScaled;
+          ilTop, ilBottom: FFinalScaledWidth := Max(FFinalScaledWidth, ImgSize + PaddingHorizontalScaled * 2);
         end;
       end;
       if AutoSizeHeight then
@@ -2179,17 +2175,17 @@ begin
           ImgSize := MinImageHeight;
         ImgSize := Round(ImgSize * UIScale);
         case ImageLayout of
-          ilLeft, ilRight: FHeight := Max(Height, ImgSize + PaddingVerticalScaled * 2);
-          ilTop, ilBottom: FHeight := Height + ImgSize + ImageMarginScaled;
+          ilLeft, ilRight: FFinalScaledHeight := Max(FFinalScaledHeight, ImgSize + PaddingVerticalScaled * 2);
+          ilTop, ilBottom: FFinalScaledHeight := FFinalScaledHeight + ImgSize + ImageMarginScaled;
         end;
       end;
     end;
 
     { at the end apply MinXxx properties }
     if AutoSizeWidth then
-      MaxVar(FWidth, MinWidthScaled);
+      MaxVar(FFinalScaledWidth, MinWidthScaled);
     if AutoSizeHeight then
-      MaxVar(FHeight, MinHeightScaled);
+      MaxVar(FFinalScaledHeight, MinHeightScaled);
 
     if AutoSizeWidth or AutoSizeHeight then
       VisibleChange(true);
@@ -2352,6 +2348,7 @@ begin
   if FWidth <> Value then
   begin
     FWidth := Value;
+    UpdateSize;
     VisibleChange(true);
   end;
 end;
@@ -2361,6 +2358,7 @@ begin
   if FHeight <> Value then
   begin
     FHeight := Value;
+    UpdateSize;
     VisibleChange(true);
   end;
 end;
@@ -2406,12 +2404,7 @@ end;
 
 function TCastleButton.Rect: TRectangle;
 begin
-  Result := Rectangle(LeftBottomScaled, Width, Height);
-  { in case auto-size is off, scale Width/Height here }
-  if not (AutoSize and AutoSizeWidth) then
-    Result.Width := Round(Result.Width * UIScale);
-  if not (AutoSize and AutoSizeHeight) then
-    Result.Height := Round(Result.Height * UIScale);
+  Result := Rectangle(LeftBottomScaled, FFinalScaledWidth, FFinalScaledHeight);
 end;
 
 { TCastlePanel ------------------------------------------------------------------ }
