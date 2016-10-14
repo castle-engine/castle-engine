@@ -879,18 +879,81 @@ begin
 end;
 
 procedure TQuadSetGenerator.PrepareIndexesPrimitives;
+
+  {$ifdef OpenGLES}
+  { Calculate IndexesFromCoordIndex for triangle primitive
+    from CoordIndex for quad primitive. }
+  procedure CalculateIndexesFromCoordIndexForTriangles;
+  var
+    I: Integer;
+  begin
+    I := 0;
+    while I + 3 < CoordCount do
+    begin
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 1]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 2]);
+
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 2]);
+      IndexesFromCoordIndex.Add(CoordIndex.Items.L[I + 3]);
+      I += 4;
+    end;
+  end;
+
+  procedure CalculateCountsForTriangleFan;
+  var
+    I: Integer;
+  begin
+    I := 0;
+    while I + 3 < CoordCount do
+    begin
+      Arrays.Counts.Add(4);
+      I += 4;
+    end;
+  end;
+  {$endif}
+
 begin
+  {$ifdef OpenGLES}
+  { On OpenGLES, we don't have GL_QUADS primitive. So render quads
+    by splitting them into triangles. }
+  if CoordIndex <> nil then
+  begin
+    Arrays.Primitive := gpTriangles;
+    IndexesFromCoordIndex := TGeometryIndexList.Create;
+    CalculateIndexesFromCoordIndexForTriangles;
+  end else
+  begin
+    { This means we have QuadSet (no indexes, so not IndexedQuadSet) on OpenGLES
+      (where no gpQuads primitive is available).
+      We want to generate 2 triangles for each quad.
+
+      We cannot do it by generating IndexesFromCoordIndex, as
+      CastleArraysGenerator assumes that IndexesFromCoordIndex may be <> nil
+      only when CoordIndex <> nil. (and changing this restriction looks
+      complicated for now...)
+
+      So instead generate a sequence of gpTriangleFan primitives.
+    }
+    Arrays.Primitive := gpTriangleFan;
+    Arrays.Counts := TCardinalList.Create;
+    CalculateCountsForTriangleFan;
+  end;
+
+  {$else}
   Arrays.Primitive := gpQuads;
 
   if CoordIndex <> nil then
   begin
-    { indexes are just directly from CoordIndex in this case.
-      Only make sure we have only full quads (although nothing really
-      requires or promises that, but for the future). }
+    { indexes are just directly from CoordIndex in this case. }
     IndexesFromCoordIndex := TGeometryIndexList.Create;
     IndexesFromCoordIndex.Assign(CoordIndex.Items);
+    { make sure we have only full quads (although nothing really
+      requires or promises that, but for the future). }
     IndexesFromCoordIndex.Count := (IndexesFromCoordIndex.Count div 4) * 4;
   end;
+  {$endif}
 end;
 
 procedure TQuadSetGenerator.GenerateVertex(IndexNum: Integer);
@@ -929,10 +992,24 @@ begin
 
     CalculateTangentVectors(I, I + 1, I + 2);
 
-    GenerateVertex(I    );
-    GenerateVertex(I + 1);
-    GenerateVertex(I + 2);
-    GenerateVertex(I + 3);
+    if Arrays.Primitive = gpTriangles then
+    begin
+      { call GenerateVertex in the same order as you places vertexes
+        on IndexesFromCoordIndex in CalculateIndexesFromCoordIndexForTriangles. }
+      GenerateVertex(I    );
+      GenerateVertex(I + 1);
+      GenerateVertex(I + 2);
+
+      GenerateVertex(I    );
+      GenerateVertex(I + 2);
+      GenerateVertex(I + 3);
+    end else
+    begin
+      GenerateVertex(I    );
+      GenerateVertex(I + 1);
+      GenerateVertex(I + 2);
+      GenerateVertex(I + 3);
+    end;
 
     I += 4;
   end;

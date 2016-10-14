@@ -1151,28 +1151,18 @@ var
 
   function ArrayForBox(Box: TBox3D): TGeometryArrays;
   begin
-    { When there's no TArraysGenerator suitable, then we either have
-      a Text node (Text, AsciiText, Text3D) or an unsupported node.
+    { When there's no TArraysGenerator suitable, then we have an unsupported node.
 
       For now, we make an array describing a single quad: this shape's
-      bounding box in XY plane. This is good for 2D Text nodes,
-      this way they are easily represented in an octree (so they can be
-      picked, and used with VRML/X3D Anchor, TouchSensor and such nodes).
-      It is also OK for Text3D now, since it's actually a flat 2D text now.
-
-      VRML >= 2.0 specs say that 2D Text doesn't participate in collision
-      detection. This is very sensible, as normal triangulation of Text would
-      produce a lot of triangles. On the other hard, I found many VRML models
-      that expect Text within Anchor and TouchSensor to be "clickable" ---
-      which means that some rough triangulation of text is desired.
-
-      TODO: the text should not participate in collision
-      detection (but still participate in picking). }
+      bounding box in XY plane. The reason for this is historical
+      (this was a proper shape to approximate collision with 2D Text nodes;
+      but they do not get anymore into this procedure, as they are implemented
+      by a proxy that renders them through QuadSet or such node). }
 
     Result := TGeometryArrays.Create;
     if not Box.IsEmpty then
     begin
-      Result.Primitive := gpQuads;
+      Result.Primitive := gpTriangleFan; // gpQuads; - use triangle fan instead, to work with OpenGLES
       Result.Count := 4;
 
       Result.Position(0)^ := Vector3Single(Box.Data[0][0], Box.Data[0][1], Box.Data[0][2]);
@@ -2021,6 +2011,7 @@ var
             I += 3;
           end;
         end;
+      {$ifndef OpenGLES}
       gpQuads:
         begin
           I := 0;
@@ -2031,6 +2022,7 @@ var
             I += 4;
           end;
         end;
+      {$endif}
       gpTriangleFan:
         begin
           I := 0;

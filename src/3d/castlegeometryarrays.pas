@@ -23,9 +23,9 @@ interface
 uses CastleUtils, CastleVectors, FGL, CastleTriangles;
 
 type
-  { Primitive geometry types. Analogous to OpenGL primitives. }
-  TGeometryPrimitive = (gpTriangles, gpQuads, gpTriangleFan, gpTriangleStrip,
-    gpLineStrip, gpPoints);
+  { Primitive geometry types. Analogous to OpenGL / OpenGLES primitives. }
+  TGeometryPrimitive = (gpTriangles, {$ifndef OpenGLES} gpQuads, {$endif}
+    gpTriangleFan, gpTriangleStrip, gpLineStrip, gpPoints);
 
   TTexCoordDimensions = 2..4;
 
