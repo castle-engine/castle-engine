@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2014 Michalis Kamburelis.
+  Copyright 2014-2016 Michalis Kamburelis.
 
   This file is part of "Castle Spine".
 
