@@ -1158,6 +1158,7 @@ var
       bounding box in XY plane. This is good for 2D Text nodes,
       this way they are easily represented in an octree (so they can be
       picked, and used with VRML/X3D Anchor, TouchSensor and such nodes).
+      It is also OK for Text3D now, since it's actually a flat 2D text now.
 
       VRML >= 2.0 specs say that 2D Text doesn't participate in collision
       detection. This is very sensible, as normal triangulation of Text would
@@ -1166,10 +1167,7 @@ var
       which means that some rough triangulation of text is desired.
 
       TODO: the text should not participate in collision
-      detection (but still participate in picking).
-
-      TODO: for Text3D, we should probably make arrays describing
-      a cube, with 6 faces, not a flat face. }
+      detection (but still participate in picking). }
 
     Result := TGeometryArrays.Create;
     if not Box.IsEmpty then
