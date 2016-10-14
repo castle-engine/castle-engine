@@ -1269,7 +1269,7 @@ begin
     Include chVisibleVRML1State, since even MaterialBinding may change VRML 1.0
     proxies. }
   if Changes * [chCoordinate, chVisibleVRML1State, chGeometryVRML1State,
-    chTextureCoordinate, chGeometry] <> [] then
+    chTextureCoordinate, chGeometry, chWireframe] <> [] then
     FreeProxy;
 
   { When bounding volumes in global coordinates changed.
@@ -1284,7 +1284,7 @@ begin
     { Coordinate changes actual geometry. }
     LocalGeometryChanged(false, true);
 
-  if Changes * [chGeometry, chGeometryVRML1State] <> [] then
+  if Changes * [chGeometry, chGeometryVRML1State, chWireframe] <> [] then
     LocalGeometryChanged(false, false);
 
   if not InactiveOnly then

@@ -4213,6 +4213,23 @@ var
     end;
   end;
 
+  procedure HandleChangeWireframe;
+  var
+    SI: TShapeTreeIterator;
+  begin
+    Assert(ANode is TShapeNode);
+
+    { Call TShape.Changed for all shapes using this Shape node. }
+    SI := TShapeTreeIterator.Create(Shapes, false);
+    try
+      while SI.GetNext do
+      begin
+        if SI.Current.State.ShapeNode = ANode then
+          SI.Current.Changed(false, Changes);
+      end;
+    finally FreeAndNil(SI) end;
+  end;
+
 begin
   ANode := TX3DNode(Field.ParentNode);
   Assert(ANode <> nil);
@@ -4274,6 +4291,7 @@ begin
     if chBackground in Changes then HandleChangeBackground;
     if chEverything in Changes then HandleChangeEverything;
     if chShadowMaps in Changes then HandleChangeShadowMaps;
+    if chWireframe in Changes then HandleChangeWireframe;
 
     if Changes * [chVisibleGeometry, chVisibleNonGeometry, chRedisplay] <> [] then
       HandleVisibleChange;
