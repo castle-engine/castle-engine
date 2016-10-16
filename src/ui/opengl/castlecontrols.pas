@@ -2434,6 +2434,8 @@ begin
   Theme.Draw(SR, tiPanel, UIScale);
 
   SeparatorMarginScaled := Round(SeparatorMargin * UIScale);
+  if Height <= 2 * SeparatorMarginScaled then
+    Exit; // no space
   for I := 0 to VerticalSeparators.Count - 1 do
     Theme.Draw(Rectangle(
       SR.Left + Round(VerticalSeparators[I] * UIScale),
