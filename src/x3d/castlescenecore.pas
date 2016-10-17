@@ -1199,6 +1199,8 @@ type
       @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).) }
     function InternalOctreeCollisions: TBaseTrianglesOctree;
 
+    function UseInternalOctreeCollisions: boolean;
+
     { Progress title shown during spatial structure creation
       (through TProgress.Title). Uses only when not empty,
       and only if progress was not active already
@@ -4629,6 +4631,28 @@ begin
     Result := nil;
 end;
 
+function TCastleSceneCore.UseInternalOctreeCollisions: boolean;
+begin
+  Result := Spatial * [ssCollidableTriangles, ssDynamicCollisions] <> [];
+  Assert((not Result) or (InternalOctreeCollisions <> nil));
+
+  { We check whether to use InternalOctreeCollisions
+    not by checking InternalOctreeCollisions <> nil,
+    but by checking Spatial.
+
+    If you switch Spatial from non-empty to empty,
+    then the octree in InternalOctreeCollisions remains assigned
+    as long as there's no need to rebuild it.
+    This is nice, in case you change Spatial again
+    (e.g. by switching "Collisions" in view3dscene),
+    the octree is immediately available.
+
+    But we don't want to use this octree.
+    When Spatial = [], you can *expect* that collisions revert to simpler
+    mechanism in "inherited MoveCollision".
+    This is important only if you may have Collides = true with Spatial empty. }
+end;
+
 function TCastleSceneCore.CreateTriangleOctree(
   const Limits: TOctreeLimits;
   const ProgressTitle: string;
@@ -6371,7 +6395,7 @@ function TCastleSceneCore.HeightCollision(const Position, GravityUp: TVector3Sin
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
-  if InternalOctreeCollisions <> nil then
+  if UseInternalOctreeCollisions then
   begin
     Result := false;
     AboveHeight := MaxSingle;
@@ -6393,7 +6417,7 @@ function TCastleSceneCore.MoveCollision(
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if InternalOctreeCollisions <> nil then
+  if UseInternalOctreeCollisions then
   begin
     if GetCollides then
     begin
@@ -6415,7 +6439,7 @@ function TCastleSceneCore.MoveCollision(
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if InternalOctreeCollisions <> nil then
+  if UseInternalOctreeCollisions then
   begin
     Result := (not GetCollides) or
       InternalOctreeCollisions.MoveCollision(OldPos, NewPos,
@@ -6429,7 +6453,7 @@ function TCastleSceneCore.SegmentCollision(const Pos1, Pos2: TVector3Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 begin
-  if InternalOctreeCollisions <> nil then
+  if UseInternalOctreeCollisions then
     Result := (GetCollides or (ALineOfSight and GetExists)) and
       InternalOctreeCollisions.IsSegmentCollision(
         Pos1, Pos2,
@@ -6441,7 +6465,7 @@ function TCastleSceneCore.SphereCollision(
   const Pos: TVector3Single; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if InternalOctreeCollisions <> nil then
+  if UseInternalOctreeCollisions then
     Result := GetCollides and
       InternalOctreeCollisions.IsSphereCollision(
         Pos, Radius, nil, TrianglesToIgnoreFunc) else
@@ -6453,7 +6477,7 @@ function TCastleSceneCore.SphereCollision2D(
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const Details: TCollisionDetails): boolean;
 begin
-  if InternalOctreeCollisions <> nil then
+  if UseInternalOctreeCollisions then
   begin
     Result := GetCollides and
       InternalOctreeCollisions.IsSphereCollision2D(Pos, Radius, nil, TrianglesToIgnoreFunc);
@@ -6470,7 +6494,7 @@ function TCastleSceneCore.PointCollision2D(
   const Point: TVector2Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if InternalOctreeCollisions <> nil then
+  if UseInternalOctreeCollisions then
     Result := GetCollides and
       InternalOctreeCollisions.IsPointCollision2D(Point, nil, TrianglesToIgnoreFunc) else
     Result := inherited PointCollision2D(Point, TrianglesToIgnoreFunc);
@@ -6479,7 +6503,7 @@ end;
 function TCastleSceneCore.BoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  if InternalOctreeCollisions <> nil then
+  if UseInternalOctreeCollisions then
     Result := GetCollides and
       InternalOctreeCollisions.IsBoxCollision(
         Box,  nil, TrianglesToIgnoreFunc) else
@@ -6494,7 +6518,7 @@ var
   IntersectionDistance: Single;
   NewNode: PRayCollisionNode;
 begin
-  if InternalOctreeCollisions <> nil then
+  if UseInternalOctreeCollisions then
   begin
     Result := nil;
     if GetExists then
