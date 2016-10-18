@@ -60,6 +60,7 @@ const
   YellowRGB : TCastleColorRGB = ( 1.0 , 1.0 , 0.0);
   GreenRGB  : TCastleColorRGB = ( 0.0 , 0.5 , 0.0);
   BlueRGB   : TCastleColorRGB = ( 0.0 , 0.0 , 1.0);
+  GrayRGB   : TCastleColorRGB = ( 0.5 , 0.5 , 0.5);
 
   { Deprecated, use WhiteRGB. @deprecated }
   White3Single  : TCastleColorRGB = ( 1.0 , 1.0 , 1.0) deprecated;

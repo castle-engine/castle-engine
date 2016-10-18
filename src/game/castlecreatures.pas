@@ -754,9 +754,18 @@ type
     FSoundDieEnabled: boolean;
 
     FDebugCaptions: TCastleScene;
+    FDebugCaptionsTransform: TMatrixTransformNode;
+    FDebugCaptionsShape: TShapeNode;
     FDebugCaptionsText: TTextNode;
     FDebugCaptionsFontStyle: TFontStyleNode;
-    FDebugCaptionsTransform: TMatrixTransformNode;
+
+    FDebug3D: TCastleScene;
+    FDebug3DBoxTransform: TTransformNode;
+    FDebug3DBoxShape: TShapeNode;
+    FDebug3DBox: TBoxNode;
+    FDebug3DSphereTransform: TTransformNode;
+    FDebug3DSphereShape: TShapeNode;
+    FDebug3DSphere: TSphereNode;
 
     procedure SoundRelease(Sender: TSound);
   protected
@@ -1403,29 +1412,9 @@ procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams)
   { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
   {$warnings off}
   procedure DebugBoundingVolumes;
-  var
-    R: Single;
   begin
-    glColorv(Gray);
-    glDrawBox3DWire(BoundingBox);
-
-    if Sphere(R) then
-    begin
-      glPushMatrix;
-        glMultMatrix(TransformToCoordsMatrix(
-          { move the sphere center to be at Middle }
-          Middle,
-          { By default, CastleGluSphere renders sphere pole in Z.
-            Adjust it to our Orientation. }
-          VectorProduct(DirectionFromOrientation[Orientation], UpFromOrientation[Orientation]),
-          DirectionFromOrientation[Orientation],
-          UpFromOrientation[Orientation]));
-        CastleGluSphere(R, 10, 10, false, GLU_NONE, GLU_OUTSIDE, GLU_LINE);
-      glPopMatrix;
-    end;
-
     glColorv(Yellow);
-    glDrawAxisWire(Middle, BoundingBox.AverageSize(true, 0));
+    glDrawAxisWire(Middle, GetChild.BoundingBox.AverageSize(true, 0));
   end;
   {$warnings on}
   {$endif}
@@ -1484,11 +1473,91 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
     end;
   end;
 
+  procedure UpdateDebug3D;
+  var
+    Root: TX3DRootNode;
+    Triangulation: TKambiTriangulationNode;
+    BBox: TBox3D;
+    R: Single;
+  begin
+    if RenderDebug3D and (FDebug3D = nil) then
+    begin
+      { create FDebug3D on demand }
+
+      FDebug3DBox := TBoxNode.Create;
+
+      FDebug3DBoxShape := TShapeNode.Create;
+      FDebug3DBoxShape.Geometry := FDebug3DBox;
+      FDebug3DBoxShape.Shading := shWireframe;
+
+      FDebug3DBoxShape.Material := TMaterialNode.Create;
+      FDebug3DBoxShape.Material.ForcePureEmissive;
+      FDebug3DBoxShape.Material.EmissiveColor := GrayRGB;
+
+      FDebug3DBoxTransform := TTransformNode.Create;
+      FDebug3DBoxTransform.FdChildren.Add(FDebug3DBoxShape);
+
+      FDebug3DSphere := TSphereNode.Create;
+
+      FDebug3DSphereShape := TShapeNode.Create;
+      FDebug3DSphereShape.Geometry := FDebug3DSphere;
+      FDebug3DSphereShape.Shading := shWireframe;
+
+      FDebug3DSphereShape.Material := TMaterialNode.Create;
+      FDebug3DSphereShape.Material.ForcePureEmissive;
+      FDebug3DSphereShape.Material.EmissiveColor := GrayRGB;
+
+      // Triangulation := TKambiTriangulationNode.Create;
+      // Triangulation.QuadricSlices := 10;
+      // Triangulation.QuadricStacks := 10;
+      // TODO: FDebug3DSphereShape.Appearance.Triangulation := Triangulation;
+
+      FDebug3DSphereTransform := TTransformNode.Create;
+      FDebug3DSphereTransform.FdChildren.Add(FDebug3DSphereShape);
+
+      Root := TX3DRootNode.Create;
+      Root.FdChildren.Add(FDebug3DBoxTransform);
+      Root.FdChildren.Add(FDebug3DSphereTransform);
+
+      FDebug3D := TCastleScene.Create(Self);
+      FDebug3D.Load(Root, true);
+      FDebug3D.Collides := false;
+      FDebug3D.Pickable := false;
+
+      Add(FDebug3D);
+    end;
+
+    if FDebug3D <> nil then
+      FDebug3D.Exists := RenderDebug3D;
+
+    if RenderDebug3D then
+    begin
+      if GetChild <> nil then
+        BBox := GetChild.BoundingBox
+      else
+        BBox := TBox3D.Empty;
+      FDebug3DBoxShape.Render := not BBox.IsEmpty;
+      if FDebug3DBoxShape.Render then
+      begin
+        FDebug3DBox.Size := BBox.Sizes;
+        FDebug3DBoxTransform.Translation := BBox.Middle;
+      end;
+
+      FDebug3DSphereShape.Render := Sphere(R);
+      if FDebug3DSphereShape.Render then
+      begin
+        { move the sphere center to be at Middle }
+        FDebug3DSphereTransform.Translation := Middle - GetTranslation;
+        FDebug3DSphere.Radius := R;
+      end;
+    end;
+  end;
+
   procedure UpdateDebugCaptions;
   var
-    Shape: TShapeNode;
     Root: TX3DRootNode;
     H: Single;
+    BBox: TBox3D;
   begin
     if RenderDebugCaptions and (FDebugCaptions = nil) then
     begin
@@ -1500,17 +1569,19 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
       FDebugCaptionsText.FontStyle := FDebugCaptionsFontStyle;
       FDebugCaptionsText.Solid := false;
 
-      Shape := TShapeNode.Create;
-      Shape.Geometry := FDebugCaptionsText;
+      FDebugCaptionsShape := TShapeNode.Create;
+      FDebugCaptionsShape.Geometry := FDebugCaptionsText;
 
       FDebugCaptionsTransform := TMatrixTransformNode.Create;
-      FDebugCaptionsTransform.FdChildren.Add(Shape);
+      FDebugCaptionsTransform.FdChildren.Add(FDebugCaptionsShape);
 
       Root := TX3DRootNode.Create;
       Root.FdChildren.Add(FDebugCaptionsTransform);
 
       FDebugCaptions := TCastleScene.Create(Self);
       FDebugCaptions.Load(Root, true);
+      FDebugCaptions.Collides := false;
+      FDebugCaptions.Pickable := false;
 
       Add(FDebugCaptions);
     end;
@@ -1520,20 +1591,28 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
 
     if RenderDebugCaptions then
     begin
-      H := GetChild.BoundingBox.Data[1, World.GravityCoordinate];
-      FDebugCaptionsFontStyle.Size := H / 8;
-      FDebugCaptionsTransform.Matrix := TransformToCoordsMatrix(
-        { move the caption to be at the top }
-        World.GravityUp * H,
-        { By default, Text is in XY plane.
-          Adjust it to our Orientation. }
-        VectorProduct(UpFromOrientation[Orientation], DirectionFromOrientation[Orientation]),
-        UpFromOrientation[Orientation],
-        DirectionFromOrientation[Orientation]);
+      if GetChild <> nil then
+        BBox := GetChild.BoundingBox
+      else
+        BBox := TBox3D.Empty;
+      FDebugCaptionsShape.Render := not BBox.IsEmpty;
+      if FDebugCaptionsShape.Render then
+      begin
+        H := BBox.Data[1, World.GravityCoordinate];
+        FDebugCaptionsFontStyle.Size := H / 8;
+        FDebugCaptionsTransform.Matrix := TransformToCoordsMatrix(
+          { move the caption to be at the top }
+          World.GravityUp * H,
+          { By default, Text is in XY plane.
+            Adjust it to our Orientation. }
+          VectorProduct(UpFromOrientation[Orientation], DirectionFromOrientation[Orientation]),
+          UpFromOrientation[Orientation],
+          DirectionFromOrientation[Orientation]);
 
-      FDebugCaptionsText.FdString.Items.Clear;
-      UpdateDebugCaption(FDebugCaptionsText.FdString.Items);
-      FDebugCaptionsText.FdString.Changed;
+        FDebugCaptionsText.FdString.Items.Clear;
+        UpdateDebugCaption(FDebugCaptionsText.FdString.Items);
+        FDebugCaptionsText.FdString.Changed;
+      end;
     end;
   end;
 
@@ -1549,6 +1628,7 @@ begin
   VisibleChangeHere([vcVisibleGeometry]);
 
   UpdateUsedSounds;
+  UpdateDebug3D;
   UpdateDebugCaptions;
 end;
 

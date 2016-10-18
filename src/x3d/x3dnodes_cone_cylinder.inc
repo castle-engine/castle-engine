@@ -22,10 +22,7 @@
 
   When Radius = exactly 0, the points are guaranteed to be exactly equal.
 
-  Assumes QuadricSlices >= 1.
-
-  This is exactly like LOOP_OVER_CIRCLE macro,
-  except it adds points to Points[] instead of calling a procedure on them. }
+  Assumes QuadricSlices >= 1. }
 procedure GenerateCircle(const QuadricSlices: Cardinal;
   const Radius, Height: Single; Points: PVector3Single);
 var
