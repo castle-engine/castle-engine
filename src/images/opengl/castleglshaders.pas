@@ -1189,14 +1189,14 @@ begin
     {$ifndef ForceStandardGLSLApi}
     gsExtension:
       begin
-        glEnableVertexAttribArrayARB(Location);
-        glVertexAttribPointerARB(Location, Size, AType, Normalized, Stride, Pointer(Ptr));
+        glEnableVertexAttribArrayARB(Location + LocationOffset);
+        glVertexAttribPointerARB(Location + LocationOffset, Size, AType, Normalized, Stride, Pointer(Ptr));
       end;
     {$endif}
     gsStandard    :
       begin
-        glEnableVertexAttribArray   (Location);
-        glVertexAttribPointer   (Location, Size, AType, Normalized, Stride, Pointer(Ptr));
+        glEnableVertexAttribArray   (Location + LocationOffset);
+        glVertexAttribPointer   (Location + LocationOffset, Size, AType, Normalized, Stride, Pointer(Ptr));
       end;
   end;
 end;
