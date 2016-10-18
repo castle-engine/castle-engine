@@ -43,7 +43,7 @@ uses SysUtils, CastleWindow, CastleScene, X3DFields, X3DNodes,
   CastleUtils, CastleGLUtils, CastleBoxes, CastleVectors,
   CastleProgress, CastleWindowProgress, CastleStringUtils,
   CastleParameters, CastleImages, CastleMessages, CastleFilesUtils, CastleGLImages,
-  Castle3D, CastleSoundEngine,
+  Castle3D, CastleSoundEngine, CastleRectangles,
   CastleRenderingCamera, Classes, CastleControls, CastleLevels, CastleConfig,
   CastleInputs, CastleKeysMouse, CastlePlayer, CastleControlsImages;
 
@@ -205,14 +205,6 @@ end;
 
 { window callbacks ----------------------------------------------------------- }
 
-procedure Resize(Container: TUIContainer);
-const
-  Margin = 20;
-begin
-  MuteImage.Left := Window.Width - MuteImage.Width - Margin;
-  MuteImage.Bottom := Window.Height - MuteImage.Height - Margin;
-end;
-
 procedure Close(Container: TUIContainer);
 begin
   { in case no TNT actually exists in scene at closing time (you managed
@@ -296,8 +288,7 @@ begin
 
   { init window }
   Window := TCastleWindow.Create(Application);
-  Window.OnClose := @close;
-  Window.OnResize := @resize;
+  Window.OnClose := @Close;
   Window.OnUpdate := @Update;
   Window.OnTimer := @Timer;
   Window.OnPress := @Press;
@@ -316,6 +307,8 @@ begin
     as opening window calls Resize which uses MuteImage. }
   MuteImage := TCastleImageControl.Create(Application);
   MuteImage.URL := ApplicationData('textures/mute_sign.png');
+  MuteImage.Anchor(hpRight, -20);
+  MuteImage.Anchor(vpTop, -20);
   MuteImage.Exists := false; // don't show it on initial progress
   Window.Controls.InsertFront(MuteImage);
 
