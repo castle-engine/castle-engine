@@ -184,9 +184,13 @@ type
 
   TGLSLAttribute = record
   public
+    type
+      TLocationOffset = 0..3;
+    var
     Owner: TGLSLProgram;
     Name: string;
     Location: TGLint;
+    LocationOffsetsToDisable: array [TLocationOffset] of boolean;
 
     { Enable an array of arbitary OpenGL type.
       See the OpenGL documentation of glVertexAttribPointer for meaning of the
@@ -200,7 +204,7 @@ type
       Note that the array size is not specified anywhere. The way you access
       the array (what indexes you use) determines the minimum count of the array
       you should have (and uploaded to VBO). }
-    procedure EnableArray(LocationOffset: TGLint;
+    procedure EnableArray(LocationOffset: TLocationOffset;
       Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
       Ptr: PtrUInt);
     { Shortcut to enable an array of floats (Single in Pascal). }
@@ -527,7 +531,7 @@ type
 
       @returns(Attribute location (with LocationOffset already applied).
         You can use it with DisableVertexAttribArray.) }
-    function VertexAttribPointer(const Name: string; LocationOffset: TGLint;
+    function VertexAttribPointer(const Name: string; LocationOffset: TGLSLAttribute.TLocationOffset;
       Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
       Ptr: Pointer): TGLint; deprecated 'use TGLSLAttribute.EnableArray';
 
@@ -1179,12 +1183,13 @@ begin
 end;
 {$endif}
 
-procedure TGLSLAttribute.EnableArray(LocationOffset: TGLint;
+procedure TGLSLAttribute.EnableArray(LocationOffset: TLocationOffset;
   Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
   Ptr: PtrUInt);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
+  LocationOffsetsToDisable[LocationOffset] := true;
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
     gsExtension:
@@ -1237,14 +1242,19 @@ begin
 end;
 
 procedure TGLSLAttribute.DisableArray;
+var
+  Offset: TLocationOffset;
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
-  case Owner.Support of
-    {$ifndef ForceStandardGLSLApi}
-    gsExtension: glDisableVertexAttribArrayARB(Location);
-    {$endif}
-    gsStandard : glDisableVertexAttribArray   (Location);
-  end;
+
+  for Offset := Low(TLocationOffset) to High(TLocationOffset) do
+    if LocationOffsetsToDisable[Offset] then
+      case Owner.Support of
+        {$ifndef ForceStandardGLSLApi}
+        gsExtension: glDisableVertexAttribArrayARB(Location + Offset);
+        {$endif}
+        gsStandard : glDisableVertexAttribArray   (Location + Offset);
+      end;
 end;
 
 { TGLSLProgram --------------------------------------------------------------- }
@@ -2075,7 +2085,7 @@ end;
 {$endif}
 
 function TGLSLProgram.VertexAttribPointer(const Name: string;
-  LocationOffset: TGLint;
+  LocationOffset: TGLSLAttribute.TLocationOffset;
   Size: TGLint; AType: TGLenum; Normalized: TGLboolean; Stride: TGLsizei;
   Ptr: Pointer): TGLint;
 var
