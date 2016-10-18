@@ -826,15 +826,17 @@ begin
 end;
 
 procedure TLightShader.SetDynamicUniforms(AProgram: TX3DShaderProgram);
-{$ifdef OpenGLES}
 var
+  {$ifdef OpenGLES}
   Color3, AmbientColor3: TVector3Single;
   Color4, AmbientColor4: TVector4Single;
   Position: TVector4Single;
+  {$endif}
   LiPos: TAbstractPositionalLightNode;
   LiSpot1: TSpotLightNode_1;
   LiSpot: TSpotLightNode;
 begin
+  {$ifdef OpenGLES}
   { calculate Color4 = light color * light intensity }
   Color3 := Node.FdColor.Value * Node.FdIntensity.Value;
   Color4 := Vector4Single(Color3, 1);
@@ -856,44 +858,52 @@ begin
     or positional light. }
   AProgram.SetUniform(Format('castle_LightSource%dPosition', [Number]),
     Vector3SingleCut(Position));
+  {$endif}
 
   if Node is TAbstractPositionalLightNode then
   begin
     LiPos := TAbstractPositionalLightNode(Node);
-    if Node is TSpotLightNode_1 then
+    if LiPos is TSpotLightNode_1 then
     begin
       LiSpot1 := TSpotLightNode_1(Node);
+      AProgram.SetUniform(Format('castle_LightSource%dSpotCosCutoff', [Number]),
+        LiSpot1.SpotCosCutoff);
+      {$ifdef OpenGLES}
       AProgram.SetUniform(Format('castle_LightSource%dSpotDirection', [Number]),
         MatrixMultDirection(RenderingCamera.Matrix,
           MatrixMultDirection(Node.Transform, LiSpot1.FdDirection.Value)));
-      AProgram.SetUniform(Format('castle_LightSource%dSpotCosCutoff', [Number]),
-        LiSpot1.SpotCosCutoff);
       if LiSpot1.SpotExponent <> 0 then
       begin
         AProgram.SetUniform(Format('castle_LightSource%dSpotExponent', [Number]),
           LiSpot1.SpotExponent);
       end;
+      {$endif}
     end else
-    if Node is TSpotLightNode then
+    if LiPos is TSpotLightNode then
     begin
       LiSpot := TSpotLightNode(Node);
+      AProgram.SetUniform(Format('castle_LightSource%dSpotCosCutoff', [Number]),
+        LiSpot.SpotCosCutoff);
+      {$ifdef OpenGLES}
       AProgram.SetUniform(Format('castle_LightSource%dSpotDirection', [Number]),
         MatrixMultDirection(RenderingCamera.Matrix,
           MatrixMultDirection(Node.Transform, LiSpot.FdDirection.Value)));
-      AProgram.SetUniform(Format('castle_LightSource%dSpotCosCutoff', [Number]),
-        LiSpot.SpotCosCutoff);
       if LiSpot.FdBeamWidth.Value < LiSpot.FdCutOffAngle.Value then
       begin
         AProgram.SetUniform(Format('castle_LightSource%dSpotCutoff', [Number]),
           LiSpot.FdCutOffAngle.Value);
       end;
+      {$endif}
     end;
 
+    {$ifdef OpenGLES}
     if LiPos.HasAttenuation then
       AProgram.SetUniform(Format('castle_LightSource%dAttenuation', [Number]),
         LiPos.FdAttenuation.Value);
+    {$endif}
   end;
 
+  {$ifdef OpenGLES}
   if Node.FdAmbientIntensity.Value <> 0 then
     AProgram.SetUniform(Format('castle_SideLightProduct%dAmbient', [Number]),
       Shader.MaterialAmbient * AmbientColor4);
@@ -911,9 +921,7 @@ begin
       Color4) else
     AProgram.SetUniform(Format('castle_SideLightProduct%dDiffuse', [Number]),
       Shader.MaterialDiffuse * Color4);
-{$else}
-begin
-{$endif}
+  {$endif}
 end;
 
 { TLightShaders -------------------------------------------------------------- }
