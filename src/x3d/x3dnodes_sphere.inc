@@ -18,9 +18,7 @@ procedure Sphere_Proxy(CoordIndex: TLongIntList;
   Coord: TVector3SingleList; Normal: TVector3SingleList;
   TexCoord: TVector2SingleList;
   OverTriangulate: boolean; const Radius: Single;
-  KambiTriangulation: TKambiTriangulationNode);
-var
-  QuadricSlices, QuadricStacks: Cardinal;
+  const QuadricSlices, QuadricStacks: Cardinal);
 
   { We have rings numbered 0 ... QuadricStacks.
     The rings nr 0 and QuadricStacks have 0 radius (bottom and top of the sphere). }
@@ -59,9 +57,6 @@ begin
   Coord.Count := 0;
   Normal.Count := 0;
   if TexCoord <> nil then TexCoord.Count := 0;
-
-  QuadricSlices := KambiTriangulation.CalculateQuadricSlices;
-  QuadricStacks := KambiTriangulation.CalculateQuadricStacks;
 
   { We generate QuadricSlices + 1 points, not just QuadricSlices for each stack.
     Reason: texture coordinates must be different at the last point
@@ -177,9 +172,7 @@ end;
 { Make a wireframe sphere. }
 procedure SphereWireframe_Proxy(CoordIndex: TLongIntList;
   Coord: TVector3SingleList; const Radius: Single;
-  KambiTriangulation: TKambiTriangulationNode);
-var
-  QuadricSlices, QuadricStacks: Cardinal;
+  const QuadricSlices, QuadricStacks: Cardinal);
 
   { We have rings numbered 0 ... QuadricStacks.
     The rings nr 0 and QuadricStacks have 0 radius (bottom and top of the sphere). }
@@ -214,9 +207,6 @@ var
 begin
   CoordIndex.Count := 0;
   Coord.Count := 0;
-
-  QuadricSlices := KambiTriangulation.CalculateQuadricSlices;
-  QuadricStacks := KambiTriangulation.CalculateQuadricStacks;
 
   BottomIndex := Coord.Count;
   Coord.Count := Coord.Count + 1;
@@ -295,7 +285,7 @@ function TSphereNode.Proxy(var State: TX3DGraphTraverseState;
       ILS.FdCoord.Value := CoordNode;
 
       SphereWireframe_Proxy(ILS.FdCoordIndex.Items, CoordNode.FdPoint.Items,
-        FdRadius.Value, State.LastNodes.KambiTriangulation);
+        FdRadius.Value, CalculateSlices, CalculateStacks);
     except FreeAndNil(Result); raise end;
   end;
 
@@ -331,7 +321,7 @@ function TSphereNode.Proxy(var State: TX3DGraphTraverseState;
       Sphere_Proxy(IFS.FdCoordIndex.Items,
         CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords,
         OverTriangulate, FdRadius.Value,
-        State.LastNodes.KambiTriangulation);
+        CalculateSlices, CalculateStacks);
 
       IFS.FdSolid.Value := FdSolid.Value;
 
@@ -396,7 +386,7 @@ begin
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
       TexCoordNode.FdPoint.Items,
       OverTriangulate, FdRadius.Value,
-      State.LastNodes.KambiTriangulation);
+      DefaultTriangulationSlices, DefaultTriangulationStacks);
 
     { For VRML 1.0, unfortunately textureCoordIndex must be set
       (even though it's exactly equivalent to coordIndex).

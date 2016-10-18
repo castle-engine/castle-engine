@@ -213,7 +213,6 @@ type
   TTextureCoordinate2Node_1 = class;
   TAbstractGeometryNode = class;
   TAbstractLightNode = class;
-  TKambiTriangulationNode = class;
   TAbstractShapeNode = class;
   TAbstractTexture2DNode = class;
   TBlendModeNode = class;
@@ -241,8 +240,7 @@ type
     vsNormal,
     vsNormalBinding,
     vsTexture2,
-    vsTextureCoordinate2,
-    vsKambiTriangulation
+    vsTextureCoordinate2
   );
 
   { Nodes that will be saved inside TX3DGraphTraverseState.LastNodes.
@@ -251,16 +249,15 @@ type
   TTraverseStateLastNodes = record
     case Integer of
       0: ( Nodes: array [TVRML1StateNode] of TX3DNode; );
-      1: ( Coordinate3 :TCoordinate3Node_1;
-           ShapeHints :TShapeHintsNode_1;
-           FontStyle :TFontStyleNode_1;
-           Material :TMaterialNode_1;
-           MaterialBinding :TMaterialBindingNode_1;
-           Normal :TNormalNode;
-           NormalBinding :TNormalBindingNode_1;
-           Texture2 :TTexture2Node_1;
-           TextureCoordinate2 :TTextureCoordinate2Node_1;
-           KambiTriangulation: TKambiTriangulationNode;
+      1: ( Coordinate3: TCoordinate3Node_1;
+           ShapeHints: TShapeHintsNode_1;
+           FontStyle: TFontStyleNode_1;
+           Material: TMaterialNode_1;
+           MaterialBinding: TMaterialBindingNode_1;
+           Normal: TNormalNode;
+           NormalBinding: TNormalBindingNode_1;
+           Texture2: TTexture2Node_1;
+           TextureCoordinate2: TTextureCoordinate2Node_1;
            { additions here must be synchronized with additions to
              TVRML1StateNode }
          );
@@ -1849,8 +1846,7 @@ const
     array [TVRML1StateNode] of TX3DNodeClass =
     ( TCoordinate3Node_1, TShapeHintsNode_1, TFontStyleNode_1,
       TMaterialNode_1, TMaterialBindingNode_1, TNormalNode, TNormalBindingNode_1,
-      TTexture2Node_1, TTextureCoordinate2Node_1,
-      TKambiTriangulationNode
+      TTexture2Node_1, TTextureCoordinate2Node_1
       { additions here must be synchronized with additions to
         TTraverseStateLastNodes }
     );
@@ -2043,50 +2039,45 @@ const
   xeClassic = X3DLexer.xeClassic;
   xeXML = X3DLexer.xeXML;
 
-var
-  { Quadric triangulation settings.
-
-    Slices divide the circumference of the circle, like a slices of pizza.
-    Stacks divide the height of the object, like stacks of a cake or tower.
-    The precise meaning of slices and stacks parameters follows exactly
-    the OpenGL Utility (GLU) functions (although our implementation
-    doesn't use GLU).
-
-    Note that the cylinder, cone, sphere and disk slices must match,
-    otherwise artifacts will appear when you try to connect a sphere
-    with a cylinder cap. Stacks and RectDivisions do not really have to match,
-    but still it's sensible.
-
-    Rectangles (used for Cube sides) are also subdivided, for better
-    Gouraud shading. We use Detail_RectDivisions + 1 columns and rows,
-    so we render @code((Detail_RectDivisions + 1)^2) quads
-    for each cube side.
-
-    For now, you can change these variables only @italic(before using anything)
-    from this module. If you want to change them inside VRML/X3D
-    file (for example, to affect only part of the scene), use the
-    KambiTriangulation node, see
-    [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_kambi_triangulation].
-
-    These variables @italic(must) always honour MinQuadricSlices,
-    MinQuadricStacks, MinRectDivisions limit.
-
-    @groupBegin }
-  Detail_QuadricSlices: Cardinal = 30;
-  Detail_QuadricStacks: Cardinal = 20;
-  Detail_RectDivisions: Cardinal = 2;
-  { @groupEnd }
-
 const
-  { Minimal values for Detail_QuadricSlices, Detail_QuadricStacks,
-    Detail_RectDivisions.
+  { Minimal values for
+    @link(DefaultTriangulationSlices),
+    @link(DefaultTriangulationStacks),
+    @link(DefaultTriangulationDivisions).
 
-    Note that MinQuadricSlices can be lower (2), it works,
+    Note that MinTriangulationSlices can be lower (2), it works,
     but the result isn't really sensible.
     @groupBegin }
-  MinQuadricSlices: Cardinal = 3;
-  MinQuadricStacks: Cardinal = 1;
-  MinRectDivisions: Cardinal = 0;
+  MinTriangulationSlices: Cardinal = 3;
+  MinTriangulationStacks: Cardinal = 1;
+  MinTriangulationDivisions: Cardinal = 0;
+  { @groupEnd }
+
+var
+  { Triangulation settings.
+
+    "Slices" divide the circumference of the circle, like the slices of a pizza.
+    "Stacks" divide the height of the object, like the stacks of a cake or tower.
+    These are used for quadrics - cylinder, cone, sphere and disk.
+
+    "Divisions" divide the cube side.
+    This is beneficial for better Gouraud shading.
+
+    You can change these variables only @italic(before using anything)
+    from this module. If you want to change them inside VRML/X3D
+    file (for example, to affect only part of the scene), use the
+    Triangulation node, see
+    http://castle-engine.sourceforge.net/x3d_implementation_geometry3d_extensions.php#section_triangulation
+
+    These variables @italic(must) always honour
+    @link(MinTriangulationSlices),
+    @link(MinTriangulationStacks),
+    @link(MinTriangulationDivisions) limits.
+
+    @groupBegin }
+  DefaultTriangulationSlices: Cardinal = 30;
+  DefaultTriangulationStacks: Cardinal = 20;
+  DefaultTriangulationDivisions: Cardinal = 2;
   { @groupEnd }
 
 const

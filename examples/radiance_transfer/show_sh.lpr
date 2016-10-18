@@ -120,8 +120,8 @@ var
 begin
   Window := TCastleWindow.Create(Application);
 
-  Detail_QuadricSlices := 60;
-  Detail_QuadricStacks := 60;
+  DefaultTriangulationSlices := 60;
+  DefaultTriangulationStacks := 60;
 
   Window.MainMenu := TMenu.Create('Main menu');
   M := TMenu.Create('_Program');

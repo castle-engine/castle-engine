@@ -78,6 +78,10 @@
     private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
+    private FFdSlices: TSFInt32;
+    public property FdSlices: TSFInt32 read FFdSlices;
+    function CalculateSlices: Cardinal;
+
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
@@ -288,6 +292,10 @@ begin
    FdRadius.ChangesAlways := [chGeometry];
   AddField(FFdRadius);
   { X3D specification comment: (0,Inf) }
+
+  FFdSlices := TSFInt32.Create(Self, 'slices', -1);
+   FdSlices.ChangesAlways := [chGeometry];
+  AddField(FFdSlices);
 end;
 
 class function TCircle2DNode.ClassNodeTypeName: string;
@@ -301,10 +309,19 @@ begin
     (URN = URNX3DNodes + ClassNodeTypeName);
 end;
 
+function TCircle2DNode.CalculateSlices: Cardinal;
+begin
+  // use default in case of -1 or invalid value
+  if FdSlices.Value < MinTriangulationSlices then
+    Result := DefaultTriangulationSlices
+  else
+    Result := FdSlices.Value;
+end;
+
 function TCircle2DNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
-  Slices: Integer;
+  SlicesNow: Integer;
   C: TCoordinateNode;
   LineSet: TLineSetNode absolute Result;
   I: Integer;
@@ -312,25 +329,25 @@ var
 begin
   LineSet := TLineSetNode.Create(NodeName, BaseUrl);
   try
-    Slices := State.LastNodes.KambiTriangulation.CalculateQuadricSlices;
+    SlicesNow := CalculateSlices;
 
     C := TCoordinateNode.Create('', BaseUrl);
-    C.FdPoint.Items.Count := Slices + 1;
+    C.FdPoint.Items.Count := SlicesNow + 1;
     LineSet.FdCoord.Value := C;
 
     { calculate C contents }
-    for I := 0 to Slices - 1 do
+    for I := 0 to SlicesNow - 1 do
     begin
-      SinCos((I / Slices) * 2 * Pi, AngleSin, AngleCos);
+      SinCos((I / SlicesNow) * 2 * Pi, AngleSin, AngleCos);
 
       C.FdPoint.Items.L[I] := Vector3Single(
         AngleSin * FdRadius.Value,
         AngleCos * FdRadius.Value, 0);
     end;
     { close the circle }
-    C.FdPoint.Items.L[Slices] := C.FdPoint.Items.L[0];
+    C.FdPoint.Items.L[SlicesNow] := C.FdPoint.Items.L[0];
 
-    LineSet.FdVertexCount.Items.Add(Slices + 1);
+    LineSet.FdVertexCount.Items.Add(SlicesNow + 1);
   except FreeAndNil(Result); raise end;
 end;
 

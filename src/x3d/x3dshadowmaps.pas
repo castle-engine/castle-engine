@@ -429,8 +429,7 @@ procedure TLightList.ShapeAdd(Shape: TShape);
           nodes here, we assume that Sphere.Proxy will always generate
           the same coordinates for this node. This is true now,
           but it will stop being true if triangulation detail will be dynamic
-          (e.g. based on distance to camera, or when something like
-          KambiTriangulation node will get exposed fields). }
+          (e.g. based on distance to camera). }
       Shape.OriginalGeometry.TexCoordField.Value := TexCoord;
     end;
 

@@ -23,7 +23,7 @@ procedure Box_Proxy(CoordIndex: TLongIntList;
   Coord: TVector3SingleList; Normal: TVector3SingleList;
   TexCoord: TVector2SingleList; MaterialIndex: TLongIntList;
   OverTriangulate: boolean; Sizes: TVector3Single;
-  KambiTriangulation: TKambiTriangulationNode);
+  const Divisions: Cardinal);
 
 var
   Detail: TVector3Cardinal;
@@ -128,7 +128,7 @@ begin
     Although the code is written to support different Detail* values,
     just in case in the future it will be useful. }
   if OverTriangulate then
-    Detail[0] := KambiTriangulation.CalculateRectDivisions else
+    Detail[0] := Divisions else
     Detail[0] := 0;
   Detail[1] := Detail[0];
   Detail[2] := Detail[0];
@@ -184,7 +184,8 @@ function TBoxNode.Proxy(var State: TX3DGraphTraverseState;
       CoordNode := TCoordinateNode.Create('', BaseUrl);
       ILS.FdCoord.Value := CoordNode;
 
-      BoxWireframe_Proxy(ILS.FdCoordIndex.Items, CoordNode.FdPoint.Items, FdSize.Value);
+      BoxWireframe_Proxy(ILS.FdCoordIndex.Items, CoordNode.FdPoint.Items,
+        FdSize.Value);
     except FreeAndNil(Result); raise end;
   end;
 
@@ -219,8 +220,7 @@ function TBoxNode.Proxy(var State: TX3DGraphTraverseState;
 
       Box_Proxy(IFS.FdCoordIndex.Items,
         CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords, nil,
-        OverTriangulate, FdSize.Value,
-        State.LastNodes.KambiTriangulation);
+        OverTriangulate, FdSize.Value, CalculateDivisions);
 
       IFS.FdSolid.Value := FdSolid.Value;
 
@@ -297,7 +297,7 @@ begin
       TexCoordNode.FdPoint.Items, MaterialIndex,
       OverTriangulate,
       Vector3Single(FdWidth.Value, FdHeight.Value, FdDepth.Value),
-      State.LastNodes.KambiTriangulation);
+      DefaultTriangulationDivisions);
 
     { For VRML 1.0, unfortunately textureCoordIndex must be set
       (even though it's exactly equivalent to coordIndex).

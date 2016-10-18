@@ -91,9 +91,9 @@ begin
   try
     if (flags and 1 {ecgeofSaveMemory}) > 0 then
     begin
-      Detail_QuadricSlices := 16;
-      Detail_QuadricStacks := 16;
-      Detail_RectDivisions := 0;
+      DefaultTriangulationSlices := 16;
+      DefaultTriangulationStacks := 16;
+      DefaultTriangulationDivisions := 0;
     end;
     if (flags and 2 {ecgeofLog}) > 0 then
       InitializeLog;

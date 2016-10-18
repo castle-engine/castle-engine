@@ -180,7 +180,7 @@ class procedure TDummy.CameraChanged(Camera: TObject);
 var
   InMuteArea: boolean;
 begin
-  InMuteArea := PointInsideCylinder(SceneManager.Camera.GetPosition, 2, 0, 0.38, 0, 1.045640);
+  InMuteArea := PointInsideCylinder(SceneManager.Camera.Position, 2, 0, 0.38, 0, 1.045640);
 
   MuteImage.Exists := InMuteArea;
 

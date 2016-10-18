@@ -58,72 +58,69 @@ begin
     raise EInternalError.CreateFmt('%s: TAbstractGeometryNode.TrianglesCount not overridden, and node without a Proxy', [ClassName]);
 end;
 
-{ just a shortcuts for names often used in this file }
-{$define QUADRIC_SLICES:=(State.LastNodes.KambiTriangulation.CalculateQuadricSlices)}
-{$define QUADRIC_STACKS:=(State.LastNodes.KambiTriangulation.CalculateQuadricStacks)}
-{$define RECT_DIVISIONS:=(State.LastNodes.KambiTriangulation.CalculateRectDivisions)}
-
 function Cone_TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-  const Sides, Bottom: boolean): Cardinal;
+  const Sides, Bottom: boolean; const Slices, Stacks: Cardinal): Cardinal;
 begin
  result := 0;
  if Sides then
  begin
   if OverTriangulate then
-   result += QUADRIC_SLICES * ((QUADRIC_STACKS-1)*2 + 1) else
-   result += QUADRIC_SLICES;
+   result += Slices * ((Stacks - 1) * 2 + 1) else
+   result += Slices;
  end;
  if Bottom then
-  result += QUADRIC_SLICES;
+  result += Slices;
 end;
 
 function TConeNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   Result := Cone_TrianglesCount(State, OverTriangulate,
-    FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM]);
+    FdParts.Flags[CONE_PARTS_SIDES], FdParts.Flags[CONE_PARTS_BOTTOM],
+    DefaultTriangulationSlices, DefaultTriangulationStacks);
 end;
 
 function TConeNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   Result := Cone_TrianglesCount(State, OverTriangulate,
-    FdSide.Value, FdBottom.Value);
+    FdSide.Value, FdBottom.Value, CalculateSlices, CalculateStacks);
 end;
 
 function Box_TrianglesCount(State: TX3DGraphTraverseState;
-  OverTriangulate: boolean): Cardinal;
+  OverTriangulate: boolean; const Divisions: Cardinal): Cardinal;
 begin
   if OverTriangulate then
-    {6 scian, na kazdej Sqr(RECT_DIVISIONS+1) kwadracikow}
-    result := Sqr(RECT_DIVISIONS+1)*2 *6 else
+    result := Sqr(Divisions + 1) * 2 * 6 else
     result := 6 * 2;
 end;
 
 function TCubeNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := Box_TrianglesCount(State, OverTriangulate);
+  Result := Box_TrianglesCount(State, OverTriangulate,
+    DefaultTriangulationDivisions);
 end;
 
 function TBoxNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := Box_TrianglesCount(State, OverTriangulate);
+  Result := Box_TrianglesCount(State, OverTriangulate,
+    CalculateDivisions);
 end;
 
 function Cylinder_TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-  const Bottom, Side, Top: boolean): Cardinal;
+  const Bottom, Side, Top: boolean; const Slices, Stacks: Cardinal): Cardinal;
 begin
  result := 0;
  if Side then
  begin
   if OverTriangulate then
-   result += 2 * QUADRIC_SLICES*QUADRIC_STACKS else
-   result += 2 * QUADRIC_SLICES;
+   result += 2 * Slices * Stacks else
+   result += 2 * Slices;
  end;
- if Top then result += QUADRIC_SLICES;
- if Bottom then result += QUADRIC_SLICES;
+ if Top then result += Slices;
+ if Bottom then result += Slices;
 end;
 
 function TCylinderNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -132,14 +129,15 @@ begin
   Result := Cylinder_TrianglesCount(State, OverTriangulate,
     FdParts.Flags[CYLINDER_PARTS_BOTTOM],
     FdParts.Flags[CYLINDER_PARTS_SIDES],
-    FdParts.Flags[CYLINDER_PARTS_TOP]);
+    FdParts.Flags[CYLINDER_PARTS_TOP],
+    DefaultTriangulationSlices, DefaultTriangulationStacks);
 end;
 
 function TCylinderNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   Result := Cylinder_TrianglesCount(State, OverTriangulate,
-    FdBottom.Value, FdSide.Value, FdTop.Value);
+    FdBottom.Value, FdSide.Value, FdTop.Value, CalculateSlices, CalculateStacks);
 end;
 
 function IndexedPolygons_TrianglesCount(
@@ -209,26 +207,25 @@ begin
   result := 0;
 end;
 
-function Sphere_TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean): Cardinal;
+function Sphere_TrianglesCount(State: TX3DGraphTraverseState;
+  OverTriangulate: boolean; const Slices, Stacks: Cardinal): Cardinal;
 begin
-  result := QUADRIC_SLICES * ((QUADRIC_STACKS-2)*2 + 2);
+  result := Slices * ((Stacks - 2) * 2 + 2);
 end;
 
 function TSphereNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := Sphere_TrianglesCount(State, OverTriangulate);
+  Result := Sphere_TrianglesCount(State, OverTriangulate,
+    DefaultTriangulationSlices, DefaultTriangulationStacks);
 end;
 
 function TSphereNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  Result := Sphere_TrianglesCount(State, OverTriangulate);
+  Result := Sphere_TrianglesCount(State, OverTriangulate,
+    CalculateSlices, CalculateStacks);
 end;
-
-{$undef QUADRIC_SLICES}
-{$undef QUADRIC_STACKS}
-{$undef RECT_DIVISIONS}
 
 { TElevationGridNode --------------------------------------------------------- }
 

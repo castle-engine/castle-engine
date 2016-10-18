@@ -1476,7 +1476,6 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
   procedure UpdateDebug3D;
   var
     Root: TX3DRootNode;
-    Triangulation: TKambiTriangulationNode;
     BBox: TBox3D;
     R: Single;
   begin
@@ -1498,6 +1497,8 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
       FDebug3DBoxTransform.FdChildren.Add(FDebug3DBoxShape);
 
       FDebug3DSphere := TSphereNode.Create;
+      FDebug3DSphere.Slices := 10;
+      FDebug3DSphere.Stacks := 10;
 
       FDebug3DSphereShape := TShapeNode.Create;
       FDebug3DSphereShape.Geometry := FDebug3DSphere;
@@ -1506,11 +1507,6 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
       FDebug3DSphereShape.Material := TMaterialNode.Create;
       FDebug3DSphereShape.Material.ForcePureEmissive;
       FDebug3DSphereShape.Material.EmissiveColor := GrayRGB;
-
-      // Triangulation := TKambiTriangulationNode.Create;
-      // Triangulation.QuadricSlices := 10;
-      // Triangulation.QuadricStacks := 10;
-      // TODO: FDebug3DSphereShape.Appearance.Triangulation := Triangulation;
 
       FDebug3DSphereTransform := TTransformNode.Create;
       FDebug3DSphereTransform.FdChildren.Add(FDebug3DSphereShape);

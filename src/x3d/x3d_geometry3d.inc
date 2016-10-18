@@ -32,9 +32,12 @@
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
 
+    private FFdDivisions: TSFInt32;
+    public property FdDivisions: TSFInt32 read FFdDivisions;
+    function CalculateDivisions: Cardinal;
+
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
-
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -67,17 +70,23 @@
     private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
-
     private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
 
+    private FFdSlices: TSFInt32;
+    public property FdSlices: TSFInt32 read FFdSlices;
+    function CalculateSlices: Cardinal;
+
+    private FFdStacks: TSFInt32;
+    public property FdStacks: TSFInt32 read FFdStacks;
+    function CalculateStacks: Cardinal;
+
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+      override;
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
-
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -114,17 +123,23 @@
     private FFdTop: TSFBool;
     public property FdTop: TSFBool read FFdTop;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
-
-    function Proxy(var State: TX3DGraphTraverseState;
-      const OverTriangulate: boolean): TAbstractGeometryNode; override;
-
     private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
 
+    private FFdSlices: TSFInt32;
+    public property FdSlices: TSFInt32 read FFdSlices;
+    function CalculateSlices: Cardinal;
+
+    private FFdStacks: TSFInt32;
+    public property FdStacks: TSFInt32 read FFdStacks;
+    function CalculateStacks: Cardinal;
+
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+      override;
+    function Proxy(var State: TX3DGraphTraverseState;
+      const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function BoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -388,14 +403,21 @@
     private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
-      override;
-
     private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
 
+    private FFdSlices: TSFInt32;
+    public property FdSlices: TSFInt32 read FFdSlices;
+    function CalculateSlices: Cardinal;
+
+    private FFdStacks: TSFInt32;
+    public property FdStacks: TSFInt32 read FFdStacks;
+    function CalculateStacks: Cardinal;
+
+    class function ForVRMLVersion(const Version: TX3DVersion): boolean;
+      override;
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
 
@@ -430,6 +452,10 @@ begin
   FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   AddField(FFdTexCoord);
+
+  FFdDivisions := TSFInt32.Create(Self, 'divisions', -1);
+   FdDivisions.ChangesAlways := [chGeometry];
+  AddField(FFdDivisions);
 end;
 
 class function TBoxNode.ClassNodeTypeName: string;
@@ -457,6 +483,15 @@ end;
 function TBoxNode.SolidField: TSFBool;
 begin
   Result := FdSolid;
+end;
+
+function TBoxNode.CalculateDivisions: Cardinal;
+begin
+  // use default in case of -1 or invalid value
+  if FdDivisions.Value < MinTriangulationDivisions then
+    Result := DefaultTriangulationDivisions
+  else
+    Result := FdDivisions.Value;
 end;
 
 { TConeNode ------------------------------------------------------------------ }
@@ -495,6 +530,14 @@ begin
   FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   AddField(FFdTexCoord);
+
+  FFdSlices := TSFInt32.Create(Self, 'slices', -1);
+   FdSlices.ChangesAlways := [chGeometry];
+  AddField(FFdSlices);
+
+  FFdStacks := TSFInt32.Create(Self, 'stacks', -1);
+   FdStacks.ChangesAlways := [chGeometry];
+  AddField(FFdStacks);
 end;
 
 class function TConeNode.ClassNodeTypeName: string;
@@ -538,6 +581,24 @@ begin
   Result := FdSolid;
 end;
 
+function TConeNode.CalculateSlices: Cardinal;
+begin
+  // use default in case of -1 or invalid value
+  if FdSlices.Value < MinTriangulationSlices then
+    Result := DefaultTriangulationSlices
+  else
+    Result := FdSlices.Value;
+end;
+
+function TConeNode.CalculateStacks: Cardinal;
+begin
+  // use default in case of -1 or invalid value
+  if FdStacks.Value < MinTriangulationStacks then
+    Result := DefaultTriangulationStacks
+  else
+    Result := FdStacks.Value;
+end;
+
 { TCylinderNode -------------------------------------------------------------- }
 
 procedure TCylinderNode.CreateNode;
@@ -579,6 +640,14 @@ begin
   FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   AddField(FFdTexCoord);
+
+  FFdSlices := TSFInt32.Create(Self, 'slices', -1);
+   FdSlices.ChangesAlways := [chGeometry];
+  AddField(FFdSlices);
+
+  FFdStacks := TSFInt32.Create(Self, 'stacks', -1);
+   FdStacks.ChangesAlways := [chGeometry];
+  AddField(FFdStacks);
 end;
 
 class function TCylinderNode.ClassNodeTypeName: string;
@@ -620,6 +689,24 @@ end;
 function TCylinderNode.SolidField: TSFBool;
 begin
   Result := FdSolid;
+end;
+
+function TCylinderNode.CalculateSlices: Cardinal;
+begin
+  // use default in case of -1 or invalid value
+  if FdSlices.Value < MinTriangulationSlices then
+    Result := DefaultTriangulationSlices
+  else
+    Result := FdSlices.Value;
+end;
+
+function TCylinderNode.CalculateStacks: Cardinal;
+begin
+  // use default in case of -1 or invalid value
+  if FdStacks.Value < MinTriangulationStacks then
+    Result := DefaultTriangulationStacks
+  else
+    Result := FdStacks.Value;
 end;
 
 { TElevationGridNode --------------------------------------------------------- }
@@ -1350,6 +1437,14 @@ begin
   FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   AddField(FFdTexCoord);
+
+  FFdSlices := TSFInt32.Create(Self, 'slices', -1);
+   FdSlices.ChangesAlways := [chGeometry];
+  AddField(FFdSlices);
+
+  FFdStacks := TSFInt32.Create(Self, 'stacks', -1);
+   FdStacks.ChangesAlways := [chGeometry];
+  AddField(FFdStacks);
 end;
 
 class function TSphereNode.ClassNodeTypeName: string;
@@ -1382,6 +1477,24 @@ end;
 function TSphereNode.SolidField: TSFBool;
 begin
   Result := FdSolid;
+end;
+
+function TSphereNode.CalculateSlices: Cardinal;
+begin
+  // use default in case of -1 or invalid value
+  if FdSlices.Value < MinTriangulationSlices then
+    Result := DefaultTriangulationSlices
+  else
+    Result := FdSlices.Value;
+end;
+
+function TSphereNode.CalculateStacks: Cardinal;
+begin
+  // use default in case of -1 or invalid value
+  if FdStacks.Value < MinTriangulationStacks then
+    Result := DefaultTriangulationStacks
+  else
+    Result := FdStacks.Value;
 end;
 
 { routines ------------------------------------------------------------------- }

@@ -319,7 +319,6 @@ begin
     P.Targets.AddUnit('x3dloadinternalspine.pas');
     P.Targets.AddUnit('x3dloadinternalutils.pas');
     P.Targets.AddUnit('x3dnodes.pas');
-    P.Targets.AddUnit('x3dnodesdetailoptions.pas');
     P.Targets.AddUnit('x3dshadowmaps.pas');
     P.Targets.AddUnit('x3dtime.pas');
     P.Targets.AddUnit('x3dtriangles.pas');

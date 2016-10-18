@@ -107,6 +107,7 @@ const
   Replaces: array[0..1]of TPercentReplace =
   ((c:'k'; s:'kot'), (c:'p'; s:'pies'));
 begin
+ {$warnings off} // testing deprecated routine
  AssertTrue( SPercentReplace('bla%kkk%jk%pies', Replaces, false, '%', false)
    = 'blakotkk%jkpiesies');
  try
@@ -128,6 +129,7 @@ begin
   AssertTrue( SPercentReplace('foo%', Replaces, true, '%', false) = 'foo%');
   raise Exception.Create('Last SPercentReplace SHOULD raise exception');
  except on E: EUnknownPercentFormat do AssertTrue(e.Message = 'Unknown format pattern in format "foo%", wrong sequence is : % at the end of the format string'); end;
+ {$warnings on}
 end;
 
 procedure TTestCastleStringUtils.TestIntToStr2;
