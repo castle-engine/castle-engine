@@ -320,7 +320,7 @@ begin
     FreeAndNil(CurrentTerrain);
     CurrentTerrain := Value;
 
-    Window.Controls.MakeSingle(TCommonMenu, CurrentControls, false);
+    Window.Controls.MakeSingle(TCommonMenu, CurrentControls, true);
 
     if CurrentTerrain is TTerrainImage then
       TTerrainImage(CurrentTerrain).ImageHeightScale := CurrentControls.ImageHeightScaleSlider.Value;
@@ -693,7 +693,7 @@ begin
     145:
       begin
         ControlsVisible := not ControlsVisible;
-        Window.Controls.MakeSingle(TCommonMenu, CurrentControls, false);
+        Window.Controls.MakeSingle(TCommonMenu, CurrentControls, true);
       end;
     147: SpecializedGridRendering := not SpecializedGridRendering;
     150:
