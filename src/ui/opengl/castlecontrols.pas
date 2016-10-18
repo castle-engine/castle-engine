@@ -1156,6 +1156,7 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
     function Rect: TRectangle; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
   published
     property Width: Cardinal read FWidth write SetWidth default DefaultWidth;
     property Height: Cardinal read FHeight write SetHeight default DefaultHeight;
@@ -4012,6 +4013,16 @@ begin
     FCaption := Value;
     VisibleChange;
   end;
+end;
+
+procedure TCastleAbstractSlider.Update(const SecondsPassed: Single;
+  var HandleInput: boolean);
+begin
+  inherited;
+  { left / right arrow keys pressed are already handled by slider }
+  if HandleInput and ExclusiveEvents and
+     (Container.Pressed[K_Right] or Container.Pressed[K_Left]) then
+    HandleInput := false;
 end;
 
 { TCastleFloatSlider --------------------------------------------------------- }
