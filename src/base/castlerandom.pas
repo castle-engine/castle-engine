@@ -96,8 +96,8 @@ end;
 {result := LongWord((int64(seed)*N) shr 32)// := seed mod N; works slower
 //result := longint((int64(xorshift)*N) shr 32) // works slower}
 
-{ Adding  {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF} makes this procedure
-  +35% effective. But I don't think it's a good idea }
+// Adding  {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF} makes this procedure
+//  +35% effective. But I don't think it's a good idea
 function TCastleRandom.Random(N: LongInt): LongInt;
 begin
   XorShiftCycle;
