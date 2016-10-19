@@ -145,6 +145,11 @@ type
   TCastleButton = class(TUIControlFont)
   strict private
     FWidth, FHeight: Cardinal;
+    FFinalScaledValid: boolean;
+    { The only method that can access these is Rect.
+      Everything else should use Rect, ScreenRect, CalculatedWidth, CalculatedHeight
+      or other methods that wrap Rect.
+      This makes sure that FFinalScaledValid is honored. }
     FFinalScaledWidth, FFinalScaledHeight: Cardinal;
     FOnClick: TNotifyEvent;
     FCaption: string;
@@ -190,11 +195,8 @@ type
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
     procedure SetAutoSizeHeight(const Value: boolean);
-    { Calculate TextWidth, TextHeight and call UpdateSize. }
+    { Recalculate TextWidth, TextHeight, and set FFinalScaledValid to false. }
     procedure UpdateTextSize;
-    { If AutoSize, update Width, Height.
-      This depends on Caption, AutoSize*, Font availability. }
-    procedure UpdateSize;
     procedure SetImage(const Value: TCastleImage);
     procedure SetCustomBackgroundPressed(const Value: TCastleImage);
     procedure SetCustomBackgroundDisabled(const Value: TCastleImage);
@@ -2127,76 +2129,14 @@ begin
       finally FreeAndNil(TextToRender) end;
     end;
 
-    UpdateSize;
-  end;
-end;
-
-procedure TCastleButton.UpdateSize;
-var
-  ImgSize: Cardinal;
-  MinWidthScaled, MinHeightScaled,
-    ImageMarginScaled,
-    PaddingHorizontalScaled, PaddingVerticalScaled: Cardinal;
-begin
-  FFinalScaledWidth  := Round(FWidth  * UIScale);
-  FFinalScaledHeight := Round(FHeight * UIScale);
-
-  if AutoSize then
-  begin
-    PaddingHorizontalScaled := Round(PaddingHorizontal * UIScale);
-    PaddingVerticalScaled   := Round(PaddingVertical   * UIScale);
-    ImageMarginScaled       := Round(ImageMargin       * UIScale);
-    MinWidthScaled          := Round(MinWidth          * UIScale);
-    MinHeightScaled         := Round(MinHeight         * UIScale);
-
-    { We modify FFinalScaledWidth, FFinalScaledHeight,
-      and avoid causing UpdateFocusAndMouseCursor too many times.
-      We'll call it at the end explicitly, with VisibleChange(true). }
-    if AutoSizeWidth  then FFinalScaledWidth  := TextWidth  + PaddingHorizontalScaled * 2;
-    if AutoSizeHeight then FFinalScaledHeight := TextHeight + PaddingVerticalScaled * 2;
-    if (FImage <> nil) or
-       (MinImageWidth <> 0) or
-       (MinImageHeight <> 0) then
-    begin
-      if AutoSizeWidth then
-      begin
-        if FImage <> nil then
-          ImgSize := Max(FImage.Width, MinImageWidth) else
-          ImgSize := MinImageWidth;
-        ImgSize := Round(ImgSize * UIScale);
-        case ImageLayout of
-          ilLeft, ilRight: FFinalScaledWidth := FFinalScaledWidth + ImgSize + ImageMarginScaled;
-          ilTop, ilBottom: FFinalScaledWidth := Max(FFinalScaledWidth, ImgSize + PaddingHorizontalScaled * 2);
-        end;
-      end;
-      if AutoSizeHeight then
-      begin
-        if FImage <> nil then
-          ImgSize := Max(FImage.Height, MinImageHeight) else
-          ImgSize := MinImageHeight;
-        ImgSize := Round(ImgSize * UIScale);
-        case ImageLayout of
-          ilLeft, ilRight: FFinalScaledHeight := Max(FFinalScaledHeight, ImgSize + PaddingVerticalScaled * 2);
-          ilTop, ilBottom: FFinalScaledHeight := FFinalScaledHeight + ImgSize + ImageMarginScaled;
-        end;
-      end;
-    end;
-
-    { at the end apply MinXxx properties }
-    if AutoSizeWidth then
-      MaxVar(FFinalScaledWidth, MinWidthScaled);
-    if AutoSizeHeight then
-      MaxVar(FFinalScaledHeight, MinHeightScaled);
-
-    if AutoSizeWidth or AutoSizeHeight then
-      VisibleChange(true);
+    FFinalScaledValid := false;
   end;
 end;
 
 procedure TCastleButton.UIScaleChanged;
 begin
   inherited;
-  UpdateSize;
+  FFinalScaledValid := false;
 end;
 
 procedure TCastleButton.SetImage(const Value: TCastleImage);
@@ -2211,7 +2151,7 @@ begin
     if GLInitialized and (FImage <> nil) then
       FGLImage := TGLImageCore.Create(FImage, true);
 
-    UpdateSize;
+    FFinalScaledValid := false;
   end;
 end;
 
@@ -2227,7 +2167,7 @@ begin
     if GLInitialized and (FCustomBackgroundPressed <> nil) then
       FGLCustomBackgroundPressed := TGLImageCore.Create(FCustomBackgroundPressed, true);
 
-    UpdateSize;
+    FFinalScaledValid := false;
   end;
 end;
 
@@ -2243,7 +2183,7 @@ begin
     if GLInitialized and (FCustomBackgroundDisabled <> nil) then
       FGLCustomBackgroundDisabled := TGLImageCore.Create(FCustomBackgroundDisabled, true);
 
-    UpdateSize;
+    FFinalScaledValid := false;
   end;
 end;
 
@@ -2259,7 +2199,7 @@ begin
     if GLInitialized and (FCustomBackgroundFocused <> nil) then
       FGLCustomBackgroundFocused := TGLImageCore.Create(FCustomBackgroundFocused, true);
 
-    UpdateSize;
+    FFinalScaledValid := false;
   end;
 end;
 
@@ -2275,7 +2215,7 @@ begin
     if GLInitialized and (FCustomBackgroundNormal <> nil) then
       FGLCustomBackgroundNormal := TGLImageCore.Create(FCustomBackgroundNormal, true);
 
-    UpdateSize;
+    FFinalScaledValid := false;
   end;
 end;
 
@@ -2339,7 +2279,7 @@ begin
   if FImageLayout <> Value then
   begin
     FImageLayout := Value;
-    UpdateSize;
+    FFinalScaledValid := false;
     VisibleChange;
   end;
 end;
@@ -2349,7 +2289,7 @@ begin
   if FWidth <> Value then
   begin
     FWidth := Value;
-    UpdateSize;
+    FFinalScaledValid := false;
     VisibleChange(true);
   end;
 end;
@@ -2359,7 +2299,7 @@ begin
   if FHeight <> Value then
   begin
     FHeight := Value;
-    UpdateSize;
+    FFinalScaledValid := false;
     VisibleChange(true);
   end;
 end;
@@ -2369,7 +2309,7 @@ begin
   if FMinWidth <> Value then
   begin
     FMinWidth := Value;
-    UpdateSize;
+    FFinalScaledValid := false;
     VisibleChange;
   end;
 end;
@@ -2379,7 +2319,7 @@ begin
   if FMinHeight <> Value then
   begin
     FMinHeight := Value;
-    UpdateSize;
+    FFinalScaledValid := false;
     VisibleChange;
   end;
 end;
@@ -2389,7 +2329,7 @@ begin
   if FImageMargin <> Value then
   begin
     FImageMargin := Value;
-    UpdateSize;
+    FFinalScaledValid := false;
     VisibleChange;
   end;
 end;
@@ -2404,7 +2344,75 @@ begin
 end;
 
 function TCastleButton.Rect: TRectangle;
+
+  procedure CalculateFinalScaledSize;
+  var
+    ImgSize: Cardinal;
+    MinWidthScaled, MinHeightScaled,
+      ImageMarginScaled,
+      PaddingHorizontalScaled, PaddingVerticalScaled: Cardinal;
+  begin
+    FFinalScaledWidth  := Round(FWidth  * UIScale);
+    FFinalScaledHeight := Round(FHeight * UIScale);
+
+    if AutoSize then
+    begin
+      PaddingHorizontalScaled := Round(PaddingHorizontal * UIScale);
+      PaddingVerticalScaled   := Round(PaddingVertical   * UIScale);
+      ImageMarginScaled       := Round(ImageMargin       * UIScale);
+      MinWidthScaled          := Round(MinWidth          * UIScale);
+      MinHeightScaled         := Round(MinHeight         * UIScale);
+
+      { We modify FFinalScaledWidth, FFinalScaledHeight,
+        and avoid causing UpdateFocusAndMouseCursor too many times.
+        We'll call it at the end explicitly, with VisibleChange(true). }
+      if AutoSizeWidth  then FFinalScaledWidth  := TextWidth  + PaddingHorizontalScaled * 2;
+      if AutoSizeHeight then FFinalScaledHeight := TextHeight + PaddingVerticalScaled * 2;
+      if (FImage <> nil) or
+         (MinImageWidth <> 0) or
+         (MinImageHeight <> 0) then
+      begin
+        if AutoSizeWidth then
+        begin
+          if FImage <> nil then
+            ImgSize := Max(FImage.Width, MinImageWidth) else
+            ImgSize := MinImageWidth;
+          ImgSize := Round(ImgSize * UIScale);
+          case ImageLayout of
+            ilLeft, ilRight: FFinalScaledWidth := FFinalScaledWidth + ImgSize + ImageMarginScaled;
+            ilTop, ilBottom: FFinalScaledWidth := Max(FFinalScaledWidth, ImgSize + PaddingHorizontalScaled * 2);
+          end;
+        end;
+        if AutoSizeHeight then
+        begin
+          if FImage <> nil then
+            ImgSize := Max(FImage.Height, MinImageHeight) else
+            ImgSize := MinImageHeight;
+          ImgSize := Round(ImgSize * UIScale);
+          case ImageLayout of
+            ilLeft, ilRight: FFinalScaledHeight := Max(FFinalScaledHeight, ImgSize + PaddingVerticalScaled * 2);
+            ilTop, ilBottom: FFinalScaledHeight := FFinalScaledHeight + ImgSize + ImageMarginScaled;
+          end;
+        end;
+      end;
+
+      { at the end apply MinXxx properties }
+      if AutoSizeWidth then
+        MaxVar(FFinalScaledWidth, MinWidthScaled);
+      if AutoSizeHeight then
+        MaxVar(FFinalScaledHeight, MinHeightScaled);
+
+      if AutoSizeWidth or AutoSizeHeight then
+        VisibleChange(true);
+    end;
+  end;
+
 begin
+  if not FFinalScaledValid then
+  begin
+    FFinalScaledValid := true;
+    CalculateFinalScaledSize;
+  end;
   Result := Rectangle(LeftBottomScaled, FFinalScaledWidth, FFinalScaledHeight);
 end;
 
