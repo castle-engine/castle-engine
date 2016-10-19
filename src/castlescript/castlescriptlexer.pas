@@ -120,7 +120,8 @@ type
 
 implementation
 
-uses CastleStringUtils;
+uses StrUtils,
+  CastleStringUtils;
 
 function Int64Power(base: Integer; power: Cardinal): Int64;
 begin
@@ -202,7 +203,7 @@ const
     FTokenString := '';
 
     repeat
-      NextApos := CharPos('''', Text, FTextPos + 1);
+      NextApos := PosEx('''', Text, FTextPos + 1);
       if NextApos = 0 then
         raise ECasScriptLexerError.Create(Self, 'Unfinished string');
       FTokenString += CopyPos(Text, FTextPos + 1, NextApos - 1);
