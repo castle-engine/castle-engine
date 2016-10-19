@@ -29,6 +29,9 @@
         <Verbosity>
           <ShowHints Value="False"/>
         </Verbosity>
+        <CompilerMessages>
+          <IgnoredMessages idx4105="True" idx4104="True"/>
+        </CompilerMessages>
         <CustomOptions Value="-dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
       </Other>
     </CompilerOptions>
@@ -1441,6 +1444,10 @@
         <Filename Value="../src/x3d/x3dnodes_verticesandtrianglescounting.inc"/>
         <Type Value="Include"/>
       </Item349>
+      <Item350>
+        <Filename Value="../src/x3d/x3dtriangles.pas"/>
+        <UnitName Value="X3DTriangles"/>
+      </Item350>
       <Item351>
         <Filename Value="../src/x3d/x3dshadowmaps.pas"/>
         <UnitName Value="X3DShadowMaps"/>
@@ -1449,10 +1456,6 @@
         <Filename Value="../src/x3d/x3dtime.pas"/>
         <UnitName Value="X3DTime"/>
       </Item352>
-      <Item350>
-        <Filename Value="../src/x3d/x3dtriangles.pas"/>
-        <UnitName Value="X3DTriangles"/>
-      </Item350>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
