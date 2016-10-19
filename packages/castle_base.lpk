@@ -29,9 +29,6 @@
         <Verbosity>
           <ShowHints Value="False"/>
         </Verbosity>
-        <CompilerMessages>
-          <IgnoredMessages idx4105="True" idx4104="True"/>
-        </CompilerMessages>
         <CustomOptions Value="-dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
       </Other>
     </CompilerOptions>
