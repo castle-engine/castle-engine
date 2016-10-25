@@ -402,7 +402,7 @@ end;
 
 procedure TGooglePlayGames.RequestPlayerBestScore(const LeaderboardId: string);
 begin
-  Messaging.Send(['request-best-score', LeaderboardId]);
+  Messaging.Send(['request-player-best-score', LeaderboardId]);
 end;
 
 procedure TGooglePlayGames.RequestSignedIn(const Value: boolean);
