@@ -27,7 +27,7 @@ var
 begin
   Scene := TCastleSceneCore.Create(nil);
   try
-    Scene.Load('models/bridge_final.x3dv');
+    Scene.Load(ApplicationData('bridge_final.x3dv'));
 
     SI := TShapeTreeIterator.Create(Scene.Shapes, true);
     try

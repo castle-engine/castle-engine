@@ -28,9 +28,7 @@ var
   Window: TCastleWindow;
   Scene: TCastleScene;
   OpenButton: TCastleButton;
-//  URL: string = '/home/michalis/sources/castle-engine/demo-models/kanim/raptor.kanim';
-//  URL: string = '/home/michalis/sources/tremulous-data-unpacked/models/players/level4/nonseg.md3';
-  URL: string = 'models/bridge_final.x3dv';
+  URL: string = 'data/bridge_final.x3dv';
 
 type
   { Dummy class, just to keep OpenButtonClick method. }

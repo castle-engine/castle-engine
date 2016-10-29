@@ -27,7 +27,7 @@
   while the VRML/X3D is loaded.
 
   Inside the VRML/X3D model, this is declared by "compiled:" protocol
-  inside a Script node. See models/compiled_script_tests.x3dv.
+  inside a Script node. See data/compiled_script_tests.x3dv.
   See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_script_compiled
   for more information. }
 
@@ -60,7 +60,7 @@ end;
 
 var
   { May also be given on command-line. }
-  URL: string = 'models/compiled_script_tests.x3dv';
+  URL: string = 'data/compiled_script_tests.x3dv';
 begin
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
