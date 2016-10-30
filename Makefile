@@ -155,12 +155,12 @@ EXAMPLES_BASE_NAMES := \
   examples/curves_surfaces/bezier_surfaces/design_surface \
   examples/curves_surfaces/interpolated_curves \
   examples/space_filling_curve/draw_space_filling_curve \
-  examples/radiance_transfer/radiance_transfer \
-  examples/radiance_transfer/precompute_radiance_transfer \
-  examples/radiance_transfer/show_sh \
-  examples/shadow_fields/precompute_shadow_field \
-  examples/shadow_fields/shadow_fields \
-  examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
+  examples/research_special_rendering_methods/radiance_transfer/radiance_transfer \
+  examples/research_special_rendering_methods/radiance_transfer/precompute_radiance_transfer \
+  examples/research_special_rendering_methods/radiance_transfer/show_sh \
+  examples/research_special_rendering_methods/shadow_fields/precompute_shadow_field \
+  examples/research_special_rendering_methods/shadow_fields/shadow_fields \
+  examples/research_special_rendering_methods/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
   examples/terrain/terrain \
   examples/3d_rendering_processing/custom_3d_object \
   examples/3d_rendering_processing/triangulate_demo \
@@ -169,7 +169,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/tools/kanim_to_interpolators \
   examples/3d_rendering_processing/multiple_viewports \
   examples/3d_rendering_processing/fog_culling \
-  examples/3d_rendering_processing/plane_mirror_and_shadow \
+  examples/research_special_rendering_methods/plane_mirror_and_shadow/plane_mirror_and_shadow \
   examples/3d_rendering_processing/animate_3d_model_by_code \
   examples/3d_rendering_processing/animate_3d_model_by_code_2 \
   examples/3d_rendering_processing/call_pascal_code_from_3d_model_script \
@@ -189,7 +189,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_sound_game/data/levels/base/devel/process_base_b \
   examples/resource_animations/resource_animations \
   examples/fps_game/fps_game \
-  examples/2d/controls_demo \
+  examples/2d_standard_ui/controls_demo \
   examples/android/android_demo/androiddemo_standalone \
   tools/build-tool/castle-engine \
   tools/image2pascal/image2pascal \
