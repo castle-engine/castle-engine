@@ -264,7 +264,7 @@ begin
 end;
 
 var
-  URL: string = 'models/chinchilla_with_prt.wrl.gz';
+  URL: string = 'data/chinchilla_with_prt.wrl.gz';
 begin
   Window := TCastleWindowCustom.Create(Application);
 

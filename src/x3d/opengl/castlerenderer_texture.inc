@@ -847,8 +847,8 @@ begin
     *after* old nodes have been already freed.)
 
     Accessing here TextureNode.FdTexture.Count e.g. crashes on
-    multiple_viewports: open models/bridge_final.x3dv, then open
-    models/boxes.x3dv. (Note that multiple_viewports loads new scene
+    multiple_viewports: open data/bridge_final.x3dv, then open
+    data/boxes.x3dv. (Note that multiple_viewports loads new scene
     by simple Scene.Load.)
 
     That's why we use PreparedTextureChildren saved.

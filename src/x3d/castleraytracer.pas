@@ -27,7 +27,7 @@ unit CastleRayTracer;
 
 { Define PATHTR_USES_SHADOW_CACHE to make path tracing use shadow cache.
   Speed gain is small (sometimes it's even a little worse with
-  shadow cache (see /win/3dmodels/rayhunter-demos/raporty/shadow-cache)),
+  shadow cache (see ~/ownCloud/3dmodels/rayhunter-demos/raporty/shadow-cache)),
   but in general it's a good idea. For appropriate scenes, speed gain
   is more than 110%. }
 {$define PATHTR_USES_SHADOW_CACHE}

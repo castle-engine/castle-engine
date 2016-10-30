@@ -885,9 +885,9 @@ begin
 end;
 
 var
-  ModelFileName: string =
-    //'models' + PathDelim + 'chinchilla_awakens.x3dv';
-    'models' + PathDelim + 'peach.wrl.gz';
+  ModelURL: string =
+    //'data/chinchilla_awakens.x3dv';
+    'data/peach.wrl.gz';
 begin
   Window := TCastleWindowCustom.Create(Application);
 
@@ -895,13 +895,13 @@ begin
 
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
-    ModelFileName := Parameters[1];
+    ModelURL := Parameters[1];
 
   try
     ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
     Scene := TCastleScene.Create(Window);
-    Scene.Load(ModelFileName);
+    Scene.Load(ModelURL);
     UpdateSceneAttribs;
 
     CalculateElements;

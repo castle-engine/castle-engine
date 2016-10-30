@@ -101,8 +101,8 @@ Advantages:
 
 - Since all work is done on the fly, the scene may be absolutely dynamic. (On changes, list of elements must be updated, but this shouldn't be so bad with a few optimizations?). Any deformations, transformations, changes  --- all is allowed, nothing needs to be precomputed.
   For example, see:
-  models/chinchilla_awakens (timesensor animation) and
-  models/dynamic_world_ifs (interactive world changing, press left mouse down, use keys werxdf, uiojkl)
+  data/chinchilla_awakens (timesensor animation) and
+  data/dynamic_world_ifs (interactive world changing, press left mouse down, use keys werxdf, uiojkl)
 - Can make bent normals, indirect lighting almost for free.
 - Although the work is done on shaders, resulting colors are grabbed by CPU, and may be fed to fixed-function gl pipeline at the end. This is important, makes it much easier to plug this technique into existing renderer.
 - Can work with practically any 3d model.

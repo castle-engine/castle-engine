@@ -42,7 +42,7 @@ uses CastleSceneCore, CastleUtils, CastleImages, CastleVectors,
 procedure TForm1.FormCreate(Sender: TObject);
 begin
   { For simplicity, we just load 3D model from hardcoded path. }
-  Browser.Load('../../3d_rendering_processing/models/bridge_final.x3dv');
+  Browser.Load('../../3d_rendering_processing/data/bridge_final.x3dv');
   Browser.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
   Browser.MainScene.ProcessEvents := true;
 

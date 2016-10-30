@@ -727,7 +727,7 @@ begin
           routes e.g. in Humanoid Visualization in view3dscene will not work).
 
           Note that Scene may be nil now --- reproduce by:
-          view3dscene ~/Dropbox/3dmodels/vrmlx3d/hanim/kambi_hanim_200_spec/hanim_loa_3.wrl }
+          view3dscene ~/ownCloud/3dmodels/vrmlx3d/hanim/kambi_hanim_200_spec/hanim_loa_3.wrl }
       end;
     end;
 end;

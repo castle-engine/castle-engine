@@ -23,7 +23,7 @@
   (use precompute_shadow_field to make this, with --light for light source).
 
   You can omit any of the URLs, even run with no parameters, then
-  the default models from models/ subdir will be picked up.
+  the default models from data/ subdir will be picked up.
 
   Navigate with mouse or keyboard (like view3dscene in Examine mode,
   see http://castle-engine.sourceforge.net/view3dscene.php docs).
@@ -570,9 +570,9 @@ end;
 
 var
   BoxSum: TBox3D;
-  ShadowCasterURL: string = 'models/humanoid_stand.wrl';
-  ShadowReceiverURL: string = 'models/plane.wrl';
-  LocalLightURL: string = 'models/sphere.wrl';
+  ShadowCasterURL: string = 'data/humanoid_stand.wrl';
+  ShadowReceiverURL: string = 'data/plane.wrl';
+  LocalLightURL: string = 'data/sphere.wrl';
 begin
   Window := TCastleWindowCustom.Create(Application);
 
