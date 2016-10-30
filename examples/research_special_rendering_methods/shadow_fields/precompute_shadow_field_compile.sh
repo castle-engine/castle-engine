@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f precompute_shadow_field.lpr ]; then cd ../../; fi
+if [ -f precompute_shadow_field.lpr ]; then cd ../../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/shadow_fields/precompute_shadow_field.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/research_special_rendering_methods/shadow_fields/precompute_shadow_field.lpr
