@@ -8,4 +8,4 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f controls_demo.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/2d/controls_demo.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/2d_standard_ui/controls_demo.lpr
