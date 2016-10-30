@@ -20,28 +20,61 @@
 }
 program cars_demo;
 
-uses SysUtils, CastleVectors,
+uses SysUtils, CastleVectors, Castle3D, CastleUIControls,
   CastleFilesUtils, CastleWindow, CastleSceneCore, CastleScene;
 
 var
   Window: TCastleWindow;
-  Scene: TCastleScene;
-begin
-  Scene := TCastleScene.Create(Application);
-  Scene.Load(ApplicationData('car.x3d'));
-  Scene.Spatial := [ssRendering, ssDynamicCollisions];
-  Scene.ProcessEvents := true;
+  CarScene, RoadScene: TCastleScene;
+  CarTransform: T3DTransform;
 
+procedure WindowUpdate(Container: TUIContainer);
+var
+  T: TVector3Single;
+begin
+  T := CarTransform.Translation;
+  { Thanks to multiplying by SecondsPassed, it is a time-based operation,
+    and will always move 40 units / per second along the -Z axis. }
+  T := T + Vector3Single(0, 0, -40) * Container.Fps.UpdateSecondsPassed;
+  { Wrap the Z position, to move in a loop }
+  if T[2] < -70.0 then
+    T[2] := 50.0;
+  CarTransform.Translation := T;
+end;
+
+begin
   Window := TCastleWindow.Create(Application);
-  Window.SceneManager.Items.Add(Scene);
-  Window.SceneManager.MainScene := Scene;
+
+  CarScene := TCastleScene.Create(Application);
+  CarScene.Load(ApplicationData('car.x3d'));
+  CarScene.Spatial := [ssRendering, ssDynamicCollisions];
+  CarScene.ProcessEvents := true;
+
+  CarTransform := T3DTransform.Create(Application);
+  CarTransform.Add(CarScene);
+
+  RoadScene := TCastleScene.Create(Application);
+  RoadScene.Load(ApplicationData('road.x3d'));
+  RoadScene.Spatial := [ssRendering, ssDynamicCollisions];
+  RoadScene.ProcessEvents := true;
+
+  Window.SceneManager.Items.Add(CarTransform);
+  Window.SceneManager.Items.Add(RoadScene);
+  Window.SceneManager.MainScene := RoadScene;
 
   Window.SceneManager.RequiredCamera.SetView(
+    Vector3Single(-43.30, 27.23, -80.74),
+    Vector3Single(  0.60, -0.36,   0.70),
+    Vector3Single(  0.18,  0.92,   0.32)
+  );
+  // better camera for only a car:
+  {Window.SceneManager.RequiredCamera.SetView(
     Vector3Single(-7.83,  6.15, -7.55),
     Vector3Single( 0.47, -0.30,  0.82),
     Vector3Single( 0.16,  0.95,  0.25)
-  );
+  );}
 
+  Window.OnUpdate := @WindowUpdate;
   Window.Open;
   Application.Run;
 end.
