@@ -21,7 +21,8 @@
 program cars_demo;
 
 uses SysUtils, CastleVectors, Castle3D, CastleUIControls,
-  CastleFilesUtils, CastleWindow, CastleSceneCore, CastleScene;
+  CastleFilesUtils, CastleWindow, CastleSceneCore, CastleScene,
+  CastleKeysMouse;
 
 var
   Window: TCastleWindow;
@@ -42,6 +43,12 @@ begin
   CarTransform.Translation := T;
 end;
 
+procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+begin
+  if Event.IsKey('c') then
+    CarTransform.Exists := not CarTransform.Exists;
+end;
+
 begin
   Window := TCastleWindow.Create(Application);
 
@@ -49,6 +56,7 @@ begin
   CarScene.Load(ApplicationData('car.x3d'));
   CarScene.Spatial := [ssRendering, ssDynamicCollisions];
   CarScene.ProcessEvents := true;
+  CarScene.PlayAnimation('wheels_turning', paForceLooping);
 
   CarTransform := T3DTransform.Create(Application);
   CarTransform.Add(CarScene);
@@ -75,6 +83,7 @@ begin
   );}
 
   Window.OnUpdate := @WindowUpdate;
+  Window.OnPress := @WindowPress;
   Window.Open;
   Application.Run;
 end.

@@ -120,5 +120,31 @@
 				</Group>
 			</Transform>
 		</Transform>
+
+                <!-- animation added by manually editing X3D file -->
+                <TimeSensor DEF="wheels_turning" cycleInterval="1" />
+                <OrientationInterpolator DEF="wheels_turning_interpolator"
+                           key="0 0.25 0.5 0.75 1"
+                           keyValue="0 0 1 0,
+                                     0 0 1 1.570796327,
+                                     0 0 1 3.141592654,
+                                     0 0 1 4.71238898,
+                                     0 0 1 6.283185307"
+                           />
+                <ROUTE     fromNode="wheels_turning"
+                           fromField="fraction_changed"
+                           toNode="wheels_turning_interpolator"
+                           toField="set_fraction"
+                           />
+                <ROUTE     fromNode="wheels_turning_interpolator"
+                           fromField="value_changed"
+                           toNode="wheel_back_ifs_TRANSFORM"
+                           toField="rotation"
+                           />
+                <ROUTE     fromNode="wheels_turning_interpolator"
+                           fromField="value_changed"
+                           toNode="wheel_front_ifs_TRANSFORM"
+                           toField="rotation"
+                           />
 	</Scene>
 </X3D>
