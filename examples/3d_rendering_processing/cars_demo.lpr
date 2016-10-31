@@ -20,35 +20,50 @@
 }
 program cars_demo;
 
-uses SysUtils, CastleVectors, Castle3D, CastleUIControls,
+uses SysUtils, CastleVectors, Castle3D, CastleUIControls, CastleUtils,
   CastleFilesUtils, CastleWindow, CastleSceneCore, CastleScene,
   CastleKeysMouse;
 
 var
   Window: TCastleWindow;
   CarScene, RoadScene: TCastleScene;
-  CarTransform: T3DTransform;
+  CarTransforms: array [1..20] of T3DTransform;
 
 procedure WindowUpdate(Container: TUIContainer);
+
+  procedure UpdateCarTransform(const CarTransform: T3DTransform);
+  var
+    T: TVector3Single;
+  begin
+    T := CarTransform.Translation;
+    { Thanks to multiplying by SecondsPassed, it is a time-based operation,
+      and will always move 40 units / per second along the -Z axis. }
+    T := T + Vector3Single(0, 0, -40) * Container.Fps.UpdateSecondsPassed;
+    { Wrap the Z position, to move in a loop }
+    if T[2] < -70.0 then
+      T[2] := 50.0;
+    CarTransform.Translation := T;
+  end;
+
 var
-  T: TVector3Single;
+  I: Integer;
 begin
-  T := CarTransform.Translation;
-  { Thanks to multiplying by SecondsPassed, it is a time-based operation,
-    and will always move 40 units / per second along the -Z axis. }
-  T := T + Vector3Single(0, 0, -40) * Container.Fps.UpdateSecondsPassed;
-  { Wrap the Z position, to move in a loop }
-  if T[2] < -70.0 then
-    T[2] := 50.0;
-  CarTransform.Translation := T;
+  for I := Low(CarTransforms) to High(CarTransforms) do
+    UpdateCarTransform(CarTransforms[I]);
 end;
 
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 begin
   if Event.IsKey('c') then
-    CarTransform.Exists := not CarTransform.Exists;
+    CarTransforms[1].Exists := not CarTransforms[1].Exists;
+
+  { capture a screenshot }
+  if Event.IsKey(K_F5) then
+    Window.SaveScreen(FileNameAutoInc(ApplicationName + '_screen_%d.png'));
 end;
 
+var
+  I: Integer;
 begin
   Window := TCastleWindow.Create(Application);
 
@@ -58,15 +73,20 @@ begin
   CarScene.ProcessEvents := true;
   CarScene.PlayAnimation('wheels_turning', paForceLooping);
 
-  CarTransform := T3DTransform.Create(Application);
-  CarTransform.Add(CarScene);
+  for I := Low(CarTransforms) to High(CarTransforms) do
+  begin
+    CarTransforms[I] := T3DTransform.Create(Application);
+    CarTransforms[I].Translation := Vector3Single(
+      -6 + Random(4) * 6, 0, RandomFloatRange(-70, 50));
+    CarTransforms[I].Add(CarScene);
+    Window.SceneManager.Items.Add(CarTransforms[I]);
+  end;
 
   RoadScene := TCastleScene.Create(Application);
   RoadScene.Load(ApplicationData('road.x3d'));
   RoadScene.Spatial := [ssRendering, ssDynamicCollisions];
   RoadScene.ProcessEvents := true;
 
-  Window.SceneManager.Items.Add(CarTransform);
   Window.SceneManager.Items.Add(RoadScene);
   Window.SceneManager.MainScene := RoadScene;
 
