@@ -22,7 +22,7 @@ program cars_demo;
 
 uses SysUtils, CastleVectors, Castle3D, CastleUIControls, CastleUtils,
   CastleFilesUtils, CastleWindow, CastleSceneCore, CastleScene,
-  CastleKeysMouse;
+  CastleKeysMouse, CastleBoxes, X3DNodes;
 
 var
   Window: TCastleWindow;
@@ -62,6 +62,64 @@ begin
     Window.SaveScreen(FileNameAutoInc(ApplicationName + '_screen_%d.png'));
 end;
 
+function CreateBoxesScene: TCastleScene;
+const
+  WallHeight = 5;
+var
+  RoadBox: TBox3D;
+  RootNode: TX3DRootNode;
+  Appearance: TAppearanceNode;
+  Material: TMaterialNode;
+  Shape1, Shape2: TShapeNode;
+  Box1, Box2: TBoxNode;
+  Transform1, Transform2: TTransformNode;
+begin
+  { The created geometry will automatically adjust to the bounding box
+    of the road 3D model. }
+  RoadBox := RoadScene.BoundingBox;
+  if RoadBox.IsEmpty then
+    raise Exception.Create('Invalid road 3D model: empty bounding box');
+
+  Material := TMaterialNode.Create;
+  { Yellow (we could have also used YellowRGB constant from CastleColors unit) }
+  Material.DiffuseColor := Vector3Single(1, 1, 0);
+  Material.Transparency := 0.75;
+
+  Appearance := TAppearanceNode.Create;
+  Appearance.Material := Material;
+
+  Box1 := TBoxNode.Create('box_1_geometry');
+  Box1.Size := Vector3Single(0.5, WallHeight, RoadBox.Sizes[2]);
+
+  Shape1 := TShapeNode.Create('box_1_shape');
+  Shape1.Appearance := Appearance;
+  Shape1.Geometry := Box1;
+
+  Transform1 := TTransformNode.Create('box_1_transform');
+  Transform1.Translation := Vector3Single(RoadBox.Data[0][0], WallHeight / 2, RoadBox.Middle[2]);
+  Transform1.FdChildren.Add(Shape1);
+
+  Box2 := TBoxNode.Create('box_2_geometry');
+  Box2.Size := Vector3Single(0.5, WallHeight, RoadBox.Sizes[2]);
+
+  Shape2 := TShapeNode.Create('box_2_shape');
+  { Reuse the same Appearance node for another shape.
+    This is perfectly allowed (the X3D is actually a graph, not a tree). }
+  Shape2.Appearance := Appearance;
+  Shape2.Geometry := Box2;
+
+  Transform2 := TTransformNode.Create('box_2_transform');
+  Transform2.Translation := Vector3Single(RoadBox.Data[1][0], WallHeight / 2, RoadBox.Middle[2]);
+  Transform2.FdChildren.Add(Shape2);
+
+  RootNode := TX3DRootNode.Create;
+  RootNode.FdChildren.Add(Transform1);
+  RootNode.FdChildren.Add(Transform2);
+
+  Result := TCastleScene.Create(Application);
+  Result.Load(RootNode, true);
+end;
+
 var
   I: Integer;
 begin
@@ -89,6 +147,8 @@ begin
 
   Window.SceneManager.Items.Add(RoadScene);
   Window.SceneManager.MainScene := RoadScene;
+
+  Window.SceneManager.Items.Add(CreateBoxesScene);
 
   Window.SceneManager.RequiredCamera.SetView(
     Vector3Single(-43.30, 27.23, -80.74),
