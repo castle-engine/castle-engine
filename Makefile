@@ -177,6 +177,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/scene_manager_demos \
   examples/3d_rendering_processing/view_3d_model_basic \
   examples/3d_rendering_processing/build_3d_object_by_code \
+  examples/3d_rendering_processing/build_3d_tunnel \
   examples/3d_rendering_processing/combine_multiple_x3d_into_one \
   examples/3d_rendering_processing/listen_on_x3d_events \
   examples/3d_rendering_processing/cars_demo \
