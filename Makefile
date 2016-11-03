@@ -190,7 +190,8 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_sound_game/data/levels/base/devel/process_base_b \
   examples/resource_animations/resource_animations \
   examples/fps_game/fps_game \
-  examples/2d_standard_ui/controls_demo \
+  examples/2d_standard_ui/show_various_ui_controls/show_various_ui_controls \
+  examples/2d_standard_ui/zombie_fighter/zombie_fighter \
   examples/android/android_demo/androiddemo_standalone \
   tools/build-tool/castle-engine \
   tools/image2pascal/image2pascal \

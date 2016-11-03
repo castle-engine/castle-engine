@@ -42,7 +42,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="controls_demo.lpr"/>
+        <Filename Value="show_various_ui_controls.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
     </Units>

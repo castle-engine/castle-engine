@@ -302,7 +302,7 @@ end;
 
 function MyGetApplicationName: string;
 begin
-  Result := 'controls_demo';
+  Result := 'show_various_ui_controls';
 end;
 
 initialization

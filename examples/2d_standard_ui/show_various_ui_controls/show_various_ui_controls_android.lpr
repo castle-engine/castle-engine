@@ -14,7 +14,7 @@
 }
 
 { Library to run the game on Android. }
-library controls_demo_android;
+library show_various_ui_controls_android;
 uses CastleAndroidNativeAppGlue, Game;
 exports
   ANativeActivity_onCreate;

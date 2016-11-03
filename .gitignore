@@ -15,8 +15,9 @@ castle-game-engine-*.fpm
 doc/pasdoc/cache/
 doc/pasdoc/html/
 doc/pasdoc/latex/
-examples/2d_standard_ui/controls_demo
-examples/2d_standard_ui/libcontrols_demo_android.so
+examples/2d_standard_ui/show_various_ui_controls/show_various_ui_controls
+examples/2d_standard_ui/show_various_ui_controls/libshow_various_ui_controls_android.so
+examples/2d_standard_ui/zombie_fighter/zombie_fighter
 examples/2d_dragon_spine_android_game/castle_spine
 examples/2d_dragon_spine_android_game/castle_spine.exe
 examples/2d_dragon_spine_android_game/castle_spine.log
