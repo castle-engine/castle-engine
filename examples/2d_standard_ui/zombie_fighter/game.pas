@@ -38,6 +38,10 @@ var
 
 procedure ApplicationInitialize;
 begin
+  Window.Container.UIReferenceWidth := 1024;
+  Window.Container.UIReferenceHeight := 768;
+  Window.Container.UIScaling := usEncloseReferenceSize;
+
   { If we descend from TCastleWindowCustom,
     we don't have anything to serve as the default background.
     So add a black background. }
