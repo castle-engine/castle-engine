@@ -43,59 +43,59 @@ var
 
 type
   TClicksHandler = class
-    procedure ButtonClick(Sender: TObject);
-    procedure ButtonDemoClick(Sender: TObject);
-    procedure UIScalingExplicitTwiceClick(Sender: TObject);
-    procedure UIScalingExplicitHalfClick(Sender: TObject);
-    procedure UIScalingExplicitNormalClick(Sender: TObject);
-    procedure UIScalingEncloseReferenceClick(Sender: TObject);
-    procedure UIScalingFitReferenceClick(Sender: TObject);
-    procedure RotationChange(Sender: TObject);
+    class procedure ButtonClick(Sender: TObject);
+    class procedure ButtonDemoClick(Sender: TObject);
+    class procedure UIScalingExplicitTwiceClick(Sender: TObject);
+    class procedure UIScalingExplicitHalfClick(Sender: TObject);
+    class procedure UIScalingExplicitNormalClick(Sender: TObject);
+    class procedure UIScalingEncloseReferenceClick(Sender: TObject);
+    class procedure UIScalingFitReferenceClick(Sender: TObject);
+    class procedure RotationChange(Sender: TObject);
   end;
 
-procedure TClicksHandler.ButtonClick(Sender: TObject);
+class procedure TClicksHandler.ButtonClick(Sender: TObject);
 begin
   Notifications.Show('Button clicked');
 end;
 
-procedure TClicksHandler.ButtonDemoClick(Sender: TObject);
+class procedure TClicksHandler.ButtonDemoClick(Sender: TObject);
 begin
   Notifications.Show('Button in on-screen menu clicked');
 end;
 
-procedure TClicksHandler.UIScalingExplicitTwiceClick(Sender: TObject);
+class procedure TClicksHandler.UIScalingExplicitTwiceClick(Sender: TObject);
 begin
   Window.Container.UIExplicitScale := 2.0;
   Window.Container.UIScaling := usExplicitScale;
 end;
 
-procedure TClicksHandler.UIScalingExplicitHalfClick(Sender: TObject);
+class procedure TClicksHandler.UIScalingExplicitHalfClick(Sender: TObject);
 begin
   Window.Container.UIExplicitScale := 0.5;
   Window.Container.UIScaling := usExplicitScale;
 end;
 
-procedure TClicksHandler.UIScalingExplicitNormalClick(Sender: TObject);
+class procedure TClicksHandler.UIScalingExplicitNormalClick(Sender: TObject);
 begin
   Window.Container.UIExplicitScale := 1.0;
   Window.Container.UIScaling := usExplicitScale;
 end;
 
-procedure TClicksHandler.UIScalingEncloseReferenceClick(Sender: TObject);
+class procedure TClicksHandler.UIScalingEncloseReferenceClick(Sender: TObject);
 begin
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
 end;
 
-procedure TClicksHandler.UIScalingFitReferenceClick(Sender: TObject);
+class procedure TClicksHandler.UIScalingFitReferenceClick(Sender: TObject);
 begin
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usFitReferenceSize;
 end;
 
-procedure TClicksHandler.RotationChange(Sender: TObject);
+class procedure TClicksHandler.RotationChange(Sender: TObject);
 begin
   Image.Rotation := SliderRotation.Value;
   Image2.Rotation := SliderRotation.Value;

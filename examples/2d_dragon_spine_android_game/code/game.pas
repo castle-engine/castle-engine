@@ -66,8 +66,8 @@ var
 
 type
   TButtonsHandler = class
-    procedure CameraView3DClick(Sender: TObject);
-    procedure CameraFollowsDragonClick(Sender: TObject);
+    class procedure CameraView3DClick(Sender: TObject);
+    class procedure CameraFollowsDragonClick(Sender: TObject);
   end;
 
 const
@@ -396,7 +396,7 @@ procedure WindowResize(Container: TUIContainer);
 begin
 end;
 
-procedure TButtonsHandler.CameraView3DClick(Sender: TObject);
+class procedure TButtonsHandler.CameraView3DClick(Sender: TObject);
 var
   Pos, Dir, Up: TVector3Single;
 begin
@@ -409,7 +409,7 @@ begin
   end;
 end;
 
-procedure TButtonsHandler.CameraFollowsDragonClick(Sender: TObject);
+class procedure TButtonsHandler.CameraFollowsDragonClick(Sender: TObject);
 var
   Pos, Dir, Up: TVector3Single;
 begin
