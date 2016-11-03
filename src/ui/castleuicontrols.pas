@@ -1465,12 +1465,12 @@ type
     function MakeSingle(ReplaceClass: TUIControlClass; NewItem: TUIControl;
       AddFront: boolean = true): TUIControl;
 
-    { Add at the beginning of the list. }
+    { Add at the end of the list. }
     procedure InsertFront(const NewItem: TUIControl);
     procedure InsertFrontIfNotExists(const NewItem: TUIControl);
     procedure InsertFront(const NewItems: TUIControlList);
 
-    { Add at the end of the list. }
+    { Add at the beginning of the list. }
     procedure InsertBack(const NewItem: TUIControl);
     procedure InsertBackIfNotExists(const NewItem: TUIControl);
     procedure InsertBack(const NewItems: TUIControlList);
