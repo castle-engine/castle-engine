@@ -1,3 +1,19 @@
+{
+  Copyright 2016-2016 Eugene Loza, Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Custom random number generator (TCastleRandom). }
 unit CastleRandom;
 
 interface
@@ -6,29 +22,32 @@ interface
 {$I norqcheckbegin.inc} // the whole unit should be used without overflow checking, for speed
 
 type
-  { Implementation of XorShift algorithm for random numbers generation. It works
-    2 to 3 times faster than native FPC random function and provides for multiple
-    repeatable random seeds to support parallel pseudo random sequences. }
+  { Custom, fast random number generator.
+    Implementation of XorShift algorithm for random numbers generation.
+    In some cases it works 2 to 3 times faster than native
+    FPC random function. It also allows for multiple
+    repeatable random seeds to support parallel pseudo-random sequences. }
   TCastleRandom = class(TObject)
   public
-    { Automatically initializes the seed with given value, value 0 corresponds
-      to random seed }
+    { Create and initialize (seed) the random generator.
+      Parameter RandomSeed value 0 indicates to use a random seed
+      (derived from current time). }
     constructor Create(RandomSeed: LongWord = 0);
-    { Initializes current seed. The seed must be a non-zero integer. Provide Zero
-      value to initialize random seed based on current time. }
+    { Initializes current seed. The seed must be a non-zero integer.
+      Provide Zero value to initialize random seed based on current time. }
     procedure Initialize(RandomSeed: LongWord = 0);
-    { Returns folat random value in 0..1 range }
+    { Returns random float value in the 0..1 range. }
     function Random: single;
-    { Returns random number in 0..N-1 range }
+    { Returns random integer number in the 0..N-1 range. }
     function Random(N: LongInt): LongInt;
     { A relatively slow procedure to get a 64 bit integer random number. }
     function RandomInt64(N: int64): int64;
     { A simple Yes/No function that with 50% chance returns true or false.
       Something like throwing a coin... }
     function RandomBoolean: boolean;
-    { Randomly provides "-1", "0" or "1" with equal chances }
+    { Randomly provides "-1", "0" or "1" with equal chances. }
     function RandomSign: longint;
-    { Returns a random number in 0 .. 4294967295 range }
+    { Returns a random number in 0 .. High(LongWord) range. }
     function Random32bit: LongWord;
   private
     Seed: LongInt;
