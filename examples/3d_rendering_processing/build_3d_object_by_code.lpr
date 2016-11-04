@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2014 Michalis Kamburelis.
+  Copyright 2010-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -87,7 +87,7 @@ begin
     { You also could create a TCastleSceneCore, or even TCastleScene
       to render this 3D object directly in OpenGL (without saving to any
       file). For example in scene_manager_basic.lpr you could replace
-        Scene.Load('models/boxes.x3dv');
+        Scene.Load(ApplicationData('boxes.x3dv'));
       with
         Scene.Load(Root, false);
       to render your constructed 3D object.

@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2014 Michalis Kamburelis.
+  Copyright 2002-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -720,15 +720,10 @@ end;
 
 function TTextNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
-{ Using TQuadSetNode may be a little more efficient, as it can be rendered
-  using QUADS, and there's no need for dumb FdCoordIndex either.
-  But it cannot be used on OpenGLES that doesn't support rendering QUADS,
-  and right now simply fails rendering TQuadSetNode. }
-{$ifndef OpenGLES} {$define TEXT_PROXY_QUAD_SET} {$endif}
 var
   Size, Spacing: Single;
   Justify, JustifyMinor: TX3DFontJustify;
-  FaceSet: {$ifdef TEXT_PROXY_QUAD_SET} TQuadSetNode {$else} TIndexedFaceSetNode {$endif};
+  FaceSet: TQuadSetNode;
   CoordNode: TCoordinateNode;
   MultiTexCoordNode: TMultiTextureCoordinateNode;
   TexCoordNode, ExtraTexCoordNode: TTextureCoordinateNode;
@@ -749,8 +744,7 @@ begin
     JustifyMinor := FontStyle.JustifyMinor;
   end;
 
-  FaceSet := {$ifdef TEXT_PROXY_QUAD_SET} TQuadSetNode {$else} TIndexedFaceSetNode {$endif}
-    .Create(NodeName, BaseUrl);
+  FaceSet := TQuadSetNode.Create(NodeName, BaseUrl);
   try
     FaceSet.Solid := Solid;
 
@@ -797,17 +791,6 @@ begin
     TextProxy(Self, Size, Spacing, Justify, JustifyMinor, FdString.Items, Font,
       Solid, EventLineBounds, EventOrigin, EventTextBounds,
       CoordNode.FdPoint, TexCoordNode.FdPoint, ExtraTexCoordField);
-
-    {$ifndef TEXT_PROXY_QUAD_SET}
-    { calculate FaceSet.FdCoordIndex, just include all quads from CoordNode }
-    FaceSet.FdCoordIndex.Items.Clear;
-    for I := 0 to CoordNode.FdPoint.Count - 1 do
-    begin
-      FaceSet.FdCoordIndex.Items.Add(I);
-      if (I + 1) mod 4 = 0 then
-        FaceSet.FdCoordIndex.Items.Add(-1);
-    end;
-   {$endif}
 
     Result := FaceSet;
   except FreeAndNil(FaceSet); raise end;

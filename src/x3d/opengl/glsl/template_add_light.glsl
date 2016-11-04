@@ -7,6 +7,19 @@
   #define castle_LightSource<Light>BeamWidth castle_LightSource<Light>BeamWidth_geoshader
 #endif
 
+#ifdef LIGHT_TYPE_SPOT
+/* We use our own field for spotCosCutoff, as using
+   gl_LightSource[<Light>].spotCosCutoff
+   is buggy on Radeon on Linux / Mesa:
+
+      Version string: 3.0 Mesa 11.2.0
+      Vendor: X.Org
+      Vendor type: Unknown
+      Renderer: Gallium 0.4 on AMD RV710 (DRM 2.43.0, LLVM 3.8.0)
+*/
+uniform float castle_LightSource<Light>SpotCosCutoff;
+#endif
+
 #ifdef LIGHT_HAS_RADIUS
 uniform float castle_LightSource<Light>Radius;
 #endif
@@ -42,7 +55,7 @@ void PLUG_add_light_contribution_side(inout vec4 color,
   /* non-spot lights have always cutoff = 180, with cos = -1,
      so the check below will always be false. No need to explicitly
      compare with -1, nice. */
-  if (spot_cos < gl_LightSource[<Light>].spotCosCutoff)
+  if (spot_cos < castle_LightSource<Light>SpotCosCutoff)
     return;
 #endif
 

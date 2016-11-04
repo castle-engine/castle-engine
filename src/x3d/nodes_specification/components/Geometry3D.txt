@@ -1,23 +1,34 @@
-Box : X3DGeometryNode { 
+Box : X3DGeometryNode {
   SFVec3f []       size     2 2 2 (0,Inf)
   SFBool  []       solid    TRUE
+  # EXTENSIONS:
+  SFNode     [in,out]      texCoord    NULL        # [TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate]
+  SFInt32    [in,out]      divisions   -1          # [-1, infinity)
 }
 
-Cone : X3DGeometryNode { 
+Cone : X3DGeometryNode {
   SFBool  []       bottom       TRUE
   SFFloat []       bottomRadius 1    (0,Inf)
   SFFloat []       height       2    (0,Inf)
   SFBool  []       side         TRUE
   SFBool  []       solid        TRUE
+  # EXTENSIONS:
+  SFNode     [in,out]      texCoord    NULL        # [TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate]
+  SFInt32    [in,out]      slices      -1          # {-1} + [3, infinity)
+  SFInt32    [in,out]      stacks      -1          # {-1} + [2, infinity)
 }
 
-Cylinder : X3DGeometryNode { 
+Cylinder : X3DGeometryNode {
   SFBool  []       bottom   TRUE
   SFFloat []       height   2    (0,Inf)
   SFFloat []       radius   1    (0,Inf)
   SFBool  []       side     TRUE
   SFBool  []       solid    TRUE
   SFBool  []       top      TRUE
+  # EXTENSIONS:
+  SFNode     [in,out]      texCoord    NULL        # [TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate]
+  SFInt32    [in,out]      slices      -1          # {-1} + [3, infinity)
+  SFInt32    [in,out]      stacks      -1          # {-1} + [2, infinity)
 }
 
 ElevationGrid : X3DGeometryNode {
@@ -27,7 +38,7 @@ ElevationGrid : X3DGeometryNode {
   SFNode  [in,out] fogCoord        NULL [FogCoordinate]
   SFNode  [in,out] normal          NULL [X3DNormalNode]
   SFNode  [in,out] texCoord        NULL [X3DTextureCoordinateNode]
-  SFBool  []       ccw             TRUE  
+  SFBool  []       ccw             TRUE
   SFBool  []       colorPerVertex  TRUE
   SFFloat []       creaseAngle     0    [0,Inf)
   MFFloat []       height          []   (-Inf,Inf)
@@ -54,7 +65,7 @@ Extrusion : X3DGeometryNode {
   MFVec2f    []       scale            1 1                       (0,Inf)
   SFBool     []       solid            TRUE
   MFVec3f    []       spine            [0 0 0 0 1 0]             (-Inf,Inf)
-}   
+}
 
 IndexedFaceSet : X3DComposedGeometryNode {
   MFInt32 [in]     set_colorIndex
@@ -69,8 +80,11 @@ IndexedFaceSet : X3DComposedGeometryNode {
   MFInt32 []       texCoordIndex     []   [-1,Inf)
 }
 
-Sphere : X3DGeometryNode { 
+Sphere : X3DGeometryNode {
   SFFloat []       radius   1    (0,Inf)
   SFBool  []       solid    TRUE
+  # EXTENSIONS:
+  SFNode     [in,out]      texCoord    NULL        # [TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate]
+  SFInt32    [in,out]      slices      -1          # {-1} + [3, infinity)
+  SFInt32    [in,out]      stacks      -1          # {-1} + [2, infinity)
 }
-

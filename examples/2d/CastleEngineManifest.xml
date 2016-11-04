@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<project name="controls_demo"
-  caption="Castle Game Engine 2D Demo"
-  qualified_name="net.sourceforge.castleengine.controls_demo"
-  standalone_source="controls_demo.lpr"
-  android_source="controls_demo_android.lpr"
-  author="Michalis Kamburelis">
-  <version value="1.0" code="1" />
-</project>

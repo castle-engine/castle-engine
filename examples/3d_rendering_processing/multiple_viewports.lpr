@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2014 Michalis Kamburelis.
+  Copyright 2010-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,7 +18,7 @@
 
 { If defined, then the 3D world will contain an additional animation
   of a dinosaur. It's most suitable when as the main scene you load
-  models/bridge_final.x3dv, then you get a setup similar to scene_manager_demos.
+  data/bridge_final.x3dv, then you get a setup similar to scene_manager_demos.
   This shows that animation from 2nd file works fully with mirrors
   by GeneratedCubeMapTexture in 1st file, also in custom viewports. }
 { $define ADD_GL_ANIMATION}
@@ -206,8 +206,8 @@ begin
 end;
 
 var
-  URL: string = 'models/teapot.x3dv';
-  // 'models/bridge_final.x3dv';
+  URL: string = 'data/teapot.x3dv';
+  // 'data/bridge_final.x3dv';
   // '../../../demo_models/shadow_volumes/shadows_dynamic.x3dv'
 
 type
@@ -268,7 +268,7 @@ begin
 
   { initialize Animation }
   Animation := TCastleScene.Create(Window.SceneManager);
-  Animation.Load('models/raptor.kanim');
+  Animation.Load(ApplicationData('raptor.kanim'));
   Animation.ProcessEvents := true;
   Animation.Spatial := [ssRendering, ssDynamicCollisions];
   Transform.Add(Animation);

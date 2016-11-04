@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="show_various_ui_controls"
+  caption="Castle Game Engine 2D Demo"
+  qualified_name="net.sourceforge.castleengine.show_various_ui_controls"
+  standalone_source="show_various_ui_controls.lpr"
+  android_source="show_various_ui_controls_android.lpr"
+  author="Michalis Kamburelis">
+  <version value="1.0" code="1" />
+</project>

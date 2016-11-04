@@ -234,7 +234,7 @@ begin
   Write(
     '{ -*- buffer-read-only: t -*-' + NL +
     '' + NL +
-    '  Copyright 2015-2015 Michalis Kamburelis.' + NL +
+    '  Copyright 2015-2016 Michalis Kamburelis.' + NL +
     '' + NL +
     '  This file is part of "Castle Game Engine".' + NL +
     '' + NL +

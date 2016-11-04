@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2014 Michalis Kamburelis.
+  Copyright 2010-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -35,7 +35,7 @@ var
   Scene: TCastleScene;
 begin
   Scene := TCastleScene.Create(Application { Owner that will free the Scene });
-  Scene.Load('models/bridge_final.x3dv');
+  Scene.Load('data/bridge_final.x3dv');
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
 

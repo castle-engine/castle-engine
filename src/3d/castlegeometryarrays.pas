@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2014 Michalis Kamburelis.
+  Copyright 2010-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,9 +23,9 @@ interface
 uses CastleUtils, CastleVectors, FGL, CastleTriangles;
 
 type
-  { Primitive geometry types. Analogous to OpenGL primitives. }
-  TGeometryPrimitive = (gpTriangles, gpQuads, gpTriangleFan, gpTriangleStrip,
-    gpLineStrip, gpPoints);
+  { Primitive geometry types. Analogous to OpenGL / OpenGLES primitives. }
+  TGeometryPrimitive = (gpTriangles, {$ifndef OpenGLES} gpQuads, {$endif}
+    gpTriangleFan, gpTriangleStrip, gpLineStrip, gpPoints);
 
   TTexCoordDimensions = 2..4;
 

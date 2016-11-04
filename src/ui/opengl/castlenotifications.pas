@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2014 Michalis Kamburelis.
+  Copyright 2002-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -195,7 +195,7 @@ var
   Broken: TStringList;
 begin
   if Log then
-    WriteLog('Notification', S.Text);
+    WritelnLog('Notification', S.Text);
 
   { before Notifications are part of some Controls list,
     we don't know about Parent or Container size. }

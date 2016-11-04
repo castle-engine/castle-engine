@@ -1465,12 +1465,12 @@ type
     function MakeSingle(ReplaceClass: TUIControlClass; NewItem: TUIControl;
       AddFront: boolean = true): TUIControl;
 
-    { Add at the beginning of the list. }
+    { Add at the end of the list. }
     procedure InsertFront(const NewItem: TUIControl);
     procedure InsertFrontIfNotExists(const NewItem: TUIControl);
     procedure InsertFront(const NewItems: TUIControlList);
 
-    { Add at the end of the list. }
+    { Add at the beginning of the list. }
     procedure InsertBack(const NewItem: TUIControl);
     procedure InsertBackIfNotExists(const NewItem: TUIControl);
     procedure InsertBack(const NewItems: TUIControlList);
@@ -1955,11 +1955,17 @@ procedure TUIContainer.EventUpdate;
   begin
     if C.GetExists then
     begin
-      I := 0; // while loop, in case some Update method changes the Controls list
-      while I < C.ControlsCount do
+      { go downward, from front to back.
+        Important for controls watching/setting HandleInput,
+        e.g. for sliders/OnScreenMenu to block the scene manager underneath
+        from processing arrow keys. }
+      I := C.ControlsCount - 1;
+      while I >= 0 do
       begin
-        RecursiveUpdate(C.Controls[I], HandleInput);
-        Inc(I);
+        // coded this way in case some Update method changes the Controls list
+        if I < C.ControlsCount then
+          RecursiveUpdate(C.Controls[I], HandleInput);
+        Dec(I);
       end;
 
       if C <> ForceCaptureInput then
@@ -2052,11 +2058,13 @@ begin
   if UseForceCaptureInput then
     ForceCaptureInput.Update(Fps.UpdateSecondsPassed, HandleInput);
 
-  I := 0; // while loop, in case some Update method changes the Controls list
-  while I < Controls.Count do
+  I := Controls.Count - 1;
+  while I >= 0 do
   begin
-    RecursiveUpdate(Controls[I], HandleInput);
-    Inc(I);
+    // coded this way in case some Update method changes the Controls list
+    if I < Controls.Count then
+      RecursiveUpdate(Controls[I], HandleInput);
+    Dec(I);
   end;
 
   if Assigned(OnUpdate) then OnUpdate(Self);
