@@ -20,16 +20,19 @@ unit CastleSceneManager;
 
 interface
 
-uses Classes, CastleVectors, X3DNodes, CastleScene, CastleSceneCore, CastleCameras,
+uses SysUtils, Classes, FGL,
+  CastleVectors, X3DNodes, CastleScene, CastleSceneCore, CastleCameras,
   CastleGLShadowVolumes, CastleUIControls, Castle3D, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleBackground, CastleUtils, CastleClassUtils,
-  CastleGLShaders, CastleGLImages, CastleTimeUtils, FGL, CastleSectors,
+  CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleSectors,
   CastleInputs, CastlePlayer, CastleRectangles, CastleColors, CastleGL,
   CastleRays, CastleScreenEffects;
 
 type
   TCastleAbstractViewport = class;
   TCastleSceneManager = class;
+
+  EViewportSceneManagerMissing = class(Exception);
 
   TRender3DEvent = procedure (Viewport: TCastleAbstractViewport;
     const Params: TRenderParams) of object;
@@ -282,7 +285,6 @@ type
     destructor Destroy; override;
 
     procedure Resize; override;
-    property RenderStyle default rs3D;
 
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -1080,6 +1082,7 @@ type
   private
     FSceneManager: TCastleSceneManager;
     procedure SetSceneManager(const Value: TCastleSceneManager);
+    procedure CheckSceneManagerAssigned;
   protected
     function GetItems: T3DWorld; override;
     function GetMainScene: TCastleScene; override;
@@ -1142,7 +1145,7 @@ var
 
 implementation
 
-uses SysUtils, CastleRenderingCamera, CastleGLUtils, CastleProgress,
+uses CastleRenderingCamera, CastleGLUtils, CastleProgress,
   CastleLog, CastleStringUtils, CastleSoundEngine, Math,
   X3DTriangles, CastleGLVersion, CastleShapes;
 
@@ -1195,7 +1198,6 @@ begin
   FShadowVolumes := DefaultShadowVolumes;
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
-  RenderStyle := rs3D;
   FullSize := true;
 end;
 
@@ -3360,6 +3362,12 @@ begin
   inherited;
 end;
 
+procedure TCastleViewport.CheckSceneManagerAssigned;
+begin
+  if SceneManager = nil then
+    raise EViewportSceneManagerMissing.Create('TCastleViewport.SceneManager is required, but not assigned yet');
+end;
+
 procedure TCastleViewport.CameraVisibleChange(ACamera: TObject);
 begin
   VisibleChange;
@@ -3400,41 +3408,49 @@ end;
 
 function TCastleViewport.CreateDefaultCamera(AOwner: TComponent): TCamera;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.CreateDefaultCamera(AOwner);
 end;
 
 function TCastleViewport.GetItems: T3DWorld;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.Items;
 end;
 
 function TCastleViewport.GetMainScene: TCastleScene;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.MainScene;
 end;
 
 function TCastleViewport.GetShadowVolumeRenderer: TGLShadowVolumeRenderer;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.ShadowVolumeRenderer;
 end;
 
 function TCastleViewport.GetMouseRayHit: TRayCollision;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.MouseRayHit;
 end;
 
 function TCastleViewport.GetHeadlightCamera: TCamera;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.Camera;
 end;
 
 function TCastleViewport.GetPlayer: TPlayer;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.Player;
 end;
 
 function TCastleViewport.GetTimeScale: Single;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.TimeScale;
 end;
 
@@ -3442,6 +3458,7 @@ procedure TCastleViewport.Render;
 begin
   if not GetExists then Exit;
 
+  CheckSceneManagerAssigned;
   SceneManager.UpdateGeneratedTexturesIfNeeded;
 
   inherited;
@@ -3476,6 +3493,7 @@ end;
 
 function TCastleViewport.Headlight: TAbstractLightNode;
 begin
+  CheckSceneManagerAssigned;
   { Using the SceneManager.Headlight allows to share a DefaultHeadlightNode
     with all viewports sharing the same SceneManager.
     This is useful for tricks like view3dscene scene manager,

@@ -35,5 +35,4 @@ implementation
 
 initialization
   Window := TCastleWindowCustom.Create(Application);
-  Window.RenderStyle := rs3D;
 end.
