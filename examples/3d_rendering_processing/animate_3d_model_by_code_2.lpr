@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2014 Michalis Kamburelis.
+  Copyright 2008-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -89,7 +89,7 @@ begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   { We use a lot of boxes, so make their rendering fastest. }
-  Detail_RectDivisions := 0;
+  DefaultTriangulationDivisions := 0;
 
   Scene := TCastleScene.Create(nil);
   try

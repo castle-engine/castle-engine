@@ -1,5 +1,5 @@
 {
-  Copyright 2000-2014 Michalis Kamburelis.
+  Copyright 2000-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -197,6 +197,7 @@ function SZeroPad(const s: string; len: integer): string;
 function LoCase(c: char): char;
 
 function CharPos(c: char; const s: string; Offset: Integer = 1): integer;
+  deprecated 'use SysUtils.Pos or StrUtils.PosEx instead';
 
 { Find first occurrence of any character in Chars in string S.
   This is quite like FirstDelimiter but it takes parameter as TSetOfChars
@@ -1177,7 +1178,7 @@ begin
   result := s;
   for i := 1 to Length(result) do
   begin
-    p := CharPos(result[i], FromChars);
+    p := Pos(result[i], FromChars);
     if p > 0 then result[i] := ToChars[p];
   end;
 end;
@@ -1268,7 +1269,7 @@ end;
 function FirstDelimiter(const Delimiters, S: string): Integer;
 begin
   for result := 1 to Length(s) do
-    if CharPos(S[result], Delimiters) <> 0 then exit;
+    if Pos(S[result], Delimiters) <> 0 then exit;
   result := 0;
 end;
 
@@ -1784,7 +1785,7 @@ begin
   repeat
     filemask := NextToken(ExtsStr, SeekPos,[';']);
     if filemask = '' then break;
-    p := CharPos('.', filemask);
+    p := Pos('.', filemask);
     if p > 0 then
       Delete(filemask, 1, p-1) else { delete name from filemask }
       filemask := '.'+filemask; { it means there was no name and dot in filemask. So prepend dot. }
@@ -1798,7 +1799,7 @@ var
   LeftUpperCase, RightUpperCase: string;
   p, len: integer;
 begin
-  p := CharPos('|', FileFilter);
+  p := Pos('|', FileFilter);
   if p = 0 then result := Trim(FileFilter) else
   begin
     Left := Trim(Copy(FileFilter, 1, p-1));
@@ -1857,7 +1858,7 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
 var
   p: integer;
 begin
-  p := CharPos('|', FileFilter);
+  p := Pos('|', FileFilter);
   if p > 0 then
     result := SEnding(FileFilter, p+1) else
     result := '';
@@ -1914,7 +1915,7 @@ function STruncateHash(const s: string): string;
 var
   p: integer;
 begin
-  p := CharPos('#', s);
+  p := Pos('#', s);
   result := s;
   if p > 0 then SetLength(result, p-1);
 end;

@@ -1,5 +1,5 @@
 {
-  Copyright 2012-2014 Michalis Kamburelis.
+  Copyright 2012-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -72,7 +72,7 @@ begin
   ToggleMouseLookButton.Left := ControlsMargin;
   ToggleMouseLookButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(ToggleMouseLookButton);
-  NextButtonBottom += ToggleMouseLookButton.Height + ControlsMargin;
+  NextButtonBottom += ToggleMouseLookButton.CalculatedHeight + ControlsMargin;
 
   ExitButton := TCastleButton.Create(Application);
   ExitButton.Caption := 'Exit (Escape)';
@@ -80,7 +80,7 @@ begin
   ExitButton.Left := ControlsMargin;
   ExitButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(ExitButton);
-  NextButtonBottom += ExitButton.Height + ControlsMargin;
+  NextButtonBottom += ExitButton.CalculatedHeight + ControlsMargin;
 
   RenderDebug3DButton := TCastleButton.Create(Application);
   RenderDebug3DButton.Caption := 'Render debug 3D objects';
@@ -89,7 +89,7 @@ begin
   RenderDebug3DButton.Left := ControlsMargin;
   RenderDebug3DButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(RenderDebug3DButton);
-  NextButtonBottom += RenderDebug3DButton.Height + ControlsMargin;
+  NextButtonBottom += RenderDebug3DButton.CalculatedHeight + ControlsMargin;
 
   RenderDebugCaptionsButton := TCastleButton.Create(Application);
   RenderDebugCaptionsButton.Caption := 'Render debug captions';
@@ -98,7 +98,7 @@ begin
   RenderDebugCaptionsButton.Left := ControlsMargin;
   RenderDebugCaptionsButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(RenderDebugCaptionsButton);
-  NextButtonBottom += RenderDebugCaptionsButton.Height + ControlsMargin;
+  NextButtonBottom += RenderDebugCaptionsButton.CalculatedHeight + ControlsMargin;
 
   ScrenshotButton := TCastleButton.Create(Application);
   ScrenshotButton.Caption := 'Screenshot (F5)';
@@ -106,7 +106,7 @@ begin
   ScrenshotButton.Left := ControlsMargin;
   ScrenshotButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(ScrenshotButton);
-  NextButtonBottom += ScrenshotButton.Height + ControlsMargin;
+  NextButtonBottom += ScrenshotButton.CalculatedHeight + ControlsMargin;
 
   AddCreatureButton := TCastleButton.Create(Application);
   AddCreatureButton.Caption := 'Add creature (F9)';
@@ -114,7 +114,7 @@ begin
   AddCreatureButton.Left := ControlsMargin;
   AddCreatureButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AddCreatureButton);
-  NextButtonBottom += AddCreatureButton.Height + ControlsMargin;
+  NextButtonBottom += AddCreatureButton.CalculatedHeight + ControlsMargin;
 
   AddItemButton := TCastleButton.Create(Application);
   AddItemButton.Caption := 'Add item (F10)';
@@ -122,7 +122,7 @@ begin
   AddItemButton.Left := ControlsMargin;
   AddItemButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AddItemButton);
-  NextButtonBottom += AddItemButton.Height + ControlsMargin;
+  NextButtonBottom += AddItemButton.CalculatedHeight + ControlsMargin;
 end;
 
 procedure TButtons.ToggleMouseLookButtonClick(Sender: TObject);

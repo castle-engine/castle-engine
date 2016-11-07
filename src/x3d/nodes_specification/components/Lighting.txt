@@ -5,7 +5,7 @@ X3DLightNode : X3DChildNode {
   SFFloat [in,out] intensity        1     [0,1]
   SFBool  [in,out] on               TRUE
 
-  # Castle Game Engine extensions
+  # EXTENSIONS:
   SFBool     []            shadows               FALSE
   SFBool     [in,out]      shadowVolumes         FALSE
   SFBool     [in,out]      shadowVolumesMain     FALSE       # meaningfull only when shadowVolumes = TRUE
@@ -21,7 +21,7 @@ DirectionalLight : X3DLightNode {
   ### SFVec3f [in,out] direction        0 0 -1 (-Inf,Inf)
   # NOTE: global by default is FALSE
 
-  # Castle Game Engine extensions
+  # EXTENSIONS:
   # Commented out, for CGE this is special in TAbstractDirectionalLightNode
   ### SFVec4f    [in,out]      projectionRectangle   -10 10 -10 10  # left, right, bottom, top; must be left < right and bottom < top
   # Commented out, for CGE this is special in TAbstractDirectionalLightNode

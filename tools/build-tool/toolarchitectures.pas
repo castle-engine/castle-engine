@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2014 Michalis Kamburelis and FPC team.
+  Copyright 2014-2016 Michalis Kamburelis and FPC team.
 
   This file is part of "Castle Game Engine".
 

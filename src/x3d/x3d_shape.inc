@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2014 Michalis Kamburelis.
+  Copyright 2002-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -32,7 +32,7 @@
   TComposedShaderNode = class;
   TLinePropertiesNode = class;
 
-  TShading = (shDefault, shPhong);
+  TShading = (shDefault, shPhong, shWireframe);
 
   TAbstractShapeNode = class(TAbstractChildNode, IAbstractBoundedObject)
   private
@@ -53,6 +53,16 @@
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
+    type
+      TSFShading = class(TSFStringEnum)
+      strict private
+        WireframeChanged: boolean;
+      public
+        class function ExposedEventsFieldClass: TX3DFieldClass; override;
+        procedure ExposedEventReceive(Event: TX3DEvent; NewValue: TX3DField; const Time: TX3DTime); override;
+        function ExecuteChanges: TX3DChanges; override;
+      end;
+
     procedure CreateNode; override;
 
     private FFdAppearance: TSFNode;
@@ -72,8 +82,8 @@
     private FFdRender: TSFBool;
     public property FdRender: TSFBool read FFdRender;
 
-    private FFdShading: TSFStringEnum;
-    public property FdShading: TSFStringEnum read FFdShading;
+    private FFdShading: TSFShading;
+    public property FdShading: TSFShading read FFdShading;
     property Shading: TShading read GetShading write SetShading;
 
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -471,9 +481,40 @@ begin
   DefaultContainerField := 'material';
 end;
 
+{ TSFShading ----------------------------------------------------------------- }
+
+class function TAbstractShapeNode.TSFShading.ExposedEventsFieldClass: TX3DFieldClass;
+begin
+  Result := TSFString;
+end;
+
+procedure TAbstractShapeNode.TSFShading.ExposedEventReceive(Event: TX3DEvent; NewValue: TX3DField; const Time: TX3DTime);
+var
+  OldWireframe, NewWireframe: boolean;
+begin
+  OldWireframe := TShading(EnumValue) = shWireframe;
+  NewWireframe := TShading(StringToEnumValue((NewValue as TSFString).Value)) = shWireframe;
+  if OldWireframe <> NewWireframe then
+    WireframeChanged := true;
+
+  inherited;
+end;
+
+function TAbstractShapeNode.TSFShading.ExecuteChanges: TX3DChanges;
+begin
+  Result := inherited;
+  if WireframeChanged then
+  begin
+    System.Include(Result, chWireframe);
+    WireframeChanged := false;
+  end;
+end;
+
+{ TAbstractShapeNode --------------------------------------------------------- }
+
 procedure TAbstractShapeNode.CreateNode;
 const
-  ShadingNames: array [TShading] of string = ('DEFAULT', 'PHONG');
+  ShadingNames: array [TShading] of string = ('DEFAULT', 'PHONG', 'WIREFRAME');
 begin
   inherited;
 
@@ -498,7 +539,7 @@ begin
   FFdRender := TSFBool.Create(Self, 'render', true);
   AddField(FFdRender);
 
-  FFdShading := TSFStringEnum.Create(Self, 'shading', ShadingNames, Ord(shDefault));
+  FFdShading := TSFShading.Create(Self, 'shading', ShadingNames, Ord(shDefault));
    FdShading.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdShading);
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2004-2014 Michalis Kamburelis.
+  Copyright 2004-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -429,7 +429,6 @@ begin
     TWWWInlineNode_1,
 
     { Kambi non-standard nodes }
-    TKambiTriangulationNode,
     TKambiHeadLightNode,
     //TText3DNode,
     //TBlendModeNode,

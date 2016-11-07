@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2014 Michalis Kamburelis.
+  Copyright 2008-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -16,7 +16,7 @@
 { Example how to animate (change, modify) the 3D model (it's VRML/X3D graph)
   using ObjectPascal code.
   Run this program without any parameters in this directory
-  (it opens file "models/boxes.x3dv") and watch the trivial animation.
+  (it opens file "data/boxes.x3dv") and watch the trivial animation.
   You can rotate/move the scene by dragging with mouse,
   see view3dscene docs (we use the same "Examine" camera).
 
@@ -77,7 +77,7 @@ begin
 
   Scene := TCastleScene.Create(nil);
   try
-    Scene.Load('models/boxes.x3dv');
+    Scene.Load(ApplicationData('boxes.x3dv'));
     TransformBox2 := Scene.RootNode.FindNodeByName(TTransformNode,
       'Box2Transform', true) as TTransformNode;
     TransformBox3 := Scene.RootNode.FindNodeByName(TTransformNode,

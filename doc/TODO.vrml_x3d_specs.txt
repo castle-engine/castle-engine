@@ -10,8 +10,6 @@ Some VRML/X3D TODO items, with respect to VRML/X3D specs:
 
 - finish checking NIST tests
 
-- KambiTriangulation should be fixed, to go to Appearance.triangulation?
-
 ------------------------------------------------------------------------------
 For scripting we will also have to implement a tricky feature, that is currently completely ignored because you cannot access it without scripts:
 

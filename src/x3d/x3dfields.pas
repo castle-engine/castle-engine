@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2014 Michalis Kamburelis.
+  Copyright 2002-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -336,7 +336,10 @@ type
       TCastleSceneCore.ProcessShadowMapsReceivers.
 
       Don't include other flags with this. }
-    chShadowMaps);
+    chShadowMaps,
+
+    { Shading changed from wireframe to non-wireframe. }
+    chWireframe);
   TX3DChanges = set of TX3DChange;
 
 { ---------------------------------------------------------------------------- }
@@ -1731,6 +1734,7 @@ type
     procedure SetEnumValue(const NewEnumValue: Integer);
     procedure SetDefaultEnumValue(const NewDefaultEnumValue: Integer);
   protected
+    function StringToEnumValue(const NewValue: string): Integer;
     procedure SetValue(const NewValue: string); override;
     procedure SetDefaultValue(const NewDefaultValue: string); override;
     class function ExposedEventsFieldClass: TX3DFieldClass; override;
@@ -2748,7 +2752,8 @@ const
     'ScreenEffect.enabled',
     'Background',
     'Everything',
-    'Shadow maps');
+    'Shadow maps',
+    'Wireframe');
 
 function X3DChangesToStr(const Changes: TX3DChanges): string;
 
@@ -5047,32 +5052,34 @@ begin
   Result := TSFString;
 end;
 
-procedure TSFStringEnum.SetValue(const NewValue: string);
+function TSFStringEnum.StringToEnumValue(const NewValue: string): Integer;
 var
   UpperValue: string;
 begin
-  inherited SetValue(NewValue);
-
-  { calculate new FEnumValue, IOW convert string NewValue to integer }
-
   UpperValue := UpperCase(NewValue);
   if UpperValue <> NewValue then
-    WritelnWarning('VRML/X3D', Format('Field "%s" should be uppercase, but is not: "%s"',
+    WritelnWarning('VRML/X3D', Format('Field "%s" value should be uppercase, but is not: "%s"',
       [Name, NewValue]));
 
-  FEnumValue := FEnumNames.IndexOf(UpperValue);
-  if FEnumValue = -1 then
+  Result := FEnumNames.IndexOf(UpperValue);
+  if Result = -1 then
   begin
-    FEnumValue := DefaultEnumValue;
+    Result := DefaultEnumValue;
     WritelnWarning('VRML/X3D', Format('Unknown "%s" field value: "%s"',
       [Name, NewValue]));
   end;
 end;
 
+procedure TSFStringEnum.SetValue(const NewValue: string);
+begin
+  inherited SetValue(NewValue);
+  { calculate new FEnumValue, IOW convert string NewValue to integer }
+  FEnumValue := StringToEnumValue(NewValue);
+end;
+
 procedure TSFStringEnum.SetEnumValue(const NewEnumValue: Integer);
 begin
   inherited SetValue(FEnumNames[NewEnumValue]);
-
   FEnumValue := NewEnumValue;
 end;
 
@@ -5082,29 +5089,14 @@ begin
 end;
 
 procedure TSFStringEnum.SetDefaultValue(const NewDefaultValue: string);
-var
-  UpperDefaultValue: string;
 begin
   inherited SetDefaultValue(NewDefaultValue);
-
-  UpperDefaultValue := UpperCase(NewDefaultValue);
-  if UpperDefaultValue <> NewDefaultValue then
-    WritelnWarning('VRML/X3D', Format('Field default value "%s" should be uppercase, but is not: "%s"',
-      [Name, NewDefaultValue]));
-
-  FDefaultEnumValue := FEnumNames.IndexOf(UpperDefaultValue);
-  if FDefaultEnumValue = -1 then
-  begin
-    FDefaultEnumValue := 0;
-    WritelnWarning('VRML/X3D', Format('Unknown "%s" field default value: "%s"',
-      [Name, NewDefaultValue]));
-  end;
+  FDefaultEnumValue := StringToEnumValue(NewDefaultValue);
 end;
 
 procedure TSFStringEnum.SetDefaultEnumValue(const NewDefaultEnumValue: Integer);
 begin
   inherited SetDefaultValue(FEnumNames[NewDefaultEnumValue]);
-
   FDefaultEnumValue := NewDefaultEnumValue;
 end;
 

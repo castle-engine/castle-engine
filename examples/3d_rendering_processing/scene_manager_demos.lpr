@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2014 Michalis Kamburelis.
+  Copyright 2010-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,7 +17,7 @@
   SceneManager.Items tree. For simpler usage,
   see simplest_vrml_browser.lpr first.
 
-  This reads a couple of 3D files from models/ subdirectory.
+  This reads a couple of 3D files from data/ subdirectory.
   Their URLs are in the source code below.
   Do not hesitate to experiment, just replace URLs of the 3D models
   with your own, and generally experiment freely with this program :)
@@ -40,7 +40,7 @@ begin
 
   { initialize first Scene }
   Scene := TCastleScene.Create(Application);
-  Scene.Load('models/bridge_final.x3dv');
+  Scene.Load('data/bridge_final.x3dv');
   { This makes scene octrees, allowing collision detection in (possibly)
     dynamic scene (ssDynamicCollisions) and frustum culling
     optimization when rendering (ssRendering). }
@@ -79,7 +79,7 @@ begin
 
   { initialize ParticlesScene }
   ParticlesScene := TCastleScene.Create(Application);
-  ParticlesScene.Load('models/castle_script_particles.x3dv');
+  ParticlesScene.Load('data/castle_script_particles.x3dv');
   ParticlesScene.Spatial := [ssRendering, ssDynamicCollisions];
   { Modify the loaded nodes graph, just to show that we can.
     We find a node called ParticleScript, and change it's "count" field.
@@ -96,7 +96,7 @@ begin
 
   { initialize DinoScene }
   DinoScene := TCastleScene.Create(Application);
-  DinoScene.Load('models/raptor.kanim');
+  DinoScene.Load('data/raptor.kanim');
   DinoScene.ProcessEvents := true;
   DinoScene.Spatial := [ssRendering, ssDynamicCollisions];
   { render wireframe over a normal model. See TWireframeEffect docs

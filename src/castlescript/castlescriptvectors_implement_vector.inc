@@ -85,7 +85,7 @@ end;
 
 class procedure TCasScriptVecXx.HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
-  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVecXx);
   TCasScriptVecXx(AResult).Value := Lerp(
     TCasScriptFloat(Arguments[0]).Value,
     TCasScriptVecXx(Arguments[1]).Value,

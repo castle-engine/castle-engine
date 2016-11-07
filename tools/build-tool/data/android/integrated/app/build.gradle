@@ -24,6 +24,13 @@ android {
             // Not using proguard now
             // proguardFiles.add(file('proguard-rules.txt'))
         }
+        // Is this needed to be debuggable?
+        // https://developer.android.com/studio/build/build-variants.html
+        // Looks like not. ndk-gdb works (and completes symbols) OK.
+        // debug {
+        //     debuggable true
+        //     jniDebuggable true
+        // }
     }
 }
 

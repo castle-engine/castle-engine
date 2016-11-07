@@ -1,0 +1,6 @@
+LOCAL_PATH := $(call my-dir)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := lib${ANDROID_LIBRARY_NAME}
+LOCAL_SRC_FILES := armeabi-v7a/lib${ANDROID_LIBRARY_NAME}.so
+include $(PREBUILT_SHARED_LIBRARY)

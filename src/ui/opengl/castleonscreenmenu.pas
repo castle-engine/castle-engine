@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2014 Michalis Kamburelis.
+  Copyright 2006-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -623,6 +623,14 @@ procedure TCastleOnScreenMenu.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 begin
   inherited;
+
+  { some keys pressed are already handled by slider }
+  if HandleInput and ExclusiveEvents and
+     (Container.Pressed[KeyPreviousItem] or
+      Container.Pressed[KeyNextItem] or
+      Container.Pressed[KeySelectItem]) then
+    HandleInput := false;
+
   MenuAnimation += 0.5 * SecondsPassed;
   MenuAnimation := Frac(MenuAnimation);
   VisibleChange;
