@@ -83,9 +83,9 @@ begin
    but provides a perfect seed initialization. }
   //filemode := 0;
   AssignFile(dev_rnd, '/dev/urandom');
-  reset (dev_rnd);
-  read (dev_rnd,result);
-  CloseFile (dev_rnd);
+  reset(dev_rnd);
+  read(dev_rnd,result);
+  CloseFile(dev_rnd);
 end;
 {$ENDIF}
 
