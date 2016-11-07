@@ -47,7 +47,7 @@ type
     function RandomBoolean: boolean;
     { Randomly provides "-1", "0" or "1" with equal chances. }
     function RandomSign: longint;
-    { Returns a random number in 0 .. High(LongWord) range. }
+    { Returns a random number in 1 .. High(LongWord) range. }
     function Random32bit: LongWord;
   private
     Seed: LongInt;
@@ -74,6 +74,8 @@ begin
       seed is ~50 microseconds, so it is practically impossible to accidently
       trigger equal seeds unless the program is run strictly on schedule.}
     Seed := LongInt(round(frac(now)*MaxInt*2));
+
+    if Seed = 0 then Seed := 58928752135; //just to avoid seed being zero
 
     { Such approach is simpler and more reliable, but, it re-initializes
       SysUtils.Random function seed. I try to avoid that. It could be a surprise
