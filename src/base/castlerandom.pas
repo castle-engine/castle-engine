@@ -52,6 +52,7 @@ type
   private
     Seed: LongInt;
     procedure XorShiftCycle;
+    function GetRandomSeed: LongInt;
   end;
 
 implementation
@@ -67,24 +68,50 @@ procedure TCastleRandom.Initialize(RandomSeed: LongWord);
 begin
   if RandomSeed = 0 then
   begin
+    Seed := GetRandomSeed;
+  end
+  else seed := LongInt(RandomSeed);
+end;
+
+{$IFDEF Linux}
+function DEV_URANDOM: longint;
+var dev_rnd: file of integer;
+begin
+  { algorithm according to http://wiki.freepascal.org/Dev_random
+   /dev/urandom is a native *nix very high-quality random number generator.
+   it's 1000 times slower than CastleRandom,
+   but provides a perfect seed initialization. }
+  //filemode := 0;
+  AssignFile(dev_rnd, '/dev/urandom');
+  reset (dev_rnd);
+  read (dev_rnd,result);
+  CloseFile (dev_rnd);
+end;
+{$ENDIF}
+
+function TCastleRandom.GetRandomSeed: longint;
+begin
+  {$IFDEF Linux}
+    { guarantees initialization with absolutely random number provided by
+      native *nix algorithm. }
+    result := DEV_URANDOM;
+  {$ELSE}
     { I am not exacly sure how accurate such seed is? Should be 1/1000 of ms i.e.
       we should cover 2*MaxInt with 20 times excess. So we should have no "gaps"
       in initial Seed. But much can depend on specific implementation on different
       systems. I hope nothing can go wrong here. The interval of getting a new
       seed is ~50 microseconds, so it is practically impossible to accidently
       trigger equal seeds unless the program is run strictly on schedule.}
-    Seed := LongInt(round(frac(now)*MaxInt*2));
-
-    if Seed = 0 then Seed := 58928752135; //just to avoid seed being zero
-
+    result := LongInt(round((frac(now)-0.5)*MaxInt*2))
     { Such approach is simpler and more reliable, but, it re-initializes
       SysUtils.Random function seed. I try to avoid that. It could be a surprise
       for a user that uses SysUtils and XorShift random in parallel and would
       get a hidden change of RandSeed }
     {Randomize;
-    seed := RandSeed;}
-  end
-  else seed := LongInt(RandomSeed);
+    result := RandSeed;}
+  {$ENDIF}
+
+  if result = 0 then result := maxint div 3; //to avoid the seed being zero
 end;
 
 procedure TCastleRandom.XorShiftCycle; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
