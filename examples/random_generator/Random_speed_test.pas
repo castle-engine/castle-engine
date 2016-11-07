@@ -79,20 +79,20 @@ begin
     sumint := 0;
     T := now;
     for i := 1 to N_of_tests do if RND.random(2)=0 then inc(sumint);
-    writeln('integer t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
+    writeln('Integer boolean t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
     sumint := 0;
     T := now;
     for i := 1 to N_of_tests do if RND.randomBoolean then inc(sumint);
-    writeln('random2 t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
+    writeln('Random boolean t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
 
     sumint := 0;
     T := now;
     for i := 1 to N_of_tests do Sumint += RND.random(3)-1;
-    writeln('integer t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
+    writeln('Integer sign t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
     sumint := 0;
     T := now;
     for i := 1 to N_of_tests do sumint += RND.randomSign;
-    writeln('random3 t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
+    writeln('Random sign t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
 
   finally
     FreeAndNil(RND);
