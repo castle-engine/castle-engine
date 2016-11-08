@@ -253,15 +253,28 @@ begin
     result := 0
 end;
 
-{ Works much slower comparing to 32 bit version. And even slower than float version.
+{ Works >10 times slower comparing to 32 bit version. And even slower than float version.
   Another problem is that it cycles the seed twice which might cause
   strange results if exact reproduction of the random sequence is required }
 function TCastleRandom.RandomInt64(N: int64): int64;
+var c64: QWord;
+  procedure xorshift64; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
+  begin
+    c64:=c64 xor (c64 shl 12);
+    c64:=c64 xor (c64 shr 25);
+    c64:=c64 xor (c64 shl 27);
+  end;
 begin
-  // this line is copied from FPC system.inc
-  result := int64((qword(Random32bit) or (qword(Random32bit) shl 32)) and $7fffffffffffffff);
-  if N > 0 then
-    result := result mod N
+  {we need to do it even if N=0..1 to cycle 32bit random seed twice as expected}
+  c64 := qword(Random32bit) or (qword(Random32bit) shl 32);
+  if N > 1 then begin
+    {adding a xorshift64 cycle guarantees us that c64 is truly random
+     in range 1..high(QWORD)
+     but slows down execution by ~10%}
+    xorshift64;
+    {in contrast to SysUtils we make it a true 64-bit random, not a fake 63 bit :)}
+    result := int64(qword(c64) mod qword(N))
+  end
   else
     result := 0;
 end;
