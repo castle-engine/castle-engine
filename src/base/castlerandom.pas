@@ -120,6 +120,11 @@ begin
    with equal seed even if they are absolutely simultaneous}
   c64 := QWORD(@(c64));
   xorshift64;xorshift64;xorshift64;xorshift64;xorshift64;xorshift64;
+  {I've made it 6 times, because sometimes values returned by
+   xorshift algorithm are not too different,
+   but we want them really independent for random seed initialization.
+   So, multiple xorshift64 will take this "little" difference and eventually
+   transform it into truly unpredictable number in 1..max(QWORD) range}
   while wait_for_seed do xorshift64; //do something nearly useful while randomization is buisy
 
   wait_for_seed := true;     //prevents another randomization to start until this one is finished
@@ -127,6 +132,10 @@ begin
   b64 := c64;   //and use our another random seed based on current thread memory allocation
   {can this actually damage randomness in case of randomization happens only once
    as b64 will be constant then?}
+
+  {basically we don't care if threads accidently will pass "wait_for_seed" lock
+   because thanks to b64 still we shall get different random values. Just the
+   algorithm would not be as optimal as it might be}
 
   if store_64bit_seed = 0 then begin //if this is the first randomization
 
@@ -154,9 +163,10 @@ begin
 
     {"Trying to solve the problem" we do the following:}
 
-    {make a 64-bit xorshift cycle several times to kill any possible link
-     to gettickcount64}
+    {make a 64-bit xorshift cycle several times
+     to kill any possible link to gettickcount64}
     xorshift64;xorshift64;xorshift64;xorshift64;xorshift64;xorshift64;
+    {the same note on quantity of xorshift's as above}
 
     {now we have to make sure adding "now" won't overflow our c64 variable
      and add a few xorshift64-cycles just for fun in case it will.}
@@ -182,19 +192,18 @@ begin
   xorshift64;
   {and merge another random-variable based on current thread memory allocation}
   c64 := c64 xor b64;
-  {and cycle everything one more time}
-  xorshift64;
 
-  {now leave higher 32-bits of c64 as a true random seed}
-  result := longint(c64 shr 32);
+  {and finally...}
+  repeat
+    {cycle everything one more time}
+    xorshift64;
+    {leave higher 32-bits of c64 as a true random seed}
+    result := longint(c64 shr 32);
+  until result<>0;
   {and strictly demand it's not zero!
    adding a few xorshift64-cycles in case it does.}
-  while result=0 do begin
-    xorshift64;
-    result := longint(c64 shr 32);
-  end;
 
-  {Eventually, store the final and truly random 64 bit seed.}
+  {Eventually, store the final and truly random 64 bit seed for reusing}
   store_64bit_seed := c64;
   {and release the next thread to continue if any pending...}
   wait_for_seed := false;
