@@ -591,24 +591,9 @@ end;
 
 procedure TSprite.DrawFlipped(const ScreenRect: TFloatRectangle;
   const FlipHorizontal, FlipVertical: boolean);
-var
-  FrameRect: TFloatRectangle;
 begin
-  FrameRect := FloatRectangle(GetFrameRect);
-
-  if FlipHorizontal then
-  begin
-    FrameRect.Left := FrameRect.Left + FrameRect.Width;
-    FrameRect.Width := -FrameRect.Width;
-  end;
-
-  if FlipVertical then
-  begin
-    FrameRect.Bottom := FrameRect.Bottom + FrameRect.Height;
-    FrameRect.Height := -FrameRect.Height;
-  end;
-
-  FImage.Draw(ScreenRect, FrameRect);
+  FImage.DrawFlipped(ScreenRect, FloatRectangle(GetFrameRect),
+    FlipHorizontal, FlipVertical);
 end;
 
 procedure TSprite.Move(AX, AY: Integer; ARot: Single);
