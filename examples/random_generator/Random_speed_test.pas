@@ -31,7 +31,11 @@ var
 begin
   RND := TCastleRandom.create;
   try
-    sleep(1); //wait until the routine starts up... else we'll get slow-dowsn at first test.
+    sumint := 0;
+    for i:= 1 to N_of_tests do sumint += 1;
+    {Warm-up the CPU (if any power-saving mode is active)
+     and skip program post-compillation lags, otherwise
+     we might get incorrect results at first tests!}
 
     sum := 0;
     T := now;
@@ -68,6 +72,12 @@ begin
     for i := 1 to N_of_tests do
       sumint += RND.random(2);
     writeln('Castle integer random   t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
+
+    sumint := 0;
+    T := now;
+    for i := 1 to N_of_tests do
+      sumint += RND.RandomInt64(2);
+    writeln('Castle int64   random   t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
 
     sumint := 0;
     T := now;
