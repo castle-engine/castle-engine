@@ -86,10 +86,11 @@ begin
    /dev/urandom is a native *nix very high-quality random number generator.
    it's 1000 times slower than CastleRandom,
    but provides a perfect seed initialization. }
-  //filemode := 0;
   AssignFile(dev_rnd, '/dev/urandom');
   reset(dev_rnd);
-  read(dev_rnd,result);
+  repeat
+    read(dev_rnd,result);
+  until result<>0; // xorshift can't get 0 as a random seed so, we just read /dev/urandom until its not zero
   CloseFile(dev_rnd);
 end;
 {$ELSE}
@@ -100,7 +101,6 @@ end;
  I hope I've made everything right :) At least formal tests show it is so.}
 var store_64bit_seed: QWord = 0; //this variable stores 64 bit seed for reusing
    wait_for_seed: boolean = false;
-   Random_seed_count: QWord = 1843598; //some arbitrary variable to discern between threads
 function Get_Randomseed: longint;
 const date_multiplier: QWord = 30000000;  // approximate accuracy of the date
       date_order: QWord = 80000 * 30000000; // order of the "now*date_multiplier" variable
@@ -114,23 +114,22 @@ var c64: QWord; //current seed;
     c64:=c64 xor (c64 shl 27);
   end;
 begin
-  if random_seed_count<high(QWord) then
-    inc(random_seed_count) // this will make 2 threads different even if they bypass wait_for_seed check somehow
-  else
-    random_seed_count := store_64bit_seed shr 32+1; //really, can this EVER happen???
-
-  {prepare to do something idle in case there are multiple threads}
-  c64 := random_seed_count;
-  xorshift64;
+  {We add an additional semi-random variable based on local c64 variable
+   64-bit address. The only profit we have here is that this address will be
+   different for different threads, therefore no 2 threads can be initialized
+   with equal seed even if they are absolutely simultaneous}
+  c64 := QWORD(@(c64));
+  xorshift64;xorshift64;xorshift64;xorshift64;xorshift64;xorshift64;
   while wait_for_seed do xorshift64; //do something nearly useful while randomization is buisy
 
   wait_for_seed := true;     //prevents another randomization to start until this one is finished
 
-  b64 := c64;   //and use our another random seed based on current randomization count;
+  b64 := c64;   //and use our another random seed based on current thread memory allocation
   {can this actually damage randomness in case of randomization happens only once
    as b64 will be constant then?}
 
-  if store_64bit_seed = 0 then begin
+  if store_64bit_seed = 0 then begin //if this is the first randomization
+
     {This random seed initialization follows SysUtils random.
      Actually it is a relatively bad initialization for random numbers
      comparing to Linux urandom.
@@ -155,21 +154,9 @@ begin
 
     {"Trying to solve the problem" we do the following:}
 
-    {make a 64-bit xorshift cycle}
-    xorshift64;
-
-    {We must make sure that such initialization will happen only once
-     Xorshift64 will do the rest. That will provide us with truly random seeds
-     while initializing multiple instances of CastleRandom semi-simultaneously
-     We want this as soon as possible, if the next initialization happens
-     "just now" - to be thread-safe.
-     However, it's still safer to initialize multiple instances of CastleRandom
-     outside of the threads}
-    //store_64bit_seed := c64; //I hope wait_for_seed will do a better job for multi-threading
-
-    {make a 64-bit xorshift cycle once more. Just to make really sure
-     it has absolutely nothing to do with initial gettickcount64 anymore}
-    xorshift64;
+    {make a 64-bit xorshift cycle several times to kill any possible link
+     to gettickcount64}
+    xorshift64;xorshift64;xorshift64;xorshift64;xorshift64;xorshift64;
 
     {now we have to make sure adding "now" won't overflow our c64 variable
      and add a few xorshift64-cycles just for fun in case it will.}
@@ -177,7 +164,7 @@ begin
 
     {to kill a random discretness introduced by gettickcount64 we add "now".
      "now" and gettickcount64 are not independent and, in fact, change
-     synchronously. But after xorshift64 c64 has nothing
+     synchronously. But after several xorshift64-s c64 has no information
      left off gettickcount64 and therefore we introduce an additional
      semi-independent shift into the random seed}
     c64 += QWord(round(now*date_multiplier));
@@ -186,16 +173,16 @@ begin
      the Windows startup - different date&time will shift the random seed...
      unless he/she deliberately sets the date&time&tick to some specific value}
 
-    {store another, more random 64 bit seed. Now we are not afraid another
-     thread will pick it up and use it, as it's truly random right now}
-    //store_64bit_seed := c64; //I hope wait_for_seed will do a better job for multi-threading
+    {and another 64-bit xorshift cycle twice to kill everything left off "now"}
+    xorshift64;
   end else
     c64 := store_64bit_seed; //else - just grab the last seed.
 
-  {and another 64-bit xorshift cycle twice to kill everything left off "now"
-   or just to cycle xorshift64 in case we have store_64bit_seed already initialized}
+  {Now we cycle xorshift64 as we have a decent random c64 variable}
   xorshift64;
-  c64 := c64 xor b64; //here we pack in our random_seed_count for threads
+  {and merge another random-variable based on current thread memory allocation}
+  c64 := c64 xor b64;
+  {and cycle everything one more time}
   xorshift64;
 
   {now leave higher 32-bits of c64 as a true random seed}
@@ -223,8 +210,6 @@ begin
   {$ELSE}
     result := Get_Randomseed;
   {$ENDIF}
-
-  if result = 0 then result := maxint div 3; //to avoid the seed being zero
 end;
 
 procedure TCastleRandom.XorShiftCycle; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
