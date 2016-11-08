@@ -124,7 +124,7 @@ begin
    xorshift algorithm are not too different,
    but we want them really independent for random seed initialization.
    So, multiple xorshift64 will take this "little" difference and eventually
-   transform it into truly unpredictable number in 1..max(QWORD) range}
+   transform it into truly unpredictable number in 1..high(QWORD) range}
   while wait_for_seed do xorshift64; //do something nearly useful while randomization is buisy
 
   wait_for_seed := true;     //prevents another randomization to start until this one is finished
@@ -144,7 +144,7 @@ begin
      comparing to Linux urandom.
      It provides a limited amount of random numbers and it has a step of
      15 or 16 ms, so it's not continuous. Moreover it has just 5 mlns of
-     possible values per 24 hours while xorshift32 supports for max(LongWord) -
+     possible values per 24 hours while xorshift32 supports for high(LongWord) -
      i.e. we get ~800 times less variants or 2400 times less
      as a "normal" user doesn't run computer for longer than 8 hours.
      And even less than that in case the player runs the game near the time
