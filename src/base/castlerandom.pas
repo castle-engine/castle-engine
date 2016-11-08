@@ -107,7 +107,7 @@ const date_multiplier: QWord = 30000000;  // approximate accuracy of the date
       {p.s. date_order will be true until year ~2119}
 var c64: QWord; //current seed;
     b64: QWord; //additional seed for multi-threading safety
-  procedure xorshift64; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
+  procedure xorshift64; //{$IFDEF SUPPORTS_INLINE} inline; {$ENDIF} //we're using it too many times to inline
   begin
     c64:=c64 xor (c64 shl 12);
     c64:=c64 xor (c64 shr 25);
