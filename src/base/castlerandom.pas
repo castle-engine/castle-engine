@@ -281,7 +281,10 @@ begin
      in range 1..high(QWORD)
      but slows down execution by ~10%}
     xorshift64;
-    {in contrast to SysUtils we make it a true 64-bit random, not a fake 63 bit :)}
+    {in contrast to SysUtils we make it a true 64-bit random, not a fake 63 bit :)
+     There can be no overflow here, because N is int64 and it can't be
+     larger than (high(QWORD) div 2), i.e. we can never get "negative" result
+     as the first bit of the result will be always zero}
     result := int64(qword(c64) mod qword(N))
   end
   else
