@@ -141,7 +141,7 @@ begin
 
     {This random seed initialization follows SysUtils random.
      Actually it is a relatively bad initialization for random numbers
-     comparing to Linux urandom.
+     comparing to *nix /dev/urandom.
      It provides a limited amount of random numbers and it has a step of
      15 or 16 ms, so it's not continuous. Moreover it has just 5 mlns of
      possible values per 24 hours while xorshift32 supports for high(LongWord) -
@@ -180,10 +180,10 @@ begin
     c64 += QWord(round(now*date_multiplier));
     {now we are sure that the player will get a different random seed even
      in case he/she launches the game exactly at the same milisecond since
-     the Windows startup - different date&time will shift the random seed...
+     the OS startup - different date&time will shift the random seed...
      unless he/she deliberately sets the date&time&tick to some specific value}
 
-    {and another 64-bit xorshift cycle twice to kill everything left off "now"}
+    {and another 64-bit xorshift cycle to kill everything left off "now"}
     xorshift64;
   end else
     c64 := store_64bit_seed; //else - just grab the last seed.
