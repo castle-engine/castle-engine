@@ -57,7 +57,8 @@ type
 
 implementation
 
-uses SysUtils; // required only for randomization based on "now" function
+uses SysUtils, CastleTimeUtils; // required only for randomization based on "now" function
+{p.s. Pay attention CastleTimeUtils.GetTickCount64 overrides SysUtils.GetTickCount64}
 
 constructor TCastleRandom.Create(RandomSeed: LongWord);
 begin
