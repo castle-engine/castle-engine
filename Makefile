@@ -191,6 +191,7 @@ EXAMPLES_BASE_NAMES := \
   examples/resource_animations/resource_animations \
   examples/fps_game/fps_game \
   examples/2d_standard_ui/show_various_ui_controls/show_various_ui_controls \
+  examples/2d_standard_ui/timer_test/timer_test \
   examples/2d_standard_ui/zombie_fighter/zombie_fighter \
   examples/android/android_demo/androiddemo_standalone \
   tools/build-tool/castle-engine \

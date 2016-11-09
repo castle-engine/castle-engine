@@ -99,7 +99,10 @@ function Iff(boolval: boolean; trueval, falseval: Float)   : Float;    overload;
 function Iff(boolval: boolean; trueval, falseval: Cardinal): Cardinal; overload;
 function Iff(boolval: boolean; trueval, falseval: char)    : char;     overload;
 
-{ Some helpful consts -------------------------------------------------------- }
+{ Some helpful version stuff ------------------------------------------------ }
+
+const
+  CastleEngineVersion = {$I castleversion.inc};
 
 {$ifdef FPC}
 { Describe FPC version. In the form 'version.release.patch'.
@@ -219,51 +222,27 @@ function Iff(boolval: boolean; trueval, falseval: char)    : char;     begin if 
 {$ifdef FPC}
 function SFPCVersion: string;
 begin
- Result := Format('%d.%d.%d', [FPC_VERSION, FPC_RELEASE, FPC_PATCH]);
-
-(*
-  Notes about old ideas how to implement it to be able to declare it
-  as a constant:
-
-    As some time, I used this code:
-
-      {$ifdef VER1_0_6} '1.0.6' {$endif}
-      {$ifdef VER1_0_10} '1.0.10' {$endif}
-      {$ifdef VER1_9_4} '1.9.4' {$endif}
-      {$ifdef VER1_9_5} '1.9.5' {$endif}
-      {$ifdef VER1_9_6} '1.9.6' {$endif}
-      {$ifdef VER1_9_7} '1.9.7' {$endif};
-
-    but this obviously had to be fixed for each new FPC version.
-
-    There's also this trick to define it as a constant,
-    but it works only when there are only single digits in version
-    (e.g. it wouldn't work for FPC 1.0.10):
-      Chr(Ord(FPC_VERSION)+Ord('0')) +'.' +
-      Chr(Ord(FPC_RELEASE)+Ord('0')) +'.' +
-      Chr(Ord(FPC_PATCH)+Ord('0'));
-
-  After some time, I decided to implement SFPCVersion cleanly
-  as a function.  *)
+  Result := {$I %FPCVERSION%} +
+    ' (' + {$I %FPCTARGETOS%} + ' / ' + {$I %FPCTARGETCPU%} + ')';
 end;
 {$endif FPC}
 
 function SCompilerDescription: string;
 begin
- Result :=
-   {$ifdef FPC}
-     'Free Pascal Compiler ' + SFPCVersion
-   {$else} {$ifdef DELPHI}
-     {$ifdef WIN32} 'Delphi'
-       {$ifdef VER140} + ' 6' {$endif}
-       {$ifdef VER150} + ' 7' {$endif}
-     {$else} 'Kylix'
-     {$endif}
-   {$else} {$ifdef __GPC__}
-     'GNU Pascal'
-   {$else}
-     Undefined compiler.
-   {$endif} {$endif} {$endif} ;
+  Result :=
+    {$ifdef FPC}
+      'FPC ' + SFPCVersion
+    {$else} {$ifdef DELPHI}
+      {$ifdef WIN32} 'Delphi'
+        {$ifdef VER140} + ' 6' {$endif}
+        {$ifdef VER150} + ' 7' {$endif}
+      {$else} 'Kylix'
+      {$endif}
+    {$else} {$ifdef __GPC__}
+      'GNU Pascal'
+    {$else}
+      'Unrecognized compiler'
+    {$endif} {$endif} {$endif} ;
 end;
 
 function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;

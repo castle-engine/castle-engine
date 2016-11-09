@@ -34,7 +34,11 @@ const
 type
   { Determines the order in which TUIControl.Render is called.
     All 3D controls are always under all 2D controls.
-    See TUIControl.Render, TUIControl.RenderStyle. }
+    See TUIControl.Render, TUIControl.RenderStyle.
+
+    @deprecated Do not use this to control front-back UI controls
+    order, it's better to depend only on controls order and
+    on TUIControl.KeepInFront. }
   TRenderStyle = (rs2D, rs3D);
 
   TUIControl = class;
@@ -417,7 +421,8 @@ type
     { Internal for implementing mouse look in cameras. }
     procedure MakeMousePositionForMouseLook;
 
-    { Force passing events to given control first, regardless if this control is under mouse cursor.
+    { Force passing events to given control first,
+      regardless if this control is under mouse cursor.
       This control also always has focus.
 
       An example when this is useful is when you use camera MouseLook,
@@ -452,6 +457,9 @@ type
           This is suitable if you want to draw something 3D,
           that may be later covered by 2D controls.)
       )
+
+      @deprecated Do not use this to control the order of rendering,
+      better to use proper InsertFront or InsertBack or KeepInFront.
     }
     property RenderStyle: TRenderStyle
       read FRenderStyle write FRenderStyle default rs2D;

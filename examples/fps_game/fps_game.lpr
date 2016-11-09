@@ -200,15 +200,15 @@ end;
 var
   Buttons: TButtons;
 
-{ 2D controls ---------------------------------------------------------------- }
+{ Player HUD ---------------------------------------------------------------- }
 
 type
-  TGame2DControls = class(TUIControl)
+  TPlayerHUD = class(TUIControl)
   public
     procedure Render; override;
   end;
 
-procedure TGame2DControls.Render;
+procedure TPlayerHUD.Render;
 const
   InventoryImageSize = 128;
 var
@@ -216,6 +216,7 @@ var
   I, X, Y: Integer;
   S: string;
 begin
+  inherited;
   Player := SceneManager.Player;
 
   Y := ContainerHeight;
@@ -289,7 +290,7 @@ begin
 end;
 
 var
-  Game2DControls: TGame2DControls;
+  PlayerHUD: TPlayerHUD;
 
 { Window callbacks ----------------------------------------------------------- }
 
@@ -339,7 +340,7 @@ type
     to increase health on use (press Enter to use item in inventory).
 
     We also override the Stack property to avoid stacking items.
-    We do this here just to see that TGame2DControls works for many items.
+    We do this here just to see that TPlayerHUD works for many items.
     (Otherwise, all instances of MedKit would be "stacked" together,
     which means you will have a single item on Player.Inventory,
     but with Quantity possibly > 1. For real games, stacking is usually a good
@@ -546,23 +547,16 @@ begin
     "placeholders" on the level, see TGameSceneManager.LoadLevel documentation. }
   SceneManager.LoadLevel('example_level');
 
-  { Initialize ExtraViewport to a camera that nicely views the scene from above.
-
-    Note that usually there's no need to initialize TCastleViewport
-    or TCastleSceneManager.Camera: they are initialized automatically
-    when needed (usually at first render) or at LoadLevel,
-    using camera properties from level 3D file (TCastleSceneManager.MainScene). }
-  if ExtraViewport.Camera = nil then
-    ExtraViewport.Camera := SceneManager.CreateDefaultCamera(ExtraViewport);
-  { The default CreateDefaultCamera implementation always creates
+  { Initialize ExtraViewport camera to something
+    that nicely views the scene from above.
+    The default viewport CreateDefaultCamera implementation always creates
     TUniversalCamera, so we can safely cast below. }
-  (ExtraViewport.Camera as TUniversalCamera).NavigationType := ntExamine;
-  ExtraViewport.Camera.SetInitialView(
+  (ExtraViewport.RequiredCamera as TUniversalCamera).NavigationType := ntExamine;
+  ExtraViewport.RequiredCamera.SetView(
     { position } Vector3Single(0, 55, 44),
     { direction } Vector3Single(0, -1, 0),
     { up } Vector3Single(0, 0, -1), false
   );
-  ExtraViewport.Camera.GoToInitial;
   { Note we allow user to actually edit this view, e.g. by mouse dragging.
     But you could always do this to make camera non-editable: }
   // ExtraViewport.Camera.Input := [];
@@ -597,13 +591,13 @@ begin
   Notifications.Color := Yellow;
   Window.Controls.InsertFront(Notifications);
 
-  { Create and add Game2DControls to visualize player life, inventory and pain. }
-  Game2DControls := TGame2DControls.Create(Application);
-  Window.Controls.InsertFront(Game2DControls);
+  { Create and add PlayerHUD to visualize player life, inventory and pain. }
+  PlayerHUD := TPlayerHUD.Create(Application);
+  Window.Controls.InsertFront(PlayerHUD);
 
   { Insert default crosshair.
-    You can draw your own crosshair easily (using TGLImage.Draw
-    inside TGame2DControls, or using TCastleImageControl). }
+    You can always draw your custom crosshair instead (using TGLImage.Draw
+    inside TPlayerHUD, or using TCastleImageControl). }
   Window.Controls.InsertFront(TCastleCrosshair.Create(Application));
 
   { Run the game loop.

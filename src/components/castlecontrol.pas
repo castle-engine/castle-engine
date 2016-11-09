@@ -295,8 +295,16 @@ type
       by the Invalidate method, which will cause this event to be called
       at nearest good time.
 
-      Note that calling Invalidate while in OnRender is not ignored.
-      It means that in a short time next OnRender will be called. }
+      Note that calling Invalidate while in EventRender (OnRender) is not ignored.
+      It instructs to call EventRender (OnRender) again, as soon as possible.
+
+      When you have some controls on the @link(Controls) list
+      (in particular, the @link(TCastleControl.SceneManager) is also on this list),
+      the OnRender event is done @bold(last) (at least as long as RenderStyle = rs2D,
+      default). So here you can draw on top of the existing UI controls.
+      To draw something underneath the existing controls, create a new TUIControl
+      and override it's @link(TUIControl.Render) and insert it to the controls
+      using @code(Controls.InsertBack(MyBackgroundControl);). }
     property OnRender: TNotifyEvent read FOnRender write FOnRender;
 
     { Called when the control size (@code(Width), @code(Height)) changes.

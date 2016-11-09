@@ -15,7 +15,10 @@ program fpmake;
 { Only FPC >= 2.7.1 has the "Android" as a possible OS. }
 {$ifndef VER2_6} {$define ANDROID_POSSIBLE} {$endif}
 
-uses SysUtils, fpmkunit;
+uses
+  { It seems that FPC 3.1.1 requires thread support for FpMkUnit. }
+  {$ifdef VER3_1} CThreads, {$endif}
+  SysUtils, fpmkunit;
 
 var
   P: TPackage;
@@ -78,8 +81,7 @@ begin
     P.HomepageURL
     {$endif} := 'http://castle-engine.sourceforge.net/';
     P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
-    { When updating this version, remember to also update tools/castle-engine.lpr version. }
-    P.Version := '5.2.0';
+    P.Version := {$I src/base/castleversion.inc};
 
     P.SourcePath.Add('src' + PathDelim + '3d');
     P.Targets.AddUnit('castle3d.pas');
