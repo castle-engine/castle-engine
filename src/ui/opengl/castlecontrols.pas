@@ -1325,6 +1325,33 @@ type
     property EnableDragging: boolean read FEnableDragging write FEnableDragging default false;
   end;
 
+  { Timer, running the @link(OnTimer) event periodically. }
+  TCastleTimer = class(TUIControl)
+  strict private
+    FCounteractDelays: boolean;
+    FIntervalSeconds, IntervalRemaining: TFloatTime;
+    FOnTimer: TNotifyEvent;
+    procedure SetIntervalSeconds(AValue: TFloatTime);
+  strict protected
+    procedure DoTimer; virtual;
+  public
+    procedure Update(const SecondsPassed: Single;
+      var HandleInput: boolean); override;
+  published
+    { How often should we call OnTimer. Value of 0 means to call OnTimer
+      in every Update event. }
+    property IntervalSeconds: TFloatTime read FIntervalSeconds write SetIntervalSeconds;
+    { The event called periodically. }
+    property OnTimer: TNotifyEvent read FOnTimer write FOnTimer;
+    { Should be counteract the delays in timer by firing next event sooner.
+      This helps to keep a constant frequency of timer events over a long time,
+      but it may cause to execute a @italic(lot) of timer events in case
+      the application hung for some time. Use if it is necessary
+      e.g. to synchronize with other timers. }
+    property CounteractDelays: boolean
+      read FCounteractDelays write FCounteractDelays default false;
+  end;
+
   { Theme for 2D GUI controls.
     Should only be used through the single global instance @link(Theme). }
   TCastleTheme = class
@@ -1546,6 +1573,51 @@ end;
 procedure SetUIFontSmall(const Value: TCastleFont);
 begin
   FUIFontSmall := Value;
+end;
+
+{ TCastleTimer --------------------------------------------------------------- }
+
+procedure TCastleTimer.SetIntervalSeconds(AValue: TFloatTime);
+begin
+  if FIntervalSeconds <> AValue then
+  begin
+    FIntervalSeconds := AValue;
+    IntervalRemaining := FIntervalSeconds;
+  end;
+end;
+
+procedure TCastleTimer.DoTimer;
+begin
+  if Assigned(OnTimer) then
+    OnTimer(Self);
+end;
+
+procedure TCastleTimer.Update(const SecondsPassed: Single; var HandleInput: boolean);
+begin
+  inherited;
+  if IntervalSeconds <> 0 then
+  begin
+    IntervalRemaining -= SecondsPassed;
+    if CounteractDelays then
+    begin
+      while IntervalRemaining < 0 do
+      begin
+        IntervalRemaining += IntervalSeconds;
+        DoTimer;
+      end;
+    end else
+    begin
+      if IntervalRemaining < 0 then
+      begin
+        IntervalRemaining := IntervalSeconds;
+        DoTimer;
+      end;
+    end;
+  end else
+  begin
+    { for IntervalSeconds = 0, just call timer at every Update. }
+    DoTimer;
+  end;
 end;
 
 { TUIControlFont ---------------------------------------------------------- }
