@@ -43,7 +43,7 @@ var
 begin
   LMDecode(LM, L, M);
   UIFont.Print(10, 10, Yellow,
-    Format('Spherical harmonic number %d. (L, M) = (%d, %d). Resuls in range (%f, %f)',
+    Format('Spherical harmonic number %d. (L, M) = (%d, %d). Results in range (%f, %f)',
     [LM, L, M, MinSHValue, MaxSHValue]));
 end;
 
