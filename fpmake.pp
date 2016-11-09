@@ -15,7 +15,10 @@ program fpmake;
 { Only FPC >= 2.7.1 has the "Android" as a possible OS. }
 {$ifndef VER2_6} {$define ANDROID_POSSIBLE} {$endif}
 
-uses SysUtils, fpmkunit;
+uses
+  { It seems that FPC 3.1.1 requires thread support for FpMkUnit. }
+  {$ifdef VER3_1} CThreads, {$endif}
+  SysUtils, fpmkunit;
 
 var
   P: TPackage;
