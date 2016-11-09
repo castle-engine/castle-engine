@@ -1573,7 +1573,15 @@ type
       at nearest good time.
 
       Note that calling Invalidate while in EventRender (OnRender) is not ignored.
-      It means that in a short time next EventRender (OnRender) will be called. }
+      It instructs to call EventRender (OnRender) again, as soon as possible.
+
+      When you have some controls on the @link(Controls) list
+      (in particular, the @link(TCastleWindow.SceneManager) is also on this list),
+      the OnRender event is done @bold(last) (at least as long as RenderStyle = rs2D,
+      default). So here you can draw on top of the existing controls.
+      To draw something underneath the existing controls, create a new TUIControl
+      and override it's @link(TUIControl.Render) and insert it to the controls
+      using @code(Controls.InsertBack(MyBackgroundControl);). }
     property OnRender: TContainerEvent read GetOnRender write SetOnRender;
 
     { @deprecated Deprecated name for OnRender. }
