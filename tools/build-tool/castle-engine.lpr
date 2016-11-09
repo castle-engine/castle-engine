@@ -35,7 +35,7 @@ var
   AssumeCompiled: boolean = false;
 
 const
-  Version = '5.2.0'; //< When updating this, remember to also update version in ../fpmake.pp
+  Version = CastleEngineVersion;
   Options: array [0..8] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
