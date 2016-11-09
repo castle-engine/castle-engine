@@ -31,7 +31,11 @@ var
 begin
   RND := TCastleRandom.create;
   try
-    sleep(1); //wait until the routine starts up... else we'll get slow-dowsn at first test.
+    sumint := 0;
+    for i:= 1 to N_of_tests do sumint += 1;
+    {Warm-up the CPU (if any power-saving mode is active)
+     and skip program post-compillation lags, otherwise
+     we might get incorrect results at first tests!}
 
     sum := 0;
     T := now;
@@ -72,6 +76,12 @@ begin
     sumint := 0;
     T := now;
     for i := 1 to N_of_tests do
+      sumint += RND.RandomInt64(2);
+    writeln('Castle int64   random   t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
+
+    sumint := 0;
+    T := now;
+    for i := 1 to N_of_tests do
       sumint += raw(2);
     writeln('Raw integer Xorshift    t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
 
@@ -79,20 +89,20 @@ begin
     sumint := 0;
     T := now;
     for i := 1 to N_of_tests do if RND.random(2)=0 then inc(sumint);
-    writeln('integer t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
+    writeln('Integer boolean t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
     sumint := 0;
     T := now;
     for i := 1 to N_of_tests do if RND.randomBoolean then inc(sumint);
-    writeln('random2 t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
+    writeln('Random boolean t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
 
     sumint := 0;
     T := now;
     for i := 1 to N_of_tests do Sumint += RND.random(3)-1;
-    writeln('integer t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
+    writeln('Integer sign t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
     sumint := 0;
     T := now;
     for i := 1 to N_of_tests do sumint += RND.randomSign;
-    writeln('random3 t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
+    writeln('Random sign t = ',round((now-T)*24*60*60*1000)-BiasInt,' ms average = ',sumint/N_of_tests);
 
   finally
     FreeAndNil(RND);
