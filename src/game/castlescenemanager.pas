@@ -21,7 +21,7 @@ unit CastleSceneManager;
 interface
 
 uses SysUtils, Classes, FGL,
-  CastleVectors, X3DNodes, CastleScene, CastleSceneCore, CastleCameras,
+  CastleVectors, X3DNodes, X3DTriangles, CastleScene, CastleSceneCore, CastleCameras,
   CastleGLShadowVolumes, CastleUIControls, Castle3D, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleBackground, CastleUtils, CastleClassUtils,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleSectors,
@@ -390,6 +390,10 @@ type
       Black by default. }
     property BackgroundColor: TCastleColor
       read FBackgroundColor write FBackgroundColor;
+
+    { Current 3D triangle under the mouse cursor.
+      Updated in every mouse move. May be @nil. }
+    function TriangleHit: PTriangle;
   published
     { Camera used to render this viewport.
 
@@ -1147,7 +1151,7 @@ implementation
 
 uses CastleRenderingCamera, CastleGLUtils, CastleProgress,
   CastleLog, CastleStringUtils, CastleSoundEngine, Math,
-  X3DTriangles, CastleGLVersion, CastleShapes;
+  CastleGLVersion, CastleShapes;
 
 procedure Register;
 begin
@@ -1501,6 +1505,16 @@ begin
      (GetMouseRayHit.Count <> 0) then
     Cursor := GetMouseRayHit.First.Item.Cursor else
     Cursor := mcDefault;
+end;
+
+function TCastleAbstractViewport.TriangleHit: PTriangle;
+begin
+  if (GetMouseRayHit <> nil) and
+     (GetMouseRayHit.Count <> 0) then
+    { This should always be castable to TTriangle class. }
+    Result := PTriangle(GetMouseRayHit.First.Triangle)
+  else
+    Result := nil;
 end;
 
 procedure TCastleAbstractViewport.Update(const SecondsPassed: Single;
