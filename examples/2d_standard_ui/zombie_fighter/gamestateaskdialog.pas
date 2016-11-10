@@ -33,12 +33,14 @@ type
         procedure RunClick(Sender: TObject);
         procedure FightClick(Sender: TObject);
       public
-        constructor Create(AOwner: TComponent); override;
+        constructor Create(AOwner: TComponent; const Male: boolean); reintroduce;
       end;
     var
     TransparentBackground: TCastleRectangleControl;
     Dialog: TZombieDialog;
   public
+    { Whether to show male image. Set before doing @link(Start). }
+    Male: boolean;
     procedure Start; override;
   end;
 
@@ -52,9 +54,9 @@ uses CastleColors, CastleWindow, CastleUIControls, CastleFilesUtils,
 
 { TStateAskDialog.TZombieDialog ---------------------------------------------- }
 
-constructor TStateAskDialog.TZombieDialog.Create(AOwner: TComponent);
+constructor TStateAskDialog.TZombieDialog.Create(AOwner: TComponent; const Male: boolean);
 begin
-  inherited;
+  inherited Create(AOwner);
 
   Width := 400;
   Height := 500;
@@ -69,7 +71,10 @@ begin
   InsertFront(InsideRect);
 
   Image := TCastleImageControl.Create(Self);
-  Image.URL := ApplicationData('Female-Zombie-300px.png');
+  if Male then
+    Image.URL := ApplicationData('Male-Zombie-300px.png')
+  else
+    Image.URL := ApplicationData('Female-Zombie-300px.png');
   Image.Anchor(hpMiddle);
   Image.Anchor(vpTop, -10);
   InsideRect.InsertFront(Image);
@@ -135,7 +140,7 @@ begin
   TransparentBackground.FullSize := true;
   InsertFront(TransparentBackground);
 
-  Dialog := TZombieDialog.Create(FreeAtStop);
+  Dialog := TZombieDialog.Create(FreeAtStop, Male);
   Dialog.Anchor(hpMiddle);
   Dialog.Anchor(vpMiddle);
   InsertFront(Dialog);

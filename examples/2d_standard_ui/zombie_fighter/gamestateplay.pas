@@ -31,6 +31,7 @@ type
     ViewportRect: TCastleRectangleControl;
     Viewport: TCastleViewport;
     ButtonBack: TCastleButton;
+    LabelInstructions: TCastleLabel;
     procedure BackClick(Sender: TObject);
   public
     procedure Start; override;
@@ -43,7 +44,7 @@ var
 implementation
 
 uses CastleVectors, CastleColors, CastleWindow, CastleUIControls,
-  CastleFilesUtils, CastleUtils,
+  CastleFilesUtils, CastleUtils, X3DTriangles,
   GameStateMainMenu, GameStateAskDialog;
 
 { TStatePlay ------------------------------------------------------------- }
@@ -60,6 +61,9 @@ begin
   Scene.Load(ApplicationData('level1.x3d'));
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
+  { zombie sprites are rendered using blending, and you can see multiple
+    sprites sometimes at once. So we need sorting, to render them correctly. }
+  Scene.Attributes.BlendingSort := bs3D;
 
   SceneManager := TCastleSceneManager.Create(FreeAtStop);
   SceneManager.FullSize := false;
@@ -101,6 +105,15 @@ begin
     Vector3Single(0, 0, 1));
   ViewportRect.InsertFront(Viewport);
 
+  LabelInstructions := TCastleLabel.Create(FreeAtStop);
+  LabelInstructions.Caption :=
+    'Walk around using AWSD and arrow keys.' + NL +
+    'Click on a zombie sprite to show a dialog.';
+  LabelInstructions.Anchor(vpTop, -100);
+  LabelInstructions.Anchor(hpRight, -10);
+  LabelInstructions.Color := Yellow;
+  InsertFront(LabelInstructions);
+
   ButtonBack := TCastleButton.Create(FreeAtStop);
   ButtonBack.Caption := 'Back to Main Menu';
   ButtonBack.OnClick := @BackClick;
@@ -115,13 +128,22 @@ begin
 end;
 
 function TStatePlay.Press(const Event: TInputPressRelease): boolean;
+var
+  Triangle: PTriangle;
 begin
   Result := inherited;
   if Result then Exit;
 
   if Event.IsMouseButton(mbLeft) then
   begin
-    TUIState.Push(StateAskDialog);
+    Triangle := SceneManager.TriangleHit;
+    if (Triangle <> nil) and
+       ( (Triangle^.MaterialNode.NodeName = 'MA_female_zombie_material') or
+         (Triangle^.MaterialNode.NodeName = 'MA_male_zombie_material')) then
+    begin
+      StateAskDialog.Male := Triangle^.MaterialNode.NodeName = 'MA_male_zombie_material';
+      TUIState.Push(StateAskDialog);
+    end;
   end;
 end;
 
