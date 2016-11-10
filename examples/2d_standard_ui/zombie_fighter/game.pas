@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ The unit with common code for both Android and standalone. }
+{ Initialize the game window and states. }
 unit Game;
 
 interface
@@ -25,16 +25,9 @@ var
 
 implementation
 
-uses SysUtils, CastleControls, CastleUtils, CastleFilesUtils,
-  CastleColors, CastleUIControls;
-
-var
-  SimpleBackground: TCastleSimpleBackground;
-  Rect: TCastleRectangleControl;
-  InsideRect: TCastleRectangleControl;
-  Image: TCastleImageControl;
-  LabelStats: TCastleLabel;
-  ButtonRun, ButtonFight: TCastleButton;
+uses SysUtils, Classes, CastleControls, CastleUtils, CastleFilesUtils,
+  CastleColors, CastleUIControls, CastleUIState,
+  GameStateMainMenu, GameStatePlay, GameStateAskDialog;
 
 procedure ApplicationInitialize;
 begin
@@ -42,60 +35,13 @@ begin
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
 
-  { If we descend from TCastleWindowCustom,
-    we don't have anything to serve as the default background.
-    So add a black background. }
-  SimpleBackground := TCastleSimpleBackground.Create(Application);
-  SimpleBackground.Color := Black;
-  Window.Controls.InsertFront(SimpleBackground);
+  { create all the states }
+  StateMainMenu := TStateMainMenu.Create(Application);
+  StatePlay := TStatePlay.Create(Application);
+  StateAskDialog := TStateAskDialog.Create(Application);
 
-  Rect := TCastleRectangleControl.Create(Application);
-  Rect.Width := 400;
-  Rect.Height := 500;
-  Rect.Color := HexToColor('5f3939'); // equivalent: Vector4Single(95/255, 57/255, 57/255, 1.0);
-  Rect.Anchor(hpMiddle);
-  Rect.Anchor(vpMiddle);
-  Window.Controls.InsertFront(Rect);
-
-  InsideRect := TCastleRectangleControl.Create(Application);
-  InsideRect.Width := Rect.CalculatedWidth - 10;
-  InsideRect.Height := Rect.CalculatedHeight - 10;
-  InsideRect.Color := Silver;
-  InsideRect.Anchor(hpMiddle);
-  InsideRect.Anchor(vpMiddle);
-  Rect.InsertFront(InsideRect);
-
-  Image := TCastleImageControl.Create(Application);
-  Image.URL := ApplicationData('Female-Zombie-300px.png');
-  Image.Anchor(hpMiddle);
-  Image.Anchor(vpTop, -10);
-  InsideRect.InsertFront(Image);
-
-  LabelStats := TCastleLabel.Create(Application);
-  LabelStats.Color := Black;
-  LabelStats.Html := true;
-  { anything, just to show off the HTML :) }
-  LabelStats.Caption := 'Statistics:' + NL +
-    'Life: <font color="#ff0000">12%</font>' + NL +
-    'Stamina: <font color="#ffff00">34%</font>' + NL +
-    'Mana: <font color="#0000ff">56%</font>';
-  LabelStats.Anchor(hpMiddle);
-  LabelStats.Anchor(vpBottom, 100);
-  InsideRect.InsertFront(LabelStats);
-
-  ButtonRun := TCastleButton.Create(Application);
-  ButtonRun.Caption := 'Run';
-  ButtonRun.Anchor(hpLeft, 10);
-  ButtonRun.Anchor(vpBottom, 10);
-  ButtonRun.PaddingHorizontal := 40;
-  InsideRect.InsertFront(ButtonRun);
-
-  ButtonFight := TCastleButton.Create(Application);
-  ButtonFight.Caption := 'Fight';
-  ButtonFight.Anchor(hpRight, -10);
-  ButtonFight.Anchor(vpBottom, 10);
-  ButtonFight.PaddingHorizontal := 40;
-  InsideRect.InsertFront(ButtonFight);
+  { initialize first state }
+  TUIState.Current := StateMainMenu;
 end;
 
 function MyGetApplicationName: string;
