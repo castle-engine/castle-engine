@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2014 Michalis Kamburelis.
+  Copyright 2002-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,7 +23,7 @@ procedure Box_Proxy(CoordIndex: TLongIntList;
   Coord: TVector3SingleList; Normal: TVector3SingleList;
   TexCoord: TVector2SingleList; MaterialIndex: TLongIntList;
   OverTriangulate: boolean; Sizes: TVector3Single;
-  KambiTriangulation: TKambiTriangulationNode);
+  const Divisions: Cardinal);
 
 var
   Detail: TVector3Cardinal;
@@ -128,7 +128,7 @@ begin
     Although the code is written to support different Detail* values,
     just in case in the future it will be useful. }
   if OverTriangulate then
-    Detail[0] := KambiTriangulation.CalculateRectDivisions else
+    Detail[0] := Divisions else
     Detail[0] := 0;
   Detail[1] := Detail[0];
   Detail[2] := Detail[0];
@@ -143,46 +143,98 @@ begin
   MakeRect(2,  Sizes[2], -Sizes[0], -Sizes[1], 0, 0, 0);
 end;
 
+{ Make a wireframe box. }
+procedure BoxWireframe_Proxy(CoordIndex: TLongIntList;
+  Coord: TVector3SingleList; Sizes: TVector3Single);
+begin
+  Sizes /= 2;
+
+  Coord.AddArray([
+    Vector3Single(-Sizes[0], -Sizes[1], -Sizes[2]),
+    Vector3Single( Sizes[0], -Sizes[1], -Sizes[2]),
+    Vector3Single( Sizes[0],  Sizes[1], -Sizes[2]),
+    Vector3Single(-Sizes[0],  Sizes[1], -Sizes[2]),
+
+    Vector3Single(-Sizes[0], -Sizes[1],  Sizes[2]),
+    Vector3Single( Sizes[0], -Sizes[1],  Sizes[2]),
+    Vector3Single( Sizes[0],  Sizes[1],  Sizes[2]),
+    Vector3Single(-Sizes[0],  Sizes[1],  Sizes[2])
+  ]);
+
+  CoordIndex.AddArray([
+    0, 1, 2, 3, 0, -1,
+    4, 5, 6, 7, 4, -1,
+    0, 4, -1,
+    1, 5, -1,
+    2, 6, -1,
+    3, 7, -1
+  ]);
+end;
+
 function TBoxNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
-var
-  CoordNode: TCoordinateNode;
-  NormalNode: TNormalNode;
-  TexCoordNode: TTextureCoordinateNode;
-  TexCoords: TVector2SingleList;
-  IFS: TIndexedFaceSetNode absolute Result;
+
+  procedure BoxWireframe;
+  var
+    CoordNode: TCoordinateNode;
+    ILS: TIndexedLineSetNode absolute Result;
+  begin
+    ILS := TIndexedLineSetNode.Create(NodeName, BaseUrl);
+    try
+      CoordNode := TCoordinateNode.Create('', BaseUrl);
+      ILS.FdCoord.Value := CoordNode;
+
+      BoxWireframe_Proxy(ILS.FdCoordIndex.Items, CoordNode.FdPoint.Items,
+        FdSize.Value);
+    except FreeAndNil(Result); raise end;
+  end;
+
+  procedure BoxFilled;
+  var
+    CoordNode: TCoordinateNode;
+    NormalNode: TNormalNode;
+    TexCoordNode: TTextureCoordinateNode;
+    TexCoords: TVector2SingleList;
+    IFS: TIndexedFaceSetNode absolute Result;
+  begin
+    IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
+    try
+      CoordNode := TCoordinateNode.Create('', BaseUrl);
+      IFS.FdCoord.Value := CoordNode;
+
+      NormalNode := TNormalNode.Create('', BaseUrl);
+      IFS.FdNormal.Value := NormalNode;
+      IFS.FdNormalPerVertex.Value := true;
+
+      if (FdTexCoord.Value <> nil) and FdTexCoord.CurrentChildAllowed then
+      begin
+        { No need for Box_Proxy to create tex coords. }
+        IFS.FdTexCoord.Value := FdTexCoord.Value;
+        TexCoords := nil;
+      end else
+      begin
+        TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
+        IFS.FdTexCoord.Value := TexCoordNode;
+        TexCoords := TexCoordNode.FdPoint.Items;
+      end;
+
+      Box_Proxy(IFS.FdCoordIndex.Items,
+        CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords, nil,
+        OverTriangulate, FdSize.Value, CalculateDivisions);
+
+      IFS.FdSolid.Value := FdSolid.Value;
+
+      { Smooth nothing. Not really needed, we use explicit normal node now. }
+      IFS.FdCreaseAngle.Value := 0;
+    except FreeAndNil(Result); raise end;
+  end;
+
 begin
-  IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
-  try
-    CoordNode := TCoordinateNode.Create('', BaseUrl);
-    IFS.FdCoord.Value := CoordNode;
-
-    NormalNode := TNormalNode.Create('', BaseUrl);
-    IFS.FdNormal.Value := NormalNode;
-    IFS.FdNormalPerVertex.Value := true;
-
-    if (FdTexCoord.Value <> nil) and FdTexCoord.CurrentChildAllowed then
-    begin
-      { No need for Box_Proxy to create tex coords. }
-      IFS.FdTexCoord.Value := FdTexCoord.Value;
-      TexCoords := nil;
-    end else
-    begin
-      TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
-      IFS.FdTexCoord.Value := TexCoordNode;
-      TexCoords := TexCoordNode.FdPoint.Items;
-    end;
-
-    Box_Proxy(IFS.FdCoordIndex.Items,
-      CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords, nil,
-      OverTriangulate, FdSize.Value,
-      State.LastNodes.KambiTriangulation);
-
-    IFS.FdSolid.Value := FdSolid.Value;
-
-    { Smooth nothing. Not really needed, we use explicit normal node now. }
-    IFS.FdCreaseAngle.Value := 0;
-  except FreeAndNil(Result); raise end;
+  if (State.ShapeNode <> nil) and
+     (State.ShapeNode.Shading = shWireframe) then
+    BoxWireframe
+  else
+    BoxFilled;
 end;
 
 function TCubeNode_1.Proxy(var State: TX3DGraphTraverseState;
@@ -245,7 +297,7 @@ begin
       TexCoordNode.FdPoint.Items, MaterialIndex,
       OverTriangulate,
       Vector3Single(FdWidth.Value, FdHeight.Value, FdDepth.Value),
-      State.LastNodes.KambiTriangulation);
+      DefaultTriangulationDivisions);
 
     { For VRML 1.0, unfortunately textureCoordIndex must be set
       (even though it's exactly equivalent to coordIndex).

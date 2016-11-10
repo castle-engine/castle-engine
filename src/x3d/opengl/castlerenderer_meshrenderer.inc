@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2014 Michalis Kamburelis.
+  Copyright 2002-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -253,7 +253,7 @@ var
 
 const
   ToMode: array [TGeometryPrimitive] of TGLenum =
-  ( GL_TRIANGLES, {$ifdef OpenGLES} GL_TRIANGLE_FAN { TODO-es } {$else} GL_QUADS {$endif},
+  ( GL_TRIANGLES, {$ifndef OpenGLES} GL_QUADS, {$endif}
     GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP,
     GL_LINE_STRIP, GL_POINTS );
 var
@@ -391,13 +391,6 @@ begin
         TShaderCoordinateRenderer.RenderCoordinateBegin }
       if (Arrays.Attribs.Count <> 0) and (CurrentMeshShader <> nil) then
         EnableVertexAttrib(CurrentMeshShader);
-
-      // Disable warning about QUADS, because a single quad works,
-      // and it's actually used often: by Background with textures.
-      // {$ifdef OpenGLES}
-      // if Arrays.Primitive = gpQuads then
-      //   WritelnWarning('Renderer', 'We cannot render QUADS on OpenGL ES. TODO: in the future this should be automatically hidden internally, for now do not use ths geometry');
-      // {$endif}
 
       Mode := ToMode[Arrays.Primitive];
       First := 0;

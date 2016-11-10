@@ -34,7 +34,11 @@ const
 type
   { Determines the order in which TUIControl.Render is called.
     All 3D controls are always under all 2D controls.
-    See TUIControl.Render, TUIControl.RenderStyle. }
+    See TUIControl.Render, TUIControl.RenderStyle.
+
+    @deprecated Do not use this to control front-back UI controls
+    order, it's better to depend only on controls order and
+    on TUIControl.KeepInFront. }
   TRenderStyle = (rs2D, rs3D);
 
   TUIControl = class;
@@ -296,15 +300,17 @@ type
 
     { Controls listening for events (user input, resize, and such) of this container.
 
-      Usually you explicitly add / delete controls to this list.
-      Also, freeing the control that is on this list
-      automatically removes it from this list (using the TComponent.Notification
+      Usually you explicitly add / remove controls to this list
+      using the @link(TChildrenControls.InsertFront Controls.InsertFront) or
+      @link(TChildrenControls.InsertBack Controls.InsertBack) methods.
+      Freeing any control that is on this list
+      automatically removes it from this list (we use the TComponent.Notification
       mechanism).
 
       Controls on the list should be specified in back-to-front order.
       That is, controls at the beginning of this list
       are rendered first, and are last to catch some events, since the rest
-      of controls covers them. }
+      of controls cover them. }
     function Controls: TChildrenControls;
 
     { Returns the controls that should receive input events,
@@ -359,12 +365,18 @@ type
       @seealso UnscaledWidth }
     function UnscaledHeight: Cardinal;
 
+    { Current mouse position.
+      See @link(TTouch.Position) for a documentation how this is expressed. }
     property MousePosition: TVector2Single
       read GetMousePosition write SetMousePosition;
 
     function Dpi: Integer; virtual; abstract;
 
-    { Mouse buttons currently pressed. }
+    { Currently pressed mouse buttons. When this changes, you're always
+      notified by @link(OnPress) or @link(OnRelease) events.
+
+      This value is always current, in particular it's already updated
+      before we call events @link(OnPress) or @link(OnRelease). }
     function MousePressed: TMouseButtons; virtual; abstract;
 
     { Is the window focused now, which means that keys/mouse events
@@ -417,7 +429,8 @@ type
     { Internal for implementing mouse look in cameras. }
     procedure MakeMousePositionForMouseLook;
 
-    { Force passing events to given control first, regardless if this control is under mouse cursor.
+    { Force passing events to given control first,
+      regardless if this control is under mouse cursor.
       This control also always has focus.
 
       An example when this is useful is when you use camera MouseLook,
@@ -452,6 +465,9 @@ type
           This is suitable if you want to draw something 3D,
           that may be later covered by 2D controls.)
       )
+
+      @deprecated Do not use this to control the order of rendering,
+      better to use proper InsertFront or InsertBack or KeepInFront.
     }
     property RenderStyle: TRenderStyle
       read FRenderStyle write FRenderStyle default rs2D;
@@ -1465,12 +1481,12 @@ type
     function MakeSingle(ReplaceClass: TUIControlClass; NewItem: TUIControl;
       AddFront: boolean = true): TUIControl;
 
-    { Add at the beginning of the list. }
+    { Add at the end of the list. }
     procedure InsertFront(const NewItem: TUIControl);
     procedure InsertFrontIfNotExists(const NewItem: TUIControl);
     procedure InsertFront(const NewItems: TUIControlList);
 
-    { Add at the end of the list. }
+    { Add at the beginning of the list. }
     procedure InsertBack(const NewItem: TUIControl);
     procedure InsertBackIfNotExists(const NewItem: TUIControl);
     procedure InsertBack(const NewItems: TUIControlList);
@@ -1748,24 +1764,30 @@ begin
   FNewFocus.Clear;
   AnythingForcesNoneCursor := false;
 
-  { calculate new FNewFocus value, update AnythingForcesNoneCursor }
-  CalculateNewFocus;
-  { add controls capturing the input (since they should have Focused = true to
-    show them as receiving input) on top of other controls
-    (so that e.g. TCastleOnScreenMenu underneath pressed-down button is
-    also still focused) }
-  if UseForceCaptureInput then
-    AddInFrontOfNewFocus(ForceCaptureInput) else
-  if (FCaptureInput.IndexOf(0) <> -1) then
-    AddInFrontOfNewFocus(FCaptureInput[0]);
+  { Do not scan Controls for focus when csDestroying (in which case Controls
+    list may be invalid). Testcase: exit with Alt + F4 from zombie_fighter
+    StateAskDialog. }
+  if not (csDestroying in ComponentState) then
+  begin
+    { calculate new FNewFocus value, update AnythingForcesNoneCursor }
+    CalculateNewFocus;
+    { add controls capturing the input (since they should have Focused = true to
+      show them as receiving input) on top of other controls
+      (so that e.g. TCastleOnScreenMenu underneath pressed-down button is
+      also still focused) }
+    if UseForceCaptureInput then
+      AddInFrontOfNewFocus(ForceCaptureInput) else
+    if (FCaptureInput.IndexOf(0) <> -1) then
+      AddInFrontOfNewFocus(FCaptureInput[0]);
 
-  { update TUIControl.Focused values, based on differences between FFocus and FNewFocus }
-  for I := 0 to FNewFocus.Count - 1 do
-    if FFocus.IndexOf(FNewFocus[I]) = -1 then
-      FNewFocus[I].Focused := true;
-  for I := 0 to FFocus.Count - 1 do
-    if FNewFocus.IndexOf(FFocus[I]) = -1 then
-      FFocus[I].Focused := false;
+    { update TUIControl.Focused values, based on differences between FFocus and FNewFocus }
+    for I := 0 to FNewFocus.Count - 1 do
+      if FFocus.IndexOf(FNewFocus[I]) = -1 then
+        FNewFocus[I].Focused := true;
+    for I := 0 to FFocus.Count - 1 do
+      if FNewFocus.IndexOf(FFocus[I]) = -1 then
+        FFocus[I].Focused := false;
+  end;
 
   { swap FFocus and FNewFocus, so that FFocus changes to new value,
     and the next UpdateFocusAndMouseCursor has ready FNewFocus value. }
@@ -1955,11 +1977,17 @@ procedure TUIContainer.EventUpdate;
   begin
     if C.GetExists then
     begin
-      I := 0; // while loop, in case some Update method changes the Controls list
-      while I < C.ControlsCount do
+      { go downward, from front to back.
+        Important for controls watching/setting HandleInput,
+        e.g. for sliders/OnScreenMenu to block the scene manager underneath
+        from processing arrow keys. }
+      I := C.ControlsCount - 1;
+      while I >= 0 do
       begin
-        RecursiveUpdate(C.Controls[I], HandleInput);
-        Inc(I);
+        // coded this way in case some Update method changes the Controls list
+        if I < C.ControlsCount then
+          RecursiveUpdate(C.Controls[I], HandleInput);
+        Dec(I);
       end;
 
       if C <> ForceCaptureInput then
@@ -2052,11 +2080,13 @@ begin
   if UseForceCaptureInput then
     ForceCaptureInput.Update(Fps.UpdateSecondsPassed, HandleInput);
 
-  I := 0; // while loop, in case some Update method changes the Controls list
-  while I < Controls.Count do
+  I := Controls.Count - 1;
+  while I >= 0 do
   begin
-    RecursiveUpdate(Controls[I], HandleInput);
-    Inc(I);
+    // coded this way in case some Update method changes the Controls list
+    if I < Controls.Count then
+      RecursiveUpdate(Controls[I], HandleInput);
+    Dec(I);
   end;
 
   if Assigned(OnUpdate) then OnUpdate(Self);

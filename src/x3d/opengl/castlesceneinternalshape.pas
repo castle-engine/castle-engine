@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2014 Michalis Kamburelis.
+  Copyright 2003-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -81,7 +81,7 @@ begin
     if Changes * [chCoordinate] <> [] then
       Cache.FreeArrays([vtCoordinate]) else
     if Changes * [chVisibleVRML1State, chGeometryVRML1State,
-      chColorNode, chTextureCoordinate, chGeometry, chFontStyle] <> [] then
+      chColorNode, chTextureCoordinate, chGeometry, chFontStyle, chWireframe] <> [] then
       Cache.FreeArrays(AllVboTypes);
   end;
 

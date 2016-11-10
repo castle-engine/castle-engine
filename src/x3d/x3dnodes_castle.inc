@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2014 Michalis Kamburelis.
+  Copyright 2002-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -17,34 +17,6 @@
   See [http://castle-engine.sourceforge.net/x3d_extensions.php]. } { }
 
 {$ifdef read_interface}
-  TKambiTriangulationNode = class(TAbstractChildNode)
-  private
-    function GetDetailValue(AField: TSFLong; const GlobalValue, MinValue: Cardinal): Cardinal;
-  public
-    procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
-
-    private FFdQuadricSlices: TSFLong;
-    public property FdQuadricSlices: TSFLong read FFdQuadricSlices;
-
-    private FFdQuadricStacks: TSFLong;
-    public property FdQuadricStacks: TSFLong read FFdQuadricStacks;
-
-    private FFdRectDivisions: TSFLong;
-    public property FdRectDivisions: TSFLong read FFdRectDivisions;
-
-    { Return appropriate field value, or (when it's -1) return global value
-      (from Detail_Xxx variables). In case of incorrect field value,
-      they also take care of calling WritelnWarning and correcting this value.
-      @groupBegin }
-    function CalculateQuadricStacks: Cardinal;
-    function CalculateQuadricSlices: Cardinal;
-    function CalculateRectDivisions: Cardinal;
-    { @groupEnd }
-
-    class function URNMatching(const URN: string): boolean; override;
-  end;
-
   TKambiHeadLightNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
@@ -371,67 +343,8 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-const
-  TriangulationUseDef = -1;
 
-procedure TKambiTriangulationNode.CreateNode;
-begin
-  inherited;
-
-  FFdQuadricSlices := TSFLong.Create(Self, 'quadricSlices', TriangulationUseDef);
-   FdQuadricSlices.ChangesAlways := [chGeometryVRML1State];
-  AddField(FFdQuadricSlices);
-
-  FFdQuadricStacks := TSFLong.Create(Self, 'quadricStacks', TriangulationUseDef);
-   FdQuadricStacks.ChangesAlways := [chGeometryVRML1State];
-  AddField(FFdQuadricStacks);
-
-  FFdRectDivisions := TSFLong.Create(Self, 'rectDivisions', TriangulationUseDef);
-   FdRectDivisions.ChangesAlways := [chGeometryVRML1State];
-  AddField(FFdRectDivisions);
-end;
-
-class function TKambiTriangulationNode.ClassNodeTypeName: string;
-begin
-  result := 'KambiTriangulation';
-end;
-
-function TKambiTriangulationNode.GetDetailValue(
-  AField: TSFLong; const GlobalValue, MinValue: Cardinal): Cardinal;
-begin
-  if AField.Value = TriangulationUseDef then
-    Result := GlobalValue else
-  if Int64(AField.Value) < Int64(MinValue) then
-  begin
-    WritelnWarning('VRML/X3D', Format('Node "KambiTriangulation" field "%s" value is %d but must be >= %d (or = -1)',
-      [AField.Name, AField.Value, MinValue]));
-    AField.Value := TriangulationUseDef;
-    Result := GlobalValue;
-  end else
-    Result := AField.Value;
-end;
-
-function TKambiTriangulationNode.CalculateQuadricSlices: Cardinal;
-begin
-  Result := GetDetailValue(FdQuadricSlices, Detail_QuadricSlices, MinQuadricSlices);
-end;
-
-function TKambiTriangulationNode.CalculateQuadricStacks: Cardinal;
-begin
-  Result := GetDetailValue(FdQuadricStacks, Detail_QuadricStacks, MinQuadricStacks);
-end;
-
-function TKambiTriangulationNode.CalculateRectDivisions: Cardinal;
-begin
-  Result := GetDetailValue(FdRectDivisions, Detail_RectDivisions, MinRectDivisions);
-end;
-
-class function TKambiTriangulationNode.URNMatching(const URN: string): boolean;
-begin
-  Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName) or
-    (URN = URNKambiNodes2 + ClassNodeTypeName);
-end;
+{ TKambiHeadLightNode -------------------------------------------------------- }
 
 class function TKambiHeadLightNode.ClassNodeTypeName: string;
 begin
@@ -1002,7 +915,6 @@ end;
 procedure RegisterKambiNodes;
 begin
   NodesManager.RegisterNodeClasses([
-    TKambiTriangulationNode,
     TKambiHeadLightNode,
     TText3DNode,
     TBlendModeNode,

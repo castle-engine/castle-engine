@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2014 Michalis Kamburelis.
+  Copyright 2014-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -54,10 +54,11 @@ procedure CreateAndroidPackage(const Project: TCastleProject;
 var
   AndroidProjectPath: string;
 
-  { Some utility procedures PackageXxx work just like Xxx,
-    but target filename should not contain prefix AndroidProjectPath,
-    and they avoid overwriting stuff already existing (in case CastleEngineManifest.xml
-    contained explicit android_project path). }
+  { Some utility procedures PackageXxx below.
+    They work just like Xxx, but target filename should not contain
+    prefix AndroidProjectPath. They avoid overwriting stuff
+    already existing (in case multiple components
+    contain the same path inside), but warn about it. }
 
   procedure PackageCheckForceDirectories(const Dirs: string);
   begin
@@ -68,18 +69,18 @@ var
   begin
     PackageCheckForceDirectories(ExtractFilePath(FileName));
     if not FileExists(AndroidProjectPath + FileName) then
-      SaveImage(Image, FilenameToURISafe(AndroidProjectPath + FileName)) else
-    if Verbose then
-      Writeln('Not overwriting custom ' + FileName);
+      SaveImage(Image, FilenameToURISafe(AndroidProjectPath + FileName))
+    else
+      WritelnWarning('Android', 'Android package file specified by multiple components: ' + FileName);
   end;
 
   procedure PackageSmartCopyFile(const FileFrom, FileTo: string);
   begin
     PackageCheckForceDirectories(ExtractFilePath(FileTo));
     if not FileExists(AndroidProjectPath + FileTo) then
-      SmartCopyFile(FileFrom, AndroidProjectPath + FileTo) else
-    if Verbose then
-      Writeln('Not overwriting custom ' + FileTo);
+      SmartCopyFile(FileFrom, AndroidProjectPath + FileTo)
+    else
+      WritelnWarning('Android', 'Android package file specified by multiple components: ' + FileTo);
   end;
 
 {
@@ -90,8 +91,7 @@ var
       PackageCheckForceDirectories(ExtractFilePath(FileTo));
       StringToFile(FileTo, Contents);
     end else
-    if Verbose then
-      Writeln('Not overwriting custom ' + FileTo);
+      WritelnWarning('Android package file specified by multiple components: ' + FileTo);
   end;
 }
 
@@ -113,9 +113,8 @@ var
     I: Integer;
   begin
     { calculate absolute DestinationPath.
-      Use CombinePaths, as AndroidProjectPath may come from
-      CastleEngineManifest.xml attribute android_project, in which case it *may*
-      (does not have to) be relative to project dir. }
+      Use CombinePaths, in case AndroidProjectPath is relative to project dir
+      (although it's not possible now). }
     DestinationPath := CombinePaths(Project.Path, AndroidProjectPath);
 
     { add Android project core directory }
@@ -140,34 +139,6 @@ var
          not Project.AndroidComponents.HasComponent('ogg_vorbis') then
         ExtractComponent('ogg_vorbis');
     end;
-  end;
-
-  function FindSubprojects: TCastleStringList;
-  var
-    FileRec: TSearchRec;
-    SearchError, I: integer;
-  begin
-    Result := TCastleStringList.Create;
-    try
-      SearchError := FindFirst(AndroidProjectPath + '*', faDirectory, FileRec);
-      try
-        while SearchError = 0 do
-        begin
-          if ((FileRec.Attr and faDirectory) <> 0) and
-             (not SpecialDirName(FileRec.Name)) and
-             FileExists(InclPathDelim(AndroidProjectPath + FileRec.Name) + 'AndroidManifest.xml') then
-            Result.Add(FileRec.Name);
-          SearchError := FindNext(FileRec);
-        end;
-      finally FindClose(FileRec) end;
-
-      if Verbose then
-      begin
-        Writeln('Found ', Result.Count, ' Android subprojects');
-        for I := 0 to Result.Count - 1 do
-          Writeln('Found Android subproject: ', Result[I]);
-      end;
-    except FreeAndNil(Result) end;
   end;
 
   { Try to find "android" tool executable, exception if not found. }
@@ -239,10 +210,27 @@ var
   begin
     PackageSmartCopyFile(Project.Path + Project.AndroidLibraryFile(true),
       'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
-      { place precompiled .so files in jniLibs, not jni, to make them picked up by Gradle.
-        See http://stackoverflow.com/questions/27532062/include-pre-compiled-static-library-using-ndk
-        http://stackoverflow.com/a/28430178 }
-      'jniLibs' + PathDelim + 'armeabi-v7a' + PathDelim + Project.AndroidLibraryFile(false));
+      { Place precompiled libs in jni/ , ndk-build will find them there. }
+      'jni' + PathDelim + 'armeabi-v7a' + PathDelim + Project.AndroidLibraryFile(false));
+  end;
+
+  { Run "ndk-build", this moves our .so to the final location in jniLibs,
+    also setting up debug stuff for ndk-gdb to work. }
+  procedure RunNdkBuild;
+  begin
+    { Place precompiled .so files in jniLibs/ to make them picked up by Gradle.
+      See http://stackoverflow.com/questions/27532062/include-pre-compiled-static-library-using-ndk
+      http://stackoverflow.com/a/28430178
+
+      Possibly we could also let the ndk-build to place them in libs/,
+      as it does by default.
+
+      We know we should not let them be only in jni/ subdir,
+      as they would not be picked by Gradle from there. But that's
+      what ndk-build does: it copies them from jni/ to another directory. }
+
+    RunCommandSimple(AndroidProjectPath + 'app' + PathDelim + 'src' + PathDelim + 'main',
+      'ndk-build', ['--silent', 'NDK_LIBS_OUT=./jniLibs']);
   end;
 
 var
@@ -363,32 +351,18 @@ var
 var
   ApkName: string;
   PackageMode: TCompilationMode;
-  TemporaryAndroidProjectPath: boolean;
-  Subprojects: TCastleStringList;
 begin
-  { use the AndroidProject value (just make it safer) for AndroidProjectPath,
-    if set }
-  if Project.AndroidProject <> '' then
-    AndroidProjectPath := InclPathDelim(
-      StringReplace(Project.AndroidProject, '\', PathDelim, [rfReplaceAll])) else
-    AndroidProjectPath := '';
-
-  TemporaryAndroidProjectPath := AndroidProjectPath = '';
-  if TemporaryAndroidProjectPath then
-    AndroidProjectPath := InclPathDelim(CreateTemporaryDir);
+  AndroidProjectPath := InclPathDelim(CreateTemporaryDir);
   PackageMode := SuggestedPackageMode;
 
   CalculateSigningProperties(PackageMode);
 
   GenerateFromTemplates;
-
-  Subprojects := FindSubprojects; // subprojects are only found once we did GenerateFromTemplates
-  try
-    GenerateIcons;
-    GenerateAssets;
-    GenerateLibrary;
-    RunGradle(PackageMode);
-  finally FreeAndNil(Subprojects) end;
+  GenerateIcons;
+  GenerateAssets;
+  GenerateLibrary;
+  RunNdkBuild;
+  RunGradle(PackageMode);
 
   ApkName := Project.Name + '-' + PackageModeToName[PackageMode] + '.apk';
   CheckRenameFile(AndroidProjectPath + 'app' + PathDelim + 'build' +
@@ -398,7 +372,7 @@ begin
 
   Writeln('Build ' + ApkName);
 
-  if TemporaryAndroidProjectPath and not LeaveTemp then
+  if not LeaveTemp then
     RemoveNonEmptyDir(AndroidProjectPath, true);
 end;
 

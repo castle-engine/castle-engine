@@ -155,12 +155,12 @@ EXAMPLES_BASE_NAMES := \
   examples/curves_surfaces/bezier_surfaces/design_surface \
   examples/curves_surfaces/interpolated_curves \
   examples/space_filling_curve/draw_space_filling_curve \
-  examples/radiance_transfer/radiance_transfer \
-  examples/radiance_transfer/precompute_radiance_transfer \
-  examples/radiance_transfer/show_sh \
-  examples/shadow_fields/precompute_shadow_field \
-  examples/shadow_fields/shadow_fields \
-  examples/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
+  examples/research_special_rendering_methods/radiance_transfer/radiance_transfer \
+  examples/research_special_rendering_methods/radiance_transfer/precompute_radiance_transfer \
+  examples/research_special_rendering_methods/radiance_transfer/show_sh \
+  examples/research_special_rendering_methods/shadow_fields/precompute_shadow_field \
+  examples/research_special_rendering_methods/shadow_fields/shadow_fields \
+  examples/research_special_rendering_methods/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
   examples/terrain/terrain \
   examples/3d_rendering_processing/custom_3d_object \
   examples/3d_rendering_processing/triangulate_demo \
@@ -169,7 +169,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/tools/kanim_to_interpolators \
   examples/3d_rendering_processing/multiple_viewports \
   examples/3d_rendering_processing/fog_culling \
-  examples/3d_rendering_processing/plane_mirror_and_shadow \
+  examples/research_special_rendering_methods/plane_mirror_and_shadow/plane_mirror_and_shadow \
   examples/3d_rendering_processing/animate_3d_model_by_code \
   examples/3d_rendering_processing/animate_3d_model_by_code_2 \
   examples/3d_rendering_processing/call_pascal_code_from_3d_model_script \
@@ -177,8 +177,10 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/scene_manager_demos \
   examples/3d_rendering_processing/view_3d_model_basic \
   examples/3d_rendering_processing/build_3d_object_by_code \
+  examples/3d_rendering_processing/build_3d_tunnel \
   examples/3d_rendering_processing/combine_multiple_x3d_into_one \
   examples/3d_rendering_processing/listen_on_x3d_events \
+  examples/3d_rendering_processing/cars_demo \
   src/x3d/teapot/teapot_3d_to_pascal \
   src/x3d/nodes_specification/x3d_nodes_spec_to_pascal/x3d_nodes_spec_to_pascal \
   src/x3d/nodes_specification/generate_x3d_nodes_helpers/generate_x3d_nodes_to_pascal \
@@ -188,7 +190,9 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_sound_game/data/levels/base/devel/process_base_b \
   examples/resource_animations/resource_animations \
   examples/fps_game/fps_game \
-  examples/2d/controls_demo \
+  examples/2d_standard_ui/show_various_ui_controls/show_various_ui_controls \
+  examples/2d_standard_ui/timer_test/timer_test \
+  examples/2d_standard_ui/zombie_fighter/zombie_fighter \
   examples/android/android_demo/androiddemo_standalone \
   tools/build-tool/castle-engine \
   tools/image2pascal/image2pascal \
@@ -203,7 +207,9 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/lazarus/two_controls/two_controls \
   tests/test_castle_game_engine \
   src/library/castleengine \
-  examples/library/lcl_dynlib_tester/cge_dynlib_tester
+  examples/library/lcl_dynlib_tester/cge_dynlib_tester \
+  examples/random_generator/GraphicsTest \
+  examples/random_generator/Random_speed_test
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   $(EXAMPLES_LAZARUS_BASE_NAMES)

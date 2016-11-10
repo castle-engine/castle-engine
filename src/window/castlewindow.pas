@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2014 Michalis Kamburelis.
+  Copyright 2001-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1573,7 +1573,15 @@ type
       at nearest good time.
 
       Note that calling Invalidate while in EventRender (OnRender) is not ignored.
-      It means that in a short time next EventRender (OnRender) will be called. }
+      It instructs to call EventRender (OnRender) again, as soon as possible.
+
+      When you have some controls on the @link(Controls) list
+      (in particular, the @link(TCastleWindow.SceneManager) is also on this list),
+      the OnRender event is done @bold(last) (at least as long as RenderStyle = rs2D,
+      default). So here you can draw on top of the existing controls.
+      To draw something underneath the existing controls, create a new TUIControl
+      and override it's @link(TUIControl.Render) and insert it to the controls
+      using @code(Controls.InsertBack(MyBackgroundControl);). }
     property OnRender: TContainerEvent read GetOnRender write SetOnRender;
 
     { @deprecated Deprecated name for OnRender. }
@@ -1816,11 +1824,8 @@ type
 
     { @section(Mouse state) -------------------------------------------------- }
 
-    { Currently pressed mouse buttons. When this changes, you're always
-      notified by OnPress or OnRelease calls.
-
-      This value is always current, in particular it's already updated
-      before we call events OnPress or OnRelease. }
+    { Mouse buttons currently pressed.
+      See @link(TUIContainer.MousePressed) for details. }
     property MousePressed: TMouseButtons read FMousePressed;
 
     { Is the window focused now, which means that keys/mouse events
@@ -1862,6 +1867,9 @@ type
       write SetCustomCursor;
 
     property RenderStyle: TRenderStyle read GetRenderStyle write SetRenderStyle default rs2D;
+
+    { List of user-interface controls currently active.
+      See @link(TUIContainer.Controls) for details. }
     function Controls: TChildrenControls;
 
     { Is the OpenGL context initialized. This is equivalent to @code(not Closed),
@@ -2019,7 +2027,7 @@ type
     destructor Destroy; override;
 
   public
-    { Tracks which keys, characters, modifiers are pressed. }
+    { Keys currently pressed. }
     property Pressed: TKeysPressed read FPressed;
 
     { Fps -------------------------------------------------------------------- }

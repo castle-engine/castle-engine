@@ -1,6 +1,6 @@
 { -*- compile-command: "./castleengine_compile.sh" -*- }
 {
-  Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2016 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -91,9 +91,9 @@ begin
   try
     if (flags and 1 {ecgeofSaveMemory}) > 0 then
     begin
-      Detail_QuadricSlices := 16;
-      Detail_QuadricStacks := 16;
-      Detail_RectDivisions := 0;
+      DefaultTriangulationSlices := 16;
+      DefaultTriangulationStacks := 16;
+      DefaultTriangulationDivisions := 0;
     end;
     if (flags and 2 {ecgeofLog}) > 0 then
       InitializeLog;

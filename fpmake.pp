@@ -15,7 +15,10 @@ program fpmake;
 { Only FPC >= 2.7.1 has the "Android" as a possible OS. }
 {$ifndef VER2_6} {$define ANDROID_POSSIBLE} {$endif}
 
-uses SysUtils, fpmkunit;
+uses
+  { It seems that FPC 3.1.1 requires thread support for FpMkUnit. }
+  {$ifdef VER3_1} CThreads, {$endif}
+  SysUtils, fpmkunit;
 
 var
   P: TPackage;
@@ -78,8 +81,7 @@ begin
     P.HomepageURL
     {$endif} := 'http://castle-engine.sourceforge.net/';
     P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
-    { When updating this version, remember to also update tools/castle-engine.lpr version. }
-    P.Version := '5.2.0';
+    P.Version := {$I src/base/castleversion.inc};
 
     P.SourcePath.Add('src' + PathDelim + '3d');
     P.Targets.AddUnit('castle3d.pas');
@@ -88,6 +90,7 @@ begin
     P.Targets.AddUnit('castleconvexhull.pas');
     P.Targets.AddUnit('castlefrustum.pas');
     P.Targets.AddUnit('castleoctree.pas');
+    P.Targets.AddUnit('castlerandom.pas');
     P.Targets.AddUnit('castletriangles.pas');
     P.Targets.AddUnit('castletriangulate.pas');
     P.Targets.AddUnit('castlecubemaps.pas');
@@ -127,6 +130,7 @@ begin
     P.Targets.AddUnit('castlegziointernal.pas');
     P.Targets.AddUnit('castleinterfaces.pas');
     P.Targets.AddUnit('castlelog.pas');
+    P.Targets.AddUnit('castlemessaging.pas');
     P.Targets.AddUnit('castleparameters.pas');
     P.Targets.AddUnit('castleprogress.pas');
     P.Targets.AddUnit('castlerectangles.pas');
@@ -158,7 +162,6 @@ begin
     P.Targets.AddUnit('castlegoogleplaygames.pas');
     P.Targets.AddUnit('castlehelpshift.pas');
     P.Targets.AddUnit('castleinapppurchases.pas');
-    P.Targets.AddUnit('castlemessaging.pas');
     P.Targets.AddUnit('castleopendocument.pas');
 
     {$ifdef ANDROID_POSSIBLE}
@@ -319,7 +322,6 @@ begin
     P.Targets.AddUnit('x3dloadinternalspine.pas');
     P.Targets.AddUnit('x3dloadinternalutils.pas');
     P.Targets.AddUnit('x3dnodes.pas');
-    P.Targets.AddUnit('x3dnodesdetailoptions.pas');
     P.Targets.AddUnit('x3dshadowmaps.pas');
     P.Targets.AddUnit('x3dtime.pas');
     P.Targets.AddUnit('x3dtriangles.pas');

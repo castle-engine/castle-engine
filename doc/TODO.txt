@@ -547,7 +547,7 @@ X3DNodes:
   2. I don't know if this is really good for users --- it adds
      another unit to your uses clause.
 
-- Make Detail_ parameters (slices, stacks, cube divisions)
+- Make TTriangulationNode.DefaultXxx parameters (slices, stacks, cube divisions)
   depend on object's distance from viewer. But there is a problem:
   we need those parameters defined
   when implementing Vertices/TrianglesCount and Triangulate.
@@ -722,7 +722,6 @@ things that can be deferred to much later:
   TKambiInlineNode 	X3DNodes
   TKambiNavigationInfoNode 	X3DNodes
   TKambiOctreePropertiesNode 	X3DNodes
-  TKambiTriangulationNode 	X3DNodes
 
 ------------------------------------------------------------------------------
 Various:

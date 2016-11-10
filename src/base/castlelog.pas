@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2014 Michalis Kamburelis.
+  Copyright 2006-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -92,9 +92,8 @@ procedure InitializeLog(const ProgramVersion: string = '';
 procedure WritelnLog(const Category: string; const Message: string);
 procedure WritelnLog(const Message: string);
 
-{ Format and log message.
+{ Format and log a message.
   Ignored when log is not initialized (@link(Log) is @false).
-
   This is a shortcut for @code(WritelnLog(Category, Format(MessageBase, Args))). }
 procedure WritelnLog(const Category: string; const MessageBase: string;
   const Args: array of const);
@@ -104,15 +103,14 @@ procedure WritelnLog(const MessageBase: string;
 { Log message, without appending newline at the end (given Message
   should already contain a final newline). }
 procedure WriteLog(const Category: string; const Message: string);
+  deprecated 'use WritelnLog, and do not add the final newline yourself to Message';
 
 { Log multiline message.
-  Message may be multiline and must be terminated by final newline. }
-procedure WriteLogMultiline(const Category: string; const Message: string);
-
-{ Log multiline message.
-  Message may be multiline and must @italic(not) be terminated by
-  a final newline, because we will add final newline ourselves. }
+  The Message may, but doesn't have to, terminate with newline --
+  we will format it OK either way. }
 procedure WritelnLogMultiline(const Category: string; const Message: string);
+
+procedure WriteLogMultiline(const Category: string; const Message: string); deprecated 'use WritelnLogMultiline';
 
 { Log a warning, and call
   @link(TCastleApplicationProperties.OnWarning ApplicationProperties.OnWarning)
@@ -226,6 +224,8 @@ begin
     FirstLine += ' Version: ' + ProgramVersion + '.';
   FirstLine += ' Started on ' + DateTimeToAtStr(Now) + '.';
   WritelnStr(LogStream, FirstLine);
+  WritelnStr(LogStream, 'Castle Game Engine version: ' + CastleEngineVersion + '.');
+  WritelnStr(LogStream, 'Compiled with: ' + SCompilerDescription + '.');
 
   { Set Log to true only once we succeded.
 
@@ -271,7 +271,12 @@ end;
 
 procedure WritelnLog(const Category: string; const Message: string);
 begin
+  // do not warn about using deprecated WriteLog here.
+  // In the future, WriteLog should be moved to the "implementation" section
+  // of the unit (internal), and undeprecated.
+  {$warnings off}
   WriteLog(Category, Message + NL);
+  {$warnings on}
 end;
 
 procedure WritelnLog(const Message: string);
@@ -293,24 +298,19 @@ end;
 
 procedure WriteLogMultiline(const Category: string; const Message: string);
 begin
-  if Log then
-  begin
-    if LogTimePrefix = ltNone then
-      WriteLogRaw(
-          '-------------------- ' + Category + ' begin' + NL +
-          Message +
-          '-------------------- ' + Category + ' end' + NL)
-    else
-      WriteLogRaw(LogTimePrefixStr + NL + //add date&time line only if needed
-          '-------------------- ' + Category + ' begin' + NL +
-          Message +
-          '-------------------- ' + Category + ' end' + NL)
-  end;
+  WritelnLogMultiline(Category, Message);
 end;
 
 procedure WritelnLogMultiline(const Category: string; const Message: string);
 begin
-  WriteLogMultiline(Category, Message + NL);
+  if Log then
+  begin
+    if LogTimePrefix <> ltNone then WriteLogRaw(LogTimePrefixStr + NL);
+    WriteLogRaw(
+        '-------------------- ' + Category + ' begin' + NL +
+        Trim(Message) + NL +
+        '-------------------- ' + Category + ' end' + NL)
+  end;
 end;
 
 procedure WritelnWarning(const Category: string; const Message: string);

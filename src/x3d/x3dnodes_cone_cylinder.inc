@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2014 Michalis Kamburelis.
+  Copyright 2002-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -22,10 +22,7 @@
 
   When Radius = exactly 0, the points are guaranteed to be exactly equal.
 
-  Assumes QuadricSlices >= 1.
-
-  This is exactly like LOOP_OVER_CIRCLE macro,
-  except it adds points to Points[] instead of calling a procedure on them. }
+  Assumes QuadricSlices >= 1. }
 procedure GenerateCircle(const QuadricSlices: Cardinal;
   const Radius, Height: Single; Points: PVector3Single);
 var
@@ -119,7 +116,7 @@ procedure CylinderCone_Proxy(CoordIndex: TLongIntList;
   TexCoord: TVector2SingleList; MaterialIndex: TLongIntList;
   OverTriangulate: boolean; const BottomRadius, TopRadius, Height: Single;
   const Bottom, Side, Top: boolean;
-  KambiTriangulation: TKambiTriangulationNode);
+  const QuadricSlices, QuadricStacks: Cardinal);
 
 { How to make nice normals at the top of the cone?
 
@@ -197,9 +194,6 @@ procedure CylinderCone_Proxy(CoordIndex: TLongIntList;
     Besides, texCoordIndex would then have to be equal to normalIndex.
 }
 
-var
-  QuadricSlices: Cardinal;
-
   { For given angle, calculate side face normal vector.
     Where Angle is in [0...CalculateQuadricSlices] range,
     we will automatically adjust it for correct angle in radians. }
@@ -233,7 +227,6 @@ var
   TopCircleIndex, TopMiddleIndex, TopFaceIndex: Integer;
   SideBottomCircleIndex, SideTopCircleIndex, MiddleCircleIndex,
     MiddleFaceIndex, SideFaceIndex: Integer;
-  QuadricStacks: Cardinal;
   Stack: Single;
 begin
   { For VRML 1.0, some of these MF fields by default have non-empty content.
@@ -243,9 +236,6 @@ begin
   Normal.Count := 0;
   if TexCoord <> nil then TexCoord.Count := 0;
   if MaterialIndex <> nil then MaterialIndex.Count := 0;
-
-  QuadricSlices := KambiTriangulation.CalculateQuadricSlices;
-  QuadricStacks := KambiTriangulation.CalculateQuadricStacks;
 
   if Bottom then
   begin
@@ -486,7 +476,7 @@ begin
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords, nil,
       OverTriangulate, FdRadius.Value, FdRadius.Value, FdHeight.Value,
       FdBottom.Value, FdSide.Value, FdTop.Value,
-      State.LastNodes.KambiTriangulation);
+      CalculateSlices, CalculateStacks);
 
     IFS.FdSolid.Value := FdSolid.Value;
 
@@ -529,7 +519,7 @@ begin
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords, nil,
       OverTriangulate, FdBottomRadius.Value, 0, FdHeight.Value,
       FdBottom.Value, FdSide.Value, false,
-      State.LastNodes.KambiTriangulation);
+      CalculateSlices, CalculateStacks);
 
     IFS.FdSolid.Value := FdSolid.Value;
 
@@ -601,7 +591,7 @@ begin
       FdParts.Flags[CYLINDER_PARTS_BOTTOM],
       FdParts.Flags[CYLINDER_PARTS_SIDES],
       FdParts.Flags[CYLINDER_PARTS_TOP],
-      State.LastNodes.KambiTriangulation);
+      DefaultTriangulationSlices, DefaultTriangulationStacks);
 
     { For VRML 1.0, unfortunately textureCoordIndex must be set
       (even though it's exactly equivalent to coordIndex).
@@ -670,7 +660,7 @@ begin
       TexCoordNode.FdPoint.Items, MaterialIndex,
       OverTriangulate, FdBottomRadius.Value, 0, FdHeight.Value,
       FdParts.Flags[CONE_PARTS_BOTTOM], FdParts.Flags[CONE_PARTS_SIDES], false,
-      State.LastNodes.KambiTriangulation);
+      DefaultTriangulationSlices, DefaultTriangulationStacks);
 
     { For VRML 1.0, unfortunately textureCoordIndex must be set
       (even though it's exactly equivalent to coordIndex).

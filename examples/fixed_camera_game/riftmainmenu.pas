@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2014 Michalis Kamburelis.
+  Copyright 2007-2016 Michalis Kamburelis.
 
   This file is part of "the rift".
 
@@ -96,7 +96,7 @@ var
 { Actual menu procedures and CastleWindow callbacks ------------------------------ }
 
 var
-  GLMenuBg: TGLImage;
+  MenuBg: TCastleImageControl;
   UserQuit: boolean;
 
 { Sets CurrentMenu, taking care of adding this menu / removing existing menu
@@ -109,11 +109,6 @@ end;
 procedure Resize(Container: TUIContainer);
 begin
   OrthoProjection(0, Window.Width, 0, Window.Height);
-end;
-
-procedure Render(Container: TUIContainer);
-begin
-  GLMenuBg.Draw(0, 0);
 end;
 
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
@@ -132,13 +127,12 @@ var
   SavedMode: TGLMode;
 begin
   SoundEngine.MusicPlayer.Sound := stMainMenuMusic;
-  SavedMode := TGLMode.CreateReset(Window, @Render, @Resize, @CloseQuery);
+  SavedMode := TGLMode.CreateReset(Window, nil, @Resize, @CloseQuery);
   try
     Window.FpsShowOnCaption := DebugMenuFps;
     Window.AutoRedisplay := true;
     Window.OnPress := @Press;
-    { actually we draw in 2D, but it's the current projection anyway }
-    Window.RenderStyle := rs3D;
+    Window.Controls.InsertBack(MenuBg);
 
     SetCurrentMenu(MainMenu);
 
@@ -300,8 +294,8 @@ begin
   SoundMenu := TRiftSoundMenu.Create(nil);
   ChangeOpenALDeviceMenu := TChangeOpenALDeviceMenu.Create(nil);
 
-  GLMenuBg := TGLImage.Create(DataConfig.GetURL('main_menu/image'),
-    [], Window.Width, Window.Height);
+  MenuBg := TCastleImageControl.Create(nil);
+  MenuBg.URL := DataConfig.GetURL('main_menu/image');
 end;
 
 procedure ContextClose;
@@ -309,7 +303,7 @@ begin
   FreeAndNil(MainMenu);
   FreeAndNil(SoundMenu);
   FreeAndNil(ChangeOpenALDeviceMenu);
-  FreeAndNil(GLMenuBg);
+  FreeAndNil(MenuBg);
 end;
 
 initialization

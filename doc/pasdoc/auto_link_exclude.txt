@@ -319,6 +319,8 @@ step
 stream
 support
 symbol
+tag
+tags
 text
 texture
 theme

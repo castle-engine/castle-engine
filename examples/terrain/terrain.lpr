@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2014 Michalis Kamburelis.
+  Copyright 2009-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -320,7 +320,7 @@ begin
     FreeAndNil(CurrentTerrain);
     CurrentTerrain := Value;
 
-    Window.Controls.MakeSingle(TCommonMenu, CurrentControls, false);
+    Window.Controls.MakeSingle(TCommonMenu, CurrentControls, true);
 
     if CurrentTerrain is TTerrainImage then
       TTerrainImage(CurrentTerrain).ImageHeightScale := CurrentControls.ImageHeightScaleSlider.Value;
@@ -693,7 +693,7 @@ begin
     145:
       begin
         ControlsVisible := not ControlsVisible;
-        Window.Controls.MakeSingle(TCommonMenu, CurrentControls, false);
+        Window.Controls.MakeSingle(TCommonMenu, CurrentControls, true);
       end;
     147: SpecializedGridRendering := not SpecializedGridRendering;
     150:
@@ -832,7 +832,6 @@ begin
 
     Window.OnOpen := @Open;
     Window.OnClose := @Close;
-    Window.RenderStyle := rs3D;
     { Do not enable
       - SwapFullScreen_Key: (which may do Close+Open) is for now broken here
         (we should readd appropriate Controls* and camera to Window.Controls,

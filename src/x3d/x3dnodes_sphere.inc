@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2014 Michalis Kamburelis.
+  Copyright 2002-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -18,9 +18,7 @@ procedure Sphere_Proxy(CoordIndex: TLongIntList;
   Coord: TVector3SingleList; Normal: TVector3SingleList;
   TexCoord: TVector2SingleList;
   OverTriangulate: boolean; const Radius: Single;
-  KambiTriangulation: TKambiTriangulationNode);
-var
-  QuadricSlices, QuadricStacks: Cardinal;
+  const QuadricSlices, QuadricStacks: Cardinal);
 
   { We have rings numbered 0 ... QuadricStacks.
     The rings nr 0 and QuadricStacks have 0 radius (bottom and top of the sphere). }
@@ -59,9 +57,6 @@ begin
   Coord.Count := 0;
   Normal.Count := 0;
   if TexCoord <> nil then TexCoord.Count := 0;
-
-  QuadricSlices := KambiTriangulation.CalculateQuadricSlices;
-  QuadricStacks := KambiTriangulation.CalculateQuadricStacks;
 
   { We generate QuadricSlices + 1 points, not just QuadricSlices for each stack.
     Reason: texture coordinates must be different at the last point
@@ -174,46 +169,173 @@ begin
   end;
 end;
 
-function TSphereNode.Proxy(var State: TX3DGraphTraverseState;
-  const OverTriangulate: boolean): TAbstractGeometryNode;
+{ Make a wireframe sphere. }
+procedure SphereWireframe_Proxy(CoordIndex: TLongIntList;
+  Coord: TVector3SingleList; const Radius: Single;
+  const QuadricSlices, QuadricStacks: Cardinal);
+
+  { We have rings numbered 0 ... QuadricStacks.
+    The rings nr 0 and QuadricStacks have 0 radius (bottom and top of the sphere). }
+
+  { For stack number calculate it's radius and height (in y). }
+  procedure StackCircle(StackNum: integer; out StackRadius, Height: Single);
+  var
+    Alpha, S, C: Float;
+  begin
+    { Calculate correct StackRadius and Height for sphere of radius 1,
+      and then scale by Radius. }
+
+    { Divide the vertical ring into QuadricStacks equal pieces.
+      This is much better idea than simply dividing along the Height,
+      because it allows the top/bottom of the sphere to look much better.
+      This is also what OpenGL quadrics do.
+      You can compare by using below
+
+        StackRadius := Sqrt( 1 - Sqr(1 - 2*StackNum/QuadricStacks) ) * Radius;
+        Height := (-1 + StackNum * 2/QuadricStacks) * Radius;
+    }
+    Alpha := Pi * StackNum / QuadricStacks;
+    SinCos(Alpha, S, C);
+    StackRadius :=  S * Radius;
+    Height      := -C * Radius;
+  end;
+
 var
-  CoordNode: TCoordinateNode;
-  NormalNode: TNormalNode;
-  TexCoordNode: TTextureCoordinateNode;
-  TexCoords: TVector2SingleList;
-  IFS: TIndexedFaceSetNode absolute Result;
+  StackRadius, StackHeight: Single;
+  StackFaceIndex, BottomIndex, TopIndex, BottomCircleIndex, CircleIndex,
+    StackNum, I, NextI: Integer;
 begin
-  IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
-  try
-    CoordNode := TCoordinateNode.Create('', BaseUrl);
-    IFS.FdCoord.Value := CoordNode;
+  CoordIndex.Count := 0;
+  Coord.Count := 0;
 
-    NormalNode := TNormalNode.Create('', BaseUrl);
-    IFS.FdNormal.Value := NormalNode;
-    IFS.FdNormalPerVertex.Value := true;
+  BottomIndex := Coord.Count;
+  Coord.Count := Coord.Count + 1;
+  Coord.L[BottomIndex] := Vector3Single(0, -Radius, 0);
 
-    if (FdTexCoord.Value <> nil) and FdTexCoord.CurrentChildAllowed then
+  BottomCircleIndex := Coord.Count;
+  Coord.Count := Coord.Count + QuadricSlices;
+  StackCircle(1, StackRadius, StackHeight);
+  GenerateCircle(QuadricSlices, StackRadius, StackHeight, Coord.Ptr(BottomCircleIndex));
+
+  { Bottom stack, from triangles }
+  StackFaceIndex := CoordIndex.Count;
+  CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
+  for I := 0 to QuadricSlices - 1 do
+  begin
+    NextI := (I + 1) mod QuadricSlices;
+    CoordIndex.L[StackFaceIndex + I * 4    ] := BottomCircleIndex + NextI;
+    CoordIndex.L[StackFaceIndex + I * 4 + 1] := BottomCircleIndex + I;
+    CoordIndex.L[StackFaceIndex + I * 4 + 2] := BottomIndex;
+    CoordIndex.L[StackFaceIndex + I * 4 + 3] := -1;
+  end;
+
+  for StackNum := 2 to QuadricStacks - 1 do
+  begin
+    StackCircle(StackNum, StackRadius, StackHeight);
+
+    CircleIndex := Coord.Count;
+    Coord.Count := Coord.Count + QuadricSlices;
+    StackCircle(StackNum, StackRadius, StackHeight);
+    GenerateCircle(QuadricSlices, StackRadius, StackHeight, Coord.Ptr(CircleIndex));
+
+    { Next stack, from quads (but we only need to add 3 lines) }
+    StackFaceIndex := CoordIndex.Count;
+    CoordIndex.Count := CoordIndex.Count + QuadricSlices * 5;
+    for I := 0 to QuadricSlices - 1 do
     begin
-      { No need for CylinderCone_Proxy to create tex coords. }
-      IFS.FdTexCoord.Value := FdTexCoord.Value;
-      TexCoords := nil;
-    end else
-    begin
-      TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
-      IFS.FdTexCoord.Value := TexCoordNode;
-      TexCoords := TexCoordNode.FdPoint.Items;
+      NextI := (I + 1) mod QuadricSlices;
+      CoordIndex.L[StackFaceIndex + I * 5    ] := BottomCircleIndex + NextI;
+      CoordIndex.L[StackFaceIndex + I * 5 + 1] := CircleIndex + NextI;
+      CoordIndex.L[StackFaceIndex + I * 5 + 2] := CircleIndex + I;
+      CoordIndex.L[StackFaceIndex + I * 5 + 3] := BottomCircleIndex + I;
+      CoordIndex.L[StackFaceIndex + I * 5 + 4] := -1;
     end;
 
-    Sphere_Proxy(IFS.FdCoordIndex.Items,
-      CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords,
-      OverTriangulate, FdRadius.Value,
-      State.LastNodes.KambiTriangulation);
+    BottomCircleIndex := CircleIndex;
+  end;
 
-    IFS.FdSolid.Value := FdSolid.Value;
+  TopIndex := Coord.Count;
+  Coord.Count := Coord.Count + 1;
+  Coord.L[TopIndex] := Vector3Single(0, Radius, 0);
 
-    { Smooth everything. }
-    IFS.FdCreaseAngle.Value := 4;
-  except FreeAndNil(Result); raise end;
+  { Top stack, from triangles }
+  StackFaceIndex := CoordIndex.Count;
+  CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
+  for I := 0 to QuadricSlices - 1 do
+  begin
+    NextI := (I + 1) mod QuadricSlices;
+    CoordIndex.L[StackFaceIndex + I * 4    ] := BottomCircleIndex + I;
+    CoordIndex.L[StackFaceIndex + I * 4 + 1] := BottomCircleIndex + NextI;
+    CoordIndex.L[StackFaceIndex + I * 4 + 2] := TopIndex;
+    CoordIndex.L[StackFaceIndex + I * 4 + 3] := -1;
+  end;
+end;
+
+function TSphereNode.Proxy(var State: TX3DGraphTraverseState;
+  const OverTriangulate: boolean): TAbstractGeometryNode;
+
+  procedure SphereWireframe;
+  var
+    CoordNode: TCoordinateNode;
+    ILS: TIndexedLineSetNode absolute Result;
+  begin
+    ILS := TIndexedLineSetNode.Create(NodeName, BaseUrl);
+    try
+      CoordNode := TCoordinateNode.Create('', BaseUrl);
+      ILS.FdCoord.Value := CoordNode;
+
+      SphereWireframe_Proxy(ILS.FdCoordIndex.Items, CoordNode.FdPoint.Items,
+        FdRadius.Value, CalculateSlices, CalculateStacks);
+    except FreeAndNil(Result); raise end;
+  end;
+
+  procedure SphereFilled;
+  var
+    CoordNode: TCoordinateNode;
+    NormalNode: TNormalNode;
+    TexCoordNode: TTextureCoordinateNode;
+    TexCoords: TVector2SingleList;
+    IFS: TIndexedFaceSetNode absolute Result;
+  begin
+    IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
+    try
+      CoordNode := TCoordinateNode.Create('', BaseUrl);
+      IFS.FdCoord.Value := CoordNode;
+
+      NormalNode := TNormalNode.Create('', BaseUrl);
+      IFS.FdNormal.Value := NormalNode;
+      IFS.FdNormalPerVertex.Value := true;
+
+      if (FdTexCoord.Value <> nil) and FdTexCoord.CurrentChildAllowed then
+      begin
+        { No need for CylinderCone_Proxy to create tex coords. }
+        IFS.FdTexCoord.Value := FdTexCoord.Value;
+        TexCoords := nil;
+      end else
+      begin
+        TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
+        IFS.FdTexCoord.Value := TexCoordNode;
+        TexCoords := TexCoordNode.FdPoint.Items;
+      end;
+
+      Sphere_Proxy(IFS.FdCoordIndex.Items,
+        CoordNode.FdPoint.Items, NormalNode.FdVector.Items, TexCoords,
+        OverTriangulate, FdRadius.Value,
+        CalculateSlices, CalculateStacks);
+
+      IFS.FdSolid.Value := FdSolid.Value;
+
+      { Smooth everything. }
+      IFS.FdCreaseAngle.Value := 4;
+    except FreeAndNil(Result); raise end;
+  end;
+
+begin
+  if (State.ShapeNode <> nil) and
+     (State.ShapeNode.Shading = shWireframe) then
+    SphereWireframe
+  else
+    SphereFilled;
 end;
 
 function TSphereNode_1.Proxy(var State: TX3DGraphTraverseState;
@@ -264,7 +386,7 @@ begin
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
       TexCoordNode.FdPoint.Items,
       OverTriangulate, FdRadius.Value,
-      State.LastNodes.KambiTriangulation);
+      DefaultTriangulationSlices, DefaultTriangulationStacks);
 
     { For VRML 1.0, unfortunately textureCoordIndex must be set
       (even though it's exactly equivalent to coordIndex).

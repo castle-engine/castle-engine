@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2014 Michalis Kamburelis.
+  Copyright 2009-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,16 +20,19 @@ unit CastleSceneManager;
 
 interface
 
-uses Classes, CastleVectors, X3DNodes, CastleScene, CastleSceneCore, CastleCameras,
+uses SysUtils, Classes, FGL,
+  CastleVectors, X3DNodes, X3DTriangles, CastleScene, CastleSceneCore, CastleCameras,
   CastleGLShadowVolumes, CastleUIControls, Castle3D, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleBackground, CastleUtils, CastleClassUtils,
-  CastleGLShaders, CastleGLImages, CastleTimeUtils, FGL, CastleSectors,
+  CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleSectors,
   CastleInputs, CastlePlayer, CastleRectangles, CastleColors, CastleGL,
   CastleRays, CastleScreenEffects;
 
 type
   TCastleAbstractViewport = class;
   TCastleSceneManager = class;
+
+  EViewportSceneManagerMissing = class(Exception);
 
   TRender3DEvent = procedure (Viewport: TCastleAbstractViewport;
     const Params: TRenderParams) of object;
@@ -109,7 +112,7 @@ type
 
     FProjection: TProjection;
 
-    procedure ItemsAndCameraCursorChange(Sender: TObject);
+    procedure RecalculateCursor(Sender: TObject);
     function PlayerNotBlocked: boolean;
     procedure SetScreenSpaceAmbientOcclusion(const Value: boolean);
 
@@ -141,6 +144,8 @@ type
       In turn, this expects Camera.Radius to be already properly set
       (usually by CreateDefaultCamera). }
     procedure ApplyProjection;
+
+    procedure SetPaused(const Value: boolean);
   protected
     { The projection parameters. Determines if the view is perspective
       or orthogonal and exact field of view parameters.
@@ -280,7 +285,6 @@ type
     destructor Destroy; override;
 
     procedure Resize; override;
-    property RenderStyle default rs3D;
 
     function AllowSuspendForInput: boolean; override;
     function Press(const Event: TInputPressRelease): boolean; override;
@@ -386,6 +390,10 @@ type
       Black by default. }
     property BackgroundColor: TCastleColor
       read FBackgroundColor write FBackgroundColor;
+
+    { Current 3D triangle under the mouse cursor.
+      Updated in every mouse move. May be @nil. }
+    function TriangleHit: PTriangle;
   published
     { Camera used to render this viewport.
 
@@ -457,7 +465,7 @@ type
         @item(For cameras, you can set @code(TCamera.Input := []) to ignore
           key / mouse clicks.)
       ) }
-    property Paused: boolean read FPaused write FPaused default false;
+    property Paused: boolean read FPaused write SetPaused default false;
 
     { See Render3D method. }
     property OnRender3D: TRender3DEvent read FOnRender3D write FOnRender3D;
@@ -1078,6 +1086,7 @@ type
   private
     FSceneManager: TCastleSceneManager;
     procedure SetSceneManager(const Value: TCastleSceneManager);
+    procedure CheckSceneManagerAssigned;
   protected
     function GetItems: T3DWorld; override;
     function GetMainScene: TCastleScene; override;
@@ -1140,9 +1149,9 @@ var
 
 implementation
 
-uses SysUtils, CastleRenderingCamera, CastleGLUtils, CastleProgress,
+uses CastleRenderingCamera, CastleGLUtils, CastleProgress,
   CastleLog, CastleStringUtils, CastleSoundEngine, Math,
-  X3DTriangles, CastleGLVersion, CastleShapes;
+  CastleGLVersion, CastleShapes;
 
 procedure Register;
 begin
@@ -1193,7 +1202,6 @@ begin
   FShadowVolumes := DefaultShadowVolumes;
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
-  RenderStyle := rs3D;
   FullSize := true;
 end;
 
@@ -1278,7 +1286,7 @@ begin
         to override TCastleWindowCustom / TCastleControlCustom that also try
         to "hijack" this camera's event. }
       FCamera.OnVisibleChange := @CameraVisibleChange;
-      FCamera.OnCursorChange := @ItemsAndCameraCursorChange;
+      FCamera.OnCursorChange := @RecalculateCursor;
       if FCamera is TWalkCamera then
       begin
         TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
@@ -1441,18 +1449,38 @@ begin
     Accidentaly, this also workarounds the problem of TCastleViewport:
     when the 3D object stayed the same but it's Cursor value changed,
     Items.CursorChange notify only TCastleSceneManager (not custom viewport).
-    But thanks to doing ItemsAndCameraCursorChange below, this isn't
+    But thanks to doing RecalculateCursor below, this isn't
     a problem for now, as we'll update cursor anyway, as long as it changes
     only during mouse move. }
-  ItemsAndCameraCursorChange(Self);
+  RecalculateCursor(Self);
 end;
 
-procedure TCastleAbstractViewport.ItemsAndCameraCursorChange(Sender: TObject);
+procedure TCastleAbstractViewport.SetPaused(const Value: boolean);
 begin
-  { this may be called from T3DListCore.Notify when removing stuff owned by other
-    stuff, in particular during our own destructor when FItems is freed
-    and we're in half-destructed state. }
-  if csDestroying in GetItems.ComponentState then Exit;
+  if FPaused <> Value then
+  begin
+    FPaused := Value;
+    { update the cursor when Paused changed. }
+    RecalculateCursor(Self);
+  end;
+end;
+
+procedure TCastleAbstractViewport.RecalculateCursor(Sender: TObject);
+begin
+  if { This may be called from T3DListCore.Notify when removing stuff owned by other
+       stuff, in particular during our own destructor when FItems is freed
+       and we're in half-destructed state. }
+     (csDestroying in GetItems.ComponentState) or
+     { When Paused, then Press and Motion events are not passed to Camera,
+       or to Items inside. So it's sensible that they also don't control the cursor
+       anymore.
+       In particular, it means cursor is no longer hidden by Camera.MouseLook
+       when the Paused is switched to true. }
+     Paused then
+  begin
+    Cursor := mcDefault;
+    Exit;
+  end;
 
   { We have to treat Camera.Cursor specially:
     - mcForceNone because of mouse look means result is unconditionally mcForceNone.
@@ -1477,6 +1505,16 @@ begin
      (GetMouseRayHit.Count <> 0) then
     Cursor := GetMouseRayHit.First.Item.Cursor else
     Cursor := mcDefault;
+end;
+
+function TCastleAbstractViewport.TriangleHit: PTriangle;
+begin
+  if (GetMouseRayHit <> nil) and
+     (GetMouseRayHit.Count <> 0) then
+    { This should always be castable to TTriangle class. }
+    Result := PTriangle(GetMouseRayHit.First.Triangle)
+  else
+    Result := nil;
 end;
 
 procedure TCastleAbstractViewport.Update(const SecondsPassed: Single;
@@ -2563,7 +2601,7 @@ begin
     so make it a correct sub-component. }
   FItems.SetSubComponent(true);
   FItems.Name := 'Items';
-  FItems.OnCursorChange := @ItemsAndCameraCursorChange;
+  FItems.OnCursorChange := @RecalculateCursor;
   FItems.OnVisibleChange := @ItemsVisibleChange;
 
   FMoveLimit := EmptyBox3D;
@@ -2730,7 +2768,7 @@ begin
   begin
     { Always keep FreeNotification on every 3D item inside MouseRayHit.
       When it's destroyed, our MouseRayHit must be freed too,
-      it cannot be used in subsequent ItemsAndCameraCursorChange. }
+      it cannot be used in subsequent RecalculateCursor. }
 
     if FMouseRayHit <> nil then
     begin
@@ -2813,7 +2851,7 @@ begin
 
     if (AComponent is T3D) and MouseRayHitContains(T3D(AComponent)) then
     begin
-      { MouseRayHit cannot be used in subsequent ItemsAndCameraCursorChange. }
+      { MouseRayHit cannot be used in subsequent RecalculateCursor. }
       SetMouseRayHit(nil);
     end;
 
@@ -3338,6 +3376,12 @@ begin
   inherited;
 end;
 
+procedure TCastleViewport.CheckSceneManagerAssigned;
+begin
+  if SceneManager = nil then
+    raise EViewportSceneManagerMissing.Create('TCastleViewport.SceneManager is required, but not assigned yet');
+end;
+
 procedure TCastleViewport.CameraVisibleChange(ACamera: TObject);
 begin
   VisibleChange;
@@ -3378,41 +3422,49 @@ end;
 
 function TCastleViewport.CreateDefaultCamera(AOwner: TComponent): TCamera;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.CreateDefaultCamera(AOwner);
 end;
 
 function TCastleViewport.GetItems: T3DWorld;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.Items;
 end;
 
 function TCastleViewport.GetMainScene: TCastleScene;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.MainScene;
 end;
 
 function TCastleViewport.GetShadowVolumeRenderer: TGLShadowVolumeRenderer;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.ShadowVolumeRenderer;
 end;
 
 function TCastleViewport.GetMouseRayHit: TRayCollision;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.MouseRayHit;
 end;
 
 function TCastleViewport.GetHeadlightCamera: TCamera;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.Camera;
 end;
 
 function TCastleViewport.GetPlayer: TPlayer;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.Player;
 end;
 
 function TCastleViewport.GetTimeScale: Single;
 begin
+  CheckSceneManagerAssigned;
   Result := SceneManager.TimeScale;
 end;
 
@@ -3420,6 +3472,7 @@ procedure TCastleViewport.Render;
 begin
   if not GetExists then Exit;
 
+  CheckSceneManagerAssigned;
   SceneManager.UpdateGeneratedTexturesIfNeeded;
 
   inherited;
@@ -3454,6 +3507,7 @@ end;
 
 function TCastleViewport.Headlight: TAbstractLightNode;
 begin
+  CheckSceneManagerAssigned;
   { Using the SceneManager.Headlight allows to share a DefaultHeadlightNode
     with all viewports sharing the same SceneManager.
     This is useful for tricks like view3dscene scene manager,

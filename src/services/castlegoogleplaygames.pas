@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2015 Michalis Kamburelis.
+  Copyright 2015-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -402,7 +402,7 @@ end;
 
 procedure TGooglePlayGames.RequestPlayerBestScore(const LeaderboardId: string);
 begin
-  Messaging.Send(['request-best-score', LeaderboardId]);
+  Messaging.Send(['request-player-best-score', LeaderboardId]);
 end;
 
 procedure TGooglePlayGames.RequestSignedIn(const Value: boolean);

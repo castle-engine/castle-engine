@@ -113,7 +113,6 @@ Transform {
   children Transform {
     rotation 1 0 0 1.57
     children [
-      KambiTriangulation { quadricStacks 2 }
       Shape {
         appearance Appearance {
           texture ImageTexture { url "../../textures/mute_label_scroll.png" }
@@ -124,6 +123,7 @@ Transform {
           top FALSE
           radius 0.38 height 0.105
           solid FALSE
+          # stacks 2 # only in VRML 2.0 / X3D
         }
       }
     ]

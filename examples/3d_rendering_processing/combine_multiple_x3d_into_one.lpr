@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2015 Michalis Kamburelis.
+  Copyright 2015-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -41,16 +41,16 @@ begin
 
     MainRoot (TX3DRootNode)
     |- TransformBoxes (TTransformNode)
-       |- ModelBoxes (TX3DRootNode, loaded from models/boxes.x3dv)
+       |- ModelBoxes (TX3DRootNode, loaded from data/boxes.x3dv)
 
     |- TransformRaptor[0] (TTransformNode)
-       |- ModelRaptor (TX3DRootNode, loaded from models/raptor_1.x3d)
+       |- ModelRaptor (TX3DRootNode, loaded from data/raptor_1.x3d)
 
     |- TransformRaptor[1] (TTransformNode)
-       |- ModelRaptor (TX3DRootNode, loaded from models/raptor_1.x3d)
+       |- ModelRaptor (TX3DRootNode, loaded from data/raptor_1.x3d)
 
     |- TransformRaptor[2] (TTransformNode)
-       |- ModelRaptor (TX3DRootNode, loaded from models/raptor_1.x3d)
+       |- ModelRaptor (TX3DRootNode, loaded from data/raptor_1.x3d)
 
     Note that the same TCastleScene instance "ModelRaptor" is added
     multiple times to the X3D nodes graph (just with different transformations).
@@ -61,7 +61,7 @@ begin
 
   { add ModelBoxes and TransformBoxes }
 
-  ModelBoxes := Load3D(ApplicationData('models/boxes.x3dv'));
+  ModelBoxes := Load3D(ApplicationData('boxes.x3dv'));
 
   TransformBoxes := TTransformNode.Create;
   TransformBoxes.Translation := Vector3Single(-5, 0, 0);
@@ -71,7 +71,7 @@ begin
 
   { add ModelRaptor and TransformRaptor[0..2] }
 
-  ModelRaptor := Load3D(ApplicationData('models/raptor_1.x3d'));
+  ModelRaptor := Load3D(ApplicationData('raptor_1.x3d'));
 
   for I := 0 to 2 do
   begin

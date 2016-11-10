@@ -5,7 +5,7 @@ X3DViewpointNode : X3DBindableNode {
   SFRotation [in,out] orientation       0 0 1 0   [-1,1],(-Inf,Inf)
   SFBool     [in,out] retainUserOffsets FALSE
 
-  # Castle Game Engine extensions
+  # EXTENSIONS:
   SFMatrix4f [out]         cameraMatrix
   SFMatrix4f [out]         cameraInverseMatrix
   SFMatrix3f [out]         cameraRotationMatrix

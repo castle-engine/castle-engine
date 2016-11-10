@@ -1,5 +1,5 @@
 {
-  Copyright 2007-2014 Michalis Kamburelis.
+  Copyright 2007-2016 Michalis Kamburelis.
 
   This file is part of "the rift".
 
@@ -35,5 +35,4 @@ implementation
 
 initialization
   Window := TCastleWindowCustom.Create(Application);
-  Window.RenderStyle := rs3D;
 end.

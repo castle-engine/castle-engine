@@ -40,7 +40,7 @@ uses CastleVectors, CastleSceneCore;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  Scene1.Load('../../3d_rendering_processing/models/bridge_final.x3dv');
+  Scene1.Load('../../3d_rendering_processing/data/bridge_final.x3dv');
   Scene1.Spatial := [ssRendering, ssDynamicCollisions]; // if you want collisions, and faster rendering
   Scene1.ProcessEvents := true; // if you use VRML/X3D events
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2012-2014 Michalis Kamburelis.
+  Copyright 2012-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -72,7 +72,7 @@ begin
   ToggleMouseLookButton.Left := ControlsMargin;
   ToggleMouseLookButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(ToggleMouseLookButton);
-  NextButtonBottom += ToggleMouseLookButton.Height + ControlsMargin;
+  NextButtonBottom += ToggleMouseLookButton.CalculatedHeight + ControlsMargin;
 
   ExitButton := TCastleButton.Create(Application);
   ExitButton.Caption := 'Exit (Escape)';
@@ -80,7 +80,7 @@ begin
   ExitButton.Left := ControlsMargin;
   ExitButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(ExitButton);
-  NextButtonBottom += ExitButton.Height + ControlsMargin;
+  NextButtonBottom += ExitButton.CalculatedHeight + ControlsMargin;
 
   RenderDebug3DButton := TCastleButton.Create(Application);
   RenderDebug3DButton.Caption := 'Render debug 3D objects';
@@ -89,7 +89,7 @@ begin
   RenderDebug3DButton.Left := ControlsMargin;
   RenderDebug3DButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(RenderDebug3DButton);
-  NextButtonBottom += RenderDebug3DButton.Height + ControlsMargin;
+  NextButtonBottom += RenderDebug3DButton.CalculatedHeight + ControlsMargin;
 
   RenderDebugCaptionsButton := TCastleButton.Create(Application);
   RenderDebugCaptionsButton.Caption := 'Render debug captions';
@@ -98,7 +98,7 @@ begin
   RenderDebugCaptionsButton.Left := ControlsMargin;
   RenderDebugCaptionsButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(RenderDebugCaptionsButton);
-  NextButtonBottom += RenderDebugCaptionsButton.Height + ControlsMargin;
+  NextButtonBottom += RenderDebugCaptionsButton.CalculatedHeight + ControlsMargin;
 
   ScrenshotButton := TCastleButton.Create(Application);
   ScrenshotButton.Caption := 'Screenshot (F5)';
@@ -106,7 +106,7 @@ begin
   ScrenshotButton.Left := ControlsMargin;
   ScrenshotButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(ScrenshotButton);
-  NextButtonBottom += ScrenshotButton.Height + ControlsMargin;
+  NextButtonBottom += ScrenshotButton.CalculatedHeight + ControlsMargin;
 
   AddCreatureButton := TCastleButton.Create(Application);
   AddCreatureButton.Caption := 'Add creature (F9)';
@@ -114,7 +114,7 @@ begin
   AddCreatureButton.Left := ControlsMargin;
   AddCreatureButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AddCreatureButton);
-  NextButtonBottom += AddCreatureButton.Height + ControlsMargin;
+  NextButtonBottom += AddCreatureButton.CalculatedHeight + ControlsMargin;
 
   AddItemButton := TCastleButton.Create(Application);
   AddItemButton.Caption := 'Add item (F10)';
@@ -122,7 +122,7 @@ begin
   AddItemButton.Left := ControlsMargin;
   AddItemButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AddItemButton);
-  NextButtonBottom += AddItemButton.Height + ControlsMargin;
+  NextButtonBottom += AddItemButton.CalculatedHeight + ControlsMargin;
 end;
 
 procedure TButtons.ToggleMouseLookButtonClick(Sender: TObject);
@@ -200,15 +200,15 @@ end;
 var
   Buttons: TButtons;
 
-{ 2D controls ---------------------------------------------------------------- }
+{ Player HUD ---------------------------------------------------------------- }
 
 type
-  TGame2DControls = class(TUIControl)
+  TPlayerHUD = class(TUIControl)
   public
     procedure Render; override;
   end;
 
-procedure TGame2DControls.Render;
+procedure TPlayerHUD.Render;
 const
   InventoryImageSize = 128;
 var
@@ -216,6 +216,7 @@ var
   I, X, Y: Integer;
   S: string;
 begin
+  inherited;
   Player := SceneManager.Player;
 
   Y := ContainerHeight;
@@ -289,7 +290,7 @@ begin
 end;
 
 var
-  Game2DControls: TGame2DControls;
+  PlayerHUD: TPlayerHUD;
 
 { Window callbacks ----------------------------------------------------------- }
 
@@ -339,7 +340,7 @@ type
     to increase health on use (press Enter to use item in inventory).
 
     We also override the Stack property to avoid stacking items.
-    We do this here just to see that TGame2DControls works for many items.
+    We do this here just to see that TPlayerHUD works for many items.
     (Otherwise, all instances of MedKit would be "stacked" together,
     which means you will have a single item on Player.Inventory,
     but with Quantity possibly > 1. For real games, stacking is usually a good
@@ -546,23 +547,16 @@ begin
     "placeholders" on the level, see TGameSceneManager.LoadLevel documentation. }
   SceneManager.LoadLevel('example_level');
 
-  { Initialize ExtraViewport to a camera that nicely views the scene from above.
-
-    Note that usually there's no need to initialize TCastleViewport
-    or TCastleSceneManager.Camera: they are initialized automatically
-    when needed (usually at first render) or at LoadLevel,
-    using camera properties from level 3D file (TCastleSceneManager.MainScene). }
-  if ExtraViewport.Camera = nil then
-    ExtraViewport.Camera := SceneManager.CreateDefaultCamera(ExtraViewport);
-  { The default CreateDefaultCamera implementation always creates
+  { Initialize ExtraViewport camera to something
+    that nicely views the scene from above.
+    The default viewport CreateDefaultCamera implementation always creates
     TUniversalCamera, so we can safely cast below. }
-  (ExtraViewport.Camera as TUniversalCamera).NavigationType := ntExamine;
-  ExtraViewport.Camera.SetInitialView(
+  (ExtraViewport.RequiredCamera as TUniversalCamera).NavigationType := ntExamine;
+  ExtraViewport.RequiredCamera.SetView(
     { position } Vector3Single(0, 55, 44),
     { direction } Vector3Single(0, -1, 0),
     { up } Vector3Single(0, 0, -1), false
   );
-  ExtraViewport.Camera.GoToInitial;
   { Note we allow user to actually edit this view, e.g. by mouse dragging.
     But you could always do this to make camera non-editable: }
   // ExtraViewport.Camera.Input := [];
@@ -597,13 +591,13 @@ begin
   Notifications.Color := Yellow;
   Window.Controls.InsertFront(Notifications);
 
-  { Create and add Game2DControls to visualize player life, inventory and pain. }
-  Game2DControls := TGame2DControls.Create(Application);
-  Window.Controls.InsertFront(Game2DControls);
+  { Create and add PlayerHUD to visualize player life, inventory and pain. }
+  PlayerHUD := TPlayerHUD.Create(Application);
+  Window.Controls.InsertFront(PlayerHUD);
 
   { Insert default crosshair.
-    You can draw your own crosshair easily (using TGLImage.Draw
-    inside TGame2DControls, or using TCastleImageControl). }
+    You can always draw your custom crosshair instead (using TGLImage.Draw
+    inside TPlayerHUD, or using TCastleImageControl). }
   Window.Controls.InsertFront(TCastleCrosshair.Create(Application));
 
   { Run the game loop.

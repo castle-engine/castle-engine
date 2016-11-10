@@ -1,5 +1,5 @@
 {
-  Copyright 2013-2014 Michalis Kamburelis.
+  Copyright 2013-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -54,19 +54,19 @@ var
 
 type
   TDummy = class
-    procedure ToggleShaderClick(Sender: TObject);
-    procedure ToggleScreenEffectClick(Sender: TObject);
-    procedure ToggleSSAOClick(Sender: TObject);
-    procedure TouchUIClick(Sender: TObject);
-    procedure MessageClick(Sender: TObject);
-    procedure ProgressClick(Sender: TObject);
-    procedure ReopenContextClick(Sender: TObject);
-    procedure ToggleTextureUpdates(Sender: TObject);
-    procedure ToggleTextureUpdatesCallback(Node: TX3DNode);
-    procedure PlaySound(Sender: TObject);
+    class procedure ToggleShaderClick(Sender: TObject);
+    class procedure ToggleScreenEffectClick(Sender: TObject);
+    class procedure ToggleSSAOClick(Sender: TObject);
+    class procedure TouchUIClick(Sender: TObject);
+    class procedure MessageClick(Sender: TObject);
+    class procedure ProgressClick(Sender: TObject);
+    class procedure ReopenContextClick(Sender: TObject);
+    class procedure ToggleTextureUpdates(Sender: TObject);
+    class procedure ToggleTextureUpdatesCallback(Node: TX3DNode);
+    class procedure PlaySound(Sender: TObject);
   end;
 
-procedure TDummy.ToggleShaderClick(Sender: TObject);
+class procedure TDummy.ToggleShaderClick(Sender: TObject);
 begin
   if MyShaderEffect <> nil then
   begin
@@ -75,7 +75,7 @@ begin
   end;
 end;
 
-procedure TDummy.ToggleScreenEffectClick(Sender: TObject);
+class procedure TDummy.ToggleScreenEffectClick(Sender: TObject);
 begin
   if MyScreenEffect <> nil then
   begin
@@ -84,21 +84,21 @@ begin
   end;
 end;
 
-procedure TDummy.ToggleSSAOClick(Sender: TObject);
+class procedure TDummy.ToggleSSAOClick(Sender: TObject);
 begin
   Window.SceneManager.ScreenSpaceAmbientOcclusion :=
     not Window.SceneManager.ScreenSpaceAmbientOcclusion;
   ToggleSSAOButton.Pressed := Window.SceneManager.ScreenSpaceAmbientOcclusion;
 end;
 
-procedure TDummy.TouchUIClick(Sender: TObject);
+class procedure TDummy.TouchUIClick(Sender: TObject);
 begin
   if Window.TouchInterface = High(TTouchInterface) then
     Window.TouchInterface := Low(TTouchInterface) else
     Window.TouchInterface := Succ(Window.TouchInterface);
 end;
 
-procedure TDummy.MessageClick(Sender: TObject);
+class procedure TDummy.MessageClick(Sender: TObject);
 begin
   { On Android, a nice test is to switch to desktop (home)
     when one of these modal MessageXxx is working. The application loop
@@ -113,7 +113,7 @@ begin
     MessageOK(Window, 'You clicked "No".');
 end;
 
-procedure TDummy.ProgressClick(Sender: TObject);
+class procedure TDummy.ProgressClick(Sender: TObject);
 const
   TestProgressSteps = 100;
 var
@@ -150,13 +150,13 @@ begin
   finally Progress.Fini end;
 end;
 
-procedure TDummy.ReopenContextClick(Sender: TObject);
+class procedure TDummy.ReopenContextClick(Sender: TObject);
 begin
   Window.Close(false);
   Window.Open;
 end;
 
-procedure TDummy.ToggleTextureUpdatesCallback(Node: TX3DNode);
+class procedure TDummy.ToggleTextureUpdatesCallback(Node: TX3DNode);
 var
   CubeMap: TGeneratedCubeMapTextureNode;
   LogStr: string;
@@ -169,13 +169,13 @@ begin
   WritelnLog('CubeMap', LogStr);
 end;
 
-procedure TDummy.ToggleTextureUpdates(Sender: TObject);
+class procedure TDummy.ToggleTextureUpdates(Sender: TObject);
 begin
   Window.SceneManager.MainScene.RootNode.EnumerateNodes(
     TGeneratedCubeMapTextureNode, @ToggleTextureUpdatesCallback, false);
 end;
 
-procedure TDummy.PlaySound(Sender: TObject);
+class procedure TDummy.PlaySound(Sender: TObject);
 begin
   if Random < 0.5 then
     SoundEngine.PlaySound(SoundBuffer1) else

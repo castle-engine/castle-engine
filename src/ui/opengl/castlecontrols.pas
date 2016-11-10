@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2014 Michalis Kamburelis.
+  Copyright 2010-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -145,8 +145,13 @@ type
     and assign TCastleButton.OnClick (or ovevrride TCastleButton.DoClick). }
   TCastleButton = class(TUIControlFont)
   strict private
-    FWidth: Cardinal;
-    FHeight: Cardinal;
+    FWidth, FHeight: Cardinal;
+    FFinalScaledValid: boolean;
+    { The only method that can access these is Rect.
+      Everything else should use Rect, ScreenRect, CalculatedWidth, CalculatedHeight
+      or other methods that wrap Rect.
+      This makes sure that FFinalScaledValid is honored. }
+    FFinalScaledWidth, FFinalScaledHeight: Cardinal;
     FOnClick: TNotifyEvent;
     FCaption: string;
     FAutoSize, FAutoSizeWidth, FAutoSizeHeight: boolean;
@@ -191,11 +196,8 @@ type
     procedure SetAutoSize(const Value: boolean);
     procedure SetAutoSizeWidth(const Value: boolean);
     procedure SetAutoSizeHeight(const Value: boolean);
-    { Calculate TextWidth, TextHeight and call UpdateSize. }
+    { Recalculate TextWidth, TextHeight, and set FFinalScaledValid to false. }
     procedure UpdateTextSize;
-    { If AutoSize, update Width, Height.
-      This depends on Caption, AutoSize*, Font availability. }
-    procedure UpdateSize;
     procedure SetImage(const Value: TCastleImage);
     procedure SetCustomBackgroundPressed(const Value: TCastleImage);
     procedure SetCustomBackgroundDisabled(const Value: TCastleImage);
@@ -341,8 +343,8 @@ type
       The calculated size takes into account the Caption text size (with current font),
       and @link(Image) size, plus some margin to make it look nice.
 
-      Width is adjusted only when AutoSize and AutoSizeWidth.
-      And Height is adjusted only when AutoSize and AutoSizeHeight.
+      @link(Width) is adjusted only when AutoSize and AutoSizeWidth.
+      And @link(Height) is adjusted only when AutoSize and AutoSizeHeight.
       This way you can turn off auto-sizing in only one dimension if you
       want (and when you don't need such flexibility, leave
       AutoSizeWidth = AutoSizeHeight = @true and control both by simple
@@ -353,14 +355,7 @@ type
       @link(TUIControl.CalculatedHeight). Note that they may not be available
       before the button is actually added to the container,
       and the container size is initialized (we need to know the size of container,
-      for UI scaling to determine the font size).
-
-      @italic(Right now) the auto-sizing also updates the
-      values of @link(Width) and @link(Height) properties, but don't depend on it
-      in new code. In the future, it may be changed, and then @link(Width) and
-      @link(Height) properties will stay unmodified by the auto-sizing mechanism.
-      Always use @link(TUIControl.CalculatedWidth) and @link(TUIControl.CalculatedHeight)
-      to read the resulting control size. }
+      for UI scaling to determine the font size). }
     property AutoSize: boolean read FAutoSize write SetAutoSize default true;
     property AutoSizeWidth: boolean read FAutoSizeWidth write SetAutoSizeWidth default true;
     property AutoSizeHeight: boolean read FAutoSizeHeight write SetAutoSizeHeight default true;
@@ -791,7 +786,6 @@ type
     procedure SetColor(const Value: TCastleColor);
   public
     constructor Create(AOwner: TComponent); override;
-    property RenderStyle default rs3D;
     procedure Render; override;
     { Background color. By default, this is black color with opaque alpha. }
     property Color: TCastleColor read FColor write SetColor;
@@ -1164,6 +1158,7 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure Render; override;
     function Rect: TRectangle; override;
+    procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
   published
     property Width: Cardinal read FWidth write SetWidth default DefaultWidth;
     property Height: Cardinal read FHeight write SetHeight default DefaultHeight;
@@ -1329,6 +1324,33 @@ type
       Note that this doesn't affect the dragging directly by the scrollbar,
       which is always enabled. }
     property EnableDragging: boolean read FEnableDragging write FEnableDragging default false;
+  end;
+
+  { Timer, running the @link(OnTimer) event periodically. }
+  TCastleTimer = class(TUIControl)
+  strict private
+    FCounteractDelays: boolean;
+    FIntervalSeconds, IntervalRemaining: TFloatTime;
+    FOnTimer: TNotifyEvent;
+    procedure SetIntervalSeconds(AValue: TFloatTime);
+  strict protected
+    procedure DoTimer; virtual;
+  public
+    procedure Update(const SecondsPassed: Single;
+      var HandleInput: boolean); override;
+  published
+    { How often should we call OnTimer. Value of 0 means to call OnTimer
+      in every Update event. }
+    property IntervalSeconds: TFloatTime read FIntervalSeconds write SetIntervalSeconds;
+    { The event called periodically. }
+    property OnTimer: TNotifyEvent read FOnTimer write FOnTimer;
+    { Should be counteract the delays in timer by firing next event sooner.
+      This helps to keep a constant frequency of timer events over a long time,
+      but it may cause to execute a @italic(lot) of timer events in case
+      the application hung for some time. Use if it is necessary
+      e.g. to synchronize with other timers. }
+    property CounteractDelays: boolean
+      read FCounteractDelays write FCounteractDelays default false;
   end;
 
   { Theme for 2D GUI controls.
@@ -1556,6 +1578,51 @@ end;
 procedure SetUIFontSmall(const Value: TCastleFont);
 begin
   FUIFontSmall := Value;
+end;
+
+{ TCastleTimer --------------------------------------------------------------- }
+
+procedure TCastleTimer.SetIntervalSeconds(AValue: TFloatTime);
+begin
+  if FIntervalSeconds <> AValue then
+  begin
+    FIntervalSeconds := AValue;
+    IntervalRemaining := FIntervalSeconds;
+  end;
+end;
+
+procedure TCastleTimer.DoTimer;
+begin
+  if Assigned(OnTimer) then
+    OnTimer(Self);
+end;
+
+procedure TCastleTimer.Update(const SecondsPassed: Single; var HandleInput: boolean);
+begin
+  inherited;
+  if IntervalSeconds <> 0 then
+  begin
+    IntervalRemaining -= SecondsPassed;
+    if CounteractDelays then
+    begin
+      while IntervalRemaining < 0 do
+      begin
+        IntervalRemaining += IntervalSeconds;
+        DoTimer;
+      end;
+    end else
+    begin
+      if IntervalRemaining < 0 then
+      begin
+        IntervalRemaining := IntervalSeconds;
+        DoTimer;
+      end;
+    end;
+  end else
+  begin
+    { for IntervalSeconds = 0, just call timer at every Update. }
+    DoTimer;
+  end;
 end;
 
 { TUIControlFont ---------------------------------------------------------- }
@@ -2138,73 +2205,14 @@ begin
       finally FreeAndNil(TextToRender) end;
     end;
 
-    UpdateSize;
-  end;
-end;
-
-procedure TCastleButton.UpdateSize;
-var
-  ImgSize: Cardinal;
-  MinWidthScaled, MinHeightScaled,
-    ImageMarginScaled,
-    PaddingHorizontalScaled, PaddingVerticalScaled: Cardinal;
-begin
-  if AutoSize then
-  begin
-    PaddingHorizontalScaled := Round(PaddingHorizontal * UIScale);
-    PaddingVerticalScaled   := Round(PaddingVertical   * UIScale);
-    ImageMarginScaled       := Round(ImageMargin       * UIScale);
-    MinWidthScaled          := Round(MinWidth          * UIScale);
-    MinHeightScaled         := Round(MinHeight         * UIScale);
-
-    { We modify FWidth, FHeight directly,
-      to avoid causing UpdateFocusAndMouseCursor too many times.
-      We'll call it at the end explicitly, with VisibleChange(true). }
-    if AutoSizeWidth then FWidth := TextWidth + PaddingHorizontalScaled * 2;
-    if AutoSizeHeight then FHeight := TextHeight + PaddingVerticalScaled * 2;
-    if (FImage <> nil) or
-       (MinImageWidth <> 0) or
-       (MinImageHeight <> 0) then
-    begin
-      if AutoSizeWidth then
-      begin
-        if FImage <> nil then
-          ImgSize := Max(FImage.Width, MinImageWidth) else
-          ImgSize := MinImageWidth;
-        ImgSize := Round(ImgSize * UIScale);
-        case ImageLayout of
-          ilLeft, ilRight: FWidth := Width + ImgSize + ImageMarginScaled;
-          ilTop, ilBottom: FWidth := Max(Width, ImgSize + PaddingHorizontalScaled * 2);
-        end;
-      end;
-      if AutoSizeHeight then
-      begin
-        if FImage <> nil then
-          ImgSize := Max(FImage.Height, MinImageHeight) else
-          ImgSize := MinImageHeight;
-        ImgSize := Round(ImgSize * UIScale);
-        case ImageLayout of
-          ilLeft, ilRight: FHeight := Max(Height, ImgSize + PaddingVerticalScaled * 2);
-          ilTop, ilBottom: FHeight := Height + ImgSize + ImageMarginScaled;
-        end;
-      end;
-    end;
-
-    { at the end apply MinXxx properties }
-    if AutoSizeWidth then
-      MaxVar(FWidth, MinWidthScaled);
-    if AutoSizeHeight then
-      MaxVar(FHeight, MinHeightScaled);
-
-    if AutoSizeWidth or AutoSizeHeight then
-      VisibleChange(true);
+    FFinalScaledValid := false;
   end;
 end;
 
 procedure TCastleButton.UIScaleChanged;
 begin
   inherited;
-  UpdateSize;
+  FFinalScaledValid := false;
 end;
 
 procedure TCastleButton.SetImage(const Value: TCastleImage);
@@ -2219,7 +2227,7 @@ begin
     if GLInitialized and (FImage <> nil) then
       FGLImage := TGLImageCore.Create(FImage, true);
 
-    UpdateSize;
+    FFinalScaledValid := false;
   end;
 end;
 
@@ -2235,7 +2243,7 @@ begin
     if GLInitialized and (FCustomBackgroundPressed <> nil) then
       FGLCustomBackgroundPressed := TGLImageCore.Create(FCustomBackgroundPressed, true);
 
-    UpdateSize;
+    FFinalScaledValid := false;
   end;
 end;
 
@@ -2251,7 +2259,7 @@ begin
     if GLInitialized and (FCustomBackgroundDisabled <> nil) then
       FGLCustomBackgroundDisabled := TGLImageCore.Create(FCustomBackgroundDisabled, true);
 
-    UpdateSize;
+    FFinalScaledValid := false;
   end;
 end;
 
@@ -2267,7 +2275,7 @@ begin
     if GLInitialized and (FCustomBackgroundFocused <> nil) then
       FGLCustomBackgroundFocused := TGLImageCore.Create(FCustomBackgroundFocused, true);
 
-    UpdateSize;
+    FFinalScaledValid := false;
   end;
 end;
 
@@ -2283,7 +2291,7 @@ begin
     if GLInitialized and (FCustomBackgroundNormal <> nil) then
       FGLCustomBackgroundNormal := TGLImageCore.Create(FCustomBackgroundNormal, true);
 
-    UpdateSize;
+    FFinalScaledValid := false;
   end;
 end;
 
@@ -2347,7 +2355,7 @@ begin
   if FImageLayout <> Value then
   begin
     FImageLayout := Value;
-    UpdateSize;
+    FFinalScaledValid := false;
     VisibleChange;
   end;
 end;
@@ -2357,6 +2365,7 @@ begin
   if FWidth <> Value then
   begin
     FWidth := Value;
+    FFinalScaledValid := false;
     VisibleChange(true);
   end;
 end;
@@ -2366,6 +2375,7 @@ begin
   if FHeight <> Value then
   begin
     FHeight := Value;
+    FFinalScaledValid := false;
     VisibleChange(true);
   end;
 end;
@@ -2375,7 +2385,7 @@ begin
   if FMinWidth <> Value then
   begin
     FMinWidth := Value;
-    UpdateSize;
+    FFinalScaledValid := false;
     VisibleChange;
   end;
 end;
@@ -2385,7 +2395,7 @@ begin
   if FMinHeight <> Value then
   begin
     FMinHeight := Value;
-    UpdateSize;
+    FFinalScaledValid := false;
     VisibleChange;
   end;
 end;
@@ -2395,7 +2405,7 @@ begin
   if FImageMargin <> Value then
   begin
     FImageMargin := Value;
-    UpdateSize;
+    FFinalScaledValid := false;
     VisibleChange;
   end;
 end;
@@ -2410,13 +2420,76 @@ begin
 end;
 
 function TCastleButton.Rect: TRectangle;
+
+  procedure CalculateFinalScaledSize;
+  var
+    ImgSize: Cardinal;
+    MinWidthScaled, MinHeightScaled,
+      ImageMarginScaled,
+      PaddingHorizontalScaled, PaddingVerticalScaled: Cardinal;
+  begin
+    FFinalScaledWidth  := Round(FWidth  * UIScale);
+    FFinalScaledHeight := Round(FHeight * UIScale);
+
+    if AutoSize then
+    begin
+      PaddingHorizontalScaled := Round(PaddingHorizontal * UIScale);
+      PaddingVerticalScaled   := Round(PaddingVertical   * UIScale);
+      ImageMarginScaled       := Round(ImageMargin       * UIScale);
+      MinWidthScaled          := Round(MinWidth          * UIScale);
+      MinHeightScaled         := Round(MinHeight         * UIScale);
+
+      { We modify FFinalScaledWidth, FFinalScaledHeight,
+        and avoid causing UpdateFocusAndMouseCursor too many times.
+        We'll call it at the end explicitly, with VisibleChange(true). }
+      if AutoSizeWidth  then FFinalScaledWidth  := TextWidth  + PaddingHorizontalScaled * 2;
+      if AutoSizeHeight then FFinalScaledHeight := TextHeight + PaddingVerticalScaled * 2;
+      if (FImage <> nil) or
+         (MinImageWidth <> 0) or
+         (MinImageHeight <> 0) then
+      begin
+        if AutoSizeWidth then
+        begin
+          if FImage <> nil then
+            ImgSize := Max(FImage.Width, MinImageWidth) else
+            ImgSize := MinImageWidth;
+          ImgSize := Round(ImgSize * UIScale);
+          case ImageLayout of
+            ilLeft, ilRight: FFinalScaledWidth := FFinalScaledWidth + ImgSize + ImageMarginScaled;
+            ilTop, ilBottom: FFinalScaledWidth := Max(FFinalScaledWidth, ImgSize + PaddingHorizontalScaled * 2);
+          end;
+        end;
+        if AutoSizeHeight then
+        begin
+          if FImage <> nil then
+            ImgSize := Max(FImage.Height, MinImageHeight) else
+            ImgSize := MinImageHeight;
+          ImgSize := Round(ImgSize * UIScale);
+          case ImageLayout of
+            ilLeft, ilRight: FFinalScaledHeight := Max(FFinalScaledHeight, ImgSize + PaddingVerticalScaled * 2);
+            ilTop, ilBottom: FFinalScaledHeight := FFinalScaledHeight + ImgSize + ImageMarginScaled;
+          end;
+        end;
+      end;
+
+      { at the end apply MinXxx properties }
+      if AutoSizeWidth then
+        MaxVar(FFinalScaledWidth, MinWidthScaled);
+      if AutoSizeHeight then
+        MaxVar(FFinalScaledHeight, MinHeightScaled);
+
+      if AutoSizeWidth or AutoSizeHeight then
+        VisibleChange(true);
+    end;
+  end;
+
 begin
-  Result := Rectangle(LeftBottomScaled, Width, Height);
-  { in case auto-size is off, scale Width/Height here }
-  if not (AutoSize and AutoSizeWidth) then
-    Result.Width := Round(Result.Width * UIScale);
-  if not (AutoSize and AutoSizeHeight) then
-    Result.Height := Round(Result.Height * UIScale);
+  if not FFinalScaledValid then
+  begin
+    FFinalScaledValid := true;
+    CalculateFinalScaledSize;
+  end;
+  Result := Rectangle(LeftBottomScaled, FFinalScaledWidth, FFinalScaledHeight);
 end;
 
 { TCastlePanel ------------------------------------------------------------------ }
@@ -2446,6 +2519,8 @@ begin
   Theme.Draw(SR, tiPanel, UIScale);
 
   SeparatorMarginScaled := Round(SeparatorMargin * UIScale);
+  if Height <= 2 * SeparatorMarginScaled then
+    Exit; // no space
   for I := 0 to VerticalSeparators.Count - 1 do
     Theme.Draw(Rectangle(
       SR.Left + Round(VerticalSeparators[I] * UIScale),
@@ -3171,8 +3246,6 @@ constructor TCastleSimpleBackground.Create(AOwner: TComponent);
 begin
   inherited;
   FColor := Black;
-  { 3D, because we want to be drawn before other 3D objects }
-  RenderStyle := rs3D;
 end;
 
 procedure TCastleSimpleBackground.SetColor(const Value: TCastleColor);
@@ -4022,6 +4095,16 @@ begin
     FCaption := Value;
     VisibleChange;
   end;
+end;
+
+procedure TCastleAbstractSlider.Update(const SecondsPassed: Single;
+  var HandleInput: boolean);
+begin
+  inherited;
+  { left / right arrow keys pressed are already handled by slider }
+  if HandleInput and ExclusiveEvents and
+     (Container.Pressed[K_Right] or Container.Pressed[K_Left]) then
+    HandleInput := false;
 end;
 
 { TCastleFloatSlider --------------------------------------------------------- }

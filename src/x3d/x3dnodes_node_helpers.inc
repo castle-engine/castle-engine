@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*-
 
-  Copyright 2015-2015 Michalis Kamburelis.
+  Copyright 2015-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -806,8 +806,11 @@ type
   private
     function GetRadius: Single;
     procedure SetRadius(const Value: Single);
+    function GetSlices: Integer;
+    procedure SetSlices(const Value: Integer);
   public
     property Radius: Single read GetRadius write SetRadius;
+    property Slices: Integer read GetSlices write SetSlices;
   end;
 
   TDisk2DNodeHelper = class helper for TDisk2DNode
@@ -833,8 +836,11 @@ type
   private
     function GetSize: TVector3Single;
     procedure SetSize(const Value: TVector3Single);
+    function GetDivisions: Integer;
+    procedure SetDivisions(const Value: Integer);
   public
     property Size: TVector3Single read GetSize write SetSize;
+    property Divisions: Integer read GetDivisions write SetDivisions;
   end;
 
   TConeNodeHelper = class helper for TConeNode
@@ -847,11 +853,17 @@ type
     procedure SetHeight(const Value: Single);
     function GetSide: boolean;
     procedure SetSide(const Value: boolean);
+    function GetSlices: Integer;
+    procedure SetSlices(const Value: Integer);
+    function GetStacks: Integer;
+    procedure SetStacks(const Value: Integer);
   public
     property Bottom: boolean read GetBottom write SetBottom;
     property BottomRadius: Single read GetBottomRadius write SetBottomRadius;
     property Height: Single read GetHeight write SetHeight;
     property Side: boolean read GetSide write SetSide;
+    property Slices: Integer read GetSlices write SetSlices;
+    property Stacks: Integer read GetStacks write SetStacks;
   end;
 
   TCylinderNodeHelper = class helper for TCylinderNode
@@ -866,12 +878,18 @@ type
     procedure SetSide(const Value: boolean);
     function GetTop: boolean;
     procedure SetTop(const Value: boolean);
+    function GetSlices: Integer;
+    procedure SetSlices(const Value: Integer);
+    function GetStacks: Integer;
+    procedure SetStacks(const Value: Integer);
   public
     property Bottom: boolean read GetBottom write SetBottom;
     property Height: Single read GetHeight write SetHeight;
     property Radius: Single read GetRadius write SetRadius;
     property Side: boolean read GetSide write SetSide;
     property Top: boolean read GetTop write SetTop;
+    property Slices: Integer read GetSlices write SetSlices;
+    property Stacks: Integer read GetStacks write SetStacks;
   end;
 
   TElevationGridNodeHelper = class helper for TElevationGridNode
@@ -938,8 +956,14 @@ type
   private
     function GetRadius: Single;
     procedure SetRadius(const Value: Single);
+    function GetSlices: Integer;
+    procedure SetSlices(const Value: Integer);
+    function GetStacks: Integer;
+    procedure SetStacks(const Value: Integer);
   public
     property Radius: Single read GetRadius write SetRadius;
+    property Slices: Integer read GetSlices write SetSlices;
+    property Stacks: Integer read GetStacks write SetStacks;
   end;
 
   TGeoElevationGridNodeHelper = class helper for TGeoElevationGridNode
@@ -2684,20 +2708,6 @@ type
     property TimeOriginAtLoad: boolean read GetTimeOriginAtLoad write SetTimeOriginAtLoad;
     property HeadBobbing: Single read GetHeadBobbing write SetHeadBobbing;
     property HeadBobbingTime: Single read GetHeadBobbingTime write SetHeadBobbingTime;
-  end;
-
-  TKambiTriangulationNodeHelper = class helper for TKambiTriangulationNode
-  private
-    function GetQuadricSlices: Integer;
-    procedure SetQuadricSlices(const Value: Integer);
-    function GetQuadricStacks: Integer;
-    procedure SetQuadricStacks(const Value: Integer);
-    function GetRectDivisions: Integer;
-    procedure SetRectDivisions(const Value: Integer);
-  public
-    property QuadricSlices: Integer read GetQuadricSlices write SetQuadricSlices;
-    property QuadricStacks: Integer read GetQuadricStacks write SetQuadricStacks;
-    property RectDivisions: Integer read GetRectDivisions write SetRectDivisions;
   end;
 
   TKambiHeadLightNodeHelper = class helper for TKambiHeadLightNode
@@ -4851,6 +4861,16 @@ begin
   FdRadius.Send(Value);
 end;
 
+function TCircle2DNodeHelper.GetSlices: Integer;
+begin
+  Result := FdSlices.Value;
+end;
+
+procedure TCircle2DNodeHelper.SetSlices(const Value: Integer);
+begin
+  FdSlices.Send(Value);
+end;
+
 { TDisk2DNode ----------------------------------------------- }
 
 function TDisk2DNodeHelper.GetInnerRadius: Single;
@@ -4897,6 +4917,16 @@ begin
   FdSize.Send(Value);
 end;
 
+function TBoxNodeHelper.GetDivisions: Integer;
+begin
+  Result := FdDivisions.Value;
+end;
+
+procedure TBoxNodeHelper.SetDivisions(const Value: Integer);
+begin
+  FdDivisions.Send(Value);
+end;
+
 { TConeNode ----------------------------------------------- }
 
 function TConeNodeHelper.GetBottom: boolean;
@@ -4937,6 +4967,26 @@ end;
 procedure TConeNodeHelper.SetSide(const Value: boolean);
 begin
   FdSide.Send(Value);
+end;
+
+function TConeNodeHelper.GetSlices: Integer;
+begin
+  Result := FdSlices.Value;
+end;
+
+procedure TConeNodeHelper.SetSlices(const Value: Integer);
+begin
+  FdSlices.Send(Value);
+end;
+
+function TConeNodeHelper.GetStacks: Integer;
+begin
+  Result := FdStacks.Value;
+end;
+
+procedure TConeNodeHelper.SetStacks(const Value: Integer);
+begin
+  FdStacks.Send(Value);
 end;
 
 { TCylinderNode ----------------------------------------------- }
@@ -4989,6 +5039,26 @@ end;
 procedure TCylinderNodeHelper.SetTop(const Value: boolean);
 begin
   FdTop.Send(Value);
+end;
+
+function TCylinderNodeHelper.GetSlices: Integer;
+begin
+  Result := FdSlices.Value;
+end;
+
+procedure TCylinderNodeHelper.SetSlices(const Value: Integer);
+begin
+  FdSlices.Send(Value);
+end;
+
+function TCylinderNodeHelper.GetStacks: Integer;
+begin
+  Result := FdStacks.Value;
+end;
+
+procedure TCylinderNodeHelper.SetStacks(const Value: Integer);
+begin
+  FdStacks.Send(Value);
 end;
 
 { TElevationGridNode ----------------------------------------------- }
@@ -5157,6 +5227,26 @@ end;
 procedure TSphereNodeHelper.SetRadius(const Value: Single);
 begin
   FdRadius.Send(Value);
+end;
+
+function TSphereNodeHelper.GetSlices: Integer;
+begin
+  Result := FdSlices.Value;
+end;
+
+procedure TSphereNodeHelper.SetSlices(const Value: Integer);
+begin
+  FdSlices.Send(Value);
+end;
+
+function TSphereNodeHelper.GetStacks: Integer;
+begin
+  Result := FdStacks.Value;
+end;
+
+procedure TSphereNodeHelper.SetStacks(const Value: Integer);
+begin
+  FdStacks.Send(Value);
 end;
 
 { TGeoElevationGridNode ----------------------------------------------- }
@@ -9445,38 +9535,6 @@ end;
 procedure TKambiNavigationInfoNodeHelper.SetHeadBobbingTime(const Value: Single);
 begin
   FdHeadBobbingTime.Send(Value);
-end;
-
-{ TKambiTriangulationNode ----------------------------------------------- }
-
-function TKambiTriangulationNodeHelper.GetQuadricSlices: Integer;
-begin
-  Result := FdQuadricSlices.Value;
-end;
-
-procedure TKambiTriangulationNodeHelper.SetQuadricSlices(const Value: Integer);
-begin
-  FdQuadricSlices.Send(Value);
-end;
-
-function TKambiTriangulationNodeHelper.GetQuadricStacks: Integer;
-begin
-  Result := FdQuadricStacks.Value;
-end;
-
-procedure TKambiTriangulationNodeHelper.SetQuadricStacks(const Value: Integer);
-begin
-  FdQuadricStacks.Send(Value);
-end;
-
-function TKambiTriangulationNodeHelper.GetRectDivisions: Integer;
-begin
-  Result := FdRectDivisions.Value;
-end;
-
-procedure TKambiTriangulationNodeHelper.SetRectDivisions(const Value: Integer);
-begin
-  FdRectDivisions.Send(Value);
 end;
 
 { TKambiHeadLightNode ----------------------------------------------- }

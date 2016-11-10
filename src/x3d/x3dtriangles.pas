@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2014 Michalis Kamburelis.
+  Copyright 2003-2016 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -110,6 +110,13 @@ type
       const RayOrigin, RayDirection: TVector3Single;
       const RayTag: TMailboxTag): boolean;
     { @groupEnd }
+
+    { X3D shape node of this triangle. May be @nil in case of VRML 1.0. }
+    function ShapeNode: TAbstractShapeNode;
+
+    { X3D material node of this triangle. May be @nil in case material is not set,
+      or in VRML 1.0. }
+    function MaterialNode: TMaterialNode;
 
     { Create material information instance for material of this triangle.
       See TX3DMaterialInfoAbstract for usage description.
@@ -803,6 +810,22 @@ begin
     end;
   end;
   {$endif}
+end;
+
+function TTriangle.ShapeNode: TAbstractShapeNode;
+begin
+  Result := State.ShapeNode;
+end;
+
+function TTriangle.MaterialNode: TMaterialNode;
+var
+  S: TAbstractShapeNode;
+begin
+  S := ShapeNode;
+  if S <> nil then
+    Result := S.Material
+  else
+    Result := nil;
 end;
 
 function TTriangle.MaterialInfo: TX3DMaterialInfoAbstract;

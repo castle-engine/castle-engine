@@ -366,6 +366,7 @@ begin
   {$ENDIF}
 
   Result := FjoyCount;
+  ClearState;
   if Result = 0 then
     WritelnLog('CastleJoysticks Init', 'Couldn''t find joysticks' );
 end;
@@ -431,6 +432,7 @@ for i := 0 to FjoyCount - 1 do
                 if FjoyArray[ i ].State.BtnDown[ event.number ] then
                 begin
                   FjoyArray[ i ].State.BtnUp[ event.number ] := True;
+                  FjoyArray[ i ].State.BtnPress   [ event.number ] := False;
                   if Assigned(FOnButtonUp) then FOnButtonUp(@FjoyArray[ i ], event.number);
                   FjoyArray[ i ].State.BtnCanPress[ event.number ] := True;
                 end;
@@ -476,8 +478,9 @@ for i := 0 to FjoyCount - 1 do
             Inc( value, 2 + a );
 
             _value := Round( ( value^ / ( vMax - vMin ) * 2 - 1 ) * 1000 ) / 1000;
+            if FjoyArray[ i ].State.Axis[ a ] <> _value then
+              if Assigned(FOnAxisMove) then FOnAxisMove(@FjoyArray[ i ], j, _value);
             FjoyArray[ i ].State.Axis[ a ] := _value;
-            if Assigned(FOnAxisMove) then FOnAxisMove(@FjoyArray[ i ], j, _value);
           end;
 
         FillChar( FjoyArray[ i ].State.Axis[ JOY_POVX ], 8, 0 );
@@ -492,8 +495,9 @@ for i := 0 to FjoyCount - 1 do
             btn := state.wButtons and ( 1 shl j );
             if ( FjoyArray[ i ].State.BtnDown[ j ] ) and ( btn = 0 ) then
             begin
-              FjoyArray[ i ].State.BtnUp[ j ] := True;
+              FjoyArray[ i ].State.BtnPress[ j ] := False;
               if Assigned(FOnButtonUp) then FOnButtonUp(@FjoyArray[ i ], j);
+              FjoyArray[ i ].State.BtnCanPress[ j ] := True;
             end;
 
             if ( FjoyArray[ i ].State.BtnCanPress[ j ] ) and ( not FjoyArray[ i ].State.BtnDown[ j ] ) and ( btn <> 0 ) then
@@ -503,6 +507,7 @@ for i := 0 to FjoyCount - 1 do
                 FjoyArray[ i ].State.BtnCanPress[ j ] := False;
               end;
             FjoyArray[ i ].State.BtnDown[ j ] := btn <> 0;
+            FjoyArray[ i ].State.BtnUp[ j ] := btn = 0;
             if Assigned(FOnButtonDown) and (btn <> 0) then FOnButtonDown(@FjoyArray[ i ], j);
           end;
       end;
@@ -560,6 +565,7 @@ begin
       begin
         state := @FjoyArray[ i ].State;
         state^.BtnUp[ j ]       := False;
+        state^.BtnDown[ j ]     := False;
         state^.BtnPress[ j ]    := False;
         state^.BtnCanPress[ j ] := True;
       end;

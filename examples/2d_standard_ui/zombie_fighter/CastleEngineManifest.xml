@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="zombie_fighter"
+  caption="Zombie Fighter"
+  qualified_name="net.sourceforge.castleengine.zombie_fighter"
+  standalone_source="zombie_fighter.lpr"
+  android_source="zombie_fighter_android.lpr"
+  author="Michalis Kamburelis">
+  <version value="1.0" code="1" />
+</project>
