@@ -300,15 +300,17 @@ type
 
     { Controls listening for events (user input, resize, and such) of this container.
 
-      Usually you explicitly add / delete controls to this list.
-      Also, freeing the control that is on this list
-      automatically removes it from this list (using the TComponent.Notification
+      Usually you explicitly add / remove controls to this list
+      using the @link(TChildrenControls.InsertFront Controls.InsertFront) or
+      @link(TChildrenControls.InsertBack Controls.InsertBack) methods.
+      Freeing any control that is on this list
+      automatically removes it from this list (we use the TComponent.Notification
       mechanism).
 
       Controls on the list should be specified in back-to-front order.
       That is, controls at the beginning of this list
       are rendered first, and are last to catch some events, since the rest
-      of controls covers them. }
+      of controls cover them. }
     function Controls: TChildrenControls;
 
     { Returns the controls that should receive input events,
@@ -363,12 +365,18 @@ type
       @seealso UnscaledWidth }
     function UnscaledHeight: Cardinal;
 
+    { Current mouse position.
+      See @link(TTouch.Position) for a documentation how this is expressed. }
     property MousePosition: TVector2Single
       read GetMousePosition write SetMousePosition;
 
     function Dpi: Integer; virtual; abstract;
 
-    { Mouse buttons currently pressed. }
+    { Currently pressed mouse buttons. When this changes, you're always
+      notified by @link(OnPress) or @link(OnRelease) events.
+
+      This value is always current, in particular it's already updated
+      before we call events @link(OnPress) or @link(OnRelease). }
     function MousePressed: TMouseButtons; virtual; abstract;
 
     { Is the window focused now, which means that keys/mouse events

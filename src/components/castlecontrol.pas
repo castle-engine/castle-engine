@@ -151,13 +151,18 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    { List of user-interface controls currently active.
+      See @link(TUIContainer.Controls) for details. }
     function Controls: TChildrenControls;
 
     function MakeCurrent(SaveOldToStack: boolean = false): boolean; override;
     procedure Invalidate; override;
     procedure Paint; override;
 
+    { Keys currently pressed. }
     property Pressed: TKeysPressed read FPressed;
+    { Mouse buttons currently pressed.
+      See @link(TUIContainer.MousePressed) for details. }
     property MousePressed: CastleKeysMouse.TMouseButtons read FMousePressed;
     procedure ReleaseAllKeysAndMouse;
 
