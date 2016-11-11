@@ -42,7 +42,7 @@ type
       DefaultAnimationName = 'animation';
 
     { Load animation data from castle-anim-frames file (in a given URL) to a set of variables.
-      See [http://castle-engine.sourceforge.net/castle_animations_frames.php]
+      See [http://castle-engine.sourceforge.net/castle_animation_frames.php]
       for specification of the file format.
 
       In case of KeyNodes, KeyUrls and KeyTimes,

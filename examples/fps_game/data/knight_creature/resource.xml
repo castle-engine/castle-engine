@@ -19,7 +19,7 @@
   - model: animations 3D models. There are many ways to define them,
     in this case we use castle-anim-frames.
     We export animations from Blender to castle-anim-frames using our exporter on
-    http://castle-engine.sourceforge.net/castle_animations_frames.php .
+    http://castle-engine.sourceforge.net/castle_animation_frames.php .
 
   - radius and preferred_height: important for collision detection.
     These are best visualized with "Render debug 3D" in fps_game.
