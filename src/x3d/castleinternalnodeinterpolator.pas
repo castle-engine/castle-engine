@@ -41,8 +41,8 @@ type
       DefaultEqualityEpsilon = 0.001;
       DefaultAnimationName = 'animation';
 
-    { Load animation data from KAnim file (in a given URL) to a set of variables.
-      See [http://castle-engine.sourceforge.net/kanim_format.php]
+    { Load animation data from castle-anim-frames file (in a given URL) to a set of variables.
+      See [http://castle-engine.sourceforge.net/castle_animations_frames.php]
       for specification of the file format.
 
       In case of KeyNodes, KeyUrls and KeyTimes,
@@ -60,13 +60,13 @@ type
       instance, and it's usefull to implement a class like
       TCastlePrecalculatedAnimationInfo that also wants to read animation data,
       but doesn't have an TCastlePrecalculatedAnimation instance available. }
-    class procedure LoadKAnimToKeyNodes(const URL: string;
+    class procedure LoadAnimFramesToKeyNodes(const URL: string;
       const KeyUrls: TStringList;
       const KeyTimes: TSingleList;
       out ScenesPerTime: Cardinal;
       out EqualityEpsilon: Single;
       out ATimeLoop, ATimeBackwards: boolean);
-    class procedure LoadKAnimToKeyNodes(const URL: string;
+    class procedure LoadAnimFramesToKeyNodes(const URL: string;
       const KeyNodes: TX3DNodeList;
       const KeyTimes: TSingleList;
       out ScenesPerTime: Cardinal;
@@ -89,11 +89,11 @@ type
 
     { Convert a node list to animate (like the one from MD3 loader,
       or from TNodeInterpolator.BakeToSequence,
-      which may come from Kanim file or from generated animation)
+      which may come from castle-anim-frames file or from generated animation)
       into a simple X3D graph that animates it (using TimeSensor,
       IntegerSequencer and Switch node, wrapping given here Nodes).
       This allows to read key nodes from any format,
-      like a kanim or MD3, and convert them to a simple X3D animation. }
+      like a castle-anim-frames or MD3, and convert them to a simple X3D animation. }
     class function LoadSequenceToX3D(
       const Nodes: TX3DNodeList; const Duration: Single;
       const Loop, Backwards: boolean): TX3DRootNode;
@@ -593,16 +593,16 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-class procedure TNodeInterpolator.LoadKAnimToKeyNodes(const URL: string;
+class procedure TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string;
   const KeyUrls: TStringList;
   const KeyTimes: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
   out ATimeLoop, ATimeBackwards: boolean);
 
-  { Load KAnim animation data from a given XML element to a set of variables.
+  { Load castle-anim-frames animation data from a given XML element to a set of variables.
 
-    This is just like LoadKAnimToKeyNodes, but it works using
+    This is just like LoadAnimFramesToKeyNodes, but it works using
     an Element. This way you can use it to load <animation> element
     that is a part of some larger XML file.
 
@@ -614,8 +614,8 @@ class procedure TNodeInterpolator.LoadKAnimToKeyNodes(const URL: string;
     Element: TDOMElement;
     const BaseUrl: string);
   const
-    DefaultKAnimLoop = false;
-    DefaultKAnimBackwards = false;
+    DefaultLoop = false;
+    DefaultBackwards = false;
   var
     AbsoluteBaseUrl: string;
     FrameElement: TDOMElement;
@@ -636,8 +636,8 @@ class procedure TNodeInterpolator.LoadKAnimToKeyNodes(const URL: string;
     { Assign default values for optional attributes }
     ScenesPerTime := DefaultScenesPerTime;
     EqualityEpsilon := DefaultEqualityEpsilon;
-    ATimeLoop := DefaultKAnimLoop;
-    ATimeBackwards := DefaultKAnimBackwards;
+    ATimeLoop := DefaultLoop;
+    ATimeBackwards := DefaultBackwards;
 
     for I := 0 to Integer(Element.Attributes.Length) - 1 do
     begin
@@ -704,7 +704,7 @@ begin
   finally FreeAndNil(Document); end;
 end;
 
-class procedure TNodeInterpolator.LoadKAnimToKeyNodes(const URL: string;
+class procedure TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string;
   const KeyNodes: TX3DNodeList;
   const KeyTimes: TSingleList;
   out ScenesPerTime: Cardinal;
@@ -716,7 +716,7 @@ var
 begin
   KeyUrls := TStringList.Create;
   try
-    LoadKAnimToKeyNodes(URL, KeyUrls, KeyTimes,
+    LoadAnimFramesToKeyNodes(URL, KeyUrls, KeyTimes,
       ScenesPerTime, EqualityEpsilon, ATimeLoop, ATimeBackwards);
 
     Assert(KeyUrls.Count = KeyTimes.Count);

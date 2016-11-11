@@ -65,7 +65,7 @@ type
       and when Time is > @link(Duration), we show the last frame forever.
 
       This looping (or not looping) is done regardless of whether the 3D model
-      wants (or not) looping. For example, in case of kanim files,
+      wants (or not) looping. For example, in case of castle-anim-frames files,
       we ignore their loop boolean attribute.
       In case of X3D, we ignore TimeSensor.loop field.
       In other words, any looping settings inside 3D model are ignored.
@@ -84,7 +84,7 @@ type
       which is equal to TimeSensor node name.
       All animations are started by X3D TimeSensor node.
       If not given, we assume it's just 'animation', which is fine
-      at least for KAnim and MD3 files loaded using TNodeInterpolator.
+      at least for castle-anim-frames and MD3 files loaded using TNodeInterpolator.
       This refers to an X3D TimeSensor node inside
       animation model (from @link(URL)) or, when not defined,
       inside whole resource model (from @link(T3DResource.ModelURL)).
