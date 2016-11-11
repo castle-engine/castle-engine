@@ -825,7 +825,7 @@ begin
     if Log then
       WritelnLog('Resources', Format('Loading %s time: %f seconds',
         [ ResourcesName,
-          ProcessTimerDiff(ProcessTimerNow, TimeBegin) / ProcessTimersPerSec ]));
+          ProcessTimerSeconds(ProcessTimerNow, TimeBegin) ]));
   end;
 end;
 
