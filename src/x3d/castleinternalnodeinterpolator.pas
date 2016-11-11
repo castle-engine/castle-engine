@@ -727,12 +727,23 @@ var
       Result := RootNode;
   end;
 
+  function WrapInCollisionNode(const Node: TX3DNode): TX3DNode;
+  var
+    CollisionNode: TCollisionNode;
+  begin
+    CollisionNode := TCollisionNode.Create;
+    CollisionNode.FdChildren.Add(Node);
+    CollisionNode.Enabled := false;
+    Result := CollisionNode;
+  end;
+
 var
   TimeSensor: TTimeSensorNode;
   IntSequencer: TIntegerSequencerNode;
   Switch: TSwitchNode;
   I: Integer;
   Route: TX3DRoute;
+  ChildNode: TX3DNode;
 begin
   BaseUrl := Nodes[0].BaseUrl;
 
@@ -773,7 +784,16 @@ begin
 
   Switch := TSwitchNode.Create(DefaultAnimationName + '_Switch', BaseUrl);
   for I := 0 to Nodes.Count - 1 do
-    Switch.FdChildren.Add(WrapRootNode(Nodes[I] as TX3DRootNode));
+  begin
+    ChildNode := WrapRootNode(Nodes[I] as TX3DRootNode);
+    { TODO: Initializing collisions for a long series of nodes is really
+      time-consuming. Better to avoid it. We have to implement actual conversion
+      from a series of nodes -> interpolators to have proper collisions
+      with castle-anim-frames contents. }
+    if I <> 0 then
+      ChildNode := WrapInCollisionNode(ChildNode);
+    Switch.FdChildren.Add(ChildNode);
+  end;
   { we set whichChoice to 0 to have sensible,
     non-empty bounding box before you run the animation }
   Switch.WhichChoice := 0;
