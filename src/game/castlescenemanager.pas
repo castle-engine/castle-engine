@@ -1058,30 +1058,29 @@ type
     viewports, you often want to set FullSize = @false
     and control viewport's position and size explicitly.
 
-    Example usages:
-    in a typical 3D modeling programs, you like to have 4 viewports
-    with 4 different cameras (front view, side view, top view,
-    and free perspective view). See examples/vrml/multiple_viewports.lpr
-    in engine sources for demo of this. Or when you make a split-screen game,
-    played by 2 people on a single monitor.
-
     Viewports may be overlapping, that is one viewport may (partially)
     obscure another viewport. Just like with any other TUIControl,
     position of viewport on the Controls list
     (like TCastleControlCustom.Controls or TCastleWindowCustom.Controls)
-    is important: Controls are specified in the front-to-back order.
-    That is, if the viewport X may obscure viewport Y,
-    then X must be before Y on the Controls list.
+    is important: Controls are specified in the back-to-front order.
+    That is, if the viewport A may obscure viewport B,
+    then A must be after B on the Controls list.
 
-    Example usage of overlapping viewports:
-    imagine a space shooter, like Epic or Wing Commander.
-    You can imagine that a camera is mounted on each rocket fired
-    by the player.
-    You can display in one viewport (with FullSize = @true) normal
-    (first person) view from your space ship.
-    And additionally you can place a small viewport
-    (with FullSize = @false and small @link(Width) / @link(Height))
-    in the upper-right corner that displays view from last fired rocket. }
+    The viewports are a cool feature for many cases.
+    For example typical 3D modeling programs have 4 viewports to view the model
+    from various sides.
+    Or you can make a split-screen game, played by 2 people on a single monitor.
+    Or you can show in a 3D FPS game an additional view from some security camera,
+    or from a flying rocket.
+    For examples of using viewports see:
+
+    @unorderedList(
+      @item(Explanation with an example:
+        http://castle-engine.sourceforge.net/tutorial_2d_user_interface.php#section_viewport)
+      @item(Example in engine sources: examples/3d_rendering_processing/multiple_viewports.lpr)
+      @item(Example in engine sources: examples/fps_game/)
+    )
+  }
   TCastleViewport = class(TCastleAbstractViewport)
   private
     FSceneManager: TCastleSceneManager;
