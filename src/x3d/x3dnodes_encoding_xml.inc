@@ -33,6 +33,7 @@ const
   @groupBegin }
 function LoadX3DXml(const URL: string; Gzipped: boolean): TX3DRootNode;
 function LoadX3DXml(Stream: TStream; const URL: string): TX3DRootNode;
+function LoadX3DXml(X3DElement: TDOMElement; const URL: string): TX3DRootNode;
 { @groupEnd }
 
 {$endif read_interface}
@@ -523,6 +524,20 @@ end;
 function LoadX3DXml(Stream: TStream; const URL: string): TX3DRootNode;
 var
   Doc: TXMLDocument;
+begin
+  Doc := nil;
+  try
+    { The ReadXMLFile receives URL only to produce nice error messages
+      in case of errors. }
+    { ReadXMLFile always sets TXMLDocument param (possibly to nil),
+      even in case of exception. So place it inside try..finally. }
+    ReadXMLFile(Doc, Stream, AbsoluteURI(URL));
+    Result := LoadX3DXml(Doc.DocumentElement, URL);
+  finally FreeAndNil(Doc); end;
+end;
+
+function LoadX3DXml(X3DElement: TDOMElement; const URL: string): TX3DRootNode;
+var
   SceneElement: TDOMElement;
   VersionStr: string;
   Version: TX3DVersion;
@@ -530,42 +545,31 @@ var
     does X3D XML encoding guarantee this? }
   Reader: TX3DReaderNames;
 begin
-  Doc := nil;
-  try
-    { We only use URL for ReadXMLFile e.g. for error messages. }
-    { ReadXMLFile always sets TXMLDocument param (possibly to nil),
-      even in case of exception. So place it inside try..finally. }
-    ReadXMLFile(Doc, Stream, AbsoluteURI(URL));
+  Check(X3DElement.TagName = 'X3D', 'Root element of X3D file must be <X3D>');
 
-    Check(Doc.DocumentElement.TagName = 'X3D',
-      'Root element of X3D file must be <X3D>');
-
-    { parse "version" attribute }
-    if Doc.DocumentElement.AttributeString('version', VersionStr) then
+  { parse "version" attribute }
+  if X3DElement.AttributeString('version', VersionStr) then
+  begin
+    DeFormat(VersionStr, '%d.%d', [@Version.Major, @Version.Minor]);
+    if Version.Major < 3 then
     begin
-      DeFormat(VersionStr, '%d.%d', [@Version.Major, @Version.Minor]);
-      if Version.Major < 3 then
-      begin
-        WritelnWarning('VRML/X3D', Format('X3D version number too low (%d.%d)', [Version.Major, Version.Minor]));
-        Version := X3DVersion; { some sensible version number }
-      end;
-    end else
-    begin
+      WritelnWarning('VRML/X3D', Format('X3D version number too low (%d.%d)', [Version.Major, Version.Minor]));
       Version := X3DVersion; { some sensible version number }
-      WritelnWarning('VRML/X3D', Format('Missing X3D version number, assuming %d.%d', [Version.Major, Version.Minor]));
     end;
-
-    SceneElement := Doc.DocumentElement.ChildElement('Scene', true);
-
-    { X3D XML requires AutoRemove = true below }
-    Reader := TX3DReaderNames.Create(true, URL, Version);
-    try
-      Result := ParseStatements(SceneElement, true, Doc.DocumentElement, Reader);
-      Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames, Result.FImportedNames);
-    finally FreeAndNil(Reader) end;
-  finally
-    FreeAndNil(Doc);
+  end else
+  begin
+    Version := X3DVersion; { some sensible version number }
+    WritelnWarning('VRML/X3D', Format('Missing X3D version number, assuming %d.%d', [Version.Major, Version.Minor]));
   end;
+
+  SceneElement := X3DElement.ChildElement('Scene', true);
+
+  { X3D XML requires AutoRemove = true below }
+  Reader := TX3DReaderNames.Create(true, URL, Version);
+  try
+    Result := ParseStatements(SceneElement, true, X3DElement, Reader);
+    Reader.ExtractNames(Result.FPrototypeNames, Result.FExportedNames, Result.FImportedNames);
+  finally FreeAndNil(Reader) end;
 end;
 
 {$endif read_implementation}

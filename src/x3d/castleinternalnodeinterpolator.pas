@@ -45,13 +45,9 @@ type
       See [http://castle-engine.sourceforge.net/castle_animation_frames.php]
       for specification of the file format.
 
-      In case of KeyNodes, KeyUrls and KeyTimes,
+      In case of KeyNodes and KeyTimes,
       you should pass here references to
       @italic(already created and currently empty) lists.
-
-      KeyUrls returned will always contain only absolute paths.
-      We will expand every path (like URL parameter) if necessary for this.
-      Overloaded version gives you already loaded KeyNodes.
 
       If you seek for most comfortable way to load TCastlePrecalculatedAnimation from a file,
       you probably want to use TCastlePrecalculatedAnimation.LoadFromFile.
@@ -60,12 +56,6 @@ type
       instance, and it's usefull to implement a class like
       TCastlePrecalculatedAnimationInfo that also wants to read animation data,
       but doesn't have an TCastlePrecalculatedAnimation instance available. }
-    class procedure LoadAnimFramesToKeyNodes(const URL: string;
-      const KeyUrls: TStringList;
-      const KeyTimes: TSingleList;
-      out ScenesPerTime: Cardinal;
-      out EqualityEpsilon: Single;
-      out ATimeLoop, ATimeBackwards: boolean);
     class procedure LoadAnimFramesToKeyNodes(const URL: string;
       const KeyNodes: TX3DNodeList;
       const KeyTimes: TSingleList;
@@ -594,7 +584,7 @@ begin
 end;
 
 class procedure TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string;
-  const KeyUrls: TStringList;
+  const KeyNodes: TX3DNodeList;
   const KeyTimes: TSingleList;
   out ScenesPerTime: Cardinal;
   out EqualityEpsilon: Single;
@@ -623,10 +613,11 @@ class procedure TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string;
     I: Integer;
     FrameTime: Single;
     FrameURL: string;
+    NewNode: TX3DRootNode;
     Attr: TDOMAttr;
   begin
     Assert(KeyTimes.Count = 0);
-    Assert(KeyUrls.Count = 0);
+    Assert(KeyNodes.Count = 0);
 
     AbsoluteBaseUrl := AbsoluteURI(BaseUrl);
 
@@ -656,36 +647,46 @@ class procedure TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string;
           [Attr.Name]);
     end;
 
-    Children := Element.ChildrenIterator;
     try
-      while Children.GetNext do
-      begin
-        FrameElement := Children.Current;
-        Check(FrameElement.TagName = 'frame',
-          'Each child of <animation> element must be a <frame> element');
+      Children := Element.ChildrenIterator;
+      try
+        while Children.GetNext do
+        begin
+          FrameElement := Children.Current;
+          Check(FrameElement.TagName = 'frame',
+            'Each child of <animation> element must be a <frame> element');
 
-        if not FrameElement.AttributeSingle('time', FrameTime) then
-          raise Exception.Create('<frame> element must have a "time" attribute');
+          if not FrameElement.AttributeSingle('time', FrameTime) then
+            raise Exception.Create('<frame> element must have a "time" attribute');
+          if (KeyTimes.Count > 0) and (FrameTime <= KeyTimes.Last) then
+            raise Exception.Create(
+              'Frames within <animation> element must be specified in ' +
+              'increasing time order');
+          KeyTimes.Add(FrameTime);
 
-        if not FrameElement.AttributeString('url', FrameURL) then
-          if not FrameElement.AttributeString('file_name', FrameURL) then
-            raise Exception.Create('<frame> element must have an "url" (or deprecated "file_name") attribute');
+          if FrameElement.AttributeString('url', FrameURL) or
+             FrameElement.AttributeString('file_name', FrameURL) then
+          begin
+            { Make FrameURL absolute, treating it as relative vs
+              AbsoluteBaseUrl }
+            FrameURL := CombineURI(AbsoluteBaseUrl, FrameURL);
+            NewNode := Load3D(FrameURL);
+          end else
+          begin
+            NewNode := LoadX3DXml(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl);
+          end;
+          KeyNodes.Add(NewNode);
+        end;
+      finally FreeAndNil(Children) end;
+    except
+      { in case of trouble, clear the partial KeyNodes contents }
+      for I := 0 to KeyNodes.Count - 1 do
+        FPGObjectList_FreeAndNilItem(KeyNodes, I);
+      KeyNodes.Clear;
+      raise;
+    end;
 
-        { Make FrameURL absolute, treating it as relative vs
-          AbsoluteBaseUrl }
-        FrameURL := CombineURI(AbsoluteBaseUrl, FrameURL);
-
-        if (KeyTimes.Count > 0) and (FrameTime <= KeyTimes.Last) then
-          raise Exception.Create(
-            'Frames within <animation> element must be specified in ' +
-            'increasing time order');
-
-        KeyUrls.Add(FrameURL);
-        KeyTimes.Add(FrameTime);
-      end;
-    finally FreeAndNil(Children) end;
-
-    if KeyUrls.Count = 0 then
+    if KeyNodes.Count = 0 then
       raise Exception.Create(
         'At least one <frame> is required within <animation> element');
   end;
@@ -702,37 +703,6 @@ begin
   try
     LoadFromDOMElement(Document.DocumentElement, URL);
   finally FreeAndNil(Document); end;
-end;
-
-class procedure TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string;
-  const KeyNodes: TX3DNodeList;
-  const KeyTimes: TSingleList;
-  out ScenesPerTime: Cardinal;
-  out EqualityEpsilon: Single;
-  out ATimeLoop, ATimeBackwards: boolean);
-var
-  KeyUrls: TStringList;
-  I, J: Integer;
-begin
-  KeyUrls := TStringList.Create;
-  try
-    LoadAnimFramesToKeyNodes(URL, KeyUrls, KeyTimes,
-      ScenesPerTime, EqualityEpsilon, ATimeLoop, ATimeBackwards);
-
-    Assert(KeyUrls.Count = KeyTimes.Count);
-    Assert(KeyUrls.Count >= 1);
-
-    { Now use KeyUrls to load KeyNodes }
-    KeyNodes.Count := KeyUrls.Count;
-    for I := 0 to KeyUrls.Count - 1 do
-    try
-      KeyNodes[I] := Load3D(KeyUrls[I]);
-    except
-      for J := 0 to I - 1 do
-        FPGObjectList_FreeAndNilItem(KeyNodes, J);
-      raise;
-    end;
-  finally FreeAndNil(KeyUrls) end;
 end;
 
 class function TNodeInterpolator.LoadSequenceToX3D(
