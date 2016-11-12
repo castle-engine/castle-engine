@@ -87,14 +87,14 @@ const
     for TFileFilterList.AddFiltersFromString and TCastleWindowCustom.FileDialog. }
   Load3D_FileFilters =
   'All Files|*|' +
-  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json|' +
+  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
     and X3D binary (*.x3db;*.x3db.gz)
   }
   'X3D XML (*.x3d, *.x3dz, *.x3d.gz)|*.x3d;*.x3dz;*.x3d.gz|' +
   'X3D classic (*.x3dv, *.x3dvz, *.x3dv.gz)|*.x3dv;*.x3dvz;*.x3dv.gz|' +
-  'Castle Game Engine animations (*.kanim)|*.kanim|' +
+  'Castle Animation Frames (*.castle-anim-frames, *.kanim)|*.castle-anim-frames;*.kanim|' +
   'Collada (*.dae)|*.dae|' +
   'Inventor (*.iv)|*.iv|' +
   '3D Studio (*.3ds)|*.3ds|' +
@@ -111,7 +111,7 @@ const
   to KeyNodes.
   So this function handles @italic(at least) the same model formats as Load3D.
 
-  Additionally, we load KAnim and MD3 formats to a sequence of frames.
+  Additionally, we load castle-anim-frames and MD3 formats to a sequence of frames.
 
   @param(KeyNodes Sequence of root nodes will be stored there.
     Pass here some created and empty instance of TX3DNodeList.)
@@ -143,7 +143,7 @@ uses CastleClassUtils, CastleURIUtils,
 function Load3D(const URL: string;
   AllowStdIn, NilOnUnrecognizedFormat: boolean): TX3DRootNode;
 
-  function LoadKAnim(const URL: string): TX3DRootNode;
+  function LoadAnimFrames(const URL: string): TX3DRootNode;
   var
     KeyNodes: TX3DNodeList;
     KeyTimes: TSingleList;
@@ -154,7 +154,7 @@ function Load3D(const URL: string;
     KeyNodes := TX3DNodeList.Create(false);
     KeyTimes := TSingleList.Create;
     try
-      TNodeInterpolator.LoadKAnimToKeyNodes(URL, KeyNodes, KeyTimes, ScenesPerTime,
+      TNodeInterpolator.LoadAnimFramesToKeyNodes(URL, KeyNodes, KeyTimes, ScenesPerTime,
         EqualityEpsilon, TimeLoop, TimeBackwards);
       Result := TNodeInterpolator.LoadToX3D(KeyNodes, KeyTimes,
         ScenesPerTime, EqualityEpsilon, TimeLoop, TimeBackwards);
@@ -224,8 +224,8 @@ begin
        (URIMimeType(URIDeleteAnchor(URL, true), Gzipped) = 'application/json') then
       Result := LoadSpine(URL) else
 
-    if MimeType = 'application/x-kanim' then
-      Result := LoadKAnim(URL) else
+    if MimeType = 'application/x-castle-anim-frames' then
+      Result := LoadAnimFrames(URL) else
 
     if MimeType = 'application/x-md3' then
       Result := LoadMD3(URL) else
@@ -264,8 +264,8 @@ begin
 
   MimeType := URIMimeType(URL);
 
-  if MimeType = 'application/x-kanim' then
-    TNodeInterpolator.LoadKAnimToKeyNodes(URL, KeyNodes, KeyTimes, ScenesPerTime,
+  if MimeType = 'application/x-castle-anim-frames' then
+    TNodeInterpolator.LoadAnimFramesToKeyNodes(URL, KeyNodes, KeyTimes, ScenesPerTime,
       EqualityEpsilon, TimeLoop, TimeBackwards) else
 
   if MimeType = 'application/x-md3' then

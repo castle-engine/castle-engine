@@ -444,7 +444,7 @@ type
   private
     FTime: TFloatTime;
   protected
-    { Load 3D precalculated animation from (*.kanim) file, doing common tasks.
+    { Load 3D precalculated animation (from *.castle-anim-frames or *.md3 file), doing common tasks.
       @unorderedList(
         @item optionally creates triangle octree for the FirstScene and/or LastScene
         @item(call PrepareResources, with prRender, prBoundingBox, prShadowVolume

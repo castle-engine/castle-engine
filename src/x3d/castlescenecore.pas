@@ -6788,7 +6788,7 @@ begin
           - You can use PROTO and DEF with TimeSensor inside, and use it multiple
             times. Both these usage scenarios result in multiple instances
             of the animation in scene.
-          - Even our own mechanism for renaming KAnim animations from
+          - Even our own mechanism for renaming castle-anim-frames animations from
             https://github.com/castle-engine/demo-models/blob/master/kanim/two_animations.x3dv
             results in multiple "Animation" names in scene. }
         WritelnWarning('Named Animations', Format('Animation name "%s" occurs multiple times in scene',

@@ -14,6 +14,7 @@
 }
 
 uses CastleWindow, Game;
+{$apptype GUI}
 {$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 begin
   Window.OpenAndRun;

@@ -1824,11 +1824,8 @@ type
 
     { @section(Mouse state) -------------------------------------------------- }
 
-    { Currently pressed mouse buttons. When this changes, you're always
-      notified by OnPress or OnRelease calls.
-
-      This value is always current, in particular it's already updated
-      before we call events OnPress or OnRelease. }
+    { Mouse buttons currently pressed.
+      See @link(TUIContainer.MousePressed) for details. }
     property MousePressed: TMouseButtons read FMousePressed;
 
     { Is the window focused now, which means that keys/mouse events
@@ -1870,6 +1867,9 @@ type
       write SetCustomCursor;
 
     property RenderStyle: TRenderStyle read GetRenderStyle write SetRenderStyle default rs2D;
+
+    { List of user-interface controls currently active.
+      See @link(TUIContainer.Controls) for details. }
     function Controls: TChildrenControls;
 
     { Is the OpenGL context initialized. This is equivalent to @code(not Closed),
@@ -2027,7 +2027,7 @@ type
     destructor Destroy; override;
 
   public
-    { Tracks which keys, characters, modifiers are pressed. }
+    { Keys currently pressed. }
     property Pressed: TKeysPressed read FPressed;
 
     { Fps -------------------------------------------------------------------- }

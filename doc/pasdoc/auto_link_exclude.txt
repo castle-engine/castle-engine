@@ -2,6 +2,7 @@ active
 add
 alignment
 angle
+anchor
 animation
 animations
 appearance

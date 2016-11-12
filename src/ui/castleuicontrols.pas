@@ -300,15 +300,17 @@ type
 
     { Controls listening for events (user input, resize, and such) of this container.
 
-      Usually you explicitly add / delete controls to this list.
-      Also, freeing the control that is on this list
-      automatically removes it from this list (using the TComponent.Notification
+      Usually you explicitly add / remove controls to this list
+      using the @link(TChildrenControls.InsertFront Controls.InsertFront) or
+      @link(TChildrenControls.InsertBack Controls.InsertBack) methods.
+      Freeing any control that is on this list
+      automatically removes it from this list (we use the TComponent.Notification
       mechanism).
 
       Controls on the list should be specified in back-to-front order.
       That is, controls at the beginning of this list
       are rendered first, and are last to catch some events, since the rest
-      of controls covers them. }
+      of controls cover them. }
     function Controls: TChildrenControls;
 
     { Returns the controls that should receive input events,
@@ -363,12 +365,18 @@ type
       @seealso UnscaledWidth }
     function UnscaledHeight: Cardinal;
 
+    { Current mouse position.
+      See @link(TTouch.Position) for a documentation how this is expressed. }
     property MousePosition: TVector2Single
       read GetMousePosition write SetMousePosition;
 
     function Dpi: Integer; virtual; abstract;
 
-    { Mouse buttons currently pressed. }
+    { Currently pressed mouse buttons. When this changes, you're always
+      notified by @link(OnPress) or @link(OnRelease) events.
+
+      This value is always current, in particular it's already updated
+      before we call events @link(OnPress) or @link(OnRelease). }
     function MousePressed: TMouseButtons; virtual; abstract;
 
     { Is the window focused now, which means that keys/mouse events
@@ -1756,24 +1764,30 @@ begin
   FNewFocus.Clear;
   AnythingForcesNoneCursor := false;
 
-  { calculate new FNewFocus value, update AnythingForcesNoneCursor }
-  CalculateNewFocus;
-  { add controls capturing the input (since they should have Focused = true to
-    show them as receiving input) on top of other controls
-    (so that e.g. TCastleOnScreenMenu underneath pressed-down button is
-    also still focused) }
-  if UseForceCaptureInput then
-    AddInFrontOfNewFocus(ForceCaptureInput) else
-  if (FCaptureInput.IndexOf(0) <> -1) then
-    AddInFrontOfNewFocus(FCaptureInput[0]);
+  { Do not scan Controls for focus when csDestroying (in which case Controls
+    list may be invalid). Testcase: exit with Alt + F4 from zombie_fighter
+    StateAskDialog. }
+  if not (csDestroying in ComponentState) then
+  begin
+    { calculate new FNewFocus value, update AnythingForcesNoneCursor }
+    CalculateNewFocus;
+    { add controls capturing the input (since they should have Focused = true to
+      show them as receiving input) on top of other controls
+      (so that e.g. TCastleOnScreenMenu underneath pressed-down button is
+      also still focused) }
+    if UseForceCaptureInput then
+      AddInFrontOfNewFocus(ForceCaptureInput) else
+    if (FCaptureInput.IndexOf(0) <> -1) then
+      AddInFrontOfNewFocus(FCaptureInput[0]);
 
-  { update TUIControl.Focused values, based on differences between FFocus and FNewFocus }
-  for I := 0 to FNewFocus.Count - 1 do
-    if FFocus.IndexOf(FNewFocus[I]) = -1 then
-      FNewFocus[I].Focused := true;
-  for I := 0 to FFocus.Count - 1 do
-    if FNewFocus.IndexOf(FFocus[I]) = -1 then
-      FFocus[I].Focused := false;
+    { update TUIControl.Focused values, based on differences between FFocus and FNewFocus }
+    for I := 0 to FNewFocus.Count - 1 do
+      if FFocus.IndexOf(FNewFocus[I]) = -1 then
+        FNewFocus[I].Focused := true;
+    for I := 0 to FFocus.Count - 1 do
+      if FNewFocus.IndexOf(FFocus[I]) = -1 then
+        FFocus[I].Focused := false;
+  end;
 
   { swap FFocus and FNewFocus, so that FFocus changes to new value,
     and the next UpdateFocusAndMouseCursor has ready FNewFocus value. }
