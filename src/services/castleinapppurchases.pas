@@ -268,7 +268,7 @@ begin
     P.FPriceRaw := Received[2];
     P.FTitle := Received[3];
     P.FDescription := Received[4];
-    P.FPriceAmountMicros := StrToInt(Received[5]);
+    P.FPriceAmountMicros := StrToInt64(Received[5]);
     P.FPriceCurrencyCode := Received[6];
     Result := true;
   end else
