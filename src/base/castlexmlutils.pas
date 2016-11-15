@@ -587,7 +587,7 @@ var
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
-    Value := StrToInt(ValueStr);
+    Value := StrToInt64(ValueStr);
 end;
 
 function TDOMElementHelper.AttributeInteger(
@@ -607,7 +607,7 @@ var
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
-    Value := StrToInt(ValueStr);
+    Value := StrToInt64(ValueStr);
 end;
 
 function TDOMElementHelper.AttributeSingle(
