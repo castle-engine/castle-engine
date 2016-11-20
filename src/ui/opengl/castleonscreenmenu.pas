@@ -693,6 +693,9 @@ begin
   if NewItem is TUIControlFont then
   begin
     TUIControlFont(NewItem).CustomFont := CustomFont;
+    // TODO: dirty:
+    // do not inherit SmallFont to avoid resetting slider SmallFont=true
+    //TUIControlFont(NewItem).SmallFont := SmallFont;
     TUIControlFont(NewItem).FontSize := FontSize;
   end;
   InsertFront(NewItem);
@@ -705,6 +708,9 @@ begin
     if NewItem.Controls[0] is TUIControlFont then
     begin
       TUIControlFont(NewItem.Controls[0]).CustomFont := CustomFont;
+      // TODO: dirty:
+      // do not inherit SmallFont to avoid resetting slider SmallFont=true
+      //TUIControlFont(NewItem.Controls[0]).SmallFont := SmallFont;
       TUIControlFont(NewItem.Controls[0]).FontSize := FontSize;
     end;
   end;
