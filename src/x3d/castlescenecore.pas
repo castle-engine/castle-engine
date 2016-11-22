@@ -736,6 +736,9 @@ type
     procedure RenderingCameraChanged(const RenderingCamera: TRenderingCamera;
       Viewpoint: TAbstractViewpointNode);
     procedure SetHeadlightOn(const Value: boolean);
+    { Update things depending on both camera information and X3D events.
+      Call it only when CameraViewKnown and ProcessEvents. }
+    procedure UpdateCameraEvents;
   protected
     { List of TScreenEffectNode nodes, collected by ChangedAll. }
     ScreenEffectNodes: TX3DNodeList;
@@ -4900,23 +4903,26 @@ end;
 
 procedure TCastleSceneCore.SetProcessEvents(const Value: boolean);
 
-  { When ProcessEvents is set to @true, you want to call initial
-    position/orientation_changed events.
+  { When ProcessEvents is set to @true, you want to initialize stuff
+    for things depending on camera (and X3D events):
+    - position/orientation_changed events on ProximitySensors,
+    - update camera information on all Billboard nodes.
 
-    Implementation below essentially is like CameraChanged,
-    except it checks CameraViewKnown (instead of setting it always to @true). }
-  procedure InitialProximitySensorsEvents;
-  var
-    I: Integer;
+    TODO: when scene has ProcessEvents = true,
+    and we only flip Exists = false / true, then billboards are not correctly
+    updated when changing Exists from false to true. Not really sure why
+    (but no time to debug now), at 1st glance it should work,
+    as CameraChanged should be called on scenewith Exists = false and work anyway.
+    Testcase: view3dscene lights editor and switching between scenes. }
+  procedure UpdateCameraChangedEvents;
   begin
-    BeginChangesSchedule;
-    try
-      if CameraViewKnown then
-      begin
-        for I := 0 to ProximitySensors.Count - 1 do
-          ProximitySensorUpdate(ProximitySensors[I]);
-      end;
-    finally EndChangesSchedule end;
+    if CameraViewKnown then
+    begin
+      BeginChangesSchedule;
+      try
+        UpdateCameraEvents;
+      finally EndChangesSchedule end;
+    end;
   end;
 
 begin
@@ -4927,7 +4933,7 @@ begin
       FProcessEvents := Value;
 
       ScriptsInitialize;
-      InitialProximitySensorsEvents;
+      UpdateCameraChangedEvents;
 
       RenderingCamera.OnChanged.Add(@RenderingCameraChanged);
     end else
@@ -5807,6 +5813,36 @@ begin
   end;
 end;
 
+procedure TCastleSceneCore.UpdateCameraEvents;
+var
+  I: Integer;
+begin
+  Assert(CameraViewKnown);
+  Assert(ProcessEvents);
+
+  for I := 0 to ProximitySensors.Count - 1 do
+    ProximitySensorUpdate(ProximitySensors[I]);
+
+  { Update camera information on all Billboard nodes,
+    and retraverse scene from Billboard nodes. So we treat Billboard nodes
+    much like Transform nodes, except that their transformation animation
+    is caused by camera changes, not by changes to field values.
+
+    TODO: If one Billboard is under transformation of another Billboard,
+    this will be a little wasteful. We should update first all camera
+    information, and then update only Billboard nodes that do not have
+    any parent Billboard nodes. }
+  for I := 0 to BillboardInstancesList.Count - 1 do
+  begin
+    (BillboardInstancesList[I] as TBillboardNode).CameraChanged(
+      FCameraPosition, FCameraDirection, FCameraUp);
+    { TODO: use OptimizeExtensiveTransformations? }
+    TransformationChanged(BillboardInstancesList[I],
+      BillboardInstancesList[I].ShapeTrees as TShapeTreeList,
+      [chTransform]);
+  end;
+end;
+
 procedure TCastleSceneCore.CameraChanged(ACamera: TCamera);
 var
   I: Integer;
@@ -5823,27 +5859,7 @@ begin
 
     if ProcessEvents then
     begin
-      for I := 0 to ProximitySensors.Count - 1 do
-        ProximitySensorUpdate(ProximitySensors[I]);
-
-      { Update camera information on all Billboard nodes,
-        and retraverse scene from Billboard nodes. So we treat Billboard nodes
-        much like Transform nodes, except that their transformation animation
-        is caused by camera changes, not by changes to field values.
-
-        TODO: If one Billboard is under transformation of another Billboard,
-        this will be a little wasteful. We should update first all camera
-        information, and then update only Billboard nodes that do not have
-        any parent Billboard nodes. }
-      for I := 0 to BillboardInstancesList.Count - 1 do
-      begin
-        (BillboardInstancesList[I] as TBillboardNode).CameraChanged(
-          FCameraPosition, FCameraDirection, FCameraUp);
-        { TODO: use OptimizeExtensiveTransformations? }
-        TransformationChanged(BillboardInstancesList[I],
-          BillboardInstancesList[I].ShapeTrees as TShapeTreeList,
-          [chTransform]);
-      end;
+      UpdateCameraEvents;
 
       if WatchForTransitionComplete and not ACamera.Animation then
       begin
