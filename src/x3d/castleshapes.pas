@@ -1132,7 +1132,8 @@ var
       { We don't want to actually load the texture here,
         so only check is filename/image set. }
       if (S.LastNodes.Texture2.FdFilename.Value <> '') or
-         (S.LastNodes.Texture2.FdImage.Value <> nil) then
+         ((S.LastNodes.Texture2.FdImage.Value <> nil) and
+          (not S.LastNodes.Texture2.FdImage.Value.IsEmpty)) then
         Result := 1 else
         Result := 0;
     end else

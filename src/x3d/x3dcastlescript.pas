@@ -427,10 +427,7 @@ begin
       TMFMatrix4d(Field).Items := TCasScriptMatrix4dArray(Value).Value else
 
     if Field is TSFImage then
-    begin
-      FreeAndNil(TSFImage(Field).Value);
-      TSFImage(Field).Value := TCasScriptImage(Value).Value.MakeCopy;
-    end else
+      TSFImage(Field).Value := TCasScriptImage(Value).Value.MakeCopy else
     {if Field is TMFImage then
     begin
       TMFImage(Field).Items := TCasScriptImageArray(Value).Value

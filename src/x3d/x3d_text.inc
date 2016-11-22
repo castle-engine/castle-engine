@@ -854,7 +854,6 @@ function CreateFontTextureNode(const Font: TTextureFontData;
   const Blending: boolean): TPixelTextureNode;
 begin
   Result := TPixelTextureNode.Create;
-  FreeAndNil(Result.FdImage.Value);
   { although repeat=TRUE seems counter-intuitive, in fact:
     - We *can* use it, since CastleTextureFontData surrounds each glyph from
       the right and top with GlyphPadding, so we will not accidentally pick
