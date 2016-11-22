@@ -209,7 +209,10 @@ begin
   SoundEngine.MinAllocatedSources := 1;
   SoundEngine.ALContextOpen;
   try
-    Gets;
+    if SoundEngine.ALActive then
+      Gets
+    else
+      Writeln('Sound engine not initialized: ' + SoundEngine.SoundInitializationReport);
   finally
     SoundEngine.ALContextClose;
   end;
