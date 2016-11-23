@@ -633,7 +633,6 @@ type
       some container methods. }
     function CreateContainer: TWindowContainer; virtual;
   private
-    var
     FWidth, FHeight, FLeft, FTop: Integer;
     FOnCloseQuery: TContainerEvent;
     FOnTimer: TContainerEvent;
@@ -723,6 +722,10 @@ type
     function GetOnMotion: TInputMotionEvent;
     procedure SetOnMotion(const Value: TInputMotionEvent);
     function GetTouches(const Index: Integer): TTouch;
+    procedure SetWidth(const Value: Integer);
+    procedure SetHeight(const Value: Integer);
+    procedure SetLeft(const Value: Integer);
+    procedure SetTop(const Value: Integer);
 
     { Set FullScreen value in a dumb (but always reliable) way:
       when it changes, just close, negate FFullScreen and reopen the window.
@@ -1107,8 +1110,8 @@ type
       Special WindowDefaultSize value of these properties
       means: at @link(Open), calculate and use some comfortable window size.
       @groupBegin }
-    property Width: integer read FWidth write FWidth default WindowDefaultSize;
-    property Height: integer read FHeight write FHeight default WindowDefaultSize;
+    property Width: integer read FWidth write SetWidth default WindowDefaultSize;
+    property Height: integer read FHeight write SetHeight default WindowDefaultSize;
     { @groupEnd }
 
     { Rectangle representing the inside of this container.
@@ -1123,9 +1126,12 @@ type
     { Window position on the screen. If one (or both) of them is equal
       to WindowPositionCenter at the initialization (Open) time,
       then it will be set to position the window at the screen center.
+
+      You cannot change these properties while the window is open now.
+
       @groupBegin }
-    property Left: integer read FLeft write FLeft default WindowPositionCenter;
-    property Top :integer read FTop write FTop default WindowPositionCenter;
+    property Left: integer read FLeft write SetLeft default WindowPositionCenter;
+    property Top :integer read FTop write SetTop default WindowPositionCenter;
     { @groupEnd }
 
     { Whether the window is fullscreen.
@@ -1149,7 +1155,8 @@ type
       recreates the whole necessary OpenGL state exactly as it was. This is usually
       natural, all our TUIControl automatically work with this,
       so this is only a concern if you do some direct OpenGL tricks. }
-    property FullScreen: boolean read FFullScreen write SetFullScreen default false;
+    property FullScreen: boolean
+      read FFullScreen write SetFullScreen default false;
 
     { Deprecated, instead just do @code(FullScreen := not FullScreen). }
     procedure SwapFullScreen; deprecated;
@@ -4106,6 +4113,46 @@ begin
   begin
     MenuInitialized := false;
     BackendMenuFinalize;
+  end;
+end;
+
+procedure TCastleWindowCustom.SetWidth(const Value: Integer);
+begin
+  if FWidth <> Value then
+  begin
+    FWidth := Value;
+    if not Closed then
+      WritelnWarning('Window', 'Changing TCastleWindowCustom.Width when the window is open is not supported now');
+  end;
+end;
+
+procedure TCastleWindowCustom.SetHeight(const Value: Integer);
+begin
+  if FHeight <> Value then
+  begin
+    FHeight := Value;
+    if not Closed then
+      WritelnWarning('Window', 'Changing TCastleWindowCustom.Height when the window is open is not supported now');
+  end;
+end;
+
+procedure TCastleWindowCustom.SetLeft(const Value: Integer);
+begin
+  if FLeft <> Value then
+  begin
+    FLeft := Value;
+    if not Closed then
+      WritelnWarning('Window', 'Changing TCastleWindowCustom.Left when the window is open is not supported now');
+  end;
+end;
+
+procedure TCastleWindowCustom.SetTop(const Value: Integer);
+begin
+  if FTop <> Value then
+  begin
+    FTop := Value;
+    if not Closed then
+      WritelnWarning('Window', 'Changing TCastleWindowCustom.Top when the window is open is not supported now');
   end;
 end;
 

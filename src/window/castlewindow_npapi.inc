@@ -445,8 +445,8 @@ begin
         {$endif}
       end else
       begin
-        InstanceData^.CastleWindow.Left := Window^.X;
-        InstanceData^.CastleWindow.Top := Window^.Y;
+        InstanceData^.CastleWindow.FLeft := Window^.X;
+        InstanceData^.CastleWindow.FTop := Window^.Y;
         if (Window^.Width  <> InstanceData^.CastleWindow.Width) or
            (Window^.Height <> InstanceData^.CastleWindow.Height) then
           InstanceData^.CastleWindow.DoResize(Window^.Width, Window^.Height, false);

@@ -126,10 +126,10 @@ begin
   {$ifdef CASTLE_ENGINE_PLUGIN}
   Application.FXDisplay := PluginStruct.Display;
 
-  Left := PluginWindow.X;
-  Top := PluginWindow.Y;
-  Width := PluginWindow.Width;
-  Height := PluginWindow.Height;
+  FLeft := PluginWindow.X;
+  FTop := PluginWindow.Y;
+  FWidth := PluginWindow.Width;
+  FHeight := PluginWindow.Height;
   Fullscreen := false;
   {$endif}
 
