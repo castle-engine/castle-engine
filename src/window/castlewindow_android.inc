@@ -105,8 +105,8 @@ begin
   NativeWindow := Window.NativeWindow; // NativeWindow was saved here by HandleCommand
 
   { get window size, use it }
-  FWidth := ANativeWindow_getWidth(NativeWindow);
-  FHeight := ANativeWindow_getHeight(NativeWindow);
+  Width := ANativeWindow_getWidth(NativeWindow);
+  Height := ANativeWindow_getHeight(NativeWindow);
   AndroidLog(alInfo, 'OpenContext (size: %d %d)', [Width, Height]);
   Application.FScreenWidth := Width;
   Application.FScreenHeight := Height;
