@@ -916,7 +916,6 @@ type
       - checking MainMenu.Enabled
     }
 
-  public
     { DoResize with FirstResizeAfterOpen = true is called only once
       (and exactly once) from TCastleWindowCustom.Open implementation.
       So all CastleWindow-backend code should always
@@ -946,13 +945,16 @@ type
       it's not needed, i.e. WinAPI, Xlib, and GTK all take care of this
       automatically). }
     procedure DoResize(AWidth, AHeight: integer; FirstResizeAfterOpen: boolean);
-  private
-    { Wywoluj kiedy user kliknie na przycisku "Zamknij" itp.
-      Wywola OnCloseQuery i ew. Close (and Close will execute OnClose,
-      CloseBackend etc.). Note that there is no DoClose method and there
-      should not be such method : always use DoCloseQuery. }
-    procedure DoCloseQuery;
 
+    { Called by a backend when user wants to close the window
+      (e.g. by pressing the special "close" button on the window manager border).
+      It is possible to ignore it (see OnCloseQuery docs).
+      This calls OnCloseQuery and then eventually Close
+      (and Close will execute OnClose, CloseBackend etc.).
+
+      Note that there is no "DoClose" method defined.
+      You should always call DoCloseQuery. }
+    procedure DoCloseQuery;
   public
     { Do MakeCurrent,
          EventBeforeRender,
