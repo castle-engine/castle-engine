@@ -726,6 +726,7 @@ type
     procedure SetHeight(const Value: Integer);
     procedure SetLeft(const Value: Integer);
     procedure SetTop(const Value: Integer);
+    procedure SetResizeAllowed(const Value: TResizeAllowed);
 
     { Set FullScreen value in a dumb (but always reliable) way:
       when it changes, just close, negate FFullScreen and reopen the window.
@@ -4153,6 +4154,16 @@ begin
     FTop := Value;
     if not Closed then
       WritelnWarning('Window', 'Changing TCastleWindowCustom.Top when the window is open is not supported now');
+  end;
+end;
+
+procedure TCastleWindowCustom.SetResizeAllowed(const Value: TResizeAllowed);
+begin
+  if FResizeAllowed <> Value then
+  begin
+    FResizeAllowed := Value;
+    if not Closed then
+      WritelnWarning('Window', 'Changing TCastleWindowCustom.ResizeAllowed when the window is open is not supported now');
   end;
 end;
 
