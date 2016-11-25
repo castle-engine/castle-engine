@@ -959,7 +959,7 @@ type
       Note that there is no "DoClose" method defined.
       You should always call DoCloseQuery. }
     procedure DoCloseQuery;
-  public
+
     { Do MakeCurrent,
          EventBeforeRender,
          EventRender (inside Fps._RenderBegin/End)
@@ -972,7 +972,6 @@ type
         So specific CastleWindow backends need not to worry about
         AutoRedisplay. They only have to call this when Invalidated = @true. }
     procedure DoRender;
-  private
 
     { DoKeyDown/Up: pass here key that is pressed down or released up.
 
