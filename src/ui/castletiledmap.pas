@@ -130,7 +130,7 @@ type
       <tileset> element described here. (There is the firstgid attribute missing
       and this source attribute is also not there. These two attributes
       are kept in the TMX map, since they are map specific.) }
-    Source: string; //todo: convert the path to some relative; loading of TSX
+    Source: string;
     { The name of this tileset. }
     Name: string;
     { The (maximum) width of the tiles in this tileset. }
