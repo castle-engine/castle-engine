@@ -6358,19 +6358,23 @@ begin
     quotes. We just do what Xj3D seems to do, that is
     we handle this as a single string (producing a warning). }
 
-  Lexer := TX3DLexer.CreateForPartialStream(AttributeValue, Reader.Version);
   try
+    Lexer := TX3DLexer.CreateForPartialStream(AttributeValue, Reader.Version);
     try
       ParseXMLAttributeLexer(Lexer, Reader);
-    except
-      on E: EX3DClassicReadError do
-      begin
-        WritelnWarning('VRML/X3D', 'Error when reading MFString field "' + Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
-        Items.Count := 0;
-        Items.Add(AttributeValue);
-      end;
+    finally FreeAndNil(Lexer) end;
+
+    { Surround in try..except both CreateForPartialStream and ParseXMLAttributeLexer,
+      as CreateForPartialStream can already cause exception in case of
+      demo-models/x3d/test_single_quotes_mfstring.x3d . }
+  except
+    on E: Exception do
+    begin
+      WritelnWarning('VRML/X3D', 'Error when reading MFString field "' + Name + '" value. Possibly missing double quotes (treating as a single string): ' + E.Message);
+      Items.Count := 0;
+      Items.Add(AttributeValue);
     end;
-  finally FreeAndNil(Lexer) end;
+  end;
 end;
 
 function TMFString.SaveToXmlValue: TSaveToXmlMethod;
