@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ TMX files processing unit. Based on Tiled v0.16. }
+{ TMX files processing unit. Based on Tiled v0.17. }
 unit CastleTiledMap;
 
 {$mode objfpc}{$H+}
@@ -30,8 +30,8 @@ type
     Name: string;
     { The value of the property. }
     Value: string;
-    { The type of the property. Can be string (default), int, float or bool.
-      (since 0.16) }
+    { The type of the property. Can be string (default), int, float, bool, color
+      or file (since 0.16, with color and file added in 0.17). }
     _type: string;
   end;
 
