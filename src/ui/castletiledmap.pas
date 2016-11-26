@@ -425,14 +425,19 @@ end;
 procedure TTiledMap.LoadImage(Element: TDOMElement; var AImage: TImage);
 const
   DEFAULT_TRANS:TCastleColorRGB = ( 1.0, 0.0, 1.0); {Fuchsia}
+var
+  TmpStr: string;
 begin
   with AImage do
   begin
     Format := Element.GetAttribute('format');
     Source := Element.GetAttribute('source');
-    if Element.hasAttribute('trans') then
-      Trans := HexToColorRGB(Element.GetAttribute('trans')) else //todo: if color in XML will be with "#" sign then it throws conversion error
-        Trans := DEFAULT_TRANS;
+    if Element.AttributeString('trans', TmpStr) then
+    begin
+      if TmpStr[1]='#' then Delete(TmpStr, 1, 1);
+      Trans := HexToColorRGB(TmpStr);
+    end else
+      Trans := DEFAULT_TRANS;
     Width := StrToInt(Element.GetAttribute('width'));
     Height := StrToInt(Element.GetAttribute('height'));
     WritelnLog('LoadImage Format', Format);
