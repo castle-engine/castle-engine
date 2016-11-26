@@ -329,7 +329,9 @@ TGLTextureStorage
 
 - bug: Because of caching AlphaChannelType inside renderer, and using Renderer.PreparedTextureAlphaChannelType for calculating UseBlending, this means that if the same tex filename occurs in various ImageTexture nodes, and in one case we force it to have alpha different the auto-detection says (e.g. using alphaChannel "FULL_RANGE" to force full range on texture without alpha channel), then all texture occurences have the same alpha channel treatment. (alphaChannel field doesn't work correctly).
 
-- sk±d kreski na water w water_reflections_normalmap (both nvidia and radeon show this). Any relation to steep parallax mapping aliasing?
+- sk±d kreski na water w water_shaders (both nvidia and radeon show this).
+  Any relation to steep parallax mapping aliasing?
+  Later: no, I think it's because it's just not a seamless texture.
 
 - Dynamically changing camera radius may be implemented (along with decreasing camerapreferredheight, decrease cam radius?)
 
@@ -693,10 +695,9 @@ More shaders demos, for some day:
   Resign.
 
 - water_no_shader improve: place normals MovieTexture as bump map.
-  Allow using MovieTexture for normalMap.
-  I could improve bump mapping to use MovieTexture as normalMap,
-  but it will not help immediately for water_no_shaders,
-  as my bump mapping depends on 0th texture to set to normal
+  Allow using MovieTexture for normalMap (this should work now actually!).
+
+  Also my bump mapping depends on 0th texture to set to normal
   texture that has 2D coords.
   This depends on bump mapping normalMap improvements:
   define special tex coords for bump mapping, don't reuse 0th texture unit.
