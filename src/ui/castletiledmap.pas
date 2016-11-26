@@ -70,7 +70,8 @@ type
     Width: Cardinal;
     { The image height in pixels (optional). }
     Height: Cardinal;
-    //todo: data
+    { Embedded image data (since 0.9). }
+    Data: TData;
   end;
 
   { Single frame of animation. }
@@ -426,27 +427,42 @@ procedure TTiledMap.LoadImage(Element: TDOMElement; var AImage: TImage);
 const
   DEFAULT_TRANS:TCastleColorRGB = ( 1.0, 0.0, 1.0); {Fuchsia}
 var
+  I: TXMLElementIterator;
   TmpStr: string;
 begin
   with AImage do
   begin
-    Format := Element.GetAttribute('format');
-    Source := Element.GetAttribute('source');
+    if Element.AttributeString('format', TmpStr) then
+      Format := TmpStr;
+    if Element.AttributeString('source', TmpStr) then
+      Source := TmpStr;
     if Element.AttributeString('trans', TmpStr) then
     begin
       if TmpStr[1]='#' then Delete(TmpStr, 1, 1);
       Trans := HexToColorRGB(TmpStr);
     end else
       Trans := DEFAULT_TRANS;
-    Width := StrToInt(Element.GetAttribute('width'));
-    Height := StrToInt(Element.GetAttribute('height'));
+    if Element.AttributeString('width', TmpStr) then
+      Width := StrToInt(TmpStr);
+    if Element.AttributeString('height', TmpStr) then
+      Height := StrToInt(TmpStr);
     WritelnLog('LoadImage Format', Format);
     WritelnLog('LoadImage Source', Source);
     WritelnLog('LoadImage Trans', ColorRGBToHex(Trans));
     WritelnLog('LoadImage Width', IntToStr(Width));
     WritelnLog('LoadImage Height', IntToStr(Height));
+
+    I := TXMLElementIterator.Create(Element);
+    try
+      while I.GetNext do
+      begin
+        WritelnLog('LoadImage element', I.Current.TagName);
+        case LowerCase(I.Current.TagName) of
+          'data': LoadData(I.Current, Data);
+        end;
+      end;
+    finally FreeAndNil(I) end;
   end;
-  //todo: loading data element
 end;
 
 procedure TTiledMap.LoadLayer(Element: TDOMElement);
