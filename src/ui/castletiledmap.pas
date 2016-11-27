@@ -74,94 +74,6 @@ type
     Data: TData;
   end;
 
-  { Single frame of animation. }
-  TFrame = record
-    { The local ID of a tile within the parent tileset. }
-    TileId: Cardinal;
-    { How long (in milliseconds) this frame should be displayed before advancing
-      to the next frame. }
-    Duration: Cardinal;
-  end;
-
-  { Contains a list of animation frames.
-    As of Tiled 0.10, each tile can have exactly one animation associated with it.
-    In the future, there could be support for multiple named animations on a tile. }
-  TAnimation = specialize TGenericStructList<TFrame>;
-
-  TTile = record
-    { The local tile ID within its tileset. }
-    Id: Cardinal;
-    { Defines the terrain type of each corner of the tile, given as
-      comma-separated indexes in the terrain types array in the order top-left,
-      top-right, bottom-left, bottom-right. Leaving out a value means that corner
-      has no terrain. (optional) (since 0.9) }
-    Terrain: TVector4Integer;
-    { A percentage indicating the probability that this tile is chosen when it
-      competes with others while editing with the terrain tool. (optional) (since 0.9) }
-    Probability: Single;
-    Properties: TProperties;
-    Image: TImage;
-    //todo: ObjectGroup since 0.10
-    Animation: TAnimation;
-  end;
-
-  { Tiles list. }
-  TTiles = specialize TGenericStructList<TTile>;
-
-  TTerrain = record
-    { The name of the terrain type. }
-    Name: string;
-    { The local tile-id of the tile that represents the terrain visually. }
-    Tile: Cardinal;
-    Properties: TProperties;
-  end;
-
-  { This element defines an array of terrain types, which can be referenced from
-    the terrain attribute of the tile element. }
-  TTerrainTypes = specialize TGenericStructList<TTerrain>;
-
-  PTileset = ^TTileset;
-  { Tileset definition. }
-  TTileset = record
-    { The first global tile ID of this tileset (this global ID maps to the first
-    tile in this tileset). }
-    FirstGID: Cardinal;
-    { If this tileset is stored in an external TSX (Tile Set XML) file, this
-      attribute refers to that file. That TSX file has the same structure as the
-      <tileset> element described here. (There is the firstgid attribute missing
-      and this source attribute is also not there. These two attributes
-      are kept in the TMX map, since they are map specific.) }
-    Source: string;
-    { The name of this tileset. }
-    Name: string;
-    { The (maximum) width of the tiles in this tileset. }
-    TileWidth: Cardinal;
-    { The (maximum) height of the tiles in this tileset. }
-    TileHeight: Cardinal;
-    { The spacing in pixels between the tiles in this tileset (applies to the
-      tileset image). }
-    Spacing: Cardinal;
-    { The margin around the tiles in this tileset (applies to the tileset image). }
-    Margin: Cardinal;
-    { The number of tiles in this tileset (since 0.13) }
-    TileCount: Cardinal;
-    { The number of tile columns in the tileset. For image collection tilesets
-    it is editable and is used when displaying the tileset. (since 0.15) }
-    Columns: Cardinal;
-    { This element is used to specify an offset in pixels, to be applied when
-      drawing a tile from the related tileset. When not present, no offset is applied. }
-    TileOffset: TVector2Integer;
-    Properties: TProperties;
-    Image: TImage;
-    Tiles: TTiles;
-    TerrainTypes: TTerrainTypes; //todo: loading TerrainTypes
-    { Pointer to image of tileset. Used by renderer. Not a part of file format. }
-    ImageData: Pointer;
-  end;
-
-  { List of tilesets. }
-  TTilesets = specialize TGenericStructList<TTileset>;
-
   TObjectsDrawOrder = (ODO_Index, ODO_TopDown);
 
   TTileObjectPrimitive = (TOP_Ellipse, TOP_Poligon, TOP_PolyLine);
@@ -238,6 +150,95 @@ type
 
   { List of layers. }
   TLayers = specialize TGenericStructList<TLayer>;
+
+  { Single frame of animation. }
+  TFrame = record
+    { The local ID of a tile within the parent tileset. }
+    TileId: Cardinal;
+    { How long (in milliseconds) this frame should be displayed before advancing
+      to the next frame. }
+    Duration: Cardinal;
+  end;
+
+  { Contains a list of animation frames.
+    As of Tiled 0.10, each tile can have exactly one animation associated with it.
+    In the future, there could be support for multiple named animations on a tile. }
+  TAnimation = specialize TGenericStructList<TFrame>;
+
+  TTile = record
+    { The local tile ID within its tileset. }
+    Id: Cardinal;
+    { Defines the terrain type of each corner of the tile, given as
+      comma-separated indexes in the terrain types array in the order top-left,
+      top-right, bottom-left, bottom-right. Leaving out a value means that corner
+      has no terrain. (optional) (since 0.9) }
+    Terrain: TVector4Integer;
+    { A percentage indicating the probability that this tile is chosen when it
+      competes with others while editing with the terrain tool. (optional) (since 0.9) }
+    Probability: Single;
+    Properties: TProperties;
+    Image: TImage;
+    { ObjectGroup since 0.10 (internally as layer) }
+    ObjectGroup: TLayers;
+    Animation: TAnimation;
+  end;
+
+  { Tiles list. }
+  TTiles = specialize TGenericStructList<TTile>;
+
+  TTerrain = record
+    { The name of the terrain type. }
+    Name: string;
+    { The local tile-id of the tile that represents the terrain visually. }
+    Tile: Cardinal;
+    Properties: TProperties;
+  end;
+
+  { This element defines an array of terrain types, which can be referenced from
+    the terrain attribute of the tile element. }
+  TTerrainTypes = specialize TGenericStructList<TTerrain>;
+
+  PTileset = ^TTileset;
+  { Tileset definition. }
+  TTileset = record
+    { The first global tile ID of this tileset (this global ID maps to the first
+    tile in this tileset). }
+    FirstGID: Cardinal;
+    { If this tileset is stored in an external TSX (Tile Set XML) file, this
+      attribute refers to that file. That TSX file has the same structure as the
+      <tileset> element described here. (There is the firstgid attribute missing
+      and this source attribute is also not there. These two attributes
+      are kept in the TMX map, since they are map specific.) }
+    Source: string;
+    { The name of this tileset. }
+    Name: string;
+    { The (maximum) width of the tiles in this tileset. }
+    TileWidth: Cardinal;
+    { The (maximum) height of the tiles in this tileset. }
+    TileHeight: Cardinal;
+    { The spacing in pixels between the tiles in this tileset (applies to the
+      tileset image). }
+    Spacing: Cardinal;
+    { The margin around the tiles in this tileset (applies to the tileset image). }
+    Margin: Cardinal;
+    { The number of tiles in this tileset (since 0.13) }
+    TileCount: Cardinal;
+    { The number of tile columns in the tileset. For image collection tilesets
+    it is editable and is used when displaying the tileset. (since 0.15) }
+    Columns: Cardinal;
+    { This element is used to specify an offset in pixels, to be applied when
+      drawing a tile from the related tileset. When not present, no offset is applied. }
+    TileOffset: TVector2Integer;
+    Properties: TProperties;
+    Image: TImage;
+    Tiles: TTiles;
+    TerrainTypes: TTerrainTypes; //todo: loading TerrainTypes
+    { Pointer to image of tileset. Used by renderer. Not a part of file format. }
+    ImageData: Pointer;
+  end;
+
+  { List of tilesets. }
+  TTilesets = specialize TGenericStructList<TTileset>;
 
   TMapOrientation = (MO_Orthogonal, MO_Isometric, MO_Staggered);
   TMapRenderOrder = (MRO_RightDown, MRO_RightUp, MRO_LeftDown, MRO_LeftUp);
@@ -851,6 +852,7 @@ begin
   begin
     Animation := nil;
     Properties := nil;
+    ObjectGroup := nil;
 
     if Element.AttributeString('id', TmpStr) then
       Id := StrToInt(TmpStr);
@@ -878,6 +880,12 @@ begin
           'properties': LoadProperties(I.Current, Properties);
           'image': LoadImage(I.Current, Image);
           'animation': LoadAnimation(I.Current, Animation);
+          'objectgroup': begin
+            if not Assigned(ObjectGroup) then
+              ObjectGroup := TLayers.Create;
+            LoadLayer(I.Current);
+            ObjectGroup.Add(FLayers.Last); { TODO : Here is double the same ObjectGroup storage: in the FLayers and in the Tile }
+          end;
         end;
       end;
     finally FreeAndNil(I) end;
