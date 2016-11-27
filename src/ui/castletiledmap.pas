@@ -22,7 +22,7 @@ interface
 
 uses
   Classes, SysUtils, DOM, XMLRead, base64, zstream, CastleGenericLists, CastleVectors,
-  CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils, CastleLog;
+  CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils, CastleLog, CastleStringUtils;
 
 type
   TProperty = record
@@ -88,21 +88,21 @@ type
     In the future, there could be support for multiple named animations on a tile. }
   TAnimation = specialize TGenericStructList<TFrame>;
 
-  TTile = record //todo: tile loading
+  TTile = record
     { The local tile ID within its tileset. }
     Id: Cardinal;
     { Defines the terrain type of each corner of the tile, given as
       comma-separated indexes in the terrain types array in the order top-left,
       top-right, bottom-left, bottom-right. Leaving out a value means that corner
       has no terrain. (optional) (since 0.9) }
-    Terrain: string; // todo: terrain type definition
+    Terrain: TVector4Integer;
     { A percentage indicating the probability that this tile is chosen when it
       competes with others while editing with the terrain tool. (optional) (since 0.9) }
     Probability: Single;
     Properties: TProperties;
     Image: TImage;
     //todo: ObjectGroup since 0.10
-    Animation: TAnimation; //todo: animation loading
+    Animation: TAnimation;
   end;
 
   { Tiles list. }
@@ -153,7 +153,7 @@ type
     TileOffset: TVector2Integer;
     Properties: TProperties;
     Image: TImage;
-    Tiles: TTiles; // todo: Tiles loading
+    Tiles: TTiles;
     TerrainTypes: TTerrainTypes; //todo: loading TerrainTypes
     { Pointer to image of tileset. Used by renderer. Not a part of file format. }
     ImageData: Pointer;
@@ -273,6 +273,8 @@ type
     procedure LoadTiledObject(Element: TDOMElement; var ATiledObject: TTiledObject);
     procedure LoadImageLayer(Element: TDOMElement);
     procedure LoadData(Element: TDOMElement; var AData: TData);
+    procedure LoadTile(Element: TDOMElement; var ATile: TTile);
+    procedure LoadAnimation(Element: TDOMElement; var AAnimation: TAnimation);
   private
     FTilesets: TTilesets;
     FProperties: TProperties;
@@ -311,12 +313,15 @@ procedure TTiledMap.LoadTileset(Element: TDOMElement);
 var
   I: TXMLElementIterator;
   NewTileset: TTileset;
+  NewTile: TTile;
   TmpStr: string;
 begin
   with NewTileset do
   begin
     TileOffset := ZeroVector2Integer;
     Properties := nil;
+    Tiles := nil;
+
     if Element.AttributeString('firstgid', TmpStr) then
       FirstGID := StrToInt(TmpStr) else
         FirstGID := 1;
@@ -364,7 +369,13 @@ begin
           end;
           'properties': LoadProperties(I.Current, Properties);
           'image': LoadImage(I.Current, Image);
-        end;
+          'tile': begin
+            LoadTile(I.Current, NewTile);
+            if not Assigned (Tiles) then
+              Tiles := TTiles.Create;
+            Tiles.Add(NewTile);
+          end;
+        end; //case
       end;
     finally FreeAndNil(I) end;
   end;
@@ -828,6 +839,81 @@ begin
       end;
     finally FreeAndNil(I) end;
   end;
+end;
+
+procedure TTiledMap.LoadTile(Element: TDOMElement; var ATile: TTile);
+var
+  I: TXMLElementIterator;
+  TmpStr: string;
+  SPosition: Integer;
+begin
+  with ATile do
+  begin
+    Animation := nil;
+    Properties := nil;
+
+    if Element.AttributeString('id', TmpStr) then
+      Id := StrToInt(TmpStr);
+    if Element.AttributeString('terrain', TmpStr) then
+    begin
+      SPosition := 1;
+      Terrain[0] := StrToInt(NextToken(TmpStr, SPosition, [',']));
+      Terrain[1] := StrToInt(NextToken(TmpStr, SPosition, [',']));
+      Terrain[2] := StrToInt(NextToken(TmpStr, SPosition, [',']));
+      Terrain[3] := StrToInt(NextToken(TmpStr, SPosition, [',']));
+    end;
+    if Element.AttributeString('probability', TmpStr) then
+      Probability := StrToFloat(TmpStr);
+
+    WritelnLog('LoadTile Id', IntToStr(Id));
+    WritelnLog('LoadTile Terrain', VectorToNiceStr(Terrain));
+    WritelnLog('LoadTile Probability', FloatToStr(Probability));
+
+    I := TXMLElementIterator.Create(Element);
+    try
+      while I.GetNext do
+      begin
+        WritelnLog('LoadTile element', I.Current.TagName);
+        case LowerCase(I.Current.TagName) of
+          'properties': LoadProperties(I.Current, Properties);
+          'image': LoadImage(I.Current, Image);
+          'animation': LoadAnimation(I.Current, Animation);
+        end;
+      end;
+    finally FreeAndNil(I) end;
+  end;
+end;
+
+procedure TTiledMap.LoadAnimation(Element: TDOMElement;
+  var AAnimation: TAnimation);
+var
+  I: TXMLElementIterator;
+  TmpStr: string;
+  NewFrame: TFrame;
+begin
+  I := TXMLElementIterator.Create(Element);
+  try
+    while I.GetNext do
+    begin
+      WritelnLog('LoadAnimation element', I.Current.TagName);
+      case LowerCase(I.Current.TagName) of
+        'frame': begin
+          if not Assigned(AAnimation) then
+            AAnimation := TAnimation.Create;
+          with NewFrame do
+          begin
+            if I.Current.AttributeString('tileid', TmpStr) then
+              TileId := StrToInt(TmpStr);
+            WritelnLog('LoadAnimation TileId', IntToStr(TileId));
+            if I.Current.AttributeString('duration', TmpStr) then
+              Duration := StrToInt(TmpStr);
+            WritelnLog('LoadAnimation Duration', IntToStr(Duration));
+          end;
+          AAnimation.Add(NewFrame);
+        end;
+      end;
+    end;
+  finally FreeAndNil(I) end;
 end;
 
 procedure TTiledMap.LoadTMXFile(AURL: string);
