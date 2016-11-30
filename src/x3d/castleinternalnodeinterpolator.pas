@@ -148,8 +148,8 @@ procedure CheckNodesStructurallyEqual(Model1, Model2: TX3DNode;
   begin
     if Field1.Items.Count <> Field2.Items.Count then
       raise EModelsStructureDifferent.CreateFmt(
-        'Different number of children in MFNode fields: "%d" and "%d"',
-        [Model1.VRML1ChildrenCount, Model2.VRML1ChildrenCount]);
+        'Different number of children in MFNode field "%s": %d vs %d',
+        [Field1.NiceName, Field1.Items.Count, Field2.Items.Count]);
 
     for I := 0 to Field1.Items.Count - 1 do
       CheckNodesStructurallyEqual(Field1[I], Field2[I], EqualityEpsilon);
@@ -188,7 +188,7 @@ begin
 
   if Model1.VRML1ChildrenCount <> Model2.VRML1ChildrenCount then
     raise EModelsStructureDifferent.CreateFmt(
-      'Different number of children in nodes: "%d" and "%d"',
+      'Different number of Inventor / VRML 1.0 children in nodes: %d vs %d',
       [Model1.VRML1ChildrenCount, Model2.VRML1ChildrenCount]);
 
   for I := 0 to Model1.VRML1ChildrenCount - 1 do
