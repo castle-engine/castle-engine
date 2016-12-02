@@ -1763,7 +1763,7 @@ type
       const TimeInAnimation: TFloatTime;
       const Looping: TPlayAnimationLooping): boolean;
 
-    { Play a named animation (like detected by @link(Animations) method).
+    { Play a named animation (like detected by @link(AnimationsList) method).
       Also stops previously playing named animation, if any.
       Returns whether animation (corresponding TimeSensor node) was found.
       Playing an already-playing animation is guaranteed to start it from
@@ -1772,7 +1772,7 @@ type
       const Looping: TPlayAnimationLooping): boolean;
 
     { Duration, in seconds, of the named animation
-      (named animations are detected by @link(Animations) method).
+      (named animations are detected by @link(AnimationsList) method).
       0 if not found. }
     function AnimationDuration(const AnimationName: string): TFloatTime;
 
