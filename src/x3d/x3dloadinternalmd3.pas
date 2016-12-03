@@ -21,17 +21,12 @@ unit X3DLoadInternalMD3;
 
 interface
 
-uses SysUtils, Classes, CastleUtils, CastleClassUtils, CastleVectors, X3DNodes,
-  FGL, CastleGenericLists;
+uses SysUtils, Classes, FGL,
+  CastleUtils, CastleClassUtils, CastleVectors, X3DNodes, CastleGenericLists,
+  CastleInternalNodeInterpolator;
 
 { Load MD3 animation as a sequence of static X3D models. }
-procedure LoadMD3Sequence(
-  const URL: string;
-  RootNodes: TX3DNodeList;
-  Times: TSingleList;
-  out ScenesPerTime: Cardinal;
-  out EqualityEpsilon: Single;
-  out TimeLoop, TimeBackwards: boolean);
+function LoadMD3Sequence(const URL: string): TNodeInterpolator.TAnimationList;
 
 implementation
 
@@ -562,41 +557,47 @@ begin
   end;
 end;
 
-procedure LoadMD3Sequence(
-  const URL: string;
-  RootNodes: TX3DNodeList;
-  Times: TSingleList;
-  out ScenesPerTime: Cardinal;
-  out EqualityEpsilon: Single;
-  out TimeLoop, TimeBackwards: boolean);
+function LoadMD3Sequence(const URL: string): TNodeInterpolator.TAnimationList;
 var
   Md3: TObject3DMD3;
   BaseUrl: string;
   I: Integer;
+  Animation: TNodeInterpolator.TAnimation;
 begin
-  BaseUrl := AbsoluteURI(URL);
-  Md3 := TObject3DMD3.Create(URL);
+  Result := TNodeInterpolator.TAnimationList.Create(true);
   try
-    { handle each MD3 frame }
-    for I := 0 to Md3.FramesCount - 1 do
-    begin
-      RootNodes.Add(LoadMD3Frame(Md3, I, BaseUrl));
-      Times.Add(I / 30);
-    end;
+    Animation := TNodeInterpolator.TAnimation.Create;
+    Result.Add(Animation);
 
-    ScenesPerTime := 30;
-    { Default ScenesPerTime and times are set such that one MD3
-      frame will result in one frame inside TCastlePrecalculatedAnimation.
-      So don't try to merge these frames (on the assumption that
-      they are not merged in MD3... so hopefully there's no need for it ?). }
-    EqualityEpsilon := 0.0;
+    BaseUrl := AbsoluteURI(URL);
+    Md3 := TObject3DMD3.Create(URL);
+    try
+      { handle each MD3 frame }
+      for I := 0 to Md3.FramesCount - 1 do
+      begin
+        Animation.KeyNodes.Add(LoadMD3Frame(Md3, I, BaseUrl));
+        Animation.KeyTimes.Add(I / 30);
+      end;
 
-    { Really, no sensible default for Loop/Backwards here...
-      I set Loop to @false, otherwise it's not clear for user when
-      animation ends. }
-    TimeLoop := false;
-    TimeBackwards := false;
-  finally FreeAndNil(Md3) end;
+      Animation.Name := TNodeInterpolator.DefaultAnimationName;
+      Animation.ScenesPerTime := TNodeInterpolator.DefaultScenesPerTime;
+      { Default ScenesPerTime and times are set such that one MD3
+        frame will result in one frame inside TCastlePrecalculatedAnimation.
+        So don't try to merge these frames (on the assumption that
+        they are not merged in MD3... so hopefully there's no need for it ?). }
+      Animation.EqualityEpsilon := 0.0;
+
+      { Really, no sensible default for Loop/Backwards here...
+        I set Loop to @false, otherwise it's not clear for user when
+        animation ends. }
+      Animation.Loop := false;
+      Animation.Backwards := false;
+    finally FreeAndNil(Md3) end;
+  except
+    Result.FreeKeyNodesContents;
+    FreeAndNil(Result);
+    raise;
+  end;
 end;
 
 end.

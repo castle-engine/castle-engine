@@ -807,7 +807,7 @@ procedure TCastlePrecalculatedAnimation.LoadCore(
   const EqualityEpsilon: Single);
 var
   SceneStatic: boolean;
-  Nodes: TX3DNodeList;
+  BakedAnimation: TNodeInterpolator.TBakedAnimation;
   I: Integer;
 begin
   Close;
@@ -820,16 +820,18 @@ begin
     it only (if and only if) occurs if KeyNodesCount = 1. }
   SceneStatic := not (TryFirstSceneDynamic and (KeyNodesCount = 1));
 
-  Nodes := TNodeInterpolator.BakeToSequence(GetKeyNodeWithTime, KeyNodesCount,
-    ScenesPerTime, EqualityEpsilon, FTimeBegin, FTimeEnd);
+  BakedAnimation := TNodeInterpolator.BakeToSequence(GetKeyNodeWithTime, KeyNodesCount,
+    ScenesPerTime, EqualityEpsilon);
   try
+    FTimeBegin := BakedAnimation.TimeBegin;
+    FTimeEnd := BakedAnimation.TimeEnd;
 
     { calculate FScenes }
     FScenes := TCastleSceneList.Create(false);
-    FScenes.Count := Nodes.Count;
+    FScenes.Count := BakedAnimation.Nodes.Count;
     for I := 0 to FScenes.Count - 1 do
     begin
-      if (I > 0) and (Nodes[I] = Nodes[I - 1]) then
+      if (I > 0) and (BakedAnimation.Nodes[I] = BakedAnimation.Nodes[I - 1]) then
         { In this case don't waste memory, only reuse
           LastSceneRootNode. Actually, just copy last scene.
           This way we have a series of the same instances of TCastleScene
@@ -837,11 +839,11 @@ begin
           avoid deallocating the same pointer twice. }
         FScenes[I] := FScenes[I - 1] else
         FScenes[I] := TAnimationScene.CreateForAnimation(
-          Nodes[I] as TX3DRootNode,
+          BakedAnimation.Nodes[I] as TX3DRootNode,
           (I <> 0) or OwnsFirstRootNode, Renderer, Self, SceneStatic);
     end;
 
-  finally FreeAndNil(Nodes) end;
+  finally FreeAndNil(BakedAnimation) end;
 
   FLoaded := true;
 end;

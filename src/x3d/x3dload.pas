@@ -145,44 +145,22 @@ function Load3D(const URL: string;
 
   function LoadAnimFrames(const URL: string): TX3DRootNode;
   var
-    KeyNodes: TX3DNodeList;
-    KeyTimes: TSingleList;
-    ScenesPerTime: Cardinal;
-    EqualityEpsilon: Single;
-    TimeLoop, TimeBackwards: boolean;
+    Animations: TNodeInterpolator.TAnimationList;
   begin
-    KeyNodes := TX3DNodeList.Create(false);
-    KeyTimes := TSingleList.Create;
+    Animations := TNodeInterpolator.LoadAnimFramesToKeyNodes(URL);
     try
-      TNodeInterpolator.LoadAnimFramesToKeyNodes(URL, KeyNodes, KeyTimes, ScenesPerTime,
-        EqualityEpsilon, TimeLoop, TimeBackwards);
-      Result := TNodeInterpolator.LoadToX3D(KeyNodes, KeyTimes,
-        ScenesPerTime, EqualityEpsilon, TimeLoop, TimeBackwards);
-    finally
-      FreeAndNil(KeyNodes);
-      FreeAndNil(KeyTimes);
-    end;
+      Result := TNodeInterpolator.LoadToX3D(Animations);
+    finally FreeAndNil(Animations) end;
   end;
 
   function LoadMD3(const URL: string): TX3DRootNode;
   var
-    KeyNodes: TX3DNodeList;
-    KeyTimes: TSingleList;
-    ScenesPerTime: Cardinal;
-    EqualityEpsilon: Single;
-    TimeLoop, TimeBackwards: boolean;
+    Animations: TNodeInterpolator.TAnimationList;
   begin
-    KeyNodes := TX3DNodeList.Create(false);
-    KeyTimes := TSingleList.Create;
+    Animations := LoadMD3Sequence(URL);
     try
-      LoadMD3Sequence(URL, KeyNodes, KeyTimes, ScenesPerTime,
-        EqualityEpsilon, TimeLoop, TimeBackwards);
-      Result := TNodeInterpolator.LoadToX3D(KeyNodes, KeyTimes,
-        ScenesPerTime, EqualityEpsilon, TimeLoop, TimeBackwards);
-    finally
-      FreeAndNil(KeyNodes);
-      FreeAndNil(KeyTimes);
-    end;
+      Result := TNodeInterpolator.LoadToX3D(Animations);
+    finally FreeAndNil(Animations) end;
   end;
 
 var
@@ -246,6 +224,27 @@ procedure Load3DSequence(const URL: string;
   out EqualityEpsilon: Single;
   out TimeLoop, TimeBackwards: boolean);
 
+  procedure LoadNodeAnimation(Animations: TNodeInterpolator.TAnimationList);
+  var
+    Animation: TNodeInterpolator.TAnimation;
+    I: Integer;
+  begin
+    { This obsolete routine just reads the 1st animation only.
+      There's no way to support multiple animations with this interface. }
+    Animation := Animations[0];
+
+    for I := 0 to Animation.KeyNodes.Count - 1 do
+      KeyNodes.Add(Animation.KeyNodes[I]);
+    for I := 0 to Animation.KeyTimes.Count - 1 do
+      KeyTimes.Add(Animation.KeyTimes[I]);
+    ScenesPerTime   := Animation.ScenesPerTime;
+    EqualityEpsilon := Animation.EqualityEpsilon;
+    TimeLoop        := Animation.Loop;
+    TimeBackwards   := Animation.Backwards;
+
+    FreeAndNil(Animations);
+  end;
+
   procedure LoadSingle(Node: TX3DNode);
   begin
     KeyNodes.Add(Node);
@@ -265,13 +264,11 @@ begin
   MimeType := URIMimeType(URL);
 
   if MimeType = 'application/x-castle-anim-frames' then
-    TNodeInterpolator.LoadAnimFramesToKeyNodes(URL, KeyNodes, KeyTimes, ScenesPerTime,
-      EqualityEpsilon, TimeLoop, TimeBackwards) else
-
+    LoadNodeAnimation(TNodeInterpolator.LoadAnimFramesToKeyNodes(URL))
+  else
   if MimeType = 'application/x-md3' then
-    LoadMD3Sequence(URL, KeyNodes, KeyTimes, ScenesPerTime,
-      EqualityEpsilon, TimeLoop, TimeBackwards) else
-
+    LoadNodeAnimation(LoadMD3Sequence(URL))
+  else
     LoadSingle(Load3D(URL, AllowStdIn));
 end;
 
