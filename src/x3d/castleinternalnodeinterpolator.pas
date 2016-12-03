@@ -899,40 +899,18 @@ var
       Result := RootNode;
   end;
 
-  function WrapInCollisionNode(const Node: TX3DNode; const BoxForCollisions: TBox3D): TX3DNode;
-  var
-    CollisionNode: TCollisionNode;
-    ProxyTransform: TTransformNode;
-    ProxyShape: TShapeNode;
-    ProxyBox: TBoxNode;
+  function WrapInCollisionNode(
+    const VisibleNode: TX3DNode; const Box: TBox3D): TCollisionNode;
   begin
-    { always create ProxyTransform, even when BoxForCollisions.IsEmpty,
-      otherwise X3D Collision.proxy would be ignored when nil. }
-    ProxyTransform := TTransformNode.Create('', BaseUrl);
-
-    if not BoxForCollisions.IsEmpty then
-    begin
-      ProxyBox := TBoxNode.Create('', BaseUrl);
-      ProxyBox.Size := BoxForCollisions.Sizes;
-
-      ProxyShape := TShapeNode.Create('', BaseUrl);
-      ProxyShape.Geometry := ProxyBox;
-
-      ProxyTransform.Translation := BoxForCollisions.Middle;
-      ProxyTransform.FdChildren.Add(ProxyShape);
-    end;
-
-    CollisionNode := TCollisionNode.Create;
-    CollisionNode.FdChildren.Add(Node);
-    CollisionNode.FdProxy.Value := ProxyTransform;
-    Result := CollisionNode;
+    Result := TCollisionNode.Create('', BaseUrl);
+    Result.CollideAsBox(VisibleNode, Box);
   end;
 
   function ConvertOneAnimation(
     const BakedAnimation: TBakedAnimation;
     const AnimationIndex: Integer;
     const RootNode: TX3DRootNode;
-    const SwitchChooseAnimation: TSwitchNode): TGroupNode;
+    const SwitchChooseAnimation: TSwitchNode): TX3DNode;
   var
     AnimationX3DName: string;
 
@@ -973,10 +951,11 @@ var
     Switch: TSwitchNode;
     I, NodesCount: Integer;
     Route: TX3DRoute;
+    Group: TGroupNode;
   begin
     AnimationX3DName := ToX3DName(BakedAnimation.Name);
 
-    Result := TGroupNode.Create(
+    Group := TGroupNode.Create(
       AnimationX3DName + '_Group', BaseUrl);
 
     NodesCount := BakedAnimation.Nodes.Count;
@@ -1007,7 +986,7 @@ var
         IntSequencer.FdKeyValue.Items[I] := I;
       end;
     end;
-    Result.FdChildren.Add(IntSequencer);
+    Group.FdChildren.Add(IntSequencer);
 
     Switch := TSwitchNode.Create(
       AnimationX3DName + '_Switch_ChooseAnimationFrame', BaseUrl);
@@ -1015,7 +994,7 @@ var
       Switch.FdChildren.Add(WrapRootNode(BakedAnimation.Nodes[I] as TX3DRootNode));
     { we set whichChoice to 0 to see something before you run the animation }
     Switch.WhichChoice := 0;
-    Result.FdChildren.Add(Switch);
+    Group.FdChildren.Add(Switch);
 
     { Name of the TimeSensor is important, this is the animation name,
       so don't append there anything ugly like '_TimeSensor'.
@@ -1039,12 +1018,22 @@ var
     RootNode.ManuallyExportNode(TimeSensor);
 
     AddAnimationVisibilityRoutes(TimeSensor);
+
+    { We use WrapInCollisionNode, to make the object
+      collide always as a bounding box.
+      Otherwise, initializing collisions for a long series of nodes is really
+      time-consuming.
+
+      We have to implement actual conversion from a series of nodes
+      -> interpolators to have proper collisions with castle-anim-frames
+      contents. Even then, it's unsure whether it will be sensible,
+      as it will cost at runtime. }
+    Result := WrapInCollisionNode(Group, BakedAnimation.BoundingBox);
   end;
 
 var
   I: Integer;
   SwitchChooseAnimation: TSwitchNode;
-  BoundingBox: TBox3D;
 begin
   Assert(BakedAnimations.Count <> 0);
   Assert(BakedAnimations[0].Nodes.Count <> 0);
@@ -1053,27 +1042,15 @@ begin
   Result := TX3DRootNode.Create('', BaseUrl);
 
   SwitchChooseAnimation := TSwitchNode.Create('ChooseAnimation', BaseUrl);
-  BoundingBox := TBox3D.Empty;
   for I := 0 to BakedAnimations.Count - 1 do
   begin
     SwitchChooseAnimation.FdChildren.Add(
       ConvertOneAnimation(BakedAnimations[I], I, Result, SwitchChooseAnimation));
-    { by the way of converting, calculate also bounding box }
-    BoundingBox.Add(BakedAnimations[I].BoundingBox);
   end;
   { we set whichChoice to 0 to see something before you run the animation }
   SwitchChooseAnimation.WhichChoice := 0;
 
-  { We use WrapInCollisionNode, to make the object
-    collide always as a bounding box.
-    Otherwise, initializing collisions for a long series of nodes is really
-    time-consuming.
-
-    We have to implement actual conversion from a series of nodes
-    -> interpolators to have proper collisions with castle-anim-frames
-    contents. Even then, it's unsure whether it will be sensible,
-    as it will cost at runtime. }
-  Result.FdChildren.Add(WrapInCollisionNode(SwitchChooseAnimation, BoundingBox));
+  Result.FdChildren.Add(SwitchChooseAnimation);
 end;
 
 class procedure TNodeInterpolator.LoadToX3D_GetKeyNodeWithTime(const Index: Cardinal;

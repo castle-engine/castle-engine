@@ -148,6 +148,8 @@
     function DirectEnumerateActiveForTraverse(
       Func: TEnumerateChildrenFunction;
       StateStack: TX3DGraphTraverseStateStack): Pointer; override;
+    function GetProxy: TX3DNode;
+    procedure SetProxy(const Value: TX3DNode);
   public
     procedure CreateNode; override;
     class function ClassNodeTypeName: string; override;
@@ -166,6 +168,21 @@
 
     private FFdProxy: TSFNode;
     public property FdProxy: TSFNode read FFdProxy;
+
+    { When non-nil, this will be used for collisions, instead of children. }
+    property Proxy: TX3DNode read GetProxy write SetProxy;
+
+    { Setup this Collision node to show VisibleNode, but collide as
+      a Box. This sets VisibleNode as the only child of this collision node,
+      and sets the @link(Proxy) field to a simple box with given bounds.
+      The @code(Enabled) field is unchanged (by default @true).
+
+      It honors the case of Box being empty correctly. Proxy is then
+      non-nil, but without any geometry. So the collisions are
+      effectively disabled, in a consistent way (without changing the
+      @code(Enabled) field).
+    }
+    procedure CollideAsBox(const VisibleNode: TX3DNode; const Box: TBox3D);
   end;
 
   { LOD node for VRML/X3D >= 2.0. This is not for VRML <= 1.0 LOD node.
@@ -758,6 +775,43 @@ begin
       if Result <> nil then Exit;
     finally Dec(StateStack.Top.InsideIgnoreCollision) end;
   end;
+end;
+
+procedure TCollisionNode.CollideAsBox(const VisibleNode: TX3DNode; const Box: TBox3D);
+var
+  ProxyTransform: TTransformNode;
+  ProxyShape: TShapeNode;
+  ProxyBox: TBoxNode;
+begin
+  { always create ProxyTransform, even when Box.IsEmpty,
+    otherwise X3D Collision.proxy would be ignored when nil. }
+  ProxyTransform := TTransformNode.Create('', BaseUrl);
+
+  if not Box.IsEmpty then
+  begin
+    ProxyBox := TBoxNode.Create('', BaseUrl);
+    ProxyBox.Size := Box.Sizes;
+
+    ProxyShape := TShapeNode.Create('', BaseUrl);
+    ProxyShape.Geometry := ProxyBox;
+
+    ProxyTransform.Translation := Box.Middle;
+    ProxyTransform.FdChildren.Add(ProxyShape);
+  end;
+  Proxy := ProxyTransform;
+
+  FdChildren.Clear;
+  FdChildren.Add(VisibleNode);
+end;
+
+function TCollisionNode.GetProxy: TX3DNode;
+begin
+  Result := FdProxy.Value;
+end;
+
+procedure TCollisionNode.SetProxy(const Value: TX3DNode);
+begin
+  FdProxy.Send(Value);
 end;
 
 procedure TAbstractLODNode.CreateNode;
