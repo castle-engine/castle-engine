@@ -305,8 +305,7 @@ begin
 
   Execute;
 
-  RenderingTime := ProcessTimerDiff(ProcessTimerNow, TimerBegin) /
-    ProcessTimersPerSec;
+  RenderingTime := ProcessTimerSeconds(ProcessTimerNow, TimerBegin);
   AppendStats(Stats, RenderingTime);
 end;
 

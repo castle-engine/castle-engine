@@ -653,13 +653,13 @@ type
 
   { Navigate the 3D model in examine mode, like you would hold
     a box with the model inside.
-    The model is displayed around MoveAmount 3D point,
-    it's rotated by @link(Rotations) and scaled by ScaleFactor
-    (scaled around MoveAmount point). }
+    The model is moved by @link(Translation),
+    rotated by @link(Rotations) and scaled by @link(ScaleFactor). }
   TExamineCamera = class(TCamera)
   private
-    FMoveAmount, FCenterOfRotation: TVector3Single;
+    FTranslation, FCenterOfRotation: TVector3Single;
     FRotations: TQuaternion;
+    FDragMoveSpeed, FKeysMoveSpeed: Single;
     { Speed of rotations. Always zero when RotationAccelerate = false.
 
       This could be implemented as a quaternion,
@@ -690,7 +690,7 @@ type
     procedure SetRotationsAnim(const Value: TVector3Single);
     procedure SetRotations(const Value: TQuaternion);
     procedure SetScaleFactor(const Value: Single);
-    procedure SetMoveAmount(const Value: TVector3Single);
+    procedure SetTranslation(const Value: TVector3Single);
     procedure SetModelBox(const Value: TBox3D);
     procedure SetCenterOfRotation(const Value: TVector3Single);
     function Zoom(const Factor: Single): boolean;
@@ -739,33 +739,37 @@ type
     { Current camera properties ---------------------------------------------- }
 
     { Current rotation of the model.
-      Rotation is done around ModelBox middle (with MoveAmount added). }
+      Rotation is done around ModelBox middle (with @link(Translation) added). }
     property Rotations: TQuaternion read FRotations write SetRotations;
 
     { Continous rotation animation, applied each Update to Rotations. }
     property RotationsAnim: TVector3Single read FRotationsAnim write SetRotationsAnim;
 
-    { MoveAmount says how to translate the model.
-      It's always added to the middle of ModelBox, this is usually
-      comfortable.
+    { How fast user moves the scene by mouse/touch dragging. }
+    property DragMoveSpeed: Single read FDragMoveSpeed write FDragMoveSpeed default 1.0;
 
-      The default value of this is zero vector.
-      If you want to just see the whole model,
-      you may want to set this to something like
+    { How fast user moves the scene by pressing keys. }
+    property KeysMoveSpeed: Single read FKeysMoveSpeed write FKeysMoveSpeed default 1.0;
 
-        @preformatted(MoveAmount := Middle of ModelBox + (0, 0, -2 * ModelSize))
+    property MoveAmount: TVector3Single read FTranslation write SetTranslation;
+      deprecated 'use Translation';
 
-      Actually, @link(Init) method does the above for you. }
-    property MoveAmount: TVector3Single read FMoveAmount write SetMoveAmount;
+    { How much to move the model. By default, zero. }
+    property Translation: TVector3Single read FTranslation write SetTranslation;
 
+    { Center of rotation and scale, relative to @link(Translation).
+      By default, zero.
+      Setting the @link(ModelBox) or calling @link(Init) sets this to the middle
+      of the model bounding box (@link(ModelBox)), which is usually most natural. }
     property CenterOfRotation: TVector3Single read FCenterOfRotation write SetCenterOfRotation;
 
     { Turntable rotates the scene around its Y axis instead of current camera axis. }
     property Turntable: boolean
       read FTurntable write FTurntable default false;
 
-    { How the model is scaled. Scaling is done around MoveAmount added to
-      the middle of ModelBox. @italic(May never be zero (or too near zero).) }
+    { How the model is scaled.
+      Scaling is done around @link(Translation) + @link(CenterOfRotation).
+      @italic(This property may never be zero (or too near zero).) }
     property ScaleFactor: Single
       read FScaleFactor write SetScaleFactor default 1;
 
@@ -774,9 +778,10 @@ type
       to make the navigation work best.
       Setting this sets also CenterOfRotation to the middle of the box.
 
-      The idea is that usually this is the only property that you have to set.
-      ScaleFactor, MoveAmount, RotationsAnim will be almost directly
-      controlled by user (through @link(Press) and other events).
+      This is usually the only property that you have to set.
+      The rest, like @link(ScaleFactor), @link(Translation), @link(RotationsAnim)
+      will be almost directly controlled by user (through @link(Press)
+      and other events).
       @link(Rotations) will be automatically modified by @link(Update).
 
       So often you only need to set ModelBox, once,
@@ -799,8 +804,8 @@ type
     { Sets RotationsAnim to zero, stopping the rotation of the model. }
     function StopRotating: boolean;
 
-    procedure Scale(const ScaleBy: Single);
-    procedure Move(coord: integer; const MoveDistance: Single);
+    procedure Scale(const ScaleBy: Single); deprecated 'set ScaleFactor instead of using this method';
+    procedure Move(coord: integer; const MoveDistance: Single); deprecated 'set Translation instead of using this method';
 
     { User inputs ------------------------------------------------------------ }
 
@@ -2436,10 +2441,12 @@ begin
   inherited;
 
   FModelBox := EmptyBox3D;
-  FMoveAmount := ZeroVector3Single;
+  FTranslation := ZeroVector3Single;
   FRotations := QuatIdentityRot;
   FRotationsAnim := ZeroVector3Single;
   FScaleFactor := 1;
+  FDragMoveSpeed := 1;
+  FKeysMoveSpeed := 1;
   FRotationAccelerate := true;
   FRotationAccelerationSpeed := DefaultRotationAccelerationSpeed;
   FRotationSpeed := DefaultRotationSpeed;
@@ -2501,7 +2508,7 @@ end;
 
 function TExamineCamera.Matrix: TMatrix4Single;
 begin
-  Result := TranslationMatrix(VectorAdd(MoveAmount, FCenterOfRotation));
+  Result := TranslationMatrix(VectorAdd(Translation, FCenterOfRotation));
   Result := MatrixMult(Result, Rotations.ToRotationMatrix);
   Result := MatrixMult(Result, ScalingMatrix(Vector3Single(ScaleFactor, ScaleFactor, ScaleFactor)));
   Result := MatrixMult(Result, TranslationMatrix(VectorNegate(FCenterOfRotation)));
@@ -2511,7 +2518,7 @@ function TExamineCamera.MatrixInverse: TMatrix4Single;
 begin
   { This inverse always exists, assuming ScaleFactor is <> 0. }
 
-  Result := TranslationMatrix(VectorNegate(VectorAdd(MoveAmount, FCenterOfRotation)));
+  Result := TranslationMatrix(VectorNegate(VectorAdd(Translation, FCenterOfRotation)));
   Result := MatrixMult(Rotations.Conjugate.ToRotationMatrix, Result);
   Result := MatrixMult(ScalingMatrix(Vector3Single(1/ScaleFactor, 1/ScaleFactor, 1/ScaleFactor)), Result);
   Result := MatrixMult(TranslationMatrix(FCenterOfRotation), Result);
@@ -2546,6 +2553,7 @@ var
   MoveChange, ScaleChange: Single;
   ModsDown: TModifierKeys;
   RotChange: Single;
+  MoveChangeVector: TVector3Single;
 begin
   inherited;
 
@@ -2591,8 +2599,8 @@ begin
   if HandleInput and (ciNormal in Input) then
   begin
     if ModelBox.IsEmptyOrZero then
-      MoveChange := SecondsPassed else
-      MoveChange := ModelBox.AverageSize * SecondsPassed;
+      MoveChange := KeysMoveSpeed * SecondsPassed else
+      MoveChange := KeysMoveSpeed * ModelBox.AverageSize * SecondsPassed;
 
     { we will apply SecondsPassed to ScaleChange later }
     ScaleChange := 1.5;
@@ -2605,12 +2613,18 @@ begin
       begin
         if Inputs_Move[i, true ].IsPressed(Container) then
         begin
-          Move(i, +MoveChange);
+          MoveChangeVector := ZeroVector3Single;
+          MoveChangeVector[I] := MoveChange;
+          Translation := Translation + MoveChangeVector;
+
           HandleInput := not ExclusiveEvents;
         end;
         if Inputs_Move[i, false].IsPressed(Container) then
         begin
-          Move(i, -MoveChange);
+          MoveChangeVector := ZeroVector3Single;
+          MoveChangeVector[I] := -MoveChange;
+          Translation := Translation + MoveChangeVector;
+
           HandleInput := not ExclusiveEvents;
         end;
       end;
@@ -2634,12 +2648,12 @@ begin
 
     if Input_ScaleLarger.IsPressed(Container) then
     begin
-      Scale(Power(ScaleChange, SecondsPassed));
+      ScaleFactor := ScaleFactor * Power(ScaleChange, SecondsPassed);
       HandleInput := not ExclusiveEvents;
     end;
     if Input_ScaleSmaller.IsPressed(Container) then
     begin
-      Scale(Power(1 / ScaleChange, SecondsPassed));
+      ScaleFactor := ScaleFactor * Power(1 / ScaleChange, SecondsPassed);
       HandleInput := not ExclusiveEvents;
     end;
   end;
@@ -2673,7 +2687,7 @@ procedure TExamineCamera.Scale(const ScaleBy: Single);
 begin FScaleFactor *= ScaleBy; ScheduleVisibleChange; end;
 
 procedure TExamineCamera.Move(coord: integer; const MoveDistance: Single);
-begin FMoveAmount[coord] += MoveDistance; ScheduleVisibleChange; end;
+begin FTranslation[coord] += MoveDistance; ScheduleVisibleChange; end;
 
 function TExamineCamera.SensorTranslation(const X, Y, Z, Length: Double;
   const SecondsPassed: Single): boolean;
@@ -2692,13 +2706,13 @@ begin
 
   if Abs(X)>5 then   { left / right }
   begin
-    FMoveAmount[0] += Size * X * MoveSize;
+    FTranslation[0] += Size * X * MoveSize;
     Moved := true;
   end;
 
   if Abs(Y)>5 then   { up / down }
   begin
-    FMoveAmount[1] += Size * Y * MoveSize;
+    FTranslation[1] += Size * Y * MoveSize;
     Moved := true;
   end;
 
@@ -2776,8 +2790,8 @@ begin FRotations := Value; ScheduleVisibleChange; end;
 procedure TExamineCamera.SetScaleFactor(const Value: Single);
 begin FScaleFactor := Value; ScheduleVisibleChange; end;
 
-procedure TExamineCamera.SetMoveAmount(const Value: TVector3Single);
-begin FMoveAmount := Value; ScheduleVisibleChange; end;
+procedure TExamineCamera.SetTranslation(const Value: TVector3Single);
+begin FTranslation := Value; ScheduleVisibleChange; end;
 
 procedure TExamineCamera.SetCenterOfRotation(const Value: TVector3Single);
 begin FCenterOfRotation := Value; ScheduleVisibleChange; end;
@@ -2834,17 +2848,17 @@ end;
 function TExamineCamera.Zoom(const Factor: Single): boolean;
 var
   Size: Single;
-  OldMoveAmount, OldPosition: TVector3Single;
+  OldTranslation, OldPosition: TVector3Single;
 begin
   Result := not FModelBox.IsEmptyOrZero;
   if Result then
   begin
     Size := FModelBox.AverageSize;
 
-    OldMoveAmount := FMoveAmount;
+    OldTranslation := FTranslation;
     OldPosition := Position;
 
-    FMoveAmount[2] += Size * Factor;
+    FTranslation[2] += Size * Factor;
 
     { Cancel zoom in, don't allow to go to the other side of the model too far.
       Note that Box3DPointDistance = 0 when you're inside the box,
@@ -2854,7 +2868,7 @@ begin
        (FModelBox.PointDistance(Position) >
         FModelBox.PointDistance(OldPosition)) then
     begin
-      FMoveAmount := OldMoveAmount;
+      FTranslation := OldTranslation;
       Exit(false);
     end;
 
@@ -3024,8 +3038,8 @@ begin
   if DoMoving then
   begin
     Size := FModelBox.AverageSize;
-    FMoveAmount[0] -= Size * (Event.OldPosition[0] - Event.Position[0]) / (2*MoveDivConst);
-    FMoveAmount[1] -= Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst);
+    FTranslation[0] -= DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0]) / (2*MoveDivConst);
+    FTranslation[1] -= DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst);
     ScheduleVisibleChange;
     Result := ExclusiveEvents;
   end;
@@ -3082,8 +3096,8 @@ end;
 procedure TExamineCamera.SetPosition(const Value: TVector3Single);
 begin
   { a subset of what SetView does }
-  FMoveAmount := -Value;
-  FMoveAmount := FRotations.Rotate(FMoveAmount + FCenterOfRotation)
+  FTranslation := -Value;
+  FTranslation := FRotations.Rotate(FTranslation + FCenterOfRotation)
     - FCenterOfRotation;
   ScheduleVisibleChange;
 end;
@@ -3098,7 +3112,7 @@ procedure TExamineCamera.SetView(const APos, ADir, AUp: TVector3Single;
 var
   Dir, Up: TVector3Single;
 begin
-  FMoveAmount := -APos;
+  FTranslation := -APos;
 
   { Make vectors orthogonal, CamDirUp2OrientQuat requires this }
   Dir := ADir;
@@ -3123,19 +3137,19 @@ begin
     Writeln('oh yes, up wrong: ', VectorToNiceStr(QuatRotate(FRotations, Normalized(Up))));
 }
 
-  { We have to fix our FMoveAmount, since our TExamineCamera.Matrix
+  { We have to fix our FTranslation, since our TExamineCamera.Matrix
     applies our move *first* before applying rotation
     (and this is good, as it allows rotating around object center,
     not around camera).
 
     Alternative implementation of this would call QuatToRotationMatrix and
     then simulate multiplying this rotation matrix * translation matrix
-    of FMoveAmount. But we can do this directly.
+    of FTranslation. But we can do this directly.
 
     We also note at this point that rotation is done around
-    (FMoveAmount + FCenterOfRotation). But FCenterOfRotation is not
-    included in MoveAmount. }
-  FMoveAmount := FRotations.Rotate(FMoveAmount + FCenterOfRotation)
+    (FTranslation + FCenterOfRotation). But FCenterOfRotation is not
+    included in Translation. }
+  FTranslation := FRotations.Rotate(FTranslation + FCenterOfRotation)
     - FCenterOfRotation;
 
   { Reset ScaleFactor to 1, this way the camera view corresponds

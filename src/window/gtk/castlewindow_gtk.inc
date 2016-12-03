@@ -468,18 +468,19 @@ function signal_window_configure_event(AWindowGtk: PGtkWindow;
 { This signal is registered for WindowGtk, not GLAreaGtk.
   That's because we want to update here Left/Top.
   And position of GLAreaGtk is constant, only WindowGtk position changes. }
-var LeftGtk, TopGtk: gint;
+var
+  LeftGtk, TopGtk: gint;
 SIGNAL_WINDOW_BEGIN
- { I could ask here for GLAreaGtk global position.
-   But as for now Left and Top are coordinates of whole WindowGtk
-   (with WindowManager decorations, that's how
-   gdk_window_get_root_origin works).
-   Reasons -- the same as in castlewindow_xlib.inc. }
- gdk_window_get_root_origin(GTK_WIDGET(WindowGtk)^.window, @LeftGtk, @TopGtk);
- Left := LeftGtk;
- Top := TopGtk;
- { for the sake of gtk, I can't tell that I "handled" this in any way }
- Result := g_false;
+  { I could ask here for GLAreaGtk global position.
+    But as of now, Left and Top are coordinates of whole WindowGtk
+    (with WindowManager decorations, that's how
+    gdk_window_get_root_origin works).
+    Reasons -- the same as in castlewindow_xlib.inc. }
+  gdk_window_get_root_origin(GTK_WIDGET(WindowGtk)^.window, @LeftGtk, @TopGtk);
+  FLeft := LeftGtk;
+  FTop := TopGtk;
+  { for the sake of gtk, I can't tell that I "handled" this in any way }
+  Result := g_false;
 SIGNAL_WINDOW_END;
 
 function signal_glarea_configure_event(AGLAreaGtk: PGtkGLArea;

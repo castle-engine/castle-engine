@@ -127,7 +127,8 @@ const
             100 {$else}
               128 {$endif} {$endif}
     {$endif}
-    {$ifdef MSWINDOWS} = 1000 { Using GetLastError } {$endif};
+    {$ifdef MSWINDOWS} = 1000 { Using GetLastError } {$endif}
+    deprecated 'do not use this, it should not be needed; use ProcessTimerSeconds to compare two times';
 
 { Current value of process (CPU) timer.
   This can be used to measure how much CPU time your process used.
@@ -148,6 +149,7 @@ function ProcessTimerNow: TProcessTimerResult;
   (just like TMilisecTime), then we may subtract values intelligently,
   taking into account that time could wrap (see TimeTickDiff). }
 function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
+  deprecated 'use ProcessTimerSeconds instead';
 
 { Subtract two timer values, result is in seconds. }
 function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
@@ -482,7 +484,9 @@ end;
 
 function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
 begin
+  {$warnings off} // knowingly using deprecated stuff
   Result := ProcessTimerDiff(A, B) / ProcessTimersPerSec;
+  {$warnings on}
 end;
 
 var

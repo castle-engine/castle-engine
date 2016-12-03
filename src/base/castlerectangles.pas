@@ -199,9 +199,9 @@ type
       (not just returns @link(Empty) constant),
       leaving the other dimension (it's position and size) untouched.
 
-      These details matter, e.g. when you set TUIControl.Width, but not
-      TUIControl.Height, and then you expect the TUIControl.CalculatedWidth
-      to work.
+      These details matter, e.g. when you set @link(TUIControlSizeable.Width), but not
+      @link(TUIControlSizeable.Height),
+      and then you expect the @link(TUIControl.CalculatedWidth) to work.
     }
     function ScaleAround0(const Factor: Single): TRectangle;
 
@@ -305,6 +305,9 @@ type
     function Collides(const R: TFloatRectangle): boolean;
 
     function CollidesDisc(const Center: TVector2Single; const Radius: Single): boolean;
+
+    { Scale rectangle position and size around the (0,0) point. }
+    function ScaleAround0(const Factor: Single): TFloatRectangle;
   end;
 
   PFloatRectangle = ^TFloatRectangle;
@@ -902,6 +905,33 @@ begin
     Sqr(Center[0] - ClosestCornerX) +
     Sqr(Center[1] - ClosestCornerY) <=
     Sqr(Radius);
+end;
+
+function TFloatRectangle.ScaleAround0(const Factor: Single): TFloatRectangle;
+var
+  ResultRight, ResultTop: Single;
+begin
+  if Width >= 0 then
+  begin
+    Result.Left  := Left * Factor;
+    ResultRight  := Right * Factor;
+    Result.Width := ResultRight - Result.Left;
+  end else
+  begin
+    Result.Width  := Width;
+    Result.Left   := Left;
+  end;
+
+  if Height >= 0 then
+  begin
+    Result.Bottom := Bottom * Factor;
+    ResultTop     := Top * Factor;
+    Result.Height := ResultTop - Result.Bottom;
+  end else
+  begin
+    Result.Height := Height;
+    Result.Bottom := Bottom;
+  end;
 end;
 
 { TRectangleList -------------------------------------------------------------- }

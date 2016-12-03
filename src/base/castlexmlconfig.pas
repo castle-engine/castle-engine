@@ -126,6 +126,18 @@ type
       const AValue, ADefaultValue: Float);
     { @groupEnd }
 
+    { Int64 values reading/writing to config file.
+      @raises(EMissingAttribute Raised by GetFloat(string) (overloaded
+        version without the ADefaultValue parameter) if the attribute is missing.) }
+    function GetInt64(const APath: string;
+      const ADefaultValue: Int64): Int64;
+    function GetInt64(const APath: string): Int64;
+    procedure SetInt64(const APath: string;
+      const AValue: Int64);
+    procedure SetDeleteInt64(const APath: string;
+      const AValue, ADefaultValue: Int64);
+    { @groupEnd }
+
     { 2D, 3D, 4D vectors reading/writing to config file.
 
       They should be expressed in XML like
@@ -550,6 +562,34 @@ procedure TCastleConfig.SetDeleteFloat(const APath: string;
   const AValue, ADefaultValue: Float);
 begin
   SetDeleteValue(APath, FloatToStr(AValue), FloatToStr(ADefaultValue));
+end;
+
+{ get/set Int64s ------------------------------------------------------------ }
+
+function TCastleConfig.GetInt64(const APath: string;
+  const ADefaultValue: Int64): Int64;
+var
+  ResultString: string;
+begin
+  ResultString := GetValue(APath, IntToStr(ADefaultValue));
+  Result := StrToInt64Def(ResultString, ADefaultValue);
+end;
+
+function TCastleConfig.GetInt64(const APath: string): Int64;
+begin
+  Result := StrToInt64(GetStringNonEmpty(APath));
+end;
+
+procedure TCastleConfig.SetInt64(const APath: string;
+  const AValue: Int64);
+begin
+  SetValue(APath, IntToStr(AValue));
+end;
+
+procedure TCastleConfig.SetDeleteInt64(const APath: string;
+  const AValue, ADefaultValue: Int64);
+begin
+  SetDeleteValue(APath, IntToStr(AValue), IntToStr(ADefaultValue));
 end;
 
 { get/set vectors ------------------------------------------------------------ }

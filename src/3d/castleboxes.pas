@@ -420,9 +420,14 @@ const
 type
   TBox3DList = specialize TGenericStructList<TBox3D>;
 
-{ Various comfortable functions to construct TBox3D value.
-  @groupBegin }
+{ Construct TBox3D value from a minimum and maximum 3D point. }
 function Box3D(const p0, p1: TVector3Single): TBox3D;
+
+{ Construct TBox3D value from a center and size.
+  When any Size component is < 0, we return an empty box (@link(TBox3D.Empty)).
+  This is consistent with X3D bboxCenter/Size definition e.g. at X3D Group node,
+  see http://www.web3d.org/documents/specifications/19775-1/V3.2/Part01/components/group.html#Group
+  @groupBegin }
 function Box3DAroundPoint(const Pt: TVector3Single; Size: Single): TBox3D;
 function Box3DAroundPoint(const Pt: TVector3Single; Size: TVector3Single): TBox3D;
 { @groupEnd }
@@ -1771,6 +1776,9 @@ end;
 
 function Box3DAroundPoint(const Pt: TVector3Single; Size: Single): TBox3D;
 begin
+  if Size < 0 then
+    Exit(TBox3D.Empty);
+
   Size /= 2;
   Result.Data[0][0] := Pt[0] - Size;
   Result.Data[0][1] := Pt[1] - Size;
@@ -1782,6 +1790,11 @@ end;
 
 function Box3DAroundPoint(const Pt: TVector3Single; Size: TVector3Single): TBox3D;
 begin
+  if (Size[0] < 0) or
+     (Size[1] < 0) or
+     (Size[2] < 0) then
+    Exit(TBox3D.Empty);
+
   Size /= 2;
   Result.Data[0][0] := Pt[0] - Size[0];
   Result.Data[0][1] := Pt[1] - Size[1];

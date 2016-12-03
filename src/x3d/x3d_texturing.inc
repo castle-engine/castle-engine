@@ -1104,7 +1104,8 @@ function TPixelTextureNode.TextureDescription: string;
 begin
   if not FdImage.Value.IsEmpty then
     result := Format('inlined image (width = %d; height = %d; with alpha = %s)',
-      [ FdImage.Value.Width, FdImage.Value.Height,
+      [ FdImage.Value.Width,
+        FdImage.Value.Height,
         BoolToStr(FdImage.Value.HasAlpha, true) ]) else
     result := 'none';
 end;

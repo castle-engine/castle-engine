@@ -283,14 +283,14 @@ type
 
       Various file formats are possible, everything that can be handled by
       Load3DSequence, in particular simple 3D model files, MD3,
-      kanim (described on
-      [http://castle-engine.sourceforge.net/kanim_format.php]).
+      castle-anim-frames (described on
+      [http://castle-engine.sourceforge.net/castle_animation_frames.php]).
 
       If you need more control over loading, for example you want to
       change some parameters at loading (for example, ScenesPerTime
-      and EqualityEpsilon of kanim files), you should use
+      and EqualityEpsilon of castle-anim-frames files), you should use
       more flexible (and less comfortable to use)
-      LoadFromFileToVars class procedure (specialized for kanim files)
+      LoadFromFileToVars class procedure (specialized for castle-anim-frames files)
       or Load3DSequence (if you want to handle any files).
 
       @link(Loaded) property changes to @true after calling this.
@@ -448,7 +448,7 @@ type
       Overloaded version with explicit Loop parameter ignores the TimeLoop
       property. This way you can force looping (or force not looping),
       regardless of the TimeLoop property, so also regardless
-      of loop setting in kanim file.
+      of loop setting in castle-anim-frames file.
 
       @groupBegin }
     function Scene(const Time: Single): TCastleScene;
@@ -526,8 +526,8 @@ type
       time like @code("Animation Time: LoadTime + %f") on status bar.
 
       0 means that starting @link(Time) was TimeBegin of the animation
-      (0.0 in case of normal VRML files, usually 0.0 in case of Kanim).
-      Note that even when TimeBegin <> 0 (for Kanim), we still set
+      (0.0 in case of normal VRML files, usually 0.0 in case of castle-anim-frames).
+      Note that even when TimeBegin <> 0 (for castle-anim-frames), we still set
       TimeAtLoad to 0, this is nicer to show to user.
 
       Other value means that we used current real time as time origin,
@@ -661,7 +661,7 @@ type
 
     property InitialViewpointName: string
       read FInitialViewpointName write FInitialViewpointName;
-  end deprecated 'instead of TCastlePrecalculatedAnimation, use TCastleScene to load animations in any format (X3D, KAnim...) and run them using methods like PlayAnimation';
+  end deprecated 'instead of TCastlePrecalculatedAnimation, use TCastleScene to load animations in any format (X3D, castle-anim-frames...) and run them using methods like PlayAnimation';
 
 const
   DefaultAnimationSmoothness = 1.0;
@@ -807,7 +807,7 @@ procedure TCastlePrecalculatedAnimation.LoadCore(
   const EqualityEpsilon: Single);
 var
   SceneStatic: boolean;
-  Nodes: TX3DNodeList;
+  BakedAnimation: TNodeInterpolator.TBakedAnimation;
   I: Integer;
 begin
   Close;
@@ -820,16 +820,18 @@ begin
     it only (if and only if) occurs if KeyNodesCount = 1. }
   SceneStatic := not (TryFirstSceneDynamic and (KeyNodesCount = 1));
 
-  Nodes := TNodeInterpolator.BakeToSequence(GetKeyNodeWithTime, KeyNodesCount,
-    ScenesPerTime, EqualityEpsilon, FTimeBegin, FTimeEnd);
+  BakedAnimation := TNodeInterpolator.BakeToSequence(GetKeyNodeWithTime, KeyNodesCount,
+    ScenesPerTime, EqualityEpsilon);
   try
+    FTimeBegin := BakedAnimation.TimeBegin;
+    FTimeEnd := BakedAnimation.TimeEnd;
 
     { calculate FScenes }
     FScenes := TCastleSceneList.Create(false);
-    FScenes.Count := Nodes.Count;
+    FScenes.Count := BakedAnimation.Nodes.Count;
     for I := 0 to FScenes.Count - 1 do
     begin
-      if (I > 0) and (Nodes[I] = Nodes[I - 1]) then
+      if (I > 0) and (BakedAnimation.Nodes[I] = BakedAnimation.Nodes[I - 1]) then
         { In this case don't waste memory, only reuse
           LastSceneRootNode. Actually, just copy last scene.
           This way we have a series of the same instances of TCastleScene
@@ -837,11 +839,11 @@ begin
           avoid deallocating the same pointer twice. }
         FScenes[I] := FScenes[I - 1] else
         FScenes[I] := TAnimationScene.CreateForAnimation(
-          Nodes[I] as TX3DRootNode,
+          BakedAnimation.Nodes[I] as TX3DRootNode,
           (I <> 0) or OwnsFirstRootNode, Renderer, Self, SceneStatic);
     end;
 
-  finally FreeAndNil(Nodes) end;
+  finally FreeAndNil(BakedAnimation) end;
 
   FLoaded := true;
 end;

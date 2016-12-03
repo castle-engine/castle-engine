@@ -1398,16 +1398,21 @@ type
   end;
 
   TSFImage = class(TX3DSingleField)
+  strict private
+    FValue: TCastleImage;
+    procedure SetValue(const AValue: TCastleImage);
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    { Value is owned by this object - i.e. in destructor we do Value.Free.
+    { Current image, expressed as the @link(TCastleImage) instance.
+
+      The image instance is by default owned by this object,
+      which means that we will free it in destructor or when setting
+      another value.
 
       Value may be IsEmpty, and then we know that there is no image
-      recorded in this field. Value may never be nil.
-      Remember --- Value is freed by this object, but if you're altering it in any
-      other way, you're responsible for good memory managing. }
-    Value: TCastleImage;
+      recorded in this field. Value may never be @nil. }
+    property Value: TCastleImage read FValue write SetValue;
 
     { @param(AValue is the initial value for Value.
 
@@ -4140,10 +4145,8 @@ begin
   inherited Create(AParentNode, AName);
 
   if AValue <> nil then
-  begin
-    FreeAndNil(Value);
+    { use SetValue setter, to free previous value if needed }
     Value := AValue;
-  end;
 end;
 
 constructor TSFImage.CreateUndefined(AParentNode: TX3DFileItem;
@@ -4152,13 +4155,22 @@ begin
   inherited;
 
   { Value must be initialized to non-nil. }
-  Value := TRGBImage.Create;
+  FValue := TRGBImage.Create;
 end;
 
 destructor TSFImage.Destroy;
 begin
- FreeAndNil(Value);
- inherited;
+  FreeAndNil(FValue);
+  inherited;
+end;
+
+procedure TSFImage.SetValue(const AValue: TCastleImage);
+begin
+  if FValue <> AValue then
+  begin
+    FreeAndNil(FValue);
+    FValue := AValue;
+  end;
 end;
 
 procedure DecodeImageColor(const Pixel: LongWord; var G: Byte);
@@ -4219,13 +4231,6 @@ end;
 {$include norqcheckend.inc}
 
 procedure TSFImage.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
-
-  procedure ReplaceValue(NewValue: TCastleImage);
-  begin
-    FreeAndNil(Value);
-    Value := NewValue;
-  end;
-
 var
   w, h, comp: LongWord;
   i: Cardinal;
@@ -4237,16 +4242,10 @@ begin
   { Note that we should never let Value to be nil too long,
     because even if this method exits with exception, Value should
     always remain non-nil.
-    That's why I'm doing below Value.Empty instead of FreeAndNil(Value)
-    and I'm using ReplaceValue to set new Value.
+    That's why I'm doing below Value.Empty instead of FreeAndNil(Value).
     This way if e.g. TRGBImage.Create with out of mem exception,
     Value will still remain non-nil.
-
-    This is all because I just changed Images unit interface to class-like
-    and I want to do minimal changes to X3DFields unit to not break
-    anything. TODO -- this will be solved better in the future, by simply
-    allowing Value to be nil at any time.
-    }
+  }
 
   Value.Empty;
 
@@ -4260,27 +4259,27 @@ begin
   begin
     case comp of
       1:begin
-          ReplaceValue(TGrayscaleImage.Create(w, h));
+          Value := TGrayscaleImage.Create(w, h);
           GrayscalePixels := PByteArray(Value.RawPixels);
-          for i := 0 to w*h-1 do
+          for i := 0 to W * H - 1 do
             DecodeImageColor(ParseLongWord(Lexer), GrayscalePixels^[I]);
         end;
       2:begin
-          ReplaceValue(TGrayscaleAlphaImage.Create(w, h));
+          Value := TGrayscaleAlphaImage.Create(w, h);
           GrayscaleAlphaPixels := PArray_Vector2Byte(Value.RawPixels);
-          for i := 0 to w*h-1 do
+          for i := 0 to W * H - 1 do
             DecodeImageColor(ParseLongWord(Lexer), GrayscaleAlphaPixels^[i]);
         end;
       3:begin
-          ReplaceValue(TRGBImage.Create(w, h));
+          Value := TRGBImage.Create(w, h);
           RGBPixels := PArray_Vector3Byte(Value.RawPixels);
-          for i := 0 to w*h-1 do
+          for i := 0 to W * H - 1 do
             DecodeImageColor(ParseLongWord(Lexer), RGBPixels^[i]);
         end;
       4:begin
-          ReplaceValue(TRGBAlphaImage.Create(w, h));
+          Value := TRGBAlphaImage.Create(w, h);
           RGBAlphaPixels := PArray_Vector4Byte(Value.RawPixels);
-          for i := 0 to w*h-1 do
+          for i := 0 to W * H - 1 do
             DecodeImageColor(ParseLongWord(Lexer), RGBAlphaPixels^[i]);
         end;
       else raise EX3DParserError.Create(Lexer, Format('Invalid components count'+
@@ -4300,14 +4299,16 @@ begin
   if Value.IsEmpty then
     Writer.Write('0 0 1') else
   begin
-    Writer.Writeln(Format('%d %d %d', [Value.Width, Value.Height,
+    Writer.Writeln(Format('%d %d %d', [
+      Value.Width,
+      Value.Height,
       Value.ColorComponentsCount]));
     Writer.IncIndent;
     Writer.WriteIndent('');
     {$I NoRQCheckBegin.inc}
     if Value is TGrayscaleImage then
     begin
-      for i := 0 to Value.Width*Value.Height-1 do
+      for i := 0 to Value.Width * Value.Height - 1 do
       begin
         pixel := TGrayscaleImage(Value).GrayscalePixels[i];
         Writer.Write(Format('0x%.2x ', [pixel]));
@@ -4315,7 +4316,7 @@ begin
     end else
     if Value is TGrayscaleAlphaImage then
     begin
-      for i := 0 to Value.Width*Value.Height-1 do
+      for i := 0 to Value.Width * Value.Height - 1 do
       begin
         ga := TGrayscaleAlphaImage(Value).GrayscaleAlphaPixels[i];
         pixel := (ga[0] shl 8) or ga[1];
@@ -4324,7 +4325,7 @@ begin
     end else
     if Value is TRGBImage then
     begin
-      for i := 0 to Value.Width*Value.Height-1 do
+      for i := 0 to Value.Width * Value.Height - 1 do
       begin
         rgb := TRGBImage(Value).RGBPixels[i];
         pixel := (rgb[0] shl 16) or (rgb[1] shl 8) or rgb[2];
@@ -4333,7 +4334,7 @@ begin
     end else
     if Value is TRGBAlphaImage then
     begin
-      for i := 0 to Value.Width*Value.Height-1 do
+      for i := 0 to Value.Width * Value.Height - 1 do
       begin
         rgba := TRGBAlphaImage(Value).AlphaPixels[i];
         pixel := (rgba[0] shl 24) or (rgba[1] shl 16) or (rgba[2] shl 8) or rgba[3];
@@ -4359,7 +4360,6 @@ procedure TSFImage.Assign(Source: TPersistent);
 begin
   if Source is TSFImage then
   begin
-    FreeAndNil(Value);
     Value := TSFImage(Source).Value.MakeCopy;
     VRMLFieldAssignCommon(TX3DField(Source));
   end else
@@ -4371,7 +4371,6 @@ begin
   if Source is TSFImage then
   begin
     inherited;
-    FreeAndNil(Value);
     Value := TSFImage(Source).Value.MakeCopy;
   end else
     AssignValueRaiseInvalidClass(Source);
@@ -6359,19 +6358,23 @@ begin
     quotes. We just do what Xj3D seems to do, that is
     we handle this as a single string (producing a warning). }
 
-  Lexer := TX3DLexer.CreateForPartialStream(AttributeValue, Reader.Version);
   try
+    Lexer := TX3DLexer.CreateForPartialStream(AttributeValue, Reader.Version);
     try
       ParseXMLAttributeLexer(Lexer, Reader);
-    except
-      on E: EX3DClassicReadError do
-      begin
-        WritelnWarning('VRML/X3D', 'Error when reading MFString field "' + Name + '" value, probably missing double quotes (treating as a single string): ' + E.Message);
-        Items.Count := 0;
-        Items.Add(AttributeValue);
-      end;
+    finally FreeAndNil(Lexer) end;
+
+    { Surround in try..except both CreateForPartialStream and ParseXMLAttributeLexer,
+      as CreateForPartialStream can already cause exception in case of
+      demo-models/x3d/test_single_quotes_mfstring.x3d . }
+  except
+    on E: Exception do
+    begin
+      WritelnWarning('VRML/X3D', 'Error when reading MFString field "' + Name + '" value. Possibly missing double quotes (treating as a single string): ' + E.Message);
+      Items.Count := 0;
+      Items.Add(AttributeValue);
     end;
-  finally FreeAndNil(Lexer) end;
+  end;
 end;
 
 function TMFString.SaveToXmlValue: TSaveToXmlMethod;

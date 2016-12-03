@@ -210,30 +210,30 @@ var
 begin
   MaxWidth := 0;
   for I := 0 to ResButtons.Count - 1 do
-    MaxVar(MaxWidth, ResButtons[I].Width);
+    MaxVar(MaxWidth, ResButtons[I].CalculatedWidth);
 
   Bottom := Window.Height;
   for I := 0 to ResButtons.Count - 1 do
   begin
-    Bottom -= Margin + ResButtons[I].Height;
+    Bottom -= Margin + ResButtons[I].CalculatedHeight;
     ResButtons[I].Bottom := Bottom;
     ResButtons[I].Left := Margin;
     ResButtons[I].AutoSizeWidth := false;
     ResButtons[I].Width := MaxWidth;
   end;
 
-  Bottom -= Margin * 2 + ResButtons[I].Height;
+  Bottom -= Margin * 2 + ResButtons[I].CalculatedHeight;
   LoadResourceButton.Bottom := Bottom;
   LoadResourceButton.Left := Margin;
 
   MaxWidth := 0;
   for I := 0 to AnimButtons.Count - 1 do
-    MaxVar(MaxWidth, AnimButtons[I].Width);
+    MaxVar(MaxWidth, AnimButtons[I].CalculatedWidth);
 
   Bottom := Window.Height;
   for I := 0 to AnimButtons.Count - 1 do
   begin
-    Bottom -= Margin + AnimButtons[I].Height;
+    Bottom -= Margin + AnimButtons[I].CalculatedHeight;
     AnimButtons[I].Bottom := Bottom;
     AnimButtons[I].Left := Window.Width - Margin - MaxWidth;
     AnimButtons[I].AutoSizeWidth := false;
@@ -250,9 +250,9 @@ procedure TestAddingResourceByCode;
 var
   Res: TStillCreatureResource;
 begin
-  Res := TStillCreatureResource.Create('StillKnight');
-  Res.Animations.FindName('idle').URL := ApplicationData('knight_kanim/idle.kanim');
-  Res.Animations.FindName('die').URL := ApplicationData('knight_kanim/die.kanim');
+  Res := TStillCreatureResource.Create('KnightCreatedFromCodeTest');
+  Res.Animations.FindName('idle').URL := ApplicationData('knight_castle_anim_frames/idle.castle-anim-frames');
+  Res.Animations.FindName('die').URL := ApplicationData('knight_castle_anim_frames/die.castle-anim-frames');
   Resources.Add(Res);
 end;
 

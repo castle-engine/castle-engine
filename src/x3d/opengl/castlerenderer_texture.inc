@@ -246,6 +246,8 @@
   public
     GLVideo: TGLVideo3D;
 
+    function GLName: TGLTextureId;
+
     function TextureNode: TMovieTextureNode;
 
     procedure Unprepare; override;
@@ -1124,7 +1126,7 @@ begin
     Renderer.Cache.TextureVideo_DecReference(GLVideo);
 end;
 
-function TGLMovieTextureNode.Bind(const TextureUnit: Cardinal): boolean;
+function TGLMovieTextureNode.GLName: TGLTextureId;
 var
   VideoTime: TFloatTime;
 begin
@@ -1133,20 +1135,34 @@ begin
     TCastleSceneCore.FreeResources([frTextureDataInNodes]) purpose.
 
     Actually, it would be safe to call this for non-MovieTexture nodes,
-    as they should be prepared to display lists before doing
+    as they should be prepared to GL resources before doing
     FreeResources. But for MovieTexture nodes it's forbidden,
     as it's called at every frame render. }
 
-  Result := GLVideo <> nil;
-  if not Result then Exit;
+  if GLVideo <> nil then
+  begin
+    VideoTime :=
+      TextureNode.TimeDependentNodeHandler.ElapsedTimeInCycle *
+      TextureNode.FdSpeed.Value;
+    if TextureNode.FdSpeed.Value < 0 then
+      VideoTime := TextureNode.Duration + VideoTime;
 
-  VideoTime := TextureNode.TimeDependentNodeHandler.ElapsedTimeInCycle *
-               TextureNode.FdSpeed.Value;
-  if TextureNode.FdSpeed.Value < 0 then
-    VideoTime := TextureNode.Duration + VideoTime;
+    Result := GLVideo.GLTextureFromTime(VideoTime);
+  end else
+    Result := 0;
+end;
 
-  Renderer.ActiveTexture(TextureUnit);
-  glBindTexture(GL_TEXTURE_2D, GLVideo.GLTextureFromTime(VideoTime));
+function TGLMovieTextureNode.Bind(const TextureUnit: Cardinal): boolean;
+var
+  N: TGLTextureId;
+begin
+  N := GLName;
+  Result := N <> 0;
+  if Result then
+  begin
+    Renderer.ActiveTexture(TextureUnit);
+    glBindTexture(GL_TEXTURE_2D, N);
+  end;
 end;
 
 function TGLMovieTextureNode.Enable(const TextureUnit: Cardinal;

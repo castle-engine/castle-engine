@@ -21,8 +21,8 @@ unit CastleInternalNodeInterpolator;
 
 interface
 
-uses Classes,
-  CastleUtils, X3DNodes;
+uses Classes, FGL,
+  CastleUtils, X3DNodes, CastleBoxes;
 
 type
   TGetKeyNodeWithTime = procedure (const Index: Cardinal;
@@ -41,37 +41,90 @@ type
       DefaultEqualityEpsilon = 0.001;
       DefaultAnimationName = 'animation';
 
-    { Load animation data from KAnim file (in a given URL) to a set of variables.
-      See [http://castle-engine.sourceforge.net/kanim_format.php]
-      for specification of the file format.
+    type
+      { Key X3D nodes read from castle-anim-frames. }
+      TAnimation = class
+        { The nodes and associated times read from castle-anim-frames.
+          The list objects are owned (created, destroyed) by this TAnimation instance.
+          The nodes inside KeyNodes are not -- it's the caller responsibility
+          to free or pass them as appropriate (or just call
+          @link(FreeKeyNodesContents) to easily free them).
+          @groupBegin }
+        KeyNodes: TX3DNodeList;
+        KeyTimes: TSingleList;
+        { @groupEnd }
+        Name: string;
+        ScenesPerTime: Cardinal;
+        EqualityEpsilon: Single;
+        Loop, Backwards: boolean;
+        BoundingBox: TBox3D;
 
-      In case of KeyNodes, KeyUrls and KeyTimes,
-      you should pass here references to
-      @italic(already created and currently empty) lists.
+        constructor Create;
+        destructor Destroy; override;
+        procedure FreeKeyNodesContents;
+      end;
 
-      KeyUrls returned will always contain only absolute paths.
-      We will expand every path (like URL parameter) if necessary for this.
-      Overloaded version gives you already loaded KeyNodes.
+      TAnimationList = class(specialize TFPGObjectList<TAnimation>)
+        { Call TAnimation.FreeKeyNodesContents on all the items. }
+        procedure FreeKeyNodesContents;
+      end;
 
-      If you seek for most comfortable way to load TCastlePrecalculatedAnimation from a file,
-      you probably want to use TCastlePrecalculatedAnimation.LoadFromFile.
-      This procedure is more flexible --- it allows
-      you to e.g. modify parameters before creating TCastlePrecalculatedAnimation
-      instance, and it's usefull to implement a class like
-      TCastlePrecalculatedAnimationInfo that also wants to read animation data,
-      but doesn't have an TCastlePrecalculatedAnimation instance available. }
-    class procedure LoadKAnimToKeyNodes(const URL: string;
-      const KeyUrls: TStringList;
-      const KeyTimes: TSingleList;
-      out ScenesPerTime: Cardinal;
-      out EqualityEpsilon: Single;
-      out ATimeLoop, ATimeBackwards: boolean);
-    class procedure LoadKAnimToKeyNodes(const URL: string;
-      const KeyNodes: TX3DNodeList;
-      const KeyTimes: TSingleList;
-      out ScenesPerTime: Cardinal;
-      out EqualityEpsilon: Single;
-      out ATimeLoop, ATimeBackwards: boolean);
+      { X3D nodes series that make an animation.
+        These are like TAnimation, but sometimes with additional
+        interpolated nodes added in between. }
+      TBakedAnimation = class
+        { The nodes for every time step.
+          This is usually more than just "key" nodes, it's filled with intermediate
+          interpolated nodes created by BakeToSequence.
+
+          Just like TAnimation.KeyNodes, the nodes list instance is owned by
+          this TBakedAnimation instance, but it's contents (actual X3D nodes) is not.
+          That is, Nodes.OwnsObjects is @false.
+          Make sure to free (or pass along) the nodes as necessary.
+          In the simplest case, you can call FreeNodesContents,
+          but usually you will pass the nodes furher to LoadToX3D.
+
+          This list is never empty after BakeToSequence call,
+          as you cannot create a sequence from an empty list.
+          The list contains only TX3DRootNode instances.
+        }
+        Nodes: TX3DNodeList;
+
+        TimeBegin, TimeEnd: Single;
+        Name: string;
+        Loop, Backwards: boolean;
+        BoundingBox: TBox3D;
+
+        constructor Create;
+        destructor Destroy; override;
+        procedure FreeNodesContents;
+
+        { Animation duration in seconds. Just TimeEnd - TimeBegin. }
+        function Duration: Single;
+      end;
+
+      TBakedAnimationList = class(specialize TFPGObjectList<TBakedAnimation>)
+        procedure FreeNodesContents;
+      end;
+
+    { Load animation data from castle-anim-frames file (in a given URL) to a set of variables.
+      See [http://castle-engine.sourceforge.net/castle_animation_frames.php]
+      for a specification of the file format.
+
+      If you want a comfortable way to load castle-anim-frames from a file,
+      you will usually just use the @link(TCastleScene.Load) method.
+      The @name is more flexible --- it returns the nodes list,
+      which allows you to modify the animation before passing it to @link(LoadToX3D)
+      or other methods.
+
+      Returns a TAnimationList instance.
+      It's the caller responsibility to free this instance (along with it's contents;
+      the list items will be freed automatically with the list,
+      as the list has OwnsObjects = true;
+      but you must manually take care to free (or pass elsewhere)
+      the TAnimation.KeyNodes contents, or just call @link(TAnimationList.FreeKeyNodesContents).)
+    }
+    class function LoadAnimFramesToKeyNodes(const URL: string): TAnimationList;
 
     { From key nodes, create a series of baked nodes (with final
       animation pose already calculated) representing an animation.
@@ -79,43 +132,55 @@ type
       KeyNodesCount must always be at least one,
       you cannot create animation from an empty list.
 
-      The returned list contains only TX3DRootNode instances.
-      It's never empty. Must be freed by the caller. }
+      The returned animation must be freed by the caller.
+      You should take care to free the contained @link(TBakedAnimation.Nodes)
+      (they are @italic(not) automatically freed by freeing TBakedAnimation).
+
+      It always contains the "key" nodes returned by GetKeyNodeWithTime,
+      so there's no need to free the "key" nodes if you already take care of freeing
+      the resulting nodes.
+
+      We do not set the Name, Loop, Backwards, BoundingBox properties of the TBakedAnimation.
+      Caller should set them, to finalize the initialization of TBakedAnimation. }
     class function BakeToSequence(const GetKeyNodeWithTime: TGetKeyNodeWithTime;
       const KeyNodesCount: Cardinal;
       const ScenesPerTime: Cardinal;
-      const EqualityEpsilon: Single;
-      out TimeBegin, TimeEnd: Single): TX3DNodeList;
+      const EqualityEpsilon: Single): TBakedAnimation;
 
     { Convert a node list to animate (like the one from MD3 loader,
       or from TNodeInterpolator.BakeToSequence,
-      which may come from Kanim file or from generated animation)
+      which may come from castle-anim-frames file or from generated animation)
       into a simple X3D graph that animates it (using TimeSensor,
       IntegerSequencer and Switch node, wrapping given here Nodes).
       This allows to read key nodes from any format,
-      like a kanim or MD3, and convert them to a simple X3D animation. }
-    class function LoadSequenceToX3D(
-      const Nodes: TX3DNodeList; const Duration: Single;
-      const Loop, Backwards: boolean): TX3DRootNode;
+      like a castle-anim-frames or MD3, and convert them to a simple X3D animation.
 
-    { Load a series of key X3D nodes into a X3D animation.
+      BakedAnimations list must never be empty. }
+    class function LoadSequenceToX3D(const BakedAnimations: TBakedAnimationList): TX3DRootNode;
+
+    { Load animations (read by @link(LoadAnimFramesToKeyNodes) to a series
+      of key nodes) into a X3D animation.
+
       This is a combined BakeToSequence (that interpolates and creates
       intermediate nodes from a list of key nodes) and LoadSequenceToX3D
       (that converts a sequence of nodes into an animation, using TimeSensor,
-      Switch etc.) }
-    class function LoadToX3D(
-      const KeyNodes: TX3DNodeList;
-      const KeyTimes: TSingleList;
-      const ScenesPerTime: Cardinal;
-      const EqualityEpsilon: Single;
-      const Loop, Backwards: boolean): TX3DRootNode;
+      Switch etc.)
+
+      After calling this, the "key" nodes inside the @link(TAnimation.KeyNodes)
+      become owned by the resulting large X3D node. So there's no need to worry
+      about freeing them anymore, just make sure to free the resulting large node.
+      @bold(If this exits with exception, the @link(TAnimation.KeyNodes) are already freed.)
+      This is weird, but necessary (otherwise we would have to suffer memory leaks,
+      as internal BakeToSequence could already create some intermediate nodes).
+      So, after calling this method, you should only free the TAnimationList instance. }
+    class function LoadToX3D(const Animations: TAnimationList): TX3DRootNode;
   end;
 
 implementation
 
 uses SysUtils, XMLRead, DOM,
-  CastleLog, X3DFields, CastleXMLUtils, CastleFilesUtils,
-  CastleDownload, CastleURIUtils, X3DLoad, CastleClassUtils;
+  CastleLog, X3DFields, CastleXMLUtils, CastleFilesUtils, CastleVectors,
+  CastleDownload, CastleURIUtils, X3DLoad, CastleClassUtils, X3DLoadInternalUtils;
 
 { EModelsStructureDifferent -------------------------------------------------- }
 
@@ -158,8 +223,8 @@ procedure CheckNodesStructurallyEqual(Model1, Model2: TX3DNode;
   begin
     if Field1.Items.Count <> Field2.Items.Count then
       raise EModelsStructureDifferent.CreateFmt(
-        'Different number of children in MFNode fields: "%d" and "%d"',
-        [Model1.VRML1ChildrenCount, Model2.VRML1ChildrenCount]);
+        'Different number of children in MFNode field "%s": %d vs %d',
+        [Field1.NiceName, Field1.Items.Count, Field2.Items.Count]);
 
     for I := 0 to Field1.Items.Count - 1 do
       CheckNodesStructurallyEqual(Field1[I], Field2[I], EqualityEpsilon);
@@ -198,7 +263,7 @@ begin
 
   if Model1.VRML1ChildrenCount <> Model2.VRML1ChildrenCount then
     raise EModelsStructureDifferent.CreateFmt(
-      'Different number of children in nodes: "%d" and "%d"',
+      'Different number of Inventor / VRML 1.0 children in nodes: %d vs %d',
       [Model1.VRML1ChildrenCount, Model2.VRML1ChildrenCount]);
 
   for I := 0 to Model1.VRML1ChildrenCount - 1 do
@@ -496,37 +561,111 @@ begin
   end;
 end;
 
+{ TAnimation ----------------------------------------------------------------- }
+
+constructor TNodeInterpolator.TAnimation.Create;
+begin
+  inherited;
+  KeyTimes := TSingleList.Create;
+  KeyNodes := TX3DNodeList.Create(false);
+end;
+
+destructor TNodeInterpolator.TAnimation.Destroy;
+begin
+  FreeAndNil(KeyTimes);
+  FreeAndNil(KeyNodes);
+  inherited;
+end;
+
+procedure TNodeInterpolator.TAnimation.FreeKeyNodesContents;
+var
+  I: Integer;
+begin
+  for I := 0 to KeyNodes.Count - 1 do
+    FPGObjectList_FreeAndNilItem(KeyNodes, I);
+  KeyNodes.Clear;
+end;
+
+{ TAnimationList ------------------------------------------------------------- }
+
+procedure TNodeInterpolator.TAnimationList.FreeKeyNodesContents;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I].FreeKeyNodesContents;
+end;
+
+{ TBakedAnimation ----------------------------------------------------------------- }
+
+constructor TNodeInterpolator.TBakedAnimation.Create;
+begin
+  inherited;
+  Nodes := TX3DNodeList.Create(false);
+end;
+
+destructor TNodeInterpolator.TBakedAnimation.Destroy;
+begin
+  FreeAndNil(Nodes);
+  inherited;
+end;
+
+function TNodeInterpolator.TBakedAnimation.Duration: Single;
+begin
+  Result := TimeEnd - TimeBegin;
+end;
+
+procedure TNodeInterpolator.TBakedAnimation.FreeNodesContents;
+var
+  I: Integer;
+begin
+  for I := 0 to Nodes.Count - 1 do
+    FPGObjectList_FreeAndNilItem(Nodes, I);
+  Nodes.Clear;
+end;
+
+{ TBakedAnimationList ------------------------------------------------------------- }
+
+procedure TNodeInterpolator.TBakedAnimationList.FreeNodesContents;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    Items[I].FreeNodesContents;
+end;
 { TNodeInterpolator ---------------------------------------------------------- }
 
 class function TNodeInterpolator.BakeToSequence(
   const GetKeyNodeWithTime: TGetKeyNodeWithTime;
   const KeyNodesCount: Cardinal;
   const ScenesPerTime: Cardinal;
-  const EqualityEpsilon: Single;
-  out TimeBegin, TimeEnd: Single): TX3DNodeList;
+  const EqualityEpsilon: Single): TBakedAnimation;
 var
   I: Integer;
   StructurallyEqual, KeyNodesEqual: boolean;
-  LastResultIndex: Integer;
+  LastNodesIndex: Integer;
   LastKeyNode, NewKeyNode: TX3DRootNode;
   LastTime, NewTime: Single;
-  ResultIndex: Integer;
+  NodesIndex: Integer;
+  Nodes: TX3DNodeList;
 begin
-  Result := TX3DNodeList.Create(false);
+  Result := TBakedAnimation.Create;
   try
     Assert(KeyNodesCount > 0);
 
-    { KeyNodes[0] goes to Result[0], that's easy }
+    { KeyNodes[0] goes to Nodes[0], that's easy }
     GetKeyNodeWithTime(0, NewKeyNode, NewTime);
 
-    Result.Count := 1;
-    Result[0] := NewKeyNode;
-    LastResultIndex := 0;
+    Nodes := Result.Nodes;
+
+    Nodes.Count := 1;
+    Nodes[0] := NewKeyNode;
+    LastNodesIndex := 0;
     LastTime := NewTime;
     LastKeyNode := NewKeyNode;
 
     { calculate TimeBegin at this point }
-    TimeBegin := NewTime;
+    Result.TimeBegin := NewTime;
 
     for I := 1 to KeyNodesCount - 1 do
     begin
@@ -548,74 +687,63 @@ begin
         end;
       end;
 
-      Result.Count := Result.Count +
+      Nodes.Count := Nodes.Count +
         Max(1, Round((NewTime - LastTime) * ScenesPerTime));
 
       if StructurallyEqual then
       begin
         { Try to merge it with LastKeyNode.
-          Then initialize Result[LastResultIndex + 1 to Result.Count - 1]. }
+          Then initialize Nodes[LastNodesIndex + 1 to Nodes.Count - 1]. }
         KeyNodesEqual := NodesMerge(NewKeyNode, LastKeyNode, EqualityEpsilon);
         if KeyNodesEqual then
         begin
           { In this case don't waste memory, simply reuse
             LastKeyNode. }
           FreeAndNil(NewKeyNode);
-          for ResultIndex := LastResultIndex + 1 to Result.Count - 1 do
-            Result[ResultIndex] := Result[LastResultIndex];
+          for NodesIndex := LastNodesIndex + 1 to Nodes.Count - 1 do
+            Nodes[NodesIndex] := Nodes[LastNodesIndex];
         end else
         begin
-          for ResultIndex := LastResultIndex + 1 to Result.Count - 2 do
-            Result[ResultIndex] := NodesLerp(
-              MapRange(ResultIndex, LastResultIndex, Result.Count - 1, 0.0, 1.0),
+          for NodesIndex := LastNodesIndex + 1 to Nodes.Count - 2 do
+            Nodes[NodesIndex] := NodesLerp(
+              MapRange(NodesIndex, LastNodesIndex, Nodes.Count - 1, 0.0, 1.0),
               LastKeyNode, NewKeyNode);
-          Result[Result.Count - 1] := NewKeyNode;
+          Nodes[Nodes.Count - 1] := NewKeyNode;
           LastKeyNode := NewKeyNode;
         end;
       end else
       begin
         { We cannot interpolate between last and new node.
-          So just duplicate last node until Result.Count - 2,
-          and at Result.Last insert new node. }
-        for ResultIndex := LastResultIndex + 1 to Result.Count - 2 do
-          Result[ResultIndex] := Result[LastResultIndex];
-        Result[Result.Count - 1] := NewKeyNode;
+          So just duplicate last node until Nodes.Count - 2,
+          and at Nodes.Last insert new node. }
+        for NodesIndex := LastNodesIndex + 1 to Nodes.Count - 2 do
+          Nodes[NodesIndex] := Nodes[LastNodesIndex];
+        Nodes[Nodes.Count - 1] := NewKeyNode;
         LastKeyNode := NewKeyNode;
       end;
 
       LastTime := NewTime;
-      LastResultIndex := Result.Count - 1;
+      LastNodesIndex := Nodes.Count - 1;
     end;
 
     { calculate TimeEnd at this point }
-    TimeEnd := NewTime;
+    Result.TimeEnd := NewTime;
 
   except FreeAndNil(Result); raise end;
 end;
 
-class procedure TNodeInterpolator.LoadKAnimToKeyNodes(const URL: string;
-  const KeyUrls: TStringList;
-  const KeyTimes: TSingleList;
-  out ScenesPerTime: Cardinal;
-  out EqualityEpsilon: Single;
-  out ATimeLoop, ATimeBackwards: boolean);
+class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TAnimationList;
 
-  { Load KAnim animation data from a given XML element to a set of variables.
-
-    This is just like LoadKAnimToKeyNodes, but it works using
-    an Element. This way you can use it to load <animation> element
-    that is a part of some larger XML file.
+  { Load <animation> data from a given XML element to a set of variables.
 
     @param(BaseUrl The URL from which relative
       URLs inside Element will be resolved. It doesn't
       have to be absolute, we will expand it to make it absolute
       if necessary.) }
-  procedure LoadFromDOMElement(
-    Element: TDOMElement;
-    const BaseUrl: string);
+  function LoadOneAnimation(Element: TDOMElement): TAnimation;
   const
-    DefaultKAnimLoop = false;
-    DefaultKAnimBackwards = false;
+    DefaultLoop = false;
+    DefaultBackwards = false;
   var
     AbsoluteBaseUrl: string;
     FrameElement: TDOMElement;
@@ -623,76 +751,100 @@ class procedure TNodeInterpolator.LoadKAnimToKeyNodes(const URL: string;
     I: Integer;
     FrameTime: Single;
     FrameURL: string;
+    NewNode: TX3DRootNode;
     Attr: TDOMAttr;
+    FrameBoxCenter, FrameBoxSize: TVector3Single;
   begin
-    Assert(KeyTimes.Count = 0);
-    Assert(KeyUrls.Count = 0);
-
-    AbsoluteBaseUrl := AbsoluteURI(BaseUrl);
-
-    Check(Element.TagName = 'animation',
-      'Root node of an animation XML file must be <animation>');
-
-    { Assign default values for optional attributes }
-    ScenesPerTime := DefaultScenesPerTime;
-    EqualityEpsilon := DefaultEqualityEpsilon;
-    ATimeLoop := DefaultKAnimLoop;
-    ATimeBackwards := DefaultKAnimBackwards;
-
-    for I := 0 to Integer(Element.Attributes.Length) - 1 do
-    begin
-      Attr := Element.Attributes.Item[I] as TDOMAttr;
-      if Attr.Name = 'scenes_per_time' then
-        ScenesPerTime := StrToInt(Attr.Value) else
-      if Attr.Name = 'optimization' then
-        { ignore } else
-      if Attr.Name = 'equality_epsilon' then
-        EqualityEpsilon := StrToFloat(Attr.Value) else
-      if Attr.Name = 'loop' then
-        ATimeLoop := StrToBool(Attr.Value) else
-      if Attr.Name = 'backwards' then
-        ATimeBackwards := StrToBool(Attr.Value) else
-        raise Exception.CreateFmt('Unknown attribute of <animation> element: "%s"',
-          [Attr.Name]);
-    end;
-
-    Children := Element.ChildrenIterator;
+    Result := TAnimation.Create;
     try
-      while Children.GetNext do
+      AbsoluteBaseUrl := AbsoluteURI(URL);
+
+      Check(Element.TagName = 'animation', 'Expected an <animation> XML node');
+
+      { Assign default values for optional attributes }
+      Result.Name := DefaultAnimationName;
+      Result.ScenesPerTime := DefaultScenesPerTime;
+      Result.EqualityEpsilon := DefaultEqualityEpsilon;
+      Result.Loop := DefaultLoop;
+      Result.Backwards := DefaultBackwards;
+      Result.BoundingBox := TBox3D.Empty;
+
+      for I := 0 to Integer(Element.Attributes.Length) - 1 do
       begin
-        FrameElement := Children.Current;
-        Check(FrameElement.TagName = 'frame',
-          'Each child of <animation> element must be a <frame> element');
-
-        if not FrameElement.AttributeSingle('time', FrameTime) then
-          raise Exception.Create('<frame> element must have a "time" attribute');
-
-        if not FrameElement.AttributeString('url', FrameURL) then
-          if not FrameElement.AttributeString('file_name', FrameURL) then
-            raise Exception.Create('<frame> element must have an "url" (or deprecated "file_name") attribute');
-
-        { Make FrameURL absolute, treating it as relative vs
-          AbsoluteBaseUrl }
-        FrameURL := CombineURI(AbsoluteBaseUrl, FrameURL);
-
-        if (KeyTimes.Count > 0) and (FrameTime <= KeyTimes.Last) then
-          raise Exception.Create(
-            'Frames within <animation> element must be specified in ' +
-            'increasing time order');
-
-        KeyUrls.Add(FrameURL);
-        KeyTimes.Add(FrameTime);
+        Attr := Element.Attributes.Item[I] as TDOMAttr;
+        if Attr.Name = 'name' then
+          Result.Name := Attr.Value
+        else
+        if Attr.Name = 'scenes_per_time' then
+          Result.ScenesPerTime := StrToInt(Attr.Value)
+        else
+        if Attr.Name = 'optimization' then
+          { ignore, for backward compatibility }
+        else
+        if Attr.Name = 'equality_epsilon' then
+          Result.EqualityEpsilon := StrToFloat(Attr.Value)
+        else
+        if Attr.Name = 'loop' then
+          Result.Loop := StrToBool(Attr.Value)
+        else
+        if Attr.Name = 'backwards' then
+          Result.Backwards := StrToBool(Attr.Value)
+        else
+          raise Exception.CreateFmt('Unknown attribute of <animation> element: "%s"',
+            [Attr.Name]);
       end;
-    finally FreeAndNil(Children) end;
 
-    if KeyUrls.Count = 0 then
-      raise Exception.Create(
-        'At least one <frame> is required within <animation> element');
+      Children := Element.ChildrenIterator;
+      try
+        while Children.GetNext do
+        begin
+          FrameElement := Children.Current;
+          Check(FrameElement.TagName = 'frame',
+            'Each child of <animation> element must be a <frame> element');
+
+          if not FrameElement.AttributeSingle('time', FrameTime) then
+            raise Exception.Create('<frame> element must have a "time" attribute');
+          if (Result.KeyTimes.Count > 0) and
+             (FrameTime <= Result.KeyTimes.Last) then
+            raise Exception.Create('Frames within <animation> element must be specified in an increasing time order');
+          Result.KeyTimes.Add(FrameTime);
+
+          if FrameElement.AttributeString('url', FrameURL) or
+             FrameElement.AttributeString('file_name', FrameURL) then
+          begin
+            { Make FrameURL absolute, treating it as relative vs
+              AbsoluteBaseUrl }
+            FrameURL := CombineURI(AbsoluteBaseUrl, FrameURL);
+            NewNode := Load3D(FrameURL);
+          end else
+          begin
+            NewNode := LoadX3DXml(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl);
+          end;
+
+          if FrameElement.AttributeVector3('bounding_box_center', FrameBoxCenter) and
+             FrameElement.AttributeVector3('bounding_box_size', FrameBoxSize) then
+          begin
+            Result.BoundingBox.Add(Box3DAroundPoint(FrameBoxCenter, FrameBoxSize));
+          end;
+
+          Result.KeyNodes.Add(NewNode);
+        end;
+      finally FreeAndNil(Children) end;
+
+      if Result.KeyNodes.Count = 0 then
+        raise Exception.Create('At least one <frame> is required within <animation> element');
+    except
+      { in case of trouble, clear the partial KeyNodes contents }
+      Result.FreeKeyNodesContents;
+      FreeAndNil(Result);
+      raise;
+    end;
   end;
 
 var
   Document: TXMLDocument;
   Stream: TStream;
+  Children: TXMLElementIterator;
 begin
   Stream := Download(URL);
   try
@@ -700,44 +852,34 @@ begin
   finally FreeAndNil(Stream) end;
 
   try
-    LoadFromDOMElement(Document.DocumentElement, URL);
+    Result := TAnimationList.Create;
+    try
+      if Document.DocumentElement.TagName = 'animation' then
+      begin
+        Result.Add(LoadOneAnimation(Document.DocumentElement));
+      end else
+      begin
+        Check(Document.DocumentElement.TagName = 'animations',
+          'Expected an <animations> XML node at the root of castle-anim-frames, eventually an <animation> node for single-animation files.');
+
+        Children := Document.DocumentElement.ChildrenIterator;
+        try
+          while Children.GetNext do
+            Result.Add(LoadOneAnimation(Children.Current));
+        finally FreeAndNil(Children) end;
+
+        if Result.Count = 0 then
+          raise Exception.Create('No animations (no <animation> elements) inside the castle-anim-frames file');
+      end;
+    except
+      Result.FreeKeyNodesContents;
+      FreeAndNil(Result);
+      raise;
+    end;
   finally FreeAndNil(Document); end;
 end;
 
-class procedure TNodeInterpolator.LoadKAnimToKeyNodes(const URL: string;
-  const KeyNodes: TX3DNodeList;
-  const KeyTimes: TSingleList;
-  out ScenesPerTime: Cardinal;
-  out EqualityEpsilon: Single;
-  out ATimeLoop, ATimeBackwards: boolean);
-var
-  KeyUrls: TStringList;
-  I, J: Integer;
-begin
-  KeyUrls := TStringList.Create;
-  try
-    LoadKAnimToKeyNodes(URL, KeyUrls, KeyTimes,
-      ScenesPerTime, EqualityEpsilon, ATimeLoop, ATimeBackwards);
-
-    Assert(KeyUrls.Count = KeyTimes.Count);
-    Assert(KeyUrls.Count >= 1);
-
-    { Now use KeyUrls to load KeyNodes }
-    KeyNodes.Count := KeyUrls.Count;
-    for I := 0 to KeyUrls.Count - 1 do
-    try
-      KeyNodes[I] := Load3D(KeyUrls[I]);
-    except
-      for J := 0 to I - 1 do
-        FPGObjectList_FreeAndNilItem(KeyNodes, J);
-      raise;
-    end;
-  finally FreeAndNil(KeyUrls) end;
-end;
-
-class function TNodeInterpolator.LoadSequenceToX3D(
-  const Nodes: TX3DNodeList; const Duration: Single;
-  const Loop, Backwards: boolean): TX3DRootNode;
+class function TNodeInterpolator.LoadSequenceToX3D(const BakedAnimations: TBakedAnimationList): TX3DRootNode;
 var
   BaseUrl: string;
 
@@ -757,69 +899,181 @@ var
       Result := RootNode;
   end;
 
+  function WrapInCollisionNode(const Node: TX3DNode; const BoxForCollisions: TBox3D): TX3DNode;
+  var
+    CollisionNode: TCollisionNode;
+    ProxyTransform: TTransformNode;
+    ProxyShape: TShapeNode;
+    ProxyBox: TBoxNode;
+  begin
+    { always create ProxyTransform, even when BoxForCollisions.IsEmpty,
+      otherwise X3D Collision.proxy would be ignored when nil. }
+    ProxyTransform := TTransformNode.Create('', BaseUrl);
+
+    if not BoxForCollisions.IsEmpty then
+    begin
+      ProxyBox := TBoxNode.Create('', BaseUrl);
+      ProxyBox.Size := BoxForCollisions.Sizes;
+
+      ProxyShape := TShapeNode.Create('', BaseUrl);
+      ProxyShape.Geometry := ProxyBox;
+
+      ProxyTransform.Translation := BoxForCollisions.Middle;
+      ProxyTransform.FdChildren.Add(ProxyShape);
+    end;
+
+    CollisionNode := TCollisionNode.Create;
+    CollisionNode.FdChildren.Add(Node);
+    CollisionNode.FdProxy.Value := ProxyTransform;
+    Result := CollisionNode;
+  end;
+
+  function ConvertOneAnimation(
+    const BakedAnimation: TBakedAnimation;
+    const AnimationIndex: Integer;
+    const RootNode: TX3DRootNode;
+    const SwitchChooseAnimation: TSwitchNode): TGroupNode;
+  var
+    AnimationX3DName: string;
+
+    procedure AddAnimationVisibilityRoutes(TimeSensor: TTimeSensorNode);
+    var
+      BooleanFilter: TBooleanFilterNode;
+      IntegerTrigger: TIntegerTriggerNode;
+      Route: TX3DRoute;
+    begin
+      BooleanFilter := TBooleanFilterNode.Create(
+        AnimationX3DName + '_BooleanFilter', BaseUrl);
+      RootNode.FdChildren.Add(BooleanFilter);
+
+      IntegerTrigger := TIntegerTriggerNode.Create(
+        AnimationX3DName + '_IntegerTrigger', BaseUrl);
+      IntegerTrigger.IntegerKey := AnimationIndex;
+      RootNode.FdChildren.Add(IntegerTrigger);
+
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(TimeSensor.EventIsActive);
+      Route.SetDestinationDirectly(BooleanFilter.EventSet_boolean);
+      RootNode.AddRoute(Route);
+
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(BooleanFilter.EventInputTrue);
+      Route.SetDestinationDirectly(IntegerTrigger.EventSet_boolean);
+      RootNode.AddRoute(Route);
+
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(IntegerTrigger.EventTriggerValue);
+      Route.SetDestinationDirectly(SwitchChooseAnimation.FdWhichChoice.EventIn);
+      RootNode.AddRoute(Route);
+    end;
+
+  var
+    TimeSensor: TTimeSensorNode;
+    IntSequencer: TIntegerSequencerNode;
+    Switch: TSwitchNode;
+    I, NodesCount: Integer;
+    Route: TX3DRoute;
+  begin
+    AnimationX3DName := ToX3DName(BakedAnimation.Name);
+
+    Result := TGroupNode.Create(
+      AnimationX3DName + '_Group', BaseUrl);
+
+    NodesCount := BakedAnimation.Nodes.Count;
+
+    IntSequencer := TIntegerSequencerNode.Create(
+      AnimationX3DName + '_IntegerSequencer', BaseUrl);
+    if BakedAnimation.Backwards then
+    begin
+      IntSequencer.FdKey.Count := NodesCount * 2;
+      IntSequencer.FdKeyValue.Count := NodesCount * 2;
+      for I := 0 to NodesCount - 1 do
+      begin
+        IntSequencer.FdKey.Items[I] := I / IntSequencer.FdKey.Count;
+        IntSequencer.FdKeyValue.Items[I] := I;
+      end;
+      for I := 0 to NodesCount - 1 do
+      begin
+        IntSequencer.FdKey.Items[NodesCount + I] := (NodesCount + I) / IntSequencer.FdKey.Count;
+        IntSequencer.FdKeyValue.Items[NodesCount + I] := NodesCount - 1 - I;
+      end;
+    end else
+    begin
+      IntSequencer.FdKey.Count := NodesCount;
+      IntSequencer.FdKeyValue.Count := NodesCount;
+      for I := 0 to NodesCount - 1 do
+      begin
+        IntSequencer.FdKey.Items[I] := I / NodesCount;
+        IntSequencer.FdKeyValue.Items[I] := I;
+      end;
+    end;
+    Result.FdChildren.Add(IntSequencer);
+
+    Switch := TSwitchNode.Create(
+      AnimationX3DName + '_Switch_ChooseAnimationFrame', BaseUrl);
+    for I := 0 to NodesCount - 1 do
+      Switch.FdChildren.Add(WrapRootNode(BakedAnimation.Nodes[I] as TX3DRootNode));
+    { we set whichChoice to 0 to see something before you run the animation }
+    Switch.WhichChoice := 0;
+    Result.FdChildren.Add(Switch);
+
+    { Name of the TimeSensor is important, this is the animation name,
+      so don't append there anything ugly like '_TimeSensor'.
+      Also, place it in the active graph part (outside SwitchChooseAnimation)
+      to be always listed in Scene.AnimationsList. }
+    TimeSensor := TTimeSensorNode.Create(AnimationX3DName, BaseUrl);
+    TimeSensor.CycleInterval := BakedAnimation.Duration;
+    TimeSensor.Loop := BakedAnimation.Loop;
+    RootNode.FdChildren.Add(TimeSensor);
+
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(TimeSensor.EventFraction_changed);
+    Route.SetDestinationDirectly(IntSequencer.EventSet_fraction);
+    RootNode.AddRoute(Route);
+
+    Route := TX3DRoute.Create;
+    Route.SetSourceDirectly(IntSequencer.EventValue_changed);
+    Route.SetDestinationDirectly(Switch.FdWhichChoice);
+    RootNode.AddRoute(Route);
+
+    RootNode.ManuallyExportNode(TimeSensor);
+
+    AddAnimationVisibilityRoutes(TimeSensor);
+  end;
+
 var
-  TimeSensor: TTimeSensorNode;
-  IntSequencer: TIntegerSequencerNode;
-  Switch: TSwitchNode;
   I: Integer;
-  Route: TX3DRoute;
+  SwitchChooseAnimation: TSwitchNode;
+  BoundingBox: TBox3D;
 begin
-  BaseUrl := Nodes[0].BaseUrl;
+  Assert(BakedAnimations.Count <> 0);
+  Assert(BakedAnimations[0].Nodes.Count <> 0);
+  BaseUrl := BakedAnimations[0].Nodes[0].BaseUrl;
 
   Result := TX3DRootNode.Create('', BaseUrl);
 
-  TimeSensor := TTimeSensorNode.Create(DefaultAnimationName, BaseUrl);
-  TimeSensor.CycleInterval := Duration;
-  TimeSensor.Loop := Loop;
-  Result.FdChildren.Add(TimeSensor);
-
-  IntSequencer := TIntegerSequencerNode.Create(
-    DefaultAnimationName + '_IntegerSequencer', BaseUrl);
-  if Backwards then
+  SwitchChooseAnimation := TSwitchNode.Create('ChooseAnimation', BaseUrl);
+  BoundingBox := TBox3D.Empty;
+  for I := 0 to BakedAnimations.Count - 1 do
   begin
-    IntSequencer.FdKey.Count := Nodes.Count * 2;
-    IntSequencer.FdKeyValue.Count := Nodes.Count * 2;
-    for I := 0 to Nodes.Count - 1 do
-    begin
-      IntSequencer.FdKey.Items[I] := I / IntSequencer.FdKey.Count;
-      IntSequencer.FdKeyValue.Items[I] := I;
-    end;
-    for I := 0 to Nodes.Count - 1 do
-    begin
-      IntSequencer.FdKey.Items[Nodes.Count + I] := (Nodes.Count + I) / IntSequencer.FdKey.Count;
-      IntSequencer.FdKeyValue.Items[Nodes.Count + I] := Nodes.Count - 1 - I;
-    end;
-  end else
-  begin
-    IntSequencer.FdKey.Count := Nodes.Count;
-    IntSequencer.FdKeyValue.Count := Nodes.Count;
-    for I := 0 to Nodes.Count - 1 do
-    begin
-      IntSequencer.FdKey.Items[I] := I / Nodes.Count;
-      IntSequencer.FdKeyValue.Items[I] := I;
-    end;
+    SwitchChooseAnimation.FdChildren.Add(
+      ConvertOneAnimation(BakedAnimations[I], I, Result, SwitchChooseAnimation));
+    { by the way of converting, calculate also bounding box }
+    BoundingBox.Add(BakedAnimations[I].BoundingBox);
   end;
-  Result.FdChildren.Add(IntSequencer);
+  { we set whichChoice to 0 to see something before you run the animation }
+  SwitchChooseAnimation.WhichChoice := 0;
 
-  Switch := TSwitchNode.Create(DefaultAnimationName + '_Switch', BaseUrl);
-  for I := 0 to Nodes.Count - 1 do
-    Switch.FdChildren.Add(WrapRootNode(Nodes[I] as TX3DRootNode));
-  { we set whichChoice to 0 to have sensible,
-    non-empty bounding box before you run the animation }
-  Switch.WhichChoice := 0;
-  Result.FdChildren.Add(Switch);
+  { We use WrapInCollisionNode, to make the object
+    collide always as a bounding box.
+    Otherwise, initializing collisions for a long series of nodes is really
+    time-consuming.
 
-  Route := TX3DRoute.Create;
-  Route.SetSourceDirectly(TimeSensor.EventFraction_changed);
-  Route.SetDestinationDirectly(IntSequencer.EventSet_fraction);
-  Result.AddRoute(Route);
-
-  Route := TX3DRoute.Create;
-  Route.SetSourceDirectly(IntSequencer.EventValue_changed);
-  Route.SetDestinationDirectly(Switch.FdWhichChoice);
-  Result.AddRoute(Route);
-
-  Result.ManuallyExportNode(TimeSensor);
+    We have to implement actual conversion from a series of nodes
+    -> interpolators to have proper collisions with castle-anim-frames
+    contents. Even then, it's unsure whether it will be sensible,
+    as it will cost at runtime. }
+  Result.FdChildren.Add(WrapInCollisionNode(SwitchChooseAnimation, BoundingBox));
 end;
 
 class procedure TNodeInterpolator.LoadToX3D_GetKeyNodeWithTime(const Index: Cardinal;
@@ -829,22 +1083,38 @@ begin
   Time := LoadToX3D_KeyTimes[Index];
 end;
 
-class function TNodeInterpolator.LoadToX3D(
-  const KeyNodes: TX3DNodeList;
-  const KeyTimes: TSingleList;
-  const ScenesPerTime: Cardinal;
-  const EqualityEpsilon: Single;
-  const Loop, Backwards: boolean): TX3DRootNode;
+class function TNodeInterpolator.LoadToX3D(const Animations: TAnimationList): TX3DRootNode;
 var
-  TimeBegin, TimeEnd: Single;
-  Nodes: TX3DNodeList;
+  Animation: TAnimation;
+  BakedAnimations: TBakedAnimationList;
+  BakedAnimation: TBakedAnimation;
+  I: Integer;
 begin
-  LoadToX3D_KeyNodes := KeyNodes;
-  LoadToX3D_KeyTimes := KeyTimes;
-  Nodes := BakeToSequence(@LoadToX3D_GetKeyNodeWithTime, KeyNodes.Count, ScenesPerTime, EqualityEpsilon, TimeBegin, TimeEnd);
+  BakedAnimations := TBakedAnimationList.Create(true);
   try
-    Result := LoadSequenceToX3D(Nodes, TimeEnd - TimeBegin, Loop, Backwards);
-  finally FreeAndNil(Nodes) end;
+    try
+      for I := 0 to Animations.Count - 1 do
+      begin
+        Animation := Animations[I];
+        LoadToX3D_KeyNodes := Animation.KeyNodes;
+        LoadToX3D_KeyTimes := Animation.KeyTimes;
+        BakedAnimation := BakeToSequence(@LoadToX3D_GetKeyNodeWithTime,
+          Animation.KeyNodes.Count, Animation.ScenesPerTime, Animation.EqualityEpsilon);
+        BakedAnimation.Name := Animation.Name;
+        BakedAnimation.Loop := Animation.Loop;
+        BakedAnimation.Backwards := Animation.Backwards;
+        BakedAnimation.BoundingBox := Animation.BoundingBox;
+        BakedAnimations.Add(BakedAnimation);
+      end;
+    except
+      { make sure to free the TBakedAnimation.Nodes inside.
+        No other way to do it, as BakeToSequence already created some intermediate nodes,
+        and we have no way of returning them to the caller. }
+      BakedAnimations.FreeNodesContents;
+      raise;
+    end;
+    Result := LoadSequenceToX3D(BakedAnimations);
+  finally FreeAndNil(BakedAnimations) end;
 end;
 
 end.

@@ -297,57 +297,6 @@ begin
     Window.Load(StrPas(PChar(szFile)));
     Window.MainScene.Spatial := [ssRendering, ssDynamicCollisions];
     Window.MainScene.ProcessEvents := true;
-
-    { TODO: this CameraChanged call was added in
-      https://github.com/castle-engine/castle-engine/commit/34185e813bb8f771a16033d49c25b6d476746009
-      to make billboards correctly rotated after opening the scene
-      (before any camera movement occured).
-
-      The thing is, when TCastleWindow.Load is called,
-      then TCastleSceneManager.SetCamera is called,
-      but ProcessEvents is stil false, so
-      MainScene.CameraChanged does not update billboards.
-
-      And this is a bug that should be just fixed, i.e. billboards *should* be
-      updated automatically. It's bad when a developer must be aware of some
-      arcane call order, that you need to call something (ProcessEvents:=true)
-      before something else (CameraChanged) for things to work.
-
-      So TCastleSceneCore.SetProcessEvents should be fixed to update
-      billboards on setting ProcessEvents := true. Note: we should not update
-      billboards earlier, as the scene could miss then processing the events
-      like rotation_changed propagated by billboard nodes.
-
-      See InitialProximitySensorsEvents in TCastleSceneCore.SetProcessEvents,
-      and it's comments.
-
-      So the correct fix would be to add method like
-      UpdateCameraChangedEvents, that will cause
-
-          BeginChangesSchedule;
-          try
-            if CameraViewKnown then
-            begin
-              for I := 0 to ProximitySensors.Count - 1 do
-                ProximitySensorUpdate(ProximitySensors[I]);
-              // Update camera information on all Billboard nodes
-              for I := 0 to BillboardInstancesList.Count - 1 do
-              begin
-                ....
-              end;
-            end;
-          finally EndChangesSchedule end;
-
-      (middle of this is extracted from the implementation of
-      TCastleSceneCore.CameraChanged).
-
-      Then TCastleSceneCore.CameraChanged should call
-      UpdateCameraChangedEvents. And also SetProcessEvents should call
-      UpdateCameraChangedEvents (instead of InitialProximitySensorsEvents).
-
-      TODO: make a testcase and do it.
-    }
-    Window.MainScene.CameraChanged(Window.SceneManager.Camera);
     Window.SceneManager.Items.VisibleChangeNotification(Window.SceneManager.CameraToChanges);
   except
     on E: TObject do WritelnLog('Window', ExceptMessage(E));

@@ -631,7 +631,8 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.md3' then Result := 'application/x-md3' else
     if Ext = '.obj' then Result := 'application/x-wavefront-obj' else
     if Ext = '.geo' then Result := 'application/x-geo' else
-    if Ext = '.kanim' then Result := 'application/x-kanim' else
+    if Ext = '.kanim' then Result := 'application/x-castle-anim-frames' else
+    if Ext = '.castle-anim-frames' then Result := 'application/x-castle-anim-frames' else
     if Ext = '.json' then Result := 'application/json' else
     // Images.
     { Only images that we cannot handle in CastleImages unit are listed below.
