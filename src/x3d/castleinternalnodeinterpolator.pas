@@ -888,7 +888,7 @@ var
       Result := RootNode;
   end;
 
-  function WrapInCollisionNode(const Node: TX3DNode): TX3DNode;
+  function WrapDisableCollisionNode(const Node: TX3DNode): TX3DNode;
   var
     CollisionNode: TCollisionNode;
   begin
@@ -899,7 +899,8 @@ var
   end;
 
   function ConvertOneAnimation(const RootNode: TX3DRootNode;
-    const BakedAnimation: TBakedAnimation): TGroupNode;
+    const BakedAnimation: TBakedAnimation;
+    const NeverCollides: boolean): TGroupNode;
   var
     TimeSensor: TTimeSensorNode;
     IntSequencer: TIntegerSequencerNode;
@@ -950,11 +951,17 @@ var
     begin
       ChildNode := WrapRootNode(BakedAnimation.Nodes[I] as TX3DRootNode);
       { TODO: Initializing collisions for a long series of nodes is really
-        time-consuming. Better to avoid it. We have to implement actual conversion
-        from a series of nodes -> interpolators to have proper collisions
-        with castle-anim-frames contents. }
-      if I <> 0 then
-        ChildNode := WrapInCollisionNode(ChildNode);
+        time-consuming. Better to avoid it. We generate collisions only for
+        the first animation frame in the first animation.
+
+        We have to implement actual conversion from a series of nodes
+        -> interpolators to have proper collisions with castle-anim-frames
+        contents.
+
+        Or we have to export bounding boxed from Blender,
+        and then wrap *whole* animation in a <Collision> node with a proxy. }
+      if (I <> 0) or NeverCollides then
+        ChildNode := WrapDisableCollisionNode(ChildNode);
       Switch.FdChildren.Add(ChildNode);
     end;
     { we set whichChoice to 0 to have sensible,
@@ -984,7 +991,7 @@ begin
 
   Result := TX3DRootNode.Create('', BaseUrl);
   for I := 0 to BakedAnimations.Count - 1 do
-    Result.FdChildren.Add(ConvertOneAnimation(Result, BakedAnimations[I]));
+    Result.FdChildren.Add(ConvertOneAnimation(Result, BakedAnimations[I], I <> 0));
 end;
 
 class procedure TNodeInterpolator.LoadToX3D_GetKeyNodeWithTime(const Index: Cardinal;
