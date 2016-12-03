@@ -799,14 +799,9 @@ begin
               DataCount := Decompressor.Read(Buffer, BufferSize * SizeOf(Cardinal));
               DataLength := Length(Data);
               SetLength(Data, DataLength+(DataCount div SizeOf(Cardinal)));
-              if DataCount > 0 then // becouse if DataCount=0 then ERangeCheck error
+              if DataCount > 0 then // because if DataCount=0 then ERangeCheck error
                 Move(Buffer, Data[DataLength], DataCount);
             until DataCount < SizeOf(Buffer);
-            {TmpStr := '';
-            for j := Low(Data) to High(Data) do
-              TmpStr := TmpStr + ',' + IntToStr(Data[j]);
-            WriteLnLog('LoadData Data', TmpStr);  }
-
           finally
             Decompressor.Free;
           end;
@@ -818,7 +813,7 @@ begin
               DataCount := Decoder.Read(Buffer, BufferSize * SizeOf(Cardinal));
               DataLength := Length(Data);
               SetLength(Data, DataLength+(DataCount div SizeOf(Cardinal)));
-              if DataCount > 0 then // becouse if DataCount=0 then ERangeCheck error
+              if DataCount > 0 then // because if DataCount=0 then ERangeCheck error
                 Move(Buffer, Data[DataLength], DataCount);
             until DataCount < SizeOf(Buffer);
         end;
@@ -1010,7 +1005,7 @@ begin
     begin
       Result := FTilesets.Ptr(i-1);
       Break;
-		end;
+    end;
   Result := FTilesets.Ptr(FTilesets.Count - 1);
 end;
 
