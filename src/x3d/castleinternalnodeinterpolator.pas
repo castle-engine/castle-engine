@@ -1052,7 +1052,8 @@ begin
         BakedAnimation := BakeToSequence(@LoadToX3D_GetKeyNodeWithTime,
           Animation.KeyNodes.Count, Animation.ScenesPerTime, Animation.EqualityEpsilon);
         BakedAnimation.Name := Animation.Name;
-        BakedAnimation.Loop := Animation.Backwards;
+        BakedAnimation.Loop := Animation.Loop;
+        BakedAnimation.Backwards := Animation.Backwards;
         BakedAnimation.BoundingBox := Animation.BoundingBox;
         BakedAnimations.Add(BakedAnimation);
       end;
