@@ -928,8 +928,45 @@ var
     Result := CollisionNode;
   end;
 
-  function ConvertOneAnimation(const RootNode: TX3DRootNode;
-    const BakedAnimation: TBakedAnimation): TGroupNode;
+  function ConvertOneAnimation(
+    const BakedAnimation: TBakedAnimation;
+    const AnimationIndex: Integer;
+    const RootNode: TX3DRootNode;
+    const SwitchChooseAnimation: TSwitchNode): TGroupNode;
+  var
+    AnimationX3DName: string;
+
+    procedure AddAnimationVisibilityRoutes(TimeSensor: TTimeSensorNode);
+    var
+      BooleanFilter: TBooleanFilterNode;
+      IntegerTrigger: TIntegerTriggerNode;
+      Route: TX3DRoute;
+    begin
+      BooleanFilter := TBooleanFilterNode.Create(
+        AnimationX3DName + '_BooleanFilter', BaseUrl);
+      RootNode.FdChildren.Add(BooleanFilter);
+
+      IntegerTrigger := TIntegerTriggerNode.Create(
+        AnimationX3DName + '_IntegerTrigger', BaseUrl);
+      IntegerTrigger.IntegerKey := AnimationIndex;
+      RootNode.FdChildren.Add(IntegerTrigger);
+
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(TimeSensor.EventIsActive);
+      Route.SetDestinationDirectly(BooleanFilter.EventSet_boolean);
+      RootNode.AddRoute(Route);
+
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(BooleanFilter.EventInputTrue);
+      Route.SetDestinationDirectly(IntegerTrigger.EventSet_boolean);
+      RootNode.AddRoute(Route);
+
+      Route := TX3DRoute.Create;
+      Route.SetSourceDirectly(IntegerTrigger.EventTriggerValue);
+      Route.SetDestinationDirectly(SwitchChooseAnimation.FdWhichChoice.EventIn);
+      RootNode.AddRoute(Route);
+    end;
+
   var
     TimeSensor: TTimeSensorNode;
     IntSequencer: TIntegerSequencerNode;
@@ -937,17 +974,15 @@ var
     I, NodesCount: Integer;
     Route: TX3DRoute;
   begin
-    Result := TGroupNode.Create('', BaseUrl);
+    AnimationX3DName := ToX3DName(BakedAnimation.Name);
 
-    TimeSensor := TTimeSensorNode.Create(ToX3DName(BakedAnimation.Name), BaseUrl);
-    TimeSensor.CycleInterval := BakedAnimation.Duration;
-    TimeSensor.Loop := BakedAnimation.Loop;
-    Result.FdChildren.Add(TimeSensor);
+    Result := TGroupNode.Create(
+      AnimationX3DName + '_Group', BaseUrl);
 
     NodesCount := BakedAnimation.Nodes.Count;
 
     IntSequencer := TIntegerSequencerNode.Create(
-      TimeSensor.NodeName + '_IntegerSequencer', BaseUrl);
+      AnimationX3DName + '_IntegerSequencer', BaseUrl);
     if BakedAnimation.Backwards then
     begin
       IntSequencer.FdKey.Count := NodesCount * 2;
@@ -974,30 +1009,41 @@ var
     end;
     Result.FdChildren.Add(IntSequencer);
 
-    Switch := TSwitchNode.Create(TimeSensor.NodeName + '_Switch', BaseUrl);
+    Switch := TSwitchNode.Create(
+      AnimationX3DName + '_Switch_ChooseAnimationFrame', BaseUrl);
     for I := 0 to NodesCount - 1 do
       Switch.FdChildren.Add(WrapRootNode(BakedAnimation.Nodes[I] as TX3DRootNode));
-    { we set whichChoice to 0 to have sensible,
-      non-empty bounding box before you run the animation }
+    { we set whichChoice to 0 to see something before you run the animation }
     Switch.WhichChoice := 0;
     Result.FdChildren.Add(Switch);
+
+    { Name of the TimeSensor is important, this is the animation name,
+      so don't append there anything ugly like '_TimeSensor'.
+      Also, place it in the active graph part (outside SwitchChooseAnimation)
+      to be always listed in Scene.AnimationsList. }
+    TimeSensor := TTimeSensorNode.Create(AnimationX3DName, BaseUrl);
+    TimeSensor.CycleInterval := BakedAnimation.Duration;
+    TimeSensor.Loop := BakedAnimation.Loop;
+    RootNode.FdChildren.Add(TimeSensor);
 
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(TimeSensor.EventFraction_changed);
     Route.SetDestinationDirectly(IntSequencer.EventSet_fraction);
-    Result.AddRoute(Route);
+    RootNode.AddRoute(Route);
 
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(IntSequencer.EventValue_changed);
     Route.SetDestinationDirectly(Switch.FdWhichChoice);
-    Result.AddRoute(Route);
+    RootNode.AddRoute(Route);
 
     RootNode.ManuallyExportNode(TimeSensor);
+
+    AddAnimationVisibilityRoutes(TimeSensor);
   end;
 
 var
   I: Integer;
-  Group: TGroupNode;
+  SwitchChooseAnimation: TSwitchNode;
   BoundingBox: TBox3D;
 begin
   Assert(BakedAnimations.Count <> 0);
@@ -1006,14 +1052,17 @@ begin
 
   Result := TX3DRootNode.Create('', BaseUrl);
 
-  Group := TGroupNode.Create('', BaseUrl);
+  SwitchChooseAnimation := TSwitchNode.Create('ChooseAnimation', BaseUrl);
   BoundingBox := TBox3D.Empty;
   for I := 0 to BakedAnimations.Count - 1 do
   begin
-    Group.FdChildren.Add(ConvertOneAnimation(Result, BakedAnimations[I]));
+    SwitchChooseAnimation.FdChildren.Add(
+      ConvertOneAnimation(BakedAnimations[I], I, Result, SwitchChooseAnimation));
     { by the way of converting, calculate also bounding box }
     BoundingBox.Add(BakedAnimations[I].BoundingBox);
   end;
+  { we set whichChoice to 0 to see something before you run the animation }
+  SwitchChooseAnimation.WhichChoice := 0;
 
   { We use WrapInCollisionNode, to make the object
     collide always as a bounding box.
@@ -1024,7 +1073,7 @@ begin
     -> interpolators to have proper collisions with castle-anim-frames
     contents. Even then, it's unsure whether it will be sensible,
     as it will cost at runtime. }
-  Result.FdChildren.Add(WrapInCollisionNode(Group, BoundingBox));
+  Result.FdChildren.Add(WrapInCollisionNode(SwitchChooseAnimation, BoundingBox));
 end;
 
 class procedure TNodeInterpolator.LoadToX3D_GetKeyNodeWithTime(const Index: Cardinal;
