@@ -13,7 +13,8 @@ var
 implementation
 
 uses SysUtils, CastleWindow, CastleScene, CastleControls,
-  CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors, CastleLog;
+  CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors, CastleLog,
+  CastleParameters;
 
 var
   TiledMap: TCastleTiledMapControl;
@@ -22,10 +23,18 @@ var
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
+var
+  DEFAULT_TMX_FILE: string;
+  FilePath: string;
 begin
-  { Load the default map. }
-  //todo: load map from run parameters
-  TiledMap := TCastleTiledMapControl.Create(Window, ApplicationData('desert.tmx'));
+  { Load the map from given parameter filepath or default. }
+  DEFAULT_TMX_FILE := ApplicationData('desert.tmx');
+  if ParamCount > 1 then
+    FilePath := ParamStr(1)
+  else
+    FilePath := DEFAULT_TMX_FILE;
+  TiledMap := TCastleTiledMapControl.Create(Window, FilePath);
+  WriteLnLog('filepath', FilePath);
   Window.Controls.InsertFront(TiledMap);
 end;
 
