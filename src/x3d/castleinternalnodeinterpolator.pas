@@ -22,7 +22,7 @@ unit CastleInternalNodeInterpolator;
 interface
 
 uses Classes, FGL,
-  CastleUtils, X3DNodes;
+  CastleUtils, X3DNodes, CastleBoxes;
 
 type
   TGetKeyNodeWithTime = procedure (const Index: Cardinal;
@@ -57,6 +57,7 @@ type
         ScenesPerTime: Cardinal;
         EqualityEpsilon: Single;
         Loop, Backwards: boolean;
+        BoundingBox: TBox3D;
 
         constructor Create;
         destructor Destroy; override;
@@ -92,6 +93,7 @@ type
         TimeBegin, TimeEnd: Single;
         Name: string;
         Loop, Backwards: boolean;
+        BoundingBox: TBox3D;
 
         constructor Create;
         destructor Destroy; override;
@@ -138,7 +140,7 @@ type
       so there's no need to free the "key" nodes if you already take care of freeing
       the resulting nodes.
 
-      We do not set the Name, Loop, Backwards properties of the TBakedAnimation.
+      We do not set the Name, Loop, Backwards, BoundingBox properties of the TBakedAnimation.
       Caller should set them, to finalize the initialization of TBakedAnimation. }
     class function BakeToSequence(const GetKeyNodeWithTime: TGetKeyNodeWithTime;
       const KeyNodesCount: Cardinal;
@@ -177,7 +179,7 @@ type
 implementation
 
 uses SysUtils, XMLRead, DOM,
-  CastleLog, X3DFields, CastleXMLUtils, CastleFilesUtils,
+  CastleLog, X3DFields, CastleXMLUtils, CastleFilesUtils, CastleVectors,
   CastleDownload, CastleURIUtils, X3DLoad, CastleClassUtils, X3DLoadInternalUtils;
 
 { EModelsStructureDifferent -------------------------------------------------- }
@@ -751,6 +753,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
     FrameURL: string;
     NewNode: TX3DRootNode;
     Attr: TDOMAttr;
+    FrameBoxCenter, FrameBoxSize: TVector3Single;
   begin
     Result := TAnimation.Create;
     try
@@ -764,6 +767,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
       Result.EqualityEpsilon := DefaultEqualityEpsilon;
       Result.Loop := DefaultLoop;
       Result.Backwards := DefaultBackwards;
+      Result.BoundingBox := TBox3D.Empty;
 
       for I := 0 to Integer(Element.Attributes.Length) - 1 do
       begin
@@ -816,6 +820,13 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
           begin
             NewNode := LoadX3DXml(FrameElement.ChildElement('X3D'), AbsoluteBaseUrl);
           end;
+
+          if FrameElement.AttributeVector3('bounding_box_center', FrameBoxCenter) and
+             FrameElement.AttributeVector3('bounding_box_size', FrameBoxSize) then
+          begin
+            Result.BoundingBox.Add(Box3DAroundPoint(FrameBoxCenter, FrameBoxSize));
+          end;
+
           Result.KeyNodes.Add(NewNode);
         end;
       finally FreeAndNil(Children) end;
@@ -888,26 +899,43 @@ var
       Result := RootNode;
   end;
 
-  function WrapDisableCollisionNode(const Node: TX3DNode): TX3DNode;
+  function WrapInCollisionNode(const Node: TX3DNode; const BoxForCollisions: TBox3D): TX3DNode;
   var
     CollisionNode: TCollisionNode;
+    ProxyTransform: TTransformNode;
+    ProxyShape: TShapeNode;
+    ProxyBox: TBoxNode;
   begin
+    { always create ProxyTransform, even when BoxForCollisions.IsEmpty,
+      otherwise X3D Collision.proxy would be ignored when nil. }
+    ProxyTransform := TTransformNode.Create('', BaseUrl);
+
+    if not BoxForCollisions.IsEmpty then
+    begin
+      ProxyBox := TBoxNode.Create('', BaseUrl);
+      ProxyBox.Size := BoxForCollisions.Sizes;
+
+      ProxyShape := TShapeNode.Create('', BaseUrl);
+      ProxyShape.Geometry := ProxyBox;
+
+      ProxyTransform.Translation := BoxForCollisions.Middle;
+      ProxyTransform.FdChildren.Add(ProxyShape);
+    end;
+
     CollisionNode := TCollisionNode.Create;
     CollisionNode.FdChildren.Add(Node);
-    CollisionNode.Enabled := false;
+    CollisionNode.FdProxy.Value := ProxyTransform;
     Result := CollisionNode;
   end;
 
   function ConvertOneAnimation(const RootNode: TX3DRootNode;
-    const BakedAnimation: TBakedAnimation;
-    const NeverCollides: boolean): TGroupNode;
+    const BakedAnimation: TBakedAnimation): TGroupNode;
   var
     TimeSensor: TTimeSensorNode;
     IntSequencer: TIntegerSequencerNode;
     Switch: TSwitchNode;
     I, NodesCount: Integer;
     Route: TX3DRoute;
-    ChildNode: TX3DNode;
   begin
     Result := TGroupNode.Create('', BaseUrl);
 
@@ -948,22 +976,7 @@ var
 
     Switch := TSwitchNode.Create(TimeSensor.NodeName + '_Switch', BaseUrl);
     for I := 0 to NodesCount - 1 do
-    begin
-      ChildNode := WrapRootNode(BakedAnimation.Nodes[I] as TX3DRootNode);
-      { TODO: Initializing collisions for a long series of nodes is really
-        time-consuming. Better to avoid it. We generate collisions only for
-        the first animation frame in the first animation.
-
-        We have to implement actual conversion from a series of nodes
-        -> interpolators to have proper collisions with castle-anim-frames
-        contents.
-
-        Or we have to export bounding boxed from Blender,
-        and then wrap *whole* animation in a <Collision> node with a proxy. }
-      if (I <> 0) or NeverCollides then
-        ChildNode := WrapDisableCollisionNode(ChildNode);
-      Switch.FdChildren.Add(ChildNode);
-    end;
+      Switch.FdChildren.Add(WrapRootNode(BakedAnimation.Nodes[I] as TX3DRootNode));
     { we set whichChoice to 0 to have sensible,
       non-empty bounding box before you run the animation }
     Switch.WhichChoice := 0;
@@ -984,14 +997,34 @@ var
 
 var
   I: Integer;
+  Group: TGroupNode;
+  BoundingBox: TBox3D;
 begin
   Assert(BakedAnimations.Count <> 0);
   Assert(BakedAnimations[0].Nodes.Count <> 0);
   BaseUrl := BakedAnimations[0].Nodes[0].BaseUrl;
 
   Result := TX3DRootNode.Create('', BaseUrl);
+
+  Group := TGroupNode.Create('', BaseUrl);
+  BoundingBox := TBox3D.Empty;
   for I := 0 to BakedAnimations.Count - 1 do
-    Result.FdChildren.Add(ConvertOneAnimation(Result, BakedAnimations[I], I <> 0));
+  begin
+    Group.FdChildren.Add(ConvertOneAnimation(Result, BakedAnimations[I]));
+    { by the way of converting, calculate also bounding box }
+    BoundingBox.Add(BakedAnimations[I].BoundingBox);
+  end;
+
+  { We use WrapInCollisionNode, to make the object
+    collide always as a bounding box.
+    Otherwise, initializing collisions for a long series of nodes is really
+    time-consuming.
+
+    We have to implement actual conversion from a series of nodes
+    -> interpolators to have proper collisions with castle-anim-frames
+    contents. Even then, it's unsure whether it will be sensible,
+    as it will cost at runtime. }
+  Result.FdChildren.Add(WrapInCollisionNode(Group, BoundingBox));
 end;
 
 class procedure TNodeInterpolator.LoadToX3D_GetKeyNodeWithTime(const Index: Cardinal;
@@ -1020,6 +1053,7 @@ begin
           Animation.KeyNodes.Count, Animation.ScenesPerTime, Animation.EqualityEpsilon);
         BakedAnimation.Name := Animation.Name;
         BakedAnimation.Loop := Animation.Backwards;
+        BakedAnimation.BoundingBox := Animation.BoundingBox;
         BakedAnimations.Add(BakedAnimation);
       end;
     except
