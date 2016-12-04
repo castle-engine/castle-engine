@@ -537,15 +537,12 @@ type
     { Bounding box of the 3D object.
 
       Should take into account both collidable and visible objects.
-      For examples, invisible walls (not visible) and fake walls (not collidable)
-      should all be accounted here.
+      For examples, invisible walls (not visible) and fake walls
+      (not collidable) should all be accounted here.
 
-      As it's a @italic(bounding) volume, it may naturally be slightly too large
-      (although, for the same of various optimizations, you should try
-      to make it as tight as reasonably possible.) For now, it's also OK
-      to make it a little too small (nothing bad will happen).
-      Although all currently implemented descendants (TCastleSceneCore, TCastlePrecalculatedAnimation,
-      more) guarantee it's never too small. }
+      It's a @italic(bounding) volume, it should be as large as necessary
+      to include the object inside. At the same time, it should be
+      as "tight" as it can, to make various optimizations work best. }
     function BoundingBox: TBox3D; virtual; abstract;
 
     { Render given object.

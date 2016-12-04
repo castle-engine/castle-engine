@@ -1927,7 +1927,7 @@ begin
     and each call to find_extremum was iterating over every vertex.
     This was obviously wrong, because this caused calling GetVertex
     6 times more often than necessary. In some cases (like preparing
-    TCastlePrecalculatedAnimation in "The Castle") this can cause really significant
+    animations in "The Castle") this can cause really significant
     slowdown. }
 
   ThisVertex := GetVertex(GetVertIndex(firstIndexNum));
