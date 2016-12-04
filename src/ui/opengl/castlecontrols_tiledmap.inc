@@ -143,6 +143,12 @@ begin
                            True, False);
     _spr.DrawingWidth := FTiledMap.TileWidth;
     _spr.DrawingHeight := FTiledMap.TileHeight;
+    _spr.FrameWidth := FTiledMap.TileWidth;
+    _spr.FrameHeight := FTiledMap.TileHeight;
+    _spr.LeftMargin := _ts^.Margin;
+    _spr.TopMargin := _ts^.Margin;
+    _spr.HorizontalSpacing := _ts^.Spacing;
+    _spr.VerticalSpacing := _ts^.Spacing;
     writelnlog('LoadTlesetsImages', 'columns:%d',[_ts^.Columns]);
     _ts^.ImageData := _spr;
 	end;

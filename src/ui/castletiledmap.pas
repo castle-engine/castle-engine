@@ -322,6 +322,8 @@ begin
     TileOffset := ZeroVector2Integer;
     Properties := nil;
     Tiles := nil;
+    Spacing := 0;
+    Margin := 0;
 
     if Element.AttributeString('firstgid', TmpStr) then
       FirstGID := StrToInt(TmpStr) else

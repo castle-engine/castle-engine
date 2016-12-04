@@ -29,7 +29,7 @@ var
 begin
   { Load the map from given parameter filepath or default. }
   DEFAULT_TMX_FILE := ApplicationData('desert.tmx');
-  if ParamCount > 1 then
+  if ParamCount = 1 then
     FilePath := ParamStr(1)
   else
     FilePath := DEFAULT_TMX_FILE;
