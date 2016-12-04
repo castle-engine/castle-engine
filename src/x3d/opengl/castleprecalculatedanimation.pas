@@ -308,15 +308,7 @@ type
         and TimeBackwards properties later,
         since these properties are writeable at any time.)
 
-      @param(Smoothness Scales the number of scenes
-        created per second. Values > 1 make better quality but also use more memory.
-        If this parameter isn't given, we use global AnimationSmoothness
-        (which is by default 1, but may be globally changed).)
-
       @groupBegin }
-    procedure LoadFromFile(const URL: string;
-      const AllowStdIn: boolean; const LoadTime: boolean;
-      const Smoothness: Float);
     procedure LoadFromFile(const URL: string;
       const AllowStdIn: boolean; const LoadTime: boolean);
     { @groupEnd }
@@ -663,14 +655,6 @@ type
       read FInitialViewpointName write FInitialViewpointName;
   end deprecated 'instead of TCastlePrecalculatedAnimation, use TCastleScene to load animations in any format (X3D, castle-anim-frames...) and run them using methods like PlayAnimation';
 
-const
-  DefaultAnimationSmoothness = 1.0;
-
-var
-  { Default Smoothness value for TCastlePrecalculatedAnimation.LoadFromFile.
-    This allows to globally control the precalculated animations quality. }
-  AnimationSmoothness: Single = DefaultAnimationSmoothness;
-
 procedure Register;
 
 implementation
@@ -961,7 +945,7 @@ begin
 end;
 
 procedure TCastlePrecalculatedAnimation.LoadFromFile(const URL: string;
-  const AllowStdIn, LoadTime: boolean; const Smoothness: Float);
+  const AllowStdIn, LoadTime: boolean);
 var
   Times: TSingleList;
   KeyNodes: TX3DNodeList;
@@ -979,8 +963,6 @@ begin
       NewTimeLoop, NewTimeBackwards);
     {$warnings on}
 
-    ScenesPerTime := Round(ScenesPerTime * Smoothness);
-
     Load(KeyNodes, true, Times, ScenesPerTime, EqualityEpsilon);
 
     if LoadTime then
@@ -995,12 +977,6 @@ begin
     FreeAndNil(Times);
     FreeAndNil(KeyNodes);
   end;
-end;
-
-procedure TCastlePrecalculatedAnimation.LoadFromFile(const URL: string;
-  const AllowStdIn: boolean; const LoadTime: boolean);
-begin
-  LoadFromFile(URL, AllowStdIn, LoadTime, AnimationSmoothness);
 end;
 
 procedure TCastlePrecalculatedAnimation.Close;

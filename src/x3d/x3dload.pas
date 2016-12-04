@@ -133,6 +133,16 @@ const
     for TFileFilterList.AddFiltersFromString and TCastleWindowCustom.FileDialog. }
   Load3DSequence_FileFilters = Load3D_FileFilters deprecated 'use Load3D_FileFilters, and use Load3D instead of Load3DSequence';
 
+const
+  DefaultBakedAnimationSmoothness = 1;
+
+var
+  { A smoothness value for "baked" animations loaded from castle-anim-frames
+    files. This is multiplied by the scenes_per_time value recorded
+    in castle-anim-frames file (30 by default), and determines the number
+    of extra frames we add to the baked animation (between key frames). }
+  BakedAnimationSmoothness: Single = DefaultBakedAnimationSmoothness;
+
 implementation
 
 uses CastleClassUtils, CastleURIUtils,

@@ -430,8 +430,8 @@ type
 
       Call this only if you really want to conserve memory @italic(right now).
       Or when you want to force reload of resources at next LoadLevel
-      call (for example, if you changed AnimationSmoothness, it is useful
-      --- otherwise the old animations will remain loaded with old AnimationSmoothness
+      call (for example, if you changed BakedAnimationSmoothness, it is useful
+      --- otherwise the old animations will remain loaded with old BakedAnimationSmoothness
       setting). }
     procedure UnloadLevel;
   end;
@@ -1089,7 +1089,7 @@ var
   Options: TPrepareResourcesOptions;
 begin
   Result := AnimationClass.Create(Self);
-  Result.LoadFromFile(URL, false, true, 1);
+  Result.LoadFromFile(URL, false, true);
 
   { calculate Options for PrepareResources }
   Options := [prRender, prBoundingBox { always needed }];

@@ -144,7 +144,7 @@ type
       Caller should set them, to finalize the initialization of TBakedAnimation. }
     class function BakeToSequence(const GetKeyNodeWithTime: TGetKeyNodeWithTime;
       const KeyNodesCount: Cardinal;
-      const ScenesPerTime: Cardinal;
+      ScenesPerTime: Cardinal;
       const EqualityEpsilon: Single): TBakedAnimation;
 
     { Convert a node list to animate (like the one from MD3 loader,
@@ -638,7 +638,7 @@ end;
 class function TNodeInterpolator.BakeToSequence(
   const GetKeyNodeWithTime: TGetKeyNodeWithTime;
   const KeyNodesCount: Cardinal;
-  const ScenesPerTime: Cardinal;
+  ScenesPerTime: Cardinal;
   const EqualityEpsilon: Single): TBakedAnimation;
 var
   I: Integer;
@@ -649,6 +649,8 @@ var
   NodesIndex: Integer;
   Nodes: TX3DNodeList;
 begin
+  ScenesPerTime := Round(ScenesPerTime * BakedAnimationSmoothness);
+
   Result := TBakedAnimation.Create;
   try
     Assert(KeyNodesCount > 0);
