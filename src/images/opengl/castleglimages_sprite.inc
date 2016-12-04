@@ -412,7 +412,7 @@ begin
   Result.Left :=
     FFrame mod FColumns * FullFrameWidth + FLeftMargin;
   Result.Bottom := FImage.Height -
-    (FFrame div FColumns + 1) * FullFrameHeight - FTopMargin;
+    (FFrame div FColumns + 1) * FullFrameHeight - FTopMargin + FVerticalSpacing;//todo: test it with higher topmargin
   Result.Width := FFrameWidth;
   Result.Height := FFrameHeight;
 end;

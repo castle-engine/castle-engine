@@ -130,7 +130,6 @@ var
   _ts: PTileset;
   _spr: TSprite;
 begin
-  //todo: use tileset spacing and margin parameters; add spacing to TSprite
   for i := 0 to FTiledMap.Tilesets.Count - 1 do
   begin
     _ts := FTiledMap.Tilesets.Ptr(i);
