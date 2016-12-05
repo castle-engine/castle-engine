@@ -1948,15 +1948,16 @@ const
   ('Orthographic', 'Perspective');
 
 const
-  { Constants for TAsciiTextNode.FdJustification.Value.
+  { Constants for @link(TAsciiTextNode_1.FdJustification).Value.
     @groupBegin }
-  JUSTIFICATION_LEFT = 0;
-  JUSTIFICATION_CENTER = 1;
-  JUSTIFICATION_RIGHT = 2;
+  JUSTIFICATION_LEFT = 0 deprecated 'use fjBegin (from an enumerated type TX3DFontJustify) with TAsciiTextNode_1.Justify or TFontStyleNode.Justify properties';
+  JUSTIFICATION_CENTER = 1 deprecated 'use fjMiddle (from an enumerated type TX3DFontJustify) with TAsciiTextNode_1.Justify or TFontStyleNode.Justify properties';
+  JUSTIFICATION_RIGHT = 2 deprecated 'use fjEnd (from an enumerated type TX3DFontJustify) with TAsciiTextNode_1.Justify or TFontStyleNode.Justify properties';
   { @groupEnd }
 
-  { Constants for TMaterialBindingNode_1.FdValue.Value and
-    TNormalBindingNode_1.FdValue.Value.
+  { Constants for
+    @link(TMaterialBindingNode_1.FdValue).Value and
+    @link(TNormalBindingNode_1.FdValue).Value.
     @groupBegin }
   BIND_DEFAULT = 0;
   BIND_OVERALL = 1;
@@ -1968,36 +1969,36 @@ const
   BIND_PER_VERTEX_INDEXED = 7;
   { @groupEnd }
 
-  { Constants for TShapeHintsNode_1.FdVertexOrdering.Value.
+  { Constants for @link(TShapeHintsNode_1.FdVertexOrdering).Value.
     @groupBegin }
   VERTORDER_UNKNOWN = 0;
   VERTORDER_CLOCKWISE = 1;
   VERTORDER_COUNTERCLOCKWISE = 2;
   { @groupEnd }
 
-  { Constants for TShapeHintsNode_1.FdShapeType.Value.
+  { Constants for @link(TShapeHintsNode_1.FdShapeType).Value.
     @groupBegin }
   SHTYPE_UNKNOWN = 0;
   SHTYPE_SOLID = 1;
   { @groupEnd }
 
-  { Constants for TShapeHintsNode_1.FdFaceType.Value.
+  { Constants for @link(TShapeHintsNode_1.FdFaceType).Value.
     @groupBegin }
   FACETYPE_UNKNOWN = 0;
   FACETYPE_CONVEX = 1;
   { @groupEnd }
 
-  { Constants for TFontStyleNode.FdFamily.Value.
+  { Constants for @link(TFontStyleNode.FdFamily).Value.
     @groupBegin }
-  FSFAMILY_SERIF = 0;
-  FSFAMILY_SANS = 1;
-  FSFAMILY_TYPEWRITER = 2;
+  FSFAMILY_SERIF = 0 deprecated 'use ffSerif (TX3DFontFamily an enumerated type) with the properties like TFontStyleNode.Family';
+  FSFAMILY_SANS = 1 deprecated 'use ffSans (TX3DFontFamily an enumerated type) with the properties like TFontStyleNode.Family';
+  FSFAMILY_TYPEWRITER = 2 deprecated 'use ffTypeWriter (TX3DFontFamily an enumerated type) with the properties like TFontStyleNode.Family';
   { @groupEnd }
 
-  { Constants for TFontStyleNode.FdStyleFlags.
+  { Constants for @link(TFontStyleNode.FdStyleFlags).
     @groupBegin }
-  FSSTYLE_BOLD = 0;
-  FSSTYLE_ITALIC = 1;
+  FSSTYLE_BOLD = 0 deprecated 'use TFontStyleNode.Bold as a simple boolean';
+  FSSTYLE_ITALIC = 1 deprecated 'use TFontStyleNode.Italic as a simple boolean';
   { @groupEnd }
 
   { Constants for TConeNode.FdParts.Flags.
@@ -2013,10 +2014,10 @@ const
   CYLINDER_PARTS_BOTTOM = 2;
   { @groupEnd }
 
-  { Constants for TTexture2Node_1.FdWrapS.Value and TTexture2Node_1.FdWrapT.Value.
+  { Constants for @link(TTexture2Node_1.FdWrapS).Value and @link(TTexture2Node_1.FdWrapT).Value.
     @groupBegin }
-  TEXWRAP_REPEAT = 0;
-  TEXWRAP_CLAMP = 1;
+  TEXWRAP_REPEAT = 0 deprecated 'use TAbstractTexture2DNode.RepeatS or TAbstractTexture2DNode.RepeatT boolean properties';
+  TEXWRAP_CLAMP = 1 deprecated 'use TAbstractTexture2DNode.RepeatS or TAbstractTexture2DNode.RepeatT boolean properties';
   { @groupEnd }
 
   DefaultHeightMapScale = 0.01;

@@ -58,7 +58,7 @@
     public property FdSpacing: TSFFloat read FFdSpacing;
 
     { Text justification.
-      Use consts JUSTIFICATION_XXX (declared below in this unit). }
+      Use constants like JUSTIFICATION_LEFT and so on with this. }
     private FFdJustification: TSFEnum;
     public property FdJustification: TSFEnum read FFdJustification;
 
@@ -878,7 +878,9 @@ begin
    FdSpacing.ChangesAlways := [chGeometry];
   AddField(FFdSpacing);
 
+  {$warnings off} // using deprecated knowingly, it should be internal
   FFdJustification := TSFEnum.Create(Self, 'justification', ['LEFT', 'CENTER', 'RIGHT'], JUSTIFICATION_LEFT);
+  {$warnings on}
    FdJustification.ChangesAlways := [chGeometry];
   AddField(FFdJustification);
 
@@ -902,7 +904,16 @@ end;
 
 function TAsciiTextNode_1.Justify: TX3DFontJustify;
 begin
-  Result := TX3DFontJustify(FdJustification.Value);
+  case FdJustification.Value of
+    {$warnings off} // using deprecated knowingly, it should be internal
+    JUSTIFICATION_LEFT  : Result := fjBegin;
+    JUSTIFICATION_CENTER: Result := fjMiddle;
+    JUSTIFICATION_RIGHT : Result := fjEnd;
+    {$warnings on}
+    else
+      { something default }
+      Result := fjBegin;
+  end;
 end;
 
 function TAsciiTextNode_1.Proxy(var State: TX3DGraphTraverseState;
@@ -1263,7 +1274,9 @@ begin
    FdSize.ChangesAlways := [chGeometryVRML1State];
   AddField(FFdSize);
 
+  {$warnings off}
   FFdFamily := TSFEnum.Create(Self, 'family', ['SERIF', 'SANS', 'TYPEWRITER'], FSFAMILY_SERIF);
+  {$warnings on}
    FdFamily.ChangesAlways := [chGeometryVRML1State];
   AddField(FFdFamily);
 
@@ -1286,6 +1299,7 @@ begin
   Result := TX3DFontFamily(FdFamily.Value);
 end;
 
+{$warnings off}
 function TFontStyleNode_1.Bold: boolean;
 begin
   Result := FdStyle.Flags[FSSTYLE_BOLD];
@@ -1295,6 +1309,7 @@ function TFontStyleNode_1.Italic: boolean;
 begin
   Result := FdStyle.Flags[FSSTYLE_ITALIC];
 end;
+{$warnings on}
 
 class function TFontStyleNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
@@ -1706,11 +1721,15 @@ begin
    FdImage.ChangesAlways := [chVisibleVRML1State, chTextureImage];
   AddField(FFdImage);
 
+  {$warnings off} // using deprecated knowingly, it should be internal
   FFdWrapS := TSFEnum.Create(Self, 'wrapS', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
+  {$warnings on}
    FdWrapS.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdWrapS);
 
+  {$warnings off} // using deprecated knowingly, it should be internal
   FFdWrapT := TSFEnum.Create(Self, 'wrapT', ['REPEAT', 'CLAMP'], TEXWRAP_REPEAT);
+  {$warnings on}
    FdWrapT.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdWrapT);
 
@@ -1778,6 +1797,8 @@ begin
     result := 'none';
 end;
 
+{$warnings off} // using deprecated TEXWRAP_xxx knowingly, it should be internal
+
 function TTexture2Node_1.GetRepeatS: boolean;
 begin
   Result := FdWrapS.Value = TEXWRAP_REPEAT;
@@ -1791,16 +1812,20 @@ end;
 procedure TTexture2Node_1.SetRepeatS(const Value: boolean);
 begin
   if Value then
-    FdWrapS.Send(TEXWRAP_REPEAT) else
+    FdWrapS.Send(TEXWRAP_REPEAT)
+  else
     FdWrapS.Send(TEXWRAP_CLAMP);
 end;
 
 procedure TTexture2Node_1.SetRepeatT(const Value: boolean);
 begin
   if Value then
-    FdWrapT.Send(TEXWRAP_REPEAT) else
+    FdWrapT.Send(TEXWRAP_REPEAT)
+  else
     FdWrapT.Send(TEXWRAP_CLAMP);
 end;
+
+{$warnings on}
 
 procedure TTexture2TransformNode_1.CreateNode;
 begin
