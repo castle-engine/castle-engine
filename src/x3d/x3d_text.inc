@@ -32,8 +32,18 @@
       JustifyWarningNotSupportedDone: boolean;
     function GetBlending: boolean;
     procedure SetBlending(const Value: boolean);
-    function JustifyToString(const S: string;
+    function StringToJustify(const S: string;
       const DefaultValue: TX3DFontJustify): TX3DFontJustify;
+    function GetFamily: TX3DFontFamily;
+    procedure SetFamily(const Value: TX3DFontFamily);
+    function GetBold: boolean;
+    procedure SetBold(const Value: boolean);
+    function GetItalic: boolean;
+    procedure SetItalic(const Value: boolean);
+    function GetJustify: TX3DFontJustify;
+    procedure SetJustify(const Value: TX3DFontJustify);
+    function GetJustifyMinor: TX3DFontJustify;
+    procedure SetJustifyMinor(const Value: TX3DFontJustify);
   public
     const
       DefaultSize = 1.0;
@@ -51,12 +61,15 @@
 
     private FFdFamily: TMFString;
     public property FdFamily: TMFString read FFdFamily;
+    property Family: TX3DFontFamily read GetFamily write SetFamily;
 
     private FFdHorizontal: TSFBool;
     public property FdHorizontal: TSFBool read FFdHorizontal;
 
     private FFdJustify: TMFString;
     public property FdJustify: TMFString read FFdJustify;
+    property Justify: TX3DFontJustify read GetJustify write SetJustify;
+    property JustifyMinor: TX3DFontJustify read GetJustifyMinor write SetJustifyMinor;
 
     private FFdLanguage: TSFString;
     public property FdLanguage: TSFString read FFdLanguage;
@@ -72,6 +85,8 @@
 
     private FFdStyle: TSFString;
     public property FdStyle: TSFString read FFdStyle;
+    property Bold: boolean read GetBold write SetBold;
+    property Italic: boolean read GetItalic write SetItalic;
 
     private FFdTopToBottom: TSFBool;
     public property FdTopToBottom: TSFBool read FFdTopToBottom;
@@ -82,14 +97,8 @@
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
-
-    function Family: TX3DFontFamily;
-    function Bold: boolean;
-    function Italic: boolean;
-    function Justify: TX3DFontJustify;
-    function JustifyMinor: TX3DFontJustify;
   end;
-  TFontStyleNode_2 = TFontStyleNode;
+  TFontStyleNode_2 = TFontStyleNode deprecated 'use TFontStyleNode';
 
   TPixelTextureNode = class;
 
@@ -236,21 +245,32 @@ begin
   Result := Version.Major >= 2;
 end;
 
-function TFontStyleNode.Family: TX3DFontFamily;
+function TFontStyleNode.GetFamily: TX3DFontFamily;
 var
   I: Integer;
 begin
   for I := 0 to FdFamily.Items.Count - 1 do
     if FdFamily.Items[I] = 'SERIF' then
-      Exit(ffSerif) else
+      Exit(ffSerif)
+    else
     if FdFamily.Items[I] = 'SANS' then
-      Exit(ffSans) else
+      Exit(ffSans)
+    else
     if FdFamily.Items[I] = 'TYPEWRITER' then
-      Exit(ffTypeWriter) else
+      Exit(ffTypeWriter)
+    else
       WritelnWarning('VRML/X3D', 'Font family "' + FdFamily.Items[I] + '" not supported');
 
   { If no supported values on FdFamily.Items then fall back to serif }
   Result := ffSerif;
+end;
+
+procedure TFontStyleNode.SetFamily(const Value: TX3DFontFamily);
+const
+  FontFamilyNames: array [TX3DFontFamily] of string =
+  ('SERIF', 'SANS', 'TYPEWRITER');
+begin
+  FdFamily.Send(FontFamilyNames[Value]);
 end;
 
 const
@@ -258,12 +278,18 @@ const
   StyleBoldItalic = 'BOLDITALIC';
   StyleItalic = 'ITALIC';
   StylePlain = 'PLAIN';
+  StyleString: array[boolean { bold ? }, boolean { italic ? }] of string =
+  ( (StylePlain, StyleItalic),
+    (StyleBold, StyleBoldItalic) );
 
-function TFontStyleNode.Bold: boolean;
+function TFontStyleNode.GetBold: boolean;
+var
+  S: string;
 begin
+  S := FdStyle.Value;
   Result :=
-    (FdStyle.Value = StyleBold) or
-    (FdStyle.Value = StyleBoldItalic);
+    (S = StyleBold) or
+    (S = StyleBoldItalic);
 
   { This is the end of calculating Result.
     But we would like to make a warning in case of invalid FdStyle
@@ -272,18 +298,26 @@ begin
   if not Result then
   begin
     if not (
-      (FdStyle.Value = StyleItalic) or
-      (FdStyle.Value = StylePlain) or
-      (FdStyle.Value = '')) then
-      WritelnWarning('VRML/X3D', 'Font style "' + FdStyle.Value + '" not supported');
+      (S = StyleItalic) or
+      (S = StylePlain) or
+      (S = '')) then
+      WritelnWarning('VRML/X3D', 'Font style "' + S + '" not supported');
   end;
 end;
 
-function TFontStyleNode.Italic: boolean;
+procedure TFontStyleNode.SetBold(const Value: boolean);
 begin
+  FdStyle.Send(StyleString[Value, Italic]);
+end;
+
+function TFontStyleNode.GetItalic: boolean;
+var
+  S: string;
+begin
+  S := FdStyle.Value;
   Result :=
-    (FdStyle.Value = StyleItalic) or
-    (FdStyle.Value = StyleBoldItalic);
+    (S = StyleItalic) or
+    (S = StyleBoldItalic);
 
   { This is the end of calculating Result.
     But we would like to make a warning in case of invalid FdStyle
@@ -292,14 +326,19 @@ begin
   if not Result then
   begin
     if not (
-      (FdStyle.Value = StyleBold) or
-      (FdStyle.Value = StylePlain) or
-      (FdStyle.Value = '')) then
-      WritelnWarning('VRML/X3D', 'Font style "' + FdStyle.Value + '" not supported');
+      (S = StyleBold) or
+      (S = StylePlain) or
+      (S = '')) then
+      WritelnWarning('VRML/X3D', 'Font style "' + S + '" not supported');
   end;
 end;
 
-function TFontStyleNode.JustifyToString(const S: string;
+procedure TFontStyleNode.SetItalic(const Value: boolean);
+begin
+  FdStyle.Send(StyleString[Bold, Value]);
+end;
+
+function TFontStyleNode.StringToJustify(const S: string;
   const DefaultValue: TX3DFontJustify): TX3DFontJustify;
 const
   SJustifyObsolete = 'Font justify "%s" should not be used in VRML >= 2.0, use "%s" instead';
@@ -361,18 +400,34 @@ begin
   end;
 end;
 
-function TFontStyleNode.Justify: TX3DFontJustify;
+const
+  JustifyToString: array[TX3DFontJustify] of string =
+  ('FIRST', 'BEGIN', 'MIDDLE', 'END');
+
+function TFontStyleNode.GetJustify: TX3DFontJustify;
 begin
   if FdJustify.Items.Count > 0 then
-    Result := JustifyToString(FdJustify.Items[0], DefaultJustify) else
+    Result := StringToJustify(FdJustify.Items[0], DefaultJustify)
+  else
     Result := DefaultJustify;
 end;
 
-function TFontStyleNode.JustifyMinor: TX3DFontJustify;
+function TFontStyleNode.GetJustifyMinor: TX3DFontJustify;
 begin
   if FdJustify.Items.Count > 1 then
-    Result := JustifyToString(FdJustify.Items[1], DefaultJustifyMinor) else
+    Result := StringToJustify(FdJustify.Items[1], DefaultJustifyMinor)
+  else
     Result := DefaultJustifyMinor;
+end;
+
+procedure TFontStyleNode.SetJustify(const Value: TX3DFontJustify);
+begin
+  FdJustify.Send([JustifyToString[Value], JustifyToString[JustifyMinor]]);
+end;
+
+procedure TFontStyleNode.SetJustifyMinor(const Value: TX3DFontJustify);
+begin
+  FdJustify.Send([JustifyToString[Justify], JustifyToString[Value]]);
 end;
 
 function TFontStyleNode.GetBlending: boolean;
