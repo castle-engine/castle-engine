@@ -88,6 +88,7 @@ type
     procedure TestConvex;
     procedure TestX3DXmlString;
     procedure TestOrthoViewpointFieldOfView;
+    procedure TestFontStyle;
   end;
 
 implementation
@@ -1953,6 +1954,47 @@ begin
     AssertEquals(20, O.FdFieldOfView.Items[3]);
 
   finally FreeAndNil(O) end;
+end;
+
+procedure TTestX3DNodes.TestFontStyle;
+var
+  F: TFontStyleNode;
+begin
+  F := TFontStyleNode.Create;
+  try
+    AssertEquals(false, F.Bold);
+    AssertEquals(false, F.Italic);
+    AssertTrue(ffSerif = F.Family);
+    AssertTrue(fjBegin = F.Justify);
+    AssertTrue(fjFirst = F.JustifyMinor);
+
+    F.Bold := true;
+    AssertEquals(true, F.Bold);
+    AssertEquals(false, F.Italic);
+    AssertEquals('BOLD', F.FdStyle.Value);
+
+    F.Italic := true;
+    AssertEquals(true, F.Bold);
+    AssertEquals(true, F.Italic);
+    AssertEquals('BOLDITALIC', F.FdStyle.Value);
+
+    F.Bold := false;
+    AssertEquals(false, F.Bold);
+    AssertEquals(true, F.Italic);
+    AssertEquals('ITALIC', F.FdStyle.Value);
+
+    F.JustifyMinor := fjEnd;
+    AssertTrue(fjBegin = F.Justify);
+    AssertTrue(fjEnd = F.JustifyMinor);
+
+    F.Justify := fjMiddle;
+    AssertTrue(fjMiddle = F.Justify);
+    AssertTrue(fjEnd = F.JustifyMinor);
+
+    F.Family := ffSans;
+    AssertTrue(ffSans = F.Family);
+
+  finally FreeAndNil(F) end;
 end;
 
 initialization
