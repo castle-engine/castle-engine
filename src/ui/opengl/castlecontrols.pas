@@ -1343,11 +1343,12 @@ type
     property IntervalSeconds: TFloatTime read FIntervalSeconds write SetIntervalSeconds;
     { The event called periodically. }
     property OnTimer: TNotifyEvent read FOnTimer write FOnTimer;
-    { Should be counteract the delays in timer by firing next event sooner.
+    { Should we counteract the delays in timer by firing next event sooner.
       This helps to keep a constant frequency of timer events over a long time,
-      but it may cause to execute a @italic(lot) of timer events in case
-      the application hung for some time. Use if it is necessary
-      e.g. to synchronize with other timers. }
+      and to keep multiple things (like multiple timer instances)
+      perfectly synchronized with each other.
+      But it may cause to execute a @italic(lot) of timer events at once,
+      in case the application hung for some time. }
     property CounteractDelays: boolean
       read FCounteractDelays write FCounteractDelays default false;
   end;
