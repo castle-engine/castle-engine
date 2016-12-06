@@ -1317,11 +1317,17 @@ begin
 end;
 
 function TFontStyleNode_1.Font: TTextureFontData;
+var
+  TemporaryFontStyle: TFontStyleNode;
 begin
-  Result := GetFont(
-    Family,
-    Bold,
-    Italic);
+  TemporaryFontStyle := TFontStyleNode.Create('', BaseUrl);
+  try
+    TemporaryFontStyle.Family := Family;
+    TemporaryFontStyle.Bold := Bold;
+    TemporaryFontStyle.Italic := Italic;
+    { get font for a default FontStyle node }
+    Result := TemporaryFontStyle.Font;
+  finally FreeAndNil(TemporaryFontStyle) end;
 end;
 
 function TFontStyleNode_1.GetBlending: boolean;
