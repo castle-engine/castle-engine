@@ -137,7 +137,7 @@ begin
   if Event.IsMouseButton(mbLeft) then
   begin
     Triangle := SceneManager.TriangleHit;
-    if (Triangle <> nil) and r
+    if (Triangle <> nil) and
        ( (Triangle^.MaterialNode.Name = 'MA_female_zombie_material') or
          (Triangle^.MaterialNode.Name = 'MA_male_zombie_material')) then
     begin
