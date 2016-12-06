@@ -35,6 +35,8 @@ type
     procedure BackClick(Sender: TObject);
   public
     procedure Start; override;
+    procedure Resume; override;
+    procedure Pause; override;
     function Press(const Event: TInputPressRelease): boolean; override;
   end;
 
@@ -77,10 +79,6 @@ begin
   (SceneManager.RequiredCamera as TUniversalCamera).Walk.MoveSpeed := 10;
   InsertFront(SceneManager);
 
-  { otherwise, inputs are only passed
-    when mouse cursor is over the SceneManager. }
-  StateContainer.ForceCaptureInput := SceneManager;
-
   ViewportRect := TCastleRectangleControl.Create(FreeAtStop);
   ViewportRect.FullSize := false;
   ViewportRect.Left := 820;
@@ -120,6 +118,27 @@ begin
   ButtonBack.Anchor(vpTop, -10);
   ButtonBack.Anchor(hpRight, -10);
   InsertFront(ButtonBack);
+end;
+
+procedure TStatePlay.Resume;
+begin
+  inherited;
+
+  { Without setting ForceCaptureInput, inputs are only passed
+    when mouse cursor is over the SceneManager.
+
+    Usually you set such things in Start method, but here we need to be
+    prepared that we may be covered by the transparent StateAskDialog state.
+    When StateAskDialog is active, we do *not* want to forcefully capture input
+    (it would allow user to move by mouse dragging when StateAskDialog is open).
+    So we set this in Resume, and turn off in Pause. }
+  StateContainer.ForceCaptureInput := SceneManager;
+end;
+
+procedure TStatePlay.Pause;
+begin
+  StateContainer.ForceCaptureInput := nil;
+  inherited;
 end;
 
 procedure TStatePlay.BackClick(Sender: TObject);
