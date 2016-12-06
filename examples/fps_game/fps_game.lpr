@@ -233,8 +233,12 @@ begin
     You can take font measurements by UIFont.RowHeight or UIFont.TextWidth
     to adjust initial position as needed. }
   Y -= UIFont.RowHeight + ControlsMargin;
-  UIFont.Print(0, Y, Yellow,
+  UIFont.Print(ControlsMargin, Y, Yellow,
     Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
+
+  { show FPS }
+  UIFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
+    Format('FPS: %f', [Window.Fps.RealTime]), hpRight, vpTop);
 
   Y -= UIFont.RowHeight + InventoryImageSize;
 
