@@ -58,7 +58,7 @@
       DefaultBlending = true;
 
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdFamily: TMFString;
@@ -135,7 +135,7 @@
   public
     procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdFontStyle: TSFNode;
@@ -252,7 +252,7 @@ begin
   AddField(FFdBlending);
 end;
 
-class function TFontStyleNode.ClassNodeTypeName: string;
+class function TFontStyleNode.ClassX3DType: string;
 begin
   Result := 'FontStyle';
 end;
@@ -260,8 +260,8 @@ end;
 class function TFontStyleNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TFontStyleNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -513,7 +513,7 @@ begin
   inherited;
 end;
 
-class function TTextNode.ClassNodeTypeName: string;
+class function TTextNode.ClassX3DType: string;
 begin
   Result := 'Text';
 end;
@@ -521,8 +521,8 @@ end;
 class function TTextNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TTextNode.TexCoordField: TSFNode;
@@ -823,7 +823,7 @@ begin
     JustifyMinor := FontStyle.JustifyMinor;
   end;
 
-  FaceSet := TQuadSetNode.Create(NodeName, BaseUrl);
+  FaceSet := TQuadSetNode.Create(Name, BaseUrl);
   try
     FaceSet.Solid := Solid;
 

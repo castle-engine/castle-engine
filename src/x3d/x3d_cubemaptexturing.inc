@@ -27,7 +27,7 @@
     function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdBack: TSFNode;
@@ -74,7 +74,7 @@
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdUpdate: TSFTextureUpdate;
@@ -106,7 +106,7 @@
     function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdUrl: TMFString;
@@ -176,7 +176,7 @@ begin
   AddField(FFdTextureProperties);
 end;
 
-class function TComposedCubeMapTextureNode.ClassNodeTypeName: string;
+class function TComposedCubeMapTextureNode.ClassX3DType: string;
 begin
   Result := 'ComposedCubeMapTexture';
 end;
@@ -184,7 +184,7 @@ end;
 class function TComposedCubeMapTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TComposedCubeMapTextureNode.LoadSides: boolean;
@@ -262,7 +262,7 @@ begin
   inherited;
 end;
 
-class function TGeneratedCubeMapTextureNode.ClassNodeTypeName: string;
+class function TGeneratedCubeMapTextureNode.ClassX3DType: string;
 begin
   Result := 'GeneratedCubeMapTexture';
 end;
@@ -270,7 +270,7 @@ end;
 class function TGeneratedCubeMapTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TGeneratedCubeMapTextureNode.GetUpdate: TTextureUpdate;
@@ -301,7 +301,7 @@ begin
   AddField(FFdTextureProperties);
 end;
 
-class function TImageCubeMapTextureNode.ClassNodeTypeName: string;
+class function TImageCubeMapTextureNode.ClassX3DType: string;
 begin
   Result := 'ImageCubeMapTexture';
 end;
@@ -309,7 +309,7 @@ end;
 class function TImageCubeMapTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TImageCubeMapTextureNode.LoadImage: TCompositeImage;

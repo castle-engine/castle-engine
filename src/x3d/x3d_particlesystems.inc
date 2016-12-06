@@ -43,7 +43,7 @@
   TBoundedPhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdGeometry: TSFNode;
@@ -53,7 +53,7 @@
   TConeEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAngle: TSFFloat;
@@ -69,7 +69,7 @@
   TExplosionEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdPosition: TSFVec3f;
@@ -79,7 +79,7 @@
   TForcePhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdForce: TSFVec3f;
@@ -89,7 +89,7 @@
   TParticleSystemNode = class(TAbstractShapeNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdCreateParticles: TSFBool;
@@ -139,7 +139,7 @@
   TPointEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdDirection: TSFVec3f;
@@ -152,7 +152,7 @@
   TPolylineEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
@@ -172,7 +172,7 @@
   TSurfaceEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
@@ -189,7 +189,7 @@
   TVolumeEmitterNode = class(TAbstractParticleEmitterNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
@@ -212,7 +212,7 @@
   TWindPhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdDirection: TSFVec3f;
@@ -274,7 +274,7 @@ begin
   AddField(FFdGeometry);
 end;
 
-class function TBoundedPhysicsModelNode.ClassNodeTypeName: string;
+class function TBoundedPhysicsModelNode.ClassX3DType: string;
 begin
   Result := 'BoundedPhysicsModel';
 end;
@@ -282,7 +282,7 @@ end;
 class function TBoundedPhysicsModelNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TConeEmitterNode.CreateNode;
@@ -300,7 +300,7 @@ begin
   AddField(FFdPosition);
 end;
 
-class function TConeEmitterNode.ClassNodeTypeName: string;
+class function TConeEmitterNode.ClassX3DType: string;
 begin
   Result := 'ConeEmitter';
 end;
@@ -308,7 +308,7 @@ end;
 class function TConeEmitterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TExplosionEmitterNode.CreateNode;
@@ -319,7 +319,7 @@ begin
   AddField(FFdPosition);
 end;
 
-class function TExplosionEmitterNode.ClassNodeTypeName: string;
+class function TExplosionEmitterNode.ClassX3DType: string;
 begin
   Result := 'ExplosionEmitter';
 end;
@@ -327,7 +327,7 @@ end;
 class function TExplosionEmitterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TForcePhysicsModelNode.CreateNode;
@@ -339,7 +339,7 @@ begin
   { X3D specification comment: (Inf,Inf) }
 end;
 
-class function TForcePhysicsModelNode.ClassNodeTypeName: string;
+class function TForcePhysicsModelNode.ClassX3DType: string;
 begin
   Result := 'ForcePhysicsModel';
 end;
@@ -347,7 +347,7 @@ end;
 class function TForcePhysicsModelNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TParticleSystemNode.CreateNode;
@@ -411,7 +411,7 @@ begin
   { X3D specification comment: [0,Inf) }
 end;
 
-class function TParticleSystemNode.ClassNodeTypeName: string;
+class function TParticleSystemNode.ClassX3DType: string;
 begin
   Result := 'ParticleSystem';
 end;
@@ -419,7 +419,7 @@ end;
 class function TParticleSystemNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TPointEmitterNode.CreateNode;
@@ -433,7 +433,7 @@ begin
   AddField(FFdPosition);
 end;
 
-class function TPointEmitterNode.ClassNodeTypeName: string;
+class function TPointEmitterNode.ClassX3DType: string;
 begin
   Result := 'PointEmitter';
 end;
@@ -441,7 +441,7 @@ end;
 class function TPointEmitterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TPolylineEmitterNode.CreateNode;
@@ -464,7 +464,7 @@ begin
   { X3D specification comment: [0,Inf) or -1 }
 end;
 
-class function TPolylineEmitterNode.ClassNodeTypeName: string;
+class function TPolylineEmitterNode.ClassX3DType: string;
 begin
   Result := 'PolylineEmitter';
 end;
@@ -472,7 +472,7 @@ end;
 class function TPolylineEmitterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TSurfaceEmitterNode.CreateNode;
@@ -492,7 +492,7 @@ begin
   AddField(FFdSurface);
 end;
 
-class function TSurfaceEmitterNode.ClassNodeTypeName: string;
+class function TSurfaceEmitterNode.ClassX3DType: string;
 begin
   Result := 'SurfaceEmitter';
 end;
@@ -500,7 +500,7 @@ end;
 class function TSurfaceEmitterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TVolumeEmitterNode.CreateNode;
@@ -527,7 +527,7 @@ begin
   AddField(FFdInternal);
 end;
 
-class function TVolumeEmitterNode.ClassNodeTypeName: string;
+class function TVolumeEmitterNode.ClassX3DType: string;
 begin
   Result := 'VolumeEmitter';
 end;
@@ -535,7 +535,7 @@ end;
 class function TVolumeEmitterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TWindPhysicsModelNode.CreateNode;
@@ -559,7 +559,7 @@ begin
   { X3D specification comment: [0,1] }
 end;
 
-class function TWindPhysicsModelNode.ClassNodeTypeName: string;
+class function TWindPhysicsModelNode.ClassX3DType: string;
 begin
   Result := 'WindPhysicsModel';
 end;
@@ -567,7 +567,7 @@ end;
 class function TWindPhysicsModelNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterParticleSystemsNodes;

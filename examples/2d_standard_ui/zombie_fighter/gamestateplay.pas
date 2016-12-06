@@ -137,11 +137,11 @@ begin
   if Event.IsMouseButton(mbLeft) then
   begin
     Triangle := SceneManager.TriangleHit;
-    if (Triangle <> nil) and
-       ( (Triangle^.MaterialNode.NodeName = 'MA_female_zombie_material') or
-         (Triangle^.MaterialNode.NodeName = 'MA_male_zombie_material')) then
+    if (Triangle <> nil) and r
+       ( (Triangle^.MaterialNode.Name = 'MA_female_zombie_material') or
+         (Triangle^.MaterialNode.Name = 'MA_male_zombie_material')) then
     begin
-      StateAskDialog.Male := Triangle^.MaterialNode.NodeName = 'MA_male_zombie_material';
+      StateAskDialog.Male := Triangle^.MaterialNode.Name = 'MA_male_zombie_material';
       TUIState.Push(StateAskDialog);
     end;
   end;

@@ -141,7 +141,7 @@ function ParseXMLNode(Element: TDOMElement;
   procedure ParseNamedNode(const NodeName: string);
   var
     NodeClass: TX3DNodeClass;
-    NodeTypeName: string;
+    X3DType: string;
     ProtoName: string;
     Proto: TX3DPrototypeBase;
     ProtoIter: TXMLElementIterator;
@@ -149,9 +149,9 @@ function ParseXMLNode(Element: TDOMElement;
     FieldIndex: Integer;
     PositionInParent: Integer;
   begin
-    NodeTypeName := Element.TagName;
+    X3DType := Element.TagName;
 
-    if NodeTypeName = 'ProtoInstance' then
+    if X3DType = 'ProtoInstance' then
     begin
       if not Element.AttributeString('name', ProtoName) then
         raise EX3DXmlError.Create('<ProtoInstance> doesn''t specify "name" of the prototype');
@@ -220,7 +220,7 @@ function ParseXMLNode(Element: TDOMElement;
       end;
     end else
     begin
-      NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName, Reader.Version);
+      NodeClass := NodesManager.X3DTypeToClass(X3DType, Reader.Version);
       if NodeClass <> nil then
       begin
         Result := NodeClass.Create(NodeName, Reader.BaseUrl);
@@ -228,7 +228,7 @@ function ParseXMLNode(Element: TDOMElement;
         Result.ParseXML(Element, Reader);
       end else
       begin
-        Result := TX3DUnknownNode.CreateUnknown(NodeName, Reader.BaseUrl, NodeTypeName);
+        Result := TX3DUnknownNode.CreateUnknown(NodeName, Reader.BaseUrl, X3DType);
 
         { In classic VRML parser, we had special TX3DUnknownNode.Parse
           that performed the "magic" trick of
@@ -237,7 +237,7 @@ function ParseXMLNode(Element: TDOMElement;
           at it's attributes. All we need to do is to make
           WritelnWarning warning. }
 
-        WritelnWarning('VRML/X3D', 'Unknown X3D node type "' + NodeTypeName + '"');
+        WritelnWarning('VRML/X3D', 'Unknown X3D node type "' + X3DType + '"');
       end;
     end;
 
@@ -269,7 +269,8 @@ begin
     end else
     begin
       if Element.AttributeString(SAttrDEF, NodeName) then
-        ParseNamedNode(NodeName) else
+        ParseNamedNode(NodeName)
+      else
         ParseNamedNode('');
     end;
 

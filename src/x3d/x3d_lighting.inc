@@ -198,7 +198,7 @@
     procedure SetProjectionLocation(const Value: TVector3Single);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
 
     private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
@@ -293,7 +293,7 @@
   TAbstractPointLightNode = class(TAbstractPositionalLightNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
 
     function ProjectionLocationLocal: TVector3Single; override;
     procedure Box3DDistances(const Box: TBox3D;
@@ -323,7 +323,7 @@
   TSpotLightNode = class(TAbstractPositionalLightNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdBeamWidth: TSFFloat;
@@ -617,7 +617,7 @@ begin
   AddField(FFdProjectionLocation);
 end;
 
-class function TAbstractDirectionalLightNode.ClassNodeTypeName: string;
+class function TAbstractDirectionalLightNode.ClassX3DType: string;
 begin
   Result := 'DirectionalLight';
 end;
@@ -862,7 +862,7 @@ begin
   { no new fields - this is just TAbstractPositionalLightNode }
 end;
 
-class function TAbstractPointLightNode.ClassNodeTypeName: string;
+class function TAbstractPointLightNode.ClassX3DType: string;
 begin
   Result := 'PointLight';
 end;
@@ -890,8 +890,8 @@ end;
 class function TDirectionalLightNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TDirectionalLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -911,8 +911,8 @@ end;
 class function TPointLightNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TPointLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -951,7 +951,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSpotLightNode.ClassNodeTypeName: string;
+class function TSpotLightNode.ClassX3DType: string;
 begin
   Result := 'SpotLight';
 end;
@@ -959,8 +959,8 @@ end;
 class function TSpotLightNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TSpotLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;

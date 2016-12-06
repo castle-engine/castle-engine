@@ -112,7 +112,7 @@
     RotationAngle: Single;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAxisRotation: TSFRotation;
@@ -162,7 +162,7 @@
     Translation: TVector3Single;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAxisRotation: TSFRotation;
@@ -205,7 +205,7 @@
     Rotation: TVector4Single;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdOffset: TSFRotation;
@@ -225,7 +225,7 @@
   TTouchSensorNode = class(TAbstractTouchSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event out } { }
@@ -350,7 +350,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCylinderSensorNode.ClassNodeTypeName: string;
+class function TCylinderSensorNode.ClassX3DType: string;
 begin
   Result := 'CylinderSensor';
 end;
@@ -358,8 +358,8 @@ end;
 class function TCylinderSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TCylinderSensorNode.Activate(const Time: TX3DTime;
@@ -485,7 +485,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TPlaneSensorNode.ClassNodeTypeName: string;
+class function TPlaneSensorNode.ClassX3DType: string;
 begin
   Result := 'PlaneSensor';
 end;
@@ -493,8 +493,8 @@ end;
 class function TPlaneSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TPlaneSensorNode.Activate(const Time: TX3DTime;
@@ -641,7 +641,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSphereSensorNode.ClassNodeTypeName: string;
+class function TSphereSensorNode.ClassX3DType: string;
 begin
   Result := 'SphereSensor';
 end;
@@ -649,8 +649,8 @@ end;
 class function TSphereSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TSphereSensorNode.Activate(const Time: TX3DTime;
@@ -738,7 +738,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TTouchSensorNode.ClassNodeTypeName: string;
+class function TTouchSensorNode.ClassX3DType: string;
 begin
   Result := 'TouchSensor';
 end;
@@ -746,8 +746,8 @@ end;
 class function TTouchSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterPointingDeviceSensorNodes;

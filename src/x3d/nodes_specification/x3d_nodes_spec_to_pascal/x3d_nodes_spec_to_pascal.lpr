@@ -100,15 +100,15 @@ begin
   begin
     WritelnStr(InterfaceLines,
       '  public' + NL +
-      '    constructor Create(const ANodeName: string; const ABaseUrl: string); override;');
+      '    constructor Create(const AName: string; const ABaseUrl: string); override;');
 
     if not IsAbstract then
       WritelnStr(InterfaceLines,
-        '    class function ClassNodeTypeName: string; override;' + NL +
+        '    class function ClassX3DType: string; override;' + NL +
         '    class function URNMatching(const URN: string): boolean; override;');
 
     WritelnStr(ImplementationLines,
-      'constructor TNode' + NodeType + '.Create(const ANodeName: string;' + NL +
+      'constructor TNode' + NodeType + '.Create(const AName: string;' + NL +
       '  const ABaseUrl: string);' + NL +
       'begin' + NL +
       '  inherited;');
@@ -341,7 +341,7 @@ begin
       'end;' + NL);
     if not IsAbstract then
       WritelnStr(ImplementationLines,
-        'class function TNode' + NodeType + '.ClassNodeTypeName: string;' + NL +
+        'class function TNode' + NodeType + '.ClassX3DType: string;' + NL +
         'begin' + NL +
         '  Result := ''' + NodeType + ''';' + NL +
         'end;' + NL +
@@ -349,7 +349,7 @@ begin
         'class function TNode' + NodeType + '.URNMatching(const URN: string): boolean;' + NL +
         'begin' + NL +
         '  Result := (inherited URNMatching(URN)) or' + NL +
-        '    (URN = URNX3DNodes + ClassNodeTypeName);' + NL +
+        '    (URN = URNX3DNodes + ClassX3DType);' + NL +
         'end;' + NL);
   end;
 end;

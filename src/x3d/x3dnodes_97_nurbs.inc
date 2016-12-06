@@ -22,7 +22,7 @@
   TCoordinateDeformerNode = class(TAbstractGroupingNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
 
     { Event in } { }
     private FEventaddChildren: TMFNodeEvent;
@@ -89,7 +89,7 @@
   TNurbsCurveNode_2 = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
 
     private FFdcontrolPoint: TMFVec3f;
     public property FdcontrolPoint: TMFVec3f read FFdcontrolPoint;
@@ -124,7 +124,7 @@
   TNurbsGroupNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
 
     private FFdtessellationScale: TSFFloat;
     public property FdtessellationScale: TSFFloat read FFdtessellationScale;
@@ -138,7 +138,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
 
     { Event in } { }
     private FEventset_fraction: TSFFloatEvent;
@@ -171,7 +171,7 @@
   TNurbsSurfaceNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
 
     private FFdcontrolPoint: TMFVec3f;
     public property FdcontrolPoint: TMFVec3f read FFdcontrolPoint;
@@ -229,7 +229,7 @@
   TNurbsTextureSurfaceNode = class(TX3DNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
 
     private FFdcontrolPoint: TMFVec2f;
     public property FdcontrolPoint: TMFVec2f read FFdcontrolPoint;
@@ -261,7 +261,7 @@
   TTrimmedSurfaceNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
 
     { Event in } { }
     private FEventaddTrimmingContour: TMFNodeEvent;
@@ -293,7 +293,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
 
@@ -394,7 +394,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCoordinateDeformerNode.ClassNodeTypeName: string;
+class function TCoordinateDeformerNode.ClassX3DType: string;
 begin
   Result := 'CoordinateDeformer';
 end;
@@ -402,7 +402,7 @@ end;
 class function TCoordinateDeformerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 procedure TNurbsCurveNode_2.CreateNode;
@@ -432,7 +432,7 @@ begin
   AddField(FFdorder);
 end;
 
-class function TNurbsCurveNode_2.ClassNodeTypeName: string;
+class function TNurbsCurveNode_2.ClassX3DType: string;
 begin
   Result := 'NurbsCurve';
 end;
@@ -440,7 +440,7 @@ end;
 class function TNurbsCurveNode_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 class function TNurbsCurveNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -453,7 +453,7 @@ function TNurbsCurveNode_2.Proxy(var State: TX3DGraphTraverseState;
 var
   KnotDouble, WeightDouble: TDoubleList;
 begin
-  Result := TLineSetNode.Create(NodeName, BaseUrl);
+  Result := TLineSetNode.Create(Name, BaseUrl);
   try
     KnotDouble := FdKnot.Items.ToDouble;
     WeightDouble := FdWeight.Items.ToDouble;
@@ -502,7 +502,7 @@ begin
   AddField(FFdtessellationScale);
 end;
 
-class function TNurbsGroupNode.ClassNodeTypeName: string;
+class function TNurbsGroupNode.ClassX3DType: string;
 begin
   Result := 'NurbsGroup';
 end;
@@ -510,7 +510,7 @@ end;
 class function TNurbsGroupNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 procedure TNurbsPositionInterpolatorNode_2.CreateNode;
@@ -543,7 +543,7 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNurbsPositionInterpolatorNode_2.ClassNodeTypeName: string;
+class function TNurbsPositionInterpolatorNode_2.ClassX3DType: string;
 begin
   Result := 'NurbsPositionInterpolator';
 end;
@@ -551,7 +551,7 @@ end;
 class function TNurbsPositionInterpolatorNode_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 class function TNurbsPositionInterpolatorNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -660,7 +660,7 @@ begin
   AddField(FFdvOrder);
 end;
 
-class function TNurbsSurfaceNode.ClassNodeTypeName: string;
+class function TNurbsSurfaceNode.ClassX3DType: string;
 begin
   Result := 'NurbsSurface';
 end;
@@ -668,7 +668,7 @@ end;
 class function TNurbsSurfaceNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 function TNurbsSurfaceNode.Proxy(var State: TX3DGraphTraverseState;
@@ -676,7 +676,7 @@ function TNurbsSurfaceNode.Proxy(var State: TX3DGraphTraverseState;
 var
   UKnotDouble, VKnotDouble, WeightDouble: TDoubleList;
 begin
-  Result := TIndexedQuadSetNode.Create(NodeName, BaseUrl);
+  Result := TIndexedQuadSetNode.Create(Name, BaseUrl);
   try
     { For NurbsPatchSurfaceProxy (and underlying NurbsSurfacePoint)
       we want knots and weights to be double-precision.
@@ -791,7 +791,7 @@ begin
   AddField(FFdvOrder);
 end;
 
-class function TNurbsTextureSurfaceNode.ClassNodeTypeName: string;
+class function TNurbsTextureSurfaceNode.ClassX3DType: string;
 begin
   Result := 'NurbsTextureSurface';
 end;
@@ -799,7 +799,7 @@ end;
 class function TNurbsTextureSurfaceNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 procedure TTrimmedSurfaceNode.CreateNode;
@@ -821,7 +821,7 @@ begin
   AddField(FFdsurface);
 end;
 
-class function TTrimmedSurfaceNode.ClassNodeTypeName: string;
+class function TTrimmedSurfaceNode.ClassX3DType: string;
 begin
   Result := 'TrimmedSurface';
 end;
@@ -829,7 +829,7 @@ end;
 class function TTrimmedSurfaceNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 {$define TGeometryNotImplemented := TTrimmedSurfaceNode}
@@ -854,7 +854,7 @@ begin
   DefaultContainerField := 'trimmingContour';
 end;
 
-class function TContour2DNode_2.ClassNodeTypeName: string;
+class function TContour2DNode_2.ClassX3DType: string;
 begin
   Result := 'Contour2D';
 end;
@@ -862,7 +862,7 @@ end;
 class function TContour2DNode_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 class function TContour2DNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;

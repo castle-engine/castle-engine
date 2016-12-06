@@ -100,20 +100,20 @@ uses CastleUtils, X3DLexer, CastleClassUtils, CastleFilesUtils, X3DFields,
 
 type
   TSpecialNode = class(TX3DNode)
-    function NodeTypeName: string; override;
+    function X3DType: string; override;
   end;
 
-function TSpecialNode.NodeTypeName: string;
+function TSpecialNode.X3DType: string;
 begin
  result := 'OohImSoSpecial';
 end;
 
 type
   TSomethingNode = class(TX3DNode)
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
   end;
 
-class function TSomethingNode.ClassNodeTypeName: string;
+class function TSomethingNode.ClassX3DType: string;
 begin
  result := 'WellImNothingSpecial';
 end;
@@ -123,7 +123,7 @@ end;
 procedure TTestX3DNodes.TestNodesManager;
 begin
  try
-  { throw exception because TSpecialNode.ClassNodeTypeName = '' }
+  { throw exception because TSpecialNode.ClassX3DType = '' }
   NodesManager.RegisterNodeClass(TSpecialNode);
   raise Exception.Create('NodesManager.RegisterNodeClass(TSpecialNode); SHOULD throw exception');
  except on ENodesManagerError do ; end;
@@ -336,7 +336,7 @@ begin
     N := NodesManager.Registered[I].Create;
     try
 
-      { Writeln(N.NodeTypeName, ' ', Supports(N, IAbstractChildNode)); }
+      { Writeln(N.X3DType, ' ', Supports(N, IAbstractChildNode)); }
 
       { Test that all fields, events names are different.
 
@@ -847,7 +847,7 @@ begin
     begin
       N := NodesManager.Registered[I].Create;
       try
-        Index := ContainerFieldList.IndexOfName(N.NodeTypeName);
+        Index := ContainerFieldList.IndexOfName(N.X3DType);
         if (Index <> -1) and
            (not (N is TFontStyleNode_1)) and
            (not (N is TMaterialNode_1)) then

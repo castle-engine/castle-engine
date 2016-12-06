@@ -23,7 +23,7 @@
   TLayoutNode = class(TAbstractLayoutNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAlign: TMFString;
@@ -48,7 +48,7 @@
   TLayoutGroupNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdLayout: TSFNode;
@@ -61,7 +61,7 @@
   TLayoutLayerNode = class(TAbstractLayerNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
@@ -82,7 +82,7 @@
   TScreenFontStyleNode = class(TAbstractFontStyleNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdFamily: TMFString;
@@ -116,7 +116,7 @@
   TScreenGroupNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
@@ -161,7 +161,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TLayoutNode.ClassNodeTypeName: string;
+class function TLayoutNode.ClassX3DType: string;
 begin
   Result := 'Layout';
 end;
@@ -169,7 +169,7 @@ end;
 class function TLayoutNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TLayoutGroupNode.CreateNode;
@@ -185,7 +185,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TLayoutGroupNode.ClassNodeTypeName: string;
+class function TLayoutGroupNode.ClassX3DType: string;
 begin
   Result := 'LayoutGroup';
 end;
@@ -193,7 +193,7 @@ end;
 class function TLayoutGroupNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TLayoutLayerNode.CreateNode;
@@ -213,7 +213,7 @@ begin
   AddField(FFdLayout);
 end;
 
-class function TLayoutLayerNode.ClassNodeTypeName: string;
+class function TLayoutLayerNode.ClassX3DType: string;
 begin
   Result := 'LayoutLayer';
 end;
@@ -221,7 +221,7 @@ end;
 class function TLayoutLayerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TScreenFontStyleNode.CreateNode;
@@ -269,7 +269,7 @@ begin
   AddField(FFdTopToBottom);
 end;
 
-class function TScreenFontStyleNode.ClassNodeTypeName: string;
+class function TScreenFontStyleNode.ClassX3DType: string;
 begin
   Result := 'ScreenFontStyle';
 end;
@@ -277,7 +277,7 @@ end;
 class function TScreenFontStyleNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TScreenGroupNode.CreateNode;
@@ -287,7 +287,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TScreenGroupNode.ClassNodeTypeName: string;
+class function TScreenGroupNode.ClassX3DType: string;
 begin
   Result := 'ScreenGroup';
 end;
@@ -295,7 +295,7 @@ end;
 class function TScreenGroupNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterLayoutNodes;

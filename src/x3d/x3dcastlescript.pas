@@ -187,7 +187,7 @@ begin
      FieldClass.InheritsFrom(TMFImage) }then
     Result := TCasScriptImage.Create(true) else
   begin
-    WritelnWarning('VRML/X3D', 'Note that CastleScript is not yet suitable to process values of type ' + FieldClass.TypeName);
+    WritelnWarning('VRML/X3D', 'Note that CastleScript is not yet suitable to process values of type ' + FieldClass.X3DType);
     Result := TCasScriptFloat.Create(true);
   end;
 

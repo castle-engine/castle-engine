@@ -66,7 +66,7 @@
   TBallJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAnchorPoint: TSFVec3f;
@@ -84,7 +84,7 @@
   TCollidableOffsetNode = class(TAbstractNBodyCollidableNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdCollidable: TSFNode;
@@ -94,7 +94,7 @@
   TCollidableShapeNode = class(TAbstractNBodyCollidableNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdShape: TSFNode;
@@ -104,7 +104,7 @@
   TCollisionCollectionNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAppliedParameters: TMFString;
@@ -141,7 +141,7 @@
   TCollisionSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdCollider: TSFNode;
@@ -159,7 +159,7 @@
   TCollisionSpaceNode = class(TAbstractNBodyCollisionSpaceNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdCollidables: TMFNode;
@@ -172,7 +172,7 @@
   TContactNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAppliedParameters: TMFString;
@@ -227,7 +227,7 @@
   TDoubleAxisHingeJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAnchorPoint: TSFVec3f;
@@ -308,7 +308,7 @@
   TMotorJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAxis1Angle: TSFFloat;
@@ -390,7 +390,7 @@
   TRigidBodyNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAngularDampingFactor: TSFFloat;
@@ -466,7 +466,7 @@
   TRigidBodyCollectionNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
@@ -522,7 +522,7 @@
   TSingleAxisHingeJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAnchorPoint: TSFVec3f;
@@ -563,7 +563,7 @@
   TSliderJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAxis: TSFVec3f;
@@ -596,7 +596,7 @@
   TUniversalJointNode = class(TAbstractRigidJointNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAnchorPoint: TSFVec3f;
@@ -715,7 +715,7 @@ begin
   AddEvent(FEventBody2AnchorPoint);
 end;
 
-class function TBallJointNode.ClassNodeTypeName: string;
+class function TBallJointNode.ClassX3DType: string;
 begin
   Result := 'BallJoint';
 end;
@@ -723,7 +723,7 @@ end;
 class function TBallJointNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TCollidableOffsetNode.CreateNode;
@@ -735,7 +735,7 @@ begin
   AddField(FFdCollidable);
 end;
 
-class function TCollidableOffsetNode.ClassNodeTypeName: string;
+class function TCollidableOffsetNode.ClassX3DType: string;
 begin
   Result := 'CollidableOffset';
 end;
@@ -743,7 +743,7 @@ end;
 class function TCollidableOffsetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TCollidableShapeNode.CreateNode;
@@ -755,7 +755,7 @@ begin
   AddField(FFdShape);
 end;
 
-class function TCollidableShapeNode.ClassNodeTypeName: string;
+class function TCollidableShapeNode.ClassX3DType: string;
 begin
   Result := 'CollidableShape';
 end;
@@ -763,7 +763,7 @@ end;
 class function TCollidableShapeNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TCollisionCollectionNode.CreateNode;
@@ -809,7 +809,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TCollisionCollectionNode.ClassNodeTypeName: string;
+class function TCollisionCollectionNode.ClassX3DType: string;
 begin
   Result := 'CollisionCollection';
 end;
@@ -817,7 +817,7 @@ end;
 class function TCollisionCollectionNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TCollisionSensorNode.CreateNode;
@@ -834,7 +834,7 @@ begin
   AddEvent(FEventContacts);
 end;
 
-class function TCollisionSensorNode.ClassNodeTypeName: string;
+class function TCollisionSensorNode.ClassX3DType: string;
 begin
   Result := 'CollisionSensor';
 end;
@@ -842,7 +842,7 @@ end;
 class function TCollisionSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TCollisionSpaceNode.CreateNode;
@@ -858,7 +858,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCollisionSpaceNode.ClassNodeTypeName: string;
+class function TCollisionSpaceNode.ClassX3DType: string;
 begin
   Result := 'CollisionSpace';
 end;
@@ -866,7 +866,7 @@ end;
 class function TCollisionSpaceNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TContactNode.CreateNode;
@@ -936,7 +936,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TContactNode.ClassNodeTypeName: string;
+class function TContactNode.ClassX3DType: string;
 begin
   Result := 'Contact';
 end;
@@ -944,7 +944,7 @@ end;
 class function TContactNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TDoubleAxisHingeJointNode.CreateNode;
@@ -1029,7 +1029,7 @@ begin
   AddEvent(FEventHinge2AngleRate);
 end;
 
-class function TDoubleAxisHingeJointNode.ClassNodeTypeName: string;
+class function TDoubleAxisHingeJointNode.ClassX3DType: string;
 begin
   Result := 'DoubleAxisHingeJoint';
 end;
@@ -1037,7 +1037,7 @@ end;
 class function TDoubleAxisHingeJointNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TMotorJointNode.CreateNode;
@@ -1128,7 +1128,7 @@ begin
   AddField(FFdAutoCalc);
 end;
 
-class function TMotorJointNode.ClassNodeTypeName: string;
+class function TMotorJointNode.ClassX3DType: string;
 begin
   Result := 'MotorJoint';
 end;
@@ -1136,7 +1136,7 @@ end;
 class function TMotorJointNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TRigidBodyNode.CreateNode;
@@ -1227,7 +1227,7 @@ begin
   DefaultContainerField := 'bodies';
 end;
 
-class function TRigidBodyNode.ClassNodeTypeName: string;
+class function TRigidBodyNode.ClassX3DType: string;
 begin
   Result := 'RigidBody';
 end;
@@ -1235,7 +1235,7 @@ end;
 class function TRigidBodyNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TRigidBodyCollectionNode.CreateNode;
@@ -1300,7 +1300,7 @@ begin
   AddField(FFdCollider);
 end;
 
-class function TRigidBodyCollectionNode.ClassNodeTypeName: string;
+class function TRigidBodyCollectionNode.ClassX3DType: string;
 begin
   Result := 'RigidBodyCollection';
 end;
@@ -1308,7 +1308,7 @@ end;
 class function TRigidBodyCollectionNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TSingleAxisHingeJointNode.CreateNode;
@@ -1348,7 +1348,7 @@ begin
   AddEvent(FEventBody2AnchorPoint);
 end;
 
-class function TSingleAxisHingeJointNode.ClassNodeTypeName: string;
+class function TSingleAxisHingeJointNode.ClassX3DType: string;
 begin
   Result := 'SingleAxisHingeJoint';
 end;
@@ -1356,7 +1356,7 @@ end;
 class function TSingleAxisHingeJointNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TSliderJointNode.CreateNode;
@@ -1393,7 +1393,7 @@ begin
   AddEvent(FEventSeparationRate);
 end;
 
-class function TSliderJointNode.ClassNodeTypeName: string;
+class function TSliderJointNode.ClassX3DType: string;
 begin
   Result := 'SliderJoint';
 end;
@@ -1401,7 +1401,7 @@ end;
 class function TSliderJointNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TUniversalJointNode.CreateNode;
@@ -1446,7 +1446,7 @@ begin
   AddEvent(FEventBody2Axis);
 end;
 
-class function TUniversalJointNode.ClassNodeTypeName: string;
+class function TUniversalJointNode.ClassX3DType: string;
 begin
   Result := 'UniversalJoint';
 end;
@@ -1454,7 +1454,7 @@ end;
 class function TUniversalJointNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterRigidBodyPhysicsNodes;

@@ -829,11 +829,12 @@ type
       read FExposedEventsLinked write SetExposedEventsLinked
       default true;
 
-    { Field type name in VRML/X3D.
+    { Field type in X3D, like @code(SFString) or @link(MFInt32).
       As for VRML/X3D interface declaration statements.
-      In base TX3DField class, this teturns @code(XFAny)
+      In base TX3DField class, this returns @code(XFAny)
       (name indicating any type, used by instantreality and us). }
-    class function TypeName: string; virtual;
+    class function X3DType: string; virtual;
+    class function TypeName: string; deprecated 'use X3DType';
 
     { Create TX3DEvent descendant suitable as exposed event for this field. }
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; virtual;
@@ -1229,7 +1230,7 @@ type
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
   end;
 
   TSFBool = class(TX3DSingleField)
@@ -1253,7 +1254,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure Send(const AValue: boolean); overload;
@@ -1294,7 +1295,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
 
     procedure Send(const AValue: LongInt); overload;
   end;
@@ -1343,7 +1344,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure Send(const AValue: Single); overload;
@@ -1384,7 +1385,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure Send(const AValue: Double); overload;
@@ -1392,7 +1393,7 @@ type
 
   TSFTime = class(TSFDouble)
   public
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
     procedure Send(const AValue: Double); overload;
   end;
@@ -1437,7 +1438,7 @@ type
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
   end;
 
@@ -1473,7 +1474,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure Send(const AValue: LongInt); virtual; overload;
@@ -1481,7 +1482,7 @@ type
 
   TSFInt32 = class(TSFLong)
   public
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
     procedure Send(const AValue: LongInt); override;
   end;
@@ -1512,7 +1513,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure Send(const AValue: TMatrix3Single); overload;
@@ -1544,7 +1545,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure Send(const AValue: TMatrix3Double); overload;
@@ -1585,7 +1586,7 @@ type
       looking at some rotation matrices). }
     function TransformScale: Single;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure Send(const AValue: TMatrix4Single); virtual; overload;
@@ -1594,7 +1595,7 @@ type
   { VRML 1.0 SFMatrix field. }
   TSFMatrix = class(TSFMatrix4f)
   public
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     procedure Send(const AValue: TMatrix4Single); override;
   end;
 
@@ -1624,7 +1625,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure Send(const AValue: TMatrix4Double); overload;
@@ -1680,7 +1681,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure Send(const AValue: TVector4Single); overload;
@@ -1715,7 +1716,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
@@ -1780,7 +1781,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure Send(const AValue: TVector2Single); overload;
@@ -1811,7 +1812,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure Send(const AValue: TVector3Single); virtual; overload;
@@ -1821,7 +1822,7 @@ type
 
   TSFColor = class(TSFVec3f)
   public
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
     procedure Send(const AValue: TVector3Single); override;
   end;
@@ -1851,7 +1852,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure Send(const AValue: TVector4Single); virtual; overload;
@@ -1859,7 +1860,7 @@ type
 
   TSFColorRGBA = class(TSFVec4f)
   public
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
     procedure Send(const AValue: TVector4Single); override;
   end;
@@ -1889,7 +1890,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure Send(const AValue: TVector2Double); overload;
@@ -1920,7 +1921,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure Send(const AValue: TVector3Double); overload;
@@ -1950,7 +1951,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure Send(const AValue: TVector4Double); overload;
@@ -2003,7 +2004,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Access Items[] checking for range errors.
@@ -2051,7 +2052,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Access Items[] checking for range errors.
@@ -2079,7 +2080,7 @@ type
       content/examples/Basic/HumanoidAnimation/NancyDiving.x3dv
       from http://www.web3d.org/ example models. }
     procedure WritelnWarning_WrongVertexIndex(
-      const GeometryNodeTypeName: string;
+      const GeometryX3DType: string;
       const VertexNum: Integer; const CoordCount: Integer);
 
     procedure Send(const AValue: array of LongInt); virtual; overload;
@@ -2087,7 +2088,7 @@ type
 
   TMFInt32 = class(TMFLong)
   public
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
     procedure Send(const AValue: array of LongInt); override;
   end;
@@ -2120,7 +2121,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Access Items[] checking for range errors.
@@ -2160,7 +2161,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Access Items[] checking for range errors.
@@ -2200,7 +2201,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Access Items[] checking for range errors.
@@ -2240,7 +2241,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Access Items[] checking for range errors.
@@ -2280,7 +2281,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Access Items[] checking for range errors.
@@ -2320,7 +2321,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Access Items[] checking for range errors.
@@ -2334,7 +2335,7 @@ type
 
   TMFColor = class(TMFVec3f)
   public
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
     procedure Send(const AValue: array of TVector3Single); override;
   end;
@@ -2367,7 +2368,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Access Items[] checking for range errors.
@@ -2381,7 +2382,7 @@ type
 
   TMFColorRGBA = class(TMFVec4f)
   public
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
     procedure Send(const AValue: array of TVector4Single); override;
   end;
@@ -2414,7 +2415,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Access Items[] checking for range errors.
@@ -2454,7 +2455,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Access Items[] checking for range errors.
@@ -2494,7 +2495,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Access Items[] checking for range errors.
@@ -2535,7 +2536,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Access Items[] checking for range errors.
@@ -2584,7 +2585,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Access Items[] checking for range errors.
@@ -2626,7 +2627,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Access Items[] checking for range errors.
@@ -2640,7 +2641,7 @@ type
 
   TMFTime = class(TMFDouble)
   public
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
   end;
 
@@ -2671,7 +2672,7 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
@@ -2700,7 +2701,7 @@ type
     procedure RegisterClasses(const Classes: array of TX3DFieldClass);
 
     { Return field class for given name. Returns @nil if not found. }
-    function FieldTypeNameToClass(const TypeName: string): TX3DFieldClass;
+    function X3DTypeToClass(const X3DType: string): TX3DFieldClass;
   end;
 
   {$I x3devents.inc}
@@ -3417,8 +3418,8 @@ procedure TX3DField.AssignValueRaiseInvalidClass(Source: TX3DField);
 begin
   raise EX3DFieldAssignInvalidClass.CreateFmt('Cannot assign VRML/X3D field ' +
     '%s (%s) from %s (%s)',
-    [        Name,        TypeName,
-      Source.Name, Source.TypeName]);
+    [        Name,        X3DType,
+      Source.Name, Source.X3DType]);
 end;
 
 procedure TX3DField.AssignValue(Source: TX3DField);
@@ -3458,12 +3459,17 @@ begin
   end;
 end;
 
-{ Note that TX3DField.TypeName cannot be abstract:
+{ Note that TX3DField.X3DType cannot be abstract:
   it may be used if source event is of XFAny type in warning message
   in TX3DRoute.SetEndingInternal }
-class function TX3DField.TypeName: string;
+class function TX3DField.X3DType: string;
 begin
   Result := 'XFAny';
+end;
+
+class function TX3DField.TypeName: string;
+begin
+  Result := X3DType;
 end;
 
 function TX3DField.OnReceive: TX3DEventReceiveList;
@@ -3728,10 +3734,10 @@ const
 begin
   Inc(InvalidIndexWarnings);
   if InvalidIndexWarnings < MaxInvalidIndexWarnings then
-    WritelnWarning('VRML/X3D', Format('Invalid index for field %s (%s): index is %d, but we have only %d items', [NiceName, TypeName, Index, ACount])) else
+    WritelnWarning('VRML/X3D', Format('Invalid index for field %s (%s): index is %d, but we have only %d items', [NiceName, X3DType, Index, ACount])) else
   if InvalidIndexWarnings = MaxInvalidIndexWarnings then
     WritelnWarning('VRML/X3D', Format('Invalid index for field %s (%s) reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
-      [NiceName, TypeName, InvalidIndexWarnings]));
+      [NiceName, X3DType, InvalidIndexWarnings]));
 end;
 
 { simple helpful parsing functions ---------------------------------------- }
@@ -3872,7 +3878,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFBool.TypeName: string;
+class function TSFBool.X3DType: string;
 begin
   Result := 'SFBool';
 end;
@@ -3989,7 +3995,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFFloat.TypeName: string;
+class function TSFFloat.X3DType: string;
 begin
   Result := 'SFFloat';
 end;
@@ -4095,7 +4101,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFDouble.TypeName: string;
+class function TSFDouble.X3DType: string;
 begin
   Result := 'SFDouble';
 end;
@@ -4117,7 +4123,7 @@ end;
 
 { TSFTime -------------------------------------------------------------------- }
 
-class function TSFTime.TypeName: string;
+class function TSFTime.X3DType: string;
 begin
   Result := 'SFTime';
 end;
@@ -4376,7 +4382,7 @@ begin
     AssignValueRaiseInvalidClass(Source);
 end;
 
-class function TSFImage.TypeName: string;
+class function TSFImage.X3DType: string;
 begin
   Result := 'SFImage';
 end;
@@ -4487,7 +4493,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFLong.TypeName: string;
+class function TSFLong.X3DType: string;
 begin
   Result := 'SFLong';
 end;
@@ -4509,7 +4515,7 @@ end;
 
 { TSFInt32 ------------------------------------------------------------------- }
 
-class function TSFInt32.TypeName: string;
+class function TSFInt32.X3DType: string;
 begin
   Result := 'SFInt32';
 end;
@@ -4674,21 +4680,21 @@ IMPLEMENT_SF_CLASS_USING_MATRICES
 
 { TSFMatrix3f ------------------------------------------------------------------ }
 
-class function TSFMatrix3f.TypeName: string;
+class function TSFMatrix3f.X3DType: string;
 begin
   Result := 'SFMatrix3f';
 end;
 
 { TSFMatrix3d ------------------------------------------------------------------ }
 
-class function TSFMatrix3d.TypeName: string;
+class function TSFMatrix3d.X3DType: string;
 begin
   Result := 'SFMatrix3d';
 end;
 
 { TSFMatrix4f ------------------------------------------------------------------ }
 
-class function TSFMatrix4f.TypeName: string;
+class function TSFMatrix4f.X3DType: string;
 begin
   Result := 'SFMatrix4f';
 end;
@@ -4707,14 +4713,14 @@ end;
 
 { TSFMatrix4d ------------------------------------------------------------------ }
 
-class function TSFMatrix4d.TypeName: string;
+class function TSFMatrix4d.X3DType: string;
 begin
   Result := 'SFMatrix4d';
 end;
 
 { TSFMatrix ------------------------------------------------------------------ }
 
-class function TSFMatrix.TypeName: string;
+class function TSFMatrix.X3DType: string;
 begin
   Result := 'SFMatrix';
 end;
@@ -4874,7 +4880,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFRotation.TypeName: string;
+class function TSFRotation.X3DType: string;
 begin
   Result := 'SFRotation';
 end;
@@ -4969,7 +4975,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFString.TypeName: string;
+class function TSFString.X3DType: string;
 begin
   Result := 'SFString';
 end;
@@ -5234,14 +5240,14 @@ IMPLEMENT_SF_CLASS_USING_VECTORS
 
 { TSFVec2f ------------------------------------------------------------------- }
 
-class function TSFVec2f.TypeName: string;
+class function TSFVec2f.X3DType: string;
 begin
   Result := 'SFVec2f';
 end;
 
 { TSFVec3f ------------------------------------------------------------------- }
 
-class function TSFVec3f.TypeName: string;
+class function TSFVec3f.X3DType: string;
 begin
   Result := 'SFVec3f';
 end;
@@ -5257,7 +5263,7 @@ end;
 
 { TSFColor ------------------------------------------------------------------- }
 
-class function TSFColor.TypeName: string;
+class function TSFColor.X3DType: string;
 begin
   Result := 'SFColor';
 end;
@@ -5279,14 +5285,14 @@ end;
 
 { TSFVec4f ------------------------------------------------------------------- }
 
-class function TSFVec4f.TypeName: string;
+class function TSFVec4f.X3DType: string;
 begin
   Result := 'SFVec4f';
 end;
 
 { TSFColorRGBA --------------------------------------------------------------- }
 
-class function TSFColorRGBA.TypeName: string;
+class function TSFColorRGBA.X3DType: string;
 begin
   Result := 'SFColorRGBA';
 end;
@@ -5308,21 +5314,21 @@ end;
 
 { TSFVec2d ------------------------------------------------------------------- }
 
-class function TSFVec2d.TypeName: string;
+class function TSFVec2d.X3DType: string;
 begin
   Result := 'SFVec2d';
 end;
 
 { TSFVec3d ------------------------------------------------------------------- }
 
-class function TSFVec3d.TypeName: string;
+class function TSFVec3d.X3DType: string;
 begin
   Result := 'SFVec3d';
 end;
 
 { TSFVec4d ------------------------------------------------------------------- }
 
-class function TSFVec4d.TypeName: string;
+class function TSFVec4d.X3DType: string;
 begin
   Result := 'SFVec4d';
 end;
@@ -5481,7 +5487,7 @@ begin
     AssignValueRaiseInvalidClass(Source);
 end;
 
-class function TSFBitMask.TypeName: string;
+class function TSFBitMask.X3DType: string;
 begin
   Result := 'SFBitMask';
 end;
@@ -5577,7 +5583,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TSFEnum.TypeName: string;
+class function TSFEnum.X3DType: string;
 begin
   Result := 'SFEnum';
 end;
@@ -6055,7 +6061,7 @@ begin
   Result := BoolKeywords[Encoding][Items[ItemNum]];
 end;
 
-class function TMFBool.TypeName: string;
+class function TMFBool.X3DType: string;
 begin
   Result := 'MFBool';
 end;
@@ -6072,13 +6078,13 @@ begin
   Result := IntToStr(Items[ItemNum])
 end;
 
-class function TMFLong.TypeName: string;
+class function TMFLong.X3DType: string;
 begin
   Result := 'MFLong';
 end;
 
 procedure TMFLong.WritelnWarning_WrongVertexIndex(
-  const GeometryNodeTypeName: string;
+  const GeometryX3DType: string;
   const VertexNum: Integer; const CoordCount: Integer);
 const
   MaxWrongVertexIndexWarnings = 10;
@@ -6086,15 +6092,15 @@ begin
   Inc(WrongVertexIndexWarnings);
   if WrongVertexIndexWarnings < MaxWrongVertexIndexWarnings then
     WritelnWarning('VRML/X3D', Format('Wrong vertex index in indexed node %s (not enouch points in Coordinate node defined: index is %d, we have only %d vertices)',
-      [GeometryNodeTypeName, VertexNum, CoordCount])) else
+      [GeometryX3DType, VertexNum, CoordCount])) else
   if WrongVertexIndexWarnings = MaxWrongVertexIndexWarnings then
     WritelnWarning('VRML/X3D', Format('Wrong vertex index in indexed node %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
-      [GeometryNodeTypeName, WrongVertexIndexWarnings]));
+      [GeometryX3DType, WrongVertexIndexWarnings]));
 end;
 
 { TMFInt32 ------------------------------------------------------------------- }
 
-class function TMFInt32.TypeName: string;
+class function TMFInt32.X3DType: string;
 begin
   Result := 'MFInt32';
 end;
@@ -6116,49 +6122,49 @@ end;
 
 { TMFMatrix3f ------------------------------------------------------------------- }
 
-class function TMFMatrix3f.TypeName: string;
+class function TMFMatrix3f.X3DType: string;
 begin
   Result := 'MFMatrix3f';
 end;
 
 { TMFMatrix3d ------------------------------------------------------------------- }
 
-class function TMFMatrix3d.TypeName: string;
+class function TMFMatrix3d.X3DType: string;
 begin
   Result := 'MFMatrix3d';
 end;
 
 { TMFMatrix4f ------------------------------------------------------------------- }
 
-class function TMFMatrix4f.TypeName: string;
+class function TMFMatrix4f.X3DType: string;
 begin
   Result := 'MFMatrix4f';
 end;
 
 { TMFMatrix4d ------------------------------------------------------------------- }
 
-class function TMFMatrix4d.TypeName: string;
+class function TMFMatrix4d.X3DType: string;
 begin
   Result := 'MFMatrix4d';
 end;
 
 { TMFVec2f ------------------------------------------------------------------- }
 
-class function TMFVec2f.TypeName: string;
+class function TMFVec2f.X3DType: string;
 begin
   Result := 'MFVec2f';
 end;
 
 { TMFVec3f ------------------------------------------------------------------- }
 
-class function TMFVec3f.TypeName: string;
+class function TMFVec3f.X3DType: string;
 begin
   Result := 'MFVec3f';
 end;
 
 { TMFColor ------------------------------------------------------------------- }
 
-class function TMFColor.TypeName: string;
+class function TMFColor.X3DType: string;
 begin
   Result := 'MFColor';
 end;
@@ -6180,14 +6186,14 @@ end;
 
 { TMFVec4f ------------------------------------------------------------------- }
 
-class function TMFVec4f.TypeName: string;
+class function TMFVec4f.X3DType: string;
 begin
   Result := 'MFVec4f';
 end;
 
 { TMFColorRGBA --------------------------------------------------------------- }
 
-class function TMFColorRGBA.TypeName: string;
+class function TMFColorRGBA.X3DType: string;
 begin
   Result := 'MFColorRGBA';
 end;
@@ -6209,28 +6215,28 @@ end;
 
 { TMFVec2d ------------------------------------------------------------------- }
 
-class function TMFVec2d.TypeName: string;
+class function TMFVec2d.X3DType: string;
 begin
   Result := 'MFVec2d';
 end;
 
 { TMFVec3d ------------------------------------------------------------------- }
 
-class function TMFVec3d.TypeName: string;
+class function TMFVec3d.X3DType: string;
 begin
   Result := 'MFVec3d';
 end;
 
 { TMFVec4d ------------------------------------------------------------------- }
 
-class function TMFVec4d.TypeName: string;
+class function TMFVec4d.X3DType: string;
 begin
   Result := 'MFVec4d';
 end;
 
 { TMFRotation ---------------------------------------------------------------- }
 
-class function TMFRotation.TypeName: string;
+class function TMFRotation.X3DType: string;
 begin
   Result := 'MFRotation';
 end;
@@ -6267,7 +6273,7 @@ begin
   Result := true;
 end;
 
-class function TMFFloat.TypeName: string;
+class function TMFFloat.X3DType: string;
 begin
   Result := 'MFFloat';
 end;
@@ -6313,14 +6319,14 @@ begin
   Result := true;
 end;
 
-class function TMFDouble.TypeName: string;
+class function TMFDouble.X3DType: string;
 begin
   Result := 'MFDouble';
 end;
 
 { TMFTime -------------------------------------------------------------------- }
 
-class function TMFTime.TypeName: string;
+class function TMFTime.X3DType: string;
 begin
   Result := 'MFTime';
 end;
@@ -6341,7 +6347,7 @@ begin
   end;
 end;
 
-class function TMFString.TypeName: string;
+class function TMFString.X3DType: string;
 begin
   Result := 'MFString';
 end;
@@ -6408,7 +6414,7 @@ end;
 
 procedure TX3DFieldsManager.RegisterClass(AClass: TX3DFieldClass);
 begin
-  Registered.AddObject(AClass.TypeName, TObject(AClass));
+  Registered.AddObject(AClass.X3DType, TObject(AClass));
 end;
 
 procedure TX3DFieldsManager.RegisterClasses(
@@ -6420,12 +6426,12 @@ begin
     RegisterClass(Classes[I]);
 end;
 
-function TX3DFieldsManager.FieldTypeNameToClass(
-  const TypeName: string): TX3DFieldClass;
+function TX3DFieldsManager.X3DTypeToClass(
+  const X3DType: string): TX3DFieldClass;
 var
   I: Integer;
 begin
-  I := Registered.IndexOf(TypeName);
+  I := Registered.IndexOf(X3DType);
   if I <> -1 then
     Result := TX3DFieldClass(Registered.Objects[I]) else
     Result := nil;

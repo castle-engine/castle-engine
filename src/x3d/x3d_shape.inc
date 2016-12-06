@@ -157,7 +157,7 @@
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdFillProperties: TSFNode;
@@ -242,7 +242,7 @@
   TFillPropertiesNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdFilled: TSFBool;
@@ -272,7 +272,7 @@
     procedure SetLineType(const Value: TLineType);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdApplied: TSFBool;
@@ -293,7 +293,7 @@
   TMaterialNode = class(TAbstractMaterialNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAmbientIntensity: TSFFloat;
@@ -442,14 +442,14 @@
   TShapeNode = class(TAbstractShapeNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
   TTwoSidedMaterialNode = class(TAbstractMaterialNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAmbientIntensity: TSFFloat;
@@ -817,7 +817,7 @@ begin
   DefaultContainerField := 'appearance';
 end;
 
-class function TAppearanceNode.ClassNodeTypeName: string;
+class function TAppearanceNode.ClassX3DType: string;
 begin
   Result := 'Appearance';
 end;
@@ -825,8 +825,8 @@ end;
 class function TAppearanceNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TMFNodeShaders.ExposedEventsFieldClass: TX3DFieldClass;
@@ -990,7 +990,7 @@ begin
   DefaultContainerField := 'fillProperties';
 end;
 
-class function TFillPropertiesNode.ClassNodeTypeName: string;
+class function TFillPropertiesNode.ClassX3DType: string;
 begin
   Result := 'FillProperties';
 end;
@@ -998,7 +998,7 @@ end;
 class function TFillPropertiesNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TLinePropertiesNode.CreateNode;
@@ -1019,7 +1019,7 @@ begin
   DefaultContainerField := 'lineProperties';
 end;
 
-class function TLinePropertiesNode.ClassNodeTypeName: string;
+class function TLinePropertiesNode.ClassX3DType: string;
 begin
   Result := 'LineProperties';
 end;
@@ -1027,7 +1027,7 @@ end;
 class function TLinePropertiesNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TLinePropertiesNode.GetLineType: TLineType;
@@ -1121,7 +1121,7 @@ begin
   AddField(FFdTransSpecularExp);
 end;
 
-class function TMaterialNode.ClassNodeTypeName: string;
+class function TMaterialNode.ClassX3DType: string;
 begin
   Result := 'Material';
 end;
@@ -1129,8 +1129,8 @@ end;
 class function TMaterialNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TMaterialNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -1274,7 +1274,7 @@ begin
   inherited;
 end;
 
-class function TShapeNode.ClassNodeTypeName: string;
+class function TShapeNode.ClassX3DType: string;
 begin
   Result := 'Shape';
 end;
@@ -1282,8 +1282,8 @@ end;
 class function TShapeNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TTwoSidedMaterialNode.CreateNode;
@@ -1355,7 +1355,7 @@ begin
   { X3D specification comment: [0,1] }
 end;
 
-class function TTwoSidedMaterialNode.ClassNodeTypeName: string;
+class function TTwoSidedMaterialNode.ClassX3DType: string;
 begin
   Result := 'TwoSidedMaterial';
 end;
@@ -1363,7 +1363,7 @@ end;
 class function TTwoSidedMaterialNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterShapeNodes;

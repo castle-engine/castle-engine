@@ -18,7 +18,7 @@
   TArc2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdEndAngle: TSFFloat;
@@ -42,7 +42,7 @@
   TArcClose2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdClosureType: TSFString;
@@ -72,7 +72,7 @@
   TCircle2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdRadius: TSFFloat;
@@ -90,7 +90,7 @@
   TDisk2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdInnerRadius: TSFFloat;
@@ -120,7 +120,7 @@
   TPolyline2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdLineSegments: TMFVec2f;
@@ -138,7 +138,7 @@
   TPolypoint2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdPoint: TMFVec2f;
@@ -156,7 +156,7 @@
   TRectangle2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdSize: TSFVec2f;
@@ -173,7 +173,7 @@
   TTriangleSet2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdVertices: TMFVec2f;
@@ -219,7 +219,7 @@ begin
   { X3D specification comment: [-2Pi,2Pi] }
 end;
 
-class function TArc2DNode.ClassNodeTypeName: string;
+class function TArc2DNode.ClassX3DType: string;
 begin
   Result := 'Arc2D';
 end;
@@ -227,7 +227,7 @@ end;
 class function TArc2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 {$define TGeometryNotImplemented := TArc2DNode}
@@ -269,7 +269,7 @@ begin
   { X3D specification comment: [-2Pi,2Pi] }
 end;
 
-class function TArcClose2DNode.ClassNodeTypeName: string;
+class function TArcClose2DNode.ClassX3DType: string;
 begin
   Result := 'ArcClose2D';
 end;
@@ -277,7 +277,7 @@ end;
 class function TArcClose2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 {$define TGeometryNotImplemented := TArcClose2DNode}
@@ -298,7 +298,7 @@ begin
   AddField(FFdSlices);
 end;
 
-class function TCircle2DNode.ClassNodeTypeName: string;
+class function TCircle2DNode.ClassX3DType: string;
 begin
   Result := 'Circle2D';
 end;
@@ -306,7 +306,7 @@ end;
 class function TCircle2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TCircle2DNode.CalculateSlices: Cardinal;
@@ -327,7 +327,7 @@ var
   I: Integer;
   AngleSin, AngleCos: Float;
 begin
-  LineSet := TLineSetNode.Create(NodeName, BaseUrl);
+  LineSet := TLineSetNode.Create(Name, BaseUrl);
   try
     SlicesNow := CalculateSlices;
 
@@ -378,7 +378,7 @@ begin
   AddField(FFdSolid);
 end;
 
-class function TDisk2DNode.ClassNodeTypeName: string;
+class function TDisk2DNode.ClassX3DType: string;
 begin
   Result := 'Disk2D';
 end;
@@ -386,7 +386,7 @@ end;
 class function TDisk2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 {$define TGeometryNotImplemented := TDisk2DNode}
@@ -405,7 +405,7 @@ begin
   FFdLineSegments.AddAlternativeName('point', 2);
 end;
 
-class function TPolyline2DNode.ClassNodeTypeName: string;
+class function TPolyline2DNode.ClassX3DType: string;
 begin
   Result := 'Polyline2D';
 end;
@@ -413,8 +413,8 @@ end;
 class function TPolyline2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 {$define TGeometryNotImplemented := TPolyline2DNode}
@@ -430,7 +430,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TPolypoint2DNode.ClassNodeTypeName: string;
+class function TPolypoint2DNode.ClassX3DType: string;
 begin
   Result := 'Polypoint2D';
 end;
@@ -438,7 +438,7 @@ end;
 class function TPolypoint2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 {$define TGeometryNotImplemented := TPolypoint2DNode}
@@ -460,7 +460,7 @@ begin
   AddField(FFdSolid);
 end;
 
-class function TRectangle2DNode.ClassNodeTypeName: string;
+class function TRectangle2DNode.ClassX3DType: string;
 begin
   Result := 'Rectangle2D';
 end;
@@ -468,7 +468,7 @@ end;
 class function TRectangle2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function Rectangle2DProxy(Original: TAbstractGeometryNode;
@@ -478,7 +478,7 @@ var
   TexCoord: TTextureCoordinateNode;
   QuadSet: TQuadSetNode absolute Result;
 begin
-  QuadSet := TQuadSetNode.Create(Original.NodeName, Original.BaseUrl);
+  QuadSet := TQuadSetNode.Create(Original.Name, Original.BaseUrl);
   try
     Coord := TCoordinateNode.Create('', Original.BaseUrl);
     Coord.FdPoint.Items.Count := 4;
@@ -532,7 +532,7 @@ begin
   AddField(FFdSolid);
 end;
 
-class function TTriangleSet2DNode.ClassNodeTypeName: string;
+class function TTriangleSet2DNode.ClassX3DType: string;
 begin
   Result := 'TriangleSet2D';
 end;
@@ -540,7 +540,7 @@ end;
 class function TTriangleSet2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 {$define TGeometryNotImplemented := TTriangleSet2DNode}

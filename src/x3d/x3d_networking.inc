@@ -32,7 +32,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdDescription: TSFString;
@@ -133,7 +133,7 @@
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdLoad: TSFBool;
@@ -203,7 +203,7 @@
     procedure AfterLoadInlined; override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event out } { }
@@ -214,7 +214,7 @@
   TLoadSensorNode = class(TAbstractNetworkSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdTimeOut: TSFTime;
@@ -263,7 +263,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TAnchorNode.ClassNodeTypeName: string;
+class function TAnchorNode.ClassX3DType: string;
 begin
   Result := 'Anchor';
 end;
@@ -271,8 +271,8 @@ end;
 class function TAnchorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TAnchorNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -426,7 +426,7 @@ begin
   FInlined := nil;
 end;
 
-class function TInlineNode.ClassNodeTypeName: string;
+class function TInlineNode.ClassX3DType: string;
 begin
   Result := 'Inline';
 end;
@@ -434,8 +434,8 @@ end;
 class function TInlineNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TInlineNode.ParseAfter(Reader: TX3DReaderNames);
@@ -444,8 +444,9 @@ var
 begin
   inherited;
 
-  if NodeName <> '' then
-    Exported := TX3DNodeNames.Create(false) else
+  if Name <> '' then
+    Exported := TX3DNodeNames.Create(false)
+  else
     Exported := nil;
 
   LoadInlined(false, Reader.LengthConversionFactor, Exported);
@@ -457,9 +458,9 @@ begin
 
   if Exported <> nil then
   begin
-    { connect Exported nodes with our inline NodeName }
-    Assert(NodeName <> '');
-    Reader.Importable.Bind(NodeName, Exported);
+    { connect Exported nodes with our inline Name }
+    Assert(Name <> '');
+    Reader.Importable.Bind(Name, Exported);
   end;
 end;
 
@@ -658,7 +659,7 @@ begin
   FInlined := nil;
 end;
 
-class function TInlineLoadControlNode.ClassNodeTypeName: string;
+class function TInlineLoadControlNode.ClassX3DType: string;
 begin
   Result := 'InlineLoadControl';
 end;
@@ -666,7 +667,7 @@ end;
 class function TInlineLoadControlNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 procedure TInlineLoadControlNode.AfterLoadInlined;
@@ -712,7 +713,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TLoadSensorNode.ClassNodeTypeName: string;
+class function TLoadSensorNode.ClassX3DType: string;
 begin
   Result := 'LoadSensor';
 end;
@@ -720,7 +721,7 @@ end;
 class function TLoadSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterNetworkingNodes;

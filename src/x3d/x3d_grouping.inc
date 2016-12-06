@@ -91,7 +91,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -232,7 +232,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdChildren: TMFNode;
@@ -259,7 +259,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
 
     private FFdWhichChoice: TSFInt32;
     public property FdWhichChoice: TSFInt32 read FFdWhichChoice;
@@ -292,7 +292,7 @@
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -572,7 +572,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TGroupNode.ClassNodeTypeName: string;
+class function TGroupNode.ClassX3DType: string;
 begin
   Result := 'Group';
 end;
@@ -580,8 +580,8 @@ end;
 class function TGroupNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TGroupNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -625,7 +625,7 @@ begin
   if SaveAsRootNode then
   begin
     { Special things for root node saving:
-      - NodeName is ignored (should be '').
+      - Name is ignored (should be '').
       - Fields are ignored, except "children", that holds children
         (for any VRML version, including VRML 1).
         It's output in a special way, without writing "children [...]" around.
@@ -715,7 +715,7 @@ begin
 
   if not (Supports(Child, IAbstractChildNode) or (Child is TLayerSetNode)) then
     WritelnWarning('VRML/X3D', Format('Node "%s" is not allowed at the top level of the VRML/X3D file',
-      [Child.NodeTypeName]));
+      [Child.X3DType]));
 end;
 
 procedure TX3DRootNode.ApplyTransform(State: TX3DGraphTraverseState);
@@ -737,12 +737,12 @@ procedure TX3DRootNode.ManuallyExportNode(const Node: TX3DNode; const ExportedAl
 var
   ExportItem: TX3DExport;
 begin
-  if Node.NodeName = '' then
+  if Node.Name = '' then
     raise Exception.Create('You cannot export nodes with empty names');
 
   ExportItem := TX3DExport.Create;
   AddExport(ExportItem);
-  ExportItem.ExportedNodeName := Node.NodeName;
+  ExportItem.ExportedNodeName := Node.Name;
   ExportItem.ExportedNodeAlias := ExportedAlias;
 
   { merely adding ExportItem is not enough, we have to also replicate what
@@ -754,7 +754,7 @@ end;
 
 procedure TX3DRootNode.ManuallyExportNode(const Node: TX3DNode);
 begin
-  ManuallyExportNode(Node, Node.NodeName);
+  ManuallyExportNode(Node, Node.Name);
 end;
 
 procedure TStaticGroupNode.CreateNode;
@@ -779,7 +779,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TStaticGroupNode.ClassNodeTypeName: string;
+class function TStaticGroupNode.ClassX3DType: string;
 begin
   Result := 'StaticGroup';
 end;
@@ -787,7 +787,7 @@ end;
 class function TStaticGroupNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TStaticGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -810,7 +810,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSwitchNode.ClassNodeTypeName: string;
+class function TSwitchNode.ClassX3DType: string;
 begin
   Result := 'Switch';
 end;
@@ -818,8 +818,8 @@ end;
 class function TSwitchNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TSwitchNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -874,7 +874,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TTransformNode.ClassNodeTypeName: string;
+class function TTransformNode.ClassX3DType: string;
 begin
   Result := 'Transform';
 end;
@@ -882,8 +882,8 @@ end;
 class function TTransformNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TTransformNode.ForVRMLVersion(const Version: TX3DVersion): boolean;

@@ -42,7 +42,7 @@
       the texture data (for exampe, from file in case of TAbstractTexture2DNode).
       So it cannot describe the actually loaded data.
 
-      In this class, simply returns NodeTypeName.
+      In this class, simply returns X3DType.
       Override to say something more descriptive. }
     function TextureDescription: string; virtual;
 
@@ -260,7 +260,7 @@
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdUrl: TMFString;
@@ -282,7 +282,7 @@
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdDescription: TSFString;
@@ -350,7 +350,7 @@
   TMultiTextureNode = class(TAbstractTextureNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAlpha: TSFFloat;
@@ -377,7 +377,7 @@
   TMultiTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdTexCoord: TMFNode;
@@ -387,7 +387,7 @@
   TMultiTextureTransformNode = class(TAbstractTextureTransformNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdTextureTransform: TMFNode;
@@ -407,7 +407,7 @@
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdImage: TSFImage;
@@ -419,7 +419,7 @@
   TTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdPoint: TMFVec2f;
@@ -429,7 +429,7 @@
   TTextureCoordinateGeneratorNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdMode: TSFString;
@@ -446,13 +446,13 @@
     See examples from [http://www.bitmanagement.de/developer/contact/relnotes6.html] }
   TTextureCoordGenNode = class(TTextureCoordinateGeneratorNode)
   public
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
   end;
 
   TTexturePropertiesNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAnisotropicDegree: TSFFloat;
@@ -495,7 +495,7 @@
   TTextureTransformNode = class(TAbstractTextureTransformNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdCenter: TSFVec2f;
@@ -549,7 +549,7 @@ end;
 
 function TAbstractTextureNode.TextureDescription: string;
 begin
-  Result := NodeTypeName;
+  Result := X3DType;
 end;
 
 function TAbstractTextureNode.AlphaChannelData: TAlphaChannel;
@@ -691,7 +691,7 @@ begin
   WasCacheUsed := false;
   FTextureUsedFullUrl := '';
 
-  WritelnWarning('VRML/X3D', Format('Loading textures from "%s" node not implemented', [NodeTypeName]));
+  WritelnWarning('VRML/X3D', Format('Loading textures from "%s" node not implemented', [X3DType]));
 end;
 
 function TAbstractTexture2DNode.TextureProperties: TTexturePropertiesNode;
@@ -771,7 +771,7 @@ begin
   { X3D specification comment: [URI] }
 end;
 
-class function TImageTextureNode.ClassNodeTypeName: string;
+class function TImageTextureNode.ClassX3DType: string;
 begin
   Result := 'ImageTexture';
 end;
@@ -779,8 +779,8 @@ end;
 class function TImageTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function BlenderRelativePath(const RelativePath: string): boolean; forward;
@@ -798,7 +798,7 @@ begin
     begin
       { Empty URL would be expanded by PathFromBaseUrl to directory
         and produce unclear error message. }
-      WritelnWarning('VRML/X3D', Format('Empty URL for %s ignored', [NodeTypeName]));
+      WritelnWarning('VRML/X3D', Format('Empty URL for %s ignored', [X3DType]));
     end else
     begin
       FullUrl := PathFromBaseUrl(FdUrl.Items[I]);
@@ -908,7 +908,7 @@ begin
   inherited;
 end;
 
-class function TMovieTextureNode.ClassNodeTypeName: string;
+class function TMovieTextureNode.ClassX3DType: string;
 begin
   Result := 'MovieTexture';
 end;
@@ -916,8 +916,8 @@ end;
 class function TMovieTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TMovieTextureNode.LoadTextureData(out WasCacheUsed: boolean);
@@ -995,7 +995,7 @@ begin
   AddField(FFdTexture);
 end;
 
-class function TMultiTextureNode.ClassNodeTypeName: string;
+class function TMultiTextureNode.ClassX3DType: string;
 begin
   Result := 'MultiTexture';
 end;
@@ -1003,7 +1003,7 @@ end;
 class function TMultiTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TMultiTextureNode.AlphaChannelData: TAlphaChannel;
@@ -1030,7 +1030,7 @@ begin
   AddField(FFdTexCoord);
 end;
 
-class function TMultiTextureCoordinateNode.ClassNodeTypeName: string;
+class function TMultiTextureCoordinateNode.ClassX3DType: string;
 begin
   Result := 'MultiTextureCoordinate';
 end;
@@ -1038,7 +1038,7 @@ end;
 class function TMultiTextureCoordinateNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TMultiTextureTransformNode.CreateNode;
@@ -1050,7 +1050,7 @@ begin
   AddField(FFdTextureTransform);
 end;
 
-class function TMultiTextureTransformNode.ClassNodeTypeName: string;
+class function TMultiTextureTransformNode.ClassX3DType: string;
 begin
   Result := 'MultiTextureTransform';
 end;
@@ -1058,7 +1058,7 @@ end;
 class function TMultiTextureTransformNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TMultiTextureTransformNode.TransformMatrix: TMatrix4Single;
@@ -1077,7 +1077,7 @@ begin
   { X3D specification comment: 0 0 }
   end;
 
-class function TPixelTextureNode.ClassNodeTypeName: string;
+class function TPixelTextureNode.ClassX3DType: string;
 begin
   Result := 'PixelTexture';
 end;
@@ -1085,8 +1085,8 @@ end;
 class function TPixelTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TPixelTextureNode.LoadTextureData(out WasCacheUsed: boolean);
@@ -1120,7 +1120,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TTextureCoordinateNode.ClassNodeTypeName: string;
+class function TTextureCoordinateNode.ClassX3DType: string;
 begin
   Result := 'TextureCoordinate';
 end;
@@ -1128,8 +1128,8 @@ end;
 class function TTextureCoordinateNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TTextureCoordinateGeneratorNode.CreateNode;
@@ -1158,7 +1158,7 @@ begin
   AddField(FFdProjectedLight);
 end;
 
-class function TTextureCoordinateGeneratorNode.ClassNodeTypeName: string;
+class function TTextureCoordinateGeneratorNode.ClassX3DType: string;
 begin
   Result := 'TextureCoordinateGenerator';
 end;
@@ -1166,10 +1166,10 @@ end;
 class function TTextureCoordinateGeneratorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
-class function TTextureCoordGenNode.ClassNodeTypeName: string;
+class function TTextureCoordGenNode.ClassX3DType: string;
 begin
   Result := 'TextureCoordGen';
 end;
@@ -1243,7 +1243,7 @@ begin
   DefaultContainerField := 'textureProperties';
 end;
 
-class function TTexturePropertiesNode.ClassNodeTypeName: string;
+class function TTexturePropertiesNode.ClassX3DType: string;
 begin
   Result := 'TextureProperties';
 end;
@@ -1251,7 +1251,7 @@ end;
 class function TTexturePropertiesNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TTextureTransformNode.CreateNode;
@@ -1280,7 +1280,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TTextureTransformNode.ClassNodeTypeName: string;
+class function TTextureTransformNode.ClassX3DType: string;
 begin
   Result := 'TextureTransform';
 end;
@@ -1288,8 +1288,8 @@ end;
 class function TTextureTransformNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TTextureTransformNode.TransformMatrix: TMatrix4Single;

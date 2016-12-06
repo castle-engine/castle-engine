@@ -20,7 +20,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdKeyValue: TMFFloat;
@@ -43,7 +43,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdKeyValue: TMFVec3f;
@@ -126,7 +126,7 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TCubicBezier2DOrientationInterpolatorNode.ClassNodeTypeName: string;
+class function TCubicBezier2DOrientationInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'CubicBezier2DOrientationInterpolator';
 end;
@@ -134,8 +134,8 @@ end;
 class function TCubicBezier2DOrientationInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TCubicBezier2DOrientationInterpolatorNode.EventSet_FractionReceive(
@@ -196,7 +196,7 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TCubicBezierPositionInterpolatorNode.ClassNodeTypeName: string;
+class function TCubicBezierPositionInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'CubicBezierPositionInterpolator';
 end;
@@ -204,8 +204,8 @@ end;
 class function TCubicBezierPositionInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TCubicBezierPositionInterpolatorNode.EventSet_FractionReceive(

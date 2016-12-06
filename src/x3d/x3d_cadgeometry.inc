@@ -34,7 +34,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdName: TSFString;
@@ -46,7 +46,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdShape: TSFNode;
@@ -64,7 +64,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdName: TSFString;
@@ -80,7 +80,7 @@
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
@@ -106,7 +106,7 @@
   TIndexedQuadSetNode = class(TAbstractComposedGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
@@ -129,7 +129,7 @@
   TQuadSetNode = class(TAbstractComposedGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     procedure CoordPolygons(
@@ -163,7 +163,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCADAssemblyNode.ClassNodeTypeName: string;
+class function TCADAssemblyNode.ClassX3DType: string;
 begin
   Result := 'CADAssembly';
 end;
@@ -171,7 +171,7 @@ end;
 class function TCADAssemblyNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TCADAssemblyNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -200,7 +200,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCADFaceNode.ClassNodeTypeName: string;
+class function TCADFaceNode.ClassX3DType: string;
 begin
   Result := 'CADFace';
 end;
@@ -208,7 +208,7 @@ end;
 class function TCADFaceNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TCADFaceNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -230,7 +230,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCADLayerNode.ClassNodeTypeName: string;
+class function TCADLayerNode.ClassX3DType: string;
 begin
   Result := 'CADLayer';
 end;
@@ -238,7 +238,7 @@ end;
 class function TCADLayerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TCADLayerNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -291,7 +291,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCADPartNode.ClassNodeTypeName: string;
+class function TCADPartNode.ClassX3DType: string;
 begin
   Result := 'CADPart';
 end;
@@ -299,7 +299,7 @@ end;
 class function TCADPartNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TCADPartNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -334,7 +334,7 @@ begin
   { X3D specification comment: [0,Inf) }
 end;
 
-class function TIndexedQuadSetNode.ClassNodeTypeName: string;
+class function TIndexedQuadSetNode.ClassX3DType: string;
 begin
   Result := 'IndexedQuadSet';
 end;
@@ -342,7 +342,7 @@ end;
 class function TIndexedQuadSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TIndexedQuadSetNode.CoordIndex: TMFLong;
@@ -355,7 +355,7 @@ begin
   inherited;
 end;
 
-class function TQuadSetNode.ClassNodeTypeName: string;
+class function TQuadSetNode.ClassX3DType: string;
 begin
   Result := 'QuadSet';
 end;
@@ -363,7 +363,7 @@ end;
 class function TQuadSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterCADGeometryNodes;

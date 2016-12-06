@@ -145,49 +145,49 @@ type
 function TConeNode_1_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, BaseUrl);
+  Result := TNastyProxy.Create(Name, BaseUrl);
 end;
 
 function TConeNode_2_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, BaseUrl);
+  Result := TNastyProxy.Create(Name, BaseUrl);
 end;
 
 function TCylinderNode_1_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, BaseUrl);
+  Result := TNastyProxy.Create(Name, BaseUrl);
 end;
 
 function TCylinderNode_2_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, BaseUrl);
+  Result := TNastyProxy.Create(Name, BaseUrl);
 end;
 
 function TBoxNode_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, BaseUrl);
+  Result := TNastyProxy.Create(Name, BaseUrl);
 end;
 
 function TCubeNode_1_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, BaseUrl);
+  Result := TNastyProxy.Create(Name, BaseUrl);
 end;
 
 function TSphereNode_1_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, BaseUrl);
+  Result := TNastyProxy.Create(Name, BaseUrl);
 end;
 
 function TSphereNode_2_NastyProxy.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 begin
-  Result := TNastyProxy.Create(NodeName, BaseUrl);
+  Result := TNastyProxy.Create(Name, BaseUrl);
 end;
 
 { TTestX3DNodesOptimizedProxy ----------------------------------------------- }

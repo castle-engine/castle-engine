@@ -2887,7 +2887,7 @@ begin
     begin
       { before binding viewpoint, check InitialViewpoint* conditions }
       if (ParentScene.InitialViewpointName = '') or
-         (ParentScene.InitialViewpointName = Node.NodeName) then
+         (ParentScene.InitialViewpointName = Node.Name) then
       begin
         if (ParentScene.InitialViewpointIndex =
             ParentScene.ChangedAllCurrentViewpointIndex) then
@@ -3558,7 +3558,7 @@ begin
 
   if Log and LogChanges then
     WritelnLog('X3D changes', Format('Transform node %s change: %d instances',
-      [TransformNode.NodeTypeName, Instances.Count]));
+      [TransformNode.X3DType, Instances.Count]));
 
   DoVisibleChanged := false;
 
@@ -3690,9 +3690,9 @@ var
   begin
     S := 'ChangedField: ' + X3DChangesToStr(Changes) +
       Format(', node: %s (%s %s) at %s',
-      [ ANode.NodeName, ANode.NodeTypeName, ANode.ClassName, PointerToStr(ANode) ]);
+      [ ANode.Name, ANode.X3DType, ANode.ClassName, PointerToStr(ANode) ]);
     if Field <> nil then
-      S += Format(', field %s (%s)', [ Field.Name, Field.TypeName ]);
+      S += Format(', field %s (%s)', [ Field.Name, Field.X3DType ]);
     if Additional <> '' then
       S += '. ' + Additional;
     WritelnLog('X3D changes', S);
@@ -3718,7 +3718,7 @@ var
       begin
         if Log and LogChanges then
           WritelnLog('X3D changes', Format('Transform node "%s" has no information, assuming does not exist in our VRML graph',
-            [ANode.NodeTypeName]));
+            [ANode.X3DType]));
         Exit;
       end;
 
@@ -6234,7 +6234,7 @@ begin
         TAbstractDirectionalLightNode(FMainLightForShadowsNode).FdDirection.Value) ), 0) else
     raise Exception.CreateFmt('TCastleSceneCore.MainLightForShadows: ' +
       'light node "%s" cannot be used to cast shadows, it has no position ' +
-      'and no direction', [FMainLightForShadowsNode.NodeTypeName]);
+      'and no direction', [FMainLightForShadowsNode.X3DType]);
 end;
 
 function TCastleSceneCore.SearchMainLightForShadows(
@@ -6694,7 +6694,7 @@ begin
   NewViewNode := MakeCameraNode(Version, '', Position, Direction, Up, GravityUp,
     NewViewpointNode);
   NewViewpointNode.FdDescription.Value := AName;
-  NewViewpointNode.NodeName := 'Viewpoint' + IntToStr(Random(10000));
+  NewViewpointNode.Name := 'Viewpoint' + IntToStr(Random(10000));
   NewViewpointNode.Scene := self;
 
   { Create NavigationInfo node }
@@ -6739,7 +6739,7 @@ begin
 
   NewNavigationNode := MakeCameraNavNode(Version, '', NavigationType, WalkSpeed,
     VisibilityLimit, AvatarSize, HeadlightOn);
-  NewNavigationNode.NodeName := 'NavInfo' + IntToStr(Random(10000));
+  NewNavigationNode.Name := 'NavInfo' + IntToStr(Random(10000));
   NewNavigationNode.Scene := self;
 
   // Connect viewpoint with navigation info
@@ -6773,7 +6773,7 @@ type
 
 procedure TAnimationsEnumerator.Enumerate(Node: TX3DNode);
 begin
-  EnumerateWithAlias(Node, Node.NodeName, false);
+  EnumerateWithAlias(Node, Node.Name, false);
 end;
 
 procedure TAnimationsEnumerator.EnumerateWithAlias(const Node: TX3DNode;

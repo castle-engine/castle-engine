@@ -1831,7 +1831,7 @@ begin
     begin
       Inc(Result.References);
       if LogRendererCache and Log then
-        WritelnLog('++', 'Shape %s (%s): %d', [PointerToStr(Result), Result.Geometry.NodeTypeName, Result.References]);
+        WritelnLog('++', 'Shape %s (%s): %d', [PointerToStr(Result), Result.Geometry.X3DType, Result.References]);
       Exit(Result);
     end;
   end;
@@ -1850,7 +1850,7 @@ begin
   Result.References := 1;
 
   if LogRendererCache and Log then
-    WritelnLog('++', 'Shape %s (%s): %d', [PointerToStr(Result), Result.Geometry.NodeTypeName, Result.References]);
+    WritelnLog('++', 'Shape %s (%s): %d', [PointerToStr(Result), Result.Geometry.X3DType, Result.References]);
 end;
 
 procedure TGLRendererContextCache.Shape_DecReference(var ShapeCache: TShapeCache);
@@ -1863,7 +1863,7 @@ begin
     begin
       Dec(ShapeCache.References);
       if LogRendererCache and Log then
-        WritelnLog('--', 'Shape %s (%s): %d', [PointerToStr(ShapeCache), ShapeCache.Geometry.NodeTypeName, ShapeCache.References]);
+        WritelnLog('--', 'Shape %s (%s): %d', [PointerToStr(ShapeCache), ShapeCache.Geometry.X3DType, ShapeCache.References]);
       if ShapeCache.References = 0 then
         ShapeCaches.Delete(I);
       ShapeCache := nil;

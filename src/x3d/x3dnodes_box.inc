@@ -179,7 +179,7 @@ function TBoxNode.Proxy(var State: TX3DGraphTraverseState;
     CoordNode: TCoordinateNode;
     ILS: TIndexedLineSetNode absolute Result;
   begin
-    ILS := TIndexedLineSetNode.Create(NodeName, BaseUrl);
+    ILS := TIndexedLineSetNode.Create(Name, BaseUrl);
     try
       CoordNode := TCoordinateNode.Create('', BaseUrl);
       ILS.FdCoord.Value := CoordNode;
@@ -197,7 +197,7 @@ function TBoxNode.Proxy(var State: TX3DGraphTraverseState;
     TexCoords: TVector2SingleList;
     IFS: TIndexedFaceSetNode absolute Result;
   begin
-    IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
+    IFS := TIndexedFaceSetNode.Create(Name, BaseUrl);
     try
       CoordNode := TCoordinateNode.Create('', BaseUrl);
       IFS.FdCoord.Value := CoordNode;
@@ -249,7 +249,7 @@ var
   MaterialIndex: TLongIntList;
   IFS: TIndexedFaceSetNode_1 absolute Result;
 begin
-  IFS := TIndexedFaceSetNode_1.Create(NodeName, BaseUrl);
+  IFS := TIndexedFaceSetNode_1.Create(Name, BaseUrl);
   try
     { we have to modify State, so make a copy of it }
     State := TX3DGraphTraverseState.CreateCopy(State);

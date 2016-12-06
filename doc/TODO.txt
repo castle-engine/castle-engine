@@ -572,9 +572,9 @@ X3DNodes:
 - StaticGroup: would avoid the need for separate subtree for Transform etc.
   nodes? Worth the complications?
 
-- Better TVRMLNode creation:
+- Better TX3DNode creation:
   - Make Scene constructor parameter? Load procedures may set it to nil (scene Load will change it anyway), but in many other cases Scene should be taken (from parent nodes). A node may be contained only within the specified Scene, or (when Scene = nil) inside many static scenes.
-  - Remove NodeName from TVRMLNode constructor?
+  - Remove Name from TVRMLNode constructor?
 
 ScreenEffect ideas/TODOs:
 - test gradient trick from hdr: to increase perceived contrast,

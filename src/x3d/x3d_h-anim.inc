@@ -18,7 +18,7 @@
   THAnimDisplacerNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdCoordIndex: TMFInt32;
@@ -57,7 +57,7 @@
   public
     procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
@@ -152,7 +152,7 @@
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
@@ -202,7 +202,7 @@
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
@@ -246,7 +246,7 @@
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
@@ -294,7 +294,7 @@ begin
   DefaultContainerField := 'displacers';
 end;
 
-class function THAnimDisplacerNode.ClassNodeTypeName: string;
+class function THAnimDisplacerNode.ClassX3DType: string;
 begin
   Result := 'HAnimDisplacer';
 end;
@@ -302,7 +302,7 @@ end;
 class function THAnimDisplacerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TVertexJoints.Add(Joint: THAnimJointNode; const Weight: Single);
@@ -410,7 +410,7 @@ begin
   inherited;
 end;
 
-class function THAnimHumanoidNode.ClassNodeTypeName: string;
+class function THAnimHumanoidNode.ClassX3DType: string;
 begin
   Result := 'HAnimHumanoid';
 end;
@@ -418,7 +418,7 @@ end;
 class function THAnimHumanoidNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function THAnimHumanoidNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -633,7 +633,7 @@ begin
   AnimateSkinTransform := IdentityMatrix4Single;
 end;
 
-class function THAnimJointNode.ClassNodeTypeName: string;
+class function THAnimJointNode.ClassX3DType: string;
 begin
   Result := 'HAnimJoint';
 end;
@@ -641,7 +641,7 @@ end;
 class function THAnimJointNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function THAnimJointNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -780,7 +780,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function THAnimSegmentNode.ClassNodeTypeName: string;
+class function THAnimSegmentNode.ClassX3DType: string;
 begin
   Result := 'HAnimSegment';
 end;
@@ -788,7 +788,7 @@ end;
 class function THAnimSegmentNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function THAnimSegmentNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -844,7 +844,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function THAnimSiteNode.ClassNodeTypeName: string;
+class function THAnimSiteNode.ClassX3DType: string;
 begin
   Result := 'HAnimSite';
 end;
@@ -852,7 +852,7 @@ end;
 class function THAnimSiteNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function THAnimSiteNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;

@@ -70,7 +70,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdDirectOutput: TSFBool;
@@ -354,7 +354,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TScriptNode.ClassNodeTypeName: string;
+class function TScriptNode.ClassX3DType: string;
 begin
   Result := 'Script';
 end;
@@ -362,8 +362,8 @@ end;
 class function TScriptNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TScriptNode.PostAddInterfaceDeclaration(
