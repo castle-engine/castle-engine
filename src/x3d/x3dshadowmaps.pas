@@ -101,7 +101,7 @@ type
     procedure ShapeAdd(Shape: TShape);
 
     { Finish calculating light's projectionXxx parameters,
-      and assing them to the light node. }
+      and assign them to the light node. }
     procedure HandleLightAutomaticProjection(const Light: TLight);
 
     { Add light node to LightsCastingOnEverything, if shadows=TRUE. }
@@ -392,7 +392,13 @@ procedure TLightList.ShapeAdd(Shape: TShape);
 
     Texture := Shape.Node.Texture;
     HandleShadowMap(Texture, Light^.ShadowMap, TexturesCount);
-    Shape.Node.Texture := Texture;
+    { set Texture.
+      Note: don't use "Shape.Node.Texture := ", we have to avoid calling
+      "Send(xxx)" underneath here, as it would cause CastleSceneCore processing
+      that could recursively call ProcessShadowMapsReceivers, creating a loop. }
+    if Shape.Node.Appearance = nil then
+      Shape.Node.FdAppearance.Value := TAppearanceNode.Create;
+    Shape.Node.Appearance.FdTexture.Value := Texture;
 
     TexCoord := Shape.Geometry.TexCoordField.Value;
     HandleTexGen(TexCoord, Light^.TexGen, TexturesCount);
@@ -435,7 +441,13 @@ procedure TLightList.ShapeAdd(Shape: TShape);
 
     TextureTransform := Shape.Node.TextureTransform;
     HandleTextureTransform(TextureTransform);
-    Shape.Node.TextureTransform := TextureTransform;
+    { set TextureTransform.
+      Note: don't use "Shape.Node.TextureTransform := ", we have to avoid calling
+      "Send(xxx)" underneath here, as it would cause CastleSceneCore processing
+      that could recursively call ProcessShadowMapsReceivers, creating a loop. }
+    if Shape.Node.Appearance = nil then
+      Shape.Node.FdAppearance.Value := TAppearanceNode.Create;
+    Shape.Node.Appearance.FdTextureTransform.Value := TextureTransform;
 
     Box := Shape.BoundingBox;
     if not Box.IsEmpty then
@@ -470,7 +482,9 @@ begin
      (LightsCastingOnEverything.Count <> 0) then
   begin
     App := TAppearanceNode.Create('', Shape.Node.BaseUrl); { recalculate App }
-    Shape.Node.Appearance := App;
+    { assign it using "FdAppearance.Value := ", not "Appearance := ",
+      to avoid doing "Send(xxx)" inside that could recursively cause ProcessShadowMapsReceivers }
+    Shape.Node.FdAppearance.Value := App;
   end;
 
   { If the previous check left App = nil, then we know this shape
