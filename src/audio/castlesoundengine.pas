@@ -47,10 +47,13 @@ type
 
   TSoundDevice = class
   private
-    FName, FNiceName: string;
+    FName, FCaption: string;
   public
+    { Short device name, used for @link(TSoundEngine.Device). }
     property Name: string read FName;
-    property NiceName: string read FNiceName;
+    { Nice device name to show user. }
+    property Caption: string read FCaption;
+    property NiceName: string read FCaption; deprecated 'use Caption';
   end;
   TSoundDeviceList = specialize TFPGObjectList<TSoundDevice>;
 
@@ -265,7 +268,8 @@ type
       to be encoded in Lisp-like language inside the @link(Device) string. }
     function Devices: TSoundDeviceList;
 
-    function DeviceNiceName: string;
+    function DeviceNiceName: string; deprecated 'use DeviceCaption';
+    function DeviceCaption: string;
 
     { Events fired after OpenAL context and device are being open or closed.
       More precisely, when ALInitialized changes (and so, possibly, ALActive
@@ -816,13 +820,13 @@ function TSoundEngine.Devices: TSoundDeviceList;
     OpenAL default device named '' (empty string). }
   procedure UpdateDevices;
 
-    procedure Add(const AName, ANiceName: string);
+    procedure Add(const AName, ACaption: string);
     var
       D: TSoundDevice;
     begin
       D := TSoundDevice.Create;
       D.FName := AName;
-      D.FNiceName := ANiceName;
+      D.FCaption := ACaption;
       FDevices.Add(D);
     end;
 
@@ -1469,8 +1473,8 @@ function TSoundEngine.ParseParametersHelp: string;
       Result := Format('                        Available devices (%d):', [Devices.Count]) + nl;
       for i := 0 to Devices.Count - 1 do
       begin
-        Result += '                          ' + Devices[i].NiceName;
-        if Devices[i].Name <> Devices[i].NiceName then
+        Result += '                          ' + Devices[i].Caption;
+        if Devices[i].Name <> Devices[i].Caption then
           Result += ' (Real OpenAL name: "' + Devices[i].Name + '")';
         if Devices[i].Name = DefaultDeviceName then
           Result += ' (Equivalent to default device)';
@@ -1500,12 +1504,17 @@ begin
 end;
 
 function TSoundEngine.DeviceNiceName: string;
+begin
+  Result := DeviceCaption;
+end;
+
+function TSoundEngine.DeviceCaption: string;
 var
   I: Integer;
 begin
   for I := 0 to Devices.Count - 1 do
     if Devices[I].Name = Device then
-      Exit(Devices[I].NiceName);
+      Exit(Devices[I].Caption);
 
   Result := 'Some OpenAL device'; // some default
 end;
