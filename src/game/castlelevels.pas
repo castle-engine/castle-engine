@@ -471,10 +471,10 @@ type
       )
       @groupBegin }
     function LoadLevelScene(const URL: string;
-      const CreateOctreeCollisions: boolean;
+      const PrepareForCollisions: boolean;
       const SceneClass: TCastleSceneClass): TCastleScene;
     function LoadLevelScene(const URL: string;
-      const CreateOctreeCollisions: boolean): TCastleScene;
+      const PrepareForCollisions: boolean): TCastleScene;
     { @groupEnd }
 
     { Handle a placeholder named in external modeler.
@@ -1051,7 +1051,7 @@ end;
 
 function TLevelLogic.LoadLevelScene(
   const URL: string;
-  const CreateOctreeCollisions: boolean;
+  const PrepareForCollisions: boolean;
   const SceneClass: TCastleSceneClass): TCastleScene;
 var
   Options: TPrepareResourcesOptions;
@@ -1066,7 +1066,7 @@ begin
 
   Result.PrepareResources(Options, false, World.BaseLights);
 
-  if CreateOctreeCollisions then
+  if PrepareForCollisions then
     Result.Spatial := [ssDynamicCollisions];
 
   Result.FreeResources([frTextureDataInNodes]);
@@ -1076,9 +1076,9 @@ end;
 
 function TLevelLogic.LoadLevelScene(
   const URL: string;
-  const CreateOctreeCollisions: boolean): TCastleScene;
+  const PrepareForCollisions: boolean): TCastleScene;
 begin
-  Result := LoadLevelScene(URL, CreateOctreeCollisions, TCastleScene);
+  Result := LoadLevelScene(URL, PrepareForCollisions, TCastleScene);
 end;
 
 function TLevelLogic.LoadLevelAnimation(
