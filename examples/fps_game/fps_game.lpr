@@ -16,8 +16,9 @@
 { Example of a fully-working 3D FPS game. }
 program fps_game;
 
-{ This contains icons and version info, automatically created by "castle-engine compile".
-  You can comment this out if you compile through other means. }
+{ This adds icons and version info for Windows,
+  automatically created by "castle-engine compile".
+  Comment this out if you don't compile using our "castle-engine" build tool. }
 {$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
 uses SysUtils, Classes, CastleWindow, CastleLog, CastleConfig, CastleLevels,
