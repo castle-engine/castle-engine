@@ -275,8 +275,8 @@ type
       We do not own TVisibilitySensorNode (our Keys list). }
     procedure Clear;
   end;
-  TTimeDependentHandlerList = class(specialize TFPGObjectList<TTimeDependentNodeHandler>)
-    procedure AddIfNotExists(const Item: TTimeDependentNodeHandler);
+  TTimeDependentHandlerList = class(specialize TFPGObjectList<TInternalTimeDependentHandler>)
+    procedure AddIfNotExists(const Item: TInternalTimeDependentHandler);
   end;
 
   TCompiledScriptHandler = procedure (
@@ -393,13 +393,13 @@ type
 
   { Looping mode to use with TCastleSceneCore.PlayAnimation. }
   TPlayAnimationLooping = (
-    { Use current TimeSensor.FdLoop value to determine whether animation
+    { Use current TimeSensor.Loop value to determine whether animation
       should loop. Suitable when X3D model already has sensible "TimeSensor.loop"
       values. }
     paDefault,
-    { Force TimeSensor.FdLoop to be @true, to force looping. }
+    { Force TimeSensor.Loop to be @true, to force looping. }
     paForceLooping,
-    { Force TimeSensor.FdLoop to be @false, to force not looping. }
+    { Force TimeSensor.Loop to be @false, to force not looping. }
     paForceNotLooping);
 
   { 3D scene processing (except rendering, for which see TCastleScene).
@@ -462,7 +462,7 @@ type
       animated with it's own OrientationInterpolator). }
     ScheduledHumanoidAnimateSkin: TX3DNodeList;
 
-    PlayingAnimationNode: TTimeSensorNode;
+    PlayingAnimationNode, FCurrentAnimation: TTimeSensorNode;
     NewPlayingAnimationUse: boolean;
     NewPlayingAnimationNode: TTimeSensorNode;
     NewPlayingAnimationLooping: TPlayAnimationLooping;
@@ -1746,8 +1746,8 @@ type
       See the examples/3d_rendering_processing/listen_on_x3d_events.lpr . }
     function AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
 
-    { TimeSensor of this animation, by animation index (like index
-      or AnimationsList). @nil if this index not found. }
+    { TimeSensor of this animation, by animation index (index
+      on AnimationsList). @nil if this index not found. }
     function AnimationTimeSensor(const Index: Integer): TTimeSensorNode;
 
     function Animations: TStringList; deprecated 'use AnimationsList (and do not free it''s result)';
@@ -1773,6 +1773,7 @@ type
 
     { Duration, in seconds, of the named animation
       (named animations are detected by @link(AnimationsList) method).
+      For a looping animation, this is the duration of a single cycle.
       0 if not found. }
     function AnimationDuration(const AnimationName: string): TFloatTime;
 
@@ -1789,6 +1790,16 @@ type
       the names you use with methods like @link(PlayAnimation). }
     property AnimationPrefix: string
       read FAnimationPrefix write FAnimationPrefix;
+
+    { Currently played animation by @link(PlayAnimation), or @nil.
+      Note that in X3D world, you can have multiple active animations
+      (TimeSensor nodes) at the same time. This property only describes
+      the animation controlled by the @link(PlayAnimation) method.
+
+      Note that the animation may be started by PlayAnimation with a 1-frame
+      delay, but this property hides it from you, it is changed
+      immediately by the PlayAnimation call. }
+    property CurrentAnimation: TTimeSensorNode read FCurrentAnimation;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Update) will take care of increasing @link(Time).
@@ -2319,7 +2330,7 @@ end;
 
 { TTimeDependentHandlerList ------------------------------------------------- }
 
-procedure TTimeDependentHandlerList.AddIfNotExists(const Item: TTimeDependentNodeHandler);
+procedure TTimeDependentHandlerList.AddIfNotExists(const Item: TInternalTimeDependentHandler);
 begin
   if IndexOf(Item) = -1 then
     Add(Item);
@@ -2959,6 +2970,7 @@ begin
   KeyDeviceSensorNodes.Clear;
   TimeDependentHandlers.Clear;
   PlayingAnimationNode := nil;
+  FCurrentAnimation := nil;
   NewPlayingAnimationNode := nil;
   NewPlayingAnimationUse := false;
 
@@ -3010,7 +3022,7 @@ begin
     KeyDeviceSensorNodes.AddIfNotExists(Node) else
   if Supports(Node, IAbstractTimeDependentNode) then
     TimeDependentHandlers.AddIfNotExists(
-      (Node as IAbstractTimeDependentNode).TimeDependentNodeHandler);
+      (Node as IAbstractTimeDependentNode).InternalTimeDependentHandler);
 end;
 
 procedure TCastleSceneCore.ChangedAll;
@@ -4024,17 +4036,17 @@ var
 
   procedure HandleChangeTimeStopStart;
 
-    function GetTimeDependentNodeHandler(ANode: TX3DNode): TTimeDependentNodeHandler;
+    function GetInternalTimeDependentHandler(ANode: TX3DNode): TInternalTimeDependentHandler;
     begin
       if Supports(ANode, IAbstractTimeDependentNode) then
-        Result := (ANode as IAbstractTimeDependentNode).TimeDependentNodeHandler else
+        Result := (ANode as IAbstractTimeDependentNode).InternalTimeDependentHandler else
         Result := nil;
     end;
 
   var
-    Handler: TTimeDependentNodeHandler;
+    Handler: TInternalTimeDependentHandler;
   begin
-    Handler := GetTimeDependentNodeHandler(ANode);
+    Handler := GetInternalTimeDependentHandler(ANode);
     if Handler = nil then Exit; {< ANode not time-dependent. }
 
     { Although (de)activation of time-dependent nodes will be also caught
@@ -5503,7 +5515,7 @@ procedure TCastleSceneCore.InternalSetTime(
             that PlayAnimation doesn't change it ever.
 
           So it's simpest and reliable to just set enabled=false on old TimeSensor.
-          TTimeDependentNodeHandler.SetTime then guarantees it will immediately stop
+          TInternalTimeDependentHandler.SetTime then guarantees it will immediately stop
           sending elapsedTime events. }
 
         PlayingAnimationNode.Enabled := false;
@@ -6914,7 +6926,8 @@ begin
       means that it will play infinitely (because the default values
       mean that stopTime is ignored).
     }
-    NewPlayingAnimationNode := FAnimationsList.Objects[Index] as TTimeSensorNode;
+    FCurrentAnimation := FAnimationsList.Objects[Index] as TTimeSensorNode;
+    NewPlayingAnimationNode := FCurrentAnimation;
     NewPlayingAnimationLooping := Looping;
     NewPlayingAnimationUse := true;
   end;

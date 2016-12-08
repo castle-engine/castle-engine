@@ -1128,7 +1128,7 @@ end;
 
 function TGLMovieTextureNode.GLName: TGLTextureId;
 var
-  VideoTime: TFloatTime;
+  VideoUnscaledTime: TFloatTime;
 begin
   { Note: don't call IsTextureImage, IsTextureVideo here --- this
     would cause reloading images/videos, nullifying
@@ -1141,13 +1141,12 @@ begin
 
   if GLVideo <> nil then
   begin
-    VideoTime :=
-      TextureNode.TimeDependentNodeHandler.ElapsedTimeInCycle *
-      TextureNode.FdSpeed.Value;
-    if TextureNode.FdSpeed.Value < 0 then
-      VideoTime := TextureNode.Duration + VideoTime;
-
-    Result := GLVideo.GLTextureFromTime(VideoTime);
+    VideoUnscaledTime :=
+      TextureNode.InternalTimeDependentHandler.ElapsedTimeInCycle *
+      TextureNode.Speed;
+    if TextureNode.Speed < 0 then
+      VideoUnscaledTime := TextureNode.Duration + VideoUnscaledTime;
+    Result := GLVideo.GLTextureFromTime(VideoUnscaledTime);
   end else
     Result := 0;
 end;

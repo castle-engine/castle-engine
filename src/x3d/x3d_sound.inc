@@ -42,7 +42,7 @@
     public property EventDuration_changed: TSFTimeEvent read FEventDuration_changed;
 
     { Pitch, corrected to always be > 0. }
-    function Pitch: Single;
+    function SafePitch: Single;
   end;
 
   TAudioClipNode = class(TAbstractSoundSourceNode, IAbstractUrlObject)
@@ -149,9 +149,9 @@ begin
   DefaultContainerField := 'children';
 end;
 
-function TAbstractSoundSourceNode.Pitch: Single;
+function TAbstractSoundSourceNode.SafePitch: Single;
 begin
-  Result := FdPitch.Value;
+  Result := Pitch;
   if Result <= 0 then
     Result := 1; { assign default pitch in case of trouble }
 end;
@@ -207,10 +207,10 @@ begin
   inherited;
 
   { We want to load buffer early, not on-demand (inside UpdatePlaying):
-    - this avoids sudden delay when 1st playing sound,
-    - it's necessary to make FDuration good, making CycleInterval good,
+    - This avoids sudden delay when 1st playing sound,
+    - It's necessary to make FDuration good, making CycleInterval good,
       which is necessary for time-dependent mechanism (in
-      TTimeDependentNodeHandler) to always work Ok (see e.g. at thunder.x3dv,
+      TInternalTimeDependentHandler) to always work Ok (see e.g. at thunder.x3dv,
       when AudioClip.startTime is set by script to future time.
 
     But don't do it if URL field is empty.
@@ -234,7 +234,8 @@ begin
   { Secure from invalid FDuration (when sound file is not loaded, or duration
     is just unknown). }
   if FDuration > 0 then
-    Result := FDUration / Pitch else
+    Result := FDuration / SafePitch
+  else
     Result := 0;
 end;
 
@@ -262,7 +263,7 @@ procedure TAudioClipNode.UpdatePlaying;
 var
   SoundNode: TSoundNode;
 begin
-  if TimeDependentNodeHandler.IsActive and not TimeDependentNodeHandler.IsPaused then
+  if IsActive and not IsPaused then
   begin
     { if not playing, try to start playing }
     if Sound = nil then
@@ -272,16 +273,16 @@ begin
       if (Buffer <> 0) and (SoundNode <> nil) then
       begin
         Sound := SoundEngine.PlaySound(Buffer,
-          SoundNode.FdSpatialize.Value,
-          FdLoop.Value,
-          Clamped(Round(SoundNode.FdPriority.Value * 1000), 0, 1000),
-          SoundNode.FdIntensity.Value, 0, 1,
-          MatrixMultPoint(SoundNode.FTransform, SoundNode.FdLocation.Value),
-          Pitch,
+          SoundNode.Spatialize,
+          Loop,
+          Clamped(Round(SoundNode.Priority * 1000), 0, 1000),
+          SoundNode.Intensity, 0, 1,
+          MatrixMultPoint(SoundNode.FTransform, SoundNode.Location),
+          SafePitch,
           { We pass min/maxFront as OpenAL reference distance/max distance,
             as their meanings match for distance model = dmLinearDistanceClamped. }
-          SoundNode.FTransformScale * SoundNode.FdMinFront.Value,
-          SoundNode.FTransformScale * SoundNode.FdMaxFront.Value);
+          SoundNode.FTransformScale * SoundNode.MinFront,
+          SoundNode.FTransformScale * SoundNode.MaxFront);
         if Sound <> nil then
           Sound.OnRelease := @SoundRelease;
       end;

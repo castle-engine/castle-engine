@@ -14,14 +14,69 @@
 }
 
 {$ifdef read_interface}
-  TTimeDependentNodeHandler = class;
+  TInternalTimeDependentHandler = class;
 
   { }
   IAbstractTimeDependentNode = interface(IAbstractChildNode)
   ['{19D68914-F2BA-4CFA-90A1-F561DB264678}']
-    function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
-    property TimeDependentNodeHandler: TTimeDependentNodeHandler
-      read GetTimeDependentNodeHandler;
+
+    function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
+    property InternalTimeDependentHandler: TInternalTimeDependentHandler
+      read GetInternalTimeDependentHandler;
+
+    { Final length (in seconds) of this animation.
+      For a looping animation, this is the time it takes to make a single cycle.
+      Should always be > 0.
+
+      This is not called @italic("duration"), as that word is reserved to mean
+      @italic("unscaled time length") for X3D AudioClip and MovieTexture nodes.
+      The final length, returned here, is the AudioClip.duration divided
+      by AudioClip.pitch, or MovieTexture.duration / MovieTexture.speed.
+
+      On TTimeSensorNode descendants, you can also get and set this
+      by the class helper property @link(TTimeSensorNode.CycleInterval).
+      The name collision is harmless here, as both ways get the same
+      value. }
+    function CycleInterval: TFloatTime;
+
+    { Is the sensor enabled and running (ignoring whether it is paused).
+
+      For a precise (and complicated:) specification of how this behaves,
+      see the X3D TimeSensor.isActive specification at
+      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
+    function IsActive: boolean;
+
+    { Is the sensor paused.
+
+      For a precise (and complicated:) specification of how this behaves,
+      see the X3D TimeSensor.isPaused specification at
+      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
+    function IsPaused: boolean;
+
+    { Time in seconds since the sensor was activated and running,
+      not counting any time while in pause state.
+
+      For non-looping animations, note that the sensor automatically stops
+      when the animation finishes, so ElapsedTime will not grow beyond
+      the @link(Duration). If you want to observe when the animation ended,
+      you probably do not want to use this property. Instead
+      observe when @link(IsActive) changed to @false, by registering
+      a callback on @code(EventIsActive.OnReceive).
+      See the examples/3d_rendering_processing/listen_on_x3d_events.lpr .
+
+      For a precise (and complicated:) specification of how this behaves,
+      see the X3D TimeSensor.elapsedTime specification at
+      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
+    function ElapsedTime: TFloatTime;
+
+    { Time in seconds since the sensor was activated and running,
+      in this cycle,
+      not counting any time while in pause state.
+
+      This is like ike @link(ElapsedTime), but counting only the current cycle.
+      When @link(CycleInterval) = 0, this is always 0.
+      When @link(CycleInterval) <> 0, this is always >= 0 and < CycleInterval . }
+    function ElapsedTimeInCycle: TFloatTime;
   end;
 
   TTimeFunction = function: TFloatTime of object;
@@ -36,7 +91,7 @@
     Then a lot of fields of this class would not be needed, as they
     would be accessible as IAbstractTimeDependentNode fields.
     TODO: maybe in the future. }
-  TTimeDependentNodeHandler = class
+  TInternalTimeDependentHandler = class
   private
     FIsActive: boolean;
     FIsPaused: boolean;
@@ -51,12 +106,17 @@
 
     { Current state of this time-dependent node
       (see X3D specification about "Time" component for exact meaning).
-      Changing them automatically causes appropriate events to be generated.
-      @groupBegin }
+      Changing them automatically causes appropriate events to be generated. }
+
+    { Is the sensor enabled and running (ignoring whether it is paused). }
     property IsActive: boolean read FIsActive write SetIsActive;
+
+    { Is the sensor paused. }
     property IsPaused: boolean read FIsPaused write SetIsPaused;
+
+    { Time in seconds since the sensor was activated and running,
+      not counting any time while in pause state. }
     property ElapsedTime: TFloatTime read FElapsedTime write SetElapsedTime;
-    { @groupEnd }
   public
     { Cycle interval for this time-dependent node. }
     OnCycleInterval: TTimeFunction;
@@ -130,9 +190,9 @@
 
   TAbstractTimeDependentNode = class(TAbstractChildNode, IAbstractTimeDependentNode)
   private
-    FTimeDependentNodeHandler: TTimeDependentNodeHandler;
+    FInternalTimeDependentHandler: TInternalTimeDependentHandler;
     { To satify IAbstractTimeDependentNode }
-    function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
+    function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
   protected
     { CycleInterval that is always > 0. }
     function SafeCycleInterval: TFloatTime;
@@ -167,16 +227,63 @@
     private FEventIsPaused: TSFBoolEvent;
     public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
 
-    { The cycle of a time-dependent node (like TTimeSensorNode) lasts for
-      this long (in seconds).
+    { Internal time-dependent logic handler. }
+    property InternalTimeDependentHandler: TInternalTimeDependentHandler
+      read FInternalTimeDependentHandler;
 
-      Note that on TTimeSensorNode descendants, you can also get and set this
-      by the class helper TTimeSensorNode.CycleInterval.
-      This of course gets/sets the same X3D "cycleInterval" value. }
+    { Final length (in seconds) of this animation.
+      For a looping animation, this is the time it takes to make a single cycle.
+      Should always be > 0.
+
+      This is not called @italic("duration"), as that word is reserved to mean
+      @italic("unscaled time length") for X3D AudioClip and MovieTexture nodes.
+      The final length, returned here, is the AudioClip.duration divided
+      by AudioClip.pitch, or MovieTexture.duration / MovieTexture.speed.
+
+      On TTimeSensorNode descendants, you can also get and set this
+      by the class helper property @link(TTimeSensorNode.CycleInterval).
+      The name collision is harmless here, as both ways get the same
+      value. }
     function CycleInterval: TFloatTime; virtual; abstract;
 
-    property TimeDependentNodeHandler: TTimeDependentNodeHandler
-      read FTimeDependentNodeHandler;
+    { Is the sensor enabled and running (ignoring whether it is paused).
+
+      For a precise (and complicated:) specification of how this behaves,
+      see the X3D TimeSensor.isActive specification at
+      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
+    function IsActive: boolean;
+
+    { Is the sensor paused.
+
+      For a precise (and complicated:) specification of how this behaves,
+      see the X3D TimeSensor.isPaused specification at
+      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
+    function IsPaused: boolean;
+
+    { Time in seconds since the sensor was activated and running,
+      not counting any time while in pause state.
+
+      For non-looping animations, note that the sensor automatically stops
+      when the animation finishes, so ElapsedTime will not grow beyond
+      the @link(Duration). If you want to observe when the animation ended,
+      you probably do not want to use this property. Instead
+      observe when @link(IsActive) changed to @false, by registering
+      a callback on @code(EventIsActive.OnReceive).
+      See the examples/3d_rendering_processing/listen_on_x3d_events.lpr .
+
+      For a precise (and complicated:) specification of how this behaves,
+      see the X3D TimeSensor.elapsedTime specification at
+      http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/time.html#TimeSensor }
+    function ElapsedTime: TFloatTime;
+
+    { Time in seconds since the sensor was activated and running,
+      in this cycle,
+      not counting any time while in pause state.
+
+      This is like ike @link(ElapsedTime), but counting only the current cycle.
+      When @link(CycleInterval) = 0, this is always 0.
+      When @link(CycleInterval) <> 0, this is always >= 0 and < CycleInterval . }
+    function ElapsedTimeInCycle: TFloatTime;
   end;
 
   TTimeSensorNode = class(TAbstractTimeDependentNode, IAbstractSensorNode)
@@ -262,7 +369,7 @@ procedure TSFTimeIgnoreWhenActive.ExposedEventReceive(
       (NeverIgnore = 0) and
       (ParentNode <> nil) and
       Supports(ParentNode, IAbstractTimeDependentNode) and
-      (ParentNode as IAbstractTimeDependentNode).TimeDependentNodeHandler.IsActive;
+      (ParentNode as IAbstractTimeDependentNode).InternalTimeDependentHandler.IsActive;
   end;
 
   procedure LogIgnored;
@@ -298,7 +405,7 @@ procedure TSFStopTime.ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
     to secure against http://bugs.freepascal.org/view.php?id=10374 }
   function Ignore: boolean;
   var
-    H: TTimeDependentNodeHandler;
+    H: TInternalTimeDependentHandler;
   begin
     Result :=
       (NeverIgnore = 0) and
@@ -306,7 +413,7 @@ procedure TSFStopTime.ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
       Supports(ParentNode, IAbstractTimeDependentNode);
     if Result then
     begin
-      H := (ParentNode as IAbstractTimeDependentNode).TimeDependentNodeHandler;
+      H := (ParentNode as IAbstractTimeDependentNode).InternalTimeDependentHandler;
       Result := H.IsActive and
         ( (AValue as TSFTime).Value <= H.FdStartTime.Value );
     end;
@@ -331,9 +438,9 @@ begin
   inherited;
 end;
 
-{ TTimeDependentNodeHandler -------------------------------------------------- }
+{ TInternalTimeDependentHandler -------------------------------------------------- }
 
-procedure TTimeDependentNodeHandler.SetIsActive(const Value: boolean);
+procedure TInternalTimeDependentHandler.SetIsActive(const Value: boolean);
 begin
   if Value <> FIsActive then
   begin
@@ -342,7 +449,7 @@ begin
   end;
 end;
 
-procedure TTimeDependentNodeHandler.SetIsPaused(const Value: boolean);
+procedure TInternalTimeDependentHandler.SetIsPaused(const Value: boolean);
 begin
   if Value <> FIsPaused then
   begin
@@ -351,7 +458,7 @@ begin
   end;
 end;
 
-procedure TTimeDependentNodeHandler.SetElapsedTime(const Value: TFloatTime);
+procedure TInternalTimeDependentHandler.SetElapsedTime(const Value: TFloatTime);
 begin
   if Value <> FElapsedTime then
   begin
@@ -363,7 +470,7 @@ begin
       Otherwise there was a bug when TCastleSceneCore.ResetTime
       (caused by ResetTimeAtLoad) was calling all time handlers
       and in effect changing elapsedTime on all TimeSensors to 0
-      (see TTimeDependentNodeHandler.SetTime implementation). This was
+      (see TInternalTimeDependentHandler.SetTime implementation). This was
       (and still is) causing elapsedTime and fraction_changed outputs
       generated even for inactive TimeSensors.
 
@@ -375,13 +482,13 @@ begin
   end;
 end;
 
-function TTimeDependentNodeHandler.CycleInterval: TFloatTime;
+function TInternalTimeDependentHandler.CycleInterval: TFloatTime;
 begin
   Assert(Assigned(OnCycleInterval));
   Result := OnCycleInterval();
 end;
 
-function TTimeDependentNodeHandler.SetTime(
+function TInternalTimeDependentHandler.SetTime(
   const NewTime: TFloatTime;
   const TimeIncrease: TFloatTime; const ResetTime: boolean): boolean;
 
@@ -479,7 +586,7 @@ begin
     causing events (if their values changed). }
 
   { For ResetTime, set time-dependent node properties to default
-    (like after TTimeDependentNodeHandler creation) at the beginning. }
+    (like after TInternalTimeDependentHandler creation) at the beginning. }
   if ResetTime then
   begin
     NewIsActive := false;
@@ -716,31 +823,31 @@ begin
 
   DefaultContainerField := 'children';
 
-  FTimeDependentNodeHandler := TTimeDependentNodeHandler.Create;
-  FTimeDependentNodeHandler.Node := Self;
-  FTimeDependentNodeHandler.Fdloop := FdLoop;
-  FTimeDependentNodeHandler.FdpauseTime := FdPauseTime;
-  FTimeDependentNodeHandler.FdresumeTime := FdResumeTime;
-  FTimeDependentNodeHandler.FdStartTime := FdStartTime;
-  FTimeDependentNodeHandler.FdstopTime := FdStopTime;
-  { descendants shoud set FTimeDependentNodeHandler.Fdenabled }
-  FTimeDependentNodeHandler.EventisActive:= EventisActive;
-  FTimeDependentNodeHandler.EventisPaused := EventisPaused;
-  FTimeDependentNodeHandler.EventelapsedTime := EventelapsedTime;
-  { descendants shoud set FTimeDependentNodeHandler.EventCycleTime }
+  FInternalTimeDependentHandler := TInternalTimeDependentHandler.Create;
+  FInternalTimeDependentHandler.Node := Self;
+  FInternalTimeDependentHandler.Fdloop := FdLoop;
+  FInternalTimeDependentHandler.FdpauseTime := FdPauseTime;
+  FInternalTimeDependentHandler.FdresumeTime := FdResumeTime;
+  FInternalTimeDependentHandler.FdStartTime := FdStartTime;
+  FInternalTimeDependentHandler.FdstopTime := FdStopTime;
+  { descendants shoud set FInternalTimeDependentHandler.Fdenabled }
+  FInternalTimeDependentHandler.EventisActive:= EventisActive;
+  FInternalTimeDependentHandler.EventisPaused := EventisPaused;
+  FInternalTimeDependentHandler.EventelapsedTime := EventelapsedTime;
+  { descendants shoud set FInternalTimeDependentHandler.EventCycleTime }
   { descendants shoud override CycleInterval }
-  FTimeDependentNodeHandler.OnCycleInterval := @CycleInterval;
+  FInternalTimeDependentHandler.OnCycleInterval := @CycleInterval;
 end;
 
 destructor TAbstractTimeDependentNode.Destroy;
 begin
-  FreeAndNil(FTimeDependentNodeHandler);
+  FreeAndNil(FInternalTimeDependentHandler);
   inherited;
 end;
 
-function TAbstractTimeDependentNode.GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
+function TAbstractTimeDependentNode.GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
 begin
-  Result := FTimeDependentNodeHandler;
+  Result := FInternalTimeDependentHandler;
 end;
 
 function TAbstractTimeDependentNode.SafeCycleInterval: TFloatTime;
@@ -748,6 +855,26 @@ begin
   Result := CycleInterval;
   if Result <= 0 then
     Result := 1;
+end;
+
+function TAbstractTimeDependentNode.IsActive: boolean;
+begin
+  Result := InternalTimeDependentHandler.IsActive;
+end;
+
+function TAbstractTimeDependentNode.IsPaused: boolean;
+begin
+  Result := InternalTimeDependentHandler.IsPaused;
+end;
+
+function TAbstractTimeDependentNode.ElapsedTime: TFloatTime;
+begin
+  Result := InternalTimeDependentHandler.ElapsedTime;
+end;
+
+function TAbstractTimeDependentNode.ElapsedTimeInCycle: TFloatTime;
+begin
+  Result := InternalTimeDependentHandler.ElapsedTimeInCycle;
 end;
 
 procedure TTimeSensorNode.CreateNode;
@@ -775,9 +902,9 @@ begin
 
   DefaultContainerField := 'children';
 
-  { set TimeDependentNodeHandler }
-  TimeDependentNodeHandler.Fdenabled := FdEnabled;
-  TimeDependentNodeHandler.EventCycleTime := EventCycleTime;
+  { set InternalTimeDependentHandler }
+  InternalTimeDependentHandler.Fdenabled := FdEnabled;
+  InternalTimeDependentHandler.EventCycleTime := EventCycleTime;
 
   { On receiving new elapsedTime, we send other continous events. }
   EventelapsedTime.OnReceive.Add(@EventElapsedTimeReceive);
@@ -807,7 +934,7 @@ var
 begin
   if (FakingTime = 0) and FdEnabled.Value then
   begin
-    Fraction := TimeDependentNodeHandler.ElapsedTimeInCycle / SafeCycleInterval;
+    Fraction := InternalTimeDependentHandler.ElapsedTimeInCycle / SafeCycleInterval;
     if (Fraction = 0) and (Time.Seconds > FdStartTime.Value) then Fraction := 1;
     Eventfraction_changed.Send(Fraction, Time);
 

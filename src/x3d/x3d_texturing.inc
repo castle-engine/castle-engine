@@ -273,9 +273,13 @@
     IAbstractUrlObject, IAbstractTimeDependentNode)
   private
     FDuration: TFloatTime;
-    FTimeDependentNodeHandler: TTimeDependentNodeHandler;
+    FInternalTimeDependentHandler: TInternalTimeDependentHandler;
     function CycleInterval: TFloatTime;
-    function GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
+    function IsActive: boolean;
+    function IsPaused: boolean;
+    function ElapsedTime: TFloatTime;
+    function ElapsedTimeInCycle: TFloatTime;
+    function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
   protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
@@ -327,8 +331,9 @@
 
     function TextureDescription: string; override;
 
-    property TimeDependentNodeHandler: TTimeDependentNodeHandler
-      read FTimeDependentNodeHandler;
+    { Internal time-dependent logic handler. }
+    property InternalTimeDependentHandler: TInternalTimeDependentHandler
+      read FInternalTimeDependentHandler;
 
     { Duration for this time-dependent node.
       Duration is initialized from loaded video length (default is -1).
@@ -884,27 +889,27 @@ begin
 
   FDuration := -1;
 
-  FTimeDependentNodeHandler := TTimeDependentNodeHandler.Create;
-  FTimeDependentNodeHandler.Node := Self;
-  FTimeDependentNodeHandler.Fdloop := FdLoop;
-  FTimeDependentNodeHandler.FdpauseTime := FdPauseTime;
-  FTimeDependentNodeHandler.FdresumeTime := FdResumeTime;
-  FTimeDependentNodeHandler.FdstartTime := FdStartTime;
-  FTimeDependentNodeHandler.FdstopTime := FdStopTime;
-  FTimeDependentNodeHandler.EventisActive:= EventisActive;
-  FTimeDependentNodeHandler.EventisPaused := EventisPaused;
-  FTimeDependentNodeHandler.EventelapsedTime := EventelapsedTime;
-  FTimeDependentNodeHandler.OnCycleInterval := @CycleInterval;
+  FInternalTimeDependentHandler := TInternalTimeDependentHandler.Create;
+  FInternalTimeDependentHandler.Node := Self;
+  FInternalTimeDependentHandler.Fdloop := FdLoop;
+  FInternalTimeDependentHandler.FdpauseTime := FdPauseTime;
+  FInternalTimeDependentHandler.FdresumeTime := FdResumeTime;
+  FInternalTimeDependentHandler.FdstartTime := FdStartTime;
+  FInternalTimeDependentHandler.FdstopTime := FdStopTime;
+  FInternalTimeDependentHandler.EventisActive:= EventisActive;
+  FInternalTimeDependentHandler.EventisPaused := EventisPaused;
+  FInternalTimeDependentHandler.EventelapsedTime := EventelapsedTime;
+  FInternalTimeDependentHandler.OnCycleInterval := @CycleInterval;
 end;
 
-function TMovieTextureNode.GetTimeDependentNodeHandler: TTimeDependentNodeHandler;
+function TMovieTextureNode.GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
 begin
-  Result := FTimeDependentNodeHandler;
+  Result := FInternalTimeDependentHandler;
 end;
 
 destructor TMovieTextureNode.Destroy;
 begin
-  FreeAndNil(FTimeDependentNodeHandler);
+  FreeAndNil(FInternalTimeDependentHandler);
   inherited;
 end;
 
@@ -951,10 +956,34 @@ begin
 end;
 
 function TMovieTextureNode.CycleInterval: TFloatTime;
+var
+  Sp: Single;
 begin
-  if FdSpeed.Value <> 0 then
-    Result := Duration / Abs(FdSpeed.Value) else
+  Sp := Speed;
+  if Sp <> 0 then
+    Result := FDuration / Abs(Sp)
+  else
     Result := 0;
+end;
+
+function TMovieTextureNode.IsActive: boolean;
+begin
+  Result := InternalTimeDependentHandler.IsActive;
+end;
+
+function TMovieTextureNode.IsPaused: boolean;
+begin
+  Result := InternalTimeDependentHandler.IsPaused;
+end;
+
+function TMovieTextureNode.ElapsedTime: TFloatTime;
+begin
+  Result := InternalTimeDependentHandler.ElapsedTime;
+end;
+
+function TMovieTextureNode.ElapsedTimeInCycle: TFloatTime;
+begin
+  Result := InternalTimeDependentHandler.ElapsedTimeInCycle;
 end;
 
 function TMovieTextureNode.TextureDescription: string;

@@ -74,10 +74,10 @@ type
       they *must* be added to ConfirmedEmptyChanges function. }
     procedure TestEmptyChanges;
 
-    { Try calling GetTimeDependentNodeHandler
+    { Try calling GetInternalTimeDependentHandler
       on every IAbstractTimeDependentNode, and use the handler.
       Catches e.g. not overriden CycleInterval. }
-    procedure TestTimeDependentNodeHandlerAvailable;
+    procedure TestInternalTimeDependentHandlerAvailable;
 
     procedure TestITransformNode;
     procedure TestSortPositionInParent;
@@ -1307,21 +1307,21 @@ begin
   end;
 end;
 
-procedure TTestX3DNodes.TestTimeDependentNodeHandlerAvailable;
+procedure TTestX3DNodes.TestInternalTimeDependentHandlerAvailable;
 
-  procedure CheckTimeDependentNodeHandler(N: TX3DNode);
+  procedure CheckInternalTimeDependentHandler(N: TX3DNode);
   var
     B: boolean;
     C: TFloatTime;
   begin
-    { CheckTimeDependentNodeHandler is a separate procedure,
+    { CheckInternalTimeDependentHandler is a separate procedure,
       to limit lifetime of temporary IAbstractTimeDependentNode,
       see "Reference counting" notes on
       http://freepascal.org/docs-html/ref/refse40.html }
     if Supports(N, IAbstractTimeDependentNode) then
     begin
-      B := (N as IAbstractTimeDependentNode).TimeDependentNodeHandler.IsActive;
-      C := (N as IAbstractTimeDependentNode).TimeDependentNodeHandler.CycleInterval;
+      B := (N as IAbstractTimeDependentNode).InternalTimeDependentHandler.IsActive;
+      C := (N as IAbstractTimeDependentNode).InternalTimeDependentHandler.CycleInterval;
     end else
     if (N is TMovieTextureNode) or
        (N is TAudioClipNode) or
@@ -1337,9 +1337,9 @@ begin
   begin
     N := NodesManager.Registered[I].Create;
     try
-      CheckTimeDependentNodeHandler(N);
+      CheckInternalTimeDependentHandler(N);
     except
-      Writeln('TestTimeDependentNodeHandlerAvailable failed for ', N.ClassName);
+      Writeln('TestInternalTimeDependentHandlerAvailable failed for ', N.ClassName);
       raise;
     end;
     FreeAndNil(N);
