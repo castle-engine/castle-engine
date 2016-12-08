@@ -1003,7 +1003,10 @@ var
       Also, place it in the active graph part (outside SwitchChooseAnimation)
       to be always listed in Scene.AnimationsList. }
     TimeSensor := TTimeSensorNode.Create(AnimationX3DName, BaseUrl);
-    TimeSensor.CycleInterval := BakedAnimation.Duration;
+    if BakedAnimation.Backwards then
+      TimeSensor.CycleInterval := 2 * BakedAnimation.Duration
+    else
+      TimeSensor.CycleInterval := BakedAnimation.Duration;
     TimeSensor.Loop := BakedAnimation.Loop;
     RootNode.FdChildren.Add(TimeSensor);
 
