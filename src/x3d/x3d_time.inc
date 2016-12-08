@@ -830,12 +830,12 @@ begin
   FInternalTimeDependentHandler.FdresumeTime := FdResumeTime;
   FInternalTimeDependentHandler.FdStartTime := FdStartTime;
   FInternalTimeDependentHandler.FdstopTime := FdStopTime;
-  { descendants shoud set FInternalTimeDependentHandler.Fdenabled }
+  { descendants should set FInternalTimeDependentHandler.Fdenabled }
   FInternalTimeDependentHandler.EventisActive:= EventisActive;
   FInternalTimeDependentHandler.EventisPaused := EventisPaused;
   FInternalTimeDependentHandler.EventelapsedTime := EventelapsedTime;
-  { descendants shoud set FInternalTimeDependentHandler.EventCycleTime }
-  { descendants shoud override CycleInterval }
+  { descendants should set FInternalTimeDependentHandler.EventCycleTime }
+  { descendants should override CycleInterval }
   FInternalTimeDependentHandler.OnCycleInterval := @CycleInterval;
 end;
 
