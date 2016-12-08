@@ -151,7 +151,7 @@ begin
   Window.Controls.InsertFront(LabelDejaLargeOutline);
 
   LabelStylish := TCastleLabel.Create(Window);
-  LabelStylish.Text.Text :=
+  LabelStylish.Caption :=
     'Stylish "old typewriter" font' +LineEnding+
     'with anti-aliasing.';
   LabelStylish.Padding := 5;
@@ -162,7 +162,7 @@ begin
   Window.Controls.InsertFront(LabelStylish);
 
   LabelStylishBW := TCastleLabel.Create(Window);
-  LabelStylishBW.Text.Text :=
+  LabelStylishBW.Caption :=
     'Stylish "old typewriter" font' +LineEnding+
     'without anti-aliasing.';
   LabelStylishBW.Padding := 5;
@@ -173,7 +173,7 @@ begin
   Window.Controls.InsertFront(LabelStylishBW);
 
   LabelStylishLarge := TCastleLabel.Create(Window);
-  LabelStylishLarge.Text.Text :=
+  LabelStylishLarge.Caption :=
     'Stylish "old typewriter" font' +LineEnding+
     'with anti-aliasing' +LineEnding+
     'and larger size.';
