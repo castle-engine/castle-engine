@@ -275,10 +275,6 @@
     FDuration: TFloatTime;
     FInternalTimeDependentHandler: TInternalTimeDependentHandler;
     function CycleInterval: TFloatTime;
-    function IsActive: boolean;
-    function IsPaused: boolean;
-    function ElapsedTime: TFloatTime;
-    function ElapsedTimeInCycle: TFloatTime;
     function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
   protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
@@ -350,6 +346,11 @@
       This way this is available even you freed the texture video data to
       save memory. }
     property Duration: TFloatTime read FDuration;
+
+    function IsActive: boolean;
+    function IsPaused: boolean;
+    function ElapsedTime: TFloatTime;
+    function ElapsedTimeInCycle: TFloatTime;
   end;
 
   TMultiTextureNode = class(TAbstractTextureNode)
