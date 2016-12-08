@@ -36,10 +36,10 @@ var
 begin
   { This will be used as appearance for both sphere and IndexedFaceSet }
   Appearance := TAppearanceNode.Create;
-  Appearance.FdMaterial.Value := TMaterialNode.Create;
+  Appearance.Material := TMaterialNode.Create;
 
   Sphere := TSphereNode.Create;
-  Sphere.FdRadius.Value := 2;
+  Sphere.Radius := 2;
 
   SphereShape := TShapeNode.Create;
   SphereShape.Appearance := Appearance;
@@ -66,11 +66,11 @@ begin
   IndexedFaceSet.FdCoord.Value := IndexedFaceSetCoordinate;
 
   IndexedFaceSetShape := TShapeNode.Create;
-  IndexedFaceSetShape.FdAppearance.Value := Appearance;
-  IndexedFaceSetShape.FdGeometry.Value := IndexedFaceSet;
+  IndexedFaceSetShape.Appearance := Appearance;
+  IndexedFaceSetShape.Geometry := IndexedFaceSet;
 
   IndexedFaceSetShapeTranslated := TTransformNode.Create;
-  IndexedFaceSetShapeTranslated.FdTranslation.Value := Vector3Single(2, 0, 0);
+  IndexedFaceSetShapeTranslated.Translation := Vector3Single(2, 0, 0);
   IndexedFaceSetShapeTranslated.FdChildren.Add(IndexedFaceSetShape);
 
   Root := TX3DRootNode.Create;
