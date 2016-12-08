@@ -806,7 +806,7 @@ type
       WindowMargin = 10;
       ButtonHorizontalMargin = 10;
     type
-      TDialogScrollArea = class(TUIControl)
+      TDialogScrollArea = class(TUIControlSizeable)
       strict private
         Dialog: TCastleDialog;
       public
@@ -3268,6 +3268,7 @@ constructor TCastleDialog.TDialogScrollArea.Create(AOwner: TComponent);
 begin
   inherited;
   Dialog := AOwner as TCastleDialog;
+  FullSize := true; // we want our ScreenRect to be equal to parent
 end;
 
 procedure TCastleDialog.TDialogScrollArea.Render;
@@ -3333,7 +3334,14 @@ begin
   { draw Broken_InputText and Broken_Text.
     Order matters, as it's drawn from bottom to top. }
   if Dialog.DrawInputText then
-    DrawStrings(TextX, TextY, Theme.MessageInputTextColor, Dialog.Broken_InputText, Dialog.TextAlign, true);
+    DrawStrings(TextX, TextY, Theme.MessageInputTextColor,
+      Dialog.Broken_InputText, Dialog.TextAlign, true);
+
+  { adjust TextX for TRichText.Print call }
+  case Dialog.TextAlign of
+    hpMiddle: TextX := (SR.Left + SR.Right) div 2;
+    hpRight : TextX := SR.Right - Dialog.BoxMarginScaled;
+  end;
   Dialog.Broken_Text.Print(TextX, TextY, Theme.MessageTextColor, 0, Dialog.TextAlign);
 end;
 
