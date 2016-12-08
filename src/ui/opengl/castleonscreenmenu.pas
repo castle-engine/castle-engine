@@ -44,6 +44,9 @@ type
     attached to the TCastleOnScreenMenu item. }
   TCastleMenuToggle = class(TCastleMenuButton)
   private
+    { TODO: if would be nice if Width of this component was appropriate
+      for the longest possible string ("Yes" in this case).
+      This way the menu could be larger, in preparation of it. }
     FAutoToggle: boolean;
   protected
     procedure SetPressed(const Value: boolean); override;
