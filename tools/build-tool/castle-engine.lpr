@@ -17,9 +17,10 @@
   Call with --help for detailed usage instructions.
 }
 
-{$ifdef MSWINDOWS}
-  {$R automatic-windows-resources.res}
-{$endif MSWINDOWS}
+{ This adds icons and version info for Windows,
+  automatically created by "castle-engine compile".
+  Comment this out if you don't compile using our "castle-engine" build tool. }
+{$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
 uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,

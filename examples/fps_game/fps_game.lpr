@@ -16,6 +16,8 @@
 { Example of a fully-working 3D FPS game. }
 program fps_game;
 
+{$apptype GUI}
+
 { This adds icons and version info for Windows,
   automatically created by "castle-engine compile".
   Comment this out if you don't compile using our "castle-engine" build tool. }
@@ -418,13 +420,10 @@ begin
     file name), so make sure it's Ok. }
   OnGetApplicationName := @MyGetApplicationName;
 
-  { Write warnings on standard output (console).
-    By default, warnings are only written to log, and log by default goes nowhere. }
-  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   { optionally, enable log.
     See http://castle-engine.sourceforge.net/tutorial_log.php
     to know where it's going. }
-  //InitializeLog;
+  InitializeLog;
 
   { Create a window.
     Standard TCastleWindow (just like analogous Lazarus component TCastleControl)
