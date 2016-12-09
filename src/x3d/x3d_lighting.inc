@@ -36,7 +36,7 @@
     default values. }
   TAbstractLightNode = class(TAbstractChildNode)
   private
-    FTransform: TMatrix4Single;
+    FTransform, FInvertedTransform: TMatrix4Single;
     SavedDefaultShadowMap: boolean;
     SavedDefaultShadowMapUpdate: TTextureUpdate;
     SavedDefaultShadowMapSize: Integer;
@@ -96,21 +96,21 @@
     public property FdEffects: TMFNode read FFdEffects;
 
     { Transformation of this light node.
-      Normal lights can be instanced many times within the scene, with
-      various transformation, so @italic(this transformation property
-      cannot be used).
+      Beware: In X3D, light nodes can be instantiated many times within the scene,
+      with different transformations, so @italic(this transformation property
+      should not be used in general).
 
-      However, in special cases, you know that light node occurs only once
-      within the scene (see
-      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadow_maps]).
-      Then it's useful.
+      Use this only if you you know that light node occurs only once within the scene
+      (see [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadow_maps]).
+      Or if you're fine with just getting an undefined transformation,
+      for any of the light instances.
 
-      It is gathered during traversing. Last BeforeTraverse call for this
-      node sets Transform properties. By default, it represents identity
-      transformation.
+      This value is calculated during traversing. Last @link(BeforeTraverse) call for this
+      node sets this property. By default, it represents identity transformation.
 
       @groupBegin }
     property Transform: TMatrix4Single read FTransform;
+    property InvertedTransform: TMatrix4Single read FInvertedTransform;
     { @groupEnd }
 
     { Matrices for rendering shadow map from this light.
@@ -198,7 +198,7 @@
     procedure SetProjectionLocation(const Value: TVector3Single);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
 
     private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
@@ -230,6 +230,8 @@
     procedure SetAttenuation(const Value: TVector3Single);
     function GetLocation: TVector3Single;
     procedure SetLocation(const Value: TVector3Single);
+    function GetSceneLocation: TVector3Single;
+    procedure SetSceneLocation(const Value: TVector3Single);
     function GetRadius: Single;
     procedure SetRadius(const Value: Single);
   public
@@ -242,6 +244,13 @@
     private FFdLocation: TSFVec3f;
     public property FdLocation: TSFVec3f read FFdLocation;
     property Location: TVector3Single read GetLocation write SetLocation;
+
+    { Light location, expressed in scene (current TCastleScene) coordinates.
+      @italic(Do not use this if the light node may be instantiated multiple
+      times in the scene.) The same warning as for @link(Transform) applies
+      also here. }
+    property SceneLocation: TVector3Single
+      read GetSceneLocation write SetSceneLocation;
 
     { Calculate light intensity drop because of the distance to the light.
       This follows the equation @code(1/max( attenuation[0] + ... ))
@@ -284,7 +293,7 @@
   TAbstractPointLightNode = class(TAbstractPositionalLightNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
 
     function ProjectionLocationLocal: TVector3Single; override;
     procedure Box3DDistances(const Box: TBox3D;
@@ -314,7 +323,7 @@
   TSpotLightNode = class(TAbstractPositionalLightNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdBeamWidth: TSFFloat;
@@ -447,6 +456,7 @@ begin
   DefaultContainerField := 'children';
 
   FTransform := IdentityMatrix4Single;
+  FInvertedTransform := IdentityMatrix4Single;
 end;
 
 procedure TAbstractLightNode.BeforeTraverse(
@@ -455,6 +465,7 @@ begin
   inherited;
 
   FTransform := StateStack.Top.Transform;
+  FInvertedTransform := StateStack.Top.InvertedTransform;
 end;
 
 function TAbstractLightNode.ProjectionMatrix: TMatrix4Single;
@@ -606,7 +617,7 @@ begin
   AddField(FFdProjectionLocation);
 end;
 
-class function TAbstractDirectionalLightNode.ClassNodeTypeName: string;
+class function TAbstractDirectionalLightNode.ClassX3DType: string;
 begin
   Result := 'DirectionalLight';
 end;
@@ -825,6 +836,16 @@ begin
   FdLocation.Send(Value);
 end;
 
+function TAbstractPositionalLightNode.GetSceneLocation: TVector3Single;
+begin
+  Result := MatrixMultPoint(Transform, Location);
+end;
+
+procedure TAbstractPositionalLightNode.SetSceneLocation(const Value: TVector3Single);
+begin
+  Location := MatrixMultPoint(InvertedTransform, Value);
+end;
+
 function TAbstractPositionalLightNode.GetRadius: Single;
 begin
   Result := FdRadius.Value;
@@ -841,7 +862,7 @@ begin
   { no new fields - this is just TAbstractPositionalLightNode }
 end;
 
-class function TAbstractPointLightNode.ClassNodeTypeName: string;
+class function TAbstractPointLightNode.ClassX3DType: string;
 begin
   Result := 'PointLight';
 end;
@@ -869,8 +890,8 @@ end;
 class function TDirectionalLightNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TDirectionalLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -890,8 +911,8 @@ end;
 class function TPointLightNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TPointLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -930,7 +951,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSpotLightNode.ClassNodeTypeName: string;
+class function TSpotLightNode.ClassX3DType: string;
 begin
   Result := 'SpotLight';
 end;
@@ -938,8 +959,8 @@ end;
 class function TSpotLightNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TSpotLightNode.ForVRMLVersion(const Version: TX3DVersion): boolean;

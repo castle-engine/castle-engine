@@ -402,12 +402,12 @@ constructor TPlayer.Create(AKind: TCreatureKind);
     Sphere: TSphereNode;
   begin
     Sphere := TSphereNode.Create;
-    Sphere.FdRadius.Value := 0.1;
+    Sphere.Radius := 0.1;
 
     Shape := TShapeNode.Create;
     Shape.Material := TMaterialNode.Create;
     Shape.Material.DiffuseColor := RedRGB;
-    Shape.FdGeometry.Value := Sphere;
+    Shape.Geometry := Sphere;
 
     Root := TX3DRootNode.Create;
     Root.FdChildren.Add(Shape);

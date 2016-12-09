@@ -16,6 +16,13 @@
 { Example of a fully-working 3D FPS game. }
 program fps_game;
 
+{$apptype GUI}
+
+{ This adds icons and version info for Windows,
+  automatically created by "castle-engine compile".
+  Comment this out if you don't compile using our "castle-engine" build tool. }
+{$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
+
 uses SysUtils, Classes, CastleWindow, CastleLog, CastleConfig, CastleLevels,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
@@ -229,8 +236,12 @@ begin
     You can take font measurements by UIFont.RowHeight or UIFont.TextWidth
     to adjust initial position as needed. }
   Y -= UIFont.RowHeight + ControlsMargin;
-  UIFont.Print(0, Y, Yellow,
+  UIFont.Print(ControlsMargin, Y, Yellow,
     Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
+
+  { show FPS }
+  UIFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
+    Format('FPS: %f', [Window.Fps.RealTime]), hpRight, vpTop);
 
   Y -= UIFont.RowHeight + InventoryImageSize;
 
@@ -409,13 +420,10 @@ begin
     file name), so make sure it's Ok. }
   OnGetApplicationName := @MyGetApplicationName;
 
-  { Write warnings on standard output (console).
-    By default, warnings are only written to log, and log by default goes nowhere. }
-  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   { optionally, enable log.
     See http://castle-engine.sourceforge.net/tutorial_log.php
     to know where it's going. }
-  //InitializeLog;
+  InitializeLog;
 
   { Create a window.
     Standard TCastleWindow (just like analogous Lazarus component TCastleControl)

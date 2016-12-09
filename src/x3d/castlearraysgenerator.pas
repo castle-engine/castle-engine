@@ -732,7 +732,7 @@ begin
   WritelnWarning('VRML/X3D', Format(
     'Colors %s and normals %s used in the same node %s. Shading results may be incorrect',
     [ SPerVertex[ColorPerVertex], SPerVertex[NormalPerVertex],
-      Geometry.NodeTypeName]));
+      Geometry.X3DType]));
 end;
 
 function TArraysGenerator.GenerateArrays: TGeometryArrays;
@@ -773,7 +773,7 @@ begin
         and avoid passing data that would cause OpenGL errors. }
       if MaxIndex >= Coord.Count then
       begin
-        CoordIndex.WritelnWarning_WrongVertexIndex(Geometry.NodeTypeName,
+        CoordIndex.WritelnWarning_WrongVertexIndex(Geometry.X3DType,
           MaxIndex, Coord.Count);
         Exit; { leave Arrays created but empty }
       end;
@@ -1151,7 +1151,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         { dummy default }
         Arrays.AddTexCoordGenerated(tgBounds2d, TextureUnit);
         if TexCoord <> nil then
-          WritelnWarning('VRML/X3D', Format('Unsupported texture coordinate node: %s, inside multiple texture coordinate', [TexCoord.NodeTypeName])) else
+          WritelnWarning('VRML/X3D', Format('Unsupported texture coordinate node: %s, inside multiple texture coordinate', [TexCoord.X3DType])) else
           WritelnWarning('VRML/X3D', 'NULL texture coordinate node');
       end;
 
@@ -2086,7 +2086,7 @@ begin
       if Attrib[I] is TMatrix4VertexAttributeNode then
         Arrays.AddGLSLAttributeMatrix4(Attrib[I].FdName.Value, false) else
         WritelnWarning('VRML/X3D', Format('Not handled vertex attribute class %s',
-          [Attrib[I].NodeTypeName]));
+          [Attrib[I].X3DType]));
     end;
 end;
 

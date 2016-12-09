@@ -1178,7 +1178,7 @@ begin
       "OpenGL shading language (GLSL) binding".
       Remaining:
       SF/MFImage }
-    WritelnWarning('VRML/X3D', 'Setting uniform GLSL variable from X3D field type "' + UniformValue.TypeName + '" not supported');
+    WritelnWarning('VRML/X3D', 'Setting uniform GLSL variable from X3D field type "' + UniformValue.X3DType + '" not supported');
 
   if EnableDisable then
     { TODO: this should restore previously bound program }

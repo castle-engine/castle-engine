@@ -90,7 +90,7 @@
   public
     procedure CreateNode; override;
 
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
     function Texture(const Side: TBackgroundSide): TAbstractTextureNode; override;
 
@@ -126,7 +126,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
@@ -179,7 +179,7 @@
   TFogCoordinateNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdDepth: TMFFloat;
@@ -200,7 +200,7 @@
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdColor: TSFColor;
@@ -235,7 +235,7 @@
   TTextureBackgroundNode = class(TAbstractBackgroundNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
     function Texture(const Side: TBackgroundSide): TAbstractTextureNode; override;
 
@@ -388,7 +388,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TBackgroundNode.ClassNodeTypeName: string;
+class function TBackgroundNode.ClassX3DType: string;
 begin
   Result := 'Background';
 end;
@@ -396,8 +396,8 @@ end;
 class function TBackgroundNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TBackgroundNode.Texture(const Side: TBackgroundSide): TAbstractTextureNode;
@@ -468,7 +468,7 @@ begin
   Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
 end;
 
-class function TFogNode.ClassNodeTypeName: string;
+class function TFogNode.ClassX3DType: string;
 begin
   Result := 'Fog';
 end;
@@ -476,8 +476,8 @@ end;
 class function TFogNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TFogNode.EventSet_BindReceive(
@@ -629,7 +629,7 @@ begin
   DefaultContainerField := 'fogCoord';
 end;
 
-class function TFogCoordinateNode.ClassNodeTypeName: string;
+class function TFogCoordinateNode.ClassX3DType: string;
 begin
   Result := 'FogCoordinate';
 end;
@@ -637,7 +637,7 @@ end;
 class function TFogCoordinateNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TLocalFogNode.CreateNode;
@@ -682,7 +682,7 @@ begin
   FTransformScale := StateStack.Top.TransformScale;
 end;
 
-class function TLocalFogNode.ClassNodeTypeName: string;
+class function TLocalFogNode.ClassX3DType: string;
 begin
   Result := 'LocalFog';
 end;
@@ -690,7 +690,7 @@ end;
 class function TLocalFogNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TLocalFogNode.GetFdcolor: TSFColor;
@@ -787,7 +787,7 @@ begin
     Result := nil;
 end;
 
-class function TTextureBackgroundNode.ClassNodeTypeName: string;
+class function TTextureBackgroundNode.ClassX3DType: string;
 begin
   Result := 'TextureBackground';
 end;
@@ -795,7 +795,7 @@ end;
 class function TTextureBackgroundNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterEnvironmentalEffectsNodes;

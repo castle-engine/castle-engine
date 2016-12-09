@@ -74,10 +74,10 @@ type
       they *must* be added to ConfirmedEmptyChanges function. }
     procedure TestEmptyChanges;
 
-    { Try calling GetTimeDependentNodeHandler
+    { Try calling GetInternalTimeDependentHandler
       on every IAbstractTimeDependentNode, and use the handler.
       Catches e.g. not overriden CycleInterval. }
-    procedure TestTimeDependentNodeHandlerAvailable;
+    procedure TestInternalTimeDependentHandlerAvailable;
 
     procedure TestITransformNode;
     procedure TestSortPositionInParent;
@@ -88,6 +88,7 @@ type
     procedure TestConvex;
     procedure TestX3DXmlString;
     procedure TestOrthoViewpointFieldOfView;
+    procedure TestFontStyle;
   end;
 
 implementation
@@ -99,20 +100,20 @@ uses CastleUtils, X3DLexer, CastleClassUtils, CastleFilesUtils, X3DFields,
 
 type
   TSpecialNode = class(TX3DNode)
-    function NodeTypeName: string; override;
+    function X3DType: string; override;
   end;
 
-function TSpecialNode.NodeTypeName: string;
+function TSpecialNode.X3DType: string;
 begin
  result := 'OohImSoSpecial';
 end;
 
 type
   TSomethingNode = class(TX3DNode)
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
   end;
 
-class function TSomethingNode.ClassNodeTypeName: string;
+class function TSomethingNode.ClassX3DType: string;
 begin
  result := 'WellImNothingSpecial';
 end;
@@ -122,7 +123,7 @@ end;
 procedure TTestX3DNodes.TestNodesManager;
 begin
  try
-  { throw exception because TSpecialNode.ClassNodeTypeName = '' }
+  { throw exception because TSpecialNode.ClassX3DType = '' }
   NodesManager.RegisterNodeClass(TSpecialNode);
   raise Exception.Create('NodesManager.RegisterNodeClass(TSpecialNode); SHOULD throw exception');
  except on ENodesManagerError do ; end;
@@ -335,7 +336,7 @@ begin
     N := NodesManager.Registered[I].Create;
     try
 
-      { Writeln(N.NodeTypeName, ' ', Supports(N, IAbstractChildNode)); }
+      { Writeln(N.X3DType, ' ', Supports(N, IAbstractChildNode)); }
 
       { Test that all fields, events names are different.
 
@@ -846,7 +847,7 @@ begin
     begin
       N := NodesManager.Registered[I].Create;
       try
-        Index := ContainerFieldList.IndexOfName(N.NodeTypeName);
+        Index := ContainerFieldList.IndexOfName(N.X3DType);
         if (Index <> -1) and
            (not (N is TFontStyleNode_1)) and
            (not (N is TMaterialNode_1)) then
@@ -1306,21 +1307,21 @@ begin
   end;
 end;
 
-procedure TTestX3DNodes.TestTimeDependentNodeHandlerAvailable;
+procedure TTestX3DNodes.TestInternalTimeDependentHandlerAvailable;
 
-  procedure CheckTimeDependentNodeHandler(N: TX3DNode);
+  procedure CheckInternalTimeDependentHandler(N: TX3DNode);
   var
     B: boolean;
     C: TFloatTime;
   begin
-    { CheckTimeDependentNodeHandler is a separate procedure,
+    { CheckInternalTimeDependentHandler is a separate procedure,
       to limit lifetime of temporary IAbstractTimeDependentNode,
       see "Reference counting" notes on
       http://freepascal.org/docs-html/ref/refse40.html }
     if Supports(N, IAbstractTimeDependentNode) then
     begin
-      B := (N as IAbstractTimeDependentNode).TimeDependentNodeHandler.IsActive;
-      C := (N as IAbstractTimeDependentNode).TimeDependentNodeHandler.CycleInterval;
+      B := (N as IAbstractTimeDependentNode).InternalTimeDependentHandler.IsActive;
+      C := (N as IAbstractTimeDependentNode).InternalTimeDependentHandler.CycleInterval;
     end else
     if (N is TMovieTextureNode) or
        (N is TAudioClipNode) or
@@ -1336,9 +1337,9 @@ begin
   begin
     N := NodesManager.Registered[I].Create;
     try
-      CheckTimeDependentNodeHandler(N);
+      CheckInternalTimeDependentHandler(N);
     except
-      Writeln('TestTimeDependentNodeHandlerAvailable failed for ', N.ClassName);
+      Writeln('TestInternalTimeDependentHandlerAvailable failed for ', N.ClassName);
       raise;
     end;
     FreeAndNil(N);
@@ -1953,6 +1954,47 @@ begin
     AssertEquals(20, O.FdFieldOfView.Items[3]);
 
   finally FreeAndNil(O) end;
+end;
+
+procedure TTestX3DNodes.TestFontStyle;
+var
+  F: TFontStyleNode;
+begin
+  F := TFontStyleNode.Create;
+  try
+    AssertEquals(false, F.Bold);
+    AssertEquals(false, F.Italic);
+    AssertTrue(ffSerif = F.Family);
+    AssertTrue(fjBegin = F.Justify);
+    AssertTrue(fjFirst = F.JustifyMinor);
+
+    F.Bold := true;
+    AssertEquals(true, F.Bold);
+    AssertEquals(false, F.Italic);
+    AssertEquals('BOLD', F.FdStyle.Value);
+
+    F.Italic := true;
+    AssertEquals(true, F.Bold);
+    AssertEquals(true, F.Italic);
+    AssertEquals('BOLDITALIC', F.FdStyle.Value);
+
+    F.Bold := false;
+    AssertEquals(false, F.Bold);
+    AssertEquals(true, F.Italic);
+    AssertEquals('ITALIC', F.FdStyle.Value);
+
+    F.JustifyMinor := fjEnd;
+    AssertTrue(fjBegin = F.Justify);
+    AssertTrue(fjEnd = F.JustifyMinor);
+
+    F.Justify := fjMiddle;
+    AssertTrue(fjMiddle = F.Justify);
+    AssertTrue(fjEnd = F.JustifyMinor);
+
+    F.Family := ffSans;
+    AssertTrue(ffSans = F.Family);
+
+  finally FreeAndNil(F) end;
 end;
 
 initialization

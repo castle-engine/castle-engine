@@ -467,7 +467,8 @@ begin
   begin
     PrepareScene(FSceneForAnimation, URL);
     if AnimationName <> '' then
-      FDuration := FSceneForAnimation.AnimationDuration(AnimationName) else
+      FDuration := FSceneForAnimation.AnimationDuration(AnimationName)
+    else
       FDuration := FSceneForAnimation.AnimationDuration(TNodeInterpolator.DefaultAnimationName);
   end else
   if AnimationName <> '' then

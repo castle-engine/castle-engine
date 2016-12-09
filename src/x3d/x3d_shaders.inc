@@ -50,7 +50,7 @@
   TComposedShaderNode = class(TAbstractShaderNode, IAbstractProgrammableShaderObject)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdParts: TMFNode;
@@ -60,7 +60,7 @@
   TFloatVertexAttributeNode = class(TAbstractVertexAttributeNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdValue: TMFFloat;
@@ -73,7 +73,7 @@
   TMatrix3VertexAttributeNode = class(TAbstractVertexAttributeNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdValue: TMFMatrix3f;
@@ -83,7 +83,7 @@
   TMatrix4VertexAttributeNode = class(TAbstractVertexAttributeNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdValue: TMFMatrix4f;
@@ -93,7 +93,7 @@
   TPackagedShaderNode = class(TAbstractShaderNode, IAbstractUrlObject, IAbstractProgrammableShaderObject)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdUrl: TMFString;
@@ -103,7 +103,7 @@
   TProgramShaderNode = class(TAbstractShaderNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdPrograms: TMFNode;
@@ -120,7 +120,7 @@
     procedure SetShaderType(const Value: TShaderType);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdUrl: TMFString;
@@ -142,7 +142,7 @@
   TShaderProgramNode = class(TAbstractNode, IAbstractUrlObject, IAbstractProgrammableShaderObject)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdUrl: TMFString;
@@ -209,7 +209,7 @@ begin
   HasInterfaceDeclarations := AllAccessTypes;
 end;
 
-class function TComposedShaderNode.ClassNodeTypeName: string;
+class function TComposedShaderNode.ClassX3DType: string;
 begin
   Result := 'ComposedShader';
 end;
@@ -217,7 +217,7 @@ end;
 class function TComposedShaderNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TFloatVertexAttributeNode.CreateNode;
@@ -234,7 +234,7 @@ begin
   { X3D specification comment: [1..4] }
 end;
 
-class function TFloatVertexAttributeNode.ClassNodeTypeName: string;
+class function TFloatVertexAttributeNode.ClassX3DType: string;
 begin
   Result := 'FloatVertexAttribute';
 end;
@@ -242,7 +242,7 @@ end;
 class function TFloatVertexAttributeNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TMatrix3VertexAttributeNode.CreateNode;
@@ -254,7 +254,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TMatrix3VertexAttributeNode.ClassNodeTypeName: string;
+class function TMatrix3VertexAttributeNode.ClassX3DType: string;
 begin
   Result := 'Matrix3VertexAttribute';
 end;
@@ -262,7 +262,7 @@ end;
 class function TMatrix3VertexAttributeNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TMatrix4VertexAttributeNode.CreateNode;
@@ -274,7 +274,7 @@ begin
   { X3D specification comment: (-Inf,Inf) }
 end;
 
-class function TMatrix4VertexAttributeNode.ClassNodeTypeName: string;
+class function TMatrix4VertexAttributeNode.ClassX3DType: string;
 begin
   Result := 'Matrix4VertexAttribute';
 end;
@@ -282,7 +282,7 @@ end;
 class function TMatrix4VertexAttributeNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TPackagedShaderNode.CreateNode;
@@ -297,7 +297,7 @@ begin
   CDataField := FdUrl;
 end;
 
-class function TPackagedShaderNode.ClassNodeTypeName: string;
+class function TPackagedShaderNode.ClassX3DType: string;
 begin
   Result := 'PackagedShader';
 end;
@@ -305,7 +305,7 @@ end;
 class function TPackagedShaderNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TProgramShaderNode.CreateNode;
@@ -316,7 +316,7 @@ begin
   AddField(FFdPrograms);
 end;
 
-class function TProgramShaderNode.ClassNodeTypeName: string;
+class function TProgramShaderNode.ClassX3DType: string;
 begin
   Result := 'ProgramShader';
 end;
@@ -324,7 +324,7 @@ end;
 class function TProgramShaderNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TShaderPartNode.CreateNode;
@@ -347,7 +347,7 @@ begin
   CDataField := FdUrl;
 end;
 
-class function TShaderPartNode.ClassNodeTypeName: string;
+class function TShaderPartNode.ClassX3DType: string;
 begin
   Result := 'ShaderPart';
 end;
@@ -413,7 +413,7 @@ end;
 class function TShaderPartNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TShaderPartNode.GetShaderType: TShaderType;
@@ -445,7 +445,7 @@ begin
   CDataField := FdUrl;
 end;
 
-class function TShaderProgramNode.ClassNodeTypeName: string;
+class function TShaderProgramNode.ClassX3DType: string;
 begin
   Result := 'ShaderProgram';
 end;
@@ -453,7 +453,7 @@ end;
 class function TShaderProgramNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterShadersNodes;

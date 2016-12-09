@@ -16,9 +16,11 @@
 { Library to run the viewer as NPAPI plugin. }
 library cge_3d_viewer_plugin;
 uses CastleWindow, Game;
-{$ifdef MSWINDOWS}
-  {$R plugin-automatic-windows-resources.res}
-{$endif MSWINDOWS}
+
+{ This adds icons and version info for Windows, for a plugin version,
+  automatically created by "castle-engine compile". }
+{$ifdef MSWINDOWS} {$R plugin-automatic-windows-resources.res} {$endif MSWINDOWS}
+
 exports
   NP_GetPluginVersion,
   NP_GetMIMEDescription,

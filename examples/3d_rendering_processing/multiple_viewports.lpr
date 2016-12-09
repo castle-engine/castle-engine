@@ -305,7 +305,7 @@ begin
     Viewports[I].InsertFront(ViewportFrames[I]);
 
     ViewportsLabels[I] := TCastleLabel.Create(Application);
-    ViewportsLabels[I].Text.Text := Viewports[I].Caption;
+    ViewportsLabels[I].Caption := Viewports[I].Caption;
     ViewportsLabels[I].Color := Yellow;
     ViewportsLabels[I].Anchor(hpLeft, 15);
     ViewportsLabels[I].Anchor(vpBottom, 15);

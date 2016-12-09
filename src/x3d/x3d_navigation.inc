@@ -127,7 +127,7 @@
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
@@ -148,9 +148,11 @@
     function DirectEnumerateActiveForTraverse(
       Func: TEnumerateChildrenFunction;
       StateStack: TX3DGraphTraverseStateStack): Pointer; override;
+    function GetProxy: TX3DNode;
+    procedure SetProxy(const Value: TX3DNode);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdEnabled: TSFBool;
@@ -166,6 +168,21 @@
 
     private FFdProxy: TSFNode;
     public property FdProxy: TSFNode read FFdProxy;
+
+    { When non-nil, this will be used for collisions, instead of children. }
+    property Proxy: TX3DNode read GetProxy write SetProxy;
+
+    { Setup this Collision node to show VisibleNode, but collide as
+      a Box. This sets VisibleNode as the only child of this collision node,
+      and sets the @link(Proxy) field to a simple box with given bounds.
+      The @code(Enabled) field is unchanged (by default @true).
+
+      It honors the case of Box being empty correctly. Proxy is then
+      non-nil, but without any geometry. So the collisions are
+      effectively disabled, in a consistent way (without changing the
+      @code(Enabled) field).
+    }
+    procedure CollideAsBox(const VisibleNode: TX3DNode; const Box: TBox3D);
   end;
 
   { LOD node for VRML/X3D >= 2.0. This is not for VRML <= 1.0 LOD node.
@@ -196,7 +213,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
 
     private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
@@ -241,7 +258,7 @@
     procedure SetBlendingSort(const Value: TOptionalBlendingSort);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAvatarSize: TMFFloat;
@@ -282,7 +299,7 @@
     procedure SetFieldOfView(const Index: Integer; const Value: Single);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdFieldOfView: TMFFloat;
@@ -332,7 +349,7 @@
   TViewpointNode = class(TAbstractX3DViewpointNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdFieldOfView: TSFFloat;
@@ -376,7 +393,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdCenter: TSFVec3f;
@@ -510,10 +527,10 @@ begin
   Result := FdDescription.Value;
   { if node doesn't have a "description" field, or it's left empty, use node name }
   if Result = '' then
-    Result := NodeName;
+    Result := Name;
   { if even the node name is empty, just show node type. }
   if Result = '' then
-    Result := NodeTypeName;
+    Result := X3DType;
 end;
 
 procedure TAbstractX3DViewpointNode.CreateNode;
@@ -562,7 +579,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TBillboardNode.ClassNodeTypeName: string;
+class function TBillboardNode.ClassX3DType: string;
 begin
   Result := 'Billboard';
 end;
@@ -570,8 +587,8 @@ end;
 class function TBillboardNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TBillboardNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -697,7 +714,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TCollisionNode.ClassNodeTypeName: string;
+class function TCollisionNode.ClassX3DType: string;
 begin
   Result := 'Collision';
 end;
@@ -705,8 +722,8 @@ end;
 class function TCollisionNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TCollisionNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -760,6 +777,43 @@ begin
   end;
 end;
 
+procedure TCollisionNode.CollideAsBox(const VisibleNode: TX3DNode; const Box: TBox3D);
+var
+  ProxyTransform: TTransformNode;
+  ProxyShape: TShapeNode;
+  ProxyBox: TBoxNode;
+begin
+  { always create ProxyTransform, even when Box.IsEmpty,
+    otherwise X3D Collision.proxy would be ignored when nil. }
+  ProxyTransform := TTransformNode.Create('', BaseUrl);
+
+  if not Box.IsEmpty then
+  begin
+    ProxyBox := TBoxNode.Create('', BaseUrl);
+    ProxyBox.Size := Box.Sizes;
+
+    ProxyShape := TShapeNode.Create('', BaseUrl);
+    ProxyShape.Geometry := ProxyBox;
+
+    ProxyTransform.Translation := Box.Middle;
+    ProxyTransform.FdChildren.Add(ProxyShape);
+  end;
+  Proxy := ProxyTransform;
+
+  FdChildren.Clear;
+  FdChildren.Add(VisibleNode);
+end;
+
+function TCollisionNode.GetProxy: TX3DNode;
+begin
+  Result := FdProxy.Value;
+end;
+
+procedure TCollisionNode.SetProxy(const Value: TX3DNode);
+begin
+  FdProxy.Send(Value);
+end;
+
 procedure TAbstractLODNode.CreateNode;
 begin
   inherited;
@@ -787,7 +841,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TAbstractLODNode.ClassNodeTypeName: string;
+class function TAbstractLODNode.ClassX3DType: string;
 begin
   Result := 'LOD';
 end;
@@ -819,7 +873,7 @@ end;
 class function TLODNode_2.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 class function TLODNode_2.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -830,7 +884,7 @@ end;
 class function TLODNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TLODNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -890,7 +944,7 @@ begin
   Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
 end;
 
-class function TNavigationInfoNode.ClassNodeTypeName: string;
+class function TNavigationInfoNode.ClassX3DType: string;
 begin
   Result := 'NavigationInfo';
 end;
@@ -898,8 +952,8 @@ end;
 class function TNavigationInfoNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TNavigationInfoNode.EventSet_BindReceive(
@@ -936,7 +990,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TOrthoViewpointNode.ClassNodeTypeName: string;
+class function TOrthoViewpointNode.ClassX3DType: string;
 begin
   Result := 'OrthoViewpoint';
 end;
@@ -944,7 +998,7 @@ end;
 class function TOrthoViewpointNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TOrthoViewpointNode.Position: TSFVec3f;
@@ -1083,7 +1137,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TViewpointNode.ClassNodeTypeName: string;
+class function TViewpointNode.ClassX3DType: string;
 begin
   Result := 'Viewpoint';
 end;
@@ -1091,8 +1145,8 @@ end;
 class function TViewpointNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TViewpointNode.Position: TSFVec3f;
@@ -1174,7 +1228,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TViewpointGroupNode.ClassNodeTypeName: string;
+class function TViewpointGroupNode.ClassX3DType: string;
 begin
   Result := 'ViewpointGroup';
 end;
@@ -1182,7 +1236,7 @@ end;
 class function TViewpointGroupNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TViewpointGroupNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -1198,9 +1252,9 @@ function TViewpointGroupNode.Description: string;
 begin
   Result := FdDescription.Value;
   if Result = '' then
-    Result := NodeName;
+    Result := Name;
   if Result = '' then
-    Result := NodeTypeName;
+    Result := X3DType;
 end;
 
 procedure RegisterNavigationNodes;

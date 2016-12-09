@@ -154,7 +154,7 @@ procedure TVRMLToX3DConverter.Convert(ParentNode: TX3DNode; var Node: TX3DNode);
 
   function ConvertNurbsCurve(Node: TNurbsCurveNode_2): TNurbsCurveNode;
   begin
-    Result := TNurbsCurveNode.Create(Node.NodeName, Node.BaseUrl);
+    Result := TNurbsCurveNode.Create(Node.Name, Node.BaseUrl);
     Result.PositionInParent := Node.PositionInParent;
 
     Result.FdcontrolPoint.Value := CoordinateNode(Node.FdcontrolPoint);
@@ -167,7 +167,7 @@ procedure TVRMLToX3DConverter.Convert(ParentNode: TX3DNode; var Node: TX3DNode);
 
   function ConvertNurbsSurface(Node: TNurbsSurfaceNode): TNurbsPatchSurfaceNode;
   begin
-    Result := TNurbsPatchSurfaceNode.Create(Node.NodeName, Node.BaseUrl);
+    Result := TNurbsPatchSurfaceNode.Create(Node.Name, Node.BaseUrl);
     Result.PositionInParent := Node.PositionInParent;
 
     Result.FdcontrolPoint.Value := CoordinateNode(Node.FdcontrolPoint);
@@ -190,7 +190,7 @@ procedure TVRMLToX3DConverter.Convert(ParentNode: TX3DNode; var Node: TX3DNode);
 
   function ConvertNurbsPositionInterpolator(Node: TNurbsPositionInterpolatorNode_2): TNurbsPositionInterpolatorNode;
   begin
-    Result := TNurbsPositionInterpolatorNode.Create(Node.NodeName, Node.BaseUrl);
+    Result := TNurbsPositionInterpolatorNode.Create(Node.Name, Node.BaseUrl);
     Result.PositionInParent := Node.PositionInParent;
 
     Result.FdcontrolPoint.Value := CoordinateNode(Node.FdKeyValue);

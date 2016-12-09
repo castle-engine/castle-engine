@@ -25,8 +25,8 @@ type
     procedure TestURIProtocol;
     procedure TestAbsoluteURI;
     procedure TestURIToFilenameSafe;
-    procedure PercentEncoding;
-    procedure CombineURIEncoding;
+    procedure TestPercentEncoding;
+    procedure TestCombineURIEncoding;
     procedure TestURIDisplay;
   end;
 
@@ -92,7 +92,7 @@ begin
   AssertEquals('c:\foo.txt', URIToFilenameSafe('c:\foo.txt'));
 end;
 
-procedure TTestURIUtils.PercentEncoding;
+procedure TTestURIUtils.TestPercentEncoding;
 begin
   { FilenameToURISafe must percent-encode,
     URIToFilenameSafe must decode it back. }
@@ -124,7 +124,7 @@ begin
   {$endif}
 end;
 
-procedure TTestURIUtils.CombineURIEncoding;
+procedure TTestURIUtils.TestCombineURIEncoding;
 begin
   { Simple test without any % inside }
   AssertEquals('http:///game/player_sudden_pain.wav', CombineURI('http:///game/sounds.xml', 'player_sudden_pain.wav'));

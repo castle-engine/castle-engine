@@ -34,7 +34,7 @@
   TLayerNode = class(TAbstractLayerNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
@@ -52,7 +52,7 @@
   TLayerSetNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdActiveLayer: TSFInt32;
@@ -68,7 +68,7 @@
   TViewportNode = class(TAbstractX3DGroupingNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdClipBoundary: TMFFloat;
@@ -110,7 +110,7 @@ begin
   AddField(FFdChildren);
 end;
 
-class function TLayerNode.ClassNodeTypeName: string;
+class function TLayerNode.ClassX3DType: string;
 begin
   Result := 'Layer';
 end;
@@ -118,7 +118,7 @@ end;
 class function TLayerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TLayerSetNode.CreateNode;
@@ -139,7 +139,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TLayerSetNode.ClassNodeTypeName: string;
+class function TLayerSetNode.ClassX3DType: string;
 begin
   Result := 'LayerSet';
 end;
@@ -147,7 +147,7 @@ end;
 class function TLayerSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TViewportNode.CreateNode;
@@ -159,7 +159,7 @@ begin
   { X3D specification comment: 1 0 1  [0,1] }
 end;
 
-class function TViewportNode.ClassNodeTypeName: string;
+class function TViewportNode.ClassX3DType: string;
 begin
   Result := 'Viewport';
 end;
@@ -167,7 +167,7 @@ end;
 class function TViewportNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterLayeringNodes;

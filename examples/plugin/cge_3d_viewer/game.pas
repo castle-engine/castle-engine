@@ -125,7 +125,7 @@ end;
 procedure TPluginWindowContainer.EventUpdate;
 begin
   inherited;
-  Status.Text.Text := 'Model: ' + URICaption(URL) + NL +
+  Status.Caption := 'Model: ' + URICaption(URL) + NL +
     'Browser: ' + Application.UserAgent + NL +
     Format('FPS: %f real : %f',  [Fps.FrameTime, Fps.RealTime]);
   if ErrorMessage <> '' then

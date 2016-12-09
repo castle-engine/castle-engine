@@ -15,12 +15,14 @@
 
 { Simple demo of a couple of 2D controls.
   This is the program code for the standalone version. }
-
 uses CastleWindow, Game;
 
-{$ifdef MSWINDOWS}
-  {$R automatic-windows-resources.res}
-{$endif MSWINDOWS}
+{$apptype GUI}
+
+{ This adds icons and version info for Windows,
+  automatically created by "castle-engine compile".
+  Comment this out if you don't compile using our "castle-engine" build tool. }
+{$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
 begin
   // Window.Width := 400;

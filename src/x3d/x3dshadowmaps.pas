@@ -101,7 +101,7 @@ type
     procedure ShapeAdd(Shape: TShape);
 
     { Finish calculating light's projectionXxx parameters,
-      and assing them to the light node. }
+      and assign them to the light node. }
     procedure HandleLightAutomaticProjection(const Light: TLight);
 
     { Add light node to LightsCastingOnEverything, if shadows=TRUE. }
@@ -124,7 +124,7 @@ begin
   { Assign unique nodenames to the created ShadowMap and TexGen nodes,
     this way when saving they will be shared by DEF/USE.
     Based on LightUniqueName. }
-  LightUniqueName := Light.NodeName;
+  LightUniqueName := Light.Name;
   if LightUniqueName = '' then
     LightUniqueName := 'Light' + IntToStr(Random(1000000));
 
@@ -170,14 +170,14 @@ begin
   Result^.ShadowMap.FdLight.Value := Light;
 
   { Regardless if this is taken from defaultShadowMap or created,
-    set NodeName, such that it has NodeNameSuffix. This is needed for
+    set Name, such that it has NodeNameSuffix. This is needed for
     HandleShadowMap, so that it can be removed later. }
-  Result^.ShadowMap.NodeName := LightUniqueName + '_ShadowMap' + NodeNameSuffix;
+  Result^.ShadowMap.Name := LightUniqueName + '_ShadowMap' + NodeNameSuffix;
 
   { create new ProjectedTextureCoordinate node }
 
   Result^.TexGen := TProjectedTextureCoordinateNode.Create;
-  Result^.TexGen.NodeName := LightUniqueName + '_TexGen' + NodeNameSuffix;
+  Result^.TexGen.Name := LightUniqueName + '_TexGen' + NodeNameSuffix;
   Result^.TexGen.FdProjector.Value := Light;
 end;
 
@@ -192,7 +192,7 @@ procedure TLightList.ShapeRemove(Shape: TShape);
   begin
     I := 0;
     while I < Texture.Count do
-      if IsSuffix(NodeNameSuffix, Texture[I].NodeName) and
+      if IsSuffix(NodeNameSuffix, Texture[I].Name) and
          (Texture[I] is TGeneratedShadowMapNode) then
         Texture.Delete(I) else
         Inc(I);
@@ -205,7 +205,7 @@ procedure TLightList.ShapeRemove(Shape: TShape);
   begin
     I := 0;
     while I < TexCoord.Count do
-      if IsSuffix(NodeNameSuffix, TexCoord[I].NodeName) and
+      if IsSuffix(NodeNameSuffix, TexCoord[I].Name) and
          (TexCoord[I] is TProjectedTextureCoordinateNode) then
         TexCoord.Delete(I) else
         Inc(I);
@@ -392,7 +392,13 @@ procedure TLightList.ShapeAdd(Shape: TShape);
 
     Texture := Shape.Node.Texture;
     HandleShadowMap(Texture, Light^.ShadowMap, TexturesCount);
-    Shape.Node.Texture := Texture;
+    { set Texture.
+      Note: don't use "Shape.Node.Texture := ", we have to avoid calling
+      "Send(xxx)" underneath here, as it would cause CastleSceneCore processing
+      that could recursively call ProcessShadowMapsReceivers, creating a loop. }
+    if Shape.Node.Appearance = nil then
+      Shape.Node.FdAppearance.Value := TAppearanceNode.Create;
+    Shape.Node.Appearance.FdTexture.Value := Texture;
 
     TexCoord := Shape.Geometry.TexCoordField.Value;
     HandleTexGen(TexCoord, Light^.TexGen, TexturesCount);
@@ -435,7 +441,13 @@ procedure TLightList.ShapeAdd(Shape: TShape);
 
     TextureTransform := Shape.Node.TextureTransform;
     HandleTextureTransform(TextureTransform);
-    Shape.Node.TextureTransform := TextureTransform;
+    { set TextureTransform.
+      Note: don't use "Shape.Node.TextureTransform := ", we have to avoid calling
+      "Send(xxx)" underneath here, as it would cause CastleSceneCore processing
+      that could recursively call ProcessShadowMapsReceivers, creating a loop. }
+    if Shape.Node.Appearance = nil then
+      Shape.Node.FdAppearance.Value := TAppearanceNode.Create;
+    Shape.Node.Appearance.FdTextureTransform.Value := TextureTransform;
 
     Box := Shape.BoundingBox;
     if not Box.IsEmpty then
@@ -470,7 +482,9 @@ begin
      (LightsCastingOnEverything.Count <> 0) then
   begin
     App := TAppearanceNode.Create('', Shape.Node.BaseUrl); { recalculate App }
-    Shape.Node.Appearance := App;
+    { assign it using "FdAppearance.Value := ", not "Appearance := ",
+      to avoid doing "Send(xxx)" inside that could recursively cause ProcessShadowMapsReceivers }
+    Shape.Node.FdAppearance.Value := App;
   end;
 
   { If the previous check left App = nil, then we know this shape
@@ -494,7 +508,7 @@ begin
     Better check it here, before we start changing anything. }
   if Shape.Geometry.TexCoordField = nil then
   begin
-    WritelnWarning('VRML/X3D', 'Geometry node "' + Shape.Geometry.NodeTypeName + '" does not have a texCoord, cannot be shadow maps receiver.');
+    WritelnWarning('VRML/X3D', 'Geometry node "' + Shape.Geometry.X3DType + '" does not have a texCoord, cannot be shadow maps receiver.');
     Exit;
   end;
 
@@ -564,7 +578,7 @@ begin
 
   if Log then
     WritelnLog('Shadow Maps', Format('Auto-calculated light source %s projectionNear is %f, projectionFar is %f',
-      [Light.Light.NodeTypeName, ProjectionNear, ProjectionFar]));
+      [Light.Light.X3DType, ProjectionNear, ProjectionFar]));
 
   { Set light node's projectionXxx values, if they are needed. }
   if Light.Light.FdProjectionNear.Value = 0 then

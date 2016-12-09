@@ -275,8 +275,8 @@ type
       We do not own TVisibilitySensorNode (our Keys list). }
     procedure Clear;
   end;
-  TTimeDependentHandlerList = class(specialize TFPGObjectList<TTimeDependentNodeHandler>)
-    procedure AddIfNotExists(const Item: TTimeDependentNodeHandler);
+  TTimeDependentHandlerList = class(specialize TFPGObjectList<TInternalTimeDependentHandler>)
+    procedure AddIfNotExists(const Item: TInternalTimeDependentHandler);
   end;
 
   TCompiledScriptHandler = procedure (
@@ -393,13 +393,13 @@ type
 
   { Looping mode to use with TCastleSceneCore.PlayAnimation. }
   TPlayAnimationLooping = (
-    { Use current TimeSensor.FdLoop value to determine whether animation
+    { Use current TimeSensor.Loop value to determine whether animation
       should loop. Suitable when X3D model already has sensible "TimeSensor.loop"
       values. }
     paDefault,
-    { Force TimeSensor.FdLoop to be @true, to force looping. }
+    { Force TimeSensor.Loop to be @true, to force looping. }
     paForceLooping,
-    { Force TimeSensor.FdLoop to be @false, to force not looping. }
+    { Force TimeSensor.Loop to be @false, to force not looping. }
     paForceNotLooping);
 
   { 3D scene processing (except rendering, for which see TCastleScene).
@@ -462,7 +462,7 @@ type
       animated with it's own OrientationInterpolator). }
     ScheduledHumanoidAnimateSkin: TX3DNodeList;
 
-    PlayingAnimationNode: TTimeSensorNode;
+    PlayingAnimationNode, FCurrentAnimation: TTimeSensorNode;
     NewPlayingAnimationUse: boolean;
     NewPlayingAnimationNode: TTimeSensorNode;
     NewPlayingAnimationLooping: TPlayAnimationLooping;
@@ -736,6 +736,9 @@ type
     procedure RenderingCameraChanged(const RenderingCamera: TRenderingCamera;
       Viewpoint: TAbstractViewpointNode);
     procedure SetHeadlightOn(const Value: boolean);
+    { Update things depending on both camera information and X3D events.
+      Call it only when CameraViewKnown and ProcessEvents. }
+    procedure UpdateCameraEvents;
   protected
     { List of TScreenEffectNode nodes, collected by ChangedAll. }
     ScreenEffectNodes: TX3DNodeList;
@@ -1743,8 +1746,8 @@ type
       See the examples/3d_rendering_processing/listen_on_x3d_events.lpr . }
     function AnimationTimeSensor(const AnimationName: string): TTimeSensorNode;
 
-    { TimeSensor of this animation, by animation index (like index
-      or AnimationsList). @nil if this index not found. }
+    { TimeSensor of this animation, by animation index (index
+      on AnimationsList). @nil if this index not found. }
     function AnimationTimeSensor(const Index: Integer): TTimeSensorNode;
 
     function Animations: TStringList; deprecated 'use AnimationsList (and do not free it''s result)';
@@ -1760,7 +1763,7 @@ type
       const TimeInAnimation: TFloatTime;
       const Looping: TPlayAnimationLooping): boolean;
 
-    { Play a named animation (like detected by @link(Animations) method).
+    { Play a named animation (like detected by @link(AnimationsList) method).
       Also stops previously playing named animation, if any.
       Returns whether animation (corresponding TimeSensor node) was found.
       Playing an already-playing animation is guaranteed to start it from
@@ -1769,7 +1772,8 @@ type
       const Looping: TPlayAnimationLooping): boolean;
 
     { Duration, in seconds, of the named animation
-      (named animations are detected by @link(Animations) method).
+      (named animations are detected by @link(AnimationsList) method).
+      For a looping animation, this is the duration of a single cycle.
       0 if not found. }
     function AnimationDuration(const AnimationName: string): TFloatTime;
 
@@ -1786,6 +1790,16 @@ type
       the names you use with methods like @link(PlayAnimation). }
     property AnimationPrefix: string
       read FAnimationPrefix write FAnimationPrefix;
+
+    { Currently played animation by @link(PlayAnimation), or @nil.
+      Note that in X3D world, you can have multiple active animations
+      (TimeSensor nodes) at the same time. This property only describes
+      the animation controlled by the @link(PlayAnimation) method.
+
+      Note that the animation may be started by PlayAnimation with a 1-frame
+      delay, but this property hides it from you, it is changed
+      immediately by the PlayAnimation call. }
+    property CurrentAnimation: TTimeSensorNode read FCurrentAnimation;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Update) will take care of increasing @link(Time).
@@ -2316,7 +2330,7 @@ end;
 
 { TTimeDependentHandlerList ------------------------------------------------- }
 
-procedure TTimeDependentHandlerList.AddIfNotExists(const Item: TTimeDependentNodeHandler);
+procedure TTimeDependentHandlerList.AddIfNotExists(const Item: TInternalTimeDependentHandler);
 begin
   if IndexOf(Item) = -1 then
     Add(Item);
@@ -2884,7 +2898,7 @@ begin
     begin
       { before binding viewpoint, check InitialViewpoint* conditions }
       if (ParentScene.InitialViewpointName = '') or
-         (ParentScene.InitialViewpointName = Node.NodeName) then
+         (ParentScene.InitialViewpointName = Node.Name) then
       begin
         if (ParentScene.InitialViewpointIndex =
             ParentScene.ChangedAllCurrentViewpointIndex) then
@@ -2956,6 +2970,7 @@ begin
   KeyDeviceSensorNodes.Clear;
   TimeDependentHandlers.Clear;
   PlayingAnimationNode := nil;
+  FCurrentAnimation := nil;
   NewPlayingAnimationNode := nil;
   NewPlayingAnimationUse := false;
 
@@ -3007,7 +3022,7 @@ begin
     KeyDeviceSensorNodes.AddIfNotExists(Node) else
   if Supports(Node, IAbstractTimeDependentNode) then
     TimeDependentHandlers.AddIfNotExists(
-      (Node as IAbstractTimeDependentNode).TimeDependentNodeHandler);
+      (Node as IAbstractTimeDependentNode).InternalTimeDependentHandler);
 end;
 
 procedure TCastleSceneCore.ChangedAll;
@@ -3555,7 +3570,7 @@ begin
 
   if Log and LogChanges then
     WritelnLog('X3D changes', Format('Transform node %s change: %d instances',
-      [TransformNode.NodeTypeName, Instances.Count]));
+      [TransformNode.X3DType, Instances.Count]));
 
   DoVisibleChanged := false;
 
@@ -3687,9 +3702,9 @@ var
   begin
     S := 'ChangedField: ' + X3DChangesToStr(Changes) +
       Format(', node: %s (%s %s) at %s',
-      [ ANode.NodeName, ANode.NodeTypeName, ANode.ClassName, PointerToStr(ANode) ]);
+      [ ANode.Name, ANode.X3DType, ANode.ClassName, PointerToStr(ANode) ]);
     if Field <> nil then
-      S += Format(', field %s (%s)', [ Field.Name, Field.TypeName ]);
+      S += Format(', field %s (%s)', [ Field.Name, Field.X3DType ]);
     if Additional <> '' then
       S += '. ' + Additional;
     WritelnLog('X3D changes', S);
@@ -3715,7 +3730,7 @@ var
       begin
         if Log and LogChanges then
           WritelnLog('X3D changes', Format('Transform node "%s" has no information, assuming does not exist in our VRML graph',
-            [ANode.NodeTypeName]));
+            [ANode.X3DType]));
         Exit;
       end;
 
@@ -4021,17 +4036,17 @@ var
 
   procedure HandleChangeTimeStopStart;
 
-    function GetTimeDependentNodeHandler(ANode: TX3DNode): TTimeDependentNodeHandler;
+    function GetInternalTimeDependentHandler(ANode: TX3DNode): TInternalTimeDependentHandler;
     begin
       if Supports(ANode, IAbstractTimeDependentNode) then
-        Result := (ANode as IAbstractTimeDependentNode).TimeDependentNodeHandler else
+        Result := (ANode as IAbstractTimeDependentNode).InternalTimeDependentHandler else
         Result := nil;
     end;
 
   var
-    Handler: TTimeDependentNodeHandler;
+    Handler: TInternalTimeDependentHandler;
   begin
-    Handler := GetTimeDependentNodeHandler(ANode);
+    Handler := GetInternalTimeDependentHandler(ANode);
     if Handler = nil then Exit; {< ANode not time-dependent. }
 
     { Although (de)activation of time-dependent nodes will be also caught
@@ -4900,23 +4915,26 @@ end;
 
 procedure TCastleSceneCore.SetProcessEvents(const Value: boolean);
 
-  { When ProcessEvents is set to @true, you want to call initial
-    position/orientation_changed events.
+  { When ProcessEvents is set to @true, you want to initialize stuff
+    for things depending on camera (and X3D events):
+    - position/orientation_changed events on ProximitySensors,
+    - update camera information on all Billboard nodes.
 
-    Implementation below essentially is like CameraChanged,
-    except it checks CameraViewKnown (instead of setting it always to @true). }
-  procedure InitialProximitySensorsEvents;
-  var
-    I: Integer;
+    TODO: when scene has ProcessEvents = true,
+    and we only flip Exists = false / true, then billboards are not correctly
+    updated when changing Exists from false to true. Not really sure why
+    (but no time to debug now), at 1st glance it should work,
+    as CameraChanged should be called on scenewith Exists = false and work anyway.
+    Testcase: view3dscene lights editor and switching between scenes. }
+  procedure UpdateCameraChangedEvents;
   begin
-    BeginChangesSchedule;
-    try
-      if CameraViewKnown then
-      begin
-        for I := 0 to ProximitySensors.Count - 1 do
-          ProximitySensorUpdate(ProximitySensors[I]);
-      end;
-    finally EndChangesSchedule end;
+    if CameraViewKnown then
+    begin
+      BeginChangesSchedule;
+      try
+        UpdateCameraEvents;
+      finally EndChangesSchedule end;
+    end;
   end;
 
 begin
@@ -4927,7 +4945,7 @@ begin
       FProcessEvents := Value;
 
       ScriptsInitialize;
-      InitialProximitySensorsEvents;
+      UpdateCameraChangedEvents;
 
       RenderingCamera.OnChanged.Add(@RenderingCameraChanged);
     end else
@@ -5497,7 +5515,7 @@ procedure TCastleSceneCore.InternalSetTime(
             that PlayAnimation doesn't change it ever.
 
           So it's simpest and reliable to just set enabled=false on old TimeSensor.
-          TTimeDependentNodeHandler.SetTime then guarantees it will immediately stop
+          TInternalTimeDependentHandler.SetTime then guarantees it will immediately stop
           sending elapsedTime events. }
 
         PlayingAnimationNode.Enabled := false;
@@ -5807,6 +5825,36 @@ begin
   end;
 end;
 
+procedure TCastleSceneCore.UpdateCameraEvents;
+var
+  I: Integer;
+begin
+  Assert(CameraViewKnown);
+  Assert(ProcessEvents);
+
+  for I := 0 to ProximitySensors.Count - 1 do
+    ProximitySensorUpdate(ProximitySensors[I]);
+
+  { Update camera information on all Billboard nodes,
+    and retraverse scene from Billboard nodes. So we treat Billboard nodes
+    much like Transform nodes, except that their transformation animation
+    is caused by camera changes, not by changes to field values.
+
+    TODO: If one Billboard is under transformation of another Billboard,
+    this will be a little wasteful. We should update first all camera
+    information, and then update only Billboard nodes that do not have
+    any parent Billboard nodes. }
+  for I := 0 to BillboardInstancesList.Count - 1 do
+  begin
+    (BillboardInstancesList[I] as TBillboardNode).CameraChanged(
+      FCameraPosition, FCameraDirection, FCameraUp);
+    { TODO: use OptimizeExtensiveTransformations? }
+    TransformationChanged(BillboardInstancesList[I],
+      BillboardInstancesList[I].ShapeTrees as TShapeTreeList,
+      [chTransform]);
+  end;
+end;
+
 procedure TCastleSceneCore.CameraChanged(ACamera: TCamera);
 var
   I: Integer;
@@ -5823,27 +5871,7 @@ begin
 
     if ProcessEvents then
     begin
-      for I := 0 to ProximitySensors.Count - 1 do
-        ProximitySensorUpdate(ProximitySensors[I]);
-
-      { Update camera information on all Billboard nodes,
-        and retraverse scene from Billboard nodes. So we treat Billboard nodes
-        much like Transform nodes, except that their transformation animation
-        is caused by camera changes, not by changes to field values.
-
-        TODO: If one Billboard is under transformation of another Billboard,
-        this will be a little wasteful. We should update first all camera
-        information, and then update only Billboard nodes that do not have
-        any parent Billboard nodes. }
-      for I := 0 to BillboardInstancesList.Count - 1 do
-      begin
-        (BillboardInstancesList[I] as TBillboardNode).CameraChanged(
-          FCameraPosition, FCameraDirection, FCameraUp);
-        { TODO: use OptimizeExtensiveTransformations? }
-        TransformationChanged(BillboardInstancesList[I],
-          BillboardInstancesList[I].ShapeTrees as TShapeTreeList,
-          [chTransform]);
-      end;
+      UpdateCameraEvents;
 
       if WatchForTransitionComplete and not ACamera.Animation then
       begin
@@ -6218,7 +6246,7 @@ begin
         TAbstractDirectionalLightNode(FMainLightForShadowsNode).FdDirection.Value) ), 0) else
     raise Exception.CreateFmt('TCastleSceneCore.MainLightForShadows: ' +
       'light node "%s" cannot be used to cast shadows, it has no position ' +
-      'and no direction', [FMainLightForShadowsNode.NodeTypeName]);
+      'and no direction', [FMainLightForShadowsNode.X3DType]);
 end;
 
 function TCastleSceneCore.SearchMainLightForShadows(
@@ -6678,7 +6706,7 @@ begin
   NewViewNode := MakeCameraNode(Version, '', Position, Direction, Up, GravityUp,
     NewViewpointNode);
   NewViewpointNode.FdDescription.Value := AName;
-  NewViewpointNode.NodeName := 'Viewpoint' + IntToStr(Random(10000));
+  NewViewpointNode.Name := 'Viewpoint' + IntToStr(Random(10000));
   NewViewpointNode.Scene := self;
 
   { Create NavigationInfo node }
@@ -6723,7 +6751,7 @@ begin
 
   NewNavigationNode := MakeCameraNavNode(Version, '', NavigationType, WalkSpeed,
     VisibilityLimit, AvatarSize, HeadlightOn);
-  NewNavigationNode.NodeName := 'NavInfo' + IntToStr(Random(10000));
+  NewNavigationNode.Name := 'NavInfo' + IntToStr(Random(10000));
   NewNavigationNode.Scene := self;
 
   // Connect viewpoint with navigation info
@@ -6757,7 +6785,7 @@ type
 
 procedure TAnimationsEnumerator.Enumerate(Node: TX3DNode);
 begin
-  EnumerateWithAlias(Node, Node.NodeName, false);
+  EnumerateWithAlias(Node, Node.Name, false);
 end;
 
 procedure TAnimationsEnumerator.EnumerateWithAlias(const Node: TX3DNode;
@@ -6898,7 +6926,8 @@ begin
       means that it will play infinitely (because the default values
       mean that stopTime is ignored).
     }
-    NewPlayingAnimationNode := FAnimationsList.Objects[Index] as TTimeSensorNode;
+    FCurrentAnimation := FAnimationsList.Objects[Index] as TTimeSensorNode;
+    NewPlayingAnimationNode := FCurrentAnimation;
     NewPlayingAnimationLooping := Looping;
     NewPlayingAnimationUse := true;
   end;

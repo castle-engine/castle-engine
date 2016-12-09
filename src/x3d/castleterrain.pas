@@ -343,7 +343,7 @@ begin
   Result.Appearance := Appearance;
 
   { add any material, to be lit (even without shaders) }
-  Appearance.FdMaterial.Value := TMaterialNode.Create;
+  Appearance.Material := TMaterialNode.Create;
 end;
 
 { TTerrainImage ------------------------------------------------------------ }

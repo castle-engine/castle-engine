@@ -52,7 +52,7 @@ begin
   end else
   begin
     CoordIndex.WritelnWarning_WrongVertexIndex(
-      Geometry.NodeTypeName, Index, Coord.Count);
+      Geometry.X3DType, Index, Coord.Count);
     Result := ZeroVector3Single;
   end;
 end;

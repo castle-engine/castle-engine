@@ -159,7 +159,7 @@ begin
   Window.Controls.InsertFront(ScrollView);
 
   Label1 := TCastleLabel.Create(Window);
-  Label1.Text.Text := {$I html_text_demo.html.inc};
+  Label1.Caption := {$I html_text_demo.html.inc};
   Label1.CustomFont := Font;
   Label1.Left := Margin;
   Label1.Html := ButtonHtml.Pressed;

@@ -45,6 +45,7 @@ type
   TClicksHandler = class
     class procedure ButtonClick(Sender: TObject);
     class procedure ButtonDemoClick(Sender: TObject);
+    class procedure ClickableItemClick(Sender: TObject);
     class procedure UIScalingExplicitTwiceClick(Sender: TObject);
     class procedure UIScalingExplicitHalfClick(Sender: TObject);
     class procedure UIScalingExplicitNormalClick(Sender: TObject);
@@ -61,6 +62,11 @@ end;
 class procedure TClicksHandler.ButtonDemoClick(Sender: TObject);
 begin
   Notifications.Show('Button in on-screen menu clicked');
+end;
+
+class procedure TClicksHandler.ClickableItemClick(Sender: TObject);
+begin
+  Notifications.Show('Clickable item in on-screen menu clicked');
 end;
 
 class procedure TClicksHandler.UIScalingExplicitTwiceClick(Sender: TObject);
@@ -181,8 +187,9 @@ begin
   ButtonDemo.OnClick := @TClicksHandler(nil).ButtonDemoClick;
 
   OnScreenMenu := TCastleOnScreenMenu.Create(Window);
-  OnScreenMenu.Add('Demo item');
-  OnScreenMenu.Add('Another demo item');
+  OnScreenMenu.Add('Clickable item', @TClicksHandler(nil).ClickableItemClick);
+  OnScreenMenu.Add('Another clickable item', @TClicksHandler(nil).ClickableItemClick);
+  OnScreenMenu.Add('Non-clickable item');
   OnScreenMenu.Add('Item with image', ImageInsideMenu);
   OnScreenMenu.Add('Item with button', ButtonDemo);
   OnScreenMenu.Add('Slider to test images rotation', SliderRotation);

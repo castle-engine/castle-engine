@@ -35,7 +35,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdKeyValue: TMFColor;
@@ -52,7 +52,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdKeyValue: TMFColor;
@@ -69,7 +69,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdKeyValue: TMFVec3f;
@@ -86,7 +86,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdKeyValue: TMFVec2f;
@@ -100,7 +100,7 @@
   TEaseInEaseOutNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
@@ -124,7 +124,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdKeyValue: TMFVec3f;
@@ -141,7 +141,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdKeyValue: TMFRotation;
@@ -158,7 +158,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdKeyValue: TMFVec3f;
@@ -175,7 +175,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdKeyValue: TMFVec2f;
@@ -192,7 +192,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdKeyValue: TMFFloat;
@@ -206,7 +206,7 @@
   TSplinePositionInterpolatorNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdClosed: TSFBool;
@@ -229,7 +229,7 @@
   TSplinePositionInterpolator2DNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdClosed: TSFBool;
@@ -252,7 +252,7 @@
   TSplineScalarInterpolatorNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdClosed: TSFBool;
@@ -275,7 +275,7 @@
   TSquadOrientationInterpolatorNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdKeyValue: TMFRotation;
@@ -295,7 +295,7 @@
       const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdKeyValue: TMFFloat;
@@ -368,7 +368,7 @@ var
       Result.Items.AddListRange(FdKeyValue.Items, Index * FrameValues, FrameValues);
     end else
       WritelnWarning('VRML/X3D', Format('Not enough keyValue items for %s interpolator',
-        [NodeTypeName]));
+        [X3DType]));
   end;
 
   // This actually knows that Index2 = Index1 + 1, but assumes only
@@ -388,7 +388,7 @@ var
         Index1 * FrameValues, Index2 * FrameValues, FrameValues);
     end else
       WritelnWarning('VRML/X3D', Format('Not enough keyValue items for %s interpolator',
-        [NodeTypeName]));
+        [X3DType]));
   end;
 
 var
@@ -460,7 +460,7 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TColorInterpolatorNode.ClassNodeTypeName: string;
+class function TColorInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'ColorInterpolator';
 end;
@@ -468,8 +468,8 @@ end;
 class function TColorInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TColorInterpolatorNode.EventSet_FractionReceive(
@@ -495,7 +495,7 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TColorSetInterpolatorNode.ClassNodeTypeName: string;
+class function TColorSetInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'ColorSetInterpolator';
 end;
@@ -503,10 +503,10 @@ end;
 class function TColorSetInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName) or
-    (URN = URNKambiNodes + ClassNodeTypeName) or
-    (URN = URNKambiNodes2 + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType) or
+    (URN = URNKambiNodes + ClassX3DType) or
+    (URN = URNKambiNodes2 + ClassX3DType);
 end;
 
 procedure TColorSetInterpolatorNode.EventSet_FractionReceive(
@@ -531,7 +531,7 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TCoordinateInterpolatorNode.ClassNodeTypeName: string;
+class function TCoordinateInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'CoordinateInterpolator';
 end;
@@ -539,8 +539,8 @@ end;
 class function TCoordinateInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TCoordinateInterpolatorNode.EventSet_FractionReceive(
@@ -565,7 +565,7 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TCoordinateInterpolator2DNode.ClassNodeTypeName: string;
+class function TCoordinateInterpolator2DNode.ClassX3DType: string;
 begin
   Result := 'CoordinateInterpolator2D';
 end;
@@ -573,7 +573,7 @@ end;
 class function TCoordinateInterpolator2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TCoordinateInterpolator2DNode.EventSet_FractionReceive(
@@ -603,7 +603,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TEaseInEaseOutNode.ClassNodeTypeName: string;
+class function TEaseInEaseOutNode.ClassX3DType: string;
 begin
   Result := 'EaseInEaseOut';
 end;
@@ -611,7 +611,7 @@ end;
 class function TEaseInEaseOutNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TNormalInterpolatorNode.CreateNode;
@@ -630,7 +630,7 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TNormalInterpolatorNode.ClassNodeTypeName: string;
+class function TNormalInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'NormalInterpolator';
 end;
@@ -638,8 +638,8 @@ end;
 class function TNormalInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TNormalInterpolatorNode.EventSet_FractionReceive(
@@ -664,7 +664,7 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TOrientationInterpolatorNode.ClassNodeTypeName: string;
+class function TOrientationInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'OrientationInterpolator';
 end;
@@ -672,8 +672,8 @@ end;
 class function TOrientationInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TOrientationInterpolatorNode.EventSet_FractionReceive(
@@ -705,7 +705,7 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TPositionInterpolatorNode.ClassNodeTypeName: string;
+class function TPositionInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'PositionInterpolator';
 end;
@@ -713,8 +713,8 @@ end;
 class function TPositionInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TPositionInterpolatorNode.EventSet_FractionReceive(
@@ -740,7 +740,7 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TPositionInterpolator2DNode.ClassNodeTypeName: string;
+class function TPositionInterpolator2DNode.ClassX3DType: string;
 begin
   Result := 'PositionInterpolator2D';
 end;
@@ -748,7 +748,7 @@ end;
 class function TPositionInterpolator2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TPositionInterpolator2DNode.EventSet_FractionReceive(
@@ -774,7 +774,7 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TScalarInterpolatorNode.ClassNodeTypeName: string;
+class function TScalarInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'ScalarInterpolator';
 end;
@@ -782,8 +782,8 @@ end;
 class function TScalarInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TScalarInterpolatorNode.EventSet_FractionReceive(
@@ -817,7 +817,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSplinePositionInterpolatorNode.ClassNodeTypeName: string;
+class function TSplinePositionInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'SplinePositionInterpolator';
 end;
@@ -825,7 +825,7 @@ end;
 class function TSplinePositionInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TSplinePositionInterpolator2DNode.CreateNode;
@@ -852,7 +852,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSplinePositionInterpolator2DNode.ClassNodeTypeName: string;
+class function TSplinePositionInterpolator2DNode.ClassX3DType: string;
 begin
   Result := 'SplinePositionInterpolator2D';
 end;
@@ -860,7 +860,7 @@ end;
 class function TSplinePositionInterpolator2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TSplineScalarInterpolatorNode.CreateNode;
@@ -887,7 +887,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSplineScalarInterpolatorNode.ClassNodeTypeName: string;
+class function TSplineScalarInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'SplineScalarInterpolator';
 end;
@@ -895,7 +895,7 @@ end;
 class function TSplineScalarInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TSquadOrientationInterpolatorNode.CreateNode;
@@ -915,7 +915,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSquadOrientationInterpolatorNode.ClassNodeTypeName: string;
+class function TSquadOrientationInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'SquadOrientationInterpolator';
 end;
@@ -923,7 +923,7 @@ end;
 class function TSquadOrientationInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TVectorInterpolatorNode.CreateNode;
@@ -942,7 +942,7 @@ begin
   EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
 end;
 
-class function TVectorInterpolatorNode.ClassNodeTypeName: string;
+class function TVectorInterpolatorNode.ClassX3DType: string;
 begin
   Result := 'VectorInterpolator';
 end;
@@ -950,10 +950,10 @@ end;
 class function TVectorInterpolatorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName) or
-    (URN = URNKambiNodes + ClassNodeTypeName) or
-    (URN = URNKambiNodes2 + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType) or
+    (URN = URNKambiNodes + ClassX3DType) or
+    (URN = URNKambiNodes2 + ClassX3DType);
 end;
 
 procedure TVectorInterpolatorNode.EventSet_FractionReceive(

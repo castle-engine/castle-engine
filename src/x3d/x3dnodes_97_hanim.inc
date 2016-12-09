@@ -26,37 +26,37 @@
 {$ifdef read_interface}
   TDisplacerNode = class(THAnimDisplacerNode)
   public
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
   THumanoidNode = class(THAnimHumanoidNode)
   public
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
   TJointNode = class(THAnimJointNode)
   public
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
   TSegmentNode = class(THAnimSegmentNode)
   public
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
   TSiteNode = class(THAnimSiteNode)
   public
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
-class function TDisplacerNode.ClassNodeTypeName: string;
+class function TDisplacerNode.ClassX3DType: string;
 begin
   Result := 'Displacer';
 end;
@@ -64,10 +64,10 @@ end;
 class function TDisplacerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
-class function THumanoidNode.ClassNodeTypeName: string;
+class function THumanoidNode.ClassX3DType: string;
 begin
   Result := 'Humanoid';
 end;
@@ -75,10 +75,10 @@ end;
 class function THumanoidNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
-class function TJointNode.ClassNodeTypeName: string;
+class function TJointNode.ClassX3DType: string;
 begin
   Result := 'Joint';
 end;
@@ -86,10 +86,10 @@ end;
 class function TJointNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
-class function TSegmentNode.ClassNodeTypeName: string;
+class function TSegmentNode.ClassX3DType: string;
 begin
   Result := 'Segment';
 end;
@@ -97,10 +97,10 @@ end;
 class function TSegmentNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
-class function TSiteNode.ClassNodeTypeName: string;
+class function TSiteNode.ClassX3DType: string;
 begin
   Result := 'Site';
 end;
@@ -108,7 +108,7 @@ end;
 class function TSiteNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
 procedure RegisterVRML97HAnimNodes;

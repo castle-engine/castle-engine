@@ -44,6 +44,9 @@ type
     attached to the TCastleOnScreenMenu item. }
   TCastleMenuToggle = class(TCastleMenuButton)
   private
+    { TODO: if would be nice if Width of this component was appropriate
+      for the longest possible string ("Yes" in this case).
+      This way the menu could be larger, in preparation of it. }
     FAutoToggle: boolean;
   protected
     procedure SetPressed(const Value: boolean); override;
@@ -84,6 +87,7 @@ type
     FCurrentItemBorderColor2: TCastleColor;
     FCurrentItemColor: TCastleColor;
     FNonCurrentItemColor: TCastleColor;
+    FNonFocusableItemColor: TCastleColor;
     MaxItemWidth: Integer;
     FRegularSpaceBetweenItems: Cardinal;
     FDrawBackgroundRectangle: boolean;
@@ -95,6 +99,14 @@ type
     function FindChildIndex(const ScreenPosition: TVector2Single): Integer;
   protected
     procedure UIScaleChanged; override;
+    { Decide whether a children control is focusable or not.
+      This is used to decide should we show an "active frame" around this item
+      in the menu. It @italic(does not) determine whether the mouse events
+      actually reach the child control.
+
+      By default, a single TCastleLabel (without children) is considered
+      "not focusable". Everything else is focusable. }
+    function ControlFocusable(const C: TUIControl): boolean; virtual;
   public
     const
       DefaultMenuKeyNextItem = K_Down;
@@ -105,6 +117,7 @@ type
       DefaultCurrentItemBorderColor2: TCastleColor = (0.5, 0.5, 0.5, 1.0) { Gray   }; { }
       DefaultCurrentItemColor       : TCastleColor = (1.0, 1.0, 0.0, 1.0) { Yellow }; { }
       DefaultNonCurrentItemColor    : TCastleColor = (1.0, 1.0, 1.0, 1.0) { White  }; { }
+      DefaultNonFocusableItemColor  : TCastleColor = (0.75, 0.75, 0.75, 1.0) { Light Gray }; { }
 
       DefaultRegularSpaceBetweenItems = 10;
       DefaultBackgroundOpacityNotFocused = 0.4;
@@ -119,21 +132,21 @@ type
     procedure Add(const NewItem: TUIControl);
 
     { Currently selected child index.
-      When ControlsCount <> 0, this is always some number
-      between 0 and ControlsCount - 1.
-      Otherwise (when ControlsCount <> 0) this is always -1.
+      This is always some number between @code(0) and @code(ControlsCount - 1).
+      It can also be @code(-1) to indicate "no child is selected".
+      When there are no controls (@code(ControlsCount = 0)) it is always @code(-1).
 
-      If you assign it to wrong value (breaking conditions above),
-      or if you change Items such that conditions are broken,
-      it will be arbitrarily fixed.
+      You can change it by code.
+      Assigning here an invalid value (e.g. larger then @code(ControlsCount - 1))
+      will be automatically fixed. Also when the children change
+      (and so ControlsCount changes), this is automatically fixed if necessary.
 
-      Changing this calls CurrentItemChanged automatically when needed. }
+      Changing this calls CurrentItemChanged automatically. }
     property CurrentItem: Integer read GetCurrentItem write SetCurrentItem;
 
-    { These change CurrentItem as appropriate.
+    { Change CurrentItem to next or previous.
       Usually you will just let this class call it internally
       (from Motion, KeyDown etc.) and will not need to call it yourself.
-
       @groupBegin }
     procedure NextItem;
     procedure PreviousItem;
@@ -176,18 +189,26 @@ type
       plays sound stMenuCurrentItemChanged. }
     procedure CurrentItemChanged; virtual;
 
-    { Default value is DefaultCurrentItemBorderColor1 }
+    { 1st color of the border to display around focused child.
+      Default value is DefaultCurrentItemBorderColor1 }
     property CurrentItemBorderColor1: TCastleColor
       read FCurrentItemBorderColor1 write FCurrentItemBorderColor1;
-    { Default value is DefaultCurrentItemBorderColor2 }
+    { 2nd color of the border to display around focused child.
+      Default value is DefaultCurrentItemBorderColor2 }
     property CurrentItemBorderColor2: TCastleColor
       read FCurrentItemBorderColor2 write FCurrentItemBorderColor2;
-    { Default value is DefaultCurrentItemColor }
+    { Label color for the focused child.
+      Default value is DefaultCurrentItemColor }
     property CurrentItemColor: TCastleColor
       read FCurrentItemColor write FCurrentItemColor;
-    { Default value is DefaultNonCurrentItemColor }
+    { Label color for the non-focused but focusable child.
+      Default value is DefaultNonCurrentItemColor }
     property NonCurrentItemColor: TCastleColor
       read FNonCurrentItemColor write FNonCurrentItemColor;
+    { Label color for the non-focusable child.
+      Default value is DefaultNonFocusableItemColor }
+    property NonFocusableItemColor: TCastleColor
+      read FNonFocusableItemColor write FNonFocusableItemColor;
 
     { Return the space needed before NextItemIndex.
       This will be a space between NextItemIndex - 1 and NextItemIndex
@@ -307,6 +328,7 @@ begin
   FCurrentItemBorderColor2 := DefaultCurrentItemBorderColor2;
   FCurrentItemColor := DefaultCurrentItemColor;
   FNonCurrentItemColor := DefaultNonCurrentItemColor;
+  FNonFocusableItemColor := DefaultNonFocusableItemColor;
 
   FRegularSpaceBetweenItems := DefaultRegularSpaceBetweenItems;
   FDrawBackgroundRectangle := true;
@@ -346,22 +368,38 @@ begin
 end;
 
 procedure TCastleOnScreenMenu.NextItem;
+var
+  OldCurrentItem: Integer;
 begin
   if ControlsCount <> 0 then
   begin
-    if CurrentItem = ControlsCount - 1 then
-      CurrentItem := 0 else
-      CurrentItem := CurrentItem + 1;
+    OldCurrentItem := CurrentItem;
+    repeat
+      if CurrentItem = ControlsCount - 1 then
+        CurrentItem := 0
+      else
+        CurrentItem := CurrentItem + 1;
+      { Loop until you find the next focusable control.
+        Also, stop when you reach the original control (to avoid an infinite loop). }
+    until ControlFocusable(Controls[CurrentItem]) or (CurrentItem = OldCurrentItem);
   end;
 end;
 
 procedure TCastleOnScreenMenu.PreviousItem;
+var
+  OldCurrentItem: Integer;
 begin
   if ControlsCount <> 0 then
   begin
-    if CurrentItem = 0 then
-      CurrentItem := ControlsCount - 1 else
-      CurrentItem := CurrentItem - 1;
+    OldCurrentItem := CurrentItem;
+    repeat
+      if CurrentItem = 0 then
+        CurrentItem := ControlsCount - 1
+      else
+        CurrentItem := CurrentItem - 1;
+      { Loop until you find the next focusable control.
+        Also, stop when you reach the original control (to avoid an infinite loop). }
+    until ControlFocusable(Controls[CurrentItem]) or (CurrentItem = OldCurrentItem);
   end;
 end;
 
@@ -492,6 +530,7 @@ var
   I: Integer;
   ItemColor, BgColor, CurrentItemBorderColor: TCastleColor;
   SR: TRectangle;
+  Focusable: boolean;
 begin
   inherited;
 
@@ -519,12 +558,16 @@ begin
 
   for I := 0 to ControlsCount - 1 do
   begin
-    if I = CurrentItem then
+    Focusable := ControlFocusable(Controls[I]);
+    if (I = CurrentItem) and Focusable then
     begin
       Theme.Draw(Controls[I].ScreenRect, tiActiveFrame, UIScale, CurrentItemBorderColor);
       ItemColor := CurrentItemColor;
     end else
-      ItemColor := NonCurrentItemColor;
+    if Focusable then
+      ItemColor := NonCurrentItemColor
+    else
+      ItemColor := NonFocusableItemColor;
     if Controls[I] is TCastleLabel then
       TCastleLabel(Controls[I]).Color := ItemColor;
   end;
@@ -688,11 +731,19 @@ begin
   end;
 end;
 
+function TCastleOnScreenMenu.ControlFocusable(const C: TUIControl): boolean;
+begin
+  Result := (C.ControlsCount <> 0) or not (C is TCastleLabel);
+end;
+
 procedure TCastleOnScreenMenu.Add(const NewItem: TUIControl);
 begin
   if NewItem is TUIControlFont then
   begin
     TUIControlFont(NewItem).CustomFont := CustomFont;
+    // TODO: dirty:
+    // do not inherit SmallFont to avoid resetting slider SmallFont=true
+    //TUIControlFont(NewItem).SmallFont := SmallFont;
     TUIControlFont(NewItem).FontSize := FontSize;
   end;
   InsertFront(NewItem);
@@ -705,6 +756,9 @@ begin
     if NewItem.Controls[0] is TUIControlFont then
     begin
       TUIControlFont(NewItem.Controls[0]).CustomFont := CustomFont;
+      // TODO: dirty:
+      // do not inherit SmallFont to avoid resetting slider SmallFont=true
+      //TUIControlFont(NewItem.Controls[0]).SmallFont := SmallFont;
       TUIControlFont(NewItem.Controls[0]).FontSize := FontSize;
     end;
   end;
@@ -717,9 +771,13 @@ var
   L: TCastleLabel;
 begin
   L := TCastleLabel.Create(Self);
-  L.Text.Text := S;
+  L.Caption := S;
   if Accessory <> nil then
+  begin
     L.InsertFront(Accessory);
+    L.Color := NonCurrentItemColor;
+  end else
+    L.Color := NonFocusableItemColor;
 
   Add(L);
 end;

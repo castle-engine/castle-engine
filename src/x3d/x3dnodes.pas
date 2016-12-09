@@ -911,7 +911,7 @@ type
       so it's more comfortable. }
     property ParentNode: TX3DNode read FParentNode;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Checks is the Child allowed as a value of this SFNode,
@@ -1052,7 +1052,7 @@ type
 
     property ParentNode: TX3DNode read FParentNode;
 
-    class function TypeName: string; override;
+    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
     { Checks is Child allowed on the list of nodes of this MFNode,
@@ -1153,20 +1153,20 @@ type
 
     Never instantiate this class by a standard constructor.
     Always use CreateUnknown constructor, this way we can safely assume
-    that NodeTypeName is always correctly set. }
+    that X3DType is always correctly set. }
   TX3DUnknownNode = class(TX3DNode)
   private
-    fNodeTypeName: string;
+    fX3DType: string;
   protected
     function DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
   public
-    function NodeTypeName: string; override;
+    function X3DType: string; override;
     procedure Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames); override;
 
     { base Create will throw exception. Always use CreateUnknown* }
-    constructor Create(const ANodeName: string; const ABaseUrl: string); override;
+    constructor Create(const AName: string; const ABaseUrl: string); override;
 
-    constructor CreateUnknown(const ANodeName, ABaseUrl: string; const ANodeTypeName :string);
+    constructor CreateUnknown(const AName, ABaseUrl: string; const AX3DType :string);
   end;
 
 { TX3DInterfaceDeclaration -------------------------------------------------- }
@@ -1403,10 +1403,10 @@ type
   public
     { This constructor will raise exception for TX3DPrototypeNode.
       Always use CreatePrototypeNode for this node class. }
-    constructor Create(const ANodeName, ABaseUrl: string); override;
-    constructor CreatePrototypeNode(const ANodeName, ABaseUrl: string;
+    constructor Create(const AName, ABaseUrl: string); override;
+    constructor CreatePrototypeNode(const AName, ABaseUrl: string;
       APrototype: TX3DPrototypeBase);
-    function NodeTypeName: string; override;
+    function X3DType: string; override;
 
     property Prototype: TX3DPrototypeBase read FPrototype;
 
@@ -1446,7 +1446,7 @@ type
           Returned Node (with all it's helpers in PrototypeInstanceHelpers)
           has "IS" clauses everywhere filled, according to our field values.)
 
-        @item(NodeName of returned node is copied from our NodeName.)
+        @item(Name of returned node is copied from our Name.)
 
         @item(
           For SaveToStream to work, returned Node has PrototypeInstance = @true,
@@ -1806,7 +1806,7 @@ type
       @false means that node is not within this namespace,
       possibly it's name was hidden by other node with the same name.
 
-      Doesn't check is Node bound to it's name (Node.NodeName) or something
+      Doesn't check is Node bound to it's name (Node.Name) or something
       else. So this assumes that node can only be bound (if at all)
       only to it's own name, which is true during parsing
       (when nothing can change in the middle of parsing). }
@@ -1859,7 +1859,7 @@ type
   ENodeClassRegisterError = class(ENodesManagerError);
   TNodesManager = class
   private
-    { Strings[] is ClassNodeTypeName. Objects[] is the actual class
+    { Strings[] is ClassX3DType. Objects[] is the actual class
       (typecast to TX3DNodeClass is safe). }
     FRegistered: TStringList;
     function GetRegistered(Index: Integer): TX3DNodeClass;
@@ -1868,7 +1868,7 @@ type
     destructor Destroy; override;
 
     { Make the given node class known to the parser and other routines.
-      We associate the node class with it's TX3DNode.ClassNodeTypeName
+      We associate the node class with it's TX3DNode.ClassX3DType
       (make sure it's not empty).
 
       It is OK to register two different node classes with the same node.
@@ -1883,7 +1883,7 @@ type
 
     { Unregisters given node class, removing it from our table.
 
-      @raises(ENodesManagerError if NodeClass.ClassNodeTypeName = ''
+      @raises(ENodesManagerError if NodeClass.ClassX3DType = ''
         (so it cannot be even registered), or if
         ((NodeClass was not registered) and ErrorIfNotRegistered)) }
     procedure UnRegisterNodeClass(NodeClass: TX3DNodeClass;
@@ -1898,7 +1898,7 @@ type
       @code(ForVRMLVersion(Version)).
 
       Returns @nil when not found. }
-    function NodeTypeNameToClass(const ANodeTypeName: string;
+    function X3DTypeToClass(const AX3DType: string;
       const Version: TX3DVersion): TX3DNodeClass;
 
     { Return class that matches given URL. This is useful for EXTERNROTOs.
@@ -1948,15 +1948,16 @@ const
   ('Orthographic', 'Perspective');
 
 const
-  { Constants for TAsciiTextNode.FdJustification.Value.
+  { Constants for @link(TAsciiTextNode_1.FdJustification).Value.
     @groupBegin }
-  JUSTIFICATION_LEFT = 0;
-  JUSTIFICATION_CENTER = 1;
-  JUSTIFICATION_RIGHT = 2;
+  JUSTIFICATION_LEFT = 0 deprecated 'use fjBegin (from an enumerated type TX3DFontJustify) with TAsciiTextNode_1.Justify or TFontStyleNode.Justify properties';
+  JUSTIFICATION_CENTER = 1 deprecated 'use fjMiddle (from an enumerated type TX3DFontJustify) with TAsciiTextNode_1.Justify or TFontStyleNode.Justify properties';
+  JUSTIFICATION_RIGHT = 2 deprecated 'use fjEnd (from an enumerated type TX3DFontJustify) with TAsciiTextNode_1.Justify or TFontStyleNode.Justify properties';
   { @groupEnd }
 
-  { Constants for TMaterialBindingNode_1.FdValue.Value and
-    TNormalBindingNode_1.FdValue.Value.
+  { Constants for
+    @link(TMaterialBindingNode_1.FdValue).Value and
+    @link(TNormalBindingNode_1.FdValue).Value.
     @groupBegin }
   BIND_DEFAULT = 0;
   BIND_OVERALL = 1;
@@ -1968,36 +1969,36 @@ const
   BIND_PER_VERTEX_INDEXED = 7;
   { @groupEnd }
 
-  { Constants for TShapeHintsNode_1.FdVertexOrdering.Value.
+  { Constants for @link(TShapeHintsNode_1.FdVertexOrdering).Value.
     @groupBegin }
   VERTORDER_UNKNOWN = 0;
   VERTORDER_CLOCKWISE = 1;
   VERTORDER_COUNTERCLOCKWISE = 2;
   { @groupEnd }
 
-  { Constants for TShapeHintsNode_1.FdShapeType.Value.
+  { Constants for @link(TShapeHintsNode_1.FdShapeType).Value.
     @groupBegin }
   SHTYPE_UNKNOWN = 0;
   SHTYPE_SOLID = 1;
   { @groupEnd }
 
-  { Constants for TShapeHintsNode_1.FdFaceType.Value.
+  { Constants for @link(TShapeHintsNode_1.FdFaceType).Value.
     @groupBegin }
   FACETYPE_UNKNOWN = 0;
   FACETYPE_CONVEX = 1;
   { @groupEnd }
 
-  { Constants for TFontStyleNode.FdFamily.Value.
+  { Constants for @link(TFontStyleNode.FdFamily).Value.
     @groupBegin }
-  FSFAMILY_SERIF = 0;
-  FSFAMILY_SANS = 1;
-  FSFAMILY_TYPEWRITER = 2;
+  FSFAMILY_SERIF = 0 deprecated 'use ffSerif (TX3DFontFamily an enumerated type) with the properties like TFontStyleNode.Family';
+  FSFAMILY_SANS = 1 deprecated 'use ffSans (TX3DFontFamily an enumerated type) with the properties like TFontStyleNode.Family';
+  FSFAMILY_TYPEWRITER = 2 deprecated 'use ffTypeWriter (TX3DFontFamily an enumerated type) with the properties like TFontStyleNode.Family';
   { @groupEnd }
 
-  { Constants for TFontStyleNode.FdStyleFlags.
+  { Constants for @link(TFontStyleNode.FdStyleFlags).
     @groupBegin }
-  FSSTYLE_BOLD = 0;
-  FSSTYLE_ITALIC = 1;
+  FSSTYLE_BOLD = 0 deprecated 'use TFontStyleNode.Bold as a simple boolean';
+  FSSTYLE_ITALIC = 1 deprecated 'use TFontStyleNode.Italic as a simple boolean';
   { @groupEnd }
 
   { Constants for TConeNode.FdParts.Flags.
@@ -2013,10 +2014,10 @@ const
   CYLINDER_PARTS_BOTTOM = 2;
   { @groupEnd }
 
-  { Constants for TTexture2Node_1.FdWrapS.Value and TTexture2Node_1.FdWrapT.Value.
+  { Constants for @link(TTexture2Node_1.FdWrapS).Value and @link(TTexture2Node_1.FdWrapT).Value.
     @groupBegin }
-  TEXWRAP_REPEAT = 0;
-  TEXWRAP_CLAMP = 1;
+  TEXWRAP_REPEAT = 0 deprecated 'use TAbstractTexture2DNode.RepeatS or TAbstractTexture2DNode.RepeatT boolean properties';
+  TEXWRAP_CLAMP = 1 deprecated 'use TAbstractTexture2DNode.RepeatS or TAbstractTexture2DNode.RepeatT boolean properties';
   { @groupEnd }
 
   DefaultHeightMapScale = 0.01;
@@ -2325,7 +2326,7 @@ begin
   for I := 0 to Count - 1 do
   begin
     Result := Ptr(I);
-    if Result^.Node.NodeName = NodeName then
+    if Result^.Node.Name = NodeName then
       Exit;
   end;
   Result := nil;
@@ -3022,9 +3023,9 @@ procedure TSFNode.WarningIfChildNotAllowed(Child: TX3DNode);
     S: string;
   begin
     S := Format('Node "%s" is not allowed in the field "%s"',
-      [Child.NodeTypeName, Name]);
+      [Child.X3DType, Name]);
     if ParentNode <> nil then
-      S += Format(' of the node "%s"', [ParentNode.NodeTypeName]);
+      S += Format(' of the node "%s"', [ParentNode.X3DType]);
     WritelnWarning('VRML/X3D', S);
   end;
 
@@ -3209,7 +3210,7 @@ begin
   FDefaultValueExists := AValue;
 end;
 
-class function TSFNode.TypeName: string;
+class function TSFNode.X3DType: string;
 begin
   Result := 'SFNode';
 end;
@@ -3502,9 +3503,9 @@ procedure TMFNode.WarningIfChildNotAllowed(Child: TX3DNode);
     S: string;
   begin
     S := Format('Node "%s" is not allowed in the field "%s"',
-      [Child.NodeTypeName, Name]);
+      [Child.X3DType, Name]);
     if ParentNode <> nil then
-      S += Format(' of the node "%s"', [ParentNode.NodeTypeName]);
+      S += Format(' of the node "%s"', [ParentNode.X3DType]);
     WritelnWarning('VRML/X3D', S);
   end;
 
@@ -3632,7 +3633,7 @@ begin
   DefaultValueExists := true;
 end;
 
-class function TMFNode.TypeName: string;
+class function TMFNode.X3DType: string;
 begin
   Result := 'MFNode';
 end;
@@ -3664,9 +3665,9 @@ end;
 
 { TX3DUnknownNode ---------------------------------------------------------------- }
 
-function TX3DUnknownNode.NodeTypeName: string;
+function TX3DUnknownNode.X3DType: string;
 begin
- result := fNodeTypeName;
+ result := fX3DType;
 end;
 
 procedure TX3DUnknownNode.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames);
@@ -3706,27 +3707,26 @@ begin
 
   FBaseUrl := Reader.BaseUrl;
 
-  WritelnWarning('VRML/X3D', 'Unknown VRML node of type '''+NodeTypeName+
-    ''' (named '''+NodeName+''')');
+  WritelnWarning('VRML/X3D', 'Unknown node of type "'+ X3DType + '" (named "'+ Name +'")');
 end;
 
-constructor TX3DUnknownNode.Create(const ANodeName: string; const ABaseUrl: string);
+constructor TX3DUnknownNode.Create(const AName: string; const ABaseUrl: string);
 begin
   { Safety check: never create a TX3DUnknownNode instance by this method,
-    to not leave FNodeTypeName unset. }
+    to not leave FX3DType unset. }
   raise Exception.Create('You cannot create Unknown node using default constructor');
 end;
 
-constructor TX3DUnknownNode.CreateUnknown(const ANodeName, ABaseUrl: string; const ANodeTypeName :string);
+constructor TX3DUnknownNode.CreateUnknown(const AName, ABaseUrl: string; const AX3DType :string);
 begin
-  inherited Create(ANodeName, ABaseUrl);
-  fNodeTypeName := ANodeTypeName;
+  inherited Create(AName, ABaseUrl);
+  fX3DType := AX3DType;
 end;
 
 function TX3DUnknownNode.DeepCopyCreate(
   CopyState: TX3DNodeDeepCopyState): TX3DNode;
 begin
-  Result := TX3DUnknownNode.CreateUnknown(NodeName, BaseUrl, NodeTypeName);
+  Result := TX3DUnknownNode.CreateUnknown(Name, BaseUrl, X3DType);
 end;
 
 { TX3DInterfaceDeclaration -------------------------------------------------- }
@@ -3772,7 +3772,7 @@ end;
 procedure TX3DInterfaceDeclaration.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames;
   FieldValue, IsClauseAllowed: boolean);
 var
-  FieldTypeName: string;
+  X3DType: string;
   Access: TX3DAccessType;
   FieldType: TX3DFieldClass;
   Name: string;
@@ -3797,8 +3797,8 @@ begin
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'field type (for interface declaration)');
-  FieldTypeName := Lexer.TokenName;
-  FieldType := X3DFieldsManager.FieldTypeNameToClass(FieldTypeName);
+  X3DType := Lexer.TokenName;
+  FieldType := X3DFieldsManager.X3DTypeToClass(X3DType);
   if FieldType = nil then
     raise EX3DParserError.Create(
       Lexer, Format(SExpectedFieldType, [Lexer.DescribeToken]));
@@ -3839,7 +3839,7 @@ var
   Access: TX3DAccessType;
   AccessIndex: Integer;
   AccessName: string;
-  FieldTypeName: string;
+  FieldX3DType: string;
   FieldType: TX3DFieldClass;
   Name, FieldActualValue: string;
 begin
@@ -3859,11 +3859,11 @@ begin
     raise EX3DXmlError.Create('Missing access type in X3D interface declaration');
 
   { calculate FieldType }
-  if Element.AttributeString('type', FieldTypeName) then
+  if Element.AttributeString('type', FieldX3DType) then
   begin
-    FieldType := X3DFieldsManager.FieldTypeNameToClass(FieldTypeName);
+    FieldType := X3DFieldsManager.X3DTypeToClass(FieldX3DType);
     if FieldType = nil then
-      raise EX3DXmlError.CreateFmt('Field type "%s" unknown', [FieldTypeName]);
+      raise EX3DXmlError.CreateFmt('Field type "%s" unknown', [FieldX3DType]);
   end else
     raise EX3DXmlError.Create('Missing field type in X3D interface declaration');
 
@@ -4001,7 +4001,7 @@ begin
         if Event.InEvent then
           Writer.WriteIndent(ATName(atInputOnly) + ' ') else
           Writer.WriteIndent(ATName(atOutputOnly) + ' ');
-        Writer.Write(Event.FieldClass.TypeName + ' ');
+        Writer.Write(Event.FieldClass.X3DType + ' ');
         if Event.IsClauseNamesCount <> 0 then
         begin
           Writer.DiscardNextIndent;
@@ -4016,7 +4016,7 @@ begin
         if Field.Exposed then
           Writer.WriteIndent(ATName(atInputOutput) + ' ') else
           Writer.WriteIndent(ATName(atInitializeOnly) + ' ');
-        Writer.Write(Field.TypeName + ' ');
+        Writer.Write(Field.X3DType + ' ');
 
         { When saving from interface declaration, you can only
           1. write sole field name
@@ -4059,7 +4059,7 @@ begin
           [ Iff(Event.InEvent,
               StringToX3DXml(ATName(atInputOnly)),
               StringToX3DXml(ATName(atOutputOnly))),
-            StringToX3DXml(Event.FieldClass.TypeName),
+            StringToX3DXml(Event.FieldClass.X3DType),
             StringToX3DXml(N) ]));
       end else
       begin
@@ -4067,7 +4067,7 @@ begin
           [ Iff(Field.Exposed,
               StringToX3DXml(ATName(atInputOutput)),
               StringToX3DXml(ATName(atInitializeOnly))),
-            StringToX3DXml(Field.TypeName),
+            StringToX3DXml(Field.X3DType),
             StringToX3DXml(N) ]));
 
         if ( FieldValue and
@@ -4175,21 +4175,21 @@ end;
 
 { TX3DPrototypeNode --------------------------------------------------------- }
 
-constructor TX3DPrototypeNode.Create(const ANodeName, ABaseUrl: string);
+constructor TX3DPrototypeNode.Create(const AName, ABaseUrl: string);
 begin
   raise EInternalError.Create('TX3DPrototypeNode node must be created' +
     ' using CreatePrototypeNode, never default constructor');
 end;
 
 constructor TX3DPrototypeNode.CreatePrototypeNode(
-  const ANodeName, ABaseUrl: string;
+  const AName, ABaseUrl: string;
   APrototype: TX3DPrototypeBase);
 var
   I: TX3DInterfaceDeclaration;
   Index: Integer;
   ProtoInitial: TX3DPrototypeBase;
 begin
-  inherited Create(ANodeName, ABaseUrl);
+  inherited Create(AName, ABaseUrl);
   FPrototype := APrototype;
 
   ProtoInitial := Prototype;
@@ -4216,13 +4216,13 @@ end;
 
 function TX3DPrototypeNode.DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode;
 begin
-  Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, BaseUrl,
+  Result := TX3DPrototypeNode.CreatePrototypeNode(Name, BaseUrl,
     { TODO: for now, we don't copy proto, instead simply passing the same
       proto reference. }
     Prototype);
 end;
 
-function TX3DPrototypeNode.NodeTypeName: string;
+function TX3DPrototypeNode.X3DType: string;
 begin
   Result := Prototype.Name;
 end;
@@ -4267,9 +4267,9 @@ begin
           'field of type %s (named "%s") references ' +
           '(by "IS" clause) field of different type %s (named "%s")',
           [Prototype.Name,
-           DestinationField.TypeName,
+           DestinationField.X3DType,
            Destination.Name,
-           SourceField.TypeName,
+           SourceField.X3DType,
            Source.Name]));
       end;
       on E: EX3DFieldAssign do
@@ -4298,8 +4298,8 @@ begin
     begin
       WritelnWarning('VRML/X3D', Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
         [ Prototype.Name,
-          DestinationEvent.FieldClass.TypeName,
-          SourceEvent.FieldClass.TypeName ]));
+          DestinationEvent.FieldClass.X3DType,
+          SourceEvent.FieldClass.X3DType ]));
       Exit;
     end;
 
@@ -4584,7 +4584,7 @@ function TX3DPrototypeNode.Instantiate: TX3DNode;
       NodeCopy.FdChildren[1...] that should accompany this node. }
     NewPrototypeInstanceHelpers := NodeCopy;
 
-    Result.NodeName := NodeName;
+    Result.Name := Name;
 
     (* Result and NodeCopy may come from another prototype.
        For example,
@@ -5128,15 +5128,15 @@ end;
 
 procedure TNodesManager.RegisterNodeClass(NodeClass: TX3DNodeClass);
 begin
-  if NodeClass.ClassNodeTypeName = '' then
+  if NodeClass.ClassX3DType = '' then
     raise ENodesManagerError.Create('Class '+NodeClass.ClassName+' has '+
-      'empty ClassNodeTypeName so it cannot be registered in TNodesManager');
+      'empty ClassX3DType so it cannot be registered in TNodesManager');
 
   if FRegistered.IndexOfObject(TObject(Pointer(NodeClass))) <> -1 then
     raise ENodesManagerError.Create('Class '+NodeClass.ClassName+
       ' was already registered in TNodesManager');
 
-  FRegistered.AddObject(NodeClass.ClassNodeTypeName, TObject(Pointer(NodeClass)));
+  FRegistered.AddObject(NodeClass.ClassX3DType, TObject(Pointer(NodeClass)));
 end;
 
 procedure TNodesManager.RegisterNodeClasses(
@@ -5151,9 +5151,9 @@ procedure TNodesManager.UnRegisterNodeClass(NodeClass: TX3DNodeClass;
   ErrorIfNotRegistered: boolean);
 var i: Integer;
 begin
-  if NodeClass.ClassNodeTypeName = '' then
+  if NodeClass.ClassX3DType = '' then
     raise ENodesManagerError.Create('Class '+NodeClass.ClassName+' has '+
-      'empty ClassNodeTypeName so it cannot be unregistered (or even registered) '+
+      'empty ClassX3DType so it cannot be unregistered (or even registered) '+
       'in TNodesManager');
 
   i := FRegistered.IndexOfObject(TObject(Pointer(NodeClass)));
@@ -5164,7 +5164,7 @@ begin
       '" was not registered, so you cannot unregister it');
 end;
 
-function TNodesManager.NodeTypeNameToClass(const ANodeTypeName: string;
+function TNodesManager.X3DTypeToClass(const AX3DType: string;
   const Version: TX3DVersion): TX3DNodeClass;
 var
   I: Integer;
@@ -5172,7 +5172,7 @@ begin
   for I := 0 to FRegistered.Count - 1 do
   begin
     Result := TX3DNodeClass(FRegistered.Objects[I]);
-    if (FRegistered[I] = ANodeTypeName) and
+    if (FRegistered[I] = AX3DType) and
        Result.ForVRMLVersion(Version) then
       Exit;
   end;
@@ -5320,8 +5320,8 @@ begin
   if Log then
     WritelnLog('VRML/X3D', Format(
       'Route %s.%s -> %s.%s ignored another event at <= timestamp (%f.%d, while last event was on %f.%d). Potential routes loop avoided',
-      [ SourceNode.NodeName, SourceEvent.Name,
-        DestinationNode.NodeName, DestinationEvent.Name,
+      [ SourceNode.Name, SourceEvent.Name,
+        DestinationNode.Name, DestinationEvent.Name,
         Time.Seconds, Time.PlusTicks,
         LastEventTime.Seconds, LastEventTime.PlusTicks ]));
 end;
@@ -5351,7 +5351,7 @@ begin
     ExposedField := TX3DField(FieldOrEvent);
     if not ExposedField.Exposed then
       raise ERouteSetEndingError.CreateFmt('Route %s specifies field "%s" (for node "%s"), but this is not an exposed field (cannot generate/receive events)',
-        [ DestEndingNames[DestEnding], FieldOrEvent.Name, Node.NodeName ]);
+        [ DestEndingNames[DestEnding], FieldOrEvent.Name, Node.Name ]);
     Event := ExposedField.ExposedEvents[DestEnding];
   end else
   begin
@@ -5363,9 +5363,9 @@ begin
   begin
     if DestEnding then
       raise ERouteSetEndingError.CreateFmt('Route uses wrong event: destination of the route (%s, type %s) can only be output event',
-        [ Event.Name, Event.FieldClass.TypeName ]) else
+        [ Event.Name, Event.FieldClass.X3DType ]) else
       raise ERouteSetEndingError.CreateFmt('Route uses wrong event: source of the route (%s, type %s) can only be input event',
-        [ Event.Name, Event.FieldClass.TypeName ]);
+        [ Event.Name, Event.FieldClass.X3DType ]);
   end;
 
   if (SourceEvent <> nil) and
@@ -5374,8 +5374,8 @@ begin
      { destination field can be XFAny (for some Avalon nodes) as an exception. }
      (not (DestinationEvent.FieldClass = TX3DField)) then
     raise ERouteSetEndingError.CreateFmt('Route has different event types for source (%s, type %s) and destination (%s, type %s)',
-      [ SourceEvent     .Name, SourceEvent     .FieldClass.TypeName,
-        DestinationEvent.Name, DestinationEvent.FieldClass.TypeName ]);
+      [ SourceEvent     .Name, SourceEvent     .FieldClass.X3DType,
+        DestinationEvent.Name, DestinationEvent.FieldClass.X3DType ]);
 
   if (Event <> nil) and (not DestEnding) then
     Event.OnReceive.Add(@EventReceive);
@@ -5416,7 +5416,7 @@ begin
     FieldOrEvent := Node.FieldOrEvent(FieldOrEventName);
     if FieldOrEvent = nil then
       raise ERouteSetEndingError.CreateFmt('Route %s field/event name "%s" (for node "%s", type "%s") not found',
-        [ DestEndingNames[DestEnding], FieldOrEventName, NodeName, Node.NodeTypeName ]);
+        [ DestEndingNames[DestEnding], FieldOrEventName, NodeName, Node.X3DType ]);
 
     SetEndingInternal(Node, FieldOrEvent, Event, DestEnding);
   except
@@ -5506,13 +5506,13 @@ procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
     { Check Node }
     if Node = nil then
       raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node not assigned (look for warnings when reading this VRML file)', [S]);
-    if Node.NodeName = '' then
+    if Node.Name = '' then
       raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node not named', [S]);
 
-    BoundNode := (Writer as TX3DWriterNames).NodeNames.Bound(Node.NodeName, IgnoreNodeFinished);
+    BoundNode := (Writer as TX3DWriterNames).NodeNames.Bound(Node.Name, IgnoreNodeFinished);
     if BoundNode = nil then
       raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound',
-        [S, Node.NodeName]);
+        [S, Node.Name]);
 
     { Just like when setting node by TX3DRoute.SetEnding:
       we actually keep the Node that contains the route, which is
@@ -5521,9 +5521,9 @@ procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
       BoundNode := BoundNode.PrototypeInstanceSourceNode;
     if BoundNode <> Node then
       raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound (another node bound to the same name)',
-        [S, Node.NodeName]);
+        [S, Node.Name]);
 
-    NodeName := Node.NodeName;
+    NodeName := Node.Name;
 
     { Check Event }
     if Event = nil then
@@ -5594,7 +5594,7 @@ begin
     NewSourceEvent := NewSourceNode.AnyEvent(SourceEvent.Name);
     if NewSourceEvent = nil then
       raise EInternalError.CreateFmt('Route source node "%s" (%s) has event "%s", which is not found in this node''s deep copy',
-        [ NewSourceNode.NodeName, NewSourceNode.NodeTypeName,
+        [ NewSourceNode.Name, NewSourceNode.X3DType,
 	  NewSourceEvent.Name ]);
     Result.SetSourceDirectly(NewSourceNode, NewSourceEvent);
   end;
@@ -5606,7 +5606,7 @@ begin
     NewDestinationEvent := NewDestinationNode.AnyEvent(DestinationEvent.Name);
     if NewDestinationEvent = nil then
       raise EInternalError.CreateFmt('Route destination node "%s" (%s) has event "%s", which is not found in this node''s deep copy',
-        [ NewDestinationNode.NodeName, NewDestinationNode.NodeTypeName,
+        [ NewDestinationNode.Name, NewDestinationNode.X3DType,
 	  NewDestinationEvent.Name ]);
     Result.SetDestinationDirectly(NewDestinationNode, NewDestinationEvent);
   end;
@@ -5835,7 +5835,7 @@ end;
 
 procedure TX3DNodeNames.Bind(Node: TX3DNode; const NodeFinished: boolean);
 begin
-  Bind(Node, NodeFinished, Node.NodeName);
+  Bind(Node, NodeFinished, Node.Name);
 end;
 
 function TX3DNodeNames.Bound(const Name: string; out NodeFinished: boolean): TX3DNode;

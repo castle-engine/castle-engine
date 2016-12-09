@@ -1,9 +1,12 @@
-{$mode objfpc}{$H+}
-{$apptype GUI}
 program cge_3d_viewer_standalone;
-{$ifdef MSWINDOWS}
-  {$R automatic-windows-resources.res}
-{$endif MSWINDOWS}
+
+{$apptype GUI}
+
+{ This adds icons and version info for Windows,
+  automatically created by "castle-engine compile".
+  Comment this out if you don't compile using our "castle-engine" build tool. }
+{$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
+
 uses CastleWindow, Game;
 begin
   { explicitly initialize MainWindow with useful NamedParameters,

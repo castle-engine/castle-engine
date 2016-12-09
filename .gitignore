@@ -11,6 +11,7 @@
 *.a
 *.log
 *.lps
+*.exe
 castle-game-engine-*.fpm
 doc/pasdoc/cache/
 doc/pasdoc/html/

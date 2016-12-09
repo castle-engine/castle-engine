@@ -122,14 +122,14 @@ end;
 function ParseNode(Lexer: TX3DLexer; Reader: TX3DReaderNames;
   NilIfUnresolvedUSE: boolean): TX3DNode;
 
-  procedure ParseNamedNode(const nodename: string);
+  procedure ParseNamedNode(const NodeName: string);
   var
     NodeClass: TX3DNodeClass;
-    NodeTypeName: string;
+    X3DType: string;
     Proto: TX3DPrototypeBase;
   begin
     Lexer.CheckTokenIs(vtName, 'node type');
-    NodeTypeName := Lexer.TokenName;
+    X3DType := Lexer.TokenName;
     Lexer.NextToken;
 
     { VRML / X3D specifications say it is an error for a PROTO to have
@@ -144,11 +144,11 @@ function ParseNode(Lexer: TX3DLexer; Reader: TX3DReaderNames;
       test files from
       http://www.web3d.org/x3d/content/examples/Basic/CAD/
 
-      So we first search for NodeTypeName among protos.
+      So we first search for X3DType among protos.
       Only when this failed, we look at built-in nodes in NodesManager.
     }
 
-    Proto := Reader.Prototypes.Bound(NodeTypeName);
+    Proto := Reader.Prototypes.Bound(X3DType);
     if Proto <> nil then
     begin
       if (Proto is TX3DExternalPrototype) and
@@ -157,13 +157,13 @@ function ParseNode(Lexer: TX3DLexer; Reader: TX3DReaderNames;
         Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, Reader.BaseUrl, Proto);
     end else
     begin
-      NodeClass := NodesManager.NodeTypeNameToClass(NodeTypeName, Reader.Version);
+      NodeClass := NodesManager.X3DTypeToClass(X3DType, Reader.Version);
       if NodeClass <> nil then
       begin
-        Result := NodeClass.Create(nodename, Reader.BaseUrl);
+        Result := NodeClass.Create(NodeName, Reader.BaseUrl);
       end else
       begin
-        Result := TX3DUnknownNode.CreateUnknown(nodename, Reader.BaseUrl, NodeTypeName);
+        Result := TX3DUnknownNode.CreateUnknown(NodeName, Reader.BaseUrl, X3DType);
       end;
     end;
 
@@ -249,17 +249,17 @@ begin
         vkDEF:
           begin
            Lexer.NextTokenForceVTName;
-           nodename := Lexer.TokenName;
+           NodeName := Lexer.TokenName;
            Lexer.NextToken;
-           ParseNamedNode(nodename);
+           ParseNamedNode(NodeName);
           end;
         vkUSE:
           begin
            Lexer.NextTokenForceVTName;
-           nodename := Lexer.TokenName;
+           NodeName := Lexer.TokenName;
 
            {get appropriate node}
-           Result := Reader.Nodes.Bound(nodename, UsedNodeFinished);
+           Result := Reader.Nodes.Bound(NodeName, UsedNodeFinished);
            if (Result = nil) or (not UsedNodeFinished) then
            begin
              if Result = nil then

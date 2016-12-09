@@ -217,7 +217,7 @@ begin
   Status.Color := Red;
   Status.Left := 10;
   Status.Anchor(vpTop, -10);
-  Status.Text.Text := 'FPS: ...'; // set initial text, to make 1st WindowResize set proper position
+  Status.Caption := 'FPS: ...'; // set initial text, to make 1st WindowResize set proper position
   // Status.Bottom := ...; // vertical Status position will be adjusted in WindowResize
   Window.Controls.InsertFront(Status);
 end;
@@ -283,7 +283,7 @@ var
   T: TVector3Single;
   Pos, Dir, Up: TVector3Single;
 begin
-  Status.Text.Text := Format('FPS: %f (real : %f)',
+  Status.Caption := Format('FPS: %f (real : %f)',
     [Window.Fps.FrameTime, Window.Fps.RealTime]);
 
   if { check SceneManager.Camera existence, because in this game

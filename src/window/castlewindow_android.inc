@@ -111,10 +111,10 @@ begin
   Application.FScreenWidth := Width;
   Application.FScreenHeight := Height;
   //Window.FullScreen := true; // TODO: setting fullscreen should work like that 4 lines below. Also, should be default?
-  Window.Left := 0;
-  Window.Top := 0;
-  Window.Width := Width;
-  Window.Height := Height;
+  Window.FLeft := 0;
+  Window.FTop := 0;
+  Window.FWidth := Width;
+  Window.FHeight := Height;
 
   { in case we're getting back to foreground, from sleeping / background,
     do not treat huge "time passed" as meaningful in next Update.

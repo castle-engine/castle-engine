@@ -25,7 +25,7 @@ uses SysUtils, Classes, FGL,
   CastleUtils, CastleBoxes, CastleClassUtils,
   CastleKeysMouse, CastleTimeUtils, CastleFrustum, CastleVectors, Castle3D, X3DTriangles,
   CastleTriangles, CastleRectangles, CastleCameras,
-  CastleInternalNodeInterpolator;
+  CastleInternalNodeInterpolator, X3DLoad;
 
 type
   { A "precalculated" animation done by
@@ -308,15 +308,7 @@ type
         and TimeBackwards properties later,
         since these properties are writeable at any time.)
 
-      @param(Smoothness Scales the number of scenes
-        created per second. Values > 1 make better quality but also use more memory.
-        If this parameter isn't given, we use global AnimationSmoothness
-        (which is by default 1, but may be globally changed).)
-
       @groupBegin }
-    procedure LoadFromFile(const URL: string;
-      const AllowStdIn: boolean; const LoadTime: boolean;
-      const Smoothness: Float);
     procedure LoadFromFile(const URL: string;
       const AllowStdIn: boolean; const LoadTime: boolean);
     { @groupEnd }
@@ -664,18 +656,23 @@ type
   end deprecated 'instead of TCastlePrecalculatedAnimation, use TCastleScene to load animations in any format (X3D, castle-anim-frames...) and run them using methods like PlayAnimation';
 
 const
-  DefaultAnimationSmoothness = 1.0;
+  DefaultAnimationSmoothness = DefaultBakedAnimationSmoothness
+    deprecated 'instead of this, use DefaultBakedAnimationSmoothness from X3DLoad unit';
 
-var
-  { Default Smoothness value for TCastlePrecalculatedAnimation.LoadFromFile.
-    This allows to globally control the precalculated animations quality. }
-  AnimationSmoothness: Single = DefaultAnimationSmoothness;
+function InternalGetAnimationSmoothness: Single;
+procedure InternalSetAnimationSmoothness(const Value: Single);
+
+{ @deprecated
+  Use BakedAnimationSmoothness from X3DLoad unit instead of this. }
+property AnimationSmoothness: Single
+  read InternalGetAnimationSmoothness
+  write InternalSetAnimationSmoothness;
 
 procedure Register;
 
 implementation
 
-uses Math, X3DFields, CastleProgress, X3DLoad, CastleLog, DateUtils,
+uses Math, X3DFields, CastleProgress, CastleLog, DateUtils,
   CastleShapes, CastleConfig;
 
 procedure Register;
@@ -683,6 +680,16 @@ begin
   {$warnings off}
   RegisterComponents('Castle', [TCastlePrecalculatedAnimation]);
   {$warnings on}
+end;
+
+function InternalGetAnimationSmoothness: Single;
+begin
+  Result := BakedAnimationSmoothness;
+end;
+
+procedure InternalSetAnimationSmoothness(const Value: Single);
+begin
+  BakedAnimationSmoothness := Value;
 end;
 
 { TAnimationScene ------------------------------------------------------ }
@@ -807,7 +814,7 @@ procedure TCastlePrecalculatedAnimation.LoadCore(
   const EqualityEpsilon: Single);
 var
   SceneStatic: boolean;
-  Nodes: TX3DNodeList;
+  BakedAnimation: TNodeInterpolator.TBakedAnimation;
   I: Integer;
 begin
   Close;
@@ -820,16 +827,18 @@ begin
     it only (if and only if) occurs if KeyNodesCount = 1. }
   SceneStatic := not (TryFirstSceneDynamic and (KeyNodesCount = 1));
 
-  Nodes := TNodeInterpolator.BakeToSequence(GetKeyNodeWithTime, KeyNodesCount,
-    ScenesPerTime, EqualityEpsilon, FTimeBegin, FTimeEnd);
+  BakedAnimation := TNodeInterpolator.BakeToSequence(GetKeyNodeWithTime, KeyNodesCount,
+    ScenesPerTime, EqualityEpsilon);
   try
+    FTimeBegin := BakedAnimation.TimeBegin;
+    FTimeEnd := BakedAnimation.TimeEnd;
 
     { calculate FScenes }
     FScenes := TCastleSceneList.Create(false);
-    FScenes.Count := Nodes.Count;
+    FScenes.Count := BakedAnimation.Nodes.Count;
     for I := 0 to FScenes.Count - 1 do
     begin
-      if (I > 0) and (Nodes[I] = Nodes[I - 1]) then
+      if (I > 0) and (BakedAnimation.Nodes[I] = BakedAnimation.Nodes[I - 1]) then
         { In this case don't waste memory, only reuse
           LastSceneRootNode. Actually, just copy last scene.
           This way we have a series of the same instances of TCastleScene
@@ -837,11 +846,11 @@ begin
           avoid deallocating the same pointer twice. }
         FScenes[I] := FScenes[I - 1] else
         FScenes[I] := TAnimationScene.CreateForAnimation(
-          Nodes[I] as TX3DRootNode,
+          BakedAnimation.Nodes[I] as TX3DRootNode,
           (I <> 0) or OwnsFirstRootNode, Renderer, Self, SceneStatic);
     end;
 
-  finally FreeAndNil(Nodes) end;
+  finally FreeAndNil(BakedAnimation) end;
 
   FLoaded := true;
 end;
@@ -959,7 +968,7 @@ begin
 end;
 
 procedure TCastlePrecalculatedAnimation.LoadFromFile(const URL: string;
-  const AllowStdIn, LoadTime: boolean; const Smoothness: Float);
+  const AllowStdIn, LoadTime: boolean);
 var
   Times: TSingleList;
   KeyNodes: TX3DNodeList;
@@ -977,8 +986,6 @@ begin
       NewTimeLoop, NewTimeBackwards);
     {$warnings on}
 
-    ScenesPerTime := Round(ScenesPerTime * Smoothness);
-
     Load(KeyNodes, true, Times, ScenesPerTime, EqualityEpsilon);
 
     if LoadTime then
@@ -993,12 +1000,6 @@ begin
     FreeAndNil(Times);
     FreeAndNil(KeyNodes);
   end;
-end;
-
-procedure TCastlePrecalculatedAnimation.LoadFromFile(const URL: string;
-  const AllowStdIn: boolean; const LoadTime: boolean);
-begin
-  LoadFromFile(URL, AllowStdIn, LoadTime, AnimationSmoothness);
 end;
 
 procedure TCastlePrecalculatedAnimation.Close;

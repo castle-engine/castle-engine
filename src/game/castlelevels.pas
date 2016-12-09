@@ -430,8 +430,8 @@ type
 
       Call this only if you really want to conserve memory @italic(right now).
       Or when you want to force reload of resources at next LoadLevel
-      call (for example, if you changed AnimationSmoothness, it is useful
-      --- otherwise the old animations will remain loaded with old AnimationSmoothness
+      call (for example, if you changed BakedAnimationSmoothness, it is useful
+      --- otherwise the old animations will remain loaded with old BakedAnimationSmoothness
       setting). }
     procedure UnloadLevel;
   end;
@@ -471,10 +471,10 @@ type
       )
       @groupBegin }
     function LoadLevelScene(const URL: string;
-      const CreateOctreeCollisions: boolean;
+      const PrepareForCollisions: boolean;
       const SceneClass: TCastleSceneClass): TCastleScene;
     function LoadLevelScene(const URL: string;
-      const CreateOctreeCollisions: boolean): TCastleScene;
+      const PrepareForCollisions: boolean): TCastleScene;
     { @groupEnd }
 
     { Handle a placeholder named in external modeler.
@@ -1051,7 +1051,7 @@ end;
 
 function TLevelLogic.LoadLevelScene(
   const URL: string;
-  const CreateOctreeCollisions: boolean;
+  const PrepareForCollisions: boolean;
   const SceneClass: TCastleSceneClass): TCastleScene;
 var
   Options: TPrepareResourcesOptions;
@@ -1066,7 +1066,7 @@ begin
 
   Result.PrepareResources(Options, false, World.BaseLights);
 
-  if CreateOctreeCollisions then
+  if PrepareForCollisions then
     Result.Spatial := [ssDynamicCollisions];
 
   Result.FreeResources([frTextureDataInNodes]);
@@ -1076,9 +1076,9 @@ end;
 
 function TLevelLogic.LoadLevelScene(
   const URL: string;
-  const CreateOctreeCollisions: boolean): TCastleScene;
+  const PrepareForCollisions: boolean): TCastleScene;
 begin
-  Result := LoadLevelScene(URL, CreateOctreeCollisions, TCastleScene);
+  Result := LoadLevelScene(URL, PrepareForCollisions, TCastleScene);
 end;
 
 function TLevelLogic.LoadLevelAnimation(
@@ -1089,7 +1089,7 @@ var
   Options: TPrepareResourcesOptions;
 begin
   Result := AnimationClass.Create(Self);
-  Result.LoadFromFile(URL, false, true, 1);
+  Result.LoadFromFile(URL, false, true);
 
   { calculate Options for PrepareResources }
   Options := [prRender, prBoundingBox { always needed }];

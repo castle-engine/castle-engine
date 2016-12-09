@@ -326,12 +326,12 @@ var
 
   { Collada texture coords used by last primitive.
     Based on <source> indicated by <input semantic="TEXCOORD"> element within
-    primitive. NodeName corresponds to <source> id. }
+    primitive. Name corresponds to <source> id. }
   LastTexCoord: TTextureCoordinateNode;
 
   { Collada normal used by last primitive.
     Based on <source> indicated by <input semantic="NORMAL"> element within
-    primitive. NodeName corresponds to <source> id. }
+    primitive. Name corresponds to <source> id. }
   LastNormal: TNormalNode;
 
   { DoubleSided, should be used by ReadPrimitiveCommon to set X3D solid field. }
@@ -453,7 +453,7 @@ var
           begin
             if not (I.Current.AttributeString('source', InputSourceId) and
                     (Coord <> nil) and
-                    (InputSourceId = '#' + Coord.NodeName))  then
+                    (InputSourceId = '#' + Coord.Name))  then
               WritelnWarning('Collada', '<input> with semantic="VERTEX" (of primitive element within <mesh>) does not reference <vertices> element within the same <mesh>');
 
             { Collada requires offset in this case.
@@ -474,7 +474,7 @@ var
               if SCharIs(InputSourceId, 1, '#') then
                 Delete(InputSourceId, 1, 1);
               if ((LastTexCoord <> nil) and
-                  (LastTexCoord.NodeName = InputSourceId)) then
+                  (LastTexCoord.Name = InputSourceId)) then
                 { we can reuse last X3D tex coord node }
                 IndexedFaceSet.FdTexCoord.Value := LastTexCoord else
               begin
@@ -507,7 +507,7 @@ var
               if SCharIs(InputSourceId, 1, '#') then
                 Delete(InputSourceId, 1, 1);
               if ((LastNormal <> nil) and
-                  (LastNormal.NodeName = InputSourceId)) then
+                  (LastNormal.Name = InputSourceId)) then
                 { we can reuse last X3D normal node }
                 IndexedFaceSet.FdNormal.Value := LastNormal else
               begin

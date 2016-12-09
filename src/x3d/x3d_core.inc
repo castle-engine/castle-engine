@@ -127,7 +127,7 @@ type
   TMetadataBooleanNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdName: TSFString;
@@ -143,7 +143,7 @@ type
   TMetadataDoubleNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdName: TSFString;
@@ -159,7 +159,7 @@ type
   TMetadataFloatNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdName: TSFString;
@@ -175,7 +175,7 @@ type
   TMetadataIntegerNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdName: TSFString;
@@ -191,7 +191,7 @@ type
   TMetadataSetNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdName: TSFString;
@@ -207,7 +207,7 @@ type
   TMetadataStringNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdName: TSFString;
@@ -223,7 +223,7 @@ type
   TWorldInfoNode = class(TAbstractInfoNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdInfo: TMFString;
@@ -309,7 +309,7 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TMetadataBooleanNode.ClassNodeTypeName: string;
+class function TMetadataBooleanNode.ClassX3DType: string;
 begin
   Result := 'MetadataBoolean';
 end;
@@ -317,7 +317,7 @@ end;
 class function TMetadataBooleanNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TMetadataDoubleNode.CreateNode;
@@ -336,7 +336,7 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TMetadataDoubleNode.ClassNodeTypeName: string;
+class function TMetadataDoubleNode.ClassX3DType: string;
 begin
   Result := 'MetadataDouble';
 end;
@@ -344,7 +344,7 @@ end;
 class function TMetadataDoubleNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TMetadataFloatNode.CreateNode;
@@ -363,7 +363,7 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TMetadataFloatNode.ClassNodeTypeName: string;
+class function TMetadataFloatNode.ClassX3DType: string;
 begin
   Result := 'MetadataFloat';
 end;
@@ -371,7 +371,7 @@ end;
 class function TMetadataFloatNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TMetadataIntegerNode.CreateNode;
@@ -390,7 +390,7 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TMetadataIntegerNode.ClassNodeTypeName: string;
+class function TMetadataIntegerNode.ClassX3DType: string;
 begin
   Result := 'MetadataInteger';
 end;
@@ -398,7 +398,7 @@ end;
 class function TMetadataIntegerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TMetadataSetNode.CreateNode;
@@ -417,7 +417,7 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TMetadataSetNode.ClassNodeTypeName: string;
+class function TMetadataSetNode.ClassX3DType: string;
 begin
   Result := 'MetadataSet';
 end;
@@ -425,7 +425,7 @@ end;
 class function TMetadataSetNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TMetadataStringNode.CreateNode;
@@ -444,7 +444,7 @@ begin
   DefaultContainerField := 'metadata';
 end;
 
-class function TMetadataStringNode.ClassNodeTypeName: string;
+class function TMetadataStringNode.ClassX3DType: string;
 begin
   Result := 'MetadataString';
 end;
@@ -452,7 +452,7 @@ end;
 class function TMetadataStringNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TWorldInfoNode.CreateNode;
@@ -468,7 +468,7 @@ begin
   AddField(FFdTitle);
 end;
 
-class function TWorldInfoNode.ClassNodeTypeName: string;
+class function TWorldInfoNode.ClassX3DType: string;
 begin
   Result := 'WorldInfo';
 end;
@@ -476,8 +476,8 @@ end;
 class function TWorldInfoNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterCoreNodes;

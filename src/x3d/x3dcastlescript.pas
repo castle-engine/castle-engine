@@ -187,7 +187,7 @@ begin
      FieldClass.InheritsFrom(TMFImage) }then
     Result := TCasScriptImage.Create(true) else
   begin
-    WritelnWarning('VRML/X3D', 'Note that CastleScript is not yet suitable to process values of type ' + FieldClass.TypeName);
+    WritelnWarning('VRML/X3D', 'Note that CastleScript is not yet suitable to process values of type ' + FieldClass.X3DType);
     Result := TCasScriptFloat.Create(true);
   end;
 
@@ -427,10 +427,7 @@ begin
       TMFMatrix4d(Field).Items := TCasScriptMatrix4dArray(Value).Value else
 
     if Field is TSFImage then
-    begin
-      FreeAndNil(TSFImage(Field).Value);
-      TSFImage(Field).Value := TCasScriptImage(Value).Value.MakeCopy;
-    end else
+      TSFImage(Field).Value := TCasScriptImage(Value).Value.MakeCopy else
     {if Field is TMFImage then
     begin
       TMFImage(Field).Items := TCasScriptImageArray(Value).Value

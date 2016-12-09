@@ -42,7 +42,7 @@
     AltKey, ControlKey, ShiftKey: boolean;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event out } { }
@@ -83,7 +83,7 @@
     Active: boolean;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdDeletionAllowed: TSFBool;
@@ -167,7 +167,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TKeySensorNode.ClassNodeTypeName: string;
+class function TKeySensorNode.ClassX3DType: string;
 begin
   Result := 'KeySensor';
 end;
@@ -175,7 +175,7 @@ end;
 class function TKeySensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TKeySensorNode.KeyDown(Key: TKey; C: char; const Time: TX3DTime);
@@ -275,7 +275,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TStringSensorNode.ClassNodeTypeName: string;
+class function TStringSensorNode.ClassX3DType: string;
 begin
   Result := 'StringSensor';
 end;
@@ -283,7 +283,7 @@ end;
 class function TStringSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TStringSensorNode.KeyDown(Key: TKey; C: char; const Time: TX3DTime);

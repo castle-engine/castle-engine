@@ -26,7 +26,7 @@
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
@@ -42,7 +42,7 @@
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdSize: TSFVec3f;
@@ -75,7 +75,7 @@
   public
     procedure CreateNode; override;
     destructor Destroy; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdLevel: TSFInt32;
@@ -97,7 +97,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdEnabled: TSFBool;
@@ -119,7 +119,7 @@
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     property GeneratedTextureHandler: TGeneratedTextureHandler
@@ -206,7 +206,7 @@
   TPlaneNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdSize: TSFVec2f;
@@ -234,7 +234,7 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdStatus: TSFBool;
@@ -284,7 +284,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TMatrixTransformNode.ClassNodeTypeName: string;
+class function TMatrixTransformNode.ClassX3DType: string;
 begin
   Result := 'MatrixTransform';
 end;
@@ -292,8 +292,8 @@ end;
 class function TMatrixTransformNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName) or
-    (URN = URNKambiNodes2 + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassX3DType) or
+    (URN = URNKambiNodes2 + ClassX3DType);
 end;
 
 class function TMatrixTransformNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -370,7 +370,7 @@ begin
   AddField(FFdTexCoord);
 end;
 
-class function TTeapotNode.ClassNodeTypeName: string;
+class function TTeapotNode.ClassX3DType: string;
 begin
   Result := 'Teapot';
 end;
@@ -378,8 +378,8 @@ end;
 class function TTeapotNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName) or
-    (URN = URNKambiNodes2 + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassX3DType) or
+    (URN = URNKambiNodes2 + ClassX3DType);
 end;
 
 function TTeapotNode.Proxy(var State: TX3DGraphTraverseState;
@@ -395,7 +395,7 @@ var
   CoordNode: TCoordinateNode;
   IFS: TIndexedFaceSetNode absolute Result;
 begin
-  IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
+  IFS := TIndexedFaceSetNode.Create(Name, BaseUrl);
   try
     CoordNode := TCoordinateNode.Create('', BaseUrl);
     IFS.FdCoord.Value := CoordNode;
@@ -498,7 +498,7 @@ procedure TLoggerNode.EventWriteReceive(
     Writer: TX3DWriterNames;
   begin
     S := Format('Logger "%s": received field "%s" (%s). Time: %f.',
-      [NodeName, Value.Name, Value.TypeName, Time.Seconds]);
+      [Name, Value.Name, Value.X3DType, Time.Seconds]);
 
     if FdLevel.Value = 1 then
     begin
@@ -510,8 +510,8 @@ procedure TLoggerNode.EventWriteReceive(
       if (FdLevel.Value >= 3) and (Value.ParentNode <> nil) then
       begin
         S += Format(' Sending node: "%s" (%s).',
-          [(Value.ParentNode as TX3DNode).NodeName,
-           (Value.ParentNode as TX3DNode).NodeTypeName]);
+          [(Value.ParentNode as TX3DNode).Name,
+           (Value.ParentNode as TX3DNode).X3DType]);
       end;
 
       WriteStr(WriteStream, S + ' Value: ');
@@ -584,7 +584,7 @@ begin
   end;
 end;
 
-class function TLoggerNode.ClassNodeTypeName: string;
+class function TLoggerNode.ClassX3DType: string;
 begin
   Result := 'Logger';
 end;
@@ -592,8 +592,8 @@ end;
 class function TLoggerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName) or
-    (URN = URNKambiNodes2 + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassX3DType) or
+    (URN = URNKambiNodes2 + ClassX3DType);
 end;
 
 procedure TConverterNode.CreateNode;
@@ -621,7 +621,7 @@ begin
     EventOut.Send(Value, Time);
 end;
 
-class function TConverterNode.ClassNodeTypeName: string;
+class function TConverterNode.ClassX3DType: string;
 begin
   Result := 'Converter';
 end;
@@ -629,8 +629,8 @@ end;
 class function TConverterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName) or
-    (URN = URNKambiNodes2 + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassX3DType) or
+    (URN = URNKambiNodes2 + ClassX3DType);
 end;
 
 procedure TRenderedTextureNode.CreateNode;
@@ -743,7 +743,7 @@ begin
   inherited;
 end;
 
-class function TRenderedTextureNode.ClassNodeTypeName: string;
+class function TRenderedTextureNode.ClassX3DType: string;
 begin
   Result := 'RenderedTexture';
 end;
@@ -751,8 +751,8 @@ end;
 class function TRenderedTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName) or
-    (URN = URNKambiNodes2 + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassX3DType) or
+    (URN = URNKambiNodes2 + ClassX3DType);
 end;
 
 procedure TPlaneNode.CreateNode;
@@ -771,7 +771,7 @@ begin
   AddField(FFdSolid);
 end;
 
-class function TPlaneNode.ClassNodeTypeName: string;
+class function TPlaneNode.ClassX3DType: string;
 begin
   Result := 'Plane';
 end;
@@ -779,8 +779,8 @@ end;
 class function TPlaneNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName) or
-    (URN = URNKambiNodes2 + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassX3DType) or
+    (URN = URNKambiNodes2 + ClassX3DType);
 end;
 
 function TPlaneNode.Proxy(var State: TX3DGraphTraverseState;
@@ -855,7 +855,7 @@ begin
   AddField(FFdEnabled);
 end;
 
-class function TTogglerNode.ClassNodeTypeName: string;
+class function TTogglerNode.ClassX3DType: string;
 begin
   Result := 'Toggler';
 end;
@@ -863,8 +863,8 @@ end;
 class function TTogglerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassNodeTypeName) or
-    (URN = URNKambiNodes2 + ClassNodeTypeName);
+    (URN = URNKambiNodes + ClassX3DType) or
+    (URN = URNKambiNodes2 + ClassX3DType);
 end;
 
 procedure TTogglerNode.EventStatusReceive(

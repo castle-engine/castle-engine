@@ -227,6 +227,8 @@ type
     function Press(const Event: TInputPressRelease): boolean; override;
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
+    procedure Update(const SecondsPassed: Single;
+      var HandleInput: boolean); override;
   end;
 
   TUIStateList = class(specialize TFPGObjectList<TUIState>);
@@ -471,6 +473,14 @@ function TUIState.Motion(const Event: TInputMotion): boolean;
 begin
   Result := inherited;
   Result := Result or InterceptInput;
+end;
+
+procedure TUIState.Update(const SecondsPassed: Single;
+  var HandleInput: boolean);
+begin
+  { do not allow controls underneath to handle input }
+  if InterceptInput then
+    HandleInput := false;
 end;
 
 end.

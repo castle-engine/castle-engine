@@ -148,12 +148,16 @@
     procedure SetTexture(const Value: TAbstractTextureNode);
     function GetMaterial: TMaterialNode;
     procedure SetMaterial(const Value: TMaterialNode);
+    function GetTextureTransform: TAbstractTextureTransformNode;
+    procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
+    function GetLineProperties: TLinePropertiesNode;
+    procedure SetLineProperties(const Value: TLinePropertiesNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdFillProperties: TSFNode;
@@ -202,14 +206,35 @@
     public property FdBlendMode: TSFNode read FFdBlendMode;
 
     { The texture of this appearance.
-      This is a shortcut for accessing "texture" field,
-      checking whether nodes are set to appropriate types. }
+
+      This is a comfortable property for getting and setting the appropriate
+      X3D field, checking class types along the way and setting the value
+      through X3D events if necessary. }
     property Texture: TAbstractTextureNode read GetTexture write SetTexture;
 
-    { The material of this appearance. This only sets the simple, one-sided material node.
-      This is a shortcut for accessing "material" field,
-      checking whether nodes are set to appropriate types. }
+    { The material of this appearance.
+      This only sets the simple, one-sided material node.
+
+      This is a comfortable property for getting and setting the appropriate
+      X3D field, checking class types along the way and setting the value
+      through X3D events if necessary. }
     property Material: TMaterialNode read GetMaterial write SetMaterial;
+
+    { Texture transformation of this apperance.
+
+      This is a comfortable property for getting and setting the appropriate
+      X3D field, checking class types along the way and setting the value
+      through X3D events if necessary. }
+    property TextureTransform: TAbstractTextureTransformNode
+      read GetTextureTransform write SetTextureTransform;
+
+    { Line properties of this appearance.
+
+      This is a comfortable property for getting and setting the appropriate
+      X3D field, checking class types along the way and setting the value
+      through X3D events if necessary. }
+    property LineProperties: TLinePropertiesNode
+      read GetLineProperties write SetLineProperties;
 
     function MaterialProperty: TMaterialProperty;
   end;
@@ -217,7 +242,7 @@
   TFillPropertiesNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdFilled: TSFBool;
@@ -247,7 +272,7 @@
     procedure SetLineType(const Value: TLineType);
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdApplied: TSFBool;
@@ -268,7 +293,7 @@
   TMaterialNode = class(TAbstractMaterialNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAmbientIntensity: TSFFloat;
@@ -417,14 +442,14 @@
   TShapeNode = class(TAbstractShapeNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
   TTwoSidedMaterialNode = class(TAbstractMaterialNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAmbientIntensity: TSFFloat;
@@ -581,28 +606,28 @@ end;
 
 function TAbstractShapeNode.GetGeometry: TAbstractX3DGeometryNode;
 begin
-  if (FdGeometry.Value <> nil) and
-     (FdGeometry.Value is TAbstractX3DGeometryNode) then
-    Result := TAbstractX3DGeometryNode(FdGeometry.Value) else
+  if FdGeometry.Value is TAbstractX3DGeometryNode then
+    Result := TAbstractX3DGeometryNode(FdGeometry.Value)
+  else
     Result := nil;
 end;
 
 procedure TAbstractShapeNode.SetGeometry(const Value: TAbstractX3DGeometryNode);
 begin
-  FdGeometry.Value := Value;
+  FdGeometry.Send(Value);
 end;
 
 function TAbstractShapeNode.GetAppearance: TAppearanceNode;
 begin
-  if (FdAppearance.Value <> nil) and
-     (FdAppearance.Value is TAppearanceNode) then
-    Result := TAppearanceNode(FdAppearance.Value) else
+  if FdAppearance.Value is TAppearanceNode then
+    Result := TAppearanceNode(FdAppearance.Value)
+  else
     Result := nil;
 end;
 
 procedure TAbstractShapeNode.SetAppearance(const Value: TAppearanceNode);
 begin
-  FdAppearance.Value := Value;
+  FdAppearance.Send(Value);
 end;
 
 function TAbstractShapeNode.GetMaterial: TMaterialNode;
@@ -610,10 +635,9 @@ var
   App: TAppearanceNode;
 begin
   App := Appearance;
-  if (App <> nil) and
-     (App.FdMaterial.Value <> nil) and
-     (App.FdMaterial.Value is TMaterialNode) then
-    Result := TMaterialNode(App.FdMaterial.Value) else
+  if App <> nil then
+    Result := App.Material
+  else
     Result := nil;
 end;
 
@@ -623,13 +647,14 @@ var
 begin
   App := Appearance;
   if App <> nil then
-    App.FdMaterial.Value := Value else
+    App.Material := Value
+  else
   if Value <> nil then
   begin
     App := TAppearanceNode.Create('', BaseUrl);
     App.Scene := Scene;
+    App.Material := Value;
     Appearance := App;
-    App.FdMaterial.Value := Value;
   end;
 end;
 
@@ -638,10 +663,9 @@ var
   App: TAppearanceNode;
 begin
   App := Appearance;
-  if (App <> nil) and
-     (App.FdTexture.Value <> nil) and
-     (App.FdTexture.Value is TAbstractTextureNode) then
-    Result := TAbstractTextureNode(App.FdTexture.Value) else
+  if App <> nil then
+    Result := App.Texture
+  else
     Result := nil;
 end;
 
@@ -651,13 +675,14 @@ var
 begin
   App := Appearance;
   if App <> nil then
-    App.FdTexture.Value := Value else
+    App.Texture := Value
+  else
   if Value <> nil then
   begin
     App := TAppearanceNode.Create('', BaseUrl);
     App.Scene := Scene;
+    App.Texture := Value;
     Appearance := App;
-    App.FdTexture.Value := Value;
   end;
 end;
 
@@ -666,10 +691,9 @@ var
   App: TAppearanceNode;
 begin
   App := Appearance;
-  if (App <> nil) and
-     (App.FdTextureTransform.Value <> nil) and
-     (App.FdTextureTransform.Value is TAbstractTextureTransformNode) then
-    Result := TAbstractTextureTransformNode(App.FdTextureTransform.Value) else
+  if App <> nil then
+    Result := App.TextureTransform
+  else
     Result := nil;
 end;
 
@@ -679,13 +703,14 @@ var
 begin
   App := Appearance;
   if App <> nil then
-    App.FdTextureTransform.Value := Value else
+    App.TextureTransform := Value
+  else
   if Value <> nil then
   begin
     App := TAppearanceNode.Create('', BaseUrl);
     App.Scene := Scene;
+    App.TextureTransform := Value;
     Appearance := App;
-    App.FdTextureTransform.Value := Value;
   end;
 end;
 
@@ -694,10 +719,9 @@ var
   App: TAppearanceNode;
 begin
   App := Appearance;
-  if (App <> nil) and
-     (App.FdLineProperties.Value <> nil) and
-     (App.FdLineProperties.Value is TLinePropertiesNode) then
-    Result := TLinePropertiesNode(App.FdLineProperties.Value) else
+  if App <> nil then
+    Result := App.LineProperties
+  else
     Result := nil;
 end;
 
@@ -707,13 +731,14 @@ var
 begin
   App := Appearance;
   if App <> nil then
-    App.FdLineProperties.Value := Value else
+    App.LineProperties := Value
+  else
   if Value <> nil then
   begin
     App := TAppearanceNode.Create('', BaseUrl);
     App.Scene := Scene;
+    App.LineProperties := Value;
     Appearance := App;
-    App.FdLineProperties.Value := Value;
   end;
 end;
 
@@ -792,7 +817,7 @@ begin
   DefaultContainerField := 'appearance';
 end;
 
-class function TAppearanceNode.ClassNodeTypeName: string;
+class function TAppearanceNode.ClassX3DType: string;
 begin
   Result := 'Appearance';
 end;
@@ -800,8 +825,8 @@ end;
 class function TAppearanceNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TMFNodeShaders.ExposedEventsFieldClass: TX3DFieldClass;
@@ -844,28 +869,54 @@ end;
 
 function TAppearanceNode.GetTexture: TAbstractTextureNode;
 begin
-  if (FdTexture.Value <> nil) and
-     (FdTexture.Value is TAbstractTextureNode) then
-    Result := TAbstractTextureNode(FdTexture.Value) else
+  if FdTexture.Value is TAbstractTextureNode then
+    Result := TAbstractTextureNode(FdTexture.Value)
+  else
     Result := nil;
 end;
 
 procedure TAppearanceNode.SetTexture(const Value: TAbstractTextureNode);
 begin
-  FdTexture.Value := Value;
+  FdTexture.Send(Value);
 end;
 
 function TAppearanceNode.GetMaterial: TMaterialNode;
 begin
-  if (FdMaterial.Value <> nil) and
-     (FdMaterial.Value is TMaterialNode) then
-    Result := TMaterialNode(FdMaterial.Value) else
+  if FdMaterial.Value is TMaterialNode then
+    Result := TMaterialNode(FdMaterial.Value)
+  else
     Result := nil;
 end;
 
 procedure TAppearanceNode.SetMaterial(const Value: TMaterialNode);
 begin
-  FdMaterial.Value := Value;
+  FdMaterial.Send(Value);
+end;
+
+function TAppearanceNode.GetTextureTransform: TAbstractTextureTransformNode;
+begin
+  if FdTextureTransform.Value is TAbstractTextureTransformNode then
+    Result := TAbstractTextureTransformNode(FdTextureTransform.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetTextureTransform(const Value: TAbstractTextureTransformNode);
+begin
+  FdTextureTransform.Send(Value);
+end;
+
+function TAppearanceNode.GetLineProperties: TLinePropertiesNode;
+begin
+  if FdLineProperties.Value is TLinePropertiesNode then
+    Result := TLinePropertiesNode(FdLineProperties.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetLineProperties(const Value: TLinePropertiesNode);
+begin
+  FdLineProperties.Send(Value);
 end;
 
 function TAppearanceNode.MaterialProperty: TMaterialProperty;
@@ -939,7 +990,7 @@ begin
   DefaultContainerField := 'fillProperties';
 end;
 
-class function TFillPropertiesNode.ClassNodeTypeName: string;
+class function TFillPropertiesNode.ClassX3DType: string;
 begin
   Result := 'FillProperties';
 end;
@@ -947,7 +998,7 @@ end;
 class function TFillPropertiesNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TLinePropertiesNode.CreateNode;
@@ -968,7 +1019,7 @@ begin
   DefaultContainerField := 'lineProperties';
 end;
 
-class function TLinePropertiesNode.ClassNodeTypeName: string;
+class function TLinePropertiesNode.ClassX3DType: string;
 begin
   Result := 'LineProperties';
 end;
@@ -976,7 +1027,7 @@ end;
 class function TLinePropertiesNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TLinePropertiesNode.GetLineType: TLineType;
@@ -1070,7 +1121,7 @@ begin
   AddField(FFdTransSpecularExp);
 end;
 
-class function TMaterialNode.ClassNodeTypeName: string;
+class function TMaterialNode.ClassX3DType: string;
 begin
   Result := 'Material';
 end;
@@ -1078,8 +1129,8 @@ end;
 class function TMaterialNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 class function TMaterialNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -1223,7 +1274,7 @@ begin
   inherited;
 end;
 
-class function TShapeNode.ClassNodeTypeName: string;
+class function TShapeNode.ClassX3DType: string;
 begin
   Result := 'Shape';
 end;
@@ -1231,8 +1282,8 @@ end;
 class function TShapeNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TTwoSidedMaterialNode.CreateNode;
@@ -1304,7 +1355,7 @@ begin
   { X3D specification comment: [0,1] }
 end;
 
-class function TTwoSidedMaterialNode.ClassNodeTypeName: string;
+class function TTwoSidedMaterialNode.ClassX3DType: string;
 begin
   Result := 'TwoSidedMaterial';
 end;
@@ -1312,7 +1363,7 @@ end;
 class function TTwoSidedMaterialNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterShapeNodes;

@@ -18,7 +18,7 @@
   TDISEntityManagerNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAddress: TSFString;
@@ -48,7 +48,7 @@
   TDISEntityTypeMappingNode = class(TAbstractInfoNode, IAbstractUrlObject)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdUrl: TMFString;
@@ -79,7 +79,7 @@
   TEspduTransformNode = class(TAbstractX3DGroupingNode, IAbstractSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
@@ -362,7 +362,7 @@
   TReceiverPduNode = class(TAbstractSensorNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAddress: TSFString;
@@ -452,7 +452,7 @@
   TSignalPduNode = class(TAbstractSensorNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAddress: TSFString;
@@ -542,7 +542,7 @@
   TTransmitterPduNode = class(TAbstractSensorNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdAddress: TSFString;
@@ -711,7 +711,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TDISEntityManagerNode.ClassNodeTypeName: string;
+class function TDISEntityManagerNode.ClassX3DType: string;
 begin
   Result := 'DISEntityManager';
 end;
@@ -719,7 +719,7 @@ end;
 class function TDISEntityManagerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TDISEntityTypeMappingNode.CreateNode;
@@ -768,7 +768,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TDISEntityTypeMappingNode.ClassNodeTypeName: string;
+class function TDISEntityTypeMappingNode.ClassX3DType: string;
 begin
   Result := 'DISEntityTypeMapping';
 end;
@@ -776,7 +776,7 @@ end;
 class function TDISEntityTypeMappingNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TEspduTransformNode.CreateNode;
@@ -1083,7 +1083,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TEspduTransformNode.ClassNodeTypeName: string;
+class function TEspduTransformNode.ClassX3DType: string;
 begin
   Result := 'EspduTransform';
 end;
@@ -1091,7 +1091,7 @@ end;
 class function TEspduTransformNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TReceiverPduNode.CreateNode;
@@ -1198,7 +1198,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TReceiverPduNode.ClassNodeTypeName: string;
+class function TReceiverPduNode.ClassX3DType: string;
 begin
   Result := 'ReceiverPdu';
 end;
@@ -1206,7 +1206,7 @@ end;
 class function TReceiverPduNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TSignalPduNode.CreateNode;
@@ -1313,7 +1313,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TSignalPduNode.ClassNodeTypeName: string;
+class function TSignalPduNode.ClassX3DType: string;
 begin
   Result := 'SignalPdu';
 end;
@@ -1321,7 +1321,7 @@ end;
 class function TSignalPduNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TTransmitterPduNode.CreateNode;
@@ -1491,7 +1491,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TTransmitterPduNode.ClassNodeTypeName: string;
+class function TTransmitterPduNode.ClassX3DType: string;
 begin
   Result := 'TransmitterPdu';
 end;
@@ -1499,7 +1499,7 @@ end;
 class function TTransmitterPduNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure RegisterDISNodes;

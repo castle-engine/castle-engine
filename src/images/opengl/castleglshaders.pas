@@ -721,8 +721,7 @@ begin
   begin
     { Invalid glUniform call, that specifies wrong uniform variable type,
       may cause OpenGL error "invalid operation". We want to catch it.
-      We cleaned GL error at the beginning of SetUniform
-      (at the end of macro glGetUniformLocation*), so if there's an error
+      We cleaned GL error at the SetValueBegin, so if there's an error
       now --- we know it's because of glUniform. }
     ErrorCode := glGetError();
     if ErrorCode <> GL_NO_ERROR then

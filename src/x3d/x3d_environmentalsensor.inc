@@ -37,7 +37,7 @@
   TProximitySensorNode = class(TAbstractEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
@@ -57,7 +57,7 @@
   TTransformSensorNode = class(TAbstractEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdTargetObject: TSFNode;
@@ -77,7 +77,7 @@
     FIsActive: boolean;
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
     function Box: TBox3D;
@@ -128,7 +128,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TProximitySensorNode.ClassNodeTypeName: string;
+class function TProximitySensorNode.ClassX3DType: string;
 begin
   Result := 'ProximitySensor';
 end;
@@ -136,8 +136,8 @@ end;
 class function TProximitySensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TProximitySensorNode.TransformationChange: TNodeTransformationChange;
@@ -161,7 +161,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TTransformSensorNode.ClassNodeTypeName: string;
+class function TTransformSensorNode.ClassX3DType: string;
 begin
   Result := 'TransformSensor';
 end;
@@ -169,7 +169,7 @@ end;
 class function TTransformSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 procedure TVisibilitySensorNode.CreateNode;
@@ -178,7 +178,7 @@ begin
   DefaultContainerField := 'children';
 end;
 
-class function TVisibilitySensorNode.ClassNodeTypeName: string;
+class function TVisibilitySensorNode.ClassX3DType: string;
 begin
   Result := 'VisibilitySensor';
 end;
@@ -186,8 +186,8 @@ end;
 class function TVisibilitySensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNVRML97Nodes + ClassNodeTypeName) or
-    (URN = URNX3DNodes + ClassNodeTypeName);
+    (URN = URNVRML97Nodes + ClassX3DType) or
+    (URN = URNX3DNodes + ClassX3DType);
 end;
 
 function TVisibilitySensorNode.TransformationChange: TNodeTransformationChange;

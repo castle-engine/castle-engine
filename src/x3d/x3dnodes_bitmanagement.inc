@@ -23,14 +23,14 @@
 {$ifdef read_interface}
   TCircleNode = class(TCircle2DNode)
   public
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 
   TLayer2DNode = class(TGroupNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdTranslation: TSFVec2f;
@@ -49,7 +49,7 @@
   TLayer3DNode = class(TGroupNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
@@ -88,7 +88,7 @@
   TMouseSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdEventsProcessed: TSFBool;
@@ -121,13 +121,13 @@
 
   TOrderedGroupNode = class(TGroupNode)
   public
-    class function ClassNodeTypeName: string; override;
+    class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
   end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
-class function TCircleNode.ClassNodeTypeName: string;
+class function TCircleNode.ClassX3DType: string;
 begin
   Result := 'Circle';
 end;
@@ -135,7 +135,7 @@ end;
 class function TCircleNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNBitManagementNodes + ClassNodeTypeName);
+    (URN = URNBitManagementNodes + ClassX3DType);
 end;
 
 procedure TLayer2DNode.CreateNode;
@@ -155,7 +155,7 @@ begin
   AddField(FFdViewport);
 end;
 
-class function TLayer2DNode.ClassNodeTypeName: string;
+class function TLayer2DNode.ClassX3DType: string;
 begin
   Result := 'Layer2D';
 end;
@@ -163,7 +163,7 @@ end;
 class function TLayer2DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNBitManagementNodes + ClassNodeTypeName);
+    (URN = URNBitManagementNodes + ClassX3DType);
 end;
 
 procedure TLayer3DNode.CreateNode;
@@ -201,7 +201,7 @@ begin
   AddField(FFdViewpoint);
 end;
 
-class function TLayer3DNode.ClassNodeTypeName: string;
+class function TLayer3DNode.ClassX3DType: string;
 begin
   Result := 'Layer3D';
 end;
@@ -209,7 +209,7 @@ end;
 class function TLayer3DNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNBitManagementNodes + ClassNodeTypeName);
+    (URN = URNBitManagementNodes + ClassX3DType);
 end;
 
 procedure TMouseSensorNode.CreateNode;
@@ -238,7 +238,7 @@ begin
   AddEvent(FEventMouseWheel);
 end;
 
-class function TMouseSensorNode.ClassNodeTypeName: string;
+class function TMouseSensorNode.ClassX3DType: string;
 begin
   Result := 'MouseSensor';
 end;
@@ -246,10 +246,10 @@ end;
 class function TMouseSensorNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNBitManagementNodes + ClassNodeTypeName);
+    (URN = URNBitManagementNodes + ClassX3DType);
 end;
 
-class function TOrderedGroupNode.ClassNodeTypeName: string;
+class function TOrderedGroupNode.ClassX3DType: string;
 begin
   Result := 'OrderedGroup';
 end;
@@ -257,7 +257,7 @@ end;
 class function TOrderedGroupNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNBitManagementNodes + ClassNodeTypeName);
+    (URN = URNBitManagementNodes + ClassX3DType);
 end;
 
 procedure RegisterBitManagementNodes;

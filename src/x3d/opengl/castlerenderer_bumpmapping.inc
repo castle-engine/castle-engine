@@ -5,7 +5,6 @@
   TBumpMappingRenderer = class(TResourceRenderer)
   private
     class function IsImageTexture(ANode: TX3DNode): boolean;
-    class function IsGLImageTexture(GLNode: TGLTextureNode): boolean;
   public
     { ANode must be TAppearanceNode }
     constructor Create(ARenderer: TGLRenderer; ANode: TX3DNode); override;
@@ -73,16 +72,7 @@ class function TBumpMappingRenderer.IsImageTexture(ANode: TX3DNode): boolean;
 begin
   Result :=
     (ANode <> nil) and
-    (ANode is TAbstractTexture2DNode) and
-    (not (ANode is TMovieTextureNode));
-end;
-
-class function TBumpMappingRenderer.IsGLImageTexture(GLNode: TGLTextureNode): boolean;
-begin
-  Result :=
-    (GLNode <> nil) and
-    (GLNode is TGLImageTextureNode) and
-    (TGLImageTextureNode(GLNode).GLName <> 0);
+    (ANode is TAbstractTexture2DNode);
 end;
 
 procedure TBumpMappingRenderer.Prepare(State: TX3DGraphTraverseState);
@@ -125,15 +115,19 @@ function TBumpMappingRenderer.Enable(var BoundTextureUnits: Cardinal;
   function GLTexture(Node: TX3DNode; out HeightMapInAlpha: boolean): TGLuint;
   var
     GLNode: TGLTextureNode;
-    ImageGLNode: TGLImageTextureNode absolute GLNode;
   begin
     Result := 0;
     if IsImageTexture(Node) then
     begin
       GLNode := Renderer.GLTextureNodes.TextureNode(TAbstractTexture2DNode(Node));
-      if IsGLImageTexture(GLNode) then
+      if GLNode <> nil then
       begin
-        Result := ImageGLNode.GLName;
+        if GLNode is TGLImageTextureNode then
+          Result := TGLImageTextureNode(GLNode).GLName
+        else
+        if GLNode is TGLMovieTextureNode then
+          Result := TGLMovieTextureNode(GLNode).GLName;
+
         HeightMapInAlpha := TAbstractTextureNode(Node).AlphaChannelFinal <> acNone;
       end;
     end;

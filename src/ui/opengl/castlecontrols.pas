@@ -806,7 +806,7 @@ type
       WindowMargin = 10;
       ButtonHorizontalMargin = 10;
     type
-      TDialogScrollArea = class(TUIControl)
+      TDialogScrollArea = class(TUIControlSizeable)
       strict private
         Dialog: TCastleDialog;
       public
@@ -1343,11 +1343,12 @@ type
     property IntervalSeconds: TFloatTime read FIntervalSeconds write SetIntervalSeconds;
     { The event called periodically. }
     property OnTimer: TNotifyEvent read FOnTimer write FOnTimer;
-    { Should be counteract the delays in timer by firing next event sooner.
+    { Should we counteract the delays in timer by firing next event sooner.
       This helps to keep a constant frequency of timer events over a long time,
-      but it may cause to execute a @italic(lot) of timer events in case
-      the application hung for some time. Use if it is necessary
-      e.g. to synchronize with other timers. }
+      and to keep multiple things (like multiple timer instances)
+      perfectly synchronized with each other.
+      But it may cause to execute a @italic(lot) of timer events at once,
+      in case the application hung for some time. }
     property CounteractDelays: boolean
       read FCounteractDelays write FCounteractDelays default false;
   end;
@@ -3267,6 +3268,7 @@ constructor TCastleDialog.TDialogScrollArea.Create(AOwner: TComponent);
 begin
   inherited;
   Dialog := AOwner as TCastleDialog;
+  FullSize := true; // we want our ScreenRect to be equal to parent
 end;
 
 procedure TCastleDialog.TDialogScrollArea.Render;
@@ -3332,7 +3334,14 @@ begin
   { draw Broken_InputText and Broken_Text.
     Order matters, as it's drawn from bottom to top. }
   if Dialog.DrawInputText then
-    DrawStrings(TextX, TextY, Theme.MessageInputTextColor, Dialog.Broken_InputText, Dialog.TextAlign, true);
+    DrawStrings(TextX, TextY, Theme.MessageInputTextColor,
+      Dialog.Broken_InputText, Dialog.TextAlign, true);
+
+  { adjust TextX for TRichText.Print call }
+  case Dialog.TextAlign of
+    hpMiddle: TextX := (SR.Left + SR.Right) div 2;
+    hpRight : TextX := SR.Right - Dialog.BoxMarginScaled;
+  end;
   Dialog.Broken_Text.Print(TextX, TextY, Theme.MessageTextColor, 0, Dialog.TextAlign);
 end;
 
