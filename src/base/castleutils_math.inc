@@ -211,7 +211,7 @@ function BiggestPowerOf2(Value: Cardinal): Cardinal;
 { Exponent of the largest power of 2 that it's still <= Value.
   Like BiggestPowerOf2, except that this returns which power of 2 it is,
   while BiggestPowerOf2 just returns exactly this power.
-  Bigget2Exponent(0) = -1. }
+  Biggest2Exponent(0) = -1. }
 function Biggest2Exponent(Value: Cardinal): integer;
 
 { Smallest exponent such that 2^this exponent is >= Value.
