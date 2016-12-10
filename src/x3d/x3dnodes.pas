@@ -2029,9 +2029,6 @@ const
   DefaultRenderedTextureWidth  = 128;
   DefaultRenderedTextureHeight = 128;
 
-  DefaultShadowMapScale = 1.1;
-  DefaultShadowMapBias = 4.0;
-
   VRML1Version: TX3DVersion = (Major: 1; Minor: 0);
   VRML2Version: TX3DVersion = (Major: 2; Minor: 0);
   { Latest X3D version supported. }

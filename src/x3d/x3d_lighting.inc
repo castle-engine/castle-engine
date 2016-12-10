@@ -43,9 +43,20 @@
     SavedDefaultShadowMapScale: Single;
     SavedDefaultShadowMapBias: Single;
     SavedDefaultShadowMapCompareMode: string;
+  strict private
+    function  GetProjectionSceneLocation: TVector3Single;
+    procedure SetProjectionSceneLocation(const Value: TVector3Single);
+    function  GetProjectionSceneDirection: TVector3Single;
+    procedure SetProjectionSceneDirection(const Value: TVector3Single);
+    function GetDefaultShadowMap: TGeneratedShadowMapNode;
+    procedure SetDefaultShadowMap(const Value: TGeneratedShadowMapNode);
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
+    function  GetProjectionLocationLocal: TVector3Single; virtual;
+    procedure SetProjectionLocationLocal(const Value: TVector3Single); virtual;
+    function  GetProjectionDirectionLocal: TVector3Single; virtual;
+    procedure SetProjectionDirectionLocal(const Value: TVector3Single); virtual;
   public
     procedure CreateNode; override;
 
@@ -77,7 +88,7 @@
 
     private FFdProjectionNear: TSFFloat;
     { projectionNear / projectionFar / up are Kambi extensions, see
-      [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_light_projective] }
+      [http://castle-engine.sourceforge.net/x3d_extensions_shadow_maps.php#section_light_parameters] }
     public property FdProjectionNear: TSFFloat read FFdProjectionNear;
 
     private FFdProjectionFar: TSFFloat;
@@ -88,6 +99,8 @@
 
     private FFdDefaultShadowMap: TSFNode;
     public property FdDefaultShadowMap: TSFNode read FFdDefaultShadowMap;
+    property DefaultShadowMap: TGeneratedShadowMapNode
+      read GetDefaultShadowMap write SetDefaultShadowMap;
 
     private FFdShadows: TSFBool;
     public property FdShadows: TSFBool read FFdShadows;
@@ -129,10 +142,22 @@
       have a direction).
 
       @groupBegin }
-    function ProjectionLocationLocal: TVector3Single; virtual;
-    function ProjectionLocation: TVector3Single;
-    function ProjectionDirectionLocal: TVector3Single; virtual;
-    function ProjectionDirection: TVector3Single;
+    property   ProjectionLocationLocal: TVector3Single
+      read  GetProjectionLocationLocal
+      write SetProjectionLocationLocal;
+
+    property   ProjectionDirectionLocal: TVector3Single
+      read  GetProjectionDirectionLocal
+      write SetProjectionDirectionLocal;
+
+    property   ProjectionSceneLocation: TVector3Single
+      read  GetProjectionSceneLocation
+      write SetProjectionSceneLocation;
+
+    property   ProjectionSceneDirection: TVector3Single
+      read  GetProjectionSceneDirection
+      write SetProjectionSceneDirection;
+
     procedure GetView(out Pos, Dir, Up: TVector3Single);
     { @groupEnd }
 
@@ -196,6 +221,11 @@
     procedure SetProjectionRectangle(const Value: TVector4Single);
     function GetProjectionLocation: TVector3Single;
     procedure SetProjectionLocation(const Value: TVector3Single);
+  protected
+    function  GetProjectionLocationLocal: TVector3Single; override;
+    procedure SetProjectionLocationLocal(const Value: TVector3Single); override;
+    function  GetProjectionDirectionLocal: TVector3Single; override;
+    procedure SetProjectionDirectionLocal(const Value: TVector3Single); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -217,8 +247,6 @@
     function ProjectionMatrix: TMatrix4Single; override;
     function ModelviewMatrix: TMatrix4Single; override;
     function ModelviewRotationMatrix: TMatrix4Single; override;
-    function ProjectionLocationLocal: TVector3Single; override;
-    function ProjectionDirectionLocal: TVector3Single; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
     function Position: TVector4Single; override;
@@ -291,11 +319,13 @@
   end;
 
   TAbstractPointLightNode = class(TAbstractPositionalLightNode)
+  protected
+    function  GetProjectionLocationLocal: TVector3Single; override;
+    procedure SetProjectionLocationLocal(const Value: TVector3Single); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    function ProjectionLocationLocal: TVector3Single; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
   end;
@@ -321,6 +351,11 @@
   TPointLightNode_2 = TPointLightNode;
 
   TSpotLightNode = class(TAbstractPositionalLightNode)
+  protected
+    function  GetProjectionLocationLocal: TVector3Single; override;
+    procedure SetProjectionLocationLocal(const Value: TVector3Single); override;
+    function  GetProjectionDirectionLocal: TVector3Single; override;
+    procedure SetProjectionDirectionLocal(const Value: TVector3Single); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -346,8 +381,6 @@
     function ProjectionMatrix: TMatrix4Single; override;
     function ModelviewMatrix: TMatrix4Single; override;
     function ModelviewRotationMatrix: TMatrix4Single; override;
-    function ProjectionLocationLocal: TVector3Single; override;
-    function ProjectionDirectionLocal: TVector3Single; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
 
@@ -363,7 +396,7 @@
     function SpotCosCutoff: Single;
 
     { Approximate spot exponent that could be used to render this spot light.
-      Do not use this, unless you really don't have to.
+      Do not use this, unless you really have to.
       X3D spot light should have a linear fallback, from beamWidth to cutOffAngle,
       and there is no sensible way to approximate it by an exponent.
       Use this only if you have to render spot light with exponent,
@@ -488,30 +521,50 @@ begin
   Result := ProjectionMatrix * ModelviewMatrix;
 end;
 
-function TAbstractLightNode.ProjectionLocationLocal: TVector3Single;
+function TAbstractLightNode.GetProjectionLocationLocal: TVector3Single;
 begin
   Result := ZeroVector3Single;
 end;
 
-function TAbstractLightNode.ProjectionLocation: TVector3Single;
+procedure TAbstractLightNode.SetProjectionLocationLocal(const Value: TVector3Single);
+begin
+  { ignored }
+end;
+
+function TAbstractLightNode.GetProjectionDirectionLocal: TVector3Single;
+begin
+  Result := ZeroVector3Single;
+end;
+
+procedure TAbstractLightNode.SetProjectionDirectionLocal(const Value: TVector3Single);
+begin
+  { ignored }
+end;
+
+function TAbstractLightNode.GetProjectionSceneLocation: TVector3Single;
 begin
   Result := MatrixMultPoint(Transform, ProjectionLocationLocal);
 end;
 
-function TAbstractLightNode.ProjectionDirection: TVector3Single;
+procedure TAbstractLightNode.SetProjectionSceneLocation(const Value: TVector3Single);
+begin
+  ProjectionLocationLocal := MatrixMultPoint(InvertedTransform, Value);
+end;
+
+function TAbstractLightNode.GetProjectionSceneDirection: TVector3Single;
 begin
   Result := MatrixMultDirection(Transform, ProjectionDirectionLocal);
 end;
 
-function TAbstractLightNode.ProjectionDirectionLocal: TVector3Single;
+procedure TAbstractLightNode.SetProjectionSceneDirection(const Value: TVector3Single);
 begin
-  Result := ZeroVector3Single;
+  ProjectionDirectionLocal := MatrixMultDirection(InvertedTransform, Value);
 end;
 
 procedure TAbstractLightNode.GetView(out Pos, Dir, Up: TVector3Single);
 begin
-  Pos := MatrixMultPoint    (Transform, ProjectionLocationLocal);
-  Dir := MatrixMultDirection(Transform, ProjectionDirectionLocal);
+  Pos := ProjectionSceneLocation;
+  Dir := ProjectionSceneDirection;
 
   Up := FdUp.Value;
   { Up = zero means "calculate anything suitable".
@@ -594,6 +647,19 @@ begin
     Result := lsLocal;
 end;
 
+function TAbstractLightNode.GetDefaultShadowMap: TGeneratedShadowMapNode;
+begin
+  if FdDefaultShadowMap.Value is TGeneratedShadowMapNode then
+    Result := TGeneratedShadowMapNode(FdDefaultShadowMap.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractLightNode.SetDefaultShadowMap(const Value: TGeneratedShadowMapNode);
+begin
+  FdDefaultShadowMap.Send(Value);
+end;
+
 procedure TAbstractDirectionalLightNode.CreateNode;
 begin
   inherited;
@@ -668,20 +734,30 @@ begin
   Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
 end;
 
-function TAbstractDirectionalLightNode.ProjectionLocationLocal: TVector3Single;
+function TAbstractDirectionalLightNode.GetProjectionLocationLocal: TVector3Single;
 begin
   Result := FdProjectionLocation.Value;
 end;
 
-function TAbstractDirectionalLightNode.ProjectionDirectionLocal: TVector3Single;
+procedure TAbstractDirectionalLightNode.SetProjectionLocationLocal(const Value: TVector3Single);
+begin
+  FdProjectionLocation.Send(Value);
+end;
+
+function TAbstractDirectionalLightNode.GetProjectionDirectionLocal: TVector3Single;
 begin
   Result := FdDirection.Value;
+end;
+
+procedure TAbstractDirectionalLightNode.SetProjectionDirectionLocal(const Value: TVector3Single);
+begin
+  FdDirection.Send(Value);
 end;
 
 procedure TAbstractDirectionalLightNode.Box3DDistances(const Box: TBox3D;
   out MinDistance, MaxDistance: Single);
 begin
-  Box.DirectionDistances(ProjectionLocation, ProjectionDirection, MinDistance, MaxDistance);
+  Box.DirectionDistances(ProjectionSceneLocation, ProjectionSceneDirection, MinDistance, MaxDistance);
 end;
 
 function TAbstractDirectionalLightNode.Position: TVector4Single;
@@ -867,15 +943,20 @@ begin
   Result := 'PointLight';
 end;
 
-function TAbstractPointLightNode.ProjectionLocationLocal: TVector3Single;
+function TAbstractPointLightNode.GetProjectionLocationLocal: TVector3Single;
 begin
   Result := FdLocation.Value;
+end;
+
+procedure TAbstractPointLightNode.SetProjectionLocationLocal(const Value: TVector3Single);
+begin
+  FdLocation.Send(Value);
 end;
 
 procedure TAbstractPointLightNode.Box3DDistances(const Box: TBox3D;
   out MinDistance, MaxDistance: Single);
 begin
-  Box.PointDistances(ProjectionLocation, MinDistance, MaxDistance);
+  Box.PointDistances(ProjectionSceneLocation, MinDistance, MaxDistance);
 end;
 
 procedure TDirectionalLightNode.CreateNode;
@@ -1012,14 +1093,24 @@ begin
   Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
 end;
 
-function TSpotLightNode.ProjectionLocationLocal: TVector3Single;
+function TSpotLightNode.GetProjectionLocationLocal: TVector3Single;
 begin
   Result := FdLocation.Value;
 end;
 
-function TSpotLightNode.ProjectionDirectionLocal: TVector3Single;
+procedure TSpotLightNode.SetProjectionLocationLocal(const Value: TVector3Single);
+begin
+  FdLocation.Send(Value);
+end;
+
+function TSpotLightNode.GetProjectionDirectionLocal: TVector3Single;
 begin
   Result := FdDirection.Value;
+end;
+
+procedure TSpotLightNode.SetProjectionDirectionLocal(const Value: TVector3Single);
+begin
+  FdDirection.Send(Value);
 end;
 
 procedure TSpotLightNode.Box3DDistances(const Box: TBox3D;
@@ -1027,7 +1118,7 @@ procedure TSpotLightNode.Box3DDistances(const Box: TBox3D;
 begin
   { TODO: MaxDistance should be a little larger, as spot light rays
     are not parallel. }
-  Box.DirectionDistances(ProjectionLocation, ProjectionDirection, MinDistance, MaxDistance);
+  Box.DirectionDistances(ProjectionSceneLocation, ProjectionSceneDirection, MinDistance, MaxDistance);
 end;
 
 function TSpotLightNode.SpotCutoffDeg: Single;

@@ -725,6 +725,11 @@
   end;
 
   TSpotLightNode_1 = class(TAbstractPositionalLightNode)
+  protected
+    function  GetProjectionLocationLocal: TVector3Single; override;
+    procedure SetProjectionLocationLocal(const Value: TVector3Single); override;
+    function  GetProjectionDirectionLocal: TVector3Single; override;
+    procedure SetProjectionDirectionLocal(const Value: TVector3Single); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -764,8 +769,6 @@
     function ProjectionMatrix: TMatrix4Single; override;
     function ModelviewMatrix: TMatrix4Single; override;
     function ModelviewRotationMatrix: TMatrix4Single; override;
-    function ProjectionLocationLocal: TVector3Single; override;
-    function ProjectionDirectionLocal: TVector3Single; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
     function HasRadius: boolean; override;
@@ -2371,14 +2374,24 @@ begin
   Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
 end;
 
-function TSpotLightNode_1.ProjectionLocationLocal: TVector3Single;
+function TSpotLightNode_1.GetProjectionLocationLocal: TVector3Single;
 begin
   Result := FdLocation.Value;
 end;
 
-function TSpotLightNode_1.ProjectionDirectionLocal: TVector3Single;
+procedure TSpotLightNode_1.SetProjectionLocationLocal(const Value: TVector3Single);
+begin
+  FdLocation.Send(Value);
+end;
+
+function TSpotLightNode_1.GetProjectionDirectionLocal: TVector3Single;
 begin
   Result := FdDirection.Value;
+end;
+
+procedure TSpotLightNode_1.SetProjectionDirectionLocal(const Value: TVector3Single);
+begin
+  FdDirection.Send(Value);
 end;
 
 function TSpotLightNode_1.HasRadius: boolean;
@@ -2391,7 +2404,7 @@ procedure TSpotLightNode_1.Box3DDistances(const Box: TBox3D;
 begin
   { TODO: MaxDistance should be a little larger, as spot light rays
     are not parallel. }
-  Box.DirectionDistances(ProjectionLocation, ProjectionDirection, MinDistance, MaxDistance);
+  Box.DirectionDistances(ProjectionSceneLocation, ProjectionSceneDirection, MinDistance, MaxDistance);
 end;
 
 function TSpotLightNode_1.Scope: TLightScope;
