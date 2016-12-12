@@ -37,12 +37,6 @@
   TAbstractLightNode = class(TAbstractChildNode)
   private
     FTransform, FInvertedTransform: TMatrix4Single;
-    SavedDefaultShadowMap: boolean;
-    SavedDefaultShadowMapUpdate: TTextureUpdate;
-    SavedDefaultShadowMapSize: Integer;
-    SavedDefaultShadowMapScale: Single;
-    SavedDefaultShadowMapBias: Single;
-    SavedDefaultShadowMapCompareMode: string;
   strict private
     function  GetProjectionSceneLocation: TVector3Single;
     procedure SetProjectionSceneLocation(const Value: TVector3Single);
@@ -195,11 +189,6 @@
       var LightInstance: TLightInstance); virtual;
 
     function TransformationChange: TNodeTransformationChange; override;
-
-    { Internal, to workaround small X3DShadowMaps problem. @exclude }
-    procedure DefaultShadowMapSave(Node: TGeneratedShadowMapNode);
-    { Internal, to workaround small X3DShadowMaps problem. @exclude }
-    function DefaultShadowMapLoad(Node: TGeneratedShadowMapNode): boolean;
 
     { Light scope. Default implementation returns lsGlobal or lsLocal,
       depending on "global" field value (this follows VRML/X3D >= 2.0 rules). }
@@ -615,29 +604,6 @@ end;
 function TAbstractLightNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcLight;
-end;
-
-procedure TAbstractLightNode.DefaultShadowMapSave(Node: TGeneratedShadowMapNode);
-begin
-  SavedDefaultShadowMap := true;
-  SavedDefaultShadowMapUpdate      := Node.FdUpdate      .Value;
-  SavedDefaultShadowMapSize        := Node.FdSize        .Value;
-  SavedDefaultShadowMapScale       := Node.FdScale       .Value;
-  SavedDefaultShadowMapBias        := Node.FdBias        .Value;
-  SavedDefaultShadowMapCompareMode := Node.FdCompareMode .Value;
-end;
-
-function TAbstractLightNode.DefaultShadowMapLoad(Node: TGeneratedShadowMapNode): boolean;
-begin
-  Result := SavedDefaultShadowMap;
-  if Result then
-  begin
-    Node.FdUpdate      .Value := SavedDefaultShadowMapUpdate     ;
-    Node.FdSize        .Value := SavedDefaultShadowMapSize       ;
-    Node.FdScale       .Value := SavedDefaultShadowMapScale      ;
-    Node.FdBias        .Value := SavedDefaultShadowMapBias       ;
-    Node.FdCompareMode .Value := SavedDefaultShadowMapCompareMode;
-  end;
 end;
 
 function TAbstractLightNode.Scope: TLightScope;

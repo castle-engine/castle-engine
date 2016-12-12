@@ -134,34 +134,13 @@ begin
      (Light.FdDefaultShadowMap.Value is TGeneratedShadowMapNode) then
   begin
     Result^.ShadowMap := TGeneratedShadowMapNode(Light.FdDefaultShadowMap.Value);
-
-    { TODO: for now, we remove the shadow map from defaultShadowMap,
-      otherwise we would have a loop in our VRML nodes graph
-      (light contains defaultShadowMap that contains GeneratedShadowMap
-      with light field pointing again to the parent light).
-      And we currently cannot handle nicely such loops (our parser
-      never creates them, our enumeration routines assume they don't exist
-      etc.) This will be eventually fixed (something like PTraversingInfo
-      will be used all around TX3DNode.DirectEnumerate*, and checked to avoid
-      visiting nodes we're already inside), VRML/X3D actually require
-      us to handle it in some Script cases anyway. }
-    Result^.ShadowMap.KeepExistingBegin;
-    Light.FdDefaultShadowMap.Value := nil;
-    Result^.ShadowMap.KeepExistingEnd;
-
-    { To avoid losing the information about default shadow map size etc.
-      (which may be useful later, if we call ProcessShadowMapsReceivers again on the same model,
-      for example if user turns off/on shadow maps), we save important fields
-      inside Light properties. }
-    Light.DefaultShadowMapSave(Result^.ShadowMap);
   end else
   begin
     Result^.ShadowMap := TGeneratedShadowMapNode.Create;
-    if not Light.DefaultShadowMapLoad(Result^.ShadowMap) then
-    begin
-      Result^.ShadowMap.FdUpdate.Value := upAlways;
-      Result^.ShadowMap.FdSize.Value := DefaultShadowMapSize;
-    end;
+    { Allows view3dscene lights editor to easily configure this node. }
+    Light.FdDefaultShadowMap.Value := Result^.ShadowMap;
+    Result^.ShadowMap.FdUpdate.Value := upAlways;
+    Result^.ShadowMap.FdSize.Value := DefaultShadowMapSize;
   end;
 
   { Regardless if this is taken from defaultShadowMap or created,

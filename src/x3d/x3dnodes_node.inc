@@ -1405,7 +1405,7 @@ begin
     for I := 0 to FFieldsSFNode.Count - 1 do
     begin
       SF := TSFNode(FFieldsSFNode[I]);
-      if SF.Value <> nil then
+      if (SF.Value <> nil) and not SF.WeakLink then
       begin
         Result := Func(Self, SF.Value);
         if Result <> nil then Exit;
@@ -2829,7 +2829,7 @@ begin
     for I := 0 to FFieldsSFNode.Count - 1 do
     begin
       SF := TSFNode(FFieldsSFNode[I]);
-      if SF.Value <> nil then
+      if (SF.Value <> nil) and not SF.WeakLink then
       begin
         NewNode := SF.Value;
         Func(Self, NewNode);

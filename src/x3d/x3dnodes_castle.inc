@@ -664,6 +664,7 @@ begin
     GeneratedShadowMap. }
   FFdLight := TSFNode.Create(Self, 'light', [TAbstractLightNode]);
    FdLight.ChangesAlways := [chGeneratedTextureUpdateNeeded];
+   FdLight.WeakLink := true;
   AddField(FFdLight);
 
   FFdScale := TSFFloat.Create(Self, 'scale', DefaultScale, { MustBeNonnegative } true);

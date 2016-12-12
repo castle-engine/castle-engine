@@ -835,12 +835,15 @@ type
     AllowedChildren: TAllowedChildren;
     AllowedChildrenClasses: TX3DNodeClassesList;
     AllowedChildrenInterface: TGUID;
-    procedure SetValue(AValue: TX3DNode);
-  private
     FDefaultValue: TX3DNode;
     FDefaultValueExists: boolean;
+    FWeakLink: boolean;
+    procedure SetValue(AValue: TX3DNode);
     procedure SetDefaultValue(ADefaultValue: TX3DNode);
     procedure SetDefaultValueExists(AValue: boolean);
+    procedure SetWeakLink(const AValue: boolean);
+    procedure WarningIfUnusedWeakLink;
+    procedure DestructionNotification(Node: TX3DNode);
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
@@ -937,6 +940,41 @@ type
     function Enumerate(Func: TEnumerateChildrenFunction): Pointer;
 
     procedure Send(const AValue: TX3DNode); overload;
+
+    { Use weak links to deal with cycles in the X3D graph.
+
+      Marking a field as a @italic(weak link) can only be done
+      when the field value is empty, right when the field is created,
+      in @link(TX3DNode.CreateNode) descendant.
+
+      Being a @italic(weak link) means two things:
+
+      @orderedList(
+        @item(The nodes inside a weak link are not enumerated
+          when traversing the X3D graph in @italic(any) way
+          (@link(TX3DNode.EnumerateNodes),
+          @link(TX3DNode.Traverse) and all others;
+          Nodes implementing @link(TX3DNode.DirectEnumerateActive)
+          should also omit these fields.)
+
+        @item(A weak link does not create a reference count
+          preventing the node from being freed (or freeing
+          it automatically when ref count drops to zero).
+          Instead, weak links merely observe the nodes, and automatically
+          set their value to @nil when the node gets freed.)
+      )
+
+      If effect, this avoids loops when enumerating (and avoids
+      recursive loops in reference counts, which would cause memory leaks),
+      but use this only when you know that the node
+      must occur somewhere else in the X3D graph anyway (or it's OK to
+      ignore it).
+      For example, this is useful for
+      @link(TGeneratedShadowMapNode.Light), as we know that the light
+      must occur somewhere else in the graph anyway to be useful.
+    }
+    property WeakLink: boolean
+      read FWeakLink write SetWeakLink default false;
   end;
 
   TSFNodeEventHelper = class helper for TSFNodeEvent
@@ -3031,6 +3069,22 @@ begin
     ChildNotAllowed;
 end;
 
+procedure TSFNode.WarningIfUnusedWeakLink;
+begin
+  if WeakLink and
+     (Value <> nil) and
+     (Value.FVRML1Parents.Count = 0) and
+     (Value.FParentFields.Count = 0) and
+     (Value.KeepExisting = 0) then
+  begin
+    FValue.FreeIfUnused; // we know it will be freed now
+    FValue := nil;
+    { do a warning after freeing FValue, to avoid memory leaks in case OnWarning makes exception }
+    WritelnWarning('VRML/X3D', Format('A node inside the field "%s" must be already used elsewhere (use USE clause, do not declare a new node here)',
+      [NiceName]));
+  end;
+end;
+
 procedure TSFNode.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 begin
   if (Lexer.Token = vtKeyword) and (Lexer.TokenKeyword = vkNULL) then
@@ -3042,7 +3096,10 @@ begin
     { This is one case when we can use NilIfUnresolvedUSE = @true }
     Value := ParseNode(Lexer, Reader as TX3DReaderNames, true);
     if Value <> nil then
+    begin
       WarningIfChildNotAllowed(Value);
+      WarningIfUnusedWeakLink;
+    end;
   end;
 end;
 
@@ -3074,6 +3131,7 @@ begin
   end else
   begin
     WarningIfChildNotAllowed(Value);
+    WarningIfUnusedWeakLink;
   end;
 end;
 
@@ -3179,12 +3237,22 @@ begin
   if FValue <> AValue then
   begin
     if FValue <> nil then
-      FValue.RemoveParentField(Self);
+    begin
+      if WeakLink then
+        FValue.RemoveDestructionNotification(@DestructionNotification)
+      else
+        FValue.RemoveParentField(Self);
+    end;
 
     FValue := AValue;
 
     if AValue <> nil then
-      FValue.AddParentField(Self);
+    begin
+      if WeakLink then
+        FValue.AddDestructionNotification(@DestructionNotification)
+      else
+        FValue.AddParentField(Self);
+    end;
   end;
 end;
 
@@ -3193,12 +3261,33 @@ begin
   if FDefaultValue <> ADefaultValue then
   begin
     if FDefaultValue <> nil then
-      FDefaultValue.RemoveParentField(Self);
+    begin
+      if WeakLink then
+        FDefaultValue.RemoveDestructionNotification(@DestructionNotification)
+      else
+        FDefaultValue.RemoveParentField(Self);
+    end;
 
     FDefaultValue := ADefaultValue;
 
     if ADefaultValue <> nil then
-      FDefaultValue.AddParentField(Self);
+    begin
+      if WeakLink then
+        FDefaultValue.AddDestructionNotification(@DestructionNotification)
+      else
+        FDefaultValue.AddParentField(Self);
+    end;
+  end;
+end;
+
+procedure TSFNode.DestructionNotification(Node: TX3DNode);
+begin
+  if WeakLink then
+  begin
+    if FValue = Node then
+      FValue := nil;
+    if FDefaultValue = Node then
+      FDefaultValue := nil;
   end;
 end;
 
@@ -3216,9 +3305,11 @@ function TSFNode.Enumerate(Func: TEnumerateChildrenFunction): Pointer;
 begin
   { checking CurrentChildAllowed is not really necessary here,
     and costs time, because it may do a slow Supports() call }
-  //if (Value <> nil) and CurrentChildAllowed then
-  if Value <> nil then
-    Result := Func(ParentNode, Value) else
+  //if (Value <> nil) and CurrentChildAllowed and not WeakLink then
+
+  if (Value <> nil) and not WeakLink then
+    Result := Func(ParentNode, Value)
+  else
     Result := nil;
 end;
 
@@ -3239,6 +3330,16 @@ begin
     FieldValue.Value := AValue;
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
+end;
+
+procedure TSFNode.SetWeakLink(const AValue: boolean);
+begin
+  if FWeakLink <> AValue then
+  begin
+    if Value <> nil then
+      raise EInternalError.Create('TSFNode.WeakLink cannot change when some node is already assigned');
+    FWeakLink := AValue;
+  end;
 end;
 
 { TSFNodeEventHelper --------------------------------------------------------- }

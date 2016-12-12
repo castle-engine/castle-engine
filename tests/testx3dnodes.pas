@@ -24,6 +24,8 @@ uses
 
 type
   TTestX3DNodes = class(TTestCase)
+  private
+    procedure WeakLinkUnusedWarning(Sender: TObject; const Category, S: string);
   published
     procedure TestNodesManager;
 
@@ -89,12 +91,13 @@ type
     procedure TestX3DXmlString;
     procedure TestOrthoViewpointFieldOfView;
     procedure TestFontStyle;
+    procedure TestWeakLinkUnusedWarning;
   end;
 
 implementation
 
 uses CastleUtils, X3DLexer, CastleClassUtils, CastleFilesUtils, X3DFields,
-  CastleTimeUtils, FGL, CastleDownload;
+  CastleTimeUtils, FGL, CastleDownload, X3DLoad, CastleApplicationProperties;
 
 { TNode* ------------------------------------------------------------ }
 
@@ -1995,6 +1998,32 @@ begin
     AssertTrue(ffSans = F.Family);
 
   finally FreeAndNil(F) end;
+end;
+
+type
+  EWeakLinkUnused = class(Exception);
+
+procedure TTestX3DNodes.WeakLinkUnusedWarning(Sender: TObject; const Category, S: string);
+begin
+  if Pos('GeneratedShadowMap.light', S) <> 0 then
+    raise EWeakLinkUnused.Create('We want this warning, good: ' + S)
+  else
+    raise Exception.Create('Some invalid warning: ' + S);
+end;
+
+procedure TTestX3DNodes.TestWeakLinkUnusedWarning;
+begin
+  ApplicationProperties.OnWarning.Add(@WeakLinkUnusedWarning);
+  try
+    try
+      Load3D(ApplicationData('warning_when_new_node_as_shadow_map_light.x3dv'));
+      raise Exception.Create('We should not get here, expected EWeakLinkUnused on the way');
+    except
+      on EWeakLinkUnused do ; { good, silence this for the sake of test }
+    end;
+  finally
+    ApplicationProperties.OnWarning.Remove(@WeakLinkUnusedWarning);
+  end;
 end;
 
 initialization

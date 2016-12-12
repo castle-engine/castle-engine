@@ -110,6 +110,14 @@ begin
   if I >= 0 then
   begin
     Items[I].Unprepare;
+    { After Unprepare on a MultiTexture node,
+      a node could change it's index, because Unprepare on a MultiTexture
+      node calls this recursively for it's children. So MultiTexture children
+      are unprepared and removed from this list, causing the MultiTexture node
+      itself to change it's position on a list.
+      It's safest to just query it again. }
+    I := NodeIndex(ANode);
+    Assert(I <> -1, 'After Unprepare, node no longer available on a texture list');
     Items[I].Free;
     Delete(I);
   end;

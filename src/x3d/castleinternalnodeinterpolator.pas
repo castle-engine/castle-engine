@@ -208,7 +208,12 @@ procedure CheckNodesStructurallyEqual(Model1, Model2: TX3DNode;
 
   procedure CheckSFNodesStructurallyEqual(Field1, Field2: TSFNode);
   begin
-    if (Field1.Value <> nil) and (Field2.Value <> nil) then
+    if Field1.WeakLink and Field2.WeakLink then
+    begin
+      { assume equal }
+    end else
+    if (Field1.Value <> nil) and (not Field1.WeakLink) and
+       (Field2.Value <> nil) and (not Field2.WeakLink) then
     begin
       CheckNodesStructurallyEqual(Field1.Value, Field2.Value, EqualityEpsilon);
     end else
@@ -387,7 +392,9 @@ function NodesMerge(Model1, Model2: TX3DNode;
     { Equality was already checked by CheckNodesStructurallyEqual,
       so now if one SFNode value is not nil, we know that the other
       one is not nil too. }
-    if Field1.Value <> nil then
+    if (Field1.Value <> nil) and
+      (not Field1.WeakLink) and
+      (not Field2.WeakLink) then
     begin
       if NodesMerge(Field1.Value, Field2.Value, EqualityEpsilon) then
         Field1.Value := Field2.Value else
@@ -476,7 +483,11 @@ function NodesLerp(const A: Single; Model1, Model2: TX3DNode): TX3DNode;
 
   procedure SFNodeLerp(Target, Field1, Field2: TSFNode);
   begin
-    Target.Value := NodesLerp(A, Field1.Value, Field2.Value);
+    if (not Field1.WeakLink) and
+       (not Field2.WeakLink) then
+      Target.Value := NodesLerp(A, Field1.Value, Field2.Value)
+    else
+      Target.Value := Field1.Value;
   end;
 
   procedure MFNodeLerp(Target, Field1, Field2: TMFNode);
