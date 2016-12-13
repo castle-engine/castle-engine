@@ -194,12 +194,12 @@
       depending on "global" field value (this follows VRML/X3D >= 2.0 rules). }
     function Scope: TLightScope; virtual;
 
-    { Position expressed in homogeneous coordinates.
+    { Position and direction expressed in homogeneous coordinates.
       For positional lights, the last component is always 1.
       For directional lights, the last component is always 0.
 
       Note that this expressed is in the local light node coordinate system. }
-    function Position: TVector4Single; virtual; abstract;
+    function PositionAndDirection: TVector4Single; virtual; abstract;
   end;
 
   TAbstractDirectionalLightNode = class(TAbstractLightNode)
@@ -238,7 +238,7 @@
     function ModelviewRotationMatrix: TMatrix4Single; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
-    function Position: TVector4Single; override;
+    function PositionAndDirection: TVector4Single; override;
   end;
 
   TAbstractPositionalLightNode = class(TAbstractLightNode)
@@ -304,7 +304,7 @@
     function HasRadius: boolean; virtual;
 
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
-    function Position: TVector4Single; override;
+    function PositionAndDirection: TVector4Single; override;
   end;
 
   TAbstractPointLightNode = class(TAbstractPositionalLightNode)
@@ -726,7 +726,7 @@ begin
   Box.DirectionDistances(ProjectionSceneLocation, ProjectionSceneDirection, MinDistance, MaxDistance);
 end;
 
-function TAbstractDirectionalLightNode.Position: TVector4Single;
+function TAbstractDirectionalLightNode.PositionAndDirection: TVector4Single;
 begin
   Result := Vector4Single(-FdDirection.Value, 0);
 end;
@@ -853,7 +853,7 @@ ATTENUATION_IMPLEMENTATION
 function TAbstractPositionalLightNode.CalculateAttenuation(const DistanceToLight: Double): Double;
 ATTENUATION_IMPLEMENTATION
 
-function TAbstractPositionalLightNode.Position: TVector4Single;
+function TAbstractPositionalLightNode.PositionAndDirection: TVector4Single;
 begin
   Result := Vector4Single(FdLocation.Value, 1);
 end;
