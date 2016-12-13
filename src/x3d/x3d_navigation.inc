@@ -790,12 +790,12 @@ begin
   if not Box.IsEmpty then
   begin
     ProxyBox := TBoxNode.Create('', BaseUrl);
-    ProxyBox.Size := Box.Sizes;
+    ProxyBox.Size := Box.Size;
 
     ProxyShape := TShapeNode.Create('', BaseUrl);
     ProxyShape.Geometry := ProxyBox;
 
-    ProxyTransform.Translation := Box.Middle;
+    ProxyTransform.Translation := Box.Center;
     ProxyTransform.FdChildren.Add(ProxyShape);
   end;
   Proxy := ProxyTransform;

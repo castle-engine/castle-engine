@@ -1535,8 +1535,8 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
       FDebug3DBoxShape.Render := not BBox.IsEmpty;
       if FDebug3DBoxShape.Render then
       begin
-        FDebug3DBox.Size := BBox.Sizes;
-        FDebug3DBoxTransform.Translation := BBox.Middle;
+        FDebug3DBox.Size := BBox.Size;
+        FDebug3DBoxTransform.Translation := BBox.Center;
       end;
 
       FDebug3DSphereShape.Render := Sphere(R);

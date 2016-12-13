@@ -1212,7 +1212,7 @@ function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
     ItemBoxMiddle: TVector3Single;
   begin
     ItemBox := DroppedItemResource.BoundingBoxRotated;
-    ItemBoxMiddle := ItemBox.Middle;
+    ItemBoxMiddle := ItemBox.Center;
     { Box3DRadius calculates radius around (0, 0, 0) and we want
       radius around ItemBoxMiddle }
     ItemBoxRadius := ItemBox.Translate(VectorNegate(ItemBoxMiddle)).Radius;
