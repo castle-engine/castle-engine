@@ -182,7 +182,7 @@
   public
     const
       DefaultSize = 128;
-      DefaultScale = 1.1;
+      DefaultScale = 4.0;
       DefaultBias = 4.0;
 
     procedure CreateNode; override;
