@@ -121,7 +121,7 @@ type
     { Return rectangle with given width and height centered
       in the middle of this rectangle. The given W, H may be smaller or larger
       than this rectangle sizes. }
-    function Center(const W, H: Cardinal): TRectangle;
+    function CenterInside(const W, H: Cardinal): TRectangle;
 
     { Grow (when Delta > 0) or shrink (when Delta < 0)
       the rectangle, returning new value.
@@ -167,7 +167,8 @@ type
     { @groupEnd }
 
     property LeftBottom: TVector2Integer read GetLeftBottom write SetLeftBottom;
-    function Middle: TVector2Integer;
+    function Middle: TVector2Integer; deprecated 'use Center';
+    function Center: TVector2Integer;
 
     { Clamp value to be within allowed horizontal range.
       That is, clamp to @code([Left, Right - 1]). }
@@ -180,7 +181,7 @@ type
     function ScaleToWidth(const NewWidth: Cardinal): TRectangle;
     function ScaleToHeight(const NewHeight: Cardinal): TRectangle;
 
-    { Scale rectangle position and size around it's own middle point.
+    { Scale rectangle position and size around it's own @link(Center) point.
 
       Since the scaling is independent in each axis,
       this handles "carefully" a half-empty rectangles
@@ -188,7 +189,9 @@ type
       It scales correctly the positive dimension
       (not just returns @link(Empty) constant),
       leaving the other dimension (it's position and size) untouched. }
+    function ScaleAroundCenter(const Factor: Single): TRectangle;
     function ScaleAroundMiddle(const Factor: Single): TRectangle;
+      deprecated 'use ScaleAroundCenter';
 
     { Scale rectangle position and size around the (0,0) point.
 
@@ -284,7 +287,8 @@ type
     property Top: Single read GetTop;
     { @groupEnd }
 
-    function Middle: TVector2Single;
+    function Middle: TVector2Single; deprecated 'use Center';
+    function Center: TVector2Single;
 
     { Grow (when Delta > 0) or shrink (when Delta < 0)
       the rectangle, returning new value.
@@ -304,10 +308,13 @@ type
     { Does it have any common part with another rectangle. }
     function Collides(const R: TFloatRectangle): boolean;
 
-    function CollidesDisc(const Center: TVector2Single; const Radius: Single): boolean;
+    function CollidesDisc(const DiscCenter: TVector2Single; const Radius: Single): boolean;
 
     { Scale rectangle position and size around the (0,0) point. }
     function ScaleAround0(const Factor: Single): TFloatRectangle;
+
+    { Return larger rectangle, so that it includes given point. }
+    function Add(const P: TVector2Single): TFloatRectangle;
   end;
 
   PFloatRectangle = ^TFloatRectangle;
@@ -328,6 +335,8 @@ function Rectangle(const LeftBottom: TVector2Integer;
   const Width, Height: Cardinal): TRectangle;
 function FloatRectangle(const Left, Bottom, Width, Height: Single): TFloatRectangle;
 function FloatRectangle(const R: TRectangle): TFloatRectangle;
+function FloatRectangle(const LeftBottom: TVector2Single;
+  const Width, Height: Single): TFloatRectangle;
 
 { Sum of the two rectangles is a bounding rectangle -
   a smallest rectangle that contains them both. }
@@ -386,7 +395,7 @@ begin
             (Point[1] >= Bottom) and (Point[1] < Bottom + Integer(Height));
 end;
 
-function TRectangle.Center(const W, H: Cardinal): TRectangle;
+function TRectangle.CenterInside(const W, H: Cardinal): TRectangle;
 begin
   Result.Left   := Left   + (Integer(Width ) - Integer(W)) div 2;
   Result.Bottom := Bottom + (Integer(Height) - Integer(H)) div 2;
@@ -553,9 +562,14 @@ begin
   Result := Format('TRectangle: %dx%d %dx%d', [Left, Bottom, Width, Height]);
 end;
 
-function TRectangle.Middle: TVector2Integer;
+function TRectangle.Center: TVector2Integer;
 begin
   Result := Vector2Integer(Left + Width div 2, Bottom + Height div 2);
+end;
+
+function TRectangle.Middle: TVector2Integer;
+begin
+  Result := Center;
 end;
 
 function TRectangle.ScaleToWidth(const NewWidth: Cardinal): TRectangle;
@@ -577,6 +591,11 @@ begin
 end;
 
 function TRectangle.ScaleAroundMiddle(const Factor: Single): TRectangle;
+begin
+  Result := ScaleAroundCenter(Factor);
+end;
+
+function TRectangle.ScaleAroundCenter(const Factor: Single): TRectangle;
 begin
   if Width > 0 then
   begin
@@ -742,9 +761,9 @@ end;
 
 function FloatRectangle(const Left, Bottom, Width, Height: Single): TFloatRectangle;
 begin
-  Result.Left := Left;
+  Result.Left   := Left;
   Result.Bottom := Bottom;
-  Result.Width := Width;
+  Result.Width  := Width;
   Result.Height := Height;
 end;
 
@@ -754,6 +773,15 @@ begin
   Result.Bottom := R.Bottom;
   Result.Width  := R.Width;
   Result.Height := R.Height;
+end;
+
+function FloatRectangle(const LeftBottom: TVector2Single;
+  const Width, Height: Single): TFloatRectangle;
+begin
+  Result.Left   := LeftBottom[0];
+  Result.Bottom := LeftBottom[1];
+  Result.Width  := Width;
+  Result.Height := Height;
 end;
 
 function TFloatRectangle.IsEmpty: boolean;
@@ -773,9 +801,14 @@ begin
             (Point[1] >= Bottom) and (Point[1] <= Bottom + Height);
 end;
 
-function TFloatRectangle.Middle: TVector2Single;
+function TFloatRectangle.Center: TVector2Single;
 begin
   Result := Vector2Single(Left + Width / 2, Bottom + Height / 2);
+end;
+
+function TFloatRectangle.Middle: TVector2Single;
+begin
+  Result := Center;
 end;
 
 function TFloatRectangle.Grow(const DeltaX, DeltaY: Single): TFloatRectangle;
@@ -840,7 +873,7 @@ begin
           (R.Top   <   Bottom)));
 end;
 
-function TFloatRectangle.CollidesDisc(const Center: TVector2Single;
+function TFloatRectangle.CollidesDisc(const DiscCenter: TVector2Single;
   const Radius: Single): boolean;
 var
   ARight, ATop, ClosestCornerX, ClosestCornerY: Single;
@@ -852,47 +885,47 @@ begin
   ARight := Left + Width;
   ATop   := Bottom + Height;
 
-  if Center[0] < Left then
+  if DiscCenter[0] < Left then
   begin
     InsideX := false;
     ClosestCornerX := Left;
-    if Left - Center[0] > Radius then Exit(false);
+    if Left - DiscCenter[0] > Radius then Exit(false);
   end else
-  if Center[0] > ARight then
+  if DiscCenter[0] > ARight then
   begin
     InsideX := false;
     ClosestCornerX := ARight;
-    if Center[0] - ARight > Radius then Exit(false);
+    if DiscCenter[0] - ARight > Radius then Exit(false);
   end else
   begin
     InsideX := true;
-    if Center[0] < (Left + ARight) / 2 then
+    if DiscCenter[0] < (Left + ARight) / 2 then
       ClosestCornerX := Left
     else
       ClosestCornerX := ARight;
   end;
 
-  if Center[1] < Bottom then
+  if DiscCenter[1] < Bottom then
   begin
     InsideY := false;
     ClosestCornerY := Bottom;
-    if Bottom - Center[1] > Radius then Exit(false);
+    if Bottom - DiscCenter[1] > Radius then Exit(false);
   end else
-  if Center[1] > ATop then
+  if DiscCenter[1] > ATop then
   begin
     InsideY := false;
     ClosestCornerY := ATop;
-    if Center[1] - ATop > Radius then Exit(false);
+    if DiscCenter[1] - ATop > Radius then Exit(false);
   end else
   begin
     InsideY := true;
-    if Center[1] < (Bottom + ATop) / 2 then
+    if DiscCenter[1] < (Bottom + ATop) / 2 then
       ClosestCornerY := Bottom
     else
       ClosestCornerY := ATop;
   end;
 
-  { If we get here, then Center is within a Radius margin from the rectangle.
+  { If we get here, then DiscCenter is within a Radius margin from the rectangle.
     In other words, the bounding rect of the cirle for sure collides with
     this rectangle.
     The only way for the circle not to collide, is to be at the very corner
@@ -902,8 +935,8 @@ begin
     Exit(true);
 
   Result :=
-    Sqr(Center[0] - ClosestCornerX) +
-    Sqr(Center[1] - ClosestCornerY) <=
+    Sqr(DiscCenter[0] - ClosestCornerX) +
+    Sqr(DiscCenter[1] - ClosestCornerY) <=
     Sqr(Radius);
 end;
 
@@ -931,6 +964,44 @@ begin
   begin
     Result.Height := Height;
     Result.Bottom := Bottom;
+  end;
+end;
+
+function TFloatRectangle.Add(const P: TVector2Single): TFloatRectangle;
+begin
+  if IsEmpty then
+  begin
+    Result.Left := P[0];
+    Result.Bottom := P[1];
+    Result.Width := 0;
+    Result.Height := 0;
+  end else
+  begin
+    if P[0] < Left then
+    begin
+      Result.Left := P[0];
+      Result.Width := (Left - P[0]) + Width;
+    end else
+    begin
+      Result.Left := Left;
+      if P[0] > Right then
+        Result.Width := Width + P[0] - Right
+      else
+        Result.Width := Width;
+    end;
+
+    if P[1] < Bottom then
+    begin
+      Result.Bottom := P[1];
+      Result.Height := (Bottom - P[1]) + Height;
+    end else
+    begin
+      Result.Bottom := Bottom;
+      if P[1] > Top then
+        Result.Height := Height + P[1] - Top
+      else
+        Result.Height := Height;
+    end;
   end;
 end;
 

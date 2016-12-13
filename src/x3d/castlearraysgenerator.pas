@@ -971,7 +971,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
 
     if not LocalBBox.IsEmpty then
     begin
-      LocalBBoxSize := LocalBBox.Sizes;
+      LocalBBoxSize := LocalBBox.Size;
 
       Geometry.GetTextureBounds2DST(LocalBBoxSize, SCoord, TCoord);
 

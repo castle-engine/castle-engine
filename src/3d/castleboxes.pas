@@ -48,6 +48,8 @@ type
     plane equation, will yield = 0. }
   TPlaneCollision = (pcIntersecting, pcOutside, pcInside, pcNone);
 
+  TBoxCorners = array [0..7] of TVector3Single;
+
   { Axis-aligned box. Rectangular prism with all sides parallel to basic planes
     X = 0, Y = 0 and Z = 0. This is sometimes called AABB, "axis-aligned bounding
     box". Many geometric operations are fast and easy on this type.
@@ -94,20 +96,39 @@ type
 
     procedure CheckNonEmpty;
 
-    { These functions calculate the middle point, average size, max size
-      and particular sizes of given bounding box.
+    { Center of the box.
+      @raises(EBox3DEmpty If the Box is empty.) }
+    function Middle: TVector3Single; deprecated 'use Center';
 
-      @raises(EBox3DEmpty If the Box is empty.)
+    { Center of the box.
+      Name consistent with e.g. @link(TGroupNodeHelper.BBoxCenter),
+      to set Group node @code(bboxCenter) field.
+      @raises(EBox3DEmpty If the Box is empty.) }
+    function Center: TVector3Single;
 
-      @groupBegin }
-    function Middle: TVector3Single;
-    function AverageSize: Single; overload;
-    function MaxSize: Single; overload;
+    { Average size of the box.
+      @raises(EBox3DEmpty If the Box is empty.) }
+    function AverageSize: Single;
+
+    { Largest size of the box.
+      @raises(EBox3DEmpty If the Box is empty.) }
+    function MaxSize: Single;
+
+    { Smallest size of the box.
+      @raises(EBox3DEmpty If the Box is empty.) }
     function MinSize: Single;
+
+    { Size in X (width) of the box.
+      @raises(EBox3DEmpty If the Box is empty.) }
     function SizeX: Single;
+
+    { Size in Y (height) of the box.
+      @raises(EBox3DEmpty If the Box is empty.) }
     function SizeY: Single;
+
+    { Size in Z (depth) of the box.
+      @raises(EBox3DEmpty If the Box is empty.) }
     function SizeZ: Single;
-    { @groupEnd }
 
     { Average size of TBox3D, or EmptyBoxSize if box is empty.
       @param(AllowZero Decides what to do when box is not empty but the result
@@ -174,10 +195,15 @@ type
     procedure Add(const Point: TVector3Single); overload;
 
     { Three box sizes. }
-    function Sizes: TVector3Single;
+    function Sizes: TVector3Single; deprecated 'use Size';
 
-    { Calculate eight corners of the box. Place them in AllPoints^[0..7]. }
-    procedure GetAllPoints(allpoints: PVector3Single);
+    { Three box sizes. Name consistent with TBoxNode.Size.
+      @raises(EBox3DEmpty If the Box is empty.) }
+    function Size: TVector3Single;
+
+    { Calculate eight corners of the box.}
+    procedure Corners(var AllPoints: TBoxCorners);
+    procedure GetAllPoints(AllPoints: PVector3Single); deprecated 'use Corners';
 
     { Transform the Box by given matrix.
       Since this is still an axis-aligned box, rotating etc. of the box
@@ -345,6 +371,11 @@ type
       @raises(EBox3DEmpty If the Box is empty.) }
     function MinimumPlane(const Direction: TVector3Single): TVector4Single;
 
+    { Corner of the box such that the rest of the box lies in the given
+      Direction from this corner.
+      @raises(EBox3DEmpty If the Box is empty.) }
+    function MinimumCorner(const Direction: TVector3Single): TVector3Single;
+
     { Calculate the distances between a given 3D point and a box.
       MinDistance is the distance to the closest point of the box,
       MaxDistance is the distance to the farthest point of the box.
@@ -405,6 +436,10 @@ type
 
     function RectangleXY: TFloatRectangle;
     function RectangleXZ: TFloatRectangle;
+
+    { Project box along a given direction to a 2D rectangle. }
+    function Project(const Pos: TVector3Single;
+      Dir, Up: TVector3Single): TFloatRectangle;
   end;
 
   TBox3DBool = array [boolean] of TVector3Single;
@@ -544,23 +579,26 @@ begin
     raise EBox3DEmpty.Create('Empty box 3d: no middle point, no sizes etc.');
 end;
 
+function TBox3D.Center: TVector3Single;
+begin
+  CheckNonEmpty;
+  Result[0] := (Data[0, 0] + Data[1, 0])/2;
+  Result[1] := (Data[0, 1] + Data[1, 1])/2;
+  Result[2] := (Data[0, 2] + Data[1, 2])/2;
+end;
+
 function TBox3D.Middle: TVector3Single;
 begin
- CheckNonEmpty;
- {petla for i := 0 to 2 rozwinieta aby zyskac tycityci na czasie}
- result[0] := (Data[0, 0]+Data[1, 0])/2;
- result[1] := (Data[0, 1]+Data[1, 1])/2;
- result[2] := (Data[0, 2]+Data[1, 2])/2;
+  Result := Center;
 end;
 
 function TBox3D.AverageSize: Single;
 begin
- CheckNonEmpty;
- {korzystamy z faktu ze TBox3D ma wierzcholki uporzadkowane
-  i w zwiazku z tym w roznicach ponizej nie musimy robic abs() }
- result := ((Data[1, 0]-Data[0, 0]) +
-            (Data[1, 1]-Data[0, 1]) +
-            (Data[1, 2]-Data[0, 2]))/3;
+  CheckNonEmpty;
+  Result := (
+    (Data[1, 0]-Data[0, 0]) +
+    (Data[1, 1]-Data[0, 1]) +
+    (Data[1, 2]-Data[0, 2])) / 3;
 end;
 
 function TBox3D.AverageSize(const AllowZero: boolean;
@@ -781,7 +819,7 @@ begin
   end;
 end;
 
-function TBox3D.Sizes: TVector3Single;
+function TBox3D.Size: TVector3Single;
 begin
   CheckNonEmpty;
   Result[0] := Data[1, 0] - Data[0, 0];
@@ -789,17 +827,29 @@ begin
   Result[2] := Data[1, 2] - Data[0, 2];
 end;
 
-procedure TBox3D.GetAllPoints(allpoints: PVector3Single);
-const
-  {zapisy dwojkowe liczb od 0 do 7 czyli wszystkie kombinacje 0 i 1-nek
-   na 3 pozycjach.}
-  kombinacje: array[0..7, 0..2]of 0..1 =
-  ((0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), (1, 0, 0), (1, 0, 1), (1, 1, 0), (1, 1, 1));
-var i, j: integer;
+function TBox3D.Sizes: TVector3Single;
 begin
- for i := 0 to 7 do
-  for j := 0 to 2 do
-   PArray_Vector3Single(allpoints)^[i][j] := Data[kombinacje[i, j], j];
+  Result := Size;
+end;
+
+procedure TBox3D.GetAllPoints(AllPoints: PVector3Single);
+begin
+  AllPoints[0] := Vector3Single(Data[0][0], Data[0][1], Data[0][2]);
+  AllPoints[1] := Vector3Single(Data[0][0], Data[0][1], Data[1][2]);
+  AllPoints[2] := Vector3Single(Data[0][0], Data[1][1], Data[0][2]);
+  AllPoints[3] := Vector3Single(Data[0][0], Data[1][1], Data[1][2]);
+
+  AllPoints[4] := Vector3Single(Data[1][0], Data[0][1], Data[0][2]);
+  AllPoints[5] := Vector3Single(Data[1][0], Data[0][1], Data[1][2]);
+  AllPoints[6] := Vector3Single(Data[1][0], Data[1][1], Data[0][2]);
+  AllPoints[7] := Vector3Single(Data[1][0], Data[1][1], Data[1][2]);
+end;
+
+procedure TBox3D.Corners(var AllPoints: TBoxCorners);
+begin
+  {$warnings off} // using deprecated knowingly
+  GetAllPoints(@AllPoints);
+  {$warnings on}
 end;
 
 function TBox3D.Transform(
@@ -807,14 +857,14 @@ function TBox3D.Transform(
 
   function Slower(const Matrix: TMatrix4Single): TBox3D;
   var
-    BoxPoints: array [0..7] of TVector3Single;
+    BoxPoints: TBoxCorners;
     i: integer;
   begin
-    GetAllPoints(@boxpoints);
-    for i := 0 to 7 do boxpoints[i] := MatrixMultPoint(Matrix, boxpoints[i]);
+    Corners(BoxPoints);
+    for i := 0 to 7 do BoxPoints[i] := MatrixMultPoint(Matrix, BoxPoints[i]);
 
     { Non-optimized version:
-        Result := CalculateBoundingBox(@boxpoints, 8, 0);
+        Result := CalculateBoundingBox(@BoxPoints, 8, 0);
 
       But it turns out that the code below, that does essentially the same
       thing as CalculateBoundingBox implementation, works noticeably faster.
@@ -1388,7 +1438,7 @@ begin
   SphereRadiusSqr := 0;
  end else
  begin
-  SphereCenter := Middle;
+  SphereCenter := Center;
   SphereRadiusSqr := PointsDistanceSqr(SphereCenter, Data[0]);
  end;
 end;
@@ -1574,6 +1624,16 @@ begin
                   BoxBool[Direction[2] < 0][2] * Result[2]);
 end;
 
+function TBox3D.MinimumCorner(const Direction: TVector3Single): TVector3Single;
+var
+  BoxBool: TBox3DBool absolute Data;
+begin
+  CheckNonEmpty;
+  Result[0] := BoxBool[Direction[0] < 0][0];
+  Result[1] := BoxBool[Direction[1] < 0][1];
+  Result[2] := BoxBool[Direction[2] < 0][2];
+end;
+
 procedure TBox3D.PointDistances(const P: TVector3Single;
   out MinDistance, MaxDistance: Single);
 var
@@ -1754,6 +1814,34 @@ begin
     Result.Width  := Data[1][0] - Data[0][0];
     Result.Height := Data[1][2] - Data[0][2];
   end;
+end;
+
+function TBox3D.Project(const Pos: TVector3Single;
+  Dir, Up: TVector3Single): TFloatRectangle;
+var
+  Side: TVector3Single;
+
+  function ProjectPoint(const P: TVector3Single): TVector2Single;
+  var
+    PDiff: TVector3Single;
+  begin
+    PDiff := P - Pos;
+    Result[0] := VectorDotProduct(PDiff, Side);
+    Result[1] := VectorDotProduct(PDiff, Up);
+  end;
+
+var
+  C: TBoxCorners;
+  I: Integer;
+begin
+  NormalizeVar(Dir);
+  NormalizeVar(Up);
+  Side := VectorProduct(Dir, Up);
+
+  Corners(C);
+  Result := FloatRectangle(ProjectPoint(C[0]), 0, 0);
+  for I := 1 to 7 do
+    Result := Result.Add(ProjectPoint(C[I]));
 end;
 
 { Routines ------------------------------------------------------------------- }

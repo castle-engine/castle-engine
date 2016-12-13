@@ -4435,7 +4435,7 @@ end;
 
 function T3DLinearMoving.SoundPosition: TVector3Single;
 begin
-  Result := BoundingBox.Middle;
+  Result := BoundingBox.Center;
 end;
 
 procedure T3DLinearMoving.PlaySound(SoundType: TSoundType;

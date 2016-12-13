@@ -2677,13 +2677,13 @@ begin
 
   if (not B.BoundingBox.IsEmpty) and
     ( A.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(A.BoundingBox.Middle, SortPosition) <
-        PointsDistanceSqr(B.BoundingBox.Middle, SortPosition))) then
+      ( PointsDistanceSqr(A.BoundingBox.Center, SortPosition) <
+        PointsDistanceSqr(B.BoundingBox.Center, SortPosition))) then
     Result := -1 else
   if (not A.BoundingBox.IsEmpty) and
     ( B.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(B.BoundingBox.Middle, SortPosition) <
-        PointsDistanceSqr(A.BoundingBox.Middle, SortPosition))) then
+      ( PointsDistanceSqr(B.BoundingBox.Center, SortPosition) <
+        PointsDistanceSqr(A.BoundingBox.Center, SortPosition))) then
     Result :=  1 else
     Result :=  0;
 end;
@@ -2692,13 +2692,13 @@ function IsSmallerBackToFront3D(const A, B: TShape): Integer;
 begin
   if (not A.BoundingBox.IsEmpty) and
     ( B.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(A.BoundingBox.Middle, SortPosition) >
-        PointsDistanceSqr(B.BoundingBox.Middle, SortPosition))) then
+      ( PointsDistanceSqr(A.BoundingBox.Center, SortPosition) >
+        PointsDistanceSqr(B.BoundingBox.Center, SortPosition))) then
     Result := -1 else
   if (not B.BoundingBox.IsEmpty) and
     ( A.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(B.BoundingBox.Middle, SortPosition) >
-        PointsDistanceSqr(A.BoundingBox.Middle, SortPosition))) then
+      ( PointsDistanceSqr(B.BoundingBox.Center, SortPosition) >
+        PointsDistanceSqr(A.BoundingBox.Center, SortPosition))) then
     Result :=  1 else
     Result :=  0;
 end;
@@ -2711,7 +2711,7 @@ begin
 
     For speed, we don't look at bounding box Middle, only at it's min point.
     The assumption here is that shape is 2D, so
-      BoundingBox.Data[0][2] = BoundingBox.Data[1][2] = BoundingBox.Middle[2] . }
+      BoundingBox.Data[0][2] = BoundingBox.Data[1][2] = BoundingBox.Center[2] . }
 
   if (not A.BoundingBox.IsEmpty) and
     ( B.BoundingBox.IsEmpty or

@@ -3042,7 +3042,7 @@ procedure TCastleWindowCustom.OpenCore;
 
     UIScale := Container.DefaultUIScale;
     TextRect := Theme.Images[tiLoading].Rect.
-      ScaleAroundMiddle(UIScale).
+      ScaleAroundCenter(UIScale).
       Align(hpMiddle, WindowRect, hpMiddle).
       Align(vpMiddle, WindowRect, vpMiddle);
     Theme.Draw(TextRect, tiLoading, UIScale, Theme.LoadingTextColor);

@@ -2801,7 +2801,7 @@ begin
   FModelBox := Value;
   if FModelBox.IsEmpty then
     FCenterOfRotation := Vector3Single(0, 0, 0) { any dummy value } else
-    FCenterOfRotation := FModelBox.Middle;
+    FCenterOfRotation := FModelBox.Center;
   ScheduleVisibleChange;
 end;
 
@@ -5361,7 +5361,7 @@ begin
     Position  := ZeroVector3Single;
   end else
   begin
-    Position := Box.Middle;
+    Position := Box.Center;
     Offset := 2 * Box.AverageSize;
 
     if WantedDirectionPositive then

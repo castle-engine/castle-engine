@@ -551,17 +551,18 @@ end;
 constructor TOctreeNode.Create(const ABox: TBox3D; AParentTree: TOctree;
   AParentNode: TOctreeNode;
   ADepth: integer; AsLeaf: boolean);
-var AMiddlePoint: TVector3Single;
+var
+  AMiddlePoint: TVector3Single;
 begin
- if ABox.IsEmpty then
- begin
-  Check(AsLeaf, 'TOctreeNode.Create error: attempt to create non-leaf'
-    +' node with empty bounding box');
-  AMiddlePoint := Vector3Single(0, 0, 0);
- end else
-  AMiddlePoint := ABox.Middle;
+  if ABox.IsEmpty then
+  begin
+    Check(AsLeaf, 'TOctreeNode.Create error: attempt to create non-leaf'
+      +' node with empty bounding box');
+    AMiddlePoint := Vector3Single(0, 0, 0);
+  end else
+    AMiddlePoint := ABox.Center;
 
- CreateBase(ABox, AParentTree, AParentNode, ADepth, AsLeaf, AMiddlePoint);
+  CreateBase(ABox, AParentTree, AParentNode, ADepth, AsLeaf, AMiddlePoint);
 end;
 
 constructor TOctreeNode.CreateBase(const ABox: TBox3D;
