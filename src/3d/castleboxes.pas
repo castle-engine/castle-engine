@@ -437,9 +437,10 @@ type
     function RectangleXY: TFloatRectangle;
     function RectangleXZ: TFloatRectangle;
 
-    { Project box along a given direction to a 2D rectangle. }
-    function Project(const Pos: TVector3Single;
-      Dir, Up: TVector3Single): TFloatRectangle;
+    { Project box along a given direction to a 2D rectangle.
+      @bold(Assumes that Dir, Side and Up vectors are already
+      orthogonal and normalized.) }
+    function Project(const Pos, Dir, Side, Up: TVector3Single): TFloatRectangle;
   end;
 
   TBox3DBool = array [boolean] of TVector3Single;
@@ -1816,10 +1817,7 @@ begin
   end;
 end;
 
-function TBox3D.Project(const Pos: TVector3Single;
-  Dir, Up: TVector3Single): TFloatRectangle;
-var
-  Side: TVector3Single;
+function TBox3D.Project(const Pos, Dir, Side, Up: TVector3Single): TFloatRectangle;
 
   function ProjectPoint(const P: TVector3Single): TVector2Single;
   var
@@ -1834,10 +1832,6 @@ var
   C: TBoxCorners;
   I: Integer;
 begin
-  NormalizeVar(Dir);
-  NormalizeVar(Up);
-  Side := VectorProduct(Dir, Up);
-
   Corners(C);
   Result := FloatRectangle(ProjectPoint(C[0]), 0, 0);
   for I := 1 to 7 do

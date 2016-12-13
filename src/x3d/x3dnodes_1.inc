@@ -2360,18 +2360,18 @@ end;
 
 function TSpotLightNode_1.ModelviewMatrix: TMatrix4Single;
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Side, Up: TVector3Single;
 begin
-  GetView(Pos, Dir, Up);
-  Result := LookDirMatrix(Pos, Dir, Up);
+  GetView(Pos, Dir, Side, Up);
+  Result := LookDirMatrix(Pos, Dir, Side, Up);
 end;
 
 function TSpotLightNode_1.ModelviewRotationMatrix: TMatrix4Single;
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Side, Up: TVector3Single;
 begin
-  GetView(Pos, Dir, Up);
-  Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
+  GetView(Pos, Dir, Side, Up);
+  Result := FastLookDirMatrix(Dir, Up);
 end;
 
 function TSpotLightNode_1.GetProjectionLocationLocal: TVector3Single;

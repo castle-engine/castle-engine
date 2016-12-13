@@ -1991,19 +1991,29 @@ function TransformToCoords(const V, NewX, NewY, NewZ: TVector3Double): TVector3D
   For LookAtMatrix, looking direction is implicitly given as @code(Center - Eye).
   Just like gluLookAt.
 
-  Dir and Up do not have to normalized (we'll normalize them if needed).
-  So the lengths of Dir and Up do not affect the result
-  (just as the distance between Center and Eye points for LookAtMatrix).
+  @unorderedList(
+    @item(For the overloaded LookDirMatrix version with Side parameter,
+      we assume that Dir, Side and Up are already normalized
+      and orthogonal to each other.)
 
-  Also, Dir and Up do not have to be perfectly orthogonal
-  (we will eventually adjust Up internally to make it orthogonal to Up).
-  But make sure they are not parallel.
+    @item(For the overloaded version without the Side parameter,
+      Dir and Up do not have to normalized.
+      We'll normalize them if needed, so their lengths do not affect the result
+      (just as the distance between Center and Eye points for LookAtMatrix).
+
+      Also, Dir and Up do not have to be perfectly orthogonal
+      (we will eventually adjust Up internally to make it orthogonal to Up).
+
+      You still must make sure that Dir and Up are not parallel.)
+  )
 
   @groupBegin }
 function LookAtMatrix(const Eye, Center, Up: TVector3Single): TMatrix4Single; overload;
 function LookAtMatrix(const Eye, Center, Up: TVector3Double): TMatrix4Single; overload;
 function LookDirMatrix(const Eye, Dir, Up: TVector3Single): TMatrix4Single; overload;
 function LookDirMatrix(const Eye, Dir, Up: TVector3Double): TMatrix4Single; overload;
+function LookDirMatrix(const Eye, Dir, Side, Up: TVector3Single): TMatrix4Single; overload;
+function LookDirMatrix(const Eye, Dir, Side, Up: TVector3Double): TMatrix4Single; overload;
 { @groupEnd }
 
 { Calculate LookDirMatrix (or it's inverse), fast.

@@ -572,7 +572,7 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
   procedure AutoCalculateProjectionForDirectionalLight(
     const LightNode: TDirectionalLightNode);
   var
-    Pos, Dir, Up: TVector3Single;
+    Pos, Dir, Side, Up: TVector3Single;
     ProjectionLocation: TVector3Single;
     ProjectionRectangle: TFloatRectangle;
   begin
@@ -580,11 +580,11 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
          LightNode.FdProjectionRectangle.Value, ZeroVector4Single) and
       (not ShadowCastersBox.IsEmpty) then
     begin
-      LightNode.GetView(Pos, Dir, Up);
+      LightNode.GetView(Pos, Dir, Side, Up);
       ProjectionLocation := ShadowCastersBox.MinimumCorner(
         LightNode.ProjectionSceneDirection);
       ProjectionRectangle := ShadowCastersBox.Project(
-        ProjectionLocation, Dir, Up);
+        ProjectionLocation, Dir, Side, Up);
       LightNode.FdProjectionRectangle.Value := Vector4Single(
         ProjectionRectangle.Left,
         ProjectionRectangle.Bottom,
@@ -602,10 +602,12 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
   end;
 
 begin
-  AutoCalculateProjectionNearFar;
+  { calculate projectionLocation/Rectangle first,
+    since projectionLocation determines the right range for projectionNear/Far }
   if Light.Light is TDirectionalLightNode then
     AutoCalculateProjectionForDirectionalLight(
       TDirectionalLightNode(Light.Light));
+  AutoCalculateProjectionNearFar;
 end;
 
 procedure TLightList.HandleLightCastingOnEverything(Node: TX3DNode);

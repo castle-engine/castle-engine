@@ -132,8 +132,12 @@
     { Light location, direction and up vectors, for projection.
       Useful when you think of lights as cameras (for shadow maps).
 
-      DirectionLocal must be exactly zero for a PointLight (that doesn't
-      have a direction).
+      ProjectionDirectionLocal will always be exactly zero
+      for a PointLight (that doesn't have a direction).
+
+      The GetView returns vectors in global (scene) space.
+      It guarantees that Direction, Side and Up are normalized
+      and orthogonal to each other.
 
       @groupBegin }
     property   ProjectionLocationLocal: TVector3Single
@@ -152,7 +156,7 @@
       read  GetProjectionSceneDirection
       write SetProjectionSceneDirection;
 
-    procedure GetView(out Pos, Dir, Up: TVector3Single);
+    procedure GetView(out Pos, Dir, Side, Up: TVector3Single);
     { @groupEnd }
 
     { Calculate distances between the given Box and this light source.
@@ -550,7 +554,7 @@ begin
   ProjectionDirectionLocal := MatrixMultDirection(InvertedTransform, Value);
 end;
 
-procedure TAbstractLightNode.GetView(out Pos, Dir, Up: TVector3Single);
+procedure TAbstractLightNode.GetView(out Pos, Dir, Side, Up: TVector3Single);
 begin
   Pos := ProjectionSceneLocation;
   Dir := ProjectionSceneDirection;
@@ -563,11 +567,16 @@ begin
   if PerfectlyZeroVector(Up) then
     Up := Vector3Single(0, 1, 0);
   Up := MatrixMultDirection(Transform, Up);
-  { When the "up" vector is parallel to the dir then fix it.
-    Note: when "up" is not parallel, then ModelviewMatrix will
-    take care of adjusting it to be orthogonal. }
+  { When the "up" vector is parallel to the dir then fix it. }
   if VectorsParallel(Up, Dir) then
     Up := AnyOrthogonalVector(Dir);
+
+  { now normalize all vectors,
+    calculate Side,
+    and make Up orthogonal to Dir }
+  Side := Normalized(VectorProduct(Dir, Up));
+  NormalizeVar(Dir);
+  Up := VectorProduct(Side, Dir);
 end;
 
 function TAbstractLightNode.CreateLightInstance(
@@ -686,18 +695,18 @@ end;
 
 function TAbstractDirectionalLightNode.ModelviewMatrix: TMatrix4Single;
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Side, Up: TVector3Single;
 begin
-  GetView(Pos, Dir, Up);
-  Result := LookDirMatrix(Pos, Dir, Up);
+  GetView(Pos, Dir, Side, Up);
+  Result := LookDirMatrix(Pos, Dir, Side, Up);
 end;
 
 function TAbstractDirectionalLightNode.ModelviewRotationMatrix: TMatrix4Single;
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Side, Up: TVector3Single;
 begin
-  GetView(Pos, Dir, Up);
-  Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
+  GetView(Pos, Dir, Side, Up);
+  Result := FastLookDirMatrix(Dir, Up);
 end;
 
 function TAbstractDirectionalLightNode.GetProjectionLocationLocal: TVector3Single;
@@ -1045,18 +1054,18 @@ end;
 
 function TSpotLightNode.ModelviewMatrix: TMatrix4Single;
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Side, Up: TVector3Single;
 begin
-  GetView(Pos, Dir, Up);
-  Result := LookDirMatrix(Pos, Dir, Up);
+  GetView(Pos, Dir, Side, Up);
+  Result := LookDirMatrix(Pos, Dir, Side, Up);
 end;
 
 function TSpotLightNode.ModelviewRotationMatrix: TMatrix4Single;
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Side, Up: TVector3Single;
 begin
-  GetView(Pos, Dir, Up);
-  Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
+  GetView(Pos, Dir, Side, Up);
+  Result := FastLookDirMatrix(Dir, Up);
 end;
 
 function TSpotLightNode.GetProjectionLocationLocal: TVector3Single;
