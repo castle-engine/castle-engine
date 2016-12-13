@@ -9,7 +9,6 @@ DEF Light SpotLight {
   defaultShadowMap GeneratedShadowMap {
     update "ALWAYS"
     size 1024
-    bias 10
     light PointLight { }
   }
 }
