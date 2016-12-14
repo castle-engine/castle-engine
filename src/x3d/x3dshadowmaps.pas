@@ -525,6 +525,7 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
         light source and the shadow receivers. }
       Light.Light.Box3DDistances(ShadowCastersBox, ProjectionNear, ProjectionFar);
       MaxVar(ProjectionNear, 0);
+      // TODO: directional light may not have projection location calculated now
       MinVar(ProjectionFar, Light.MaxShadowReceiverDistance);
 
       if ProjectionNear > ProjectionFar then
@@ -572,7 +573,7 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
   procedure AutoCalculateProjectionForDirectionalLight(
     const LightNode: TDirectionalLightNode);
   var
-    Pos, Dir, Side, Up: TVector3Single;
+    Pos, Dir, Side, Up, MinCorner, MaxCorner: TVector3Single;
     ProjectionLocation: TVector3Single;
     ProjectionRectangle: TFloatRectangle;
   begin
@@ -581,9 +582,14 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
       (not ShadowCastersBox.IsEmpty) then
     begin
       LightNode.GetView(Pos, Dir, Side, Up);
-      ProjectionLocation := ShadowCastersBox.MinimumCorner(
-        LightNode.ProjectionSceneDirection);
-      ProjectionRectangle := ShadowCastersBox.Project(
+      MinCorner := ShadowCastersBox.MinimumCorner(LightNode.ProjectionSceneDirection);
+      MaxCorner := ShadowCastersBox.MaximumCorner(LightNode.ProjectionSceneDirection);
+      { do not place ProjectionLocation exactly at MinCorner, it would be too close
+        to ShadowCastersBox, forcing projectionNear always almost zero. }
+      ProjectionLocation :=
+        //MinCorner - (MaxCorner - MinCorner)
+        MinCorner * 2 - MaxCorner; // same thing
+      ProjectionRectangle := ShadowCastersBox.OrthoProject(
         ProjectionLocation, Dir, Side, Up);
       LightNode.FdProjectionRectangle.Value := ProjectionRectangle.ToX3DVector;
       LightNode.FdProjectionLocation.Value :=

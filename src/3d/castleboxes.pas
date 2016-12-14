@@ -371,6 +371,10 @@ type
       @raises(EBox3DEmpty If the Box is empty.) }
     function MinimumPlane(const Direction: TVector3Single): TVector4Single;
 
+    { Farthest corner of the box in the given Direction.
+      @raises(EBox3DEmpty If the Box is empty.) }
+    function MaximumCorner(const Direction: TVector3Single): TVector3Single;
+
     { Corner of the box such that the rest of the box lies in the given
       Direction from this corner.
       @raises(EBox3DEmpty If the Box is empty.) }
@@ -440,7 +444,7 @@ type
     { Project box along a given direction to a 2D rectangle.
       @bold(Assumes that Dir, Side and Up vectors are already
       orthogonal and normalized.) }
-    function Project(const Pos, Dir, Side, Up: TVector3Single): TFloatRectangle;
+    function OrthoProject(const Pos, Dir, Side, Up: TVector3Single): TFloatRectangle;
   end;
 
   TBox3DBool = array [boolean] of TVector3Single;
@@ -1625,6 +1629,16 @@ begin
                   BoxBool[Direction[2] < 0][2] * Result[2]);
 end;
 
+function TBox3D.MaximumCorner(const Direction: TVector3Single): TVector3Single;
+var
+  BoxBool: TBox3DBool absolute Data;
+begin
+  CheckNonEmpty;
+  Result[0] := BoxBool[Direction[0] >= 0][0];
+  Result[1] := BoxBool[Direction[1] >= 0][1];
+  Result[2] := BoxBool[Direction[2] >= 0][2];
+end;
+
 function TBox3D.MinimumCorner(const Direction: TVector3Single): TVector3Single;
 var
   BoxBool: TBox3DBool absolute Data;
@@ -1817,7 +1831,7 @@ begin
   end;
 end;
 
-function TBox3D.Project(const Pos, Dir, Side, Up: TVector3Single): TFloatRectangle;
+function TBox3D.OrthoProject(const Pos, Dir, Side, Up: TVector3Single): TFloatRectangle;
 
   function ProjectPoint(const P: TVector3Single): TVector2Single;
   var
