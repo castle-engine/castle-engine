@@ -251,8 +251,8 @@ var
   Res: TStillCreatureResource;
 begin
   Res := TStillCreatureResource.Create('KnightCreatedFromCodeTest');
-  Res.Animations.FindName('idle').URL := ApplicationData('knight_castle_anim_frames/idle.castle-anim-frames');
-  Res.Animations.FindName('die').URL := ApplicationData('knight_castle_anim_frames/die.castle-anim-frames');
+  Res.Animations.FindName('idle').URL := ApplicationData('knight_multiple_castle_anim_frames/idle.castle-anim-frames');
+  Res.Animations.FindName('die').URL := ApplicationData('knight_multiple_castle_anim_frames/die.castle-anim-frames');
   Resources.Add(Res);
 end;
 

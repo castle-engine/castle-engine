@@ -1,41 +1,41 @@
 This example loads a creature modeled and animated in Blender.
+To demonstrate various ways of exporting animated 3D models
+to Castle Game Engine, the same ("knight") creature is exported
+in 4 different ways:
 
-To demonstrate various ways of exporting the 3D models for creatures
-for Castle Game Engine, the knight creature is exported in 3 different
-ways:
-
-1. Single X3D file with all animations, in data/knight_single_x3d/
-2. Multiple X3D files with one for each animation, in data/knight_multiple_x3d/
-3. KAnim file (referting to a series of X3D models for each still frame)
-   for each animation, in data/knight_kanim/
+1. Single X3D file with all the animations,
+   in data/knight_single_x3d/
+2. Multiple X3D files with one for each animation,
+   in data/knight_multiple_x3d/
+3. Single castle-anim-frames file with all the animations,
+   in data/knight_single_castle_anim_frames/
+4. Multiple castle-anim-frames files, one for each animation,
+   in data/knight_multiple_castle_anim_frames/
 
 We declare them in resource.xml files with different names
-("KnightSingle", "KnightMultiple", "KnightKAnim")
-so the engine (ObjectPascal code) actually sees three different creature resources.
-In a real game, you should probably choose just one approach to exporting,
+("KnightSingleX3D", "KnightMultipleX3D", and so on)
+so the engine (ObjectPascal code) sees them as 4 different creature resources.
+In a real game, you would choose just one approach to exporting,
 and have a single creature named just "Knight".
 
 Notes about modelers and exporters:
 
 - The 1st method ("Single X3D file") should be considered the best
   (smallest file size, loading time, memory consumption).
+  If your 3D authoring software allows to export multiple animations
+  to an X3D file, then use it.
 
-- When using Blender:
+- For Blender, you will probably export your animations to
+  "castle-anim-frames" file.
+  See http://castle-engine.sourceforge.net/creating_data_blender.php .
 
-  Unfortunately, only the 3rd method ("KAnim file")
-  is right now possible to do automatically from Blender, using
-  our KAnim exporter on http://castle-engine.sourceforge.net/blender.php .
-  Other methods require some manual work to edit the X3D files,
-  and/or helping yourself with our tool
-  3d_rendering_processing/tools/kanim_to_interpolators (but it's still
-  not automatic for non-trivial models).
+  Although it is possible to convert "castle-anim-frames" later to X3D,
+  but it may require some manual work (you can help yourself with our tool
+  3d_rendering_processing/tools/kanim_to_interpolators, but it's
+  not completely automatic for non-trivial models).
 
-  We plan to extend Blender exporter to overcome this limitation.
-  For now, use KAnim approach, which isn't so terrible actually :)
-
-- Other modellers may allow you to export X3D file with animations
-  (I know that at least 3DS Max can export some animations to X3D),
-  so method 2. or even 1. may be possible with other modellers.
+  So you may as well just use "castle-anim-frames" when working
+  with Blender.
 
 The knight 3D model author:
   The model in knight.blend and with texture in textures/knight.png

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <resource
-  name="KnightSingle"
+  name="KnightSingleX3D"
   type="WalkAttack"
 >
   <model url="knight.x3dv">
