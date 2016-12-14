@@ -1989,6 +1989,7 @@ var
 
 var
   PassLightsUniforms: boolean;
+  EnabledLights: boolean;
 
   procedure EnableLights;
   var
@@ -1998,6 +1999,7 @@ var
     {$endif}
   begin
     PassLightsUniforms := false;
+    EnabledLights := false;
 
     { If we have no fragment/vertex shader (means that we used ComposedShader
       node without one shader) then don't add any code.
@@ -2023,6 +2025,8 @@ var
 
       for I := 0 to LightShaders.Count - 1 do
       begin
+        EnabledLights := true;
+
         {$ifndef OpenGLES}
         LightShaderBack  := LightShaders[I].Code[stFragment][0];
         LightShaderFront := LightShaderBack;
@@ -2257,7 +2261,10 @@ var
 
   procedure EnableShaderMaterialFromColor;
   begin
-    if MaterialFromColor then
+    { check EnabledLights, to avoid warnings that plug
+      "material_light_diffuse" is not defined on unlit stuff,
+      testcase: castle-game/data/levels/gate/gate_final.x3dv }
+    if EnabledLights and MaterialFromColor then
     begin
       {$ifndef OpenGLES}
       Plug(stVertex,
