@@ -186,7 +186,7 @@ begin
       and calculate EnvLightSHVector describing the light contribution
       (this will be used then by SceneReceiver.Render, during VertexColor). }
 
-    SHVectorGLCapture(EnvLightSHVector, SceneReceiver.BoundingBox.Middle,
+    SHVectorGLCapture(EnvLightSHVector, SceneReceiver.BoundingBox.Center,
       @DrawEnvLight, 50, 50, 1 { no ScaleColor ---
         we will apply light intensity at VertexColor });
     glViewport(Window.Rect);
@@ -620,7 +620,7 @@ begin
       NavigatorData[ntLocalLight].Pos := Vector3Single(0, 0, 1);
     end else
     begin
-      NavigatorData[ntLocalLight].Pos := BoxSum.Middle;
+      NavigatorData[ntLocalLight].Pos := BoxSum.Center;
       NavigatorData[ntLocalLight].Pos[0] := BoxSum.Data[0][0];
     end;
 
@@ -630,7 +630,7 @@ begin
       NavigatorData[ntSFExplorer].Pos := Vector3Single(0, 0, 1);
     end else
     begin
-      NavigatorData[ntSFExplorer].Pos := BoxSum.Middle;
+      NavigatorData[ntSFExplorer].Pos := BoxSum.Center;
       NavigatorData[ntSFExplorer].Pos[0] := BoxSum.Data[1][0];
     end;
 
@@ -640,7 +640,7 @@ begin
       NavigatorData[ntEnvLight].Pos := Vector3Single(0, 0, 1);
     end else
     begin
-      NavigatorData[ntEnvLight].Pos := BoxSum.Middle;
+      NavigatorData[ntEnvLight].Pos := BoxSum.Center;
       NavigatorData[ntEnvLight].Pos[1] := BoxSum.Data[0][1];
     end;
 
