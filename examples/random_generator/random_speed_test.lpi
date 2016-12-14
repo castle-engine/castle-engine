@@ -9,7 +9,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="Random_speed_test"/>
+      <Title Value="random_speed_test"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -37,7 +37,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="Random_speed_test.pas"/>
+        <Filename Value="random_speed_test.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
     </Units>
@@ -45,7 +45,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="Random_speed_test"/>
+      <Filename Value="random_speed_test"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
