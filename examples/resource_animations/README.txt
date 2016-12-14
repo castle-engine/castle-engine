@@ -13,7 +13,7 @@ in 4 different ways:
    in data/knight_multiple_castle_anim_frames/
 
 We declare them in resource.xml files with different names
-("KnightSingleX3D", "KnightMultipleX3D", and so on)
+("KnightSingleXThreeD", "KnightMultipleXThreeD", and so on)
 so the engine (ObjectPascal code) sees them as 4 different creature resources.
 In a real game, you would choose just one approach to exporting,
 and have a single creature named just "Knight".
