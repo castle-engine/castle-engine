@@ -83,7 +83,7 @@ type
     Light: TAbstractLightNode;
     ShadowMap: TGeneratedShadowMapNode;
     TexGen: TProjectedTextureCoordinateNode;
-    MaxShadowReceiverDistance: Single;
+    ShadowReceiversBox: TBox3D;
   end;
   PLight = ^TLight;
 
@@ -120,7 +120,7 @@ begin
   { add a new TLight record }
   Result := Add;
   Result^.Light := Light;
-  Result^.MaxShadowReceiverDistance := 0;
+  Result^.ShadowReceiversBox := TBox3D.Empty;
 
   { Assign unique nodenames to the created ShadowMap and TexGen nodes,
     this way when saving they will be shared by DEF/USE.
@@ -365,8 +365,6 @@ procedure TLightList.ShapeAdd(Shape: TShape);
     TextureTransform: TAbstractTextureTransformNode;
     TexCoord: TX3DNode;
     TexturesCount: Cardinal;
-    Box: TBox3D;
-    MinReceiverDistance, MaxReceiverDistance: Single;
   begin
     Light := FindLight(LightNode);
 
@@ -429,14 +427,7 @@ procedure TLightList.ShapeAdd(Shape: TShape);
       Shape.Node.FdAppearance.Value := TAppearanceNode.Create;
     Shape.Node.Appearance.FdTextureTransform.Value := TextureTransform;
 
-    Box := Shape.BoundingBox;
-    if not Box.IsEmpty then
-    begin
-      // TODO: directional light may not have projection location calculated now
-      LightNode.Box3DDistances(Box, MinReceiverDistance, MaxReceiverDistance);
-      MaxVar(Light^.MaxShadowReceiverDistance, MaxReceiverDistance);
-      { We do not use MinReceiverDistance for anything }
-    end;
+    Light^.ShadowReceiversBox.Add(Shape.BoundingBox);
   end;
 
   procedure HandleShadowCaster;
@@ -511,9 +502,12 @@ end;
 
 procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
 
+  { Auto-calculate projection near and far, knowing that light's
+    projection location and direction are set now. }
   procedure AutoCalculateProjectionNearFar;
   var
     ProjectionNear, ProjectionFar: Single;
+    MinReceiverDistance, MaxReceiverDistance: Single;
   begin
     if ShadowCastersBox.IsEmpty then
     begin
@@ -525,12 +519,16 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
       { Projection near/far must include all shadow casters between
         light source and the shadow receivers. }
       Light.Light.Box3DDistances(ShadowCastersBox, ProjectionNear, ProjectionFar);
+      Light.Light.Box3DDistances(Light.ShadowReceiversBox, MinReceiverDistance, MaxReceiverDistance);
+      // MinReceiverDistance is ignored
+
       MaxVar(ProjectionNear, 0);
-      MinVar(ProjectionFar, Light.MaxShadowReceiverDistance);
+      MinVar(ProjectionFar, MaxReceiverDistance);
 
       if ProjectionNear > ProjectionFar then
       begin
-        { No *important* shadow casters? So any sensible values are fine. }
+        { No shadow casters that can cast shadows on our shadow receivers?
+          So any sensible values are fine. }
         ProjectionNear := 0.1;
         ProjectionFar := 1;
       end else
