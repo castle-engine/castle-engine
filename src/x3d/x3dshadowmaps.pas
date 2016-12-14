@@ -585,11 +585,7 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
         LightNode.ProjectionSceneDirection);
       ProjectionRectangle := ShadowCastersBox.Project(
         ProjectionLocation, Dir, Side, Up);
-      LightNode.FdProjectionRectangle.Value := Vector4Single(
-        ProjectionRectangle.Left,
-        ProjectionRectangle.Bottom,
-        ProjectionRectangle.Right,
-        ProjectionRectangle.Top);
+      LightNode.FdProjectionRectangle.Value := ProjectionRectangle.ToX3DVector;
       LightNode.FdProjectionLocation.Value :=
         MatrixMultPoint(LightNode.InvertedTransform, ProjectionLocation);
 

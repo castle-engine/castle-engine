@@ -315,6 +315,14 @@ type
 
     { Return larger rectangle, so that it includes given point. }
     function Add(const P: TVector2Single): TFloatRectangle;
+
+    { Convert to a 4D vector, like expected by X3D fields
+      OrthoViewpoint.fieldOfView or DirectionalLight.projectionRectangle. }
+    function ToX3DVector: TVector4Single;
+
+    { Convert from a 4D vector, like expected by X3D fields
+      OrthoViewpoint.fieldOfView or DirectionalLight.projectionRectangle. }
+    class function FromX3DVector(const V: TVector4Single): TFloatRectangle; static;
   end;
 
   PFloatRectangle = ^TFloatRectangle;
@@ -1003,6 +1011,23 @@ begin
         Result.Height := Height;
     end;
   end;
+end;
+
+function TFloatRectangle.ToX3DVector: TVector4Single;
+begin
+  Result := Vector4Single(
+    Left,
+    Bottom,
+    Right,
+    Top);
+end;
+
+class function TFloatRectangle.FromX3DVector(const V: TVector4Single): TFloatRectangle;
+begin
+  Result.Left   := V[0];
+  Result.Bottom := V[1];
+  Result.Width  := V[2] - V[0];
+  Result.Height := V[3] - V[1];
 end;
 
 { TRectangleList -------------------------------------------------------------- }
