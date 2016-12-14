@@ -1,4 +1,4 @@
-program GraphicsTest;
+program graphics_random_test;
 
 {$mode objfpc}{$H+}
 

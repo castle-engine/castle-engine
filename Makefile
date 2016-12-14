@@ -197,7 +197,9 @@ EXAMPLES_BASE_NAMES := \
   tools/build-tool/castle-engine \
   tools/image2pascal/image2pascal \
   tools/texturefont2pascal/texturefont2pascal \
-  tools/castle-curves/castle-curves
+  tools/castle-curves/castle-curves \
+  examples/random_generator/random_speed_test \
+  examples/random_generator/random_threads_test
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
@@ -208,8 +210,7 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   tests/test_castle_game_engine \
   src/library/castleengine \
   examples/library/lcl_dynlib_tester/cge_dynlib_tester \
-  examples/random_generator/GraphicsTest \
-  examples/random_generator/Random_speed_test
+  examples/random_generator/graphics_random_test
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   $(EXAMPLES_LAZARUS_BASE_NAMES)

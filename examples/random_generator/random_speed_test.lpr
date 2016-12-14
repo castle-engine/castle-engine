@@ -1,4 +1,4 @@
-program Random_speed_test;
+program random_speed_test;
 
 uses SysUtils, CastleRandom;
 
