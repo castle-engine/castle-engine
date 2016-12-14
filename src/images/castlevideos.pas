@@ -907,7 +907,7 @@ begin
     S := Format('Video %s : 1. Loading time: %f',
       [URIDisplay(URL), ProcessTimerSeconds(ProcessTimerNow, Start)]);
     if AlphaChannel <> acNone then
-      S += '. Detected as simple yes/no alpha channel: ' + BoolToStr(AlphaChannel = acSimpleYesNo, true);
+      S += '. Detected as simple yes/no ("test") alpha channel: ' + BoolToStr(AlphaChannel = acTest, true);
     WritelnLog('++', S);
   end;
 end;

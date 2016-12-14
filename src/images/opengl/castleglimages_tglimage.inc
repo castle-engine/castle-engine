@@ -256,8 +256,8 @@ type
           alpha indicates so. Otherwise we don't use any alpha,
           we render image opaque.)
         @item acNone means to ignore it.
-        @item acSimpleYesNo means to render with alpha-test.
-        @item acFullRange means to render with blending.
+        @item acTest means to render with alpha-test.
+        @item acBlending means to render with blending.
       )
 
       This is initialized based on loaded image class and data.
@@ -880,7 +880,7 @@ begin
   begin
     Result := FImageAlpha;
     if FColor[3] < 1 then
-      Result := acFullRange;
+      Result := acBlending;
   end else
     Result := FAlpha;
 end;
@@ -889,13 +889,13 @@ procedure TGLImageCore.AlphaBegin;
 begin
   case FinalAlpha of
     {$ifndef GLImageUseShaders}
-    acSimpleYesNo:
+    acTest:
       begin
         glAlphaFunc(GL_GEQUAL, 0.5);
         glEnable(GL_ALPHA_TEST);
       end;
     {$endif}
-    acFullRange:
+    acBlending:
       begin
         GLBlendFunction(BlendingSourceFactor, BlendingDestinationFactor);
         glEnable(GL_BLEND);
@@ -907,9 +907,9 @@ procedure TGLImageCore.AlphaEnd;
 begin
   case FinalAlpha of
     {$ifndef GLImageUseShaders}
-    acSimpleYesNo: glDisable(GL_ALPHA_TEST);
+    acTest: glDisable(GL_ALPHA_TEST);
     {$endif}
-    acFullRange: glDisable(GL_BLEND);
+    acBlending: glDisable(GL_BLEND);
   end;
 end;
 
@@ -1134,7 +1134,7 @@ begin
     ColorTreatment := ctColorMultipliesTexture else
     ColorTreatment := ctPureTexture;
 
-  Prog := Programs[FinalAlpha = acSimpleYesNo, Clip, ColorTreatment];
+  Prog := Programs[FinalAlpha = acTest, Clip, ColorTreatment];
   CurrentProgram := Prog.Prog;
   Prog.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE,
     SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
@@ -1288,9 +1288,9 @@ begin
 
   { For speed, we only apply AlphaBegin/End once.
     In case of GLImageUseShaders, this optimization is only useful
-    for acFullRange, and it would actually break the acSimpleYesNo case. }
+    for acBlending, and it would actually break the acTest case. }
   {$ifdef GLImageUseShaders}
-  OptimizeAlpha := FinalAlpha = acFullRange;
+  OptimizeAlpha := FinalAlpha = acBlending;
   if OptimizeAlpha then
   {$endif}
   begin
@@ -1410,9 +1410,9 @@ begin
 
   { For speed, we only apply AlphaBegin/End once.
     In case of GLImageUseShaders, this optimization is only useful
-    for acFullRange, and it would actually break the acSimpleYesNo case. }
+    for acBlending, and it would actually break the acTest case. }
   {$ifdef GLImageUseShaders}
-  OptimizeAlpha := FinalAlpha = acFullRange;
+  OptimizeAlpha := FinalAlpha = acBlending;
   if OptimizeAlpha then
   {$endif}
   begin

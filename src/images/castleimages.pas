@@ -78,11 +78,13 @@ uses SysUtils, Classes, Math, CastleUtils, CastleVectors, CastleRectangles,
   {$ifdef CASTLE_PNG_USING_FCL_IMAGE} , FPReadPNG, CastleFPWritePNG {$endif};
 
 type
-  TAutoAlphaChannel = (acAuto, acNone, acSimpleYesNo, acFullRange);
+  TAutoAlphaChannel = (acAuto, acNone, acTest, acBlending);
   { See TCastleImage.AlphaChannel. }
-  TAlphaChannel = acNone .. acFullRange;
+  TAlphaChannel = acNone .. acBlending;
 
 const
+  acSimpleYesNo = acBlending deprecated 'use acTest';
+  acFullRange = acBlending deprecated 'use acBlending';
   { Default parameters for TEncodedImage.AlphaChannel,
     decide how to detect textures alpha channel. }
   DefaultAlphaTolerance = 5;
@@ -156,9 +158,9 @@ type
 
       You may also be interested in the AlphaChannel.
       AlphaChannel answers always atNone if HasAlpha = false,
-      and always acSimpleYesNo or acFullRange if HasAlpha = true.
+      and always acTest or acBlending if HasAlpha = true.
       But AlphaChannel may perform longer analysis of pixels
-      (to differ between acSimpleYesNo and acFullRange), while this
+      (to differ between acTest and acBlending), while this
       function always executes ultra-fast (as it's constant for each
       TCastleImage descendant).
 
@@ -1607,7 +1609,7 @@ function StringToAlpha(S: string; var WarningDone: boolean): TAutoAlphaChannel;
 
 const
   AlphaToString: array [TAutoAlphaChannel] of string =
-  ('AUTO', 'NONE', 'SIMPLE_YES_NO', 'FULL_RANGE');
+  ('AUTO', 'NONE', 'TEST', 'BLENDING');
 
 type
   TTextureCompressionInfo = object
@@ -1627,24 +1629,24 @@ type
 
 const
   TextureCompressionInfo: array [TTextureCompression] of TTextureCompressionInfo =
-  ( (Name: 'DXT1_RGB'                    ; RequiresPowerOf2: false; AlphaChannel: acNone       ; DDSFlipped: false),
-    (Name: 'DXT1_RGBA'                   ; RequiresPowerOf2: false; AlphaChannel: acSimpleYesNo; DDSFlipped: false),
-    (Name: 'DXT3'                        ; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: false),
-    (Name: 'DXT5'                        ; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: false),
+  ( (Name: 'DXT1_RGB'                    ; RequiresPowerOf2: false; AlphaChannel: acNone    ; DDSFlipped: false),
+    (Name: 'DXT1_RGBA'                   ; RequiresPowerOf2: false; AlphaChannel: acTest    ; DDSFlipped: false),
+    (Name: 'DXT3'                        ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: false),
+    (Name: 'DXT5'                        ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: false),
     { See http://community.imgtec.com/files/pvrtc-texture-compression-user-guide/
       "PVRTC2 vs PVRTC1" section --- PVRTC1 require power-of-two. } { }
-    (Name: 'PVRTC1_4bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone       ; DDSFlipped: true),
-    (Name: 'PVRTC1_2bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone       ; DDSFlipped: true),
-    (Name: 'PVRTC1_4bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acFullRange  ; DDSFlipped: true),
-    (Name: 'PVRTC1_2bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acFullRange  ; DDSFlipped: true),
-    (Name: 'PVRTC2_4bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: true),
-    (Name: 'PVRTC2_2bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: true),
+    (Name: 'PVRTC1_4bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true),
+    (Name: 'PVRTC1_2bpp_RGB'             ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true),
+    (Name: 'PVRTC1_4bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'PVRTC1_2bpp_RGBA'            ; RequiresPowerOf2: true ; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'PVRTC2_4bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'PVRTC2_2bpp'                 ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
     { Tests show that ATITC does not need power-of-two sizes. }
-    (Name: 'ATITC_RGB'                   ; RequiresPowerOf2: false; AlphaChannel: acNone       ; DDSFlipped: true),
-    (Name: 'ATITC_RGBA_ExplicitAlpha'    ; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: true),
-    (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: false; AlphaChannel: acFullRange  ; DDSFlipped: true),
+    (Name: 'ATITC_RGB'                   ; RequiresPowerOf2: false; AlphaChannel: acNone    ; DDSFlipped: true),
+    (Name: 'ATITC_RGBA_ExplicitAlpha'    ; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
+    (Name: 'ATITC_RGBA_InterpolatedAlpha'; RequiresPowerOf2: false; AlphaChannel: acBlending; DDSFlipped: true),
     { TODO: unconfirmed RequiresPowerOf2 for ETC1. } { }
-    (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone       ; DDSFlipped: true)
+    (Name: 'ETC1'                        ; RequiresPowerOf2: true ; AlphaChannel: acNone    ; DDSFlipped: true)
   );
 
 { Convert TTextureCompression enum to string. }
@@ -3114,11 +3116,11 @@ begin
   begin
     if (PtrAlpha^[3] > AlphaTolerance) and
        (PtrAlpha^[3] < 255 - AlphaTolerance) then
-      Exit(acFullRange);
+      Exit(acBlending);
     Inc(PtrAlpha);
   end;
 
-  Result := acSimpleYesNo;
+  Result := acTest;
 end;
 
 procedure TRGBAlphaImage.LerpWith(const Value: Single; SecondImage: TCastleImage);
@@ -3579,11 +3581,11 @@ begin
   begin
     if (PtrAlpha^ > AlphaTolerance) and
        (PtrAlpha^ < 255 - AlphaTolerance) then
-      Exit(acFullRange);
+      Exit(acBlending);
     Inc(PtrAlpha);
   end;
 
-  Result := acSimpleYesNo;
+  Result := acTest;
 end;
 
 procedure TGrayscaleImage.Assign(const Source: TCastleImage);
@@ -3727,11 +3729,11 @@ begin
   begin
     if (PtrAlpha^[1] > AlphaTolerance) and
        (PtrAlpha^[1] < 255 - AlphaTolerance) then
-      Exit(acFullRange);
+      Exit(acBlending);
     Inc(PtrAlpha);
   end;
 
-  Result := acSimpleYesNo;
+  Result := acTest;
 end;
 
 procedure TGrayscaleAlphaImage.LerpWith(const Value: Single; SecondImage: TCastleImage);
@@ -4368,6 +4370,26 @@ begin
   for Result := Low(Result) to High(Result) do
     if S = AlphaToString[Result] then
       Exit;
+
+  if S = 'SIMPLE_YES_NO' then
+  begin
+    if not WarningDone then
+    begin
+      WritelnWarning('alphaChannel', '"alphaChannel" value "SIMPLE_YES_NO" is deprecated, use "TEST" instead');
+      WarningDone := true;
+    end;
+    Exit(acTest);
+  end;
+
+  if S = 'FULL_RANGE' then
+  begin
+    if not WarningDone then
+    begin
+      WritelnWarning('alphaChannel', '"alphaChannel" value "FULL_RANGE" is deprecated, use "BLENDING" instead');
+      WarningDone := true;
+    end;
+    Exit(acBlending);
+  end;
 
   if not WarningDone then
   begin

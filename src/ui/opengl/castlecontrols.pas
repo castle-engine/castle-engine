@@ -2004,8 +2004,8 @@ begin
     if FImage.HasAlpha then
     begin
       if ImageAlphaTest then
-        FGLImage.Alpha := acSimpleYesNo else
-        FGLImage.Alpha := acFullRange;
+        FGLImage.Alpha := acTest else
+        FGLImage.Alpha := acBlending;
     end;
     case ImageLayout of
       ilLeft         : ImgLeft := TextLeft - ImgScreenWidth - ImageMarginScaled;
@@ -2761,14 +2761,14 @@ end;
 
 function TCastleImageControl.GetBlending: boolean;
 begin
-  Result := AlphaChannel <> acFullRange;
+  Result := AlphaChannel <> acBlending;
 end;
 
 procedure TCastleImageControl.SetBlending(const Value: boolean);
 begin
   if Value then
-    AlphaChannel := acFullRange else
-    AlphaChannel := acSimpleYesNo;
+    AlphaChannel := acBlending else
+    AlphaChannel := acTest;
 end;
 
 procedure TCastleImageControl.SetStretch(const Value: boolean);

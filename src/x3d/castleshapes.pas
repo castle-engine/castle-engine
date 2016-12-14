@@ -436,25 +436,16 @@ type
       read  FTriangleOctreeProgressTitle
       write FTriangleOctreeProgressTitle;
 
-    { Looking at material and color and texture nodes,
-      decide if the shape is opaque or (partially) transparent.
+    { Decide should the shape use alpha blending (partial transparency),
+      looking at material, color, texture nodes (including at texture
+      images contents).
 
-      For VRML >= 2.0, shape is transparent if material exists and
-      has transparency > 0 (epsilon). It's also transparent if it has
-      ColorRGBA node inside "color" field.
-
-      For VRML <= 1.0, for now shape is transparent if all it's
-      transparent values (in VRML 1.0, material node has actually many
-      material values) have transparency > 0 (epsilon).
-
-      We also look at texture, does it have a full-range alpha channel
-      (for blending).
-
-      It looks at data of texture node, material node and so on,
-      so should be done before any calls to TCastleSceneCore.FreeResources.
+      This may look at the data of the texture node,
+      so it should be called before any calls to TCastleSceneCore.FreeResources.
       It checks AlphaChannel of textures, so assumes that given shape
       textures are already loaded. }
-    function Transparent: boolean;
+    function Blending: boolean;
+    function Transparent: boolean; deprecated 'use Blending';
 
     procedure Traverse(Func: TShapeTraverseFunc;
       const OnlyActive: boolean;
@@ -1485,6 +1476,33 @@ begin
 end;
 
 function TShape.Transparent: boolean;
+begin
+  Result := Blending;
+end;
+
+function TShape.Blending: boolean;
+
+  { All the "transparency" field values are greater than zero.
+    So the blending should be used when rendering.
+
+    Note that when "transparency" field is empty, then we assume
+    a default transparency (0) should be used. So AllMaterialsTransparent
+    is @false then (contrary to the strict definition of "all",
+    which should be true for empty sets). }
+  function AllMaterialsTransparent(const Node: TMaterialNode_1): boolean;
+  var
+    i: Integer;
+  begin
+    if Node.FdTransparency.Items.Count = 0 then
+      result := DefaultMaterialTransparency > SingleEqualityEpsilon else
+    begin
+      for i := 0 to Node.FdTransparency.Items.Count-1 do
+        if Node.FdTransparency.Items.L[i] <= SingleEqualityEpsilon then
+          Exit(false);
+      result := true;
+    end;
+  end;
+
 var
   M: TMaterialNode;
   Tex: TAbstractTextureNode;
@@ -1511,7 +1529,7 @@ begin
       for each separate triangle. Or to sort every separate triangle.
       This would obviously get very very slow for models with lots
       of triangles.  }
-    Result := State.LastNodes.Material.AllMaterialsTransparent;
+    Result := AllMaterialsTransparent(State.LastNodes.Material);
 
   if Geometry.ColorRGBA <> nil then
     Result := true;
@@ -1521,11 +1539,11 @@ begin
     it has AlphaChannel = atFullRange
     if any child has atFullRange. So it automatically works Ok too. }
   Tex := State.Texture;
-  if (Tex <> nil) and (Tex.AlphaChannelFinal = acFullRange) then
+  if (Tex <> nil) and (Tex.AlphaChannelFinal = acBlending) then
     Result := true;
 
   Tex := OriginalGeometry.FontTextureNode;
-  if (Tex <> nil) and (Tex.AlphaChannelFinal = acFullRange) then
+  if (Tex <> nil) and (Tex.AlphaChannelFinal = acBlending) then
     Result := true;
 end;
 
