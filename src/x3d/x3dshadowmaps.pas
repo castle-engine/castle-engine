@@ -432,6 +432,7 @@ procedure TLightList.ShapeAdd(Shape: TShape);
     Box := Shape.BoundingBox;
     if not Box.IsEmpty then
     begin
+      // TODO: directional light may not have projection location calculated now
       LightNode.Box3DDistances(Box, MinReceiverDistance, MaxReceiverDistance);
       MaxVar(Light^.MaxShadowReceiverDistance, MaxReceiverDistance);
       { We do not use MinReceiverDistance for anything }
@@ -525,7 +526,6 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
         light source and the shadow receivers. }
       Light.Light.Box3DDistances(ShadowCastersBox, ProjectionNear, ProjectionFar);
       MaxVar(ProjectionNear, 0);
-      // TODO: directional light may not have projection location calculated now
       MinVar(ProjectionFar, Light.MaxShadowReceiverDistance);
 
       if ProjectionNear > ProjectionFar then
