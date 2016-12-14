@@ -335,7 +335,7 @@
       instead we follow our own Loop parameter.
       We take into account TimeSensor.cycleInterval (FdCycleInterval) and
       TimeSensor.enabled (FdEnabled) fields, just like normal TimeSensor.
-      We send out fraction_changed, elapsedTime and time X3D output events,
+      We send out isActive:=true, fraction_changed, elapsedTime and time X3D output events,
       and they should drive the rest of animation.
 
       @groupBegin }
@@ -970,8 +970,10 @@ begin
   if FdEnabled.Value then
   begin
     Inc(FakingTime);
+    EventIsActive.Send(true, TimeOfEvents);
     if Loop then
-      EventFraction_changed.Send(Frac(TimeInAnimation / SafeCycleInterval), TimeOfEvents) else
+      EventFraction_changed.Send(Frac(TimeInAnimation / SafeCycleInterval), TimeOfEvents)
+    else
       EventFraction_changed.Send(Clamped(TimeInAnimation / SafeCycleInterval, 0, 1), TimeOfEvents);
     EventElapsedTime.Send(TimeInAnimation, TimeOfEvents);
     EventTime.Send(TimeInAnimation, TimeOfEvents);
