@@ -20,9 +20,9 @@
   <creatures>
     <player>
       <!-- Each state has a url of associated animation. -->
-      <stand url="creatures/humanoid/stand.kanim" />
-      <walk url="creatures/humanoid/walk.kanim" />
-      <bored url="creatures/humanoid/bored.kanim" />
+      <stand url="creatures/humanoid/stand.castle-anim-frames" />
+      <walk url="creatures/humanoid/walk.castle-anim-frames" />
+      <bored url="creatures/humanoid/bored.castle-anim-frames" />
     </player>
   </creatures>
 
