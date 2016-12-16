@@ -5510,6 +5510,7 @@ procedure TCastleSceneCore.InternalSetTime(
           - Also, setting startTime while time-dependent node is active is ignored,
             X3D spec requires this, see our TSFTimeIgnoreWhenActive implementation.
             (bug reproduction: escape_universe, meteorite_1 dying).
+            Although we remove this problem by NeverIgnore hack.
           - Also, it's bad to unconditionally set "Loop" value.
             If user is using paDefault for animation, (s)he expects
             that PlayAnimation doesn't change it ever.
@@ -5520,6 +5521,16 @@ procedure TCastleSceneCore.InternalSetTime(
 
         PlayingAnimationNode.Enabled := false;
       end;
+
+      { If calling PlayAnimation on already-playing node,
+        we have to make sure it actually starts playing from the start.
+        For the StartTime below to be correctly applied, we have to make
+        sure the node actually *stops* temporarily (otherwise the
+        TInternalTimeDependentHandler.SetTime never "sees" the node
+        in the Enabled = false state). }
+      if PlayingAnimationNode = NewPlayingAnimationNode then
+        PlayingAnimationNode.InternalTimeDependentHandler.SetTime(Time, 0, false);
+
       PlayingAnimationNode := NewPlayingAnimationNode;
       if PlayingAnimationNode <> nil then
       begin

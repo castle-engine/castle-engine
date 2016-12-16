@@ -92,7 +92,7 @@
     would be accessible as IAbstractTimeDependentNode fields.
     TODO: maybe in the future. }
   TInternalTimeDependentHandler = class
-  private
+  strict private
     FIsActive: boolean;
     FIsPaused: boolean;
     FElapsedTime: TFloatTime;
@@ -104,37 +104,37 @@
   public
     Node: TX3DNode;
 
-    { Current state of this time-dependent node
-      (see X3D specification about "Time" component for exact meaning).
-      Changing them automatically causes appropriate events to be generated. }
+    OnCycleInterval: TTimeFunction;
 
-    { Is the sensor enabled and running (ignoring whether it is paused). }
+    FdLoop: TSFBool;
+    FdPauseTime: TSFTime;
+    FdResumeTime: TSFTime;
+    FdStartTime: TSFTime;
+    FdStopTime: TSFTime;
+    { May be @nil if node doesn't have an "enabled" field. }
+    FdEnabled: TSFBool;
+
+    EventElapsedTime: TSFTimeEvent;
+    EventIsActive: TSFBoolEvent;
+    EventIsPaused: TSFBoolEvent;
+    { May be @nil if node doesn't have a "cycleTime" event. }
+    EventCycleTime: TSFTimeEvent;
+
+    { Cycle interval for this time-dependent node. }
+    function CycleInterval: TFloatTime;
+
+    { Is the sensor enabled and running (ignoring whether it is paused).
+      Changing this automatically causes appropriate events to be generated. }
     property IsActive: boolean read FIsActive write SetIsActive;
 
-    { Is the sensor paused. }
+    { Is the sensor paused.
+      Changing this automatically causes appropriate events to be generated. }
     property IsPaused: boolean read FIsPaused write SetIsPaused;
 
     { Time in seconds since the sensor was activated and running,
-      not counting any time while in pause state. }
+      not counting any time while in pause state.
+      Changing this automatically causes appropriate events to be generated. }
     property ElapsedTime: TFloatTime read FElapsedTime write SetElapsedTime;
-  public
-    { Cycle interval for this time-dependent node. }
-    OnCycleInterval: TTimeFunction;
-    function CycleInterval: TFloatTime;
-  public
-    Fdloop: TSFBool;
-    FdpauseTime: TSFTime;
-    FdresumeTime: TSFTime;
-    FdStartTime: TSFTime;
-    FdstopTime: TSFTime;
-    { May be @nil if node doesn't have an "enabled" field. }
-    Fdenabled: TSFBool;
-
-    EventelapsedTime: TSFTimeEvent;
-    EventisActive: TSFBoolEvent;
-    EventisPaused: TSFBoolEvent;
-    { May be @nil if node doesn't have a "cycleTime" event. }
-    EventcycleTime: TSFTimeEvent;
 
     { Like ElapsedTime, but spent in the current cycle.
       When cycleInterval = 0, this is always 0.
@@ -155,7 +155,7 @@
       In other circumstances, TimeIncrease must be >= 0.
       (It's allowed to pass TimeIncrease = 0 and ResetTime = false, this doesn't
       advance the clock, but is a useful trick to force some update,
-      see TCastleSceneCore.ChangedField implementation.)
+      see HandleChangeTimeStopStart in TCastleSceneCore.ChangedField implementation.)
 
       References: see X3D specification "Time" component,
       8.2 ("concepts") for logic behind all those start/stop/pause/resumeTime,
@@ -499,6 +499,7 @@ var
   CycleTimeSend: boolean;
   CycleTime: TFloatTime;
 
+  { $define LOG_TIME_DEPENDENT_NODES_OFTEN}
   { $define LOG_TIME_DEPENDENT_NODES}
 
   { Increase NewElapsedTime and ElapsedTimeInCycle, taking care of
@@ -533,6 +534,11 @@ var
             a little earlier than NewTime: earlier by ElapsedTimeInCycle. }
           CycleTimeSend := true;
           CycleTime := NewTime - ElapsedTimeInCycle;
+
+          {$ifdef LOG_TIME_DEPENDENT_NODES}
+          if Log then
+            WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Next cycle (of a looping sensor)');
+          {$endif}
         end;
       end else
       begin
@@ -542,6 +548,11 @@ var
 
       if (not FdLoop.Value) and StopOnNonLoopedEnd then
       begin
+        {$ifdef LOG_TIME_DEPENDENT_NODES}
+        if Log then
+          WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Stopping (because end of cycle of non-looping sensor)');
+        {$endif}
+
         NewIsActive := false;
         // save NonLoopedStopped to avoid restarting the sensor,
         // see NonLoopedStopped usage below
@@ -554,11 +565,10 @@ begin
   { if ResetTime, then TimeIncrease must be always exactly 0 }
   Assert((not ResetTime) or (TimeIncrease = 0));
 
-  {$ifdef LOG_TIME_DEPENDENT_NODES}
+  {$ifdef LOG_TIME_DEPENDENT_NODES_OFTEN}
   if Log then
-    WritelnLog('TimeDependentNodes', Format('%s: time changes by +%f to %f. Cycle interval: %f, loop %s. Before: active %s, paused %s, elapsedTimeInCycle %f',
-      [ Node.NiceName,
-        TimeIncrease, NewTime,
+    WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), Format('Time changes by +%f to %f. Cycle interval: %f, loop %s. Before: active %s, paused %s, elapsedTimeInCycle %f',
+      [ TimeIncrease, NewTime,
         CycleInterval,
         BoolToStr(FdLoop.Value, true),
         BoolToStr(IsActive, true),
@@ -569,8 +579,14 @@ begin
 
   Result := false;
 
-  if (Fdenabled <> nil) and (not Fdenabled.Value) then
+  if (FdEnabled <> nil) and (not FdEnabled.Value) then
   begin
+    {$ifdef LOG_TIME_DEPENDENT_NODES}
+    if IsActive and Log then
+      WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Stopping (because disabled)',
+        [NewTime, FdStartTime.Value, CycleInterval]);
+    {$endif}
+
     IsActive := false;
     Exit;
   end;
@@ -640,10 +656,8 @@ begin
     begin
       {$ifdef LOG_TIME_DEPENDENT_NODES}
       if Log then
-        WritelnLog('TimeDependentNodes', 'Starting sensor. Time now %f, start time %f, cycle interval %f',
-          [NewTime,
-           FdStartTime.Value,
-           CycleInterval]);
+        WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Starting. Time now %f, start time %f, cycle interval %f',
+          [NewTime, FdStartTime.Value, CycleInterval]);
       {$endif}
 
       StartTimeUsed := FdStartTime.Value; // save, to later used for NonLoopedStopped
@@ -685,6 +699,11 @@ begin
     if (NewTime >= FdResumeTime.Value) and
        (FdResumeTime.Value > FdPauseTime.Value) then
     begin
+      {$ifdef LOG_TIME_DEPENDENT_NODES}
+      if Log then
+        WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Resuming');
+      {$endif}
+
       NewIsPaused := false;
       { Advance only by the time passed since resumeTime. }
       IncreaseElapsedTime(NewTime - FdResumeTime.Value, true);
@@ -702,6 +721,11 @@ begin
       { advance only to the stopTime }
       if TimeIncrease <> 0 then
         IncreaseElapsedTime(TimeIncrease - (NewTime - FdStopTime.Value), false);
+
+      {$ifdef LOG_TIME_DEPENDENT_NODES}
+      if Log then
+        WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Stopped (because stopTime reached)');
+      {$endif}
     end else
     if (NewTime >= FdPauseTime.Value) and
        (FdPauseTime.Value > FdResumeTime.Value) then
@@ -710,9 +734,14 @@ begin
       { advance only to the pauseTime }
       if TimeIncrease <> 0 then
         IncreaseElapsedTime(TimeIncrease - (NewTime - FdPauseTime.Value), false);
+
+      {$ifdef LOG_TIME_DEPENDENT_NODES}
+      if Log then
+        WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), 'Paused');
+      {$endif}
     end else
     begin
-      { active and not paused movie }
+      { active and not paused time-dependent node }
       if ResetTime then
       begin
         NewElapsedTime := 0;
@@ -772,11 +801,10 @@ begin
   Assert(ElapsedTime = NewElapsedTime);
   }
 
-  {$ifdef LOG_TIME_DEPENDENT_NODES}
+  {$ifdef LOG_TIME_DEPENDENT_NODES_OFTEN}
   if Log then
-    WritelnLog('TimeDependentNodes', Format('%s: after: active %s, paused %s, elapsedTimeInCycle %f',
-      [ Node.NiceName,
-        BoolToStr(IsActive, true),
+    WritelnLog(Format('Time-dependent node %s', [Node.NiceName]), Format('SetTime finished. Active %s, paused %s, elapsedTimeInCycle %f',
+      [ BoolToStr(IsActive, true),
         BoolToStr(IsPaused, true),
         FElapsedTimeInCycle
       ]));
@@ -825,15 +853,15 @@ begin
 
   FInternalTimeDependentHandler := TInternalTimeDependentHandler.Create;
   FInternalTimeDependentHandler.Node := Self;
-  FInternalTimeDependentHandler.Fdloop := FdLoop;
-  FInternalTimeDependentHandler.FdpauseTime := FdPauseTime;
-  FInternalTimeDependentHandler.FdresumeTime := FdResumeTime;
+  FInternalTimeDependentHandler.FdLoop := FdLoop;
+  FInternalTimeDependentHandler.FdPauseTime := FdPauseTime;
+  FInternalTimeDependentHandler.FdResumeTime := FdResumeTime;
   FInternalTimeDependentHandler.FdStartTime := FdStartTime;
-  FInternalTimeDependentHandler.FdstopTime := FdStopTime;
-  { descendants should set FInternalTimeDependentHandler.Fdenabled }
-  FInternalTimeDependentHandler.EventisActive:= EventisActive;
-  FInternalTimeDependentHandler.EventisPaused := EventisPaused;
-  FInternalTimeDependentHandler.EventelapsedTime := EventelapsedTime;
+  FInternalTimeDependentHandler.FdStopTime := FdStopTime;
+  { descendants should set FInternalTimeDependentHandler.FdEnabled }
+  FInternalTimeDependentHandler.EventIsActive := EventIsActive;
+  FInternalTimeDependentHandler.EventIsPaused := EventIsPaused;
+  FInternalTimeDependentHandler.EventElapsedTime := EventElapsedTime;
   { descendants should set FInternalTimeDependentHandler.EventCycleTime }
   { descendants should override CycleInterval }
   FInternalTimeDependentHandler.OnCycleInterval := @CycleInterval;
@@ -903,11 +931,11 @@ begin
   DefaultContainerField := 'children';
 
   { set InternalTimeDependentHandler }
-  InternalTimeDependentHandler.Fdenabled := FdEnabled;
+  InternalTimeDependentHandler.FdEnabled := FdEnabled;
   InternalTimeDependentHandler.EventCycleTime := EventCycleTime;
 
   { On receiving new elapsedTime, we send other continous events. }
-  EventelapsedTime.OnReceive.Add(@EventElapsedTimeReceive);
+  EventElapsedTime.OnReceive.Add(@EventElapsedTimeReceive);
 end;
 
 function TTimeSensorNode.CycleInterval: TFloatTime;
