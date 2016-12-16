@@ -96,7 +96,7 @@ begin
 
   { initialize DinoScene }
   DinoScene := TCastleScene.Create(Application);
-  DinoScene.Load('data/raptor.kanim');
+  DinoScene.Load('data/raptor.castle-anim-frames');
   DinoScene.ProcessEvents := true;
   DinoScene.Spatial := [ssRendering, ssDynamicCollisions];
   { render wireframe over a normal model. See TWireframeEffect docs

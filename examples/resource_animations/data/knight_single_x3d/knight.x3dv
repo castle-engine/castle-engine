@@ -2,7 +2,7 @@
 
 PROFILE Immersive
 
-META "generator" "Michalis Kamburelis, by hand, using previous output in knight_multiple_x3d (from kanim_to_interpolators)"
+META "generator" "Michalis Kamburelis, by hand, using previous output in knight_multiple_x3d (from castle_anim_frames_to_interpolators)"
 META "generator-previous" "Blender 2.64 (sub 0)"
 
 NavigationInfo {

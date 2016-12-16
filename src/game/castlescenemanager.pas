@@ -1185,7 +1185,7 @@ begin
     in case when you render TCastlePrecalculatedAnimation and MainScene
     refers to the 1st animation scene.
 
-    Testcase: demo-models/castle-anim-frames/simple/raptor.kanim,
+    Testcase: demo-models/castle-anim-frames/simple/raptor.castle-anim-frames,
     without this fix the lights woud be duplicated on non-first animation scene. }
   Result := FBaseLights[(Scene.Shared = MainScene) or Scene.ExcludeFromGlobalLights];
 end;

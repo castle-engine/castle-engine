@@ -31,7 +31,7 @@ Notes about modelers and exporters:
 
   Although it is possible to convert "castle-anim-frames" later to X3D,
   but it may require some manual work (you can help yourself with our tool
-  3d_rendering_processing/tools/kanim_to_interpolators, but it's
+  3d_rendering_processing/tools/castle_anim_frames_to_interpolators, but it's
   not completely automatic for non-trivial models).
 
   So you may as well just use "castle-anim-frames" when working
