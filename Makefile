@@ -166,7 +166,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/triangulate_demo \
   examples/3d_rendering_processing/placeholder_names \
   examples/3d_rendering_processing/tools/gen_light_map \
-  examples/3d_rendering_processing/tools/kanim_to_interpolators \
+  examples/3d_rendering_processing/tools/castle_anim_frames_to_interpolators \
   examples/3d_rendering_processing/multiple_viewports \
   examples/3d_rendering_processing/fog_culling \
   examples/research_special_rendering_methods/plane_mirror_and_shadow/plane_mirror_and_shadow \

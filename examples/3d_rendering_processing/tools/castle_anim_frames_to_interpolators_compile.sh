@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f kanim_to_interpolators.lpr ]; then cd ../../../; fi
+if [ -f castle_anim_frames_to_interpolators.lpr ]; then cd ../../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/3d_rendering_processing/tools/kanim_to_interpolators.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/3d_rendering_processing/tools/castle_anim_frames_to_interpolators.lpr

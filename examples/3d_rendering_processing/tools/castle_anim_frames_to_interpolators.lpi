@@ -36,7 +36,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="kanim_to_interpolators.lpr"/>
+        <Filename Value="castle_anim_frames_to_interpolators.lpr"/>
         <IsPartOfProject Value="True"/>
         <UsageCount Value="20"/>
       </Unit0>
