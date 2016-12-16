@@ -136,7 +136,7 @@ begin
           OutputInterp.FdKey.Items.Add(I / (Anim.ScenesCount - 1));
           Progress.Step;
 
-          { check, in case kanim is not "structurally equal" on every frame }
+          { check, in case castle-anim-frames is not "structurally equal" on every frame }
           if FrameCoord.FdPoint.Count <> CoordCount then
             raise Exception.CreateFmt('Coordinate node in frame %d has %d vertexes, while in frame 0 it had %d vertexes. Such animation cannot be converted to CoordinateInterpolator',
               [I, FrameCoord.FdPoint.Count, CoordCount]);

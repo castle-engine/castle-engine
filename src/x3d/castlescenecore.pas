@@ -6828,7 +6828,7 @@ begin
             times. Both these usage scenarios result in multiple instances
             of the animation in scene.
           - Even our own mechanism for renaming castle-anim-frames animations from
-            https://github.com/castle-engine/demo-models/blob/master/kanim/two_animations.x3dv
+            https://github.com/castle-engine/demo-models/blob/master/castle-anim-frames/simple/two_animations.x3dv
             results in multiple "Animation" names in scene. }
         WritelnWarning('Named Animations', Format('Animation name "%s" occurs multiple times in scene',
           [AnimationName]));
