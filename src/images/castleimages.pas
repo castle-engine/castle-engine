@@ -89,14 +89,10 @@ const
     decide how to detect textures alpha channel. }
   DefaultAlphaTolerance = 5;
 
-{ Colors ------------------------------------------------------------ }
-
 { Check if the two RGB colors are equal, ignoring small differences.
   All three color components may differ by at most Tolerance.
   When Tolerance is 0, this is a normal (exact) comparison. }
 function EqualRGB(const Color1, Color2: TVector3Byte; Tolerance: Byte): boolean;
-
-{ TCastleImage --------------------------------------------------------------- }
 
 type
   { Raised by @link(TCastleImage.MakeExtracted) when coordinates on image
@@ -114,6 +110,18 @@ type
 
   EImageDrawError = class(Exception);
 
+  { An internal class to communicate image data
+    between CastleImages and fcl-image efficiently.
+    @exclude }
+  TInternalCastleFpImage = class(TFPCompactImgRGBA8Bit)
+  strict private
+    function GetColors8Bit(const x, y: integer): TFPCompactImgRGBA8BitValue;
+    procedure SetColors8Bit(const x, y: integer; const Value: TFPCompactImgRGBA8BitValue);
+  public
+    property Colors8Bit[X, Y: Integer]: TFPCompactImgRGBA8BitValue
+      read GetColors8Bit write SetColors8Bit;
+  end;
+
   { Abstract class for an image with unspecified, possibly compressed,
     memory format. The idea is that both uncompressed images (TCastleImage)
     and images compressed for GPU (TGPUCompressedImage) are derived from this class. }
@@ -122,8 +130,8 @@ type
     FWidth, FHeight, FDepth: Cardinal;
     FURL: string;
     procedure NotImplemented(const AMethodName: string);
-    procedure FromFpImage(const FPImage: TFPMemoryImage); virtual;
-    function ToFpImage: TFPMemoryImage; virtual;
+    procedure FromFpImage(const FPImage: TInternalCastleFpImage); virtual;
+    function ToFpImage: TInternalCastleFpImage; virtual;
   protected
     { Operate on this by Get/Realloc/FreeMem.
       It's always freed and nil'ed in destructor. }
@@ -379,7 +387,7 @@ type
       const Mode: TDrawMode); virtual;
 
     function MakeResizedToFpImage(ResizeWidth, ResizeHeight: Cardinal;
-      const Interpolation: TResizeInterpolation): TFPMemoryImage;
+      const Interpolation: TResizeInterpolation): TInternalCastleFpImage;
 
     function GetColors(const X, Y, Z: Integer): TCastleColor; virtual;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); virtual;
@@ -1027,8 +1035,8 @@ type
   TRGBImage = class(TCastleImage)
   private
     function GetRGBPixels: PVector3Byte;
-    procedure FromFpImage(const FPImage: TFPMemoryImage); override;
-    function ToFpImage: TFPMemoryImage; override;
+    procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
+    function ToFpImage: TInternalCastleFpImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1122,8 +1130,8 @@ type
   private
     FPremultipliedAlpha: boolean;
     function GetAlphaPixels: PVector4Byte;
-    procedure FromFpImage(const FPImage: TFPMemoryImage); override;
-    function ToFpImage: TFPMemoryImage; override;
+    procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
+    function ToFpImage: TInternalCastleFpImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1254,8 +1262,8 @@ type
     FTreatAsAlpha: boolean;
     FColorWhenTreatedAsAlpha: TVector3Byte;
     function GetGrayscalePixels: PByte;
-    procedure FromFpImage(const FPImage: TFPMemoryImage); override;
-    function ToFpImage: TFPMemoryImage; override;
+    procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
+    function ToFpImage: TInternalCastleFpImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1333,8 +1341,8 @@ type
   TGrayscaleAlphaImage = class(TCastleImage)
   private
     function GetGrayscaleAlphaPixels: PVector2Byte;
-    procedure FromFpImage(const FPImage: TFPMemoryImage); override;
-    function ToFpImage: TFPMemoryImage; override;
+    procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
+    function ToFpImage: TInternalCastleFpImage; override;
   protected
     procedure DrawFromCore(Source: TCastleImage;
       X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
@@ -1996,7 +2004,7 @@ procedure TCastleImage.Resize(ResizeWidth, ResizeHeight: Cardinal;
   const ProgressTitle: string);
 var
   NewPixels: Pointer;
-  NewFpImage: TFPMemoryImage;
+  NewFpImage: TInternalCastleFpImage;
 begin
   if (Interpolation >= Low(TResizeInterpolationFpImage)) and
      (Interpolation <= High(TResizeInterpolationFpImage)) then
@@ -2033,7 +2041,7 @@ function TCastleImage.MakeResized(ResizeWidth, ResizeHeight: Cardinal;
   const Interpolation: TResizeInterpolation;
   const ProgressTitle: string): TCastleImage;
 var
-  NewFpImage: TFPMemoryImage;
+  NewFpImage: TInternalCastleFpImage;
 begin
   if (Interpolation >= Low(TResizeInterpolationFpImage)) and
      (Interpolation <= High(TResizeInterpolationFpImage)) then
