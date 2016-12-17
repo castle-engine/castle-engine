@@ -208,9 +208,10 @@ type
 
     { Sound when attack starts. This is played when attack animation starts,
       and it means that we already checked that you have necessary ammunition
-      (see AttackAmmo). }
+      (see AttackAmmo).
+      None (stNone) by default. }
     property AttackSoundStart: TSoundType
-      read FAttackSoundStart write FAttackSoundStart default stNone;
+      read FAttackSoundStart write FAttackSoundStart;
 
     { Ammunition required to make an attack (applies to both immediate attack,
       like short-range/shoot, and firing missiles).
@@ -267,8 +268,9 @@ type
       Must be set to something not empty to actually fire a missile. }
     property FireMissileName: string read FFireMissileName write FFireMissileName;
 
-    { Sound on missile fired. }
-    property FireMissileSound: TSoundType read FFireMissileSound write FFireMissileSound default stNone;
+    { Sound on missile fired.
+      None (stNone) by default. }
+    property FireMissileSound: TSoundType read FFireMissileSound write FFireMissileSound;
 
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
   end;

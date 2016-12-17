@@ -1878,9 +1878,9 @@ type
     procedure GoOtherPosition;
 
     property SoundGoBeginPosition: TSoundType
-      read FSoundGoBeginPosition write FSoundGoBeginPosition default stNone;
+      read FSoundGoBeginPosition write FSoundGoBeginPosition;
     property SoundGoEndPosition: TSoundType
-      read FSoundGoEndPosition write FSoundGoEndPosition default stNone;
+      read FSoundGoEndPosition write FSoundGoEndPosition;
 
     property SoundGoBeginPositionLooping: boolean
       read FSoundGoBeginPositionLooping write FSoundGoBeginPositionLooping

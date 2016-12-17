@@ -359,17 +359,18 @@ type
   end;
 
 type
-  { Unique sound type identifier for sounds used within TRepoSoundEngine.
-
-    This is actually just an index to TRepoSoundEngine.SoundNames array,
-    but you should always treat this as an opaque type. }
-  TSoundType = Cardinal;
+  { Unique sound type identifier for sounds used within TRepoSoundEngine. }
+  TSoundType = object
+  private
+    { Just an index to TRepoSoundEngine.SoundNames array. }
+    Index: Cardinal;
+  end;
 
 const
   { Special sound type that indicates that there is actually no sound.
     @link(TRepoSoundEngine.Sound) and @link(TRepoSoundEngine.Sound3D)
     will do nothing when called with this sound type. }
-  stNone = 0;
+  stNone: TSoundType = (Index: 0);
 
   MaxSoundImportance = MaxInt;
   LevelEventSoundImportance      = 100000;
@@ -657,8 +658,10 @@ type
       Set to anything else to play that music.
 
       Changing value of this property (when both the old and new values
-      are <> stNone and are different) restarts playing the music. }
-    property Sound: TSoundType read FSound write SetSound default stNone;
+      are <> stNone and are different) restarts playing the music.
+
+      By default none (stNone). }
+    property Sound: TSoundType read FSound write SetSound;
 
     { Music volume. This must always be within 0..1 range.
       0.0 means that there is no music (this case should be optimized).}
@@ -702,10 +705,11 @@ var
   { @groupEnd }
     :TSoundType;
 
-
 { The sound engine. Singleton instance of TRepoSoundEngine, the most capable
   engine class. Created on first call to this function. }
 function SoundEngine: TRepoSoundEngine;
+
+operator = (const SoundType1, SoundType2: TSoundType): boolean;
 
 implementation
 
@@ -1568,6 +1572,13 @@ begin
   end;
 end;
 
+{ TSoundType ----------------------------------------------------------------- }
+
+operator = (const SoundType1, SoundType2: TSoundType): boolean;
+begin
+  Result := SoundType1.Index = SoundType2.Index;
+end;
+
 { TRepoSoundEngine ----------------------------------------------------------- }
 
 constructor TRepoSoundEngine.Create;
@@ -1619,7 +1630,7 @@ end;
 
 procedure TRepoSoundEngine.LoadSoundsBuffers;
 var
-  ST: TSoundType;
+  SoundIndex: Integer;
   ProgressActive: boolean;
 begin
   { load sound buffers and allocate sound for music. Only if we have any sound
@@ -1631,19 +1642,19 @@ begin
       Progress.Init(Sounds.Count - 1, 'Loading sounds');
     try
       { We do progress to "Sounds.Count - 1" because we start
-        iterating from ST = 1 because ST = 0 = stNone never exists. }
-      Assert(Sounds[stNone].URL = '');
-      for ST := 1 to Sounds.Count - 1 do
+        iterating from SoundIndex = 1 because SoundIndex = 0 never exists. }
+      Assert(Sounds[0].URL = '');
+      for SoundIndex := 1 to Sounds.Count - 1 do
       begin
-        if Sounds[ST].URL <> '' then
+        if Sounds[SoundIndex].URL <> '' then
         try
-          Sounds[ST].FBuffer := LoadBuffer(Sounds[ST].URL);
+          Sounds[SoundIndex].FBuffer := LoadBuffer(Sounds[SoundIndex].URL);
         except
           on E: Exception do
           begin
-            Sounds[ST].FBuffer := 0;
+            Sounds[SoundIndex].FBuffer := 0;
             WritelnWarning('Sound', Format('Sound file "%s" cannot be loaded: %s',
-              [Sounds[ST].URL, E.Message]));
+              [Sounds[SoundIndex].URL, E.Message]));
           end;
         end;
         if not ProgressActive then
@@ -1660,7 +1671,7 @@ end;
 
 procedure TRepoSoundEngine.ALContextClose;
 var
-  ST: TSoundType;
+  SoundIndex: Integer;
 begin
   if ALActive then
   begin
@@ -1668,8 +1679,8 @@ begin
     { this is called from TSoundEngine.Destroy, so be secure and check
       Sounds for nil }
     if Sounds <> nil then
-      for ST := 0 to Sounds.Count - 1 do
-        FreeBuffer(Sounds[ST].FBuffer);
+      for SoundIndex := 0 to Sounds.Count - 1 do
+        FreeBuffer(Sounds[SoundIndex].FBuffer);
   end;
   inherited;
 end;
@@ -1683,20 +1694,20 @@ begin
       sounds.xml with explicit url="", like this:
       <sound name="player_sudden_pain" url="" />
   }
-  if (SoundType = stNone) or (Sounds[SoundType].URL = '') then Exit(nil);
+  if (SoundType.Index = 0) or (Sounds[SoundType.Index].URL = '') then Exit(nil);
 
   if not ALInitialized then ALContextOpen;
 
   { Check this *after* ALContextOpen, since Buffer is always zero before OpenAL
     is initialized. }
-  if Sounds[SoundType].Buffer = 0 then Exit(nil);
+  if Sounds[SoundType.Index].Buffer = 0 then Exit(nil);
 
   Result := PlaySound(
-    Sounds[SoundType].Buffer, false, Looping,
-    Sounds[SoundType].DefaultImportance,
-    Sounds[SoundType].Gain,
-    Sounds[SoundType].MinGain,
-    Sounds[SoundType].MaxGain,
+    Sounds[SoundType.Index].Buffer, false, Looping,
+    Sounds[SoundType.Index].DefaultImportance,
+    Sounds[SoundType.Index].Gain,
+    Sounds[SoundType.Index].MinGain,
+    Sounds[SoundType.Index].MaxGain,
     ZeroVector3Single);
 end;
 
@@ -1706,20 +1717,20 @@ function TRepoSoundEngine.Sound3D(SoundType: TSoundType;
 begin
   { If there is no actual sound, exit early without initializing OpenAL.
     See Sound for duplicate of this "if" and more comments. }
-  if (SoundType = stNone) or (Sounds[SoundType].URL = '') then Exit(nil);
+  if (SoundType.Index = 0) or (Sounds[SoundType.Index].URL = '') then Exit(nil);
 
   if not ALInitialized then ALContextOpen;
 
   { Do it *after* ALContextOpen, since Buffer is always zero before OpenAL
     is initialized. }
-  if Sounds[SoundType].Buffer = 0 then Exit(nil);
+  if Sounds[SoundType.Index].Buffer = 0 then Exit(nil);
 
   Result := PlaySound(
-    Sounds[SoundType].Buffer, true, Looping,
-    Sounds[SoundType].DefaultImportance,
-    Sounds[SoundType].Gain,
-    Sounds[SoundType].MinGain,
-    Sounds[SoundType].MaxGain,
+    Sounds[SoundType.Index].Buffer, true, Looping,
+    Sounds[SoundType.Index].DefaultImportance,
+    Sounds[SoundType.Index].Gain,
+    Sounds[SoundType.Index].MinGain,
+    Sounds[SoundType.Index].MaxGain,
     Position);
 end;
 
@@ -1848,14 +1859,19 @@ end;
 
 function TRepoSoundEngine.SoundFromName(const SoundName: string;
   const Required: boolean): TSoundType;
+var
+  SoundIndex: Integer;
 begin
-  for Result := 0 to Sounds.Count - 1 do
-    if Sounds[Result].Name = SoundName then
+  for SoundIndex := 0 to Sounds.Count - 1 do
+    if Sounds[SoundIndex].Name = SoundName then
+    begin
+      Result.Index := SoundIndex;
       Exit;
+    end;
 
   if Required then
     WritelnWarning('Sound', Format('Unknown sound name "%s"', [SoundName]));
-  Result := stNone;
+  Result.Index := 0;
 end;
 
 procedure TRepoSoundEngine.AddSoundImportanceName(const Name: string;
@@ -1902,9 +1918,9 @@ end;
 procedure TMusicPlayer.AllocateSource;
 begin
   FAllocatedSource := FEngine.PlaySound(
-    FEngine.Sounds[Sound].Buffer, false, true,
+    FEngine.Sounds[Sound.Index].Buffer, false, true,
     MaxSoundImportance,
-    MusicVolume * FEngine.Sounds[Sound].Gain, 0, 1,
+    MusicVolume * FEngine.Sounds[Sound.Index].Gain, 0, 1,
     ZeroVector3Single);
 
   if FAllocatedSource <> nil then
@@ -1945,7 +1961,7 @@ begin
   begin
     FMusicVolume := Value;
     if FAllocatedSource <> nil then
-      FAllocatedSource.Gain := MusicVolume * FEngine.Sounds[Sound].Gain;
+      FAllocatedSource.Gain := MusicVolume * FEngine.Sounds[Sound.Index].Gain;
   end;
 end;
 

@@ -246,9 +246,9 @@ type
     property PlaceholderReferenceDirection: TVector3Single
       read FPlaceholderReferenceDirection write FPlaceholderReferenceDirection;
 
-    { Music played when entering the level. }
-    property MusicSound: TSoundType read FMusicSound write FMusicSound
-      default stNone;
+    { Music played when entering the level.
+      None (stNone) by default. }
+    property MusicSound: TSoundType read FMusicSound write FMusicSound;
   end;
 
   TLevelInfoList = class(specialize TFPGObjectList<TLevelInfo>)
