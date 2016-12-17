@@ -558,7 +558,7 @@ begin
       { how long I should wait between _LimitFPS calls }
       1 / LimitFPS -
       { how long I actually waited between _LimitFPS calls }
-      (NowTime - LastLimitFPSTime) / TimerFrequency;
+      TimerSeconds(NowTime, LastLimitFPSTime);
     { Don't do Sleep with too small values.
       It's better to have larger FPS values than limit,
       than to have them too small. }
@@ -1110,7 +1110,7 @@ procedure TCastleControlCustom.MouseMove(Shift: TShiftState; NewX, NewY: Integer
     if LimitFPS <= 0 then
       DesiredFPS := MaxDesiredFPS else
       DesiredFPS := Min(MaxDesiredFPS, LimitFPS);
-    if Timer - Fps.UpdateStartTime > TimerFrequency / DesiredFPS then
+    if TimerSeconds(Timer, Fps.UpdateStartTime) > 1 / DesiredFPS then
     begin
       DoUpdate;
       if Invalidated then Paint;

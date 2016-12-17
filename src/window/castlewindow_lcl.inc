@@ -675,7 +675,7 @@ begin
   if Application.LimitFPS <= 0 then
     DesiredFPS := MaxDesiredFPS else
     DesiredFPS := Min(MaxDesiredFPS, Application.LimitFPS);
-  if Timer - Fps.UpdateStartTime > TimerFrequency / DesiredFPS then
+  if TimerSeconds(Timer, Fps.UpdateStartTime) > 1 / DesiredFPS then
   begin
     DoUpdate;
 

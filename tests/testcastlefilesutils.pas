@@ -111,7 +111,7 @@ begin
     'Sleep(5 seconds) done,' +nl+
     'ProcessTimer reports that %f seconds elapsed,'+nl+
     'Timer reports that %f seconds elapsed.',
-    [ ProcessTimerEnd, (Timer - TimerStart) / TimerFrequency ])); }
+    [ ProcessTimerEnd, TimerSeconds(Timer, TimerStart) ])); }
 end;
 
 {$ifdef UNIX}
