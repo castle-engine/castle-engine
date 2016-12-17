@@ -125,7 +125,7 @@ begin
   { Assign unique nodenames to the created ShadowMap and TexGen nodes,
     this way when saving they will be shared by DEF/USE.
     Based on LightUniqueName. }
-  LightUniqueName := Light.Name;
+  LightUniqueName := Light.NodeName;
   if LightUniqueName = '' then
     LightUniqueName := 'Light' + IntToStr(Random(1000000));
 
@@ -150,14 +150,14 @@ begin
   Result^.ShadowMap.FdLight.Value := Light;
 
   { Regardless if this is taken from defaultShadowMap or created,
-    set Name, such that it has NodeNameSuffix. This is needed for
+    set NodeName, such that it has NodeNameSuffix. This is needed for
     HandleShadowMap, so that it can be removed later. }
-  Result^.ShadowMap.Name := LightUniqueName + '_ShadowMap' + NodeNameSuffix;
+  Result^.ShadowMap.NodeName := LightUniqueName + '_ShadowMap' + NodeNameSuffix;
 
   { create new ProjectedTextureCoordinate node }
 
   Result^.TexGen := TProjectedTextureCoordinateNode.Create;
-  Result^.TexGen.Name := LightUniqueName + '_TexGen' + NodeNameSuffix;
+  Result^.TexGen.NodeName := LightUniqueName + '_TexGen' + NodeNameSuffix;
   Result^.TexGen.FdProjector.Value := Light;
 end;
 
@@ -172,7 +172,7 @@ procedure TLightList.ShapeRemove(Shape: TShape);
   begin
     I := 0;
     while I < Texture.Count do
-      if IsSuffix(NodeNameSuffix, Texture[I].Name) and
+      if IsSuffix(NodeNameSuffix, Texture[I].NodeName) and
          (Texture[I] is TGeneratedShadowMapNode) then
         Texture.Delete(I) else
         Inc(I);
@@ -185,7 +185,7 @@ procedure TLightList.ShapeRemove(Shape: TShape);
   begin
     I := 0;
     while I < TexCoord.Count do
-      if IsSuffix(NodeNameSuffix, TexCoord[I].Name) and
+      if IsSuffix(NodeNameSuffix, TexCoord[I].NodeName) and
          (TexCoord[I] is TProjectedTextureCoordinateNode) then
         TexCoord.Delete(I) else
         Inc(I);

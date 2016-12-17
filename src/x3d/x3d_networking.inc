@@ -444,7 +444,7 @@ var
 begin
   inherited;
 
-  if Name <> '' then
+  if NodeName <> '' then
     Exported := TX3DNodeNames.Create(false)
   else
     Exported := nil;
@@ -459,8 +459,8 @@ begin
   if Exported <> nil then
   begin
     { connect Exported nodes with our inline Name }
-    Assert(Name <> '');
-    Reader.Importable.Bind(Name, Exported);
+    Assert(NodeName <> '');
+    Reader.Importable.Bind(NodeName, Exported);
   end;
 end;
 

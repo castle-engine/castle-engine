@@ -62,7 +62,7 @@ begin
         if PlaceholderName(Shape) <> '' then
           Writeln(Format('Detected placeholder "%s" for shape. Shape geometry node name "%s", geometry parent node name "%s", geometry grand-parent node name "%s", geometry grand-grand-parent node name "%s".',
             [PlaceholderName(Shape),
-             Shape.OriginalGeometry.Name,
+             Shape.OriginalGeometry.NodeName,
              Shape.GeometryParentNodeName,
              Shape.GeometryGrandParentNodeName,
              Shape.GeometryGrandGrandParentNodeName]));

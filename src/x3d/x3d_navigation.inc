@@ -527,7 +527,7 @@ begin
   Result := FdDescription.Value;
   { if node doesn't have a "description" field, or it's left empty, use node name }
   if Result = '' then
-    Result := Name;
+    Result := NodeName;
   { if even the node name is empty, just show node type. }
   if Result = '' then
     Result := X3DType;
@@ -1252,7 +1252,7 @@ function TViewpointGroupNode.Description: string;
 begin
   Result := FdDescription.Value;
   if Result = '' then
-    Result := Name;
+    Result := NodeName;
   if Result = '' then
     Result := X3DType;
 end;

@@ -279,7 +279,7 @@ function TSphereNode.Proxy(var State: TX3DGraphTraverseState;
     CoordNode: TCoordinateNode;
     ILS: TIndexedLineSetNode absolute Result;
   begin
-    ILS := TIndexedLineSetNode.Create(Name, BaseUrl);
+    ILS := TIndexedLineSetNode.Create(NodeName, BaseUrl);
     try
       CoordNode := TCoordinateNode.Create('', BaseUrl);
       ILS.FdCoord.Value := CoordNode;
@@ -297,7 +297,7 @@ function TSphereNode.Proxy(var State: TX3DGraphTraverseState;
     TexCoords: TVector2SingleList;
     IFS: TIndexedFaceSetNode absolute Result;
   begin
-    IFS := TIndexedFaceSetNode.Create(Name, BaseUrl);
+    IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
     try
       CoordNode := TCoordinateNode.Create('', BaseUrl);
       IFS.FdCoord.Value := CoordNode;
@@ -349,7 +349,7 @@ var
   MaterialBinding: TMaterialBindingNode_1;
   IFS: TIndexedFaceSetNode_1 absolute Result;
 begin
-  IFS := TIndexedFaceSetNode_1.Create(Name, BaseUrl);
+  IFS := TIndexedFaceSetNode_1.Create(NodeName, BaseUrl);
   try
     { we have to modify State, so make a copy of it }
     State := TX3DGraphTraverseState.CreateCopy(State);

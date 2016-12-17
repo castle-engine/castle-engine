@@ -238,7 +238,7 @@ begin
       BoneTimelines[I].BuildNodes(BaseUrl, MaxTime, Container, BonesToReset);
       { add animation name to bone timeline, to make it unique in case
         we have many animations }
-      BoneTimelines[I].Node.Name := Node.Name + '_' + BoneTimelines[I].Node.Name;
+      BoneTimelines[I].Node.NodeName := Node.NodeName + '_' + BoneTimelines[I].Node.NodeName;
 
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
@@ -280,8 +280,8 @@ begin
       SlotTimelines[I].BuildNodes(BaseUrl, MaxTime, Container, SlotsToReset);
       { add animation name to slot timeline, to make it unique in case
         we have many animations }
-      SlotTimelines[I].Node1.Node.Name := Node.Name + '_' +
-        SlotTimelines[I].Node1.Node.Name;
+      SlotTimelines[I].Node1.Node.NodeName := Node.NodeName + '_' +
+        SlotTimelines[I].Node1.Node.NodeName;
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
       Route.SetDestinationDirectly(SlotTimelines[I].Node1.EventSet_fraction);
@@ -289,8 +289,8 @@ begin
 
       if SlotTimelines[I].HasNode2 then
       begin
-        SlotTimelines[I].Node2.Node.Name := Node.Name + '_' +
-          SlotTimelines[I].Node2.Node.Name;
+        SlotTimelines[I].Node2.Node.NodeName := Node.NodeName + '_' +
+          SlotTimelines[I].Node2.Node.NodeName;
         Route := TX3DRoute.Create;
         Route.SetSourceDirectly(Node.EventFraction_changed);
         Route.SetDestinationDirectly(SlotTimelines[I].Node2.EventSet_fraction);
@@ -304,8 +304,8 @@ begin
         MaxTime, Container, SlotsToReset);
       { add animation name to draworder timeline, to make it unique in case
         we have many animations }
-      DrawOrderTimelines[I].Node.Name := Node.Name + '_' +
-        DrawOrderTimelines[I].Node.Name;
+      DrawOrderTimelines[I].Node.NodeName := Node.NodeName + '_' +
+        DrawOrderTimelines[I].Node.NodeName;
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(Node.EventFraction_changed);
       Route.SetDestinationDirectly(DrawOrderTimelines[I].Node.EventSet_fraction);

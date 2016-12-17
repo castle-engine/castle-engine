@@ -823,7 +823,7 @@ begin
     JustifyMinor := FontStyle.JustifyMinor;
   end;
 
-  FaceSet := TQuadSetNode.Create(Name, BaseUrl);
+  FaceSet := TQuadSetNode.Create(NodeName, BaseUrl);
   try
     FaceSet.Solid := Solid;
 

@@ -451,7 +451,7 @@ var
   TexCoords: TVector2SingleList;
   IFS: TIndexedFaceSetNode absolute Result;
 begin
-  IFS := TIndexedFaceSetNode.Create(Name, BaseUrl);
+  IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
   try
     CoordNode := TCoordinateNode.Create('', BaseUrl);
     IFS.FdCoord.Value := CoordNode;
@@ -494,7 +494,7 @@ var
   TexCoords: TVector2SingleList;
   IFS: TIndexedFaceSetNode absolute Result;
 begin
-  IFS := TIndexedFaceSetNode.Create(Name, BaseUrl);
+  IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
   try
     CoordNode := TCoordinateNode.Create('', BaseUrl);
     IFS.FdCoord.Value := CoordNode;
@@ -542,7 +542,7 @@ var
   MaterialIndex: TLongIntList;
   IFS: TIndexedFaceSetNode_1 absolute Result;
 begin
-  IFS := TIndexedFaceSetNode_1.Create(Name, BaseUrl);
+  IFS := TIndexedFaceSetNode_1.Create(NodeName, BaseUrl);
   try
     { we have to modify State, so make a copy of it }
     State := TX3DGraphTraverseState.CreateCopy(State);
@@ -613,7 +613,7 @@ var
   MaterialIndex: TLongIntList;
   IFS: TIndexedFaceSetNode_1 absolute Result;
 begin
-  IFS := TIndexedFaceSetNode_1.Create(Name, BaseUrl);
+  IFS := TIndexedFaceSetNode_1.Create(NodeName, BaseUrl);
   try
     { we have to modify State, so make a copy of it }
     State := TX3DGraphTraverseState.CreateCopy(State);

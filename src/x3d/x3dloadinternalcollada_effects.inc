@@ -48,7 +48,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if Items[I].Appearance.Name = Name then
+    if Items[I].Appearance.NodeName = Name then
       Exit(Items[I]);
   Result := nil;
 end;

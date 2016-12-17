@@ -2361,7 +2361,7 @@ begin
   for I := 0 to Count - 1 do
   begin
     Result := Ptr(I);
-    if Result^.Node.Name = NodeName then
+    if Result^.Node.NodeName = NodeName then
       Exit;
   end;
   Result := nil;
@@ -3805,7 +3805,7 @@ begin
 
   FBaseUrl := Reader.BaseUrl;
 
-  WritelnWarning('VRML/X3D', 'Unknown node of type "'+ X3DType + '" (named "'+ Name +'")');
+  WritelnWarning('VRML/X3D', 'Unknown node of type "'+ X3DType + '" (named "'+ NodeName +'")');
 end;
 
 constructor TX3DUnknownNode.Create(const AName: string; const ABaseUrl: string);
@@ -3824,7 +3824,7 @@ end;
 function TX3DUnknownNode.DeepCopyCreate(
   CopyState: TX3DNodeDeepCopyState): TX3DNode;
 begin
-  Result := TX3DUnknownNode.CreateUnknown(Name, BaseUrl, X3DType);
+  Result := TX3DUnknownNode.CreateUnknown(NodeName, BaseUrl, X3DType);
 end;
 
 { TX3DInterfaceDeclaration -------------------------------------------------- }
@@ -4314,7 +4314,7 @@ end;
 
 function TX3DPrototypeNode.DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode;
 begin
-  Result := TX3DPrototypeNode.CreatePrototypeNode(Name, BaseUrl,
+  Result := TX3DPrototypeNode.CreatePrototypeNode(NodeName, BaseUrl,
     { TODO: for now, we don't copy proto, instead simply passing the same
       proto reference. }
     Prototype);
@@ -4682,7 +4682,7 @@ function TX3DPrototypeNode.Instantiate: TX3DNode;
       NodeCopy.FdChildren[1...] that should accompany this node. }
     NewPrototypeInstanceHelpers := NodeCopy;
 
-    Result.Name := Name;
+    Result.NodeName := NodeName;
 
     (* Result and NodeCopy may come from another prototype.
        For example,
@@ -5419,8 +5419,8 @@ begin
   if Log then
     WritelnLog('VRML/X3D', Format(
       'Route %s.%s -> %s.%s ignored another event at <= timestamp (%f.%d, while last event was on %f.%d). Potential routes loop avoided',
-      [ SourceNode.Name, SourceEvent.Name,
-        DestinationNode.Name, DestinationEvent.Name,
+      [ SourceNode.NodeName, SourceEvent.Name,
+        DestinationNode.NodeName, DestinationEvent.Name,
         Time.Seconds, Time.PlusTicks,
         LastEventTime.Seconds, LastEventTime.PlusTicks ]));
 end;
@@ -5450,7 +5450,7 @@ begin
     ExposedField := TX3DField(FieldOrEvent);
     if not ExposedField.Exposed then
       raise ERouteSetEndingError.CreateFmt('Route %s specifies field "%s" (for node "%s"), but this is not an exposed field (cannot generate/receive events)',
-        [ DestEndingNames[DestEnding], FieldOrEvent.Name, Node.Name ]);
+        [ DestEndingNames[DestEnding], FieldOrEvent.Name, Node.NodeName ]);
     Event := ExposedField.ExposedEvents[DestEnding];
   end else
   begin
@@ -5605,13 +5605,13 @@ procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
     { Check Node }
     if Node = nil then
       raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node not assigned (look for warnings when reading this VRML file)', [S]);
-    if Node.Name = '' then
+    if Node.NodeName = '' then
       raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node not named', [S]);
 
-    BoundNode := (Writer as TX3DWriterNames).NodeNames.Bound(Node.Name, IgnoreNodeFinished);
+    BoundNode := (Writer as TX3DWriterNames).NodeNames.Bound(Node.NodeName, IgnoreNodeFinished);
     if BoundNode = nil then
       raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound',
-        [S, Node.Name]);
+        [S, Node.NodeName]);
 
     { Just like when setting node by TX3DRoute.SetEnding:
       we actually keep the Node that contains the route, which is
@@ -5620,9 +5620,9 @@ procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
       BoundNode := BoundNode.PrototypeInstanceSourceNode;
     if BoundNode <> Node then
       raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound (another node bound to the same name)',
-        [S, Node.Name]);
+        [S, Node.NodeName]);
 
-    NodeName := Node.Name;
+    NodeName := Node.NodeName;
 
     { Check Event }
     if Event = nil then
@@ -5693,7 +5693,7 @@ begin
     NewSourceEvent := NewSourceNode.AnyEvent(SourceEvent.Name);
     if NewSourceEvent = nil then
       raise EInternalError.CreateFmt('Route source node "%s" (%s) has event "%s", which is not found in this node''s deep copy',
-        [ NewSourceNode.Name, NewSourceNode.X3DType,
+        [ NewSourceNode.NodeName, NewSourceNode.X3DType,
 	  NewSourceEvent.Name ]);
     Result.SetSourceDirectly(NewSourceNode, NewSourceEvent);
   end;
@@ -5705,7 +5705,7 @@ begin
     NewDestinationEvent := NewDestinationNode.AnyEvent(DestinationEvent.Name);
     if NewDestinationEvent = nil then
       raise EInternalError.CreateFmt('Route destination node "%s" (%s) has event "%s", which is not found in this node''s deep copy',
-        [ NewDestinationNode.Name, NewDestinationNode.X3DType,
+        [ NewDestinationNode.NodeName, NewDestinationNode.X3DType,
 	  NewDestinationEvent.Name ]);
     Result.SetDestinationDirectly(NewDestinationNode, NewDestinationEvent);
   end;
@@ -5934,7 +5934,7 @@ end;
 
 procedure TX3DNodeNames.Bind(Node: TX3DNode; const NodeFinished: boolean);
 begin
-  Bind(Node, NodeFinished, Node.Name);
+  Bind(Node, NodeFinished, Node.NodeName);
 end;
 
 function TX3DNodeNames.Bound(const Name: string; out NodeFinished: boolean): TX3DNode;

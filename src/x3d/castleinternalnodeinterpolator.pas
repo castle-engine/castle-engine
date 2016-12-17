@@ -251,10 +251,10 @@ begin
     TInlineNode(Model2).LoadInlined(false);
   end;
 
-  if Model1.Name <> Model2.Name then
+  if Model1.NodeName <> Model2.NodeName then
     raise EModelsStructureDifferent.CreateFmt(
       'Different names of nodes: "%s" and "%s"',
-      [Model1.Name, Model2.Name]);
+      [Model1.NodeName, Model2.NodeName]);
 
   { We are interested whether Model1.BaseUrl and Model2.BaseUrl will
     give different results when using them to resolve relative URLs.
@@ -504,7 +504,7 @@ begin
   if Model1 = Model2 then
     Exit(Model1);
 
-  Result := TX3DNodeClass(Model1.ClassType).Create(Model1.Name,
+  Result := TX3DNodeClass(Model1.ClassType).Create(Model1.NodeName,
     Model1.BaseUrl);
   try
     { We already loaded all inlines (in CheckNodesStructurallyEqual).

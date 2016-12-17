@@ -77,7 +77,7 @@ var
   CoordNode: TCoordinateNode;
   TexCoords: TVector2SingleList;
 begin
-  IFS := TIndexedFaceSetNode.Create(Name, BaseUrl);
+  IFS := TIndexedFaceSetNode.Create(NodeName, BaseUrl);
   try
     XDim := FdXDimension.Value;
     ZDim := FdZDimension.Value;

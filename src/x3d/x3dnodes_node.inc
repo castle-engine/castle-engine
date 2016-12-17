@@ -45,7 +45,7 @@
   { X3D node. Every VRML/X3D node class descends from this. }
   TX3DNode = class(TX3DFileItem, IX3DNode)
   private
-    fName: string;
+    FNodeName: string;
     FBaseUrl: string;
     FVRML1Children, FVRML1Parents: TX3DNodeList;
     FKeepExisting: Cardinal;
@@ -448,10 +448,15 @@
     { Name of this node. When saving/loading, this comes from VRML/X3D
       "DEF" construct. Empty value means that the name is not defined.
       Do not change this during loading / saving of the X3D graph,
-      or searching for nodes e.g. by @link(EnumerateNodes). }
-    property Name: string read fName write FName;
+      or searching for nodes e.g. by @link(EnumerateNodes).
 
-    property NodeName: string read fName write FName; deprecated 'use Name';
+      Note that this property is deliberately not called @code(Name).
+      In the future, this class may descend from the standard TComponent
+      class, that defines a @code(Name) field with a special restrictions
+      (it must be a valid Pascal identifier), which cannot apply to X3D node names
+      (that can have quite free names, see
+      http://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/grammar.html ). }
+    property NodeName: string read FNodeName write FNodeName;
 
     { Base URL for all URLs inside our fields.
       Used everywhere as a base for relative URLs, to handle fields that refer
@@ -498,7 +503,7 @@
           in CreateNode, that is called at the end of this constructor.)
       )
     }
-    constructor Create(const AName: string = '';
+    constructor Create(const ANodeName: string = '';
       const ABaseUrl: string = ''); virtual;
 
     destructor Destroy; override;
@@ -1096,13 +1101,13 @@ end;
 
 { TX3DNode ------------------------------------------------------------------ }
 
-constructor TX3DNode.Create(const AName, ABaseUrl: string);
+constructor TX3DNode.Create(const ANodeName, ABaseUrl: string);
 begin
   inherited Create;
   VRML1ChildrenAllowed := false;
   VRML1ChildrenParsingAllowed := false;
 
-  FName := AName;
+  FNodeName := ANodeName;
   FBaseUrl := ABaseUrl;
 
   FVRML1Children := TX3DNodeList.Create(false);
@@ -2148,7 +2153,7 @@ type
   begin
     Result := nil;
     if (Child is NodeClass) and
-       (Child.Name = SeekNodeName) then
+       (Child.NodeName = SeekNodeName) then
       Proc(Child);
     Child.DirectEnumerate(@Self.EnumerateChildrenFunction, OnlyActive);
   end;
@@ -2238,7 +2243,7 @@ type
 
   function TFindNodeByNameHelper.Callback(Node: TX3DNode): Pointer;
   begin
-    if (Node is NodeClass) and (Node.Name = NodeName) then
+    if (Node is NodeClass) and (Node.NodeName = NodeName) then
       Result := Node else
       Result := nil;
   end;
@@ -2342,7 +2347,7 @@ function TX3DNode.TryFindParentByName(const FindName: string): TX3DNode;
 var
   I: integer;
 begin
-  if Name = FindName then
+  if NodeName = FindName then
     result := Self else
   begin
     result := nil;
@@ -2375,13 +2380,13 @@ begin
   for I := 0 to VRML1ParentsCount - 1 do
   begin
     Result := VRML1Parents[I];
-    if Result.Name = FindName then Exit;
+    if Result.NodeName = FindName then Exit;
   end;
 
   for I := 0 to ParentFieldsCount - 1 do
   begin
     Result := ParentFieldsNode[I];
-    if Result.Name = FindName then Exit;
+    if Result.NodeName = FindName then Exit;
   end;
 
   Result := nil;
@@ -2564,7 +2569,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
   begin
     if (Writer as TX3DWriterNames).NodeNames.Bound(Self) then
     begin
-      Writer.WriteIndent('USE ' + Name);
+      Writer.WriteIndent('USE ' + NodeName);
     end else
     begin
       (Writer as TX3DWriterNames).NodeNames.Bind(Self, false);
@@ -2572,7 +2577,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
       CollectIsClauses(NodeFields, ProtoFields);
       try
         Writer.WriteIndent('');
-        if Name <> '' then Writer.Write('DEF ' + Name + ' ');
+        if NodeName <> '' then Writer.Write('DEF ' + NodeName + ' ');
         Writer.Writeln(X3DType +' {');
 
         Writer.IncIndent;
@@ -2623,7 +2628,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
     if (Writer as TX3DWriterNames).NodeNames.Bound(Self) then
     begin
       Writer.WritelnIndent(Format('<%s USE=%s%s />',
-        [ElementName, StringToX3DXml(Name), WriteContainerField]));
+        [ElementName, StringToX3DXml(NodeName), WriteContainerField]));
     end else
     begin
       (Writer as TX3DWriterNames).NodeNames.Bind(Self, false);
@@ -2633,7 +2638,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
         Writer.WriteIndent('<' + ElementName);
         if ProtoInstance then
           Writer.Write(' name=' + StringToX3DXml(X3DType));
-        if Name <> '' then Writer.Write(' DEF=' +StringToX3DXml(Name));
+        if NodeName <> '' then Writer.Write(' DEF=' +StringToX3DXml(NodeName));
         Writer.Write(WriteContainerField);
 
         HasContent := false;
@@ -2881,7 +2886,7 @@ end;
   procedure TRemoveChildrenWithMatchingNameHelper.DoIt(
     ParentNode: TX3DNode; var Node: TX3DNode);
   begin
-    if IsWild(Node.Name, Wildcard, IgnoreCase) then
+    if IsWild(Node.NodeName, Wildcard, IgnoreCase) then
       Node := nil;
   end;
 
@@ -3008,7 +3013,7 @@ end;
 
 function TX3DNode.DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode;
 begin
-  Result := TX3DNodeClass(ClassType).Create(Name, BaseUrl);
+  Result := TX3DNodeClass(ClassType).Create(NodeName, BaseUrl);
 end;
 
 function TX3DNode.DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode;
@@ -3149,8 +3154,8 @@ end;
 function TX3DNode.NiceName: string;
 begin
   Result := X3DType;
-  if Name <> '' then
-    Result += '(' + Name + ')';
+  if NodeName <> '' then
+    Result += '(' + NodeName + ')';
 end;
 
 function TX3DNode.GetFields(const Index: Integer): TX3DField;
@@ -3307,7 +3312,7 @@ begin
   for I := 0 to Count - 1 do
   begin
     Result := Items[I];
-    if Result.Name = Name then
+    if Result.NodeName = Name then
       Exit;
   end;
   Result := nil;
@@ -3319,7 +3324,7 @@ begin
     Exit(-1);
 
   for Result := 0 to Count - 1 do
-    if Items[Result].Name = Name then
+    if Items[Result].NodeName = Name then
       Exit;
   Result := -1;
 end;
