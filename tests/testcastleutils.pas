@@ -54,6 +54,8 @@ uses
 
 {$I macspeedtest.inc}
 
+{$warnings off} // knowingly using deprecated, to check they are working
+
 procedure TTestCastleUtils.TestMilisecTime;
 const t1: TMilisecTime = High(TMilisecTime) - 10;
       t2: TMilisecTime = 11;
@@ -63,6 +65,8 @@ begin
    Razem 11+1+10 = 22; }
  AssertTrue(MilisecTimesSubtract(t2, t1) = 22);
 end;
+
+{$warnings on}
 
 procedure TTestCastleUtils.TestIndexMinMax_RestOf3dCoords;
 var a: array[0..2]of Double;
