@@ -455,7 +455,8 @@
       class, that defines a @code(Name) field with a special restrictions
       (it must be a valid Pascal identifier), which cannot apply to X3D node names
       (that can have quite free names, see
-      http://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/grammar.html ). }
+      http://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/grammar.html ).
+      We don't want to confuse these two properties. }
     property NodeName: string read FNodeName write FNodeName;
 
     { Base URL for all URLs inside our fields.
