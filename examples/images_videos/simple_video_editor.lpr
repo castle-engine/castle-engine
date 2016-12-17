@@ -324,7 +324,6 @@ begin
     Window.OnOpen := @Open;
     Window.OnClose := @Close;
     Window.OnRender := @Render;
-    Window.RenderStyle := rs2D;
     Window.OnUpdate := @Update;
     Window.OnResize := @Resize2D;
 

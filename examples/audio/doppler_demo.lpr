@@ -99,7 +99,6 @@ begin
     Application.TimerMilisec := 1000;
     Window.OnTimer := @Timer;
     Window.OnRender := @Render;
-    Window.RenderStyle := rs2D;
     Window.OnMotion := @Motion;
     Window.SetDemoOptions(K_F11, CharEscape, true);
     Window.OpenAndRun;

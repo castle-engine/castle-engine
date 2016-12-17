@@ -98,19 +98,25 @@ procedure TGLContainer.EventRender;
 
       if C.GLInitialized then
       begin
+        {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
         if C.RenderStyle = FilterRenderStyle then
+        {$warnings on}
         begin
           ControlRenderBegin;
           C.Render;
         end;
+        {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
         if C.RenderStyle = rs2D then
+        {$warnings on}
           SomeControlHasRenderStyle2D := true;
       end;
 
       for I := 0 to C.ControlsCount - 1 do
         RenderWithChildren(C.Controls[I], SomeControlHasRenderStyle2D, FilterRenderStyle);
 
+      {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
       if C.GLInitialized and (C.RenderStyle = FilterRenderStyle) then
+      {$warnings on}
       begin
         ControlRenderBegin;
         C.RenderOverChildren;
@@ -130,21 +136,29 @@ procedure TGLContainer.EventRender;
 
     if TooltipVisible and (Focus.Count <> 0) then
     begin
+      {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
       if Focus.Last.TooltipStyle = FilterRenderStyle then
+      {$warnings on}
       begin
         ControlRenderBegin;
         Focus.Last.TooltipRender;
       end;
+      {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
       if Focus.Last.TooltipStyle = rs2D then
+      {$warnings on}
         SomeControlHasRenderStyle2D := true;
     end;
 
+    {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
     if RenderStyle = FilterRenderStyle then
+    {$warnings on}
     begin
       ControlRenderBegin;
       if Assigned(OnRender) then OnRender(Self);
     end;
+    {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
     if RenderStyle = rs2D then
+    {$warnings on}
       SomeControlHasRenderStyle2D := true;
   end;
 

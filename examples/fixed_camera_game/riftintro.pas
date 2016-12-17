@@ -138,7 +138,6 @@ begin
     Window.AutoRedisplay := true;
     Window.OnPress := @Press;
     Window.OnUpdate := @Update;
-    Window.RenderStyle := rs2D;
 
     UserQuit := false;
 

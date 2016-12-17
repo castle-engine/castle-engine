@@ -34,12 +34,8 @@ const
 type
   { Determines the order in which TUIControl.Render is called.
     All 3D controls are always under all 2D controls.
-    See TUIControl.Render, TUIControl.RenderStyle.
-
-    @deprecated Do not use this to control front-back UI controls
-    order, it's better to depend only on controls order and
-    on TUIControl.KeepInFront. }
-  TRenderStyle = (rs2D, rs3D);
+    See TUIControl.Render, TUIControl.RenderStyle. }
+  TRenderStyle = (rs2D, rs3D) deprecated 'do not use this to control front-back UI controls order, better to use controls order and TUIControl.KeepInFront';
 
   TUIControl = class;
   TChildrenControls = class;
@@ -202,7 +198,9 @@ type
     { FControls cannot be declared as TChildrenControls to avoid
       http://bugs.freepascal.org/view.php?id=22495 }
     FControls: TObject;
+    {$warnings off} // knowingly using deprecated stuff
     FRenderStyle: TRenderStyle;
+    {$warnings on}
     FFocus, FNewFocus: TUIControlList;
     { Capture controls, for each FingerIndex.
       The values in this map are never nil. }
@@ -471,6 +469,7 @@ type
     }
     property RenderStyle: TRenderStyle
       read FRenderStyle write FRenderStyle default rs2D;
+      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TUIControl.KeepInFront';
 
     { Delay in seconds before showing the tooltip. }
     property TooltipDelay: Single read FTooltipDelay write FTooltipDelay
@@ -818,7 +817,9 @@ type
     FFocused: boolean;
     FGLInitialized: boolean;
     FExists: boolean;
+    {$warnings off} // knowingly using deprecated stuff
     FRenderStyle: TRenderStyle;
+    {$warnings on}
     FControls: TChildrenControls;
     FLeft: Integer;
     FBottom: Integer;
@@ -973,6 +974,7 @@ type
       Among the controls with equal RenderStyle, their order
       on TUIContainer.Controls list determines the rendering order. }
     property RenderStyle: TRenderStyle read FRenderStyle write FRenderStyle default rs2D;
+      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TUIControl.KeepInFront';
 
     { Render a tooltip of this control. If you want to have tooltip for
       this control detected, you have to override TooltipExists.
@@ -987,6 +989,7 @@ type
 
       @groupBegin }
     function TooltipStyle: TRenderStyle; virtual;
+      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TUIControl.KeepInFront';
     function TooltipExists: boolean; virtual;
     procedure TooltipRender; virtual;
     { @groupEnd }

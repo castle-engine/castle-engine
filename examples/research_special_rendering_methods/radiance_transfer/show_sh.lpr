@@ -133,7 +133,6 @@ begin
   Window.SceneManager.Items.Add(Window.SceneManager.MainScene);
 
   Window.OnMenuClick := @MenuClick;
-  Window.RenderStyle := rs2D;
   Window.OnRender := @Render;
   Window.SetDemoOptions(K_F11, CharEscape, true);
   Window.OpenAndRun;

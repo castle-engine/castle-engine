@@ -645,7 +645,6 @@ begin
   Window.OnRelease := @Release;
   Window.OnMotion := @Motion;
   Window.OnRender := @Render;
-  Window.RenderStyle := rs2D;
   Window.SetDemoOptions(K_F11, CharEscape, true);
 
   SurfaceNew(4, 4);

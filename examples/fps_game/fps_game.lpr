@@ -230,8 +230,7 @@ begin
 
   { A simple display of current/maximum player life. }
   { Write text in the upper-left corner of the screen.
-    For controls with RenderStyle = rs2D,
-    the (0, 0) position is always bottom-left corner,
+    The (0, 0) position is always bottom-left corner,
     (ContainerWidth, ContainerHeight) position is top-right corner.
     You can take font measurements by UIFont.RowHeight or UIFont.TextWidth
     to adjust initial position as needed. }

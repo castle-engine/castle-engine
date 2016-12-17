@@ -50,7 +50,9 @@ type
         OldPress, OldRelease: TInputPressReleaseEvent;
         OldOpenObject, OldCloseObject: TContainerObjectEvent;
         OldBeforeRender, OldRender, OldCloseQuery, OldUpdate, OldTimer: TContainerEvent;
+        {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
         OldRenderStyle: TRenderStyle;
+        {$warnings on}
         OldResize: TContainerEvent;
         OldMenuClick: TMenuClickFunc;
         OldCaption: string;
@@ -262,7 +264,9 @@ begin
   OldRelease := Window.OnRelease;
   OldBeforeRender := Window.OnBeforeRender;
   OldRender := Window.OnRender;
+  {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
   OldRenderStyle := Window.RenderStyle;
+  {$warnings on}
   OldCloseQuery := Window.OnCloseQuery;
   OldResize := Window.OnResize;
   OldUpdate := Window.OnUpdate;
@@ -302,7 +306,9 @@ begin
   Window.OnRelease := OldRelease;
   Window.OnBeforeRender := OldBeforeRender;
   Window.OnRender := OldRender;
+  {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
   Window.RenderStyle := OldRenderStyle;
+  {$warnings on}
   Window.OnCloseQuery := OldCloseQuery;
   Window.OnResize := OldResize;
   Window.OnUpdate := OldUpdate;
@@ -381,7 +387,9 @@ begin
   Window.OnRelease := nil;
   Window.OnBeforeRender := nil;
   Window.OnRender := nil;
+  {$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
   Window.RenderStyle := rs2D;
+  {$warnings on}
   Window.OnCloseQuery := nil;
   Window.OnUpdate := nil;
   Window.OnTimer := nil;

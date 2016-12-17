@@ -1876,6 +1876,7 @@ type
       write SetCustomCursor;
 
     property RenderStyle: TRenderStyle read GetRenderStyle write SetRenderStyle default rs2D;
+      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TUIControl.KeepInFront';
 
     { List of user-interface controls currently active.
       See @link(TUIContainer.Controls) for details. }
@@ -4248,6 +4249,7 @@ end;
 {$endif}
 {$endif}
 
+{$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
 function TCastleWindowCustom.GetRenderStyle: TRenderStyle;
 begin
   Result := Container.RenderStyle;
@@ -4257,6 +4259,7 @@ procedure TCastleWindowCustom.SetRenderStyle(const Value: TRenderStyle);
 begin
   Container.RenderStyle := Value;
 end;
+{$warnings on}
 
 function TCastleWindowCustom.Controls: TChildrenControls;
 begin

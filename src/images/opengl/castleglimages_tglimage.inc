@@ -296,9 +296,10 @@ type
       corner of the image will be placed (from 0 to size - 1).
       The overloaded version without X, Y parameters uses current WindowPos.
 
-      You should only use this inside TUIControl.Render when TUIControl.RenderStyle
-      returns rs2D. This means that we require that current projection is 2D
-      and lighting / depth test and such are off.
+      You should only use this inside TUIControl.Render.
+      We require that current projection is 2D and
+      lighting / depth test and such are off, which is the default state
+      there.
 
       The image is drawn in 2D. In normal circumstances
       1 pixel of the image is just placed over 1 pixel of the screen,
