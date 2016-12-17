@@ -801,7 +801,7 @@ begin
   if PrepareNeeded then
   begin
     if Log then
-      TimeBegin := ProcessTimerNow;
+      TimeBegin := ProcessTimer;
 
     DoProgress := not Progress.Active;
     if DoProgress then Progress.Init(PrepareSteps, 'Loading ' + ResourcesName);
@@ -826,7 +826,7 @@ begin
     if Log then
       WritelnLog('Resources', Format('Loading %s time: %f seconds',
         [ ResourcesName,
-          ProcessTimerSeconds(ProcessTimerNow, TimeBegin) ]));
+          ProcessTimerSeconds(ProcessTimer, TimeBegin) ]));
   end;
 end;
 

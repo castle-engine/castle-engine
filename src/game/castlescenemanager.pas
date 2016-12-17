@@ -689,7 +689,7 @@ type
 
     FWater: TBox3D;
     FOnMoveAllowed: TWorldMoveAllowedEvent;
-    LastSoundRefresh: TMilisecTime;
+    LastSoundRefresh: TTimerResult;
     DefaultHeadlightNode: TDirectionalLightNode;
 
     ScheduledVisibleChangeNotification: boolean;
@@ -3137,11 +3137,11 @@ procedure TCastleSceneManager.Update(const SecondsPassed: Single;
   end;
 
 const
-  { Delay between calling SoundEngine.Refresh, in miliseconds. }
-  SoundRefreshDelay = 100;
+  { Delay between calling SoundEngine.Refresh, in seconds. }
+  SoundRefreshDelay = 0.1;
 var
   RemoveItem: TRemoveType;
-  TimeNow: TMilisecTime;
+  TimeNow: TTimerResult;
   SecondsPassedScaled: Single;
 begin
   inherited;
@@ -3162,8 +3162,8 @@ begin
       quickly after sound stopped. }
     if SoundEngine.ALActive then
     begin
-      TimeNow := CastleTimeUtils.GetTickCount64;
-      if TimeTickSecondLater(LastSoundRefresh, TimeNow, SoundRefreshDelay) then
+      TimeNow := Timer;
+      if TimerSeconds(TimeNow, LastSoundRefresh) > SoundRefreshDelay then
       begin
         LastSoundRefresh := TimeNow;
         SoundEngine.Refresh;

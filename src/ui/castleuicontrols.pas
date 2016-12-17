@@ -28,7 +28,7 @@ uses SysUtils, Classes, FGL,
 const
   { Default value for container's Dpi, as is usually set on desktops. }
   DefaultDpi = 96;
-  DefaultTooltipDelay = 1000;
+  DefaultTooltipDelay = 1.0;
   DefaultTooltipDistance = 10;
 
 type
@@ -208,7 +208,7 @@ type
       The values in this map are never nil. }
     FCaptureInput: TFingerIndexCaptureMap;
     FForceCaptureInput: TUIControl;
-    FTooltipDelay: TMilisecTime;
+    FTooltipDelay: Single;
     FTooltipDistance: Cardinal;
     FTooltipVisible: boolean;
     FTooltipPosition: TVector2Single;
@@ -472,7 +472,8 @@ type
     property RenderStyle: TRenderStyle
       read FRenderStyle write FRenderStyle default rs2D;
 
-    property TooltipDelay: TMilisecTime read FTooltipDelay write FTooltipDelay
+    { Delay in seconds before showing the tooltip. }
+    property TooltipDelay: Single read FTooltipDelay write FTooltipDelay
       default DefaultTooltipDelay;
     property TooltipDistance: Cardinal read FTooltipDistance write FTooltipDistance
       default DefaultTooltipDistance;
@@ -1946,8 +1947,7 @@ procedure TUIContainer.EventUpdate;
           (and related Invalidate) when there's no tooltip possible. }
         (Focus.Count <> 0) and
         Focus.Last.TooltipExists and
-        ( (1000 * (T - LastPositionForTooltipTime)) div
-          TimerFrequency > TooltipDelay );
+        (TimerSeconds(T, LastPositionForTooltipTime) > TooltipDelay);
 
     if FTooltipVisible <> NewTooltipVisible then
     begin
