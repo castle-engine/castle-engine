@@ -358,27 +358,6 @@ type
       read FDistanceModel write SetDistanceModel default DefaultDistanceModel;
   end;
 
-type
-  { Unique sound type identifier for sounds used within TRepoSoundEngine. }
-  TSoundType = object
-  private
-    { Just an index to TRepoSoundEngine.SoundNames array. }
-    Index: Cardinal;
-  end;
-
-const
-  { Special sound type that indicates that there is actually no sound.
-    @link(TRepoSoundEngine.Sound) and @link(TRepoSoundEngine.Sound3D)
-    will do nothing when called with this sound type. }
-  stNone: TSoundType = (Index: 0);
-
-  MaxSoundImportance = MaxInt;
-  LevelEventSoundImportance      = 100000;
-  PlayerSoundImportance          = 10000;
-  DefaultCreatureSoundImportance = 1000;
-  MinorNonSpatialSoundImportance = 100;
-
-type
   { Sound information, internally used by TRepoSoundEngine.
 
     The fields correspond to appropriate attributes in sounds XML file.
@@ -462,6 +441,15 @@ type
   end;
 
   TSoundInfoList = specialize TFPGObjectList<TSoundInfo>;
+
+  { Unique sound type identifier for sounds used within TRepoSoundEngine. }
+  TSoundType = object
+  private
+    { Just an index to TRepoSoundEngine.SoundNames array. }
+    Index: Cardinal;
+  public
+    function Info: TSoundInfo;
+  end;
 
   TMusicPlayer = class;
 
@@ -704,6 +692,18 @@ var
   stMenuClick
   { @groupEnd }
     :TSoundType;
+
+const
+  { Special sound type that indicates that there is actually no sound.
+    @link(TRepoSoundEngine.Sound) and @link(TRepoSoundEngine.Sound3D)
+    will do nothing when called with this sound type. }
+  stNone: TSoundType = (Index: 0);
+
+  MaxSoundImportance = MaxInt;
+  LevelEventSoundImportance      = 100000;
+  PlayerSoundImportance          = 10000;
+  DefaultCreatureSoundImportance = 1000;
+  MinorNonSpatialSoundImportance = 100;
 
 { The sound engine. Singleton instance of TRepoSoundEngine, the most capable
   engine class. Created on first call to this function. }
@@ -1577,6 +1577,11 @@ end;
 operator = (const SoundType1, SoundType2: TSoundType): boolean;
 begin
   Result := SoundType1.Index = SoundType2.Index;
+end;
+
+function TSoundType.Info: TSoundInfo;
+begin
+  Result := SoundEngine.Sounds[Index];
 end;
 
 { TRepoSoundEngine ----------------------------------------------------------- }
