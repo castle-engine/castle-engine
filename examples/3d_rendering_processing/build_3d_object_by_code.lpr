@@ -82,7 +82,7 @@ begin
       your 3D object. You can do whatever you want with it:
       example line below trivially saves Root to VRML/X3D file
       (that can be later loaded by our engine). }
-    Save3D(Root, 'test.x3d', 'build_3d_object_by_code', '', xeXML);
+    Save3D(Root, 'test.x3d', 'build_3d_object_by_code');
 
     { You also could create a TCastleSceneCore, or even TCastleScene
       to render this 3D object directly in OpenGL (without saving to any
