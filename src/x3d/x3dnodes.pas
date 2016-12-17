@@ -3873,7 +3873,7 @@ var
   X3DType: string;
   Access: TX3DAccessType;
   FieldType: TX3DFieldClass;
-  Name: string;
+  ParsedName: string;
 begin
   { clear instance before parsing }
   FieldOrEvent.Free;
@@ -3903,14 +3903,14 @@ begin
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'name (for interface declaration)');
-  Name := Lexer.TokenName;
+  ParsedName := Lexer.TokenName;
 
   { we know everything now to create Event/Field instance }
   case Access of
     atInputOnly, atOutputOnly:
-      FieldOrEvent := FieldType.CreateEvent(ParentNode, Name, Access = atInputOnly);
+      FieldOrEvent := FieldType.CreateEvent(ParentNode, ParsedName, Access = atInputOnly);
     atInitializeOnly, atInputOutput:
-      FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name, Access = atInputOutput);
+      FieldOrEvent := FieldType.CreateUndefined(ParentNode, ParsedName, Access = atInputOutput);
     else raise EInternalError.Create('Access ? in TX3DInterfaceDeclaration.Parse');
   end;
 
@@ -3939,7 +3939,7 @@ var
   AccessName: string;
   FieldX3DType: string;
   FieldType: TX3DFieldClass;
-  Name, FieldActualValue: string;
+  ParsedName, FieldActualValue: string;
 begin
   { clear instance before parsing }
   FieldOrEvent.Free;
@@ -3965,15 +3965,15 @@ begin
   end else
     raise EX3DXmlError.Create('Missing field type in X3D interface declaration');
 
-  if not Element.AttributeString('name', Name) then
+  if not Element.AttributeString('name', ParsedName) then
     raise EX3DXmlError.Create('Missing name in X3D interface declaration');
 
   { we know everything now to create Event/Field instance }
   case Access of
     atInputOnly, atOutputOnly:
-      FieldOrEvent := FieldType.CreateEvent(ParentNode, Name, Access = atInputOnly);
+      FieldOrEvent := FieldType.CreateEvent(ParentNode, ParsedName, Access = atInputOnly);
     atInitializeOnly, atInputOutput:
-      FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name, Access = atInputOutput);
+      FieldOrEvent := FieldType.CreateUndefined(ParentNode, ParsedName, Access = atInputOutput);
     else raise EInternalError.Create('AccessType ?');
   end;
 
@@ -5185,7 +5185,7 @@ procedure TX3DExternalPrototype.LoadReferenced;
 var
   I: Integer;
   S: string;
-  Loaded: boolean;
+  ProtoLoaded: boolean;
 begin
   UnloadReferenced;
 
@@ -5193,9 +5193,10 @@ begin
   begin
     S := URLList.Items[I];
     if IsPrefix('urn:', S) then
-      Loaded := LoadFromURN(S) else
-      Loaded := LoadFromExternalVRML(S);
-    if Loaded then
+      ProtoLoaded := LoadFromURN(S)
+    else
+      ProtoLoaded := LoadFromExternalVRML(S);
+    if ProtoLoaded then
       Break;
   end;
 end;

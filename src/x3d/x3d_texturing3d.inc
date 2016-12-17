@@ -429,7 +429,7 @@ end;
 
 procedure TPixelTexture3DNode.LoadTextureData;
 var
-  Components, Width, Height, Depth: Cardinal;
+  TexComponents, Width, Height, Depth: Cardinal;
   G: PByte;
   GA: PVector2Byte;
   RGB: PVector3Byte;
@@ -442,7 +442,7 @@ begin
     Exit;
   end;
 
-  Components := FdImage.Items.Items[0];
+  TexComponents := FdImage.Items.Items[0];
   Width := FdImage.Items.Items[1];
   Height := FdImage.Items.Items[2];
   Depth := FdImage.Items.Items[3];
@@ -454,7 +454,7 @@ begin
     Exit;
   end;
 
-  case Components of
+  case TexComponents of
     0: { 0 components is allowed by the spec, and results in an empty image };
     1: begin
          FTextureImage := TGrayscaleImage.Create(Width, Height, Depth);

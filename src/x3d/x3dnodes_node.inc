@@ -299,15 +299,15 @@
 
     { Search by name for given field.
       @nil if not found. }
-    function Field(const Name: string): TX3DField;
+    function Field(const AName: string): TX3DField;
 
     { Search by name for given field or event (exposed by some field or not).
       @nil if not found. }
-    function FieldOrEvent(const Name: string): TX3DFieldOrEvent;
+    function FieldOrEvent(const AName: string): TX3DFieldOrEvent;
 
     { Search by name for given event (exposed by some field or not).
       @nil if not found. }
-    function AnyEvent(const Name: string): TX3DEvent;
+    function AnyEvent(const AName: string): TX3DEvent;
 
     { VRML 1.0 children nodes. These are nodes directly specified inside
       a VRML 1.0 node, they don't belong to any node field. (In VRML 1.0,
@@ -725,7 +725,7 @@
 
     { Looks for a given Node in parents (and self), recursively.
       Similar to TryFindParentByName. Returns @true only if found. }
-    function HasParent(Node: TX3DNode): boolean;
+    function HasParentNode(Node: TX3DNode): boolean;
 
     { Search immediate parents of this node for a node with given FindName.
       Returns @nil if not found. }
@@ -2387,7 +2387,7 @@ begin
   Result := nil;
 end;
 
-function TX3DNode.HasParent(Node: TX3DNode): boolean;
+function TX3DNode.HasParentNode(Node: TX3DNode): boolean;
 var
   I: integer;
 begin
@@ -2395,10 +2395,10 @@ begin
     result := true else
   begin
     for i := 0 to VRML1ParentsCount - 1 do
-      if VRML1Parents[i].HasParent(Node) then Exit(true);
+      if VRML1Parents[i].HasParentNode(Node) then Exit(true);
 
     for i := 0 to ParentFieldsCount - 1 do
-      if ParentFieldsNode[i].HasParent(Node) then Exit(true);
+      if ParentFieldsNode[i].HasParentNode(Node) then Exit(true);
 
     result := False;
   end;
@@ -2903,22 +2903,22 @@ begin
   Result := false;
 end;
 
-function TX3DNode.Field(const Name: string): TX3DField;
+function TX3DNode.Field(const AName: string): TX3DField;
 var
   I: Integer;
 begin
-  I := FFields.IndexOf(Name);
+  I := FFields.IndexOf(AName);
   if I <> -1 then
     Result := FFields[I] else
     Result := nil; { not found }
 end;
 
-function TX3DNode.FieldOrEvent(const Name: string): TX3DFieldOrEvent;
+function TX3DNode.FieldOrEvent(const AName: string): TX3DFieldOrEvent;
 var
   I: Integer;
   ResultEvent: TX3DEvent;
 begin
-  I := FFields.IndexOf(Name);
+  I := FFields.IndexOf(AName);
   if I <> -1 then
     Exit(FFields[I]);
 
@@ -2929,26 +2929,26 @@ begin
       view3dscene www.web3d.org/x3d/content/examples/Basic/CAD/CADGeometryPrototypes.x3d
   }
 
-  I := FFields.IndexOfExposedEvent(Name, ResultEvent);
+  I := FFields.IndexOfExposedEvent(AName, ResultEvent);
   if I <> -1 then
     Exit(ResultEvent);
 
-  I := FEvents.IndexOf(Name);
+  I := FEvents.IndexOf(AName);
   if I <> -1 then
     Exit(Events[I]);
 
   Result := nil; { not found }
 end;
 
-function TX3DNode.AnyEvent(const Name: string): TX3DEvent;
+function TX3DNode.AnyEvent(const AName: string): TX3DEvent;
 var
   I: Integer;
 begin
-  I := FFields.IndexOfExposedEvent(Name, Result);
+  I := FFields.IndexOfExposedEvent(AName, Result);
   if I <> -1 then
     Exit; { Result is already set }
 
-  I := FEvents.IndexOf(Name);
+  I := FEvents.IndexOf(AName);
   if I <> -1 then
     Exit(Events[I]);
 
