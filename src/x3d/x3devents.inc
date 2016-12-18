@@ -265,11 +265,11 @@ begin
   if not TempUsed then
   begin
     if Temp = nil then
-      Temp := FieldClass.CreateUndefined(ParentNode, Name, false);
+      Temp := FieldClass.CreateUndefined(ParentNode, X3DName, false);
     Result := Temp;
     TempUsed := true;
   end else
-    Result := FieldClass.CreateUndefined(ParentNode, Name, false);
+    Result := FieldClass.CreateUndefined(ParentNode, X3DName, false);
 end;
 
 procedure TX3DEvent.FreeTemp(const Field: TX3DField);

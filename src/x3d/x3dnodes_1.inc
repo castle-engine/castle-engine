@@ -918,7 +918,7 @@ var
   TexCoordNode: TTextureCoordinate2Node_1;
   I: Integer;
 begin
-  FaceSet := TIndexedFaceSetNode_1.Create(NodeName, BaseUrl);
+  FaceSet := TIndexedFaceSetNode_1.Create(X3DName, BaseUrl);
   try
     { we have to modify State, so make a copy of it }
     State := TX3DGraphTraverseState.CreateCopy(State);

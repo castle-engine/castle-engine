@@ -45,7 +45,7 @@
   { X3D node. Every VRML/X3D node class descends from this. }
   TX3DNode = class(TX3DFileItem, IX3DNode)
   private
-    FNodeName: string;
+    FX3DName: string;
     FBaseUrl: string;
     FVRML1Children, FVRML1Parents: TX3DNodeList;
     FKeepExisting: Cardinal;
@@ -457,7 +457,8 @@
       (that can have quite free names, see
       http://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/grammar.html ).
       We don't want to confuse these two properties. }
-    property NodeName: string read FNodeName write FNodeName;
+    property X3DName: string read FX3DName write FX3DName;
+    property NodeName: string read FX3DName write FX3DName; deprecated 'use X3DName';
 
     { Base URL for all URLs inside our fields.
       Used everywhere as a base for relative URLs, to handle fields that refer
@@ -504,7 +505,7 @@
           in CreateNode, that is called at the end of this constructor.)
       )
     }
-    constructor Create(const ANodeName: string = '';
+    constructor Create(const AX3DName: string = '';
       const ABaseUrl: string = ''); virtual;
 
     destructor Destroy; override;
@@ -639,8 +640,8 @@
       and PrototypeInstanceHelpers.
 
       If you give SeekNodeName parameter, we'll only look for nodes
-      with NodeName = SeekNodeName. When SeekNodeName = '' it,
-      consistently, looks for unnamed nodes (where NodeName = '').
+      with X3DName = SeekNodeName. When SeekNodeName = '' it,
+      consistently, looks for unnamed nodes (where X3DName = '').
 
       Enumerates children only after enumerating Self.
       So you can modify children before enumerating them in the Proc callback.
@@ -1102,13 +1103,13 @@ end;
 
 { TX3DNode ------------------------------------------------------------------ }
 
-constructor TX3DNode.Create(const ANodeName, ABaseUrl: string);
+constructor TX3DNode.Create(const AX3DName, ABaseUrl: string);
 begin
   inherited Create;
   VRML1ChildrenAllowed := false;
   VRML1ChildrenParsingAllowed := false;
 
-  FNodeName := ANodeName;
+  FX3DName := AX3DName;
   FBaseUrl := ABaseUrl;
 
   FVRML1Children := TX3DNodeList.Create(false);
@@ -2154,7 +2155,7 @@ type
   begin
     Result := nil;
     if (Child is NodeClass) and
-       (Child.NodeName = SeekNodeName) then
+       (Child.X3DName = SeekNodeName) then
       Proc(Child);
     Child.DirectEnumerate(@Self.EnumerateChildrenFunction, OnlyActive);
   end;
@@ -2244,7 +2245,7 @@ type
 
   function TFindNodeByNameHelper.Callback(Node: TX3DNode): Pointer;
   begin
-    if (Node is NodeClass) and (Node.NodeName = NodeName) then
+    if (Node is NodeClass) and (Node.X3DName = NodeName) then
       Result := Node else
       Result := nil;
   end;
@@ -2348,7 +2349,7 @@ function TX3DNode.TryFindParentByName(const FindName: string): TX3DNode;
 var
   I: integer;
 begin
-  if NodeName = FindName then
+  if X3DName = FindName then
     result := Self else
   begin
     result := nil;
@@ -2381,13 +2382,13 @@ begin
   for I := 0 to VRML1ParentsCount - 1 do
   begin
     Result := VRML1Parents[I];
-    if Result.NodeName = FindName then Exit;
+    if Result.X3DName = FindName then Exit;
   end;
 
   for I := 0 to ParentFieldsCount - 1 do
   begin
     Result := ParentFieldsNode[I];
-    if Result.NodeName = FindName then Exit;
+    if Result.X3DName = FindName then Exit;
   end;
 
   Result := nil;
@@ -2570,7 +2571,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
   begin
     if (Writer as TX3DWriterNames).NodeNames.Bound(Self) then
     begin
-      Writer.WriteIndent('USE ' + NodeName);
+      Writer.WriteIndent('USE ' + X3DName);
     end else
     begin
       (Writer as TX3DWriterNames).NodeNames.Bind(Self, false);
@@ -2578,7 +2579,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
       CollectIsClauses(NodeFields, ProtoFields);
       try
         Writer.WriteIndent('');
-        if NodeName <> '' then Writer.Write('DEF ' + NodeName + ' ');
+        if X3DName <> '' then Writer.Write('DEF ' + X3DName + ' ');
         Writer.Writeln(X3DType +' {');
 
         Writer.IncIndent;
@@ -2629,7 +2630,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
     if (Writer as TX3DWriterNames).NodeNames.Bound(Self) then
     begin
       Writer.WritelnIndent(Format('<%s USE=%s%s />',
-        [ElementName, StringToX3DXml(NodeName), WriteContainerField]));
+        [ElementName, StringToX3DXml(X3DName), WriteContainerField]));
     end else
     begin
       (Writer as TX3DWriterNames).NodeNames.Bind(Self, false);
@@ -2639,7 +2640,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
         Writer.WriteIndent('<' + ElementName);
         if ProtoInstance then
           Writer.Write(' name=' + StringToX3DXml(X3DType));
-        if NodeName <> '' then Writer.Write(' DEF=' +StringToX3DXml(NodeName));
+        if X3DName <> '' then Writer.Write(' DEF=' +StringToX3DXml(X3DName));
         Writer.Write(WriteContainerField);
 
         HasContent := false;
@@ -2674,7 +2675,7 @@ procedure TX3DNode.NodeSaveToStream(Writer: TX3DWriter; const CurrentContainerFi
               begin
                 { prototype instance fields must be wrapped in <fieldValue> }
                 Writer.WriteIndent('<fieldValue name=' +
-                  StringToX3DXml((FileItems[I] as TX3DField).Name));
+                  StringToX3DXml((FileItems[I] as TX3DField).X3DName));
                 if FileItems[I].SaveToXml = sxChildElement then
                 begin
                   Writer.Writeln('>');
@@ -2887,7 +2888,7 @@ end;
   procedure TRemoveChildrenWithMatchingNameHelper.DoIt(
     ParentNode: TX3DNode; var Node: TX3DNode);
   begin
-    if IsWild(Node.NodeName, Wildcard, IgnoreCase) then
+    if IsWild(Node.X3DName, Wildcard, IgnoreCase) then
       Node := nil;
   end;
 
@@ -3014,7 +3015,7 @@ end;
 
 function TX3DNode.DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode;
 begin
-  Result := TX3DNodeClass(ClassType).Create(NodeName, BaseUrl);
+  Result := TX3DNodeClass(ClassType).Create(X3DName, BaseUrl);
 end;
 
 function TX3DNode.DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode;
@@ -3155,8 +3156,8 @@ end;
 function TX3DNode.NiceName: string;
 begin
   Result := X3DType;
-  if NodeName <> '' then
-    Result += '(' + NodeName + ')';
+  if X3DName <> '' then
+    Result += '(' + X3DName + ')';
 end;
 
 function TX3DNode.GetFields(const Index: Integer): TX3DField;
@@ -3313,7 +3314,7 @@ begin
   for I := 0 to Count - 1 do
   begin
     Result := Items[I];
-    if Result.NodeName = Name then
+    if Result.X3DName = Name then
       Exit;
   end;
   Result := nil;
@@ -3325,7 +3326,7 @@ begin
     Exit(-1);
 
   for Result := 0 to Count - 1 do
-    if Items[Result].NodeName = Name then
+    if Items[Result].X3DName = Name then
       Exit;
   Result := -1;
 end;

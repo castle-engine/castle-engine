@@ -219,7 +219,7 @@ procedure CheckNodesStructurallyEqual(Model1, Model2: TX3DNode;
     end else
     if not ((Field1.Value = nil) and (Field2.Value = nil)) then
       raise EModelsStructureDifferent.CreateFmt('Field "%s" of type SFNode ' +
-        'is once NULL and once not-NULL', [Field1.Name]);
+        'is once NULL and once not-NULL', [Field1.X3DName]);
   end;
 
   procedure CheckMFNodesStructurallyEqual(Field1, Field2: TMFNode);
@@ -251,10 +251,10 @@ begin
     TInlineNode(Model2).LoadInlined(false);
   end;
 
-  if Model1.NodeName <> Model2.NodeName then
+  if Model1.X3DName <> Model2.X3DName then
     raise EModelsStructureDifferent.CreateFmt(
       'Different names of nodes: "%s" and "%s"',
-      [Model1.NodeName, Model2.NodeName]);
+      [Model1.X3DName, Model2.X3DName]);
 
   { We are interested whether Model1.BaseUrl and Model2.BaseUrl will
     give different results when using them to resolve relative URLs.
@@ -329,12 +329,12 @@ begin
         examples/models/gus_2_final.wrl trick. }
 
       if not (
-         ( (Model1 is TInlineNode)            and (Model1.Fields[I].Name = 'url') ) or
+         ( (Model1 is TInlineNode)            and (Model1.Fields[I].X3DName = 'url') ) or
          Model1.Fields[I].Equals(Model2.Fields[I], EqualityEpsilon)
          ) then
         raise EModelsStructureDifferent.CreateFmt(
           'Fields "%s" (class "%s") are not equal',
-          [Model1.Fields[I].Name, Model1.Fields[I].ClassName]);
+          [Model1.Fields[I].X3DName, Model1.Fields[I].ClassName]);
     end;
   end;
 end;
@@ -504,7 +504,7 @@ begin
   if Model1 = Model2 then
     Exit(Model1);
 
-  Result := TX3DNodeClass(Model1.ClassType).Create(Model1.NodeName,
+  Result := TX3DNodeClass(Model1.ClassType).Create(Model1.X3DName,
     Model1.BaseUrl);
   try
     { We already loaded all inlines (in CheckNodesStructurallyEqual).

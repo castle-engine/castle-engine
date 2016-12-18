@@ -444,7 +444,7 @@ var
 begin
   inherited;
 
-  if NodeName <> '' then
+  if X3DName <> '' then
     Exported := TX3DNodeNames.Create(false)
   else
     Exported := nil;
@@ -459,8 +459,8 @@ begin
   if Exported <> nil then
   begin
     { connect Exported nodes with our inline Name }
-    Assert(NodeName <> '');
-    Reader.Importable.Bind(NodeName, Exported);
+    Assert(X3DName <> '');
+    Reader.Importable.Bind(X3DName, Exported);
   end;
 end;
 
@@ -683,7 +683,7 @@ begin
 
   if EventChildren.SendNeeded and (Scene <> nil) then
   begin
-    ChildrenToSend := TMFNode.CreateUndefined(Self, EventChildren.Name, false);
+    ChildrenToSend := TMFNode.CreateUndefined(Self, EventChildren.X3DName, false);
     try
       ChildrenToSend.Add(FInlined);
       EventChildren.Send(ChildrenToSend, Scene.NextEventTime);

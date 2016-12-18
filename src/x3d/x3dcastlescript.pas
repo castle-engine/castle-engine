@@ -191,7 +191,7 @@ begin
     Result := TCasScriptFloat.Create(true);
   end;
 
-  Result.Name := FieldOrEvent.Name;
+  Result.Name := FieldOrEvent.X3DName;
 end;
 
 procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
@@ -310,7 +310,7 @@ procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
       for the same reasons TX3DEvent.Send shortcuts do this:
       to get nice information in Logger node reports. }
 
-    Result := Event.FieldClass.CreateUndefined(Event.ParentNode, Event.Name, false);
+    Result := Event.FieldClass.CreateUndefined(Event.ParentNode, Event.X3DName, false);
   end;
 
 var
@@ -452,7 +452,7 @@ begin
         if Log then
           WritelnLog('X3D Script', Format(
             'Sending event %s from Script ignored at <= timestamp (%f, while last event was on %f). Potential loop avoided',
-            [ SendToEvent.Name, Time.Seconds, LastEventTime.Seconds ]));
+            [ SendToEvent.X3DName, Time.Seconds, LastEventTime.Seconds ]));
       end;
       FreeAndNil(Field);
     end;

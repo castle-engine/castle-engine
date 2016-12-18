@@ -63,7 +63,7 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
       begin
         BoundValue := BindSingleTexture(TSFNode(TextureField).Value);
         if BoundValue <> -1 then
-          SetUniform(TextureField.Name, BoundValue, true);
+          SetUniform(TextureField.X3DName, BoundValue, true);
       end else
       begin
         Assert(TextureField is TMFNode);
@@ -82,7 +82,7 @@ function TX3DGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean
             if BoundValue = -1 then BoundValue := 0;
             UniformValue[J] := BoundValue;
           end;
-          SetUniform(TextureField.Name, UniformValue, true);
+          SetUniform(TextureField.X3DName, UniformValue, true);
         finally FreeAndNil(UniformValue) end;
       end;
       Result := true;

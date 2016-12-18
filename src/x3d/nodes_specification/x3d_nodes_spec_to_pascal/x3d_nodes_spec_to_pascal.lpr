@@ -100,7 +100,7 @@ begin
   begin
     WritelnStr(InterfaceLines,
       '  public' + NL +
-      '    constructor Create(const ANodeName: string; const ABaseUrl: string); override;');
+      '    constructor Create(const AX3DName: string; const ABaseUrl: string); override;');
 
     if not IsAbstract then
       WritelnStr(InterfaceLines,
@@ -108,7 +108,7 @@ begin
         '    class function URNMatching(const URN: string): boolean; override;');
 
     WritelnStr(ImplementationLines,
-      'constructor TNode' + NodeType + '.Create(const ANodeName: string;' + NL +
+      'constructor TNode' + NodeType + '.Create(const AX3DName: string;' + NL +
       '  const ABaseUrl: string);' + NL +
       'begin' + NL +
       '  inherited;');

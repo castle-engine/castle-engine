@@ -637,7 +637,7 @@ var
 
       if EventLineBounds.SendNeeded then
       begin
-        LineBounds := TMFVec2f.CreateUndefined(OriginalNode, EventLineBounds.Name, false);
+        LineBounds := TMFVec2f.CreateUndefined(OriginalNode, EventLineBounds.X3DName, false);
         try
           LineBounds.Items.Count := TextWidths.Count;
 
@@ -823,7 +823,7 @@ begin
     JustifyMinor := FontStyle.JustifyMinor;
   end;
 
-  FaceSet := TQuadSetNode.Create(NodeName, BaseUrl);
+  FaceSet := TQuadSetNode.Create(X3DName, BaseUrl);
   try
     FaceSet.Solid := Solid;
 

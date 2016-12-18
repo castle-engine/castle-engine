@@ -125,7 +125,7 @@ type
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false): Cardinal; virtual; abstract;
 
-    { Look for shape with Geometry.NodeName = GeometryNodeName.
+    { Look for shape with Geometry.X3DName = GeometryNodeName.
       Returns @nil if not found. }
     function FindGeometryNodeName(const GeometryNodeName: string;
       OnlyActive: boolean = false): TShape;
@@ -862,8 +862,8 @@ type
     Returns empty string if none.
 
     When implementing this, you may find useful the following properties
-    of the shape: TShape.OriginalGeometry.NodeName,
-    TShape.Node.NodeName, TShape.GeometryParentNodeName,
+    of the shape: TShape.OriginalGeometry.X3DName,
+    TShape.Node.X3DName, TShape.GeometryParentNodeName,
     TShape.GeometryGrandParentNodeName,
     TShape.GeometryGrandGrandParentNodeName.
 
@@ -921,7 +921,7 @@ begin
     while SI.GetNext do
     begin
       Result := SI.Current;
-      if Result.OriginalGeometry.NodeName = GeometryNodeName then Exit;
+      if Result.OriginalGeometry.X3DName = GeometryNodeName then Exit;
     end;
   finally FreeAndNil(SI) end;
   Result := nil;
@@ -959,14 +959,14 @@ begin
 
   if ParentInfo <> nil then
   begin
-    FGeometryParentNodeName := ParentInfo^.Node.NodeName;
+    FGeometryParentNodeName := ParentInfo^.Node.X3DName;
     ParentInfo := ParentInfo^.ParentInfo;
     if ParentInfo <> nil then
     begin
-      FGeometryGrandParentNodeName := ParentInfo^.Node.NodeName;
+      FGeometryGrandParentNodeName := ParentInfo^.Node.X3DName;
       ParentInfo := ParentInfo^.ParentInfo;
       if ParentInfo <> nil then
-        FGeometryGrandGrandParentNodeName := ParentInfo^.Node.NodeName;
+        FGeometryGrandGrandParentNodeName := ParentInfo^.Node.X3DName;
     end;
   end;
 
@@ -2126,8 +2126,8 @@ end;
 function TShape.NiceName: string;
 begin
   Result := OriginalGeometry.NiceName;
-  if (Node <> nil) and (Node.NodeName <> '') then
-    Result := Node.NodeName + ':' + Result;
+  if (Node <> nil) and (Node.X3DName <> '') then
+    Result := Node.X3DName + ':' + Result;
 end;
 
 function TShape.Node: TAbstractShapeNode;
@@ -2423,7 +2423,7 @@ end;
 
 function TProximitySensorInstance.DebugInfo(const Indent: string = ''): string;
 begin
-  Result := Indent + 'ProximitySensor (' + Node.NodeName + ')' + NL;
+  Result := Indent + 'ProximitySensor (' + Node.X3DName + ')' + NL;
 end;
 
 { TVisibilitySensorInstance ---------------------------------------------- }
@@ -2449,7 +2449,7 @@ end;
 
 function TVisibilitySensorInstance.DebugInfo(const Indent: string = ''): string;
 begin
-  Result := Indent + 'VisibilitySensor (' + Node.NodeName + ')' + NL;
+  Result := Indent + 'VisibilitySensor (' + Node.X3DName + ')' + NL;
 end;
 
 { TShapeTreeIterator ----------------------------------------------------- }
@@ -2763,7 +2763,7 @@ function X3DShapePlaceholder(const Shape: TShape): string;
 begin
   { Shape.Node may be nil for old VRML 1.0 or Inventor. }
   if Shape.Node <> nil then
-    Result := Shape.Node.NodeName else
+    Result := Shape.Node.X3DName else
     Result := '';
 end;
 

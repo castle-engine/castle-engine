@@ -75,7 +75,7 @@ uses SysUtils, CastleUtils, CastleStringUtils,
 const
   { Suffix of VRML node names created by ProcessShadowMapsReceivers
     transformation. }
-  NodeNameSuffix = '_generated_by_ProcessShadowMapsReceivers';
+  X3DNameSuffix = '_generated_by_ProcessShadowMapsReceivers';
 
 type
   { Information about light source relevant for shadow maps. }
@@ -125,7 +125,7 @@ begin
   { Assign unique nodenames to the created ShadowMap and TexGen nodes,
     this way when saving they will be shared by DEF/USE.
     Based on LightUniqueName. }
-  LightUniqueName := Light.NodeName;
+  LightUniqueName := Light.X3DName;
   if LightUniqueName = '' then
     LightUniqueName := 'Light' + IntToStr(Random(1000000));
 
@@ -150,14 +150,14 @@ begin
   Result^.ShadowMap.FdLight.Value := Light;
 
   { Regardless if this is taken from defaultShadowMap or created,
-    set NodeName, such that it has NodeNameSuffix. This is needed for
+    set X3DName, such that it has X3DNameSuffix. This is needed for
     HandleShadowMap, so that it can be removed later. }
-  Result^.ShadowMap.NodeName := LightUniqueName + '_ShadowMap' + NodeNameSuffix;
+  Result^.ShadowMap.X3DName := LightUniqueName + '_ShadowMap' + X3DNameSuffix;
 
   { create new ProjectedTextureCoordinate node }
 
   Result^.TexGen := TProjectedTextureCoordinateNode.Create;
-  Result^.TexGen.NodeName := LightUniqueName + '_TexGen' + NodeNameSuffix;
+  Result^.TexGen.X3DName := LightUniqueName + '_TexGen' + X3DNameSuffix;
   Result^.TexGen.FdProjector.Value := Light;
 end;
 
@@ -172,7 +172,7 @@ procedure TLightList.ShapeRemove(Shape: TShape);
   begin
     I := 0;
     while I < Texture.Count do
-      if IsSuffix(NodeNameSuffix, Texture[I].NodeName) and
+      if IsSuffix(X3DNameSuffix, Texture[I].X3DName) and
          (Texture[I] is TGeneratedShadowMapNode) then
         Texture.Delete(I) else
         Inc(I);
@@ -185,7 +185,7 @@ procedure TLightList.ShapeRemove(Shape: TShape);
   begin
     I := 0;
     while I < TexCoord.Count do
-      if IsSuffix(NodeNameSuffix, TexCoord[I].NodeName) and
+      if IsSuffix(X3DNameSuffix, TexCoord[I].X3DName) and
          (TexCoord[I] is TProjectedTextureCoordinateNode) then
         TexCoord.Delete(I) else
         Inc(I);

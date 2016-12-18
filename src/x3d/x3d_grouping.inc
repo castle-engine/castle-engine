@@ -737,12 +737,12 @@ procedure TX3DRootNode.ManuallyExportNode(const Node: TX3DNode; const ExportedAl
 var
   ExportItem: TX3DExport;
 begin
-  if Node.NodeName = '' then
+  if Node.X3DName = '' then
     raise Exception.Create('You cannot export nodes with empty names');
 
   ExportItem := TX3DExport.Create;
   AddExport(ExportItem);
-  ExportItem.ExportedNodeName := Node.NodeName;
+  ExportItem.ExportedNodeName := Node.X3DName;
   ExportItem.ExportedNodeAlias := ExportedAlias;
 
   { merely adding ExportItem is not enough, we have to also replicate what
@@ -754,7 +754,7 @@ end;
 
 procedure TX3DRootNode.ManuallyExportNode(const Node: TX3DNode);
 begin
-  ManuallyExportNode(Node, Node.NodeName);
+  ManuallyExportNode(Node, Node.X3DName);
 end;
 
 procedure TStaticGroupNode.CreateNode;

@@ -1003,7 +1003,7 @@ begin
     { Ok, we have a field with a value (interface declarations with
       fields inside ComposedShader / Effect always have a value).
       So set GLSL uniform variable from this field. }
-    SetUniformFromField(UniformField.Name, UniformField, EnableDisable);
+    SetUniformFromField(UniformField.X3DName, UniformField, EnableDisable);
   except
     { We capture EGLSLUniformInvalid, converting it to WritelnWarning and exit.
       This way we will not add this field to EventsObserved. }
@@ -1192,8 +1192,9 @@ var
   Scene: TX3DEventsEngine;
 begin
   if Event.ParentExposedField = nil then
-    UniformName := Event.Name else
-    UniformName := Event.ParentExposedField.Name;
+    UniformName := Event.X3DName
+  else
+    UniformName := Event.ParentExposedField.X3DName;
 
   try
     SetUniformFromField(UniformName, Value, true);

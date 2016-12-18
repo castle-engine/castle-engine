@@ -518,7 +518,7 @@ begin
     { Ignore empty names, since VRML node cannot have empty name
       (it's only our implementation detail that we mark "noname" as empty name) }
     if (FdReplaceNames.Items[I] <> '') and
-       (FdReplaceNames.Items[I] = VRML1Children[0].NodeName) then
+       (FdReplaceNames.Items[I] = VRML1Children[0].X3DName) then
     begin
       VRML1ChildRemove(0);
       VRML1ChildAdd(0, FdReplaceNodes[I]);
@@ -535,7 +535,7 @@ var
 begin
   for I := 0 to ReplaceCount - 1 do
     if (FdReplaceNames.Items[I] <> '') and
-       (FdReplaceNames.Items[I] = Node.NodeName) then
+       (FdReplaceNames.Items[I] = Node.X3DName) then
     begin
       Node := FdReplaceNodes[I];
       Exit;

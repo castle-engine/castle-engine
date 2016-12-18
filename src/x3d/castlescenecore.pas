@@ -2898,7 +2898,7 @@ begin
     begin
       { before binding viewpoint, check InitialViewpoint* conditions }
       if (ParentScene.InitialViewpointName = '') or
-         (ParentScene.InitialViewpointName = Node.NodeName) then
+         (ParentScene.InitialViewpointName = Node.X3DName) then
       begin
         if (ParentScene.InitialViewpointIndex =
             ParentScene.ChangedAllCurrentViewpointIndex) then
@@ -3702,9 +3702,9 @@ var
   begin
     S := 'ChangedField: ' + X3DChangesToStr(Changes) +
       Format(', node: %s (%s %s) at %s',
-      [ ANode.NodeName, ANode.X3DType, ANode.ClassName, PointerToStr(ANode) ]);
+      [ ANode.X3DName, ANode.X3DType, ANode.ClassName, PointerToStr(ANode) ]);
     if Field <> nil then
-      S += Format(', field %s (%s)', [ Field.Name, Field.X3DType ]);
+      S += Format(', field %s (%s)', [ Field.X3DName, Field.X3DType ]);
     if Additional <> '' then
       S += '. ' + Additional;
     WritelnLog('X3D changes', S);
@@ -6717,7 +6717,7 @@ begin
   NewViewNode := MakeCameraNode(Version, '', Position, Direction, Up, GravityUp,
     NewViewpointNode);
   NewViewpointNode.FdDescription.Value := AName;
-  NewViewpointNode.NodeName := 'Viewpoint' + IntToStr(Random(10000));
+  NewViewpointNode.X3DName := 'Viewpoint' + IntToStr(Random(10000));
   NewViewpointNode.Scene := self;
 
   { Create NavigationInfo node }
@@ -6762,7 +6762,7 @@ begin
 
   NewNavigationNode := MakeCameraNavNode(Version, '', NavigationType, WalkSpeed,
     VisibilityLimit, AvatarSize, HeadlightOn);
-  NewNavigationNode.NodeName := 'NavInfo' + IntToStr(Random(10000));
+  NewNavigationNode.X3DName := 'NavInfo' + IntToStr(Random(10000));
   NewNavigationNode.Scene := self;
 
   // Connect viewpoint with navigation info
@@ -6796,7 +6796,7 @@ type
 
 procedure TAnimationsEnumerator.Enumerate(Node: TX3DNode);
 begin
-  EnumerateWithAlias(Node, Node.NodeName, false);
+  EnumerateWithAlias(Node, Node.X3DName, false);
 end;
 
 procedure TAnimationsEnumerator.EnumerateWithAlias(const Node: TX3DNode;

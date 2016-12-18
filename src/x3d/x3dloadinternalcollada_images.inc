@@ -16,7 +16,7 @@
 {$ifdef read_interface_nested}
 
 var
-  { List of Collada images (TAbstractTextureNode). NodeName of every instance
+  { List of Collada images (TAbstractTextureNode). X3DName of every instance
     comes from Collada "id" of <image> element (these are referred to
     by <init_from> contents from <surface>). }
   Images: TX3DNodeList;

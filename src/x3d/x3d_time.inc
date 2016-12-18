@@ -379,7 +379,7 @@ procedure TSFTimeIgnoreWhenActive.ExposedEventReceive(
     if TX3DNode(ParentNode).Scene <> nil then
       SceneName := TX3DNode(ParentNode).Scene.Name else
       SceneName := '<scene-unknown>';
-    WritelnLog('Change Ignored', 'A change of "' + TX3DNode(ParentNode).NiceName + '.' + Name + '" field (scene "' + SceneName + '") while the time-dependent node is active is ignored (the value remains unchanged), following the X3D specification.');
+    WritelnLog('Change Ignored', 'A change of "' + TX3DNode(ParentNode).NiceName + '.' + X3DName + '" field (scene "' + SceneName + '") while the time-dependent node is active is ignored (the value remains unchanged), following the X3D specification.');
   end;
 
 begin
@@ -426,7 +426,7 @@ procedure TSFStopTime.ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
     if TX3DNode(ParentNode).Scene <> nil then
       SceneName := TX3DNode(ParentNode).Scene.Name else
       SceneName := '<scene-unknown>';
-    WritelnLog('Change Ignored', 'A change of "' + TX3DNode(ParentNode).NiceName + '.' + Name + '" field (scene "' + SceneName + '"), to the value <= startTime, while the time-dependent node is active is ignored (the value remains unchanged), following the X3D specification.');
+    WritelnLog('Change Ignored', 'A change of "' + TX3DNode(ParentNode).NiceName + '.' + X3DName + '" field (scene "' + SceneName + '"), to the value <= startTime, while the time-dependent node is active is ignored (the value remains unchanged), following the X3D specification.');
   end;
 
 begin
