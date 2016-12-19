@@ -2173,12 +2173,14 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
           SetResult(Normal, STangent, TTangent);
         end else
         begin
-          { If not NormalsFlat, you want to calculate local STangent and TTangent,
-            I mean STangent and TTangent adjusted to current vertex (since each
-            vertex may have different normal on the face when not NormalsFlat).
+          { If NormalsFlat = false,
+            we want to calculate *local* STangent and TTangent,
+            which are STangent and TTangent adjusted to the current vertex
+            (since every vertex on this face may have a different normal).
 
             Without doing this, you would see strange artifacts, smoothed
-            faces would look somewhat like flat faces. Concenptually, for smoothed
+            faces would look somewhat like flat faces.
+            Conceptually, for smoothed
             faces, whole tangent space should vary for each vertex, so Normal,
             and both tangents may be different on each vertex. }
 
