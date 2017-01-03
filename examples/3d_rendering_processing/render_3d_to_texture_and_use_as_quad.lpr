@@ -32,6 +32,10 @@
     to an OpenGL texture resource TGLTextureId, but right now
     PixelTexture / ImageTexture cannot be initialized from a TGLTextureId.
 
+    (It would not work so easily with Android, or other platforms where you can
+    lose OpenGL context essentially at any moment.
+    You would need to rerender such textures in this case.)
+
     To put it in different words,
     our usage of TGLRenderToTexture in this demo is unoptimal.
     We use TGLRenderToTexture to render off-screen,
@@ -48,7 +52,7 @@
 
 uses SysUtils, CastleWindow, CastleSceneCore, CastleScene, CastleVectors,
   CastleFilesUtils, CastleImages, CastleGLImages, CastleRectangles,
-  X3DNodes;
+  X3DNodes, CastleSceneManager;
 
 var
   Window: TCastleWindow;
@@ -61,10 +65,13 @@ const
 function CreateSpriteTexture: TCastleImage;
 var
   SourceScene: TCastleScene;
+  SourceSceneManager: TCastleSceneManager;
   RenderToTexture: TGLRenderToTexture;
+  ViewportRect: TRectangle;
 begin
   { nil everything first, to be able to wrap in a simple try..finally clause }
   SourceScene := nil;
+  SourceSceneManager := nil;
   RenderToTexture := nil;
 
   try
@@ -75,37 +82,30 @@ begin
       'raptor_1.x3d'
     ));
 
-    { TODO: Instead of over-using the Window.SceneManager here,
-      and rendering below using the
-
-        Window.Container.EventBeforeRender;
-        Window.Container.EventRender;
-
-      ... it would be cleaner to create and render a new SourceSceneManager,
-      local to this function.
-      But this requires adding a method to TGLContainer (or TRenderContext)
-      to render a given TUIControl, as you cannot just call "SceneManager.Render"
-      (or any other "TUIControl.Render") without the necessary preparations. }
-
-    Window.SceneManager.Items.Add(SourceScene);
-    Window.SceneManager.MainScene := SourceScene;
+    SourceSceneManager := TCastleSceneManager.Create(nil);
+    SourceSceneManager.Items.Add(SourceScene);
+    SourceSceneManager.MainScene := SourceScene;
 
     RenderToTexture := TGLRenderToTexture.Create(TextureWidth, TextureHeight);
     RenderToTexture.Buffer := tbNone;
     RenderToTexture.GLContextOpen;
     RenderToTexture.RenderBegin;
 
-    { everything rendered between RenderBegin and RenderEnd is done off-screen. }
-    Window.Container.EventBeforeRender;
-    Window.Container.EventRender;
+    ViewportRect := Rectangle(0, 0, TextureWidth, TextureHeight);
 
-    Result := SaveScreen_NoFlush(TRGBImage,
-      Rectangle(0, 0, TextureWidth, TextureHeight), RenderToTexture.ColorBuffer);
+    { Everything rendered between RenderBegin and RenderEnd is done off-screen.
+      Below, we explicitly render the SourceSceneManager.
+      This way, using this function doesn't change any Window.Controls
+      or Window.SceneManager state, which is a nice thing. }
+    Window.Container.RenderControl(SourceSceneManager, ViewportRect);
+
+    Result := SaveScreen_NoFlush(TRGBImage, ViewportRect, RenderToTexture.ColorBuffer);
 
     RenderToTexture.RenderEnd;
   finally
     FreeAndNil(RenderToTexture);
     FreeAndNil(SourceScene);
+    FreeAndNil(SourceSceneManager);
   end;
 end;
 
@@ -174,13 +174,6 @@ begin
 
   Window.SceneManager.Items.Add(RuntimeScene);
   Window.SceneManager.MainScene := RuntimeScene;
-
-  { Force recreating camera next time, to see whole RuntimeScene automatically.
-    Otherwise, the current camera was already initialized to see whole
-    SourceScene in CreateSpriteTexture.
-    This is an unfortunate side-effect of over-using Window.SceneManager
-    inside CreateSpriteTexture, see TODO there. }
-  Window.SceneManager.Camera.Free;
 
   Application.Run;
 end.

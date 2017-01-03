@@ -923,11 +923,22 @@ type
     function CapturesEventsAtPosition(const Position: TVector2Single): boolean; virtual;
 
     { Prepare your resources, right before drawing.
-      Called only when @link(GetExists) and GLInitialized. }
+      Called only when @link(GetExists) and GLInitialized.
+
+      @bold(Do not explicitly call this method.)
+      Instead, render controls by adding them to the
+      @link(TUIContainer.Controls) list, or render them explicitly
+      (for off-screen rendering) by @link(TGLContainer.RenderControl).
+    }
     procedure BeforeRender; virtual;
 
     { Render a control. Called only when @link(GetExists) and GLInitialized,
       you can depend on it in the implementation of this method.
+
+      @bold(Do not explicitly call this method.)
+      Instead, render controls by adding them to the
+      @link(TUIContainer.Controls) list, or render them explicitly
+      (for off-screen rendering) by @link(TGLContainer.RenderControl).
 
       Before calling this method we always set some OpenGL state,
       and you can depend on it (and you can carelessly change it,
