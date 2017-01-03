@@ -30,14 +30,20 @@
         </Verbosity>
         <CustomOptions Value="-Sh
 -dCASTLE_ENGINE_LAZARUS_PACKAGE
--dCASTLE_WINDOW_LCL"/>
+-dCASTLE_WINDOW_LCL
+
+# See the comments in castle-engine/castle-fpc.cfg about this
+#IFNDEF VER2
+-vm4105
+-vm4104
+#ENDIF"/>
       </Other>
     </CompilerOptions>
     <Description Value="Castle Game Engine - CastleWindow and units using it.
 This package cannot be installed under Lazarus, it's only for being used in other programs. CastleWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources."/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
-    <Version Major="5" Minor="2" Release="0"/>
+    <Version Major="5" Minor="2"/>
     <Files Count="14">
       <Item1>
         <Filename Value="../src/base/castleconf.inc"/>
