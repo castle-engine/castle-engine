@@ -181,6 +181,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/combine_multiple_x3d_into_one \
   examples/3d_rendering_processing/listen_on_x3d_events \
   examples/3d_rendering_processing/cars_demo \
+  examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad \
   src/x3d/teapot/teapot_3d_to_pascal \
   src/x3d/nodes_specification/x3d_nodes_spec_to_pascal/x3d_nodes_spec_to_pascal \
   src/x3d/nodes_specification/generate_x3d_nodes_helpers/generate_x3d_nodes_to_pascal \
