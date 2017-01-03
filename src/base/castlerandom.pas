@@ -57,8 +57,13 @@ type
 
 implementation
 
-uses SysUtils, CastleTimeUtils; // required only for randomization based on "now" function
-{p.s. Pay attention CastleTimeUtils.GetTickCount64 overrides SysUtils.GetTickCount64}
+uses
+  { Required only for randomization based on "Now" function. }
+  SysUtils,
+  { Required for the GetTickCount64 function (not available in FPC 2.6.x).
+    Note that the CastleTimeUtils.GetTickCount64 hides the SysUtils.GetTickCount64
+    in FPC 3.x. }
+  CastleTimeUtils;
 
 constructor TCastleRandom.Create(RandomSeed: LongWord);
 begin
