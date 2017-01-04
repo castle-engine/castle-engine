@@ -47,7 +47,7 @@ procedure TTestGame.TestGameData;
 
   procedure AssertSound(const A: TSoundType; const B: string);
   begin
-    AssertEquals(A, SoundEngine.SoundFromName(B));
+    AssertTrue(A = SoundEngine.SoundFromName(B));
   end;
 
   procedure AssertVector(const A: TVector3Single; const BX, BY, BZ: Single);
@@ -64,15 +64,15 @@ var
 begin
   SoundEngine.RepositoryURL := 'data/game/sounds.xml';
 
-  AssertTrue(SoundEngine.Sounds[stNone].Name = '');
-  AssertTrue(SoundEngine.Sounds[stNone].URL = '');
+  AssertTrue(stNone.Info.Name = '');
+  AssertTrue(stNone.Info.URL = '');
   SoundType := SoundEngine.SoundFromName('player_sudden_pain');
-  AssertTrue(SoundEngine.Sounds[SoundType].Name = 'player_sudden_pain');
-  AssertURL(SoundEngine.Sounds[SoundType].URL, 'test_name.wav');
-  AssertTrue(SoundEngine.Sounds[SoundType].DefaultImportance = PlayerSoundImportance);
-  AssertFloat(SoundEngine.Sounds[SoundType].Gain, 1);
-  AssertFloat(SoundEngine.Sounds[SoundType].MinGain, 0.8);
-  AssertFloat(SoundEngine.Sounds[SoundType].MaxGain, 1);
+  AssertTrue(SoundType.Info.Name = 'player_sudden_pain');
+  AssertURL(SoundType.Info.URL, 'test_name.wav');
+  AssertTrue(SoundType.Info.DefaultImportance = PlayerSoundImportance);
+  AssertFloat(SoundType.Info.Gain, 1);
+  AssertFloat(SoundType.Info.MinGain, 0.8);
+  AssertFloat(SoundType.Info.MaxGain, 1);
 
   Resources.LoadFromFiles('data/game/');
 

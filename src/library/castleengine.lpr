@@ -172,7 +172,7 @@ begin
       for I := 0 to Window.Controls.Count - 1 do
       begin
         C := Window.Controls[I];
-        if C.Exists and (C.RenderStyle = rs2D) then
+        if C.Exists and (C is TCastleTouchControl) then
         begin
           C.Exists := false;
           Restore2D.InsertFront(C);

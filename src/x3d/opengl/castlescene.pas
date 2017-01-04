@@ -1198,7 +1198,7 @@ var
       RenderShape_AllTests(Shape);
   end;
 
-  procedure RenderShape_AllTests_Transparent(Shape: TShape);
+  procedure RenderShape_AllTests_Blending(Shape: TShape);
   begin
     if TGLShape(Shape).UseBlending then
     begin
@@ -1207,10 +1207,15 @@ var
     end;
   end;
 
-  procedure RenderAllAsOpaque;
+  procedure RenderAllAsOpaque(const IgnoreShapesWithBlending: boolean = false);
   begin
     if not Params.Transparent then
-      Shapes.Traverse(@RenderShape_AllTests, true, true);
+    begin
+      if IgnoreShapesWithBlending then
+        Shapes.Traverse(@RenderShape_AllTests_Opaque, true, true)
+      else
+        Shapes.Traverse(@RenderShape_AllTests, true, true);
+    end;
   end;
 
   procedure UpdateVisibilitySensors;
@@ -1290,8 +1295,9 @@ begin
     if Attributes.Mode <> rmFull then
     begin
       { When not rmFull, we don't want to do anything with glDepthMask
-        or GL_BLEND enable state. Just render everything. }
-      RenderAllAsOpaque;
+        or GL_BLEND enable state. Just render everything
+        (except: don't render partially transparent stuff for shadow maps). }
+      RenderAllAsOpaque(Attributes.Mode = rmDepth);
 
       { Each RenderShape_SomeTests inside could set OcclusionBoxState }
       OcclusionBoxStateEnd;
@@ -1353,7 +1359,7 @@ begin
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
             end;
           end else
-            Shapes.Traverse(@RenderShape_AllTests_Transparent, true, true, false);
+            Shapes.Traverse(@RenderShape_AllTests_Blending, true, true, false);
 
           { restore glDepthMask and blending state to default values }
           glDepthMask(GL_TRUE);

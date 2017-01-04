@@ -21,7 +21,7 @@
   data/bridge_final.x3dv, then you get a setup similar to scene_manager_demos.
   This shows that animation from 2nd file works fully with mirrors
   by GeneratedCubeMapTexture in 1st file, also in custom viewports. }
-{ $define ADD_GL_ANIMATION}
+{ $define ADD_ANIMATION}
 
 {$I castleconf.inc}
 
@@ -31,7 +31,7 @@ uses SysUtils, CastleGL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
   CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages,
   CastleApplicationProperties
-  {$ifdef ADD_GL_ANIMATION} , Castle3D {$endif};
+  {$ifdef ADD_ANIMATION} , CastleFilesUtils, Castle3D {$endif};
 
 { TMyViewport ---------------------------------------------------------------- }
 
@@ -239,10 +239,10 @@ end;
 var
   I: Integer;
   Background: TCastleSimpleBackground;
-  {$ifdef ADD_GL_ANIMATION}
+  {$ifdef ADD_ANIMATION}
   Animation: TCastleScene;
   Transform: T3DTransform;
-  {$endif ADD_GL_ANIMATION}
+  {$endif ADD_ANIMATION}
 begin
   if Parameters.High = 1 then
     URL := Parameters[1];
@@ -260,7 +260,7 @@ begin
   Window.SceneManager.MainScene := Scene;
   Window.SceneManager.DefaultViewport := false;
 
-  {$ifdef ADD_GL_ANIMATION}
+  {$ifdef ADD_ANIMATION}
   { initialize Transform }
   Transform := T3DTransform.Create(Window.SceneManager);
 //  Transform.Translation := Vector3Single(5, 3, 60);
@@ -268,11 +268,11 @@ begin
 
   { initialize Animation }
   Animation := TCastleScene.Create(Window.SceneManager);
-  Animation.Load(ApplicationData('raptor.kanim'));
+  Animation.Load(ApplicationData('raptor.castle-anim-frames'));
   Animation.ProcessEvents := true;
   Animation.Spatial := [ssRendering, ssDynamicCollisions];
   Transform.Add(Animation);
-  {$endif ADD_GL_ANIMATION}
+  {$endif ADD_ANIMATION}
 
   { one viewport shows only wireframe }
   Viewports[0] := TWireViewport.Create(Application);

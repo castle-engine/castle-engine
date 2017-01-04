@@ -173,10 +173,10 @@ type
     function Radius: Single;
 
     property SoundSuddenPain: TSoundType
-      read FSoundSuddenPain write FSoundSuddenPain default stNone;
+      read FSoundSuddenPain write FSoundSuddenPain;
 
     property SoundDie: TSoundType
-      read FSoundDie write FSoundDie default stNone;
+      read FSoundDie write FSoundDie;
 
     { See TCreature.Sound3d TiedToCreature parameter docs.
       You can set this to false if you want SoundDie to last even
@@ -508,16 +508,18 @@ type
       read FAttackMaxAngle write FAttackMaxAngle
       default DefaultAttackMaxAngle;
 
-    { Sound played when short-range attack hits. }
+    { Sound played when short-range attack hits.
+      None (stNone) by default. }
     property AttackSoundHit: TSoundType
-      read FAttackSoundHit write FAttackSoundHit default stNone;
+      read FAttackSoundHit write FAttackSoundHit;
 
     { Played at the start of attack animation,
       that is when entering csAttack state.
       To play a sound when the actual hit happens (at AttackTime)
-      see AttackSoundHit. }
+      see AttackSoundHit.
+      None (stNone) by default. }
     property AttackSoundStart: TSoundType
-      read FAttackSoundStart write FAttackSoundStart default stNone;
+      read FAttackSoundStart write FAttackSoundStart;
 
     property FireMissileTime: Single
       read FFireMissileTime write FFireMissileTime default DefaultFireMissileTime;
@@ -538,9 +540,10 @@ type
     property FireMissileHeight: Single
       read FFireMissileHeight write FFireMissileHeight default DefaultFireMissileHeight;
 
-    { Sound played when missile is fired, see FireMissileName. }
+    { Sound played when missile is fired, see FireMissileName.
+      None (stNone) by default. }
     property FireMissileSound: TSoundType
-      read FFireMissileSound write FFireMissileSound default stNone;
+      read FFireMissileSound write FFireMissileSound;
 
     { Portion of life and distance when the creature decides it's best to run away
       from the enemy. RunAwayLife is expressed as a fraction of MaxLife.
@@ -672,8 +675,10 @@ type
     property MoveSpeed: Single read FMoveSpeed write FMoveSpeed
       default DefaultMoveSpeed;
 
+    { Sound when missile hits anything.
+      None (stNone) by default. }
     property SoundHit: TSoundType
-      read FSoundHit write FSoundHit default stNone;
+      read FSoundHit write FSoundHit;
 
     { For "homing" missiles, how fast direction to the target is corrected.
       Zero (default) means that the missile is not "homing". }
@@ -682,9 +687,11 @@ type
       write FCloseDirectionToTargetSpeed
       default DefaultCloseDirectionToTargetSpeed;
 
-    { Sound just played when the missile is going. }
+    { Sound played continously when the missile is going.
+      None (stNone) by default.
+      @seealso PauseBetweenSoundIdle }
     property SoundIdle: TSoundType
-      read FSoundIdle write FSoundIdle default stNone;
+      read FSoundIdle write FSoundIdle;
 
     { This should be synchonized with length of SoundIdle sound. }
     property PauseBetweenSoundIdle: Single
@@ -1535,8 +1542,8 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
       FDebug3DBoxShape.Render := not BBox.IsEmpty;
       if FDebug3DBoxShape.Render then
       begin
-        FDebug3DBox.Size := BBox.Sizes;
-        FDebug3DBoxTransform.Translation := BBox.Middle;
+        FDebug3DBox.Size := BBox.Size;
+        FDebug3DBoxTransform.Translation := BBox.Center;
       end;
 
       FDebug3DSphereShape.Render := Sphere(R);

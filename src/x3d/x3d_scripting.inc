@@ -164,7 +164,7 @@ begin
           end else
             ParameterValue := nil;
           { Note: it's not really important whether below we'd use
-            Scene.Time or Time.Seconds. } 
+            Scene.Time or Time.Seconds. }
           ParameterTime := TCasScriptFloat.Create(true, Scene.Time);
           try
             CastleScriptVariables.BeforeExecute;
@@ -383,8 +383,9 @@ var
   FunctionName: string;
 begin
   if Event.ParentExposedField <> nil then
-    FunctionName := Event.ParentExposedField.Name else
-    FunctionName := Event.Name;
+    FunctionName := Event.ParentExposedField.X3DName
+  else
+    FunctionName := Event.X3DName;
   ExecuteScript(FunctionName, Value, Time);
 end;
 

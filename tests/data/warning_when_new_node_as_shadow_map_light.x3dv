@@ -1,0 +1,26 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+DEF Light SpotLight {
+  location 0 2 0
+  direction 0 -1 0
+  shadows TRUE
+  cutOffAngle 0.6
+  defaultShadowMap GeneratedShadowMap {
+    update "ALWAYS"
+    size 1024
+    light PointLight { }
+  }
+}
+
+Shape {
+  appearance Appearance { material Material { } }
+  geometry Sphere { radius 0.2 }
+}
+
+Transform { translation -1 -8 0
+  children Shape {
+    appearance Appearance { material Material { } }
+    geometry Box { size 2 2 2 }
+  }
+}

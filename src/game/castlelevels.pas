@@ -246,9 +246,9 @@ type
     property PlaceholderReferenceDirection: TVector3Single
       read FPlaceholderReferenceDirection write FPlaceholderReferenceDirection;
 
-    { Music played when entering the level. }
-    property MusicSound: TSoundType read FMusicSound write FMusicSound
-      default stNone;
+    { Music played when entering the level.
+      None (stNone) by default. }
+    property MusicSound: TSoundType read FMusicSound write FMusicSound;
   end;
 
   TLevelInfoList = class(specialize TFPGObjectList<TLevelInfo>)
@@ -630,7 +630,7 @@ const
         [Resource.Name]);
 
     Box := Shape.BoundingBox;
-    Position := Box.Middle;
+    Position := Box.Center;
     Position[Items.GravityCoordinate] := Box.Data[0, Items.GravityCoordinate];
 
     Direction := Info.PlaceholderReferenceDirection;
@@ -649,7 +649,7 @@ const
   begin
     Waypoint := TWaypoint.Create;
     Waypoint.Box := Shape.BoundingBox;
-    Waypoint.Position := Waypoint.Box.Middle;
+    Waypoint.Position := Waypoint.Box.Center;
     Waypoints.Add(Waypoint);
 
     { Tests:

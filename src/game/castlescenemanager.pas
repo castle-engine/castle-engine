@@ -689,7 +689,7 @@ type
 
     FWater: TBox3D;
     FOnMoveAllowed: TWorldMoveAllowedEvent;
-    LastSoundRefresh: TMilisecTime;
+    LastSoundRefresh: TTimerResult;
     DefaultHeadlightNode: TDirectionalLightNode;
 
     ScheduledVisibleChangeNotification: boolean;
@@ -1185,8 +1185,8 @@ begin
     in case when you render TCastlePrecalculatedAnimation and MainScene
     refers to the 1st animation scene.
 
-    Testcase: demo_models/kanim/raptor.kanim, without this fix
-    the lights woud be duplicated on non-first animation scene. }
+    Testcase: demo-models/castle-anim-frames/simple/raptor.castle-anim-frames,
+    without this fix the lights woud be duplicated on non-first animation scene. }
   Result := FBaseLights[(Scene.Shared = MainScene) or Scene.ExcludeFromGlobalLights];
 end;
 
@@ -3137,11 +3137,11 @@ procedure TCastleSceneManager.Update(const SecondsPassed: Single;
   end;
 
 const
-  { Delay between calling SoundEngine.Refresh, in miliseconds. }
-  SoundRefreshDelay = 100;
+  { Delay between calling SoundEngine.Refresh, in seconds. }
+  SoundRefreshDelay = 0.1;
 var
   RemoveItem: TRemoveType;
-  TimeNow: TMilisecTime;
+  TimeNow: TTimerResult;
   SecondsPassedScaled: Single;
 begin
   inherited;
@@ -3162,8 +3162,8 @@ begin
       quickly after sound stopped. }
     if SoundEngine.ALActive then
     begin
-      TimeNow := CastleTimeUtils.GetTickCount64;
-      if TimeTickSecondLater(LastSoundRefresh, TimeNow, SoundRefreshDelay) then
+      TimeNow := Timer;
+      if TimerSeconds(TimeNow, LastSoundRefresh) > SoundRefreshDelay then
       begin
         LastSoundRefresh := TimeNow;
         SoundEngine.Refresh;

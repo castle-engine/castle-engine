@@ -3,7 +3,7 @@
 PROFILE Immersive
 
 META "filename" "attack_0001.x3d.gz"
-META "generator" "kanim_to_interpolators"
+META "generator" "castle_anim_frames_to_interpolators"
 META "generator-previous" "Blender 2.64 (sub 0)"
 
 NavigationInfo {

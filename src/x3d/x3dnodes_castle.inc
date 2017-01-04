@@ -175,9 +175,16 @@
   end;
 
   TGeneratedShadowMapNode = class(TAbstractTextureNode)
-  private
+  strict private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
+    function GetLight: TAbstractLightNode;
+    procedure SetLight(const Value: TAbstractLightNode);
   public
+    const
+      DefaultSize = 128;
+      DefaultScale = 4.0;
+      DefaultBias = 4.0;
+
     procedure CreateNode; override;
     destructor Destroy; override;
 
@@ -205,7 +212,7 @@
     private FFdCompareMode: TSFstring;
     public property FdCompareMode: TSFString read FFdCompareMode;
 
-    function Light: TAbstractLightNode;
+    property Light: TAbstractLightNode read GetLight write SetLight;
   end;
 
   TProjectedTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
@@ -511,7 +518,7 @@ begin
     { Ignore empty names, since VRML node cannot have empty name
       (it's only our implementation detail that we mark "noname" as empty name) }
     if (FdReplaceNames.Items[I] <> '') and
-       (FdReplaceNames.Items[I] = VRML1Children[0].Name) then
+       (FdReplaceNames.Items[I] = VRML1Children[0].X3DName) then
     begin
       VRML1ChildRemove(0);
       VRML1ChildAdd(0, FdReplaceNodes[I]);
@@ -528,7 +535,7 @@ var
 begin
   for I := 0 to ReplaceCount - 1 do
     if (FdReplaceNames.Items[I] <> '') and
-       (FdReplaceNames.Items[I] = Node.Name) then
+       (FdReplaceNames.Items[I] = Node.X3DName) then
     begin
       Node := FdReplaceNodes[I];
       Exit;
@@ -644,7 +651,7 @@ begin
   AddField(FFdUpdate);
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 
-  FFdSize := TSFInt32.Create(Self, 'size', 128, { MustBeNonnegative } true);
+  FFdSize := TSFInt32.Create(Self, 'size', DefaultSize, { MustBeNonnegative } true);
    FdSize.Exposed := false;
    FdSize.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdSize);
@@ -657,13 +664,14 @@ begin
     GeneratedShadowMap. }
   FFdLight := TSFNode.Create(Self, 'light', [TAbstractLightNode]);
    FdLight.ChangesAlways := [chGeneratedTextureUpdateNeeded];
+   FdLight.WeakLink := true;
   AddField(FFdLight);
 
-  FFdScale := TSFFloat.Create(Self, 'scale', DefaultShadowMapScale, { MustBeNonnegative } true);
+  FFdScale := TSFFloat.Create(Self, 'scale', DefaultScale, { MustBeNonnegative } true);
    FdScale.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   AddField(FFdScale);
 
-  FFdBias := TSFFloat.Create(Self, 'bias', DefaultShadowMapBias, { MustBeNonnegative } true);
+  FFdBias := TSFFloat.Create(Self, 'bias', DefaultBias, { MustBeNonnegative } true);
    FdBias.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   AddField(FFdBias);
 
@@ -692,11 +700,17 @@ begin
     (URN = URNKambiNodes2 + ClassX3DType);
 end;
 
-function TGeneratedShadowMapNode.Light: TAbstractLightNode;
+function TGeneratedShadowMapNode.GetLight: TAbstractLightNode;
 begin
   if FdLight.Value is TAbstractLightNode then
-    Result := TAbstractLightNode(FdLight.Value) else
+    Result := TAbstractLightNode(FdLight.Value)
+  else
     Result := nil;
+end;
+
+procedure TGeneratedShadowMapNode.SetLight(const Value: TAbstractLightNode);
+begin
+  FdLight.Send(Value);
 end;
 
 procedure TProjectedTextureCoordinateNode.CreateNode;

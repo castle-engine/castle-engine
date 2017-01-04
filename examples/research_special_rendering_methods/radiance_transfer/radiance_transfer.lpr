@@ -110,7 +110,7 @@ begin
       and calculate LightSHBasis describing the light contribution
       (this will be used then by Scene.Render, during DoRadianceTransfer). }
 
-    SHVectorGLCapture(LightSHBasis, Scene.BoundingBox.Middle,
+    SHVectorGLCapture(LightSHBasis, Scene.BoundingBox.Center,
       @DrawLight, 100, 100, LightIntensityScale);
     glViewport(ScreenRect);
   end;
@@ -285,7 +285,7 @@ begin
   end else
   begin
     LightRadius := Scene.BoundingBox.AverageSize;
-    LightPos := Scene.BoundingBox.Middle;
+    LightPos := Scene.BoundingBox.Center;
     LightPos[0] += Scene.BoundingBox.Data[1][0] - Scene.BoundingBox.Data[0][0] + LightRadius;
   end;
 

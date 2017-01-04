@@ -527,7 +527,7 @@ begin
   Result := FdDescription.Value;
   { if node doesn't have a "description" field, or it's left empty, use node name }
   if Result = '' then
-    Result := Name;
+    Result := X3DName;
   { if even the node name is empty, just show node type. }
   if Result = '' then
     Result := X3DType;
@@ -790,12 +790,12 @@ begin
   if not Box.IsEmpty then
   begin
     ProxyBox := TBoxNode.Create('', BaseUrl);
-    ProxyBox.Size := Box.Sizes;
+    ProxyBox.Size := Box.Size;
 
     ProxyShape := TShapeNode.Create('', BaseUrl);
     ProxyShape.Geometry := ProxyBox;
 
-    ProxyTransform.Translation := Box.Middle;
+    ProxyTransform.Translation := Box.Center;
     ProxyTransform.FdChildren.Add(ProxyShape);
   end;
   Proxy := ProxyTransform;
@@ -1252,7 +1252,7 @@ function TViewpointGroupNode.Description: string;
 begin
   Result := FdDescription.Value;
   if Result = '' then
-    Result := Name;
+    Result := X3DName;
   if Result = '' then
     Result := X3DType;
 end;

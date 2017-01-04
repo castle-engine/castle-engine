@@ -395,7 +395,7 @@ var
   CoordNode: TCoordinateNode;
   IFS: TIndexedFaceSetNode absolute Result;
 begin
-  IFS := TIndexedFaceSetNode.Create(Name, BaseUrl);
+  IFS := TIndexedFaceSetNode.Create(X3DName, BaseUrl);
   try
     CoordNode := TCoordinateNode.Create('', BaseUrl);
     IFS.FdCoord.Value := CoordNode;
@@ -498,7 +498,7 @@ procedure TLoggerNode.EventWriteReceive(
     Writer: TX3DWriterNames;
   begin
     S := Format('Logger "%s": received field "%s" (%s). Time: %f.',
-      [Name, Value.Name, Value.X3DType, Time.Seconds]);
+      [X3DName, Value.X3DName, Value.X3DType, Time.Seconds]);
 
     if FdLevel.Value = 1 then
     begin
@@ -510,7 +510,7 @@ procedure TLoggerNode.EventWriteReceive(
       if (FdLevel.Value >= 3) and (Value.ParentNode <> nil) then
       begin
         S += Format(' Sending node: "%s" (%s).',
-          [(Value.ParentNode as TX3DNode).Name,
+          [(Value.ParentNode as TX3DNode).X3DName,
            (Value.ParentNode as TX3DNode).X3DType]);
       end;
 

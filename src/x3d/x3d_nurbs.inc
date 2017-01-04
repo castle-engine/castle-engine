@@ -770,7 +770,7 @@ function TNurbsCurveNode.Proxy(var State: TX3DGraphTraverseState;
 var
   ControlPoint: TVector3SingleList;
 begin
-  Result := TLineSetNode.Create(Name, BaseUrl);
+  Result := TLineSetNode.Create(X3DName, BaseUrl);
   try
     { TODO: we should handle here all TAbstractCoordinateNode }
     if (FdControlPoint.Value <> nil) and
@@ -1219,7 +1219,7 @@ function TAbstractNurbsSurfaceGeometryNode.Proxy(var State: TX3DGraphTraverseSta
 var
   ControlPoint: TVector3SingleList;
 begin
-  Result := TIndexedQuadSetNode.Create(Name, BaseUrl);
+  Result := TIndexedQuadSetNode.Create(X3DName, BaseUrl);
   try
     { TODO: we should handle here all TAbstractCoordinateNode }
     if (FdControlPoint.Value <> nil) and

@@ -633,7 +633,7 @@ begin
         Align(VerticalAlignment, Rect, VerticalAlignment);
       case TextHorizontalAlignment of
         hpLeft   : X := ThisRect.Left;
-        hpMiddle : X := ThisRect.Middle[0];
+        hpMiddle : X := ThisRect.Center[0];
         hpRight  : X := ThisRect.Right;
         else raise EInternalError.Create('TextHorizontalAlignment? in TCastleFont.PrintRectMultiline');
       end;

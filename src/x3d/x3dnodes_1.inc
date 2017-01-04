@@ -413,15 +413,6 @@
       other colors to black. }
     procedure ForcePureEmissive;
 
-    { All the "transparency" field values are greater than zero.
-      So the blending should be used when rendering.
-
-      Note that when "transparency" field is empty, then we assume
-      a default transparency (0) should be used. So AllMaterialsTransparent
-      is @false then (contrary to the strict definition of "all",
-      which should be true for empty sets). }
-    function AllMaterialsTransparent: boolean;
-
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
@@ -725,6 +716,11 @@
   end;
 
   TSpotLightNode_1 = class(TAbstractPositionalLightNode)
+  protected
+    function  GetProjectionLocationLocal: TVector3Single; override;
+    procedure SetProjectionLocationLocal(const Value: TVector3Single); override;
+    function  GetProjectionDirectionLocal: TVector3Single; override;
+    procedure SetProjectionDirectionLocal(const Value: TVector3Single); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -764,8 +760,6 @@
     function ProjectionMatrix: TMatrix4Single; override;
     function ModelviewMatrix: TMatrix4Single; override;
     function ModelviewRotationMatrix: TMatrix4Single; override;
-    function ProjectionLocationLocal: TVector3Single; override;
-    function ProjectionDirectionLocal: TVector3Single; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
     function HasRadius: boolean; override;
@@ -924,7 +918,7 @@ var
   TexCoordNode: TTextureCoordinate2Node_1;
   I: Integer;
 begin
-  FaceSet := TIndexedFaceSetNode_1.Create(Name, BaseUrl);
+  FaceSet := TIndexedFaceSetNode_1.Create(X3DName, BaseUrl);
   try
     { we have to modify State, so make a copy of it }
     State := TX3DGraphTraverseState.CreateCopy(State);
@@ -1591,18 +1585,6 @@ begin
   FdDiffuseColor .Count := 0; FdDiffuseColor .Changed;
   FdSpecularColor.Count := 0; FdSpecularColor.Changed;
   Assert(PureEmissive);
-end;
-
-function TMaterialNode_1.AllMaterialsTransparent: boolean;
-var i: Integer;
-begin
-  if FdTransparency.Items.Count = 0 then
-    result := DefaultMaterialTransparency > SingleEqualityEpsilon else
-  begin
-    for i := 0 to FdTransparency.Items.Count-1 do
-      if FdTransparency.Items.L[i] <= SingleEqualityEpsilon then Exit(false);
-    result := true;
-  end;
 end;
 
 class function TMaterialNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -2357,28 +2339,38 @@ end;
 
 function TSpotLightNode_1.ModelviewMatrix: TMatrix4Single;
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Side, Up: TVector3Single;
 begin
-  GetView(Pos, Dir, Up);
-  Result := LookDirMatrix(Pos, Dir, Up);
+  GetView(Pos, Dir, Side, Up);
+  Result := LookDirMatrix(Pos, Dir, Side, Up);
 end;
 
 function TSpotLightNode_1.ModelviewRotationMatrix: TMatrix4Single;
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Side, Up: TVector3Single;
 begin
-  GetView(Pos, Dir, Up);
-  Result := LookDirMatrix(ZeroVector3Single, Dir, Up);
+  GetView(Pos, Dir, Side, Up);
+  Result := FastLookDirMatrix(Dir, Up);
 end;
 
-function TSpotLightNode_1.ProjectionLocationLocal: TVector3Single;
+function TSpotLightNode_1.GetProjectionLocationLocal: TVector3Single;
 begin
   Result := FdLocation.Value;
 end;
 
-function TSpotLightNode_1.ProjectionDirectionLocal: TVector3Single;
+procedure TSpotLightNode_1.SetProjectionLocationLocal(const Value: TVector3Single);
+begin
+  FdLocation.Send(Value);
+end;
+
+function TSpotLightNode_1.GetProjectionDirectionLocal: TVector3Single;
 begin
   Result := FdDirection.Value;
+end;
+
+procedure TSpotLightNode_1.SetProjectionDirectionLocal(const Value: TVector3Single);
+begin
+  FdDirection.Send(Value);
 end;
 
 function TSpotLightNode_1.HasRadius: boolean;
@@ -2391,7 +2383,7 @@ procedure TSpotLightNode_1.Box3DDistances(const Box: TBox3D;
 begin
   { TODO: MaxDistance should be a little larger, as spot light rays
     are not parallel. }
-  Box.DirectionDistances(ProjectionLocation, ProjectionDirection, MinDistance, MaxDistance);
+  Box.DirectionDistances(ProjectionSceneLocation, ProjectionSceneDirection, MinDistance, MaxDistance);
 end;
 
 function TSpotLightNode_1.Scope: TLightScope;

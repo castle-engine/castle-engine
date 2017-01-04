@@ -1,5 +1,0 @@
-# Make the animation
-
-DEF AnimTimeSensor TimeSensor { loop TRUE cycleInterval $(CycleInterval) }
-ROUTE AnimTimeSensor.fraction_changed TO AnimInterpolator.set_fraction
-ROUTE AnimInterpolator.value_changed TO $(CoordinateNodeName).point

@@ -637,7 +637,7 @@ var
 
       if EventLineBounds.SendNeeded then
       begin
-        LineBounds := TMFVec2f.CreateUndefined(OriginalNode, EventLineBounds.Name, false);
+        LineBounds := TMFVec2f.CreateUndefined(OriginalNode, EventLineBounds.X3DName, false);
         try
           LineBounds.Items.Count := TextWidths.Count;
 
@@ -823,7 +823,7 @@ begin
     JustifyMinor := FontStyle.JustifyMinor;
   end;
 
-  FaceSet := TQuadSetNode.Create(Name, BaseUrl);
+  FaceSet := TQuadSetNode.Create(X3DName, BaseUrl);
   try
     FaceSet.Solid := Solid;
 
@@ -945,13 +945,14 @@ begin
     - We *want* to use it actually, for EXTRA_GLYPH_SPACE. This way glyphs
       on the very left and bottom border of the font texture will also
       have a transparent pixel row to the left / bottom. }
-  Result.FdRepeatS.Value := true;
-  Result.FdRepeatT.Value := true;
+  Result.RepeatS := true;
+  Result.RepeatT := true;
   { convert grayscale image with TreatAsAlpha to TGrayscaleAlphaImage }
   Result.FdImage.Value := Font.Image.ToGrayscaleAlphaImage;
   if Blending then
-    Result.FdAlphaChannel.Value := 'FULL_RANGE' else
-    Result.FdAlphaChannel.Value := 'SIMPLE_YES_NO';
+    Result.AlphaChannelField := acBlending
+  else
+    Result.AlphaChannelField := acTest;
 end;
 
 function TTextNode.FontTextureNode: TAbstractTexture2DNode;

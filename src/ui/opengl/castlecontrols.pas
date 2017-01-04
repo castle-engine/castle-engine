@@ -2004,8 +2004,8 @@ begin
     if FImage.HasAlpha then
     begin
       if ImageAlphaTest then
-        FGLImage.Alpha := acSimpleYesNo else
-        FGLImage.Alpha := acFullRange;
+        FGLImage.Alpha := acTest else
+        FGLImage.Alpha := acBlending;
     end;
     case ImageLayout of
       ilLeft         : ImgLeft := TextLeft - ImgScreenWidth - ImageMarginScaled;
@@ -2761,14 +2761,14 @@ end;
 
 function TCastleImageControl.GetBlending: boolean;
 begin
-  Result := AlphaChannel <> acFullRange;
+  Result := AlphaChannel <> acBlending;
 end;
 
 procedure TCastleImageControl.SetBlending(const Value: boolean);
 begin
   if Value then
-    AlphaChannel := acFullRange else
-    AlphaChannel := acSimpleYesNo;
+    AlphaChannel := acBlending else
+    AlphaChannel := acTest;
 end;
 
 procedure TCastleImageControl.SetStretch(const Value: boolean);
@@ -3213,8 +3213,8 @@ begin
         end;
       stCircle   :
         begin
-          DrawCircle(SR.Middle, SR.Width div 2 + OutlineOut, SR.Height div 2 + OutlineOut, OutlineColor);
-          DrawCircle(SR.Middle, SR.Width div 2 + OutlineIn , SR.Height div 2 + OutlineIn , Color);
+          DrawCircle(SR.Center, SR.Width div 2 + OutlineOut, SR.Height div 2 + OutlineOut, OutlineColor);
+          DrawCircle(SR.Center, SR.Width div 2 + OutlineIn , SR.Height div 2 + OutlineIn , Color);
         end;
       else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
     end;
@@ -3223,14 +3223,14 @@ begin
     if Filled then
       case ShapeType of
         stRectangle: DrawRectangle(SR, Color);
-        stCircle   : DrawCircle(SR.Middle, SR.Width div 2, SR.Height div 2, Color);
+        stCircle   : DrawCircle(SR.Center, SR.Width div 2, SR.Height div 2, Color);
         else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
       end;
 
     if Outline then
       case ShapeType of
         stRectangle: DrawRectangleOutline(SR, OutlineColor, UIScale * OutlineWidth);
-        stCircle   : DrawCircleOutline(SR.Middle, SR.Width div 2, SR.Height div 2, OutlineColor, UIScale * OutlineWidth);
+        stCircle   : DrawCircleOutline(SR.Center, SR.Width div 2, SR.Height div 2, OutlineColor, UIScale * OutlineWidth);
         else raise EInternalError.Create('TCastleShape.Render: ShapeType not implemented');
       end;
   end;

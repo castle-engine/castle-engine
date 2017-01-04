@@ -170,8 +170,14 @@ begin
                Continue;
              end;
              PascalFieldName := X3DFieldName;
+
+             { rename some field names to avoid collisions }
              if PascalFieldName = 'on' then
-               PascalFieldName := 'IsOn';
+               PascalFieldName := 'IsOn'
+             else
+             if PascalFieldName = 'name' then
+               PascalFieldName := 'NameField';
+
              PascalFieldName[1] := UpCase(PascalFieldName[1]);
              PascalFieldNameOriginal := X3DFieldName;
              PascalFieldNameOriginal[1] := UpCase(PascalFieldNameOriginal[1]);

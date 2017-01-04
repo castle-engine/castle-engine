@@ -140,7 +140,7 @@ begin
 
     glMultMatrix(Light.Transform);
 
-    glLightv(glLightNum, GL_POSITION, Light.Node.Position);
+    glLightv(glLightNum, GL_POSITION, Light.Node.PositionAndDirection);
 
     if Light.Node is TAbstractDirectionalLightNode then
       SetupDirectionalLight(TAbstractDirectionalLightNode(Light.Node)) else

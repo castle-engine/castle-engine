@@ -46,10 +46,6 @@ type
         algorithm that takes into account VRML/X3D viewpoints in MainScene).
       )
 
-      @item(Sets RenderStyle = rs2D by default, which makes it possible
-        to place the scene manager rendering in the middle of other 2D controls
-        (for example, over some 2D background and before some 2D buttons.))
-
       @item(Sets Transparent = @true by default, which means that
         background underneath will be visible. Useful for 2D games
         where you usually have an image or another background underneath,
@@ -68,7 +64,6 @@ type
     const
       DefaultProjectionSpan = 1000.0;
       DefaultCameraZ = DefaultProjectionSpan / 2;
-    property RenderStyle default rs2D;
 
     { When ProjectionAutoSize is @true, the size of the world visible
       in our viewport depends on scene manager size.
@@ -129,7 +124,6 @@ uses CastleVectors, CastleGLUtils, X3DNodes;
 constructor T2DSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
-  RenderStyle := rs2D;
   Transparent := true;
   ProjectionAutoSize := true;
   FProjectionSpan := DefaultProjectionSpan;

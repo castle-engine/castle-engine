@@ -305,8 +305,8 @@ type
 
       When you have some controls on the @link(Controls) list
       (in particular, the @link(TCastleControl.SceneManager) is also on this list),
-      the OnRender event is done @bold(last) (at least as long as RenderStyle = rs2D,
-      default). So here you can draw on top of the existing UI controls.
+      the OnRender event is done @bold(last).
+      So here you can draw on top of the existing UI controls.
       To draw something underneath the existing controls, create a new TUIControl
       and override it's @link(TUIControl.Render) and insert it to the controls
       using @code(Controls.InsertBack(MyBackgroundControl);). }
@@ -558,7 +558,7 @@ begin
       { how long I should wait between _LimitFPS calls }
       1 / LimitFPS -
       { how long I actually waited between _LimitFPS calls }
-      (NowTime - LastLimitFPSTime) / TimerFrequency;
+      TimerSeconds(NowTime, LastLimitFPSTime);
     { Don't do Sleep with too small values.
       It's better to have larger FPS values than limit,
       than to have them too small. }
@@ -1110,7 +1110,7 @@ procedure TCastleControlCustom.MouseMove(Shift: TShiftState; NewX, NewY: Integer
     if LimitFPS <= 0 then
       DesiredFPS := MaxDesiredFPS else
       DesiredFPS := Min(MaxDesiredFPS, LimitFPS);
-    if Timer - Fps.UpdateStartTime > TimerFrequency / DesiredFPS then
+    if TimerSeconds(Timer, Fps.UpdateStartTime) > 1 / DesiredFPS then
     begin
       DoUpdate;
       if Invalidated then Paint;

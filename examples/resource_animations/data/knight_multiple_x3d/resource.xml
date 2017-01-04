@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <resource
-  name="KnightMultiple"
+  name="KnightMultipleXThreeD"
   type="WalkAttack"
 >
   <model>

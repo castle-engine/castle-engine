@@ -69,12 +69,13 @@ procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
 implementation
 
 uses SysUtils, CastleUtils, CastleStringUtils,
-  CastleBoxes, CastleLog, CastleVectors, CastleGenericLists;
+  CastleBoxes, CastleLog, CastleVectors, CastleGenericLists,
+  CastleRectangles;
 
 const
   { Suffix of VRML node names created by ProcessShadowMapsReceivers
     transformation. }
-  NodeNameSuffix = '_generated_by_ProcessShadowMapsReceivers';
+  X3DNameSuffix = '_generated_by_ProcessShadowMapsReceivers';
 
 type
   { Information about light source relevant for shadow maps. }
@@ -82,7 +83,7 @@ type
     Light: TAbstractLightNode;
     ShadowMap: TGeneratedShadowMapNode;
     TexGen: TProjectedTextureCoordinateNode;
-    MaxShadowReceiverDistance: Single;
+    ShadowReceiversBox: TBox3D;
   end;
   PLight = ^TLight;
 
@@ -119,12 +120,12 @@ begin
   { add a new TLight record }
   Result := Add;
   Result^.Light := Light;
-  Result^.MaxShadowReceiverDistance := 0;
+  Result^.ShadowReceiversBox := TBox3D.Empty;
 
   { Assign unique nodenames to the created ShadowMap and TexGen nodes,
     this way when saving they will be shared by DEF/USE.
     Based on LightUniqueName. }
-  LightUniqueName := Light.Name;
+  LightUniqueName := Light.X3DName;
   if LightUniqueName = '' then
     LightUniqueName := 'Light' + IntToStr(Random(1000000));
 
@@ -134,34 +135,13 @@ begin
      (Light.FdDefaultShadowMap.Value is TGeneratedShadowMapNode) then
   begin
     Result^.ShadowMap := TGeneratedShadowMapNode(Light.FdDefaultShadowMap.Value);
-
-    { TODO: for now, we remove the shadow map from defaultShadowMap,
-      otherwise we would have a loop in our VRML nodes graph
-      (light contains defaultShadowMap that contains GeneratedShadowMap
-      with light field pointing again to the parent light).
-      And we currently cannot handle nicely such loops (our parser
-      never creates them, our enumeration routines assume they don't exist
-      etc.) This will be eventually fixed (something like PTraversingInfo
-      will be used all around TX3DNode.DirectEnumerate*, and checked to avoid
-      visiting nodes we're already inside), VRML/X3D actually require
-      us to handle it in some Script cases anyway. }
-    Result^.ShadowMap.KeepExistingBegin;
-    Light.FdDefaultShadowMap.Value := nil;
-    Result^.ShadowMap.KeepExistingEnd;
-
-    { To avoid losing the information about default shadow map size etc.
-      (which may be useful later, if we call ProcessShadowMapsReceivers again on the same model,
-      for example if user turns off/on shadow maps), we save important fields
-      inside Light properties. }
-    Light.DefaultShadowMapSave(Result^.ShadowMap);
   end else
   begin
     Result^.ShadowMap := TGeneratedShadowMapNode.Create;
-    if not Light.DefaultShadowMapLoad(Result^.ShadowMap) then
-    begin
-      Result^.ShadowMap.FdUpdate.Value := upAlways;
-      Result^.ShadowMap.FdSize.Value := DefaultShadowMapSize;
-    end;
+    { Allows view3dscene lights editor to easily configure this node. }
+    Light.FdDefaultShadowMap.Value := Result^.ShadowMap;
+    Result^.ShadowMap.FdUpdate.Value := upAlways;
+    Result^.ShadowMap.FdSize.Value := DefaultShadowMapSize;
   end;
 
   { Regardless if this is taken from defaultShadowMap or created,
@@ -170,14 +150,14 @@ begin
   Result^.ShadowMap.FdLight.Value := Light;
 
   { Regardless if this is taken from defaultShadowMap or created,
-    set Name, such that it has NodeNameSuffix. This is needed for
+    set X3DName, such that it has X3DNameSuffix. This is needed for
     HandleShadowMap, so that it can be removed later. }
-  Result^.ShadowMap.Name := LightUniqueName + '_ShadowMap' + NodeNameSuffix;
+  Result^.ShadowMap.X3DName := LightUniqueName + '_ShadowMap' + X3DNameSuffix;
 
   { create new ProjectedTextureCoordinate node }
 
   Result^.TexGen := TProjectedTextureCoordinateNode.Create;
-  Result^.TexGen.Name := LightUniqueName + '_TexGen' + NodeNameSuffix;
+  Result^.TexGen.X3DName := LightUniqueName + '_TexGen' + X3DNameSuffix;
   Result^.TexGen.FdProjector.Value := Light;
 end;
 
@@ -192,7 +172,7 @@ procedure TLightList.ShapeRemove(Shape: TShape);
   begin
     I := 0;
     while I < Texture.Count do
-      if IsSuffix(NodeNameSuffix, Texture[I].Name) and
+      if IsSuffix(X3DNameSuffix, Texture[I].X3DName) and
          (Texture[I] is TGeneratedShadowMapNode) then
         Texture.Delete(I) else
         Inc(I);
@@ -205,7 +185,7 @@ procedure TLightList.ShapeRemove(Shape: TShape);
   begin
     I := 0;
     while I < TexCoord.Count do
-      if IsSuffix(NodeNameSuffix, TexCoord[I].Name) and
+      if IsSuffix(X3DNameSuffix, TexCoord[I].X3DName) and
          (TexCoord[I] is TProjectedTextureCoordinateNode) then
         TexCoord.Delete(I) else
         Inc(I);
@@ -385,8 +365,6 @@ procedure TLightList.ShapeAdd(Shape: TShape);
     TextureTransform: TAbstractTextureTransformNode;
     TexCoord: TX3DNode;
     TexturesCount: Cardinal;
-    Box: TBox3D;
-    MinReceiverDistance, MaxReceiverDistance: Single;
   begin
     Light := FindLight(LightNode);
 
@@ -449,13 +427,7 @@ procedure TLightList.ShapeAdd(Shape: TShape);
       Shape.Node.FdAppearance.Value := TAppearanceNode.Create;
     Shape.Node.Appearance.FdTextureTransform.Value := TextureTransform;
 
-    Box := Shape.BoundingBox;
-    if not Box.IsEmpty then
-    begin
-      LightNode.Box3DDistances(Box, MinReceiverDistance, MaxReceiverDistance);
-      MaxVar(Light^.MaxShadowReceiverDistance, MaxReceiverDistance);
-      { We do not use MinReceiverDistance for anything }
-    end;
+    Light^.ShadowReceiversBox.Add(Shape.BoundingBox);
   end;
 
   procedure HandleShadowCaster;
@@ -508,7 +480,7 @@ begin
     Better check it here, before we start changing anything. }
   if Shape.Geometry.TexCoordField = nil then
   begin
-    WritelnWarning('VRML/X3D', 'Geometry node "' + Shape.Geometry.X3DType + '" does not have a texCoord, cannot be shadow maps receiver.');
+    WritelnWarning('VRML/X3D', 'Geometry node ' + Shape.Geometry.X3DType + ' does not have a texCoord, cannot be shadow maps receiver.');
     Exit;
   end;
 
@@ -529,62 +501,113 @@ begin
 end;
 
 procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
-var
-  ProjectionNear, ProjectionFar: Single;
-begin
-  if ShadowCastersBox.IsEmpty then
-  begin
-    { No shadow casters? So any sensible values are fine. }
-    ProjectionNear := 0.1;
-    ProjectionFar := 1;
-  end else
-  begin
-    { Projection near/far must include all shadow casters between
-      light source and the shadow receivers. }
-    Light.Light.Box3DDistances(ShadowCastersBox, ProjectionNear, ProjectionFar);
-    MaxVar(ProjectionNear, 0);
-    MinVar(ProjectionFar, Light.MaxShadowReceiverDistance);
 
-    if ProjectionNear > ProjectionFar then
+  { Auto-calculate projection near and far, knowing that light's
+    projection location and direction are set now. }
+  procedure AutoCalculateProjectionNearFar;
+  var
+    ProjectionNear, ProjectionFar: Single;
+    MinReceiverDistance, MaxReceiverDistance: Single;
+  begin
+    if ShadowCastersBox.IsEmpty then
     begin
-      { No *important* shadow casters? So any sensible values are fine. }
+      { No shadow casters? So any sensible values are fine. }
       ProjectionNear := 0.1;
       ProjectionFar := 1;
     end else
     begin
-      { So we know now that ProjectionNear >= 0 and
-        ProjectionFar >= ProjectionNear. }
+      { Projection near/far must include all shadow casters between
+        light source and the shadow receivers. }
+      Light.Light.Box3DDistances(ShadowCastersBox, ProjectionNear, ProjectionFar);
+      Light.Light.Box3DDistances(Light.ShadowReceiversBox, MinReceiverDistance, MaxReceiverDistance);
+      // MinReceiverDistance is ignored
 
-      { final correction of auto-calculated projectionFar: must be > 0 }
-      if ProjectionFar <= 0 then
+      MaxVar(ProjectionNear, 0);
+      MinVar(ProjectionFar, MaxReceiverDistance);
+
+      if ProjectionNear > ProjectionFar then
+      begin
+        { No shadow casters that can cast shadows on our shadow receivers?
+          So any sensible values are fine. }
+        ProjectionNear := 0.1;
         ProjectionFar := 1;
+      end else
+      begin
+        { So we know now that ProjectionNear >= 0 and
+          ProjectionFar >= ProjectionNear. }
 
-      { Make ProjectionFar larger and ProjectionNear smaller, since
-        1. At the beginning of the projection range
-           the depth texture has the best precision.
-        2. The range should be slightly larger than ShadowCastersBox anyway,
-           to be sure to capture shadow casters exactly at the begin/end
-           of projection range (like a box side exactly at the beginning
-           of ShadowCastersBox range in demo_models/shadow_spot_simple.wrl). }
-      ProjectionFar *= 10.0;
-      ProjectionNear /= 10.0;
+        { final correction of auto-calculated projectionFar: must be > 0 }
+        if ProjectionFar <= 0 then
+          ProjectionFar := 1;
 
-      { final correction of auto-calculated projectionNear: must be > 0,
-        and preferably > some epsilon of projectionFar (to avoid depth
-        precision problems). }
-      MaxVar(ProjectionNear, ProjectionFar * 0.001);
+        { Make ProjectionFar larger and ProjectionNear smaller, since
+          1. At the beginning of the projection range
+             the depth texture has the best precision.
+          2. The range should be slightly larger than ShadowCastersBox anyway,
+             to be sure to capture shadow casters exactly at the begin/end
+             of projection range (like a box side exactly at the beginning
+             of ShadowCastersBox range in demo_models/shadow_spot_simple.wrl). }
+        ProjectionFar *= 2.0;
+        ProjectionNear /= 2.0;
+
+        { final correction of auto-calculated projectionNear: must be > 0,
+          and preferably > some epsilon of projectionFar (to avoid depth
+          precision problems). }
+        MaxVar(ProjectionNear, ProjectionFar * 0.001);
+      end;
+    end;
+
+    if Log then
+      WritelnLog('Shadow Maps', Format('Auto-calculated light source "%s" projectionNear is %f, projectionFar is %f',
+        [Light.Light.NiceName, ProjectionNear, ProjectionFar]));
+
+    { Set light node's projectionXxx values, if they are needed. }
+    if Light.Light.FdProjectionNear.Value = 0 then
+      Light.Light.FdProjectionNear.Value := ProjectionNear;
+    if Light.Light.FdProjectionFar.Value = 0 then
+      Light.Light.FdProjectionFar.Value := ProjectionFar;
+  end;
+
+  procedure AutoCalculateProjectionForDirectionalLight(
+    const LightNode: TDirectionalLightNode);
+  var
+    Pos, Dir, Side, Up, MinCorner, MaxCorner: TVector3Single;
+    ProjectionLocation: TVector3Single;
+    ProjectionRectangle: TFloatRectangle;
+  begin
+    if VectorsPerfectlyEqual(
+         LightNode.FdProjectionRectangle.Value, ZeroVector4Single) and
+      (not ShadowCastersBox.IsEmpty) then
+    begin
+      LightNode.GetView(Pos, Dir, Side, Up);
+      MinCorner := ShadowCastersBox.MinimumCorner(LightNode.ProjectionSceneDirection);
+      MaxCorner := ShadowCastersBox.MaximumCorner(LightNode.ProjectionSceneDirection);
+      { do not place ProjectionLocation exactly at MinCorner, it would be too close
+        to ShadowCastersBox, forcing projectionNear always almost zero. }
+      ProjectionLocation :=
+        //MinCorner - (MaxCorner - MinCorner)
+        MinCorner * 2 - MaxCorner; // same thing
+      ProjectionRectangle := ShadowCastersBox.OrthoProject(
+        ProjectionLocation, Dir, Side, Up);
+      LightNode.FdProjectionRectangle.Value := ProjectionRectangle.ToX3DVector;
+      LightNode.FdProjectionLocation.Value :=
+        MatrixMultPoint(LightNode.InvertedTransform, ProjectionLocation);
+
+      if Log then
+        WritelnLog('Shadow Maps', Format('Auto-calculated directional light source "%s" projectionLocation as %s, projectionRectangle as %s',
+          [Light.Light.NiceName,
+           VectorToNiceStr(ProjectionLocation),
+           ProjectionRectangle.ToString]));
     end;
   end;
 
-  if Log then
-    WritelnLog('Shadow Maps', Format('Auto-calculated light source %s projectionNear is %f, projectionFar is %f',
-      [Light.Light.X3DType, ProjectionNear, ProjectionFar]));
-
-  { Set light node's projectionXxx values, if they are needed. }
-  if Light.Light.FdProjectionNear.Value = 0 then
-    Light.Light.FdProjectionNear.Value := ProjectionNear;
-  if Light.Light.FdProjectionFar.Value = 0 then
-    Light.Light.FdProjectionFar.Value := ProjectionFar;
+begin
+  { calculate projectionLocation/Rectangle first,
+    since projectionLocation determines the right range for projectionNear/Far }
+  if Light.Light is TDirectionalLightNode then
+    AutoCalculateProjectionForDirectionalLight(
+      TDirectionalLightNode(Light.Light));
+  AutoCalculateProjectionNearFar;
 end;
 
 procedure TLightList.HandleLightCastingOnEverything(Node: TX3DNode);

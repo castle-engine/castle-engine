@@ -113,7 +113,7 @@ begin
   begin
     { UseBlending is used by RenderScene to decide is Blending used for given
       shape. }
-    UseBlending := Transparent;
+    UseBlending := Blending;
     PreparedUseBlending := true;
   end;
 

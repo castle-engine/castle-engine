@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<resource
+  name="KnightSingleCastleAnimFrames"
+  type="WalkAttack"
+>
+  <model url="knight.castle-anim-frames">
+    <idle   animation_name="Idle"/>
+    <walk   animation_name="Walk"/>
+    <attack animation_name="Attack"/>
+    <die    animation_name="Die"/>
+    <hurt   animation_name="Damaged"/>
+  </model>
+</resource>

@@ -2326,22 +2326,25 @@ var
 begin
   Side := Normalized(VectorProduct(Dir, Up));
   GoodDir := Normalized(Dir);
-  (* przelicz GoodUp z Side i GoodDir. W ten sposob robimy dwie rzeczy :
-     - zapewniamy sobie ze GoodUp jest dobry, tzn. prostopadly do Dir
-       (i naturalnie jest prostop. do Side, ale to juz mielismy zagwarantowane
-       z tego ze liczymy Side := Normalized(VectorProduct(Dir, Up)))
-     - zapewniamy sobie ze GoodUp juz jest znormalizowany (bo Side i GoodDir
-       juz sa znormalizowane, wiec ich product tez ma dlugosc 1);
-       w rezultacie udalo nam sie wykonac tylko dwie normalizacje
-       (zamiast trzech) przy podawaniu trzech wektorow kierunku dla
-       TransformFromCoordsMatrix *)
+
+  { Recalculate GoodUp from Side and GoodDir. This way:
+    1. We make sure GoodUp is orthogonal to Side and GoodDir.
+       The Up was already orthogonal to Side,
+       but it was not necessarily orthogonal to GoodDir.
+    2. We make sure GoodUp is normalized (vector product of normalized
+       vectors is also normalized).
+    This is done looking at gluLookAt implementation in
+    SGI Sample OpenGL Implementation. }
   GoodUp := VectorProduct(Side, GoodDir);
 
-  (* piszac powyzej te drobne optymalizacje wzorowalem sie na kodzie
-     procedury gluLookAt w implementacji GLU w SGI Sample OpenGL Implementation;
-     matematycznie, obliczamy to samo. *)
+  Result := LookDirMatrix(Eye, GoodDir, Side, GoodUp);
+end;
 
-  result := TransformFromCoordsMatrix(Eye, Side, GoodUp, VectorNegate(GoodDir));
+function LookDirMatrix(const Eye, Dir, Side, Up: TVector3): TMatrix4Single;
+begin
+  { VectorNegate on Dir, since in right-handed coordinate system
+    you look in the -Z direction. }
+  Result := TransformFromCoordsMatrix(Eye, Side, Up, VectorNegate(Dir));
 end;
 
 function FastLookDirMatrix(const Direction, Up: TVector3): TMatrix4Single;

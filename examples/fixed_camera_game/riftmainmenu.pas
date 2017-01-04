@@ -57,9 +57,7 @@ type
 
   TRiftSubMenu = class(TRiftMenu)
   public
-    SubMenuTitle: string;
     constructor Create(AOwner: TComponent); override;
-    procedure Render; override;
   end;
 
   TRiftMainMenu = class(TRiftMenu)
@@ -77,21 +75,21 @@ type
     procedure ClickChangeDevice(Sender: TObject);
     procedure ClickBack(Sender: TObject);
   public
-    OpenALDeviceArgument: TCastleMenuButton;
+    SoundDeviceArgument: TCastleMenuButton;
     constructor Create(AOwner: TComponent); override;
   end;
 
-  TChangeOpenALDeviceMenu = class(TRiftSubMenu)
+  TSoundDeviceMenu = class(TRiftSubMenu)
+  strict private
+    procedure ClickBack(Sender: TObject);
   public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-    procedure Click; override;
   end;
 
 var
   MainMenu: TRiftMainMenu;
   SoundMenu: TRiftSoundMenu;
-  ChangeOpenALDeviceMenu: TChangeOpenALDeviceMenu;
+  SoundDeviceMenu: TSoundDeviceMenu;
 
 { Actual menu procedures and CastleWindow callbacks ------------------------------ }
 
@@ -206,19 +204,7 @@ begin
   Anchor(vpTop, -273);
 
   DrawBackgroundRectangle := true;
-end;
-
-procedure TRiftSubMenu.Render;
-var
-  SR: TRectangle;
-const
-  SubMenuTextColor: TCastleColor = (0.7, 0.7, 0.7, 1.0);
-begin
-  { background of submenu is mainmenu }
-  MainMenu.Render;
-  inherited;
-  SR := ScreenRect;
-  UIFont.Print(SR.Left, SR.Top - 20, SubMenuTextColor, SubMenuTitle + ' :');
+  NonFocusableItemColor := Vector4Single(0.7, 0.7, 0.7, 1.0);
 end;
 
 { TRiftSoundMenu ------------------------------------------------------------- }
@@ -227,22 +213,21 @@ constructor TRiftSoundMenu.Create(AOwner: TComponent);
 begin
   inherited;
 
-  OpenALDeviceArgument := TCastleMenuButton.Create(Self);
-  OpenALDeviceArgument.Caption := SoundEngine.DeviceNiceName;
-  OpenALDeviceArgument.OnClick := @ClickChangeDevice;
+  SoundDeviceArgument := TCastleMenuButton.Create(Self);
+  SoundDeviceArgument.Caption := SoundEngine.DeviceCaption;
+  SoundDeviceArgument.OnClick := @ClickChangeDevice;
 
+  Add('Sound options:');
   Add(TSoundInfoMenuItem.Create(Self));
   Add(TSoundVolumeMenuItem.Create(Self));
   Add(TMusicVolumeMenuItem.Create(Self));
-  Add('Sound output device', OpenALDeviceArgument);
+  Add('Sound output device', SoundDeviceArgument);
   Add('Back to main menu', @ClickBack);
-
-  SubMenuTitle := 'Sound options';
 end;
 
 procedure TRiftSoundMenu.ClickChangeDevice(Sender: TObject);
 begin
-  SetCurrentMenu(ChangeOpenALDeviceMenu);
+  SetCurrentMenu(SoundDeviceMenu);
 end;
 
 procedure TRiftSoundMenu.ClickBack(Sender: TObject);
@@ -250,39 +235,48 @@ begin
   SetCurrentMenu(MainMenu);
 end;
 
-{ TChangeOpenALDeviceMenu ---------------------------------------------------- }
+{ TSoundDeviceMenuButton ---------------------------------------------------- }
 
-constructor TChangeOpenALDeviceMenu.Create(AOwner: TComponent);
-var
-  I: Integer;
-begin
-  inherited;
-
-  for I := 0 to SoundEngine.Devices.Count - 1 do
-    Add(SoundEngine.Devices[I].NiceName);
-  Add('Cancel');
-
-  SubMenuTitle := 'Change sound output device';
-end;
-
-destructor TChangeOpenALDeviceMenu.Destroy;
-begin
-  inherited;
-end;
-
-procedure TChangeOpenALDeviceMenu.Click;
-begin
-  inherited;
-
-  if CurrentItem < SoundEngine.Devices.Count then
-  begin
-    SoundEngine.Device := SoundEngine.Devices[CurrentItem].Name;
-    { ALCDevice value changed now to new value. }
-    SoundMenu.OpenALDeviceArgument.Caption := SoundEngine.Devices[CurrentItem].NiceName;
-    if not SoundEngine.ALActive then
-      MessageOK(Window, SoundEngine.SoundInitializationReport);
+type
+  TSoundDeviceMenuButton = class(TCastleMenuButton)
+  public
+    Device: TSoundDevice;
+    procedure DoClick; override;
   end;
 
+procedure TSoundDeviceMenuButton.DoClick;
+begin
+  inherited;
+
+  SoundEngine.Device := Device.Name;
+  SoundMenu.SoundDeviceArgument.Caption := SoundEngine.DeviceCaption;
+  if not SoundEngine.ALActive then
+    MessageOK(Window, SoundEngine.SoundInitializationReport);
+
+  SetCurrentMenu(SoundMenu);
+end;
+
+{ TSoundDeviceMenu ---------------------------------------------------- }
+
+constructor TSoundDeviceMenu.Create(AOwner: TComponent);
+var
+  I: Integer;
+  D: TSoundDeviceMenuButton;
+begin
+  inherited;
+
+  Add('Change sound output device:');
+  for I := 0 to SoundEngine.Devices.Count - 1 do
+  begin
+    D := TSoundDeviceMenuButton.Create(Self);
+    D.Device := SoundEngine.Devices[I];
+    Add(D.Device.Caption, D);
+  end;
+  Add('Cancel', @ClickBack);
+end;
+
+procedure TSoundDeviceMenu.ClickBack(Sender: TObject);
+begin
   SetCurrentMenu(SoundMenu);
 end;
 
@@ -292,7 +286,7 @@ procedure ContextOpen;
 begin
   MainMenu := TRiftMainMenu.Create(nil);
   SoundMenu := TRiftSoundMenu.Create(nil);
-  ChangeOpenALDeviceMenu := TChangeOpenALDeviceMenu.Create(nil);
+  SoundDeviceMenu := TSoundDeviceMenu.Create(nil);
 
   MenuBg := TCastleImageControl.Create(nil);
   MenuBg.URL := DataConfig.GetURL('main_menu/image');
@@ -302,7 +296,7 @@ procedure ContextClose;
 begin
   FreeAndNil(MainMenu);
   FreeAndNil(SoundMenu);
-  FreeAndNil(ChangeOpenALDeviceMenu);
+  FreeAndNil(SoundDeviceMenu);
   FreeAndNil(MenuBg);
 end;
 

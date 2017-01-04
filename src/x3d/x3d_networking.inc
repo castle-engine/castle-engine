@@ -115,11 +115,11 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   private
     { Is the inline currently loaded. This means "loaded",
-      not "successfully loaded": when Loaded := true,
+      not "successfully loaded": when InlinedLoaded := true,
       we condider "url" field as handled, and loaded *if possible*.
-      If "url" didn't contain anything useful, Loaded is still set to @true,
+      If "url" didn't contain anything useful, InlinedLoaded is still set to @true,
       to avoid constantly trying to reload. }
-    Loaded: boolean;
+    InlinedLoaded: boolean;
     FInlined: TX3DRootNode;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -444,7 +444,7 @@ var
 begin
   inherited;
 
-  if Name <> '' then
+  if X3DName <> '' then
     Exported := TX3DNodeNames.Create(false)
   else
     Exported := nil;
@@ -459,8 +459,8 @@ begin
   if Exported <> nil then
   begin
     { connect Exported nodes with our inline Name }
-    Assert(Name <> '');
-    Reader.Importable.Bind(Name, Exported);
+    Assert(X3DName <> '');
+    Reader.Importable.Bind(X3DName, Exported);
   end;
 end;
 
@@ -468,7 +468,7 @@ procedure TInlineNode.UnLoadInlined;
 begin
   VRML1ChildrenClear;
   FInlined := nil;
-  Loaded := false;
+  InlinedLoaded := false;
 end;
 
 procedure TInlineNode.LoadInlined(CanReload: boolean;
@@ -480,17 +480,17 @@ var
 begin
   if Exported <> nil then Exported.Clear;
 
-  if Loaded then
+  if InlinedLoaded then
   begin
     if CanReload then UnLoadInlined else Exit;
   end;
 
-  Assert(not Loaded);
+  Assert(not InlinedLoaded);
   Assert(FInlined = nil);
   Assert(VRML1ChildrenCount = 0);
 
   if (not FdLoad.Value) or
-     { Do not do anything, in particular do not set Loaded:=true,
+     { Do not do anything, in particular do not set InlinedLoaded:=true,
        when url field is empty. This is important in case "url" field value
        has an IS clause, and it will be really known only after expanding
        the PROTO, see demo_models/prototypes/proto_inline.x3dv testcase. }
@@ -546,15 +546,15 @@ begin
   end;
 
   { Whether or not we successfully got FInlined <> nil, we always set
-    Loaded to true here. This way we will not try to reload this inline
+    InlinedLoaded to true here. This way we will not try to reload this inline
     at next LoadInlined(false) (this would be bad, as we already did
     WritelnWarning in case loading failed and such). }
-  Loaded := true;
+  InlinedLoaded := true;
 end;
 
 procedure TInlineNode.LoadedInlineDirectly;
 begin
-  Loaded := true;
+  InlinedLoaded := true;
   if VRML1ChildrenCount <> 0 then
     FInlined := VRML1Children[0] as TX3DRootNode else
     FInlined := nil;
@@ -567,9 +567,9 @@ begin
   Result := inherited DeepCopyCore(CopyState);
   ResultI := Result as TInlineNode;
 
-  { Since inherited copied our Children, we should also set "Loaded"
+  { Since inherited copied our Children, we should also set "InlinedLoaded"
     and "Inlined" field to the same value. }
-  ResultI.Loaded := Loaded;
+  ResultI.InlinedLoaded := InlinedLoaded;
   if ResultI.VRML1ChildrenCount <> 0 then
     ResultI.FInlined := ResultI.VRML1Children[0] as TX3DRootNode else
     ResultI.FInlined := nil;
@@ -683,7 +683,7 @@ begin
 
   if EventChildren.SendNeeded and (Scene <> nil) then
   begin
-    ChildrenToSend := TMFNode.CreateUndefined(Self, EventChildren.Name, false);
+    ChildrenToSend := TMFNode.CreateUndefined(Self, EventChildren.X3DName, false);
     try
       ChildrenToSend.Add(FInlined);
       EventChildren.Send(ChildrenToSend, Scene.NextEventTime);

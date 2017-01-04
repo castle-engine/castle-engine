@@ -101,7 +101,12 @@ Background {
 #   # projectionNear 40
 #   # projectionFar 60
 #   # shadows TRUE
-#   # defaultShadowMap GeneratedShadowMap { size 4096 update "ALWAYS" }
+#   # defaultShadowMap GeneratedShadowMap {
+#   #   size 4096
+#   #   update "ALWAYS"
+#   #   bias 4
+#   #   scale 4
+#   # }
 #
 #   # Uncomment lines below to get shadow by shadow volumes.
 #   # See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_shadows .

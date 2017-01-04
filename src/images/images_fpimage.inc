@@ -27,18 +27,37 @@
   /usr/share/pixmaps/flamerobin.xpm
 }
 
-{ TFPMemoryImage -> TEncodedImage --------------------------------------------- }
+{ TInternalCastleFpImage ----------------------------------------------------- }
 
-procedure TEncodedImage.FromFpImage(const FPImage: TFPMemoryImage);
+function CreateFpImage(const Width, Height: Integer): TInternalCastleFpImage;
+begin
+  Result := TInternalCastleFpImage.Create(Width, Height);
+  //Result := TFPMemoryImage.Create(Width, Height);
+  //Result := CreateFPCompactImg(GetFPCompactImgDesc(false, 8, true), Width, Height);
+end;
+
+function TInternalCastleFpImage.GetColors8Bit(const x, y: integer): TFPCompactImgRGBA8BitValue;
+begin
+  Result := FData[X + Y * Width];
+end;
+
+procedure TInternalCastleFpImage.SetColors8Bit(const x, y: integer; const Value: TFPCompactImgRGBA8BitValue);
+begin
+  FData[X + Y * Width] := Value;
+end;
+
+{ TInternalCastleFpImage -> TEncodedImage --------------------------------------------- }
+
+procedure TEncodedImage.FromFpImage(const FPImage: TInternalCastleFpImage);
 begin
   NotImplemented('FromFpImage');
 end;
 
-procedure TRGBImage.FromFpImage(const FPImage: TFPMemoryImage);
+procedure TRGBImage.FromFpImage(const FPImage: TInternalCastleFpImage);
 var
   X, Y: Integer;
   ResultPixels: PVector3Byte;
-  Color: TFPColor;
+  Color: TFPCompactImgRGBA8BitValue;
 begin
   SetSize(FPImage.Width, FPImage.Height);
 
@@ -46,19 +65,19 @@ begin
   for Y := FPImage.Height - 1 downto 0 do
     for X := 0 to FPImage.Width - 1 do
     begin
-      Color := FPImage.Colors[X, Y];
-      ResultPixels^[0] := Color.Red shr 8;
-      ResultPixels^[1] := Color.Green shr 8;
-      ResultPixels^[2] := Color.Blue shr 8;
+      Color := FPImage.Colors8Bit[X, Y];
+      ResultPixels^[0] := Color.R;
+      ResultPixels^[1] := Color.G;
+      ResultPixels^[2] := Color.B;
       Inc(ResultPixels);
     end;
 end;
 
-procedure TRGBAlphaImage.FromFpImage(const FPImage: TFPMemoryImage);
+procedure TRGBAlphaImage.FromFpImage(const FPImage: TInternalCastleFpImage);
 var
   X, Y: Integer;
   ResultPixels: PVector4Byte;
-  Color: TFPColor;
+  Color: TFPCompactImgRGBA8BitValue;
 begin
   SetSize(FPImage.Width, FPImage.Height);
 
@@ -66,20 +85,20 @@ begin
   for Y := FPImage.Height - 1 downto 0 do
     for X := 0 to FPImage.Width - 1 do
     begin
-      Color := FPImage.Colors[X, Y];
-      ResultPixels^[0] := Color.Red shr 8;
-      ResultPixels^[1] := Color.Green shr 8;
-      ResultPixels^[2] := Color.Blue shr 8;
-      ResultPixels^[3] := Color.Alpha shr 8;
+      Color := FPImage.Colors8Bit[X, Y];
+      ResultPixels^[0] := Color.R;
+      ResultPixels^[1] := Color.G;
+      ResultPixels^[2] := Color.B;
+      ResultPixels^[3] := Color.A;
       Inc(ResultPixels);
     end;
 end;
 
-procedure TGrayscaleImage.FromFpImage(const FPImage: TFPMemoryImage);
+procedure TGrayscaleImage.FromFpImage(const FPImage: TInternalCastleFpImage);
 var
   X, Y: Integer;
   ResultPixels: PByte;
-  Color: TFPColor;
+  Color: TFPCompactImgRGBA8BitValue;
 begin
   SetSize(FPImage.Width, FPImage.Height);
 
@@ -87,20 +106,20 @@ begin
   for Y := FPImage.Height - 1 downto 0 do
     for X := 0 to FPImage.Width - 1 do
     begin
-      Color := FPImage.Colors[X, Y];
+      Color := FPImage.Colors8Bit[X, Y];
       ResultPixels^ := GrayscaleValue(Vector3Byte(
-        Color.Red shr 8,
-        Color.Green shr 8,
-        Color.Blue shr 8));
+        Color.R,
+        Color.G,
+        Color.B));
       Inc(ResultPixels);
     end;
 end;
 
-procedure TGrayscaleAlphaImage.FromFpImage(const FPImage: TFPMemoryImage);
+procedure TGrayscaleAlphaImage.FromFpImage(const FPImage: TInternalCastleFpImage);
 var
   X, Y: Integer;
   ResultPixels: PVector2Byte;
-  Color: TFPColor;
+  Color: TFPCompactImgRGBA8BitValue;
 begin
   SetSize(FPImage.Width, FPImage.Height);
 
@@ -108,18 +127,18 @@ begin
   for Y := FPImage.Height - 1 downto 0 do
     for X := 0 to FPImage.Width - 1 do
     begin
-      Color := FPImage.Colors[X, Y];
+      Color := FPImage.Colors8Bit[X, Y];
       ResultPixels^[0] := GrayscaleValue(Vector3Byte(
-        Color.Red shr 8,
-        Color.Green shr 8,
-        Color.Blue shr 8));
-      ResultPixels^[1] := Color.Alpha shr 8;
+        Color.R,
+        Color.G,
+        Color.B));
+      ResultPixels^[1] := Color.A;
       Inc(ResultPixels);
     end;
 end;
 
-{ Convert TFPMemoryImage to the best TCastleImage class. }
-function CreateFromFpImage(const FPImage: TFPMemoryImage;
+{ Convert TInternalCastleFpImage to the best TCastleImage class. }
+function CreateFromFpImage(const FPImage: TInternalCastleFpImage;
   const AllowedImageClasses: array of TEncodedImageClass): TCastleImage;
 
   { FPImage doesn't provide us any information does the image contain useful
@@ -128,21 +147,21 @@ function CreateFromFpImage(const FPImage: TFPMemoryImage;
   procedure Detect(out Alpha, Grayscale: boolean);
   var
     X, Y: Integer;
-    Col: TFPColor;
+    Col: TFPCompactImgRGBA8BitValue;
   begin
     Alpha := false;
     Grayscale := true;
     for Y := FPImage.Height - 1 downto 0 do
       for X := 0 to FPImage.Width - 1 do
       begin
-        Col := FPImage.Colors[X, Y];
-        if (Col.Alpha shr 8) <> $FF then
+        Col := FPImage.Colors8Bit[X, Y];
+        if Col.A <> $FF then
         begin
           Alpha := true;
           if not Grayscale then Exit; // early exit for RGBA images
         end;
-        if ((Col.Red shr 8) <> (Col.Green shr 8)) or
-           ((Col.Red shr 8) <> (Col.Blue shr 8)) then
+        if (Col.R <> Col.G) or
+           (Col.R <> Col.B) then
         begin
           Grayscale := false;
           if Alpha then Exit; // early exit for RGBA images
@@ -224,9 +243,9 @@ function LoadFpImage(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass;
   Reader: TFPCustomImageReader): TEncodedImage;
 var
-  FPImage: TFPMemoryImage;
+  FPImage: TInternalCastleFpImage;
 begin
-  FPImage := TFPMemoryImage.Create(0, 0);
+  FPImage := CreateFpImage(0, 0);
   try
     FPImage.UsePalette := false;
     try
@@ -242,107 +261,101 @@ begin
   end;
 end;
 
-{ TEncodedImage -> TFPMemoryImage --------------------------------------------- }
+{ TEncodedImage -> TInternalCastleFpImage --------------------------------------------- }
 
-function TEncodedImage.ToFpImage: TFPMemoryImage;
+function TEncodedImage.ToFpImage: TInternalCastleFpImage;
 begin
   raise EImageSaveError.Create('Cannot convert to FPImage the images of class ' + ClassName);
   Result := nil; // avoid warning
 end;
 
-function TGrayscaleImage.ToFpImage: TFPMemoryImage;
+function TGrayscaleImage.ToFpImage: TInternalCastleFpImage;
 var
   X, Y: Integer;
   P: PByte;
-  Color: TFPColor;
+  Color: TFPCompactImgRGBA8BitValue;
 begin
-  Result := TFPMemoryImage.Create(Width, Height);
+  Result := CreateFpImage(Width, Height);
   try
     Result.UsePalette := false;
     P := GrayscalePixels;
     for Y := Result.Height - 1 downto 0 do
       for X := 0 to Result.Width - 1 do
       begin
-        Color.Red   := Word(P^) shl 8;
-        Color.Green := Color.Red;
-        Color.Blue  := Color.Red;
-        Color.Alpha := $FFFF;
-        Result.Colors[X, Y] := Color;
+        Color.R := Word(P^);
+        Color.G := Color.R;
+        Color.B := Color.R;
+        Color.A := $FF;
+        Result.Colors8Bit[X, Y] := Color;
         Inc(P);
       end;
   except FreeAndNil(Result); raise end;
 end;
 
-function TGrayscaleAlphaImage.ToFpImage: TFPMemoryImage;
+function TGrayscaleAlphaImage.ToFpImage: TInternalCastleFpImage;
 var
   X, Y: Integer;
   P: PVector2Byte;
-  Color: TFPColor;
+  Color: TFPCompactImgRGBA8BitValue;
 begin
-  Result := TFPMemoryImage.Create(Width, Height);
+  Result := CreateFpImage(Width, Height);
   try
     Result.UsePalette := false;
     P := GrayscaleAlphaPixels;
     for Y := Result.Height - 1 downto 0 do
       for X := 0 to Result.Width - 1 do
       begin
-        Color.Red   := Word(P^[0]) shl 8;
-        Color.Green := Color.Red;
-        Color.Blue  := Color.Red;
-        Color.Alpha := Word(P^[1]) shl 8;
-        Result.Colors[X, Y] := Color;
+        Color.R := Word(P^[0]);
+        Color.G := Color.R;
+        Color.B := Color.R;
+        Color.A := Word(P^[1]);
+        Result.Colors8Bit[X, Y] := Color;
         Inc(P);
       end;
   except FreeAndNil(Result); raise end;
 end;
 
-function TRGBImage.ToFpImage: TFPMemoryImage;
+function TRGBImage.ToFpImage: TInternalCastleFpImage;
 var
   X, Y: Integer;
   P: PVector3Byte;
-  Color: TFPColor;
+  Color: TFPCompactImgRGBA8BitValue;
 begin
-  Result := TFPMemoryImage.Create(Width, Height);
+  Result := CreateFpImage(Width, Height);
   try
     Result.UsePalette := false;
     P := RGBPixels;
     for Y := Result.Height - 1 downto 0 do
       for X := 0 to Result.Width - 1 do
       begin
-        { It doesn't matter what you put in least-significat
-          byte of color component, FPWriteJPEG will do "shr 8" on these values
-          anyway (JPEG can only save 8-bit RGB). }
-        Color.Red   := Word(P^[0]) shl 8;
-        Color.Green := Word(P^[1]) shl 8;
-        Color.Blue  := Word(P^[2]) shl 8;
-        Color.Alpha := $FFFF;
-        Result.Colors[X, Y] := Color;
+        Color.R := Word(P^[0]);
+        Color.G := Word(P^[1]);
+        Color.B := Word(P^[2]);
+        Color.A := $FF;
+        Result.Colors8Bit[X, Y] := Color;
         Inc(P);
       end;
   except FreeAndNil(Result); raise end;
 end;
 
-function TRGBAlphaImage.ToFpImage: TFPMemoryImage;
+function TRGBAlphaImage.ToFpImage: TInternalCastleFpImage;
 var
   X, Y: Integer;
   P: PVector4Byte;
-  Color: TFPColor;
+  Color: TFPCompactImgRGBA8BitValue;
 begin
-  Result := TFPMemoryImage.Create(Width, Height);
+  Result := CreateFpImage(Width, Height);
   try
     Result.UsePalette := false;
     P := AlphaPixels;
     for Y := Result.Height - 1 downto 0 do
       for X := 0 to Result.Width - 1 do
       begin
-        { It doesn't matter what you put in least-significat
-          byte of color component, FPWriteJPEG will do "shr 8" on these values
-          anyway (JPEG can only save 8-bit RGB). }
-        Color.Red   := Word(P^[0]) shl 8;
-        Color.Green := Word(P^[1]) shl 8;
-        Color.Blue  := Word(P^[2]) shl 8;
-        Color.Alpha := Word(P^[3]) shl 8;
-        Result.Colors[X, Y] := Color;
+        Color.R := Word(P^[0]);
+        Color.G := Word(P^[1]);
+        Color.B := Word(P^[2]);
+        Color.A := Word(P^[3]);
+        Result.Colors8Bit[X, Y] := Color;
         Inc(P);
       end;
   except FreeAndNil(Result); raise end;
@@ -351,7 +364,7 @@ end;
 procedure SaveFpImage(Img: TEncodedImage; Stream: TStream;
   Writer: TFPCustomImageWriter);
 var
-  FPImage: TFPMemoryImage;
+  FPImage: TInternalCastleFpImage;
 begin
   FPImage := nil;
   try
@@ -459,7 +472,7 @@ end;
 { resizing ------------------------------------------------------------------- }
 
 function TCastleImage.MakeResizedToFpImage(ResizeWidth, ResizeHeight: Cardinal;
-  const Interpolation: TResizeInterpolation): TFPMemoryImage;
+  const Interpolation: TResizeInterpolation): TInternalCastleFpImage;
 
   function CreateInterpolation(const I: TResizeInterpolation): TFPBaseInterpolation;
   begin
@@ -484,7 +497,7 @@ function TCastleImage.MakeResizedToFpImage(ResizeWidth, ResizeHeight: Cardinal;
 
 var
   Interpolator: TFPBaseInterpolation;
-  FPImageSource: TFPMemoryImage;
+  FPImageSource: TInternalCastleFpImage;
   CanvasDestination: TFPImageCanvas;
 begin
   if ResizeWidth = 0 then ResizeWidth := Width;
@@ -494,7 +507,7 @@ begin
   try
     Interpolator := CreateInterpolation(Interpolation);
     try
-      Result := TFPMemoryImage.Create(ResizeWidth, ResizeHeight);
+      Result := CreateFpImage(ResizeWidth, ResizeHeight);
       try
         {$warnings off} // contains some abstract methods (FCL bug?)
         CanvasDestination := TFPImageCanvas.Create(Result);

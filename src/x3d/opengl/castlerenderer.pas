@@ -3321,7 +3321,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
         AlphaMaxVar(TexturesAlphaChannel, TextureNode.AlphaChannelFinal);
       if FontTextureNode <> nil then
         AlphaMaxVar(TexturesAlphaChannel, FontTextureNode.AlphaChannelFinal);
-      AlphaTest := TexturesAlphaChannel = acSimpleYesNo;
+      AlphaTest := TexturesAlphaChannel = acTest;
 
       if GLFontTextureNode <> nil then
         GLFontTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
@@ -3551,7 +3551,7 @@ var
       if GLNode <> nil then
       begin
         GLNode.Update(Render, ProjectionNear, ProjectionFar,
-          NeedsRestoreViewport, Shape.BoundingBox.Middle + TexNode.FdBias.Value);
+          NeedsRestoreViewport, Shape.BoundingBox.Center + TexNode.FdBias.Value);
 
         PostUpdate;
 

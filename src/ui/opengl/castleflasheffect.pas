@@ -246,7 +246,7 @@ begin
     if FinalImage <> nil then
     begin
       FinalImage.Color := FinalColor;
-      FinalImage.Alpha := acFullRange;
+      FinalImage.Alpha := acBlending;
       FinalImage.BlendingSourceFactor := SourceFactor;
       FinalImage.BlendingDestinationFactor := DestinationFactor;
       FinalImage.Draw(ScreenRect);

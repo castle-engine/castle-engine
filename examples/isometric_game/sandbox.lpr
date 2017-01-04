@@ -33,7 +33,7 @@ var
     PosX += RealViewMoveX + SpecialMoveX;
     PosY := Y * (BaseHeight div 2);
     PosY += RealViewMoveY + SpecialMoveY;
-    GLImage.Alpha := acSimpleYesNo;
+    GLImage.Alpha := acTest;
     GLImage.Draw(PosX, PosY);
   end;
 

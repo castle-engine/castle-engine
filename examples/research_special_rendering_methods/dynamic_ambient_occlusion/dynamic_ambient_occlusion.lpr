@@ -360,7 +360,7 @@ begin
 
   { calculate PositionScale, PositionShift.
     We have min/max in Scene.BoundingBox. }
-  PositionScale := Scene.BoundingBox.Sizes;
+  PositionScale := Scene.BoundingBox.Size;
   for I := 0 to 2 do
   begin
     if PositionScale[I] = 0 then

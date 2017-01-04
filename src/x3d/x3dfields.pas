@@ -427,7 +427,7 @@ type
       Otherwise it is @nil. }
     FIsClauseNames: TCastleStringList;
 
-    FName: string;
+    FX3DName: string;
 
     { A really simple (but good enough for now) implementation of
       AddAlternativeName:
@@ -446,19 +446,28 @@ type
   protected
     procedure FieldOrEventAssignCommon(Source: TX3DFieldOrEvent);
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string);
+    constructor Create(AParentNode: TX3DFileItem; const AX3DName: string);
     destructor Destroy; override;
 
     { Name of the field or event.
 
-      Normal fields/events are inside some VRML node, and then
-      they should have a name <> ''. But in some special cases I use
-      fields without a name, then this is ''.
+      Most fields/events are inside some X3D node, and then
+      they have a non-empty name. But in some special cases we
+      also use temporary fields with an empty name.
 
       Note that you cannot change this after object creation, since
       Name is used for various purposes (like to generate names for
-      TX3DField.ExposedEvents). }
-    property Name: string read FName;
+      TX3DField.ExposedEvents).
+
+      Note that this property is deliberately not called @code(Name).
+      In the future, this class may descend from the standard TComponent
+      class, that defines a @code(Name) field with a special restrictions
+      (it must be a valid Pascal identifier), which cannot apply to X3D node names
+      (that can have quite free names, see
+      http://www.web3d.org/documents/specifications/19776-2/V3.3/Part02/grammar.html ).
+      We don't want to confuse these two properties. }
+    property X3DName: string read FX3DName;
+    property Name: string read FX3DName; deprecated 'use X3DName';
 
     { VRML node containing this field/event.
       This must always contain an instance
@@ -2930,11 +2939,11 @@ end;
 { TX3DFieldOrEvent ---------------------------------------------------------- }
 
 constructor TX3DFieldOrEvent.Create(AParentNode: TX3DFileItem;
-  const AName: string);
+  const AX3DName: string);
 begin
   inherited Create;
   FParentNode := AParentNode;
-  FName := AName;
+  FX3DName := AX3DName;
 end;
 
 destructor TX3DFieldOrEvent.Destroy;
@@ -3012,7 +3021,7 @@ begin
     if FAlternativeNames[I] = S then
       Exit(true);
 
-  Result := Name = S;
+  Result := X3DName = S;
 end;
 
 function TX3DFieldOrEvent.NameForVersion(
@@ -3020,7 +3029,7 @@ function TX3DFieldOrEvent.NameForVersion(
 begin
   Result := FAlternativeNames[Version.Major];
   if Result = '' then
-    Result := Name;
+    Result := X3DName;
 end;
 
 function TX3DFieldOrEvent.NameForVersion(
@@ -3031,7 +3040,7 @@ end;
 
 procedure TX3DFieldOrEvent.FieldOrEventAssignCommon(Source: TX3DFieldOrEvent);
 begin
-  FName := Source.Name;
+  FX3DName := Source.X3DName;
   IsClauseNamesAssign(Source.FIsClauseNames);
   FPositionInParent := Source.PositionInParent;
   FAlternativeNames := Source.FAlternativeNames;
@@ -3044,8 +3053,9 @@ begin
   if ParentNode <> nil then
     Result += TX3DNode(ParentNode).NiceName + '.';
 
-  if Name <> '' then
-    Result += Name else
+  if X3DName <> '' then
+    Result += X3DName
+  else
     Result += '<not named field>';
 end;
 
@@ -3212,9 +3222,9 @@ begin
     FExposed := Value;
     if Exposed then
     begin
-      FExposedEvents[false] := CreateEvent(ParentNode, Name + ChangedSuffix, false);
+      FExposedEvents[false] := CreateEvent(ParentNode, X3DName + ChangedSuffix, false);
       FExposedEvents[false].ParentExposedField := Self;
-      FExposedEvents[true] := CreateEvent(ParentNode, SetPrefix + Name, true);
+      FExposedEvents[true] := CreateEvent(ParentNode, SetPrefix + X3DName, true);
       FExposedEvents[true].ParentExposedField := Self;
 
       for I := Low(FAlternativeNames) to High(FAlternativeNames) do
@@ -3311,7 +3321,7 @@ end;
 function TX3DField.Equals(SecondValue: TX3DField;
   const EqualityEpsilon: Double): boolean;
 begin
-  Result := SecondValue.Name = Name;
+  Result := SecondValue.X3DName = X3DName;
 end;
 
 function TX3DField.FastEqualsValue(SecondValue: TX3DField): boolean;
@@ -3341,7 +3351,7 @@ begin
       ParseXMLAttributeLexer(Lexer, Reader);
     except
       on E: EX3DClassicReadError do
-        WritelnWarning('VRML/X3D', 'Error when reading field "' + Name + '" value: ' + E.Message);
+        WritelnWarning('VRML/X3D', 'Error when reading field "' + X3DName + '" value: ' + E.Message);
     end;
   finally FreeAndNil(Lexer) end;
 end;
@@ -3354,7 +3364,7 @@ begin
   try
     if I.GetNext then
       WritelnWarning('VRML/X3D', Format('X3D field "%s" is not SFNode or MFNode, but a node value (XML element "%s") is specified',
-        [Name, I.Current.TagName]));
+        [X3DName, I.Current.TagName]));
   finally FreeAndNil(I) end;
 end;
 
@@ -3363,7 +3373,7 @@ var
   NameChanges, ExposedChanges: boolean;
   I: Integer;
 begin
-  NameChanges := Name <> Source.Name;
+  NameChanges := X3DName <> Source.X3DName;
   ExposedChanges := Exposed <> Source.Exposed;
 
   FieldOrEventAssignCommon(Source);
@@ -3387,12 +3397,12 @@ begin
   }
   if NameChanges and Exposed and (not ExposedChanges) then
   begin
-    FExposedEvents[false].FName := Name + ChangedSuffix;
-    FExposedEvents[true].FName := SetPrefix + Name;
+    FExposedEvents[false].FX3DName := X3DName + ChangedSuffix;
+    FExposedEvents[true].FX3DName := SetPrefix + X3DName;
   end;
 
-  Assert((not Exposed) or (FExposedEvents[false].FName = Name + ChangedSuffix));
-  Assert((not Exposed) or (FExposedEvents[true].FName = SetPrefix + Name));
+  Assert((not Exposed) or (FExposedEvents[false].FX3DName = X3DName + ChangedSuffix));
+  Assert((not Exposed) or (FExposedEvents[true].FX3DName = SetPrefix + X3DName));
 
   { Once again an issue with dependency of ExposedEvents on our name:
     potentially alternative names changed,
@@ -3418,8 +3428,8 @@ procedure TX3DField.AssignValueRaiseInvalidClass(Source: TX3DField);
 begin
   raise EX3DFieldAssignInvalidClass.CreateFmt('Cannot assign VRML/X3D field ' +
     '%s (%s) from %s (%s)',
-    [        Name,        X3DType,
-      Source.Name, Source.X3DType]);
+    [        X3DName,        X3DType,
+      Source.X3DName, Source.X3DType]);
 end;
 
 procedure TX3DField.AssignValue(Source: TX3DField);
@@ -3543,8 +3553,8 @@ begin
   if SecondValue.Count <> Count then
     raise EX3DMultFieldDifferentCount.CreateFmt(
       'Different length of multiple-value fields "%s" and "%s": "%d" and "%d"',
-      [ Name,
-        SecondValue.Name,
+      [ X3DName,
+        SecondValue.X3DName,
         Count,
         SecondValue.Count ]);
 end;
@@ -3887,7 +3897,7 @@ procedure TSFBool.Send(const AValue: Boolean);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFBool.Create(ParentNode, Name, AValue);
+  FieldValue := TSFBool.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -4004,7 +4014,7 @@ procedure TSFFloat.Send(const AValue: Single);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFFloat.Create(ParentNode, Name, AValue);
+  FieldValue := TSFFloat.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -4110,7 +4120,7 @@ procedure TSFDouble.Send(const AValue: Double);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFDouble.Create(ParentNode, Name, AValue);
+  FieldValue := TSFDouble.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -4137,7 +4147,7 @@ procedure TSFTime.Send(const AValue: Double);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFTime.Create(ParentNode, Name, AValue);
+  FieldValue := TSFTime.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -4502,7 +4512,7 @@ procedure TSFLong.Send(const AValue: LongInt);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFLong.Create(ParentNode, Name, AValue);
+  FieldValue := TSFLong.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -4524,7 +4534,7 @@ procedure TSFInt32.Send(const AValue: LongInt);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFInt32.Create(ParentNode, Name, AValue);
+  FieldValue := TSFInt32.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -4634,7 +4644,7 @@ procedure TSF_CLASS.Send(const AValue: TSF_STATIC_ITEM);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSF_CLASS.Create(ParentNode, Name, AValue);
+  FieldValue := TSF_CLASS.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -4729,7 +4739,7 @@ procedure TSFMatrix.Send(const AValue: TMatrix4Single);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFMatrix.Create(ParentNode, Name, AValue);
+  FieldValue := TSFMatrix.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -4889,7 +4899,7 @@ procedure TSFRotation.Send(const AValue: Tvector4Single);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFRotation.Create(ParentNode, Name, AValue);
+  FieldValue := TSFRotation.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -5006,7 +5016,7 @@ procedure TSFString.Send(const AValue: AnsiString);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFString.Create(ParentNode, Name, AValue);
+  FieldValue := TSFString.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -5064,14 +5074,14 @@ begin
   UpperValue := UpperCase(NewValue);
   if UpperValue <> NewValue then
     WritelnWarning('VRML/X3D', Format('Field "%s" value should be uppercase, but is not: "%s"',
-      [Name, NewValue]));
+      [X3DName, NewValue]));
 
   Result := FEnumNames.IndexOf(UpperValue);
   if Result = -1 then
   begin
     Result := DefaultEnumValue;
     WritelnWarning('VRML/X3D', Format('Unknown "%s" field value: "%s"',
-      [Name, NewValue]));
+      [X3DName, NewValue]));
   end;
 end;
 
@@ -5190,7 +5200,7 @@ procedure TSF_CLASS.Send(const AValue: TSF_STATIC_ITEM);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSF_CLASS.Create(ParentNode, Name, AValue);
+  FieldValue := TSF_CLASS.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -5272,7 +5282,7 @@ procedure TSFColor.Send(const AValue: TVector3Single);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFColor.Create(ParentNode, Name, AValue);
+  FieldValue := TSFColor.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -5301,7 +5311,7 @@ procedure TSFColorRGBA.Send(const AValue: TVector4Single);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFColorRGBA.Create(ParentNode, Name, AValue);
+  FieldValue := TSFColorRGBA.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -5592,7 +5602,7 @@ procedure TSFEnum.Send(const AValue: LongInt);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFEnum.Create(ParentNode, Name, [], AValue);
+  FieldValue := TSFEnum.Create(ParentNode, X3DName, [], AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -5695,7 +5705,7 @@ procedure TMF_CLASS.Send(const AValue: array of TMF_STATIC_ITEM);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TMF_CLASS.Create(ParentNode, Name, AValue);
+  FieldValue := TMF_CLASS.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -6109,7 +6119,7 @@ procedure TMFInt32.Send(const AValue: array of LongInt);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TMFInt32.Create(ParentNode, Name, AValue);
+  FieldValue := TMFInt32.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -6173,7 +6183,7 @@ procedure TMFColor.Send(const AValue: array of TVector3Single);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TMFColor.Create(ParentNode, Name, AValue);
+  FieldValue := TMFColor.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -6202,7 +6212,7 @@ procedure TMFColorRGBA.Send(const AValue: array of TVector4Single);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TMFColorRGBA.Create(ParentNode, Name, AValue);
+  FieldValue := TMFColorRGBA.Create(ParentNode, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -6376,7 +6386,7 @@ begin
   except
     on E: Exception do
     begin
-      WritelnWarning('VRML/X3D', 'Error when reading MFString field "' + Name + '" value. Possibly missing double quotes (treating as a single string): ' + E.Message);
+      WritelnWarning('VRML/X3D', 'Error when reading MFString field "' + X3DName + '" value. Possibly missing double quotes (treating as a single string): ' + E.Message);
       Items.Count := 0;
       Items.Add(AttributeValue);
     end;

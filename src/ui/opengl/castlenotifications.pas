@@ -47,7 +47,7 @@ type
     type
       TNotification = class
         Text: string;
-        Time: TMilisecTime; {< appear time }
+        Time: TTimerResult; {< appear time }
         Width: Integer;
         Color: TCastleColor;
       end;
@@ -101,7 +101,7 @@ type
     property MaxMessages: integer
       read FMaxMessages write FMaxMessages default DefaultMaxMessages;
 
-    { How long a given message should be visible on the screen, in miliseconds.
+    { How long a given message should be visible on the screen, in seconds.
       Message stops being visible when this timeout passed,
       or when we need more space for new messages (see MaxMessages). }
     property Timeout: Single
@@ -184,7 +184,7 @@ procedure TCastleNotifications.Show(S: TStringList);
       if Messages.Count = MaxMessages then Messages.Delete(0);
       N := TNotification.Create;
       N.Text := S[i];
-      N.Time := CastleTimeUtils.GetTickCount64;
+      N.Time := Timer;
       N.Width := Font.TextWidth(N.Text);
       N.Color := Color;
       Messages.Add(N);
@@ -261,27 +261,26 @@ end;
 procedure TCastleNotifications.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 var
-  GTC, TimeoutMilisec, TimeoutToFadeMilisec: TMilisecTime;
+  TimerNow: TTimerResult;
+  TimeoutToFade: TFloatTime;
   I: integer;
   C: TCastleColor;
 begin
   inherited;
-  GTC := CastleTimeUtils.GetTickCount64;
-  TimeoutMilisec := Round(Timeout * 1000);
-  TimeoutToFadeMilisec := Round((Timeout - Fade) * 1000);
+  TimerNow := Timer;
+  TimeoutToFade := Timeout - Fade;
   for I := Messages.Count - 1 downto 0 do
-    if TimeTickSecondLater(Messages[I].Time, GTC, TimeoutMilisec) then
+    if TimerSeconds(TimerNow, Messages[I].Time) > Timeout then
     begin { delete messages 0..I }
       Messages.DeleteFirst(I + 1);
       VisibleChange;
       break;
     end else
-    if TimeTickSecondLater(Messages[I].Time, GTC, TimeoutToFadeMilisec) then
+    if TimerSeconds(TimerNow, Messages[I].Time) > TimeoutToFade then
     begin
       C := Messages[I].Color;
-      C[3] := MapRange(GTC,
-        Messages[I].Time + TimeoutToFadeMilisec,
-        Messages[I].Time + TimeoutMilisec, 1, 0);
+      C[3] := MapRange(TimerSeconds(TimerNow, Messages[I].Time),
+        TimeoutToFade, Timeout, 1, 0);
       Messages[I].Color := C;
       VisibleChange;
     end;

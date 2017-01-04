@@ -327,7 +327,7 @@ var
   I: Integer;
   AngleSin, AngleCos: Float;
 begin
-  LineSet := TLineSetNode.Create(Name, BaseUrl);
+  LineSet := TLineSetNode.Create(X3DName, BaseUrl);
   try
     SlicesNow := CalculateSlices;
 
@@ -478,7 +478,7 @@ var
   TexCoord: TTextureCoordinateNode;
   QuadSet: TQuadSetNode absolute Result;
 begin
-  QuadSet := TQuadSetNode.Create(Original.Name, Original.BaseUrl);
+  QuadSet := TQuadSetNode.Create(Original.X3DName, Original.BaseUrl);
   try
     Coord := TCoordinateNode.Create('', Original.BaseUrl);
     Coord.FdPoint.Items.Count := 4;

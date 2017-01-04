@@ -1003,7 +1003,7 @@ begin
     { Ok, we have a field with a value (interface declarations with
       fields inside ComposedShader / Effect always have a value).
       So set GLSL uniform variable from this field. }
-    SetUniformFromField(UniformField.Name, UniformField, EnableDisable);
+    SetUniformFromField(UniformField.X3DName, UniformField, EnableDisable);
   except
     { We capture EGLSLUniformInvalid, converting it to WritelnWarning and exit.
       This way we will not add this field to EventsObserved. }
@@ -1192,8 +1192,9 @@ var
   Scene: TX3DEventsEngine;
 begin
   if Event.ParentExposedField = nil then
-    UniformName := Event.Name else
-    UniformName := Event.ParentExposedField.Name;
+    UniformName := Event.X3DName
+  else
+    UniformName := Event.ParentExposedField.X3DName;
 
   try
     SetUniformFromField(UniformName, Value, true);
@@ -1989,6 +1990,7 @@ var
 
 var
   PassLightsUniforms: boolean;
+  EnabledLights: boolean;
 
   procedure EnableLights;
   var
@@ -1998,6 +2000,7 @@ var
     {$endif}
   begin
     PassLightsUniforms := false;
+    EnabledLights := false;
 
     { If we have no fragment/vertex shader (means that we used ComposedShader
       node without one shader) then don't add any code.
@@ -2023,6 +2026,8 @@ var
 
       for I := 0 to LightShaders.Count - 1 do
       begin
+        EnabledLights := true;
+
         {$ifndef OpenGLES}
         LightShaderBack  := LightShaders[I].Code[stFragment][0];
         LightShaderFront := LightShaderBack;
@@ -2257,7 +2262,10 @@ var
 
   procedure EnableShaderMaterialFromColor;
   begin
-    if MaterialFromColor then
+    { check EnabledLights, to avoid warnings that plug
+      "material_light_diffuse" is not defined on unlit stuff,
+      testcase: castle-game/data/levels/gate/gate_final.x3dv }
+    if EnabledLights and MaterialFromColor then
     begin
       {$ifndef OpenGLES}
       Plug(stVertex,

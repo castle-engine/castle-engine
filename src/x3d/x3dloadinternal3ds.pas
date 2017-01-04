@@ -989,7 +989,7 @@ var
         O3ds.Cameras[I].Direction,
         O3ds.Cameras[I].Up,
         O3ds.Cameras[I].Up { GravityUp equals Up });
-      Viewpoint.Name := ViewpointVRMLName(O3ds.Cameras[I].Name);
+      Viewpoint.X3DName := ViewpointVRMLName(O3ds.Cameras[I].Name);
       Result.FdChildren.Add(Viewpoint);
 
       { TODO: use other 3ds camera fields }

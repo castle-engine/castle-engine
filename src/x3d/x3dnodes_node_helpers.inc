@@ -31,18 +31,18 @@ type
 
   TAbstractProductStructureChildNodeHelper = class helper for TAbstractProductStructureChildNode
   private
-    function GetName: string;
-    procedure SetName(const Value: string);
+    function GetNameField: string;
+    procedure SetNameField(const Value: string);
   public
-    property Name: string read GetName write SetName;
+    property NameField: string read GetNameField write SetNameField;
   end;
 
   TCADAssemblyNodeHelper = class helper for TCADAssemblyNode
   private
-    function GetName: string;
-    procedure SetName(const Value: string);
+    function GetNameField: string;
+    procedure SetNameField(const Value: string);
   public
-    property Name: string read GetName write SetName;
+    property NameField: string read GetNameField write SetNameField;
   end;
 
   TCADFaceNodeHelper = class helper for TCADFaceNode
@@ -58,18 +58,18 @@ type
 
   TCADLayerNodeHelper = class helper for TCADLayerNode
   private
-    function GetName: string;
-    procedure SetName(const Value: string);
+    function GetNameField: string;
+    procedure SetNameField(const Value: string);
   public
-    property Name: string read GetName write SetName;
+    property NameField: string read GetNameField write SetNameField;
   end;
 
   TCADPartNodeHelper = class helper for TCADPartNode
   private
     function GetCenter: TVector3Single;
     procedure SetCenter(const Value: TVector3Single);
-    function GetName: string;
-    procedure SetName(const Value: string);
+    function GetNameField: string;
+    procedure SetNameField(const Value: string);
     function GetRotation: TVector4Single;
     procedure SetRotation(const Value: TVector4Single);
     function GetScale: TVector3Single;
@@ -80,7 +80,7 @@ type
     procedure SetTranslation(const Value: TVector3Single);
   public
     property Center: TVector3Single read GetCenter write SetCenter;
-    property Name: string read GetName write SetName;
+    property NameField: string read GetNameField write SetNameField;
     property Rotation: TVector4Single read GetRotation write SetRotation;
     property Scale: TVector3Single read GetScale write SetScale;
     property ScaleOrientation: TVector4Single read GetScaleOrientation write SetScaleOrientation;
@@ -97,56 +97,56 @@ type
 
   TMetadataDoubleNodeHelper = class helper for TMetadataDoubleNode
   private
-    function GetName: string;
-    procedure SetName(const Value: string);
+    function GetNameField: string;
+    procedure SetNameField(const Value: string);
     function GetReference: string;
     procedure SetReference(const Value: string);
   public
-    property Name: string read GetName write SetName;
+    property NameField: string read GetNameField write SetNameField;
     property Reference: string read GetReference write SetReference;
   end;
 
   TMetadataFloatNodeHelper = class helper for TMetadataFloatNode
   private
-    function GetName: string;
-    procedure SetName(const Value: string);
+    function GetNameField: string;
+    procedure SetNameField(const Value: string);
     function GetReference: string;
     procedure SetReference(const Value: string);
   public
-    property Name: string read GetName write SetName;
+    property NameField: string read GetNameField write SetNameField;
     property Reference: string read GetReference write SetReference;
   end;
 
   TMetadataIntegerNodeHelper = class helper for TMetadataIntegerNode
   private
-    function GetName: string;
-    procedure SetName(const Value: string);
+    function GetNameField: string;
+    procedure SetNameField(const Value: string);
     function GetReference: string;
     procedure SetReference(const Value: string);
   public
-    property Name: string read GetName write SetName;
+    property NameField: string read GetNameField write SetNameField;
     property Reference: string read GetReference write SetReference;
   end;
 
   TMetadataSetNodeHelper = class helper for TMetadataSetNode
   private
-    function GetName: string;
-    procedure SetName(const Value: string);
+    function GetNameField: string;
+    procedure SetNameField(const Value: string);
     function GetReference: string;
     procedure SetReference(const Value: string);
   public
-    property Name: string read GetName write SetName;
+    property NameField: string read GetNameField write SetNameField;
     property Reference: string read GetReference write SetReference;
   end;
 
   TMetadataStringNodeHelper = class helper for TMetadataStringNode
   private
-    function GetName: string;
-    procedure SetName(const Value: string);
+    function GetNameField: string;
+    procedure SetNameField(const Value: string);
     function GetReference: string;
     procedure SetReference(const Value: string);
   public
-    property Name: string read GetName write SetName;
+    property NameField: string read GetNameField write SetNameField;
     property Reference: string read GetReference write SetReference;
   end;
 
@@ -1134,12 +1134,12 @@ type
 
   THAnimDisplacerNodeHelper = class helper for THAnimDisplacerNode
   private
-    function GetName: string;
-    procedure SetName(const Value: string);
+    function GetNameField: string;
+    procedure SetNameField(const Value: string);
     function GetWeight: Single;
     procedure SetWeight(const Value: Single);
   public
-    property Name: string read GetName write SetName;
+    property NameField: string read GetNameField write SetNameField;
     property Weight: Single read GetWeight write SetWeight;
   end;
 
@@ -1147,8 +1147,8 @@ type
   private
     function GetCenter: TVector3Single;
     procedure SetCenter(const Value: TVector3Single);
-    function GetName: string;
-    procedure SetName(const Value: string);
+    function GetNameField: string;
+    procedure SetNameField(const Value: string);
     function GetRotation: TVector4Single;
     procedure SetRotation(const Value: TVector4Single);
     function GetScale: TVector3Single;
@@ -1165,7 +1165,7 @@ type
     procedure SetBboxSize(const Value: TVector3Single);
   public
     property Center: TVector3Single read GetCenter write SetCenter;
-    property Name: string read GetName write SetName;
+    property NameField: string read GetNameField write SetNameField;
     property Rotation: TVector4Single read GetRotation write SetRotation;
     property Scale: TVector3Single read GetScale write SetScale;
     property ScaleOrientation: TVector4Single read GetScaleOrientation write SetScaleOrientation;
@@ -1181,8 +1181,8 @@ type
     procedure SetCenter(const Value: TVector3Single);
     function GetLimitOrientation: TVector4Single;
     procedure SetLimitOrientation(const Value: TVector4Single);
-    function GetName: string;
-    procedure SetName(const Value: string);
+    function GetNameField: string;
+    procedure SetNameField(const Value: string);
     function GetRotation: TVector4Single;
     procedure SetRotation(const Value: TVector4Single);
     function GetScale: TVector3Single;
@@ -1194,7 +1194,7 @@ type
   public
     property Center: TVector3Single read GetCenter write SetCenter;
     property LimitOrientation: TVector4Single read GetLimitOrientation write SetLimitOrientation;
-    property Name: string read GetName write SetName;
+    property NameField: string read GetNameField write SetNameField;
     property Rotation: TVector4Single read GetRotation write SetRotation;
     property Scale: TVector3Single read GetScale write SetScale;
     property ScaleOrientation: TVector4Single read GetScaleOrientation write SetScaleOrientation;
@@ -1207,20 +1207,20 @@ type
     procedure SetCenterOfMass(const Value: TVector3Single);
     function GetMass: Single;
     procedure SetMass(const Value: Single);
-    function GetName: string;
-    procedure SetName(const Value: string);
+    function GetNameField: string;
+    procedure SetNameField(const Value: string);
   public
     property CenterOfMass: TVector3Single read GetCenterOfMass write SetCenterOfMass;
     property Mass: Single read GetMass write SetMass;
-    property Name: string read GetName write SetName;
+    property NameField: string read GetNameField write SetNameField;
   end;
 
   THAnimSiteNodeHelper = class helper for THAnimSiteNode
   private
     function GetCenter: TVector3Single;
     procedure SetCenter(const Value: TVector3Single);
-    function GetName: string;
-    procedure SetName(const Value: string);
+    function GetNameField: string;
+    procedure SetNameField(const Value: string);
     function GetRotation: TVector4Single;
     procedure SetRotation(const Value: TVector4Single);
     function GetScale: TVector3Single;
@@ -1231,7 +1231,7 @@ type
     procedure SetTranslation(const Value: TVector3Single);
   public
     property Center: TVector3Single read GetCenter write SetCenter;
-    property Name: string read GetName write SetName;
+    property NameField: string read GetNameField write SetNameField;
     property Rotation: TVector4Single read GetRotation write SetRotation;
     property Scale: TVector3Single read GetScale write SetScale;
     property ScaleOrientation: TVector4Single read GetScaleOrientation write SetScaleOrientation;
@@ -2290,10 +2290,10 @@ type
 
   TAbstractVertexAttributeNodeHelper = class helper for TAbstractVertexAttributeNode
   private
-    function GetName: string;
-    procedure SetName(const Value: string);
+    function GetNameField: string;
+    procedure SetNameField(const Value: string);
   public
-    property Name: string read GetName write SetName;
+    property NameField: string read GetNameField write SetNameField;
   end;
 
   TFloatVertexAttributeNodeHelper = class helper for TFloatVertexAttributeNode
@@ -2817,24 +2817,24 @@ end;
 
 { TAbstractProductStructureChildNode ----------------------------------------------- }
 
-function TAbstractProductStructureChildNodeHelper.GetName: string;
+function TAbstractProductStructureChildNodeHelper.GetNameField: string;
 begin
   Result := FdName.Value;
 end;
 
-procedure TAbstractProductStructureChildNodeHelper.SetName(const Value: string);
+procedure TAbstractProductStructureChildNodeHelper.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
 end;
 
 { TCADAssemblyNode ----------------------------------------------- }
 
-function TCADAssemblyNodeHelper.GetName: string;
+function TCADAssemblyNodeHelper.GetNameField: string;
 begin
   Result := FdName.Value;
 end;
 
-procedure TCADAssemblyNodeHelper.SetName(const Value: string);
+procedure TCADAssemblyNodeHelper.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
 end;
@@ -2863,12 +2863,12 @@ end;
 
 { TCADLayerNode ----------------------------------------------- }
 
-function TCADLayerNodeHelper.GetName: string;
+function TCADLayerNodeHelper.GetNameField: string;
 begin
   Result := FdName.Value;
 end;
 
-procedure TCADLayerNodeHelper.SetName(const Value: string);
+procedure TCADLayerNodeHelper.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
 end;
@@ -2885,12 +2885,12 @@ begin
   FdCenter.Send(Value);
 end;
 
-function TCADPartNodeHelper.GetName: string;
+function TCADPartNodeHelper.GetNameField: string;
 begin
   Result := FdName.Value;
 end;
 
-procedure TCADPartNodeHelper.SetName(const Value: string);
+procedure TCADPartNodeHelper.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
 end;
@@ -2949,12 +2949,12 @@ end;
 
 { TMetadataDoubleNode ----------------------------------------------- }
 
-function TMetadataDoubleNodeHelper.GetName: string;
+function TMetadataDoubleNodeHelper.GetNameField: string;
 begin
   Result := FdName.Value;
 end;
 
-procedure TMetadataDoubleNodeHelper.SetName(const Value: string);
+procedure TMetadataDoubleNodeHelper.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
 end;
@@ -2971,12 +2971,12 @@ end;
 
 { TMetadataFloatNode ----------------------------------------------- }
 
-function TMetadataFloatNodeHelper.GetName: string;
+function TMetadataFloatNodeHelper.GetNameField: string;
 begin
   Result := FdName.Value;
 end;
 
-procedure TMetadataFloatNodeHelper.SetName(const Value: string);
+procedure TMetadataFloatNodeHelper.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
 end;
@@ -2993,12 +2993,12 @@ end;
 
 { TMetadataIntegerNode ----------------------------------------------- }
 
-function TMetadataIntegerNodeHelper.GetName: string;
+function TMetadataIntegerNodeHelper.GetNameField: string;
 begin
   Result := FdName.Value;
 end;
 
-procedure TMetadataIntegerNodeHelper.SetName(const Value: string);
+procedure TMetadataIntegerNodeHelper.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
 end;
@@ -3015,12 +3015,12 @@ end;
 
 { TMetadataSetNode ----------------------------------------------- }
 
-function TMetadataSetNodeHelper.GetName: string;
+function TMetadataSetNodeHelper.GetNameField: string;
 begin
   Result := FdName.Value;
 end;
 
-procedure TMetadataSetNodeHelper.SetName(const Value: string);
+procedure TMetadataSetNodeHelper.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
 end;
@@ -3037,12 +3037,12 @@ end;
 
 { TMetadataStringNode ----------------------------------------------- }
 
-function TMetadataStringNodeHelper.GetName: string;
+function TMetadataStringNodeHelper.GetNameField: string;
 begin
   Result := FdName.Value;
 end;
 
-procedure TMetadataStringNodeHelper.SetName(const Value: string);
+procedure TMetadataStringNodeHelper.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
 end;
@@ -5643,12 +5643,12 @@ end;
 
 { THAnimDisplacerNode ----------------------------------------------- }
 
-function THAnimDisplacerNodeHelper.GetName: string;
+function THAnimDisplacerNodeHelper.GetNameField: string;
 begin
   Result := FdName.Value;
 end;
 
-procedure THAnimDisplacerNodeHelper.SetName(const Value: string);
+procedure THAnimDisplacerNodeHelper.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
 end;
@@ -5675,12 +5675,12 @@ begin
   FdCenter.Send(Value);
 end;
 
-function THAnimHumanoidNodeHelper.GetName: string;
+function THAnimHumanoidNodeHelper.GetNameField: string;
 begin
   Result := FdName.Value;
 end;
 
-procedure THAnimHumanoidNodeHelper.SetName(const Value: string);
+procedure THAnimHumanoidNodeHelper.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
 end;
@@ -5777,12 +5777,12 @@ begin
   FdLimitOrientation.Send(Value);
 end;
 
-function THAnimJointNodeHelper.GetName: string;
+function THAnimJointNodeHelper.GetNameField: string;
 begin
   Result := FdName.Value;
 end;
 
-procedure THAnimJointNodeHelper.SetName(const Value: string);
+procedure THAnimJointNodeHelper.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
 end;
@@ -5849,12 +5849,12 @@ begin
   FdMass.Send(Value);
 end;
 
-function THAnimSegmentNodeHelper.GetName: string;
+function THAnimSegmentNodeHelper.GetNameField: string;
 begin
   Result := FdName.Value;
 end;
 
-procedure THAnimSegmentNodeHelper.SetName(const Value: string);
+procedure THAnimSegmentNodeHelper.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
 end;
@@ -5871,12 +5871,12 @@ begin
   FdCenter.Send(Value);
 end;
 
-function THAnimSiteNodeHelper.GetName: string;
+function THAnimSiteNodeHelper.GetNameField: string;
 begin
   Result := FdName.Value;
 end;
 
-procedure THAnimSiteNodeHelper.SetName(const Value: string);
+procedure THAnimSiteNodeHelper.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
 end;
@@ -8499,12 +8499,12 @@ end;
 
 { TAbstractVertexAttributeNode ----------------------------------------------- }
 
-function TAbstractVertexAttributeNodeHelper.GetName: string;
+function TAbstractVertexAttributeNodeHelper.GetNameField: string;
 begin
   Result := FdName.Value;
 end;
 
-procedure TAbstractVertexAttributeNodeHelper.SetName(const Value: string);
+procedure TAbstractVertexAttributeNodeHelper.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
 end;

@@ -373,7 +373,7 @@ var
     { If light is directional, no need to render dark cap }
     DarkCap := DarkCap and (LightPos[3] <> 0);
 
-    if ForceOpaque or not TShape(FShape).Transparent then
+    if ForceOpaque or not TShape(FShape).Blending then
       OpaqueTrianglesBegin else
       TransparentTrianglesBegin;
 
@@ -383,7 +383,7 @@ var
       Inc(TrianglePtr);
     end;
 
-    if ForceOpaque or not TShape(FShape).Transparent then
+    if ForceOpaque or not TShape(FShape).Blending then
       OpaqueTrianglesEnd else
       TransparentTrianglesEnd;
   end;

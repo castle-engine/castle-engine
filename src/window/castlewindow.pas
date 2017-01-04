@@ -524,7 +524,7 @@ const
 
   DefaultDepthBits = 16;
 
-  DefaultFpsCaptionUpdateInterval = 5000;
+  DefaultFpsCaptionUpdateDelay = 5.0;
 
   DefaultLimitFPS = 100.0;
 
@@ -1876,6 +1876,7 @@ type
       write SetCustomCursor;
 
     property RenderStyle: TRenderStyle read GetRenderStyle write SetRenderStyle default rs2D;
+      deprecated 'do not use this to control front-back UI controls order, better to use controls order and TUIControl.KeepInFront';
 
     { List of user-interface controls currently active.
       See @link(TUIContainer.Controls) for details. }
@@ -2255,11 +2256,11 @@ type
       Right now only meaningful when using NPAPI plugin. }
     property NamedParameters: TCastleStringList read FNamedParameters;
   private
-    LastFpsOutputTick: TMilisecTime;
+    LastFpsOutputTime: TTimerResult;
     FFpsShowOnCaption: boolean;
     FSwapFullScreen_Key: TKey;
     FClose_CharKey: char;
-    FFpsCaptionUpdateInterval: TMilisecTime;
+    FFpsCaptionUpdateDelay: Single;
   public
     { Show current frames per second on window caption.
       You can modify this property only @italic(before calling @link(Open).) }
@@ -2286,26 +2287,20 @@ type
     property Close_CharKey: char
       read FClose_CharKey write FClose_CharKey default #0;
 
-    { The amount of time (in miliseconds) between updating Caption
+    { The amount of time (in seconds) between updating Caption
       with current FPS value. Used when FpsShowOnCaption.
 
       Note that updating Caption of the window too often @italic(may) cause
       a significant FPS dropdown, in other words: don't set this to too small value.
-      I once used here value 200. It's 5 times per second,
-      this didn't seem too often, until once I checked my program
-      with this turned off and found that my program runs now
-      much faster (you can see that looking at FpsRealTime
-      (FpsFrameTime does not change)).
+      Even small values like 0.2 (5 times per second) are known to cause
+      a drop in FPS.
 
-      That's why I use here quite big value by default,
-      DefaultFpsCaptionUpdateInterval.
-
-      If you really want to show FPS counts updated more constantly,
-      you should display them each frame as a text in OpenGL
-      (like I do in view3dscene). }
-    property FpsCaptionUpdateInterval: TMilisecTime
-      read FFpsCaptionUpdateInterval write FFpsCaptionUpdateInterval
-      default DefaultFpsCaptionUpdateInterval;
+      If you want to show FPS updated more often,
+      just draw it yourself in the window,
+      see e.g. http://castle-engine.sourceforge.net/tutorial_2d_ui_custom_drawn.php . }
+    property FpsCaptionUpdateDelay: Single
+      read FFpsCaptionUpdateDelay write FFpsCaptionUpdateDelay
+      default DefaultFpsCaptionUpdateDelay;
 
     { Configure some options typically used by "demo" applications. }
     procedure SetDemoOptions(ASwapFullScreen_Key: TKey;
@@ -2428,7 +2423,7 @@ type
     FMainWindow: TCastleWindowCustom;
     FUserAgent: string;
     FDefaultWindowClass: TCastleWindowCustomClass;
-    LastMaybeDoTimerTime: TMilisecTime;
+    LastMaybeDoTimerTime: TTimerResult;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindowCustom;
@@ -2986,7 +2981,7 @@ begin
   Close_CharKey := #0;
   SwapFullScreen_Key := K_None;
   FpsShowOnCaption := false;
-  FFpsCaptionUpdateInterval := DefaultFpsCaptionUpdateInterval;
+  FFpsCaptionUpdateDelay := DefaultFpsCaptionUpdateDelay;
   FTouches := TTouchList.Create;
   FFocused := true;
   FNamedParameters := TCastleStringList.Create;
@@ -3042,7 +3037,7 @@ procedure TCastleWindowCustom.OpenCore;
 
     UIScale := Container.DefaultUIScale;
     TextRect := Theme.Images[tiLoading].Rect.
-      ScaleAroundMiddle(UIScale).
+      ScaleAroundCenter(UIScale).
       Align(hpMiddle, WindowRect, hpMiddle).
       Align(vpMiddle, WindowRect, vpMiddle);
     Theme.Draw(TextRect, tiLoading, UIScale, Theme.LoadingTextColor);
@@ -3536,12 +3531,11 @@ begin
   MakeCurrent;
   Container.EventUpdate;
 
-  { show FPS on caption once FpsCaptionUpdateInterval passed }
+  { show FPS on caption once FpsCaptionUpdateDelay passed }
   if FpsShowOnCaption and
-     ((lastFpsOutputTick = 0) or
-      (TimeTickDiff(lastFpsOutputTick, CastleTimeUtils.GetTickCount64) >= FpsCaptionUpdateInterval)) then
+     (TimerSeconds(Timer, LastFpsOutputTime) >= FpsCaptionUpdateDelay) then
   begin
-    LastFpsOutputTick := CastleTimeUtils.GetTickCount64;
+    LastFpsOutputTime := Timer;
     SetCaption(cpFps, Format(' - FPS : %f (real : %f)', [Fps.FrameTime, Fps.RealTime]));
   end;
 end;
@@ -4255,6 +4249,7 @@ end;
 {$endif}
 {$endif}
 
+{$warnings off} // knowingly looking at deprecated RenderStyle, to keep it working
 function TCastleWindowCustom.GetRenderStyle: TRenderStyle;
 begin
   Result := Container.RenderStyle;
@@ -4264,6 +4259,7 @@ procedure TCastleWindowCustom.SetRenderStyle(const Value: TRenderStyle);
 begin
   Container.RenderStyle := Value;
 end;
+{$warnings on}
 
 function TCastleWindowCustom.Controls: TChildrenControls;
 begin
@@ -4679,11 +4675,10 @@ end;
 
 procedure TCastleApplication.MaybeDoTimer;
 var
-  Now: TMilisecTime;
+  Now: TTimerResult;
 begin
-  Now := CastleTimeUtils.GetTickCount64;
-  if ((LastMaybeDoTimerTime = 0) or
-      (MilisecTimesSubtract(Now, LastMaybeDoTimerTime) >= FTimerMilisec)) then
+  Now := Timer;
+  if TimerSeconds(Now, LastMaybeDoTimerTime) >= FTimerMilisec / 1000 then
   begin
     LastMaybeDoTimerTime := Now;
     DoApplicationTimer;
@@ -4847,10 +4842,10 @@ begin
       but we will *never* slow down the program when it's not really necessary. }
 
     TimeRemainingFloat :=
-      { how long I should wait between _LimitFPS calls }
+      { how long we should wait between _LimitFPS calls }
       1 / LimitFPS -
-      { how long I actually waited between _LimitFPS calls }
-      (NowTime - LastLimitFPSTime) / TimerFrequency;
+      { how long we actually waited between _LimitFPS calls }
+      TimerSeconds(NowTime, LastLimitFPSTime);
     { Don't do Sleep with too small values.
       It's better to have larger FPS values than limit,
       than to have them too small. }

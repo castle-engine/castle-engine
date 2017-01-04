@@ -192,9 +192,11 @@ var I1, I2, RayOrigin, RayDirection: TVector3Double;
 
 const VConst: TVector3Single = (1.0, 2.0, 3.0);
 
-var i: integer;
-    V: TVector3Single;
-    Time0, Time1, Time2: Double;
+var
+  i: integer;
+  V: TVector3Single;
+  Time0, Time1, Time2: Double;
+  StartTime: TProcessTimerResult;
 begin
  { ------------------------------------------------------------
    testuj TrySimplePlaneRayIntersection przy uzyciu TryPlaneRayIntersection }
@@ -256,21 +258,21 @@ begin
    TryPlaneRayIntersection }
  WritelnSpeedTest('SPEED TEST 1 ----------------------------------------------');
 
- ProcessTimerBegin;
+ StartTime := ProcessTimer;
  for i := 1 to SPEED_TEST_1_CYCLES do ;
- Time0 := ProcessTimerEnd;
+ Time0 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('Empty loop = %f',[Time0]));
 
- ProcessTimerBegin;
+ StartTime := ProcessTimer;
  for i := 1 to SPEED_TEST_1_CYCLES do
   TrySimplePlaneRayIntersection(I1, PlaneConstCoord, PlaneConstVal, RayOrigin, RayDirection);
- Time1 := ProcessTimerEnd;
+ Time1 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('TrySimplePlaneRayIntersection = %f',[Time1]));
 
- ProcessTimerBegin;
+ StartTime := ProcessTimer;
  for i := 1 to SPEED_TEST_1_CYCLES do
   TryPlaneRayIntersection(I1, Plane, RayOrigin, RayDirection);
- Time2 := ProcessTimerEnd;
+ Time2 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('TryPlaneRayIntersection = %f',[Time2]));
 
  {$ifdef VECTOR_MATH_SPEED_TESTS}
@@ -282,26 +284,26 @@ begin
 
  WritelnSpeedTest('SPEED TEST 2 ----------------------------------------------');
 
- ProcessTimerBegin;
+ StartTime := ProcessTimer;
  for i := 1 to SPEED_TEST_2_CYCLES do ;
- Time0 := ProcessTimerEnd;
+ Time0 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('Empty loop = %f',[Time0]));
 
- ProcessTimerBegin;
+ StartTime := ProcessTimer;
  for i := 1 to SPEED_TEST_2_CYCLES do
  begin
   V := VConst;
   VectorScaleVar(V, Pi);
  end;
- Time1 := ProcessTimerEnd;
+ Time1 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('Using assignment + VectorScaleVar = %f',[Time1]));
 
- ProcessTimerBegin;
+ StartTime := ProcessTimer;
  for i := 1 to SPEED_TEST_2_CYCLES do
  begin
   V := VectorScale(VConst, Pi);
  end;
- Time2 := ProcessTimerEnd;
+ Time2 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('Using VectorScale = %f',[Time2]));
 
  {$ifdef VECTOR_MATH_SPEED_TESTS}
@@ -334,22 +336,28 @@ procedure TTestCastleVectors.TestVectorStr;
    AssertVectorsEqual(v2, v);
   end;
 
-const CYCLES = SPEED_TEST_3_CYCLES;
-var Time0, Time1, Time2: Double;
-    i: integer;
+const
+  CYCLES = SPEED_TEST_3_CYCLES;
+var
+  Time0, Time1, Time2: Double;
+  i: integer;
+  StartTime: TProcessTimerResult;
 begin
  WritelnSpeedTest('SPEED TEST VectorFromStr ------------------------------------------');
- ProcessTimerBegin;
+ StartTime := ProcessTimer;
  for i := 1 to CYCLES do ;
- Time0 := ProcessTimerEnd; WritelnSpeedTest(Format('Empty loop = %f',[Time0]));
+ Time0 := ProcessTimerSeconds(ProcessTimer, StartTime);
+ WritelnSpeedTest(Format('Empty loop = %f',[Time0]));
 
- ProcessTimerBegin;
+ StartTime := ProcessTimer;
  for i := 1 to CYCLES do OneTestVectorFromStr;
- Time1 := ProcessTimerEnd; WritelnSpeedTest(Format('VectorFromStr = %f',[Time1]));
+ Time1 := ProcessTimerSeconds(ProcessTimer, StartTime);
+ WritelnSpeedTest(Format('VectorFromStr = %f',[Time1]));
 
- ProcessTimerBegin;
+ StartTime := ProcessTimer;
  for i := 1 to CYCLES do OneTestByDeFormat;
- Time2 := ProcessTimerEnd; WritelnSpeedTest(Format('DeFormat = %f',[Time2]));
+ Time2 := ProcessTimerSeconds(ProcessTimer, StartTime);
+ WritelnSpeedTest(Format('DeFormat = %f',[Time2]));
 
  {$ifdef VECTOR_MATH_SPEED_TESTS}
  { nie uzywam tutaj WritelnSpeedTest. Jesli VECTOR_MATH_SPEED_TESTS

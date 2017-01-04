@@ -1082,7 +1082,7 @@ var
   TexCapsMin, TexCapsMax: TVector2Single;
   TexCapsTranslation, TexCapsScale: Single;
 begin
-  IFS := TIndexedFaceSetNode.Create(Name, BaseUrl);
+  IFS := TIndexedFaceSetNode.Create(X3DName, BaseUrl);
   try
     E := TVRMLExtrusion.Create;
     try

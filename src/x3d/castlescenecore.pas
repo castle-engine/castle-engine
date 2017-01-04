@@ -2898,7 +2898,7 @@ begin
     begin
       { before binding viewpoint, check InitialViewpoint* conditions }
       if (ParentScene.InitialViewpointName = '') or
-         (ParentScene.InitialViewpointName = Node.Name) then
+         (ParentScene.InitialViewpointName = Node.X3DName) then
       begin
         if (ParentScene.InitialViewpointIndex =
             ParentScene.ChangedAllCurrentViewpointIndex) then
@@ -3702,9 +3702,9 @@ var
   begin
     S := 'ChangedField: ' + X3DChangesToStr(Changes) +
       Format(', node: %s (%s %s) at %s',
-      [ ANode.Name, ANode.X3DType, ANode.ClassName, PointerToStr(ANode) ]);
+      [ ANode.X3DName, ANode.X3DType, ANode.ClassName, PointerToStr(ANode) ]);
     if Field <> nil then
-      S += Format(', field %s (%s)', [ Field.Name, Field.X3DType ]);
+      S += Format(', field %s (%s)', [ Field.X3DName, Field.X3DType ]);
     if Additional <> '' then
       S += '. ' + Additional;
     WritelnLog('X3D changes', S);
@@ -5510,6 +5510,7 @@ procedure TCastleSceneCore.InternalSetTime(
           - Also, setting startTime while time-dependent node is active is ignored,
             X3D spec requires this, see our TSFTimeIgnoreWhenActive implementation.
             (bug reproduction: escape_universe, meteorite_1 dying).
+            Although we remove this problem by NeverIgnore hack.
           - Also, it's bad to unconditionally set "Loop" value.
             If user is using paDefault for animation, (s)he expects
             that PlayAnimation doesn't change it ever.
@@ -5520,6 +5521,16 @@ procedure TCastleSceneCore.InternalSetTime(
 
         PlayingAnimationNode.Enabled := false;
       end;
+
+      { If calling PlayAnimation on already-playing node,
+        we have to make sure it actually starts playing from the start.
+        For the StartTime below to be correctly applied, we have to make
+        sure the node actually *stops* temporarily (otherwise the
+        TInternalTimeDependentHandler.SetTime never "sees" the node
+        in the Enabled = false state). }
+      if PlayingAnimationNode = NewPlayingAnimationNode then
+        PlayingAnimationNode.InternalTimeDependentHandler.SetTime(Time, 0, false);
+
       PlayingAnimationNode := NewPlayingAnimationNode;
       if PlayingAnimationNode <> nil then
       begin
@@ -6706,7 +6717,7 @@ begin
   NewViewNode := MakeCameraNode(Version, '', Position, Direction, Up, GravityUp,
     NewViewpointNode);
   NewViewpointNode.FdDescription.Value := AName;
-  NewViewpointNode.Name := 'Viewpoint' + IntToStr(Random(10000));
+  NewViewpointNode.X3DName := 'Viewpoint' + IntToStr(Random(10000));
   NewViewpointNode.Scene := self;
 
   { Create NavigationInfo node }
@@ -6751,7 +6762,7 @@ begin
 
   NewNavigationNode := MakeCameraNavNode(Version, '', NavigationType, WalkSpeed,
     VisibilityLimit, AvatarSize, HeadlightOn);
-  NewNavigationNode.Name := 'NavInfo' + IntToStr(Random(10000));
+  NewNavigationNode.X3DName := 'NavInfo' + IntToStr(Random(10000));
   NewNavigationNode.Scene := self;
 
   // Connect viewpoint with navigation info
@@ -6785,7 +6796,7 @@ type
 
 procedure TAnimationsEnumerator.Enumerate(Node: TX3DNode);
 begin
-  EnumerateWithAlias(Node, Node.Name, false);
+  EnumerateWithAlias(Node, Node.X3DName, false);
 end;
 
 procedure TAnimationsEnumerator.EnumerateWithAlias(const Node: TX3DNode;
@@ -6817,7 +6828,7 @@ begin
             times. Both these usage scenarios result in multiple instances
             of the animation in scene.
           - Even our own mechanism for renaming castle-anim-frames animations from
-            https://github.com/castle-engine/demo-models/blob/master/kanim/two_animations.x3dv
+            https://github.com/castle-engine/demo-models/blob/master/castle-anim-frames/simple/two_animations.x3dv
             results in multiple "Animation" names in scene. }
         WritelnWarning('Named Animations', Format('Animation name "%s" occurs multiple times in scene',
           [AnimationName]));

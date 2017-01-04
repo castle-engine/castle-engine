@@ -628,7 +628,7 @@ begin
     end;
 
   // loop condition avoids being clogged with motion events
-  until (Timer - MessageHandlingBegin) / TimerFrequency > 1 / LimitFPS;
+  until TimerSeconds(Timer, MessageHandlingBegin) > 1 / LimitFPS;
 
   if (MainWindow <> nil) and not MainWindow.Closed then
   begin

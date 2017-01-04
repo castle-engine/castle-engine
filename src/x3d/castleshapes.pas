@@ -125,7 +125,7 @@ type
       const OnlyVisible: boolean = false;
       const OnlyCollidable: boolean = false): Cardinal; virtual; abstract;
 
-    { Look for shape with Geometry.Name = GeometryNodeName.
+    { Look for shape with Geometry.X3DName = GeometryNodeName.
       Returns @nil if not found. }
     function FindGeometryNodeName(const GeometryNodeName: string;
       OnlyActive: boolean = false): TShape;
@@ -436,25 +436,16 @@ type
       read  FTriangleOctreeProgressTitle
       write FTriangleOctreeProgressTitle;
 
-    { Looking at material and color and texture nodes,
-      decide if the shape is opaque or (partially) transparent.
+    { Decide should the shape use alpha blending (partial transparency),
+      looking at material, color, texture nodes (including at texture
+      images contents).
 
-      For VRML >= 2.0, shape is transparent if material exists and
-      has transparency > 0 (epsilon). It's also transparent if it has
-      ColorRGBA node inside "color" field.
-
-      For VRML <= 1.0, for now shape is transparent if all it's
-      transparent values (in VRML 1.0, material node has actually many
-      material values) have transparency > 0 (epsilon).
-
-      We also look at texture, does it have a full-range alpha channel
-      (for blending).
-
-      It looks at data of texture node, material node and so on,
-      so should be done before any calls to TCastleSceneCore.FreeResources.
+      This may look at the data of the texture node,
+      so it should be called before any calls to TCastleSceneCore.FreeResources.
       It checks AlphaChannel of textures, so assumes that given shape
       textures are already loaded. }
-    function Transparent: boolean;
+    function Blending: boolean;
+    function Transparent: boolean; deprecated 'use Blending';
 
     procedure Traverse(Func: TShapeTraverseFunc;
       const OnlyActive: boolean;
@@ -871,8 +862,8 @@ type
     Returns empty string if none.
 
     When implementing this, you may find useful the following properties
-    of the shape: TShape.OriginalGeometry.NodeName,
-    TShape.Node.NodeName, TShape.GeometryParentNodeName,
+    of the shape: TShape.OriginalGeometry.X3DName,
+    TShape.Node.X3DName, TShape.GeometryParentNodeName,
     TShape.GeometryGrandParentNodeName,
     TShape.GeometryGrandGrandParentNodeName.
 
@@ -930,7 +921,7 @@ begin
     while SI.GetNext do
     begin
       Result := SI.Current;
-      if Result.OriginalGeometry.Name = GeometryNodeName then Exit;
+      if Result.OriginalGeometry.X3DName = GeometryNodeName then Exit;
     end;
   finally FreeAndNil(SI) end;
   Result := nil;
@@ -968,14 +959,14 @@ begin
 
   if ParentInfo <> nil then
   begin
-    FGeometryParentNodeName := ParentInfo^.Node.Name;
+    FGeometryParentNodeName := ParentInfo^.Node.X3DName;
     ParentInfo := ParentInfo^.ParentInfo;
     if ParentInfo <> nil then
     begin
-      FGeometryGrandParentNodeName := ParentInfo^.Node.Name;
+      FGeometryGrandParentNodeName := ParentInfo^.Node.X3DName;
       ParentInfo := ParentInfo^.ParentInfo;
       if ParentInfo <> nil then
-        FGeometryGrandGrandParentNodeName := ParentInfo^.Node.Name;
+        FGeometryGrandGrandParentNodeName := ParentInfo^.Node.X3DName;
     end;
   end;
 
@@ -1485,6 +1476,33 @@ begin
 end;
 
 function TShape.Transparent: boolean;
+begin
+  Result := Blending;
+end;
+
+function TShape.Blending: boolean;
+
+  { All the "transparency" field values are greater than zero.
+    So the blending should be used when rendering.
+
+    Note that when "transparency" field is empty, then we assume
+    a default transparency (0) should be used. So AllMaterialsTransparent
+    is @false then (contrary to the strict definition of "all",
+    which should be true for empty sets). }
+  function AllMaterialsTransparent(const Node: TMaterialNode_1): boolean;
+  var
+    i: Integer;
+  begin
+    if Node.FdTransparency.Items.Count = 0 then
+      result := DefaultMaterialTransparency > SingleEqualityEpsilon else
+    begin
+      for i := 0 to Node.FdTransparency.Items.Count-1 do
+        if Node.FdTransparency.Items.L[i] <= SingleEqualityEpsilon then
+          Exit(false);
+      result := true;
+    end;
+  end;
+
 var
   M: TMaterialNode;
   Tex: TAbstractTextureNode;
@@ -1511,7 +1529,7 @@ begin
       for each separate triangle. Or to sort every separate triangle.
       This would obviously get very very slow for models with lots
       of triangles.  }
-    Result := State.LastNodes.Material.AllMaterialsTransparent;
+    Result := AllMaterialsTransparent(State.LastNodes.Material);
 
   if Geometry.ColorRGBA <> nil then
     Result := true;
@@ -1521,11 +1539,11 @@ begin
     it has AlphaChannel = atFullRange
     if any child has atFullRange. So it automatically works Ok too. }
   Tex := State.Texture;
-  if (Tex <> nil) and (Tex.AlphaChannelFinal = acFullRange) then
+  if (Tex <> nil) and (Tex.AlphaChannelFinal = acBlending) then
     Result := true;
 
   Tex := OriginalGeometry.FontTextureNode;
-  if (Tex <> nil) and (Tex.AlphaChannelFinal = acFullRange) then
+  if (Tex <> nil) and (Tex.AlphaChannelFinal = acBlending) then
     Result := true;
 end;
 
@@ -2108,8 +2126,8 @@ end;
 function TShape.NiceName: string;
 begin
   Result := OriginalGeometry.NiceName;
-  if (Node <> nil) and (Node.Name <> '') then
-    Result := Node.Name + ':' + Result;
+  if (Node <> nil) and (Node.X3DName <> '') then
+    Result := Node.X3DName + ':' + Result;
 end;
 
 function TShape.Node: TAbstractShapeNode;
@@ -2405,7 +2423,7 @@ end;
 
 function TProximitySensorInstance.DebugInfo(const Indent: string = ''): string;
 begin
-  Result := Indent + 'ProximitySensor (' + Node.Name + ')' + NL;
+  Result := Indent + 'ProximitySensor (' + Node.X3DName + ')' + NL;
 end;
 
 { TVisibilitySensorInstance ---------------------------------------------- }
@@ -2431,7 +2449,7 @@ end;
 
 function TVisibilitySensorInstance.DebugInfo(const Indent: string = ''): string;
 begin
-  Result := Indent + 'VisibilitySensor (' + Node.Name + ')' + NL;
+  Result := Indent + 'VisibilitySensor (' + Node.X3DName + ')' + NL;
 end;
 
 { TShapeTreeIterator ----------------------------------------------------- }
@@ -2677,13 +2695,13 @@ begin
 
   if (not B.BoundingBox.IsEmpty) and
     ( A.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(A.BoundingBox.Middle, SortPosition) <
-        PointsDistanceSqr(B.BoundingBox.Middle, SortPosition))) then
+      ( PointsDistanceSqr(A.BoundingBox.Center, SortPosition) <
+        PointsDistanceSqr(B.BoundingBox.Center, SortPosition))) then
     Result := -1 else
   if (not A.BoundingBox.IsEmpty) and
     ( B.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(B.BoundingBox.Middle, SortPosition) <
-        PointsDistanceSqr(A.BoundingBox.Middle, SortPosition))) then
+      ( PointsDistanceSqr(B.BoundingBox.Center, SortPosition) <
+        PointsDistanceSqr(A.BoundingBox.Center, SortPosition))) then
     Result :=  1 else
     Result :=  0;
 end;
@@ -2692,13 +2710,13 @@ function IsSmallerBackToFront3D(const A, B: TShape): Integer;
 begin
   if (not A.BoundingBox.IsEmpty) and
     ( B.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(A.BoundingBox.Middle, SortPosition) >
-        PointsDistanceSqr(B.BoundingBox.Middle, SortPosition))) then
+      ( PointsDistanceSqr(A.BoundingBox.Center, SortPosition) >
+        PointsDistanceSqr(B.BoundingBox.Center, SortPosition))) then
     Result := -1 else
   if (not B.BoundingBox.IsEmpty) and
     ( A.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(B.BoundingBox.Middle, SortPosition) >
-        PointsDistanceSqr(A.BoundingBox.Middle, SortPosition))) then
+      ( PointsDistanceSqr(B.BoundingBox.Center, SortPosition) >
+        PointsDistanceSqr(A.BoundingBox.Center, SortPosition))) then
     Result :=  1 else
     Result :=  0;
 end;
@@ -2711,7 +2729,7 @@ begin
 
     For speed, we don't look at bounding box Middle, only at it's min point.
     The assumption here is that shape is 2D, so
-      BoundingBox.Data[0][2] = BoundingBox.Data[1][2] = BoundingBox.Middle[2] . }
+      BoundingBox.Data[0][2] = BoundingBox.Data[1][2] = BoundingBox.Center[2] . }
 
   if (not A.BoundingBox.IsEmpty) and
     ( B.BoundingBox.IsEmpty or
@@ -2745,7 +2763,7 @@ function X3DShapePlaceholder(const Shape: TShape): string;
 begin
   { Shape.Node may be nil for old VRML 1.0 or Inventor. }
   if Shape.Node <> nil then
-    Result := Shape.Node.Name else
+    Result := Shape.Node.X3DName else
     Result := '';
 end;
 

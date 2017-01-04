@@ -166,7 +166,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/triangulate_demo \
   examples/3d_rendering_processing/placeholder_names \
   examples/3d_rendering_processing/tools/gen_light_map \
-  examples/3d_rendering_processing/tools/kanim_to_interpolators \
+  examples/3d_rendering_processing/tools/castle_anim_frames_to_interpolators \
   examples/3d_rendering_processing/multiple_viewports \
   examples/3d_rendering_processing/fog_culling \
   examples/research_special_rendering_methods/plane_mirror_and_shadow/plane_mirror_and_shadow \
@@ -181,6 +181,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/combine_multiple_x3d_into_one \
   examples/3d_rendering_processing/listen_on_x3d_events \
   examples/3d_rendering_processing/cars_demo \
+  examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad \
   src/x3d/teapot/teapot_3d_to_pascal \
   src/x3d/nodes_specification/x3d_nodes_spec_to_pascal/x3d_nodes_spec_to_pascal \
   src/x3d/nodes_specification/generate_x3d_nodes_helpers/generate_x3d_nodes_to_pascal \
@@ -197,7 +198,9 @@ EXAMPLES_BASE_NAMES := \
   tools/build-tool/castle-engine \
   tools/image2pascal/image2pascal \
   tools/texturefont2pascal/texturefont2pascal \
-  tools/castle-curves/castle-curves
+  tools/castle-curves/castle-curves \
+  examples/random_generator/random_speed_test \
+  examples/random_generator/random_threads_test
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
@@ -208,8 +211,7 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   tests/test_castle_game_engine \
   src/library/castleengine \
   examples/library/lcl_dynlib_tester/cge_dynlib_tester \
-  examples/random_generator/GraphicsTest \
-  examples/random_generator/Random_speed_test
+  examples/random_generator/graphics_random_test
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   $(EXAMPLES_LAZARUS_BASE_NAMES)

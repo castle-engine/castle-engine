@@ -208,13 +208,18 @@ procedure CheckNodesStructurallyEqual(Model1, Model2: TX3DNode;
 
   procedure CheckSFNodesStructurallyEqual(Field1, Field2: TSFNode);
   begin
-    if (Field1.Value <> nil) and (Field2.Value <> nil) then
+    if Field1.WeakLink and Field2.WeakLink then
+    begin
+      { assume equal }
+    end else
+    if (Field1.Value <> nil) and (not Field1.WeakLink) and
+       (Field2.Value <> nil) and (not Field2.WeakLink) then
     begin
       CheckNodesStructurallyEqual(Field1.Value, Field2.Value, EqualityEpsilon);
     end else
     if not ((Field1.Value = nil) and (Field2.Value = nil)) then
       raise EModelsStructureDifferent.CreateFmt('Field "%s" of type SFNode ' +
-        'is once NULL and once not-NULL', [Field1.Name]);
+        'is once NULL and once not-NULL', [Field1.X3DName]);
   end;
 
   procedure CheckMFNodesStructurallyEqual(Field1, Field2: TMFNode);
@@ -246,10 +251,10 @@ begin
     TInlineNode(Model2).LoadInlined(false);
   end;
 
-  if Model1.Name <> Model2.Name then
+  if Model1.X3DName <> Model2.X3DName then
     raise EModelsStructureDifferent.CreateFmt(
       'Different names of nodes: "%s" and "%s"',
-      [Model1.Name, Model2.Name]);
+      [Model1.X3DName, Model2.X3DName]);
 
   { We are interested whether Model1.BaseUrl and Model2.BaseUrl will
     give different results when using them to resolve relative URLs.
@@ -324,12 +329,12 @@ begin
         examples/models/gus_2_final.wrl trick. }
 
       if not (
-         ( (Model1 is TInlineNode)            and (Model1.Fields[I].Name = 'url') ) or
+         ( (Model1 is TInlineNode)            and (Model1.Fields[I].X3DName = 'url') ) or
          Model1.Fields[I].Equals(Model2.Fields[I], EqualityEpsilon)
          ) then
         raise EModelsStructureDifferent.CreateFmt(
           'Fields "%s" (class "%s") are not equal',
-          [Model1.Fields[I].Name, Model1.Fields[I].ClassName]);
+          [Model1.Fields[I].X3DName, Model1.Fields[I].ClassName]);
     end;
   end;
 end;
@@ -387,7 +392,9 @@ function NodesMerge(Model1, Model2: TX3DNode;
     { Equality was already checked by CheckNodesStructurallyEqual,
       so now if one SFNode value is not nil, we know that the other
       one is not nil too. }
-    if Field1.Value <> nil then
+    if (Field1.Value <> nil) and
+      (not Field1.WeakLink) and
+      (not Field2.WeakLink) then
     begin
       if NodesMerge(Field1.Value, Field2.Value, EqualityEpsilon) then
         Field1.Value := Field2.Value else
@@ -476,7 +483,11 @@ function NodesLerp(const A: Single; Model1, Model2: TX3DNode): TX3DNode;
 
   procedure SFNodeLerp(Target, Field1, Field2: TSFNode);
   begin
-    Target.Value := NodesLerp(A, Field1.Value, Field2.Value);
+    if (not Field1.WeakLink) and
+       (not Field2.WeakLink) then
+      Target.Value := NodesLerp(A, Field1.Value, Field2.Value)
+    else
+      Target.Value := Field1.Value;
   end;
 
   procedure MFNodeLerp(Target, Field1, Field2: TMFNode);
@@ -493,7 +504,7 @@ begin
   if Model1 = Model2 then
     Exit(Model1);
 
-  Result := TX3DNodeClass(Model1.ClassType).Create(Model1.Name,
+  Result := TX3DNodeClass(Model1.ClassType).Create(Model1.X3DName,
     Model1.BaseUrl);
   try
     { We already loaded all inlines (in CheckNodesStructurallyEqual).

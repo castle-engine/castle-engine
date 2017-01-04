@@ -12,8 +12,10 @@
 
 {$define SpeedTest_Declare:=
   {$ifndef NO_SPEED_TESTS}
-  var SpeedTest_i: Cardinal;
-      SpeedTest_Time0, SpeedTest_Time1, SpeedTest_Time2: Double;
+  var
+    SpeedTest_i: Cardinal;
+    SpeedTest_Time0, SpeedTest_Time1, SpeedTest_Time2: Double;
+    StartTime: TProcessTimerResult;
   {$endif not NO_SPEED_TESTS}
 }
 
@@ -21,19 +23,19 @@
   {$ifndef NO_SPEED_TESTS}
   Writeln('SPEED TEST ',SpeedTest_Name, '-------------------');
 
-  ProcessTimerBegin;
+  StartTime := ProcessTimer;
   for SpeedTest_i := 1 to SpeedTest_Cycles do ;
-  SpeedTest_Time0 := ProcessTimerEnd;
+  SpeedTest_Time0 := ProcessTimerSeconds(ProcessTimer, StartTime);
   Writeln(Format('Empty loop = %f',[SpeedTest_Time0]));
 
-  ProcessTimerBegin;
+  StartTime := ProcessTimer;
   for SpeedTest_i := 1 to SpeedTest_Cycles do SpeedTest_DoFasterCycle;
-  SpeedTest_Time1 := ProcessTimerEnd;
+  SpeedTest_Time1 := ProcessTimerSeconds(ProcessTimer, StartTime);
   Writeln(SpeedTest_FasterName, Format(' = %f',[SpeedTest_Time1]));
 
-  ProcessTimerBegin;
+  StartTime := ProcessTimer;
   for SpeedTest_i := 1 to SpeedTest_Cycles do SpeedTest_DoSlowerCycle;
-  SpeedTest_Time2 := ProcessTimerEnd;
+  SpeedTest_Time2 := ProcessTimerSeconds(ProcessTimer, StartTime);
   Writeln(SpeedTest_SlowerName, Format(' = %f',[SpeedTest_Time2]));
 
   Writeln(SpeedTest_FasterName, ' is faster than ',

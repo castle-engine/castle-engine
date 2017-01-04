@@ -835,12 +835,15 @@ type
     AllowedChildren: TAllowedChildren;
     AllowedChildrenClasses: TX3DNodeClassesList;
     AllowedChildrenInterface: TGUID;
-    procedure SetValue(AValue: TX3DNode);
-  private
     FDefaultValue: TX3DNode;
     FDefaultValueExists: boolean;
+    FWeakLink: boolean;
+    procedure SetValue(AValue: TX3DNode);
     procedure SetDefaultValue(ADefaultValue: TX3DNode);
     procedure SetDefaultValueExists(AValue: boolean);
+    procedure SetWeakLink(const AValue: boolean);
+    procedure WarningIfUnusedWeakLink;
+    procedure DestructionNotification(Node: TX3DNode);
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
@@ -937,6 +940,41 @@ type
     function Enumerate(Func: TEnumerateChildrenFunction): Pointer;
 
     procedure Send(const AValue: TX3DNode); overload;
+
+    { Use weak links to deal with cycles in the X3D graph.
+
+      Marking a field as a @italic(weak link) can only be done
+      when the field value is empty, right when the field is created,
+      in @link(TX3DNode.CreateNode) descendant.
+
+      Being a @italic(weak link) means two things:
+
+      @orderedList(
+        @item(The nodes inside a weak link are not enumerated
+          when traversing the X3D graph in @italic(any) way
+          (@link(TX3DNode.EnumerateNodes),
+          @link(TX3DNode.Traverse) and all others;
+          Nodes implementing @link(TX3DNode.DirectEnumerateActive)
+          should also omit these fields.)
+
+        @item(A weak link does not create a reference count
+          preventing the node from being freed (or freeing
+          it automatically when ref count drops to zero).
+          Instead, weak links merely observe the nodes, and automatically
+          set their value to @nil when the node gets freed.)
+      )
+
+      If effect, this avoids loops when enumerating (and avoids
+      recursive loops in reference counts, which would cause memory leaks),
+      but use this only when you know that the node
+      must occur somewhere else in the X3D graph anyway (or it's OK to
+      ignore it).
+      For example, this is useful for
+      @link(TGeneratedShadowMapNode.Light), as we know that the light
+      must occur somewhere else in the graph anyway to be useful.
+    }
+    property WeakLink: boolean
+      read FWeakLink write SetWeakLink default false;
   end;
 
   TSFNodeEventHelper = class helper for TSFNodeEvent
@@ -1463,7 +1501,7 @@ type
 
   TX3DPrototypeBase = class(TX3DFileItem)
   private
-    FName: string;
+    FX3DName: string;
     FInterfaceDeclarations: TX3DInterfaceDeclarationList;
 
     FBaseUrl: string;
@@ -1490,7 +1528,8 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    property Name: string read FName write FName;
+    property X3DName: string read FX3DName write FX3DName;
+    property Name: string read FX3DName write FX3DName; deprecated 'use X3DName';
     property InterfaceDeclarations: TX3DInterfaceDeclarationList
       read FInterfaceDeclarations;
 
@@ -2029,9 +2068,6 @@ const
   DefaultRenderedTextureWidth  = 128;
   DefaultRenderedTextureHeight = 128;
 
-  DefaultShadowMapScale = 1.1;
-  DefaultShadowMapBias = 4.0;
-
   VRML1Version: TX3DVersion = (Major: 1; Minor: 0);
   VRML2Version: TX3DVersion = (Major: 2; Minor: 0);
   { Latest X3D version supported. }
@@ -2326,7 +2362,7 @@ begin
   for I := 0 to Count - 1 do
   begin
     Result := Ptr(I);
-    if Result^.Node.Name = NodeName then
+    if Result^.Node.X3DName = NodeName then
       Exit;
   end;
   Result := nil;
@@ -3023,7 +3059,7 @@ procedure TSFNode.WarningIfChildNotAllowed(Child: TX3DNode);
     S: string;
   begin
     S := Format('Node "%s" is not allowed in the field "%s"',
-      [Child.X3DType, Name]);
+      [Child.X3DType, X3DName]);
     if ParentNode <> nil then
       S += Format(' of the node "%s"', [ParentNode.X3DType]);
     WritelnWarning('VRML/X3D', S);
@@ -3032,6 +3068,22 @@ procedure TSFNode.WarningIfChildNotAllowed(Child: TX3DNode);
 begin
   if not ChildAllowed(Child) then
     ChildNotAllowed;
+end;
+
+procedure TSFNode.WarningIfUnusedWeakLink;
+begin
+  if WeakLink and
+     (Value <> nil) and
+     (Value.FVRML1Parents.Count = 0) and
+     (Value.FParentFields.Count = 0) and
+     (Value.KeepExisting = 0) then
+  begin
+    FValue.FreeIfUnused; // we know it will be freed now
+    FValue := nil;
+    { do a warning after freeing FValue, to avoid memory leaks in case OnWarning makes exception }
+    WritelnWarning('VRML/X3D', Format('A node inside the field "%s" must be already used elsewhere (use USE clause, do not declare a new node here)',
+      [NiceName]));
+  end;
 end;
 
 procedure TSFNode.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
@@ -3045,7 +3097,10 @@ begin
     { This is one case when we can use NilIfUnresolvedUSE = @true }
     Value := ParseNode(Lexer, Reader as TX3DReaderNames, true);
     if Value <> nil then
+    begin
       WarningIfChildNotAllowed(Value);
+      WarningIfUnusedWeakLink;
+    end;
   end;
 end;
 
@@ -3077,6 +3132,7 @@ begin
   end else
   begin
     WarningIfChildNotAllowed(Value);
+    WarningIfUnusedWeakLink;
   end;
 end;
 
@@ -3100,7 +3156,7 @@ begin
 
       if I.GetNext then
         WritelnWarning('VRML/X3D', Format('X3D field "%s" is SFNode, but it contains more than one XML element (2nd element is "%s")',
-          [Name, I.Current.TagName]));
+          [X3DName, I.Current.TagName]));
     end;
   finally FreeAndNil(I) end;
 end;
@@ -3182,12 +3238,22 @@ begin
   if FValue <> AValue then
   begin
     if FValue <> nil then
-      FValue.RemoveParentField(Self);
+    begin
+      if WeakLink then
+        FValue.RemoveDestructionNotification(@DestructionNotification)
+      else
+        FValue.RemoveParentField(Self);
+    end;
 
     FValue := AValue;
 
     if AValue <> nil then
-      FValue.AddParentField(Self);
+    begin
+      if WeakLink then
+        FValue.AddDestructionNotification(@DestructionNotification)
+      else
+        FValue.AddParentField(Self);
+    end;
   end;
 end;
 
@@ -3196,12 +3262,33 @@ begin
   if FDefaultValue <> ADefaultValue then
   begin
     if FDefaultValue <> nil then
-      FDefaultValue.RemoveParentField(Self);
+    begin
+      if WeakLink then
+        FDefaultValue.RemoveDestructionNotification(@DestructionNotification)
+      else
+        FDefaultValue.RemoveParentField(Self);
+    end;
 
     FDefaultValue := ADefaultValue;
 
     if ADefaultValue <> nil then
-      FDefaultValue.AddParentField(Self);
+    begin
+      if WeakLink then
+        FDefaultValue.AddDestructionNotification(@DestructionNotification)
+      else
+        FDefaultValue.AddParentField(Self);
+    end;
+  end;
+end;
+
+procedure TSFNode.DestructionNotification(Node: TX3DNode);
+begin
+  if WeakLink then
+  begin
+    if FValue = Node then
+      FValue := nil;
+    if FDefaultValue = Node then
+      FDefaultValue := nil;
   end;
 end;
 
@@ -3219,9 +3306,11 @@ function TSFNode.Enumerate(Func: TEnumerateChildrenFunction): Pointer;
 begin
   { checking CurrentChildAllowed is not really necessary here,
     and costs time, because it may do a slow Supports() call }
-  //if (Value <> nil) and CurrentChildAllowed then
-  if Value <> nil then
-    Result := Func(ParentNode, Value) else
+  //if (Value <> nil) and CurrentChildAllowed and not WeakLink then
+
+  if (Value <> nil) and not WeakLink then
+    Result := Func(ParentNode, Value)
+  else
     Result := nil;
 end;
 
@@ -3236,12 +3325,22 @@ var
 begin
   { We construct using CreateUndefined constructor,
     to have AllowedChildren = acAll }
-  FieldValue := TSFNode.CreateUndefined(ParentNode, Name,
+  FieldValue := TSFNode.CreateUndefined(ParentNode, X3DName,
     false { Exposed = false, because no need to be true });
   try
     FieldValue.Value := AValue;
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
+end;
+
+procedure TSFNode.SetWeakLink(const AValue: boolean);
+begin
+  if FWeakLink <> AValue then
+  begin
+    if Value <> nil then
+      raise EInternalError.Create('TSFNode.WeakLink cannot change when some node is already assigned');
+    FWeakLink := AValue;
+  end;
 end;
 
 { TSFNodeEventHelper --------------------------------------------------------- }
@@ -3503,7 +3602,7 @@ procedure TMFNode.WarningIfChildNotAllowed(Child: TX3DNode);
     S: string;
   begin
     S := Format('Node "%s" is not allowed in the field "%s"',
-      [Child.X3DType, Name]);
+      [Child.X3DType, X3DName]);
     if ParentNode <> nil then
       S += Format(' of the node "%s"', [ParentNode.X3DType]);
     WritelnWarning('VRML/X3D', S);
@@ -3707,7 +3806,7 @@ begin
 
   FBaseUrl := Reader.BaseUrl;
 
-  WritelnWarning('VRML/X3D', 'Unknown node of type "'+ X3DType + '" (named "'+ Name +'")');
+  WritelnWarning('VRML/X3D', 'Unknown node of type "'+ X3DType + '" (named "'+ X3DName +'")');
 end;
 
 constructor TX3DUnknownNode.Create(const AName: string; const ABaseUrl: string);
@@ -3726,7 +3825,7 @@ end;
 function TX3DUnknownNode.DeepCopyCreate(
   CopyState: TX3DNodeDeepCopyState): TX3DNode;
 begin
-  Result := TX3DUnknownNode.CreateUnknown(Name, BaseUrl, X3DType);
+  Result := TX3DUnknownNode.CreateUnknown(X3DName, BaseUrl, X3DType);
 end;
 
 { TX3DInterfaceDeclaration -------------------------------------------------- }
@@ -3775,7 +3874,7 @@ var
   X3DType: string;
   Access: TX3DAccessType;
   FieldType: TX3DFieldClass;
-  Name: string;
+  ParsedName: string;
 begin
   { clear instance before parsing }
   FieldOrEvent.Free;
@@ -3805,14 +3904,14 @@ begin
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName, 'name (for interface declaration)');
-  Name := Lexer.TokenName;
+  ParsedName := Lexer.TokenName;
 
   { we know everything now to create Event/Field instance }
   case Access of
     atInputOnly, atOutputOnly:
-      FieldOrEvent := FieldType.CreateEvent(ParentNode, Name, Access = atInputOnly);
+      FieldOrEvent := FieldType.CreateEvent(ParentNode, ParsedName, Access = atInputOnly);
     atInitializeOnly, atInputOutput:
-      FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name, Access = atInputOutput);
+      FieldOrEvent := FieldType.CreateUndefined(ParentNode, ParsedName, Access = atInputOutput);
     else raise EInternalError.Create('Access ? in TX3DInterfaceDeclaration.Parse');
   end;
 
@@ -3841,7 +3940,7 @@ var
   AccessName: string;
   FieldX3DType: string;
   FieldType: TX3DFieldClass;
-  Name, FieldActualValue: string;
+  ParsedName, FieldActualValue: string;
 begin
   { clear instance before parsing }
   FieldOrEvent.Free;
@@ -3867,15 +3966,15 @@ begin
   end else
     raise EX3DXmlError.Create('Missing field type in X3D interface declaration');
 
-  if not Element.AttributeString('name', Name) then
+  if not Element.AttributeString('name', ParsedName) then
     raise EX3DXmlError.Create('Missing name in X3D interface declaration');
 
   { we know everything now to create Event/Field instance }
   case Access of
     atInputOnly, atOutputOnly:
-      FieldOrEvent := FieldType.CreateEvent(ParentNode, Name, Access = atInputOnly);
+      FieldOrEvent := FieldType.CreateEvent(ParentNode, ParsedName, Access = atInputOnly);
     atInitializeOnly, atInputOutput:
-      FieldOrEvent := FieldType.CreateUndefined(ParentNode, Name, Access = atInputOutput);
+      FieldOrEvent := FieldType.CreateUndefined(ParentNode, ParsedName, Access = atInputOutput);
     else raise EInternalError.Create('AccessType ?');
   end;
 
@@ -3911,7 +4010,7 @@ begin
   begin
     { F := copy of Field }
     F := TX3DFieldClass(Field.ClassType).CreateUndefined(NewParentNode,
-      Field.Name, Field.Exposed);
+      Field.X3DName, Field.Exposed);
     F.Assign(Field);
 
     { CreateUndefined creates field without any default value,
@@ -3937,7 +4036,7 @@ begin
   if Event <> nil then
   begin
     { E := copy of Event }
-    E := Event.FieldClass.CreateEvent(NewParentNode, Event.Name, Event.InEvent);
+    E := Event.FieldClass.CreateEvent(NewParentNode, Event.X3DName, Event.InEvent);
     { Although above constructor already copied most event properties,
       some were omitted (like IsClauseNames --- important for Script with
       eventIn/out events with IS clauses inside prototypes).
@@ -4139,7 +4238,7 @@ begin
   for I := 0 to Count - 1 do
   begin
     Result := Items[I].FieldOrEvent;
-    if Result.Name = Name then
+    if Result.X3DName = Name then
       Exit;
   end;
   Result := nil;
@@ -4153,7 +4252,7 @@ begin
     if Items[I].FieldOrEvent is TX3DField then
     begin
       Result := Items[I].Field;
-      if Result.Name = Name then
+      if Result.X3DName = Name then
         Exit;
     end;
   Result := nil;
@@ -4167,7 +4266,7 @@ begin
     if Items[I].FieldOrEvent is TX3DEvent then
     begin
       Result := Items[I].Event;
-      if Result.Name = Name then
+      if Result.X3DName = Name then
         Exit;
     end;
   Result := nil;
@@ -4216,7 +4315,7 @@ end;
 
 function TX3DPrototypeNode.DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode;
 begin
-  Result := TX3DPrototypeNode.CreatePrototypeNode(Name, BaseUrl,
+  Result := TX3DPrototypeNode.CreatePrototypeNode(X3DName, BaseUrl,
     { TODO: for now, we don't copy proto, instead simply passing the same
       proto reference. }
     Prototype);
@@ -4224,7 +4323,7 @@ end;
 
 function TX3DPrototypeNode.X3DType: string;
 begin
-  Result := Prototype.Name;
+  Result := Prototype.X3DName;
 end;
 
 procedure TX3DPrototypeNode.FieldOrEventHandleIsClause(
@@ -4266,16 +4365,16 @@ begin
         WritelnWarning('VRML/X3D', Format('Within prototype "%s", ' +
           'field of type %s (named "%s") references ' +
           '(by "IS" clause) field of different type %s (named "%s")',
-          [Prototype.Name,
+          [Prototype.X3DName,
            DestinationField.X3DType,
-           Destination.Name,
+           Destination.X3DName,
            SourceField.X3DType,
-           Source.Name]));
+           Source.X3DName]));
       end;
       on E: EX3DFieldAssign do
       begin
         WritelnWarning('VRML/X3D', Format('Error when expanding prototype "%s": ',
-          [Prototype.Name]) + E.Message);
+          [Prototype.X3DName]) + E.Message);
       end;
     end;
   end else
@@ -4288,7 +4387,7 @@ begin
     if SourceEvent.InEvent <> DestinationEvent.InEvent then
     begin
       WritelnWarning('VRML/X3D', Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
-        [ Prototype.Name,
+        [ Prototype.X3DName,
           InEventName[DestinationEvent.InEvent],
           InEventName[SourceEvent.InEvent] ]));
       Exit;
@@ -4297,7 +4396,7 @@ begin
     if SourceEvent.FieldClass <> DestinationEvent.FieldClass then
     begin
       WritelnWarning('VRML/X3D', Format('When expanding prototype "%s": "%s" event references (by "IS" clause) "%s" event',
-        [ Prototype.Name,
+        [ Prototype.X3DName,
           DestinationEvent.FieldClass.X3DType,
           SourceEvent.FieldClass.X3DType ]));
       Exit;
@@ -4411,10 +4510,10 @@ function TX3DPrototypeNode.InstantiateIsClauses(Node, Child: TX3DNode): Pointer;
                 FieldOrEventHandleIsClause(InstanceField.EventOut, OurEvent, NewIsClauseNames);
             end else
               WritelnWarning('VRML/X3D', Format('Within prototype "%s", exposed field "%s" references (by "IS" clause) non-existing field/event name "%s"',
-                [Prototype.Name, InstanceField.Name, IsClauseName]));
+                [Prototype.X3DName, InstanceField.X3DName, IsClauseName]));
           end else
             WritelnWarning('VRML/X3D', Format('Within prototype "%s", field "%s" references (by "IS" clause) non-existing field "%s"',
-              [Prototype.Name, InstanceField.Name, IsClauseName]));
+              [Prototype.X3DName, InstanceField.X3DName, IsClauseName]));
         end;
 
         InstanceField.IsClauseNamesAssign(NewIsClauseNames);
@@ -4471,7 +4570,7 @@ function TX3DPrototypeNode.InstantiateIsClauses(Node, Child: TX3DNode): Pointer;
             FieldOrEventHandleIsClause(InstanceEvent, OurEvent, NewIsClauseNames);
           end else
             WritelnWarning('VRML/X3D', Format('Within prototype "%s", event "%s" references (by "IS" clause) non-existing event "%s"',
-              [Prototype.Name, InstanceEvent.Name, IsClauseName]));
+              [Prototype.X3DName, InstanceEvent.X3DName, IsClauseName]));
         end;
 
         InstanceEvent.IsClauseNamesAssign(NewIsClauseNames);
@@ -4563,7 +4662,7 @@ function TX3DPrototypeNode.Instantiate: TX3DNode;
       FreeAndNil(NodeCopy);
       raise EX3DPrototypeInstantiateError.CreateFmt(
         'Prototype "%s" has no nodes, cannot instantiate',
-        [Proto.Name]);
+        [Proto.X3DName]);
     end;
 
     { ExtractChild/Item methods were really invented specially for this case.
@@ -4584,7 +4683,7 @@ function TX3DPrototypeNode.Instantiate: TX3DNode;
       NodeCopy.FdChildren[1...] that should accompany this node. }
     NewPrototypeInstanceHelpers := NodeCopy;
 
-    Result.Name := Name;
+    Result.X3DName := X3DName;
 
     (* Result and NodeCopy may come from another prototype.
        For example,
@@ -4646,7 +4745,7 @@ function TX3DPrototypeNode.Instantiate: TX3DNode;
     if Proto.ReferencedPrototype = nil then
       raise EX3DPrototypeInstantiateError.CreateFmt(
         'External prototype "%s" cannot be loaded, so cannot instantiate nodes using it',
-        [Proto.Name]);
+        [Proto.X3DName]);
 
     { Note that we do not check whether ReferencedPrototype actually
       has the same fields/events as declared for externproto.
@@ -4664,7 +4763,7 @@ begin
     InstantiateExternalPrototype(Prototype as TX3DExternalPrototype) else
     raise EX3DPrototypeInstantiateError.CreateFmt(
       'Cannot instantiate prototype "%s": '+
-      'unknown prototype class %s', [Prototype.Name, Prototype.ClassName]);
+      'unknown prototype class %s', [Prototype.X3DName, Prototype.ClassName]);
 end;
 
 { TX3DPrototypeBase --------------------------------------------------------- }
@@ -4753,7 +4852,7 @@ var
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName);
-  FName := Lexer.TokenName;
+  FX3DName := Lexer.TokenName;
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtOpenSqBracket);
@@ -4799,7 +4898,8 @@ begin
   BaseUrl := Reader.BaseUrl;
 
   if Element.AttributeString('name', NewName) then
-    Name := NewName else
+    X3DName := NewName
+  else
     raise EX3DXmlError.Create('Missing "name" for <ProtoDeclare> element');
 
   E := Element.ChildElement('ProtoInterface', false);
@@ -4808,7 +4908,7 @@ begin
 
   E := Element.ChildElement('ProtoBody', false);
   if E = nil then
-    raise EX3DXmlError.CreateFmt('Missing <ProtoBody> inside <ProtoDeclare> element of prototype "%s"', [Name]);
+    raise EX3DXmlError.CreateFmt('Missing <ProtoBody> inside <ProtoDeclare> element of prototype "%s"', [X3DName]);
 
   FreeAndNil(FNode);
 
@@ -4839,8 +4939,8 @@ var
   WriterNames: TX3DWriterNames;
 begin
   case Writer.Encoding of
-    xeClassic: Writer.WriteIndent('PROTO ' + Name + ' ');
-    xeXML    : Writer.WritelnIndent('<ProtoDeclare name=' + StringToX3DXml(Name) + '>');
+    xeClassic: Writer.WriteIndent('PROTO ' + X3DName + ' ');
+    xeXML    : Writer.WritelnIndent('<ProtoDeclare name=' + StringToX3DXml(X3DName) + '>');
     else raise EInternalError.Create('TX3DPrototype.SaveToStream Encoding?');
   end;
 
@@ -4911,7 +5011,7 @@ procedure TX3DExternalPrototype.Parse(Lexer: TX3DLexer; Reader: TX3DReaderNames)
 begin
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtName);
-  FName := Lexer.TokenName;
+  FX3DName := Lexer.TokenName;
 
   Lexer.NextToken;
   Lexer.CheckTokenIs(vtOpenSqBracket);
@@ -4933,7 +5033,8 @@ begin
   BaseUrl := Reader.BaseUrl;
 
   if Element.AttributeString('name', NewName) then
-    Name := NewName else
+    X3DName := NewName
+  else
     raise EX3DXmlError.Create('Missing "name" for <ExternProtoDeclare> element');
 
   ParseInterfaceDeclarationsXML(true, Element, Reader);
@@ -4952,7 +5053,7 @@ begin
   case Writer.Encoding of
     xeClassic:
       begin
-        Writer.WriteIndent('EXTERNPROTO ' + Name + ' ');
+        Writer.WriteIndent('EXTERNPROTO ' + X3DName + ' ');
 
         SaveInterfaceDeclarationsToStream(Writer, true);
 
@@ -4962,7 +5063,7 @@ begin
       end;
     xeXML:
       begin
-        Writer.WriteIndent('<ExternProtoDeclare name=' + StringToX3DXml(Name) + ' url=');
+        Writer.WriteIndent('<ExternProtoDeclare name=' + StringToX3DXml(X3DName) + ' url=');
         URLList.FieldSaveToStream(Writer, true, true);
         Writer.Writeln('>');
 
@@ -4993,7 +5094,7 @@ procedure TX3DExternalPrototype.LoadReferenced;
       if I.Field <> nil then
       begin
         ReferencedField := ReferencedPrototype.InterfaceDeclarations.
-          TryFindFieldName(I.Field.Name);
+          TryFindFieldName(I.Field.X3DName);
         if ReferencedField <> nil then
         begin
           try
@@ -5003,13 +5104,13 @@ procedure TX3DExternalPrototype.LoadReferenced;
             begin
               WritelnWarning('VRML/X3D', Format(
                 'Error when linking external prototype "%s" with prototype "%s": ',
-                [Name, ReferencedPrototype.Name]) + E.Message);
+                [X3DName, ReferencedPrototype.X3DName]) + E.Message);
             end;
           end;
         end else
           WritelnWarning('VRML/X3D', Format('Prototype "%s" referenced by external ' +
             'prototype "%s" doesn''t have field "%s"',
-            [ReferencedPrototype.Name, Name, I.Field.Name]));
+            [ReferencedPrototype.X3DName, X3DName, I.Field.X3DName]));
       end;
     end;
   end;
@@ -5037,7 +5138,7 @@ procedure TX3DExternalPrototype.LoadReferenced;
           if PrototypeNames.Objects[I] is TX3DPrototype then
           begin
             Result := TX3DPrototype(PrototypeNames.Objects[I]);
-            if (Name = '') or (Result.Name = Name) then
+            if (Name = '') or (Result.X3DName = Name) then
               Exit;
           end;
       Result := nil;
@@ -5087,7 +5188,7 @@ procedure TX3DExternalPrototype.LoadReferenced;
 var
   I: Integer;
   S: string;
-  Loaded: boolean;
+  ProtoLoaded: boolean;
 begin
   UnloadReferenced;
 
@@ -5095,9 +5196,10 @@ begin
   begin
     S := URLList.Items[I];
     if IsPrefix('urn:', S) then
-      Loaded := LoadFromURN(S) else
-      Loaded := LoadFromExternalVRML(S);
-    if Loaded then
+      ProtoLoaded := LoadFromURN(S)
+    else
+      ProtoLoaded := LoadFromExternalVRML(S);
+    if ProtoLoaded then
       Break;
   end;
 end;
@@ -5320,8 +5422,8 @@ begin
   if Log then
     WritelnLog('VRML/X3D', Format(
       'Route %s.%s -> %s.%s ignored another event at <= timestamp (%f.%d, while last event was on %f.%d). Potential routes loop avoided',
-      [ SourceNode.Name, SourceEvent.Name,
-        DestinationNode.Name, DestinationEvent.Name,
+      [ SourceNode.X3DName, SourceEvent.X3DName,
+        DestinationNode.X3DName, DestinationEvent.X3DName,
         Time.Seconds, Time.PlusTicks,
         LastEventTime.Seconds, LastEventTime.PlusTicks ]));
 end;
@@ -5351,7 +5453,7 @@ begin
     ExposedField := TX3DField(FieldOrEvent);
     if not ExposedField.Exposed then
       raise ERouteSetEndingError.CreateFmt('Route %s specifies field "%s" (for node "%s"), but this is not an exposed field (cannot generate/receive events)',
-        [ DestEndingNames[DestEnding], FieldOrEvent.Name, Node.Name ]);
+        [ DestEndingNames[DestEnding], FieldOrEvent.X3DName, Node.X3DName ]);
     Event := ExposedField.ExposedEvents[DestEnding];
   end else
   begin
@@ -5363,9 +5465,9 @@ begin
   begin
     if DestEnding then
       raise ERouteSetEndingError.CreateFmt('Route uses wrong event: destination of the route (%s, type %s) can only be output event',
-        [ Event.Name, Event.FieldClass.X3DType ]) else
+        [ Event.X3DName, Event.FieldClass.X3DType ]) else
       raise ERouteSetEndingError.CreateFmt('Route uses wrong event: source of the route (%s, type %s) can only be input event',
-        [ Event.Name, Event.FieldClass.X3DType ]);
+        [ Event.X3DName, Event.FieldClass.X3DType ]);
   end;
 
   if (SourceEvent <> nil) and
@@ -5374,8 +5476,8 @@ begin
      { destination field can be XFAny (for some Avalon nodes) as an exception. }
      (not (DestinationEvent.FieldClass = TX3DField)) then
     raise ERouteSetEndingError.CreateFmt('Route has different event types for source (%s, type %s) and destination (%s, type %s)',
-      [ SourceEvent     .Name, SourceEvent     .FieldClass.X3DType,
-        DestinationEvent.Name, DestinationEvent.FieldClass.X3DType ]);
+      [ SourceEvent     .X3DName, SourceEvent     .FieldClass.X3DType,
+        DestinationEvent.X3DName, DestinationEvent.FieldClass.X3DType ]);
 
   if (Event <> nil) and (not DestEnding) then
     Event.OnReceive.Add(@EventReceive);
@@ -5506,13 +5608,13 @@ procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
     { Check Node }
     if Node = nil then
       raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node not assigned (look for warnings when reading this VRML file)', [S]);
-    if Node.Name = '' then
+    if Node.X3DName = '' then
       raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node not named', [S]);
 
-    BoundNode := (Writer as TX3DWriterNames).NodeNames.Bound(Node.Name, IgnoreNodeFinished);
+    BoundNode := (Writer as TX3DWriterNames).NodeNames.Bound(Node.X3DName, IgnoreNodeFinished);
     if BoundNode = nil then
       raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound',
-        [S, Node.Name]);
+        [S, Node.X3DName]);
 
     { Just like when setting node by TX3DRoute.SetEnding:
       we actually keep the Node that contains the route, which is
@@ -5521,18 +5623,18 @@ procedure TX3DRoute.SaveToStream(Writer: TX3DWriter);
       BoundNode := BoundNode.PrototypeInstanceSourceNode;
     if BoundNode <> Node then
       raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s node name "%s" not bound (another node bound to the same name)',
-        [S, Node.Name]);
+        [S, Node.X3DName]);
 
-    NodeName := Node.Name;
+    NodeName := Node.X3DName;
 
     { Check Event }
     if Event = nil then
       raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s event not assigned', [S]);
 
     { Check we have a name. }
-    if Event.Name = '' then
+    if Event.X3DName = '' then
       raise EX3DRouteSaveError.CreateFmt('Cannot save VRML route: %s event not named', [S]);
-    EventName := Event.Name;
+    EventName := Event.X3DName;
   end;
 
 var
@@ -5591,11 +5693,12 @@ begin
      (SourceEvent <> nil) then
   begin
     NewSourceNode := CopyState.DeepCopy(SourceNode);
-    NewSourceEvent := NewSourceNode.AnyEvent(SourceEvent.Name);
+    NewSourceEvent := NewSourceNode.AnyEvent(SourceEvent.X3DName);
     if NewSourceEvent = nil then
       raise EInternalError.CreateFmt('Route source node "%s" (%s) has event "%s", which is not found in this node''s deep copy',
-        [ NewSourceNode.Name, NewSourceNode.X3DType,
-	  NewSourceEvent.Name ]);
+        [ NewSourceNode.X3DName,
+          NewSourceNode.X3DType,
+	  NewSourceEvent.X3DName ]);
     Result.SetSourceDirectly(NewSourceNode, NewSourceEvent);
   end;
 
@@ -5603,11 +5706,12 @@ begin
      (DestinationEvent <> nil) then
   begin
     NewDestinationNode := CopyState.DeepCopy(DestinationNode);
-    NewDestinationEvent := NewDestinationNode.AnyEvent(DestinationEvent.Name);
+    NewDestinationEvent := NewDestinationNode.AnyEvent(DestinationEvent.X3DName);
     if NewDestinationEvent = nil then
       raise EInternalError.CreateFmt('Route destination node "%s" (%s) has event "%s", which is not found in this node''s deep copy',
-        [ NewDestinationNode.Name, NewDestinationNode.X3DType,
-	  NewDestinationEvent.Name ]);
+        [ NewDestinationNode.X3DName,
+          NewDestinationNode.X3DType,
+	  NewDestinationEvent.X3DName ]);
     Result.SetDestinationDirectly(NewDestinationNode, NewDestinationEvent);
   end;
 end;
@@ -5835,7 +5939,7 @@ end;
 
 procedure TX3DNodeNames.Bind(Node: TX3DNode; const NodeFinished: boolean);
 begin
-  Bind(Node, NodeFinished, Node.Name);
+  Bind(Node, NodeFinished, Node.X3DName);
 end;
 
 function TX3DNodeNames.Bound(const Name: string; out NodeFinished: boolean): TX3DNode;
@@ -5872,10 +5976,10 @@ procedure TX3DPrototypeNames.Bind(Proto: TX3DPrototypeBase);
 var
   I: Integer;
 begin
-  I := IndexOf(Proto.Name);
+  I := IndexOf(Proto.X3DName);
   if I <> - 1 then
     Objects[I] := Proto else
-    AddObject(Proto.Name, Proto);
+    AddObject(Proto.X3DName, Proto);
 end;
 
 function TX3DPrototypeNames.Bound(const Name: string): TX3DPrototypeBase;

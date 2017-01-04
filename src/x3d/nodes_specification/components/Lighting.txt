@@ -23,7 +23,7 @@ DirectionalLight : X3DLightNode {
 
   # EXTENSIONS:
   # Commented out, for CGE this is special in TAbstractDirectionalLightNode
-  ### SFVec4f    [in,out]      projectionRectangle   -10 10 -10 10  # left, right, bottom, top; must be left < right and bottom < top
+  ### SFVec4f    [in,out]      projectionRectangle   -10 10 -10 10  # left, bottom, right, top; must be left < right and bottom < top
   # Commented out, for CGE this is special in TAbstractDirectionalLightNode
   ### SFVec3f    [in,out]      projectionLocation    0 0 0          # affected by node's transformation
 }

@@ -18,14 +18,16 @@ unit TestCastleRectangles;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleRectangles;
+  Classes, SysUtils, fpcunit, testutils, testregistry,
+  CastleRectangles, CastleBaseTestCase;
 
 type
-  TTestRectangles = class(TTestCase)
+  TTestRectangles = class(TCastleBaseTestCase)
   published
     procedure TestRectangles;
     procedure TestScaleEmpty;
     procedure TestCollidesDisc;
+    procedure TestAdd;
   end;
 
 implementation
@@ -87,11 +89,11 @@ begin
   AssertEquals(40, R.ScaleAround0(2).Left); // correctly scaled, even though R.Height = 0
 
   R := Rectangle(10, 20, 0, 50);
-  AssertEquals(0, R.ScaleAroundMiddle(2).Width);
-  AssertEquals(100, R.ScaleAroundMiddle(2).Height); // correctly scaled, even though R.Width = 0
-  AssertEquals(10, R.ScaleAroundMiddle(2).Left); // untouched by ScaleAroundMiddle, since R.Width = 0
-  AssertEquals(10, R.ScaleAroundMiddle(123).Left); // untouched by ScaleAroundMiddle, since R.Width = 0
-  AssertEquals(-5, R.ScaleAroundMiddle(2).Bottom); // correctly scaled, even though R.Width = 0
+  AssertEquals(0, R.ScaleAroundCenter(2).Width);
+  AssertEquals(100, R.ScaleAroundCenter(2).Height); // correctly scaled, even though R.Width = 0
+  AssertEquals(10, R.ScaleAroundCenter(2).Left); // untouched by ScaleAroundCenter, since R.Width = 0
+  AssertEquals(10, R.ScaleAroundCenter(123).Left); // untouched by ScaleAroundCenter, since R.Width = 0
+  AssertEquals(-5, R.ScaleAroundCenter(2).Bottom); // correctly scaled, even though R.Width = 0
 end;
 
 procedure TTestRectangles.TestCollidesDisc;
@@ -150,6 +152,59 @@ begin
   AssertFalse(R.CollidesDisc(Vector2Single(-1, -1), 1.1));
   AssertTrue(R.CollidesDisc(Vector2Single(-1,  5), 1.1));
   AssertFalse(R.CollidesDisc(Vector2Single(-1, 11), 1.1));
+end;
+
+procedure TTestRectangles.TestAdd;
+var
+  R: TFloatRectangle;
+begin
+  R := TFloatRectangle.Empty;
+
+  R.Add(Vector2Single(10, 20)); // without assignment, R.Add does nothing
+  AssertTrue(R.IsEmpty);
+
+  R := R.Add(Vector2Single(10, 20));
+  AssertFalse(R.IsEmpty);
+  AssertFloatsEqual(10, R.Left);
+  AssertFloatsEqual(20, R.Bottom);
+  AssertFloatsEqual(0, R.Width);
+  AssertFloatsEqual(0, R.Height);
+
+  R.Add(Vector2Single(0, 40)); // without assignment, R.Add does nothing
+  AssertFloatsEqual(10, R.Left);
+  AssertFloatsEqual(20, R.Bottom);
+  AssertFloatsEqual(0, R.Width);
+  AssertFloatsEqual(0, R.Height);
+
+  R := R.Add(Vector2Single(0, 40));
+  AssertFloatsEqual(0, R.Left);
+  AssertFloatsEqual(20, R.Bottom);
+  AssertFloatsEqual(10, R.Width);
+  AssertFloatsEqual(20, R.Height);
+
+  R := R.Add(Vector2Single(5, 30)); // does not change R, since already inside
+  AssertFloatsEqual(0, R.Left);
+  AssertFloatsEqual(20, R.Bottom);
+  AssertFloatsEqual(10, R.Width);
+  AssertFloatsEqual(20, R.Height);
+
+  R := R.Add(Vector2Single(-10, 30)); // changes R only horizontally
+  AssertFloatsEqual(-10, R.Left);
+  AssertFloatsEqual(20, R.Bottom);
+  AssertFloatsEqual(20, R.Width);
+  AssertFloatsEqual(20, R.Height);
+
+  R := R.Add(Vector2Single(5, -50)); // changes R only vertically
+  AssertFloatsEqual(-10, R.Left);
+  AssertFloatsEqual(-50, R.Bottom);
+  AssertFloatsEqual(20, R.Width);
+  AssertFloatsEqual(90, R.Height);
+
+  R := R.Add(Vector2Single(5, -25)); // should not change R
+  AssertFloatsEqual(-10, R.Left);
+  AssertFloatsEqual(-50, R.Bottom);
+  AssertFloatsEqual(20, R.Width);
+  AssertFloatsEqual(90, R.Height);
 end;
 
 initialization

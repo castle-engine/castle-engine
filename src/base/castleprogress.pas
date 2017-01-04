@@ -127,7 +127,7 @@ type
     The @link(TProgress.Step) is implemented such that you don't have to
     worry about calling it too often. We will not update the interface
     (@link(TProgressUserInterface.Update)) too often,
-    see TProgress.UpdatePart and TProgress.UpdateTicks for details.
+    see TProgress.UpdatePart and TProgress.UpdateDelay for details.
 
     This unit creates one instance of the class @link(TProgress): @link(Progress).
     Usually this is what you want to use. For complicated cases,
@@ -138,7 +138,7 @@ type
   private
     FUserInterface: TProgressUserInterface;
     FUpdatePart: Cardinal;
-    FUpdateTicks: TMilisecTime;
+    FUpdateDelay: TFloatTime;
 
     FMax, FPosition: Cardinal;
     { Variables below are meaningfull only if Active.
@@ -148,7 +148,7 @@ type
       When not UserInterfaceDelayed, this is the time and position
       of the last TProgress.Init or TProgress.Update call. }
     LastUpdatePos: Cardinal;
-    LastUpdateTick: TMilisecTime;
+    LastUpdateTime: TTimerResult;
     UserInterfaceDelayed: boolean;
 
     FTitle: string;
@@ -158,22 +158,23 @@ type
     const
       { }
       DefaultUpdatePart = {$ifdef TESTING_PROGRESS_DELAY} 100000000 {$else} 100 {$endif};
-      DefaultUpdateTicks = {$ifdef TESTING_PROGRESS_DELAY} 0 {$else} 250 {$endif};
+      DefaultUpdateDelay = {$ifdef TESTING_PROGRESS_DELAY} 0 {$else} 0.25 {$endif};
 
     property UserInterface: TProgressUserInterface
       read FUserInterface write FUserInterface;
 
     { Define how often to redraw interface (TProgressUserInterface.Update).
       Position must change by (1/UpdatePart) * Max and at the same time
-      at least UpdateTicks miliseconds must pass to redraw.
+      at least UpdateDelay seconds must pass to redraw.
 
       This allows you to call @link(Step) very often, without worrying
       that you cause redraw too often (which would cause slowdown).
+
+      UpdateDelay default value is DefaultUpdateDelay.
       @groupBegin }
     property UpdatePart: Cardinal read FUpdatePart write FUpdatePart
       default DefaultUpdatePart;
-    property UpdateTicks: TMilisecTime read FUpdateTicks write FUpdateTicks
-      default DefaultUpdateTicks;
+    property UpdateDelay: TFloatTime read FUpdateDelay write FUpdateDelay;
     { @groupEnd }
 
     { Current Position of the progress bar.
@@ -208,7 +209,7 @@ type
       is performed: TProgress.Init will not
       immediately result in TProgressUserInterface.Init call.
       Instead, actual initialization of the interface will be delayed
-      until some TProgress.Update, when UpdateTicks time will pass.
+      until some TProgress.Update, when UpdateDelay time will pass.
 
       The advantage of DelayUserInterface is that if
       an operation will take a very short time, we will not waste
@@ -333,10 +334,10 @@ begin
 
   FTitle := ATitle;
 
-  { Calling UserInterface.Init updates LastUpdatePos and LastUpdateTick,
+  { Calling UserInterface.Init updates LastUpdatePos and LastUpdateTime,
     just like calling UserInterface.Update. }
   LastUpdatePos := FPosition;
-  LastUpdateTick := CastleTimeUtils.GetTickCount64;
+  LastUpdateTime := Timer;
 
   UserInterfaceDelayed := DelayUserInterface;
 
@@ -373,7 +374,7 @@ begin
   begin
     { Either actually init user interface, or resign from calling
       UserInterface.Update. }
-    if TimeTickDiff(LastUpdateTick, CastleTimeUtils.GetTickCount64) > UpdateTicks then
+    if TimerSeconds(Timer, LastUpdateTime) > UpdateDelay then
     begin
       UserInterface.Init(Self);
       UserInterfaceDelayed := false;
@@ -382,10 +383,10 @@ begin
   end;
 
   if ((Position - LastUpdatePos) / Max > 1 / UpdatePart) and
-     (TimeTickDiff(LastUpdateTick, CastleTimeUtils.GetTickCount64) > UpdateTicks) then
+     (TimerSeconds(Timer, LastUpdateTime) > UpdateDelay) then
   begin
     LastUpdatePos := FPosition;
-    LastUpdateTick := CastleTimeUtils.GetTickCount64;
+    LastUpdateTime := Timer;
     UserInterface.Update(Self);
 
     {$ifdef TESTING_PROGRESS_DELAY}
@@ -422,7 +423,7 @@ constructor TProgress.Create;
 begin
   inherited;
   UpdatePart := DefaultUpdatePart;
-  UpdateTicks := DefaultUpdateTicks;
+  UpdateDelay := DefaultUpdateDelay;
   FActive := false;
 end;
 

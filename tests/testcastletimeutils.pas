@@ -32,6 +32,8 @@ uses SysUtils, Classes, Math, CastleTimeUtils;
 
 { TTestCastleTimeUtils ---------------------------------------------------------- }
 
+{$warnings off} // knowingly using deprecated, to check they are working
+
 procedure TTestCastleTimeUtils.TestGetTickCount64;
 var
   G1, G2: TMilisecTime;
@@ -59,6 +61,8 @@ begin
   AssertTrue(TimeTickSecondLater(High(LongWord) - 500, 501, 1000));
   AssertFalse(TimeTickSecondLater(High(LongWord) - 500, 499, 1000));
 end;
+
+{$warnings on}
 
 initialization
   RegisterTest(TTestCastleTimeUtils);

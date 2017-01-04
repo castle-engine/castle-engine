@@ -884,7 +884,7 @@ begin
     no way to call Video_DecReference later). }
 
   if LogVideosCache and Log then
-    Start := ProcessTimerNow;
+    Start := ProcessTimer;
 
   Result := TVideo.Create;
   try
@@ -905,9 +905,9 @@ begin
   if LogVideosCache and Log then
   begin
     S := Format('Video %s : 1. Loading time: %f',
-      [URIDisplay(URL), ProcessTimerSeconds(ProcessTimerNow, Start)]);
+      [URIDisplay(URL), ProcessTimerSeconds(ProcessTimer, Start)]);
     if AlphaChannel <> acNone then
-      S += '. Detected as simple yes/no alpha channel: ' + BoolToStr(AlphaChannel = acSimpleYesNo, true);
+      S += '. Detected as simple yes/no ("test") alpha channel: ' + BoolToStr(AlphaChannel = acTest, true);
     WritelnLog('++', S);
   end;
 end;

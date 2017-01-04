@@ -300,12 +300,12 @@ var
   TimerBegin: TProcessTimerResult;
   RenderingTime: Single;
 begin
-  TimerBegin := ProcessTimerNow;
+  TimerBegin := ProcessTimer;
   TriangleCollisionTestsCounter := 0;
 
   Execute;
 
-  RenderingTime := ProcessTimerSeconds(ProcessTimerNow, TimerBegin);
+  RenderingTime := ProcessTimerSeconds(ProcessTimer, TimerBegin);
   AppendStats(Stats, RenderingTime);
 end;
 

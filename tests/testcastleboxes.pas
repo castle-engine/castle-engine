@@ -605,17 +605,17 @@ procedure TTestCastleBoxes.TestBox3DTransform;
 
   function Slower(const Box: TBox3D; const Matrix: TMatrix4Single): TBox3D;
   var
-    BoxPoints: array [0..7] of TVector3Single;
+    BoxPoints: TBoxCorners;
     i: integer;
   begin
     if Box.IsEmpty then
       Exit(EmptyBox3D);
 
-    Box.GetAllPoints(@boxpoints);
-    for i := 0 to 7 do boxpoints[i] := MatrixMultPoint(Matrix, boxpoints[i]);
+    Box.Corners(BoxPoints);
+    for i := 0 to 7 do BoxPoints[i] := MatrixMultPoint(Matrix, BoxPoints[i]);
 
     { Non-optimized version:
-        Result := CalculateBoundingBox(@boxpoints, 8, 0);
+        Result := CalculateBoundingBox(@BoxPoints, 8, 0);
 
       But it turns out that the code below, that does essentially the same
       thing as CalculateBoundingBox implementation, works noticeably faster.

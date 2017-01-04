@@ -46,7 +46,8 @@ const
   OldestTime = -MaxDouble;
 
 type
-  TMilisecTime = QWord;
+  TMilisecTime = QWord
+    deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimerNow + ProcessTimerSeconds';
 
 { Check is SecondTime larger by at least TimeDelay than FirstTime.
 
@@ -63,6 +64,7 @@ type
   Always TimeTickSecond(X, X, 0) = @true. that is, when both times
   are actually equal, it's correctly "later by zero miliseconds". }
 function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTime): boolean;
+  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimerNow + ProcessTimerSeconds';
 
 { Difference in times between SecondTime and FirstTime.
 
@@ -71,6 +73,7 @@ function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTim
   (see TimeTickSecondLater), and uses the assumption that
   the SecondTime for sure "later", to calculate hopefully correct difference. }
 function TimeTickDiff(const FirstTime, SecondTime: TMilisecTime): TMilisecTime;
+  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimerNow + ProcessTimerSeconds. Also, this function has non-intuitive argument order, inconsistent with ProcessTimerSeconds and TimerSeconds';
 
 { Simply add and subtract two TMilisecTime values.
 
@@ -84,7 +87,9 @@ function TimeTickDiff(const FirstTime, SecondTime: TMilisecTime): TMilisecTime;
 
   @groupBegin }
 function MilisecTimesAdd(const t1, t2: TMilisecTime): TMilisecTime;
+  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimerNow + ProcessTimerSeconds';
 function MilisecTimesSubtract(const t1, t2: TMilisecTime): TMilisecTime;
+  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimerNow + ProcessTimerSeconds';
 { @groupEnd }
 
 { Get current time, in miliseconds. On newer OSes (non-Windows,
@@ -92,6 +97,7 @@ function MilisecTimesSubtract(const t1, t2: TMilisecTime): TMilisecTime;
   Or older Windows versions it's based on 32-bit Windows.GetTickCount
   that measures time since system start, that will wrap in ~ 49 days. }
 function GetTickCount64: TMilisecTime;
+  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimerNow + ProcessTimerSeconds';
 
 const
   MinDateTime: TDateTime = MinDouble;
@@ -100,17 +106,20 @@ const
 function DateTimeToAtStr(DateTime: TDateTime): string;
 
 { ------------------------------------------------------------------------------
-  @section(Process (CPU) Time measuring ) }
+  @section(Measuring time (CPU usage of this process, if possible.) }
 
 type
-  { }
-  TProcessTimerResult =
-    {$ifdef UNIX} clock_t {$endif}
-    {$ifdef MSWINDOWS} DWord {$endif};
+  { Current time from @link(ProcessTimerNow).
+    If possible, this measures only the CPU usage local to this process. }
+  TProcessTimerResult = object
+  private
+    Value:
+      {$ifdef UNIX} clock_t {$endif}
+      {$ifdef MSWINDOWS} DWord {$endif};
+  end;
 
 const
-  { Resolution of process timer.
-    @seealso ProcessTimerNow }
+  { Resolution of the timer used by @link(ProcessTimerNow). }
   ProcessTimersPerSec
     {$ifdef UNIX}
       = { What is the frequency of FpTimes ?
@@ -128,21 +137,28 @@ const
               128 {$endif} {$endif}
     {$endif}
     {$ifdef MSWINDOWS} = 1000 { Using GetLastError } {$endif}
-    deprecated 'do not use this, it should not be needed; use ProcessTimerSeconds to compare two times';
+    deprecated 'do not use this, it should be only used internally; use ProcessTimerSeconds to compare two times';
 
-{ Current value of process (CPU) timer.
-  This can be used to measure how much CPU time your process used.
-  Although note that on Windows there's no way to measure CPU time,
-  so this simply measures real time that passed. Only under Unix
-  this uses clock() call designed to actually measure CPU time.
+{ Current time, local to this process.
+  Use this to measure and compare the time it takes your program to do
+  some calculations.
 
-  You take two ProcessTimerNow values, subtract them with ProcessTimerDiff,
-  this is the time passed --- in resolution ProcessTimersPerSec.
+  If possible, this measures only the CPU usage of this process.
+  So it ignores delays caused by other processes doing something on your system,
+  and it ignores things like waiting for hard disk (I/O).
+  This is possible on Unix thanks to the @code(clock) API,
+  see http://www.gnu.org/software/libc/manual/html_node/Processor-And-CPU-Time.html .
+  On other platforms (like Windows),
+  this simply measures real time that passed.
 
-  For simple usage, see ProcessTimerBegin and ProcessTimerEnd. }
-function ProcessTimerNow: TProcessTimerResult;
+  You take two ProcessTimerNow values, subtract them with ProcessTimerSeconds,
+  this is the time that passed -- in seconds. }
+function ProcessTimer: TProcessTimerResult;
 
-{ Subtract two process (CPU) timer results, obtained from ProcessTimerNow.
+function ProcessTimerNow: TProcessTimerResult; deprecated 'use ProcessTimer';
+
+{ Subtract two times obtained from @link(ProcessTimerNow),
+  A-B, return a difference in ProcessTimersPerSec.
 
   Although it may just subtract two values, it may also do something more.
   For example, if timer resolution is only miliseconds, and it may wrap
@@ -151,7 +167,8 @@ function ProcessTimerNow: TProcessTimerResult;
 function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
   deprecated 'use ProcessTimerSeconds instead';
 
-{ Subtract two timer values, result is in seconds. }
+{ Subtract two times obtained from @link(ProcessTimerNow),
+  A-B, return a difference in seconds. }
 function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
 
 { Simple measure of process CPU time. Call ProcessTimerBegin at the beginning
@@ -162,48 +179,38 @@ function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
   programs (it's not "reentrant") --- you risk that some other code
   called ProcessTimerBegin, and your ProcessTimerEnd doesn't measure
   what you think. So in general units, do not use this, use ProcessTimerNow
-  and ProcessTimerDiff instead. In final programs (when you have full control)
-  using these is comfortable and Ok.
+  and ProcessTimerSeconds instead.
 
   @groupBegin }
-procedure ProcessTimerBegin;
-function ProcessTimerEnd: TFloatTime;
+procedure ProcessTimerBegin; deprecated 'instead of this, better to use a local variable, and ProcessTimerNow and ProcessTimerSeconds';
+function ProcessTimerEnd: TFloatTime; deprecated 'instead of this, better to use a local variable, and ProcessTimerNow and ProcessTimerSeconds';
 { @groupEnd }
 
 { -----------------------------------------------------------------------------
-  @section(Timer) }
-{ }
+  @section(Measuring real time.) }
 
-{$ifdef MSWINDOWS}
 type
-  TTimerResult = Int64;
-  TTimerFrequency = Int64;
+  { Current time from @link(Timer). }
+  TTimerResult = object
+  private
+    { The type of this could be platform-dependent. But for now, all platforms
+      are happy with Int64. }
+    Value: Int64;
+  end;
 
-function TimerFrequency: TTimerFrequency;
-{$endif MSWINDOWS}
+{ Current time, to measure real time passed.
+  This may be a time local to this process. It is a "real" time,
+  which means that subtracting two values measures the actual time
+  that passed between two events. Contrast this with @link(ProcessTimerNow)
+  and friends that try to measure only CPU time used by the current process.
 
-{$ifdef UNIX}
-type
-  TTimerResult = Int64;
-  TTimerFrequency = LongWord;
-
-const
-  TimerFrequency: TTimerFrequency = 1000000;
-{$endif UNIX}
-
-{ Measure passed real time. Note "real time" --- as opposed
-  to e.g. process time (for this, see ProcessTimerNow and friends above).
-  Call Timer twice, calculate the difference, and you get time
-  passed --- with frequency in TimerFrequency.
-
-  TimerFrequency says how much Timer gets larger during 1 second
-  (how many "ticks" are during one second).
-
-  Implementation details: Under Unix this uses gettimeofday.
-  Under Windows this uses QueryPerformanceCounter/Frequency,
-  unless WinAPI "performance timer" is not available, then standard
-  GetTickCount64 is used. }
+  Call Timer twice, and calculate the difference (in seconds)
+  using the TimerSeconds. }
 function Timer: TTimerResult;
+
+{ Subtract two times obtained from @link(Timer),
+  A-B, return a difference in seconds. }
+function TimerSeconds(const A, B: TTimerResult): TFloatTime;
 
 { TFramesPerSecond ----------------------------------------------------------- }
 
@@ -222,7 +229,7 @@ type
     FUpdateSecondsPassed: TFloatTime;
     DoZeroNextSecondsPassed: boolean;
     FUpdateStartTime: TTimerResult;
-    LastRecalculateTime: TMilisecTime;
+    LastRecalculateTime: TTimerResult;
     RenderStartTime: TTimerResult;
     { 0 means "no frame was rendered yet" }
     FramesRendered: Int64;
@@ -357,7 +364,9 @@ end;
 
 function TimeTickDiff(const FirstTime, SecondTime: TMilisecTime): TMilisecTime;
 begin
+  {$warnings off} // knowingly using deprecated stuff in another deprecated
   result := MilisecTimesSubtract(SecondTime, FirstTime);
+  {$warnings on}
 {old implementation :
 
  if FirstTime <= SecondTime then
@@ -412,7 +421,9 @@ end;
   FPC fpc/3.0.0/src/rtl/unix/sysutils.pp }
 
 var
+  {$warnings off} // knowingly using deprecated stuff
   LastGetTickCount64: TMilisecTime;
+  {$warnings on}
 
 {$I norqcheckbegin.inc}
 function GetTickCount64: TMilisecTime;
@@ -451,7 +462,7 @@ end;
 { cross-platform process timers ---------------------------------------------- }
 
 {$ifdef UNIX}
-function ProcessTimerNow: TProcessTimerResult;
+function ProcessTimer: TProcessTimerResult;
 var
   Dummy: tms;
 begin
@@ -461,31 +472,36 @@ begin
     tms.tms_utime, tms.tms_stime, clock() values are nonsense!
     This is not FPC bug as I tested this with C program too. }
 
-  Result := FpTimes(Dummy);
+  Result.Value := FpTimes(Dummy);
 end;
 
 function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
 begin
-  Result := a - b;
+  Result.Value := A.Value - B.Value;
 end;
 {$endif UNIX}
 
 {$ifdef MSWINDOWS}
-function ProcessTimerNow: TProcessTimerResult;
+function ProcessTimer: TProcessTimerResult;
 begin
-  Result := GetTickCount64;
+  Result.Value := GetTickCount64;
 end;
 
 function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
 begin
-  Result := TimeTickDiff(b, a);
+  Result.Value := TimeTickDiff(b.Value, a.Value);
 end;
 {$endif MSWINDOWS}
+
+function ProcessTimerNow: TProcessTimerResult;
+begin
+  Result := ProcessTimer;
+end;
 
 function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
 begin
   {$warnings off} // knowingly using deprecated stuff
-  Result := ProcessTimerDiff(A, B) / ProcessTimersPerSec;
+  Result := ProcessTimerDiff(A, B).Value / ProcessTimersPerSec;
   {$warnings on}
 end;
 
@@ -494,18 +510,19 @@ var
 
 procedure ProcessTimerBegin;
 begin
-  LastProcessTimerBegin := ProcessTimerNow
+  LastProcessTimerBegin := ProcessTimer;
 end;
 
 function ProcessTimerEnd: TFloatTime;
 begin
-  Result := ProcessTimerSeconds(ProcessTimerNow, LastProcessTimerBegin);
+  Result := ProcessTimerSeconds(ProcessTimer, LastProcessTimerBegin);
 end;
 
 { timer ---------------------------------------------------------- }
 
 {$ifdef MSWINDOWS}
 type
+  TTimerFrequency = Int64;
   TTimerState = (tsNotInitialized, tsQueryPerformance, tsGetTickCount64);
 
 var
@@ -536,14 +553,19 @@ begin
   if FTimerState = tsNotInitialized then InitTimer;
 
   if FTimerState = tsQueryPerformance then
-    QueryPerformanceCounter(Result) else
+    QueryPerformanceCounter(Result.Value)
+  else
     { Unfortunately, below will cast GetTickCount64 back to 32-bit.
       Hopefully QueryPerformanceCounter is usually available. }
-    Result := GetTickCount64;
+    Result.Value := GetTickCount64;
 end;
 {$endif MSWINDOWS}
 
 {$ifdef UNIX}
+type
+  TTimerFrequency = LongWord;
+const
+  TimerFrequency: TTimerFrequency = 1000000;
 var
   LastTimer: TTimerResult;
 
@@ -554,21 +576,26 @@ begin
   FpGettimeofday(@tv, nil);
 
   { We can fit whole TTimeval inside Int64, no problem. }
-  Result := Int64(tv.tv_sec) * 1000000 + Int64(tv.tv_usec);
+  Result.Value := Int64(tv.tv_sec) * 1000000 + Int64(tv.tv_usec);
 
   { We cannot trust some Android systems to return increasing values here
     (Android device "Moto X Play", "XT1562", OS version 5.1.1).
     Maybe they synchronize the time from the Internet, and do not take care
     to keep it monotonic (unlike https://lwn.net/Articles/23313/ says?) }
 
-  if Result < LastTimer then
+  if Result.Value < LastTimer.Value then
   begin
     WritelnLog('Time', 'Detected gettimeofday() going backwards on Unix, workarounding. This is known to happen on some Android devices');
-    Result := LastTimer;
+    Result.Value := LastTimer.Value;
   end else
-    LastTimer := Result;
+    LastTimer.Value := Result.Value;
 end;
 {$endif UNIX}
+
+function TimerSeconds(const A, B: TTimerResult): TFloatTime;
+begin
+  Result := (A.Value - B.Value) / TimerFrequency;
+end;
 
 { TFramesPerSecond ----------------------------------------------------------- }
 
@@ -604,15 +631,15 @@ end;
 
 procedure TFramesPerSecond._RenderEnd;
 const
-  TimeToRecalculate = 1000; { in miliseconds }
+  TimeToRecalculate = 1.0; { in seconds }
 var
-  NowTime: TMilisecTime;
+  NowTime: TTimerResult;
 begin
   Inc(FramesRendered);
-  FrameTimePassed += Timer - RenderStartTime;
+  FrameTimePassed.Value += Timer.Value - RenderStartTime.Value;
 
-  NowTime := GetTickCount64;
-  if NowTime - LastRecalculateTime >= TimeToRecalculate then
+  NowTime := Timer;
+  if TimerSeconds(NowTime, LastRecalculateTime) >= TimeToRecalculate then
   begin
     { update FRealTime, FFrameTime once for TimeToRecalculate time.
       This way they don't change rapidly.
@@ -623,15 +650,16 @@ begin
       was changing suddenly, FRealTime, FFrameTime should also change
       suddenly, not gradually increase / decrease. }
 
-    FRealTime := FramesRendered * 1000 / (NowTime - LastRecalculateTime);
+    FRealTime := FramesRendered / TimerSeconds(NowTime, LastRecalculateTime);
 
-    if FrameTimePassed > 0 then
-      FFrameTime := FramesRendered * TimerFrequency / FrameTimePassed else
+    if FrameTimePassed.Value > 0 then
+      FFrameTime := FramesRendered * TimerFrequency / FrameTimePassed.Value
+    else
       FFrameTime := 0;
 
     LastRecalculateTime := NowTime;
     FramesRendered := 0;
-    FrameTimePassed := 0;
+    FrameTimePassed.Value := 0;
   end;
 end;
 
@@ -648,7 +676,7 @@ begin
     DoZeroNextSecondsPassed := false;
   end else
   begin
-    FUpdateSecondsPassed := ((NewUpdateStartTime - FUpdateStartTime) / TimerFrequency);
+    FUpdateSecondsPassed := TimerSeconds(NewUpdateStartTime, FUpdateStartTime);
     if MaxSensibleSecondsPassed > 0 then
       FUpdateSecondsPassed := Min(FUpdateSecondsPassed, MaxSensibleSecondsPassed);
   end;
