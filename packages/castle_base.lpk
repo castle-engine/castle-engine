@@ -29,13 +29,7 @@
         <Verbosity>
           <ShowHints Value="False"/>
         </Verbosity>
-        <CustomOptions Value="-dCASTLE_ENGINE_LAZARUS_PACKAGE
-
-# See the comments in castle-engine/castle-fpc.cfg about this
-#IFNDEF VER2
--vm4105
--vm4104
-#ENDIF"/>
+        <CustomOptions Value="-dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
       </Other>
     </CompilerOptions>
     <Description Value="Castle Game Engine - base package. Componets and units not dependent on CastleWindow or Lazarus LCL. You can install this package in Lazarus, it's required by all other programs and packages that are part of Castle Game Engine."/>
