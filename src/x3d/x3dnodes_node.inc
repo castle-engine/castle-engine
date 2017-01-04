@@ -875,8 +875,8 @@
 
       TODO: memory leaks are known to be possible in some difficult cases
       with PrototypeInstanceHelpers. See e.g.
-      ../../../demo_models/vrml_2/warnings/errors/proto_leak.wrl and
-      ../../../demo_models/vrml_2/warnings/errors/proto_leak_2.wrl
+      ../../../demo-models/prototypes/warnings/errors/proto_leak.wrl and
+      ../../../demo-models/prototypes/warnings/errors/proto_leak_2.wrl
       for simple testcases. Reason: PrototypeInstanceHelpers may contain,
       by DEF statements, links to Self.
       This causes circular dependency (Self is child of some node on
