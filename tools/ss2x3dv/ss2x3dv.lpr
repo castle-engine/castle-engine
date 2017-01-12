@@ -40,7 +40,7 @@ type
   end;
 
   TFrameList = specialize TGenericStructList<TFrame>;
-  TAnimation = specialize TFPGMap<string, TFrameList>;
+  TAnimations = specialize TFPGMap<string, TFrameList>;
 
 var
   SSFullPath,
@@ -52,7 +52,7 @@ var
   TpRoute,
   TpTimeSensor,
   TpInterpolator: string;
-  Animations: TAnimation;
+  Animations: TAnimations;
   Meta: TMeta;
 
 { Parse a string with XXX_YYY format, XXX is the name of the frame and YYY is
@@ -239,7 +239,7 @@ begin
   end;
   X3DV := TStringList.Create;
   try
-    X3DV.Add(TpHeader);
+    X3DV.Add(StringReplace(TpHeader, '%SOURCE%', SSName + SSExt, [rfReplaceAll]));
     X3DV.Add('');
     X3DV.Add(StringReplace(TpShape, '%ATLAS%', Meta.Name, [rfReplaceAll]));  
     X3DV.Add('');
@@ -317,7 +317,7 @@ begin
 end;
 
 begin
-  Animations := TAnimation.Create;
+  Animations := TAnimations.Create;
   try
     try
       LoadTemplates;
