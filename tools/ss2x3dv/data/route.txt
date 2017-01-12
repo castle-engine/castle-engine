@@ -1,0 +1,4 @@
+ROUTE %NAME%.fraction_changed TO %COORD%.set_fraction
+ROUTE %NAME%.fraction_changed TO %TEXCOORD%.set_fraction
+ROUTE %COORD%.value_changed TO coord.point
+ROUTE %TEXCOORD%.value_changed TO tex_coord.point

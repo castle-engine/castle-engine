@@ -1,0 +1,13 @@
+DEF %COORD% CoordinateInterpolator {
+  key [%COORD_KEY%]
+  keyValue [
+%COORD_KEYVALUE%
+  ]
+}
+
+DEF %TEXCOORD% CoordinateInterpolator2D {
+  key [%TEXCOORD_KEY%]
+  keyValue [
+%TEXCOORD_KEYVALUE%
+  ]
+}

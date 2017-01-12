@@ -1,0 +1,2 @@
+#X3D V3.3 utf8
+PROFILE Interchange
