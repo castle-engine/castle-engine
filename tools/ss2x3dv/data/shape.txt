@@ -12,22 +12,24 @@ Transform {
           }
         }
       }
-      geometry QuadSet {
+      geometry TriangleSet {
         solid FALSE
         coord DEF coord Coordinate {
           point [
             -128 -128 0,
             128 -128 0,
             128 128 0,
+            -128 -128 0,
+            128 128 0,
             -128 128 0,
           ]
         }
         texCoord DEF tex_coord TextureCoordinate {
           point [
-            0 0, 1 0, 1 1, 0 1, 
+            0 0, 1 0, 1 1, 0 0, 1 1, 0 1, 
           ]
         }
       }
-    }  
+    } 
   ]
 } 

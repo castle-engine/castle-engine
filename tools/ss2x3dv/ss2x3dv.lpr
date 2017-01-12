@@ -267,16 +267,24 @@ begin
       for i := 0 to List.Count-1 do
       begin
         Frame := List[i];
-        S := Format('%.1f %.1f 0, %.1f %.1f 0, %.1f %.1f 0, %.1f %.1f 0, ' + #10,
+        S := Format(
+            '%.1f %.1f 0, %.1f %.1f 0, %.1f %.1f 0, ' +
+            '%.1f %.1f 0, %.1f %.1f 0, %.1f %.1f 0, ' + #10,
             [-Frame.W * (  Frame.AX),  Frame.H * (  Frame.AY),
               Frame.W * (1-Frame.AX),  Frame.H * (  Frame.AY),
+              Frame.W * (1-Frame.AX), -Frame.H * (1-Frame.AY), 
+             -Frame.W * (  Frame.AX),  Frame.H * (  Frame.AY),
               Frame.W * (1-Frame.AX), -Frame.H * (1-Frame.AY),
              -Frame.W * (  Frame.AX), -Frame.H * (1-Frame.AY)]);
         CoordKeyValueStr += OldCoordKeyValueStr + S;
         OldCoordKeyValueStr := S;
-        S := Format('%.4f %.4f, %.4f %.4f, %.4f %.4f, %.4f %.4f, ' + #10,
+        S := Format(
+            '%.4f %.4f, %.4f %.4f, %.4f %.4f, ' +
+            '%.4f %.4f, %.4f %.4f, %.4f %.4f, ' + #10,
             [Frame.X1, Frame.Y1,
              Frame.X2, Frame.Y1,
+             Frame.X2, Frame.Y2,
+             Frame.X1, Frame.Y1,
              Frame.X2, Frame.Y2,
              Frame.X1, Frame.Y2]);
         TexCoordKeyValueStr += OldTexCoordKeyValueStr + S;
