@@ -832,9 +832,13 @@ type
 
     { Sort shapes by distance to given Position point, farthest first.
 
-      If Distance3D than we use real distance in 3D.
-      Otherwise we use only the distance in Z coordinate (suitable for
-      rendering things that pretend to be 2D, like Spine slots). }
+      If Distance3D is @true: we use real distance in 3D to sort.
+      See the @link(bs3D) at @link(TBlendingSort) documentation.
+
+      If Distance3D is @false: we use only the distance in the Z coordinate
+      to sort. This is suitable for
+      rendering things that pretend to be 2D, like Spine slots.
+      See the @link(bs2D) at @link(TBlendingSort) documentation. }
     procedure SortBackToFront(const Position: TVector3Single;
       const Distance3D: boolean);
   end;

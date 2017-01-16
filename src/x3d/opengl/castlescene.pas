@@ -101,7 +101,35 @@ type
 
   TRenderingAttributesEvent = procedure (Attributes: TSceneRenderingAttributes) of object;
 
-  TBlendingSort = (bsNone, bs2D, bs3D);
+  { How to sort the rendered objects using blending (partial transparency).
+    @seealso TSceneRenderingAttributes.BlendingSort }
+  TBlendingSort = (
+    { Do not sort. This is fastest, but will cause artifacts if multiple
+      partially-transparent objects may be visible on top of each other. }
+    bsNone,
+
+    { When rendering partially-transparent objects, sort them by the (3D)
+      distance to the camera. This is the best sorting method for 3D
+      scenes with many partially-transparent objects.
+
+      The distance is measured from the middle
+      of the bounding box to the camera posotion. }
+    bs2D,
+
+    { When rendering partially-transparent objects, sort them by their
+      Z coordinate. This is a very useful sorting method for flat 2D objects
+      that have zero (or near-zero) size in the Z axis,
+      and they are moved in the Z axis to specify which is on top for another.
+
+      More precisely, we take the minimum bounding box Z coordinate
+      of two objects. (We don't bother calculating the middle Z coordinate,
+      as we assume that the bounding box is infinitely small along the Z axis.)
+      The one with @italic(larger) Z coordinate is considered to be
+      @italic(closer), this is consistent with the right-handed coordinate system.
+
+      Note that the actual camera position doesn't matter for this calculation.
+      So the 2D object will look OK, even if viewed from an angle. }
+    bs3D);
 
   TSceneRenderingAttributes = class(TRenderingAttributes)
   private
@@ -147,7 +175,7 @@ type
         For closed convex 3D objects, using backface culling
         (solid = TRUE for geometry) helps. For multiple transparent shapes,
         sorting the transparent shapes helps,
-        see TSceneRenderingAttributes.BlendingSort.
+        see @link(TSceneRenderingAttributes.BlendingSort).
         Sometimes, no solution works for all camera angles.
 
         Another disadvantage of bdOneMinusSrcAlpha may be that
@@ -192,15 +220,9 @@ type
       read FBlending write SetBlending default true;
 
     { Blending function parameters, used when @link(Blending).
-
       Note that this is only a default, VRML/X3D model can override this
       for specific shapes by using our extension BlendMode node.
       See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_blending].
-
-      Note that BlendingSort may be overridden in a specific 3D models
-      by using NavigationInfo node with blendingSort field,
-      see TNavigationInfoNode.BlendingSort.
-
       @groupBegin }
     property BlendingSourceFactor: TBlendingSourceFactor
       read FBlendingSourceFactor write SetBlendingSourceFactor
@@ -208,10 +230,17 @@ type
     property BlendingDestinationFactor: TBlendingDestinationFactor
       read FBlendingDestinationFactor write SetBlendingDestinationFactor
       default DefaultBlendingDestinationFactor;
+    { @groupEnd }
+
+    { How to sort the rendered objects using blending (partial transparency).
+      See the @link(TBlendingSort) documentation for possible values.
+
+      This may be overridden in a specific 3D models
+      by using NavigationInfo node with blendingSort field,
+      see TNavigationInfoNode.BlendingSort. }
     property BlendingSort: TBlendingSort
       read FBlendingSort write SetBlendingSort
       default DefaultBlendingSort;
-    { @groupEnd }
 
     { Setting this to @false disables any modification of OpenGL
       blending (and depth mask) state by TCastleScene.
