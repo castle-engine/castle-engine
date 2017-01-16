@@ -2689,61 +2689,18 @@ var
 
 function IsSmallerFrontToBack(const A, B: TShape): Integer;
 begin
-  { We always treat empty box as closer than non-empty.
-    And two empty boxes are always equal.
-
-    Remember that code below must make sure that Result = 0
-    for equal elements (Sort may depend on this). So A < B only when:
-    - A empty, and B non-empty
-    - both non-empty, and A closer }
-
-  if (not B.BoundingBox.IsEmpty) and
-    ( A.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(A.BoundingBox.Center, SortPosition) <
-        PointsDistanceSqr(B.BoundingBox.Center, SortPosition))) then
-    Result := -1 else
-  if (not A.BoundingBox.IsEmpty) and
-    ( B.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(B.BoundingBox.Center, SortPosition) <
-        PointsDistanceSqr(A.BoundingBox.Center, SortPosition))) then
-    Result :=  1 else
-    Result :=  0;
+  { To revert the order, we revert the order of A and B as passed to CompareBackToFront3D. }
+  Result := TBox3D.CompareBackToFront3D(B.BoundingBox, A.BoundingBox, SortPosition);
 end;
 
 function IsSmallerBackToFront3D(const A, B: TShape): Integer;
 begin
-  if (not A.BoundingBox.IsEmpty) and
-    ( B.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(A.BoundingBox.Center, SortPosition) >
-        PointsDistanceSqr(B.BoundingBox.Center, SortPosition))) then
-    Result := -1 else
-  if (not B.BoundingBox.IsEmpty) and
-    ( A.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(B.BoundingBox.Center, SortPosition) >
-        PointsDistanceSqr(A.BoundingBox.Center, SortPosition))) then
-    Result :=  1 else
-    Result :=  0;
+  Result := TBox3D.CompareBackToFront3D(A.BoundingBox, B.BoundingBox, SortPosition);
 end;
 
 function IsSmallerBackToFront2D(const A, B: TShape): Integer;
 begin
-  { Note that we ignore SortPosition, we do not look at distance between
-    SortPosition and A.BoundingBox, we merely look at A.BoundingBox.
-    This way looking at 2D Spine scene from the other side is also Ok.
-
-    For speed, we don't look at bounding box Middle, only at it's min point.
-    The assumption here is that shape is 2D, so
-      BoundingBox.Data[0][2] = BoundingBox.Data[1][2] = BoundingBox.Center[2] . }
-
-  if (not A.BoundingBox.IsEmpty) and
-    ( B.BoundingBox.IsEmpty or
-      ( A.BoundingBox.Data[0][2] < B.BoundingBox.Data[0][2] )) then
-    Result := -1 else
-  if (not B.BoundingBox.IsEmpty) and
-    ( A.BoundingBox.IsEmpty or
-      ( B.BoundingBox.Data[0][2] < A.BoundingBox.Data[0][2] )) then
-    Result :=  1 else
-    Result :=  0;
+  Result := TBox3D.CompareBackToFront2D(A.BoundingBox, B.BoundingBox);
 end;
 
 procedure TShapeList.SortFrontToBack(const Position: TVector3Single);

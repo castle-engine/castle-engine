@@ -1106,10 +1106,37 @@ type
     procedure Exchange(const Index1, Index2: Integer);
     { @groupEnd }
 
-    { Sort based on average Z of 3D item bounding box.
-      Useful when multiple 3D scenes use blending, and they are ordered in Z
-      (like in most 2D scenes). }
-    procedure SortZ;
+    { Sort objects back-to-front @italic(right now)
+      following one of the blending sorting algorithms.
+      Only the immediate list items are reordered,
+      looking at their bounding boxes.
+
+      Calling this method makes sense if you have a list
+      of objects, and some of them are partially-transparent and may
+      be visible at the same place on the screen.
+      It may even make sense to call this method every frame (like in every
+      @link(TCastleWindowCustom.OnUpdate)),
+      if you move or otherwise change the objects (changing their bounding boxes),
+      or if the CameraPosition may change (note that CameraPosition is only
+      relevant if BlendingSort = bs3D).
+
+      Sorting partially-transparent objects avoids artifacts when rendering.
+
+      Note that this doesn't take care of sorting the shapes
+      within the scenes. For this, you should set
+      @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
+      to a value like bs3D, to keep it sorted.
+
+      See the TBlendingSort documentation for the exact specification
+      of sorting algorithms. Using BlendingSort = bsNone does nothing. }
+    procedure SortBackToFront(const BlendingSort: TBlendingSort;
+      const CameraPosition: TVector3Single);
+
+    { Sort objects back-to-front @italic(right now)
+      following the 2D blending sorting algorithm.
+      See @link(SortBackToFront) for documentation, this method
+      is only a shortcut for @code(SortBackToFront(bs2D, ZeroVector3Single)). }
+    procedure SortBackToFront2D;
 
     function BoundingBox: TBox3D; override;
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
@@ -2733,26 +2760,38 @@ begin
   List.Exchange(Index1, Index2);
 end;
 
-function CompareZ(A, B: Pointer): Integer;
-var
-  BoxA, BoxB: TBox3D;
+function CompareBackToFront2D(A, B: Pointer): Integer;
 begin
-  BoxA := T3D(A).BoundingBox;
-  BoxB := T3D(B).BoundingBox;
-  if BoxA.IsEmpty and BoxB.IsEmpty then
-    Result := 0 else
-  if BoxA.IsEmpty then
-    Result := -1 else
-  if BoxB.IsEmpty then
-    Result := 1 else
-    Result := Sign(
-      (BoxA.Data[0][2] + BoxA.Data[0][2]) -
-      (BoxB.Data[0][2] + BoxB.Data[0][2]));
+  Result := TBox3D.CompareBackToFront2D(T3D(A).BoundingBox, T3D(B).BoundingBox);
 end;
 
-procedure T3DList.SortZ;
+var
+  { Has to be global, since TFPGObjectList.Sort
+    requires normal function (not "of object"). }
+  SortCameraPosition: TVector3Single;
+
+function CompareBackToFront3D(A, B: Pointer): Integer;
 begin
-  List.Sort(@CompareZ);
+  Result := TBox3D.CompareBackToFront3D(T3D(A).BoundingBox, T3D(B).BoundingBox,
+    SortCameraPosition);
+end;
+
+procedure T3DList.SortBackToFront(const BlendingSort: TBlendingSort;
+  const CameraPosition: TVector3Single);
+begin
+  case BlendingSort of
+    bs2D: List.Sort(@CompareBackToFront2D);
+    bs3D:
+      begin
+        SortCameraPosition := CameraPosition;
+        List.Sort(@CompareBackToFront3D);
+      end;
+  end;
+end;
+
+procedure T3DList.SortBackToFront2D;
+begin
+  SortBackToFront(bs2D, ZeroVector3Single);
 end;
 
 function T3DList.BoundingBox: TBox3D;

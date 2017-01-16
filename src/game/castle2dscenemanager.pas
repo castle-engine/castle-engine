@@ -117,7 +117,7 @@ type
 
 implementation
 
-uses CastleVectors, CastleGLUtils, X3DNodes;
+uses CastleBoxes, CastleVectors, CastleGLUtils, X3DNodes;
 
 { T2DSceneManager -------------------------------------------------------- }
 

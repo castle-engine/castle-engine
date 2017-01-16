@@ -101,36 +101,6 @@ type
 
   TRenderingAttributesEvent = procedure (Attributes: TSceneRenderingAttributes) of object;
 
-  { How to sort the rendered objects using blending (partial transparency).
-    @seealso TSceneRenderingAttributes.BlendingSort }
-  TBlendingSort = (
-    { Do not sort. This is fastest, but will cause artifacts if multiple
-      partially-transparent objects may be visible on top of each other. }
-    bsNone,
-
-    { When rendering partially-transparent objects, sort them by the (3D)
-      distance to the camera. This is the best sorting method for 3D
-      scenes with many partially-transparent objects.
-
-      The distance is measured from the middle
-      of the bounding box to the camera posotion. }
-    bs2D,
-
-    { When rendering partially-transparent objects, sort them by their
-      Z coordinate. This is a very useful sorting method for flat 2D objects
-      that have zero (or near-zero) size in the Z axis,
-      and they are moved in the Z axis to specify which is on top for another.
-
-      More precisely, we take the minimum bounding box Z coordinate
-      of two objects. (We don't bother calculating the middle Z coordinate,
-      as we assume that the bounding box is infinitely small along the Z axis.)
-      The one with @italic(larger) Z coordinate is considered to be
-      @italic(closer), this is consistent with the right-handed coordinate system.
-
-      Note that the actual camera position doesn't matter for this calculation.
-      So the 2D object will look OK, even if viewed from an angle. }
-    bs3D);
-
   TSceneRenderingAttributes = class(TRenderingAttributes)
   private
     { Scenes that use Renderer with this TSceneRenderingAttributes instance. }

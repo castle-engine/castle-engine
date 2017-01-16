@@ -50,6 +50,42 @@ type
 
   TBoxCorners = array [0..7] of TVector3Single;
 
+  { Various ways to sort the 3D objects, in particular useful to correctly
+    render the partially-transparent objects.
+    @seealso TSceneRenderingAttributes.BlendingSort }
+  TBlendingSort = (
+    { Do not sort.
+      Using this for @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
+      is fastest, but will cause artifacts if multiple
+      partially-transparent objects may be visible on top of each other. }
+    bsNone,
+
+    { Sort objects by their Z coordinate.
+      Using this for @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
+      is very useful for 2D worlds, with flat 2D objects
+      that have zero (or near-zero) size in the Z axis,
+      and they are moved in the Z axis to specify which is on top for another.
+
+      More precisely, we take the minimum bounding box Z coordinate
+      of two objects. (We don't bother calculating the middle Z coordinate,
+      as we assume that the bounding box is infinitely small along the Z axis.)
+      The one with @italic(larger) Z coordinate is considered to be
+      @italic(closer), this is consistent with the right-handed coordinate system.
+
+      Note that the actual camera position doesn't matter for this sorting.
+      So the 2D object will look OK, @italic(even if viewed from an angle,
+      even if viewed from the other side). }
+    bs2D,
+
+    { Sort objects by the (3D) distance to the camera.
+      Using this for @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
+      is the best sorting method for 3D
+      scenes with many partially-transparent objects.
+
+      The distance is measured from the middle
+      of the bounding box to the camera posotion. }
+    bs3D);
+
   { Axis-aligned box. Rectangular prism with all sides parallel to basic planes
     X = 0, Y = 0 and Z = 0. This is sometimes called AABB, "axis-aligned bounding
     box". Many geometric operations are fast and easy on this type.
@@ -445,6 +481,29 @@ type
       @bold(Assumes that Dir, Side and Up vectors are already
       orthogonal and normalized.) }
     function OrthoProject(const Pos, Dir, Side, Up: TVector3Single): TFloatRectangle;
+
+    { Compare two bounding boxes based
+      on their distance to the SortPosition point,
+      suitable for depth sorting in 3D.
+      Follows the algorithm documented at @link(TBlendingSort.bs3D).
+      Returns -1 if A < B, 1 if A > B, 0 if A = B.
+
+      Using this with a typical sorting function will result
+      in boxes back-to-front ordering, which means that the farthest
+      box will be first. }
+    class function CompareBackToFront3D(
+      const A, B: TBox3D; const SortPosition: TVector3Single): Integer; static;
+
+    { Compare two bounding boxes based
+      on their Z coordinates, suitable for depth sorting in 2D.
+      Follows the algorithm documented at @link(TBlendingSort.bs3D).
+      Returns -1 if A < B, 1 if A > B, 0 if A = B.
+
+      Using this with a typical sorting function will result
+      in boxes back-to-front ordering, which means that the farthest
+      box will be first. }
+    class function CompareBackToFront2D(
+      const A, B: TBox3D): Integer; static;
   end;
 
   TBox3DBool = array [boolean] of TVector3Single;
@@ -1850,6 +1909,52 @@ begin
   Result := FloatRectangle(ProjectPoint(C[0]), 0, 0);
   for I := 1 to 7 do
     Result := Result.Add(ProjectPoint(C[I]));
+end;
+
+class function TBox3D.CompareBackToFront3D(
+  const A, B: TBox3D; const SortPosition: TVector3Single): Integer; static;
+begin
+  { We always treat empty box as closer than non-empty.
+    And two empty boxes are always equal.
+
+    Remember that code below must make sure that Result = 0
+    for equal elements (Sort may depend on this). So A > B only when:
+    - A empty, and B non-empty
+    - both non-empty, and A closer }
+
+  if (not A.IsEmpty) and
+    ( B.IsEmpty or
+      ( PointsDistanceSqr(A.Center, SortPosition) >
+        PointsDistanceSqr(B.Center, SortPosition))) then
+    Result := -1 else
+  if (not B.IsEmpty) and
+    ( A.IsEmpty or
+      ( PointsDistanceSqr(B.Center, SortPosition) >
+        PointsDistanceSqr(A.Center, SortPosition))) then
+    Result :=  1 else
+    Result :=  0;
+end;
+
+class function TBox3D.CompareBackToFront2D(
+  const A, B: TBox3D): Integer; static;
+begin
+  { Note that we ignore SortPosition, we do not look at distance between
+    SortPosition and A, we merely look at A.
+    This way looking at 2D Spine scene from the other side is also Ok.
+
+    For speed, we don't look at bounding box Middle, only at it's min point.
+    The assumption here is that shape is 2D, so
+      BoundingBox.Data[0][2] = BoundingBox.Data[1][2] = BoundingBox.Center[2] . }
+
+  if (not A.IsEmpty) and
+    ( B.IsEmpty or
+      ( A.Data[0][2] < B.Data[0][2] )) then
+    Result := -1 else
+  if (not B.IsEmpty) and
+    ( A.IsEmpty or
+      ( B.Data[0][2] < A.Data[0][2] )) then
+    Result :=  1 else
+    Result :=  0;
 end;
 
 { Routines ------------------------------------------------------------------- }
