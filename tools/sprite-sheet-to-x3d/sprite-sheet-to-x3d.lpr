@@ -15,8 +15,6 @@
 
 { Convert spritesheets to classic X3D files. }
 
-program sprite-sheet-to-x3d;
-
 {$APPTYPE CONSOLE}
 
 uses
