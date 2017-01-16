@@ -169,4 +169,6 @@ tools/castle-engine
 tools/image2pascal/image2pascal
 tools/image2pascal/image2pascal.exe
 tools/texturefont2pascal/texturefont2pascal
+tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d
+tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d.exe
 units/
