@@ -813,6 +813,11 @@ var
     and they all automatically share this cache. }
   GLContextCache: TGLRendererContextCache;
 
+const
+  bsNone = CastleBoxes.bsNone;
+  bs2D = CastleBoxes.bs2D;
+  bs3D = CastleBoxes.bs3D;
+
 implementation
 
 uses CastleGLVersion, CastleImages, CastleLog,
