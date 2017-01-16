@@ -6,6 +6,6 @@ set -eu
 # Or just do "make" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f ss2x3dv.lpr ]; then cd ../../; fi
+if [ -f sprite-sheet-to-x3d.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg tools/ss2x3dv/ss2x3dv.lpr
+fpc -dRELEASE @castle-fpc.cfg tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d.lpr

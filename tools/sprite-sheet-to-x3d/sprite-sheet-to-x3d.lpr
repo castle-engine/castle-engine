@@ -15,7 +15,7 @@
 
 { Convert spritesheets to classic X3D files. }
 
-program ss2x3dv;
+program sprite-sheet-to-x3d;
 
 {$APPTYPE CONSOLE}
 
@@ -157,12 +157,12 @@ begin
     0:
       begin
         Writeln(
-            'ss2x3dv: Convert spritesheet files into classic X3D files.' + #10#13 +
+            'sprite-sheet-to-x3d: Convert spritesheet files into classic X3D files.' + #10#13 +
             '         Support file formats: Starling (.xml), Cocos2D (.plist).'+ #10#13 +
             '         Please make sure frame keys follow XXX_YYY naming convention:'+ #10#13 +
             '         - XXX: Frame name, start with a letter, will be used as animation name.'+ #10#13 +
             '         - YYY: Frame number.'+ #10#13 +
-            'Usage: ss2x3dv <spritesheet>'
+            'Usage: sprite-sheet-to-x3d <spritesheet>'
         );
         Halt;
       end;

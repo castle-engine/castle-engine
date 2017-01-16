@@ -1,5 +1,0 @@
-#X3D V3.3 utf8
-PROFILE Interchange
-
-META "generator" "ss2x3dv, http://castle-engine.sourceforge.net"
-META "source" "%SOURCE%"
