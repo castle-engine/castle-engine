@@ -19,7 +19,7 @@
 
 uses
   Classes, SysUtils, strutils,
-  FPimage, FPReadPNG, FPReadJPEG,
+  CastleImages,
   DOM, XMLRead,
   RegExpr,
   FGL, CastleGenericLists;
@@ -95,28 +95,14 @@ end;
 { Read texture altas's width and height. }
 procedure ReadMeta(var AMeta: TMeta);
 var
-  Image: TFPCustomImage;
-  Reader: TFPCustomImageReader;
+  Image: TCastleImage;
 begin
-  Image := TFPMemoryImage.Create(0, 0);
-  case LowerCase(ExtractFileExt(AMeta.Name)) of
-    '.png':
-      Reader := TFPReaderPNG.Create;           
-    '.jpg', '.jpeg':
-      Reader := TFPReaderJPEG.Create;
-    else
-      begin
-        Writeln('Error: Unsupported image format.');
-        Halt;
-      end;
-  end;
+  Image := LoadImage(AMeta.Name);
   try
-    Image.LoadFromFile(AMeta.Name, Reader);
     AMeta.W := Image.Width;
     AMeta.H := Image.Height;
   finally
     FreeAndNil(Image);
-    FreeAndNil(Reader);
   end;
 end;
 
@@ -189,13 +175,13 @@ begin
     '.xml':
       begin
         StarlingParser;
-      end;               
+      end;
     '.plist':
       begin
         Cocos2DParser;
       end;
   end;
-end;      
+end;
 
 procedure Convert;
 var
@@ -216,7 +202,7 @@ var
   CoordKeyValueStr,
   OldTexCoordKeyValueStr,
   TexCoordKeyValueStr: string;
-begin   
+begin
   Interpolators := '';
   Routes := '';
   TimeSensors := '';
@@ -239,7 +225,7 @@ begin
   try
     X3DV.Add(StringReplace(TpHeader, '%SOURCE%', SSName + SSExt, [rfReplaceAll]));
     X3DV.Add('');
-    X3DV.Add(StringReplace(TpShape, '%ATLAS%', Meta.Name, [rfReplaceAll]));  
+    X3DV.Add(StringReplace(TpShape, '%ATLAS%', Meta.Name, [rfReplaceAll]));
     X3DV.Add('');
     for j := 0 to Animations.Count-1 do
     begin
@@ -248,7 +234,7 @@ begin
           ExtractFileName(Animations.Keys[j]),
           ExtractFilePath(Animations.Keys[j]), '', []);
       CoordStr := NameStr + '_Coord';
-      TexCoordStr := NameStr + '_TexCoord'; 
+      TexCoordStr := NameStr + '_TexCoord';
       KeyStr := '';
       OldKeyStr := '';
       { Generate list of keys. }
@@ -260,7 +246,7 @@ begin
       CoordKeyValueStr := '';
       TexCoordKeyValueStr := '';
       OldCoordKeyValueStr := '';
-      OldTexCoordKeyValueStr := '';  
+      OldTexCoordKeyValueStr := '';
       { Generate list of coord/texcoord key values. }
       for i := 0 to List.Count-1 do
       begin
@@ -270,7 +256,7 @@ begin
             '%.1f %.1f 0, %.1f %.1f 0, %.1f %.1f 0, ' + #10,
             [-Frame.W * (  Frame.AX),  Frame.H * (  Frame.AY),
               Frame.W * (1-Frame.AX),  Frame.H * (  Frame.AY),
-              Frame.W * (1-Frame.AX), -Frame.H * (1-Frame.AY), 
+              Frame.W * (1-Frame.AX), -Frame.H * (1-Frame.AY),
              -Frame.W * (  Frame.AX),  Frame.H * (  Frame.AY),
               Frame.W * (1-Frame.AX), -Frame.H * (1-Frame.AY),
              -Frame.W * (  Frame.AX), -Frame.H * (1-Frame.AY)]);
@@ -295,7 +281,7 @@ begin
           TpTimeSensor,
           ['%NAME%'],
           [NameStr],
-          [rfReplaceAll]) + #10#10;     
+          [rfReplaceAll]) + #10#10;
       Interpolators := Interpolators + StringsReplace(
           TpInterpolator,
           ['%NAME%',
@@ -338,5 +324,3 @@ begin
     FreeAndNil(Animations);
   end;
 end.
-
-
