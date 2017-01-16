@@ -18,11 +18,8 @@
 {$APPTYPE CONSOLE}
 
 uses
-  Classes, SysUtils, strutils,
-  CastleImages,
-  DOM, XMLRead,
-  RegExpr,
-  FGL, CastleGenericLists;
+  Classes, SysUtils, strutils, DOM, XMLRead, RegExpr, FGL,
+  CastleImages, CastleGenericLists, CastleStringUtils;
 
 type
   TMeta = record
@@ -108,31 +105,12 @@ end;
 
 { Load classic X3D templates. }
 procedure LoadTemplates;
-
-  function ReadFile(const AName: string): string;
-  var
-    FS: TFileStream;
-    SS: TStringStream;
-  begin
-    Result := '';
-    FS := TFileStream.Create(AName, fmOpenRead);
-    SS := TStringStream.Create;
-    try
-      FS.Position := 0;
-      SS.CopyFrom(FS, FS.Size);
-      Result := SS.DataString;
-    finally
-      FreeAndNil(FS);
-      FreeAndNil(SS);
-    end;
-  end;
-
 begin
-  TpHeader := ReadFile('data/header.txt');
-  TpShape := ReadFile('data/shape.txt');
-  TpTimeSensor := ReadFile('data/timesensor.txt');
-  TpInterpolator := ReadFile('data/interpolator.txt');
-  TpRoute := ReadFile('data/route.txt');
+  TpHeader := FileToString('data/header.txt');
+  TpShape := FileToString('data/shape.txt');
+  TpTimeSensor := FileToString('data/timesensor.txt');
+  TpInterpolator := FileToString('data/interpolator.txt');
+  TpRoute := FileToString('data/route.txt');
 end;
 
 procedure ParamHandle;
