@@ -15,7 +15,10 @@ begin
     while N <> nil do
     begin
       if N.NodeName <> 'SubTexture' then
+      begin
+        N := N.NextSibling;
         continue;
+      end;
       AniName := N.Attributes.GetNamedItem('name').NodeValue;
       Frame.X1 := StrToFloat(N.Attributes.GetNamedItem('x').NodeValue);
       Frame.Y1 := StrToFloat(N.Attributes.GetNamedItem('y').NodeValue);
