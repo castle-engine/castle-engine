@@ -106,11 +106,11 @@ begin
     0:
       begin
         Writeln(
-            'sprite-sheet-to-x3d: Convert spritesheet files into X3D files.' + #10#13 +
-            '         Support file formats: Starling (.xml), Cocos2D (.plist).'+ #10#13 +
-            '         Please make sure frame keys follow XXX_YYY naming convention:'+ #10#13 +
-            '         - XXX: Frame name, start with a letter, will be used as animation name.'+ #10#13 +
-            '         - YYY: Frame number.'+ #10#13 +
+            'sprite-sheet-to-x3d: Convert spritesheet files into X3D files.' + LineEnding +
+            '    Support file formats: Starling (.xml), Cocos2D (.plist).'+ LineEnding +
+            '    Please make sure frame keys follow XXX_YYY naming convention:'+ LineEnding +
+            '    - XXX: Frame name, start with a letter, will be used as animation name.'+ LineEnding +
+            '    - YYY: Frame number.'+ LineEnding +
             'Usage: sprite-sheet-to-x3d <spritesheet> <output>'
         );
         Halt;
