@@ -75,5 +75,5 @@ initialization
   Window.OnRender := @WindowRender;
   Window.OnUpdate := @WindowUpdate;
   Window.OnPress := @WindowPress;
-  Window.AutoRedisplay := True;;
+  Window.AutoRedisplay := True;
 end.
