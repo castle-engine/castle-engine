@@ -19,7 +19,7 @@
 
 uses
   Classes, SysUtils, strutils, DOM, XMLRead, RegExpr, FGL,
-  CastleImages, CastleGenericLists, CastleStringUtils;
+  CastleParameters, CastleImages, CastleGenericLists, CastleStringUtils;
 
 type
   TMeta = record
@@ -115,7 +115,7 @@ end;
 
 procedure ParamHandle;
 begin
-  case ParamCount of
+  case Parameters.High of
     0:
       begin
         Writeln(
@@ -130,7 +130,7 @@ begin
       end;
     else
       begin
-        SSFullPath := ParamStr(1);
+        SSFullPath := Parameters[1];
         if not FileExists(SSFullPath) then
         begin
           Writeln('Error: File not exists.');

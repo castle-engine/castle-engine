@@ -24,15 +24,15 @@ var
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 var
-  DEFAULT_TMX_FILE: string;
+  DefaultTmxFile: string;
   FilePath: string;
 begin
   { Load the map from given parameter filepath or default. }
-  DEFAULT_TMX_FILE := ApplicationData('desert.tmx');
-  if ParamCount = 1 then
-    FilePath := ParamStr(1)
+  DefaultTmxFile := ApplicationData('desert.tmx');
+  if Parameters.High = 1 then
+    FilePath := Parameters[1]
   else
-    FilePath := DEFAULT_TMX_FILE;
+    FilePath := DefaultTmxFile;
   TiledMap := TCastleTiledMapControl.Create(Window, FilePath);
   WriteLnLog('filepath', FilePath);
   Window.Controls.InsertFront(TiledMap);
