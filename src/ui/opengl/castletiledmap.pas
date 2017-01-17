@@ -1,5 +1,5 @@
 {
-  Copyright 2015, 2016 Tomasz Wojtyś
+  Copyright 2015, 2016 Tomasz Wojtyś, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -37,8 +37,8 @@ type
   { List of properties. }
   TProperties = specialize TGenericStructList<TProperty>;
 
-  TEncodingType = (ET_None, ET_Base64, ET_CSV);
-  TCompressionType = (CT_None, CT_GZip, CT_ZLib);
+  TEncodingType = (etNone, etBase64, etCSV);
+  TCompressionType = (ctNone, ctGZip, ctZLib);
 
   { Binary data definition. }
   TData = record
@@ -73,9 +73,9 @@ type
     Data: TData;
   end;
 
-  TObjectsDrawOrder = (ODO_Index, ODO_TopDown);
+  TObjectsDrawOrder = (odoIndex, odoTopDown);
 
-  TTileObjectPrimitive = (TOP_Ellipse, TOP_Poligon, TOP_PolyLine);
+  TTileObjectPrimitive = (topEllipse, topPoligon, topPolyLine);
 
   { Object definition. }
   TTiledObject = object
@@ -113,7 +113,7 @@ type
     destructor Destroy; override;
   end;
 
-  TLayerType = (LT_Layer, LT_ObjectGroup, LT_ImageLayer);
+  TLayerType = (ltLayer, ltObjectGroup, ltImageLayer);
 
   PLayer = ^TLayer;
   { Layer definition. Internally we treat "object group" as normal layer. }
@@ -255,8 +255,8 @@ type
     destructor Destroy; override;
   end;
 
-  TMapOrientation = (MO_Orthogonal, MO_Isometric, MO_Staggered);
-  TMapRenderOrder = (MRO_RightDown, MRO_RightUp, MRO_LeftDown, MRO_LeftUp);
+  TMapOrientation = (moOrthogonal, moIsometric, moStaggered);
+  TMapRenderOrder = (mroRightDown, mroRightUp, mroLeftDown, mroLeftUp);
 
   { Loading and manipulating "Tiled" map files (http://mapeditor.org).
     Based on Tiled version 0.14. }
@@ -592,7 +592,7 @@ begin
     Visible := True;
     OffsetX := 0;
     OffsetY := 0;
-    LayerType := LT_Layer;
+    LayerType := ltLayer;
     Name := Element.GetAttribute('name');
     if Element.AttributeString('opacity', TmpStr) then
       Opacity := StrToFloat(TmpStr);
@@ -639,8 +639,8 @@ begin
     Visible := True;
     OffsetX := 0;
     OffsetY := 0;
-    DrawOrder := ODO_TopDown;
-    LayerType := LT_ObjectGroup;
+    DrawOrder := odoTopDown;
+    LayerType := ltObjectGroup;
     Name := Element.GetAttribute('name');
     if Element.AttributeString('opacity', TmpStr) then
       Opacity := StrToFloat(TmpStr);
@@ -652,8 +652,8 @@ begin
       OffsetY := StrToInt(TmpStr);
     if Element.AttributeString('draworder', TmpStr) then
       case TmpStr of
-        'index': DrawOrder := ODO_Index;
-        'topdown': DrawOrder := ODO_TopDown;
+        'index': DrawOrder := odoIndex;
+        'topdown': DrawOrder := odoTopDown;
       end;
     WritelnLog('LoadTileset Name', Name);
     WritelnLog('LoadTileset Visible', BoolToStr(Visible, 'True', 'False'));
@@ -757,13 +757,13 @@ begin
         WritelnLog('LoadTiledObject element', I.Current.TagName);
         case LowerCase(I.Current.TagName) of
           'properties': LoadProperties(I.Current, Properties);
-          'ellipse': Primitive := TOP_Ellipse;
+          'ellipse': Primitive := topEllipse;
           'polygon': begin
-            Primitive := TOP_Poligon;
+            Primitive := topPoligon;
             ReadPoints(I.Current.GetAttribute('points'), Points);
           end;
           'polyline': begin
-            Primitive := TOP_PolyLine;
+            Primitive := topPolyLine;
             ReadPoints(I.Current.GetAttribute('points'), Points);
           end;
           'image': LoadImage(I.Current, Image);
@@ -787,7 +787,7 @@ begin
     Visible := True;
     OffsetX := 0;
     OffsetY := 0;
-    LayerType := LT_ImageLayer;
+    LayerType := ltImageLayer;
     Name := Element.GetAttribute('name');
     if Element.AttributeString('opacity', TmpStr) then
       Opacity := StrToFloat(TmpStr);
@@ -846,31 +846,31 @@ begin
   try
     with AData do
     begin
-      Encoding := ET_None;
-      Compression := CT_None;
+      Encoding := etNone;
+      Compression := ctNone;
       if Element.AttributeString('encoding', TmpStr) then
         case TmpStr of
-          'base64': Encoding := ET_Base64;
-          'csv': Encoding := ET_CSV;
+          'base64': Encoding := etBase64;
+          'csv': Encoding := etCSV;
         end;
       if Element.AttributeString('compression', TmpStr) then
         case TmpStr of
-          'gzip': Compression := CT_Gzip;
-          'zlib': Compression := CT_ZLib;
+          'gzip': Compression := ctGzip;
+          'zlib': Compression := ctZLib;
         end;
 
-      if (Encoding = ET_None) and (Compression = CT_None) then
+      if (Encoding = etNone) and (Compression = ctNone) then
       begin
         UsePlainXML := True;
       end else begin
         RawData := Element.TextContent;
         WritelnLog('LoadData RawData', RawData);
         case Encoding of
-          ET_Base64: begin
+          etBase64: begin
             Decoder := TBase64DecodingStream.Create(TStringStream.Create(RawData));
             Decoder.SourceOwner := true;
           end;
-          ET_CSV: begin
+          etCSV: begin
             // remove EOLs
             RawData := StringReplace(RawData, #10, '', [rfReplaceAll]);
             RawData := StringReplace(RawData, #13, '', [rfReplaceAll]);
@@ -897,8 +897,8 @@ begin
           end;
         end;
         case Compression of
-          CT_Gzip: WritelnLog('LoadData', 'Gzip format not implemented'); //todo: gzip reading
-          CT_ZLib: begin
+          ctGzip: WritelnLog('LoadData', 'Gzip format not implemented'); //todo: gzip reading
+          ctZLib: begin
             Decompressor := TDecompressionStream.Create(Decoder);
             try
               repeat
@@ -912,9 +912,9 @@ begin
               Decompressor.Free;
             end;
           end;
-          CT_None: begin
+          ctNone: begin
             // Base64 only
-            if Encoding = ET_Base64 then
+            if Encoding = etBase64 then
               repeat
                 DataCount := Decoder.Read(Buffer, BufferSize * SizeOf(Cardinal));
                 DataLength := Length(Data);
@@ -1046,9 +1046,9 @@ begin
       FVersion := TmpStr;
     if Doc.DocumentElement.AttributeString('orientation', TmpStr) then
       case TmpStr of
-        'orthogonal': FOrientation := MO_Orthogonal;
-        'isometric': FOrientation := MO_Isometric;
-        'staggered': FOrientation := MO_Staggered;
+        'orthogonal': FOrientation := moOrthogonal;
+        'isometric': FOrientation := moIsometric;
+        'staggered': FOrientation := moStaggered;
       end;
     if Doc.DocumentElement.AttributeString('width', TmpStr) then
       FWidth := StrToInt(TmpStr);
@@ -1062,10 +1062,10 @@ begin
       FBackgroundColor := HexToColorRGB(TmpStr);
     if Doc.DocumentElement.AttributeString('renderorder', TmpStr) then
       case TmpStr of
-        'right-down': FRenderOrder := MRO_RightDown;
-        'right-up': FRenderOrder := MRO_RightUp;
-        'left-down': FRenderOrder := MRO_LeftDown;
-        'left-up': FRenderOrder := MRO_LeftUp;
+        'right-down': FRenderOrder := mroRightDown;
+        'right-up': FRenderOrder := mroRightUp;
+        'left-down': FRenderOrder := mroLeftDown;
+        'left-up': FRenderOrder := mroLeftUp;
       end;
     // Parse map childrens
     I := TXMLElementIterator.Create(Doc.DocumentElement);

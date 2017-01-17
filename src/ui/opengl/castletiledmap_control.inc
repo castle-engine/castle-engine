@@ -68,7 +68,7 @@ begin
   begin
     Lay := FTiledMap.Layers. Ptr(i);
     if not Lay^.Visible then Continue;
-    if (Lay^.LayerType = LT_ObjectGroup) or (Lay^.LayerType = LT_ImageLayer) then
+    if (Lay^.LayerType = ltObjectGroup) or (Lay^.LayerType = ltImageLayer) then
       Continue;
     //todo: use opacity
     //todo: use offset
@@ -113,13 +113,13 @@ begin
   { Object groups. }
   for i := 0 to FTiledMap.Layers.Count - 1 do
   begin
-    // if (Lay^.LayerType = LTLayer) or (Lay^.LayerType = LT_ImageLayer) then
+    // if (Lay^.LayerType = LTLayer) or (Lay^.LayerType = ltImageLayer) then
     //   Continue;
     //todo: draw objects
     //todo: draw image layer here?
     {case Lay^.DrawOrder of
-        ODO_Index:;
-        ODO_TopDown:;
+        odoIndex:;
+        odoTopDown:;
                   end;  }
 
   end;
@@ -208,9 +208,9 @@ begin
   if FTiledMap = nil then Exit;
 
   case FTiledMap.Orientation of
-    MO_Orthogonal: RenderOrthogonal;
-    MO_Isometric: RenderIsometric;
-    MO_Staggered: RenderHexagonal;
+    moOrthogonal: RenderOrthogonal;
+    moIsometric: RenderIsometric;
+    moStaggered: RenderHexagonal;
   end;
 
   if FObjectsVisible then RenderObjects;
