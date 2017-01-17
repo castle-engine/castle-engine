@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Part of CastleControls unit: display a 2D tiled map (TMX)
-  (TCastleTiledMap class). }
+{ Display a 2D tiled map (TMX) (TCastleTiledMap class). }
 
 {$ifdef read_interface}
 

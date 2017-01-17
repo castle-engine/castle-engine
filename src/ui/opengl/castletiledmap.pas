@@ -21,7 +21,7 @@ interface
 uses
   Classes, SysUtils, DOM, XMLRead, base64, zstream, CastleGenericLists,
   CastleVectors, CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils,
-  CastleLog, CastleStringUtils;
+  CastleLog, CastleStringUtils, CastleUIControls, CastleGLImages;
 
 type
   TProperty = record
@@ -304,21 +304,26 @@ type
     property Width: Cardinal read FWidth;
     { The map height in tiles. }
     property Height: Cardinal read FHeight;
-    { The order in which tiles on tile layers are rendered. Valid values are
-      right-down (the default), right-up, left-down and left-up. In all cases,
-      the map is drawn row-by-row. (since 0.10, but only supported for orthogonal
-      maps at the moment) }
     { The width of a tile. }
     property TileWidth: Cardinal read FTileWidth;
     { The height of a tile. }
     property TileHeight: Cardinal read FTileHeight;
+    { The order in which tiles on tile layers are rendered. Valid values are
+      right-down (the default), right-up, left-down and left-up. In all cases,
+      the map is drawn row-by-row. (since 0.10, but only supported for orthogonal
+      maps at the moment) }
     property RenderOrder: TMapRenderOrder read FRenderOrder;
-    { @param(AURL) - URL to TMX file. }
+    { Constructor.
+      @param(AURL URL to Tiled (TMX) file.) }
     constructor Create(AURL: string);
     destructor Destroy; override;
-    { Returns the pointer to tileset that contain the global ID. }
+    { Returns the pointer to tileset that contains the global ID. }
     function GIDToTileset(const AGID: Cardinal): PTileSet;
   end;
+
+{$define read_interface}
+{$I castletiledmap_control.inc}
+{$undef read_interface}
 
 implementation
 
@@ -1116,5 +1121,8 @@ begin
   Result := FTilesets.Ptr(FTilesets.Count - 1);
 end;
 
+{$define read_implementation}
+{$I castletiledmap_control.inc}
+{$undef read_implementation}
 
 end.

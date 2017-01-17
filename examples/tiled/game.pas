@@ -14,7 +14,7 @@ implementation
 
 uses SysUtils, CastleWindow, CastleScene, CastleControls,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors, CastleLog,
-  CastleParameters;
+  CastleParameters, CastleTiledMap;
 
 var
   TiledMap: TCastleTiledMapControl;

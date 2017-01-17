@@ -778,7 +778,7 @@
         <UnitName Value="CastleKeysMouse"/>
       </Item184>
       <Item185>
-        <Filename Value="../src/ui/castletiledmap.pas"/>
+        <Filename Value="../src/ui/opengl/castletiledmap.pas"/>
         <UnitName Value="CastleTiledMap"/>
       </Item185>
       <Item186>

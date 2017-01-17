@@ -267,7 +267,6 @@ begin
     P.Targets.AddUnit('pk3dconnexion.pas');
     P.Targets.AddUnit('castleuicontrols.pas');
     P.Targets.AddUnit('castlejoysticks.pas');
-    P.Targets.AddUnit('castletiledmap.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'windows');
@@ -276,10 +275,11 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlecontrols.pas');
+    P.Targets.AddUnit('castleflasheffect.pas');
     P.Targets.AddUnit('castleinspectorcontrol.pas');
     P.Targets.AddUnit('castlenotifications.pas');
     P.Targets.AddUnit('castleonscreenmenu.pas');
-    P.Targets.AddUnit('castleflasheffect.pas');
+    P.Targets.AddUnit('castletiledmap.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'window');
     P.Targets.AddUnit('castlemessages.pas');
