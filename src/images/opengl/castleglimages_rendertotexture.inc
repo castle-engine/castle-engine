@@ -478,7 +478,7 @@ procedure TGLRenderToTexture.GLContextOpen;
             glRenderbufferStorage(GL_RENDERBUFFER, InternalFormat, Width, Height);
           if AttachmentDepthAndStencil then
           begin
-            WritelnLog('FBO', 'Setting GL_DEPTH_ATTACHMENT and GL_STENCIL_ATTACHMENT to the same renderbuffer');
+            // WritelnLog('FBO', 'Setting GL_DEPTH_ATTACHMENT and GL_STENCIL_ATTACHMENT to the same renderbuffer');
             { Radeon drivers (ATI Mobility Radeon HD 4330) throw OpenGL error "invalid enum"
               when trying to use GL_DEPTH_STENCIL_ATTACHMENT. }
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RenderbufferId);
