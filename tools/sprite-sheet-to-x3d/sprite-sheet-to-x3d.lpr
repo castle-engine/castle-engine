@@ -44,11 +44,6 @@ var
   SSExt,
   SSName,
   SSOutput: string;
-  TpHeader,
-  TpShape,
-  TpRoute,
-  TpTimeSensor,
-  TpInterpolator: string;
   Animations: TAnimations;
   Meta: TMeta;
 
@@ -103,16 +98,6 @@ begin
   finally
     FreeAndNil(Image);
   end;
-end;
-
-{ Load classic X3D templates. }
-procedure LoadTemplates;
-begin
-  TpHeader := FileToString('data/header.txt');
-  TpShape := FileToString('data/shape.txt');
-  TpTimeSensor := FileToString('data/timesensor.txt');
-  TpInterpolator := FileToString('data/interpolator.txt');
-  TpRoute := FileToString('data/route.txt');
 end;
 
 procedure ParamHandle;
@@ -362,7 +347,6 @@ begin
   Animations := TAnimations.Create;
   try
     try
-      LoadTemplates;
       ParamHandle;
       Parse;
       Convert;

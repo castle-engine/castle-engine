@@ -1,5 +1,0 @@
-#X3D V3.3 utf8
-PROFILE Interchange
-
-META "generator" "sprite-sheet-to-x3d, http://castle-engine.sourceforge.net"
-META "source" "%SOURCE%"
