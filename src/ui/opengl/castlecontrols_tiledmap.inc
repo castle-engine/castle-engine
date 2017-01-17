@@ -13,29 +13,31 @@
   ----------------------------------------------------------------------------
 }
 
-{ Part of CastleControls unit: drawing 2D tiled map (TMX) on screen
+{ Part of CastleControls unit: display a 2D tiled map (TMX)
   (TCastleTiledMap class). }
 
 {$ifdef read_interface}
 
 type
-
-	{ TCastleTiledMapControl }
-
+  { Display a 2D tiled map (TMX). }
   TCastleTiledMapControl = class(TUIControl)
   private
     FTiledMap: TTiledMap;
     { Tilesets images. }
     FImages: TSpriteList;
-    FDoRenderObjects: Boolean;
+    FObjectsVisible: Boolean;
     FDataPath: string;
     procedure RenderOrthogonal;
     procedure RenderHexagonal;
     procedure RenderIsometric;
     procedure RenderObjects;
     procedure LoadTilesetsImages;
+    { Free images created by LoadTilesetsImages. }
+    procedure FreeTilesetsImages;
+    { Free everything created by LoadFromFile. }
+    procedure Close;
   public
-    property DoRenderObjects: Boolean read FDoRenderObjects write FDoRenderObjects;
+    property ObjectsVisible: Boolean read FObjectsVisible write FObjectsVisible;
     { If using this constructor then you have to use LoadFromFile procedure after. }
     constructor Create(AOwner: TComponent); override; overload;
     constructor Create(AOwner: TComponent; AURL: string); overload;
@@ -52,10 +54,10 @@ type
 procedure TCastleTiledMapControl.RenderOrthogonal;
 var
   i, j, k, l: Integer;
-  _lay: PLayer;
-  _ts: PTileset;
-  _spr: TSprite;
-  _GID, _dat: Cardinal;
+  Lay: PLayer;
+  Ts: PTileset;
+  Spr: TSprite;
+  GID, Dat: Cardinal;
 const
   HorizontalFlag = $80000000;
   VerticalFlag   = $40000000;
@@ -65,9 +67,9 @@ begin
   { Layers. }
   for i := 0 to FTiledMap.Layers.Count - 1 do
   begin
-    _lay := FTiledMap.Layers. Ptr(i);
-    if not _lay^.Visible then Continue;
-    if (_lay^.LayerType = LT_ObjectGroup) or (_lay^.LayerType = LT_ImageLayer) then
+    Lay := FTiledMap.Layers. Ptr(i);
+    if not Lay^.Visible then Continue;
+    if (Lay^.LayerType = LT_ObjectGroup) or (Lay^.LayerType = LT_ImageLayer) then
       Continue;
     //todo: use opacity
     //todo: use offset
@@ -75,23 +77,23 @@ begin
     l := 0;
     for j := FTiledMap.Height - 1 downto 0 do
       for k := 0 to FTiledMap.Width - 1 do
-      begin     // writelnlog('tiled control','data high:%d',[High(_lay^.Data.Data)]);
-        _dat := _lay^.Data.Data[l];  //writelnlog('tiled control', 'render ortho 0; gid:%d',[_GID]);
-        _GID := _dat and ClearFlag;
+      begin     // writelnlog('tiled control','data high:%d',[High(Lay^.Data.Data)]);
+        Dat := Lay^.Data.Data[l];  //writelnlog('tiled control', 'render ortho 0; gid:%d',[GID]);
+        GID := Dat and ClearFlag;
         Inc(l);
-        if _GID = 0 then Continue;
-        _ts := FTiledMap.GIDToTileset(_GID);
-        _spr := TSprite(_ts^.ImageData);
-        _spr.X := k * FTiledMap.TileWidth;
-        _spr.Y := j * FTiledMap.TileHeight;
-        _spr.Frame := _GID - _ts^.FirstGID;
-        _spr.HorizontalFlip := _dat and HorizontalFlag > 0;
-        _spr.VerticalFlip := _dat and VerticalFlag > 0;
+        if GID = 0 then Continue;
+        Ts := FTiledMap.GIDToTileset(GID);
+        Spr := TSprite(Ts^.ImageData);
+        Spr.X := k * FTiledMap.TileWidth;
+        Spr.Y := j * FTiledMap.TileHeight;
+        Spr.Frame := GID - Ts^.FirstGID;
+        Spr.HorizontalFlip := Dat and HorizontalFlag > 0;
+        Spr.VerticalFlip := Dat and VerticalFlag > 0;
         //todo: test flipping diagonally
-        _spr.DiagonalFlip := _dat and DiagonalFlag > 0;
-        _spr.Draw;
-			end;
-	end;
+        Spr.DiagonalFlip := Dat and DiagonalFlag > 0;
+        Spr.Draw;
+      end;
+  end;
 end;
 
 procedure TCastleTiledMapControl.RenderHexagonal;
@@ -107,56 +109,70 @@ end;
 procedure TCastleTiledMapControl.RenderObjects;
 var
   i: Integer;
-  _lay: PLayer;
+  // Lay: PLayer;
 begin
   { Object groups. }
   for i := 0 to FTiledMap.Layers.Count - 1 do
   begin
-    if (_lay^.LayerType = LT_Layer) or (_lay^.LayerType = LT_ImageLayer) then
-      Continue;
+    // if (Lay^.LayerType = LTLayer) or (Lay^.LayerType = LT_ImageLayer) then
+    //   Continue;
     //todo: draw objects
     //todo: draw image layer here?
-    {case _lay^.DrawOrder of
+    {case Lay^.DrawOrder of
         ODO_Index:;
         ODO_TopDown:;
-		  end;  }
+                  end;  }
 
   end;
 end;
 
 procedure TCastleTiledMapControl.LoadTilesetsImages;
 var
-  i: Integer;
-  _ts: PTileset;
-  _spr: TSprite;
+  I: Integer;
+  Ts: PTileset;
+  Spr: TSprite;
 begin
-  for i := 0 to FTiledMap.Tilesets.Count - 1 do
+  for I := 0 to FTiledMap.Tilesets.Count - 1 do
   begin
-    _ts := FTiledMap.Tilesets.Ptr(i);
-    if _ts^.Columns = 0 then
-      _ts^.Columns := _ts^.Image.Width div _ts^.TileWidth;
-    if _ts^.TileCount = 0 then
-      _ts^.TileCount := (_ts^.Image.Height div _ts^.TileHeight) * _ts^.Columns;
-    _spr := TSprite.Create(FDataPath + _ts^.Image.Source, _ts^.TileCount,
-                           _ts^.Columns, _ts^.TileCount div _ts^.Columns,
+    Ts := FTiledMap.Tilesets.Ptr(i);
+    if Ts^.Columns = 0 then
+      Ts^.Columns := Ts^.Image.Width div Ts^.TileWidth;
+    if Ts^.TileCount = 0 then
+      Ts^.TileCount := (Ts^.Image.Height div Ts^.TileHeight) * Ts^.Columns;
+    Spr := TSprite.Create(FDataPath + Ts^.Image.Source, Ts^.TileCount,
+                           Ts^.Columns, Ts^.TileCount div Ts^.Columns,
                            True, False);
-    _spr.DrawingWidth := FTiledMap.TileWidth;
-    _spr.DrawingHeight := FTiledMap.TileHeight;
-    _spr.FrameWidth := FTiledMap.TileWidth;
-    _spr.FrameHeight := FTiledMap.TileHeight;
-    _spr.LeftMargin := _ts^.Margin;
-    _spr.TopMargin := _ts^.Margin;
-    _spr.HorizontalSpacing := _ts^.Spacing;
-    _spr.VerticalSpacing := _ts^.Spacing;
-    writelnlog('LoadTlesetsImages', 'columns:%d',[_ts^.Columns]);
-    _ts^.ImageData := _spr;
-	end;
+    Spr.DrawingWidth := FTiledMap.TileWidth;
+    Spr.DrawingHeight := FTiledMap.TileHeight;
+    Spr.FrameWidth := FTiledMap.TileWidth;
+    Spr.FrameHeight := FTiledMap.TileHeight;
+    Spr.LeftMargin := Ts^.Margin;
+    Spr.TopMargin := Ts^.Margin;
+    Spr.HorizontalSpacing := Ts^.Spacing;
+    Spr.VerticalSpacing := Ts^.Spacing;
+    Spr.VerticalSpacingBottom := true;
+    Writelnlog('LoadTlesetsImages', 'columns:%d', [Ts^.Columns]);
+    Ts^.ImageData := Spr;
+  end;
+end;
+
+procedure TCastleTiledMapControl.FreeTilesetsImages;
+var
+  I: Integer;
+  Ts: PTileset;
+begin
+  if FTiledMap <> nil then
+    for I := 0 to FTiledMap.Tilesets.Count - 1 do
+    begin
+      Ts := FTiledMap.Tilesets.Ptr(i);
+      FreeAndNil(Ts^.ImageData);
+    end;
 end;
 
 constructor TCastleTiledMapControl.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FDoRenderObjects := False;
+  FObjectsVisible := False;
 end;
 
 constructor TCastleTiledMapControl.Create(AOwner: TComponent; AURL: string);
@@ -167,18 +183,20 @@ end;
 
 destructor TCastleTiledMapControl.Destroy;
 begin
-  FImages.Free;
-  FTiledMap.Free;
+  Close;
   inherited Destroy;
 end;
 
-procedure TCastleTiledMapControl.LoadFromFile(AURL: string);
-var
-  i, j: Integer;
-  _lay: PLayer;
+procedure TCastleTiledMapControl.Close;
 begin
-  if not (FImages = nil) then FImages.Free;
-  if not (FTiledMap = nil) then FTiledMap.Free;
+  FreeAndNil(FImages);
+  FreeTilesetsImages;
+  FreeAndNil(FTiledMap);
+end;
+
+procedure TCastleTiledMapControl.LoadFromFile(AURL: string);
+begin
+  Close;
   FTiledMap := TTiledMap.Create(AURL);
   FDataPath := ExtractURIPath(AURL);
   FImages := TSpriteList.Create(True);
@@ -196,7 +214,7 @@ begin
     MO_Staggered: RenderHexagonal;
   end;
 
-  if FDoRenderObjects then RenderObjects;
+  if FObjectsVisible then RenderObjects;
 end;
 
 {$endif read_implementation}

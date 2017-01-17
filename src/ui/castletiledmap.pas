@@ -16,13 +16,12 @@
 { TMX files processing unit. Based on Tiled v0.17. }
 unit CastleTiledMap;
 
-{$mode objfpc}{$H+}
-
 interface
 
 uses
-  Classes, SysUtils, DOM, XMLRead, base64, zstream, CastleGenericLists, CastleVectors,
-  CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils, CastleLog, CastleStringUtils;
+  Classes, SysUtils, DOM, XMLRead, base64, zstream, CastleGenericLists,
+  CastleVectors, CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils,
+  CastleLog, CastleStringUtils;
 
 type
   TProperty = record
@@ -79,7 +78,7 @@ type
   TTileObjectPrimitive = (TOP_Ellipse, TOP_Poligon, TOP_PolyLine);
 
   { Object definition. }
-  TTiledObject = record
+  TTiledObject = object
     { Unique ID of the object. Each object that is placed on a map gets
       a unique id. Even if an object was deleted, no object gets the same ID.
       Can not be changed in Tiled Qt. (since Tiled 0.11) }
@@ -107,14 +106,18 @@ type
     Points: TVector2SingleList;
     Primitive: TTileObjectPrimitive;
     Image: TImage;
+    procedure Free;
   end;
 
-  TTiledObjects = specialize TGenericStructList<TTiledObject>;
+  TTiledObjects = class(specialize TGenericStructList<TTiledObject>)
+    destructor Destroy; override;
+  end;
+
   TLayerType = (LT_Layer, LT_ObjectGroup, LT_ImageLayer);
 
   PLayer = ^TLayer;
   { Layer definition. Internally we treat "object group" as normal layer. }
-  TLayer = record
+  TLayer = object
     { The name of the layer. }
     Name: string;
     { The opacity of the layer as a value from 0 to 1. Defaults to 1. }
@@ -146,10 +149,15 @@ type
     LayerType: TLayerType;
     { Used by ImageLayer. }
     Image: TImage;
+    procedure Free;
   end;
 
   { List of layers. }
-  TLayers = specialize TGenericStructList<TLayer>;
+  TLayers = class(specialize TGenericStructList<TLayer>)
+    { Should we call Free on all our items when being destroyed. }
+    FreeChildren: boolean;
+    destructor Destroy; override;
+  end;
 
   { Single frame of animation. }
   TFrame = record
@@ -165,7 +173,7 @@ type
     In the future, there could be support for multiple named animations on a tile. }
   TAnimation = specialize TGenericStructList<TFrame>;
 
-  TTile = record
+  TTile = object
     { The local tile ID within its tileset. }
     Id: Cardinal;
     { Defines the terrain type of each corner of the tile, given as
@@ -181,10 +189,13 @@ type
     { ObjectGroup since 0.10 (internally as layer) }
     ObjectGroup: TLayers;
     Animation: TAnimation;
+    procedure Free;
   end;
 
   { Tiles list. }
-  TTiles = specialize TGenericStructList<TTile>;
+  TTiles = class(specialize TGenericStructList<TTile>)
+    destructor Destroy; override;
+  end;
 
   TTerrain = record
     { The name of the terrain type. }
@@ -200,7 +211,7 @@ type
 
   PTileset = ^TTileset;
   { Tileset definition. }
-  TTileset = record
+  TTileset = object
     { The first global tile ID of this tileset (this global ID maps to the first
     tile in this tileset). }
     FirstGID: Cardinal;
@@ -234,20 +245,21 @@ type
     Tiles: TTiles;
     TerrainTypes: TTerrainTypes; //todo: loading TerrainTypes
     { Pointer to image of tileset. Used by renderer. Not a part of file format. }
-    ImageData: Pointer;
+    ImageData: TObject;
+
+    procedure Free;
   end;
 
   { List of tilesets. }
-  TTilesets = specialize TGenericStructList<TTileset>;
+  TTilesets = class(specialize TGenericStructList<TTileset>)
+    destructor Destroy; override;
+  end;
 
   TMapOrientation = (MO_Orthogonal, MO_Isometric, MO_Staggered);
   TMapRenderOrder = (MRO_RightDown, MRO_RightUp, MRO_LeftDown, MRO_LeftUp);
 
   { Loading and manipulating "Tiled" map files (http://mapeditor.org).
     Based on Tiled version 0.14. }
-
-	{ TTiledMap }
-
   TTiledMap = class
   private
     { Map stuff. }
@@ -310,6 +322,85 @@ type
 
 implementation
 
+{ TTile ------------------------------------------------------------------- }
+
+procedure TTile.Free;
+begin
+  FreeAndNil(Properties);
+end;
+
+{ TTiles ------------------------------------------------------------------ }
+
+destructor TTiles.Destroy;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    List^[I].Free;
+  inherited;
+end;
+
+{ TTiledObject ------------------------------------------------------------------- }
+
+procedure TTiledObject.Free;
+begin
+  FreeAndNil(Properties);
+  FreeAndNil(Points);
+end;
+
+{ TTiledObjects ------------------------------------------------------------------ }
+
+destructor TTiledObjects.Destroy;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    List^[I].Free;
+  inherited;
+end;
+
+{ TLayer ------------------------------------------------------------------- }
+
+procedure TLayer.Free;
+begin
+  FreeAndNil(Objects);
+  FreeAndNil(Properties);
+end;
+
+{ TLayers ------------------------------------------------------------------ }
+
+destructor TLayers.Destroy;
+var
+  I: Integer;
+begin
+  if FreeChildren then
+  begin
+    for I := 0 to Count - 1 do
+      List^[I].Free;
+  end;
+  inherited;
+end;
+
+{ TTileset ------------------------------------------------------------------- }
+
+procedure TTileset.Free;
+begin
+  FreeAndNil(Tiles);
+end;
+
+{ TTilesets ------------------------------------------------------------------ }
+
+destructor TTilesets.Destroy;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    List^[I].Free;
+  inherited;
+end;
+
+{ TTiledMap ------------------------------------------------------------------ }
+
 procedure TTiledMap.LoadTileset(Element: TDOMElement);
 var
   I: TXMLElementIterator;
@@ -326,8 +417,9 @@ begin
     Margin := 0;
 
     if Element.AttributeString('firstgid', TmpStr) then
-      FirstGID := StrToInt(TmpStr) else
-        FirstGID := 1;
+      FirstGID := StrToInt(TmpStr)
+    else
+      FirstGID := 1;
     if Element.AttributeString('source', TmpStr) then
     begin
       Source := TmpStr;
@@ -346,11 +438,13 @@ begin
     if Element.AttributeString('margin', TmpStr) then
       Margin := StrToInt(TmpStr);
     if Element.AttributeString('tilecount', TmpStr) then
-      TileCount := StrToInt(TmpStr) else
-        TileCount := 0;
+      TileCount := StrToInt(TmpStr)
+    else
+      TileCount := 0;
     if Element.AttributeString('columns', TmpStr) then
-      Columns := StrToInt(TmpStr) else
-        Columns := 0;
+      Columns := StrToInt(TmpStr)
+    else
+      Columns := 0;
     WritelnLog('LoadTileset firstgid', IntToStr(FirstGID));
     WritelnLog('LoadTileset Name', Name);
     WritelnLog('LoadTileset TileWidth', IntToStr(TileWidth));
@@ -439,7 +533,7 @@ end;
 
 procedure TTiledMap.LoadImage(Element: TDOMElement; var AImage: TImage);
 const
-  DEFAULT_TRANS:TCastleColorRGB = ( 1.0, 0.0, 1.0); {Fuchsia}
+  DefaultTrans: TCastleColorRGB = (1.0, 0.0, 1.0); {Fuchsia}
 var
   I: TXMLElementIterator;
   TmpStr: string;
@@ -455,7 +549,7 @@ begin
       if TmpStr[1]='#' then Delete(TmpStr, 1, 1);
       Trans := HexToColorRGB(TmpStr);
     end else
-      Trans := DEFAULT_TRANS;
+      Trans := DefaultTrans;
     if Element.AttributeString('width', TmpStr) then
       Width := StrToInt(TmpStr);
     if Element.AttributeString('height', TmpStr) then
@@ -488,6 +582,7 @@ begin
   with NewLayer do
   begin
     Properties := nil;
+    Objects := nil;
     Opacity := 1;
     Visible := True;
     OffsetX := 0;
@@ -682,6 +777,7 @@ begin
   with NewLayer do
   begin
     Properties := nil;
+    Objects := nil;
     Opacity := 1;
     Visible := True;
     OffsetX := 0;
@@ -731,112 +827,116 @@ const
 var
   I: TXMLElementIterator;
   TmpStr, RawData: string;
-  Decompressor, Decoder: TStream;
+  Decompressor: TStream;
+  Decoder: TBase64DecodingStream;
   Buffer: array[0..BufferSize-1] of Cardinal;
   DataCount, DataLength: Longint;
   CSVItem: string;
   tmpChar, p: PChar;
   CSVDataCount: Cardinal;
   UsePlainXML: Boolean;
-  j: Integer;
 begin
   UsePlainXML := False;
-  with AData do
-  begin
-    Encoding := ET_None;
-    Compression := CT_None;
-    if Element.AttributeString('encoding', TmpStr) then
-      case TmpStr of
-        'base64': Encoding := ET_Base64;
-        'csv': Encoding := ET_CSV;
-      end;
-    if Element.AttributeString('compression', TmpStr) then
-      case TmpStr of
-        'gzip': Compression := CT_Gzip;
-        'zlib': Compression := CT_ZLib;
-      end;
-
-    if (Encoding = ET_None) and (Compression = CT_None) then
+  Decoder := nil;
+  try
+    with AData do
     begin
-      UsePlainXML := True;
-    end else begin
-      RawData := Element.TextContent;
-      WritelnLog('LoadData RawData', RawData);
-      case Encoding of
-        ET_Base64: begin
-          Decoder := TBase64DecodingStream.Create(TStringStream.Create(RawData));
+      Encoding := ET_None;
+      Compression := CT_None;
+      if Element.AttributeString('encoding', TmpStr) then
+        case TmpStr of
+          'base64': Encoding := ET_Base64;
+          'csv': Encoding := ET_CSV;
         end;
-        ET_CSV: begin
-          // remove EOLs
-          RawData := StringReplace(RawData, #10, '', [rfReplaceAll]);
-          RawData := StringReplace(RawData, #13, '', [rfReplaceAll]);
-          // count data
-          CSVDataCount := 0;
-          tmpChar := StrScan(PChar(RawData), CSVDataSeparator);;
-          while tmpChar <> nil do
-          begin
-            Inc(CSVDataCount);
-            tmpChar := StrScan(StrPos(tmpChar, CSVDataSeparator) + 1, CSVDataSeparator);
-          end;
-          // read data
-          SetLength(Data, CSVDataCount + 1);
-          p := PChar(RawData);
-          DataCount := 0;
-          repeat
-            tmpChar := StrPos(p, CSVDataSeparator);
-            if tmpChar = nil then tmpChar := StrScan(p, #0);
-            SetString(CSVItem, p, tmpChar - p);
-            Data[DataCount] := StrToInt(CSVItem);
-            Inc(DataCount);
-            p := tmpChar + 1;
-          until tmpChar^ = #0;
+      if Element.AttributeString('compression', TmpStr) then
+        case TmpStr of
+          'gzip': Compression := CT_Gzip;
+          'zlib': Compression := CT_ZLib;
         end;
-      end;
-      case Compression of
-        CT_Gzip: WritelnLog('LoadData', 'Gzip format not implemented'); //todo: gzip reading
-        CT_ZLib: begin
-          try
-            Decompressor := TDecompressionStream.Create(Decoder);
-            repeat
-              DataCount := Decompressor.Read(Buffer, BufferSize * SizeOf(Cardinal));
-              DataLength := Length(Data);
-              SetLength(Data, DataLength+(DataCount div SizeOf(Cardinal)));
-              if DataCount > 0 then // because if DataCount=0 then ERangeCheck error
-                Move(Buffer, Data[DataLength], DataCount);
-            until DataCount < SizeOf(Buffer);
-          finally
-            Decompressor.Free;
-          end;
-        end;
-        CT_None: begin
-          // Base64 only
-          if Encoding = ET_Base64 then
-            repeat
-              DataCount := Decoder.Read(Buffer, BufferSize * SizeOf(Cardinal));
-              DataLength := Length(Data);
-              SetLength(Data, DataLength+(DataCount div SizeOf(Cardinal)));
-              if DataCount > 0 then // because if DataCount=0 then ERangeCheck error
-                Move(Buffer, Data[DataLength], DataCount);
-            until DataCount < SizeOf(Buffer);
-        end;
-      end;
-    end;
 
-    I := TXMLElementIterator.Create(Element);
-    try
-      while I.GetNext do
+      if (Encoding = ET_None) and (Compression = CT_None) then
       begin
-        WritelnLog('LoadData element', I.Current.TagName);
-        case LowerCase(I.Current.TagName) of
-          'tile': if UsePlainXML then
-          begin
-            SetLength(Data, Length(Data)+1);
-            Data[High(Data)] := StrToInt(I.Current.GetAttribute('gid'));
+        UsePlainXML := True;
+      end else begin
+        RawData := Element.TextContent;
+        WritelnLog('LoadData RawData', RawData);
+        case Encoding of
+          ET_Base64: begin
+            Decoder := TBase64DecodingStream.Create(TStringStream.Create(RawData));
+            Decoder.SourceOwner := true;
+          end;
+          ET_CSV: begin
+            // remove EOLs
+            RawData := StringReplace(RawData, #10, '', [rfReplaceAll]);
+            RawData := StringReplace(RawData, #13, '', [rfReplaceAll]);
+            // count data
+            CSVDataCount := 0;
+            tmpChar := StrScan(PChar(RawData), CSVDataSeparator);
+            while tmpChar <> nil do
+            begin
+              Inc(CSVDataCount);
+              tmpChar := StrScan(StrPos(tmpChar, CSVDataSeparator) + 1, CSVDataSeparator);
+            end;
+            // read data
+            SetLength(Data, CSVDataCount + 1);
+            p := PChar(RawData);
+            DataCount := 0;
+            repeat
+              tmpChar := StrPos(p, CSVDataSeparator);
+              if tmpChar = nil then tmpChar := StrScan(p, #0);
+              SetString(CSVItem, p, tmpChar - p);
+              Data[DataCount] := StrToInt(CSVItem);
+              Inc(DataCount);
+              p := tmpChar + 1;
+            until tmpChar^ = #0;
+          end;
+        end;
+        case Compression of
+          CT_Gzip: WritelnLog('LoadData', 'Gzip format not implemented'); //todo: gzip reading
+          CT_ZLib: begin
+            Decompressor := TDecompressionStream.Create(Decoder);
+            try
+              repeat
+                DataCount := Decompressor.Read(Buffer, BufferSize * SizeOf(Cardinal));
+                DataLength := Length(Data);
+                SetLength(Data, DataLength+(DataCount div SizeOf(Cardinal)));
+                if DataCount > 0 then // because if DataCount=0 then ERangeCheck error
+                  Move(Buffer, Data[DataLength], DataCount);
+              until DataCount < SizeOf(Buffer);
+            finally
+              Decompressor.Free;
+            end;
+          end;
+          CT_None: begin
+            // Base64 only
+            if Encoding = ET_Base64 then
+              repeat
+                DataCount := Decoder.Read(Buffer, BufferSize * SizeOf(Cardinal));
+                DataLength := Length(Data);
+                SetLength(Data, DataLength+(DataCount div SizeOf(Cardinal)));
+                if DataCount > 0 then // because if DataCount=0 then ERangeCheck error
+                  Move(Buffer, Data[DataLength], DataCount);
+              until DataCount < SizeOf(Buffer);
           end;
         end;
       end;
-    finally FreeAndNil(I) end;
-  end;
+
+      I := TXMLElementIterator.Create(Element);
+      try
+        while I.GetNext do
+        begin
+          WritelnLog('LoadData element', I.Current.TagName);
+          case LowerCase(I.Current.TagName) of
+            'tile': if UsePlainXML then
+            begin
+              SetLength(Data, Length(Data)+1);
+              Data[High(Data)] := StrToInt(I.Current.GetAttribute('gid'));
+            end;
+          end;
+        end;
+      finally FreeAndNil(I) end;
+    end;
+  finally FreeAndNil(Decoder) end;
 end;
 
 procedure TTiledMap.LoadTile(Element: TDOMElement; var ATile: TTile);
@@ -881,7 +981,11 @@ begin
             if not Assigned(ObjectGroup) then
               ObjectGroup := TLayers.Create;
             LoadLayer(I.Current);
-            ObjectGroup.Add(FLayers.Last); { TODO : Here is double the same ObjectGroup storage: in the FLayers and in the Tile }
+            { TODO : Here is double the same ObjectGroup storage:
+              in the FLayers and in the Tile.
+              To avoid freeing layer contents twice,
+              ObjectGroup.FreeChildren is left as false. }
+            ObjectGroup.Add(FLayers.Last);
           end;
         end;
       end;
@@ -983,6 +1087,7 @@ begin
   FTilesets := TTilesets.Create;
   FProperties := TProperties.Create;
   FLayers := TLayers.Create;
+  FLayers.FreeChildren := true;
   FDataPath := ExtractURIPath(AURL);
 
   //Load TMX
