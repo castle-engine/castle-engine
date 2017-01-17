@@ -2748,8 +2748,12 @@ begin
 
       { Call initial CameraChanged (this allows ProximitySensors to work
         as soon as ProcessEvents becomes true).
-        TODO: actually, we shoul call CameraChanged on all newly added
-        T3D to Items. }
+
+        TODO: actually, we should call CameraChanged on all newly added
+        T3D to Items. This would fix the problem of 1st frame not using BlendingSort
+        for non-MainScene scenes, as in trees_blending/CW_demo.lpr testcase
+        from Eugene.
+      }
       if Camera <> nil then
       begin
         MainScene.CameraChanged(Camera);
