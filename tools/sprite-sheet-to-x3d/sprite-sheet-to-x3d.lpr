@@ -221,6 +221,9 @@ begin
     Tex.FdUrl.Send(Meta.Name);
     Tex.RepeatS := false;
     Tex.RepeatT := false;
+    Tex.FdTextureProperties.Send(TTexturePropertiesNode.Create);
+    Tex.TextureProperties.FdMinificationFilter.Send('NEAREST_PIXEL');     
+    Tex.TextureProperties.FdMagnificationFilter.Send('NEAREST_PIXEL');
     Shape.Texture := Tex;
 
     Tri := TTriangleSetNode.Create;
@@ -267,8 +270,12 @@ begin
       begin
         Key := 1/(List.Count - 1) * i;
         CoordInterp.FdKey.Items.Add(Key);
+        TexCoordInterp.FdKey.Items.Add(Key);
         if i > 0 then
-          CoordInterp.FdKey.Items.Add(Key);
+        begin
+          CoordInterp.FdKey.Items.Add(Key);   
+          TexCoordInterp.FdKey.Items.Add(Key);
+        end;
       end;
       { Generate list of coord/texcoord key values. }
       for i := 0 to List.Count-1 do
