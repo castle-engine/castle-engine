@@ -537,7 +537,7 @@ type
     { Bounding box of the 3D object.
 
       Should take into account both collidable and visible objects.
-      For examples, invisible walls (not visible) and fake walls
+      For example, invisible walls (not visible) and fake walls
       (not collidable) should all be accounted here.
 
       It's a @italic(bounding) volume, it should be as large as necessary
