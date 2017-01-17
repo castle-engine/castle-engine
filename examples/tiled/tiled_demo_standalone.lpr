@@ -1,7 +1,7 @@
 {$mode objfpc}{$H+}
 {$apptype GUI}
 program tiled_demo_standalone;
-uses CastleWindow, CastleTiledMap, Game;
+uses CastleWindow, Game;
 begin
   Window.OpenAndRun;
 end.
