@@ -200,7 +200,6 @@ begin
     Shape.Material.SpecularColor := Vector3Single(0, 0, 0);
     Shape.Material.AmbientIntensity := 0;
     Shape.Material.EmissiveColor := Vector3Single(1, 1, 1);
-    Root.FdChildren.Add(Shape);
 
     Tex := TImageTextureNode.Create;
     Tex.FdUrl.Send(Meta.Name);
@@ -311,12 +310,14 @@ begin
       Root.AddRoute(R4);
     end;
     { Put everything into the scene. }
+    Root.FdChildren.Add(Shape);
     for j := 0 to Animations.Count-1 do
       Root.FdChildren.Add(TimeSensorArray[j]); 
     for j := 0 to Animations.Count-1 do
-      Root.FdChildren.Add(CoordInterpArray[j]);   
-    for j := 0 to Animations.Count-1 do
+    begin
+      Root.FdChildren.Add(CoordInterpArray[j]);  
       Root.FdChildren.Add(TexCoordInterpArray[j]);
+    end;
     Save3D(Root, SSOutput);
   finally
     FreeAndNil(Root);
