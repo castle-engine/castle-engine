@@ -219,7 +219,7 @@ begin
       for i := 0 to List.Count-1 do
       begin
         KeyStr += OldKeyStr + FloatToStr(1/(List.Count - 1) * i) + ' ';
-        OldKeyStr := FloatToStr(1/(List.Count - 1) * (i+1) - 0.0000001) + ' ';
+        OldKeyStr := FloatToStr(1/(List.Count - 1) * (i+1)) + ' ';
       end;
       CoordKeyValueStr := '';
       TexCoordKeyValueStr := '';
