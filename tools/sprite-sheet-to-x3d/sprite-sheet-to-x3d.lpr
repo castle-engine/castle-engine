@@ -242,6 +242,7 @@ begin
     begin
       List := Animations.Data[j];   
       TimeSensor := TTimeSensorNode.Create(Animations.Keys[j]);
+      TimeSensor.FdCycleInterval.Send(2);
       CoordInterp :=
           TCoordinateInterpolatorNode.Create(Animations.Keys[j] + '_Coord');
       TexCoordInterp :=
