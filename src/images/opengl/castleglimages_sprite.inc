@@ -41,7 +41,6 @@ type
     property Duration: TFloatTime read FDuration;
   end;
 
-  PSprite = ^TSprite;
   { Sprite is an animation composed from frames arranged
     in rows and columns inside a single image.
     Frames are read from left to right and from top to bottom.
@@ -55,7 +54,7 @@ type
     corresponding frames duration. Frames can be in any order. It is valid
     to use some particural frame many times with different
     duration time. }
-  TSprite = class               //todo: add transparent color
+  TSprite = class
   private
     type
       TSpriteAnimations = specialize TFPGObjectList<TSpriteAnimation>;
@@ -71,6 +70,7 @@ type
     FTimeLoop: Boolean;
     FLeftMargin, FTopMargin: Cardinal;
     FHorizontalSpacing, FVerticalSpacing: Cardinal;
+    FVerticalSpacingBottom: boolean;
     FTimeBackwards: Boolean;
     FCustomAnimations: TSpriteAnimations;
     FCurrentAnimation: Integer;
@@ -79,7 +79,6 @@ type
     function GetCenterX: Single;
     function GetCenterY: Single;
     function GetFrameRect: TRectangle;
-    function GetFloatFrameRect: TFloatRectangle;
     function GetDrawRect: TRectangle;
     function GetCenter: TVector2Single;
     function GetPosition: TVector2Integer;
@@ -93,7 +92,6 @@ type
     procedure SetFrame(AValue: Cardinal);
     procedure SetPosition(APosition: TVector2Integer);
     procedure SetRotation(AValue: Single);
-    procedure UniversalDraw(const ScreenRect: TRectangle);
   public
     { Constructor.
       @param(URL URL of source image.)
@@ -177,6 +175,9 @@ type
     { @groupEnd }
 
     { Draw the sprite, optionally flipped horizontally and/or vertically.
+      These methods ignore the @link(HorizontalFlip), @link(VerticalFlip),
+      and @link(DiagonalFlip) -- which axis is flipped (if any) depends
+      only on the parameters to these methods.
       @groupBegin }
     procedure DrawFlipped(const ScreenRect: TRectangle;
       const FlipHorizontal, FlipVertical: boolean);
@@ -264,11 +265,18 @@ type
       read FHorizontalSpacing write FHorizontalSpacing default 0;
 
     { Vertical spacing between frames.
-      Use this if you have an empty space at the @bold(bottom) of every frame
-      in your spritesheet. This is useful to avoid frames "bleeding"
+      Use this if you have an empty space at the @bold(top)
+      (or @bold(bottom), if @link(VerticalSpacingBottom))
+      of every frame in your spritesheet.
+      This is useful to avoid frames "bleeding"
       into each other (due to smooth scaling). }
     property VerticalSpacing: Cardinal
       read FVerticalSpacing write FVerticalSpacing default 0;
+
+    { When @true, the @link(VerticalSpacing) is assumed to be at the bottom
+      of every frame, not top. }
+    property VerticalSpacingBottom: boolean
+      read FVerticalSpacingBottom write FVerticalSpacingBottom default false;
 
     { Should we play the animation backwards after playing it forward.
       See TVideo.TimeBackwards. }
@@ -412,33 +420,11 @@ begin
   Result.Left :=
     FFrame mod FColumns * FullFrameWidth + FLeftMargin;
   Result.Bottom := FImage.Height -
-    (FFrame div FColumns + 1) * FullFrameHeight - FTopMargin + FVerticalSpacing;//todo: test it with higher topmargin
+    (FFrame div FColumns + 1) * FullFrameHeight - FTopMargin;
+  if VerticalSpacingBottom then
+    Result.Bottom := Result.Bottom + FVerticalSpacing;
   Result.Width := FFrameWidth;
   Result.Height := FFrameHeight;
-end;
-
-function TSprite.GetFloatFrameRect: TFloatRectangle;
-begin
-  { only in float rectangles width or height can be sub 0 values }
-  Result := FloatRectangle(GetFrameRect);
-
-  if FHorizontalFlip then
-  begin
-    Result.Left := Result.Right;
-    Result.Width := -Result.Width;
-  end;
-  if FVerticalFlip then
-  begin
-    Result.Bottom := Result.Top;
-    Result.Height := -Result.Height;
-  end;
-  if FDiagonalFlip then
-  begin
-    Result.Left := Result.Right;
-    Result.Width := -Result.Width;
-    Result.Bottom := Result.Top;
-    Result.Height := -Result.Height;
-  end;
 end;
 
 function TSprite.GetCenterX: Single;
@@ -512,15 +498,6 @@ begin
   FImage.Rotation := AValue;
 end;
 
-procedure TSprite.UniversalDraw(const ScreenRect: TRectangle);
-begin
-  if FHorizontalFlip or FVerticalFlip or FDiagonalFlip then
-    FImage.Draw(FloatRectangle(ScreenRect.Left, ScreenRect.Bottom, ScreenRect.Width,
-                               ScreenRect.Height), GetFloatFrameRect)
-  else
-    FImage.Draw(ScreenRect, GetFrameRect);
-end;
-
 constructor TSprite.CreateFrameSize(const AImage: TGLImage;
   const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
   const ATimeLoop: Boolean = True; const APlay: Boolean = False);
@@ -559,8 +536,6 @@ begin
   CreateFrameSize(Img, AFrames, AColumns, AFrameWidth, AFrameHeight,
     ATimeLoop, APlay);
 end;
-
-//todo: new overloaded constructor with params like: framewidth, frameheight, margin, spacing
 
 constructor TSprite.Create(const URL: string;
   const AFrames, AColumns, ARows: Cardinal;
@@ -609,29 +584,29 @@ end;
 
 procedure TSprite.Draw;
 begin
-  UniversalDraw(GetDrawRect);
+  Draw(GetDrawRect);
 end;
 
 procedure TSprite.Draw(const AX, AY: Single);
 begin
-  UniversalDraw(
-    Rectangle(Round(AX), Round(AY), FDrawingWidth, FDrawingHeight));
+  Draw(FloatRectangle(AX, AY, DrawingWidth, DrawingHeight));
 end;
 
 procedure TSprite.Draw(const AX, AY, DrawWidth, DrawHeight: Single);
 begin
-  UniversalDraw(
-    Rectangle(Round(AX), Round(AY), Round(DrawWidth), Round(DrawHeight)));
+  Draw(FloatRectangle(AX, AY, DrawWidth, DrawHeight));
 end;
 
 procedure TSprite.Draw(const ScreenRectangle: TRectangle);
 begin
-  UniversalDraw(ScreenRectangle);
+  Draw(FloatRectangle(ScreenRectangle));
 end;
 
 procedure TSprite.Draw(const ScreenRectangle: TFloatRectangle);
 begin
-  FImage.Draw(ScreenRectangle, GetFloatFrameRect);
+  FImage.DrawFlipped(ScreenRectangle, FloatRectangle(GetFrameRect),
+    HorizontalFlip xor DiagonalFlip,
+    VerticalFlip xor DiagonalFlip);
 end;
 
 procedure TSprite.DrawFlipped(const ScreenRect: TRectangle;
