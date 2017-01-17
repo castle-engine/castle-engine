@@ -267,6 +267,7 @@ begin
     P.Targets.AddUnit('pk3dconnexion.pas');
     P.Targets.AddUnit('castleuicontrols.pas');
     P.Targets.AddUnit('castlejoysticks.pas');
+    P.Targets.AddUnit('castletiledmap.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'windows');

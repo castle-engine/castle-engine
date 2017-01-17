@@ -20,9 +20,10 @@ unit CastleControls;
 
 interface
 
-uses Classes, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
+uses Classes, FGL, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
-  CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily, CastleGLUtils;
+  CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily, CastleGLUtils, 
+  CastleTiledMap, CastleURIUtils, CastleLog;
 
 type
   TCastleLabel = class;
@@ -1502,6 +1503,10 @@ property UIFontSmall: TCastleFont read GetUIFontSmall write SetUIFontSmall;
 { @groupEnd }
 
 function Theme: TCastleTheme;
+
+{$define read_interface}
+{$I castlecontrols_tiledmap.inc}
+{$undef read_interface}
 
 procedure Register;
 
@@ -4814,6 +4819,10 @@ function Theme: TCastleTheme;
 begin
   Result := FTheme;
 end;
+
+{$define read_implementation}
+{$I castlecontrols_tiledmap.inc}
+{$undef read_implementation}
 
 initialization
   FTheme := TCastleTheme.Create;

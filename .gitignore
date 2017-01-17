@@ -132,6 +132,9 @@ examples/research_special_rendering_methods/shadow_fields/precompute_shadow_fiel
 examples/research_special_rendering_methods/shadow_fields/shadow_fields
 examples/space_filling_curve/draw_space_filling_curve
 examples/terrain/terrain
+examples/tiled/tiled_demo
+examples/tiled/tiled_demo_standalone
+examples/tiled/tiled_demo_standalone.lps
 examples/tools/castle_download
 examples/tools/dircleaner
 examples/tools/dircleaner.res

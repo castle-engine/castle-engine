@@ -447,6 +447,8 @@ type
     procedure AddArray(const A: array of TMatrix4Double);
   end;
 
+  TVector2IntegerList = specialize TGenericStructList<TVector2Integer>;
+
   TVector2SmallIntList = specialize TGenericStructList<TVector2SmallInt>;
 
   EVectorInvalidOp = class(Exception);

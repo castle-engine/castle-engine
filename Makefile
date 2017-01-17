@@ -150,6 +150,7 @@ EXAMPLES_BASE_NAMES := \
   examples/fonts/test_font_break \
   examples/fonts/font_from_texture \
   examples/fonts/html_text \
+  examples/tiled/tiled_demo_standalone \
   examples/window/window_events \
   examples/window/window_menu \
   examples/window/window_gtk_mix \
