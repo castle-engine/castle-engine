@@ -1126,6 +1126,7 @@ type
       within the scenes. For this, you should set
       @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
       to a value like bs3D, to keep it sorted.
+      It is actually the default now.
 
       See the TBlendingSort documentation for the exact specification
       of sorting algorithms. Using BlendingSort = bsNone does nothing. }

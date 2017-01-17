@@ -64,8 +64,9 @@ begin
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
   Scene.ProcessEvents := true;
   { zombie sprites are rendered using blending, and you can see multiple
-    sprites sometimes at once. So we need sorting, to render them correctly. }
-  Scene.Attributes.BlendingSort := bs3D;
+    sprites sometimes at once. So we need sorting, to render them correctly.
+    This is actually the default now. }
+  //Scene.Attributes.BlendingSort := bs3D;
 
   SceneManager := TCastleSceneManager.Create(FreeAtStop);
   SceneManager.FullSize := false;

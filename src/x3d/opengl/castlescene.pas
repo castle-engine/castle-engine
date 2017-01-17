@@ -159,8 +159,8 @@ type
         often making too bright results. }
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
 
-      { }
-      DefaultBlendingSort = bsNone;
+      { Default value of @link(TSceneRenderingAttributes.BlendingSort). }
+      DefaultBlendingSort = bs3D;
 
       DefaultWireframeColor: TVector3Single = (0, 0, 0);
 
