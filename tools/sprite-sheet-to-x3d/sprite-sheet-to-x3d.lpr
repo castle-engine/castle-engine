@@ -136,8 +136,8 @@ begin
 end;
 
 {$I parser_utils.inc}
-{$I starlingparser.inc}
-{$I cocos2dparser.inc}
+{$I starling_parser.inc}
+{$I cocos2d_parser.inc}
 
 procedure Parse;
 begin

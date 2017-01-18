@@ -40,15 +40,15 @@
         <IsPartOfProject Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="starlingparser.inc"/>
+        <Filename Value="parser_utils.inc"/>
         <IsPartOfProject Value="True"/>
       </Unit1>
       <Unit2>
-        <Filename Value="cocos2dparser.inc"/>
+        <Filename Value="cocos2d_parser.inc"/>
         <IsPartOfProject Value="True"/>
       </Unit2>
       <Unit3>
-        <Filename Value="parser_utils.inc"/>
+        <Filename Value="starling_parser.inc"/>
         <IsPartOfProject Value="True"/>
       </Unit3>
     </Units>
