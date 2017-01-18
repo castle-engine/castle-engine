@@ -220,21 +220,19 @@ type
     FOwnsShapesList: boolean;
   protected
     function StatisticsBonus: string; override;
-    function TotalItemsInOctree: Int64; override;
   public
     constructor Create(const ALimits: TOctreeLimits;
       const ARootBox: TBox3D; AShapesList: TShapeList;
       AOwnsShapesList: boolean);
-
     destructor Destroy; override;
+    procedure EnumerateTriangles(EnumerateTriangleFunc: TEnumerateTriangleFunc);
+      override;
+    function TrianglesCount: Cardinal; override;
+    function TotalItemsInOctree: Int64; override;
 
     function TreeRoot: TShapeOctreeNode;
     property ShapesList: TShapeList read FShapesList;
     property OwnsShapesList: boolean read FOwnsShapesList;
-
-    procedure EnumerateTriangles(EnumerateTriangleFunc: TEnumerateTriangleFunc);
-      override;
-    function TrianglesCount: Cardinal; override;
   end;
 
 implementation

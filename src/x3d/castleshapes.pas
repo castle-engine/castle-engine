@@ -1415,6 +1415,17 @@ begin
         LocalTriangulate(false, @Result.AddItemTriangle);
     end;
   except Result.Free; raise end;
+
+  { $define CASTLE_DEBUG_OCTREE_DUPLICATION}
+  {$ifdef CASTLE_DEBUG_OCTREE_DUPLICATION}
+  WritelnLog('Triangles In Shape Octree Stats', '%d items in octree, %d items in octree''s leafs, duplication %f. Size of items in bytes: %d * %d = %d',
+    [Result.TotalItemsInOctree,
+     Result.TotalItemsInLeafs,
+     Result.TotalItemsInLeafs / Result.TotalItemsInOctree,
+     Result.Triangles.Count,
+     SizeOf(TTriangle),
+     Result.Triangles.Count * SizeOf(TTriangle)]);
+  {$endif}
 end;
 
 procedure TShape.SetSpatial(const Value: TShapeSpatialStructures);

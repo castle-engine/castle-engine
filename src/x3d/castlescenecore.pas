@@ -4707,6 +4707,14 @@ begin
   except Result.Free; raise end;
 
   finally Dec(Dirty) end;
+
+  { $define CASTLE_DEBUG_OCTREE_DUPLICATION}
+  {$ifdef CASTLE_DEBUG_OCTREE_DUPLICATION}
+  WritelnLog('Triangles Octree Stats', '%d items in octree, %d items in octree''s leafs, duplication %f',
+    [Result.TotalItemsInOctree,
+     Result.TotalItemsInLeafs,
+     Result.TotalItemsInLeafs / Result.TotalItemsInOctree]);
+  {$endif}
 end;
 
 function TCastleSceneCore.CreateShapeOctree(
@@ -4750,6 +4758,13 @@ begin
   except Result.Free; raise end;
 
   finally Dec(Dirty) end;
+
+  {$ifdef CASTLE_DEBUG_OCTREE_DUPLICATION}
+  WritelnLog('Shapes Octree Stats', '%d items in octree, %d items in octree''s leafs, duplication %f',
+    [Result.TotalItemsInOctree,
+     Result.TotalItemsInLeafs,
+     Result.TotalItemsInLeafs / Result.TotalItemsInOctree]);
+  {$endif}
 end;
 
 { viewpoints ----------------------------------------------------------------- }

@@ -168,11 +168,6 @@ type
   TTriangleOctree = class(TBaseTrianglesOctree)
   protected
     function StatisticsBonus: string; override;
-    function TotalItemsInOctree: Int64; override;
-  public
-    constructor Create(const ARootBox: TBox3D); overload;
-    constructor Create(const ALimits: TOctreeLimits; const ARootBox: TBox3D); overload;
-    destructor Destroy; override;
   public
     { All our triangles.
 
@@ -183,6 +178,14 @@ type
       and a pointer too, shared even if this triangle is placed in multiple
       leaves). }
     Triangles: TTriangleList;
+
+    constructor Create(const ARootBox: TBox3D); overload;
+    constructor Create(const ALimits: TOctreeLimits; const ARootBox: TBox3D); overload;
+    destructor Destroy; override;
+    procedure EnumerateTriangles(EnumerateTriangleFunc: TEnumerateTriangleFunc);
+      override;
+    function TrianglesCount: Cardinal; override;
+    function TotalItemsInOctree: Int64; override;
 
     function TreeRoot: TTriangleOctreeNode;
 
@@ -198,11 +201,6 @@ type
       @exclude }
     procedure EnumerateTrianglesUpdateWorld(
       EnumerateTriangleFunc: TEnumerateTriangleFunc);
-
-    procedure EnumerateTriangles(EnumerateTriangleFunc: TEnumerateTriangleFunc);
-      override;
-
-    function TrianglesCount: Cardinal; override;
   end;
 
 {$undef read_interface}

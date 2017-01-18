@@ -328,11 +328,6 @@ type
       In this class this returns ''.
       Every line, including the last one, must be terminated by a newline. }
     function StatisticsBonus: string; virtual;
-
-    property TotalLeafNodes: Int64 read FTotalLeafNodes;
-    property TotalNonLeafNodes: Int64 read FTotalNonLeafNodes;
-    property TotalItemsInLeafs: Int64 read FTotalItemsInLeafs;
-    function TotalItemsInOctree: Int64; virtual; abstract;
   public
     { Maximum tree depth.
 
@@ -443,7 +438,7 @@ type
       EnumerateOctreeItemsFunc: TEnumerateOctreeItemsFunc);
 
     { Multi-line description of how the octree levels look like.
-      Describes how many leaves / non-leaves  we have,
+      Describes how many leaves / non-leaves we have,
       how many items in leaves we have and on each level and in summary.
 
       Every line, including the last one, is terminated by newline.
@@ -452,6 +447,11 @@ type
       You can override StatisticsBonus, it's appended to the result of this
       method. }
     function Statistics: string;
+
+    property TotalLeafNodes: Int64 read FTotalLeafNodes;
+    property TotalNonLeafNodes: Int64 read FTotalNonLeafNodes;
+    property TotalItemsInLeafs: Int64 read FTotalItemsInLeafs;
+    function TotalItemsInOctree: Int64; virtual; abstract;
   end;
 
 function OctreeSubnodeIndexToNiceStr(const SI: TOctreeSubnodeIndex): string;
@@ -534,13 +534,6 @@ begin
     end;
     FIsLeaf := value;
     StatisticsAdd;
-
-    {$ifdef CASTLE_DEBUG_OCTREE_DUPLICATION_GROWING}
-    Writeln(Format('Stats: %d items in octree, %d items in octree''s leafs, duplication %f',
-      [FParentTree.TotalItemsInOctree,
-       FParentTree.TotalItemsInLeafs,
-       FParentTree.TotalItemsInLeafs / FParentTree.TotalItemsInOctree] ));
-    {$endif}
   end;
 end;
 
