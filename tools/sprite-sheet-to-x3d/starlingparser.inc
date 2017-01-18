@@ -5,6 +5,8 @@ var
   AniName,
   Key: string;
   Frame: TFrame;
+  OW, OH, FX, FY: integer;
+  HasOriginFrame: boolean;
 begin
   ReadXMLFile(Doc, SSFullPath);
   try
@@ -20,14 +22,30 @@ begin
         continue;
       end;
       AniName := N.Attributes.GetNamedItem('name').NodeValue;
-      Frame.X1 := StrToFloat(N.Attributes.GetNamedItem('x').NodeValue);
-      Frame.Y1 := StrToFloat(N.Attributes.GetNamedItem('y').NodeValue);
-      Frame.W := StrToFloat(N.Attributes.GetNamedItem('width').NodeValue);
-      Frame.H := StrToFloat(N.Attributes.GetNamedItem('height').NodeValue);
+      Frame.X1 := StrToInt(N.Attributes.GetNamedItem('x').NodeValue);
+      Frame.Y1 := StrToInt(N.Attributes.GetNamedItem('y').NodeValue);
+      Frame.W := StrToInt(N.Attributes.GetNamedItem('width').NodeValue);
+      Frame.H := StrToInt(N.Attributes.GetNamedItem('height').NodeValue);
+      HasOriginFrame := false;
+      if N.Attributes.GetNamedItem('frameX') <> nil then
+      begin
+        FX := -ReadInteger(N.Attributes.GetNamedItem('frameX'), 0);
+        FY := -ReadInteger(N.Attributes.GetNamedItem('frameY'), 0);
+        OW := ReadInteger(N.Attributes.GetNamedItem('frameWidth'), Frame.W);
+        OH := ReadInteger(N.Attributes.GetNamedItem('frameHeight'), Frame.H); 
+        HasOriginFrame := true;
+      end;
       Frame.X2 := Frame.X1 + Frame.W;
       Frame.Y2 := Frame.Y1 + Frame.H;
-      Frame.AX := 0.5;
-      Frame.AY := 0.5;
+      if HasOriginFrame then
+        CalculateAnchor(FX, FY, OW, OH,
+            Round(Frame.X1), Round(Frame.Y1), Frame.W, Frame.H,
+            Frame.AX, Frame.AY)
+      else
+      begin
+        Frame.AX := 0.5;
+        Frame.AY := 0.5;
+      end;
       KeyParser(AniName, Key);
       AddFrame(Key, Frame);
       N := N.NextSibling;

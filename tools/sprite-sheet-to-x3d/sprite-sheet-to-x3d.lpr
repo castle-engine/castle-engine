@@ -30,8 +30,8 @@ type
 
   TFrame = record
     X1, Y1,             { Texture coords }
-    X2, Y2,
-    W, H,               { Frame size }
+    X2, Y2: single;
+    W, H  : integer;    { Frame size }
     AX, AY: single;     { Anchor }
   end;
 
@@ -135,6 +135,7 @@ begin
   end;
 end;
 
+{$I parser_utils.inc}
 {$I starlingparser.inc}
 {$I cocos2dparser.inc}
 

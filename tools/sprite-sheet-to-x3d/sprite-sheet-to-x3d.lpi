@@ -34,7 +34,7 @@
         <PackageName Value="castle_base"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="4">
       <Unit0>
         <Filename Value="sprite-sheet-to-x3d.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -47,6 +47,10 @@
         <Filename Value="cocos2dparser.inc"/>
         <IsPartOfProject Value="True"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="parser_utils.inc"/>
+        <IsPartOfProject Value="True"/>
+      </Unit3>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
