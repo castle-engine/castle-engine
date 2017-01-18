@@ -49,7 +49,7 @@ procedure SimpleOcclusionQueryRender(const Shape: TGLShape;
 
 implementation
 
-uses SysUtils, CastleClassUtils, CastleShapeOctree, CastleBoxes,
+uses SysUtils, CastleClassUtils, CastleInternalShapeOctree, CastleBoxes,
   CastleGLUtils, CastleGL, CastleVectors, CastleGLShaders;
 
 {$ifndef OpenGLES} // TODO-es this whole unit

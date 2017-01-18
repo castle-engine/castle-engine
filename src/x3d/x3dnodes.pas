@@ -176,8 +176,8 @@ uses SysUtils, FGL, Classes, XMLRead, DOM,
   CastleVectors, X3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors,
   CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
-  CastleScript, X3DCastleScript, CastleOctree, CastleCompositeImage, CastleTextureImages,
-  CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
+  CastleScript, X3DCastleScript, CastleInternalOctree, CastleCompositeImage,
+  CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
   CastleTextureFontData, CastleGenericLists, CastleShaders, CastleRays;
 
 {$define read_interface}

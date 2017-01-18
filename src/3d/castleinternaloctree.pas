@@ -14,7 +14,8 @@
 }
 
 (*Base octree classes (TOctreeNode and TOctree) and utilities.
-  Used by actual octrees in units like CastleTriangleOctree and CastleShapeOctree.
+  Used by actual octrees in units like
+  @link(CastleInternalTriangleOctree) and @link(CastleInternalShapeOctree).
 
   Typical way to derive actual (non-abstract) octrees goes like this;
 
@@ -61,7 +62,7 @@
   end;
   #)
 *)
-unit CastleOctree;
+unit CastleInternalOctree;
 
 {$I castleconf.inc}
 
@@ -417,7 +418,7 @@ type
           (or not at all) collide with frustum.
           And this function doesn't check whether your @italic(octree item)
           possibly collides with Frustum (since in this generic
-          octree unit, CastleOctree, we have no knowledge about
+          octree unit, @link(CastleInternalOctree), we have no knowledge about
           geometry of your octree items).
           So you may want to check inside EnumerateOctreeItemsFunc handler
           your octree items versus Frustum, if you want to

@@ -70,8 +70,8 @@
         <UnitName Value="CastleNURBS"/>
       </Item8>
       <Item9>
-        <Filename Value="../src/3d/castleoctree.pas"/>
-        <UnitName Value="CastleOctree"/>
+        <Filename Value="../src/3d/castleinternaloctree.pas"/>
+        <UnitName Value="CastleInternalOctree"/>
       </Item9>
       <Item10>
         <Filename Value="../src/3d/castlequaternions.pas"/>
@@ -864,8 +864,8 @@
         <UnitName Value="CastleShapeInternalShadowVolumes"/>
       </Item205>
       <Item206>
-        <Filename Value="../src/x3d/castleshapeoctree.pas"/>
-        <UnitName Value="CastleShapeOctree"/>
+        <Filename Value="../src/x3d/castleinternalshapeoctree.pas"/>
+        <UnitName Value="CastleInternalShapeOctree"/>
       </Item206>
       <Item207>
         <Filename Value="../src/x3d/castleshapes.pas"/>
@@ -876,8 +876,8 @@
         <UnitName Value="CastleTerrain"/>
       </Item208>
       <Item209>
-        <Filename Value="../src/x3d/castletriangleoctree.pas"/>
-        <UnitName Value="CastleTriangleOctree"/>
+        <Filename Value="../src/x3d/castleinternaltriangleoctree.pas"/>
+        <UnitName Value="CastleInternalTriangleOctree"/>
       </Item209>
       <Item210>
         <Filename Value="../src/x3d/octreeconf.inc"/>

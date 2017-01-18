@@ -24,8 +24,8 @@ interface
 uses SysUtils, Classes, FGL,
   CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleSceneCore, CastleRenderer, CastleGL, CastleBackground,
-  CastleGLUtils, CastleShapeOctree, CastleGLShadowVolumes, X3DFields, CastleTriangles,
-  CastleShapes, CastleFrustum, Castle3D, CastleGLShaders,
+  CastleGLUtils, CastleInternalShapeOctree, CastleGLShadowVolumes, X3DFields,
+  CastleTriangles, CastleShapes, CastleFrustum, Castle3D, CastleGLShaders,
   CastleGenericLists, CastleRectangles, CastleCameras, CastleRendererInternalShader,
   CastleSceneInternalShape, CastleSceneInternalOcclusion, CastleSceneInternalBlending;
 

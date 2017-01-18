@@ -25,14 +25,14 @@
   It can also be used to perform collision detection that starts working per-shape,
   to choose the shapes that potentially collide, and then run per-triangle collision
   detection within the shape, using @link(TShape.InternalOctreeTriangles). }
-unit CastleShapeOctree;
+unit CastleInternalShapeOctree;
 
 {$I castleconf.inc}
 {$I octreeconf.inc}
 
 interface
 
-uses SysUtils, CastleBoxes, CastleOctree, CastleShapes, CastleVectors,
+uses SysUtils, CastleBoxes, CastleInternalOctree, CastleShapes, CastleVectors,
   CastleUtils, X3DTriangles, CastleTriangles;
 
 const

@@ -28,9 +28,9 @@ interface
 
 uses SysUtils, Classes, FGL,
   CastleVectors, Castle3D, CastleBoxes, X3DNodes, CastleClassUtils,
-  CastleUtils, CastleTriangleOctree, CastleFrustum, CastleOctree, X3DTriangles,
-  X3DFields, CastleGeometryArrays, CastleTriangles, CastleMaterialProperties,
-  CastleShapeInternalShadowVolumes;
+  CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
+  X3DTriangles, X3DFields, CastleGeometryArrays, CastleTriangles,
+  CastleMaterialProperties, CastleShapeInternalShadowVolumes;
 
 const
   { }

@@ -14,25 +14,15 @@
 }
 
 { Triangle octrees (TTriangleOctree). }
-unit CastleTriangleOctree;
+unit CastleInternalTriangleOctree;
 
 {$I castleconf.inc}
-
-{
-  TODO
-  - Right now, since we keep pointers to TTriangle created by TCastleSceneCore,
-    the VRML scene is practically frozen while this octree lives.
-
-    Eventually, I would like to fix this, and make octree more dynamic.
-    See [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/section.octrees_dynamic.html].
-}
-
 {$I octreeconf.inc}
 
 interface
 
 uses CastleVectors, SysUtils, CastleUtils, X3DNodes, CastleBoxes,
-  CastleOctree, X3DTriangles, CastleTriangles;
+  CastleInternalOctree, X3DTriangles, CastleTriangles;
 
 {$define read_interface}
 

@@ -26,7 +26,8 @@ interface
 uses
   SysUtils, Classes, CastleVectors, CastleBoxes, CastleTriangles,
   X3DFields, X3DNodes, CastleClassUtils, CastleUtils,
-  CastleShapes, CastleTriangleOctree, CastleProgress, CastleOctree, CastleShapeOctree,
+  CastleShapes, CastleInternalTriangleOctree, CastleProgress, CastleInternalOctree,
+  CastleInternalShapeOctree,
   CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, Contnrs,
   CastleRenderingCamera, Castle3D, X3DShadowMaps, FGL, CastleGenericLists,
   CastleRays;
