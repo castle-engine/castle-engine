@@ -219,8 +219,7 @@ type
     FShapesList: TShapeList;
     FOwnsShapesList: boolean;
   protected
-    function StatisticsBonus(
-      const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string; override;
+    function StatisticsBonus: string; override;
   public
     constructor Create(const ALimits: TOctreeLimits;
       const ARootBox: TBox3D; AShapesList: TShapeList;
@@ -782,21 +781,17 @@ begin
  Result := TShapeOctreeNode(InternalTreeRoot);
 end;
 
-function TShapeOctree.StatisticsBonus(
-  const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string;
+function TShapeOctree.StatisticsBonus: string;
 begin
- Result := nl+
-   Format(
-   '  Octree constructed with limits: max depth %d, leaf capacity %d.',
-   [MaxDepth, LeafCapacity]) + nl + nl;
-
- if ShapesList.Count = 0 then
-  Result +=
-    '  Empty octree - scene has no Shapes, i.e. no visible nodes.' +nl else
-  Result += Format(
-    '  %d items (=Shapes) defined for octree, %d items in octree''s nodes' +nl+
-    '  - so each shape is present in tree about %f times.' +nl,
-    [ ShapesList.Count, ItemsCount, ItemsCount / ShapesList.Count] );
+  Result := NL;
+  if ShapesList.Count = 0 then
+    Result += NL + NL +
+      '  Empty octree - scene has no Shapes, i.e. no visible nodes.' + NL
+  else
+    Result += Format(
+      '  %d items (=Shapes) defined for octree, %d items in octree''s nodes' + NL +
+      '  - so each shape is present in tree about %f times.' + NL,
+      [ShapesList.Count, TotalItemsInLeafs, TotalItemsInLeafs / ShapesList.Count] );
 end;
 
 procedure TShapeOctree.EnumerateTriangles(

@@ -167,8 +167,7 @@ type
     VRML Shapes and such. }
   TTriangleOctree = class(TBaseTrianglesOctree)
   protected
-    function StatisticsBonus(
-      const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string; override;
+    function StatisticsBonus: string; override;
   public
     constructor Create(const ARootBox: TBox3D); overload;
     constructor Create(const ALimits: TOctreeLimits; const ARootBox: TBox3D); overload;
@@ -563,21 +562,17 @@ begin
  Result := TTriangleOctreeNode(InternalTreeRoot);
 end;
 
-function TTriangleOctree.StatisticsBonus(
-  const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string;
+function TTriangleOctree.StatisticsBonus: string;
 begin
- Result := nl+
-   Format(
-   '  Octree constructed with limits: max depth %d, leaf capacity %d.',
-   [MaxDepth, LeafCapacity]) + nl + nl;
-
- if Triangles.Count = 0 then
-  Result +=
-    '  Empty octree - no triangles defined.' +nl else
-  Result += Format(
-    '  %d items (=triangles) defined for octree, %d items in octree''s nodes' +nl+
-    '  - so each triangle is present in tree about %f times.' +nl,
-    [ Triangles.Count, ItemsCount, ItemsCount / Triangles.Count] );
+  Result := NL;
+  if Triangles.Count = 0 then
+    Result +=
+      '  Empty octree - no triangles defined.' + NL
+  else
+    Result += Format(
+      '  %d items (=triangles) defined for octree, %d items in octree''s nodes' + NL +
+      '  - so each triangle is present in tree about %f times.' + NL,
+      [ Triangles.Count, TotalItemsInLeafs, TotalItemsInLeafs / Triangles.Count] );
 end;
 
 procedure TTriangleOctree.AddItemTriangle(Shape: TObject;

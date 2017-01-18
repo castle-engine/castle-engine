@@ -110,8 +110,8 @@ type
     FBoundingSphereCenter: TVector3Single;
 
     FItemsIndices: TIntegerList;
-
     FIsLeaf: boolean;
+    StatisticsAdded: boolean;
 
     { Neither CreateTreeSubNodes nor CreateLeafItems call
       Items.Free or Subnodes[].Free, that is they don't cleanup after their
@@ -127,6 +127,8 @@ type
     procedure EnumerateCollidingOctreeItems(
       const Frustum: TFrustum;
       EnumerateOctreeItemsFunc: TEnumerateOctreeItemsFunc);
+    procedure StatisticsRemove;
+    procedure StatisticsAdd;
   protected
     { Insert given index into appropriate subnodes.
       This should call SubNode.AddItem(ItemIndex) for chosen TreeSubNodes
@@ -316,19 +318,20 @@ type
     FItemsInNonLeafNodes: boolean;
     FMaxDepth: integer;
     FLeafCapacity: Integer;
+
+    { current octree total statistics }
+    FTotalLeafNodes, FTotalNonLeafNodes, FTotalItemsInLeafs: Int64;
   protected
     property InternalTreeRoot: TOctreeNode read FTreeRoot;
 
-    { This will be appended to output of @link(Statistics).
+    { Text appended to the @link(Statistics).
       In this class this returns ''.
-      You can override this if you want, and you can use there
-      LeavesCount, ItemsCount, NonLeafNodesCount counts
-      (they are already calculated for the sake of Statistics anyway).
+      Every line, including the last one, must be terminated by a newline. }
+    function StatisticsBonus: string; virtual;
 
-      Every line, including the last one, must be terminated by nl. }
-    function StatisticsBonus(
-      const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string;
-      virtual;
+    property TotalLeafNodes: Int64 read FTotalLeafNodes;
+    property TotalNonLeafNodes: Int64 read FTotalNonLeafNodes;
+    property TotalItemsInLeafs: Int64 read FTotalItemsInLeafs;
   public
     { Maximum tree depth.
 
@@ -460,73 +463,77 @@ uses CastleStringUtils;
 { TOctreeNode ------------------------------------------------------------ }
 
 procedure TOctreeNode.CreateTreeSubNodes(AsLeaves: boolean);
-var b: TOctreeSubnodeIndex;
-    b_0, b_1, b_2: boolean;
-    SubBox: TBox3D;
-    i: integer;
+var
+  b: TOctreeSubnodeIndex;
+  b_0, b_1, b_2: boolean;
+  SubBox: TBox3D;
+  i: integer;
 begin
- for b_0 := Low(boolean) to High(boolean) do
-  for b_1 := Low(boolean) to High(boolean) do
-   for b_2 := Low(boolean) to High(boolean) do
-   begin
-    { I can't do "for b[0] := Low(boolean) ... " in FPC 1.9.5,
-      so I'm using variables b_0, b_1, b_2. }
-    b[0] := b_0;
-    b[1] := b_1;
-    b[2] := b_2;
+  { we can't do "for b[0] := Low(boolean) ... " in FPC 1.9.5,
+    so we're using variables b_0, b_1, b_2. }
+  for b_0 := Low(boolean) to High(boolean) do
+    for b_1 := Low(boolean) to High(boolean) do
+      for b_2 := Low(boolean) to High(boolean) do
+      begin
+        b[0] := b_0;
+        b[1] := b_1;
+        b[2] := b_2;
 
-    { calculate SubBox }
-    SubBox := Box;
-    for i := 0 to 2 do
-     if b[i] then
-      SubBox.Data[0, i] := MiddlePoint[i] else
-      SubBox.Data[1, i] := MiddlePoint[i];
+        { calculate SubBox }
+        SubBox := Box;
+        for i := 0 to 2 do
+          if b[i] then
+            SubBox.Data[0, i] := MiddlePoint[i] else
+            SubBox.Data[1, i] := MiddlePoint[i];
 
-    TreeSubNodes[b[0], b[1], b[2]] :=
-      TOctreeNodeClass(Self.ClassType).Create(
-        SubBox, FParentTree, Self, Depth + 1, AsLeaves);
-   end;
+        TreeSubNodes[b[0], b[1], b[2]] :=
+          TOctreeNodeClass(Self.ClassType).Create(
+            SubBox, FParentTree, Self, Depth + 1, AsLeaves);
+      end;
 end;
 
 procedure TOctreeNode.CreateLeafItems;
 begin
- FItemsIndices := TIntegerList.Create;
- ItemsIndices.Capacity := Max(FParentTree.LeafCapacity div 4, 4);
+  FItemsIndices := TIntegerList.Create;
+  ItemsIndices.Capacity := Max(FParentTree.LeafCapacity div 4, 4);
 end;
 
 procedure TOctreeNode.FreeAndNilTreeSubNodes;
 var b1, b2, b3: boolean;
 begin
- for b1 := Low(boolean) to High(boolean) do
-  for b2 := Low(boolean) to High(boolean) do
-   for b3 := Low(boolean) to High(boolean) do
-    FreeAndNil(TreeSubNodes[b1, b2, b3]);
+  for b1 := Low(boolean) to High(boolean) do
+    for b2 := Low(boolean) to High(boolean) do
+      for b3 := Low(boolean) to High(boolean) do
+        FreeAndNil(TreeSubNodes[b1, b2, b3]);
 end;
 
 procedure TOctreeNode.SetLeaf(value: boolean);
-var i: integer;
+var
+  I: integer;
 begin
- if value <> FIsLeaf then
- begin
-  if Value then
+  if value <> FIsLeaf then
   begin
-   CreateLeafItems;
+    StatisticsRemove;
+    if Value then
+    begin
+      CreateLeafItems;
 
-   { TODO -- gather all items from subNode's to Items }
-   raise Exception.Create('TODO -- setting from not-leaf back to leaf not '+
-     'implemented yet (because not used anywhere)');
+      { TODO -- gather all items from subNode's to Items }
+      raise Exception.Create('TODO -- setting from not-leaf back to leaf not '+
+        'implemented yet (because not used anywhere)');
 
-   FreeAndNilTreeSubNodes;
-  end else
-  begin
-   CreateTreeSubNodes(true);
-   for i := 0 to ItemsIndices.Count - 1 do
-    PutItemIntoSubNodes(ItemsIndices[i]);
-   if not FParentTree.ItemsInNonLeafNodes then
-    FreeAndNil(FItemsIndices);
+      FreeAndNilTreeSubNodes;
+    end else
+    begin
+      CreateTreeSubNodes(true);
+      for i := 0 to ItemsIndices.Count - 1 do
+        PutItemIntoSubNodes(ItemsIndices[i]);
+      if not FParentTree.ItemsInNonLeafNodes then
+        FreeAndNil(FItemsIndices);
+    end;
+    FIsLeaf := value;
+    StatisticsAdd;
   end;
-  FIsLeaf := value;
- end;
 end;
 
 function TOctreeNode.ItemsCount: integer;
@@ -536,17 +543,21 @@ end;
 
 procedure TOctreeNode.AddItem(ItemIndex: integer);
 begin
- if IsLeaf and (ItemsCount = FParentTree.LeafCapacity) and
-   (Depth < FParentTree.MaxDepth) then
-  IsLeaf := false;
+  if IsLeaf and (ItemsCount = FParentTree.LeafCapacity) and
+    (Depth < FParentTree.MaxDepth) then
+    IsLeaf := false;
 
- if not IsLeaf then
- begin
-  if FParentTree.ItemsInNonLeafNodes then
-   ItemsIndices.Add(ItemIndex);
-  PutItemIntoSubNodes(ItemIndex)
- end else
-  ItemsIndices.Add(ItemIndex);
+  if not IsLeaf then
+  begin
+    if FParentTree.ItemsInNonLeafNodes then
+      ItemsIndices.Add(ItemIndex);
+    PutItemIntoSubNodes(ItemIndex)
+  end else
+  begin
+    if StatisticsAdded then
+      Inc(FParentTree.FTotalItemsInLeafs);
+    ItemsIndices.Add(ItemIndex);
+  end;
 end;
 
 constructor TOctreeNode.Create(const ABox: TBox3D; AParentTree: TOctree;
@@ -570,26 +581,63 @@ constructor TOctreeNode.CreateBase(const ABox: TBox3D;
   AParentTree: TOctree; AParentNode: TOctreeNode;
   ADepth: integer; AsLeaf: boolean; const AMiddlePoint: TVector3Single);
 begin
- inherited Create;
+  inherited Create;
 
- FBox := ABox;
- Box.BoundingSphere(FBoundingSphereCenter, FBoundingSphereRadiusSqr);
- FMiddlePoint := AMiddlePoint;
+  FBox := ABox;
+  Box.BoundingSphere(FBoundingSphereCenter, FBoundingSphereRadiusSqr);
+  FMiddlePoint := AMiddlePoint;
 
- FParentTree := AParentTree;
- FParentNode := AParentNode;
- FDepth := ADepth;
- FIsLeaf := AsLeaf;
- if IsLeaf then
-  CreateLeafItems else
-  CreateTreeSubNodes(true);
+  FParentTree := AParentTree;
+  FParentNode := AParentNode;
+  FDepth := ADepth;
+  FIsLeaf := AsLeaf;
+  if IsLeaf then
+    CreateLeafItems
+  else
+    CreateTreeSubNodes(true);
+  StatisticsAdd;
 end;
 
 destructor TOctreeNode.Destroy;
 begin
- FreeAndNilTreeSubNodes;
- FreeAndNil(FItemsIndices);
- inherited;
+  { Update statistics when removing node.
+    Not needed for now, we destroy TOctreeNode only when destroying the parent octree now.
+  if StatisticsAdded then
+  begin
+    if IsLeaf then
+      FParentTree.FTotalItemsInLeafs -= ItemIndices.Count;
+    StatisticsRemove;
+  end; }
+
+  FreeAndNilTreeSubNodes;
+  FreeAndNil(FItemsIndices);
+  inherited;
+end;
+
+procedure TOctreeNode.StatisticsAdd;
+begin
+  if IsLeaf then
+  begin
+    Inc(FParentTree.FTotalLeafNodes);
+    FParentTree.FTotalItemsInLeafs += ItemsIndices.Count;
+  end else
+  begin
+    Inc(FParentTree.FTotalNonLeafNodes);
+  end;
+  StatisticsAdded := true;
+end;
+
+procedure TOctreeNode.StatisticsRemove;
+begin
+  if IsLeaf then
+  begin
+    Dec(FParentTree.FTotalLeafNodes);
+    FParentTree.FTotalItemsInLeafs -= ItemsIndices.Count;
+  end else
+  begin
+    Dec(FParentTree.FTotalNonLeafNodes);
+  end;
+  StatisticsAdded := false;
 end;
 
 function TOctreeNode.SubnodeWithPoint(const P: TVector3Single): TOctreeSubnodeIndex;
@@ -823,12 +871,12 @@ constructor TOctree.Create(AMaxDepth, ALeafCapacity: integer;
   const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
   AItemsInNonLeafNodes: boolean);
 begin
- inherited Create;
- FMaxDepth := AMaxDepth;
- FLeafCapacity := ALeafCapacity;
- FOctreeNodeFinalClass := AOctreeNodeFinalClass;
- FItemsInNonLeafNodes := AItemsInNonLeafNodes;
- FTreeRoot := OctreeNodeFinalClass.Create(ARootBox, Self, nil, 0, true);
+  inherited Create;
+  FMaxDepth := AMaxDepth;
+  FLeafCapacity := ALeafCapacity;
+  FOctreeNodeFinalClass := AOctreeNodeFinalClass;
+  FItemsInNonLeafNodes := AItemsInNonLeafNodes;
+  FTreeRoot := OctreeNodeFinalClass.Create(ARootBox, Self, nil, 0, true);
 end;
 
 constructor TOctree.Create(const Limits: TOctreeLimits;
@@ -841,8 +889,8 @@ end;
 
 destructor TOctree.Destroy;
 begin
- FreeAndNil(FTreeRoot);
- inherited;
+  FreeAndNil(FTreeRoot);
+  inherited;
 end;
 
 procedure TOctree.EnumerateCollidingOctreeItems(
@@ -855,84 +903,90 @@ begin
 end;
 
 function TOctree.Statistics: string;
-var leavesCounts: TCardinalList;
-    nonLeafNodesCounts: TCardinalList;
-    itemsCounts: TCardinalList;
-
-  procedure StatNode(TreeNode: TOctreeNode);
-  var b0, b1, b2: boolean;
-  begin
-   if TreeNode.IsLeaf then
-   begin
-    Inc(leavesCounts.L[TreeNode.Depth]);
-    itemsCounts.L[TreeNode.Depth] += Cardinal(TreeNode.ItemsCount);
-   end else
-   begin
-    Inc(nonLeafNodesCounts.L[TreeNode.Depth]);
-    for b0 := Low(boolean) to High(boolean) do
-     for b1 := Low(boolean) to High(boolean) do
-      for b2 := Low(boolean) to High(boolean) do
-       StatNode(TreeNode.TreeSubNodes[b0, b1, b2]);
-   end;
-  end;
 
   procedure WritelnStatLine(const Header: string;
-    const LeavesCount, ItemsCount, NonLeafNodesCount: Cardinal);
+    const LeafNodesCount, ItemsInLeafsCount, NonLeafNodesCount: Cardinal);
   begin
-   Result += Format(
-     '  %-12s%4d leaves (%6d items in leaves), %4d non-leaf nodes.' +nl,
-     [Header, LeavesCount, ItemsCount, NonLeafNodesCount]);
+    Result += Format(
+      '  %-12s%4d leaves (%6d items in leaves), %4d non-leaf nodes.' +nl,
+      [Header, LeafNodesCount, ItemsInLeafsCount, NonLeafNodesCount]);
   end;
 
-var i: integer;
-    LeavesCount, ItemsCount, NonLeafNodesCount: Int64;
+var
+  LeafNodes: TCardinalList;
+  NonLeafNodes: TCardinalList;
+  ItemsInLeafs: TCardinalList;
+
+  procedure StatNode(TreeNode: TOctreeNode);
+  var
+    B0, B1, B2: boolean;
+  begin
+    if TreeNode.IsLeaf then
+    begin
+      Inc(LeafNodes.L[TreeNode.Depth]);
+      ItemsInLeafs.L[TreeNode.Depth] += Cardinal(TreeNode.ItemsCount);
+    end else
+    begin
+      Inc(NonLeafNodes.L[TreeNode.Depth]);
+      for b0 := Low(boolean) to High(boolean) do
+        for b1 := Low(boolean) to High(boolean) do
+          for b2 := Low(boolean) to High(boolean) do
+            StatNode(TreeNode.TreeSubNodes[b0, b1, b2]);
+    end;
+  end;
+
+var
+  I: Integer;
 begin
- leavesCounts := nil;
- nonLeafNodesCounts := nil;
- itemsCounts := nil;
- try
-  leavesCounts := TCardinalList.Create;
-  leavesCounts.Count := MaxDepth + 1; { TFPGList initialized everything to 0 }
-  nonLeafNodesCounts := TCardinalList.Create;
-  nonLeafNodesCounts.Count := MaxDepth + 1; { TFPGList initialized everything to 0 }
-  itemsCounts := TCardinalList.Create;
-  itemsCounts.Count := MaxDepth + 1; { TFPGList initialized everything to false }
+  LeafNodes := nil;
+  NonLeafNodes := nil;
+  ItemsInLeafs := nil;
+  try
+    LeafNodes := TCardinalList.Create;
+    LeafNodes.Count := MaxDepth + 1; { TFPGList initialized everything to 0 }
+    NonLeafNodes := TCardinalList.Create;
+    NonLeafNodes.Count := MaxDepth + 1; { TFPGList initialized everything to 0 }
+    ItemsInLeafs := TCardinalList.Create;
+    ItemsInLeafs.Count := MaxDepth + 1; { TFPGList initialized everything to false }
 
-  StatNode(FTreeRoot);
+    StatNode(FTreeRoot);
 
-  Result := 'Octree statistics :' +nl;
-  for i := 0 to MaxDepth do
-  begin
-   WritelnStatLine('Depth '+Format('%3d',[i])+' :',
-     leavesCounts[i], itemsCounts[i], nonLeafNodesCounts[i]);
+    Result := 'Octree statistics :' + NL;
+    for I := 0 to MaxDepth do
+    begin
+      WritelnStatLine('Depth '+Format('%3d',[I])+' :',
+        LeafNodes[I], ItemsInLeafs[I], NonLeafNodes[I]);
 
-   if (nonLeafNodesCounts[i] = 0) then
-   begin
-    if i < MaxDepth then
-     Result += Format(
-       '  No nodes on lower depths (%d ...  ).' +nl, [i+1, MaxDepth]);
-    break;
-   end;
+      if (NonLeafNodes[I] = 0) then
+      begin
+        if i < MaxDepth then
+         Result += Format(
+           '  No nodes on lower depths (%d ... %d).' + NL, [I+1, MaxDepth]);
+        break;
+      end;
+    end;
+
+    Assert(TotalLeafNodes = LeafNodes.BigSum);
+    Assert(TotalNonLeafNodes = NonLeafNodes.BigSum);
+    Assert(TotalItemsInLeafs = ItemsInLeafs.BigSum);
+
+    WritelnStatLine('SUM :', TotalLeafNodes, TotalItemsInLeafs, TotalNonLeafNodes);
+
+    Result += NL + Format(
+      '  Octree constructed with limits: max depth %d, leaf capacity %d.',
+      [MaxDepth, LeafCapacity]) + NL;
+
+    Result += StatisticsBonus;
+  finally
+    FreeAndNil(LeafNodes);
+    FreeAndNil(NonLeafNodes);
+    FreeAndNil(ItemsInLeafs);
   end;
-
-  LeavesCount := leavesCounts.BigSum;
-  ItemsCount := itemsCounts.BigSum;
-  NonLeafNodesCount := NonLeafNodesCounts.BigSum;
-
-  WritelnStatLine('SUM :', LeavesCount, ItemsCount, NonLeafNodesCount);
-
-  Result += StatisticsBonus(LeavesCount, ItemsCount, NonLeafNodesCount);
- finally
-  leavesCounts.Free;
-  nonLeafNodesCounts.Free;
-  itemsCounts.Free;
- end;
 end;
 
-function TOctree.StatisticsBonus(
-  const LeavesCount, ItemsCount, NonLeafNodesCount: Int64): string;
+function TOctree.StatisticsBonus: string;
 begin
- Result := '';
+  Result := '';
 end;
 
 { some global procs ---------------------------------------------------------- }
