@@ -1,28 +1,31 @@
 { ----------------------------------------------------------------------------
 
-  Define the CONSERVE_TRIANGLE_MEMORY symbol to conserve memory consumed
-  by the triangles, by turning off some (seldom used / needed) per-triangle
-  information.
+  Define the CONSERVE_TRIANGLE_MEMORY symbol to decrease memory consumed
+  by the triangles (in spatial structures created when you set
+  "TCastleScene.Spatial").
+  Defining this symbol removes some (seldom used) per-triangle information:
 
-  This disables:
+  - Per-vertex texture coordinates and per-vertex normal vectors at triangles
+    (see TTriangle.TexCoord and TTriangle.Normal).
 
-  - Mailboxes for triangles (see TRIANGLE_OCTREE_USE_MAILBOX below,
-    and see TTriangle.Mailbox* fields).
-
-    This may cause a little worse collision speed, but it should not be
-    noticeable at all in interactive simulations (like walking on the model),
-    it's only noticeable when you render with ray-tracing (and even then,
-    the slowdown is not much and depends on the scene,
-    see TRIANGLE_OCTREE_USE_MAILBOX comments below).
-
-  - Per-vertex 4D texture coordinates and 3D normal vectors at triangles,
-    see TTriangle.TexCoord and TTriangle.Normal.
-
-    This disables ProximitySensor.hitTexCoord_changed
-    and ProximitySensor.hitNormal_changed events (they will never be generated).
+    Not having this information, we cannot implement the X3D events
+    ProximitySensor.hitTexCoord_changed and
+    ProximitySensor.hitNormal_changed (they will never be generated).
 
   - Face indexes stored at triangles.
-    This disables the "Edit -> Remove face" feature of view3dscene.
+
+    Not having this information, we cannot implement the feature
+    "Edit -> Remove face" in view3dscene.
+
+  - Defining this also disables the "mailbox" speed optimization for triangles.
+
+    This may cause a little worse collision speed, but it should not be
+    noticeable at all in interactive simulations (like FPS walking).
+    The slowdown is only noticeable when you use ray-tracing,
+    and even then the slowdown is small and depends on the scene.
+
+    See the TRIANGLE_OCTREE_USE_MAILBOX symbol below,
+    and see the TTriangle.Mailbox* fields.
 }
 { $define CONSERVE_TRIANGLE_MEMORY}
 
@@ -32,6 +35,11 @@
   but at the cost of speed. Some useful triangle values will not
   be precalculated in the memory, but will be recalculated every time they
   are needed.
+
+  Note that defining CONSERVE_TRIANGLE_MEMORY and CONSERVE_TRIANGLE_MEMORY_MORE
+  is independent, you can define any combination of them.
+  For now, we advice first trying with CONSERVE_TRIANGLE_MEMORY,
+  and eventually adding CONSERVE_TRIANGLE_MEMORY_MORE if you really must.
 
   This will affect collision detection speed. The difference in normal
   FPS games is probably not noticeable, but if you do something intensive,
