@@ -44,6 +44,7 @@
 unit CastleTriangles;
 
 {$I castleconf.inc}
+{$I octreeconf.inc}
 
 interface
 
@@ -281,16 +282,23 @@ type
   T3DTriangleGeometry = record
     Triangle: TTriangle3Single;
 
-    { Area of the triangle. In other words, just a precalculated for you
-      TriangleArea(Triangle). }
+    { Area of the triangle. }
+    {$ifdef CONSERVE_TRIANGLE_MEMORY_MORE}
+    function Area: Single;
+    {$else}
     Area: Single;
+    {$endif}
 
+    {$ifdef CONSERVE_TRIANGLE_MEMORY_MORE}
+    function Plane: TVector4Single;
+    function Normal: TVector3Single;
+    {$else}
     case Integer of
-      0: ({ This is a calculated TriangleNormPlane(Triangle),
-            that is a 3D plane containing our Triangle, with normalized
+      0: ({ Triangle normal, a 3D plane containing our Triangle, with normalized
             direction vector. }
           Plane: TVector4Single;);
       1: (Normal: TVector3Single;);
+    {$endif}
   end;
 
   { 3D triangle.
@@ -742,16 +750,39 @@ begin
   Result[2] := 1 - Result[0] - Result[1];
 end;
 
+{ T3DTriangleGeometry -------------------------------------------------------- }
+
+{$ifdef CONSERVE_TRIANGLE_MEMORY_MORE}
+function T3DTriangleGeometry.Area: Single;
+begin
+  Result := TriangleArea(Triangle);
+end;
+
+function T3DTriangleGeometry.Plane: TVector4Single;
+begin
+  Result := TriangleNormPlane(Triangle);
+end;
+
+function T3DTriangleGeometry.Normal: TVector3Single;
+begin
+  Result := TriangleNormal(Triangle);
+end;
+{$endif}
+
 { T3DTriangle  --------------------------------------------------------------- }
 
 constructor T3DTriangle.Init(const ATriangle: TTriangle3Single);
 begin
   Local.Triangle := ATriangle;
+  {$ifndef CONSERVE_TRIANGLE_MEMORY_MORE}
   Local.Plane := TriangleNormPlane(ATriangle);
   Local.Area := TriangleArea(ATriangle);
+  {$endif}
 
   World := Local;
 end;
+
+{ rest of global routines ---------------------------------------------------- }
 
 {$define TScalar := Single}
 {$define TVector2 := TVector2Single}

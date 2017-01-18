@@ -1138,7 +1138,7 @@ begin
   Check(NonPrimarySamplesCount > 0, 'NonPrimarySamplesCount for PathTracer must be greater than 0');
   ClampVar(RRoulContinue, Single(0.0), Single(1.0));
 
-  { zainicjuj na nil'e, zeby moc napisac proste try..finally }
+  { initialize all to nil, to easily free them all in one try..finally }
   LightItems := nil;
   {$ifdef PATHTR_USES_SHADOW_CACHE} ShadowCache := nil; {$endif}
   RaysWindow := nil;
