@@ -220,6 +220,7 @@ type
     FOwnsShapesList: boolean;
   protected
     function StatisticsBonus: string; override;
+    function TotalItemsInOctree: Int64; override;
   public
     constructor Create(const ALimits: TOctreeLimits;
       const ARootBox: TBox3D; AShapesList: TShapeList;
@@ -789,9 +790,15 @@ begin
       '  Empty octree - scene has no Shapes, i.e. no visible nodes.' + NL
   else
     Result += Format(
-      '  %d items (=Shapes) defined for octree, %d items in octree''s nodes' + NL +
-      '  - so each shape is present in tree about %f times.' + NL,
+      '  %d items (=Shapes) defined for octree, %d items in octree''s leafs' + NL +
+      '  - so each shape is present in tree about %f times.' + NL +
+      '  (Not counting shapes duplicated in internal nodes.)' + NL,
       [ShapesList.Count, TotalItemsInLeafs, TotalItemsInLeafs / ShapesList.Count] );
+end;
+
+function TShapeOctree.TotalItemsInOctree: Int64;
+begin
+  Result := ShapesList.Count;
 end;
 
 procedure TShapeOctree.EnumerateTriangles(

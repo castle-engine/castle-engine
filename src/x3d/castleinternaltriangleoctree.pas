@@ -164,10 +164,11 @@ type
   { Octree based on triangles. Allows for fast collision-detection
     with a set of triangles. Each triangle is a TTriangle structure,
     that keeps triangle geometry in 3D space, and links to parent
-    VRML Shapes and such. }
+    VRML/X3D Shapes and such. }
   TTriangleOctree = class(TBaseTrianglesOctree)
   protected
     function StatisticsBonus: string; override;
+    function TotalItemsInOctree: Int64; override;
   public
     constructor Create(const ARootBox: TBox3D); overload;
     constructor Create(const ALimits: TOctreeLimits; const ARootBox: TBox3D); overload;
@@ -570,9 +571,14 @@ begin
       '  Empty octree - no triangles defined.' + NL
   else
     Result += Format(
-      '  %d items (=triangles) defined for octree, %d items in octree''s nodes' + NL +
+      '  %d items (=triangles) defined for octree, %d items in octree''s leafs' + NL +
       '  - so each triangle is present in tree about %f times.' + NL,
       [ Triangles.Count, TotalItemsInLeafs, TotalItemsInLeafs / Triangles.Count] );
+end;
+
+function TTriangleOctree.TotalItemsInOctree: Int64;
+begin
+  Result := Triangles.Count;
 end;
 
 procedure TTriangleOctree.AddItemTriangle(Shape: TObject;

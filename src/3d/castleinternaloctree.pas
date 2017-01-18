@@ -332,6 +332,7 @@ type
     property TotalLeafNodes: Int64 read FTotalLeafNodes;
     property TotalNonLeafNodes: Int64 read FTotalNonLeafNodes;
     property TotalItemsInLeafs: Int64 read FTotalItemsInLeafs;
+    function TotalItemsInOctree: Int64; virtual; abstract;
   public
     { Maximum tree depth.
 
@@ -533,6 +534,13 @@ begin
     end;
     FIsLeaf := value;
     StatisticsAdd;
+
+    {$ifdef CASTLE_DEBUG_OCTREE_DUPLICATION_GROWING}
+    Writeln(Format('Stats: %d items in octree, %d items in octree''s leafs, duplication %f',
+      [FParentTree.TotalItemsInOctree,
+       FParentTree.TotalItemsInLeafs,
+       FParentTree.TotalItemsInLeafs / FParentTree.TotalItemsInOctree] ));
+    {$endif}
   end;
 end;
 
