@@ -435,7 +435,25 @@
     {$I auto_generated_node_helpers/x3dnodes_multitexturetransform.inc}
   end;
 
-  { Texture specified as an explicit array of pixel values (see @link(FdImage) field). }
+  { Texture specified as an explicit array of pixel values (see @link(FdImage) field).
+
+    This is useful when authoring X3D, as you can place texture contents directly
+    inside the X3D file (without the need for any external file).
+
+    PixelTexture is also comfortable when using Object Pascal to construct
+    the X3D graph. In this case, it allows to provide an image as a ready
+    TCastleImage instance, by changing the value of the
+    @code(TPixelTextrueNode.FdImage.Value).
+
+    An alternative to PixelTexture is to use "data URI".
+    With "data URI", you can embed any file contents inside an URL.
+    This way, you can use @link(TImageTextureNode ImageTexture),
+    and inside @code(ImageTexture.url) field
+    you can place an embedded image contents (instead of a normal URL or filename).
+    To convert your image file to a "data URI", you can our tool "to_data_uri".
+    The image contents stay compressed this way (although expressed in base64),
+    so it may be more compact than PixelTexture.
+  }
   TPixelTextureNode = class(TAbstractX3DTexture2DNode)
   protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
