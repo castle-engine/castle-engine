@@ -14,7 +14,7 @@
 }
 
 { Implementacja funkcji CommonSegment i CommonRay w jednym kodzie.
-  See vrmltriangleoctree_raysegmentcollisions.inc for some comments.
+  See castleinternaltriangleoctree_raysegmentcollisions.inc for some comments.
 }
 
 {$define TYPE_SCALAR := Single}

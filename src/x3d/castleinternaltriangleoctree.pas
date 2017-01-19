@@ -470,7 +470,7 @@ function TTriangleOctreeNode.CommonSegmentLeaf(
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 {$define SEGMENT_COLLISION}
-{$I triangleoctree_raysegmentcollisions.inc}
+{$I castleinternaltriangleoctree_raysegmentcollisions.inc}
 {$undef SEGMENT_COLLISION}
 
 function TTriangleOctreeNode.IsSegmentCollision(
@@ -516,7 +516,7 @@ function TTriangleOctreeNode.CommonRayLeaf(
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
-{$I triangleoctree_raysegmentcollisions.inc}
+{$I castleinternaltriangleoctree_raysegmentcollisions.inc}
 
 function TTriangleOctreeNode.IsRayCollision(
   const RayOrigin, RayDirection: TVector3Single;

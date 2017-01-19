@@ -1060,7 +1060,7 @@ function TBaseTrianglesOctreeNode.CommonSegment(
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 {$define SEGMENT_COLLISION}
-{$I triangle_raysegment_nonleaf.inc}
+{$I x3dtriangles_raysegment_nonleaf.inc}
 {$undef SEGMENT_COLLISION}
 
 function TBaseTrianglesOctreeNode.CommonRay(
@@ -1072,7 +1072,7 @@ function TBaseTrianglesOctreeNode.CommonRay(
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
-{$I triangle_raysegment_nonleaf.inc}
+{$I x3dtriangles_raysegment_nonleaf.inc}
 
 { TBaseTrianglesOctree --------------------------------------------------- }
 
