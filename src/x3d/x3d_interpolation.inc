@@ -353,7 +353,7 @@ var
   // We pass Self as ParentNode to
   // MultipleInterpolatorFieldType.CreateUndefined.
   // This is not required, ParentNode could be @nil and everything
-  // will work Ok, but setting ParentNode allows Avalon Logger node
+  // will work Ok, but setting ParentNode allows InstantReality Logger node
   // to display "sending node" information, useful for debugging.
 
   function KeyValue(Index: Integer): MultipleInterpolatorFieldType;

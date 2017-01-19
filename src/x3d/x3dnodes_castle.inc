@@ -62,7 +62,7 @@
 
   { BlendMode node.
 
-    This is not standard X3D. It's modelled after Avalon extension on
+    This is not standard X3D. It's modelled after InstantReality extension on
     [http://www.instantreality.org/].
     See [http://www.instantreality.org/documentation/nodetype/ManagedAppearance/]
     and [http://www.instantreality.org/documentation/nodetype/BlendMode/].

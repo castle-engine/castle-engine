@@ -1176,7 +1176,7 @@ type
 {$I x3dnodes_97_hanim.inc}
 {$I x3dnodes_97_nurbs.inc}
 {$I x3dnodes_castle.inc}
-{$I x3dnodes_avalon.inc}
+{$I x3dnodes_instantreality.inc}
 {$I x3dnodes_bitmanagement.inc}
 
 { TX3DUnknownNode --------------------------------------------------- }
@@ -2306,7 +2306,7 @@ resourcestring
 {$I x3dnodes_97_hanim.inc}
 {$I x3dnodes_97_nurbs.inc}
 {$I x3dnodes_castle.inc}
-{$I x3dnodes_avalon.inc}
+{$I x3dnodes_instantreality.inc}
 {$I x3dnodes_bitmanagement.inc}
 
 function InterfaceDeclarationKeywords(
@@ -5473,7 +5473,7 @@ begin
   if (SourceEvent <> nil) and
      (DestinationEvent <> nil) and
      (SourceEvent.FieldClass <> DestinationEvent.FieldClass) and
-     { destination field can be XFAny (for some Avalon nodes) as an exception. }
+     { destination field can be XFAny (for some InstantReality nodes) as an exception. }
      (not (DestinationEvent.FieldClass = TX3DField)) then
     raise ERouteSetEndingError.CreateFmt('Route has different event types for source (%s, type %s) and destination (%s, type %s)',
       [ SourceEvent     .X3DName, SourceEvent     .FieldClass.X3DType,
@@ -6135,7 +6135,7 @@ initialization
   RegisterVRML97HAnimNodes;
   RegisterVRML97NodesNurbs;
   RegisterKambiNodes;
-  RegisterAvalonNodes;
+  RegisterInstantRealityNodes;
   RegisterBitManagementNodes;
 
   { X3D components registration : }

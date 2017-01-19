@@ -80,7 +80,7 @@
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     private FFdRender: TSFBool;
-    { This is an extension from Avalon, see
+    { This is an extension from InstantReality, see
       [http://instant-reality.com/documentation/nodetype/ChildGroup/].
       We simply ignore it for now. }
     public property FdRender: TSFBool read FFdRender;

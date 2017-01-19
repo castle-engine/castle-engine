@@ -13,12 +13,12 @@
   ----------------------------------------------------------------------------
 }
 
-{ Nodes that are defined by Avalon extensions, see
+{ Nodes that are defined by InstantReality extensions, see
   [http://instant-reality.com/] and in particular the specifications on
   [http://instant-reality.com/documentation/nodetype/]. }
 
 {$ifdef read_interface}
-  { MatrixTransform node for VRML/X3D >= 2.0. From Avalon extension,
+  { MatrixTransform node for VRML/X3D >= 2.0. From InstantReality extension,
     see [http://instant-reality.com/documentation/nodetype/MatrixTransform/]. }
   TMatrixTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
   protected
@@ -920,7 +920,7 @@ begin
     FdStatus.Send(false);
 end;
 
-procedure RegisterAvalonNodes;
+procedure RegisterInstantRealityNodes;
 begin
   NodesManager.RegisterNodeClasses([
     TMatrixTransformNode,

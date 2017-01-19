@@ -76,7 +76,7 @@
     public property FdShadowVolumesMain: TSFBool read FFdShadowVolumesMain;
 
     private FFdShowProxyGeometry: TSFBool;
-    { showProxyGeometry field is an Avalon extension, see
+    { showProxyGeometry field is an InstantReality extension, see
       [http://instant-reality.com/documentation/nodetype/Light/]. }
     public property FdShowProxyGeometry: TSFBool read FFdShowProxyGeometry;
 

@@ -198,7 +198,7 @@
 
     { blendMode property.
 
-      This is modelled after Avalon extension on [http://www.instantreality.org/].
+      This is modelled after InstantReality extension on [http://www.instantreality.org/].
       See [http://www.instantreality.org/documentation/nodetype/ManagedAppearance/]
       and [http://www.instantreality.org/documentation/nodetype/BlendMode/].
       It allows you to use BlendMode nodes, which I consider very useful. }
