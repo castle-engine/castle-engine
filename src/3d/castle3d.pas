@@ -1522,8 +1522,9 @@ type
     { Scale in 3D. Scaling is done around @link(Center)
       and with orientation given by @link(ScaleOrientation).
 
-      Any scale value with @italic(somewhat) work (meaning: we do the best
-      we can). But there are some good rules about scaling:
+      We do the best we can to work with @italic(any) scale value,
+      even negative or zero. But usually, it's best to keep the scale
+      positive. More information:
 
       @orderedList(
         @item(If you can, keep the scale uniform, that is scale equal amount
