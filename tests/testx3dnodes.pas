@@ -351,7 +351,7 @@ begin
 
       for J := 0 to N.FieldsCount - 1 do
       begin
-        CurrentName := N.Fields[J].Name;
+        CurrentName := N.Fields[J].X3DName;
         for K := 0 to N.FieldsCount - 1 do
           AssertTrue((K = J) or (not N.Fields[K].IsName(CurrentName)));
         for K := 0 to N.EventsCount - 1 do
@@ -360,7 +360,7 @@ begin
 
       for J := 0 to N.EventsCount - 1 do
       begin
-        CurrentName := N.Events[J].Name;
+        CurrentName := N.Events[J].X3DName;
         for K := 0 to N.FieldsCount - 1 do
           AssertTrue(not N.Fields[K].IsName(CurrentName));
         for K := 0 to N.EventsCount - 1 do
@@ -991,11 +991,11 @@ begin
       if N is TAbstractGeometryNode then
       begin
         for J := 0 to N.FieldsCount - 1 do
-          if N.Fields[J].Name <> 'metadata' then
+          if N.Fields[J].X3DName <> 'metadata' then
           try
             AssertTrue(N.Fields[J].ExecuteChanges = [chGeometry]);
           except
-            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
             raise;
           end;
       end else
@@ -1004,7 +1004,7 @@ begin
         try
           AssertTrue(not (chGeometry in N.Fields[J].ExecuteChanges));
         except
-          Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+          Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
           raise;
         end;
       end
@@ -1027,25 +1027,25 @@ begin
          (VRML1StateNode <> vsCoordinate3) then
       begin
         for J := 0 to N.FieldsCount - 1 do
-          if (N.Fields[J].Name <> 'metadata') and
-             (N.Fields[J].Name <> 'effects') then
+          if (N.Fields[J].X3DName <> 'metadata') and
+             (N.Fields[J].X3DName <> 'effects') then
           try
             AssertTrue((chVisibleVRML1State in N.Fields[J].ExecuteChanges) or
                    (chGeometryVRML1State in N.Fields[J].ExecuteChanges));
           except
-            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
             raise;
           end;
       end else
       begin
         for J := 0 to N.FieldsCount - 1 do
           { alphaChannel field is allowed exception }
-          if N.Fields[J].Name <> 'alphaChannel' then
+          if N.Fields[J].X3DName <> 'alphaChannel' then
           try
             AssertTrue(not (chVisibleVRML1State in N.Fields[J].ExecuteChanges));
             AssertTrue(not (chGeometryVRML1State in N.Fields[J].ExecuteChanges));
           except
-            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
             raise;
           end;
       end
@@ -1066,11 +1066,11 @@ begin
       if N is TAbstractColorNode then
       begin
         for J := 0 to N.FieldsCount - 1 do
-          if N.Fields[J].Name <> 'metadata' then
+          if N.Fields[J].X3DName <> 'metadata' then
           try
             AssertTrue(N.Fields[J].ExecuteChanges = [chColorNode]);
           except
-            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
             raise;
           end;
       end else
@@ -1079,7 +1079,7 @@ begin
         try
           AssertTrue(not (chColorNode in N.Fields[J].ExecuteChanges));
         except
-          Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+          Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
           raise;
         end;
       end
@@ -1100,11 +1100,11 @@ begin
       if N is TAbstractTextureCoordinateNode then
       begin
         for J := 0 to N.FieldsCount - 1 do
-          if N.Fields[J].Name <> 'metadata' then
+          if N.Fields[J].X3DName <> 'metadata' then
           try
             AssertTrue(N.Fields[J].ExecuteChanges = [chTextureCoordinate]);
           except
-            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+            Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
             raise;
           end;
       end else
@@ -1113,7 +1113,7 @@ begin
         try
           AssertTrue(not (chTextureCoordinate in N.Fields[J].ExecuteChanges));
         except
-          Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].Name);
+          Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
           raise;
         end;
       end
@@ -1130,7 +1130,7 @@ procedure TTestX3DNodes.TestEmptyChanges;
     function FieldIs(Field: TX3DField;
       const NodeClass: TX3DNodeClass; const FieldName: string): boolean;
     begin
-      Result := (Field.ParentNode is NodeClass) and (Field.Name = FieldName);
+      Result := (Field.ParentNode is NodeClass) and (Field.X3DName = FieldName);
     end;
 
   begin
@@ -1218,8 +1218,8 @@ procedure TTestX3DNodes.TestEmptyChanges;
       FieldIs(Field, TAbstractLightNode, 'showProxyGeometry') or
       FieldIs(Field, TRenderedTextureNode, 'triggerName') or
       (Field.ParentNode is TLODNode_1) or
-      (Field.Name = 'bboxSize') or
-      (Field.Name = 'bboxCenter') or
+      (Field.X3DName = 'bboxSize') or
+      (Field.X3DName = 'bboxCenter') or
       (Field.ParentNode is TTextureBackgroundNode) or
       (Field.ParentNode is TGeoCoordinateNode) or
       (Field.ParentNode is TGeoLocationNode) or
@@ -1303,7 +1303,7 @@ begin
         Changes := N.Fields[J].ExecuteChanges;
         AssertTrue((Changes <> []) or ConfirmedEmptyChanges(N.Fields[J]));
       except
-        Writeln('Empty TX3DField.Changes unconfirmed on ', N.ClassName, '.', N.Fields[J].Name);
+        Writeln('Empty TX3DField.Changes unconfirmed on ', N.ClassName, '.', N.Fields[J].X3DName);
         raise;
       end;
     finally FreeAndNil(N) end;
