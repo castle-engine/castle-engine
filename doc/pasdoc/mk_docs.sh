@@ -135,10 +135,12 @@ PASDOC_INCLUDE_DIRS="\
 
 pasdoc \
    --format "$PASDOC_FORMAT" \
-  $PASDOC_INCLUDE_DIRS --output "$OUTPUT_PATH" \
+  $PASDOC_INCLUDE_DIRS \
+  --output "$OUTPUT_PATH" \
   --define "$TARGET_OS" \
   --define FPC --define VER2 --define VER2_6 --define VER2_6_0 --define PASDOC \
-  --write-uses-list --title "Castle Game Engine" \
+  --write-uses-list \
+  --title "Castle Game Engine" \
   --source "$TMP_PAS_LIST" \
   --cache-dir "$PASDOC_CACHE" \
   --auto-abstract \
@@ -147,7 +149,8 @@ pasdoc \
   --auto-link-exclude=../doc/pasdoc/auto_link_exclude.txt \
   --external-class-hierarchy=../doc/pasdoc/external_class_hierarchy.txt \
   --visible-members public,published,automated,protected \
-  --footer ../doc/pasdoc/footer.html
+  --footer ../doc/pasdoc/footer.html \
+  --description=../src/x3d/x3dnodes_documentation.txt
 
 # Not anymore:
 # We hide protected members, for now. Makes a cleaner documentation,
