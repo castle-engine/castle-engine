@@ -207,7 +207,7 @@ end;
 function TTestSceneCore.SearchingForDescriptionCallback(Node: TX3DNode): Pointer;
 begin
   if (Node is TAbstractViewpointNode) and
-     (TAbstractViewpointNode(Node).Description = SearchingForDescription) then
+     (TAbstractViewpointNode(Node).SmartDescription = SearchingForDescription) then
     Result := Node else
     Result := nil;
 end;
