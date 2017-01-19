@@ -16,33 +16,44 @@
 {$ifdef read_interface}
 
 type
-  { }
+  { Interface for a base X3D node that can have some metadata. }
   IAbstractNode = interface(IX3DNode)
   ['{399AC6B2-C2B3-4EEA-AB74-D52C4836B3B9}']
     property FdMetadata: TSFNode;
   end;
 
-  { Base X3D node.
+  { Base X3D node that can have some metadata.
 
-    Almost all X3D nodes inherit from this. (Exception:
-    X3DMetadataObject. So you cannot have metadata of metadata of...) }
+    Almost all X3D nodes inherit from this, with the only exception being
+    the X3DMetadataObject (expressed only as an interface in Pascal,
+    @link(IAbstractMetadataObject)).
+    This means that you cannot have metadata inside a metadata. }
   TAbstractNode = class(TX3DNode, IAbstractNode)
   public
     procedure CreateNode; override;
 
     private FFdMetadata: TSFNode;
     public property FdMetadata: TSFNode read FFdMetadata;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dnode.inc}
   end;
 
+  { Interface for an abstract node type that indicates that the node may be used as
+    a child of a grouping node, e.g. inside @link(TGroupNode.FdChildren). }
   IAbstractChildNode = interface(IAbstractNode)
   ['{ECE6F71D-CA90-4B6C-8835-EAA68EEDAEED}']
   end;
 
+  { Abstract node type that indicates that the node may be used as
+    a child of a grouping node, e.g. inside @link(TGroupNode.FdChildren). }
   TAbstractChildNode = class(TAbstractNode, IAbstractChildNode)
   public
     procedure CreateNode; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dchildnode.inc}
   end;
 
+  { Abstract base type for all bindable children nodes. }
   TAbstractBindableNode = class(TAbstractChildNode)
   private
     FTransform: TMatrix4Single;
@@ -91,19 +102,31 @@ type
     property Transform: TMatrix4Single read FTransform;
     property TransformScale: Single read FTransformScale;
     { @groupEnd }
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dbindablenode.inc}
   end;
 
+  { Base class for all nodes that contain only information without visual
+    semantics. }
   TAbstractInfoNode = class(TAbstractChildNode)
+    {$I auto_generated_node_helpers/x3dnodes_x3dinfonode.inc}
   end;
 
+  { Basis for all metadata nodes. }
   IAbstractMetadataObject = interface(IX3DNode)
   ['{2D631FBF-683B-4259-A98D-74589893447C}']
     property FdName: TSFString { read GetFdname }; { }
     property FdReference: TSFString { read GetFdreference }; { }
+
+    // We insert x3dnodes_x3dmetadataobject.inc to the interface,
+    // as we don't have a relevant class right now.
+    // Since x3dnodes_x3dmetadataobject.inc is empty for now, this is OK.
+    {$I auto_generated_node_helpers/x3dnodes_x3dmetadataobject.inc}
   end;
 
-  { X3DSensorNode when it's a secondary ancestor.
-    (When it's a primary ancestor, I use class TAbstractSensorNode.) }
+  { Base interface type for all sensors.
+    All sensors implement this
+    (and most, but not all, sensors descend also from @link(TAbstractSensorNode).) }
   IAbstractSensorNode = interface(IAbstractChildNode)
   ['{7434C62F-8084-40C3-AA57-08F9B574655A}']
     property FdEnabled: TSFBool;
@@ -112,6 +135,7 @@ type
     property EventIsActive: TSFBoolEvent;
   end;
 
+  { Base abstract class for all sensors. }
   TAbstractSensorNode = class(TAbstractChildNode, IAbstractSensorNode)
   public
     procedure CreateNode; override;
@@ -122,8 +146,11 @@ type
     { Event out } { }
     private FEventIsActive: TSFBoolEvent;
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dsensornode.inc}
   end;
 
+  { A metadata (extra, custom information at a node) with a boolean type. }
   TMetadataBooleanNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
@@ -138,8 +165,12 @@ type
 
     private FFdValue: TMFBool;
     public property FdValue: TMFBool read FFdValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_metadataboolean.inc}
   end;
 
+  { A metadata (extra, custom information at a node) with
+    a double-precision floating point number type. }
   TMetadataDoubleNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
@@ -154,8 +185,12 @@ type
 
     private FFdValue: TMFDouble;
     public property FdValue: TMFDouble read FFdValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_metadatadouble.inc}
   end;
 
+  { A metadata (extra, custom information at a node) with
+    a single-precision floating point number type. }
   TMetadataFloatNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
@@ -170,8 +205,11 @@ type
 
     private FFdValue: TMFFloat;
     public property FdValue: TMFFloat read FFdValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_metadatafloat.inc}
   end;
 
+  { A metadata (extra, custom information at a node) with an integer type. }
   TMetadataIntegerNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
@@ -186,8 +224,12 @@ type
 
     private FFdValue: TMFInt32;
     public property FdValue: TMFInt32 read FFdValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_metadatainteger.inc}
   end;
 
+  { A metadata (extra, custom information at a node) set,
+    to reference of collection of other metadata nodes. }
   TMetadataSetNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
@@ -202,8 +244,11 @@ type
 
     private FFdValue: TMFNode;
     public property FdValue: TMFNode read FFdValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_metadataset.inc}
   end;
 
+  { A metadata (extra, custom information at a node) with a string type. }
   TMetadataStringNode = class(TAbstractNode, IAbstractMetadataObject)
   public
     procedure CreateNode; override;
@@ -218,8 +263,13 @@ type
 
     private FFdValue: TMFString;
     public property FdValue: TMFString read FFdValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_metadatastring.inc}
   end;
 
+  { Information about the world.
+    This node is strictly for documentation purposes
+    and has no effect on the visual appearance or behaviour of the world. }
   TWorldInfoNode = class(TAbstractInfoNode)
   public
     procedure CreateNode; override;
@@ -231,6 +281,8 @@ type
 
     private FFdTitle: TSFString;
     public property FdTitle: TSFString read FFdTitle;
+
+    {$I auto_generated_node_helpers/x3dnodes_worldinfo.inc}
   end;
 
 {$endif read_interface}

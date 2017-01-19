@@ -224,7 +224,7 @@ begin
     that also assume that MaxAnimationTime > 0. }
   if MaxTime <= 0 then
     MaxTime := 1;
-  Node.FdCycleInterval.Value := MaxTime;
+  Node.CycleInterval := MaxTime;
 
   NodeUsedAsChild := true;
   Container.FdChildren.Add(Node);

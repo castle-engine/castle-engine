@@ -43,6 +43,8 @@
     { Event out } { }
     private FEventRemovedEntities: TMFNodeEvent;
     public property EventRemovedEntities: TMFNodeEvent read FEventRemovedEntities;
+
+    {$I auto_generated_node_helpers/x3dnodes_disentitymanager.inc}
   end;
 
   TDISEntityTypeMappingNode = class(TAbstractInfoNode, IAbstractUrlObject)
@@ -74,6 +76,8 @@
 
     private FFdSubcategory: TSFInt32;
     public property FdSubcategory: TSFInt32 read FFdSubcategory;
+
+    {$I auto_generated_node_helpers/x3dnodes_disentitytypemapping.inc}
   end;
 
   TEspduTransformNode = class(TAbstractX3DGroupingNode, IAbstractSensorNode)
@@ -357,6 +361,8 @@
 
     private FFdRtpHeaderExpected: TSFBool;
     public property FdRtpHeaderExpected: TSFBool read FFdRtpHeaderExpected;
+
+    {$I auto_generated_node_helpers/x3dnodes_espdutransform.inc}
   end;
 
   TReceiverPduNode = class(TAbstractSensorNode, IAbstractBoundedObject)
@@ -447,6 +453,8 @@
 
     private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
+
+    {$I auto_generated_node_helpers/x3dnodes_receiverpdu.inc}
   end;
 
   TSignalPduNode = class(TAbstractSensorNode, IAbstractBoundedObject)
@@ -537,6 +545,8 @@
 
     private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
+
+    {$I auto_generated_node_helpers/x3dnodes_signalpdu.inc}
   end;
 
   TTransmitterPduNode = class(TAbstractSensorNode, IAbstractBoundedObject)
@@ -675,6 +685,8 @@
 
     private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
+
+    {$I auto_generated_node_helpers/x3dnodes_transmitterpdu.inc}
   end;
 
 {$endif read_interface}

@@ -17,6 +17,7 @@
   { }
   TBackgroundSide = (bsBack, bsBottom, bsFront, bsLeft, bsRight, bsTop);
 
+  { Abstract type from which all backgrounds inherit. }
   TAbstractBackgroundNode = class(TAbstractBindableNode)
   private
     procedure EventSet_BindReceive(
@@ -59,11 +60,14 @@
     public property FdEffects: TMFNode read FFdEffects;
 
     function TransformRotation: TMatrix4Single;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dbackgroundnode.inc}
   end;
 
   TFogTypeOrNone = (ftLinear, ftExp, ftNone);
   TFogType = ftLinear..ftExp;
 
+  { Interface that describes a node that influences the look by blending with fog. }
   IAbstractFogObject = interface(IX3DNode)
   ['{F5C4E0A9-2214-4E3F-8E90-1E0305B2EBC6}']
     function GetFdcolor: TSFColor;
@@ -84,8 +88,12 @@
     property TransformScale: Single read GetTransformScale;
 
     function FogType: TFogType;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dfogobject.inc}
   end;
 
+  { 3D background of a scene, comprised of sky and ground colors (gradients)
+    and optional six textures (skybox). }
   TBackgroundNode = class(TAbstractBackgroundNode)
   public
     procedure CreateNode; override;
@@ -111,8 +119,12 @@
 
     private FFdTopUrl: TMFString;
     public property FdTopUrl: TMFString read FFdTopUrl;
+
+    {$I auto_generated_node_helpers/x3dnodes_background.inc}
   end;
 
+  { Simulate atmospheric fog effects (for the whole scene) by blending
+    with the fog colour, based on the distance from the viewer. }
   TFogNode = class(TAbstractBindableNode, IAbstractFogObject)
   private
     function GetFdcolor: TSFColor;
@@ -174,8 +186,11 @@
       allowed to call this on @nil instance. }
     procedure ApplyFog(var Color: TVector3Single;
       const Position, VertexPos: TVector3Single; const AFogType: TFogTypeOrNone);
+
+    {$I auto_generated_node_helpers/x3dnodes_fog.inc}
   end;
 
+  { Provide explicit fog depths on a per-vertex basis. }
   TFogCoordinateNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
@@ -184,8 +199,14 @@
 
     private FFdDepth: TMFFloat;
     public property FdDepth: TMFFloat read FFdDepth;
+
+    {$I auto_generated_node_helpers/x3dnodes_fogcoordinate.inc}
   end;
 
+  { Simulate atmospheric fog effects (for a part of the scene) by blending
+    with the fog colour, based on the distance from the viewer.
+    This is the "local" version of the @link(TFogNode), this affects
+    only the sibling nodes of the @code(LocalFog) node, not the whole scene. }
   TLocalFogNode = class(TAbstractChildNode, IAbstractFogObject)
   private
     FTransformScale: Single;
@@ -230,8 +251,14 @@
     { @groupEnd }
 
     function FogType: TFogType;
+
+    {$I auto_generated_node_helpers/x3dnodes_localfog.inc}
   end;
 
+  { 3D background of a scene, comprised of sky and ground colors (gradients)
+    and optional six textures (skybox), with flexible texture nodes.
+    This is somewhat more flexible version of the @link(TBackgroundNode),
+    with this you can use e.g. @link(TMovieTextureNode) as the skybox textures. }
   TTextureBackgroundNode = class(TAbstractBackgroundNode)
   public
     procedure CreateNode; override;
@@ -256,6 +283,8 @@
 
     private FFdTopTexture: TSFNode;
     public property FdTopTexture: TSFNode read FFdTopTexture;
+
+    {$I auto_generated_node_helpers/x3dnodes_texturebackground.inc}
   end;
 
 {$endif read_interface}

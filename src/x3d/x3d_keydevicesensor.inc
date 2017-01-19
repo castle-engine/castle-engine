@@ -14,7 +14,7 @@
 }
 
 {$ifdef read_interface}
-  { }
+  { Base type for all sensor node types that operate using key devices. }
   TAbstractKeyDeviceSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
@@ -35,8 +35,11 @@
     procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); virtual;
     procedure KeyUp(Key: TKey; C: char; const Time: TX3DTime); virtual;
     { @groupEnd }
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dkeydevicesensornode.inc}
   end;
 
+  { Generate events when user key presses or releases keys on the keyboard. }
   TKeySensorNode = class(TAbstractKeyDeviceSensorNode)
   private
     AltKey, ControlKey, ShiftKey: boolean;
@@ -75,8 +78,12 @@
 
     procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); override;
     procedure KeyUp(Key: TKey; C: char; const Time: TX3DTime); override;
+
+    {$I auto_generated_node_helpers/x3dnodes_keysensor.inc}
   end;
 
+  { Generates events as the user inputs a longer string on the keyboard,
+    useful for example to simulate "input fields" in 3D. }
   TStringSensorNode = class(TAbstractKeyDeviceSensorNode)
   private
     EnteredText: string;
@@ -98,6 +105,8 @@
     public property EventFinalText: TSFStringEvent read FEventFinalText;
 
     procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); override;
+
+    {$I auto_generated_node_helpers/x3dnodes_stringsensor.inc}
   end;
 
 {$endif read_interface}

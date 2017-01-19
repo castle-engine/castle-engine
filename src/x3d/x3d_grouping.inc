@@ -14,14 +14,10 @@
 }
 
 {$ifdef read_interface}
-  { This is a VRML/X3D >= 2.0 grouping node.
-    This will push/pop full TX3DGraphTraverseState in Before/AfterTraverse.
-    It also propagates DirectionalLights in any child to all children
-    in VRML2ActiceLights.
-
-    To keep X3D hierarchy, this descends from X3DChildNode.
-    This way TAbstractX3DGroupingNode and TStaticGroupNode inherit
-    also from X3DChildNode. }
+  { Base node that may contain children nodes.
+    Note that this descends from TAbstractChildNode,
+    so it can be inserted as child of another grouping node.
+    So, you can create a hierarchy of nodes with any depth. }
   TAbstractGroupingNode = class(TAbstractChildNode)
   private
     BeforeTraversePushedState: boolean;
@@ -47,12 +43,14 @@
     procedure ApplyTransform(State: TX3DGraphTraverseState); virtual;
   end;
 
+  { Basis for all node types that have bounds specified as part of the definition. }
   IAbstractBoundedObject = interface(IX3DNode)
   ['{0EF47711-754B-4BA8-97E5-0A9601E9C542}']
     property FdBboxCenter: TSFVec3f { read GetFdbboxCenter }; { }
     property FdBboxSize: TSFVec3f { read GetFdbboxSize }; { }
   end;
 
+  { Base node that contains children nodes, in X3D and VRML 2.0. }
   TAbstractX3DGroupingNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
   private
     procedure EventAddChildrenReceive(
@@ -84,8 +82,12 @@
       [http://instant-reality.com/documentation/nodetype/ChildGroup/].
       We simply ignore it for now. }
     public property FdRender: TSFBool read FFdRender;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dgroupingnode.inc}
   end;
 
+  { Contains children nodes without introducing a new transformation.
+    It is equivalent to a TTransformNode containing an identity transform. }
   TGroupNode = class(TAbstractX3DGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -97,6 +99,8 @@
       override;
 
     class function URNMatching(const URN: string): boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_group.inc}
   end;
   TGroupNode_2 = TGroupNode;
 
@@ -227,6 +231,11 @@
     { @groupEnd }
   end;
 
+  { Children nodes which cannot be modified.
+    StaticGroup children are guaranteed to not change,
+    send events, receive events or contain any USE
+    references outside the StaticGroup.
+    This allows to optimize this content for faster rendering and less memory usage. }
   TStaticGroupNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -243,9 +252,13 @@
 
     private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
+
+    {$I auto_generated_node_helpers/x3dnodes_staticgroup.inc}
   end;
 
-  { Switch node.
+  { Choose only one (or none) of the child nodes for processing.
+    This allows to choose between a number of nodes for processing
+    (rendering, collision detection), and/or to hide some nodes.
 
     Compatibility node: this class is used for both VRML 97 and X3D.
     Although field name changed for X3D (in VRML 97, "children"
@@ -270,6 +283,8 @@
     class function URNMatching(const URN: string): boolean; override;
 
     function TransformationChange: TNodeTransformationChange; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_switch.inc}
   end;
   TSwitchNode_2 = TSwitchNode;
 
@@ -284,10 +299,12 @@
   ['{6991EC7D-0821-4393-B5B3-08DD967CFE05}']
   end;
 
+  { Grouping node that transforms (moves, rotates, scales) it's children. }
   TTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
   private
     //WarningNegativeScaleDone: boolean;
   protected
+    { }
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
   public
@@ -312,6 +329,8 @@
 
     private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
+
+    {$I auto_generated_node_helpers/x3dnodes_transform.inc}
   end;
   TTransformNode_2 = TTransformNode;
 

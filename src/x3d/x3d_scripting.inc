@@ -17,6 +17,7 @@
   { }
   TScriptType = (stCompiled, stCastleScript);
 
+  { Abstract node type for all scripting nodes. }
   TAbstractScriptNode = class(TAbstractChildNode, IAbstractUrlObject)
   private
     FInitialized: boolean;
@@ -62,8 +63,11 @@
       @seealso TX3DRoute.ResetLastEventTime
         TCasScriptVRMLValuesList.ResetLastEventTimes }
     procedure ResetLastEventTimes;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dscriptnode.inc}
   end;
 
+  { Program behaviour in a scene using scripts. }
   TScriptNode = class(TAbstractScriptNode)
   private
     procedure IDeclEventReceive(
@@ -80,6 +84,8 @@
     public property FdMustEvaluate: TSFBool read FFdMustEvaluate;
 
     procedure PostAddInterfaceDeclaration(IDecl: TX3DInterfaceDeclaration); override;
+
+    {$I auto_generated_node_helpers/x3dnodes_script.inc}
   end;
 
 {$endif read_interface}

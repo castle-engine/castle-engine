@@ -14,7 +14,8 @@
 }
 
 {$ifdef read_interface}
-  { }
+  { Alter the shape of coordinate-based geometry within parent H-Anim nodes.
+    For example, different HAnimDisplacer may be used for each facial expression. }
   THAnimDisplacerNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
@@ -32,6 +33,8 @@
 
     private FFdWeight: TSFFloat;
     public property FdWeight: TSFFloat read FFdWeight;
+
+    {$I auto_generated_node_helpers/x3dnodes_hanimdisplacer.inc}
   end;
 
   THAnimJointNode = class;
@@ -46,6 +49,8 @@
   PVertexJoints = ^TVertexJoints;
   TVertexJointsList = specialize TGenericStructList<TVertexJoints>;
 
+  { Central node for moving the animated humanoid. It contains the skeleton,
+    and other information necessary for animation. }
   THAnimHumanoidNode = class(TAbstractChildNode, IAbstractBoundedObject, ITransformNode)
   private
     VertexJoints: TVertexJointsList;
@@ -125,8 +130,12 @@
       You should call TX3DField.Changed on it (unless you use it from some
       TCastleSceneCore initialization, when there's no point in notifying about this). }
     function AnimateSkin: TMFVec3f;
+
+    {$I auto_generated_node_helpers/x3dnodes_hanimhumanoid.inc}
   end;
 
+  { Joint of an animated humanoid.
+    Joints are organized in a hierarchy, like bones. }
   THAnimJointNode = class(TAbstractX3DGroupingNode, ITransformNode)
   private
     AnimateSkinTransform: TMatrix4Single;
@@ -194,8 +203,12 @@
 
     private FFdUlimit: TMFFloat;
     public property FdUlimit: TMFFloat read FFdUlimit;
+
+    {$I auto_generated_node_helpers/x3dnodes_hanimjoint.inc}
   end;
 
+  { Visible segment of an animated humanoid,
+    always a child of a TJointNode. }
   THAnimSegmentNode = class(TAbstractX3DGroupingNode, ITransformNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -238,8 +251,12 @@
 
     private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
+
+    {$I auto_generated_node_helpers/x3dnodes_hanimsegment.inc}
   end;
 
+  { An attachment point of an animated humanoid,
+    to attach something that held, worm or such by a humanoid. }
   THAnimSiteNode = class(TAbstractX3DGroupingNode, ITransformNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -267,6 +284,8 @@
 
     private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
+
+    {$I auto_generated_node_helpers/x3dnodes_hanimsite.inc}
   end;
 
 {$endif read_interface}

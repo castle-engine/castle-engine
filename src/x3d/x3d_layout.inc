@@ -18,6 +18,8 @@
   TAbstractLayoutNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dlayoutnode.inc}
   end;
 
   TLayoutNode = class(TAbstractLayoutNode)
@@ -43,6 +45,8 @@
 
     private FFdSizeUnits: TMFString;
     public property FdSizeUnits: TMFString read FFdSizeUnits;
+
+    {$I auto_generated_node_helpers/x3dnodes_layout.inc}
   end;
 
   TLayoutGroupNode = class(TAbstractX3DGroupingNode)
@@ -56,6 +60,8 @@
 
     private FFdViewport: TSFNode;
     public property FdViewport: TSFNode read FFdViewport;
+
+    {$I auto_generated_node_helpers/x3dnodes_layoutgroup.inc}
   end;
 
   TLayoutLayerNode = class(TAbstractLayerNode)
@@ -77,6 +83,8 @@
 
     private FFdLayout: TSFNode;
     public property FdLayout: TSFNode read FFdLayout;
+
+    {$I auto_generated_node_helpers/x3dnodes_layoutlayer.inc}
   end;
 
   TScreenFontStyleNode = class(TAbstractFontStyleNode)
@@ -111,6 +119,8 @@
 
     private FFdTopToBottom: TSFBool;
     public property FdTopToBottom: TSFBool read FFdTopToBottom;
+
+    {$I auto_generated_node_helpers/x3dnodes_screenfontstyle.inc}
   end;
 
   TScreenGroupNode = class(TAbstractX3DGroupingNode)
@@ -118,6 +128,8 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_screengroup.inc}
   end;
 
 {$endif read_interface}

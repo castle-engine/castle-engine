@@ -1,0 +1,110 @@
+{ -*- buffer-read-only: t -*-
+
+  Copyright 2015-2017 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Automatically generated X3D node class helpers.
+  Do not edit manually, instead regenerate using
+  castle_game_engine/src/x3d/doc/generate_x3d_nodes_to_pascal.lpr . }
+
+{$ifdef read_interface}
+
+  private
+    function GetBottom: boolean;
+    procedure SetBottom(const Value: boolean);
+    function GetBottomRadius: Single;
+    procedure SetBottomRadius(const Value: Single);
+    function GetHeight: Single;
+    procedure SetHeight(const Value: Single);
+    function GetSide: boolean;
+    procedure SetSide(const Value: boolean);
+    function GetSlices: Integer;
+    procedure SetSlices(const Value: Integer);
+    function GetStacks: Integer;
+    procedure SetStacks(const Value: Integer);
+  public
+    property Bottom: boolean read GetBottom write SetBottom;
+    property BottomRadius: Single read GetBottomRadius write SetBottomRadius;
+    property Height: Single read GetHeight write SetHeight;
+    property Side: boolean read GetSide write SetSide;
+    property Slices: Integer read GetSlices write SetSlices;
+    property Stacks: Integer read GetStacks write SetStacks;
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
+
+{ TConeNode ----------------------------------------------- }
+
+function TConeNode.GetBottom: boolean;
+begin
+  Result := FdBottom.Value;
+end;
+
+procedure TConeNode.SetBottom(const Value: boolean);
+begin
+  FdBottom.Send(Value);
+end;
+
+function TConeNode.GetBottomRadius: Single;
+begin
+  Result := FdBottomRadius.Value;
+end;
+
+procedure TConeNode.SetBottomRadius(const Value: Single);
+begin
+  FdBottomRadius.Send(Value);
+end;
+
+function TConeNode.GetHeight: Single;
+begin
+  Result := FdHeight.Value;
+end;
+
+procedure TConeNode.SetHeight(const Value: Single);
+begin
+  FdHeight.Send(Value);
+end;
+
+function TConeNode.GetSide: boolean;
+begin
+  Result := FdSide.Value;
+end;
+
+procedure TConeNode.SetSide(const Value: boolean);
+begin
+  FdSide.Send(Value);
+end;
+
+function TConeNode.GetSlices: Integer;
+begin
+  Result := FdSlices.Value;
+end;
+
+procedure TConeNode.SetSlices(const Value: Integer);
+begin
+  FdSlices.Send(Value);
+end;
+
+function TConeNode.GetStacks: Integer;
+begin
+  Result := FdStacks.Value;
+end;
+
+procedure TConeNode.SetStacks(const Value: Integer);
+begin
+  FdStacks.Send(Value);
+end;
+
+{$endif read_implementation}

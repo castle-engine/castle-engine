@@ -50,8 +50,12 @@
     public property FdGeoSystem: TMFString read FFdGeoSystem;
 
     function CoordCount: Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_geocoordinate.inc}
   end;
 
+  { Elevation grid expressed in geo-centric coordinates.
+    @bold(Rendering of this node is not implemented yet.) }
   TGeoElevationGridNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
@@ -113,13 +117,14 @@
     private FFdZSpacing: TSFDouble;
     public property FdZSpacing: TSFDouble read FFdZSpacing;
 
-    { Geometry node not implemented } { }
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_geoelevationgrid.inc}
   end;
 
   TGeoLocationNode = class(TAbstractX3DGroupingNode)
@@ -136,6 +141,8 @@
 
     private FFdGeoSystem: TMFString;
     public property FdGeoSystem: TMFString read FFdGeoSystem;
+
+    {$I auto_generated_node_helpers/x3dnodes_geolocation.inc}
   end;
 
   TGeoLODNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
@@ -187,6 +194,8 @@
 
     private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
+
+    {$I auto_generated_node_helpers/x3dnodes_geolod.inc}
   end;
 
   TGeoMetadataNode = class(TAbstractInfoNode)
@@ -203,6 +212,8 @@
 
     private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
+
+    {$I auto_generated_node_helpers/x3dnodes_geometadata.inc}
   end;
 
   TGeoOriginNode = class(TAbstractNode)
@@ -219,6 +230,8 @@
 
     private FFdRotateYUp: TSFBool;
     public property FdRotateYUp: TSFBool read FFdRotateYUp;
+
+    {$I auto_generated_node_helpers/x3dnodes_geoorigin.inc}
   end;
 
   TGeoPositionInterpolatorNode = class(TAbstractInterpolatorNode)
@@ -243,6 +256,8 @@
 
     private FFdGeoSystem: TMFString;
     public property FdGeoSystem: TMFString read FFdGeoSystem;
+
+    {$I auto_generated_node_helpers/x3dnodes_geopositioninterpolator.inc}
   end;
 
   TGeoProximitySensorNode = class(TAbstractEnvironmentalSensorNode)
@@ -275,6 +290,8 @@
 
     private FFdGeoSystem: TMFString;
     public property FdGeoSystem: TMFString read FFdGeoSystem;
+
+    {$I auto_generated_node_helpers/x3dnodes_geoproximitysensor.inc}
   end;
 
   TGeoTouchSensorNode = class(TAbstractTouchSensorNode)
@@ -304,6 +321,8 @@
 
     private FFdGeoSystem: TMFString;
     public property FdGeoSystem: TMFString read FFdGeoSystem;
+
+    {$I auto_generated_node_helpers/x3dnodes_geotouchsensor.inc}
   end;
 
   TGeoTransformNode = class(TAbstractX3DGroupingNode)
@@ -332,11 +351,18 @@
 
     private FFdGeoSystem: TMFString;
     public property FdGeoSystem: TMFString read FFdGeoSystem;
+
+    {$I auto_generated_node_helpers/x3dnodes_geotransform.inc}
   end;
 
   TGeoViewpointNode = class(TAbstractX3DViewpointNode)
+  strict private
+    DummyPositionSingle: TSFVec3f;
+  strict protected
+    function PositionField: TSFVec3f; override;
   public
     procedure CreateNode; override;
+    destructor Destroy; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -368,6 +394,8 @@
 
     private FFdSpeedFactor: TSFFloat;
     public property FdSpeedFactor: TSFFloat read FFdSpeedFactor;
+
+    {$I auto_generated_node_helpers/x3dnodes_geoviewpoint.inc}
   end;
 
 {$endif read_interface}
@@ -850,6 +878,8 @@ procedure TGeoViewpointNode.CreateNode;
 begin
   inherited;
 
+  DummyPositionSingle := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 100000));
+
   FEventSet_orientation := TSFRotationEvent.Create(Self, 'set_orientation', true);
   AddEvent(FEventSet_orientation);
 
@@ -886,6 +916,12 @@ begin
   { X3D specification comment: [0,Inf) }
 end;
 
+destructor TGeoViewpointNode.Destroy;
+begin
+  FreeAndNil(DummyPositionSingle);
+  inherited;
+end;
+
 class function TGeoViewpointNode.ClassX3DType: string;
 begin
   Result := 'GeoViewpoint';
@@ -895,6 +931,12 @@ class function TGeoViewpointNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassX3DType);
+end;
+
+function TGeoViewpointNode.PositionField: TSFVec3f;
+begin
+  // TODO: dummy value, just to avoid PositionField crashing
+  Result := DummyPositionSingle;
 end;
 
 procedure RegisterGeospatialNodes;

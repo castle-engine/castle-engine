@@ -5,29 +5,29 @@ X3DParticleEmitterNode : X3DNode {
   SFFloat []       surfaceArea 0    [0,Inf)
 }
 
-X3DParticlePhysicsModelNode : X3DNode { 
+X3DParticlePhysicsModelNode : X3DNode {
   SFBool [in,out] enabled  TRUE
 }
 
-BoundedPhysicsModel : X3DParticlePhysicsModelNode { 
+BoundedPhysicsModel : X3DParticlePhysicsModelNode {
   SFNode [in,out] geometry NULL [X3DGeometryNode]
 }
 
-ConeEmitter : X3DParticleEmitterNode { 
+ConeEmitter : X3DParticleEmitterNode {
   SFFloat [in,out] angle       Pi/4   [0,Pi]
-  SFVec3f [in,out] direction   0 1 0 
+  SFVec3f [in,out] direction   0 1 0
   SFVec3f [in,out] position    0 0 0
 }
 
-ExplosionEmitter : X3DParticleEmitterNode { 
+ExplosionEmitter : X3DParticleEmitterNode {
   SFVec3f [in,out] position    0 0 0
 }
 
-GravityPhysicsModel : X3DParticlePhysicsModelNode { 
-  SFVec3f [in,out] force    0 -9.8 0 (Inf,Inf)
+ForcePhysicsModel : X3DParticlePhysicsModelNode {
+  SFVec3f [in,out] force    0 -9.8 0 (∞,∞)
 }
 
-ParticleSystem : X3DShapeNode { 
+ParticleSystem : X3DShapeNode {
   SFBool   [in,out] createParticles   TRUE
   SFBool   [in,out] enabled           TRUE
   SFFloat  [in,out] lifetimeVariation 0.25      [0,1]
@@ -44,25 +44,25 @@ ParticleSystem : X3DShapeNode {
   MFFloat  []       texCoordKey       []        [0,Inf)
 }
 
-PointEmitter : X3DParticleEmitterNode { 
+PointEmitter : X3DParticleEmitterNode {
   SFVec3f [in,out] direction   0 1 0
   SFVec3f [in,out] position    0 0 0
 }
 
-PolylineEmitter : X3DParticleEmitterNode { 
+PolylineEmitter : X3DParticleEmitterNode {
   SFInt32 [in]     set_coordinate
   SFNode  [in,out] coord         NULL  [X3DCoordinateNode]
   SFVec3f [in,out] direction      0 1 0 [-1,1]
   MFInt32 []       coordIndex     -1    [0,Inf) or -1
 }
 
-SurfaceEmitter : X3DParticleEmitterNode { 
+SurfaceEmitter : X3DParticleEmitterNode {
   SFInt32 [in]     set_coordinate
   MFInt32 []       coordIndex     -1    [0,Inf) or -1
   SFNode  []       surface        NULL  [X3DGeometryNode]
 }
 
-VolumeEmitter : X3DParticleEmitterNode { 
+VolumeEmitter : X3DParticleEmitterNode {
   SFInt32 [in]     set_coordinate
   SFNode  [in,out] coord         NULL  [X3DCoordinateNode]
   SFVec3f [in,out] direction      0 1 0 [-1,1]
@@ -70,10 +70,9 @@ VolumeEmitter : X3DParticleEmitterNode {
   SFBool  []       internal       TRUE
 }
 
-WindPhysicsModel : X3DParticlePhysicsModelNode { 
+WindPhysicsModel : X3DParticlePhysicsModelNode {
   SFVec3f [in,out] direction  0 0 0 (Inf,Inf)
   SFFloat [in,out] gustiness  0.1   [0,Inf)
   SFFloat [in,out] speed      0.1   [0,Inf)
   SFFloat [in,out] turbulence 0     [0,1]
 }
-

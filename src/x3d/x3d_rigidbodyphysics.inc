@@ -33,6 +33,8 @@
 
     private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dnbodycollidablenode.inc}
   end;
 
   TAbstractNBodyCollisionSpaceNode = class(TAbstractNode, IAbstractBoundedObject)
@@ -47,6 +49,8 @@
 
     private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dnbodycollisionspacenode.inc}
   end;
 
   TAbstractRigidJointNode = class(TAbstractNode)
@@ -61,6 +65,8 @@
 
     private FFdForceOutput: TMFString;
     public property FdForceOutput: TMFString read FFdForceOutput;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3drigidjointnode.inc}
   end;
 
   TBallJointNode = class(TAbstractRigidJointNode)
@@ -79,6 +85,8 @@
     { Event out } { }
     private FEventBody2AnchorPoint: TSFVec3fEvent;
     public property EventBody2AnchorPoint: TSFVec3fEvent read FEventBody2AnchorPoint;
+
+    {$I auto_generated_node_helpers/x3dnodes_balljoint.inc}
   end;
 
   TCollidableOffsetNode = class(TAbstractNBodyCollidableNode)
@@ -89,6 +97,8 @@
 
     private FFdCollidable: TSFNode;
     public property FdCollidable: TSFNode read FFdCollidable;
+
+    {$I auto_generated_node_helpers/x3dnodes_collidableoffset.inc}
   end;
 
   TCollidableShapeNode = class(TAbstractNBodyCollidableNode)
@@ -99,6 +109,8 @@
 
     private FFdShape: TSFNode;
     public property FdShape: TSFNode read FFdShape;
+
+    {$I auto_generated_node_helpers/x3dnodes_collidableshape.inc}
   end;
 
   TCollisionCollectionNode = class(TAbstractChildNode)
@@ -136,6 +148,8 @@
 
     private FFdSurfaceSpeed: TSFVec2f;
     public property FdSurfaceSpeed: TSFVec2f read FFdSurfaceSpeed;
+
+    {$I auto_generated_node_helpers/x3dnodes_collisioncollection.inc}
   end;
 
   TCollisionSensorNode = class(TAbstractSensorNode)
@@ -154,6 +168,8 @@
     { Event out } { }
     private FEventContacts: TMFNodeEvent;
     public property EventContacts: TMFNodeEvent read FEventContacts;
+
+    {$I auto_generated_node_helpers/x3dnodes_collisionsensor.inc}
   end;
 
   TCollisionSpaceNode = class(TAbstractNBodyCollisionSpaceNode)
@@ -167,6 +183,8 @@
 
     private FFdUseGeometry: TSFBool;
     public property FdUseGeometry: TSFBool read FFdUseGeometry;
+
+    {$I auto_generated_node_helpers/x3dnodes_collisionspace.inc}
   end;
 
   TContactNode = class(TAbstractNode)
@@ -222,6 +240,8 @@
 
     private FFdSurfaceSpeed: TSFVec2f;
     public property FdSurfaceSpeed: TSFVec2f read FFdSurfaceSpeed;
+
+    {$I auto_generated_node_helpers/x3dnodes_contact.inc}
   end;
 
   TDoubleAxisHingeJointNode = class(TAbstractRigidJointNode)
@@ -303,6 +323,8 @@
     { Event out } { }
     private FEventHinge2AngleRate: TSFFloatEvent;
     public property EventHinge2AngleRate: TSFFloatEvent read FEventHinge2AngleRate;
+
+    {$I auto_generated_node_helpers/x3dnodes_doubleaxishingejoint.inc}
   end;
 
   TMotorJointNode = class(TAbstractRigidJointNode)
@@ -385,6 +407,8 @@
 
     private FFdAutoCalc: TSFBool;
     public property FdAutoCalc: TSFBool read FFdAutoCalc;
+
+    {$I auto_generated_node_helpers/x3dnodes_motorjoint.inc}
   end;
 
   TRigidBodyNode = class(TAbstractNode)
@@ -461,6 +485,8 @@
 
     private FFdUseGlobalGravity: TSFBool;
     public property FdUseGlobalGravity: TSFBool read FFdUseGlobalGravity;
+
+    {$I auto_generated_node_helpers/x3dnodes_rigidbody.inc}
   end;
 
   TRigidBodyCollectionNode = class(TAbstractChildNode)
@@ -517,6 +543,8 @@
 
     private FFdCollider: TSFNode;
     public property FdCollider: TSFNode read FFdCollider;
+
+    {$I auto_generated_node_helpers/x3dnodes_rigidbodycollection.inc}
   end;
 
   TSingleAxisHingeJointNode = class(TAbstractRigidJointNode)
@@ -558,6 +586,8 @@
     { Event out } { }
     private FEventBody2AnchorPoint: TSFVec3fEvent;
     public property EventBody2AnchorPoint: TSFVec3fEvent read FEventBody2AnchorPoint;
+
+    {$I auto_generated_node_helpers/x3dnodes_singleaxishingejoint.inc}
   end;
 
   TSliderJointNode = class(TAbstractRigidJointNode)
@@ -591,6 +621,8 @@
     { Event out } { }
     private FEventSeparationRate: TSFFloatEvent;
     public property EventSeparationRate: TSFFloatEvent read FEventSeparationRate;
+
+    {$I auto_generated_node_helpers/x3dnodes_sliderjoint.inc}
   end;
 
   TUniversalJointNode = class(TAbstractRigidJointNode)
@@ -635,6 +667,8 @@
     { Event out } { }
     private FEventBody2Axis: TSFVec3fEvent;
     public property EventBody2Axis: TSFVec3fEvent read FEventBody2Axis;
+
+    {$I auto_generated_node_helpers/x3dnodes_universaljoint.inc}
   end;
 
 {$endif read_interface}

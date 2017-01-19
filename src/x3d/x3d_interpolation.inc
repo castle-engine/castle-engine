@@ -14,7 +14,7 @@
 }
 
 {$ifdef read_interface}
-  { }
+  { Basis for all nodes interpolating (animating) values. }
   TAbstractInterpolatorNode = class(TAbstractChildNode)
   protected
     function KeyRange(const Fraction: Single; out T: Single): Integer;
@@ -27,8 +27,11 @@
 
     private FFdKey: TMFFloat;
     public property FdKey: TMFFloat read FFdKey;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dinterpolatornode.inc}
   end;
 
+  { Interpolate (animate) a single color. }
   TColorInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -44,8 +47,13 @@
     { Event out } { }
     private FEventValue_changed: TSFColorEvent;
     public property EventValue_changed: TSFColorEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_colorinterpolator.inc}
   end;
 
+  { Interpolate (animate) a set of colors,
+    for example to animate a set of @link(TBackgroundNode)
+    or @link(TColorNode) colors. }
   TColorSetInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -61,8 +69,12 @@
     { Event out } { }
     private FEventValue_changed: TMFColorEvent;
     public property EventValue_changed: TMFColorEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_colorsetinterpolator.inc}
   end;
 
+  { Interpolate (animate) a set of 3D positions,
+    for example to animate @link(TCoordinateNode coordinates) of a mesh. }
   TCoordinateInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -78,8 +90,12 @@
     { Event out } { }
     private FEventValue_changed: TMFVec3fEvent;
     public property EventValue_changed: TMFVec3fEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc}
   end;
 
+  { Interpolate (animate) a set of 2D positions,
+    for example to animate 2D texture coordinates. }
   TCoordinateInterpolator2DNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -95,8 +111,13 @@
     { Event out } { }
     private FEventValue_changed: TMFVec2fEvent;
     public property EventValue_changed: TMFVec2fEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
   end;
 
+  { Support controlled gradual transitions by modifying
+    TimeSensor node fractions.
+    @bold(Not implemented yet.) }
   TEaseInEaseOutNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
@@ -116,8 +137,11 @@
     { Event out } { }
     private FEventModifiedFraction_changed: TSFFloatEvent;
     public property EventModifiedFraction_changed: TSFFloatEvent read FEventModifiedFraction_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_easeineaseout.inc}
   end;
 
+  { Interpolate (animate) a set of 3D directions, for example normal vectors. }
   TNormalInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -133,8 +157,12 @@
     { Event out } { }
     private FEventValue_changed: TMFVec3fEvent;
     public property EventValue_changed: TMFVec3fEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_normalinterpolator.inc}
   end;
 
+  { Interpolate (animate) an orientation,
+    for example to animate @link(TTransformNode.Rotation). }
   TOrientationInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -150,8 +178,12 @@
     { Event out } { }
     private FEventValue_changed: TSFRotationEvent;
     public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_orientationinterpolator.inc}
   end;
 
+  { Interpolate (animate) a 3D position,
+    for example to animate @link(TTransformNode.Translation). }
   TPositionInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -167,8 +199,11 @@
     { Event out } { }
     private FEventValue_changed: TSFVec3fEvent;
     public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_positioninterpolator.inc}
   end;
 
+  { Interpolate (animate) a 2D position. }
   TPositionInterpolator2DNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -184,8 +219,12 @@
     { Event out } { }
     private FEventValue_changed: TSFVec2fEvent;
     public property EventValue_changed: TSFVec2fEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_positioninterpolator2d.inc}
   end;
 
+  { Interpolate (animate) a single floating-point value,
+    for example to animate @link(TMaterialNode.Transparency). }
   TScalarInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -201,8 +240,12 @@
     { Event out } { }
     private FEventValue_changed: TSFFloatEvent;
     public property EventValue_changed: TSFFloatEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_scalarinterpolator.inc}
   end;
 
+  { Non-linearly interpolate (animate) a 3D position.
+    @bold(Not implemented yet.) }
   TSplinePositionInterpolatorNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
@@ -224,8 +267,12 @@
     { Event out } { }
     private FEventValue_changed: TSFVec3fEvent;
     public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_splinepositioninterpolator.inc}
   end;
 
+  { Non-linearly interpolate (animate) a 2D position.
+    @bold(Not implemented yet.) }
   TSplinePositionInterpolator2DNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
@@ -247,8 +294,12 @@
     { Event out } { }
     private FEventValue_changed: TSFVec2fEvent;
     public property EventValue_changed: TSFVec2fEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_splinepositioninterpolator2d.inc}
   end;
 
+  { Non-linearly interpolate (animate) a single floating-point value.
+    @bold(Not implemented yet.) }
   TSplineScalarInterpolatorNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
@@ -270,8 +321,12 @@
     { Event out } { }
     private FEventValue_changed: TSFFloatEvent;
     public property EventValue_changed: TSFFloatEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_splinescalarinterpolator.inc}
   end;
 
+  { Non-linearly interpolate (animate) a rotation.
+    @bold(Not implemented yet.) }
   TSquadOrientationInterpolatorNode = class(TAbstractInterpolatorNode)
   public
     procedure CreateNode; override;
@@ -287,8 +342,12 @@
     { Event out } { }
     private FEventValue_changed: TSFRotationEvent;
     public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_squadorientationinterpolator.inc}
   end;
 
+  { Interpolate (animate) a set of floats, for example to animate
+    @link(TElevationGridNode) heights. }
   TVectorInterpolatorNode = class(TAbstractInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -304,6 +363,8 @@
     { Event out } { }
     private FEventValue_changed: TMFFloatEvent;
     public property EventValue_changed: TMFFloatEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_vectorinterpolator.inc}
   end;
 
 {$endif read_interface}

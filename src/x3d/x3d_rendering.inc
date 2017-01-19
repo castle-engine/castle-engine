@@ -23,38 +23,9 @@
 
   ENotCoordinateBasedNode = class(EX3DError);
 
-  { Geometry nodes are the only nodes that produces some visible results
-    during rendering. Much of the VRML language is just
-    a method of describing properties how geometry nodes are displayed
-    (materials, transformations, lighting).
-
-    A few things that make geometry node special :
-    @unorderedList(
-      @item(Only geometry nodes may have [Local]BoundingBox.)
-      @item(
-        Only geometry nodes define something visible "in usual way"
-        during rendering (Some other nodes in VRML / X3D are visible but in an
-        unusual way, like Background and Fog. These nodes must be rendered in
-        a special way --- they are not affected in any usual way by the current
-        transformation matrix etc.))
-
-      @item(
-        Geometry nodes are never "grouping nodes", in particular there's
-        never a geometry node that is (direct or indirect) child of another
-        geometry node. So there's no need to be concerned whether geometry nodes'
-        children are included in things like [Local]BoundingBox or
-        Triangles/VerticesCount.)
-
-      @item(
-        Geometry nodes don't affect anything in graph traverse state.
-        (This is important mostly for VRML 1.0, since in newer VRML / X3D
-        "graph traverse state" is not that important.))
-    )
-
-    For X3D, this descends from TAbstractNode, and TAbstractX3DGeometryNode
-    descends from us. This way in X3D TAbstractX3DGeometryNode descends
-    from this, and also X3D hierarchy is preserved (X3DGeometryNode
-    must descend from X3DNode). }
+  { Geometry nodes are the only nodes that produce something visible.
+    Much of the X3D language is about describing how geometry nodes are displayed
+    (materials, transformations, lighting). }
   TAbstractGeometryNode = class(TAbstractNode)
   private
     HasBounds2DST: boolean;
@@ -416,20 +387,28 @@
 
     { Is backface culling used. }
     property Solid: boolean read GetSolid write SetSolid;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dgeometrynode.inc}
   end;
 
-  { }
+  { Base node type for all geometric property node types. }
   TAbstractGeometricPropertyNode = class(TAbstractNode)
+    {$I auto_generated_node_helpers/x3dnodes_x3dgeometricpropertynode.inc}
   end;
 
+  { Base node for a visible geometry in X3D. }
   TAbstractX3DGeometryNode = class(TAbstractGeometryNode)
   end;
 
+  { Base node for color specifications. }
   TAbstractColorNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dcolornode.inc}
   end;
 
+  { Base node type for all composed 3D geometry. }
   TAbstractComposedGeometryNode = class(TAbstractX3DGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -489,19 +468,27 @@
       In case of problems (no Normal node specified, invalid node specified etc.)
       returns @nil. }
     function NormalItems: TVector3SingleList;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dcomposedgeometrynode.inc}
   end;
 
+  { Base node type for all coordinate node types. }
   TAbstractCoordinateNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
 
     { Count of coordinates within. }
     function CoordCount: Cardinal; virtual; abstract;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dcoordinatenode.inc}
   end;
 
+  { Base node type for all normal node types. }
   TAbstractNormalNode = class(TAbstractGeometricPropertyNode)
+    {$I auto_generated_node_helpers/x3dnodes_x3dnormalnode.inc}
   end;
 
+  { Clip the geometry with a plane. }
   TClipPlaneNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
@@ -513,8 +500,11 @@
 
     private FFdPlane: TSFVec4f;
     public property FdPlane: TSFVec4f read FFdPlane;
+
+    {$I auto_generated_node_helpers/x3dnodes_clipplane.inc}
   end;
 
+  { Set of RGB colours. }
   TColorNode = class(TAbstractColorNode)
   public
     procedure CreateNode; override;
@@ -523,8 +513,11 @@
 
     private FFdColor: TMFColor;
     public property FdColor: TMFColor read FFdColor;
+
+    {$I auto_generated_node_helpers/x3dnodes_color.inc}
   end;
 
+  { Set of RGBA colours. }
   TColorRGBANode = class(TAbstractColorNode)
   public
     procedure CreateNode; override;
@@ -533,8 +526,12 @@
 
     private FFdColor: TMFColorRGBA;
     public property FdColor: TMFColorRGBA read FFdColor;
+
+    {$I auto_generated_node_helpers/x3dnodes_colorrgba.inc}
   end;
 
+  { Set of 3D coordinates to be used in the @code(Coord)
+    field of vertex-based geometry nodes. }
   TCoordinateNode = class(TAbstractCoordinateNode)
   public
     procedure CreateNode; override;
@@ -545,8 +542,11 @@
     public property FdPoint: TMFVec3f read FFdPoint;
 
     function CoordCount: Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_coordinate.inc}
   end;
 
+  { Geometry formed by constructing polylines from 3D vertices. }
   TIndexedLineSetNode = class(TAbstractX3DGeometryNode)
   private
     procedure EventSet_ColorIndexReceive(
@@ -601,9 +601,12 @@
     function ColorField: TSFNode; override;
     function FogCoord: TMFFloat; override;
     function Attrib: TMFNode; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_indexedlineset.inc}
   end;
   TIndexedLineSetNode_2 = TIndexedLineSetNode;
 
+  { Triangles that form a fan shape around the first vertex. }
   TIndexedTriangleFanSetNode = class(TAbstractComposedGeometryNode)
   private
     procedure EventSet_IndexReceive(
@@ -628,8 +631,11 @@
 
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_indexedtrianglefanset.inc}
   end;
 
+  { A collection of triangles. }
   TIndexedTriangleSetNode = class(TAbstractComposedGeometryNode)
   private
     procedure EventSet_IndexReceive(
@@ -654,8 +660,11 @@
 
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_indexedtriangleset.inc}
   end;
 
+  { Strips of triangles. }
   TIndexedTriangleStripSetNode = class(TAbstractComposedGeometryNode)
   private
     procedure EventSet_IndexReceive(
@@ -680,8 +689,11 @@
 
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_indexedtrianglestripset.inc}
   end;
 
+  { Lines. }
   TLineSetNode = class(TAbstractX3DGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -719,9 +731,13 @@
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function Lit(State: TX3DGraphTraverseState): boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_lineset.inc}
   end;
 
-  { Normal node. So simple, it's identical for all VRML and X3D versions
+  { Normal (information for lighting) node.
+
+    Note: It's identical for all VRML and X3D versions
     (including ancient VRML 1.0). }
   TNormalNode = class(TAbstractNormalNode)
   public
@@ -732,8 +748,11 @@
 
     private FFdVector: TMFVec3f;
     public property FdVector: TMFVec3f read FFdVector;
+
+    {$I auto_generated_node_helpers/x3dnodes_normal.inc}
   end;
 
+  { Points. }
   TPointSetNode = class(TAbstractX3DGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -767,9 +786,14 @@
     function ColorField: TSFNode; override;
     function FogCoord: TMFFloat; override;
     function Attrib: TMFNode; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_pointset.inc}
   end;
   TPointSetNode_2 = TPointSetNode;
 
+  { Triangles that form a fan shape around the first vertex.
+    In constrast to @link(TIndexedTriangleFanSetNode), this doesn't use indexes
+    to compose vertexes into triangles. }
   TTriangleFanSetNode = class(TAbstractComposedGeometryNode)
   public
     procedure CreateNode; override;
@@ -789,8 +813,13 @@
 
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_trianglefanset.inc}
   end;
 
+  { A collection of triangles.
+    In constrast to @link(TIndexedTriangleSetNode), this doesn't use indexes
+    to compose vertexes into triangles. }
   TTriangleSetNode = class(TAbstractComposedGeometryNode)
   public
     procedure CreateNode; override;
@@ -803,8 +832,13 @@
 
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_triangleset.inc}
   end;
 
+  { Strips of triangles.
+    In constrast to @link(TIndexedTriangleStripSetNode), this doesn't use indexes
+    to compose vertexes into triangles. }
   TTriangleStripSetNode = class(TAbstractComposedGeometryNode)
   public
     procedure CreateNode; override;
@@ -824,6 +858,8 @@
 
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_trianglestripset.inc}
   end;
 {$endif read_interface}
 

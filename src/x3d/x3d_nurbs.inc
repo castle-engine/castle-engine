@@ -18,18 +18,24 @@
   in x3dnodes_97_nurbs.inc. }
 
 {$ifdef read_interface}
-  { }
+  { Base type for nodes that provide control curve information in 2D space. }
   TAbstractNurbsControlCurveNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
 
     private FFdControlPoint: TMFVec2d;
     public property FdControlPoint: TMFVec2d read FFdControlPoint;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dnurbscontrolcurvenode.inc}
   end;
 
+  { Base type for all geometry node types that are created parametrically
+    and use control points to describe the final shape of the surface. }
   TAbstractParametricGeometryNode = class(TAbstractX3DGeometryNode)
+    {$I auto_generated_node_helpers/x3dnodes_x3dparametricgeometrynode.inc}
   end;
 
+  { Abstract geometry type for all types of NURBS surfaces. }
   TAbstractNurbsSurfaceGeometryNode = class(TAbstractParametricGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -90,9 +96,11 @@
 
     private FFdVOrder: TSFInt32;
     public property FdVOrder: TSFInt32 read FFdVOrder;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dnurbssurfacegeometrynode.inc}
   end;
 
-  { Contour2D node for X3D.
+  { Groups a set of curve segments for a composite contour, for X3D.
 
     X3D cannot share implementation with VRML 2.0 version (TContour2DNode_2),
     since for VRML 2.0 this is a valid geometry node (TAbstractX3DGeometryNode
@@ -116,15 +124,22 @@
 
     private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
+
+    {$I auto_generated_node_helpers/x3dnodes_contour2d.inc}
   end;
 
+  { Piecewise linear curve segment as a part
+    of a trimming contour in the u, v domain of a surface. }
   TContourPolyline2DNode = class(TAbstractNurbsControlCurveNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_contourpolyline2d.inc}
   end;
 
+  { 3D coordinates defines using double precision floating point values. }
   TCoordinateDoubleNode = class(TAbstractCoordinateNode)
   public
     procedure CreateNode; override;
@@ -135,8 +150,11 @@
     public property FdPoint: TMFVec3d read FFdPoint;
 
     function CoordCount: Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_coordinatedouble.inc}
   end;
 
+  { Visible NURBS curve in 3D. }
   TNurbsCurveNode = class(TAbstractParametricGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -176,9 +194,13 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function Coord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_nurbscurve.inc}
   end;
   TNurbsCurveNode_3 = TNurbsCurveNode;
 
+  { Trimming segment that is expressed a NURBS curve and is
+    part of a trimming contour in the u,v domain of the surface. }
   TNurbsCurve2DNode = class(TAbstractNurbsControlCurveNode)
   public
     procedure CreateNode; override;
@@ -199,8 +221,11 @@
 
     private FFdOrder: TSFInt32;
     public property FdOrder: TSFInt32 read FFdOrder;
+
+    {$I auto_generated_node_helpers/x3dnodes_nurbscurve2d.inc}
   end;
 
+  { Interpolate (animate) orientations as tangent vectors of the 3D NURBS curve. }
   TNurbsOrientationInterpolatorNode = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -231,15 +256,21 @@
     { Event out } { }
     private FEventValue_changed: TSFRotationEvent;
     public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_nurbsorientationinterpolator.inc}
   end;
 
+  { Visible NURBS 3D surface. }
   TNurbsPatchSurfaceNode = class(TAbstractNurbsSurfaceGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_nurbspatchsurface.inc}
   end;
 
+  { Interpolate (animate) positions along the 3D NURBS curve. }
   TNurbsPositionInterpolatorNode = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -272,9 +303,13 @@
     public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_nurbspositioninterpolator.inc}
   end;
   TNurbsPositionInterpolatorNode_3 = TNurbsPositionInterpolatorNode;
 
+  { Groups a set of NURBS surface nodes to a common group
+    for rendering purposes, to ensure a common tesselation within the group. }
   TNurbsSetNode = class(TAbstractChildNode, IAbstractBoundedObject)
   public
     procedure CreateNode; override;
@@ -305,8 +340,12 @@
 
     private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
+
+    {$I auto_generated_node_helpers/x3dnodes_nurbsset.inc}
   end;
 
+  { Interpolate (animate) by sampling a position and normal at 3D NURBS surface
+    from an input 2D surface parameters. }
   TNurbsSurfaceInterpolatorNode = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -353,8 +392,13 @@
 
     private FFdVOrder: TSFInt32;
     public property FdVOrder: TSFInt32 read FFdVOrder;
+
+    {$I auto_generated_node_helpers/x3dnodes_nurbssurfaceinterpolator.inc}
   end;
 
+  { Path in 2D space (that can be constructed from NURBS curves,
+    or straight segments) extruded along a 3D NURBS curve.
+    @bold(Rendering of this node is not implemented yet.) }
   TNurbsSweptSurfaceNode = class(TAbstractParametricGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -376,15 +420,19 @@
     private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    { Geometry node not implemented } { }
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_nurbssweptsurface.inc}
   end;
 
+  { Path in 2D space (that can be constructed from NURBS curves,
+    or straight segments) extruded along a 2D NURBS curve.
+    @bold(Rendering of this node is not implemented yet.) }
   TNurbsSwungSurfaceNode = class(TAbstractParametricGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -406,15 +454,19 @@
     private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    { Geometry node not implemented } { }
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_nurbsswungsurface.inc}
   end;
 
+  { NURBS surface existing in the parametric domain of its surface host
+    specifying the mapping of the texture onto the surface.
+    @bold(Not implemented yet.) }
   TNurbsTextureCoordinateNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
@@ -444,8 +496,15 @@
 
     private FFdVOrder: TSFInt32;
     public property FdVOrder: TSFInt32 read FFdVOrder;
+
+    {$I auto_generated_node_helpers/x3dnodes_nurbstexturecoordinate.inc}
   end;
 
+  { Visible 3D NURBS surface (like a @link(TNurbsPatchSurfaceNode))
+    that is trimmed by a set of trimming loops.
+
+    @bold(The trimming is not implemented yet. This is rendered exactly
+    like the normal @link(TNurbsPatchSurfaceNode).) }
   TNurbsTrimmedSurfaceNode = class(TAbstractNurbsSurfaceGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -467,6 +526,8 @@
 
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_nurbstrimmedsurface.inc}
   end;
 
 {$endif read_interface}

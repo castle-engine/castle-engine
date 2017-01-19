@@ -14,12 +14,15 @@
 }
 
 {$ifdef read_interface}
-  { }
+  { Base for all sound nodes. }
   TAbstractSoundNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dsoundnode.inc}
   end;
 
+  { Interface for all nodes that can emit audio data. }
   IAbstractSoundSourceNode = interface(IAbstractTimeDependentNode)
   ['{5E3D46A0-71B5-4561-B6B4-43A5BE5896EF}']
     property FdDescription: TSFString { read FFdDescription } { };
@@ -27,6 +30,7 @@
     property EventDuration_changed: TX3DEvent { read FEventDuration_changed } { };
   end;
 
+  { Base class for (most) nodes that can emit audio data. }
   TAbstractSoundSourceNode = class(TAbstractTimeDependentNode, IAbstractSoundSourceNode)
   public
     procedure CreateNode; override;
@@ -43,8 +47,11 @@
 
     { Pitch, corrected to always be > 0. }
     function SafePitch: Single;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dsoundsourcenode.inc}
   end;
 
+  { Buffer for sound data, which can be played by the @link(TSoundNode). }
   TAudioClipNode = class(TAbstractSoundSourceNode, IAbstractUrlObject)
   private
     FBufferLoaded: boolean;
@@ -70,12 +77,15 @@
     destructor Destroy; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
-    function CycleInterval: TFloatTime; override;
+    function GetCycleInterval: TFloatTime; override;
 
     private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
+
+    {$I auto_generated_node_helpers/x3dnodes_audioclip.inc}
   end;
 
+  { 3D sound emitter. }
   TSoundNode = class(TAbstractSoundNode)
   private
     FTransform: TMatrix4Single;
@@ -120,6 +130,8 @@
 
     private FFdSpatialize: TSFBool;
     public property FdSpatialize: TSFBool read FFdSpatialize;
+
+    {$I auto_generated_node_helpers/x3dnodes_sound.inc}
   end;
 
 {$endif read_interface}
@@ -229,7 +241,7 @@ begin
     BufferLoaded := true;
 end;
 
-function TAudioClipNode.CycleInterval: TFloatTime;
+function TAudioClipNode.GetCycleInterval: TFloatTime;
 begin
   { Secure from invalid FDuration (when sound file is not loaded, or duration
     is just unknown). }

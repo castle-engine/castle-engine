@@ -19,6 +19,8 @@
   ['{700E1CE8-97BD-44D2-A60F-D8639F4E72EC}']
     property FdObjectType: TMFString { read GetFdobjectType }; { }
     property FdPickable: TSFBool { read GetFdpickable }; { }
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dpickableobject.inc}
   end;
 
   TAbstractPickSensorNode = class(TAbstractSensorNode)
@@ -43,6 +45,8 @@
 
     private FFdSortOrder: TSFString;
     public property FdSortOrder: TSFString read FFdSortOrder;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dpicksensornode.inc}
   end;
 
   TLinePickSensorNode = class(TAbstractPickSensorNode)
@@ -62,6 +66,8 @@
     { Event out } { }
     private FEventPickedTextureCoordinate: TMFVec3fEvent;
     public property EventPickedTextureCoordinate: TMFVec3fEvent read FEventPickedTextureCoordinate;
+
+    {$I auto_generated_node_helpers/x3dnodes_linepicksensor.inc}
   end;
 
   TPickableGroupNode = class(TAbstractX3DGroupingNode, IAbstractPickableObject)
@@ -75,6 +81,8 @@
 
     private FFdPickable: TSFBool;
     public property FdPickable: TSFBool read FFdPickable;
+
+    {$I auto_generated_node_helpers/x3dnodes_pickablegroup.inc}
   end;
 
   TPointPickSensorNode = class(TAbstractPickSensorNode)
@@ -86,6 +94,8 @@
     { Event out } { }
     private FEventPickedPoint: TMFVec3fEvent;
     public property EventPickedPoint: TMFVec3fEvent read FEventPickedPoint;
+
+    {$I auto_generated_node_helpers/x3dnodes_pointpicksensor.inc}
   end;
 
   TPrimitivePickSensorNode = class(TAbstractPickSensorNode)
@@ -93,6 +103,8 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_primitivepicksensor.inc}
   end;
 
   TVolumePickSensorNode = class(TAbstractPickSensorNode)
@@ -100,6 +112,8 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_volumepicksensor.inc}
   end;
 
 {$endif read_interface}

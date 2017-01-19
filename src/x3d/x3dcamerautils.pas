@@ -226,8 +226,8 @@ begin
       cvVrml2_X3d     : ViewpointNode := TViewpointNode.Create('', BaseUrl);
       else raise EInternalError.Create('MakeCameraNode Version incorrect');
     end;
-    ViewpointNode.Position.Value := Position;
-    ViewpointNode.FdOrientation.Value := CamDirUp2Orient(Direction, Up);
+    ViewpointNode.Position := Position;
+    ViewpointNode.Orientation := CamDirUp2Orient(Direction, Up);
     Result := ViewpointNode;
   end else
   begin
@@ -256,8 +256,8 @@ begin
           Transform_1.FdRotation.Value := Rotation;
 
           ViewpointNode := TPerspectiveCameraNode_1.Create('', BaseUrl);
-          ViewpointNode.Position.Value := ZeroVector3Single;
-          ViewpointNode.FdOrientation.Value := Orientation;
+          ViewpointNode.Position := ZeroVector3Single;
+          ViewpointNode.Orientation := Orientation;
 
           Separator := TSeparatorNode_1.Create('', BaseUrl);
           Separator.VRML1ChildAdd(Transform_1);
@@ -269,12 +269,12 @@ begin
       cvVrml2_X3d:
         begin
           Transform_2 := TTransformNode.Create('', BaseUrl);
-          Transform_2.FdTranslation.Value := Position;
-          Transform_2.FdRotation.Value := Rotation;
+          Transform_2.Translation := Position;
+          Transform_2.Rotation := Rotation;
 
           ViewpointNode := TViewpointNode.Create('', BaseUrl);
-          ViewpointNode.Position.Value := ZeroVector3Single;
-          ViewpointNode.FdOrientation.Value := Orientation;
+          ViewpointNode.Position := ZeroVector3Single;
+          ViewpointNode.Orientation := Orientation;
 
           Transform_2.FdChildren.Add(ViewpointNode);
 

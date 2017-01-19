@@ -14,7 +14,7 @@
 }
 
 {$ifdef read_interface}
-  { }
+  { Base type for all the environmental sensor nodes. }
   TAbstractEnvironmentalSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
@@ -32,8 +32,12 @@
     { Event out } { }
     private FEventExitTime: TSFTimeEvent;
     public property EventExitTime: TSFTimeEvent read FEventExitTime;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3denvironmentalsensornode.inc}
   end;
 
+  { Generate events when the viewer enters, exits, and/or moves within
+    a region of 3D space. }
   TProximitySensorNode = class(TAbstractEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
@@ -52,8 +56,13 @@
     { Event out } { }
     private FEventPosition_changed: TSFVec3fEvent;
     public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_proximitysensor.inc}
   end;
 
+  { Generates events when the target object
+    enters, exits, and moves within a region of 3D space.
+    @bold(Not implemented yet.) }
   TTransformSensorNode = class(TAbstractEnvironmentalSensorNode)
   public
     procedure CreateNode; override;
@@ -70,8 +79,11 @@
     { Event out } { }
     private FEventPosition_changed: TSFVec3fEvent;
     public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_transformsensor.inc}
   end;
 
+  { Detects visibility changes of a rectangular box as the user navigates the world. }
   TVisibilitySensorNode = class(TAbstractEnvironmentalSensorNode)
   private
     FIsActive: boolean;
@@ -84,6 +96,8 @@
 
     property IsActive: boolean read FIsActive;
     procedure SetIsActive(const Value: boolean; const Time: TX3DTime);
+
+    {$I auto_generated_node_helpers/x3dnodes_visibilitysensor.inc}
   end;
 
 {$endif read_interface}

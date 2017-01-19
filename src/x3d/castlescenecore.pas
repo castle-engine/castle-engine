@@ -6678,7 +6678,7 @@ end;
 function TCastleSceneCore.GetViewpointName(Idx: integer): string;
 begin
   if Between(Idx, 0, FViewpointsArray.Count - 1) then
-    Result := FViewpointsArray[Idx].Description else
+    Result := FViewpointsArray[Idx].SmartDescription else
     Result := '';
 end;
 

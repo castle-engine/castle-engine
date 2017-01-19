@@ -652,6 +652,8 @@
 
   { Common base class for all cameras in VRML 1.0. }
   TAbstractCameraNode_1 = class(TAbstractViewpointNode)
+  strict protected
+    function PositionField: TSFVec3f; override;
   public
     procedure CreateNode; override;
 
@@ -670,8 +672,6 @@
     private FFdFarDistance: TSFFloat;
     public property FdFarDistance: TSFFloat read FFdFarDistance;
     { @groupEnd }
-
-    function Position: TSFVec3f; override;
   end;
 
   TOrthographicCameraNode_1 = class(TAbstractCameraNode_1)
@@ -2165,7 +2165,7 @@ begin
   AddField(FFdFarDistance);
 end;
 
-function TAbstractCameraNode_1.Position: TSFVec3f;
+function TAbstractCameraNode_1.PositionField: TSFVec3f;
 begin
   Result := FdPosition;
 end;
@@ -2339,18 +2339,18 @@ end;
 
 function TSpotLightNode_1.ModelviewMatrix: TMatrix4Single;
 var
-  Pos, Dir, Side, Up: TVector3Single;
+  Pos, Dir, Side, AUp: TVector3Single;
 begin
-  GetView(Pos, Dir, Side, Up);
-  Result := LookDirMatrix(Pos, Dir, Side, Up);
+  GetView(Pos, Dir, Side, AUp);
+  Result := LookDirMatrix(Pos, Dir, Side, AUp);
 end;
 
 function TSpotLightNode_1.ModelviewRotationMatrix: TMatrix4Single;
 var
-  Pos, Dir, Side, Up: TVector3Single;
+  Pos, Dir, Side, AUp: TVector3Single;
 begin
-  GetView(Pos, Dir, Side, Up);
-  Result := FastLookDirMatrix(Dir, Up);
+  GetView(Pos, Dir, Side, AUp);
+  Result := FastLookDirMatrix(Dir, AUp);
 end;
 
 function TSpotLightNode_1.GetProjectionLocationLocal: TVector3Single;

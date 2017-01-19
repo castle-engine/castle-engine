@@ -16,7 +16,7 @@
 {$ifdef read_interface}
   TInternalTimeDependentHandler = class;
 
-  { }
+  { Interface from which all time-dependent nodes are derived. }
   IAbstractTimeDependentNode = interface(IAbstractChildNode)
   ['{19D68914-F2BA-4CFA-90A1-F561DB264678}']
 
@@ -34,10 +34,8 @@
       by AudioClip.pitch, or MovieTexture.duration / MovieTexture.speed.
 
       On TTimeSensorNode descendants, you can also get and set this
-      by the class helper property @link(TTimeSensorNode.CycleInterval).
-      The name collision is harmless here, as both ways get the same
-      value. }
-    function CycleInterval: TFloatTime;
+      by the property @link(TTimeSensorNode.CycleInterval). }
+    function GetCycleInterval: TFloatTime;
 
     { Is the sensor enabled and running (ignoring whether it is paused).
 
@@ -188,6 +186,7 @@
     NeverIgnore: Cardinal;
   end;
 
+  { Abstract node from which most (but not all) time-dependent nodes are derived. }
   TAbstractTimeDependentNode = class(TAbstractChildNode, IAbstractTimeDependentNode)
   private
     FInternalTimeDependentHandler: TInternalTimeDependentHandler;
@@ -244,7 +243,7 @@
       by the class helper property @link(TTimeSensorNode.CycleInterval).
       The name collision is harmless here, as both ways get the same
       value. }
-    function CycleInterval: TFloatTime; virtual; abstract;
+    function GetCycleInterval: TFloatTime; virtual; abstract;
 
     { Is the sensor enabled and running (ignoring whether it is paused).
 
@@ -284,13 +283,17 @@
       When @link(CycleInterval) = 0, this is always 0.
       When @link(CycleInterval) <> 0, this is always >= 0 and < CycleInterval . }
     function ElapsedTimeInCycle: TFloatTime;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dtimedependentnode.inc}
   end;
 
+  { Generate events as time passes. }
   TTimeSensorNode = class(TAbstractTimeDependentNode, IAbstractSensorNode)
   private
     FakingTime: Integer;
     procedure EventElapsedTimeReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+    procedure SetCycleInterval(const Value: TFloatTime);
   public
     procedure CreateNode; override;
 
@@ -299,6 +302,8 @@
 
     private FFdCycleInterval: TSFTimeIgnoreWhenActive;
     public property FdCycleInterval: TSFTimeIgnoreWhenActive read FFdCycleInterval;
+    function GetCycleInterval: TFloatTime; override;
+    property CycleInterval: TFloatTime read GetCycleInterval write SetCycleInterval;
 
     { Event out } { }
     private FEventCycleTime: TSFTimeEvent;
@@ -314,8 +319,6 @@
 
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
-
-    function CycleInterval: TFloatTime; override;
 
     { Send TimeSensor output events, without actually activating the TimeSensor.
 
@@ -339,10 +342,12 @@
       and they should drive the rest of animation.
 
       @groupBegin }
-    procedure FakeTime(const TimeInAnimation: TFloatTime; const Loop: boolean);
-    procedure FakeTime(const TimeInAnimation: TFloatTime; const Loop: boolean;
+    procedure FakeTime(const TimeInAnimation: TFloatTime; const ALoop: boolean);
+    procedure FakeTime(const TimeInAnimation: TFloatTime; const ALoop: boolean;
       const TimeOfEvents: TX3DTime);
     { @groupEnd }
+
+    {$I auto_generated_node_helpers/x3dnodes_timesensor.inc}
   end;
 
 {$endif read_interface}
@@ -863,8 +868,8 @@ begin
   FInternalTimeDependentHandler.EventIsPaused := EventIsPaused;
   FInternalTimeDependentHandler.EventElapsedTime := EventElapsedTime;
   { descendants should set FInternalTimeDependentHandler.EventCycleTime }
-  { descendants should override CycleInterval }
-  FInternalTimeDependentHandler.OnCycleInterval := @CycleInterval;
+  { descendants should override GetCycleInterval }
+  FInternalTimeDependentHandler.OnCycleInterval := @GetCycleInterval;
 end;
 
 destructor TAbstractTimeDependentNode.Destroy;
@@ -880,7 +885,7 @@ end;
 
 function TAbstractTimeDependentNode.SafeCycleInterval: TFloatTime;
 begin
-  Result := CycleInterval;
+  Result := GetCycleInterval;
   if Result <= 0 then
     Result := 1;
 end;
@@ -938,9 +943,14 @@ begin
   EventElapsedTime.OnReceive.Add(@EventElapsedTimeReceive);
 end;
 
-function TTimeSensorNode.CycleInterval: TFloatTime;
+function TTimeSensorNode.GetCycleInterval: TFloatTime;
 begin
   Result := FdCycleInterval.Value;
+end;
+
+procedure TTimeSensorNode.SetCycleInterval(const Value: TFloatTime);
+begin
+  FdCycleInterval.Send(Value);
 end;
 
 class function TTimeSensorNode.ClassX3DType: string;
@@ -973,7 +983,7 @@ end;
 var
   FakeX3DTime: TX3DTime;
 
-procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime; const Loop: boolean);
+procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime; const ALoop: boolean);
 begin
   { This method may be called with any TimeInAnimation values sequence,
     e.g. decreasing.
@@ -989,17 +999,17 @@ begin
     FakeX3DTime.PlusTicks := 0;
   end;
 
-  FakeTime(TimeInAnimation, Loop, FakeX3DTime);
+  FakeTime(TimeInAnimation, ALoop, FakeX3DTime);
 end;
 
-procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime; const Loop: boolean;
+procedure TTimeSensorNode.FakeTime(const TimeInAnimation: TFloatTime; const ALoop: boolean;
   const TimeOfEvents: TX3DTime);
 begin
   if FdEnabled.Value then
   begin
     Inc(FakingTime);
     EventIsActive.Send(true, TimeOfEvents);
-    if Loop then
+    if ALoop then
       EventFraction_changed.Send(Frac(TimeInAnimation / SafeCycleInterval), TimeOfEvents)
     else
       EventFraction_changed.Send(Clamped(TimeInAnimation / SafeCycleInterval, 0, 1), TimeOfEvents);

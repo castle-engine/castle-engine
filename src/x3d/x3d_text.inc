@@ -14,10 +14,12 @@
 }
 
 {$ifdef read_interface}
-  { }
+  { Base node type for all font style nodes. }
   TAbstractFontStyleNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dfontstylenode.inc}
   end;
 
   { Font family that can be specified by a TFontStyleNode. }
@@ -26,6 +28,7 @@
   { Font justification that can be specified by a TFontStyleNode. }
   TX3DFontJustify = (fjFirst, fjBegin, fjMiddle, fjEnd);
 
+  { Defines the size, family, style and other properties used for @link(TTextNode). }
   TFontStyleNode = class(TAbstractFontStyleNode)
   strict private
     JustifyWarningUppercaseDone, JustifyWarningObsoleteDone,
@@ -121,11 +124,14 @@
       to free this font later, but only after all possible Text nodes
       using this font are destroyed. }
     class var OnFont: TFontEvent;
+
+    {$I auto_generated_node_helpers/x3dnodes_fontstyle.inc}
   end;
   TFontStyleNode_2 = TFontStyleNode deprecated 'use TFontStyleNode';
 
   TPixelTextureNode = class;
 
+  { Multiline text, visualized as a set of flat and textured polygons. }
   TTextNode = class(TAbstractX3DGeometryNode)
   strict private
     FFontTextureNode: TPixelTextureNode;
@@ -181,6 +187,8 @@
 
     function SolidField: TSFBool; override;
     function FontTextureNode: TAbstractTexture2DNode; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_text.inc}
   end;
 
 {$endif read_interface}

@@ -14,16 +14,22 @@
 }
 
 {$ifdef read_interface}
-  { }
+  { Base node type for the child nodes of @link(TAbstractAppearanceNode). }
   TAbstractAppearanceChildNode = class(TAbstractNode)
+    {$I auto_generated_node_helpers/x3dnodes_x3dappearancechildnode.inc}
   end;
 
+  { Base node type for all Appearance nodes. }
   TAbstractAppearanceNode = class(TAbstractNode)
+    {$I auto_generated_node_helpers/x3dnodes_x3dappearancenode.inc}
   end;
 
+  { Base node type for all Material nodes. }
   TAbstractMaterialNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dmaterialnode.inc}
   end;
 
   TAppearanceNode = class;
@@ -34,6 +40,7 @@
 
   TShading = (shDefault, shPhong, shWireframe);
 
+  { Base node type for all Shape nodes. }
   TAbstractShapeNode = class(TAbstractChildNode, IAbstractBoundedObject)
   private
     function GetGeometry: TAbstractX3DGeometryNode;
@@ -130,6 +137,8 @@
 
     private FFdOctreeTriangles: TSFNode;
     public property FdOctreeTriangles: TSFNode read FFdOctreeTriangles;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dshapenode.inc}
   end;
 
   TMFNodeShaders = class(TMFNode)
@@ -142,6 +151,12 @@
     function GLSLShader(Index: Integer): TComposedShaderNode;
   end;
 
+  { Visual properties of geometry.
+
+    Note that the geometry is unlit (pure white, regardless of lighting)
+    if no @link(Material) is assigned.
+    To make the geometry lit, you can just set there a default
+    material created by @code(TMaterialNode.Create). }
   TAppearanceNode = class(TAbstractAppearanceNode)
   private
     function GetTexture: TAbstractTextureNode;
@@ -237,8 +252,11 @@
       read GetLineProperties write SetLineProperties;
 
     function MaterialProperty: TMaterialProperty;
+
+    {$I auto_generated_node_helpers/x3dnodes_appearance.inc}
   end;
 
+  { Additional visual properties to be applied to all polygonal areas. }
   TFillPropertiesNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
@@ -256,6 +274,8 @@
 
     private FFdHatchStyle: TSFInt32;
     public property FdHatchStyle: TSFInt32 read FFdHatchStyle;
+
+    {$I auto_generated_node_helpers/x3dnodes_fillproperties.inc}
   end;
 
   { Supported line types (patterns), for @link(TLinePropertiesNode.LineType). }
@@ -266,6 +286,7 @@
     ltDashedDotted,
     ltDashDotDot);
 
+  { Additional visible properties to be applied to all line geometry. }
   TLinePropertiesNode = class(TAbstractAppearanceChildNode)
   strict private
     function GetLineType: TLineType;
@@ -286,10 +307,14 @@
 
     private FFdLinewidthScaleFactor: TSFFloat;
     public property FdLinewidthScaleFactor: TSFFloat read FFdLinewidthScaleFactor;
+
+    {$I auto_generated_node_helpers/x3dnodes_lineproperties.inc}
   end;
 
   TX3DMaterialInfo = class;
 
+  { Surface material properties for associated geometry nodes,
+    used by the lighting equations during rendering. }
   TMaterialNode = class(TAbstractMaterialNode)
   public
     procedure CreateNode; override;
@@ -314,13 +339,15 @@
     private FFdTransparency: TSFFloat;
     public property FdTransparency: TSFFloat read FFdTransparency;
 
-    { Kambi extensions below, TODO: should be separated into
-      different KambiMaterial node. } { }
-
     private FFdFogImmune: TSFBool;
+    { Make the object not affected by fog.
+      This is a Castle Game Engine extension, not present in X3D standard. }
     public property FdFogImmune: TSFBool read FFdFogImmune;
 
     private FFdMirror: TSFFloat;
+    { Make the object a mirror.
+      Right now used only by the classic ray-tracer, not by interactive renderer.
+      This is a Castle Game Engine extension, not present in X3D standard. }
     public property FdMirror: TSFFloat read FFdMirror;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -375,6 +402,8 @@
 
     private FFdTransSpecularExp: TSFFloat;
     public property FdTransSpecularExp: TSFFloat read FFdTransSpecularExp;
+
+    {$I auto_generated_node_helpers/x3dnodes_material.inc}
   end;
   TMaterialNode_2 = TMaterialNode;
 
@@ -439,13 +468,19 @@
     function TransSpecularExp: Single; override;
   end;
 
+  { Shape is a rendered object in the world, with an appearance and geometry. }
   TShapeNode = class(TAbstractShapeNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_shape.inc}
   end;
 
+  { Material properties that can effect both the front and back side
+    of a polygon individually.
+    @bold(Not implemented yet.) }
   TTwoSidedMaterialNode = class(TAbstractMaterialNode)
   public
     procedure CreateNode; override;
@@ -490,6 +525,8 @@
 
     private FFdTransparency: TSFFloat;
     public property FdTransparency: TSFFloat read FFdTransparency;
+
+    {$I auto_generated_node_helpers/x3dnodes_twosidedmaterial.inc}
   end;
 
 {$endif read_interface}

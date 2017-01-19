@@ -14,7 +14,7 @@
 }
 
 {$ifdef read_interface}
-  { }
+  { Rectangular box. }
   TBoxNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
@@ -45,8 +45,11 @@
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_box.inc}
   end;
 
+  { Cone. }
   TConeNode = class(TAbstractX3DGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -94,9 +97,12 @@
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_cone.inc}
   end;
   TConeNode_2 = TConeNode;
 
+  { Cylinder. }
   TCylinderNode = class(TAbstractX3DGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -147,9 +153,13 @@
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_cylinder.inc}
   end;
   TCylinderNode_2 = TCylinderNode;
 
+  { Uniform rectangular grid of varying height above the Y=0 plane,
+    aka "height map". }
   TElevationGridNode = class(TAbstractX3DGeometryNode)
   private
     procedure EventSet_HeightReceive(
@@ -230,8 +240,11 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_elevationgrid.inc}
   end;
 
+  { 2D cross-section shape extruded along a 3D spine. }
   TExtrusionNode = class(TAbstractX3DGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -325,8 +338,13 @@
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_extrusion.inc}
   end;
 
+  { Mesh with faces (polygons) constructed from vertices.
+    This is probably the most universal, and most often used,
+    geometry node in X3D. }
   TIndexedFaceSetNode = class(TAbstractComposedGeometryNode)
   private
     procedure Eventset_colorIndexReceive(
@@ -388,9 +406,12 @@
 
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_indexedfaceset.inc}
   end;
   TIndexedFaceSetNode_2 = TIndexedFaceSetNode;
 
+  { Sphere. }
   TSphereNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
@@ -428,6 +449,8 @@
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function AutoGenerate3DTexCoords: boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_sphere.inc}
   end;
   TSphereNode_2 = TSphereNode;
 

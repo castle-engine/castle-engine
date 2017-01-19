@@ -14,7 +14,8 @@
 }
 
 {$ifdef read_interface}
-  { }
+  { Base node type from which all sequencers (like @link(TIntegerSequencerNode)
+    and @link(TBooleanSequencerNode)) are derived. }
   TAbstractSequencerNode = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -73,13 +74,20 @@
 
     private FFdForceContinousValue_Changed: TSFBool;
     public property FdForceContinousValue_Changed: TSFBool read FFdForceContinousValue_Changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dsequencernode.inc}
   end;
 
+  { Base type from which all trigger nodes are derived. }
   TAbstractTriggerNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dtriggernode.inc}
   end;
 
+  { Filters boolean events, allowing for selective routing
+    of TRUE or FALSE values and negation. }
   TBooleanFilterNode = class(TAbstractChildNode)
   private
     procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
@@ -104,8 +112,11 @@
     { Event out } { }
     private FEventInputTrue: TSFBoolEvent;
     public property EventInputTrue: TSFBoolEvent read FEventInputTrue;
+
+    {$I auto_generated_node_helpers/x3dnodes_booleanfilter.inc}
   end;
 
+  { Generate sequential boolean events. }
   TBooleanSequencerNode = class(TAbstractSequencerNode)
   protected
     procedure SendValueChanged(const ValueIndex: Integer;
@@ -121,8 +132,11 @@
     { Event out } { }
     private FEventValue_changed: TSFBoolEvent;
     public property EventValue_changed: TSFBoolEvent read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_booleansequencer.inc}
   end;
 
+  { Stores a boolean value for toggling on/off. }
   TBooleanToggleNode = class(TAbstractChildNode)
   private
     procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
@@ -138,8 +152,11 @@
 
     private FFdToggle: TSFBool;
     public property FdToggle: TSFBool read FFdToggle;
+
+    {$I auto_generated_node_helpers/x3dnodes_booleantoggle.inc}
   end;
 
+  { Trigger node that generates Boolean events upon receiving time events. }
   TBooleanTriggerNode = class(TAbstractTriggerNode)
   private
     procedure EventSet_triggerTimeReceive(Event: TX3DEvent; Value: TX3DField;
@@ -156,8 +173,13 @@
     { Event out } { }
     private FEventTriggerTrue: TSFBoolEvent;
     public property EventTriggerTrue: TSFBoolEvent read FEventTriggerTrue;
+
+    {$I auto_generated_node_helpers/x3dnodes_booleantrigger.inc}
   end;
 
+  { Generate sequential integer events.
+    For example, it can be driven by a TimeSensor and iterate over a series
+    of nodes by animating Switch.whichChoice. }
   TIntegerSequencerNode = class(TAbstractSequencerNode)
   protected
     procedure SendValueChanged(const ValueIndex: Integer;
@@ -173,8 +195,11 @@
     { Event out } { }
     private FEventValue_changed: TSFInt32Event;
     public property EventValue_changed: TSFInt32Event read FEventValue_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_integersequencer.inc}
   end;
 
+  { Generate an integer upon receiving any boolean value. }
   TIntegerTriggerNode = class(TAbstractTriggerNode)
   private
     procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
@@ -194,8 +219,11 @@
     { Event out } { }
     private FEventTriggerValue: TSFInt32Event;
     public property EventTriggerValue: TSFInt32Event read FEventTriggerValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_integertrigger.inc}
   end;
 
+  { Generate time events upon receiving any boolean value. }
   TTimeTriggerNode = class(TAbstractTriggerNode)
   private
     procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
@@ -212,6 +240,8 @@
     { Event out } { }
     private FEventTriggerTime: TSFTimeEvent;
     public property EventTriggerTime: TSFTimeEvent read FEventTriggerTime;
+
+    {$I auto_generated_node_helpers/x3dnodes_timetrigger.inc}
   end;
 
 {$endif read_interface}

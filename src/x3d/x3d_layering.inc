@@ -24,11 +24,15 @@
 
     private FFdViewport: TSFNode;
     public property FdViewport: TSFNode read FFdViewport;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dlayernode.inc}
   end;
 
   TAbstractViewportNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dviewportnode.inc}
   end;
 
   TLayerNode = class(TAbstractLayerNode)
@@ -47,6 +51,8 @@
 
     private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
+
+    {$I auto_generated_node_helpers/x3dnodes_layer.inc}
   end;
 
   TLayerSetNode = class(TAbstractNode)
@@ -63,6 +69,8 @@
 
     private FFdOrder: TMFInt32;
     public property FdOrder: TMFInt32 read FFdOrder;
+
+    {$I auto_generated_node_helpers/x3dnodes_layerset.inc}
   end;
 
   TViewportNode = class(TAbstractX3DGroupingNode, IAbstractBoundedObject)
@@ -73,6 +81,8 @@
 
     private FFdClipBoundary: TMFFloat;
     public property FdClipBoundary: TMFFloat read FFdClipBoundary;
+
+    {$I auto_generated_node_helpers/x3dnodes_viewport.inc}
   end;
 
 {$endif read_interface}

@@ -14,12 +14,13 @@
 }
 
 {$ifdef read_interface}
-  { }
+  { Interface for nodes that are valid product structure children. }
   IAbstractX3DProductStructureChildNode = interface(IAbstractChildNode)
   ['{318249E0-BACF-4F16-9E49-3E912F24E0AA}']
     property FdName: TSFString { read FFdName} { };
   end;
 
+  { Abstract class for (most) nodes that are valid product structure children. }
   TAbstractProductStructureChildNode = class(TAbstractChildNode,
     IAbstractX3DProductStructureChildNode)
   public
@@ -27,8 +28,11 @@
 
     private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dproductstructurechildnode.inc}
   end;
 
+  { Holds a set of assemblies or parts grouped together. }
   TCADAssemblyNode = class(TAbstractX3DGroupingNode, IAbstractX3DProductStructureChildNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -39,8 +43,11 @@
 
     private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
+
+    {$I auto_generated_node_helpers/x3dnodes_cadassembly.inc}
   end;
 
+  { Holds the geometry representing a face of a part. }
   TCADFaceNode = class(TAbstractProductStructureChildNode, IAbstractBoundedObject)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -57,8 +64,11 @@
 
     private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
+
+    {$I auto_generated_node_helpers/x3dnodes_cadface.inc}
   end;
 
+  { Hierarchy of nodes used for showing layer structure for the CAD model. }
   TCADLayerNode = class(TAbstractX3DGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -72,8 +82,11 @@
 
     private FFdVisible: TMFBool;
     public property FdVisible: TMFBool read FFdVisible;
+
+    {$I auto_generated_node_helpers/x3dnodes_cadlayer.inc}
   end;
 
+  { Represents the location and faces that constitute a part in the CAD model. }
   TCADPartNode = class(TAbstractX3DGroupingNode, IAbstractX3DProductStructureChildNode, ITransformNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -101,8 +114,11 @@
 
     private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
+
+    {$I auto_generated_node_helpers/x3dnodes_cadpart.inc}
   end;
 
+  { Quads. }
   TIndexedQuadSetNode = class(TAbstractComposedGeometryNode)
   public
     procedure CreateNode; override;
@@ -124,8 +140,11 @@
 
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_indexedquadset.inc}
   end;
 
+  { Quads, not indexed. }
   TQuadSetNode = class(TAbstractComposedGeometryNode)
   public
     procedure CreateNode; override;
@@ -138,6 +157,8 @@
 
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_quadset.inc}
   end;
 
 {$endif read_interface}

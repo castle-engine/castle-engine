@@ -14,12 +14,15 @@
 }
 
 {$ifdef read_interface}
-  { }
+  { Base for all nodes which specify texture coordinates. }
   TAbstractTextureCoordinateNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dtexturecoordinatenode.inc}
   end;
 
+  { Base for all nodes which specify sources for texture images. }
   TAbstractTextureNode = class(TAbstractAppearanceChildNode)
   private
     function GetAlphaChannelField: TAutoAlphaChannel;
@@ -57,11 +60,13 @@
     private FFdAlphaChannel: TSFStringEnum;
     public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
     property AlphaChannelField: TAutoAlphaChannel read GetAlphaChannelField write SetAlphaChannelField;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dtexturenode.inc}
   end;
 
   TTexturePropertiesNode = class;
 
-  { VRML/X3D texture that is 2D and is loaded (from file or some other stream).
+  { VRML/X3D texture that is 2D and can be loaded (from file or some other stream).
 
     For X3D, this descends from X3DTextureNode and is an ancestor
     for X3DTexture2DNode, so X3D hierarchy is nicely preserved. }
@@ -227,6 +232,7 @@
     function TextureProperties: TTexturePropertiesNode; virtual;
   end;
 
+  { X3D texture that is 2D and can be loaded (from file or some other stream). }
   TAbstractX3DTexture2DNode = class(TAbstractTexture2DNode)
   protected
     function GetRepeatS: boolean; override;
@@ -246,15 +252,19 @@
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
 
     function TextureProperties: TTexturePropertiesNode; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}
   end;
 
+  { Base for all nodes which specify a transformation of texture coordinates. }
   TAbstractTextureTransformNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
-
     function TransformMatrix: TMatrix4Single; virtual; abstract;
+    {$I auto_generated_node_helpers/x3dnodes_x3dtexturetransformnode.inc}
   end;
 
+  { Texture image loaded from a file. }
   TImageTextureNode = class(TAbstractX3DTexture2DNode, IAbstractUrlObject)
   protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
@@ -267,14 +277,17 @@
     public property FdUrl: TMFString read FFdUrl;
 
     function TextureDescription: string; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_imagetexture.inc}
   end;
 
+  { Movie file, that can be played and displayed as a texture. }
   TMovieTextureNode = class(TAbstractX3DTexture2DNode, IAbstractSoundSourceNode,
     IAbstractUrlObject, IAbstractTimeDependentNode)
   private
     FDuration: TFloatTime;
     FInternalTimeDependentHandler: TInternalTimeDependentHandler;
-    function CycleInterval: TFloatTime;
+    function GetCycleInterval: TFloatTime;
     function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
   protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
@@ -351,8 +364,12 @@
     function IsPaused: boolean;
     function ElapsedTime: TFloatTime;
     function ElapsedTimeInCycle: TFloatTime;
+
+    {$I auto_generated_node_helpers/x3dnodes_movietexture.inc}
   end;
 
+  { Application of several individual textures on top of each other,
+    used instead of a single texture when desired. }
   TMultiTextureNode = class(TAbstractTextureNode)
   public
     procedure CreateNode; override;
@@ -378,8 +395,12 @@
     public property FdTexture: TMFNode read FFdTexture;
 
     function AlphaChannelData: TAlphaChannel; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_multitexture.inc}
   end;
 
+  { Multiple texture coordinates per vertex,
+    to be used with multi-texturing by @link(TMultiTextureNode). }
   TMultiTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
@@ -388,8 +409,12 @@
 
     private FFdTexCoord: TMFNode;
     public property FdTexCoord: TMFNode read FFdTexCoord;
+
+    {$I auto_generated_node_helpers/x3dnodes_multitexturecoordinate.inc}
   end;
 
+  { Multiple texture transforms,
+    to be used with multi-texturing by @link(TMultiTextureNode). }
   TMultiTextureTransformNode = class(TAbstractTextureTransformNode)
   public
     procedure CreateNode; override;
@@ -406,8 +431,11 @@
       @raises(EInternalError Always, since this method has no sense
         for MultiTextureTransform.) }
     function TransformMatrix: TMatrix4Single; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_multitexturetransform.inc}
   end;
 
+  { Texture specified as an explicit array of pixel values (see @link(FdImage) field). }
   TPixelTextureNode = class(TAbstractX3DTexture2DNode)
   protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
@@ -420,8 +448,11 @@
     public property FdImage: TSFImage read FFdImage;
 
     function TextureDescription: string; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_pixeltexture.inc}
   end;
 
+  { 2D texture coordinates used by vertex-based geometry nodes. }
   TTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
@@ -430,8 +461,11 @@
 
     private FFdPoint: TMFVec2f;
     public property FdPoint: TMFVec2f read FFdPoint;
+
+    {$I auto_generated_node_helpers/x3dnodes_texturecoordinate.inc}
   end;
 
+  { Automatic generation of texture coordinates. }
   TTextureCoordinateGeneratorNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
@@ -446,6 +480,8 @@
 
     private FFdProjectedLight: TSFNode;
     public property FdProjectedLight: TSFNode read FFdProjectedLight;
+
+    {$I auto_generated_node_helpers/x3dnodes_texturecoordinategenerator.inc}
   end;
 
   { Old BS Contact name for TextureCoordinateGenerator.
@@ -455,6 +491,7 @@
     class function ClassX3DType: string; override;
   end;
 
+  { Adjust the texture application properties. }
   TTexturePropertiesNode = class(TAbstractNode)
   public
     procedure CreateNode; override;
@@ -496,8 +533,12 @@
 
     private FFdGUITexture: TSFBool;
     public property FdGUITexture: TSFBool read FFdGUITexture;
+
+    {$I auto_generated_node_helpers/x3dnodes_textureproperties.inc}
   end;
 
+  { 2D transformation that can be applied to texture coordinates (e.g. from
+    @link(TTextureCoordinateNode). }
   TTextureTransformNode = class(TAbstractTextureTransformNode)
   public
     procedure CreateNode; override;
@@ -517,6 +558,8 @@
     public property FdTranslation: TSFVec2f read FFdTranslation;
 
     function TransformMatrix: TMatrix4Single; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_texturetransform.inc}
   end;
 
 {$endif read_interface}
@@ -789,8 +832,6 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function BlenderRelativePath(const RelativePath: string): boolean; forward;
-
 procedure TImageTextureNode.LoadTextureData(out WasCacheUsed: boolean);
 var
   I: Integer;
@@ -900,7 +941,7 @@ begin
   FInternalTimeDependentHandler.EventisActive:= EventisActive;
   FInternalTimeDependentHandler.EventisPaused := EventisPaused;
   FInternalTimeDependentHandler.EventelapsedTime := EventelapsedTime;
-  FInternalTimeDependentHandler.OnCycleInterval := @CycleInterval;
+  FInternalTimeDependentHandler.OnCycleInterval := @GetCycleInterval;
 end;
 
 function TMovieTextureNode.GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
@@ -956,7 +997,7 @@ begin
   end;
 end;
 
-function TMovieTextureNode.CycleInterval: TFloatTime;
+function TMovieTextureNode.GetCycleInterval: TFloatTime;
 var
   Sp: Single;
 begin

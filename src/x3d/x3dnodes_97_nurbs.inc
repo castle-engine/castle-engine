@@ -19,6 +19,9 @@
   backward compatible) as X3D NURBS nodes, these are defined and handled
   only in x3d_nurbs.inc. } { }
 {$ifdef read_interface}
+
+  { Free form deformation on a set of 3D coordinates by using a NURBS volume.
+    @bold(Not implemented.) }
   TCoordinateDeformerNode = class(TAbstractGroupingNode)
   public
     procedure CreateNode; override;
@@ -86,6 +89,8 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
+  { Visible NURBS curve in 3D, in VRML 2.0.
+    @bold(Not implemented.) }
   TNurbsCurveNode_2 = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
@@ -121,6 +126,9 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
+  { Groups a set of NURBS surface nodes to a common group
+    for rendering purposes, to ensure a common tesselation within the group,
+    for VRML 2.0. }
   TNurbsGroupNode = class(TAbstractX3DGroupingNode)
   public
     procedure CreateNode; override;
@@ -132,6 +140,7 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
+  { Interpolate (animate) positions along the 3D NURBS curve. }
   TNurbsPositionInterpolatorNode_2 = class(TAbstractChildNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
@@ -168,6 +177,7 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
   end;
 
+  { Visible NURBS 3D surface, for VRML 2.0. }
   TNurbsSurfaceNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
@@ -226,6 +236,9 @@
     function SolidField: TSFBool; override;
   end;
 
+  { NURBS surface existing in the parametric domain of its surface host specifying
+    the mapping of the texture onto the surface, for VRML 2.0.
+    @bold(Not implemented.) }
   TNurbsTextureSurfaceNode = class(TX3DNode)
   public
     procedure CreateNode; override;
@@ -258,6 +271,8 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
+  { NURBS surface that is trimmed by a set of trimming loops.
+    @bold(Rendering of this node is not implemented yet.) }
   TTrimmedSurfaceNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
@@ -279,7 +294,6 @@
 
     class function URNMatching(const URN: string): boolean; override;
 
-    { Geometry node not implemented } { }
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -288,6 +302,8 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
   end;
 
+  { 2D curve composed from NURBS curves and straight segments, for VRML 2.0.
+    @bold(Not implemented yet.) }
   TContour2DNode_2 = class(TAbstractX3DGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -308,7 +324,6 @@
     private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
 
-    { Geometry node not implemented } { }
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;

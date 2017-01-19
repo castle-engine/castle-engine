@@ -29,7 +29,7 @@
     procedure Assign(Source: TPointingDeviceSensorList);
   end;
 
-  { }
+  { Base type for all pointing device sensors. }
   TAbstractPointingDeviceSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
@@ -59,8 +59,11 @@
       In TAbstractPointingDeviceSensorNode class,
       this simply sends isActive := FALSE event. }
     procedure Deactivate(const Time: TX3DTime); virtual;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dpointingdevicesensornode.inc}
   end;
 
+  { Base type for all drag-style pointing device sensors. }
   TAbstractDragSensorNode = class(TAbstractPointingDeviceSensorNode)
   public
     procedure CreateNode; override;
@@ -75,8 +78,11 @@
     { Called by events engine (like TCastleSceneCore) when you move your mouse
       over the @italic(active) drag sensor. }
     procedure Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3Single); virtual;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3ddragsensornode.inc}
   end;
 
+  { Base type for all touch-style pointing device sensors. }
   TAbstractTouchSensorNode = class(TAbstractPointingDeviceSensorNode)
   public
     procedure CreateNode; override;
@@ -84,8 +90,11 @@
     { Event out } { }
     private FEventTouchTime: TSFTimeEvent;
     public property EventTouchTime: TSFTimeEvent read FEventTouchTime;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dtouchsensornode.inc}
   end;
 
+  { Pointing device sensor to rotate objects around a constrained axis. }
   TCylinderSensorNode = class(TAbstractDragSensorNode)
   private
     { Are we in caps mode or cylinder mode (determined at activation) }
@@ -139,8 +148,11 @@
       const OverPoint: TVector3Single); override;
     procedure Deactivate(const Time: TX3DTime); override;
     procedure Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3Single); override;
+
+    {$I auto_generated_node_helpers/x3dnodes_cylindersensor.inc}
   end;
 
+  { Pointing device sensor to move objects on a plane. }
   TPlaneSensorNode = class(TAbstractDragSensorNode)
   private
     { Plane* stuff is in global (VRML scene) coordinates. }
@@ -186,8 +198,11 @@
       const OverPoint: TVector3Single); override;
     procedure Deactivate(const Time: TX3DTime); override;
     procedure Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3Single); override;
+
+    {$I auto_generated_node_helpers/x3dnodes_planesensor.inc}
   end;
 
+  { Pointing device sensor to rotate objects. }
   TSphereSensorNode = class(TAbstractDragSensorNode)
   private
     { Sphere center and radius, in world coordinates. }
@@ -220,8 +235,11 @@
       const OverPoint: TVector3Single); override;
     procedure Deactivate(const Time: TX3DTime); override;
     procedure Drag(const Time: TX3DTime; const RayOrigin, RayDirection: TVector3Single); override;
+
+    {$I auto_generated_node_helpers/x3dnodes_spheresensor.inc}
   end;
 
+  { Sensor to catch clicks on 3D objects. }
   TTouchSensorNode = class(TAbstractTouchSensorNode)
   public
     procedure CreateNode; override;
@@ -239,6 +257,8 @@
     { Event out } { }
     private FEventHitTexCoord_changed: TSFVec2fEvent;
     public property EventHitTexCoord_changed: TSFVec2fEvent read FEventHitTexCoord_changed;
+
+    {$I auto_generated_node_helpers/x3dnodes_touchsensor.inc}
   end;
 
 {$endif read_interface}

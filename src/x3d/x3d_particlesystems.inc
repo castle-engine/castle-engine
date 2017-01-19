@@ -30,6 +30,8 @@
 
     private FFdSurfaceArea: TSFFloat;
     public property FdSurfaceArea: TSFFloat read FFdSurfaceArea;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dparticleemitternode.inc}
   end;
 
   TAbstractParticlePhysicsModelNode = class(TAbstractNode)
@@ -38,6 +40,8 @@
 
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dparticlephysicsmodelnode.inc}
   end;
 
   TBoundedPhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
@@ -48,6 +52,8 @@
 
     private FFdGeometry: TSFNode;
     public property FdGeometry: TSFNode read FFdGeometry;
+
+    {$I auto_generated_node_helpers/x3dnodes_boundedphysicsmodel.inc}
   end;
 
   TConeEmitterNode = class(TAbstractParticleEmitterNode)
@@ -64,6 +70,8 @@
 
     private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
+
+    {$I auto_generated_node_helpers/x3dnodes_coneemitter.inc}
   end;
 
   TExplosionEmitterNode = class(TAbstractParticleEmitterNode)
@@ -74,6 +82,8 @@
 
     private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
+
+    {$I auto_generated_node_helpers/x3dnodes_explosionemitter.inc}
   end;
 
   TForcePhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
@@ -84,6 +94,8 @@
 
     private FFdForce: TSFVec3f;
     public property FdForce: TSFVec3f read FFdForce;
+
+    {$I auto_generated_node_helpers/x3dnodes_forcephysicsmodel.inc}
   end;
 
   TParticleSystemNode = class(TAbstractShapeNode)
@@ -134,6 +146,8 @@
 
     private FFdTexCoordKey: TMFFloat;
     public property FdTexCoordKey: TMFFloat read FFdTexCoordKey;
+
+    {$I auto_generated_node_helpers/x3dnodes_particlesystem.inc}
   end;
 
   TPointEmitterNode = class(TAbstractParticleEmitterNode)
@@ -147,6 +161,8 @@
 
     private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
+
+    {$I auto_generated_node_helpers/x3dnodes_pointemitter.inc}
   end;
 
   TPolylineEmitterNode = class(TAbstractParticleEmitterNode)
@@ -167,6 +183,8 @@
 
     private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
+
+    {$I auto_generated_node_helpers/x3dnodes_polylineemitter.inc}
   end;
 
   TSurfaceEmitterNode = class(TAbstractParticleEmitterNode)
@@ -184,6 +202,8 @@
 
     private FFdSurface: TSFNode;
     public property FdSurface: TSFNode read FFdSurface;
+
+    {$I auto_generated_node_helpers/x3dnodes_surfaceemitter.inc}
   end;
 
   TVolumeEmitterNode = class(TAbstractParticleEmitterNode)
@@ -207,6 +227,8 @@
 
     private FFdInternal: TSFBool;
     public property FdInternal: TSFBool read FFdInternal;
+
+    {$I auto_generated_node_helpers/x3dnodes_volumeemitter.inc}
   end;
 
   TWindPhysicsModelNode = class(TAbstractParticlePhysicsModelNode)
@@ -226,6 +248,8 @@
 
     private FFdTurbulence: TSFFloat;
     public property FdTurbulence: TSFFloat read FFdTurbulence;
+
+    {$I auto_generated_node_helpers/x3dnodes_windphysicsmodel.inc}
   end;
 
 {$endif read_interface}

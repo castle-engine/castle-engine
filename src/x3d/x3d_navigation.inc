@@ -17,15 +17,22 @@
   { Common ancestor for both VRML 1.0 camera nodes and VRML/X3D >= 2.0 viewpoint
     nodes. }
   TAbstractViewpointNode = class(TAbstractBindableNode)
-  private
+  strict private
     procedure EventSet_BindReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+    function GetPosition: TVector3Single;
+    procedure SetPosition(const Value: TVector3Single);
+    function GetOrientation: TVector4Single;
+    procedure SetOrientation(const Value: TVector4Single);
+  strict protected
+    function PositionField: TSFVec3f; virtual; abstract;
   public
     procedure CreateNode; override;
     function TransformationChange: TNodeTransformationChange; override;
 
     private FFdOrientation: TSFRotation;
     public property FdOrientation: TSFRotation read FFdOrientation;
+    property Orientation: TVector4Single read GetOrientation write SetOrientation;
 
     private FFdDirection: TMFVec3f;
     public property FdDirection: TMFVec3f read FFdDirection;
@@ -51,13 +58,8 @@
     private FFdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool;
     public property FdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool read FFdCameraMatrixSendAlsoOnOffscreenRendering;
 
-    { Position of the viewpoint.
-
-      This is an abstract function, not a simple FdPosition, because one of
-      the descendants (TAbstractX3DViewpointNode) doesn't have FdPosition field.
-      For now, all non-abstract descendants (for both VRML 1.0 and VRML >= 2.0)
-      override this and expose their position field correctly. }
-    function Position: TSFVec3f; virtual; abstract;
+    { Position of the viewpoint. }
+    property Position: TVector3Single read GetPosition write SetPosition;
 
     class function ProjectionType: TProjectionType; virtual; abstract;
 
@@ -89,11 +91,13 @@
 
     { Description generated smart (trying to use FdDescription field,
       falling back on other information to help user identify the node). }
-    function Description: string; virtual;
+    function SmartDescription: string; virtual;
   end;
 
   TX3DViewpointClassNode = class of TAbstractViewpointNode;
 
+  { Base type for viewpoints in X3D,
+    which are locations from which the user may view the scene. }
   TAbstractX3DViewpointNode = class(TAbstractViewpointNode)
   public
     procedure CreateNode; override;
@@ -116,8 +120,12 @@
     function ModelviewMatrix: TMatrix4Single;
     function GetProjectorMatrix: TMatrix4Single;
     { @groupEnd }
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc}
   end;
 
+  { Grouping node that transforms the coordinate system of its children
+    so that they always turn towards the viewer. }
   TBillboardNode = class(TAbstractX3DGroupingNode, ITransformNode)
   private
     FCameraPosition, FCameraDirection, FCameraUp: TVector3Single;
@@ -140,8 +148,12 @@
 
     private FFdAxisOfRotation: TSFVec3f;
     public property FdAxisOfRotation: TSFVec3f read FFdAxisOfRotation;
+
+    {$I auto_generated_node_helpers/x3dnodes_billboard.inc}
   end;
 
+  { Grouping node that specifies the collision detection properties
+    for its children. }
   TCollisionNode = class(TAbstractX3DGroupingNode, IAbstractSensorNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -183,9 +195,12 @@
       @code(Enabled) field).
     }
     procedure CollideAsBox(const VisibleNode: TX3DNode; const Box: TBox3D);
+
+    {$I auto_generated_node_helpers/x3dnodes_collision.inc}
   end;
 
-  { LOD node for VRML/X3D >= 2.0. This is not for VRML <= 1.0 LOD node.
+  { Provides various levels of detail for a given object,
+    only one of which will be visible at a given time.
 
     It's a common ancestor for VRML 2.0 LOD (TLODNode_2) and X3D LOD (TLODNode).
     Unfortunately, we cannot have a simple common class for both VRML 97
@@ -211,26 +226,36 @@
   TAbstractLODNode = class(TAbstractX3DGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
+    function GetCenter: TVector3Single;
+    procedure SetCenter(const Value: TVector3Single);
+    function GetForceTransitions: boolean;
+    procedure SetForceTransitions(const Value: boolean);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
+    property Center: TVector3Single read GetCenter write SetCenter;
 
     private FFdRange: TMFFloat;
     public property FdRange: TMFFloat read FFdRange;
 
     private FFdForceTransitions: TSFBool;
     public property FdForceTransitions: TSFBool read FFdForceTransitions;
+    property ForceTransitions: boolean read GetForceTransitions write SetForceTransitions;
 
     { Event out } { }
     private FEventLevel_changed: TSFInt32Event;
     public property EventLevel_changed: TSFInt32Event read FEventLevel_changed;
 
     function TransformationChange: TNodeTransformationChange; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_lod.inc}
   end;
 
+  { Provides various levels of detail for a given object,
+    only one of which will be visible at a given time, for VRML 2.0. }
   TLODNode_2 = class(TAbstractLODNode)
   public
     procedure CreateNode; override;
@@ -240,6 +265,8 @@
     class function URNMatching(const URN: string): boolean; override;
   end;
 
+  { Provides various levels of detail for a given object,
+    only one of which will be visible at a given time, for X3D. }
   TLODNode = class(TAbstractLODNode)
   public
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -250,6 +277,7 @@
 
   TOptionalBlendingSort = (obsDefault, obsNone, obs2D, obs3D);
 
+  { Describe the physical characteristics of the viewer's avatar and navigation. }
   TNavigationInfoNode = class(TAbstractBindableNode)
   private
     procedure EventSet_BindReceive(
@@ -290,13 +318,18 @@
     { Event out } { }
     private FEventTransitionComplete: TSFBoolEvent;
     public property EventTransitionComplete: TSFBoolEvent read FEventTransitionComplete;
+
+    {$I auto_generated_node_helpers/x3dnodes_navigationinfo.inc}
   end;
 
+  { Viewpoint that provides an orthographic view of the scene. }
   TOrthoViewpointNode = class(TAbstractX3DViewpointNode)
   strict private
     function GetFieldOfViewDefault(const Index: Integer): Single;
     function GetFieldOfView(const Index: Integer): Single;
     procedure SetFieldOfView(const Index: Integer; const Value: Single);
+  strict protected
+    function PositionField: TSFVec3f; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -333,7 +366,6 @@
     private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
 
-    function Position: TSFVec3f; override;
     class function ProjectionType: TProjectionType; override;
     function ProjectionMatrix: TMatrix4Single; override;
 
@@ -344,9 +376,14 @@
     class procedure AspectFieldOfView(
       var AFieldOfView: TVector4Single;
       const WindowWidthToHeight: Single);
+
+    {$I auto_generated_node_helpers/x3dnodes_orthoviewpoint.inc}
   end;
 
+  { Viewpoint that provides a perspective view of the scene. }
   TViewpointNode = class(TAbstractX3DViewpointNode)
+  strict protected
+    function PositionField: TSFVec3f; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -358,7 +395,6 @@
     private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
 
-    function Position: TSFVec3f; override;
     class function ProjectionType: TProjectionType; override;
 
     { This calculates proper angle of view for typical rectangular
@@ -386,8 +422,12 @@
       FieldOfView: Single;
       const ThisToOtherSizeRatio: Single): Single;
     function ProjectionMatrix: TMatrix4Single; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_viewpoint.inc}
   end;
 
+  { Group of viewpoints. You can (optionally) arrange viewpoints in groups
+    to present them nicely in the X3D browser submenus. }
   TViewpointGroupNode = class(TAbstractChildNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -416,11 +456,16 @@
 
     { Description generated smart (trying to use FdDescription field,
       falling back on other information to help user identify the node). }
-    function Description: string;
+    function SmartDescription: string;
+
+    {$I auto_generated_node_helpers/x3dnodes_viewpointgroup.inc}
   end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+{ TAbstractX3DViewpointNode -------------------------------------------------- }
+
 procedure TAbstractViewpointNode.CreateNode;
 begin
   inherited;
@@ -469,7 +514,7 @@ end;
 procedure TAbstractViewpointNode.GetView(
   out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
 begin
-  CamPos := Position.Value;
+  CamPos := Position;
 
   if FdDirection.Items.Count > 0 then
   begin
@@ -522,7 +567,7 @@ begin
   Result := ntcViewpoint;
 end;
 
-function TAbstractViewpointNode.Description: string;
+function TAbstractViewpointNode.SmartDescription: string;
 begin
   Result := FdDescription.Value;
   { if node doesn't have a "description" field, or it's left empty, use node name }
@@ -531,6 +576,26 @@ begin
   { if even the node name is empty, just show node type. }
   if Result = '' then
     Result := X3DType;
+end;
+
+function TAbstractViewpointNode.GetPosition: TVector3Single;
+begin
+  Result := PositionField.Value;
+end;
+
+procedure TAbstractViewpointNode.SetPosition(const Value: TVector3Single);
+begin
+  PositionField.Send(Value);
+end;
+
+function TAbstractViewpointNode.GetOrientation: TVector4Single;
+begin
+  Result := FdOrientation.Value;
+end;
+
+procedure TAbstractViewpointNode.SetOrientation(const Value: TVector4Single);
+begin
+  FdOrientation.Send(Value);
 end;
 
 procedure TAbstractX3DViewpointNode.CreateNode;
@@ -567,6 +632,8 @@ function TAbstractX3DViewpointNode.GetProjectorMatrix: TMatrix4Single;
 begin
   Result := ProjectionMatrix * ModelviewMatrix;
 end;
+
+{ TBillboardNode ------------------------------------------------------------- }
 
 procedure TBillboardNode.CreateNode;
 begin
@@ -687,6 +754,8 @@ function TBillboardNode.TransformationChange: TNodeTransformationChange;
 begin
   Result := ntcTransform;
 end;
+
+{ TCollisionNode ------------------------------------------------------------- }
 
 procedure TCollisionNode.CreateNode;
 begin
@@ -814,6 +883,8 @@ begin
   FdProxy.Send(Value);
 end;
 
+{ TAbstractLODNode ----------------------------------------------------------- }
+
 procedure TAbstractLODNode.CreateNode;
 begin
   inherited;
@@ -863,6 +934,28 @@ begin
   Result := ntcLOD;
 end;
 
+function TAbstractLODNode.GetCenter: TVector3Single;
+begin
+  Result := FdCenter.Value;
+end;
+
+procedure TAbstractLODNode.SetCenter(const Value: TVector3Single);
+begin
+  FdCenter.Send(Value);
+end;
+
+function TAbstractLODNode.GetForceTransitions: boolean;
+begin
+  Result := FdForceTransitions.Value;
+end;
+
+procedure TAbstractLODNode.SetForceTransitions(const Value: boolean);
+begin
+  FdForceTransitions.Send(Value);
+end;
+
+{ TLODNode_2 ----------------------------------------------------------------- }
+
 procedure TLODNode_2.CreateNode;
 begin
   inherited;
@@ -881,6 +974,8 @@ begin
   Result := Version.Major = 2;
 end;
 
+{ TLODNode ------------------------------------------------------------------- }
+
 class function TLODNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
@@ -891,6 +986,8 @@ class function TLODNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
 begin
   Result := Version.Major >= 3;
 end;
+
+{ TNavigationInfoNode -------------------------------------------------------- }
 
 procedure TNavigationInfoNode.CreateNode;
 const
@@ -973,6 +1070,8 @@ begin
   FdBlendingSort.SendEnumValue(Ord(Value));
 end;
 
+{ TOrthoViewpointNode -------------------------------------------------------- }
+
 procedure TOrthoViewpointNode.CreateNode;
 begin
   inherited;
@@ -1001,7 +1100,7 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function TOrthoViewpointNode.Position: TSFVec3f;
+function TOrthoViewpointNode.PositionField: TSFVec3f;
 begin
   Result := FdPosition;
 end;
@@ -1120,6 +1219,8 @@ begin
   end;
 end;
 
+{ TViewpointNode ------------------------------------------------------------- }
+
 procedure TViewpointNode.CreateNode;
 begin
   inherited;
@@ -1149,7 +1250,7 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function TViewpointNode.Position: TSFVec3f;
+function TViewpointNode.PositionField: TSFVec3f;
 begin
   Result := FdPosition;
 end;
@@ -1201,6 +1302,8 @@ begin
     1, 100); { TODO: near, far projection testing values }
 end;
 
+{ TViewpointGroupNode -------------------------------------------------------- }
+
 procedure TViewpointGroupNode.CreateNode;
 begin
   inherited;
@@ -1248,7 +1351,7 @@ begin
   if Result <> nil then Exit;
 end;
 
-function TViewpointGroupNode.Description: string;
+function TViewpointGroupNode.SmartDescription: string;
 begin
   Result := FdDescription.Value;
   if Result = '' then

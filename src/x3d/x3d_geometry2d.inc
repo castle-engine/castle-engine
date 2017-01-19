@@ -14,7 +14,8 @@
 }
 
 {$ifdef read_interface}
-  { }
+  { Circular arc in 2D.
+    @bold(Rendering of this node is not implemented yet.) }
   TArc2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
@@ -30,15 +31,18 @@
     private FFdStartAngle: TSFFloat;
     public property FdStartAngle: TSFFloat read FFdStartAngle;
 
-    { Geometry node not implemented } { }
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_arc2d.inc}
   end;
 
+  { Closed circular arc in 2D.
+    @bold(Rendering of this node is not implemented yet.) }
   TArcClose2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
@@ -60,15 +64,17 @@
     private FFdStartAngle: TSFFloat;
     public property FdStartAngle: TSFFloat read FFdStartAngle;
 
-    { Geometry node not implemented } { }
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_arcclose2d.inc}
   end;
 
+  { Circle in 2D. }
   TCircle2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
@@ -85,8 +91,12 @@
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_circle2d.inc}
   end;
 
+  { Disc (filled circle) in 2D.
+    @bold(Rendering of this node is not implemented yet.) }
   TDisk2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
@@ -102,21 +112,18 @@
     private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    { Geometry node not implemented } { }
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_disk2d.inc}
   end;
 
-  { Polyline2D node.
-
-    The "lineSegments" field uses our TX3DField.AddAlternativeName mechanism,
-    and when reading/saving VRML 97 file it will be named "point"
-    (as it was in VRML 97 amendment 1 specification).
-    In X3D normal name, "lineSegments", will be used. }
+  { Series of contiguous line segments in 2D.
+    @bold(Rendering of this node is not implemented yet.) }
   TPolyline2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
@@ -124,17 +131,22 @@
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdLineSegments: TMFVec2f;
+    { Polyline segments.
+      In VRML 97 it is called "point", in X3D it is "lineSegments". }
     public property FdLineSegments: TMFVec2f read FFdLineSegments;
 
-    { Geometry node not implemented } { }
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_polyline2d.inc}
   end;
 
+  { Set of vertices in 2D.
+    @bold(Rendering of this node is not implemented yet.) }
   TPolypoint2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
@@ -144,15 +156,17 @@
     private FFdPoint: TMFVec2f;
     public property FdPoint: TMFVec2f read FFdPoint;
 
-    { Geometry node not implemented } { }
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_polypoint2d.inc}
   end;
 
+  { Rectangle in 2D. }
   TRectangle2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
@@ -168,8 +182,12 @@
     function Proxy(var State: TX3DGraphTraverseState;
       const OverTriangulate: boolean): TAbstractGeometryNode; override;
     function ProxyUsesOverTriangulate: boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_rectangle2d.inc}
   end;
 
+  { Set of triangles in 2D.
+    @bold(Rendering of this node is not implemented yet.) }
   TTriangleSet2DNode = class(TAbstractX3DGeometryNode)
   public
     procedure CreateNode; override;
@@ -182,13 +200,14 @@
     private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    { Geometry node not implemented } { }
     function LocalBoundingBox(State: TX3DGraphTraverseState;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_triangleset2d.inc}
   end;
 
 {$endif read_interface}

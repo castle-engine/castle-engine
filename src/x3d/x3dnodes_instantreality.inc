@@ -18,8 +18,12 @@
   [http://instant-reality.com/documentation/nodetype/]. }
 
 {$ifdef read_interface}
-  { MatrixTransform node for VRML/X3D >= 2.0. From InstantReality extension,
-    see [http://instant-reality.com/documentation/nodetype/MatrixTransform/]. }
+  { Transform children by an explicit 4x4 matrix.
+
+    This is an extension, not present in the X3D standard.
+    See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_matrix_transform .
+    It is compatible with InstantReality,
+    see http://instant-reality.com/documentation/nodetype/MatrixTransform/ . }
   TMatrixTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -34,9 +38,13 @@
 
     private FFdMatrix: TSFMatrix4f;
     public property FdMatrix: TSFMatrix4f read FFdMatrix;
+
+    {$I auto_generated_node_helpers/x3dnodes_matrixtransform.inc}
   end;
   TMatrixTransformNode_2 = TMatrixTransformNode;
 
+  { Teapot geometry, useful for testing purposes.
+    See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_teapot . }
   TTeapotNode = class(TAbstractX3DGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -63,8 +71,12 @@
 
     function TexCoordField: TSFNode; override;
     function AutoGenerate3DTexCoords: boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_teapot.inc}
   end;
 
+  { X3D events logging.
+    See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_logger . }
   TLoggerNode = class(TAbstractChildNode)
   private
     WriteStream: TStream;
@@ -89,6 +101,8 @@
 
     private FEventWrite: TXFAnyEvent;
     public property EventWrite: TXFAnyEvent read FEventWrite;
+
+    {$I auto_generated_node_helpers/x3dnodes_logger.inc}
   end;
 
   TConverterNode = class(TAbstractChildNode)
@@ -112,6 +126,8 @@
     public property EventOut: TXFAnyEvent read FEventOut;
   end;
 
+  { Texture with contents created by rendering the scene from a specific
+    viewpoint. }
   TRenderedTextureNode = class(TAbstractTextureNode)
   private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
@@ -201,6 +217,8 @@
     { Event out } { }
     private FEventRendering: TSFBoolEvent;
     public property EventRendering: TSFBoolEvent read FEventRendering;
+
+    {$I auto_generated_node_helpers/x3dnodes_renderedtexture.inc}
   end;
 
   TPlaneNode = class(TAbstractX3DGeometryNode)
@@ -220,6 +238,7 @@
     function ProxyUsesOverTriangulate: boolean; override;
   end;
 
+  { Utility for setting and observing a boolean value in various ways. }
   TTogglerNode = class(TAbstractChildNode)
   private
     procedure EventStatusReceive(
@@ -269,6 +288,8 @@
 
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
+
+    {$I auto_generated_node_helpers/x3dnodes_toggler.inc}
   end;
 {$endif read_interface}
 

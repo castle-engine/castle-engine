@@ -22,6 +22,8 @@
     { Event out } { }
     private FEventIsActive: TSFBoolEvent;
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dfollowernode.inc}
   end;
 
   TAbstractDamperNode = class(TAbstractFollowerNode)
@@ -36,6 +38,8 @@
 
     private FFdOrder: TSFInt32;
     public property FdOrder: TSFInt32 read FFdOrder;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3ddampernode.inc}
   end;
 
   TAbstractChaserNode = class(TAbstractFollowerNode)
@@ -44,6 +48,8 @@
 
     private FFdDuration: TSFTime;
     public property FdDuration: TSFTime read FFdDuration;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dchasernode.inc}
   end;
 
   TColorDamperNode = class(TAbstractDamperNode)
@@ -69,6 +75,8 @@
 
     private FFdInitialValue: TSFColor;
     public property FdInitialValue: TSFColor read FFdInitialValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_colordamper.inc}
   end;
 
   TCoordinateDamperNode = class(TAbstractDamperNode)
@@ -94,6 +102,8 @@
 
     private FFdInitialValue: TMFVec3f;
     public property FdInitialValue: TMFVec3f read FFdInitialValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_coordinatedamper.inc}
   end;
 
   TOrientationChaserNode = class(TAbstractChaserNode)
@@ -119,6 +129,8 @@
 
     private FFdInitialValue: TSFRotation;
     public property FdInitialValue: TSFRotation read FFdInitialValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_orientationchaser.inc}
   end;
 
   TOrientationDamperNode = class(TAbstractDamperNode)
@@ -144,6 +156,8 @@
 
     private FFdInitialValue: TSFRotation;
     public property FdInitialValue: TSFRotation read FFdInitialValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_orientationdamper.inc}
   end;
 
   TPositionChaserNode = class(TAbstractChaserNode)
@@ -169,6 +183,8 @@
 
     private FFdInitialValue: TSFVec3f;
     public property FdInitialValue: TSFVec3f read FFdInitialValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_positionchaser.inc}
   end;
 
   TPositionChaser2DNode = class(TAbstractChaserNode)
@@ -194,6 +210,8 @@
 
     private FFdInitialValue: TSFVec2f;
     public property FdInitialValue: TSFVec2f read FFdInitialValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_positionchaser2d.inc}
   end;
 
   TPositionDamperNode = class(TAbstractDamperNode)
@@ -219,6 +237,8 @@
 
     private FFdInitialValue: TSFVec3f;
     public property FdInitialValue: TSFVec3f read FFdInitialValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_positiondamper.inc}
   end;
 
   TPositionDamper2DNode = class(TAbstractDamperNode)
@@ -244,6 +264,8 @@
 
     private FFdInitialValue: TSFVec2f;
     public property FdInitialValue: TSFVec2f read FFdInitialValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_positiondamper2d.inc}
   end;
 
   TScalarChaserNode = class(TAbstractChaserNode)
@@ -269,6 +291,8 @@
 
     private FFdInitialValue: TSFFloat;
     public property FdInitialValue: TSFFloat read FFdInitialValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_scalarchaser.inc}
   end;
 
   TTexCoordDamper2DNode = class(TAbstractDamperNode)
@@ -294,6 +318,8 @@
 
     private FFdInitialValue: TMFVec2f;
     public property FdInitialValue: TMFVec2f read FFdInitialValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_texcoorddamper2d.inc}
   end;
 
 {$endif read_interface}

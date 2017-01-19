@@ -14,19 +14,27 @@
 }
 
 {$ifdef read_interface}
-  { }
+  { Basis for all sensors that generate events based on network activity. }
   TAbstractNetworkSensorNode = class(TAbstractSensorNode)
   public
     procedure CreateNode; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dnetworksensornode.inc}
   end;
 
+  { Abstract interface used by all nodes that contain data located
+    on the World Wide Web. }
   IAbstractUrlObject = interface(IX3DNode)
   ['{668420DB-20F7-4A5E-BB89-52F29CA39057}']
     property FdUrl: TMFString { read GetFdurl }; { }
+
+    {$I auto_generated_node_helpers/x3dnodes_x3durlobject.inc}
   end;
 
   TAbstractViewpointNode = class;
 
+  { Load the URL when the user activates (clicks)
+    some geometry contained within the Anchor node's children. }
   TAnchorNode = class(TAbstractX3DGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -95,18 +103,11 @@
       out NewRootNode: TX3DRootNode;
       out NewViewpoint: TAbstractViewpointNode;
       CurrentRootNode: TX3DRootNode): boolean;
+
+    {$I auto_generated_node_helpers/x3dnodes_anchor.inc}
   end;
 
-  { Inline node.
-
-    The loaded inline contents are accessible in the @link(Inlined) object.
-    Currently this is also kept in the Children list
-    of this node. Originally, Children list is for VRML 1.0 children,
-    but for inline node this is just used for inlined content (regardless
-    of VRML/X3D version).
-
-    This means that most methods, like TX3DNode.EnumerateNodes,
-    descend into inlined content normally. }
+  { Embed another X3D scene into the current scene. }
   TInlineNode = class(TAbstractGroupingNode, IAbstractBoundedObject, IAbstractUrlObject)
   private
     procedure EventLoadReceive(
@@ -187,16 +188,20 @@
     { The inlined content (loaded from inlined url).
       @nil if not yet loaded, or no loading was successful.
 
-      This is also kept in VRML 1.0 children as Children[0],
-      but for future it's better to not depend on that. }
+      This is also kept in VRML 1.0 children list as VRML1Children[0],
+      but for future it's better to not depend on that.
+      But it will always be enumerated by things like TX3DNode.EnumerateNodes. }
     property Inlined: TX3DRootNode read FInlined;
+
+    {$I auto_generated_node_helpers/x3dnodes_inline.inc}
   end;
 
-  { InlineLoadControl (VRML 97 node).
+  { Embed another X3D scene into the current scene,
+    with explicit "load" control (VRML 97 version).
 
-    Note that our Inline node conforms to X3D, and so our Inline already
-    has a "load" field. So InlineLoadControl doesn't really have much use...
-    InlineLoadControl is implemented mostly for compatibility with VRML 97.
+    Note that our TInlineNode conforms to the newer X3D standard,
+    and so it already has a @link(TInlineNode.Load) property.
+    This node is implemented only for compatibility with VRML 97.
     It has additional "children" output field. }
   TInlineLoadControlNode = class(TInlineNode)
   protected
@@ -211,6 +216,7 @@
     public property EventChildren: TMFNodeEvent read FEventChildren;
   end;
 
+  { Monitors the progress and success of downloading URL elements over a network. }
   TLoadSensorNode = class(TAbstractNetworkSensorNode)
   public
     procedure CreateNode; override;
@@ -234,6 +240,8 @@
     { Event out } { }
     private FEventProgress: TSFFloatEvent;
     public property EventProgress: TSFFloatEvent read FEventProgress;
+
+    {$I auto_generated_node_helpers/x3dnodes_loadsensor.inc}
   end;
 
 {$endif read_interface}

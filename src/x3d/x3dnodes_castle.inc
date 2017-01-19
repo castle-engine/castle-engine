@@ -17,6 +17,8 @@
   See [http://castle-engine.sourceforge.net/x3d_extensions.php]. } { }
 
 {$ifdef read_interface}
+  { Headlight configuration, allows to customize headlight look and shape.
+    See http://castle-engine.sourceforge.net/x3d_implementation_navigation_extensions.php#section_ext_headlight . }
   TKambiHeadLightNode = class(TAbstractChildNode)
   public
     procedure CreateNode; override;
@@ -44,8 +46,12 @@
     public property FdSpotDropOffRate: TSFFloat read FFdSpotDropOffRate;
 
     class function URNMatching(const URN: string): boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_kambiheadlight.inc}
   end;
 
+  { Text with 3D depth.
+    @bold(The depth is not implemented now -- this is equivalent to @link(TTextNode) now.) }
   TText3DNode = class(TTextNode)
   public
     procedure CreateNode; override;
@@ -58,16 +64,18 @@
     public property FdDepth: TSFFloat read FFdDepth;
 
     class function URNMatching(const URN: string): boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_text3d.inc}
   end;
 
-  { BlendMode node.
+  { Customize blending (partial transparency) mode.
+    See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_blending .
 
-    This is not standard X3D. It's modelled after InstantReality extension on
-    [http://www.instantreality.org/].
-    See [http://www.instantreality.org/documentation/nodetype/ManagedAppearance/]
-    and [http://www.instantreality.org/documentation/nodetype/BlendMode/].
-
-    Actually, our version is just a subset of their node. }
+    This is an extension, not present in standard X3D.
+    It is compatible with modelled after, and compatible with,
+    and InstantReality extension -- see
+    [http://www.instantreality.org/documentation/nodetype/ManagedAppearance/]
+    and [http://www.instantreality.org/documentation/nodetype/BlendMode/]. }
   TBlendModeNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
@@ -85,16 +93,25 @@
 
     private FFdColorTransparency: TSFFloat;
     public property FdColorTransparency: TSFFloat read FFdColorTransparency;
+
+    {$I auto_generated_node_helpers/x3dnodes_blendmode.inc}
   end;
 
+  { Appearance node with a special name @code(KambiAppearance).
+    Useful if you want to use EXTERNPROTO to declare Castle Game Engine
+    extensions the Appearance in a clean way. }
   TKambiAppearanceNode = class(TAppearanceNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
     class function URNMatching(const URN: string): boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_kambiappearance.inc}
   end;
 
+  { Embed a scene from another file, and replace some of it's nodes.
+    See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_kambi_inline . }
   TKambiInlineNode = class(TInlineNode)
   private
     { This is internal only for DoReplaceNodes, initialized in AfterLoadInlined. }
@@ -112,6 +129,8 @@
 
     private FFdReplaceNodes: TMFNode;
     public property FdReplaceNodes: TMFNode read FFdReplaceNodes;
+
+    {$I auto_generated_node_helpers/x3dnodes_kambiinline.inc}
   end;
 
   TSceneOctreeProperties = (
@@ -122,6 +141,8 @@
 
   TKambiOctreePropertiesNode = class;
 
+  { Navigation information with some Castle Game Engine extensions.
+    See http://castle-engine.sourceforge.net/x3d_implementation_navigation_extensions.php . }
   TKambiNavigationInfoNode = class(TNavigationInfoNode)
   public
     procedure CreateNode; override;
@@ -156,6 +177,8 @@
       Returns @nil if the field doesn't have allowed (TKambiOctreePropertiesNode)
       value (or if the field is actually @nil, naturally). }
     function OctreeProperties(OP: TSceneOctreeProperties): TKambiOctreePropertiesNode;
+
+    {$I auto_generated_node_helpers/x3dnodes_kambinavigationinfo.inc}
   end;
 
   TKambiOctreePropertiesNode = class(TAbstractNode)
@@ -172,8 +195,12 @@
 
     { Override Limits fields, where our own fields have values <> -1. }
     procedure OverrideLimits(var Limits: TOctreeLimits);
+
+    {$I auto_generated_node_helpers/x3dnodes_kambioctreeproperties.inc}
   end;
 
+  { Generate texture by rendering a depth (shadow) map.
+    See http://castle-engine.sourceforge.net/x3d_extensions_shadow_maps.php }
   TGeneratedShadowMapNode = class(TAbstractTextureNode)
   strict private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
@@ -213,8 +240,12 @@
     public property FdCompareMode: TSFString read FFdCompareMode;
 
     property Light: TAbstractLightNode read GetLight write SetLight;
+
+    {$I auto_generated_node_helpers/x3dnodes_generatedshadowmap.inc}
   end;
 
+  { Generate texture coordinates by projection.
+    See http://castle-engine.sourceforge.net/x3d_extensions_shadow_maps.php }
   TProjectedTextureCoordinateNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
@@ -224,15 +255,17 @@
 
     private FFdProjector: TSFNode;
     public property FdProjector: TSFNode read FFdProjector;
+
+    {$I auto_generated_node_helpers/x3dnodes_projectedtexturecoordinate.inc}
   end;
 
+  { Screen-space shader effect.
+    See http://castle-engine.sourceforge.net/x3d_extensions_screen_effects.php . }
   TScreenEffectNode = class(TAbstractChildNode)
   private
     FShader: TObject;
     FShaderLoaded: boolean;
     FStateForShaderPrepare: TX3DGraphTraverseState;
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -250,8 +283,6 @@
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    property Enabled: boolean read GetEnabled write SetEnabled;
-
     { Shader and ShaderLoaded properties are internally manager by the renderer.
       Right now, this means TCastleScene.
       Always when ShaderLoaded = @false then Shader is @nil.
@@ -263,6 +294,8 @@
     property StateForShaderPrepare: TX3DGraphTraverseState
       read FStateForShaderPrepare;
     { @groupEnd }
+
+    {$I auto_generated_node_helpers/x3dnodes_screeneffect.inc}
   end;
 
   { Internal notes to MultiGeneratedTextureCoordinate:
@@ -279,18 +312,19 @@
     Also, shadow maps processing can just use MultiTextureCoordinate
     (regardless if we're on primitives or not). }
 
-  { X3D MultiGeneratedTextureCoordinate node.
+  { Generated texture coordinates for multi-texturing.
     See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_tex_coord]. }
   TMultiGeneratedTextureCoordinateNode = class(TMultiTextureCoordinateNode)
   public
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_multigeneratedtexturecoordinate.inc}
   end;
 
+  { Shader effect, that can be composed with other effect or standard rendering.
+    See http://castle-engine.sourceforge.net/compositing_shaders.php . }
   TEffectNode = class(TAbstractChildNode)
-  private
-    function GetEnabled: boolean;
-    procedure SetEnabled(const Value: boolean);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -305,9 +339,11 @@
     private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    property Enabled: boolean read GetEnabled write SetEnabled;
+    {$I auto_generated_node_helpers/x3dnodes_effect.inc}
   end;
 
+  { Part of a shader effect, used with @link(TEffectNode).
+    See http://castle-engine.sourceforge.net/compositing_shaders.php . }
   TEffectPartNode = class(TAbstractNode, IAbstractUrlObject)
   private
     ContentsCached: boolean;
@@ -335,8 +371,12 @@
       Will return '' if no valid URLs are present,
       loading errors are reported to WritelnWarning. }
     function Contents: string;
+
+    {$I auto_generated_node_helpers/x3dnodes_effectpart.inc}
   end;
 
+  { Procedural texture defined by shaders.
+    See http://castle-engine.sourceforge.net/compositing_shaders.php . }
   TShaderTextureNode = class(TAbstractTextureNode)
   public
     procedure CreateNode; override;
@@ -345,6 +385,8 @@
 
     private FFdDefaultTexCoord: TSFString;
     public property FdDefaultTexCoord: TSFString read FFdDefaultTexCoord;
+
+    {$I auto_generated_node_helpers/x3dnodes_shadertexture.inc}
   end;
 
 {$endif read_interface}
@@ -788,16 +830,6 @@ begin
   if Result <> nil then Exit;
 end;
 
-function TScreenEffectNode.GetEnabled: boolean;
-begin
-  Result := FdEnabled.Value;
-end;
-
-procedure TScreenEffectNode.SetEnabled(const Value: boolean);
-begin
-  FdEnabled.Send(Value);
-end;
-
 class function TMultiGeneratedTextureCoordinateNode.ClassX3DType: string;
 begin
   Result := 'MultiGeneratedTextureCoordinate';
@@ -839,16 +871,6 @@ class function TEffectNode.URNMatching(const URN: string): boolean;
 begin
   Result := (URN = URNKambiNodes + ClassX3DType) or
     (URN = URNKambiNodes2 + ClassX3DType);
-end;
-
-function TEffectNode.GetEnabled: boolean;
-begin
-  Result := FdEnabled.Value;
-end;
-
-procedure TEffectNode.SetEnabled(const Value: boolean);
-begin
-  FdEnabled.Send(Value);
 end;
 
 procedure TEffectPartNode.CreateNode;

@@ -204,8 +204,11 @@
 
       Note that this expressed is in the local light node coordinate system. }
     function PositionAndDirection: TVector4Single; virtual; abstract;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dlightnode.inc}
   end;
 
+  { Base class for all directional lights. }
   TAbstractDirectionalLightNode = class(TAbstractLightNode)
   private
     function GetDirection: TVector3Single;
@@ -245,6 +248,7 @@
     function PositionAndDirection: TVector4Single; override;
   end;
 
+  { Base class for all positional lights. }
   TAbstractPositionalLightNode = class(TAbstractLightNode)
   private
     function GetAttenuation: TVector3Single;
@@ -311,6 +315,8 @@
     function PositionAndDirection: TVector4Single; override;
   end;
 
+  { Point light source, that shines from a given point in all directions around,
+    for all VRML and X3D versions. }
   TAbstractPointLightNode = class(TAbstractPositionalLightNode)
   protected
     function  GetProjectionLocationLocal: TVector3Single; override;
@@ -323,6 +329,7 @@
       out MinDistance, MaxDistance: Single); override;
   end;
 
+  { Light source that shines along a given direction, like a sun. }
   TDirectionalLightNode = class(TAbstractDirectionalLightNode)
   public
     procedure CreateNode; override;
@@ -330,9 +337,13 @@
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
+
+    {$I auto_generated_node_helpers/x3dnodes_directionallight.inc}
   end;
   TDirectionalLightNode_2 = TDirectionalLightNode;
 
+  { Point light source, that shines from a given point in all directions around,
+    for X3D. }
   TPointLightNode = class(TAbstractPointLightNode)
   public
     procedure CreateNode; override;
@@ -340,9 +351,13 @@
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
+
+    {$I auto_generated_node_helpers/x3dnodes_pointlight.inc}
   end;
   TPointLightNode_2 = TPointLightNode;
 
+  { Light source that emits light from a specific point along a specific direction
+    constrained within a cone. }
   TSpotLightNode = class(TAbstractPositionalLightNode)
   protected
     function  GetProjectionLocationLocal: TVector3Single; override;
@@ -395,6 +410,8 @@
       Use this only if you have to render spot light with exponent,
       e.g. for OpenGL fixed-function pipeline. }
     function SpotExponentApproximate: Single;
+
+    {$I auto_generated_node_helpers/x3dnodes_spotlight.inc}
   end;
   TSpotLightNode_2 = TSpotLightNode;
 
@@ -695,18 +712,18 @@ end;
 
 function TAbstractDirectionalLightNode.ModelviewMatrix: TMatrix4Single;
 var
-  Pos, Dir, Side, Up: TVector3Single;
+  Pos, Dir, Side, AUp: TVector3Single;
 begin
-  GetView(Pos, Dir, Side, Up);
-  Result := LookDirMatrix(Pos, Dir, Side, Up);
+  GetView(Pos, Dir, Side, AUp);
+  Result := LookDirMatrix(Pos, Dir, Side, AUp);
 end;
 
 function TAbstractDirectionalLightNode.ModelviewRotationMatrix: TMatrix4Single;
 var
-  Pos, Dir, Side, Up: TVector3Single;
+  Pos, Dir, Side, AUp: TVector3Single;
 begin
-  GetView(Pos, Dir, Side, Up);
-  Result := FastLookDirMatrix(Dir, Up);
+  GetView(Pos, Dir, Side, AUp);
+  Result := FastLookDirMatrix(Dir, AUp);
 end;
 
 function TAbstractDirectionalLightNode.GetProjectionLocationLocal: TVector3Single;
@@ -1054,18 +1071,18 @@ end;
 
 function TSpotLightNode.ModelviewMatrix: TMatrix4Single;
 var
-  Pos, Dir, Side, Up: TVector3Single;
+  Pos, Dir, Side, AUp: TVector3Single;
 begin
-  GetView(Pos, Dir, Side, Up);
-  Result := LookDirMatrix(Pos, Dir, Side, Up);
+  GetView(Pos, Dir, Side, AUp);
+  Result := LookDirMatrix(Pos, Dir, Side, AUp);
 end;
 
 function TSpotLightNode.ModelviewRotationMatrix: TMatrix4Single;
 var
-  Pos, Dir, Side, Up: TVector3Single;
+  Pos, Dir, Side, AUp: TVector3Single;
 begin
-  GetView(Pos, Dir, Side, Up);
-  Result := FastLookDirMatrix(Dir, Up);
+  GetView(Pos, Dir, Side, AUp);
+  Result := FastLookDirMatrix(Dir, AUp);
 end;
 
 function TSpotLightNode.GetProjectionLocationLocal: TVector3Single;

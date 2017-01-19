@@ -14,7 +14,7 @@
 }
 
 {$ifdef read_interface}
-  { }
+  { Base type for all node types that specify a programmable shader. }
   TAbstractShaderNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
@@ -33,20 +33,30 @@
 
     private FFdLanguage: TSFString;
     public property FdLanguage: TSFString read FFdLanguage;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dshadernode.inc}
   end;
 
+  { Base type for all node types that specify
+    per-vertex attribute information to the shader. }
   TAbstractVertexAttributeNode = class(TAbstractGeometricPropertyNode)
   public
     procedure CreateNode; override;
 
     private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dvertexattributenode.inc}
   end;
 
+  { Interface for all nodes that specify arbitrary fields for interfacing
+    with per-object attribute values in shaders. }
   IAbstractProgrammableShaderObject = interface
   ['{B027FD9B-2A68-4653-8A26-91DB51BE47ED}']
   end;
 
+  { OpenGL Shading Language (GLSL) shader container,
+    which should be composed from multiple @link(TShaderPartNode) instances. }
   TComposedShaderNode = class(TAbstractShaderNode, IAbstractProgrammableShaderObject)
   public
     procedure CreateNode; override;
@@ -55,8 +65,11 @@
 
     private FFdParts: TMFNode;
     public property FdParts: TMFNode read FFdParts;
+
+    {$I auto_generated_node_helpers/x3dnodes_composedshader.inc}
   end;
 
+  { Per-vertex single-precision floating point attributes, available to shaders. }
   TFloatVertexAttributeNode = class(TAbstractVertexAttributeNode)
   public
     procedure CreateNode; override;
@@ -68,8 +81,11 @@
 
     private FFdNumComponents: TSFInt32;
     public property FdNumComponents: TSFInt32 read FFdNumComponents;
+
+    {$I auto_generated_node_helpers/x3dnodes_floatvertexattribute.inc}
   end;
 
+  { Per-vertex 3x3 matrix attributes, available to shaders. }
   TMatrix3VertexAttributeNode = class(TAbstractVertexAttributeNode)
   public
     procedure CreateNode; override;
@@ -78,8 +94,11 @@
 
     private FFdValue: TMFMatrix3f;
     public property FdValue: TMFMatrix3f read FFdValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_matrix3vertexattribute.inc}
   end;
 
+  { Per-vertex 4x4 matrix attributes, available to shaders. }
   TMatrix4VertexAttributeNode = class(TAbstractVertexAttributeNode)
   public
     procedure CreateNode; override;
@@ -88,8 +107,12 @@
 
     private FFdValue: TMFMatrix4f;
     public property FdValue: TMFMatrix4f read FFdValue;
+
+    {$I auto_generated_node_helpers/x3dnodes_matrix4vertexattribute.inc}
   end;
 
+  { Single file that may contain a number of shaders and combined effects.
+    @bold(Not implemented.) }
   TPackagedShaderNode = class(TAbstractShaderNode, IAbstractUrlObject, IAbstractProgrammableShaderObject)
   public
     procedure CreateNode; override;
@@ -98,8 +121,14 @@
 
     private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
+
+    {$I auto_generated_node_helpers/x3dnodes_packagedshader.inc}
   end;
 
+  { Shader that can consist of one or more individually
+    programmable, self-contained pieces in @link(TShaderProgramNode),
+    like a Microsoft HLSL shader.
+    @bold(Not implemented.) }
   TProgramShaderNode = class(TAbstractShaderNode)
   public
     procedure CreateNode; override;
@@ -108,8 +137,12 @@
 
     private FFdPrograms: TMFNode;
     public property FdPrograms: TMFNode read FFdPrograms;
+
+    {$I auto_generated_node_helpers/x3dnodes_programshader.inc}
   end;
 
+  { OpenGL Shading Language (GLSL) shader part,
+    used inside @link(TComposedShaderNode). }
   TShaderPartNode = class(TAbstractNode, IAbstractUrlObject)
   private
     ContentsCached: boolean;
@@ -137,8 +170,13 @@
       Will return '' if no valid URLs are present,
       loading errors are reported to WritelnWarning. }
     function Contents: string;
+
+    {$I auto_generated_node_helpers/x3dnodes_shaderpart.inc}
   end;
 
+  { Self-container shader part used with @link(TProgramShaderNode),
+    for example with Microsoft HLSL shader language.
+    @bold(Not implemented.) }
   TShaderProgramNode = class(TAbstractNode, IAbstractUrlObject, IAbstractProgrammableShaderObject)
   public
     procedure CreateNode; override;
@@ -150,6 +188,8 @@
 
     private FFdType: TSFStringEnum;
     public property FdType: TSFStringEnum read FFdType;
+
+    {$I auto_generated_node_helpers/x3dnodes_shaderprogram.inc}
   end;
 {$endif read_interface}
 

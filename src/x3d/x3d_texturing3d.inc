@@ -14,7 +14,7 @@
 }
 
 {$ifdef read_interface}
-  { }
+  { Base type for all node types that specify 3D sources for texture images. }
   TAbstractTexture3DNode = class(TAbstractTextureNode)
   private
     UsedCache: TTexturesVideosCache;
@@ -67,8 +67,11 @@
 
     property TextureImage: TEncodedImage read FTextureImage;
     property TextureComposite: TCompositeImage read FTextureComposite;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dtexture3dnode.inc}
   end;
 
+  { 3D texture defined as a collection of 2D texture sources at various depths. }
   TComposedTexture3DNode = class(TAbstractTexture3DNode)
   private
     FAlphaChannelData: TAlphaChannel;
@@ -83,8 +86,11 @@
     public property FdTexture: TMFNode read FFdTexture;
 
     procedure LoadTextureData; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_composedtexture3d.inc}
   end;
 
+  { 3D texture loaded from a single file like DDS. }
   TImageTexture3DNode = class(TAbstractTexture3DNode, IAbstractUrlObject)
   private
     FAlphaChannelData: TAlphaChannel;
@@ -99,8 +105,11 @@
     public property FdUrl: TMFString read FFdUrl;
 
     procedure LoadTextureData; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_imagetexture3d.inc}
   end;
 
+  { 3D texture defined as an explicit array of pixel values inside the X3D file. }
   TPixelTexture3DNode = class(TAbstractTexture3DNode)
   private
     FAlphaChannelData: TAlphaChannel;
@@ -115,8 +124,11 @@
     public property FdImage: TMFInt32 read FFdImage;
 
     procedure LoadTextureData; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_pixeltexture3d.inc}
   end;
 
+  { 3D texture coordinates, partcularly useful with 3D textures. }
   TTextureCoordinate3DNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
@@ -125,8 +137,11 @@
 
     private FFdPoint: TMFVec3f;
     public property FdPoint: TMFVec3f read FFdPoint;
+
+    {$I auto_generated_node_helpers/x3dnodes_texturecoordinate3d.inc}
   end;
 
+  { 4D (homogeneous 3D) texture coordinates, partcularly useful with 3D textures. }
   TTextureCoordinate4DNode = class(TAbstractTextureCoordinateNode)
   public
     procedure CreateNode; override;
@@ -135,8 +150,12 @@
 
     private FFdPoint: TMFVec4f;
     public property FdPoint: TMFVec4f read FFdPoint;
+
+    {$I auto_generated_node_helpers/x3dnodes_texturecoordinate4d.inc}
   end;
 
+  { Transformation of texture coordinates by a 4x4 matrix,
+    particularly useful with 3D textures. }
   TTextureTransformMatrix3DNode = class(TAbstractTextureTransformNode)
   public
     procedure CreateNode; override;
@@ -147,8 +166,12 @@
     public property FdMatrix: TSFMatrix4f read FFdMatrix;
 
     function TransformMatrix: TMatrix4Single; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_texturetransformmatrix3d.inc}
   end;
 
+  { Transformation of texture coordinates in 3D,
+    partcularly useful with 3D textures. }
   TTextureTransform3DNode = class(TAbstractTextureTransformNode)
   public
     procedure CreateNode; override;
@@ -168,6 +191,8 @@
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
     function TransformMatrix: TMatrix4Single; override;
+
+    {$I auto_generated_node_helpers/x3dnodes_texturetransform3d.inc}
   end;
 
 {$endif read_interface}
