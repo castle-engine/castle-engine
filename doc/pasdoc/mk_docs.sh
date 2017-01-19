@@ -101,7 +101,9 @@ if (( $# == 0 )); then
               '(' -iwholename '*/opengl/x86_64/glext.pas' ')' -or \
               '(' -iwholename '*ui/pk3dconnexion.pas' ')' -or \
               '(' -iwholename '*ui/windows/tdxinput_tlb.pas' ')' -or \
-              '(' -iwholename '*/x3dloadinternal*.pas' ')' -or \
+              '(' -iname 'x3dloadinternal*.pas' ')' -or \
+              '(' -iname 'castleinternal*.pas' ')' -or \
+              '(' -iname 'castleshapeinternal*.pas' ')' -or \
               '(' -iwholename '*fonts/castleoutlinefont_*.pas' ')' -or \
               '(' -iwholename '*fonts/castlebitmapfont_*.pas' ')' \
             ')' \
