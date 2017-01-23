@@ -133,6 +133,7 @@ var
 begin
   for I := 0 to FTiledMap.Tilesets.Count - 1 do
   begin
+    //todo: use transparent color (implement in TSprite?)
     Ts := FTiledMap.Tilesets.Ptr(i);
     if Ts^.Columns = 0 then
       Ts^.Columns := Ts^.Image.Width div Ts^.TileWidth;
