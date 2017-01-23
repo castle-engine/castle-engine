@@ -78,17 +78,25 @@ rm -f "$TMP_PAS_LIST"
 # be documented by pasdoc.
 
 if (( $# == 0 )); then
-  # We don't generate docs for a lot of automatically generated units
-  # CastleOutlineFont_Xxx and CastleBitmapFont_Xxx, docs for these units would be useless.
-  # (all these units have the same structure, after all).
+  # We don't generate docs for
   #
-  # Don't generate docs for units created only for example programs.
+  # - Automatically generated units (fonts).
   #
-  # Don't generate docs for pk3dconnexion.pas, tdxinput_tlb.pas:
-  # external code, not ready for pasdoc.
+  # - Internal units.
+  #   All the non-internal units should have nice PasDoc documentation.
   #
-  # Don't generate docs for units in base/android/: these should be treated
-  # as internal units.
+  #   Internal units sometimes have internal API, sometimes they even
+  #   describe an "external API", not interesting to CGE developers,
+  #   like castleinternalpk3dconnexion.pas and castleinternaltdxinput_tlb.pas.
+  #
+  #   There are two units that are "somewhat internal":
+  #   glext.pas, castlegles20.pas. We want them to be treated as internal
+  #   for most games. But sometimes users can also use them directly,
+  #   to do some advanced tricks (direct OpenGL / OpenGLES rendering,
+  #   mixed with CGE rendering).
+  #   In any case, their docs are not ready for PasDoc (and never will be
+  #   --- this is OpenGL and OpenGL ES API).
+
   find .  \
     '(' -type d '(' -iname old -or \
                     -iname private \
@@ -99,8 +107,6 @@ if (( $# == 0 )); then
               '(' -iwholename '*/castlelib_dynloader.pas' ')' -or \
               '(' -iwholename '*/castlegles20.pas' ')' -or \
               '(' -iwholename '*/opengl/x86_64/glext.pas' ')' -or \
-              '(' -iwholename '*ui/pk3dconnexion.pas' ')' -or \
-              '(' -iwholename '*ui/windows/tdxinput_tlb.pas' ')' -or \
               '(' -iname 'x3dloadinternal*.pas' ')' -or \
               '(' -iname 'castleinternal*.pas' ')' -or \
               '(' -iname 'castleshapeinternal*.pas' ')' -or \

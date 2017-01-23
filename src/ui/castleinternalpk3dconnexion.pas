@@ -44,7 +44,7 @@
 // 2007-05-30  pk   2h  Experimenting with COM objects
 // *****************************************************************************
 
-unit pk3DConnexion;
+unit CastleInternalPk3DConnexion;
 
 { TODO -oPatrick : React to newly connected devices! }
 
@@ -58,7 +58,7 @@ uses
    Windows,
    Classes,
    ActiveX,
-   TDxInput_TLB;
+   CastleInternalTDxInput_TLB;
 {$endif}
 
 type

@@ -264,13 +264,13 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'ui');
     P.Targets.AddUnit('castleinputs.pas');
     P.Targets.AddUnit('castlekeysmouse.pas');
-    P.Targets.AddUnit('pk3dconnexion.pas');
+    P.Targets.AddUnit('castleinternalpk3dconnexion.pas');
     P.Targets.AddUnit('castleuicontrols.pas');
     P.Targets.AddUnit('castlejoysticks.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'windows');
-      P.Targets.AddUnit('tdxinput_tlb.pas');
+      P.Targets.AddUnit('castleinternaltdxinput_tlb.pas');
     end;
 
     P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'opengl');

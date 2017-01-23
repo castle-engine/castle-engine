@@ -1,4 +1,4 @@
-unit TDxInput_TLB;
+unit CastleInternalTDxInput_TLB;
 
 // ************************************************************************ //
 // WARNING                                                                    

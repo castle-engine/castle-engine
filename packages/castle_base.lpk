@@ -820,8 +820,8 @@
         <UnitName Value="CastleOnScreenMenu"/>
       </Item194>
       <Item195>
-        <Filename Value="../src/ui/pk3dconnexion.pas"/>
-        <UnitName Value="pk3DConnexion"/>
+        <Filename Value="../src/ui/castleinternalpk3dconnexion.pas"/>
+        <UnitName Value="CastleInternalPk3DConnexion"/>
       </Item195>
       <Item196>
         <Filename Value="../src/x3d/castlearraysgenerator_geometry3d.inc"/>

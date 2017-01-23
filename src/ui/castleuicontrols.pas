@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Classes, FGL,
   CastleKeysMouse, CastleUtils, CastleClassUtils,
-  CastleGenericLists, CastleRectangles, CastleTimeUtils, pk3DConnexion,
+  CastleGenericLists, CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion,
   CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties;
 
 const

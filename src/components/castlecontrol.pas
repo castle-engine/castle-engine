@@ -25,7 +25,7 @@ uses
   Classes, SysUtils, OpenGLContext, Controls, Forms, CastleRectangles,
   CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils, StdCtrls,
   CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
-  CastleImages, CastleGLVersion, pk3DConnexion, CastleSceneManager,
+  CastleImages, CastleGLVersion, CastleSceneManager,
   CastleGLImages, CastleGLContainer, Castle2DSceneManager;
 
 const
