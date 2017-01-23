@@ -179,9 +179,9 @@
 
     private FFdEnabled: TSFBool;
     { determines whether collisions will be detected on this node.
-      Setting this value to TRUE will detect collision based on children
-      or @link(proxy). FALSE will not detect any collisions with this nodes,
-      while its content will still be drawn. }
+      If TRUE the node will detect collision based on children
+      or @link(proxy). FALSE value means that no collisions will be detected,
+      while its content (children) will still be drawn. }
     public property FdEnabled: TSFBool read FFdEnabled;
 
     { Event out } { }
@@ -191,7 +191,7 @@
 
     { Event out } { }
     private FEventIsActive: TSFBoolEvent;
-    { sends TRUE if collision starts, sends FALS if collision ends }
+    { sends TRUE if collision starts, sends FALSE if collision ends }
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
     private FFdProxy: TSFNode;
