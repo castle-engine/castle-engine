@@ -1,6 +1,11 @@
 #!/bin/bash
 set -eu
 
+# Use pipefail to fail if the "pasdoc"
+# command in "pasdoc ... | grep ..." pipe fails.
+# See http://unix.stackexchange.com/questions/14270/get-exit-status-of-process-thats-piped-to-another
+set -o pipefail
+
 # Generates docs for all units in castle_game_engine/src.
 # $1 is format (allowed values as for pasdoc's --format option),
 # docs will be placed in subdirectory $1 of current dir
@@ -138,6 +143,16 @@ PASDOC_INCLUDE_DIRS="\
   --include window/gtk/
 "
 
+# Run pasdoc.
+#
+# Filter result through grep.
+# Thanks to "set -o pipefail" defined above, failure of "pasdoc"
+# will still cause the entire script to fail.
+#
+# We filter out some known pasdoc bugs/missing features:
+# - lack of @groupbegin/groupend implementation for now,
+# - reporting as missing links the exceptions from standard units.
+
 pasdoc \
    --format "$PASDOC_FORMAT" \
   $PASDOC_INCLUDE_DIRS \
@@ -155,7 +170,16 @@ pasdoc \
   --external-class-hierarchy=../doc/pasdoc/external_class_hierarchy.txt \
   --visible-members public,published,automated,protected \
   --footer ../doc/pasdoc/footer.html \
-  --description=../src/x3d/x3dnodes_documentation.txt
+  --description=../src/x3d/x3dnodes_documentation.txt \
+  | \
+  grep --ignore-case --invert-match --fixed-strings \
+    --regexp='Tag "groupbegin" is not implemented yet, ignoring' \
+    --regexp='Tag "groupend" is not implemented yet, ignoring' \
+    --regexp='Could not resolve link "EConvertError"' \
+    --regexp='Could not resolve link "EReadError"' \
+    --regexp='Could not resolve link "Exception"' \
+    --regexp='Could not resolve link "EOSError"' \
+    --regexp='Could not resolve link "EInvalidArgument"'
 
 # Not anymore:
 # We hide protected members, for now. Makes a cleaner documentation,
