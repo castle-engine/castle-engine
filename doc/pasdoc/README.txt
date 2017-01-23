@@ -1,10 +1,10 @@
 The script here generates the API documentation for Castle Game Engine
 using PasDoc (http://pasdoc.sourceforge.net/).
 
-The online version of this documentation is already generated for you
-on http://castle-engine.sourceforge.net/reference.php (for last stable
+The online version of this documentation is already generated for you on
+http://castle-engine.sourceforge.net/apidoc/html/ (for last stable
 engine release) or
-http://michalis.ii.uni.wroc.pl/castle-engine-snapshots/docs/reference/html/
+http://michalis.ii.uni.wroc.pl/cge-www-preview/apidoc/html/
 (for SVN engine sources; regenerated daily).
 If you downloaded engine sources as tar.gz/zip archive, you should also
 already have offline version of this documentation here.
@@ -30,13 +30,16 @@ Pascal construct. So the brief summary is: just document everything
 in unit's interface and that's it.
 
 More notes:
+
 - PasDoc supports many @-tags to format your documentation nicer.
   E.g. @italic(this is italic), @bold(this is bold),
   make lists like this: @unorderedList( @item(One) @item(Two) ).
+
 - We use the --auto-abstract feature of PasDoc. This means that the first
   sentence of the documentation (to the first dot followed by a whitespace)
   should stand on it's own, and be a good brief summary of what given
   identifier does.
+
 - We use the --auto-link feature of PasDoc. This means that identifiers
   are automatically linked, without the need to surround them in @link()
   tag... unless they are a common English word and we added them as an exception
@@ -45,6 +48,7 @@ More notes:
     auto_link_exclude.txt and use @link to link to it.
   - otherwise, just write it's name anywhere in the documentation string,
     and it will be automatically picked up.
+
 - Try to keep English simple and clean, especially that first sentence.
   Do *not* start every documentation string with convoluted "This...",
   like "This procedure performs eating a fruit."
