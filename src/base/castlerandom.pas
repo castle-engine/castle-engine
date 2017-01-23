@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2016 Eugene Loza, Michalis Kamburelis.
+  Copyright 2016-2017 Eugene Loza, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -31,10 +31,13 @@ type
   public
     { Create and initialize (seed) the random generator.
       Parameter RandomSeed value 0 indicates to use a random seed
-      (derived from current time). }
+      (derived from current time and some other paramteres). }
     constructor Create(RandomSeed: LongWord = 0);
     { Initializes current seed. The seed must be a non-zero integer.
-      Provide Zero value to initialize random seed based on current time. }
+      Provide Zero value to initialize random seed based on
+      current time (CPU ticks) and some other paramteres.
+      This procedure is thread-safe, you'll get different random seeds
+      even if initialization happens absolutely simultaneously. }
     procedure Initialize(RandomSeed: LongWord = 0);
     { Returns random float value in the 0..1 range. }
     function Random: single;
@@ -43,7 +46,7 @@ type
     { A relatively slow procedure to get a 64 bit integer random number. }
     function RandomInt64(N: int64): int64;
     { A simple Yes/No function that with 50% chance returns true or false.
-      Something like throwing a coin... }
+      Something like flipping a coin... }
     function RandomBoolean: boolean;
     { Randomly provides "-1", "0" or "1" with equal chances. }
     function RandomSign: longint;
@@ -79,6 +82,7 @@ begin
   else seed := LongInt(RandomSeed);
 end;
 
+//we're not using dev_urandom for now to support identical implementation for different OSes and devices
 {$IFDEF UNIX}
 //{$DEFINE USE_DEV_URANDOM}
 {$ENDIF}
@@ -99,6 +103,7 @@ begin
   CloseFile(dev_rnd);
 end;
 {$ELSE}
+
 {This procedure is relatively complex. However I was trying to solve
  a whole set of problems of random seeding. Including possible
  semi-simultaneous seeding requests by threads. On the other hand, there are
