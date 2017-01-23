@@ -951,9 +951,9 @@ type
 
       @orderedList(
         @item(The nodes inside a weak link are not enumerated
-          when traversing the X3D graph in @italic(any) way
-          (@link(TX3DNode.EnumerateNodes),
-          @link(TX3DNode.Traverse) and all others;
+          when traversing the X3D graph in @italic(any) way.
+          This includes @link(TX3DNode.EnumerateNodes),
+          @link(TX3DNode.Traverse) and all others.
           Nodes implementing @link(TX3DNode.DirectEnumerateActive)
           should also omit these fields.)
 

@@ -838,7 +838,7 @@ type
       read FExposedEventsLinked write SetExposedEventsLinked
       default true;
 
-    { Field type in X3D, like @code(SFString) or @link(MFInt32).
+    { Field type in X3D, like @code('SFString') or @code('MFInt32').
       As for VRML/X3D interface declaration statements.
       In base TX3DField class, this returns @code(XFAny)
       (name indicating any type, used by instantreality and us). }

@@ -137,8 +137,7 @@ type
     function Middle: TVector3Single; deprecated 'use Center';
 
     { Center of the box.
-      Name consistent with e.g. @link(TGroupNode.BBoxCenter),
-      to set Group node @code(bboxCenter) field.
+      Name consistent with e.g. @link(TAbstractX3DGroupingNode.BboxCenter).
       @raises(EBox3DEmpty If the Box is empty.) }
     function Center: TVector3Single;
 
