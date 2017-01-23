@@ -118,6 +118,9 @@
     { @groupEnd }
   end;
 
+  { Transforms its internal coordinates system in such way, that its z-axis
+    always faces the viewpoint and y-axis is always equal to camera y-axis.
+    I.e. this is a way to create a node that "always faces the camera" }
   TBillboardNode = class(TAbstractX3DGroupingNode, ITransformNode)
   private
     FCameraPosition, FCameraDirection, FCameraUp: TVector3Single;
@@ -129,19 +132,38 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
+    { returns @italic(ntcTransform), see @link(TX3DNode.TransformationChange X3DNode.TransformationChange) for details }
     function TransformationChange: TNodeTransformationChange; override;
 
+    { returns true if camera view orientation is known }
     property CameraViewKnown: boolean read FCameraViewKnown;
+    { returns last known camera position }
     property CameraPosition: TVector3Single read FCameraPosition;
+    { returns last known camera direction }
     property CameraDirection: TVector3Single read FCameraDirection;
+    { returns last known camera up vector }
     property CameraUp: TVector3Single read FCameraUp;
-
+    { initializes camera position, direction and up vectors with given values }
     procedure CameraChanged(const APosition, ADirection, AUp: TVector3Single);
 
     private FFdAxisOfRotation: TSFVec3f;
     public property FdAxisOfRotation: TSFVec3f read FFdAxisOfRotation;
   end;
 
+  { Controls the collision rules applied to all its children.
+    More specifically it does the following:
+    @unorderedList(
+        @item(Determines whether collision is determined based on all
+              the children or based on some surrogate object @link(proxy) )
+
+        @item(Sends an event in case collision occurs)
+      )
+    in case @link(proxy) is not @nil, TCollisionNode will not detect collisions
+    on children, but only on @link(proxy). If @link(proxy) is @nil it will determine
+    collisions based on all its children, but still will send a collision
+    event.
+    @link(proxy) node is not drawn, i.e. invisible collision objects can be created
+    if children list is empty. }
   TCollisionNode = class(TAbstractX3DGroupingNode, IAbstractSensorNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -156,20 +178,27 @@
     class function URNMatching(const URN: string): boolean; override;
 
     private FFdEnabled: TSFBool;
+    { determines whether collisions will be detected on this node.
+      Setting this value to TRUE will detect collision based on children
+      or @link(proxy). FALSE will not detect any collisions with this nodes,
+      while its content will still be drawn. }
     public property FdEnabled: TSFBool read FFdEnabled;
 
     { Event out } { }
     private FEventCollideTime: TSFTimeEvent;
+    { in case of collision with this node sends an exact time of the collision }
     public property EventCollideTime: TSFTimeEvent read FEventCollideTime;
 
     { Event out } { }
     private FEventIsActive: TSFBoolEvent;
+    { sends TRUE if collision starts, sends FALS if collision ends }
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
     private FFdProxy: TSFNode;
     public property FdProxy: TSFNode read FFdProxy;
 
-    { When non-nil, this will be used for collisions, instead of children. }
+    { When non-nil, this will be used for collisions, instead of children.
+      Can be any child node. This node is not drawn. }
     property Proxy: TX3DNode read GetProxy write SetProxy;
 
     { Setup this Collision node to show VisibleNode, but collide as
