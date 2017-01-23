@@ -1,9 +1,8 @@
-The Castle Game Engine and view3dscene icons (created together,
-view3dscene logo is in ../../../view3dscene/desktop/ if you have
-the whole CGE SVN repository checked out) are
-Copyright 2008-2016 Katarzyna Obrycka, Michalis Kamburelis.
+The Castle Game Engine logo in castle_game_engine_icon.svg ,
+along with some proposals (not yet used) in unused/ subdirectory, are
+Copyright 2016-2017 Paweł Wojciechowicz, Michalis Kamburelis.
 
-Distributed on GNU GPL >= 2 license.
-
-Kasia Obrycka did the most important work of making the icon actually "work",
-by providing moon, tentacles and idea to shade the tower. Thanks!
+Distributed on the same license as the Castle Game Engine itself:
+- GNU GPL >= 2 or
+- GNU LGPL >= 2, with static linking exception
+- see ../../COPYING.txt for details.
