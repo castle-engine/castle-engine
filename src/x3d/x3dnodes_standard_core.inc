@@ -39,13 +39,15 @@ type
   end;
 
   { Interface for an abstract node type that indicates that the node may be used as
-    a child of a grouping node, e.g. inside @link(TGroupNode.FdChildren). }
+    a child of a grouping node,
+    e.g. inside @link(TAbstractX3DGroupingNode.FdChildren). }
   IAbstractChildNode = interface(IAbstractNode)
   ['{ECE6F71D-CA90-4B6C-8835-EAA68EEDAEED}']
   end;
 
   { Abstract node type that indicates that the node may be used as
-    a child of a grouping node, e.g. inside @link(TGroupNode.FdChildren). }
+    a child of a grouping node,
+    e.g. inside @link(TAbstractX3DGroupingNode.FdChildren). }
   TAbstractChildNode = class(TAbstractNode, IAbstractChildNode)
   public
     procedure CreateNode; override;

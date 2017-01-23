@@ -2033,7 +2033,7 @@ const
   FSFAMILY_TYPEWRITER = 2 deprecated 'use ffTypeWriter (TX3DFontFamily an enumerated type) with the properties like TFontStyleNode.Family';
   { @groupEnd }
 
-  { Constants for @link(TFontStyleNode.FdStyleFlags).
+  { Constants for VRML 1.0 @link(TFontStyleNode_1.FdStyle) flags.
     @groupBegin }
   FSSTYLE_BOLD = 0 deprecated 'use TFontStyleNode.Bold as a simple boolean';
   FSSTYLE_ITALIC = 1 deprecated 'use TFontStyleNode.Italic as a simple boolean';

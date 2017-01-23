@@ -56,11 +56,16 @@
 
       For non-looping animations, note that the sensor automatically stops
       when the animation finishes, so ElapsedTime will not grow beyond
-      the @link(Duration). If you want to observe when the animation ended,
+      the "duration". If you want to observe when the animation ended,
       you probably do not want to use this property. Instead
       observe when @link(IsActive) changed to @false, by registering
       a callback on @code(EventIsActive.OnReceive).
       See the examples/3d_rendering_processing/listen_on_x3d_events.lpr .
+
+      BTW, the @italic("duration") mentioned above is usually just
+      @link(GetCycleInterval), but sometimes it's a @link(GetCycleInterval)
+      multiplied by some scaling factor, like in case of @link(TAudioClipNode)
+      or @link(TMovieTextureNode)).
 
       For a precise (and complicated:) specification of how this behaves,
       see the X3D TimeSensor.elapsedTime specification at
@@ -72,8 +77,8 @@
       not counting any time while in pause state.
 
       This is like ike @link(ElapsedTime), but counting only the current cycle.
-      When @link(CycleInterval) = 0, this is always 0.
-      When @link(CycleInterval) <> 0, this is always >= 0 and < CycleInterval . }
+      When @link(GetCycleInterval) = 0, this is always 0.
+      When @link(GetCycleInterval) <> 0, this is always >= 0 and < CycleInterval . }
     function ElapsedTimeInCycle: TFloatTime;
   end;
 
@@ -264,11 +269,16 @@
 
       For non-looping animations, note that the sensor automatically stops
       when the animation finishes, so ElapsedTime will not grow beyond
-      the @link(Duration). If you want to observe when the animation ended,
+      the "duration". If you want to observe when the animation ended,
       you probably do not want to use this property. Instead
       observe when @link(IsActive) changed to @false, by registering
       a callback on @code(EventIsActive.OnReceive).
       See the examples/3d_rendering_processing/listen_on_x3d_events.lpr .
+
+      BTW, the @italic("duration") mentioned above is usually just
+      @link(GetCycleInterval), but sometimes it's a @link(GetCycleInterval)
+      multiplied by some scaling factor, like in case of @link(TAudioClipNode)
+      or @link(TMovieTextureNode)).
 
       For a precise (and complicated:) specification of how this behaves,
       see the X3D TimeSensor.elapsedTime specification at
@@ -280,8 +290,8 @@
       not counting any time while in pause state.
 
       This is like ike @link(ElapsedTime), but counting only the current cycle.
-      When @link(CycleInterval) = 0, this is always 0.
-      When @link(CycleInterval) <> 0, this is always >= 0 and < CycleInterval . }
+      When @link(GetCycleInterval) = 0, this is always 0.
+      When @link(GetCycleInterval) <> 0, this is always >= 0 and < CycleInterval . }
     function ElapsedTimeInCycle: TFloatTime;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dtimedependentnode.inc}
