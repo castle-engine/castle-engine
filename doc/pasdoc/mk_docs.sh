@@ -98,9 +98,6 @@ if (( $# == 0 )); then
   #   --- this is OpenGL and OpenGL ES API).
 
   find .  \
-    '(' -type d '(' -iname old -or \
-                    -iname private \
-                ')' -prune ')' -or \
     '(' -type f -iname '*.pas' \
             -not '(' \
               '(' -iwholename '*/base/android/*.pas' ')' -or \
