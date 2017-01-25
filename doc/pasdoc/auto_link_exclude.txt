@@ -1,8 +1,8 @@
 active
 add
 alignment
-angle
 anchor
+angle
 animation
 animations
 appearance
@@ -113,11 +113,8 @@ extract
 faces
 falling
 family
-frames
 field
 fields
-playing
-move
 filename
 filenames
 fini
@@ -131,6 +128,7 @@ focused
 font
 fps
 frame
+frames
 frustum
 fullscreen
 functions
@@ -206,6 +204,7 @@ minor
 mipmaps
 mode
 move
+move
 name
 negate
 node
@@ -221,12 +220,12 @@ nurbs
 objects
 octrees
 offset
-outline
 opacity
 open
 openal
 opened
 orientation
+outline
 paint
 parameters
 parent
@@ -240,6 +239,7 @@ plane
 planes
 played
 player
+playing
 point
 pointers
 pop
@@ -250,11 +250,13 @@ press
 pressed
 primitive
 print
+product
 profile
 progress
 prototype
 prototypes
 proxy
+purchase
 push
 quantity
 quit
@@ -370,7 +372,7 @@ window
 world
 write
 writeable
-zero
 x
 y
 z
+zero
