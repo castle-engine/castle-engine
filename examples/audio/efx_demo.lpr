@@ -14,8 +14,16 @@
 }
 
 { Simple demo of EFX effects.
-  Run with $1 = URL (usually just a filename) of sound to test,
-  $2 = demo number (int between 0 ... 2). }
+
+  Run with two command-line parameters:
+  - URL (usually just a filename) of sound to test,
+  - demo number (int between 0 ... 2).
+
+  For example, try
+  ./efx_demo ../../../demo-models/sound/werewolf_howling.wav 0
+  ./efx_demo ../../../demo-models/sound/werewolf_howling.wav 1
+  ./efx_demo ../../../demo-models/sound/werewolf_howling.wav 2
+}
 program efx_demo;
 
 uses SysUtils, CastleUtils, CastleOpenAL, CastleALUtils, CastleEFX,
@@ -29,12 +37,14 @@ type
       demoFilterLowPass, demoFilterLPEffectReverb are actually a
       dumbed down versions of demoAll, to pass on OpenAL Soft 1.7.411
       (current as of 2009-03-25) and 1.4.272 (current in Debian testing).
-      OpenAL Soft doesn't support EFX
-      fully yet. In particular:
+      OpenAL Soft doesn't support EFX fully yet. In particular:
+
       - OpenAL soft can create only 1 aux slot for now (this is confirmed
         explicitly in source code OpenAL32/alAuxEffectSlot.c)
+
       - OpenAL soft doesn't support Flanger effect (looking in source code,
         only AL_EFFECT_NULL and AL_EFFECT_REVERB effect types are supported)
+
       - OpenAL Soft supports only filter types AL_FILTER_NULL and AL_FILTER_LOWPASS.
     }
     demoAll);
