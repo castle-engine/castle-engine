@@ -91,7 +91,7 @@ procedure ReadMeta(var AMeta: TMeta);
 var
   Image: TCastleImage;
 begin
-  Image := LoadImage(AMeta.Name);
+  Image := LoadImage(SSPath + AMeta.Name);
   try
     AMeta.W := Image.Width;
     AMeta.H := Image.Height;
@@ -130,7 +130,7 @@ begin
         if Parameters.High = 2 then
           SSOutput := Parameters[2]
         else
-          SSOutput := SSName + '.x3dv';
+          SSOutput := SSPath + SSName + '.x3dv';
       end;
   end;
 end;
