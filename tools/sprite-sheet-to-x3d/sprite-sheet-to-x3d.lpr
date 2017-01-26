@@ -36,7 +36,9 @@ type
   end;
 
   TFrameList = specialize TGenericStructList<TFrame>;
-  TAnimations = specialize TFPGMap<string, TFrameList>;
+  TAnimations = class(specialize TFPGMap<string, TFrameList>)
+    destructor Destroy; override;
+  end;
 
 var
   SSFullPath,
@@ -46,6 +48,15 @@ var
   SSOutput: string;
   Animations: TAnimations;
   Meta: TMeta;
+
+destructor TAnimations.Destroy;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    Data[I].Free;
+  inherited;
+end;
 
 { Parse a string with XXX_YYY format, XXX is the name of the frame and YYY is
   frame number. Here we only need XXX part so that it can be used as animation
