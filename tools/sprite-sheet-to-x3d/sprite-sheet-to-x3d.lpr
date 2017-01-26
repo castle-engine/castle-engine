@@ -19,7 +19,8 @@
 
 uses
   Classes, SysUtils, strutils, DOM, XMLRead, RegExpr, FGL,
-  CastleParameters, CastleImages, CastleGenericLists, CastleStringUtils;
+  CastleParameters, CastleImages, CastleGenericLists, CastleStringUtils,
+  CastleVectors, X3DNodes;
 
 type
   TMeta = record
@@ -29,8 +30,8 @@ type
 
   TFrame = record
     X1, Y1,             { Texture coords }
-    X2, Y2,
-    W, H,               { Frame size }
+    X2, Y2: single;
+    W, H  : integer;    { Frame size }
     AX, AY: single;     { Anchor }
   end;
 
@@ -41,12 +42,8 @@ var
   SSFullPath,
   SSPath,
   SSExt,
-  SSName: string;
-  TpHeader,
-  TpShape,
-  TpRoute,
-  TpTimeSensor,
-  TpInterpolator: string;
+  SSName,
+  SSOutput: string;
   Animations: TAnimations;
   Meta: TMeta;
 
@@ -94,7 +91,7 @@ procedure ReadMeta(var AMeta: TMeta);
 var
   Image: TCastleImage;
 begin
-  Image := LoadImage(AMeta.Name);
+  Image := LoadImage(SSPath + AMeta.Name);
   try
     AMeta.W := Image.Width;
     AMeta.H := Image.Height;
@@ -103,28 +100,18 @@ begin
   end;
 end;
 
-{ Load classic X3D templates. }
-procedure LoadTemplates;
-begin
-  TpHeader := FileToString('data/header.txt');
-  TpShape := FileToString('data/shape.txt');
-  TpTimeSensor := FileToString('data/timesensor.txt');
-  TpInterpolator := FileToString('data/interpolator.txt');
-  TpRoute := FileToString('data/route.txt');
-end;
-
 procedure ParamHandle;
 begin
   case Parameters.High of
     0:
       begin
         Writeln(
-            'sprite-sheet-to-x3d: Convert spritesheet files into classic X3D files.' + #10#13 +
-            '         Support file formats: Starling (.xml), Cocos2D (.plist).'+ #10#13 +
-            '         Please make sure frame keys follow XXX_YYY naming convention:'+ #10#13 +
-            '         - XXX: Frame name, start with a letter, will be used as animation name.'+ #10#13 +
-            '         - YYY: Frame number.'+ #10#13 +
-            'Usage: sprite-sheet-to-x3d <spritesheet>'
+            'sprite-sheet-to-x3d: Convert spritesheet files into X3D files.' + LineEnding +
+            '    Support file formats: Starling (.xml), Cocos2D (.plist).'+ LineEnding +
+            '    Please make sure frame keys follow XXX_YYY naming convention:'+ LineEnding +
+            '    - XXX: Frame name, start with a letter, will be used as animation name.'+ LineEnding +
+            '    - YYY: Frame number.'+ LineEnding +
+            'Usage: sprite-sheet-to-x3d <spritesheet> <output>'
         );
         Halt;
       end;
@@ -140,12 +127,17 @@ begin
         SSExt := ExtractFileExt(SSFullPath);
         SSName := StringReplace(
             StringReplace(SSFullPath, SSPath, '', []), SSExt, '', []);
+        if Parameters.High = 2 then
+          SSOutput := Parameters[2]
+        else
+          SSOutput := SSPath + SSName + '.x3dv';
       end;
   end;
 end;
 
-{$I starlingparser.inc}
-{$I cocos2dparser.inc}
+{$I parser_utils.inc}
+{$I starling_parser.inc}
+{$I cocos2d_parser.inc}
 
 procedure Parse;
 begin
@@ -166,24 +158,23 @@ var
   i, j: integer;
   List: TFrameList;
   Frame: TFrame;
-  X3DV: TStringList;
-  S,
-  Interpolators,
-  Routes,
-  TimeSensors,
-  NameStr,
-  CoordStr,
-  TexCoordStr,
-  OldKeyStr,
-  KeyStr,
-  OldCoordKeyValueStr,
-  CoordKeyValueStr,
-  OldTexCoordKeyValueStr,
-  TexCoordKeyValueStr: string;
+  Root: TX3DRootNode;
+  Shape: TShapeNode;
+  Tri: TTriangleSetNode;
+  Tex: TImageTextureNode;
+  Coord: TCoordinateNode;
+  TexCoord: TTextureCoordinateNode;
+  TimeSensor: TTimeSensorNode;
+  CoordInterp: TCoordinateInterpolatorNode;
+  TexCoordInterp: TCoordinateInterpolator2DNode;
+  TimeSensorArray: array of TTimeSensorNode;
+  CoordInterpArray: array of TCoordinateInterpolatorNode;     
+  TexCoordInterpArray: array of TCoordinateInterpolator2DNode;
+  Key: single;
+  CoordArray: array of TVector3Single;
+  TexCoordArray: array of TVector2Single;
+  R1, R2, R3, R4: TX3DRoute;
 begin
-  Interpolators := '';
-  Routes := '';
-  TimeSensors := '';
   for j := 0 to Animations.Count-1 do
   begin
     List := Animations.Data[j];
@@ -199,104 +190,172 @@ begin
       List[i] := Frame;
     end;
   end;
-  X3DV := TStringList.Create;
+  Root := TX3DRootNode.Create;
+  Root.Meta['generator'] :=
+      'sprite-sheet-to-x3d, http://castle-engine.sourceforge.net';  
+  Root.Meta['source'] := SSName + SSExt;
   try
-    X3DV.Add(StringReplace(TpHeader, '%SOURCE%', SSName + SSExt, [rfReplaceAll]));
-    X3DV.Add('');
-    X3DV.Add(StringReplace(TpShape, '%ATLAS%', Meta.Name, [rfReplaceAll]));
-    X3DV.Add('');
+    Shape:= TShapeNode.Create;
+    Shape.Material := TMaterialNode.Create;
+    Shape.Material.DiffuseColor := Vector3Single(0, 0, 0);
+    Shape.Material.SpecularColor := Vector3Single(0, 0, 0);
+    Shape.Material.AmbientIntensity := 0;
+    Shape.Material.EmissiveColor := Vector3Single(1, 1, 1);
+
+    Tex := TImageTextureNode.Create;
+    Tex.FdUrl.Send(Meta.Name);
+    Tex.RepeatS := false;
+    Tex.RepeatT := false;
+    Tex.FdTextureProperties.Send(TTexturePropertiesNode.Create);
+    Tex.TextureProperties.FdMinificationFilter.Send('NEAREST_PIXEL');     
+    Tex.TextureProperties.FdMagnificationFilter.Send('NEAREST_PIXEL');
+    Shape.Texture := Tex;
+
+    Tri := TTriangleSetNode.Create;
+    Tri.Solid := false;
+    Coord := TCoordinateNode.Create('coord');
+    Coord.FdPoint.Items.AddArray([
+        Vector3Single(-128, -128, 0),
+        Vector3Single(128, -128, 0),
+        Vector3Single(128, 128, 0),
+        Vector3Single(-128, -128, 0),
+        Vector3Single(128, 128, 0),
+        Vector3Single(-128, 128, 0)]);
+    TexCoord := TTextureCoordinateNode.Create('texcoord');
+    TexCoord.FdPoint.Items.AddArray([
+         Vector2Single(0, 0),
+         Vector2Single(1, 0),
+         Vector2Single(1, 1),
+         Vector2Single(0, 0),
+         Vector2Single(1, 1),
+         Vector2Single(0, 1)]);
+    Tri.FdCoord.Value := Coord;
+    Tri.FdTexCoord.Value := TexCoord;
+    Shape.FdGeometry.Value := Tri;
+
+    SetLength(CoordArray, 6);
+    SetLength(TexCoordArray, 6);
+    SetLength(TimeSensorArray, Animations.Count);      
+    SetLength(CoordInterpArray, Animations.Count);
+    SetLength(TexCoordInterpArray, Animations.Count);
+
     for j := 0 to Animations.Count-1 do
     begin
-      List := Animations.Data[j];
-      NameStr := StringReplace(
-          ExtractFileName(Animations.Keys[j]),
-          ExtractFilePath(Animations.Keys[j]), '', []);
-      CoordStr := NameStr + '_Coord';
-      TexCoordStr := NameStr + '_TexCoord';
-      KeyStr := '';
-      OldKeyStr := '';
+      List := Animations.Data[j];   
+      TimeSensor := TTimeSensorNode.Create(Animations.Keys[j]);
+      TimeSensor.FdCycleInterval.Send(2);
+      CoordInterp :=
+          TCoordinateInterpolatorNode.Create(Animations.Keys[j] + '_Coord');
+      TexCoordInterp :=
+          TCoordinateInterpolator2DNode.Create(Animations.Keys[j] + '_TexCoord');
+      TimeSensorArray[j] := TimeSensor;
+      CoordInterpArray[j] := CoordInterp;
+      TexCoordInterpArray[j] := TexCoordInterp;
       { Generate list of keys. }
       for i := 0 to List.Count-1 do
       begin
-        KeyStr += OldKeyStr + FloatToStr(1/(List.Count - 1) * i) + ' ';
-        OldKeyStr := FloatToStr(1/(List.Count - 1) * (i+1) - 0.0000001) + ' ';
+        Key := 1/(List.Count - 1) * i;
+        CoordInterp.FdKey.Items.Add(Key);
+        TexCoordInterp.FdKey.Items.Add(Key);
+        if i > 0 then
+        begin
+          CoordInterp.FdKey.Items.Add(Key);   
+          TexCoordInterp.FdKey.Items.Add(Key);
+        end;
       end;
-      CoordKeyValueStr := '';
-      TexCoordKeyValueStr := '';
-      OldCoordKeyValueStr := '';
-      OldTexCoordKeyValueStr := '';
       { Generate list of coord/texcoord key values. }
       for i := 0 to List.Count-1 do
-      begin
+      begin    
         Frame := List[i];
-        S := Format(
-            '%.1f %.1f 0, %.1f %.1f 0, %.1f %.1f 0, ' +
-            '%.1f %.1f 0, %.1f %.1f 0, %.1f %.1f 0, ' + #10,
-            [-Frame.W * (  Frame.AX),  Frame.H * (  Frame.AY),
-              Frame.W * (1-Frame.AX),  Frame.H * (  Frame.AY),
-              Frame.W * (1-Frame.AX), -Frame.H * (1-Frame.AY),
-             -Frame.W * (  Frame.AX),  Frame.H * (  Frame.AY),
-              Frame.W * (1-Frame.AX), -Frame.H * (1-Frame.AY),
-             -Frame.W * (  Frame.AX), -Frame.H * (1-Frame.AY)]);
-        CoordKeyValueStr += OldCoordKeyValueStr + S;
-        OldCoordKeyValueStr := S;
-        S := Format(
-            '%.4f %.4f, %.4f %.4f, %.4f %.4f, ' +
-            '%.4f %.4f, %.4f %.4f, %.4f %.4f, ' + #10,
-            [Frame.X1, Frame.Y1,
-             Frame.X2, Frame.Y1,
-             Frame.X2, Frame.Y2,
-             Frame.X1, Frame.Y1,
-             Frame.X2, Frame.Y2,
-             Frame.X1, Frame.Y2]);
-        TexCoordKeyValueStr += OldTexCoordKeyValueStr + S;
-        OldTexCoordKeyValueStr := S;
+        CoordArray[0] := Vector3Single(
+            -Frame.W * (  Frame.AX),  Frame.H * (  Frame.AY), 0);
+        CoordArray[1] := Vector3Single(
+             Frame.W * (1-Frame.AX),  Frame.H * (  Frame.AY), 0);
+        CoordArray[2] := Vector3Single(
+             Frame.W * (1-Frame.AX), -Frame.H * (1-Frame.AY), 0);
+        CoordArray[3] := Vector3Single(
+            -Frame.W * (  Frame.AX),  Frame.H * (  Frame.AY), 0);
+        CoordArray[4] := Vector3Single(
+             Frame.W * (1-Frame.AX), -Frame.H * (1-Frame.AY), 0);
+        CoordArray[5] := Vector3Single(
+            -Frame.W * (  Frame.AX), -Frame.H * (1-Frame.AY), 0);
+        TexCoordArray[0] := Vector2Single(Frame.X1, Frame.Y1);
+        TexCoordArray[1] := Vector2Single(Frame.X2, Frame.Y1);
+        TexCoordArray[2] := Vector2Single(Frame.X2, Frame.Y2);
+        TexCoordArray[3] := Vector2Single(Frame.X1, Frame.Y1);
+        TexCoordArray[4] := Vector2Single(Frame.X2, Frame.Y2);
+        TexCoordArray[5] := Vector2Single(Frame.X1, Frame.Y2);
+        CoordInterp.FdKeyValue.Items.AddArray(CoordArray);
+        TexCoordInterp.FdKeyValue.Items.AddArray(TexCoordArray);
+        if i < List.Count-1 then
+        begin
+          CoordInterp.FdKeyValue.Items.AddArray(CoordArray);
+          TexCoordInterp.FdKeyValue.Items.AddArray(TexCoordArray);
+        end;
       end;
-      SetLength(KeyStr, Length(KeyStr)-1);
-      SetLength(CoordKeyValueStr, Length(CoordKeyValueStr)-1);
-      SetLength(TexCoordKeyValueStr, Length(TexCoordKeyValueStr)-1);
-      TimeSensors := TimeSensors + StringsReplace(
-          TpTimeSensor,
-          ['%NAME%'],
-          [NameStr],
-          [rfReplaceAll]) + #10#10;
-      Interpolators := Interpolators + StringsReplace(
-          TpInterpolator,
-          ['%NAME%',
-           '%COORD%', '%COORD_KEY%', '%COORD_KEYVALUE%',
-           '%TEXCOORD%', '%TEXCOORD_KEY%', '%TEXCOORD_KEYVALUE%'],
-          [NameStr,
-           CoordStr, KeyStr, CoordKeyValueStr,
-           TexCoordStr, KeyStr, TexCoordKeyValueStr],
-          [rfReplaceAll]) + #10#10;
-      Routes := Routes + StringsReplace(
-          TpRoute,
-          ['%NAME%',
-           '%COORD%',
-           '%TEXCOORD%'],
-          [NameStr,
-           CoordStr,
-           TexCoordStr],
-          [rfReplaceAll]) + #10;
+      { Create routes. }
+      R1 := TX3DRoute.Create;
+      R2 := TX3DRoute.Create;
+      R3 := TX3DRoute.Create;
+      R4 := TX3DRoute.Create;
+      R1.SetSourceDirectly(TimeSensor.EventFraction_changed);
+      R1.SetDestinationDirectly(CoordInterp.EventSet_fraction);
+      R2.SetSourceDirectly(TimeSensor.EventFraction_changed);
+      R2.SetDestinationDirectly(TexCoordInterp.EventSet_fraction);
+      R3.SetSourceDirectly(CoordInterp.EventValue_changed);
+      R3.SetDestinationDirectly(Coord.FdPoint);
+      R4.SetSourceDirectly(TexCoordInterp.EventValue_changed);
+      R4.SetDestinationDirectly(TexCoord.FdPoint);
+      Root.AddRoute(R1);
+      Root.AddRoute(R2);
+      Root.AddRoute(R3);
+      Root.AddRoute(R4);
     end;
-    X3DV.Text := X3DV.Text + TimeSensors + Interpolators + Routes;
-    X3DV.SaveToFile(SSName + '.x3dv');
+    { Put everything into the scene. }
+    Root.FdChildren.Add(Shape);
+    for j := 0 to Animations.Count-1 do
+      Root.FdChildren.Add(TimeSensorArray[j]); 
+    for j := 0 to Animations.Count-1 do
+    begin
+      Root.FdChildren.Add(CoordInterpArray[j]);  
+      Root.FdChildren.Add(TexCoordInterpArray[j]);
+    end;
+    Save3D(Root, SSOutput);
   finally
-    FreeAndNil(X3DV);
+    FreeAndNil(Root);
   end;
+end;
+
+{ Ref: http://wiki.freepascal.org/Logging_exceptions#Dump_current_call_stack }
+procedure DumpExceptionCallStack(E: Exception);
+var
+  i: integer;
+  Frames: PPointer;
+  Report: string;
+begin
+  Report := 'Program exception! ' + LineEnding;
+  if E <> nil then
+  begin
+    Report := Report + 'Exception class: ' + E.ClassName + LineEnding +
+    'Message: ' + E.Message + LineEnding;
+  end;
+  Report := Report + BackTraceStrFunc(ExceptAddr);
+  Frames := ExceptFrames;
+  for i := 0 to ExceptFrameCount - 1 do
+    Report := Report + LineEnding + BackTraceStrFunc(Frames[I]);
+  Writeln(Report);
 end;
 
 begin
   Animations := TAnimations.Create;
   try
     try
-      LoadTemplates;
       ParamHandle;
       Parse;
       Convert;
     except
       on E: Exception do
-        Writeln(E.ClassName, ': ', E.Message);
+        DumpExceptionCallStack(E);
     end;
   finally
     FreeAndNil(Animations);

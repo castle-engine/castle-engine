@@ -16,6 +16,23 @@ procedure Cocos2DParser;
     finally
       FreeAndNil(R);
     end;
+  end;         
+
+  procedure ReadDual(const ASrc: string; out V1, V2: integer);
+  var
+    R: TRegExpr;
+  begin
+    R := TRegExpr.Create;
+    try
+      R.Expression := '{(\d+),(\d+)}';
+      if R.Exec(ASrc) and (R.SubExprMatchCount = 2) then
+      begin
+        V1 := StrToInt(R.Match[1]);
+        V2 := StrToInt(R.Match[2]);
+      end;
+    finally
+      FreeAndNil(R);
+    end;
   end;
 
   procedure ReadDual(const ASrc: string; out V1, V2: single);
@@ -41,7 +58,9 @@ var
   AniName,
   Key: string;
   Frame: TFrame;
-  X, Y, W, H: integer;
+  HasAnchor,
+  HasOriginFrame: boolean;
+  X, Y, W, H, OW, OH, FX, FY, FW, FH: integer;
   AX, AY: single;
 begin
   ReadXMLFile(Doc, SSFullPath);
@@ -66,6 +85,8 @@ begin
             N3 := N2.FirstChild;
             AX := 0.5;
             AY := 0.5;
+            HasAnchor := false;
+            HasOriginFrame := false;
             while N3 <> nil do
             begin
               if (N3.TextContent = 'frame') or (N3.TextContent = 'textureRect') then
@@ -74,10 +95,24 @@ begin
                 ReadQuad(N3.TextContent, X, Y, W, H);
               end
               else
+              if N3.TextContent = 'sourceColorRect' then
+              begin
+                N3 := N3.NextSibling;
+                ReadQuad(N3.TextContent, FX, FY, FW, FH); 
+                HasOriginFrame := true;
+              end
+              else
               if N3.TextContent = 'anchor' then
               begin   
                 N3 := N3.NextSibling;
                 ReadDual(N3.TextContent, AX, AY);
+                HasAnchor := true;
+              end
+              else
+              if N3.TextContent = 'sourceSize' then
+              begin
+                N3 := N3.NextSibling;
+                ReadDual(N3.TextContent, OW, OH);
               end;
               N3 := N3.NextSibling;
             end;   
@@ -87,8 +122,18 @@ begin
             Frame.H := H;
             Frame.X2 := X + W;
             Frame.Y2 := Y + H;
-            Frame.AX := AX;
-            Frame.AY := AY;
+            if HasAnchor then
+            begin
+              Frame.AX := AX;
+              Frame.AY := AY;
+            end
+            else     
+            if HasOriginFrame then
+            begin
+              CalculateAnchor(FX, FY, OW, OH,
+                  X, Y, Frame.W, Frame.H,
+                  Frame.AX, Frame.AY);
+            end;
             KeyParser(AniName, Key);
             AddFrame(Key, Frame);
           end;

@@ -1,3 +1,0 @@
-DEF %NAME% TimeSensor {
-  cycleInterval 1
-}
