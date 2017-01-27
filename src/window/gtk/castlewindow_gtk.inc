@@ -353,6 +353,8 @@ begin
   1: mb := mbLeft;
   2: mb := mbMiddle;
   3: mb := mbRight;
+  8: mb := mbExtra1;
+  9: mb := mbExtra2;
   else Exit(false);
  end;
  Result := true;
