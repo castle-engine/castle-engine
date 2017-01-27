@@ -184,7 +184,7 @@ var
   CoordInterp: TCoordinateInterpolatorNode;
   TexCoordInterp: TCoordinateInterpolator2DNode;
   TimeSensorArray: array of TTimeSensorNode;
-  CoordInterpArray: array of TCoordinateInterpolatorNode;     
+  CoordInterpArray: array of TCoordinateInterpolatorNode;
   TexCoordInterpArray: array of TCoordinateInterpolator2DNode;
   Key: single;
   CoordArray: array of TVector3Single;
@@ -208,7 +208,7 @@ begin
   end;
   Root := TX3DRootNode.Create;
   Root.Meta['generator'] :=
-      'sprite-sheet-to-x3d, http://castle-engine.sourceforge.net';  
+      'sprite-sheet-to-x3d, http://castle-engine.sourceforge.net';
   Root.Meta['source'] := SSName + SSExt;
   try
     Shape:= TShapeNode.Create;
@@ -223,7 +223,7 @@ begin
     Tex.RepeatS := false;
     Tex.RepeatT := false;
     Tex.FdTextureProperties.Send(TTexturePropertiesNode.Create);
-    Tex.TextureProperties.FdMinificationFilter.Send('NEAREST_PIXEL');     
+    Tex.TextureProperties.FdMinificationFilter.Send('NEAREST_PIXEL');
     Tex.TextureProperties.FdMagnificationFilter.Send('NEAREST_PIXEL');
     Shape.Texture := Tex;
 
@@ -251,13 +251,13 @@ begin
 
     SetLength(CoordArray, 6);
     SetLength(TexCoordArray, 6);
-    SetLength(TimeSensorArray, Animations.Count);      
+    SetLength(TimeSensorArray, Animations.Count);
     SetLength(CoordInterpArray, Animations.Count);
     SetLength(TexCoordInterpArray, Animations.Count);
 
     for j := 0 to Animations.Count-1 do
     begin
-      List := Animations.Data[j];   
+      List := Animations.Data[j];
       TimeSensor := TTimeSensorNode.Create(Animations.Keys[j]);
       TimeSensor.FdCycleInterval.Send(2);
       CoordInterp :=
@@ -275,13 +275,13 @@ begin
         TexCoordInterp.FdKey.Items.Add(Key);
         if i > 0 then
         begin
-          CoordInterp.FdKey.Items.Add(Key);   
+          CoordInterp.FdKey.Items.Add(Key);
           TexCoordInterp.FdKey.Items.Add(Key);
         end;
       end;
       { Generate list of coord/texcoord key values. }
       for i := 0 to List.Count-1 do
-      begin    
+      begin
         Frame := List[i];
         CoordArray[0] := Vector3Single(
             -Frame.W * (  Frame.AX),  Frame.H * (  Frame.AY), 0);
@@ -330,10 +330,10 @@ begin
     { Put everything into the scene. }
     Root.FdChildren.Add(Shape);
     for j := 0 to Animations.Count-1 do
-      Root.FdChildren.Add(TimeSensorArray[j]); 
+      Root.FdChildren.Add(TimeSensorArray[j]);
     for j := 0 to Animations.Count-1 do
     begin
-      Root.FdChildren.Add(CoordInterpArray[j]);  
+      Root.FdChildren.Add(CoordInterpArray[j]);
       Root.FdChildren.Add(TexCoordInterpArray[j]);
     end;
     Save3D(Root, SSOutput);
