@@ -131,7 +131,7 @@ begin
         SSFullPath := Parameters[1];
         if not FileExists(SSFullPath) then
         begin
-          Writeln('Error: File not exists.');
+          Writeln('Error: File does not exist.');
           Halt;
         end;
         SSPath := ExtractFilePath(SSFullPath);
@@ -160,6 +160,11 @@ begin
     '.plist':
       begin
         Cocos2DParser;
+      end;
+    else
+      begin
+        Writeln('Error: Unrecognized input file type: ' + SSExt);
+        Halt;
       end;
   end;
 end;
