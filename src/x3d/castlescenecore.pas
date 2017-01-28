@@ -1751,7 +1751,28 @@ type
       Also stops previously playing named animation, if any.
       Returns whether animation (corresponding TimeSensor node) was found.
       Playing an already-playing animation is guaranteed to start it from
-      the beginning. }
+      the beginning.
+
+      Note: calling this method @italic(does not change the scene immediately).
+      There may be a delay between calling PlayAnimation and actually
+      changing the scene to reflect the state at the beginning of the indicated
+      animation. This delay is usually 1 frame (that is, the scene is updated
+      at the next @link(Update) call), but it may be larger if you use
+      the optimization @link(AnimateSkipTicks).
+
+      This is often a desirable optimization. There's often no "rush" to
+      visually change the animation @italic(right now), and doing it at
+      the nearest @link(Update) call is acceptable.
+      It also means that calling @link(PlayAnimation) multiple times
+      before a single @link(Update) call is not expensive.
+
+      But, sometimes you need to change the scene immediately (for example,
+      because you don't want to show user the initial scene state).
+      To do this, simply call @link(ForceAnimationPose) with @code(TimeInAnimation)
+      parameter = 0 and the same animation. This will change the scene immediately,
+      to show the beginning of this animation.
+      You can call @link(ForceAnimationPose) before or after @link(PlayAnimation),
+      doesn't matter. }
     function PlayAnimation(const AnimationName: string;
       const Looping: TPlayAnimationLooping): boolean;
 
