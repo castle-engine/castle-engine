@@ -996,7 +996,9 @@ type
       In fact, you can even notify this scene about changes to fields
       that don't belong to our RootNode --- nothing bad will happen.
       We always try to intelligently
-      detect what this change implicates for this VRML/X3D scene. }
+      detect what this change implicates for this VRML/X3D scene.
+
+      @exclude }
     procedure InternalChangedField(Field: TX3DField); override;
 
     { Notification when geometry changed.
