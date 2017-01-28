@@ -891,7 +891,7 @@ begin
     Camera := nil;
 
     MainScene := TCastleScene.Create(Self);
-    Inc(MainScene.Dirty);
+    Inc(MainScene.InternalDirty);
     MainScene.Load(Info.SceneURL);
 
     { Scene must be the first one on Items, this way Items.MoveCollision will
@@ -975,7 +975,7 @@ begin
 
   MainScene.ProcessEvents := true;
 
-  Dec(MainScene.Dirty);
+  Dec(MainScene.InternalDirty);
 end;
 
 procedure TGameSceneManager.LoadLevel(const AInfo: TLevelInfo);

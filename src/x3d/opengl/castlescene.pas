@@ -1432,7 +1432,7 @@ var
 begin
   inherited;
 
-  if Dirty <> 0 then Exit;
+  if InternalDirty <> 0 then Exit;
 
   if not ApplicationProperties.IsGLContextOpen then
   begin
@@ -1449,7 +1449,7 @@ begin
   { When preparing resources, files (like textures) may get loaded,
     causing progress bar (for example from CastleDownload).
     Right now we're not ready to display the (partially loaded) scene
-    during this time, so we use Dirty to prevent it.
+    during this time, so we use InternalDirty to prevent it.
 
     Test http://svn.code.sf.net/p/castle-engine/code/trunk/demo_models/navigation/transition_multiple_viewpoints.x3dv
     Most probably problems are caused because shapes are initially
@@ -1465,7 +1465,7 @@ begin
       It remains to carefully see whether it's possible in all cases.
   }
 
-  Inc(Dirty);
+  Inc(InternalDirty);
   try
     if not PreparedShapesResources then
     begin
@@ -1498,7 +1498,7 @@ begin
       for I := 0 to ScreenEffectNodes.Count - 1 do
         Renderer.PrepareScreenEffect(ScreenEffectNodes[I] as TScreenEffectNode);
     end;
-  finally Dec(Dirty) end;
+  finally Dec(InternalDirty) end;
 end;
 
 procedure TCastleScene.Render(
@@ -1644,7 +1644,7 @@ begin
   { This is usually called by Render(Frustum, Params) that probably
     already did tests below. But it may also be called directly,
     so do the checks below anyway. (The checks are trivial, so no speed harm.) }
-  if GetExists and (Dirty = 0) and
+  if GetExists and (InternalDirty = 0) and
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
     { I used to make here more complex "prepare" mechanism, that was trying
@@ -1890,7 +1890,7 @@ procedure TCastleScene.Render(const Frustum: TFrustum; const Params: TRenderPara
   end;
 
 begin
-  if GetExists and (Dirty = 0) and
+  if GetExists and (InternalDirty = 0) and
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
     RenderFrustum_Frustum := @Frustum;

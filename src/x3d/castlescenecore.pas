@@ -816,8 +816,10 @@ type
       As these callbacks may try to e.g. render our scene (which should
       not be done on the dirty state), we have to protect ourselves
       using this variable (e.g. Render routines will exit immediately
-      when Dirty <> 0). }
-    Dirty: Cardinal;
+      when InternalDirty <> 0).
+
+      @exclude }
+    InternalDirty: Cardinal;
 
     const
       DefaultShadowMapsDefaultSize = 256;
@@ -3097,7 +3099,7 @@ procedure TCastleSceneCore.ChangedAll;
 var
   Traverser: TChangedAllTraverser;
 begin
-  { We really need to use Dirty here, to forbid rendering during this.
+  { We really need to use InternalDirty here, to forbid rendering during this.
 
     For example, ProcessShadowMapsReceivers work assumes this:
     otherwise, RootNode.Traverse may cause some progress Step call
@@ -3105,8 +3107,8 @@ begin
     that will be freed by the following ProcessShadowMapsReceivers call.
     Testcase: view3dscene open simple_shadow_map_teapots.x3dv, turn off
     shadow maps "receiveShadows" handling, then turn it back on
-    --- will crash without "Dirty" variable safety. }
-  Inc(Dirty);
+    --- will crash without "InternalDirty" variable safety. }
+  Inc(InternalDirty);
   try
 
   if Log and LogChanges then
@@ -3219,7 +3221,7 @@ begin
   if Log and LogShapes then
     WritelnLogMultiline('Shapes tree', Shapes.DebugInfo);
 
-  finally Dec(Dirty) end;
+  finally Dec(InternalDirty) end;
 end;
 
 type
@@ -4692,7 +4694,7 @@ function TCastleSceneCore.CreateTriangleOctree(
   end;
 
 begin
-  Inc(Dirty);
+  Inc(InternalDirty);
   try
 
   Result := TTriangleOctree.Create(Limits, BoundingBox);
@@ -4710,7 +4712,7 @@ begin
       FillOctree({$ifdef FPC_OBJFPC} @ {$endif} Result.AddItemTriangle);
   except Result.Free; raise end;
 
-  finally Dec(Dirty) end;
+  finally Dec(InternalDirty) end;
 
   { $define CASTLE_DEBUG_OCTREE_DUPLICATION}
   {$ifdef CASTLE_DEBUG_OCTREE_DUPLICATION}
@@ -4729,7 +4731,7 @@ var
   I: Integer;
   ShapesList: TShapeList;
 begin
-  Inc(Dirty);
+  Inc(InternalDirty);
   try
 
   if Collidable then
@@ -4761,7 +4763,7 @@ begin
     end;
   except Result.Free; raise end;
 
-  finally Dec(Dirty) end;
+  finally Dec(InternalDirty) end;
 
   {$ifdef CASTLE_DEBUG_OCTREE_DUPLICATION}
   WritelnLog('Shapes Octree Stats', '%d items in octree, %d items in octree''s leafs, duplication %f',
