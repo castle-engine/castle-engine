@@ -131,7 +131,7 @@ begin
         SSFullPath := Parameters[1];
         if not FileExists(SSFullPath) then
         begin
-          Writeln('Error: File does not exist.');
+          Writeln(ErrOutput, 'sprite-sheet-to-x3d: Error: File does not exist.');
           Halt;
         end;
         SSPath := ExtractFilePath(SSFullPath);
@@ -163,7 +163,7 @@ begin
       end;
     else
       begin
-        Writeln('Error: Unrecognized input file type: ' + SSExt);
+        Writeln(ErrOutput, 'sprite-sheet-to-x3d: Error: Unrecognized input file type: ' + SSExt);
         Halt;
       end;
   end;
@@ -353,7 +353,17 @@ begin
       on E: Exception do
       begin
         Writeln(ErrOutput, ExceptMessage(E));
+        {$ifdef DEBUG}
+        { Dump stack only when compiled in "debug" mode.
+          - The stack is not so useful in "release" mode (as by default you
+            don't have line information then),
+          - And also it would be confusing for end-users.
+            It's normal for this tool to exit with an exception in case of invalid
+            input (it's not a bug). }
         Writeln(ErrOutput, DumpExceptionBackTraceToString);
+        {$endif}
+        { Exit with non-zero status, so that scipts using tool can detect failure. }
+        Halt(1);
       end;
     end;
   finally
