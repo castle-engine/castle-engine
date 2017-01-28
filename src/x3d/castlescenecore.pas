@@ -926,8 +926,9 @@ type
       after BeforeNodesFree, and before you try actual rendering, events etc.)
       Otherwise some stuff may not get recalculated.
 
-      InternalChangedAll is for internal use. This is @true when ChangedAll
-      calls it at the beginning of work, and means that nothing is freed,
+      The InternalChangedAll parameter is for internal use.
+      It is set to @true when ChangedAll
+      calls this method at the beginning of it's work, and means that nothing is freed,
       and we only require necessary cleanup at the beginning of ChangedAll.
       This way ChangedAll (when it wasn't preceeded by explicit
       BeforeNodesFree(false)) produces events from stacks CheckForDeletedNodes. }
