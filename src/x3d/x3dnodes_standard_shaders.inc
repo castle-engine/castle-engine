@@ -239,12 +239,13 @@ begin
       ChangesAlways := [chVisibleGeometry, chVisibleNonGeometry]
     because you want to redisplay when they change.
 
-    But TGLRenderer takes care of it already. When shaders'
+    But CastleRenderer takes care of it already. When shaders'
     uniform variables change, we call Scene.VisibleChangeHere.
     Implemented inside TX3DShaderProgram.EventReceive.
 
     TODO: but when you don't use events, but directly change them
-    and call ChangedField, we should do something here? }
+    and call TX3DField.Changed and Scene.InternalChangedField,
+    we should do something here? }
 
   HasInterfaceDeclarations := AllAccessTypes;
 end;

@@ -992,7 +992,7 @@
       (including TCastleScene). But if more than one scene is used,
       then all the scenes must be static (TCastleSceneCore.ProcessEvents = false
       and TCastleSceneCore.Static = true). Static scenes are ones
-      that never change, that is never have any TCastleSceneCore.ChangedField called.
+      that never change, that is never have any TCastleSceneCore.InternalChangedField called.
       This means that events processing is disabled, and also
       other dynamic scene changes from code are disallowed.
 

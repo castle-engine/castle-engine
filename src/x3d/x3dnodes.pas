@@ -413,7 +413,7 @@ type
       So it's guaranteed that changing some field's value of a node
       within TraverseStateLastNodesClasses affects @italic(only)
       the shapes that have given node inside State.LastNodes.
-      TCastleSceneCore.ChangedField depends on that. }
+      TCastleSceneCore.InternalChangedField depends on that. }
     property LastNodes: TTraverseStateLastNodes read FLastNodes;
 
     procedure SetLastNodes(const StateNode: TVRML1StateNode;

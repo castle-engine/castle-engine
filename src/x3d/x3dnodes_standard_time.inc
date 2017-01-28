@@ -158,7 +158,7 @@
       In other circumstances, TimeIncrease must be >= 0.
       (It's allowed to pass TimeIncrease = 0 and ResetTime = false, this doesn't
       advance the clock, but is a useful trick to force some update,
-      see HandleChangeTimeStopStart in TCastleSceneCore.ChangedField implementation.)
+      see HandleChangeTimeStopStart in TCastleSceneCore.InternalChangedField implementation.)
 
       References: see X3D specification "Time" component,
       8.2 ("concepts") for logic behind all those start/stop/pause/resumeTime,

@@ -417,14 +417,14 @@ type
     and routes mechanism (see ProcessEvents).
 
     The actual VRML/X3D nodes graph is stored in the RootNode property.
-    Remember that if you directly change the fields/nodes within the RootNode,
-    this scene object must be notified about this.
-    The simplest way to do this is to use only TX3DField.Send to change
-    the fields' values. Or you can call TX3DField.Changed after each change.
-    Or you will have to call ChangedField or ChangedAll method
-    of this class.
-    If the scene is changed by VRML/X3D events, all changes are automagically
-    acted upon, so you don't have to do anything.
+    If you directly change the fields/nodes within the RootNode
+    (changing them through the @code(FdXxx) properties of nodes,
+    instead of nice wrappers without the @code(Fd...) prefix)
+    then the scene must be notified about this.
+    The simplest way to do this is to use only @link(TX3DField.Send) to change
+    the fields' values. Or you can call @link(TX3DField.Changed) after each change.
+    If you will have to call @link(ChangedAll) method of this class,
+    to rebuild everything (which is quite expensive).
 
     For more-or-less static scenes,
     many things are cached and work very quickly.
@@ -956,10 +956,17 @@ type
       (Before freeing the nodes, remember to also call BeforeNodesFree
       earlier.)
 
+      @bold(You usually never need to call this method explicitly.
+      It's called by engine when necesssary.)
+      However, you need to call it yourself if you change the X3D graph directly
+      through nodes' @code(FdXxx) fields,
+      and you don't want to call for some reason @link(TX3DField FdXxx.Changed).
+
       ChangedAll causes recalculation of all things dependent on RootNode,
-      so it's very costly to call this. While you have to call some ChangedXxx
-      method after you changed RootNode graph directly, usually you
-      can call something more efficient, like ChangedField.
+      so it's very costly to call this. Avoid calling this.
+      When you change a simple field, like by @code(FdXxx.Value := ...),
+      you should rather call @code(FdXxx.Changed), and it may do something
+      much faster than rebuilding the scene.
 
       @italic(Descendant implementors notes:) ChangedAll is virtual,
       when overriding it remember that it's
@@ -971,6 +978,8 @@ type
     procedure ChangedAll; override;
 
     { Notify scene that you changed the value of given field.
+      @bold(This method is internal, it should be used only by TX3DField
+      implementation.)
 
       This does relatively intelligent discovery what could be possibly
       affected by this field, and updates / invalidates
@@ -987,7 +996,7 @@ type
       that don't belong to our RootNode --- nothing bad will happen.
       We always try to intelligently
       detect what this change implicates for this VRML/X3D scene. }
-    procedure ChangedField(Field: TX3DField); override;
+    procedure InternalChangedField(Field: TX3DField); override;
 
     { Notification when geometry changed.
       "Geometry changed" means that the positions
@@ -1092,11 +1101,15 @@ type
     { Actual VRML/X3D graph defining this scene.
 
       It is allowed to change contents of RootNode. Just make sure
-      the scene is notified about these changes --- you should assign
-      fields using methods like TX3DField.Send or (if you assign field
+      the scene is notified about these changes.
+      The simplest option is to use simple properties of nodes
+      (not the ones starting with @code(Fd...) prefix), when possible.
+      Then everything is notified automatically.
+      If you must use fields through the @code(FdXxx) properties,
+      then assign them using @link(TX3DField.Send),
+      or (if you need to assign field
       values directly, like @code(TSFVec3f.Value := ...))
-      call TX3DField.Changed. Eventually, you can call our ChangedField method
-      (but it's usually nicer to use TX3DField.Changed).
+      call @link(TX3DField.Changed).
 
       It is also allowed to change the value of RootNode
       and even to set RootNode to @nil. Be sure to call ChangedAll after this.
@@ -1475,7 +1488,12 @@ type
 
     { Call when camera position/dir/up changed, to update things depending
       on camera settings. This includes sensors like ProximitySensor,
-      LOD nodes, camera settings for next RenderedTexture update and more. }
+      LOD nodes, camera settings for next RenderedTexture update and more.
+
+      @bold(There should be no need to call this method explicitly.
+      The scene is notified about camera changes automatically,
+      by the @link(TCastleSceneManager). This method may be renamed / removed
+      in future releases.) }
     procedure CameraChanged(ACamera: TCamera); override;
 
     { List of handlers for VRML/X3D Script node with "compiled:" protocol.
@@ -1666,7 +1684,8 @@ type
       TX3DField.Changed will not notify this scene. This makes a
       small optimization when you know you will not modify scene's VRML/X3D graph
       besides loading (or you're prepared to do it by manually calling
-      Scene.ChangedField etc.).
+      Scene.InternalChangedField, but this should not be used anymore, it's really
+      dirty).
 
       The behavior of events is undefined when scene is static.
       This means that you should always have ProcessEvents = @false
@@ -1970,7 +1989,7 @@ type
 
 var
   { Log changes to fields.
-    This debugs what and why happens through TCastleSceneCore.ChangedField method
+    This debugs what and why happens through TCastleSceneCore.InternalChangedField method
     and friends, which is central to VRML/X3D dynamic changes and events engine.
 
     Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
@@ -3698,7 +3717,7 @@ begin
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 end;
 
-procedure TCastleSceneCore.ChangedField(Field: TX3DField);
+procedure TCastleSceneCore.InternalChangedField(Field: TX3DField);
 var
   ANode: TX3DNode;
   Changes: TX3DChanges;
@@ -3707,7 +3726,7 @@ var
   var
     S: string;
   begin
-    S := 'ChangedField: ' + X3DChangesToStr(Changes) +
+    S := 'InternalChangedField: ' + X3DChangesToStr(Changes) +
       Format(', node: %s (%s %s) at %s',
       [ ANode.X3DName, ANode.X3DType, ANode.ClassName, PointerToStr(ANode) ]);
     if Field <> nil then
@@ -5802,7 +5821,7 @@ begin
         as it has to be in ProximitySensor coordinate-space.
 
         Also, since we don't store precalculated box of ProximitySensor,
-        we can gracefully react in ChangedField to changes:
+        we can gracefully react in InternalChangedField to changes:
         - changes to ProximitySensor center and size must only produce
           new ProximitySensorUpdate to eventually activate/deactivate ProximitySensor
         - changes to transforms affecting ProximitySensor must only update
