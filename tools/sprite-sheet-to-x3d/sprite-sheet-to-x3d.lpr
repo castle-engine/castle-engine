@@ -1,5 +1,5 @@
 {
-  Copyright 2017 Trung Le (kagamma).
+  Copyright 2017-2017 Trung Le (kagamma).
 
   This file is part of "Castle Game Engine".
 

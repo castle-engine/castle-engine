@@ -1,5 +1,5 @@
 # rules.txt
-# Copyright 2011, Stefan Beller <stefanbeller@googlemail.com>
+# Copyright 2011-2017, Stefan Beller <stefanbeller@googlemail.com>
 #
 # This file is part of the sewers example for automapping for Tiled.
 #

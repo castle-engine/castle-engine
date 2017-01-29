@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2016 Eugene Loza, Michalis Kamburelis.
+  Copyright 2016-2017 Eugene Loza, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 

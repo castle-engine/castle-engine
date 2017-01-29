@@ -1,7 +1,7 @@
 The Castle Game Engine and view3dscene icons (created together,
 view3dscene logo is in ../../../view3dscene/desktop/ if you have
 the whole CGE SVN repository checked out) are
-Copyright 2008-2016 Katarzyna Obrycka, Michalis Kamburelis.
+Copyright 2008-2017 Katarzyna Obrycka, Michalis Kamburelis.
 
 Distributed on GNU GPL >= 2 license.
 
