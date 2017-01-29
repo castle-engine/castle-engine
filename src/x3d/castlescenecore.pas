@@ -818,6 +818,11 @@ type
       using this variable (e.g. Render routines will exit immediately
       when InternalDirty <> 0).
 
+      Note: in the future, we could replace this by just Enable/Disable
+      feature on T3D. But it's not so trivial now, as Enable/Disable
+      makes even *too much* things non-existing, e.g. GetCollides
+      may return false, BoundingBox may be empty etc.
+
       @exclude }
     InternalDirty: Cardinal;
 
