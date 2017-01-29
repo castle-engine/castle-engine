@@ -1703,6 +1703,7 @@ type
       Changing this is expensive when the scene content is already loaded,
       so it's best to adjust this before @link(Load). }
     property Static: boolean read FStatic write SetStatic default false;
+      deprecated 'do not use this; optimization done by this is really negligible; leave ProcessEvents=false for static scenes';
 
     { Nice scene caption. Uses the "title" of WorldInfo
       node inside the VRML/X3D scene. If there is no WorldInfo node
@@ -2488,7 +2489,13 @@ begin
     FreeAndNil(FRootNode) else
   begin
     { This will call UnregisterScene(RootNode). }
+    {$warnings off}
+    { consciously using deprecated feature; in the future,
+      we will just explicitly call
+        if RootNode <> nil then UnregisterScene(RootNode);
+      here. }
     Static := true;
+    {$warnings on}
     FRootNode := nil;
   end;
 
@@ -3040,7 +3047,7 @@ end;
 
 procedure TCastleSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
 begin
-  if not Static then
+  if not FStatic then
     Node.Scene := Self;
 
   { We're using AddIfNotExists, not simple Add, below:
@@ -5017,7 +5024,7 @@ begin
   if FStatic <> Value then
   begin
     FStatic := Value;
-    if Static then
+    if FStatic then
     begin
       { Clear TX3DNode.Scene for all nodes }
       if RootNode <> nil then
