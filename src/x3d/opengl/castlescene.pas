@@ -1139,7 +1139,8 @@ var
 
     OcclusionBoxStateEnd;
 
-    if Params.Pass = 0 then Inc(Params.Statistics.ShapesRendered);
+    if (Params.Pass = 0) and not ExcludeFromStatistics then
+      Inc(Params.Statistics.ShapesRendered);
 
     { Optionally free Shape arrays data now, if they need to be regenerated. }
     if (Assigned(Attributes.OnVertexColor) or
@@ -1174,7 +1175,7 @@ var
       if Attributes.ReallyUseOcclusionQuery and
          (RenderingCamera.Target = rtScreen) then
       begin
-        SimpleOcclusionQueryRender(Shape, @RenderShape_NoTests, Params);
+        SimpleOcclusionQueryRender(Self, Shape, @RenderShape_NoTests, Params);
       end else
       if Attributes.DebugHierOcclusionQueryResults and
          Attributes.UseHierarchicalOcclusionQuery then
@@ -1269,7 +1270,8 @@ begin
     then Params.Transparent = true during a single frame. }
   if (not Params.Transparent) and (Params.Pass = 0) then
   begin
-    Params.Statistics.ShapesVisible += ShapesActiveVisibleCount;
+    if not ExcludeFromStatistics then
+      Params.Statistics.ShapesVisible += ShapesActiveVisibleCount;
     { also do this only once per frame }
     UpdateVisibilitySensors;
   end;

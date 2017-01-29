@@ -285,7 +285,7 @@ type
     FCursor: TMouseCursor;
     FCollidesWithMoving: boolean;
     Disabled: Cardinal;
-    FExcludeFromGlobalLights: boolean;
+    FExcludeFromGlobalLights, FExcludeFromStatistics: boolean;
     FWorld: T3DWorld;
     procedure SetCursor(const Value: TMouseCursor);
   protected
@@ -1009,6 +1009,11 @@ type
       unless you do custom rendering on your own. }
     property ExcludeFromGlobalLights: boolean
       read FExcludeFromGlobalLights write FExcludeFromGlobalLights default false;
+
+    { Exclude from rendering statistics in
+      @link(TCastleAbstractViewport.Statistics). }
+    property ExcludeFromStatistics: boolean
+      read FExcludeFromStatistics write FExcludeFromStatistics default false;
   end;
 
   { List of 3D objects (T3D instances).
