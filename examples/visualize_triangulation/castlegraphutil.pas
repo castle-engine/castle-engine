@@ -1,5 +1,5 @@
 {
-  Copyright 2011-2016 Lazarus developers and Michalis Kamburelis.
+  Copyright 2011-2017 Lazarus developers and Michalis Kamburelis.
 
   Parts of this unit are based on LCL GraphUtil unit.
   Luckily, both LCL and Castle Game Engine use the same license,

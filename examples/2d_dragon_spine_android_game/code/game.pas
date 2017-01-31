@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2016 Michalis Kamburelis.
+  Copyright 2014-2017 Michalis Kamburelis.
 
   This file is part of "Castle Spine".
 
@@ -126,7 +126,8 @@ begin
   { z = 50 to place between background tower and background trees }
   AddItem(0,    0,  50, 1, 'background/smoktlo2.json');
   AddItem(0,    0, 100, 1, 'background_front.x3dv', false);
-  SceneManager.Items.SortZ;
+
+  SceneManager.Items.SortBackToFront2D;
 end;
 
 { One-time initialization. }

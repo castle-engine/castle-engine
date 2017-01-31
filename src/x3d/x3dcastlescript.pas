@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2016 Michalis Kamburelis.
+  Copyright 2008-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -457,10 +457,10 @@ begin
       FreeAndNil(Field);
     end;
 
-    { Theoretically, we should call Scene.ChangedField now
+    { Theoretically, we should call Scene.InternalChangedField now
       if FieldOrEvent was initializeOnly field (and not AbortSending).
       But in this case, we know FieldOrEvent comes from a Script node,
-      and in this situation ChangedField doesn't do anything anyway. }
+      and in this situation InternalChangedField doesn't do anything anyway. }
 
     { This is needed for TCasScriptX3DValueList.AfterExecute trick.
       We handled this change, so we mark it by ValueAssigned = false. }

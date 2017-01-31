@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2016 Michalis Kamburelis.
+  Copyright 2001-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -493,7 +493,7 @@ uses {$define read_interface_uses}
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls, CastleGLContainer,
-  CastleCameras, pk3DConnexion,
+  CastleCameras, CastleInternalPk3DConnexion,
   { Castle Game Engine units depending on VRML/X3D stuff }
   X3DNodes, CastleScene, CastleSceneManager, CastleLevels;
 

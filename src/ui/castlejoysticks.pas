@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2016 Tomasz Wojtyś.
+  Copyright 2015-2017 Tomasz Wojtyś.
   Based on zgl_joystick.pas by Andrey Kemka.
 
   This file is part of "Castle Game Engine".

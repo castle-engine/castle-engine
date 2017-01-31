@@ -30,13 +30,7 @@
         </Verbosity>
         <CustomOptions Value="-Sh
 -dCASTLE_ENGINE_LAZARUS_PACKAGE
--dCASTLE_WINDOW_LCL
-
-# See the comments in castle-engine/castle-fpc.cfg about this
-#IFNDEF VER2
--vm4105
--vm4104
-#ENDIF"/>
+-dCASTLE_WINDOW_LCL"/>
       </Other>
     </CompilerOptions>
     <Description Value="Castle Game Engine - CastleWindow and units using it.

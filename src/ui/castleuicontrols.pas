@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2016 Michalis Kamburelis, Tomasz Wojtyś.
+  Copyright 2009-2017 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
 
@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Classes, FGL,
   CastleKeysMouse, CastleUtils, CastleClassUtils,
-  CastleGenericLists, CastleRectangles, CastleTimeUtils, pk3DConnexion,
+  CastleGenericLists, CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion,
   CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties;
 
 const

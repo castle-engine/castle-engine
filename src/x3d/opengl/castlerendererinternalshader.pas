@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2016 Michalis Kamburelis.
+  Copyright 2010-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1213,7 +1213,7 @@ begin
   { Although ExposedEvents implementation already sends notification
     about changes to Scene, we can also get here
     by eventIn invocation (which doesn't trigger
-    Scene.ChangedField, since it doesn't change a field...).
+    Scene.InternalChangedField, since it doesn't change a field...).
     So we should explicitly do VisibleChangeHere here, to make sure
     it gets called when uniform changed. }
   if Event.ParentNode <> nil then

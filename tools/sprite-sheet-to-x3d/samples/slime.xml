@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="slime.png">
+	<SubTexture name="slime_0001.png"	x="0"	y="32"	width="44"	height="35" frameX="-2" frameY="-5" frameWidth="48" frameHeight="78"/>
+	<SubTexture name="slime_0002.png"	x="0"	y="0"	width="48"	height="30" frameX="-0" frameY="-10" frameWidth="48" frameHeight="78"/>
+	<SubTexture name="slime_0003.png"	x="0"	y="32"	width="44"	height="35" frameX="-2" frameY="-5" frameWidth="48" frameHeight="78"/>
+	<SubTexture name="slime_0004.png"	x="0"	y="69"	width="43"	height="40" frameX="-3" frameY="-0" frameWidth="48" frameHeight="78"/>
+</TextureAtlas>

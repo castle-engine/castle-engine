@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2016 Michalis Kamburelis.
+  Copyright 2002-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -510,7 +510,7 @@
 
     destructor Destroy; override;
 
-    { Type of the node in X3D, like @code(Group) or @link(Shape). Never empty.
+    { Type of the node in X3D, like @code('Group') or @code('Shape'). Never empty.
       Constant for the class lifetime (even for special
       TX3DUnknownNode and TX3DPrototypeNode, where this is calculated
       at runtime).
@@ -875,8 +875,8 @@
 
       TODO: memory leaks are known to be possible in some difficult cases
       with PrototypeInstanceHelpers. See e.g.
-      ../../../demo_models/vrml_2/warnings/errors/proto_leak.wrl and
-      ../../../demo_models/vrml_2/warnings/errors/proto_leak_2.wrl
+      ../../../demo-models/prototypes/warnings/errors/proto_leak.wrl and
+      ../../../demo-models/prototypes/warnings/errors/proto_leak_2.wrl
       for simple testcases. Reason: PrototypeInstanceHelpers may contain,
       by DEF statements, links to Self.
       This causes circular dependency (Self is child of some node on
@@ -992,7 +992,7 @@
       (including TCastleScene). But if more than one scene is used,
       then all the scenes must be static (TCastleSceneCore.ProcessEvents = false
       and TCastleSceneCore.Static = true). Static scenes are ones
-      that never change, that is never have any TCastleSceneCore.ChangedField called.
+      that never change, that is never have any TCastleSceneCore.InternalChangedField called.
       This means that events processing is disabled, and also
       other dynamic scene changes from code are disallowed.
 
@@ -1047,7 +1047,7 @@
     { Find node by name, @nil if not found.
 
       For empty node name, always returns @nil. This follows the definition
-      of @link(TX3DNode.Name):
+      of @link(TX3DNode.X3DName):
       empty means that node has no name, so it should not be found
       by searches by name, ever.
 

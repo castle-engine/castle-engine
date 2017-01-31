@@ -52,6 +52,7 @@ all:
 	tools/image2pascal/image2pascal_compile.sh
 	tools/castle-curves/castle-curves_compile.sh
 	tools/build-tool/castle-engine_compile.sh
+	tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d_compile.sh
 
 .PHONY: build-using-fpmake
 build-using-fpmake:
@@ -93,6 +94,7 @@ install:
 	install tools/image2pascal/image2pascal $(BINDIR)
 	install tools/castle-curves/castle-curves $(BINDIR)
 	install tools/build-tool/castle-engine $(BINDIR)
+	install tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d $(BINDIR)
 #	cp -R tools/build-tool/data $(DATADIR)/castle-engine
 	cd tools/build-tool/data/ && \
 	  $(FIND) . -type f -exec install -D '{}' $(DATADIR)/castle-engine/'{}' ';'
@@ -102,7 +104,8 @@ uninstall:
 	rm -f  $(BINDIR)/texturefont2pascal \
 	       $(BINDIR)/image2pascal \
 	       $(BINDIR)/castle-curves \
-	       $(BINDIR)/castle-engine
+	       $(BINDIR)/castle-engine \
+	       $(BINDIR)/sprite-sheet-to-x3d
 	rm -Rf $(DATADIR)/castle-engine
 
 # Strip libraries that cannot be distributed in Debian package of CGE for now,
@@ -147,6 +150,7 @@ EXAMPLES_BASE_NAMES := \
   examples/fonts/test_font_break \
   examples/fonts/font_from_texture \
   examples/fonts/html_text \
+  examples/tiled/tiled_demo_standalone \
   examples/window/window_events \
   examples/window/window_menu \
   examples/window/window_gtk_mix \
@@ -199,6 +203,7 @@ EXAMPLES_BASE_NAMES := \
   tools/image2pascal/image2pascal \
   tools/texturefont2pascal/texturefont2pascal \
   tools/castle-curves/castle-curves \
+  tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d \
   examples/random_generator/random_speed_test \
   examples/random_generator/random_threads_test
 

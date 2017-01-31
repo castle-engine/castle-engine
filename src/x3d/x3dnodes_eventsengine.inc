@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2016 Michalis Kamburelis.
+  Copyright 2003-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -43,25 +43,25 @@
     function NextEventTime: TX3DTime; virtual; abstract;
     procedure ChangedAll; virtual; abstract;
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); virtual; abstract;
-    procedure ChangedField(Field: TX3DField); virtual; abstract;
+    procedure InternalChangedField(Field: TX3DField); virtual; abstract;
   end;
 
   TX3DEventsEngineList = class(specialize TFPGObjectList<TX3DEventsEngine>)
   public
     { Notify listeners about a field value change.
-      See TCastleSceneCore.ChangedField for exact specification. }
-    procedure ChangedField(Field: TX3DField);
+      See TCastleSceneCore.InternalChangedField for exact specification. }
+    procedure InternalChangedField(Field: TX3DField);
   end;
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-procedure TX3DEventsEngineList.ChangedField(Field: TX3DField);
+procedure TX3DEventsEngineList.InternalChangedField(Field: TX3DField);
 var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    Items[I].ChangedField(Field);
+    Items[I].InternalChangedField(Field);
 end;
 
 {$endif read_implementation}

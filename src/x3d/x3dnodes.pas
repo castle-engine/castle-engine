@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2016 Michalis Kamburelis.
+  Copyright 2002-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -176,8 +176,8 @@ uses SysUtils, FGL, Classes, XMLRead, DOM,
   CastleVectors, X3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors,
   CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
-  CastleScript, X3DCastleScript, CastleOctree, CastleCompositeImage, CastleTextureImages,
-  CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
+  CastleScript, X3DCastleScript, CastleInternalOctree, CastleCompositeImage,
+  CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
   CastleTextureFontData, CastleGenericLists, CastleShaders, CastleRays;
 
 {$define read_interface}
@@ -413,7 +413,7 @@ type
       So it's guaranteed that changing some field's value of a node
       within TraverseStateLastNodesClasses affects @italic(only)
       the shapes that have given node inside State.LastNodes.
-      TCastleSceneCore.ChangedField depends on that. }
+      TCastleSceneCore.InternalChangedField depends on that. }
     property LastNodes: TTraverseStateLastNodes read FLastNodes;
 
     procedure SetLastNodes(const StateNode: TVRML1StateNode;
@@ -951,9 +951,9 @@ type
 
       @orderedList(
         @item(The nodes inside a weak link are not enumerated
-          when traversing the X3D graph in @italic(any) way
-          (@link(TX3DNode.EnumerateNodes),
-          @link(TX3DNode.Traverse) and all others);
+          when traversing the X3D graph in @italic(any) way.
+          This includes @link(TX3DNode.EnumerateNodes),
+          @link(TX3DNode.Traverse) and all others.
           Nodes implementing @link(TX3DNode.DirectEnumerateActive)
           should also omit these fields.)
 
@@ -1135,48 +1135,48 @@ type
 
 { Specific VRML/X3D nodes ---------------------------------------------------- }
 
-{$I x3d_core.inc}
-{$I x3d_time.inc}
-{$I x3d_grouping.inc}
-{$I x3d_networking.inc}
-{$I x3d_rendering.inc}
-{$I x3d_shape.inc}
-{$I x3d_geometry3d.inc}
-{$I x3d_geometry2d.inc}
-{$I x3d_text.inc}
-{$I x3d_sound.inc}
-{$I x3d_lighting.inc}
-{$I x3d_texturing.inc}
-{$I x3d_interpolation.inc}
-{$I x3d_interpolation_cubic_bezier.inc}
-{$I x3d_pointingdevicesensor.inc}
-{$I x3d_keydevicesensor.inc}
-{$I x3d_environmentalsensor.inc}
-{$I x3d_navigation.inc}
-{$I x3d_environmentaleffects.inc}
-{$I x3d_geospatial.inc}
-{$I x3d_h-anim.inc}
-{$I x3d_nurbs.inc}
-{$I x3d_dis.inc}
-{$I x3d_scripting.inc}
-{$I x3d_eventutilities.inc}
-{$I x3d_shaders.inc}
-{$I x3d_cadgeometry.inc}
-{$I x3d_texturing3d.inc}
-{$I x3d_cubemaptexturing.inc}
-{$I x3d_layering.inc}
-{$I x3d_layout.inc}
-{$I x3d_rigidbodyphysics.inc}
-{$I x3d_picking.inc}
-{$I x3d_followers.inc}
-{$I x3d_particlesystems.inc}
+{$I x3dnodes_standard_core.inc}
+{$I x3dnodes_standard_time.inc}
+{$I x3dnodes_standard_grouping.inc}
+{$I x3dnodes_standard_networking.inc}
+{$I x3dnodes_standard_rendering.inc}
+{$I x3dnodes_standard_shape.inc}
+{$I x3dnodes_standard_geometry3d.inc}
+{$I x3dnodes_standard_geometry2d.inc}
+{$I x3dnodes_standard_text.inc}
+{$I x3dnodes_standard_sound.inc}
+{$I x3dnodes_standard_lighting.inc}
+{$I x3dnodes_standard_texturing.inc}
+{$I x3dnodes_standard_interpolation.inc}
+{$I x3dnodes_standard_interpolation_cubic_bezier.inc}
+{$I x3dnodes_standard_pointingdevicesensor.inc}
+{$I x3dnodes_standard_keydevicesensor.inc}
+{$I x3dnodes_standard_environmentalsensor.inc}
+{$I x3dnodes_standard_navigation.inc}
+{$I x3dnodes_standard_environmentaleffects.inc}
+{$I x3dnodes_standard_geospatial.inc}
+{$I x3dnodes_standard_h-anim.inc}
+{$I x3dnodes_standard_nurbs.inc}
+{$I x3dnodes_standard_dis.inc}
+{$I x3dnodes_standard_scripting.inc}
+{$I x3dnodes_standard_eventutilities.inc}
+{$I x3dnodes_standard_shaders.inc}
+{$I x3dnodes_standard_cadgeometry.inc}
+{$I x3dnodes_standard_texturing3d.inc}
+{$I x3dnodes_standard_cubemaptexturing.inc}
+{$I x3dnodes_standard_layering.inc}
+{$I x3dnodes_standard_layout.inc}
+{$I x3dnodes_standard_rigidbodyphysics.inc}
+{$I x3dnodes_standard_picking.inc}
+{$I x3dnodes_standard_followers.inc}
+{$I x3dnodes_standard_particlesystems.inc}
 
 {$I x3dnodes_1.inc}
 {$I x3dnodes_inventor.inc}
 {$I x3dnodes_97_hanim.inc}
 {$I x3dnodes_97_nurbs.inc}
 {$I x3dnodes_castle.inc}
-{$I x3dnodes_avalon.inc}
+{$I x3dnodes_instantreality.inc}
 {$I x3dnodes_bitmanagement.inc}
 
 { TX3DUnknownNode --------------------------------------------------- }
@@ -1970,7 +1970,6 @@ var
 {$I x3dnodes_encoding_classic.inc}
 {$I x3dnodes_encoding_xml.inc}
 {$I x3dnodes_save.inc}
-{$I x3dnodes_node_helpers.inc}
 
 { Create and assign all State.Nodes. }
 procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
@@ -2034,7 +2033,7 @@ const
   FSFAMILY_TYPEWRITER = 2 deprecated 'use ffTypeWriter (TX3DFontFamily an enumerated type) with the properties like TFontStyleNode.Family';
   { @groupEnd }
 
-  { Constants for @link(TFontStyleNode.FdStyleFlags).
+  { Constants for VRML 1.0 @link(TFontStyleNode_1.FdStyle) flags.
     @groupBegin }
   FSSTYLE_BOLD = 0 deprecated 'use TFontStyleNode.Bold as a simple boolean';
   FSSTYLE_ITALIC = 1 deprecated 'use TFontStyleNode.Italic as a simple boolean';
@@ -2263,65 +2262,353 @@ resourcestring
 {$I x3dnodes_encoding_classic.inc}
 {$I x3dnodes_encoding_xml.inc}
 {$I x3dnodes_generatedtextures.inc}
-{$I x3dnodes_node_helpers.inc}
+{$I x3dnodes_node.inc}
 
-{$I x3d_core.inc}
-{$I x3d_time.inc}
-{$I x3d_grouping.inc}
-{$I x3d_networking.inc}
-{$I x3d_rendering.inc}
-{$I x3d_shape.inc}
-{$I x3d_geometry3d.inc}
-{$I x3d_geometry2d.inc}
-{$I x3d_text.inc}
-{$I x3d_sound.inc}
-{$I x3d_lighting.inc}
-{$I x3d_texturing.inc}
-{$I x3d_interpolation.inc}
-{$I x3d_interpolation_cubic_bezier.inc}
-{$I x3d_pointingdevicesensor.inc}
-{$I x3d_keydevicesensor.inc}
-{$I x3d_environmentalsensor.inc}
-{$I x3d_navigation.inc}
-{$I x3d_environmentaleffects.inc}
-{$I x3d_geospatial.inc}
-{$I x3d_h-anim.inc}
-{$I x3d_nurbs.inc}
-{$I x3d_dis.inc}
-{$I x3d_scripting.inc}
-{$I x3d_eventutilities.inc}
-{$I x3d_shaders.inc}
-{$I x3d_cadgeometry.inc}
-{$I x3d_texturing3d.inc}
-{$I x3d_cubemaptexturing.inc}
-{$I x3d_layering.inc}
-{$I x3d_layout.inc}
-{$I x3d_rigidbodyphysics.inc}
-{$I x3d_picking.inc}
-{$I x3d_followers.inc}
-{$I x3d_particlesystems.inc}
+{ Nodes from standard X3D components }
+{$I x3dnodes_standard_core.inc}
+{$I x3dnodes_standard_time.inc}
+{$I x3dnodes_standard_grouping.inc}
+{$I x3dnodes_standard_networking.inc}
+{$I x3dnodes_standard_rendering.inc}
+{$I x3dnodes_standard_shape.inc}
+{$I x3dnodes_standard_geometry3d.inc}
+{$I x3dnodes_standard_geometry2d.inc}
+{$I x3dnodes_standard_text.inc}
+{$I x3dnodes_standard_sound.inc}
+{$I x3dnodes_standard_lighting.inc}
+{$I x3dnodes_standard_texturing.inc}
+{$I x3dnodes_standard_interpolation.inc}
+{$I x3dnodes_standard_interpolation_cubic_bezier.inc}
+{$I x3dnodes_standard_pointingdevicesensor.inc}
+{$I x3dnodes_standard_keydevicesensor.inc}
+{$I x3dnodes_standard_environmentalsensor.inc}
+{$I x3dnodes_standard_navigation.inc}
+{$I x3dnodes_standard_environmentaleffects.inc}
+{$I x3dnodes_standard_geospatial.inc}
+{$I x3dnodes_standard_h-anim.inc}
+{$I x3dnodes_standard_nurbs.inc}
+{$I x3dnodes_standard_dis.inc}
+{$I x3dnodes_standard_scripting.inc}
+{$I x3dnodes_standard_eventutilities.inc}
+{$I x3dnodes_standard_shaders.inc}
+{$I x3dnodes_standard_cadgeometry.inc}
+{$I x3dnodes_standard_texturing3d.inc}
+{$I x3dnodes_standard_cubemaptexturing.inc}
+{$I x3dnodes_standard_layering.inc}
+{$I x3dnodes_standard_layout.inc}
+{$I x3dnodes_standard_rigidbodyphysics.inc}
+{$I x3dnodes_standard_picking.inc}
+{$I x3dnodes_standard_followers.inc}
+{$I x3dnodes_standard_particlesystems.inc}
 
+{ More nodes }
 {$I x3dnodes_1.inc}
 {$I x3dnodes_inventor.inc}
 {$I x3dnodes_97_hanim.inc}
 {$I x3dnodes_97_nurbs.inc}
 {$I x3dnodes_castle.inc}
-{$I x3dnodes_avalon.inc}
+{$I x3dnodes_instantreality.inc}
 {$I x3dnodes_bitmanagement.inc}
 
-function InterfaceDeclarationKeywords(
-  const AccessTypes: TX3DAccessTypes): TX3DKeywords;
-begin
-  Result := [];
-  if atInputOnly in AccessTypes then
-    Result += [vkEventIn, vkInputOnly];
-  if atOutputOnly in AccessTypes then
-    Result += [vkEventOut, vkOutputOnly];
-  if atInitializeOnly in AccessTypes then
-    Result += [vkField, vkInitializeOnly];
-  if atInputOutput in AccessTypes then
-    Result += [vkExposedField, vkInputOutput];
-end;
+{ Auto-generated nodes code }
+{$I auto_generated_node_helpers/x3dnodes_anchor.inc}
+{$I auto_generated_node_helpers/x3dnodes_appearance.inc}
+{$I auto_generated_node_helpers/x3dnodes_arc2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_arcclose2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_audioclip.inc}
+{$I auto_generated_node_helpers/x3dnodes_background.inc}
+{$I auto_generated_node_helpers/x3dnodes_balljoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_billboard.inc}
+{$I auto_generated_node_helpers/x3dnodes_blendmode.inc}
+{$I auto_generated_node_helpers/x3dnodes_booleanfilter.inc}
+{$I auto_generated_node_helpers/x3dnodes_booleansequencer.inc}
+{$I auto_generated_node_helpers/x3dnodes_booleantoggle.inc}
+{$I auto_generated_node_helpers/x3dnodes_booleantrigger.inc}
+{$I auto_generated_node_helpers/x3dnodes_boundedphysicsmodel.inc}
+{$I auto_generated_node_helpers/x3dnodes_box.inc}
+{$I auto_generated_node_helpers/x3dnodes_cadassembly.inc}
+{$I auto_generated_node_helpers/x3dnodes_cadface.inc}
+{$I auto_generated_node_helpers/x3dnodes_cadlayer.inc}
+{$I auto_generated_node_helpers/x3dnodes_cadpart.inc}
+{$I auto_generated_node_helpers/x3dnodes_circle2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_clipplane.inc}
+{$I auto_generated_node_helpers/x3dnodes_collidableoffset.inc}
+{$I auto_generated_node_helpers/x3dnodes_collidableshape.inc}
+{$I auto_generated_node_helpers/x3dnodes_collisioncollection.inc}
+{$I auto_generated_node_helpers/x3dnodes_collision.inc}
+{$I auto_generated_node_helpers/x3dnodes_collisionsensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_collisionspace.inc}
+{$I auto_generated_node_helpers/x3dnodes_colordamper.inc}
+{$I auto_generated_node_helpers/x3dnodes_color.inc}
+{$I auto_generated_node_helpers/x3dnodes_colorinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_colorrgba.inc}
+{$I auto_generated_node_helpers/x3dnodes_colorsetinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_composedcubemaptexture.inc}
+{$I auto_generated_node_helpers/x3dnodes_composedshader.inc}
+{$I auto_generated_node_helpers/x3dnodes_composedtexture3d.inc}
+{$I auto_generated_node_helpers/x3dnodes_coneemitter.inc}
+{$I auto_generated_node_helpers/x3dnodes_cone.inc}
+{$I auto_generated_node_helpers/x3dnodes_contact.inc}
+{$I auto_generated_node_helpers/x3dnodes_contour2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_contourpolyline2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_coordinatedamper.inc}
+{$I auto_generated_node_helpers/x3dnodes_coordinatedouble.inc}
+{$I auto_generated_node_helpers/x3dnodes_coordinate.inc}
+{$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_coordinateinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_cylinder.inc}
+{$I auto_generated_node_helpers/x3dnodes_cylindersensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_directionallight.inc}
+{$I auto_generated_node_helpers/x3dnodes_disentitymanager.inc}
+{$I auto_generated_node_helpers/x3dnodes_disentitytypemapping.inc}
+{$I auto_generated_node_helpers/x3dnodes_disk2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_doubleaxishingejoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_easeineaseout.inc}
+{$I auto_generated_node_helpers/x3dnodes_effect.inc}
+{$I auto_generated_node_helpers/x3dnodes_effectpart.inc}
+{$I auto_generated_node_helpers/x3dnodes_elevationgrid.inc}
+{$I auto_generated_node_helpers/x3dnodes_espdutransform.inc}
+{$I auto_generated_node_helpers/x3dnodes_explosionemitter.inc}
+{$I auto_generated_node_helpers/x3dnodes_extrusion.inc}
+{$I auto_generated_node_helpers/x3dnodes_fillproperties.inc}
+{$I auto_generated_node_helpers/x3dnodes_floatvertexattribute.inc}
+{$I auto_generated_node_helpers/x3dnodes_fogcoordinate.inc}
+{$I auto_generated_node_helpers/x3dnodes_fog.inc}
+{$I auto_generated_node_helpers/x3dnodes_fontstyle.inc}
+{$I auto_generated_node_helpers/x3dnodes_forcephysicsmodel.inc}
+{$I auto_generated_node_helpers/x3dnodes_generatedcubemaptexture.inc}
+{$I auto_generated_node_helpers/x3dnodes_generatedshadowmap.inc}
+{$I auto_generated_node_helpers/x3dnodes_geocoordinate.inc}
+{$I auto_generated_node_helpers/x3dnodes_geoelevationgrid.inc}
+{$I auto_generated_node_helpers/x3dnodes_geolocation.inc}
+{$I auto_generated_node_helpers/x3dnodes_geolod.inc}
+{$I auto_generated_node_helpers/x3dnodes_geometadata.inc}
+{$I auto_generated_node_helpers/x3dnodes_geoorigin.inc}
+{$I auto_generated_node_helpers/x3dnodes_geopositioninterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_geoproximitysensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_geotouchsensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_geotransform.inc}
+{$I auto_generated_node_helpers/x3dnodes_geoviewpoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_group.inc}
+{$I auto_generated_node_helpers/x3dnodes_hanimdisplacer.inc}
+{$I auto_generated_node_helpers/x3dnodes_hanimhumanoid.inc}
+{$I auto_generated_node_helpers/x3dnodes_hanimjoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_hanimsegment.inc}
+{$I auto_generated_node_helpers/x3dnodes_hanimsite.inc}
+{$I auto_generated_node_helpers/x3dnodes_imagecubemaptexture.inc}
+{$I auto_generated_node_helpers/x3dnodes_imagetexture3d.inc}
+{$I auto_generated_node_helpers/x3dnodes_imagetexture.inc}
+{$I auto_generated_node_helpers/x3dnodes_indexedfaceset.inc}
+{$I auto_generated_node_helpers/x3dnodes_indexedlineset.inc}
+{$I auto_generated_node_helpers/x3dnodes_indexedquadset.inc}
+{$I auto_generated_node_helpers/x3dnodes_indexedtrianglefanset.inc}
+{$I auto_generated_node_helpers/x3dnodes_indexedtriangleset.inc}
+{$I auto_generated_node_helpers/x3dnodes_indexedtrianglestripset.inc}
+{$I auto_generated_node_helpers/x3dnodes_inline.inc}
+{$I auto_generated_node_helpers/x3dnodes_integersequencer.inc}
+{$I auto_generated_node_helpers/x3dnodes_integertrigger.inc}
+{$I auto_generated_node_helpers/x3dnodes_kambiappearance.inc}
+{$I auto_generated_node_helpers/x3dnodes_kambiheadlight.inc}
+{$I auto_generated_node_helpers/x3dnodes_kambiinline.inc}
+{$I auto_generated_node_helpers/x3dnodes_kambinavigationinfo.inc}
+{$I auto_generated_node_helpers/x3dnodes_kambioctreeproperties.inc}
+{$I auto_generated_node_helpers/x3dnodes_keysensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_layer.inc}
+{$I auto_generated_node_helpers/x3dnodes_layerset.inc}
+{$I auto_generated_node_helpers/x3dnodes_layoutgroup.inc}
+{$I auto_generated_node_helpers/x3dnodes_layout.inc}
+{$I auto_generated_node_helpers/x3dnodes_layoutlayer.inc}
+{$I auto_generated_node_helpers/x3dnodes_linepicksensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_lineproperties.inc}
+{$I auto_generated_node_helpers/x3dnodes_lineset.inc}
+{$I auto_generated_node_helpers/x3dnodes_loadsensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_localfog.inc}
+{$I auto_generated_node_helpers/x3dnodes_lod.inc}
+{$I auto_generated_node_helpers/x3dnodes_logger.inc}
+{$I auto_generated_node_helpers/x3dnodes_material.inc}
+{$I auto_generated_node_helpers/x3dnodes_matrix3vertexattribute.inc}
+{$I auto_generated_node_helpers/x3dnodes_matrix4vertexattribute.inc}
+{$I auto_generated_node_helpers/x3dnodes_matrixtransform.inc}
+{$I auto_generated_node_helpers/x3dnodes_metadataboolean.inc}
+{$I auto_generated_node_helpers/x3dnodes_metadatadouble.inc}
+{$I auto_generated_node_helpers/x3dnodes_metadatafloat.inc}
+{$I auto_generated_node_helpers/x3dnodes_metadatainteger.inc}
+{$I auto_generated_node_helpers/x3dnodes_metadataset.inc}
+{$I auto_generated_node_helpers/x3dnodes_metadatastring.inc}
+{$I auto_generated_node_helpers/x3dnodes_motorjoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_movietexture.inc}
+{$I auto_generated_node_helpers/x3dnodes_multigeneratedtexturecoordinate.inc}
+{$I auto_generated_node_helpers/x3dnodes_multitexturecoordinate.inc}
+{$I auto_generated_node_helpers/x3dnodes_multitexture.inc}
+{$I auto_generated_node_helpers/x3dnodes_multitexturetransform.inc}
+{$I auto_generated_node_helpers/x3dnodes_navigationinfo.inc}
+{$I auto_generated_node_helpers/x3dnodes_normal.inc}
+{$I auto_generated_node_helpers/x3dnodes_normalinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_nurbscurve2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_nurbscurve.inc}
+{$I auto_generated_node_helpers/x3dnodes_nurbsorientationinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_nurbspatchsurface.inc}
+{$I auto_generated_node_helpers/x3dnodes_nurbspositioninterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_nurbsset.inc}
+{$I auto_generated_node_helpers/x3dnodes_nurbssurfaceinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_nurbssweptsurface.inc}
+{$I auto_generated_node_helpers/x3dnodes_nurbsswungsurface.inc}
+{$I auto_generated_node_helpers/x3dnodes_nurbstexturecoordinate.inc}
+{$I auto_generated_node_helpers/x3dnodes_nurbstrimmedsurface.inc}
+{$I auto_generated_node_helpers/x3dnodes_orientationchaser.inc}
+{$I auto_generated_node_helpers/x3dnodes_orientationdamper.inc}
+{$I auto_generated_node_helpers/x3dnodes_orientationinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_orthoviewpoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_packagedshader.inc}
+{$I auto_generated_node_helpers/x3dnodes_particlesystem.inc}
+{$I auto_generated_node_helpers/x3dnodes_pickablegroup.inc}
+{$I auto_generated_node_helpers/x3dnodes_pixeltexture3d.inc}
+{$I auto_generated_node_helpers/x3dnodes_pixeltexture.inc}
+{$I auto_generated_node_helpers/x3dnodes_planesensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_pointemitter.inc}
+{$I auto_generated_node_helpers/x3dnodes_pointlight.inc}
+{$I auto_generated_node_helpers/x3dnodes_pointpicksensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_pointset.inc}
+{$I auto_generated_node_helpers/x3dnodes_polyline2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_polylineemitter.inc}
+{$I auto_generated_node_helpers/x3dnodes_polypoint2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_positionchaser2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_positionchaser.inc}
+{$I auto_generated_node_helpers/x3dnodes_positiondamper2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_positiondamper.inc}
+{$I auto_generated_node_helpers/x3dnodes_positioninterpolator2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_positioninterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_primitivepicksensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_programshader.inc}
+{$I auto_generated_node_helpers/x3dnodes_projectedtexturecoordinate.inc}
+{$I auto_generated_node_helpers/x3dnodes_proximitysensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_quadset.inc}
+{$I auto_generated_node_helpers/x3dnodes_receiverpdu.inc}
+{$I auto_generated_node_helpers/x3dnodes_rectangle2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_renderedtexture.inc}
+{$I auto_generated_node_helpers/x3dnodes_rigidbodycollection.inc}
+{$I auto_generated_node_helpers/x3dnodes_rigidbody.inc}
+{$I auto_generated_node_helpers/x3dnodes_scalarchaser.inc}
+{$I auto_generated_node_helpers/x3dnodes_scalarinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_screeneffect.inc}
+{$I auto_generated_node_helpers/x3dnodes_screenfontstyle.inc}
+{$I auto_generated_node_helpers/x3dnodes_screengroup.inc}
+{$I auto_generated_node_helpers/x3dnodes_script.inc}
+{$I auto_generated_node_helpers/x3dnodes_shaderpart.inc}
+{$I auto_generated_node_helpers/x3dnodes_shaderprogram.inc}
+{$I auto_generated_node_helpers/x3dnodes_shadertexture.inc}
+{$I auto_generated_node_helpers/x3dnodes_shape.inc}
+{$I auto_generated_node_helpers/x3dnodes_signalpdu.inc}
+{$I auto_generated_node_helpers/x3dnodes_singleaxishingejoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_sliderjoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_sound.inc}
+{$I auto_generated_node_helpers/x3dnodes_sphere.inc}
+{$I auto_generated_node_helpers/x3dnodes_spheresensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_splinepositioninterpolator2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_splinepositioninterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_splinescalarinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_spotlight.inc}
+{$I auto_generated_node_helpers/x3dnodes_squadorientationinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_staticgroup.inc}
+{$I auto_generated_node_helpers/x3dnodes_stringsensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_surfaceemitter.inc}
+{$I auto_generated_node_helpers/x3dnodes_switch.inc}
+{$I auto_generated_node_helpers/x3dnodes_teapot.inc}
+{$I auto_generated_node_helpers/x3dnodes_texcoorddamper2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_text3d.inc}
+{$I auto_generated_node_helpers/x3dnodes_text.inc}
+{$I auto_generated_node_helpers/x3dnodes_texturebackground.inc}
+{$I auto_generated_node_helpers/x3dnodes_texturecoordinate3d.inc}
+{$I auto_generated_node_helpers/x3dnodes_texturecoordinate4d.inc}
+{$I auto_generated_node_helpers/x3dnodes_texturecoordinategenerator.inc}
+{$I auto_generated_node_helpers/x3dnodes_texturecoordinate.inc}
+{$I auto_generated_node_helpers/x3dnodes_textureproperties.inc}
+{$I auto_generated_node_helpers/x3dnodes_texturetransform3d.inc}
+{$I auto_generated_node_helpers/x3dnodes_texturetransform.inc}
+{$I auto_generated_node_helpers/x3dnodes_texturetransformmatrix3d.inc}
+{$I auto_generated_node_helpers/x3dnodes_timesensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_timetrigger.inc}
+{$I auto_generated_node_helpers/x3dnodes_toggler.inc}
+{$I auto_generated_node_helpers/x3dnodes_touchsensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_transform.inc}
+{$I auto_generated_node_helpers/x3dnodes_transformsensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_transmitterpdu.inc}
+{$I auto_generated_node_helpers/x3dnodes_trianglefanset.inc}
+{$I auto_generated_node_helpers/x3dnodes_triangleset2d.inc}
+{$I auto_generated_node_helpers/x3dnodes_triangleset.inc}
+{$I auto_generated_node_helpers/x3dnodes_trianglestripset.inc}
+{$I auto_generated_node_helpers/x3dnodes_twosidedmaterial.inc}
+{$I auto_generated_node_helpers/x3dnodes_universaljoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_vectorinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_viewpointgroup.inc}
+{$I auto_generated_node_helpers/x3dnodes_viewpoint.inc}
+{$I auto_generated_node_helpers/x3dnodes_viewport.inc}
+{$I auto_generated_node_helpers/x3dnodes_visibilitysensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_volumeemitter.inc}
+{$I auto_generated_node_helpers/x3dnodes_volumepicksensor.inc}
+{$I auto_generated_node_helpers/x3dnodes_windphysicsmodel.inc}
+{$I auto_generated_node_helpers/x3dnodes_worldinfo.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dappearancechildnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dappearancenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dbackgroundnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dbindablenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dchasernode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dchildnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dcolornode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dcomposedgeometrynode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dcoordinatenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3ddampernode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3ddragsensornode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3denvironmentalsensornode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3denvironmenttexturenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dfogobject.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dfollowernode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dfontstylenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dgeometricpropertynode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dgeometrynode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dgroupingnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dinfonode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dinterpolatornode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dkeydevicesensornode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dlayernode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dlayoutnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dlightnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dmaterialnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dmetadataobject.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dnbodycollidablenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dnbodycollisionspacenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dnetworksensornode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dnormalnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dnurbscontrolcurvenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dnurbssurfacegeometrynode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dparametricgeometrynode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dparticleemitternode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dparticlephysicsmodelnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dpickableobject.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dpicksensornode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dpointingdevicesensornode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dproductstructurechildnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3drigidjointnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dscriptnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dsensornode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dsequencernode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dshadernode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dshapenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dsoundnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dsoundsourcenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dtexture3dnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dtexturecoordinatenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dtexturenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dtexturetransformnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dtimedependentnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dtouchsensornode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dtriggernode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3durlobject.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dvertexattributenode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc}
+{$I auto_generated_node_helpers/x3dnodes_x3dviewportnode.inc}
 
 { TLightInstance ------------------------------------------------------------- }
 
@@ -2775,8 +3062,6 @@ procedure TX3DGraphTraverseStateStack.Clear;
 begin
   ItemsAllocated := 0;
 end;
-
-{$I x3dnodes_node.inc}
 
 { TX3DNodesCache ------------------------------------------------------------ }
 
@@ -5473,7 +5758,7 @@ begin
   if (SourceEvent <> nil) and
      (DestinationEvent <> nil) and
      (SourceEvent.FieldClass <> DestinationEvent.FieldClass) and
-     { destination field can be XFAny (for some Avalon nodes) as an exception. }
+     { destination field can be XFAny (for some InstantReality nodes) as an exception. }
      (not (DestinationEvent.FieldClass = TX3DField)) then
     raise ERouteSetEndingError.CreateFmt('Route has different event types for source (%s, type %s) and destination (%s, type %s)',
       [ SourceEvent     .X3DName, SourceEvent     .FieldClass.X3DType,
@@ -6135,7 +6420,7 @@ initialization
   RegisterVRML97HAnimNodes;
   RegisterVRML97NodesNurbs;
   RegisterKambiNodes;
-  RegisterAvalonNodes;
+  RegisterInstantRealityNodes;
   RegisterBitManagementNodes;
 
   { X3D components registration : }

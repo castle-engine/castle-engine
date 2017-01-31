@@ -1,6 +1,6 @@
 { -*- compile-command: "./castleengine_compile.sh" -*- }
 {
-  Copyright 2013-2016 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 

@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2016 Michalis Kamburelis,
+  Copyright 2014-2017 Michalis Kamburelis,
   parts based on LazUTF8 unit copyright by Lazarus developers.
   Parts of this source code are based on Lazarus LazUTF8 source code,
   but no worries --- Lazarus license is exactly the same as Castle Game Engine :)
