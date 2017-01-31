@@ -261,6 +261,7 @@ push
 quantity
 quit
 radius
+random
 rate
 ray
 read
