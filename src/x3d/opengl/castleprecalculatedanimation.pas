@@ -1,5 +1,5 @@
 {
-  Copyright 2006-2016 Michalis Kamburelis.
+  Copyright 2006-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -731,7 +731,10 @@ begin
   InitialViewpointName := FParentAnimation.InitialViewpointName;
   SetWorld(FParentAnimation.World);
 
+  {$warnings off}
+  { consciously using deprecated feature in a deprecated class }
   Static := AStatic;
+  {$warnings on}
 
   Load(ARootNode, AOwnsRootNode);
 end;

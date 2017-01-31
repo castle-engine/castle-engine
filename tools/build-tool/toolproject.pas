@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2016 Michalis Kamburelis.
+  Copyright 2014-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -1201,7 +1201,8 @@ begin
       MergeAndroidManifest(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/java/net/sourceforge/castleengine/MainActivity.java') then
       MergeAndroidMainActivity(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
-    if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/custom-proguard-project.txt') then
+    if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/jni/Android.mk') or
+       SameText(DestinationRelativeFileNameSlashes, 'app/src/main/custom-proguard-project.txt') then
       MergeAppend(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
     if SameText(DestinationRelativeFileNameSlashes, 'app/build.gradle') then
       MergeBuildGradle(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else

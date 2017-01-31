@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2016 Michalis Kamburelis.
+  Copyright 2003-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -26,7 +26,8 @@ interface
 uses
   SysUtils, Classes, CastleVectors, CastleBoxes, CastleTriangles,
   X3DFields, X3DNodes, CastleClassUtils, CastleUtils,
-  CastleShapes, CastleTriangleOctree, CastleProgress, CastleOctree, CastleShapeOctree,
+  CastleShapes, CastleInternalTriangleOctree, CastleProgress, CastleInternalOctree,
+  CastleInternalShapeOctree,
   CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, Contnrs,
   CastleRenderingCamera, Castle3D, X3DShadowMaps, FGL, CastleGenericLists,
   CastleRays;
@@ -416,14 +417,14 @@ type
     and routes mechanism (see ProcessEvents).
 
     The actual VRML/X3D nodes graph is stored in the RootNode property.
-    Remember that if you directly change the fields/nodes within the RootNode,
-    this scene object must be notified about this.
-    The simplest way to do this is to use only TX3DField.Send to change
-    the fields' values. Or you can call TX3DField.Changed after each change.
-    Or you will have to call ChangedField or ChangedAll method
-    of this class.
-    If the scene is changed by VRML/X3D events, all changes are automagically
-    acted upon, so you don't have to do anything.
+    If you directly change the fields/nodes within the RootNode
+    (changing them through the @code(FdXxx) properties of nodes,
+    instead of nice wrappers without the @code(Fd...) prefix)
+    then the scene must be notified about this.
+    The simplest way to do this is to use only @link(TX3DField.Send) to change
+    the fields' values. Or you can call @link(TX3DField.Changed) after each change.
+    If you will have to call @link(ChangedAll) method of this class,
+    to rebuild everything (which is quite expensive).
 
     For more-or-less static scenes,
     many things are cached and work very quickly.
@@ -815,8 +816,15 @@ type
       As these callbacks may try to e.g. render our scene (which should
       not be done on the dirty state), we have to protect ourselves
       using this variable (e.g. Render routines will exit immediately
-      when Dirty <> 0). }
-    Dirty: Cardinal;
+      when InternalDirty <> 0).
+
+      Note: in the future, we could replace this by just Enable/Disable
+      feature on T3D. But it's not so trivial now, as Enable/Disable
+      makes even *too much* things non-existing, e.g. GetCollides
+      may return false, BoundingBox may be empty etc.
+
+      @exclude }
+    InternalDirty: Cardinal;
 
     const
       DefaultShadowMapsDefaultSize = 256;
@@ -923,8 +931,9 @@ type
       after BeforeNodesFree, and before you try actual rendering, events etc.)
       Otherwise some stuff may not get recalculated.
 
-      InternalChangedAll is for internal use. This is @true when ChangedAll
-      calls it at the beginning of work, and means that nothing is freed,
+      The InternalChangedAll parameter is for internal use.
+      It is set to @true when ChangedAll
+      calls this method at the beginning of it's work, and means that nothing is freed,
       and we only require necessary cleanup at the beginning of ChangedAll.
       This way ChangedAll (when it wasn't preceeded by explicit
       BeforeNodesFree(false)) produces events from stacks CheckForDeletedNodes. }
@@ -953,10 +962,17 @@ type
       (Before freeing the nodes, remember to also call BeforeNodesFree
       earlier.)
 
+      @bold(You usually never need to call this method explicitly.
+      It's called by engine when necesssary.)
+      However, you need to call it yourself if you change the X3D graph directly
+      through nodes' @code(FdXxx) fields,
+      and you don't want to call for some reason @link(TX3DField FdXxx.Changed).
+
       ChangedAll causes recalculation of all things dependent on RootNode,
-      so it's very costly to call this. While you have to call some ChangedXxx
-      method after you changed RootNode graph directly, usually you
-      can call something more efficient, like ChangedField.
+      so it's very costly to call this. Avoid calling this.
+      When you change a simple field, like by @code(FdXxx.Value := ...),
+      you should rather call @code(FdXxx.Changed), and it may do something
+      much faster than rebuilding the scene.
 
       @italic(Descendant implementors notes:) ChangedAll is virtual,
       when overriding it remember that it's
@@ -968,6 +984,8 @@ type
     procedure ChangedAll; override;
 
     { Notify scene that you changed the value of given field.
+      @bold(This method is internal, it should be used only by TX3DField
+      implementation.)
 
       This does relatively intelligent discovery what could be possibly
       affected by this field, and updates / invalidates
@@ -983,8 +1001,10 @@ type
       In fact, you can even notify this scene about changes to fields
       that don't belong to our RootNode --- nothing bad will happen.
       We always try to intelligently
-      detect what this change implicates for this VRML/X3D scene. }
-    procedure ChangedField(Field: TX3DField); override;
+      detect what this change implicates for this VRML/X3D scene.
+
+      @exclude }
+    procedure InternalChangedField(Field: TX3DField); override;
 
     { Notification when geometry changed.
       "Geometry changed" means that the positions
@@ -1089,34 +1109,22 @@ type
     { Actual VRML/X3D graph defining this scene.
 
       It is allowed to change contents of RootNode. Just make sure
-      the scene is notified about these changes --- you should assign
-      fields using methods like TX3DField.Send or (if you assign field
+      the scene is notified about these changes.
+      The simplest option is to use simple properties of nodes
+      (not the ones starting with @code(Fd...) prefix), when possible.
+      Then everything is notified automatically.
+      If you must use fields through the @code(FdXxx) properties,
+      then assign them using @link(TX3DField.Send),
+      or (if you need to assign field
       values directly, like @code(TSFVec3f.Value := ...))
-      call TX3DField.Changed. Eventually, you can call our ChangedField method
-      (but it's usually nicer to use TX3DField.Changed).
+      call @link(TX3DField.Changed).
 
       It is also allowed to change the value of RootNode
       and even to set RootNode to @nil. Be sure to call ChangedAll after this.
       Changing RootNode allows you to load
       and unload whole new VRML/X3D graph (for example from some 3D file)
       whenever you want, and keep the same TCastleSceneCore instance
-      (with the same rendering settings and such).
-
-      Note that there is also a trick to conserve memory use.
-      After you've done PrepareResources some things are precalculated here,
-      and RootNode is actually not used, unless you use ProcessEvents.
-      So you can free RootNode
-      (and set it to nil here) @italic(without calling ChangedAll)
-      and some things will just continue to work, unaware of the fact
-      that the underlying RootNode structure is lost.
-      Note that this is still considered a "dirty trick", and you will
-      have to be extra-careful then about what methods/properties
-      from this class. Generally, use only things that you prepared
-      with PrepareResources. So e.g. calling Render or using BoundingBox.
-      If all your needs are that simple, then you can use this trick
-      to save some memory. This is actually useful when using TCastlePrecalculatedAnimation,
-      as it creates a lot of intermediate node structures and TCastleSceneCore
-      instances. }
+      (with the same rendering settings and such). }
     property RootNode: TX3DRootNode read FRootNode write FRootNode;
 
     { If @true, RootNode will be freed by destructor of this class. }
@@ -1152,8 +1160,7 @@ type
       Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(collidable (not necessarily rendered)) objects.
 
-      TODO: Temporarily, this is updated simply by rebuilding.
-      This is a work in progress. }
+      TODO: Temporarily, this is updated simply by rebuilding. }
     function InternalOctreeDynamicCollisions: TShapeOctree;
 
     { A spatial structure containing all visible triangles, suitable only
@@ -1489,7 +1496,12 @@ type
 
     { Call when camera position/dir/up changed, to update things depending
       on camera settings. This includes sensors like ProximitySensor,
-      LOD nodes, camera settings for next RenderedTexture update and more. }
+      LOD nodes, camera settings for next RenderedTexture update and more.
+
+      @bold(There should be no need to call this method explicitly.
+      The scene is notified about camera changes automatically,
+      by the @link(TCastleSceneManager). This method may be renamed / removed
+      in future releases.) }
     procedure CameraChanged(ACamera: TCamera); override;
 
     { List of handlers for VRML/X3D Script node with "compiled:" protocol.
@@ -1680,7 +1692,8 @@ type
       TX3DField.Changed will not notify this scene. This makes a
       small optimization when you know you will not modify scene's VRML/X3D graph
       besides loading (or you're prepared to do it by manually calling
-      Scene.ChangedField etc.).
+      Scene.InternalChangedField, but this should not be used anymore, it's really
+      dirty).
 
       The behavior of events is undefined when scene is static.
       This means that you should always have ProcessEvents = @false
@@ -1690,6 +1703,7 @@ type
       Changing this is expensive when the scene content is already loaded,
       so it's best to adjust this before @link(Load). }
     property Static: boolean read FStatic write SetStatic default false;
+      deprecated 'do not use this; optimization done by this is really negligible; leave ProcessEvents=false for static scenes';
 
     { Nice scene caption. Uses the "title" of WorldInfo
       node inside the VRML/X3D scene. If there is no WorldInfo node
@@ -1767,7 +1781,28 @@ type
       Also stops previously playing named animation, if any.
       Returns whether animation (corresponding TimeSensor node) was found.
       Playing an already-playing animation is guaranteed to start it from
-      the beginning. }
+      the beginning.
+
+      Note: calling this method @italic(does not change the scene immediately).
+      There may be a delay between calling PlayAnimation and actually
+      changing the scene to reflect the state at the beginning of the indicated
+      animation. This delay is usually 1 frame (that is, the scene is updated
+      at the next @link(Update) call), but it may be larger if you use
+      the optimization @link(AnimateSkipTicks).
+
+      This is often a desirable optimization. There's often no "rush" to
+      visually change the animation @italic(right now), and doing it at
+      the nearest @link(Update) call is acceptable.
+      It also means that calling @link(PlayAnimation) multiple times
+      before a single @link(Update) call is not expensive.
+
+      But, sometimes you need to change the scene immediately (for example,
+      because you don't want to show user the initial scene state).
+      To do this, simply call @link(ForceAnimationPose) with @code(TimeInAnimation)
+      parameter = 0 and the same animation. This will change the scene immediately,
+      to show the beginning of this animation.
+      You can call @link(ForceAnimationPose) before or after @link(PlayAnimation),
+      doesn't matter. }
     function PlayAnimation(const AnimationName: string;
       const Looping: TPlayAnimationLooping): boolean;
 
@@ -1963,7 +1998,7 @@ type
 
 var
   { Log changes to fields.
-    This debugs what and why happens through TCastleSceneCore.ChangedField method
+    This debugs what and why happens through TCastleSceneCore.InternalChangedField method
     and friends, which is central to VRML/X3D dynamic changes and events engine.
 
     Meaningful only if you initialized log (see CastleLog unit) by InitializeLog first. }
@@ -2454,7 +2489,13 @@ begin
     FreeAndNil(FRootNode) else
   begin
     { This will call UnregisterScene(RootNode). }
+    {$warnings off}
+    { consciously using deprecated feature; in the future,
+      we will just explicitly call
+        if RootNode <> nil then UnregisterScene(RootNode);
+      here. }
     Static := true;
+    {$warnings on}
     FRootNode := nil;
   end;
 
@@ -3006,7 +3047,7 @@ end;
 
 procedure TCastleSceneCore.ChangedAllEnumerateCallback(Node: TX3DNode);
 begin
-  if not Static then
+  if not FStatic then
     Node.Scene := Self;
 
   { We're using AddIfNotExists, not simple Add, below:
@@ -3092,7 +3133,7 @@ procedure TCastleSceneCore.ChangedAll;
 var
   Traverser: TChangedAllTraverser;
 begin
-  { We really need to use Dirty here, to forbid rendering during this.
+  { We really need to use InternalDirty here, to forbid rendering during this.
 
     For example, ProcessShadowMapsReceivers work assumes this:
     otherwise, RootNode.Traverse may cause some progress Step call
@@ -3100,8 +3141,8 @@ begin
     that will be freed by the following ProcessShadowMapsReceivers call.
     Testcase: view3dscene open simple_shadow_map_teapots.x3dv, turn off
     shadow maps "receiveShadows" handling, then turn it back on
-    --- will crash without "Dirty" variable safety. }
-  Inc(Dirty);
+    --- will crash without "InternalDirty" variable safety. }
+  Inc(InternalDirty);
   try
 
   if Log and LogChanges then
@@ -3214,7 +3255,7 @@ begin
   if Log and LogShapes then
     WritelnLogMultiline('Shapes tree', Shapes.DebugInfo);
 
-  finally Dec(Dirty) end;
+  finally Dec(InternalDirty) end;
 end;
 
 type
@@ -3691,7 +3732,7 @@ begin
     VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
 end;
 
-procedure TCastleSceneCore.ChangedField(Field: TX3DField);
+procedure TCastleSceneCore.InternalChangedField(Field: TX3DField);
 var
   ANode: TX3DNode;
   Changes: TX3DChanges;
@@ -3700,7 +3741,7 @@ var
   var
     S: string;
   begin
-    S := 'ChangedField: ' + X3DChangesToStr(Changes) +
+    S := 'InternalChangedField: ' + X3DChangesToStr(Changes) +
       Format(', node: %s (%s %s) at %s',
       [ ANode.X3DName, ANode.X3DType, ANode.ClassName, PointerToStr(ANode) ]);
     if Field <> nil then
@@ -4687,7 +4728,7 @@ function TCastleSceneCore.CreateTriangleOctree(
   end;
 
 begin
-  Inc(Dirty);
+  Inc(InternalDirty);
   try
 
   Result := TTriangleOctree.Create(Limits, BoundingBox);
@@ -4705,7 +4746,15 @@ begin
       FillOctree({$ifdef FPC_OBJFPC} @ {$endif} Result.AddItemTriangle);
   except Result.Free; raise end;
 
-  finally Dec(Dirty) end;
+  finally Dec(InternalDirty) end;
+
+  { $define CASTLE_DEBUG_OCTREE_DUPLICATION}
+  {$ifdef CASTLE_DEBUG_OCTREE_DUPLICATION}
+  WritelnLog('Triangles Octree Stats', '%d items in octree, %d items in octree''s leafs, duplication %f',
+    [Result.TotalItemsInOctree,
+     Result.TotalItemsInLeafs,
+     Result.TotalItemsInLeafs / Result.TotalItemsInOctree]);
+  {$endif}
 end;
 
 function TCastleSceneCore.CreateShapeOctree(
@@ -4716,7 +4765,7 @@ var
   I: Integer;
   ShapesList: TShapeList;
 begin
-  Inc(Dirty);
+  Inc(InternalDirty);
   try
 
   if Collidable then
@@ -4748,7 +4797,14 @@ begin
     end;
   except Result.Free; raise end;
 
-  finally Dec(Dirty) end;
+  finally Dec(InternalDirty) end;
+
+  {$ifdef CASTLE_DEBUG_OCTREE_DUPLICATION}
+  WritelnLog('Shapes Octree Stats', '%d items in octree, %d items in octree''s leafs, duplication %f',
+    [Result.TotalItemsInOctree,
+     Result.TotalItemsInLeafs,
+     Result.TotalItemsInLeafs / Result.TotalItemsInOctree]);
+  {$endif}
 end;
 
 { viewpoints ----------------------------------------------------------------- }
@@ -4968,7 +5024,7 @@ begin
   if FStatic <> Value then
   begin
     FStatic := Value;
-    if Static then
+    if FStatic then
     begin
       { Clear TX3DNode.Scene for all nodes }
       if RootNode <> nil then
@@ -5780,7 +5836,7 @@ begin
         as it has to be in ProximitySensor coordinate-space.
 
         Also, since we don't store precalculated box of ProximitySensor,
-        we can gracefully react in ChangedField to changes:
+        we can gracefully react in InternalChangedField to changes:
         - changes to ProximitySensor center and size must only produce
           new ProximitySensorUpdate to eventually activate/deactivate ProximitySensor
         - changes to transforms affecting ProximitySensor must only update
@@ -6662,7 +6718,7 @@ end;
 function TCastleSceneCore.GetViewpointName(Idx: integer): string;
 begin
   if Between(Idx, 0, FViewpointsArray.Count - 1) then
-    Result := FViewpointsArray[Idx].Description else
+    Result := FViewpointsArray[Idx].SmartDescription else
     Result := '';
 end;
 

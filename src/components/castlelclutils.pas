@@ -1,5 +1,5 @@
 {
-  Copyright 2008-2016 Michalis Kamburelis.
+  Copyright 2008-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -414,6 +414,8 @@ begin
     Controls.mbLeft  : MyMouseButton := CastleKeysMouse.mbLeft;
     Controls.mbRight : MyMouseButton := CastleKeysMouse.mbRight;
     Controls.mbMiddle: MyMouseButton := CastleKeysMouse.mbMiddle;
+    Controls.mbExtra1: MyMouseButton := CastleKeysMouse.mbExtra1;
+    Controls.mbExtra2: MyMouseButton := CastleKeysMouse.mbExtra2;
     else Result := false;
   end;
 end;

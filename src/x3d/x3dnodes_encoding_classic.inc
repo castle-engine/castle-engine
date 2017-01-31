@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2016 Michalis Kamburelis.
+  Copyright 2002-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -625,6 +625,21 @@ begin
   try
     Result := LoadX3DClassic(Stream, BaseUrl);
   finally FreeAndNil(Stream) end;
+end;
+
+{ Internal parsing helper. }
+function InterfaceDeclarationKeywords(
+  const AccessTypes: TX3DAccessTypes): TX3DKeywords;
+begin
+  Result := [];
+  if atInputOnly in AccessTypes then
+    Result += [vkEventIn, vkInputOnly];
+  if atOutputOnly in AccessTypes then
+    Result += [vkEventOut, vkOutputOnly];
+  if atInitializeOnly in AccessTypes then
+    Result += [vkField, vkInitializeOnly];
+  if atInputOutput in AccessTypes then
+    Result += [vkExposedField, vkInputOutput];
 end;
 
 {$endif read_implementation}

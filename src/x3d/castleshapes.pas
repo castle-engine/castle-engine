@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2016 Michalis Kamburelis.
+  Copyright 2003-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -28,9 +28,9 @@ interface
 
 uses SysUtils, Classes, FGL,
   CastleVectors, Castle3D, CastleBoxes, X3DNodes, CastleClassUtils,
-  CastleUtils, CastleTriangleOctree, CastleFrustum, CastleOctree, X3DTriangles,
-  X3DFields, CastleGeometryArrays, CastleTriangles, CastleMaterialProperties,
-  CastleShapeInternalShadowVolumes;
+  CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
+  X3DTriangles, X3DFields, CastleGeometryArrays, CastleTriangles,
+  CastleMaterialProperties, CastleShapeInternalShadowVolumes;
 
 const
   { }
@@ -832,9 +832,13 @@ type
 
     { Sort shapes by distance to given Position point, farthest first.
 
-      If Distance3D than we use real distance in 3D.
-      Otherwise we use only the distance in Z coordinate (suitable for
-      rendering things that pretend to be 2D, like Spine slots). }
+      If Distance3D is @true: we use real distance in 3D to sort.
+      See the @link(bs3D) at @link(TBlendingSort) documentation.
+
+      If Distance3D is @false: we use only the distance in the Z coordinate
+      to sort. This is suitable for
+      rendering things that pretend to be 2D, like Spine slots.
+      See the @link(bs2D) at @link(TBlendingSort) documentation. }
     procedure SortBackToFront(const Position: TVector3Single;
       const Distance3D: boolean);
   end;
@@ -1411,6 +1415,17 @@ begin
         LocalTriangulate(false, @Result.AddItemTriangle);
     end;
   except Result.Free; raise end;
+
+  { $define CASTLE_DEBUG_OCTREE_DUPLICATION}
+  {$ifdef CASTLE_DEBUG_OCTREE_DUPLICATION}
+  WritelnLog('Triangles In Shape Octree Stats', '%d items in octree, %d items in octree''s leafs, duplication %f. Size of items in bytes: %d * %d = %d',
+    [Result.TotalItemsInOctree,
+     Result.TotalItemsInLeafs,
+     Result.TotalItemsInLeafs / Result.TotalItemsInOctree,
+     Result.Triangles.Count,
+     SizeOf(TTriangle),
+     Result.Triangles.Count * SizeOf(TTriangle)]);
+  {$endif}
 end;
 
 procedure TShape.SetSpatial(const Value: TShapeSpatialStructures);
@@ -2685,61 +2700,18 @@ var
 
 function IsSmallerFrontToBack(const A, B: TShape): Integer;
 begin
-  { We always treat empty box as closer than non-empty.
-    And two empty boxes are always equal.
-
-    Remember that code below must make sure that Result = 0
-    for equal elements (Sort may depend on this). So A < B only when:
-    - A empty, and B non-empty
-    - both non-empty, and A closer }
-
-  if (not B.BoundingBox.IsEmpty) and
-    ( A.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(A.BoundingBox.Center, SortPosition) <
-        PointsDistanceSqr(B.BoundingBox.Center, SortPosition))) then
-    Result := -1 else
-  if (not A.BoundingBox.IsEmpty) and
-    ( B.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(B.BoundingBox.Center, SortPosition) <
-        PointsDistanceSqr(A.BoundingBox.Center, SortPosition))) then
-    Result :=  1 else
-    Result :=  0;
+  { To revert the order, we revert the order of A and B as passed to CompareBackToFront3D. }
+  Result := TBox3D.CompareBackToFront3D(B.BoundingBox, A.BoundingBox, SortPosition);
 end;
 
 function IsSmallerBackToFront3D(const A, B: TShape): Integer;
 begin
-  if (not A.BoundingBox.IsEmpty) and
-    ( B.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(A.BoundingBox.Center, SortPosition) >
-        PointsDistanceSqr(B.BoundingBox.Center, SortPosition))) then
-    Result := -1 else
-  if (not B.BoundingBox.IsEmpty) and
-    ( A.BoundingBox.IsEmpty or
-      ( PointsDistanceSqr(B.BoundingBox.Center, SortPosition) >
-        PointsDistanceSqr(A.BoundingBox.Center, SortPosition))) then
-    Result :=  1 else
-    Result :=  0;
+  Result := TBox3D.CompareBackToFront3D(A.BoundingBox, B.BoundingBox, SortPosition);
 end;
 
 function IsSmallerBackToFront2D(const A, B: TShape): Integer;
 begin
-  { Note that we ignore SortPosition, we do not look at distance between
-    SortPosition and A.BoundingBox, we merely look at A.BoundingBox.
-    This way looking at 2D Spine scene from the other side is also Ok.
-
-    For speed, we don't look at bounding box Middle, only at it's min point.
-    The assumption here is that shape is 2D, so
-      BoundingBox.Data[0][2] = BoundingBox.Data[1][2] = BoundingBox.Center[2] . }
-
-  if (not A.BoundingBox.IsEmpty) and
-    ( B.BoundingBox.IsEmpty or
-      ( A.BoundingBox.Data[0][2] < B.BoundingBox.Data[0][2] )) then
-    Result := -1 else
-  if (not B.BoundingBox.IsEmpty) and
-    ( A.BoundingBox.IsEmpty or
-      ( B.BoundingBox.Data[0][2] < A.BoundingBox.Data[0][2] )) then
-    Result :=  1 else
-    Result :=  0;
+  Result := TBox3D.CompareBackToFront2D(A.BoundingBox, B.BoundingBox);
 end;
 
 procedure TShapeList.SortFrontToBack(const Position: TVector3Single);

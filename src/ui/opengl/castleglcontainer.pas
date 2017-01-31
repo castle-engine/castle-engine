@@ -1,5 +1,5 @@
 {
-  Copyright 2009-2016 Michalis Kamburelis.
+  Copyright 2009-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -46,16 +46,24 @@ type
       Use this to render the UI control off-screen, see e.g.
       example render_3d_to_texture_and_use_as_quad.lpr.
 
-      This doesn't only call @link(TUIControl.Render).
+      This doesn't only call @link(TUIControl.Render Control.Render).
       It also:
+
       @unorderedList(
-        @item(Temporarily sets @link(TUIControl.Container), if needed.)
-        @item(Calls @link(TUIControl.GLContextOpen) and @link(TUIControl.GLContextClose)
+        @item(Temporarily sets
+          @link(TInputListener.Container Control.Container), if needed.)
+
+        @item(Calls
+          @link(TUIControl.GLContextOpen Control.GLContextOpen) and
+          @link(TUIControl.GLContextClose Control.GLContextClose)
           around, if needed.)
-        @item(Calls @link(TUIControl.Resize), required by some controls
-          (like scene manager) to know viewport size.)
-        @item(Calls @link(TUIControl.BeforeRender), required by some controls
-          (like scene manager) to prepare resources (like generated textures,
+
+        @item(Calls @link(TInputListener.Resize Control.Resize),
+          required by some controls (like scene manager) to know viewport size.)
+
+        @item(Calls @link(TUIControl.BeforeRender Control.BeforeRender),
+          required by some controls (like scene manager)
+          to prepare resources (like generated textures,
           important for mirrors for screenshots in batch mode).)
       )
     }

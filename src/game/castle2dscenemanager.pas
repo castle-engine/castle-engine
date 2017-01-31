@@ -1,5 +1,5 @@
 {
-  Copyright 2014-2016 Michalis Kamburelis.
+  Copyright 2014-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -117,7 +117,7 @@ type
 
 implementation
 
-uses CastleVectors, CastleGLUtils, X3DNodes;
+uses CastleBoxes, CastleVectors, CastleGLUtils, X3DNodes;
 
 { T2DSceneManager -------------------------------------------------------- }
 

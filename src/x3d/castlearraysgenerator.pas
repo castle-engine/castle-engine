@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2016 Michalis Kamburelis.
+  Copyright 2002-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -2341,8 +2341,8 @@ end;
 
 { non-abstract generators ---------------------------------------------------- }
 
-{$I arraysgenerator_x3d_rendering.inc}
-{$I arraysgenerator_x3d_geometry3d.inc}
+{$I castlearraysgenerator_rendering.inc}
+{$I castlearraysgenerator_geometry3d.inc}
 
 { global routines ------------------------------------------------------------ }
 

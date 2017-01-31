@@ -19,12 +19,15 @@ X3DNode {
   SFNode [in,out] metadata NULL [X3DMetadataObject]
 }
 
-X3DPrototypeInstance : X3DNode {
-}
-
 X3DSensorNode  : X3DChildNode {
   SFBool [in,out] enabled  TRUE
   SFBool [out]    isActive
+}
+
+MetadataBoolean : X3DNode, X3DMetadataObject {
+  SFString [in,out] name      ""
+  SFString [in,out] reference ""
+  MFBool   [in,out] value     []
 }
 
 MetadataDouble : X3DNode, X3DMetadataObject {

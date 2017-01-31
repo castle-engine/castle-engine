@@ -1,6 +1,11 @@
 #!/bin/bash
 set -eu
 
+# Use pipefail to fail if the "pasdoc"
+# command in "pasdoc ... | grep ..." pipe fails.
+# See http://unix.stackexchange.com/questions/14270/get-exit-status-of-process-thats-piped-to-another
+set -o pipefail
+
 # Generates docs for all units in castle_game_engine/src.
 # $1 is format (allowed values as for pasdoc's --format option),
 # docs will be placed in subdirectory $1 of current dir
@@ -78,30 +83,35 @@ rm -f "$TMP_PAS_LIST"
 # be documented by pasdoc.
 
 if (( $# == 0 )); then
-  # We don't generate docs for a lot of automatically generated units
-  # CastleOutlineFont_Xxx and CastleBitmapFont_Xxx, docs for these units would be useless.
-  # (all these units have the same structure, after all).
+  # We don't generate docs for
   #
-  # Don't generate docs for units created only for example programs.
+  # - Automatically generated units (fonts).
   #
-  # Don't generate docs for pk3dconnexion.pas, tdxinput_tlb.pas:
-  # external code, not ready for pasdoc.
+  # - Internal units.
+  #   All the non-internal units should have nice PasDoc documentation.
   #
-  # Don't generate docs for units in base/android/: these should be treated
-  # as internal units.
+  #   Internal units sometimes have internal API, sometimes they even
+  #   describe an "external API", not interesting to CGE developers,
+  #   like castleinternalpk3dconnexion.pas and castleinternaltdxinput_tlb.pas.
+  #
+  #   There are two units that are "somewhat internal":
+  #   glext.pas, castlegles20.pas. We want them to be treated as internal
+  #   for most games. But sometimes users can also use them directly,
+  #   to do some advanced tricks (direct OpenGL / OpenGLES rendering,
+  #   mixed with CGE rendering).
+  #   In any case, their docs are not ready for PasDoc (and never will be
+  #   --- this is OpenGL and OpenGL ES API).
+
   find .  \
-    '(' -type d '(' -iname old -or \
-                    -iname private \
-                ')' -prune ')' -or \
     '(' -type f -iname '*.pas' \
             -not '(' \
               '(' -iwholename '*/base/android/*.pas' ')' -or \
               '(' -iwholename '*/castlelib_dynloader.pas' ')' -or \
               '(' -iwholename '*/castlegles20.pas' ')' -or \
               '(' -iwholename '*/opengl/x86_64/glext.pas' ')' -or \
-              '(' -iwholename '*ui/pk3dconnexion.pas' ')' -or \
-              '(' -iwholename '*ui/windows/tdxinput_tlb.pas' ')' -or \
-              '(' -iwholename '*/x3dloadinternal*.pas' ')' -or \
+              '(' -iname 'x3dloadinternal*.pas' ')' -or \
+              '(' -iname 'castleinternal*.pas' ')' -or \
+              '(' -iname 'castleshapeinternal*.pas' ')' -or \
               '(' -iwholename '*fonts/castleoutlinefont_*.pas' ')' -or \
               '(' -iwholename '*fonts/castlebitmapfont_*.pas' ')' \
             ')' \
@@ -133,12 +143,24 @@ PASDOC_INCLUDE_DIRS="\
   --include window/gtk/
 "
 
+# Run pasdoc.
+#
+# Filter result through grep.
+# Thanks to "set -o pipefail" defined above, failure of "pasdoc"
+# will still cause the entire script to fail.
+#
+# We filter out some known pasdoc bugs/missing features:
+# - lack of @groupbegin/groupend implementation for now,
+# - reporting as missing links the exceptions from standard units.
+
 pasdoc \
    --format "$PASDOC_FORMAT" \
-  $PASDOC_INCLUDE_DIRS --output "$OUTPUT_PATH" \
+  $PASDOC_INCLUDE_DIRS \
+  --output "$OUTPUT_PATH" \
   --define "$TARGET_OS" \
   --define FPC --define VER2 --define VER2_6 --define VER2_6_0 --define PASDOC \
-  --write-uses-list --title "Castle Game Engine" \
+  --write-uses-list \
+  --title "Castle Game Engine" \
   --source "$TMP_PAS_LIST" \
   --cache-dir "$PASDOC_CACHE" \
   --auto-abstract \
@@ -147,7 +169,17 @@ pasdoc \
   --auto-link-exclude=../doc/pasdoc/auto_link_exclude.txt \
   --external-class-hierarchy=../doc/pasdoc/external_class_hierarchy.txt \
   --visible-members public,published,automated,protected \
-  --footer ../doc/pasdoc/footer.html
+  --footer ../doc/pasdoc/footer.html \
+  --description=../src/x3d/x3dnodes_documentation.txt \
+  | \
+  grep --ignore-case --invert-match --fixed-strings \
+    --regexp='Tag "groupbegin" is not implemented yet, ignoring' \
+    --regexp='Tag "groupend" is not implemented yet, ignoring' \
+    --regexp='Could not resolve link "EConvertError"' \
+    --regexp='Could not resolve link "EReadError"' \
+    --regexp='Could not resolve link "Exception"' \
+    --regexp='Could not resolve link "EOSError"' \
+    --regexp='Could not resolve link "EInvalidArgument"'
 
 # Not anymore:
 # We hide protected members, for now. Makes a cleaner documentation,

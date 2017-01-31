@@ -1,5 +1,5 @@
 {
-  Copyright 2015-2016 Sven Barth.
+  Copyright 2015-2017 Sven Barth.
 
   This file is part of "Castle Game Engine".
 

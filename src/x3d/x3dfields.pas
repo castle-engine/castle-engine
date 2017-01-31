@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2016 Michalis Kamburelis.
+  Copyright 2002-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -838,7 +838,7 @@ type
       read FExposedEventsLinked write SetExposedEventsLinked
       default true;
 
-    { Field type in X3D, like @code(SFString) or @link(MFInt32).
+    { Field type in X3D, like @code('SFString') or @code('MFInt32').
       As for VRML/X3D interface declaration statements.
       In base TX3DField class, this returns @code(XFAny)
       (name indicating any type, used by instantreality and us). }
@@ -955,7 +955,7 @@ type
     property ChangesAlways: TX3DChanges read FChangesAlways write FChangesAlways;
 
     { What happens when the value of this field changes.
-      This is called, exactly once, by TCastleSceneCore.ChangedField
+      This is called, exactly once, by TCastleSceneCore.InternalChangedField
       to determine what must be done when we know that value of this field changed.
 
       In overridden descendants, this can also do something immediately.
@@ -1010,7 +1010,7 @@ type
       one "in" handler sets the field value).
 
       Note that "out" event handlers are executed before Scene is notified
-      about the field value change (before TCastleSceneCore.ChangedField is called).
+      about the field value change (before TCastleSceneCore.InternalChangedField is called).
       This is also usually exactly what you want --- you can change the scene
       graph inside the event handler (for example, load something on
       Inline.load or Inline.url changes), and let the TX3DField.ChangesAlways
@@ -3128,11 +3128,11 @@ begin
   Assert(Event = FExposedEvents[true]);
   Assert(Value is ExposedEventsFieldClass);
 
-  { When not ValuePossiblyChanged, we don't have to call ChangedField.
+  { When not ValuePossiblyChanged, we don't have to call InternalChangedField.
     (Although we still have to call FExposedEvents[false].Send,
     to push the change through the routes.)
     This may be an important optimization when simple field's change
-    causes large time-consuming work in ChangedField, e.g. consider
+    causes large time-consuming work in InternalChangedField, e.g. consider
     Switch.whichChoice which means currently rebuilding a lot of things. }
   ValuePossiblyChanged := not FastEqualsValue(Value);
 
@@ -3158,7 +3158,7 @@ begin
   begin
     Parent := ParentNode as TX3DNode;
     if Parent.Scene <> nil then
-      Parent.Scene.ChangedField(Self);
+      Parent.Scene.InternalChangedField(Self);
   end;
 end;
 

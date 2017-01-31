@@ -1,5 +1,5 @@
 {
-  Copyright 2002-2016 Michalis Kamburelis.
+  Copyright 2002-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -316,6 +316,16 @@ var
           'Material not named yet, but it''s %s specified', [AttributeName]);
     end;
 
+    function FixBumpTextureUrl(const S: string): string;
+    var
+      P: Integer;
+    begin
+      Result := S;
+      P := Pos(' -bm', S);
+      if P <> 0 then
+        Result := Copy(S, 1, P - 1);
+    end;
+
   var
     F: TTextReader;
     LineTok, LineAfterMarker: string;
@@ -392,7 +402,7 @@ var
           11, 12:
              begin
                CheckIsMaterial('bump map (map_bump,bump)');
-               Materials.Last.BumpTextureURL := LineAfterMarker;
+               Materials.Last.BumpTextureURL := FixBumpTextureUrl(LineAfterMarker);
              end;
           else { we ignore other linetoks };
         end;

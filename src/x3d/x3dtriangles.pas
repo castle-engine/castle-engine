@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2016 Michalis Kamburelis.
+  Copyright 2003-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -23,7 +23,7 @@ unit X3DTriangles;
 interface
 
 uses CastleVectors, SysUtils, CastleUtils, X3DNodes, Castle3D, CastleBoxes,
-  CastleOctree, CastleGenericLists, CastleTriangles;
+  CastleInternalOctree, CastleGenericLists, CastleTriangles;
 
 { TTriangle  ------------------------------------------------------------ }
 
@@ -728,8 +728,10 @@ end;
 procedure TTriangle.UpdateWorld;
 begin
   World.Triangle := TriangleTransform(Local.Triangle, State.Transform);
+  {$ifndef CONSERVE_TRIANGLE_MEMORY_MORE}
   World.Plane := TriangleNormPlane(World.Triangle);
   World.Area := CastleTriangles.TriangleArea(World.Triangle);
+  {$endif}
 end;
 
 function TTriangle.SegmentDirCollision(
@@ -1058,7 +1060,7 @@ function TBaseTrianglesOctreeNode.CommonSegment(
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 {$define SEGMENT_COLLISION}
-{$I triangle_raysegment_nonleaf.inc}
+{$I x3dtriangles_raysegment_nonleaf.inc}
 {$undef SEGMENT_COLLISION}
 
 function TBaseTrianglesOctreeNode.CommonRay(
@@ -1070,7 +1072,7 @@ function TBaseTrianglesOctreeNode.CommonRay(
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
-{$I triangle_raysegment_nonleaf.inc}
+{$I x3dtriangles_raysegment_nonleaf.inc}
 
 { TBaseTrianglesOctree --------------------------------------------------- }
 
@@ -1316,11 +1318,19 @@ function TBaseTrianglesOctree.MoveCollision(
     in many positions, but it's not perfect. }
   function MoveAlongTheBlocker(Blocker: PTriangle): boolean;
   var
+    {$ifdef CONSERVE_TRIANGLE_MEMORY_MORE}
+    Plane: TVector4Single;
+    {$endif}
     PlanePtr: PVector4Single;
     PlaneNormalPtr: PVector3Single;
     NewPosShift: TVector3Single;
   begin
+    {$ifdef CONSERVE_TRIANGLE_MEMORY_MORE}
+    Plane := Blocker^.World.Plane;
+    PlanePtr := @Plane;
+    {$else}
     PlanePtr := @(Blocker^.World.Plane);
+    {$endif}
     PlaneNormalPtr := PVector3Single(PlanePtr);
 
     { project ProposedNewPos on a plane of blocking object }
@@ -1363,12 +1373,20 @@ function TBaseTrianglesOctree.MoveCollision(
     SegmentCollision: boolean;
     Blocker: PTriangle): boolean;
   var
+    {$ifdef CONSERVE_TRIANGLE_MEMORY_MORE}
+    Plane: TVector4Single;
+    {$endif}
     PlanePtr: PVector4Single;
     Slide, Projected: TVector3Single;
     NewBlocker: PTriangle;
     NewBlockerIntersection: TVector3Single;
   begin
+    {$ifdef CONSERVE_TRIANGLE_MEMORY_MORE}
+    Plane := Blocker^.World.Plane;
+    PlanePtr := @Plane;
+    {$else}
     PlanePtr := @(Blocker^.World.Plane);
+    {$endif}
 
     {$ifdef DEBUG_WALL_SLIDING}
     Write('Wall-sliding: Better version (with 3d intersection). ');
@@ -1461,7 +1479,12 @@ function TBaseTrianglesOctree.MoveCollision(
             We know that we're in sphere collision case
             (checked above that "not SegmentCollision"). }
 
+          {$ifdef CONSERVE_TRIANGLE_MEMORY_MORE}
+          Plane := NewBlocker^.World.Plane;
+          PlanePtr := @Plane;
+          {$else}
           PlanePtr := @(NewBlocker^.World.Plane);
+          {$endif}
           Projected := PointOnPlaneClosestToPoint(PlanePtr^, OldPos);
           Slide := VectorSubtract(NewBlockerIntersection, Projected);
 

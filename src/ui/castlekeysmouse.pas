@@ -1,5 +1,5 @@
 {
-  Copyright 2001-2016 Michalis Kamburelis.
+  Copyright 2001-2017 Michalis Kamburelis, Tomasz Wojtyś.
 
   This file is part of "Castle Game Engine".
 
@@ -250,7 +250,7 @@ type
   TCharactersBooleans = array [Char] of Boolean;
   PCharactersBooleans = ^TCharactersBooleans;
 
-  TMouseButton = (mbLeft, mbMiddle, mbRight);
+  TMouseButton = (mbLeft, mbMiddle, mbRight, mbExtra1, mbExtra2);
   TMouseButtons = set of TMouseButton;
 
   { Look of the mouse cursor.
@@ -290,7 +290,8 @@ type
     mcHand);
 
 const
-  MouseButtonStr: array [TMouseButton] of string = ('left', 'middle', 'right');
+  MouseButtonStr: array [TMouseButton] of string = ('left', 'middle', 'right',
+                                                    'extra1', 'extra2');
 
 type
   { Modifier keys are keys that, when pressed, modify the meaning of

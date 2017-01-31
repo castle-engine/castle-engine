@@ -1,5 +1,5 @@
 {
-  Copyright 2003-2016 Michalis Kamburelis.
+  Copyright 2003-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -44,12 +44,13 @@ var
 procedure OcclusionBoxStateBegin;
 procedure OcclusionBoxStateEnd;
 
-procedure SimpleOcclusionQueryRender(const Shape: TGLShape;
-  const RenderShape: TShapeProcedure; const Params: TRenderParams);
+procedure SimpleOcclusionQueryRender(const Scene: TCastleSceneCore;
+  const Shape: TGLShape; const RenderShape: TShapeProcedure;
+  const Params: TRenderParams);
 
 implementation
 
-uses SysUtils, CastleClassUtils, CastleShapeOctree, CastleBoxes,
+uses SysUtils, CastleClassUtils, CastleInternalShapeOctree, CastleBoxes,
   CastleGLUtils, CastleGL, CastleVectors, CastleGLShaders;
 
 {$ifndef OpenGLES} // TODO-es this whole unit
@@ -242,7 +243,8 @@ var
     end;
 
     glDrawBox3DSimple(Box);
-    if Params.Pass = 0 then Inc(Params.Statistics.BoxesOcclusionQueriedCount);
+    if (Params.Pass = 0) and not Scene.ExcludeFromStatistics then
+      Inc(Params.Statistics.BoxesOcclusionQueriedCount);
   end;
 
 const
@@ -370,7 +372,8 @@ begin
                 begin
                   OcclusionBoxStateBegin;
                   glDrawBox3DSimple(Node.Box);
-                  if Params.Pass = 0 then Inc(Params.Statistics.BoxesOcclusionQueriedCount);
+                  if (Params.Pass = 0) and not Scene.ExcludeFromStatistics then
+                    Inc(Params.Statistics.BoxesOcclusionQueriedCount);
                 end;
               glEndQueryARB(GL_SAMPLES_PASSED_ARB);
 
@@ -450,8 +453,9 @@ begin
   end;
 end;
 
-procedure SimpleOcclusionQueryRender(const Shape: TGLShape;
-  const RenderShape: TShapeProcedure; const Params: TRenderParams);
+procedure SimpleOcclusionQueryRender(const Scene: TCastleSceneCore;
+  const Shape: TGLShape; const RenderShape: TShapeProcedure;
+  const Params: TRenderParams);
 {$ifndef OpenGLES}
 var
   SampleCount: TGLuint;
@@ -484,7 +488,8 @@ begin
 
       OcclusionBoxStateBegin;
       glDrawBox3DSimple(Shape.BoundingBox);
-      if Params.Pass = 0 then Inc(Params.Statistics.BoxesOcclusionQueriedCount);
+      if (Params.Pass = 0) and not Scene.ExcludeFromStatistics then
+        Inc(Params.Statistics.BoxesOcclusionQueriedCount);
     end;
 
   if Params.StencilTest = 0 then

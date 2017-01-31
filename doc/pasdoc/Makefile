@@ -4,19 +4,16 @@
 
 # html and pdf are two most useful versions of documentation,
 # shown on [http://castle-engine.sourceforge.net/reference.php]
-# Later: pdf now removed, useless and ugly
+# Later: pdf now removed, useless and ugly.
 default: html
+
+# Run "make" in ../logo/ first,
+# if you have inkscape installed,
+# and you want to regenerate logo from png.
 
 html:
 	./mk_docs.sh html
-	if which inkscape > /dev/null; then \
-	  inkscape ../logo/castle_game_engine_icon.svg \
-	           --export-width=256 \
-		   --export-height=256 \
-		   --export-background=white \
-		   --export-background-opacity=255 \
-		   --export-png=html/castle_game_engine_icon.png \
-		   ; else cp $(CASTLE_ENGINE_PATH)../cge-www/htdocs/images/castle_game_engine_icon.png html/; fi
+	cp ../logo/castle_game_engine_icon.png html/
 
 # Just some shortcuts to "Helpful targets" below
 pdf: latex/docs.pdf

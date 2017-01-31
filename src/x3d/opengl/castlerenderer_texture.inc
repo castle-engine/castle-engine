@@ -463,13 +463,13 @@ procedure TGLTextureNode.HandleTexturePropertiesCore(
 
     if S = 'NEAREST' then
     begin
-      WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
+      WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture minification, this is an InstantReality extension, please fix to "NEAREST_PIXEL"', [S]));
       Result := minNearest;
     end else
 
     if S = 'LINEAR' then
     begin
-      WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture minification, this is an Avalon-only extension, please fix to "AVG_PIXEL"', [S]));
+      WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture minification, this is an InstantReality extension, please fix to "AVG_PIXEL"', [S]));
       Result := minLinear;
     end else
 
@@ -493,13 +493,13 @@ procedure TGLTextureNode.HandleTexturePropertiesCore(
 
     if S = 'NEAREST' then
     begin
-      WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture magnification, this is an Avalon-only extension, please fix to "NEAREST_PIXEL"', [S]));
+      WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture magnification, this is an InstantReality extension, please fix to "NEAREST_PIXEL"', [S]));
       Result := magNearest;
     end else
 
     if S = 'LINEAR' then
     begin
-      WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture magnification, this is an Avalon-only extension, please fix to "AVG_PIXEL"', [S]));
+      WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture magnification, this is an InstantReality extension, please fix to "AVG_PIXEL"', [S]));
       Result := magLinear;
     end else
 

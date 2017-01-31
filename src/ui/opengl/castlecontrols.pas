@@ -1,5 +1,5 @@
 {
-  Copyright 2010-2016 Michalis Kamburelis.
+  Copyright 2010-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -20,9 +20,10 @@ unit CastleControls;
 
 interface
 
-uses Classes, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
+uses Classes, FGL, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
-  CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily, CastleGLUtils;
+  CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily, CastleGLUtils,
+  CastleURIUtils, CastleLog;
 
 type
   TCastleLabel = class;
@@ -890,7 +891,37 @@ type
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip,
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
-    tiCrosshair1, tiCrosshair2, tiErrorBackground, tiLoading);
+    tiCrosshair1, tiCrosshair2, tiErrorBackground,
+
+    { Image displayed when the application is initializing,
+      during @link(TCastleApplication.OnInitialize Application.OnInitialize)
+      and @link(TCastleWindowCustom.OnOpen Window.OnOpen).
+      And @link(TUIControl.GLContextOpen) for all initially present UI controls.
+      This "loading image" is loaded and displayed first,
+      so that user does not see a black screen while the resources are prepared.
+
+      It is especially useful on Android, where we can lose the OpenGL context
+      at any moment, as user may switch applications in the middle of the game.
+      When getting back to the application, we need to initiailize some
+      resources, and during this process we also show this image.
+      So this serves as a universal "please wait, we're loading" screen.
+
+      You can customize this image, by setting
+      @link(TCastleTheme.Images Theme.Images[tiLoading]),
+      @link(TCastleTheme.LoadingBackgroundColor LoadingBackgroundColor),
+      @link(TCastleTheme.LoadingTextColor LoadingTextColor).
+      See http://castle-engine.sourceforge.net/tutorial_player_2d_controls.php
+      for a sample code that sets a theme image.
+
+      Note that the customization of this image should be done before
+      @link(TCastleApplication.OnInitialize Application.OnInitialize) has
+      started, so it has to be usually done from the "initialization" section
+      of some unit. And in the "initialization" section of a unit,
+      you cannot load files (doing @link(LoadImage) at this point may fail on
+      some Android devices, as we cannot load assets before activity is started).
+      So you can only assign images already available in code ---
+      use image2pascal tool to convert any image to a Pascal code for this purpose. }
+    tiLoading);
 
   { Label with possibly multiline text, in an optional box. }
   TCastleLabel = class(TUIControlFont)
