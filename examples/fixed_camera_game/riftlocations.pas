@@ -104,12 +104,6 @@ begin
 
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
-  { TrianglesList was created for triangle octree. We don't need it anymore.
-
-    Hm, for now we actually don't create ssCollidableTriangles,
-    so TrianglesList is not actually used.
-  Scene.FreeResources([frTrianglesListNotOverTriangulate]); }
-
   Progress.Step;
 
   FGLImage := TGLImage.Create(ImageURL,

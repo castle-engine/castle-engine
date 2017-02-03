@@ -137,7 +137,7 @@
     opRendering,
     opDynamicCollisions,
     opVisibleTriangles,
-    opCollidableTriangles);
+    opStaticCollisions);
 
   TKambiOctreePropertiesNode = class;
 
@@ -161,8 +161,8 @@
     private FFdOctreeVisibleTriangles: TSFNode;
     public property FdOctreeVisibleTriangles: TSFNode read FFdOctreeVisibleTriangles;
 
-    private FFdOctreeCollidableTriangles: TSFNode;
-    public property FdOctreeCollidableTriangles: TSFNode read FFdOctreeCollidableTriangles;
+    private FFdOctreeStaticCollisions: TSFNode;
+    public property FdOctreeStaticCollisions: TSFNode read FFdOctreeStaticCollisions;
 
     private FFdHeadBobbing: TSFFloat;
     public property FdHeadBobbing: TSFFloat read FFdHeadBobbing;
@@ -604,9 +604,9 @@ begin
   FFdOctreeVisibleTriangles.Exposed := false;
   AddField(FFdOctreeVisibleTriangles);
 
-  FFdOctreeCollidableTriangles := TSFNode.Create(Self, 'octreeCollidableTriangles', [TKambiOctreePropertiesNode]);
-  FFdOctreeCollidableTriangles.Exposed := false;
-  AddField(FFdOctreeCollidableTriangles);
+  FFdOctreeStaticCollisions := TSFNode.Create(Self, 'octreeStaticCollisions', [TKambiOctreePropertiesNode]);
+  FFdOctreeStaticCollisions.Exposed := false;
+  AddField(FFdOctreeStaticCollisions);
 
   FFdHeadBobbing := TSFFloat.Create(Self, 'headBobbing', TWalkCamera.DefaultHeadBobbing, true);
    FdHeadBobbing.ChangesAlways := [chNavigationInfo];
@@ -637,10 +637,10 @@ var
   N: TX3DNode;
 begin
   case OP of
-    opRendering           : N := FdOctreeRendering          .Value;
-    opDynamicCollisions   : N := FdOctreeDynamicCollisions  .Value;
-    opVisibleTriangles    : N := FdOctreeVisibleTriangles   .Value;
-    opCollidableTriangles : N := FdOctreeCollidableTriangles.Value;
+    opRendering        : N := FdOctreeRendering          .Value;
+    opDynamicCollisions: N := FdOctreeDynamicCollisions  .Value;
+    opVisibleTriangles : N := FdOctreeVisibleTriangles   .Value;
+    opStaticCollisions : N := FdOctreeStaticCollisions.Value;
     else raise EInternalError.Create('TKambiOctreePropertiesNode.OctreeProperties');
   end;
   if N is TKambiOctreePropertiesNode then
