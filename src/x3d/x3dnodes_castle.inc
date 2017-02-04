@@ -606,6 +606,7 @@ begin
 
   FFdOctreeStaticCollisions := TSFNode.Create(Self, 'octreeStaticCollisions', [TKambiOctreePropertiesNode]);
   FFdOctreeStaticCollisions.Exposed := false;
+  FFdOctreeStaticCollisions.AddAlternativeName('octreeCollidableTriangles', 0);
   AddField(FFdOctreeStaticCollisions);
 
   FFdHeadBobbing := TSFFloat.Create(Self, 'headBobbing', TWalkCamera.DefaultHeadBobbing, true);
