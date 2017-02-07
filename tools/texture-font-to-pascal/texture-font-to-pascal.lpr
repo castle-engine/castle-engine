@@ -49,12 +49,12 @@ begin
   case OptionNum of
     0: begin
          Writeln(
-           'texturefont2pascal: convert ttf font' +NL+
+           'texture-font-to-pascal: convert ttf font' +NL+
            'to a Pascal source file, based on types' +NL+
            'in Castle Game Engine CastleTextureFontData unit.' +NL+
            NL+
            'Call like this:' +NL+
-           '  texturefont2pascal [options...] MyFontFile.ttf' +NL+
+           '  texture-font-to-pascal [options...] MyFontFile.ttf' +NL+
            NL+
            'Available options:' +NL+
            '  -h / --help           Print this help message and exit' +NL+
@@ -70,7 +70,7 @@ begin
            '  --debug-log           See the log, showing e.g. the font image size.' +NL+
            '  --debug-font-image    Write to disk font images as png.' +NL+
            NL+
-           SCastleEngineProgramHelpSuffix('texturefont2pascal', '1.0.0', true));
+           SCastleEngineProgramHelpSuffix('texture-font-to-pascal', '1.0.0', true));
          Halt;
        end;
     1: Size := StrToInt(Argument);
@@ -123,14 +123,14 @@ begin
     try
       OutURL := LowerCase(UnitName) + '.pas';
       Font2Pascal(Font, UnitName, PrecedingComment, FontConstantName, OutURL);
-      Writeln('texturefont2pascal: "' + OutURL + '" generated, texture size ',
+      Writeln('texture-font-to-pascal: "' + OutURL + '" generated, texture size ',
         Font.Image.Width, ' x ',
         Font.Image.Height);
       if DebugFontImage then
       begin
         OutURL := LowerCase(UnitName) + '.png';
         SaveImage(Font.Image, OutURL);
-        Writeln('texturefont2pascal: font image "' + OutURL + '" written');
+        Writeln('texture-font-to-pascal: font image "' + OutURL + '" written');
       end;
     finally FreeAndNil(Font) end;
   finally FreeAndNil(Characters) end;

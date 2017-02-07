@@ -1,9 +1,9 @@
 #!/bin/bash
 set -eu
 
-TEXTUREFONT2PASCAL='texturefont2pascal'
-# Some texturefont2pascal options are useful for debugging what's going on.
-#TEXTUREFONT2PASCAL='texturefont2pascal --debug-log --debug-font-image'
+TEXTUREFONT2PASCAL='texture-font-to-pascal'
+# Some texture-font-to-pascal options are useful for debugging what's going on.
+#TEXTUREFONT2PASCAL='texture-font-to-pascal --debug-log --debug-font-image'
 
 # Used by Text node in X3DNodes. This font is drawn in 3D,
 # always automatically stretched to desired size, so you can freely

@@ -89,7 +89,7 @@ examples/fonts/html_text
 examples/fonts/html_text.exe
 examples/fonts/test_font_break
 examples/fonts/test_font_break.exe
-examples/fonts/texturefont2pascal
+examples/fonts/texture-font-to-pascal
 examples/fonts/font_draw_over_image
 examples/fonts/font_draw_over_image.exe
 examples/fonts/font_draw_over_image_output.png
@@ -169,9 +169,9 @@ tools/build-tool/data/android/integrated-components/startapp/app/libs/*.jar
 tools/castle-curves/castle-curves
 tools/castle-curves/castle-curves.exe
 tools/castle-engine
-tools/image2pascal/image2pascal
-tools/image2pascal/image2pascal.exe
-tools/texturefont2pascal/texturefont2pascal
+tools/image-to-pascal/image-to-pascal
+tools/image-to-pascal/image-to-pascal.exe
+tools/texture-font-to-pascal/texture-font-to-pascal
 tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d
 tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d.exe
 units/

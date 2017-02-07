@@ -9,7 +9,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="texturefont2pascal.lpr"/>
+        <Filename Value="texture-font-to-pascal.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
     </Units>
