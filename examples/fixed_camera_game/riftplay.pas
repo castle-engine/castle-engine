@@ -31,12 +31,13 @@ procedure Play;
 
 implementation
 
-uses CastleGL, CastleGLUtils, CastleWindow, CastleStringUtils, CastleVectors, CastleFilesUtils,
-  CastleWindowModes, CastleCameras, SysUtils, X3DNodes,
-  CastleRays, Math, CastleUIControls, CastleRenderer,
-  RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow, RiftGame,
-  CastleGameNotifications, CastleRenderingCamera, Castle3D,
-  RiftSceneManager, CastleKeysMouse;
+uses Math, SysUtils,
+  CastleGL, CastleGLUtils, CastleWindow, CastleStringUtils, CastleVectors,
+  CastleFilesUtils, CastleWindowModes, CastleCameras, X3DNodes,
+  CastleRays, CastleUIControls, CastleRenderer, CastleGLImages,
+  CastleGameNotifications, CastleRenderingCamera, Castle3D, CastleRectangles,
+  RiftSceneManager, CastleKeysMouse,
+  RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow, RiftGame;
 
 var
   Player: TPlayer;
@@ -59,6 +60,15 @@ type
   end;
 
 procedure TGameSceneManager.Render3D(const Params: TRenderParams);
+
+  { Draw Image centered on screen, scaled to fit inside the window size.
+    The goal is to always match the 3D scene projection,
+    used when doing depth-buffer tests. }
+  procedure DrawCentered(const Image: TGLImage);
+  begin
+    Image.Draw(Image.Rect.FitInside(Window.Rect));
+  end;
+
 var
   H: TLightInstance;
   SavedProjectionMatrix: TMatrix4Single;
@@ -102,8 +112,8 @@ begin
             end;
           end;
           if Params.InShadow then
-            CurrentLocation.GLShadowedImage.Draw(0, 0) else
-            CurrentLocation.GLImage.Draw(0, 0);
+            DrawCentered(CurrentLocation.GLShadowedImage) else
+            DrawCentered(CurrentLocation.GLImage);
         glPopAttrib;
       glPopMatrix;
       ProjectionMatrix := SavedProjectionMatrix; // restore 3D projection

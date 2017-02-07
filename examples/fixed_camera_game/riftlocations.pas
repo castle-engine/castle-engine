@@ -106,10 +106,8 @@ begin
 
   Progress.Step;
 
-  FGLImage := TGLImage.Create(ImageURL,
-    [TRGBImage], Window.Width, Window.Height);
-  FGLShadowedImage := TGLImage.Create(ShadowedImageURL,
-    [TRGBImage], Window.Width, Window.Height);
+  FGLImage := TGLImage.Create(ImageURL, [TRGBImage]);
+  FGLShadowedImage := TGLImage.Create(ShadowedImageURL, [TRGBImage]);
   Progress.Step;
 end;
 
