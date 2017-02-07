@@ -201,7 +201,7 @@ type
       const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
-      const Interpolation: TResizeInterpolation = riNearest);
+      const Interpolation: TResizeInterpolation = riBilinear);
 
     { Load image from disk, and prepare for drawing.
 
@@ -586,7 +586,7 @@ type
       const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
-      const Interpolation: TResizeInterpolation = riNearest);
+      const Interpolation: TResizeInterpolation = riBilinear);
 
     { Load image from disk, and prepare for drawing.
 
