@@ -18,7 +18,7 @@
 
   Navigate with mouse or keyboard (like view3dscene in Examine mode).
 
-  AWSD, Q, Shift+Q move the light.
+  AWSD, QE move the light.
   R, Shift+R change light radius.
   L, Shift+L change light intensity scale.
 }
@@ -208,15 +208,10 @@ procedure Update(Container: TUIContainer);
 begin
   if Window.Pressed[K_A] then ChangeLightPosition(0, -1);
   if Window.Pressed[K_D] then ChangeLightPosition(0,  1);
-  if Window.Pressed[K_S] then ChangeLightPosition(1, -1);
-  if Window.Pressed[K_W] then ChangeLightPosition(1,  1);
-
-  if Window.Pressed[K_Q] then
-  begin
-    if mkShift in Window.Pressed.Modifiers then
-      ChangeLightPosition(2,  1) else
-      ChangeLightPosition(2, -1);
-  end;
+  if Window.Pressed[K_S] then ChangeLightPosition(2, -1);
+  if Window.Pressed[K_W] then ChangeLightPosition(2,  1);
+  if Window.Pressed[K_Q] then ChangeLightPosition(1, -1);
+  if Window.Pressed[K_E] then ChangeLightPosition(1,  1);
 
   if Window.Pressed[K_R] then
   begin
@@ -268,6 +263,8 @@ var
 begin
   Window := TCastleWindowCustom.Create(Application);
 
+  { parse command-line parameters }
+  Window.ParseParameters;
   Parameters.CheckHighAtMost(1);
   if Parameters.High = 1 then
     URL := Parameters[1];
