@@ -34,7 +34,7 @@ procedure DoIntro;
 implementation
 
 uses SysUtils, DOM, FGL,
-  CastleGL, CastleWindow, CastleFilesUtils,
+  CastleGL, CastleWindow, CastleFilesUtils, CastleVectors,
   CastleGLUtils, CastleWindowModes, CastleImages, CastleSoundEngine,
   CastleGLImages, CastleUIControls, CastleStringUtils, CastleXMLUtils,
   CastleKeysMouse, CastleColors, CastleApplicationProperties,
@@ -97,25 +97,26 @@ begin
 
   RenderContext.Clear([cbColor], Black);
 
-  if (IntroPartTime >= IntroParts[IntroPart].CorrodeDuration) or
-     not GLFeatures.BlendConstant then
+  if IntroPartTime >= IntroParts[IntroPart].CorrodeDuration then
   begin
     IntroParts[IntroPart].ImageCorroded.Draw(0, 0);
   end else
   begin
     Corrosion := IntroPartTime / IntroParts[IntroPart].CorrodeDuration;
 
-    glBlendFunc(GL_CONSTANT_COLOR, GL_ONE);
-    glBlendColor(1 - Corrosion, 1 - Corrosion, 1 - Corrosion, 1);
-    glEnable(GL_BLEND);
-
+    IntroParts[IntroPart].Image.Alpha := acBlending;
+    IntroParts[IntroPart].Image.BlendingSourceFactor := bsConstantColor;
+    IntroParts[IntroPart].Image.BlendingDestinationFactor := bdOne;
+    IntroParts[IntroPart].Image.BlendingConstantColor :=
+      Vector4Single(1 - Corrosion, 1 - Corrosion, 1 - Corrosion, 1);
     IntroParts[IntroPart].Image.Draw(0, 0);
 
-    glBlendColor(Corrosion, Corrosion, Corrosion, 1);
-    IntroParts[IntroPart].ImageCorroded.Alpha := acNone;
+    IntroParts[IntroPart].ImageCorroded.Alpha := acBlending;
+    IntroParts[IntroPart].ImageCorroded.BlendingSourceFactor := bsConstantColor;
+    IntroParts[IntroPart].ImageCorroded.BlendingDestinationFactor := bdOne;
+    IntroParts[IntroPart].ImageCorroded.BlendingConstantColor :=
+      Vector4Single(Corrosion, Corrosion, Corrosion, 1);
     IntroParts[IntroPart].ImageCorroded.Draw(0, 0);
-
-    glDisable(GL_BLEND);
   end;
 end;
 
