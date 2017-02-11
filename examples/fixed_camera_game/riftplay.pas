@@ -194,10 +194,18 @@ var
 begin
   case Event.EventType of
     itKey:
-      case Event.KeyCharacter of
-        CharEscape: UserQuit := true;
-        { TODO: only debug feature. }
-        's':
+      if Event.KeyCharacter = CharEscape then
+        UserQuit := true
+      else
+      { Debug keys }
+      case Event.Key of
+        K_F5:
+          begin
+            URL := FileNameAutoInc('rift_screen_%d.png');
+            Window.SaveScreen(URL);
+            Notifications.Show(Format('Saved screenshot to "%s"', [URL]));
+          end;
+        K_F8:
           begin
             if DebugDisplay = High(DebugDisplay) then
               DebugDisplay := Low(DebugDisplay)
@@ -209,15 +217,6 @@ begin
               CurrentLocation.Scene.Attributes.Mode := rmDepth
             else
               CurrentLocation.Scene.Attributes.Mode := rmFull;
-          end;
-        else
-          case Event.Key of
-            K_F5:
-              begin
-                URL := FileNameAutoInc('rift_screen_%d.png');
-                Window.SaveScreen(URL);
-                Notifications.Show(Format('Saved screenshot to "%s"', [URL]));
-              end;
           end;
       end;
     itMouseButton:
