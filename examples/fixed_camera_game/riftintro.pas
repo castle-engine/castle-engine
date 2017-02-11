@@ -20,7 +20,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ }
+{ Show the intro images. }
 unit RiftIntro;
 
 {$I castleconf.inc}
@@ -33,24 +33,35 @@ procedure DoIntro;
 
 implementation
 
-uses SysUtils, CastleGL, CastleWindow, CastleFilesUtils,
-  CastleGLUtils, RiftData, CastleWindowModes, DOM, CastleImages, CastleSoundEngine,
-  CastleGLImages, CastleUIControls, CastleStringUtils, RiftSound, RiftVideoOptions,
-  CastleKeysMouse, CastleColors, CastleApplicationProperties;
+uses SysUtils, DOM, FGL,
+  CastleGL, CastleWindow, CastleFilesUtils,
+  CastleGLUtils, CastleWindowModes, CastleImages, CastleSoundEngine,
+  CastleGLImages, CastleUIControls, CastleStringUtils, CastleXMLUtils,
+  CastleKeysMouse, CastleColors, CastleApplicationProperties,
+  RiftData, RiftSound, RiftVideoOptions;
 
 { $define DEBUG_INTRO_FAST}
 
 type
-  TIntroPart = record
+  TIntroPart = class
     CorrodeDuration, IdleDuration: Single;
     Image: TGLImage;
     ImageCorroded: TGLImage;
+    destructor Destroy; override;
   end;
+  TIntroPartList = specialize TFPGObjectList<TIntroPart>;
+
+destructor TIntroPart.Destroy;
+begin
+  FreeAndNil(Image);
+  FreeAndNil(ImageCorroded);
+  inherited;
+end;
 
 var
   IntroPart: Integer;
   IntroPartTime: Single;
-  IntroParts: array of TIntroPart;
+  IntroParts: TIntroPartList;
 
   UserQuit: boolean;
 
@@ -64,7 +75,7 @@ begin
   Inc(IntroPart);
   IntroPartTime := 0.0;
 
-  if IntroPart > High(IntroParts) then
+  if IntroPart >= IntroParts.Count then
    UserQuit := true;
 end;
 
@@ -82,7 +93,7 @@ var
   Corrosion: Single;
 begin
   { Are we on the way to exit intro }
-  if IntroPart > High(IntroParts) then Exit;
+  if IntroPart >= IntroParts.Count then Exit;
 
   RenderContext.Clear([cbColor], Black);
 
@@ -152,40 +163,43 @@ procedure ContextOpen;
 
   procedure InitializeIntroParts;
   var
-    I: Integer;
     Element: TDOMElement;
-    ElementPath, ImageName: string;
+    ImageName: string;
+    I: TXMLElementIterator;
+    Part: TIntroPart;
   begin
-    SetLength(IntroParts, DataConfig.GetValue('intro/parts/count', 0));
-    if Length(IntroParts) = 0 then
+    IntroParts := TIntroPartList.Create(true);
+
+    I := DataConfig.PathChildrenIterator('intro/parts', 'part');
+    try
+      while I.GetNext do
+      begin
+        Part := TIntroPart.Create;
+        IntroParts.Add(Part);
+
+        Element := I.Current;
+
+        { calculate Part durations }
+        Part.CorrodeDuration := Element.AttributeFloat('corrode_duration');
+        Part.IdleDuration := Element.AttributeFloat('idle_duration');
+        {$ifdef DEBUG_INTRO_FAST}
+        Part.CorrodeDuration /= 10;
+        Part.IdleDuration /= 10;
+        {$endif DEBUG_INTRO_FAST}
+
+        { calculate Part.Image and ImageCorroded }
+        ImageName := Element.AttributeString('image');
+        Part.Image := TGLImage.Create(
+          ApplicationData('images/' + ImageName + '.png'), [TRGBImage],
+            Window.Width, Window.Height);
+        Part.ImageCorroded := TGLImage.Create(
+          ApplicationData('images/' + ImageName + '_corroded.png'), [TRGBImage],
+            Window.Width, Window.Height);
+      end;
+    finally FreeAndNil(I) end;
+
+    if IntroParts.Count = 0 then
       raise Exception.Create('No intro parts defined in data/index.xml');
-    for I := 0 to High(IntroParts) do
-    begin
-      ElementPath := 'intro/parts/part' + IntToStr(I);
-
-      Element := DataConfig.PathElement(ElementPath);
-      if Element = nil then
-        raise Exception.CreateFmt('Unable to find XML element by path "%s"',
-          [ElementPath]);
-
-      { calculate IntroParts[I].Durations }
-      IntroParts[I].CorrodeDuration := DataConfig.GetFloat(ElementPath + '/corrode_duration', 0.0);
-      IntroParts[I].IdleDuration := DataConfig.GetFloat(ElementPath + '/idle_duration', 0.0);
-      {$ifdef DEBUG_INTRO_FAST}
-      IntroParts[I].CorrodeDuration /= 10;
-      IntroParts[I].IdleDuration /= 10;
-      {$endif DEBUG_INTRO_FAST}
-
-      { calculate IntroParts[I].Image and ImageCorroded }
-      ImageName := DataConfig.GetValue(ElementPath + '/image',
-        'require_image_name_missing');
-      IntroParts[I].Image := TGLImage.Create(
-        ApplicationData('images/' + ImageName + '.png'), [TRGBImage],
-          Window.Width, Window.Height);
-      IntroParts[I].ImageCorroded := TGLImage.Create(
-        ApplicationData('images/' + ImageName + '_corroded.png'), [TRGBImage],
-          Window.Width, Window.Height);
-    end;
   end;
 
 begin
@@ -193,20 +207,8 @@ begin
 end;
 
 procedure ContextClose;
-
-  procedure FinalizeIntroParts;
-  var
-    I: Integer;
-  begin
-    for I := 0 to High(IntroParts) do
-    begin
-      FreeAndNil(IntroParts[I].Image);
-      FreeAndNil(IntroParts[I].ImageCorroded);
-    end;
-  end;
-
 begin
-  FinalizeIntroParts;
+  FreeAndNil(IntroParts);
 end;
 
 initialization

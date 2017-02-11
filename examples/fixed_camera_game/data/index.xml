@@ -3,17 +3,14 @@
 <CONFIG>
   <main_menu image="menu_bg/main_menu.png" />
   <intro>
-    <!-- TODO: use PathIterator to make this XML part nice,
-      without "part0", "part1", and a "count" attribute.
-      It would be much more natural to just have a sequence of "part" elements. -->
-    <parts count="4">
-      <part0 image="morning_buildings"
+    <parts>
+      <part image="morning_buildings"
         corrode_duration="25.00" idle_duration="40.0" />
-      <part1 image="train_crash"
+      <part image="train_crash"
         corrode_duration="30.00" idle_duration="40.0" />
-      <part2 image="wild_road"
+      <part image="wild_road"
         corrode_duration="20.00" idle_duration="40.0" />
-      <part3 image="human_beach"
+      <part image="human_beach"
         corrode_duration="20.00" idle_duration="40.0" />
     </parts>
   </intro>
