@@ -58,26 +58,6 @@ Some design decisions:
   This is the main idea behind such games: 2d graphic artist can really
   show off.
 
-- Screen size: since a detailed, nice-looking images are a basis
-  for such game, I think that the final game (as seen by end-users),
-  will have to be constrained to a particular screen size,
-  or to a couple of chosen screen sizes.
-
-  Mind you: this is not a restriction of my underlying engine,
-  and I'll prepare everything to work with *any* screen/window size
-  (use --screen-size option). But this is a practical restriction
-  of how the images are prepared. I guess it's going to be hard enough
-  for graphics to prepare breath-taking images in one resolution...
-  making them in more resolutions may be much harder, and not worth
-  the effort in the first run. And automatic resizing will simply suck,
-  that's guaranteed (unless an artist will be able to prepare images
-  in really large large resolution ?).
-
-  So for starters, we can just assume
-  that every user is comfortable with the game resizing his screen
-  size to 1024 x 768 before running in fullscreen (eventually the game
-  will run in window sized 1024 x 768).
-
 - "3d being" is something that has to be prepared and rendered as 3d.
   These are things that move freely on the scene, so they simply have
   to be prepared as 3d. These are: player, NPCs, other parts of the location
