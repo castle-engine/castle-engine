@@ -90,7 +90,7 @@ REQUIREMENTS TO MAKE THIS WORK
   You could also model a 3D scene using an image as a reference -- although
   this is a little harder.
 
-  Press F8 during the game to actually view the 3D location model,
+  Press F2 during the game to actually view the 3D location model,
   and make sure that it's matching the 2D images.
 
 - The 3D characters cast shadows using shadow volumes.

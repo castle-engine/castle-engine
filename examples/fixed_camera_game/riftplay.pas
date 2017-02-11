@@ -212,7 +212,7 @@ begin
             Window.SaveScreen(URL);
             Notifications.Show(Format('Saved screenshot to "%s"', [URL]));
           end;
-        K_F8:
+        K_F2:
           begin
             if DebugDisplay = High(DebugDisplay) then
               DebugDisplay := Low(DebugDisplay)
