@@ -34,7 +34,7 @@ procedure DoIntro;
 implementation
 
 uses SysUtils, DOM, FGL,
-  CastleGL, CastleWindow, CastleFilesUtils, CastleVectors,
+  CastleWindow, CastleFilesUtils, CastleVectors,
   CastleGLUtils, CastleWindowModes, CastleImages, CastleSoundEngine,
   CastleGLImages, CastleUIControls, CastleStringUtils, CastleXMLUtils,
   CastleKeysMouse, CastleColors, CastleApplicationProperties,
