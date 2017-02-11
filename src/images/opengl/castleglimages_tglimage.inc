@@ -98,6 +98,7 @@ type
     FImageAlpha: TAlphaChannel;
     FBlendingSourceFactor: TBlendingSourceFactor;
     FBlendingDestinationFactor: TBlendingDestinationFactor;
+    FBlendingConstantColor: TVector4Single;
     function FinalAlpha: TAlphaChannel;
     procedure AlphaBegin;
     procedure AlphaEnd;
@@ -118,6 +119,7 @@ type
     const
       DefaultBlendingSourceFactor = bsSrcAlpha;
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
+      DefaultBlendingConstantColor: TVector4Single = (1, 1, 1, 1);
 
     { Prepare image for drawing.
 
@@ -290,6 +292,15 @@ type
       write FBlendingDestinationFactor
       default DefaultBlendingDestinationFactor;
 
+    { For some blending source or destination factors (see
+      @link(BlendingSourceFactor), @link(BlendingDestinationFactor)),
+      this constant color (or it's alpha value) take part
+      in the blending equation. Used only if blending (see @link(Alpha)).
+      By default, opaque white. }
+    property BlendingConstantColor: TVector4Single
+      read FBlendingConstantColor
+      write FBlendingConstantColor;
+
     { Draw the image as 2D on screen.
 
       The X, Y parameters determine where the left-bottom
@@ -303,12 +314,11 @@ type
 
       The image is drawn in 2D. In normal circumstances
       1 pixel of the image is just placed over 1 pixel of the screen,
-      and we draw the whole image. You can also use the overloaded
-      version with 8 parameters where you explicitly specify the
-      DrawWidth and DrawHeight of the rectangle on the screen, and explicitly choose
-      the portion of the image to draw. If you want to draw scaled image
-      (that is, use ImageWidth different than DrawWidth or ImageHeight
-      different than DrawHeight) consider constructing an image with
+      and we draw the whole image. But you can use the overloaded
+      versions where you specify DrawWidth, DrawHeight or ScreenRect,
+      and then the indicated image portion is stretched over the designated
+      screen area. Note: if you plan to use such stretching when drawing
+      the image, then you usually want to create the image with
       SmoothScaling = @true (otherwise the scaling will look pixelated).
 
       Note that the image position (ImageX, ImageY) is specified
@@ -318,9 +328,11 @@ type
       That is why image position and sizes are floats, it makes sense
       to render partial pixels this way (make sure you have
       SmoothScaling = @true to get nice scaling of image contents).
+
       You can also flip the image horizontally or vertically,
       e.g. use ImageX = Width and ImageWidth = -Width to mirror
-      image horizontally.
+      image horizontally. Although it's usually more comfortable
+      to flip using DrawFlipped methods.
 
       @groupBegin }
     procedure Draw; overload; deprecated 'use the Draw overload that takes position as explicit parameter';
@@ -697,6 +709,7 @@ begin
   FAlpha := acAuto;
   FBlendingSourceFactor := DefaultBlendingSourceFactor;
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
+  FBlendingConstantColor := DefaultBlendingConstantColor;
 
   Load(Image);
 end;
@@ -898,6 +911,21 @@ begin
     {$endif}
     acBlending:
       begin
+        if GLFeatures.BlendConstant and
+          ( (BlendingSourceFactor in
+             [bsConstantColor, bsOneMinusConstantColor,
+              bsConstantAlpha, bsOneMinusConstantAlpha]) or
+            (BlendingDestinationFactor in
+             [bdConstantColor, bdOneMinusConstantColor,
+              bdConstantAlpha, bdOneMinusConstantAlpha]) ) then
+        begin
+          glBlendColor(
+            BlendingConstantColor[0],
+            BlendingConstantColor[1],
+            BlendingConstantColor[2],
+            BlendingConstantColor[3]);
+        end;
+
         GLBlendFunction(BlendingSourceFactor, BlendingDestinationFactor);
         glEnable(GL_BLEND);
       end;
