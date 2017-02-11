@@ -18,11 +18,9 @@
     </parts>
   </intro>
   <creatures>
-    <!-- Do not receive shadows, as self-shadowing looks bad on smooth sphere geometry.
-         TODO: receive_shadow_volumes="False"
-         broken now.
-    -->
-    <player>
+    <!-- Do not receive shadows,
+         as self-shadowing looks bad on smooth sphere geometry. -->
+    <player receive_shadow_volumes="False">
       <!-- Each state has a url of associated animation. -->
       <stand url="creatures/humanoid/stand.castle-anim-frames" />
       <walk url="creatures/humanoid/walk.castle-anim-frames" />
@@ -34,7 +32,7 @@
        start_name must match some existing location name,
        this says which location is loaded on new game. -->
   <locations start_name="home">
-    <!-- Location. Filename attributes are relative to this file's dir.
+    <!-- Location. URL attributes are relative to this file's dir.
          scene_camera_description is optional, if non-empty this
          specifies which Viewpoint to use (useful if your exported VRML
          file has more than 1 viewpoint). -->

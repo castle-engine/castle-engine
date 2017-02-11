@@ -106,7 +106,10 @@ begin
     SavedProjectionMatrix := ProjectionMatrix;
       OrthoProjection(0, Window.Width, 0, Window.Height); // need 2D projection
       {$ifndef OpenGLES}
-      glPushMatrix; // TGLImage.Draw will reset modelview matrix, so save it
+      { TGLImage.Draw will reset modelview matrix
+        (that should keep camera matrix, in non-OpenGLES renderer now),
+        so save it }
+      glPushMatrix;
       {$endif}
         if Params.InShadow then
           DrawCentered(CurrentLocation.GLShadowedImage)
@@ -120,7 +123,25 @@ begin
 
   if not DebugNoCreatures then
   begin
-    if Params.InShadow and HeadlightInstance(H) then
+    if Params.InShadow and HeadlightInstance(H) and
+
+      { We implement PlayerKind.ReceiveShadowVolumes=false
+        by simply making player look the same,
+        regardless if Params.InShadow is true or false.
+
+        We do not implement ReceiveShadowVolumes=false case by setting
+        player TCastleScene.ReceiveShadowVolumes=false, that would be wrong:
+
+        - The DrawCentered image done above would always draw over the
+          player, obscuring the visible player, since scenes with
+          ReceiveShadowVolumes=false are drawn underneath
+          by TGLShadowVolumeRenderer.Render.
+
+        - Moreover the player's shadow would be visible on the image
+          (drawn by DrawCentered), since player still casts shadow volumes.
+      }
+
+      PlayerKind.ReceiveShadowVolumes then
     begin
       H.Node.AmbientIntensity := 1;
       H.Node.Color := Vector3Single(0.2, 0.2, 0.2);
