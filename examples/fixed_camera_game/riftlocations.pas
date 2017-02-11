@@ -41,6 +41,7 @@ type
     FInitialPosition: TVector3Single;
     FInitialDirection: TVector3Single;
     FInitialUp: TVector3Single;
+    procedure EnumerateLights(Node: TX3DNode);
   protected
     procedure LoadInternal(const BaseLights: TLightInstancesList); override;
     procedure UnLoadInternal; override;
@@ -79,19 +80,31 @@ var
 
 implementation
 
-uses SysUtils, DOM, CastleProgress, CastleImages, CastleRenderer, CastleUIControls,
-  CastleGLUtils, CastleWindow, CastleXMLUtils, CastleSceneCore,
-  CastleApplicationProperties,
+uses SysUtils, DOM, CastleProgress, CastleImages, CastleRenderer,
+  CastleUIControls, CastleGLUtils, CastleWindow, CastleXMLUtils,
+  CastleSceneCore, CastleApplicationProperties, X3DLoad,
   RiftWindow, RiftData;
 
 { TLocation ------------------------------------------------------------------ }
 
+procedure TLocation.EnumerateLights(Node: TX3DNode);
+begin
+  { This is not necessary for normal game display,
+    but it is useful in DebugDisplay = ddOnly3D or ddBlend3D.
+    It means that shadows (through shadow volumes) are also visible on 3D rendering. }
+  (Node as TAbstractLightNode).ShadowVolumes := true;
+end;
+
 procedure TLocation.LoadInternal(const BaseLights: TLightInstancesList);
+var
+  SceneRoot: TX3DRootNode;
 begin
   inherited;
 
   FScene := TCastleScene.Create(nil);
-  FScene.Load(SceneURL);
+  SceneRoot := Load3D(SceneURL);
+  SceneRoot.EnumerateNodes(TAbstractLightNode, @EnumerateLights, false);
+  FScene.Load(SceneRoot, true);
   Progress.Step;
 
   { in normal (non-debug) circumstances, scene is only rendered to depth buffer }
