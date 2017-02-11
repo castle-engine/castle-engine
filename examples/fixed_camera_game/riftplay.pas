@@ -92,13 +92,15 @@ var
   H: TLightInstance;
   SavedProjectionMatrix: TMatrix4Single;
 begin
-  { If DebugDisplay = ddNormal, render scene only to depth buffer. }
+  { Render the location 3D scene.
+    If DebugDisplay = ddNormal, render it only to the depth buffer. }
   if DebugDisplay = ddNormal then
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
   CurrentLocation.Scene.Render(RenderingCamera.Frustum, Params);
   if DebugDisplay = ddNormal then
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
+  { Render the location 2D image. }
   if (not Params.Transparent) and
      Params.ShadowVolumesReceivers and
      (DebugDisplay <> ddOnly3D) then
@@ -121,6 +123,7 @@ begin
     ProjectionMatrix := SavedProjectionMatrix; // restore 3D projection
   end;
 
+  { Render the 3D characters, both to depth and color buffers. }
   if not DebugNoCreatures then
   begin
     if Params.InShadow and HeadlightInstance(H) and
@@ -164,6 +167,10 @@ end;
 function TGameSceneManager.MainLightForShadows(
   out AMainLightPosition: TVector4Single): boolean;
 begin
+  { The light casting shadows.
+    TODO: Hardcoded for now, in the future could be determined per-location
+    (e.g. looking at location light with shadowVolumesMain, would be consistent
+    with standard 3D rendering of shadow volumes). }
   AMainLightPosition := {Vector4Single(SceneCamera.InitialPosition, 1);}
     Vector4Single(1, 1, -1, 0);
   Result := true;
