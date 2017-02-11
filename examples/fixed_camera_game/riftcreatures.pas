@@ -52,6 +52,7 @@ type
   private
     FName: string;
     Animations: array [TCreatureState] of TCreatureAnimation;
+    ReceiveShadowVolumes: boolean;
   protected
     procedure LoadInternal(const BaseLights: TLightInstancesList); override;
     procedure UnLoadInternal; override;
@@ -183,6 +184,8 @@ begin
     StatePath := 'creatures/' + Name + '/' + CreatureStateName[S] + '/';
     Animations[S].URL := DataConfig.GetURL(StatePath + 'url');
   end;
+  ReceiveShadowVolumes := DataConfig.GetValue(
+    'creatures/' + Name + '/receive_shadow_volumes', true);
 end;
 
 function TCreatureKind.LoadSteps: Cardinal;
@@ -205,6 +208,7 @@ begin
   for S := Low(S) to High(S) do
   begin
     Animations[S].Animation := TCastleScene.Create(nil);
+    Animations[S].Animation.ReceiveShadowVolumes := ReceiveShadowVolumes;
     Animations[S].Animation.Load(Animations[S].URL);
     Animations[S].Animation.PrepareResources(
       [prRender, prBoundingBox, prShadowVolume], false, BaseLights);

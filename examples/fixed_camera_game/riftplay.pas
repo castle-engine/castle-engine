@@ -34,18 +34,24 @@ implementation
 uses Math, SysUtils,
   CastleGL, CastleGLUtils, CastleWindow, CastleStringUtils, CastleVectors,
   CastleFilesUtils, CastleWindowModes, CastleCameras, X3DNodes,
-  CastleRays, CastleUIControls, CastleRenderer, CastleGLImages,
+  CastleRays, CastleUIControls, CastleRenderer, CastleImages, CastleGLImages,
   CastleGameNotifications, CastleRenderingCamera, Castle3D, CastleRectangles,
   RiftSceneManager, CastleKeysMouse,
   RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow, RiftGame;
 
+type
+  TDebugDisplay = (
+    { 3D Scene goes only to depth buffer, this is what user should see. }
+    ddNormal,
+    { Debug, both scene and image are displayed and blended. }
+    ddBlend3D,
+    { Debug, only 3D scene is displayed. }
+    ddOnly3D);
+
 var
   Player: TPlayer;
   UserQuit: boolean;
-  { 0 = 3D Scene goes only to depth buffer, this is what user should see
-    1 = debug, both scene and image are displayed and blended
-    2 = debug, only 3D Scene is displayed }
-  DebugScene3DDisplay: Integer = 0;
+  DebugDisplay: TDebugDisplay = ddNormal;
   AngleOfViewX, AngleOfViewY: Single;
   SceneCamera: TWalkCamera;
 
@@ -66,6 +72,19 @@ procedure TGameSceneManager.Render3D(const Params: TRenderParams);
     used when doing depth-buffer tests. }
   procedure DrawCentered(const Image: TGLImage);
   begin
+    if DebugDisplay = ddBlend3D then
+    begin
+      if GLFeatures.BlendConstant then
+      begin
+        Image.Alpha := acBlending;
+        Image.BlendingSourceFactor := bsConstantAlpha;
+        Image.BlendingDestinationFactor := bdOneMinusConstantAlpha;
+        Image.BlendingConstantColor := Vector4Single(0, 0, 0, 0.5);
+      end else
+       Image.Alpha := acNone;
+    end else
+      Image.Alpha := acNone;
+
     Image.Draw(Image.Rect.FitInside(Window.Rect));
   end;
 
@@ -73,66 +92,44 @@ var
   H: TLightInstance;
   SavedProjectionMatrix: TMatrix4Single;
 begin
-  { This whole rendering is considered as opaque
-    (CurrentLocation is rendered only to depth buffer,
-    and image is always opaque;
+  { If DebugDisplay = ddNormal, render scene only to depth buffer. }
+  if DebugDisplay = ddNormal then
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+  CurrentLocation.Scene.Render(RenderingCamera.Frustum, Params);
+  if DebugDisplay = ddNormal then
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-    TODO: player model should actually be splitted into opaque/trasparent
-    parts here. Doesn't matter for now, as current player is fully
-    opaque.
-
-    TODO: we should do something better with ShadowVolumesReceivers here?
-    Make Player not receiver? }
-  if (not Params.Transparent) and Params.ShadowVolumesReceivers then
+  if (not Params.Transparent) and
+     Params.ShadowVolumesReceivers and
+     (DebugDisplay <> ddOnly3D) then
   begin
-    { If DebugScene3DDisplay = 0, render scene only to depth buffer. }
-    if DebugScene3DDisplay = 0 then
-      glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-
-    CurrentLocation.Scene.Render(RenderingCamera.Frustum, Params);
-
-    if DebugScene3DDisplay = 0 then
-      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
-    {$ifndef OpenGLES} //TODO-es
-    if DebugScene3DDisplay <> 2 then
-    begin
-      SavedProjectionMatrix := ProjectionMatrix;
+    SavedProjectionMatrix := ProjectionMatrix;
       OrthoProjection(0, Window.Width, 0, Window.Height); // need 2D projection
-      glPushMatrix; // TGLImage.Draw will reset matrix, so save it
-        glPushAttrib(GL_ENABLE_BIT);
-          glDisable(GL_LIGHTING);
-          if DebugScene3DDisplay = 1 then
-          begin
-            if GLFeatures.BlendConstant then
-            begin
-              glBlendColor(0, 0, 0, 0.5);
-              glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
-              glEnable(GL_BLEND);
-            end;
-          end;
-          if Params.InShadow then
-            DrawCentered(CurrentLocation.GLShadowedImage) else
-            DrawCentered(CurrentLocation.GLImage);
-        glPopAttrib;
+      {$ifndef OpenGLES}
+      glPushMatrix; // TGLImage.Draw will reset modelview matrix, so save it
+      {$endif}
+        if Params.InShadow then
+          DrawCentered(CurrentLocation.GLShadowedImage)
+        else
+          DrawCentered(CurrentLocation.GLImage);
+      {$ifndef OpenGLES}
       glPopMatrix;
-      ProjectionMatrix := SavedProjectionMatrix; // restore 3D projection
-    end;
-    {$endif}
+      {$endif}
+    ProjectionMatrix := SavedProjectionMatrix; // restore 3D projection
+  end;
 
-    if not DebugNoCreatures then
+  if not DebugNoCreatures then
+  begin
+    if Params.InShadow and HeadlightInstance(H) then
     begin
-      if Params.InShadow and HeadlightInstance(H) then
-      begin
-        H.Node.FdAmbientIntensity.Send(1);
-        H.Node.FdColor.Send(Vector3Single(0.2, 0.2, 0.2));
-      end;
-      RiftPlay.Player.Render(RenderingCamera.Frustum, Params);
-      if Params.InShadow and HeadlightInstance(H) then
-      begin
-        H.Node.FdAmbientIntensity.Send(H.Node.FdAmbientIntensity.DefaultValue);
-        H.Node.FdColor.Send(H.Node.FdColor.DefaultValue);
-      end;
+      H.Node.AmbientIntensity := 1;
+      H.Node.Color := Vector3Single(0.2, 0.2, 0.2);
+    end;
+    RiftPlay.Player.Render(RenderingCamera.Frustum, Params);
+    if Params.InShadow and HeadlightInstance(H) then
+    begin
+      H.Node.AmbientIntensity := H.Node.FdAmbientIntensity.DefaultValue;
+      H.Node.Color := H.Node.FdColor.DefaultValue;
     end;
   end;
 end;
@@ -159,7 +156,8 @@ begin
   Result.ProjectionNear := 0.01;
   Result.ProjectionFarFinite := 100;
   if GLFeatures.ShadowVolumesPossible and ShadowVolumes then
-    Result.ProjectionFar := ZFarInfinity else
+    Result.ProjectionFar := ZFarInfinity
+  else
     Result.ProjectionFar := Result.ProjectionFarFinite;
 end;
 
@@ -180,12 +178,15 @@ begin
         { TODO: only debug feature. }
         's':
           begin
-            Inc(DebugScene3DDisplay);
-            if DebugScene3DDisplay = 3 then DebugScene3DDisplay := 0;
-            { When DebugScene3DDisplay = 0, the scene only goes to depth buffer,
+            if DebugDisplay = High(DebugDisplay) then
+              DebugDisplay := Low(DebugDisplay)
+            else
+              DebugDisplay := Succ(DebugDisplay);
+            { When DebugDisplay = ddNormal, the scene only goes to depth buffer,
               so make it faster. }
-            if DebugScene3DDisplay = 0 then
-              CurrentLocation.Scene.Attributes.Mode := rmDepth else
+            if DebugDisplay = ddNormal then
+              CurrentLocation.Scene.Attributes.Mode := rmDepth
+            else
               CurrentLocation.Scene.Attributes.Mode := rmFull;
           end;
         else
@@ -269,8 +270,9 @@ begin
   AngleOfViewX := RadToDeg(RadAngleOfViewX);
   AngleOfViewY := RadToDeg(RadAngleOfViewY);
 
-  if DebugScene3DDisplay = 0 then
-    CurrentLocation.Scene.Attributes.Mode := rmDepth else
+  if DebugDisplay = ddNormal then
+    CurrentLocation.Scene.Attributes.Mode := rmDepth
+  else
     CurrentLocation.Scene.Attributes.Mode := rmFull;
 
   Player.SetView(CurrentLocation.InitialPosition,

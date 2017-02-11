@@ -18,6 +18,10 @@
     </parts>
   </intro>
   <creatures>
+    <!-- Do not receive shadows, as self-shadowing looks bad on smooth sphere geometry.
+         TODO: receive_shadow_volumes="False"
+         broken now.
+    -->
     <player>
       <!-- Each state has a url of associated animation. -->
       <stand url="creatures/humanoid/stand.castle-anim-frames" />
