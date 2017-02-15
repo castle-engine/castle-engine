@@ -313,8 +313,7 @@ end;
 class function TMatrixTransformNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassX3DType) or
-    (URN = URNKambiNodes2 + ClassX3DType);
+    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 class function TMatrixTransformNode.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -399,8 +398,7 @@ end;
 class function TTeapotNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassX3DType) or
-    (URN = URNKambiNodes2 + ClassX3DType);
+    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 function TTeapotNode.Proxy(var State: TX3DGraphTraverseState;
@@ -613,8 +611,7 @@ end;
 class function TLoggerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassX3DType) or
-    (URN = URNKambiNodes2 + ClassX3DType);
+    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TConverterNode.CreateNode;
@@ -650,8 +647,7 @@ end;
 class function TConverterNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassX3DType) or
-    (URN = URNKambiNodes2 + ClassX3DType);
+    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TRenderedTextureNode.CreateNode;
@@ -772,8 +768,7 @@ end;
 class function TRenderedTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassX3DType) or
-    (URN = URNKambiNodes2 + ClassX3DType);
+    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TPlaneNode.CreateNode;
@@ -800,8 +795,7 @@ end;
 class function TPlaneNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassX3DType) or
-    (URN = URNKambiNodes2 + ClassX3DType);
+    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 function TPlaneNode.Proxy(var State: TX3DGraphTraverseState;
@@ -884,8 +878,7 @@ end;
 class function TTogglerNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
-    (URN = URNKambiNodes + ClassX3DType) or
-    (URN = URNKambiNodes2 + ClassX3DType);
+    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TTogglerNode.EventStatusReceive(

@@ -2139,11 +2139,6 @@ const
   URNX3DNodes = 'urn:web3d:x3d:node:';
   { @groupEnd }
 
-  { URN used to indicate VRML / X3D nodes that are Castle Game Engine
-    extensions. }
-  URNKambiNodes = 'urn:castle-engine.sourceforge.net:node:';
-  URNKambiNodes2 = 'urn:vrmlengine.sourceforge.net:node:';
-
   { URN to indicate BitManagement nodes. This should work, according to
     http://www.bitmanagement.com/developer/contact/examples/layer/index.html
     example EXTERNPROTO. }
@@ -2188,6 +2183,10 @@ function KeyRange(Key: TSingleList;
   setting reference to @nil. Analogous to standard FreeAndNil,
   but checks if node is used first. }
 procedure FreeIfUnusedAndNil(var Obj);
+
+{ Does this URN indicate an X3D node that is a Castle Game Engine extension.
+  This is a helper for implementing @link(TX3DNode.URNMatching). }
+function URNMatchingCastle(const URN, ClassX3DType: string): boolean;
 
 {$undef read_interface}
 
@@ -6382,6 +6381,14 @@ begin
   Temp := TX3DNode(Obj);
   Pointer(Obj) := nil;
   Temp.FreeIfUnused;
+end;
+
+function URNMatchingCastle(const URN, ClassX3DType: string): boolean;
+begin
+  Result :=
+    (URN = 'urn:castle-engine.sourceforge.io:node:' + ClassX3DType) or
+    (URN = 'urn:castle-engine.sourceforge.net:node:' + ClassX3DType) or
+    (URN = 'urn:vrmlengine.sourceforge.net:node:' + ClassX3DType);
 end;
 
 { TNodeDestructionNotificationList ------------------------------------------- }
