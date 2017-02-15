@@ -680,8 +680,8 @@ begin
     Result.Width := R.Width;
     Result.Height := Height * Result.Width div Width;
   end;
-  Result.Left := AlignCore(AlignHorizontal, R, AlignHorizontal, 0);
-  Result.Bottom := AlignCore(AlignVertical, R, AlignVertical, 0);
+  Result.Left   := Result.AlignCore(AlignHorizontal, R, AlignHorizontal, 0);
+  Result.Bottom := Result.AlignCore(AlignVertical, R, AlignVertical, 0);
 end;
 
 function TRectangle.AlignCore(

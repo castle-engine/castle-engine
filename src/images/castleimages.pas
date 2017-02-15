@@ -508,7 +508,7 @@ type
       If ProgressTitle <> '' this will call Progress.Init/Step/Fini
       from CastleProgress to indicate progress of operation. }
     procedure Resize(ResizeWidth, ResizeHeight: Cardinal;
-      const Interpolation: TResizeInterpolation = riNearest;
+      const Interpolation: TResizeInterpolation = riBilinear;
       const ProgressTitle: string = '');
 
     { Change Width and Height and appropriately stretch image contents.
@@ -546,7 +546,7 @@ type
       if ProgressTitle <> '' this will call Progress.Init/Step/Fini
       from CastleProgress to indicate progress of operation. }
     function MakeResized(ResizeWidth, ResizeHeight: Cardinal;
-      const Interpolation: TResizeInterpolation = riNearest;
+      const Interpolation: TResizeInterpolation = riBilinear;
       const ProgressTitle: string = ''): TCastleImage;
 
     { Mirror image horizotally (that is right edge is swapped with left edge). }
@@ -1520,7 +1520,7 @@ function LoadImage(const URL: string;
 function LoadImage(const URL: string;
   const AllowedImageClasses: array of TEncodedImageClass;
   const ResizeWidth, ResizeHeight: Cardinal;
-  const Interpolation: TResizeInterpolation = riNearest): TCastleImage; overload;
+  const Interpolation: TResizeInterpolation = riBilinear): TCastleImage; overload;
 { @groupEnd }
 
 { Load image to TEncodedImage format.

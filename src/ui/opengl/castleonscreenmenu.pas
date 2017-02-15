@@ -141,12 +141,17 @@ type
       will be automatically fixed. Also when the children change
       (and so ControlsCount changes), this is automatically fixed if necessary.
 
-      Changing this calls CurrentItemChanged automatically. }
+      Changing this calls CurrentItemChanged automatically,
+      but not CurrentItemChangedByUser. }
     property CurrentItem: Integer read GetCurrentItem write SetCurrentItem;
 
     { Change CurrentItem to next or previous.
       Usually you will just let this class call it internally
       (from Motion, KeyDown etc.) and will not need to call it yourself.
+
+      @param(UserAction Determines should we play a sound when user changes
+        menu items.)
+
       @groupBegin }
     procedure NextItem;
     procedure PreviousItem;
@@ -185,9 +190,13 @@ type
 
     { Called when CurrentItem changed.
       But *not* when CurrentItem changed because of ControlsCount changes.
-      In this class this just calls VisibleChange and
-      plays sound stMenuCurrentItemChanged. }
+      If you want to only get notified when the CurrentItem changed because
+      of user actions, better override CurrentItemChangedByUser. }
     procedure CurrentItemChanged; virtual;
+
+    { Called when CurrentItem changed by a user action (keyboard press,
+      mouse move or click or something like that). }
+    procedure CurrentItemChangedByUser; virtual;
 
     { 1st color of the border to display around focused child.
       Default value is DefaultCurrentItemBorderColor1 }
@@ -362,6 +371,7 @@ var
 begin
   OldCurrentItem := CurrentItem;
   FCurrentItem := Value;
+
   NewCurrentItem := CurrentItem;
   if OldCurrentItem <> NewCurrentItem then
     CurrentItemChanged;
@@ -369,7 +379,7 @@ end;
 
 procedure TCastleOnScreenMenu.NextItem;
 var
-  OldCurrentItem: Integer;
+  OldCurrentItem, NewCurrentItem: Integer;
 begin
   if ControlsCount <> 0 then
   begin
@@ -382,12 +392,16 @@ begin
       { Loop until you find the next focusable control.
         Also, stop when you reach the original control (to avoid an infinite loop). }
     until ControlFocusable(Controls[CurrentItem]) or (CurrentItem = OldCurrentItem);
+
+    NewCurrentItem := CurrentItem;
+    if OldCurrentItem <> NewCurrentItem then
+      CurrentItemChangedByUser;
   end;
 end;
 
 procedure TCastleOnScreenMenu.PreviousItem;
 var
-  OldCurrentItem: Integer;
+  OldCurrentItem, NewCurrentItem: Integer;
 begin
   if ControlsCount <> 0 then
   begin
@@ -400,6 +414,10 @@ begin
       { Loop until you find the next focusable control.
         Also, stop when you reach the original control (to avoid an infinite loop). }
     until ControlFocusable(Controls[CurrentItem]) or (CurrentItem = OldCurrentItem);
+
+    NewCurrentItem := CurrentItem;
+    if OldCurrentItem <> NewCurrentItem then
+      CurrentItemChangedByUser;
   end;
 end;
 
@@ -619,7 +637,11 @@ function TCastleOnScreenMenu.Press(const Event: TInputPressRelease): boolean;
       NewItemIndex := FindChildIndex(Container.MousePosition);
       if NewItemIndex <> -1 then
       begin
-        CurrentItem := NewItemIndex;
+        if CurrentItem <> NewItemIndex then
+        begin
+          CurrentItem := NewItemIndex;
+          CurrentItemChangedByUser;
+        end;
         {$warnings off}
         Click;
         {$warnings on}
@@ -651,6 +673,7 @@ begin
     if NewItemIndex <> CurrentItem then
     begin
       CurrentItem := NewItemIndex;
+      CurrentItemChangedByUser;
       Result := ExclusiveEvents;
     end;
   end;
@@ -702,6 +725,10 @@ end;
 procedure TCastleOnScreenMenu.CurrentItemChanged;
 begin
   VisibleChange;
+end;
+
+procedure TCastleOnScreenMenu.CurrentItemChangedByUser;
+begin
   SoundEngine.Sound(stMenuCurrentItemChanged);
 end;
 

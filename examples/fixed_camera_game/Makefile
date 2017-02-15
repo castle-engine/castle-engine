@@ -1,9 +1,10 @@
-default:
-	@echo 'No default target in this Makefile'
+# This Makefile uses castle-engine build tool for most operations.
+# See https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
 
-# Simple install.
-# You may as well symlink data to /usr/local/share/rift,
-# for system-wide install.
-install:
-	rm -f $(HOME)/.local/share/rift
-	ln -s $(shell pwd)/data $(HOME)/.local/share/rift
+.PHONY: standalone
+standalone:
+	castle-engine compile $(CASTLE_ENGINE_TOOL_OPTIONS)
+
+.PHONY: clean
+clean:
+	castle-engine clean

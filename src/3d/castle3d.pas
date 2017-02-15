@@ -788,17 +788,6 @@ type
       use it). }
     function Dragging: boolean; virtual;
 
-    { Unconditionally move this 3D object by given vector.
-      You usually don't want to use this directly, instead use @link(Move)
-      method to move checking collisions (and with optional wall sliding).
-
-      By default, in T3D class, this does nothing, because the bare T3D
-      class doesn't know how to move itself.
-      But descendants like T3DTransform and T3DOrient (and their
-      descendants like TPlayer, TCreature, TItemOnWorld) override this
-      and can be moved using this. }
-    procedure Translate(const T: TVector3Single); virtual;
-
     { Middle point, usually "eye point", of the 3D model.
       This is used for sphere center (if overriden Sphere returns @true)
       and is the central point from which collisions of this object
@@ -975,16 +964,6 @@ type
     function MoveAllowed(const OldPos, NewPos: TVector3Single;
       const BecauseOfGravity: boolean): boolean;
     { @groupEnd }
-
-    { Move, if possible (no collisions). This is the simplest way to move
-      a 3D object, and a basic building block for artificial intelligence
-      of creatures.
-
-      Checks move possibility by MoveAllowed, using @link(Middle) point.
-      Actual move is done using @link(Translate). }
-    function Move(const Translation: TVector3Single;
-      const BecauseOfGravity: boolean;
-      const EnableWallSliding: boolean = true): boolean;
 
     { Cast a ray from myself to the world, see what is hit.
 
@@ -1470,6 +1449,21 @@ type
       approach, and then ignore MiddleHeight completely. }
     property MiddleHeight: Single read FMiddleHeight write FMiddleHeight
       default DefaultMiddleHeight;
+
+    { Unconditionally move this 3D object by given vector.
+      You usually don't want to use this directly, instead use @link(Move)
+      method to move checking collisions (and with optional wall sliding). }
+    procedure Translate(const T: TVector3Single); virtual; abstract;
+
+    { Move, if possible (no collisions). This is the simplest way to move
+      a 3D object, and a basic building block for artificial intelligence
+      of creatures.
+
+      Checks move possibility by MoveAllowed, using @link(Middle) point.
+      Actual move is done using @link(Translate). }
+    function Move(const Translation: TVector3Single;
+      const BecauseOfGravity: boolean;
+      const EnableWallSliding: boolean = true): boolean;
   end;
 
   { Transform (move, rotate, scale) children T3D objects.
@@ -1779,6 +1773,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+    procedure Translate(const T: TVector3Single); override;
   published
     { Are other 3D objects pushed when this object moves.
       Only the 3D objects with @link(T3D.CollidesWithMoving) are ever pushed by this object
@@ -2455,10 +2450,6 @@ begin
   Result := FPickable and GetExists;
 end;
 
-procedure T3D.Translate(const T: TVector3Single);
-begin
-end;
-
 function T3D.Middle: TVector3Single;
 begin
   Result := ZeroVector3Single;
@@ -2593,27 +2584,6 @@ begin
   try
     Result := World.WorldRay(RayOrigin, RayDirection);
   finally Enable end;
-end;
-
-function T3D.Move(const Translation: TVector3Single;
-  const BecauseOfGravity, EnableWallSliding: boolean): boolean;
-var
-  OldMiddle, ProposedNewMiddle, NewMiddle: TVector3Single;
-begin
-  OldMiddle := Middle;
-
-  if EnableWallSliding then
-  begin
-    ProposedNewMiddle := OldMiddle + Translation;
-    Result := MoveAllowed(OldMiddle, ProposedNewMiddle, NewMiddle, BecauseOfGravity);
-  end else
-  begin
-    NewMiddle := OldMiddle + Translation;
-    Result := MoveAllowed(OldMiddle, NewMiddle, BecauseOfGravity);
-  end;
-
-  if Result then
-    Translate(NewMiddle - OldMiddle);
 end;
 
 function T3D.Shared: T3D;
@@ -4059,6 +4029,27 @@ begin
   Result := inherited BoundingBox;
 end;
 
+function T3DCustomTransform.Move(const Translation: TVector3Single;
+  const BecauseOfGravity, EnableWallSliding: boolean): boolean;
+var
+  OldMiddle, ProposedNewMiddle, NewMiddle: TVector3Single;
+begin
+  OldMiddle := Middle;
+
+  if EnableWallSliding then
+  begin
+    ProposedNewMiddle := OldMiddle + Translation;
+    Result := MoveAllowed(OldMiddle, ProposedNewMiddle, NewMiddle, BecauseOfGravity);
+  end else
+  begin
+    NewMiddle := OldMiddle + Translation;
+    Result := MoveAllowed(OldMiddle, NewMiddle, BecauseOfGravity);
+  end;
+
+  if Result then
+    Translate(NewMiddle - OldMiddle);
+end;
+
 { T3DTransform -------------------------------------------------------------- }
 
 constructor T3DTransform.Create(AOwner: TComponent);
@@ -4396,7 +4387,7 @@ begin
         for I := 0 to World.Count - 1 do
         begin
           Item := World[I];
-          if Item.CollidesWithMoving then
+          if (Item is T3DCustomTransform) and Item.CollidesWithMoving then
           begin
             { This case doesn't really use Item.Sphere. But it's not really
               terribly important design decision, we may use Item.Sphere
@@ -4405,7 +4396,7 @@ begin
             Box := Item.BoundingBox;
             if Box.Collision(NewBox) or
                Box.Collision(CurrentBox) then
-              Item.Translate(Translation);
+              T3DCustomTransform(Item).Translate(Translation);
           end;
         end;
       end else
@@ -4413,19 +4404,19 @@ begin
         for I := 0 to World.Count - 1 do
         begin
           Item := World[I];
-          if Item.CollidesWithMoving then
+          if (Item is T3DCustomTransform) and Item.CollidesWithMoving then
             if Item.Sphere(SphereRadius) then
             begin
               if SphereCollisionAssumeTranslation(NewTranslation,
                 Item.Middle, SphereRadius,
                 @World.CollisionIgnoreItem) then
-                Item.Translate(Translation);
+                T3DCustomTransform(Item).Translate(Translation);
             end else
             begin
               if BoxCollisionAssumeTranslation(NewTranslation,
                 Item.BoundingBox,
                 @World.CollisionIgnoreItem) then
-                Item.Translate(Translation);
+                T3DCustomTransform(Item).Translate(Translation);
             end;
         end;
       end;
@@ -4442,6 +4433,12 @@ begin
   NewAnimationTime := AnimationTime + SecondsPassed;
   BeforeTimeIncrease(NewAnimationTime);
   FAnimationTime := NewAnimationTime;
+end;
+
+procedure T3DMoving.Translate(const T: TVector3Single);
+begin
+  { ignore Translate calls, our translation is determined by current time
+    and other properties. }
 end;
 
 { T3DLinearMoving --------------------------------------------------- }

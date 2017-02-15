@@ -31,20 +31,27 @@ procedure Play;
 
 implementation
 
-uses CastleGL, CastleGLUtils, CastleWindow, CastleStringUtils, CastleVectors, CastleFilesUtils,
-  CastleWindowModes, CastleCameras, SysUtils, X3DNodes,
-  CastleRays, Math, CastleUIControls, CastleRenderer,
-  RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow, RiftGame,
-  CastleGameNotifications, CastleRenderingCamera, Castle3D,
-  RiftSceneManager, CastleKeysMouse;
+uses Math, SysUtils,
+  CastleGL, CastleGLUtils, CastleWindow, CastleStringUtils, CastleVectors,
+  CastleFilesUtils, CastleWindowModes, CastleCameras, X3DNodes,
+  CastleRays, CastleUIControls, CastleRenderer, CastleImages, CastleGLImages,
+  CastleGameNotifications, CastleRenderingCamera, Castle3D, CastleRectangles,
+  RiftSceneManager, CastleKeysMouse,
+  RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow, RiftGame;
+
+type
+  TDebugDisplay = (
+    { 3D Scene goes only to depth buffer, this is what user should see. }
+    ddNormal,
+    { Debug, both scene and image are displayed and blended. }
+    ddBlend3D,
+    { Debug, only 3D scene is displayed. }
+    ddOnly3D);
 
 var
   Player: TPlayer;
   UserQuit: boolean;
-  { 0 = 3D Scene goes only to depth buffer, this is what user should see
-    1 = debug, both scene and image are displayed and blended
-    2 = debug, only 3D Scene is displayed }
-  DebugScene3DDisplay: Integer = 0;
+  DebugDisplay: TDebugDisplay = ddNormal;
   AngleOfViewX, AngleOfViewY: Single;
   SceneCamera: TWalkCamera;
 
@@ -59,70 +66,94 @@ type
   end;
 
 procedure TGameSceneManager.Render3D(const Params: TRenderParams);
+
+  { Draw Image centered on screen, scaled to fit inside the window size.
+    The goal is to always match the 3D scene projection,
+    used when doing depth-buffer tests. }
+  procedure DrawCentered(const Image: TGLImage);
+  begin
+    if DebugDisplay = ddBlend3D then
+    begin
+      if GLFeatures.BlendConstant then
+      begin
+        Image.Alpha := acBlending;
+        Image.BlendingSourceFactor := bsConstantAlpha;
+        Image.BlendingDestinationFactor := bdOneMinusConstantAlpha;
+        Image.BlendingConstantColor := Vector4Single(0, 0, 0, 0.5);
+      end else
+       Image.Alpha := acNone;
+    end else
+      Image.Alpha := acNone;
+
+    Image.Draw(Image.Rect.FitInside(Window.Rect));
+  end;
+
 var
   H: TLightInstance;
   SavedProjectionMatrix: TMatrix4Single;
 begin
-  { This whole rendering is considered as opaque
-    (CurrentLocation is rendered only to depth buffer,
-    and image is always opaque;
+  { Render the location 3D scene.
+    If DebugDisplay = ddNormal, render it only to the depth buffer. }
+  if DebugDisplay = ddNormal then
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+  CurrentLocation.Scene.Render(RenderingCamera.Frustum, Params);
+  if DebugDisplay = ddNormal then
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-    TODO: player model should actually be splitted into opaque/trasparent
-    parts here. Doesn't matter for now, as current player is fully
-    opaque.
-
-    TODO: we should do something better with ShadowVolumesReceivers here?
-    Make Player not receiver? }
-  if (not Params.Transparent) and Params.ShadowVolumesReceivers then
+  { Render the location 2D image. }
+  if (not Params.Transparent) and
+     Params.ShadowVolumesReceivers and
+     (DebugDisplay <> ddOnly3D) then
   begin
-    { If DebugScene3DDisplay = 0, render scene only to depth buffer. }
-    if DebugScene3DDisplay = 0 then
-      glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-
-    CurrentLocation.Scene.Render(RenderingCamera.Frustum, Params);
-
-    if DebugScene3DDisplay = 0 then
-      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
-    {$ifndef OpenGLES} //TODO-es
-    if DebugScene3DDisplay <> 2 then
-    begin
-      SavedProjectionMatrix := ProjectionMatrix;
+    SavedProjectionMatrix := ProjectionMatrix;
       OrthoProjection(0, Window.Width, 0, Window.Height); // need 2D projection
-      glPushMatrix; // TGLImage.Draw will reset matrix, so save it
-        glPushAttrib(GL_ENABLE_BIT);
-          glDisable(GL_LIGHTING);
-          if DebugScene3DDisplay = 1 then
-          begin
-            if GLFeatures.BlendConstant then
-            begin
-              glBlendColor(0, 0, 0, 0.5);
-              glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
-              glEnable(GL_BLEND);
-            end;
-          end;
-          if Params.InShadow then
-            CurrentLocation.GLShadowedImage.Draw(0, 0) else
-            CurrentLocation.GLImage.Draw(0, 0);
-        glPopAttrib;
+      {$ifndef OpenGLES}
+      { TGLImage.Draw will reset modelview matrix
+        (that should keep camera matrix, in non-OpenGLES renderer now),
+        so save it }
+      glPushMatrix;
+      {$endif}
+        if Params.InShadow then
+          DrawCentered(CurrentLocation.GLShadowedImage)
+        else
+          DrawCentered(CurrentLocation.GLImage);
+      {$ifndef OpenGLES}
       glPopMatrix;
-      ProjectionMatrix := SavedProjectionMatrix; // restore 3D projection
-    end;
-    {$endif}
+      {$endif}
+    ProjectionMatrix := SavedProjectionMatrix; // restore 3D projection
+  end;
 
-    if not DebugNoCreatures then
+  { Render the 3D characters, both to depth and color buffers. }
+  if not DebugNoCreatures then
+  begin
+    if Params.InShadow and HeadlightInstance(H) and
+
+      { We implement PlayerKind.ReceiveShadowVolumes=false
+        by simply making player look the same,
+        regardless if Params.InShadow is true or false.
+
+        We do not implement ReceiveShadowVolumes=false case by setting
+        player TCastleScene.ReceiveShadowVolumes=false, that would be wrong:
+
+        - The DrawCentered image done above would always draw over the
+          player, obscuring the visible player, since scenes with
+          ReceiveShadowVolumes=false are drawn underneath
+          by TGLShadowVolumeRenderer.Render.
+
+        - Moreover the player's shadow would be visible on the image
+          (drawn by DrawCentered), since player still casts shadow volumes.
+      }
+
+      PlayerKind.ReceiveShadowVolumes then
     begin
-      if Params.InShadow and HeadlightInstance(H) then
-      begin
-        H.Node.FdAmbientIntensity.Send(1);
-        H.Node.FdColor.Send(Vector3Single(0.2, 0.2, 0.2));
-      end;
-      RiftPlay.Player.Render(RenderingCamera.Frustum, Params);
-      if Params.InShadow and HeadlightInstance(H) then
-      begin
-        H.Node.FdAmbientIntensity.Send(H.Node.FdAmbientIntensity.DefaultValue);
-        H.Node.FdColor.Send(H.Node.FdColor.DefaultValue);
-      end;
+      H.Node.AmbientIntensity := 1;
+      H.Node.Color := Vector3Single(0.2, 0.2, 0.2);
+    end;
+    RiftPlay.Player.Render(RenderingCamera.Frustum, Params);
+    if Params.InShadow and HeadlightInstance(H) then
+    begin
+      H.Node.AmbientIntensity := H.Node.FdAmbientIntensity.DefaultValue;
+      H.Node.Color := H.Node.FdColor.DefaultValue;
     end;
   end;
 end;
@@ -136,6 +167,10 @@ end;
 function TGameSceneManager.MainLightForShadows(
   out AMainLightPosition: TVector4Single): boolean;
 begin
+  { The light casting shadows.
+    TODO: Hardcoded for now, in the future could be determined per-location
+    (e.g. looking at location light with shadowVolumesMain, would be consistent
+    with standard 3D rendering of shadow volumes). }
   AMainLightPosition := {Vector4Single(SceneCamera.InitialPosition, 1);}
     Vector4Single(1, 1, -1, 0);
   Result := true;
@@ -149,7 +184,8 @@ begin
   Result.ProjectionNear := 0.01;
   Result.ProjectionFarFinite := 100;
   if GLFeatures.ShadowVolumesPossible and ShadowVolumes then
-    Result.ProjectionFar := ZFarInfinity else
+    Result.ProjectionFar := ZFarInfinity
+  else
     Result.ProjectionFar := Result.ProjectionFarFinite;
 end;
 
@@ -165,27 +201,29 @@ var
 begin
   case Event.EventType of
     itKey:
-      case Event.KeyCharacter of
-        CharEscape: UserQuit := true;
-        { TODO: only debug feature. }
-        's':
+      if Event.KeyCharacter = CharEscape then
+        UserQuit := true
+      else
+      { Debug keys }
+      case Event.Key of
+        K_F5:
           begin
-            Inc(DebugScene3DDisplay);
-            if DebugScene3DDisplay = 3 then DebugScene3DDisplay := 0;
-            { When DebugScene3DDisplay = 0, the scene only goes to depth buffer,
-              so make it faster. }
-            if DebugScene3DDisplay = 0 then
-              CurrentLocation.Scene.Attributes.Mode := rmDepth else
-              CurrentLocation.Scene.Attributes.Mode := rmFull;
+            URL := FileNameAutoInc('rift_screen_%d.png');
+            Window.SaveScreen(URL);
+            Notifications.Show(Format('Saved screenshot to "%s"', [URL]));
           end;
-        else
-          case Event.Key of
-            K_F5:
-              begin
-                URL := FileNameAutoInc('rift_screen_%d.png');
-                Window.SaveScreen(URL);
-                Notifications.Show(Format('Saved screenshot to "%s"', [URL]));
-              end;
+        K_F2:
+          begin
+            if DebugDisplay = High(DebugDisplay) then
+              DebugDisplay := Low(DebugDisplay)
+            else
+              DebugDisplay := Succ(DebugDisplay);
+            { When DebugDisplay = ddNormal, the scene only goes to depth buffer,
+              so make it faster. }
+            if DebugDisplay = ddNormal then
+              CurrentLocation.Scene.Attributes.Mode := rmDepth
+            else
+              CurrentLocation.Scene.Attributes.Mode := rmFull;
           end;
       end;
     itMouseButton:
@@ -259,8 +297,9 @@ begin
   AngleOfViewX := RadToDeg(RadAngleOfViewX);
   AngleOfViewY := RadToDeg(RadAngleOfViewY);
 
-  if DebugScene3DDisplay = 0 then
-    CurrentLocation.Scene.Attributes.Mode := rmDepth else
+  if DebugDisplay = ddNormal then
+    CurrentLocation.Scene.Attributes.Mode := rmDepth
+  else
     CurrentLocation.Scene.Attributes.Mode := rmFull;
 
   Player.SetView(CurrentLocation.InitialPosition,

@@ -52,6 +52,7 @@ type
   private
     FName: string;
     Animations: array [TCreatureState] of TCreatureAnimation;
+    FReceiveShadowVolumes: boolean;
   protected
     procedure LoadInternal(const BaseLights: TLightInstancesList); override;
     procedure UnLoadInternal; override;
@@ -72,6 +73,8 @@ type
       this creature kind, if it's already loaded; unless you know what
       you're doing :) ). }
     procedure LoadFromConfig;
+
+    property ReceiveShadowVolumes: boolean read FReceiveShadowVolumes;
   end;
 
   TCreatureKindList = class(specialize TFPGObjectList<TCreatureKind>)
@@ -183,6 +186,8 @@ begin
     StatePath := 'creatures/' + Name + '/' + CreatureStateName[S] + '/';
     Animations[S].URL := DataConfig.GetURL(StatePath + 'url');
   end;
+  FReceiveShadowVolumes := DataConfig.GetValue(
+    'creatures/' + Name + '/receive_shadow_volumes', true);
 end;
 
 function TCreatureKind.LoadSteps: Cardinal;
@@ -205,6 +210,11 @@ begin
   for S := Low(S) to High(S) do
   begin
     Animations[S].Animation := TCastleScene.Create(nil);
+    { So not set Animation.ReceiveShadowVolumes := false,
+      this would make incorrect rendering.
+      Instead, we implement ReceiveShadowVolumes=false differently in this game.
+      See TGameSceneManager.Render3D comments. }
+    //Animations[S].Animation.ReceiveShadowVolumes := ReceiveShadowVolumes;
     Animations[S].Animation.Load(Animations[S].URL);
     Animations[S].Animation.PrepareResources(
       [prRender, prBoundingBox, prShadowVolume], false, BaseLights);

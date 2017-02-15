@@ -7,6 +7,8 @@ Transform {
       appearance Appearance {
         texture ImageTexture {
           url "background/trees_smaller.png"
+          # use this for better quality, but slower loading:
+          # url "../data-source-large-images/background/trees.png"
           repeatS FALSE
           repeatT FALSE
           # avoid scaling the texture to power-of-2, see

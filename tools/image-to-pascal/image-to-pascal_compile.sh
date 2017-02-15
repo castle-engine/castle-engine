@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f texturefont2pascal.lpr ]; then cd ../../; fi
+if [ -f image-to-pascal.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg tools/texturefont2pascal/texturefont2pascal.lpr
+fpc -dRELEASE @castle-fpc.cfg tools/image-to-pascal/image-to-pascal.lpr

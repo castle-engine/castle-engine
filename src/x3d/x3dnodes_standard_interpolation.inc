@@ -566,8 +566,7 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassX3DType) or
     (URN = URNX3DNodes + ClassX3DType) or
-    (URN = URNKambiNodes + ClassX3DType) or
-    (URN = URNKambiNodes2 + ClassX3DType);
+    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TColorSetInterpolatorNode.EventSet_FractionReceive(
@@ -1013,8 +1012,7 @@ begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNVRML97Nodes + ClassX3DType) or
     (URN = URNX3DNodes + ClassX3DType) or
-    (URN = URNKambiNodes + ClassX3DType) or
-    (URN = URNKambiNodes2 + ClassX3DType);
+    URNMatchingCastle(URN, ClassX3DType);
 end;
 
 procedure TVectorInterpolatorNode.EventSet_FractionReceive(

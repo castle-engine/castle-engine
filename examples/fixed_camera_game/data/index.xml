@@ -3,22 +3,21 @@
 <CONFIG>
   <main_menu image="menu_bg/main_menu.png" />
   <intro>
-    <!-- TODO: use PathIterator to make this XML part nice,
-      without "part0", "part1", and a "count" attribute.
-      It would be much more natural to just have a sequence of "part" elements. -->
-    <parts count="4">
-      <part0 image="morning_buildings"
-        corrode_duration="25.00" idle_duration="40.0" />
-      <part1 image="train_crash"
-        corrode_duration="30.00" idle_duration="40.0" />
-      <part2 image="wild_road"
-        corrode_duration="20.00" idle_duration="40.0" />
-      <part3 image="human_beach"
-        corrode_duration="20.00" idle_duration="40.0" />
+    <parts>
+      <part image="morning_buildings"
+        corrode_duration="5.00" idle_duration="40.0" />
+      <part image="train_crash"
+        corrode_duration="10.00" idle_duration="40.0" />
+      <part image="wild_road"
+        corrode_duration="7.00" idle_duration="40.0" />
+      <part image="human_beach"
+        corrode_duration="7.00" idle_duration="40.0" />
     </parts>
   </intro>
   <creatures>
-    <player>
+    <!-- Do not receive shadows,
+         as self-shadowing looks bad on smooth sphere geometry. -->
+    <player receive_shadow_volumes="False">
       <!-- Each state has a url of associated animation. -->
       <stand url="creatures/humanoid/stand.castle-anim-frames" />
       <walk url="creatures/humanoid/walk.castle-anim-frames" />
@@ -30,7 +29,7 @@
        start_name must match some existing location name,
        this says which location is loaded on new game. -->
   <locations start_name="home">
-    <!-- Location. Filename attributes are relative to this file's dir.
+    <!-- Location. URL attributes are relative to this file's dir.
          scene_camera_description is optional, if non-empty this
          specifies which Viewpoint to use (useful if your exported VRML
          file has more than 1 viewpoint). -->

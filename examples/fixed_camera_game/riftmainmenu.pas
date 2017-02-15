@@ -20,7 +20,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ }
+{ Display main on-screen menu. }
 unit RiftMainMenu;
 
 interface
@@ -223,6 +223,9 @@ begin
   Add(TMusicVolumeMenuItem.Create(Self));
   Add('Sound output device', SoundDeviceArgument);
   Add('Back to main menu', @ClickBack);
+
+  // select item 1 as default, because item 0 is the label
+  CurrentItem := 1;
 end;
 
 procedure TRiftSoundMenu.ClickChangeDevice(Sender: TObject);
@@ -273,6 +276,9 @@ begin
     Add(D.Device.Caption, D);
   end;
   Add('Cancel', @ClickBack);
+
+  // select item 1 as default, because item 0 is the label
+  CurrentItem := 1;
 end;
 
 procedure TSoundDeviceMenu.ClickBack(Sender: TObject);
@@ -290,6 +296,8 @@ begin
 
   MenuBg := TCastleImageControl.Create(nil);
   MenuBg.URL := DataConfig.GetURL('main_menu/image');
+  MenuBg.FullSize := true;
+  MenuBg.Stretch := true;
 end;
 
 procedure ContextClose;

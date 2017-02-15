@@ -20,37 +20,17 @@
   ----------------------------------------------------------------------------
 }
 
-{ }
+{ Main program file on standalone. }
 program rift;
 
 {$apptype GUI}
 
 uses SysUtils, CastleParameters, CastleUtils, CastleWindow,
   CastleClassUtils, CastleStringUtils, CastleProgress, CastleWindowProgress,
-  CastleGLUtils, CastleLog, CastleGameNotifications,
+  CastleGLUtils, CastleLog, CastleGameNotifications, CastleUIControls,
+  CastleConfig, CastleSoundEngine, CastleVectors,
   RiftWindow, RiftVideoOptions, RiftIntro, RiftMainMenu,
-  RiftSound, RiftCreatures, CastleConfig, CastleSoundEngine, CastleVectors;
-
-{ requested screen size ------------------------------------------------------ }
-
-const
-  DefaultRequestedScreenWidth = 1024;
-  DefaultRequestedScreenHeight = 768;
-
-var
-  RequestedScreenWidth: Integer = DefaultRequestedScreenWidth;
-  RequestedScreenHeight: Integer = DefaultRequestedScreenHeight;
-
-function RequestedScreenSize: string;
-begin
-  Result := Format('%dx%d', [RequestedScreenWidth, RequestedScreenHeight]);
-end;
-
-function DefaultRequestedScreenSize: string;
-begin
-  Result := Format('%dx%d',
-    [DefaultRequestedScreenWidth, DefaultRequestedScreenHeight]);
-end;
+  RiftSound, RiftCreatures;
 
 { parsing parameters --------------------------------------------------------- }
 
@@ -59,11 +39,10 @@ var
 
 const
   Version = '0.1.0';
-  Options: array [0..7] of TOption =
+  Options: array [0..6] of TOption =
   ( (Short:'h'; Long: 'help'; Argument: oaNone),
     (Short:'v'; Long: 'version'; Argument: oaNone),
     (Short:'n'; Long: 'no-screen-change'; Argument: oaNone),
-    (Short: #0; Long: 'screen-size'; Argument: oaRequired),
     (Short: #0; Long: 'debug-menu-designer'; Argument: oaNone),
     (Short: #0; Long: 'debug-menu-fps'; Argument: oaNone),
     (Short: #0; Long: 'debug-log'; Argument: oaNone),
@@ -86,12 +65,6 @@ begin
            SoundEngine.ParseParametersHelp +nl+
            '  -n / --no-screen-resize' +nl+
            '                        Do not try to resize the screen.' +nl+
-           '                        If your screen size is not the required' +nl+
-           '                        size (set by --screen-size)' +nl+
-           '                        then will run in windowed mode.' +nl+
-           '  --screen-size WIDTHxHEIGHT' +nl+
-           '                        Change the screen size (default is ' +
-             DefaultRequestedScreenSize + ').' +nl+
            nl+
            Window.ParseParametersHelp([poDisplay], true) +nl+
            nl+
@@ -111,14 +84,10 @@ begin
          Halt;
        end;
     2: WasParam_NoScreenChange := true;
-    3: begin
-         DeFormat(Argument, '%dx%d',
-           [@RequestedScreenWidth, @RequestedScreenHeight]);
-       end;
-    4: DebugMenuDesignerAllowed := true;
-    5: DebugMenuFps := true;
-    6: InitializeLog(Version);
-    7: DebugNoCreatures := true;
+    3: DebugMenuDesignerAllowed := true;
+    4: DebugMenuFps := true;
+    5: InitializeLog(Version);
+    6: DebugNoCreatures := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -127,6 +96,10 @@ function MyGetApplicationName: string;
 begin
   Result := 'rift';
 end;
+
+const
+  DefaultWidth = 1024;
+  DefaultHeight = 768;
 
 { main -------------------------------------------------------------------- }
 
@@ -147,41 +120,38 @@ begin
   UserConfig.Load;
   SoundEngine.LoadFromConfig(UserConfig);
 
+  { window configfuration (may be overridden by command-line parameters) }
+  Window.Width := DefaultWidth;
+  Window.Height := DefaultHeight;
+  Window.ColorBits := ColorDepthBits;
+  Window.FullScreen := true;
+  Window.Container.UIReferenceWidth := DefaultWidth;
+  Window.Container.UIReferenceHeight := DefaultHeight;
+  Window.Container.UIScaling := usEncloseReferenceSize;
+
   { parse parameters }
   SoundEngine.ParseParameters;
-  Window.ParseParameters([poDisplay]);
+  Window.ParseParameters;
   Parameters.Parse(Options, @OptionProc, nil);
 
-  Window.Width := RequestedScreenWidth;
-  Window.Height := RequestedScreenHeight;
-  Window.ColorBits := ColorDepthBits;
-  if WasParam_NoScreenChange { or (not AllowScreenChange) } then
+  if Window.FullScreen and not WasParam_NoScreenChange then
   begin
-    Window.FullScreen :=
-      (Application.ScreenWidth = RequestedScreenWidth) and
-      (Application.ScreenHeight = RequestedScreenHeight);
-  end else
-  begin
-    Window.FullScreen := true;
-    if (Application.ScreenWidth <> RequestedScreenWidth) or
-       (Application.ScreenHeight <> RequestedScreenHeight) or
+    if (Application.ScreenWidth <> DefaultWidth) or
+       (Application.ScreenHeight <> DefaultHeight) or
        (VideoFrequency <> 0) or
        (ColorDepthBits <> 0) then
     begin
       Application.VideoColorBits := ColorDepthBits;
       Application.VideoFrequency := VideoFrequency;
       Application.VideoResize := true;
-      Application.VideoResizeWidth := RequestedScreenWidth;
-      Application.VideoResizeHeight := RequestedScreenHeight;
+      Application.VideoResizeWidth := DefaultWidth;
+      Application.VideoResizeHeight := DefaultHeight;
 
       if not Application.TryVideoChange then
       begin
         WarningWrite('Can''t change display settings to: ' +nl+
           Application.VideoSettingsDescribe +
           'Now I will just continue with default system settings. ');
-        Window.FullScreen :=
-          (Application.ScreenWidth = RequestedScreenWidth) and
-          (Application.ScreenHeight = RequestedScreenHeight);
         { AllowScreenChange := false; }
       end;
     end;

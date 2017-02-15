@@ -176,7 +176,7 @@ type
     procedure SaveToFile(const URL: string);
 
     procedure Resize(const ResizeToX, ResizeToY: Cardinal;
-      const Interpolation: TResizeInterpolation = riNearest);
+      const Interpolation: TResizeInterpolation = riBilinear);
 
     { Release all resources allocated by @link(LoadFromFile).
       @link(Loaded) property changes to @false after calling this.
@@ -501,7 +501,7 @@ begin
 end;
 
 procedure TVideo.Resize(const ResizeToX, ResizeToY: Cardinal;
-  const Interpolation: TResizeInterpolation = riNearest);
+  const Interpolation: TResizeInterpolation = riBilinear);
 var
   I: Integer;
 begin

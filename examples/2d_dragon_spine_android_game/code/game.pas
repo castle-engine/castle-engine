@@ -218,8 +218,6 @@ begin
   Status.Color := Red;
   Status.Left := 10;
   Status.Anchor(vpTop, -10);
-  Status.Caption := 'FPS: ...'; // set initial text, to make 1st WindowResize set proper position
-  // Status.Bottom := ...; // vertical Status position will be adjusted in WindowResize
   Window.Controls.InsertFront(Status);
 end;
 
@@ -393,10 +391,6 @@ begin
   end;
 end;
 
-procedure WindowResize(Container: TUIContainer);
-begin
-end;
-
 class procedure TButtonsHandler.CameraView3DClick(Sender: TObject);
 var
   Pos, Dir, Up: TVector3Single;
@@ -441,7 +435,6 @@ initialization
   Window := TCastleWindowCustom.Create(Application);
   Window.OnPress := @WindowPress;
   Window.OnUpdate := @WindowUpdate;
-  Window.OnResize := @WindowResize;
   Window.FpsShowOnCaption := true;
   Application.MainWindow := Window;
 

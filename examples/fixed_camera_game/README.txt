@@ -1,226 +1,128 @@
 "The Rift"
 
 ------------------------------------------------------------------------------
-What is it?
+INTRODUCTION
 
-"The Rift" is a demo how to make a game with fixed camera/background
-mixed with animated 3D, using the Castle Game Engine.
-This is not really a playable game (although it may inspire you to make one!).
+This is a demo how to make a game with a fixed (static) camera,
+and a background drawn as an image, using the Castle Game Engine.
+The painted background (from a 2D image) is mixed with 3D animated
+characters that even cast a realistic hard shadows over the scene.
 
-"Fixed camera" means that the location view (like the room etc.)
-is still, but the 3D characters (player, NPCs, items) are moving freely.
-Example games using this view: "Alone In The Dark", "Syberia" and "Still Life".
-There are some advantages of this view:
+This is similar to "Syberia", "Still Life", "Alone In The Dark" and such games.
 
-- Your background is simply a 2D art. If you're a skilled 2D artist,
-  you can create really beautiful backgrounds, depicting fantastic
-  things with incredible detail. You can help yourself with any 2D graphic
-  effects, and even with photographs. You can render the image with
-  any advanced global-illumination method (ray-tracers etc.).
+Advantages of this rendering technique:
 
-  This allows you to show things that would be impossible (or incredibly hard)
-  to accurately model in 3D (for normal 3D game, like FPS).
+- The location background is simply a 2D art.
 
-  (Actually, the 2D background needs to have a matching skeleton 3D model.
-  This is needed to to know the depths, necessary to correctly mix 3D characters
-  and dynamic shadows with the background.
-  But this 3D model is never directly visible to the user,
-  so it can be really crude/simplistic, so it should be quite easy to create it.
+  So if you're a 2D artist, you can create really beautiful backgrounds,
+  depicting fantastic things with incredible detail. You can use any 2D graphic
+  effects from your 2D software (GIMP, Photoshop, etc.).
+  You can use photographs. Or you can render the image with
+  any advanced renderer (global-illumination etc.).
 
-- Since you know where the camera is, you can stage many cinematic effects.
-  The game may feel more like a movie with suggestive camera angles.
+  This allows to show things that would be impossible (or incredibly hard)
+  to accurately model in 3D.
 
-For these reasons, this view is very nice for adventure / horror games,
-where the emphasis is on giving the player nice view of the location.
-It's probably not good for shooters and such (aiming may be awkward,
-as the camera is still --- it doesn't match your hero orientation).
+- Since the camera is fixed, you can use this to set nice cinematic
+  camera angles, to visualize (or obscure) what you need.
+
+This technique is very nice for adventure and horror games,
+where the emphasis is to show a nice view of the location.
+It's probably not good for shooters, since the aiming is awkward
+when the camera is still and doesn't match your avatar orientation.
+"Alone in the Dark" had some scenes with shooting,
+and they were rather awkward to play, IMHO.
 
 ------------------------------------------------------------------------------
-How does it work (and some unrealized plans for the future):
+THIS IS NOT A FULL GAME.
 
-I wanted to make a nice small playable game from this, although admittedly
-I didn't get there. There is an intro at the beginning (suggesting a storyline
-that isn't really implemented), using some photos from http://www.flickr.com/
-(licensed on suitable Creative Commons licenses).
-Some 2D graphics and 3D modelling was made by me (Michalis).
+Michalis planned to make a larger game using this technique,
+but for now this is only a technological demo,
+only showing that it's (technically) possible.
 
-Some of the content is configurable by simply editing the data files,
-but some of the stuff is hardcoded in the source code.
-I deliberately wanted to see first "what works" before spending too much
-time on making everything configurable by content creators.
+- That's why we have a full infrastructure to define locations in XML here,
+  but only a single actual location defined.
+- That's also why we have an intro at the beginning,
+  which suggests a game story.
+  The intro itself shows a nice rendering trick.
+- The only 3D character is a player, there are no NPCs, for now.
+  Adding NPCs, that are 3D characters and work just like a player,
+  should be easy.
 
-Some design decisions:
+Feel free to be inspired by this and create a full game using this!
 
-- Each location has a prepared 2D image, that's an obvious start.
-  This image can be prepared in any way --- you can render it from 3d model
-  (and you can render it using any rendered, e.g. blender's advanced renderer),
-  you can draw it, process it with GIMP/whatever however you like.
-  This is the main idea behind such games: 2d graphic artist can really
-  show off.
+------------------------------------------------------------------------------
+REQUIREMENTS TO MAKE THIS WORK
 
-- Screen size: since a detailed, nice-looking images are a basis
-  for such game, I think that the final game (as seen by end-users),
-  will have to be constrained to a particular screen size,
-  or to a couple of chosen screen sizes.
+- Each location has a prepared 2D image.
+  Like data/locations/home/renders/render.png .
 
-  Mind you: this is not a restriction of my underlying engine,
-  and I'll prepare everything to work with *any* screen/window size
-  (use --screen-size option). But this is a practical restriction
-  of how the images are prepared. I guess it's going to be hard enough
-  for graphics to prepare breath-taking images in one resolution...
-  making them in more resolutions may be much harder, and not worth
-  the effort in the first run. And automatic resizing will simply suck,
-  that's guaranteed (unless an artist will be able to prepare images
-  in really large large resolution ?).
+  It also needs an alternative image showing a fully-shadowed scene version,
+  like data/locations/home/renders/render_shadowed.png .
+  You can make a "shadowed" image by simply darkening the original image.
 
-  So for starters, we can just assume
-  that every user is comfortable with the game resizing his screen
-  size to 1024 x 768 before running in fullscreen (eventually the game
-  will run in window sized 1024 x 768).
+  When the location casts shadows on itself,
+  these shadows should be already drawn on the image.
+  But this could change, depending on needs.
+  With
 
-- "3d being" is something that has to be prepared and rendered as 3d.
-  These are things that move freely on the scene, so they simply have
-  to be prepared as 3d. These are: player, NPCs, other parts of the location
-  that have to be 3d (because e.g. they move --- like a shutter
-  moved by the wind). Some NPCs and "other parts" may be made as
-  2d graphic animations if their move is constrained enough,
-  but usually we'll not be able to make it.
+- Each location also needs a matching 3D model.
+  This model is only rendered to the depth buffer, it is
+  never actually displayed to the player.
+  It only needs to have crude geometry modelled,
+  that needs to receive shadows.
+  Like data/locations/home/scene_final.wrl .
 
-  Most (all, for now ?) 3d beings should be usable to cast shadows,
-  so they must be a manifolds, or almost manifolds, see
-  [http://castle-engine.sourceforge.net/castle-development.php#section_creatures]
-  for an overview what this means and how to check it.
+  The 3D location model is used to correctly render the 3D characters.
+  - 3D characters must be tested with the depth buffer when rendering,
+    to allow obscuring the 3D characters by a location (like a chair
+    in the foreground, in our demo, that may obscure player's legs).
+  - Correctly determine the dynamic shadows from 3D characters.
+  - We also need it for collision detection, e.g. to know the 3D point
+    indicated by clicking on location.
 
-- We need to have a "3d skeleton" for each location. This will probably
-  be one of the painful things to make, hopefully it'll turn out
-  to be easy. I'm calling this "3d skeleton" because it will *not*
-  be rendered for user anywhere. However, it will be rendered into
-  the depth buffer. This skeleton may be sometimes painful to make,
-  but it's simply absolutely necessary for
+  The 3D location model must have a camera (viewpoint in X3D) that precisely
+  matches the 2D images depicting the location.
 
-  a) Rendering models of 3d beings appropriately tested with depth buffer.
-  b) Collision detection with player.
-  c) Casting shadows (the location casts shadows over the 3d beings).
+  The easier way to prepare this is to actually render the image from
+  3D software, and only later paint on it using a 2D graphic software.
+  This way you automatically get matching 2D images + 3D model.
+  You could also model a 3D scene using an image as a reference -- although
+  this is a little harder.
 
-  I may also allow authors to just prepare "depth buffer" images
-  instead of skeleton_3d. You should also be able to render
-  such "depth buffer" image from the game, to later retouch it.
-  But note that such "prepared depth buffer image" will be only
-  useful for the a) part --- b) and c) still need normal geometry
-  to operate.
+  Press F2 during the game to actually view the 3D location model,
+  and make sure that it's matching the 2D images.
 
-- Each location also needs lights (their positions/directions) for shadows
-  to be calculated.
+- The 3D characters cast shadows using shadow volumes.
+  They can freely move and be animated in the scene.
 
-  The engine should allow these lights to change ?
-  Yes, but beware: this means that static scene image may not include
-  shadows cast by these dynamic lights.
+  In the current implementation, this is only used for the player.
+  But you could add NPCs, or other scene parts (like a window
+  shutter moved by the wind), that are 3D.
 
-- Also we need a darker image of the location, that will be used
-  in places where shadows from 3d beings fall on the location.
+  Note that to use shadow volumes, your 3D model must be 2-manifold.
+  See http://michalis.ii.uni.wroc.pl/cge-www-preview/x3d_extensions_shadow_volumes.php .
 
-- Should location image itself already include self-shadows caused by
-  this location ? Generally yes, since the artist may want to draw
-  these shadows to give them more "artistic feeling" in some cases.
+- QUESTION: Should you draw on the location image (render.png in the example
+  above) self-shadows caused by the location geometry?
 
-  But we're also able to automatically compute such self-shadows.
-  In particular, this is needed if lights may be dynamic.
+  For now, yes. This allows to draw these shadows nicely, with some artistic
+  tricks.
 
-- Summing up what we already have:
+  But, depending on your needs, this can be changed.
+  The location 3D scene could also be a shadow caster,
+  just add it to TGameSceneManager.RenderShadowVolume .
 
-  location has:
-    image (image filename, will be scaled if needed to screen size)
-    shadow_image (image filename, will be scaled if needed to screen size)
-    skeleton_3d (3D model filename)
-    lights (3D file containing only light nodes; I'll prepare in-game
-      editor for this, you can also use 3d modelling program like
-      blender to make this, since it's just a VRML/X3D file).
+  - This would also allow to make shadow-casting main light dynamic.
 
-    image_includes_shadow = FALSE | TRUE
+  - It would also allow the scene to cast shadows over the character.
+    E.g. the chair could cast a shadow over a character behind it.
 
-      If imageIncludesShadow then the artist has already drawn the shadows
-      inside referenced "image". This means that the light may
-      not really change dynamically, unless we hope that "user will not
-      notice these artifacts".
+  It could even be configurable per-location.
+  Or even per-shadow-casting-light, once we implement shadow volumes
+  casting from multiple light sources.
 
-      If not imageIncludesShadow then we'll display the scene shadowed
-      by it's own skeleton_3d.)
-
-      Maybe lights should have separate imageIncludesShadow setting ?
-
-  3d being has: well, 3d model filename.
-
-  Shadow volumes strategy:
-    draw location skeleton_3d -> depth buffer
-      (must be first, before rendering 3d beings)
-    draw location.image -> color buffer
-    draw all 3d beings with lighting on -> both depth and color buffers
-
-    fill stencil buffer by drawing shadow volumes from all 3d beings.
-    Now we know where 3d beings cast shadows.
-
-    if image_includes_shadow = TRUE then
-      draw shadow_image
-      where stencil buffer indicates shadow lies. Be careful --- render
-      this image taking into account it's associated depth buffer
-      (in case of equality --- allow to pass).
-
-    fill stencil buffer by drawing skeleton_3d.
-    Now we know where *either 3d beings or the scene* cast shadows.
-
-    redraw all 3d beings with lighting off, only where stencil buffer
-    indicates shadow lies. Test with depth buffer, but in case of equality ---
-    allow to pass (since we want to draw over our own model).
-
-    if image_includes_shadow = FALSE then you want to draw shadow_image
-    now.
-
-Some debug features that you may want to try to see how it all works inside:
-
-- Read TCastleOnScreenMenu.DesignerMode help. Activated by --debug-menu-designer
-  command-line option, and then press F12 when you see the main game menu.
-
-- "Inspect creatures" : keys to walk: the same as view3dscene in
-  Walk mode, see there for docs. Also:
-  Escape exits.
-  H (like "home", but home is already used) --- go back to initial camera view.
-  Changing creature state (testing this was the primary reason for
-  "Inspect creatures" mode): s(tand), b(ored), w(alk).
-
-Locations features:
-(TODO: move it to the game ?)
-
-- home: note that the scene casts proper shadow on the player.
-  In this scene this can be mostly visible when you're beside the chair,
-  but it's generally done: every piece of the scene can cast shadows.
-
-- Note that you may want to fill open windows/doors etc. with invisible
-  polygon, so that mouse picking (to indicate walk target position)
-  on them will work. This is decision for location creator, whether
-  this works reasonable for user in given location.
-
-Modelling creatures:
-- see [http://castle-engine.sourceforge.net/castle-development.php]
-
-- Note that humanoid walk animation is obviously poor (it seems like
-  his torso moves too smooth). This is the fault of my poor animation
-  skills, the code is Ok --- real creatures, done by real artists,
-  will look better.
-
-- Models should preferably be exported to the latest version of X3D,
-  preferably using our custom Blender exporter on
-  [http://castle-engine.sourceforge.net/blender.php].
-
-  However, this demo was done when we used old VRML 2.0.
-  As such, we made location and humanoid animations using our custom
-  VRML 2.0 exporter.
-  Humanoid creature as an example has a text data with simple script
-  to export (just calls vrml97ExportFrame a couple of times).
-  Exporting is simply calling this script (Alt + P in Blender
-  when mouse over this script).
-
-  The script automatically saves appropriate frames to appropriate
-  VRML files. Generated VRML files have Blender modifiers (including
-  Armature modifier, critical for animation) applied, so all is Ok.
+------------------------------------------------------------------------------
+HAVE FUN WITH THIS!
 
 Michalis Kamburelis

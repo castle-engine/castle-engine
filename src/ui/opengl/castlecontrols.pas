@@ -920,7 +920,7 @@ type
       you cannot load files (doing @link(LoadImage) at this point may fail on
       some Android devices, as we cannot load assets before activity is started).
       So you can only assign images already available in code ---
-      use image2pascal tool to convert any image to a Pascal code for this purpose. }
+      use image-to-pascal tool to convert any image to a Pascal code for this purpose. }
     tiLoading);
 
   { Label with possibly multiline text, in an optional box. }

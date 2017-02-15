@@ -33,20 +33,28 @@ function Save3DVersion(Node: TX3DNode): TX3DVersion;
   the generator (your program) name and source (original 3D model file name).
   If this is not an X3D root file node, we will record it inside a comment.
 
+  @bold(Conversion to X3D:)
+
   When ForceConvertingToX3D or when Encoding <> xeClassic,
   the node graph will be converted to X3D (if it isn't X3D already).
   This can be used to convert VRML 2.0 to X3D.
-  For VRML 1.0 or Inventor, this will just save them in X3D (XML or classic)
-  encoding, which is not really usable. We simply don't implement
-  VRML 1.0/Inventor conversion (it's difficult, and not worth the trouble,
-  VRML 1.0/Inventor are really old).
 
-  Note that converting to X3D will change the nodes graph, possibly
-  removing some nodes. If you use TCastleSceneCore, you should call
-  TCastleSceneCore.BeforeNodesFree before and TCastleSceneCore.ChangedAll
-  when such conversion occcurs (you can easily test whether it may
-  happen by Save3DWillConvertToX3D). If you use Encoding=xeClassic
-  and ForceConvertingToX3D=false, you're safe: conversion will not happen.
+  This should not be used if the original file version (recorded in Node)
+  indicates that it's an old VRML 1.0 or Inventor file,
+  as we have not implemented convertion from VRML 1.0/Inventor to X3D.
+  So it wil result in VRML 1.0/Inventor nodes saved using
+  the X3D (XML or classic) encoding, which is not a format supported
+  by any X3D reader (even our own).
+
+  Note that converting VRML 2.0 to X3D will change the nodes graph in-place,
+  possibly removing some nodes. If you use TCastleSceneCore, you should call
+  @link(TCastleSceneCore.BeforeNodesFree) before such operation,
+  and @link(TCastleSceneCore.ChangedAll) afterwards.
+  (You can easily test whether they will be needed by
+  @link(Save3DWillConvertToX3D)).
+
+  If you use Encoding=xeClassic and ForceConvertingToX3D=false,
+  no conversion will ever happen.
 
   @param(Version Which VRML/X3D specification version should be used
     to encode. It should be calculated by Save3DVersion(Node).
