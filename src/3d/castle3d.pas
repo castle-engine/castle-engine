@@ -928,9 +928,9 @@ type
       Like elevators (vertical, or horizontal moving platforms).
       We may use sphere (see @link(T3D.Sphere)) for checking
       collisions, or bounding box (@link(T3D.BoundingBox)), depending on need.
-      The item is moved using @link(T3D.Translate), so make sure it
+      The item is moved using @link(T3DCustomTransform.Translate), so make sure it
       actually does something (for example, by descending from T3DTransform,
-      that provides natural @link(T3D.Translate) implementation). }
+      that provides natural @link(T3DCustomTransform.Translate) implementation). }
     property CollidesWithMoving: boolean read FCollidesWithMoving write FCollidesWithMoving default false;
 
     { Get height of my point above the rest of the 3D world.
