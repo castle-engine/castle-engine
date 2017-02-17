@@ -484,12 +484,20 @@ end;
 {$ifdef MSWINDOWS}
 function ProcessTimer: TProcessTimerResult;
 begin
+  { Deliberately using deprecated GetTickCount64 and friends.
+    It should be internal in this unit. }
+  {$warnings off}
   Result.Value := GetTickCount64;
+  {$warnings on}
 end;
 
 function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
 begin
+  { Deliberately using deprecated GetTickCount64 and friends.
+    It should be internal in this unit. }
+  {$warnings off}
   Result.Value := TimeTickDiff(b.Value, a.Value);
+  {$warnings on}
 end;
 {$endif MSWINDOWS}
 
@@ -555,9 +563,15 @@ begin
   if FTimerState = tsQueryPerformance then
     QueryPerformanceCounter(Result.Value)
   else
+  begin
+    { Deliberately using deprecated GetTickCount64 and friends.
+      It should be internal in this unit. }
+    {$warnings off}
     { Unfortunately, below will cast GetTickCount64 back to 32-bit.
       Hopefully QueryPerformanceCounter is usually available. }
     Result.Value := GetTickCount64;
+    {$warnings on}
+  end;
 end;
 {$endif MSWINDOWS}
 
