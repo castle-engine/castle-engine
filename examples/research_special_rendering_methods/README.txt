@@ -9,7 +9,7 @@ the core engine one day (and then using it in all your applications
 will be trivial).
 
 If you're looking for *easy and practical* methods to achieve
-shadows and mirrors *now), consider the algorithms already integrated
+shadows and mirrors *now*, consider the algorithms already integrated
 with our engine core:
 
 - Shadow maps:
