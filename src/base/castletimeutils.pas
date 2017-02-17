@@ -47,7 +47,7 @@ const
 
 type
   TMilisecTime = QWord
-    deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimerNow + ProcessTimerSeconds';
+    deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds';
 
 { Check is SecondTime larger by at least TimeDelay than FirstTime.
 
@@ -64,7 +64,7 @@ type
   Always TimeTickSecond(X, X, 0) = @true. that is, when both times
   are actually equal, it's correctly "later by zero miliseconds". }
 function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTime): boolean;
-  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimerNow + ProcessTimerSeconds';
+  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds';
 
 { Difference in times between SecondTime and FirstTime.
 
@@ -73,7 +73,7 @@ function TimeTickSecondLater(const FirstTime, SecondTime, TimeDelay: TMilisecTim
   (see TimeTickSecondLater), and uses the assumption that
   the SecondTime for sure "later", to calculate hopefully correct difference. }
 function TimeTickDiff(const FirstTime, SecondTime: TMilisecTime): TMilisecTime;
-  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimerNow + ProcessTimerSeconds. Also, this function has non-intuitive argument order, inconsistent with ProcessTimerSeconds and TimerSeconds';
+  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds. Also, this function has non-intuitive argument order, inconsistent with ProcessTimerSeconds and TimerSeconds';
 
 { Simply add and subtract two TMilisecTime values.
 
@@ -87,9 +87,9 @@ function TimeTickDiff(const FirstTime, SecondTime: TMilisecTime): TMilisecTime;
 
   @groupBegin }
 function MilisecTimesAdd(const t1, t2: TMilisecTime): TMilisecTime;
-  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimerNow + ProcessTimerSeconds';
+  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds';
 function MilisecTimesSubtract(const t1, t2: TMilisecTime): TMilisecTime;
-  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimerNow + ProcessTimerSeconds';
+  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds';
 { @groupEnd }
 
 { Get current time, in miliseconds. On newer OSes (non-Windows,
@@ -97,7 +97,7 @@ function MilisecTimesSubtract(const t1, t2: TMilisecTime): TMilisecTime;
   Or older Windows versions it's based on 32-bit Windows.GetTickCount
   that measures time since system start, that will wrap in ~ 49 days. }
 function GetTickCount64: TMilisecTime;
-  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimerNow + ProcessTimerSeconds';
+  deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds';
 
 const
   MinDateTime: TDateTime = MinDouble;
@@ -109,7 +109,7 @@ function DateTimeToAtStr(DateTime: TDateTime): string;
   @section(Measuring time (CPU usage of this process, if possible.) }
 
 type
-  { Current time from @link(ProcessTimerNow).
+  { Current time from @link(ProcessTimer).
     If possible, this measures only the CPU usage local to this process. }
   TProcessTimerResult = object
   private
@@ -119,7 +119,7 @@ type
   end;
 
 const
-  { Resolution of the timer used by @link(ProcessTimerNow). }
+  { Resolution of the timer used by @link(ProcessTimer). }
   ProcessTimersPerSec
     {$ifdef UNIX}
       = { What is the frequency of FpTimes ?
@@ -151,13 +151,13 @@ const
   On other platforms (like Windows),
   this simply measures real time that passed.
 
-  You take two ProcessTimerNow values, subtract them with ProcessTimerSeconds,
+  You take two ProcessTimer values, subtract them with @link(ProcessTimerSeconds),
   this is the time that passed -- in seconds. }
 function ProcessTimer: TProcessTimerResult;
 
 function ProcessTimerNow: TProcessTimerResult; deprecated 'use ProcessTimer';
 
-{ Subtract two times obtained from @link(ProcessTimerNow),
+{ Subtract two times obtained from @link(ProcessTimer),
   A-B, return a difference in ProcessTimersPerSec.
 
   Although it may just subtract two values, it may also do something more.
@@ -167,7 +167,7 @@ function ProcessTimerNow: TProcessTimerResult; deprecated 'use ProcessTimer';
 function ProcessTimerDiff(a, b: TProcessTimerResult): TProcessTimerResult;
   deprecated 'use ProcessTimerSeconds instead';
 
-{ Subtract two times obtained from @link(ProcessTimerNow),
+{ Subtract two times obtained from @link(ProcessTimer),
   A-B, return a difference in seconds. }
 function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
 
@@ -178,12 +178,12 @@ function ProcessTimerSeconds(const a, b: TProcessTimerResult): TFloatTime;
   Note that using this is unsafe in libraries, not to mention multi-threaded
   programs (it's not "reentrant") --- you risk that some other code
   called ProcessTimerBegin, and your ProcessTimerEnd doesn't measure
-  what you think. So in general units, do not use this, use ProcessTimerNow
-  and ProcessTimerSeconds instead.
+  what you think. So in general units, do not use this, use @link(ProcessTimer)
+  and @link(ProcessTimerSeconds) instead.
 
   @groupBegin }
-procedure ProcessTimerBegin; deprecated 'instead of this, better to use a local variable, and ProcessTimerNow and ProcessTimerSeconds';
-function ProcessTimerEnd: TFloatTime; deprecated 'instead of this, better to use a local variable, and ProcessTimerNow and ProcessTimerSeconds';
+procedure ProcessTimerBegin; deprecated 'instead of this, better to use a local variable, and ProcessTimer and ProcessTimerSeconds';
+function ProcessTimerEnd: TFloatTime; deprecated 'instead of this, better to use a local variable, and ProcessTimer and ProcessTimerSeconds';
 { @groupEnd }
 
 { -----------------------------------------------------------------------------
@@ -201,7 +201,7 @@ type
 { Current time, to measure real time passed.
   This may be a time local to this process. It is a "real" time,
   which means that subtracting two values measures the actual time
-  that passed between two events. Contrast this with @link(ProcessTimerNow)
+  that passed between two events. Contrast this with @link(ProcessTimer)
   and friends that try to measure only CPU time used by the current process.
 
   Call Timer twice, and calculate the difference (in seconds)
