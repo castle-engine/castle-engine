@@ -158,6 +158,7 @@ EXAMPLES_BASE_NAMES := \
   examples/curves_surfaces/bezier_surfaces/animate_surface \
   examples/curves_surfaces/bezier_surfaces/design_surface \
   examples/curves_surfaces/interpolated_curves \
+  examples/curves_surfaces/simplest_curve_read \
   examples/space_filling_curve/draw_space_filling_curve \
   examples/research_special_rendering_methods/radiance_transfer/radiance_transfer \
   examples/research_special_rendering_methods/radiance_transfer/precompute_radiance_transfer \
