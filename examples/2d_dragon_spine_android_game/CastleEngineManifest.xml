@@ -21,16 +21,38 @@
         <parameter key="app_id" value="459592926652" />
       </component>
 
-      <!-- unused here, uncomment only to test compilation -->
+      <!-- Components below are unused here,
+           uncomment them only to test compilation -->
       <!-- <component name="admob" /> -->
       <!-- <component name="chartboost" /> -->
       <!-- <component name="game_analytics" /> -->
-      <!-- <component name="giftiz" /> -->
-      <!-- <component name="google_analytics" /> -->
+
+      <!-- Note that compiling "giftiz" requires specifying a Giftiz partner key. -->
+      <!-- <component name="giftiz"> -->
+      <!--   <parameter key="partner_key" value="TEST_PARTNER_KEY" /> -->
+      <!-- </component> -->
+
+      <!-- Note that compiling "google_analytics" requires
+           you to paste a generated JSON contents below, see
+           https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine
+      -->
+      <!-- <component name="google_analytics"> -->
+      <!--   <parameter key="game_services_json">...</parameter> -->
+      <!-- </component> -->
+
       <!-- <component name="google_in_app_purchases" /> -->
+
+      <!-- Note that compiling "helpshift" requires adding the min_sdk_version="14"
+           to the <android> element above -->
+      <!-- <component name="helpshift" /> -->
+
+      <!-- Note that compiling "heyzap", together with other ad networks, may fail
+           (as other ad networks would be duplicated then) -->
       <!-- <component name="heyzap" /> -->
+
       <!-- <component name="sound" /> -->
       <!-- <component name="startapp" /> -->
+      <!-- <component name="ogg_vorbis" /> -->
       <!-- <component name="vibrate" /> -->
     </components>
   </android>
