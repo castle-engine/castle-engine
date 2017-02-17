@@ -12,6 +12,8 @@
 *.log
 *.lps
 *.exe
+# Don't ignore - commit these files, to allow compiling these examples with shell scripts / lpi too.
+# automatic-windows-resources.res
 castle-game-engine-*.fpm
 doc/pasdoc/cache/
 doc/pasdoc/html/
