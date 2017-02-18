@@ -30,7 +30,7 @@
 #     Same as clean, but also delete:
 #     - Emacs backup files (*~) and
 #     - Delphi backup files (*.~???)
-#     - pasdoc generated documentation in doc/pasdoc/
+#     - pasdoc generated documentation in doc/reference/
 #     - closed-source libs you may have left in tools/build-tool/data
 #     This is a useful step when packing the release of CGE.
 #
@@ -296,7 +296,7 @@ cleanmore: clean
 	                   -iname '*.~???' -or \
 			   -iname '*.blend1' \
 			')' -exec rm -f '{}' ';'
-	$(MAKE) -C doc/pasdoc/ clean
+	$(MAKE) -C doc/reference/ clean
 	rm -Rf tools/build-tool/data/android/integrated-components/google_play_services/google-play-services_lib/ \
 	       tools/build-tool/data/android/integrated-components/google_play_services/libs/*.jar \
 	       tools/build-tool/data/android/integrated-components/giftiz/GiftizSDKLibrary/ \

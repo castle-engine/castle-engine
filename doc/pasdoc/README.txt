@@ -12,7 +12,7 @@ The online version of this documentation is already generated for you:
   Automatically regenerated after every commit.
 
 - If you downloaded engine sources as tar.gz or zip archive, then you also
-  already have an offline version of this documentation generated here.
+  already have an offline version of this documentation generated in doc/reference/ .
 
 ------------------------------------------------------------------------------
 To generate the docs yourself:

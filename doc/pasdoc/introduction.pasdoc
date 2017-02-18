@@ -5,10 +5,16 @@
   alt="Castle Game Engine icon"
   align="right"/>)
 
-@italic(Castle Game Engine) [http://castle-engine.sourceforge.net/]
+@italic(Castle Game Engine) https://castle-engine.sourceforge.io/
 is a cool 3D and 2D open-source game engine for Object Pascal.
 
-See our website for the documentation, including description
-how to compile the engine, what are the dependencies,
-and for the tutorials:
-[http://castle-engine.sourceforge.net/engine.php].
+This is the engine API reference. It lists all available units, classes,
+and documents everything.
+
+See our website for more documentation:
+@unorderedList(
+  @item Getting started: https://castle-engine.sourceforge.io/documentation.php
+  @item Manual: https://castle-engine.sourceforge.io/manual_intro.php
+)
+
+Support the engine development on Patreon: https://www.patreon.com/castleengine

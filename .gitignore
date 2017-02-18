@@ -18,6 +18,7 @@ castle-game-engine-*.fpm
 doc/pasdoc/cache/
 doc/pasdoc/html/
 doc/pasdoc/latex/
+doc/reference/
 examples/2d_standard_ui/show_various_ui_controls/show_various_ui_controls
 examples/2d_standard_ui/show_various_ui_controls/libshow_various_ui_controls_android.so
 examples/2d_standard_ui/timer_test/timer_test
