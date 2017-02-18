@@ -23,7 +23,8 @@ Documentation:
 
 - API reference:
   Online on https://castle-engine.sourceforge.io/apidoc/html/index.html .
-  Offline in doc/reference/ subdirectory of this archive,
+  Offline in doc/reference/ subdirectory of the engine archive
+  (if you downloaded the zip or tar.gz engine release),
   just open the file doc/reference/index.html in your WWW browser.
 
 - Numerous examples are provided in the examples/ subdirectory.
