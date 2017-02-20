@@ -1,8 +1,11 @@
 { Generic list of any type (TGenericStructList) and map with keys of any type
   (TGenericStructMap).
 
-  This unit is ostensibly done to avoid bug
-  http://bugs.freepascal.org/view.php?id=15480 with unit FGL.
+  This unit is done to avoid problem
+  http://bugs.freepascal.org/view.php?id=15480 with unit FGL
+  (although it's resolved, but the solution there only applies to records;
+  our solution applies to any type;
+  our solution also helps for lists of methods).
 
   Based on FPC FGL unit, copyright by FPC team.
   License of FPC RTL is the same as our engine (modified LGPL,
