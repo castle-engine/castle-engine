@@ -136,11 +136,16 @@ var
 procedure TMessageReceivedEventList.ExecuteAll(const Received: TCastleStringList);
 var
   I: Integer;
-  Handled: boolean;
+  EventResult, Handled: boolean;
 begin
   Handled := false;
   for I := 0 to Count - 1 do
-    Handled := Items[I](Received) or Handled;
+  begin
+    { use EventResult to workaround FPC 3.1.1 bug (reproducible
+      with FPC SVN revision 35460 (from 2016-02-20) on Linux x86_64). }
+    EventResult := Items[I](Received);
+    Handled := EventResult or Handled;
+  end;
   if not Handled then
     WritelnWarning('JNI', 'Unhandled message from Java:' + NL + Received.Text);
 end;
