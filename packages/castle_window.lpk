@@ -36,7 +36,7 @@
 This package cannot be installed under Lazarus, it's only for being used in other programs. CastleWindow unit initializes some things inside XWindows / WinAPI that may conflict with Lazarus reserving the same resources."/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
-    <Version Major="5" Minor="2"/>
+    <Version Major="6" Minor="0"/>
     <Files Count="19">
       <Item1>
         <Filename Value="../src/base/castleconf.inc"/>

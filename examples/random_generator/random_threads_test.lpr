@@ -1,6 +1,6 @@
 program random_threads_test;
 
-uses {$IFDEF LINUX}cthreads{$ENDIF}, SysUtils, Classes, CastleLog, CastleRandom;
+uses {$IFDEF LINUX} cthreads, {$ENDIF} SysUtils, Classes, CastleLog, CastleRandom;
 
 {$R+}{$Q+}
 

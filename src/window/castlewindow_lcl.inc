@@ -33,7 +33,7 @@
 *)
 
 {$ifdef read_interface_uses}
-Interfaces, Forms, Dialogs, OpenGLContext, Menus,
+Interfaces, Forms, Dialogs, OpenGLContext, Menus, LazUTF8,
 Controls, FileUtil, Graphics, LCLType, CastleLCLUtils, Clipbrd, CustomTimer, LCLVersion,
 {$endif}
 
