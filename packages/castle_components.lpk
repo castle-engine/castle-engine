@@ -37,7 +37,7 @@
 "/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
-    <Version Major="6" Minor="0"/>
+    <Version Major="6" Minor="1"/>
     <Files Count="6">
       <Item1>
         <Filename Value="../src/components/castlecontrol.pas"/>
