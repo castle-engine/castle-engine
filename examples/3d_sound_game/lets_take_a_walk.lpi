@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -9,12 +9,12 @@
         <MainUnitHasTitleStatement Value="False"/>
         <LRSInOutputDirectory Value="False"/>
       </Flags>
+      <SessionStorage Value="InIDEConfig"/>
       <MainUnit Value="0"/>
     </General>
     <VersionInfo>
       <Language Value=""/>
       <CharSet Value=""/>
-      <StringTable ProductVersion=""/>
     </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
@@ -39,26 +39,12 @@
         <PackageName Value="castle_base"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="1">
       <Unit0>
         <Filename Value="lets_take_a_walk.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="20"/>
       </Unit0>
-      <Unit1>
-        <Filename Value="gamesounds.pas"/>
-        <IsPartOfProject Value="True"/>
-        <SyntaxHighlighter Value="Text"/>
-        <UsageCount Value="20"/>
-      </Unit1>
-      <Unit2>
-        <Filename Value="thunder.pas"/>
-        <IsPartOfProject Value="True"/>
-        <SyntaxHighlighter Value="Text"/>
-        <UsageCount Value="20"/>
-      </Unit2>
     </Units>
-    <JumpHistory Count="0" HistoryIndex="-1"/>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
@@ -71,7 +57,6 @@
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
-      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>
@@ -90,5 +75,4 @@
       </Item4>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>
