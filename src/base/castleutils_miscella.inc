@@ -102,10 +102,11 @@ function Iff(boolval: boolean; trueval, falseval: char)    : char;     overload;
 { Some helpful version stuff ------------------------------------------------ }
 
 const
+  { Castle Game Engine version. }
   CastleEngineVersion = {$I castleversion.inc};
 
 {$ifdef FPC}
-{ Describe FPC version. In the form 'version.release.patch'.
+{ FPC version. In the form 'version.release.patch'.
 
   This is actually a constant (for every run of a program it has
   always the same value) but I can't declare it as a Pascal constant
