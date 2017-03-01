@@ -233,3 +233,17 @@
 .pasdoc-container table.table_tag td > p:last-child,
 .pasdoc-container table.table_tag th > p:last-child,
        td.itemdesc > p:last-child { margin-bottom: 0em; }
+
+.pasdoc-container td.navigation h2 {
+    visibility: hidden;
+    /* to make position:absolute in ::after work */
+    position: relative;
+}
+.pasdoc-container td.navigation h2::after {
+    /* otherwise, it's hidden along with parent h2 */
+    visibility: visible;
+    position: absolute;
+    top: 0;
+    left: 0;
+    content: "API Reference";
+}

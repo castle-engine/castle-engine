@@ -160,7 +160,7 @@ pasdoc \
   --define "$TARGET_OS" \
   --define FPC --define VER2 --define VER2_6 --define VER2_6_0 --define PASDOC \
   --write-uses-list \
-  --title "API Reference" \
+  --title "Castle Game Engine" \
   --source "$TMP_PAS_LIST" \
   --cache-dir "$PASDOC_CACHE" \
   --auto-abstract \
