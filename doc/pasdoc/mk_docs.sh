@@ -174,6 +174,7 @@ pasdoc \
   --html-body-end ../doc/pasdoc/html-parts/body-end.html \
   --css ../doc/pasdoc/html-parts/cge-pasdoc.css \
   --description=../src/x3d/x3dnodes_documentation.txt \
+  --use-tipue-search \
   | \
   grep --ignore-case --invert-match --fixed-strings \
     --regexp='Tag "groupbegin" is not implemented yet, ignoring' \

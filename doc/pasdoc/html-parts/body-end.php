@@ -16,8 +16,21 @@ echo_google_analytics_tracking();
 /* Below is copied from kambi-php-lib/kambi_common.php */
 ?>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins).
-     Used also by colorbox. -->
-<script src="<?php echo CURRENT_URL; ?>kambi-php-lib/js/jquery.min.js" type="text/javascript"></script>
+     Used also by colorbox.
+
+     For API reference: load jQuery only if not loaded yet, otherwise
+     Tipue search results are broken (since they load a duplicate jQuery earlier).
+     The code to load jQuery conditionally is from
+     http://stackoverflow.com/questions/10371211/include-jquery-if-not-included-already
+-->
+<script type="text/javascript">
+    if(typeof jQuery == 'undefined'){
+        var oScriptElem = document.createElement("script");
+        oScriptElem.type = "text/javascript";
+        oScriptElem.src = "<?php echo CURRENT_URL; ?>kambi-php-lib/js/jquery.min.js";
+        document.head.insertBefore(oScriptElem, document.head.getElementsByTagName("script")[0])
+    }
+</script>
 <!-- Include colorbox after jQuery is known -->
 <script src="<?php echo CURRENT_URL; ?>kambi-php-lib/colorbox/jquery.colorbox-min.js" type="text/javascript"></script>
 <script type="text/javascript">
