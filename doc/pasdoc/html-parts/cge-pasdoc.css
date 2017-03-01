@@ -234,6 +234,9 @@
 .pasdoc-container table.table_tag th > p:last-child,
        td.itemdesc > p:last-child { margin-bottom: 0em; }
 
+/* The trick how to replace using CSS from
+   http://blog.escapecreative.com/how-to-replace-text-with-css/
+*/
 .pasdoc-container td.navigation h2 {
     visibility: hidden;
     /* to make position:absolute in ::after work */
