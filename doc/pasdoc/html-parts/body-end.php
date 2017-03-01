@@ -25,10 +25,16 @@ echo_google_analytics_tracking();
 -->
 <script type="text/javascript">
     if(typeof jQuery == 'undefined'){
+        document.write('<script type="text/javascript" src="<?php echo CURRENT_URL; ?>kambi-php-lib/js/jquery.min.js"></'+'script>');
+
+        /* This looks nicer, but to make it work, also the following colorbox and bootstrap JS
+           have to be loaded the same way. Otherwise, colorbox and bootstrap JS are loaded
+           too early, and they don't work.
         var oScriptElem = document.createElement("script");
         oScriptElem.type = "text/javascript";
         oScriptElem.src = "<?php echo CURRENT_URL; ?>kambi-php-lib/js/jquery.min.js";
         document.head.insertBefore(oScriptElem, document.head.getElementsByTagName("script")[0])
+        */
     }
 </script>
 <!-- Include colorbox after jQuery is known -->
