@@ -34,7 +34,7 @@ var
 type
   EDownloadError = class(Exception);
 
-  { Options for the @link(Download) and URLSaveStream functions. }
+  { Options for the @link(Download) function. }
   TStreamOption = (
     { Force result to be a TMemoryStream,
       with contents fully loaded to the memory,
@@ -53,11 +53,17 @@ type
       instead wrap result in TBufferedReadStream. }
     soForceMemoryStream,
 
-    { Filter the contents through gzip decompression (for @link(Download))
-      or compression (for @link(URLSaveStream)). }
+    { Filter the contents through gzip decompression. }
     soGzip
   );
   TStreamOptions = set of TStreamOption;
+
+  { Options for the @link(URLSaveStream) function. }
+  TSaveStreamOption = (
+    { Filter the contents through gzip compression. }
+    ssoGzip
+  );
+  TSaveStreamOptions = set of TSaveStreamOption;
 
 { Return a stream to read given URL.
   Returned stream is suitable only for reading, and the initial position
@@ -102,7 +108,7 @@ function Download(const URL: string; const Options: TStreamOptions;
   to save a file for a @code(file) URL. In other words, perform @italic(upload).
   Right now, this only works for @code(file) URLs, and the only advantage
   it has over manually creating TFileStream is that this accepts URLs. }
-function URLSaveStream(const URL: string; const Options: TStreamOptions = []): TStream;
+function URLSaveStream(const URL: string; const Options: TSaveStreamOptions = []): TStream;
 
 var
   { Log (through CastleLog) all loading, that is: all calls to @link(Download).
@@ -487,8 +493,7 @@ begin
   Result := Download(URL, Options, MimeType { ignored });
 end;
 
-function URLSaveStream(const URL: string; const Options: TStreamOptions): TStream;
-{ TODO: for now, this ignores soForceMemoryStream flag in Options. }
+function URLSaveStream(const URL: string; const Options: TSaveStreamOptions): TStream;
 var
   P, FileName: string;
 begin
@@ -502,7 +507,7 @@ begin
       raise Exception.CreateFmt('Cannot convert URL to a filename: "%s"', [URL]);
   end else
     raise Exception.CreateFmt('Saving of URL with protocol "%s" not possible', [P]);
-  if soGzip in Options then
+  if ssoGzip in Options then
   begin
     Result := TGZFileStream.Create(TFileStream.Create(FileName, fmCreate), true);
   end else

@@ -545,7 +545,7 @@ procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
 procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
 function URLReadXML(const URL: String): TXMLDocument;
 function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument;
-procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const Options: TStreamOptions = []);
+procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const Options: TSaveStreamOptions = []);
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
 { @groupEnd }
 
@@ -1195,7 +1195,7 @@ begin
   finally FreeAndNil(Stream) end;
 end;
 
-procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const Options: TStreamOptions = []);
+procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const Options: TSaveStreamOptions = []);
 var
   Stream: TStream;
 begin
@@ -1204,7 +1204,5 @@ begin
     WriteXMLFile(Doc, Stream);
   finally FreeAndNil(Stream) end;
 end;
-
-
 
 end.
