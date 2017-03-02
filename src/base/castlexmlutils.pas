@@ -18,7 +18,7 @@ unit CastleXMLUtils;
 
 interface
 
-uses SysUtils, DOM,
+uses SysUtils, DOM, CastleDownload,
   CastleUtils, CastleColors, CastleVectors;
 
 type
@@ -545,14 +545,14 @@ procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
 procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
 function URLReadXML(const URL: String): TXMLDocument;
 function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument;
-procedure URLWriteXML(Doc: TXMLDocument; const URL: String);
+procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const Options: TStreamOptions = []);
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
 { @groupEnd }
 
 implementation
 
 uses Classes, XMLRead, XMLWrite, BlowFish,
-  CastleDownload, CastleURIUtils, CastleClassUtils;
+  CastleURIUtils, CastleClassUtils;
 
 { ----------------------------------------------------------------------------
   TDOMElementHelper:
@@ -1204,5 +1204,7 @@ begin
     WriteXMLFile(Doc, Stream);
   finally FreeAndNil(Stream) end;
 end;
+
+
 
 end.
