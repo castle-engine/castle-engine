@@ -466,13 +466,13 @@ procedure Save3D(Node: TX3DNode;
 var
   Stream: TStream;
   Gzipped: boolean;
-  StreamOptions: TStreamOptions;
+  StreamOptions: TSaveStreamOptions;
 begin
   { calculate StreamOptions to include gzip compression when necessary }
   StreamOptions := [];
   URIMimeType(URL, Gzipped);
   if Gzipped then
-    Include(StreamOptions, soGzip);
+    Include(StreamOptions, ssoGzip);
 
   Stream := URLSaveStream(URL, StreamOptions);
   try

@@ -141,8 +141,10 @@ begin
   Handled := false;
   for I := 0 to Count - 1 do
   begin
-    { use EventResult to workaround FPC 3.1.1 bug (reproducible
-      with FPC SVN revision 35460 (from 2016-02-20) on Linux x86_64). }
+    { Use EventResult to workaround FPC 3.1.1 bug (reproducible
+      with FPC SVN revision 35460 (from 2016-02-20) on Linux x86_64).
+      The bug has since been fixed http://bugs.freepascal.org/view.php?id=31421 ,
+      so we may remove this workaround soon. }
     EventResult := Items[I](Received);
     Handled := EventResult or Handled;
   end;

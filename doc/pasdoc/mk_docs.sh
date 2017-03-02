@@ -169,8 +169,12 @@ pasdoc \
   --auto-link-exclude=../doc/pasdoc/auto_link_exclude.txt \
   --external-class-hierarchy=../doc/pasdoc/external_class_hierarchy.txt \
   --visible-members public,published,automated,protected \
-  --footer ../doc/pasdoc/footer.html \
+  --html-head ../doc/pasdoc/html-parts/head.html \
+  --html-body-begin ../doc/pasdoc/html-parts/body-begin.html \
+  --html-body-end ../doc/pasdoc/html-parts/body-end.html \
+  --css ../doc/pasdoc/html-parts/cge-pasdoc.css \
   --description=../src/x3d/x3dnodes_documentation.txt \
+  --use-tipue-search \
   | \
   grep --ignore-case --invert-match --fixed-strings \
     --regexp='Tag "groupbegin" is not implemented yet, ignoring' \

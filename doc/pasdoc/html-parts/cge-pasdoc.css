@@ -1,0 +1,252 @@
+/*
+  Copyright 1998-2016 PasDoc developers.
+
+  This file is part of "PasDoc".
+
+  "PasDoc" is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  "PasDoc" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with "PasDoc"; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
+
+  ----------------------------------------------------------------------------
+*/
+
+/* The CSS file from PasDoc, adjusted,
+   mainly to only change things inside .pasdoc-container (to not change
+   the Castle Game Engine header/footer style, produced by body-begin/end.php
+   files).
+*/
+
+/* Remove Bootstrap (used by Castle Game Engine header) customizations of <code> */
+.pasdoc-container code {
+  background: transparent;
+  color: inherit;
+}
+
+.pasdoc-container td,
+.pasdoc-container th {
+  border: 1px solid white;
+}
+.pasdoc-container th {
+  text-align: center;
+  padding: 0.2em;
+}
+
+/* Counter the padding of Bootstrap container-fluid around us */
+.pasdoc-container {
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+/* Match CGE sidebar size and look */
+.pasdoc-container td.navigation {
+  width: 25%;
+
+  background-image: linear-gradient(to bottom, #e8e8e8 0px, #f5f5f5 100%);
+  background-repeat: repeat-x;
+  border-color: #dcdcdc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) inset, 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  padding: 19px;
+}
+
+/* Adjusted original pasdoc.css below ---------------------------------------- */
+
+.pasdoc-container table.container {
+  margin: 0;
+  padding: 0;
+}
+
+.pasdoc-container table.container {
+  width: 100%;
+  border-spacing: 0;
+}
+.pasdoc-container table.container td {
+  vertical-align: top;
+}
+
+.pasdoc-container td.navigation p { padding: 0; }
+.pasdoc-container td.navigation h2 { margin-top: 0; }
+
+.pasdoc-container td.content { padding: 1em; }
+.pasdoc-container td.content h1 { margin-top: 0; }
+
+.pasdoc-container img { border:0px; }
+
+.pasdoc-container hr {
+    border-bottom: medium none;
+    border-top: thin solid #888;
+}
+
+.pasdoc-container a:link {text-decoration: none; }
+.pasdoc-container a:visited {text-decoration: none; }
+.pasdoc-container a:hover {text-decoration: underline; }
+.pasdoc-container a:active {text-decoration: underline; }
+
+.pasdoc-container td.content a:link {color:#C91E0C; text-decoration: none; }
+.pasdoc-container td.content a:visited {color:#7E5C31; text-decoration: none; }
+
+.pasdoc-container a.navigation:link { text-decoration: none; }
+.pasdoc-container a.navigation:visited { text-decoration: none; }
+.pasdoc-container a.navigation:hover { font-weight: bold; text-decoration: none; }
+.pasdoc-container a.navigation:active { text-decoration: none; }
+
+.pasdoc-container a.bold:link {color:#C91E0C; text-decoration: none; font-weight:bold; }
+.pasdoc-container a.bold:visited {color:#7E5C31; text-decoration: none; font-weight:bold; }
+.pasdoc-container a.bold:hover {text-decoration: underline; font-weight:bold; }
+.pasdoc-container a.bold:active {text-decoration: underline; font-weight:bold; }
+
+.pasdoc-container a.section {color: green; text-decoration: none; font-weight: bold; }
+.pasdoc-container a.section:hover {color: green; text-decoration: underline; font-weight: bold; }
+
+.pasdoc-container ul.useslist a:link {color:#C91E0C; text-decoration: none; font-weight:bold; }
+.pasdoc-container ul.useslist a:visited {color:#7E5C31; text-decoration: none; font-weight:bold; }
+.pasdoc-container ul.useslist a:hover {text-decoration: underline; font-weight:bold; }
+.pasdoc-container ul.useslist a:active {text-decoration: underline; font-weight:bold; }
+
+.pasdoc-container ul.hierarchy { list-style-type:none; }
+.pasdoc-container ul.hierarchylevel { list-style-type:none; }
+
+.pasdoc-container p.unitlink a:link {color:#C91E0C; text-decoration: none; font-weight:bold; }
+.pasdoc-container p.unitlink a:visited {color:#7E5C31; text-decoration: none; font-weight:bold; }
+.pasdoc-container p.unitlink a:hover {text-decoration: underline; font-weight:bold; }
+.pasdoc-container p.unitlink a:active {text-decoration: underline; font-weight:bold; }
+
+.pasdoc-container tr.list { background: #FFBF44; }
+.pasdoc-container tr.list2 { background: #FFC982; }
+.pasdoc-container tr.listheader { background: #C91E0C; color: white; }
+
+.pasdoc-container table.wide_list { border-spacing:2px; width:100%; }
+.pasdoc-container table.wide_list td { vertical-align:top; padding:4px; }
+
+.pasdoc-container table.markerlegend { width:auto; }
+.pasdoc-container table.markerlegend td.legendmarker { text-align:center; }
+
+.pasdoc-container .sections { background:white; }
+.pasdoc-container .sections .one_section {
+  background:lightgray;
+  display: inline-block;
+  margin: 0.2em;
+  padding: 0.5em 1em;
+}
+
+.pasdoc-container table.summary td.itemcode { width:100%; }
+.pasdoc-container table.detail td.itemcode { width:100%; }
+
+.pasdoc-container td.itemname {white-space:nowrap; }
+.pasdoc-container td.itemunit {white-space:nowrap; }
+.pasdoc-container td.itemdesc { width:100%; }
+
+.pasdoc-container div.nodescription { color:red; }
+.pasdoc-container dl.parameters dt { color:blue; }
+
+/* Various browsers have various default styles for <h6>,
+   sometimes ugly for our purposes, so it's best to set things
+   like font-size and font-weight in out pasdoc.css explicitly. */
+.pasdoc-container h6.description_section {
+  /* font-size 100% means that it has the same font size as the
+     parent element, i.e. normal description text */
+  font-size: 100%;
+  font-weight: bold;
+  /* By default browsers usually have some large margin-bottom and
+     margin-top for <h1-6> tags. In our case, margin-bottom is
+     unnecessary, we want to visually show that description_section
+     is closely related to content below. In this situation
+     (where the font size is just as a normal text), smaller bottom
+     margin seems to look good. */
+  margin-top: 1.4em;
+  margin-bottom: 0em;
+}
+
+/* Style applied to Pascal code in documentation
+   (e.g. produced by @longcode tag) } */
+.pasdoc-container span.pascal_string { color: #000080; }
+.pasdoc-container span.pascal_keyword { font-weight: bolder; }
+.pasdoc-container span.pascal_comment { color: #000080; font-style: italic; }
+.pasdoc-container span.pascal_compiler_comment { color: #008000; }
+.pasdoc-container span.pascal_numeric { }
+.pasdoc-container span.pascal_hex { }
+
+.pasdoc-container p.hint_directive { color: red; }
+
+.pasdoc-container input#search_text { }
+.pasdoc-container input#search_submit_button { }
+
+.pasdoc-container acronym.mispelling { background-color: #ffa; }
+
+/* Actually this reduces vertical space between *every* paragraph
+   inside list with @itemSpacing(compact).
+   While we would like to reduce this space only for the
+   top of 1st and bottom of last paragraph within each list item.
+   But, well, user probably will not do any paragraph breaks
+   within a list with @itemSpacing(compact) anyway, so it's
+   acceptable solution. */
+.pasdoc-container ul.compact_spacing p { margin-top: 0em; margin-bottom: 0em; }
+.pasdoc-container ol.compact_spacing p { margin-top: 0em; margin-bottom: 0em; }
+.pasdoc-container dl.compact_spacing p { margin-top: 0em; margin-bottom: 0em; }
+
+/* Style for table created by @table tags:
+   just some thin border.
+
+   This way we have some borders around the cells
+   (so cells are visibly separated), but the border
+   "blends with the background" so it doesn't look too ugly.
+   Hopefully it looks satisfactory in most cases and for most
+   people.
+
+   We add padding for cells, otherwise they look too close.
+   This is normal thing to do when border-collapse is set to
+   collapse (because this eliminates spacing between cells).
+*/
+.pasdoc-container table.table_tag { border-collapse: collapse; }
+.pasdoc-container table.table_tag td { border: 1pt solid gray; padding: 0.3em; }
+.pasdoc-container table.table_tag th { border: 1pt solid gray; padding: 0.3em; }
+
+.pasdoc-container table.detail {
+  border: 1pt solid gray;
+  border-collapse: separate;
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+.pasdoc-container .search-form { white-space: nowrap; }
+.pasdoc-container .search-input, .search-button { display: inline-block; vertical-align: middle; }
+
+/* Do not make extra vertical space at the beginning/end of table cells.
+   We need ">" selector, to not change paragraphs inside lists inside
+   table cells. */
+.pasdoc-container table.table_tag td > p:first-child,
+.pasdoc-container table.table_tag th > p:first-child,
+       td.itemdesc > p:first-child { margin-top: 0em; }
+
+.pasdoc-container table.table_tag td > p:last-child,
+.pasdoc-container table.table_tag th > p:last-child,
+       td.itemdesc > p:last-child { margin-bottom: 0em; }
+
+/* The trick how to replace using CSS from
+   http://blog.escapecreative.com/how-to-replace-text-with-css/
+*/
+.pasdoc-container td.navigation h2 {
+    visibility: hidden;
+    /* to make position:absolute in ::after work */
+    position: relative;
+}
+.pasdoc-container td.navigation h2::after {
+    /* otherwise, it's hidden along with parent h2 */
+    visibility: visible;
+    position: absolute;
+    top: 0;
+    left: 0;
+    content: "API Reference";
+}

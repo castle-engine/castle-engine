@@ -10,6 +10,10 @@ default: html
 # Run "make" in logo/ first,
 # if you have inkscape installed,
 # and you want to regenerate logo from png.
+#
+# Run "make" in html-parts/ first,
+# if you have cge-www repository (https://github.com/castle-engine/cge-www)
+# cloned and placed as a sibling to castle-engine, in ../../../cge-www/
 
 html:
 	./mk_docs.sh html
