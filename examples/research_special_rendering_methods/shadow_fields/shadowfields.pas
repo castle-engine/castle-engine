@@ -152,7 +152,7 @@ procedure TShadowField.SaveToFile(const URL: string);
 var
   F: TStream;
 begin
-  F := URLSaveStream(URL, [soGzip]);
+  F := URLSaveStream(URL, [ssoGzip]);
   try
     F.WriteBuffer(EnvMaps, SizeOf(EnvMaps));
     F.WriteBuffer(SHVectors, SizeOf(SHVectors));
