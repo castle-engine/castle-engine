@@ -1195,11 +1195,11 @@ begin
   finally FreeAndNil(Stream) end;
 end;
 
-procedure URLWriteXML(Doc: TXMLDocument; const URL: String);
+procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const Options: TStreamOptions = []);
 var
   Stream: TStream;
 begin
-  Stream := URLSaveStream(URL);
+  Stream := URLSaveStream(URL, Options);
   try
     WriteXMLFile(Doc, Stream);
   finally FreeAndNil(Stream) end;
