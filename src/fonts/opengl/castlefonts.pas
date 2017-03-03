@@ -20,7 +20,7 @@ unit CastleFonts;
 
 interface
 
-uses Classes, FGL, CastleGLImages, CastleStringUtils, CastleColors,
+uses SysUtils, Classes, FGL, CastleGLImages, CastleStringUtils, CastleColors,
   CastleVectors, CastleTextureFontData, CastleImages, CastleUnicode,
   CastleRectangles, CastleApplicationProperties
   {$ifdef HAS_FREE_TYPE} , CastleInternalFreeType {$endif};
@@ -549,7 +549,7 @@ type
 
 implementation
 
-uses SysUtils, Math,
+uses Math,
   CastleClassUtils, CastleGLUtils, CastleUtils, CastleFontFamily;
 
 { TCastleFont ------------------------------------------------------}
