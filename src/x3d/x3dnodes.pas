@@ -31,7 +31,7 @@
   @unorderedList(
     @item(Nodes can be loaded or saved from the stream in a classic or
       XML encoding.
-      For classic encoding we use a lexer in X3DLexer unit.
+      For classic encoding we use a lexer in CastleInternalX3DLexer unit.
       For XML encoding, we use standard FPC DOM unit.
       Loading and saving of fields (in both encodings) is inside X3DFields unit.
 
@@ -173,7 +173,7 @@ unit X3DNodes;
 interface
 
 uses SysUtils, FGL, Classes, XMLRead, DOM,
-  CastleVectors, X3DLexer, CastleUtils, CastleClassUtils,
+  CastleVectors, CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors,
   CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleInternalOctree, CastleCompositeImage,
@@ -1872,8 +1872,8 @@ type
     procedure Bind(const InlineName: string; Exported: TX3DNodeNames);
   end;
 
-  TX3DVersion = X3DLexer.TX3DVersion;
-  TX3DEncoding = X3DLexer.TX3DEncoding;
+  TX3DVersion = CastleInternalX3DLexer.TX3DVersion;
+  TX3DEncoding = CastleInternalX3DLexer.TX3DEncoding;
 
   {$I x3dnodes_load.inc}
 
@@ -2077,8 +2077,8 @@ const
   { Latest X3D version supported. }
   X3DVersion: TX3DVersion = (Major: 3; Minor: 2);
 
-  xeClassic = X3DLexer.xeClassic;
-  xeXML = X3DLexer.xeXML;
+  xeClassic = CastleInternalX3DLexer.xeClassic;
+  xeXML = CastleInternalX3DLexer.xeXML;
 
 const
   { Minimal values for

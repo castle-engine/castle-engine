@@ -495,7 +495,7 @@ implementation
 
 uses SysUtils, CastleGL, CastleGLUtils,
   CastleLog, StrUtils, Castle3D, CastleGLVersion, CastleRenderingCamera,
-  CastleScreenEffects, X3DLexer;
+  CastleScreenEffects, CastleInternalX3DLexer;
 
 { TODO: a way to turn off using fixed-function pipeline completely
   will be needed some day. Currently, some functions here call

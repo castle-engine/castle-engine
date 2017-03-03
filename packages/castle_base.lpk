@@ -1190,8 +1190,8 @@
         <UnitName Value="X3DFields"/>
       </Item286>
       <Item287>
-        <Filename Value="../src/x3d/x3dlexer.pas"/>
-        <UnitName Value="X3DLexer"/>
+        <Filename Value="../src/x3d/castleinternalx3dlexer.pas"/>
+        <UnitName Value="CastleInternalX3DLexer"/>
       </Item287>
       <Item288>
         <Filename Value="../src/x3d/x3dload.pas"/>

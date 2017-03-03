@@ -311,7 +311,7 @@ begin
     P.Targets.AddUnit('castleterrain.pas');
     P.Targets.AddUnit('x3dcamerautils.pas');
     P.Targets.AddUnit('x3dfields.pas');
-    P.Targets.AddUnit('x3dlexer.pas');
+    P.Targets.AddUnit('castleinternalx3dlexer.pas');
     P.Targets.AddUnit('x3dload.pas');
     P.Targets.AddUnit('x3dloadinternalcollada.pas');
     P.Targets.AddUnit('x3dloadinternalgeo.pas');
