@@ -1959,10 +1959,15 @@ var
     in this unit's initialization / finalization. }
   NodesManager: TNodesManager;
 
-  { Should be make a warning (using WritelnWarning) when loading data from
-    an URI with absolute path. This is quite useful if you want to
-    be able to move/copy the files to some other system/location,
-    as absolute paths prevent it. }
+  { Should we emit a warning when loading data from
+    an URI with an absolute filename, like @code(file:///c:/blah/myimage.png).
+    The warning is emitted using WritelnWarning.
+    This is quite useful, as usually you want to avoid using such URIs,
+    as they will probably not work on any other system than your own
+    (and they prevent you from easily moving the files to some other system/location).
+
+    In your data (X3D, VRML, Collada, OBJ materials...),
+    you should always use relative paths. }
   WarnAboutAbsoluteFilenames: boolean = true;
 
 { global procedures ---------------------------------------------------------- }
