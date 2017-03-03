@@ -118,7 +118,7 @@ var
 
 implementation
 
-uses URIParser, CastleURIUtils, CastleUtils, CastleLog, CastleZStream,
+uses URIParser, CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
   CastleClassUtils, CastleDataURI, CastleProgress
   {$ifdef ANDROID}, CastleAndroidInternalAssetStream {$endif};
 

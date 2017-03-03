@@ -194,8 +194,8 @@
         <UnitName Value="CastleGenericLists"/>
       </Item39>
       <Item40>
-        <Filename Value="../src/base/castlegziointernal.pas"/>
-        <UnitName Value="CastleGzioInternal"/>
+        <Filename Value="../src/base/castleinternalgzio.pas"/>
+        <UnitName Value="CastleInternalGzio"/>
       </Item40>
       <Item41>
         <Filename Value="../src/base/castleinterfaces.pas"/>
@@ -343,8 +343,8 @@
         <UnitName Value="CastleInternalZLib"/>
       </Item76>
       <Item77>
-        <Filename Value="../src/base/castlezstream.pas"/>
-        <UnitName Value="CastleZStream"/>
+        <Filename Value="../src/base/castleinternalzstream.pas"/>
+        <UnitName Value="CastleInternalZStream"/>
       </Item77>
       <Item78>
         <Filename Value="../src/base/ios/castleiosappglue.inc"/>
@@ -436,16 +436,16 @@
         <UnitName Value="CastleFont2Pascal"/>
       </Item99>
       <Item100>
-        <Filename Value="../src/fonts/castlefreetype.pas"/>
-        <UnitName Value="CastleFreeType"/>
+        <Filename Value="../src/fonts/castleinternalfreetype.pas"/>
+        <UnitName Value="CastleInternalFreeType"/>
       </Item100>
       <Item101>
-        <Filename Value="../src/fonts/castlefreetypeh.pas"/>
-        <UnitName Value="CastleFreeTypeH"/>
+        <Filename Value="../src/fonts/castleinternalfreetypeh.pas"/>
+        <UnitName Value="CastleInternalFreeTypeH"/>
       </Item101>
       <Item102>
-        <Filename Value="../src/fonts/castleftfont.pas"/>
-        <UnitName Value="CastleFtFont"/>
+        <Filename Value="../src/fonts/castleinternalftfont.pas"/>
+        <UnitName Value="CastleInternalFtFont"/>
       </Item102>
       <Item103>
         <Filename Value="../src/fonts/castletexturefont_dejavusans_10.pas"/>

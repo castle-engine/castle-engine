@@ -22,7 +22,8 @@ interface
 
 uses Classes, FGL, CastleGLImages, CastleStringUtils, CastleColors,
   CastleVectors, CastleTextureFontData, CastleImages, CastleUnicode,
-  CastleRectangles, CastleApplicationProperties;
+  CastleRectangles, CastleApplicationProperties
+  {$ifdef HAS_FREE_TYPE} , CastleInternalFreeType {$endif};
 
 type
   { Abstract class for 2D font. }
@@ -535,6 +536,16 @@ type
     function TextMove(const S: string): TVector2Integer; override;
     function RealSize: Single; override;
   end;
+
+  { Raised by
+    @link(TTextureFontData.Create) or
+    @link(TTextureFont.Create TTextureFont.Create(URL, ...)) or
+    @link(TTextureFont.Load TTextureFont.Load(URL, ...)) when
+    the freetype library cannot be found, and thus font files cannot be read. }
+  EFreeTypeLibraryNotFound =
+    {$ifdef HAS_FREE_TYPE} CastleInternalFreeType.EFreeTypeLibraryNotFound
+    {$else} class(Exception)
+    {$endif};
 
 implementation
 

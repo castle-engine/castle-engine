@@ -131,8 +131,7 @@ type
 
 implementation
 
-uses SysUtils, CastleFilesUtils, CastleUtils, CastleZStream, Classes,
-  CastleDownload;
+uses SysUtils, CastleFilesUtils, CastleUtils, Classes, CastleDownload;
 
 procedure TShadowField.LoadFromFile(const URL: string);
 var

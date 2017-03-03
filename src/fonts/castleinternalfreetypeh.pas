@@ -30,7 +30,7 @@
 
  **********************************************************************}
 { @exclude Not ready for PasDoc. }
-unit CastleFreeTypeH;
+unit CastleInternalFreeTypeH;
 
 { Note that these are not all the availlable calls from the dll yet.
   This unit is used by TStringBitMaps and FTFont }

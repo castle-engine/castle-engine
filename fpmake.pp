@@ -53,7 +53,7 @@ begin
     P.Dependencies.Add('fcl-image');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-process');
-    P.Dependencies.Add('hash'); { CRC unit used by CastleGzioInternal }
+    P.Dependencies.Add('hash'); { CRC unit used by CastleInternalGzio }
     {$ifdef ANDROID_POSSIBLE} if Defaults.OS <> Android then {$endif}
       P.Dependencies.Add('fcl-web');
     P.Dependencies.Add('pasjpeg');
@@ -126,16 +126,23 @@ begin
     P.Targets.AddUnit('castlecolors.pas');
     P.Targets.AddUnit('castleconfig.pas');
     P.Targets.AddUnit('castledynlib.pas');
+    P.Targets.AddUnit('castlefilefilters.pas');
     P.Targets.AddUnit('castlefilesutils.pas');
-    P.Targets.AddUnit('castlegziointernal.pas');
+    P.Targets.AddUnit('castlefindfiles.pas');
+    P.Targets.AddUnit('castlegenericlists.pas');
     P.Targets.AddUnit('castleinterfaces.pas');
+    P.Targets.AddUnit('castleinternalgzio.pas');
+    P.Targets.AddUnit('castleinternalzlib.pas');
+    P.Targets.AddUnit('castleinternalzstream.pas');
     P.Targets.AddUnit('castlelog.pas');
     P.Targets.AddUnit('castlemessaging.pas');
     P.Targets.AddUnit('castleparameters.pas');
     P.Targets.AddUnit('castleprogress.pas');
+    P.Targets.AddUnit('castleprogressconsole.pas');
+    P.Targets.AddUnit('castlerecentfiles.pas');
     P.Targets.AddUnit('castlerectangles.pas');
-    P.Targets.AddUnit('castlestringutils.pas');
     P.Targets.AddUnit('castlestreamutils.pas');
+    P.Targets.AddUnit('castlestringutils.pas');
     P.Targets.AddUnit('castletimeutils.pas');
     P.Targets.AddUnit('castleunicode.pas');
     P.Targets.AddUnit('castleutils.pas');
@@ -143,13 +150,6 @@ begin
     P.Targets.AddUnit('castlewarnings.pas');
     P.Targets.AddUnit('castlexmlconfig.pas');
     P.Targets.AddUnit('castlexmlutils.pas');
-    P.Targets.AddUnit('castleinternalzlib.pas');
-    P.Targets.AddUnit('castlezstream.pas');
-    P.Targets.AddUnit('castlefindfiles.pas');
-    P.Targets.AddUnit('castlefilefilters.pas');
-    P.Targets.AddUnit('castlegenericlists.pas');
-    P.Targets.AddUnit('castleprogressconsole.pas');
-    P.Targets.AddUnit('castlerecentfiles.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'base' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlegles20.pas');
@@ -202,9 +202,10 @@ begin
     P.Targets.AddUnit('castlecurves.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'fonts');
-    P.Targets.AddUnit('castlefreetypeh.pas');
-    P.Targets.AddUnit('castlefreetype.pas');
-    P.Targets.AddUnit('castleftfont.pas');
+    P.Targets.AddUnit('castlefont2pascal.pas');
+    P.Targets.AddUnit('castleinternalfreetype.pas');
+    P.Targets.AddUnit('castleinternalfreetypeh.pas');
+    P.Targets.AddUnit('castleinternalftfont.pas');
     P.Targets.AddUnit('castletexturefont_dejavusans_10.pas');
     P.Targets.AddUnit('castletexturefont_dejavusansmono_18.pas');
     P.Targets.AddUnit('castletexturefont_dejavusansmonobold_15.pas');
@@ -221,7 +222,6 @@ begin
     P.Targets.AddUnit('castletexturefont_djvserifbi_20.pas');
     P.Targets.AddUnit('castletexturefont_djvserifi_20.pas');
     P.Targets.AddUnit('castletexturefontdata.pas');
-    P.Targets.AddUnit('castlefont2pascal.pas');
     if Defaults.OS in AllWindowsOSes then
     begin
       P.SourcePath.Add('src' + PathDelim + 'fonts' + PathDelim + 'windows');

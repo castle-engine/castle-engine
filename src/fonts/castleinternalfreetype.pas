@@ -1,7 +1,7 @@
 { Copied to Castle Game Engine from FPC RTL (FPC RTL uses the same license
   as Castle Game Engine, so no problem).
   Adjusted to
-  - use CastleFreeTypeH
+  - use CastleInternalFreeTypeH
   - raise exception from TFontManager.Create when FreeType library not found
   - Use UTF-8 encoding for string and Cardinal for character type,
     following David Emerson patch from
@@ -31,14 +31,14 @@
 
  **********************************************************************}
 { @exclude Not ready for PasDoc. }
-unit CastleFreeType;
+unit CastleInternalFreeType;
 
 {$I castleconf.inc}
 
 interface
 
 uses sysutils, classes, FPImgCmn,
-  CastleFreeTypeH, CastleUnicode, CastleUtils;
+  CastleInternalFreeTypeH, CastleUnicode, CastleUtils;
 
 { TODO : take resolution in account to find the size }
 { TODO : speed optimization: search glyphs with a hash-function/tree/binary search/... }
@@ -59,6 +59,8 @@ uses sysutils, classes, FPImgCmn,
 type
 
   FreeTypeException = class (exception);
+
+  { Raised by TFontManager.Create when the freetype library is not available. }
   EFreeTypeLibraryNotFound = class (FreeTypeException);
 
   TBitmapType = (btBlackWhite, bt256Gray);
@@ -148,6 +150,7 @@ type
       function MakeString (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps;
       function MakeString (FontId:integer; Text:string; Size:integer) : TStringBitmaps;
     public
+      { @raises EFreeTypeLibraryNotFound }
       constructor Create;
       destructor destroy; override;
       function RequestFont (afilename:string) : integer;

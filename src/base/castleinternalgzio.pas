@@ -32,14 +32,15 @@
   to allow reading/writing gzip from/to Pascal streams (TStream)
   instead of only normal files.
 
-  Together with CastleZStream, this allows to compress/decompress by gzip
+  Together with CastleInternalZStream, this allows to compress/decompress by gzip
   entirely in memory, withou any temporary files underneath.
 
-  And yes, before you ask: the original gzio.pas code is horrible.
-  It is a C code translated to a Pascal (without any modern Pascal features).
+  (Yes, the original gzio.pas code looks quite old-school.
+  It is a C code translated literally to an old Pascal, without any
+  modern features like classes.)
 
   @exclude }
-unit CastleGzioInternal;
+unit CastleInternalGzio;
 
 {$I castleconf.inc}
 

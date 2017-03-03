@@ -25,16 +25,16 @@
 { Streams using zlib compression.
 
   This is adjusted from FPC sources unit fcl/inc/zstream.pp,
-  to use our CastleGzioInternal unit. It is also cut down to TGZFileStream,
+  to use our CastleInternalGzio unit. It is also cut down to TGZFileStream,
   the only class useful for reading/writing gz files. }
-unit CastleZStream;
+unit CastleInternalZStream;
 
 {$I castleconf.inc}
 
 interface
 
 uses
-  Sysutils, Classes, CastleGzioInternal;
+  Sysutils, Classes, CastleInternalGzio;
 
 type
   EZlibError = class(EStreamError);

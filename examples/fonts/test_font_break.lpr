@@ -28,7 +28,7 @@ program test_font_break;
 uses CastleWindow, CastleGLUtils, SysUtils, Classes, CastleParameters,
   CastleUtils, CastleFonts, CastleVectors, CastleStringUtils, CastleColors,
   CastleControls, CastleKeysMouse, CastleRectangles, CastleControlsImages,
-  CastleLog, CastleFreeType, CastleApplicationProperties;
+  CastleLog, CastleApplicationProperties;
 
 var
   Window: TCastleWindowCustom;
