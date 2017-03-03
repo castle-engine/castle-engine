@@ -283,17 +283,16 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'window');
     P.Targets.AddUnit('castlemessages.pas');
-    p.targets.addunit('castlewindowrecentfiles.pas');
+    P.Targets.AddUnit('castlewindowrecentfiles.pas');
     P.Targets.AddUnit('castlesoundmenu.pas');
-    p.targets.addunit('castlewindow.pas');
-    p.targets.addunit('castlewindowtouch.pas');
+    P.Targets.AddUnit('castlewindow.pas');
+    P.Targets.AddUnit('castlewindowtouch.pas');
     P.Targets.AddUnit('castlewindowprogress.pas');
-    p.targets.addunit('castlewindowmodes.pas');
+    P.Targets.AddUnit('castlewindowmodes.pas');
     if Xlib then
     begin
       P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'unix');
-      P.Targets.AddUnit('castlexf86vmode.pas');
-      P.Targets.AddUnit('castlexlib.pas');
+      P.Targets.AddUnit('castleinternalxlib.pas');
     end;
 
     P.SourcePath.Add('src' + PathDelim + 'x3d');

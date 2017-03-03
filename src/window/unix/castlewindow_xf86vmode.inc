@@ -14,7 +14,7 @@
 }
 
 {$ifdef read_interface_uses}
-CastleXF86VMode,
+XF86VMode,
 {$endif}
 
 { This implements TCastleApplication video resizing with XF86VMode }
@@ -67,7 +67,7 @@ var
   i, bestmode: integer;
 
   modesCount: integer;
-  modes : PArray_PXF86VidModeModeInfo;
+  modes : PPXF86VidModeModeInfo;
 
   OriginalMode: TXF86VidModeModeLine;
   OriginalModeDotClock: Longint;
@@ -106,18 +106,22 @@ begin
 
  XF86VidModeGetAllModeLines(XDisplay, XScreen, @modesCount, @modes);
  try
+  { for i := 0 to modesCount-1 do
+   WritelnLog('X11 Screen Sizes', 'Mode %d: %d x %d',
+     [I, Modes[i]^.hdisplay, Modes[i]^.vdisplay]); }
+
   { look for mode with requested resolution }
   bestmode := -1;
   for i := 0 to modesCount-1 do
    if (not VideoResize) or
-      ((modes^[i]^.hdisplay = VideoResizeWidth) and
-       (modes^[i]^.vdisplay = VideoResizeHeight)) then
+      ((modes[i]^.hdisplay = VideoResizeWidth) and
+       (modes[i]^.vdisplay = VideoResizeHeight)) then
        { TODO: jak tu dopasowac BitsPerPixel }
     bestMode := i;
 
   if bestmode < 0 then exit(false);
 
-  CurrentModeInfo := modes^[bestMode]^;
+  CurrentModeInfo := modes[bestMode]^;
   XF86VidModeSwitchToMode(XDisplay, XScreen, @CurrentModeInfo);
 
   {SetViewport jest przydatne gdy zmienimy sie z duzego ekranu na mniejszy i
