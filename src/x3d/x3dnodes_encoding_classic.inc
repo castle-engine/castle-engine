@@ -25,23 +25,30 @@ const
   'All files|*|' +
   '*VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz';
 
+type
+  { Raised by @link(LoadX3DClassicFromString) or @link(LoadX3DClassicInternal)
+    when the stream is compressed with gzip. }
+  EX3DGzipCompressed = CastleInternalX3DLexer.EX3DGzipCompressed;
+
 { Load VRML/X3D file in classic encoding from stream. Return it's root node.
 
   Note that you must pass here TPeekCharStream class, not just any
   generic TStream class. But it's not a problem, really, because
   you can wrap any class inside TPeekCharStream descendant. E.g. do
   @longcode(#
-    LoadX3DClassic(TBufferedReadStream.Create(MyStream, false), BaseUrl)
+    LoadX3DClassicInternal(TBufferedReadStream.Create(MyStream, false), BaseUrl)
   #)
 
-  Note that this function can't handle compressed data (VRML files are
-  sometimes compressed with gzip). You should already pass here a stream
-  with uncompressed text data.
+  Note that this function can't handle compressed data (X3D files are
+  sometimes compressed with gzip). You should pass here a stream
+  with an already uncompressed text data.
 
   @raises(EX3DGzipCompressed If the Stream starts with gzip file header.) }
-function LoadX3DClassic(Stream: TPeekCharStream;
+function LoadX3DClassicInternal(Stream: TPeekCharStream;
   const BaseUrl: string): TX3DRootNode; overload;
 
+{ Load VRML/X3D file in classic encoding from a string. Return it's root node.
+  @raises(EX3DGzipCompressed If the Stream is compressed with gzip.) }
 function LoadX3DClassicFromString(const VRMLContents: string;
   const BaseUrl: string): TX3DRootNode; overload;
 
@@ -547,7 +554,7 @@ begin
   except FreeAndNil(Result); raise end;
 end;
 
-function LoadX3DClassic(Stream: TPeekCharStream;
+function LoadX3DClassicInternal(Stream: TPeekCharStream;
   const BaseUrl: string): TX3DRootNode;
 var
   Lexer: TX3DLexer;
@@ -573,7 +580,7 @@ function LoadX3DClassic(const URL: string;
   begin
     Stream := TBufferedReadStream.Create(BaseStream, FreeBaseStream);
     try
-      Result := LoadX3DClassic(Stream, BaseUrl);
+      Result := LoadX3DClassicInternal(Stream, BaseUrl);
     finally FreeAndNil(Stream) end;
   end;
 
@@ -623,7 +630,7 @@ begin
   Stream := TSimplePeekCharStream.Create(
     TStringStream.Create(VRMLContents), true);
   try
-    Result := LoadX3DClassic(Stream, BaseUrl);
+    Result := LoadX3DClassicInternal(Stream, BaseUrl);
   finally FreeAndNil(Stream) end;
 end;
 

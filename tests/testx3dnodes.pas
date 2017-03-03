@@ -1463,7 +1463,7 @@ var
 begin
   BS := TBufferedReadStream.Create(Stream, false);
   try
-    Result := LoadX3DClassic(BS , '');
+    Result := LoadX3DClassicInternal(BS , '');
   finally FreeAndNil(BS) end;
 end;
 
