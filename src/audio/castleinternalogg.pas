@@ -1,18 +1,18 @@
 { Minimal translation of C /usr/include/ogg/ogg.h header.
 
-  Renamed to CastleOgg, to avoid name clash with FPC's Ogg unit.
+  Renamed to CastleInternalOgg, to avoid name clash with FPC's Ogg unit.
   In the future, this may be removed in favor of simply using
   FPC's Ogg unit. Although, from the 1st glance, it will require
-  fixing FPC's Ogg unit --- it will fail when CastleOgg lib is not available,
-  while my CastleOgg and CastleVorbisFile units are made such that they can continue
+  fixing FPC's Ogg unit --- it will fail when Ogg library is not available,
+  while my CastleInternalOgg and CastleInternalVorbisFile units are made such that they can continue
   (function pointers are loaded in initialization and failure only
   casues setting some bool variable to @false).
-  Actually, CastleOgg unit doesn't link at all to ogg library (it's not needed,
+  Actually, CastleInternalOgg unit doesn't link at all to ogg library (it's not needed,
   only structs are needed).
 
   @exclude (Unit not really ready for PasDoc, with many comments from
   original C headers.) }
-unit CastleOgg;
+unit CastleInternalOgg;
 
 {$I castleconf.inc}
 {$packrecords C}

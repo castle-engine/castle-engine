@@ -110,15 +110,15 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'audio');
     P.Targets.AddUnit('castlealutils.pas');
-    P.Targets.AddUnit('castleogg.pas');
+    P.Targets.AddUnit('castleefx.pas');
+    P.Targets.AddUnit('castleinternalogg.pas');
+    P.Targets.AddUnit('castleinternalvorbiscodec.pas');
+    P.Targets.AddUnit('castleinternalvorbisdecoder.pas');
+    P.Targets.AddUnit('castleinternalvorbisfile.pas');
     P.Targets.AddUnit('castleopenal.pas');
     P.Targets.AddUnit('castlesoundallocator.pas');
     P.Targets.AddUnit('castlesoundengine.pas');
-    P.Targets.AddUnit('castleefx.pas');
     P.Targets.AddUnit('castlesoundfile.pas');
-    P.Targets.AddUnit('castlevorbiscodec.pas');
-    P.Targets.AddUnit('castlevorbisdecoder.pas');
-    P.Targets.AddUnit('castlevorbisfile.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'base');
     P.Targets.AddUnit('castleapplicationproperties.pas');

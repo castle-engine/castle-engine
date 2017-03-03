@@ -122,8 +122,8 @@
         <UnitName Value="CastleEFX"/>
       </Item21>
       <Item22>
-        <Filename Value="../src/audio/castleogg.pas"/>
-        <UnitName Value="CastleOgg"/>
+        <Filename Value="../src/audio/castleinternalogg.pas"/>
+        <UnitName Value="CastleInternalOgg"/>
       </Item22>
       <Item23>
         <Filename Value="../src/audio/castleopenal.pas"/>
@@ -142,16 +142,16 @@
         <UnitName Value="CastleSoundFile"/>
       </Item26>
       <Item27>
-        <Filename Value="../src/audio/castlevorbiscodec.pas"/>
-        <UnitName Value="CastleVorbisCodec"/>
+        <Filename Value="../src/audio/castleinternalvorbiscodec.pas"/>
+        <UnitName Value="CastleInternalVorbisCodec"/>
       </Item27>
       <Item28>
-        <Filename Value="../src/audio/castlevorbisdecoder.pas"/>
-        <UnitName Value="CastleVorbisDecoder"/>
+        <Filename Value="../src/audio/castleinternalvorbisdecoder.pas"/>
+        <UnitName Value="CastleInternalVorbisDecoder"/>
       </Item28>
       <Item29>
-        <Filename Value="../src/audio/castlevorbisfile.pas"/>
-        <UnitName Value="CastleVorbisFile"/>
+        <Filename Value="../src/audio/castleinternalvorbisfile.pas"/>
+        <UnitName Value="CastleInternalVorbisFile"/>
       </Item29>
       <Item30>
         <Filename Value="../src/base/castleapplicationproperties.pas"/>

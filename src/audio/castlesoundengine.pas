@@ -715,7 +715,7 @@ implementation
 
 uses DOM, XMLRead, StrUtils,
   CastleUtils, CastleALUtils, CastleLog, CastleProgress,
-  CastleSoundFile, CastleVorbisFile, CastleEFX, CastleParameters,
+  CastleSoundFile, CastleInternalVorbisFile, CastleEFX, CastleParameters,
   CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties;
 

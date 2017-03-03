@@ -173,8 +173,8 @@ function ALDataFormatToStr(DataFormat: TALuint): string;
 
 implementation
 
-uses CastleStringUtils, CastleVorbisDecoder, CastleVorbisFile, CastleLog,
-  CastleDownload, CastleURIUtils;
+uses CastleStringUtils, CastleInternalVorbisDecoder, CastleInternalVorbisFile,
+  CastleLog, CastleDownload, CastleURIUtils;
 
 { TSoundFile ----------------------------------------------------------------- }
 
