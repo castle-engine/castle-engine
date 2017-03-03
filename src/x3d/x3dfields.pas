@@ -1430,7 +1430,7 @@ type
         (I mean, we do Value := AValue, NOT Value := ImageCopy(AValue),
         so don't Free image given to us (at least, don't do this without clearing
         our Value field)).
-        You can pass AValue = nil, then Value will be inited to null image
+        You can pass AValue = nil, then Value will be initialized to null image
         TRGBImage.Create.) }
     constructor Create(AParentNode: TX3DFileItem;
       const AName: string; const AValue: TCastleImage);

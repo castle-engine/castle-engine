@@ -37,9 +37,9 @@ type
   EOpenALError = class(Exception);
   EOpenALInitError = class(EOpenALError);
 
-{ Check is ALInited @true.
-  @raises EOpenALInitError If ALInited is @false. }
-procedure CheckALInited;
+{ Check is ALInitialized @true.
+  @raises EOpenALInitError If ALInitialized is @false. }
+procedure CheckALInitialized;
 
 { ---------------------------------------------------------------------------- }
 { @section(Error checking) }
@@ -199,9 +199,9 @@ uses CastleVectors, CastleStringUtils, CastleLog, CastleURIUtils;
 
 {$define read_implementation}
 
-procedure CheckALInited;
+procedure CheckALInitialized;
 begin
- if not ALInited then
+ if not ALInitialized then
   raise EOpenALInitError.Create('OpenAL library is not available');
 end;
 

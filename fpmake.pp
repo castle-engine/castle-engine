@@ -143,7 +143,7 @@ begin
     P.Targets.AddUnit('castlewarnings.pas');
     P.Targets.AddUnit('castlexmlconfig.pas');
     P.Targets.AddUnit('castlexmlutils.pas');
-    P.Targets.AddUnit('castlezlib.pas');
+    P.Targets.AddUnit('castleinternalzlib.pas');
     P.Targets.AddUnit('castlezstream.pas');
     P.Targets.AddUnit('castlefindfiles.pas');
     P.Targets.AddUnit('castlefilefilters.pas');
@@ -243,10 +243,10 @@ begin
     P.Targets.AddUnit('castlescenemanager.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'images');
-    P.Targets.AddUnit('castlefpwritepng.pas');
-    P.Targets.AddUnit('castleimages.pas');
-    P.Targets.AddUnit('castlepng.pas');
     P.Targets.AddUnit('castlecompositeimage.pas');
+    P.Targets.AddUnit('castleimages.pas');
+    P.Targets.AddUnit('castleinternalfpwritepng.pas');
+    P.Targets.AddUnit('castleinternalpng.pas');
     P.Targets.AddUnit('castletextureimages.pas');
     P.Targets.AddUnit('castlevideos.pas');
 
@@ -292,7 +292,6 @@ begin
     if Xlib then
     begin
       P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'unix');
-      P.Targets.AddUnit('castleglx.pas');
       P.Targets.AddUnit('castlexf86vmode.pas');
       P.Targets.AddUnit('castlexlib.pas');
     end;

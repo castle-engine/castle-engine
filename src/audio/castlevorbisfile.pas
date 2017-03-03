@@ -121,7 +121,7 @@ var
 
 
 { Is the vorbisfile shared library (with all necessary symbols) available. }
-function VorbisFileInited: boolean;
+function VorbisFileInitialized: boolean;
 
 procedure VorbisFileInitialization;
 
@@ -132,7 +132,7 @@ uses SysUtils, CastleUtils, CastleDynLib, CastleFilesUtils;
 var
   VorbisFileLibrary: TDynLib;
 
-function VorbisFileInited: boolean;
+function VorbisFileInitialized: boolean;
 begin
   Result := VorbisFileLibrary <> nil;
 end;

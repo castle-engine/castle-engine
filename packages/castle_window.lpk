@@ -37,7 +37,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="6" Minor="1"/>
-    <Files Count="19">
+    <Files Count="18">
       <Item1>
         <Filename Value="../src/base/castleconf.inc"/>
         <Type Value="Include"/>
@@ -90,11 +90,6 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <Filename Value="../src/window/gtk/castlewindow_gtk_menu.inc"/>
         <Type Value="Include"/>
       </Item13>
-      <Item14>
-        <Filename Value="../src/window/unix/castleglx.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleGlx"/>
-      </Item14>
       <Item15>
         <Filename Value="../src/window/unix/castlewindow_xf86vmode.inc"/>
         <Type Value="Include"/>
@@ -113,10 +108,10 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleXlib"/>
       </Item18>
-      <Item19>
+      <Item14>
         <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
         <Type Value="Include"/>
-      </Item19>
+      </Item14>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>

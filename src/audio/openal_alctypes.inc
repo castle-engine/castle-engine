@@ -18,7 +18,7 @@ type
   values than OpenAL Sample Implementation.
 
   So they are declared as variables, and will be initialized
-  only when OpenAL is initialized (when ALInited is @true). }
+  only when OpenAL is initialized (when ALInitialized is @true). }
 
 var
   {*

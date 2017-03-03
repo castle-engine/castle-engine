@@ -7,14 +7,14 @@
   @unorderedList(
     @item(
       If libpng is not installed on your system, there is no exception
-      at initialization. Instead it merely sets CastlePngInited to false.
+      at initialization. Instead it merely sets CastlePngInitialized to false.
       This way programs that use this unit do not require libpng to be
       installed on target system. Libpng must be present only if program
       at runtime will really need it, e.g. Images.LoadPNG will raise an
-      exception if CastlePngInited is @false.)
+      exception if CastlePngInitialized is @false.)
 
-    @item(Use my CastleZLib instead of Zlib module. Primarily for having
-      CastleZLibInited, similar to CastlePngInited for zlib.)
+    @item(Use my CastleInternalZLib instead of Zlib module. Primarily for having
+      CastleZLibInitialized, similar to CastlePngInitialized for zlib.)
 
     @item(We try to open libpng library from various names, to try hard
       to work with various libpng so/dll names user may have installed
@@ -57,16 +57,11 @@
       Also DWord is LongWord, so it doesn't require Types unit under Delphi.
       Note: Delphi not really tested since a long time.)
   )
-
-  @exclude (Unit not really ready for PasDoc, with many comments from
-    original C headers.)
 *)
-
-unit CastlePng;
 
 interface
 
-uses CastleZLib;
+uses CastleInternalZLib;
 
 { Automatically converted by H2Pas 0.99.15 from png.h }
 { The following command line parameters were used:
@@ -914,12 +909,12 @@ var
 {$endif LIBPNG_DEPRECATED}
 
 { Returns true if libpng was available and all png_xxx functions
-  in this unit are inited to non-nil values, so you can just use libpng.
+  in this unit are initialized to non-nil values, so you can just use libpng.
 
   It returns false if libpng library was not available (or maybe the required
   version was not available). Then all png_xxx functions in this unit are nil
   and you can't use them. }
-function CastlePngInited: boolean;
+function CastlePngInitialized: boolean;
 
 procedure PngInitialization;
 
@@ -930,7 +925,7 @@ uses SysUtils, CastleDynLib;
 var
   PngLibrary: TDynLib;
 
-function CastlePngInited: boolean;
+function CastlePngInitialized: boolean;
 begin
   Result := PngLibrary <> nil;
 end;

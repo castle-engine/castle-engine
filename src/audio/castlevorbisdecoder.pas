@@ -14,7 +14,7 @@ type
 { OggVorbis decoder using vorbisfile library and working on
   ObjectPascal TStream objects.
 
-  This checks VorbisFileInited at the beginning, so you don't have to
+  This checks VorbisFileInitialized at the beginning, so you don't have to
   worry about it.
 
   Note: this only uses some constants from OpenAL unit. It doesn't
@@ -149,7 +149,7 @@ var
   Buffer: Pointer;
   BitStream: CInt;
 begin
-  if not VorbisFileInited then
+  if not VorbisFileInitialized then
     raise EVorbisLoadError.Create('vorbisfile library is not available, ' +
       'cannot decode OggVorbis file');
 

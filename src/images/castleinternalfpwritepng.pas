@@ -27,7 +27,7 @@
 {$mode objfpc}{$h+}
 
 { CGE } { @exclude }
-unit CastleFPWritePNG;
+unit CastleInternalFPWritePNG;
 
 interface
 

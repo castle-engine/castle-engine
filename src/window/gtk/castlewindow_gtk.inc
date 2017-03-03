@@ -55,7 +55,7 @@ private
   GLContext: PGdkGLContext;
   GLDrawable: PGdkGLDrawable;
 
-  { These things are inited only when (MainMenu <> nil) and (not Closed). }
+  { These things are initialized only when (MainMenu <> nil) and (not Closed). }
   window_vbox: PGtkVBox;
   window_accel_group: PGtkAccelGroup;
 
@@ -1122,7 +1122,7 @@ begin
  if (GTK_REALIZED and GTK_WIDGET_FLAGS( GTK_WIDGET(WindowGtk) )) = 0 then
   raise EInternalError.Create('CastleWindow.OpenBackend: GdkWindow not realized yet');
 
- { These must be inited only when I'm sure that window is realized.
+ { These must be initialized only when I'm sure that window is realized.
    I checked this even in gtkglext sources:
    yes, gtk_widget_get_gl_drawable and gtk_widget_get_gl_context check
    and always return nil if their widget is not realized. }

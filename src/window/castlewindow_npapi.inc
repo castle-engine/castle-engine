@@ -34,7 +34,7 @@
   CMem,
   {$endif}
 
-  CastleNPAPI,
+  CastleInternalNPAPI,
 {$endif}
 
 {$ifdef read_global_interface}

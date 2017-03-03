@@ -18,12 +18,12 @@
   (and included headers: @code(AL/altypes.h, AL/alctypes.h)).
 
   The library is loaded in unit initialization, and if not found
-  we will merely set global ALInited variable to @false.
+  we will merely set global ALInitialized variable to @false.
   This allows you to check at runtime and gracefully work
   if OpenAL is not installed (e.g. you can turn off game sounds.)
 
   Renamed to CastleOpenAL (from OpenAL) to avoid clash with FPC's OpenAL
-  unit. FPC unit doesn't provide above ALInited feature, and it doesn't
+  unit. FPC unit doesn't provide above ALInitialized feature, and it doesn't
   integrate with CastleVectors.
 
   @exclude (Unit not really ready for PasDoc, with many comments from
@@ -100,13 +100,13 @@ type
   When OpenAL is not available, alXxx and alcXxx are @nil,
   and this variable is @false, and you can gracefully handle it in your programs
   (for example, continue normal game, just with sound turned off). }
-function ALInited: boolean;
+function ALInitialized: boolean;
 
 { Reset OpenAL library.
 
   In this unit's initialization, we link to OpenAL library, load all symbols,
-  and initialize ALInited. In this unit's finalization,
-  we release library handles and set ALInited back to @false.
+  and initialize ALInitialized. In this unit's finalization,
+  we release library handles and set ALInitialized back to @false.
 
   What this procedure does?
   It behaves like finalizing this unit (releasing OpenAL library handles),
@@ -142,7 +142,7 @@ procedure OpenALRestart;
   This was the most common implementation on most Unixes,
   until OpenAL-soft came.
 
-  Use this only when ALInited, since this is just a call to some alcGetString. }
+  Use this only when ALInitialized, since this is just a call to some alcGetString. }
 function OpenALSampleImplementation: boolean;
 
 procedure OpenALInitialization;
@@ -170,7 +170,7 @@ end;
 var
   ALLibrary: TDynLib;
 
-function ALInited: boolean;
+function ALInitialized: boolean;
 begin
   Result := ALLibrary <> nil;
 end;

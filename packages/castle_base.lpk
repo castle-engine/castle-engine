@@ -339,8 +339,8 @@
         <UnitName Value="CastleXMLUtils"/>
       </Item75>
       <Item76>
-        <Filename Value="../src/base/castlezlib.pas"/>
-        <UnitName Value="CastleZLib"/>
+        <Filename Value="../src/base/castleinternalzlib.pas"/>
+        <UnitName Value="CastleInternalZLib"/>
       </Item76>
       <Item77>
         <Filename Value="../src/base/castlezstream.pas"/>
@@ -562,8 +562,8 @@
         <UnitName Value="CastleCompositeImage"/>
       </Item130>
       <Item131>
-        <Filename Value="../src/images/castlefpwritepng.pas"/>
-        <UnitName Value="CastleFPWritePNG"/>
+        <Filename Value="../src/images/castleinternalfpwritepng.pas"/>
+        <UnitName Value="CastleInternalFPWritePNG"/>
       </Item131>
       <Item132>
         <Filename Value="../src/images/castleimages.pas"/>
@@ -578,15 +578,15 @@
         <Type Value="Include"/>
       </Item134>
       <Item135>
-        <Filename Value="../src/images/castlepng.pas"/>
-        <UnitName Value="CastlePng"/>
+        <Filename Value="../src/images/castleinternalpng.pas"/>
+        <UnitName Value="CastleInternalPng"/>
       </Item135>
       <Item136>
-        <Filename Value="../src/images/castlepng_dynamic.inc"/>
+        <Filename Value="../src/images/castleinternalpng_dynamic.inc"/>
         <Type Value="Include"/>
       </Item136>
       <Item137>
-        <Filename Value="../src/images/castlepng_static.inc"/>
+        <Filename Value="../src/images/castleinternalpng_static.inc"/>
         <Type Value="Include"/>
       </Item137>
       <Item138>
