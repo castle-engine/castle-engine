@@ -84,7 +84,7 @@ begin
     Label1.MaxWidth := Container.UnscaledWidth - Margin * 2 - ScrollView.ScrollBarWidth;
 
   ScrollView.Width := Container.UnscaledWidth;
-  ScrollView.Height := Container.UnscaledHeight - 2 * Margin - ButtonHtml.Height;
+  ScrollView.Height := Container.UnscaledHeight - 2 * Margin - ButtonHtml.CalculatedHeight;
   ScrollView.ScrollArea.Width := Label1.CalculatedWidth;
   ScrollView.ScrollArea.Height := Label1.CalculatedHeight;
 end;
