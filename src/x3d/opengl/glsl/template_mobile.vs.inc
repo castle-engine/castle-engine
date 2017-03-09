@@ -53,13 +53,24 @@
 '#ifdef LIT' + LineEnding +
 '  castle_Color = vec4(castle_SceneColor, 1.0);' + LineEnding +
 '  /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess) */' + LineEnding +
-'  castle_Color.a = castle_MaterialDiffuseAlpha;' + LineEnding +
+'' + LineEnding +
+'  // Apply castle_ColorPerVertex alpha.' + LineEnding +
+'  // The RGB portion of castle_ColorPerVertex was' + LineEnding +
+'  // already applied in template_mobile_add_light.glsl .' + LineEnding +
+'  #ifdef COLOR_PER_VERTEX' + LineEnding +
+'    castle_Color.a = castle_ColorPerVertex.a;' + LineEnding +
+'  #else' + LineEnding +
+'    castle_Color.a = castle_MaterialDiffuseAlpha;' + LineEnding +
+'  #endif' + LineEnding +
 '' + LineEnding +
 '  /* Clamp sum of lights colors to be <= 1. See template.fs for comments. */' + LineEnding +
 '  castle_Color.rgb = min(castle_Color.rgb, 1.0);' + LineEnding +
 '#else' + LineEnding +
 '  castle_Color = castle_UnlitColor' + LineEnding +
 '#ifdef COLOR_PER_VERTEX' + LineEnding +
+'    /* Apply COLOR_PER_VERTEX, when unlit.' + LineEnding +
+'       (When lit, then the analogous multiplication is done' + LineEnding +
+'        inside template_mobile_add_light.glsl) */' + LineEnding +
 '    * castle_ColorPerVertex' + LineEnding +
 '#endif' + LineEnding +
 '  ;' + LineEnding +
