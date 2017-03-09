@@ -243,6 +243,7 @@ type
   end deprecated 'Rendering of TRationalBezierCurve is not portable to OpenGLES (that is: Android and iOS) and not very efficient. Also, this is usually not very useful curve for game purposes, you usually want to use cubic Bezier (CubicBezier3D) or piecewise cubic Bezier (TPiecewiseCubicBezier) instead. For portable and fast general curves use X3D NURBS nodes (wrapped in a TCastleScene) instead.';
 
   {$warnings off} { Consciously using deprecated stuff. }
+  { List of TRationalBezierCurve. }
   TRationalBezierCurveList = specialize TFPGObjectList<TRationalBezierCurve>;
   {$warnings on}
 

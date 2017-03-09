@@ -59,14 +59,14 @@ uses SysUtils, CastleStringUtils, CastleFindFiles, CastleLog,
 
 function ToX3DName(const s: string): string;
 const
-  { moglibysmy tu uzyc X3DLexer.VRMLNameChars ktore podaje naprawde
-    wszystkie dozwolone znaki w nazwie VRMLa. Ale, dla czytelnosci,
-    lepiej jednak nie uzywac wszystkich dziwnych znakow z
-    X3DLexer.VRMLNameChars i ograniczyc sie do ponizszego zbioru znakow }
-  VRMLNameChars = ['a'..'z','A'..'Z','0'..'9'];
-  NonVRMLNameChars = AllChars - VRMLNameChars;
+  { We could use here TX3DLexer.VRMLNameChars that contains
+    *all* allowed characters in X3D name.
+    But, for readability, better to avoid even more weird characters,
+    and limit ourselves to the below character set. }
+  AllowedNameChars = ['a'..'z','A'..'Z','0'..'9'];
+  NonAllowedNameChars = AllChars - AllowedNameChars;
 begin
-  result := SReplaceChars(s, NonVRMLNameChars, '_')
+  result := SReplaceChars(S, NonAllowedNameChars, '_');
 end;
 
 function AmbientIntensity(const AmbientColor, DiffuseColor: TVector3Single): Single;

@@ -122,8 +122,8 @@
         <UnitName Value="CastleEFX"/>
       </Item21>
       <Item22>
-        <Filename Value="../src/audio/castleogg.pas"/>
-        <UnitName Value="CastleOgg"/>
+        <Filename Value="../src/audio/castleinternalogg.pas"/>
+        <UnitName Value="CastleInternalOgg"/>
       </Item22>
       <Item23>
         <Filename Value="../src/audio/castleopenal.pas"/>
@@ -142,16 +142,16 @@
         <UnitName Value="CastleSoundFile"/>
       </Item26>
       <Item27>
-        <Filename Value="../src/audio/castlevorbiscodec.pas"/>
-        <UnitName Value="CastleVorbisCodec"/>
+        <Filename Value="../src/audio/castleinternalvorbiscodec.pas"/>
+        <UnitName Value="CastleInternalVorbisCodec"/>
       </Item27>
       <Item28>
-        <Filename Value="../src/audio/castlevorbisdecoder.pas"/>
-        <UnitName Value="CastleVorbisDecoder"/>
+        <Filename Value="../src/audio/castleinternalvorbisdecoder.pas"/>
+        <UnitName Value="CastleInternalVorbisDecoder"/>
       </Item28>
       <Item29>
-        <Filename Value="../src/audio/castlevorbisfile.pas"/>
-        <UnitName Value="CastleVorbisFile"/>
+        <Filename Value="../src/audio/castleinternalvorbisfile.pas"/>
+        <UnitName Value="CastleInternalVorbisFile"/>
       </Item29>
       <Item30>
         <Filename Value="../src/base/castleapplicationproperties.pas"/>
@@ -194,8 +194,8 @@
         <UnitName Value="CastleGenericLists"/>
       </Item39>
       <Item40>
-        <Filename Value="../src/base/castlegziointernal.pas"/>
-        <UnitName Value="CastleGzioInternal"/>
+        <Filename Value="../src/base/castleinternalgzio.pas"/>
+        <UnitName Value="CastleInternalGzio"/>
       </Item40>
       <Item41>
         <Filename Value="../src/base/castleinterfaces.pas"/>
@@ -339,12 +339,12 @@
         <UnitName Value="CastleXMLUtils"/>
       </Item75>
       <Item76>
-        <Filename Value="../src/base/castlezlib.pas"/>
-        <UnitName Value="CastleZLib"/>
+        <Filename Value="../src/base/castleinternalzlib.pas"/>
+        <UnitName Value="CastleInternalZLib"/>
       </Item76>
       <Item77>
-        <Filename Value="../src/base/castlezstream.pas"/>
-        <UnitName Value="CastleZStream"/>
+        <Filename Value="../src/base/castleinternalzstream.pas"/>
+        <UnitName Value="CastleInternalZStream"/>
       </Item77>
       <Item78>
         <Filename Value="../src/base/ios/castleiosappglue.inc"/>
@@ -436,16 +436,16 @@
         <UnitName Value="CastleFont2Pascal"/>
       </Item99>
       <Item100>
-        <Filename Value="../src/fonts/castlefreetype.pas"/>
-        <UnitName Value="CastleFreeType"/>
+        <Filename Value="../src/fonts/castleinternalfreetype.pas"/>
+        <UnitName Value="CastleInternalFreeType"/>
       </Item100>
       <Item101>
-        <Filename Value="../src/fonts/castlefreetypeh.pas"/>
-        <UnitName Value="CastleFreeTypeH"/>
+        <Filename Value="../src/fonts/castleinternalfreetypeh.pas"/>
+        <UnitName Value="CastleInternalFreeTypeH"/>
       </Item101>
       <Item102>
-        <Filename Value="../src/fonts/castleftfont.pas"/>
-        <UnitName Value="CastleFtFont"/>
+        <Filename Value="../src/fonts/castleinternalftfont.pas"/>
+        <UnitName Value="CastleInternalFtFont"/>
       </Item102>
       <Item103>
         <Filename Value="../src/fonts/castletexturefont_dejavusans_10.pas"/>
@@ -562,8 +562,8 @@
         <UnitName Value="CastleCompositeImage"/>
       </Item130>
       <Item131>
-        <Filename Value="../src/images/castlefpwritepng.pas"/>
-        <UnitName Value="CastleFPWritePNG"/>
+        <Filename Value="../src/images/castleinternalfpwritepng.pas"/>
+        <UnitName Value="CastleInternalFPWritePNG"/>
       </Item131>
       <Item132>
         <Filename Value="../src/images/castleimages.pas"/>
@@ -578,15 +578,15 @@
         <Type Value="Include"/>
       </Item134>
       <Item135>
-        <Filename Value="../src/images/castlepng.pas"/>
-        <UnitName Value="CastlePng"/>
+        <Filename Value="../src/images/castleinternalpng.pas"/>
+        <UnitName Value="CastleInternalPng"/>
       </Item135>
       <Item136>
-        <Filename Value="../src/images/castlepng_dynamic.inc"/>
+        <Filename Value="../src/images/castleinternalpng_dynamic.inc"/>
         <Type Value="Include"/>
       </Item136>
       <Item137>
-        <Filename Value="../src/images/castlepng_static.inc"/>
+        <Filename Value="../src/images/castleinternalpng_static.inc"/>
         <Type Value="Include"/>
       </Item137>
       <Item138>
@@ -1190,8 +1190,8 @@
         <UnitName Value="X3DFields"/>
       </Item286>
       <Item287>
-        <Filename Value="../src/x3d/x3dlexer.pas"/>
-        <UnitName Value="X3DLexer"/>
+        <Filename Value="../src/x3d/castleinternalx3dlexer.pas"/>
+        <UnitName Value="CastleInternalX3DLexer"/>
       </Item287>
       <Item288>
         <Filename Value="../src/x3d/x3dload.pas"/>

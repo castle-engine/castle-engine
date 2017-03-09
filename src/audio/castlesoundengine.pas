@@ -152,7 +152,7 @@ type
 
     { Do we have active OpenAL context. This is @true when you successfully
       called ALContextOpen (and you didn't call ALContextClose yet).
-      This also implies that OpenAL library is loaded, that is ALInited = @true. }
+      This also implies that OpenAL library is loaded, that is ALInitialized = @true. }
     property ALActive: boolean read FALActive;
 
     { Did we attempt to initialize OpenAL context. This indicates that ALContextOpen
@@ -715,7 +715,7 @@ implementation
 
 uses DOM, XMLRead, StrUtils,
   CastleUtils, CastleALUtils, CastleLog, CastleProgress,
-  CastleSoundFile, CastleVorbisFile, CastleEFX, CastleParameters,
+  CastleSoundFile, CastleInternalVorbisFile, CastleEFX, CastleParameters,
   CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties;
 
@@ -844,7 +844,7 @@ function TSoundEngine.Devices: TSoundDeviceList;
   begin
     Add('', 'Default OpenAL device');
 
-    if ALInited and EnumerationExtPresent(pDeviceList) then
+    if ALInitialized and EnumerationExtPresent(pDeviceList) then
     begin
       { parse pDeviceList }
       while pDeviceList^ <> #0 do
@@ -857,7 +857,7 @@ function TSoundEngine.Devices: TSoundDeviceList;
         Inc(pDeviceList);
       end;
     end else
-    if ALInited and OpenALSampleImplementation then
+    if ALInitialized and OpenALSampleImplementation then
     begin
       Add(SampleImpALCDeviceName('native'), 'Operating system native');
       Add(SampleImpALCDeviceName('sdl'), 'SDL (Simple DirectMedia Layer)');
@@ -998,7 +998,7 @@ procedure TSoundEngine.ALContextOpen;
       FALMajorVersion := 0;
       FALMinorVersion := 0;
 
-      CheckALInited;
+      CheckALInitialized;
 
       ALDevice := alcOpenDevice(PCharOrNil(Device));
       if (ALDevice = nil) then
@@ -1043,7 +1043,7 @@ procedure TSoundEngine.ALContextOpen;
         alGetString(AL_EXTENSIONS),
         MinAllocatedSources, MaxAllocatedSources,
         TSoundOggVorbis.VorbisMethod,
-        BoolToStr(VorbisFileInited, true)
+        BoolToStr(VorbisFileInitialized, true)
       ]);
   end;
 
@@ -1464,7 +1464,7 @@ function TSoundEngine.ParseParametersHelp: string;
     DefaultDeviceName: string;
     I: Integer;
   begin
-    if not ALInited then
+    if not ALInitialized then
       Result := '                        Warning: OpenAL is not available, cannot print' +NL+
                 '                        available audio devices.' +NL else
     if not EnumerationExtPresent then

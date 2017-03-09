@@ -6957,9 +6957,10 @@ begin
         This alllows to import and rename animations, which is useful. }
       if RootNode.ImportedNames <> nil then
         for I := 0 to RootNode.ImportedNames.Count - 1 do
-          Enum.EnumerateWithAlias(
-            RootNode.ImportedNames[I].Node,
-            RootNode.ImportedNames[I].Name, true);
+          if RootNode.ImportedNames[I].Node is TTimeSensorNode then
+            Enum.EnumerateWithAlias(
+              RootNode.ImportedNames[I].Node,
+              RootNode.ImportedNames[I].Name, true);
     finally FreeAndNil(Enum) end;
   end;
 end;

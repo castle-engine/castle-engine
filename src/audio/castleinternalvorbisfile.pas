@@ -1,17 +1,19 @@
 { API of vorbisfile library. Usually libvorbisfile.so under Unixes
   or vorbisfile.dll under Windows. This is just a quick translation
   of /usr/include/vorbis/vorbisfile.h header.
-  @exclude (This is only a C header translation --- no nice PasDoc docs.) }
-unit CastleVorbisFile;
+
+  @exclude (This is only a C header translation (no nice PasDoc docs),
+  and also this is internal.) }
+unit CastleInternalVorbisFile;
 
 {$packrecords C}
 
 {$i castleconf.inc}
-{$I vorbisfile_conf.inc}
+{$I castleinternalvorbisfile_conf.inc}
 
 interface
 
-uses CTypes, CastleVorbisCodec, CastleOgg;
+uses CTypes, CastleInternalVorbisCodec, CastleInternalOgg;
 
 const
   NOTOPEN   = 0;
@@ -121,7 +123,7 @@ var
 
 
 { Is the vorbisfile shared library (with all necessary symbols) available. }
-function VorbisFileInited: boolean;
+function VorbisFileInitialized: boolean;
 
 procedure VorbisFileInitialization;
 
@@ -132,7 +134,7 @@ uses SysUtils, CastleUtils, CastleDynLib, CastleFilesUtils;
 var
   VorbisFileLibrary: TDynLib;
 
-function VorbisFileInited: boolean;
+function VorbisFileInitialized: boolean;
 begin
   Result := VorbisFileLibrary <> nil;
 end;

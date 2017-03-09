@@ -5,25 +5,25 @@
   @unorderedList(
     @item(link to zlib1.dll under Windows (from [http://gnuwin32.sourceforge.net/]),
       this uses cdecl calling convention)
-    @item(name changed from zlib to CastleZLib to not collide with FPC and Kylix
+    @item(name changed from zlib to CastleInternalZLib to not collide with FPC and Kylix
       zlib units)
     @item(changed to link using my TDynLib instead of linking with
       "external libz ...")
-    @item(just like CastlePng: zlib library must not be actually present
-      on target system. If zlib will not be installed, CastleZLibInited
-      will be simply set to false.)
+    @item(just like CastleInternalPng: zlib library does not need to be
+      actually present on the user system.
+      If zlib is not be installed, CastleZLibInitialized will be simply set to @false.)
   )
 
   @exclude (This is only a C header translation --- no nice PasDoc docs.)
 }
 
-unit CastleZLib;
+unit CastleInternalZLib;
 
 {$I castleconf.inc}
 
 {$ifdef CASTLE_ZLIB_USING_PASZLIB}
 interface
-{ CastleZLib unit doesn't expose anything when CASTLE_ZLIB_USING_PASZLIB
+{ CastleInternalZLib unit doesn't expose anything when CASTLE_ZLIB_USING_PASZLIB
   is defined. Instead, use PasZLib, which implement Zlib API in pure Pascal. }
 implementation
 end.
@@ -183,10 +183,10 @@ function inflateInit2(var strm:TZStream;windowBits : longint) : longint;
 function zError(err:longint):string;
 
 { Was zlib library found. If true that all function pointers in this unit
-  are inited and you can simply use zlib. If false then zlib was not
+  are initialized and you can simply use zlib. If false then zlib was not
   installed, all function pointers in this unit are nil
   and you can't use anything fro zlib. }
-function CastleZLibInited: boolean;
+function CastleZLibInitialized: boolean;
 
 procedure ZLibInitialization;
 
@@ -227,7 +227,7 @@ function zError(err:longint):string;
 var
   ZLibrary: TDynLib;
 
-function CastleZLibInited: boolean;
+function CastleZLibInitialized: boolean;
 begin
  Result := ZLibrary <> nil;
 end;

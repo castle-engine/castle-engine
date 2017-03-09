@@ -1,13 +1,14 @@
 { Minimal translation of C /usr/include/vorbis/codec.h header.
-  @exclude (This is only a C header translation --- no nice PasDoc docs.) }
-unit CastleVorbisCodec;
+  @exclude (This is only a C header translation (no nice PasDoc docs),
+  and also this is internal.) }
+unit CastleInternalVorbisCodec;
 
 {$I castleconf.inc}
 {$packrecords C}
 
 interface
 
-uses CTypes, CastleOgg;
+uses CTypes, CastleInternalOgg;
 
 type
   Tvorbis_info = record

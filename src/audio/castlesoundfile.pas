@@ -173,8 +173,8 @@ function ALDataFormatToStr(DataFormat: TALuint): string;
 
 implementation
 
-uses CastleStringUtils, CastleVorbisDecoder, CastleVorbisFile, CastleLog,
-  CastleDownload, CastleURIUtils;
+uses CastleStringUtils, CastleInternalVorbisDecoder, CastleInternalVorbisFile,
+  CastleLog, CastleDownload, CastleURIUtils;
 
 { TSoundFile ----------------------------------------------------------------- }
 
@@ -365,7 +365,7 @@ class function TSoundOggVorbis.VorbisMethod: string;
 begin
   if alIsExtensionPresent('AL_EXT_vorbis') then
     Result := 'AL_EXT_vorbis extension' else
-  if VorbisFileInited then
+  if VorbisFileInitialized then
     Result := 'vorbisfile library' else
     Result := 'none';
 end;

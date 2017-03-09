@@ -3,18 +3,14 @@
   removed the deprecated variables and functions).
 
   This unit should allow both static and dynamic linking to png.
-  Contrary to castlepng_dynamic.inc, that is only for dynamic linking.
-  Advantage of castlepng_dynamic.inc approach is that you can specify
+  Contrary to castleinternalpng_dynamic.inc, that is only for dynamic linking.
+  Advantage of castleinternalpng_dynamic.inc approach is that you can specify
   alternative names for png library file.
-
-  @exclude This unit not ready for PasDoc, with many comments from
-  original C headers.
 }
 
 {$ifndef NO_SMART_LINK}
 {$smartlink on}
 {$endif}
-unit CastlePng;
 
 interface
 
@@ -224,8 +220,8 @@ const
   PNG_FILTER_HEURISTIC_WEIGHTED = 2  { Experimental feature };
   PNG_FILTER_HEURISTIC_LAST = 3  { Not a valid value };
 
-  { For compatibility with castlepng_dynamic.inc . This is always available. }
-  CastlePngInited = true;
+  { For compatibility with castleinternalpng_dynamic.inc . This is always available. }
+  CastlePngInitialized = true;
 
 type
    time_t = longint;

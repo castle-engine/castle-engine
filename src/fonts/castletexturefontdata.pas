@@ -76,7 +76,9 @@ type
       Providing charaters list as @nil means that we only create glyphs
       for SimpleAsciiCharacters, which includes only the basic ASCII characters.
       The ACharacters instance @italic(does not) become owned by this object,
-      so remember to free it after calling this constructor. }
+      so remember to free it after calling this constructor.
+
+      @raises EFreeTypeLibraryNotFound If the freetype library is not installed. }
     constructor Create(const URL: string;
       const ASize: Integer; const AnAntiAliased: boolean;
       ACharacters: TUnicodeCharList = nil);
@@ -129,7 +131,7 @@ type
 
 implementation
 
-uses SysUtils, {$ifdef HAS_FREE_TYPE} CastleFreeType, CastleFtFont, {$endif}
+uses SysUtils, {$ifdef HAS_FREE_TYPE} CastleInternalFreeType, CastleInternalFtFont, {$endif}
   CastleLog, CastleUtils, CastleURIUtils;
 
 { TTextureFontData.TGlyphDictionary ------------------------------------------ }
@@ -280,7 +282,7 @@ begin
   FSize := ASize;
   FAntiAliased := AnAntiAliased;
 
-  CastleFtFont.InitEngine;
+  CastleInternalFtFont.InitEngine;
   { By default TFontManager uses DefaultResolution that is OS-dependent
     and does not really have any good reasoninig?
     We set 0, letting FreeType library use good default,

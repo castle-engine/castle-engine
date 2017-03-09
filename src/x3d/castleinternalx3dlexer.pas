@@ -14,7 +14,7 @@
 }
 
 { VRML/X3D classic lexer (TX3DLexer). }
-unit X3DLexer;
+unit CastleInternalX3DLexer;
 
 {$I castleconf.inc}
 

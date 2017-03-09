@@ -174,15 +174,15 @@
     This is used when neither CASTLE_PNG_USING_FCL_IMAGE
     nor CASTLE_PNG_STATIC are defined.
 
-  - If CASTLE_PNG_STATIC is defined, we use a different version of CastlePng
-    unit that allows static linking to png, see castlepng_static.inc.
+  - If CASTLE_PNG_STATIC is defined, we use a different version of CastleInternalPng
+    unit that allows static linking to png, see castleinternalpng_static.inc.
 }
 
 {$define CASTLE_PNG_USING_FCL_IMAGE}
 // {$ifdef iOS} {$define CASTLE_PNG_USING_FCL_IMAGE} {$endif}
 // {$ifdef ANDROID} {$define CASTLE_PNG_USING_FCL_IMAGE} {$endif}
 
-{ Below is relevant only if we use dynamic PNG library (castlepng_dynamic.inc).
+{ Below is relevant only if we use dynamic PNG library (castleinternalpng_dynamic.inc).
   Determines calling convention of libpng functions and callbacks:
   LIBPNG_STDCALL or LIBPNG_CDECL. The standard is to just define LIBPNG_CDECL,
   also for Windows: normal Windows dlls of libpng use cdecl, just like Unix. }

@@ -20,7 +20,7 @@
 
   @exclude Not ready for PasDoc. Also, internal for the engine.
 }
-unit CastleNPAPI;
+unit CastleInternalNPAPI;
 
 {$I castleconf.inc}
 

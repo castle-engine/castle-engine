@@ -1,6 +1,6 @@
 { Copied to Castle Game Engine from FPC RTL (FPC RTL uses the same license
   as Castle Game Engine, so no problem).
-  Adjusted to use CastleFreeType and CastleFreeTypeH.
+  Adjusted to use CastleInternalFreeType and CastleInternalFreeTypeH.
 }
 {
     This file is part of the Free Pascal run time library.
@@ -25,14 +25,14 @@
 
  **********************************************************************}
 { @exclude Not ready for PasDoc. }
-unit CastleFtFont;
+unit CastleInternalFtFont;
 
 {$I castleconf.inc}
 
 interface
 
 uses SysUtils, Classes, FPCanvas, fpimgcmn,
-  CastleFreeType, CastleFreeTypeH, CastleUtils;
+  CastleInternalFreeType, CastleInternalFreeTypeH, CastleUtils;
 
 type
 
@@ -76,6 +76,7 @@ type
 var
   FontMgr : TFontManager;
 
+{ @raises EFreeTypeLibraryNotFound }
 procedure InitEngine;
 procedure DoneEngine;
 

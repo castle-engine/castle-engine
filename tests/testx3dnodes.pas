@@ -31,7 +31,7 @@ type
 
     { This is really large test that reads and writes various VRML files
       and checks whether the generated VRML file is the same.
-      It checks "the same" by comparing sequence of X3DLexer
+      It checks "the same" by comparing sequence of X3D lexer
       tokens for them.
 
       Note that this is not guaranteed to pass for every file,
@@ -96,7 +96,7 @@ type
 
 implementation
 
-uses CastleUtils, X3DLexer, CastleClassUtils, CastleFilesUtils, X3DFields,
+uses CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils, X3DFields,
   CastleTimeUtils, FGL, CastleDownload, X3DLoad, CastleApplicationProperties;
 
 { TNode* ------------------------------------------------------------ }
@@ -1463,7 +1463,7 @@ var
 begin
   BS := TBufferedReadStream.Create(Stream, false);
   try
-    Result := LoadX3DClassic(BS , '');
+    Result := LoadX3DClassicInternal(BS , '');
   finally FreeAndNil(BS) end;
 end;
 

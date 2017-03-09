@@ -1,5 +1,5 @@
 { OggVorbis decoder. }
-unit CastleVorbisDecoder;
+unit CastleInternalVorbisDecoder;
 
 {$I castleconf.inc}
 
@@ -14,7 +14,7 @@ type
 { OggVorbis decoder using vorbisfile library and working on
   ObjectPascal TStream objects.
 
-  This checks VorbisFileInited at the beginning, so you don't have to
+  This checks VorbisFileInitialized at the beginning, so you don't have to
   worry about it.
 
   Note: this only uses some constants from OpenAL unit. It doesn't
@@ -27,9 +27,9 @@ function VorbisDecode(Stream: TStream; out DataFormat: TALuint;
 
 implementation
 
-uses CastleUtils, CastleVorbisFile, CastleVorbisCodec, CTypes;
+uses CastleUtils, CastleInternalVorbisFile, CastleinternalvorbisCodec, CTypes;
 
-{$I vorbisfile_conf.inc}
+{$I castleinternalvorbisfile_conf.inc}
 
 { VorbisDecoder_ callbacks code based on Noeska code from
   [http://www.noeska.com/doal/tutorials.aspx].
@@ -38,13 +38,13 @@ uses CastleUtils, CastleVorbisFile, CastleVorbisCodec, CTypes;
   Size) in read_func and whence in seek_func, close does nothing),
   but still the idea remains.
 
-  I made my own CastleVorbisFile header, and later realized that actually
+  I made my own CastleInternalVorbisFile header, and later realized that actually
   someone already did something similar...
   But from the first glance, JEDI VorbisFile
   header shows some problems --- as usual, the JEDI guys don't have a clue
-  about FPC or any OS that isn't Windows. Besides, my CastleVorbisFile will not
+  about FPC or any OS that isn't Windows. Besides, my CastleInternalVorbisFile will not
   cause exception at initialization if vorbisfile will not be installled ---
-  this is crucial for me. So I will continue using my own CastleVorbisFile unit. }
+  this is crucial for me. So I will continue using my own CastleInternalVorbisFile unit. }
 
 function VorbisDecoder_read_func(ptr: Pointer;
   Size: TSizeT; nmemb: TSizeT; DataSource: Pointer): TSizeT; libvorbisfile_decl;
@@ -149,7 +149,7 @@ var
   Buffer: Pointer;
   BitStream: CInt;
 begin
-  if not VorbisFileInited then
+  if not VorbisFileInitialized then
     raise EVorbisLoadError.Create('vorbisfile library is not available, ' +
       'cannot decode OggVorbis file');
 

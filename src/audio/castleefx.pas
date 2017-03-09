@@ -38,7 +38,7 @@ uses CastleVectors, CastleOpenAL, Math;
   for given OpenAL device. If true, it will also initialize the entry
   points of all EFX functions in this unit.
 
-  Note that if even OpenAL is not avaiable (ALInited = @false), then this
+  Note that if even OpenAL is not avaiable (ALInitialized = @false), then this
   will also always return @false. }
 function Load_EFX(Device: PALCDevice): boolean;
 
@@ -46,7 +46,7 @@ implementation
 
 function Load_EFX(Device: PALCDevice): boolean;
 begin
-  Result := ALInited and alcIsExtensionPresent(Device, ALC_EXT_EFX_NAME);
+  Result := ALInitialized and alcIsExtensionPresent(Device, ALC_EXT_EFX_NAME);
 
   if Result then
   begin

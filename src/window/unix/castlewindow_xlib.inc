@@ -25,7 +25,7 @@
 {$endif}
 
 {$ifdef read_interface_uses}
-Xlib, CastleXlib, XUtil, X, KeySym, CursorFont,
+Xlib, CastleInternalXlib, XUtil, X, KeySym, CursorFont,
 {$endif}
 
 {$ifdef read_window_interface}

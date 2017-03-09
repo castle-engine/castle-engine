@@ -38,7 +38,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="6" Minor="1"/>
-    <Files Count="14">
+    <Files Count="12">
       <Item1>
         <Filename Value="../src/base/castleconf.inc"/>
         <Type Value="Include"/>
@@ -67,11 +67,6 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <Filename Value="../src/window/castlewindowrecentfiles.pas"/>
         <UnitName Value="CastleWindowRecentFiles"/>
       </Item7>
-      <Item8>
-        <Filename Value="../src/window/unix/castleglx.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleGlx"/>
-      </Item8>
       <Item9>
         <Filename Value="../src/window/unix/castlewindow_xf86vmode.inc"/>
         <Type Value="Include"/>
@@ -80,24 +75,19 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <Filename Value="../src/window/unix/castlewindow_xlib.inc"/>
         <Type Value="Include"/>
       </Item10>
-      <Item11>
-        <Filename Value="../src/window/unix/castlexf86vmode.pas"/>
-        <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleXF86VMode"/>
-      </Item11>
       <Item12>
-        <Filename Value="../src/window/unix/castlexlib.pas"/>
+        <Filename Value="../src/window/unix/castleinternalxlib.pas"/>
         <AddToUsesPkgSection Value="False"/>
-        <UnitName Value="CastleXlib"/>
+        <UnitName Value="CastleInternalXlib"/>
       </Item12>
-      <Item13>
+      <Item11>
         <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
         <Type Value="Include"/>
-      </Item13>
-      <Item14>
+      </Item11>
+      <Item8>
         <Filename Value="../src/window/castlewindow_lcl.inc"/>
         <Type Value="Include"/>
-      </Item14>
+      </Item8>
     </Files>
     <RequiredPkgs Count="3">
       <Item1>

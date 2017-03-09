@@ -27,7 +27,7 @@
   In finalization of this unit we set back previous error handler.
 }
 
-unit CastleXlib;
+unit CastleInternalXlib;
 
 {$I castleconf.inc}
 

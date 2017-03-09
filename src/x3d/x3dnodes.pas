@@ -31,7 +31,7 @@
   @unorderedList(
     @item(Nodes can be loaded or saved from the stream in a classic or
       XML encoding.
-      For classic encoding we use a lexer in X3DLexer unit.
+      For classic encoding we use a lexer in CastleInternalX3DLexer unit.
       For XML encoding, we use standard FPC DOM unit.
       Loading and saving of fields (in both encodings) is inside X3DFields unit.
 
@@ -173,7 +173,7 @@ unit X3DNodes;
 interface
 
 uses SysUtils, FGL, Classes, XMLRead, DOM,
-  CastleVectors, X3DLexer, CastleUtils, CastleClassUtils,
+  CastleVectors, CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors,
   CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleInternalOctree, CastleCompositeImage,
@@ -1872,8 +1872,8 @@ type
     procedure Bind(const InlineName: string; Exported: TX3DNodeNames);
   end;
 
-  TX3DVersion = X3DLexer.TX3DVersion;
-  TX3DEncoding = X3DLexer.TX3DEncoding;
+  TX3DVersion = CastleInternalX3DLexer.TX3DVersion;
+  TX3DEncoding = CastleInternalX3DLexer.TX3DEncoding;
 
   {$I x3dnodes_load.inc}
 
@@ -1959,10 +1959,15 @@ var
     in this unit's initialization / finalization. }
   NodesManager: TNodesManager;
 
-  { Should be make a warning (using WritelnWarning) when loading data from
-    an URI with absolute path. This is quite useful if you want to
-    be able to move/copy the files to some other system/location,
-    as absolute paths prevent it. }
+  { Should we emit a warning when loading data from
+    an URI with an absolute filename, like @code(file:///c:/blah/myimage.png).
+    The warning is emitted using WritelnWarning.
+    This is quite useful, as usually you want to avoid using such URIs,
+    as they will probably not work on any other system than your own
+    (and they prevent you from easily moving the files to some other system/location).
+
+    In your data (X3D, VRML, Collada, OBJ materials...),
+    you should always use relative paths. }
   WarnAboutAbsoluteFilenames: boolean = true;
 
 { global procedures ---------------------------------------------------------- }
@@ -2072,8 +2077,8 @@ const
   { Latest X3D version supported. }
   X3DVersion: TX3DVersion = (Major: 3; Minor: 2);
 
-  xeClassic = X3DLexer.xeClassic;
-  xeXML = X3DLexer.xeXML;
+  xeClassic = CastleInternalX3DLexer.xeClassic;
+  xeXML = CastleInternalX3DLexer.xeXML;
 
 const
   { Minimal values for
@@ -2211,7 +2216,7 @@ uses
   CastleTextureFont_DjvSerifBI_20,
   {$endif CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
 
-  Math, X3DLoad, CastleZStream, X3DCameraUtils,
+  Math, X3DLoad, CastleInternalZStream, X3DCameraUtils,
   CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode,
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument;
