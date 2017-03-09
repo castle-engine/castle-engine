@@ -562,13 +562,13 @@ function TDOMElementHelper.AttributeString(const AttrName: string; var Value: st
 var
   AttrNode: TDOMNode;
 begin
-  AttrNode := Attributes.GetNamedItem(AttrName);
+  AttrNode := Attributes.GetNamedItem(UTF8decode(AttrName));
   Result := AttrNode <> nil;
   if Result then
   begin
     Check(AttrNode.NodeType = ATTRIBUTE_NODE,
       'All element attributes must have ATTRIBUTE_NODE');
-    Value := (AttrNode as TDOMAttr).Value;
+    Value := UTF8Encode((AttrNode as TDOMAttr).Value);
   end;
 end;
 
@@ -836,32 +836,32 @@ end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: string);
 begin
-  SetAttribute(AttrName, Value);
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(Value));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: boolean);
 begin
-  SetAttribute(AttrName, SysUtils.BoolToStr(Value, true));
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(SysUtils.BoolToStr(Value, true)));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Integer);
 begin
-  SetAttribute(AttrName, IntToStr(Value));
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Int64);
 begin
-  SetAttribute(AttrName, IntToStr(Value));
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Cardinal);
 begin
-  SetAttribute(AttrName, IntToStr(Value));
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(IntToStr(Value)));
 end;
 
 procedure TDOMElementHelper.AttributeSet(const AttrName: string; const Value: Single);
 begin
-  SetAttribute(AttrName, FloatToStr(Value));
+  SetAttribute(UTF8Decode(AttrName), UTF8Decode(FloatToStr(Value)));
 end;
 
 { ------------------------------------------------------------------------
@@ -881,7 +881,7 @@ begin
   begin
     Node := Children.Item[I];
     if (Node.NodeType = ELEMENT_NODE) and
-       ((Node as TDOMElement).TagName = ChildName) then
+       ((Node as TDOMElement).TagName = UTF8Decode(ChildName)) then
     begin
       if Result = nil then
         Result := TDOMElement(Node) else
@@ -999,7 +999,7 @@ function TXMLElementFilteringIterator.GetNext: boolean;
 begin
   repeat
     Result := inherited GetNext;
-  until (not Result) or (Current.TagName = FTagName);
+  until (not Result) or (UTF8Encode(Current.TagName) = FTagName);
 end;
 
 { TXMLCDataIterator -------------------------------------------------------- }
@@ -1033,7 +1033,7 @@ begin
       if ChildNode.NodeType = CDATA_SECTION_NODE then
       begin
         Result := true;
-        FCurrent := (ChildNode as TDOMCDataSection).Data;
+        FCurrent := UTF8Encode((ChildNode as TDOMCDataSection).Data);
         Break;
       end;
     end;
@@ -1116,7 +1116,7 @@ end;
 function DOMGetTextChild(const Element: TDOMElement;
   const ChildName: string): string;
 begin
-  Result := Element.ChildElement(ChildName).TextData;
+  Result := UTF8Encode(Element.ChildElement(ChildName).TextData);
 end;
 
 procedure FreeChildNodes(const ChildNodes: TDOMNodeList);

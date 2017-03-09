@@ -45,7 +45,7 @@ procedure ReadMaterial(MatElement: TDOMElement);
       WritelnWarning('Collada', 'Expected <param> with type "float3"');
       Result := ZeroVector3Single;
     end else
-       Result := Vector3SingleFromStr(Element.TextData);
+       Result := Vector3SingleFromStr(UTF8Encode(Element.TextData));
    end;
 
    function ReadParamAsFloat(Element: TDOMElement): Float;
@@ -62,7 +62,7 @@ procedure ReadMaterial(MatElement: TDOMElement);
        WritelnWarning('Collada', 'Expected <param> with type "float"');
        Result := 0;
      end else
-       Result := StrToFloat(Element.TextData);
+       Result := StrToFloat(UTF8Encode(Element.TextData));
   end;
 
 var

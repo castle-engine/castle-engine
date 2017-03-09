@@ -96,7 +96,7 @@ begin
       end else
       if I.Current.TagName = 'rotate' then
       begin
-        V4 := Vector4SingleFromStr(I.Current.TextData);
+        V4 := Vector4SingleFromStr(UTF8Encode(I.Current.TextData));
         if V4[3] <> 0.0 then
         begin
           NestedTransform.FdRotation.ValueDeg := V4;
@@ -104,7 +104,7 @@ begin
       end else
       if I.Current.TagName = 'scale' then
       begin
-        V3 := Vector3SingleFromStr(I.Current.TextData);
+        V3 := Vector3SingleFromStr(UTF8Encode(I.Current.TextData));
         if not VectorsPerfectlyEqual(V3, Vector3Single(1, 1, 1)) then
         begin
           NestedTransform.FdScale.Value := V3;
@@ -120,7 +120,7 @@ begin
       end else
       if I.Current.TagName = 'translate' then
       begin
-        V3 := Vector3SingleFromStr(I.Current.TextData);
+        V3 := Vector3SingleFromStr(UTF8Encode(I.Current.TextData));
         if not VectorsPerfectlyEqual(V3, ZeroVector3Single) then
         begin
           NestedTransform.FdTranslation.Value := V3;
