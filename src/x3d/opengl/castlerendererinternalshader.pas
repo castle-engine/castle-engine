@@ -2261,11 +2261,14 @@ var
   end;
 
   procedure EnableShaderMaterialFromColor;
+  const
+    PlugLightingApply =
+      'void PLUG_lighting_apply(inout vec4 fragment_color, const vec4 vertex_eye, const vec3 normal_eye_fragment)' +NL+
+      '{' +NL+
+      '  fragment_color.a = gl_Color.a;' +NL+
+      '}' +NL;
   begin
-    { check EnabledLights, to avoid warnings that plug
-      "material_light_diffuse" is not defined on unlit stuff,
-      testcase: castle-game/data/levels/gate/gate_final.x3dv }
-    if EnabledLights and MaterialFromColor then
+    if MaterialFromColor then
     begin
       {$ifndef OpenGLES}
       Plug(stVertex,
@@ -2277,43 +2280,57 @@ var
 
       Plug(stGeometry, GeometryShaderPassColors);
 
-        { Sidenote: What happens without this? That is, what's in OpenGL
-          gl_Front/BackLightProducts (used by normal shader code) when
-          glEnable(GL_COLOR_MATERIAL) was called
-          --- the value from glMaterial call, or the value from glColor
-          (or color array)? IOW, is glEnable(GL_COLOR_MATERIAL) automatically
-          already applied for shader uniforms?
+      { What happens without the PLUG_material_light_diffuse below?
+        That is, what's in OpenGL gl_Front/BackLightProducts
+        (used by normal shader code) when glEnable(GL_COLOR_MATERIAL) was called
+        --- the value from glMaterial call, or the value from glColor
+        (or color array)? IOW, is glEnable(GL_COLOR_MATERIAL) automatically
+        already applied for shader uniforms?
 
-          Looks like it's undefined:
-          - NVidia GeForce 450 GTS (kocury) behaves like an undefined
-            color (from some previous shape) leaked on the current shape.
+        Looks like it's undefined:
+        - NVidia GeForce 450 GTS (kocury) behaves like an undefined
+          color (from some previous shape) leaked on the current shape.
 
-            (Although for MaterialFromColor, we always have lit shape,
-            with set glMaterial, and set glColor (or color array).
-            Although we set glColor (or color array) after enabling
-            GL_COLOR_MATERIAL, which means material color is undefined
-            for a short time, but it's always defined before actual glDraw*
-            call.)
+          (Although for MaterialFromColor, we always have lit shape,
+          with set glMaterial, and set glColor (or color array).
+          Although we set glColor (or color array) after enabling
+          GL_COLOR_MATERIAL, which means material color is undefined
+          for a short time, but it's always defined before actual glDraw*
+          call.)
 
-            Looks like NVidia just doesn't know (like me :) what to put
-            inside uniform gl_Front/BackLightProducts, so it just doesn't
-            change it at all.
+          Looks like NVidia just doesn't know (like me :) what to put
+          inside uniform gl_Front/BackLightProducts, so it just doesn't
+          change it at all.
 
-          - Radeon X1600 (fglrx, chantal) behaves like GL_COLOR_MATERIAL
-            doesn't affect shader. gl_Front/BackLightProducts contain
-            (it seems) values from glMaterial (multiplied by light),
-            never glColor. }
+        - Radeon X1600 (fglrx, chantal) behaves like GL_COLOR_MATERIAL
+          doesn't affect shader. gl_Front/BackLightProducts contain
+          (it seems) values from glMaterial (multiplied by light),
+          never glColor. }
 
-      Plug(stFragment,
-        'void PLUG_material_light_diffuse(inout vec4 diffuse, const in vec4 vertex_eye, const in vec3 normal_eye, ' + GLSLConstStruct + ' in gl_LightSourceParameters light_source, ' + GLSLConstStruct + ' in gl_MaterialParameters material)' +NL+
-        '{' +NL+
-        '  diffuse = light_source.diffuse * gl_Color;' +NL+
-        '}' +NL+
-        NL+
-        'void PLUG_lighting_apply(inout vec4 fragment_color, const vec4 vertex_eye, const vec3 normal_eye_fragment)' +NL+
-        '{' +NL+
-        '  fragment_color.a = gl_Color.a;' +NL+
-        '}');
+      { Check EnabledLights, to avoid warnings that plug
+        "material_light_diffuse" is not defined on unlit stuff,
+        testcase: castle-game/data/levels/gate/gate_final.x3dv .
+
+        Note that the rest of the logic (PlugLightingApply and PLUG_vertex_eye_space
+        above) is still sensible, regardless of EnabledLights,
+        and should be done always.
+        Although in the unlit mode (LIT undefined), the analogous
+        gl_Color assignments happen anyway.
+        But when when we're in lit mode (LIT defined) and EnabledLights = false
+        (so, lighting=on but we have zero lights), this is necessary,
+        otherwise the alphas from ColorRGBA are not applied on
+        the final fragment alpha.
+      }
+      if EnabledLights then
+        Plug(stFragment,
+          'void PLUG_material_light_diffuse(inout vec4 diffuse, const in vec4 vertex_eye, const in vec3 normal_eye, ' + GLSLConstStruct + ' in gl_LightSourceParameters light_source, ' + GLSLConstStruct + ' in gl_MaterialParameters material)' +NL+
+          '{' +NL+
+          '  diffuse = light_source.diffuse * gl_Color;' +NL+
+          '}' +NL+
+          NL +
+          PlugLightingApply)
+      else
+        Plug(stFragment, PlugLightingApply);
       {$else}
       { Do not add it to all Source[stVertex], as then GLSL compilers
         may say "COLOR_PER_VERTEX macro redefinition". }
