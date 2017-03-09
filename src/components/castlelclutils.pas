@@ -114,7 +114,7 @@ function ColorToVector3Byte(const Color: TColor): TVector3Byte;
 
 implementation
 
-uses SysUtils, LazUTF8, FileUtil, LCLType, LCLProc,
+uses SysUtils, FileUtil, LazUTF8, LCLType, LCLProc,
   CastleClassUtils, CastleStringUtils, CastleURIUtils, CastleLog;
 
 procedure FileFiltersToDialog(const FileFilters: string;
