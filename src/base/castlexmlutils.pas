@@ -541,9 +541,9 @@ procedure FreeChildNodes(const ChildNodes: TDOMNodeList);
 { Replacements for standard ReadXMLFile and WriteXMLFile that operate on URLs.
   Optionally they can encrypt / decrypt content using BlowFish.
   @groupBegin }
-procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
+procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const Options: TStreamOptions = []);
 procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
-function URLReadXML(const URL: String): TXMLDocument;
+function URLReadXML(const URL: String; const Options: TStreamOptions = []): TXMLDocument;
 function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument;
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const Options: TSaveStreamOptions = []);
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
@@ -1154,22 +1154,22 @@ begin
   finally FreeAndNil(Stream) end;
 end;
 
-procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
+procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const Options: TStreamOptions = []);
 var
   Stream: TStream;
 begin
   Doc := nil; // clean "out" param at start, just like ReadXMLFile
-  Stream := Download(URL, []);
+  Stream := Download(URL, Options);
   try
     ReadXMLFile(Doc, Stream);
   finally FreeAndNil(Stream) end;
 end;
 
-function URLReadXML(const URL: String): TXMLDocument;
+function URLReadXML(const URL: String; const Options: TStreamOptions = []): TXMLDocument;
 begin
   try
     // URLReadXML and ReadXMLFile nil the parameter when there's no need to free it
-    URLReadXML(Result, URL);
+    URLReadXML(Result, URL, Options);
   except FreeAndNil(Result); raise; end;
 end;
 
