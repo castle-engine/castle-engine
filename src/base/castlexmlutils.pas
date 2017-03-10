@@ -408,7 +408,7 @@ type
   { Iterate over children elements of given XML element, that have matching TagName. }
   TXMLElementFilteringIterator = class(TXMLElementIterator)
   private
-    FTagName: string;
+    FTagName: DOMString;
   public
     constructor Create(ParentElement: TDOMElement; const TagName: string);
     function GetNext: boolean; override;
@@ -992,14 +992,14 @@ end;
 constructor TXMLElementFilteringIterator.Create(ParentElement: TDOMElement; const TagName: string);
 begin
   inherited Create(ParentElement);
-  FTagName := TagName;
+  FTagName := UTF8Decode(TagName);
 end;
 
 function TXMLElementFilteringIterator.GetNext: boolean;
 begin
   repeat
     Result := inherited GetNext;
-  until (not Result) or (UTF8Encode(Current.TagName) = FTagName);
+  until (not Result) or (Current.TagName = FTagName);
 end;
 
 { TXMLCDataIterator -------------------------------------------------------- }
